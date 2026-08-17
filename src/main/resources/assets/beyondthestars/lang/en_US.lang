@@ -3,3 +3,5 @@ item.beyondthestars.uraniumFuelPellet.name=Fuel Pellet (Uranium)
 item.beyondthestars.fuelRodUranium.name=Fuel Rod (Uranium)
 item.beyondthestars.fuelAssemblyUranium.name=Fuel Assembly (Uranium)
 tile.beyondthestars.reactorFuelColumn.name=Reactor Fuel Column
+GT5U.gui.text.shutdown_reason.beyondthestars.scram=SCRAM: core overheat — re-enable the reactor to restart
+

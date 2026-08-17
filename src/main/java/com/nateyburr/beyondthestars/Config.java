@@ -20,8 +20,9 @@ public class Config {
             Configuration.CATEGORY_GENERAL,
             28100,
             1,
-            65000,
-            "Base MetaTileEntity ID for Beyond the Stars machines. Change only on ID collision.");
+            32765,
+            "Base MetaTileEntity ID for Beyond the Stars machines (GT's registry caps at 32765)."
+                + " Change only on ID collision.");
 
         genICampaignMinutes = configuration.getInt(
             "genICampaignMinutes",

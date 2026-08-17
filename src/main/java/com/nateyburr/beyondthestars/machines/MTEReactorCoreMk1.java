@@ -49,6 +49,8 @@ import gregtech.api.structure.error.StructureError;
 import gregtech.api.util.GTModHandler;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.MultiblockTooltipBuilder;
+import gregtech.api.util.shutdown.ShutDownReason;
+import gregtech.api.util.shutdown.SimpleShutDownReason;
 
 /**
  * Reactor Core (Gen I) of the Nuclear Campus. 5x5x5 radiation-proof shell around a 3x3x3
@@ -66,6 +68,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     private static final int HEAT_SCRAM = 10_000;
     private static final int HEAT_PER_STARVED_TICK = 4;
     private static final int HEAT_DECAY_PER_TICK = 2;
+    private static final ShutDownReason SCRAM_REASON = SimpleShutDownReason.ofCritical("beyondthestars.scram");
 
     private static IStructureDefinition<MTEReactorCoreMk1> STRUCTURE_DEFINITION = null;
 
@@ -142,6 +145,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     public CheckRecipeResult checkProcessing() {
         int columns = fuelSegments / 3;
         if (columns <= 0) {
+            clearCampaign();
             return CheckRecipeResultRegistry.NO_RECIPE;
         }
 
@@ -151,8 +155,22 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             n = Math.min(24, circuit.getItemDamage());
         }
 
-        if (!depleteInput(new ItemStack(BTSItems.fuelAssemblyUranium, columns))) {
+        // depleteInput(stack) only consumes from a single slot holding the full amount, so count
+        // across all buses first, then deplete one assembly at a time.
+        final ItemStack oneAssembly = new ItemStack(BTSItems.fuelAssemblyUranium, 1);
+        int available = 0;
+        for (ItemStack stack : getStoredInputs()) {
+            if (GTUtility.areStacksEqual(oneAssembly, stack)) {
+                available += stack.stackSize;
+                if (available >= columns) break;
+            }
+        }
+        if (available < columns) {
+            clearCampaign();
             return CheckRecipeResultRegistry.NO_RECIPE;
+        }
+        for (int i = 0; i < columns; i++) {
+            depleteInput(oneAssembly);
         }
         updateSlots();
 
@@ -187,13 +205,22 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return true;
     }
 
+    private void clearCampaign() {
+        steamPerTick = 0;
+        activeColumns = 0;
+    }
+
     /** Campaign lost, machine disabled until the operator re-enables it. Heat then decays. */
     private void scram() {
-        this.mMaxProgresstime = 0;
-        this.mProgresstime = 0;
-        this.steamPerTick = 0;
-        this.activeColumns = 0;
+        clearCampaign();
+        stopMachine(SCRAM_REASON);
         getBaseMetaTileEntity().disableWorking();
+    }
+
+    @Override
+    public void stopMachine(@Nonnull ShutDownReason reason) {
+        clearCampaign();
+        super.stopMachine(reason);
     }
 
     @Override
