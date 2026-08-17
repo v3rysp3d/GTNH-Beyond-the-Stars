@@ -305,7 +305,7 @@ public class MTEModuleTurbineHall extends MTEPlantModuleBase implements ISurviva
             .addInfo("Naquadah Propellant Mk I/II/III: x2/x3/x10 - blowout on non-TDA fans, seizure on starvation.")
             .addInfo("Undocked, this building is inert.")
             .beginStructureBlock(5, 4, 9, true)
-            .addController("Front center, docked in the silo wall")
+            .addController("Front center, standing on a silo dock pad (face away from the silo)")
             .addCasingInfoRange("Clean Stainless Steel Machine Casing (walls/roof)", 60, 75, false)
             .addCasingInfoRange("Tungstensteel Turbine Casing (plinth)", 37, 45, false)
             .addCasingInfoExactly("Steel Pipe Casing (shaft)", 14, false)

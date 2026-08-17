@@ -65,8 +65,9 @@ import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
 
 /**
  * The Reactor Silo - the Unit One MAIN controller (Space Elevator architecture). The silo is
- * the only mandatory structure; plant buildings are MODULE MACHINES whose controllers dock
- * into the silo wall (accepted like hatches) and only function while connected. Docked
+ * the only mandatory structure and stands on a concrete foundation apron with eight steel DOCK
+ * PADS at the compass points; plant buildings are MODULE MACHINES whose controllers stand on
+ * those pads (accepted like hatches) and only function while connected. Docked
  * modules: Turbine Hall (steam -> EU with fan/coolant/propellant multipliers), Cooling Towers
  * (condensate return, faster heat decay). Fuel ladder, throttle, waste water, and the
  * SCRAM/decay-heat/meltdown model are unchanged. Numbers per docs/reactor-gen1.md and
@@ -231,21 +232,25 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return tier >= 3 ? 'I' : 'B';
     }
 
-    /** Grid is padded one cell on every side so the buttress ribs fit outside the octagon. */
-    private static String[] buildLayer(int tier, LayerKind kind, boolean ribs) {
+    /** Grid padding on every side: 1 for ribs plus 2 of walk-around foundation apron. */
+    private static final int PAD = 3;
+
+    /** Grid is padded so ribs and the concrete foundation apron fit outside the octagon. */
+    private static String[] buildLayer(int tier, LayerKind kind, boolean ribs, boolean docks) {
         final int n = edgeFor(tier);
         final int k = CUT[tier];
-        final int gridSize = n + 2;
+        final int gridSize = n + 2 * PAD;
         final char wall = kind == LayerKind.BAND ? 'G' : wallChar(tier);
         final char shield = shieldChar(tier);
         final String[] rows = new String[gridSize];
         for (int rr = 0; rr < gridSize; rr++) {
             final char[] row = new char[gridSize];
             for (int xx = 0; xx < gridSize; xx++) {
-                final int r = rr - 1;
-                final int x = xx - 1;
+                final int r = rr - PAD;
+                final int x = xx - PAD;
                 if (r < 0 || x < 0 || r >= n || x >= n || !insideOct(n, k, r, x)) {
-                    row[xx] = ' ';
+                    // Outside the silo proper: the floor layer becomes the foundation apron.
+                    row[xx] = kind == LayerKind.SHIELD ? 'O' : ' ';
                 } else if (kind == LayerKind.SHIELD) {
                     row[xx] = shield;
                 } else if (interiorCell(n, k, r, x)) {
@@ -257,18 +262,26 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             rows[rr] = new String(row);
         }
         if (ribs) {
-            addRibs(rows, tier);
+            addOutsideMarks(rows, tier, 1, wallChar(tier), true);
+        }
+        if (docks) {
+            addOutsideMarks(rows, tier, 2, 'K', false);
         }
         return rows;
     }
 
-    /** Seven buttress ribs, one block proud of the wall (front is left clear for the controller). */
-    private static void addRibs(String[] rows, int tier) {
+    /**
+     * Marks cells outside the octagon along the compass directions: distance 1 = buttress ribs
+     * (front skipped so the controller face stays clear), distance 2 = module dock pads.
+     */
+    private static void addOutsideMarks(String[] rows, int tier, int distance, char mark, boolean skipFront) {
         final int n = edgeFor(tier);
         final int k = CUT[tier];
         final int c = n / 2;
-        final int[][] dirs = { { 1, 0 }, { 0, 1 }, { 0, -1 }, { 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 } };
+        final int gridSize = n + 2 * PAD;
+        final int[][] dirs = { { -1, 0 }, { 1, 0 }, { 0, 1 }, { 0, -1 }, { 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 } };
         for (int[] d : dirs) {
+            if (skipFront && d[0] == -1 && d[1] == 0) continue;
             int r = c;
             int x = c;
             while (r + d[0] >= 0 && r + d[0] < n
@@ -278,12 +291,12 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 r += d[0];
                 x += d[1];
             }
-            final int rr = r + d[0] + 1;
-            final int xx = x + d[1] + 1;
-            if (rr >= 0 && rr < n + 2 && xx >= 0 && xx < n + 2) {
+            final int rr = r + d[0] * distance + PAD;
+            final int xx = x + d[1] * distance + PAD;
+            if (rr >= 0 && rr < gridSize && xx >= 0 && xx < gridSize) {
                 final char[] row = rows[rr].toCharArray();
                 if (row[xx] == ' ') {
-                    row[xx] = wallChar(tier);
+                    row[xx] = mark;
                     rows[rr] = new String(row);
                 }
             }
@@ -293,7 +306,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     /** Hemispherical shield dome shell ring at the given height above the wall top. */
     private static String[] domeLayer(int tier, int yAbove) {
         final int n = edgeFor(tier);
-        final int gridSize = n + 2;
+        final int gridSize = n + 2 * PAD;
         final double radius = n / 2.0;
         final double center = (n - 1) / 2.0;
         final double ringRadius = Math.sqrt(Math.max(0, radius * radius - (double) yAbove * yAbove));
@@ -303,8 +316,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         for (int rr = 0; rr < gridSize; rr++) {
             final char[] row = new char[gridSize];
             for (int xx = 0; xx < gridSize; xx++) {
-                final int r = rr - 1;
-                final int x = xx - 1;
+                final int r = rr - PAD;
+                final int x = xx - PAD;
                 if (r < 0 || x < 0 || r >= n || x >= n) {
                     row[xx] = ' ';
                 } else {
@@ -344,7 +357,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             } else {
                 kind = isBandLayer(tier, i) ? LayerKind.BAND : LayerKind.PLENUM;
             }
-            layers.add(buildLayer(tier, kind, i > 0));
+            layers.add(buildLayer(tier, kind, i > 0, i == 1));
         }
         return layers.toArray(new String[0][]);
     }
@@ -361,45 +374,38 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 .addElement('A', isAir())
                 .addElement(
                     'C',
-                    ofChain(
-                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(PlantModuleElement.PlantModule)
-                            .casingIndex(Casings.RadiationProofMachineCasing.textureId)
-                            .hint(2)
-                            .build(),
-                        buildHatchAdder(MTEReactorCoreMk1.class)
-                            .atLeast(InputHatch, OutputHatch, InputBus, OutputBus, Maintenance, Energy)
-                            .casingIndex(Casings.RadiationProofMachineCasing.textureId)
-                            .hint(1)
-                            .buildAndChain(
-                                onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement()))))
+                    buildHatchAdder(MTEReactorCoreMk1.class)
+                        .atLeast(InputHatch, OutputHatch, InputBus, OutputBus, Maintenance, Energy)
+                        .casingIndex(Casings.RadiationProofMachineCasing.textureId)
+                        .hint(1)
+                        .buildAndChain(
+                            onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())))
                 .addElement(
                     'D',
-                    ofChain(
-                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(PlantModuleElement.PlantModule)
-                            .casingIndex(Casings.EuropiumReinforcedRadiationProofMachineCasing.textureId)
-                            .hint(2)
-                            .build(),
-                        buildHatchAdder(MTEReactorCoreMk1.class)
-                            .atLeast(InputHatch, OutputHatch, InputBus, OutputBus, Maintenance, Energy)
-                            .casingIndex(Casings.EuropiumReinforcedRadiationProofMachineCasing.textureId)
-                            .hint(1)
-                            .buildAndChain(
-                                onElementPass(
-                                    x -> ++x.mCasing,
-                                    Casings.EuropiumReinforcedRadiationProofMachineCasing.asElement()))))
+                    buildHatchAdder(MTEReactorCoreMk1.class)
+                        .atLeast(InputHatch, OutputHatch, InputBus, OutputBus, Maintenance, Energy)
+                        .casingIndex(Casings.EuropiumReinforcedRadiationProofMachineCasing.textureId)
+                        .hint(1)
+                        .buildAndChain(
+                            onElementPass(
+                                x -> ++x.mCasing,
+                                Casings.EuropiumReinforcedRadiationProofMachineCasing.asElement())))
                 .addElement(
                     'E',
+                    buildHatchAdder(MTEReactorCoreMk1.class)
+                        .atLeast(InputHatch, OutputHatch, InputBus, OutputBus, Maintenance, Energy)
+                        .casingIndex(Casings.RadiantNaquadahAlloyCasing.textureId)
+                        .hint(1)
+                        .buildAndChain(onElementPass(x -> ++x.mCasing, Casings.RadiantNaquadahAlloyCasing.asElement())))
+                .addElement('O', ofBlock(GregTechAPI.sBlockConcretes, 8))
+                .addElement(
+                    'K',
                     ofChain(
                         buildHatchAdder(MTEReactorCoreMk1.class).atLeast(PlantModuleElement.PlantModule)
-                            .casingIndex(Casings.RadiantNaquadahAlloyCasing.textureId)
+                            .casingIndex(Casings.SolidSteelMachineCasing.textureId)
                             .hint(2)
                             .build(),
-                        buildHatchAdder(MTEReactorCoreMk1.class)
-                            .atLeast(InputHatch, OutputHatch, InputBus, OutputBus, Maintenance, Energy)
-                            .casingIndex(Casings.RadiantNaquadahAlloyCasing.textureId)
-                            .hint(1)
-                            .buildAndChain(
-                                onElementPass(x -> ++x.mCasing, Casings.RadiantNaquadahAlloyCasing.asElement()))))
+                        Casings.SolidSteelMachineCasing.asElement()))
                 .addElement('G', onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement()))
                 .addElement(
                     'F',
@@ -421,7 +427,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             mCasing = 0;
             fuelSegments = 0;
             final boolean smallest = t == 1;
-            if (checkPiece(pieceName(mName, t), edgeFor(t) / 2 + 1, ctrlVOff(t), 1, smallest ? errors : null)) {
+            if (checkPiece(pieceName(mName, t), edgeFor(t) / 2 + PAD, ctrlVOff(t), PAD, smallest ? errors : null)) {
                 reactorTier = t;
                 break;
             }
@@ -445,9 +451,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return survivalBuildPiece(
             pieceName(mName, t),
             stackSize,
-            edgeFor(t) / 2 + 1,
+            edgeFor(t) / 2 + PAD,
             ctrlVOff(t),
-            1,
+            PAD,
             elementBudget,
             env,
             false,
@@ -457,7 +463,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     @Override
     public void construct(ItemStack stackSize, boolean hintsOnly) {
         final int t = tierFromTrigger(stackSize);
-        buildPiece(pieceName(mName, t), stackSize, hintsOnly, edgeFor(t) / 2 + 1, ctrlVOff(t), 1);
+        buildPiece(pieceName(mName, t), stackSize, hintsOnly, edgeFor(t) / 2 + PAD, ctrlVOff(t), PAD);
     }
 
     // ------------------------------------------------------------------ campaign
@@ -870,15 +876,16 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             .addInfo("Shield floor/lid: Tungstensteel Reinforced (T1-2), Iridium Tungstensteel (T3+).")
             .addInfo("Mockup profile: ribbed walls twice the diameter tall, three radiation bands,")
             .addInfo("hemispherical shield dome; fuel section (columns 6 high) sits low in the silo.")
-            .addInfo("PLANT MODULES dock their controllers into any silo wall position:")
-            .addInfo("Turbine Hall (steam -> EU with fan/coolant/propellant), Cooling Towers (condensate")
-            .addInfo("return + faster heat decay, up to 2). Modules are inert while undocked.")
+            .addInfo("Foundation: a concrete apron surrounds the silo with 8 steel DOCK PADS at the")
+            .addInfo("compass points - place a PLANT MODULE controller on a pad (facing outward) and")
+            .addInfo("project its building there. Turbine Hall (steam -> EU with fan/coolant/propellant),")
+            .addInfo("Cooling Towers (condensate return + faster heat decay, up to 2). Undocked = inert.")
             .addInfo("No Turbine Hall docked: the silo exports Steam (or Hot Coolant when fed IC2 Coolant).")
             .addInfo("Fuel ladder: Uranium x1, MOX x2, Thorium-Bonded x5, Naquadah-Bonded x9.")
             .addInfo("Control rods: set 1-24 in the controller GUI; a programmed circuit overrides it.")
             .addInfo("Heat: SCRAM at 8,000; decay heat 20 min after shutdown; 10,000 = MELTDOWN")
             .addInfo("(vertical detonation + radiation field; hazmat counters; config toggles).")
-            .beginStructureBlock(19, 42, 19, true)
+            .beginStructureBlock(23, 42, 23, true)
             .addController("Silo wall, front center of the third fuel layer")
             .addCasingInfoRange("Tier wall casing incl. ribs (see above)", 400, 1700, false)
             .addCasingInfoRange("Radiation Proof Machine Casing (band rings)", 60, 150, false)
