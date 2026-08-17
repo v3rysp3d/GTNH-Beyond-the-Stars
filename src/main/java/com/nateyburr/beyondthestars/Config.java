@@ -6,8 +6,11 @@ import net.minecraftforge.common.config.Configuration;
 
 public class Config {
 
-    /** Base MetaTileEntity ID. 28100+ sits in a gap unused by GT5-Unofficial as of 5.09.54.93. */
+    /** Base MetaTileEntity ID. 28100+ sits in a gap unused by GT5-Unofficial as of 5.09.52.594. */
     public static int mteBaseId = 28100;
+
+    /** Length of one Gen I reactor fuel campaign, in real-time minutes. */
+    public static int genICampaignMinutes = 720;
 
     public static void synchronizeConfiguration(File configFile) {
         Configuration configuration = new Configuration(configFile);
@@ -19,6 +22,14 @@ public class Config {
             1,
             65000,
             "Base MetaTileEntity ID for Beyond the Stars machines. Change only on ID collision.");
+
+        genICampaignMinutes = configuration.getInt(
+            "genICampaignMinutes",
+            Configuration.CATEGORY_GENERAL,
+            720,
+            1,
+            20160,
+            "Real-time minutes one Gen I reactor fuel campaign lasts per fuel assembly load.");
 
         if (configuration.hasChanged()) {
             configuration.save();

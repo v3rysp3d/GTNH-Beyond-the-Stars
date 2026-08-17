@@ -1,2 +1,5 @@
 itemGroup.beyondthestars=Beyond the Stars
 item.beyondthestars.uraniumFuelPellet.name=Fuel Pellet (Uranium)
+item.beyondthestars.fuelRodUranium.name=Fuel Rod (Uranium)
+item.beyondthestars.fuelAssemblyUranium.name=Fuel Assembly (Uranium)
+tile.beyondthestars.reactorFuelColumn.name=Reactor Fuel Column

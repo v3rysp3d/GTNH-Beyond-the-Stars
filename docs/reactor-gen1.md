@@ -1,0 +1,35 @@
+# Reactor Core (Gen I) — v0.2 mechanics spec
+
+Target numbers come from the design plan's output formula (`EU/t = C x 8,192 x F x K x T x P`);
+Gen I is the C-scaling stage: uranium fuel (F=1), water/steam loop (K=1), generic turbine (T=1).
+
+## Structure (5x5x5)
+
+- Shell: Radiation Proof Machine Casings (GT5u `Casings.RadiationProofMachineCasing`), hatches
+  substitute anywhere in the shell. Controller: front center, middle layer.
+- Interior 3x3x3: each of the 9 interior column positions may hold a vertical stack of
+  3 **Reactor Fuel Column** blocks (full column) or be air. Structure check counts segments;
+  `columns = segments / 3` (floor). 0 columns = structure forms but reactor cannot start.
+
+## Operation
+
+- **Fuel:** starting a campaign consumes `columns` x 1 Fuel Assembly (Uranium) from an input
+  bus. Campaign length: 12 h real time (864,000 ticks). Fuel chain: 4x Pellet -> assembler ->
+  Fuel Rod; 3x Fuel Rod + steel casing-ish binder -> assembler -> Fuel Assembly.
+- **Throttle (control-rod insertion):** programmed circuit in the controller slot.
+  Circuit N (1..24) -> power fraction N/24. No circuit = full power. Read at campaign start.
+- **Output:** Steam only (Gen I is the water/steam loop stage).
+  `steam L/t = columns x 16,384 x throttle` (9 columns full = 147,456 L/t ~ 73,728 EU/t,
+  matching the plan's Gen I row). Water draw: `steam / 160` L/t (GT water->steam ratio),
+  rounded up, from input hatches.
+- **Heat (0..10,000):** +4/t while fueled but water-starved; -2/t otherwise (idle or watered).
+  At 10,000: SCRAM — campaign aborts (remaining fuel in that campaign is lost), machine shuts
+  off, heat then decays. Explosion + radiation (D-02) intentionally NOT in v0.2; SCRAM-only
+  until the vertical-detonation event is built.
+- **Info:** `getInfoData` / scanner shows columns, throttle, steam rate, heat.
+
+## Deliberately deferred
+
+- Gen II+ core expansion (7x7 etc.), coolant loop, bonded fuels, naq propellant, matched
+  turbines, Core Access Hatch AE2 rod rotation, waste water, meltdown/radiation events,
+  uptime/burnup milestones. One stage at a time; this file tracks only v0.2.

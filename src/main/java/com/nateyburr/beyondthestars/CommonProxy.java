@@ -1,5 +1,6 @@
 package com.nateyburr.beyondthestars;
 
+import com.nateyburr.beyondthestars.blocks.BTSBlocks;
 import com.nateyburr.beyondthestars.items.BTSItems;
 import com.nateyburr.beyondthestars.machines.BTSMachines;
 
@@ -14,6 +15,7 @@ public class CommonProxy {
         Config.synchronizeConfiguration(event.getSuggestedConfigurationFile());
 
         BTSItems.register();
+        BTSBlocks.register();
         // GT5U registers its own machines in its preInit; required-after:gregtech guarantees ours runs later.
         BTSMachines.register();
 
@@ -22,7 +24,10 @@ public class CommonProxy {
 
     public void init(FMLInitializationEvent event) {}
 
-    public void postInit(FMLPostInitializationEvent event) {}
+    public void postInit(FMLPostInitializationEvent event) {
+        // GT registers its own recipes in postInit; required-after:gregtech orders ours after.
+        BTSRecipes.register();
+    }
 
     public void serverStarting(FMLServerStartingEvent event) {}
 }
