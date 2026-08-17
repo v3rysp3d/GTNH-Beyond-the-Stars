@@ -19,4 +19,18 @@ GT5U.gui.text.shutdown_reason.beyondthestars.scram=SCRAM: core overheat — re-e
 GT5U.gui.text.shutdown_reason.beyondthestars.meltdown=MELTDOWN: core destroyed — the site is irradiated
 GT5U.gui.text.shutdown_reason.beyondthestars.blowout=BLOWOUT: propellant on a non-TDA fan destroyed the turbine
 GT5U.gui.text.shutdown_reason.beyondthestars.seizure=SEIZURE: propellant starvation destroyed the turbine fan
+beyondthestars.gui.silo=Silo Tier
+beyondthestars.gui.columns=Fuel columns:
+beyondthestars.gui.heat=Core heat:
+beyondthestars.gui.decay=Decay heat — cooling required:
+beyondthestars.gui.radiation=RADIATION FIELD:
+beyondthestars.gui.deck.absent=Addon — Turbine Deck: not built (exports Steam / Hot Coolant)
+beyondthestars.gui.deck.installed=Addon — Turbine Deck: installed
+beyondthestars.gui.fan.none=no fan — insert one in an input bus
+beyondthestars.gui.fan.matched=Matched Fan (x1.25)
+beyondthestars.gui.fan.tda=TDA Fan (x1.25, propellant-rated)
+beyondthestars.gui.fan.optimized=Optimized TDA Fan (x2.5)
+beyondthestars.gui.output.eu=Generating:
+beyondthestars.gui.output.steam=Steam output:
+beyondthestars.gui.throttle.tooltip=Control rods: campaign power = N/24. A programmed circuit in the controller overrides this.
 
