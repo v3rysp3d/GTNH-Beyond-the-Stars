@@ -272,21 +272,7 @@ public final class BTSRecipes {
             .eut(TierEU.RECIPE_UHV)
             .addTo(assemblerRecipes);
 
-        // Turbine Hall controller
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.TungstenSteel, 8L),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.IV, 2L),
-                GTOreDictUnificator.get(OrePrefixes.stickLong, Materials.TungstenSteel, 2L),
-                GTOreDictUnificator.get(OrePrefixes.plate, rhPdPalladium, 2L))
-            .circuit(4)
-            .fluidInputs(Materials.Platinum.getMolten(2 * INGOTS))
-            .itemOutputs(BTSMachines.turbineHall.copy())
-            .duration(45 * SECONDS)
-            .eut(TierEU.RECIPE_IV)
-            .addTo(assemblerRecipes);
-
-        // Radiation proof casing + IV circuits + rare metals -> Reactor Core (Gen I) controller
+        // Radiation proof casing + IV circuits + rare metals -> Reactor Silo controller
         GTValues.RA.stdBuilder()
             .itemInputs(
                 ItemList.Casing_RadiationProof.get(1L),

@@ -70,6 +70,24 @@ stage, and efficiency scales per the plan's output formula.
   Config toggles: `meltdownExplosions`, `radiationField`; GT's global
   `GregTechAPI.sMachineExplosions` kill-switch is honored.
 
+## v0.6 unified Reactor Silo (architecture ruling)
+
+ONE controller, silo-shaped, addon-based (replaces the separate Turbine Hall):
+
+- **Silo geometry:** octagonal cross-section (corners rounded, wider tiers rounder), 7 tall
+  core — shield floor, lower plenum, 3 fuel layers (controller front-center of the middle
+  one), upper plenum, containment lid. Five diameters: 5/7/9/11/13 wide; fuel column caps
+  9/25/45/77/109 (rounding costs the corners; naq-bonded F is x9 so the ceiling stays ~1B:
+  109 x 8,192 x 9 x 5 x 2.5 x 10 = 1,004,544,000 EU/t).
+- **Tier materials ("blocks get more expensive"):** walls T1-2 Radiation Proof, T3-4
+  Europium-Reinforced Radiation Proof, T5 Radiant Naquadah Alloy; shields T1-2 Tungstensteel
+  Reinforced, T3-5 Iridium Tungstensteel.
+- **Turbine Deck ADDON** (not a separate machine): built on the lid — two turbine-casing
+  layers with a steel-pipe shaft, dynamo hatches, dome cap. Detected as an optional
+  structure piece; the machine menu/scanner lists it under "Addon". With deck + a fan in an
+  input bus the silo generates EU directly (fan T, stocked-coolant K — coolant is a charge,
+  not consumed - propellant P, blowout/seizure). Without it: fluid export as before.
+
 ## v0.5 final-gen systems (full formula implemented)
 
 `EU/t = C x 8,192 x F x K x T x P` is now fully in-game:
