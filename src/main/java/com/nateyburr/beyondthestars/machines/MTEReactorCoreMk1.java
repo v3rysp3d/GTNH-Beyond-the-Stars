@@ -179,6 +179,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         activeColumns = columns;
         throttleN = n;
         steamPerTick = STEAM_PER_COLUMN * columns * n / 24;
+        // Spent fuel is delivered at campaign completion; a SCRAM forfeits it with the campaign.
+        this.mOutputItems = new ItemStack[] { new ItemStack(BTSItems.depletedFuelAssemblyUranium, columns) };
         this.mMaxProgresstime = Math.max(1, Config.genICampaignMinutes) * 60 * 20;
         this.mEfficiency = 10_000 - (getIdealStatus() - getRepairStatus()) * 1000;
         this.mEfficiencyIncrease = 10_000;
@@ -273,6 +275,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             .addInfo("Consumes 1 Fuel Assembly (Uranium) per column per campaign.")
             .addInfo("Outputs 16,384 L/t of Steam per column; drinks 1 L water per 160 L steam.")
             .addInfo("Programmed circuit in controller = control-rod throttle (N/24 power).")
+            .addInfo("Ejects one Depleted Fuel Assembly per column at campaign end - SCRAM forfeits them.")
             .addInfo("No water while fueled builds heat - at 10,000 the reactor SCRAMs:")
             .addInfo("the campaign is lost and the reactor stays down until re-enabled.")
             .beginStructureBlock(5, 5, 5, true)
@@ -284,6 +287,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             .addInputHatch("Any wall casing", 1)
             .addOutputHatch("Any wall casing", 1)
             .addInputBus("Any wall casing", 1)
+            .addOutputBus("Any wall casing", 1)
             .toolTipFinisher();
         return tt;
     }

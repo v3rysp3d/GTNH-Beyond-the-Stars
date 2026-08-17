@@ -18,6 +18,7 @@ public final class BTSItems {
     public static Item uraniumFuelPellet;
     public static Item fuelRodUranium;
     public static Item fuelAssemblyUranium;
+    public static Item depletedFuelAssemblyUranium;
 
     private BTSItems() {}
 
@@ -36,5 +37,10 @@ public final class BTSItems {
             .setTextureName("beyondthestars:fuelAssemblyUranium")
             .setCreativeTab(TAB);
         GameRegistry.registerItem(fuelAssemblyUranium, "fuelAssemblyUranium");
+
+        depletedFuelAssemblyUranium = new Item().setUnlocalizedName("beyondthestars.depletedFuelAssemblyUranium")
+            .setTextureName("beyondthestars:depletedFuelAssemblyUranium")
+            .setCreativeTab(TAB);
+        GameRegistry.registerItem(depletedFuelAssemblyUranium, "depletedFuelAssemblyUranium");
     }
 }

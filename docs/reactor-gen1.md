@@ -33,6 +33,23 @@ Gen I is the C-scaling stage: uranium fuel (F=1), water/steam loop (K=1), generi
   until the vertical-detonation event is built.
 - **Info:** `getInfoData` / scanner shows columns, throttle, steam rate, heat.
 
+## Fuel chain pricing (review ruling)
+
+Platinum-line based, "super realistic on costs": rods are platinum-clad (platinum is cheap at
+IV), assemblies take rhodium-plated palladium plates + iridium + molten platinum, and the
+controller demands IV circuits x4 plus tungstensteel/tungsten/iridium/RhPd spam. Campaigns
+eject one **Depleted Fuel Assembly** per column at completion (SCRAM forfeits them) - the
+reprocessing chain (-> breeder milestone) consumes these later, aligning with the pack's
+existing depleted-fuel convention.
+
+## Gen II+ upgrade pattern (from PCB Factory / Multi Solidifier study)
+
+GT5u's tiered multis register MULTIPLE `addShape` variants on one controller and use
+`GTStructureChannels` + `addSubChannelUsage` so the Hologram Projector can project each tier
+(the PCB Factory's bio-chamber/cooling addons work this way). Gen II applies the same idiom:
+extra shapes for the expanded core + coolant-plant wing, hologram channel selects the build
+stage, and efficiency scales per the plan's output formula.
+
 ## Deliberately deferred
 
 - Gen II+ core expansion (7x7 etc.), coolant loop, bonded fuels, naq propellant, matched
