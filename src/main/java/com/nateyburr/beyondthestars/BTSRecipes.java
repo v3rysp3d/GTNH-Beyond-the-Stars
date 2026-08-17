@@ -296,6 +296,31 @@ public final class BTSRecipes {
             .eut(TierEU.RECIPE_EV)
             .addTo(assemblerRecipes);
 
+        // Plant module controllers
+        GTValues.RA.stdBuilder()
+            .itemInputs(
+                GTOreDictUnificator.get(OrePrefixes.plate, Materials.TungstenSteel, 8L),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.IV, 2L),
+                GTOreDictUnificator.get(OrePrefixes.stickLong, Materials.TungstenSteel, 2L),
+                GTOreDictUnificator.get(OrePrefixes.plate, rhPdPalladium, 2L))
+            .circuit(6)
+            .fluidInputs(Materials.Platinum.getMolten(2 * INGOTS))
+            .itemOutputs(BTSMachines.moduleTurbineHall.copy())
+            .duration(45 * SECONDS)
+            .eut(TierEU.RECIPE_IV)
+            .addTo(assemblerRecipes);
+
+        GTValues.RA.stdBuilder()
+            .itemInputs(
+                GTOreDictUnificator.get(OrePrefixes.plate, Materials.StainlessSteel, 8L),
+                GTOreDictUnificator.get(OrePrefixes.pipeMedium, Materials.StainlessSteel, 4L),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.EV, 2L))
+            .circuit(6)
+            .itemOutputs(BTSMachines.moduleCoolingTower.copy())
+            .duration(30 * SECONDS)
+            .eut(TierEU.RECIPE_EV)
+            .addTo(assemblerRecipes);
+
         // Radiation proof casing + IV circuits + rare metals -> Reactor Silo controller
         GTValues.RA.stdBuilder()
             .itemInputs(

@@ -5,7 +5,6 @@ import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofChain;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.onElementPass;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.transpose;
-import static gregtech.api.enums.HatchElement.Dynamo;
 import static gregtech.api.enums.HatchElement.Energy;
 import static gregtech.api.enums.HatchElement.InputBus;
 import static gregtech.api.enums.HatchElement.InputHatch;
@@ -17,7 +16,6 @@ import static gregtech.api.enums.Textures.BlockIcons.OVERLAY_FRONT_HEAT_EXCHANGE
 import static gregtech.api.enums.Textures.BlockIcons.OVERLAY_FRONT_HEAT_EXCHANGER_ACTIVE_GLOW;
 import static gregtech.api.enums.Textures.BlockIcons.OVERLAY_FRONT_HEAT_EXCHANGER_GLOW;
 import static gregtech.api.util.GTStructureUtility.buildHatchAdder;
-import static gregtech.api.util.GTUtility.validMTEList;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,7 +31,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
-import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
 import org.jetbrains.annotations.NotNull;
@@ -55,7 +52,6 @@ import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBase;
-import gregtech.api.metatileentity.implementations.MTEHatchDynamo;
 import gregtech.api.recipe.check.CheckRecipeResult;
 import gregtech.api.recipe.check.CheckRecipeResultRegistry;
 import gregtech.api.render.TextureFactory;
@@ -68,16 +64,13 @@ import gregtech.api.util.shutdown.SimpleShutDownReason;
 import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
 
 /**
- * The Reactor Silo - ONE controller for the whole Nuclear Campus generation ladder. A rounded
- * (octagonal) silo: bio-shield floor, lower plenum, three fuel-column layers, upper plenum and
- * containment lid, with an OPTIONAL Turbine Deck addon built on top (turbine casings + shaft +
- * dynamo hatches) that turns the silo into a direct EU generator. Five silo diameters on one
- * controller; walls change material as tiers rise (radiation-proof -> europium-reinforced ->
- * radiant naquadah alloy), shields upgrade from tungstensteel- to iridium-reinforced blocks.
- * Without the deck the silo exports Steam / Hot Coolant exactly as before. With the deck and an
- * installed fan (input bus) it generates EU directly: fan T multiplier, stocked-coolant K
- * multiplier, naquadah propellant P multiplier, with blowout and seizure on misuse.
- * Full formula and numbers per docs/reactor-gen1.md.
+ * The Reactor Silo - the Unit One MAIN controller (Space Elevator architecture). The silo is
+ * the only mandatory structure; plant buildings are MODULE MACHINES whose controllers dock
+ * into the silo wall (accepted like hatches) and only function while connected. Docked
+ * modules: Turbine Hall (steam -> EU with fan/coolant/propellant multipliers), Cooling Towers
+ * (condensate return, faster heat decay). Fuel ladder, throttle, waste water, and the
+ * SCRAM/decay-heat/meltdown model are unchanged. Numbers per docs/reactor-gen1.md and
+ * docs/plant-unit-one.md.
  */
 public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactorCoreMk1>
     implements ISurvivalConstructable {
@@ -93,14 +86,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     private static final int RADIATION_TICKS = 36_000;
     private static final int RADIATION_RADIUS = 12;
     private static final int RADIATION_LEVEL = 3;
-    private static final long EU_PER_HOT_COOLANT = 200L;
     private static final ShutDownReason SCRAM_REASON = SimpleShutDownReason.ofCritical("beyondthestars.scram");
     private static final ShutDownReason MELTDOWN_REASON = SimpleShutDownReason.ofCritical("beyondthestars.meltdown");
-    private static final ShutDownReason BLOWOUT_REASON = SimpleShutDownReason.ofCritical("beyondthestars.blowout");
-    private static final ShutDownReason SEIZURE_REASON = SimpleShutDownReason.ofCritical("beyondthestars.seizure");
 
     private static final int MAX_TIER = 5;
-    /** Segments stacked per full fuel column (the plant-scale silo runs tall columns). */
+    /** Segments stacked per full fuel column. */
     private static final int SEGMENTS_PER_COLUMN = 6;
     /** Octagon corner cut per tier (0 unused). */
     private static final int[] CUT = { 0, 2, 2, 3, 3, 4 };
@@ -109,10 +99,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
     private static IStructureDefinition<MTEReactorCoreMk1> STRUCTURE_DEFINITION = null;
 
+    /** Plant modules docked in this silo's walls (Space Elevator pattern). */
+    public final ArrayList<MTEPlantModuleBase> plantModules = new ArrayList<>();
+
     private int mCasing;
-    private int turbineCasings;
     private int reactorTier;
-    private boolean turbineInstalled;
     private int fuelSegments;
     private int activeColumns;
     private int throttleN = 24;
@@ -125,9 +116,6 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     private long lastEUOutput;
     private boolean starvedThisTick;
     private boolean wasRunningLastTick;
-    private boolean boostedLastTick;
-    /** One free pass after chunk load so a booting AE grid cannot false-seize the fan. */
-    private transient boolean graceCheck;
 
     public MTEReactorCoreMk1(int aID, String aName, String aNameRegional) {
         super(aID, aName, aNameRegional);
@@ -142,6 +130,42 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return new MTEReactorCoreMk1(this.mName);
     }
 
+    // ------------------------------------------------------------------ modules
+
+    public boolean addPlantModuleToMachineList(IGregTechTileEntity aTileEntity, int aBaseCasingIndex) {
+        if (aTileEntity == null) return false;
+        final IMetaTileEntity mte = aTileEntity.getMetaTileEntity();
+        if (mte instanceof MTEPlantModuleBase) {
+            return plantModules.add((MTEPlantModuleBase) mte);
+        }
+        return false;
+    }
+
+    private void disconnectModules() {
+        for (MTEPlantModuleBase module : plantModules) {
+            module.disconnect();
+        }
+    }
+
+    private MTEModuleTurbineHall dockedTurbineHall() {
+        for (MTEPlantModuleBase module : plantModules) {
+            if (module instanceof MTEModuleTurbineHall && module.isOperational()) {
+                return (MTEModuleTurbineHall) module;
+            }
+        }
+        return null;
+    }
+
+    private int coolingTowerCount() {
+        int count = 0;
+        for (MTEPlantModuleBase module : plantModules) {
+            if (module instanceof MTEModuleCoolingTower && module.isOperational()) {
+                count = Math.min(2, count + 1);
+            }
+        }
+        return count;
+    }
+
     // ------------------------------------------------------------------ structure
 
     /** Silo cross-section edge for a tier: 9, 11, 13, 15, 17. */
@@ -149,12 +173,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return 7 + 2 * tier;
     }
 
-    private static String corePiece(String base, int tier) {
+    private static String pieceName(String base, int tier) {
         return base + ".tier" + tier + ".core";
-    }
-
-    private static String turbinePiece(String base, int tier) {
-        return base + ".tier" + tier + ".turbine";
     }
 
     private static boolean insideOct(int n, int k, int r, int x) {
@@ -176,7 +196,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     }
 
     private static int minCasingsFor(int tier) {
-        // Ten wall-ring layers (four plenums + six fuel), minus controller and 12 hatches.
+        // Ten wall-ring layers (four plenums + six fuel), minus controller and 12 hatches/docks.
         return 10 * ringCells(tier) - 13;
     }
 
@@ -184,8 +204,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         SHIELD,
         PLENUM,
         FUEL,
-        FUEL_CTRL,
-        TURBINE
+        FUEL_CTRL
     }
 
     private static String[] buildLayer(int tier, LayerKind kind) {
@@ -201,8 +220,6 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                     row[x] = ' ';
                 } else if (kind == LayerKind.SHIELD) {
                     row[x] = shield;
-                } else if (kind == LayerKind.TURBINE) {
-                    row[x] = (r == n / 2 && x == n / 2) ? 'P' : interiorCell(n, k, r, x) ? 'A' : 'T';
                 } else if (interiorCell(n, k, r, x)) {
                     row[x] = kind == LayerKind.PLENUM ? 'A' : 'F';
                 } else {
@@ -223,56 +240,57 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             buildLayer(tier, LayerKind.SHIELD) };
     }
 
-    /** Dome cap over two turbine-deck layers; sits directly on the core lid. */
-    private static String[][] turbineShape(int tier) {
-        return new String[][] { buildLayer(tier, LayerKind.SHIELD), buildLayer(tier, LayerKind.TURBINE),
-            buildLayer(tier, LayerKind.TURBINE) };
-    }
-
     @Override
     public IStructureDefinition<MTEReactorCoreMk1> getStructureDefinition() {
         if (STRUCTURE_DEFINITION == null) {
             final StructureDefinition.Builder<MTEReactorCoreMk1> builder = StructureDefinition.builder();
             for (int t = 1; t <= MAX_TIER; t++) {
-                builder.addShape(corePiece(mName, t), transpose(coreShape(t)));
-                builder.addShape(turbinePiece(mName, t), transpose(turbineShape(t)));
+                builder.addShape(pieceName(mName, t), transpose(coreShape(t)));
             }
             STRUCTURE_DEFINITION = builder.addElement('B', ofBlock(GregTechAPI.sBlockReinforced, 3))
                 .addElement('I', ofBlock(GregTechAPI.sBlockReinforced, 1))
                 .addElement('A', isAir())
-                .addElement('P', Casings.SteelPipeCasing.asElement())
                 .addElement(
                     'C',
-                    buildHatchAdder(MTEReactorCoreMk1.class)
-                        .atLeast(InputHatch, OutputHatch, InputBus, OutputBus, Maintenance, Energy)
-                        .casingIndex(Casings.RadiationProofMachineCasing.textureId)
-                        .hint(1)
-                        .buildAndChain(
-                            onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())))
+                    ofChain(
+                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(PlantModuleElement.PlantModule)
+                            .casingIndex(Casings.RadiationProofMachineCasing.textureId)
+                            .hint(2)
+                            .build(),
+                        buildHatchAdder(MTEReactorCoreMk1.class)
+                            .atLeast(InputHatch, OutputHatch, InputBus, OutputBus, Maintenance, Energy)
+                            .casingIndex(Casings.RadiationProofMachineCasing.textureId)
+                            .hint(1)
+                            .buildAndChain(
+                                onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement()))))
                 .addElement(
                     'D',
-                    buildHatchAdder(MTEReactorCoreMk1.class)
-                        .atLeast(InputHatch, OutputHatch, InputBus, OutputBus, Maintenance, Energy)
-                        .casingIndex(Casings.EuropiumReinforcedRadiationProofMachineCasing.textureId)
-                        .hint(1)
-                        .buildAndChain(
-                            onElementPass(
-                                x -> ++x.mCasing,
-                                Casings.EuropiumReinforcedRadiationProofMachineCasing.asElement())))
+                    ofChain(
+                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(PlantModuleElement.PlantModule)
+                            .casingIndex(Casings.EuropiumReinforcedRadiationProofMachineCasing.textureId)
+                            .hint(2)
+                            .build(),
+                        buildHatchAdder(MTEReactorCoreMk1.class)
+                            .atLeast(InputHatch, OutputHatch, InputBus, OutputBus, Maintenance, Energy)
+                            .casingIndex(Casings.EuropiumReinforcedRadiationProofMachineCasing.textureId)
+                            .hint(1)
+                            .buildAndChain(
+                                onElementPass(
+                                    x -> ++x.mCasing,
+                                    Casings.EuropiumReinforcedRadiationProofMachineCasing.asElement()))))
                 .addElement(
                     'E',
-                    buildHatchAdder(MTEReactorCoreMk1.class)
-                        .atLeast(InputHatch, OutputHatch, InputBus, OutputBus, Maintenance, Energy)
-                        .casingIndex(Casings.RadiantNaquadahAlloyCasing.textureId)
-                        .hint(1)
-                        .buildAndChain(onElementPass(x -> ++x.mCasing, Casings.RadiantNaquadahAlloyCasing.asElement())))
-                .addElement(
-                    'T',
-                    buildHatchAdder(MTEReactorCoreMk1.class).atLeast(Dynamo, Maintenance)
-                        .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
-                        .hint(2)
-                        .buildAndChain(
-                            onElementPass(x -> ++x.turbineCasings, Casings.TungstensteelTurbineCasing.asElement())))
+                    ofChain(
+                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(PlantModuleElement.PlantModule)
+                            .casingIndex(Casings.RadiantNaquadahAlloyCasing.textureId)
+                            .hint(2)
+                            .build(),
+                        buildHatchAdder(MTEReactorCoreMk1.class)
+                            .atLeast(InputHatch, OutputHatch, InputBus, OutputBus, Maintenance, Energy)
+                            .casingIndex(Casings.RadiantNaquadahAlloyCasing.textureId)
+                            .hint(1)
+                            .buildAndChain(
+                                onElementPass(x -> ++x.mCasing, Casings.RadiantNaquadahAlloyCasing.asElement()))))
                 .addElement(
                     'F',
                     ofChain(onElementPass(x -> ++x.fuelSegments, ofBlock(BTSBlocks.reactorFuelColumn, 0)), isAir()))
@@ -284,39 +302,26 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     @Override
     public void checkMachine(IGregTechTileEntity aBaseMetaTileEntity, ItemStack aStack, List<StructureError> errors) {
         reactorTier = 0;
-        turbineInstalled = false;
+        disconnectModules();
         // Largest silo first; only the smallest attempt reports structure errors. Failed walks
-        // register hatches as a side effect, so clear between probes (GT mega-multi precedent).
+        // register hatches/modules as side effects, so clear between probes.
         for (int t = MAX_TIER; t >= 1; t--) {
             clearHatches();
+            plantModules.clear();
             mCasing = 0;
-            turbineCasings = 0;
             fuelSegments = 0;
             final boolean smallest = t == 1;
-            if (checkPiece(corePiece(mName, t), edgeFor(t) / 2, 5, 0, smallest ? errors : null)) {
+            if (checkPiece(pieceName(mName, t), edgeFor(t) / 2, 5, 0, smallest ? errors : null)) {
                 reactorTier = t;
                 break;
             }
             if (smallest) return;
-        }
-        // Optional Turbine Deck addon above the lid. A failed probe may leave stray hatches, so
-        // rebuild the core registration cleanly in that case.
-        turbineInstalled = checkPiece(turbinePiece(mName, reactorTier), edgeFor(reactorTier) / 2, 8, 0, null);
-        if (!turbineInstalled) {
-            clearHatches();
-            mCasing = 0;
-            turbineCasings = 0;
-            fuelSegments = 0;
-            checkPiece(corePiece(mName, reactorTier), edgeFor(reactorTier) / 2, 5, 0, null);
         }
         checkCasingMin(errors, mCasing, minCasingsFor(reactorTier));
         checkHasEnergyHatch(errors);
         checkHasMaintenanceHatch(errors);
         checkHasInputHatch(errors);
         checkHasOutputHatch(errors);
-        if (turbineInstalled) {
-            checkHatchMin(errors, Dynamo, 1);
-        }
     }
 
     private static int tierFromTrigger(ItemStack stackSize) {
@@ -327,8 +332,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     public int survivalConstruct(ItemStack stackSize, int elementBudget, ISurvivalBuildEnvironment env) {
         if (mMachine) return -1;
         final int t = tierFromTrigger(stackSize);
-        int built = survivalBuildPiece(
-            corePiece(mName, t),
+        return survivalBuildPiece(
+            pieceName(mName, t),
             stackSize,
             edgeFor(t) / 2,
             5,
@@ -337,30 +342,15 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             env,
             false,
             true);
-        if (built >= 0 && built < elementBudget) {
-            final int more = survivalBuildPiece(
-                turbinePiece(mName, t),
-                stackSize,
-                edgeFor(t) / 2,
-                8,
-                0,
-                elementBudget - built,
-                env,
-                false,
-                true);
-            if (more > 0) built += more;
-        }
-        return built;
     }
 
     @Override
     public void construct(ItemStack stackSize, boolean hintsOnly) {
         final int t = tierFromTrigger(stackSize);
-        buildPiece(corePiece(mName, t), stackSize, hintsOnly, edgeFor(t) / 2, 5, 0);
-        buildPiece(turbinePiece(mName, t), stackSize, hintsOnly, edgeFor(t) / 2, 8, 0);
+        buildPiece(pieceName(mName, t), stackSize, hintsOnly, edgeFor(t) / 2, 5, 0);
     }
 
-    // ------------------------------------------------------------------ helpers
+    // ------------------------------------------------------------------ campaign
 
     private int countMatchingInputs(ItemStack sample) {
         int available = 0;
@@ -371,57 +361,6 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         }
         return available;
     }
-
-    private int countFluid(ArrayList<FluidStack> stored, FluidStack sample) {
-        if (sample == null) return 0;
-        long amount = 0;
-        for (FluidStack stack : stored) {
-            if (stack != null && stack.isFluidEqual(sample)) {
-                amount += stack.amount;
-            }
-        }
-        return (int) Math.min(amount, Integer.MAX_VALUE);
-    }
-
-    /** 0 = none, 1 = matched (x1.25), 2 = TDA (x1.25, propellant-rated), 3 = optimized (x2.5). */
-    public int installedFanTier() {
-        if (countMatchingInputs(new ItemStack(BTSItems.turbineFanTDAOptimized, 1)) > 0) return 3;
-        if (countMatchingInputs(new ItemStack(BTSItems.turbineFanTDA, 1)) > 0) return 2;
-        if (countMatchingInputs(new ItemStack(BTSItems.turbineFanMatched, 1)) > 0) return 1;
-        return 0;
-    }
-
-    private void destroyFan(int fanTier, ShutDownReason reason) {
-        final Item fan = fanTier == 3 ? BTSItems.turbineFanTDAOptimized
-            : fanTier == 2 ? BTSItems.turbineFanTDA : BTSItems.turbineFanMatched;
-        depleteInput(new ItemStack(fan, 1));
-        updateSlots();
-        boostedLastTick = false;
-        stopMachine(reason);
-        getBaseMetaTileEntity().disableWorking();
-        if (Config.meltdownExplosions && GregTechAPI.sMachineExplosions
-            && getBaseMetaTileEntity().getRandomNumber(4) == 0) {
-            getBaseMetaTileEntity().getWorld()
-                .newExplosion(
-                    null,
-                    getBaseMetaTileEntity().getXCoord() + 0.5,
-                    getBaseMetaTileEntity().getYCoord() - 2.5,
-                    getBaseMetaTileEntity().getZCoord() + 0.5,
-                    2.0F,
-                    false,
-                    true);
-        }
-    }
-
-    private long maxDynamoOutput() {
-        long total = 0;
-        for (MTEHatchDynamo dynamo : validMTEList(mDynamoHatches)) {
-            total += (long) dynamo.maxAmperesOut() * dynamo.maxEUOutput();
-        }
-        return total;
-    }
-
-    // ------------------------------------------------------------------ campaign
 
     @Override
     @Nonnull
@@ -483,113 +422,51 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     public boolean onRunningTick(ItemStack aStack) {
         if (steamPerTick <= 0 || !getBaseMetaTileEntity().isServerSide()) return true;
 
-        final int flowPerTick = (int) ((steamPerTick + GTValues.STEAM_PER_WATER - 1) / GTValues.STEAM_PER_WATER);
+        // Cooling towers return condensate: each halves the feedwater draw.
+        final int towers = coolingTowerCount();
+        final int baseFlow = (int) ((steamPerTick + GTValues.STEAM_PER_WATER - 1) / GTValues.STEAM_PER_WATER);
+        final int flowPerTick = Math.max(1, baseFlow >> towers);
+
         startRecipeProcessing();
-        if (turbineInstalled) {
-            runTurbineTick(flowPerTick);
+        final MTEModuleTurbineHall hall = dockedTurbineHall();
+        if (hall != null) {
+            // Feedwater first; starving it heats the core exactly as fluid mode.
+            if (depleteInput(Materials.Water.getFluid(flowPerTick))
+                || depleteInput(GTModHandler.getDistilledWater(flowPerTick))) {
+                final long eu = hall.processReactorSteam(steamPerTick, reactorTier >= MAX_TIER, baseFlow);
+                if (eu < 0) {
+                    // Hall has no fan installed: export the steam instead.
+                    addOutput(Materials.Steam.getGas(steamPerTick));
+                    lastEUOutput = 0;
+                } else {
+                    lastEUOutput = eu;
+                }
+                emitWasteWater();
+            } else {
+                starveTick();
+            }
         } else {
-            runFluidTick(flowPerTick);
+            runFluidTick(flowPerTick, baseFlow);
         }
         endRecipeProcessing();
         return true;
     }
 
-    /** Fluid-export mode: the silo without a Turbine Deck behaves exactly as before. */
-    private void runFluidTick(int flowPerTick) {
-        final int coolantFlow = reactorTier >= MAX_TIER ? flowPerTick * 2 : flowPerTick;
+    /** Fluid-export mode: no docked Turbine Hall. */
+    private void runFluidTick(int flowPerTick, int baseFlow) {
+        final int coolantFlow = reactorTier >= MAX_TIER ? baseFlow * 2 : baseFlow;
         if (depleteInput(GTModHandler.getIC2Coolant(coolantFlow))) {
             addOutput(GTModHandler.getHotCoolant(coolantFlow));
+            lastEUOutput = 0;
             emitWasteWater();
         } else if (depleteInput(Materials.Water.getFluid(flowPerTick))
             || depleteInput(GTModHandler.getDistilledWater(flowPerTick))) {
                 addOutput(Materials.Steam.getGas(steamPerTick));
+                lastEUOutput = 0;
                 emitWasteWater();
             } else {
                 starveTick();
             }
-    }
-
-    /**
-     * Turbine Deck mode: feedwater is consumed, stocked coolant (not consumed) carries K, the
-     * installed fan carries T, propellant carries P, and EU goes straight to the dynamos.
-     */
-    private void runTurbineTick(int flowPerTick) {
-        final int fanTier = installedFanTier();
-        final ArrayList<FluidStack> stored = getStoredFluids();
-
-        // Propellant presence (Mk III > II > I) - demands a TDA-rated fan.
-        final Fluid[] propellants = { BTSFluids.naqPropellantT3, BTSFluids.naqPropellantT2, BTSFluids.naqPropellantT1 };
-        final int[] propellantMults = { 10, 3, 2 };
-        int foundPropellant = -1;
-        for (int i = 0; i < propellants.length; i++) {
-            if (propellants[i] != null && countFluid(stored, new FluidStack(propellants[i], 1)) > 0) {
-                foundPropellant = i;
-                break;
-            }
-        }
-        if (foundPropellant >= 0 && fanTier > 0 && fanTier < 2) {
-            destroyFan(fanTier, BLOWOUT_REASON);
-            return;
-        }
-
-        // No fan installed: the deck cannot spin - fall back to fluid export.
-        if (fanTier == 0) {
-            if (boostedLastTick && !graceCheck) {
-                // Fan pulled mid-boost counts as seizure of what remains: just stop the boost.
-                boostedLastTick = false;
-            }
-            graceCheck = false;
-            runFluidTick(flowPerTick);
-            return;
-        }
-
-        // Feedwater keeps the cycle alive; starving it heats the core exactly as fluid mode.
-        if (!depleteInput(Materials.Water.getFluid(flowPerTick))
-            && !depleteInput(GTModHandler.getDistilledWater(flowPerTick))) {
-            starveTick();
-            return;
-        }
-
-        final boolean canSeize = boostedLastTick && !graceCheck;
-
-        // Stocked coolant charge (present, not consumed): K = 2.5, or 5 on tier-5 high-flow.
-        long euThisTick = steamPerTick / 2;
-        final int coolantStock = countFluid(stored, GTModHandler.getIC2Coolant(1));
-        if (reactorTier >= MAX_TIER && coolantStock >= flowPerTick * 2) {
-            euThisTick = euThisTick * 5;
-        } else if (coolantStock >= flowPerTick) {
-            euThisTick = euThisTick * 5 / 2;
-        }
-
-        // Propellant burn: single litres per tick.
-        int propellantMult = 1;
-        if (foundPropellant >= 0) {
-            final int litres = (int) Math.max(1, euThisTick / 5_000_000L);
-            if (depleteInput(new FluidStack(propellants[foundPropellant], litres))) {
-                propellantMult = propellantMults[foundPropellant];
-                boostedLastTick = true;
-            } else if (canSeize) {
-                destroyFan(fanTier, SEIZURE_REASON);
-                return;
-            } else {
-                boostedLastTick = false;
-            }
-        } else if (canSeize) {
-            destroyFan(fanTier, SEIZURE_REASON);
-            return;
-        } else {
-            boostedLastTick = false;
-        }
-        graceCheck = false;
-
-        // T multiplier, P multiplier, then the safety clamps (dynamo capacity + int-safe EU).
-        long output = fanTier == 3 ? euThisTick * 5 / 2 : euThisTick * 5 / 4;
-        output *= propellantMult;
-        output = Math.min(output, maxDynamoOutput());
-        output = Math.min(output, Integer.MAX_VALUE);
-        addEnergyOutput(output);
-        lastEUOutput = output;
-        emitWasteWater();
     }
 
     private void starveTick() {
@@ -622,7 +499,6 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     @Override
     public void stopMachine(@Nonnull ShutDownReason reason) {
         clearCampaign();
-        boostedLastTick = false;
         super.stopMachine(reason);
     }
 
@@ -657,21 +533,35 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         super.onPostTick(aBaseMetaTileEntity, aTick);
         if (!aBaseMetaTileEntity.isServerSide()) return;
 
+        // Docking authority: connect modules while the silo stands, disconnect when it breaks.
+        if (aTick % 20 == 0) {
+            if (mMachine) {
+                for (MTEPlantModuleBase module : plantModules) {
+                    module.connect(this);
+                }
+            } else {
+                disconnectModules();
+            }
+        }
+
         final boolean running = mMaxProgresstime > 0;
         if (wasRunningLastTick && !running) {
             decayHeatTicks = DECAY_HEAT_TICKS;
         }
         wasRunningLastTick = running;
 
-        // The decay-heat obligation only ticks down while the structure stands - dismantling the
-        // reactor merely defers it, it never waives it (and a broken hot core stays hot).
+        final int towers = coolingTowerCount();
+
+        // The decay-heat obligation only ticks down while the structure stands - dismantling
+        // defers it, never waives it. Cooling towers halve the demand per tower.
         if (decayHeatTicks > 0 && mMachine) {
             decayHeatTicks--;
             if (!running) {
+                final int decayWater = Math.max(8, DECAY_WATER_PER_TICK >> towers);
                 startRecipeProcessing();
-                boolean cooled = depleteInput(Materials.Water.getFluid(DECAY_WATER_PER_TICK))
-                    || depleteInput(GTModHandler.getDistilledWater(DECAY_WATER_PER_TICK))
-                    || depleteInput(GTModHandler.getIC2Coolant(DECAY_WATER_PER_TICK));
+                boolean cooled = depleteInput(Materials.Water.getFluid(decayWater))
+                    || depleteInput(GTModHandler.getDistilledWater(decayWater))
+                    || depleteInput(GTModHandler.getIC2Coolant(decayWater));
                 endRecipeProcessing();
                 if (!cooled) {
                     starvedThisTick = true;
@@ -708,9 +598,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             }
         }
 
+        // Cooling towers double passive heat decay per tower.
         final boolean brokenHotCore = !mMachine && decayHeatTicks > 0;
         if (!starvedThisTick && !brokenHotCore && heat > 0) {
-            heat = Math.max(0, heat - HEAT_DECAY_PER_TICK);
+            heat = Math.max(0, heat - HEAT_DECAY_PER_TICK * (1 + towers));
         }
         starvedThisTick = false;
     }
@@ -722,7 +613,6 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         super.saveNBTData(aNBT);
         aNBT.setInteger("btsHeat", heat);
         aNBT.setInteger("btsReactorTier", reactorTier);
-        aNBT.setBoolean("btsTurbine", turbineInstalled);
         aNBT.setInteger("btsActiveColumns", activeColumns);
         aNBT.setInteger("btsThrottleN", throttleN);
         aNBT.setInteger("btsThrottleSetting", throttleSetting);
@@ -730,7 +620,6 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         aNBT.setInteger("btsDecayHeatTicks", decayHeatTicks);
         aNBT.setInteger("btsRadiationTicks", radiationTicks);
         aNBT.setLong("btsSteamPerTick", steamPerTick);
-        aNBT.setBoolean("btsBoosted", boostedLastTick);
     }
 
     @Override
@@ -738,7 +627,6 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         super.loadNBTData(aNBT);
         heat = aNBT.getInteger("btsHeat");
         reactorTier = aNBT.getInteger("btsReactorTier");
-        turbineInstalled = aNBT.getBoolean("btsTurbine");
         activeColumns = aNBT.getInteger("btsActiveColumns");
         throttleN = aNBT.getInteger("btsThrottleN");
         throttleSetting = aNBT.getInteger("btsThrottleSetting");
@@ -747,8 +635,6 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         decayHeatTicks = aNBT.getInteger("btsDecayHeatTicks");
         radiationTicks = aNBT.getInteger("btsRadiationTicks");
         steamPerTick = aNBT.getLong("btsSteamPerTick");
-        boostedLastTick = aNBT.getBoolean("btsBoosted");
-        graceCheck = true;
     }
 
     @Override
@@ -797,7 +683,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     }
 
     public boolean isTurbineInstalled() {
-        return turbineInstalled;
+        return dockedTurbineHall() != null;
     }
 
     public long getLastEUOutput() {
@@ -806,6 +692,26 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
     public long getSteamPerTick() {
         return steamPerTick;
+    }
+
+    public int installedFanTier() {
+        final MTEModuleTurbineHall hall = dockedTurbineHall();
+        return hall == null ? 0 : hall.installedFanTier();
+    }
+
+    /** One-line docked-module inventory for the GUI. */
+    public String getModulesSummary() {
+        final MTEModuleTurbineHall hall = dockedTurbineHall();
+        final int towers = coolingTowerCount();
+        if (hall == null && towers == 0) return "none docked";
+        final StringBuilder sb = new StringBuilder();
+        if (hall != null) sb.append("Turbine Hall");
+        if (towers > 0) {
+            if (sb.length() > 0) sb.append(" + ");
+            sb.append("Cooling Tower x")
+                .append(towers);
+        }
+        return sb.toString();
     }
 
     private static String fuelName(int mult) {
@@ -824,26 +730,15 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     @Override
     public String[] getInfoData() {
         final List<String> info = new ArrayList<>(Arrays.asList(super.getInfoData()));
-        final int tier = Math.max(1, reactorTier);
+        final int tier = getReactorTier();
         info.add("Silo tier: " + tier + " (" + edgeFor(tier) + " wide octagon)");
-        info.add(
-            "Fuel columns: " + Math.min(fuelSegments / SEGMENTS_PER_COLUMN, COLUMN_CAP[tier])
-                + " / "
-                + COLUMN_CAP[tier]);
+        info.add("Fuel columns: " + getFuelColumns() + " / " + COLUMN_CAP[tier]);
         info.add("Fuel type: " + fuelName(activeFuelMult));
         info.add("Control rods: " + (throttleN * 100 / 24) + "% power");
-        if (turbineInstalled) {
-            final int fan = installedFanTier();
-            info.add(
-                "Addon - Turbine Deck: installed (fan: "
-                    + (fan == 0 ? "NONE - install one in an input bus"
-                        : fan == 3 ? "Optimized TDA x2.5" : fan == 2 ? "TDA x1.25, propellant-rated" : "Matched x1.25")
-                    + ")");
-            info.add("Generating: " + lastEUOutput + " EU/t (dynamo-clamped)");
-        } else {
-            info.add("Addon - Turbine Deck: not built (silo exports Steam / Hot Coolant)");
-            info.add("Steam output: " + steamPerTick + " L/t");
-        }
+        info.add("Modules: " + getModulesSummary());
+        info.add(
+            isTurbineInstalled() ? "Generating: " + lastEUOutput + " EU/t (via Turbine Hall)"
+                : "Steam output: " + steamPerTick + " L/t");
         info.add("Core heat: " + heat + " / " + MELTDOWN_HEAT + " (SCRAM at " + SCRAM_HEAT + ")");
         if (decayHeatTicks > 0) {
             info.add("Decay heat: cooling required for " + (decayHeatTicks / 20) + "s");
@@ -857,33 +752,30 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
-        tt.addMachineType("Fission Reactor Silo")
-            .addInfo("One controller for the whole ladder: five silo diameters (9 to 17 wide octagon).")
-            .addInfo("Hologram: trigger stack size 1-5 selects the silo tier (deck is projected too).")
+        tt.addMachineType("Fission Reactor Silo - Unit One main controller")
+            .addInfo("The only mandatory structure: five silo diameters (9 to 17 wide octagon).")
+            .addInfo("Hologram: trigger stack size 1-5 selects the silo tier.")
             .addInfo("Walls upgrade by tier: Radiation Proof -> Europium-Reinforced -> Radiant Naquadah Alloy.")
             .addInfo("Shield floor/lid: Tungstensteel Reinforced (T1-2), Iridium Tungstensteel (T3+).")
             .addInfo("Plant profile: shield floor, 2 plenums, 6 fuel layers (columns 6 high), 2 plenums, lid.")
-            .addInfo("ADDON - Turbine Deck on the lid: 2 turbine-casing layers + shaft + dome, dynamos.")
-            .addInfo("With the deck + a fan in an input bus the silo generates EU directly:")
-            .addInfo("fan T (x1.25 / x1.25 TDA / x2.5 optimized), stocked coolant K (x2.5, tier-5 x5),")
-            .addInfo("naquadah propellant P (Mk I/II/III = x2/x3/x10, single litres per tick).")
-            .addInfo("Propellant on a non-TDA fan = BLOWOUT; cutting it mid-boost = SEIZURE.")
-            .addInfo("Without the deck: exports Steam (or Hot Coolant when fed IC2 Coolant).")
+            .addInfo("PLANT MODULES dock their controllers into any silo wall position:")
+            .addInfo("Turbine Hall (steam -> EU with fan/coolant/propellant), Cooling Towers (condensate")
+            .addInfo("return + faster heat decay, up to 2). Modules are inert while undocked.")
+            .addInfo("No Turbine Hall docked: the silo exports Steam (or Hot Coolant when fed IC2 Coolant).")
             .addInfo("Fuel ladder: Uranium x1, MOX x2, Thorium-Bonded x5, Naquadah-Bonded x9.")
             .addInfo("Control rods: set 1-24 in the controller GUI; a programmed circuit overrides it.")
             .addInfo("Heat: SCRAM at 8,000; decay heat 20 min after shutdown; 10,000 = MELTDOWN")
             .addInfo("(vertical detonation + radiation field; hazmat counters; config toggles).")
-            .beginStructureBlock(17, 15, 17, true)
+            .beginStructureBlock(17, 12, 17, true)
             .addController("Silo wall, front center of the third fuel layer")
             .addCasingInfoRange("Tier wall casing (see above)", 227, 480, false)
-            .addCasingInfoRange("Shield blocks (floor + lid, + dome with deck)", 138, 747, false)
+            .addCasingInfoRange("Shield blocks (floor + lid)", 138, 498, false)
             .addEnergyHatch("Any wall casing", 1)
             .addMaintenanceHatch("Any wall casing", 1)
             .addInputHatch("Any wall casing", 1)
             .addOutputHatch("Any wall casing", 1)
             .addInputBus("Any wall casing", 1)
             .addOutputBus("Any wall casing", 1)
-            .addDynamoHatch("Turbine Deck casing (with addon)", 2)
             .toolTipFinisher();
         return tt;
     }

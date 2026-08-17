@@ -36,10 +36,15 @@ capability. Numbers marked (proposed) are tuning knobs for sign-off.
 6. **Switchyard**: grid conditioning (proposed): outputs above 100M EU/t require it
    (soft cap without it); visual transformer yard.
 
-## Implementation notes
+## Implementation notes (Space Elevator architecture - review ruling)
 
-- Per-building `checkPiece` probes at mockup-derived offsets from the controller, reusing
-  the failed-probe clearHatches pattern; each addon = one boolean + one GUI line + effect.
+- The plant works like the GTNH Space Elevator: the silo is the MAIN controller whose
+  structure contains designated DOCKING positions; each addon building is its own MODULE
+  MACHINE with its own controller (like space pumps/assemblers docking into the elevator).
+  A module only functions while docked to a formed silo; the silo lists docked modules in
+  its GUI and feeds/receives their effects.
+- Module MTEs: Turbine Hall, Cooling Tower, Extraction Derrick, Enrichment Annex,
+  Vent Stack, Switchyard - each with its own structure piece and MTE ID.
 - Standalone Extraction Platform / Enrichment Train machines REMAIN as the IV entry tech;
   the plant addons are their integrated endgame form.
 - Rooftop Turbine Deck is removed when the Hall lands (pre-release; rebuild expected).

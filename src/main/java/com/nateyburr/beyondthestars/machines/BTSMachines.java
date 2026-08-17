@@ -9,6 +9,8 @@ public final class BTSMachines {
     public static ItemStack reactorCoreMk1;
     public static ItemStack extractionPlatform;
     public static ItemStack enrichmentTrain;
+    public static ItemStack moduleTurbineHall;
+    public static ItemStack moduleCoolingTower;
 
     private BTSMachines() {}
 
@@ -24,5 +26,13 @@ public final class BTSMachines {
             base + 3,
             "multimachine.beyondthestars.enrichmenttrain",
             "Enrichment Train").getStackForm(1);
+        moduleTurbineHall = new MTEModuleTurbineHall(
+            base + 4,
+            "multimachine.beyondthestars.module.turbinehall",
+            "Plant Module - Turbine Hall").getStackForm(1);
+        moduleCoolingTower = new MTEModuleCoolingTower(
+            base + 5,
+            "multimachine.beyondthestars.module.coolingtower",
+            "Plant Module - Cooling Tower").getStackForm(1);
     }
 }
