@@ -7,7 +7,16 @@ item.beyondthestars.moxFuelPellet.name=Fuel Pellet (MOX)
 item.beyondthestars.fuelRodMox.name=Fuel Rod (MOX)
 item.beyondthestars.fuelAssemblyMox.name=Fuel Assembly (MOX)
 item.beyondthestars.depletedFuelAssemblyMox.name=Depleted Fuel Assembly (MOX)
+item.beyondthestars.fuelAssemblyThoriumBonded.name=Thorium-Bonded Fuel Assembly
+item.beyondthestars.depletedFuelAssemblyThoriumBonded.name=Depleted Thorium-Bonded Fuel Assembly
+item.beyondthestars.fuelAssemblyNaqBonded.name=Naquadah-Bonded Fuel Assembly
+item.beyondthestars.depletedFuelAssemblyNaqBonded.name=Depleted Naquadah-Bonded Fuel Assembly
+item.beyondthestars.turbineFanMatched.name=Matched Turbine Fan
+item.beyondthestars.turbineFanTDA.name=TDA-Bonded Turbine Fan
+item.beyondthestars.turbineFanTDAOptimized.name=Optimized TDA-Bonded Turbine Fan
 tile.beyondthestars.reactorFuelColumn.name=Reactor Fuel Column
 GT5U.gui.text.shutdown_reason.beyondthestars.scram=SCRAM: core overheat — re-enable the reactor to restart
 GT5U.gui.text.shutdown_reason.beyondthestars.meltdown=MELTDOWN: core destroyed — the site is irradiated
+GT5U.gui.text.shutdown_reason.beyondthestars.blowout=BLOWOUT: propellant on a non-TDA fan destroyed the turbine
+GT5U.gui.text.shutdown_reason.beyondthestars.seizure=SEIZURE: propellant starvation destroyed the turbine fan
 

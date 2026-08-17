@@ -70,6 +70,29 @@ stage, and efficiency scales per the plan's output formula.
   Config toggles: `meltdownExplosions`, `radiationField`; GT's global
   `GregTechAPI.sMachineExplosions` kill-switch is honored.
 
+## v0.5 final-gen systems (full formula implemented)
+
+`EU/t = C x 8,192 x F x K x T x P` is now fully in-game:
+
+- **C — five shell tiers** on one controller (PCB-Factory multi-shape): 5x5x5 / 7x7x5 /
+  9x9x5 / 11x11x5 / 13x13x5 = 9 / 25 / 49 / 81 / 121 columns. Hologram trigger stack size
+  1-5 selects the tier.
+- **F — fuel ladder:** Uranium x1, MOX x2, Thorium-Bonded x5, Naquadah-Bonded x8
+  (assemblies preferred best-first; each has a depleted form with centrifuge reprocessing).
+- **K — coolant:** water/steam x1, IC2 coolant loop x2.5, tier-5 high-flow loop x5
+  (double hot-coolant throughput).
+- **T & P — the Turbine Hall** (new multi, 3x3x4 tungstensteel turbine casings + steel pipe
+  shaft, dynamo hatches required): steam 2 L = 1 EU, hot coolant 1 L = 200 EU with cold
+  coolant returned 1:1; output clamped to dynamo capacity (never explodes). Fan in the
+  controller slot: Matched x1.25, TDA-Bonded x1.25 (propellant-rated), Optimized TDA x2.5.
+  Naquadah Propellant Mk I/II/III (mixer recipes off the GoodGenerator naq fuel family)
+  boosts x2/x3/x10, burned in single litres per tick. Propellant on a non-TDA fan =
+  BLOWOUT; cutting propellant or working fluid mid-boost = SEIZURE (fan destroyed, 25%
+  bang, honors the explosion config).
+- **Ceiling check:** tier-5 shell, naq-bonded, high-flow, optimized TDA, Mk III propellant:
+  121 x 8,192 x 8 x 5 x 2.5 x 10 = 991,232,000 EU/t — the plan's ~1B row, reached only
+  with UHV+ materials exactly as ruled.
+
 ## Deliberately deferred
 
 - Gen II+ core expansion (7x7 etc. via PCB-Factory shape/channel idiom), bonded fuels, naq

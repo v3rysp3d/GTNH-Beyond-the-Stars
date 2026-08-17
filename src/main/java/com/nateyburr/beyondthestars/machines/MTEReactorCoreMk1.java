@@ -25,6 +25,7 @@ import javax.annotation.Nonnull;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
@@ -88,9 +89,12 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     private static final ShutDownReason SCRAM_REASON = SimpleShutDownReason.ofCritical("beyondthestars.scram");
     private static final ShutDownReason MELTDOWN_REASON = SimpleShutDownReason.ofCritical("beyondthestars.meltdown");
 
+    private static final int MAX_TIER = 5;
+
     private static IStructureDefinition<MTEReactorCoreMk1> STRUCTURE_DEFINITION = null;
 
     private int mCasing;
+    private int reactorTier;
     private int fuelSegments;
     private int activeColumns;
     private int throttleN = 24;
@@ -115,38 +119,101 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return new MTEReactorCoreMk1(this.mName);
     }
 
+    /** Shell edge length for a tier: 5, 7, 9, 11, 13 (interior columns 9/25/49/81/121). */
+    private static int edgeFor(int tier) {
+        return 3 + 2 * tier;
+    }
+
+    private static String pieceName(String base, int tier) {
+        return base + ".tier" + tier;
+    }
+
+    /** Wall casings per tier minus an 8-hatch allowance. */
+    private static int minCasingsFor(int tier) {
+        return 12 * edgeFor(tier) - 21;
+    }
+
+    private static String[][] shapeForTier(int tier) {
+        final int n = edgeFor(tier);
+        final char[] chars = new char[n];
+        Arrays.fill(chars, 'B');
+        final String shieldRow = new String(chars);
+        Arrays.fill(chars, 'C');
+        final String wallRow = new String(chars);
+        Arrays.fill(chars, 'F');
+        chars[0] = 'C';
+        chars[n - 1] = 'C';
+        final String innerRow = new String(chars);
+        final char[] ctrl = wallRow.toCharArray();
+        ctrl[n / 2] = '~';
+        final String ctrlRow = new String(ctrl);
+
+        final String[] shield = new String[n];
+        Arrays.fill(shield, shieldRow);
+        final String[] interior = new String[n];
+        Arrays.fill(interior, innerRow);
+        interior[0] = wallRow;
+        interior[n - 1] = wallRow;
+        final String[] controller = interior.clone();
+        controller[0] = ctrlRow;
+        return new String[][] { shield, interior, controller, interior, shield };
+    }
+
     @Override
     public void checkMachine(IGregTechTileEntity aBaseMetaTileEntity, ItemStack aStack, List<StructureError> errors) {
-        mCasing = 0;
-        fuelSegments = 0;
-        if (!checkPiece(mName, 2, 2, 0, errors)) return;
-        checkCasingMin(errors, mCasing, 39);
+        reactorTier = 0;
+        // Largest shell first; only the smallest attempt reports structure errors.
+        for (int t = MAX_TIER; t >= 1; t--) {
+            mCasing = 0;
+            fuelSegments = 0;
+            final boolean smallest = t == 1;
+            if (checkPiece(pieceName(mName, t), edgeFor(t) / 2, 2, 0, smallest ? errors : null)) {
+                reactorTier = t;
+                break;
+            }
+            if (smallest) return;
+        }
+        checkCasingMin(errors, mCasing, minCasingsFor(reactorTier));
         checkHasEnergyHatch(errors);
         checkHasMaintenanceHatch(errors);
         checkHasInputHatch(errors);
         checkHasOutputHatch(errors);
     }
 
+    private static int tierFromTrigger(ItemStack stackSize) {
+        return Math.min(Math.max(stackSize.stackSize, 1), MAX_TIER);
+    }
+
     @Override
     public int survivalConstruct(ItemStack stackSize, int elementBudget, ISurvivalBuildEnvironment env) {
         if (mMachine) return -1;
-        return survivalBuildPiece(mName, stackSize, 2, 2, 0, elementBudget, env, false, true);
+        final int t = tierFromTrigger(stackSize);
+        return survivalBuildPiece(
+            pieceName(mName, t),
+            stackSize,
+            edgeFor(t) / 2,
+            2,
+            0,
+            elementBudget,
+            env,
+            false,
+            true);
     }
 
     @Override
     public void construct(ItemStack stackSize, boolean hintsOnly) {
-        buildPiece(mName, stackSize, hintsOnly, 2, 2, 0);
+        final int t = tierFromTrigger(stackSize);
+        buildPiece(pieceName(mName, t), stackSize, hintsOnly, edgeFor(t) / 2, 2, 0);
     }
 
     @Override
     public IStructureDefinition<MTEReactorCoreMk1> getStructureDefinition() {
         if (STRUCTURE_DEFINITION == null) {
-            final String[] shield = { "BBBBB", "BBBBB", "BBBBB", "BBBBB", "BBBBB" };
-            final String[] interior = { "CCCCC", "CFFFC", "CFFFC", "CFFFC", "CCCCC" };
-            final String[] controller = { "CC~CC", "CFFFC", "CFFFC", "CFFFC", "CCCCC" };
-            STRUCTURE_DEFINITION = StructureDefinition.<MTEReactorCoreMk1>builder()
-                .addShape(mName, transpose(new String[][] { shield, interior, controller, interior, shield }))
-                .addElement('B', ofBlock(GregTechAPI.sBlockReinforced, 3))
+            final StructureDefinition.Builder<MTEReactorCoreMk1> builder = StructureDefinition.builder();
+            for (int t = 1; t <= MAX_TIER; t++) {
+                builder.addShape(pieceName(mName, t), transpose(shapeForTier(t)));
+            }
+            STRUCTURE_DEFINITION = builder.addElement('B', ofBlock(GregTechAPI.sBlockReinforced, 3))
                 .addElement(
                     'C',
                     buildHatchAdder(MTEReactorCoreMk1.class)
@@ -188,23 +255,28 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             n = Math.min(24, circuit.getItemDamage());
         }
 
-        // Fuel selection: MOX (x2 output) is preferred over uranium when both are stocked.
+        // Fuel ladder (best first): naq-bonded x8, thorium-bonded x5, MOX x2, uranium x1.
         // depleteInput(stack) only consumes from a single slot holding the full amount, so count
         // across all buses first, then deplete one assembly at a time.
-        final ItemStack oneMox = new ItemStack(BTSItems.fuelAssemblyMox, 1);
-        final ItemStack oneUranium = new ItemStack(BTSItems.fuelAssemblyUranium, 1);
-        final ItemStack chosen;
-        final ItemStack depleted;
-        final int fuelMult;
-        if (countMatchingInputs(oneMox) >= columns) {
-            chosen = oneMox;
-            depleted = new ItemStack(BTSItems.depletedFuelAssemblyMox, columns);
-            fuelMult = 2;
-        } else if (countMatchingInputs(oneUranium) >= columns) {
-            chosen = oneUranium;
-            depleted = new ItemStack(BTSItems.depletedFuelAssemblyUranium, columns);
-            fuelMult = 1;
-        } else {
+        final Item[] assemblies = { BTSItems.fuelAssemblyNaqBonded, BTSItems.fuelAssemblyThoriumBonded,
+            BTSItems.fuelAssemblyMox, BTSItems.fuelAssemblyUranium };
+        final Item[] depletedForms = { BTSItems.depletedFuelAssemblyNaqBonded,
+            BTSItems.depletedFuelAssemblyThoriumBonded, BTSItems.depletedFuelAssemblyMox,
+            BTSItems.depletedFuelAssemblyUranium };
+        final int[] fuelMults = { 8, 5, 2, 1 };
+        ItemStack chosen = null;
+        ItemStack depleted = null;
+        int fuelMult = 1;
+        for (int i = 0; i < assemblies.length; i++) {
+            final ItemStack candidate = new ItemStack(assemblies[i], 1);
+            if (countMatchingInputs(candidate) >= columns) {
+                chosen = candidate;
+                depleted = new ItemStack(depletedForms[i], columns);
+                fuelMult = fuelMults[i];
+                break;
+            }
+        }
+        if (chosen == null) {
             clearCampaign();
             return CheckRecipeResultRegistry.NO_RECIPE;
         }
@@ -230,11 +302,13 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     public boolean onRunningTick(ItemStack aStack) {
         if (steamPerTick > 0 && getBaseMetaTileEntity().isServerSide()) {
             int flowPerTick = (int) ((steamPerTick + GTValues.STEAM_PER_WATER - 1) / GTValues.STEAM_PER_WATER);
+            // Tier 5 shells run the high-flow loop: double coolant throughput, K=5.
+            final int coolantFlow = reactorTier >= MAX_TIER ? flowPerTick * 2 : flowPerTick;
             startRecipeProcessing();
             // Coolant loop first: hot coolant into a Large Heat Exchanger is worth 2.5x the
             // steam route (200 EU/L), and the LHE returns the cold coolant 1:1.
-            if (depleteInput(GTModHandler.getIC2Coolant(flowPerTick))) {
-                addOutput(FluidRegistry.getFluidStack("ic2hotcoolant", flowPerTick));
+            if (depleteInput(GTModHandler.getIC2Coolant(coolantFlow))) {
+                addOutput(FluidRegistry.getFluidStack("ic2hotcoolant", coolantFlow));
                 emitWasteWater();
             } else if (depleteInput(Materials.Water.getFluid(flowPerTick))
                 || depleteInput(GTModHandler.getDistilledWater(flowPerTick))) {
@@ -250,6 +324,19 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             endRecipeProcessing();
         }
         return true;
+    }
+
+    private static String fuelName(int mult) {
+        switch (mult) {
+            case 8:
+                return "Naquadah-Bonded (x8)";
+            case 5:
+                return "Thorium-Bonded (x5)";
+            case 2:
+                return "MOX (x2)";
+            default:
+                return "Uranium";
+        }
     }
 
     private void emitWasteWater() {
@@ -372,6 +459,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     public void saveNBTData(NBTTagCompound aNBT) {
         super.saveNBTData(aNBT);
         aNBT.setInteger("btsHeat", heat);
+        aNBT.setInteger("btsReactorTier", reactorTier);
         aNBT.setInteger("btsActiveColumns", activeColumns);
         aNBT.setInteger("btsThrottleN", throttleN);
         aNBT.setInteger("btsFuelMult", activeFuelMult);
@@ -384,6 +472,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     public void loadNBTData(NBTTagCompound aNBT) {
         super.loadNBTData(aNBT);
         heat = aNBT.getInteger("btsHeat");
+        reactorTier = aNBT.getInteger("btsReactorTier");
         activeColumns = aNBT.getInteger("btsActiveColumns");
         throttleN = aNBT.getInteger("btsThrottleN");
         activeFuelMult = Math.max(1, aNBT.getInteger("btsFuelMult"));
@@ -395,8 +484,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     @Override
     public String[] getInfoData() {
         final List<String> info = new ArrayList<>(Arrays.asList(super.getInfoData()));
-        info.add("Fuel columns: " + (fuelSegments / 3) + " / 9");
-        info.add("Fuel type: " + (activeFuelMult >= 2 ? "MOX (x2)" : "Uranium"));
+        final int edge = reactorTier > 0 ? edgeFor(reactorTier) : 5;
+        final int maxColumns = (edge - 2) * (edge - 2);
+        info.add("Shell tier: " + Math.max(1, reactorTier) + " (" + edge + "x" + edge + "x5)");
+        info.add("Fuel columns: " + (fuelSegments / 3) + " / " + maxColumns);
+        info.add("Fuel type: " + fuelName(activeFuelMult));
         info.add("Control rods: " + (throttleN * 100 / 24) + "% power");
         info.add("Steam output: " + steamPerTick + " L/t");
         info.add("Core heat: " + heat + " / " + MELTDOWN_HEAT + " (SCRAM at " + SCRAM_HEAT + ")");
@@ -414,7 +506,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
         tt.addMachineType("Fission Reactor")
             .addInfo("Gen I Reactor Core of the Nuclear Campus - the water/steam stage.")
-            .addInfo("Interior: stack Reactor Fuel Columns 3 high; each full stack is one fuel column.")
+            .addInfo("Five shell tiers: 5x5x5 up to 13x13x5 (hologram: trigger stack size 1-5 selects the tier).")
+            .addInfo("Interior: stack Reactor Fuel Columns 3 high; each full stack is one fuel column (9 to 121).")
+            .addInfo("Fuel ladder: Uranium x1, MOX x2, Thorium-Bonded x5, Naquadah-Bonded x8.")
+            .addInfo("Tier 5 shells run the high-flow coolant loop: double hot coolant throughput.")
             .addInfo("Consumes 1 Fuel Assembly per column per campaign - MOX assemblies double the output.")
             .addInfo("Outputs 16,384 L/t of Steam per column; drinks 1 L water per 160 L steam.")
             .addInfo(

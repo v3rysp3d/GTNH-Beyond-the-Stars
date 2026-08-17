@@ -23,6 +23,13 @@ public final class BTSItems {
     public static Item fuelRodMox;
     public static Item fuelAssemblyMox;
     public static Item depletedFuelAssemblyMox;
+    public static Item fuelAssemblyThoriumBonded;
+    public static Item depletedFuelAssemblyThoriumBonded;
+    public static Item fuelAssemblyNaqBonded;
+    public static Item depletedFuelAssemblyNaqBonded;
+    public static Item turbineFanMatched;
+    public static Item turbineFanTDA;
+    public static Item turbineFanTDAOptimized;
 
     private BTSItems() {}
 
@@ -66,5 +73,44 @@ public final class BTSItems {
             .setTextureName("beyondthestars:depletedFuelAssemblyMox")
             .setCreativeTab(TAB);
         GameRegistry.registerItem(depletedFuelAssemblyMox, "depletedFuelAssemblyMox");
+
+        fuelAssemblyThoriumBonded = new Item().setUnlocalizedName("beyondthestars.fuelAssemblyThoriumBonded")
+            .setTextureName("beyondthestars:fuelAssemblyThoriumBonded")
+            .setCreativeTab(TAB);
+        GameRegistry.registerItem(fuelAssemblyThoriumBonded, "fuelAssemblyThoriumBonded");
+
+        depletedFuelAssemblyThoriumBonded = new Item()
+            .setUnlocalizedName("beyondthestars.depletedFuelAssemblyThoriumBonded")
+            .setTextureName("beyondthestars:depletedFuelAssemblyThoriumBonded")
+            .setCreativeTab(TAB);
+        GameRegistry.registerItem(depletedFuelAssemblyThoriumBonded, "depletedFuelAssemblyThoriumBonded");
+
+        fuelAssemblyNaqBonded = new Item().setUnlocalizedName("beyondthestars.fuelAssemblyNaqBonded")
+            .setTextureName("beyondthestars:fuelAssemblyNaqBonded")
+            .setCreativeTab(TAB);
+        GameRegistry.registerItem(fuelAssemblyNaqBonded, "fuelAssemblyNaqBonded");
+
+        depletedFuelAssemblyNaqBonded = new Item().setUnlocalizedName("beyondthestars.depletedFuelAssemblyNaqBonded")
+            .setTextureName("beyondthestars:depletedFuelAssemblyNaqBonded")
+            .setCreativeTab(TAB);
+        GameRegistry.registerItem(depletedFuelAssemblyNaqBonded, "depletedFuelAssemblyNaqBonded");
+
+        turbineFanMatched = new Item().setUnlocalizedName("beyondthestars.turbineFanMatched")
+            .setTextureName("beyondthestars:turbineFanMatched")
+            .setMaxStackSize(1)
+            .setCreativeTab(TAB);
+        GameRegistry.registerItem(turbineFanMatched, "turbineFanMatched");
+
+        turbineFanTDA = new Item().setUnlocalizedName("beyondthestars.turbineFanTDA")
+            .setTextureName("beyondthestars:turbineFanTDA")
+            .setMaxStackSize(1)
+            .setCreativeTab(TAB);
+        GameRegistry.registerItem(turbineFanTDA, "turbineFanTDA");
+
+        turbineFanTDAOptimized = new Item().setUnlocalizedName("beyondthestars.turbineFanTDAOptimized")
+            .setTextureName("beyondthestars:turbineFanTDAOptimized")
+            .setMaxStackSize(1)
+            .setCreativeTab(TAB);
+        GameRegistry.registerItem(turbineFanTDAOptimized, "turbineFanTDAOptimized");
     }
 }
