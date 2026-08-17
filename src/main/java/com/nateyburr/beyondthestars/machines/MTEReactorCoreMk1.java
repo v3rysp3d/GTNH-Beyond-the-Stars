@@ -195,49 +195,158 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return octagonCells(tier) - COLUMN_CAP[tier];
     }
 
+    /** Wall height (layers, incl. floor) - the mockup's tall 2:1 silo proportions. */
+    private static int wallHeightFor(int tier) {
+        return edgeFor(tier) * 2;
+    }
+
+    private static int domeHeightFor(int tier) {
+        return edgeFor(tier) / 2;
+    }
+
+    /** Controller layer index from the TOP of the piece (bottom-up it sits on fuel layer 5). */
+    private static int ctrlVOff(int tier) {
+        return domeHeightFor(tier) + wallHeightFor(tier) - 6;
+    }
+
     private static int minCasingsFor(int tier) {
-        // Ten wall-ring layers (four plenums + six fuel), minus controller and 12 hatches/docks.
-        return 10 * ringCells(tier) - 13;
+        // Wall rings for every layer above the floor, minus a hatch/dock allowance; ribs and
+        // radiation bands also count toward this.
+        return ringCells(tier) * (wallHeightFor(tier) - 1) - 16;
     }
 
     private enum LayerKind {
         SHIELD,
         PLENUM,
         FUEL,
-        FUEL_CTRL
+        FUEL_CTRL,
+        BAND
     }
 
-    private static String[] buildLayer(int tier, LayerKind kind) {
+    private static char wallChar(int tier) {
+        return tier >= 5 ? 'E' : tier >= 3 ? 'D' : 'C';
+    }
+
+    private static char shieldChar(int tier) {
+        return tier >= 3 ? 'I' : 'B';
+    }
+
+    /** Grid is padded one cell on every side so the buttress ribs fit outside the octagon. */
+    private static String[] buildLayer(int tier, LayerKind kind, boolean ribs) {
         final int n = edgeFor(tier);
         final int k = CUT[tier];
-        final char wall = tier >= 5 ? 'E' : tier >= 3 ? 'D' : 'C';
-        final char shield = tier >= 3 ? 'I' : 'B';
-        final String[] rows = new String[n];
-        for (int r = 0; r < n; r++) {
-            final char[] row = new char[n];
-            for (int x = 0; x < n; x++) {
-                if (!insideOct(n, k, r, x)) {
-                    row[x] = ' ';
+        final int gridSize = n + 2;
+        final char wall = kind == LayerKind.BAND ? 'G' : wallChar(tier);
+        final char shield = shieldChar(tier);
+        final String[] rows = new String[gridSize];
+        for (int rr = 0; rr < gridSize; rr++) {
+            final char[] row = new char[gridSize];
+            for (int xx = 0; xx < gridSize; xx++) {
+                final int r = rr - 1;
+                final int x = xx - 1;
+                if (r < 0 || x < 0 || r >= n || x >= n || !insideOct(n, k, r, x)) {
+                    row[xx] = ' ';
                 } else if (kind == LayerKind.SHIELD) {
-                    row[x] = shield;
+                    row[xx] = shield;
                 } else if (interiorCell(n, k, r, x)) {
-                    row[x] = kind == LayerKind.PLENUM ? 'A' : 'F';
+                    row[xx] = (kind == LayerKind.PLENUM || kind == LayerKind.BAND) ? 'A' : 'F';
                 } else {
-                    row[x] = (kind == LayerKind.FUEL_CTRL && r == 0 && x == n / 2) ? '~' : wall;
+                    row[xx] = (kind == LayerKind.FUEL_CTRL && r == 0 && x == n / 2) ? '~' : wall;
                 }
             }
-            rows[r] = new String(row);
+            rows[rr] = new String(row);
+        }
+        if (ribs) {
+            addRibs(rows, tier);
         }
         return rows;
     }
 
-    /** Plant-scale silo: lid, two plenums, six fuel layers (controller on the third), two plenums, floor. */
+    /** Seven buttress ribs, one block proud of the wall (front is left clear for the controller). */
+    private static void addRibs(String[] rows, int tier) {
+        final int n = edgeFor(tier);
+        final int k = CUT[tier];
+        final int c = n / 2;
+        final int[][] dirs = { { 1, 0 }, { 0, 1 }, { 0, -1 }, { 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 } };
+        for (int[] d : dirs) {
+            int r = c;
+            int x = c;
+            while (r + d[0] >= 0 && r + d[0] < n
+                && x + d[1] >= 0
+                && x + d[1] < n
+                && insideOct(n, k, r + d[0], x + d[1])) {
+                r += d[0];
+                x += d[1];
+            }
+            final int rr = r + d[0] + 1;
+            final int xx = x + d[1] + 1;
+            if (rr >= 0 && rr < n + 2 && xx >= 0 && xx < n + 2) {
+                final char[] row = rows[rr].toCharArray();
+                if (row[xx] == ' ') {
+                    row[xx] = wallChar(tier);
+                    rows[rr] = new String(row);
+                }
+            }
+        }
+    }
+
+    /** Hemispherical shield dome shell ring at the given height above the wall top. */
+    private static String[] domeLayer(int tier, int yAbove) {
+        final int n = edgeFor(tier);
+        final int gridSize = n + 2;
+        final double radius = n / 2.0;
+        final double center = (n - 1) / 2.0;
+        final double ringRadius = Math.sqrt(Math.max(0, radius * radius - (double) yAbove * yAbove));
+        final boolean cap = yAbove >= domeHeightFor(tier);
+        final char shield = shieldChar(tier);
+        final String[] rows = new String[gridSize];
+        for (int rr = 0; rr < gridSize; rr++) {
+            final char[] row = new char[gridSize];
+            for (int xx = 0; xx < gridSize; xx++) {
+                final int r = rr - 1;
+                final int x = xx - 1;
+                if (r < 0 || x < 0 || r >= n || x >= n) {
+                    row[xx] = ' ';
+                } else {
+                    final double d = Math.hypot(r - center, x - center);
+                    row[xx] = (cap ? d <= ringRadius + 0.4 : Math.abs(d - ringRadius) <= 0.75) ? shield : ' ';
+                }
+            }
+            rows[rr] = new String(row);
+        }
+        return rows;
+    }
+
+    /** Radiation-band layers sit in the plenum regions at the mockup's thirds. */
+    private static boolean isBandLayer(int tier, int bottomUpIndex) {
+        final int wallH = wallHeightFor(tier);
+        return bottomUpIndex == 2 || bottomUpIndex == (9 + wallH - 1) / 2 || bottomUpIndex == wallH - 2;
+    }
+
+    /**
+     * The mockup silo, top-first: hemispherical dome, tall upper plenum with radiation bands,
+     * six fuel layers (controller on the third), lower plenums with a band, shield floor -
+     * ribbed the whole way up.
+     */
     private static String[][] coreShape(int tier) {
-        return new String[][] { buildLayer(tier, LayerKind.SHIELD), buildLayer(tier, LayerKind.PLENUM),
-            buildLayer(tier, LayerKind.PLENUM), buildLayer(tier, LayerKind.FUEL), buildLayer(tier, LayerKind.FUEL),
-            buildLayer(tier, LayerKind.FUEL_CTRL), buildLayer(tier, LayerKind.FUEL), buildLayer(tier, LayerKind.FUEL),
-            buildLayer(tier, LayerKind.FUEL), buildLayer(tier, LayerKind.PLENUM), buildLayer(tier, LayerKind.PLENUM),
-            buildLayer(tier, LayerKind.SHIELD) };
+        final int wallH = wallHeightFor(tier);
+        final int domeH = domeHeightFor(tier);
+        final List<String[]> layers = new ArrayList<>();
+        for (int y = domeH; y >= 1; y--) {
+            layers.add(domeLayer(tier, y));
+        }
+        for (int i = wallH - 1; i >= 0; i--) {
+            final LayerKind kind;
+            if (i == 0) {
+                kind = LayerKind.SHIELD;
+            } else if (i >= 3 && i <= 8) {
+                kind = i == 5 ? LayerKind.FUEL_CTRL : LayerKind.FUEL;
+            } else {
+                kind = isBandLayer(tier, i) ? LayerKind.BAND : LayerKind.PLENUM;
+            }
+            layers.add(buildLayer(tier, kind, i > 0));
+        }
+        return layers.toArray(new String[0][]);
     }
 
     @Override
@@ -291,6 +400,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                             .hint(1)
                             .buildAndChain(
                                 onElementPass(x -> ++x.mCasing, Casings.RadiantNaquadahAlloyCasing.asElement()))))
+                .addElement('G', onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement()))
                 .addElement(
                     'F',
                     ofChain(onElementPass(x -> ++x.fuelSegments, ofBlock(BTSBlocks.reactorFuelColumn, 0)), isAir()))
@@ -311,7 +421,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             mCasing = 0;
             fuelSegments = 0;
             final boolean smallest = t == 1;
-            if (checkPiece(pieceName(mName, t), edgeFor(t) / 2, 5, 0, smallest ? errors : null)) {
+            if (checkPiece(pieceName(mName, t), edgeFor(t) / 2 + 1, ctrlVOff(t), 1, smallest ? errors : null)) {
                 reactorTier = t;
                 break;
             }
@@ -335,9 +445,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return survivalBuildPiece(
             pieceName(mName, t),
             stackSize,
-            edgeFor(t) / 2,
-            5,
-            0,
+            edgeFor(t) / 2 + 1,
+            ctrlVOff(t),
+            1,
             elementBudget,
             env,
             false,
@@ -347,7 +457,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     @Override
     public void construct(ItemStack stackSize, boolean hintsOnly) {
         final int t = tierFromTrigger(stackSize);
-        buildPiece(pieceName(mName, t), stackSize, hintsOnly, edgeFor(t) / 2, 5, 0);
+        buildPiece(pieceName(mName, t), stackSize, hintsOnly, edgeFor(t) / 2 + 1, ctrlVOff(t), 1);
     }
 
     // ------------------------------------------------------------------ campaign
@@ -512,7 +622,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         base.disableWorking();
         if (Config.meltdownExplosions && GregTechAPI.sMachineExplosions) {
             final World world = base.getWorld();
-            for (int dy = 7; dy <= 19; dy += 3) {
+            final int stackTop = wallHeightFor(getReactorTier()) + domeHeightFor(getReactorTier()) - 6;
+            for (int dy = stackTop + 2; dy <= stackTop + 11; dy += 3) {
                 world.newExplosion(
                     null,
                     base.getXCoord() + 0.5,
@@ -757,7 +868,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             .addInfo("Hologram: trigger stack size 1-5 selects the silo tier.")
             .addInfo("Walls upgrade by tier: Radiation Proof -> Europium-Reinforced -> Radiant Naquadah Alloy.")
             .addInfo("Shield floor/lid: Tungstensteel Reinforced (T1-2), Iridium Tungstensteel (T3+).")
-            .addInfo("Plant profile: shield floor, 2 plenums, 6 fuel layers (columns 6 high), 2 plenums, lid.")
+            .addInfo("Mockup profile: ribbed walls twice the diameter tall, three radiation bands,")
+            .addInfo("hemispherical shield dome; fuel section (columns 6 high) sits low in the silo.")
             .addInfo("PLANT MODULES dock their controllers into any silo wall position:")
             .addInfo("Turbine Hall (steam -> EU with fan/coolant/propellant), Cooling Towers (condensate")
             .addInfo("return + faster heat decay, up to 2). Modules are inert while undocked.")
@@ -766,10 +878,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             .addInfo("Control rods: set 1-24 in the controller GUI; a programmed circuit overrides it.")
             .addInfo("Heat: SCRAM at 8,000; decay heat 20 min after shutdown; 10,000 = MELTDOWN")
             .addInfo("(vertical detonation + radiation field; hazmat counters; config toggles).")
-            .beginStructureBlock(17, 12, 17, true)
+            .beginStructureBlock(19, 42, 19, true)
             .addController("Silo wall, front center of the third fuel layer")
-            .addCasingInfoRange("Tier wall casing (see above)", 227, 480, false)
-            .addCasingInfoRange("Shield blocks (floor + lid)", 138, 498, false)
+            .addCasingInfoRange("Tier wall casing incl. ribs (see above)", 400, 1700, false)
+            .addCasingInfoRange("Radiation Proof Machine Casing (band rings)", 60, 150, false)
+            .addCasingInfoRange("Shield blocks (floor + dome)", 170, 640, false)
             .addEnergyHatch("Any wall casing", 1)
             .addMaintenanceHatch("Any wall casing", 1)
             .addInputHatch("Any wall casing", 1)
