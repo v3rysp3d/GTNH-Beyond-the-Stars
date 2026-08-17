@@ -111,6 +111,17 @@ ONE controller, silo-shaped, addon-based (replaces the separate Turbine Hall):
   121 x 8,192 x 8 x 5 x 2.5 x 10 = 991,232,000 EU/t — the plan's ~1B row, reached only
   with UHV+ materials exactly as ruled.
 
+## v0.8 campus front end
+
+- **Extraction Platform** (EV): 5x5x8 drilling derrick (solid steel base + frame tower +
+  drill string). Drinks RECIPE_EV EU forever: per 10s cycle 6x Uraninite + 1x Thorium dust,
+  every 4th cycle +1 Tantalum dust. The indefinite-feedstock pillar component.
+- **Enrichment Train** (EV): 3x3x9 conversion line (clean stainless + pipe line). Per 30s:
+  8x Uraninite + 2,000 L Hydrofluoric Acid -> 20x Fuel Pellet + 2x Thorium dust — better
+  yield than the bench assembler route (which stays as the entry path).
+- Campus loop is closed end to end: drill -> enrich -> burn -> turbine/deck EU -> reprocess
+  -> MOX/bonded -> burn richer, with waste water -> tantalum on the side.
+
 ## Deliberately deferred
 
 - Gen II+ core expansion (7x7 etc. via PCB-Factory shape/channel idiom), bonded fuels, naq

@@ -272,6 +272,30 @@ public final class BTSRecipes {
             .eut(TierEU.RECIPE_UHV)
             .addTo(assemblerRecipes);
 
+        // Extraction Platform controller (EV): the campus fuel front end
+        GTValues.RA.stdBuilder()
+            .itemInputs(
+                GTOreDictUnificator.get(OrePrefixes.plate, Materials.StainlessSteel, 8L),
+                GTOreDictUnificator.get(OrePrefixes.frameGt, Materials.Steel, 4L),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.EV, 2L))
+            .circuit(4)
+            .itemOutputs(BTSMachines.extractionPlatform.copy())
+            .duration(30 * SECONDS)
+            .eut(TierEU.RECIPE_EV)
+            .addTo(assemblerRecipes);
+
+        // Enrichment Train controller (EV): the campus processing factory
+        GTValues.RA.stdBuilder()
+            .itemInputs(
+                GTOreDictUnificator.get(OrePrefixes.plate, Materials.StainlessSteel, 8L),
+                GTOreDictUnificator.get(OrePrefixes.pipeMedium, Materials.StainlessSteel, 2L),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.EV, 2L))
+            .circuit(5)
+            .itemOutputs(BTSMachines.enrichmentTrain.copy())
+            .duration(30 * SECONDS)
+            .eut(TierEU.RECIPE_EV)
+            .addTo(assemblerRecipes);
+
         // Radiation proof casing + IV circuits + rare metals -> Reactor Silo controller
         GTValues.RA.stdBuilder()
             .itemInputs(
