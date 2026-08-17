@@ -14,7 +14,8 @@ import cpw.mods.fml.common.event.FMLServerStartingEvent;
     modid = BeyondTheStars.MODID,
     version = Tags.VERSION,
     name = "GTNH: Beyond the Stars",
-    acceptedMinecraftVersions = "[1.7.10]")
+    acceptedMinecraftVersions = "[1.7.10]",
+    dependencies = "required-after:gregtech;required-after:structurelib")
 public class BeyondTheStars {
 
     public static final String MODID = "beyondthestars";

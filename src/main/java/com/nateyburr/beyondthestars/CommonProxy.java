@@ -1,5 +1,8 @@
 package com.nateyburr.beyondthestars;
 
+import com.nateyburr.beyondthestars.items.BTSItems;
+import com.nateyburr.beyondthestars.machines.BTSMachines;
+
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
@@ -9,6 +12,10 @@ public class CommonProxy {
 
     public void preInit(FMLPreInitializationEvent event) {
         Config.synchronizeConfiguration(event.getSuggestedConfigurationFile());
+
+        BTSItems.register();
+        // GT5U registers its own machines in its preInit; required-after:gregtech guarantees ours runs later.
+        BTSMachines.register();
 
         BeyondTheStars.LOG.info("GTNH: Beyond the Stars " + Tags.VERSION + " loading.");
     }
