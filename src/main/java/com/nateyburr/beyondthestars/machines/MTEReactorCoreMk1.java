@@ -164,6 +164,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         reactorTier = 0;
         // Largest shell first; only the smallest attempt reports structure errors.
         for (int t = MAX_TIER; t >= 1; t--) {
+            // A failed larger-tier walk registers hatches as a side effect; GT's own multi-shape
+            // multis clear between probes (MTEMegaVacuumFreezerLegacy precedent).
+            clearHatches();
             mCasing = 0;
             fuelSegments = 0;
             final boolean smallest = t == 1;

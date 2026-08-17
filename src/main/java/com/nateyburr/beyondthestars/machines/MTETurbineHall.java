@@ -73,6 +73,8 @@ public class MTETurbineHall extends MTEExtendedPowerMultiBlockBase<MTETurbineHal
     private int mCasing;
     private int activePropellantMult = 1;
     private boolean boostedLastTick;
+    /** One free pass after chunk load so a booting AE grid cannot false-seize the fan. */
+    private transient boolean graceCheck;
 
     public MTETurbineHall(int aID, String aName, String aNameRegional) {
         super(aID, aName, aNameRegional);
@@ -148,13 +150,15 @@ public class MTETurbineHall extends MTEExtendedPowerMultiBlockBase<MTETurbineHal
 
     private int countFluid(ArrayList<FluidStack> stored, FluidStack sample) {
         if (sample == null) return 0;
-        int amount = 0;
+        // Long accumulator: ME stocking hatches can present Integer.MAX_VALUE per fluid, and an
+        // int sum would wrap negative and read a full hatch as empty.
+        long amount = 0;
         for (FluidStack stack : stored) {
             if (stack != null && stack.isFluidEqual(sample)) {
                 amount += stack.amount;
             }
         }
-        return amount;
+        return (int) Math.min(amount, Integer.MAX_VALUE);
     }
 
     /** Fan destroyed; optional bang. The hall stays down until a new fan is installed. */
@@ -222,12 +226,18 @@ public class MTETurbineHall extends MTEExtendedPowerMultiBlockBase<MTETurbineHal
             euBase += steamAvailable / 2;
         }
 
+        // Seizure only bites if the boost was genuinely cut mid-run: never on the post-load
+        // grace pass, and stopMachine (structure break, disable) clears the flag separately.
+        final boolean canSeize = boostedLastTick && !graceCheck;
+
         if (euBase <= 0) {
-            if (boostedLastTick) {
+            if (canSeize) {
                 // Spinning on propellant with no working fluid seizes the turbine too.
                 destroyFan(SEIZURE_REASON);
                 return CheckRecipeResultRegistry.NO_TURBINE_FOUND;
             }
+            graceCheck = false;
+            boostedLastTick = false;
             this.lEUt = 0;
             this.mEfficiency = 0;
             return CheckRecipeResultRegistry.NO_FUEL_FOUND;
@@ -239,26 +249,42 @@ public class MTETurbineHall extends MTEExtendedPowerMultiBlockBase<MTETurbineHal
             if (depleteInput(new FluidStack(propellants[foundPropellant], litres))) {
                 propellantMult = propellantMults[foundPropellant];
                 boostedLastTick = true;
-            } else if (boostedLastTick) {
+            } else if (canSeize) {
                 destroyFan(SEIZURE_REASON);
                 return CheckRecipeResultRegistry.NO_TURBINE_FOUND;
+            } else {
+                boostedLastTick = false;
             }
-        } else if (boostedLastTick) {
+        } else if (canSeize) {
             destroyFan(SEIZURE_REASON);
             return CheckRecipeResultRegistry.NO_TURBINE_FOUND;
+        } else {
+            boostedLastTick = false;
         }
+        graceCheck = false;
 
         // T multiplier: matched/TDA x1.25, optimized x2.5.
         long output = tier == 3 ? euBase * 5 / 2 : euBase * 5 / 4;
         output *= propellantMult;
         // Clamp to dynamo capacity - GT explodes the machine on overflow, we throttle instead.
+        // Also cap below 2^31: GT's multi-dynamo injection accumulates in an int and would
+        // duplicate EU past that.
         output = Math.min(output, maxDynamoOutput());
+        output = Math.min(output, Integer.MAX_VALUE);
 
         activePropellantMult = propellantMult;
         this.lEUt = output;
         this.mMaxProgresstime = 1;
         this.mEfficiencyIncrease = 10;
         return CheckRecipeResultRegistry.GENERATING;
+    }
+
+    @Override
+    public void stopMachine(@Nonnull ShutDownReason reason) {
+        // Any external stop (structure break, maintenance, disable) ends the boost obligation;
+        // destroyFan clears the flag itself before calling this, so punishments are unaffected.
+        boostedLastTick = false;
+        super.stopMachine(reason);
     }
 
     @Override
@@ -271,6 +297,7 @@ public class MTETurbineHall extends MTEExtendedPowerMultiBlockBase<MTETurbineHal
     public void loadNBTData(NBTTagCompound aNBT) {
         super.loadNBTData(aNBT);
         boostedLastTick = aNBT.getBoolean("btsBoosted");
+        graceCheck = true;
     }
 
     @Override
