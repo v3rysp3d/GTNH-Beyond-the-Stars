@@ -35,6 +35,7 @@ import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.blocks.BTSBlocks;
 import com.nateyburr.beyondthestars.items.BTSItems;
 
+import gregtech.api.GregTechAPI;
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.GTValues;
 import gregtech.api.enums.Materials;
@@ -98,7 +99,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         mCasing = 0;
         fuelSegments = 0;
         if (!checkPiece(mName, 2, 2, 0, errors)) return;
-        checkCasingMin(errors, mCasing, 85);
+        checkCasingMin(errors, mCasing, 39);
         checkHasEnergyHatch(errors);
         checkHasMaintenanceHatch(errors);
         checkHasInputHatch(errors);
@@ -119,11 +120,12 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     @Override
     public IStructureDefinition<MTEReactorCoreMk1> getStructureDefinition() {
         if (STRUCTURE_DEFINITION == null) {
-            final String[] solid = { "CCCCC", "CCCCC", "CCCCC", "CCCCC", "CCCCC" };
+            final String[] shield = { "BBBBB", "BBBBB", "BBBBB", "BBBBB", "BBBBB" };
             final String[] interior = { "CCCCC", "CFFFC", "CFFFC", "CFFFC", "CCCCC" };
             final String[] controller = { "CC~CC", "CFFFC", "CFFFC", "CFFFC", "CCCCC" };
             STRUCTURE_DEFINITION = StructureDefinition.<MTEReactorCoreMk1>builder()
-                .addShape(mName, transpose(new String[][] { solid, interior, controller, interior, solid }))
+                .addShape(mName, transpose(new String[][] { shield, interior, controller, interior, shield }))
+                .addElement('B', ofBlock(GregTechAPI.sBlockReinforced, 3))
                 .addElement(
                     'C',
                     buildHatchAdder(MTEReactorCoreMk1.class)
@@ -275,12 +277,13 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             .addInfo("the campaign is lost and the reactor stays down until re-enabled.")
             .beginStructureBlock(5, 5, 5, true)
             .addController("Front center")
-            .addCasingInfoRange("Radiation Proof Machine Casing", 85, 97, false)
-            .addEnergyHatch("Any Casing", 1)
-            .addMaintenanceHatch("Any Casing", 1)
-            .addInputHatch("Any Casing", 1)
-            .addOutputHatch("Any Casing", 1)
-            .addInputBus("Any Casing", 1)
+            .addCasingInfoExactly("Tungstensteel Reinforced Block (roof & floor bio-shield)", 50, false)
+            .addCasingInfoRange("Radiation Proof Machine Casing", 39, 47, false)
+            .addEnergyHatch("Any wall casing", 1)
+            .addMaintenanceHatch("Any wall casing", 1)
+            .addInputHatch("Any wall casing", 1)
+            .addOutputHatch("Any wall casing", 1)
+            .addInputBus("Any wall casing", 1)
             .toolTipFinisher();
         return tt;
     }

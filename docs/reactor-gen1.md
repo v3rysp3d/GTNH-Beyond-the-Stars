@@ -5,8 +5,13 @@ Gen I is the C-scaling stage: uranium fuel (F=1), water/steam loop (K=1), generi
 
 ## Structure (5x5x5)
 
-- Shell: Radiation Proof Machine Casings (GT5u `Casings.RadiationProofMachineCasing`), hatches
-  substitute anywhere in the shell. Controller: front center, middle layer.
+- Roof & floor: 5x5 **Tungstensteel Reinforced Block** each (GT `sBlockReinforced` meta 3) —
+  the biological shield; no hatches may penetrate it.
+- Walls (middle 3 layers): Radiation Proof Machine Casings
+  (GT5u `Casings.RadiationProofMachineCasing`); hatches substitute in walls only
+  (39 casing minimum of 47). Controller: front center, middle layer.
+- Hologram: the controller implements `ISurvivalConstructable`, so the StructureLib
+  Hologram Projector shows build hints and survival auto-place works.
 - Interior 3x3x3: each of the 9 interior column positions may hold a vertical stack of
   3 **Reactor Fuel Column** blocks (full column) or be air. Structure check counts segments;
   `columns = segments / 3` (floor). 0 columns = structure forms but reactor cannot start.
