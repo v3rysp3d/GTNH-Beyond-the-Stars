@@ -3,6 +3,11 @@ item.beyondthestars.uraniumFuelPellet.name=Fuel Pellet (Uranium)
 item.beyondthestars.fuelRodUranium.name=Fuel Rod (Uranium)
 item.beyondthestars.fuelAssemblyUranium.name=Fuel Assembly (Uranium)
 item.beyondthestars.depletedFuelAssemblyUranium.name=Depleted Fuel Assembly (Uranium)
+item.beyondthestars.moxFuelPellet.name=Fuel Pellet (MOX)
+item.beyondthestars.fuelRodMox.name=Fuel Rod (MOX)
+item.beyondthestars.fuelAssemblyMox.name=Fuel Assembly (MOX)
+item.beyondthestars.depletedFuelAssemblyMox.name=Depleted Fuel Assembly (MOX)
 tile.beyondthestars.reactorFuelColumn.name=Reactor Fuel Column
 GT5U.gui.text.shutdown_reason.beyondthestars.scram=SCRAM: core overheat — re-enable the reactor to restart
+GT5U.gui.text.shutdown_reason.beyondthestars.meltdown=MELTDOWN: core destroyed — the site is irradiated
 

@@ -19,6 +19,10 @@ public final class BTSItems {
     public static Item fuelRodUranium;
     public static Item fuelAssemblyUranium;
     public static Item depletedFuelAssemblyUranium;
+    public static Item moxFuelPellet;
+    public static Item fuelRodMox;
+    public static Item fuelAssemblyMox;
+    public static Item depletedFuelAssemblyMox;
 
     private BTSItems() {}
 
@@ -42,5 +46,25 @@ public final class BTSItems {
             .setTextureName("beyondthestars:depletedFuelAssemblyUranium")
             .setCreativeTab(TAB);
         GameRegistry.registerItem(depletedFuelAssemblyUranium, "depletedFuelAssemblyUranium");
+
+        moxFuelPellet = new Item().setUnlocalizedName("beyondthestars.moxFuelPellet")
+            .setTextureName("beyondthestars:moxFuelPellet")
+            .setCreativeTab(TAB);
+        GameRegistry.registerItem(moxFuelPellet, "moxFuelPellet");
+
+        fuelRodMox = new Item().setUnlocalizedName("beyondthestars.fuelRodMox")
+            .setTextureName("beyondthestars:fuelRodMox")
+            .setCreativeTab(TAB);
+        GameRegistry.registerItem(fuelRodMox, "fuelRodMox");
+
+        fuelAssemblyMox = new Item().setUnlocalizedName("beyondthestars.fuelAssemblyMox")
+            .setTextureName("beyondthestars:fuelAssemblyMox")
+            .setCreativeTab(TAB);
+        GameRegistry.registerItem(fuelAssemblyMox, "fuelAssemblyMox");
+
+        depletedFuelAssemblyMox = new Item().setUnlocalizedName("beyondthestars.depletedFuelAssemblyMox")
+            .setTextureName("beyondthestars:depletedFuelAssemblyMox")
+            .setCreativeTab(TAB);
+        GameRegistry.registerItem(depletedFuelAssemblyMox, "depletedFuelAssemblyMox");
     }
 }

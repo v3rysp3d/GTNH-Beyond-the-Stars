@@ -50,8 +50,28 @@ GT5u's tiered multis register MULTIPLE `addShape` variants on one controller and
 extra shapes for the expanded core + coolant-plant wing, hologram channel selects the build
 stage, and efficiency scales per the plan's output formula.
 
+## v0.4 systems (ultracode session)
+
+- **Dual fuel:** MOX assemblies (preferred when stocked) double output (F=2). MOX chain:
+  1 Pu dust + 8 U dust -> mixer -> 18 MOX pellets; reprocessing depleted assemblies in a
+  centrifuge recovers U + Pu smalls + lead (+ platinum foil chance), closing the cycle.
+- **Coolant loop:** if IC2 Coolant is in an input hatch it is preferred: the reactor drinks
+  `ceil(steam/160)` L/t of coolant and emits the same amount of Hot Coolant. Via the LHE
+  (200 EU per L hot coolant, cold coolant returned 1:1) that is exactly 2.5x the steam
+  route - the plan's K=2.5 without a new multiblock.
+- **Waste water:** 1 L/t per column of Nuclear Waste Water while producing. Distillation
+  tower: 8,000 L -> 1 tantalum dust small + 7,200 L distilled water (D-09 anchor; numbers
+  are tuning knobs).
+- **Heat ladder (D-02/D-03 settled model):** starvation +4/t; **SCRAM at 8,000** (reactor
+  self-disables, GUI shows reason); after EVERY shutdown, decay heat demands 64 L/t of
+  water/coolant for 20 minutes; unserved decay heat climbs +2/t; **10,000 = MELTDOWN**:
+  vertical detonation column (strength 3, flaming, above the bio-shield) then a 30-minute
+  radiation field (radius 12, GT radioactivity effects, full radiation hazmat immune).
+  Config toggles: `meltdownExplosions`, `radiationField`; GT's global
+  `GregTechAPI.sMachineExplosions` kill-switch is honored.
+
 ## Deliberately deferred
 
-- Gen II+ core expansion (7x7 etc.), coolant loop, bonded fuels, naq propellant, matched
-  turbines, Core Access Hatch AE2 rod rotation, waste water, meltdown/radiation events,
-  uptime/burnup milestones. One stage at a time; this file tracks only v0.2.
+- Gen II+ core expansion (7x7 etc. via PCB-Factory shape/channel idiom), bonded fuels, naq
+  propellant, matched turbines, Core Access Hatch AE2 rod rotation, uptime/burnup
+  milestones, radiation cleanup items, Extraction Platform + Enrichment Train multis.

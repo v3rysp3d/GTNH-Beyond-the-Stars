@@ -12,6 +12,12 @@ public class Config {
     /** Length of one Gen I reactor fuel campaign, in real-time minutes. */
     public static int genICampaignMinutes = 720;
 
+    /** Meltdowns produce the vertical detonation column. */
+    public static boolean meltdownExplosions = true;
+
+    /** Meltdowns leave a lingering radiation field (hazmat counters it). */
+    public static boolean radiationField = true;
+
     public static void synchronizeConfiguration(File configFile) {
         Configuration configuration = new Configuration(configFile);
 
@@ -31,6 +37,18 @@ public class Config {
             1,
             20160,
             "Real-time minutes one Gen I reactor fuel campaign lasts per fuel assembly load.");
+
+        meltdownExplosions = configuration.getBoolean(
+            "meltdownExplosions",
+            Configuration.CATEGORY_GENERAL,
+            true,
+            "Reactor meltdowns produce a vertical detonation column above the core.");
+
+        radiationField = configuration.getBoolean(
+            "radiationField",
+            Configuration.CATEGORY_GENERAL,
+            true,
+            "Reactor meltdowns leave a lingering radiation field. Full radiation hazmat counters it.");
 
         if (configuration.hasChanged()) {
             configuration.save();

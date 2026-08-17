@@ -1,6 +1,7 @@
 package com.nateyburr.beyondthestars;
 
 import com.nateyburr.beyondthestars.blocks.BTSBlocks;
+import com.nateyburr.beyondthestars.fluids.BTSFluids;
 import com.nateyburr.beyondthestars.items.BTSItems;
 import com.nateyburr.beyondthestars.machines.BTSMachines;
 
@@ -16,6 +17,7 @@ public class CommonProxy {
 
         BTSItems.register();
         BTSBlocks.register();
+        BTSFluids.register();
         // GT5U registers its own machines in its preInit; required-after:gregtech guarantees ours runs later.
         BTSMachines.register();
 
