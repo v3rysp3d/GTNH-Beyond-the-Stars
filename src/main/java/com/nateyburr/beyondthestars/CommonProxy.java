@@ -31,5 +31,7 @@ public class CommonProxy {
         BTSRecipes.register();
     }
 
-    public void serverStarting(FMLServerStartingEvent event) {}
+    public void serverStarting(FMLServerStartingEvent event) {
+        event.registerServerCommand(new CommandBTSKit());
+    }
 }
