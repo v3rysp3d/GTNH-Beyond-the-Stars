@@ -16,8 +16,10 @@ public final class BTSMachines {
 
     public static void register() {
         final int base = Config.mteBaseId;
-        reactorCoreMk1 = new MTEReactorCoreMk1(base, "multimachine.beyondthestars.reactorcore.mk1", "Reactor Silo")
-            .getStackForm(1);
+        reactorCoreMk1 = new MTEReactorCoreMk1(
+            base,
+            "multimachine.beyondthestars.reactorcore.mk1",
+            "Nuclear Plant Foundation").getStackForm(1);
         extractionPlatform = new MTEExtractionPlatform(
             base + 2,
             "multimachine.beyondthestars.extractionplatform",

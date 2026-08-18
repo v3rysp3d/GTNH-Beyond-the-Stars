@@ -32,6 +32,7 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
     @Override
     protected void registerSyncValues(PanelSyncManager syncManager) {
         super.registerSyncValues(syncManager);
+        syncManager.syncValue("siloBuilt", new BooleanSyncValue(multiblock::isSiloBuilt));
         syncManager.syncValue("siloTier", new IntSyncValue(multiblock::getReactorTier));
         syncManager.syncValue("siloEdge", new IntSyncValue(multiblock::getEdge));
         syncManager.syncValue("fuelColumns", new IntSyncValue(multiblock::getFuelColumns));
@@ -51,6 +52,7 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
 
     @Override
     protected ListWidget<IWidget, ?> createTerminalTextWidget(PanelSyncManager syncManager, ModularPanel parent) {
+        final BooleanSyncValue siloBuilt = syncManager.findSyncHandler("siloBuilt", BooleanSyncValue.class);
         final IntSyncValue tier = syncManager.findSyncHandler("siloTier", IntSyncValue.class);
         final IntSyncValue edge = syncManager.findSyncHandler("siloEdge", IntSyncValue.class);
         final IntSyncValue columns = syncManager.findSyncHandler("fuelColumns", IntSyncValue.class);
@@ -64,20 +66,23 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         final LongSyncValue euOutput = syncManager.findSyncHandler("euOutput", LongSyncValue.class);
         final LongSyncValue steamOutput = syncManager.findSyncHandler("steamOutput", LongSyncValue.class);
 
-        return super.createTerminalTextWidget(syncManager, parent)
-            .child(
-                IKey.dynamic(
-                    () -> EnumChatFormatting.AQUA + translateToLocal("beyondthestars.gui.silo")
-                        + " "
-                        + tier.getIntValue()
-                        + " ("
-                        + edge.getIntValue()
-                        + "x"
-                        + edge.getIntValue()
-                        + " octagon)"
-                        + EnumChatFormatting.RESET)
-                    .asWidget()
-                    .marginBottom(2))
+        return super.createTerminalTextWidget(syncManager, parent).child(IKey.dynamic(() -> {
+            if (!siloBuilt.getBoolValue()) {
+                return EnumChatFormatting.YELLOW + translateToLocal("beyondthestars.gui.silo.absent")
+                    + EnumChatFormatting.RESET;
+            }
+            return EnumChatFormatting.AQUA + translateToLocal("beyondthestars.gui.silo")
+                + " "
+                + tier.getIntValue()
+                + " ("
+                + edge.getIntValue()
+                + "x"
+                + edge.getIntValue()
+                + " octagon)"
+                + EnumChatFormatting.RESET;
+        })
+            .asWidget()
+            .marginBottom(2))
             .child(
                 IKey.dynamic(
                     () -> translateToLocal("beyondthestars.gui.columns") + " "

@@ -53,10 +53,13 @@ public class CommandBTSKit extends CommandBase {
         final EntityPlayerMP player = getCommandSenderAsPlayer(sender);
         final int tier = args.length > 0 ? Math.min(5, Math.max(1, parseInt(sender, args[0]))) : 1;
 
-        // Controllers
+        // Controllers (main + campus + plant modules)
         give(player, BTSMachines.reactorCoreMk1.copy());
         give(player, BTSMachines.extractionPlatform.copy());
         give(player, BTSMachines.enrichmentTrain.copy());
+        give(player, BTSMachines.moduleTurbineHall.copy());
+        give(player, BTSMachines.moduleCoolingTower.copy());
+        give(player, BTSMachines.moduleCoolingTower.copy());
 
         // Fuel columns for the chosen tier (6 segments per column)
         int segments = COLUMN_CAP[tier] * 6;
@@ -89,17 +92,21 @@ public class CommandBTSKit extends CommandBase {
             : tier >= 3 ? "Europium-Reinforced Radiation Proof Casing" : "Radiation Proof Machine Casing";
         final String shield = tier >= 3 ? "Iridium Tungstensteel Block" : "Tungstensteel Reinforced Block";
 
-        tell(player, EnumChatFormatting.AQUA + "== Beyond the Stars test kit (silo tier " + tier + ") ==");
-        tell(player, "Kit given: 3 controllers, " + COLUMN_CAP[tier] * 6 + " fuel columns, all fuels, all fans.");
+        tell(player, EnumChatFormatting.AQUA + "== Beyond the Stars test kit (steam gen tier " + tier + ") ==");
+        tell(
+            player,
+            "Kit given: 5 controllers (+ spare tower), " + COLUMN_CAP[tier] * 6 + " fuel columns, fuels, fans.");
         tell(player, EnumChatFormatting.YELLOW + "Grab via NEI (creative):");
+        tell(player, " - Starter platform: 2251x Light Concrete, 249x Tungstensteel Reinforced, 8x Solid Steel Casing");
         tell(player, " - Silo walls: ~" + ring * 10 + "x " + wall + " (hatches substitute)");
-        tell(player, " - Shields: " + oct * 2 + "x " + shield + " (+" + oct + " for the deck dome)");
-        tell(player, " - Turbine Deck: ~" + ring * 2 + "x Tungstensteel Turbine Casing, 2x Steel Pipe Casing");
+        tell(player, " - Silo dome: ~" + oct + "x " + shield);
+        tell(player, " - Turbine Hall: ~90x Tungstensteel Turbine Casing, glass, Steel Pipe Casing");
+        tell(player, " - Cooling Towers: ~550x Light Concrete + ~40x Solid Steel Casing each");
         tell(player, " - Hatches: energy, maintenance, water in, steam out, input bus, output bus, dynamos");
         tell(
             player,
             EnumChatFormatting.GREEN
-                + "Build: creative + Hologram Projector on the placed controller auto-builds; hologram tier = projector trigger count (Solar-Tower style).");
-        tell(player, "Then: columns in the core, fuel + water in, throttle in the GUI, fans in an input bus.");
+                + "Build: place the main controller, project the 50x50 platform (trigger 1-5 also selects the silo tier). Then stand module controllers on the dock pads and project their buildings.");
+        tell(player, "Then: columns in the core, fuel + water in, throttle in the GUI, fan in the hall's input bus.");
     }
 }

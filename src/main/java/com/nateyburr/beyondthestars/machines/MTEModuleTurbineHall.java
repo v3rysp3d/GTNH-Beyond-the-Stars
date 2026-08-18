@@ -85,7 +85,7 @@ public class MTEModuleTurbineHall extends MTEPlantModuleBase implements ISurviva
     @Override
     public void checkMachine(IGregTechTileEntity aBaseMetaTileEntity, ItemStack aStack, List<StructureError> errors) {
         moduleCasings = 0;
-        if (!checkPiece(mName, 2, 1, 0, errors)) return;
+        if (!checkPiece(mName, 2, 3, 0, errors)) return;
         checkCasingMin(errors, moduleCasings, 80);
         checkHatchMin(errors, Dynamo, 1);
         checkHasMaintenanceHatch(errors);
@@ -94,12 +94,12 @@ public class MTEModuleTurbineHall extends MTEPlantModuleBase implements ISurviva
     @Override
     public int survivalConstruct(ItemStack stackSize, int elementBudget, ISurvivalBuildEnvironment env) {
         if (mMachine) return -1;
-        return survivalBuildPiece(mName, stackSize, 2, 1, 0, elementBudget, env, false, true);
+        return survivalBuildPiece(mName, stackSize, 2, 3, 0, elementBudget, env, false, true);
     }
 
     @Override
     public void construct(ItemStack stackSize, boolean hintsOnly) {
-        buildPiece(mName, stackSize, hintsOnly, 2, 1, 0);
+        buildPiece(mName, stackSize, hintsOnly, 2, 3, 0);
     }
 
     @Override
@@ -107,8 +107,10 @@ public class MTEModuleTurbineHall extends MTEPlantModuleBase implements ISurviva
         if (STRUCTURE_DEFINITION == null) {
             final String[] roof = { "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS" };
             final String[] upper = { "SWWWS", "WAPAW", "WAPAW", "WAPAW", "WAPAW", "WAPAW", "WAPAW", "WAPAW", "SSSSS" };
-            final String[] main = { "SS~SS", "SAPAS", "SAPAS", "SAPAS", "SAPAS", "SAPAS", "SAPAS", "SAPAS", "SSSSS" };
-            final String[] plinth = { "UUUUU", "UUUUU", "UUUUU", "UUUUU", "UUUUU", "UUUUU", "UUUUU", "UUUUU", "UUUUU" };
+            // Nothing sits below grade: the plinth is the bottom layer AT pad level, standing
+            // on the foundation platform's concrete, with the controller anchored in its front.
+            final String[] main = { "SSSSS", "SAPAS", "SAPAS", "SAPAS", "SAPAS", "SAPAS", "SAPAS", "SAPAS", "SSSSS" };
+            final String[] plinth = { "UU~UU", "UUUUU", "UUUUU", "UUUUU", "UUUUU", "UUUUU", "UUUUU", "UUUUU", "UUUUU" };
             STRUCTURE_DEFINITION = StructureDefinition.<MTEPlantModuleBase>builder()
                 .addShape(mName, transpose(new String[][] { roof, upper, main, plinth }))
                 .addElement('A', isAir())
@@ -299,13 +301,14 @@ public class MTEModuleTurbineHall extends MTEPlantModuleBase implements ISurviva
     protected MultiblockTooltipBuilder createTooltip() {
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
         tt.addMachineType("Plant Module - Turbine Hall")
-            .addInfo("Docks into a Reactor Silo wall; converts the silo's steam directly to EU.")
+            .addInfo("Docks onto the Plant Foundation pad BESIDE the silo; converts its steam directly to EU.")
+            .addInfo("Face the controller ALONG the platform so the hall runs parallel to the silo, not into it.")
             .addInfo("Fan in this hall's input bus: Matched x1.25, TDA x1.25 (propellant-rated), Optimized x2.5.")
             .addInfo("Stock IC2 Coolant in this hall's input hatch as the K charge (x2.5; tier-5 silo x5).")
             .addInfo("Naquadah Propellant Mk I/II/III: x2/x3/x10 - blowout on non-TDA fans, seizure on starvation.")
             .addInfo("Undocked, this building is inert.")
             .beginStructureBlock(5, 4, 9, true)
-            .addController("Front center, standing on a silo dock pad (face away from the silo)")
+            .addController("Front of the plinth, standing on the dock pad beside the silo")
             .addCasingInfoRange("Clean Stainless Steel Machine Casing (walls/roof)", 60, 75, false)
             .addCasingInfoRange("Tungstensteel Turbine Casing (plinth)", 37, 45, false)
             .addCasingInfoExactly("Steel Pipe Casing (shaft)", 14, false)

@@ -1,21 +1,29 @@
 # UNIT ONE — plant architecture plan (approved mockup -> v0.9+)
 
 Mockup: (review mockup, kept outside the repo)
-Ruling: the Containment Silo is the ONLY mandatory structure; every side building is an
-OPTIONAL addon detected by the one controller, each granting efficiency, recycling, or
-capability. Numbers marked (proposed) are tuning knobs for sign-off.
+Ruling (final, v0.10): "This flooring needs to be the ENTIRE way of the 50x50 multiblock,
+this is the starter structure and every addon will be added to this." The 50x50 FOUNDATION
+PLATFORM is the only mandatory structure; the Steam Generator silo is the FIRST addon built
+onto it, the Turbine Hall docks directly beside it second, then everything else. Numbers
+marked (proposed) are tuning knobs for sign-off.
 
-## Mandatory core — Containment Silo
+## Mandatory starter — Foundation Platform (50x50)
 
-- Five tiers, ribbed cylinder-octagons ~21/25/29/33/37 wide, wall height 62 + hemispherical
-  shield dome (peak ~80) + shield floors. Twelve vertical buttress ribs (tier wall material),
-  three radiation-proof casing bands, warning beacon.
+- Full 50x50 Light Concrete platform, controller front center at pad level.
+- Tungstensteel-Reinforced shield pad (max-tier octagon, 249 blocks) marks the reactor
+  site at platform center; 8 Solid Steel dock pads mark the module sites.
+- Bare platform forms and idles (no hatches required); GUI says "Steam Generator: NOT
+  BUILT" until the silo is projected onto the shield pad.
+
+## First addon — Steam Generator silo (piece of the main controller)
+
+- Five tiers (hologram trigger 1-5), ribbed octagons 9-17 wide, walls 2x diameter tall +
+  hemispherical shield dome; radiation-proof casing bands at the thirds. Stands on the
+  platform's shield pad; hatches live in the silo walls.
 - Tier wall materials unchanged (RadProof -> Europium-Reinforced -> Radiant Naq Alloy);
-  shields TS-Reinforced -> Iridium TS.
-- Fuel lattice at spacing 3 (mockup look): column caps stay ~45/77/109/157/201, so ALL
-  existing output math carries over unchanged.
-- No addons built = fluid exporter (Steam / Hot Coolant), exactly as today.
-- Controller: silo wall at ground level, front center.
+  dome TS-Reinforced -> Iridium TS.
+- Column caps stay 45/77/109/157/201, so ALL existing output math carries over unchanged.
+- No modules docked = fluid exporter (Steam / Hot Coolant), exactly as today.
 
 ## Addons (each an optional structure piece at a fixed offset; GUI lists all with status)
 
@@ -38,11 +46,12 @@ capability. Numbers marked (proposed) are tuning knobs for sign-off.
 
 ## Implementation notes (Space Elevator architecture - review ruling)
 
-- The plant works like the GTNH Space Elevator: the silo is the MAIN controller whose
-  structure contains designated DOCKING positions; each addon building is its own MODULE
-  MACHINE with its own controller (like space pumps/assemblers docking into the elevator).
-  A module only functions while docked to a formed silo; the silo lists docked modules in
-  its GUI and feeds/receives their effects.
+- The plant works like the GTNH Space Elevator: the platform is the MAIN controller whose
+  flooring contains designated DOCK PADS; each addon building is its own MODULE MACHINE
+  with its own controller (like space pumps/assemblers docking into the elevator) standing
+  on a pad. A module only functions while docked to a formed platform; the main controller
+  lists docked modules in its GUI and feeds/receives their effects. The Steam Generator
+  silo is NOT a module - it is an optional second piece of the main controller itself.
 - Module MTEs: Turbine Hall, Cooling Tower, Extraction Derrick, Enrichment Annex,
   Vent Stack, Switchyard - each with its own structure piece and MTE ID.
 - Standalone Extraction Platform / Enrichment Train machines REMAIN as the IV entry tech;
