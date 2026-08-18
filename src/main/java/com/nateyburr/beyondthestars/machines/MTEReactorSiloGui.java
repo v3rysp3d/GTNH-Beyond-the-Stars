@@ -45,9 +45,13 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         syncManager.syncValue("fanTier", new IntSyncValue(multiblock::installedFanTier));
         syncManager.syncValue("euOutput", new LongSyncValue(multiblock::getLastEUOutput));
         syncManager.syncValue("steamOutput", new LongSyncValue(multiblock::getSteamPerTick));
+        syncManager.syncValue("coolingTowers", new IntSyncValue(multiblock::getCoolingTowers));
         syncManager.syncValue(
             "throttleSetting",
             new IntSyncValue(multiblock::getThrottleSetting, multiblock::setThrottleSetting).allowC2S());
+        syncManager.syncValue(
+            "buildTierSetting",
+            new IntSyncValue(multiblock::getBuildTierSetting, multiblock::setBuildTierSetting).allowC2S());
     }
 
     @Override
@@ -62,6 +66,7 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         final IntSyncValue decaySeconds = syncManager.findSyncHandler("decaySeconds", IntSyncValue.class);
         final IntSyncValue radiationSeconds = syncManager.findSyncHandler("radiationSeconds", IntSyncValue.class);
         final BooleanSyncValue deckInstalled = syncManager.findSyncHandler("deckInstalled", BooleanSyncValue.class);
+        final IntSyncValue coolingTowers = syncManager.findSyncHandler("coolingTowers", IntSyncValue.class);
         final IntSyncValue fanTier = syncManager.findSyncHandler("fanTier", IntSyncValue.class);
         final LongSyncValue euOutput = syncManager.findSyncHandler("euOutput", LongSyncValue.class);
         final LongSyncValue steamOutput = syncManager.findSyncHandler("steamOutput", LongSyncValue.class);
@@ -136,6 +141,12 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
             })
                 .asWidget()
                 .marginBottom(2))
+            .child(
+                IKey.dynamic(
+                    () -> translateToLocal("beyondthestars.gui.towers") + " " + coolingTowers.getIntValue() + "/2")
+                    .asWidget()
+                    .marginBottom(2)
+                    .setEnabledIf(w -> coolingTowers.getIntValue() > 0))
             .child(IKey.dynamic(() -> {
                 if (deckInstalled.getBoolValue()) {
                     return translateToLocal("beyondthestars.gui.output.eu") + " "
@@ -158,6 +169,13 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                 .numbersInt(1, 24)
                 .syncHandler("throttleSetting")
                 .width(30)
-                .tooltip(t -> t.addLine(translateToLocal("beyondthestars.gui.throttle.tooltip"))));
+                .tooltip(t -> t.addLine(translateToLocal("beyondthestars.gui.throttle.tooltip"))))
+            .child(
+                new TextFieldWidget().formatAsInteger(true)
+                    .defaultNumber(1)
+                    .numbersInt(1, 5)
+                    .syncHandler("buildTierSetting")
+                    .width(20)
+                    .tooltip(t -> t.addLine(translateToLocal("beyondthestars.gui.buildtier.tooltip"))));
     }
 }

@@ -97,7 +97,9 @@ public class CommandBTSKit extends CommandBase {
             player,
             "Kit given: 5 controllers (+ spare tower), " + COLUMN_CAP[tier] * 6 + " fuel columns, fuels, fans.");
         tell(player, EnumChatFormatting.YELLOW + "Grab via NEI (creative):");
-        tell(player, " - Starter platform: 2251x Light Concrete, 249x Tungstensteel Reinforced, 8x Solid Steel Casing");
+        tell(
+            player,
+            " - Starter platform: 2243x Light Concrete, 249x Tungstensteel Reinforced, 8x Solid Steel (flush dock markers)");
         tell(player, " - Silo walls: ~" + ring * 10 + "x " + wall + " (hatches substitute)");
         tell(player, " - Silo dome: ~" + oct + "x " + shield);
         tell(player, " - Turbine Hall: ~90x Tungstensteel Turbine Casing, glass, Steel Pipe Casing");
@@ -106,7 +108,7 @@ public class CommandBTSKit extends CommandBase {
         tell(
             player,
             EnumChatFormatting.GREEN
-                + "Build: place the main controller, project the 50x50 platform (trigger 1-5 also selects the silo tier). Then stand module controllers on the dock pads and project their buildings.");
+                + "Build: place the main controller (it ends up in the silo face), project the 50x50 platform + silo. Silo tier: Build Tier in the GUI, or a 2-5 trigger stack. Then stand module controllers on the dock markers and project their buildings.");
         tell(player, "Then: columns in the core, fuel + water in, throttle in the GUI, fan in the hall's input bus.");
     }
 }

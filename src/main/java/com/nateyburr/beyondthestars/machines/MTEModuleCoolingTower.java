@@ -151,7 +151,7 @@ public class MTEModuleCoolingTower extends MTEPlantModuleBase implements ISurviv
             .addInfo("Each tower: plant water draw x0.5, passive heat decay x2, decay-heat demand x0.5.")
             .addInfo("Two towers: post-shutdown cooling is fully passive. Undocked, inert.")
             .beginStructureBlock(17, 20, 17, true)
-            .addController("Front of the base ring, standing on a platform dock pad (face away from the silo)")
+            .addController("Front of the base ring, standing on a marked dock position (face away from the silo)")
             .addCasingInfoRange("Solid Steel Machine Casing (base ring)", 30, 46, false)
             .addCasingInfoRange("Light Concrete (hyperboloid shell)", 500, 700, false)
             .addMaintenanceHatch("Base ring", 1)

@@ -66,15 +66,17 @@ import gregtech.api.util.shutdown.SimpleShutDownReason;
 import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
 
 /**
- * The Plant Foundation - the Unit One MAIN controller (Space Elevator architecture). The only
- * mandatory STARTER structure is the full 50x50 concrete platform: shield pad at center, eight
- * steel DOCK PADS across it, controller at front center. Everything else is added ONTO the
- * platform: the Steam Generator silo (an optional piece of this controller, five diameters,
- * built on the shield pad) comes first, then MODULE MACHINES whose controllers stand on the
- * dock pads (accepted like hatches) and only function while connected - Turbine Hall (steam ->
- * EU with fan/coolant/propellant multipliers, beside the silo), Cooling Towers (condensate
- * return, faster heat decay). Fuel ladder, throttle, waste water, and the
- * SCRAM/decay-heat/meltdown model are unchanged. Numbers per docs/reactor-gen1.md and
+ * The Plant Foundation - the Unit One MAIN STATION (Space Elevator architecture). The only
+ * mandatory STARTER structure is the full 50x50 concrete platform: shield pad at center with
+ * the controller on its front line (embedded in the silo face once the silo is built - every
+ * silo tier's front wall is anchored on that line), and eight flush steel dock markers set
+ * into the floor. Everything else is added ONTO the platform: the Steam Generator silo (an
+ * optional piece of this controller, five diameters, Build Tier set in the GUI or by trigger
+ * stack) comes first, then MODULE MACHINES whose controllers stand on the dock markers
+ * (accepted like hatches, positions otherwise kept clear) and only function while connected -
+ * Turbine Hall (steam -> EU with fan/coolant/propellant multipliers, beside the silo),
+ * Cooling Towers (condensate return, faster heat decay). Fuel ladder, throttle, waste water,
+ * and the SCRAM/decay-heat/meltdown model are unchanged. Numbers per docs/reactor-gen1.md and
  * docs/plant-unit-one.md.
  */
 public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactorCoreMk1>
@@ -113,10 +115,13 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     private int activeColumns;
     private int throttleN = 24;
     private int throttleSetting = 24;
+    private int buildTierSetting = 1;
     private int activeFuelMult = 1;
     private int heat;
     private int decayHeatTicks;
     private int radiationTicks;
+    /** Depth of the radiation field's center behind the controller, frozen at meltdown time. */
+    private int radiationCenterDepth;
     private long steamPerTick;
     private long lastEUOutput;
     private boolean starvedThisTick;
@@ -224,21 +229,29 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     /** The starter structure: every plant building is added onto this 50x50 platform. */
     private static final int PLATFORM = 50;
     private static final int CENTER = PLATFORM / 2;
-    /** Dock pad {a, c} grid positions; the controller stands at {25, 0} on the front edge. */
+    /**
+     * Front row of the shield pad. Every silo tier's FRONT wall is anchored on this line, so
+     * the controller (the main station) keeps one fixed spot: embedded in the silo face at
+     * ground level, standing on the pad even before the silo exists.
+     */
+    private static final int SILO_FRONT = CENTER - 8;
+    /** Open dock positions {a, c}; a module controller stands directly on the marked floor. */
     private static final int[][] DOCK_POSITIONS = { { 38, 25 }, { 40, 8 }, { 40, 42 }, { 8, 8 }, { 8, 42 }, { 25, 43 },
         { 10, 25 }, { 25, 7 } };
 
     /**
      * Full 50x50 platform, two layers: light concrete flooring with a Tungstensteel-Reinforced
-     * shield pad (sized for the max-tier silo) at center, then the walking level holding the
-     * controller and the eight steel module dock pads.
+     * shield pad (sized for the max-tier silo) at center and flush steel markers set into the
+     * floor under the eight dock positions; then the walking level - open except the
+     * controller on the pad's front line and the dock positions, which must stay CLEAR until
+     * a module controller stands there.
      */
     private static String[][] floorShape() {
         final String[] padLayer = new String[PLATFORM];
         for (int c = 0; c < PLATFORM; c++) {
             final char[] row = new char[PLATFORM];
             Arrays.fill(row, ' ');
-            if (c == 0) row[CENTER] = '~';
+            if (c == SILO_FRONT) row[CENTER] = '~';
             for (int[] dock : DOCK_POSITIONS) {
                 if (dock[1] == c) row[dock[0]] = 'K';
             }
@@ -254,6 +267,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 final int lr = c - origin;
                 final int lx = a - origin;
                 row[a] = (lr >= 0 && lx >= 0 && lr < n && lx < n && insideOct(n, k, lr, lx)) ? 'B' : 'O';
+            }
+            for (int[] dock : DOCK_POSITIONS) {
+                if (dock[1] == c) row[dock[0]] = 'M';
             }
             floorLayer[c] = new String(row);
         }
@@ -276,9 +292,12 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return domeHeightFor(tier) + wallHeightFor(tier) - 2;
     }
 
-    /** The silo octagon is centered on the platform, 25 behind the front-edge controller. */
+    /**
+     * Every tier's front wall sits on the pad's front line, where the controller is embedded:
+     * the controller cell is grid row 1 (the octagon's front row) of the silo piece.
+     */
     private static int siloDOff(int tier) {
-        return siloCenterIdx(tier) - CENTER;
+        return 1;
     }
 
     private enum LayerKind {
@@ -296,7 +315,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     }
 
     /** Silo grid has a one-cell margin on every side so the buttress ribs fit. */
-    private static String[] buildLayer(int tier, LayerKind kind, boolean ribs) {
+    private static String[] buildLayer(int tier, LayerKind kind, boolean ribs, boolean ctrl) {
         final int n = edgeFor(tier);
         final int k = CUT[tier];
         final int gridSize = n + 2;
@@ -312,7 +331,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 } else if (interiorCell(n, k, r, x)) {
                     row[xx] = (kind == LayerKind.PLENUM || kind == LayerKind.BAND) ? 'A' : 'F';
                 } else {
-                    row[xx] = wall;
+                    // The main station: the controller is embedded front-center at ground level.
+                    row[xx] = (ctrl && r == 0 && x == n / 2) ? '~' : wall;
                 }
             }
             rows[rr] = new String(row);
@@ -323,13 +343,16 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return rows;
     }
 
-    /** Buttress ribs one block proud of the wall along the eight compass directions. */
+    /**
+     * Buttress ribs one block proud of the wall; the front is skipped to keep the
+     * controller face clear.
+     */
     private static void addRibs(String[] rows, int tier) {
         final int n = edgeFor(tier);
         final int k = CUT[tier];
         final int c = n / 2;
         final int gridSize = n + 2;
-        final int[][] dirs = { { -1, 0 }, { 1, 0 }, { 0, 1 }, { 0, -1 }, { 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 } };
+        final int[][] dirs = { { 1, 0 }, { 0, 1 }, { 0, -1 }, { 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 } };
         for (int[] d : dirs) {
             int r = c;
             int x = c;
@@ -404,7 +427,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             } else {
                 kind = isBandLayer(tier, i) ? LayerKind.BAND : LayerKind.PLENUM;
             }
-            layers.add(buildLayer(tier, kind, true));
+            layers.add(buildLayer(tier, kind, true, i == 1));
         }
         return layers.toArray(new String[0][]);
     }
@@ -452,8 +475,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                         buildHatchAdder(MTEReactorCoreMk1.class).atLeast(PlantModuleElement.PlantModule)
                             .casingIndex(Casings.SolidSteelMachineCasing.textureId)
                             .hint(2)
+                            // Module controllers are stood on markers by hand, never auto-placed.
+                            .shouldReject(t -> true)
                             .build(),
-                        Casings.SolidSteelMachineCasing.asElement()))
+                        isAir()))
+                .addElement('M', Casings.SolidSteelMachineCasing.asElement())
                 .addElement('G', onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement()))
                 .addElement(
                     'F',
@@ -472,7 +498,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         mCasing = 0;
         fuelSegments = 0;
         // The starter structure: the full 50x50 platform must stand (docks register modules).
-        if (!checkPiece(floorPieceName(mName), CENTER, 0, 0, errors)) return;
+        if (!checkPiece(floorPieceName(mName), CENTER, 0, SILO_FRONT, errors)) return;
         // The Steam Generator silo is the first addon ON the platform - optional, largest
         // first. Failed walks register hatches as side effects, so clear between probes (the
         // platform contributed only modules, which silo pieces never touch).
@@ -513,10 +539,25 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         if (reactorTier <= 0 && mMaxProgresstime > 0) {
             stopMachine(ShutDownReasonRegistry.STRUCTURE_INCOMPLETE);
         }
+        // Reconnect immediately: checkMachine disconnected and rebuilt the module list, and
+        // waiting for the 20-tick docking loop would leave a running plant briefly hall-less
+        // (dumping raw steam into its own hatches on every periodic revalidation).
+        if (mMachine) {
+            for (MTEPlantModuleBase module : plantModules) {
+                module.connect(this);
+            }
+        }
     }
 
-    private static int tierFromTrigger(ItemStack stackSize) {
-        return Math.min(Math.max(stackSize.stackSize, 1), MAX_TIER);
+    /**
+     * Build target: a trigger stack larger than 1 selects the silo tier directly; a single
+     * trigger defers to the Build Tier setting in the controller GUI (PCB-Factory style).
+     */
+    private int tierFromTrigger(ItemStack stackSize) {
+        if (stackSize.stackSize > 1) {
+            return Math.min(stackSize.stackSize, MAX_TIER);
+        }
+        return Math.min(Math.max(buildTierSetting, 1), MAX_TIER);
     }
 
     @Override
@@ -528,7 +569,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             stackSize,
             CENTER,
             0,
-            0,
+            SILO_FRONT,
             elementBudget,
             env,
             false,
@@ -549,7 +590,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     @Override
     public void construct(ItemStack stackSize, boolean hintsOnly) {
         final int t = tierFromTrigger(stackSize);
-        buildPiece(floorPieceName(mName), stackSize, hintsOnly, CENTER, 0, 0);
+        buildPiece(floorPieceName(mName), stackSize, hintsOnly, CENTER, 0, SILO_FRONT);
         buildPiece(pieceName(mName, t), stackSize, hintsOnly, siloHOff(t), siloVOff(t), siloDOff(t));
     }
 
@@ -710,14 +751,19 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         super.stopMachine(reason);
     }
 
-    /** World column of the platform center (where the silo stands), 25 behind the controller. */
-    private Vec3Impl siloCenterWorld() {
+    /** World column at the given depth behind the front-wall controller (0 = the controller). */
+    private Vec3Impl worldBehindController(int depth) {
         final IGregTechTileEntity base = getBaseMetaTileEntity();
-        final Vec3Impl off = getExtendedFacing().getWorldOffset(new Vec3Impl(0, 0, CENTER));
+        final Vec3Impl off = getExtendedFacing().getWorldOffset(new Vec3Impl(0, 0, depth));
         return new Vec3Impl(
             base.getXCoord() + off.get0(),
             base.getYCoord() + off.get1(),
             base.getZCoord() + off.get2());
+    }
+
+    /** World column of the silo center, half a diameter behind the front-wall controller. */
+    private Vec3Impl siloCenterWorld() {
+        return worldBehindController(edgeFor(getReactorTier()) / 2);
     }
 
     /** Vertical detonation and a lingering radiation field; both honor config toggles. */
@@ -745,6 +791,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         }
         if (Config.radiationField) {
             radiationTicks = RADIATION_TICKS;
+            // Freeze the field on the silo that melted - the tier is reset once the wreck
+            // fails a structure check, and the hazard must not drift with it.
+            radiationCenterDepth = edgeFor(getReactorTier()) / 2;
         }
     }
 
@@ -773,9 +822,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         final int towers = coolingTowerCount();
 
         // Machine-block updates cannot propagate across the unregistered concrete platform to
-        // the front-edge controller, so force periodic revalidation while a campaign runs -
-        // otherwise a torn-open silo would keep producing indefinitely.
-        if (mMaxProgresstime > 0 && aTick % 200 == 0) {
+        // the embedded controller, so force periodic revalidation: every 200t while a campaign
+        // runs (a torn-open silo must not keep producing), every 600t while idle (modules
+        // placed or removed on the dock markers are otherwise never noticed, and a hand-built
+        // floor would never form). Idle probes are cheap - they abort on the first mismatch.
+        if (aTick % 200 == 0 && (mMaxProgresstime > 0 || aTick % 600 == 0)) {
             onMachineBlockUpdate();
         }
 
@@ -805,7 +856,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             radiationTicks--;
             if (aTick % 40 == 0) {
                 final World world = aBaseMetaTileEntity.getWorld();
-                final Vec3Impl center = siloCenterWorld();
+                // Center on the melted silo's frozen depth (fallback for pre-snapshot saves).
+                final Vec3Impl center = worldBehindController(
+                    radiationCenterDepth > 0 ? radiationCenterDepth : edgeFor(getReactorTier()) / 2);
                 final int x = center.get0();
                 final int y = center.get1();
                 final int z = center.get2();
@@ -846,9 +899,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         aNBT.setInteger("btsActiveColumns", activeColumns);
         aNBT.setInteger("btsThrottleN", throttleN);
         aNBT.setInteger("btsThrottleSetting", throttleSetting);
+        aNBT.setInteger("btsBuildTierSetting", buildTierSetting);
         aNBT.setInteger("btsFuelMult", activeFuelMult);
         aNBT.setInteger("btsDecayHeatTicks", decayHeatTicks);
         aNBT.setInteger("btsRadiationTicks", radiationTicks);
+        aNBT.setInteger("btsRadCenterDepth", radiationCenterDepth);
         aNBT.setLong("btsSteamPerTick", steamPerTick);
     }
 
@@ -861,9 +916,12 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         throttleN = aNBT.getInteger("btsThrottleN");
         throttleSetting = aNBT.getInteger("btsThrottleSetting");
         if (throttleSetting <= 0) throttleSetting = 24;
+        buildTierSetting = aNBT.getInteger("btsBuildTierSetting");
+        if (buildTierSetting <= 0) buildTierSetting = 1;
         activeFuelMult = Math.max(1, aNBT.getInteger("btsFuelMult"));
         decayHeatTicks = aNBT.getInteger("btsDecayHeatTicks");
         radiationTicks = aNBT.getInteger("btsRadiationTicks");
+        radiationCenterDepth = aNBT.getInteger("btsRadCenterDepth");
         steamPerTick = aNBT.getLong("btsSteamPerTick");
     }
 
@@ -904,6 +962,14 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         throttleSetting = Math.min(24, Math.max(1, value));
     }
 
+    public int getBuildTierSetting() {
+        return buildTierSetting;
+    }
+
+    public void setBuildTierSetting(int value) {
+        buildTierSetting = Math.min(MAX_TIER, Math.max(1, value));
+    }
+
     public int getHeat() {
         return heat;
     }
@@ -918,6 +984,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
     public boolean isTurbineInstalled() {
         return dockedTurbineHall() != null;
+    }
+
+    public int getCoolingTowers() {
+        return coolingTowerCount();
     }
 
     public long getLastEUOutput() {
@@ -991,30 +1061,32 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
-        tt.addMachineType("Nuclear Plant Foundation - Unit One main controller")
+        tt.addMachineType("Nuclear Plant Foundation - Unit One main station")
             .addInfo("STARTER STRUCTURE: the full 50x50 concrete platform. Every plant building is")
-            .addInfo("added onto it - nothing else is mandatory. Controller sits front center; a")
-            .addInfo("Tungstensteel-Reinforced shield pad marks the reactor site at platform center")
-            .addInfo("and 8 steel DOCK PADS mark the module sites.")
+            .addInfo("added onto it - nothing else is mandatory. THIS controller is the main station,")
+            .addInfo("standing on the front line of the Tungstensteel-Reinforced shield pad at platform")
+            .addInfo("center; 8 flush steel markers set into the floor are the module dock positions.")
+            .addInfo("Dock positions stay CLEAR until a module controller stands on them.")
             .addInfo("FIRST ADDON - the STEAM GENERATOR silo, projected with THIS controller onto the")
-            .addInfo("shield pad: hologram trigger stack size 1-5 selects the tier (9 to 17 wide octagon,")
+            .addInfo("shield pad; its front wall grows around the main station (9 to 17 wide octagon,")
             .addInfo("ribbed walls twice the diameter tall, radiation bands, hemispherical shield dome).")
+            .addInfo("Build Tier: set 1-5 in the controller GUI (a trigger stack of 2-5 overrides it).")
             .addInfo("Walls by tier: Radiation Proof -> Europium-Reinforced -> Radiant Naquadah Alloy;")
             .addInfo("hatches go in the silo walls. Fuel columns stack 6 high inside.")
-            .addInfo("SECOND - the TURBINE HALL module on the dock pad beside the silo (directly")
+            .addInfo("SECOND - the TURBINE HALL module on the marker beside the silo (directly")
             .addInfo("connects; steam -> EU with fan/coolant/propellant). Then Cooling Towers")
             .addInfo("(condensate return + faster heat decay, up to 2) and further upgrades. Place a")
-            .addInfo("PLANT MODULE controller on a pad and project its building there. Undocked = inert.")
+            .addInfo("PLANT MODULE controller on a marker and project its building there. Undocked = inert.")
             .addInfo("No Turbine Hall docked: the plant exports Steam (or Hot Coolant when fed IC2 Coolant).")
             .addInfo("Fuel ladder: Uranium x1, MOX x2, Thorium-Bonded x5, Naquadah-Bonded x9.")
             .addInfo("Control rods: set 1-24 in the controller GUI; a programmed circuit overrides it.")
             .addInfo("Heat: SCRAM at 8,000; decay heat 20 min after shutdown; 10,000 = MELTDOWN")
             .addInfo("(vertical detonation + radiation field; hazmat counters; config toggles).")
             .beginStructureBlock(50, 42, 50, true)
-            .addController("Front center of the platform edge, at pad level")
-            .addCasingInfoExactly("Light Concrete (platform)", 2251, false)
+            .addController("Main station: front line of the shield pad, at floor level (in the silo face)")
+            .addCasingInfoExactly("Light Concrete (platform)", 2243, false)
             .addCasingInfoExactly("Tungstensteel Reinforced Block (shield pad)", 249, false)
-            .addCasingInfoExactly("Solid Steel Machine Casing (dock pads)", 8, false)
+            .addCasingInfoExactly("Solid Steel Machine Casing (flush dock markers)", 8, false)
             .addCasingInfoRange("Silo tier wall casing incl. ribs", 400, 1700, false)
             .addCasingInfoRange("Radiation Proof Machine Casing (band rings)", 60, 150, false)
             .addCasingInfoRange("Shield blocks (dome)", 40, 320, false)
