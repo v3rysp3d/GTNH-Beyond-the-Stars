@@ -8,6 +8,7 @@ public final class BTSBlocks {
 
     public static Block reactorFuelColumn;
     public static Block rodLoadingPort;
+    public static Block turbineHousing;
 
     private BTSBlocks() {}
 
@@ -17,5 +18,7 @@ public final class BTSBlocks {
         rodLoadingPort = new BlockRodLoadingPort();
         GameRegistry.registerBlock(rodLoadingPort, "rodLoadingPort");
         GameRegistry.registerTileEntity(TileRodLoadingPort.class, "beyondthestars.rodLoadingPort");
+        turbineHousing = new BlockTurbineHousing();
+        GameRegistry.registerBlock(turbineHousing, "turbineHousing");
     }
 }

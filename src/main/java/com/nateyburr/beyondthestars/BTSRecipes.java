@@ -283,6 +283,19 @@ public final class BTSRecipes {
             .eut(TierEU.RECIPE_LuV)
             .addTo(centrifugeRecipes);
 
+        // SD-2: Turbine Housing - the Spine's rotor socket (right-click sets spin direction)
+        GTValues.RA.stdBuilder()
+            .itemInputs(
+                GTOreDictUnificator.get(OrePrefixes.plate, Materials.TungstenSteel, 4L),
+                GTOreDictUnificator.get(OrePrefixes.stickLong, Materials.TungstenSteel, 2L),
+                GTOreDictUnificator.get(OrePrefixes.plate, rhPdPalladium, 1L))
+            .circuit(9)
+            .fluidInputs(Materials.Platinum.getMolten(1 * INGOTS))
+            .itemOutputs(new ItemStack(BTSBlocks.turbineHousing, 2))
+            .duration(20 * SECONDS)
+            .eut(TierEU.RECIPE_IV)
+            .addTo(assemblerRecipes);
+
         // SD-1: Rod Loading Port - the pillar's automation input
         GTValues.RA.stdBuilder()
             .itemInputs(

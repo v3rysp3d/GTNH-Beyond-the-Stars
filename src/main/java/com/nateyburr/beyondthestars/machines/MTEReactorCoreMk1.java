@@ -49,6 +49,7 @@ import com.gtnewhorizon.structurelib.util.Vec3Impl;
 import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.blocks.BTSBlocks;
 import com.nateyburr.beyondthestars.blocks.BlockReactorFuelColumn;
+import com.nateyburr.beyondthestars.blocks.BlockTurbineHousing;
 import com.nateyburr.beyondthestars.blocks.TileRodLoadingPort;
 import com.nateyburr.beyondthestars.fluids.BTSFluids;
 import com.nateyburr.beyondthestars.items.BTSItems;
@@ -148,6 +149,16 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     /** Fuel/port cells recorded by the current structure walk (reset per probe). */
     private final List<int[]> walkFuelCells = new ArrayList<>();
     private final List<int[]> walkPortCells = new ArrayList<>();
+    /** Housing sockets recorded by the duct walk: {distance from controller, meta}. */
+    private final List<int[]> walkHousings = new ArrayList<>();
+
+    /** Spine state, recomputed on every structure check (x1000 fixed-point multipliers). */
+    private boolean spineBuilt;
+    private int spineHousings;
+    private int spineSwirl;
+    private int spineSpeedMilli = 1000;
+    private int spineEffMilli = 1000;
+    private String spinePattern = "";
     /** Pillars of the formed silo, rebuilt after every successful structure check. */
     private final java.util.HashMap<Long, ColumnInfo> columns = new java.util.HashMap<>();
     private final List<int[]> portCells = new ArrayList<>();
@@ -243,6 +254,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return base + ".floor";
     }
 
+    private static String ductPieceName(String base) {
+        return base + ".duct";
+    }
+
     private static boolean insideOct(int n, int k, int r, int x) {
         return Math.min(r, n - 1 - r) + Math.min(x, n - 1 - x) >= k;
     }
@@ -287,8 +302,12 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * ground level, standing on the pad even before the silo exists.
      */
     private static final int SILO_FRONT = CENTER - 8;
-    /** Open dock positions {a, c}; a module controller stands directly on the marked floor. */
-    private static final int[][] DOCK_POSITIONS = { { 38, 25 }, { 40, 8 }, { 40, 42 }, { 8, 8 }, { 8, 42 }, { 25, 43 },
+    /**
+     * Open dock positions {a, c}; a module controller stands directly on the marked floor.
+     * The east-side corridor (a 31-42, c 20-26 across tiers) is reserved for the Spine duct
+     * and the future spiral chamber - no dock may sit in it.
+     */
+    private static final int[][] DOCK_POSITIONS = { { 38, 30 }, { 40, 8 }, { 40, 42 }, { 8, 8 }, { 8, 42 }, { 25, 43 },
         { 10, 25 }, { 25, 7 } };
 
     /**
@@ -350,6 +369,30 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      */
     private static int siloDOff(int tier) {
         return 1;
+    }
+
+    // ------------------------------------------------ the Spine (SD-2, optional piece)
+
+    /** Duct length in blocks and the number of rotor sockets along it. */
+    private static final int DUCT_LENGTH = 8;
+
+    /**
+     * The Spine: a 3x3 steam duct leaving the silo's side wall, four Turbine Housing
+     * sockets alternating with the open bore. [y top-first][3 c-rows][8 a-chars].
+     */
+    private static String[][] ductShape() {
+        return new String[][] { { "TTTTTTTT", "TTTTTTTT", "TTTTTTTT" }, { "TTTTTTTT", "AHAHAHAH", "TTTTTTTT" },
+            { "TTTTTTTT", "TTTTTTTT", "TTTTTTTT" } };
+    }
+
+    /** Duct starts two blocks past the tier's east wall: wall, rib, then duct flush on it. */
+    private static int ductHOff(int tier) {
+        return -(edgeFor(tier) / 2 + 2);
+    }
+
+    /** Duct rows centered on the tier's silo mid-row (world c = 17 + edge/2). */
+    private static int ductDOff(int tier) {
+        return 1 - edgeFor(tier) / 2;
     }
 
     private enum LayerKind {
@@ -559,11 +602,51 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         };
     }
 
+    /**
+     * Rotor socket in the Spine: a Turbine Housing in either spin direction, recorded with
+     * its distance from the controller so swirl accumulates silo-outward. Blanked sockets
+     * are handled by chaining a turbine casing element behind this one.
+     */
+    private static IStructureElement<MTEReactorCoreMk1> housingElement() {
+        return new IStructureElement<MTEReactorCoreMk1>() {
+
+            @Override
+            public boolean check(MTEReactorCoreMk1 t, World world, int x, int y, int z) {
+                if (world.getBlock(x, y, z) == BTSBlocks.turbineHousing) {
+                    final IGregTechTileEntity base = t.getBaseMetaTileEntity();
+                    final int dist = Math.abs(x - base.getXCoord()) + Math.abs(z - base.getZCoord());
+                    t.walkHousings.add(new int[] { dist, world.getBlockMetadata(x, y, z) });
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            public boolean spawnHint(MTEReactorCoreMk1 t, World world, int x, int y, int z, ItemStack trigger) {
+                StructureLibAPI.hintParticle(world, x, y, z, BTSBlocks.turbineHousing, 0);
+                return true;
+            }
+
+            @Override
+            public boolean placeBlock(MTEReactorCoreMk1 t, World world, int x, int y, int z, ItemStack trigger) {
+                world.setBlock(x, y, z, BTSBlocks.turbineHousing, 0, 2);
+                return true;
+            }
+
+            @Override
+            public PlaceResult survivalPlaceBlock(MTEReactorCoreMk1 t, World world, int x, int y, int z,
+                ItemStack trigger, AutoPlaceEnvironment env) {
+                return PlaceResult.SKIP;
+            }
+        };
+    }
+
     @Override
     public IStructureDefinition<MTEReactorCoreMk1> getStructureDefinition() {
         if (STRUCTURE_DEFINITION == null) {
             final StructureDefinition.Builder<MTEReactorCoreMk1> builder = StructureDefinition.builder();
             builder.addShape(floorPieceName(mName), transpose(floorShape()));
+            builder.addShape(ductPieceName(mName), transpose(ductShape()));
             for (int t = 1; t <= MAX_TIER; t++) {
                 builder.addShape(pieceName(mName, t), transpose(coreShape(t)));
             }
@@ -610,6 +693,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 .addElement('G', onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement()))
                 .addElement('F', fuelCellElement())
                 .addElement('J', portCellElement())
+                .addElement('T', Casings.TungstensteelTurbineCasing.asElement())
+                .addElement('H', ofChain(housingElement(), Casings.TungstensteelTurbineCasing.asElement()))
                 .build();
         }
         return STRUCTURE_DEFINITION;
@@ -623,6 +708,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         clearHatches();
         mCasing = 0;
         fuelSegments = 0;
+        // Reset the spine so a failed floor walk's early return cannot keep stale boosts.
+        spineBuilt = false;
+        computeSpine();
         // The starter structure: the full 50x50 platform must stand (docks register modules).
         if (!checkPiece(floorPieceName(mName), CENTER, 0, SILO_FRONT, errors)) return;
         // The Steam Generator silo is the first addon ON the platform - optional, largest
@@ -642,6 +730,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         // Hatch demands only apply once the silo exists; the bare platform forms and idles.
         if (reactorTier > 0) {
             rebuildColumns();
+            // The Spine (optional): 3x3 duct with rotor sockets, leaving the silo's side.
+            walkHousings.clear();
+            spineBuilt = checkPiece(ductPieceName(mName), ductHOff(reactorTier), 2, ductDOff(reactorTier), null);
+            computeSpine();
             checkCasingMin(errors, mCasing, minCasingsFor(reactorTier));
             checkHasEnergyHatch(errors);
             checkHasMaintenanceHatch(errors);
@@ -659,12 +751,43 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             // No maintenance hatch exists on a bare platform: keep it serviced so the base
             // class idles into checkProcessing instead of a permanent NO_REPAIR shutdown.
             fixAllIssues();
-            // Cascade bookkeeping is meaningless without a silo; keep it canonical too.
+            // Cascade/spine bookkeeping is meaningless without a silo; keep it canonical.
             columns.clear();
             portCells.clear();
             cascadeMode = false;
             liveColumnsLastCycle = 0;
+            spineBuilt = false;
+            computeSpine();
         }
+    }
+
+    /** Folds the recorded housings (silo-outward) into the swirl model of the Spine. */
+    private void computeSpine() {
+        if (!spineBuilt) {
+            walkHousings.clear();
+        }
+        walkHousings.sort(java.util.Comparator.comparingInt(h -> h[0]));
+        int swirl = 0;
+        double speed = 1.0;
+        double eff = 1.0;
+        final StringBuilder pattern = new StringBuilder();
+        for (final int[] housing : walkHousings) {
+            final int d = housing[1] == BlockTurbineHousing.META_CW ? 1 : -1;
+            if (pattern.length() > 0) pattern.append('-');
+            pattern.append(d > 0 ? "CW" : "CCW");
+            if (swirl == 0 || Integer.signum(swirl) == d) {
+                // 0.08 coefficient: all-riding CW-CW-CW-CW lands at the ruled ~x1.55.
+                speed *= 1.0 + 0.08 * Math.abs(swirl);
+            } else {
+                eff *= 1.0 + 0.10 * Math.abs(swirl);
+            }
+            swirl += d;
+        }
+        spineHousings = walkHousings.size();
+        spineSwirl = swirl;
+        spineSpeedMilli = (int) Math.round(speed * 1000);
+        spineEffMilli = (int) Math.round(eff * 1000);
+        spinePattern = pattern.toString();
     }
 
     /** True when every chunk the 50x50 platform could occupy (any facing) is loaded. */
@@ -741,12 +864,23 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             false,
             true);
         if (built >= 0) return built;
-        return survivalBuildPiece(
+        final int siloBuilt = survivalBuildPiece(
             pieceName(mName, t),
             stackSize,
             siloHOff(t),
             siloVOff(t),
             siloDOff(t),
+            elementBudget,
+            env,
+            false,
+            true);
+        if (siloBuilt >= 0) return siloBuilt;
+        return survivalBuildPiece(
+            ductPieceName(mName),
+            stackSize,
+            ductHOff(t),
+            2,
+            ductDOff(t),
             elementBudget,
             env,
             false,
@@ -758,6 +892,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         final int t = tierFromTrigger(stackSize);
         buildPiece(floorPieceName(mName), stackSize, hintsOnly, CENTER, 0, SILO_FRONT);
         buildPiece(pieceName(mName, t), stackSize, hintsOnly, siloHOff(t), siloVOff(t), siloDOff(t));
+        buildPiece(ductPieceName(mName), stackSize, hintsOnly, ductHOff(t), 2, ductDOff(t));
     }
 
     // ------------------------------------------------------------------ rod cascade (SD-1)
@@ -1080,10 +1215,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             // Feedwater first; starving it heats the core exactly as fluid mode.
             if (depleteInput(Materials.Water.getFluid(flowPerTick))
                 || depleteInput(GTModHandler.getDistilledWater(flowPerTick))) {
-                final long eu = hall.processReactorSteam(steamPerTick, reactorTier >= MAX_TIER, baseFlow);
+                // The Spine boosts what the hall sees: speed (throughput) x efficiency.
+                final long eu = hall.processReactorSteam(spineBoostedSteam(true), reactorTier >= MAX_TIER, baseFlow);
                 if (eu < 0) {
                     // Hall has no fan installed: export the steam instead.
-                    addOutput(Materials.Steam.getGas(steamPerTick));
+                    addOutput(Materials.Steam.getGas(spineBoostedSteam(false)));
                     lastEUOutput = 0;
                 } else {
                     lastEUOutput = eu;
@@ -1099,6 +1235,15 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return true;
     }
 
+    /** Steam after the Spine: speed multiplies throughput; efficiency only pays out in EU. */
+    private long spineBoostedSteam(boolean withEfficiency) {
+        long steam = steamPerTick * spineSpeedMilli / 1000;
+        if (withEfficiency) {
+            steam = steam * spineEffMilli / 1000;
+        }
+        return steam;
+    }
+
     /** Fluid-export mode: no docked Turbine Hall. */
     private void runFluidTick(int flowPerTick, int baseFlow) {
         final int coolantFlow = reactorTier >= MAX_TIER ? baseFlow * 2 : baseFlow;
@@ -1108,7 +1253,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             emitWasteWater();
         } else if (depleteInput(Materials.Water.getFluid(flowPerTick))
             || depleteInput(GTModHandler.getDistilledWater(flowPerTick))) {
-                addOutput(Materials.Steam.getGas(steamPerTick));
+                addOutput(Materials.Steam.getGas(spineBoostedSteam(false)));
                 lastEUOutput = 0;
                 emitWasteWater();
             } else {
@@ -1224,6 +1369,15 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             decayHeatTicks = DECAY_HEAT_TICKS;
         }
         wasRunningLastTick = running;
+
+        // Residual Spine swirl is turbulence: |S|^2 x 5 heat per second while running. An
+        // all-riding rotor pattern (S=4) outruns bare passive decay - bring cooling towers.
+        if (running && spineSwirl != 0 && aTick % 20 == 0) {
+            heat += spineSwirl * spineSwirl * 5;
+            if (heat >= SCRAM_HEAT) {
+                scram();
+            }
+        }
 
         final int towers = coolingTowerCount();
 
@@ -1401,6 +1555,30 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return cascadeMode;
     }
 
+    public boolean isSpineBuilt() {
+        return spineBuilt;
+    }
+
+    public int getSpineHousings() {
+        return spineHousings;
+    }
+
+    public int getSpineSpeedMilli() {
+        return spineSpeedMilli;
+    }
+
+    public int getSpineEffMilli() {
+        return spineEffMilli;
+    }
+
+    public int getSpineSwirl() {
+        return spineSwirl;
+    }
+
+    public String getSpinePattern() {
+        return spinePattern;
+    }
+
     public int getLiveColumns() {
         return liveColumnsLastCycle;
     }
@@ -1461,6 +1639,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return steamPerTick;
     }
 
+    /** What actually leaves the hatches in export mode: campaign steam after the Spine. */
+    public long getBoostedSteamOutput() {
+        return spineBoostedSteam(false);
+    }
+
     public int installedFanTier() {
         final MTEModuleTurbineHall hall = dockedTurbineHall();
         return hall == null ? 0 : hall.installedFanTier();
@@ -1510,9 +1693,19 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         info.add("Fuel type: " + fuelName(activeFuelMult));
         info.add("Control rods: " + (throttleN * 100 / 24) + "% power");
         info.add("Modules: " + getModulesSummary());
+        if (spineBuilt) {
+            info.add(
+                "Spine: [" + spinePattern
+                    + "]  speed x"
+                    + String.format("%.2f", spineSpeedMilli / 1000.0)
+                    + "  eff x"
+                    + String.format("%.2f", spineEffMilli / 1000.0)
+                    + "  swirl "
+                    + spineSwirl);
+        }
         info.add(
             isTurbineInstalled() ? "Generating: " + lastEUOutput + " EU/t (via Turbine Hall)"
-                : "Steam output: " + steamPerTick + " L/t");
+                : "Steam output: " + getBoostedSteamOutput() + " L/t");
         info.add("Core heat: " + heat + " / " + MELTDOWN_HEAT + " (SCRAM at " + SCRAM_HEAT + ")");
         if (decayHeatTicks > 0) {
             info.add("Decay heat: cooling required for " + (decayHeatTicks / 20) + "s");
@@ -1541,7 +1734,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             .addSeparator()
             .addInfo(aqua + "Fuel:" + reset + " rods cascade down the pillars - insert at the TOP ports,")
             .addInfo("bottom rod burns each cycle, depleted rods exit the output bus.")
-            .addInfo(gray + "Bus assemblies still run, at HALF output." + reset)
+            .addInfo(gray + "Bus assemblies still run, at a heavy penalty." + reset)
+            .addInfo(aqua + "Spine:" + reset + " optional 3x3 duct off the silo's side, 4 rotor sockets.")
+            .addInfo("Right-click a housing to set spin: ride the swirl for speed, oppose it for efficiency.")
             .addInfo(aqua + "Control:" + reset + " rods 1-24 + Build Tier in the GUI; circuit overrides throttle.")
             .addInfo(red + "Heat:" + reset + " SCRAM 8,000 - MELTDOWN 10,000. Decay heat needs 20 min of water.")
             .beginStructureBlock(50, 42, 50, true)
@@ -1563,6 +1758,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             .addStructureInfo("Inside: fuel pillar frames 8 high, a Rod Loading Port above each pillar.")
             .addStructureInfo("Rod ladder: Uranium x1 - MOX x2 - Thorium-Bonded x5 - Naquadah-Bonded x9.")
             .addStructureInfo("Breaking a fueled pillar frame ejects its rods at the controller.")
+            .addStructureInfo("Spine: 3x3x8 Tungstensteel Turbine Casing duct on the platform, two blocks")
+            .addStructureInfo("past the silo's side wall; 4 Turbine Housings alternate with the open bore.")
+            .addStructureInfo("Residual swirl is turbulence heat - all-riding patterns need cooling towers.")
             .addStructureInfo("Modules dock by standing their controller on a marker and projecting there.")
             .addStructureInfo("No Turbine Hall: exports Steam (or Hot Coolant when fed IC2 Coolant).")
             .toolTipFinisher();

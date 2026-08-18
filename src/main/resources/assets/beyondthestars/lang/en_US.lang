@@ -22,6 +22,7 @@ item.beyondthestars.turbineFanTDA.name=TDA-Bonded Turbine Fan
 item.beyondthestars.turbineFanTDAOptimized.name=Optimized TDA-Bonded Turbine Fan
 tile.beyondthestars.reactorFuelColumn.name=Reactor Fuel Pillar Frame
 tile.beyondthestars.rodLoadingPort.name=Rod Loading Port
+tile.beyondthestars.turbineHousing.name=Turbine Housing
 GT5U.gui.text.shutdown_reason.beyondthestars.scram=SCRAM: core overheat — re-enable the reactor to restart
 GT5U.gui.text.shutdown_reason.beyondthestars.meltdown=MELTDOWN: core destroyed — the site is irradiated
 GT5U.gui.text.shutdown_reason.beyondthestars.blowout=BLOWOUT: propellant on a non-TDA fan destroyed the turbine
@@ -43,5 +44,6 @@ beyondthestars.gui.output.eu=Generating:
 beyondthestars.gui.output.steam=Steam output:
 beyondthestars.gui.throttle.tooltip=Control rods: campaign power = N/24. A programmed circuit in the controller overrides this.
 beyondthestars.gui.towers=Cooling Towers:
+beyondthestars.gui.spine=Spine:
 beyondthestars.gui.buildtier.tooltip=Build Tier: the Steam Generator tier the hologram/projector builds (1-5). A trigger stack of 2-5 overrides this.
 

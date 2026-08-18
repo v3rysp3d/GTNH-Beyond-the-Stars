@@ -43,7 +43,7 @@ Swirl model - backwash accumulates through the train:
     S(0) = 0                      (swirl entering housing 1)
     d(i) = +1 for CW, -1 for CCW
     riding  (d(i) matches sign of S(i), or S(i)=0):
-        speed mult  m(i) = 1 + 0.15 x |S(i)|      (t)
+        speed mult  m(i) = 1 + 0.08 x |S(i)|      (t; all-riding lands at ~x1.55)
     opposing (d(i) against S(i)):
         eff   mult  e(i) = 1 + 0.10 x |S(i)|      (t)
     S(i+1) = S(i) + d(i)
@@ -124,7 +124,15 @@ breaking release.
   fill-level block states, Rod Loading Ports above each pillar (4-slot TE buffer,
   hopper/AE2/right-click insert), bottom-burn per decay cycle (campaign/8), depleted
   rods to the output bus, bus fallback at 50%.
-- SD-2: 3x3 duct piece + Turbine Housing sockets + swirl math + wrench chirality.
+- SD-2 (IMPLEMENTED 0.13.0): the Spine as an optional piece of the main controller -
+  3x3x8 Tungstensteel Turbine Casing duct two blocks past the silo's side wall, resting
+  on the platform, centered on the tier's mid-row, 4 Turbine Housing sockets alternating
+  with the open bore (right-click toggles CW/CCW). Swirl per the model above; interim
+  payout until SD-3/4: hall input steam x speed x eff, exported steam x speed; residual
+  swirl = |S|^2 x 5 heat/s while running (all-riding patterns need cooling towers).
+  The east corridor (a 31-42, c 20-26) is reserved for the duct + future spiral chamber;
+  the east dock marker moved {38,25} -> {38,30} (0.12.0 platforms: swap the steel marker
+  at the old spot for concrete and set it at the new one, or reproject the floor).
 - SD-3: spiral chamber + sensor hatch + precision injectors + window/heat/coolant/seize.
 - SD-4: Large Turbine Rotor Assembly + Turbine Hall retirement + migration.
 - Each phase: recon vs sources -> implement -> review swarm -> smoke test -> tag.

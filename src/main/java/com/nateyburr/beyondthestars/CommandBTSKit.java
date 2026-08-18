@@ -84,6 +84,9 @@ public class CommandBTSKit extends CommandBase {
         give(player, new ItemStack(BTSItems.fuelAssemblyNaqBonded, 64));
         give(player, new ItemStack(BTSItems.uraniumFuelPellet, 64));
 
+        // Spine rotor sockets
+        give(player, new ItemStack(BTSBlocks.turbineHousing, 4));
+
         // Fans
         give(player, new ItemStack(BTSItems.turbineFanMatched, 1));
         give(player, new ItemStack(BTSItems.turbineFanTDA, 1));
@@ -114,6 +117,7 @@ public class CommandBTSKit extends CommandBase {
         tell(player, " - Silo walls: ~" + ring * 10 + "x " + wall + " (hatches substitute)");
         tell(player, " - Silo dome: ~" + oct + "x " + shield);
         tell(player, " - Turbine Hall: ~90x Tungstensteel Turbine Casing, glass, Steel Pipe Casing");
+        tell(player, " - Spine duct: 64x Tungstensteel Turbine Casing (housings given; right-click sets spin)");
         tell(player, " - Cooling Towers: ~550x Light Concrete + ~40x Solid Steel Casing each");
         tell(player, " - Hatches: energy, maintenance, water in, steam out, input bus, output bus, dynamos");
         tell(
