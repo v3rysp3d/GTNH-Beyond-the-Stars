@@ -37,9 +37,9 @@ marked (proposed) are tuning knobs for sign-off.
 
 ## Addons (each an optional structure piece at a fixed offset; GUI lists all with status)
 
-1. **Turbine Hall** (gabled building, pipe-bridged): REPLACES the rooftop Turbine Deck.
-   Carries the whole T/P system - fan in input bus, dynamos in hall walls, naquadah
-   propellant with blowout/seizure. EU generation only exists with this addon.
+1. **Turbine Hall** — RETIRED (2026-08-18 Steam Dynamics ruling): replaced by the
+   rod-cascade → duct/housings → injection-spiral → Large Turbine Rotor Assembly chain.
+   Full design and math in docs/steam-dynamics.md; questbook overlay in questbook/.
 2. **Cooling Tower** (up to two, hyperboloids): the recycling addon (proposed):
    each tower returns condensate - water draw x0.5 (both: x0.1); doubles passive heat
    decay; halves decay-heat water demand. Two towers = shutdown cooling fully passive.

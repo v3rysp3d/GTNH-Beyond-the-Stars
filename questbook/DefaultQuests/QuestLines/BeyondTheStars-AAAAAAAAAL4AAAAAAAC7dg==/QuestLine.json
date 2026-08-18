@@ -1,0 +1,19 @@
+{
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "bg_image:8":  "",
+                                                    "bg_size:3":  256,
+                                                    "desc:8":  "GTNH: Beyond the Stars - the Unit One nuclear campus. A 50x50 foundation, a cascade-fed reactor silo, a chirality-tuned turbine spine, an eight-injector spiral chamber, and the rotor assembly at the end of the pipe.",
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  28100,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "gregtech:gt.blockmachines"
+                                                                },
+                                                    "name:8":  "Beyond the Stars",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questLineIDHigh:4":  190,
+    "questLineIDLow:4":  47990
+}
