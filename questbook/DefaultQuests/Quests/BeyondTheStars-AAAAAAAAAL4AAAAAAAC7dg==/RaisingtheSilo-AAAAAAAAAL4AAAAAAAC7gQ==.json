@@ -17,7 +17,7 @@
                                                                              "id:8":  "minecraft:stick"
                                                                          },
                                                     "countAsQuest:1":  1,
-                                                    "desc:8":  "The STEAM GENERATOR is the first addon: set Build Tier 1-5 in the main station\u0027s GUI (or hold a 2-5 trigger stack) and project the silo onto the shield pad. Nine to seventeen blocks wide, ribbed walls twice the diameter tall, radiation bands, a hemispherical shield dome - and your controller embedded in its face at ground level. Hatches go in the silo walls; fuel columns stack EIGHT segments high inside. This machine makes a specific REACTOR STEAM - everything downstream is built to spend it well.",
+                                                    "desc:8":  "The STEAM GENERATOR is the heart the projection raised for you: nine to seventeen blocks wide by Build Tier, ribbed walls twice the diameter tall, radiation bands, a hemispherical shield dome - and your main station controller embedded in its face at ground level. Hatches go in the silo walls (energy, maintenance, water in, steam out, input bus, output bus - the depleted rods leave through the bus). Inside stand the fuel pillars, EIGHT segments high, each with a Rod Loading Port on top. This machine makes a specific REACTOR STEAM - everything downstream is built to spend it well.",
                                                     "globalShare:1":  1,
                                                     "icon:10":  {
                                                                     "Count:3":  1,

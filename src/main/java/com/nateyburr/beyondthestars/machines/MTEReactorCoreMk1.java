@@ -25,6 +25,7 @@ import javax.annotation.Nonnull;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -303,11 +304,14 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      */
     private static final int SILO_FRONT = CENTER - 8;
     /**
-     * Open dock positions {a, c}; a module controller stands directly on the marked floor.
-     * The east-side corridor (a 31-42, c 20-26 across tiers) is reserved for the Spine duct
-     * and the future spiral chamber - no dock may sit in it.
+     * Open dock positions {a, c}; a module controller stands directly on the marked floor,
+     * FACING AWAY from its building. The canonical one-projection layout: Turbine Hall at
+     * {38,30} (hall body behind it, c 30-38 x a 36-40), Cooling Towers at {8,1} (front
+     * corner, body c 0-16 x a 0-16) and {8,48} (back corner, body c 33-49 x a 0-16). The
+     * east corridor (a 31-42, c 20-26 across tiers) stays reserved for the Spine duct and
+     * the future spiral chamber - no dock may sit in it.
      */
-    private static final int[][] DOCK_POSITIONS = { { 38, 30 }, { 40, 8 }, { 40, 42 }, { 8, 8 }, { 8, 42 }, { 25, 43 },
+    private static final int[][] DOCK_POSITIONS = { { 38, 30 }, { 8, 1 }, { 8, 48 }, { 40, 8 }, { 40, 42 }, { 25, 43 },
         { 10, 25 }, { 25, 7 } };
 
     /**
@@ -393,6 +397,95 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     /** Duct rows centered on the tier's silo mid-row (world c = 17 + edge/2). */
     private static int ductDOff(int tier) {
         return 1 - edgeFor(tier) / 2;
+    }
+
+    // ------------------- one-projection building shells (hologram/build only, never checked)
+
+    private static String shellPieceName(String base, String which) {
+        return base + ".shell." + which;
+    }
+
+    /**
+     * Build-only leniency for shell cells: place into air, NEVER touch an existing block
+     * (a re-projection must not replace a player's swapped-in hatches), and never fail a
+     * survival walk (SKIP instead of REJECT so later pieces stay reachable).
+     */
+    private static <X> IStructureElement<X> shellOnly(IStructureElement<X> delegate) {
+        return new IStructureElement<X>() {
+
+            @Override
+            public boolean check(X t, World world, int x, int y, int z) {
+                return true;
+            }
+
+            @Override
+            public boolean spawnHint(X t, World world, int x, int y, int z, ItemStack trigger) {
+                return delegate.spawnHint(t, world, x, y, z, trigger);
+            }
+
+            @Override
+            public boolean placeBlock(X t, World world, int x, int y, int z, ItemStack trigger) {
+                if (!world.isAirBlock(x, y, z)) return false;
+                return delegate.placeBlock(t, world, x, y, z, trigger);
+            }
+
+            @Override
+            public PlaceResult survivalPlaceBlock(X t, World world, int x, int y, int z, ItemStack trigger,
+                AutoPlaceEnvironment env) {
+                if (!world.isAirBlock(x, y, z)) return PlaceResult.SKIP;
+                return delegate.survivalPlaceBlock(t, world, x, y, z, trigger, env);
+            }
+        };
+    }
+
+    /** Accepts air like isAir() but never places or clears - dock cells are player territory. */
+    private static IStructureElement<MTEReactorCoreMk1> dockAir() {
+        return new IStructureElement<MTEReactorCoreMk1>() {
+
+            @Override
+            public boolean check(MTEReactorCoreMk1 t, World world, int x, int y, int z) {
+                return world.isAirBlock(x, y, z);
+            }
+
+            @Override
+            public boolean spawnHint(MTEReactorCoreMk1 t, World world, int x, int y, int z, ItemStack trigger) {
+                return true;
+            }
+
+            @Override
+            public boolean placeBlock(MTEReactorCoreMk1 t, World world, int x, int y, int z, ItemStack trigger) {
+                return false;
+            }
+
+            @Override
+            public PlaceResult survivalPlaceBlock(MTEReactorCoreMk1 t, World world, int x, int y, int z,
+                ItemStack trigger, AutoPlaceEnvironment env) {
+                return PlaceResult.SKIP;
+            }
+        };
+    }
+
+    /**
+     * Embeds a module's shape as a build-only shell in the main station's frame: chars are
+     * remapped onto this structure definition's elements, the module's controller cell
+     * becomes a skip (the dock marker must stay clear for the player-placed controller),
+     * and reversing rows flips the shell for modules that face opposite the main station.
+     */
+    private static String[][] remapShape(String[][] src, String from, String to, boolean reverseRows) {
+        final String[][] out = new String[src.length][];
+        for (int i = 0; i < src.length; i++) {
+            final String[] rows = new String[src[i].length];
+            for (int j = 0; j < src[i].length; j++) {
+                final char[] chars = src[i][reverseRows ? src[i].length - 1 - j : j].toCharArray();
+                for (int k = 0; k < chars.length; k++) {
+                    final int m = from.indexOf(chars[k]);
+                    if (m >= 0) chars[k] = to.charAt(m);
+                }
+                rows[j] = new String(chars);
+            }
+            out[i] = rows;
+        }
+        return out;
     }
 
     private enum LayerKind {
@@ -647,6 +740,17 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             final StructureDefinition.Builder<MTEReactorCoreMk1> builder = StructureDefinition.builder();
             builder.addShape(floorPieceName(mName), transpose(floorShape()));
             builder.addShape(ductPieceName(mName), transpose(ductShape()));
+            // Build-only shells of the module buildings (their controllers verify them).
+            // Dedicated lenient chars: shells must never affect the CHECKED pieces' elements.
+            builder.addShape(
+                shellPieceName(mName, "hall"),
+                transpose(remapShape(MTEModuleTurbineHall.hallShape(), "SUWPA~", "1234  ", false)));
+            builder.addShape(
+                shellPieceName(mName, "towernw"),
+                transpose(remapShape(MTEModuleCoolingTower.towerShape(), "NS~", "67 ", false)));
+            builder.addShape(
+                shellPieceName(mName, "towersw"),
+                transpose(remapShape(MTEModuleCoolingTower.towerShape(), "NS~", "67 ", true)));
             for (int t = 1; t <= MAX_TIER; t++) {
                 builder.addShape(pieceName(mName, t), transpose(coreShape(t)));
             }
@@ -688,13 +792,21 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                             // Module controllers are stood on markers by hand, never auto-placed.
                             .shouldReject(t -> true)
                             .build(),
-                        isAir()))
+                        // Air-or-nothing tail that never places: a creative re-projection must
+                        // not delete a docked module controller by setting its cell to air.
+                        dockAir()))
                 .addElement('M', Casings.SolidSteelMachineCasing.asElement())
                 .addElement('G', onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement()))
                 .addElement('F', fuelCellElement())
                 .addElement('J', portCellElement())
                 .addElement('T', Casings.TungstensteelTurbineCasing.asElement())
                 .addElement('H', ofChain(housingElement(), Casings.TungstensteelTurbineCasing.asElement()))
+                .addElement('1', shellOnly(Casings.CleanStainlessSteelMachineCasing.asElement()))
+                .addElement('2', shellOnly(Casings.TungstensteelTurbineCasing.asElement()))
+                .addElement('3', shellOnly(ofBlock(Blocks.glass, 0)))
+                .addElement('4', shellOnly(Casings.SteelPipeCasing.asElement()))
+                .addElement('6', shellOnly(ofBlock(GregTechAPI.sBlockConcretes, 8)))
+                .addElement('7', shellOnly(Casings.SolidSteelMachineCasing.asElement()))
                 .build();
         }
         return STRUCTURE_DEFINITION;
@@ -851,7 +963,43 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
     @Override
     public int survivalConstruct(ItemStack stackSize, int elementBudget, ISurvivalBuildEnvironment env) {
-        if (mMachine && reactorTier > 0) return -1;
+        if (mMachine && reactorTier > 0) {
+            // Formed plant: platform/silo/duct are done, but the module building shells are
+            // still legitimate build targets (skip the checked pieces so a mismatched trigger
+            // tier can never auto-place a second silo inside the formed one).
+            final int hall = survivalBuildPiece(
+                shellPieceName(mName, "hall"),
+                stackSize,
+                -11,
+                3,
+                -13,
+                elementBudget,
+                env,
+                false,
+                true);
+            if (hall >= 0) return hall;
+            final int nw = survivalBuildPiece(
+                shellPieceName(mName, "towernw"),
+                stackSize,
+                25,
+                19,
+                17,
+                elementBudget,
+                env,
+                false,
+                true);
+            if (nw >= 0) return nw;
+            return survivalBuildPiece(
+                shellPieceName(mName, "towersw"),
+                stackSize,
+                25,
+                19,
+                -16,
+                elementBudget,
+                env,
+                false,
+                true);
+        }
         final int t = tierFromTrigger(stackSize);
         final int built = survivalBuildPiece(
             floorPieceName(mName),
@@ -875,12 +1023,45 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             false,
             true);
         if (siloBuilt >= 0) return siloBuilt;
-        return survivalBuildPiece(
+        final int ductBuilt = survivalBuildPiece(
             ductPieceName(mName),
             stackSize,
             ductHOff(t),
             2,
             ductDOff(t),
+            elementBudget,
+            env,
+            false,
+            true);
+        if (ductBuilt >= 0) return ductBuilt;
+        final int hallBuilt = survivalBuildPiece(
+            shellPieceName(mName, "hall"),
+            stackSize,
+            -11,
+            3,
+            -13,
+            elementBudget,
+            env,
+            false,
+            true);
+        if (hallBuilt >= 0) return hallBuilt;
+        final int nwBuilt = survivalBuildPiece(
+            shellPieceName(mName, "towernw"),
+            stackSize,
+            25,
+            19,
+            17,
+            elementBudget,
+            env,
+            false,
+            true);
+        if (nwBuilt >= 0) return nwBuilt;
+        return survivalBuildPiece(
+            shellPieceName(mName, "towersw"),
+            stackSize,
+            25,
+            19,
+            -16,
             elementBudget,
             env,
             false,
@@ -893,6 +1074,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         buildPiece(floorPieceName(mName), stackSize, hintsOnly, CENTER, 0, SILO_FRONT);
         buildPiece(pieceName(mName, t), stackSize, hintsOnly, siloHOff(t), siloVOff(t), siloDOff(t));
         buildPiece(ductPieceName(mName), stackSize, hintsOnly, ductHOff(t), 2, ductDOff(t));
+        // One projection builds the whole plant: the module building shells come too, and
+        // only the three module controllers remain to be stood on their dock markers.
+        buildPiece(shellPieceName(mName, "hall"), stackSize, hintsOnly, -11, 3, -13);
+        buildPiece(shellPieceName(mName, "towernw"), stackSize, hintsOnly, 25, 19, 17);
+        buildPiece(shellPieceName(mName, "towersw"), stackSize, hintsOnly, 25, 19, -16);
     }
 
     // ------------------------------------------------------------------ rod cascade (SD-1)
@@ -1728,9 +1914,12 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             .addInfo(aqua + "The 50x50 platform is the starter structure - every building is added onto it." + reset)
             .addInfo("Shield pad at center = reactor site. 8 flush steel markers = module docks (keep clear).")
             .addSeparator()
-            .addInfo(gold + "1." + reset + " Steam Generator silo - project onto the pad (GUI Build Tier 1-5).")
-            .addInfo(gold + "2." + reset + " Turbine Hall - on the dock marker beside the silo.")
-            .addInfo(gold + "3." + reset + " Cooling Towers (max 2) and more modules on the other markers.")
+            .addInfo(gold + "1." + reset + " Hologram-project THIS controller: ONE projection builds it ALL -")
+            .addInfo("platform, silo (GUI Build Tier 1-5), Spine duct, and every module building shell.")
+            .addInfo(gold + "2." + reset + " Stand the 3 module controllers on the glowing markers, each")
+            .addInfo("FACING AWAY from its building - they dock; each forms once its hatches are in.")
+            .addInfo(gold + "3." + reset + " Hatches: silo walls; hall plinth (Dynamo+Maintenance+Input);")
+            .addInfo("a Maintenance hatch in each tower base ring. Rods in the top ports; water in.")
             .addSeparator()
             .addInfo(aqua + "Fuel:" + reset + " rods cascade down the pillars - insert at the TOP ports,")
             .addInfo("bottom rod burns each cycle, depleted rods exit the output bus.")

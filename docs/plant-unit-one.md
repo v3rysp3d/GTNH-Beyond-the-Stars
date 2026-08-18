@@ -19,6 +19,12 @@ marked (proposed) are tuning knobs for sign-off.
   auto-placed there.
 - Bare platform forms and idles (no hatches required); GUI says "Steam Generator: NOT
   BUILT" until the silo is projected onto the shield pad.
+- ONE-PROJECTION BUILD (review ruling): the main controller's hologram builds the ENTIRE
+  plant - platform, silo, Spine duct, and the empty shells of the Turbine Hall and both
+  Cooling Towers at canonical sites (hall {38,30} body c 30-38; towers at the front
+  {8,1} and back {8,48} corners, bodies 17x17). The player then stands each module
+  controller on its glowing marker FACING AWAY from its building, swaps hatches in, and
+  the plant is done. The questbook's "The Blueprint" quest is the walkthrough.
 - Controller GUI settings (PCB-Factory style): control-rod throttle 1-24 AND Build Tier
   1-5 - the tier the hologram/projector builds (a trigger stack of 2-5 overrides it).
 - Periodic self-revalidation (600t idle / 200t running) because block updates cannot

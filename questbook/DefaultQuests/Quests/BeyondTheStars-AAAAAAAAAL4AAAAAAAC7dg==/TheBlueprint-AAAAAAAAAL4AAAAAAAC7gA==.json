@@ -14,7 +14,7 @@
                                                                              "id:8":  "minecraft:stick"
                                                                          },
                                                     "countAsQuest:1":  1,
-                                                    "desc:8":  "Every great plant starts with concrete. The Nuclear Plant Foundation is the MAIN STATION: project it and the full 50x50 platform builds around it - a Tungstensteel-Reinforced shield pad at center (your controller stands on its front line, and every reactor tier\u0027s front wall will grow around that exact spot) and eight flush steel markers set into the floor. Those are DOCK POSITIONS: keep them clear until a module controller stands there. The bare platform forms and idles - everything else in this chapter is added ONTO it.",
+                                                    "desc:8":  "ONE projection builds the whole plant. Step 1: place the Nuclear Plant Foundation controller - it is the main station, and the reactor grows around it. Step 2: set Build Tier 1-5 in its GUI (or hold a trigger stack of 2-5). Step 3: point a Hologram Projector at the controller - it builds EVERYTHING: the 50x50 platform, the Steam Generator silo, the Spine duct, and the empty shells of the Turbine Hall and both Cooling Towers (in survival, the projector auto-builds from your inventory). Step 4: stand the three module controllers on the three glowing floor markers, each FACING AWAY from its building - they dock, and each forms once its hatches go in. Step 5: hatches - silo walls (including an output bus for the depleted rods), Dynamo + Maintenance + Input into the hall plinth, and one Maintenance hatch into each tower base ring. Then fuel rods into the top ports, water in. That is the entire build. The other markers are spare dock positions for future modules - keep them clear.",
                                                     "globalShare:1":  1,
                                                     "icon:10":  {
                                                                     "Count:3":  1,
@@ -26,7 +26,7 @@
                                                     "isMain:1":  0,
                                                     "isSilent:1":  0,
                                                     "lockedProgress:1":  0,
-                                                    "name:8":  "Groundwork",
+                                                    "name:8":  "The Blueprint",
                                                     "particle_count:3":  -1,
                                                     "partySingleReward:1":  0,
                                                     "questLogic:8":  "AND",

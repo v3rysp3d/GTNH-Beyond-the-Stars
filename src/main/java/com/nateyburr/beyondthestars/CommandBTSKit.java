@@ -123,7 +123,7 @@ public class CommandBTSKit extends CommandBase {
         tell(
             player,
             EnumChatFormatting.GREEN
-                + "Build: place the main controller (it ends up in the silo face), project the 50x50 platform + silo. Silo tier: Build Tier in the GUI, or a 2-5 trigger stack. Then stand module controllers on the dock markers and project their buildings.");
+                + "Build: place the main controller, ONE hologram projection builds everything (platform + silo + duct + module shells; tier from GUI Build Tier or a 2-5 trigger stack). Then stand the 3 module controllers on the glowing markers, each facing AWAY from its building.");
         tell(player, "Then: columns in the core, fuel + water in, throttle in the GUI, fan in the hall's input bus.");
     }
 }

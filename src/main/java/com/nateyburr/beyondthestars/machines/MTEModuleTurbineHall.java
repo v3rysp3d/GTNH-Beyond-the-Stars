@@ -102,17 +102,22 @@ public class MTEModuleTurbineHall extends MTEPlantModuleBase implements ISurviva
         buildPiece(mName, stackSize, hintsOnly, 2, 3, 0);
     }
 
+    /** Package-visible: the main station pre-builds this shell via its own hologram. */
+    static String[][] hallShape() {
+        final String[] roof = { "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS" };
+        final String[] upper = { "SWWWS", "WAPAW", "WAPAW", "WAPAW", "WAPAW", "WAPAW", "WAPAW", "WAPAW", "SSSSS" };
+        // Nothing sits below grade: the plinth is the bottom layer AT pad level, standing
+        // on the foundation platform's concrete, with the controller anchored in its front.
+        final String[] main = { "SSSSS", "SAPAS", "SAPAS", "SAPAS", "SAPAS", "SAPAS", "SAPAS", "SAPAS", "SSSSS" };
+        final String[] plinth = { "UU~UU", "UUUUU", "UUUUU", "UUUUU", "UUUUU", "UUUUU", "UUUUU", "UUUUU", "UUUUU" };
+        return new String[][] { roof, upper, main, plinth };
+    }
+
     @Override
     public IStructureDefinition<MTEPlantModuleBase> getStructureDefinition() {
         if (STRUCTURE_DEFINITION == null) {
-            final String[] roof = { "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS" };
-            final String[] upper = { "SWWWS", "WAPAW", "WAPAW", "WAPAW", "WAPAW", "WAPAW", "WAPAW", "WAPAW", "SSSSS" };
-            // Nothing sits below grade: the plinth is the bottom layer AT pad level, standing
-            // on the foundation platform's concrete, with the controller anchored in its front.
-            final String[] main = { "SSSSS", "SAPAS", "SAPAS", "SAPAS", "SAPAS", "SAPAS", "SAPAS", "SAPAS", "SSSSS" };
-            final String[] plinth = { "UU~UU", "UUUUU", "UUUUU", "UUUUU", "UUUUU", "UUUUU", "UUUUU", "UUUUU", "UUUUU" };
             STRUCTURE_DEFINITION = StructureDefinition.<MTEPlantModuleBase>builder()
-                .addShape(mName, transpose(new String[][] { roof, upper, main, plinth }))
+                .addShape(mName, transpose(hallShape()))
                 .addElement('A', isAir())
                 .addElement('W', ofBlock(Blocks.glass, 0))
                 .addElement('P', Casings.SteelPipeCasing.asElement())
@@ -304,7 +309,10 @@ public class MTEModuleTurbineHall extends MTEPlantModuleBase implements ISurviva
         final String reset = net.minecraft.util.EnumChatFormatting.RESET.toString()
             + net.minecraft.util.EnumChatFormatting.GRAY;
         tt.addMachineType("Plant Module - Turbine Hall")
-            .addInfo(aqua + "Docks on the marker beside the silo; turns its steam into EU." + reset)
+            .addInfo(aqua + "Docks on the east marker; turns the silo's steam into EU." + reset)
+            .addInfo("The main station's hologram pre-builds this hall's shell - stand this controller")
+            .addInfo("on the glowing marker facing away from the building, then swap Dynamo +")
+            .addInfo("Maintenance + Input hatches into the plinth to form it.")
             .addInfo("Undocked, this building is inert. Retired by the Steam Dynamics chain (SD-4).")
             .addSeparator()
             .addInfo(
@@ -312,7 +320,7 @@ public class MTEModuleTurbineHall extends MTEPlantModuleBase implements ISurviva
             .addInfo(aqua + "Coolant" + reset + " (input hatch): IC2 Coolant charge x2.5 (tier-5 silo: x5).")
             .addInfo(aqua + "Propellant" + reset + " Naq Lv 1/2/3: x2/x3/x10 - blowout on non-TDA fans.")
             .beginStructureBlock(5, 4, 9, true)
-            .addController("Front of the plinth, standing on the marked dock position beside the silo")
+            .addController("On the dock marker at the hall's front, FACING AWAY from the hall body")
             .addCasingInfoRange("Clean Stainless Steel Machine Casing (walls/roof)", 60, 75, false)
             .addCasingInfoRange("Tungstensteel Turbine Casing (plinth)", 37, 45, false)
             .addCasingInfoExactly("Steel Pipe Casing (shaft)", 14, false)
@@ -320,7 +328,7 @@ public class MTEModuleTurbineHall extends MTEPlantModuleBase implements ISurviva
             .addMaintenanceHatch("Plinth", 1)
             .addInputHatch("Plinth (coolant + propellant)", 1)
             .addInputBus("Plinth (fan)", 1)
-            .addStructureInfo("Face the controller ALONG the platform - the hall runs parallel to the silo.")
+            .addStructureInfo("Canonical spot: the {38,30} marker, hall body extending behind the controller.")
             .toolTipFinisher();
         return tt;
     }

@@ -63,7 +63,8 @@ public class MTEModuleCoolingTower extends MTEPlantModuleBase implements ISurviv
             : rWaist + (rTop - rWaist) * ((t - waistT) / (1 - waistT));
     }
 
-    private static String[][] towerShape() {
+    /** Package-visible: the main station pre-builds this shell via its own hologram. */
+    static String[][] towerShape() {
         final String[][] layers = new String[HEIGHT][];
         for (int i = 0; i < HEIGHT; i++) {
             final int yFromBottom = HEIGHT - 1 - i;
@@ -155,7 +156,7 @@ public class MTEModuleCoolingTower extends MTEPlantModuleBase implements ISurviv
             .addInfo("Per tower: water draw x0.5 - passive heat decay x2 - decay demand x0.5.")
             .addInfo("Two towers: post-shutdown cooling is fully passive.")
             .beginStructureBlock(17, 20, 17, true)
-            .addController("Front of the base ring, standing on a marked dock position (face away from the silo)")
+            .addController("On the dock marker at the tower's front, FACING AWAY from the tower body")
             .addCasingInfoRange("Solid Steel Machine Casing (base ring)", 30, 46, false)
             .addCasingInfoRange("Light Concrete (hyperboloid shell)", 500, 700, false)
             .addMaintenanceHatch("Base ring", 1)
