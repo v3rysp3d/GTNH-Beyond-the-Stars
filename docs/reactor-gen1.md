@@ -1,5 +1,9 @@
 # Reactor Core (Gen I) — v0.2 mechanics spec
 
+> **SUPERSEDED design history.** This is the pre-platform, pre-Steam-Dynamics snapshot
+> (F=8-era numbers, Mk propellant naming). Current mechanics: docs/plant-unit-one.md
+> (platform + modules) and docs/steam-dynamics.md (rod cascade, Lv 1-6 ladders).
+
 Target numbers come from the design plan's output formula (`EU/t = C x 8,192 x F x K x T x P`);
 Gen I is the C-scaling stage: uranium fuel (F=1), water/steam loop (K=1), generic turbine (T=1).
 

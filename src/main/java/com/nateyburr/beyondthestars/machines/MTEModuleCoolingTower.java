@@ -146,10 +146,14 @@ public class MTEModuleCoolingTower extends MTEPlantModuleBase implements ISurviv
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
+        final String aqua = net.minecraft.util.EnumChatFormatting.AQUA.toString();
+        final String reset = net.minecraft.util.EnumChatFormatting.RESET.toString()
+            + net.minecraft.util.EnumChatFormatting.GRAY;
         tt.addMachineType("Plant Module - Cooling Tower")
-            .addInfo("Docks onto a Plant Foundation DOCK PAD; passive once formed.")
-            .addInfo("Each tower: plant water draw x0.5, passive heat decay x2, decay-heat demand x0.5.")
-            .addInfo("Two towers: post-shutdown cooling is fully passive. Undocked, inert.")
+            .addInfo(aqua + "Docks on a marker; passive once formed. Undocked, inert." + reset)
+            .addSeparator()
+            .addInfo("Per tower: water draw x0.5 - passive heat decay x2 - decay demand x0.5.")
+            .addInfo("Two towers: post-shutdown cooling is fully passive.")
             .beginStructureBlock(17, 20, 17, true)
             .addController("Front of the base ring, standing on a marked dock position (face away from the silo)")
             .addCasingInfoRange("Solid Steel Machine Casing (base ring)", 30, 46, false)

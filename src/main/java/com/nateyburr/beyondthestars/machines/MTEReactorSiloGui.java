@@ -46,6 +46,9 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         syncManager.syncValue("euOutput", new LongSyncValue(multiblock::getLastEUOutput));
         syncManager.syncValue("steamOutput", new LongSyncValue(multiblock::getSteamPerTick));
         syncManager.syncValue("coolingTowers", new IntSyncValue(multiblock::getCoolingTowers));
+        syncManager.syncValue("cascadeMode", new BooleanSyncValue(multiblock::isCascadeMode));
+        syncManager.syncValue("liveColumns", new IntSyncValue(multiblock::getLiveColumns));
+        syncManager.syncValue("totalColumns", new IntSyncValue(multiblock::getTotalColumns));
         syncManager.syncValue(
             "throttleSetting",
             new IntSyncValue(multiblock::getThrottleSetting, multiblock::setThrottleSetting).allowC2S());
@@ -67,6 +70,9 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         final IntSyncValue radiationSeconds = syncManager.findSyncHandler("radiationSeconds", IntSyncValue.class);
         final BooleanSyncValue deckInstalled = syncManager.findSyncHandler("deckInstalled", BooleanSyncValue.class);
         final IntSyncValue coolingTowers = syncManager.findSyncHandler("coolingTowers", IntSyncValue.class);
+        final BooleanSyncValue cascadeMode = syncManager.findSyncHandler("cascadeMode", BooleanSyncValue.class);
+        final IntSyncValue liveColumns = syncManager.findSyncHandler("liveColumns", IntSyncValue.class);
+        final IntSyncValue totalColumns = syncManager.findSyncHandler("totalColumns", IntSyncValue.class);
         final IntSyncValue fanTier = syncManager.findSyncHandler("fanTier", IntSyncValue.class);
         final LongSyncValue euOutput = syncManager.findSyncHandler("euOutput", LongSyncValue.class);
         final LongSyncValue steamOutput = syncManager.findSyncHandler("steamOutput", LongSyncValue.class);
@@ -88,16 +94,24 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         })
             .asWidget()
             .marginBottom(2))
-            .child(
-                IKey.dynamic(
-                    () -> translateToLocal("beyondthestars.gui.columns") + " "
-                        + columns.getIntValue()
+            .child(IKey.dynamic(() -> {
+                if (cascadeMode.getBoolValue()) {
+                    return translateToLocal("beyondthestars.gui.cascade") + " "
+                        + liveColumns.getIntValue()
                         + "/"
-                        + columnCap.getIntValue()
-                        + "  ·  "
-                        + fuelName.getStringValue())
-                    .asWidget()
-                    .marginBottom(2))
+                        + totalColumns.getIntValue()
+                        + " pillars  ·  "
+                        + fuelName.getStringValue();
+                }
+                return translateToLocal("beyondthestars.gui.columns") + " "
+                    + columns.getIntValue()
+                    + "/"
+                    + columnCap.getIntValue()
+                    + "  ·  "
+                    + fuelName.getStringValue();
+            })
+                .asWidget()
+                .marginBottom(2))
             .child(IKey.dynamic(() -> {
                 final int h = heat.getIntValue();
                 final EnumChatFormatting color = h >= 8000 ? EnumChatFormatting.RED

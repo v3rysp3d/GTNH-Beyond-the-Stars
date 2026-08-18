@@ -100,12 +100,12 @@ breaking release.
 | Benzene                   | 1.25  | entry                              |
 | High Octane Gasoline      | 1.5   |                                    |
 | H8N4C2O4 Rocket Fuel      | 2.0   | "the best rocket fuel"             |
-| Naquadah Fuel Mk I        | 3.0   |                                    |
-| Naquadah Fuel Mk II       | 4.0   |                                    |
-| Naquadah Fuel Mk III      | 5.0   | knee of the curve                  |
-| Naquadah Fuel Mk IV       | 5.5   | linear from here -                 |
-| Naquadah Fuel Mk V        | 6.0   | deliberately                       |
-| Naquadah Fuel Mk VI (UMV) | 6.5   | "not worth it really"              |
+| Naquadah Fuel Lv 1        | 3.0   |                                    |
+| Naquadah Fuel Lv 2        | 4.0   |                                    |
+| Naquadah Fuel Lv 3        | 5.0   | knee of the curve                  |
+| Naquadah Fuel Lv 4        | 5.5   | linear from here -                 |
+| Naquadah Fuel Lv 5        | 6.0   | deliberately                       |
+| Naquadah Fuel Lv 6 (UMV)  | 6.5   | "not worth it really"              |
 
 ## Coolant ladder (worse -> best; quality Q)
 
@@ -120,8 +120,10 @@ breaking release.
 
 ## Implementation phasing
 
-- SD-1: rod pillar cascade in the silo (block states per segment for the visual fall,
-  loading ports, base extraction, bus fallback penalty). Questbook quests 4.
+- SD-1 (IMPLEMENTED 0.12.0): rod pillar cascade in the silo - 8-segment frames with
+  fill-level block states, Rod Loading Ports above each pillar (4-slot TE buffer,
+  hopper/AE2/right-click insert), bottom-burn per decay cycle (campaign/8), depleted
+  rods to the output bus, bus fallback at 50%.
 - SD-2: 3x3 duct piece + Turbine Housing sockets + swirl math + wrench chirality.
 - SD-3: spiral chamber + sensor hatch + precision injectors + window/heat/coolant/seize.
 - SD-4: Large Turbine Rotor Assembly + Turbine Hall retirement + migration.

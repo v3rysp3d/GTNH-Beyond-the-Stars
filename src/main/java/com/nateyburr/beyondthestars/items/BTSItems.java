@@ -27,6 +27,12 @@ public final class BTSItems {
     public static Item depletedFuelAssemblyThoriumBonded;
     public static Item fuelAssemblyNaqBonded;
     public static Item depletedFuelAssemblyNaqBonded;
+    public static Item fuelRodThoriumBonded;
+    public static Item fuelRodNaqBonded;
+    public static Item depletedFuelRodUranium;
+    public static Item depletedFuelRodMox;
+    public static Item depletedFuelRodThoriumBonded;
+    public static Item depletedFuelRodNaqBonded;
     public static Item turbineFanMatched;
     public static Item turbineFanTDA;
     public static Item turbineFanTDAOptimized;
@@ -94,6 +100,36 @@ public final class BTSItems {
             .setTextureName("beyondthestars:depletedFuelAssemblyNaqBonded")
             .setCreativeTab(TAB);
         GameRegistry.registerItem(depletedFuelAssemblyNaqBonded, "depletedFuelAssemblyNaqBonded");
+
+        fuelRodThoriumBonded = new Item().setUnlocalizedName("beyondthestars.fuelRodThoriumBonded")
+            .setTextureName("beyondthestars:fuelRodThoriumBonded")
+            .setCreativeTab(TAB);
+        GameRegistry.registerItem(fuelRodThoriumBonded, "fuelRodThoriumBonded");
+
+        fuelRodNaqBonded = new Item().setUnlocalizedName("beyondthestars.fuelRodNaqBonded")
+            .setTextureName("beyondthestars:fuelRodNaqBonded")
+            .setCreativeTab(TAB);
+        GameRegistry.registerItem(fuelRodNaqBonded, "fuelRodNaqBonded");
+
+        depletedFuelRodUranium = new Item().setUnlocalizedName("beyondthestars.depletedFuelRodUranium")
+            .setTextureName("beyondthestars:depletedFuelRodUranium")
+            .setCreativeTab(TAB);
+        GameRegistry.registerItem(depletedFuelRodUranium, "depletedFuelRodUranium");
+
+        depletedFuelRodMox = new Item().setUnlocalizedName("beyondthestars.depletedFuelRodMox")
+            .setTextureName("beyondthestars:depletedFuelRodMox")
+            .setCreativeTab(TAB);
+        GameRegistry.registerItem(depletedFuelRodMox, "depletedFuelRodMox");
+
+        depletedFuelRodThoriumBonded = new Item().setUnlocalizedName("beyondthestars.depletedFuelRodThoriumBonded")
+            .setTextureName("beyondthestars:depletedFuelRodThoriumBonded")
+            .setCreativeTab(TAB);
+        GameRegistry.registerItem(depletedFuelRodThoriumBonded, "depletedFuelRodThoriumBonded");
+
+        depletedFuelRodNaqBonded = new Item().setUnlocalizedName("beyondthestars.depletedFuelRodNaqBonded")
+            .setTextureName("beyondthestars:depletedFuelRodNaqBonded")
+            .setCreativeTab(TAB);
+        GameRegistry.registerItem(depletedFuelRodNaqBonded, "depletedFuelRodNaqBonded");
 
         turbineFanMatched = new Item().setUnlocalizedName("beyondthestars.turbineFanMatched")
             .setTextureName("beyondthestars:turbineFanMatched")

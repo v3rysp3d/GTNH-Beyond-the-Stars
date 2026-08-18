@@ -300,13 +300,17 @@ public class MTEModuleTurbineHall extends MTEPlantModuleBase implements ISurviva
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
+        final String aqua = net.minecraft.util.EnumChatFormatting.AQUA.toString();
+        final String reset = net.minecraft.util.EnumChatFormatting.RESET.toString()
+            + net.minecraft.util.EnumChatFormatting.GRAY;
         tt.addMachineType("Plant Module - Turbine Hall")
-            .addInfo("Docks onto the Plant Foundation pad BESIDE the silo; converts its steam directly to EU.")
-            .addInfo("Face the controller ALONG the platform so the hall runs parallel to the silo, not into it.")
-            .addInfo("Fan in this hall's input bus: Matched x1.25, TDA x1.25 (propellant-rated), Optimized x2.5.")
-            .addInfo("Stock IC2 Coolant in this hall's input hatch as the K charge (x2.5; tier-5 silo x5).")
-            .addInfo("Naquadah Propellant Mk I/II/III: x2/x3/x10 - blowout on non-TDA fans, seizure on starvation.")
-            .addInfo("Undocked, this building is inert.")
+            .addInfo(aqua + "Docks on the marker beside the silo; turns its steam into EU." + reset)
+            .addInfo("Undocked, this building is inert. Retired by the Steam Dynamics chain (SD-4).")
+            .addSeparator()
+            .addInfo(
+                aqua + "Fan" + reset + " (input bus): Matched x1.25 - TDA x1.25 propellant-rated - Optimized x2.5.")
+            .addInfo(aqua + "Coolant" + reset + " (input hatch): IC2 Coolant charge x2.5 (tier-5 silo: x5).")
+            .addInfo(aqua + "Propellant" + reset + " Naq Lv 1/2/3: x2/x3/x10 - blowout on non-TDA fans.")
             .beginStructureBlock(5, 4, 9, true)
             .addController("Front of the plinth, standing on the marked dock position beside the silo")
             .addCasingInfoRange("Clean Stainless Steel Machine Casing (walls/roof)", 60, 75, false)
@@ -316,6 +320,7 @@ public class MTEModuleTurbineHall extends MTEPlantModuleBase implements ISurviva
             .addMaintenanceHatch("Plinth", 1)
             .addInputHatch("Plinth (coolant + propellant)", 1)
             .addInputBus("Plinth (fan)", 1)
+            .addStructureInfo("Face the controller ALONG the platform - the hall runs parallel to the silo.")
             .toolTipFinisher();
         return tt;
     }

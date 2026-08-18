@@ -28,20 +28,28 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.FluidStack;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.gtnewhorizon.structurelib.StructureLibAPI;
+import com.gtnewhorizon.structurelib.alignment.IAlignmentLimits;
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
+import com.gtnewhorizon.structurelib.structure.AutoPlaceEnvironment;
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
+import com.gtnewhorizon.structurelib.structure.IStructureElement;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 import com.gtnewhorizon.structurelib.util.Vec3Impl;
 import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.blocks.BTSBlocks;
+import com.nateyburr.beyondthestars.blocks.BlockReactorFuelColumn;
+import com.nateyburr.beyondthestars.blocks.TileRodLoadingPort;
 import com.nateyburr.beyondthestars.fluids.BTSFluids;
 import com.nateyburr.beyondthestars.items.BTSItems;
 
@@ -97,8 +105,17 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     private static final ShutDownReason MELTDOWN_REASON = SimpleShutDownReason.ofCritical("beyondthestars.meltdown");
 
     private static final int MAX_TIER = 5;
-    /** Segments stacked per full fuel column. */
-    private static final int SEGMENTS_PER_COLUMN = 6;
+    /** Frame segments stacked per full fuel pillar (SD-1: rods cascade through these). */
+    private static final int SEGMENTS_PER_COLUMN = 8;
+    /** Rod type ids stored per pillar segment; 0 = empty. */
+    private static final int ROD_NONE = 0, ROD_URANIUM = 1, ROD_MOX = 2, ROD_THORIUM = 3, ROD_NAQ = 4;
+    /** Steam multiplier per rod type (index = rod type id). */
+    private static final int[] ROD_MULT = { 0, 1, 2, 5, 9 };
+    /**
+     * Half-rate cycles one assembly batch buys in bus-fallback mode. Four slices at half rate
+     * = 2 rod-units of steam per 3-rod assembly - a true 33% per-rod penalty vs the cascade.
+     */
+    private static final int FALLBACK_SLICES = 4;
     /** Octagon corner cut per tier (0 unused). */
     private static final int[] CUT = { 0, 2, 2, 3, 3, 4 };
     /** Interior fuel-column capacity per tier (0 unused). */
@@ -109,10 +126,45 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     /** Plant modules docked in this silo's walls (Space Elevator pattern). */
     public final ArrayList<MTEPlantModuleBase> plantModules = new ArrayList<>();
 
+    /** One fuel pillar: its world column position and the frame segments present. */
+    private static final class ColumnInfo {
+
+        final int x, z;
+        /** Y of every frame segment, sorted ascending - rod index k lives at ys.get(k). */
+        final List<Integer> ys = new ArrayList<>();
+        int minY = Integer.MAX_VALUE;
+        int height;
+
+        ColumnInfo(int x, int z) {
+            this.x = x;
+            this.z = z;
+        }
+
+        static long key(int x, int z) {
+            return ((long) x << 32) ^ (z & 0xFFFFFFFFL);
+        }
+    }
+
+    /** Fuel/port cells recorded by the current structure walk (reset per probe). */
+    private final List<int[]> walkFuelCells = new ArrayList<>();
+    private final List<int[]> walkPortCells = new ArrayList<>();
+    /** Pillars of the formed silo, rebuilt after every successful structure check. */
+    private final java.util.HashMap<Long, ColumnInfo> columns = new java.util.HashMap<>();
+    private final List<int[]> portCells = new ArrayList<>();
+    /** Rod contents per pillar, bottom-first and gap-free; persisted in NBT. */
+    private final java.util.HashMap<Long, byte[]> columnRods = new java.util.HashMap<>();
+
     private int mCasing;
     private int reactorTier;
     private int fuelSegments;
     private int activeColumns;
+    private boolean cascadeMode;
+    private int liveColumnsLastCycle;
+    /** Parked assembly-fallback credit: remaining half-rate slices and their parameters. */
+    private int fallbackCyclesLeft;
+    private int fallbackColumns;
+    private int fallbackMult = 1;
+    private ItemStack fallbackDepleted;
     private int throttleN = 24;
     private int throttleSetting = 24;
     private int buildTierSetting = 1;
@@ -303,6 +355,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     private enum LayerKind {
         PLENUM,
         FUEL,
+        PORTS,
         BAND
     }
 
@@ -329,7 +382,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 if (r < 0 || x < 0 || r >= n || x >= n || !insideOct(n, k, r, x)) {
                     row[xx] = ' ';
                 } else if (interiorCell(n, k, r, x)) {
-                    row[xx] = (kind == LayerKind.PLENUM || kind == LayerKind.BAND) ? 'A' : 'F';
+                    row[xx] = kind == LayerKind.FUEL ? 'F' : kind == LayerKind.PORTS ? 'J' : 'A';
                 } else {
                     // The main station: the controller is embedded front-center at ground level.
                     row[xx] = (ctrl && r == 0 && x == n / 2) ? '~' : wall;
@@ -410,8 +463,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
     /**
      * The mockup silo, top-first: hemispherical dome, tall upper plenum with radiation bands,
-     * six fuel layers, lower plenums with a band - ribbed the whole way up. No floor layer:
-     * the silo stands on the platform's shield pad (bottom-up index 0 is the pad itself).
+     * a rod-loading-port layer over EIGHT fuel layers (the decay-cascade pillars), lower
+     * plenums with a band - ribbed the whole way up. No floor layer: the silo stands on the
+     * platform's shield pad (bottom-up index 0 is the pad itself).
      */
     private static String[][] coreShape(int tier) {
         final int wallH = wallHeightFor(tier);
@@ -422,14 +476,87 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         }
         for (int i = wallH - 1; i >= 1; i--) {
             final LayerKind kind;
-            if (i >= 3 && i <= 8) {
+            if (i >= 3 && i <= 10) {
                 kind = LayerKind.FUEL;
+            } else if (i == 11) {
+                kind = LayerKind.PORTS;
             } else {
                 kind = isBandLayer(tier, i) ? LayerKind.BAND : LayerKind.PLENUM;
             }
             layers.add(buildLayer(tier, kind, true, i == 1));
         }
         return layers.toArray(new String[0][]);
+    }
+
+    /**
+     * Fuel pillar frame cell: frame block (any meta - fueled frames carry meta 1) or air.
+     * Frames are recorded during the walk so the controller can run the rod cascade.
+     */
+    private static IStructureElement<MTEReactorCoreMk1> fuelCellElement() {
+        return new IStructureElement<MTEReactorCoreMk1>() {
+
+            @Override
+            public boolean check(MTEReactorCoreMk1 t, World world, int x, int y, int z) {
+                if (world.getBlock(x, y, z) == BTSBlocks.reactorFuelColumn) {
+                    t.fuelSegments++;
+                    t.walkFuelCells.add(new int[] { x, y, z });
+                    return true;
+                }
+                return world.isAirBlock(x, y, z);
+            }
+
+            @Override
+            public boolean spawnHint(MTEReactorCoreMk1 t, World world, int x, int y, int z, ItemStack trigger) {
+                StructureLibAPI.hintParticle(world, x, y, z, BTSBlocks.reactorFuelColumn, 0);
+                return true;
+            }
+
+            @Override
+            public boolean placeBlock(MTEReactorCoreMk1 t, World world, int x, int y, int z, ItemStack trigger) {
+                world.setBlock(x, y, z, BTSBlocks.reactorFuelColumn, 0, 2);
+                return true;
+            }
+
+            @Override
+            public PlaceResult survivalPlaceBlock(MTEReactorCoreMk1 t, World world, int x, int y, int z,
+                ItemStack trigger, AutoPlaceEnvironment env) {
+                // Pillar frames are optional interior - never auto-consumed in survival.
+                return PlaceResult.SKIP;
+            }
+        };
+    }
+
+    /** Rod Loading Port cell above a pillar: port block or air; ports are recorded. */
+    private static IStructureElement<MTEReactorCoreMk1> portCellElement() {
+        return new IStructureElement<MTEReactorCoreMk1>() {
+
+            @Override
+            public boolean check(MTEReactorCoreMk1 t, World world, int x, int y, int z) {
+                if (world.getBlock(x, y, z) == BTSBlocks.rodLoadingPort) {
+                    t.walkPortCells.add(new int[] { x, y, z });
+                    return true;
+                }
+                return world.isAirBlock(x, y, z);
+            }
+
+            @Override
+            public boolean spawnHint(MTEReactorCoreMk1 t, World world, int x, int y, int z, ItemStack trigger) {
+                StructureLibAPI.hintParticle(world, x, y, z, BTSBlocks.rodLoadingPort, 0);
+                return true;
+            }
+
+            @Override
+            public boolean placeBlock(MTEReactorCoreMk1 t, World world, int x, int y, int z, ItemStack trigger) {
+                world.setBlock(x, y, z, BTSBlocks.rodLoadingPort, 0, 2);
+                return true;
+            }
+
+            @Override
+            public PlaceResult survivalPlaceBlock(MTEReactorCoreMk1 t, World world, int x, int y, int z,
+                ItemStack trigger, AutoPlaceEnvironment env) {
+                return PlaceResult.SKIP;
+            }
+        };
     }
 
     @Override
@@ -481,9 +608,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                         isAir()))
                 .addElement('M', Casings.SolidSteelMachineCasing.asElement())
                 .addElement('G', onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement()))
-                .addElement(
-                    'F',
-                    ofChain(onElementPass(x -> ++x.fuelSegments, ofBlock(BTSBlocks.reactorFuelColumn, 0)), isAir()))
+                .addElement('F', fuelCellElement())
+                .addElement('J', portCellElement())
                 .build();
         }
         return STRUCTURE_DEFINITION;
@@ -506,6 +632,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             clearHatches();
             mCasing = 0;
             fuelSegments = 0;
+            walkFuelCells.clear();
+            walkPortCells.clear();
             if (checkPiece(pieceName(mName, t), siloHOff(t), siloVOff(t), siloDOff(t), null)) {
                 reactorTier = t;
                 break;
@@ -513,11 +641,14 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         }
         // Hatch demands only apply once the silo exists; the bare platform forms and idles.
         if (reactorTier > 0) {
+            rebuildColumns();
             checkCasingMin(errors, mCasing, minCasingsFor(reactorTier));
             checkHasEnergyHatch(errors);
             checkHasMaintenanceHatch(errors);
             checkHasInputHatch(errors);
             checkHasOutputHatch(errors);
+            // The cascade emits depleted rods as items - without a bus they would be voided.
+            checkHasOutputBus(errors);
         } else {
             // The last failed probe registered hatches/counters before aborting its walk;
             // drop that residue so the platform-only state is canonical. The floor's dock
@@ -528,7 +659,42 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             // No maintenance hatch exists on a bare platform: keep it serviced so the base
             // class idles into checkProcessing instead of a permanent NO_REPAIR shutdown.
             fixAllIssues();
+            // Cascade bookkeeping is meaningless without a silo; keep it canonical too.
+            columns.clear();
+            portCells.clear();
+            cascadeMode = false;
+            liveColumnsLastCycle = 0;
         }
+    }
+
+    /** True when every chunk the 50x50 platform could occupy (any facing) is loaded. */
+    private boolean footprintLoaded(IGregTechTileEntity base) {
+        return base.getWorld()
+            .checkChunksExist(
+                base.getXCoord() - PLATFORM,
+                64,
+                base.getZCoord() - PLATFORM,
+                base.getXCoord() + PLATFORM,
+                64,
+                base.getZCoord() + PLATFORM);
+    }
+
+    @Override
+    public boolean checkStructure(boolean aForceReset, IGregTechTileEntity aBaseMetaTileEntity) {
+        // A neighbor update at the plant's loaded edge must not fail the walk against
+        // unloaded chunks and stop a running campaign - defer until fully loaded.
+        if (aBaseMetaTileEntity.isServerSide() && mMachine
+            && mMaxProgresstime > 0
+            && !footprintLoaded(aBaseMetaTileEntity)) {
+            return mMachine;
+        }
+        return super.checkStructure(aForceReset, aBaseMetaTileEntity);
+    }
+
+    /** The rod cascade's port-over-pillar mapping only survives unrotated horizontal builds. */
+    @Override
+    protected IAlignmentLimits getInitialAlignmentLimits() {
+        return (d, r, f) -> d.offsetY == 0 && r.isNotRotated() && !f.isVerticallyFliped();
     }
 
     @Override
@@ -594,6 +760,156 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         buildPiece(pieceName(mName, t), stackSize, hintsOnly, siloHOff(t), siloVOff(t), siloDOff(t));
     }
 
+    // ------------------------------------------------------------------ rod cascade (SD-1)
+
+    /** Rebuilds the pillar map from the last structure walk and reconciles rod contents. */
+    private void rebuildColumns() {
+        columns.clear();
+        for (int[] cell : walkFuelCells) {
+            final long key = ColumnInfo.key(cell[0], cell[2]);
+            ColumnInfo info = columns.get(key);
+            if (info == null) {
+                info = new ColumnInfo(cell[0], cell[2]);
+                columns.put(key, info);
+            }
+            info.minY = Math.min(info.minY, cell[1]);
+            info.ys.add(cell[1]);
+            info.height++;
+        }
+        for (final ColumnInfo info : columns.values()) {
+            java.util.Collections.sort(info.ys);
+        }
+        portCells.clear();
+        portCells.addAll(walkPortCells);
+        // Rods only survive in pillars that still stand; anything orphaned by a dismantled
+        // or shortened pillar is EJECTED at the controller rather than silently deleted.
+        final List<ItemStack> orphans = new ArrayList<>();
+        for (final java.util.Map.Entry<Long, byte[]> entry : columnRods.entrySet()) {
+            final ColumnInfo info = columns.get(entry.getKey());
+            final int keep = info == null ? 0 : info.height;
+            final byte[] rods = entry.getValue();
+            for (int i = keep; i < rods.length; i++) {
+                if (rods[i] != ROD_NONE) {
+                    orphans.add(new ItemStack(fuelRodFor(rods[i]), 1));
+                }
+            }
+        }
+        columnRods.keySet()
+            .retainAll(columns.keySet());
+        for (final java.util.Map.Entry<Long, ColumnInfo> entry : columns.entrySet()) {
+            final byte[] rods = columnRods.get(entry.getKey());
+            final int height = entry.getValue().height;
+            if (rods != null && rods.length != height) {
+                columnRods.put(entry.getKey(), Arrays.copyOf(rods, height));
+            }
+        }
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (!orphans.isEmpty() && base != null && base.isServerSide()) {
+            final World world = base.getWorld();
+            for (final ItemStack orphan : orphans) {
+                world.spawnEntityInWorld(
+                    new net.minecraft.entity.item.EntityItem(
+                        world,
+                        base.getXCoord() + 0.5,
+                        base.getYCoord() + 1.5,
+                        base.getZCoord() + 0.5,
+                        orphan));
+            }
+        }
+    }
+
+    private static Item fuelRodFor(int type) {
+        switch (type) {
+            case ROD_MOX:
+                return BTSItems.fuelRodMox;
+            case ROD_THORIUM:
+                return BTSItems.fuelRodThoriumBonded;
+            case ROD_NAQ:
+                return BTSItems.fuelRodNaqBonded;
+            default:
+                return BTSItems.fuelRodUranium;
+        }
+    }
+
+    private byte[] rodsFor(long key, ColumnInfo info) {
+        byte[] rods = columnRods.get(key);
+        if (rods == null) {
+            rods = new byte[info.height];
+            columnRods.put(key, rods);
+        }
+        return rods;
+    }
+
+    private static int rodTypeOf(Item item) {
+        if (item == BTSItems.fuelRodUranium) return ROD_URANIUM;
+        if (item == BTSItems.fuelRodMox) return ROD_MOX;
+        if (item == BTSItems.fuelRodThoriumBonded) return ROD_THORIUM;
+        if (item == BTSItems.fuelRodNaqBonded) return ROD_NAQ;
+        return ROD_NONE;
+    }
+
+    private static Item depletedRodFor(int type) {
+        switch (type) {
+            case ROD_MOX:
+                return BTSItems.depletedFuelRodMox;
+            case ROD_THORIUM:
+                return BTSItems.depletedFuelRodThoriumBonded;
+            case ROD_NAQ:
+                return BTSItems.depletedFuelRodNaqBonded;
+            default:
+                return BTSItems.depletedFuelRodUranium;
+        }
+    }
+
+    private static int firstEmpty(byte[] rods) {
+        for (int i = 0; i < rods.length; i++) {
+            if (rods[i] == ROD_NONE) return i;
+        }
+        return -1;
+    }
+
+    /** Each port drains its buffer into the pillar directly below - lowest empty first. */
+    private void drainPorts() {
+        final World world = getBaseMetaTileEntity().getWorld();
+        for (final int[] p : portCells) {
+            if (!world.blockExists(p[0], p[1], p[2])) continue;
+            final net.minecraft.tileentity.TileEntity te = world.getTileEntity(p[0], p[1], p[2]);
+            if (!(te instanceof TileRodLoadingPort)) continue;
+            final TileRodLoadingPort port = (TileRodLoadingPort) te;
+            final long key = ColumnInfo.key(p[0], p[2]);
+            final ColumnInfo info = columns.get(key);
+            if (info == null) continue;
+            final byte[] rods = rodsFor(key, info);
+            int free = firstEmpty(rods);
+            while (free >= 0) {
+                final ItemStack rod = port.takeOneRod();
+                if (rod == null) break;
+                rods[free] = (byte) rodTypeOf(rod.getItem());
+                free = firstEmpty(rods);
+            }
+        }
+    }
+
+    /** Sync the pillars' fill-level metas (meta 1 = a rod occupies this segment). */
+    private void updateColumnVisuals() {
+        final World world = getBaseMetaTileEntity().getWorld();
+        for (final java.util.Map.Entry<Long, ColumnInfo> entry : columns.entrySet()) {
+            final ColumnInfo info = entry.getValue();
+            final byte[] rods = columnRods.get(entry.getKey());
+            for (int i = 0; i < info.ys.size(); i++) {
+                final int y = info.ys.get(i);
+                if (!world.blockExists(info.x, y, info.z)) continue;
+                if (world.getBlock(info.x, y, info.z) != BTSBlocks.reactorFuelColumn) continue;
+                final int wanted = (rods != null && i < rods.length && rods[i] != ROD_NONE)
+                    ? BlockReactorFuelColumn.META_FUELED
+                    : BlockReactorFuelColumn.META_EMPTY;
+                if (world.getBlockMetadata(info.x, y, info.z) != wanted) {
+                    world.setBlockMetadataWithNotify(info.x, y, info.z, wanted, 2);
+                }
+            }
+        }
+    }
+
     // ------------------------------------------------------------------ campaign
 
     private int countMatchingInputs(ItemStack sample) {
@@ -614,11 +930,6 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             clearCampaign();
             return CheckRecipeResultRegistry.NO_RECIPE;
         }
-        int columns = Math.min(fuelSegments / SEGMENTS_PER_COLUMN, COLUMN_CAP[Math.max(1, reactorTier)]);
-        if (columns <= 0) {
-            clearCampaign();
-            return CheckRecipeResultRegistry.NO_RECIPE;
-        }
 
         // GUI throttle setting, overridable by a programmed circuit in the controller slot.
         int n = Math.min(24, Math.max(1, throttleSetting));
@@ -626,45 +937,132 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         if (GTUtility.isAnyIntegratedCircuit(circuit) && circuit.getItemDamage() >= 1) {
             n = Math.min(24, circuit.getItemDamage());
         }
+        throttleN = n;
 
-        // Fuel ladder (best first): naq-bonded x9, thorium-bonded x5, MOX x2, uranium x1.
+        // One decay cycle: an eighth of the classic campaign.
+        final int cycleTicks = Math.max(1, Config.genICampaignMinutes * 60 * 20 / SEGMENTS_PER_COLUMN);
+
+        // --- Candidates are PEEKED first, then only the best one commits. Everything runs
+        // on the decay-cycle cadence so a dry spell never locks the plant into a long
+        // half-output campaign, and buffered rods win back the plant the moment they land.
+        drainPorts();
+        final int cap = COLUMN_CAP[Math.max(1, reactorTier)];
+
+        // Candidate 1: rod cascade (peek bottom rods, nothing consumed yet).
+        final int[] liveByType = new int[ROD_MULT.length];
+        final List<Long> burnKeys = new ArrayList<>();
+        long steamBase = 0;
+        for (final java.util.Map.Entry<Long, ColumnInfo> entry : columns.entrySet()) {
+            if (burnKeys.size() >= cap) break;
+            final byte[] rods = columnRods.get(entry.getKey());
+            if (rods == null || rods.length == 0 || rods[0] == ROD_NONE) continue;
+            liveByType[rods[0]]++;
+            burnKeys.add(entry.getKey());
+            steamBase += STEAM_PER_COLUMN * ROD_MULT[rods[0]];
+        }
+        final long cascadeSteam = steamBase * n / 24;
+
+        // Candidate 2: a parked assembly-fallback credit (remaining half-rate slices).
+        final long creditSteam = fallbackCyclesLeft > 0 ? STEAM_PER_COLUMN * fallbackColumns * fallbackMult * n / 24 / 2
+            : 0;
+
+        // Candidate 3: a NEW assembly batch from the bus (peek only; blocked while credit
+        // is parked). One batch = FALLBACK_SLICES half-rate cycles, a true per-rod penalty.
         final Item[] assemblies = { BTSItems.fuelAssemblyNaqBonded, BTSItems.fuelAssemblyThoriumBonded,
             BTSItems.fuelAssemblyMox, BTSItems.fuelAssemblyUranium };
         final Item[] depletedForms = { BTSItems.depletedFuelAssemblyNaqBonded,
             BTSItems.depletedFuelAssemblyThoriumBonded, BTSItems.depletedFuelAssemblyMox,
             BTSItems.depletedFuelAssemblyUranium };
         final int[] fuelMults = { 9, 5, 2, 1 };
-        ItemStack chosen = null;
-        ItemStack depleted = null;
-        int fuelMult = 1;
-        for (int i = 0; i < assemblies.length; i++) {
-            final ItemStack candidate = new ItemStack(assemblies[i], 1);
-            if (countMatchingInputs(candidate) >= columns) {
-                chosen = candidate;
-                depleted = new ItemStack(depletedForms[i], columns);
-                fuelMult = fuelMults[i];
-                break;
+        final int busColumns = Math.min(fuelSegments / SEGMENTS_PER_COLUMN, cap);
+        int busChoice = -1;
+        long newFallbackSteam = 0;
+        if (fallbackCyclesLeft <= 0 && busColumns > 0) {
+            for (int i = 0; i < assemblies.length; i++) {
+                if (countMatchingInputs(new ItemStack(assemblies[i], 1)) >= busColumns) {
+                    busChoice = i;
+                    newFallbackSteam = STEAM_PER_COLUMN * busColumns * fuelMults[i] * n / 24 / 2;
+                    break;
+                }
             }
         }
-        if (chosen == null) {
-            clearCampaign();
-            return CheckRecipeResultRegistry.NO_RECIPE;
-        }
-        for (int i = 0; i < columns; i++) {
-            depleteInput(chosen);
-        }
-        updateSlots();
 
-        activeColumns = columns;
-        throttleN = n;
-        activeFuelMult = fuelMult;
-        steamPerTick = STEAM_PER_COLUMN * columns * fuelMult * n / 24;
-        this.mOutputItems = new ItemStack[] { depleted };
-        this.mMaxProgresstime = Math.max(1, Config.genICampaignMinutes) * 60 * 20;
-        this.mEfficiency = 10_000 - (getIdealStatus() - getRepairStatus()) * 1000;
-        this.mEfficiencyIncrease = 10_000;
-        this.lEUt = 0;
-        return CheckRecipeResultRegistry.SUCCESSFUL;
+        // --- Commit the best candidate (the cascade wins ties - rods are the real system).
+        if (cascadeSteam > 0 && cascadeSteam >= creditSteam && cascadeSteam >= newFallbackSteam) {
+            final List<ItemStack> depleted = new ArrayList<>();
+            int bestType = ROD_URANIUM;
+            for (final long key : burnKeys) {
+                final byte[] rods = columnRods.get(key);
+                System.arraycopy(rods, 1, rods, 0, rods.length - 1);
+                rods[rods.length - 1] = ROD_NONE;
+            }
+            for (int type = 1; type < liveByType.length; type++) {
+                int remaining = liveByType[type];
+                if (remaining > 0) bestType = type;
+                while (remaining > 0) {
+                    final int stack = Math.min(64, remaining);
+                    depleted.add(new ItemStack(depletedRodFor(type), stack));
+                    remaining -= stack;
+                }
+            }
+            updateColumnVisuals();
+            cascadeMode = true;
+            liveColumnsLastCycle = burnKeys.size();
+            activeColumns = burnKeys.size();
+            activeFuelMult = ROD_MULT[bestType];
+            steamPerTick = cascadeSteam;
+            this.mOutputItems = depleted.toArray(new ItemStack[0]);
+            this.mMaxProgresstime = cycleTicks;
+            this.mEfficiency = 10_000 - (getIdealStatus() - getRepairStatus()) * 1000;
+            this.mEfficiencyIncrease = 10_000;
+            this.lEUt = 0;
+            return CheckRecipeResultRegistry.SUCCESSFUL;
+        }
+        updateColumnVisuals();
+
+        if (creditSteam > 0) {
+            fallbackCyclesLeft--;
+            cascadeMode = false;
+            liveColumnsLastCycle = 0;
+            activeColumns = fallbackColumns;
+            activeFuelMult = fallbackMult;
+            steamPerTick = creditSteam;
+            this.mOutputItems = fallbackCyclesLeft == 0 && fallbackDepleted != null
+                ? new ItemStack[] { fallbackDepleted }
+                : null;
+            if (fallbackCyclesLeft == 0) fallbackDepleted = null;
+            this.mMaxProgresstime = cycleTicks;
+            this.mEfficiency = 10_000 - (getIdealStatus() - getRepairStatus()) * 1000;
+            this.mEfficiencyIncrease = 10_000;
+            this.lEUt = 0;
+            return CheckRecipeResultRegistry.SUCCESSFUL;
+        }
+
+        if (newFallbackSteam > 0) {
+            final ItemStack chosen = new ItemStack(assemblies[busChoice], 1);
+            for (int i = 0; i < busColumns; i++) {
+                depleteInput(chosen);
+            }
+            updateSlots();
+            fallbackColumns = busColumns;
+            fallbackMult = fuelMults[busChoice];
+            fallbackDepleted = new ItemStack(depletedForms[busChoice], busColumns);
+            fallbackCyclesLeft = FALLBACK_SLICES - 1;
+            cascadeMode = false;
+            liveColumnsLastCycle = 0;
+            activeColumns = busColumns;
+            activeFuelMult = fallbackMult;
+            steamPerTick = newFallbackSteam;
+            this.mOutputItems = null;
+            this.mMaxProgresstime = cycleTicks;
+            this.mEfficiency = 10_000 - (getIdealStatus() - getRepairStatus()) * 1000;
+            this.mEfficiencyIncrease = 10_000;
+            this.lEUt = 0;
+            return CheckRecipeResultRegistry.SUCCESSFUL;
+        }
+
+        clearCampaign();
+        return CheckRecipeResultRegistry.NO_RECIPE;
     }
 
     @Override
@@ -735,6 +1133,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     private void clearCampaign() {
         steamPerTick = 0;
         activeColumns = 0;
+        liveColumnsLastCycle = 0;
         lastEUOutput = 0;
     }
 
@@ -748,6 +1147,13 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     @Override
     public void stopMachine(@Nonnull ShutDownReason reason) {
         clearCampaign();
+        // The rods behind the staged depleted forms were consumed at cycle START; a mid-cycle
+        // shutdown must not delete 90 minutes of them. Flush to the buses (base stopMachine
+        // nulls mOutputItems) - steam loss and decay heat remain the punishment.
+        if (mOutputItems != null) {
+            addItemOutputs(mOutputItems);
+            mOutputItems = null;
+        }
         super.stopMachine(reason);
     }
 
@@ -825,8 +1231,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         // the embedded controller, so force periodic revalidation: every 200t while a campaign
         // runs (a torn-open silo must not keep producing), every 600t while idle (modules
         // placed or removed on the dock markers are otherwise never noticed, and a hand-built
-        // floor would never form). Idle probes are cheap - they abort on the first mismatch.
-        if (aTick % 200 == 0 && (mMaxProgresstime > 0 || aTick % 600 == 0)) {
+        // floor would never form). Never force a walk while the footprint is partially
+        // unloaded - a formed machine's checker treats unloaded blocks as hard failures.
+        if (aTick % 200 == 0 && (mMaxProgresstime > 0 || aTick % 600 == 0) && footprintLoaded(aBaseMetaTileEntity)) {
             onMachineBlockUpdate();
         }
 
@@ -904,6 +1311,32 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         aNBT.setInteger("btsDecayHeatTicks", decayHeatTicks);
         aNBT.setInteger("btsRadiationTicks", radiationTicks);
         aNBT.setInteger("btsRadCenterDepth", radiationCenterDepth);
+        aNBT.setBoolean("btsCascadeMode", cascadeMode);
+        aNBT.setInteger("btsLiveColumns", liveColumnsLastCycle);
+        aNBT.setInteger("btsFallbackCyclesLeft", fallbackCyclesLeft);
+        aNBT.setInteger("btsFallbackColumns", fallbackColumns);
+        aNBT.setInteger("btsFallbackMult", fallbackMult);
+        if (fallbackDepleted != null) {
+            final NBTTagCompound fbTag = new NBTTagCompound();
+            fallbackDepleted.writeToNBT(fbTag);
+            aNBT.setTag("btsFallbackDepleted", fbTag);
+        }
+        final NBTTagList rodList = new NBTTagList();
+        for (final java.util.Map.Entry<Long, byte[]> entry : columnRods.entrySet()) {
+            final NBTTagCompound tag = new NBTTagCompound();
+            tag.setInteger("x", (int) (entry.getKey() >> 32));
+            tag.setInteger(
+                "z",
+                entry.getKey()
+                    .intValue());
+            // Clone: 1.7.10 serializes chunk NBT on the async File IO thread.
+            tag.setByteArray(
+                "rods",
+                entry.getValue()
+                    .clone());
+            rodList.appendTag(tag);
+        }
+        aNBT.setTag("btsColumnRods", rodList);
         aNBT.setLong("btsSteamPerTick", steamPerTick);
     }
 
@@ -922,6 +1355,23 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         decayHeatTicks = aNBT.getInteger("btsDecayHeatTicks");
         radiationTicks = aNBT.getInteger("btsRadiationTicks");
         radiationCenterDepth = aNBT.getInteger("btsRadCenterDepth");
+        cascadeMode = aNBT.getBoolean("btsCascadeMode");
+        liveColumnsLastCycle = aNBT.getInteger("btsLiveColumns");
+        fallbackCyclesLeft = aNBT.getInteger("btsFallbackCyclesLeft");
+        fallbackColumns = aNBT.getInteger("btsFallbackColumns");
+        fallbackMult = Math.max(1, aNBT.getInteger("btsFallbackMult"));
+        fallbackDepleted = aNBT.hasKey("btsFallbackDepleted")
+            ? ItemStack.loadItemStackFromNBT(aNBT.getCompoundTag("btsFallbackDepleted"))
+            : null;
+        columnRods.clear();
+        final NBTTagList rodList = aNBT.getTagList("btsColumnRods", 10);
+        for (int i = 0; i < rodList.tagCount(); i++) {
+            final NBTTagCompound tag = rodList.getCompoundTagAt(i);
+            columnRods.put(
+                ColumnInfo.key(tag.getInteger("x"), tag.getInteger("z")),
+                tag.getByteArray("rods")
+                    .clone());
+        }
         steamPerTick = aNBT.getLong("btsSteamPerTick");
     }
 
@@ -943,7 +1393,20 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     }
 
     public int getFuelColumns() {
+        if (cascadeMode) return liveColumnsLastCycle;
         return Math.min(fuelSegments / SEGMENTS_PER_COLUMN, COLUMN_CAP[getReactorTier()]);
+    }
+
+    public boolean isCascadeMode() {
+        return cascadeMode;
+    }
+
+    public int getLiveColumns() {
+        return liveColumnsLastCycle;
+    }
+
+    public int getTotalColumns() {
+        return columns.size();
     }
 
     public int getColumnCap() {
@@ -1041,7 +1504,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         }
         final int tier = getReactorTier();
         info.add("Steam Generator tier: " + tier + " (" + edgeFor(tier) + " wide octagon)");
-        info.add("Fuel columns: " + getFuelColumns() + " / " + COLUMN_CAP[tier]);
+        info.add(
+            cascadeMode ? "Fuel: rod cascade - " + liveColumnsLastCycle + " live / " + columns.size() + " pillars"
+                : "Fuel: assembly fallback (output halved) - " + getFuelColumns() + " / " + COLUMN_CAP[tier]);
         info.add("Fuel type: " + fuelName(activeFuelMult));
         info.add("Control rods: " + (throttleN * 100 / 24) + "% power");
         info.add("Modules: " + getModulesSummary());
@@ -1061,27 +1526,24 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
+        final String gold = EnumChatFormatting.GOLD.toString();
+        final String aqua = EnumChatFormatting.AQUA.toString();
+        final String gray = EnumChatFormatting.GRAY.toString();
+        final String red = EnumChatFormatting.RED.toString();
+        final String reset = EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY;
         tt.addMachineType("Nuclear Plant Foundation - Unit One main station")
-            .addInfo("STARTER STRUCTURE: the full 50x50 concrete platform. Every plant building is")
-            .addInfo("added onto it - nothing else is mandatory. THIS controller is the main station,")
-            .addInfo("standing on the front line of the Tungstensteel-Reinforced shield pad at platform")
-            .addInfo("center; 8 flush steel markers set into the floor are the module dock positions.")
-            .addInfo("Dock positions stay CLEAR until a module controller stands on them.")
-            .addInfo("FIRST ADDON - the STEAM GENERATOR silo, projected with THIS controller onto the")
-            .addInfo("shield pad; its front wall grows around the main station (9 to 17 wide octagon,")
-            .addInfo("ribbed walls twice the diameter tall, radiation bands, hemispherical shield dome).")
-            .addInfo("Build Tier: set 1-5 in the controller GUI (a trigger stack of 2-5 overrides it).")
-            .addInfo("Walls by tier: Radiation Proof -> Europium-Reinforced -> Radiant Naquadah Alloy;")
-            .addInfo("hatches go in the silo walls. Fuel columns stack 6 high inside.")
-            .addInfo("SECOND - the TURBINE HALL module on the marker beside the silo (directly")
-            .addInfo("connects; steam -> EU with fan/coolant/propellant). Then Cooling Towers")
-            .addInfo("(condensate return + faster heat decay, up to 2) and further upgrades. Place a")
-            .addInfo("PLANT MODULE controller on a marker and project its building there. Undocked = inert.")
-            .addInfo("No Turbine Hall docked: the plant exports Steam (or Hot Coolant when fed IC2 Coolant).")
-            .addInfo("Fuel ladder: Uranium x1, MOX x2, Thorium-Bonded x5, Naquadah-Bonded x9.")
-            .addInfo("Control rods: set 1-24 in the controller GUI; a programmed circuit overrides it.")
-            .addInfo("Heat: SCRAM at 8,000; decay heat 20 min after shutdown; 10,000 = MELTDOWN")
-            .addInfo("(vertical detonation + radiation field; hazmat counters; config toggles).")
+            .addInfo(aqua + "The 50x50 platform is the starter structure - every building is added onto it." + reset)
+            .addInfo("Shield pad at center = reactor site. 8 flush steel markers = module docks (keep clear).")
+            .addSeparator()
+            .addInfo(gold + "1." + reset + " Steam Generator silo - project onto the pad (GUI Build Tier 1-5).")
+            .addInfo(gold + "2." + reset + " Turbine Hall - on the dock marker beside the silo.")
+            .addInfo(gold + "3." + reset + " Cooling Towers (max 2) and more modules on the other markers.")
+            .addSeparator()
+            .addInfo(aqua + "Fuel:" + reset + " rods cascade down the pillars - insert at the TOP ports,")
+            .addInfo("bottom rod burns each cycle, depleted rods exit the output bus.")
+            .addInfo(gray + "Bus assemblies still run, at HALF output." + reset)
+            .addInfo(aqua + "Control:" + reset + " rods 1-24 + Build Tier in the GUI; circuit overrides throttle.")
+            .addInfo(red + "Heat:" + reset + " SCRAM 8,000 - MELTDOWN 10,000. Decay heat needs 20 min of water.")
             .beginStructureBlock(50, 42, 50, true)
             .addController("Main station: front line of the shield pad, at floor level (in the silo face)")
             .addCasingInfoExactly("Light Concrete (platform)", 2243, false)
@@ -1096,6 +1558,13 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             .addOutputHatch("Any silo wall casing", 1)
             .addInputBus("Any silo wall casing", 1)
             .addOutputBus("Any silo wall casing", 1)
+            .addStructureInfo("Silo: 9-17 wide octagon, walls 2x the diameter tall, dome on top.")
+            .addStructureInfo("Walls by tier: Radiation Proof -> Europium-Reinforced -> Radiant Naq Alloy.")
+            .addStructureInfo("Inside: fuel pillar frames 8 high, a Rod Loading Port above each pillar.")
+            .addStructureInfo("Rod ladder: Uranium x1 - MOX x2 - Thorium-Bonded x5 - Naquadah-Bonded x9.")
+            .addStructureInfo("Breaking a fueled pillar frame ejects its rods at the controller.")
+            .addStructureInfo("Modules dock by standing their controller on a marker and projecting there.")
+            .addStructureInfo("No Turbine Hall: exports Steam (or Hot Coolant when fed IC2 Coolant).")
             .toolTipFinisher();
         return tt;
     }

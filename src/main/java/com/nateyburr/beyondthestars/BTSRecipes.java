@@ -169,7 +169,7 @@ public final class BTSRecipes {
             .eut(TierEU.RECIPE_LuV)
             .addTo(assemblerRecipes);
 
-        // Naquadah-bonded assemblies (F=8): the top rod fuel
+        // Naquadah-bonded assemblies (F=9): the top rod fuel
         GTValues.RA.stdBuilder()
             .itemInputs(
                 new ItemStack(BTSItems.fuelRodUranium, 3),
@@ -207,6 +207,93 @@ public final class BTSRecipes {
             .duration(1 * MINUTES)
             .eut(TierEU.RECIPE_LuV)
             .addTo(centrifugeRecipes);
+
+        // SD-1 rod cascade: bonded rods (an assembly is three rods - inputs scale to a third)
+        GTValues.RA.stdBuilder()
+            .itemInputs(
+                new ItemStack(BTSItems.fuelRodUranium, 1),
+                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Thorium, 3L),
+                GTOreDictUnificator.get(OrePrefixes.plate, rhPdPalladium, 1L))
+            .circuit(7)
+            .fluidInputs(Materials.Platinum.getMolten(1 * INGOTS))
+            .itemOutputs(new ItemStack(BTSItems.fuelRodThoriumBonded, 1))
+            .duration(12 * SECONDS)
+            .eut(TierEU.RECIPE_LuV)
+            .addTo(assemblerRecipes);
+
+        GTValues.RA.stdBuilder()
+            .itemInputs(
+                new ItemStack(BTSItems.fuelRodUranium, 1),
+                GTOreDictUnificator.get(OrePrefixes.dust, Materials.NaquadahEnriched, 3L),
+                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uranium235, 1L),
+                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Iridium, 1L))
+            .circuit(7)
+            .fluidInputs(Materials.Naquadah.getMolten(1 * INGOTS))
+            .itemOutputs(new ItemStack(BTSItems.fuelRodNaqBonded, 1))
+            .duration(16 * SECONDS)
+            .eut(TierEU.RECIPE_ZPM)
+            .addTo(assemblerRecipes);
+
+        // SD-1: depleted ROD reprocessing (a third of the assembly yields)
+        GTValues.RA.stdBuilder()
+            .itemInputs(new ItemStack(BTSItems.depletedFuelRodUranium, 1))
+            .itemOutputs(
+                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uranium, 1L),
+                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Plutonium, 1L),
+                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Lead, 1L),
+                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Platinum, 1L))
+            .outputChances(10000, 6700, 10000, 5000)
+            .duration(20 * SECONDS)
+            .eut(TierEU.RECIPE_EV)
+            .addTo(centrifugeRecipes);
+
+        GTValues.RA.stdBuilder()
+            .itemInputs(new ItemStack(BTSItems.depletedFuelRodMox, 1))
+            .itemOutputs(
+                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uranium, 1L),
+                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Plutonium, 1L),
+                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Lead, 2L),
+                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Platinum, 1L))
+            .outputChances(10000, 10000, 10000, 5000)
+            .duration(20 * SECONDS)
+            .eut(TierEU.RECIPE_EV)
+            .addTo(centrifugeRecipes);
+
+        GTValues.RA.stdBuilder()
+            .itemInputs(new ItemStack(BTSItems.depletedFuelRodThoriumBonded, 1))
+            .itemOutputs(
+                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uranium, 1L),
+                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Thorium, 1L),
+                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Plutonium, 1L),
+                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Lead, 2L))
+            .outputChances(10000, 10000, 6700, 10000)
+            .duration(20 * SECONDS)
+            .eut(TierEU.RECIPE_IV)
+            .addTo(centrifugeRecipes);
+
+        GTValues.RA.stdBuilder()
+            .itemInputs(new ItemStack(BTSItems.depletedFuelRodNaqBonded, 1))
+            .itemOutputs(
+                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uranium, 1L),
+                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Naquadah, 1L),
+                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Plutonium, 1L),
+                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Lead, 2L))
+            .outputChances(10000, 10000, 10000, 10000)
+            .duration(20 * SECONDS)
+            .eut(TierEU.RECIPE_LuV)
+            .addTo(centrifugeRecipes);
+
+        // SD-1: Rod Loading Port - the pillar's automation input
+        GTValues.RA.stdBuilder()
+            .itemInputs(
+                new ItemStack(BTSBlocks.reactorFuelColumn, 1),
+                GTOreDictUnificator.get(OrePrefixes.plate, Materials.StainlessSteel, 2L),
+                ItemList.Robot_Arm_EV.get(1L))
+            .circuit(8)
+            .itemOutputs(new ItemStack(BTSBlocks.rodLoadingPort, 1))
+            .duration(10 * SECONDS)
+            .eut(TierEU.RECIPE_EV)
+            .addTo(assemblerRecipes);
 
         // Naquadah propellants: per-litre turbine accelerants from the GoodGenerator fuel family
         GTValues.RA.stdBuilder()

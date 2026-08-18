@@ -17,7 +17,7 @@
                                                                              "id:8":  "minecraft:stick"
                                                                          },
                                                     "countAsQuest:1":  1,
-                                                    "desc:8":  "Eight injectors, one ladder. Worst to best: Benzene, High Octane Gasoline, H8N4C2O4 Rocket Fuel, then Naquadah fuels Mk I through Mk VI. Every well-timed litre adds its share of the propellant\u0027s stage factor - all eight timed gives the full multiplier, from x1.25 on Benzene to x5 at Mk III. Past Mk III the gains go LINEAR (+0.5 per mark to x6.5 at Mk VI, UMV) - the plant will drink it, but the sane stop is Mk III unless you are chasing a number, not a ratio.",
+                                                    "desc:8":  "Eight injectors, one ladder. Worst to best: Benzene, High Octane Gasoline, H8N4C2O4 Rocket Fuel, then Naquadah Fuel Lv 1 through Lv 6. Every well-timed litre adds its share of the propellant\u0027s stage factor - all eight timed gives the full multiplier, from x1.25 on Benzene to x5 at Lv 3. Past Lv 3 the gains go LINEAR (+0.5 per level to x6.5 at Lv 6, UMV) - the plant will drink it, but the sane stop is Lv 3 unless you are chasing a number, not a ratio.",
                                                     "globalShare:1":  1,
                                                     "icon:10":  {
                                                                     "Count:3":  1,

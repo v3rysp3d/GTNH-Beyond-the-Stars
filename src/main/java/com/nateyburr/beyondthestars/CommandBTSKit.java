@@ -61,18 +61,26 @@ public class CommandBTSKit extends CommandBase {
         give(player, BTSMachines.moduleCoolingTower.copy());
         give(player, BTSMachines.moduleCoolingTower.copy());
 
-        // Fuel columns for the chosen tier (6 segments per column)
-        int segments = COLUMN_CAP[tier] * 6;
+        // Pillar frames (8 segments per pillar) + a loading port per pillar
+        int segments = COLUMN_CAP[tier] * 8;
         while (segments > 0) {
             final int stackSize = Math.min(64, segments);
             give(player, new ItemStack(BTSBlocks.reactorFuelColumn, stackSize));
             segments -= stackSize;
         }
+        int ports = COLUMN_CAP[tier];
+        while (ports > 0) {
+            final int stackSize = Math.min(64, ports);
+            give(player, new ItemStack(BTSBlocks.rodLoadingPort, stackSize));
+            ports -= stackSize;
+        }
 
-        // Every fuel grade + pellets
+        // Rods for the cascade, assemblies for the fallback, pellets for crafting
+        give(player, new ItemStack(BTSItems.fuelRodUranium, 64));
+        give(player, new ItemStack(BTSItems.fuelRodMox, 64));
+        give(player, new ItemStack(BTSItems.fuelRodThoriumBonded, 64));
+        give(player, new ItemStack(BTSItems.fuelRodNaqBonded, 64));
         give(player, new ItemStack(BTSItems.fuelAssemblyUranium, 64));
-        give(player, new ItemStack(BTSItems.fuelAssemblyMox, 64));
-        give(player, new ItemStack(BTSItems.fuelAssemblyThoriumBonded, 64));
         give(player, new ItemStack(BTSItems.fuelAssemblyNaqBonded, 64));
         give(player, new ItemStack(BTSItems.uraniumFuelPellet, 64));
 
@@ -95,7 +103,10 @@ public class CommandBTSKit extends CommandBase {
         tell(player, EnumChatFormatting.AQUA + "== Beyond the Stars test kit (steam gen tier " + tier + ") ==");
         tell(
             player,
-            "Kit given: 5 controllers (+ spare tower), " + COLUMN_CAP[tier] * 6 + " fuel columns, fuels, fans.");
+            "Kit given: 5 controllers (+ spare tower), " + COLUMN_CAP[tier] * 8
+                + " pillar frames, "
+                + COLUMN_CAP[tier]
+                + " loading ports, rods, fuels, fans.");
         tell(player, EnumChatFormatting.YELLOW + "Grab via NEI (creative):");
         tell(
             player,
