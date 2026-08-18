@@ -308,6 +308,59 @@ public final class BTSRecipes {
             .eut(TierEU.RECIPE_EV)
             .addTo(assemblerRecipes);
 
+        // SD-3: Spiral chamber hatches
+        GTValues.RA.stdBuilder()
+            .itemInputs(
+                ItemList.Electric_Pump_IV.get(1L),
+                GTOreDictUnificator.get(OrePrefixes.plate, Materials.TungstenSteel, 2L),
+                GTOreDictUnificator.get(OrePrefixes.plate, rhPdPalladium, 1L),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.IV, 1L))
+            .circuit(10)
+            .fluidInputs(Materials.Platinum.getMolten(1 * INGOTS))
+            .itemOutputs(BTSMachines.precisionInjector.copy())
+            .duration(20 * SECONDS)
+            .eut(TierEU.RECIPE_IV)
+            .addTo(assemblerRecipes);
+
+        GTValues.RA.stdBuilder()
+            .itemInputs(
+                ItemList.Cover_ActivityDetector.get(1L),
+                GTOreDictUnificator.get(OrePrefixes.plate, Materials.TungstenSteel, 2L),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.EV, 2L))
+            .circuit(10)
+            .itemOutputs(BTSMachines.spineSensor.copy())
+            .duration(15 * SECONDS)
+            .eut(TierEU.RECIPE_EV)
+            .addTo(assemblerRecipes);
+
+        // SD-3: high-grade naquadah propellants (Lv 4-6) off the deeper GoodGenerator fuels
+        GTValues.RA.stdBuilder()
+            .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Adamantium, 8L))
+            .circuit(5)
+            .fluidInputs(GGMaterial.naquadahBasedFuelMkIV.getFluidOrGas(1_000))
+            .fluidOutputs(new FluidStack(BTSFluids.naqPropellantT4, 250))
+            .duration(20 * SECONDS)
+            .eut(TierEU.RECIPE_UHV)
+            .addTo(mixerRecipes);
+
+        GTValues.RA.stdBuilder()
+            .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Infinity, 2L))
+            .circuit(5)
+            .fluidInputs(GGMaterial.naquadahBasedFuelMkV.getFluidOrGas(1_000))
+            .fluidOutputs(new FluidStack(BTSFluids.naqPropellantT5, 250))
+            .duration(20 * SECONDS)
+            .eut(TierEU.RECIPE_UEV)
+            .addTo(mixerRecipes);
+
+        GTValues.RA.stdBuilder()
+            .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Infinity, 4L))
+            .circuit(5)
+            .fluidInputs(GGMaterial.naquadahBasedFuelMkVI.getFluidOrGas(1_000))
+            .fluidOutputs(new FluidStack(BTSFluids.naqPropellantT6, 250))
+            .duration(20 * SECONDS)
+            .eut(TierEU.RECIPE_UIV)
+            .addTo(mixerRecipes);
+
         // Naquadah propellants: per-litre turbine accelerants from the GoodGenerator fuel family
         GTValues.RA.stdBuilder()
             .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, Materials.NaquadahEnriched, 2L))

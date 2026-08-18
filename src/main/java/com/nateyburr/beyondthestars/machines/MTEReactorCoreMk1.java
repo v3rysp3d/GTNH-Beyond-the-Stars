@@ -74,6 +74,8 @@ import gregtech.api.util.shutdown.ShutDownReason;
 import gregtech.api.util.shutdown.ShutDownReasonRegistry;
 import gregtech.api.util.shutdown.SimpleShutDownReason;
 import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
+import gtPlusPlus.core.fluids.GTPPFluids;
+import gtPlusPlus.xmod.thermalfoundation.fluid.TFFluids;
 
 /**
  * The Plant Foundation - the Unit One MAIN STATION (Space Elevator architecture). The only
@@ -105,6 +107,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     private static final int RADIATION_LEVEL = 3;
     private static final ShutDownReason SCRAM_REASON = SimpleShutDownReason.ofCritical("beyondthestars.scram");
     private static final ShutDownReason MELTDOWN_REASON = SimpleShutDownReason.ofCritical("beyondthestars.meltdown");
+    private static final ShutDownReason SEIZURE_REASON = SimpleShutDownReason.ofCritical("beyondthestars.seizure");
 
     private static final int MAX_TIER = 5;
     /** Frame segments stacked per full fuel pillar (SD-1: rods cascade through these). */
@@ -160,6 +163,19 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     private int spineSpeedMilli = 1000;
     private int spineEffMilli = 1000;
     private String spinePattern = "";
+    /** World cells of the recorded housings - the rotors a seizure destroys. */
+    private final List<int[]> spineHousingCells = new ArrayList<>();
+
+    /** Spiral chamber state (SD-3). */
+    private boolean spiralBuilt;
+    final List<MTEHatchPrecisionInjector> spiralInjectors = new ArrayList<>();
+    MTEHatchSpineSensor spineSensor;
+    private int chamberBoostMilli = 1000;
+    private int chamberPropMilli = 1000;
+    private int lastGoodInjectors;
+    private int chamberCoolantDrain;
+    private String chamberCoolantName = "";
+    private long lastChamberTick;
     /** Pillars of the formed silo, rebuilt after every successful structure check. */
     private final java.util.HashMap<Long, ColumnInfo> columns = new java.util.HashMap<>();
     private final List<int[]> portCells = new ArrayList<>();
@@ -215,6 +231,36 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return false;
     }
 
+    public boolean addInjectorToMachineList(IGregTechTileEntity aTileEntity, int aBaseCasingIndex) {
+        if (aTileEntity == null) return false;
+        final IMetaTileEntity mte = aTileEntity.getMetaTileEntity();
+        if (mte instanceof MTEHatchPrecisionInjector && spiralInjectors.size() < 8) {
+            ((MTEHatchPrecisionInjector) mte).updateTexture(aBaseCasingIndex);
+            return spiralInjectors.add((MTEHatchPrecisionInjector) mte);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean addInputHatchToMachineList(IGregTechTileEntity aTileEntity, int aBaseCasingIndex) {
+        // Precision Injectors must never demote to plain input hatches: a 9th injector (or
+        // one in a silo wall) would register silently into mInputHatches and never be
+        // slug-scored. Rejecting it makes the structure walk fail visibly instead.
+        if (aTileEntity != null && aTileEntity.getMetaTileEntity() instanceof MTEHatchPrecisionInjector) return false;
+        return super.addInputHatchToMachineList(aTileEntity, aBaseCasingIndex);
+    }
+
+    public boolean addSensorToMachineList(IGregTechTileEntity aTileEntity, int aBaseCasingIndex) {
+        if (aTileEntity == null) return false;
+        final IMetaTileEntity mte = aTileEntity.getMetaTileEntity();
+        if (mte instanceof MTEHatchSpineSensor && spineSensor == null) {
+            ((MTEHatchSpineSensor) mte).updateTexture(aBaseCasingIndex);
+            spineSensor = (MTEHatchSpineSensor) mte;
+            return true;
+        }
+        return false;
+    }
+
     private void disconnectModules() {
         for (MTEPlantModuleBase module : plantModules) {
             module.disconnect();
@@ -255,8 +301,12 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return base + ".floor";
     }
 
-    private static String ductPieceName(String base) {
-        return base + ".duct";
+    private static String ductPieceName(String base, int tier) {
+        return base + ".duct.tier" + tier;
+    }
+
+    private static String spiralPieceName(String base) {
+        return base + ".spiral";
     }
 
     private static boolean insideOct(int n, int k, int r, int x) {
@@ -377,16 +427,84 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
     // ------------------------------------------------ the Spine (SD-2, optional piece)
 
-    /** Duct length in blocks and the number of rotor sockets along it. */
-    private static final int DUCT_LENGTH = 8;
+    /** Duct length per tier: always ends at platform a=42, flush with the Spiral chamber. */
+    private static int ductLengthFor(int tier) {
+        return 16 - edgeFor(tier) / 2;
+    }
 
     /**
-     * The Spine: a 3x3 steam duct leaving the silo's side wall, four Turbine Housing
-     * sockets alternating with the open bore. [y top-first][3 c-rows][8 a-chars].
+     * The Spine: a 3x3 steam duct running from the silo's side wall to the Spiral chamber,
+     * four Turbine Housing sockets nearest the silo alternating with the open bore.
+     * [y top-first][3 c-rows][L a-chars].
      */
-    private static String[][] ductShape() {
-        return new String[][] { { "TTTTTTTT", "TTTTTTTT", "TTTTTTTT" }, { "TTTTTTTT", "AHAHAHAH", "TTTTTTTT" },
-            { "TTTTTTTT", "TTTTTTTT", "TTTTTTTT" } };
+    private static String[][] ductShape(int tier) {
+        final int len = ductLengthFor(tier);
+        final char[] solid = new char[len];
+        Arrays.fill(solid, 'T');
+        final char[] bore = new char[len];
+        Arrays.fill(bore, 'A');
+        for (int i = 1; i <= 7 && i < len; i += 2) {
+            bore[i] = 'H';
+        }
+        final String wall = new String(solid);
+        return new String[][] { { wall, wall, wall }, { wall, new String(bore), wall }, { wall, wall, wall } };
+    }
+
+    // --------------------------------------------- the Spiral chamber (SD-3, optional piece)
+
+    /** Chamber footprint: 7x7 at platform a 43-49, centered on the tier's mid-row, 12 tall. */
+    private static final int SPIRAL_SIZE = 7;
+    private static final int SPIRAL_HEIGHT = 12;
+
+    /**
+     * The Spiral: solid casing roof/floor, casing walls (every wall cell accepts the chamber
+     * hatches), and inside a helix of concrete arcs stepping down the 5x5 interior ring
+     * around an open 3x3 downcomer. [y top-first][7 c-rows][7 a-chars].
+     */
+    private static String[][] spiralShape() {
+        final String[][] layers = new String[SPIRAL_HEIGHT][];
+        final String solid = "5555555";
+        for (int level = 0; level < SPIRAL_HEIGHT; level++) {
+            if (level == 0 || level == SPIRAL_HEIGHT - 1) {
+                layers[level] = new String[] { solid, solid, solid, solid, solid, solid, solid };
+                continue;
+            }
+            final char[][] grid = new char[SPIRAL_SIZE][SPIRAL_SIZE];
+            for (int r = 0; r < SPIRAL_SIZE; r++) {
+                for (int x = 0; x < SPIRAL_SIZE; x++) {
+                    final boolean wall = r == 0 || x == 0 || r == SPIRAL_SIZE - 1 || x == SPIRAL_SIZE - 1;
+                    grid[r][x] = wall ? '5' : 'A';
+                }
+            }
+            // Helix: a 5-cell concrete arc on the interior 5x5 ring, rotating each level down.
+            final int[][] ring = interiorRing();
+            final int start = ((level - 1) * 3) % ring.length;
+            for (int k = 0; k < 5; k++) {
+                final int[] cell = ring[(start + k) % ring.length];
+                grid[cell[0]][cell[1]] = 'O';
+            }
+            final String[] rows = new String[SPIRAL_SIZE];
+            for (int r = 0; r < SPIRAL_SIZE; r++) {
+                rows[r] = new String(grid[r]);
+            }
+            layers[level] = rows;
+        }
+        return layers;
+    }
+
+    /** The 16 cells of the interior 5x5 ring (grid coords 1..5), in clockwise walk order. */
+    private static int[][] interiorRing() {
+        final List<int[]> cells = new ArrayList<>();
+        for (int x = 1; x <= 5; x++) cells.add(new int[] { 1, x });
+        for (int r = 2; r <= 5; r++) cells.add(new int[] { r, 5 });
+        for (int x = 4; x >= 1; x--) cells.add(new int[] { 5, x });
+        for (int r = 4; r >= 2; r--) cells.add(new int[] { r, 1 });
+        return cells.toArray(new int[0][]);
+    }
+
+    /** Chamber rows centered on the tier's silo mid-row, like the duct. */
+    private static int spiralDOff(int tier) {
+        return 3 - edgeFor(tier) / 2;
     }
 
     /** Duct starts two blocks past the tier's east wall: wall, rib, then duct flush on it. */
@@ -708,7 +826,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 if (world.getBlock(x, y, z) == BTSBlocks.turbineHousing) {
                     final IGregTechTileEntity base = t.getBaseMetaTileEntity();
                     final int dist = Math.abs(x - base.getXCoord()) + Math.abs(z - base.getZCoord());
-                    t.walkHousings.add(new int[] { dist, world.getBlockMetadata(x, y, z) });
+                    t.walkHousings.add(new int[] { dist, world.getBlockMetadata(x, y, z), x, y, z });
                     return true;
                 }
                 return false;
@@ -739,7 +857,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         if (STRUCTURE_DEFINITION == null) {
             final StructureDefinition.Builder<MTEReactorCoreMk1> builder = StructureDefinition.builder();
             builder.addShape(floorPieceName(mName), transpose(floorShape()));
-            builder.addShape(ductPieceName(mName), transpose(ductShape()));
+            for (int t = 1; t <= MAX_TIER; t++) {
+                builder.addShape(ductPieceName(mName, t), transpose(ductShape(t)));
+            }
+            builder.addShape(spiralPieceName(mName), transpose(spiralShape()));
             // Build-only shells of the module buildings (their controllers verify them).
             // Dedicated lenient chars: shells must never affect the CHECKED pieces' elements.
             builder.addShape(
@@ -801,6 +922,18 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 .addElement('J', portCellElement())
                 .addElement('T', Casings.TungstensteelTurbineCasing.asElement())
                 .addElement('H', ofChain(housingElement(), Casings.TungstensteelTurbineCasing.asElement()))
+                .addElement(
+                    '5',
+                    ofChain(
+                        buildHatchAdder(MTEReactorCoreMk1.class)
+                            .atLeast(SpiralHatchElement.Injector, SpiralHatchElement.Sensor)
+                            .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
+                            .hint(3)
+                            .build(),
+                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(InputHatch, Maintenance)
+                            .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
+                            .hint(3)
+                            .buildAndChain(Casings.TungstensteelTurbineCasing.asElement())))
                 .addElement('1', shellOnly(Casings.CleanStainlessSteelMachineCasing.asElement()))
                 .addElement('2', shellOnly(Casings.TungstensteelTurbineCasing.asElement()))
                 .addElement('3', shellOnly(ofBlock(Blocks.glass, 0)))
@@ -844,8 +977,33 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             rebuildColumns();
             // The Spine (optional): 3x3 duct with rotor sockets, leaving the silo's side.
             walkHousings.clear();
-            spineBuilt = checkPiece(ductPieceName(mName), ductHOff(reactorTier), 2, ductDOff(reactorTier), null);
+            spineBuilt = checkPiece(
+                ductPieceName(mName, reactorTier),
+                ductHOff(reactorTier),
+                2,
+                ductDOff(reactorTier),
+                null);
             computeSpine();
+            // The Spiral (optional): the chamber's hatches register here during the walk. A
+            // FAILED walk still registered Input/Maintenance hatches before aborting - mark
+            // the general lists and truncate back, keeping the silo's own hatches intact.
+            spiralInjectors.clear();
+            spineSensor = null;
+            final int inputMark = mInputHatches.size();
+            final int maintMark = mMaintenanceHatches.size();
+            spiralBuilt = checkPiece(spiralPieceName(mName), -18, SPIRAL_HEIGHT - 1, spiralDOff(reactorTier), null);
+            if (!spiralBuilt) {
+                spiralInjectors.clear();
+                spineSensor = null;
+                chamberBoostMilli = 1000;
+                lastGoodInjectors = 0;
+                while (mInputHatches.size() > inputMark) {
+                    mInputHatches.remove(mInputHatches.size() - 1);
+                }
+                while (mMaintenanceHatches.size() > maintMark) {
+                    mMaintenanceHatches.remove(mMaintenanceHatches.size() - 1);
+                }
+            }
             checkCasingMin(errors, mCasing, minCasingsFor(reactorTier));
             checkHasEnergyHatch(errors);
             checkHasMaintenanceHatch(errors);
@@ -870,6 +1028,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             liveColumnsLastCycle = 0;
             spineBuilt = false;
             computeSpine();
+            spiralBuilt = false;
+            spiralInjectors.clear();
+            spineSensor = null;
+            chamberBoostMilli = 1000;
+            lastGoodInjectors = 0;
         }
     }
 
@@ -900,6 +1063,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         spineSpeedMilli = (int) Math.round(speed * 1000);
         spineEffMilli = (int) Math.round(eff * 1000);
         spinePattern = pattern.toString();
+        spineHousingCells.clear();
+        for (final int[] housing : walkHousings) {
+            spineHousingCells.add(new int[] { housing[2], housing[3], housing[4] });
+        }
     }
 
     /** True when every chunk the 50x50 platform could occupy (any facing) is loaded. */
@@ -964,9 +1131,31 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     @Override
     public int survivalConstruct(ItemStack stackSize, int elementBudget, ISurvivalBuildEnvironment env) {
         if (mMachine && reactorTier > 0) {
-            // Formed plant: platform/silo/duct are done, but the module building shells are
-            // still legitimate build targets (skip the checked pieces so a mismatched trigger
+            // Formed plant: platform/silo are done, but the duct, chamber and module shells
+            // are still legitimate build targets (skip floor/silo so a mismatched trigger
             // tier can never auto-place a second silo inside the formed one).
+            final int duct = survivalBuildPiece(
+                ductPieceName(mName, reactorTier),
+                stackSize,
+                ductHOff(reactorTier),
+                2,
+                ductDOff(reactorTier),
+                elementBudget,
+                env,
+                false,
+                true);
+            if (duct >= 0) return duct;
+            final int spiral = survivalBuildPiece(
+                spiralPieceName(mName),
+                stackSize,
+                -18,
+                SPIRAL_HEIGHT - 1,
+                spiralDOff(reactorTier),
+                elementBudget,
+                env,
+                false,
+                true);
+            if (spiral >= 0) return spiral;
             final int hall = survivalBuildPiece(
                 shellPieceName(mName, "hall"),
                 stackSize,
@@ -1024,7 +1213,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             true);
         if (siloBuilt >= 0) return siloBuilt;
         final int ductBuilt = survivalBuildPiece(
-            ductPieceName(mName),
+            ductPieceName(mName, t),
             stackSize,
             ductHOff(t),
             2,
@@ -1034,6 +1223,17 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             false,
             true);
         if (ductBuilt >= 0) return ductBuilt;
+        final int spiralPiece = survivalBuildPiece(
+            spiralPieceName(mName),
+            stackSize,
+            -18,
+            SPIRAL_HEIGHT - 1,
+            spiralDOff(t),
+            elementBudget,
+            env,
+            false,
+            true);
+        if (spiralPiece >= 0) return spiralPiece;
         final int hallBuilt = survivalBuildPiece(
             shellPieceName(mName, "hall"),
             stackSize,
@@ -1073,7 +1273,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         final int t = tierFromTrigger(stackSize);
         buildPiece(floorPieceName(mName), stackSize, hintsOnly, CENTER, 0, SILO_FRONT);
         buildPiece(pieceName(mName, t), stackSize, hintsOnly, siloHOff(t), siloVOff(t), siloDOff(t));
-        buildPiece(ductPieceName(mName), stackSize, hintsOnly, ductHOff(t), 2, ductDOff(t));
+        buildPiece(ductPieceName(mName, t), stackSize, hintsOnly, ductHOff(t), 2, ductDOff(t));
+        buildPiece(spiralPieceName(mName), stackSize, hintsOnly, -18, SPIRAL_HEIGHT - 1, spiralDOff(t));
         // One projection builds the whole plant: the module building shells come too, and
         // only the three module controllers remain to be stood on their dock markers.
         buildPiece(shellPieceName(mName, "hall"), stackSize, hintsOnly, -11, 3, -13);
@@ -1260,6 +1461,15 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         }
         throttleN = n;
 
+        // Stamps accumulated while the plant was idle/scrammed are not timing faults -
+        // discard them so the first slug of a new campaign scores only fresh injections.
+        // (Seamless decay-cycle rollovers keep wasRunningLastTick true and are untouched.)
+        if (!wasRunningLastTick) {
+            for (final MTEHatchPrecisionInjector injector : spiralInjectors) {
+                if (injector != null && injector.isValid()) injector.drainEvents();
+            }
+        }
+
         // One decay cycle: an eighth of the classic campaign.
         final int cycleTicks = Math.max(1, Config.genICampaignMinutes * 60 * 20 / SEGMENTS_PER_COLUMN);
 
@@ -1417,17 +1627,173 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         } else {
             runFluidTick(flowPerTick, baseFlow);
         }
+        runChamberTick();
         endRecipeProcessing();
         return true;
     }
 
-    /** Steam after the Spine: speed multiplies throughput; efficiency only pays out in EU. */
+    /**
+     * Steam after the Spine and the Spiral: speed and injector boost multiply throughput;
+     * efficiency only pays out in EU.
+     */
     private long spineBoostedSteam(boolean withEfficiency) {
-        long steam = steamPerTick * spineSpeedMilli / 1000;
+        long steam = steamPerTick * spineSpeedMilli / 1000 * chamberBoostMilli / 1000;
         if (withEfficiency) {
             steam = steam * spineEffMilli / 1000;
         }
         return steam;
+    }
+
+    // ------------------------------------------------------------ Spiral chamber runtime
+
+    /** Propellant stage factor P (x1000) per fluid; 1000 for unknown. */
+    private static int propellantMilliOf(FluidStack stack) {
+        if (stack == null || stack.getFluid() == null) return 1000;
+        final net.minecraftforge.fluids.Fluid fluid = stack.getFluid();
+        if (fluid == Materials.Benzene.mFluid) return 1250;
+        if (fluid == Materials.GasolinePremium.mFluid) return 1500;
+        if (fluid == GTPPFluids.H8N4C2O4RocketFuel) return 2000;
+        if (fluid == BTSFluids.naqPropellantT1) return 3000;
+        if (fluid == BTSFluids.naqPropellantT2) return 4000;
+        if (fluid == BTSFluids.naqPropellantT3) return 5000;
+        if (fluid == BTSFluids.naqPropellantT4) return 5500;
+        if (fluid == BTSFluids.naqPropellantT5) return 6000;
+        if (fluid == BTSFluids.naqPropellantT6) return 6500;
+        return 1000;
+    }
+
+    /** Coolant ladder for the chamber, best first: {quality Q x1000}. */
+    private FluidStack chamberCoolantStack(int index, int litres) {
+        switch (index) {
+            case 0:
+                return Materials.Time.getMolten(litres);
+            case 1:
+                return new FluidStack(TFFluids.fluidCryotheum, litres);
+            case 2:
+                return Materials.SuperCoolant.getFluid(litres);
+            case 3:
+                return GTModHandler.getIC2Coolant(litres);
+            case 4:
+                return GTModHandler.getDistilledWater(litres);
+            default:
+                return Materials.Water.getFluid(litres);
+        }
+    }
+
+    private static final int[] CHAMBER_COOLANT_Q = { 160_000, 40_000, 12_000, 4_000, 1_500, 1_000 };
+    private static final String[] CHAMBER_COOLANT_NAMES = { "Tachyon Rich Temporal Fluid", "Liquid Cryotheum",
+        "Super Coolant", "IC2 Coolant", "Distilled Water", "Water" };
+
+    /**
+     * The Spiral each running tick: pulse the sensor when a slug enters (every 20t), score
+     * the +/-2t injection windows two ticks later, and drink coolant scaled with the SQUARE
+     * of the boosted steam velocity. Starvation heats the chamber until the rotors SEIZE.
+     */
+    private void runChamberTick() {
+        if (!spiralBuilt) return;
+        final long now = getBaseMetaTileEntity().getWorld()
+            .getTotalWorldTime();
+        if (now - lastChamberTick > 20) {
+            // Chamber was not ticking for at least one full slug cycle: discard timestamps
+            // recorded while stopped (keep the fluid - only the timing is stale).
+            for (final MTEHatchPrecisionInjector injector : spiralInjectors) {
+                if (injector != null && injector.isValid()) injector.drainEvents();
+            }
+        }
+        lastChamberTick = now;
+        final int phase = (int) (now % 20);
+        if (phase == 0 && spineSensor != null && spineSensor.isValid()) {
+            spineSensor.pulse(2);
+        }
+        // Evaluate one tick AFTER the window closes: every achievable in-window fill was
+        // recorded on a fully completed earlier tick, so scoring never depends on TE order.
+        if (phase == 3) {
+            evaluateSlug(now - 3);
+        }
+
+        // Coolant demand: v is the total velocity multiplier (spine speed x injector boost).
+        final double v = spineSpeedMilli / 1000.0 * chamberBoostMilli / 1000.0;
+        final int demand = (int) Math.ceil(200.0 * v * v);
+        boolean cooled = false;
+        for (int i = 0; i < CHAMBER_COOLANT_Q.length; i++) {
+            final int litres = Math.max(1, (int) Math.ceil(demand * 1000.0 / CHAMBER_COOLANT_Q[i]));
+            final FluidStack coolant = chamberCoolantStack(i, litres);
+            if (coolant != null && depleteInput(coolant)) {
+                cooled = true;
+                chamberCoolantDrain = litres;
+                chamberCoolantName = CHAMBER_COOLANT_NAMES[i];
+                break;
+            }
+        }
+        if (!cooled) {
+            chamberCoolantDrain = 0;
+            chamberCoolantName = "STARVED";
+            // Uncooled turbulence: heat builds each second until the rotors tear apart.
+            if (phase == 10) {
+                heat += (int) Math.ceil(v * v) * 3;
+                if (heat >= SCRAM_HEAT) {
+                    seize();
+                }
+            }
+        }
+    }
+
+    /** Scores one slug's injection windows and sets the boost for the next 20 ticks. */
+    private void evaluateSlug(long slugTick) {
+        int good = 0;
+        int minPropMilli = Integer.MAX_VALUE;
+        int wastedLitres = 0;
+        for (final MTEHatchPrecisionInjector injector : spiralInjectors) {
+            if (injector == null || !injector.isValid()) continue;
+            long inWindow = 0;
+            long outWindow = 0;
+            for (final long[] event : injector.drainEvents()) {
+                if (event[0] >= slugTick - 2 && event[0] <= slugTick + 2) {
+                    inWindow += event[1];
+                } else {
+                    outWindow += event[1];
+                }
+            }
+            if (inWindow == 1) {
+                good++;
+                minPropMilli = Math.min(minPropMilli, propellantMilliOf(injector.storedPropellant()));
+            } else {
+                wastedLitres += (int) inWindow;
+            }
+            wastedLitres += (int) outWindow;
+            injector.consumeLitres((int) (inWindow + outWindow));
+        }
+        if (wastedLitres > 0) {
+            // Each wasted litre is a heat spike, capped so a dumped bucket cannot instantly
+            // destroy the plant - it "only" pushes it hard toward SCRAM.
+            heat += Math.min(wastedLitres, 8) * 50;
+            if (heat >= MELTDOWN_HEAT) {
+                meltdown();
+            } else if (heat >= SCRAM_HEAT) {
+                scram();
+            }
+        }
+        lastGoodInjectors = good;
+        if (good > 0 && minPropMilli < Integer.MAX_VALUE) {
+            chamberPropMilli = minPropMilli;
+            chamberBoostMilli = 1000 + (int) ((long) (minPropMilli - 1000) * good / 8);
+        } else {
+            chamberBoostMilli = 1000;
+        }
+    }
+
+    /** Uncooled at speed: the Spine's rotors are torn apart and the plant slams shut. */
+    private void seize() {
+        final World world = getBaseMetaTileEntity().getWorld();
+        for (final int[] cell : spineHousingCells) {
+            if (world.blockExists(cell[0], cell[1], cell[2])
+                && world.getBlock(cell[0], cell[1], cell[2]) == BTSBlocks.turbineHousing) {
+                world.setBlockToAir(cell[0], cell[1], cell[2]);
+            }
+        }
+        clearCampaign();
+        stopMachine(SEIZURE_REASON);
+        getBaseMetaTileEntity().disableWorking();
     }
 
     /** Fluid-export mode: no docked Turbine Hall. */
@@ -1765,6 +2131,30 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return spinePattern;
     }
 
+    public boolean isSpiralBuilt() {
+        return spiralBuilt;
+    }
+
+    public int getRegisteredInjectors() {
+        return spiralInjectors.size();
+    }
+
+    public int getLastGoodInjectors() {
+        return lastGoodInjectors;
+    }
+
+    public int getChamberBoostMilli() {
+        return chamberBoostMilli;
+    }
+
+    public int getChamberCoolantDrain() {
+        return chamberCoolantDrain;
+    }
+
+    public String getChamberCoolantName() {
+        return chamberCoolantName;
+    }
+
     public int getLiveColumns() {
         return liveColumnsLastCycle;
     }
@@ -1889,6 +2279,17 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                     + "  swirl "
                     + spineSwirl);
         }
+        if (spiralBuilt) {
+            info.add(
+                "Spiral: " + lastGoodInjectors
+                    + "/8 injectors timed  ·  boost x"
+                    + String.format("%.2f", chamberBoostMilli / 1000.0)
+                    + "  ·  coolant "
+                    + chamberCoolantName
+                    + " ("
+                    + chamberCoolantDrain
+                    + " L/t)");
+        }
         info.add(
             isTurbineInstalled() ? "Generating: " + lastEUOutput + " EU/t (via Turbine Hall)"
                 : "Steam output: " + getBoostedSteamOutput() + " L/t");
@@ -1926,6 +2327,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             .addInfo(gray + "Bus assemblies still run, at a heavy penalty." + reset)
             .addInfo(aqua + "Spine:" + reset + " optional 3x3 duct off the silo's side, 4 rotor sockets.")
             .addInfo("Right-click a housing to set spin: ride the swirl for speed, oppose it for efficiency.")
+            .addInfo(aqua + "Spiral:" + reset + " optional 7x7 chamber at the duct's end. Steam moves in slugs;")
+            .addInfo("the Sensor hatch pulses each slug, 8 Precision Injectors each want EXACTLY 1L")
+            .addInfo("of propellant within +/-2 ticks. Misses waste the litre and heat the chamber.")
+            .addInfo("Coolant drain scales with speed SQUARED - starve it and the rotors SEIZE.")
             .addInfo(aqua + "Control:" + reset + " rods 1-24 + Build Tier in the GUI; circuit overrides throttle.")
             .addInfo(red + "Heat:" + reset + " SCRAM 8,000 - MELTDOWN 10,000. Decay heat needs 20 min of water.")
             .beginStructureBlock(50, 42, 50, true)

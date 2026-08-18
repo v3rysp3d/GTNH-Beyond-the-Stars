@@ -133,7 +133,21 @@ breaking release.
   The east corridor (a 31-42, c 20-26) is reserved for the duct + future spiral chamber;
   the east dock marker moved {38,25} -> {38,30} (0.12.0 platforms: swap the steel marker
   at the old spot for concrete and set it at the new one, or reproject the floor).
-- SD-3: spiral chamber + sensor hatch + precision injectors + window/heat/coolant/seize.
+- SD-3 (IMPLEMENTED 0.15.0): the Spiral as an optional checked piece at the duct's end
+  (7x7x12 at platform a 43-49, tier-centered rows; ducts now run tier-length so they end
+  flush at a=42). Interior: helix of concrete arcs stepping down the 5x5 ring around a
+  3x3 downcomer. Chamber walls accept up to 8 Precision Injectors (MTE 28106, 16L ports
+  that tick-stamp every litre), 1 Spine Sensor (28107, 2-tick redstone pulse per slug),
+  plus Input/Maintenance hatches. Slug every 20t; window +/-2t (scored one tick after it
+  closes, so timing never depends on tile-entity order; stale stamps from stops are
+  discarded); exactly 1L per injector = boost, misses waste the litre + 50 heat each
+  (capped 8/slug). Boost = 1 + (P-1)*n/8
+  using the LOWEST propellant among timed injectors. Coolant drain = ceil(200*v^2)/Q
+  per tick (v = spine speed x injector boost); ladder Water 1 / Distilled 1.5 / IC2 4 /
+  Super Coolant 12 / Liquid Cryotheum 40 / Tachyon Rich Temporal Fluid 160 (verified:
+  Materials.Time molten). Starved: +ceil(v^2)*3 heat/s until the rotors SEIZE - the
+  Spine's housings are destroyed and the plant slams shut. Propellant fluids Lv 4-6
+  added (GoodGenerator Mk IV-VI based, UHV/UEV/UIV mixers).
 - SD-4: Large Turbine Rotor Assembly + Turbine Hall retirement + migration.
 - Each phase: recon vs sources -> implement -> review swarm -> smoke test -> tag.
 

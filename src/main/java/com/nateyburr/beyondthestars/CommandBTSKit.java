@@ -84,8 +84,12 @@ public class CommandBTSKit extends CommandBase {
         give(player, new ItemStack(BTSItems.fuelAssemblyNaqBonded, 64));
         give(player, new ItemStack(BTSItems.uraniumFuelPellet, 64));
 
-        // Spine rotor sockets
+        // Spine rotor sockets + Spiral chamber hatches
         give(player, new ItemStack(BTSBlocks.turbineHousing, 4));
+        for (int i = 0; i < 8; i++) {
+            give(player, BTSMachines.precisionInjector.copy());
+        }
+        give(player, BTSMachines.spineSensor.copy());
 
         // Fans
         give(player, new ItemStack(BTSItems.turbineFanMatched, 1));

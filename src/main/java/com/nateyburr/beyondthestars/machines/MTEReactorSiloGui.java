@@ -54,6 +54,11 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         syncManager.syncValue("spineSpeed", new IntSyncValue(multiblock::getSpineSpeedMilli));
         syncManager.syncValue("spineEff", new IntSyncValue(multiblock::getSpineEffMilli));
         syncManager.syncValue("spineSwirl", new IntSyncValue(multiblock::getSpineSwirl));
+        syncManager.syncValue("spiralBuilt", new BooleanSyncValue(multiblock::isSpiralBuilt));
+        syncManager.syncValue("goodInjectors", new IntSyncValue(multiblock::getLastGoodInjectors));
+        syncManager.syncValue("chamberBoost", new IntSyncValue(multiblock::getChamberBoostMilli));
+        syncManager.syncValue("chamberCoolant", new StringSyncValue(multiblock::getChamberCoolantName));
+        syncManager.syncValue("chamberDrain", new IntSyncValue(multiblock::getChamberCoolantDrain));
         syncManager.syncValue(
             "throttleSetting",
             new IntSyncValue(multiblock::getThrottleSetting, multiblock::setThrottleSetting).allowC2S());
@@ -83,6 +88,11 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         final IntSyncValue spineSpeed = syncManager.findSyncHandler("spineSpeed", IntSyncValue.class);
         final IntSyncValue spineEff = syncManager.findSyncHandler("spineEff", IntSyncValue.class);
         final IntSyncValue spineSwirl = syncManager.findSyncHandler("spineSwirl", IntSyncValue.class);
+        final BooleanSyncValue spiralBuilt = syncManager.findSyncHandler("spiralBuilt", BooleanSyncValue.class);
+        final IntSyncValue goodInjectors = syncManager.findSyncHandler("goodInjectors", IntSyncValue.class);
+        final IntSyncValue chamberBoost = syncManager.findSyncHandler("chamberBoost", IntSyncValue.class);
+        final StringSyncValue chamberCoolant = syncManager.findSyncHandler("chamberCoolant", StringSyncValue.class);
+        final IntSyncValue chamberDrain = syncManager.findSyncHandler("chamberDrain", IntSyncValue.class);
         final IntSyncValue fanTier = syncManager.findSyncHandler("fanTier", IntSyncValue.class);
         final LongSyncValue euOutput = syncManager.findSyncHandler("euOutput", LongSyncValue.class);
         final LongSyncValue steamOutput = syncManager.findSyncHandler("steamOutput", LongSyncValue.class);
@@ -184,6 +194,20 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                     .asWidget()
                     .marginBottom(2)
                     .setEnabledIf(w -> spineBuilt.getBoolValue()))
+            .child(
+                IKey.dynamic(
+                    () -> translateToLocal("beyondthestars.gui.spiral") + " "
+                        + goodInjectors.getIntValue()
+                        + "/8 timed · x"
+                        + String.format("%.2f", chamberBoost.getIntValue() / 1000.0)
+                        + " · "
+                        + chamberCoolant.getStringValue()
+                        + " "
+                        + chamberDrain.getIntValue()
+                        + " L/t")
+                    .asWidget()
+                    .marginBottom(2)
+                    .setEnabledIf(w -> spiralBuilt.getBoolValue()))
             .child(IKey.dynamic(() -> {
                 if (deckInstalled.getBoolValue()) {
                     return translateToLocal("beyondthestars.gui.output.eu") + " "

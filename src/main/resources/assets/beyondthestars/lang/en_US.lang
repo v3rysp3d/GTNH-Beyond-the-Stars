@@ -45,5 +45,6 @@ beyondthestars.gui.output.steam=Steam output:
 beyondthestars.gui.throttle.tooltip=Control rods: campaign power = N/24. A programmed circuit in the controller overrides this.
 beyondthestars.gui.towers=Cooling Towers:
 beyondthestars.gui.spine=Spine:
+beyondthestars.gui.spiral=Spiral:
 beyondthestars.gui.buildtier.tooltip=Build Tier: the Steam Generator tier the hologram/projector builds (1-5). A trigger stack of 2-5 overrides this.
 
