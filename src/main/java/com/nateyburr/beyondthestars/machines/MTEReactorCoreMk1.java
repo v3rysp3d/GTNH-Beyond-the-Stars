@@ -5,6 +5,7 @@ import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofChain;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.onElementPass;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.transpose;
+import static gregtech.api.enums.HatchElement.Dynamo;
 import static gregtech.api.enums.HatchElement.Energy;
 import static gregtech.api.enums.HatchElement.InputBus;
 import static gregtech.api.enums.HatchElement.InputHatch;
@@ -176,6 +177,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     private int chamberCoolantDrain;
     private String chamberCoolantName = "";
     private long lastChamberTick;
+
+    /** Rotor gallery state (SD-4). */
+    private boolean galleryBuilt;
+    private int galleryStages;
+    private int walkGalleryStages;
     /** Pillars of the formed silo, rebuilt after every successful structure check. */
     private final java.util.HashMap<Long, ColumnInfo> columns = new java.util.HashMap<>();
     private final List<int[]> portCells = new ArrayList<>();
@@ -505,6 +511,53 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     /** Chamber rows centered on the tier's silo mid-row, like the duct. */
     private static int spiralDOff(int tier) {
         return 3 - edgeFor(tier) / 2;
+    }
+
+    // -------------------------- the Large Turbine Rotor Assembly (SD-4, optional piece)
+
+    private static final int GALLERY_LENGTH = 18;
+    private static final int GALLERY_STAGES = 8;
+
+    private static String galleryPieceName(String base) {
+        return base + ".gallery";
+    }
+
+    /**
+     * The rotor gallery: 7 wide x 5 tall x 18 long (16 interior rows + 2 end walls),
+     * running from the Spiral chamber's south face down the platform's east strip. Solid
+     * casing top/bottom, walls that take Dynamo and Maintenance hatches, a hollow bore, and
+     * EIGHT rotor stage sockets ('9', Turbine Housings - spin direction does not matter
+     * here) along the centerline. [y top-first][18 c-rows][7 a-chars].
+     */
+    private static String[][] galleryShape() {
+        final String solid = "8888888";
+        final String[][] layers = new String[5][];
+        layers[0] = new String[GALLERY_LENGTH];
+        layers[4] = new String[GALLERY_LENGTH];
+        for (int c = 0; c < GALLERY_LENGTH; c++) {
+            layers[0][c] = solid;
+            layers[4][c] = solid;
+        }
+        for (int y = 1; y <= 3; y++) {
+            final String[] rows = new String[GALLERY_LENGTH];
+            for (int c = 0; c < GALLERY_LENGTH; c++) {
+                final char[] row = new char[7];
+                for (int a = 0; a < 7; a++) {
+                    row[a] = (a == 0 || a == 6 || c == 0 || c == GALLERY_LENGTH - 1) ? '8' : 'A';
+                }
+                if (y == 2 && c % 2 == 1 && c < GALLERY_LENGTH - 1) {
+                    row[3] = '9';
+                }
+                rows[c] = new String(row);
+            }
+            layers[y] = rows;
+        }
+        return layers;
+    }
+
+    /** Gallery starts one row past the chamber's south face, same east-strip columns. */
+    private static int galleryDOff(int tier) {
+        return -4 - edgeFor(tier) / 2;
     }
 
     /** Duct starts two blocks past the tier's east wall: wall, rib, then duct flush on it. */
@@ -861,6 +914,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 builder.addShape(ductPieceName(mName, t), transpose(ductShape(t)));
             }
             builder.addShape(spiralPieceName(mName), transpose(spiralShape()));
+            builder.addShape(galleryPieceName(mName), transpose(galleryShape()));
             // Build-only shells of the module buildings (their controllers verify them).
             // Dedicated lenient chars: shells must never affect the CHECKED pieces' elements.
             builder.addShape(
@@ -934,6 +988,42 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                             .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
                             .hint(3)
                             .buildAndChain(Casings.TungstensteelTurbineCasing.asElement())))
+                .addElement(
+                    '8',
+                    buildHatchAdder(MTEReactorCoreMk1.class).atLeast(Dynamo, Maintenance)
+                        .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
+                        .hint(4)
+                        .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()))
+                .addElement('9', ofChain(new IStructureElement<MTEReactorCoreMk1>() {
+
+                    @Override
+                    public boolean check(MTEReactorCoreMk1 t, World world, int x, int y, int z) {
+                        if (world.getBlock(x, y, z) == BTSBlocks.turbineHousing) {
+                            t.walkGalleryStages++;
+                            return true;
+                        }
+                        return false;
+                    }
+
+                    @Override
+                    public boolean spawnHint(MTEReactorCoreMk1 t, World world, int x, int y, int z, ItemStack trigger) {
+                        StructureLibAPI.hintParticle(world, x, y, z, BTSBlocks.turbineHousing, 0);
+                        return true;
+                    }
+
+                    @Override
+                    public boolean placeBlock(MTEReactorCoreMk1 t, World world, int x, int y, int z,
+                        ItemStack trigger) {
+                        world.setBlock(x, y, z, BTSBlocks.turbineHousing, 0, 2);
+                        return true;
+                    }
+
+                    @Override
+                    public PlaceResult survivalPlaceBlock(MTEReactorCoreMk1 t, World world, int x, int y, int z,
+                        ItemStack trigger, AutoPlaceEnvironment env) {
+                        return PlaceResult.SKIP;
+                    }
+                }, Casings.TungstensteelTurbineCasing.asElement()))
                 .addElement('1', shellOnly(Casings.CleanStainlessSteelMachineCasing.asElement()))
                 .addElement('2', shellOnly(Casings.TungstensteelTurbineCasing.asElement()))
                 .addElement('3', shellOnly(ofBlock(Blocks.glass, 0)))
@@ -1004,6 +1094,21 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                     mMaintenanceHatches.remove(mMaintenanceHatches.size() - 1);
                 }
             }
+            // The Rotor Assembly (optional): same mark-and-truncate discipline for its
+            // Dynamo/Maintenance registrations when the walk fails.
+            walkGalleryStages = 0;
+            final int dynamoMark = mDynamoHatches.size();
+            final int galleryMaintMark = mMaintenanceHatches.size();
+            galleryBuilt = checkPiece(galleryPieceName(mName), -18, 4, galleryDOff(reactorTier), null);
+            galleryStages = galleryBuilt ? Math.min(GALLERY_STAGES, walkGalleryStages) : 0;
+            if (!galleryBuilt) {
+                while (mDynamoHatches.size() > dynamoMark) {
+                    mDynamoHatches.remove(mDynamoHatches.size() - 1);
+                }
+                while (mMaintenanceHatches.size() > galleryMaintMark) {
+                    mMaintenanceHatches.remove(mMaintenanceHatches.size() - 1);
+                }
+            }
             checkCasingMin(errors, mCasing, minCasingsFor(reactorTier));
             checkHasEnergyHatch(errors);
             checkHasMaintenanceHatch(errors);
@@ -1033,6 +1138,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             spineSensor = null;
             chamberBoostMilli = 1000;
             lastGoodInjectors = 0;
+            galleryBuilt = false;
+            galleryStages = 0;
         }
     }
 
@@ -1156,6 +1263,17 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 false,
                 true);
             if (spiral >= 0) return spiral;
+            final int galleryFormed = survivalBuildPiece(
+                galleryPieceName(mName),
+                stackSize,
+                -18,
+                4,
+                galleryDOff(reactorTier),
+                elementBudget,
+                env,
+                false,
+                true);
+            if (galleryFormed >= 0) return galleryFormed;
             final int hall = survivalBuildPiece(
                 shellPieceName(mName, "hall"),
                 stackSize,
@@ -1234,6 +1352,17 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             false,
             true);
         if (spiralPiece >= 0) return spiralPiece;
+        final int galleryPiece = survivalBuildPiece(
+            galleryPieceName(mName),
+            stackSize,
+            -18,
+            4,
+            galleryDOff(t),
+            elementBudget,
+            env,
+            false,
+            true);
+        if (galleryPiece >= 0) return galleryPiece;
         final int hallBuilt = survivalBuildPiece(
             shellPieceName(mName, "hall"),
             stackSize,
@@ -1275,6 +1404,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         buildPiece(pieceName(mName, t), stackSize, hintsOnly, siloHOff(t), siloVOff(t), siloDOff(t));
         buildPiece(ductPieceName(mName, t), stackSize, hintsOnly, ductHOff(t), 2, ductDOff(t));
         buildPiece(spiralPieceName(mName), stackSize, hintsOnly, -18, SPIRAL_HEIGHT - 1, spiralDOff(t));
+        buildPiece(galleryPieceName(mName), stackSize, hintsOnly, -18, 4, galleryDOff(t));
         // One projection builds the whole plant: the module building shells come too, and
         // only the three module controllers remain to be stood on their dock markers.
         buildPiece(shellPieceName(mName, "hall"), stackSize, hintsOnly, -11, 3, -13);
@@ -1607,7 +1737,30 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
         startRecipeProcessing();
         final MTEModuleTurbineHall hall = dockedTurbineHall();
-        if (hall != null) {
+        if (galleryBuilt && galleryStages > 0) {
+            // SD-4 finale: the Rotor Assembly converts the boosted flow straight to EU
+            // through its own dynamos. EU/t = L/t x V x E x (1 + 0.75 x stages) / 2.
+            if (depleteInput(Materials.Water.getFluid(flowPerTick))
+                || depleteInput(GTModHandler.getDistilledWater(flowPerTick))) {
+                long eu = spineBoostedSteam(true) * (1000 + 750L * galleryStages) / 1000 / 2;
+                // Clamp to summed dynamo capacity BEFORE emitting - GT explodes the whole
+                // multiblock when the injected EU exceeds it - and below the int-overflow
+                // EU-duplication threshold, exactly like the hall did.
+                long capacity = 0;
+                for (final gregtech.api.metatileentity.implementations.MTEHatchDynamo dynamo : gregtech.api.util.GTUtility
+                    .validMTEList(mDynamoHatches)) {
+                    capacity += (long) dynamo.maxAmperesOut() * dynamo.maxEUOutput();
+                }
+                eu = Math.min(Math.min(eu, capacity), Integer.MAX_VALUE);
+                if (eu > 0) {
+                    addEnergyOutputMultipleDynamos(eu, true);
+                }
+                lastEUOutput = eu;
+                emitWasteWater();
+            } else {
+                starveTick();
+            }
+        } else if (hall != null) {
             // Feedwater first; starving it heats the core exactly as fluid mode.
             if (depleteInput(Materials.Water.getFluid(flowPerTick))
                 || depleteInput(GTModHandler.getDistilledWater(flowPerTick))) {
@@ -2155,6 +2308,19 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return chamberCoolantName;
     }
 
+    public boolean isGalleryBuilt() {
+        return galleryBuilt;
+    }
+
+    public int getGalleryStages() {
+        return galleryStages;
+    }
+
+    /** True when the Rotor Assembly is the plant's generator (takes precedence over a hall). */
+    public boolean isGalleryActive() {
+        return galleryBuilt && galleryStages > 0;
+    }
+
     public int getLiveColumns() {
         return liveColumnsLastCycle;
     }
@@ -2290,9 +2456,18 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                     + chamberCoolantDrain
                     + " L/t)");
         }
+        if (galleryBuilt) {
+            info.add(
+                "Rotor Assembly: " + galleryStages
+                    + "/"
+                    + GALLERY_STAGES
+                    + " stages  ·  x"
+                    + String.format("%.2f", 1.0 + 0.75 * galleryStages));
+        }
         info.add(
-            isTurbineInstalled() ? "Generating: " + lastEUOutput + " EU/t (via Turbine Hall)"
-                : "Steam output: " + getBoostedSteamOutput() + " L/t");
+            isGalleryActive() ? "Generating: " + lastEUOutput + " EU/t (via Rotor Assembly)"
+                : isTurbineInstalled() ? "Generating: " + lastEUOutput + " EU/t (via Turbine Hall)"
+                    : "Steam output: " + getBoostedSteamOutput() + " L/t");
         info.add("Core heat: " + heat + " / " + MELTDOWN_HEAT + " (SCRAM at " + SCRAM_HEAT + ")");
         if (decayHeatTicks > 0) {
             info.add("Decay heat: cooling required for " + (decayHeatTicks / 20) + "s");
@@ -2331,6 +2506,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             .addInfo("the Sensor hatch pulses each slug, 8 Precision Injectors each want EXACTLY 1L")
             .addInfo("of propellant within +/-2 ticks. Misses waste the litre and heat the chamber.")
             .addInfo("Coolant drain scales with speed SQUARED - starve it and the rotors SEIZE.")
+            .addInfo(aqua + "Rotor Assembly:" + reset + " optional gallery south of the Spiral - Turbine")
+            .addInfo("Housings in its 8 stage sockets + Dynamo hatches turn the flow into EU:")
+            .addInfo("EU/t = L/t x speed x eff x (1 + 0.75 x stages) / 2. Replaces the Turbine Hall.")
             .addInfo(aqua + "Control:" + reset + " rods 1-24 + Build Tier in the GUI; circuit overrides throttle.")
             .addInfo(red + "Heat:" + reset + " SCRAM 8,000 - MELTDOWN 10,000. Decay heat needs 20 min of water.")
             .beginStructureBlock(50, 42, 50, true)

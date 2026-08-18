@@ -389,41 +389,8 @@ public final class BTSRecipes {
             .eut(TierEU.RECIPE_UV)
             .addTo(mixerRecipes);
 
-        // Turbine fans
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.StainlessSteel, 8L),
-                GTOreDictUnificator.get(OrePrefixes.plate, rhPdPalladium, 2L),
-                GTOreDictUnificator.get(OrePrefixes.stickLong, Materials.TungstenSteel, 1L))
-            .circuit(12)
-            .itemOutputs(new ItemStack(BTSItems.turbineFanMatched, 1))
-            .duration(30 * SECONDS)
-            .eut(TierEU.RECIPE_EV)
-            .addTo(assemblerRecipes);
-
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Trinium, 8L),
-                GTOreDictUnificator.get(OrePrefixes.frameGt, Materials.Adamantium, 1L),
-                GTOreDictUnificator.get(OrePrefixes.stickLong, Materials.TungstenSteel, 2L))
-            .circuit(12)
-            .fluidInputs(Materials.Duranium.getMolten(2 * INGOTS))
-            .itemOutputs(new ItemStack(BTSItems.turbineFanTDA, 1))
-            .duration(1 * MINUTES)
-            .eut(TierEU.RECIPE_UV)
-            .addTo(assemblerRecipes);
-
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                new ItemStack(BTSItems.turbineFanTDA, 1),
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Trinium, 8L),
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Adamantium, 8L))
-            .circuit(12)
-            .fluidInputs(Materials.NaquadahEnriched.getMolten(4 * INGOTS))
-            .itemOutputs(new ItemStack(BTSItems.turbineFanTDAOptimized, 1))
-            .duration(2 * MINUTES)
-            .eut(TierEU.RECIPE_UHV)
-            .addTo(assemblerRecipes);
+        // SD-4: the Turbine Hall and its fans are RETIRED - recipes removed, existing
+        // items/machines keep working as museum pieces until a later breaking release.
 
         // Extraction Platform controller (EV): the campus fuel front end
         GTValues.RA.stdBuilder()
@@ -449,20 +416,7 @@ public final class BTSRecipes {
             .eut(TierEU.RECIPE_EV)
             .addTo(assemblerRecipes);
 
-        // Plant module controllers
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.TungstenSteel, 8L),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.IV, 2L),
-                GTOreDictUnificator.get(OrePrefixes.stickLong, Materials.TungstenSteel, 2L),
-                GTOreDictUnificator.get(OrePrefixes.plate, rhPdPalladium, 2L))
-            .circuit(6)
-            .fluidInputs(Materials.Platinum.getMolten(2 * INGOTS))
-            .itemOutputs(BTSMachines.moduleTurbineHall.copy())
-            .duration(45 * SECONDS)
-            .eut(TierEU.RECIPE_IV)
-            .addTo(assemblerRecipes);
-
+        // Plant module controllers (Turbine Hall recipe removed - retired by SD-4)
         GTValues.RA.stdBuilder()
             .itemInputs(
                 GTOreDictUnificator.get(OrePrefixes.plate, Materials.StainlessSteel, 8L),

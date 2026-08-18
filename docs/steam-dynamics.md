@@ -148,7 +148,16 @@ breaking release.
   Materials.Time molten). Starved: +ceil(v^2)*3 heat/s until the rotors SEIZE - the
   Spine's housings are destroyed and the plant slams shut. Propellant fluids Lv 4-6
   added (GoodGenerator Mk IV-VI based, UHV/UEV/UIV mixers).
-- SD-4: Large Turbine Rotor Assembly + Turbine Hall retirement + migration.
+- SD-4 (IMPLEMENTED 0.15.0): the Large Turbine Rotor Assembly as the final optional
+  piece - a 7x5x18 gallery running south from the Spiral down the east strip, Dynamo +
+  Maintenance hatches in its walls, EIGHT rotor stage sockets (Turbine Housings, spin
+  agnostic) along the centerline. EU/t = L/t x speed x eff x (1 + 0.75 x stages) / 2,
+  clamped to summed DYNAMO CAPACITY (GT detonates the multiblock past it) and < 2^31.
+  Fully optimized T5 (all-naq cascade, all-riding spine, 8 timed Lv-6 injectors, 8
+  stages) computes ~1.045B EU/t - on the settled D-01 ~1B ceiling, above the retired
+  hall's 991M (t; the 0.75/stage coefficient is the tuning knob).
+  Takes precedence over a docked Turbine Hall; hall + fan RECIPES removed (existing
+  ones keep working as museum pieces until a later breaking release).
 - Each phase: recon vs sources -> implement -> review swarm -> smoke test -> tag.
 
 ## Questbook

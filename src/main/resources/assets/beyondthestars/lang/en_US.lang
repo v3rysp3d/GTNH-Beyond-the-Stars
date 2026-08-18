@@ -46,5 +46,6 @@ beyondthestars.gui.throttle.tooltip=Control rods: campaign power = N/24. A progr
 beyondthestars.gui.towers=Cooling Towers:
 beyondthestars.gui.spine=Spine:
 beyondthestars.gui.spiral=Spiral:
+beyondthestars.gui.gallery=Rotor Assembly:
 beyondthestars.gui.buildtier.tooltip=Build Tier: the Steam Generator tier the hologram/projector builds (1-5). A trigger stack of 2-5 overrides this.
 

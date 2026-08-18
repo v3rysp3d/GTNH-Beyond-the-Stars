@@ -59,6 +59,8 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         syncManager.syncValue("chamberBoost", new IntSyncValue(multiblock::getChamberBoostMilli));
         syncManager.syncValue("chamberCoolant", new StringSyncValue(multiblock::getChamberCoolantName));
         syncManager.syncValue("chamberDrain", new IntSyncValue(multiblock::getChamberCoolantDrain));
+        syncManager.syncValue("galleryActive", new BooleanSyncValue(multiblock::isGalleryActive));
+        syncManager.syncValue("galleryStages", new IntSyncValue(multiblock::getGalleryStages));
         syncManager.syncValue(
             "throttleSetting",
             new IntSyncValue(multiblock::getThrottleSetting, multiblock::setThrottleSetting).allowC2S());
@@ -93,6 +95,8 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         final IntSyncValue chamberBoost = syncManager.findSyncHandler("chamberBoost", IntSyncValue.class);
         final StringSyncValue chamberCoolant = syncManager.findSyncHandler("chamberCoolant", StringSyncValue.class);
         final IntSyncValue chamberDrain = syncManager.findSyncHandler("chamberDrain", IntSyncValue.class);
+        final BooleanSyncValue galleryActive = syncManager.findSyncHandler("galleryActive", BooleanSyncValue.class);
+        final IntSyncValue galleryStages = syncManager.findSyncHandler("galleryStages", IntSyncValue.class);
         final IntSyncValue fanTier = syncManager.findSyncHandler("fanTier", IntSyncValue.class);
         final LongSyncValue euOutput = syncManager.findSyncHandler("euOutput", LongSyncValue.class);
         final LongSyncValue steamOutput = syncManager.findSyncHandler("steamOutput", LongSyncValue.class);
@@ -208,8 +212,17 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                     .asWidget()
                     .marginBottom(2)
                     .setEnabledIf(w -> spiralBuilt.getBoolValue()))
+            .child(
+                IKey.dynamic(
+                    () -> translateToLocal("beyondthestars.gui.gallery") + " "
+                        + galleryStages.getIntValue()
+                        + "/8 stages · x"
+                        + String.format("%.2f", 1.0 + 0.75 * galleryStages.getIntValue()))
+                    .asWidget()
+                    .marginBottom(2)
+                    .setEnabledIf(w -> galleryActive.getBoolValue()))
             .child(IKey.dynamic(() -> {
-                if (deckInstalled.getBoolValue()) {
+                if (galleryActive.getBoolValue() || deckInstalled.getBoolValue()) {
                     return translateToLocal("beyondthestars.gui.output.eu") + " "
                         + String.format("%,d", euOutput.getLongValue())
                         + " EU/t";

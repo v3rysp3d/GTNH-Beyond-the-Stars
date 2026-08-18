@@ -84,8 +84,8 @@ public class CommandBTSKit extends CommandBase {
         give(player, new ItemStack(BTSItems.fuelAssemblyNaqBonded, 64));
         give(player, new ItemStack(BTSItems.uraniumFuelPellet, 64));
 
-        // Spine rotor sockets + Spiral chamber hatches
-        give(player, new ItemStack(BTSBlocks.turbineHousing, 4));
+        // Spine rotor sockets + gallery stages + Spiral chamber hatches
+        give(player, new ItemStack(BTSBlocks.turbineHousing, 12));
         for (int i = 0; i < 8; i++) {
             give(player, BTSMachines.precisionInjector.copy());
         }
@@ -121,7 +121,9 @@ public class CommandBTSKit extends CommandBase {
         tell(player, " - Silo walls: ~" + ring * 10 + "x " + wall + " (hatches substitute)");
         tell(player, " - Silo dome: ~" + oct + "x " + shield);
         tell(player, " - Turbine Hall: ~90x Tungstensteel Turbine Casing, glass, Steel Pipe Casing");
-        tell(player, " - Spine duct: 64x Tungstensteel Turbine Casing (housings given; right-click sets spin)");
+        tell(
+            player,
+            " - Steam chain: ~800x Tungstensteel Turbine Casing (duct + spiral chamber + rotor gallery), housings given (right-click sets spin; gallery stages need 8 more)");
         tell(player, " - Cooling Towers: ~550x Light Concrete + ~40x Solid Steel Casing each");
         tell(player, " - Hatches: energy, maintenance, water in, steam out, input bus, output bus, dynamos");
         tell(
