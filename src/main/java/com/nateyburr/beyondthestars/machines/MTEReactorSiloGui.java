@@ -56,11 +56,14 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         syncManager.syncValue("spineSwirl", new IntSyncValue(multiblock::getSpineSwirl));
         syncManager.syncValue("spiralBuilt", new BooleanSyncValue(multiblock::isSpiralBuilt));
         syncManager.syncValue("goodInjectors", new IntSyncValue(multiblock::getLastGoodInjectors));
-        syncManager.syncValue("chamberBoost", new IntSyncValue(multiblock::getChamberBoostMilli));
+        syncManager.syncValue("rpm", new IntSyncValue(multiblock::getRpm));
+        syncManager.syncValue("cyclesPerMinute", new IntSyncValue(multiblock::getCyclesPerMinute));
+        syncManager.syncValue("cycleProp", new IntSyncValue(multiblock::getLastCyclePropMilli));
         syncManager.syncValue("chamberCoolant", new StringSyncValue(multiblock::getChamberCoolantName));
         syncManager.syncValue("chamberDrain", new IntSyncValue(multiblock::getChamberCoolantDrain));
         syncManager.syncValue("galleryActive", new BooleanSyncValue(multiblock::isGalleryActive));
         syncManager.syncValue("galleryStages", new IntSyncValue(multiblock::getGalleryStages));
+        syncManager.syncValue("rotorFactor", new IntSyncValue(multiblock::getAvgRotorFactorMilli));
         syncManager.syncValue(
             "throttleSetting",
             new IntSyncValue(multiblock::getThrottleSetting, multiblock::setThrottleSetting).allowC2S());
@@ -92,11 +95,14 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         final IntSyncValue spineSwirl = syncManager.findSyncHandler("spineSwirl", IntSyncValue.class);
         final BooleanSyncValue spiralBuilt = syncManager.findSyncHandler("spiralBuilt", BooleanSyncValue.class);
         final IntSyncValue goodInjectors = syncManager.findSyncHandler("goodInjectors", IntSyncValue.class);
-        final IntSyncValue chamberBoost = syncManager.findSyncHandler("chamberBoost", IntSyncValue.class);
+        final IntSyncValue rpm = syncManager.findSyncHandler("rpm", IntSyncValue.class);
+        final IntSyncValue cyclesPerMinute = syncManager.findSyncHandler("cyclesPerMinute", IntSyncValue.class);
+        final IntSyncValue cycleProp = syncManager.findSyncHandler("cycleProp", IntSyncValue.class);
         final StringSyncValue chamberCoolant = syncManager.findSyncHandler("chamberCoolant", StringSyncValue.class);
         final IntSyncValue chamberDrain = syncManager.findSyncHandler("chamberDrain", IntSyncValue.class);
         final BooleanSyncValue galleryActive = syncManager.findSyncHandler("galleryActive", BooleanSyncValue.class);
         final IntSyncValue galleryStages = syncManager.findSyncHandler("galleryStages", IntSyncValue.class);
+        final IntSyncValue rotorFactor = syncManager.findSyncHandler("rotorFactor", IntSyncValue.class);
         final IntSyncValue fanTier = syncManager.findSyncHandler("fanTier", IntSyncValue.class);
         final LongSyncValue euOutput = syncManager.findSyncHandler("euOutput", LongSyncValue.class);
         final LongSyncValue steamOutput = syncManager.findSyncHandler("steamOutput", LongSyncValue.class);
@@ -200,11 +206,20 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                     .setEnabledIf(w -> spineBuilt.getBoolValue()))
             .child(
                 IKey.dynamic(
-                    () -> translateToLocal("beyondthestars.gui.spiral") + " "
+                    () -> translateToLocal("beyondthestars.gui.rpm") + " "
+                        + String.format("%,d", rpm.getIntValue())
+                        + " RPM · "
+                        + cyclesPerMinute.getIntValue()
+                        + " cyc/min · timed "
                         + goodInjectors.getIntValue()
-                        + "/8 timed · x"
-                        + String.format("%.2f", chamberBoost.getIntValue() / 1000.0)
-                        + " · "
+                        + "/8 · P x"
+                        + String.format("%.2f", cycleProp.getIntValue() / 1000.0))
+                    .asWidget()
+                    .marginBottom(2)
+                    .setEnabledIf(w -> spiralBuilt.getBoolValue()))
+            .child(
+                IKey.dynamic(
+                    () -> translateToLocal("beyondthestars.gui.spiral") + " "
                         + chamberCoolant.getStringValue()
                         + " "
                         + chamberDrain.getIntValue()
@@ -216,8 +231,8 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                 IKey.dynamic(
                     () -> translateToLocal("beyondthestars.gui.gallery") + " "
                         + galleryStages.getIntValue()
-                        + "/8 stages · x"
-                        + String.format("%.2f", 1.0 + 0.75 * galleryStages.getIntValue()))
+                        + "/8 stages · rotors x"
+                        + String.format("%.2f", rotorFactor.getIntValue() / 1000.0))
                     .asWidget()
                     .marginBottom(2)
                     .setEnabledIf(w -> galleryActive.getBoolValue()))

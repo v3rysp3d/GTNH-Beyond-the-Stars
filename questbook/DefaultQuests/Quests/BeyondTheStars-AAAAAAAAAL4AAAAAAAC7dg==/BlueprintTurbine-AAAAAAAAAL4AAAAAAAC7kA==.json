@@ -1,0 +1,53 @@
+{
+    "preRequisites:9":  {
+
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  0,
+                                                    "desc:8":  "The rotor gallery (7x5x15) and its output manifold (7x7x3) down the platform\u0027s east strip. Same bill at every tier:\n- 416x Tungstensteel Turbine Casing (313 gallery + 103 manifold)\n- 8x Turbine Housing (the rotor stage sockets along the centerline)\n- 8x Turbine Rotor (wear parts: -5% stage output per damage point, shatters at 10)\n- 4x Dynamo Hatch (manifold back face)\n- 1x Turbine Control Block + 1x Maintenance Hatch (gallery front wall)\nFeed the Turbine Control Block a redstone clock or the RPM decays to nothing.",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  0,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "beyondthestars:turbineHousing"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "Blueprint: Turbine Generator",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48016,
+    "rewards:9":  {
+
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "index:3":  0,
+                                 "taskID:8":  "bq_standard:checkbox"
+                             }
+                }
+}

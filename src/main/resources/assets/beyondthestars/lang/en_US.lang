@@ -20,6 +20,7 @@ item.beyondthestars.depletedFuelRodNaqBonded.name=Depleted Naquadah-Bonded Fuel 
 item.beyondthestars.turbineFanMatched.name=Matched Turbine Fan
 item.beyondthestars.turbineFanTDA.name=TDA-Bonded Turbine Fan
 item.beyondthestars.turbineFanTDAOptimized.name=Optimized TDA-Bonded Turbine Fan
+item.beyondthestars.turbineRotor.name=Turbine Rotor
 tile.beyondthestars.reactorFuelColumn.name=Reactor Fuel Pillar Frame
 tile.beyondthestars.rodLoadingPort.name=Rod Loading Port
 tile.beyondthestars.turbineHousing.name=Turbine Housing
@@ -27,6 +28,7 @@ GT5U.gui.text.shutdown_reason.beyondthestars.scram=SCRAM: core overheat — re-e
 GT5U.gui.text.shutdown_reason.beyondthestars.meltdown=MELTDOWN: core destroyed — the site is irradiated
 GT5U.gui.text.shutdown_reason.beyondthestars.blowout=BLOWOUT: propellant on a non-TDA fan destroyed the turbine
 GT5U.gui.text.shutdown_reason.beyondthestars.seizure=SEIZURE: propellant starvation destroyed the turbine fan
+GT5U.gui.text.shutdown_reason.beyondthestars.seizure.chain=SEIZURE: coolant starvation tore the turbine apart — the Spine's rotor housings are destroyed
 beyondthestars.gui.silo=Steam Generator Tier
 beyondthestars.gui.silo.absent=Steam Generator: NOT BUILT — project it onto the shield pad
 beyondthestars.gui.columns=Assembly fallback (-50%):
@@ -45,7 +47,8 @@ beyondthestars.gui.output.steam=Steam output:
 beyondthestars.gui.throttle.tooltip=Control rods: campaign power = N/24. A programmed circuit in the controller overrides this.
 beyondthestars.gui.towers=Cooling Towers:
 beyondthestars.gui.spine=Spine:
-beyondthestars.gui.spiral=Spiral:
+beyondthestars.gui.rpm=Turbine:
+beyondthestars.gui.spiral=Spiral coolant:
 beyondthestars.gui.gallery=Rotor Assembly:
 beyondthestars.gui.buildtier.tooltip=Build Tier: the Steam Generator tier the hologram/projector builds (1-5). A trigger stack of 2-5 overrides this.
 

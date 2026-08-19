@@ -333,6 +333,45 @@ public final class BTSRecipes {
             .eut(TierEU.RECIPE_EV)
             .addTo(assemblerRecipes);
 
+        // TC-2: the plant's control-block panels (dedicated sockets on silo face / gallery)
+        GTValues.RA.stdBuilder()
+            .itemInputs(
+                ItemList.Cover_Screen.get(1L),
+                GTOreDictUnificator.get(OrePrefixes.plate, rhPdPalladium, 2L),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.IV, 2L))
+            .circuit(11)
+            .fluidInputs(Materials.Platinum.getMolten(1 * INGOTS))
+            .itemOutputs(BTSMachines.siloControlBlock.copy())
+            .duration(20 * SECONDS)
+            .eut(TierEU.RECIPE_IV)
+            .addTo(assemblerRecipes);
+
+        GTValues.RA.stdBuilder()
+            .itemInputs(
+                ItemList.Cover_Screen.get(1L),
+                GTOreDictUnificator.get(OrePrefixes.plate, Materials.TungstenSteel, 2L),
+                GTOreDictUnificator.get(OrePrefixes.plate, rhPdPalladium, 2L),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.IV, 2L))
+            .circuit(12)
+            .fluidInputs(Materials.Platinum.getMolten(1 * INGOTS))
+            .itemOutputs(BTSMachines.turbineControlBlock.copy())
+            .duration(20 * SECONDS)
+            .eut(TierEU.RECIPE_IV)
+            .addTo(assemblerRecipes);
+
+        // TC-4: the Turbine Rotor - the gallery stages' consumable heart
+        GTValues.RA.stdBuilder()
+            .itemInputs(
+                GTOreDictUnificator.get(OrePrefixes.plate, Materials.TungstenSteel, 6L),
+                GTOreDictUnificator.get(OrePrefixes.stickLong, Materials.TungstenSteel, 2L),
+                GTOreDictUnificator.get(OrePrefixes.plate, rhPdPalladium, 1L))
+            .circuit(13)
+            .fluidInputs(Materials.Platinum.getMolten(1 * INGOTS))
+            .itemOutputs(new ItemStack(BTSItems.turbineRotor, 1))
+            .duration(20 * SECONDS)
+            .eut(TierEU.RECIPE_IV)
+            .addTo(assemblerRecipes);
+
         // SD-3: high-grade naquadah propellants (Lv 4-6) off the deeper GoodGenerator fuels
         GTValues.RA.stdBuilder()
             .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Adamantium, 8L))

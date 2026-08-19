@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit One Operations Manual — GTNH: Beyond the Stars</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0f12;
+    --panel: #12161b;
+    --panel-2: #171c22;
+    --line: #262d36;
+    --line-soft: #1d232b;
+    --ink: #cdd6de;
+    --ink-dim: #8b97a3;
+    --ink-faint: #5d6b78;
+    --amber: #e8a33d;
+    --amber-dim: #a8762c;
+    --steel: #6ea8d8;
+    --green: #76c44e;
+    --red: #e05a3a;
+    --violet: #8a5ac8;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: "IBM Plex Sans", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --head: "Chakra Petch", "IBM Plex Sans", "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  a { color: var(--steel); text-decoration: none; }
+  a:hover { color: #9cc6ea; text-decoration: underline; }
+
+  .frame { display: grid; grid-template-columns: 236px minmax(0, 1fr); max-width: 1180px; margin: 0 auto; gap: 0 32px; padding: 0 20px; }
+
+  /* ---------- masthead ---------- */
+  header.masthead {
+    grid-column: 1 / -1;
+    border-bottom: 2px solid var(--amber);
+    padding: 26px 0 18px;
+    margin-bottom: 26px;
+  }
+  .mast-kicker { font-family: var(--mono); font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--amber); }
+  header.masthead h1 { font-family: var(--head); font-size: 30px; font-weight: 700; letter-spacing: .02em; color: #eef3f7; margin: 4px 0 2px; }
+  .mast-sub { color: var(--ink-dim); font-size: 14px; }
+  .mast-meta { font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint); margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px 22px; }
+  .mast-meta b { color: var(--ink-dim); font-weight: 500; }
+
+  /* ---------- sidebar ---------- */
+  nav.toc { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; padding: 6px 0 40px; }
+  nav.toc .toc-title { font-family: var(--mono); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-faint); border-bottom: 1px solid var(--line); padding-bottom: 6px; margin-bottom: 8px; }
+  nav.toc ol { list-style: none; }
+  nav.toc li { margin: 0; }
+  nav.toc a { display: block; padding: 4px 8px; font-size: 13px; color: var(--ink-dim); border-left: 2px solid transparent; }
+  nav.toc a:hover { color: var(--amber); border-left-color: var(--amber); text-decoration: none; background: var(--panel); }
+  nav.toc .l2 a { padding-left: 22px; font-size: 12.5px; color: var(--ink-faint); }
+  nav.toc .l2 a:hover { color: var(--amber); }
+  nav.toc .num { font-family: var(--mono); font-size: 11px; color: var(--amber-dim); margin-right: 6px; }
+
+  main { min-width: 0; padding-bottom: 80px; }
+
+  /* ---------- sections ---------- */
+  section { margin-bottom: 44px; scroll-margin-top: 18px; }
+  section > h2 {
+    font-family: var(--head); font-size: 21px; font-weight: 600; color: #eef3f7;
+    border-bottom: 1px solid var(--line); padding-bottom: 8px; margin-bottom: 16px;
+  }
+  section > h2 .num { color: var(--amber); font-family: var(--mono); font-size: 15px; margin-right: 10px; }
+  h3 { font-family: var(--head); font-size: 16px; font-weight: 600; color: #dce5ec; margin: 22px 0 8px; scroll-margin-top: 18px; }
+  h3 .num { color: var(--amber-dim); font-family: var(--mono); font-size: 12.5px; margin-right: 8px; }
+  h4 { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-dim); margin: 18px 0 6px; }
+  p { margin: 0 0 10px; }
+  p, li { color: var(--ink); }
+  ul, ol { margin: 0 0 12px 22px; }
+  li { margin-bottom: 4px; }
+  strong { color: #e8eef3; font-weight: 600; }
+  .dim { color: var(--ink-dim); }
+  .accent { color: var(--amber); }
+
+  /* ---------- badges ---------- */
+  .badge { display: inline-block; font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; padding: 1px 8px 2px; border-radius: 2px; border: 1px solid; vertical-align: 1px; white-space: nowrap; }
+  .b-req { color: var(--green); border-color: #3c5e2c; background: #14200e; }
+  .b-opt { color: var(--steel); border-color: #31506b; background: #0e1a24; }
+  .b-tc  { color: var(--amber); border-color: #6b5121; background: #241b0a; }
+  .b-ret { color: var(--red); border-color: #6b3221; background: #24120a; }
+  .b-mand{ color: var(--amber); border-color: #6b5121; background: #241b0a; }
+
+  /* ---------- formula blocks ---------- */
+  .formula {
+    font-family: var(--mono); font-size: 13px; color: #e9d9b8;
+    background: var(--panel); border: 1px solid var(--line-soft); border-left: 3px solid var(--amber);
+    padding: 10px 14px; margin: 10px 0 14px; overflow-x: auto; white-space: pre; line-height: 1.65;
+  }
+  .formula .c { color: var(--ink-faint); }
+
+  /* ---------- callouts ---------- */
+  .note, .warn, .tcnote {
+    border: 1px solid var(--line-soft); background: var(--panel);
+    padding: 10px 14px; margin: 12px 0; font-size: 14px;
+  }
+  .note { border-left: 3px solid var(--steel); }
+  .warn { border-left: 3px solid var(--red); }
+  .warn b, .warn strong { color: #f0937a; }
+  .tcnote { border-left: 3px solid var(--amber); color: var(--ink-dim); }
+  .tcnote b { color: var(--amber); }
+
+  /* ---------- tables ---------- */
+  .tablewrap { overflow-x: auto; margin: 10px 0 16px; border: 1px solid var(--line-soft); }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  th {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--ink-dim); text-align: left; background: var(--panel-2);
+    padding: 7px 12px; border-bottom: 1px solid var(--line); white-space: nowrap;
+  }
+  td { padding: 6px 12px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:nth-child(odd) { background: rgba(255,255,255,0.015); }
+  td.mono, .mono { font-family: var(--mono); font-size: 12.5px; }
+  td.n { text-align: right; font-family: var(--mono); font-size: 12.5px; white-space: nowrap; }
+  .group-row td { font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--amber-dim); background: var(--panel-2); border-top: 1px solid var(--line); }
+
+  /* ---------- required / optional panels ---------- */
+  .parts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0 16px; }
+  .parts .col { border: 1px solid var(--line-soft); background: var(--panel); }
+  .parts .col-h { font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; padding: 6px 12px; border-bottom: 1px solid var(--line-soft); }
+  .parts .req .col-h { color: var(--green); }
+  .parts .opt .col-h { color: var(--steel); }
+  .parts ul { list-style: none; margin: 0; padding: 8px 12px; }
+  .parts li { font-size: 13px; margin: 0 0 5px; padding-left: 14px; text-indent: -14px; }
+  .parts li::before { content: "▸ "; color: var(--ink-faint); }
+  .parts li .qty { font-family: var(--mono); font-size: 12px; color: var(--amber); }
+  .parts li .tcq { font-family: var(--mono); font-size: 10px; color: var(--amber-dim); }
+
+  /* ---------- socket grid ---------- */
+  .socketgrid { font-family: var(--mono); font-size: 11px; margin: 10px 0 4px; overflow-x: auto; }
+  .socketgrid table { width: auto; border: 1px solid var(--line); }
+  .socketgrid td { border: 1px solid var(--line-soft); padding: 6px 10px; text-align: center; white-space: nowrap; background: var(--panel); }
+  .socketgrid .lbl { color: var(--ink-faint); background: transparent; border-color: transparent; }
+  .sg-en { color: var(--amber); }
+  .sg-io { color: var(--steel); }
+  .sg-bus { color: var(--violet); }
+  .sg-mt { color: #c87a4a; }
+  .sg-ctl { color: #eef3f7; font-weight: 600; background: #1c232b !important; }
+  .sg-wall { color: var(--ink-faint); }
+  .caption { font-size: 12px; color: var(--ink-faint); margin: 2px 0 12px; }
+
+  kbd.item { font-family: var(--mono); font-size: 12.5px; color: #d8e2ea; background: var(--panel-2); border: 1px solid var(--line); border-radius: 3px; padding: 0 6px; white-space: nowrap; }
+
+  footer { grid-column: 1 / -1; border-top: 1px solid var(--line); color: var(--ink-faint); font-family: var(--mono); font-size: 11.5px; padding: 18px 0 40px; }
+
+  @media (max-width: 860px) {
+    .frame { display: block; }
+    nav.toc { position: static; max-height: none; border: 1px solid var(--line-soft); background: var(--panel); padding: 12px 14px; margin-bottom: 24px; }
+    .parts { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+
+<header class="masthead">
+  <div class="mast-kicker">GTNH: Beyond the Stars &mdash; Field Dossier</div>
+  <h1>UNIT ONE &mdash; Operations Manual</h1>
+  <div class="mast-sub">The 50&times;50 nuclear plant: rod cascade &rarr; Spine &rarr; Spiral &rarr; Turbine Generator. One controller, one projection, one very large number.</div>
+  <div class="mast-meta">
+    <span><b>Addon:</b> beyondthestars 0.16.0</span>
+    <span><b>Pack:</b> GTNH 2.9.0-beta-1 (MC 1.7.10)</span>
+    <span><b>Deps:</b> GT5U 5.09.52.594 &middot; StructureLib 1.4.38</span>
+    <span><b>MTE range:</b> 28100+</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="toc-title">Contents</div>
+  <ol>
+    <li><a href="#overview"><span class="num">1</span>Overview</a></li>
+    <li><a href="#getting-started"><span class="num">2</span>Getting Started</a></li>
+    <li><a href="#structures"><span class="num">3</span>Structures</a>
+      <ol>
+        <li class="l2"><a href="#platform">3.1 Foundation Platform</a></li>
+        <li class="l2"><a href="#silo">3.2 Steam Generator</a></li>
+        <li class="l2"><a href="#spine">3.3 The Spine</a></li>
+        <li class="l2"><a href="#spiral">3.4 The Spiral</a></li>
+        <li class="l2"><a href="#turbinegen">3.5 Turbine Generator</a></li>
+        <li class="l2"><a href="#towers">3.6 Cooling Towers</a></li>
+        <li class="l2"><a href="#hall">3.7 Turbine Hall (retired)</a></li>
+      </ol>
+    </li>
+    <li><a href="#fuel"><span class="num">4</span>Fuel &amp; Ladders</a></li>
+    <li><a href="#safety"><span class="num">5</span>Safety Systems</a></li>
+    <li><a href="#reference"><span class="num">6</span>Reference Tables</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ============================================================ 1 OVERVIEW -->
+<section id="overview">
+  <h2><span class="num">1</span>Overview</h2>
+  <p><strong>Unit One</strong> is a full nuclear power campus built as a single GregTech multiblock family. The heart of it is one machine &mdash; the <kbd class="item">Nuclear Plant Foundation</kbd> main station controller &mdash; whose structure is a mandatory <strong>50&times;50 platform</strong> plus a chain of optional pieces you bolt on as you progress:</p>
+  <ul>
+    <li><strong>Steam Generator silo</strong> (tier 1&ndash;5) &mdash; the reactor. Fuel rods cascade down 8-segment pillars; only the bottom rod of each pillar burns.</li>
+    <li><strong>The Spine</strong> &mdash; a 3&times;3 steam duct with four chirality-tuned Turbine Housings. Ride the swirl for speed, oppose it for efficiency.</li>
+    <li><strong>The Spiral</strong> &mdash; a 7&times;7&times;12 injection chamber. Eight Precision Injectors each fire exactly 1&nbsp;L of propellant inside a &plusmn;2-tick window per steam slug.</li>
+    <li><strong>Turbine Generator</strong> &mdash; the final rotor gallery that converts the boosted flow into EU through Dynamo hatches.</li>
+    <li><strong>Cooling Towers</strong> (up to two) &mdash; separate module machines that dock on floor markers and recycle condensate.</li>
+  </ul>
+  <p>Modules follow the <strong>Space Elevator architecture</strong>: the platform floor contains flush dock markers; each module building has its own controller that stands on a marker and only functions while docked to a formed platform. The silo, Spine, Spiral and Turbine Generator are <em>not</em> modules &mdash; they are optional pieces of the main controller itself.</p>
+
+  <h3>The one-projection build flow</h3>
+  <p>The main station controller's hologram builds the <strong>entire plant in a single projection</strong>: platform, silo (at the GUI's Build Tier 1&ndash;5), Spine duct, Spiral, Turbine Generator, and the empty shells of both Cooling Towers at their canonical sites. You then stand each module controller on its glowing marker <strong>facing away from its building</strong>, swap the hatches in, and the plant is done.</p>
+  <p class="dim">Nothing is auto-placed on a dock marker &mdash; markers stay clear (air) until a module controller stands there. The controller re-validates its structure periodically (every 600 ticks idle / 200 ticks running), because block updates cannot cross the unregistered concrete; modules reconnect instantly after every successful check.</p>
+  <div class="note">Survival cost is roughly <strong>40,000 blocks</strong> at full buildout &mdash; deliberately "insanely expensive once". Creative testing goes through the projector auto-build, piece by piece.</div>
+  <p>Fully optimized (tier-5 silo, all-naquadah cascade, all-riding Spine, 8 timed Lv&nbsp;6 injectors, 8 rotor stages) the plant computes <strong>~1.045&nbsp;billion EU/t</strong>, clamped to your summed dynamo capacity.</p>
+</section>
+
+<!-- ============================================================ 2 GETTING STARTED -->
+<section id="getting-started">
+  <h2><span class="num">2</span>Getting Started &mdash; The Blueprint</h2>
+  <p>The five-step commissioning sequence. The questbook's <em>"The Blueprint"</em> quest walks the same path <span class="badge b-tc">0.17.0</span>.</p>
+  <ol>
+    <li><strong>Craft the main station.</strong> The <kbd class="item">Nuclear Plant Foundation</kbd> controller is an IV assembler job: Radiation-Proof Machine Casing + 4&times; IV circuit + dense lead, tungstensteel, tungsten, iridium and rhodium-plated palladium plates + molten platinum. Place it where the plant's front line will run &mdash; it ends up embedded in the silo face at ground level, one fixed spot for all five tiers.</li>
+    <li><strong>Project once.</strong> Set <strong>Build Tier 1&ndash;5</strong> in the controller GUI (a trigger stack of 2&ndash;5 overrides it) and hologram-project the controller. One projection lays out everything: the 50&times;50 platform, the silo, the Spine, the Spiral, the Turbine Generator, and both Cooling Tower shells.</li>
+    <li><strong>Build the shells.</strong> Follow the hologram: floor layer (2,243 Light Concrete + 249 Tungstensteel Reinforced shield pad + 8 flush Solid Steel markers), silo walls and dome, Tungstensteel Turbine Casing ducts, tower hyperboloids.</li>
+    <li><strong>Dock and fit hatches.</strong> Stand each Cooling Tower controller on its glowing marker, <strong>facing away</strong> from the tower body. Fit the hatch complement: silo face (4 Energy, 1 Maintenance, 2 Input Hatch, 1 Output Hatch, 1 Input Bus, 1 Output Bus), Spiral (8 Precision Injectors, 1 Spine Sensor, 1 Input Hatch, 1 Maintenance), Turbine Generator (Dynamos + Maintenance), one Maintenance hatch in each tower's base ring.</li>
+    <li><strong>Fuel and start.</strong> Drop fuel rods into the <kbd class="item">Rod Loading Ports</kbd> at the top of each pillar (hopper / AE2 / right-click), feed water to the silo, set the control-rod throttle (1&ndash;24; a programmed circuit in the controller slot overrides it), pipe propellant to the injectors on the Spine Sensor's clock, keep coolant in the Spiral's input hatch, and enable the machine.</li>
+  </ol>
+  <div class="tcnote"><b>Questbook:</b> the entry quest with item requirements + achievement in the GTNH power-progression chapter, and the BLUEPRINTS chapter listing every structure's items as optional quests (controllers are the required ones), are <b>shipped in 0.17.0</b>.</div>
+</section>
+
+<!-- ============================================================ 3 STRUCTURES -->
+<section id="structures">
+  <h2><span class="num">3</span>Structures</h2>
+  <p>Coordinates use the plant frame: the main station controller sits at platform cell <span class="mono">(a=25, c=17)</span>, pad level <span class="mono">y=0</span>. <span class="mono">a</span> runs 0..49 horizontally, <span class="mono">c</span> runs 0 (front) .. 49 (back); everything rotates with the controller's facing. The silo edge is <span class="mono">n = 7 + 2&times;tier</span> (9&ndash;17 across tiers 1&ndash;5).</p>
+
+  <!-- ------------------------------------------------ 3.1 PLATFORM -->
+  <h3 id="platform"><span class="num">3.1</span>Foundation Platform <span class="badge b-mand">Mandatory</span></h3>
+  <p>The 50&times;50 starter structure and the only mandatory piece. Two layers: the floor at <span class="mono">y=-1</span>, and the open walking level at <span class="mono">y=0</span>. A bare platform forms and idles with <em>no hatches at all</em> &mdash; the GUI reads <em>"Steam Generator: NOT BUILT"</em> until the silo is projected onto the shield pad.</p>
+  <div class="parts">
+    <div class="col req">
+      <div class="col-h">Required</div>
+      <ul>
+        <li><kbd class="item">Nuclear Plant Foundation</kbd> controller <span class="qty">&times;1</span> &mdash; at (25,17) on the shield pad's front line</li>
+        <li>Light Concrete (floor layer) <span class="qty">&times;2,243</span></li>
+        <li>Tungstensteel Reinforced Block (shield-pad octagon, max-tier footprint a,c 17..33) <span class="qty">&times;249</span></li>
+        <li>Solid Steel Machine Casing (flush dock markers under the dock positions) <span class="qty">&times;8</span></li>
+      </ul>
+    </div>
+    <div class="col opt">
+      <div class="col-h">Optional</div>
+      <ul>
+        <li>No hatches required &mdash; the platform forms bare</li>
+        <li>Every other structure on this page builds on top of it</li>
+      </ul>
+    </div>
+  </div>
+  <h4>Dock positions (clear until a module controller stands there, facing away)</h4>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Marker (a, c)</th><th>Assignment</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">{38, 30}</td><td>Turbine Hall <span class="badge b-ret">Retired</span> &mdash; museum site</td></tr>
+      <tr><td class="mono">{8, 1}</td><td>NW Cooling Tower</td></tr>
+      <tr><td class="mono">{8, 48}</td><td>SW Cooling Tower</td></tr>
+      <tr><td class="mono">{40, 8} &middot; {40, 42} &middot; {25, 43} &middot; {10, 25} &middot; {25, 7}</td><td>Spares (future modules: Derrick, Annex, Vent Stack, Switchyard&hellip;)</td></tr>
+    </tbody>
+  </table></div>
+  <h4>Controller GUI</h4>
+  <ul>
+    <li><strong>Control-rod throttle 1&ndash;24</strong> &mdash; campaign power = N/24; a programmed circuit in the controller slot overrides it.</li>
+    <li><strong>Build Tier 1&ndash;5</strong> &mdash; the Steam Generator tier the hologram/projector builds; a trigger stack of 2&ndash;5 overrides it.</li>
+    <li>Status lines for the silo, cascade, Spine, Spiral, Rotor Assembly, heat, decay obligation and docked modules.</li>
+  </ul>
+
+  <!-- ------------------------------------------------ 3.2 SILO -->
+  <h3 id="silo"><span class="num">3.2</span>Steam Generator Silo <span class="badge b-opt">Optional piece &middot; tiers 1&ndash;5</span></h3>
+  <p>The reactor: a ribbed octagon standing on the shield pad, front-anchored on the controller's line (front row <span class="mono">c=17</span>, centered on <span class="mono">a=25</span>). Walls are <span class="mono">2n</span> tall from pad level with a hemispherical dome of height <span class="mono">n/2</span> on top, three radiation-proof band rings, and 7 buttress ribs (front skipped).</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Tier</th><th>Edge n</th><th>Wall height</th><th>Corner cut</th><th>Wall material</th><th>Dome shield</th><th>Fuel pillars</th><th>Pillar frames (8/pillar)</th><th>Rod Loading Ports</th></tr></thead>
+    <tbody>
+      <tr><td class="n">1</td><td class="n">9</td><td class="n">18</td><td class="n">2</td><td>Radiation-Proof Machine Casing</td><td>Tungstensteel Reinforced</td><td class="n">45</td><td class="n">360</td><td class="n">45</td></tr>
+      <tr><td class="n">2</td><td class="n">11</td><td class="n">22</td><td class="n">2</td><td>Radiation-Proof Machine Casing</td><td>Tungstensteel Reinforced</td><td class="n">77</td><td class="n">616</td><td class="n">77</td></tr>
+      <tr><td class="n">3</td><td class="n">13</td><td class="n">26</td><td class="n">3</td><td>Europium-Reinforced Radiation-Proof</td><td>Iridium Tungstensteel</td><td class="n">109</td><td class="n">872</td><td class="n">109</td></tr>
+      <tr><td class="n">4</td><td class="n">15</td><td class="n">30</td><td class="n">3</td><td>Europium-Reinforced Radiation-Proof</td><td>Iridium Tungstensteel</td><td class="n">157</td><td class="n">1,256</td><td class="n">157</td></tr>
+      <tr><td class="n">5</td><td class="n">17</td><td class="n">34</td><td class="n">4</td><td>Radiant Naquadah Alloy</td><td>Iridium Tungstensteel</td><td class="n">201</td><td class="n">1,608</td><td class="n">201</td></tr>
+    </tbody>
+  </table></div>
+  <div class="parts">
+    <div class="col req">
+      <div class="col-h">Required (when the silo piece is built)</div>
+      <ul>
+        <li>Tier wall casing incl. ribs <span class="qty">400&ndash;1,700</span> (by tier)</li>
+        <li>Radiation-Proof Machine Casing band rings <span class="qty">60&ndash;150</span> (bottom-up layers 2, mid, 2n&minus;2)</li>
+        <li>Dome shield blocks <span class="qty">40&ndash;320</span></li>
+        <li>Reactor Fuel Pillar Frame <span class="qty">8 &times; pillar count</span> (bottom-up layers 3..10)</li>
+        <li>Rod Loading Port <span class="qty">1 per pillar</span> (layer 11)</li>
+        <li>Energy Hatch <span class="qty">&times;4</span> &middot; Maintenance <span class="qty">&times;1</span> &middot; Input Hatch <span class="qty">&times;2</span> &middot; Output Hatch <span class="qty">&times;1</span> &middot; Input Bus <span class="qty">&times;1</span> &middot; Output Bus <span class="qty">&times;1</span></li>
+      </ul>
+    </div>
+    <div class="col opt">
+      <div class="col-h">Optional / TC</div>
+      <ul>
+        <li><kbd class="item">Silo Control Block</kbd> (MTE 28108) in the face socket above the main station &mdash; reactor panel GUI (tier, cascade, heat, decay, radiation) <span class="tcq">0.17.0</span></li>
+        <li>Dedicated socket cells for every hatch (exact hologram counts at exact spots) <span class="tcq">new in 0.17.0</span></li>
+      </ul>
+    </div>
+  </div>
+  <h4>Front-face socket layout (flat face cells a&nbsp;23..27, y&nbsp;0..2, all tiers) <span class="badge b-tc">0.17.0</span></h4>
+  <div class="socketgrid"><table>
+    <tr><td class="lbl">y2</td><td class="sg-bus">INPUT BUS</td><td class="sg-wall">wall</td><td class="sg-wall">wall</td><td class="sg-wall">wall</td><td class="sg-bus">OUTPUT BUS</td></tr>
+    <tr><td class="lbl">y1</td><td class="sg-en">ENERGY</td><td class="sg-en">ENERGY</td><td class="sg-ctl">SILO CONTROL</td><td class="sg-en">ENERGY</td><td class="sg-en">ENERGY</td></tr>
+    <tr><td class="lbl">y0</td><td class="sg-io">INPUT HATCH</td><td class="sg-mt">MAINT</td><td class="sg-ctl">CONTROLLER</td><td class="sg-io">OUTPUT HATCH</td><td class="sg-io">INPUT HATCH</td></tr>
+    <tr><td class="lbl"></td><td class="lbl">a23</td><td class="lbl">a24</td><td class="lbl">a25</td><td class="lbl">a26</td><td class="lbl">a27</td></tr>
+  </table></div>
+  <p class="caption">All other wall cells are plain casings &mdash; no hatches, no hints.</p>
+
+  <h4>The rod cascade (Stage 0)</h4>
+  <p>Fuel columns are working <strong>gravity pillars</strong>, 8 segments tall:</p>
+  <ul>
+    <li><strong>Insert at top:</strong> rods go into the <kbd class="item">Rod Loading Port</kbd> (4-slot buffer; hopper / AE2 / right-click insert). A rod falls to the lowest empty segment.</li>
+    <li><strong>Burn at bottom:</strong> only the bottom segment burns. One decay cycle consumes it into a depleted rod, which drops to the base extraction buffer and exits via the <strong>output bus</strong>. Everything above shifts down one.</li>
+    <li><strong>Live columns:</strong> a column is live while its bottom segment holds a burning rod. Partial pillars = partial output; a starved pillar simply goes dark. The automation challenge is keeping 45&ndash;201 pillars topped up and drained.</li>
+    <li><strong>Decay cycle:</strong> one eighth of the classic campaign &mdash; at the default 720-minute campaign, one cycle burns the bottom rod every 90 real-time minutes.</li>
+  </ul>
+  <div class="formula">Steam L/t = live columns &times; 16,384 &times; rod multiplier &times; N/24   <span class="c">(N = control-rod throttle)</span></div>
+  <div class="note"><strong>Assembly fallback (heavy penalty):</strong> classic fuel assemblies in the input bus still run, at <strong>50% output</strong> &mdash; the GUI labels it <em>"Assembly fallback &mdash; output halved"</em>. One bus batch runs 4 half-rate decay cycles. Buffered rods win the plant back the moment they land.</div>
+  <div class="warn">Breaking a fueled pillar frame ejects its rods at the controller. No Turbine Hall / Turbine Generator docked? The silo exports <strong>Steam</strong> directly &mdash; or <strong>Hot Coolant</strong> when fed IC2 Coolant (tier 5 doubles the coolant flow).</div>
+
+  <!-- ------------------------------------------------ 3.3 SPINE -->
+  <h3 id="spine"><span class="num">3.3</span>The Spine &mdash; 3&times;3 Steam Duct <span class="badge b-opt">Optional piece</span></h3>
+  <p>A 3&times;3 cross-section duct (y&nbsp;0..2) leaving the silo's east rib, centered on the silo mid-row <span class="mono">c = 17 + n/2</span>, running from <span class="mono">a = 25 + n/2 + 2</span> flush to <span class="mono">a = 42</span> (length <span class="mono">16 &minus; n/2</span>: 12/11/10/9/8 blocks by tier). Tungstensteel Turbine Casing shell around a hollow bore.</p>
+  <div class="parts">
+    <div class="col req">
+      <div class="col-h">Required</div>
+      <ul>
+        <li>Tungstensteel Turbine Casing shell (3&times;3 ring &times; duct length; hollow bore) <span class="qty">tier length 12/11/10/9/8</span></li>
+        <li><kbd class="item">Turbine Housing</kbd> sockets in the bore <span class="qty">&times;4</span> &mdash; at a-offsets 1, 3, 5, 7 from the silo end</li>
+      </ul>
+    </div>
+    <div class="col opt">
+      <div class="col-h">Optional</div>
+      <ul>
+        <li>Nothing else &mdash; the Spine has no hatches. Right-click each housing with an empty hand to toggle CLOCKWISE / ANTICLOCKWISE.</li>
+      </ul>
+    </div>
+  </div>
+  <h4>Swirl math &mdash; backwash accumulates through the train</h4>
+  <div class="formula">S(0) = 0                        <span class="c">swirl entering housing 1</span>
+d(i) = +1 for CW, &minus;1 for CCW
+riding   (d matches sign of S, or S = 0):  speed &times;= 1 + 0.08 &times; |S|
+opposing (d against S):                    eff   &times;= 1 + 0.10 &times; |S|
+S(i+1) = S(i) + d(i)
+
+V1 = V0 &times; &prod; speed multipliers        <span class="c">steam speed leaving the Spine</span>
+E  = &prod; efficiency multipliers          <span class="c">EU-per-litre efficiency</span>
+residual heat = |S(4)|&sup2; &times; 5 per second while running</div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Pattern</th><th>Speed</th><th>Efficiency</th><th>Residual S(4)</th><th>Character</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">CW-CW-CW-CW</td><td class="n">&times;~1.55</td><td class="n">&times;1.00</td><td class="n">4 (hot: 80 heat/s)</td><td>Peak-EU/t build &mdash; needs Cooling Towers</td></tr>
+      <tr><td class="mono">CW-CCW-CW-CCW</td><td class="n">&times;1.00</td><td class="n">&times;~1.21</td><td class="n">0 (cool)</td><td>Fuel-economy build</td></tr>
+      <tr><td class="mono">mixed</td><td colspan="2" style="text-align:center" class="mono">in between</td><td class="n">&minus;4..4</td><td>Optimum depends on the goal: peak EU/t vs EU per litre</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- ------------------------------------------------ 3.4 SPIRAL -->
+  <h3 id="spiral"><span class="num">3.4</span>The Spiral &mdash; 7&times;7 Injection Chamber <span class="badge b-opt">Optional piece</span></h3>
+  <p>A 7&times;7&times;12 box at the duct's end (<span class="mono">a 43..49</span>, rows tier-mid &plusmn;3, <span class="mono">y 0..11</span>). Tungstensteel Turbine Casing shell; inside, a helix of 5-cell Light Concrete arcs steps down the 5&times;5 interior ring (3 cells advance per level) around a 3&times;3 open downcomer &mdash; steam spirals <strong>downward</strong> past the eight injectors.</p>
+  <div class="parts">
+    <div class="col req">
+      <div class="col-h">Required</div>
+      <ul>
+        <li>Tungstensteel Turbine Casing shell (7&times;7&times;12, walls/roof/floor)</li>
+        <li>Light Concrete helix arcs <span class="qty">5 per interior level</span> stepping down the 5&times;5 ring</li>
+        <li><kbd class="item">Precision Injector</kbd> <span class="qty">&times;8</span> &mdash; one per interior level 1..8, rotating faces (front/east/back/west, mid-cell)</li>
+        <li><kbd class="item">Spine Sensor</kbd> <span class="qty">&times;1</span> &mdash; roof's front-center cell</li>
+        <li>Input Hatch <span class="qty">&times;1</span> + Maintenance <span class="qty">&times;1</span> &mdash; bottom wall's front corners (coolant goes in here)</li>
+      </ul>
+    </div>
+    <div class="col opt">
+      <div class="col-h">Optional / notes</div>
+      <ul>
+        <li>All other wall cells are plain casings</li>
+        <li>Injector/sensor socket positions become checked hologram cells <span class="tcq">new in 0.17.0</span></li>
+      </ul>
+    </div>
+  </div>
+  <h4>Injection timing &mdash; the &plusmn;2-tick window</h4>
+  <ul>
+    <li><strong>Slugs:</strong> steam moves in slugs, one entering every <strong>20 ticks</strong> while the reactor runs.</li>
+    <li><strong>Sensor:</strong> the <kbd class="item">Spine Sensor</kbd> emits a full-strength 2-tick redstone pulse (all sides) the tick a slug enters. Lock your timing circuit to this signal.</li>
+    <li><strong>The window:</strong> each injector must receive <strong>EXACTLY 1&nbsp;L</strong> of propellant within &plusmn;2 ticks of the pulse. Every litre is tick-stamped on arrival (16&nbsp;L capacity &mdash; it is a timing instrument, not a tank).</li>
+    <li><strong>Scoring:</strong> the slug is scored one tick after the window closes, so timing never depends on tile-entity order; stale stamps from stops are discarded.</li>
+    <li><strong>Misses:</strong> out-of-window litres, or a second litre in the same window, are <strong>wasted</strong> and spike the chamber <strong>+50 heat each</strong> (capped at 8 per slug).</li>
+  </ul>
+  <div class="formula">boost = 1 + (P &minus; 1) &times; n / 8      <span class="c">n = injectors timed this slug; P = LOWEST propellant among them</span>
+V2    = V1 &times; boost                <span class="c">all eight timed = the full factor P</span></div>
+  <h4>Coolant &mdash; the seizure math</h4>
+  <div class="formula">v            = spine speed &times; injector boost
+coolant L/t  = ceil(200 &times; v&sup2; / Q)     <span class="c">Q = coolant quality (see &sect;4)</span>
+starved      : +ceil(v&sup2;) &times; 3 heat per second &rarr; at SCRAM heat the rotors SEIZE</div>
+  <div class="warn"><strong>Seizure destroys the Spine's four Turbine Housings</strong> (the blocks are removed from the world) and slams the plant shut. The faster it spins, the more it drinks &mdash; keep the input hatch wet.</div>
+
+  <!-- ------------------------------------------------ 3.5 TURBINE GENERATOR -->
+  <h3 id="turbinegen"><span class="num">3.5</span>Turbine Generator <span class="badge b-opt">Optional piece</span></h3>
+  <p>The finale: a rotor gallery fed by the Spiral's downcomer, running south down the east strip. The TC redesign shapes it as a <strong>7 wide &times; 5 tall &times; 15 long</strong> gallery (<span class="mono">a 43..49, c (21+n/2)..(35+n/2)</span>, hollow bore) ending in a <strong>7&times;7&times;3 output manifold</strong> (<span class="mono">y 0..6, c (36+n/2)..(38+n/2)</span>, hollow) <span class="badge b-tc">0.17.0</span>. The 0.16.0 build forms as a 7&times;5&times;18 gallery with Dynamo + Maintenance hatches in its walls.</p>
+  <div class="parts">
+    <div class="col req">
+      <div class="col-h">Required</div>
+      <ul>
+        <li>Tungstensteel Turbine Casing shell (gallery + manifold; all non-socket cells plain)</li>
+        <li>Rotor stage housings (<kbd class="item">Turbine Housing</kbd>, spin-agnostic) along the centerline <span class="qty">&times;8</span> (odd interior rows)</li>
+        <li>Dynamo Hatch <span class="qty">&times;4</span> &mdash; manifold back face, y3 <span class="tcq">TC socket layout 0.17.0; 0.16.0: any gallery wall</span></li>
+        <li>Maintenance <span class="qty">&times;1</span></li>
+      </ul>
+    </div>
+    <div class="col opt">
+      <div class="col-h">Optional / TC</div>
+      <ul>
+        <li><kbd class="item">Turbine Control Block</kbd> (MTE 28109) front wall center (y2) &mdash; right-click chat readout (RPM, stages, rotor health, propellant burn, EU) + the redstone cycle input; it sits on the OUTPUT MANIFOLD's back face, where a redstone line can actually reach it <span class="tcq">0.17.0</span></li>
+        <li><kbd class="item">Turbine Rotor</kbd> items <span class="qty">&times;8</span> &mdash; right-click into each stage housing; 10 durability <span class="tcq">0.17.0</span></li>
+        <li>Fewer stages work &mdash; output scales with the stage count</li>
+      </ul>
+    </div>
+  </div>
+  <h4>Output (as implemented, 0.16.0)</h4>
+  <div class="formula">EU/t = steam L/t &times; speed &times; eff &times; (1 + 0.75 &times; stages) / 2
+       <span class="c">clamped to summed dynamo capacity (GT detonates past it) and &lt; 2&sup3;&sup1;</span></div>
+  <p class="dim">The Turbine Generator takes precedence over a docked Turbine Hall. Fully optimized T5 (201 naquadah pillars, all-riding spine, redline RPM, 8 fresh rotors) peaks ~1.10B EU/t and averages ~1.05B across the decay sawtooth &mdash; on the settled ~1B ceiling, above the retired hall's 991M.</p>
+  <h4>RPM model <span class="badge b-tc">0.17.0</span></h4>
+  <p>Cycles become redstone-triggered: a rising edge on the Turbine Control Block starts a cycle &mdash; consuming one slug of buffered steam (20 &times; L/t), opening the &plusmn;2t injector window and burning the timed litres. <strong>Fan RPM is the central variable:</strong></p>
+  <div class="formula">RPM gain = 176 &times; P &times; (timed / 8)        RPM decays 0.5% per tick toward 0 (redline 12,000)
+Equilibrium at 1 cycle/second, all 8 timed:  Lv 6 ~11,996 (redline) | Lv 3 ~9,227 | Benzene ~2,307
+EU/t     = L/t &times; eff &times; (RPM / 1000) &times; avgRotorFactor &times; stages / 8
+coolant  = ceil(200 &times; (RPM/1000)&sup2; / Q) per tick</div>
+  <ul>
+    <li>Higher pulse frequency = more propellant per minute = higher sustained RPM. Pulsing faster than steam production = missed cycles (propellant still burned, no gain).</li>
+    <li><strong>No redstone clock = RPM decays to zero = no output.</strong> The Spine Sensor echoes each <em>accepted</em> cycle as its confirmation pulse.</li>
+    <li><strong>Rotors wear like plane turbines:</strong> each second, damage chance proportional to RPM/redline (hours at full tilt). Every chip hurts &mdash; stage factor 1.0 minus 5% per damage point; at 10 the rotor <strong>shatters</strong> (item destroyed, stage dead until replaced).</li>
+  </ul>
+
+  <!-- ------------------------------------------------ 3.6 TOWERS -->
+  <h3 id="towers"><span class="num">3.6</span>Cooling Towers <span class="badge b-opt">Module &middot; up to 2</span></h3>
+  <p>Separate module machines (<kbd class="item">Plant Module &mdash; Cooling Tower</kbd>, MTE 28105) docking on the NW <span class="mono">{8,1}</span> and SW <span class="mono">{8,48}</span> markers. Each is a 17&times;17&times;20 hyperboloid (base r7.5, waist r4.6 at 62% height, top r5.6), body NW <span class="mono">a 0..16, c 0..16</span> / SW <span class="mono">a 0..16, c 33..49</span>. Passive once formed; undocked, inert.</p>
+  <div class="parts">
+    <div class="col req">
+      <div class="col-h">Required (per tower)</div>
+      <ul>
+        <li>Module controller on the dock marker, <strong>facing away</strong> from the tower body <span class="qty">&times;1</span></li>
+        <li>Solid Steel Machine Casing base ring <span class="qty">30&ndash;46</span></li>
+        <li>Light Concrete hyperboloid shell <span class="qty">500&ndash;700</span></li>
+        <li>Maintenance Hatch in the base ring <span class="qty">&times;1</span></li>
+      </ul>
+    </div>
+    <div class="col opt">
+      <div class="col-h">Effects (stack per tower)</div>
+      <ul>
+        <li>Feedwater draw <span class="qty">&times;0.5</span> (both towers: quarter draw)</li>
+        <li>Passive heat decay <span class="qty">&times;2</span></li>
+        <li>Decay-heat water demand <span class="qty">&times;0.5</span></li>
+        <li><strong>Two towers = post-shutdown cooling fully passive</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ------------------------------------------------ 3.7 HALL -->
+  <h3 id="hall"><span class="num">3.7</span>Turbine Hall <span class="badge b-ret">Retired &mdash; museum piece</span></h3>
+  <p class="dim">The original steam-to-EU module (MTE 28104, 5&times;4&times;9 at <span class="mono">a 36..40, c 30..38</span>) and its three turbine fans were retired by the Steam Dynamics ruling &mdash; replaced entirely by the rod-cascade &rarr; Spine &rarr; Spiral &rarr; Turbine Generator chain. Recipes are removed; existing halls and fans keep working as museum pieces until a later breaking release, and the Turbine Generator takes precedence when both exist. Its K/T/P fan-coolant-propellant multipliers live on in the new chain.</p>
+</section>
+
+<!-- ============================================================ 4 FUEL -->
+<section id="fuel">
+  <h2><span class="num">4</span>Fuel &amp; Ladders</h2>
+
+  <h3>Fuel rods (the cascade ladder)</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Rod</th><th>Mult</th><th>Steam per column (full throttle)</th><th>Sourcing</th></tr></thead>
+    <tbody>
+      <tr><td><kbd class="item">Fuel Rod (Uranium)</kbd></td><td class="n">&times;1</td><td class="n">16,384 L/t</td><td>4 uranium pellets in platinum cladding (EV assembler)</td></tr>
+      <tr><td><kbd class="item">Fuel Rod (MOX)</kbd></td><td class="n">&times;2</td><td class="n">32,768 L/t</td><td>MOX pellets (mixer: 1 Pu dust + 8 U dust &rarr; 18) &mdash; the reprocessing payoff</td></tr>
+      <tr><td><kbd class="item">Thorium-Bonded Fuel Rod</kbd></td><td class="n">&times;5</td><td class="n">81,920 L/t</td><td>U rod + 3 thorium dust + Rh-Pd plate (LuV assembler)</td></tr>
+      <tr><td><kbd class="item">Naquadah-Bonded Fuel Rod</kbd></td><td class="n">&times;9</td><td class="n">147,456 L/t</td><td>U rod + 3 enriched naq dust + U-235 + iridium plate (ZPM assembler)</td></tr>
+    </tbody>
+  </table></div>
+  <div class="formula">Plant steam L/t = live columns &times; 16,384 &times; mult &times; N/24
+<span class="c">T5 example: 201 columns, all naq-bonded, full throttle = 29,638,656 L/t before the Spine</span></div>
+  <ul>
+    <li>Depleted rods exit the output bus; centrifuge them back into uranium / thorium / naquadah / plutonium (a third of the assembly yields).</li>
+    <li>Classic <strong>fuel assemblies</strong> (3 rods each) still run from the input bus at the 50% fallback penalty; depleted assemblies reprocess with full yields.</li>
+    <li><kbd class="item">Nuclear Waste Water</kbd> is emitted alongside &mdash; distill 8,000&nbsp;L into 7,200&nbsp;L distilled water + tantalum (the profit anchor).</li>
+  </ul>
+
+  <h3>Propellant ladder (Spiral injectors; stage factor P, all-8-timed)</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Propellant</th><th>P</th><th>Notes / sourcing</th></tr></thead>
+    <tbody>
+      <tr><td><kbd class="item">Benzene</kbd></td><td class="n">1.25</td><td>entry</td></tr>
+      <tr><td><kbd class="item">High Octane Gasoline</kbd></td><td class="n">1.5</td><td></td></tr>
+      <tr><td><kbd class="item">H8N4C2O4 Rocket Fuel</kbd></td><td class="n">2.0</td><td>"the best rocket fuel" (GT++)</td></tr>
+      <tr><td><kbd class="item">Naquadah Propellant Lv 1</kbd></td><td class="n">3.0</td><td>mixer (LuV): light naquadah fuel + enriched naq dust &rarr; 250 L</td></tr>
+      <tr><td><kbd class="item">Naquadah Propellant Lv 2</kbd></td><td class="n">4.0</td><td>mixer (ZPM): naq fuel Mk I + enriched naq dust &rarr; 250 L</td></tr>
+      <tr><td><kbd class="item">Naquadah Propellant Lv 3</kbd></td><td class="n">5.0</td><td><strong>knee of the curve</strong> &mdash; mixer (UV): naq fuel Mk III + adamantium dust</td></tr>
+      <tr><td><kbd class="item">Naquadah Propellant Lv 4</kbd></td><td class="n">5.5</td><td>linear from here &mdash; mixer (UHV): naq fuel Mk IV + adamantium dust</td></tr>
+      <tr><td><kbd class="item">Naquadah Propellant Lv 5</kbd></td><td class="n">6.0</td><td>deliberately &mdash; mixer (UEV): naq fuel Mk V + infinity dust</td></tr>
+      <tr><td><kbd class="item">Naquadah Propellant Lv 6</kbd></td><td class="n">6.5</td><td>"not worth it really" (UMV) &mdash; mixer (UIV): naq fuel Mk VI + infinity dust</td></tr>
+    </tbody>
+  </table></div>
+  <p class="dim">The slug boost uses the <strong>lowest</strong> propellant among the timed injectors &mdash; mixed grades are penalized to the worst litre.</p>
+
+  <h3>Coolant ladder (Spiral chamber; quality Q)</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Coolant</th><th>Q</th><th>Drain at v = 10 (example)</th></tr></thead>
+    <tbody>
+      <tr><td><kbd class="item">Water</kbd></td><td class="n">1</td><td class="n">20,000 L/t</td></tr>
+      <tr><td><kbd class="item">Distilled Water</kbd></td><td class="n">1.5</td><td class="n">13,334 L/t</td></tr>
+      <tr><td><kbd class="item">IC2 Coolant</kbd></td><td class="n">4</td><td class="n">5,000 L/t</td></tr>
+      <tr><td><kbd class="item">Super Coolant</kbd></td><td class="n">12</td><td class="n">1,667 L/t</td></tr>
+      <tr><td><kbd class="item">Liquid Cryotheum</kbd></td><td class="n">40</td><td class="n">500 L/t</td></tr>
+      <tr><td><kbd class="item">Tachyon Rich Temporal Fluid</kbd></td><td class="n">160</td><td class="n">125 L/t</td></tr>
+    </tbody>
+  </table></div>
+  <div class="formula">coolant L/t = ceil(200 &times; v&sup2; / Q)      <span class="c">v = spine speed &times; injector boost; the chamber drinks the best coolant it finds first</span></div>
+</section>
+
+<!-- ============================================================ 5 SAFETY -->
+<section id="safety">
+  <h2><span class="num">5</span>Safety Systems</h2>
+  <p>Core heat runs on one scale: passive decay is 2 heat/tick (doubled per Cooling Tower). Two thresholds matter, and two more failure modes live downstream.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Event</th><th>Trigger</th><th>Consequence</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong class="accent">SCRAM</strong></td>
+        <td class="mono">heat &ge; 8,000</td>
+        <td>Critical shutdown &mdash; <em>"core overheat &mdash; re-enable the reactor to restart"</em>. The campaign is lost; heat must fall before restart is sane.</td>
+      </tr>
+      <tr>
+        <td><strong style="color:var(--red)">MELTDOWN</strong></td>
+        <td class="mono">heat &ge; 10,000</td>
+        <td>Core destroyed: vertical detonation plus a lingering <strong>radiation field</strong> (30 minutes, centered at silo mid-depth behind the controller). Both honor config toggles. <em>"The site is irradiated."</em></td>
+      </tr>
+      <tr>
+        <td><strong style="color:var(--red)">SEIZURE</strong></td>
+        <td>Spiral coolant starvation</td>
+        <td>Starved chamber gains <span class="mono">ceil(v&sup2;)&times;3</span> heat/s; at SCRAM heat the rotors seize &mdash; the Spine's four Turbine Housings are <strong>destroyed</strong> and the plant slams shut.</td>
+      </tr>
+      <tr>
+        <td><strong style="color:var(--red)">BLOWOUT</strong></td>
+        <td>Propellant on a non-TDA fan</td>
+        <td>Legacy Turbine Hall failure &mdash; destroyed the hall's turbine fan. Museum-piece halls can still do it.</td>
+      </tr>
+    </tbody>
+  </table></div>
+
+  <h3>Decay heat &mdash; the shutdown obligation</h3>
+  <p>Every shutdown (clean stop or SCRAM) starts a <strong>20-minute decay-heat window</strong> (24,000 ticks) that demands <strong>64&nbsp;L/t of water</strong>. Starve it and heat climbs toward meltdown even with the reactor off.</p>
+  <ul>
+    <li>Each Cooling Tower halves the decay water demand (floor 8&nbsp;L/t) and doubles passive heat decay.</li>
+    <li><strong>Two towers make post-shutdown cooling fully passive.</strong></li>
+    <li>If the silo is dismantled mid-obligation, the debt is deferred (not waived) until the silo stands again.</li>
+  </ul>
+
+  <h3>Heat sources to watch</h3>
+  <ul>
+    <li><strong>Residual Spine swirl:</strong> <span class="mono">|S|&sup2; &times; 5</span> heat/s while running &mdash; the all-riding CW&times;4 pattern adds a constant 80 heat/s.</li>
+    <li><strong>Missed injections:</strong> +50 heat per wasted litre, capped at 8 per slug (a dumped bucket cannot instantly destroy the plant &mdash; it "only" shoves it toward SCRAM).</li>
+    <li><strong>Spiral starvation:</strong> the superlinear one &mdash; see &sect;3.4. Speed squared, every tick.</li>
+    <li><strong>Rotor shatter</strong> (stage dead until the rotor item is replaced) <span class="badge b-tc">0.17.0</span>.</li>
+  </ul>
+  <div class="warn"><strong>Dynamo discipline:</strong> the Turbine Generator clamps its EU to the summed dynamo capacity before injecting &mdash; GregTech detonates a multiblock whose dynamos are overfed. Size your dynamo hatches for the output you are chasing.</div>
+</section>
+
+<!-- ============================================================ 6 REFERENCE -->
+<section id="reference">
+  <h2><span class="num">6</span>Reference Tables</h2>
+  <p>Every machine, block, item and fluid the addon registers, with crafting hints. MTE IDs assume the default base 28100 (configurable).</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Entry</th><th>ID / Type</th><th>Role</th><th>Crafting hint</th></tr></thead>
+    <tbody>
+      <tr class="group-row"><td colspan="4">Controllers &amp; hatches</td></tr>
+      <tr>
+        <td><kbd class="item">Nuclear Plant Foundation</kbd></td><td class="mono">MTE 28100</td>
+        <td>Unit One main station &mdash; platform + silo + Spine + Spiral + Turbine Generator</td>
+        <td>Assembler (IV): Radiation-Proof Casing + 4&times; IV circuit + 2&times; dense lead plate + 8&times; TS plate + 8&times; tungsten rod + 2&times; iridium plate + 2&times; Rh-Pd plate + molten platinum</td>
+      </tr>
+      <tr>
+        <td><kbd class="item">Extraction Platform</kbd></td><td class="mono">MTE 28102</td>
+        <td>Standalone IV-entry miner (uraninite/thorium/tantalum front end)</td>
+        <td>Assembler (EV): 8&times; stainless plate + 4&times; steel frame + 2&times; EV circuit, prog. 4</td>
+      </tr>
+      <tr>
+        <td><kbd class="item">Enrichment Train</kbd></td><td class="mono">MTE 28103</td>
+        <td>Standalone IV-entry pellet line</td>
+        <td>Assembler (EV): 8&times; stainless plate + 2&times; stainless pipe + 2&times; EV circuit, prog. 5</td>
+      </tr>
+      <tr>
+        <td><kbd class="item">Plant Module &mdash; Turbine Hall</kbd> <span class="badge b-ret">Retired</span></td><td class="mono">MTE 28104</td>
+        <td>Museum piece &mdash; replaced by the Steam Dynamics chain</td>
+        <td>Recipe removed (existing machines keep working)</td>
+      </tr>
+      <tr>
+        <td><kbd class="item">Plant Module &mdash; Cooling Tower</kbd></td><td class="mono">MTE 28105</td>
+        <td>Condensate return / heat decay module (&sect;3.6)</td>
+        <td>Assembler (EV): 8&times; stainless plate + 4&times; stainless pipe + 2&times; EV circuit, prog. 6</td>
+      </tr>
+      <tr>
+        <td><kbd class="item">Precision Injector</kbd></td><td class="mono">MTE 28106</td>
+        <td>16&nbsp;L propellant port; tick-stamps every litre (&sect;3.4)</td>
+        <td>Assembler (IV): IV Electric Pump + 2&times; TS plate + Rh-Pd plate + IV circuit, prog. 10</td>
+      </tr>
+      <tr>
+        <td><kbd class="item">Spine Sensor</kbd></td><td class="mono">MTE 28107</td>
+        <td>2-tick redstone pulse per steam slug &mdash; the timing reference</td>
+        <td>Assembler (EV): Activity Detector cover + 2&times; TS plate + 2&times; EV circuit, prog. 10</td>
+      </tr>
+      <tr>
+        <td><kbd class="item">Silo Control Block</kbd> <span class="badge b-tc">TC &mdash; 0.17.0</span></td><td class="mono">MTE 28108</td>
+        <td>Reactor panel GUI in the silo face (tier, cascade, heat, decay, radiation)</td>
+        <td class="dim">new in 0.17.0</td>
+      </tr>
+      <tr>
+        <td><kbd class="item">Turbine Control Block</kbd> <span class="badge b-tc">TC &mdash; 0.17.0</span></td><td class="mono">MTE 28109</td>
+        <td>Turbine panel GUI + redstone cycle input (&sect;3.5)</td>
+        <td class="dim">new in 0.17.0</td>
+      </tr>
+
+      <tr class="group-row"><td colspan="4">Structure blocks</td></tr>
+      <tr>
+        <td><kbd class="item">Reactor Fuel Pillar Frame</kbd></td><td class="mono">block</td>
+        <td>8-segment cascade pillar with fill-level states; breaking a fueled frame ejects its rods</td>
+        <td>Assembler (EV): 4&times; stainless plate + stainless pipe + 2&times; platinum foil, prog. 3 &rarr; 2</td>
+      </tr>
+      <tr>
+        <td><kbd class="item">Rod Loading Port</kbd></td><td class="mono">block + TE</td>
+        <td>Pillar-top insert: 4-slot buffer, hopper / AE2 / right-click</td>
+        <td>Assembler (EV): pillar frame + 2&times; stainless plate + EV Robot Arm, prog. 8</td>
+      </tr>
+      <tr>
+        <td><kbd class="item">Turbine Housing</kbd></td><td class="mono">block</td>
+        <td>Spine rotor socket (right-click toggles CW/ACW) and Turbine Generator stage socket</td>
+        <td>Assembler (IV): 4&times; TS plate + 2&times; TS long rod + Rh-Pd plate + molten Pt, prog. 9 &rarr; 2</td>
+      </tr>
+      <tr>
+        <td><kbd class="item">Turbine Rotor</kbd> <span class="badge b-tc">TC &mdash; 0.17.0</span></td><td class="mono">item</td>
+        <td>Placeable stage rotor; 10 durability, &minus;5% stage eff per damage point, shatters at 10</td>
+        <td class="dim">new in 0.17.0</td>
+      </tr>
+
+      <tr class="group-row"><td colspan="4">Fuel chain items</td></tr>
+      <tr>
+        <td><kbd class="item">Fuel Pellet (Uranium)</kbd></td><td class="mono">item</td><td>Base fissile unit</td>
+        <td>Assembler (HV): 1&times; uranium dust, prog. 2 &rarr; 2 pellets</td>
+      </tr>
+      <tr>
+        <td><kbd class="item">Fuel Pellet (MOX)</kbd></td><td class="mono">item</td><td>Reprocessing payoff (&times;2 fuel)</td>
+        <td>Mixer (IV): 1&times; plutonium dust + 8&times; uranium dust &rarr; 18 pellets</td>
+      </tr>
+      <tr>
+        <td><kbd class="item">Fuel Rod (Uranium / MOX)</kbd></td><td class="mono">item</td><td>Cascade fuel, &times;1 / &times;2</td>
+        <td>Assembler (EV/IV): 4 pellets + 2&times; Pt plate + 4&times; Pt foil</td>
+      </tr>
+      <tr>
+        <td><kbd class="item">Thorium-Bonded Fuel Rod</kbd></td><td class="mono">item</td><td>Cascade fuel, &times;5</td>
+        <td>Assembler (LuV): U rod + 3&times; thorium dust + Rh-Pd plate + molten Pt, prog. 7</td>
+      </tr>
+      <tr>
+        <td><kbd class="item">Naquadah-Bonded Fuel Rod</kbd></td><td class="mono">item</td><td>Cascade fuel, &times;9 &mdash; the top rod</td>
+        <td>Assembler (ZPM): U rod + 3&times; enriched naq dust + U-235 dust + iridium plate + molten naquadah, prog. 7</td>
+      </tr>
+      <tr>
+        <td><kbd class="item">Fuel Assemblies</kbd> (U / MOX / Th / Naq)</td><td class="mono">item</td><td>3 rods each; bus-fallback fuel at 50% output</td>
+        <td>Assembler (IV&ndash;ZPM): 3 rods + 2&times; Rh-Pd plate (+ iridium / dusts per tier) + molten Pt or naq</td>
+      </tr>
+      <tr>
+        <td><kbd class="item">Depleted rods &amp; assemblies</kbd></td><td class="mono">item</td><td>Cascade / campaign exhaust</td>
+        <td>Centrifuge back into uranium, thorium/naquadah, plutonium, lead (+ platinum foil chances)</td>
+      </tr>
+      <tr>
+        <td><kbd class="item">Turbine Fans</kbd> (Matched / TDA / Optimized) <span class="badge b-ret">Retired</span></td><td class="mono">item</td><td>Turbine Hall fans &mdash; museum items</td>
+        <td>Recipes removed</td>
+      </tr>
+
+      <tr class="group-row"><td colspan="4">Fluids</td></tr>
+      <tr>
+        <td><kbd class="item">Nuclear Waste Water</kbd></td><td class="mono">fluid</td><td>Reactor byproduct</td>
+        <td>Distillation tower: 8,000&nbsp;L &rarr; 7,200&nbsp;L distilled water + tantalum small dust</td>
+      </tr>
+      <tr>
+        <td><kbd class="item">Naquadah Propellant Lv 1&ndash;6</kbd></td><td class="mono">fluid</td><td>Injector propellants, P 3.0&ndash;6.5 (&sect;4)</td>
+        <td>Mixer (LuV&ndash;UIV): GoodGenerator naquadah fuels (light / Mk I / III / IV / V / VI) + enriched-naq / adamantium / infinity dusts &rarr; 250&nbsp;L</td>
+      </tr>
+    </tbody>
+  </table></div>
+</section>
+
+</main>
+
+<footer>
+  UNIT ONE OPERATIONS MANUAL &middot; beyondthestars 0.16.0 &middot; generated from docs/steam-dynamics.md, docs/plant-unit-one.md, docs/plant-geometry.md and in-game tooltips &middot; entries marked <span class="badge b-tc">0.17.0</span> describe the Turbine Control ruling not yet implemented in this build
+</footer>
+
+</div>
+</body>
+</html>

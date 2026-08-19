@@ -36,6 +36,7 @@ public final class BTSItems {
     public static Item turbineFanMatched;
     public static Item turbineFanTDA;
     public static Item turbineFanTDAOptimized;
+    public static Item turbineRotor;
 
     private BTSItems() {}
 
@@ -148,5 +149,14 @@ public final class BTSItems {
             .setMaxStackSize(1)
             .setCreativeTab(TAB);
         GameRegistry.registerItem(turbineFanTDAOptimized, "turbineFanTDAOptimized");
+
+        // TC-4: the gallery stage rotor - wear lives on the item (0-9; shatters at 10).
+        turbineRotor = new Item().setUnlocalizedName("beyondthestars.turbineRotor")
+            .setTextureName("beyondthestars:turbineRotor")
+            .setMaxStackSize(1)
+            .setMaxDamage(10)
+            .setNoRepair()
+            .setCreativeTab(TAB);
+        GameRegistry.registerItem(turbineRotor, "turbineRotor");
     }
 }

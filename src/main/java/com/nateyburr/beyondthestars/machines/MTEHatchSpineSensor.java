@@ -12,10 +12,12 @@ import gregtech.api.metatileentity.implementations.MTEHatch;
 import gregtech.api.render.TextureFactory;
 
 /**
- * Spine Sensor - the Spiral chamber's timing reference. The silo pulses it the tick a steam
- * slug enters the chamber (every 20 ticks while running); the hatch emits a full-strength
- * redstone pulse for 2 ticks on all sides. Lock your injection circuits to this signal:
- * the slug window is +/-2 ticks around the pulse.
+ * Spine Sensor - the chain's confirmation reference. Since TC-3 the plant no longer runs a
+ * free clock: a cycle starts on a redstone rising edge at the Turbine Control Block, and is
+ * ACCEPTED only if a buffered steam slug is there to drink. The silo pulses this hatch on
+ * every accepted cycle, full strength for 2 ticks on all sides; the +/-2 tick injection
+ * window opens on that same edge. Gating injections on this echo is legitimate play - it
+ * saves propellant on cycles that found no steam.
  */
 public class MTEHatchSpineSensor extends MTEHatch {
 
@@ -29,9 +31,9 @@ public class MTEHatchSpineSensor extends MTEHatch {
             aNameRegional,
             4,
             0,
-            new String[] { "Emits a 2-tick redstone pulse when a steam slug enters the Spiral",
-                "One slug every 20 ticks while the reactor runs - lock your timing circuit to it",
-                "The injection window is +/-2 ticks around the pulse" });
+            new String[] { "Echoes each ACCEPTED turbine cycle with a full-strength 2-tick redstone pulse",
+                "A cycle is accepted when a redstone rising edge on the Turbine Control Block finds a buffered steam slug",
+                "The +/-2 tick injection window opens on that edge - use this echo as the confirmation reference" });
     }
 
     public MTEHatchSpineSensor(String aName, int aTier, String[] aDescription,

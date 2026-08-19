@@ -17,7 +17,7 @@
                                                                              "id:8":  "minecraft:stick"
                                                                          },
                                                     "countAsQuest:1":  1,
-                                                    "desc:8":  "The math, plainly: swirl S starts at 0 and each housing adds +1 (CW) or -1 (CCW). Riding rotors multiply steam speed by 1 + 0.15x|S|; opposing rotors multiply efficiency by 1 + 0.10x|S|; whatever swirl survives the fourth housing enters the spiral chamber as extra heat. CW-CW-CW-CW is a dragster; CW-CCW-CW-CCW is an economist. Retune the train when your goals - or your propellants - change.",
+                                                    "desc:8":  "The math, plainly: swirl S starts at 0 and each housing adds +1 (CW) or -1 (CCW). Riding rotors multiply steam speed by 1 + 0.08x|S|; opposing rotors multiply efficiency by 1 + 0.10x|S|; whatever swirl survives the fourth housing enters the spiral chamber as extra heat. CW-CW-CW-CW is a dragster; CW-CCW-CW-CCW is an economist. Retune the train when your goals - or your propellants - change.",
                                                     "globalShare:1":  1,
                                                     "icon:10":  {
                                                                     "Count:3":  1,

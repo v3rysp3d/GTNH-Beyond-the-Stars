@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit One</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+  body { background: #10151b; color: #cfd8e0; font-family: "Segoe UI", system-ui, sans-serif; }
+  #glcanvas { display: block; width: 100vw; height: 100vh; cursor: grab; }
+  #glcanvas:active { cursor: grabbing; }
+  .hud {
+    position: fixed; top: 14px; left: 14px; background: rgba(13, 18, 24, 0.88);
+    border: 1px solid #2c3947; border-radius: 4px; padding: 14px 16px; max-width: 300px;
+    backdrop-filter: blur(4px);
+  }
+  .hud h1 { font-family: Bahnschrift, "Arial Narrow", sans-serif; font-size: 18px; margin: 0 0 2px;
+    letter-spacing: 0.04em; text-transform: uppercase; color: #e8eef3; }
+  .hud .sub { font-size: 11.5px; color: #8fa0af; margin-bottom: 10px; }
+  .hud label { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 3px 0; cursor: pointer; }
+  .hud .hint { font-size: 11px; color: #74858f; margin-top: 10px; line-height: 1.5; }
+  .tierrow { display: flex; gap: 4px; margin: 4px 0 8px; }
+  .tierrow span { font-size: 12px; color: #8fa0af; align-self: center; margin-right: 4px; }
+  .tierbtn {
+    flex: 1; text-align: center; font-size: 12.5px; padding: 4px 0; cursor: pointer;
+    background: #182028; border: 1px solid #2c3947; border-radius: 3px; color: #9fb0bf;
+    user-select: none;
+  }
+  .tierbtn.on { background: #d9a521; border-color: #d9a521; color: #14181d; font-weight: 600; }
+  .legend {
+    position: fixed; bottom: 14px; left: 14px; background: rgba(13, 18, 24, 0.88);
+    border: 1px solid #2c3947; border-radius: 4px; padding: 10px 14px; font-size: 11px;
+    display: grid; grid-template-columns: auto auto; gap: 2px 16px; backdrop-filter: blur(4px);
+    max-height: 46vh; overflow-y: auto;
+  }
+  .legend .hdr { grid-column: 1 / -1; color: #74858f; text-transform: uppercase; font-size: 9.5px;
+    letter-spacing: 0.08em; margin-top: 4px; }
+  .legend .hdr:first-child { margin-top: 0; }
+  .legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+  .stats {
+    position: fixed; bottom: 14px; right: 14px; background: rgba(13, 18, 24, 0.88);
+    border: 1px solid #2c3947; border-radius: 4px; padding: 10px 14px; font-size: 11.5px;
+    color: #8fa0af; font-variant-numeric: tabular-nums; text-align: right; backdrop-filter: blur(4px);
+    line-height: 1.55;
+  }
+  .stats b { color: #cfd8e0; font-weight: 600; }
+  input[type=checkbox] { accent-color: #d9a521; }
+</style>
+</head>
+<body>
+<canvas id="glcanvas"></canvas>
+<div class="hud">
+  <h1>Unit One</h1>
+  <div class="sub">Beyond the Stars — 50&times;50 platform, canonical layout @ 0.16.0 + TC ruling</div>
+  <div class="tierrow"><span>Tier</span>
+    <div class="tierbtn" data-t="1">1</div>
+    <div class="tierbtn" data-t="2">2</div>
+    <div class="tierbtn on" data-t="3">3</div>
+    <div class="tierbtn" data-t="4">4</div>
+    <div class="tierbtn" data-t="5">5</div>
+  </div>
+  <label><input type="checkbox" id="cutaway"> Cutaway (helix, pillars, rotor bore)</label>
+  <label><input type="checkbox" id="rotate" checked> Auto-orbit</label>
+  <div class="hint">Drag to orbit &middot; wheel to zoom &middot; right-drag to pan.<br>
+  Every voxel is one placeable block. Cutaway strips plain casing from the front halves;
+  sockets, pillars and the helix stay. The retired Turbine Hall renders ghosted.</div>
+</div>
+<div class="legend" id="legend"></div>
+<div class="stats" id="stats"></div>
+<script>
+"use strict";
+// ---------------------------------------------------------------- PRNG + atlas
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const TEX = 16, COLS = 6, ROWS = 4;
+const atlas = document.createElement("canvas");
+atlas.width = TEX*COLS; atlas.height = TEX*ROWS;
+const actx = atlas.getContext("2d");
+function px(tile, x, y, c){ actx.fillStyle = c; actx.fillRect((tile%COLS)*TEX + x, Math.floor(tile/COLS)*TEX + y, 1, 1); }
+function shade(hex, d){
+  const r=Math.min(255,Math.max(0,((hex>>16)&255)+d*255)),
+        g=Math.min(255,Math.max(0,((hex>>8)&255)+d*255)),
+        b=Math.min(255,Math.max(0,(hex&255)+d*255));
+  return `rgb(${r|0},${g|0},${b|0})`;
+}
+function fillTile(tile, base, rng, amt){
+  for (let y=0;y<TEX;y++) for (let x=0;x<TEX;x++) px(tile,x,y,shade(base,(rng()-0.5)*amt));
+}
+function rivets(tile, c){ [[2,2],[13,2],[2,13],[13,13]].forEach(([x,y])=>px(tile,x,y,c)); }
+function border(tile, c){ for(let i=0;i<TEX;i++){ px(tile,i,0,c); px(tile,i,15,c); px(tile,0,i,c); px(tile,15,i,c);} }
+function emblem(tile, dark, light){
+  for (let y=5;y<=10;y++) for (let x=5;x<=10;x++) px(tile,x,y,dark);
+  for (let y=7;y<=8;y++) for (let x=7;x<=8;x++) px(tile,x,y,light);
+}
+const R = mulberry32(1337);
+
+// Block ids -> atlas tiles. Colors are the geometry doc's mockup legend.
+// 0 lightConcrete 1 shieldTS   2 iridiumTS  3 radProof   4 europium  5 radiantNaq
+// 6 solidSteel    7 ttCasing   8 stainless  9 fuelColumn 10 rodPort  11 housing/stage
+// 12 energy      13 dynamo    14 injector  15 sensor    16 control  17 maintenance
+// 18 inputHatch  19 outputHatch 20 inputBus 21 outputBus 22 glass   23 steelPipe
+// ghost ids (retired hall): 24 stainless, 25 ttCasing, 26 glass, 27 steelPipe
+fillTile(0, 0x9aa0a2, R, 0.055); border(0, "rgb(122,128,131)");
+fillTile(1, 0x9d8f6f, R, 0.045); border(1, "rgb(122,110,84)"); rivets(1, "rgb(84,74,55)");
+fillTile(2, 0xb0a180, R, 0.040); border(2, "rgb(140,127,98)"); rivets(2, "rgb(100,90,66)");
+fillTile(3, 0x8a8f5a, R, 0.040); border(3, "rgb(104,109,66)"); rivets(3, "rgb(60,64,38)");
+fillTile(4, 0x7a9b6a, R, 0.040); border(4, "rgb(94,122,80)"); rivets(4, "rgb(58,80,48)");
+fillTile(5, 0x6a5a9b, R, 0.040); border(5, "rgb(80,66,122)"); rivets(5, "rgb(48,38,78)");
+fillTile(6, 0x5d6b78, R, 0.040); border(6, "rgb(70,81,92)");  rivets(6, "rgb(38,46,54)");
+fillTile(7, 0x4a6d99, R, 0.040); border(7, "rgb(56,84,120)"); rivets(7, "rgb(30,48,72)");
+fillTile(8, 0xb8bfc4, R, 0.035); border(8, "rgb(150,157,162)"); rivets(8, "rgb(120,127,132)");
+fillTile(9, 0x3c4448, R, 0.03); for(let y=1;y<15;y++){px(9,7,y,"rgb(118,196,78)");px(9,8,y,"rgb(155,224,112)");}
+fillTile(10, 0x5d6b78, R, 0.04); border(10, "rgb(70,81,92)"); for(let y=5;y<=10;y++) for(let x=5;x<=10;x++) px(10,x,y,"rgb(118,196,78)"); for(let y=7;y<=8;y++) for(let x=7;x<=8;x++) px(10,x,y,"rgb(60,110,40)");
+fillTile(11, 0x4a86c8, R, 0.04); border(11, "rgb(52,100,152)"); for(let i=2;i<14;i++){px(11,i,i,"rgb(34,66,104)");px(11,15-i,i,"rgb(34,66,104)");}
+fillTile(12, 0xd9a521, R, 0.035); border(12, "rgb(170,128,20)"); emblem(12, "rgb(120,90,14)", "rgb(255,222,120)");
+fillTile(13, 0xd94a21, R, 0.035); border(13, "rgb(168,54,22)"); emblem(13, "rgb(120,38,14)", "rgb(255,150,110)");
+fillTile(14, 0x21b8d9, R, 0.035); border(14, "rgb(22,142,168)"); emblem(14, "rgb(12,100,120)", "rgb(160,240,255)");
+fillTile(15, 0xd921b8, R, 0.035); border(15, "rgb(168,22,142)"); emblem(15, "rgb(120,12,100)", "rgb(255,160,240)");
+fillTile(16, 0xe8e8e8, R, 0.03);  border(16, "rgb(178,182,186)"); for(let y=4;y<=8;y++) for(let x=3;x<=12;x++) px(16,x,y,"rgb(38,52,66)"); for(let x=4;x<=8;x++) px(16,x,5,"rgb(90,200,140)");
+fillTile(17, 0xc87a4a, R, 0.035); border(17, "rgb(156,94,56)"); emblem(17, "rgb(110,64,36)", "rgb(255,190,150)");
+fillTile(18, 0x3f8fd2, R, 0.035); border(18, "rgb(48,110,162)"); emblem(18, "rgb(30,76,114)", "rgb(150,210,255)");
+fillTile(19, 0xd2763f, R, 0.035); border(19, "rgb(162,90,48)"); emblem(19, "rgb(114,62,30)", "rgb(255,190,140)");
+fillTile(20, 0x7fb2e0, R, 0.035); border(20, "rgb(98,140,178)"); for(let y=4;y<=11;y+=3) for(let x=4;x<=11;x++) px(20,x,y,"rgb(50,84,116)");
+fillTile(21, 0xe0a67f, R, 0.035); border(21, "rgb(178,128,96)"); for(let y=4;y<=11;y+=3) for(let x=4;x<=11;x++) px(21,x,y,"rgb(120,80,52)");
+fillTile(22, 0x9fc4d8, R, 0.02);  border(22, "rgb(140,170,188)");
+fillTile(23, 0x8d9499, R, 0.04);  for(let x=0;x<TEX;x++){px(23,x,3,"rgb(108,115,120)");px(23,x,12,"rgb(108,115,120)");}
+
+const TILE_OF = id => id===24?8 : id===25?7 : id===26?22 : id===27?23 : id;
+const TRANS = new Set([22,24,25,26,27]);
+const ALPHA_OF = id => id===22?0.55 : id===26?0.18 : TRANS.has(id)?0.25 : 1.0;
+// Plain structure the cutaway may strip (sockets/pillars/ports/controls always stay).
+const PLAIN = new Set([0,1,2,3,4,5,6,7,8]);
+
+const LEGEND = [
+  ["hdr","Structure"],
+  ["#9aa0a2","Light Concrete"], ["#9d8f6f","TS-Reinforced shield"],
+  ["#b0a180","Iridium TS shield (t3+)"], ["#8a8f5a","Radiation-Proof casing"],
+  ["#7a9b6a","Europium-Reinforced (t3-4)"], ["#6a5a9b","Radiant Naquadah (t5)"],
+  ["#5d6b78","Solid Steel (markers)"], ["#4a6d99","TT Turbine Casing"],
+  ["#76c44e","Fuel pillar frame"], ["#5d6b78","Rod Loading Port ▓"],
+  ["#4a86c8","Turbine Housing / stage"], ["#b8bfc4","Stainless (hall, ghost)"],
+  ["hdr","TC-1 sockets"],
+  ["#d9a521","Energy hatch"], ["#d94a21","Dynamo hatch"],
+  ["#21b8d9","Precision Injector"], ["#d921b8","Spine Sensor"],
+  ["#e8e8e8","Control blocks"], ["#c87a4a","Maintenance"],
+  ["#3f8fd2","Input Hatch"], ["#d2763f","Output Hatch"],
+  ["#7fb2e0","Input Bus"], ["#e0a67f","Output Bus"],
+];
+document.getElementById("legend").innerHTML = LEGEND.map(([c,name])=>
+  c==="hdr" ? `<span class="hdr">${name}</span>`
+            : `<span><span class="sw" style="background:${c}"></span>${name}</span>`).join("");
+
+// ---------------------------------------------------------------- world
+// Platform frame: a = 0..49 (x), c = 0..49 (z, 0 = front), y = -1..41 (floor at -1).
+const W=50, D=50, YMIN=-1, YMAX=41, H=YMAX-YMIN+1;
+const world = new Uint8Array(W*H*D);
+const group = new Uint8Array(W*H*D);
+const idx = (a,y,c)=> a + c*W + (y-YMIN)*W*D;
+function get(a,y,c){ if(a<0||c<0||y<YMIN||a>=W||c>=D||y>YMAX) return 0; return world[idx(a,y,c)]; }
+
+// --- geometry constants straight from MTEReactorCoreMk1 / docs/plant-geometry.md
+const CUT = [0,2,2,3,3,4];
+const edgeFor = t => 7 + 2*t;
+const insideOct = (n,k,r,x)=> Math.min(r,n-1-r)+Math.min(x,n-1-x) >= k;
+const interiorCell = (n,k,r,x)=> r>=1 && r<=n-2 && x>=1 && x<=n-2 && Math.min(r,n-1-r)+Math.min(x,n-1-x) >= k+1;
+const DOCKS = [[38,30],[8,1],[8,48],[40,8],[40,42],[25,43],[10,25],[25,7]]; // {a,c}
+// Groups: 0 platform, 1 silo, 2 spine, 3 spiral, 4 turbine gen, 5 towers, 6 hall(ghost)
+let curTier = 3, cutawayOn = false;
+
+function cutCell(a,y,c,id,n){
+  if (!cutawayOn || !PLAIN.has(id)) return false;
+  const h = n>>1, mid = 17+h;
+  // Silo incl. ribs + dome: strip the front half (mid row kept as the section face).
+  if (y>=0 && c>=16 && c<mid && a>=24-h && a<=26+h) return true;
+  // Spine duct: strip the front wall row.
+  if (c===16+h && y>=0 && y<=2 && a>=27+h && a<=42) return true;
+  if (a>=43 && a<=49){
+    // Spiral: strip front wall + roof plate (sensor/injectors are sockets - they stay).
+    if (c===14+h && y>=1 && y<=10) return true;
+    if (y===11 && c>=14+h && c<=20+h) return true;
+    // Gallery + manifold: strip everything from the top slab up.
+    if (c>=21+h && c<=38+h && y>=4) return true;
+  }
+  return false;
+}
+
+function set(a,y,c,id,grp){
+  a|=0;y|=0;c|=0;
+  if(a<0||c<0||y<YMIN||a>=W||c>=D||y>YMAX) return;
+  if (cutCell(a,y,c,id,edgeFor(curTier))) { world[idx(a,y,c)]=0; group[idx(a,y,c)]=0; return; }
+  world[idx(a,y,c)] = id+1; group[idx(a,y,c)] = grp+1;
+}
+
+// --- platform (mandatory): floor y=-1 (concrete + max-tier shield pad + dock markers)
+function buildPlatform(){
+  const n = edgeFor(5), k = CUT[5], origin = 25 - (n>>1); // pad octagon a,c 17..33
+  for (let a=0;a<W;a++) for (let c=0;c<D;c++){
+    const lr=c-origin, lx=a-origin;
+    const pad = lr>=0 && lx>=0 && lr<n && lx<n && insideOct(n,k,lr,lx);
+    set(a,-1,c, pad?1:0, 0);
+  }
+  for (const [da,dc] of DOCKS) set(da,-1,dc, 6, 0); // flush Solid Steel markers
+}
+
+// --- Steam Generator silo (front-anchored octagon, tier walls, bands, ribs, dome, TC-1 panel)
+function buildSilo(t){
+  const n=edgeFor(t), k=CUT[t], h=n>>1, wallH=2*n, domeH=n>>1;
+  const wallId = t>=5?5 : t>=3?4 : 3;      // RadiantNaq / Europium / RadProof
+  const shieldId = t>=3?2:1;               // Iridium TS / TS-Reinforced
+  const bandYs = new Set([2, n+4, wallH-2]); // bottom-up layer i; world y = i-1
+  const A = a=>25+a-h, C = r=>17+r;        // octagon local -> platform coords
+  // TC-1 face panel (a 23..27 = x h-2..h+2 on front row r=0):
+  const panel = {0:{[-2]:18,[-1]:17,[0]:16,[1]:19,[2]:18},   // in,maint,MAIN CTRL,out,in
+                 1:{[-2]:12,[-1]:12,[0]:16,[1]:12,[2]:12},   // energy x4 + SILO CONTROL BLOCK
+                 2:{[-2]:20,[2]:21}};                        // input bus / output bus
+  for (let i=1;i<wallH;i++){
+    const y=i-1;
+    const kind = (i>=3&&i<=10) ? "F" : i===11 ? "J" : bandYs.has(i) ? "B" : "P";
+    for (let r=0;r<n;r++) for (let x=0;x<n;x++){
+      if (!insideOct(n,k,r,x)) continue;
+      if (interiorCell(n,k,r,x)){
+        if (kind==="F") set(A(x),y,C(r),9,1);
+        else if (kind==="J") set(A(x),y,C(r),10,1);
+        continue;
+      }
+      let id = kind==="B" ? 3 : wallId;
+      if (r===0 && y<=2){
+        const dx = x-h;
+        if (dx>=-2 && dx<=2 && panel[y] && panel[y][dx]!==undefined) id = panel[y][dx];
+      }
+      set(A(x),y,C(r),id,1);
+    }
+    // 7 buttress ribs, one proud of the wall, front skipped (matches addRibs()).
+    for (const [dr,dx] of [[1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]){
+      let r=h, x=h;
+      while (insideOct(n,k,r+dr,x+dx)) { r+=dr; x+=dx; }
+      set(A(x+dx),y,C(r+dr),wallId,1);
+    }
+  }
+  // Hemispherical shield dome (ring shells, cap on top) - matches domeLayer().
+  const radius=n/2, center=(n-1)/2;
+  for (let yA=1;yA<=domeH;yA++){
+    const y=wallH-2+yA;
+    const rr=Math.sqrt(Math.max(0,radius*radius-yA*yA));
+    const cap = yA>=domeH;
+    for (let r=0;r<n;r++) for (let x=0;x<n;x++){
+      const d=Math.hypot(r-center,x-center);
+      if (cap ? d<=rr+0.4 : Math.abs(d-rr)<=0.75) set(A(x),y,C(r),shieldId,1);
+    }
+  }
+}
+
+// --- The Spine: 3x3 TT duct, tier-length (ends flush at a=42), 4 CW housings in the bore
+function buildSpine(t){
+  const n=edgeFor(t), h=n>>1, len=16-h, a0=27+h, mid=17+h;
+  for (let i=0;i<len;i++) for (let y=0;y<=2;y++) for (let c=mid-1;c<=mid+1;c++){
+    if (y===1 && c===mid){
+      if (i===1||i===3||i===5||i===7) set(a0+i,y,c,11,2); // Turbine Housing (CW)
+      continue; // hollow bore
+    }
+    set(a0+i,y,c,7,2);
+  }
+}
+
+// --- The Spiral: 7x7x12, helix arcs stepping down the 5x5 ring, TC-1 sockets
+function buildSpiral(t){
+  const n=edgeFor(t), h=n>>1, c0=14+h; // rows c0..c0+6, a 43..49, y 0..11
+  const ring=[]; // interior 5x5 ring, clockwise (matches interiorRing())
+  for (let x=1;x<=5;x++) ring.push([1,x]);
+  for (let r=2;r<=5;r++) ring.push([r,5]);
+  for (let x=4;x>=1;x--) ring.push([5,x]);
+  for (let r=4;r>=2;r--) ring.push([r,1]);
+  for (let level=0;level<12;level++){       // top-first: y = 11-level
+    const y=11-level;
+    if (level===0 || level===11){
+      for (let r=0;r<7;r++) for (let x=0;x<7;x++) set(43+x,y,c0+r,7,3);
+      if (level===0) set(46,y,c0,15,3);      // Spine Sensor, roof front-center
+      else { set(43,y,c0,18,3); set(49,y,c0,17,3); } // Input Hatch + Maintenance, floor front corners
+      continue;
+    }
+    for (let r=0;r<7;r++) for (let x=0;x<7;x++){
+      if (r===0||x===0||r===6||x===6) set(43+x,y,c0+r,7,3);
+    }
+    if (level>=1 && level<=8){               // injectors follow the helix around the faces
+      const f=(level-1)%4;                   // back/west/front/east - back-face sockets land
+      if (f===0) set(46,y,c0+6,14,3);        // back   (levels 1,5 -> y 10,6: clear of the
+      else if (f===1) set(43,y,c0+3,14,3);   // west    gallery's 5-tall front wall)
+      else if (f===2) set(46,y,c0,14,3);     // front
+      else set(49,y,c0+3,14,3);              // east
+    }
+    const start=((level-1)*3)%16;            // 5-cell concrete arc, 3 cells advance per level
+    for (let j=0;j<5;j++){
+      const [r,x]=ring[(start+j)%16];
+      set(43+x,y,c0+r,0,3);
+    }
+  }
+}
+
+// --- The Turbine Generator: 7x5x15 rotor gallery + 7x7x3 output manifold (TC-4)
+function buildTurbineGen(t){
+  const n=edgeFor(t), h=n>>1, cB=21+h;      // gallery rows cB..cB+14, manifold cB+15..cB+17
+  for (let cp=0;cp<15;cp++){
+    const c=cB+cp;
+    for (let a=43;a<=49;a++){ set(a,0,c,7,4); set(a,4,c,7,4); }     // slabs
+    for (let y=1;y<=3;y++){
+      set(43,y,c,7,4); set(49,y,c,7,4);                             // side walls
+      if (cp===0) for (let a=44;a<=48;a++) set(a,y,c,7,4);          // front wall
+    }
+  }
+  for (let cp=1;cp<=15;cp+=2) set(46,2,cB+cp,11,4); // 8 rotor stage housings on the centerline
+  // Output manifold: 7 wide x 7 tall x 3 deep, hollow, bore opening in its north face.
+  for (let cp=15;cp<=17;cp++){
+    const c=cB+cp;
+    for (let a=43;a<=49;a++) for (let y=0;y<=6;y++){
+      const boreMouth = cp===15 && a>=44 && a<=48 && y>=1 && y<=3;
+      const interior  = cp===16 && a>=44 && a<=48 && y>=1 && y<=5;
+      if (boreMouth || interior) continue;
+      set(a,y,c,7,4);
+    }
+  }
+  for (const a of [44,45,47,48]) set(a,3,cB+17,13,4); // 4 Dynamo sockets, back face
+  set(46,2,cB+17,16,4);                       // TURBINE CONTROL BLOCK - manifold back face,
+  set(46,1,cB+17,17,4);                       // Maintenance below it (the gallery's front
+                                              // wall is entombed against the Spiral)
+}
+
+// --- Cooling towers: 17x17x20 hyperboloid shells on the corner docks
+function towerRadius(y){
+  const t=y/19, rB=7.5, rW=4.6, rT=5.6, wT=0.62;
+  return t<wT ? rB+(rW-rB)*(t/wT) : rW+(rT-rW)*((t-wT)/(1-wT));
+}
+function buildTowers(){
+  for (let y=0;y<=19;y++){
+    const r=towerRadius(y), id=y===0?6:0;
+    for (let x=0;x<=16;x++) for (let z=0;z<=16;z++){
+      const d=Math.hypot(x-8,z-8);
+      if (d<=r+0.5 && d>=r-0.6){
+        if (!(y===0 && x===8 && z===1)) set(x,y,z,id,5);        // NW, dock {8,1} clear
+        if (!(y===0 && x===8 && z===1)) set(x,y,49-z,id,5);     // SW mirrored, dock {8,48} clear
+      }
+    }
+  }
+}
+
+// --- Retired Turbine Hall (museum): 5x4x9 at a 36..40, c 30..38, ghosted 25%
+function buildHallGhost(){
+  const A=36, C=30;
+  const put=(ap,y,cp,id)=>{ if(!(y===0&&ap===2&&cp===0)) set(A+ap,y,C+cp,id,6); }; // dock {38,30} clear
+  for (let ap=0;ap<5;ap++) for (let cp=0;cp<9;cp++){
+    put(ap,3,cp,24);                                             // roof: stainless
+    put(ap,0,cp,25);                                             // plinth: TT casing
+    // main level y=1
+    if (cp===0||cp===8) put(ap,1,cp,24);
+    else if (ap===0||ap===4) put(ap,1,cp,24);
+    else if (ap===2) put(ap,1,cp,27);                            // pipe run
+    // upper level y=2
+    if (cp===8) put(ap,2,cp,24);
+    else if (cp===0) put(ap,2,cp, ap===0||ap===4 ? 24 : 26);     // SWWWS
+    else if (ap===0||ap===4) put(ap,2,cp,26);                    // glass flanks
+    else if (ap===2) put(ap,2,cp,27);                            // pipe run
+  }
+}
+
+function buildWorld(){
+  world.fill(0); group.fill(0);
+  buildPlatform();
+  buildSilo(curTier);
+  buildSpine(curTier);
+  buildSpiral(curTier);
+  buildTurbineGen(curTier);
+  buildTowers();
+  buildHallGhost();
+}
+
+// ---------------------------------------------------------------- meshing
+const canvas = document.getElementById("glcanvas");
+const gl = canvas.getContext("webgl", { antialias: true });
+const cutawayBox = document.getElementById("cutaway");
+const rotateBox = document.getElementById("rotate");
+
+const FACES = [
+  { d:[1,0,0],  c:[[1,0,0],[1,1,0],[1,1,1],[1,0,1]], b:0.72 },
+  { d:[-1,0,0], c:[[0,0,1],[0,1,1],[0,1,0],[0,0,0]], b:0.72 },
+  { d:[0,1,0],  c:[[0,1,0],[0,1,1],[1,1,1],[1,1,0]], b:1.0 },
+  { d:[0,-1,0], c:[[0,0,0],[1,0,0],[1,0,1],[0,0,1]], b:0.5 },
+  { d:[0,0,1],  c:[[1,0,1],[1,1,1],[0,1,1],[0,0,1]], b:0.84 },
+  { d:[0,0,-1], c:[[0,0,0],[0,1,0],[1,1,0],[1,0,0]], b:0.84 },
+];
+let vertCount=0, opaqueCount=0, buffer=null;
+function buildMesh(){
+  const opq=[], trn=[];
+  for (let y=YMIN;y<=YMAX;y++) for (let c=0;c<D;c++) for (let a=0;a<W;a++){
+    const v = world[idx(a,y,c)];
+    if (!v) continue;
+    const id = v-1, isT = TRANS.has(id);
+    const t = TILE_OF(id);
+    const u0=(t%COLS)/COLS, v0=Math.floor(t/COLS)/ROWS, du=1/COLS, dv=1/ROWS;
+    const alpha = ALPHA_OF(id);
+    const out = isT?trn:opq;
+    for (const f of FACES){
+      const nv = get(a+f.d[0], y+f.d[1], c+f.d[2]);
+      if (nv){
+        const nid = nv-1, nT = TRANS.has(nid);
+        if (!isT && !nT) continue;            // solid against solid: hidden
+        if (!isT && nT) { /* draw */ }
+        else if (isT && !nT) continue;        // ghost face buried in solid
+        else if (isT && nid===id) continue;   // same ghost material: no inner faces
+      }
+      const br = f.b * (0.80 + 0.20*Math.min(1, (y+1)/30));
+      const uv = [[u0,v0+dv],[u0,v0],[u0+du,v0],[u0+du,v0+dv]];
+      for (const qi of [0,1,2, 0,2,3]){
+        const cc=f.c[qi];
+        out.push(a+cc[0], y+cc[1], c+cc[2], uv[qi][0], uv[qi][1], br, alpha);
+      }
+    }
+  }
+  opaqueCount = opq.length/7;
+  vertCount = opaqueCount + trn.length/7;
+  const all = new Float32Array(opq.length+trn.length);
+  all.set(opq,0); all.set(trn,opq.length);
+  if (buffer) gl.deleteBuffer(buffer);
+  buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, all, gl.STATIC_DRAW);
+}
+
+function updateStats(){
+  // Counts always reflect the FULL structure (cutaway is a view, not a demolition).
+  const saved = cutawayOn; cutawayOn = false; buildWorld();
+  const counts = [0,0,0,0,0,0,0];
+  let total = 0;
+  for (let i=0;i<world.length;i++) if (world[i]){ counts[group[i]-1]++; if (group[i]-1!==6) total++; }
+  cutawayOn = saved; if (saved) buildWorld();
+  const n=edgeFor(curTier), k=CUT[curTier];
+  let pillars=0;
+  for (let r=0;r<n;r++) for (let x=0;x<n;x++) if (insideOct(n,k,r,x) && interiorCell(n,k,r,x)) pillars++;
+  document.getElementById("stats").innerHTML =
+    `<b>Tier ${curTier}</b> &middot; ${n}-wide octagon &middot; ${pillars} fuel pillars<br>`+
+    `platform <b>${counts[0].toLocaleString()}</b> &middot; silo <b>${counts[1].toLocaleString()}</b><br>`+
+    `spine <b>${counts[2].toLocaleString()}</b> &middot; spiral <b>${counts[3].toLocaleString()}</b> &middot; turbine gen <b>${counts[4].toLocaleString()}</b><br>`+
+    `towers <b>${counts[5].toLocaleString()}</b> &middot; retired hall (ghost) ${counts[6].toLocaleString()}<br>`+
+    `<b>${total.toLocaleString()}</b> blocks &middot; ${(vertCount/6).toLocaleString()} faces`;
+}
+
+function rebuild(){
+  cutawayOn = cutawayBox.checked;
+  buildWorld();
+  buildMesh();
+  updateStats();
+}
+
+// ---------------------------------------------------------------- GL setup
+const vsSrc = `
+attribute vec3 aPos; attribute vec2 aUV; attribute float aBr; attribute float aAlpha;
+uniform mat4 uMVP; varying vec2 vUV; varying float vBr; varying float vAlpha; varying float vDist;
+void main(){ gl_Position = uMVP * vec4(aPos,1.0); vUV=aUV; vBr=aBr; vAlpha=aAlpha; vDist=gl_Position.w; }`;
+const fsSrc = `
+precision mediump float; uniform sampler2D uTex;
+varying vec2 vUV; varying float vBr; varying float vAlpha; varying float vDist;
+void main(){
+  vec4 c = texture2D(uTex, vUV);
+  vec3 col = c.rgb * vBr;
+  float fog = clamp((vDist-110.0)/320.0, 0.0, 1.0);
+  col = mix(col, vec3(0.063,0.082,0.106), fog);
+  gl_FragColor = vec4(col, vAlpha);
+}`;
+function compile(type, src){ const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s); return s; }
+const prog = gl.createProgram();
+gl.attachShader(prog, compile(gl.VERTEX_SHADER, vsSrc));
+gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fsSrc));
+gl.linkProgram(prog); gl.useProgram(prog);
+const tex = gl.createTexture();
+gl.bindTexture(gl.TEXTURE_2D, tex);
+gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, atlas);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); // NPOT atlas
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+const aPos = gl.getAttribLocation(prog,"aPos"), aUV = gl.getAttribLocation(prog,"aUV"),
+      aBr = gl.getAttribLocation(prog,"aBr"), aAlpha = gl.getAttribLocation(prog,"aAlpha"),
+      uMVP = gl.getUniformLocation(prog,"uMVP");
+gl.enable(gl.DEPTH_TEST); gl.enable(gl.CULL_FACE); gl.cullFace(gl.BACK);
+gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+gl.clearColor(0.063, 0.082, 0.106, 1);
+
+function perspective(fov,aspect,near,far){
+  const f=1/Math.tan(fov/2), nf=1/(near-far);
+  return [f/aspect,0,0,0, 0,f,0,0, 0,0,(far+near)*nf,-1, 0,0,2*far*near*nf,0];
+}
+function lookAt(eye,c,up){
+  let zx=eye[0]-c[0],zy=eye[1]-c[1],zz=eye[2]-c[2];
+  let zl=Math.hypot(zx,zy,zz); zx/=zl;zy/=zl;zz/=zl;
+  let xx=up[1]*zz-up[2]*zy, xy=up[2]*zx-up[0]*zz, xz=up[0]*zy-up[1]*zx;
+  const xl=Math.hypot(xx,xy,xz); xx/=xl;xy/=xl;xz/=xl;
+  const yx=zy*xz-zz*xy, yy=zz*xx-zx*xz, yz=zx*xy-zy*xx;
+  return [xx,yx,zx,0, xy,yy,zy,0, xz,yz,zz,0,
+    -(xx*eye[0]+xy*eye[1]+xz*eye[2]), -(yx*eye[0]+yy*eye[1]+yz*eye[2]), -(zx*eye[0]+zy*eye[1]+zz*eye[2]), 1];
+}
+function mul(a,b){
+  const o=new Array(16);
+  for (let i=0;i<4;i++) for (let j=0;j<4;j++){
+    o[j*4+i]=a[i]*b[j*4]+a[4+i]*b[j*4+1]+a[8+i]*b[j*4+2]+a[12+i]*b[j*4+3];
+  }
+  return o;
+}
+
+// camera
+let yaw = 2.35, pitch = 0.46, dist = 92;
+const target = [25, 9, 25];
+let dragging = 0, lastX = 0, lastY = 0;
+canvas.addEventListener("contextmenu", e=>e.preventDefault());
+canvas.addEventListener("pointerdown", e=>{ dragging = e.button===2?2:1; lastX=e.clientX; lastY=e.clientY; canvas.setPointerCapture(e.pointerId); });
+canvas.addEventListener("pointerup", ()=>dragging=0);
+canvas.addEventListener("pointermove", e=>{
+  if (!dragging) return;
+  const dx=e.clientX-lastX, dy=e.clientY-lastY; lastX=e.clientX; lastY=e.clientY;
+  if (dragging===1){ yaw += dx*0.006; pitch = Math.min(1.45, Math.max(0.05, pitch + dy*0.005)); rotateBox.checked=false; }
+  else {
+    const s = dist*0.0016;
+    target[0] += (-Math.sin(yaw)*dx - Math.cos(yaw)*dy)*s;
+    target[2] += ( Math.cos(yaw)*dx - Math.sin(yaw)*dy)*s;
+    target[1] += dy*s*0.4;
+  }
+});
+canvas.addEventListener("wheel", e=>{ e.preventDefault(); dist = Math.min(300, Math.max(14, dist * (e.deltaY>0?1.09:0.92))); }, {passive:false});
+cutawayBox.addEventListener("change", rebuild);
+document.querySelectorAll(".tierbtn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".tierbtn").forEach(b=>b.classList.remove("on"));
+    btn.classList.add("on");
+    curTier = parseInt(btn.dataset.t, 10);
+    rebuild();
+  });
+});
+
+function resize(){
+  const dpr = Math.min(2, window.devicePixelRatio||1);
+  canvas.width = innerWidth*dpr; canvas.height = innerHeight*dpr;
+  gl.viewport(0,0,canvas.width,canvas.height);
+}
+addEventListener("resize", resize); resize();
+rebuild();
+
+let prev = 0;
+function frame(t){
+  requestAnimationFrame(frame);
+  const dt = Math.min(0.05, (t-prev)/1000); prev = t;
+  if (rotateBox.checked) yaw += dt*0.08;
+  const eye = [
+    target[0] + dist*Math.cos(pitch)*Math.cos(yaw),
+    target[1] + dist*Math.sin(pitch),
+    target[2] + dist*Math.cos(pitch)*Math.sin(yaw)
+  ];
+  const mvp = mul(perspective(0.9, canvas.width/canvas.height, 1, 900), lookAt(eye, target, [0,1,0]));
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.uniformMatrix4fv(uMVP, false, new Float32Array(mvp));
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.vertexAttribPointer(aPos, 3, gl.FLOAT, false, 28, 0);
+  gl.vertexAttribPointer(aUV, 2, gl.FLOAT, false, 28, 12);
+  gl.vertexAttribPointer(aBr, 1, gl.FLOAT, false, 28, 20);
+  gl.vertexAttribPointer(aAlpha, 1, gl.FLOAT, false, 28, 24);
+  gl.enableVertexAttribArray(aPos); gl.enableVertexAttribArray(aUV);
+  gl.enableVertexAttribArray(aBr); gl.enableVertexAttribArray(aAlpha);
+  gl.depthMask(true);
+  gl.drawArrays(gl.TRIANGLES, 0, opaqueCount);
+  if (vertCount > opaqueCount){
+    gl.depthMask(false);
+    gl.drawArrays(gl.TRIANGLES, opaqueCount, vertCount - opaqueCount);
+    gl.depthMask(true);
+  }
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

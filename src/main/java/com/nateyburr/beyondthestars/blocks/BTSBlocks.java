@@ -20,5 +20,6 @@ public final class BTSBlocks {
         GameRegistry.registerTileEntity(TileRodLoadingPort.class, "beyondthestars.rodLoadingPort");
         turbineHousing = new BlockTurbineHousing();
         GameRegistry.registerBlock(turbineHousing, "turbineHousing");
+        GameRegistry.registerTileEntity(TileTurbineHousing.class, "beyondthestars.turbineHousing");
     }
 }

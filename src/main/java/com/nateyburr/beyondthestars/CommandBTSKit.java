@@ -84,12 +84,19 @@ public class CommandBTSKit extends CommandBase {
         give(player, new ItemStack(BTSItems.fuelAssemblyNaqBonded, 64));
         give(player, new ItemStack(BTSItems.uraniumFuelPellet, 64));
 
-        // Spine rotor sockets + gallery stages + Spiral chamber hatches
+        // Spine rotor sockets + gallery stages + Spiral chamber hatches + TC control blocks
         give(player, new ItemStack(BTSBlocks.turbineHousing, 12));
         for (int i = 0; i < 8; i++) {
             give(player, BTSMachines.precisionInjector.copy());
         }
         give(player, BTSMachines.spineSensor.copy());
+        give(player, BTSMachines.siloControlBlock.copy());
+        give(player, BTSMachines.turbineControlBlock.copy());
+
+        // TC-4: one rotor per gallery stage (max stack 1 - wear lives on the item)
+        for (int i = 0; i < 8; i++) {
+            give(player, new ItemStack(BTSItems.turbineRotor, 1));
+        }
 
         // Fans
         give(player, new ItemStack(BTSItems.turbineFanMatched, 1));
@@ -123,7 +130,10 @@ public class CommandBTSKit extends CommandBase {
         tell(player, " - Turbine Hall: ~90x Tungstensteel Turbine Casing, glass, Steel Pipe Casing");
         tell(
             player,
-            " - Steam chain: ~800x Tungstensteel Turbine Casing (duct + spiral chamber + rotor gallery), housings given (right-click sets spin; gallery stages need 8 more)");
+            " - Steam chain: ~800x Tungstensteel Turbine Casing (duct + spiral chamber + rotor gallery + output manifold); the 12 housings given cover the 4 spine sockets + 8 gallery stages - seat a Turbine Rotor (8 given) in every stage");
+        tell(
+            player,
+            " - Control blocks given: Silo Control Block (silo face, above the station) + Turbine Control Block (gallery front; feed it a redstone clock to spin the fan)");
         tell(player, " - Cooling Towers: ~550x Light Concrete + ~40x Solid Steel Casing each");
         tell(player, " - Hatches: energy, maintenance, water in, steam out, input bus, output bus, dynamos");
         tell(

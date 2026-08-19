@@ -17,7 +17,7 @@
                                                                              "id:8":  "minecraft:stick"
                                                                          },
                                                     "countAsQuest:1":  1,
-                                                    "desc:8":  "Speed squared is heat. Coolant drain per tick scales with the SQUARE of steam velocity, divided by coolant quality - and if the chamber starves, the heat climbs until the rotor assembly SEIZES: rotors destroyed, plant down. The ladder, worst to best: Water, Distilled Water, IC2 Coolant, Super Coolant, Liquid Cryotheum, Tachyon Rich Temporal Fluid. Every propellant tier you climb, your coolant logistics must climb with it. The plant does not forgive a cooling loop designed for last month\u0027s speed.",
+                                                    "desc:8":  "RPM squared is heat. Coolant drain per tick is ceil(200 x (RPM/1000)^2 / Q) - quadratic in fan speed, divided by coolant quality - and if the chamber starves, the heat climbs until the turbine SEIZES: the Spine\u0027s rotor housings are torn apart, plant down. The ladder, worst to best: Water, Distilled Water, IC2 Coolant, Super Coolant, Liquid Cryotheum, Tachyon Rich Temporal Fluid. Every propellant tier you climb, your coolant logistics must climb with it. The plant does not forgive a cooling loop designed for last month\u0027s speed.",
                                                     "globalShare:1":  1,
                                                     "icon:10":  {
                                                                     "Count:3":  1,

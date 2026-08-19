@@ -25,7 +25,7 @@
                                                                              "id:8":  "minecraft:stick"
                                                                          },
                                                     "countAsQuest:1":  1,
-                                                    "desc:8":  "The end of the pipe: the LARGE TURBINE ROTOR ASSEMBLY. The spiral chamber\u0027s downcomer feeds a rotor gallery that converts the final flow - litres times velocity times train efficiency - into EU through its dynamos. Rod cascade fed, spine tuned, eight injectors timed, coolant loop scaled: this is where the insane numbers happen. (The old Turbine Hall retires here - its fans and multipliers live on inside this chain.)",
+                                                    "desc:8":  "The end of the pipe: the TURBINE GENERATOR. The spiral chamber\u0027s downcomer feeds a rotor gallery that opens into a 7x7 output manifold, and the dynamos on its back face pay out EU/t = litres x spine speed x efficiency x (RPM/1000) x average rotor condition. Seat a TURBINE ROTOR in each of the eight stage housings - they wear like real blades, and every chip costs 5% of that stage until the rotor shatters at ten. Rod cascade fed, spine tuned, cycles clocked, injectors timed, coolant loop scaled, rotors fresh: this is where the insane numbers happen. (The old Turbine Hall retires here - its fans and multipliers live on inside this chain.)",
                                                     "globalShare:1":  1,
                                                     "icon:10":  {
                                                                     "Count:3":  1,

@@ -1,0 +1,53 @@
+{
+    "preRequisites:9":  {
+
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  0,
+                                                    "desc:8":  "The silo scales with Build Tier: diameter 7+2xT, ribbed walls twice the diameter tall, hemispherical shield dome. Hatches are identical at every tier, socketed in the flat front face around the main station: 4x Energy Hatch, 2x Input Hatch, 1x Output Hatch, 1x Input Bus, 1x Output Bus, 1x Maintenance Hatch, 1x Silo Control Block.\nWALLS + DOME BY TIER:\n- T1 (9 wide): 515x Radiation Proof Machine Casing + 113x Tungstensteel-Reinforced Block (dome)\n- T2 (11 wide): 807x Radiation Proof Machine Casing + 197x Tungstensteel-Reinforced Block\n- T3 (13 wide): 960x Europium Reinforced Radiation Proof Casing + 103x Radiation Proof (band rings) + 273x Iridium Tungstensteel-Reinforced Block (dome)\n- T4 (15 wide): 1340x Europium Reinforced + 127x Radiation Proof + 365x Iridium Tungstensteel-Reinforced\n- T5 (17 wide): 1664x Radiant Naquadah Alloy Casing + 139x Radiation Proof + 481x Iridium Tungstensteel-Reinforced\nFUEL PILLARS (optional interior; full count per tier): T1 45 pillars (360x Reactor Fuel Column + 45x Rod Loading Port), T2 77 (616+77), T3 109 (872+109), T4 157 (1256+157), T5 201 (1608+201). Partial pillars run at partial output.",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  0,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "beyondthestars:reactorFuelColumn"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "Blueprint: Steam Generator",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48013,
+    "rewards:9":  {
+
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "index:3":  0,
+                                 "taskID:8":  "bq_standard:checkbox"
+                             }
+                }
+}

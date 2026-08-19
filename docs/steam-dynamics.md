@@ -160,6 +160,66 @@ breaking release.
   ones keep working as museum pieces until a later breaking release).
 - Each phase: recon vs sources -> implement -> review swarm -> smoke test -> tag.
 
+## TURBINE CONTROL ruling (2026-08-19, review feedback after the first 0.16.0 session)
+
+Nine-point ruling; phases TC-1..TC-5. All constants (t).
+
+- **TC-1 Socketed hatches** (pt 4, IMPLEMENTED 0.17.0): blanket wall hatch-adders are gone - every hatch
+  gets a DEDICATED socket cell, so holograms show the exact count at the exact spot.
+  Silo front wall around the main station: 4 energy, 1 maintenance, 2 input hatch,
+  1 output hatch, 1 input bus, 1 output bus. Spiral: 8 injector sockets following the
+  helix, 1 sensor (top front), 1 input hatch, 1 maintenance. Turbine gen: 4 dynamo
+  sockets in the output manifold's back face, 1 maintenance, 1 Turbine Control Block.
+- **TC-2 Control blocks** (pts 2, 3, IMPLEMENTED 0.17.0): SILO CONTROL BLOCK (MTE 28108)
+  socketed in the silo face above the main station - its panel is the reactor readout
+  (tier, cascade, heat, decay, radiation). TURBINE CONTROL BLOCK (MTE 28109) socketed
+  in the turbine gen's front wall center - its panel is the turbine readout (RPM,
+  cycles/min, stages, rotor health, propellant, EU) and it accepts the REDSTONE cycle
+  signal (rising edge, any side). Implementation ruling: a hatch cannot cleanly host
+  the main controller's MUI2 screen in .52, so both panels are RIGHT-CLICK CHAT
+  READOUTS - explicit, testable, no GUI risk; the main controller GUI keeps the full
+  terminal. Both blocks hold a parent back-reference set by the structure walk and
+  cleared on every reset/failed probe.
+- **TC-3 RPM model** (pt 2, IMPLEMENTED 0.17.0): cycles are redstone-triggered (rising
+  edge on the Turbine Control Block). Each accepted cycle: consumes one slug of
+  buffered steam (20 x L/t, from a standing buffer fed at L/t, cap 100 x L/t), opens
+  the +/-2t injector window (scored one tick after it closes, the SD-3 deferral
+  pattern), burns the timed litres, and adds RPM:
+      gain = 176 x P x (timed / 8)                     (implemented; ruling sketch 60)
+      RPM decays 0.5% per tick toward 0; redline 12,000 (hard cap)
+  Equilibrium: at the 1 Hz steam budget the peak fixed point is gain/(1-0.995^20)
+  ~= 10.486 x gain - Lv 6 all-timed lands at ~11,996 ~= redline (hence 176; the
+  sketched 60 topped out at ~4,089). Lv 3 ~= 9,227, Lv 1 naq ~= 5,536, Benzene ~= 2,307.
+  Pulsing faster than steam production = missed cycles (propellant still burned, no
+  gain, no echo). FAN RPM IS THE CENTRAL VARIABLE:
+      EU/t     = L/t x speed x eff x (RPM / 1000) x avgRotorFactor
+                 (avgRotorFactor averages ALL 8 sockets, so it carries stages/8)
+      coolant  = ceil(200 x (RPM/1000)^2 / Q) per tick; starved -> heat -> SEIZE
+                 (a seizure also slams RPM to zero)
+      no redstone clock = RPM decays to zero = no output. The Sensor hatch echoes
+      each ACCEPTED cycle as its confirmation pulse. The old x(1+(P-1)n/8) flow boost
+      is retired - injectors only feed cycles now.
+  Ceiling note: fully optimized T5 at redline (all-naq cascade, all-riding spine,
+  fresh rotors) computes ~551M EU/t - 0.53x the retired SD-4 formula's ~1.045B,
+  because the x6.5 chamber flow boost folded into the x12 RPM factor. The (RPM/1000)
+  normalization (or RPM_GAIN) is the tuning knob if the D-01 ~1B ceiling is wanted
+  back.
+- **TC-4 Rotor items** (pts 1, 6, IMPLEMENTED 0.17.0): the turbine gen's output end
+  widens into a 7x7x3 OUTPUT MANIFOLD (7 tall, hollow; 4 Dynamo sockets mid-height on
+  its back face); stage sockets are odd gallery rows 1-13 plus one in the manifold
+  mouth (row 15) = 8. Every Turbine Housing is now a tile entity with ONE rotor seat:
+  right-click with a TURBINE ROTOR (10 durability, wear ON the item) to seat it,
+  sneak-right-click empty-handed to pull it, breaking the housing drops it. Slow
+  random damage - each second per stage, chance = (RPM/redline)/600 (one point per
+  ~10 min at full tilt, shatter per ~100 min) - and like a plane turbine every chip
+  hurts: stage factor 1.0 minus 5% per damage point; at 10 the rotor SHATTERS (item
+  destroyed, stage dead until replaced).
+- **TC-5 Book + wiki** (pts 5, 7, 8): entry quest with item requirements + achievement
+  placed INSIDE the GTNH questbook's power-progression chapter; a BLUEPRINTS chapter
+  listing every structure's items as optional quests (controllers = the required
+  ones); a local static-HTML wiki under addon/wiki/ until a hosted one exists.
+- **Standing rule** (pt 9): every build/redesign ships with a browser HTML mockup.
+
 ## Questbook
 
 The "Beyond the Stars" quest line overlay lives in `questbook/` (GTNH 2.9.0 BQ split

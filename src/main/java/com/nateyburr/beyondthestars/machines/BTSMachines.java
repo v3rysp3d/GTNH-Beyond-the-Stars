@@ -13,6 +13,8 @@ public final class BTSMachines {
     public static ItemStack moduleCoolingTower;
     public static ItemStack precisionInjector;
     public static ItemStack spineSensor;
+    public static ItemStack siloControlBlock;
+    public static ItemStack turbineControlBlock;
 
     private BTSMachines() {}
 
@@ -44,5 +46,13 @@ public final class BTSMachines {
             "Precision Injector").getStackForm(1);
         spineSensor = new MTEHatchSpineSensor(base + 7, "hatch.beyondthestars.spinesensor", "Spine Sensor")
             .getStackForm(1);
+        siloControlBlock = new MTESiloControlBlock(
+            base + 8,
+            "hatch.beyondthestars.silocontrolblock",
+            "Silo Control Block").getStackForm(1);
+        turbineControlBlock = new MTETurbineControlBlock(
+            base + 9,
+            "hatch.beyondthestars.turbinecontrolblock",
+            "Turbine Control Block").getStackForm(1);
     }
 }
