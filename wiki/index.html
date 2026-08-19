@@ -226,7 +226,8 @@
 <section id="getting-started">
   <h2><span class="num">2</span>Getting Started &mdash; The Blueprint</h2>
   <p>The five-step commissioning sequence. The questbook's <em>"The Blueprint"</em> quest walks the same path <span class="badge b-tc">0.17.0</span>.</p>
-  <div class="note"><b>Testing in creative?</b> The hologram projector previews one piece at a time and is height-capped, so it cannot raise a whole plant. Run <kbd class="item">/btsbuild [tier 1-5] [uranium|mox|thorium|naq]</kbd> instead: it builds the entire plant where you stand &mdash; every hatch and control block fitted, rotors seated, water and fuel loaded, and a bench clock spinning the turbine with no redstone. <kbd class="item">/btsclock off</kbd> hands pacing back to your own redstone clock.</div>
+  <div class="note"><b>Testing in creative?</b> The hologram projector previews one piece at a time and is height-capped, so it cannot raise a whole plant. Run <kbd class="item">/btsbuild [1-5|all] [uranium|mox|thorium|naq] [force]</kbd> instead: it builds the entire plant where you stand &mdash; every hatch and control block fitted, rotors seated, rod ports stocked, a bench clock spinning the turbine with no redstone, and <strong>infinite supplies</strong> (feedwater, the best coolant in the pack, and Naquadah Propellant Lv&nbsp;6 in all eight injectors, topped up every tick, with a perfectly timed 1&nbsp;L shot per accepted cycle) so it climbs to the redline and stays there. <kbd class="item">/btsclock off</kbd> hands pacing back to your own redstone clock; <kbd class="item">/btssupply off</kbd> hands the plumbing back to you.<br><br><b>Want to see every tier?</b> <kbd class="item">/btsbuild all</kbd> raises <strong>all five</strong> side by side in one go, on a 60-block pitch running to your right (the 50&times;50 platform plus a 10-block walking corridor), each one complete and running, and tells you where each tier's main station landed and whether it formed. It needs 40 blocks of headroom, so stand at or below y&nbsp;215. Both forms refuse to bulldoze a site that is more than 15&nbsp;% solid unless you append <kbd class="item">force</kbd>.</div>
+  <div class="note"><b>Quests missing in an existing world?</b> BetterQuesting reads <code>config/betterquesting/DefaultQuests</code> only when a world is <em>created</em> &mdash; an existing save owns its own copy and never re-reads the defaults, so a freshly merged chapter shows up in new worlds and nowhere else. Run <kbd class="item">/btsquests</kbd> to see exactly which of our quest ids are in that world's database, and <kbd class="item">/btsquests install</kbd> to add our chapter and the <em>Unit One</em> entry quest to it &mdash; player progress is snapshotted and restored around the write, no pack quest is touched, and open books resync on the spot.</div>
   <ol>
     <li><strong>Craft the main station.</strong> The <kbd class="item">Nuclear Plant Foundation</kbd> controller is an IV assembler job: Radiation-Proof Machine Casing + 4&times; IV circuit + dense lead, tungstensteel, tungsten, iridium and rhodium-plated palladium plates + molten platinum. Place it where the plant's front line will run &mdash; it ends up embedded in the silo face at ground level, one fixed spot for all five tiers.</li>
     <li><strong>Project once.</strong> Set <strong>Build Tier 1&ndash;5</strong> in the controller GUI (a trigger stack of 2&ndash;5 overrides it) and hologram-project the controller. One projection lays out everything: the 50&times;50 platform, the silo, the Spine, the Spiral, the Turbine Generator, and both Cooling Tower shells.</li>
@@ -403,11 +404,13 @@ residual heat = |S(4)|&sup2; &times; 5 per second while running</div>
   </ul>
   <div class="formula">boost = 1 + (P &minus; 1) &times; n / 8      <span class="c">n = injectors timed this slug; P = LOWEST propellant among them</span>
 V2    = V1 &times; boost                <span class="c">all eight timed = the full factor P</span></div>
-  <h4>Coolant &mdash; the seizure math</h4>
-  <div class="formula">v            = spine speed &times; injector boost
-coolant L/t  = ceil(200 &times; v&sup2; / Q)     <span class="c">Q = coolant quality (see &sect;4)</span>
-starved      : +ceil(v&sup2;) &times; 3 heat per second &rarr; at SCRAM heat the rotors SEIZE</div>
-  <div class="warn"><strong>Seizure destroys the Spine's four Turbine Housings</strong> (the blocks are removed from the world) and slams the plant shut. The faster it spins, the more it drinks &mdash; keep the input hatch wet.</div>
+  <h4>Coolant &mdash; the load, the interlock, the trip</h4>
+  <div class="formula">load/tick    = 200 &times; (RPM/1000)&sup2; + |S|&sup2; &times; 5 / 20   <span class="c">RPM term + the Spine's residual swirl (q_spine)</span>
+coolant L/t  = ceil(load / Q)                    <span class="c">Q = coolant quality (see &sect;4)</span>
+interlock    : a cycle is only ACCEPTED while the chamber can already cover the
+               RPM that cycle would reach &mdash; otherwise the RPM is held, and why
+trip         : coolant lost at speed &rarr; RPM &times;0.95/tick spin-down (not a seizure)</div>
+  <div class="note"><strong>Nothing seizes because you have not plumbed it yet.</strong> An unsupplied plant simply never accelerates: no coolant headroom (or dry injectors) means the cycle is refused before any steam or propellant is spent, and every panel prints the reason. A <strong>cooled</strong> chamber also carries the Spine's residual swirl away, so all-riding patterns cost coolant instead of inevitably cooking the core &mdash; a starved or missing chamber takes that turbulence as <span class="mono">|S|&sup2; &times; 5</span> heat per second as before. Seizure survives only as the end of a chamber that was <em>already</em> near SCRAM when its coolant failed at speed.</div>
 
   <!-- ------------------------------------------------ 3.5 TURBINE GENERATOR -->
   <h3 id="turbinegen"><span class="num">3.5</span>Turbine Generator <span class="badge b-opt">Optional piece</span></h3>
@@ -440,9 +443,10 @@ starved      : +ceil(v&sup2;) &times; 3 heat per second &rarr; at SCRAM heat the
   <div class="formula">RPM gain = 176 &times; P &times; (timed / 8)        RPM decays 0.5% per tick toward 0 (redline 12,000)
 Equilibrium at 1 cycle/second, all 8 timed:  Lv 6 ~11,996 (redline) | Lv 3 ~9,227 | Benzene ~2,307
 EU/t     = L/t &times; eff &times; (RPM / 1000) &times; avgRotorFactor &times; stages / 8
-coolant  = ceil(200 &times; (RPM/1000)&sup2; / Q) per tick</div>
+coolant  = ceil((200 &times; (RPM/1000)&sup2; + |S|&sup2;&times;5/20) / Q) per tick</div>
   <ul>
     <li>Higher pulse frequency = more propellant per minute = higher sustained RPM. Pulsing faster than steam production = missed cycles (propellant still burned, no gain).</li>
+    <li><strong>Interlock:</strong> a cycle is refused outright (no steam, no propellant, no heat) when the chamber cannot cool the RPM it would reach, or the injectors have been dry for 5&nbsp;s. The turbine holds its RPM and the GUI, both control blocks and the scanner all state the reason.</li>
     <li><strong>No redstone clock = RPM decays to zero = no output.</strong> The Spine Sensor echoes each <em>accepted</em> cycle as its confirmation pulse.</li>
     <li><strong>Rotors wear like plane turbines:</strong> each second, damage chance proportional to RPM/redline (hours at full tilt). Every chip hurts &mdash; stage factor 1.0 minus 5% per damage point; at 10 the rotor <strong>shatters</strong> (item destroyed, stage dead until replaced).</li>
   </ul>
@@ -549,8 +553,8 @@ coolant  = ceil(200 &times; (RPM/1000)&sup2; / Q) per tick</div>
       </tr>
       <tr>
         <td><strong style="color:var(--red)">SEIZURE</strong></td>
-        <td>Spiral coolant starvation</td>
-        <td>Starved chamber gains <span class="mono">ceil(v&sup2;)&times;3</span> heat/s; at SCRAM heat the rotors seize &mdash; the Spine's four Turbine Housings are <strong>destroyed</strong> and the plant slams shut.</td>
+        <td>Coolant lost at speed on an already-hot chamber</td>
+        <td>Losing coolant now TRIPS the fan (RPM &times;0.95/tick) instead of cooking it, and the interlock stops an unsupplied plant from ever spinning up &mdash; but a chamber still gains <span class="mono">ceil((RPM/1000)&sup2;)&times;3</span> friction heat/s while it spins down, so one that was already near SCRAM can seize: the Spine's four Turbine Housings are <strong>destroyed</strong> and the plant slams shut.</td>
       </tr>
       <tr>
         <td><strong style="color:var(--red)">BLOWOUT</strong></td>

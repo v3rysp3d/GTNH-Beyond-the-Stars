@@ -9,6 +9,7 @@ import static gregtech.api.enums.HatchElement.Dynamo;
 import static gregtech.api.enums.HatchElement.Energy;
 import static gregtech.api.enums.HatchElement.InputBus;
 import static gregtech.api.enums.HatchElement.InputHatch;
+import static gregtech.api.enums.HatchElement.LaserSource;
 import static gregtech.api.enums.HatchElement.Maintenance;
 import static gregtech.api.enums.HatchElement.OutputBus;
 import static gregtech.api.enums.HatchElement.OutputHatch;
@@ -42,6 +43,7 @@ import org.jetbrains.annotations.NotNull;
 import com.gtnewhorizon.structurelib.StructureLibAPI;
 import com.gtnewhorizon.structurelib.alignment.IAlignmentLimits;
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
+import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.gtnewhorizon.structurelib.structure.AutoPlaceEnvironment;
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
@@ -62,10 +64,14 @@ import gregtech.api.casing.Casings;
 import gregtech.api.enums.GTValues;
 import gregtech.api.enums.ItemList;
 import gregtech.api.enums.Materials;
+import gregtech.api.interfaces.IItemContainer;
 import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBase;
+import gregtech.api.metatileentity.implementations.MTEHatch;
+import gregtech.api.metatileentity.implementations.MTEHatchDynamo;
+import gregtech.api.metatileentity.implementations.MTEHatchInput;
 import gregtech.api.recipe.check.CheckRecipeResult;
 import gregtech.api.recipe.check.CheckRecipeResultRegistry;
 import gregtech.api.render.TextureFactory;
@@ -79,6 +85,7 @@ import gregtech.api.util.shutdown.SimpleShutDownReason;
 import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
 import gtPlusPlus.core.fluids.GTPPFluids;
 import gtPlusPlus.xmod.thermalfoundation.fluid.TFFluids;
+import tectech.thing.CustomItemList;
 
 /**
  * The Plant Foundation - the Unit One MAIN STATION (Space Elevator architecture). The only
@@ -179,6 +186,22 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     private int chamberCoolantDrain;
     private String chamberCoolantName = "";
     private long lastChamberTick;
+    /**
+     * The Spiral's OWN input hatches, as recorded by its structure walk (the coolant feed;
+     * the silo's face-panel hatches carry feedwater). They are registered in mInputHatches
+     * like any other input hatch - this list only remembers WHICH ones they are, so the
+     * readouts and the debug supply can talk about the chamber specifically.
+     */
+    private final List<MTEHatchInput> chamberHatches = new ArrayList<>();
+    /** Whether the chamber got the coolant its current speed asks for, on the last tick. */
+    private boolean chamberCooled;
+    private boolean chamberStarved;
+    /** Localized name of the propellant standing in the injectors ("none" when dry). */
+    private String propellantName = "none";
+    /** P (x1000) of the propellant currently loaded - kept in step with propellantName. */
+    private int propellantMilli;
+    /** Last world tick any injector held propellant - the "the plant is dry" detector. */
+    private long lastPropellantTick;
 
     /** Rotor gallery state (SD-4). */
     private boolean galleryBuilt;
@@ -226,6 +249,14 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     private int cyclesPerMinute;
     /** Average stage factor x1000 over all 8 stage sockets (missing rotor/housing = 0). */
     private int avgRotorFactorMilli;
+    /** Per-stage rotor wear from the census, e.g. "0 0 1 - 0 0 0 2" ('-' = empty seat). */
+    private String rotorWear = "";
+    /**
+     * TC-7 INTERLOCK: why the turbine is refusing to spin up (missing coolant headroom,
+     * empty injectors, no steam slug), or "" while it is happy. Surfaced in the GUI and both
+     * control blocks - a plant that will not accelerate must always say why.
+     */
+    private String turbineHoldReason = "";
     /** Pillars of the formed silo, rebuilt after every successful structure check. */
     private final java.util.HashMap<Long, ColumnInfo> columns = new java.util.HashMap<>();
     private final List<int[]> portCells = new ArrayList<>();
@@ -254,6 +285,12 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     private int radiationCenterDepth;
     private long steamPerTick;
     private long lastEUOutput;
+    /**
+     * What the RPM model ASKED for on the last generating tick, before the output ceiling
+     * was applied. The gap between this and lastEUOutput is the whole "why am I only seeing
+     * 32,768 EU/t" story, so both are persisted to the GUI and both control blocks.
+     */
+    private long lastEUDemand;
     private boolean starvedThisTick;
     private boolean wasRunningLastTick;
 
@@ -588,12 +625,15 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             // rotation STARTS on the back face so the two back-face sockets land at levels
             // 1 and 5 (world y 10 and 6), clear above the gallery's 5-tall front wall;
             // starting on the front face buried the level-7 socket behind it.
+            // Each wall gets its OWN socket char so the auto-fitter knows which way that
+            // injector's exposed face points: the chamber has air on both sides of every
+            // wall cell, so an outward direction can only be declared, never observed.
             if (level >= 1 && level <= 8) {
                 final int face = (level - 1) % 4;
-                if (face == 0) grid[6][3] = 'i';
-                else if (face == 1) grid[3][0] = 'i';
-                else if (face == 2) grid[0][3] = 'i';
-                else grid[3][6] = 'i';
+                if (face == 0) grid[6][3] = 'i'; // back wall (+c)
+                else if (face == 1) grid[3][0] = 'v'; // -a wall
+                else if (face == 2) grid[0][3] = 'w'; // front wall (-c)
+                else grid[3][6] = 'x'; // +a wall
             }
             // Helix: a 5-cell concrete arc on the interior 5x5 ring, rotating each level down.
             final int[][] ring = interiorRing();
@@ -678,6 +718,14 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         // Output manifold: hollow 7x7x3 box over the full 7-block height.
         if (y == 3 && c == GALLERY_LENGTH - 1 && (a == 1 || a == 2 || a == 4 || a == 5)) {
             return 'm'; // TC-1: the 4 Dynamo sockets, back face mid-height
+        }
+        // TC-5 LASER OUTPUT: 4 Laser Source sockets two rows ABOVE the dynamos, same back
+        // face, same four columns. Nothing is ever built behind the manifold at any tier, so
+        // every one of them looks straight out at open sky - laser pipes run away from the
+        // plant without threading the gallery. The a=3 column is left as casing so it stays
+        // a clean spine over the Turbine Control Block; a=0/a=6 are the manifold's frame.
+        if (y == 5 && c == GALLERY_LENGTH - 1 && (a == 1 || a == 2 || a == 4 || a == 5)) {
+            return 'L';
         }
         // TC-2 control sockets live on the manifold's BACK face - the gallery's front wall
         // is entombed against the Spiral's back wall, so a redstone line could never
@@ -1100,35 +1148,69 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     }
 
     /**
-     * The socket's exposed side: first air neighbour, horizontal preferred, else up/down.
-     * Only meaningful ONCE the surrounding structure exists - during the build every
-     * neighbour is still air, which is why orientation runs as a pass after construct().
+     * The outward normal of the WALL a socket sits in, named RELATIVE to the controller and
+     * resolved through the plant's ExtendedFacing. It is declared per socket char because it
+     * cannot be observed: every socket in these shells has air on BOTH faces - the hollow
+     * structure interior on one side, open sky on the other - so the old "first air
+     * neighbour in world order {N,S,E,W,U,D}" scan returned the same world direction for the
+     * silo's FRONT wall and the manifold's BACK wall, which face opposite ways. One of the
+     * two was therefore turned inward on every rotation, and an inward-facing hatch renders
+     * as the casing it was textured with (MTEHatch.getTexture paints the overlay only on
+     * side == frontFacing), which is why the control blocks read as "not placed".
+     * <p>
+     * Structure space is the frame the shape strings are written in: the row index runs +c
+     * (relative BACK), the char index inside a row runs +a (relative LEFT), and the layer
+     * index runs +b (relative DOWN).
      */
-    private static ForgeDirection outwardFacing(World world, int x, int y, int z) {
-        final ForgeDirection[] order = { ForgeDirection.NORTH, ForgeDirection.SOUTH, ForgeDirection.EAST,
-            ForgeDirection.WEST, ForgeDirection.UP, ForgeDirection.DOWN };
-        for (final ForgeDirection d : order) {
-            if (world.isAirBlock(x + d.offsetX, y + d.offsetY, z + d.offsetZ)) return d;
+    private enum SocketFace {
+
+        /** Out of the silo's front wall, the way the controller looks. */
+        FORWARD,
+        /** Out of the manifold's back wall, directly away from the controller. */
+        BACK,
+        /** Toward growing shape-row char index (+a). */
+        LEFT,
+        /** Toward shrinking shape-row char index (-a). */
+        RIGHT,
+        UP,
+        DOWN;
+
+        ForgeDirection inWorld(ExtendedFacing facing) {
+            switch (this) {
+                case FORWARD:
+                    return facing.getRelativeForwardInWorld();
+                case BACK:
+                    return facing.getRelativeBackInWorld();
+                case LEFT:
+                    return facing.getRelativeLeftInWorld();
+                case RIGHT:
+                    return facing.getRelativeRightInWorld();
+                case UP:
+                    return facing.getRelativeUpInWorld();
+                default:
+                    return facing.getRelativeDownInWorld();
+            }
         }
-        return ForgeDirection.NORTH;
     }
 
-    /** Cells auto-fitted with a hatch during the last creative build, for the facing pass. */
+    /** Cells auto-fitted during the last creative build: {x, y, z, SocketFace ordinal}. */
     private final List<int[]> fittedCells = new ArrayList<>();
 
     /**
-     * Points every auto-fitted hatch at its exposed face. Dynamos and energy hatches only
-     * work through their FRONT, so this must run after the walls are up - during the build
-     * every neighbour is still air and the guess would be meaningless.
+     * Re-points every auto-fitted hatch at its declared exposed face. The facing is already
+     * correct at placement time (the normal is a property of the wall, not of the neighbours),
+     * so this is a cheap idempotent repair pass - it also straightens out plants built by an
+     * older version whose facings were guessed.
      */
     public int orientFittedHatches() {
         final World world = getBaseMetaTileEntity().getWorld();
+        final ExtendedFacing facing = getExtendedFacing();
         int oriented = 0;
         for (final int[] c : fittedCells) {
             if (!world.blockExists(c[0], c[1], c[2])) continue;
             final net.minecraft.tileentity.TileEntity te = world.getTileEntity(c[0], c[1], c[2]);
             if (!(te instanceof IGregTechTileEntity)) continue;
-            ((IGregTechTileEntity) te).setFrontFacing(outwardFacing(world, c[0], c[1], c[2]));
+            ((IGregTechTileEntity) te).setFrontFacing(SocketFace.values()[c[3]].inWorld(facing));
             oriented++;
         }
         return oriented;
@@ -1137,12 +1219,13 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     /**
      * Wraps a socket element so a CREATIVE build (the /btsbuild command or a hologram
      * projector) drops the real hatch in rather than a blank casing - the structure comes
-     * out working. An existing GT machine in the cell is never overwritten, so re-running a
-     * build cannot wipe hatches the player has already configured. Survival is untouched:
-     * players still supply and place their own hatches.
+     * out working, pointed OUT of the wall it is socketed into. An existing GT machine in the
+     * cell is never overwritten, so re-running a build cannot wipe hatches the player has
+     * already configured. Survival is untouched: players still supply and place their own
+     * hatches.
      */
     private static IStructureElement<MTEReactorCoreMk1> autoFit(IStructureElement<MTEReactorCoreMk1> base,
-        java.util.function.Supplier<Short> mteId) {
+        java.util.function.Supplier<Short> mteId, SocketFace face) {
         return new IStructureElement<MTEReactorCoreMk1>() {
 
             @Override
@@ -1163,20 +1246,12 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             @Override
             public boolean placeBlock(MTEReactorCoreMk1 t, World world, int x, int y, int z, ItemStack trigger) {
                 if (world.getTileEntity(x, y, z) instanceof IGregTechTileEntity) {
-                    t.fittedCells.add(new int[] { x, y, z });
+                    t.fittedCells.add(new int[] { x, y, z, face.ordinal() });
                     return true;
                 }
                 final Short id = mteId.get();
-                if (id != null && placeGtMachine(
-                    world,
-                    x,
-                    y,
-                    z,
-                    id,
-                    t.getBaseMetaTileEntity()
-                        .getFrontFacing())) {
-                    // Facing is fixed up by orientFittedHatches() once the walls exist.
-                    t.fittedCells.add(new int[] { x, y, z });
+                if (id != null && placeGtMachine(world, x, y, z, id, face.inWorld(t.getExtendedFacing()))) {
+                    t.fittedCells.add(new int[] { x, y, z, face.ordinal() });
                     return true;
                 }
                 return base.placeBlock(t, world, x, y, z, trigger);
@@ -1190,8 +1265,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         };
     }
 
-    /** MTE id behind an ItemList entry (its stack damage), or 0 when the entry is absent. */
-    private static short idOf(ItemList entry) {
+    /**
+     * MTE id behind a GT item-container entry (its stack damage), or 0 when the entry is
+     * absent. Typed on IItemContainer so TecTech's CustomItemList works alongside ItemList.
+     */
+    private static short idOf(IItemContainer entry) {
         try {
             final ItemStack stack = entry.get(1L);
             return stack == null ? 0 : (short) stack.getItemDamage();
@@ -1202,6 +1280,17 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
     private static short idOf(ItemStack stack) {
         return stack == null ? 0 : (short) stack.getItemDamage();
+    }
+
+    /** One Precision Injector socket; the chamber wall it is cut into decides its facing. */
+    private static IStructureElement<MTEReactorCoreMk1> injectorSocket(SocketFace face) {
+        return autoFit(
+            buildHatchAdder(MTEReactorCoreMk1.class).atLeast(SpiralHatchElement.Injector)
+                .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
+                .hint(3)
+                .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()),
+            () -> idOf(BTSMachines.precisionInjector),
+            face);
     }
 
     @Override
@@ -1248,7 +1337,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                             .hint(1)
                             .buildAndChain(
                                 onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())),
-                        () -> idOf(ItemList.Hatch_Energy_IV)))
+                        () -> idOf(ItemList.Hatch_Energy_IV),
+                        SocketFace.FORWARD))
                 .addElement(
                     'b',
                     autoFit(
@@ -1257,7 +1347,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                             .hint(1)
                             .buildAndChain(
                                 onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())),
-                        () -> idOf(ItemList.Hatch_Maintenance)))
+                        () -> idOf(ItemList.Hatch_Maintenance),
+                        SocketFace.FORWARD))
                 .addElement(
                     'd',
                     autoFit(
@@ -1266,7 +1357,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                             .hint(1)
                             .buildAndChain(
                                 onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())),
-                        () -> idOf(ItemList.Hatch_Input_IV)))
+                        () -> idOf(ItemList.Hatch_Input_IV),
+                        SocketFace.FORWARD))
                 .addElement(
                     'e',
                     autoFit(
@@ -1275,7 +1367,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                             .hint(1)
                             .buildAndChain(
                                 onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())),
-                        () -> idOf(ItemList.Hatch_Output_IV)))
+                        () -> idOf(ItemList.Hatch_Output_IV),
+                        SocketFace.FORWARD))
                 .addElement(
                     'f',
                     autoFit(
@@ -1284,7 +1377,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                             .hint(1)
                             .buildAndChain(
                                 onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())),
-                        () -> idOf(ItemList.Hatch_Input_Bus_IV)))
+                        () -> idOf(ItemList.Hatch_Input_Bus_IV),
+                        SocketFace.FORWARD))
                 .addElement(
                     'g',
                     autoFit(
@@ -1293,7 +1387,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                             .hint(1)
                             .buildAndChain(
                                 onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())),
-                        () -> idOf(ItemList.Hatch_Output_Bus_IV)))
+                        () -> idOf(ItemList.Hatch_Output_Bus_IV),
+                        SocketFace.FORWARD))
                 .addElement(
                     'p',
                     autoFit(
@@ -1302,7 +1397,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                             .hint(1)
                             .buildAndChain(
                                 onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())),
-                        () -> idOf(BTSMachines.siloControlBlock)))
+                        () -> idOf(BTSMachines.siloControlBlock),
+                        SocketFace.FORWARD))
                 .addElement('O', ofBlock(GregTechAPI.sBlockConcretes, 8))
                 .addElement(
                     'K',
@@ -1323,16 +1419,14 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 .addElement('T', Casings.TungstensteelTurbineCasing.asElement())
                 .addElement('H', ofChain(housingElement(), Casings.TungstensteelTurbineCasing.asElement()))
                 // TC-1: spiral and gallery walls are PLAIN casings; hatches live in the
-                // dedicated socket chars below ('i','j','k','l' spiral / 'm','n' gallery).
+                // dedicated socket chars below ('i','v','w','x','j','k','l' spiral /
+                // 'm','L','n','q' gallery). One injector char per chamber wall so each
+                // socket's outward normal is declared rather than guessed.
                 .addElement('5', Casings.TungstensteelTurbineCasing.asElement())
-                .addElement(
-                    'i',
-                    autoFit(
-                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(SpiralHatchElement.Injector)
-                            .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
-                            .hint(3)
-                            .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()),
-                        () -> idOf(BTSMachines.precisionInjector)))
+                .addElement('i', injectorSocket(SocketFace.BACK))
+                .addElement('v', injectorSocket(SocketFace.RIGHT))
+                .addElement('w', injectorSocket(SocketFace.FORWARD))
+                .addElement('x', injectorSocket(SocketFace.LEFT))
                 .addElement(
                     'j',
                     autoFit(
@@ -1340,7 +1434,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                             .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
                             .hint(3)
                             .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()),
-                        () -> idOf(BTSMachines.spineSensor)))
+                        () -> idOf(BTSMachines.spineSensor),
+                        SocketFace.UP))
                 .addElement(
                     'k',
                     autoFit(
@@ -1348,7 +1443,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                             .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
                             .hint(3)
                             .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()),
-                        () -> idOf(ItemList.Hatch_Input_IV)))
+                        () -> idOf(ItemList.Hatch_Input_IV),
+                        SocketFace.FORWARD))
                 .addElement(
                     'l',
                     autoFit(
@@ -1356,7 +1452,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                             .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
                             .hint(3)
                             .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()),
-                        () -> idOf(ItemList.Hatch_Maintenance)))
+                        () -> idOf(ItemList.Hatch_Maintenance),
+                        SocketFace.FORWARD))
                 .addElement('8', Casings.TungstensteelTurbineCasing.asElement())
                 .addElement(
                     'm',
@@ -1365,7 +1462,23 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                             .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
                             .hint(4)
                             .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()),
-                        () -> idOf(ItemList.Hatch_Dynamo_IV)))
+                        () -> idOf(ItemList.Hatch_Dynamo_IV),
+                        SocketFace.BACK))
+                // TC-5: the LASER OUTPUT sockets. HatchElement.LaserSource accepts TecTech's
+                // MTEHatchDynamoTunnel (which addLaserSourceToMachineList files into
+                // mExoticDynamoHatches), so the whole plant's ceiling stops being the four
+                // 1A IV dynamos. Auto-fits the ZPM 4,096 A/t Laser Source Hatch: two of them
+                // already cover the T5 design peak, four leave the int-clamp as the only
+                // limit. Blank sockets chain to plain turbine casing like every other socket.
+                .addElement(
+                    'L',
+                    autoFit(
+                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(LaserSource)
+                            .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
+                            .hint(5)
+                            .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()),
+                        () -> idOf(CustomItemList.eM_dynamoTunnel3_ZPM),
+                        SocketFace.BACK))
                 .addElement(
                     'n',
                     autoFit(
@@ -1373,7 +1486,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                             .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
                             .hint(4)
                             .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()),
-                        () -> idOf(ItemList.Hatch_Maintenance)))
+                        () -> idOf(ItemList.Hatch_Maintenance),
+                        SocketFace.BACK))
                 .addElement(
                     'q',
                     autoFit(
@@ -1381,7 +1495,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                             .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
                             .hint(4)
                             .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()),
-                        () -> idOf(BTSMachines.turbineControlBlock)))
+                        () -> idOf(BTSMachines.turbineControlBlock),
+                        SocketFace.BACK))
                 .addElement('9', ofChain(new IStructureElement<MTEReactorCoreMk1>() {
 
                     @Override
@@ -1431,6 +1546,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         disconnectModules();
         plantModules.clear();
         clearHatches();
+        // clearHatches() does NOT touch the exotic lists - the laser sockets would otherwise
+        // accumulate a duplicate registration on every structure check.
+        mExoticDynamoHatches.clear();
         mCasing = 0;
         fuelSegments = 0;
         // Reset the spine so a failed floor walk's early return cannot keep stale boosts.
@@ -1475,10 +1593,18 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             // the general lists and truncate back, keeping the silo's own hatches intact.
             spiralInjectors.clear();
             spineSensor = null;
+            chamberHatches.clear();
             final int inputMark = mInputHatches.size();
             final int maintMark = mMaintenanceHatches.size();
             spiralBuilt = checkPiece(spiralPieceName(mName), -18, SPIRAL_HEIGHT - 1, spiralDOff(reactorTier), null);
-            if (!spiralBuilt) {
+            if (spiralBuilt) {
+                // Everything the spiral walk added to the general input list is the CHAMBER's
+                // coolant feed - remembered so the readouts (and the debug supply) can name it
+                // apart from the silo face panel's feedwater hatches.
+                for (int i = inputMark; i < mInputHatches.size(); i++) {
+                    chamberHatches.add(mInputHatches.get(i));
+                }
+            } else {
                 spiralInjectors.clear();
                 spineSensor = null;
                 lastGoodInjectors = 0;
@@ -1490,11 +1616,12 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 }
             }
             // The Rotor Assembly (optional): same mark-and-truncate discipline for its
-            // Dynamo/Maintenance registrations when the walk fails.
+            // Dynamo/LaserSource/Maintenance registrations when the walk fails.
             walkGalleryStages = 0;
             walkStageCells.clear();
             resetTurbinePanel();
             final int dynamoMark = mDynamoHatches.size();
+            final int laserMark = mExoticDynamoHatches.size();
             final int galleryMaintMark = mMaintenanceHatches.size();
             galleryBuilt = checkPiece(galleryPieceName(mName), -18, 6, galleryDOff(reactorTier), null);
             if (galleryBuilt) {
@@ -1508,6 +1635,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 resetTurbinePanel();
                 while (mDynamoHatches.size() > dynamoMark) {
                     mDynamoHatches.remove(mDynamoHatches.size() - 1);
+                }
+                while (mExoticDynamoHatches.size() > laserMark) {
+                    mExoticDynamoHatches.remove(mExoticDynamoHatches.size() - 1);
                 }
                 while (mMaintenanceHatches.size() > galleryMaintMark) {
                     mMaintenanceHatches.remove(mMaintenanceHatches.size() - 1);
@@ -1525,6 +1655,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             // drop that residue so the platform-only state is canonical. The floor's dock
             // registrations live in plantModules, which clearHatches() never touches.
             clearHatches();
+            mExoticDynamoHatches.clear();
             mCasing = 0;
             fuelSegments = 0;
             // No maintenance hatch exists on a bare platform: keep it serviced so the base
@@ -1540,6 +1671,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             spiralBuilt = false;
             spiralInjectors.clear();
             spineSensor = null;
+            chamberHatches.clear();
             lastGoodInjectors = 0;
             galleryBuilt = false;
             galleryStages = 0;
@@ -2157,35 +2289,32 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             // chain's standing buffer (redstone cycles drink it in 20-tick slugs), and
             // EU/t = L/t x speed x eff x (RPM/1000) x avgRotorFactor - the avg already
             // carries stages/8 (a missing or shattered rotor contributes a zero stage).
-            if (depleteInput(Materials.Water.getFluid(flowPerTick))
-                || depleteInput(GTModHandler.getDistilledWater(flowPerTick))) {
+            if (drawFeedwater(flowPerTick)) {
                 steamBuffer = Math.min(steamBuffer + steamPerTick, STEAM_BUFFER_CAP_TICKS * steamPerTick);
                 // /500_000 (not /1_000_000): back-solved so a fully optimized T5 - 201 naq
                 // pillars, all-riding spine, redline RPM, 8 fresh rotors - peaks ~1.10B and
                 // averages ~1.05B EU/t across the decay sawtooth, landing on the settled
                 // D-01 ~1B ceiling instead of half of it.
-                long eu = spineBoostedSteam(true) * rpmMilli / 500_000L * avgRotorFactorMilli / 1000L;
-                // Clamp to summed dynamo capacity BEFORE emitting - GT explodes the whole
-                // multiblock when the injected EU exceeds it - and below the int-overflow
-                // EU-duplication threshold, exactly like the hall did.
-                long capacity = 0;
-                for (final gregtech.api.metatileentity.implementations.MTEHatchDynamo dynamo : gregtech.api.util.GTUtility
-                    .validMTEList(mDynamoHatches)) {
-                    capacity += (long) dynamo.maxAmperesOut() * dynamo.maxEUOutput();
+                final long demand = spineBoostedSteam(true) * rpmMilli / 500_000L * avgRotorFactorMilli / 1000L;
+                // Clamp to the SUMMED OUTPUT CEILING before emitting - GT explodes the whole
+                // multiblock when the injected EU exceeds what the fitted hatches can take -
+                // and stay under the int-overflow EU-duplication threshold. The ceiling now
+                // counts the laser sources too (addEnergyOutputMultipleDynamos already sums
+                // and feeds mExoticDynamoHatches; only this pre-clamp was blind to them, so
+                // the plant was pinned at the four IV dynamos' 32,768 EU/t).
+                final long emitted = Math.min(demand, outputCeiling());
+                if (emitted > 0) {
+                    addEnergyOutputMultipleDynamos(emitted, true);
                 }
-                eu = Math.min(Math.min(eu, capacity), Integer.MAX_VALUE);
-                if (eu > 0) {
-                    addEnergyOutputMultipleDynamos(eu, true);
-                }
-                lastEUOutput = eu;
+                lastEUDemand = demand;
+                lastEUOutput = emitted;
                 emitWasteWater();
             } else {
                 starveTick();
             }
         } else if (hall != null) {
             // Feedwater first; starving it heats the core exactly as fluid mode.
-            if (depleteInput(Materials.Water.getFluid(flowPerTick))
-                || depleteInput(GTModHandler.getDistilledWater(flowPerTick))) {
+            if (drawFeedwater(flowPerTick)) {
                 // The Spine boosts what the hall sees: speed (throughput) x efficiency.
                 final long eu = hall.processReactorSteam(spineBoostedSteam(true), reactorTier >= MAX_TIER, baseFlow);
                 if (eu < 0) {
@@ -2195,6 +2324,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 } else {
                     lastEUOutput = eu;
                 }
+                // The hall does its own dynamo clamping; never flag the chain as clamped.
+                lastEUDemand = lastEUOutput;
                 emitWasteWater();
             } else {
                 starveTick();
@@ -2218,6 +2349,73 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             steam = steam * spineEffMilli / 1000;
         }
         return steam;
+    }
+
+    // ------------------------------------------------------------ manifold output ceiling
+
+    /** Summed A/t x V of the plain Dynamo Hatches in the manifold's mid-height row. */
+    public long getDynamoCapacity() {
+        long capacity = 0;
+        for (final MTEHatchDynamo dynamo : GTUtility.validMTEList(mDynamoHatches)) {
+            capacity += dynamo.maxAmperesOut() * dynamo.maxEUOutput();
+        }
+        return capacity;
+    }
+
+    /**
+     * Summed A/t x V of the Laser Source Hatches in the manifold's upper row. TecTech laser
+     * sources land in mExoticDynamoHatches, which addEnergyOutputMultipleDynamos both sizes
+     * and feeds - they simply have to be counted here as well or the pre-clamp throws the
+     * power away before it is ever offered to them.
+     */
+    public long getLaserCapacity() {
+        long capacity = 0;
+        for (final MTEHatch hatch : GTUtility.validMTEList(mExoticDynamoHatches)) {
+            capacity += hatch.maxAmperesOut() * hatch.maxEUOutput();
+        }
+        return capacity;
+    }
+
+    /** Laser Source Hatches currently registered in the manifold. */
+    public int getLaserHatchCount() {
+        int fitted = 0;
+        for (final MTEHatch ignored : GTUtility.validMTEList(mExoticDynamoHatches)) {
+            fitted++;
+        }
+        return fitted;
+    }
+
+    /**
+     * Laser sources that are PAINTED. TecTech only fires a laser link from a coloured source
+     * hatch to a matching-colour Laser Target Hatch, so an unpainted source silently buffers
+     * every EU it is handed - the classic "the multi says it generates, nothing arrives".
+     */
+    public int getLinkedLaserHatchCount() {
+        int linked = 0;
+        for (final MTEHatch hatch : GTUtility.validMTEList(mExoticDynamoHatches)) {
+            final IGregTechTileEntity base = hatch.getBaseMetaTileEntity();
+            if (base != null && base.getColorization() >= 0) linked++;
+        }
+        return linked;
+    }
+
+    /**
+     * The most EU/t this manifold may be handed in one tick: everything the fitted hatches
+     * can absorb, capped at 2^31-1 because addEnergyOutputMultipleDynamos accumulates its
+     * injected total in an int.
+     */
+    public long outputCeiling() {
+        return Math.min(getDynamoCapacity() + getLaserCapacity(), Integer.MAX_VALUE);
+    }
+
+    /** The RPM model's pre-clamp figure on the last generating tick. */
+    public long getLastEUDemand() {
+        return lastEUDemand;
+    }
+
+    /** True when the ceiling, not the reactor, is what limits the plant's output. */
+    public boolean isOutputClamped() {
+        return lastEUDemand > lastEUOutput;
     }
 
     // ------------------------------------------------------------ Spiral chamber runtime
@@ -2259,15 +2457,103 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     private static final int[] CHAMBER_COOLANT_Q = { 160_000, 40_000, 12_000, 4_000, 1_500, 1_000 };
     private static final String[] CHAMBER_COOLANT_NAMES = { "Tachyon Rich Temporal Fluid", "Liquid Cryotheum",
         "Super Coolant", "IC2 Coolant", "Distilled Water", "Water" };
+    /** Residual-swirl turbulence: SD-2's k1 x |S|^2 heat per SECOND while running. */
+    private static final int SWIRL_HEAT_PER_SECOND = 5;
+    /** Ticks of empty injectors before the plant counts as DRY (longer than a cycle span). */
+    private static final int PROPELLANT_DRY_TICKS = 100;
 
     /**
-     * TC-3 turbine runtime, each running tick: score a due cycle window, accept a pending
-     * redstone-requested cycle (drinking one 20-tick steam slug from the buffer and echoing
-     * the Sensor), and drink coolant scaled with the SQUARE of the fan RPM. Starvation
-     * heats the chamber until the rotors SEIZE. No redstone clock = RPM decays to zero.
+     * The chamber's cooling load per tick at a given fan speed, in heat units: the ruling's
+     * RPM-squared term plus the Spine's residual-swirl bias q_spine (SD-3: q = k2 x V^2 +
+     * q_spine). A COOLED chamber carries the turbulence away with the coolant; an uncooled one
+     * takes it as heat instead (see onPostTick), which is what "all-riding patterns run hot"
+     * has always meant.
+     */
+    private int chamberLoad(int rpmMilliValue) {
+        final double n = rpmMilliValue / 1_000_000.0;
+        // One ceiling over the WHOLE load: rounding the swirl term separately truncated an
+        // |S|=1 spine to zero, so a mistuned Spine cost neither coolant nor heat.
+        return (int) Math.ceil(200.0 * n * n + spineSwirl * (double) spineSwirl * SWIRL_HEAT_PER_SECOND / 20.0);
+    }
+
+    private static int coolantLitresFor(int load, int rung) {
+        return Math.max(1, (int) Math.ceil(load * 1000.0 / CHAMBER_COOLANT_Q[rung]));
+    }
+
+    /**
+     * Feedwater for the reactor. While the bench-supply flag is on the draw is WAIVED in
+     * code rather than by filling tanks - a filled hatch can be pumped back out, which
+     * would have made a test plant an unlimited water/coolant source.
+     */
+    private boolean drawFeedwater(int litres) {
+        if (debugInfiniteSupplies) return true;
+        return depleteInput(Materials.Water.getFluid(litres)) || depleteInput(GTModHandler.getDistilledWater(litres));
+    }
+
+    /**
+     * Draws coolant from the SPIRAL CHAMBER's own input hatches only. Using the shared pool
+     * would let the silo's feedwater answer "can the chamber be cooled?" - and then be drunk
+     * as coolant, starving the reactor it was meant to feed.
+     */
+    private boolean drainChamber(FluidStack want, boolean simulate) {
+        if (want == null || want.getFluid() == null) return false;
+        if (chamberHatches.isEmpty()) return false;
+        int left = want.amount;
+        for (final MTEHatchInput hatch : GTUtility.validMTEList(chamberHatches)) {
+            final FluidStack got = hatch.drain(ForgeDirection.UNKNOWN, new FluidStack(want.getFluid(), left), false);
+            if (got != null) left -= got.amount;
+            if (left <= 0) break;
+        }
+        if (left > 0) return false;
+        if (simulate) return true;
+        left = want.amount;
+        for (final MTEHatchInput hatch : GTUtility.validMTEList(chamberHatches)) {
+            final FluidStack got = hatch.drain(ForgeDirection.UNKNOWN, new FluidStack(want.getFluid(), left), true);
+            if (got != null) left -= got.amount;
+            if (left <= 0) return true;
+        }
+        return false;
+    }
+
+    /**
+     * The best ladder rung that could cover this load RIGHT NOW, consuming nothing (-1 = the
+     * plant cannot cool that much). This is the TC-7 interlock's oracle: the fan is never
+     * allowed to accelerate past the speed the chamber can actually pay for.
+     */
+    private int coolantRungAvailable(int load) {
+        for (int i = 0; i < CHAMBER_COOLANT_Q.length; i++) {
+            final FluidStack coolant = chamberCoolantStack(i, coolantLitresFor(load, i));
+            if (coolant != null && (debugInfiniteSupplies || drainChamber(coolant, true))) return i;
+        }
+        return -1;
+    }
+
+    /**
+     * The RPM the plant would reach if the cycle about to start went PERFECTLY: every fitted
+     * injector timed, on the best propellant it has. Deliberately pessimistic - the interlock
+     * must guarantee cooling for the speed it is about to ALLOW, not for the speed it expects.
+     */
+    private int projectedRpmMilli(int propMilli) {
+        final int timed = Math.min(GALLERY_STAGES, Math.max(1, spiralInjectors.size()));
+        final long gain = (long) RPM_GAIN * Math.max(1000, propMilli) * timed / 8;
+        return (int) Math.min(RPM_REDLINE_MILLI, rpmMilli + gain);
+    }
+
+    /**
+     * TC-3 turbine runtime, each running tick: score a due cycle window, put a pending
+     * redstone-requested cycle THROUGH THE TC-7 INTERLOCK (it may only be accepted when the
+     * chamber can cool the RPM it would reach and the injectors have something to burn), and
+     * drink coolant scaled with the SQUARE of the fan RPM. Losing coolant at speed TRIPS the
+     * fan into a protective spin-down instead of cooking it - a plant whose supplies are not
+     * plumbed yet simply never spins up, and never seizes. No redstone clock = RPM decays.
      */
     private void runTurbineTick() {
-        if (!spiralBuilt) return;
+        if (!spiralBuilt) {
+            // No chamber at all: nothing carries the Spine's turbulence away (SD-2 interim).
+            chamberCooled = false;
+            chamberStarved = false;
+            return;
+        }
         final long now = getBaseMetaTileEntity().getWorld()
             .getTotalWorldTime();
         if (now - lastChamberTick > 20) {
@@ -2279,6 +2565,32 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         }
         lastChamberTick = now;
 
+        // Propellant census. A port is EMPTY between shots in skilled play (the litre arrives
+        // inside the window), so "dry" is only declared after PROPELLANT_DRY_TICKS with
+        // nothing anywhere - never from the single tick a cycle happens to be requested on.
+        int loadedInjectors = 0;
+        int bestPropMilli = 0;
+        FluidStack bestStack = null;
+        for (final MTEHatchPrecisionInjector injector : spiralInjectors) {
+            if (injector == null || !injector.isValid() || injector.storedLitres() <= 0) continue;
+            loadedInjectors++;
+            final int p = propellantMilliOf(injector.storedPropellant());
+            if (p > bestPropMilli) {
+                bestPropMilli = p;
+                bestStack = injector.storedPropellant();
+            }
+        }
+        if (bestStack != null) {
+            lastPropellantTick = now;
+            propellantName = bestStack.getLocalizedName();
+            // Keep the displayed P with the fluid it came from: pairing this name with the
+            // LAST cycle's factor mislabels the moment a player swaps propellant.
+            propellantMilli = bestPropMilli;
+        } else if (now - lastPropellantTick > PROPELLANT_DRY_TICKS) {
+            propellantName = "none";
+            propellantMilli = 0;
+        }
+
         // Score the last accepted cycle one tick AFTER its +/-2t window closes: every
         // achievable in-window fill was recorded on a fully completed earlier tick, so
         // scoring never depends on tile-entity tick order (the SD-3 deferral pattern).
@@ -2287,53 +2599,98 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             cycleEvalTick = 0;
         }
 
-        // Accept a pending redstone cycle: needs the turbine gen formed, a free window
-        // slot, and a full 20-tick steam slug in the buffer. A slugless cycle is MISSED -
-        // the injectors' litres still burn at scoring time, but no RPM is gained and the
-        // Sensor stays silent (its pulse is the ACCEPTED-cycle confirmation).
+        // Accept a pending redstone cycle: needs the turbine gen formed, a free window slot,
+        // and now the TC-7 INTERLOCK's blessing. A slugless cycle is still MISSED per the
+        // ruling - its litres burn at scoring time, no RPM is gained and the Sensor stays
+        // silent - but a cycle that CANNOT be cooled, or has nothing to burn, is never
+        // started at all: no steam drunk, no propellant burned, no heat, and a stated reason.
         if (pendingCycle && cycleEvalTick == 0 && galleryBuilt && now - lastCycleTick >= 5) {
-            pendingCycle = false;
-            lastCycleTick = now;
+            final boolean dry = loadedInjectors == 0 && now - lastPropellantTick > PROPELLANT_DRY_TICKS;
+            final int projected = projectedRpmMilli(Math.max(bestPropMilli, lastCyclePropMilli));
+            final int projectedLoad = chamberLoad(projected);
             final long slug = CYCLE_SLUG_TICKS * steamPerTick;
-            cycleHadSteam = slug > 0 && steamBuffer >= slug;
-            if (cycleHadSteam) {
-                steamBuffer -= slug;
-                recentCycles.addLast(now);
-                if (spineSensor != null && spineSensor.isValid()) {
-                    spineSensor.pulse(2);
+            if (dry || coolantRungAvailable(projectedLoad) < 0) {
+                pendingCycle = false;
+                turbineHoldReason = dry ? "injectors are dry - no propellant to burn, so no cycle was started"
+                    : "coolant cannot cover " + String.format("%,d", projected / 1000)
+                        + " RPM ("
+                        + String.format("%,d", coolantLitresFor(projectedLoad, CHAMBER_COOLANT_Q.length - 1))
+                        + " L/t of water) - cycle refused, RPM held";
+                // The refused cycle never opens a window, so stamps recorded around it must
+                // not be scored as "mistimed" by whatever cycle eventually runs: drop the
+                // timing, keep the fluid.
+                for (final MTEHatchPrecisionInjector injector : spiralInjectors) {
+                    if (injector != null && injector.isValid()) injector.drainEvents();
                 }
+            } else {
+                pendingCycle = false;
+                lastCycleTick = now;
+                cycleHadSteam = slug > 0 && steamBuffer >= slug;
+                if (cycleHadSteam) {
+                    steamBuffer -= slug;
+                    recentCycles.addLast(now);
+                    if (spineSensor != null && spineSensor.isValid()) {
+                        spineSensor.pulse(2);
+                    }
+                    turbineHoldReason = "";
+                    // TEST AID: the debug supply is the perfect operator - exactly 1L per
+                    // injector, stamped inside the window it just opened.
+                    if (debugInfiniteSupplies) {
+                        for (final MTEHatchPrecisionInjector injector : spiralInjectors) {
+                            if (injector != null && injector.isValid()) injector.debugTimedShot();
+                        }
+                    }
+                } else {
+                    turbineHoldReason = "steam buffer short of a " + String.format("%,d", slug)
+                        + " L slug - cycle missed (clock faster than the reactor)";
+                }
+                cycleEvalTick = now + 3;
             }
-            cycleEvalTick = now + 3;
         }
 
-        // Coolant demand scales with RPM squared: drain = ceil(200 x (RPM/1000)^2 / Q).
-        final double rpmNorm = rpmMilli / 1_000_000.0;
-        final int demand = (int) Math.ceil(200.0 * rpmNorm * rpmNorm);
-        if (demand <= 0) {
+        // Coolant drain: ceil(load / Q) per tick, load = 200 x (RPM/1000)^2 + swirl bias.
+        final int load = chamberLoad(rpmMilli);
+        if (load <= 0) {
             chamberCoolantDrain = 0;
             chamberCoolantName = "idle";
+            chamberCooled = true;
+            chamberStarved = false;
             return;
         }
-        boolean cooled = false;
         for (int i = 0; i < CHAMBER_COOLANT_Q.length; i++) {
-            final int litres = Math.max(1, (int) Math.ceil(demand * 1000.0 / CHAMBER_COOLANT_Q[i]));
+            final int litres = coolantLitresFor(load, i);
             final FluidStack coolant = chamberCoolantStack(i, litres);
-            if (coolant != null && depleteInput(coolant)) {
-                cooled = true;
+            if (coolant != null && (debugInfiniteSupplies || drainChamber(coolant, false))) {
+                chamberCooled = true;
+                chamberStarved = false;
                 chamberCoolantDrain = litres;
-                chamberCoolantName = CHAMBER_COOLANT_NAMES[i];
-                break;
+                chamberCoolantName = debugInfiniteSupplies ? CHAMBER_COOLANT_NAMES[i] + " (bench supply)"
+                    : CHAMBER_COOLANT_NAMES[i];
+                return;
             }
         }
-        if (!cooled) {
-            chamberCoolantDrain = 0;
-            chamberCoolantName = "STARVED";
-            // Uncooled at speed: heat builds each second until the rotors tear apart.
-            if (now % 20 == 10) {
-                heat += (int) Math.ceil(rpmNorm * rpmNorm) * 3;
-                if (heat >= SCRAM_HEAT) {
-                    seize();
-                }
+        // Coolant LOST (the interlock means it was there when this speed was authorised):
+        // trip the fan and let it spin down fast rather than cook the rotors. Friction heat
+        // still accrues at speed, so a chamber that was already near SCRAM can still seize -
+        // but nothing seizes merely because the player has not plumbed the coolant yet.
+        chamberCooled = false;
+        chamberStarved = true;
+        chamberCoolantDrain = 0;
+        chamberCoolantName = "STARVED";
+        if (rpmMilli > 0) {
+            rpmMilli = (int) ((long) rpmMilli * 95 / 100);
+            turbineHoldReason = "COOLANT LOST - protective spin-down, RPM bleeding off";
+        } else {
+            turbineHoldReason = "no coolant in the chamber input hatch - the turbine will not spin up";
+        }
+        // Only a TURNING fan generates friction heat - and only a turning fan can seize.
+        // Testing the threshold at rest let a plant that was merely never plumbed destroy
+        // its own Spine housings (and the rotors in them).
+        if (rpmMilli > 0 && now % 20 == 10) {
+            final double rpmNorm = rpmMilli / 1_000_000.0;
+            heat += (int) Math.ceil(rpmNorm * rpmNorm) * 3;
+            if (heat >= SCRAM_HEAT) {
+                seize();
             }
         }
     }
@@ -2384,19 +2741,31 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 // gain(milli) = RPM_GAIN x P x timed/8; see the RPM_GAIN equilibrium note.
                 final long gainMilli = (long) RPM_GAIN * minPropMilli * good / 8;
                 rpmMilli = (int) Math.min(RPM_REDLINE_MILLI, rpmMilli + gainMilli);
+                turbineHoldReason = "";
             }
         } else {
             lastCyclePropMilli = 1000;
+            turbineHoldReason = wastedLitres > 0
+                ? "last cycle: " + wastedLitres + "L mistimed - no injector landed exactly 1L in the +/-2t window"
+                : "last cycle: no propellant reached the injectors - RPM only decays";
         }
     }
 
-    /** A redstone rising edge on the Turbine Control Block: run one cycle when possible. */
     /**
      * TEST AID (set by /btsbuild, NBT-persisted): pulses a turbine cycle every 20 ticks so a
      * freshly commanded plant spins up without wiring a redstone clock first. Redstone
      * remains the real mechanic - this is a bench clock, and the GUI says so.
      */
     private boolean debugAutoCycle;
+    /**
+     * TEST AID (set by /btsbuild, toggled with /btssupply, NBT-persisted): the plant's
+     * consumables are refilled every tick - feedwater in the silo's face-panel hatches, the
+     * best coolant that exists in the Spiral's own hatch, and the best propellant in all eight
+     * injectors - and each accepted cycle gets a perfectly timed 1L shot per injector. A
+     * commanded plant therefore runs indefinitely without any plumbing, while the real
+     * mechanics (interlock, timing window, coolant ladder) stay exactly as ruled.
+     */
+    private boolean debugInfiniteSupplies;
 
     public boolean isDebugAutoCycle() {
         return debugAutoCycle;
@@ -2406,10 +2775,121 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         debugAutoCycle = value;
     }
 
+    public boolean isDebugInfiniteSupplies() {
+        return debugInfiniteSupplies;
+    }
+
+    public void setDebugInfiniteSupplies(boolean value) {
+        debugInfiniteSupplies = value;
+    }
+
+    /** Best propellant that actually exists in this pack, worst-case Benzene. */
+    public static FluidStack bestPropellant(int litres) {
+        final net.minecraftforge.fluids.Fluid[] ladder = { BTSFluids.naqPropellantT6, BTSFluids.naqPropellantT5,
+            BTSFluids.naqPropellantT4, BTSFluids.naqPropellantT3, BTSFluids.naqPropellantT2, BTSFluids.naqPropellantT1,
+            GTPPFluids.H8N4C2O4RocketFuel, Materials.GasolinePremium.mFluid, Materials.Benzene.mFluid };
+        for (final net.minecraftforge.fluids.Fluid fluid : ladder) {
+            if (fluid != null) return new FluidStack(fluid, litres);
+        }
+        return null;
+    }
+
+    /** Best chamber coolant that actually exists in this pack, worst-case plain Water. */
+    public FluidStack bestCoolant(int litres) {
+        for (int i = 0; i < CHAMBER_COOLANT_Q.length; i++) {
+            final FluidStack stack = chamberCoolantStack(i, litres);
+            if (stack != null && stack.getFluid() != null) return stack;
+        }
+        return Materials.Water.getFluid(litres);
+    }
+
     /**
-     * Fills every Rod Loading Port of the formed silo with the given rod stack (test aid for
-     * /btsbuild). Returns how many ports were stocked.
+     * TEST AID: tops the plant's consumables back up. Feedwater (Water) goes into the silo's
+     * face-panel input hatches, the best coolant in the pack into the Spiral chamber's own
+     * hatch, and the best propellant into every Precision Injector - the injector reserve is
+     * set WITHOUT a timing stamp, so it never reads as a bucket dumped into a window. Returns
+     * {feedwater hatches, coolant hatches, injectors}.
      */
+    public int[] refillDebugSupplies() {
+        int feed = 0, cool = 0, inject = 0;
+        // Feedwater and chamber coolant are NOT materialised: while the flag is on the draw
+        // is simply waived in code (see drainChamber / the feedwater path). Filling those
+        // tanks would have made the plant an unlimited tap for the pack's best coolant,
+        // since a hatch's contents can be pumped straight back out.
+        for (final MTEHatchInput hatch : GTUtility.validMTEList(mInputHatches)) {
+            if (chamberHatches.contains(hatch)) cool++;
+            else feed++;
+        }
+        // The propellant DOES need to be a real litre - the slug scorer consumes and counts
+        // it - but only ever one litre per injector per cycle, which is not a useful rate.
+        final FluidStack propellant = bestPropellant(1);
+        if (propellant != null) {
+            for (final MTEHatchPrecisionInjector injector : spiralInjectors) {
+                if (injector == null || !injector.isValid()) continue;
+                injector.debugRefill(propellant);
+                inject++;
+            }
+        }
+        return new int[] { feed, cool, inject };
+    }
+
+    // ------------------------------------------------- plant envelope (for /btsbuild siting)
+
+    /** Highest buildable tier. */
+    public static int maxTier() {
+        return MAX_TIER;
+    }
+
+    /** Edge of the square platform footprint, in blocks (the plant's a AND c extent). */
+    public static int platformSize() {
+        return PLATFORM;
+    }
+
+    /** Platform coordinate `a` of the controller: 25 cells of platform lie to its RIGHT. */
+    public static int platformControllerA() {
+        return CENTER;
+    }
+
+    /** Platform coordinate `c` of the controller: 17 cells of platform lie in FRONT of it. */
+    public static int platformControllerC() {
+        return SILO_FRONT;
+    }
+
+    /**
+     * Blocks of headroom a tier-t plant needs above the controller's own level. The silo is
+     * the tall piece - walls 2n plus an n/2 dome, minus the pad layer the controller stands
+     * on - except at tier 1, where the 19-high cooling tower shells out-reach the 20-high
+     * silo by a hair; take the larger. Tiers 1..5: 20, 25, 30, 35, 40.
+     */
+    public static int plantHeightFor(int tier) {
+        final int t = Math.min(MAX_TIER, Math.max(1, tier));
+        return Math.max(siloVOff(t), TOWER_TOP);
+    }
+
+    /** Top layer of the module tower shells, as passed to buildPiece in {@link #construct}. */
+    private static final int TOWER_TOP = 19;
+
+    /**
+     * One-line census of what the last structure walk actually found - the /btsbuild
+     * verification readout, so a per-tier build can be checked without opening five GUIs.
+     */
+    public String buildSummary() {
+        return "silo T" + (isSiloBuilt() ? reactorTier : 0)
+            + " ("
+            + getFuelColumns()
+            + " columns) | spine "
+            + (spineBuilt ? spineHousings + " housings" : "MISSING")
+            + " | spiral "
+            + (spiralBuilt ? spiralInjectors.size() + " injectors" : "MISSING")
+            + " | gallery "
+            + (galleryBuilt ? galleryStages + "/" + GALLERY_STAGES + " stages" : "MISSING")
+            + " | "
+            + mDynamoHatches.size()
+            + " dynamos + "
+            + mExoticDynamoHatches.size()
+            + " lasers";
+    }
+
     /** Turbine Housing cells this plant owns: the Spine's 4 rotor sockets + 8 gallery stages. */
     public List<int[]> housingCells() {
         final List<int[]> all = new ArrayList<>(spineHousingCells);
@@ -2417,6 +2897,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return all;
     }
 
+    /**
+     * Fills every Rod Loading Port of the formed silo with the given rod stack (test aid for
+     * /btsbuild). Returns how many ports were stocked.
+     */
     public int stockRodPorts(ItemStack rods) {
         if (rods == null) return 0;
         final World world = getBaseMetaTileEntity().getWorld();
@@ -2453,21 +2937,40 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         if (!galleryBuilt) {
             galleryStages = 0;
             avgRotorFactorMilli = 0;
+            rotorWear = "";
             return;
         }
         final World world = getBaseMetaTileEntity().getWorld();
         int count = 0;
         int sumMilli = 0;
+        // Per-stage condition for the readouts: wear points 0-9, '-' for an empty or missing
+        // seat. Eight entries always, so stage N is always the Nth column.
+        final StringBuilder wear = new StringBuilder();
+        int listed = 0;
         for (final int[] cell : stageCells) {
-            if (!world.blockExists(cell[0], cell[1], cell[2])) continue;
-            final net.minecraft.tileentity.TileEntity te = world.getTileEntity(cell[0], cell[1], cell[2]);
-            if (te instanceof TileTurbineHousing && ((TileTurbineHousing) te).hasRotor()) {
-                count++;
-                sumMilli += Math.max(0, 1000 - 50 * ((TileTurbineHousing) te).getRotorDamage());
+            int damage = -1;
+            if (world.blockExists(cell[0], cell[1], cell[2])) {
+                final net.minecraft.tileentity.TileEntity te = world.getTileEntity(cell[0], cell[1], cell[2]);
+                if (te instanceof TileTurbineHousing && ((TileTurbineHousing) te).hasRotor()) {
+                    damage = ((TileTurbineHousing) te).getRotorDamage();
+                }
             }
+            if (damage >= 0) {
+                count++;
+                sumMilli += Math.max(0, 1000 - 50 * damage);
+            }
+            if (listed > 0) wear.append(' ');
+            wear.append(damage < 0 ? "-" : String.valueOf(damage));
+            listed++;
+        }
+        while (listed < GALLERY_STAGES) {
+            if (listed > 0) wear.append(' ');
+            wear.append('-');
+            listed++;
         }
         galleryStages = count;
         avgRotorFactorMilli = sumMilli / GALLERY_STAGES;
+        rotorWear = wear.toString();
     }
 
     /**
@@ -2511,15 +3014,16 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         if (depleteInput(GTModHandler.getIC2Coolant(coolantFlow))) {
             addOutput(GTModHandler.getHotCoolant(coolantFlow));
             lastEUOutput = 0;
+            lastEUDemand = 0;
             emitWasteWater();
-        } else if (depleteInput(Materials.Water.getFluid(flowPerTick))
-            || depleteInput(GTModHandler.getDistilledWater(flowPerTick))) {
-                addOutput(Materials.Steam.getGas(spineBoostedSteam(false)));
-                lastEUOutput = 0;
-                emitWasteWater();
-            } else {
-                starveTick();
-            }
+        } else if (drawFeedwater(flowPerTick)) {
+            addOutput(Materials.Steam.getGas(spineBoostedSteam(false)));
+            lastEUOutput = 0;
+            lastEUDemand = 0;
+            emitWasteWater();
+        } else {
+            starveTick();
+        }
     }
 
     private void starveTick() {
@@ -2541,8 +3045,15 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         activeColumns = 0;
         liveColumnsLastCycle = 0;
         lastEUOutput = 0;
+        lastEUDemand = 0;
         // The chain's standing steam vents with the campaign; RPM only ever coasts down.
         steamBuffer = 0;
+        // Chamber bookkeeping is about a RUNNING chain: a stopped plant must not keep
+        // reporting "STARVED" (it is not drinking anything) or a stale interlock reason.
+        chamberStarved = false;
+        chamberCoolantDrain = 0;
+        chamberCoolantName = "idle";
+        turbineHoldReason = "";
     }
 
     /** Campaign lost, machine disabled until the operator re-enables it. Decay heat follows. */
@@ -2660,10 +3171,13 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             }
         }
 
-        // Residual Spine swirl is turbulence: |S|^2 x 5 heat per second while running. An
-        // all-riding rotor pattern (S=4) outruns bare passive decay - bring cooling towers.
-        if (running && spineSwirl != 0 && aTick % 20 == 0) {
-            heat += spineSwirl * spineSwirl * 5;
+        // Residual Spine swirl is turbulence: |S|^2 x 5 heat per second while running - unless
+        // the Spiral chamber is being cooled, in which case the coolant loop carries it away
+        // (SD-3's q_spine term is part of the chamber's load, and chamberLoad() charges for
+        // it). An all-riding pattern therefore costs coolant, and only bites as HEAT when the
+        // chamber is starved or absent.
+        if (running && spineSwirl != 0 && !chamberCooled && aTick % 20 == 0) {
+            heat += spineSwirl * spineSwirl * SWIRL_HEAT_PER_SECOND;
             if (heat >= SCRAM_HEAT) {
                 scram();
             }
@@ -2674,6 +3188,12 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         // Bench clock for commanded test plants: a cycle a second, no redstone wiring.
         if (debugAutoCycle && aTick % 20 == 0) {
             requestTurbineCycle();
+        }
+        // Infinite supplies (test aid): keep feedwater, coolant and propellant topped up so a
+        // commanded plant runs indefinitely. Runs AFTER the machine logic of this tick, so
+        // every hatch is full again at the start of the next one.
+        if (debugInfiniteSupplies) {
+            refillDebugSupplies();
         }
 
         // Machine-block updates cannot propagate across the unregistered concrete platform to
@@ -2761,6 +3281,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         aNBT.setInteger("btsRadiationTicks", radiationTicks);
         aNBT.setInteger("btsRadCenterDepth", radiationCenterDepth);
         aNBT.setBoolean("btsDebugAutoCycle", debugAutoCycle);
+        aNBT.setBoolean("btsDebugSupplies", debugInfiniteSupplies);
         aNBT.setBoolean("btsCascadeMode", cascadeMode);
         aNBT.setInteger("btsLiveColumns", liveColumnsLastCycle);
         aNBT.setInteger("btsFallbackCyclesLeft", fallbackCyclesLeft);
@@ -2808,6 +3329,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         radiationTicks = aNBT.getInteger("btsRadiationTicks");
         radiationCenterDepth = aNBT.getInteger("btsRadCenterDepth");
         debugAutoCycle = aNBT.getBoolean("btsDebugAutoCycle");
+        debugInfiniteSupplies = aNBT.getBoolean("btsDebugSupplies");
         cascadeMode = aNBT.getBoolean("btsCascadeMode");
         liveColumnsLastCycle = aNBT.getInteger("btsLiveColumns");
         fallbackCyclesLeft = aNBT.getInteger("btsFallbackCyclesLeft");
@@ -2905,6 +3427,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return lastCyclePropMilli;
     }
 
+    /** P (x1000) of the propellant standing in the injectors right now. */
+    public int getPropellantMilli() {
+        return propellantMilli;
+    }
+
     public int getAvgRotorFactorMilli() {
         return avgRotorFactorMilli;
     }
@@ -2915,6 +3442,60 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
     public String getChamberCoolantName() {
         return chamberCoolantName;
+    }
+
+    /** True when the chamber asked for coolant this tick and got none. */
+    public boolean isChamberStarved() {
+        return chamberStarved;
+    }
+
+    /** Localized name of the propellant standing in the injectors, or "none". */
+    public String getPropellantName() {
+        return propellantName;
+    }
+
+    /** Per-stage rotor wear, "0 0 1 - ..." with '-' for an empty seat. */
+    public String getRotorWear() {
+        return rotorWear;
+    }
+
+    /**
+     * Why the turbine is not accelerating (TC-7 interlock, a missed cycle, a mistimed window),
+     * or "" when nothing is wrong. Never a shutdown - just the reason the RPM is not climbing.
+     */
+    public String getTurbineHoldReason() {
+        if (reactorTier <= 0 || !spiralBuilt) return "";
+        if (mMaxProgresstime <= 0) return "no campaign running - load rods (or assemblies) and enable the reactor";
+        if (!galleryBuilt) return "no Rotor Assembly - cycles cannot be accepted";
+        if (turbineHoldReason.isEmpty()) {
+            // Nothing is wrong - but a fan that is simply never being asked to spin must say
+            // so too, or "0 RPM with no error" reads as a bug rather than a missing clock.
+            final IGregTechTileEntity base = getBaseMetaTileEntity();
+            if (base != null && base.isServerSide()
+                && base.getWorld()
+                    .getTotalWorldTime() - lastCycleTick > 100) {
+                return "no cycle requests - pulse the Turbine Control Block (or /btsclock on); RPM is decaying";
+            }
+        }
+        return turbineHoldReason;
+    }
+
+    /** Standing steam, in tenths of a 20-tick cycle slug (a cycle needs 10 = 1.0). */
+    public int getSteamBufferSlugsTenths() {
+        final long slug = CYCLE_SLUG_TICKS * steamPerTick;
+        if (slug <= 0) return 0;
+        return (int) Math.min(Integer.MAX_VALUE, steamBuffer * 10 / slug);
+    }
+
+    /** Control-rod setting as a percentage of full power (the campaign's N/24). */
+    /** The EFFECTIVE throttle - a programmed circuit overrides the GUI setting. */
+    public int getThrottlePercent() {
+        return Math.min(24, Math.max(1, throttleN)) * 100 / 24;
+    }
+
+    /** True when a programmed circuit is driving the rods instead of the GUI field. */
+    public boolean isThrottleOverridden() {
+        return throttleN != Math.min(24, Math.max(1, throttleSetting));
     }
 
     public boolean isGalleryBuilt() {
@@ -3015,6 +3596,231 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return sb.toString();
     }
 
+    // ------------------------------------------------------------------ readout (shared)
+
+    /**
+     * Every readout the plant has - the controller GUI, BOTH control blocks and the scanner -
+     * is composed from these builders, so no panel can drift from another and no number is
+     * only visible in one place. They are static and take primitives so the client-side GUI
+     * can format them straight from its sync values.
+     */
+    public static String header(String group) {
+        return EnumChatFormatting.AQUA + "" + EnumChatFormatting.BOLD + group + EnumChatFormatting.RESET;
+    }
+
+    public static String tierLine(int tier, int edge, int throttlePct, String modules) {
+        return "Tier " + tier + " · " + edge + "x" + edge + " octagon · rods " + throttlePct + "% · " + modules;
+    }
+
+    public static String cascadeLine(boolean cascade, int live, int total, int columns, int cap, String fuel,
+        long steam) {
+        final String head = cascade ? "Cascade " + live + "/" + total + " pillars"
+            : EnumChatFormatting.YELLOW + "Assembly fallback (output halved) "
+                + columns
+                + "/"
+                + cap
+                + EnumChatFormatting.RESET;
+        return head + " · " + fuel + " · " + String.format("%,d", steam) + " L/t steam";
+    }
+
+    public static String heatLine(int heat, int decaySeconds, int radiationSeconds) {
+        final EnumChatFormatting color = heat >= SCRAM_HEAT ? EnumChatFormatting.RED
+            : heat >= SCRAM_HEAT / 2 ? EnumChatFormatting.YELLOW : EnumChatFormatting.GREEN;
+        return color + "Heat "
+            + String.format("%,d", heat)
+            + "/"
+            + String.format("%,d", MELTDOWN_HEAT)
+            + EnumChatFormatting.RESET
+            + " (SCRAM "
+            + String.format("%,d", SCRAM_HEAT)
+            + ") · decay "
+            + (decaySeconds > 0 ? EnumChatFormatting.GOLD + "" + decaySeconds + "s" + EnumChatFormatting.RESET : "none")
+            + " · rad "
+            + (radiationSeconds > 0
+                ? EnumChatFormatting.DARK_RED + "" + radiationSeconds + "s" + EnumChatFormatting.RESET
+                : "clear");
+    }
+
+    public static String spineLine(boolean built, String pattern, int housings, int speedMilli, int effMilli,
+        int swirl) {
+        if (!built) return EnumChatFormatting.GRAY + "Spine: not built" + EnumChatFormatting.RESET;
+        return "Spine [" + pattern
+            + "] "
+            + housings
+            + " housings · x"
+            + String.format("%.2f", speedMilli / 1000.0)
+            + " spd · x"
+            + String.format("%.2f", effMilli / 1000.0)
+            + " eff · swirl "
+            + swirl;
+    }
+
+    public static String spiralLine(boolean built, int fitted, int timed, String propellant, int propMilli) {
+        if (!built) return EnumChatFormatting.GRAY + "Spiral: not built" + EnumChatFormatting.RESET;
+        final EnumChatFormatting timing = timed >= 8 ? EnumChatFormatting.GREEN
+            : timed > 0 ? EnumChatFormatting.YELLOW : EnumChatFormatting.RED;
+        return "Spiral " + fitted
+            + "/8 injectors · timed "
+            + timing
+            + timed
+            + "/8"
+            + EnumChatFormatting.RESET
+            + " · "
+            + propellant
+            + " (P x"
+            + String.format("%.2f", propMilli / 1000.0)
+            + ")";
+    }
+
+    public static String coolantLine(boolean built, boolean starved, String coolant, int drain) {
+        if (!built) return EnumChatFormatting.GRAY + "Coolant: no chamber" + EnumChatFormatting.RESET;
+        if (starved) {
+            return EnumChatFormatting.RED + "Coolant STARVED - the chamber has none of the ladder's fluids"
+                + EnumChatFormatting.RESET;
+        }
+        return "Coolant " + coolant + " · " + String.format("%,d", drain) + " L/t";
+    }
+
+    public static String rpmLine(int rpm, int cyclesPerMinute, int bufferSlugsTenths, boolean benchClock) {
+        final EnumChatFormatting color = rpm >= RPM_REDLINE ? EnumChatFormatting.RED
+            : rpm > 0 ? EnumChatFormatting.GREEN : EnumChatFormatting.GRAY;
+        return color + "RPM "
+            + String.format("%,d", rpm)
+            + EnumChatFormatting.RESET
+            + "/"
+            + String.format("%,d", RPM_REDLINE)
+            + " redline · "
+            + cyclesPerMinute
+            + " cyc/min ("
+            + (benchClock ? EnumChatFormatting.LIGHT_PURPLE + "bench clock" + EnumChatFormatting.RESET : "redstone")
+            + ") · steam buffer "
+            + String.format("%.1f", bufferSlugsTenths / 10.0)
+            + " slugs";
+    }
+
+    public static String rotorLine(boolean built, int stages, int avgMilli, String wear) {
+        if (!built) return EnumChatFormatting.GRAY + "Rotor Assembly: not built" + EnumChatFormatting.RESET;
+        final EnumChatFormatting color = stages >= GALLERY_STAGES && avgMilli >= 900 ? EnumChatFormatting.GREEN
+            : stages > 0 ? EnumChatFormatting.YELLOW : EnumChatFormatting.RED;
+        return color + "Rotors "
+            + stages
+            + "/"
+            + GALLERY_STAGES
+            + EnumChatFormatting.RESET
+            + " · avg x"
+            + String.format("%.2f", avgMilli / 1000.0)
+            + " · wear "
+            + (wear == null || wear.isEmpty() ? "-" : wear)
+            + " (of 10)";
+    }
+
+    public static String holdLine(String reason) {
+        return EnumChatFormatting.YELLOW + "HOLD: " + reason + EnumChatFormatting.RESET;
+    }
+
+    public static String outputLine(boolean galleryActive, boolean hallInstalled, long emitted, long demand,
+        boolean clamped, long steamOut) {
+        if (!galleryActive && !hallInstalled) {
+            return "Steam export " + String.format("%,d", steamOut) + " L/t (no generator)";
+        }
+        return "Generating " + EnumChatFormatting.GREEN
+            + String.format("%,d", emitted)
+            + " EU/t"
+            + EnumChatFormatting.RESET
+            + (galleryActive ? " (Rotor Assembly)" : " (Turbine Hall)")
+            + (clamped
+                ? EnumChatFormatting.RED + " [CLAMPED from "
+                    + String.format("%,d", demand)
+                    + "]"
+                    + EnumChatFormatting.RESET
+                : "");
+    }
+
+    public static String ceilingLine(long ceiling, long dynamo, long laser) {
+        return "Ceiling " + String.format("%,d", ceiling)
+            + " EU/t = dynamos "
+            + String.format("%,d", dynamo)
+            + " + lasers "
+            + String.format("%,d", laser)
+            + (dynamo + laser > Integer.MAX_VALUE ? " (capped at 2^31-1)" : "");
+    }
+
+    public static String laserLine(int fitted, int painted) {
+        if (fitted == 0) {
+            return EnumChatFormatting.YELLOW + "Laser sockets EMPTY - manifold back face, upper row (4 cells)"
+                + EnumChatFormatting.RESET;
+        }
+        if (painted < fitted) {
+            return EnumChatFormatting.YELLOW + "Lasers "
+                + fitted
+                + "/4 fitted · "
+                + painted
+                + " painted - an unpainted source cannot fire"
+                + EnumChatFormatting.RESET;
+        }
+        return "Lasers " + fitted + "/4 fitted · " + painted + " painted";
+    }
+
+    public static String debugLine(boolean benchClock, boolean infiniteSupplies) {
+        return EnumChatFormatting.LIGHT_PURPLE + "Bench clock "
+            + (benchClock ? "ON" : "off")
+            + " · infinite supplies "
+            + (infiniteSupplies ? "ON" : "off")
+            + EnumChatFormatting.RESET;
+    }
+
+    /**
+     * The whole instrument panel, grouped and colour-coded. Both control blocks print this
+     * verbatim and the scanner appends it, so "what does the plant think it is doing" has
+     * exactly one answer everywhere.
+     */
+    public List<String> statusReport() {
+        final List<String> out = new ArrayList<>();
+        out.add(header("REACTOR"));
+        if (!isSiloBuilt()) {
+            out.add("Steam Generator NOT BUILT - project it onto the shield pad at platform centre");
+            out.add("Modules: " + getModulesSummary());
+            return out;
+        }
+        out.add(tierLine(getReactorTier(), getEdge(), getThrottlePercent(), getModulesSummary()));
+        out.add(
+            cascadeLine(
+                cascadeMode,
+                liveColumnsLastCycle,
+                columns.size(),
+                getFuelColumns(),
+                getColumnCap(),
+                fuelName(activeFuelMult),
+                steamPerTick));
+        out.add(heatLine(heat, getDecaySeconds(), getRadiationSeconds()));
+        out.add(header("STEAM CHAIN"));
+        out.add(spineLine(spineBuilt, spinePattern, spineHousings, spineSpeedMilli, spineEffMilli, spineSwirl));
+        out.add(spiralLine(spiralBuilt, spiralInjectors.size(), lastGoodInjectors, propellantName, propellantMilli));
+        out.add(coolantLine(spiralBuilt, chamberStarved, chamberCoolantName, chamberCoolantDrain));
+        out.add(header("TURBINE"));
+        out.add(rpmLine(getRpm(), cyclesPerMinute, getSteamBufferSlugsTenths(), debugAutoCycle));
+        out.add(rotorLine(galleryBuilt, galleryStages, avgRotorFactorMilli, rotorWear));
+        final String hold = getTurbineHoldReason();
+        if (!hold.isEmpty()) out.add(holdLine(hold));
+        out.add(header("OUTPUT"));
+        out.add(
+            outputLine(
+                isGalleryActive(),
+                isTurbineInstalled(),
+                lastEUOutput,
+                lastEUDemand,
+                isOutputClamped(),
+                getBoostedSteamOutput()));
+        if (galleryBuilt) {
+            out.add(ceilingLine(outputCeiling(), getDynamoCapacity(), getLaserCapacity()));
+            out.add(laserLine(getLaserHatchCount(), getLinkedLaserHatchCount()));
+        }
+        if (debugAutoCycle || debugInfiniteSupplies) {
+            out.add(debugLine(debugAutoCycle, debugInfiniteSupplies));
+        }
+        return out;
+    }
+
     private static String fuelName(int mult) {
         switch (mult) {
             case 9:
@@ -3030,62 +3836,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
     @Override
     public String[] getInfoData() {
+        // One panel, everywhere: the scanner prints exactly what the GUI and both control
+        // blocks show, so a number can never be right in one readout and stale in another.
         final List<String> info = new ArrayList<>(Arrays.asList(super.getInfoData()));
-        if (!isSiloBuilt()) {
-            info.add("Steam Generator: NOT BUILT - project it onto the shield pad at platform center");
-            info.add("Modules: " + getModulesSummary());
-            return info.toArray(new String[0]);
-        }
-        final int tier = getReactorTier();
-        info.add("Steam Generator tier: " + tier + " (" + edgeFor(tier) + " wide octagon)");
-        info.add(
-            cascadeMode ? "Fuel: rod cascade - " + liveColumnsLastCycle + " live / " + columns.size() + " pillars"
-                : "Fuel: assembly fallback (output halved) - " + getFuelColumns() + " / " + COLUMN_CAP[tier]);
-        info.add("Fuel type: " + fuelName(activeFuelMult));
-        info.add("Control rods: " + (throttleN * 100 / 24) + "% power");
-        info.add("Modules: " + getModulesSummary());
-        if (spineBuilt) {
-            info.add(
-                "Spine: [" + spinePattern
-                    + "]  speed x"
-                    + String.format("%.2f", spineSpeedMilli / 1000.0)
-                    + "  eff x"
-                    + String.format("%.2f", spineEffMilli / 1000.0)
-                    + "  swirl "
-                    + spineSwirl);
-        }
-        if (spiralBuilt) {
-            info.add(
-                "Turbine: " + String.format("%,d", getRpm())
-                    + " RPM (redline "
-                    + String.format("%,d", RPM_REDLINE)
-                    + ")  ·  "
-                    + cyclesPerMinute
-                    + " cyc/min  ·  timed "
-                    + lastGoodInjectors
-                    + "/8  ·  P x"
-                    + String.format("%.2f", lastCyclePropMilli / 1000.0));
-            info.add("Spiral coolant: " + chamberCoolantName + " (" + chamberCoolantDrain + " L/t)");
-        }
-        if (galleryBuilt) {
-            info.add(
-                "Rotor Assembly: " + galleryStages
-                    + "/"
-                    + GALLERY_STAGES
-                    + " stages seated  ·  avg rotor factor x"
-                    + String.format("%.2f", avgRotorFactorMilli / 1000.0));
-        }
-        info.add(
-            isGalleryActive() ? "Generating: " + lastEUOutput + " EU/t (via Rotor Assembly)"
-                : isTurbineInstalled() ? "Generating: " + lastEUOutput + " EU/t (via Turbine Hall)"
-                    : "Steam output: " + getBoostedSteamOutput() + " L/t");
-        info.add("Core heat: " + heat + " / " + MELTDOWN_HEAT + " (SCRAM at " + SCRAM_HEAT + ")");
-        if (decayHeatTicks > 0) {
-            info.add("Decay heat: cooling required for " + (decayHeatTicks / 20) + "s");
-        }
-        if (radiationTicks > 0) {
-            info.add("RADIATION FIELD: " + (radiationTicks / 20) + "s remaining");
-        }
+        info.addAll(statusReport());
         return info.toArray(new String[0]);
     }
 
@@ -3118,11 +3872,19 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             .addInfo("+ a +/-2t window where 8 Precision Injectors each want EXACTLY 1L of propellant.")
             .addInfo("Misses waste the litre and heat the chamber; the Sensor echoes accepted cycles.")
             .addInfo(aqua + "RPM:" + reset + " each cycle adds 176 x P x timed/8 RPM; decay 0.5%/t; redline 12,000.")
-            .addInfo("Coolant drain scales with RPM SQUARED - starve it and the rotors SEIZE.")
+            .addInfo("Coolant drain scales with RPM SQUARED. INTERLOCK: a cycle is only accepted while")
+            .addInfo("the chamber can cool the RPM it would reach and the injectors have propellant -")
+            .addInfo(gray + "an unsupplied plant simply never spins up, and says why on every panel." + reset)
+            .addInfo("Lose coolant at speed and the fan TRIPS into a protective spin-down instead.")
             .addInfo(aqua + "Rotor Assembly:" + reset + " optional gallery + 7x7x3 output manifold south of the")
             .addInfo("Spiral. Seat a TURBINE ROTOR in each of the 8 stage housings (right-click; wear")
             .addInfo("-5%/point, shatters at 10; sneak-click empty-handed to pull). 4 Dynamos in the")
             .addInfo("manifold's back face take EU/t = L/t x speed x eff x (RPM/1000) x avgRotorFactor.")
+            .addInfo(aqua + "LASER OUTPUT:" + reset + " 4 more sockets sit two rows ABOVE the dynamos on the")
+            .addInfo("same back face and accept TecTech LASER SOURCE HATCHES. The plant's ceiling is the")
+            .addInfo("SUM of both rows, so 4 IV Dynamos alone cap a tier-5 build at 32,768 EU/t while two")
+            .addInfo("ZPM 4,096A sources carry the full ~1.1B. PAINT each source and its Laser Target")
+            .addInfo(gray + "Hatch the same colour, same voltage tier - a lower-tier target EXPLODES." + reset)
             .addInfo(aqua + "Control:" + reset + " rods 1-24 + Build Tier in the GUI; circuit overrides throttle.")
             .addInfo(red + "Heat:" + reset + " SCRAM 8,000 - MELTDOWN 10,000. Decay heat needs 20 min of water.")
             .beginStructureBlock(50, 42, 50, true)
@@ -3148,13 +3910,15 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             .addStructureInfo("Spiral sockets: 8 Injectors follow the helix (back/west/front/east mid-cells,")
             .addStructureInfo("top 8 levels), Sensor in the roof front-center, Input Hatch + Maintenance in")
             .addStructureInfo("the floor's front corners. OUTPUT MANIFOLD back face: TURBINE CONTROL BLOCK")
-            .addStructureInfo("+ 1 Maintenance below it, and 4 Dynamos mid-height - all reachable outside.")
+            .addStructureInfo("+ 1 Maintenance below it, 4 Dynamos mid-height (y3) and 4 LASER SOURCE")
+            .addStructureInfo("sockets two rows above them (y5, same columns) - all reachable outside.")
             .addStructureInfo("Inside: fuel pillar frames 8 high, a Rod Loading Port above each pillar.")
             .addStructureInfo("Rod ladder: Uranium x1 - MOX x2 - Thorium-Bonded x5 - Naquadah-Bonded x9.")
             .addStructureInfo("Breaking a fueled pillar frame ejects its rods at the controller.")
             .addStructureInfo("Spine: 3x3x8 Tungstensteel Turbine Casing duct on the platform, two blocks")
             .addStructureInfo("past the silo's side wall; 4 Turbine Housings alternate with the open bore.")
-            .addStructureInfo("Residual swirl is turbulence heat - all-riding patterns need cooling towers.")
+            .addStructureInfo("Residual swirl is turbulence: a COOLED chamber carries it away with the coolant,")
+            .addStructureInfo("a starved or missing one takes it as heat - all-riding patterns drink more.")
             .addStructureInfo("Modules dock by standing their controller on a marker and projecting there.")
             .addStructureInfo("No Turbine Hall: exports Steam (or Hot Coolant when fed IC2 Coolant).")
             .toolTipFinisher();

@@ -98,4 +98,43 @@ public class MTEHatchPrecisionInjector extends MTEHatchInput {
     public FluidStack storedPropellant() {
         return mFluid;
     }
+
+    /** Litres of propellant standing in the port. */
+    public int storedLitres() {
+        return mFluid == null ? 0 : mFluid.amount;
+    }
+
+    /**
+     * TEST AID (the controller's "infinite supplies" debug flag): tops the port's reserve back
+     * up WITHOUT stamping a timing event. Going through {@link #fill} would stamp every
+     * refilled litre with the current tick, and the slug scorer would read those as a bucket
+     * dumped into the window - eight wasted litres and a heat spike per cycle. The reserve is
+     * inert until {@link #debugTimedShot} stamps exactly one litre of it.
+     */
+    public void debugRefill(FluidStack propellant) {
+        if (propellant == null || propellant.getFluid() == null) return;
+        // Exactly ONE litre - the amount a cycle can actually shoot. Topping the port up to
+        // its full capacity turned the bench supply into a pump-out tap for the pack's best
+        // propellant.
+        if (mFluid == null || !mFluid.isFluidEqual(propellant)) {
+            mFluid = new FluidStack(propellant.getFluid(), 1);
+        } else if (mFluid.amount < 1) {
+            mFluid.amount = 1;
+        }
+    }
+
+    /**
+     * TEST AID: stamps exactly 1L at the current tick - what a perfectly timed operator does
+     * inside a cycle's +/-2t window. The litre is scored (and consumed) by the controller like
+     * any other injection; the reserve behind it comes from {@link #debugRefill}.
+     */
+    public boolean debugTimedShot() {
+        if (mFluid == null || mFluid.amount < 1) return false;
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base == null || !base.isServerSide()) return false;
+        events.add(
+            new long[] { base.getWorld()
+                .getTotalWorldTime(), 1 });
+        return true;
+    }
 }

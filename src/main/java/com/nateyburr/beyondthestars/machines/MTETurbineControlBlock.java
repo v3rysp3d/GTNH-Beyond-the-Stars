@@ -54,6 +54,19 @@ public class MTETurbineControlBlock extends MTEHatch {
         return new MTETurbineControlBlock(mName, mTier, mDescriptionArray, mTextures);
     }
 
+    /**
+     * MTEHatch does NOT override this and CommonMetaTileEntity's default is FALSE, so
+     * BaseMetaTileEntity.setFrontFacing is a silent no-op without it: the panel stays at the
+     * freshly-placed default (ForgeDirection.DOWN), showing its screen overlay only on the
+     * buried bottom face and plain Tungstensteel Turbine casing on every visible side - the
+     * "the build never placed the control blocks" report. Stock GT aims its hatches the same
+     * way (MTEHatchDynamo, MTEHatchEnergy, MTEHatchMaintenance all return true here).
+     */
+    @Override
+    public boolean isFacingValid(ForgeDirection facing) {
+        return true;
+    }
+
     @Override
     public ITexture[] getTexturesActive(ITexture aBaseTexture) {
         return new ITexture[] { aBaseTexture, TextureFactory.of(OVERLAY_SCREEN) };
@@ -104,6 +117,11 @@ public class MTETurbineControlBlock extends MTEHatch {
         prevPowered = aNBT.getBoolean("btsPrevPowered");
     }
 
+    /**
+     * The FULL plant panel, identical to the Silo Control Block's: RPM and cycles are what
+     * this block controls, but a player standing at the manifold must also be able to see why
+     * the turbine is not accelerating - which is usually a reactor or coolant fact.
+     */
     @Override
     public boolean onRightclick(IGregTechTileEntity aBaseMetaTileEntity, EntityPlayer aPlayer) {
         if (!aBaseMetaTileEntity.isServerSide()) return true;
@@ -114,29 +132,9 @@ public class MTETurbineControlBlock extends MTEHatch {
             aPlayer.addChatMessage(new ChatComponentText("Not linked - reform the main station's structure"));
             return true;
         }
-        final MTEReactorCoreMk1 silo = parent;
-        aPlayer.addChatMessage(
-            new ChatComponentText(
-                "RPM: " + String.format("%,d", silo.getRpm())
-                    + " / "
-                    + String.format("%,d", MTEReactorCoreMk1.RPM_REDLINE)
-                    + " redline"));
-        aPlayer.addChatMessage(
-            new ChatComponentText(
-                "Cycles: " + silo.getCyclesPerMinute()
-                    + "/min measured - last cycle timed "
-                    + silo.getLastGoodInjectors()
-                    + "/8"));
-        aPlayer.addChatMessage(
-            new ChatComponentText(
-                "Propellant factor: x" + String.format("%.2f", silo.getLastCyclePropMilli() / 1000.0)));
-        aPlayer.addChatMessage(
-            new ChatComponentText(
-                "Stages: " + silo.getGalleryStages()
-                    + "/8 - avg rotor factor x"
-                    + String.format("%.2f", silo.getAvgRotorFactorMilli() / 1000.0)));
-        aPlayer
-            .addChatMessage(new ChatComponentText("Output: " + String.format("%,d", silo.getLastEUOutput()) + " EU/t"));
+        for (final String line : parent.statusReport()) {
+            aPlayer.addChatMessage(new ChatComponentText(line));
+        }
         return true;
     }
 }

@@ -5,6 +5,7 @@ import static gregtech.api.enums.Textures.BlockIcons.OVERLAY_SCREEN;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
@@ -44,6 +45,20 @@ public class MTESiloControlBlock extends MTEHatch {
         return new MTESiloControlBlock(mName, mTier, mDescriptionArray, mTextures);
     }
 
+    /**
+     * MTEHatch does NOT override this and CommonMetaTileEntity's default is FALSE, which
+     * makes BaseMetaTileEntity.setFrontFacing a silent no-op: the panel would stay pinned at
+     * the freshly-placed default (ForgeDirection.DOWN), painting its screen overlay on the
+     * buried bottom face and the plain casing background on every visible side - i.e.
+     * indistinguishable from the Radiation Proof casing it replaced. That is exactly the
+     * "the build never placed the control blocks" report. Every stock GT hatch that is meant
+     * to be aimed (Dynamo, Energy, Input, Maintenance...) overrides this the same way.
+     */
+    @Override
+    public boolean isFacingValid(ForgeDirection facing) {
+        return true;
+    }
+
     @Override
     public ITexture[] getTexturesActive(ITexture aBaseTexture) {
         return new ITexture[] { aBaseTexture, TextureFactory.of(OVERLAY_SCREEN) };
@@ -66,6 +81,11 @@ public class MTESiloControlBlock extends MTEHatch {
         return parent != null && parent.isValid();
     }
 
+    /**
+     * The FULL plant panel, not a reactor-only excerpt: both control blocks print the
+     * controller's one grouped, colour-coded report (reactor, steam chain, turbine, output and
+     * the debug flags), so whichever block a player walks up to answers every question.
+     */
     @Override
     public boolean onRightclick(IGregTechTileEntity aBaseMetaTileEntity, EntityPlayer aPlayer) {
         if (!aBaseMetaTileEntity.isServerSide()) return true;
@@ -76,33 +96,9 @@ public class MTESiloControlBlock extends MTEHatch {
             aPlayer.addChatMessage(new ChatComponentText("Not linked - reform the main station's structure"));
             return true;
         }
-        final MTEReactorCoreMk1 silo = parent;
-        aPlayer.addChatMessage(
-            new ChatComponentText(
-                silo.isSiloBuilt()
-                    ? "Steam Generator: tier " + silo.getReactorTier() + " (" + silo.getEdge() + " wide octagon)"
-                    : "Steam Generator: NOT BUILT"));
-        aPlayer.addChatMessage(
-            new ChatComponentText(
-                silo.isCascadeMode()
-                    ? "Cascade: " + silo.getLiveColumns() + " live / " + silo.getTotalColumns() + " pillars"
-                    : "Fuel: assembly fallback (output halved) - " + silo.getFuelColumns()
-                        + "/"
-                        + silo.getColumnCap()
-                        + " columns"));
-        final int heat = silo.getHeat();
-        final String heatColor = (heat >= 8000 ? EnumChatFormatting.RED
-            : heat >= 4000 ? EnumChatFormatting.YELLOW : EnumChatFormatting.GREEN).toString();
-        aPlayer.addChatMessage(new ChatComponentText(heatColor + "Heat: " + heat + " / 10,000 (SCRAM 8,000)" + reset));
-        aPlayer.addChatMessage(
-            new ChatComponentText(
-                silo.getDecaySeconds() > 0 ? "Decay heat: cooling required for " + silo.getDecaySeconds() + "s"
-                    : "Decay heat: none"));
-        aPlayer.addChatMessage(
-            new ChatComponentText(
-                silo.getRadiationSeconds() > 0
-                    ? EnumChatFormatting.DARK_RED + "RADIATION FIELD: " + silo.getRadiationSeconds() + "s" + reset
-                    : "Radiation: site clear"));
+        for (final String line : parent.statusReport()) {
+            aPlayer.addChatMessage(new ChatComponentText(line));
+        }
         return true;
     }
 }

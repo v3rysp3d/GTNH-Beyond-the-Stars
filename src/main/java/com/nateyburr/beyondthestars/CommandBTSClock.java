@@ -3,14 +3,11 @@ package com.nateyburr.beyondthestars;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 
 import com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1;
-
-import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 
 /**
  * /btsclock [on|off] - toggles the bench clock on the nearest Unit One main station. With it
@@ -19,8 +16,6 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
  * Block, so clock frequency is back under the player's control.
  */
 public class CommandBTSClock extends CommandBase {
-
-    private static final int SEARCH_RADIUS = 64;
 
     @Override
     public String getCommandName() {
@@ -43,23 +38,13 @@ public class CommandBTSClock extends CommandBase {
         final World world = player.worldObj;
         if (world.isRemote) return;
 
-        // Walk the loaded tile entities rather than probing half a million block positions.
-        MTEReactorCoreMk1 nearest = null;
-        double bestDist = SEARCH_RADIUS * (double) SEARCH_RADIUS;
-        for (final Object o : new java.util.ArrayList<Object>(world.loadedTileEntityList)) {
-            if (!(o instanceof IGregTechTileEntity)) continue;
-            final IGregTechTileEntity gte = (IGregTechTileEntity) o;
-            if (!(gte.getMetaTileEntity() instanceof MTEReactorCoreMk1)) continue;
-            final TileEntity te = (TileEntity) o;
-            final double d = player.getDistanceSq(te.xCoord + 0.5, te.yCoord + 0.5, te.zCoord + 0.5);
-            if (d < bestDist) {
-                bestDist = d;
-                nearest = (MTEReactorCoreMk1) gte.getMetaTileEntity();
-            }
-        }
+        final MTEReactorCoreMk1 nearest = BTSCommands.nearestStation(player);
         if (nearest == null) {
             player.addChatMessage(
-                new ChatComponentText(EnumChatFormatting.RED + "No Unit One main station within 64 blocks."));
+                new ChatComponentText(
+                    EnumChatFormatting.RED + "No Unit One main station within "
+                        + BTSCommands.SEARCH_RADIUS
+                        + " blocks."));
             return;
         }
         final boolean on = args.length > 0 ? args[0].equalsIgnoreCase("on") : !nearest.isDebugAutoCycle();

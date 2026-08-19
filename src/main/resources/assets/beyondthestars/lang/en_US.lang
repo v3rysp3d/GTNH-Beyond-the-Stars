@@ -29,26 +29,10 @@ GT5U.gui.text.shutdown_reason.beyondthestars.meltdown=MELTDOWN: core destroyed �
 GT5U.gui.text.shutdown_reason.beyondthestars.blowout=BLOWOUT: propellant on a non-TDA fan destroyed the turbine
 GT5U.gui.text.shutdown_reason.beyondthestars.seizure=SEIZURE: propellant starvation destroyed the turbine fan
 GT5U.gui.text.shutdown_reason.beyondthestars.seizure.chain=SEIZURE: coolant starvation tore the turbine apart — the Spine's rotor housings are destroyed
-beyondthestars.gui.silo=Steam Generator Tier
+# The instrument panel itself is built by MTEReactorCoreMk1's shared formatters, so the GUI,
+# both control blocks and the scanner print byte-identical lines; only the standalone labels
+# below still live here.
 beyondthestars.gui.silo.absent=Steam Generator: NOT BUILT — project it onto the shield pad
-beyondthestars.gui.columns=Assembly fallback (-50%):
-beyondthestars.gui.cascade=Rod cascade:
-beyondthestars.gui.heat=Core heat:
-beyondthestars.gui.decay=Decay heat — cooling required:
-beyondthestars.gui.radiation=RADIATION FIELD:
-beyondthestars.gui.deck.absent=Modules: no Turbine Hall docked (exports Steam / Hot Coolant)
-beyondthestars.gui.deck.installed=Module — Turbine Hall: docked
-beyondthestars.gui.fan.none=no fan — insert one in an input bus
-beyondthestars.gui.fan.matched=Matched Fan (x1.25)
-beyondthestars.gui.fan.tda=TDA Fan (x1.25, propellant-rated)
-beyondthestars.gui.fan.optimized=Optimized TDA Fan (x2.5)
-beyondthestars.gui.output.eu=Generating:
-beyondthestars.gui.output.steam=Steam output:
 beyondthestars.gui.throttle.tooltip=Control rods: campaign power = N/24. A programmed circuit in the controller overrides this.
-beyondthestars.gui.towers=Cooling Towers:
-beyondthestars.gui.spine=Spine:
-beyondthestars.gui.rpm=Turbine:
-beyondthestars.gui.spiral=Spiral coolant:
-beyondthestars.gui.gallery=Rotor Assembly:
 beyondthestars.gui.buildtier.tooltip=Build Tier: the Steam Generator tier the hologram/projector builds (1-5). A trigger stack of 2-5 overrides this.
 

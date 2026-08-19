@@ -2,6 +2,9 @@ package com.nateyburr.beyondthestars.machines;
 
 import static net.minecraft.util.StatCollector.translateToLocal;
 
+import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
+
 import net.minecraft.util.EnumChatFormatting;
 
 import com.cleanroommc.modularui.api.drawable.IKey;
@@ -19,9 +22,14 @@ import com.cleanroommc.modularui.widgets.textfield.TextFieldWidget;
 import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
 
 /**
- * Controller screen for the Reactor Silo: live plant status (tier, fuel, heat, decay heat,
- * radiation, Turbine Deck addon + fan, output) in the terminal area, plus the control-rod
- * throttle setting as an editable field (1-24; a programmed circuit still overrides it).
+ * Controller screen for the Reactor Silo: the plant's full instrument panel, grouped and
+ * colour-coded exactly like the two control blocks - REACTOR (tier, cascade, fuel, steam,
+ * heat/decay/radiation), STEAM CHAIN (spine pattern and multipliers, injectors and propellant,
+ * coolant and starvation), TURBINE (RPM against the redline, cycles/min, steam buffer, rotor
+ * condition per stage, and WHY the fan is being held back), OUTPUT (EU/t, the dynamo+laser
+ * ceiling and the clamp) plus the test-bench flags. Every line is built by the controller's
+ * shared formatters, so no readout can drift from another. The control-rod throttle and Build
+ * Tier stay editable fields (a programmed circuit still overrides the throttle).
  */
 public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
 
@@ -35,35 +43,53 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         syncManager.syncValue("siloBuilt", new BooleanSyncValue(multiblock::isSiloBuilt));
         syncManager.syncValue("siloTier", new IntSyncValue(multiblock::getReactorTier));
         syncManager.syncValue("siloEdge", new IntSyncValue(multiblock::getEdge));
+        syncManager.syncValue("throttlePct", new IntSyncValue(multiblock::getThrottlePercent));
+        syncManager.syncValue("modules", new StringSyncValue(multiblock::getModulesSummary));
         syncManager.syncValue("fuelColumns", new IntSyncValue(multiblock::getFuelColumns));
         syncManager.syncValue("columnCap", new IntSyncValue(multiblock::getColumnCap));
         syncManager.syncValue("fuelName", new StringSyncValue(multiblock::getFuelDisplayName));
+        syncManager.syncValue("steamPerTick", new LongSyncValue(multiblock::getSteamPerTick));
         syncManager.syncValue("heat", new IntSyncValue(multiblock::getHeat));
         syncManager.syncValue("decaySeconds", new IntSyncValue(multiblock::getDecaySeconds));
         syncManager.syncValue("radiationSeconds", new IntSyncValue(multiblock::getRadiationSeconds));
         syncManager.syncValue("deckInstalled", new BooleanSyncValue(multiblock::isTurbineInstalled));
-        syncManager.syncValue("fanTier", new IntSyncValue(multiblock::installedFanTier));
         syncManager.syncValue("euOutput", new LongSyncValue(multiblock::getLastEUOutput));
+        syncManager.syncValue("euDemand", new LongSyncValue(multiblock::getLastEUDemand));
+        syncManager.syncValue("euCeiling", new LongSyncValue(multiblock::outputCeiling));
+        syncManager.syncValue("dynamoCap", new LongSyncValue(multiblock::getDynamoCapacity));
+        syncManager.syncValue("laserCap", new LongSyncValue(multiblock::getLaserCapacity));
+        syncManager.syncValue("laserCount", new IntSyncValue(multiblock::getLaserHatchCount));
+        syncManager.syncValue("laserLinked", new IntSyncValue(multiblock::getLinkedLaserHatchCount));
+        syncManager.syncValue("euClamped", new BooleanSyncValue(multiblock::isOutputClamped));
         syncManager.syncValue("steamOutput", new LongSyncValue(multiblock::getBoostedSteamOutput));
-        syncManager.syncValue("coolingTowers", new IntSyncValue(multiblock::getCoolingTowers));
         syncManager.syncValue("cascadeMode", new BooleanSyncValue(multiblock::isCascadeMode));
         syncManager.syncValue("liveColumns", new IntSyncValue(multiblock::getLiveColumns));
         syncManager.syncValue("totalColumns", new IntSyncValue(multiblock::getTotalColumns));
         syncManager.syncValue("spineBuilt", new BooleanSyncValue(multiblock::isSpineBuilt));
         syncManager.syncValue("spinePattern", new StringSyncValue(multiblock::getSpinePattern));
+        syncManager.syncValue("spineHousings", new IntSyncValue(multiblock::getSpineHousings));
         syncManager.syncValue("spineSpeed", new IntSyncValue(multiblock::getSpineSpeedMilli));
         syncManager.syncValue("spineEff", new IntSyncValue(multiblock::getSpineEffMilli));
         syncManager.syncValue("spineSwirl", new IntSyncValue(multiblock::getSpineSwirl));
         syncManager.syncValue("spiralBuilt", new BooleanSyncValue(multiblock::isSpiralBuilt));
+        syncManager.syncValue("injectors", new IntSyncValue(multiblock::getRegisteredInjectors));
         syncManager.syncValue("goodInjectors", new IntSyncValue(multiblock::getLastGoodInjectors));
-        syncManager.syncValue("rpm", new IntSyncValue(multiblock::getRpm));
-        syncManager.syncValue("cyclesPerMinute", new IntSyncValue(multiblock::getCyclesPerMinute));
+        syncManager.syncValue("propellant", new StringSyncValue(multiblock::getPropellantName));
         syncManager.syncValue("cycleProp", new IntSyncValue(multiblock::getLastCyclePropMilli));
         syncManager.syncValue("chamberCoolant", new StringSyncValue(multiblock::getChamberCoolantName));
         syncManager.syncValue("chamberDrain", new IntSyncValue(multiblock::getChamberCoolantDrain));
+        syncManager.syncValue("chamberStarved", new BooleanSyncValue(multiblock::isChamberStarved));
+        syncManager.syncValue("rpm", new IntSyncValue(multiblock::getRpm));
+        syncManager.syncValue("cyclesPerMinute", new IntSyncValue(multiblock::getCyclesPerMinute));
+        syncManager.syncValue("bufferSlugs", new IntSyncValue(multiblock::getSteamBufferSlugsTenths));
+        syncManager.syncValue("benchClock", new BooleanSyncValue(multiblock::isDebugAutoCycle));
+        syncManager.syncValue("infiniteSupplies", new BooleanSyncValue(multiblock::isDebugInfiniteSupplies));
+        syncManager.syncValue("holdReason", new StringSyncValue(multiblock::getTurbineHoldReason));
+        syncManager.syncValue("galleryBuilt", new BooleanSyncValue(multiblock::isGalleryBuilt));
         syncManager.syncValue("galleryActive", new BooleanSyncValue(multiblock::isGalleryActive));
         syncManager.syncValue("galleryStages", new IntSyncValue(multiblock::getGalleryStages));
         syncManager.syncValue("rotorFactor", new IntSyncValue(multiblock::getAvgRotorFactorMilli));
+        syncManager.syncValue("rotorWear", new StringSyncValue(multiblock::getRotorWear));
         syncManager.syncValue(
             "throttleSetting",
             new IntSyncValue(multiblock::getThrottleSetting, multiblock::setThrottleSetting).allowC2S());
@@ -72,182 +98,187 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
             new IntSyncValue(multiblock::getBuildTierSetting, multiblock::setBuildTierSetting).allowC2S());
     }
 
+    /** One terminal line. */
+    private static IWidget row(Supplier<String> text) {
+        return IKey.dynamic(() -> text.get())
+            .asWidget()
+            .marginBottom(2);
+    }
+
+    /** One terminal line that only appears while it has something to say. */
+    private static IWidget row(Supplier<String> text, BooleanSupplier shown) {
+        return IKey.dynamic(() -> text.get())
+            .asWidget()
+            .marginBottom(2)
+            .setEnabledIf(w -> shown.getAsBoolean());
+    }
+
     @Override
     protected ListWidget<IWidget, ?> createTerminalTextWidget(PanelSyncManager syncManager, ModularPanel parent) {
         final BooleanSyncValue siloBuilt = syncManager.findSyncHandler("siloBuilt", BooleanSyncValue.class);
         final IntSyncValue tier = syncManager.findSyncHandler("siloTier", IntSyncValue.class);
         final IntSyncValue edge = syncManager.findSyncHandler("siloEdge", IntSyncValue.class);
+        final IntSyncValue throttlePct = syncManager.findSyncHandler("throttlePct", IntSyncValue.class);
+        final StringSyncValue modules = syncManager.findSyncHandler("modules", StringSyncValue.class);
         final IntSyncValue columns = syncManager.findSyncHandler("fuelColumns", IntSyncValue.class);
         final IntSyncValue columnCap = syncManager.findSyncHandler("columnCap", IntSyncValue.class);
         final StringSyncValue fuelName = syncManager.findSyncHandler("fuelName", StringSyncValue.class);
+        final LongSyncValue steamPerTick = syncManager.findSyncHandler("steamPerTick", LongSyncValue.class);
         final IntSyncValue heat = syncManager.findSyncHandler("heat", IntSyncValue.class);
         final IntSyncValue decaySeconds = syncManager.findSyncHandler("decaySeconds", IntSyncValue.class);
         final IntSyncValue radiationSeconds = syncManager.findSyncHandler("radiationSeconds", IntSyncValue.class);
         final BooleanSyncValue deckInstalled = syncManager.findSyncHandler("deckInstalled", BooleanSyncValue.class);
-        final IntSyncValue coolingTowers = syncManager.findSyncHandler("coolingTowers", IntSyncValue.class);
         final BooleanSyncValue cascadeMode = syncManager.findSyncHandler("cascadeMode", BooleanSyncValue.class);
         final IntSyncValue liveColumns = syncManager.findSyncHandler("liveColumns", IntSyncValue.class);
         final IntSyncValue totalColumns = syncManager.findSyncHandler("totalColumns", IntSyncValue.class);
         final BooleanSyncValue spineBuilt = syncManager.findSyncHandler("spineBuilt", BooleanSyncValue.class);
         final StringSyncValue spinePattern = syncManager.findSyncHandler("spinePattern", StringSyncValue.class);
+        final IntSyncValue spineHousings = syncManager.findSyncHandler("spineHousings", IntSyncValue.class);
         final IntSyncValue spineSpeed = syncManager.findSyncHandler("spineSpeed", IntSyncValue.class);
         final IntSyncValue spineEff = syncManager.findSyncHandler("spineEff", IntSyncValue.class);
         final IntSyncValue spineSwirl = syncManager.findSyncHandler("spineSwirl", IntSyncValue.class);
         final BooleanSyncValue spiralBuilt = syncManager.findSyncHandler("spiralBuilt", BooleanSyncValue.class);
+        final IntSyncValue injectors = syncManager.findSyncHandler("injectors", IntSyncValue.class);
         final IntSyncValue goodInjectors = syncManager.findSyncHandler("goodInjectors", IntSyncValue.class);
-        final IntSyncValue rpm = syncManager.findSyncHandler("rpm", IntSyncValue.class);
-        final IntSyncValue cyclesPerMinute = syncManager.findSyncHandler("cyclesPerMinute", IntSyncValue.class);
+        final StringSyncValue propellant = syncManager.findSyncHandler("propellant", StringSyncValue.class);
         final IntSyncValue cycleProp = syncManager.findSyncHandler("cycleProp", IntSyncValue.class);
         final StringSyncValue chamberCoolant = syncManager.findSyncHandler("chamberCoolant", StringSyncValue.class);
         final IntSyncValue chamberDrain = syncManager.findSyncHandler("chamberDrain", IntSyncValue.class);
+        final BooleanSyncValue chamberStarved = syncManager.findSyncHandler("chamberStarved", BooleanSyncValue.class);
+        final IntSyncValue rpm = syncManager.findSyncHandler("rpm", IntSyncValue.class);
+        final IntSyncValue cyclesPerMinute = syncManager.findSyncHandler("cyclesPerMinute", IntSyncValue.class);
+        final IntSyncValue bufferSlugs = syncManager.findSyncHandler("bufferSlugs", IntSyncValue.class);
+        final BooleanSyncValue benchClock = syncManager.findSyncHandler("benchClock", BooleanSyncValue.class);
+        final BooleanSyncValue infiniteSupplies = syncManager
+            .findSyncHandler("infiniteSupplies", BooleanSyncValue.class);
+        final StringSyncValue holdReason = syncManager.findSyncHandler("holdReason", StringSyncValue.class);
+        final BooleanSyncValue galleryBuilt = syncManager.findSyncHandler("galleryBuilt", BooleanSyncValue.class);
         final BooleanSyncValue galleryActive = syncManager.findSyncHandler("galleryActive", BooleanSyncValue.class);
         final IntSyncValue galleryStages = syncManager.findSyncHandler("galleryStages", IntSyncValue.class);
         final IntSyncValue rotorFactor = syncManager.findSyncHandler("rotorFactor", IntSyncValue.class);
-        final IntSyncValue fanTier = syncManager.findSyncHandler("fanTier", IntSyncValue.class);
+        final StringSyncValue rotorWear = syncManager.findSyncHandler("rotorWear", StringSyncValue.class);
         final LongSyncValue euOutput = syncManager.findSyncHandler("euOutput", LongSyncValue.class);
+        final LongSyncValue euDemand = syncManager.findSyncHandler("euDemand", LongSyncValue.class);
+        final LongSyncValue euCeiling = syncManager.findSyncHandler("euCeiling", LongSyncValue.class);
+        final LongSyncValue dynamoCap = syncManager.findSyncHandler("dynamoCap", LongSyncValue.class);
+        final LongSyncValue laserCap = syncManager.findSyncHandler("laserCap", LongSyncValue.class);
+        final IntSyncValue laserCount = syncManager.findSyncHandler("laserCount", IntSyncValue.class);
+        final IntSyncValue laserLinked = syncManager.findSyncHandler("laserLinked", IntSyncValue.class);
+        final BooleanSyncValue euClamped = syncManager.findSyncHandler("euClamped", BooleanSyncValue.class);
         final LongSyncValue steamOutput = syncManager.findSyncHandler("steamOutput", LongSyncValue.class);
 
-        return super.createTerminalTextWidget(syncManager, parent).child(IKey.dynamic(() -> {
-            if (!siloBuilt.getBoolValue()) {
-                return EnumChatFormatting.YELLOW + translateToLocal("beyondthestars.gui.silo.absent")
-                    + EnumChatFormatting.RESET;
-            }
-            return EnumChatFormatting.AQUA + translateToLocal("beyondthestars.gui.silo")
-                + " "
-                + tier.getIntValue()
-                + " ("
-                + edge.getIntValue()
-                + "x"
-                + edge.getIntValue()
-                + " octagon)"
-                + EnumChatFormatting.RESET;
-        })
-            .asWidget()
-            .marginBottom(2))
-            .child(IKey.dynamic(() -> {
-                if (cascadeMode.getBoolValue()) {
-                    return translateToLocal("beyondthestars.gui.cascade") + " "
-                        + liveColumns.getIntValue()
-                        + "/"
-                        + totalColumns.getIntValue()
-                        + " pillars  ·  "
-                        + fuelName.getStringValue();
-                }
-                return translateToLocal("beyondthestars.gui.columns") + " "
-                    + columns.getIntValue()
-                    + "/"
-                    + columnCap.getIntValue()
-                    + "  ·  "
-                    + fuelName.getStringValue();
-            })
-                .asWidget()
-                .marginBottom(2))
-            .child(IKey.dynamic(() -> {
-                final int h = heat.getIntValue();
-                final EnumChatFormatting color = h >= 8000 ? EnumChatFormatting.RED
-                    : h >= 4000 ? EnumChatFormatting.YELLOW : EnumChatFormatting.GREEN;
-                return color + translateToLocal(
-                    "beyondthestars.gui.heat") + " " + h + " / 10,000 (SCRAM 8,000)" + EnumChatFormatting.RESET;
-            })
-                .asWidget()
-                .marginBottom(2))
+        return super.createTerminalTextWidget(syncManager, parent)
+            // --- REACTOR
+            .child(row(() -> MTEReactorCoreMk1.header("REACTOR")))
             .child(
-                IKey.dynamic(
-                    () -> EnumChatFormatting.GOLD + translateToLocal(
-                        "beyondthestars.gui.decay") + " " + decaySeconds.getIntValue() + "s" + EnumChatFormatting.RESET)
-                    .asWidget()
-                    .marginBottom(2)
-                    .setEnabledIf(w -> decaySeconds.getIntValue() > 0))
+                row(
+                    () -> EnumChatFormatting.YELLOW + translateToLocal("beyondthestars.gui.silo.absent")
+                        + EnumChatFormatting.RESET,
+                    () -> !siloBuilt.getBoolValue()))
             .child(
-                IKey.dynamic(
-                    () -> EnumChatFormatting.DARK_RED + translateToLocal("beyondthestars.gui.radiation")
-                        + " "
-                        + radiationSeconds.getIntValue()
-                        + "s"
-                        + EnumChatFormatting.RESET)
-                    .asWidget()
-                    .marginBottom(2)
-                    .setEnabledIf(w -> radiationSeconds.getIntValue() > 0))
-            .child(IKey.dynamic(() -> {
-                if (!deckInstalled.getBoolValue()) {
-                    return translateToLocal("beyondthestars.gui.deck.absent");
-                }
-                final int fan = fanTier.getIntValue();
-                final String fanText = fan == 3 ? translateToLocal("beyondthestars.gui.fan.optimized")
-                    : fan == 2 ? translateToLocal("beyondthestars.gui.fan.tda")
-                        : fan == 1 ? translateToLocal("beyondthestars.gui.fan.matched")
-                            : EnumChatFormatting.RED + translateToLocal("beyondthestars.gui.fan.none");
-                return EnumChatFormatting.AQUA + translateToLocal("beyondthestars.gui.deck.installed")
-                    + EnumChatFormatting.RESET
-                    + " "
-                    + fanText
-                    + EnumChatFormatting.RESET;
-            })
-                .asWidget()
-                .marginBottom(2))
+                row(
+                    () -> MTEReactorCoreMk1.tierLine(
+                        tier.getIntValue(),
+                        edge.getIntValue(),
+                        throttlePct.getIntValue(),
+                        modules.getStringValue()),
+                    siloBuilt::getBoolValue))
             .child(
-                IKey.dynamic(
-                    () -> translateToLocal("beyondthestars.gui.towers") + " " + coolingTowers.getIntValue() + "/2")
-                    .asWidget()
-                    .marginBottom(2)
-                    .setEnabledIf(w -> coolingTowers.getIntValue() > 0))
+                row(
+                    () -> MTEReactorCoreMk1.cascadeLine(
+                        cascadeMode.getBoolValue(),
+                        liveColumns.getIntValue(),
+                        totalColumns.getIntValue(),
+                        columns.getIntValue(),
+                        columnCap.getIntValue(),
+                        fuelName.getStringValue(),
+                        steamPerTick.getLongValue()),
+                    siloBuilt::getBoolValue))
             .child(
-                IKey.dynamic(
-                    () -> translateToLocal("beyondthestars.gui.spine") + " ["
-                        + spinePattern.getStringValue()
-                        + "]  x"
-                        + String.format("%.2f", spineSpeed.getIntValue() / 1000.0)
-                        + " spd · x"
-                        + String.format("%.2f", spineEff.getIntValue() / 1000.0)
-                        + " eff · swirl "
-                        + spineSwirl.getIntValue())
-                    .asWidget()
-                    .marginBottom(2)
-                    .setEnabledIf(w -> spineBuilt.getBoolValue()))
+                row(
+                    () -> MTEReactorCoreMk1
+                        .heatLine(heat.getIntValue(), decaySeconds.getIntValue(), radiationSeconds.getIntValue()),
+                    siloBuilt::getBoolValue))
+            // --- STEAM CHAIN
+            .child(row(() -> MTEReactorCoreMk1.header("STEAM CHAIN"), siloBuilt::getBoolValue))
             .child(
-                IKey.dynamic(
-                    () -> translateToLocal("beyondthestars.gui.rpm") + " "
-                        + String.format("%,d", rpm.getIntValue())
-                        + " RPM · "
-                        + cyclesPerMinute.getIntValue()
-                        + " cyc/min · timed "
-                        + goodInjectors.getIntValue()
-                        + "/8 · P x"
-                        + String.format("%.2f", cycleProp.getIntValue() / 1000.0))
-                    .asWidget()
-                    .marginBottom(2)
-                    .setEnabledIf(w -> spiralBuilt.getBoolValue()))
+                row(
+                    () -> MTEReactorCoreMk1.spineLine(
+                        spineBuilt.getBoolValue(),
+                        spinePattern.getStringValue(),
+                        spineHousings.getIntValue(),
+                        spineSpeed.getIntValue(),
+                        spineEff.getIntValue(),
+                        spineSwirl.getIntValue()),
+                    siloBuilt::getBoolValue))
             .child(
-                IKey.dynamic(
-                    () -> translateToLocal("beyondthestars.gui.spiral") + " "
-                        + chamberCoolant.getStringValue()
-                        + " "
-                        + chamberDrain.getIntValue()
-                        + " L/t")
-                    .asWidget()
-                    .marginBottom(2)
-                    .setEnabledIf(w -> spiralBuilt.getBoolValue()))
+                row(
+                    () -> MTEReactorCoreMk1.spiralLine(
+                        spiralBuilt.getBoolValue(),
+                        injectors.getIntValue(),
+                        goodInjectors.getIntValue(),
+                        propellant.getStringValue(),
+                        cycleProp.getIntValue()),
+                    siloBuilt::getBoolValue))
             .child(
-                IKey.dynamic(
-                    () -> translateToLocal("beyondthestars.gui.gallery") + " "
-                        + galleryStages.getIntValue()
-                        + "/8 stages · rotors x"
-                        + String.format("%.2f", rotorFactor.getIntValue() / 1000.0))
-                    .asWidget()
-                    .marginBottom(2)
-                    .setEnabledIf(w -> galleryActive.getBoolValue()))
-            .child(IKey.dynamic(() -> {
-                if (galleryActive.getBoolValue() || deckInstalled.getBoolValue()) {
-                    return translateToLocal("beyondthestars.gui.output.eu") + " "
-                        + String.format("%,d", euOutput.getLongValue())
-                        + " EU/t";
-                }
-                return translateToLocal("beyondthestars.gui.output.steam") + " "
-                    + String.format("%,d", steamOutput.getLongValue())
-                    + " L/t";
-            })
-                .asWidget()
-                .marginBottom(2));
+                row(
+                    () -> MTEReactorCoreMk1.coolantLine(
+                        spiralBuilt.getBoolValue(),
+                        chamberStarved.getBoolValue(),
+                        chamberCoolant.getStringValue(),
+                        chamberDrain.getIntValue()),
+                    siloBuilt::getBoolValue))
+            // --- TURBINE
+            .child(row(() -> MTEReactorCoreMk1.header("TURBINE"), siloBuilt::getBoolValue))
+            .child(
+                row(
+                    () -> MTEReactorCoreMk1.rpmLine(
+                        rpm.getIntValue(),
+                        cyclesPerMinute.getIntValue(),
+                        bufferSlugs.getIntValue(),
+                        benchClock.getBoolValue()),
+                    siloBuilt::getBoolValue))
+            .child(
+                row(
+                    () -> MTEReactorCoreMk1.rotorLine(
+                        galleryBuilt.getBoolValue(),
+                        galleryStages.getIntValue(),
+                        rotorFactor.getIntValue(),
+                        rotorWear.getStringValue()),
+                    siloBuilt::getBoolValue))
+            // The interlock's voice: WHY the fan is not accelerating (missing coolant
+            // headroom, dry injectors, a missed slug). Absent while everything is fine.
+            .child(
+                row(
+                    () -> MTEReactorCoreMk1.holdLine(holdReason.getStringValue()),
+                    () -> !holdReason.getStringValue()
+                        .isEmpty()))
+            // --- OUTPUT
+            .child(row(() -> MTEReactorCoreMk1.header("OUTPUT"), siloBuilt::getBoolValue))
+            .child(
+                row(
+                    () -> MTEReactorCoreMk1.outputLine(
+                        galleryActive.getBoolValue(),
+                        deckInstalled.getBoolValue(),
+                        euOutput.getLongValue(),
+                        euDemand.getLongValue(),
+                        euClamped.getBoolValue(),
+                        steamOutput.getLongValue()),
+                    siloBuilt::getBoolValue))
+            .child(
+                row(
+                    () -> MTEReactorCoreMk1
+                        .ceilingLine(euCeiling.getLongValue(), dynamoCap.getLongValue(), laserCap.getLongValue()),
+                    galleryBuilt::getBoolValue))
+            .child(
+                row(
+                    () -> MTEReactorCoreMk1.laserLine(laserCount.getIntValue(), laserLinked.getIntValue()),
+                    galleryBuilt::getBoolValue))
+            // --- test bench flags, only while one of them is on
+            .child(
+                row(
+                    () -> MTEReactorCoreMk1.debugLine(benchClock.getBoolValue(), infiniteSupplies.getBoolValue()),
+                    () -> benchClock.getBoolValue() || infiniteSupplies.getBoolValue()));
     }
 
     @Override

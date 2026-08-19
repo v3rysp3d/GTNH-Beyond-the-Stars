@@ -46,6 +46,18 @@ public class MTEHatchSpineSensor extends MTEHatch {
         return new MTEHatchSpineSensor(mName, mTier, mDescriptionArray, mTextures);
     }
 
+    /**
+     * Without this the sensor can never be aimed: MTEHatch does not override it and
+     * CommonMetaTileEntity's default is FALSE, so setFrontFacing is a silent no-op and the
+     * hatch keeps the freshly-placed default (ForgeDirection.DOWN) - reading as plain casing
+     * from every side a player can see. The redstone pulse goes out on all six sides
+     * regardless; this is purely so the socket looks like the instrument it is.
+     */
+    @Override
+    public boolean isFacingValid(ForgeDirection facing) {
+        return true;
+    }
+
     @Override
     public ITexture[] getTexturesActive(ITexture aBaseTexture) {
         return new ITexture[] { aBaseTexture, TextureFactory.of(OVERLAY_FRONT_HEAT_EXCHANGER_ACTIVE) };
