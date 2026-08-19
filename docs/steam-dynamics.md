@@ -220,6 +220,27 @@ Nine-point ruling; phases TC-1..TC-5. All constants (t).
   ones); a local static-HTML wiki under addon/wiki/ until a hosted one exists.
 - **Standing rule** (pt 9): every build/redesign ships with a browser HTML mockup.
 
+## Test commands (creative / debug)
+
+The hologram projector previews one piece at a time and is height-capped, so it cannot
+raise a whole plant. Use the commands instead (op level 2):
+
+- `/btsbuild [tier 1-5] [uranium|mox|thorium|naq]` - builds a COMPLETE RUNNING plant
+  where you stand, facing the way you face: platform, silo, Spine, Spiral, Turbine
+  Generator and both tower shells, every hatch and control block fitted, rotors seated,
+  input hatches watered, rod ports stocked, bench clock on. Defaults: tier 3, naq rods.
+  Footprint: 32 blocks behind the controller, 17 in front, 25 to each side.
+- `/btsclock [on|off]` - toggles the bench clock on the nearest main station. ON pulses
+  one turbine cycle a second with no wiring (test aid); OFF restores the ruled mechanic,
+  where only redstone edges at the Turbine Control Block start cycles.
+- `/btskit [tier]` - hands over the controllers, blocks, rods, rotors and hatches to
+  build by hand.
+
+Creative socket auto-fitting: in creative placement (command or projector) every socket
+cell installs its real hatch instead of a blank casing, so a built plant is immediately
+functional. Cells already holding a GT machine are never overwritten, so rebuilding over
+a configured plant is safe. Survival autobuild is unchanged - players supply hatches.
+
 ## Questbook
 
 The "Beyond the Stars" quest line overlay lives in `questbook/` (GTNH 2.9.0 BQ split

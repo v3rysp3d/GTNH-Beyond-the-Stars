@@ -60,6 +60,7 @@ import com.nateyburr.beyondthestars.items.BTSItems;
 import gregtech.api.GregTechAPI;
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.GTValues;
+import gregtech.api.enums.ItemList;
 import gregtech.api.enums.Materials;
 import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
@@ -1069,6 +1070,140 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         };
     }
 
+    // ------------------------------------------------- creative socket auto-fitting
+
+    /** Places a GT machine (hatch / control block) exactly as ItemMachines.placeBlockAt does. */
+    public static boolean placeGtMachine(World world, int x, int y, int z, short mteId, ForgeDirection facing) {
+        if (mteId <= 0 || GregTechAPI.METATILEENTITIES[mteId] == null) return false;
+        final int baseType = GregTechAPI.METATILEENTITIES[mteId].getTileEntityBaseType();
+        // 1.7.10's Chunk.setBlock returns false when block AND meta already match, so an
+        // identical machine already in the cell reads as "failed" - treat it as success.
+        if (world.getBlock(x, y, z) == GregTechAPI.sBlockMachines) {
+            final net.minecraft.tileentity.TileEntity existing = world.getTileEntity(x, y, z);
+            if (existing instanceof IGregTechTileEntity && ((IGregTechTileEntity) existing).getMetaTileID() == mteId) {
+                if (facing != null && facing != ForgeDirection.UNKNOWN) {
+                    ((IGregTechTileEntity) existing).setFrontFacing(facing);
+                }
+                return true;
+            }
+            world.setBlockToAir(x, y, z);
+        }
+        if (!world.setBlock(x, y, z, GregTechAPI.sBlockMachines, baseType, 3)) return false;
+        final net.minecraft.tileentity.TileEntity te = world.getTileEntity(x, y, z);
+        if (!(te instanceof IGregTechTileEntity)) return false;
+        final IGregTechTileEntity gte = (IGregTechTileEntity) te;
+        gte.setInitialValuesAsNBT(null, mteId);
+        if (facing != null && facing != ForgeDirection.UNKNOWN) {
+            gte.setFrontFacing(facing);
+        }
+        return true;
+    }
+
+    /**
+     * The socket's exposed side: first air neighbour, horizontal preferred, else up/down.
+     * Only meaningful ONCE the surrounding structure exists - during the build every
+     * neighbour is still air, which is why orientation runs as a pass after construct().
+     */
+    private static ForgeDirection outwardFacing(World world, int x, int y, int z) {
+        final ForgeDirection[] order = { ForgeDirection.NORTH, ForgeDirection.SOUTH, ForgeDirection.EAST,
+            ForgeDirection.WEST, ForgeDirection.UP, ForgeDirection.DOWN };
+        for (final ForgeDirection d : order) {
+            if (world.isAirBlock(x + d.offsetX, y + d.offsetY, z + d.offsetZ)) return d;
+        }
+        return ForgeDirection.NORTH;
+    }
+
+    /** Cells auto-fitted with a hatch during the last creative build, for the facing pass. */
+    private final List<int[]> fittedCells = new ArrayList<>();
+
+    /**
+     * Points every auto-fitted hatch at its exposed face. Dynamos and energy hatches only
+     * work through their FRONT, so this must run after the walls are up - during the build
+     * every neighbour is still air and the guess would be meaningless.
+     */
+    public int orientFittedHatches() {
+        final World world = getBaseMetaTileEntity().getWorld();
+        int oriented = 0;
+        for (final int[] c : fittedCells) {
+            if (!world.blockExists(c[0], c[1], c[2])) continue;
+            final net.minecraft.tileentity.TileEntity te = world.getTileEntity(c[0], c[1], c[2]);
+            if (!(te instanceof IGregTechTileEntity)) continue;
+            ((IGregTechTileEntity) te).setFrontFacing(outwardFacing(world, c[0], c[1], c[2]));
+            oriented++;
+        }
+        return oriented;
+    }
+
+    /**
+     * Wraps a socket element so a CREATIVE build (the /btsbuild command or a hologram
+     * projector) drops the real hatch in rather than a blank casing - the structure comes
+     * out working. An existing GT machine in the cell is never overwritten, so re-running a
+     * build cannot wipe hatches the player has already configured. Survival is untouched:
+     * players still supply and place their own hatches.
+     */
+    private static IStructureElement<MTEReactorCoreMk1> autoFit(IStructureElement<MTEReactorCoreMk1> base,
+        java.util.function.Supplier<Short> mteId) {
+        return new IStructureElement<MTEReactorCoreMk1>() {
+
+            @Override
+            public boolean check(MTEReactorCoreMk1 t, World world, int x, int y, int z) {
+                return base.check(t, world, x, y, z);
+            }
+
+            @Override
+            public boolean spawnHint(MTEReactorCoreMk1 t, World world, int x, int y, int z, ItemStack trigger) {
+                return base.spawnHint(t, world, x, y, z, trigger);
+            }
+
+            @Override
+            public java.util.List<String> getDescription(MTEReactorCoreMk1 t) {
+                return base.getDescription(t);
+            }
+
+            @Override
+            public boolean placeBlock(MTEReactorCoreMk1 t, World world, int x, int y, int z, ItemStack trigger) {
+                if (world.getTileEntity(x, y, z) instanceof IGregTechTileEntity) {
+                    t.fittedCells.add(new int[] { x, y, z });
+                    return true;
+                }
+                final Short id = mteId.get();
+                if (id != null && placeGtMachine(
+                    world,
+                    x,
+                    y,
+                    z,
+                    id,
+                    t.getBaseMetaTileEntity()
+                        .getFrontFacing())) {
+                    // Facing is fixed up by orientFittedHatches() once the walls exist.
+                    t.fittedCells.add(new int[] { x, y, z });
+                    return true;
+                }
+                return base.placeBlock(t, world, x, y, z, trigger);
+            }
+
+            @Override
+            public PlaceResult survivalPlaceBlock(MTEReactorCoreMk1 t, World world, int x, int y, int z,
+                ItemStack trigger, AutoPlaceEnvironment env) {
+                return base.survivalPlaceBlock(t, world, x, y, z, trigger, env);
+            }
+        };
+    }
+
+    /** MTE id behind an ItemList entry (its stack damage), or 0 when the entry is absent. */
+    private static short idOf(ItemList entry) {
+        try {
+            final ItemStack stack = entry.get(1L);
+            return stack == null ? 0 : (short) stack.getItemDamage();
+        } catch (final Exception ignored) {
+            return 0;
+        }
+    }
+
+    private static short idOf(ItemStack stack) {
+        return stack == null ? 0 : (short) stack.getItemDamage();
+    }
+
     @Override
     public IStructureDefinition<MTEReactorCoreMk1> getStructureDefinition() {
         if (STRUCTURE_DEFINITION == null) {
@@ -1107,53 +1242,67 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 // panel reads as a control panel on every tier); blanks count as casings.
                 .addElement(
                     'a',
-                    buildHatchAdder(MTEReactorCoreMk1.class).atLeast(Energy)
-                        .casingIndex(Casings.RadiationProofMachineCasing.textureId)
-                        .hint(1)
-                        .buildAndChain(
-                            onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())))
+                    autoFit(
+                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(Energy)
+                            .casingIndex(Casings.RadiationProofMachineCasing.textureId)
+                            .hint(1)
+                            .buildAndChain(
+                                onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())),
+                        () -> idOf(ItemList.Hatch_Energy_IV)))
                 .addElement(
                     'b',
-                    buildHatchAdder(MTEReactorCoreMk1.class).atLeast(Maintenance)
-                        .casingIndex(Casings.RadiationProofMachineCasing.textureId)
-                        .hint(1)
-                        .buildAndChain(
-                            onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())))
+                    autoFit(
+                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(Maintenance)
+                            .casingIndex(Casings.RadiationProofMachineCasing.textureId)
+                            .hint(1)
+                            .buildAndChain(
+                                onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())),
+                        () -> idOf(ItemList.Hatch_Maintenance)))
                 .addElement(
                     'd',
-                    buildHatchAdder(MTEReactorCoreMk1.class).atLeast(InputHatch)
-                        .casingIndex(Casings.RadiationProofMachineCasing.textureId)
-                        .hint(1)
-                        .buildAndChain(
-                            onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())))
+                    autoFit(
+                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(InputHatch)
+                            .casingIndex(Casings.RadiationProofMachineCasing.textureId)
+                            .hint(1)
+                            .buildAndChain(
+                                onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())),
+                        () -> idOf(ItemList.Hatch_Input_IV)))
                 .addElement(
                     'e',
-                    buildHatchAdder(MTEReactorCoreMk1.class).atLeast(OutputHatch)
-                        .casingIndex(Casings.RadiationProofMachineCasing.textureId)
-                        .hint(1)
-                        .buildAndChain(
-                            onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())))
+                    autoFit(
+                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(OutputHatch)
+                            .casingIndex(Casings.RadiationProofMachineCasing.textureId)
+                            .hint(1)
+                            .buildAndChain(
+                                onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())),
+                        () -> idOf(ItemList.Hatch_Output_IV)))
                 .addElement(
                     'f',
-                    buildHatchAdder(MTEReactorCoreMk1.class).atLeast(InputBus)
-                        .casingIndex(Casings.RadiationProofMachineCasing.textureId)
-                        .hint(1)
-                        .buildAndChain(
-                            onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())))
+                    autoFit(
+                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(InputBus)
+                            .casingIndex(Casings.RadiationProofMachineCasing.textureId)
+                            .hint(1)
+                            .buildAndChain(
+                                onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())),
+                        () -> idOf(ItemList.Hatch_Input_Bus_IV)))
                 .addElement(
                     'g',
-                    buildHatchAdder(MTEReactorCoreMk1.class).atLeast(OutputBus)
-                        .casingIndex(Casings.RadiationProofMachineCasing.textureId)
-                        .hint(1)
-                        .buildAndChain(
-                            onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())))
+                    autoFit(
+                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(OutputBus)
+                            .casingIndex(Casings.RadiationProofMachineCasing.textureId)
+                            .hint(1)
+                            .buildAndChain(
+                                onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())),
+                        () -> idOf(ItemList.Hatch_Output_Bus_IV)))
                 .addElement(
                     'p',
-                    buildHatchAdder(MTEReactorCoreMk1.class).atLeast(PanelHatchElement.SiloPanel)
-                        .casingIndex(Casings.RadiationProofMachineCasing.textureId)
-                        .hint(1)
-                        .buildAndChain(
-                            onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())))
+                    autoFit(
+                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(PanelHatchElement.SiloPanel)
+                            .casingIndex(Casings.RadiationProofMachineCasing.textureId)
+                            .hint(1)
+                            .buildAndChain(
+                                onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())),
+                        () -> idOf(BTSMachines.siloControlBlock)))
                 .addElement('O', ofBlock(GregTechAPI.sBlockConcretes, 8))
                 .addElement(
                     'K',
@@ -1178,47 +1327,61 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 .addElement('5', Casings.TungstensteelTurbineCasing.asElement())
                 .addElement(
                     'i',
-                    buildHatchAdder(MTEReactorCoreMk1.class).atLeast(SpiralHatchElement.Injector)
-                        .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
-                        .hint(3)
-                        .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()))
+                    autoFit(
+                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(SpiralHatchElement.Injector)
+                            .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
+                            .hint(3)
+                            .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()),
+                        () -> idOf(BTSMachines.precisionInjector)))
                 .addElement(
                     'j',
-                    buildHatchAdder(MTEReactorCoreMk1.class).atLeast(SpiralHatchElement.Sensor)
-                        .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
-                        .hint(3)
-                        .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()))
+                    autoFit(
+                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(SpiralHatchElement.Sensor)
+                            .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
+                            .hint(3)
+                            .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()),
+                        () -> idOf(BTSMachines.spineSensor)))
                 .addElement(
                     'k',
-                    buildHatchAdder(MTEReactorCoreMk1.class).atLeast(InputHatch)
-                        .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
-                        .hint(3)
-                        .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()))
+                    autoFit(
+                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(InputHatch)
+                            .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
+                            .hint(3)
+                            .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()),
+                        () -> idOf(ItemList.Hatch_Input_IV)))
                 .addElement(
                     'l',
-                    buildHatchAdder(MTEReactorCoreMk1.class).atLeast(Maintenance)
-                        .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
-                        .hint(3)
-                        .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()))
+                    autoFit(
+                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(Maintenance)
+                            .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
+                            .hint(3)
+                            .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()),
+                        () -> idOf(ItemList.Hatch_Maintenance)))
                 .addElement('8', Casings.TungstensteelTurbineCasing.asElement())
                 .addElement(
                     'm',
-                    buildHatchAdder(MTEReactorCoreMk1.class).atLeast(Dynamo)
-                        .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
-                        .hint(4)
-                        .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()))
+                    autoFit(
+                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(Dynamo)
+                            .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
+                            .hint(4)
+                            .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()),
+                        () -> idOf(ItemList.Hatch_Dynamo_IV)))
                 .addElement(
                     'n',
-                    buildHatchAdder(MTEReactorCoreMk1.class).atLeast(Maintenance)
-                        .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
-                        .hint(4)
-                        .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()))
+                    autoFit(
+                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(Maintenance)
+                            .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
+                            .hint(4)
+                            .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()),
+                        () -> idOf(ItemList.Hatch_Maintenance)))
                 .addElement(
                     'q',
-                    buildHatchAdder(MTEReactorCoreMk1.class).atLeast(PanelHatchElement.TurbinePanel)
-                        .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
-                        .hint(4)
-                        .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()))
+                    autoFit(
+                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(PanelHatchElement.TurbinePanel)
+                            .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
+                            .hint(4)
+                            .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()),
+                        () -> idOf(BTSMachines.turbineControlBlock)))
                 .addElement('9', ofChain(new IStructureElement<MTEReactorCoreMk1>() {
 
                     @Override
@@ -1643,6 +1806,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
     @Override
     public void construct(ItemStack stackSize, boolean hintsOnly) {
+        if (!hintsOnly) {
+            fittedCells.clear();
+        }
         final int t = tierFromTrigger(stackSize);
         buildPiece(floorPieceName(mName), stackSize, hintsOnly, CENTER, 0, SILO_FRONT);
         buildPiece(pieceName(mName, t), stackSize, hintsOnly, siloHOff(t), siloVOff(t), siloDOff(t));
@@ -1654,6 +1820,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         buildPiece(shellPieceName(mName, "hall"), stackSize, hintsOnly, -11, 3, -13);
         buildPiece(shellPieceName(mName, "towernw"), stackSize, hintsOnly, 25, 19, 17);
         buildPiece(shellPieceName(mName, "towersw"), stackSize, hintsOnly, 25, 19, -16);
+        if (!hintsOnly) {
+            // Every wall is up now, so each auto-fitted hatch can be pointed at its exposed
+            // face - dynamos and energy hatches only work through their front.
+            orientFittedHatches();
+        }
     }
 
     // ------------------------------------------------------------------ rod cascade (SD-1)
@@ -2220,6 +2391,51 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     }
 
     /** A redstone rising edge on the Turbine Control Block: run one cycle when possible. */
+    /**
+     * TEST AID (set by /btsbuild, NBT-persisted): pulses a turbine cycle every 20 ticks so a
+     * freshly commanded plant spins up without wiring a redstone clock first. Redstone
+     * remains the real mechanic - this is a bench clock, and the GUI says so.
+     */
+    private boolean debugAutoCycle;
+
+    public boolean isDebugAutoCycle() {
+        return debugAutoCycle;
+    }
+
+    public void setDebugAutoCycle(boolean value) {
+        debugAutoCycle = value;
+    }
+
+    /**
+     * Fills every Rod Loading Port of the formed silo with the given rod stack (test aid for
+     * /btsbuild). Returns how many ports were stocked.
+     */
+    /** Turbine Housing cells this plant owns: the Spine's 4 rotor sockets + 8 gallery stages. */
+    public List<int[]> housingCells() {
+        final List<int[]> all = new ArrayList<>(spineHousingCells);
+        all.addAll(stageCells);
+        return all;
+    }
+
+    public int stockRodPorts(ItemStack rods) {
+        if (rods == null) return 0;
+        final World world = getBaseMetaTileEntity().getWorld();
+        int stocked = 0;
+        for (final int[] p : portCells) {
+            if (!world.blockExists(p[0], p[1], p[2])) continue;
+            final net.minecraft.tileentity.TileEntity te = world.getTileEntity(p[0], p[1], p[2]);
+            if (!(te instanceof TileRodLoadingPort)) continue;
+            final TileRodLoadingPort port = (TileRodLoadingPort) te;
+            for (int slot = 0; slot < TileRodLoadingPort.SLOTS; slot++) {
+                if (port.getStackInSlot(slot) == null) {
+                    port.setInventorySlotContents(slot, rods.copy());
+                }
+            }
+            stocked++;
+        }
+        return stocked;
+    }
+
     public void requestTurbineCycle() {
         final IGregTechTileEntity base = getBaseMetaTileEntity();
         if (base == null || !base.isServerSide()) return;
@@ -2455,6 +2671,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
         final int towers = coolingTowerCount();
 
+        // Bench clock for commanded test plants: a cycle a second, no redstone wiring.
+        if (debugAutoCycle && aTick % 20 == 0) {
+            requestTurbineCycle();
+        }
+
         // Machine-block updates cannot propagate across the unregistered concrete platform to
         // the embedded controller, so force periodic revalidation: every 200t while a campaign
         // runs (a torn-open silo must not keep producing), every 600t while idle (modules
@@ -2539,6 +2760,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         aNBT.setInteger("btsDecayHeatTicks", decayHeatTicks);
         aNBT.setInteger("btsRadiationTicks", radiationTicks);
         aNBT.setInteger("btsRadCenterDepth", radiationCenterDepth);
+        aNBT.setBoolean("btsDebugAutoCycle", debugAutoCycle);
         aNBT.setBoolean("btsCascadeMode", cascadeMode);
         aNBT.setInteger("btsLiveColumns", liveColumnsLastCycle);
         aNBT.setInteger("btsFallbackCyclesLeft", fallbackCyclesLeft);
@@ -2585,6 +2807,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         decayHeatTicks = aNBT.getInteger("btsDecayHeatTicks");
         radiationTicks = aNBT.getInteger("btsRadiationTicks");
         radiationCenterDepth = aNBT.getInteger("btsRadCenterDepth");
+        debugAutoCycle = aNBT.getBoolean("btsDebugAutoCycle");
         cascadeMode = aNBT.getBoolean("btsCascadeMode");
         liveColumnsLastCycle = aNBT.getInteger("btsLiveColumns");
         fallbackCyclesLeft = aNBT.getInteger("btsFallbackCyclesLeft");

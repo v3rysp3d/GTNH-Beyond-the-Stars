@@ -33,5 +33,7 @@ public class CommonProxy {
 
     public void serverStarting(FMLServerStartingEvent event) {
         event.registerServerCommand(new CommandBTSKit());
+        event.registerServerCommand(new CommandBTSBuild());
+        event.registerServerCommand(new CommandBTSClock());
     }
 }
