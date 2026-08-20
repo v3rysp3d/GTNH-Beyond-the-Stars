@@ -1,0 +1,153 @@
+{
+    "preRequisites:9":  {
+                            "0:10":  {
+                                         "questIDHigh:4":  190,
+                                         "questIDLow:4":  48005
+                                     }
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  1,
+                                                    "desc:8":  "§6§lTHE END OF THE PIPE§r\nSteam leaves the silo down the spine duct, spirals through the injection chamber and blows through the §bROTOR GALLERY§r. Eight stage housings sit on its centreline; four more sit in the spine bore.\n\n§c§lPLACE ALL TWELVE YOURSELF§r\nThe projector deliberately skips every Turbine Housing cell - it leaves them as §cAIR§r, because a housing carries a spin setting and a rotor it has no business guessing. Craft twelve and place them: §b4§r in the spine bore, filling every other cell starting one block out from the silo, and §b8§r on the gallery centreline, again every other cell. The last of the eight hangs in the manifold mouth.\n\n§e§lDO THIS§r\n§b1.§r Right-click each of the eight gallery housings with a §bTurbine Rotor§r. Sneak-right-click empty-handed to pull one back out; the wear stays on the item.\n§b2.§r Right-click each of the four §bspine duct§r housings to set its spin - clockwise or anticlockwise. \"Spin Doctrine\" explains what that buys you; for now set all four the same and move on.\n\n§e§lROTORS WEAR, LIKE REAL BLADES§r\nEach stage takes slow random damage at speed - roughly one point per ten minutes at full tilt. Every point costs that stage §c5%§r, and at ten the rotor §cSHATTERS§r. The average factor over all eight sockets multiplies your whole output, so an empty socket is a 12.5% cut.\n\n§6§lTHE PLANT KEEPS RUNNING WHILE YOU DO THIS§r\nPlacing the eighth gallery housing does not stop the reactor and does not suddenly demand a hatch. It FORMS the Rotor Assembly, and one grey line appears in the OUTPUT group, opening §8Manifold: Energy Hatches 0/4§r and closing §8furniture, not a load; the plant runs without them§r. That is information, not a fault. Step 9 fills those sockets and you may skip them for ever.\n\n§6§lTHE OUTPUT GROUP FLIPS ON THE FIRST ROTOR, NOT ON THE HOUSINGS§r\nTwelve housings and no rotors still reads §2Steam export§r, because eight empty seats generate exactly nothing and the plant is genuinely still exporting steam out of the silo. The instant ONE rotor is seated it reads §2Generating§r instead. §8The MATH group re-titles itself on the same instant and for the same reason, so the two can never describe two different plants.§r\n\n§a§lDONE WHEN§r\n12 Turbine Housings and 8 Turbine Rotors are in your inventory at the same time. §8Step 6 paid you the twelve housings.§r\n§8This step pays four Water Buckets as well as the injectors. They are not for the boiler - they are the first COOLANT for the Spiral chamber, and step 8 will not spin the fan without it.§r\n§8This quest only LOOKS at what you are carrying, and it takes nothing. Hold the whole set at once, CLAIM it, and only then break the casings and set the machines into the wall. Already installed them? Wrench them back out for a moment - the check is on your inventory, not on the building.§r\n\n§e§lCHECK YOUR WORK§r\nThe TURBINE group reads §2Rotors 8/8§r at an average factor near §2x1.00§r, and the STEAM CHAIN group shows §24 housings§r on the spine.",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  0,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "beyondthestars:turbineRotor"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "§6§lStep 7 - Seat the Rotors",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48006,
+    "rewards:9":  {
+                      "0:10":  {
+                                   "ignoreDisabled:1":  0,
+                                   "index:3":  0,
+                                   "rewardID:8":  "bq_standard:item",
+                                   "rewards:9":  {
+                                                     "0:10":  {
+                                                                  "Count:3":  1,
+                                                                  "Damage:2":  0,
+                                                                  "OreDict:8":  "",
+                                                                  "id:8":  "beyondthestars:turbineRotor"
+                                                              }
+                                                 }
+                               },
+                      "1:10":  {
+                                   "ignoreDisabled:1":  0,
+                                   "index:3":  1,
+                                   "rewardID:8":  "bq_standard:item",
+                                   "rewards:9":  {
+                                                     "0:10":  {
+                                                                  "Count:3":  4,
+                                                                  "Damage:2":  28106,
+                                                                  "OreDict:8":  "",
+                                                                  "id:8":  "gregtech:gt.blockmachines"
+                                                              }
+                                                 }
+                               },
+                      "2:10":  {
+                                   "ignoreDisabled:1":  0,
+                                   "index:3":  2,
+                                   "rewardID:8":  "bq_standard:item",
+                                   "rewards:9":  {
+                                                     "0:10":  {
+                                                                  "Count:3":  1,
+                                                                  "Damage:2":  0,
+                                                                  "OreDict:8":  "",
+                                                                  "id:8":  "minecraft:water_bucket"
+                                                              }
+                                                 }
+                               },
+                      "3:10":  {
+                                   "ignoreDisabled:1":  0,
+                                   "index:3":  3,
+                                   "rewardID:8":  "bq_standard:item",
+                                   "rewards:9":  {
+                                                     "0:10":  {
+                                                                  "Count:3":  1,
+                                                                  "Damage:2":  0,
+                                                                  "OreDict:8":  "",
+                                                                  "id:8":  "minecraft:water_bucket"
+                                                              }
+                                                 }
+                               },
+                      "4:10":  {
+                                   "ignoreDisabled:1":  0,
+                                   "index:3":  4,
+                                   "rewardID:8":  "bq_standard:item",
+                                   "rewards:9":  {
+                                                     "0:10":  {
+                                                                  "Count:3":  1,
+                                                                  "Damage:2":  0,
+                                                                  "OreDict:8":  "",
+                                                                  "id:8":  "minecraft:water_bucket"
+                                                              }
+                                                 }
+                               },
+                      "5:10":  {
+                                   "ignoreDisabled:1":  0,
+                                   "index:3":  5,
+                                   "rewardID:8":  "bq_standard:item",
+                                   "rewards:9":  {
+                                                     "0:10":  {
+                                                                  "Count:3":  1,
+                                                                  "Damage:2":  0,
+                                                                  "OreDict:8":  "",
+                                                                  "id:8":  "minecraft:water_bucket"
+                                                              }
+                                                 }
+                               }
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "autoConsume:1":  0,
+                                 "consume:1":  0,
+                                 "groupDetect:1":  0,
+                                 "ignoreNBT:1":  1,
+                                 "index:3":  0,
+                                 "partialMatch:1":  1,
+                                 "requireOnlyOneItem:1":  0,
+                                 "requiredItems:9":  {
+                                                         "0:10":  {
+                                                                      "Count:3":  12,
+                                                                      "Damage:2":  0,
+                                                                      "OreDict:8":  "",
+                                                                      "id:8":  "beyondthestars:turbineHousing"
+                                                                  },
+                                                         "1:10":  {
+                                                                      "Count:3":  8,
+                                                                      "Damage:2":  0,
+                                                                      "OreDict:8":  "",
+                                                                      "id:8":  "beyondthestars:turbineRotor"
+                                                                  }
+                                                     },
+                                 "taskID:8":  "bq_standard:retrieval"
+                             }
+                }
+}

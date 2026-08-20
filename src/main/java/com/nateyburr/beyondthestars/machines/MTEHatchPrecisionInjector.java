@@ -24,6 +24,15 @@ public class MTEHatchPrecisionInjector extends MTEHatchInput {
     /** Fill events since the last slug evaluation: {worldTick, litres}. */
     private final List<long[]> events = new ArrayList<>();
 
+    /**
+     * A2: this port's reserve was placed by the CONTROLLER out of the chamber's own bulk
+     * propellant line, so the controller also owns its timing and will stamp it inside the next
+     * accepted cycle's window. A litre a PLAYER pushed in is stamped by {@link #fill} instead
+     * and clears this flag - the plant must never add a second stamp on top of a hand-timed
+     * shot, because two litres in one window score as a miss.
+     */
+    private boolean autoStocked;
+
     public MTEHatchPrecisionInjector(int aID, String aName, String aNameRegional) {
         super(
             aID,
@@ -67,6 +76,9 @@ public class MTEHatchPrecisionInjector extends MTEHatchInput {
     public int fill(FluidStack aFluid, boolean doFill) {
         final int filled = super.fill(aFluid, doFill);
         if (doFill && filled > 0 && getBaseMetaTileEntity() != null && getBaseMetaTileEntity().isServerSide()) {
+            // A player (or their pipe) is timing this port by hand: the plant must not also
+            // stamp it, so hand off ownership of the whole reserve.
+            autoStocked = false;
             events.add(
                 new long[] { getBaseMetaTileEntity().getWorld()
                     .getTotalWorldTime(), filled });
@@ -75,6 +87,11 @@ public class MTEHatchPrecisionInjector extends MTEHatchInput {
             }
         }
         return filled;
+    }
+
+    /** True while a litre in this port is waiting to be scored against a cycle's window. */
+    public boolean hasTimingStamps() {
+        return !events.isEmpty();
     }
 
     /** Drains and returns all fill events recorded since the last call. */
@@ -90,8 +107,69 @@ public class MTEHatchPrecisionInjector extends MTEHatchInput {
             mFluid.amount -= litres;
             if (mFluid.amount <= 0) {
                 mFluid = null;
+                autoStocked = false;
             }
         }
+    }
+
+    /**
+     * A2: the controller stocks this port's ONE-litre reserve straight from the Automation
+     * chamber's bulk propellant line. Deliberately NOT routed through {@link #fill} - that stamps
+     * every litre with its arrival tick and the slug scorer would read a refill as a bucket
+     * dumped into the window (a wasted litre plus a heat spike, eight times a cycle). The
+     * reserve is inert until {@link #autoTimedShot} stamps it inside an accepted cycle.
+     * <p>
+     * Never overwrites: a port that already holds propellant belongs to whoever put it there.
+     */
+    public boolean stockReserve(FluidStack propellant) {
+        if (propellant == null || propellant.getFluid() == null) return false;
+        if (mFluid != null && mFluid.amount > 0) return false;
+        mFluid = new FluidStack(propellant.getFluid(), 1);
+        autoStocked = true;
+        return true;
+    }
+
+    /**
+     * Takes ownership of a reserve that is already standing here un-stamped - the leftover of a
+     * refused or missed cycle. Without this the litre would be stranded: the plant would not
+     * shoot it (not its reserve) and would not top the port up either (not empty).
+     */
+    public void adoptReserve() {
+        if (mFluid != null && mFluid.amount > 0 && events.isEmpty()) {
+            autoStocked = true;
+        }
+    }
+
+    /**
+     * A2: the plant's own perfectly timed shot - exactly 1L stamped at the current tick, inside
+     * the window the accepted cycle just opened. Only ever fires on a reserve the plant itself
+     * stocked, so a hand-timed litre is never stamped twice.
+     */
+    public boolean autoTimedShot() {
+        if (!autoStocked) return false;
+        autoStocked = false;
+        return debugTimedShot();
+    }
+
+    /**
+     * R3: burns the PLANT-OWNED reserve without stamping it - what a MISSED cycle costs. The
+     * window opened, this port fired into a chamber with no steam slug behind it, and the litre
+     * is gone; over-clocking has to cost propellant or the clock is free.
+     * <p>
+     * Only ever touches a reserve {@link #stockReserve} or {@link #adoptReserve} put here. A
+     * litre a PLAYER pushed in carries a timing stamp, clears {@code autoStocked} in
+     * {@link #fill}, and is scored and consumed by the silo's window evaluation instead - so no
+     * litre can ever be charged twice.
+     *
+     * @return true when a litre was actually burned
+     */
+    public boolean voidAutoReserve() {
+        if (!autoStocked) return false;
+        autoStocked = false;
+        if (mFluid == null || mFluid.amount < 1) return false;
+        mFluid.amount -= 1;
+        if (mFluid.amount <= 0) mFluid = null;
+        return true;
     }
 
     /** The propellant currently in the port, or null. */

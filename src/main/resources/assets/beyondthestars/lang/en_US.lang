@@ -32,7 +32,15 @@ GT5U.gui.text.shutdown_reason.beyondthestars.seizure.chain=SEIZURE: coolant star
 # The instrument panel itself is built by MTEReactorCoreMk1's shared formatters, so the GUI,
 # both control blocks and the scanner print byte-identical lines; only the standalone labels
 # below still live here.
-beyondthestars.gui.silo.absent=Steam Generator: NOT BUILT — project it onto the shield pad
+# NEI tab names. These keys ARE the recipe maps' unlocalized names (GT translates them for the
+# tab title and the page header), so they must match BTSDisplayRecipes exactly.
+beyondthestars.recipe.plantfuel=Nuclear Plant: Fuel Rods
+beyondthestars.recipe.plantpropellant=Nuclear Plant: Propellant
+beyondthestars.recipe.plantcoolant=Nuclear Plant: Coolant
+# The one fatal error a plant built by 0.19.0 or earlier reports: its silo face is the retired
+# plumbing frontage, which conflicts with the point-of-use layout cell for cell. %s = the tier
+# measured off the standing walls.
+beyondthestars.structure.silo.standing=Tier %s Steam Generator IS STANDING and does not match the current silo face — the first wrong cell is listed above. A plant raised by 0.19.0 or earlier has the retired face: stand beside the main station and run /btsmigrate to rewrite it in place.
 beyondthestars.gui.throttle.tooltip=Control rods: campaign power = N/24. A programmed circuit in the controller overrides this.
-beyondthestars.gui.buildtier.tooltip=Build Tier: the Steam Generator tier the hologram/projector builds (1-5). A trigger stack of 2-5 overrides this.
+beyondthestars.gui.buildtier.tooltip=Build Tier: the Steam Generator tier the hologram/projector builds (1-5). A trigger stack of 2-5 overrides this. A silo that already stands is never re-tiered - dismantle it first.
 

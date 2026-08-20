@@ -455,17 +455,10 @@ public final class BTSRecipes {
             .eut(TierEU.RECIPE_EV)
             .addTo(assemblerRecipes);
 
-        // Plant module controllers (Turbine Hall recipe removed - retired by SD-4)
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.StainlessSteel, 8L),
-                GTOreDictUnificator.get(OrePrefixes.pipeMedium, Materials.StainlessSteel, 4L),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.EV, 2L))
-            .circuit(6)
-            .itemOutputs(BTSMachines.moduleCoolingTower.copy())
-            .duration(30 * SECONDS)
-            .eut(TierEU.RECIPE_EV)
-            .addTo(assemblerRecipes);
+        // A3: BOTH plant module controllers are RETIRED - the buildings are pieces of the main
+        // station now, so neither has a recipe. The MTE ids stay registered (BTSMachines) so
+        // worlds that already contain one load cleanly; both tooltips say they are museum
+        // pieces and point at the Nuclear Plant Foundation.
 
         // Radiation proof casing + IV circuits + rare metals -> Reactor Silo controller
         GTValues.RA.stdBuilder()
@@ -483,5 +476,11 @@ public final class BTSRecipes {
             .duration(60 * SECONDS)
             .eut(TierEU.RECIPE_IV)
             .addTo(assemblerRecipes);
+
+        // B1: the plant's DISPLAY-ONLY NEI pages (fuel rods / propellant / coolant). They are
+        // filled here so the categories are registered inside our own mod container and well
+        // before NEI builds its handler list at load-complete. Nothing here is craftable - see
+        // BTSDisplayRecipes' header for the three independent reasons why.
+        BTSDisplayRecipes.register();
     }
 }

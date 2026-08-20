@@ -1,0 +1,53 @@
+{
+    "preRequisites:9":  {
+
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  0,
+                                                    "desc:8":  "§3§lThe steam chain between the silo and the turbine.§r\n\n§eSPINE DUCT§r - a 3x3 bore from the silo\u0027s side wall to the chamber. It always ends on the same line, so it SHRINKS as the silo grows.\n  Tungstensteel Turbine Casing: T1 §b96x§r / T2 88x / T3 80x / T4 72x / T5 §b64x§r\n  §b4x§r Turbine Housing in the bore sockets nearest the silo\n  §8The projector SKIPS housing cells entirely - they stay air until you place them. Right-click each to set CW or ACW.§r\n\n§eSPIRAL CHAMBER§r - 7x7x12 at the duct\u0027s end. Same bill at every tier.\n  §b326x§r Tungstensteel Turbine Casing\n  §b50x§r Light Concrete §8(the internal helix arcs)§r\n  §b8x§r Precision Injector, one per interior level, following the helix down\n  §b1x§r Spine Sensor, in the roof\u0027s front-centre cell, facing up\n  §b1x§r Maintenance Hatch, in the floor\u0027s front-right corner\n  §b2x§r Input Hatch (IV) in the FRONT WALL, one course above the floor -\n     §bCOOLANT§r and §bbulk PROPELLANT§r, one near each end of that wall\n     §8(step 4 has the drawn map)\n\n§8Both chamber hatches are point-of-use: the coolant cools the thing that overheats, and the propellant line stands directly under the eight injectors it stocks.§r",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  12,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "gregtech:gt.blockcasings4"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "§3§lBlueprint: Spine + Spiral",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48017,
+    "rewards:9":  {
+
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "index:3":  0,
+                                 "taskID:8":  "bq_standard:checkbox"
+                             }
+                }
+}

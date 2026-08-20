@@ -1,0 +1,92 @@
+{
+    "preRequisites:9":  {
+
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  1,
+                                                    "desc:8":  "§7Ten steps, in order, and you are making power. You do not need to know anything about this plant to start.§r\n\n§6§lWHAT UNIT ONE IS§r\nOne nuclear campus raised by ONE hologram projection: a 50x50 platform, a reactor silo fed by falling fuel rods, a 3x3 turbine spine, a 7x7 injection chamber and a rotor gallery. A fully tuned tier-5 plant pushes toward a billion EU/t.\n\n§e§lDO THIS§r\nAssemble the §bNuclear Plant Foundation§r in an Assembling Machine (IV, 60s, programmed circuit 4):\n  1x Radiation Proof Machine Casing\n  4x IV Circuit\n  2x Lead Dense Plate\n  8x Tungstensteel Plate\n  8x Tungsten Rod\n  2x Iridium Plate\n  2x Rhodium-Plated Palladium Plate\n  4 ingots of Molten Platinum\n\n§a§lDONE WHEN§r\nThe controller is in your inventory. §8Nothing is taken from you - this quest only looks, and once it has seen the controller it stays complete for ever.§r\n§8Claim the reward before step 2 plants that controller in the ground.§r\n\n[note]This ONE machine is the whole plant. There are no module controllers any more: the cooling towers, the spine duct, the spiral chamber and the rotor gallery are all pieces of THIS controller, raised by the same projection.[/note]",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  28100,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "gregtech:gt.blockmachines"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "§6§lStep 1 - The Controller",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48000,
+    "rewards:9":  {
+                      "0:10":  {
+                                   "ignoreDisabled:1":  0,
+                                   "index:3":  0,
+                                   "rewardID:8":  "bq_standard:item",
+                                   "rewards:9":  {
+                                                     "0:10":  {
+                                                                  "Count:3":  1,
+                                                                  "Damage:2":  0,
+                                                                  "OreDict:8":  "",
+                                                                  "id:8":  "structurelib:item.structurelib.constructableTrigger"
+                                                              }
+                                                 }
+                               },
+                      "1:10":  {
+                                   "ignoreDisabled:1":  0,
+                                   "index:3":  1,
+                                   "rewardID:8":  "bq_standard:item",
+                                   "rewards:9":  {
+                                                     "0:10":  {
+                                                                  "Count:3":  16,
+                                                                  "Damage:2":  12,
+                                                                  "OreDict:8":  "",
+                                                                  "id:8":  "gregtech:gt.blockcasings3"
+                                                              }
+                                                 }
+                               }
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "autoConsume:1":  0,
+                                 "consume:1":  0,
+                                 "groupDetect:1":  0,
+                                 "ignoreNBT:1":  1,
+                                 "index:3":  0,
+                                 "partialMatch:1":  1,
+                                 "requireOnlyOneItem:1":  0,
+                                 "requiredItems:9":  {
+                                                         "0:10":  {
+                                                                      "Count:3":  1,
+                                                                      "Damage:2":  28100,
+                                                                      "OreDict:8":  "",
+                                                                      "id:8":  "gregtech:gt.blockmachines"
+                                                                  }
+                                                     },
+                                 "taskID:8":  "bq_standard:retrieval"
+                             }
+                }
+}

@@ -1,0 +1,82 @@
+{
+    "preRequisites:9":  {
+                            "0:10":  {
+                                         "questIDHigh:4":  190,
+                                         "questIDLow:4":  48003
+                                     }
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  1,
+                                                    "desc:8":  "§6§lTHE DECAY CASCADE§r\nEvery fuel pillar is a gravity column eight segments tall. A rod dropped in falls to the lowest empty segment. Only the §bBOTTOM§r one burns; when it is spent it drops into the depleted bus and the stack above shifts down one.\n\nA pillar is §2LIVE§r while its bottom segment holds a burning rod:\n  §bsteam = live pillars x 16,384 L/t x fuel multiplier x rods N/24§r\n\n§e§lTHE FUEL LADDER§r\n  Uranium §8x1§r   MOX §8x2§r   Thorium-Bonded §8x5§r   Naquadah-Bonded §8x9§r\nSame rod, same slot, nine times the steam at the top of the ladder.\n\n§e§lDO THIS§r\nFeed fuel rods into the §bRod Input Bus in the silo face§r - bottom fuel course, one cell to the LEFT of the main station §8as you stand outside and look at the silo§r - and keep it stocked. One rod is one segment, about 90 minutes, and a full pillar is roughly 12 hours.\n\n§8You also need the pillars themselves: Reactor Fuel Columns, eight tall, standing inside the silo. The projector treats them as optional interior and leaves those cells empty, so a silo with no pillars makes no steam at all.§r\n\n§a§lDONE WHEN§r\nEight Uranium Fuel Rods are in your inventory. §8Claim it, then feed them to the bus - a rod inside the bus is inside a machine, not on you.§r\n\n§e§lCHECK YOUR WORK§r\nOnce they are in the bus the Supply line reads §2N rods queued -\u003e 0 pillar gaps§r. Gaps with an empty queue is a starving cascade.\n\n[warn]Classic fuel ASSEMBLIES in the bus still work, but at HALF output - the panel calls it \"Assembly fallback (output halved)\". The cascade is where the other half lives.[/warn]",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  0,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "beyondthestars:fuelRodUranium"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "§6§lStep 5 - Load the Rods",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48004,
+    "rewards:9":  {
+                      "0:10":  {
+                                   "ignoreDisabled:1":  0,
+                                   "index:3":  0,
+                                   "rewardID:8":  "bq_standard:item",
+                                   "rewards:9":  {
+                                                     "0:10":  {
+                                                                  "Count:3":  8,
+                                                                  "Damage:2":  0,
+                                                                  "OreDict:8":  "",
+                                                                  "id:8":  "beyondthestars:fuelRodUranium"
+                                                              }
+                                                 }
+                               }
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "autoConsume:1":  0,
+                                 "consume:1":  0,
+                                 "groupDetect:1":  0,
+                                 "ignoreNBT:1":  1,
+                                 "index:3":  0,
+                                 "partialMatch:1":  1,
+                                 "requireOnlyOneItem:1":  0,
+                                 "requiredItems:9":  {
+                                                         "0:10":  {
+                                                                      "Count:3":  8,
+                                                                      "Damage:2":  0,
+                                                                      "OreDict:8":  "",
+                                                                      "id:8":  "beyondthestars:fuelRodUranium"
+                                                                  }
+                                                     },
+                                 "taskID:8":  "bq_standard:retrieval"
+                             }
+                }
+}

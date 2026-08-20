@@ -53,9 +53,15 @@ final class BQBridge {
     /** The "Unit One" entry quest grafted into the pack's How to Generate Power chapter. */
     static final UUID ENTRY_QUEST_UUID = new UUID(ID_HIGH, 48020L);
 
-    /** First and last quest of our own chapter, inclusive (48000..48017 = 18 quests). */
+    /**
+     * First and last quest of our own chapter, inclusive (48000..48019 = 20 quests): the ten
+     * guided path steps, the five mastery quests and the five blueprints. 48020 is deliberately
+     * NOT in this range - that low belongs to the {@link #ENTRY_QUEST_UUID} grafted into the
+     * pack's own chapter, and {@code questbook/gen-questbook.ps1} throws if the chapter ever
+     * grows past 48019 rather than silently colliding with it.
+     */
     static final long FIRST_QUEST_LOW = 48000L;
-    static final long LAST_QUEST_LOW = 48017L;
+    static final long LAST_QUEST_LOW = 48019L;
 
     /**
      * The leading 12 base64 characters every one of our file names carries.

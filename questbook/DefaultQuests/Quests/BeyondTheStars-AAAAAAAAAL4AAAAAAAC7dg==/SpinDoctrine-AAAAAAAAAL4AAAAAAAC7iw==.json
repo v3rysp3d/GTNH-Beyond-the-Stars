@@ -1,0 +1,68 @@
+{
+    "preRequisites:9":  {
+                            "0:10":  {
+                                         "questIDHigh:4":  190,
+                                         "questIDLow:4":  48009
+                                     }
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  1,
+                                                    "desc:8":  "§b§lFOUR HOUSINGS, ONE ARGUMENT§r\nSwirl S starts at 0 at the silo end of the spine duct. Each housing adds §b+1§r (clockwise) or §b-1§r (anticlockwise), and the swirl accumulates from housing to housing.\n\n  A rotor turning §6WITH§r the swirl RIDES it:\n    steam speed x (1 + 0.08 x |S|)\n  A rotor turning §bAGAINST§r it CANCELS it:\n    efficiency  x (1 + 0.10 x |S|)\n  Whatever swirl survives the fourth housing enters the chamber as turbulence.\n\n§e§lTWO ANSWERS, BOTH CORRECT§r\n  §6CW CW CW CW§r     a dragster.   x1.55 speed, no efficiency bonus, |S|=4 leaving\n  §bCW CCW CW CCW§r   an economist. x1.00 speed, x1.20 efficiency, |S|=0, cool\n\nSame-direction trains are fast and thirsty; alternating trains are efficient and cool. There is no single right answer - only your goal.\n\n§e§lDO THIS§r\nRight-click each spine housing to toggle it and watch the STEAM CHAIN group\u0027s §bSpine§r line: it prints the pattern in brackets, then the housing count, the §2spd§r multiplier, the §2eff§r multiplier and the residual §2swirl§r, live.\n\n§a§lDONE WHEN§r\nYou tick it, once the Spine line prints the pattern you chose.\n\n§8This one is a TICK BOX on purpose. The four housings it talks about have been bolted into the spine since step 7, so a gate wanting four MORE in your pocket would only have made you craft spares you are never going to place.§r\n\n[note]A COOLED chamber carries residual swirl away in the coolant instead of taking it as heat. So an all-riding spine costs you coolant rather than a meltdown - as long as the coolant is actually there. On a plant with no gallery, only SPEED is ever paid for: export is carried out of the silo on spine speed alone.[/note]",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  0,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "beyondthestars:turbineHousing"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "§b§lSpin Doctrine",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48011,
+    "rewards:9":  {
+                      "0:10":  {
+                                   "ignoreDisabled:1":  0,
+                                   "index:3":  0,
+                                   "rewardID:8":  "bq_standard:item",
+                                   "rewards:9":  {
+                                                     "0:10":  {
+                                                                  "Count:3":  32,
+                                                                  "Damage:2":  12,
+                                                                  "OreDict:8":  "",
+                                                                  "id:8":  "gregtech:gt.blockcasings4"
+                                                              }
+                                                 }
+                               }
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "index:3":  0,
+                                 "taskID:8":  "bq_standard:checkbox"
+                             }
+                }
+}

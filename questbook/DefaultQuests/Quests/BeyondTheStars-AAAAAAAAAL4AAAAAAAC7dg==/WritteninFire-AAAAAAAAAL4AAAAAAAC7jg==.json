@@ -1,0 +1,100 @@
+{
+    "preRequisites:9":  {
+                            "0:10":  {
+                                         "questIDHigh:4":  190,
+                                         "questIDLow:4":  48009
+                                     }
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  1,
+                                                    "desc:8":  "§c§lREAD THIS BEFORE IT READS YOU§r\n  §6SCRAM§r at 8,000 core heat - the plant slams shut.\n  §cMELTDOWN§r at 10,000 - a vertical detonation up the silo stack and a 30-minute radiation field centred on the wreck. §8Hazmat counters the field; a config option can disable it.§r\n\n§e§lDECAY HEAT§r\nEvery shutdown leaves it: §btwenty minutes of mandatory cooling water§r. It is deferred, never waived - dismantling the silo does not cancel the bill.\n\n§e§lCOOLING TOWERS§r\nTwo 17x17x20 hyperboloids on the platform strip to your LEFT as you face the silo, raised by the same projection. Per standing tower, up to two: feedwater draw §2x0.5§r, passive heat decay §2x2§r, decay-heat demand §2x0.5§r.\n\n§e§lSEIZURE§r\nA different failure entirely: coolant starvation at speed. The interlock and the protective spin-down make it hard to reach now, but a chamber already near SCRAM can still tear the spine\u0027s rotor housings apart and slam the plant shut.\n\n§e§lDO THIS§r\nWear a full hazmat suit near a running plant, and keep a water supply that survives your own shutdown.\n\n§a§lDONE WHEN§r\nA full hazmat suit - helmet, chestplate, leggings and Rubber Boots - is on you at once.\n\n§8Wear it - do not just carry it. Radiation does not care what is in your backpack. The quest itself reads your ARMOUR slots as well as your pack, so the suit you are standing in satisfies the gate either way.§r\n\n[warn]The plant is generous with power and unforgiving with physics.[/warn]",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  0,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "IC2:itemArmorHazmatChestplate"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "§c§lWritten in Fire",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48014,
+    "rewards:9":  {
+                      "0:10":  {
+                                   "ignoreDisabled:1":  0,
+                                   "index:3":  0,
+                                   "rewardID:8":  "bq_standard:item",
+                                   "rewards:9":  {
+                                                     "0:10":  {
+                                                                  "Count:3":  16,
+                                                                  "Damage:2":  12,
+                                                                  "OreDict:8":  "",
+                                                                  "id:8":  "gregtech:gt.blockcasings3"
+                                                              }
+                                                 }
+                               }
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "autoConsume:1":  0,
+                                 "consume:1":  0,
+                                 "groupDetect:1":  0,
+                                 "ignoreNBT:1":  1,
+                                 "index:3":  0,
+                                 "partialMatch:1":  1,
+                                 "requireOnlyOneItem:1":  0,
+                                 "requiredItems:9":  {
+                                                         "0:10":  {
+                                                                      "Count:3":  1,
+                                                                      "Damage:2":  0,
+                                                                      "OreDict:8":  "",
+                                                                      "id:8":  "IC2:itemArmorHazmatHelmet"
+                                                                  },
+                                                         "1:10":  {
+                                                                      "Count:3":  1,
+                                                                      "Damage:2":  0,
+                                                                      "OreDict:8":  "",
+                                                                      "id:8":  "IC2:itemArmorHazmatChestplate"
+                                                                  },
+                                                         "2:10":  {
+                                                                      "Count:3":  1,
+                                                                      "Damage:2":  0,
+                                                                      "OreDict:8":  "",
+                                                                      "id:8":  "IC2:itemArmorHazmatLeggings"
+                                                                  },
+                                                         "3:10":  {
+                                                                      "Count:3":  1,
+                                                                      "Damage:2":  0,
+                                                                      "OreDict:8":  "",
+                                                                      "id:8":  "IC2:itemArmorRubBoots"
+                                                                  }
+                                                     },
+                                 "taskID:8":  "bq_standard:retrieval"
+                             }
+                }
+}

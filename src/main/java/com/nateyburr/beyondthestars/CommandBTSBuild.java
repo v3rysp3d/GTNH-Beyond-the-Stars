@@ -31,10 +31,11 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
  * player stands.
  * <p>
  * The hologram projector can only preview one piece at a time and is height-capped, so this
- * is the way to get a whole plant on the ground for testing: the platform, silo, Spine,
- * Spiral, Turbine Generator and both Cooling Tower shells, every hatch and control block
- * fitted, rotors seated, water and fuel loaded, and the bench clock enabled so the turbine
- * spins without wiring redstone first.
+ * is the way to get a whole plant on the ground for testing: the platform, the silo, Spine,
+ * Spiral, Turbine Generator and both Cooling Towers (checked pieces now, not separate module
+ * buildings), every hatch and control block fitted AT ITS POINT OF USE, rotors seated, water
+ * and fuel loaded, and the bench clock enabled so the turbine spins without wiring redstone
+ * first.
  * <p>
  * `all` raises ALL FIVE tiers side by side in one go so every silo size can be walked and
  * compared. They are laid out along the plant's own RIGHT axis (which is the player's right,
@@ -237,6 +238,10 @@ public class CommandBTSBuild extends CommandBase {
             EnumChatFormatting.GREEN
                 + "Infinite supplies ON - feedwater, coolant and propellant are refilled every tick and each cycle gets a perfectly timed 1L per injector, so it runs indefinitely. /btssupply off to plumb it for real.");
         tell(player, "Spine left all-CLOCKWISE (riding pattern). Right-click a housing to retune it.");
+        tell(
+            player,
+            EnumChatFormatting.AQUA
+                + "Every I/O point is AT ITS POINT OF USE: the SILO face carries maintenance (y0), feedwater + the Silo Control Block + the output hatch (y1) and the rod bus + depleted bus (y2); the SPIRAL chamber's front wall carries coolant and the bulk propellant line (y1); the MANIFOLD back face carries 4 dynamos (y3), 4 energy hatches (y4) and 4 laser sources (y5). Everything past those points is distributed internally.");
         tell(
             player,
             EnumChatFormatting.YELLOW

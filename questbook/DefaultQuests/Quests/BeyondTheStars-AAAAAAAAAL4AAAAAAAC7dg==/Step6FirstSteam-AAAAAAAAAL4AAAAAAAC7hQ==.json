@@ -1,0 +1,82 @@
+{
+    "preRequisites:9":  {
+                            "0:10":  {
+                                         "questIDHigh:4":  190,
+                                         "questIDLow:4":  48004
+                                     }
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  1,
+                                                    "desc:8":  "§e§lDO THIS§r\n§b1.§r Water into the silo face\u0027s §bH2O§r Input Hatch - the Input Hatch on the drum course, beside the Silo Control Block. §8Step 4 has the drawn map.§r\n§b2.§r Set Control Rods 1-24 in the GUI. 24 is full campaign power. §8A programmed circuit in the controller slot overrides the field.§r\n§b3.§r Enable the controller.\n\nWith no turbine chain behind it the plant simply §bexports Reactor Steam§r through the silo face\u0027s OUT hatch - or Hot Coolant, if you feed it IC2 Coolant instead of water. That is honest power, and it is a fraction of what this plant can do.\n\n§c§lTHE PLANT NEVER DRAWS EU§r\nNothing you have built so far needs to be powered, and nothing ever will. Unit One generates; it does not consume - the controller\u0027s own processing sets its EU draw to zero on every single branch. The four Energy Hatches in step 9 are not a running load and §bnot a structure requirement either§r: they are furniture for four empty sockets, and this plant forms and runs perfectly well without a single one of them.\n\n§e§lREAD IT ANYWHERE§r\nThe §bSilo Control Block§r prints the same instrument panel the GUI does. So does the Turbine Control Block, and so does a Portable Scanner. §8One panel, everywhere - no readout can disagree with another.§r\n\n§a§lDONE WHEN§r\nA §bWater Bucket§r is in your inventory. §8That is the whole gate - a quest reads your pack, not your plant. A bucket PRIMES the feedwater hatch; a reactor that is actually running wants a real water line behind it.§r\n\n§e§lCHECK YOUR WORK§r\nThe REACTOR group shows live pillars and a non-zero §2L/t steam§r, and OUTPUT reads §2Steam export§r with a real number.\n\n[note]Feedwater is NOT coolant. The hatch you just filled is the SILO\u0027s. The Spiral chamber has its own §bCOOL§r hatch, on a different building, and neither can drink the other\u0027s fluid. §cStep 8 is where that one has to be fed§r - until it is, the turbine never leaves 0 RPM.[/note]\n\n[warn]Every shutdown leaves DECAY HEAT: twenty minutes of mandatory cooling water. It is deferred, never waived. \"Written in Fire\" has the details.[/warn]",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  0,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "minecraft:water_bucket"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "§6§lStep 6 - First Steam",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48005,
+    "rewards:9":  {
+                      "0:10":  {
+                                   "ignoreDisabled:1":  0,
+                                   "index:3":  0,
+                                   "rewardID:8":  "bq_standard:item",
+                                   "rewards:9":  {
+                                                     "0:10":  {
+                                                                  "Count:3":  12,
+                                                                  "Damage:2":  0,
+                                                                  "OreDict:8":  "",
+                                                                  "id:8":  "beyondthestars:turbineHousing"
+                                                              }
+                                                 }
+                               }
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "autoConsume:1":  0,
+                                 "consume:1":  0,
+                                 "groupDetect:1":  0,
+                                 "ignoreNBT:1":  1,
+                                 "index:3":  0,
+                                 "partialMatch:1":  1,
+                                 "requireOnlyOneItem:1":  0,
+                                 "requiredItems:9":  {
+                                                         "0:10":  {
+                                                                      "Count:3":  1,
+                                                                      "Damage:2":  0,
+                                                                      "OreDict:8":  "",
+                                                                      "id:8":  "minecraft:water_bucket"
+                                                                  }
+                                                     },
+                                 "taskID:8":  "bq_standard:retrieval"
+                             }
+                }
+}

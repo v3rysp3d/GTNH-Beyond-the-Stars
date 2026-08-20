@@ -12,9 +12,9 @@ import com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1;
 
 /**
  * /btssupply [on|off] - toggles INFINITE SUPPLIES on the nearest Unit One main station,
- * mirroring /btsclock. With it on the plant's consumables are refilled every tick - feedwater
- * in the silo's face-panel hatches, the best coolant that exists in the Spiral chamber's own
- * hatch, and the best propellant in all eight Precision Injectors - and every accepted cycle
+ * mirroring /btsclock. With it on the plant's consumables are refilled every tick - the silo's
+ * Feedwater hatch, the Spiral chamber's own Coolant hatch and the best propellant in all
+ * eight Precision Injectors - and every accepted cycle
  * gets a perfectly timed 1L shot per injector, so a commanded plant reaches the redline and
  * stays there indefinitely. With it off nothing is topped up and the plant runs on whatever
  * the player has plumbed; the interlock then simply holds the RPM down instead of blowing up.

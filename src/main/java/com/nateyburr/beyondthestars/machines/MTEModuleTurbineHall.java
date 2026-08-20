@@ -51,11 +51,14 @@ import gregtech.api.util.shutdown.ShutDownReason;
 import gregtech.api.util.shutdown.SimpleShutDownReason;
 
 /**
- * Turbine Hall plant module - the gabled generator building from the Unit One mockup, docked
- * via its controller in the Reactor Silo wall. The silo pipes its steam here each tick; the
- * hall converts it to EU through its own dynamos with the fan T multiplier (fan in the hall's
- * input bus), stocked-coolant K, and naquadah propellant P (blowout on non-TDA fans, seizure
- * on starvation). No hall docked = the silo exports fluids as before.
+ * Turbine Hall - RETIRED (SD-4 replaced it with the Steam Dynamics chain; A3 then removed the
+ * docking mechanic that was left holding it up). Nothing pipes steam here any more: the main
+ * station's Rotor Assembly is the plant's generator, and this building is not part of the one
+ * projection either.
+ * <p>
+ * The MTE id stays registered so worlds holding one of these load cleanly. The recipe is gone,
+ * the tooltip says so, and {@link #processReactorSteam} is dead code kept only so an existing
+ * hall keeps its own behaviour if something ever calls it again.
  */
 public class MTEModuleTurbineHall extends MTEPlantModuleBase implements ISurvivalConstructable {
 
@@ -308,19 +311,21 @@ public class MTEModuleTurbineHall extends MTEPlantModuleBase implements ISurviva
         final String aqua = net.minecraft.util.EnumChatFormatting.AQUA.toString();
         final String reset = net.minecraft.util.EnumChatFormatting.RESET.toString()
             + net.minecraft.util.EnumChatFormatting.GRAY;
-        tt.addMachineType("Plant Module - Turbine Hall")
-            .addInfo(aqua + "Docks on the east marker; turns the silo's steam into EU." + reset)
-            .addInfo("The main station's hologram pre-builds this hall's shell - stand this controller")
-            .addInfo("on the glowing marker facing away from the building, then swap Dynamo +")
-            .addInfo("Maintenance + Input hatches into the plinth to form it.")
-            .addInfo("Undocked, this building is inert. Retired by the Steam Dynamics chain (SD-4).")
+        final String yellow = net.minecraft.util.EnumChatFormatting.YELLOW.toString();
+        tt.addMachineType("Plant Module - Turbine Hall (RETIRED)")
+            .addInfo(yellow + "RETIRED - this controller does nothing any more." + reset)
+            .addInfo("The Steam Dynamics chain replaced it: Spine -> Spiral -> Rotor Assembly, all")
+            .addInfo("pieces of the main station. There is no dock marker to stand this on.")
+            .addInfo("Build the Nuclear Plant Foundation instead - ONE projection raises everything.")
+            .addInfo("Kept only so worlds holding one of these still load. No recipe.")
             .addSeparator()
+            .addInfo("Museum reference - what it used to do:")
             .addInfo(
                 aqua + "Fan" + reset + " (input bus): Matched x1.25 - TDA x1.25 propellant-rated - Optimized x2.5.")
             .addInfo(aqua + "Coolant" + reset + " (input hatch): IC2 Coolant charge x2.5 (tier-5 silo: x5).")
             .addInfo(aqua + "Propellant" + reset + " Naq Lv 1/2/3: x2/x3/x10 - blowout on non-TDA fans.")
             .beginStructureBlock(5, 4, 9, true)
-            .addController("On the dock marker at the hall's front, FACING AWAY from the hall body")
+            .addController("Museum piece - place it anywhere; it powers nothing")
             .addCasingInfoRange("Clean Stainless Steel Machine Casing (walls/roof)", 60, 75, false)
             .addCasingInfoRange("Tungstensteel Turbine Casing (plinth)", 37, 45, false)
             .addCasingInfoExactly("Steel Pipe Casing (shaft)", 14, false)
@@ -328,7 +333,6 @@ public class MTEModuleTurbineHall extends MTEPlantModuleBase implements ISurviva
             .addMaintenanceHatch("Plinth", 1)
             .addInputHatch("Plinth (coolant + propellant)", 1)
             .addInputBus("Plinth (fan)", 1)
-            .addStructureInfo("Canonical spot: the {38,30} marker, hall body extending behind the controller.")
             .toolTipFinisher();
         return tt;
     }

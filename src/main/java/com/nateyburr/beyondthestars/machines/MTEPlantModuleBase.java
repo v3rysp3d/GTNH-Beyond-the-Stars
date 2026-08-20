@@ -4,19 +4,26 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
+import net.minecraft.util.EnumChatFormatting;
+
 import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBase;
 
 /**
- * Base for Unit One plant modules - the Space Elevator pattern: each plant building is its own
- * multiblock machine whose CONTROLLER docks into the Reactor Silo's wall (the silo's hatch
- * adder accepts it like a hatch). A module only ticks while the silo connects it; undocked
- * modules are frozen, exactly like elevator modules. The silo is the connection authority.
+ * RETIRED base for the old Unit One plant modules.
+ * <p>
+ * The Space Elevator pattern this implemented - each plant building its own multiblock, its
+ * controller DOCKED into a marker on the main station's platform and frozen until connected -
+ * is gone. The A3 ruling absorbed the buildings into the main station: the Cooling Towers are
+ * optional CHECKED PIECES of {@link MTEReactorCoreMk1} now, the Turbine Hall was already
+ * retired by SD-4, and the platform's eight dock markers are plain floor.
+ * <p>
+ * The classes and their MTE ids stay REGISTERED so worlds that already contain one of these
+ * controllers load without corruption - they are museum pieces: no recipe, a tooltip that says
+ * so, and no effect on any plant. They still tick and still form (there is nothing left to
+ * connect to), so a leftover controller reads as an intact building rather than a dead block.
  */
 public abstract class MTEPlantModuleBase extends MTEExtendedPowerMultiBlockBase<MTEPlantModuleBase> {
 
-    protected boolean isConnected;
-    protected MTEReactorCoreMk1 parent;
     protected int moduleCasings;
 
     protected MTEPlantModuleBase(int aID, String aName, String aNameRegional) {
@@ -27,44 +34,16 @@ public abstract class MTEPlantModuleBase extends MTEExtendedPowerMultiBlockBase<
         super(aName);
     }
 
-    public void connect(MTEReactorCoreMk1 silo) {
-        this.parent = silo;
-        this.isConnected = true;
-    }
-
-    public void disconnect() {
-        this.parent = null;
-        this.isConnected = false;
-    }
-
-    public boolean isConnected() {
-        return isConnected;
-    }
-
-    public MTEReactorCoreMk1 getParent() {
-        return parent;
-    }
-
-    /** Docked and structurally formed - the silo only takes effects from live modules. */
+    /** Formed. Nothing docks any more, so "operational" is just "the shell stands". */
     public boolean isOperational() {
-        return isConnected && mMachine;
-    }
-
-    @Override
-    public void onPostTick(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
-        // Elevator-module contract: an undocked module is frozen server-side.
-        if (aBaseMetaTileEntity.isServerSide() && !isConnected) {
-            return;
-        }
-        super.onPostTick(aBaseMetaTileEntity, aTick);
+        return mMachine;
     }
 
     @Override
     public String[] getInfoData() {
         final List<String> info = new ArrayList<>(Arrays.asList(super.getInfoData()));
-        info.add(
-            isConnected ? "Docked to Reactor Silo" + (mMachine ? " (operational)" : " (structure incomplete)")
-                : "NOT DOCKED - place this controller in a Reactor Silo wall");
+        info.add(EnumChatFormatting.YELLOW + "RETIRED building" + EnumChatFormatting.RESET);
+        info.add("This building is part of the main plant now - project the Nuclear Plant Foundation.");
         return info.toArray(new String[0]);
     }
 
@@ -78,7 +57,7 @@ public abstract class MTEPlantModuleBase extends MTEExtendedPowerMultiBlockBase<
         return false;
     }
 
-    /** Modules idle by default; productive modules override. */
+    /** Retired modules idle for ever. */
     @Override
     @javax.annotation.Nonnull
     public gregtech.api.recipe.check.CheckRecipeResult checkProcessing() {

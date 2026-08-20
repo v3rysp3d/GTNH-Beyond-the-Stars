@@ -17,17 +17,22 @@ the GTNH 2.9.0-beta-1 sources before wiring.
 Fuel columns become WORKING pillars, 8 segments tall (fuel section grows from 6 to 8
 layers; per-segment steam recalibrated so column totals are unchanged).
 
-- INSERT AT TOP: rods go into the pillar's top segment (rod loading port in the upper
-  plenum / automation-friendly). A rod falls to the LOWEST empty segment - the pillar
-  behaves like a gravity column.
+- INSERT AT TOP: rods go into the pillar's top segment. A rod falls to the LOWEST empty
+  segment - the pillar behaves like a gravity column.
+  **(A2, 0.20.0: the normal path is now the ROD INPUT BUS in the silo's own front face,
+  on the bottom fuel course - the controller distributes to every pillar itself each
+  cycle. The Rod Loading Ports in the upper plenum still work for hand-feeding but are no
+  longer required.)**
 - BURN AT BOTTOM: only the bottom segment burns. One decay cycle consumes it into a
   depleted rod, which drops into the base extraction buffer (pulled via output bus /
   rod drain at shield-pad level). Everything above shifts down one.
 - OUTPUT: a column is LIVE while its bottom segment holds a burning rod. Steam per tick
   scales with live columns exactly as today (C x 16,384 L/t basis x fuel mult of the
   burning rod x throttle N/24).
-- THE AUTOMATION CHALLENGE: keep 45-201 pillars topped up and their bases drained.
-  Partial pillars = partial plant output; a starved pillar simply goes dark.
+- THE AUTOMATION CHALLENGE: keep the plant fed. **A2 moved this from "reach 45-201
+  individual ports" to "keep ONE bus stocked"** - the challenge is now supply throughput,
+  which is a factory problem, not a plumbing chore. Partial pillars are still partial
+  output; a starved pillar still goes dark.
 - BUS FALLBACK (heavy penalty): classic fuel assemblies in the input bus still run a
   campaign at 50% (t) output so early setups are not bricked. The GUI labels this
   "Assembly fallback - output halved".
@@ -278,11 +283,310 @@ Nine-point ruling; phases TC-1..TC-5. All constants (t).
     is set without a timing stamp - going through `fill()` would stamp every refilled litre
     and the scorer would read it as a dumped bucket (8 wasted litres + heat spike per cycle).
     `/btsbuild` turns it on with the bench clock; `/btssupply [on|off]` toggles it.
+## AUTOMATION ruling (2026-08-19, in-game session) — phases A1..A4
+
+The player's words: *"it doesnt have a good automation flow, we need insert sections"*,
+*"make the controllers for all multiblocks attached automatically be placed where needed
+or at least show up in the hologram design"*. The answers they picked: **ONE automation
+bay** grouping every insert/extract point with rods distributed internally to all pillars,
+and **absorb the module buildings into the main structure — no separate module
+controllers at all**.
+
+⚠ **A1 was later REVERSED by the same player in the same session** once they saw the bay
+standing — see "POINT OF USE ruling" below. A2, A3 and A4 all stand; only the socket
+LOCATIONS changed.
+
+- **A1 THE AUTOMATION BAY** (IMPLEMENTED 0.20.0, then **REVERSED — see POINT OF USE
+  below**). It was an 11 x 2 x 4 Clean Stainless frontage at platform a 20..30, c 13..14,
+  y 0..3 carrying all eleven sockets in one wall. The player, having seen it built, ruled
+  it out; the piece, its `bayCell()`/`BayHatchElement` code and the whole Clean Stainless
+  bill are deleted. Kept for the record because the phase numbering below refers to it.
+- **A2 INTERNAL DISTRIBUTION** (IMPLEMENTED 0.20.0) — this is what makes it automatable,
+  and it SURVIVES the reversal intact; only the socket locations moved.
+  - **RODS.** The controller pulls fuel rods out of the silo face's Rod Input Bus every
+    decay cycle and tops the pillar reserves up itself, best grade first, lowest empty
+    segment first. 45-201 Rod Loading Ports spread across a 17-wide octagon were the whole
+    reason the flow was bad; the ports still work for hand-feeding but are **no longer
+    REQUIRED** and the hologram no longer asks for one per pillar. Depleted rods leave
+    through the Depleted Output Bus on the same course.
+  - **COOLANT.** `chamberHatches` semantics are unchanged — a private list the chamber
+    alone drains, so the reactor's feedwater can never answer "can the chamber be cooled?"
+    — and it is sourced from the SPIRAL CHAMBER's own Coolant Input Hatch. Feedwater is
+    likewise drawn from the silo's Feedwater hatch ONLY, through the private
+    `feedwaterHatches` list, never a blanket `depleteInput()` that would drink the
+    chamber's water-grade coolant out from under it.
+  - **PROPELLANT — ⚠ RULING-ADJACENT CHANGE, flag this for a ruling.** The Spiral
+    chamber's bulk Propellant Input Hatch feeds the eight injector reserves automatically,
+    one litre each, set directly (never through `fill()`, which would stamp the refill as an
+    injection and score it as a dumped bucket). **The timing ruling is preserved in
+    substance:** a CYCLE still only happens on a redstone rising edge at the Turbine
+    Control Block, the ±2t window still exists, and the number of injectors that count as
+    TIMED is still decided per cycle — by how many of them the bulk line managed to stock
+    before the edge arrived. `gain = 176 x P x timed/8` is untouched, and a line that only
+    keeps 5 of 8 stocked runs at 5/8 gain.
+    **What changed is who presses the eight buttons.** The player supplies bulk propellant
+    on one line instead of hand-timing eight 1L inserts; on an accepted cycle the plant
+    lands the perfectly timed shot. Hand injection still works exactly as ruled and still
+    has to hit the window — an injector carrying a player's timing stamp is never touched
+    by the auto-feed, so the two styles can never double-stamp one window (two litres in a
+    window is still a miss, still +50 heat).
+- **A3 ABSORB THE MODULES** (IMPLEMENTED 0.20.0). The Cooling Towers are OPTIONAL CHECKED
+  PIECES of the main controller, detected like the Spine and the Spiral (NW a 0..16
+  c 0..16, SW a 0..16 c 33..49, offsets 25/19/17 and 25/19/-16). Their effects are
+  unchanged and apply while the piece stands: feedwater draw x0.5, passive heat decay x2,
+  decay-heat demand x0.5, max 2. The dock-marker mechanic and `PlantModuleElement` are
+  gone, the eight `K`/`M` marker cells are plain floor, and
+  `MTEModuleCoolingTower` / `MTEModuleTurbineHall` / `MTEPlantModuleBase` are museum
+  pieces: MTE ids still registered so existing worlds do not corrupt, recipes removed,
+  tooltips saying they are retired and the buildings are part of the main plant.
+- **A4 HOLOGRAM COMPLETENESS** (IMPLEMENTED 0.20.0). One projection is now literally the
+  whole plant: platform -> silo -> spine -> spiral -> gallery -> tower NW -> tower SW, in
+  `construct()` and `survivalConstruct()` alike. No build-only "shell" leniency is left
+  anywhere, and there is no second controller to place.
+
+## POINT OF USE ruling (2026-08-19, same in-game session) — reverses A1
+
+The player's words, having seen the bay standing: *"also the inputs shouldnt be on a wall,
+the inputs need to go exactly where they are fed into in the logic flow"*. The newer
+ruling wins. **The Automation Bay is deleted** and every socket moved onto the building
+that consumes what enters through it, on the course where it enters:
+
+| I/O | now lives on | why there |
+| --- | --- | --- |
+| Rod Input Bus / Depleted Output Bus | silo face, bottom FUEL course (y2) | the exact segment the cascade pushes into and burns out of |
+| Feedwater Input Hatch / Output Hatch | silo face, drum course (y1), either side of the Silo Control Block | in and out of the same drum circuit, panel between them |
+| Maintenance | silo face, pad level (y0), beside the main station | — |
+| Coolant Input Hatch | Spiral chamber FRONT WALL, one course above the floor | the chamber is the thing that overheats |
+| bulk Propellant Input Hatch | Spiral chamber FRONT WALL, same course | directly under the eight injectors the line stocks |
+| **Energy Hatch ×4** | output manifold BACK FACE, y4 | at the generator, between the dynamo course and the laser course |
+| Dynamo ×4 / Laser Source ×4 | output manifold BACK FACE, y3 / y5 | unchanged — already point of use |
+
+Exact coordinates, facings and creative auto-fit ids: `docs/plant-geometry.md`, socket table.
+
+**Register note (settled).** This ruling is **`D-20`** in `../PROPOSAL.md` — "Point-of-use
+I/O + onboarding", settled 2026-08-19 — and every Java comment tag now points at it.
+`D-19` keeps its own meaning, "Turbine Control (RPM + sockets + rotors)"; that work is
+tagged `TC-1`..`TC-7` in the source and was never re-pointed.
+
+Consequences that landed with it:
+- `checkHasEnergyHatch(errors)` is **gone** — not conditional, removed. The plant never
+  draws EU on any branch (`checkProcessing` sets `lEUt = 0` everywhere, `onRunningTick`
+  emits through the dynamo and laser rows, `outputCeiling()` is dynamos + lasers, and
+  nothing but `buildSummary()` even reads `mEnergyHatches`), so a missing Energy Hatch
+  cannot change one number the plant produces. Making it fatal un-formed a plant that was
+  functionally complete — and un-forming starts the 20-minute decay-heat obligation, which
+  is a real cost for a hatch that does nothing. The empty sockets are still reported, by
+  `energyHatchNote(...)` as a grey non-fatal line in the OUTPUT group.
+- The public readout API lost every `Bay` name: `bayLine` -> `supplyLine`,
+  `getBayRodsQueued` -> `getRodsQueued`, `getBayPropellantLitres` ->
+  `getPropellantLitres`, `getBayCoolantLitres` -> `getChamberCoolantLitres`,
+  `getBayFeedwaterLitres` -> `getFeedwaterLitres`, `isBayBuilt` removed (the GUI gates on
+  `isSiloBuilt`), and `BayHatchElement` -> `machines/FluidHatchElement.java`.
+- The panel's third line now leads `Supply · N rods queued -> N pillar gaps · propellant
+  N L · coolant N L`, and its failure branch is `No Steam Generator silo - its front face
+  is where the rod bus, feedwater and output sockets live`.
+
+**Migration (revised — a legacy plant DOES need player action, and exactly one command).**
+The relocation un-forms every plant built before it, and not by merely missing blocks: the old
+face puts a hatch in every cell the new one wants wall and vice versa, so a standing legacy
+silo fails all five tier probes and **no projection can repair it** — `construct()` /
+`survivalConstruct()` measure the shell that stands and never re-tier or overwrite it. A bare
+platform is a different case and is untouched: the eight retired steel dock markers are
+accepted as-is.
+
+The plant no longer fails quietly. `checkMachine` asks `standingSiloTier()` after all five
+probes fail, re-walks that tier into the real error list (one positioned error, not a packet
+flood) and the REACTOR group's first line becomes `siloAbsentLine(tier)`: *"Tier N Steam
+Generator IS STANDING and does NOT pass its check"*, with the first wrong cell and its
+coordinates in the STRUCTURE ERRORS panel above it
+(`beyondthestars.structure.silo.standing`). `mMachine` goes false rather than pretending.
+
+The fix is **`/btsmigrate`** (`CommandBTSMigrate`, permission 2), run standing beside the main
+station. It reads the tier off the standing walls — never a remembered number, never the GUI
+Build Tier — and rewrites the silo front row's bottom three courses, the only cells the two
+layouts disagree about. Cells already correct are left alone (sockets are only re-pointed
+outward); wrong ones drop their contents at the wall as items before the correct casing or
+socket goes in, so every hatch and everything inside it comes back. It then re-forms and
+reports tier, cells rewritten and machines handed back. **Shell, ribs, dome, fuel pillars and
+the rods standing in them are never read and never written.** The four Energy Hatches the old
+face carried belong on the output manifold back face (y4) now, and are optional there — they
+are not a structure demand.
+
+An existing plant still needs 2 Solid Steel Machine Casings per cooling tower added by hand
+where the retired module controller stood (see plant-geometry.md, Cooling Towers, MIGRATION).
+A 0.19.0 Maintenance Hatch left in a tower base ring may stay — the ring cell tolerates one —
+but it is **never counted**: the plant's three maintenance sockets are the silo face, the
+Spiral floor and the manifold, and only those.
+
+## READABILITY ruling (2026-08-19, same in-game session) — phases B1..B2
+
+The player's words: *"show the math in the recipe with the controller like how the waterline
+or other controllers show the fuel and the math for the fuel"* and *"if someone was to pick up
+the game they would see its easy and they would see how to do it easily"*. The answer they
+picked: **NEI page AND a live GUI math breakdown** — both, not either.
+
+- **B1 THE NEI PAGES** (IMPLEMENTED 0.20.0, `BTSDisplayRecipes`). Three DISPLAY-ONLY recipe
+  maps, built the way GT builds `largeBoilerFakeFuels`:
+  `beyondthestars.recipe.plantfuel` (one entry per rod grade: fuel multiplier, steam per live
+  pillar, segment burn time, whole-silo totals at T1/T5, the depleted rod it drops, and the
+  point of use it enters and leaves by — `In: silo face, rod course` /
+  `Out: bus beside it, same course`), `…plantpropellant` (one entry per ladder rung:
+  stage factor P, the 8 L a cycle burns, `gain = 176 x P x timed/8`, the RPM that gain
+  HOLDS at the sustainable one cycle per second, that a missed cycle burns 8 L anyway, and
+  the rung's PROVENANCE — `Mixed from Naquadah Fuel` on rungs 3-8, which is the one line
+  that stops a player piping GoodGenerator's Naquadah Fuel into an injector) and
+  `…plantcoolant` (one entry per rung: quality Q, the chamber-load formula, and the
+  litres/tick it drinks at the redline and at half the redline, which is where the
+  quadratic becomes obvious). Both fluid pages say `In: Spiral chamber, front wall`.
+  - **A missing optional dependency costs one page, never the mod.** Forge 1.7.10's
+    `FluidStack(Fluid,int)` THROWS from the constructor on a null or unregistered fluid, so
+    every hand-wrapped rung (propellant 2-8, coolant 1) is vetted by a
+    `propellantRungAvailable` / `coolantRungAvailable` switch that mirrors the ladder case
+    for case BEFORE the ladder is asked for it; each per-entry builder chain also sits
+    inside a `catch (RuntimeException)` backstop, and skips are logged, never silent.
+  - **It is display-only three times over, deliberately.** (1) The controller's
+    `getRecipeMap()` is still `null` — `checkProcessing()` is hand-written and never calls
+    `findRecipe`; what the controller overrides is `getAvailableRecipeMaps()`, which ONLY
+    NEI's catalyst index reads (`NEIGTConfig#generateRecipeCatalystIndex`). (2) The maps are
+    therefore never handed to the hatches as `mRecipeMap`, so nothing starts filtering.
+    (3) Every entry is `.fake()`, which GT documents as "findRecipe won't find fake Recipes".
+  - **The page cannot drift.** Every number is read out of `MTEReactorCoreMk1`'s own runtime
+    tables through public accessors (`rodMultiplier`, `propellantOfRung` + `propellantMilli`,
+    `coolantOfRung` + `coolantQMilli`, `chamberLoadFor`, `coolantDrainFor`, `rpmGain`,
+    `rpmDecayPermille`, `decayCycleTicks`), so retuning a constant moves the page with the plant.
+  - NEI's description column is 170 px and does not wrap, so the lines are hard-kept to ~28
+    characters — the same reason GT hard-wraps its own `GT5U.nei.*` strings.
+- **B2 THE GUI MATH BREAKDOWN** (IMPLEMENTED 0.20.0). A `MATH` group at the foot of the
+  instrument panel — controller GUI, BOTH control blocks and the scanner, via the same shared
+  static formatters — walking the CURRENT EU/t in four numbered steps with every factor
+  carrying the value it has right now:
+  1. uniform load: `N pillars x<fuel> x16,384 = L/t (rods 24/24)`, or at a throttle
+     `... = <base> · rods N/24 -> L/t`
+     MIXED load (R7): `N pillars avg x<avg> fuel (<census>) x16,384 = L/t`, where the
+     census is the grade breakdown, e.g. `45 pillars avg x6.69 fuel (32x9 + 13x1)`. The
+     printed base is the reactor's own per-pillar SUM (`fuelBaseSteam`), not
+     `live x best grade`, so the arithmetic on the line always closes.
+  2. `x<spine speed> x<spine efficiency> = L/t through the chain`
+  3. `x RPM N/500 (xM) x rotors xR = EU/t demand`
+  4. `under/CLAMPED at ceiling C -> EU/t out`
+  then a fifth line, **`Weakest term:`**, which ranks pillars-filled, fuel grade (scored on
+  the AVERAGE burning grade, not the best rod in the silo), throttle and spine against each
+  term's own ceiling, names the one costing the most, and gives the fix. That line is the
+  "a newcomer can see what to do" half of the ruling.
+  - **R9: no generator, no generator terms.** On a plant with no rotor gallery the group
+    re-titles itself `MATH · how that steam figure is derived`, steps 3 and 4 collapse into
+    one export line (`no Turbine Generator - this is a STEAM EXPORT plant: x<speed> spine
+    speed = N L/t out of the silo's Output Hatch`), and RPM, rotors and the output ceiling
+    stop being scored at all — they were telling a healthy export plant to seat rotors it
+    has nowhere to put. The spine is then scored on SPEED alone, because export is paid in
+    speed. The gate is `galleryBuilt`, the same condition the OUTPUT group's ceiling and
+    laser lines use. A gallery with unseated rotors is deliberately NOT export mode.
+  - **The RPM divisor is 500, not 1,000.** TC-3 sketched `(RPM/1000)`; the implementation has
+    always used `rpmMilli / 500_000` (= RPM/500, x24 at the redline) — that is the back-solve
+    that puts a fully optimized T5 on the D-01 ~1B ceiling instead of half of it, and it is
+    what the T5 arithmetic in TC-5 computes with. The panels, the NEI page and the controller
+    tooltip now all print `RPM/500`, and the one arithmetic lives in
+    `MTEReactorCoreMk1.euDemandOf` / `steamAfterSpine`, which the generating tick itself calls.
+
 - **TC-6 Book + wiki** (pts 5, 7, 8): entry quest with item requirements + achievement
   placed INSIDE the GTNH questbook's power-progression chapter; a BLUEPRINTS chapter
   listing every structure's items as optional quests (controllers = the required
   ones); a local static-HTML wiki under addon/wiki/ until a hosted one exists.
 - **Standing rule** (pt 9): every build/redesign ships with a browser HTML mockup.
+
+## ONBOARDING ruling (2026-08-19, same in-game session) — phase C
+
+The player's words: *"the quest has to look a lot nicer"* and *"if someone was to pick up the
+game they would see its easy and they would see how to do it easily"*. The answer they picked:
+**all of it** — visual polish, smaller guided steps, item requirements plus rewards, and
+diagrams.
+
+- **C1 VISUAL POLISH** (IMPLEMENTED 0.20.0). The chapter is written in the pack's own house
+  style: section-sign colour codes, `[note]`/`[warn]` blocks, short paragraphs and a
+  `DO THIS` / `DONE WHEN` pair in every step. Every icon is a real registry id that means
+  something (the retired module controllers, MTE 28104/28105, are gone from the book — they
+  have no recipe any more — and the old "Spine" icon `gt.blockcasings:12` did not exist;
+  Tungstensteel Turbine Casing is `gt.blockcasings4:12`).
+- **C2 SMALLER GUIDED STEPS** (IMPLEMENTED 0.20.0). The chapter is now a LINEAR ten-step
+  beginner path: craft the controller -> break ground -> one projection -> **plumb the
+  points of use** -> load the rods -> first steam -> seat the rotors -> wire the clock ->
+  first EU -> read the panel. Rows 1 and 2 run left-to-right then right-to-left, so the
+  prerequisite chain draws as one continuous line. Everything that used to be step one's
+  wall of text is spread across those ten, and the deep dives (laser output, spin doctrine,
+  the two ladders, the safety sheet) hang off step 10 instead of blocking it.
+- **C3 REQUIREMENTS + REWARDS** (IMPLEMENTED 0.20.0). Every step gates on a `bq_standard:retrieval`
+  of the items that step actually needs — step 4's gate IS the silo face's and the chamber
+  wall's bill of materials — and pays a `bq_standard:item` reward that is usually the next
+  step's tool (step 1 hands over the Hologram Projector, step 6 hands over the 12 Turbine
+  Housings step 7 must place, step 8 hands over the 4 Energy Hatches step 9 must fit).
+  **`consume` and `autoConsume` are 0 everywhere**: a step that gated on the controller and
+  then ate it would brick the plant the player just built. The generator asserts that every
+  icon/task/reward stack has a real id and a count of at least one, and that no description
+  shipped an un-interpolated bill placeholder or a count of zero.
+  - **What `consume = 0` actually means, and the trap it set (C2, fixed in the C-round).**
+    In BetterQuesting 3.8.70-GTNH, `TaskRetrieval$Detector`'s constructor takes the
+    `!consume` path and **zeroes every required-item entry whose progress is below its
+    required count**, then re-counts from the live inventory
+    (`IntStream.range(0, InventoryPlayer.getSizeInventory())` → `getStackInSlot`, so worn
+    ARMOUR counts too). An entry only latches once it has been seen at its FULL count at one
+    instant; `TaskRetrieval.detect` then returns immediately for a task already complete, so
+    a finished step never comes undone. The consequence is that **partial progress never
+    accumulates**: four Precision Injectors now and four later reads 0/8 for ever, and a
+    step whose body says "set these into the wall" reads 0 while the player does exactly
+    what it asked. Step 8 was the worst case — it demanded 8 injectors, the path paid out
+    only 2 + 2, and its own body told you to install them. Two rules now hold across the
+    whole chapter: **(1)** the rewards must add up to the count the next gate asks for
+    (injectors are 4 + 4 = 8 at steps 4 and 7); **(2)** a step that installs its parts says
+    HOLD → CLAIM → INSTALL in its `DONE WHEN`, and the world-state check that used to live
+    there moves into its own `CHECK YOUR WORK` block. A gate satisfiable only by wrenching
+    finished machinery back out is a **checkbox** instead — which is what "Spin Doctrine"
+    (4 spine housings, in the wall since step 7) and "The Propellant Ladder" (8 injectors,
+    in the chamber since step 8) now are.
+  - **The path must be COMPLETABLE, not just readable** (review findings Q1/Q2). The
+    projector places no Turbine Housing at all (`PlaceResult.SKIP` on both the spine `'H'`
+    and the gallery `'9'`) and no hatch, injector, sensor or control block in survival
+    (the hatch adder rejects without the HATCH channel and the chain falls through to plain
+    casing). Step 3 now states that explicitly; step 7 gates on 12 housings and step 6 pays
+    for them; step 8 gates on the 8 Precision Injectors and the Spine Sensor and says where
+    each one goes, including that two injector sockets stand +7 and +8 above the platform.
+  - **Nothing in the plant draws EU** (review finding Q3). `checkProcessing()` sets
+    `lEUt = 0` in all three success branches and the class contains no `drainEnergyInput`
+    or `decreaseStoredEnergyUnits`. The old step-6 line "a reactor this size still draws to
+    run" and the matching diagram legend were false and are gone; the ruling was to correct
+    the TEXT, not to add a parasitic load (that would be a new gameplay ruling and my call). **Superseded in the C-round:** the four Energy Hatches are not a structure
+    requirement either — `checkHasEnergyHatch(errors)` is removed outright, the book calls
+    them optional furniture, and the OUTPUT group carries a grey `energyHatchNote(...)`
+    counting the empty sockets.
+  - **Bills are DERIVED** (review finding Q5). `questbook/gen-bom.ps1` re-implements every
+    shape function, tallies each cell through the element table, cross-checks itself against
+    `COLUMN_CAP` and the octagon formula, and refuses to run if a constant or socket-placing
+    line it was ported from has moved in the Java. `gen-questbook.ps1` dot-sources it, so
+    the five Blueprint quests can never drift by hand again. **T1:** and a script run of
+    `gen-bom.ps1` re-renders `BTSBom.java` and runs `gen-questbook.ps1` in the same step —
+    there is no way to regenerate one consumer without the other, and a run that throws
+    rolls `BTSBom.java` back to stale, the one state every gate here refuses, so a broken
+    build cannot come to rest quietly.
+- **C4 DIAGRAMS — images ARE possible in this pack** (IMPLEMENTED 0.20.0). BetterQuesting
+  3.8.70-GTNH parses `[img height=N]domain:path.png[/img]` inside a quest description
+  (`GuiQuest.img`, split by `addQuestDescPanels`, drawn by `addQuestDescImageSegment` at the
+  description canvas's width with the aspect maintained; a texture that fails to load
+  degrades to a 1x1 rect via `TextureSizeHelper.getDimension`'s catch, so it cannot crash the
+  book). Three diagrams are drawn by `questbook/gen-diagrams.ps1` and embedded:
+  `plant-overview.png` (step 3), `point-of-use.png` (step 4 — the silo face and the Spiral
+  chamber's front wall, one panel each) and `manifold-face.png` (step 9 + the turbine
+  blueprint, now carrying the Energy Hatch course between the dynamos and the lasers). The
+  retired `bay-sockets.png` is DELETED by the generator on every run so a stale texture can
+  never contradict the book. They ship in the OVERLAY, not the mod jar, under
+  `config/betterquesting/resources/btsquests/` — BetterQuesting registers that folder as a
+  resource pack (`betterquesting.misc.QuestResourcesFolder`), so the domain is the folder
+  name and must be lowercase, and a diagram change needs no mod rebuild. Adding the folder
+  for the first time needs one resource reload (F3+T) or a restart.
+- **ID budget.** The chapter is 20 quests, `190/48000..48019`; `190/48020` stays the entry
+  quest grafted into *How to Generate Power*, because a world that already ran
+  `/btsquests install` holds it under that id. `gen-questbook.ps1` throws if the chapter
+  overruns, `BQBridge.LAST_QUEST_LOW` mirrors 48019, and the entry quest's FILE STEM is
+  pinned to `UnitOne` so the file-merge into the pack folder overwrites instead of
+  duplicating the id.
 
 ## Test commands (creative / debug)
 
@@ -290,17 +594,18 @@ The hologram projector previews one piece at a time and is height-capped, so it 
 raise a whole plant. Use the commands instead (op level 2):
 
 - `/btsbuild [1-5|all] [uranium|mox|thorium|naq] [force]` - builds a COMPLETE RUNNING plant
-  where you stand, facing the way you face: platform, silo, Spine, Spiral, Turbine
-  Generator and both tower shells, every hatch and control block fitted, rotors seated,
-  rod ports stocked, bench clock ON and INFINITE SUPPLIES ON (feedwater + best coolant +
-  best propellant, topped up every tick). Defaults: tier 3, naq rods. Footprint: 32 blocks
-  behind the controller, 17 in front, 25 to each side. A commanded plant climbs to the
-  redline and stays there - nothing to plumb, nothing to blow up.
+  where you stand, facing the way you face: platform, silo, Spine, Spiral,
+  Turbine Generator and both Cooling Towers (checked pieces now, not module buildings),
+  every hatch and control block fitted, rotors seated, rod ports stocked, bench clock ON
+  and INFINITE SUPPLIES ON (feedwater + best coolant + best propellant, topped up every
+  tick). Defaults: tier 3, naq rods. Footprint: 32 blocks behind the controller, 17 in
+  front, 25 to each side. A commanded plant climbs to the redline and stays there -
+  nothing to plumb, nothing to blow up.
   - `all` raises ALL FIVE tiers side by side in one command, on a 60-block pitch (the 50
     platform + a 10-block walking corridor) running to your RIGHT, so every silo size can
     be compared without them ever touching. It reports where each tier's main station
-    landed and whether that tier FORMED, with a census of what its walk found (silo tier +
-    columns, spine housings, spiral injectors, gallery stages, dynamos + laser sources).
+    landed and whether that tier FORMED, with a census of what its walk found (cooling towers,
+    silo tier + columns, spine housings, spiral injectors, gallery stages, dynamos + lasers).
     It generates a lot of chunks - expect a pause.
   - It refuses to build if more than 15% of the sampled footprint is already solid (a
     50x50 platform overwrites everything under it). Air, water, lava and grass count as
@@ -319,12 +624,15 @@ raise a whole plant. Use the commands instead (op level 2):
   one turbine cycle a second with no wiring (test aid); OFF restores the ruled mechanic,
   where only redstone edges at the Turbine Control Block start cycles.
 - `/btssupply [on|off]` - toggles infinite supplies on the nearest main station (mirrors
-  `/btsclock`). ON refills the feedwater hatches, the chamber's coolant hatch and all eight
-  injectors every tick and lands a perfectly timed 1L per injector on every accepted cycle;
+  `/btsclock`). ON waives the silo's feedwater and the chamber's coolant draws in code,
+  refills all eight
+  injectors every tick and lands a perfectly timed 1L per injector on every accepted cycle
+  (it takes the injectors over from the A2 auto-feed entirely, so the two can never
+  double-stamp a window);
   OFF hands the plant back to real plumbing. With it off, missing supplies only hold the
   RPM down (the panels say exactly why) - they never seize the turbine.
-- `/btskit [tier]` - hands over the controllers, blocks, rods, rotors and hatches to
-  build by hand.
+- `/btskit [tier]` - hands over the controller, blocks, rods, rotors and hatches to
+  build by hand. It no longer hands out module controllers - there are none.
 - `/btsquests [status|install]` - see the Questbook section below.
 
 Creative socket auto-fitting: in creative placement (command or projector) every socket
@@ -342,8 +650,20 @@ decisive check on a suspect casing is still to RIGHT-CLICK it: a control block a
 ## Questbook
 
 The "Beyond the Stars" quest line overlay lives in `questbook/` (GTNH 2.9.0 BQ split
-format). Merge per `questbook/README.md`; regenerate files with
-`questbook/gen-questbook.ps1` after editing quest definitions.
+format): a 20-quest chapter that is a ten-step guided path, five mastery quests and five
+bills of materials (see the ONBOARDING ruling above). Merge per `questbook/README.md` —
+note that the merge now also copies `questbook/resources/btsquests/` into the instance's
+`config/betterquesting/resources/`, which is where the three embedded diagrams live.
+Regenerate with **`questbook/gen-bom.ps1`** — the one build command, whether you edited a
+quest definition or the geometry — and `questbook/gen-diagrams.ps1` after editing a diagram.
+`gen-bom.ps1` derives the five Blueprint bills straight from the structure shape code,
+re-renders `BTSBom.java` (what `/btskit` prints), then runs `gen-questbook.ps1` itself so
+`DefaultQuests/` is rewritten from the same tally, and prints the table. **After any
+geometry change in `MTEReactorCoreMk1`, re-run `gen-bom.ps1`, then `gradlew spotlessApply
+compileJava`** — if the shapes moved under the port it throws and names the constant that
+changed. Do NOT run `gen-questbook.ps1` as the build step: it cannot write `BTSBom.java`,
+so it throws once the geometry has moved, and running it alone was how the book and
+`/btskit` used to end up quoting different numbers (review finding T1).
 
 **An existing world will not show the quests, and that is not a bug in the files.**
 BetterQuesting reads `config/betterquesting/DefaultQuests/` exactly once, when a world is
@@ -351,7 +671,7 @@ created; after that the world owns `saves/<world>/betterquesting/QuestDatabase.j
 never reads the defaults again. Merging the overlay therefore fixes NEW worlds only.
 
 - `/btsquests` (op) - prints BetterQuesting's version, where it is reading DefaultQuests
-  from, and whether our chapter (190/47990), our 18 quests (190/48000-48017) and the entry
+  from, and whether our chapter (190/47990), our 20 quests (190/48000-48019) and the entry
   quest "Unit One" (190/48020) are in THIS world's live database. If they are missing it
   explains why and gives both fixes.
 - `/btsquests install` (op) - the fix. It reads only the files carrying our high word out

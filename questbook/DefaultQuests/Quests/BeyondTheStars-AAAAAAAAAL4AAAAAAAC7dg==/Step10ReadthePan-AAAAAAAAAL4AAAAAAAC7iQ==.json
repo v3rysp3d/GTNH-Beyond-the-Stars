@@ -1,0 +1,82 @@
+{
+    "preRequisites:9":  {
+                            "0:10":  {
+                                         "questIDHigh:4":  190,
+                                         "questIDLow:4":  48008
+                                     }
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  1,
+                                                    "desc:8":  "§6§lTHE PLANT SHOWS ITS WORKING§r\nAt the foot of the GUI - and of both control blocks, and the scanner - sits a group called §bMATH§r: §8how that EU/t is derived§r. It walks your CURRENT output in four numbered steps, every factor carrying the value it has right now:\n\n  §b1§r 201 pillars x9 fuel x16,384 = 29,638,656 L/t\n  §b2§r x1.55 spine speed x1.00 efficiency = 46,028,832 L/t\n  §b3§r x RPM 12,000/500 x rotors = 1,104,691,968 EU/t demand\n  §b4§r under ceiling 1,610,645,504 -\u003e 1,104,691,968 EU/t out\n\nBurn a MIXED silo and step 1 says so instead of flattering you: §845 pillars avg x6.69 fuel (32x9 + 13x1) x16,384§r. With §bno rotor turning§r - no gallery at all, or a gallery of empty housings - the whole group re-titles itself §8how that steam figure is derived§r and step 3 becomes the export line. The title turns on ROTORS SEATED, not on housings placed, so it can never invent a generator you have not finished.\n\nThen a fifth line: §6Weakest term:§r. It ranks pillars filled, fuel grade, throttle, spine, and - only where a generator exists - RPM, rotor condition and the output clamp, names the one costing you the most, and tells you the fix.\n\n§8The RPM entry is not one answer but five: no Spiral chamber, no injectors fitted, §cinjectors dry§r, §cchamber cannot be cooled§r, or simply cycle faster. It follows the interlock\u0027s own order of refusal, so this line and the §bHOLD:§r line above it can never name two different faults for the same tick. The other entries are just as literal - an EMPTY silo is told to stack pillar frames rather than to keep a bus stocked, and a duct with no housings in it is told it is EMPTY rather than told to wrench four housings that are not there.§r\n\n§e§lDO THIS§r\nRead the Weakest term line. Fix that one thing. Read it again. Repeat until it says §2Every term is at its ceiling§r. This quest asks for one Thorium-Bonded rod because \"fuel grade\" is almost always the first answer it gives you.\n\n§e§lAND IN NEI§r\nLook the Nuclear Plant Foundation up in NEI. It is the catalyst for three tables - §bfuel rods§r, §bpropellant§r and §bcoolant§r - carrying every multiplier, every ladder rung and the arithmetic behind them, plus which socket each one enters by. §8Display pages: nothing on them is craftable, and nothing there is consumed.§r\n\n§a§lDONE WHEN§r\nA Thorium-Bonded Fuel Rod is in your inventory - one rung up the ladder, off the back of that line. §8Claim it, then feed it to the bus. The two fluid ladders opened back at step 7 because step 8 needed them; Break the Clamp, Spin Doctrine and Written in Fire open here, and all of it is optional depth.§r",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  0,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "beyondthestars:fuelRodThoriumBonded"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "§6§lStep 10 - Read the Panel",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48009,
+    "rewards:9":  {
+                      "0:10":  {
+                                   "ignoreDisabled:1":  0,
+                                   "index:3":  0,
+                                   "rewardID:8":  "bq_standard:item",
+                                   "rewards:9":  {
+                                                     "0:10":  {
+                                                                  "Count:3":  4,
+                                                                  "Damage:2":  0,
+                                                                  "OreDict:8":  "",
+                                                                  "id:8":  "beyondthestars:fuelRodThoriumBonded"
+                                                              }
+                                                 }
+                               }
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "autoConsume:1":  0,
+                                 "consume:1":  0,
+                                 "groupDetect:1":  0,
+                                 "ignoreNBT:1":  1,
+                                 "index:3":  0,
+                                 "partialMatch:1":  1,
+                                 "requireOnlyOneItem:1":  0,
+                                 "requiredItems:9":  {
+                                                         "0:10":  {
+                                                                      "Count:3":  1,
+                                                                      "Damage:2":  0,
+                                                                      "OreDict:8":  "",
+                                                                      "id:8":  "beyondthestars:fuelRodThoriumBonded"
+                                                                  }
+                                                     },
+                                 "taskID:8":  "bq_standard:retrieval"
+                             }
+                }
+}

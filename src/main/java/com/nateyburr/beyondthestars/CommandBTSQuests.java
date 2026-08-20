@@ -85,7 +85,7 @@ public class CommandBTSQuests extends CommandBase {
             tell(
                 sender,
                 line("Chapter \"Beyond the Stars\" (190/47990)", status.chapterPresent)
-                    + line("  · its quests (190/48000-48017)", status.chapterQuests == status.expectedChapterQuests)
+                    + line("  · its quests (190/48000-48019)", status.chapterQuests == status.expectedChapterQuests)
                     + " "
                     + status.chapterQuests
                     + "/"

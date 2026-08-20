@@ -1,0 +1,101 @@
+{
+    "preRequisites:9":  {
+                            "0:10":  {
+                                         "questIDHigh:4":  190,
+                                         "questIDLow:4":  48007
+                                     }
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  1,
+                                                    "desc:8":  "§6§lWHERE THE POWER LEAVES§r\nThe output manifold BACK FACE, and nothing else. Nothing is ever built behind it at any tier, so every socket on it looks out at open sky - three courses of four, plus the control column.\n\n[img height=400]btsquests:textures/gui/manifold-face.png[/img]\n\n§e§lDO THIS§r\nPut four §bDynamo Hatches (IV)§r into the four D sockets and run cable off them. Put four §bEnergy Hatches (IV)§r into the four E sockets one course above.\n\n  §bEU/t = L/t x spine speed x efficiency x (RPM / 500) x average rotor factor§r\n\n§6§lWHY ENERGY HATCHES ON A GENERATOR§r\n§bThey are OPTIONAL.§r The manifold has four sockets for them and the plant will never once ask you to fill one. This plant never consumes EU - no draw, no idle cost, no start-up cost - so an empty E socket costs you exactly nothing. You do not have to wire them to anything, and skipping all four for ever will not un-form the plant or stop the campaign. While any are missing the OUTPUT group prints one grey line counting them, and that is the entire consequence.\n\n§cThe DYNAMOS are the ones that matter.§r Until a Dynamo or a Laser Source sits in that face, everything the turbine makes is thrown away - and the panel says so in as many words: §6Weakest term:§r §2output ceiling 0 (0%)§r §8- fit Dynamo or Laser Source Hatches in the manifold\u0027s back face - nothing can leave§r.\n\n§c§lTHE TRAP§r\nOutput is clamped to the SUMMED capacity of the dynamo row and the laser row. Four IV dynamos alone are §c32,768 EU/t§r - on a tier-5 build that is 0.003% of what the plant is actually making, and the rest is simply thrown away. The panel prints §cCLAMPED from§r when that is happening, and \"Break the Clamp\" fixes it.\n\n§a§lDONE WHEN§r\nFour Dynamo Hatches (IV) and four Energy Hatches (IV) are in your inventory together. §8Step 8 paid you the four Energy Hatches.§r\n§8This quest only LOOKS at what you are carrying, and it takes nothing. Hold the whole set at once, CLAIM it, and only then break the casings and set the machines into the wall. Already installed them? Wrench them back out for a moment - the check is on your inventory, not on the building.§r\n\n§e§lCHECK YOUR WORK§r\nThe OUTPUT group reads §2Generating§r with EU/t leaving, your cables are live, and the grey Energy Hatch line has gone.\n\n[warn]A multiblock handed more EU than its hatches can take DETONATES in GregTech. The controller clamps before it emits, which is exactly why an undersized output row costs you output instead of your base.[/warn]",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  35,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "gregtech:gt.blockmachines"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "§6§lStep 9 - First EU",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48008,
+    "rewards:9":  {
+                      "0:10":  {
+                                   "ignoreDisabled:1":  0,
+                                   "index:3":  0,
+                                   "rewardID:8":  "bq_standard:item",
+                                   "rewards:9":  {
+                                                     "0:10":  {
+                                                                  "Count:3":  1,
+                                                                  "Damage:2":  0,
+                                                                  "OreDict:8":  "",
+                                                                  "id:8":  "beyondthestars:turbineRotor"
+                                                              }
+                                                 }
+                               },
+                      "1:10":  {
+                                   "ignoreDisabled:1":  0,
+                                   "index:3":  1,
+                                   "rewardID:8":  "bq_standard:item",
+                                   "rewards:9":  {
+                                                     "0:10":  {
+                                                                  "Count:3":  32,
+                                                                  "Damage:2":  12,
+                                                                  "OreDict:8":  "",
+                                                                  "id:8":  "gregtech:gt.blockcasings4"
+                                                              }
+                                                 }
+                               }
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "autoConsume:1":  0,
+                                 "consume:1":  0,
+                                 "groupDetect:1":  0,
+                                 "ignoreNBT:1":  1,
+                                 "index:3":  0,
+                                 "partialMatch:1":  1,
+                                 "requireOnlyOneItem:1":  0,
+                                 "requiredItems:9":  {
+                                                         "0:10":  {
+                                                                      "Count:3":  4,
+                                                                      "Damage:2":  35,
+                                                                      "OreDict:8":  "",
+                                                                      "id:8":  "gregtech:gt.blockmachines"
+                                                                  },
+                                                         "1:10":  {
+                                                                      "Count:3":  4,
+                                                                      "Damage:2":  45,
+                                                                      "OreDict:8":  "",
+                                                                      "id:8":  "gregtech:gt.blockmachines"
+                                                                  }
+                                                     },
+                                 "taskID:8":  "bq_standard:retrieval"
+                             }
+                }
+}

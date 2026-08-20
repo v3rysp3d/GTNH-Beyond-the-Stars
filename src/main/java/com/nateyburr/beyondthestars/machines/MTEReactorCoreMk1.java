@@ -3,12 +3,12 @@ package com.nateyburr.beyondthestars.machines;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.isAir;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofChain;
+import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofTileAdder;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.onElementPass;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.transpose;
 import static gregtech.api.enums.HatchElement.Dynamo;
 import static gregtech.api.enums.HatchElement.Energy;
 import static gregtech.api.enums.HatchElement.InputBus;
-import static gregtech.api.enums.HatchElement.InputHatch;
 import static gregtech.api.enums.HatchElement.LaserSource;
 import static gregtech.api.enums.HatchElement.Maintenance;
 import static gregtech.api.enums.HatchElement.OutputBus;
@@ -25,14 +25,15 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
+import net.minecraft.block.Block;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -47,6 +48,7 @@ import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.gtnewhorizon.structurelib.structure.AutoPlaceEnvironment;
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
+import com.gtnewhorizon.structurelib.structure.IStructureWalker;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 import com.gtnewhorizon.structurelib.util.Vec3Impl;
@@ -61,9 +63,11 @@ import com.nateyburr.beyondthestars.items.BTSItems;
 
 import gregtech.api.GregTechAPI;
 import gregtech.api.casing.Casings;
+import gregtech.api.casing.ICasing;
 import gregtech.api.enums.GTValues;
 import gregtech.api.enums.ItemList;
 import gregtech.api.enums.Materials;
+import gregtech.api.interfaces.IHatchElement;
 import gregtech.api.interfaces.IItemContainer;
 import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
@@ -72,10 +76,16 @@ import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBas
 import gregtech.api.metatileentity.implementations.MTEHatch;
 import gregtech.api.metatileentity.implementations.MTEHatchDynamo;
 import gregtech.api.metatileentity.implementations.MTEHatchInput;
+import gregtech.api.metatileentity.implementations.MTEHatchInputBus;
+import gregtech.api.metatileentity.implementations.MTEHatchMaintenance;
+import gregtech.api.metatileentity.implementations.MTEHatchOutput;
+import gregtech.api.metatileentity.implementations.MTEHatchOutputBus;
 import gregtech.api.recipe.check.CheckRecipeResult;
 import gregtech.api.recipe.check.CheckRecipeResultRegistry;
 import gregtech.api.render.TextureFactory;
 import gregtech.api.structure.error.StructureError;
+import gregtech.api.structure.error.StructureErrors;
+import gregtech.api.structure.error.TranslatableText;
 import gregtech.api.util.GTModHandler;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.MultiblockTooltipBuilder;
@@ -88,18 +98,29 @@ import gtPlusPlus.xmod.thermalfoundation.fluid.TFFluids;
 import tectech.thing.CustomItemList;
 
 /**
- * The Plant Foundation - the Unit One MAIN STATION (Space Elevator architecture). The only
- * mandatory STARTER structure is the full 50x50 concrete platform: shield pad at center with
- * the controller on its front line (embedded in the silo face once the silo is built - every
- * silo tier's front wall is anchored on that line), and eight flush steel dock markers set
- * into the floor. Everything else is added ONTO the platform: the Steam Generator silo (an
- * optional piece of this controller, five diameters, Build Tier set in the GUI or by trigger
- * stack) comes first, then MODULE MACHINES whose controllers stand on the dock markers
- * (accepted like hatches, positions otherwise kept clear) and only function while connected -
- * Turbine Hall (steam -> EU with fan/coolant/propellant multipliers, beside the silo),
- * Cooling Towers (condensate return, faster heat decay). Fuel ladder, throttle, waste water,
- * and the SCRAM/decay-heat/meltdown model are unchanged. Numbers per docs/reactor-gen1.md and
- * docs/plant-unit-one.md.
+ * The Plant Foundation - the Unit One MAIN STATION. ONE controller now owns the whole plant:
+ * there are no module controllers and no dock markers left anywhere.
+ * <p>
+ * MANDATORY starter structure = the full 50x50 concrete platform (shield pad at centre, the
+ * controller on its front line, embedded in the silo face once the silo stands).
+ * <p>
+ * POINT OF USE (D-20): every insert and extract point sits on the BUILDING IT SERVES, at the
+ * height it enters the logic flow - the rod bus and the depleted bus in the silo's face at the
+ * bottom fuel course, feedwater and the waste-water/steam output one course below it on the
+ * drum line, the bulk propellant and the chamber coolant in the Spiral's own front wall, the
+ * energy hatches on the rotor manifold beside the dynamos they share a face with, and
+ * maintenance beside the main station. There is no plumbing frontage and no single wall of
+ * sockets. Distribution is still INTERNAL past those points: one rod insert fans to all
+ * 45-201 pillars, one propellant line stocks all eight injectors.
+ * <p>
+ * Everything else is an OPTIONAL CHECKED PIECE of this same controller and appears in the one
+ * hologram projection: the Steam Generator silo (five diameters, Build Tier in the GUI or by
+ * trigger stack), the Spine duct, the Spiral chamber, the Turbine Generator + output manifold,
+ * and the two Cooling Towers (absorbed from the retired Cooling Tower module - each standing
+ * tower halves the feedwater draw, doubles passive heat decay and halves the decay-heat
+ * demand, max 2). Fuel ladder, throttle, waste water and the SCRAM/decay-heat/meltdown model
+ * are unchanged. Numbers per docs/reactor-gen1.md, docs/plant-geometry.md and
+ * docs/steam-dynamics.md.
  */
 public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactorCoreMk1>
     implements ISurvivalConstructable {
@@ -122,6 +143,14 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         .ofCritical("beyondthestars.seizure.chain");
 
     private static final int MAX_TIER = 5;
+    /**
+     * Relative b offsets {@link #standingSiloTier()} samples the shell on (+b is DOWN, so these
+     * are the controller's own course and 1 and 11 above it). They are bottom-up courses 1, 2
+     * and 12, which {@code coreShape} makes PLENUM, BAND and PLENUM at every one of the five
+     * tiers - never FUEL (3..10) and never PORTS (11), whose interiors can legitimately hold
+     * blocks. That is what makes "not air" inside a bigger silo impossible for these cells.
+     */
+    private static final int[] PROBE_COURSES = { 0, -1, -11 };
     /** Frame segments stacked per full fuel pillar (SD-1: rods cascade through these). */
     private static final int SEGMENTS_PER_COLUMN = 8;
     /** Rod type ids stored per pillar segment; 0 = empty. */
@@ -139,9 +168,6 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     private static final int[] COLUMN_CAP = { 0, 45, 77, 109, 157, 201 };
 
     private static IStructureDefinition<MTEReactorCoreMk1> STRUCTURE_DEFINITION = null;
-
-    /** Plant modules docked in this silo's walls (Space Elevator pattern). */
-    public final ArrayList<MTEPlantModuleBase> plantModules = new ArrayList<>();
 
     /** One fuel pillar: its world column position and the frame segments present. */
     private static final class ColumnInfo {
@@ -168,6 +194,29 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     /** Housing sockets recorded by the duct walk: {distance from controller, meta}. */
     private final List<int[]> walkHousings = new ArrayList<>();
 
+    // ------------------------------------------------ point-of-use fluid lines (D-20)
+    /**
+     * The SILO's Feedwater Input Hatch(es), cut into its front face on the drum course. The
+     * reactor's water is drawn from THESE ONLY, never from the shared pool: the chamber's
+     * coolant hatch and the bulk propellant line land in the same {@code mInputHatches}, and a
+     * blanket depleteInput() would happily drink the chamber's water-grade coolant.
+     */
+    private final List<MTEHatchInput> feedwaterHatches = new ArrayList<>();
+    /**
+     * The SPIRAL CHAMBER's Propellant Input Hatch(es) - the ONE bulk line the player plumbs,
+     * in the wall of the chamber whose eight injectors it feeds. The controller tops those
+     * eight reserves up from here every tick, so nobody hand-times eight 1L inserts any more
+     * (the CYCLE is still a redstone edge at the Turbine Control Block, and how many injectors
+     * count as TIMED is still decided per cycle - by how many of them this line managed to
+     * stock).
+     */
+    private final List<MTEHatchInput> propellantHatches = new ArrayList<>();
+
+    // --------------------------------------------------- absorbed Cooling Towers (A3)
+    /** The two tower shells, now optional CHECKED pieces of this controller (max 2). */
+    private boolean towerNwBuilt;
+    private boolean towerSwBuilt;
+
     /** Spine state, recomputed on every structure check (x1000 fixed-point multipliers). */
     private boolean spineBuilt;
     private int spineHousings;
@@ -187,10 +236,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     private String chamberCoolantName = "";
     private long lastChamberTick;
     /**
-     * The Spiral's OWN input hatches, as recorded by its structure walk (the coolant feed;
-     * the silo's face-panel hatches carry feedwater). They are registered in mInputHatches
-     * like any other input hatch - this list only remembers WHICH ones they are, so the
-     * readouts and the debug supply can talk about the chamber specifically.
+     * The chamber's COOLANT feed. Semantics unchanged from SD-3 - a dedicated list, drained
+     * only by the chamber, so the reactor's feedwater can never answer "can the chamber be
+     * cooled?" - and D-20 puts it back where it belongs: the Coolant Input Hatch is in the
+     * SPIRAL CHAMBER's own front wall, one course above its floor, feeding the thing that
+     * overheats.
      */
     private final List<MTEHatchInput> chamberHatches = new ArrayList<>();
     /** Whether the chamber got the coolant its current speed asks for, on the last tick. */
@@ -229,6 +279,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * Benzene (P=1.25) ~= 2,307. (The ruling's sketch constant 60 would top out at ~4,089.)
      */
     private static final int RPM_GAIN = 176;
+    /** RPM kept from tick to tick, in permille: the fan bleeds 0.5% a tick toward zero. */
+    private static final int RPM_DECAY_PERMILLE = 995;
     /** Steam slugs a cycle drinks (ticks worth of L/t) and the buffer cap in slugs x 5. */
     private static final int CYCLE_SLUG_TICKS = 20;
     private static final int STEAM_BUFFER_CAP_TICKS = 100;
@@ -265,6 +317,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
     private int mCasing;
     private int reactorTier;
+    /** Why a Cooling Tower did not form, when one is partly standing ("" = nothing to say). */
+    private String towerNwFault = "";
+    private String towerSwFault = "";
     private int fuelSegments;
     private int activeColumns;
     private boolean cascadeMode;
@@ -278,6 +333,20 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     private int throttleSetting = 24;
     private int buildTierSetting = 1;
     private int activeFuelMult = 1;
+    /**
+     * R7: the PRE-THROTTLE steam the running campaign is actually built on - the per-pillar
+     * SUM {@code sum(16,384 x ROD_MULT[bottom rod])}, not {@code live x best grade x 16,384}.
+     * The two only agree while every burning pillar holds the same grade, so the math panel
+     * prints THIS and never re-derives step 1 from {@link #activeFuelMult} (which is the
+     * highest grade in the silo and would overstate a mixed load).
+     */
+    private long fuelBaseSteam;
+    /**
+     * R7: the burning grades, best first ("32x9 + 13x1"). Empty while a single grade is
+     * burning - that is the case where "live x fuelMult" is the whole truth and the panel can
+     * print the simple product.
+     */
+    private String fuelGradeMix = "";
     private int heat;
     private int decayHeatTicks;
     private int radiationTicks;
@@ -307,15 +376,46 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return new MTEReactorCoreMk1(this.mName);
     }
 
-    // ------------------------------------------------------------------ modules
+    // ------------------------------------------------- point-of-use fluid hatch adders
 
-    public boolean addPlantModuleToMachineList(IGregTechTileEntity aTileEntity, int aBaseCasingIndex) {
-        if (aTileEntity == null) return false;
+    /**
+     * The plant's three discriminated fluid sockets all register as ordinary input hatches,
+     * but the plant has to be able to tell them apart: the silo's feedwater, the Spiral
+     * chamber's coolant and the Spiral chamber's bulk propellant line. Each socket char
+     * therefore has its own adder, exactly like the control-block sockets - and each keeps its
+     * own list, so no draw can ever reach across into another line's fluid.
+     */
+    public boolean addFeedwaterHatchToMachineList(IGregTechTileEntity aTileEntity, int aBaseCasingIndex) {
+        if (!addInputHatchToMachineList(aTileEntity, aBaseCasingIndex)) return false;
         final IMetaTileEntity mte = aTileEntity.getMetaTileEntity();
-        if (mte instanceof MTEPlantModuleBase) {
-            return plantModules.add((MTEPlantModuleBase) mte);
-        }
-        return false;
+        if (mte instanceof MTEHatchInput) feedwaterHatches.add((MTEHatchInput) mte);
+        return true;
+    }
+
+    public boolean addChamberCoolantHatchToMachineList(IGregTechTileEntity aTileEntity, int aBaseCasingIndex) {
+        if (!addInputHatchToMachineList(aTileEntity, aBaseCasingIndex)) return false;
+        final IMetaTileEntity mte = aTileEntity.getMetaTileEntity();
+        if (mte instanceof MTEHatchInput) chamberHatches.add((MTEHatchInput) mte);
+        return true;
+    }
+
+    public boolean addPropellantHatchToMachineList(IGregTechTileEntity aTileEntity, int aBaseCasingIndex) {
+        if (!addInputHatchToMachineList(aTileEntity, aBaseCasingIndex)) return false;
+        final IMetaTileEntity mte = aTileEntity.getMetaTileEntity();
+        if (mte instanceof MTEHatchInput) propellantHatches.add((MTEHatchInput) mte);
+        return true;
+    }
+
+    public int getFeedwaterHatchCount() {
+        return feedwaterHatches.size();
+    }
+
+    public int getChamberCoolantHatchCount() {
+        return chamberHatches.size();
+    }
+
+    public int getPropellantHatchCount() {
+        return propellantHatches.size();
     }
 
     public boolean addInjectorToMachineList(IGregTechTileEntity aTileEntity, int aBaseCasingIndex) {
@@ -387,29 +487,13 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         turbinePanel = null;
     }
 
-    private void disconnectModules() {
-        for (MTEPlantModuleBase module : plantModules) {
-            module.disconnect();
-        }
-    }
-
-    private MTEModuleTurbineHall dockedTurbineHall() {
-        for (MTEPlantModuleBase module : plantModules) {
-            if (module instanceof MTEModuleTurbineHall && module.isOperational()) {
-                return (MTEModuleTurbineHall) module;
-            }
-        }
-        return null;
-    }
-
+    /**
+     * A3: the Cooling Towers are pieces of THIS structure now, not docked modules. A tower
+     * counts the moment its shell passes the walk - there is nothing to connect and nothing to
+     * form separately. Two is the whole platform's worth, which is also the ruled cap.
+     */
     private int coolingTowerCount() {
-        int count = 0;
-        for (MTEPlantModuleBase module : plantModules) {
-            if (module instanceof MTEModuleCoolingTower && module.isOperational()) {
-                count = Math.min(2, count + 1);
-            }
-        }
-        return count;
+        return (towerNwBuilt ? 1 : 0) + (towerSwBuilt ? 1 : 0);
     }
 
     // ------------------------------------------------------------------ structure
@@ -479,23 +563,34 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * ground level, standing on the pad even before the silo exists.
      */
     private static final int SILO_FRONT = CENTER - 8;
+
     /**
-     * Open dock positions {a, c}; a module controller stands directly on the marked floor,
-     * FACING AWAY from its building. The canonical one-projection layout: Turbine Hall at
-     * {38,30} (hall body behind it, c 30-38 x a 36-40), Cooling Towers at {8,1} (front
-     * corner, body c 0-16 x a 0-16) and {8,48} (back corner, body c 33-49 x a 0-16). The
-     * east corridor (a 31-42, c 20-26 across tiers) stays reserved for the Spine duct and
-     * the future spiral chamber - no dock may sit in it.
+     * The eight cells {a, c} that 0.18.0/0.19.0 stamped into the platform floor as flush
+     * SOLID STEEL dock markers, one under each module controller. A3 retired the docks with
+     * the module controllers, so a NEW platform lays plain Light Concrete here - but every
+     * platform built before that still holds Solid Steel in all eight, and all eight lie
+     * outside the max-tier octagon, so they are ordinary floor cells in the new shape.
+     * <p>
+     * R1-B: the floor piece is checkMachine's FIRST walk and it returns on failure, BEFORE
+     * the tier probe. Demanding Light Concrete here would therefore have failed every legacy
+     * platform's floor, left {@code reactorTier} at 0 on a plant with a standing tier-5 silo,
+     * and handed the projector back to the GUI Build Tier - which is exactly the tier-1-inside
+     * -a-tier-5 destruction R1 was written to stop. The 'd' element accepts EITHER block.
      */
-    private static final int[][] DOCK_POSITIONS = { { 38, 30 }, { 8, 1 }, { 8, 48 }, { 40, 8 }, { 40, 42 }, { 25, 43 },
-        { 10, 25 }, { 25, 7 } };
+    private static final int[][] LEGACY_DOCK_CELLS = { { 38, 30 }, { 8, 1 }, { 8, 48 }, { 40, 8 }, { 40, 42 },
+        { 25, 43 }, { 10, 25 }, { 25, 7 } };
 
     /**
      * Full 50x50 platform, two layers: light concrete flooring with a Tungstensteel-Reinforced
-     * shield pad (sized for the max-tier silo) at center and flush steel markers set into the
-     * floor under the eight dock positions; then the walking level - open except the
-     * controller on the pad's front line and the dock positions, which must stay CLEAR until
-     * a module controller stands there.
+     * shield pad (sized for the max-tier silo) at center, then the walking level - open except
+     * the controller on the pad's front line.
+     * <p>
+     * A3 retired the eight flush steel DOCK MARKERS with the module controllers they existed
+     * for: every building is a piece of this controller now, so those cells are plain floor -
+     * 'd', which takes the new Light Concrete OR the legacy Solid Steel that is already there,
+     * and PLACES the Light Concrete when it builds. Nobody has to re-block their platform.
+     * The walking level above them is unchecked (' '), so a retired module controller still
+     * standing on one of them is simply ignored rather than demanded or destroyed.
      */
     private static String[][] floorShape() {
         final String[] padLayer = new String[PLATFORM];
@@ -503,9 +598,6 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             final char[] row = new char[PLATFORM];
             Arrays.fill(row, ' ');
             if (c == SILO_FRONT) row[CENTER] = '~';
-            for (int[] dock : DOCK_POSITIONS) {
-                if (dock[1] == c) row[dock[0]] = 'K';
-            }
             padLayer[c] = new String(row);
         }
         final int n = edgeFor(MAX_TIER);
@@ -519,8 +611,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 final int lx = a - origin;
                 row[a] = (lr >= 0 && lx >= 0 && lr < n && lx < n && insideOct(n, k, lr, lx)) ? 'B' : 'O';
             }
-            for (int[] dock : DOCK_POSITIONS) {
-                if (dock[1] == c) row[dock[0]] = 'M';
+            for (final int[] dock : LEGACY_DOCK_CELLS) {
+                if (dock[1] == c) row[dock[0]] = 'd';
             }
             floorLayer[c] = new String(row);
         }
@@ -586,8 +678,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * The Spiral: solid casing roof/floor, plain casing walls, and inside a helix of concrete
      * arcs stepping down the 5x5 interior ring around an open 3x3 downcomer. TC-1 sockets:
      * one Precision Injector per interior level 1..8 following the helix around the rotating
-     * faces, the Spine Sensor in the roof's front-center, and Input Hatch + Maintenance in
-     * the bottom layer's front corners. [y top-first][7 c-rows][7 a-chars].
+     * faces, the Spine Sensor in the roof's front-center, the Maintenance socket in the bottom
+     * layer's front-right corner, and (D-20) the chamber's own two supply sockets - COOLANT
+     * and bulk PROPELLANT - in the front wall one course above the floor.
+     * [y top-first][7 c-rows][7 a-chars].
      */
     private static String[][] spiralShape() {
         final String[][] layers = new String[SPIRAL_HEIGHT][];
@@ -602,8 +696,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                     // Roof: the Spine Sensor socket sits front-center.
                     cap[0][3] = 'j';
                 } else {
-                    // Bottom: Input Hatch + Maintenance sockets in the front corners.
-                    cap[0][0] = 'k';
+                    // Bottom: Maintenance socket in the front-right corner, unchanged.
                     cap[0][6] = 'l';
                 }
                 final String[] capRows = new String[SPIRAL_SIZE];
@@ -634,6 +727,19 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 else if (face == 1) grid[3][0] = 'v'; // -a wall
                 else if (face == 2) grid[0][3] = 'w'; // front wall (-c)
                 else grid[3][6] = 'x'; // +a wall
+            }
+            // D-20 POINT OF USE: the chamber's own two supply sockets, in its FRONT wall
+            // (-c) at interior level 10 = world y 1 - one course above the floor, at the
+            // feet of a player standing on the open platform, and directly under the eight
+            // injectors the propellant line stocks. The front wall looks out over bare
+            // platform at EVERY tier (chamber front row is c = 14 + edge/2, the cell in
+            // front of it c = 13 + edge/2 = 17..21, and nothing else is ever built in the
+            // a 43..49 strip forward of the chamber), so neither socket can be entombed.
+            // Their outward normal is DECLARED FORWARD, like the 'w' injector and the 'l'
+            // maintenance socket in the same wall - never inferred from air neighbours.
+            if (level == SPIRAL_HEIGHT - 2) {
+                grid[0][1] = 'k'; // Coolant Input Hatch - the thing that overheats
+                grid[0][5] = 'P'; // Propellant Input Hatch - bulk line to the 8 injectors
             }
             // Helix: a 5-cell concrete arc on the interior 5x5 ring, rotating each level down.
             final int[][] ring = interiorRing();
@@ -684,10 +790,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * rotor stage sockets ('9', Turbine Housings seating TC-4 rotors, spin-agnostic) on
      * the centerline's odd rows 1..13. Rows 15..17 widen into the 7x7x3 hollow OUTPUT
      * MANIFOLD (world y 0..6): its front plane is walled except the mouth matching the
-     * gallery bore, the EIGHTH stage socket hangs center-bore in the mouth (row 15), and
-     * the 4 Dynamo sockets ('m') sit mid-height across the back face. Total length is
-     * still 18 rows, so the world span is unchanged from SD-4. [y top-first][18 c-rows][7
-     * a-chars].
+     * gallery bore, the EIGHTH stage socket hangs center-bore in the mouth (row 15), and the
+     * back face carries the whole electrical side of the plant in three courses - 4 Dynamo
+     * sockets ('m') at y3, 4 Energy Hatch sockets ('r') at y4 and 4 Laser Source sockets
+     * ('L') at y5, all in columns a 1,2,4,5. Total length is still 18 rows, so the world
+     * span is unchanged from SD-4. [y top-first][18 c-rows][7 a-chars].
      */
     private static String[][] galleryShape() {
         final String[][] layers = new String[7][];
@@ -727,6 +834,14 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         if (y == 5 && c == GALLERY_LENGTH - 1 && (a == 1 || a == 2 || a == 4 || a == 5)) {
             return 'L';
         }
+        // D-20 POINT OF USE: the four ENERGY HATCHES belong AT THE GENERATOR, so they sit on
+        // the same back face one course between the dynamo row (y3) and the laser row (y5),
+        // in the same four columns. Same open-sky face, same declared BACK normal - nothing is
+        // ever built behind the manifold at any tier, so all twelve sockets on this wall look
+        // straight out and a cable or a laser pipe reaches every one of them.
+        if (y == 4 && c == GALLERY_LENGTH - 1 && (a == 1 || a == 2 || a == 4 || a == 5)) {
+            return 'r';
+        }
         // TC-2 control sockets live on the manifold's BACK face - the gallery's front wall
         // is entombed against the Spiral's back wall, so a redstone line could never
         // reach a control block there.
@@ -758,77 +873,35 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return 1 - edgeFor(tier) / 2;
     }
 
-    // ------------------- one-projection building shells (hologram/build only, never checked)
-
-    private static String shellPieceName(String base, String which) {
-        return base + ".shell." + which;
-    }
+    // ------------------------- the absorbed COOLING TOWERS (A3, optional checked pieces)
 
     /**
-     * Build-only leniency for shell cells: place into air, NEVER touch an existing block
-     * (a re-projection must not replace a player's swapped-in hatches), and never fail a
-     * survival walk (SKIP instead of REJECT so later pieces stay reachable).
+     * Tower placement, unchanged from the retired module's docks so an existing platform's
+     * towers keep standing where they always did: NW body a 0-16 c 0-16, SW body a 0-16
+     * c 33-49, both 20 layers tall from pad level (y 0..19). Neither touches the silo
+     * (a 17-33 at max tier) or the east strip (a 35-49).
+     * <p>
+     * R2 NOTE: {@link MTEModuleCoolingTower#towerShape()} still emits TWO controller-anchor
+     * cells per tower in its bottom layer - {@code base[0][8]} and {@code base[frontZ = 1][8]},
+     * platform (a 8, c 0) and (a 8, c 1) for NW, (a 8, c 49) and (a 8, c 48) for SW. The
+     * remap below turns BOTH into ordinary Solid Steel base ring ('R'), a hard-checked,
+     * block-placing element, so the one projection and /btsbuild raise them like any other
+     * ring cell. On a platform whose towers were raised by the RETIRED module controller
+     * those two cells hold that controller and open air instead, and must be replaced with
+     * Solid Steel Machine Casing by hand - see the release notes.
      */
-    private static <X> IStructureElement<X> shellOnly(IStructureElement<X> delegate) {
-        return new IStructureElement<X>() {
+    private static final int TOWER_NW_DOFF = SILO_FRONT;
+    private static final int TOWER_SW_DOFF = -16;
 
-            @Override
-            public boolean check(X t, World world, int x, int y, int z) {
-                return true;
-            }
-
-            @Override
-            public boolean spawnHint(X t, World world, int x, int y, int z, ItemStack trigger) {
-                return delegate.spawnHint(t, world, x, y, z, trigger);
-            }
-
-            @Override
-            public boolean placeBlock(X t, World world, int x, int y, int z, ItemStack trigger) {
-                if (!world.isAirBlock(x, y, z)) return false;
-                return delegate.placeBlock(t, world, x, y, z, trigger);
-            }
-
-            @Override
-            public PlaceResult survivalPlaceBlock(X t, World world, int x, int y, int z, ItemStack trigger,
-                AutoPlaceEnvironment env) {
-                if (!world.isAirBlock(x, y, z)) return PlaceResult.SKIP;
-                return delegate.survivalPlaceBlock(t, world, x, y, z, trigger, env);
-            }
-        };
-    }
-
-    /** Accepts air like isAir() but never places or clears - dock cells are player territory. */
-    private static IStructureElement<MTEReactorCoreMk1> dockAir() {
-        return new IStructureElement<MTEReactorCoreMk1>() {
-
-            @Override
-            public boolean check(MTEReactorCoreMk1 t, World world, int x, int y, int z) {
-                return world.isAirBlock(x, y, z);
-            }
-
-            @Override
-            public boolean spawnHint(MTEReactorCoreMk1 t, World world, int x, int y, int z, ItemStack trigger) {
-                return true;
-            }
-
-            @Override
-            public boolean placeBlock(MTEReactorCoreMk1 t, World world, int x, int y, int z, ItemStack trigger) {
-                return false;
-            }
-
-            @Override
-            public PlaceResult survivalPlaceBlock(MTEReactorCoreMk1 t, World world, int x, int y, int z,
-                ItemStack trigger, AutoPlaceEnvironment env) {
-                return PlaceResult.SKIP;
-            }
-        };
+    private static String towerPieceName(String base, String which) {
+        return base + ".tower." + which;
     }
 
     /**
-     * Embeds a module's shape as a build-only shell in the main station's frame: chars are
-     * remapped onto this structure definition's elements, the module's controller cell
-     * becomes a skip (the dock marker must stay clear for the player-placed controller),
-     * and reversing rows flips the shell for modules that face opposite the main station.
+     * Re-letters the Cooling Tower's own shape onto THIS structure definition's elements. The
+     * module controller's anchor cells ('~') become ordinary base-ring casing - there is no
+     * module controller any more, so the ring simply closes - and reversing the rows flips the
+     * shell for the tower that stands at the platform's far end.
      */
     private static String[][] remapShape(String[][] src, String from, String to, boolean reverseRows) {
         final String[][] out = new String[src.length][];
@@ -839,6 +912,14 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 for (int k = 0; k < chars.length; k++) {
                     final int m = from.indexOf(chars[k]);
                     if (m >= 0) chars[k] = to.charAt(m);
+                    // R2 GUARD: the borrowed shape marks its retired controller with '~'. If a
+                    // future edit ever drops that char from `from`, StructureLib would silently
+                    // treat the cell as unregistered and the tower could never form. Fail loudly
+                    // at class-init instead of shipping four un-buildable cells.
+                    if (chars[k] == '~') {
+                        throw new IllegalStateException(
+                            "remapShape left a controller anchor '~' unmapped at layer " + i + " row " + j);
+                    }
                 }
                 rows[j] = new String(chars);
             }
@@ -856,6 +937,24 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
     private static char wallChar(int tier) {
         return tier >= 5 ? 'E' : tier >= 3 ? 'D' : 'C';
+    }
+
+    /**
+     * The casing behind a silo shape char. ONE source of truth: the structure definition builds
+     * its 'C'/'D'/'E'/'G' elements from this and {@link #migrateSiloFace()} re-lays the face's
+     * wall cells from it, so the check and the migration can never drift into demanding
+     * different blocks of the same cell.
+     */
+    private static ICasing casingFor(char ch) {
+        switch (ch) {
+            case 'D':
+                return Casings.EuropiumReinforcedRadiationProofMachineCasing;
+            case 'E':
+                return Casings.RadiantNaquadahAlloyCasing;
+            default:
+                // 'C' - the tier 1-2 wall - and 'G', the radiation bands, at every tier.
+                return Casings.RadiationProofMachineCasing;
+        }
     }
 
     private static char shieldChar(int tier) {
@@ -987,24 +1086,31 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             }
             layers.add(buildLayer(tier, kind, true, i == 1));
         }
-        // TC-1 face panel: dedicated hatch sockets on the flat front face around the main
-        // station. The front row spans >= 5 flat cells at every tier (CUT <= n/2 - 2), so
-        // the 5-wide panel always fits. Bottom-up layer i = list index domeH + wallH-1 - i.
+        // ------------------------------------------------------------ D-20 SILO FACE
+        // The silo's front face carries the sockets that belong TO THE SILO, each on the
+        // course where it enters the reactor's logic flow. Bottom-up layer i = list index
+        // domeH + wallH - 1 - i, and the front row is octagon row 0 = grid row 1.
+        //
+        // y2 [ ] u [ ] Q [ ] bottom FUEL course: Rod Input Bus / Depleted Output Bus,
+        // the exact segment the cascade pushes into and burns out of
+        // y1 [ ] y p Y [ ] drum course: Feedwater IN / Silo Control Block / waste
+        // water + exported steam OUT
+        // y0 [ ] t ~ [ ] [ ] pad level: MAIN STATION, Maintenance beside it
+        //
+        // Offsets are +/-1 from the octagon's centre column, which is inside the front row at
+        // EVERY tier (tier 1's front row is the narrowest at 5 cells, centre +/-2). All six
+        // sockets declare the SAME outward normal, FORWARD - the way the controller looks -
+        // and every one of them faces 17 blocks of bare platform at every tier.
         final int mid = edgeFor(tier) / 2 + 1;
-        final String[] panel0 = layers.get(domeH + wallH - 2); // pad level: the '~' row
-        setFrontCell(panel0, mid - 2, 'd'); // Input Hatch
-        setFrontCell(panel0, mid - 1, 'b'); // Maintenance
-        setFrontCell(panel0, mid + 1, 'e'); // Output Hatch
-        setFrontCell(panel0, mid + 2, 'd'); // Input Hatch
-        final String[] panel1 = layers.get(domeH + wallH - 3); // level 2: energy quad
-        setFrontCell(panel1, mid - 2, 'a');
-        setFrontCell(panel1, mid - 1, 'a');
-        setFrontCell(panel1, mid, 'p'); // TC-2: the Silo Control Block socket
-        setFrontCell(panel1, mid + 1, 'a');
-        setFrontCell(panel1, mid + 2, 'a');
-        final String[] panel2 = layers.get(domeH + wallH - 4); // level 3: bus corners
-        setFrontCell(panel2, mid - 2, 'f'); // Input Bus
-        setFrontCell(panel2, mid + 2, 'g'); // Output Bus
+        final String[] padCourse = layers.get(domeH + wallH - 2); // i = 1, world y 0
+        setFrontCell(padCourse, mid - 1, 't'); // Maintenance, beside the main station
+        final String[] drumCourse = layers.get(domeH + wallH - 3); // i = 2, world y 1
+        setFrontCell(drumCourse, mid - 1, 'y'); // Feedwater Input Hatch
+        setFrontCell(drumCourse, mid, 'p'); // TC-2: the Silo Control Block socket
+        setFrontCell(drumCourse, mid + 1, 'Y'); // Output Hatch: waste water / exported steam
+        final String[] fuelCourse = layers.get(domeH + wallH - 4); // i = 3, world y 2
+        setFrontCell(fuelCourse, mid - 1, 'u'); // Rod Input Bus
+        setFrontCell(fuelCourse, mid + 1, 'Q'); // Depleted Output Bus
         return layers.toArray(new String[0][]);
     }
 
@@ -1282,6 +1388,119 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return stack == null ? 0 : (short) stack.getItemDamage();
     }
 
+    /**
+     * One socket in the SILO's front face (D-20). All six of them - Maintenance, Feedwater,
+     * the Silo Control Block, the Output Hatch, the Rod Input Bus and the Depleted Output Bus
+     * - are cut into the same wall as the controller, so every one declares the same outward
+     * normal, FORWARD. A blank socket falls back to Radiation Proof casing at EVERY tier (the
+     * wall material changes with the tier, the socket filler deliberately does not) and counts
+     * toward the silo's casing minimum exactly like the wall cell it replaced.
+     */
+    private static IStructureElement<MTEReactorCoreMk1> siloSocket(IHatchElement<? super MTEReactorCoreMk1> element,
+        java.util.function.Supplier<Short> mteId) {
+        return autoFit(
+            buildHatchAdder(MTEReactorCoreMk1.class).atLeast(element)
+                .casingIndex(Casings.RadiationProofMachineCasing.textureId)
+                .hint(1)
+                .buildAndChain(onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())),
+            mteId,
+            SocketFace.FORWARD);
+    }
+
+    /**
+     * One supply socket in the SPIRAL CHAMBER's front wall (D-20): the bulk propellant line
+     * that stocks the eight injectors above it, and the coolant that carries the chamber's own
+     * heat away. Declared FORWARD, like the 'w' injector and the 'l' maintenance socket in the
+     * same wall; blanks chain to the chamber's own Tungstensteel Turbine Casing.
+     */
+    private static IStructureElement<MTEReactorCoreMk1> chamberSocket(IHatchElement<? super MTEReactorCoreMk1> element,
+        java.util.function.Supplier<Short> mteId) {
+        return autoFit(
+            buildHatchAdder(MTEReactorCoreMk1.class).atLeast(element)
+                .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
+                .hint(3)
+                .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()),
+            mteId,
+            SocketFace.FORWARD);
+    }
+
+    /**
+     * One socket in the OUTPUT MANIFOLD's back face (D-20): the four Energy Hatches, at the
+     * generator. Declared BACK, like the dynamos one course below and the laser sources one
+     * course above; nothing is ever built behind the manifold at any tier.
+     */
+    private static IStructureElement<MTEReactorCoreMk1> manifoldSocket(IHatchElement<? super MTEReactorCoreMk1> element,
+        java.util.function.Supplier<Short> mteId) {
+        return autoFit(
+            buildHatchAdder(MTEReactorCoreMk1.class).atLeast(element)
+                .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
+                .hint(4)
+                .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()),
+            mteId,
+            SocketFace.BACK);
+    }
+
+    /**
+     * The absorbed Cooling Towers' base ring (M4/M5): Solid Steel Machine Casing, OR the
+     * Maintenance Hatch that 0.19.0's tower controller demanded in that ring and that a legacy
+     * tower still has standing in it.
+     * <p>
+     * It is a plain TOLERANCE, not an adoption, and both halves of that matter:
+     * <ul>
+     * <li>the casing element comes FIRST in the chain, so {@code spawnHint} - which returns at
+     * the first fallback that answers true - still draws all 52 ring cells per tower as Solid
+     * Steel ghosts. A hatch adder answers true unconditionally from its own hint, which is what
+     * turned 104 cells into blank markers;</li>
+     * <li>the hatch is matched by its TILE and never registered, so it cannot land in
+     * {@code mMaintenanceHatches}. A ring hatch in that plant-wide list satisfied
+     * {@code checkHasMaintenanceHatch} on the SILO's behalf - making the silo's own 't' socket
+     * optional against the tooltip - and, because the towers are walked before it, left a bare
+     * platform's {@code mMaintenanceHatches.isEmpty()} self-repair unreachable.</li>
+     * </ul>
+     */
+    private static IStructureElement<MTEReactorCoreMk1> towerRingElement() {
+        final IStructureElement<MTEReactorCoreMk1> casing = Casings.SolidSteelMachineCasing.asElement();
+        final IStructureElement<MTEReactorCoreMk1> legacyHatch = ofTileAdder(
+            (MTEReactorCoreMk1 t, net.minecraft.tileentity.TileEntity te) -> te instanceof IGregTechTileEntity
+                && ((IGregTechTileEntity) te).getMetaTileEntity() instanceof MTEHatchMaintenance,
+            Casings.SolidSteelMachineCasing.getBlock(),
+            Casings.SolidSteelMachineCasing.getBlockMeta());
+        final IStructureElement<MTEReactorCoreMk1> chain = ofChain(casing, legacyHatch);
+        // A projection must never destroy a machine it did not place. ofChain.placeBlock
+        // delegates to the FIRST fallback - the casing - so without this guard, projecting
+        // onto a migrated legacy plant would overwrite the 0.19.0 Maintenance Hatch this
+        // element exists to tolerate, and void it. Same class as the legacy-face refusal:
+        // /btsmigrate only rewrites the silo face, so after migrating, the tower ring is
+        // the one place a standing machine still sits in a cell the projector will write.
+        return new IStructureElement<MTEReactorCoreMk1>() {
+
+            @Override
+            public boolean check(MTEReactorCoreMk1 t, World world, int x, int y, int z) {
+                return chain.check(t, world, x, y, z);
+            }
+
+            @Override
+            public boolean spawnHint(MTEReactorCoreMk1 t, World world, int x, int y, int z, ItemStack trigger) {
+                return chain.spawnHint(t, world, x, y, z, trigger);
+            }
+
+            @Override
+            public boolean placeBlock(MTEReactorCoreMk1 t, World world, int x, int y, int z, ItemStack trigger) {
+                // Already acceptable - a casing, or the legacy hatch we deliberately allow.
+                // Leave it exactly as it stands rather than paving over it.
+                if (chain.check(t, world, x, y, z)) return true;
+                return chain.placeBlock(t, world, x, y, z, trigger);
+            }
+
+            @Override
+            public PlaceResult survivalPlaceBlock(MTEReactorCoreMk1 t, World world, int x, int y, int z,
+                ItemStack trigger, AutoPlaceEnvironment env) {
+                if (chain.check(t, world, x, y, z)) return PlaceResult.SKIP;
+                return chain.survivalPlaceBlock(t, world, x, y, z, trigger, env);
+            }
+        };
+    }
+
     /** One Precision Injector socket; the chamber wall it is cut into decides its facing. */
     private static IStructureElement<MTEReactorCoreMk1> injectorSocket(SocketFace face) {
         return autoFit(
@@ -1303,17 +1522,15 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             }
             builder.addShape(spiralPieceName(mName), transpose(spiralShape()));
             builder.addShape(galleryPieceName(mName), transpose(galleryShape()));
-            // Build-only shells of the module buildings (their controllers verify them).
-            // Dedicated lenient chars: shells must never affect the CHECKED pieces' elements.
+            // A3: the Cooling Towers are CHECKED pieces of this controller now - their own
+            // letters remapped onto this definition's elements, the retired module
+            // controller's anchor cells closed back up into base ring.
             builder.addShape(
-                shellPieceName(mName, "hall"),
-                transpose(remapShape(MTEModuleTurbineHall.hallShape(), "SUWPA~", "1234  ", false)));
+                towerPieceName(mName, "nw"),
+                transpose(remapShape(MTEModuleCoolingTower.towerShape(), "NS~", "ORR", false)));
             builder.addShape(
-                shellPieceName(mName, "towernw"),
-                transpose(remapShape(MTEModuleCoolingTower.towerShape(), "NS~", "67 ", false)));
-            builder.addShape(
-                shellPieceName(mName, "towersw"),
-                transpose(remapShape(MTEModuleCoolingTower.towerShape(), "NS~", "67 ", true)));
+                towerPieceName(mName, "sw"),
+                transpose(remapShape(MTEModuleCoolingTower.towerShape(), "NS~", "ORR", true)));
             for (int t = 1; t <= MAX_TIER; t++) {
                 builder.addShape(pieceName(mName, t), transpose(coreShape(t)));
             }
@@ -1321,112 +1538,57 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 .addElement('I', ofBlock(GregTechAPI.sBlockReinforced, 1))
                 .addElement('A', isAir())
                 // TC-1: silo walls are PLAIN casings - every hatch lives in a dedicated
-                // socket cell on the flat front face (chars 'a','b','d','e','f','g' below).
-                .addElement('C', onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement()))
-                .addElement(
-                    'D',
-                    onElementPass(x -> ++x.mCasing, Casings.EuropiumReinforcedRadiationProofMachineCasing.asElement()))
-                .addElement('E', onElementPass(x -> ++x.mCasing, Casings.RadiantNaquadahAlloyCasing.asElement()))
-                // Silo face-panel sockets: tier-agnostic Radiation Proof blank filler (the
-                // panel reads as a control panel on every tier); blanks count as casings.
-                .addElement(
-                    'a',
-                    autoFit(
-                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(Energy)
-                            .casingIndex(Casings.RadiationProofMachineCasing.textureId)
-                            .hint(1)
-                            .buildAndChain(
-                                onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())),
-                        () -> idOf(ItemList.Hatch_Energy_IV),
-                        SocketFace.FORWARD))
-                .addElement(
-                    'b',
-                    autoFit(
-                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(Maintenance)
-                            .casingIndex(Casings.RadiationProofMachineCasing.textureId)
-                            .hint(1)
-                            .buildAndChain(
-                                onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())),
-                        () -> idOf(ItemList.Hatch_Maintenance),
-                        SocketFace.FORWARD))
+                // socket cell on the flat front face (chars 't','y','p','Y','u','Q' below).
+                .addElement('C', onElementPass(x -> ++x.mCasing, casingFor('C').asElement()))
+                .addElement('D', onElementPass(x -> ++x.mCasing, casingFor('D').asElement()))
+                .addElement('E', onElementPass(x -> ++x.mCasing, casingFor('E').asElement()))
+                // A3: the absorbed Cooling Towers' base ring (their shell is plain 'O'
+                // Light Concrete, shared with the platform and the Spiral's helix arcs).
+                // R2: this is also what the retired module controller's two anchor cells per
+                // tower remap to, so the projection raises a CLOSED base ring.
+                // R1-C: 0.19.0's Cooling Tower controller REQUIRED a Maintenance Hatch in this
+                // ring, so every legacy tower has one sitting in it. The ring TOLERATES it
+                // without registering it - see towerRingElement() for why adopting it broke
+                // both the ring's hologram and the plant's maintenance demand.
+                .addElement('R', towerRingElement())
+                // R1-B: the eight LEGACY DOCK MARKER cells in the platform floor. Light
+                // Concrete is what a new platform lays and what the projection places; Solid
+                // Steel is what every platform built before A3 already holds. Accepting both
+                // is what keeps a pre-existing plant FORMED - and therefore keeps its tier
+                // detectable - instead of demanding the player re-block eight floor cells
+                // before the reactor will so much as admit it exists.
                 .addElement(
                     'd',
-                    autoFit(
-                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(InputHatch)
-                            .casingIndex(Casings.RadiationProofMachineCasing.textureId)
-                            .hint(1)
-                            .buildAndChain(
-                                onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())),
-                        () -> idOf(ItemList.Hatch_Input_IV),
-                        SocketFace.FORWARD))
-                .addElement(
-                    'e',
-                    autoFit(
-                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(OutputHatch)
-                            .casingIndex(Casings.RadiationProofMachineCasing.textureId)
-                            .hint(1)
-                            .buildAndChain(
-                                onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())),
-                        () -> idOf(ItemList.Hatch_Output_IV),
-                        SocketFace.FORWARD))
-                .addElement(
-                    'f',
-                    autoFit(
-                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(InputBus)
-                            .casingIndex(Casings.RadiationProofMachineCasing.textureId)
-                            .hint(1)
-                            .buildAndChain(
-                                onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())),
-                        () -> idOf(ItemList.Hatch_Input_Bus_IV),
-                        SocketFace.FORWARD))
-                .addElement(
-                    'g',
-                    autoFit(
-                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(OutputBus)
-                            .casingIndex(Casings.RadiationProofMachineCasing.textureId)
-                            .hint(1)
-                            .buildAndChain(
-                                onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())),
-                        () -> idOf(ItemList.Hatch_Output_Bus_IV),
-                        SocketFace.FORWARD))
-                .addElement(
-                    'p',
-                    autoFit(
-                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(PanelHatchElement.SiloPanel)
-                            .casingIndex(Casings.RadiationProofMachineCasing.textureId)
-                            .hint(1)
-                            .buildAndChain(
-                                onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement())),
-                        () -> idOf(BTSMachines.siloControlBlock),
-                        SocketFace.FORWARD))
+                    ofChain(ofBlock(GregTechAPI.sBlockConcretes, 8), Casings.SolidSteelMachineCasing.asElement()))
+                // ------------------------------------------- D-20 THE SILO'S OWN SOCKETS
+                // The silo face carries what belongs to the SILO, on the course it enters the
+                // logic flow: rods in/out at the bottom fuel course (y2), feedwater in and
+                // waste water / exported steam out on the drum course (y1) either side of the
+                // Silo Control Block, and Maintenance beside the main station at pad level.
+                .addElement('t', siloSocket(Maintenance, () -> idOf(ItemList.Hatch_Maintenance)))
+                .addElement('y', siloSocket(FluidHatchElement.Feedwater, () -> idOf(ItemList.Hatch_Input_IV)))
+                .addElement('Y', siloSocket(OutputHatch, () -> idOf(ItemList.Hatch_Output_IV)))
+                .addElement('u', siloSocket(InputBus, () -> idOf(ItemList.Hatch_Input_Bus_IV)))
+                .addElement('Q', siloSocket(OutputBus, () -> idOf(ItemList.Hatch_Output_Bus_IV)))
+                .addElement('p', siloSocket(PanelHatchElement.SiloPanel, () -> idOf(BTSMachines.siloControlBlock)))
                 .addElement('O', ofBlock(GregTechAPI.sBlockConcretes, 8))
-                .addElement(
-                    'K',
-                    ofChain(
-                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(PlantModuleElement.PlantModule)
-                            .casingIndex(Casings.SolidSteelMachineCasing.textureId)
-                            .hint(2)
-                            // Module controllers are stood on markers by hand, never auto-placed.
-                            .shouldReject(t -> true)
-                            .build(),
-                        // Air-or-nothing tail that never places: a creative re-projection must
-                        // not delete a docked module controller by setting its cell to air.
-                        dockAir()))
-                .addElement('M', Casings.SolidSteelMachineCasing.asElement())
-                .addElement('G', onElementPass(x -> ++x.mCasing, Casings.RadiationProofMachineCasing.asElement()))
+                .addElement('G', onElementPass(x -> ++x.mCasing, casingFor('G').asElement()))
                 .addElement('F', fuelCellElement())
                 .addElement('J', portCellElement())
                 .addElement('T', Casings.TungstensteelTurbineCasing.asElement())
                 .addElement('H', ofChain(housingElement(), Casings.TungstensteelTurbineCasing.asElement()))
                 // TC-1: spiral and gallery walls are PLAIN casings; hatches live in the
-                // dedicated socket chars below ('i','v','w','x','j','k','l' spiral /
-                // 'm','L','n','q' gallery). One injector char per chamber wall so each
+                // dedicated socket chars below ('i','v','w','x','j','k','P','l' spiral /
+                // 'm','r','L','n','q' gallery). One injector char per chamber wall so each
                 // socket's outward normal is declared rather than guessed.
                 .addElement('5', Casings.TungstensteelTurbineCasing.asElement())
                 .addElement('i', injectorSocket(SocketFace.BACK))
                 .addElement('v', injectorSocket(SocketFace.RIGHT))
                 .addElement('w', injectorSocket(SocketFace.FORWARD))
                 .addElement('x', injectorSocket(SocketFace.LEFT))
+                // D-20: the chamber's own supply sockets, in its front wall at world y 1.
+                .addElement('k', chamberSocket(FluidHatchElement.Coolant, () -> idOf(ItemList.Hatch_Input_IV)))
+                .addElement('P', chamberSocket(FluidHatchElement.Propellant, () -> idOf(ItemList.Hatch_Input_IV)))
                 .addElement(
                     'j',
                     autoFit(
@@ -1436,15 +1598,6 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                             .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()),
                         () -> idOf(BTSMachines.spineSensor),
                         SocketFace.UP))
-                .addElement(
-                    'k',
-                    autoFit(
-                        buildHatchAdder(MTEReactorCoreMk1.class).atLeast(InputHatch)
-                            .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
-                            .hint(3)
-                            .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()),
-                        () -> idOf(ItemList.Hatch_Input_IV),
-                        SocketFace.FORWARD))
                 .addElement(
                     'l',
                     autoFit(
@@ -1464,6 +1617,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                             .buildAndChain(Casings.TungstensteelTurbineCasing.asElement()),
                         () -> idOf(ItemList.Hatch_Dynamo_IV),
                         SocketFace.BACK))
+                // D-20: the four ENERGY HATCHES, one course above the dynamos on the same
+                // back face - at the generator, which is the only place in the plant they
+                // have anything to do with.
+                .addElement('r', manifoldSocket(Energy, () -> idOf(ItemList.Hatch_Energy_IV)))
                 // TC-5: the LASER OUTPUT sockets. HatchElement.LaserSource accepts TecTech's
                 // MTEHatchDynamoTunnel (which addLaserSourceToMachineList files into
                 // mExoticDynamoHatches), so the whole plant's ceiling stops being the four
@@ -1529,22 +1686,362 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                         return PlaceResult.SKIP;
                     }
                 }, Casings.TungstensteelTurbineCasing.asElement()))
-                .addElement('1', shellOnly(Casings.CleanStainlessSteelMachineCasing.asElement()))
-                .addElement('2', shellOnly(Casings.TungstensteelTurbineCasing.asElement()))
-                .addElement('3', shellOnly(ofBlock(Blocks.glass, 0)))
-                .addElement('4', shellOnly(Casings.SteelPipeCasing.asElement()))
-                .addElement('6', shellOnly(ofBlock(GregTechAPI.sBlockConcretes, 8)))
-                .addElement('7', shellOnly(Casings.SolidSteelMachineCasing.asElement()))
                 .build();
         }
         return STRUCTURE_DEFINITION;
     }
 
+    /**
+     * Does ANY block of the given piece still stand? Walks the piece's own cells with
+     * StructureLib's iterator and stops at the first non-air one, so a piece that is merely
+     * DAMAGED answers yes on its first surviving block while a piece that was DELIBERATELY
+     * DISMANTLED (or never built) has to be scanned to the end before answering no.
+     * <p>
+     * Only {@link #towerFault} asks now, and only to tell "no tower here" (a choice, and not
+     * worth reporting) from "a tower is half up and does not form" (a fault, and the one a
+     * 0.19.0 world hits). An unloaded chunk answers YES - it proves nothing, and the safe
+     * assumption is that the piece is still there.
+     */
+    private boolean anyBlockStanding(String piece, int hOff, int vOff, int dOff) {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base == null || base.getWorld() == null) return true;
+        final int cx = base.getXCoord();
+        final int cy = base.getYCoord();
+        final int cz = base.getZCoord();
+        final boolean[] found = { false };
+        getStructureDefinition().iterate(
+            piece,
+            base.getWorld(),
+            getExtendedFacing(),
+            cx,
+            cy,
+            cz,
+            hOff,
+            vOff,
+            dOff,
+            new IStructureWalker<MTEReactorCoreMk1>() {
+
+                @Override
+                public boolean visit(IStructureElement<MTEReactorCoreMk1> element, World world, int x, int y, int z,
+                    int a, int b, int c) {
+                    // The controller is not evidence that its own silo stands.
+                    if (x == cx && y == cy && z == cz) return true;
+                    if (world.isAirBlock(x, y, z)) return true;
+                    found[0] = true;
+                    return false;
+                }
+
+                @Override
+                public boolean blockNotLoaded(IStructureElement<MTEReactorCoreMk1> element, World world, int x, int y,
+                    int z, int a, int b, int c) {
+                    found[0] = true;
+                    return false;
+                }
+            });
+        return found[0];
+    }
+
+    /**
+     * The tier of the silo shell PHYSICALLY STANDING on the pad, or 0 - MEASURED off the world,
+     * never remembered.
+     * <p>
+     * This is what replaced the persisted {@code lastBuiltTier}, and the replacement is the
+     * whole point. A remembered number has to be written on the server, carried in tile NBT AND
+     * item NBT, pushed to the client for the hologram, and released when the shell comes down;
+     * it got every one of those wrong in turn. A measurement needs none of them: it is identical
+     * on client and server because both read the same blocks, it survives a wrench, a reload and
+     * a chunk round-trip because it is not stored anywhere, and it releases itself the instant
+     * the shell is dismantled.
+     * <p>
+     * Three columns per tier, chosen because nothing else in the plant can occupy them: the two
+     * side-wall cells on the octagon's centre row - relative side offset {@code edge/2}, the same
+     * distance BACK, because every tier's front wall is anchored on the controller's line - and
+     * the back wall's centre cell, {@code edge - 1} back. Each is sampled on three courses that
+     * are plenum or band at EVERY tier (bottom-up 1, 2 and 12), so INSIDE a larger silo all nine
+     * cells are open interior air. That is what lets the scan walk 5..1 and stop at the largest
+     * tier with walls in place, and spreading the samples up the shell is what keeps a locally
+     * broken-open wall answering.
+     * <p>
+     * A cell counts only when it holds THAT TIER'S OWN WALL MATERIAL - {@code wallChar} at the
+     * controller's course, the radiation band's Radiation Proof casing at the one above, both
+     * read through {@link #casingFor} so this cannot disagree with the check. "Any block" would
+     * have been enough for a silo, but not enough for a bare pad: the walking level is unchecked
+     * (' ') in the platform shape, so a player who paves or decorates it would have handed the
+     * scan a tier-5 shell that is not there - and un-formed their own platform with it. Two hits
+     * of nine is the threshold, so a damaged wall still answers and one stray casing does not.
+     * <p>
+     * Reach check: a tier-S Spine occupies side offsets {@code S+5..S+7} at back {@code S+2..S+4}
+     * (side and back are never equal there), the Spiral and the gallery start at side 18, and both
+     * Cooling Towers sit at side 9..25 on the opposite half of the platform.
+     */
+    public int standingSiloTier() {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base == null || base.getWorld() == null) return 0;
+        final World world = base.getWorld();
+        final ExtendedFacing facing = getExtendedFacing();
+        final int[] abc = new int[3];
+        final int[] xyz = new int[3];
+        for (int tier = MAX_TIER; tier >= 1; tier--) {
+            final int half = edgeFor(tier) / 2;
+            final int[][] probes = { { half, half }, { -half, half }, { 0, edgeFor(tier) - 1 } };
+            int standing = 0;
+            for (final int[] probe : probes) {
+                for (final int b : PROBE_COURSES) {
+                    // Structure space: +a is relative LEFT, +b is relative DOWN, +c is BACK.
+                    abc[0] = probe[0];
+                    abc[1] = b;
+                    abc[2] = probe[1];
+                    facing.getWorldOffset(abc, xyz);
+                    final int x = base.getXCoord() + xyz[0];
+                    final int y = base.getYCoord() + xyz[1];
+                    final int z = base.getZCoord() + xyz[2];
+                    if (!world.blockExists(x, y, z)) continue;
+                    final ICasing wall = casingFor(b == -1 ? 'G' : wallChar(tier));
+                    if (wall.matches(world.getBlock(x, y, z), world.getBlockMetadata(x, y, z))) standing++;
+                }
+            }
+            if (standing >= 2) return tier;
+        }
+        return 0;
+    }
+
+    /** The MTE the silo face's socket char wants fitted, or null when the char is not a socket. */
+    private static Short faceSocketId(char ch) {
+        switch (ch) {
+            case 't':
+                return idOf(ItemList.Hatch_Maintenance);
+            case 'y':
+                return idOf(ItemList.Hatch_Input_IV);
+            case 'Y':
+                return idOf(ItemList.Hatch_Output_IV);
+            case 'u':
+                return idOf(ItemList.Hatch_Input_Bus_IV);
+            case 'Q':
+                return idOf(ItemList.Hatch_Output_Bus_IV);
+            case 'p':
+                return idOf(BTSMachines.siloControlBlock);
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Does the machine already in this cell satisfy the face socket? Matched on the same CLASS
+     * the socket's hatch element accepts, not on the exact MTE id, so a player's LuV Input Hatch
+     * in the right cell is left where it is instead of being swapped for the IV one.
+     */
+    private static boolean faceSocketSatisfied(char ch, World world, int x, int y, int z) {
+        final net.minecraft.tileentity.TileEntity te = world.getTileEntity(x, y, z);
+        if (!(te instanceof IGregTechTileEntity)) return false;
+        final IMetaTileEntity mte = ((IGregTechTileEntity) te).getMetaTileEntity();
+        switch (ch) {
+            case 't':
+                return mte instanceof MTEHatchMaintenance;
+            case 'y':
+                // MTEHatchPrecisionInjector extends MTEHatchInput; it is never a feedwater hatch.
+                return mte instanceof MTEHatchInput && !(mte instanceof MTEHatchPrecisionInjector);
+            case 'Y':
+                return mte instanceof MTEHatchOutput;
+            case 'u':
+                return mte instanceof MTEHatchInputBus;
+            case 'Q':
+                return mte instanceof MTEHatchOutputBus;
+            case 'p':
+                return mte instanceof MTESiloControlBlock;
+            default:
+                return false;
+        }
+    }
+
+    /** Drops whatever stands in a cell as an item and clears it; true when it was a machine. */
+    private static boolean salvage(World world, int x, int y, int z) {
+        final Block standing = world.getBlock(x, y, z);
+        if (standing == null || standing.isAir(world, x, y, z)) return false;
+        final boolean machine = world.getTileEntity(x, y, z) instanceof IGregTechTileEntity;
+        // dropBlockAsItem runs while the tile is still in place, which is what lets GT's
+        // getDrops read the machine (and its NBT) off it; setBlockToAir then fires breakBlock,
+        // which spills the inventory. Between them nothing the player owned is voided.
+        standing.dropBlockAsItem(world, x, y, z, world.getBlockMetadata(x, y, z), 0);
+        world.setBlockToAir(x, y, z);
+        return machine;
+    }
+
+    /**
+     * D-20 MIGRATION (/btsmigrate). Rewrites the silo's FRONT FACE - and nothing else - to the
+     * current layout, at the tier {@link #standingSiloTier()} reads off the standing walls.
+     * <p>
+     * 0.19.0 cut a five-wide plumbing frontage into this wall: two Input Hatches, a Maintenance
+     * Hatch and an Output Hatch at pad level, four ENERGY hatches across the drum course, and
+     * the two buses out at the +/-2 corners. D-20 moved every socket to the building it serves,
+     * so the two layouts CONFLICT cell for cell - each puts a hatch where the other wants wall -
+     * and no chained element can accept both. That is why a legacy plant fails all five silo
+     * probes at every tier, and why it needs a rewrite rather than a more forgiving check.
+     * <p>
+     * Only the front row's bottom three courses are touched, because they are the only cells the
+     * two layouts disagree about. What belongs in each is read straight out of {@link #coreShape}
+     * and {@link #casingFor}, so this cannot drift from the check. A cell that is already right
+     * is left completely alone; a wrong one has its contents DROPPED as items before the correct
+     * casing or socket goes in. The shell, the ribs, the dome, the pillars and the rods are never
+     * read and never written.
+     *
+     * @return {tier, cells rewritten, machines handed back}; tier 0 = no shell on the pad.
+     */
+    public int[] migrateSiloFace() {
+        final int tier = standingSiloTier();
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (tier <= 0 || base == null || base.getWorld() == null) return new int[] { 0, 0, 0 };
+        final World world = base.getWorld();
+        final ExtendedFacing facing = getExtendedFacing();
+        final ForgeDirection outward = SocketFace.FORWARD.inWorld(facing);
+        final String[][] layers = coreShape(tier);
+        final int mid = siloHOff(tier);
+        final int[] abc = new int[3];
+        final int[] xyz = new int[3];
+        int rewritten = 0;
+        int salvaged = 0;
+        for (int course = 0; course <= 2; course++) {
+            // Bottom-up course i = 1 + course is list index (size - 1 - course); the silo's
+            // front row is octagon row 0, which is grid row 1.
+            final String frontRow = layers[layers.length - 1 - course][1];
+            for (int xx = 0; xx < frontRow.length(); xx++) {
+                final char ch = frontRow.charAt(xx);
+                // ' ' is outside the octagon, '~' is the main station itself.
+                if (ch == ' ' || ch == '~') continue;
+                abc[0] = xx - mid;
+                abc[1] = -course;
+                abc[2] = 0;
+                facing.getWorldOffset(abc, xyz);
+                final int x = base.getXCoord() + xyz[0];
+                final int y = base.getYCoord() + xyz[1];
+                final int z = base.getZCoord() + xyz[2];
+                if (!world.blockExists(x, y, z)) continue;
+                final Short socket = faceSocketId(ch);
+                if (socket != null) {
+                    if (faceSocketSatisfied(ch, world, x, y, z)) {
+                        // Right machine, right cell: keep it, and only make sure it looks OUT of
+                        // the wall - an inward hatch renders as the casing it was textured with.
+                        ((IGregTechTileEntity) world.getTileEntity(x, y, z)).setFrontFacing(outward);
+                        continue;
+                    }
+                    if (salvage(world, x, y, z)) salvaged++;
+                    if (placeGtMachine(world, x, y, z, socket, outward)) rewritten++;
+                    continue;
+                }
+                // Everything else in these three front rows is wall material - the tier's own
+                // casing, or 'G' where the radiation band crosses the face (and, at tiers 1-2,
+                // the two front ribs, which addRibs lays in wallChar). Anything the shape ever
+                // grows here that is NEITHER a socket nor wall is left strictly alone rather
+                // than silently re-laid as the default casing.
+                if (ch != 'G' && ch != wallChar(tier)) continue;
+                final ICasing casing = casingFor(ch);
+                if (casing.matches(world.getBlock(x, y, z), world.getBlockMetadata(x, y, z))) continue;
+                if (salvage(world, x, y, z)) salvaged++;
+                world.setBlock(x, y, z, casing.getBlock(), casing.getBlockMeta(), 3);
+                rewritten++;
+            }
+        }
+        return new int[] { tier, rewritten, salvaged };
+    }
+
+    /**
+     * Does a MACHINE stand in a silo FRONT FACE cell that the CURRENT layout wants as plain
+     * WALL? That, and nothing else, is the 0.19.0 conflict: the retired plumbing frontage put
+     * hatches where D-20 puts casing, which is why no chained element can accept a legacy face
+     * and why {@link #migrateSiloFace} exists.
+     * <p>
+     * It reads exactly the cells that command rewrites, so the diagnostic, the projector's
+     * refusal and the repair can never disagree about what is wrong. Two things hang on it:
+     * <ul>
+     * <li>B1: a creative projection lays those cells with {@code casingFor(..).asElement()},
+     * which is {@code ofBlock} - it OVERWRITES a standing machine and drops nothing. Every
+     * hatch of a legacy frontage was voided by one right-click, on the very plant the panel
+     * had just said no projection could repair.</li>
+     * <li>B2: "a silo is standing" is equally true of one halfway through being built by
+     * hand - {@link #standingSiloTier()} answers on two probe cells of nine, by design, so
+     * the first laid ring of a tier-5 shell already reads 5. A COMPLETE shell with a
+     * conflicting FACE is the legacy state; a half-built one has no machine in a wall cell at
+     * all, and must keep its platform formed and idling.</li>
+     * </ul>
+     */
+    private boolean legacyFaceConflict(int tier) {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (tier <= 0 || base == null || base.getWorld() == null) return false;
+        final World world = base.getWorld();
+        final ExtendedFacing facing = getExtendedFacing();
+        final String[][] layers = coreShape(tier);
+        final int mid = siloHOff(tier);
+        final int[] abc = new int[3];
+        final int[] xyz = new int[3];
+        for (int course = 0; course <= 2; course++) {
+            final String frontRow = layers[layers.length - 1 - course][1];
+            for (int xx = 0; xx < frontRow.length(); xx++) {
+                // ONLY wall cells: a machine in a SOCKET cell is a machine where one belongs,
+                // and ' ' / '~' are outside the octagon and the main station itself.
+                final char ch = frontRow.charAt(xx);
+                if (ch != 'G' && ch != wallChar(tier)) continue;
+                abc[0] = xx - mid;
+                abc[1] = -course;
+                abc[2] = 0;
+                facing.getWorldOffset(abc, xyz);
+                final int x = base.getXCoord() + xyz[0];
+                final int y = base.getYCoord() + xyz[1];
+                final int z = base.getZCoord() + xyz[2];
+                if (!world.blockExists(x, y, z)) continue;
+                if (world.getTileEntity(x, y, z) instanceof IGregTechTileEntity) return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * The tier to REPORT as a legacy plant - a standing shell whose face still conflicts - or
+     * 0 for every other state, a silo merely under construction included. Everything that
+     * prints {@link #siloAbsentLine} reads this, so the GUI, both control blocks, the scanner
+     * and the structure check cannot disagree about what is wrong.
+     */
+    public int legacySiloTier() {
+        final int standing = standingSiloTier();
+        return legacyFaceConflict(standing) ? standing : 0;
+    }
+
+    /** Tells whoever just right-clicked this controller why the projection wrote nothing. */
+    private void warnLegacyFace() {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base == null || base.getWorld() == null) return;
+        final EntityPlayer player = base.getWorld()
+            .getClosestPlayer(base.getXCoord() + 0.5, base.getYCoord() + 0.5, base.getZCoord() + 0.5, 16.0);
+        if (player == null) return;
+        player.addChatMessage(
+            new ChatComponentText(
+                EnumChatFormatting.RED + "Projection REFUSED"
+                    + EnumChatFormatting.RESET
+                    + " - this silo's FACE still carries the retired 0.19.0 plumbing frontage. Its hatches stand in cells this layout needs as plain wall, and building over them would DESTROY them. Stand beside the main station and run "
+                    + EnumChatFormatting.WHITE
+                    + "/btsmigrate"
+                    + EnumChatFormatting.RESET
+                    + " first: the face is rewritten in place and your old hatches drop at the wall. Nothing was placed or broken."));
+    }
+
+    /**
+     * R1-B: the reason a Cooling Tower did not form, or "" when there is nothing worth saying.
+     * <p>
+     * A tower is OPTIONAL, so "no tower here" is a choice and not a fault - reporting the
+     * walk's complaint about a platform that never had one would be pure noise. A tower that
+     * has blocks standing and still fails IS a fault, and it is the one a 0.19.0 world hits:
+     * that build's Cooling Tower controller demanded a Maintenance Hatch in the base ring, and
+     * until now the main station's ring element rejected it in complete silence.
+     */
+    private String towerFault(List<StructureError> walkErrors, String piece, int dOff) {
+        if (walkErrors.isEmpty()) return "";
+        if (!anyBlockStanding(piece, CENTER, TOWER_TOP, dOff)) return "";
+        final String reason = walkErrors.get(0)
+            .getDisplayString();
+        return reason == null || reason.isEmpty() ? "structure incomplete" : reason;
+    }
+
     @Override
     public void checkMachine(IGregTechTileEntity aBaseMetaTileEntity, ItemStack aStack, List<StructureError> errors) {
         reactorTier = 0;
-        disconnectModules();
-        plantModules.clear();
         clearHatches();
         // clearHatches() does NOT touch the exotic lists - the laser sockets would otherwise
         // accumulate a duplicate registration on every structure check.
@@ -1558,27 +2055,126 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         // old links now so a failed floor walk cannot keep stale panels reading this MTE.
         resetSiloPanel();
         resetTurbinePanel();
-        // The starter structure: the full 50x50 platform must stand (docks register modules).
+        // D-20: the three discriminated fluid lists are rebuilt by the walks of the pieces
+        // that OWN them - feedwater by the silo, coolant and propellant by the Spiral.
+        feedwaterHatches.clear();
+        propellantHatches.clear();
+        chamberHatches.clear();
+        towerNwBuilt = false;
+        towerSwBuilt = false;
+        // M6: the fault STRINGS are annotations on the two flags above and have to die with
+        // them. Clearing them further down - after the floor walk's early return - left a plant
+        // whose PLATFORM failed still asserting a reason, in absolute block coordinates, for
+        // towers this check never got as far as looking at.
+        towerNwFault = "";
+        towerSwFault = "";
+        // The starter structure: the full 50x50 platform must stand.
         if (!checkPiece(floorPieceName(mName), CENTER, 0, SILO_FRONT, errors)) return;
         // The Steam Generator silo is the first addon ON the platform - optional, largest
         // first. Failed walks register hatches as side effects, so clear between probes (the
-        // platform contributed only modules, which silo pieces never touch).
+        // bare platform registers nothing at all).
         for (int t = MAX_TIER; t >= 1; t--) {
             clearHatches();
             mCasing = 0;
             fuelSegments = 0;
             walkFuelCells.clear();
             walkPortCells.clear();
-            // The face panel's Silo Control Block registers per probe like any hatch.
+            // The face panel's Silo Control Block registers per probe like any hatch, and so
+            // does its Feedwater socket - a probe that aborts halfway must not leave a hatch
+            // of a tier that does not stand in the list the reactor draws its water from.
             resetSiloPanel();
+            feedwaterHatches.clear();
             if (checkPiece(pieceName(mName, t), siloHOff(t), siloVOff(t), siloDOff(t), null)) {
                 reactorTier = t;
                 break;
             }
         }
-        // Hatch demands only apply once the silo exists; the bare platform forms and idles.
         if (reactorTier > 0) {
             rebuildColumns();
+        } else {
+            // M1: all five probes failed, and that is TWO completely different states the plant
+            // used to report identically as "nothing built yet" - a bare shield pad, and a silo
+            // that is physically standing and does not pass. The probes above deliberately pass
+            // a NULL error list (four of the five are expected to fail on any plant), so a
+            // standing-but-failing silo reached the GUI with an EMPTY error panel, mMachine
+            // still true because structureErrors was empty, every fatal demand skipped behind
+            // `reactorTier > 0`, and one line of advice - "project it onto the shield pad" -
+            // that the projector then declined to act on, silently.
+            //
+            // So ask the WORLD which shell is on the pad and, when there is one, walk that tier
+            // AGAIN with the real error list. GT's StructureChecker halts on the first failing
+            // cell, so that is exactly ONE positioned error with coordinates - no packet flood -
+            // mMachine goes false because the plant genuinely is not formed, and the summary
+            // error below names the one thing that can fix a legacy face.
+            // B2: only a LEGACY plant earns the diagnostic. standingSiloTier() alone also
+            // answers 5 for the first ring of a tier-5 shell laid by hand, and re-walking that
+            // tier with the REAL error list un-formed the PLATFORM - which is specified to
+            // form and idle on its own - and accused the player of running 0.19.0 for the rest
+            // of their build. The FACE is what separates the two states, and legacySiloTier()
+            // is 0 for a silo that is merely under construction.
+            final int standing = legacySiloTier();
+            if (standing > 0) {
+                checkPiece(
+                    pieceName(mName, standing),
+                    siloHOff(standing),
+                    siloVOff(standing),
+                    siloDOff(standing),
+                    errors);
+                errors.add(
+                    StructureErrors.of(
+                        "beyondthestars.structure.silo.standing",
+                        TranslatableText.literal(String.valueOf(standing))));
+            }
+            // Those probes - including the diagnostic re-walk - registered hatches and counters
+            // before aborting; drop that residue so the platform-only state is canonical.
+            clearHatches();
+            mExoticDynamoHatches.clear();
+            feedwaterHatches.clear();
+            mCasing = 0;
+            fuelSegments = 0;
+            // Cascade/spine bookkeeping is meaningless without a silo; keep it canonical.
+            walkFuelCells.clear();
+            walkPortCells.clear();
+            columns.clear();
+            portCells.clear();
+            cascadeMode = false;
+            liveColumnsLastCycle = 0;
+            spineBuilt = false;
+            computeSpine();
+            spiralBuilt = false;
+            spiralInjectors.clear();
+            spineSensor = null;
+            lastGoodInjectors = 0;
+            galleryBuilt = false;
+            galleryStages = 0;
+            stageCells.clear();
+            avgRotorFactorMilli = 0;
+            resetSiloPanel();
+            resetTurbinePanel();
+        }
+        // ---------------------------------- the absorbed COOLING TOWERS (optional pieces)
+        // Detected exactly like the Spine and the Spiral: no controller, no docking - the
+        // shell stands or it does not. R1-B: it is an OPTIONAL piece, so its errors must never
+        // reach the fatal `errors` list; but they must not be thrown away either. Each walk
+        // gets its own list, and whatever it complains about becomes the reason printed beside
+        // "Cooling towers:" on every panel - a tower that fails to form now says WHY instead
+        // of just quietly not counting.
+        //
+        // M5: the tower ring TOLERATES a legacy Maintenance Hatch but never registers one, so
+        // there is nothing to mark and truncate here and - more to the point - nothing a tower
+        // can contribute to mMaintenanceHatches. See towerRingElement().
+        final List<StructureError> towerErrors = new ArrayList<>();
+        towerNwBuilt = checkPiece(towerPieceName(mName, "nw"), CENTER, TOWER_TOP, TOWER_NW_DOFF, towerErrors);
+        if (!towerNwBuilt) {
+            towerNwFault = towerFault(towerErrors, towerPieceName(mName, "nw"), TOWER_NW_DOFF);
+        }
+        towerErrors.clear();
+        towerSwBuilt = checkPiece(towerPieceName(mName, "sw"), CENTER, TOWER_TOP, TOWER_SW_DOFF, towerErrors);
+        if (!towerSwBuilt) {
+            towerSwFault = towerFault(towerErrors, towerPieceName(mName, "sw"), TOWER_SW_DOFF);
+        }
+        // Hatch demands only apply once the silo exists; a bare platform forms and idles.
+        if (reactorTier > 0) {
             // The Spine (optional): 3x3 duct with rotor sockets, leaving the silo's side.
             walkHousings.clear();
             spineBuilt = checkPiece(
@@ -1588,40 +2184,39 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 ductDOff(reactorTier),
                 null);
             computeSpine();
-            // The Spiral (optional): the chamber's hatches register here during the walk. A
-            // FAILED walk still registered Input/Maintenance hatches before aborting - mark
-            // the general lists and truncate back, keeping the silo's own hatches intact.
+            // The Spiral (optional): its injectors, Sensor, Coolant Input Hatch and bulk
+            // Propellant Input Hatch all register here during the walk (D-20). The general
+            // lists it touches - Maintenance from the floor socket, Input Hatch from the two
+            // supply sockets - are marked and truncated on a FAILED walk, so the SILO's own
+            // feedwater hatch, registered earlier, survives untouched.
             spiralInjectors.clear();
             spineSensor = null;
             chamberHatches.clear();
-            final int inputMark = mInputHatches.size();
+            propellantHatches.clear();
             final int maintMark = mMaintenanceHatches.size();
+            final int inputMark = mInputHatches.size();
             spiralBuilt = checkPiece(spiralPieceName(mName), -18, SPIRAL_HEIGHT - 1, spiralDOff(reactorTier), null);
-            if (spiralBuilt) {
-                // Everything the spiral walk added to the general input list is the CHAMBER's
-                // coolant feed - remembered so the readouts (and the debug supply) can name it
-                // apart from the silo face panel's feedwater hatches.
-                for (int i = inputMark; i < mInputHatches.size(); i++) {
-                    chamberHatches.add(mInputHatches.get(i));
-                }
-            } else {
+            if (!spiralBuilt) {
                 spiralInjectors.clear();
                 spineSensor = null;
                 lastGoodInjectors = 0;
-                while (mInputHatches.size() > inputMark) {
-                    mInputHatches.remove(mInputHatches.size() - 1);
-                }
+                chamberHatches.clear();
+                propellantHatches.clear();
                 while (mMaintenanceHatches.size() > maintMark) {
                     mMaintenanceHatches.remove(mMaintenanceHatches.size() - 1);
                 }
+                while (mInputHatches.size() > inputMark) {
+                    mInputHatches.remove(mInputHatches.size() - 1);
+                }
             }
             // The Rotor Assembly (optional): same mark-and-truncate discipline for its
-            // Dynamo/LaserSource/Maintenance registrations when the walk fails.
+            // Dynamo/Energy/LaserSource/Maintenance registrations when the walk fails.
             walkGalleryStages = 0;
             walkStageCells.clear();
             resetTurbinePanel();
             final int dynamoMark = mDynamoHatches.size();
             final int laserMark = mExoticDynamoHatches.size();
+            final int energyMark = mEnergyHatches.size();
             final int galleryMaintMark = mMaintenanceHatches.size();
             galleryBuilt = checkPiece(galleryPieceName(mName), -18, 6, galleryDOff(reactorTier), null);
             if (galleryBuilt) {
@@ -1639,46 +2234,48 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 while (mExoticDynamoHatches.size() > laserMark) {
                     mExoticDynamoHatches.remove(mExoticDynamoHatches.size() - 1);
                 }
+                while (mEnergyHatches.size() > energyMark) {
+                    mEnergyHatches.remove(mEnergyHatches.size() - 1);
+                }
                 while (mMaintenanceHatches.size() > galleryMaintMark) {
                     mMaintenanceHatches.remove(mMaintenanceHatches.size() - 1);
                 }
             }
             checkCasingMin(errors, mCasing, minCasingsFor(reactorTier));
-            checkHasEnergyHatch(errors);
+            // D-20: each demand is now checked against the piece that CARRIES that socket.
+            // Maintenance, the rod bus, the depleted bus, feedwater and the fluid output are
+            // all in the silo's own face, so they are due the moment a silo stands...
             checkHasMaintenanceHatch(errors);
             checkHasInputHatch(errors);
             checkHasOutputHatch(errors);
             // The cascade emits depleted rods as items - without a bus they would be voided.
             checkHasOutputBus(errors);
-        } else {
-            // The last failed probe registered hatches/counters before aborting its walk;
-            // drop that residue so the platform-only state is canonical. The floor's dock
-            // registrations live in plantModules, which clearHatches() never touches.
-            clearHatches();
-            mExoticDynamoHatches.clear();
-            mCasing = 0;
-            fuelSegments = 0;
-            // No maintenance hatch exists on a bare platform: keep it serviced so the base
-            // class idles into checkProcessing instead of a permanent NO_REPAIR shutdown.
+            // ...while the four Energy Hatches on the OUTPUT MANIFOLD are NOT a structure
+            // demand at all any more (R1-B / C1).
+            //
+            // WHY: this plant never draws EU. Nothing reads mEnergyHatches - onRunningTick
+            // emits through the dynamo and laser rows, every branch of checkProcessing sets
+            // lEUt to 0, and outputCeiling() is dynamos + lasers. A missing Energy Hatch
+            // therefore cannot change one number the plant produces, so making it FATAL made
+            // the structure lie about the behaviour: it un-formed a plant that was physically
+            // and functionally complete. And un-forming is not cosmetic here - it stops the
+            // campaign, which starts the twenty-minute decay-heat obligation. Charging a
+            // player twenty minutes of mandatory cooling for a hatch that does nothing is not
+            // a difficulty setting, it is a bug.
+            //
+            // It also made the build order unsurvivable. galleryBuilt flips false->true the
+            // instant the last gallery Turbine Housing is placed (the '9' element fails on air
+            // and survivalPlaceBlock SKIPs, so the projector never fills them). The demand
+            // switched on mid-step, the hatches were three steps away, and the whole plant
+            // stopped - while the panel promised readouts that could not happen yet.
+            //
+            // The manifold's empty E sockets are still reported, as a NON-FATAL note in the
+            // OUTPUT group (see energyHatchNote), so "the manifold is not finished" is still
+            // said out loud - it just no longer shuts the reactor down.
+        } else if (mMaintenanceHatches.isEmpty()) {
+            // A bare platform has no Maintenance socket at all - without this it would sit in
+            // a permanent NO_REPAIR shutdown instead of idling into checkProcessing.
             fixAllIssues();
-            // Cascade/spine bookkeeping is meaningless without a silo; keep it canonical.
-            columns.clear();
-            portCells.clear();
-            cascadeMode = false;
-            liveColumnsLastCycle = 0;
-            spineBuilt = false;
-            computeSpine();
-            spiralBuilt = false;
-            spiralInjectors.clear();
-            spineSensor = null;
-            chamberHatches.clear();
-            lastGoodInjectors = 0;
-            galleryBuilt = false;
-            galleryStages = 0;
-            stageCells.clear();
-            avgRotorFactorMilli = 0;
-            resetSiloPanel();
-            resetTurbinePanel();
         }
     }
 
@@ -1753,14 +2350,6 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         if (reactorTier <= 0 && mMaxProgresstime > 0) {
             stopMachine(ShutDownReasonRegistry.STRUCTURE_INCOMPLETE);
         }
-        // Reconnect immediately: checkMachine disconnected and rebuilt the module list, and
-        // waiting for the 20-tick docking loop would leave a running plant briefly hall-less
-        // (dumping raw steam into its own hatches on every periodic revalidation).
-        if (mMachine) {
-            for (MTEPlantModuleBase module : plantModules) {
-                module.connect(this);
-            }
-        }
     }
 
     /**
@@ -1774,80 +2363,51 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return Math.min(Math.max(buildTierSetting, 1), MAX_TIER);
     }
 
+    /**
+     * THE PROJECTOR SAFETY PROPERTY: no projection may ever target a SMALLER silo than the one
+     * standing on the pad. In strict priority order,
+     * <ol>
+     * <li>the silo the live probe just detected - a formed plant is never re-tiered;</li>
+     * <li>the silo the WORLD says is standing ({@link #standingSiloTier()}) - the repair case,
+     * and the one a live reading gets wrong: a single missing casing zeroes {@code reactorTier}
+     * while a full-size shell is physically there, which is exactly when a player projects;</li>
+     * <li>only when neither holds - a bare pad, or a silo that has actually been taken down -
+     * the trigger stack / GUI Build Tier, which is then free to choose any tier.</li>
+     * </ol>
+     * Step 2 is a MEASUREMENT, and that is what makes the property hold everywhere the old
+     * remembered field could not: {@link #construct} runs CLIENT-side for the hint path and
+     * reads the same blocks the server does, so the ghost can never be a tier smaller than the
+     * shell the player is standing in; and wrenching the controller out and back cannot re-arm
+     * anything, because there was nothing stored to lose.
+     */
+    private int buildTargetTier(ItemStack stackSize) {
+        if (reactorTier > 0) return reactorTier;
+        final int standing = standingSiloTier();
+        if (standing > 0) return standing;
+        return tierFromTrigger(stackSize);
+    }
+
     @Override
     public int survivalConstruct(ItemStack stackSize, int elementBudget, ISurvivalBuildEnvironment env) {
-        if (mMachine && reactorTier > 0) {
-            // Formed plant: platform/silo are done, but the duct, chamber and module shells
-            // are still legitimate build targets (skip floor/silo so a mismatched trigger
-            // tier can never auto-place a second silo inside the formed one).
-            final int duct = survivalBuildPiece(
-                ductPieceName(mName, reactorTier),
-                stackSize,
-                ductHOff(reactorTier),
-                2,
-                ductDOff(reactorTier),
-                elementBudget,
-                env,
-                false,
-                true);
-            if (duct >= 0) return duct;
-            final int spiral = survivalBuildPiece(
-                spiralPieceName(mName),
-                stackSize,
-                -18,
-                SPIRAL_HEIGHT - 1,
-                spiralDOff(reactorTier),
-                elementBudget,
-                env,
-                false,
-                true);
-            if (spiral >= 0) return spiral;
-            final int galleryFormed = survivalBuildPiece(
-                galleryPieceName(mName),
-                stackSize,
-                -18,
-                6,
-                galleryDOff(reactorTier),
-                elementBudget,
-                env,
-                false,
-                true);
-            if (galleryFormed >= 0) return galleryFormed;
-            final int hall = survivalBuildPiece(
-                shellPieceName(mName, "hall"),
-                stackSize,
-                -11,
-                3,
-                -13,
-                elementBudget,
-                env,
-                false,
-                true);
-            if (hall >= 0) return hall;
-            final int nw = survivalBuildPiece(
-                shellPieceName(mName, "towernw"),
-                stackSize,
-                25,
-                19,
-                17,
-                elementBudget,
-                env,
-                false,
-                true);
-            if (nw >= 0) return nw;
-            return survivalBuildPiece(
-                shellPieceName(mName, "towersw"),
-                stackSize,
-                25,
-                19,
-                -16,
-                elementBudget,
-                env,
-                false,
-                true);
-        }
-        final int t = tierFromTrigger(stackSize);
-        final int built = survivalBuildPiece(
+        // R1 FIX. `reactorTier` is written by the SILO PROBE at the top of checkMachine, which
+        // walks tiers 5..1 and records the one whose shell passes; it survives a later piece
+        // failing and therefore describes the silo that is PHYSICALLY STANDING, whether or not
+        // the plant as a whole formed. The old gate `mMachine && reactorTier > 0` threw that
+        // away: any I/O change un-forms every pre-existing plant, so mMachine went false while
+        // reactorTier was still correctly 5, the else-branch fell through to tierFromTrigger()
+        // = the GUI Build Tier (default 1), and the projection tried to raise a TIER-1 silo
+        // INSIDE the standing TIER-5 one (a T1 wall cell at octagon r=4,x=0 is platform
+        // a=21,c=21, which is open interior in a T5 silo). Trust a detected tier whenever there
+        // is one; only fall back to the Build Tier setting when NOTHING was detected.
+        final boolean siloStanding = reactorTier > 0;
+        // R1-B: a DAMAGED silo reads reactorTier 0 but must still be repaired at its own tier,
+        // so the piece is offered for building (siloStanding stays a live reading) while the
+        // TARGET comes from the memory. This is what turns the projector back into a repair
+        // tool instead of a demolition charge.
+        final int t = buildTargetTier(stackSize);
+        // The platform is the mandatory starter piece and is always a legal target: on a plant
+        // whose floor already stands this returns -1 immediately and costs nothing.
+        final int floorPart = survivalBuildPiece(
             floorPieceName(mName),
             stackSize,
             CENTER,
@@ -1857,19 +2417,21 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             env,
             false,
             true);
-        if (built >= 0) return built;
-        final int siloBuilt = survivalBuildPiece(
-            pieceName(mName, t),
-            stackSize,
-            siloHOff(t),
-            siloVOff(t),
-            siloDOff(t),
-            elementBudget,
-            env,
-            false,
-            true);
-        if (siloBuilt >= 0) return siloBuilt;
-        final int ductBuilt = survivalBuildPiece(
+        if (floorPart >= 0) return floorPart;
+        if (!siloStanding) {
+            final int siloPart = survivalBuildPiece(
+                pieceName(mName, t),
+                stackSize,
+                siloHOff(t),
+                siloVOff(t),
+                siloDOff(t),
+                elementBudget,
+                env,
+                false,
+                true);
+            if (siloPart >= 0) return siloPart;
+        }
+        final int ductPart = survivalBuildPiece(
             ductPieceName(mName, t),
             stackSize,
             ductHOff(t),
@@ -1879,8 +2441,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             env,
             false,
             true);
-        if (ductBuilt >= 0) return ductBuilt;
-        final int spiralPiece = survivalBuildPiece(
+        if (ductPart >= 0) return ductPart;
+        final int spiralPart = survivalBuildPiece(
             spiralPieceName(mName),
             stackSize,
             -18,
@@ -1890,8 +2452,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             env,
             false,
             true);
-        if (spiralPiece >= 0) return spiralPiece;
-        final int galleryPiece = survivalBuildPiece(
+        if (spiralPart >= 0) return spiralPart;
+        final int galleryPart = survivalBuildPiece(
             galleryPieceName(mName),
             stackSize,
             -18,
@@ -1901,35 +2463,26 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             env,
             false,
             true);
-        if (galleryPiece >= 0) return galleryPiece;
-        final int hallBuilt = survivalBuildPiece(
-            shellPieceName(mName, "hall"),
+        if (galleryPart >= 0) return galleryPart;
+        // R2: the tower pieces include the two Solid Steel cells per tower that the retired
+        // module controller used to stand on, so a survival projection closes that base ring.
+        final int nwPart = survivalBuildPiece(
+            towerPieceName(mName, "nw"),
             stackSize,
-            -11,
-            3,
-            -13,
+            CENTER,
+            TOWER_TOP,
+            TOWER_NW_DOFF,
             elementBudget,
             env,
             false,
             true);
-        if (hallBuilt >= 0) return hallBuilt;
-        final int nwBuilt = survivalBuildPiece(
-            shellPieceName(mName, "towernw"),
-            stackSize,
-            25,
-            19,
-            17,
-            elementBudget,
-            env,
-            false,
-            true);
-        if (nwBuilt >= 0) return nwBuilt;
+        if (nwPart >= 0) return nwPart;
         return survivalBuildPiece(
-            shellPieceName(mName, "towersw"),
+            towerPieceName(mName, "sw"),
             stackSize,
-            25,
-            19,
-            -16,
+            CENTER,
+            TOWER_TOP,
+            TOWER_SW_DOFF,
             elementBudget,
             env,
             false,
@@ -1941,17 +2494,33 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         if (!hintsOnly) {
             fittedCells.clear();
         }
-        final int t = tierFromTrigger(stackSize);
+        // M3: this runs on the CLIENT for the hint path (ConstructableUtility dispatches the
+        // non-EntityPlayerMP path there), where reactorTier is always 0 because checkMachine
+        // only ever runs server-side. buildTargetTier's second step is a world measurement, so
+        // the client reaches the same tier the server would and the ghost matches the shell the
+        // player is standing in. Drawing a Build-Tier-1 silo inside a tier-5 one - with tier-1
+        // interior cells hinted as AIR over live fuel pillars - is how a player was invited to
+        // demolish their own plant by hand.
+        final int t = buildTargetTier(stackSize);
+        // B1: the non-hint path WRITES, and a plain casing element is ofBlock - it overwrites
+        // whatever stands in its cell and drops nothing. On a legacy face that is every hatch
+        // of the retired frontage voided by one right-click, on exactly the plant the panel
+        // has just said no projection can repair. Refuse the write - the HINT path is
+        // untouched, so the ghost still draws - and name the command that does repair it.
+        // A correct or half-built plant has no machine in a wall cell and is never refused.
+        if (!hintsOnly && legacyFaceConflict(t)) {
+            warnLegacyFace();
+            return;
+        }
+        // A4: ONE projection is now literally the whole plant. Nothing is left for a second
+        // controller to build, because there is no second controller anywhere in the design.
         buildPiece(floorPieceName(mName), stackSize, hintsOnly, CENTER, 0, SILO_FRONT);
         buildPiece(pieceName(mName, t), stackSize, hintsOnly, siloHOff(t), siloVOff(t), siloDOff(t));
         buildPiece(ductPieceName(mName, t), stackSize, hintsOnly, ductHOff(t), 2, ductDOff(t));
         buildPiece(spiralPieceName(mName), stackSize, hintsOnly, -18, SPIRAL_HEIGHT - 1, spiralDOff(t));
         buildPiece(galleryPieceName(mName), stackSize, hintsOnly, -18, 6, galleryDOff(t));
-        // One projection builds the whole plant: the module building shells come too, and
-        // only the three module controllers remain to be stood on their dock markers.
-        buildPiece(shellPieceName(mName, "hall"), stackSize, hintsOnly, -11, 3, -13);
-        buildPiece(shellPieceName(mName, "towernw"), stackSize, hintsOnly, 25, 19, 17);
-        buildPiece(shellPieceName(mName, "towersw"), stackSize, hintsOnly, 25, 19, -16);
+        buildPiece(towerPieceName(mName, "nw"), stackSize, hintsOnly, CENTER, TOWER_TOP, TOWER_NW_DOFF);
+        buildPiece(towerPieceName(mName, "sw"), stackSize, hintsOnly, CENTER, TOWER_TOP, TOWER_SW_DOFF);
         if (!hintsOnly) {
             // Every wall is up now, so each auto-fitted hatch can be pointed at its exposed
             // face - dynamos and energy hatches only work through their front.
@@ -2060,6 +2629,155 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         }
     }
 
+    // ------------------------------------------------------- B1: the NEI display page's data
+    // The NEI page is DISPLAY ONLY - it never feeds checkProcessing - but every number on it
+    // is read out of the RUNTIME's own tables through these accessors, so a tuning change can
+    // never leave the page lying. Nothing below is new game data; it is the existing private
+    // state made readable.
+
+    /** Rod grades, worst first: 1..4 = Uranium, MOX, Thorium-Bonded, Naquadah-Bonded. */
+    public static final int ROD_GRADES = 4;
+
+    /** The fresh rod item of a grade (1..4). */
+    public static Item fuelRodItem(int grade) {
+        return fuelRodFor(Math.min(ROD_NAQ, Math.max(ROD_URANIUM, grade)));
+    }
+
+    /** The depleted rod a burned segment of that grade drops. */
+    public static Item depletedRodItem(int grade) {
+        return depletedRodFor(Math.min(ROD_NAQ, Math.max(ROD_URANIUM, grade)));
+    }
+
+    /** Fuel multiplier of a rod grade: Uranium x1, MOX x2, Thorium x5, Naquadah x9. */
+    public static int rodMultiplier(int grade) {
+        return ROD_MULT[Math.min(ROD_NAQ, Math.max(ROD_URANIUM, grade))];
+    }
+
+    /** Display name of a rod grade, from the same table the panels use. */
+    public static String rodGradeName(int grade) {
+        return fuelName(rodMultiplier(grade));
+    }
+
+    /** Steam basis of ONE live pillar before the fuel multiplier and the throttle. */
+    public static long steamPerPillar() {
+        return STEAM_PER_COLUMN;
+    }
+
+    /** Pillars a tier's silo can hold (tiers 1..5: 45/77/109/157/201). */
+    public static int columnCapOf(int tier) {
+        return COLUMN_CAP[Math.min(MAX_TIER, Math.max(1, tier))];
+    }
+
+    /** Rod segments in one pillar - a rod burns one segment per decay cycle. */
+    public static int segmentsPerPillar() {
+        return SEGMENTS_PER_COLUMN;
+    }
+
+    /** Length of ONE decay cycle in ticks: a campaign divided over the eight segments. */
+    public static int decayCycleTicks() {
+        return Math.max(1, Config.genICampaignMinutes * 60 * 20 / SEGMENTS_PER_COLUMN);
+    }
+
+    /** RPM added per perfectly timed cycle, before P and the timed/8 fraction. */
+    public static int rpmGain() {
+        return RPM_GAIN;
+    }
+
+    /** Ticks between two sustainable cycles (one buffered steam slug is 20 ticks of steam). */
+    public static int cycleSlugTicks() {
+        return CYCLE_SLUG_TICKS;
+    }
+
+    /** RPM retained per tick, in permille - the other half of the held-RPM equilibrium. */
+    public static int rpmDecayPermille() {
+        return RPM_DECAY_PERMILLE;
+    }
+
+    /** Propellant ladder, worst rung first, as it is offered to the injectors. */
+    public static final int PROPELLANT_RUNGS = 9;
+
+    /**
+     * One litre-stack of the ladder's rung {@code rung} (0 = Benzene .. 8 = Naquadah Propellant Lv 6
+     * - our own fluid, NOT GoodGenerator's Naquadah Fuel, which is what it is mixed FROM).
+     * The NEI page walks this and asks {@link #propellantMilliOf} for each rung's P, so the page
+     * and the running plant read the SAME table - a retuned P cannot survive in only one of them.
+     */
+    public static FluidStack propellantOfRung(int rung, int litres) {
+        switch (rung) {
+            case 0:
+                return Materials.Benzene.getFluid(litres);
+            case 1:
+                return Materials.GasolinePremium.getFluid(litres);
+            case 2:
+                return new FluidStack(GTPPFluids.H8N4C2O4RocketFuel, litres);
+            case 3:
+                return new FluidStack(BTSFluids.naqPropellantT1, litres);
+            case 4:
+                return new FluidStack(BTSFluids.naqPropellantT2, litres);
+            case 5:
+                return new FluidStack(BTSFluids.naqPropellantT3, litres);
+            case 6:
+                return new FluidStack(BTSFluids.naqPropellantT4, litres);
+            case 7:
+                return new FluidStack(BTSFluids.naqPropellantT5, litres);
+            default:
+                return new FluidStack(BTSFluids.naqPropellantT6, litres);
+        }
+    }
+
+    /** Stage factor P (x1000) of a propellant - the runtime lookup, exposed for the NEI page. */
+    public static int propellantMilli(FluidStack stack) {
+        return propellantMilliOf(stack);
+    }
+
+    /** Coolant ladder rungs, best first (index 0 = Tachyon Rich Temporal Fluid). */
+    public static int coolantRungs() {
+        return CHAMBER_COOLANT_Q.length;
+    }
+
+    /** Coolant quality Q (x1000) of a rung. */
+    public static int coolantQMilli(int rung) {
+        return CHAMBER_COOLANT_Q[Math.min(CHAMBER_COOLANT_Q.length - 1, Math.max(0, rung))];
+    }
+
+    /** Coolant fluid of a rung (the runtime ladder itself). */
+    public static FluidStack coolantOfRung(int rung, int litres) {
+        switch (rung) {
+            case 0:
+                return Materials.Time.getMolten(litres);
+            case 1:
+                return new FluidStack(TFFluids.fluidCryotheum, litres);
+            case 2:
+                return Materials.SuperCoolant.getFluid(litres);
+            case 3:
+                return GTModHandler.getIC2Coolant(litres);
+            case 4:
+                return GTModHandler.getDistilledWater(litres);
+            default:
+                return Materials.Water.getFluid(litres);
+        }
+    }
+
+    /** The chamber's per-tick heat load at a fan speed, with a residual swirl bias. */
+    public static int chamberLoadFor(int rpmMilliValue, int swirl) {
+        // B4: a STATIONARY fan is not a load. Residual swirl is turbulence a TURNING fan
+        // stirs up, so at rest there is nothing to carry away and nothing to pay for - the
+        // same ruling that says only a turning fan can seize. Charging the swirl term at
+        // RPM 0 drained the chamber's whole coolant reserve (4 L/t at |S|=4 - the four Water
+        // Buckets step 8 hands out, gone inside 50 seconds) while the player was still wiring
+        // the clock, and the fan then refused to spin for a reason nothing on the panel showed.
+        if (rpmMilliValue <= 0) return 0;
+        final double n = rpmMilliValue / 1_000_000.0;
+        // One ceiling over the WHOLE load: rounding the swirl term separately truncated an
+        // |S|=1 spine to zero, so a mistuned Spine cost neither coolant nor heat.
+        return (int) Math.ceil(200.0 * n * n + swirl * (double) swirl * SWIRL_HEAT_PER_SECOND / 20.0);
+    }
+
+    /** Litres per tick a rung must supply to carry a given load away. */
+    public static int coolantDrainFor(int load, int rung) {
+        return coolantLitresFor(load, rung);
+    }
+
     private static int firstEmpty(byte[] rods) {
         for (int i = 0; i < rods.length; i++) {
             if (rods[i] == ROD_NONE) return i;
@@ -2087,6 +2805,65 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 free = firstEmpty(rods);
             }
         }
+    }
+
+    /**
+     * A2 INTERNAL ROD DISTRIBUTION - the thing that makes the plant automatable. The
+     * controller pulls fuel rods out of the silo's own ROD INPUT BUS every decay cycle
+     * and tops the pillar reserves up ITSELF, lowest empty segment first, exactly as a Rod
+     * Loading Port would. The player never has to touch a pillar port again: 45-201 ports
+     * spread across a 17-wide octagon were the whole reason "it doesn't have a good automation
+     * flow". The ports still work for hand-feeding (see {@link #drainPorts()}); they are simply
+     * no longer REQUIRED, and the hologram no longer asks for one per pillar.
+     * <p>
+     * Best grade first, so a bus holding several fuels feeds the strongest into the cascade.
+     * Returns how many rods were distributed.
+     */
+    private int distributeRodsFromBus() {
+        if (columns.isEmpty()) return 0;
+        int placed = 0;
+        for (int type = ROD_NAQ; type >= ROD_URANIUM; type--) {
+            final ItemStack sample = new ItemStack(fuelRodFor(type), 1);
+            int available = countMatchingInputs(sample);
+            if (available <= 0) continue;
+            int used = 0;
+            for (final java.util.Map.Entry<Long, ColumnInfo> entry : columns.entrySet()) {
+                if (available <= 0) break;
+                final byte[] rods = rodsFor(entry.getKey(), entry.getValue());
+                int free = firstEmpty(rods);
+                while (free >= 0 && available > 0) {
+                    rods[free] = (byte) type;
+                    available--;
+                    used++;
+                    free = firstEmpty(rods);
+                }
+            }
+            for (int i = 0; i < used; i++) {
+                depleteInput(sample);
+            }
+            placed += used;
+        }
+        if (placed > 0) {
+            updateSlots();
+        }
+        return placed;
+    }
+
+    /** Empty pillar segments across the whole silo - the supply readout's "gaps" figure. */
+    private int pillarGaps() {
+        int gaps = 0;
+        for (final java.util.Map.Entry<Long, ColumnInfo> entry : columns.entrySet()) {
+            final byte[] rods = columnRods.get(entry.getKey());
+            final int height = entry.getValue().height;
+            if (rods == null) {
+                gaps += height;
+                continue;
+            }
+            for (final byte rod : rods) {
+                if (rod == ROD_NONE) gaps++;
+            }
+        }
+        return gaps;
     }
 
     /** Sync the pillars' fill-level metas (meta 1 = a rod occupies this segment). */
@@ -2154,6 +2931,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         // on the decay-cycle cadence so a dry spell never locks the plant into a long
         // half-output campaign, and buffered rods win back the plant the moment they land.
         drainPorts();
+        // A2: and then the rod bus does the same job for the whole silo at once.
+        distributeRodsFromBus();
         final int cap = COLUMN_CAP[Math.max(1, reactorTier)];
 
         // Candidate 1: rod cascade (peek bottom rods, nothing consumed yet).
@@ -2218,6 +2997,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             liveColumnsLastCycle = burnKeys.size();
             activeColumns = burnKeys.size();
             activeFuelMult = ROD_MULT[bestType];
+            // R7: keep the derivation's first term equal to the number the cascade actually
+            // summed. bestType is only the label ("what is the best rod in there"); the steam
+            // came from steamBase, one term per pillar.
+            fuelBaseSteam = steamBase;
+            fuelGradeMix = gradeMix(liveByType);
             steamPerTick = cascadeSteam;
             this.mOutputItems = depleted.toArray(new ItemStack[0]);
             this.mMaxProgresstime = cycleTicks;
@@ -2234,6 +3018,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             liveColumnsLastCycle = 0;
             activeColumns = fallbackColumns;
             activeFuelMult = fallbackMult;
+            // One batch is one grade, so the sum IS the product - but it is already halved.
+            fuelBaseSteam = STEAM_PER_COLUMN * fallbackColumns * fallbackMult / 2;
+            fuelGradeMix = "";
             steamPerTick = creditSteam;
             this.mOutputItems = fallbackCyclesLeft == 0 && fallbackDepleted != null
                 ? new ItemStack[] { fallbackDepleted }
@@ -2260,6 +3047,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             liveColumnsLastCycle = 0;
             activeColumns = busColumns;
             activeFuelMult = fallbackMult;
+            fuelBaseSteam = STEAM_PER_COLUMN * busColumns * fallbackMult / 2;
+            fuelGradeMix = "";
             steamPerTick = newFallbackSteam;
             this.mOutputItems = null;
             this.mMaxProgresstime = cycleTicks;
@@ -2283,7 +3072,6 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         final int flowPerTick = Math.max(1, baseFlow >> towers);
 
         startRecipeProcessing();
-        final MTEModuleTurbineHall hall = dockedTurbineHall();
         if (galleryBuilt && galleryStages > 0) {
             // TC-3 finale: FAN RPM IS THE CENTRAL VARIABLE. The produced steam feeds the
             // chain's standing buffer (redstone cycles drink it in 20-tick slugs), and
@@ -2295,7 +3083,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 // pillars, all-riding spine, redline RPM, 8 fresh rotors - peaks ~1.10B and
                 // averages ~1.05B EU/t across the decay sawtooth, landing on the settled
                 // D-01 ~1B ceiling instead of half of it.
-                final long demand = spineBoostedSteam(true) * rpmMilli / 500_000L * avgRotorFactorMilli / 1000L;
+                final long demand = euDemandOf(spineBoostedSteam(true), rpmMilli, avgRotorFactorMilli);
                 // Clamp to the SUMMED OUTPUT CEILING before emitting - GT explodes the whole
                 // multiblock when the injected EU exceeds what the fitted hatches can take -
                 // and stay under the int-overflow EU-duplication threshold. The ceiling now
@@ -2308,24 +3096,6 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 }
                 lastEUDemand = demand;
                 lastEUOutput = emitted;
-                emitWasteWater();
-            } else {
-                starveTick();
-            }
-        } else if (hall != null) {
-            // Feedwater first; starving it heats the core exactly as fluid mode.
-            if (drawFeedwater(flowPerTick)) {
-                // The Spine boosts what the hall sees: speed (throughput) x efficiency.
-                final long eu = hall.processReactorSteam(spineBoostedSteam(true), reactorTier >= MAX_TIER, baseFlow);
-                if (eu < 0) {
-                    // Hall has no fan installed: export the steam instead.
-                    addOutput(Materials.Steam.getGas(spineBoostedSteam(false)));
-                    lastEUOutput = 0;
-                } else {
-                    lastEUOutput = eu;
-                }
-                // The hall does its own dynamo clamping; never flag the chain as clamped.
-                lastEUDemand = lastEUOutput;
                 emitWasteWater();
             } else {
                 starveTick();
@@ -2344,11 +3114,28 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * feed redstone-paced cycles instead of multiplying the flow.)
      */
     private long spineBoostedSteam(boolean withEfficiency) {
-        long steam = steamPerTick * spineSpeedMilli / 1000;
-        if (withEfficiency) {
-            steam = steam * spineEffMilli / 1000;
-        }
-        return steam;
+        final long speedOnly = steamPerTick * spineSpeedMilli / 1000;
+        return withEfficiency ? speedOnly * spineEffMilli / 1000 : speedOnly;
+    }
+
+    // -------------------------------------------------- B2: the ONE arithmetic, shared
+    // The GUI's math breakdown, the control-block readouts and the generating tick all call
+    // these, so the derivation a player reads is literally the code that pays them.
+
+    /** Steam through the whole chain: campaign L/t x spine speed x spine efficiency. */
+    public static long steamAfterSpine(long steam, int speedMilli, int effMilli) {
+        return steam * speedMilli / 1000 * effMilli / 1000;
+    }
+
+    /**
+     * The plant's EU/t DEMAND before the output ceiling clamps it.
+     * <p>
+     * The RPM term is {@code rpmMilli / 500,000}, i.e. RPM/500 (x24 at the 12,000 redline) -
+     * back-solved so a fully optimized T5 lands on the settled ~1B ceiling instead of half of
+     * it. The readouts print the divisor they actually use; do not "correct" it to 1,000.
+     */
+    public static long euDemandOf(long afterSpine, int rpmMilliValue, int rotorMilli) {
+        return afterSpine * rpmMilliValue / 500_000L * rotorMilli / 1000L;
     }
 
     // ------------------------------------------------------------ manifold output ceiling
@@ -2438,20 +3225,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
     /** Coolant ladder for the chamber, best first: {quality Q x1000}. */
     private FluidStack chamberCoolantStack(int index, int litres) {
-        switch (index) {
-            case 0:
-                return Materials.Time.getMolten(litres);
-            case 1:
-                return new FluidStack(TFFluids.fluidCryotheum, litres);
-            case 2:
-                return Materials.SuperCoolant.getFluid(litres);
-            case 3:
-                return GTModHandler.getIC2Coolant(litres);
-            case 4:
-                return GTModHandler.getDistilledWater(litres);
-            default:
-                return Materials.Water.getFluid(litres);
-        }
+        return coolantOfRung(index, litres);
     }
 
     private static final int[] CHAMBER_COOLANT_Q = { 160_000, 40_000, 12_000, 4_000, 1_500, 1_000 };
@@ -2470,10 +3244,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * has always meant.
      */
     private int chamberLoad(int rpmMilliValue) {
-        final double n = rpmMilliValue / 1_000_000.0;
-        // One ceiling over the WHOLE load: rounding the swirl term separately truncated an
-        // |S|=1 spine to zero, so a mistuned Spine cost neither coolant nor heat.
-        return (int) Math.ceil(200.0 * n * n + spineSwirl * (double) spineSwirl * SWIRL_HEAT_PER_SECOND / 20.0);
+        return chamberLoadFor(rpmMilliValue, spineSwirl);
     }
 
     private static int coolantLitresFor(int load, int rung) {
@@ -2481,25 +3252,39 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     }
 
     /**
-     * Feedwater for the reactor. While the bench-supply flag is on the draw is WAIVED in
-     * code rather than by filling tanks - a filled hatch can be pumped back out, which
-     * would have made a test plant an unlimited water/coolant source.
+     * Feedwater for the reactor, drawn from the SILO's own Feedwater Input Hatch ONLY. The
+     * chamber's coolant line and the bulk propellant line land in the same
+     * {@code mInputHatches} pool, so a blanket {@code depleteInput()} would happily drink
+     * water-grade coolant out from under the chamber. While the bench-supply flag is on the
+     * draw is WAIVED in code rather than by filling tanks - a filled hatch can be pumped back
+     * out, which would have made a test plant an unlimited water/coolant source.
      */
     private boolean drawFeedwater(int litres) {
         if (debugInfiniteSupplies) return true;
-        return depleteInput(Materials.Water.getFluid(litres)) || depleteInput(GTModHandler.getDistilledWater(litres));
+        return drainFrom(feedwaterHatches, Materials.Water.getFluid(litres), false)
+            || drainFrom(feedwaterHatches, GTModHandler.getDistilledWater(litres), false);
     }
 
     /**
-     * Draws coolant from the SPIRAL CHAMBER's own input hatches only. Using the shared pool
-     * would let the silo's feedwater answer "can the chamber be cooled?" - and then be drunk
-     * as coolant, starving the reactor it was meant to feed.
+     * Draws coolant from the chamber's dedicated feed - D-20 puts that back in the Spiral's
+     * own front wall, and the semantics are the SD-3 ones exactly: a private list, so the
+     * reactor's feedwater can never answer "can the chamber be cooled?" and then be drunk as
+     * coolant, starving the reactor it was meant to feed.
      */
     private boolean drainChamber(FluidStack want, boolean simulate) {
+        return drainFrom(chamberHatches, want, simulate);
+    }
+
+    /**
+     * All-or-nothing draw across one dedicated hatch list: simulate first across the whole
+     * list, and only commit when the full amount is actually there (a partial drain would
+     * consume fluid for nothing).
+     */
+    private boolean drainFrom(List<MTEHatchInput> hatches, FluidStack want, boolean simulate) {
         if (want == null || want.getFluid() == null) return false;
-        if (chamberHatches.isEmpty()) return false;
+        if (hatches.isEmpty()) return false;
         int left = want.amount;
-        for (final MTEHatchInput hatch : GTUtility.validMTEList(chamberHatches)) {
+        for (final MTEHatchInput hatch : GTUtility.validMTEList(hatches)) {
             final FluidStack got = hatch.drain(ForgeDirection.UNKNOWN, new FluidStack(want.getFluid(), left), false);
             if (got != null) left -= got.amount;
             if (left <= 0) break;
@@ -2507,12 +3292,63 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         if (left > 0) return false;
         if (simulate) return true;
         left = want.amount;
-        for (final MTEHatchInput hatch : GTUtility.validMTEList(chamberHatches)) {
+        for (final MTEHatchInput hatch : GTUtility.validMTEList(hatches)) {
             final FluidStack got = hatch.drain(ForgeDirection.UNKNOWN, new FluidStack(want.getFluid(), left), true);
             if (got != null) left -= got.amount;
             if (left <= 0) return true;
         }
         return false;
+    }
+
+    /**
+     * A2 INTERNAL PROPELLANT DISTRIBUTION. Pulls one litre of any recognised ladder propellant
+     * out of the chamber's own Propellant Input Hatch. The unknown-fluid guard matters: an
+     * injector's
+     * reserve is set directly (never through {@code fill()}, which would stamp it as a timed
+     * injection), so anything that got in there would be treated as propellant.
+     */
+    private FluidStack drainBulkPropellant() {
+        for (final MTEHatchInput hatch : GTUtility.validMTEList(propellantHatches)) {
+            final FluidStack stored = hatch.getFluid();
+            if (stored == null || stored.getFluid() == null || stored.amount < 1) continue;
+            if (propellantMilliOf(stored) <= 1000) continue;
+            final FluidStack got = hatch.drain(ForgeDirection.UNKNOWN, new FluidStack(stored.getFluid(), 1), true);
+            if (got != null && got.amount >= 1) return new FluidStack(got.getFluid(), 1);
+        }
+        return null;
+    }
+
+    /**
+     * Tops every Precision Injector's one-litre reserve up from the chamber's bulk propellant
+     * line,
+     * un-stamped, so the controller can land a perfectly timed shot when a cycle is accepted.
+     * <p>
+     * THE TIMING RULING IS INTACT: a CYCLE still only happens on a redstone rising edge at the
+     * Turbine Control Block, and how many injectors count as TIMED is still decided per cycle -
+     * by how many of them this line managed to stock before the edge arrived. What changed is
+     * only WHO presses the eight buttons. An injector that already carries timing stamps is
+     * never touched: a player hand-timing a litre the old way still owns that injector, and the
+     * plant will not add a second stamp on top of theirs (two litres in one window is a miss).
+     */
+    private int feedInjectors() {
+        // The bench supply owns the injectors while it is on - stocking them twice would land
+        // two stamps in the same window and score every cycle as eight wasted litres.
+        if (debugInfiniteSupplies || spiralInjectors.isEmpty() || propellantHatches.isEmpty()) return 0;
+        int fed = 0;
+        for (final MTEHatchPrecisionInjector injector : spiralInjectors) {
+            if (injector == null || !injector.isValid()) continue;
+            if (injector.hasTimingStamps()) continue;
+            if (injector.storedLitres() > 0) {
+                // A litre left over from a refused or missed cycle: adopt it rather than
+                // stranding it - otherwise that injector would never fire again.
+                injector.adoptReserve();
+                continue;
+            }
+            final FluidStack drawn = drainBulkPropellant();
+            if (drawn == null) break;
+            if (injector.stockReserve(drawn)) fed++;
+        }
+        return fed;
     }
 
     /**
@@ -2565,6 +3401,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         }
         lastChamberTick = now;
 
+        // A2: the chamber's bulk propellant line refills the 8 injector reserves BEFORE the
+        // census, so "how many injectors are loaded" already reflects what the plant managed
+        // to distribute this tick.
+        feedInjectors();
+
         // Propellant census. A port is EMPTY between shots in skilled play (the litre arrives
         // inside the window), so "dry" is only declared after PROPELLANT_DRY_TICKS with
         // nothing anywhere - never from the single tick a cycle happens to be requested on.
@@ -2611,11 +3452,12 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             final long slug = CYCLE_SLUG_TICKS * steamPerTick;
             if (dry || coolantRungAvailable(projectedLoad) < 0) {
                 pendingCycle = false;
-                turbineHoldReason = dry ? "injectors are dry - no propellant to burn, so no cycle was started"
+                turbineHoldReason = dry
+                    ? "injectors are dry - fill the Spiral chamber's PROPELLANT INPUT HATCH (front wall, one course above the floor); no cycle was started"
                     : "coolant cannot cover " + String.format("%,d", projected / 1000)
                         + " RPM ("
                         + String.format("%,d", coolantLitresFor(projectedLoad, CHAMBER_COOLANT_Q.length - 1))
-                        + " L/t of water) - cycle refused, RPM held";
+                        + " L/t of water) - fill the Spiral chamber's COOLANT INPUT HATCH (front wall, one course above the floor); cycle refused, RPM held";
                 // The refused cycle never opens a window, so stamps recorded around it must
                 // not be scored as "mistimed" by whatever cycle eventually runs: drop the
                 // timing, keep the fluid.
@@ -2633,11 +3475,19 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                         spineSensor.pulse(2);
                     }
                     turbineHoldReason = "";
-                    // TEST AID: the debug supply is the perfect operator - exactly 1L per
-                    // injector, stamped inside the window it just opened.
                     if (debugInfiniteSupplies) {
+                        // TEST AID: the debug supply is the perfect operator - exactly 1L per
+                        // injector, stamped inside the window it just opened.
                         for (final MTEHatchPrecisionInjector injector : spiralInjectors) {
                             if (injector != null && injector.isValid()) injector.debugTimedShot();
+                        }
+                    } else {
+                        // A2: and in normal play the PLANT is that operator, for every reserve
+                        // the chamber's propellant line managed to stock. Injectors a player is
+                        // hand-timing are not auto-stocked and are left strictly alone, so the
+                        // two styles never double-stamp the same window.
+                        for (final MTEHatchPrecisionInjector injector : spiralInjectors) {
+                            if (injector != null && injector.isValid()) injector.autoTimedShot();
                         }
                     }
                 } else {
@@ -2681,7 +3531,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             rpmMilli = (int) ((long) rpmMilli * 95 / 100);
             turbineHoldReason = "COOLANT LOST - protective spin-down, RPM bleeding off";
         } else {
-            turbineHoldReason = "no coolant in the chamber input hatch - the turbine will not spin up";
+            turbineHoldReason = "no coolant in the Spiral chamber's Coolant Input Hatch - the turbine will not spin up";
         }
         // Only a TURNING fan generates friction heat - and only a turning fan can seize.
         // Testing the threshold at rest let a plant that was merely never plumbed destroy
@@ -2699,6 +3549,12 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * Scores one cycle's +/-2t injection windows. Timed litres burn either way; RPM is
      * gained only when the cycle had its steam slug: gain = RPM_GAIN x P x timed/8 (P =
      * the LOWEST propellant factor among timed injectors), clamped at the redline.
+     * <p>
+     * R3 / TC-3: a MISSED cycle - one the clock requested faster than the reactor could raise
+     * a slug for - burns the reserves the plant stocked for it anyway. Hand-timed litres are
+     * charged by the scoring loop below (they carry stamps); the plant's own un-stamped
+     * reserves are voided afterwards, so the same eight litres can never be re-used forever
+     * and over-clocking costs propellant exactly as it did under hand timing.
      */
     private void evaluateCycle(long cycleTick, boolean hadSteam) {
         int good = 0;
@@ -2724,6 +3580,17 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             wastedLitres += (int) outWindow;
             injector.consumeLitres((int) (inWindow + outWindow));
         }
+        // R3: the over-clock penalty. Every reserve the plant itself stocked for THIS cycle is
+        // burned even though no slug arrived - the shot was fired into an empty chamber. Runs
+        // after the scoring loop, so a hand-timed litre (already consumed above, and never
+        // auto-stocked) cannot be charged a second time.
+        int voidedLitres = 0;
+        if (!hadSteam) {
+            for (final MTEHatchPrecisionInjector injector : spiralInjectors) {
+                if (injector == null || !injector.isValid()) continue;
+                if (injector.voidAutoReserve()) voidedLitres++;
+            }
+        }
         if (wastedLitres > 0) {
             // Each wasted litre is a heat spike, capped so a dumped bucket cannot instantly
             // destroy the plant - it "only" pushes it hard toward SCRAM.
@@ -2745,9 +3612,23 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             }
         } else {
             lastCyclePropMilli = 1000;
-            turbineHoldReason = wastedLitres > 0
-                ? "last cycle: " + wastedLitres + "L mistimed - no injector landed exactly 1L in the +/-2t window"
-                : "last cycle: no propellant reached the injectors - RPM only decays";
+            if (wastedLitres > 0) {
+                turbineHoldReason = "last cycle: " + wastedLitres
+                    + "L mistimed - no injector landed exactly 1L in the +/-2t window";
+            } else if (hadSteam) {
+                // A2 made this the "the propellant line ran dry" message: with the line
+                // plumbed the plant times its own shots, so an empty window means empty ports.
+                turbineHoldReason = "last cycle: no propellant reached the injectors - fill the Spiral "
+                    + "chamber's Propellant Input Hatch; RPM only decays";
+            }
+            // No steam slug: the accept path already said so ("clock faster than the reactor").
+            // Overwriting it here with a propellant complaint sent players to the wrong hatch.
+        }
+        // R3: and say what the miss COST. The panel used to show a missed cycle as free, which
+        // is exactly the impression the reused litres gave.
+        if (!hadSteam && voidedLitres > 0) {
+            turbineHoldReason = (turbineHoldReason.isEmpty() ? "cycle missed (clock faster than the reactor)"
+                : turbineHoldReason) + " - " + voidedLitres + " L of propellant burned for nothing";
         }
     }
 
@@ -2759,9 +3640,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     private boolean debugAutoCycle;
     /**
      * TEST AID (set by /btsbuild, toggled with /btssupply, NBT-persisted): the plant's
-     * consumables are refilled every tick - feedwater in the silo's face-panel hatches, the
-     * best coolant that exists in the Spiral's own hatch, and the best propellant in all eight
-     * injectors - and each accepted cycle gets a perfectly timed 1L shot per injector. A
+     * consumables are refilled every tick - the silo's feedwater, the chamber's coolant and
+     * the best propellant in all eight injectors - and each accepted cycle gets a perfectly
+     * timed 1L shot per injector. A
      * commanded plant therefore runs indefinitely without any plumbing, while the real
      * mechanics (interlock, timing window, coolant ladder) stay exactly as ruled.
      */
@@ -2805,8 +3686,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
     /**
      * TEST AID: tops the plant's consumables back up. Feedwater (Water) goes into the silo's
-     * face-panel input hatches, the best coolant in the pack into the Spiral chamber's own
-     * hatch, and the best propellant into every Precision Injector - the injector reserve is
+     * own Feedwater hatch, the best coolant in the pack into the chamber's Coolant hatch, and
+     * the best propellant into every Precision Injector - the injector reserve is
      * set WITHOUT a timing stamp, so it never reads as a bucket dumped into a window. Returns
      * {feedwater hatches, coolant hatches, injectors}.
      */
@@ -2816,9 +3697,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         // is simply waived in code (see drainChamber / the feedwater path). Filling those
         // tanks would have made the plant an unlimited tap for the pack's best coolant,
         // since a hatch's contents can be pumped straight back out.
-        for (final MTEHatchInput hatch : GTUtility.validMTEList(mInputHatches)) {
-            if (chamberHatches.contains(hatch)) cool++;
-            else feed++;
+        for (final MTEHatchInput ignored : GTUtility.validMTEList(feedwaterHatches)) {
+            feed++;
+        }
+        for (final MTEHatchInput ignored : GTUtility.validMTEList(chamberHatches)) {
+            cool++;
         }
         // The propellant DOES need to be a real litre - the slug scorer consumes and counts
         // it - but only ever one litre per injector per cycle, which is not a useful rate.
@@ -2874,18 +3757,32 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * verification readout, so a per-tier build can be checked without opening five GUIs.
      */
     public String buildSummary() {
-        return "silo T" + (isSiloBuilt() ? reactorTier : 0)
+        return "towers " + coolingTowerCount()
+            + "/2 | silo T"
+            + (isSiloBuilt() ? reactorTier : 0)
             + " ("
             + getFuelColumns()
-            + " columns) | spine "
+            + " columns, "
+            + mInputBusses.size()
+            + " rod bus + "
+            + getFeedwaterHatchCount()
+            + " feedwater) | spine "
             + (spineBuilt ? spineHousings + " housings" : "MISSING")
             + " | spiral "
-            + (spiralBuilt ? spiralInjectors.size() + " injectors" : "MISSING")
+            + (spiralBuilt
+                ? spiralInjectors.size() + " injectors + "
+                    + getPropellantHatchCount()
+                    + " propellant + "
+                    + getChamberCoolantHatchCount()
+                    + " coolant"
+                : "MISSING")
             + " | gallery "
             + (galleryBuilt ? galleryStages + "/" + GALLERY_STAGES + " stages" : "MISSING")
             + " | "
             + mDynamoHatches.size()
             + " dynamos + "
+            + mEnergyHatches.size()
+            + " energy + "
             + mExoticDynamoHatches.size()
             + " lasers";
     }
@@ -3008,10 +3905,14 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         getBaseMetaTileEntity().disableWorking();
     }
 
-    /** Fluid-export mode: no docked Turbine Hall. */
+    /**
+     * Fluid-export mode: no Rotor Assembly yet, so the reactor sells its steam instead. Both
+     * draws come out of the silo's FEEDWATER hatch - putting IC2 Coolant in the reactor's own
+     * water line is how you ask for Hot Coolant, and the chamber's coolant is never touched.
+     */
     private void runFluidTick(int flowPerTick, int baseFlow) {
         final int coolantFlow = reactorTier >= MAX_TIER ? baseFlow * 2 : baseFlow;
-        if (depleteInput(GTModHandler.getIC2Coolant(coolantFlow))) {
+        if (drainFrom(feedwaterHatches, GTModHandler.getIC2Coolant(coolantFlow), false)) {
             addOutput(GTModHandler.getHotCoolant(coolantFlow));
             lastEUOutput = 0;
             lastEUDemand = 0;
@@ -3040,8 +3941,32 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         }
     }
 
+    /**
+     * R7: the burning grades as "32x9 + 13x1", best first - or "" while one grade covers every
+     * live pillar, which is when {@code live x fuelMult x 16,384} is the honest derivation and
+     * the panel prints the plain product.
+     */
+    private static String gradeMix(int[] liveByType) {
+        int grades = 0;
+        for (int type = 1; type < liveByType.length; type++) {
+            if (liveByType[type] > 0) grades++;
+        }
+        if (grades < 2) return "";
+        final StringBuilder mix = new StringBuilder();
+        for (int type = liveByType.length - 1; type >= 1; type--) {
+            if (liveByType[type] <= 0) continue;
+            if (mix.length() > 0) mix.append(" + ");
+            mix.append(liveByType[type])
+                .append('x')
+                .append(ROD_MULT[type]);
+        }
+        return mix.toString();
+    }
+
     private void clearCampaign() {
         steamPerTick = 0;
+        fuelBaseSteam = 0;
+        fuelGradeMix = "";
         activeColumns = 0;
         liveColumnsLastCycle = 0;
         lastEUOutput = 0;
@@ -3127,17 +4052,6 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         super.onPostTick(aBaseMetaTileEntity, aTick);
         if (!aBaseMetaTileEntity.isServerSide()) return;
 
-        // Docking authority: connect modules while the platform stands, disconnect when it breaks.
-        if (aTick % 20 == 0) {
-            if (mMachine) {
-                for (MTEPlantModuleBase module : plantModules) {
-                    module.connect(this);
-                }
-            } else {
-                disconnectModules();
-            }
-        }
-
         final boolean running = mMaxProgresstime > 0;
         if (wasRunningLastTick && !running) {
             decayHeatTicks = DECAY_HEAT_TICKS;
@@ -3147,7 +4061,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         // TC-3: the fan coasts - RPM decays 0.5% EVERY tick, running or not. No redstone
         // clock (or no plant) means it winds down to zero and the output dies with it.
         if (rpmMilli > 0) {
-            rpmMilli = (int) ((long) rpmMilli * 995 / 1000);
+            rpmMilli = (int) ((long) rpmMilli * RPM_DECAY_PERMILLE / 1000);
         }
         if (!running) {
             // A cycle request or half-scored window cannot survive a stopped campaign.
@@ -3198,9 +4112,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
         // Machine-block updates cannot propagate across the unregistered concrete platform to
         // the embedded controller, so force periodic revalidation: every 200t while a campaign
-        // runs (a torn-open silo must not keep producing), every 600t while idle (modules
-        // placed or removed on the dock markers are otherwise never noticed, and a hand-built
-        // floor would never form). Never force a walk while the footprint is partially
+        // runs (a torn-open silo must not keep producing), every 600t while idle (a Cooling
+        // Tower or a manifold hatch added far from the controller is otherwise never noticed, and a
+        // hand-built floor would never form). Never force a walk while the footprint is partially
         // unloaded - a formed machine's checker treats unloaded blocks as hard failures.
         if (aTick % 200 == 0 && (mMaxProgresstime > 0 || aTick % 600 == 0) && footprintLoaded(aBaseMetaTileEntity)) {
             onMachineBlockUpdate();
@@ -3214,9 +4128,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             if (!running) {
                 final int decayWater = Math.max(8, DECAY_WATER_PER_TICK >> towers);
                 startRecipeProcessing();
-                boolean cooled = depleteInput(Materials.Water.getFluid(decayWater))
-                    || depleteInput(GTModHandler.getDistilledWater(decayWater))
-                    || depleteInput(GTModHandler.getIC2Coolant(decayWater));
+                // Post-shutdown cooling is a REACTOR obligation, so it is paid out of the
+                // silo's feedwater line - never out of the chamber's coolant.
+                boolean cooled = drainFrom(feedwaterHatches, Materials.Water.getFluid(decayWater), false)
+                    || drainFrom(feedwaterHatches, GTModHandler.getDistilledWater(decayWater), false)
+                    || drainFrom(feedwaterHatches, GTModHandler.getIC2Coolant(decayWater), false);
                 endRecipeProcessing();
                 if (!cooled) {
                     starvedThisTick = true;
@@ -3272,6 +4188,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         super.saveNBTData(aNBT);
         aNBT.setInteger("btsHeat", heat);
         aNBT.setInteger("btsReactorTier", reactorTier);
+        // M2: there is deliberately no remembered build tier here any more. A number in tile NBT
+        // is not in ITEM NBT, so wrenching the controller out and back dropped it and re-armed
+        // the very destruction it existed to prevent; standingSiloTier() measures the shell
+        // instead and therefore has nothing to persist and nothing to lose.
         aNBT.setInteger("btsActiveColumns", activeColumns);
         aNBT.setInteger("btsThrottleN", throttleN);
         aNBT.setInteger("btsThrottleSetting", throttleSetting);
@@ -3309,6 +4229,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         }
         aNBT.setTag("btsColumnRods", rodList);
         aNBT.setLong("btsSteamPerTick", steamPerTick);
+        // R7: steamPerTick is persisted, so its derivation has to be too - otherwise the math
+        // panel prints a step 1 of zero for a whole decay cycle after every world load.
+        aNBT.setLong("btsFuelBaseSteam", fuelBaseSteam);
+        aNBT.setString("btsFuelGradeMix", fuelGradeMix);
         aNBT.setInteger("btsRpmMilli", rpmMilli);
         aNBT.setLong("btsSteamBuffer", steamBuffer);
     }
@@ -3318,6 +4242,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         super.loadNBTData(aNBT);
         heat = aNBT.getInteger("btsHeat");
         reactorTier = aNBT.getInteger("btsReactorTier");
+        // "btsLastBuiltTier" from 0.19.x is deliberately not read: an unclamped persisted tier
+        // was fed straight into pieceName(), and getStructureFor() throws NoSuchElementException
+        // for a shape name that was never registered - once per tick, from inside checkMachine.
         activeColumns = aNBT.getInteger("btsActiveColumns");
         throttleN = aNBT.getInteger("btsThrottleN");
         throttleSetting = aNBT.getInteger("btsThrottleSetting");
@@ -3348,6 +4275,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                     .clone());
         }
         steamPerTick = aNBT.getLong("btsSteamPerTick");
+        // A pre-R7 world has no stored base; 0 makes the formatters fall back to the old
+        // live x grade product, which is exactly right for the uniform load it must have been.
+        fuelBaseSteam = aNBT.getLong("btsFuelBaseSteam");
+        fuelGradeMix = aNBT.getString("btsFuelGradeMix");
         rpmMilli = Math.max(0, Math.min(RPM_REDLINE_MILLI, aNBT.getInteger("btsRpmMilli")));
         steamBuffer = Math.max(0, aNBT.getLong("btsSteamBuffer"));
     }
@@ -3465,7 +4396,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      */
     public String getTurbineHoldReason() {
         if (reactorTier <= 0 || !spiralBuilt) return "";
-        if (mMaxProgresstime <= 0) return "no campaign running - load rods (or assemblies) and enable the reactor";
+        if (mMaxProgresstime <= 0) {
+            return "no campaign running - put fuel rods in the silo's ROD INPUT BUS (front face, bottom fuel course) and enable the reactor";
+        }
         if (!galleryBuilt) return "no Rotor Assembly - cycles cannot be accepted";
         if (turbineHoldReason.isEmpty()) {
             // Nothing is wrong - but a fan that is simply never being asked to spin must say
@@ -3527,6 +4460,44 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return fuelName(activeFuelMult);
     }
 
+    /** The BEST burning grade's fuel multiplier - the label on the cascade line, not the math. */
+    public int getActiveFuelMult() {
+        return activeFuelMult;
+    }
+
+    /**
+     * R7: the pre-throttle steam the campaign was actually built on - the per-pillar sum. This
+     * is what the math panel's step 1 prints, so the printed identity holds no matter how many
+     * grades are burning at once. 0 = nothing committed yet.
+     */
+    public long getFuelBaseSteam() {
+        return fuelBaseSteam;
+    }
+
+    /** R7: "32x9 + 13x1" while several grades burn together; empty while the load is uniform. */
+    public String getFuelGradeMix() {
+        return fuelGradeMix;
+    }
+
+    /** The EFFECTIVE control-rod setting as the raw N of N/24 (a circuit may override it). */
+    public int getThrottleN() {
+        return Math.min(24, Math.max(1, throttleN));
+    }
+
+    /** Campaign steam after the Spine's speed AND efficiency - what the EU math multiplies. */
+    public long getSteamAfterSpine() {
+        return spineBoostedSteam(true);
+    }
+
+    /**
+     * The EU/t the plant is asking for RIGHT NOW, from the live RPM and rotor state, before the
+     * ceiling clamps it. {@link #getLastEUDemand} is the last GENERATING tick's figure and goes
+     * stale the moment the campaign pauses; the math panel has to keep deriving.
+     */
+    public long getLiveEUDemand() {
+        return euDemandOf(spineBoostedSteam(true), rpmMilli, avgRotorFactorMilli);
+    }
+
     public int getThrottleSetting() {
         return throttleSetting;
     }
@@ -3555,12 +4526,86 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return radiationTicks / 20;
     }
 
+    /**
+     * Legacy readout hook. The Turbine Hall module is RETIRED (A3) - the Rotor Assembly is the
+     * plant's only generator now - so nothing can ever be "installed" here again. Kept so the
+     * shared {@link #outputLine} formatter and the GUI keep their signatures.
+     */
     public boolean isTurbineInstalled() {
-        return dockedTurbineHall() != null;
+        return false;
     }
 
     public int getCoolingTowers() {
         return coolingTowerCount();
+    }
+
+    /** Fuel rods standing in the silo's Rod Input Bus, ready to be pushed into the pillars. */
+    public int getRodsQueued() {
+        if (reactorTier <= 0) return 0;
+        int queued = 0;
+        for (int type = ROD_URANIUM; type <= ROD_NAQ; type++) {
+            queued += countMatchingInputs(new ItemStack(fuelRodFor(type), 1));
+        }
+        return queued;
+    }
+
+    /** Empty pillar segments the rod bus still has to fill. */
+    public int getPillarGaps() {
+        return pillarGaps();
+    }
+
+    /** Litres standing in the Spiral chamber's bulk Propellant Input Hatch. */
+    public int getPropellantLitres() {
+        int litres = 0;
+        for (final MTEHatchInput hatch : GTUtility.validMTEList(propellantHatches)) {
+            litres += hatch.getFluidAmount();
+        }
+        return litres;
+    }
+
+    /**
+     * M8: the TC-7 interlock's own verdict on the NEXT cycle - can the chamber pay for the RPM
+     * that cycle would reach? Consumes nothing (coolantRungAvailable simulates the drain).
+     * <p>
+     * This is deliberately the interlock's question and not "is there any fluid in the hatch".
+     * The two only agree at the extremes: a hatch holding a splash of water can cool a load of
+     * 1 and still be refused for the speed the fan is about to take, and that middle state is
+     * exactly where a player sits staring at a plant that will not accelerate. Reporting the
+     * same condition the interlock refuses on is the only way the panel and the machine can
+     * never disagree.
+     */
+    public boolean isChamberCoolantReady() {
+        if (!spiralBuilt) return false;
+        return coolantRungAvailable(chamberLoad(projectedRpmMilli(Math.max(propellantMilli, lastCyclePropMilli)))) >= 0;
+    }
+
+    /**
+     * M8: TC-7's OTHER refusal - the injectors have nothing loaded and the bulk line has nothing
+     * to load them from. {@code propellantMilli} is zeroed by the injector census once the
+     * reserves have been empty for longer than a cycle span, which is the same clock the
+     * interlock's {@code dry} test runs on.
+     */
+    public boolean isInjectorsDry() {
+        if (!spiralBuilt) return false;
+        return propellantMilli <= 0 && getPropellantLitres() <= 0;
+    }
+
+    /** Litres standing in the Spiral chamber's Coolant Input Hatch. */
+    public int getChamberCoolantLitres() {
+        int litres = 0;
+        for (final MTEHatchInput hatch : GTUtility.validMTEList(chamberHatches)) {
+            litres += hatch.getFluidAmount();
+        }
+        return litres;
+    }
+
+    /** Litres standing in the silo's Feedwater Input Hatch. */
+    public int getFeedwaterLitres() {
+        int litres = 0;
+        for (final MTEHatchInput hatch : GTUtility.validMTEList(feedwaterHatches)) {
+            litres += hatch.getFluidAmount();
+        }
+        return litres;
     }
 
     public long getLastEUOutput() {
@@ -3576,24 +4621,40 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return spineBoostedSteam(false);
     }
 
+    /** Retired with the Turbine Hall module (A3); the fan items are museum pieces. */
     public int installedFanTier() {
-        final MTEModuleTurbineHall hall = dockedTurbineHall();
-        return hall == null ? 0 : hall.installedFanTier();
+        return 0;
     }
 
-    /** One-line docked-module inventory for the GUI. */
+    /**
+     * One-line inventory of the absorbed buildings for the GUI (A3: towers are pieces).
+     * <p>
+     * R1-B: a tower that has blocks standing and still refuses to form now says why, right
+     * here. It used to fail with the error list set to {@code null}, so a 0.19.0 tower whose
+     * base ring still held its Maintenance Hatch simply stopped counting - no message
+     * anywhere, and half the plant's water saving gone with it.
+     */
     public String getModulesSummary() {
-        final MTEModuleTurbineHall hall = dockedTurbineHall();
         final int towers = coolingTowerCount();
-        if (hall == null && towers == 0) return "none docked";
-        final StringBuilder sb = new StringBuilder();
-        if (hall != null) sb.append("Turbine Hall");
-        if (towers > 0) {
-            if (sb.length() > 0) sb.append(" + ");
-            sb.append("Cooling Tower x")
-                .append(towers);
+        final StringBuilder line = new StringBuilder(towers == 0 ? "no cooling towers" : "Cooling Tower x" + towers);
+        if (!towerNwFault.isEmpty()) {
+            line.append(EnumChatFormatting.YELLOW)
+                .append(" | NW tower NOT FORMED: ")
+                .append(towerNwFault)
+                .append(EnumChatFormatting.RESET);
         }
-        return sb.toString();
+        if (!towerSwFault.isEmpty()) {
+            line.append(EnumChatFormatting.YELLOW)
+                .append(" | SW tower NOT FORMED: ")
+                .append(towerSwFault)
+                .append(EnumChatFormatting.RESET);
+        }
+        return line.toString();
+    }
+
+    /** Energy Hatches fitted to the output manifold - furniture, never a running load. */
+    public int getEnergyHatchCount() {
+        return mEnergyHatches.size();
     }
 
     // ------------------------------------------------------------------ readout (shared)
@@ -3621,6 +4682,36 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 + cap
                 + EnumChatFormatting.RESET;
         return head + " · " + fuel + " · " + String.format("%,d", steam) + " L/t steam";
+    }
+
+    /**
+     * THE SUPPLY LINES, in one line: what each point-of-use socket is holding and what the
+     * plant still has to distribute from it. This is the readout that answers "why is my
+     * output low" without walking the silo - a rod queue of 0 against non-zero pillar gaps is
+     * a starved cascade, and 0 L of propellant is a fan that will not accelerate. The three
+     * figures come from three different buildings now (silo rod bus, chamber propellant,
+     * chamber coolant), which is exactly what D-20 asked for.
+     */
+    public static String supplyLine(boolean siloBuilt, int rodsQueued, int pillarGaps, int propellantLitres,
+        int coolantLitres) {
+        if (!siloBuilt) {
+            return EnumChatFormatting.RED
+                + "No Steam Generator silo - its front face is where the rod bus, feedwater and output sockets live"
+                + EnumChatFormatting.RESET;
+        }
+        final EnumChatFormatting rodColor = pillarGaps == 0 ? EnumChatFormatting.GREEN
+            : rodsQueued > 0 ? EnumChatFormatting.YELLOW : EnumChatFormatting.RED;
+        return "Supply · " + rodColor
+            + String.format("%,d", rodsQueued)
+            + " rods queued -> "
+            + String.format("%,d", pillarGaps)
+            + " pillar gaps"
+            + EnumChatFormatting.RESET
+            + " · propellant "
+            + String.format("%,d", propellantLitres)
+            + " L · coolant "
+            + String.format("%,d", coolantLitres)
+            + " L";
     }
 
     public static String heatLine(int heat, int decaySeconds, int radiationSeconds) {
@@ -3672,13 +4763,23 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             + ")";
     }
 
-    public static String coolantLine(boolean built, boolean starved, String coolant, int drain) {
+    public static String coolantLine(boolean built, boolean starved, boolean ready, String coolant, int drain) {
         if (!built) return EnumChatFormatting.GRAY + "Coolant: no chamber" + EnumChatFormatting.RESET;
         if (starved) {
-            return EnumChatFormatting.RED + "Coolant STARVED - the chamber has none of the ladder's fluids"
+            return EnumChatFormatting.RED
+                + "Coolant STARVED - the chamber's Coolant Input Hatch holds none of the ladder's fluids"
                 + EnumChatFormatting.RESET;
         }
-        return "Coolant " + coolant + " · " + String.format("%,d", drain) + " L/t";
+        if (!ready) {
+            // M8: at rest with a balanced Spine the chamber's load is 0, so the drain loop takes
+            // its `load <= 0` early return and parks this line on "idle · 0 L/t" - which reads
+            // as HEALTHY over a chamber with nothing in its hatch. Idle is not supplied, and the
+            // difference is the entire reason the fan never leaves zero.
+            return EnumChatFormatting.YELLOW
+                + "Coolant NOT SUPPLIED - the chamber's Coolant Input Hatch cannot cover the next cycle, so the interlock will refuse it"
+                + EnumChatFormatting.RESET;
+        }
+        return "Coolant " + coolant + " · " + String.format("%,d", drain) + " L/t (chamber coolant hatch)";
     }
 
     public static String rpmLine(int rpm, int cyclesPerMinute, int bufferSlugsTenths, boolean benchClock) {
@@ -3727,7 +4828,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             + String.format("%,d", emitted)
             + " EU/t"
             + EnumChatFormatting.RESET
-            + (galleryActive ? " (Rotor Assembly)" : " (Turbine Hall)")
+            + (galleryActive ? " (Rotor Assembly)" : " (legacy Turbine Hall)")
             + (clamped
                 ? EnumChatFormatting.RED + " [CLAMPED from "
                     + String.format("%,d", demand)
@@ -3745,6 +4846,22 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             + (dynamo + laser > Integer.MAX_VALUE ? " (capped at 2^31-1)" : "");
     }
 
+    /**
+     * C1: the manifold's four Energy Hatch sockets, as a NOTE and never as an error.
+     * <p>
+     * The plant does not consume EU - not idling, not starting, not running - so an empty E
+     * socket costs exactly nothing. It used to un-form the whole plant the moment the gallery
+     * housings went in, three steps before the book asks for the hatches. Saying "unfinished"
+     * is honest; stopping a running reactor over it was not.
+     */
+    public static String energyHatchNote(boolean galleryBuilt, int fitted) {
+        if (!galleryBuilt || fitted >= 4) return "";
+        return EnumChatFormatting.GRAY + "Manifold: Energy Hatches "
+            + fitted
+            + "/4 (y4, between the dynamos and the lasers) - furniture, not a load; the plant runs without them"
+            + EnumChatFormatting.RESET;
+    }
+
     public static String laserLine(int fitted, int painted) {
         if (fitted == 0) {
             return EnumChatFormatting.YELLOW + "Laser sockets EMPTY - manifold back face, upper row (4 cells)"
@@ -3759,6 +4876,354 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 + EnumChatFormatting.RESET;
         }
         return "Lasers " + fitted + "/4 fitted · " + painted + " painted";
+    }
+
+    // ------------------------------------------------------------------ B2: the math panel
+    // "Show the math like the Water Line does": four numbered lines that walk the CURRENT
+    // EU/t from the pillars to the manifold, every factor labelled with the value it has right
+    // now, plus a fifth line naming the term that is costing the most. They are static and
+    // take primitives, so the client GUI, both control blocks and the scanner print the same
+    // derivation from the same shared arithmetic (steamAfterSpine / euDemandOf).
+
+    /**
+     * R7: the campaign's PRE-THROTTLE steam, as the reactor computed it. The cascade sums one
+     * term per pillar - {@code sum(16,384 x ROD_MULT[bottom rod])} - so {@code live x best
+     * grade x 16,384} overstates every mixed load. {@code fuelBase <= 0} means "nothing
+     * committed yet, or a world saved before this fix": fall back to the plain product, which
+     * is exactly right for the uniform load such a world must have had.
+     */
+    public static long fuelBaseOf(boolean cascade, int live, int fuelMult, long fuelBase) {
+        if (fuelBase > 0) return fuelBase;
+        return (long) live * Math.max(1, fuelMult) * STEAM_PER_COLUMN / (cascade ? 1 : 2);
+    }
+
+    /**
+     * The AVERAGE burning grade behind that base, x1000 (naquadah-only = 9,000). This is the
+     * number the fuel term must be scored against: a silo running 32 naquadah pillars and 13
+     * uranium ones is at x6.69, not the x9 its best rod would claim. The fallback's /2 is
+     * divided back out - that penalty is the batch's, not the grade's.
+     */
+    public static int avgFuelMilli(boolean cascade, int live, int fuelMult, long fuelBase) {
+        if (live <= 0) return Math.max(1, fuelMult) * 1000;
+        final long base = fuelBaseOf(cascade, live, fuelMult, fuelBase);
+        return (int) Math.max(1L, base * (cascade ? 1000L : 2000L) / ((long) live * STEAM_PER_COLUMN));
+    }
+
+    /** Step 1 - the reactor: the per-pillar steam sum, then the control-rod throttle. */
+    public static String mathSteamLine(boolean cascade, int live, int fuelMult, int throttleN, long fuelBase,
+        String gradeMix, long steam) {
+        final long base = fuelBaseOf(cascade, live, fuelMult, fuelBase);
+        final boolean mixed = gradeMix != null && !gradeMix.isEmpty();
+        // Mixed load: name the average AND the census, so "why is my steam low" answers itself
+        // instead of hiding behind the best rod in the silo.
+        final String grade = mixed
+            ? "avg x" + String.format("%.2f", avgFuelMilli(cascade, live, fuelMult, fuelBase) / 1000.0)
+                + " fuel ("
+                + gradeMix
+                + ")"
+            : "x" + Math.max(1, fuelMult) + " fuel";
+        final String head = EnumChatFormatting.GRAY + "1) "
+            + EnumChatFormatting.RESET
+            + String.format("%,d", live)
+            + (cascade ? " pillars " : " assemblies /2 ")
+            + grade
+            + " x"
+            + String.format("%,d", STEAM_PER_COLUMN);
+        final String tail = EnumChatFormatting.AQUA + String.format("%,d", steam) + " L/t" + EnumChatFormatting.RESET;
+        // At full throttle the base IS the output, so printing it twice only adds noise.
+        return throttleN >= 24 ? head + " = " + tail + " (rods 24/24)"
+            : head + " = " + String.format("%,d", base) + " · rods " + throttleN + "/24 -> " + tail;
+    }
+
+    /** Step 2 - the Spine: speed carries throughput, efficiency carries EU per litre. */
+    public static String mathSpineLine(int speedMilli, int effMilli, long afterSpine) {
+        return EnumChatFormatting.GRAY + "2) "
+            + EnumChatFormatting.RESET
+            + "x"
+            + String.format("%.2f", speedMilli / 1000.0)
+            + " spine speed x"
+            + String.format("%.2f", effMilli / 1000.0)
+            + " efficiency = "
+            + EnumChatFormatting.AQUA
+            + String.format("%,d", afterSpine)
+            + " L/t"
+            + EnumChatFormatting.RESET
+            + " through the chain";
+    }
+
+    /** Step 3 - the fan: RPM/500 (x24 at the redline) and the average rotor factor. */
+    public static String mathTurbineLine(int rpm, int rotorMilli, long demand) {
+        return EnumChatFormatting.GRAY + "3) "
+            + EnumChatFormatting.RESET
+            + "x RPM "
+            + String.format("%,d", rpm)
+            + "/500 (x"
+            + String.format("%.2f", rpm / 500.0)
+            + ") x rotors x"
+            + String.format("%.2f", rotorMilli / 1000.0)
+            + " = "
+            + EnumChatFormatting.AQUA
+            + String.format("%,d", demand)
+            + " EU/t"
+            + EnumChatFormatting.RESET
+            + " demand";
+    }
+
+    /** Step 4 - the manifold: the demand clamped to what the fitted hatches can absorb. */
+    public static String mathClampLine(long demand, long ceiling) {
+        final long emitted = Math.min(demand, ceiling);
+        if (ceiling <= 0) {
+            return EnumChatFormatting.GRAY + "4) "
+                + EnumChatFormatting.YELLOW
+                + "no Dynamo or Laser Source fitted - nothing can leave"
+                + EnumChatFormatting.RESET;
+        }
+        if (demand > ceiling) {
+            return EnumChatFormatting.GRAY + "4) "
+                + EnumChatFormatting.RED
+                + "CLAMPED at ceiling "
+                + String.format("%,d", ceiling)
+                + " -> "
+                + String.format("%,d", emitted)
+                + " EU/t - fit more Lasers"
+                + EnumChatFormatting.RESET;
+        }
+        return EnumChatFormatting.GRAY + "4) "
+            + EnumChatFormatting.RESET
+            + "under ceiling "
+            + String.format("%,d", ceiling)
+            + " -> "
+            + EnumChatFormatting.GREEN
+            + String.format("%,d", emitted)
+            + " EU/t"
+            + EnumChatFormatting.RESET
+            + " out";
+    }
+
+    /**
+     * R9: the MATH group's own title. A plant with no Turbine Generator derives no EU at all,
+     * so promising "how that EU/t is derived" above a steam-export readout was the first lie
+     * on the panel.
+     * <p>
+     * R1-B (B1): the gate is {@code galleryActive} - housings AND rotors - which is what the
+     * OUTPUT group uses. On {@code galleryBuilt && galleryStages == 0}, a perfectly formable
+     * state (the 'm' dynamo, 'L' laser and '9' stage sockets all chain to plain casing when
+     * blank), the two disagreed: OUTPUT printed "Steam export N L/t (no generator)" and the
+     * MATH group directly beneath it printed the EU derivation, closing on "4) no Dynamo or
+     * Laser Source fitted - nothing can leave". Both about the same plant, in the same tick.
+     */
+    public static String mathHeader(boolean galleryActive) {
+        return header(galleryActive ? "MATH · how that EU/t is derived" : "MATH · how that steam figure is derived");
+    }
+
+    /**
+     * R9: steps 3 and 4, EXPORT variant. With no Turbine Generator there is no fan term, no
+     * rotor term and no output ceiling - the chain's steam IS the product, and it leaves on
+     * spine SPEED alone ({@code runFluidTick} exports {@code spineBoostedSteam(false)}).
+     * Printing the generator steps here told a correctly running export plant that its
+     * non-existent rotors were broken.
+     */
+    public static String mathExportLine(int speedMilli, long steamOut) {
+        return EnumChatFormatting.GRAY + "3) "
+            + EnumChatFormatting.RESET
+            + "no Turbine Generator - this is a STEAM EXPORT plant: x"
+            + String.format("%.2f", speedMilli / 1000.0)
+            + " spine speed = "
+            + EnumChatFormatting.AQUA
+            + String.format("%,d", steamOut)
+            + " L/t"
+            + EnumChatFormatting.RESET
+            + " out of the silo's Output Hatch · spine efficiency and RPM only pay once rotors turn";
+    }
+
+    /**
+     * The one line a newcomer actually needs: of every factor above, WHICH is furthest from its
+     * best value, and what to do about it. Ratios are taken against each term's own ceiling
+     * (pillar cap, naquadah rods, 24/24 rods, an all-riding spine, the redline, fresh rotors).
+     * <p>
+     * R7: the fuel term is scored on {@code fuelMilli}, the AVERAGE grade actually burning
+     * ({@link #avgFuelMilli}) - scoring the best rod in the silo hid every mixed load.
+     * <p>
+     * R9: with no Turbine Generator the fan, the rotors and the output ceiling are not terms of
+     * anything - the plant exports steam, which spine SPEED alone carries. Scoring them anyway
+     * told a healthy export plant to "seat 8 fresh Turbine Rotors" it has nowhere to put.
+     * <p>
+     * R1-B (B2): a SCORE and a FIX are different questions, and R9 answered only the first.
+     * Every optional piece scores its missing multiplier honestly - an absent Spine really does
+     * leave the plant at x1.00 of x1.55, so 64% is the right number - but the ADVICE has to
+     * name the piece that is not there instead of telling the player to wrench four housings
+     * that do not exist. Every branch below therefore takes the piece's BUILT flag: score by
+     * the number, advise by what actually stands. The gallery gate is {@code galleryActive}
+     * (housings AND rotors), the same condition the OUTPUT group and the numbered steps use, so
+     * a gallery with no rotors in it is scored as the steam-export plant it is behaving as.
+     */
+    public static String mathLimiterLine(boolean spineBuilt, int spineHousings, boolean spiralBuilt,
+        boolean galleryBuilt, boolean galleryActive, int live, int cap, int totalColumns, int fuelMilli, int throttleN,
+        int speedMilli, int effMilli, int rpm, int injectors, boolean injectorsDry, boolean coolantReady,
+        int rotorMilli, long demand, long ceiling) {
+        String worstName = "";
+        String worstFix = "";
+        int worstPermille = 1000;
+        // Pillars actually burning, against what this tier's silo can hold. The silo is the one
+        // piece that is never optional here - this line is only ever printed under one.
+        if (cap > 0) {
+            final int p = (int) Math.min(1000L, (long) live * 1000 / cap);
+            if (p < worstPermille) {
+                worstPermille = p;
+                worstName = "pillars " + String.format("%,d", live) + "/" + String.format("%,d", cap);
+                // M8 RE-AUDIT: the pillar FRAMES are optional interior ('F' takes a frame or
+                // air, and survival placement SKIPs them), so a formed silo with none in it is
+                // an ordinary state - and it scored 0% here and was told to keep a bus stocked
+                // for pillars that do not exist. Score by the number, advise by what stands.
+                worstFix = totalColumns <= 0
+                    ? "the silo is EMPTY - stack Reactor Fuel Column frames 8 high on its interior floor before feeding it"
+                    : "keep the silo's Rod Input Bus stocked";
+            }
+        }
+        // Fuel grade, against Naquadah-Bonded x9 - the AVERAGE of the pillars that are burning.
+        // M8 RE-AUDIT: only scored while something IS burning. With live 0 avgFuelMilli falls
+        // back to the LABEL grade, so a plant with no fuel at all scored 11% on a grade term
+        // over zero rods and was told to "burn a better rod grade".
+        if (live > 0) {
+            final int fuelP = (int) Math.min(1000L, (long) Math.max(1, fuelMilli) / 9);
+            if (fuelP < worstPermille) {
+                worstPermille = fuelP;
+                worstName = "fuel avg x" + String.format("%.2f", Math.max(1, fuelMilli) / 1000.0) + " of x9";
+                worstFix = "burn a better rod grade";
+            }
+        }
+        // Control rods. M8 RE-AUDIT: throttleN is the EFFECTIVE setting, and a programmed
+        // circuit in the controller slot overrides the GUI field - so the fix has to name both
+        // places it can live rather than send a circuit-driven plant to a field that does
+        // nothing. This is the one branch where naming the right control costs no new state.
+        final int throttleP = Math.min(24, Math.max(1, throttleN)) * 1000 / 24;
+        if (throttleP < worstPermille) {
+            worstPermille = throttleP;
+            worstName = "rods " + throttleN + "/24";
+            worstFix = "raise the rod throttle - the GUI field, or the programmed circuit in the controller slot if one is in it";
+        }
+        // Spine, against the x1.553 an all-riding train reaches. Efficiency is an EU-side term:
+        // an export plant is paid for SPEED only, and x1.553 is exactly what all-riding gives.
+        // computeSpine() parks BOTH multipliers at x1.00 when there is no duct, so an ABSENT
+        // spine and a badly-wrenched one score identically - only the fix can tell them apart.
+        final int spineNow = galleryActive ? speedMilli * effMilli / 1000 : speedMilli;
+        final int spineP = (int) Math.min(1000L, (long) spineNow * 1000 / 1553);
+        if (spineP < worstPermille) {
+            worstPermille = spineP;
+            if (!spineBuilt) {
+                worstName = "spine NOT BUILT (x1.00 of x1.55)";
+                worstFix = "build the Spine: the 3x3 duct off the silo's side wall, then set its 4 Turbine Housings";
+            } else if (spineHousings <= 0) {
+                // M8 RE-AUDIT: 'H' chains to plain turbine casing, so a duct with every socket
+                // blank STANDS and multiplies nothing - and was told to wrench four housings
+                // that are not in it.
+                worstName = "spine x1.00 of x1.55 - duct is EMPTY";
+                worstFix = "set the 4 Turbine Housings in the duct's bore (they alternate with the open cells)";
+            } else {
+                worstName = (galleryActive ? "spine x" : "spine speed x") + String.format("%.2f", spineNow / 1000.0)
+                    + " of x1.55";
+                worstFix = galleryActive ? "wrench the " + spineHousings + " Spine housings"
+                    : "wrench the " + spineHousings + " Spine housings to RIDE the swirl - export is paid in speed";
+            }
+        }
+        if (galleryActive) {
+            // Fan speed, against the redline. RPM is added by CYCLES, and cycles are run by the
+            // Spiral's eight injectors - with no chamber there is nothing to cycle, so "cycle
+            // faster" would be one more instruction to tune a building that is not there.
+            final int rpmP = (int) Math.min(1000L, (long) rpm * 1000 / RPM_REDLINE);
+            if (rpmP < worstPermille) {
+                worstPermille = rpmP;
+                final String rpmNow = "RPM " + String.format("%,d", rpm) + "/" + String.format("%,d", RPM_REDLINE);
+                // M8: RPM is added by CYCLES, and the TC-7 interlock refuses a cycle outright on
+                // three separate grounds before "not enough of them" is even a coherent reading.
+                // The branches follow the interlock's own precedence (`dry || cannot cool`), so
+                // the weakest-term line and the hold reason printed above it can never name two
+                // different faults for the same tick.
+                if (!spiralBuilt) {
+                    worstName = "RPM 0 - no Spiral chamber";
+                    worstFix = "build the Spiral at the end of the Spine and fit its 8 Precision Injectors";
+                } else if (injectors <= 0) {
+                    worstName = rpmNow + " - no Precision Injectors";
+                    worstFix = "fit the chamber's 8 Precision Injectors: a cycle with nothing to inject is refused, not run badly";
+                } else if (injectorsDry) {
+                    worstName = rpmNow + " - injectors dry";
+                    worstFix = "fill the Spiral chamber's PROPELLANT INPUT HATCH (front wall, one course above the floor) - every cycle is being refused";
+                } else if (!coolantReady) {
+                    worstName = rpmNow + " - chamber cannot be cooled";
+                    worstFix = "fill the Spiral chamber's COOLANT INPUT HATCH (front wall, beside the propellant) - the interlock refuses every cycle until the chamber can pay for the RPM the next one would reach";
+                } else {
+                    worstName = rpmNow;
+                    worstFix = "cycle faster / better propellant";
+                }
+            }
+            // Rotors: missing stages and wear both land in the average. Only reachable under
+            // galleryActive, which already means at least one rotor IS seated.
+            if (rotorMilli < worstPermille) {
+                worstPermille = rotorMilli;
+                worstName = "rotors x" + String.format("%.2f", rotorMilli / 1000.0);
+                worstFix = "seat 8 fresh Turbine Rotors";
+            }
+            // The clamp beats everything: EU generated and thrown away is the worst loss - and
+            // an EMPTY manifold throws away ALL of it, which the old `ceiling > 0` guard let
+            // pass in silence as though nothing were wrong.
+            if (ceiling <= 0) {
+                worstPermille = 0;
+                worstName = "output ceiling 0";
+                worstFix = "fit Dynamo or Laser Source Hatches in the manifold's back face - nothing can leave";
+            } else if (demand > ceiling) {
+                final int clampP = (int) Math.min(1000L, ceiling * 1000 / Math.max(1, demand));
+                if (clampP < worstPermille) {
+                    worstPermille = clampP;
+                    worstName = "output ceiling " + String.format("%,d", ceiling);
+                    worstFix = "fit more Laser Source Hatches";
+                }
+            }
+        }
+        if (worstName.isEmpty()) {
+            if (galleryActive) {
+                return EnumChatFormatting.GREEN + "Every term is at its ceiling - this is the plant's peak"
+                    + EnumChatFormatting.RESET;
+            }
+            // The same mistake in the all-green branch: a gallery that STANDS with no rotors in
+            // it does not need building, it needs loading.
+            return EnumChatFormatting.GREEN + "Every steam term is at its ceiling"
+                + EnumChatFormatting.RESET
+                + (galleryBuilt ? " - seat Turbine Rotors in the 8 gallery housings to turn those litres into EU"
+                    : " - build the Turbine Generator to turn those litres into EU");
+        }
+        return EnumChatFormatting.GOLD + "Weakest term: "
+            + worstName
+            + " ("
+            + worstPermille / 10
+            + "%)"
+            + EnumChatFormatting.RESET
+            + " - "
+            + worstFix;
+    }
+
+    /**
+     * M1: the REACTOR group's first line while nothing is formed - and the two states that hid
+     * behind it. "No silo yet" is a build instruction; "a silo IS standing and does not pass"
+     * is a fault, and the projector cannot fix the one it used to be offered for, because a
+     * legacy face conflicts with the current one cell for cell rather than merely missing
+     * blocks. The structure-error panel above this line now carries the coordinates; this line
+     * carries the only action that resolves them.
+     */
+    public static String siloAbsentLine(int standingTier) {
+        if (standingTier <= 0) {
+            return EnumChatFormatting.YELLOW
+                + "Steam Generator NOT BUILT - project this controller to raise it on the shield pad"
+                + EnumChatFormatting.RESET;
+        }
+        return EnumChatFormatting.RED + "Tier "
+            + standingTier
+            + " Steam Generator IS STANDING and does NOT pass its check"
+            + EnumChatFormatting.RESET
+            + " - the STRUCTURE ERRORS panel names the first wrong cell and its coordinates. If this plant was raised by 0.19.0 or earlier, its silo FACE is the retired plumbing frontage (4 Energy Hatches across the drum course, the buses out at the corners) and it conflicts with the point-of-use layout cell for cell, so no projection can repair it. Stand beside the main station and run "
+            + EnumChatFormatting.WHITE
+            + "/btsmigrate"
+            + EnumChatFormatting.RESET
+            + ": the face is rewritten in place, your old hatches drop at the wall, and the shell, the pillars and the rods are not touched.";
     }
 
     public static String debugLine(boolean benchClock, boolean infiniteSupplies) {
@@ -3778,11 +5243,13 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         final List<String> out = new ArrayList<>();
         out.add(header("REACTOR"));
         if (!isSiloBuilt()) {
-            out.add("Steam Generator NOT BUILT - project it onto the shield pad at platform centre");
-            out.add("Modules: " + getModulesSummary());
+            out.add(siloAbsentLine(legacySiloTier()));
+            out.add(supplyLine(false, 0, 0, 0, 0));
+            out.add("Cooling towers: " + getModulesSummary());
             return out;
         }
         out.add(tierLine(getReactorTier(), getEdge(), getThrottlePercent(), getModulesSummary()));
+        out.add(supplyLine(true, getRodsQueued(), pillarGaps(), getPropellantLitres(), getChamberCoolantLitres()));
         out.add(
             cascadeLine(
                 cascadeMode,
@@ -3796,7 +5263,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         out.add(header("STEAM CHAIN"));
         out.add(spineLine(spineBuilt, spinePattern, spineHousings, spineSpeedMilli, spineEffMilli, spineSwirl));
         out.add(spiralLine(spiralBuilt, spiralInjectors.size(), lastGoodInjectors, propellantName, propellantMilli));
-        out.add(coolantLine(spiralBuilt, chamberStarved, chamberCoolantName, chamberCoolantDrain));
+        out.add(
+            coolantLine(spiralBuilt, chamberStarved, isChamberCoolantReady(), chamberCoolantName, chamberCoolantDrain));
         out.add(header("TURBINE"));
         out.add(rpmLine(getRpm(), cyclesPerMinute, getSteamBufferSlugsTenths(), debugAutoCycle));
         out.add(rotorLine(galleryBuilt, galleryStages, avgRotorFactorMilli, rotorWear));
@@ -3814,7 +5282,61 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         if (galleryBuilt) {
             out.add(ceilingLine(outputCeiling(), getDynamoCapacity(), getLaserCapacity()));
             out.add(laserLine(getLaserHatchCount(), getLinkedLaserHatchCount()));
+            // C1: the manifold's empty E sockets, said out loud and costing nothing.
+            final String eNote = energyHatchNote(true, getEnergyHatchCount());
+            if (!eNote.isEmpty()) out.add(eNote);
         }
+        // B2: the derivation, in the Water Line's spirit - every factor with its current value,
+        // so "why is my number small" is answerable without opening the source.
+        // R1-B (B1): gated on isGalleryActive(), the OUTPUT group's own condition, so the two
+        // groups can never describe two different plants.
+        out.add(mathHeader(isGalleryActive()));
+        // getFuelColumns() already answers "live pillars" in cascade mode and "assemblies in
+        // the batch" in fallback - the same value the GUI syncs, so the two cannot disagree.
+        final int live = getFuelColumns();
+        final long demandNow = getLiveEUDemand();
+        final long ceilingNow = outputCeiling();
+        out.add(
+            mathSteamLine(
+                cascadeMode,
+                live,
+                activeFuelMult,
+                getThrottleN(),
+                fuelBaseSteam,
+                fuelGradeMix,
+                steamPerTick));
+        out.add(mathSpineLine(spineSpeedMilli, spineEffMilli, getSteamAfterSpine()));
+        // R9: the generator steps only exist where a generator does.
+        // R1-B (B1): "a generator does" is isGalleryActive() - a gallery whose 8 seats are all
+        // empty generates nothing and the plant is genuinely exporting steam through the silo,
+        // so it gets the export step, not steps 3 and 4 about a fan that is not turning.
+        if (isGalleryActive()) {
+            out.add(mathTurbineLine(getRpm(), avgRotorFactorMilli, demandNow));
+            out.add(mathClampLine(demandNow, ceilingNow));
+        } else {
+            out.add(mathExportLine(spineSpeedMilli, getBoostedSteamOutput()));
+        }
+        final String weakest = mathLimiterLine(
+            spineBuilt,
+            spineHousings,
+            spiralBuilt,
+            galleryBuilt,
+            isGalleryActive(),
+            live,
+            getColumnCap(),
+            getTotalColumns(),
+            avgFuelMilli(cascadeMode, live, activeFuelMult, fuelBaseSteam),
+            getThrottleN(),
+            spineSpeedMilli,
+            spineEffMilli,
+            getRpm(),
+            spiralInjectors.size(),
+            isInjectorsDry(),
+            isChamberCoolantReady(),
+            avgRotorFactorMilli,
+            demandNow,
+            ceilingNow);
+        out.add(weakest);
         if (debugAutoCycle || debugInfiniteSupplies) {
             out.add(debugLine(debugAutoCycle, debugInfiniteSupplies));
         }
@@ -3852,25 +5374,35 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         final String red = EnumChatFormatting.RED.toString();
         final String reset = EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY;
         tt.addMachineType("Nuclear Plant Foundation - Unit One main station")
-            .addInfo(aqua + "The 50x50 platform is the starter structure - every building is added onto it." + reset)
-            .addInfo("Shield pad at center = reactor site. 8 flush steel markers = module docks (keep clear).")
+            .addInfo(aqua + "ONE controller owns the WHOLE plant - there are no module controllers." + reset)
+            .addInfo("Starter structure = the 50x50 platform. Every I/O point is AT ITS POINT OF USE.")
             .addSeparator()
             .addInfo(gold + "1." + reset + " Hologram-project THIS controller: ONE projection builds it ALL -")
-            .addInfo("platform, silo (GUI Build Tier 1-5), Spine duct, and every module building shell.")
-            .addInfo(gold + "2." + reset + " Stand the 3 module controllers on the glowing markers, each")
-            .addInfo("FACING AWAY from its building - they dock; each forms once its hatches are in.")
-            .addInfo(gold + "3." + reset + " Every hatch has a DEDICATED socket cell (hologram-marked): the")
-            .addInfo("silo face panel, the Spiral's walls, the gallery. Rods in the top ports; water in.")
+            .addInfo("platform, silo (GUI Build Tier 1-5), Spine, Spiral, Turbine Generator and both")
+            .addInfo("Cooling Towers. Nothing is left for a second controller.")
+            .addInfo(gold + "2." + reset + " Plumb each building where it is FED, not on one wall:")
+            .addInfo(gray + "  SILO face:" + reset + " y2 Rod Input Bus | Depleted Output Bus (the fuel course)")
+            .addInfo(gray + "            " + reset + "y1 Feedwater | SILO CONTROL BLOCK | Output Hatch (drum course)")
+            .addInfo(gray + "            " + reset + "y0 Maintenance | MAIN STATION")
+            .addInfo(gray + "  SPIRAL:" + reset + "    front wall y1: Coolant | bulk Propellant")
+            .addInfo(gray + "  MANIFOLD:" + reset + "  back face: y3 Dynamos, y4 ENERGY, y5 Laser Sources")
+            .addInfo(gold + "3." + reset + " Everything PAST those points is DISTRIBUTED INTERNALLY: rods to all")
+            .addInfo("45-201 pillars, propellant to the 8 injectors. You never touch a pillar port")
+            .addInfo(gray + "again (they still work for hand-feeding)." + reset)
             .addSeparator()
-            .addInfo(aqua + "Fuel:" + reset + " rods cascade down the pillars - insert at the TOP ports,")
-            .addInfo("bottom rod burns each cycle, depleted rods exit the output bus.")
+            .addInfo(aqua + "Fuel:" + reset + " put rods in the SILO's ROD INPUT BUS. The controller tops the")
+            .addInfo("pillars up each cycle; rods cascade down, the bottom one burns, and depleted")
+            .addInfo("rods leave through the Depleted Output Bus beside it, on the same course.")
             .addInfo(gray + "Bus assemblies still run, at a heavy penalty." + reset)
             .addInfo(aqua + "Spine:" + reset + " optional 3x3 duct off the silo's side, 4 rotor sockets.")
             .addInfo("Right-click a housing to set spin: ride the swirl for speed, oppose it for efficiency.")
             .addInfo(aqua + "Spiral:" + reset + " optional 7x7 chamber at the duct's end. Each redstone RISING")
             .addInfo("EDGE on the Turbine Control Block runs one CYCLE: a buffered 20-tick steam slug")
-            .addInfo("+ a +/-2t window where 8 Precision Injectors each want EXACTLY 1L of propellant.")
-            .addInfo("Misses waste the litre and heat the chamber; the Sensor echoes accepted cycles.")
+            .addInfo("+ a +/-2t window where 8 Precision Injectors each fire EXACTLY 1L of propellant.")
+            .addInfo("The chamber's own PROPELLANT hatch stocks those 8 reserves and the plant times")
+            .addInfo(gray + "the shots, so how many count as TIMED is how many it kept stocked." + reset)
+            .addInfo("Hand-injecting still works and still has to hit the window; the Sensor echoes")
+            .addInfo("accepted cycles.")
             .addInfo(aqua + "RPM:" + reset + " each cycle adds 176 x P x timed/8 RPM; decay 0.5%/t; redline 12,000.")
             .addInfo("Coolant drain scales with RPM SQUARED. INTERLOCK: a cycle is only accepted while")
             .addInfo("the chamber can cool the RPM it would reach and the injectors have propellant -")
@@ -3879,48 +5411,77 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             .addInfo(aqua + "Rotor Assembly:" + reset + " optional gallery + 7x7x3 output manifold south of the")
             .addInfo("Spiral. Seat a TURBINE ROTOR in each of the 8 stage housings (right-click; wear")
             .addInfo("-5%/point, shatters at 10; sneak-click empty-handed to pull). 4 Dynamos in the")
-            .addInfo("manifold's back face take EU/t = L/t x speed x eff x (RPM/1000) x avgRotorFactor.")
+            .addInfo("manifold's back face take EU/t = L/t x speed x eff x (RPM/500) x avgRotorFactor.")
             .addInfo(aqua + "LASER OUTPUT:" + reset + " 4 more sockets sit two rows ABOVE the dynamos on the")
             .addInfo("same back face and accept TecTech LASER SOURCE HATCHES. The plant's ceiling is the")
             .addInfo("SUM of both rows, so 4 IV Dynamos alone cap a tier-5 build at 32,768 EU/t while two")
             .addInfo("ZPM 4,096A sources carry the full ~1.1B. PAINT each source and its Laser Target")
             .addInfo(gray + "Hatch the same colour, same voltage tier - a lower-tier target EXPLODES." + reset)
             .addInfo(aqua + "Control:" + reset + " rods 1-24 + Build Tier in the GUI; circuit overrides throttle.")
+            .addInfo(gray + "Build Tier only decides what to RAISE - a standing silo is never re-tiered," + reset)
+            .addInfo(gray + "even while it is broken. Take the silo down and Build Tier is free again." + reset)
             .addInfo(red + "Heat:" + reset + " SCRAM 8,000 - MELTDOWN 10,000. Decay heat needs 20 min of water.")
+            .addInfo(aqua + "THE MATH IS ON SCREEN:" + reset + " the GUI (and both control blocks) print a numbered")
+            .addInfo("derivation - pillars x fuel x 16,384 -> rods N/24 -> spine -> RPM/500 x rotors -> clamp -")
+            .addInfo("and name the WEAKEST term. NEI: look this controller up for the fuel-rod, propellant")
+            .addInfo(gray + "and coolant ladder tables (display pages - nothing there is craftable)." + reset)
             .beginStructureBlock(50, 42, 50, true)
             .addController("Main station: front line of the shield pad, at floor level (in the silo face)")
-            .addCasingInfoExactly("Light Concrete (platform)", 2243, false)
+            .addCasingInfoExactly("Light Concrete (platform)", 2251, false)
             .addCasingInfoExactly("Tungstensteel Reinforced Block (shield pad)", 249, false)
-            .addCasingInfoExactly("Solid Steel Machine Casing (flush dock markers)", 8, false)
             .addCasingInfoRange("Silo tier wall casing incl. ribs", 400, 1700, false)
-            .addCasingInfoRange("Radiation Proof Machine Casing (band rings)", 60, 150, false)
+            .addCasingInfoRange("Radiation Proof Machine Casing (bands + the 6 face sockets)", 60, 150, false)
             .addCasingInfoRange("Shield blocks (dome)", 40, 320, false)
-            .addEnergyHatch("Exactly 4 - silo face panel, the row above the main station", 1)
-            .addMaintenanceHatch("Exactly 1 - left of the main station (+1 Spiral floor, +1 manifold back)", 1, 3, 4)
-            .addInputHatch("Exactly 2 - silo face panel ends beside the main station (+1 Spiral floor)", 1, 3)
-            .addOutputHatch("Exactly 1 - right of the main station", 1)
-            .addInputBus("Exactly 1 - silo face panel, top-left corner", 1)
-            .addOutputBus("Exactly 1 - silo face panel, top-right corner", 1)
+            .addEnergyHatch("OPTIONAL, up to 4 - manifold back face y4. This plant NEVER draws EU", 4)
+            .addMaintenanceHatch(
+                "Exactly 1 - silo face beside the main station (+1 Spiral floor, +1 manifold)",
+                1,
+                3,
+                4)
+            .addInputHatch("Exactly 1 - silo face: Feedwater (+1 chamber Coolant, +1 chamber Propellant)", 1, 3)
+            .addOutputHatch("Exactly 1 - silo face, drum course, right of the Silo Control Block", 1)
+            .addInputBus("Exactly 1 - silo face, bottom fuel course: the ROD INPUT BUS", 1)
+            .addOutputBus("Exactly 1 - silo face, bottom fuel course: the DEPLETED OUTPUT BUS", 1)
             .addStructureInfo("Silo: 9-17 wide octagon, walls 2x the diameter tall, dome on top.")
             .addStructureInfo("Walls by tier: Radiation Proof -> Europium-Reinforced -> Radiant Naq Alloy.")
-            .addStructureInfo("FACE PANEL (5 wide x 3 high around the main station, all tiers): pad level")
-            .addStructureInfo("Input|Maint|STATION|Output|Input; 4 Energy sockets + the SILO CONTROL")
-            .addStructureInfo("BLOCK center above; Input Bus / Output Bus in the top corners.")
-            .addStructureInfo("Empty face-panel sockets are filled with Radiation Proof Machine Casing.")
+            .addStructureInfo("SILO FACE (point of use), reading UP from the pad, +/-1 either side of centre:")
+            .addStructureInfo("  y0  Maintenance | MAIN STATION")
+            .addStructureInfo("  y1  Feedwater IN | SILO CONTROL BLOCK | Output Hatch (waste water / steam)")
+            .addStructureInfo("  y2  Rod Input Bus | Depleted Output Bus - the course the cascade burns on")
+            .addStructureInfo("Empty face sockets are filled with Radiation Proof casing at every tier.")
             .addStructureInfo("Spiral sockets: 8 Injectors follow the helix (back/west/front/east mid-cells,")
-            .addStructureInfo("top 8 levels), Sensor in the roof front-center, Input Hatch + Maintenance in")
-            .addStructureInfo("the floor's front corners. OUTPUT MANIFOLD back face: TURBINE CONTROL BLOCK")
-            .addStructureInfo("+ 1 Maintenance below it, 4 Dynamos mid-height (y3) and 4 LASER SOURCE")
-            .addStructureInfo("sockets two rows above them (y5, same columns) - all reachable outside.")
-            .addStructureInfo("Inside: fuel pillar frames 8 high, a Rod Loading Port above each pillar.")
+            .addStructureInfo("top 8 levels), Sensor in the roof front-center, 1 Maintenance in the floor's")
+            .addStructureInfo("front-right corner, and in the FRONT WALL at y1 the chamber's own COOLANT and")
+            .addStructureInfo("bulk PROPELLANT hatches. OUTPUT MANIFOLD back face: TURBINE CONTROL BLOCK")
+            .addStructureInfo("+ 1 Maintenance below it, 4 Dynamos at y3, 4 ENERGY HATCHES at y4 and 4 LASER")
+            .addStructureInfo("SOURCE sockets at y5 (same four columns) - all reachable from outside.")
+            .addStructureInfo("Inside the silo: fuel pillar frames 8 high. Rod Loading Ports above them are")
+            .addStructureInfo("OPTIONAL - the rod bus feeds every pillar; the ports are for hand-feeding.")
             .addStructureInfo("Rod ladder: Uranium x1 - MOX x2 - Thorium-Bonded x5 - Naquadah-Bonded x9.")
             .addStructureInfo("Breaking a fueled pillar frame ejects its rods at the controller.")
             .addStructureInfo("Spine: 3x3x8 Tungstensteel Turbine Casing duct on the platform, two blocks")
             .addStructureInfo("past the silo's side wall; 4 Turbine Housings alternate with the open bore.")
             .addStructureInfo("Residual swirl is turbulence: a COOLED chamber carries it away with the coolant,")
             .addStructureInfo("a starved or missing one takes it as heat - all-riding patterns drink more.")
-            .addStructureInfo("Modules dock by standing their controller on a marker and projecting there.")
-            .addStructureInfo("No Turbine Hall: exports Steam (or Hot Coolant when fed IC2 Coolant).")
+            .addStructureInfo("COOLING TOWERS: two optional 17x17x20 Light Concrete hyperboloids on the")
+            .addStructureInfo("platform's west strip (a 0-16). Pieces of THIS controller - no module")
+            .addStructureInfo("controller, no dock. Each: water draw x0.5, heat decay x2, decay demand x0.5.")
+            .addStructureInfo("A tower raised by the RETIRED module controller needs 2 Solid Steel Machine")
+            .addStructureInfo("Casings added by hand where that controller stood; its 0.19.0 Maintenance Hatch")
+            .addStructureInfo("may stay in the base ring - the ring accepts one. A tower that has blocks up and")
+            .addStructureInfo("still will not form prints the reason beside \"Cooling towers:\" on every panel.")
+            .addStructureInfo("A tower's ring hatch is TOLERATED but never counted - the plant's 3 maintenance")
+            .addStructureInfo("sockets are the silo face, the Spiral floor and the manifold, and only those.")
+            .addStructureInfo("No Rotor Assembly: exports Steam (or Hot Coolant when fed IC2 Coolant).")
+            .addStructureInfo("The 4 ENERGY HATCHES are NOT a structure demand: the plant never consumes EU,")
+            .addStructureInfo("so a missing one is a note in the OUTPUT group and never un-forms the plant.")
+            .addStructureInfo("LEGACY PLATFORM: the 8 old steel dock markers in the floor are accepted as-is -")
+            .addStructureInfo("nothing to re-block. The projector MEASURES the standing shell, so a damaged silo")
+            .addStructureInfo("keeps its own tier and projecting REPAIRS it instead of re-tiering it.")
+            .addStructureInfo("LEGACY PLANT (0.19.0 or older): its silo FACE is the retired plumbing frontage and")
+            .addStructureInfo("conflicts with the point-of-use layout cell for cell, so it cannot form at ANY tier.")
+            .addStructureInfo("Run /btsmigrate beside the main station: the face is rewritten in place at the tier")
+            .addStructureInfo("standing, the old hatches drop as items, shell/pillars/rods are untouched.")
             .toolTipFinisher();
         return tt;
     }
@@ -3957,6 +5518,24 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             rTexture = new ITexture[] { Casings.RadiationProofMachineCasing.getCasingTexture() };
         }
         return rTexture;
+    }
+
+    /**
+     * B1 - NEI ONLY. This is the hook NEI's catalyst index reads to decide which recipe tabs a
+     * machine is the catalyst for; it is NOT the hook that makes a machine process recipes.
+     * That one is {@code getRecipeMap()}, which stays null here because the plant runs its own
+     * {@link #checkProcessing()} over rod segments and never calls findRecipe. Returning the
+     * display maps therefore only puts the controller's icon on three pages of tables (and
+     * those pages' entries are {@code .fake()} on top of that); the machine's behaviour and the
+     * hatches' filtering are completely untouched.
+     */
+    @Nonnull
+    @Override
+    public java.util.Collection<gregtech.api.recipe.RecipeMap<?>> getAvailableRecipeMaps() {
+        return Arrays.asList(
+            com.nateyburr.beyondthestars.BTSDisplayRecipes.plantFuelRods,
+            com.nateyburr.beyondthestars.BTSDisplayRecipes.plantPropellant,
+            com.nateyburr.beyondthestars.BTSDisplayRecipes.plantCoolant);
     }
 
     @Override

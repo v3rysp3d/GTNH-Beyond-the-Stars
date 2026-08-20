@@ -1,0 +1,53 @@
+{
+    "preRequisites:9":  {
+
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  0,
+                                                    "desc:8":  "§3§lOptional. Two of them, both raised by the same projection.§r\nA 17x17x20 hyperboloid shell on the platform strip to your §bLEFT§r as you stand at the front and look at the silo face - where step 3\u0027s plan view draws them. They are §bpieces of the main controller§r, not modules: no tower controller, no dock marker, and no maintenance hatch of their own.\n\n§ePER TOWER§r\n  §b736x§r Light Concrete §8(the flare)§r\n  §b52x§r Solid Steel Machine Casing §8(the base ring, now a CLOSED ring)§r\n\n§ePER STANDING TOWER§r (maximum two)\n  feedwater draw §2x0.5§r\n  passive heat decay §2x2§r\n  decay-heat demand §2x0.5§r\n\n[note]If you still own a \"Plant Module - Cooling Tower\" controller from an older version, it is a museum piece: it loads, it has no recipe, and it does nothing.[/note]\n\n[warn]MIGRATION: a tower raised by that old controller has a GAP in its base ring where the controller stood. Break the retired controller and place §b2x Solid Steel Machine Casing§r per tower - the cell it stood in, and the cell directly outward of it toward the platform edge - or the tower will never be detected.[/warn]\n\n[note]The 0.19.0 MAINTENANCE HATCH in that base ring can STAY - the ring cell TOLERATES one, so it is not a reason to take the tower apart. It is §bnot adopted§r: a tower hatch is never counted toward the plant\u0027s maintenance, which is the silo face, the Spiral floor and the manifold and nothing else. Replacing it with a Solid Steel casing is equally fine.[/note]\n\n[note]§6A tower that has blocks standing and still refuses to form says WHY, on every panel.§r The REACTOR group\u0027s tier line ends with the tower inventory - §2Cooling Tower x1§r, or §8no cooling towers§r when there are none - and a failing one appends §cNW tower NOT FORMED:§r or §cSW tower NOT FORMED:§r with the reason. §8Before a silo is built there is no tier line yet, so that same inventory gets a line of its own opening §bCooling towers:§r.§r[/note]",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  0,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "gregtech:gt.blockcasings2"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "§3§lBlueprint: Cooling Towers",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48019,
+    "rewards:9":  {
+
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "index:3":  0,
+                                 "taskID:8":  "bq_standard:checkbox"
+                             }
+                }
+}

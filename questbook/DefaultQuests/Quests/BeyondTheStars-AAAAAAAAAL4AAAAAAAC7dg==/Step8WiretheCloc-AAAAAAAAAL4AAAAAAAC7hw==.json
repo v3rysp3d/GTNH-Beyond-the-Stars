@@ -1,0 +1,94 @@
+{
+    "preRequisites:9":  {
+                            "0:10":  {
+                                         "questIDHigh:4":  190,
+                                         "questIDLow:4":  48006
+                                     }
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  1,
+                                                    "desc:8":  "§6§lNOTHING HERE RUNS ON ITS OWN CLOCK - YOU SET THE PACE§r\nA §bredstone rising edge§r on the TURBINE CONTROL BLOCK starts one CYCLE. A cycle drinks a buffered 20-tick slug of steam, opens a §b+/-2 tick window§r in which each of the eight injectors fires exactly 1 L of propellant, and adds RPM:\n\n  §bgain = 176 x P x (timed / 8)§r\n\nRPM bleeds off 0.5% every tick and the redline is §b12,000§r. §cNo clock means the RPM decays to nothing, which means no EU at all.§r\n\n§c§lAND A CYCLE IS REFUSED UNLESS THE CHAMBER IS PLUMBED§r\nThis is the step that catches people. Before a cycle is allowed to start, the plant checks two things about the Spiral chamber: that the injectors have propellant to fire, and that the §bCOOLANT§r hatch can pay for the RPM that cycle would reach. If either answers no the cycle is §cREFUSED§r - no steam drunk, no propellant burned, no heat added, and §bno RPM§r.\n\n§cSo a clock wired to a dry chamber leaves the whole plant at 0 EU/t for ever.§r It does not blow up and it does not break; it simply never spins, and the panel prints the reason on a §bHOLD:§r line. Both fluids go into the chamber\u0027s FRONT WALL, one course above the floor - §bCOOL§r at one end, §bPROP§r at the other. Step 4 put those two hatches in. §6This step is where you fill them.§r\n\n§a§lCLAIM THIS QUEST BEFORE YOU FIT ANY OF IT§r\nEvery machine named below goes INTO the plant, and this quest only reads what you are CARRYING. Hold the §bTurbine Control Block§r, the §bSpine Sensor§r and all §beight§r Precision Injectors at once, claim it, and only then start breaking casings. §8Already fitted some? Wrench them back out for a moment - the check is on your inventory, not on the building.§r\n\n§c§lFIT THE EIGHT INJECTORS FIRST§r\nThe spiral chamber has eight §bPrecision Injector§r sockets, one per interior level - world y 3 up to y 10 - each in the middle of one wall, walking round all four walls as the helix descends. The projector leaves every one of them as plain Tungstensteel Turbine Casing: break the casing and put the injector in its place.\n§8Two of them stand 7 and 8 blocks above the platform. Bring scaffolding or fly.§r\nThe §bSpine Sensor§r goes in the chamber ROOF, front-centre, facing UP.\n\n§e§lTHEN DO THIS, IN THIS ORDER§r\n§b1.§r Set the Turbine Control Block into the §boutput manifold back face§r - centre column - and put the manifold\u0027s own §bMaintenance Hatch§r into the socket directly below it. Step 9 has the map.\n§b2.§r §6COOLANT into the chamber\u0027s §bCOOL§r hatch.§r §bPlain water counts§r - it is the bottom rung of the ladder, and a fan at a few hundred RPM drinks tens of litres a tick, not thousands. Empty your four buckets into it, then run a real water line in behind them. \"The Coolant Ladder\" is open now and has the rest.\n§b3.§r §6PROPELLANT into the chamber\u0027s §bPROP§r hatch§r, at the other end of the same wall. §bBenzene§r is the honest first rung (§2P x1.25§r). The line stocks all eight injector reserves and the plant lands the timed shot for you. \"The Propellant Ladder\" is open now too.\n§b4.§r §bOnly then§r run a redstone clock into the Turbine Control Block. About §bone pulse per second§r is the sustainable rate, because that is how fast one slug of steam is produced.\n\n§8How many injectors count as TIMED is simply how many the line kept stocked when the edge arrived - a line that only keeps 5 of 8 runs at 5/8 gain. Hand injection still works, and still has to hit the window.§r\n\n§a§lDONE WHEN§r\nThe Turbine Control Block, the Spine Sensor and all §bEIGHT§r Precision Injectors are in your inventory together. §8Steps 4 and 7 paid you four injectors each - that is the eight, and they are the eight this step installs. All of it has to be on you AT ONCE: four now and four later counts as zero.§r\n§8This quest only LOOKS at what you are carrying, and it takes nothing. Hold the whole set at once, CLAIM it, and only then break the casings and set the machines into the wall. Already installed them? Wrench them back out for a moment - the check is on your inventory, not on the building.§r\n§8The four Water Buckets step 7 paid you are deliberately NOT part of this gate. You pour them away into the COOL hatch here and an emptied bucket is a different item, so a gate that asked for them could never be met by anyone who followed the instructions. Fill the hatch whenever you like; the quest cannot see it either way.§r\n\n§e§lCHECK YOUR WORK§r\nThe STEAM CHAIN group reads §2Spiral 8/8 injectors§r and its coolant line has stopped saying §cCoolant NOT SUPPLIED§r - it now names the fluid with a live L/t figure. The TURBINE group shows a rising §2RPM§r and a §2cyc/min§r figure, and the §bSpine Sensor§r pulses once per ACCEPTED cycle. Use that pulse as your confirmation.\n§8Nothing in this step stops the plant either - the reactor runs straight through it.§r\n\n[note]Pulsing faster than steam is produced misses cycles - and a missed cycle still burns the eight litres the line had stocked. If the panel prints a §bHOLD:§r line, read it: it names the exact hatch or the exact reason. The two that stop a NEW plant dead are §cinjectors are dry§r and §ccoolant cannot cover§r, and each of them names the hatch to fill and says the cycle was refused rather than run badly.[/note]",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  28109,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "gregtech:gt.blockmachines"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "§6§lStep 8 - Wire the Clock",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48007,
+    "rewards:9":  {
+                      "0:10":  {
+                                   "ignoreDisabled:1":  0,
+                                   "index:3":  0,
+                                   "rewardID:8":  "bq_standard:item",
+                                   "rewards:9":  {
+                                                     "0:10":  {
+                                                                  "Count:3":  4,
+                                                                  "Damage:2":  45,
+                                                                  "OreDict:8":  "",
+                                                                  "id:8":  "gregtech:gt.blockmachines"
+                                                              }
+                                                 }
+                               }
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "autoConsume:1":  0,
+                                 "consume:1":  0,
+                                 "groupDetect:1":  0,
+                                 "ignoreNBT:1":  1,
+                                 "index:3":  0,
+                                 "partialMatch:1":  1,
+                                 "requireOnlyOneItem:1":  0,
+                                 "requiredItems:9":  {
+                                                         "0:10":  {
+                                                                      "Count:3":  1,
+                                                                      "Damage:2":  28109,
+                                                                      "OreDict:8":  "",
+                                                                      "id:8":  "gregtech:gt.blockmachines"
+                                                                  },
+                                                         "1:10":  {
+                                                                      "Count:3":  1,
+                                                                      "Damage:2":  28107,
+                                                                      "OreDict:8":  "",
+                                                                      "id:8":  "gregtech:gt.blockmachines"
+                                                                  },
+                                                         "2:10":  {
+                                                                      "Count:3":  8,
+                                                                      "Damage:2":  28106,
+                                                                      "OreDict:8":  "",
+                                                                      "id:8":  "gregtech:gt.blockmachines"
+                                                                  }
+                                                     },
+                                 "taskID:8":  "bq_standard:retrieval"
+                             }
+                }
+}

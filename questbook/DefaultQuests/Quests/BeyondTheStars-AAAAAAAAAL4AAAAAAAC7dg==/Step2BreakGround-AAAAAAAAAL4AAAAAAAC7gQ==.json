@@ -1,0 +1,82 @@
+{
+    "preRequisites:9":  {
+                            "0:10":  {
+                                         "questIDHigh:4":  190,
+                                         "questIDLow:4":  48000
+                                     }
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  1,
+                                                    "desc:8":  "§e§lDO THIS§r\n§b1.§r Find flat ground with room. The plant is §b50 blocks square§r: the projection measures 32 blocks BEHIND the controller, 17 in FRONT and 25 to each side, and wants 20 to 40 blocks of headroom depending on tier.\n\n§b2.§r Place the Nuclear Plant Foundation. §6Whichever way you are facing when you place it is the plant\u0027s FRONT§r - the silo grows straight back from it, and every socket you will ever pipe into faces the way you are facing now.\n\n§b3.§r Open its GUI. Two small fields sit at the bottom right:\n  §bBuild Tier§r 1-5 - the silo size the projection raises. §6Start at 1.§r\n  §bControl Rods§r 1-24 - campaign power, N/24. Leave it at 24.\n\n§a§lDONE WHEN§r\nA §bHologram Projector§r is in your inventory. §8Step 1 paid you one, and nothing is taken from you. That is the whole gate: a quest can only read what you are CARRYING, never what you have built.§r\n\n§e§lCHECK YOUR WORK§r\nThe controller stands facing the way you want the plant to face, and §bBuild Tier§r is set in its GUI. Neither of those is part of the gate above - but both have to be true before step 3 projects anything, and Build Tier can never be changed once a silo stands.\n\n[warn]Choose the spot properly. Relocating a 50x50 plant later means breaking all of it. And Build Tier only decides what to RAISE: once a silo stands, the projection will never re-tier it - you would have to dismantle the silo first.[/warn]",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  0,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "structurelib:item.structurelib.constructableTrigger"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "§6§lStep 2 - Break Ground",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48001,
+    "rewards:9":  {
+                      "0:10":  {
+                                   "ignoreDisabled:1":  0,
+                                   "index:3":  0,
+                                   "rewardID:8":  "bq_standard:item",
+                                   "rewards:9":  {
+                                                     "0:10":  {
+                                                                  "Count:3":  64,
+                                                                  "Damage:2":  8,
+                                                                  "OreDict:8":  "",
+                                                                  "id:8":  "gregtech:gt.blockconcretes"
+                                                              }
+                                                 }
+                               }
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "autoConsume:1":  0,
+                                 "consume:1":  0,
+                                 "groupDetect:1":  0,
+                                 "ignoreNBT:1":  1,
+                                 "index:3":  0,
+                                 "partialMatch:1":  1,
+                                 "requireOnlyOneItem:1":  0,
+                                 "requiredItems:9":  {
+                                                         "0:10":  {
+                                                                      "Count:3":  1,
+                                                                      "Damage:2":  0,
+                                                                      "OreDict:8":  "",
+                                                                      "id:8":  "structurelib:item.structurelib.constructableTrigger"
+                                                                  }
+                                                     },
+                                 "taskID:8":  "bq_standard:retrieval"
+                             }
+                }
+}

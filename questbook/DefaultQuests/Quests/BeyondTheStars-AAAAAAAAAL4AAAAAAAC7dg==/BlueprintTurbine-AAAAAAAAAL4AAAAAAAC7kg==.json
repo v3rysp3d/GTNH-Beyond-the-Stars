@@ -1,0 +1,53 @@
+{
+    "preRequisites:9":  {
+
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  0,
+                                                    "desc:8":  "§3§lThe rotor gallery and its output manifold, down the platform strip to your RIGHT as you stand at the front and look at the silo face - the opposite side from the cooling towers. Same bill at every tier.§r\n\n  §b408x§r Tungstensteel Turbine Casing\n  §b8x§r Turbine Housing, on the gallery\u0027s centreline §8(the projector places none of them)§r\n  §b8x§r Turbine Rotor - one per housing §8(wear parts: -5% per damage point, shatters at 10)§r\n  §b4x§r Dynamo Hatch (IV), manifold back face, y3\n  §b4x§r Energy Hatch (IV), same face, one course above the dynamos §8(OPTIONAL)§r\n  §b4x§r Laser Source Hatch, same face, one course above those\n  §b1x§r Turbine Control Block, centre column\n  §b1x§r Maintenance Hatch, directly below it\n\nFeed the Turbine Control Block a redstone clock or the RPM decays to nothing.\n\n§cThe four Energy Hatches are OPTIONAL - not a load, and not a structure demand either.§r Unit One never consumes EU; it only ever emits. Leave all four sockets empty for ever if you like: the piece still forms, the plant still runs, and the only consequence is one grey line in the OUTPUT group counting the empty ones.\n\n[img height=400]btsquests:textures/gui/manifold-face.png[/img]",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  0,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "beyondthestars:turbineHousing"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "§3§lBlueprint: Turbine Generator",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48018,
+    "rewards:9":  {
+
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "index:3":  0,
+                                 "taskID:8":  "bq_standard:checkbox"
+                             }
+                }
+}
