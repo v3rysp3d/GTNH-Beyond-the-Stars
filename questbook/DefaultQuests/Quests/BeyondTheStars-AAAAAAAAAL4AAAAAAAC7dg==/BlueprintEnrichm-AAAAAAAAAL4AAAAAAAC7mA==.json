@@ -1,0 +1,53 @@
+{
+    "preRequisites:9":  {
+
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  0,
+                                                    "desc:8":  "§3§lOptional module. The other half of the fuel cycle: it turns the ore into pellets.§r\nA 5x15x6 process shed running down the platform\u0027s FRONT edge, to the left of the silo face.\n\n§eBILL§r\n  §b291x§r Clean Stainless Steel Machine Casing\n  §b13x§r Steel Pipe Casing\n  §b1x§r Input Bus §8(uraninite)§r, §b1x§r Input Hatch §8(Hydrofluoric Acid)§r, §b1x§r Output Bus §8(pellets)§r\n  §8307 blocks. All three sockets sit in the same wall, one course up.§r\n\n§eWHAT IT PRODUCES§r\nEvery §b600 powered ticks§r (30 seconds):\n  §28x Uraninite Dust + 2,000 L Hydrofluoric Acid  -\u003e  20x Fuel Pellet + 2x Thorium Dust§r\nDraws §b480 EU/t§r while it runs - the standalone Enrichment Train\u0027s rate, unchanged.\n\n§c§lIT NEEDS POWER TOO, THROUGH THE SAME FOUR SOCKETS§r\n§bPowered§r ticks again: the Annex takes its 480 EU/t out of the §boutput manifold\u0027s ENERGY HATCHES§r - the four §bE§r sockets one course above the dynamos, from step 9 - and not out of the reactor. Fit at least one §bEnergy Hatch (IV)§r there and run a live cable into it, or this shed forms perfectly and then never starts a batch.\n§8Derrick and Annex together are 2,400 EU/t, which a single IV Energy Hatch carries on its own. Starved, the panel prints §cAnnex: UNDER-POWERED - it draws 480 EU/t and the manifold\u0027s Energy Hatches hold§r§8 and then what they actually hold. Nothing is being drawn while it says that - an under-fed module banks the trickle instead of burning it, and simply advances slowly.§r\n\n[note]§6Derrick + Annex + one external centrifuge = a plant that very nearly fuels itself.§r The Derrick digs the uraninite, the Annex enriches it, the centrifuge closes the loop.[/note]\n\n[note]These three sockets belong to the Annex alone. The rod cascade can never eat the uraninite you stock here, and nothing the silo demands can reach this acid.[/note]\n\n[warn]The feedstock is committed at the START of a batch. If the product bus cannot take the finished load - full, or item-locked - the batch stalls and says so rather than voiding what it already took.[/warn]\n\n[note]Site: §ba 17-21, c 0-14§r, ground to 5 up.[/note]",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  1,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "gregtech:gt.blockcasings4"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "§3§lBlueprint: Enrichment Annex",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48024,
+    "rewards:9":  {
+
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "index:3":  0,
+                                 "taskID:8":  "bq_standard:checkbox"
+                             }
+                }
+}

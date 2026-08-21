@@ -18,8 +18,9 @@ the overlay.
 /btsquests install    # puts them there
 ```
 
-`/btsquests install` adds only our chapter (`190/47990`), our 20 quests
-(`190/48000`–`190/48019`) and the `Unit One` entry quest (`190/48020`) to the world's live
+`/btsquests install` adds only our chapter (`190/47990`), our 25 quests
+(`190/48000`–`190/48019` and `190/48021`–`190/48025`) and the `Unit One` entry quest
+(`190/48020`) to the world's live
 database, snapshotting and restoring player progress around the write, then broadcasts a
 resync so open books redraw. No pack quest is read, written or reordered — the only change
 to a pack chapter is the extra `Unit One` icon in *How to Generate Power*. Re-running it is
@@ -48,8 +49,8 @@ keeps no compile-time or runtime dependency on BetterQuesting — see
 
 ## What the overlay is
 
-A BetterQuesting quest line ("Beyond the Stars", **20 quests**) in GTNH 2.9.0's split
-DefaultQuests format, laid out as four rows:
+A BetterQuesting quest line ("Beyond the Stars", **25 quests**) in GTNH 2.9.0's split
+DefaultQuests format, laid out as five rows:
 
 **Rows 1–2 — THE PATH (10 small guided steps, `y=0` left→right, `y=52` right→left, so the
 chapter reads as one continuous line).** Each step says exactly what to do and what "done"
@@ -107,16 +108,32 @@ stay retrievals. Water buckets are the one gate item that cannot be wrenched bac
 machine it went into, so step 8 says *claim before you pour* rather than relying on
 `HOLD → CLAIM → INSTALL` alone.
 
-**Row 3 — MASTERY (`y=112`):** Break the Clamp (laser output), Spin Doctrine *(checkbox)* and
-Written in Fire (SCRAM / meltdown / decay heat / seizure) sit behind step 10. **The Propellant
+**Row 3 — MASTERY (`y=112`):** Break the Clamp (laser output), Spin Doctrine *(checkbox)*,
+Written in Fire (SCRAM / meltdown / decay heat / seizure) and **The 100M Wall** *(checkbox,
+`x=240`)* sit behind step 10. The 100M Wall is the Switchyard's place on the main path: it
+names the `100,000,000 EU/t` grid soft cap, shows the panel text that announces it
+(`[GRID-CAPPED from N - no Switchyard]`), carries the yard's derived bill, and says plainly
+that fitting more Dynamo or Laser hatches will not move it because the cap is applied AFTER
+the hatch ceiling. It is deliberately on the mastery row and not in the blueprints: a player
+past 100M EU/t is losing most of their output and must not have to go looking for that. **The Propellant
 Ladder *(checkbox)* and The Coolant Ladder sit behind step 7** — one step before the clock,
 because step 8 cannot spin the fan until both chamber hatches are fed, and a ladder the player
 cannot open while they need it is not depth, it is a dead end (see *Coolant is on the path*).
 
-**Row 4 — BLUEPRINTS (`y=164`, `countAsQuest 0`, checkbox tasks, no prerequisites):** bills
-of materials for The Platform, Steam Generator, Spine + Spiral, Turbine Generator, Cooling
-Towers. **Every count in them is derived by `gen-bom.ps1` from the structure shape code at
-generation time — none of those numbers is typed by hand.**
+**Row 4 — PLANT BLUEPRINTS (`y=164`, `countAsQuest 0`, checkbox tasks, no prerequisites):**
+bills of materials for The Platform, Steam Generator, Spine + Spiral, Turbine Generator,
+Cooling Towers.
+
+**Row 5 — MODULE BLUEPRINTS (`y=216`, same shape):** Vent Stack, Switchyard, Extraction
+Derrick, Enrichment Annex — the four D-17 plant modules, one page each, with footprint,
+derived bill, effect and failure mode. They were a single cramped section inside *Blueprint:
+Cooling Towers* until the id budget was widened past the entry quest; that page now just
+points at this row.
+
+**Every count in both blueprint rows is derived by `gen-bom.ps1` from the structure shape
+code at generation time — none of those numbers is typed by hand.** The module pages go
+through `BomReq` rather than `Bom`, which throws on an item name the bill has never heard of
+instead of quietly rendering `0x`.
 
 The generator also emits ONE entry quest ("Unit One", ID `190/48020`) into the pack's own
 "How to Generate Power" chapter (`QuestLines/HowtoGeneratePow-…/` + `Quests/HowtoGeneratePow-…/`):
@@ -151,9 +168,18 @@ its check"*, with coordinates in the STRUCTURE ERRORS panel) and the fix is one 
 `/btsmigrate`, run beside the controller.
 
 That is documented in **`Blueprint: Steam Generator`**, and deliberately there: the blueprint
-row has **no prerequisites and `countAsQuest 0`**, so it is the only part of the chapter a
-legacy owner with no quest progress can open. `Blueprint: Cooling Towers` carries the tower
+rows have **no prerequisites and `countAsQuest 0`**, so they are the only part of the chapter
+a legacy owner with no quest progress can open. `Blueprint: Cooling Towers` carries the tower
 half of the same migration.
+
+**The four D-17 PLANT MODULES now have a blueprint each** — `Blueprint: Vent Stack`,
+`Blueprint: Switchyard`, `Blueprint: Extraction Derrick`, `Blueprint: Enrichment Annex`, on
+a second blueprint row — rather than being crammed into the Cooling Towers page for want of
+quest ids. `Blueprint: Cooling Towers` now just points at them.
+
+The Switchyard also gets **`The 100M Wall`** on the mastery row, prerequisite `Step 10`,
+because a player past `100,000,000 EU/t` is hard-capped until that building stands and that
+is not a fact to leave buried in an optional blueprint.
 
 ### Formatting and diagrams
 
@@ -204,9 +230,11 @@ relative left, so "west strip" is only true for a plant whose controller happens
 north — and by that convention `a 0..16` is the EAST side, the opposite of what the phrase
 says. The quests describe the two strips the way the plan view draws them and the way a
 player standing at the front sees them: **cooling towers on your LEFT, rotor gallery on your
-RIGHT**. (`MTEReactorCoreMk1`'s structure-info tooltip still says "platform's west strip
-(a 0-16)"; the `a` range is authoritative there and the compass word is not.) They are
-generated by
+RIGHT**. (D-21 brought `MTEReactorCoreMk1`'s structure-info tooltip into line — it said
+"platform's west strip (a 0-16)" and now says "the platform strip to your LEFT as you face
+the silo (a 0-16)" — and renamed the two towers' fault messages from `NW`/`SW` to
+`FRONT-LEFT`/`BACK-LEFT` for the same reason. The chapter and the mod now use one
+vocabulary.) They are generated by
 `gen-diagrams.ps1` into `resources/btsquests/textures/gui/`
 and merge into `config/betterquesting/resources/`, which BetterQuesting registers as a folder
 resource pack (`betterquesting.misc.QuestResourcesFolder`, added to Minecraft's
@@ -223,11 +251,13 @@ the first time, because the domain list is rebuilt on reload.
 | chapter "Beyond the Stars" | `190 / 47990` | `AAAAAAAAAL4AAAAAAAC7dg==` |
 | Step 1 … Blueprint: Cooling Towers | `190 / 48000` … `190 / 48019` | `…AAC7gA==` … `…AAC7kw==` |
 | entry quest "Unit One" (in *How to Generate Power*, `0/9`) | `190 / 48020` | `AAAAAAAAAL4AAAAAAAC7lA==` |
+| Blueprint: Vent Stack … The 100M Wall | `190 / 48021` … `190 / 48025` | `…AAC7lQ==` … `…AAC7mQ==` |
 | its prerequisite, the pack's "Standard Nuclear Fuel: Uranium" | `0 / 191` | — |
 
 Chapter order: 48000–48009 the ten path steps · 48010 Break the Clamp · 48011 Spin Doctrine ·
 48012 The Propellant Ladder · 48013 The Coolant Ladder · 48014 Written in Fire · 48015–48019
-the five Blueprints.
+the five plant Blueprints · **48020 is the entry quest and is SKIPPED** · 48021–48024 the four
+module Blueprints · 48025 The 100M Wall.
 
 Quest IDs use `questIDHigh = 190` — the pack's own quests all use high 0, so the
 overlay can NEVER collide with GTNH quest IDs and survives pack updates by rebase:
@@ -239,10 +269,29 @@ That high word is also what makes `/btsquests install` safe: it is the whole tes
 `java.util.UUID` BetterQuesting keys its databases with (`new UUID(190, 48020)`), and the
 base64 in each file name is those 16 bytes, high word first.
 
-**The low budget is 48000–48019 and the generator enforces it.** 48020 belongs to the entry
-quest in the pack chapter and must not move: a world that already ran `/btsquests install`
-holds it under that id. `gen-questbook.ps1` throws if the chapter grows past 48019, and
-`BQBridge.LAST_QUEST_LOW` mirrors it.
+**48020 is reserved and the generator steps over it.** It belongs to the entry quest in the
+pack chapter and must not move: a world that already ran `/btsquests install` holds it under
+that id. `gen-questbook.ps1` hands out lows in `$quests` array order, skips 48020, resumes at
+48021, and throws if any quest is ever handed 48020 or if two quests share a low.
+
+**Consequence: a new quest may only ever be APPENDED to `$quests`.** Lows are positional, so
+inserting a quest in the middle renumbers every quest after it and orphans the progress each
+installed world has already recorded against those ids. The 20 quests that existed before the
+module blueprints still hold exactly `48000`–`48019`, which is what makes this expansion safe.
+
+**`/btsquests status` counts a declared LIST, not a range.** `BQBridge.CHAPTER_QUEST_LOWS`
+holds all 25 lows (`48000`–`48019` plus `48021`–`48025`; `48020` is the pack-line entry
+quest and is checked separately as `ENTRY_QUEST_UUID`). It used to be a `FIRST_QUEST_LOW` /
+`LAST_QUEST_LOW` pair reading `48000..48019`; when the five new quests were appended the pair
+was not widened, so `status` looked for 20 ids, found all 20 and reported *"Everything is
+loaded"* while five blueprints were missing from the book. A range could never describe this
+chapter anyway – `48020` is a hole in the middle of it by design.
+
+`gen-questbook.ps1` reads that array back out of `BQBridge.java` and **throws** if it does not
+match the ids it just handed out, so appending a quest to `$quests` without adding its low to
+the Java fails the questbook build rather than shipping a status command that lies. The
+command also names what it could not find, so `20/25` is followed by
+`missing 190/48021, 48022, ...`.
 
 **The entry quest's file stem is pinned to `UnitOne`.** Our own chapter folder is
 clean-replaced on every merge, so a renamed quest there simply loses its stale file — but the
@@ -285,8 +334,9 @@ For reference, a healthy 2.9.0-beta-1 `HowtoGeneratePow-…` holds **169** place
    heavier vanilla fallback.
 
 Verify the merge landed by running `/btsquests` in any world: it prints whether
-`190/47990`, `190/48000-48019` and `190/48020` are in that world's live database, and
-where it is reading `DefaultQuests` from.
+`190/47990`, all 25 chapter quests (`190/48000-48019, 48021-48025`) and the entry quest
+`190/48020` are in that world's live database, where it is reading `DefaultQuests` from, and
+– when anything is short – exactly which ids are missing.
 
 ## Editing
 
@@ -318,8 +368,10 @@ so a stale texture can never contradict the book.
 
 ### Bills of materials are derived, not typed
 
-`gen-bom.ps1` re-implements every structure shape function of `MTEReactorCoreMk1` (plus the
-borrowed `MTEModuleCoolingTower.towerShape`), tallies each cell through the element table
+`gen-bom.ps1` re-implements every structure shape function of `MTEReactorCoreMk1` — the four
+plant-module shapes (`ventShape`, `switchyardShape`, `derrickShape`, `annexShape`) included,
+each with its own `Assert-Source` literal — plus the borrowed
+`MTEModuleCoolingTower.towerShape`, tallies each cell through the element table
 transcribed from `getStructureDefinition()`, and cross-checks itself (fuel-column cells vs
 `COLUMN_CAP` x 8 segments, rod-port cells vs the pillar cap, the shield pad vs the octagon
 formula). `gen-questbook.ps1` dot-sources it and interpolates the results into the five

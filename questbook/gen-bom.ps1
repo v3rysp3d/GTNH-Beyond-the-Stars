@@ -17,7 +17,8 @@
 #
 # ---------------------------------------------------------------------------------
 # HOW IT WORKS. Every shape function of MTEReactorCoreMk1 (floorShape, coreShape,
-# ductShape, spiralShape, galleryShape) and the borrowed MTEModuleCoolingTower.towerShape
+# ductShape, spiralShape, galleryShape, ventShape, switchyardShape, derrickShape,
+# annexShape) and the borrowed MTEModuleCoolingTower.towerShape
 # is re-implemented below in the SAME index order the Java uses:
 # layers[b][c-row][a-char], layer 0 = top. Each cell's char is then looked up in the
 # structure definition's element table (ELEMENT_ITEM below, transcribed from
@@ -51,7 +52,13 @@ $MANIFOLD_START = 15
 $SEGMENTS_PER_PILLAR = 8
 $TOWER_HEIGHT = 20
 $TOWER_EDGE = 17
-$TOWER_COUNT = 2         # the controller raises a nw and a sw tower
+$TOWER_COUNT = 2         # the controller raises a front and a back tower
+# D-17 / D-22 plant modules. Site rectangles are platform coordinates; the shape ports
+# below re-implement ventShape/switchyardShape/derrickShape/annexShape cell for cell.
+$VENT_SIZE = 7;    $VENT_HEIGHT = 20
+$YARD_WIDTH = 21;  $YARD_DEPTH = 6;    $YARD_HEIGHT = 6
+$DERRICK_SIZE = 7; $DERRICK_HEIGHT = 20
+$ANNEX_WIDTH = 5;  $ANNEX_LENGTH = 15; $ANNEX_HEIGHT = 6
 
 # ------------------------------------------------------- drift guard against the Java
 # Each entry: a human name, the file, and a literal the port depends on. A missing
@@ -96,11 +103,24 @@ function Assert-Source {
         @{ N = 'manifold dynamo row m'; T = $core; S = 'if (y == 3 && c == GALLERY_LENGTH - 1 && (a == 1 || a == 2 || a == 4 || a == 5)) {' },
         @{ N = 'manifold laser row L'; T = $core; S = 'if (y == 5 && c == GALLERY_LENGTH - 1 && (a == 1 || a == 2 || a == 4 || a == 5)) {' },
         @{ N = 'tower remap NS~ -> ORR'; T = $core; S = '"NS~", "ORR"' },
-        @{ N = 'tower piece nw'; T = $core; S = 'towerPieceName(mName, "nw")' },
-        @{ N = 'tower piece sw'; T = $core; S = 'towerPieceName(mName, "sw")' },
+        @{ N = 'tower piece front'; T = $core; S = 'towerPieceName(mName, "front")' },
+        @{ N = 'tower piece back'; T = $core; S = 'towerPieceName(mName, "back")' },
         @{ N = 'tower HEIGHT = 20'; T = $tower; S = 'private static final int HEIGHT = 20;' },
         @{ N = 'tower EDGE = 17'; T = $tower; S = 'private static final int EDGE = 17;' },
-        @{ N = 'tower profile'; T = $tower; S = 'final double rBase = 7.5, rWaist = 4.6, rTop = 5.6, waistT = 0.62;' }
+        @{ N = 'tower profile'; T = $tower; S = 'final double rBase = 7.5, rWaist = 4.6, rTop = 5.6, waistT = 0.62;' },
+        @{ N = 'vent stack site'; T = $core; S = 'private static final int VENT_A0 = 2, VENT_C0 = 21, VENT_SIZE = 7, VENT_HEIGHT = 20;' },
+        @{ N = 'switchyard site'; T = $core; S = 'private static final int YARD_A0 = 20, YARD_C0 = 44, YARD_WIDTH = 21, YARD_DEPTH = 6, YARD_HEIGHT = 6;' },
+        @{ N = 'derrick site'; T = $core; S = 'private static final int DERRICK_A0 = 33, DERRICK_C0 = 4, DERRICK_SIZE = 7, DERRICK_HEIGHT = 20;' },
+        @{ N = 'annex site'; T = $core; S = 'private static final int ANNEX_A0 = 17, ANNEX_C0 = 0, ANNEX_WIDTH = 5, ANNEX_LENGTH = 15, ANNEX_HEIGHT = 6;' },
+        @{ N = 'vent flue ring'; T = $core; S = "if (c != 3 || a != 3) setCell(rows, c, a, 'W');" },
+        @{ N = 'switchyard transformer banks'; T = $core; S = 'final int[] banks = { 2, 6, 10, 14, 18 };' },
+        @{ N = 'switchyard pylons'; T = $core; S = 'final int[] pylons = { 0, 5, 10, 15, 20 };' },
+        @{ N = 'derrick product bus socket b'; T = $core; S = "setCell(rows, 0, 3, 'b');" },
+        @{ N = 'derrick crown ring'; T = $core; S = "if (c == 1 || c == 5 || a == 1 || a == 5) setCell(rows, c, a, 'M');" },
+        @{ N = 'annex conversion line'; T = $core; S = "for (int c = 1; c <= ANNEX_LENGTH - 2; c++) setCell(rows, c, 2, 'X');" },
+        @{ N = 'annex feed bus socket e'; T = $core; S = "setCell(rows, 3, ANNEX_WIDTH - 1, 'e');" },
+        @{ N = 'annex acid hatch socket f'; T = $core; S = "setCell(rows, 7, ANNEX_WIDTH - 1, 'f');" },
+        @{ N = 'annex product bus socket g'; T = $core; S = "setCell(rows, 11, ANNEX_WIDTH - 1, 'g');" }
     )
     $missing = @()
     foreach ($c in $checks) {
@@ -164,6 +184,16 @@ $ELEMENT_ITEM['r'] = 'Energy Hatch (IV)'
 $ELEMENT_ITEM['L'] = 'Laser Source Hatch'
 $ELEMENT_ITEM['n'] = 'Maintenance Hatch'
 $ELEMENT_ITEM['q'] = 'Turbine Control Block'
+# --- D-17 plant modules (blank sockets fall back to the module's own casing)
+$ELEMENT_ITEM['V'] = 'Clean Stainless Steel Machine Casing'
+$ELEMENT_ITEM['W'] = 'Filter Machine Casing'
+$ELEMENT_ITEM['Z'] = 'Solid Steel Machine Casing'
+$ELEMENT_ITEM['M'] = 'Steel Frame Box'
+$ELEMENT_ITEM['X'] = 'Steel Pipe Casing'
+$ELEMENT_ITEM['b'] = 'Output Bus (IV)'
+$ELEMENT_ITEM['e'] = 'Input Bus (IV)'
+$ELEMENT_ITEM['f'] = 'Input Hatch (IV)'
+$ELEMENT_ITEM['g'] = 'Output Bus (IV)'
 
 # ------------------------------------------------------------------ shape helpers
 function Get-Edge([int]$t) { 7 + 2 * $t }
@@ -495,6 +525,147 @@ function Convert-TowerShape($src) {
     , $out
 }
 
+# ------------------------------------------------- D-17 plant modules (ported cell for cell)
+function New-Rows([int]$rows, [int]$width, [char]$ch) {
+    $out = New-Object string[] $rows
+    for ($i = 0; $i -lt $rows; $i++) { $out[$i] = ([string]$ch) * $width }
+    , $out
+}
+function Set-ShapeCell($rows, [int]$row, [int]$col, [char]$ch) {
+    $chars = $rows[$row].ToCharArray()
+    $chars[$col] = $ch
+    $rows[$row] = -join $chars
+}
+function Add-VentFlue($rows) {
+    for ($c = 2; $c -le 4; $c++) {
+        for ($a = 2; $a -le 4; $a++) {
+            if ($c -ne 3 -or $a -ne 3) { Set-ShapeCell $rows $c $a 'W' }
+        }
+    }
+}
+function Get-VentShape {
+    $layers = @()
+    for ($b = 0; $b -lt $VENT_HEIGHT; $b++) {
+        $y = $VENT_HEIGHT - 1 - $b
+        if ($y -eq 0) {
+            $rows = New-Rows $VENT_SIZE $VENT_SIZE 'V'
+        } elseif ($y -eq 4) {
+            $rows = New-Rows $VENT_SIZE $VENT_SIZE 'V'
+            for ($c = 2; $c -le 4; $c++) { for ($a = 2; $a -le 4; $a++) { Set-ShapeCell $rows $c $a ' ' } }
+            Add-VentFlue $rows
+        } elseif ($y -le 3) {
+            $rows = New-Rows $VENT_SIZE $VENT_SIZE ' '
+            for ($c = 0; $c -lt $VENT_SIZE; $c++) {
+                for ($a = 0; $a -lt $VENT_SIZE; $a++) {
+                    if ($c -eq 0 -or $c -eq ($VENT_SIZE - 1) -or $a -eq 0 -or $a -eq ($VENT_SIZE - 1)) {
+                        Set-ShapeCell $rows $c $a 'V'
+                    }
+                }
+            }
+            Add-VentFlue $rows
+        } else {
+            $rows = New-Rows $VENT_SIZE $VENT_SIZE ' '
+            Add-VentFlue $rows
+        }
+        $layers += , $rows
+    }
+    , $layers
+}
+function Get-SwitchyardShape {
+    $banks = @(2, 6, 10, 14, 18)
+    $pylons = @(0, 5, 10, 15, 20)
+    $layers = @()
+    for ($b = 0; $b -lt $YARD_HEIGHT; $b++) {
+        $y = $YARD_HEIGHT - 1 - $b
+        if ($y -eq 0) {
+            $rows = New-Rows $YARD_DEPTH $YARD_WIDTH 'Z'
+        } else {
+            $rows = New-Rows $YARD_DEPTH $YARD_WIDTH ' '
+            if ($y -eq 1) {
+                for ($c = 0; $c -lt $YARD_DEPTH; $c++) {
+                    for ($a = 0; $a -lt $YARD_WIDTH; $a++) {
+                        if ($c -eq 0 -or $c -eq ($YARD_DEPTH - 1) -or $a -eq 0 -or $a -eq ($YARD_WIDTH - 1)) {
+                            Set-ShapeCell $rows $c $a 'M'
+                        }
+                    }
+                }
+            } else {
+                foreach ($a in $pylons) {
+                    Set-ShapeCell $rows 0 $a 'M'
+                    Set-ShapeCell $rows ($YARD_DEPTH - 1) $a 'M'
+                }
+            }
+            if ($y -le 3) {
+                foreach ($centre in $banks) {
+                    for ($c = 2; $c -le 4; $c++) {
+                        for ($a = $centre - 1; $a -le $centre + 1; $a++) { Set-ShapeCell $rows $c $a 'Z' }
+                    }
+                }
+            }
+        }
+        $layers += , $rows
+    }
+    , $layers
+}
+function Get-DerrickShape {
+    $layers = @()
+    for ($b = 0; $b -lt $DERRICK_HEIGHT; $b++) {
+        $y = $DERRICK_HEIGHT - 1 - $b
+        if ($y -eq 0) {
+            $rows = New-Rows $DERRICK_SIZE $DERRICK_SIZE 'Z'
+        } elseif ($y -eq 1) {
+            $rows = New-Rows $DERRICK_SIZE $DERRICK_SIZE 'Z'
+            Set-ShapeCell $rows 3 3 'X'
+            Set-ShapeCell $rows 0 3 'b'
+        } elseif ($y -eq 2) {
+            $rows = New-Rows $DERRICK_SIZE $DERRICK_SIZE 'Z'
+            Set-ShapeCell $rows 3 3 'X'
+        } elseif ($y -eq ($DERRICK_HEIGHT - 1)) {
+            $rows = New-Rows $DERRICK_SIZE $DERRICK_SIZE ' '
+            for ($c = 1; $c -le 5; $c++) {
+                for ($a = 1; $a -le 5; $a++) {
+                    if ($c -eq 1 -or $c -eq 5 -or $a -eq 1 -or $a -eq 5) { Set-ShapeCell $rows $c $a 'M' }
+                }
+            }
+            Set-ShapeCell $rows 3 3 'X'
+        } else {
+            $rows = New-Rows $DERRICK_SIZE $DERRICK_SIZE ' '
+            foreach ($c in 1, 5) { foreach ($a in 1, 5) { Set-ShapeCell $rows $c $a 'M' } }
+            Set-ShapeCell $rows 3 3 'X'
+        }
+        $layers += , $rows
+    }
+    , $layers
+}
+function Get-AnnexShape {
+    $layers = @()
+    for ($b = 0; $b -lt $ANNEX_HEIGHT; $b++) {
+        $y = $ANNEX_HEIGHT - 1 - $b
+        if ($y -eq 0 -or $y -eq ($ANNEX_HEIGHT - 1)) {
+            $rows = New-Rows $ANNEX_LENGTH $ANNEX_WIDTH 'V'
+        } else {
+            $rows = New-Rows $ANNEX_LENGTH $ANNEX_WIDTH ' '
+            for ($c = 0; $c -lt $ANNEX_LENGTH; $c++) {
+                for ($a = 0; $a -lt $ANNEX_WIDTH; $a++) {
+                    if ($c -eq 0 -or $c -eq ($ANNEX_LENGTH - 1) -or $a -eq 0 -or $a -eq ($ANNEX_WIDTH - 1)) {
+                        Set-ShapeCell $rows $c $a 'V'
+                    }
+                }
+            }
+            if ($y -eq 2) {
+                for ($c = 1; $c -le ($ANNEX_LENGTH - 2); $c++) { Set-ShapeCell $rows $c 2 'X' }
+            }
+            if ($y -eq 1) {
+                Set-ShapeCell $rows 3 ($ANNEX_WIDTH - 1) 'e'
+                Set-ShapeCell $rows 7 ($ANNEX_WIDTH - 1) 'f'
+                Set-ShapeCell $rows 11 ($ANNEX_WIDTH - 1) 'g'
+            }
+        }
+        $layers += , $rows
+    }
+    , $layers
+}
+
 # ------------------------------------------------------------------------ tallying
 function Measure-Shape($layers) {
     $counts = @{}
@@ -519,6 +690,10 @@ $BTS_BOM.Platform = Measure-Shape (Get-FloorShape)
 $BTS_BOM.Spiral = Measure-Shape (Get-SpiralShape)
 $BTS_BOM.Gallery = Measure-Shape (Get-GalleryShape)
 $BTS_BOM.Tower = Measure-Shape (Convert-TowerShape (Get-TowerShape))
+$BTS_BOM.Vent = Measure-Shape (Get-VentShape)
+$BTS_BOM.Switchyard = Measure-Shape (Get-SwitchyardShape)
+$BTS_BOM.Derrick = Measure-Shape (Get-DerrickShape)
+$BTS_BOM.Annex = Measure-Shape (Get-AnnexShape)
 $BTS_BOM.Silo = @{}
 $BTS_BOM.Duct = @{}
 for ($t = 1; $t -le $MAX_TIER; $t++) {
@@ -614,6 +789,10 @@ function Get-TotalCounts([int]$t) {
     Add-Counts $acc $BTS_BOM.Spiral 1
     Add-Counts $acc $BTS_BOM.Gallery 1
     Add-Counts $acc $BTS_BOM.Tower $TOWER_COUNT
+    Add-Counts $acc $BTS_BOM.Vent 1
+    Add-Counts $acc $BTS_BOM.Switchyard 1
+    Add-Counts $acc $BTS_BOM.Derrick 1
+    Add-Counts $acc $BTS_BOM.Annex 1
     $acc
 }
 
@@ -736,6 +915,14 @@ function Get-BomJavaText {
     $L.Add('    public static final Bill GALLERY = ' + (Format-JavaBill 'Rotor gallery + output manifold' $BTS_BOM.Gallery) + ';')
     $L.Add('')
     $L.Add('    public static final Bill TOWER = ' + (Format-JavaBill 'Cooling tower (each)' $BTS_BOM.Tower) + ';')
+    $L.Add('')
+    $L.Add('    public static final Bill VENT = ' + (Format-JavaBill 'Vent Stack' $BTS_BOM.Vent) + ';')
+    $L.Add('')
+    $L.Add('    public static final Bill SWITCHYARD = ' + (Format-JavaBill 'Switchyard' $BTS_BOM.Switchyard) + ';')
+    $L.Add('')
+    $L.Add('    public static final Bill DERRICK = ' + (Format-JavaBill 'Extraction Derrick' $BTS_BOM.Derrick) + ';')
+    $L.Add('')
+    $L.Add('    public static final Bill ANNEX = ' + (Format-JavaBill 'Enrichment Annex' $BTS_BOM.Annex) + ';')
     $siloRows = @('        null')
     $ductRows = @('        null')
     $totalRows = @('        null')
@@ -804,7 +991,7 @@ if ($MyInvocation.InvocationName -ne '.') {
     } else {
         Write-Host ('  ' + $script:BomJava + ' already agrees with these bills')
     }
-    foreach ($piece in @('Platform', 'Spiral', 'Gallery', 'Tower')) {
+    foreach ($piece in @('Platform', 'Spiral', 'Gallery', 'Tower', 'Vent', 'Switchyard', 'Derrick', 'Annex')) {
         Write-Host ''
         Write-Host ("{0} (same at every tier)" -f $piece.ToUpper())
         $BTS_BOM[$piece].GetEnumerator() | Sort-Object -Property @{ Expression = { $_.Value }; Descending = $true }, Name |

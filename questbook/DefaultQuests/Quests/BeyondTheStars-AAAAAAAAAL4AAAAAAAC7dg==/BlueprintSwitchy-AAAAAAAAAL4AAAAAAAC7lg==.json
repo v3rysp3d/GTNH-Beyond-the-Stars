@@ -1,0 +1,53 @@
+{
+    "preRequisites:9":  {
+
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  0,
+                                                    "desc:8":  "§3§lOptional module - until your plant outgrows 100,000,000 EU/t, at which point it is the most valuable building on the pad.§r\nA 21x6x6 transformer yard - five 3x3x3 banks under a pylon line - laid along the platform\u0027s BACK edge, behind the silo.\n\n§eBILL§r\n  §b261x§r Solid Steel Machine Casing\n  §b90x§r Steel Frame Box\n  §8351 blocks, and not one hatch.§r\n\n§eWHAT IT BUYS YOU§r\nIt removes the §c100,000,000 EU/t§r grid soft cap. That is the whole function.\n\n[warn]Without this building the reactor still works out its full figure - and then throws away everything above the cap. A tuned tier-5 plant is well past a BILLION EU/t, so the yard is not a luxury up there: it is most of your output.[/warn]\n\n[note]You are never capped silently. The OUTPUT group prints all four states: cap switched off in the config, yard standing, yard missing but you are under the cap anyway, and yard missing WITH a count of exactly how many EU/t are going in the bin - plus this bill, read live. The headline reads §c[GRID-CAPPED from N - no Switchyard]§r rather than the ordinary clamp message.[/note]\n\n[note]The cap can only ever LOWER what is injected, so it can never shove more into your hatches than they absorb. Config flag §bswitchyardSoftCap§r (default true) turns the whole thing off if you would rather it did not exist.[/note]\n\n[note]Site: §ba 20-40, c 44-49§r, ground to 5 up. It stops at a 40, clear of the output manifold\u0027s strip.[/note]",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  0,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "gregtech:gt.blockcasings2"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "§3§lBlueprint: Switchyard",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48022,
+    "rewards:9":  {
+
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "index:3":  0,
+                                 "taskID:8":  "bq_standard:checkbox"
+                             }
+                }
+}

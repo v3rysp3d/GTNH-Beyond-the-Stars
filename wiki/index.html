@@ -191,7 +191,8 @@
         <li class="l2"><a href="#spiral">3.4 The Spiral</a></li>
         <li class="l2"><a href="#turbinegen">3.5 Turbine Generator</a></li>
         <li class="l2"><a href="#towers">3.6 Cooling Towers</a></li>
-        <li class="l2"><a href="#hall">3.7 Turbine Hall (retired)</a></li>
+        <li class="l2"><a href="#modules">3.7 Plant Modules</a></li>
+        <li class="l2"><a href="#hall">3.8 Turbine Hall (retired)</a></li>
       </ol>
     </li>
     <li><a href="#fuel"><span class="num">4</span>Fuel &amp; Ladders</a></li>
@@ -211,13 +212,14 @@
     <li><strong>The Spine</strong> &mdash; a 3&times;3 steam duct with four chirality-tuned Turbine Housings. Ride the swirl for speed, oppose it for efficiency.</li>
     <li><strong>The Spiral</strong> &mdash; a 7&times;7&times;12 injection chamber. Eight Precision Injectors each fire exactly 1&nbsp;L of propellant inside a &plusmn;2-tick window per steam slug.</li>
     <li><strong>Turbine Generator</strong> &mdash; the final rotor gallery that converts the boosted flow into EU through Dynamo hatches.</li>
-    <li><strong>Cooling Towers</strong> (up to two) &mdash; separate module machines that dock on floor markers and recycle condensate.</li>
+    <li><strong>Cooling Towers</strong> (up to two) &mdash; 17&times;17&times;20 hyperboloids that recycle condensate, double passive heat decay and halve the decay-heat demand.</li>
+    <li><strong>Plant Modules</strong> (four) &mdash; Vent Stack (safety windows halved), Switchyard (lifts the 100&nbsp;M EU/t grid soft cap), Extraction Derrick (self-mining) and Enrichment Annex (on-site pellet line).</li>
   </ul>
-  <p>Modules follow the <strong>Space Elevator architecture</strong>: the platform floor contains flush dock markers; each module building has its own controller that stands on a marker and only functions while docked to a formed platform. The silo, Spine, Spiral and Turbine Generator are <em>not</em> modules &mdash; they are optional pieces of the main controller itself.</p>
+  <p><strong>There is exactly one controller in the whole design.</strong> The Space Elevator dock-pad architecture &mdash; a controller per building, standing on a flush floor marker &mdash; was <strong>deleted</strong> by the point-of-use ruling. Every building on this page is an optional <em>checked piece</em> of the main station, raised by the same single hologram projection and detected on every structure walk. There is nothing to dock and no second controller to place.</p>
 
   <h3>The one-projection build flow</h3>
-  <p>The main station controller's hologram builds the <strong>entire plant in a single projection</strong>: platform, silo (at the GUI's Build Tier 1&ndash;5), Spine duct, Spiral, Turbine Generator, and the empty shells of both Cooling Towers at their canonical sites. You then stand each module controller on its glowing marker <strong>facing away from its building</strong>, swap the hatches in, and the plant is done.</p>
-  <p class="dim">Nothing is auto-placed on a dock marker &mdash; markers stay clear (air) until a module controller stands there. The controller re-validates its structure periodically (every 600 ticks idle / 200 ticks running), because block updates cannot cross the unregistered concrete; modules reconnect instantly after every successful check.</p>
+  <p>The main station controller's hologram builds the <strong>entire plant in a single projection</strong>, in this order: platform &rarr; silo (at the GUI's Build Tier 1&ndash;5) &rarr; Spine duct &rarr; Spiral &rarr; Turbine Generator + output manifold &rarr; front Cooling Tower &rarr; back Cooling Tower &rarr; Vent Stack &rarr; Switchyard &rarr; Extraction Derrick &rarr; Enrichment Annex. You swap the hatches into the sockets and the plant is done.</p>
+  <p class="dim">The controller re-validates its structure periodically (every 600 ticks idle / 200 ticks running), because block updates cannot cross the unregistered concrete; a piece added far from the controller is picked up on the next revalidation. A projection never overwrites a standing machine in a plant-module cell &mdash; it skips the cell and the module reports that it cannot form.</p>
   <div class="note">Survival cost is roughly <strong>40,000 blocks</strong> at full buildout &mdash; deliberately "insanely expensive once". Creative testing goes through the projector auto-build, piece by piece.</div>
   <p>Fully optimized (tier-5 silo, all-naquadah cascade, all-riding Spine, 8 timed Lv&nbsp;6 injectors, 8 rotor stages) the plant computes <strong>~1.045&nbsp;billion EU/t</strong>, clamped to your summed dynamo capacity.</p>
 </section>
@@ -230,9 +232,9 @@
   <div class="note"><b>Quests missing in an existing world?</b> BetterQuesting reads <code>config/betterquesting/DefaultQuests</code> only when a world is <em>created</em> &mdash; an existing save owns its own copy and never re-reads the defaults, so a freshly merged chapter shows up in new worlds and nowhere else. Run <kbd class="item">/btsquests</kbd> to see exactly which of our quest ids are in that world's database, and <kbd class="item">/btsquests install</kbd> to add our chapter and the <em>Unit One</em> entry quest to it &mdash; player progress is snapshotted and restored around the write, no pack quest is touched, and open books resync on the spot.</div>
   <ol>
     <li><strong>Craft the main station.</strong> The <kbd class="item">Nuclear Plant Foundation</kbd> controller is an IV assembler job: Radiation-Proof Machine Casing + 4&times; IV circuit + dense lead, tungstensteel, tungsten, iridium and rhodium-plated palladium plates + molten platinum. Place it where the plant's front line will run &mdash; it ends up embedded in the silo face at ground level, one fixed spot for all five tiers.</li>
-    <li><strong>Project once.</strong> Set <strong>Build Tier 1&ndash;5</strong> in the controller GUI (a trigger stack of 2&ndash;5 overrides it) and hologram-project the controller. One projection lays out everything: the 50&times;50 platform, the silo, the Spine, the Spiral, the Turbine Generator, and both Cooling Tower shells.</li>
+    <li><strong>Project once.</strong> Set <strong>Build Tier 1&ndash;5</strong> in the controller GUI (a trigger stack of 2&ndash;5 overrides it) and hologram-project the controller. One projection lays out everything: the 50&times;50 platform, the silo, the Spine, the Spiral, the Turbine Generator, both Cooling Tower shells and all four plant modules.</li>
     <li><strong>Build the shells.</strong> Follow the hologram: floor layer (2,243 Light Concrete + 249 Tungstensteel Reinforced shield pad + 8 flush Solid Steel markers), silo walls and dome, Tungstensteel Turbine Casing ducts, tower hyperboloids.</li>
-    <li><strong>Dock and fit hatches.</strong> Stand each Cooling Tower controller on its glowing marker, <strong>facing away</strong> from the tower body. Fit the hatch complement: silo face (4 Energy, 1 Maintenance, 2 Input Hatch, 1 Output Hatch, 1 Input Bus, 1 Output Bus), Spiral (8 Precision Injectors, 1 Spine Sensor, 1 Input Hatch, 1 Maintenance), Turbine Generator (Dynamos + Maintenance), one Maintenance hatch in each tower's base ring.</li>
+    <li><strong>Fit the hatches.</strong> Nothing docks and nothing needs a second controller. Every socket is on the building it serves: silo face (1 Maintenance, 1 Feedwater Input Hatch, 1 Silo Control Block, 1 Output Hatch, 1 Rod Input Bus, 1 Depleted Output Bus), Spiral (8 Precision Injectors, 1 Spine Sensor, 1 Coolant + 1 Propellant Input Hatch, 1 Maintenance), output manifold back face (4 Dynamos, 4 Energy, 4 Laser Sources, 1 Turbine Control Block, 1 Maintenance), Extraction Derrick (1 Output Bus), Enrichment Annex (1 Input Bus, 1 Input Hatch, 1 Output Bus). The Cooling Towers, the Vent Stack and the Switchyard take none at all.</li>
     <li><strong>Fuel and start.</strong> Drop fuel rods into the <kbd class="item">Rod Loading Ports</kbd> at the top of each pillar (hopper / AE2 / right-click), feed water to the silo, set the control-rod throttle (1&ndash;24; a programmed circuit in the controller slot overrides it), pipe propellant to the injectors on the Spine Sensor's clock, keep coolant in the Spiral's input hatch, and enable the machine.</li>
   </ol>
   <div class="tcnote"><b>Questbook:</b> the entry quest with item requirements + achievement in the GTNH power-progression chapter, and the BLUEPRINTS chapter listing every structure's items as optional quests (controllers are the required ones), are <b>shipped in 0.17.0</b>.</div>
@@ -264,21 +266,29 @@
       </ul>
     </div>
   </div>
-  <h4>Dock positions (clear until a module controller stands there, facing away)</h4>
+  <h4>Building sites on the platform <span class="badge b-ret">docks retired</span></h4>
+  <p class="dim">The eight flush Solid Steel dock markers are gone &mdash; they existed only to stand module controllers on. Those eight cells (<span class="mono">{38,30} {8,1} {8,48} {40,8} {40,42} {25,43} {10,25} {25,7}</span>) are plain Light Concrete now, and the floor element accepts either block so a pre-0.20.0 platform needs no re-blocking. <strong>No building footprint covers a dock cell</strong>, so a retired module controller still parked on one is simply ignored.</p>
   <div class="tablewrap"><table>
-    <thead><tr><th>Marker (a, c)</th><th>Assignment</th></tr></thead>
+    <thead><tr><th>Building</th><th>Footprint (a)</th><th>Footprint (c)</th><th>y</th></tr></thead>
     <tbody>
-      <tr><td class="mono">{38, 30}</td><td>Turbine Hall <span class="badge b-ret">Retired</span> &mdash; museum site</td></tr>
-      <tr><td class="mono">{8, 1}</td><td>NW Cooling Tower</td></tr>
-      <tr><td class="mono">{8, 48}</td><td>SW Cooling Tower</td></tr>
-      <tr><td class="mono">{40, 8} &middot; {40, 42} &middot; {25, 43} &middot; {10, 25} &middot; {25, 7}</td><td>Spares (future modules: Derrick, Annex, Vent Stack, Switchyard&hellip;)</td></tr>
+      <tr><td>Silo (tier <var>t</var>)</td><td class="mono">24&minus;<var>t</var> .. 26+<var>t</var></td><td class="mono">16 .. 24+2<var>t</var></td><td class="mono">0 .. 15+5<var>t</var></td></tr>
+      <tr><td>Spine duct</td><td class="mono">30+<var>t</var> .. 42</td><td class="mono">19+<var>t</var> .. 21+<var>t</var></td><td class="mono">0 .. 2</td></tr>
+      <tr><td>Spiral chamber</td><td class="mono">43 .. 49</td><td class="mono">17+<var>t</var> .. 23+<var>t</var></td><td class="mono">0 .. 11</td></tr>
+      <tr><td>Gallery + manifold</td><td class="mono">43 .. 49</td><td class="mono">24+<var>t</var> .. 41+<var>t</var></td><td class="mono">0 .. 6</td></tr>
+      <tr><td>Cooling Tower (front)</td><td class="mono">0 .. 16</td><td class="mono">0 .. 16</td><td class="mono">0 .. 19</td></tr>
+      <tr><td>Cooling Tower (back)</td><td class="mono">0 .. 16</td><td class="mono">33 .. 49</td><td class="mono">0 .. 19</td></tr>
+      <tr><td>Vent Stack</td><td class="mono">2 .. 8</td><td class="mono">21 .. 27</td><td class="mono">0 .. 19</td></tr>
+      <tr><td>Switchyard</td><td class="mono">20 .. 40</td><td class="mono">44 .. 49</td><td class="mono">0 .. 5</td></tr>
+      <tr><td>Extraction Derrick</td><td class="mono">33 .. 39</td><td class="mono">4 .. 10</td><td class="mono">0 .. 19</td></tr>
+      <tr><td>Enrichment Annex</td><td class="mono">17 .. 21</td><td class="mono">0 .. 14</td><td class="mono">0 .. 5</td></tr>
     </tbody>
   </table></div>
+  <p class="dim">Verified cell by cell at all five tiers: zero overlaps, zero cells off the platform. The four module sites carry no tier term at all, so a module never moves when the silo is re-tiered.</p>
   <h4>Controller GUI</h4>
   <ul>
     <li><strong>Control-rod throttle 1&ndash;24</strong> &mdash; campaign power = N/24; a programmed circuit in the controller slot overrides it.</li>
     <li><strong>Build Tier 1&ndash;5</strong> &mdash; the Steam Generator tier the hologram/projector builds; a trigger stack of 2&ndash;5 overrides it.</li>
-    <li>Status lines for the silo, cascade, Spine, Spiral, Rotor Assembly, heat, decay obligation and docked modules.</li>
+    <li>Status lines for the silo, cascade, Spine, Spiral, Rotor Assembly, heat, decay obligation, the Cooling Towers and the four plant modules &mdash; the last two on lines that are drawn in <em>every</em> state, including on a bare platform, because that is when those buildings go up.</li>
   </ul>
 
   <!-- ------------------------------------------------ 3.2 SILO -->
@@ -337,7 +347,7 @@
 
   <!-- ------------------------------------------------ 3.3 SPINE -->
   <h3 id="spine"><span class="num">3.3</span>The Spine &mdash; 3&times;3 Steam Duct <span class="badge b-opt">Optional piece</span></h3>
-  <p>A 3&times;3 cross-section duct (y&nbsp;0..2) leaving the silo's east rib, centered on the silo mid-row <span class="mono">c = 17 + n/2</span>, running from <span class="mono">a = 25 + n/2 + 2</span> flush to <span class="mono">a = 42</span> (length <span class="mono">16 &minus; n/2</span>: 12/11/10/9/8 blocks by tier). Tungstensteel Turbine Casing shell around a hollow bore.</p>
+  <p>A 3&times;3 cross-section duct (y&nbsp;0..2) leaving the silo's <span class="mono">+a</span> rib &mdash; the platform strip to your RIGHT as you face the silo &mdash; centered on the silo mid-row <span class="mono">c = 17 + n/2</span>, running from <span class="mono">a = 25 + n/2 + 2</span> flush to <span class="mono">a = 42</span> (length <span class="mono">16 &minus; n/2</span>: 12/11/10/9/8 blocks by tier). Tungstensteel Turbine Casing shell around a hollow bore.</p>
   <div class="parts">
     <div class="col req">
       <div class="col-h">Required</div>
@@ -381,7 +391,7 @@ residual heat = |S(4)|&sup2; &times; 5 per second while running</div>
       <ul>
         <li>Tungstensteel Turbine Casing shell (7&times;7&times;12, walls/roof/floor)</li>
         <li>Light Concrete helix arcs <span class="qty">5 per interior level</span> stepping down the 5&times;5 ring</li>
-        <li><kbd class="item">Precision Injector</kbd> <span class="qty">&times;8</span> &mdash; one per interior level 1..8, rotating faces (front/east/back/west, mid-cell)</li>
+        <li><kbd class="item">Precision Injector</kbd> <span class="qty">&times;8</span> &mdash; one per interior level 1..8, rotating faces (back/&minus;a/front/+a, mid-cell)</li>
         <li><kbd class="item">Spine Sensor</kbd> <span class="qty">&times;1</span> &mdash; roof's front-center cell</li>
         <li>Input Hatch <span class="qty">&times;1</span> + Maintenance <span class="qty">&times;1</span> &mdash; bottom wall's front corners (coolant goes in here)</li>
       </ul>
@@ -414,7 +424,7 @@ trip         : coolant lost at speed &rarr; RPM &times;0.95/tick spin-down (not 
 
   <!-- ------------------------------------------------ 3.5 TURBINE GENERATOR -->
   <h3 id="turbinegen"><span class="num">3.5</span>Turbine Generator <span class="badge b-opt">Optional piece</span></h3>
-  <p>The finale: a rotor gallery fed by the Spiral's downcomer, running south down the east strip. The TC redesign shapes it as a <strong>7 wide &times; 5 tall &times; 15 long</strong> gallery (<span class="mono">a 43..49, c (21+n/2)..(35+n/2)</span>, hollow bore) ending in a <strong>7&times;7&times;3 output manifold</strong> (<span class="mono">y 0..6, c (36+n/2)..(38+n/2)</span>, hollow) <span class="badge b-tc">0.17.0</span>. The 0.16.0 build forms as a 7&times;5&times;18 gallery with Dynamo + Maintenance hatches in its walls.</p>
+  <p>The finale: a rotor gallery fed by the Spiral's downcomer, running back down the <span class="mono">+a</span> strip (your RIGHT as you face the silo). The TC redesign shapes it as a <strong>7 wide &times; 5 tall &times; 15 long</strong> gallery (<span class="mono">a 43..49, c (21+n/2)..(35+n/2)</span>, hollow bore) ending in a <strong>7&times;7&times;3 output manifold</strong> (<span class="mono">y 0..6, c (36+n/2)..(38+n/2)</span>, hollow) <span class="badge b-tc">0.17.0</span>. The 0.16.0 build forms as a 7&times;5&times;18 gallery with Dynamo + Maintenance hatches in its walls.</p>
   <div class="parts">
     <div class="col req">
       <div class="col-h">Required</div>
@@ -453,16 +463,16 @@ coolant  = ceil((200 &times; (RPM/1000)&sup2; + |S|&sup2;&times;5/20) / Q) per t
 
   <!-- ------------------------------------------------ 3.6 TOWERS -->
   <h3 id="towers"><span class="num">3.6</span>Cooling Towers <span class="badge b-opt">Module &middot; up to 2</span></h3>
-  <p>Separate module machines (<kbd class="item">Plant Module &mdash; Cooling Tower</kbd>, MTE 28105) docking on the NW <span class="mono">{8,1}</span> and SW <span class="mono">{8,48}</span> markers. Each is a 17&times;17&times;20 hyperboloid (base r7.5, waist r4.6 at 62% height, top r5.6), body NW <span class="mono">a 0..16, c 0..16</span> / SW <span class="mono">a 0..16, c 33..49</span>. Passive once formed; undocked, inert.</p>
+  <p>Optional <strong>checked pieces of the main station</strong> &mdash; no controller, no dock, no maintenance hatch of their own. Each is a 17&times;17&times;20 hyperboloid (base r7.5, waist r4.6 at 62% height, top r5.6) on the platform strip to your <strong>left</strong> as you face the silo: the FRONT tower at <span class="mono">a 0..16, c 0..16</span> and the BACK tower at <span class="mono">a 0..16, c 33..49</span>. The <kbd class="item">Plant Module &mdash; Cooling Tower</kbd> controller (MTE 28105) is a museum piece: it loads, it has no recipe, and it does nothing.</p>
   <div class="parts">
     <div class="col req">
       <div class="col-h">Required (per tower)</div>
       <ul>
-        <li>Module controller on the dock marker, <strong>facing away</strong> from the tower body <span class="qty">&times;1</span></li>
-        <li>Solid Steel Machine Casing base ring <span class="qty">30&ndash;46</span></li>
-        <li>Light Concrete hyperboloid shell <span class="qty">500&ndash;700</span></li>
-        <li>Maintenance Hatch in the base ring <span class="qty">&times;1</span></li>
+        <li>Light Concrete hyperboloid shell <span class="qty">&times;736</span></li>
+        <li>Solid Steel Machine Casing base ring, now a <strong>closed</strong> ring <span class="qty">&times;52</span></li>
+        <li>No controller, no dock marker, no hatch of any kind <span class="qty">&times;0</span></li>
       </ul>
+      <p class="dim">788 blocks per tower, derived by <span class="mono">gen-bom.ps1</span>. A 0.19.0 Maintenance Hatch left in the base ring is <em>tolerated</em> but never registered &mdash; nothing a tower holds reaches the plant's maintenance list.</p>
     </div>
     <div class="col opt">
       <div class="col-h">Effects (stack per tower)</div>
@@ -476,7 +486,58 @@ coolant  = ceil((200 &times; (RPM/1000)&sup2; + |S|&sup2;&times;5/20) / Q) per t
   </div>
 
   <!-- ------------------------------------------------ 3.7 HALL -->
-  <h3 id="hall"><span class="num">3.7</span>Turbine Hall <span class="badge b-ret">Retired &mdash; museum piece</span></h3>
+  <!-- ------------------------------------------------ 3.7 PLANT MODULES -->
+  <h3 id="modules"><span class="num">3.7</span>Plant Modules <span class="badge b-opt">Optional pieces &middot; four</span></h3>
+  <p>The last four buildings of the campus, all optional checked pieces of the same one controller and all raised by the same one projection. Each sits on a <strong>fixed platform rectangle with no tier term in it</strong>, so none of them ever has to move.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Module</th><th>Size &amp; site</th><th>Bill</th><th>Sockets</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Vent Stack</strong></td>
+        <td class="mono">7&times;7&times;20<br>a 2..8, c 21..27</td>
+        <td>161 Clean Stainless Steel Machine Casing<br>152 Filter Machine Casing</td>
+        <td>none</td>
+        <td>Decay-heat window <strong>20 min &rarr; 10</strong> (24,000&rarr;12,000 t) and meltdown radiation <strong>30 min &rarr; 15</strong> (36,000&rarr;18,000 t). Applied as a clamp every tick, so a stack finished mid-decay shortens the cycle it is standing over.</td>
+      </tr>
+      <tr>
+        <td><strong>Switchyard</strong></td>
+        <td class="mono">21&times;6&times;6<br>a 20..40, c 44..49</td>
+        <td>261 Solid Steel Machine Casing<br>90 Steel Frame Box</td>
+        <td>none</td>
+        <td>Lifts the <strong>100,000,000 EU/t</strong> grid soft cap. Without it the reactor still derives its full figure and the surplus is discarded; every panel prints how much and what to build. Config flag <code>switchyardSoftCap</code> (default on) disables the cap entirely.</td>
+      </tr>
+      <tr>
+        <td><strong>Extraction Derrick</strong></td>
+        <td class="mono">7&times;7&times;20<br>a 33..39, c 4..10</td>
+        <td>144 Solid Steel Machine Casing<br>80 Steel Frame Box<br>19 Steel Pipe Casing<br>1 Output Bus</td>
+        <td>1 Output Bus, deck front wall, y1, declared FORWARD</td>
+        <td>Every 200 t: <strong>6&times; Uraninite Dust + 1&times; Thorium Dust</strong>, plus <strong>1&times; Tantalum Dust</strong> on every 4th cycle. Draws <strong>1,920 EU/t</strong> (<code>TierEU.RECIPE_EV</code>). The standalone Extraction Platform's rate, unchanged.</td>
+      </tr>
+      <tr>
+        <td><strong>Enrichment Annex</strong></td>
+        <td class="mono">5&times;15&times;6<br>a 17..21, c 0..14</td>
+        <td>291 Clean Stainless Steel Machine Casing<br>13 Steel Pipe Casing<br>3 sockets</td>
+        <td>Input Bus + Input Hatch + Output Bus, +a wall, y1, declared LEFT</td>
+        <td>Every 600 t: <strong>8&times; Uraninite Dust + 2,000&nbsp;L Hydrofluoric Acid &rarr; 20&times; Fuel Pellet + 2&times; Thorium Dust</strong>. Draws <strong>480 EU/t</strong> (<code>TierEU.RECIPE_HV</code>). The standalone Enrichment Train's rate, unchanged.</td>
+      </tr>
+    </tbody>
+  </table></div>
+  <p>Derrick + Annex + an external centrifuge is a <strong>near-self-fuelling plant</strong>.</p>
+
+  <h4>How a module is detected</h4>
+  <p>By the ordinary structure walk, exactly like the Cooling Towers. <code>checkMachine</code> checks each module at its fixed offset and keeps the result in that module's own error list, so <strong>nothing a module reports can un-form the plant</strong>. A module that simply is not there is not an error. A module with blocks standing that will not form prints its reason on the ungated <strong>Plant modules</strong> line, which every readout carries in every state &mdash; including on a bare platform, which is exactly when these buildings go up. Because module placement uses only compile-time constants, the client-side hologram draws all four correctly, and every module field the GUI reads is a synced value.</p>
+  <p class="dim">Total module buildout: <strong>1,215 blocks</strong> (313 + 351 + 244 + 307). Skipping the Vent Stack leaves both safety windows at full length; skipping the Derrick or the Annex costs you the fuel cycle and nothing else, since neither is ever a structure demand and neither can stall the plant. Skipping the Switchyard is the expensive one &mdash; see below.</p>
+
+  <h4>The Switchyard soft cap</h4>
+  <p>Without a Switchyard the plant injects at most <strong>100,000,000&nbsp;EU/t</strong>. The reactor still derives its full figure &mdash; the derivation on the MATH panel is untouched &mdash; and everything above the cap is discarded. On a tuned tier-5 plant that is the overwhelming majority of the output, so on a big plant this building is not decoration.</p>
+  <p>It is impossible to hit silently. The OUTPUT headline changes from <span class="mono">[CLAMPED from N]</span> to <span class="mono">[GRID-CAPPED from N &mdash; no Switchyard]</span>; the Switchyard line prints all four states (cap disabled in config / yard standing / yard missing but under the cap / yard missing and discarding <em>N</em> EU/t) with the yard's bill read live; and the MATH panel scores the cap as its own weakest term with <strong>build the Switchyard</strong> as the fix rather than <em>fit more Lasers</em>.</p>
+  <div class="note"><b>More hatches will not break the ceiling.</b> The cap is applied <em>after</em> the fitted-hatch ceiling &mdash; the injected figure is <code>min(hatch ceiling, grid ceiling)</code> &mdash; so it can only ever LOWER what is injected and can never push more into your hatches than they absorb. Adding Dynamo or Laser hatches raises the term the cap is already beating. Config flag <code>switchyardSoftCap</code> (default on) is the one setting that removes the mechanic.</div>
+  <div class="note"><b>The two process modules are the first and only things in this plant that consume EU</b>, and they take it from the output manifold's four <strong>Energy Hatch</strong> sockets (y4). Those are still never a structure demand &mdash; the reactor and the turbine run perfectly without them, and un-forming a plant over furniture would arm the 20-minute decay-heat obligation &mdash; but with no hatch fitted neither module turns over, and the OUTPUT group says exactly that. The draw is <em>per tick</em>, not a lump sum at the end of a cycle: 409,600&nbsp;EU in one payment is larger than an IV Energy Hatch's buffer, so a perfectly powered plant would otherwise stall forever.</div>
+  <div class="note"><b>Module sockets join no plant-wide hatch list.</b> That is a correctness property: a shared list has no notion of which piece registered a hatch, so an Annex acid hatch in the plant's input-hatch list would satisfy the <em>silo's</em> feedwater demand &mdash; and a shared list is a shared inventory, so the reactor's rod distribution would eat the Annex's uraninite and the cascade's depleted rods would land in the Derrick's bus. Each socket keeps a dedicated field on the controller.</div>
+  <div class="warn"><b>Projecting onto a lived-in platform.</b> Every module block cell refuses to overwrite a standing tile entity: the cell is skipped and the module reports that it cannot form, rather than voiding a chest, a cable or an interface you had parked there. Clear the spot and project again.</div>
+  <p class="dim">In game, each module has its own questbook page &mdash; <em>Blueprint: Vent Stack</em>, <em>Blueprint: Switchyard</em>, <em>Blueprint: Extraction Derrick</em>, <em>Blueprint: Enrichment Annex</em> &mdash; plus <em>The 100M Wall</em> on the mastery row for the grid cap. All of their bills are generated from the same shape code as the table above. The 3D preview at <span class="mono">docs/mockup/unit-one.html</span> draws all four at their real footprints, at every tier.</p>
+
+  <h3 id="hall"><span class="num">3.8</span>Turbine Hall <span class="badge b-ret">Retired &mdash; museum piece</span></h3>
   <p class="dim">The original steam-to-EU module (MTE 28104, 5&times;4&times;9 at <span class="mono">a 36..40, c 30..38</span>) and its three turbine fans were retired by the Steam Dynamics ruling &mdash; replaced entirely by the rod-cascade &rarr; Spine &rarr; Spiral &rarr; Turbine Generator chain. Recipes are removed; existing halls and fans keep working as museum pieces until a later breaking release, and the Turbine Generator takes precedence when both exist. Its K/T/P fan-coolant-propellant multipliers live on in the new chain.</p>
 </section>
 
@@ -568,6 +629,7 @@ coolant  = ceil((200 &times; (RPM/1000)&sup2; + |S|&sup2;&times;5/20) / Q) per t
   <p>Every shutdown (clean stop or SCRAM) starts a <strong>20-minute decay-heat window</strong> (24,000 ticks) that demands <strong>64&nbsp;L/t of water</strong>. Starve it and heat climbs toward meltdown even with the reactor off.</p>
   <ul>
     <li>Each Cooling Tower halves the decay water demand (floor 8&nbsp;L/t) and doubles passive heat decay.</li>
+    <li>A <strong>Vent Stack</strong> halves the decay-heat <em>window</em> itself &mdash; 24,000 ticks (20 min) becomes 12,000 (10) &mdash; and halves the meltdown radiation field with it, 36,000 ticks (30 min) to 18,000 (15). Radius and dose are unchanged; the obligation simply ends sooner.</li>
     <li><strong>Two towers make post-shutdown cooling fully passive.</strong></li>
     <li>If the silo is dismantled mid-obligation, the debt is deferred (not waived) until the silo stands again.</li>
   </ul>

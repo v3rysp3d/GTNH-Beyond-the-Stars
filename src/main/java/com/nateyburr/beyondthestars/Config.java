@@ -18,6 +18,18 @@ public class Config {
     /** Meltdowns leave a lingering radiation field (hazmat counters it). */
     public static boolean radiationField = true;
 
+    /**
+     * D-17 GRID CONDITIONING. With this on (the default), a plant with no SWITCHYARD standing
+     * may only inject {@link com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1#GRID_SOFT_CAP}
+     * EU/t; everything the reactor derives above that is thrown away until the yard is built.
+     * <p>
+     * It is ONE setting because it is a live balance change: every plant shipped before 0.21.0
+     * was uncapped, and a tier-5 build makes ten times the cap. Turn it off and the Switchyard
+     * becomes pure decoration - nothing else in the plant changes, and no panel line lies about
+     * it (they all read this flag).
+     */
+    public static boolean switchyardSoftCap = true;
+
     public static void synchronizeConfiguration(File configFile) {
         Configuration configuration = new Configuration(configFile);
 
@@ -49,6 +61,14 @@ public class Config {
             Configuration.CATEGORY_GENERAL,
             true,
             "Reactor meltdowns leave a lingering radiation field. Full radiation hazmat counters it.");
+
+        switchyardSoftCap = configuration.getBoolean(
+            "switchyardSoftCap",
+            Configuration.CATEGORY_GENERAL,
+            true,
+            "Nuclear plants without a Switchyard are soft-capped at 100,000,000 EU/t of output."
+                + " The reactor still derives its full figure; the surplus is discarded and every panel"
+                + " says so. Set false to let a plant export its full output with no Switchyard.");
 
         if (configuration.hasChanged()) {
             configuration.save();

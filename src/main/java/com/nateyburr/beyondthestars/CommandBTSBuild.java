@@ -32,10 +32,10 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
  * <p>
  * The hologram projector can only preview one piece at a time and is height-capped, so this
  * is the way to get a whole plant on the ground for testing: the platform, the silo, Spine,
- * Spiral, Turbine Generator and both Cooling Towers (checked pieces now, not separate module
- * buildings), every hatch and control block fitted AT ITS POINT OF USE, rotors seated, water
- * and fuel loaded, and the bench clock enabled so the turbine spins without wiring redstone
- * first.
+ * Spiral, Turbine Generator, both Cooling Towers and all four D-17 plant modules (checked
+ * pieces now, not separate module buildings), every hatch and control block fitted AT ITS POINT
+ * OF USE, rotors seated, water and fuel loaded, and the bench clock enabled so the turbine spins
+ * without wiring redstone first.
  * <p>
  * `all` raises ALL FIVE tiers side by side in one go so every silo size can be walked and
  * compared. They are laid out along the plant's own RIGHT axis (which is the player's right,
@@ -238,6 +238,10 @@ public class CommandBTSBuild extends CommandBase {
             EnumChatFormatting.GREEN
                 + "Infinite supplies ON - feedwater, coolant and propellant are refilled every tick and each cycle gets a perfectly timed 1L per injector, so it runs indefinitely. /btssupply off to plumb it for real.");
         tell(player, "Spine left all-CLOCKWISE (riding pattern). Right-click a housing to retune it.");
+        tell(
+            player,
+            EnumChatFormatting.AQUA
+                + "All four PLANT MODULES are raised too: Vent Stack (decay + radiation windows halved), Switchyard (lifts the 100,000,000 EU/t grid soft cap), Extraction Derrick (6 uraninite + 1 thorium every 10s, +1 tantalum every 4th) and Enrichment Annex (8 uraninite + 2,000 L HF -> 20 pellets + 2 thorium every 30s). The Derrick's and the Annex's buses are auto-fitted; their EU draw is WAIVED while /btssupply is on.");
         tell(
             player,
             EnumChatFormatting.AQUA

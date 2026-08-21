@@ -1,0 +1,53 @@
+{
+    "preRequisites:9":  {
+
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  0,
+                                                    "desc:8":  "§3§lOptional module. A pure SAFETY building - it makes nothing, holds no hatches and has no sockets to wire.§r\nA 7x7x20 scrubber house with a filter flue up its middle, standing on the platform strip to your §bLEFT§r as you face the silo, in the gap BETWEEN the two Cooling Towers.\n\n§eBILL§r\n  §b161x§r Clean Stainless Steel Machine Casing\n  §b152x§r Filter Machine Casing\n  §8313 blocks, and not one hatch.§r\n\n§eWHAT IT BUYS YOU§r\nIt halves BOTH safety clocks:\n  post-shutdown decay heat §220 min -\u003e 10 min§r §8(24,000t -\u003e 12,000t)§r\n  meltdown radiation field §230 min -\u003e 15 min§r §8(36,000t -\u003e 18,000t)§r\n\n[note]§6Finishing it mid-cooldown shortens THAT cooldown.§r Both windows are re-clamped every single tick, not merely stamped at the moment the clock starts - so you do not have to sit through the long version one last time.[/note]\n\n[note]Site: §ba 2-8, c 21-27§r, ground to 19 up. No tier term anywhere in that rectangle, so it is in the same place on a tier-1 plant and a tier-5 one.[/note]",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  11,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "gregtech:gt.blockcasings3"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "§3§lBlueprint: Vent Stack",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48021,
+    "rewards:9":  {
+
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "index:3":  0,
+                                 "taskID:8":  "bq_standard:checkbox"
+                             }
+                }
+}

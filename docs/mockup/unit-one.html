@@ -51,8 +51,8 @@
 <canvas id="glcanvas"></canvas>
 <div class="hud">
   <h1>Unit One</h1>
-  <div class="sub">Beyond the Stars &mdash; 50&times;50 platform, one projection: silo + steam chain + towers.
-  Point-of-use I/O: every socket sits on the structure it feeds.</div>
+  <div class="sub">Beyond the Stars &mdash; 50&times;50 platform, one projection: silo + steam chain + towers
+  + the four plant modules. Point-of-use I/O: every socket sits on the structure it feeds.</div>
   <div class="tierrow"><span>Tier</span>
     <div class="tierbtn" data-t="1">1</div>
     <div class="tierbtn" data-t="2">2</div>
@@ -61,6 +61,7 @@
     <div class="tierbtn" data-t="5">5</div>
   </div>
   <label><input type="checkbox" id="cutaway"> Cutaway (helix, pillars, rotor bore)</label>
+  <label><input type="checkbox" id="modules" checked> Plant modules (Vent, Yard, Derrick, Annex)</label>
   <label><input type="checkbox" id="rotate" checked> Auto-orbit</label>
   <div class="hint">Drag to orbit &middot; wheel to zoom &middot; right-drag to pan.<br>
   Every voxel is one placeable block. Cutaway strips plain casing from the front halves;
@@ -69,7 +70,9 @@
   <b>There is no automation bay any more.</b> Rods and feedwater go in at the silo face
   (a24&ndash;a26, c17), coolant and propellant at the spiral chamber that burns them, power
   comes out of the generator's manifold back wall. The chamber and manifold sockets slide
-  back with the silo as the tier grows.</div>
+  back with the silo as the tier grows.<br>
+  <b>The four modules never move.</b> They stand on fixed platform rectangles at every tier,
+  so the silo can grow from 9 to 17 wide underneath them without a single cell colliding.</div>
 </div>
 <div class="legend" id="legend"></div>
 <div class="stats" id="stats"></div>
@@ -138,19 +141,32 @@ fillTile(27, 0xf0dca0, R, 0.03);  border(27, "rgb(150,116,30)");
 for(let y=4;y<=8;y++) for(let x=3;x<=12;x++) px(27,x,y,"rgb(30,40,52)");
 for(let x=4;x<=8;x++) px(27,x,5,"rgb(255,206,90)");
 for(let x=4;x<=10;x++) px(27,x,7,"rgb(255,206,90)");
+// D-17 plant-module materials. Two casings the rest of the plant never uses, so the four
+// optional buildings read as their own kit rather than as more silo.
+// id 29 Filter Machine Casing (the Vent Stack's flue) -> tile 28
+fillTile(28, 0xc2c9cd, R, 0.03); border(28, "rgb(146,153,158)");
+for(let i=2;i<14;i+=3){ for(let j=2;j<14;j++){ px(28,i,j,"rgb(96,104,110)"); px(28,j,i,"rgb(96,104,110)"); } }
+// id 30 Steel Frame Box (Switchyard pylons + Derrick lattice) -> tile 29
+fillTile(29, 0x6e767c, R, 0.05); border(29, "rgb(44,50,55)");
+for(let i=0;i<TEX;i++){ px(29,i,i,"rgb(150,158,164)"); px(29,15-i,i,"rgb(150,158,164)"); }
 
-const TILE_OF = id => id===28?24 : id;
+const TILE_OF = id => id===28?24 : id===29?28 : id===30?29 : id;
 const TRANS = new Set([22]);
 const ALPHA_OF = id => id===22?0.55 : 1.0;
 // Plain structure the cutaway may strip (sockets/pillars/ports/controls always stay).
 const PLAIN = new Set([0,1,2,3,4,5,6,7,8]);
+// Module render groups + the material names the audit hook reports back.
+const MODULE_GROUPS = { 6:"vent", 7:"switchyard", 8:"derrick", 9:"annex" };
+const MAT_NAME = { 6:"Solid Steel Machine Casing", 8:"Clean Stainless Steel Machine Casing",
+  18:"Input Hatch (IV)", 20:"Input Bus (IV)", 21:"Output Bus (IV)", 23:"Steel Pipe Casing",
+  29:"Filter Machine Casing", 30:"Steel Frame Box" };
 
 const LEGEND = [
   ["hdr","Structure"],
   ["#9aa0a2","Light Concrete"], ["#9d8f6f","TS-Reinforced shield"],
   ["#b0a180","Iridium TS shield (t3+)"], ["#8a8f5a","Radiation-Proof casing"],
   ["#7a9b6a","Europium-Reinforced (t3-4)"], ["#6a5a9b","Radiant Naquadah (t5)"],
-  ["#5d6b78","Solid Steel (tower base ring)"], ["#4a6d99","TT Turbine Casing"],
+  ["#5d6b78","Solid Steel (towers, Yard, Derrick)"], ["#4a6d99","TT Turbine Casing"],
   ["#76c44e","Fuel pillar frame"], ["#5d6b78","Rod Loading Port ▓"],
   ["#4a86c8","Turbine Housing / stage"],
   ["hdr","Silo face (c17) — fuel + water"],
@@ -167,6 +183,14 @@ const LEGEND = [
   ["#e8e8e8","Turbine Control Block (y2)"],
   ["hdr","Everywhere"],
   ["#c87a4a","Maintenance (silo, spiral, manifold)"],
+  ["hdr","Plant modules \u2014 optional, fixed at every tier"],
+  ["#b8bfc4","Clean Stainless (Vent shell, Annex shed)"],
+  ["#c2c9cd","Filter Casing \u2014 Vent flue (a4-6, c23-25)"],
+  ["#6e767c","Steel Frame Box (Yard pylons, Derrick lattice)"],
+  ["#8d9499","Steel Pipe (drill string, Annex process line)"],
+  ["#e0a67f","Derrick Output Bus (a36 c4 y1) \u00b7 Annex product (a21 c11 y1)"],
+  ["#7fb2e0","Annex Input Bus \u2014 uraninite (a21 c3 y1)"],
+  ["#3f8fd2","Annex Input Hatch \u2014 HF acid (a21 c7 y1)"],
 ];
 document.getElementById("legend").innerHTML = LEGEND.map(([c,name])=>
   c==="hdr" ? `<span class="hdr">${name}</span>`
@@ -384,6 +408,105 @@ function buildTowers(){
   }
 }
 
+// --- D-17 PLANT MODULES: four optional checked pieces of the SAME controller.
+// Every coordinate below is a compile-time constant in MTEReactorCoreMk1 - none of them
+// depends on the tier, which is why the silo can grow from 9 to 17 wide underneath them.
+// Sites: hOff = 25 - a0, dOff = 17 - c0 (the offset note above VENT_A0 in the Java).
+// The shapes are ports of ventShape/switchyardShape/derrickShape/annexShape, cell for
+// cell, and are checked against gen-bom.ps1's independent tally by __btsAudit() below.
+
+// Vent Stack - 7x7x20 scrubber house + Filter flue, a 2..8, c 21..27, in the tower gap.
+function buildVent(){
+  const A0=2, C0=21, N=7, H=20;
+  const flue = y => { for(let lc=2;lc<=4;lc++) for(let la=2;la<=4;la++){
+    if (lc===3 && la===3) continue;                    // hollow flue bore
+    set(A0+la,y,C0+lc,29,6);                           // Filter Machine Casing
+  } };
+  for (let y=0;y<H;y++){
+    if (y===0){                                        // solid scrubber floor
+      for (let lc=0;lc<N;lc++) for (let la=0;la<N;la++) set(A0+la,y,C0+lc,8,6);
+    } else if (y===4){                                 // house roof, pierced by the flue
+      for (let lc=0;lc<N;lc++) for (let la=0;la<N;la++){
+        if (lc>=2&&lc<=4&&la>=2&&la<=4) continue;
+        set(A0+la,y,C0+lc,8,6);
+      }
+      flue(y);
+    } else if (y<=3){                                  // scrubber-house walls
+      for (let lc=0;lc<N;lc++) for (let la=0;la<N;la++){
+        if (lc===0||lc===N-1||la===0||la===N-1) set(A0+la,y,C0+lc,8,6);
+      }
+      flue(y);
+    } else {                                           // free-standing flue, y 5..19
+      flue(y);
+    }
+  }
+}
+
+// Switchyard - 21x6x6 transformer yard on the platform's BACK edge, a 20..40, c 44..49.
+function buildSwitchyard(){
+  const A0=20, C0=44, WD=21, DP=6, H=6;
+  const banks=[2,6,10,14,18], pylons=[0,5,10,15,20];
+  for (let y=0;y<H;y++){
+    if (y===0){                                        // hardstanding
+      for (let lc=0;lc<DP;lc++) for (let la=0;la<WD;la++) set(A0+la,y,C0+lc,6,7);
+      continue;
+    }
+    if (y===1){                                        // perimeter frame
+      for (let lc=0;lc<DP;lc++) for (let la=0;la<WD;la++){
+        if (lc===0||lc===DP-1||la===0||la===WD-1) set(A0+la,y,C0+lc,30,7);
+      }
+    } else {                                           // 5 pylon pairs carry the busbar
+      for (const la of pylons){ set(A0+la,y,C0,30,7); set(A0+la,y,C0+DP-1,30,7); }
+    }
+    if (y<=3){                                         // 5 transformer banks, 3x3x3 each
+      for (const ctr of banks) for (let lc=2;lc<=4;lc++)
+        for (let la=ctr-1;la<=ctr+1;la++) set(A0+la,y,C0+lc,6,7);
+    }
+  }
+}
+
+// Extraction Derrick - 7x7 deck under a 20-tall lattice, a 33..39, c 4..10.
+function buildDerrick(){
+  const A0=33, C0=4, N=7, H=20;
+  for (let y=0;y<H;y++){
+    if (y<=2){                                         // three solid deck courses
+      for (let lc=0;lc<N;lc++) for (let la=0;la<N;la++) set(A0+la,y,C0+lc,6,8);
+      if (y>=1) set(A0+3,y,C0+3,23,8);                 // drill string up the centre
+      if (y===1) set(A0+3,y,C0+0,21,8);                // OUTPUT BUS, front wall, FORWARD
+    } else if (y===H-1){                               // crown: 5x5 frame ring
+      for (let lc=1;lc<=5;lc++) for (let la=1;la<=5;la++){
+        if (lc===1||lc===5||la===1||la===5) set(A0+la,y,C0+lc,30,8);
+      }
+      set(A0+3,y,C0+3,23,8);
+    } else {                                           // 4 corner legs + drill string
+      for (const lc of [1,5]) for (const la of [1,5]) set(A0+la,y,C0+lc,30,8);
+      set(A0+3,y,C0+3,23,8);
+    }
+  }
+}
+
+// Enrichment Annex - 5x15x6 process shed on the platform's FRONT edge, a 17..21, c 0..14.
+function buildAnnex(){
+  const A0=17, C0=0, WD=5, LN=15, H=6;
+  for (let y=0;y<H;y++){
+    if (y===0||y===H-1){                               // floor slab + roof slab
+      for (let lc=0;lc<LN;lc++) for (let la=0;la<WD;la++) set(A0+la,y,C0+lc,8,9);
+      continue;
+    }
+    for (let lc=0;lc<LN;lc++) for (let la=0;la<WD;la++){
+      if (lc===0||lc===LN-1||la===0||la===WD-1) set(A0+la,y,C0+lc,8,9);
+    }
+    if (y===2) for (let lc=1;lc<=LN-2;lc++) set(A0+2,y,C0+lc,23,9);   // process line
+    if (y===1){                                        // 3 sockets, +a wall, LEFT normal
+      set(A0+WD-1,y,C0+3,20,9);                        // Input Bus   - Uraninite Dust
+      set(A0+WD-1,y,C0+7,18,9);                        // Input Hatch - Hydrofluoric Acid
+      set(A0+WD-1,y,C0+11,21,9);                       // Output Bus  - Fuel Pellets
+    }
+  }
+}
+
+let modulesOn = true;
+
 function buildWorld(){
   world.fill(0); group.fill(0);
   buildPlatform();
@@ -392,13 +515,19 @@ function buildWorld(){
   buildSpiral(curTier);
   buildTurbineGen(curTier);
   buildTowers();
+  if (modulesOn){ buildVent(); buildSwitchyard(); buildDerrick(); buildAnnex(); }
 }
 
 // ---------------------------------------------------------------- meshing
 const canvas = document.getElementById("glcanvas");
-const gl = canvas.getContext("webgl", { antialias: true });
+// preserveDrawingBuffer keeps the rendered frame readable AFTER the requestAnimationFrame
+// turn that drew it. Without it the backbuffer is undefined once the frame is composited,
+// so any screenshot of this page - or a readPixels outside an rAF callback - captures a
+// cleared, all-black canvas while the plant is in fact drawing perfectly.
+const gl = canvas.getContext("webgl", { antialias: true, preserveDrawingBuffer: true });
 const cutawayBox = document.getElementById("cutaway");
 const rotateBox = document.getElementById("rotate");
+const modulesBox = document.getElementById("modules");
 
 const FACES = [
   { d:[1,0,0],  c:[[1,0,0],[1,1,0],[1,1,1],[1,0,1]], b:0.72 },
@@ -449,7 +578,7 @@ function buildMesh(){
 function updateStats(){
   // Counts always reflect the FULL structure (cutaway is a view, not a demolition).
   const saved = cutawayOn; cutawayOn = false; buildWorld();
-  const counts = [0,0,0,0,0,0];
+  const counts = [0,0,0,0,0,0,0,0,0,0];
   let total = 0;
   for (let i=0;i<world.length;i++) if (world[i]){ counts[group[i]-1]++; total++; }
   cutawayOn = saved; if (saved) buildWorld();
@@ -461,11 +590,14 @@ function updateStats(){
     `platform <b>${counts[0].toLocaleString()}</b> &middot; silo <b>${counts[1].toLocaleString()}</b><br>`+
     `spine <b>${counts[2].toLocaleString()}</b> &middot; spiral <b>${counts[3].toLocaleString()}</b> &middot; turbine gen <b>${counts[4].toLocaleString()}</b><br>`+
     `towers <b>${counts[5].toLocaleString()}</b> (optional checked pieces)<br>`+
+    `vent <b>${counts[6].toLocaleString()}</b> &middot; yard <b>${counts[7].toLocaleString()}</b> `+
+    `&middot; derrick <b>${counts[8].toLocaleString()}</b> &middot; annex <b>${counts[9].toLocaleString()}</b><br>`+
     `<b>${total.toLocaleString()}</b> blocks &middot; ${(vertCount/6).toLocaleString()} faces`;
 }
 
 function rebuild(){
   cutawayOn = cutawayBox.checked;
+  modulesOn = modulesBox.checked;
   buildWorld();
   buildMesh();
   updateStats();
@@ -546,6 +678,7 @@ canvas.addEventListener("pointermove", e=>{
 });
 canvas.addEventListener("wheel", e=>{ e.preventDefault(); dist = Math.min(300, Math.max(14, dist * (e.deltaY>0?1.09:0.92))); }, {passive:false});
 cutawayBox.addEventListener("change", rebuild);
+modulesBox.addEventListener("change", rebuild);
 document.querySelectorAll(".tierbtn").forEach(btn=>{
   btn.addEventListener("click", ()=>{
     document.querySelectorAll(".tierbtn").forEach(b=>b.classList.remove("on"));
@@ -592,6 +725,46 @@ function frame(t){
   }
 }
 requestAnimationFrame(frame);
+
+// ------------------------------------------------------------- verification hook
+// Measures the four module footprints out of the VOXEL WORLD (not out of the constants
+// that drew them), so a drawing bug cannot pass. Cutaway and the module toggle are both
+// forced for the measurement and restored afterwards, with the world rebuilt, so calling
+// this never leaves the view in a different state than it found it.
+window.__btsAudit = function(){
+  const savedCut = cutawayOn, savedMod = modulesOn;
+  cutawayOn = false; modulesOn = true; buildWorld();
+  const out = {};
+  for (const g in MODULE_GROUPS){
+    out[MODULE_GROUPS[g]] = { cells:0, a:[99,-1], c:[99,-1], y:[99,-1], mats:{} };
+  }
+  let offPlatform = 0;
+  for (let y=YMIN;y<=YMAX;y++) for (let c=0;c<D;c++) for (let a=0;a<W;a++){
+    const i = idx(a,y,c);
+    if (!world[i]) continue;
+    const name = MODULE_GROUPS[group[i]-1];
+    if (!name) continue;
+    const o = out[name], id = world[i]-1;
+    o.cells++;
+    o.a[0]=Math.min(o.a[0],a); o.a[1]=Math.max(o.a[1],a);
+    o.c[0]=Math.min(o.c[0],c); o.c[1]=Math.max(o.c[1],c);
+    o.y[0]=Math.min(o.y[0],y); o.y[1]=Math.max(o.y[1],y);
+    const mn = MAT_NAME[id] || ("id"+id);
+    o.mats[mn] = (o.mats[mn]||0)+1;
+    if (a<0||a>=W||c<0||c>=D||y<0) offPlatform++;
+  }
+  // Overlap test: rebuild WITHOUT the modules, snapshot, rebuild WITH them, and check
+  // that every cell a module occupies was empty in the bare plant at this tier.
+  modulesOn = false; buildWorld();
+  const bare = new Uint8Array(world.length); bare.set(world);
+  modulesOn = true; buildWorld();
+  let overlap = 0;
+  for (let i=0;i<world.length;i++){
+    if (world[i] && MODULE_GROUPS[group[i]-1] && bare[i]) overlap++;
+  }
+  cutawayOn = savedCut; modulesOn = savedMod; buildWorld(); buildMesh(); updateStats();
+  return { tier: curTier, overlap, offPlatform, modules: out };
+};
 </script>
 </body>
 </html>

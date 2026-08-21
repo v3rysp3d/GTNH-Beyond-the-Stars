@@ -135,8 +135,9 @@ breaking release.
   with the open bore (right-click toggles CW/CCW). Swirl per the model above; interim
   payout until SD-3/4: hall input steam x speed x eff, exported steam x speed; residual
   swirl = |S|^2 x 5 heat/s while running (all-riding patterns need cooling towers).
-  The east corridor (a 31-42, c 20-26) is reserved for the duct + future spiral chamber;
-  the east dock marker moved {38,25} -> {38,30} (0.12.0 platforms: swap the steel marker
+  The +a corridor (a 31-42, c 20-26) - the strip to your RIGHT as you face the silo - is
+  reserved for the duct + future spiral chamber;
+  the +a dock marker moved {38,25} -> {38,30} (0.12.0 platforms: swap the steel marker
   at the old spot for concrete and set it at the new one, or reproject the floor).
 - SD-3 (IMPLEMENTED 0.15.0): the Spiral as an optional checked piece at the duct's end
   (7x7x12 at platform a 43-49, tier-centered rows; ducts now run tier-length so they end
@@ -154,7 +155,8 @@ breaking release.
   Spine's housings are destroyed and the plant slams shut. Propellant fluids Lv 4-6
   added (GoodGenerator Mk IV-VI based, UHV/UEV/UIV mixers).
 - SD-4 (IMPLEMENTED 0.15.0): the Large Turbine Rotor Assembly as the final optional
-  piece - a 7x5x18 gallery running south from the Spiral down the east strip, Dynamo +
+  piece - a 7x5x18 gallery running BACK from the Spiral down the +a strip (your RIGHT as
+  you face the silo), Dynamo +
   Maintenance hatches in its walls, EIGHT rotor stage sockets (Turbine Housings, spin
   agnostic) along the centerline. EU/t = L/t x speed x eff x (1 + 0.75 x stages) / 2,
   clamped to summed DYNAMO CAPACITY (GT detonates the multiblock past it) and < 2^31.
@@ -331,8 +333,9 @@ LOCATIONS changed.
     by the auto-feed, so the two styles can never double-stamp one window (two litres in a
     window is still a miss, still +50 heat).
 - **A3 ABSORB THE MODULES** (IMPLEMENTED 0.20.0). The Cooling Towers are OPTIONAL CHECKED
-  PIECES of the main controller, detected like the Spine and the Spiral (NW a 0..16
-  c 0..16, SW a 0..16 c 33..49, offsets 25/19/17 and 25/19/-16). Their effects are
+  PIECES of the main controller, detected like the Spine and the Spiral (FRONT tower
+  a 0..16 c 0..16, BACK tower a 0..16 c 33..49, offsets 25/19/17 and 25/19/-16; both on
+  the `-a` strip, your LEFT as you face the silo). Their effects are
   unchanged and apply while the piece stands: feedwater draw x0.5, passive heat decay x2,
   decay-heat demand x0.5, max 2. The dock-marker mechanic and `PlantModuleElement` are
   gone, the eight `K`/`M` marker cells are plain floor, and
@@ -340,7 +343,7 @@ LOCATIONS changed.
   pieces: MTE ids still registered so existing worlds do not corrupt, recipes removed,
   tooltips saying they are retired and the buildings are part of the main plant.
 - **A4 HOLOGRAM COMPLETENESS** (IMPLEMENTED 0.20.0). One projection is now literally the
-  whole plant: platform -> silo -> spine -> spiral -> gallery -> tower NW -> tower SW, in
+  whole plant: platform -> silo -> spine -> spiral -> gallery -> FRONT tower -> BACK tower, in
   `construct()` and `survivalConstruct()` alike. No build-only "shell" leniency is left
   anywhere, and there is no second controller to place.
 
@@ -549,14 +552,21 @@ diagrams.
     casing). Step 3 now states that explicitly; step 7 gates on 12 housings and step 6 pays
     for them; step 8 gates on the 8 Precision Injectors and the Spine Sensor and says where
     each one goes, including that two injector sockets stand +7 and +8 above the platform.
-  - **Nothing in the plant draws EU** (review finding Q3). `checkProcessing()` sets
-    `lEUt = 0` in all three success branches and the class contains no `drainEnergyInput`
-    or `decreaseStoredEnergyUnits`. The old step-6 line "a reactor this size still draws to
-    run" and the matching diagram legend were false and are gone; the ruling was to correct
-    the TEXT, not to add a parasitic load (that would be a new gameplay ruling and my call). **Superseded in the C-round:** the four Energy Hatches are not a structure
-    requirement either — `checkHasEnergyHatch(errors)` is removed outright, the book calls
-    them optional furniture, and the OUTPUT group carries a grey `energyHatchNote(...)`
-    counting the empty sockets.
+  - **The reactor and turbine draw no EU** (review finding Q3). `checkProcessing()` sets
+    `lEUt = 0` in all three success branches and nothing in the steam chain calls
+    `drainEnergyInput` or `decreaseStoredEnergyUnits`. The old step-6 line "a reactor this
+    size still draws to run" and the matching diagram legend were false and are gone; the
+    ruling was to correct the TEXT, not to add a parasitic load to the steam chain (that
+    would be a new gameplay ruling and my call). **Superseded in the C-round:** the
+    four Energy Hatches are not a structure requirement either —
+    `checkHasEnergyHatch(errors)` is removed outright and the OUTPUT group carries a grey
+    `energyHatchNote(...)` counting the empty sockets. **Revised again in 0.21.0 (`C5`):**
+    "nothing in the plant draws EU" is no longer true and must not be quoted as an
+    invariant. `moduleSupplied()` calls `drainEnergyInput()` once per tick for the
+    Extraction Derrick (`TierEU.RECIPE_EV`, 1,920 EU/t) and the Enrichment Annex
+    (`TierEU.RECIPE_HV`, 480 EU/t). The sockets stay optional because the reactor does not
+    need them; they are not furniture, and the note turns red when a process module stands
+    with none fitted.
   - **Bills are DERIVED** (review finding Q5). `questbook/gen-bom.ps1` re-implements every
     shape function, tallies each cell through the element table, cross-checks itself against
     `COLUMN_CAP` and the octagon formula, and refuses to run if a constant or socket-placing
@@ -581,12 +591,24 @@ diagrams.
   resource pack (`betterquesting.misc.QuestResourcesFolder`), so the domain is the folder
   name and must be lowercase, and a diagram change needs no mod rebuild. Adding the folder
   for the first time needs one resource reload (F3+T) or a restart.
-- **ID budget.** The chapter is 20 quests, `190/48000..48019`; `190/48020` stays the entry
-  quest grafted into *How to Generate Power*, because a world that already ran
-  `/btsquests install` holds it under that id. `gen-questbook.ps1` throws if the chapter
-  overruns, `BQBridge.LAST_QUEST_LOW` mirrors 48019, and the entry quest's FILE STEM is
-  pinned to `UnitOne` so the file-merge into the pack folder overwrites instead of
-  duplicating the id.
+- **ID budget.** The chapter is **25 quests**, `190/48000-48019` and `190/48021-48025`.
+  `190/48020` stays the entry quest grafted into *How to Generate Power*, because a world
+  that already ran `/btsquests install` holds it under that id — so the chapter has a HOLE
+  in the middle of it by design, and lows are handed out in `$quests` array order, which
+  means a new quest may only ever be APPENDED (inserting one renumbers every quest after it
+  and orphans installed progress).
+  <br>The chapter is therefore described by a LIST and never by a range.
+  `BQBridge.CHAPTER_QUEST_LOWS` declares all 25 lows and `/btsquests` status is
+  PRESENCE-BASED — complete means every id in that array is in the world's database. It used
+  to be a `FIRST..LAST` pair reading `48000..48019`, and when `48021..48025` were appended
+  the pair was not widened, so `status` counted 20 ids out of a 25-quest chapter, found all
+  20 and reported "Everything is loaded" with five blueprint quests missing from the book.
+  There is no `BQBridge.LAST_QUEST_LOW` any more. `gen-questbook.ps1` reads
+  `CHAPTER_QUEST_LOWS` back out of `BQBridge.java` and THROWS if it does not match the ids it
+  just handed out (and throws again if the array contains `48020`, which is checked
+  separately as `ENTRY_QUEST_UUID`), so a quest cannot be added to the book without the
+  status command learning about it. The entry quest's FILE STEM is pinned to `UnitOne` so the
+  file-merge into the pack folder overwrites instead of duplicating the id.
 
 ## Test commands (creative / debug)
 
@@ -614,7 +636,7 @@ raise a whole plant. Use the commands instead (op level 2):
     of headroom at tiers 1-5 (the silo is `2*edge + edge/2 - 2` tall; the 19-high tower
     shells only matter at tier 1). `all` therefore needs y <= 215.
   - Per-tier geometry that has to hold at every tier, and does: the duct is `16 - edge/2`
-    long (12/11/10/9/8) and always starts one block past the silo's east rib and ends at
+    long (12/11/10/9/8) and always starts one block past the silo's +a rib and ends at
     a=42, so its four housings at offsets 1,3,5,7 fit even the 8-long tier-5 duct; the
     Spiral starts at a=43 with `dOff = 3 - edge/2` and the gallery one row behind it with
     `dOff = -4 - edge/2`, which puts the tier-5 manifold at c=46, still on the platform;
@@ -671,9 +693,9 @@ created; after that the world owns `saves/<world>/betterquesting/QuestDatabase.j
 never reads the defaults again. Merging the overlay therefore fixes NEW worlds only.
 
 - `/btsquests` (op) - prints BetterQuesting's version, where it is reading DefaultQuests
-  from, and whether our chapter (190/47990), our 20 quests (190/48000-48019) and the entry
-  quest "Unit One" (190/48020) are in THIS world's live database. If they are missing it
-  explains why and gives both fixes.
+  from, and whether our chapter (190/47990), our 25 quests (190/48000-48019 and
+  190/48021-48025) and the entry quest "Unit One" (190/48020) are in THIS world's live
+  database. If they are missing it explains why and gives both fixes.
 - `/btsquests install` (op) - the fix. It reads only the files carrying our high word out
   of the instance's `DefaultQuests` and adds them to the live `QuestDatabase` /
   `QuestLineDatabase` singletons, snapshotting player progress with

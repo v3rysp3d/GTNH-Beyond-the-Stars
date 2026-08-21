@@ -85,11 +85,18 @@ public class CommandBTSQuests extends CommandBase {
             tell(
                 sender,
                 line("Chapter \"Beyond the Stars\" (190/47990)", status.chapterPresent)
-                    + line("  · its quests (190/48000-48019)", status.chapterQuests == status.expectedChapterQuests)
+                    + line(
+                        "  · its quests (190/" + BQBridge.chapterQuestLabel() + ")",
+                        status.missingQuestLows.isEmpty())
                     + " "
                     + status.chapterQuests
                     + "/"
                     + status.expectedChapterQuests);
+            if (!status.missingQuestLows.isEmpty()) {
+                // Naming the ids is the whole point of holding a list: "20/25" only says that
+                // something is wrong, "missing 190/48021, 48022 ..." says which quests to hunt.
+                tell(sender, EnumChatFormatting.RED + "  · missing from this world: 190/" + status.missingLabel());
+            }
             tell(
                 sender,
                 line("Entry quest \"Unit One\" (190/48020) in How to Generate Power", status.entryQuestPresent));
@@ -197,6 +204,7 @@ public class CommandBTSQuests extends CommandBase {
                     + after.chapterQuests
                     + "/"
                     + after.expectedChapterQuests
+                    + (after.missingQuestLows.isEmpty() ? "" : " (missing 190/" + after.missingLabel() + ")")
                     + ", entry quest "
                     + (after.entryQuestPresent ? "ok" : "MISSING")
                     + ". Check that questbook/DefaultQuests was merged into the instance.");

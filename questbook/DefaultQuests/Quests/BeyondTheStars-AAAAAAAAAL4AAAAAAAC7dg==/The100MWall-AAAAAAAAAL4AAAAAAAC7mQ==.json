@@ -1,0 +1,68 @@
+{
+    "preRequisites:9":  {
+                            "0:10":  {
+                                         "questIDHigh:4":  190,
+                                         "questIDLow:4":  48009
+                                     }
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  1,
+                                                    "desc:8":  "§c§lRead this the moment your plant clears 100,000,000 EU/t.§r\nThere is a hard ceiling on how much this plant will INJECT into your grid, and it is not a hatch limit and not a laser limit. It is §c100,000,000 EU/t§r, and the only thing that lifts it is the §bSWITCHYARD§r.\n\n§e§lHOW YOU KNOW YOU HAVE HIT IT§r\nThe OUTPUT group\u0027s headline stops reading §8[CLAMPED from N]§r and starts reading §c[GRID-CAPPED from N - no Switchyard]§r. The Switchyard line under it prints the exact EU/t being discarded, plus the bill.\nThe MATH panel scores the cap as its own weakest term, and its advice becomes §bbuild the SWITCHYARD§r - not §8fit more Lasers§r, which would do nothing at all.\n\n§e§lDO THIS§r\n§b1.§r Build the Switchyard. It is 21x6x6 on the platform\u0027s back edge and it needs no hatches - see §bBlueprint: Switchyard§r for the bill.\n  §b261x§r Solid Steel Machine Casing\n  §b90x§r Steel Frame Box\n§b2.§r Re-project, or place it by hand. It is a piece of the main controller, so it is detected on the next structure check - there is nothing to wire and nothing to turn on.\n\n§a§lDONE WHEN§r\nYou have read this. §8There is nothing to hand in: no quest can gate on 351 casings you are supposed to be BUILDING WITH, and no quest can read what you have built.§r\n\n§e§lCHECK YOUR WORK§r\nThe Switchyard line reads green and the OUTPUT headline has dropped the §cGRID-CAPPED§r tag.\n\n[note]Would you rather the cap simply did not exist? Set §bswitchyardSoftCap = false§r in the config. It is one flag and it turns the whole mechanic off. The building is the in-game answer; the flag is the out-of-game one.[/note]\n\n[warn]Do not go hunting for more Dynamo or Laser hatches to break this ceiling. The cap is applied AFTER the hatch ceiling, so it does not matter how much hatch capacity you fit - you will keep discarding everything above 100M until the yard stands.[/warn]",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  0,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "gregtech:gt.blockcasings2"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "§c§lThe 100M Wall",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48025,
+    "rewards:9":  {
+                      "0:10":  {
+                                   "ignoreDisabled:1":  0,
+                                   "index:3":  0,
+                                   "rewardID:8":  "bq_standard:item",
+                                   "rewards:9":  {
+                                                     "0:10":  {
+                                                                  "Count:3":  64,
+                                                                  "Damage:2":  0,
+                                                                  "OreDict:8":  "",
+                                                                  "id:8":  "gregtech:gt.blockcasings2"
+                                                              }
+                                                 }
+                               }
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "index:3":  0,
+                                 "taskID:8":  "bq_standard:checkbox"
+                             }
+                }
+}

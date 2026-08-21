@@ -54,14 +54,47 @@ final class BQBridge {
     static final UUID ENTRY_QUEST_UUID = new UUID(ID_HIGH, 48020L);
 
     /**
-     * First and last quest of our own chapter, inclusive (48000..48019 = 20 quests): the ten
-     * guided path steps, the five mastery quests and the five blueprints. 48020 is deliberately
-     * NOT in this range - that low belongs to the {@link #ENTRY_QUEST_UUID} grafted into the
-     * pack's own chapter, and {@code questbook/gen-questbook.ps1} throws if the chapter ever
-     * grows past 48019 rather than silently colliding with it.
+     * EVERY quest low our own chapter ships - what {@link #status()} counts - and a LIST rather
+     * than a first/last RANGE on purpose.
+     * <p>
+     * It used to be the pair {@code 48000..48019}. When 0.21.0 appended the four plant-module
+     * blueprints and The 100M Wall at {@code 48021..48025} the pair was not widened, so
+     * {@code status} looked for twenty ids, found all twenty and reported "Everything is
+     * loaded" while five quests were missing from the book. A range was never able to describe
+     * this chapter anyway: {@code 48020} is the {@link #ENTRY_QUEST_UUID} grafted into the
+     * pack's own chapter and is counted separately, so the chapter has a hole in the middle of
+     * it by design.
+     * <p>
+     * {@code questbook/gen-questbook.ps1} reads this array back out of this file and throws if
+     * it does not match the ids it just handed out. Appending a quest to the book without
+     * adding its low here therefore fails the questbook build rather than shipping a status
+     * command that lies.
      */
-    static final long FIRST_QUEST_LOW = 48000L;
-    static final long LAST_QUEST_LOW = 48019L;
+    static final long[] CHAPTER_QUEST_LOWS = { 48000L, 48001L, 48002L, 48003L, 48004L, 48005L, 48006L, 48007L, 48008L,
+        48009L, 48010L, 48011L, 48012L, 48013L, 48014L, 48015L, 48016L, 48017L, 48018L, 48019L, 48021L, 48022L, 48023L,
+        48024L, 48025L };
+
+    /**
+     * The chapter's ids the way a person reads them - {@code 48000-48019, 48021-48025} -
+     * collapsed into runs off {@link #CHAPTER_QUEST_LOWS} itself, so no message can advertise a
+     * range the check does not actually count.
+     */
+    static String chapterQuestLabel() {
+        final StringBuilder out = new StringBuilder();
+        int i = 0;
+        while (i < CHAPTER_QUEST_LOWS.length) {
+            int end = i;
+            while (end + 1 < CHAPTER_QUEST_LOWS.length && CHAPTER_QUEST_LOWS[end + 1] == CHAPTER_QUEST_LOWS[end] + 1) {
+                end++;
+            }
+            if (out.length() > 0) out.append(", ");
+            out.append(CHAPTER_QUEST_LOWS[i]);
+            if (end > i) out.append('-')
+                .append(CHAPTER_QUEST_LOWS[end]);
+            i = end + 1;
+        }
+        return out.toString();
+    }
 
     /**
      * The leading 12 base64 characters every one of our file names carries.
@@ -141,10 +174,11 @@ final class BQBridge {
             status.totalLines = lines.size();
             status.chapterPresent = lines.containsKey(LINE_UUID);
             status.entryQuestPresent = quests.containsKey(ENTRY_QUEST_UUID);
-            for (long low = FIRST_QUEST_LOW; low <= LAST_QUEST_LOW; low++) {
+            status.expectedChapterQuests = CHAPTER_QUEST_LOWS.length;
+            for (final long low : CHAPTER_QUEST_LOWS) {
                 if (quests.containsKey(new UUID(ID_HIGH, low))) status.chapterQuests++;
+                else status.missingQuestLows.add(low);
             }
-            status.expectedChapterQuests = (int) (LAST_QUEST_LOW - FIRST_QUEST_LOW + 1);
         } catch (final Throwable t) {
             status.readable = false;
             status.error = describe(t);
@@ -163,9 +197,25 @@ final class BQBridge {
         boolean entryQuestPresent;
         int chapterQuests;
         int expectedChapterQuests;
+        /** The lows of {@link BQBridge#CHAPTER_QUEST_LOWS} this world's database does NOT hold. */
+        final List<Long> missingQuestLows = new ArrayList<>();
 
+        /**
+         * Complete means every id in {@link BQBridge#CHAPTER_QUEST_LOWS} is present - not that a
+         * COUNT matched, which is what let a 25-quest chapter report complete at twenty.
+         */
         boolean complete() {
-            return chapterPresent && entryQuestPresent && chapterQuests == expectedChapterQuests;
+            return readable && chapterPresent && entryQuestPresent && missingQuestLows.isEmpty();
+        }
+
+        /** The missing lows, comma-separated - empty when nothing is missing. */
+        String missingLabel() {
+            final StringBuilder out = new StringBuilder();
+            for (final long low : missingQuestLows) {
+                if (out.length() > 0) out.append(", ");
+                out.append(low);
+            }
+            return out.toString();
         }
     }
 

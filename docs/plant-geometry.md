@@ -5,8 +5,9 @@ the horizontal axis (0..49), `c` the depth axis (0=front, 49=back), everything r
 with the controller's facing. `edge` = silo diameter = 7 + 2*tier (tiers 1..5: 9-17).
 
 **There is exactly one controller in the whole design.** Every building — silo, spine,
-spiral, gallery, both cooling towers — is a piece of the main station, raised by one
-hologram projection. Module controllers and dock markers are retired (A3).
+spiral, gallery, both cooling towers, and the four D-17 plant modules (Vent Stack,
+Switchyard, Extraction Derrick, Enrichment Annex) — is a piece of the main station, raised
+by one hologram projection. Module controllers and dock markers are retired (A3).
 
 **There is no plumbing wall.** The POINT OF USE ruling (2026-08-19, in-game session:
 *"the inputs need to go exactly where they are fed into in the logic flow"*) reverses the
@@ -52,6 +53,18 @@ except the two pre-existing high injectors noted below).
 | `i`/`v`/`w`/`x` Precision Injector ×8 | Spiral walls | — | — | 3..10 | BACK/RIGHT/FORWARD/LEFT | `BTSMachines.precisionInjector` | rows follow the chamber |
 | `j` Spine Sensor | Spiral roof | 46 | 14+edge/2 | 11 | UP | `BTSMachines.spineSensor` | rows follow the chamber |
 | `l` Maintenance | Spiral floor | 49 | 14+edge/2 | 0 | FORWARD | `ItemList.Hatch_Maintenance` | rows follow the chamber |
+| `b` **Derrick Output Bus** | Derrick deck, front wall | 36 | 4 | 1 | FORWARD | `ItemList.Hatch_Output_Bus_IV` | no |
+| `e` **Annex Input Bus** (uraninite) | Annex +a wall | 21 | 3 | 1 | LEFT | `ItemList.Hatch_Input_Bus_IV` | no |
+| `f` **Annex Input Hatch** (HF acid) | Annex +a wall | 21 | 7 | 1 | LEFT | `ItemList.Hatch_Input_IV` | no |
+| `g` **Annex Output Bus** (pellets) | Annex +a wall | 21 | 11 | 1 | LEFT | `ItemList.Hatch_Output_Bus_IV` | no |
+
+The four module sockets join **no plant-wide hatch list**. That is a correctness property,
+not tidiness: `mInputHatches` / `mOutputBusses` have no notion of which piece registered a
+hatch, so an Annex acid hatch in `mInputHatches` would satisfy the SILO's
+`checkHasInputHatch` demand and let a plant form with no feedwater socket — and a shared
+list is a shared inventory, so the reactor's rod distribution would eat the Annex's
+uraninite and the cascade's depleted rods would land in the Derrick's bus. Each keeps a
+dedicated field on the controller (`ModuleHatchElement`).
 
 The **silo face** reads (offsets ±1 from the octagon's centre column, which is inside the
 front row at EVERY tier — tier 1's front row is the narrowest, centre ±2):
@@ -113,7 +126,7 @@ geometry, unchanged by the relocation — scaffolding or flight is required to f
 
 ## The Spine duct (optional)
 - 3x3 cross-section, y 0..2, rows centered on the silo mid-row c = 17+n/2 (rows
-  c 16+n/2 .. 18+n/2), running a = 25+n/2+2 (flush past the east rib) to a=42
+  c 16+n/2 .. 18+n/2), running a = 25+n/2+2 (flush past the +a rib) to a=42
   (length 16-n/2). Tungstensteel Turbine Casing shell, hollow bore.
 - 4 Turbine Housing sockets in the bore at a-offsets 1,3,5,7 from the silo end;
   right-click sets CW/ACW; swirl S accumulates: riding x(1+0.08|S|) speed,
@@ -124,7 +137,7 @@ geometry, unchanged by the relocation — scaffolding or flight is required to f
   Casing shell, interior: helix of 5-cell Light Concrete arcs stepping down the 5x5
   interior ring (3 cells advance per level) around a 3x3 open downcomer.
 - TC-1 SOCKETS: 8 Precision Injectors on the walls, one per interior level 1..8,
-  rotating faces BACK/WEST/FRONT/EAST from level 1 (mid-cell). The rotation starts on
+  rotating faces BACK(+c) / -a / FRONT(-c) / +a from level 1 (mid-cell). The rotation starts on
   the back face deliberately: back-face sockets then land at levels 1 and 5 (world y 10
   and 6), clear above the gallery's 5-tall front wall - a front-first rotation entombed
   the level-7 socket. Spine Sensor in the roof's front-center cell; 1 Maintenance ('l')
@@ -143,7 +156,7 @@ geometry, unchanged by the relocation — scaffolding or flight is required to f
   11,13 plus one hanging in the manifold mouth (row 15). Each housing (a tile entity)
   seats a placeable TURBINE ROTOR item (10 durability; -5% stage factor per damage
   point; shatters at 10; sneak-click empty-handed extracts, wear preserved).
-- OUTPUT MANIFOLD at the south end: 7x7x3 (y 0..6), c (36+n/2)..(38+n/2), hollow; its
+- OUTPUT MANIFOLD at the BACK end (+c): 7x7x3 (y 0..6), c (36+n/2)..(38+n/2), hollow; its
   front plane is walled except the mouth matching the gallery bore (a 1..5, y 1..3);
   4 Dynamo sockets mid-height on the back face (y 3, a 1,2,4,5).
 - TC-1/2 SOCKETS: TURBINE CONTROL BLOCK on the MANIFOLD BACK FACE (last row, a 3,
@@ -157,15 +170,23 @@ geometry, unchanged by the relocation — scaffolding or flight is required to f
   Chosen because nothing is ever built behind the manifold at ANY tier, so all twelve
   look straight out at open sky and a cable or a laser pipe reaches every one of them; the
   a=3 column stays casing as a clean spine over the control block, a=0/6 are the frame.
-  **The Energy Hatches are OPTIONAL — neither a load nor a structure demand** (C1).
-  `checkProcessing()` sets `lEUt = 0` in all three success branches and there is no
-  `drainEnergyInput` or `decreaseStoredEnergyUnits` anywhere in the class, so an empty `r`
-  socket cannot change a single number the plant produces. `checkHasEnergyHatch(errors)` is
+  **The Energy Hatches are OPTIONAL — not a structure demand** (C1) — **but since 0.21.0
+  they ARE a load** (`C5`). Do not read "optional" as "furniture", and do not delete the `r`
+  socket as unused: `moduleSupplied()` calls `drainEnergyInput()` once per tick for each of
+  the two D-17 **process modules** — the Extraction Derrick at `DERRICK_EU_PER_TICK`
+  (`TierEU.RECIPE_EV` = 1,920 EU/t) and the Enrichment Annex at `ANNEX_EU_PER_TICK`
+  (`TierEU.RECIPE_HV` = 480 EU/t). That is the only EU the class consumes, and an empty `r`
+  socket on a plant carrying either module means **neither module ever turns over**.
+  What is still true, and is why the socket stays optional: the **reactor and turbine** never
+  draw EU. `checkProcessing()` sets `lEUt = 0` in all three success branches and nothing in
+  the steam chain reads `mEnergyHatches`, so an empty `r` socket cannot change a single number
+  the *reactor* produces. `checkHasEnergyHatch(errors)` is therefore
   **removed**, not merely gated: `galleryBuilt` flips true the instant the last gallery
   Turbine Housing is placed, three steps before the questbook asks for the hatches, so the
   gated form still un-formed a running plant mid-build — and un-forming arms the 20-minute
   decay-heat obligation. The empty sockets are reported instead, by `energyHatchNote(...)`,
-  as a grey non-fatal line in the OUTPUT group.
+  as a grey non-fatal line in the OUTPUT group — which turns **RED** when a process module
+  stands with no Energy Hatch fitted at all.
   They take TecTech LASER SOURCE HATCHES (HatchElement.LaserSource -> MTEHatchDynamoTunnel
   -> mExoticDynamoHatches); /btsbuild fits the ZPM 4,096 A/t one (536,870,912 EU/t each).
 - RPM model: redstone rising edge on the Turbine Control Block starts a cycle
@@ -204,8 +225,12 @@ DECLARED per socket char. The rule has no exceptions.
 
 ## Cooling Towers (optional CHECKED pieces of the main controller — A3)
 - 17x17x20 hyperboloid (base r7.5, waist r4.6 at 62%, top r5.6), Light Concrete 'O'
-  shell on a Solid Steel 'R' base ring. NW body a 0..16 c 0..16 (offsets 25, 19, 17);
-  SW body a 0..16 c 33..49, rows reversed (offsets 25, 19, -16).
+  shell on a Solid Steel 'R' base ring. Both stand on the `-a` strip (the platform strip
+  to your LEFT as you face the silo). FRONT tower body a 0..16 c 0..16 (offsets 25, 19,
+  17); BACK tower body a 0..16 c 33..49, rows reversed (offsets 25, 19, -16). D-21 retired
+  the docks' NW/SW labels with the docks: `a` is the controller's relative LEFT, so a
+  compass word is only ever true for one facing — and "NW" was not true for that one
+  either (it is north-EAST on a north-facing plant).
 - Derived bill per tower: **736 Light Concrete + 52 Solid Steel Machine Casing.**
 - They are pieces now, not modules: no controller, no dock marker, no maintenance hatch —
   the two cells that used to hold the module controller are plain base ring. Detected on
@@ -217,8 +242,9 @@ DECLARED per socket char. The rule has no exceptions.
   `'~'` ever survives the remap. On a platform whose towers were raised by the RETIRED
   module controller those cells hold that controller and open air instead, so the ring is
   broken and the tower is not detected. Per tower, by hand, at the platform walking
-  level: NW (a 8, c 1) — break the retired controller, place Solid Steel — and (a 8, c 0),
-  which was air; SW (a 8, c 48) and (a 8, c 49), same. **4 casings for a two-tower plant.**
+  level: FRONT tower (a 8, c 1) — break the retired controller, place Solid Steel — and
+  (a 8, c 0), which was air; BACK tower (a 8, c 48) and (a 8, c 49), same. **4 casings for
+  a two-tower plant.**
   A 0.19.0 Maintenance Hatch left in the base ring may STAY — `towerRingElement()` chains
   Solid Steel with a tile adder that answers for one — but it is **tolerated, never
   registered**: nothing a tower holds reaches `mMaintenanceHatches`, so the plant's three
@@ -228,9 +254,137 @@ DECLARED per socket char. The rule has no exceptions.
   tooltips point at the main station. `PlantModuleElement` is deleted.
 - Turbine Hall (RETIRED, museum): 5x4x9 — no longer part of any projection.
 
+## The four D-17 PLANT MODULES (optional checked pieces — D-22)
+
+Built and checked exactly like the Cooling Towers: pieces of the one controller, raised by
+the one projection, detected on every structure walk, no dock and no second controller.
+Each site is a **fixed platform rectangle** — no tier term anywhere in its offsets — so a
+module never moves when the silo is re-tiered.
+
+| module | a | c | y | bill | sockets | effect |
+| --- | --- | --- | --- | --- | --- | --- |
+| **Vent Stack** 7x7x20 | 2..8 | 21..27 | 0..19 | 161 Clean Stainless Steel Machine Casing + 152 Filter Machine Casing | none | decay-heat window **24,000t → 12,000t** (20 min → 10) and meltdown radiation **36,000t → 18,000t** (30 min → 15) |
+| **Switchyard** 21x6x6 | 20..40 | 44..49 | 0..5 | 261 Solid Steel Machine Casing + 90 Steel Frame Box | none | lifts the **100,000,000 EU/t** grid soft cap |
+| **Extraction Derrick** 7x7x20 | 33..39 | 4..10 | 0..19 | 144 Solid Steel Machine Casing + 80 Steel Frame Box + 19 Steel Pipe Casing + 1 Output Bus | 1 Output Bus (front wall, y1, FORWARD) | every 200t: 6 Uraninite + 1 Thorium, +1 Tantalum every 4th cycle; **1,920 EU/t** (`TierEU.RECIPE_EV`) |
+| **Enrichment Annex** 5x15x6 | 17..21 | 0..14 | 0..5 | 291 Clean Stainless Steel Machine Casing + 13 Steel Pipe Casing + 3 sockets | Input Bus + Input Hatch + Output Bus (+a wall, y1, LEFT) | every 600t: 8 Uraninite + 2,000 L Hydrofluoric Acid → 20 Fuel Pellets + 2 Thorium; **480 EU/t** (`TierEU.RECIPE_HV`) |
+
+Total module buildout: **1,215 blocks** (313 + 351 + 244 + 307). Every count in the table
+comes from `questbook/gen-bom.ps1`, which re-implements each shape cell by cell and fails
+loudly if the Java moves underneath it; nothing here is hand-counted.
+
+Clearance verified cell by cell at **all five tiers** against platform, silo (incl. ribs and
+dome), spine, spiral, gallery, manifold and both towers: **0 overlaps, 0 cells off the
+platform, 0 of the eight legacy dock cells covered, 4/4 declared socket faces open.** The
+one cell reported twice by the checker is `(25, 17, 0)`, the controller anchor, which both
+the platform pad layer and the silo front row declare as `~` — the same block.
+
+Re-verified independently in `docs/mockup/unit-one.html`, which now draws all four modules:
+its `__btsAudit()` hook measures the footprints back out of the rendered voxel world and
+re-runs the overlap test at whichever tier is on screen. Measured at tiers 1, 2, 3, 4 and 5:
+`vent 313 · yard 351 · derrick 244 · annex 307`, bounding boxes exactly the a/c/y columns
+above, `overlap 0`, at every tier.
+
+### How a module is detected
+
+`checkMachine` walks each module at its fixed offset through `checkPiece` and keeps the
+result in that module's own `pieceErrors` list, so **nothing a module reports can un-form
+the plant**. A module that is simply absent is not an error; a module with blocks standing
+that will not form prints its reason through `pieceFault()` on the ungated `moduleLine`,
+the same way the Cooling Towers do. Because module placement uses only compile-time
+constants, `construct(stack, hintsOnly = true)` draws all four correctly CLIENT-side, and
+every module field the GUI reads is a sync value (`gridCapEnabled` included — a Forge
+config is per-side).
+
+### What it costs to skip one
+
+| skipped | consequence |
+| --- | --- |
+| Vent Stack | decay-heat obligation stays 24,000t and the meltdown radiation field stays 36,000t |
+| Switchyard | everything above 100,000,000 EU/t is discarded — on a tuned tier-5 plant, most of the output |
+| Extraction Derrick | no ore cycle. Never a structure demand, never stalls the plant |
+| Enrichment Annex | no pellet cycle. Never a structure demand, never stalls the plant |
+
+Neither of the two invariants the shipped sockets rest on is touched: nothing is built in
+the `a 43..49` strip in front of the Spiral chamber, and nothing is built behind the output
+manifold at any tier (the Switchyard stops at `a 40`; the manifold is `a 43..49`).
+
+**No cell of this plant ever overwrites a standing tile entity** (`C1`). A cell that already
+satisfies its element is left alone; a cell holding a *tile entity* is skipped and reported
+rather than written. Three wrappers carry the rule and between them cover every write path
+in `getStructureDefinition()`:
+
+| wrapper | covers |
+| --- | --- |
+| `protectedElement` | the module material chars `V W Z M X` (leave-if-already-valid + refuse) |
+| `autoFit` | **every socket in the plant**, module sockets `b e f g` included |
+| `noOverwrite` | every remaining plain char — `B I A C D E G O T 5 8 H d` — plus the tower ring `R` and the four raw `world.setBlock` elements (fuel pillar, rod port, both housing seats) |
+
+`autoFit` used to refuse only for `IGregTechTileEntity`, which was the hole: both of its
+remaining paths write (`placeGtMachine` calls `setBlockToAir` on what stands there, and the
+chained fallback is `ofBlock`), so an AE2 ME Interface, a chest, a hopper or a conduit parked
+on the Derrick's bus cell (`a36, c4, y1`) or one of the Annex's three socket cells
+(`a21, c3|c7|c11, y1`) was voided by one right-click of a projector. The module sites are
+virgin concrete on a plant this version raised, but not necessarily on one a player has been
+running for weeks — and the same is true of the platform under every other piece.
+
+The two turbine-housing elements matter for a second reason: a Turbine Housing carries
+`TileTurbineHousing`, and that tile is where the **rotor** lives. Housing meta encodes spin
+direction, so laying a blank meta-0 housing over a standing meta-1 one was a real block
+replacement — it voided the rotor in it.
+
+**A committed batch is never destroyed** (`C2`). The Annex consumes its feedstock **up front**,
+at `annexProgress == 0` — 8 Uraninite Dust and 2,000 L of Hydrofluoric Acid — so *any* non-zero
+`annexProgress` means the player has already paid and nothing has been handed back. An
+un-formed module therefore **SUSPENDS** its batch where it stopped; it does not zero the
+counter. That matters because a structure check fires on every neighbour update: breaking one
+Clean Stainless casing to route a pipe used to eat the batch outright. The Derrick suspends on
+the same terms (its stake is the EU already paid into the load, up to 200t × 1,920 EU/t).
+A suspended batch survives a **reload** via `saveNBTData` and a **wrench** via `setItemNBT` —
+tile NBT alone would have dropped it the moment the controller came out — and the OUTPUT
+group prints a `SUSPENDED at n/600t` line naming the feedstock being held, so the player can
+see it is theirs. Only the *product* Output Bus is required to finish a committed batch; the
+feed bus and acid hatch have already been drawn from.
+
+**Deposits are all-or-nothing, and ME buses work** (`C3`). `storeAll` asks the bus through its
+own `IOutputBusTransaction` rather than counting empty slots. Slot counting made an **ME Output
+Bus impossible to pay into, forever** — `MTEHatchOutputBusME` passes `aSlots = 1` and that one
+slot is the *storage cell* slot, so `empty` was 1 or 0 against a `wanted` of 2 — and it also
+stalled any load whose items would simply have merged into a part-full slot. Every bus
+implementation stages into a copy (a snapshot inventory, or the ME cache counter) and only
+writes on `commit()`, so a load that does not fit is abandoned without a single item moving,
+and the module holds it and retries. Item **locks** still refuse from inside `storePartial`,
+as before.
+
+**Every module socket is validated before use** (`C4`). `MetaTileEntity.isValid()`, not
+`!= null`: a broken hatch keeps a non-null base whose `isDead()` is true until the next
+structure check clears the field, and in that window the Derrick was writing product into a
+dead tile entity. Single references go through `live(...)`, lists through
+`GTUtility.validMTEList`.
+
+**The two process modules draw EU** — the first and only things in this plant that do —
+through the manifold's four ENERGY HATCH sockets. Those are still not a structure demand
+(C1: the reactor and the turbine run without them and un-forming a plant over furniture
+arms the decay-heat obligation); `energyHatchNote` now says which of the two truths applies.
+The draw is per tick and not a lump sum, because a 409,600 EU lump is bigger than an IV
+Energy Hatch's buffer and a perfectly powered plant would have stalled forever.
+
+### The Switchyard soft cap (D-17 6, live balance change)
+
+Without a Switchyard, the plant may inject at most `GRID_SOFT_CAP = 100,000,000` EU/t. The
+reactor still derives its full figure — `lastEUDemand` is untouched — and the surplus is
+discarded. Implemented as `outputLimit() = min(outputCeiling(), gridCeiling())`, and
+`onRunningTick` clamps to *that*: the cap can only ever LOWER what is injected, never raise
+it above what the fitted hatches absorb, which is the condition
+`addEnergyOutputMultipleDynamos` calls `explodeMultiblock()` over.
+
+Config flag `switchyardSoftCap` (default **true**) is the single setting that turns it off.
+Four panel states, all printed: cap disabled / yard standing / yard missing but under the
+cap / yard missing and discarding N EU/t with the bill for the yard in the line.
+
 ## One projection covers everything (A4)
 `construct()` / `survivalConstruct()` build, in order: platform -> silo (tier) -> spine
-duct -> spiral -> gallery + manifold -> tower NW -> tower SW. There is no build-only
+duct -> spiral -> gallery + manifold -> FRONT tower -> BACK tower -> Vent Stack ->
+Switchyard -> Extraction Derrick -> Enrichment Annex. There is no build-only
 "shell" leniency left anywhere and no second controller to place: what the projection
 draws is exactly what the structure check wants.
 
@@ -255,12 +409,17 @@ pillar and rod-port cells are optional interior and stay air. Creative placement
 | spine duct | -(edge/2+2), 2, 1-edge/2 | a 25+edge/2+2..42, c 16+edge/2..18+edge/2 |
 | spiral | -18, 11, 3-edge/2 | a 43..49, c 14+edge/2..20+edge/2 |
 | gallery + manifold | -18, 6, -4-edge/2 | a 43..49, c 21+edge/2..38+edge/2 |
-| tower NW | 25, 19, 17 | a 0..16, c 0..16, y 0..19 |
-| tower SW | 25, 19, -16 | a 0..16, c 33..49, y 0..19 |
+| tower (front) | 25, 19, 17 | a 0..16, c 0..16, y 0..19 |
+| tower (back) | 25, 19, -16 | a 0..16, c 33..49, y 0..19 |
+| Vent Stack | 23, 19, -4 | a 2..8, c 21..27, y 0..19 |
+| Switchyard | 5, 5, -27 | a 20..40, c 44..49, y 0..5 |
+| Extraction Derrick | -8, 19, 13 | a 33..39, c 4..10, y 0..19 |
+| Enrichment Annex | 8, 5, 17 | a 17..21, c 0..14, y 0..5 |
 
 ## Bills of materials — DERIVED, never typed
 
-`questbook/gen-bom.ps1` re-implements every shape function above, tallies each cell through
+`questbook/gen-bom.ps1` re-implements every shape function above — the four module shapes
+included, each guarded by its own `Assert-Source` literal — tallies each cell through
 the structure definition's element table, and guards itself against the Java changing
 (it reads `MTEReactorCoreMk1.java` / `MTEModuleCoolingTower.java` and throws if any
 constant or socket-placing line it was ported from has moved). `gen-questbook.ps1`
@@ -281,6 +440,10 @@ Current output:
 | spiral chamber | 326 Tungstensteel Turbine Casing + 50 Light Concrete + 8 Precision Injector + 1 Spine Sensor + 1 Maintenance + 2 Input Hatch |
 | gallery + manifold | 408 Tungstensteel Turbine Casing + 8 Turbine Housing + 4 Dynamo + 4 Energy + 4 Laser Source + 1 Turbine Control Block + 1 Maintenance |
 | cooling tower (each) | 736 Light Concrete + 52 Solid Steel Machine Casing |
+| Vent Stack | 161 Clean Stainless Steel Machine Casing + 152 Filter Machine Casing |
+| Switchyard | 261 Solid Steel Machine Casing + 90 Steel Frame Box |
+| Extraction Derrick | 144 Solid Steel Machine Casing + 80 Steel Frame Box + 19 Steel Pipe Casing + 1 Output Bus (IV) |
+| Enrichment Annex | 291 Clean Stainless Steel Machine Casing + 13 Steel Pipe Casing + 1 Input Bus (IV) + 1 Input Hatch (IV) + 1 Output Bus (IV) |
 
 The silo's Radiation Proof figure at T3-T5 is the three radiation band rings, which stay
 radiation proof at every tier. Fuel columns and rod ports are OPTIONAL interior.

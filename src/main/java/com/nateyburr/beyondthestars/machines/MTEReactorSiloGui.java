@@ -55,6 +55,24 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         syncManager.syncValue("siloEdge", new IntSyncValue(multiblock::getEdge));
         syncManager.syncValue("throttlePct", new IntSyncValue(multiblock::getThrottlePercent));
         syncManager.syncValue("modules", new StringSyncValue(multiblock::getModulesSummary));
+        // D-17 / D-22: the other four buildings. Every one of these is written SERVER-side by
+        // checkMachine and read CLIENT-side here, so all of them have to come across as sync
+        // values - a client-side read of the fields themselves is 0/false and would print "no
+        // Switchyard" on a plant that has one.
+        syncManager.syncValue("plantModules", new StringSyncValue(multiblock::getPlantModulesSummary));
+        syncManager.syncValue("ventStack", new BooleanSyncValue(multiblock::isVentStackBuilt));
+        syncManager.syncValue("switchyard", new BooleanSyncValue(multiblock::isSwitchyardBuilt));
+        syncManager.syncValue("derrick", new BooleanSyncValue(multiblock::isDerrickBuilt));
+        syncManager.syncValue("annex", new BooleanSyncValue(multiblock::isAnnexBuilt));
+        syncManager.syncValue("derrickCycles", new IntSyncValue(multiblock::getDerrickCycles));
+        syncManager.syncValue("annexCycles", new IntSyncValue(multiblock::getAnnexCycles));
+        syncManager.syncValue("moduleStall", new StringSyncValue(multiblock::getModuleStall));
+        // The grid soft cap, as a NUMBER rather than as the config flag: gridCeiling() already
+        // folds in both "is the cap on" and "is a yard standing", so the client cannot reach a
+        // different verdict than the tick that clamped the output did.
+        syncManager.syncValue("gridCeiling", new LongSyncValue(multiblock::gridCeiling));
+        syncManager.syncValue("gridCapEnabled", new BooleanSyncValue(multiblock::isGridCapEnabled));
+        syncManager.syncValue("gridCapped", new BooleanSyncValue(multiblock::isGridCapped));
         // D-20: the supply lines now sit on three different buildings, so the panel carries the
         // three figures together - a rod queue of 0 against non-zero pillar gaps IS the missing
         // output, and 0 L of propellant is a fan that will never accelerate.
@@ -88,8 +106,10 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         syncManager.syncValue("laserCap", new LongSyncValue(multiblock::getLaserCapacity));
         syncManager.syncValue("laserCount", new IntSyncValue(multiblock::getLaserHatchCount));
         syncManager.syncValue("laserLinked", new IntSyncValue(multiblock::getLinkedLaserHatchCount));
-        // C1: the manifold's Energy Hatches are furniture, never a load - the panel reports how
+        // C1/C5: the manifold's Energy Hatches are not a structure DEMAND - the panel reports how
         // many are in as a NOTE, because the structure check no longer stops the plant over it.
+        // They are a LOAD, though: the Extraction Derrick and the Enrichment Annex draw through
+        // them (1,920 and 480 EU/t), so with a module standing the note turns from grey to red.
         syncManager.syncValue("energyHatches", new IntSyncValue(multiblock::getEnergyHatchCount));
         syncManager.syncValue("euClamped", new BooleanSyncValue(multiblock::isOutputClamped));
         syncManager.syncValue("steamOutput", new LongSyncValue(multiblock::getBoostedSteamOutput));
@@ -157,6 +177,17 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         final IntSyncValue edge = syncManager.findSyncHandler("siloEdge", IntSyncValue.class);
         final IntSyncValue throttlePct = syncManager.findSyncHandler("throttlePct", IntSyncValue.class);
         final StringSyncValue modules = syncManager.findSyncHandler("modules", StringSyncValue.class);
+        final StringSyncValue plantModules = syncManager.findSyncHandler("plantModules", StringSyncValue.class);
+        final BooleanSyncValue ventStack = syncManager.findSyncHandler("ventStack", BooleanSyncValue.class);
+        final BooleanSyncValue switchyard = syncManager.findSyncHandler("switchyard", BooleanSyncValue.class);
+        final BooleanSyncValue derrick = syncManager.findSyncHandler("derrick", BooleanSyncValue.class);
+        final BooleanSyncValue annex = syncManager.findSyncHandler("annex", BooleanSyncValue.class);
+        final IntSyncValue derrickCycles = syncManager.findSyncHandler("derrickCycles", IntSyncValue.class);
+        final IntSyncValue annexCycles = syncManager.findSyncHandler("annexCycles", IntSyncValue.class);
+        final StringSyncValue moduleStall = syncManager.findSyncHandler("moduleStall", StringSyncValue.class);
+        final LongSyncValue gridCeiling = syncManager.findSyncHandler("gridCeiling", LongSyncValue.class);
+        final BooleanSyncValue gridCapEnabled = syncManager.findSyncHandler("gridCapEnabled", BooleanSyncValue.class);
+        final BooleanSyncValue gridCapped = syncManager.findSyncHandler("gridCapped", BooleanSyncValue.class);
         final IntSyncValue rodsQueued = syncManager.findSyncHandler("rodsQueued", IntSyncValue.class);
         final IntSyncValue pillarGaps = syncManager.findSyncHandler("pillarGaps", IntSyncValue.class);
         final IntSyncValue propellantLitres = syncManager.findSyncHandler("propellantLitres", IntSyncValue.class);
@@ -226,11 +257,7 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                     () -> !siloBuilt.getBoolValue()))
             .child(
                 row(
-                    () -> MTEReactorCoreMk1.tierLine(
-                        tier.getIntValue(),
-                        edge.getIntValue(),
-                        throttlePct.getIntValue(),
-                        modules.getStringValue()),
+                    () -> MTEReactorCoreMk1.tierLine(tier.getIntValue(), edge.getIntValue(), throttlePct.getIntValue()),
                     siloBuilt::getBoolValue))
             .child(
                 row(
@@ -240,6 +267,16 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                         pillarGaps.getIntValue(),
                         propellantLitres.getIntValue(),
                         coolantLitres.getIntValue())))
+            // D-21: UNGATED, exactly like statusReport's. The tower inventory used to ride
+            // the tail of tierLine, which is gated on siloBuilt - so a tower fault was
+            // invisible on a bare platform, which is the state a player builds towers in and
+            // the state where the only other panel (the Silo Control Block) does not exist
+            // yet, because it IS one of the silo face's sockets.
+            .child(row(() -> MTEReactorCoreMk1.towerLine(modules.getStringValue())))
+            // D-17: the other four buildings, on the same terms and for the same reason - all
+            // four are most likely to be built on a BARE PLATFORM, where this is the only panel
+            // that exists (the Silo Control Block IS one of the silo face's sockets).
+            .child(row(() -> MTEReactorCoreMk1.moduleLine(plantModules.getStringValue())))
             .child(
                 row(
                     () -> MTEReactorCoreMk1.cascadeLine(
@@ -253,9 +290,29 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                     siloBuilt::getBoolValue))
             .child(
                 row(
-                    () -> MTEReactorCoreMk1
-                        .heatLine(heat.getIntValue(), decaySeconds.getIntValue(), radiationSeconds.getIntValue()),
+                    () -> MTEReactorCoreMk1.heatLine(
+                        heat.getIntValue(),
+                        decaySeconds.getIntValue(),
+                        radiationSeconds.getIntValue(),
+                        ventStack.getBoolValue()),
                     siloBuilt::getBoolValue))
+            // The two self-fuelling modules and whatever is holding them up. Ungated on the
+            // silo - a Derrick on a bare platform mines perfectly well - but hidden while
+            // neither of them stands, which is most plants.
+            // C2: ...unless there is a STALL to report, which is exactly the case where a module
+            // has just been broken open with a committed batch inside it. The batch is being
+            // HELD, not eaten, and the player can only know that if the line stays up.
+            .child(
+                row(
+                    () -> MTEReactorCoreMk1.selfFuelLine(
+                        derrick.getBoolValue(),
+                        annex.getBoolValue(),
+                        derrickCycles.getIntValue(),
+                        annexCycles.getIntValue(),
+                        moduleStall.getStringValue()),
+                    () -> derrick.getBoolValue() || annex.getBoolValue()
+                        || !moduleStall.getStringValue()
+                            .isEmpty()))
             // --- STEAM CHAIN
             .child(row(() -> MTEReactorCoreMk1.header("STEAM CHAIN"), siloBuilt::getBoolValue))
             .child(
@@ -321,6 +378,7 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                         euOutput.getLongValue(),
                         euDemand.getLongValue(),
                         euClamped.getBoolValue(),
+                        gridCapped.getBoolValue(),
                         steamOutput.getLongValue()),
                     siloBuilt::getBoolValue))
             .child(
@@ -328,16 +386,31 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                     () -> MTEReactorCoreMk1
                         .ceilingLine(euCeiling.getLongValue(), dynamoCap.getLongValue(), laserCap.getLongValue()),
                     galleryBuilt::getBoolValue))
+            // D-17: the grid soft cap, in whichever of its four states this plant is in, right
+            // under the hatch ceiling it shares a Math.min with.
+            .child(
+                row(
+                    () -> MTEReactorCoreMk1.switchyardLine(
+                        switchyard.getBoolValue(),
+                        gridCapEnabled.getBoolValue(),
+                        liveDemand.getLongValue(),
+                        euCeiling.getLongValue()),
+                    galleryBuilt::getBoolValue))
             .child(
                 row(
                     () -> MTEReactorCoreMk1.laserLine(laserCount.getIntValue(), laserLinked.getIntValue()),
                     galleryBuilt::getBoolValue))
-            // C1: a non-fatal note, not an error. The plant never draws EU, so an empty E
-            // socket costs nothing and must not un-form a running reactor.
+            // C1/C5: a non-fatal note, not an error. The REACTOR never draws EU, so an empty E
+            // socket cannot un-form a running reactor - but the two D-17 process modules DO draw
+            // through it, and energyHatchNote says which of the two truths applies.
             .child(
                 row(
-                    () -> MTEReactorCoreMk1.energyHatchNote(true, energyHatches.getIntValue()),
-                    () -> galleryBuilt.getBoolValue() && energyHatches.getIntValue() < 4))
+                    () -> MTEReactorCoreMk1.energyHatchNote(
+                        true,
+                        energyHatches.getIntValue(),
+                        derrick.getBoolValue() || annex.getBoolValue()),
+                    () -> galleryBuilt.getBoolValue() && (energyHatches.getIntValue() < 4
+                        || (energyHatches.getIntValue() <= 0 && (derrick.getBoolValue() || annex.getBoolValue())))))
             // --- MATH: the Water-Line-style derivation of the number above. Four numbered
             // steps from the pillars to the manifold, every factor carrying its CURRENT value,
             // then the one term that is costing the most and what to do about it.
@@ -373,7 +446,8 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                     () -> siloBuilt.getBoolValue() && galleryActive.getBoolValue()))
             .child(
                 row(
-                    () -> MTEReactorCoreMk1.mathClampLine(liveDemand.getLongValue(), euCeiling.getLongValue()),
+                    () -> MTEReactorCoreMk1
+                        .mathClampLine(liveDemand.getLongValue(), euCeiling.getLongValue(), gridCeiling.getLongValue()),
                     () -> siloBuilt.getBoolValue() && galleryActive.getBoolValue()))
             .child(
                 row(
@@ -406,7 +480,8 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                         coolantReady.getBoolValue(),
                         rotorFactor.getIntValue(),
                         liveDemand.getLongValue(),
-                        euCeiling.getLongValue()),
+                        euCeiling.getLongValue(),
+                        gridCeiling.getLongValue()),
                     siloBuilt::getBoolValue))
             // --- test bench flags, only while one of them is on
             .child(
@@ -415,6 +490,16 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                     () -> benchClock.getBoolValue() || infiniteSupplies.getBoolValue()));
     }
 
+    /**
+     * The two editable fields, in the order they are DRAWN: Build Tier on the left, the
+     * control-rod throttle to its right.
+     * <p>
+     * GT's gap row is {@code Flow.row().mainAxisAlignment(END)...reverseLayout(true)}, so the
+     * flow lays its children out through a {@code ReversedList} - the LAST child added is the
+     * LEFTMOST on screen. That is why the throttle is appended first and Build Tier second, and
+     * why the questbook's step 2 names Build Tier first: both describe the same left-to-right
+     * strip. Add a child here and it lands on the LEFT of everything already in the row.
+     */
     @Override
     protected Flow createRightPanelGapRow(ModularPanel parent, PanelSyncManager syncManager) {
         return super.createRightPanelGapRow(parent, syncManager).child(

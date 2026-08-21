@@ -94,7 +94,7 @@ public class CommandBTSMigrate extends CommandBase {
         tell(
             player,
             EnumChatFormatting.YELLOW
-                + "The four ENERGY HATCHES this wall used to carry belong on the OUTPUT MANIFOLD's back face now (y4, between the dynamos and the laser sources). They are not a structure demand - this plant never draws EU - so the plant forms without them.");
+                + "The four ENERGY HATCHES this wall used to carry belong on the OUTPUT MANIFOLD's back face now (y4, between the dynamos and the laser sources). They are not a structure demand - the reactor and turbine never draw EU - so the plant forms without them. Fit them anyway if you build an Extraction Derrick or an Enrichment Annex: those two draw their power through these sockets and will not run without one.");
         if (station.mMachine) {
             tell(
                 player,

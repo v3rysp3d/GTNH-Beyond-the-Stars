@@ -11,10 +11,23 @@
 # triple whose characters are provably never '+' or '/', so filenames stay legal.
 # Lows are auto-advanced past any value whose base64 would contain '+' or '/'.
 #
-# LOW BUDGET: the chapter owns 48000..48019 (20 quests). 48020 is the pack-line entry
-# quest "Unit One" and must stay where it is - a world that already ran /btsquests
-# install holds it under that id, and moving it would orphan a duplicate icon inside
-# a pack chapter we are not allowed to edit. BQBridge.LAST_QUEST_LOW mirrors 48019.
+# LOW BUDGET: 48020 is the pack-line entry quest "Unit One" and must stay where it is - a
+# world that already ran /btsquests install holds it under that id, and moving it would
+# orphan a duplicate icon inside a pack chapter we are not allowed to edit. The chapter
+# therefore fills 48000..48019, STEPS OVER 48020, and carries on at 48021.
+#
+# Because lows are handed out in $quests array order, a new quest may only ever be APPENDED
+# to that array. Inserting one in the middle renumbers every quest after it and orphans the
+# progress each installed world has already recorded against those ids.
+#
+# BQBridge.CHAPTER_QUEST_LOWS is the LIST of lows /btsquests STATUS counts. It used to be a
+# FIRST..LAST pair reading 48000..48019; when 48021..48025 were appended the pair was not
+# widened, so `status` counted 20 ids out of a 25-quest chapter, found all 20 and reported
+# "Everything is loaded" with five blueprints missing. A range cannot describe this chapter
+# - 48020 is a hole in the middle of it by design - so it is a list now, and the gate near
+# the foot of this file reads that array back out of BQBridge.java and THROWS if it does not
+# match the ids handed out below. Append a quest without adding its low there and the
+# questbook build fails instead of shipping a status command that lies.
 #
 # ---------------------------------------------------------------------------------
 # FORMATTING. This file is ASCII-only on purpose: Windows PowerShell 5.1 reads a .ps1
@@ -36,7 +49,7 @@
 # that folder as a resource pack (betterquesting.misc.QuestResourcesFolder), so the
 # domain name is the folder name and MUST be lowercase.
 #
-# BILLS OF MATERIALS. Every count in the five Blueprint quests is DERIVED, never typed:
+# BILLS OF MATERIALS. Every count in the nine Blueprint quests is DERIVED, never typed:
 # gen-bom.ps1 re-implements the structure shape functions, tallies each cell through the
 # element table, and guards itself against the Java changing underneath it. Edit a shape
 # in MTEReactorCoreMk1 and the next run either prints the new numbers or fails loudly.
@@ -46,6 +59,75 @@
 
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'gen-bom.ps1')
+
+# Bom() answers '0' for an item a bill does not contain, which is exactly how a mistyped
+# item name ships as a confident "0x Steel Frame Box". Every bill line in the module quests
+# goes through BomReq instead, which throws on a name the bill has never heard of.
+function BomReq($counts, [string]$item) {
+    if (-not $counts.ContainsKey($item)) {
+        $known = ($counts.Keys | Sort-Object) -join ', '
+        throw "BomReq: '$item' is not in this bill. It holds: $known"
+    }
+    '{0:N0}' -f $counts[$item]
+}
+
+# ----------------------------------------- module EU draw, READ OUT OF THE JAVA (B1)
+# 0.21.0 made the Extraction Derrick and the Enrichment Annex the first things on this
+# campus that CONSUME EU, and they consume it through the output manifold's four Energy
+# Hatch sockets (MTEReactorCoreMk1.moduleSupplied -> drainEnergyInput, element 'r'). The
+# book said the opposite in five places - furniture, optional, "you do not have to wire
+# them to anything" - so a player who followed it exactly built a module that then silently
+# never ran. Those five sentences are corrected below, and the RATE is never typed: it is
+# read off the two Java constants, so a tier change in the Java either reprints the book or
+# throws here.
+#
+# TierEU.RECIPE_<tier> is GTValues.VP[tier], and VP[i] = V[i] * 30 / 32 - read out of
+# gregtech/api/enums/GTValues.class in the 5.09.52.594 jar, which is the familiar
+# 30 / 120 / 480 / 1,920 / 7,680 recipe ladder.
+$TIER_EU_RECIPE = @{
+    'RECIPE_ULV' = 7; 'RECIPE_LV' = 30; 'RECIPE_MV' = 120; 'RECIPE_HV' = 480
+    'RECIPE_EV' = 1920; 'RECIPE_IV' = 7680; 'RECIPE_LuV' = 30720; 'RECIPE_ZPM' = 122880
+    'RECIPE_UV' = 491520
+}
+function ModuleEuPerTick([string]$constant) {
+    $core = [System.IO.File]::ReadAllText($script:CoreJava)
+    $m = [regex]::Match($core, "public static final long $constant = TierEU\.(?<tier>\w+);")
+    if (-not $m.Success) {
+        throw ("gen-questbook.ps1: MTEReactorCoreMk1.$constant is no longer written as " +
+            "'public static final long $constant = TierEU.<tier>;'. The module power figures the " +
+            'book quotes are read off that line and can no longer be derived.')
+    }
+    $tier = $m.Groups['tier'].Value
+    if (-not $TIER_EU_RECIPE.ContainsKey($tier)) {
+        throw "gen-questbook.ps1: $constant now reads TierEU.$tier, which this script has no EU/t value for. Add it to the `$TIER_EU_RECIPE table above."
+    }
+    $TIER_EU_RECIPE[$tier]
+}
+$DERRICK_EU = ModuleEuPerTick 'DERRICK_EU_PER_TICK'
+$ANNEX_EU = ModuleEuPerTick 'ANNEX_EU_PER_TICK'
+# MTEReactorCoreMk1.euRate() formats with %,d and appends " EU/t", so every rate quoted in
+# the book below is character for character the string the instrument panel prints.
+$DERRICK_EUT = '{0:N0} EU/t' -f $DERRICK_EU
+$ANNEX_EUT = '{0:N0} EU/t' -f $ANNEX_EU
+$MODULES_EUT = '{0:N0} EU/t' -f ($DERRICK_EU + $ANNEX_EU)
+
+# ------------------------------------- step 4's fuel-column reward, in PILLARS (B3)
+# Step 4 pays fuel-column BLOCKS. One block is one SEGMENT and a pillar is
+# $SEGMENTS_PER_PILLAR of them, so 16 blocks are TWO pillars - the book used to call them
+# "sixteen pillars" and then predict "a big gap count" for a player who will read exactly
+# 16 pillar gaps. Both numbers are derived from the reward and from gen-bom.ps1's own
+# segments-per-pillar constant, so steps 4 and 5 can never disagree with each other, with
+# the reward, or with the silo.
+$STEP4_COLUMN_BLOCKS = 16
+if ($STEP4_COLUMN_BLOCKS % $SEGMENTS_PER_PILLAR -ne 0) {
+    throw ("gen-questbook.ps1: step 4 pays $STEP4_COLUMN_BLOCKS fuel-column blocks, which is not a " +
+        "whole number of $SEGMENTS_PER_PILLAR-segment pillars - step 5's arithmetic assumes it is.")
+}
+$STEP4_COLUMN_PILLARS = $STEP4_COLUMN_BLOCKS / $SEGMENTS_PER_PILLAR
+$STEP5_RODS = 8
+if ($STEP5_RODS -gt $STEP4_COLUMN_BLOCKS) {
+    throw "gen-questbook.ps1: step 5 pays $STEP5_RODS rods against only $STEP4_COLUMN_BLOCKS segments - its gap arithmetic would go negative."
+}
 
 $HIGH = 190
 $FIRST_LOW = 48000
@@ -106,14 +188,20 @@ $MTE_LASER_SOURCE = 15252   # ZPM 4,096A/t Laser Source Hatch
 $MTE_LASER_TARGET = 15152   # ZPM 4,096A/t Laser Target Hatch
 $MTE_LASER_PIPE = 15465   # Laser Vacuum Pipe
 
-# The POINT OF USE ruling retired the Automation Bay, and with it the only Clean Stainless
-# Steel in the whole design - do not reintroduce it as a reward, there is nothing left in
-# the plant to build with it.
+# The POINT OF USE ruling retired the Automation Bay and with it the plant's only Clean
+# Stainless Steel - until D-17 landed the Vent Stack (161) and the Enrichment Annex (291),
+# which are built out of it. It is a real material in this design again.
 $CASING_TURBINE = Icon 'gregtech:gt.blockcasings4' 12 1   # Tungstensteel Turbine
 $CASING_RADPROOF = Icon 'gregtech:gt.blockcasings3' 12 1   # Radiation Proof
 $CASING_SOLIDSTEEL = Icon 'gregtech:gt.blockcasings2' 0 1    # Solid Steel
 $CASING_EUROPIUM = Icon 'gregtech:gt.blockcasings8' 5 1    # Europium Reinforced Rad Proof
 $CASING_NAQALLOY = Icon 'gregtech:gt.blockcasings8' 10 1   # Radiant Naquadah Alloy
+# D-17 module casings. Metas read out of gregtech.api.casing.Casings in the 5.09.52.594
+# jar: each enum entry passes (block page, meta), and the decode is confirmed by the fact
+# that it reproduces RadiationProofMachineCasing as blockcasings3:12, which is the constant
+# five lines above that has been shipping since 0.9.
+$CASING_FILTER = Icon 'gregtech:gt.blockcasings3' 11 1   # Filter Machine Casing
+$CASING_STAINLESS = Icon 'gregtech:gt.blockcasings4' 1 1    # Clean Stainless Steel
 $BLOCK_CONCRETE = Icon 'gregtech:gt.blockconcretes' 8 1    # Light Concrete
 $BLOCK_TSREINF = Icon 'gregtech:gt.blockreinforced' 3 1   # Tungstensteel Reinforced
 $PROJECTOR = Icon 'structurelib:item.structurelib.constructableTrigger' 0 1
@@ -172,7 +260,7 @@ $quests = @(
                 'The controller is in your inventory. {8}Nothing is taken from you - this quest only looks, and once it has seen the controller it stays complete for ever.{r}'
                 '{8}Claim the reward before step 2 plants that controller in the ground.{r}'
                 ''
-                '[note]This ONE machine is the whole plant. There are no module controllers any more: the cooling towers, the spine duct, the spiral chamber and the rotor gallery are all pieces of THIS controller, raised by the same projection.[/note]'
+                '[note]This ONE machine is the whole plant. There are no module controllers any more: the cooling towers, the spine duct, the spiral chamber, the rotor gallery AND the four plant modules (Vent Stack, Switchyard, Extraction Derrick, Enrichment Annex) are all pieces of THIS controller, raised by the same projection.[/note]'
             ) -join "`n")
     }
 
@@ -185,9 +273,10 @@ $quests = @(
                 ''
                 '{b}2.{r} Place the Nuclear Plant Foundation. {6}Whichever way you are facing when you place it is the plant''s FRONT{r} - the silo grows straight back from it, and every socket you will ever pipe into faces the way you are facing now.'
                 ''
-                '{b}3.{r} Open its GUI. Two small fields sit at the bottom right:'
-                '  {b}Build Tier{r} 1-5 - the silo size the projection raises. {6}Start at 1.{r}'
-                '  {b}Control Rods{r} 1-24 - campaign power, N/24. Leave it at 24.'
+                '{b}3.{r} Open its GUI. Two small unlabelled number fields sit at the bottom right. Reading LEFT to RIGHT:'
+                '  {b}Build Tier{r} - the NARROW field on the left, 1-5: the silo size the projection raises. {6}Start at 1.{r}'
+                '  {b}Control Rods{r} - the WIDER field to its right, 1-24: campaign power, N/24. Leave it at 24.'
+                '{8}Hover either one to confirm which is which. Both already hold the value above, so changing nothing here is correct - and putting the tier in the rod field would run the whole campaign at 1/24 power.{r}'
                 ''
                 '{a}{l}DONE WHEN{r}'
                 'A {b}Hologram Projector{r} is in your inventory. {8}Step 1 paid you one, and nothing is taken from you. That is the whole gate: a quest can only read what you are CARRYING, never what you have built.{r}'
@@ -207,7 +296,7 @@ $quests = @(
                 '{e}{l}DO THIS{r}'
                 'Right-click the controller with the {b}Hologram Projector{r}. The whole campus appears as a ghost, in this order:'
                 ''
-                '  platform -> silo -> spine duct -> spiral chamber -> rotor gallery + output manifold -> cooling tower, cooling tower'
+                '  platform -> silo -> spine duct -> spiral chamber -> rotor gallery + output manifold -> cooling tower, cooling tower -> vent stack -> switchyard -> extraction derrick -> enrichment annex'
                 ''
                 '{a}What the projection draws is exactly what the structure check wants.{r} There is no build-only leniency left anywhere and no second controller to place. In survival the projector pulls blocks straight out of your inventory.'
                 ''
@@ -274,7 +363,8 @@ $quests = @(
                 $HOLD_FIRST
                 ''
                 '{e}{l}CHECK YOUR WORK{r}'
-                'Right-click the {b}Silo Control Block{r} you just set into the face. It prints the whole instrument panel, and the REACTOR group carries a {b}Supply{r} line reading {2}0 rods queued -> N pillar gaps{r}.'
+                'Right-click the {b}Silo Control Block{r} you just set into the face. It prints the whole instrument panel, and the REACTOR group carries a {b}Supply{r} line reading {2}0 rods queued -> 0 pillar gaps{r}.'
+                "{8}Both zeros are right. A pillar gap is an empty segment in a {b}Reactor Fuel Column{r}, and not one of those is standing yet. What this step pays you is {b}$STEP4_COLUMN_BLOCKS fuel-column BLOCKS{r} - one block is one segment and $SEGMENTS_PER_PILLAR of them make a pillar, so that is {b}$STEP4_COLUMN_PILLARS pillars{r} - and they go up in step 5. Gaps appear when you raise the pillars; the queue moves when you feed the bus.{r}"
                 '{6}This is the step where the plant FORMS for the first time.{r} {8}Maintenance, Feedwater Input, Output Hatch and Depleted Output Bus are the only four sockets the structure actually demands, and they all just went in. Everything you fit from here on is added to a plant that is already alive.{r}'
                 ''
                 '[note]You never touch a rod port inside the silo again. The controller distributes rods from that one bus to all 45-201 pillars itself, every decay cycle - best grade first, lowest empty segment first.[/note]'
@@ -283,11 +373,11 @@ $quests = @(
 
     @{ Key = 'p5'; Name = '{6}{l}Step 5 - Load the Rods'; X = 192; Y = 0; Size = 32
         Icon = (BTSItem 'fuelRodUranium' 1); Prereqs = @('p4')
-        Task = (BTSItem 'fuelRodUranium' 8)
-        Reward = @((BTSItem 'fuelRodUranium' 8))
+        Task = (BTSItem 'fuelRodUranium' $STEP5_RODS)
+        Reward = @((BTSItem 'fuelRodUranium' $STEP5_RODS))
         Desc = (@(
                 '{6}{l}THE DECAY CASCADE{r}'
-                'Every fuel pillar is a gravity column eight segments tall. A rod dropped in falls to the lowest empty segment. Only the {b}BOTTOM{r} one burns; when it is spent it drops into the depleted bus and the stack above shifts down one.'
+                "Every fuel pillar is a gravity column $SEGMENTS_PER_PILLAR segments tall - $SEGMENTS_PER_PILLAR Reactor Fuel Column blocks, stacked. A rod dropped in falls to the lowest empty segment. Only the {b}BOTTOM{r} one burns; when it is spent it drops into the depleted bus and the stack above shifts down one."
                 ''
                 'A pillar is {2}LIVE{r} while its bottom segment holds a burning rod:'
                 '  {b}steam = live pillars x 16,384 L/t x fuel multiplier x rods N/24{r}'
@@ -299,13 +389,15 @@ $quests = @(
                 '{e}{l}DO THIS{r}'
                 'Feed fuel rods into the {b}Rod Input Bus in the silo face{r} - bottom fuel course, one cell to the LEFT of the main station {8}as you stand outside and look at the silo{r} - and keep it stocked. One rod is one segment, about 90 minutes, and a full pillar is roughly 12 hours.'
                 ''
-                '{8}You also need the pillars themselves: Reactor Fuel Columns, eight tall, standing inside the silo. The projector treats them as optional interior and leaves those cells empty, so a silo with no pillars makes no steam at all.{r}'
+                "{8}You also need the pillars themselves: stacks of Reactor Fuel Column blocks, {b}$SEGMENTS_PER_PILLAR blocks to a pillar{r}, standing inside the silo. The projector treats them as optional interior and leaves those cells empty, so a silo with no pillars makes no steam at all.{r}"
                 ''
                 '{a}{l}DONE WHEN{r}'
-                'Eight Uranium Fuel Rods are in your inventory. {8}Claim it, then feed them to the bus - a rod inside the bus is inside a machine, not on you.{r}'
+                "$STEP5_RODS Uranium Fuel Rods are in your inventory. {8}Claim it, then feed them to the bus - a rod inside the bus is inside a machine, not on you.{r}"
                 ''
                 '{e}{l}CHECK YOUR WORK{r}'
-                'Once they are in the bus the Supply line reads {2}N rods queued -> 0 pillar gaps{r}. Gaps with an empty queue is a starving cascade.'
+                "{6}Do the arithmetic before you read the panel, so the number does not surprise you.{r} Step 4 paid you {b}$STEP4_COLUMN_BLOCKS fuel-column BLOCKS{r} and $SEGMENTS_PER_PILLAR blocks make one pillar, so what you are holding is {b}$STEP4_COLUMN_PILLARS pillars{r} - not $STEP4_COLUMN_BLOCKS. Stand them up as $STEP4_COLUMN_PILLARS stacks of $SEGMENTS_PER_PILLAR, in $STEP4_COLUMN_PILLARS separate cells of the silo floor."
+                "$STEP4_COLUMN_PILLARS empty pillars are {b}$STEP4_COLUMN_BLOCKS empty segments{r}, so the Supply line reads {2}0 rods queued -> $STEP4_COLUMN_BLOCKS pillar gaps{r} the moment they are up. Drop this step's $STEP5_RODS rods into the bus and it reads {2}$STEP5_RODS rods queued -> $STEP4_COLUMN_BLOCKS pillar gaps{r} until the next decay cycle hands them out, then {2}0 rods queued -> $($STEP4_COLUMN_BLOCKS - $STEP5_RODS) pillar gaps{r}."
+                "{c}Gaps with an EMPTY queue{r} is the starving cascade, and that is the reading to act on; {2}0 gaps{r} is a full silo. {8}A tier-1 silo has room for $($BTS_BOM.Pillars[1]) pillars - $(Bom $BTS_BOM.Silo[1] 'Reactor Fuel Column') blocks - so $STEP4_COLUMN_PILLARS is a start, not a finish. Blueprint: Steam Generator has the count for every tier.{r}"
                 ''
                 '[warn]Classic fuel ASSEMBLIES in the bus still work, but at HALF output - the panel calls it "Assembly fallback (output halved)". The cascade is where the other half lives.[/warn]'
             ) -join "`n")
@@ -323,8 +415,11 @@ $quests = @(
                 ''
                 'With no turbine chain behind it the plant simply {b}exports Reactor Steam{r} through the silo face''s OUT hatch - or Hot Coolant, if you feed it IC2 Coolant instead of water. That is honest power, and it is a fraction of what this plant can do.'
                 ''
-                '{c}{l}THE PLANT NEVER DRAWS EU{r}'
-                'Nothing you have built so far needs to be powered, and nothing ever will. Unit One generates; it does not consume - the controller''s own processing sets its EU draw to zero on every single branch. The four Energy Hatches in step 9 are not a running load and {b}not a structure requirement either{r}: they are furniture for four empty sockets, and this plant forms and runs perfectly well without a single one of them.'
+                '{c}{l}THE REACTOR NEVER DRAWS EU{r}'
+                'Nothing on the ten-step path needs to be powered. Unit One generates; it does not consume - the reactor, the spine, the chamber and the gallery draw nothing at all, not idling, not starting, not running - and the four Energy Hatches in step 9 are {b}not a structure requirement{r}: this plant forms and runs perfectly well without a single one of them.'
+                ''
+                '{6}{l}TWO THINGS ON THIS CAMPUS DO DRAW EU. BOTH ARE OPTIONAL MODULES.{r}'
+                "The {b}Extraction Derrick{r} ({2}$DERRICK_EUT{r}) and the {b}Enrichment Annex{r} ({2}$ANNEX_EUT{r}) take their power {b}through those same four Energy Hatches{r} and from nowhere else. Build either one and the hatches stop being furniture: fit at least one and {b}wire it to a live grid{r}, or that module silently never turns over. Their blueprints are on the bottom row and both say so at the top."
                 ''
                 '{e}{l}READ IT ANYWHERE{r}'
                 'The {b}Silo Control Block{r} prints the same instrument panel the GUI does. So does the Turbine Control Block, and so does a Portable Scanner. {8}One panel, everywhere - no readout can disagree with another.{r}'
@@ -370,7 +465,8 @@ $quests = @(
                 'Each stage takes slow random damage at speed - roughly one point per ten minutes at full tilt. Every point costs that stage {c}5%{r}, and at ten the rotor {c}SHATTERS{r}. The average factor over all eight sockets multiplies your whole output, so an empty socket is a 12.5% cut.'
                 ''
                 '{6}{l}THE PLANT KEEPS RUNNING WHILE YOU DO THIS{r}'
-                'Placing the eighth gallery housing does not stop the reactor and does not suddenly demand a hatch. It FORMS the Rotor Assembly, and one grey line appears in the OUTPUT group, opening {8}Manifold: Energy Hatches 0/4{r} and closing {8}furniture, not a load; the plant runs without them{r}. That is information, not a fault. Step 9 fills those sockets and you may skip them for ever.'
+                'Placing the eighth gallery housing does not stop the reactor and does not suddenly demand a hatch. It FORMS the Rotor Assembly, and one grey line appears in the OUTPUT group, opening {8}Manifold: Energy Hatches 0/4{r} and closing {8}furniture, not a load; the plant runs without them{r}. That is information, not a fault, and step 9 fills those sockets.'
+                '{c}Skip them for ever only if you never build a plant module.{r} The moment an {b}Extraction Derrick{r} or an {b}Enrichment Annex{r} stands on this campus, that same line stops saying furniture and starts reading {8}the reactor never draws EU; the Derrick and the Annex do, through these{r} - and with no hatch fitted at all it turns {c}RED{r}, because those two draw their EU through these sockets and will not run without one.'
                 ''
                 '{6}{l}THE OUTPUT GROUP FLIPS ON THE FIRST ROTOR, NOT ON THE HOUSINGS{r}'
                 'Twelve housings and no rotors still reads {2}Steam export{r}, because eight empty seats generate exactly nothing and the plant is genuinely still exporting steam out of the silo. The instant ONE rotor is seated it reads {2}Generating{r} instead. {8}The MATH group re-titles itself on the same instant and for the same reason, so the two can never describe two different plants.{r}'
@@ -457,7 +553,14 @@ $quests = @(
                 '  {b}EU/t = L/t x spine speed x efficiency x (RPM / 500) x average rotor factor{r}'
                 ''
                 '{6}{l}WHY ENERGY HATCHES ON A GENERATOR{r}'
-                '{b}They are OPTIONAL.{r} The manifold has four sockets for them and the plant will never once ask you to fill one. This plant never consumes EU - no draw, no idle cost, no start-up cost - so an empty E socket costs you exactly nothing. You do not have to wire them to anything, and skipping all four for ever will not un-form the plant or stop the campaign. While any are missing the OUTPUT group prints one grey line counting them, and that is the entire consequence.'
+                '{b}They are never a STRUCTURE demand.{r} The reactor, the spine, the chamber and the gallery consume nothing - no draw, no idle cost, no start-up cost - so leaving all four E sockets empty can never un-form the plant or stop the campaign, and while any are missing the OUTPUT group prints one grey line counting them.'
+                ''
+                '{c}{l}THEY ARE NOT FURNITURE, THOUGH. TWO MODULES RUN ON THEM.{r}'
+                'Two of the optional modules on the bottom row draw their power through these four sockets and from nowhere else:'
+                "  {b}Extraction Derrick{r} {2}$DERRICK_EUT{r} while it drills"
+                "  {b}Enrichment Annex{r} {2}$ANNEX_EUT{r} while it enriches"
+                "{c}Build either one with no Energy Hatch fitted - or with one fitted and nothing wired into it - and that module silently never turns over.{r} So fit at least one {b}Energy Hatch (IV){r} here and run a live cable INTO it: your base grid, or straight off one of the Dynamo Hatches in the row below. Both modules running at once is {2}$MODULES_EUT{r}, which a single IV hatch carries on its own."
+                '{8}The panel backs this up: with a module standing and no hatch, that grey line turns RED and names the Derrick and the Annex.{r}'
                 ''
                 '{c}The DYNAMOS are the ones that matter.{r} Until a Dynamo or a Laser Source sits in that face, everything the turbine makes is thrown away - and the panel says so in as many words: {6}Weakest term:{r} {2}output ceiling 0 (0%){r} {8}- fit Dynamo or Laser Source Hatches in the manifold''s back face - nothing can leave{r}.'
                 ''
@@ -728,7 +831,7 @@ $quests = @(
                 "  {b}T5{r} ($($BTS_BOM.Edge[5]) wide) $(Bom $BTS_BOM.Silo[5] 'Radiant Naquadah Alloy Casing')x Radiant Naquadah Alloy + $(Bom $BTS_BOM.Silo[5] 'Radiation Proof Machine Casing')x Radiation Proof + $(Bom $BTS_BOM.Silo[5] 'Iridium Reinforced Block')x Iridium Reinforced"
                 '{8}The Radiation Proof count at T3-T5 is the three radiation band rings, which stay radiation proof at every tier.{r}'
                 ''
-                '{e}FUEL PILLARS{r} - eight Reactor Fuel Columns each, full count per tier:'
+                "{e}FUEL PILLARS{r} - $SEGMENTS_PER_PILLAR Reactor Fuel Column BLOCKS make one pillar. Full count per tier:"
                 "  T1 {b}$($BTS_BOM.Pillars[1]){r} pillars ($(Bom $BTS_BOM.Silo[1] 'Reactor Fuel Column') blocks) . T2 {b}$($BTS_BOM.Pillars[2]){r} ($(Bom $BTS_BOM.Silo[2] 'Reactor Fuel Column')) . T3 {b}$($BTS_BOM.Pillars[3]){r} ($(Bom $BTS_BOM.Silo[3] 'Reactor Fuel Column')) . T4 {b}$($BTS_BOM.Pillars[4]){r} ($(Bom $BTS_BOM.Silo[4] 'Reactor Fuel Column')) . T5 {b}$($BTS_BOM.Pillars[5]){r} ($(Bom $BTS_BOM.Silo[5] 'Reactor Fuel Column'))"
                 'Partial pillars run at partial output.'
                 ''
@@ -744,7 +847,7 @@ $quests = @(
                 ''
                 '[warn]MIGRATION - a plant raised by {b}0.19.0 or earlier{r}. Its silo FACE is the retired plumbing frontage: four Energy Hatches across the drum course and the buses out at the corners. That layout conflicts with the six sockets above {b}cell for cell{r} - each one puts a hatch where the other wants wall - so it fails at EVERY tier, and no projection can repair it: the projector MEASURES the shell that is standing and will not re-tier or overwrite it. The main station says so in as many words - {c}Tier N Steam Generator IS STANDING and does NOT pass its check{r} - and the STRUCTURE ERRORS panel above that line carries the first wrong cell with its coordinates.[/warn]'
                 ''
-                '[note]{6}THE FIX IS ONE COMMAND.{r} Stand beside the main station and run {b}/btsmigrate{r} {8}(operator){r}. It reads the tier off the standing walls, then rewrites the front row''s bottom three courses - the only cells the two layouts disagree about. Cells that are already right are left alone; wrong ones drop their contents at the wall as items before the correct casing or socket goes in, so every hatch you owned comes back with what was inside it. {b}The shell, the ribs, the dome, the pillars and the rods standing in them are never read and never written.{r} Then it re-forms the plant and reports the tier, the cells rewritten and the machines handed back. Pick those up: the four Energy Hatches belong on the output manifold''s back face now, and they are optional there.[/note]'
+                '[note]{6}THE FIX IS ONE COMMAND.{r} Stand beside the main station and run {b}/btsmigrate{r} {8}(operator){r}. It reads the tier off the standing walls, then rewrites the front row''s bottom three courses - the only cells the two layouts disagree about. Cells that are already right are left alone; wrong ones drop their contents at the wall as items before the correct casing or socket goes in, so every hatch you owned comes back with what was inside it. {b}The shell, the ribs, the dome, the pillars and the rods standing in them are never read and never written.{r} Then it re-forms the plant and reports the tier, the cells rewritten and the machines handed back. Pick those up: the four Energy Hatches belong on the output manifold''s back face now. They are not a structure demand there - but they are where the Extraction Derrick and the Enrichment Annex draw their EU, so refit at least one and wire it if you ever build either module.[/note]'
             ) -join "`n")
     }
 
@@ -781,14 +884,15 @@ $quests = @(
                 "  {b}$(Bom $BTS_BOM.Gallery 'Turbine Housing')x{r} Turbine Housing, on the gallery's centreline {8}(the projector places none of them){r}"
                 "  {b}$(Bom $BTS_BOM.Gallery 'Turbine Housing')x{r} Turbine Rotor - one per housing {8}(wear parts: -5% per damage point, shatters at 10){r}"
                 "  {b}$(Bom $BTS_BOM.Gallery 'Dynamo Hatch (IV)')x{r} Dynamo Hatch (IV), manifold back face, y3"
-                "  {b}$(Bom $BTS_BOM.Gallery 'Energy Hatch (IV)')x{r} Energy Hatch (IV), same face, one course above the dynamos {8}(OPTIONAL){r}"
+                "  {b}$(Bom $BTS_BOM.Gallery 'Energy Hatch (IV)')x{r} Energy Hatch (IV), same face, one course above the dynamos {8}(no piece demands one - but the Derrick and the Annex feed from these){r}"
                 "  {b}$(Bom $BTS_BOM.Gallery 'Laser Source Hatch')x{r} Laser Source Hatch, same face, one course above those"
                 "  {b}$(Bom $BTS_BOM.Gallery 'Turbine Control Block')x{r} Turbine Control Block, centre column"
                 "  {b}$(Bom $BTS_BOM.Gallery 'Maintenance Hatch')x{r} Maintenance Hatch, directly below it"
                 ''
                 'Feed the Turbine Control Block a redstone clock or the RPM decays to nothing.'
                 ''
-                '{c}The four Energy Hatches are OPTIONAL - not a load, and not a structure demand either.{r} Unit One never consumes EU; it only ever emits. Leave all four sockets empty for ever if you like: the piece still forms, the plant still runs, and the only consequence is one grey line in the OUTPUT group counting the empty ones.'
+                '{c}The four Energy Hatches are not a structure demand.{r} The reactor and the turbine never consume EU; they only ever emit. Leave all four sockets empty and the piece still forms, the plant still runs, and the only consequence is one grey line in the OUTPUT group counting the empty ones.'
+                "{c}They stop being optional the moment you build a plant module.{r} The {b}Extraction Derrick{r} ({2}$DERRICK_EUT{r}) and the {b}Enrichment Annex{r} ({2}$ANNEX_EUT{r}) draw their EU through these four sockets and nowhere else. Unfitted - or fitted with nothing wired into them - and neither module ever runs."
                 ''
                 '[img height=400]btsquests:textures/gui/manifold-face.png[/img]'
             ) -join "`n")
@@ -798,7 +902,7 @@ $quests = @(
         Icon = $CASING_SOLIDSTEEL; Task = 'checkbox'; Prereqs = @(); CountAs = 0
         Desc = (@(
                 '{3}{l}Optional. Two of them, both raised by the same projection.{r}'
-                'A 17x17x20 hyperboloid shell on the platform strip to your {b}LEFT{r} as you stand at the front and look at the silo face - where step 3''s plan view draws them. They are {b}pieces of the main controller{r}, not modules: no tower controller, no dock marker, and no maintenance hatch of their own.'
+                'A 17x17x20 hyperboloid shell on the platform strip to your {b}LEFT{r} as you stand at the front and look at the silo face - where step 3''s plan view draws them. One stands out {b}in front of{r} the silo face and one {b}behind{r} the shell, which is what the panel means by the {b}FRONT-LEFT{r} and {b}BACK-LEFT{r} tower. They are {b}pieces of the main controller{r}, not modules: no tower controller, no dock marker, and no maintenance hatch of their own.'
                 ''
                 '{e}PER TOWER{r}'
                 "  {b}$(Bom $BTS_BOM.Tower 'Light Concrete')x{r} Light Concrete {8}(the flare){r}"
@@ -815,7 +919,161 @@ $quests = @(
                 ''
                 '[note]The 0.19.0 MAINTENANCE HATCH in that base ring can STAY - the ring cell TOLERATES one, so it is not a reason to take the tower apart. It is {b}not adopted{r}: a tower hatch is never counted toward the plant''s maintenance, which is the silo face, the Spiral floor and the manifold and nothing else. Replacing it with a Solid Steel casing is equally fine.[/note]'
                 ''
-                '[note]{6}A tower that has blocks standing and still refuses to form says WHY, on every panel.{r} The REACTOR group''s tier line ends with the tower inventory - {2}Cooling Tower x1{r}, or {8}no cooling towers{r} when there are none - and a failing one appends {c}NW tower NOT FORMED:{r} or {c}SW tower NOT FORMED:{r} with the reason. {8}Before a silo is built there is no tier line yet, so that same inventory gets a line of its own opening {b}Cooling towers:{r}.{r}[/note]'
+                '[note]{6}A tower that has blocks standing and still refuses to form says WHY, on every panel.{r} The REACTOR group carries a {b}Cooling towers:{r} line of its own - {2}Cooling Tower x1{r}, or {8}no cooling towers{r} when there are none - and a failing one appends {c}FRONT-LEFT tower NOT FORMED:{r} or {c}BACK-LEFT tower NOT FORMED:{r} with the reason. {8}That line is on every panel in every state, silo or no silo. It has to be: towers can go up long before the Silo Control Block exists, because that block IS one of the silo face''s own sockets.{r}[/note]'
+                ''
+                '{3}{l}THE FOUR PLANT MODULES{r}'
+                'Four MORE optional pieces of this same controller, raised by this same one projection, each on a patch of platform no silo tier can ever reach - so none of them moves when you re-tier. They share a {b}Plant modules:{r} line on every panel, in every state, faults and all.'
+                'Each has its own blueprint on the row below: {b}Vent Stack{r}, {b}Switchyard{r}, {b}Extraction Derrick{r} and {b}Enrichment Annex{r}.'
+                ''
+                '[warn]If this plant is pushing more than {b}100,000,000 EU/t{r}, read {b}The 100M Wall{r} before anything else on that row. Without the Switchyard, every EU/t above that figure is thrown away.[/warn]'
+            ) -join "`n")
+    }
+
+    # ====================================================== THE FOUR PLANT MODULES (D-17)
+    # APPEND ONLY. These five carry lows 48021..48025 - see the LOW BUDGET note at the top:
+    # 48020 belongs to the pack-line entry quest and is stepped over. Never insert a quest
+    # above this point or every id below it moves.
+
+    @{ Key = 'bpvent'; Name = '{3}{l}Blueprint: Vent Stack'; X = 0; Y = 216
+        Icon = $CASING_FILTER; Task = 'checkbox'; Prereqs = @(); CountAs = 0
+        Desc = (@(
+                '{3}{l}Optional module. A pure SAFETY building - it makes nothing, holds no hatches and has no sockets to wire.{r}'
+                'A 7x7x20 scrubber house with a filter flue up its middle, standing on the platform strip to your {b}LEFT{r} as you face the silo, in the gap BETWEEN the two Cooling Towers.'
+                ''
+                '{e}BILL{r}'
+                "  {b}$(BomReq $BTS_BOM.Vent 'Clean Stainless Steel Machine Casing')x{r} Clean Stainless Steel Machine Casing"
+                "  {b}$(BomReq $BTS_BOM.Vent 'Filter Machine Casing')x{r} Filter Machine Casing"
+                '  {8}313 blocks, and not one hatch.{r}'
+                ''
+                '{e}WHAT IT BUYS YOU{r}'
+                'It halves BOTH safety clocks:'
+                '  post-shutdown decay heat {2}20 min -> 10 min{r} {8}(24,000t -> 12,000t){r}'
+                '  meltdown radiation field {2}30 min -> 15 min{r} {8}(36,000t -> 18,000t){r}'
+                ''
+                '[note]{6}Finishing it mid-cooldown shortens THAT cooldown.{r} Both windows are re-clamped every single tick, not merely stamped at the moment the clock starts - so you do not have to sit through the long version one last time.[/note]'
+                ''
+                '[note]Site: {b}a 2-8, c 21-27{r}, ground to 19 up. No tier term anywhere in that rectangle, so it is in the same place on a tier-1 plant and a tier-5 one.[/note]'
+            ) -join "`n")
+    }
+
+    @{ Key = 'bpyard'; Name = '{3}{l}Blueprint: Switchyard'; X = 48; Y = 216
+        Icon = $CASING_SOLIDSTEEL; Task = 'checkbox'; Prereqs = @(); CountAs = 0
+        Desc = (@(
+                '{3}{l}Optional module - until your plant outgrows 100,000,000 EU/t, at which point it is the most valuable building on the pad.{r}'
+                'A 21x6x6 transformer yard - five 3x3x3 banks under a pylon line - laid along the platform''s BACK edge, behind the silo.'
+                ''
+                '{e}BILL{r}'
+                "  {b}$(BomReq $BTS_BOM.Switchyard 'Solid Steel Machine Casing')x{r} Solid Steel Machine Casing"
+                "  {b}$(BomReq $BTS_BOM.Switchyard 'Steel Frame Box')x{r} Steel Frame Box"
+                '  {8}351 blocks, and not one hatch.{r}'
+                ''
+                '{e}WHAT IT BUYS YOU{r}'
+                'It removes the {c}100,000,000 EU/t{r} grid soft cap. That is the whole function.'
+                ''
+                '[warn]Without this building the reactor still works out its full figure - and then throws away everything above the cap. A tuned tier-5 plant is well past a BILLION EU/t, so the yard is not a luxury up there: it is most of your output.[/warn]'
+                ''
+                '[note]You are never capped silently. The OUTPUT group prints all four states: cap switched off in the config, yard standing, yard missing but you are under the cap anyway, and yard missing WITH a count of exactly how many EU/t are going in the bin - plus this bill, read live. The headline reads {c}[GRID-CAPPED from N - no Switchyard]{r} rather than the ordinary clamp message.[/note]'
+                ''
+                '[note]The cap can only ever LOWER what is injected, so it can never shove more into your hatches than they absorb. Config flag {b}switchyardSoftCap{r} (default true) turns the whole thing off if you would rather it did not exist.[/note]'
+                ''
+                '[note]Site: {b}a 20-40, c 44-49{r}, ground to 5 up. It stops at a 40, clear of the output manifold''s strip.[/note]'
+            ) -join "`n")
+    }
+
+    @{ Key = 'bpderrick'; Name = '{3}{l}Blueprint: Extraction Derrick'; X = 96; Y = 216
+        Icon = (Machine $MTE_OUTPUT_BUS_IV 1); Task = 'checkbox'; Prereqs = @(); CountAs = 0
+        Desc = (@(
+                '{3}{l}Optional module. Half of the fuel cycle: it digs your uraninite up for you.{r}'
+                'A 7x7 machine deck under a 20-block lattice tower with a drill string down the middle, standing out in FRONT of the silo on the right-hand side.'
+                ''
+                '{e}BILL{r}'
+                "  {b}$(BomReq $BTS_BOM.Derrick 'Solid Steel Machine Casing')x{r} Solid Steel Machine Casing"
+                "  {b}$(BomReq $BTS_BOM.Derrick 'Steel Frame Box')x{r} Steel Frame Box"
+                "  {b}$(BomReq $BTS_BOM.Derrick 'Steel Pipe Casing')x{r} Steel Pipe Casing"
+                "  {b}$(BomReq $BTS_BOM.Derrick 'Output Bus (IV)')x{r} Output Bus {8}(deck front wall, one course up){r}"
+                '  {8}244 blocks.{r}'
+                ''
+                '{e}WHAT IT PRODUCES{r}'
+                'Every {b}200 powered ticks{r} (10 seconds):'
+                '  {2}6x Uraninite Dust + 1x Thorium Dust{r}'
+                '  {2}+1x Tantalum Dust{r} on every 4th cycle'
+                "Draws {b}$DERRICK_EUT{r} while it runs. That is the standalone Extraction Platform's rate, unchanged - this is the same machine, absorbed into the plant."
+                ''
+                '{c}{l}IT NEEDS POWER, AND THE REACTOR WILL NOT GIVE IT ANY{r}'
+                "The word {b}powered{r} in that cycle count is literal. This is the {b}first thing on the whole campus that CONSUMES EU{r}, and it takes its $DERRICK_EUT out of the {b}output manifold's ENERGY HATCHES{r} - the four {b}E{r} sockets one course above the dynamos, from step 9 - and out of nothing else. The reactor's own output does not reach it."
+                '{6}So do both of these before you expect a single dust:{r}'
+                '  {b}1.{r} Fit at least one {b}Energy Hatch (IV){r} in that manifold face.'
+                '  {b}2.{r} Run a live cable INTO it - your base grid, or straight off one of the Dynamo Hatches in the row below.'
+                "{c}An empty E socket, or a hatch with nothing wired to it, and the drill stands there for ever producing nothing.{r} {8}Steps 6 to 9 are right that no PIECE of this plant demands an Energy Hatch. This is the thing that does.{r}"
+                ''
+                "[warn]The panel names both failures. No hatch at all, in the OUTPUT group: {c}Manifold: NO Energy Hatch (y4, between the dynamos and the lasers) - the Extraction Derrick and the Enrichment Annex draw their EU through these, so neither will run{r}. Hatch fitted but starved, the module line begins {c}Derrick: UNDER-POWERED - it draws $DERRICK_EUT and the manifold's Energy Hatches hold{r} and then prints what they actually hold.[/warn]"
+                "{8}While it says UNDER-POWERED the drill is drawing {b}nothing at all{r}{8} - it will not spend a partial tick. The trickle you are feeding it banks in the hatches until one whole tick is covered, so a grid too slow for $DERRICK_EUT makes the drill SLOW, not dead.{r}"
+                ''
+                '[note]The product goes into the Derrick''s OWN Output Bus. That bus belongs to this building and nothing else: no reactor demand can reach it, and a depleted fuel rod can never land in it.[/note]'
+                ''
+                '[warn]An output bus that is FULL - or one you have ITEM-LOCKED to something else - stalls the drill holding a finished load. It says so by name on the panel. Empty it, or clear the lock.[/warn]'
+                ''
+                '[note]Site: {b}a 33-39, c 4-10{r}, ground to 19 up.[/note]'
+            ) -join "`n")
+    }
+
+    @{ Key = 'bpannex'; Name = '{3}{l}Blueprint: Enrichment Annex'; X = 144; Y = 216
+        Icon = $CASING_STAINLESS; Task = 'checkbox'; Prereqs = @(); CountAs = 0
+        Desc = (@(
+                '{3}{l}Optional module. The other half of the fuel cycle: it turns the ore into pellets.{r}'
+                'A 5x15x6 process shed running down the platform''s FRONT edge, to the left of the silo face.'
+                ''
+                '{e}BILL{r}'
+                "  {b}$(BomReq $BTS_BOM.Annex 'Clean Stainless Steel Machine Casing')x{r} Clean Stainless Steel Machine Casing"
+                "  {b}$(BomReq $BTS_BOM.Annex 'Steel Pipe Casing')x{r} Steel Pipe Casing"
+                "  {b}$(BomReq $BTS_BOM.Annex 'Input Bus (IV)')x{r} Input Bus {8}(uraninite){r}, {b}$(BomReq $BTS_BOM.Annex 'Input Hatch (IV)')x{r} Input Hatch {8}(Hydrofluoric Acid){r}, {b}$(BomReq $BTS_BOM.Annex 'Output Bus (IV)')x{r} Output Bus {8}(pellets){r}"
+                '  {8}307 blocks. All three sockets sit in the same wall, one course up.{r}'
+                ''
+                '{e}WHAT IT PRODUCES{r}'
+                'Every {b}600 powered ticks{r} (30 seconds):'
+                '  {2}8x Uraninite Dust + 2,000 L Hydrofluoric Acid  ->  20x Fuel Pellet + 2x Thorium Dust{r}'
+                "Draws {b}$ANNEX_EUT{r} while it runs - the standalone Enrichment Train's rate, unchanged."
+                ''
+                '{c}{l}IT NEEDS POWER TOO, THROUGH THE SAME FOUR SOCKETS{r}'
+                "{b}Powered{r} ticks again: the Annex takes its $ANNEX_EUT out of the {b}output manifold's ENERGY HATCHES{r} - the four {b}E{r} sockets one course above the dynamos, from step 9 - and not out of the reactor. Fit at least one {b}Energy Hatch (IV){r} there and run a live cable into it, or this shed forms perfectly and then never starts a batch."
+                "{8}Derrick and Annex together are $MODULES_EUT, which a single IV Energy Hatch carries on its own. Starved, the panel prints {c}Annex: UNDER-POWERED - it draws $ANNEX_EUT and the manifold's Energy Hatches hold{r}{8} and then what they actually hold. Nothing is being drawn while it says that - an under-fed module banks the trickle instead of burning it, and simply advances slowly.{r}"
+                ''
+                '[note]{6}Derrick + Annex + one external centrifuge = a plant that very nearly fuels itself.{r} The Derrick digs the uraninite, the Annex enriches it, the centrifuge closes the loop.[/note]'
+                ''
+                '[note]These three sockets belong to the Annex alone. The rod cascade can never eat the uraninite you stock here, and nothing the silo demands can reach this acid.[/note]'
+                ''
+                '[warn]The feedstock is committed at the START of a batch. If the product bus cannot take the finished load - full, or item-locked - the batch stalls and says so rather than voiding what it already took.[/warn]'
+                ''
+                '[note]Site: {b}a 17-21, c 0-14{r}, ground to 5 up.[/note]'
+            ) -join "`n")
+    }
+
+    @{ Key = 'gridcap'; Name = '{c}{l}The 100M Wall'; X = 240; Y = 112
+        Icon = $CASING_SOLIDSTEEL; Task = 'checkbox'; Prereqs = @('p10')
+        Reward = @((Icon 'gregtech:gt.blockcasings2' 0 64))
+        Desc = (@(
+                '{c}{l}Read this the moment your plant clears 100,000,000 EU/t.{r}'
+                'There is a hard ceiling on how much this plant will INJECT into your grid, and it is not a hatch limit and not a laser limit. It is {c}100,000,000 EU/t{r}, and the only thing that lifts it is the {b}SWITCHYARD{r}.'
+                ''
+                '{e}{l}HOW YOU KNOW YOU HAVE HIT IT{r}'
+                'The OUTPUT group''s headline stops reading {8}[CLAMPED from N]{r} and starts reading {c}[GRID-CAPPED from N - no Switchyard]{r}. The Switchyard line under it prints the exact EU/t being discarded, plus the bill.'
+                'The MATH panel scores the cap as its own weakest term, and its advice becomes {b}build the SWITCHYARD{r} - not {8}fit more Lasers{r}, which would do nothing at all.'
+                ''
+                '{e}{l}DO THIS{r}'
+                '{b}1.{r} Build the Switchyard. It is 21x6x6 on the platform''s back edge and it needs no hatches - see {b}Blueprint: Switchyard{r} for the bill.'
+                "  {b}$(BomReq $BTS_BOM.Switchyard 'Solid Steel Machine Casing')x{r} Solid Steel Machine Casing"
+                "  {b}$(BomReq $BTS_BOM.Switchyard 'Steel Frame Box')x{r} Steel Frame Box"
+                '{b}2.{r} Re-project, or place it by hand. It is a piece of the main controller, so it is detected on the next structure check - there is nothing to wire and nothing to turn on.'
+                ''
+                '{a}{l}DONE WHEN{r}'
+                'You have read this. {8}There is nothing to hand in: no quest can gate on 351 casings you are supposed to be BUILDING WITH, and no quest can read what you have built.{r}'
+                ''
+                '{e}{l}CHECK YOUR WORK{r}'
+                'The Switchyard line reads green and the OUTPUT headline has dropped the {c}GRID-CAPPED{r} tag.'
+                ''
+                '[note]Would you rather the cap simply did not exist? Set {b}switchyardSoftCap = false{r} in the config. It is one flag and it turns the whole mechanic off. The building is the in-game answer; the flag is the out-of-game one.[/note]'
+                ''
+                '[warn]Do not go hunting for more Dynamo or Laser hatches to break this ceiling. The cap is applied AFTER the hatch ceiling, so it does not matter how much hatch capacity you fit - you will keep discarding everything above 100M until the yard stands.[/warn]'
             ) -join "`n")
     }
 )
@@ -829,13 +1087,65 @@ $low = $FIRST_LOW
 $byKey = @{}
 foreach ($q in $quests) {
     $low = SafeLow $low
+    # Step over the pack-line entry quest's low rather than stopping the chapter dead at it.
+    if ($low -eq $ENTRY_LOW) { $low = SafeLow ($ENTRY_LOW + 1) }
     $q.Low = $low
     $q.B64 = B64Id $HIGH $low
     $byKey[$q.Key] = $q
     $low++
 }
-if ($low -gt $ENTRY_LOW) {
-    throw "Chapter quests overran the reserved pack-entry low $ENTRY_LOW (next free is $low). Trim the chapter or move the entry quest AND its BQBridge constant."
+foreach ($q in $quests) {
+    if ($q.Low -eq $ENTRY_LOW) {
+        throw "Quest '$($q.Key)' was handed $ENTRY_LOW, which belongs to the pack-line entry quest."
+    }
+}
+# Two quests sharing a low would silently overwrite one file with the other. Checked by
+# hand rather than with Group-Object: these are hashtables, and PS 5.1's Group-Object does
+# NOT read a hashtable key as a property - it buckets every quest into one nameless group,
+# which reports a false duplicate for the entire chapter.
+$seenLows = @{}
+foreach ($q in $quests) {
+    if ($seenLows.ContainsKey($q.Low)) {
+        throw "Quests '$($q.Key)' and '$($seenLows[$q.Low])' both got low $($q.Low)."
+    }
+    $seenLows[$q.Low] = $q.Key
+}
+
+# ----------------------------------------- /btsquests status must count THIS chapter (B2)
+# BQBridge.status() used to walk a FIRST..LAST RANGE (48000..48019). The chapter is not a
+# range and never was - 48020 is the pack-line entry quest and is a hole in the middle of
+# it - so when 48021..48025 were appended, `status` counted 20 ids, found 20, and told the
+# player "Everything is loaded" with five blueprint quests missing from the book.
+#
+# The Java holds one declared LIST now, and this is the gate that stops it rotting: the ids
+# handed out above are compared against that array, and a mismatch fails the questbook
+# build. There is deliberately no way to add a quest here and ship a stale status command.
+$bridgeJava = Join-Path $PSScriptRoot '..\src\main\java\com\nateyburr\beyondthestars\BQBridge.java'
+if (-not (Test-Path $bridgeJava)) {
+    throw "gen-questbook.ps1: BQBridge.java is not at $bridgeJava, so /btsquests status cannot be checked against this chapter."
+}
+$bridgeText = [System.IO.File]::ReadAllText($bridgeJava)
+$bridgeMatch = [regex]::Match($bridgeText, 'CHAPTER_QUEST_LOWS\s*=\s*\{(?<body>[^}]*)\}')
+if (-not $bridgeMatch.Success) {
+    throw ('gen-questbook.ps1: BQBridge.CHAPTER_QUEST_LOWS was not found in ' + $bridgeJava +
+        '. /btsquests status counts exactly that array; without it this chapter cannot be verified.')
+}
+$javaLows = @([regex]::Matches($bridgeMatch.Groups['body'].Value, '\d+') | ForEach-Object { [int]$_.Value }) | Sort-Object
+$ourLows = @($quests | ForEach-Object { [int]$_.Low }) | Sort-Object
+$lowDiff = Compare-Object $javaLows $ourLows
+if ($lowDiff) {
+    $addToJava = @($lowDiff | Where-Object { $_.SideIndicator -eq '=>' } | ForEach-Object { $_.InputObject }) -join ', '
+    $dropFromJava = @($lowDiff | Where-Object { $_.SideIndicator -eq '<=' } | ForEach-Object { $_.InputObject }) -join ', '
+    throw ("gen-questbook.ps1: BQBridge.CHAPTER_QUEST_LOWS does not describe this chapter. " +
+        "ADD to the Java array: [$addToJava]. REMOVE from it: [$dropFromJava]. " +
+        '/btsquests status counts exactly that array, so a stale one reports a complete chapter ' +
+        'while quests are missing from the book - which is the bug this gate exists to stop.')
+}
+if ($javaLows -contains $ENTRY_LOW) {
+    throw "gen-questbook.ps1: BQBridge.CHAPTER_QUEST_LOWS contains $ENTRY_LOW, which belongs to the pack-line entry quest and is checked separately as ENTRY_QUEST_UUID."
+}
+if ($bridgeText.IndexOf('new UUID(ID_HIGH, ' + $ENTRY_LOW + 'L)') -lt 0) {
+    throw "gen-questbook.ps1: BQBridge.ENTRY_QUEST_UUID is no longer new UUID(ID_HIGH, ${ENTRY_LOW}L) - the pack-line entry quest and the Java disagree about its id."
 }
 
 # Every icon / task / reward stack must be a REAL stack. Icon takes (id, damage, count) and
@@ -1055,5 +1365,6 @@ WriteText (Join-Path $out 'OrderLine.txt') "${lineB64}: Beyond the Stars`n"
 
 Write-Host "Generated quest line $lineDir with $($quests.Count) quests (IDs $HIGH/$($quests[0].Low)..$($quests[-1].Low))"
 Write-Host "Plus pack-line entry quest 'Unit One' ($HIGH/$($packQuest.Low)) in $packLineDir"
+Write-Host "BQBridge.CHAPTER_QUEST_LOWS agrees: /btsquests status counts all $($javaLows.Count) chapter quests, entry quest $ENTRY_LOW separately."
 Write-Host "Bills of materials derived by gen-bom.ps1 from the live shape code."
 Write-Host "Diagrams: run gen-diagrams.ps1 and merge .\resources\ into config\betterquesting\resources\"

@@ -29,6 +29,42 @@ if (-not (Test-Path $outDir)) { New-Item -ItemType Directory -Force $outDir | Ou
 $stale = Join-Path $outDir 'bay-sockets.png'
 if (Test-Path $stale) { Remove-Item -Force $stale; Write-Host "removed stale $stale" }
 
+# ------------------------------------------------- D5: the Energy Hatch caption, DERIVED
+# The manifold legend used to caption the E row 'OPTIONAL - the plant never draws EU'. That
+# was true until D-17 hung the Extraction Derrick and the Enrichment Annex off those very
+# hatches. Step 9's prose and the Turbine blueprint were corrected; this IMAGE, embedded two
+# lines below them, was not - so the shipped PNG contradicted the text it sat next to.
+#
+# The rate is now never typed here either. It is read off the same two Java constants
+# gen-questbook.ps1 reads, by the same rule, so a tier change in the Java re-renders this
+# diagram with the new figure or throws on the next run.
+$script:CoreJava = Join-Path (Split-Path $PSScriptRoot -Parent) `
+    'src\main\java\com\nateyburr\beyondthestars\machines\MTEReactorCoreMk1.java'
+# TierEU.RECIPE_<tier> is GTValues.VP[tier], and VP[i] = V[i] * 30 / 32 - the familiar
+# 30 / 120 / 480 / 1,920 / 7,680 recipe ladder.
+$TIER_EU_RECIPE = @{
+    'RECIPE_ULV' = 7; 'RECIPE_LV' = 30; 'RECIPE_MV' = 120; 'RECIPE_HV' = 480
+    'RECIPE_EV' = 1920; 'RECIPE_IV' = 7680; 'RECIPE_LuV' = 30720; 'RECIPE_ZPM' = 122880
+    'RECIPE_UV' = 491520
+}
+function ModuleEuPerTick([string]$constant) {
+    $core = [System.IO.File]::ReadAllText($script:CoreJava)
+    $m = [regex]::Match($core, "public static final long $constant = TierEU\.(?<tier>\w+);")
+    if (-not $m.Success) {
+        throw ("gen-diagrams.ps1: MTEReactorCoreMk1.$constant is no longer written as " +
+            "'public static final long $constant = TierEU.<tier>;'. The manifold diagram's " +
+            'Energy Hatch caption is read off that line and can no longer be derived.')
+    }
+    $tier = $m.Groups['tier'].Value
+    if (-not $TIER_EU_RECIPE.ContainsKey($tier)) {
+        throw "gen-diagrams.ps1: $constant now reads TierEU.$tier, which this script has no EU/t value for. Add it to the `$TIER_EU_RECIPE table above."
+    }
+    $TIER_EU_RECIPE[$tier]
+}
+$DERRICK_EU = ModuleEuPerTick 'DERRICK_EU_PER_TICK'
+$ANNEX_EU = ModuleEuPerTick 'ANNEX_EU_PER_TICK'
+$ENERGY_CAPTION = 'Derrick {0:N0} + Annex {1:N0} EU/t draw HERE' -f $DERRICK_EU, $ANNEX_EU
+
 # ------------------------------------------------------------------ palette (dark book)
 $C = @{
     bg        = '#0E1219'
@@ -324,7 +360,7 @@ Save $cv 'point-of-use.png'
 # 3. THE OUTPUT MANIFOLD BACK FACE - where EU leaves and the clock goes in.
 # =====================================================================================
 $W = 380
-$cv = NewCanvas $W 396
+$cv = NewCanvas $W 428
 Head $cv 'OUTPUT MANIFOLD - BACK FACE' '7 x 7, at the far end of the rotor gallery - open sky behind it'
 $g = $cv.G
 
@@ -361,7 +397,7 @@ for ($r = 0; $r -lt 7; $r++) {
 $ly = $gy + 7 * $cw + 10
 $legend = @(
     @($C.laser, 'L', 'Laser Source Hatch x4', 'ZPM 4,096A - the real ceiling'),
-    @($C.energy, 'E', 'Energy Hatch (IV) x4', 'OPTIONAL - the plant never draws EU'),
+    @($C.energy, 'E', 'Energy Hatch (IV) x4', $ENERGY_CAPTION),
     @($C.dynamo, 'D', 'Dynamo Hatch (IV) x4', '4 IV alone cap you at 32,768 EU/t'),
     @($C.panelblk, 'T', 'TURBINE CONTROL BLOCK', 'the redstone clock goes HERE'),
     @($C.maint, 'M', 'Maintenance Hatch', 'directly below the control block'),
@@ -378,6 +414,9 @@ foreach ($row in $legend) {
 }
 $g.DrawString('Ceiling = dynamos + lasers, summed. Paint each source and its target', $fTiny, (Brush $C.dim), 12, ($ly + 4))
 $g.DrawString('hatch the same colour and the SAME voltage tier - a lower tier explodes.', $fTiny, (Brush $C.dim), 12, ($ly + 16))
+# D5: the nuance the old one-word caption was carrying, said properly rather than wrongly.
+$g.DrawString('No PIECE of the plant demands an E hatch - the plant forms and runs with', $fTiny, (Brush $C.dim), 12, ($ly + 32))
+$g.DrawString('all four empty. The Derrick and the Annex do, and only through these.', $fTiny, (Brush $C.dim), 12, ($ly + 44))
 Save $cv 'manifold-face.png'
 
 Write-Host 'diagrams done.'

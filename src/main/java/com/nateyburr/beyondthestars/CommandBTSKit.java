@@ -13,6 +13,9 @@ import net.minecraft.util.EnumChatFormatting;
 import com.nateyburr.beyondthestars.blocks.BTSBlocks;
 import com.nateyburr.beyondthestars.items.BTSItems;
 import com.nateyburr.beyondthestars.machines.BTSMachines;
+import com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1;
+
+import gregtech.api.enums.ItemList;
 
 /**
  * /btskit [tier 1-5] - hands the operator a full campus test kit (controllers, fuel columns for
@@ -137,6 +140,18 @@ public class CommandBTSKit extends CommandBase {
         give(player, BTSMachines.siloControlBlock.copy());
         give(player, BTSMachines.turbineControlBlock.copy());
 
+        // D-17 / D-22 module sockets - counts read off the same derived bills, never typed.
+        final int moduleBuses = BTSBom.DERRICK.of(BTSBom.OUTPUT_BUS_IV) + BTSBom.ANNEX.of(BTSBom.OUTPUT_BUS_IV);
+        for (int i = 0; i < moduleBuses; i++) {
+            give(player, ItemList.Hatch_Output_Bus_IV.get(1L));
+        }
+        for (int i = 0; i < BTSBom.ANNEX.of(BTSBom.INPUT_BUS_IV); i++) {
+            give(player, ItemList.Hatch_Input_Bus_IV.get(1L));
+        }
+        for (int i = 0; i < BTSBom.ANNEX.of(BTSBom.INPUT_HATCH_IV); i++) {
+            give(player, ItemList.Hatch_Input_IV.get(1L));
+        }
+
         // TC-4: one rotor per gallery stage (max stack 1 - wear lives on the item)
         for (int i = 0; i < stages; i++) {
             give(player, new ItemStack(BTSItems.turbineRotor, 1));
@@ -181,6 +196,24 @@ public class CommandBTSKit extends CommandBase {
         tellBill(player, BTSBom.SPIRAL.piece(), BTSBom.SPIRAL);
         tellBill(player, BTSBom.GALLERY.piece(), BTSBom.GALLERY);
         tellBill(player, BTSBom.TOWER.piece() + ", x" + BTSBom.TOWERS, BTSBom.TOWER);
+        // D-17 / D-22: the four plant modules, same one projection, same derived tally.
+        tellBill(player, BTSBom.VENT.piece() + " (safety: decay + radiation windows halved)", BTSBom.VENT);
+        tellBill(
+            player,
+            BTSBom.SWITCHYARD.piece() + " (grid conditioning: lifts the 100,000,000 EU/t soft cap)",
+            BTSBom.SWITCHYARD);
+        tellBill(
+            player,
+            BTSBom.DERRICK.piece() + " (self-mining, "
+                + MTEReactorCoreMk1.euRate(MTEReactorCoreMk1.DERRICK_EU_PER_TICK)
+                + ")",
+            BTSBom.DERRICK);
+        tellBill(
+            player,
+            BTSBom.ANNEX.piece() + " (on-site pellet line, "
+                + MTEReactorCoreMk1.euRate(MTEReactorCoreMk1.ANNEX_EU_PER_TICK)
+                + ")",
+            BTSBom.ANNEX);
         tell(
             player,
             EnumChatFormatting.YELLOW + " = WHOLE PLANT at tier " + tier + ": " + materials(BTSBom.TOTAL[tier]));
@@ -221,8 +254,18 @@ public class CommandBTSKit extends CommandBase {
             " - Control blocks given: Silo Control Block (silo face, above the station) + Turbine Control Block (manifold back face; feed it a redstone clock to spin the fan)");
         tell(
             player,
+            " - Plant module sockets: DERRICK deck front wall = " + BTSBom.DERRICK.of(BTSBom.OUTPUT_BUS_IV)
+                + " output bus; ANNEX outward wall = "
+                + BTSBom.ANNEX.of(BTSBom.INPUT_BUS_IV)
+                + " input bus (uraninite) + "
+                + BTSBom.ANNEX.of(BTSBom.INPUT_HATCH_IV)
+                + " input hatch (Hydrofluoric Acid) + "
+                + BTSBom.ANNEX.of(BTSBom.OUTPUT_BUS_IV)
+                + " output bus (pellets); VENT STACK and SWITCHYARD take none at all.");
+        tell(
+            player,
             EnumChatFormatting.GREEN
-                + "Build: place the main controller, ONE hologram projection builds EVERYTHING (platform + silo + duct + spiral + gallery + both cooling towers; tier from GUI Build Tier or a 2-5 trigger stack, and a silo that already stands is never re-tiered). There is no second controller to place.");
+                + "Build: place the main controller, ONE hologram projection builds EVERYTHING (platform + silo + duct + spiral + gallery + both cooling towers + all four plant modules; tier from GUI Build Tier or a 2-5 trigger stack, and a silo that already stands is never re-tiered). There is no second controller to place.");
         tell(
             player,
             "Then: pillar frames in the core, and plumb each building where it is fed - rods and water into the SILO face, coolant and propellant into the SPIRAL chamber's front wall. The plant distributes all of it internally from there.");
