@@ -273,10 +273,13 @@ $quests = @(
                 ''
                 '{b}2.{r} Place the Nuclear Plant Foundation. {6}Whichever way you are facing when you place it is the plant''s FRONT{r} - the silo grows straight back from it, and every socket you will ever pipe into faces the way you are facing now.'
                 ''
-                '{b}3.{r} Open its GUI. Two small unlabelled number fields sit at the bottom right. Reading LEFT to RIGHT:'
-                '  {b}Build Tier{r} - the NARROW field on the left, 1-5: the silo size the projection raises. {6}Start at 1.{r}'
-                '  {b}Control Rods{r} - the WIDER field to its right, 1-24: campaign power, N/24. Leave it at 24.'
-                '{8}Hover either one to confirm which is which. Both already hold the value above, so changing nothing here is correct - and putting the tier in the rod field would run the whole campaign at 1/24 power.{r}'
+                '{b}3.{r} Open its GUI. Three small unlabelled number fields sit at the bottom right, with a small square {b}chart button{r} to their left. Reading LEFT to RIGHT:'
+                '  {b}Upgrade Tree{r} - the BUTTON, not a field. Nothing to set yet; it opens the progression tree you will meet at the end of the path. Leave it alone for now.'
+                '  {b}Build Tier{r} - the NARROW field, 1-5: the silo size the projection raises. {6}Start at 1.{r}'
+                '  {b}RPM Limit{r} - the WIDEST field, 5 digits: the turbine redline you authorise. Leave it at 12,000.'
+                '  {b}Control Rods{r} - the field on the far right: campaign power, N/24. Leave it at 24.'
+                '{8}Hover any of the four to confirm which is which. All three fields already hold the value above, so changing nothing here is correct - and putting the tier in the rod field would run the whole campaign at 1/24 power.{r}'
+                '{8}The rod field will accept up to 36 and the RPM Limit up to 19,500, because the milestone lines and the upgrade tree can eventually withdraw the rods past the 24/24 design stop and lift the redline past 12,000. Until they do, anything above those two defaults is clamped straight back to them. Neither ever moves on its own: a tier raises the CEILING, and you type the value you want.{r}'
                 ''
                 '{a}{l}DONE WHEN{r}'
                 'A {b}Hologram Projector{r} is in your inventory. {8}Step 1 paid you one, and nothing is taken from you. That is the whole gate: a quest can only read what you are CARRYING, never what you have built.{r}'
@@ -605,6 +608,10 @@ $quests = @(
                 ''
                 '{a}{l}DONE WHEN{r}'
                 'A Thorium-Bonded Fuel Rod is in your inventory - one rung up the ladder, off the back of that line. {8}Claim it, then feed it to the bus. The two fluid ladders opened back at step 7 because step 8 needed them; Break the Clamp, Spin Doctrine and Written in Fire open here, and all of it is optional depth.{r}'
+                ''
+                '{6}{l}AND THAT IS THE BUILD FINISHED - NOT THE CAMPAIGN{r}'
+                'The ten steps were CONSTRUCTION. What the plant does from here is EARN: four milestone lines climb just by running, seven tiers each, paying multipliers into the very derivation you have just learned to read and then unlocking maxima this plant has never had - control rods past 24/24, a redline above 12,000, cheaper water, faster modules. They also pay the points that buy a twenty-five node upgrade tree.'
+                'Nothing is carried over from before you loaded this version: every counter starts at zero, today, and the first tier arrives within the hour. {6}Open THE CAMPAIGN BEGINS on the bottom row.{r}'
             ) -join "`n")
     }
 
@@ -1076,6 +1083,179 @@ $quests = @(
                 '[warn]Do not go hunting for more Dynamo or Laser hatches to break this ceiling. The cap is applied AFTER the hatch ceiling, so it does not matter how much hatch capacity you fit - you will keep discarding everything above 100M until the yard stands.[/warn]'
             ) -join "`n")
     }
+
+    # ============================================================ THE CAMPAIGN (3)
+    # D-23/D-24. Appended, never inserted: lows are positional, so these take 48026-48028
+    # and every quest above keeps the id an installed world already recorded against it.
+    # Their whole job is that a player who finishes step 10 is TOLD the campaign has only
+    # just started - the ten steps were construction, and the plant now earns for running.
+    #
+    # Every panel string quoted below was checked character for character against the
+    # formatter that prints it (BTSMilestone.milestoneLine / milestoneSummaryLine /
+    # milestoneUnlockLine, BTSUpgrade.treeSummaryLine / treeEffectLine / nodeLine,
+    # MTEReactorCoreMk1.mathTurbineLine, and the three beyondthestars.gui.tree.* lang
+    # entries). Only the ASCII part of a line is ever quoted: the panel separates fields
+    # with a middle dot, which this ASCII-only script cannot write.
+    @{ Key = 'progcampaign'; Name = '{6}{l}The Campaign Begins'; X = 0; Y = 268; Size = 32
+        Icon = $ICON_CTRL; Task = 'checkbox'; Prereqs = @('p10')
+        Reward = @((BTSItem 'fuelRodThoriumBonded' 8))
+        Desc = (@(
+                '{6}{l}TEN STEPS DONE. THE CAMPAIGN HAS NOT STARTED YET.{r}'
+                'Everything up to step 10 was CONSTRUCTION. From here the plant earns its own upgrades, and it earns them by {6}RUNNING{r} - not by crafting anything, not by placing another block, not by opening another quest.'
+                ''
+                '{e}{l}FOUR LINES, SEVEN TIERS EACH{r}'
+                'At the foot of every panel - the controller GUI, both control blocks, the handheld scanner - there is a group headed {b}MILESTONES{r}. Four counters, each a ladder of seven tiers, each watching something the plant already knew about itself:'
+                ''
+                '  {b}UPTIME{r}        generating ticks'
+                '  {b}BURNUP{r}        fuel segments, weighted by rod grade'
+                '  {b}REPROCESSING{r}  Extraction Derrick loads + Enrichment Annex batches'
+                '  {b}TURBINE{r}       perfectly timed cycles'
+                ''
+                'A fresh plant reads {8}UPTIME T0/7{r} and {8}0 generating ticks{r}. Leave it lit and it starts climbing within the hour.'
+                ''
+                '{e}{l}WHAT A TIER PAYS{r}'
+                '{b}Tiers 1-4 pay a MULTIPLIER{r} straight into the EU/t derivation you learned to read in step 10. It is not a hidden bonus: line 3 of the MATH panel grows a labelled factor the moment it is above 1.000, and prints it beside the terms it multiplies.'
+                '{b}Tiers 5-7 pay an UNLOCK{r} - a NEW MAXIMUM. The control rods withdraw past the 24/24 design stop. The turbine redline lifts off 12,000. The feedwater draw halves again. The process modules turn over faster.'
+                '{b}Every tier also pays PROGRESSION POINTS{r}, and those are the currency of the {b}Upgrade Tree{r} - see the next two quests.'
+                ''
+                '{a}{2}Nothing here can take away anything you already have.{r} Every unlock raises a ceiling; none of them gates a capability. A plant sitting at zero progress does exactly what it did before this system existed, down to the last EU.'
+                ''
+                '{e}{l}DO THIS{r}'
+                '{b}1.{r} Open any panel and scroll to {b}MILESTONES{r}. Read the four lines and the roll-up under them.'
+                '{b}2.{r} Keep the plant lit. The lines that matter most early are UPTIME (it only needs the plant GENERATING) and TURBINE (it needs a steam slug and all eight injectors landed - a perfect cycle, every cycle).'
+                '{b}3.{r} Come back when the roll-up stops saying {8}Milestones 0/28{r}.'
+                ''
+                '{a}{l}DONE WHEN{r}'
+                'You tick it, once you have found the MILESTONES group and read it.'
+                ''
+                '{8}A TICK BOX on purpose: a milestone tier is not an item, and there is nothing to carry into a quest window.{r}'
+                ''
+                '[note]{l}Where the progress lives.{r} On {b}THIS CONTROLLER{r}, in its own NBT - not on you, and not on the world. It survives a world reload, a chunk unloading and coming back, the structure un-forming and re-forming, and a {b}wrench{r}: pick the main station up and the campaign rides along in the item, then loads straight back when you place it. A controller that has never earned anything still stacks like an ordinary machine.[/note]'
+                ''
+                '[warn]There is no back-fill. However long this plant has been running, the four counters start at ZERO the first time you load 0.22.0. That is deliberate - the alternative was inventing a history the plant never recorded.[/warn]'
+            ) -join "`n")
+    }
+
+    @{ Key = 'progtiers'; Name = '{6}{l}The Four Lines'; X = 48; Y = 268; Size = 32
+        Icon = (BTSItem 'fuelRodNaqBonded' 1); Prereqs = @('progcampaign')
+        Task = (BTSItem 'fuelRodNaqBonded' 1)
+        Reward = @((BTSItem 'fuelRodNaqBonded' 2))
+        Desc = (@(
+                '{6}{l}WHAT EACH LINE COUNTS, AND WHAT IT COSTS{r}'
+                'Tiers are a plain table, not a curve. A line is at tier N when its counter has passed the Nth number in its column - no rounding, no logarithm, nothing to reverse-engineer.'
+                ''
+                '{e}{l}THE THRESHOLDS{r}'
+                '  {8}T   UPTIME      BURNUP    REPROC    TURBINE{r}'
+                '  {b}1{r}      72,000     2,000       250      1,800'
+                '  {b}2{r}     144,000     5,000       700      5,000'
+                '  {b}3{r}     288,000    13,000     1,900     15,000'
+                '  {b}4{r}     576,000    34,000     5,200     45,000'
+                '  {b}5{r}   1,152,000    88,000    14,000    135,000'
+                '  {b}6{r}   2,304,000   230,000    38,000    400,000'
+                '  {b}7{r}   4,608,000   600,000   100,000  1,200,000'
+                ''
+                '{e}{l}HOW EACH ONE IS FED - AND HOW IT CANNOT BE CHEATED{r}'
+                '{b}UPTIME{r} counts only ticks on which the plant actually put EU on the grid. An idle plant sitting in a loaded chunk earns nothing, and no amount of engineering makes it count faster: 72,000 ticks is one hour, every hour. It is the shallowest ladder on purpose - the line that just wants you to keep the lights on.'
+                '{b}BURNUP{r} scores one segment per live pillar per cascade cycle, {6}weighted by rod grade{r}. 201 uranium pillars score 201. The same 201 pillars on Naquadah-Bonded rods score {b}1,809{r}. A bus-fallback slice runs at half output and scores at half rate. This is the line that says {8}your fuel chain is not finished{r} - and it is why this quest asks for the top rod.'
+                '{b}REPROCESSING{r} scores on the DEPOSIT, never on the tick: one per Extraction Derrick load, one per Enrichment Annex batch. A load parked waiting on a full bus scores once, when it lands. It is the only line that needs a BUILDING, so its rewards go straight back into those two modules - and the only line that speeds ITSELF up.'
+                '{b}TURBINE{r} needs the steam slug {6}AND{r} all eight injectors landed inside their window. A fast clock with no fuel scores nothing - no slug, no credit. Seven of eight timed scores nothing at all. The chain refills one slug every 20 ticks, so {6}3,600 perfect cycles an hour is the ceiling and nothing raises it{r} - the buffer unlocks raise the burst, never the fill rate. Its ladder is sized against exactly that number: tier 7 is about 333 hours of cycling, which seats it between REPROCESSING (~208 h) and BURNUP (~497 h).'
+                ''
+                '{e}{l}TIERS 1-4 - THE MULTIPLIER{r}'
+                '  {8}T     UPTIME   BURNUP   REPROC  TURBINE{r}'
+                '  {b}1{r}     x1.020   x1.030   x1.020   x1.025'
+                '  {b}2{r}     x1.050   x1.070   x1.045   x1.050'
+                '  {b}3{r}     x1.090   x1.120   x1.070   x1.085'
+                '  {b}4{r}     x1.150   x1.200   x1.100   x1.120'
+                'All four multiply together into ONE term. At tier 4 on every line that is {2}x1.700{r}, and step 3 of the MATH panel prints it as {8}x milestones x1.700{r} in the middle of the derivation it is multiplying. Tiers 5, 6 and 7 hold the tier-4 value - the ladder stops paying multiplier at 4 and starts paying unlocks.'
+                ''
+                '{e}{l}TIERS 5-7 - THE UNLOCKS{r}'
+                '{b}UPTIME{r}'
+                '  {2}5{r} {8}CONDENSATE RECOVERY I - feedwater draw halved again{r}'
+                '  {2}6{r} {8}STEAM ACCUMULATOR - the chain holds 1.6x the slugs{r}'
+                '  {2}7{r} {8}CONDENSATE RECOVERY II - feedwater draw quartered again{r}'
+                '{b}BURNUP{r}'
+                '  {2}5{r} {8}CONTROL ROD WITHDRAWAL I - throttle cap 26/24{r}'
+                '  {2}6{r} {8}CONTROL ROD WITHDRAWAL II - throttle cap 28/24{r}'
+                '  {2}7{r} {8}CONTROL ROD WITHDRAWAL III - throttle cap 30/24{r}'
+                '{b}REPROCESSING{r}'
+                '  {2}5{r} {8}DEEP CUT - Derrick tantalum every 3rd load{r}'
+                '  {2}6{r} {8}PROCESS INTENSIFICATION - Derrick and Annex cycles -20%{r}'
+                '  {2}7{r} {8}YIELD UPLIFT - Annex batch 24 pellets{r}'
+                '{b}TURBINE{r}'
+                '  {2}5{r} {8}OVERSPEED TRIM I - redline MAY BE SET to 13,500 (RPM LIMIT field); gain follows it{r}'
+                '  {2}6{r} {8}OVERSPEED TRIM II - redline MAY BE SET to 15,000 (RPM LIMIT field); gain follows it{r}'
+                '  {2}7{r} {8}BLADE METALLURGY - rotor wear rolled half as often{r}'
+                ''
+                '{6}The redline and the cycle gain always move TOGETHER.{r} RPM settles where the gain per cycle balances the 0.5%/tick decay - about 11,993 on a Lv 6 plant, which is why a stock plant parks itself on the 12,000 redline. A redline raised on its own would be a ceiling you could never reach, so OVERSPEED TRIM raises both.'
+                ''
+                '{6}And OVERSPEED TRIM is YOURS TO SWITCH ON.{r} The tier raises the CEILING; it never moves the fan by itself. Chamber coolant draw goes with the SQUARE of RPM, so a chamber plumbed for exactly 12,000 would start refusing cycles the moment a tier pushed it to 13,500. Type the redline you want into the {b}RPM LIMIT{r} field beside the rods field - it defaults to 12,000 and clamps to whatever you have actually unlocked, exactly like the rods cap. Every panel prints the redline in use and names the headroom you have not claimed.'
+                ''
+                '{e}{l}DO THIS{r}'
+                'Assemble one {b}Naquadah-Bonded Fuel Rod{r} - the top of the cascade ladder, x9, the rod that turns BURNUP from a twenty-day line into a manageable one. It is a ZPM assembler job: Uranium rod + 3x enriched naquadah dust + U-235 dust + iridium plate + molten naquadah, programmed circuit 7.'
+                ''
+                '{a}{l}DONE WHEN{r}'
+                'A Naquadah-Bonded Fuel Rod is in your inventory.'
+                $HOLD_FIRST
+                ''
+                '{e}{l}CHECK YOUR WORK{r}'
+                'Feed the rods to the Rod Input Bus, let one cascade cycle commit, and watch the BURNUP line jump by the number of live pillars times nine instead of by the number of live pillars.'
+                ''
+                '[note]The roll-up under the four lines reads {8}Milestones 0/28{r} then a live output term then {8}112 progression points earned{r}. Twenty-eight tiers pay 112 points in total, triangularly - 1+2+3 and so on, so tier 7 on one line is worth 28 by itself. The Upgrade Tree costs exactly 112.[/note]'
+            ) -join "`n")
+    }
+
+    @{ Key = 'progtree'; Name = '{6}{l}The Upgrade Tree'; X = 96; Y = 268; Size = 32
+        Icon = $CASING_NAQALLOY; Task = 'checkbox'; Prereqs = @('progcampaign')
+        Reward = @((BTSItem 'turbineRotor' 1), (BTSItem 'turbineRotor' 1))
+        Desc = (@(
+                '{6}{l}TWENTY-FIVE NODES, 112 POINTS, AND YOU CAN CHANGE YOUR MIND{r}'
+                'The milestone lines pay progression points. This is the only thing that spends them.'
+                ''
+                '{e}{l}WHERE IT IS{r}'
+                'Open the {b}main station controller{r} - the Nuclear Plant Foundation itself, not a control block - and look at the bottom right of its GUI. Left of the three small number fields there is a small {b}chart button{r}. Click it and the tree opens on its own panel, centred on the screen over the GUI; click it again, or its X, to close. Hovering it says {8}Upgrade Tree{r}.'
+                '{8}The number fields have not moved. Build Tier is still the narrow one, then RPM Limit, then control rods on the far right.{r}'
+                ''
+                '{e}{l}THE SHAPE OF IT{r}'
+                'One free root - {b}Unit One Commissioning{r}, 0 points - and four branches hanging off it, {6}one per milestone line{r}, six nodes deep:'
+                ''
+                '  {b}UPTIME{r} branch        water, steam buffer, baseload output'
+                '  {b}BURNUP{r} branch        rod seals, recladding, deeper burns, more rods withdrawn'
+                '  {b}REPROCESSING{r} branch  solvent recovery, an extra centrifuge stage, module automation'
+                '  {b}TURBINE{r} branch       rotor balancing, bearings, nozzles, overspeed certification'
+                ''
+                'A node needs the node above it on the same branch, and {6}a node at depth N on a branch needs THAT branch''s milestone line at tier N{r}. One rule, no table: the branch that rewards your turbine is the branch the TURBINE line opens.'
+                ''
+                'The four deepest nodes also each need a depth-4 node from the NEXT branch round, so the end of the tree forces breadth. You cannot rush one branch to the bottom and ignore the other three.'
+                ''
+                '{e}{l}BUYING AND REFUNDING{r}'
+                '{b}Left-click{r} a node to buy it. {b}Right-click{r} to refund it. The button''s own tooltip says so: {8}Left-click a node to buy it, right-click to refund. Refunds are free, unlimited, and refused only when another node you hold hangs off it.{r}'
+                ''
+                '{a}Refunds cost nothing and there is no limit on them.{r} Every point goes back the moment you hand a node back, so the tree is somewhere to experiment rather than a decision you regret for the rest of the campaign. The one refusal is the obvious one: you cannot refund a node that something you still hold is hanging off. Refund the far end of the branch first.'
+                ''
+                'Hover any node for its full story - title, effect, cost, what it needs, which milestone tier opens it, and {6}exactly which one requirement is currently failing{r}. There is no second window to open.'
+                ''
+                '{e}{l}WHAT THE NODES ACTUALLY DO{r}'
+                'A node moves one of twelve numbers, and only those twelve: plant output, the control-rod cap, feedwater condensate stages, the steam buffer, cycle RPM gain, the turbine redline, rotor life, Derrick and Annex cycle speed, Annex batch size, the Derrick''s tantalum interval, heat rejection, and the decay-heat window. Every one of them starts at a value that does nothing, and every node only ever moves it in your favour.'
+                ''
+                'Bought in full the tree is worth {2}x1.450{r} on plant output on top of the milestone term, {2}+6{r} on the control-rod cap, {2}x1.30{r} on the redline with {2}x1.40{r} on the cycle gain to reach it, {2}x1.75{r} on rotor life and {2}x1.50{r} on both process modules.'
+                ''
+                '{6}The tree pays for itself in the right order.{r} The rod nodes push the control-rod cap past 24/24, which raises steam - and therefore feedwater. The same tree''s condensate nodes cut that feedwater draw by two more halvings. The water branch pays for the fuel branch.'
+                ''
+                '{e}{l}DO THIS{r}'
+                '{b}1.{r} Earn a milestone tier on any line. That is 1 point.'
+                '{b}2.{r} Open the tree and buy {b}Unit One Commissioning{r}. It is free and it has no effect - it is the certificate that opens everything else.'
+                '{b}3.{r} Buy the depth-1 node on whichever branch you just opened.'
+                ''
+                '{a}{l}DONE WHEN{r}'
+                'You tick it, once the tree is open in front of you.'
+                ''
+                '{8}A TICK BOX on purpose: nodes are bought with points, not with items, and no quest can read what you have bought.{r}'
+                ''
+                '[note]The panel roll-up reads {8}Upgrades 0/25{r}, then {8}0/112 points committed{r}, then how many you have {8}available{r}. Under it, {8}Tree effects: none - nothing purchased, the plant runs stock{r} until you buy something - after which it lists exactly which of the twelve numbers you have moved, and by how much. The controller GUI, both control blocks, the scanner and the tree panel all print that from the same code, so they cannot disagree.[/note]'
+                ''
+                '[warn]The tree is bought with points the four milestone lines paid out, and the whole tree costs exactly what a full sweep of all four lines pays: 112. Nothing is wasted and nothing falls short - but you will be choosing between branches for a long time before you can afford all of them.[/warn]'
+            ) -join "`n")
+    }
 )
 
 # ---------------------------------------------------------------- generation
@@ -1205,7 +1385,9 @@ WriteJson (Join-Path $out "QuestLines\$lineDir\QuestLine.json") ([ordered]@{
                             ''
                             'One controller, one projection, and every inlet cut into the building it feeds. The top two rows are a {b}ten-step beginner path{r}: craft the controller, break ground, project the plant, plumb the points of use, load the rods, first steam, seat the rotors, wire the clock, first EU, read the panel.'
                             ''
-                            'The third row is the deep end - laser output, spin doctrine, the propellant and coolant ladders, and the safety sheet. The two fluid ladders open at step 7, one step before the clock, because a chamber with no propellant and no coolant refuses every cycle and the plant never spins. The bottom row is bills of materials; those do not count toward completion.'
+                            'The third row is the deep end - laser output, spin doctrine, the propellant and coolant ladders, and the safety sheet. The two fluid ladders open at step 7, one step before the clock, because a chamber with no propellant and no coolant refuses every cycle and the plant never spins. The two middle rows are bills of materials; those do not count toward completion.'
+                            ''
+                            '{6}{l}The bottom row is THE CAMPAIGN{r} - and it is where the ten-step path leads. Finishing the build is the beginning, not the end: four milestone lines climb just by running the plant, and the points they pay buy a twenty-five node upgrade tree on the main station controller.'
                         ) -join "`n"))
                 'icon:10'      = $ICON_CTRL
                 'name:8'       = (Fmt '{6}{l}Beyond the Stars')

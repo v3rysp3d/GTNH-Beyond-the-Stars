@@ -1,0 +1,82 @@
+{
+    "preRequisites:9":  {
+                            "0:10":  {
+                                         "questIDHigh:4":  190,
+                                         "questIDLow:4":  48026
+                                     }
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  1,
+                                                    "desc:8":  "§6§lWHAT EACH LINE COUNTS, AND WHAT IT COSTS§r\nTiers are a plain table, not a curve. A line is at tier N when its counter has passed the Nth number in its column - no rounding, no logarithm, nothing to reverse-engineer.\n\n§e§lTHE THRESHOLDS§r\n  §8T   UPTIME      BURNUP    REPROC    TURBINE§r\n  §b1§r      72,000     2,000       250      1,800\n  §b2§r     144,000     5,000       700      5,000\n  §b3§r     288,000    13,000     1,900     15,000\n  §b4§r     576,000    34,000     5,200     45,000\n  §b5§r   1,152,000    88,000    14,000    135,000\n  §b6§r   2,304,000   230,000    38,000    400,000\n  §b7§r   4,608,000   600,000   100,000  1,200,000\n\n§e§lHOW EACH ONE IS FED - AND HOW IT CANNOT BE CHEATED§r\n§bUPTIME§r counts only ticks on which the plant actually put EU on the grid. An idle plant sitting in a loaded chunk earns nothing, and no amount of engineering makes it count faster: 72,000 ticks is one hour, every hour. It is the shallowest ladder on purpose - the line that just wants you to keep the lights on.\n§bBURNUP§r scores one segment per live pillar per cascade cycle, §6weighted by rod grade§r. 201 uranium pillars score 201. The same 201 pillars on Naquadah-Bonded rods score §b1,809§r. A bus-fallback slice runs at half output and scores at half rate. This is the line that says §8your fuel chain is not finished§r - and it is why this quest asks for the top rod.\n§bREPROCESSING§r scores on the DEPOSIT, never on the tick: one per Extraction Derrick load, one per Enrichment Annex batch. A load parked waiting on a full bus scores once, when it lands. It is the only line that needs a BUILDING, so its rewards go straight back into those two modules - and the only line that speeds ITSELF up.\n§bTURBINE§r needs the steam slug §6AND§r all eight injectors landed inside their window. A fast clock with no fuel scores nothing - no slug, no credit. Seven of eight timed scores nothing at all. The chain refills one slug every 20 ticks, so §63,600 perfect cycles an hour is the ceiling and nothing raises it§r - the buffer unlocks raise the burst, never the fill rate. Its ladder is sized against exactly that number: tier 7 is about 333 hours of cycling, which seats it between REPROCESSING (~208 h) and BURNUP (~497 h).\n\n§e§lTIERS 1-4 - THE MULTIPLIER§r\n  §8T     UPTIME   BURNUP   REPROC  TURBINE§r\n  §b1§r     x1.020   x1.030   x1.020   x1.025\n  §b2§r     x1.050   x1.070   x1.045   x1.050\n  §b3§r     x1.090   x1.120   x1.070   x1.085\n  §b4§r     x1.150   x1.200   x1.100   x1.120\nAll four multiply together into ONE term. At tier 4 on every line that is §2x1.700§r, and step 3 of the MATH panel prints it as §8x milestones x1.700§r in the middle of the derivation it is multiplying. Tiers 5, 6 and 7 hold the tier-4 value - the ladder stops paying multiplier at 4 and starts paying unlocks.\n\n§e§lTIERS 5-7 - THE UNLOCKS§r\n§bUPTIME§r\n  §25§r §8CONDENSATE RECOVERY I - feedwater draw halved again§r\n  §26§r §8STEAM ACCUMULATOR - the chain holds 1.6x the slugs§r\n  §27§r §8CONDENSATE RECOVERY II - feedwater draw quartered again§r\n§bBURNUP§r\n  §25§r §8CONTROL ROD WITHDRAWAL I - throttle cap 26/24§r\n  §26§r §8CONTROL ROD WITHDRAWAL II - throttle cap 28/24§r\n  §27§r §8CONTROL ROD WITHDRAWAL III - throttle cap 30/24§r\n§bREPROCESSING§r\n  §25§r §8DEEP CUT - Derrick tantalum every 3rd load§r\n  §26§r §8PROCESS INTENSIFICATION - Derrick and Annex cycles -20%§r\n  §27§r §8YIELD UPLIFT - Annex batch 24 pellets§r\n§bTURBINE§r\n  §25§r §8OVERSPEED TRIM I - redline MAY BE SET to 13,500 (RPM LIMIT field); gain follows it§r\n  §26§r §8OVERSPEED TRIM II - redline MAY BE SET to 15,000 (RPM LIMIT field); gain follows it§r\n  §27§r §8BLADE METALLURGY - rotor wear rolled half as often§r\n\n§6The redline and the cycle gain always move TOGETHER.§r RPM settles where the gain per cycle balances the 0.5%/tick decay - about 11,993 on a Lv 6 plant, which is why a stock plant parks itself on the 12,000 redline. A redline raised on its own would be a ceiling you could never reach, so OVERSPEED TRIM raises both.\n\n§6And OVERSPEED TRIM is YOURS TO SWITCH ON.§r The tier raises the CEILING; it never moves the fan by itself. Chamber coolant draw goes with the SQUARE of RPM, so a chamber plumbed for exactly 12,000 would start refusing cycles the moment a tier pushed it to 13,500. Type the redline you want into the §bRPM LIMIT§r field beside the rods field - it defaults to 12,000 and clamps to whatever you have actually unlocked, exactly like the rods cap. Every panel prints the redline in use and names the headroom you have not claimed.\n\n§e§lDO THIS§r\nAssemble one §bNaquadah-Bonded Fuel Rod§r - the top of the cascade ladder, x9, the rod that turns BURNUP from a twenty-day line into a manageable one. It is a ZPM assembler job: Uranium rod + 3x enriched naquadah dust + U-235 dust + iridium plate + molten naquadah, programmed circuit 7.\n\n§a§lDONE WHEN§r\nA Naquadah-Bonded Fuel Rod is in your inventory.\n§8This quest only LOOKS at what you are carrying, and it takes nothing. Hold the whole set at once, CLAIM it, and only then break the casings and set the machines into the wall. Already installed them? Wrench them back out for a moment - the check is on your inventory, not on the building.§r\n\n§e§lCHECK YOUR WORK§r\nFeed the rods to the Rod Input Bus, let one cascade cycle commit, and watch the BURNUP line jump by the number of live pillars times nine instead of by the number of live pillars.\n\n[note]The roll-up under the four lines reads §8Milestones 0/28§r then a live output term then §8112 progression points earned§r. Twenty-eight tiers pay 112 points in total, triangularly - 1+2+3 and so on, so tier 7 on one line is worth 28 by itself. The Upgrade Tree costs exactly 112.[/note]",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  0,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "beyondthestars:fuelRodNaqBonded"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "§6§lThe Four Lines",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48027,
+    "rewards:9":  {
+                      "0:10":  {
+                                   "ignoreDisabled:1":  0,
+                                   "index:3":  0,
+                                   "rewardID:8":  "bq_standard:item",
+                                   "rewards:9":  {
+                                                     "0:10":  {
+                                                                  "Count:3":  2,
+                                                                  "Damage:2":  0,
+                                                                  "OreDict:8":  "",
+                                                                  "id:8":  "beyondthestars:fuelRodNaqBonded"
+                                                              }
+                                                 }
+                               }
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "autoConsume:1":  0,
+                                 "consume:1":  0,
+                                 "groupDetect:1":  0,
+                                 "ignoreNBT:1":  1,
+                                 "index:3":  0,
+                                 "partialMatch:1":  1,
+                                 "requireOnlyOneItem:1":  0,
+                                 "requiredItems:9":  {
+                                                         "0:10":  {
+                                                                      "Count:3":  1,
+                                                                      "Damage:2":  0,
+                                                                      "OreDict:8":  "",
+                                                                      "id:8":  "beyondthestars:fuelRodNaqBonded"
+                                                                  }
+                                                     },
+                                 "taskID:8":  "bq_standard:retrieval"
+                             }
+                }
+}

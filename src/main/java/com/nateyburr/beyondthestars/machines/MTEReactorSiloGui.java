@@ -16,6 +16,9 @@ import com.cleanroommc.modularui.value.sync.StringSyncValue;
 import com.cleanroommc.modularui.widgets.ListWidget;
 import com.cleanroommc.modularui.widgets.layout.Flow;
 import com.cleanroommc.modularui.widgets.textfield.TextFieldWidget;
+import com.nateyburr.beyondthestars.progression.BTSMilestone;
+import com.nateyburr.beyondthestars.progression.BTSProgression;
+import com.nateyburr.beyondthestars.progression.BTSUpgrade;
 
 import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
 
@@ -146,12 +149,54 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         syncManager.syncValue("galleryStages", new IntSyncValue(multiblock::getGalleryStages));
         syncManager.syncValue("rotorFactor", new IntSyncValue(multiblock::getAvgRotorFactorMilli));
         syncManager.syncValue("rotorWear", new StringSyncValue(multiblock::getRotorWear));
+        // D-23 PROGRESSION / AXIS 1: the four milestone counters are written SERVER-side (in
+        // onRunningTick, the campaign commit, the two module deposits and the cycle scorer), so
+        // they have to come across as sync values or the client would read four zeros and paint
+        // a finished campaign as a fresh one. Only the COUNTERS are synced: tier, multiplier,
+        // next threshold, unlocks and points are pure functions of them, and the client runs
+        // the same static code the server does (BTSMilestone / BTSProgression) - so no readout
+        // can drift, and thirty separate handles are not needed for what four longs determine.
+        syncManager.syncValue("progUptime", new LongSyncValue(multiblock::getProgUptime));
+        syncManager.syncValue("progBurnup", new LongSyncValue(multiblock::getProgBurnup));
+        syncManager.syncValue("progReproc", new LongSyncValue(multiblock::getProgReproc));
+        syncManager.syncValue("progPerfect", new LongSyncValue(multiblock::getProgPerfect));
+        // D-24 UPGRADE TREE / AXIS 1: ONE sync value for the whole tree - the purchased-node
+        // bitmask. Points earned, points spent, affordability, prerequisites, gates and all
+        // twelve effect channels are PURE FUNCTIONS of this long plus the four counters above,
+        // and the client runs the identical static bodies (BTSUpgrade / BTSProgression) the
+        // server's tick runs. Twenty-five nodes therefore cost one handle, not twenty-five, and
+        // no derived readout can drift from the plant.
+        syncManager.syncValue("treeNodes", new LongSyncValue(multiblock::getUpgradeNodes));
+        // D-24 PURCHASE, SERVER-AUTHORITATIVE. registerServerSyncedAction runs the body ONLY on
+        // the server (executeClient = false), so the click sends a node INDEX and the server
+        // re-asks every rule against its own record before a single bit moves. The client is
+        // never trusted with affordability - its tooltip's verdict is decoration, and the
+        // authority is MTEReactorCoreMk1.buyUpgrade / refundUpgrade.
+        //
+        // Registered on the MAIN panel's sync manager, not the tree sub-panel's: this manager
+        // provably exists on both sides for the whole life of the GUI, which the sub-panel's
+        // only does while it happens to be open.
+        syncManager.registerServerSyncedAction("btsTreeBuy", packet -> {
+            final BTSUpgrade node = BTSUpgrade.byIndex(packet.readByte());
+            if (node != null) multiblock.buyUpgrade(node);
+        });
+        syncManager.registerServerSyncedAction("btsTreeRefund", packet -> {
+            final BTSUpgrade node = BTSUpgrade.byIndex(packet.readByte());
+            if (node != null) multiblock.refundUpgrade(node);
+        });
         syncManager.syncValue(
             "throttleSetting",
             new IntSyncValue(multiblock::getThrottleSetting, multiblock::setThrottleSetting).allowC2S());
         syncManager.syncValue(
             "buildTierSetting",
             new IntSyncValue(multiblock::getBuildTierSetting, multiblock::setBuildTierSetting).allowC2S());
+        // F4: the authorised overspeed. A WRITEABLE handle, so it is also the value every
+        // redline readout on this panel derives from - the client takes the unlocked ceiling
+        // from the synced counters and node mask and runs the same MTEReactorCoreMk1
+        // .operatingRedline body the server runs (AXIS 1).
+        syncManager.syncValue(
+            "rpmLimitSetting",
+            new IntSyncValue(multiblock::getRpmLimitSetting, multiblock::setRpmLimitSetting).allowC2S());
     }
 
     /** One terminal line. */
@@ -226,6 +271,7 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         final BooleanSyncValue coolantReady = syncManager.findSyncHandler("coolantReady", BooleanSyncValue.class);
         final BooleanSyncValue injectorsDry = syncManager.findSyncHandler("injectorsDry", BooleanSyncValue.class);
         final IntSyncValue rpm = syncManager.findSyncHandler("rpm", IntSyncValue.class);
+        final IntSyncValue rpmLimit = syncManager.findSyncHandler("rpmLimitSetting", IntSyncValue.class);
         final IntSyncValue cyclesPerMinute = syncManager.findSyncHandler("cyclesPerMinute", IntSyncValue.class);
         final IntSyncValue bufferSlugs = syncManager.findSyncHandler("bufferSlugs", IntSyncValue.class);
         final BooleanSyncValue benchClock = syncManager.findSyncHandler("benchClock", BooleanSyncValue.class);
@@ -247,6 +293,15 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         final IntSyncValue energyHatches = syncManager.findSyncHandler("energyHatches", IntSyncValue.class);
         final BooleanSyncValue euClamped = syncManager.findSyncHandler("euClamped", BooleanSyncValue.class);
         final LongSyncValue steamOutput = syncManager.findSyncHandler("steamOutput", LongSyncValue.class);
+        final LongSyncValue progUptime = syncManager.findSyncHandler("progUptime", LongSyncValue.class);
+        final LongSyncValue progBurnup = syncManager.findSyncHandler("progBurnup", LongSyncValue.class);
+        final LongSyncValue progReproc = syncManager.findSyncHandler("progReproc", LongSyncValue.class);
+        final LongSyncValue progPerfect = syncManager.findSyncHandler("progPerfect", LongSyncValue.class);
+        final LongSyncValue treeNodes = syncManager.findSyncHandler("treeNodes", LongSyncValue.class);
+        // The four counters in BTSMilestone ordinal order - the one shape every static
+        // derivation in BTSProgression takes. Re-read on every frame, like every other row.
+        final Supplier<long[]> progress = () -> new long[] { progUptime.getLongValue(), progBurnup.getLongValue(),
+            progReproc.getLongValue(), progPerfect.getLongValue() };
 
         return super.createTerminalTextWidget(syncManager, parent)
             // --- REACTOR
@@ -349,6 +404,12 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                 row(
                     () -> MTEReactorCoreMk1.rpmLine(
                         rpm.getIntValue(),
+                        MTEReactorCoreMk1.operatingRedline(
+                            BTSProgression
+                                .redlineRpm(progress.get(), treeNodes.getLongValue(), MTEReactorCoreMk1.RPM_REDLINE),
+                            rpmLimit.getIntValue()),
+                        BTSProgression
+                            .redlineRpm(progress.get(), treeNodes.getLongValue(), MTEReactorCoreMk1.RPM_REDLINE),
                         cyclesPerMinute.getIntValue(),
                         bufferSlugs.getIntValue(),
                         benchClock.getBoolValue()),
@@ -441,8 +502,12 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                     siloBuilt::getBoolValue))
             .child(
                 row(
-                    () -> MTEReactorCoreMk1
-                        .mathTurbineLine(rpm.getIntValue(), rotorFactor.getIntValue(), liveDemand.getLongValue()),
+                    () -> MTEReactorCoreMk1.mathTurbineLine(
+                        rpm.getIntValue(),
+                        rotorFactor.getIntValue(),
+                        BTSProgression.outputMilli(progress.get()),
+                        BTSProgression.upgradeMilli(treeNodes.getLongValue()),
+                        liveDemand.getLongValue()),
                     () -> siloBuilt.getBoolValue() && galleryActive.getBoolValue()))
             .child(
                 row(
@@ -472,9 +537,17 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                             fuelMult.getIntValue(),
                             fuelBase.getLongValue()),
                         throttleN.getIntValue(),
+                        // F7: the live cap, derived CLIENT-side from the same two synced values
+                        // and the same static body the server's maxThrottle() calls (AXIS 1) -
+                        // no thirtieth sync handle for a number four longs already determine.
+                        BTSProgression.maxThrottle(progress.get(), treeNodes.getLongValue(), 24),
                         spineSpeed.getIntValue(),
                         spineEff.getIntValue(),
                         rpm.getIntValue(),
+                        MTEReactorCoreMk1.operatingRedline(
+                            BTSProgression
+                                .redlineRpm(progress.get(), treeNodes.getLongValue(), MTEReactorCoreMk1.RPM_REDLINE),
+                            rpmLimit.getIntValue()),
                         injectors.getIntValue(),
                         injectorsDry.getBoolValue(),
                         coolantReady.getBoolValue(),
@@ -483,6 +556,24 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                         euCeiling.getLongValue(),
                         gridCeiling.getLongValue()),
                     siloBuilt::getBoolValue))
+            // --- D-23 MILESTONES: the campaign record, in the same order and off the same
+            // static formatters statusReport() uses, so the GUI, both control blocks and the
+            // scanner cannot print three different tiers for the same line. UNGATED on the
+            // silo - REPROCESSING accumulates on a bare platform's Derrick, and this is the
+            // only panel that exists while a player is still building the silo.
+            .child(row(() -> MTEReactorCoreMk1.header("MILESTONES")))
+            .child(row(() -> BTSMilestone.milestoneLine(BTSMilestone.UPTIME, progUptime.getLongValue())))
+            .child(row(() -> BTSMilestone.milestoneLine(BTSMilestone.BURNUP, progBurnup.getLongValue())))
+            .child(row(() -> BTSMilestone.milestoneLine(BTSMilestone.REPROCESSING, progReproc.getLongValue())))
+            .child(row(() -> BTSMilestone.milestoneLine(BTSMilestone.TURBINE, progPerfect.getLongValue())))
+            .child(row(() -> BTSMilestone.milestoneSummaryLine(progress.get())))
+            .child(row(() -> BTSMilestone.milestoneUnlockLine(progress.get())))
+            // --- D-24 UPGRADES: what those points have been spent on, and what the purchases
+            // are moving. Off the same two static formatters statusReport() calls, so the GUI,
+            // both control blocks and the scanner print one tree. The graph itself lives on the
+            // side panel behind the button in the gap row.
+            .child(row(() -> BTSUpgrade.treeSummaryLine(treeNodes.getLongValue(), progress.get())))
+            .child(row(() -> BTSUpgrade.treeEffectLine(treeNodes.getLongValue())))
             // --- test bench flags, only while one of them is on
             .child(
                 row(
@@ -491,8 +582,8 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
     }
 
     /**
-     * The two editable fields, in the order they are DRAWN: Build Tier on the left, the
-     * control-rod throttle to its right.
+     * The three editable fields, in the order they are DRAWN: Build Tier on the left, then the
+     * RPM LIMIT, then the control-rod throttle on the right.
      * <p>
      * GT's gap row is {@code Flow.row().mainAxisAlignment(END)...reverseLayout(true)}, so the
      * flow lays its children out through a {@code ReversedList} - the LAST child added is the
@@ -503,18 +594,49 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
     @Override
     protected Flow createRightPanelGapRow(ModularPanel parent, PanelSyncManager syncManager) {
         return super.createRightPanelGapRow(parent, syncManager).child(
+            // D-23/D-24: the field's range is the full 1..36 because a MUI2 text field's bounds
+            // are fixed when the widget is built, and the CLIENT does not get to decide what
+            // this plant may do. setThrottleSetting clamps to the unlocked cap server-side and
+            // the field re-syncs, so a plant with neither the BURNUP unlocks nor the tree's rod
+            // nodes types 36 and lands on 24. That is the safe direction: a field offering a
+            // value the server refuses, never a field refusing one the server would accept.
+            // 36 is the absolute ceiling - 24 design + 6 from BURNUP T5/6/7 + 6 from the tree's
+            // Rod Seals, Deep Burn Profile and Overpower Licence.
             new TextFieldWidget().formatAsInteger(true)
                 .defaultNumber(24)
-                .numbersInt(1, 24)
+                .numbersInt(1, 36)
                 .syncHandler("throttleSetting")
                 .width(30)
-                .tooltip(t -> t.addLine(translateToLocal("beyondthestars.gui.throttle.tooltip"))))
+                .tooltip(
+                    t -> t.addLine(translateToLocal("beyondthestars.gui.throttle.tooltip"))
+                        .addLine(translateToLocal("beyondthestars.gui.throttle.milestone"))))
+            // F4: the RPM LIMIT, sitting next to the rods field because the two are the same
+            // kind of control - an operating limit the player sets, held below a ceiling the
+            // campaign raises. Range fixed at 12,000..19,500 for the same reason the rods field
+            // is 1..36: a MUI2 field's bounds are decided when the widget is built and the
+            // CLIENT does not get to decide what this plant may do. setRpmLimitSetting clamps
+            // to the unlocked ceiling server-side and the field re-syncs.
+            .child(
+                new TextFieldWidget().formatAsInteger(true)
+                    .defaultNumber(MTEReactorCoreMk1.RPM_REDLINE)
+                    .numbersInt(MTEReactorCoreMk1.RPM_REDLINE, MTEReactorCoreMk1.RPM_LIMIT_MAX)
+                    .syncHandler("rpmLimitSetting")
+                    .width(36)
+                    .tooltip(
+                        t -> t.addLine(translateToLocal("beyondthestars.gui.rpmlimit.tooltip"))
+                            .addLine(translateToLocal("beyondthestars.gui.rpmlimit.milestone"))))
             .child(
                 new TextFieldWidget().formatAsInteger(true)
                     .defaultNumber(1)
                     .numbersInt(1, 5)
                     .syncHandler("buildTierSetting")
                     .width(20)
-                    .tooltip(t -> t.addLine(translateToLocal("beyondthestars.gui.buildtier.tooltip"))));
+                    .tooltip(t -> t.addLine(translateToLocal("beyondthestars.gui.buildtier.tooltip"))))
+            // D-24: the upgrade tree opens on a panel of its own, so the controller's own layout
+            // is untouched - this row is reverseLayout(true), so the last child added is the
+            // LEFTMOST, and the three fields keep their places against the right edge. F8: that
+            // panel is centred on the SCREEN rather than hung off this one's right edge, which
+            // is what put two thirds of it off a 480x270 viewport at GUI Scale 4.
+            .child(BTSUpgradeTreePanel.openButton(syncManager));
     }
 }

@@ -171,7 +171,7 @@
   <h1>UNIT ONE &mdash; Operations Manual</h1>
   <div class="mast-sub">The 50&times;50 nuclear plant: rod cascade &rarr; Spine &rarr; Spiral &rarr; Turbine Generator. One controller, one projection, one very large number.</div>
   <div class="mast-meta">
-    <span><b>Addon:</b> beyondthestars 0.16.0</span>
+    <span><b>Addon:</b> beyondthestars 0.22.0</span>
     <span><b>Pack:</b> GTNH 2.9.0-beta-1 (MC 1.7.10)</span>
     <span><b>Deps:</b> GT5U 5.09.52.594 &middot; StructureLib 1.4.38</span>
     <span><b>MTE range:</b> 28100+</span>
@@ -197,7 +197,15 @@
     </li>
     <li><a href="#fuel"><span class="num">4</span>Fuel &amp; Ladders</a></li>
     <li><a href="#safety"><span class="num">5</span>Safety Systems</a></li>
-    <li><a href="#reference"><span class="num">6</span>Reference Tables</a></li>
+    <li><a href="#progression"><span class="num">6</span>Progression</a>
+      <ol>
+        <li class="l2"><a href="#milestones">6.1 The four milestone lines</a></li>
+        <li class="l2"><a href="#unlocks">6.2 Multipliers and unlocks</a></li>
+        <li class="l2"><a href="#tree">6.3 The upgrade tree</a></li>
+        <li class="l2"><a href="#progpersist">6.4 What persists, and where</a></li>
+      </ol>
+    </li>
+    <li><a href="#reference"><span class="num">7</span>Reference Tables</a></li>
   </ol>
 </nav>
 
@@ -288,6 +296,8 @@
   <ul>
     <li><strong>Control-rod throttle 1&ndash;24</strong> &mdash; campaign power = N/24; a programmed circuit in the controller slot overrides it.</li>
     <li><strong>Build Tier 1&ndash;5</strong> &mdash; the Steam Generator tier the hologram/projector builds; a trigger stack of 2&ndash;5 overrides it.</li>
+    <li><strong>RPM Limit 12,000&ndash;19,500</strong> &mdash; the turbine redline you authorise. 12,000 is the design stop and the default; the TURBINE milestone line and two tree nodes raise the <em>ceiling</em>, never the fan, so a plant that never touches this box behaves exactly as it did before that line existed. Coolant draw goes with the SQUARE of RPM.</li>
+    <li><strong>Upgrade Tree</strong> &mdash; an 18&times;18 chart button left of the three fields; opens the 25-node graph on its own screen-centred panel.</li>
     <li>Status lines for the silo, cascade, Spine, Spiral, Rotor Assembly, heat, decay obligation, the Cooling Towers and the four plant modules &mdash; the last two on lines that are drawn in <em>every</em> state, including on a bare platform, because that is when those buildings go up.</li>
   </ul>
 
@@ -644,9 +654,188 @@ coolant  = ceil((200 &times; (RPM/1000)&sup2; + |S|&sup2;&times;5/20) / Q) per t
   <div class="warn"><strong>Dynamo discipline:</strong> the Turbine Generator clamps its EU to the summed dynamo capacity before injecting &mdash; GregTech detonates a multiblock whose dynamos are overfed. Size your dynamo hatches for the output you are chasing.</div>
 </section>
 
-<!-- ============================================================ 6 REFERENCE -->
+<!-- ============================================================ 6 PROGRESSION -->
+<section id="progression">
+  <h2><span class="num">6</span>Progression <span class="badge b-tc">0.22.0</span></h2>
+  <p>Everything up to here is <em>construction</em>. From the moment the plant generates, it starts earning &mdash; four <strong>milestone lines</strong> climb just by running, and the points they pay buy a <strong>25-node upgrade tree</strong> on the main station controller. Design of record: <span class="mono">addon/docs/progression.md</span>.</p>
+  <div class="note"><b>Nothing here can take anything away.</b> Every unlock is a <em>new maximum</em> and every tree channel starts at a value that does nothing, so a plant sitting at zero progress derives a bit-identical EU figure to the one it derived in 0.21.0. There is no "was-already-X" grandfathering flag anywhere, because none was needed. <b>Progress starts at zero</b> on every plant the first time 0.22.0 loads &mdash; there is no back-fill.</div>
+
+  <!-- ------------------------------------------------ 6.1 MILESTONES -->
+  <h3 id="milestones"><span class="num">6.1</span>The four milestone lines</h3>
+  <p>Each line watches one number the plant already knew about itself, and each has seven tiers. A line is at tier <span class="mono">N</span> once its counter has passed the <span class="mono">N</span>th threshold &mdash; a plain table, no curve to reverse-engineer. No new tick loop was added: every counter rides a loop that already ran, and none of them is written by the structure check, which fires on every neighbour update.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Line</th><th>Counts</th><th>Scored on</th><th>What cannot farm it</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong class="accent">UPTIME</strong></td><td>generating ticks</td>
+        <td>every tick the plant actually put EU on the grid</td>
+        <td>An idle plant in a loaded chunk earns nothing, and no engineering makes it count faster &mdash; 72,000 ticks is one hour, every hour.</td>
+      </tr>
+      <tr>
+        <td><strong class="accent">BURNUP</strong></td><td>fuel segments, weighted by rod grade</td>
+        <td>each <em>committed</em> cascade cycle: <span class="mono">&Sigma; live pillars &times; ROD_MULT</span></td>
+        <td>The peek that runs on every failed recipe check scores nothing. A bus-fallback slice runs at half output and scores at half rate.</td>
+      </tr>
+      <tr>
+        <td><strong class="accent">REPROCESSING</strong></td><td>Derrick loads + Annex batches</td>
+        <td>the <em>deposit</em>, never the tick</td>
+        <td>A load parked waiting on a full bus scores once, when it lands &mdash; not once a tick while it waits.</td>
+      </tr>
+      <tr>
+        <td><strong class="accent">TURBINE</strong></td><td>perfectly timed cycles</td>
+        <td>a cycle that had its steam slug <em>and</em> all eight injectors landed</td>
+        <td>A fast clock with no fuel scores nothing (no slug, no credit). Seven of eight timed scores nothing at all.</td>
+      </tr>
+    </tbody>
+  </table></div>
+
+  <h4>Thresholds, and what they cost in real time</h4>
+  <p>Times are a maxed Build Tier 5 plant: 201 naquadah-bonded pillars (1,809 burnup a cycle, one cycle per 90 minutes at the default <span class="mono">genICampaignMinutes = 720</span>), both process modules running clean, and the turbine cycling at its sustainable ceiling.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Tier</th><th>UPTIME</th><th>&asymp;</th><th>BURNUP</th><th>&asymp;</th><th>REPROCESSING</th><th>&asymp;</th><th>TURBINE</th><th>&asymp;</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">1</td><td class="mono">72,000</td><td class="dim">1.0 h</td><td class="mono">2,000</td><td class="dim">1.7 h</td><td class="mono">250</td><td class="dim">0.5 h</td><td class="mono">1,800</td><td class="dim">0.5 h</td></tr>
+      <tr><td class="mono">2</td><td class="mono">144,000</td><td class="dim">2.0 h</td><td class="mono">5,000</td><td class="dim">4.1 h</td><td class="mono">700</td><td class="dim">1.5 h</td><td class="mono">5,000</td><td class="dim">1.4 h</td></tr>
+      <tr><td class="mono">3</td><td class="mono">288,000</td><td class="dim">4.0 h</td><td class="mono">13,000</td><td class="dim">10.8 h</td><td class="mono">1,900</td><td class="dim">4.0 h</td><td class="mono">15,000</td><td class="dim">4.2 h</td></tr>
+      <tr><td class="mono">4</td><td class="mono">576,000</td><td class="dim">8.0 h</td><td class="mono">34,000</td><td class="dim">28 h</td><td class="mono">5,200</td><td class="dim">10.8 h</td><td class="mono">45,000</td><td class="dim">12.5 h</td></tr>
+      <tr><td class="mono">5</td><td class="mono">1,152,000</td><td class="dim">16 h</td><td class="mono">88,000</td><td class="dim">3.0 d</td><td class="mono">14,000</td><td class="dim">1.2 d</td><td class="mono">135,000</td><td class="dim">37.5 h</td></tr>
+      <tr><td class="mono">6</td><td class="mono">2,304,000</td><td class="dim">32 h</td><td class="mono">230,000</td><td class="dim">8.0 d</td><td class="mono">38,000</td><td class="dim">3.3 d</td><td class="mono">400,000</td><td class="dim">4.6 d</td></tr>
+      <tr><td class="mono">7</td><td class="mono">4,608,000</td><td class="dim">2.7 d</td><td class="mono">600,000</td><td class="dim">20.7 d</td><td class="mono">100,000</td><td class="dim">8.7 d</td><td class="mono">1,200,000</td><td class="dim">13.9 d</td></tr>
+    </tbody>
+  </table></div>
+  <p class="dim">Ceiling rates: UPTIME 72,000/h &middot; BURNUP 1,206/h &middot; REPROCESSING 480/h (Derrick 360 + Annex 120) &middot; TURBINE <strong>3,600/h</strong>. That last one is the hard one: the chain refills one steam slug every <span class="mono">CYCLE_SLUG_TICKS = 20</span> ticks, so <strong>1&nbsp;Hz is the sustainable cycle rate</strong> and nothing raises it &mdash; the buffer unlocks raise the <em>burst</em>, never the fill rate. The 0.22.0 TURBINE ladder had been sized against a claimed 10,800/h, which made its tier 7 a 1,000-hour line and put the last 28 tree points behind it; 0.22.1 divides the whole column by three, so tier 7 is <strong>333&nbsp;h</strong> and the line paces between REPROCESSING and BURNUP. REPROCESSING is the only line that <em>accelerates itself</em>: its own tier 6 and the tree's module-speed channel take 480/h to 904/h.</p>
+  <div class="note">Tier 1 lands on all four lines inside about two hours &mdash; the drip starts immediately, which matters when progress starts at zero. Tier 4 on the three fast lines is roughly a day and a half. A full 28-tier sweep is measured in weeks, paced by BURNUP.</div>
+
+  <!-- ------------------------------------------------ 6.2 GRANTS -->
+  <h3 id="unlocks"><span class="num">6.2</span>Multipliers and unlocks</h3>
+  <h4>Tiers 1&ndash;4 &mdash; the multiplier</h4>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Tier</th><th>UPTIME</th><th>BURNUP</th><th>REPROCESSING</th><th>TURBINE</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">1</td><td class="mono">&times;1.020</td><td class="mono">&times;1.030</td><td class="mono">&times;1.020</td><td class="mono">&times;1.025</td></tr>
+      <tr><td class="mono">2</td><td class="mono">&times;1.050</td><td class="mono">&times;1.070</td><td class="mono">&times;1.045</td><td class="mono">&times;1.050</td></tr>
+      <tr><td class="mono">3</td><td class="mono">&times;1.090</td><td class="mono">&times;1.120</td><td class="mono">&times;1.070</td><td class="mono">&times;1.085</td></tr>
+      <tr><td class="mono">4</td><td class="mono">&times;1.150</td><td class="mono">&times;1.200</td><td class="mono">&times;1.100</td><td class="mono">&times;1.120</td></tr>
+    </tbody>
+  </table></div>
+  <p>All four multiply into one term &mdash; exactly <strong>&times;1.700</strong> at tier 4 across the board. Tiers 5&ndash;7 hold the tier-4 value: the ladder stops paying multiplier at 4 and starts paying unlocks. The term is not a hidden bonus. It enters the published derivation as its own labelled factor, and the MATH panel prints it the moment it is above &times;1.000:</p>
+  <div class="formula">EU/t = steam &times; RPM/500 &times; rotors &times; <span class="c">milestones</span> &times; <span class="c">upgrades</span>
+
+3) x RPM 12,000/500 (x24.00) x rotors x1.00 x milestones x1.700 x upgrades x1.450 = ... EU/t demand</div>
+  <p><strong>It multiplies the EU and deliberately not the steam.</strong> Steam L/t is what sets the feedwater draw, the waste-water output and the export line; a milestone that raised steam would raise the water demand of a plant that is already exactly supplied, and could starve one that ran fine yesterday.</p>
+
+  <h4>Tiers 5&ndash;7 &mdash; the unlocks</h4>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Line</th><th>Tier 5</th><th>Tier 6</th><th>Tier 7</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong class="accent">UPTIME</strong></td>
+        <td><kbd class="item">CONDENSATE RECOVERY I</kbd><br><span class="dim">feedwater draw halved again</span></td>
+        <td><kbd class="item">STEAM ACCUMULATOR</kbd><br><span class="dim">the chain holds 1.6&times; the slugs</span></td>
+        <td><kbd class="item">CONDENSATE RECOVERY II</kbd><br><span class="dim">feedwater draw quartered again</span></td>
+      </tr>
+      <tr>
+        <td><strong class="accent">BURNUP</strong></td>
+        <td><kbd class="item">CONTROL ROD WITHDRAWAL I</kbd><br><span class="dim">throttle cap 26/24</span></td>
+        <td><kbd class="item">CONTROL ROD WITHDRAWAL II</kbd><br><span class="dim">throttle cap 28/24</span></td>
+        <td><kbd class="item">CONTROL ROD WITHDRAWAL III</kbd><br><span class="dim">throttle cap 30/24</span></td>
+      </tr>
+      <tr>
+        <td><strong class="accent">REPROCESSING</strong></td>
+        <td><kbd class="item">DEEP CUT</kbd><br><span class="dim">Derrick tantalum every 3rd load</span></td>
+        <td><kbd class="item">PROCESS INTENSIFICATION</kbd><br><span class="dim">Derrick and Annex cycles &minus;20&nbsp;%</span></td>
+        <td><kbd class="item">YIELD UPLIFT</kbd><br><span class="dim">Annex batch 24 pellets</span></td>
+      </tr>
+      <tr>
+        <td><strong class="accent">TURBINE</strong></td>
+        <td><kbd class="item">OVERSPEED TRIM I</kbd><br><span class="dim">redline <em>may be set to</em> 13,500; gain follows</span></td>
+        <td><kbd class="item">OVERSPEED TRIM II</kbd><br><span class="dim">redline <em>may be set to</em> 15,000; gain follows</span></td>
+        <td><kbd class="item">BLADE METALLURGY</kbd><br><span class="dim">rotor wear rolled half as often</span></td>
+      </tr>
+    </tbody>
+  </table></div>
+  <p><strong>The redline and the cycle gain always move together.</strong> RPM settles where the gain per cycle balances the 0.5&nbsp;%/tick decay: a 20-tick cycle sheds 9.54&nbsp;% of standing RPM and gains <span class="mono">176 &times; P &times; timed/8</span>, so at P&nbsp;=&nbsp;6.5 and 8/8 that is 1,144 against 9.54&nbsp;%, settling at &asymp;11,993 &mdash; which is why a stock plant parks itself on the 12,000 redline. A redline raised alone would be a ceiling the plant could never touch.</p>
+  <div class="note"><b>OVERSPEED TRIM is opt-in.</b> The tier raises the <em>ceiling</em>; it never moves the fan on its own. Chamber coolant draw goes with the <strong>square</strong> of RPM, so a plant plumbed for exactly 12,000 would have seen its steady draw rise 26&nbsp;% at T5 and 56&nbsp;% at T6, and the TC-7 interlock would then have throttled a plant that ran fine the day before. Type the redline you want into the <strong>RPM LIMIT</strong> box beside the rods box &mdash; default 12,000, clamped to what you have actually unlocked, exactly like the rods cap. The per-cycle gain is held to the same figure you authorise, so a plant on Lv&nbsp;3 propellant (which settles at &asymp;9,227, under the redline) is not pushed to a higher equilibrium either. Every panel prints the redline in use and names the headroom you have not claimed.</div>
+  <div class="warn"><b>Build Tier 6/7 is deliberately not in this system.</b> Extending <span class="mono">MAX_TIER</span> means new silo layers, new column caps, and &mdash; because every attached building's offset derives from the silo edge &mdash; moving the Spine, Spiral, manifold and both Cooling Towers on the 50&times;50 pad. That cannot be verified without raising one in world, and un-forming a standing plant is the exact failure this release was built to avoid. The BURNUP ladder gives the same class of reward (+25&nbsp;% pillar output at 30/24) through three clamps.</div>
+
+  <!-- ------------------------------------------------ 6.3 THE TREE -->
+  <h3 id="tree"><span class="num">6.3</span>The upgrade tree</h3>
+  <p>Every tier also pays <strong>progression points</strong>, triangularly &mdash; <span class="mono">1+2+&hellip;+t</span>, so a maxed line is worth 28 by itself and a full 28-tier sweep pays <strong>112</strong>. Points are the tree's only currency, and <strong>the whole tree costs exactly 112</strong>: a maxed campaign buys all of it with nothing wasted and nothing short.</p>
+  <p>Open the <strong>main station controller</strong> &mdash; the <kbd class="item">Nuclear Plant Foundation</kbd> itself, not a control block &mdash; and click the small <strong>chart button</strong> at the bottom right of its GUI, to the left of the two number fields. The tree opens on a panel beside it.</p>
+  <ul>
+    <li><strong>One free root</strong> (<kbd class="item">Unit One Commissioning</kbd>, 0 points, no effect) and <strong>four branches</strong>, one per milestone line, six nodes deep. 25 nodes, 28 points a branch.</li>
+    <li><strong>Prerequisites are derived, not typed:</strong> the node one step shallower on the same branch, plus &mdash; at depth 6 &mdash; the depth-4 node of the <em>next branch round</em>. Those four cross-links make it a graph rather than four ladders, and force breadth at the end of the tree. 24 spine edges + 4 cross-links = 28 edges, and the connector lines the panel draws come straight off them, so the picture cannot show an edge the rules do not enforce.</li>
+    <li><strong>The gate is one sentence:</strong> a node at depth <span class="mono">N</span> on a branch needs <em>that branch's</em> milestone line at tier <span class="mono">N</span>. The branch that rewards your turbine is the branch the TURBINE line opens.</li>
+    <li><strong>Left-click buys, right-click refunds.</strong> Refunds are free, unlimited and reversible; the one refusal is a refund that would orphan a node you still hold. Hover any node for its title, effect, cost, prerequisites, gate and <em>which single requirement is currently failing</em> &mdash; there is no second window.</li>
+    <li><strong>Purchases are server-authoritative.</strong> The click carries a node index; the server re-asks ownership, prerequisites, gate and budget against its own record. The greying-out in the panel is decoration.</li>
+  </ul>
+  <p>A node carries a <strong>channel and a positive delta</strong>, never code &mdash; so the set of things the tree can possibly affect is these twelve numbers and nothing else, and the effect text the panel prints is generated from the channel and the delta, so a node cannot advertise one thing and do another.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Channel</th><th>Base (no-op)</th><th>Full tree</th><th>What it moves</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">OUTPUT</td><td class="mono">&times;1.000</td><td class="mono accent">&times;1.450</td><td>the EU/t derivation &mdash; its own printed factor, beside the milestone one</td></tr>
+      <tr><td class="mono">THROTTLE</td><td class="mono">+0</td><td class="mono accent">+6</td><td>control-rod cap, on top of BURNUP's</td></tr>
+      <tr><td class="mono">CONDENSATE</td><td class="mono">+0</td><td class="mono accent">+2</td><td>right-shifts on the feedwater draw</td></tr>
+      <tr><td class="mono">BUFFER</td><td class="mono">&times;1.000</td><td class="mono accent">&times;1.50</td><td>the standing steam buffer</td></tr>
+      <tr><td class="mono">RPM_GAIN</td><td class="mono">&times;1.000</td><td class="mono accent">&times;1.40</td><td>RPM gained per accepted cycle</td></tr>
+      <tr><td class="mono">REDLINE</td><td class="mono">&times;1.000</td><td class="mono accent">&times;1.30</td><td>the turbine redline</td></tr>
+      <tr><td class="mono">ROTOR_WEAR</td><td class="mono">&times;1.000</td><td class="mono accent">&times;1.75</td><td>the wear divisor &mdash; a bigger divisor is a rarer roll</td></tr>
+      <tr><td class="mono">MODULE_SPEED</td><td class="mono">&times;1.000</td><td class="mono accent">&times;1.50</td><td>Derrick and Annex cycle speed</td></tr>
+      <tr><td class="mono">ANNEX_BATCH</td><td class="mono">&times;1.000</td><td class="mono accent">&times;1.50</td><td>the Annex's batch size</td></tr>
+      <tr><td class="mono">TANTALUM</td><td class="mono">+0</td><td class="mono accent">+1</td><td>loads off the Derrick's tantalum interval</td></tr>
+      <tr><td class="mono">HEAT_SINK</td><td class="mono">+0</td><td class="mono accent">+6</td><td>extra heat bled off per tick</td></tr>
+      <tr><td class="mono">DECAY_WINDOW</td><td class="mono">&times;1.000</td><td class="mono accent">&times;1.50</td><td>the post-shutdown decay-heat window divisor</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note"><b>The tree pays for itself in the right order.</b> The rod nodes push the control-rod cap past 24/24, which raises steam &mdash; and therefore feedwater. The same tree's condensate nodes cut that draw by two more halvings. The water branch pays for the fuel branch, which is why throttle was safe for the tree to touch after the milestone layer (correctly) refused to put multipliers on steam.</div>
+
+  <h4>The stacked ceiling</h4>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Limit</th><th>Stock</th><th>All lines tier 7</th><th>+ full tree</th></tr></thead>
+    <tbody>
+      <tr><td>Output term</td><td class="mono">&times;1.000</td><td class="mono">&times;1.700</td><td class="mono accent">&times;1.700 &times; &times;1.450</td></tr>
+      <tr><td>Control-rod cap</td><td class="mono">24/24</td><td class="mono">30/24</td><td class="mono accent">36/24</td></tr>
+      <tr><td>Redline</td><td class="mono">12,000</td><td class="mono">15,000</td><td class="mono accent">19,500</td></tr>
+      <tr><td>Cycle RPM gain</td><td class="mono">&times;1.000</td><td class="mono">&times;1.25</td><td class="mono accent">&times;1.75</td></tr>
+      <tr><td>Rotor wear divisor</td><td class="mono">600</td><td class="mono">1,200</td><td class="mono accent">2,100</td></tr>
+      <tr><td>Derrick / Annex cycle</td><td class="mono">200 / 600 t</td><td class="mono">160 / 480 t</td><td class="mono accent">106 / 320 t</td></tr>
+      <tr><td>Annex batch</td><td class="mono">20</td><td class="mono">24</td><td class="mono accent">36</td></tr>
+      <tr><td>Derrick tantalum</td><td class="mono">every 4th</td><td class="mono">every 3rd</td><td class="mono accent">every 2nd</td></tr>
+      <tr><td>Steam buffer</td><td class="mono">100 t</td><td class="mono">160 t</td><td class="mono accent">240 t</td></tr>
+      <tr><td>Condensate stages</td><td class="mono">0</td><td class="mono">2</td><td class="mono accent">4</td></tr>
+    </tbody>
+  </table></div>
+  <p>The new redline stays <em>reachable</em>: at &times;1.75 gain the equilibrium is &asymp;20,987&nbsp;RPM, comfortably above the 19,500 ceiling &mdash; and 19,500 is what you may <em>authorise</em> in the RPM LIMIT box, not what the fan does on its own. Top-end demand lands near <strong>6.6&nbsp;billion EU/t</strong>, which is past the integer output cap &mdash; so <span class="mono">outputCeiling()</span> clamps it and the MATH panel's clamp line says so. It cannot detonate: the injection is still clamped to the fitted-hatch limit, which is the only condition GregTech's dynamo injection explodes over. A fully upgraded plant is genuinely clamp-limited, and the panel reports that rather than hiding it.</p>
+
+  <!-- ------------------------------------------------ 6.4 PERSISTENCE -->
+  <h3 id="progpersist"><span class="num">6.4</span>What persists, and where</h3>
+  <p>The campaign lives <strong>on the main station controller</strong>, in its own NBT &mdash; not on the player and not on the world. Four counters and a purchased-node set; <em>nothing derived is ever stored</em>, because tiers, multipliers, unlocks and point totals are pure functions of those five values and a stored copy would be a second source of truth.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Survives</th><th>How</th></tr></thead>
+    <tbody>
+      <tr><td>a world reload</td><td rowspan="2"><span class="mono">saveNBTData</span> &rarr; the one serializer, <span class="mono">force = true</span></td></tr>
+      <tr><td>a chunk unloading and coming back</td></tr>
+      <tr><td><strong>a wrench</strong></td><td><span class="mono">setItemNBT</span> &rarr; the <em>same</em> serializer, <span class="mono">force = false</span>. The campaign rides along inside the dropped machine item and loads straight back when it is placed.</td></tr>
+      <tr><td>the structure un-forming and re-forming</td><td>the structure check never touches the record &mdash; and says so in its own comment, beside the identical exclusion for the two process modules' cycle counters.</td></tr>
+    </tbody>
+  </table></div>
+  <p>One serializer, two writers, one reader &mdash; they cannot drift apart, because there is only one of each, and item NBT and tile NBT both land in the same <span class="mono">loadNBTData</span>. Nodes are keyed on disk by <strong>name</strong>, never by ordinal, so inserting a node in a later build can never silently reassign an unlock the player already owns. And <span class="mono">force = false</span> writes <em>nothing at all</em> for a controller that has never earned anything, so a fresh one still drops as a plain, stackable machine item.</p>
+  <div class="warn"><b>Do not clear counters and expect the tree to follow.</b> Load-time validation enforces prerequisites only &mdash; never the budget and never the milestone gates. Those are purchase-time rules, and enforcing them on load is precisely how a system would delete a campaign. Zero the counters under a bought tree and the plant simply reports negative points available and refuses further purchases; refunds keep working, so you can settle up.</div>
+
+  <h4>Reading it, and testing it</h4>
+  <p>A <strong>MILESTONES</strong> group closes the status report on the controller GUI, both control blocks and the handheld scanner &mdash; four line rows, a roll-up, the unlock list, then two upgrade-tree lines. All of it comes out of the same shared formatters, so no two readouts can describe different plants. It is ungated on the silo, like the tower and module lines: REPROCESSING accumulates on a bare platform's Derrick, and that panel is the only one a player still building has.</p>
+  <div class="formula">Milestones 12/28 <span class="c">&middot;</span> plant output x1.310 <span class="c">&middot;</span> 24/112 progression points earned
+Upgrades 9/25 <span class="c">&middot;</span> 21/112 points committed <span class="c">&middot;</span> 3 available
+Tree effects: plant output x1.10 <span class="c">&middot;</span> control-rod cap +2</div>
+  <div class="note"><b>Testing (op, permission level 2).</b> Progress starts at zero by ruling, so two debug commands exist to reach a tier in minutes instead of weeks &mdash; run either beside the controller.<br><br>
+  <kbd class="item">/btsmilestone</kbd> &mdash; report &middot; <kbd class="item">set &lt;line&gt; &lt;n&gt;</kbd> &middot; <kbd class="item">tier &lt;line&gt; &lt;0-7&gt;</kbd> &middot; <kbd class="item">all &lt;0-7&gt;</kbd> &middot; <kbd class="item">reset</kbd> &middot; <kbd class="item">verify</kbd><br>
+  <kbd class="item">/btstree</kbd> &mdash; report &middot; <kbd class="item">buy &lt;node&gt;</kbd> &middot; <kbd class="item">refund &lt;node&gt;</kbd> &middot; <kbd class="item">all</kbd> &middot; <kbd class="item">reset</kbd> &middot; <kbd class="item">audit</kbd> &middot; <kbd class="item">verify</kbd><br><br>
+  <b><kbd class="item">verify</kbd> is the one that matters.</b> It round-trips the record through <em>both</em> writers into fresh copies and diffs every counter and every node, so a forgotten key shows up on the tile path and the wrench path at once &mdash; without wrenching anything. <b><kbd class="item">audit</kbd></b> re-sums the 25 node costs against 112 and prints every channel against its base. Both reports end by reading the live limits back <em>off the plant</em> rather than off the tables, so an unlock that failed to reach the code that uses it is visible immediately.</div>
+</section>
+
+<!-- ============================================================ 7 REFERENCE -->
 <section id="reference">
-  <h2><span class="num">6</span>Reference Tables</h2>
+  <h2><span class="num">7</span>Reference Tables</h2>
   <p>Every machine, block, item and fluid the addon registers, with crafting hints. MTE IDs assume the default base 28100 (configurable).</p>
   <div class="tablewrap"><table>
     <thead><tr><th>Entry</th><th>ID / Type</th><th>Role</th><th>Crafting hint</th></tr></thead>
@@ -770,7 +959,7 @@ coolant  = ceil((200 &times; (RPM/1000)&sup2; + |S|&sup2;&times;5/20) / Q) per t
 </main>
 
 <footer>
-  UNIT ONE OPERATIONS MANUAL &middot; beyondthestars 0.16.0 &middot; generated from docs/steam-dynamics.md, docs/plant-unit-one.md, docs/plant-geometry.md and in-game tooltips &middot; entries marked <span class="badge b-tc">0.17.0</span> describe the Turbine Control ruling not yet implemented in this build
+  UNIT ONE OPERATIONS MANUAL &middot; beyondthestars 0.22.0 &middot; generated from docs/steam-dynamics.md, docs/plant-unit-one.md, docs/plant-geometry.md, docs/progression.md and in-game tooltips &middot; entries marked <span class="badge b-tc">0.17.0</span> are the Turbine Control ruling, shipped in that release &mdash; the badge is provenance, not a to-do
 </footer>
 
 </div>

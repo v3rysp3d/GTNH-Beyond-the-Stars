@@ -18,8 +18,8 @@ the overlay.
 /btsquests install    # puts them there
 ```
 
-`/btsquests install` adds only our chapter (`190/47990`), our 25 quests
-(`190/48000`–`190/48019` and `190/48021`–`190/48025`) and the `Unit One` entry quest
+`/btsquests install` adds only our chapter (`190/47990`), our 28 quests
+(`190/48000`–`190/48019` and `190/48021`–`190/48028`) and the `Unit One` entry quest
 (`190/48020`) to the world's live
 database, snapshotting and restoring player progress around the write, then broadcasts a
 resync so open books redraw. No pack quest is read, written or reordered — the only change
@@ -49,8 +49,8 @@ keeps no compile-time or runtime dependency on BetterQuesting — see
 
 ## What the overlay is
 
-A BetterQuesting quest line ("Beyond the Stars", **25 quests**) in GTNH 2.9.0's split
-DefaultQuests format, laid out as five rows:
+A BetterQuesting quest line ("Beyond the Stars", **28 quests**) in GTNH 2.9.0's split
+DefaultQuests format, laid out as six rows:
 
 **Rows 1–2 — THE PATH (10 small guided steps, `y=0` left→right, `y=52` right→left, so the
 chapter reads as one continuous line).** Each step says exactly what to do and what "done"
@@ -129,6 +129,39 @@ Derrick, Enrichment Annex — the four D-17 plant modules, one page each, with f
 derived bill, effect and failure mode. They were a single cramped section inside *Blueprint:
 Cooling Towers* until the id budget was widened past the entry quest; that page now just
 points at this row.
+
+**Row 6 — THE CAMPAIGN (`y=268`, `Size 32`):** *The Campaign Begins* (`48026`, prerequisite
+Step 10), *The Four Lines* (`48027`) and *The Upgrade Tree* (`48028`). This is where the
+ten-step path leads: the build is finished, the **campaign has not started**. Step 10's
+description now ends by saying exactly that and naming the row, and the chapter blurb calls the
+bottom row THE CAMPAIGN, because a player who reaches the end of the path and is told nothing
+concludes the mod is over.
+
+*The Campaign Begins* and *The Upgrade Tree* are **checkbox** tasks, for the same reason
+*Spin Doctrine* is: a milestone tier is not an item and a purchased node is not an item, so
+there is nothing a `bq_standard:retrieval` could ever read. *The Four Lines* is a real
+retrieval of one **Naquadah-Bonded Fuel Rod** — the top of the cascade ladder, ×9 — because
+that is the item the BURNUP line exists to ask for, and it is a held item, so it obeys
+`HOLD → CLAIM → INSTALL` and carries `$HOLD_FIRST` like every other install-it-afterwards gate.
+
+**Every panel string those three quests quote was checked character for character against the
+formatter that prints it** — `BTSMilestone.milestoneLine` / `milestoneSummaryLine` /
+`milestoneUnlockLine`, `BTSUpgrade.treeSummaryLine` / `treeEffectLine`,
+`MTEReactorCoreMk1.mathTurbineLine`, the twelve tier-5-to-7 grant strings in `BTSMilestone`,
+and the three `beyondthestars.gui.tree.*` lang entries. Only the ASCII part of a line is ever
+quoted, per the rule below: the panel separates fields with a middle dot this ASCII-only
+generator cannot write. The thresholds, the four multiplier columns and the tree's full-tree
+channel totals are transcribed from `BTSMilestone` / `BTSUpgrade` / `BTSChannel`; the design of
+record for all of it is `addon/docs/progression.md`.
+
+**Two existing quests were edited by this row, and no id moved.** Step 10 gained the handover
+paragraph; Step 2 gained the controls that appeared in the controller's gap row — the
+18×18 **chart button** that opens the tree sits to the LEFT of the number fields (the row
+is `reverseLayout(true)`, so the last child added is leftmost), 0.22.1 added a fourth control
+between Build Tier and the rods — the 5-digit **RPM LIMIT** field (F4), which is where the
+TURBINE line's redline unlock is opted into — and the rod field now accepts
+up to **36** rather than 24, because `BURNUP` T5–7 and the tree's three rod nodes can withdraw
+the rods that far. Step 2 says a value above 24 is clamped straight back until they do.
 
 **Every count in both blueprint rows is derived by `gen-bom.ps1` from the structure shape
 code at generation time — none of those numbers is typed by hand.** The module pages go
@@ -252,17 +285,21 @@ the first time, because the domain list is rebuilt on reload.
 | Step 1 … Blueprint: Cooling Towers | `190 / 48000` … `190 / 48019` | `…AAC7gA==` … `…AAC7kw==` |
 | entry quest "Unit One" (in *How to Generate Power*, `0/9`) | `190 / 48020` | `AAAAAAAAAL4AAAAAAAC7lA==` |
 | Blueprint: Vent Stack … The 100M Wall | `190 / 48021` … `190 / 48025` | `…AAC7lQ==` … `…AAC7mQ==` |
+| The Campaign Begins … The Upgrade Tree | `190 / 48026` … `190 / 48028` | `…AAC7mg==` … `…AAC7nA==` |
 | its prerequisite, the pack's "Standard Nuclear Fuel: Uranium" | `0 / 191` | — |
 
 Chapter order: 48000–48009 the ten path steps · 48010 Break the Clamp · 48011 Spin Doctrine ·
 48012 The Propellant Ladder · 48013 The Coolant Ladder · 48014 Written in Fire · 48015–48019
 the five plant Blueprints · **48020 is the entry quest and is SKIPPED** · 48021–48024 the four
-module Blueprints · 48025 The 100M Wall.
+module Blueprints · 48025 The 100M Wall · 48026–48028 the three CAMPAIGN quests.
 
 Quest IDs use `questIDHigh = 190` — the pack's own quests all use high 0, so the
 overlay can NEVER collide with GTNH quest IDs and survives pack updates by rebase:
 when GTNH ships a new DefaultQuests, just re-apply the two folders and the order line.
-(Verified after every merge: 3,770 quest files in the instance, 3,770 unique ids.)
+(Verified after every merge: 3,770 quest files in the instance, 3,770 unique ids — that was
+the 26-file overlay; the three CAMPAIGN quests take the overlay to 29 files and the instance
+to 3,773. The overlay's own side is re-checked on every regeneration: 29 quest files, 29
+unique ids, lows `48000`–`48028` with no gap and no repeat.)
 
 That high word is also what makes `/btsquests install` safe: it is the whole test for
 "is this file ours". `questIDHigh`/`questIDLow` are literally the two halves of the
@@ -277,10 +314,13 @@ that id. `gen-questbook.ps1` hands out lows in `$quests` array order, skips 4802
 **Consequence: a new quest may only ever be APPENDED to `$quests`.** Lows are positional, so
 inserting a quest in the middle renumbers every quest after it and orphans the progress each
 installed world has already recorded against those ids. The 20 quests that existed before the
-module blueprints still hold exactly `48000`–`48019`, which is what makes this expansion safe.
+module blueprints still hold exactly `48000`–`48019`, and the 25 that existed before the
+CAMPAIGN row still hold exactly `48000`–`48019` + `48021`–`48025` — which is what makes each
+expansion safe. Confirm it the same way every time: regenerate, then check that the only new
+files are the appended ones and that no existing file's `questIDLow:4` moved.
 
 **`/btsquests status` counts a declared LIST, not a range.** `BQBridge.CHAPTER_QUEST_LOWS`
-holds all 25 lows (`48000`–`48019` plus `48021`–`48025`; `48020` is the pack-line entry
+holds all 28 lows (`48000`–`48019` plus `48021`–`48028`; `48020` is the pack-line entry
 quest and is checked separately as `ENTRY_QUEST_UUID`). It used to be a `FIRST_QUEST_LOW` /
 `LAST_QUEST_LOW` pair reading `48000..48019`; when the five new quests were appended the pair
 was not widened, so `status` looked for 20 ids, found all 20 and reported *"Everything is
@@ -334,7 +374,7 @@ For reference, a healthy 2.9.0-beta-1 `HowtoGeneratePow-…` holds **169** place
    heavier vanilla fallback.
 
 Verify the merge landed by running `/btsquests` in any world: it prints whether
-`190/47990`, all 25 chapter quests (`190/48000-48019, 48021-48025`) and the entry quest
+`190/47990`, all 28 chapter quests (`190/48000-48019, 48021-48028`) and the entry quest
 `190/48020` are in that world's live database, where it is reading `DefaultQuests` from, and
 – when anything is short – exactly which ids are missing.
 

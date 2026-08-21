@@ -42,5 +42,12 @@ beyondthestars.recipe.plantcoolant=Nuclear Plant: Coolant
 # measured off the standing walls.
 beyondthestars.structure.silo.standing=Tier %s Steam Generator IS STANDING and does not match the current silo face — the first wrong cell is listed above. A plant raised by 0.19.0 or earlier has the retired face: stand beside the main station and run /btsmigrate to rewrite it in place.
 beyondthestars.gui.throttle.tooltip=Control rods: campaign power = N/24. A programmed circuit in the controller overrides this.
+beyondthestars.gui.throttle.milestone=Values above 24 need the BURNUP milestone line (T5 26/24, T6 28/24, T7 30/24) and the upgrade tree's rod nodes (Rod Seals, Deep Burn Profile, Overpower Licence, +2 each, to 36/24). Without them the plant clamps back to what it has actually unlocked.
+# D-24: the upgrade tree button in the controller's gap row.
+beyondthestars.gui.rpmlimit.tooltip=RPM LIMIT: the redline the fan is held to. 12,000 is the design stop and the default - a plant that never touches this field behaves exactly as it did before the TURBINE line existed.
+beyondthestars.gui.rpmlimit.milestone=Values above 12,000 need the TURBINE milestone line (T5 13,500, T6 15,000) and the upgrade tree's Overspeed Certification (+10%) and Synchronous Condenser (+20%), to 19,500. Without them the plant clamps back to 12,000. Chamber coolant draw goes with the SQUARE of RPM: raise this only once the Spiral chamber can pay for it, or the TC-7 interlock will start refusing cycles.
+beyondthestars.gui.tree.title=Upgrade Tree
+beyondthestars.gui.tree.tooltip=Spend the progression points the milestone lines pay out. 25 nodes, 112 points, four branches - one per milestone line, opened by that line's tiers.
+beyondthestars.gui.tree.refund=Left-click a node to buy it, right-click to refund. Refunds are free, unlimited, and refused only when another node you hold hangs off it.
 beyondthestars.gui.buildtier.tooltip=Build Tier: the Steam Generator tier the hologram/projector builds (1-5). A trigger stack of 2-5 overrides this. A silo that already stands is never re-tiered - dismantle it first.
 

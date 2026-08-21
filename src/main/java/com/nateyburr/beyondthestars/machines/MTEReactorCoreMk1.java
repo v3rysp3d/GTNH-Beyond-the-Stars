@@ -33,6 +33,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
@@ -62,6 +63,10 @@ import com.nateyburr.beyondthestars.blocks.TileRodLoadingPort;
 import com.nateyburr.beyondthestars.blocks.TileTurbineHousing;
 import com.nateyburr.beyondthestars.fluids.BTSFluids;
 import com.nateyburr.beyondthestars.items.BTSItems;
+import com.nateyburr.beyondthestars.progression.BTSChannel;
+import com.nateyburr.beyondthestars.progression.BTSMilestone;
+import com.nateyburr.beyondthestars.progression.BTSProgression;
+import com.nateyburr.beyondthestars.progression.BTSUpgrade;
 
 import gregtech.api.GregTechAPI;
 import gregtech.api.casing.Casings;
@@ -304,8 +309,40 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     /** Steam slugs a cycle drinks (ticks worth of L/t) and the buffer cap in slugs x 5. */
     private static final int CYCLE_SLUG_TICKS = 20;
     private static final int STEAM_BUFFER_CAP_TICKS = 100;
+    /** TC-4 wear divisor: chance = (RPM / redline) / this, rolled once a second per rotor. */
+    private static final int ROTOR_WEAR_DIVISOR = 600;
+    /**
+     * F3: the controller's explosion resistance. It carries the whole D-23/D-24 campaign record
+     * and an exploded block drops nothing two times in three, so this one block is blast-proof.
+     * See {@link #getExplosionResistance(ForgeDirection)} for the traced call path and for why
+     * 2,000 is "any blast" rather than a number that merely survives a creeper.
+     */
+    private static final float CONTROLLER_BLAST_RESISTANCE = 2_000.0F;
+    /**
+     * The highest figure the RPM LIMIT field will accept. Fixed at GUI-build time, like the
+     * throttle field's 36, so it is the ABSOLUTE ceiling of every unlock together:
+     * {@code 12,000 x 5/4} (TURBINE T6) {@code x 1.30} (the tree's Overspeed Certification +0.10
+     * and Synchronous Condenser +0.20) = 19,500. A plant that has unlocked none of it may still
+     * type 19,500 and {@link #setRpmLimitSetting} clamps it straight back to 12,000 - the safe
+     * direction, exactly as for the throttle.
+     */
+    public static final int RPM_LIMIT_MAX = 19_500;
     /** Fan RPM x1000 (the central variable; persisted). */
     private int rpmMilli;
+    /**
+     * F4 - THE OVERSPEED THE OPERATOR HAS AUTHORISED, RPM. Persisted; 12,000 on every plant that
+     * has never touched it, which is the design redline and therefore a bit-identical plant.
+     * <p>
+     * TURBINE 5/6 used to raise the redline (and the per-cycle gain with it) the moment the tier
+     * landed, with no opt-in at all. Steady-state chamber coolant draw scales with RPM SQUARED,
+     * so a plant plumbed for exactly 12,000 saw its draw rise 26% at T5 and 56% at T6 and the
+     * TC-7 interlock then throttled a plant that had run fine the day before - which is the one
+     * thing an update in this project may not do. Every other unlock in the system is either
+     * opt-in (BURNUP raises a CAP the player types into the throttle field) or a pure reduction
+     * (UPTIME's condensate). This one is opt-in now too: the milestone raises the CEILING, and
+     * this field is where the player says how much of it to use.
+     */
+    private int rpmLimitSetting = RPM_REDLINE;
     /** Steam standing in the chain, litres (fed L/t per running tick, cap 100 x L/t). */
     private long steamBuffer;
     /** A redstone rising edge on the Turbine Control Block requested a cycle. */
@@ -360,6 +397,17 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     private int annexCycles;
     /** Why the Derrick or the Annex is not turning over, in the interlock's voice ("" = fine). */
     private String moduleStall = "";
+    /**
+     * D-23 PROGRESSION: this plant's campaign record - four counters and everything derived
+     * from them. PER CONTROLLER by ruling, exactly like the Godforge's: it is written by
+     * {@code saveNBTData} AND by {@code setItemNBT} and read by {@code loadNBTData}, so it
+     * survives a world reload, a chunk unload, a WRENCH, and the structure un-forming.
+     * <p>
+     * {@link #resetPieceState()} must never touch it - a structure check fires on every
+     * neighbour update, and zeroing a campaign several times a second is the one bug this
+     * whole system cannot survive. It is not RUN state and not WALK state; it is the save.
+     */
+    private final BTSProgression progression = new BTSProgression();
     private int fuelSegments;
     private int activeColumns;
     private boolean cascadeMode;
@@ -2774,6 +2822,15 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         annexProductBus = null;
         annexAcidHatches.clear();
         moduleStall = "";
+        // D-23: and the PROGRESSION RECORD is not here either, on exactly the same terms and
+        // for a much larger stake. The four milestone counters are the player's whole campaign
+        // and they are written by the RUNNING plant, never by a walk; a structure check fires
+        // on every neighbour update, so touching them here would wipe a campaign several times
+        // a second. Un-forming the plant suspends progress; it does not reset it.
+        //
+        // D-24: the UPGRADE TREE's node set lives in that same record, so the same exclusion
+        // covers it - and it is the half a mistake here would hurt most, because a node is a
+        // point already spent. Breaking one casing must un-form the plant, not un-buy it.
     }
 
     @Override
@@ -3775,10 +3832,15 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         }
 
         // GUI throttle setting, overridable by a programmed circuit in the controller slot.
-        int n = Math.min(24, Math.max(1, throttleSetting));
+        // D-23 BURNUP 5/6/7: the cap is 24 (the design stop) until the BURNUP line lifts it to
+        // 26, 28, 30. D-24 adds the tree's three rod nodes on top of that, +2 each, to an
+        // absolute 36. The DENOMINATOR below stays 24 throughout, so 36/24 really is 150% of
+        // design power and not a relabelled 100%.
+        final int throttleCap = maxThrottle();
+        int n = Math.min(throttleCap, Math.max(1, throttleSetting));
         ItemStack circuit = getControllerSlot();
         if (GTUtility.isAnyIntegratedCircuit(circuit) && circuit.getItemDamage() >= 1) {
-            n = Math.min(24, circuit.getItemDamage());
+            n = Math.min(throttleCap, circuit.getItemDamage());
         }
         throttleN = n;
 
@@ -3869,6 +3931,14 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             // came from steamBase, one term per pillar.
             fuelBaseSteam = steamBase;
             fuelGradeMix = gradeMix(liveByType);
+            // D-23 BURNUP: one committed cycle burns one segment per live pillar, weighted by
+            // its grade (ROD_MULT), so the line rewards the FUEL CHAIN and not the rod count.
+            // Fed from the COMMIT branch only - the peek loop above runs on every failed
+            // checkProcessing and must never score - and checkProcessing is not a structure
+            // check, so no neighbour update can double-count it.
+            for (int type = 1; type < liveByType.length; type++) {
+                progression.add(BTSMilestone.BURNUP, (long) liveByType[type] * ROD_MULT[type]);
+            }
             steamPerTick = cascadeSteam;
             this.mOutputItems = depleted.toArray(new ItemStack[0]);
             this.mMaxProgresstime = cycleTicks;
@@ -3888,6 +3958,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             // One batch is one grade, so the sum IS the product - but it is already halved.
             fuelBaseSteam = STEAM_PER_COLUMN * fallbackColumns * fallbackMult / 2;
             fuelGradeMix = "";
+            // D-23 BURNUP: a half-rate fallback slice scores at half rate too.
+            progression.add(BTSMilestone.BURNUP, (long) fallbackColumns * fallbackMult / 2);
             steamPerTick = creditSteam;
             this.mOutputItems = fallbackCyclesLeft == 0 && fallbackDepleted != null
                 ? new ItemStack[] { fallbackDepleted }
@@ -3916,6 +3988,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             activeFuelMult = fallbackMult;
             fuelBaseSteam = STEAM_PER_COLUMN * busColumns * fallbackMult / 2;
             fuelGradeMix = "";
+            progression.add(BTSMilestone.BURNUP, (long) fallbackColumns * fallbackMult / 2);
             steamPerTick = newFallbackSteam;
             this.mOutputItems = null;
             this.mMaxProgresstime = cycleTicks;
@@ -3936,7 +4009,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         // Cooling towers return condensate: each halves the feedwater draw.
         final int towers = coolingTowerCount();
         final int baseFlow = (int) ((steamPerTick + GTValues.STEAM_PER_WATER - 1) / GTValues.STEAM_PER_WATER);
-        final int flowPerTick = Math.max(1, baseFlow >> towers);
+        // D-23 UPTIME 5/7: condensate recovery adds further right-shifts on top of the towers'.
+        // It is purely a REDUCTION in what the plant drinks, so it can starve nothing and it
+        // moves no output figure - which is exactly why it is safe to grant automatically.
+        final int flowPerTick = Math.max(1, baseFlow >> Math.min(16, towers + progression.condensateStages()));
 
         startRecipeProcessing();
         if (galleryBuilt && galleryStages > 0) {
@@ -3945,12 +4021,12 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             // EU/t = L/t x speed x eff x (RPM/1000) x avgRotorFactor - the avg already
             // carries stages/8 (a missing or shattered rotor contributes a zero stage).
             if (drawFeedwater(flowPerTick)) {
-                steamBuffer = Math.min(steamBuffer + steamPerTick, STEAM_BUFFER_CAP_TICKS * steamPerTick);
+                steamBuffer = Math.min(steamBuffer + steamPerTick, (long) steamBufferCapTicks() * steamPerTick);
                 // /500_000 (not /1_000_000): back-solved so a fully optimized T5 - 201 naq
                 // pillars, all-riding spine, redline RPM, 8 fresh rotors - peaks ~1.10B and
                 // averages ~1.05B EU/t across the decay sawtooth, landing on the settled
                 // D-01 ~1B ceiling instead of half of it.
-                final long demand = euDemandOf(spineBoostedSteam(true), rpmMilli, avgRotorFactorMilli);
+                final long demand = euDemand();
                 // Clamp to the SUMMED OUTPUT CEILING before emitting - GT explodes the whole
                 // multiblock when the injected EU exceeds what the fitted hatches can take -
                 // and stay under the int-overflow EU-duplication threshold. The ceiling now
@@ -3964,6 +4040,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 final long emitted = Math.min(demand, outputLimit());
                 if (emitted > 0) {
                     addEnergyOutputMultipleDynamos(emitted, true);
+                    // D-23 UPTIME: a GENERATING tick, and only a generating tick. An idle,
+                    // chunk-loaded plant earns nothing here, which is the whole character of
+                    // the line. onRunningTick is server-only and fires once a tick, so this can
+                    // neither run on the client nor be double-counted by a structure re-check.
+                    progression.add(BTSMilestone.UPTIME, 1L);
                 }
                 lastEUDemand = demand;
                 lastEUOutput = emitted;
@@ -4006,7 +4087,60 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * it. The readouts print the divisor they actually use; do not "correct" it to 1,000.
      */
     public static long euDemandOf(long afterSpine, int rpmMilliValue, int rotorMilli) {
-        return afterSpine * rpmMilliValue / 500_000L * rotorMilli / 1000L;
+        return euDemandOf(afterSpine, rpmMilliValue, rotorMilli, 1000, 1000);
+    }
+
+    /** D-23's four-factor form, before D-24 added the tree. Delegates with no tree term. */
+    public static long euDemandOf(long afterSpine, int rpmMilliValue, int rotorMilli, int progMilli) {
+        return euDemandOf(afterSpine, rpmMilliValue, rotorMilli, progMilli, 1000);
+    }
+
+    /**
+     * D-23: the same arithmetic with the MILESTONE term on the end - the product of the four
+     * lines' tier-1..4 multipliers, x1000. Everything that derives EU goes through here, so
+     * the milestone bonus is a TERM of the published derivation and not a private fudge
+     * factor: {@link #mathTurbineLine} prints it whenever it is not x1.000.
+     * <p>
+     * It multiplies the EU and deliberately NOT the steam. Steam L/t is what sets the
+     * feedwater draw, the waste-water output and the export line; a milestone that raised it
+     * would raise the water demand of a plant that is already exactly supplied, and could
+     * starve one that ran fine yesterday. The ruling asked for a reward in EU; it lands in EU.
+     * <p>
+     * At {@code progMilli == 1000} the last factor is {@code x * 1000 / 1000}, which is
+     * exactly {@code x} - so a plant with no progress derives a BIT-IDENTICAL number to the
+     * one it derived before this system existed. That is the regression test.
+     */
+    public static long euDemandOf(long afterSpine, int rpmMilliValue, int rotorMilli, int progMilli, int upgradeMilli) {
+        return afterSpine * rpmMilliValue
+            / 500_000L
+            * rotorMilli
+            / 1000L
+            * Math.max(1000, progMilli)
+            / 1000L
+            * Math.max(1000, upgradeMilli)
+            / 1000L;
+    }
+
+    /**
+     * THIS controller's demand: the shared arithmetic, with its milestone term AND D-24's
+     * upgrade-tree term.
+     * <p>
+     * The two progression terms are kept as SEPARATE factors, applied in the order
+     * {@link #mathTurbineLine} prints them, rather than pre-multiplied into one. That is what
+     * makes the MATH panel exact rather than approximately right: two printed factors are two
+     * performed factors, down to the integer division between them.
+     * <p>
+     * Both default to 1000, so at zero progress and an unbought tree the last two factors are
+     * {@code x * 1000 / 1000 * 1000 / 1000 == x} and the plant derives a BIT-IDENTICAL number
+     * to the one it derived in 0.21.0. That is the regression test for this whole release.
+     */
+    public long euDemand() {
+        return euDemandOf(
+            spineBoostedSteam(true),
+            rpmMilli,
+            avgRotorFactorMilli,
+            progOutputMilli(),
+            progUpgradeMilli());
     }
 
     // ------------------------------------------------------------ manifold output ceiling
@@ -4307,8 +4441,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      */
     private int projectedRpmMilli(int propMilli) {
         final int timed = Math.min(GALLERY_STAGES, Math.max(1, spiralInjectors.size()));
-        final long gain = (long) RPM_GAIN * Math.max(1000, propMilli) * timed / 8;
-        return (int) Math.min(RPM_REDLINE_MILLI, rpmMilli + gain);
+        final long gain = (long) RPM_GAIN * Math.max(1000, propMilli) * timed / 8 * rpmGainMilli() / 1000L;
+        return (int) Math.min(redlineMilli(), rpmMilli + gain);
     }
 
     /**
@@ -4542,9 +4676,18 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             lastCyclePropMilli = minPropMilli;
             if (hadSteam) {
                 // gain(milli) = RPM_GAIN x P x timed/8; see the RPM_GAIN equilibrium note.
-                final long gainMilli = (long) RPM_GAIN * minPropMilli * good / 8;
-                rpmMilli = (int) Math.min(RPM_REDLINE_MILLI, rpmMilli + gainMilli);
+                // D-23 TURBINE 5/6: the gain and the redline move TOGETHER (equilibrium is
+                // ~10.486 x gain), so a raised redline is one the plant can actually reach
+                // instead of a ceiling it never touches. F4: BOTH are held to the overspeed the
+                // operator authorised in the RPM LIMIT field, so a tier landing never moves
+                // either one on its own.
+                final long gainMilli = (long) RPM_GAIN * minPropMilli * good / 8 * rpmGainMilli() / 1000L;
+                rpmMilli = (int) Math.min(redlineMilli(), rpmMilli + gainMilli);
                 turbineHoldReason = "";
+                // D-23 TURBINE: a PERFECT cycle - it had its steam slug AND every one of the
+                // eight injectors landed exactly 1 L inside the +/-2t window. 7/8 scores
+                // nothing, and a fast clock with no fuel scores nothing (no slug, no credit).
+                if (good >= GALLERY_STAGES) progression.add(BTSMilestone.TURBINE, 1L);
             }
         } else {
             lastCyclePropMilli = 1000;
@@ -4822,7 +4965,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     private void rollRotorDamage() {
         if (rpmMilli <= 0 || stageCells.isEmpty()) return;
         final World world = getBaseMetaTileEntity().getWorld();
-        final double chance = rpmMilli / (double) RPM_REDLINE_MILLI / 600.0;
+        // D-23 TURBINE 7: BLADE METALLURGY doubles the divisor - the same RPM chips a blade
+        // half as often. Scored against the LIVE redline, so an overspeed-trimmed plant at its
+        // new redline wears exactly as fast as a stock one at 12,000 did.
+        final double chance = rpmMilli / (double) redlineMilli() / progression.rotorWearDivisor(ROTOR_WEAR_DIVISOR);
         for (final int[] cell : stageCells) {
             if (!world.blockExists(cell[0], cell[1], cell[2])) continue;
             final net.minecraft.tileentity.TileEntity te = world.getTileEntity(cell[0], cell[1], cell[2]);
@@ -5139,7 +5285,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         // whole structure) dismantled does not cool - the obligation is frozen, not dodged.
         final boolean brokenHotCore = (!mMachine || reactorTier <= 0) && decayHeatTicks > 0;
         if (!starvedThisTick && !brokenHotCore && heat > 0) {
-            heat = Math.max(0, heat - HEAT_DECAY_PER_TICK * (1 + towers));
+            // D-24 HEAT_SINK: the tree's residual heat sink adds to the towers' rejection.
+            // Additive and non-negative at mask 0, so a plant with no tree cools exactly as
+            // fast as it did before.
+            heat = Math.max(0, heat - (HEAT_DECAY_PER_TICK * (1 + towers) + progHeatSink()));
         }
         starvedThisTick = false;
     }
@@ -5152,7 +5301,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * per tick is unchanged; it is the WINDOW that closes sooner.
      */
     private int decayWindowTicks() {
-        return ventStackBuilt ? DECAY_HEAT_TICKS / 2 : DECAY_HEAT_TICKS;
+        final int window = ventStackBuilt ? DECAY_HEAT_TICKS / 2 : DECAY_HEAT_TICKS;
+        // D-24 DECAY_WINDOW: shortened further by the tree, exactly the way the Vent Stack
+        // shortens it - the per-tick demand is unchanged, it is the WINDOW that closes sooner,
+        // and onPostTick already clamps a standing obligation down to the current window.
+        return Math.max(1, window * 1000 / Math.max(1000, progDecayWindowMilli()));
     }
 
     /**
@@ -5279,7 +5432,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     private String annexSuspendNote() {
         return "Annex: batch SUSPENDED at " + annexProgress
             + "/"
-            + ANNEX_CYCLE_TICKS
+            + annexCycleTicks()
             + "t - its "
             + ANNEX_URANINITE
             + " uraninite and "
@@ -5291,7 +5444,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     private String derrickSuspendNote() {
         return "Derrick: load SUSPENDED at " + derrickProgress
             + "/"
-            + DERRICK_CYCLE_TICKS
+            + derrickCycleTicks()
             + "t - the EU already paid into it is being HELD; rebuild the Derrick and it resumes where it stopped";
     }
 
@@ -5342,13 +5495,17 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             note(stall, "Derrick: no Output Bus in its deck socket (front wall, one course up)");
             return;
         }
-        if (derrickProgress < DERRICK_CYCLE_TICKS) {
+        // D-23 REPROCESSING 6: PROCESS INTENSIFICATION shortens the cycle. A load parked at the
+        // OLD (longer) count simply falls straight through to the deposit below, which is
+        // correct - it is a finished load and every tick of it has already been paid for.
+        final int derrickCycle = derrickCycleTicks();
+        if (derrickProgress < derrickCycle) {
             if (!moduleSupplied(DERRICK_EU_PER_TICK)) {
                 note(stall, modulePowerNote("Derrick", DERRICK_EU_PER_TICK));
                 return;
             }
             derrickProgress++;
-            if (derrickProgress < DERRICK_CYCLE_TICKS) return;
+            if (derrickProgress < derrickCycle) return;
         }
         // The load is finished. It is held - progress parked at the full count, no further EU
         // drawn - until the bus can take all of it, so a full bus never voids or duplicates one.
@@ -5356,7 +5513,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         final List<ItemStack> out = new ArrayList<>();
         out.add(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uraninite, DERRICK_URANINITE));
         out.add(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Thorium, DERRICK_THORIUM));
-        if (cycle % DERRICK_TANTALUM_EVERY == 0) {
+        if (cycle % derrickTantalumEvery() == 0) {
             out.add(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Tantalum, 1L));
         }
         if (!storeAll(derrickBus, out)) {
@@ -5367,6 +5524,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         }
         derrickProgress = 0;
         derrickCycles = cycle;
+        // D-23 REPROCESSING: scored on the DEPOSIT, never on the tick. A held load waiting on
+        // a full bus scores once, when the bus finally takes it.
+        progression.add(BTSMilestone.REPROCESSING, 1L);
     }
 
     /**
@@ -5400,6 +5560,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 "Annex: fit all 3 sockets in its outward wall - uraninite Input Bus, Hydrofluoric Acid Input Hatch, product Output Bus");
             return;
         }
+        // D-23 REPROCESSING 6: same shortening as the Derrick's, and same fall-through for a
+        // batch parked at the old count.
+        final int annexCycle = annexCycleTicks();
         if (annexProgress == 0) {
             // A batch is only STARTED once both feedstocks are actually there, and they are
             // consumed up front exactly like the standalone Train's recipe. Nothing is drawn -
@@ -5427,19 +5590,19 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 consumeAnnexUraninite(ANNEX_URANINITE);
             }
             annexProgress = 1;
-            if (annexProgress < ANNEX_CYCLE_TICKS) return;
-        } else if (annexProgress < ANNEX_CYCLE_TICKS) {
+            if (annexProgress < annexCycle) return;
+        } else if (annexProgress < annexCycle) {
             if (!moduleSupplied(ANNEX_EU_PER_TICK)) {
                 note(stall, modulePowerNote("Annex", ANNEX_EU_PER_TICK));
                 return;
             }
             annexProgress++;
-            if (annexProgress < ANNEX_CYCLE_TICKS) return;
+            if (annexProgress < annexCycle) return;
         }
         // Finished, and HELD until the product bus can take all of it. The uraninite and the
         // acid are already spent, so voiding the batch or paying it out twice are both wrong.
         final List<ItemStack> out = new ArrayList<>();
-        out.add(new ItemStack(BTSItems.uraniumFuelPellet, ANNEX_PELLETS));
+        out.add(new ItemStack(BTSItems.uraniumFuelPellet, annexPellets()));
         out.add(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Thorium, ANNEX_THORIUM));
         if (!storeAll(annexProductBus, out)) {
             note(
@@ -5449,6 +5612,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         }
         annexProgress = 0;
         annexCycles++;
+        progression.add(BTSMilestone.REPROCESSING, 1L);
     }
 
     /**
@@ -5644,6 +5808,39 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
     // ------------------------------------------------------------------ persistence & info
 
+    /**
+     * <b>F3 - A CREEPER MAY NOT DELETE THE CAMPAIGN.</b> The D-23/D-24 record lives on this one
+     * controller by ruling, and four of the five ways it can leave the world were already safe:
+     * a reload and a chunk unload ride {@code saveNBTData}, a WRENCH and a pickaxe ride
+     * {@code setItemNBT} through {@code BaseMetaTileEntity.getDrops()}, and an un-form/re-form
+     * never touches the tile at all. The fifth was not. {@code Explosion.doExplosionB} calls
+     * {@code dropBlockAsItemWithChance(world, x, y, z, meta, 1.0F / 3.0F, 0)}, so two times in
+     * three an exploded controller yields NO ITEM - and with it every milestone counter and
+     * every purchased node, with nothing to pick up and no way back.
+     * <p>
+     * The least machinery that closes it is to keep the block out of the explosion in the first
+     * place, which costs one method and no new persistent state - as against a world-level
+     * backup, which would be a second copy of the record and a second thing to get wrong, and
+     * would quietly contradict the per-controller ruling. Traced, not assumed: Forge's
+     * {@code Entity.func_145772_a} patch routes the exploder's query to
+     * {@code Block.getExplosionResistance(Entity, World, x, y, z, ex, ey, ez)},
+     * {@code BlockMachines} overrides that and delegates it to
+     * {@code IMetaTileEntity.getExplosionResistance(ForgeDirection.UNKNOWN)} - this method - and
+     * {@code doExplosionA} subtracts {@code (resistance + 0.3F) * 0.3F} from a ray that starts
+     * at most at {@code size * 1.3}. At 2,000 the block survives any blast up to size ~461; a
+     * creeper is 3, a charged creeper 6, TNT 4.
+     * <p>
+     * The plant's own meltdown is unaffected: it detonates ABOVE the dome
+     * ({@code stackTop + 2 .. + 11}), never at the front-wall controller, and it disables the
+     * machine through {@code stopMachine} rather than by destroying the block. GT's default for
+     * a machine is 10.0F and every other block in this multiblock keeps it - a blast still opens
+     * a hole in the casings and un-forms the plant, which is the recoverable case.
+     */
+    @Override
+    public float getExplosionResistance(ForgeDirection side) {
+        return CONTROLLER_BLAST_RESISTANCE;
+    }
+
     @Override
     public void saveNBTData(NBTTagCompound aNBT) {
         super.saveNBTData(aNBT);
@@ -5695,6 +5892,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         aNBT.setLong("btsFuelBaseSteam", fuelBaseSteam);
         aNBT.setString("btsFuelGradeMix", fuelGradeMix);
         aNBT.setInteger("btsRpmMilli", rpmMilli);
+        // F4: the authorised overspeed. Must be read back BEFORE the rpmMilli clamp below, and
+        // loadNBTData does exactly that.
+        aNBT.setInteger("btsRpmLimit", rpmLimitSetting);
         aNBT.setLong("btsSteamBuffer", steamBuffer);
         // D-17: the two process modules' RUN state. derrickCycles is not decoration - it is what
         // decides which cycle pays the tantalum bonus - and annexProgress carries a batch whose
@@ -5703,6 +5903,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         aNBT.setInteger("btsDerrickCycles", derrickCycles);
         aNBT.setInteger("btsAnnexProgress", annexProgress);
         aNBT.setInteger("btsAnnexCycles", annexCycles);
+        // D-23: the campaign record, through its ONE serializer. force = true here, because
+        // tile NBT is the reload/chunk-unload path and always carries the whole block.
+        progression.writeTo(aNBT, true);
     }
 
     /**
@@ -5721,6 +5924,21 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * across a wrench was the bug. These four are the reverse - they only ever hand property
      * BACK, and the worst a corrupt value can do is hold a batch (loadNBTData already clamps
      * everything that needs clamping).
+     * <p>
+     * <b>F9 - AND THE THREE OPERATOR SETTINGS.</b> {@code btsThrottleSetting} was written by
+     * {@code saveNBTData} but not here, so {@code loadNBTData} read 0 off the item tag and forced
+     * the field back to 24: wrenching a plant that had unlocked 30/24 or 36/24 cost it 20-33% of
+     * its output until somebody noticed and re-typed the number. The RPM LIMIT (F4) would have
+     * had exactly the same hole, and Build Tier is the same class of value. All three travel
+     * now.
+     * <p>
+     * Each is written ONLY when it differs from its default, which is the same rule
+     * {@code BTSProgression.writeTo(force = false)} follows and for the same reason:
+     * {@code BaseMetaTileEntity.getDrops()} attaches a tag {@code if (!tNBT.hasNoTags())}, so an
+     * unconditional write would give EVERY wrenched controller a tag and stop untouched ones
+     * stacking. None of the three ARMS anything - M2's distinction - and {@code loadNBTData}
+     * clamps all three on the way back in, including Build Tier's upper bound, which now matters
+     * because it arrives from item NBT as well.
      */
     @Override
     public void setItemNBT(NBTTagCompound aNBT) {
@@ -5729,11 +5947,76 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         if (derrickCycles > 0) aNBT.setInteger("btsDerrickCycles", derrickCycles);
         if (annexProgress > 0) aNBT.setInteger("btsAnnexProgress", annexProgress);
         if (annexCycles > 0) aNBT.setInteger("btsAnnexCycles", annexCycles);
+        if (throttleSetting > 0 && throttleSetting != 24) aNBT.setInteger("btsThrottleSetting", throttleSetting);
+        if (rpmLimitSetting > RPM_REDLINE) aNBT.setInteger("btsRpmLimit", rpmLimitSetting);
+        if (buildTierSetting > 1) aNBT.setInteger("btsBuildTierSetting", buildTierSetting);
+        // D-23 / AXIS 2: THE WRENCH PATH, and the reason the whole record exists in one
+        // serializer. The SAME writeTo body that saveNBTData calls, with force = false, so a
+        // controller that has earned nothing still drops as a plain stackable machine item
+        // (getDrops() only attaches a tag `if (!tNBT.hasNoTags())`) while one that HAS earned
+        // something carries every counter out with it.
+        //
+        // This is the opposite of M2's btsLastBuiltTier lesson, not a repeat of it: that was a
+        // number which ARMED a destructive path, and carrying it across a wrench was the bug.
+        // These four only ever hand property BACK, and readFrom clamps every one of them.
+        progression.writeTo(aNBT, false);
+    }
+
+    /**
+     * F9 GUARD, behind {@code /btsmilestone verify}: the three OPERATOR SETTINGS that ride the
+     * WRENCH, checked by writing a probe tag through the REAL {@link #setItemNBT} and reading
+     * the keys straight back out of it.
+     * <p>
+     * {@code BTSProgression.verifyRoundTrip} does this for the campaign record and would have
+     * caught F9 the day it happened - if the throttle had been part of that record. It is not;
+     * it is a plain field, and a field written by {@code saveNBTData} and forgotten by
+     * {@code setItemNBT} is exactly the shape of bug that cost this plant a third of its output
+     * after every wrench. The invariant checked here is the one the writer actually promises:
+     * <b>a setting that is off its default is on the item, with the same value.</b> Settings AT
+     * their default are deliberately absent (an untouched controller has to stay stackable), so
+     * they are not asserted - their absence is the correct answer and {@code loadNBTData}
+     * restores the default from it.
+     * <p>
+     * Nothing is mutated: {@code setItemNBT} only ever writes into the tag it is handed.
+     */
+    public String verifyItemSettings() {
+        final NBTTagCompound probe = new NBTTagCompound();
+        setItemNBT(probe);
+        final StringBuilder faults = new StringBuilder();
+        appendSettingFault(faults, probe, "btsThrottleSetting", throttleSetting, 24);
+        appendSettingFault(faults, probe, "btsRpmLimit", rpmLimitSetting, RPM_REDLINE);
+        appendSettingFault(faults, probe, "btsBuildTierSetting", buildTierSetting, 1);
+        return faults.toString();
+    }
+
+    private static void appendSettingFault(StringBuilder faults, NBTTagCompound probe, String key, int value,
+        int defaultValue) {
+        if (value == defaultValue) return;
+        final int carried = probe.getInteger(key);
+        if (carried == value) return;
+        if (faults.length() > 0) faults.append("; ");
+        faults.append("item ")
+            .append(key)
+            .append(' ')
+            .append(value)
+            .append(" -> ")
+            .append(carried);
     }
 
     @Override
     public void loadNBTData(NBTTagCompound aNBT) {
         super.loadNBTData(aNBT);
+        // D-23: THE ONE READER, and it runs FIRST because the rpmMilli clamp further down is
+        // taken against redlineMilli(), which is derived from the TURBINE line. Reading the
+        // record after that clamp would knock an overspeed-trimmed plant back to 12,000 RPM
+        // on every single world load. Item NBT and tile NBT both land here - traced:
+        // ItemMachines.placeBlock -> setInitialValuesAsNBT (server only) ->
+        // BaseMetaTileEntity.loadMetaTileNBT -> CommonBaseMetaTileEntity -> loadNBTData.
+        progression.readFrom(aNBT);
+        // F4 / F9: and the two OPERATOR SETTINGS the record's ceilings are consumed through -
+        // both before the rpmMilli clamp at the foot of this method, which is taken against
+        // redlineMilli() and therefore against rpmLimitSetting.
+        rpmLimitSetting = Math.max(RPM_REDLINE, aNBT.getInteger("btsRpmLimit"));
         heat = aNBT.getInteger("btsHeat");
         reactorTier = aNBT.getInteger("btsReactorTier");
         // "btsLastBuiltTier" from 0.19.x is deliberately not read: an unclamped persisted tier
@@ -5743,8 +6026,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         throttleN = aNBT.getInteger("btsThrottleN");
         throttleSetting = aNBT.getInteger("btsThrottleSetting");
         if (throttleSetting <= 0) throttleSetting = 24;
-        buildTierSetting = aNBT.getInteger("btsBuildTierSetting");
-        if (buildTierSetting <= 0) buildTierSetting = 1;
+        // F9: clamped at BOTH ends now. The lower clamp covers an absent key (a fresh controller
+        // or a pre-0.22.1 world); the upper one exists because this arrives from ITEM NBT as
+        // well as tile NBT, and an out-of-range build tier is the shape of value M2 was about.
+        buildTierSetting = Math.min(MAX_TIER, Math.max(1, aNBT.getInteger("btsBuildTierSetting")));
         activeFuelMult = Math.max(1, aNBT.getInteger("btsFuelMult"));
         decayHeatTicks = aNBT.getInteger("btsDecayHeatTicks");
         radiationTicks = aNBT.getInteger("btsRadiationTicks");
@@ -5779,7 +6064,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         // live x grade product, which is exactly right for the uniform load it must have been.
         fuelBaseSteam = aNBT.getLong("btsFuelBaseSteam");
         fuelGradeMix = aNBT.getString("btsFuelGradeMix");
-        rpmMilli = Math.max(0, Math.min(RPM_REDLINE_MILLI, aNBT.getInteger("btsRpmMilli")));
+        rpmMilli = Math.max(0, Math.min(redlineMilli(), aNBT.getInteger("btsRpmMilli")));
         steamBuffer = Math.max(0, aNBT.getLong("btsSteamBuffer"));
     }
 
@@ -5848,6 +6133,191 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
     public int getRpm() {
         return rpmMilli / 1000;
+    }
+
+    // ------------------------------------------------- D-23 the milestone-derived limits
+    // Every one of these takes the plant's BASE constant and hands back a NEW MAXIMUM. At
+    // zero progress each returns its base unchanged, which is the whole "a plant that works
+    // today keeps working" guarantee - it is checkable by reading these eight methods.
+    //
+    // AXIS 1: all of them read `progression`, which is written SERVER-side only. Nothing here
+    // may be called from a client-side path. construct(hintsOnly=true) never touches them: no
+    // structure SHAPE is gated on progression at all, only settings and rates are.
+
+    /** D-23: the four milestone counters, for the panel, the sync values and the command. */
+    public BTSProgression getProgression() {
+        return progression;
+    }
+
+    /** The four counters as one array, ordered by {@link BTSMilestone} ordinal. */
+    public long[] getProgressSnapshot() {
+        return progression.snapshot();
+    }
+
+    public long getProgUptime() {
+        return progression.get(BTSMilestone.UPTIME);
+    }
+
+    public long getProgBurnup() {
+        return progression.get(BTSMilestone.BURNUP);
+    }
+
+    public long getProgReproc() {
+        return progression.get(BTSMilestone.REPROCESSING);
+    }
+
+    public long getProgPerfect() {
+        return progression.get(BTSMilestone.TURBINE);
+    }
+
+    /**
+     * The milestone term of the EU derivation, x1000 - the product of the four lines' tier-1..4
+     * multipliers. 1000 (a no-op) on a plant with no progress.
+     */
+    public int progOutputMilli() {
+        return progression.outputMilli();
+    }
+
+    // ------------------------------------------------- D-24 the upgrade tree, at the plant
+    // Three channels reach the plant through methods of their own (the other nine are folded
+    // into the D-23 accessors above, so their call sites never had to move). Everything here
+    // reads `progression`, which is written SERVER-side; the GUI reads the SYNCED node mask and
+    // runs the identical static bodies in BTSUpgrade/BTSProgression to reach the same numbers.
+
+    /** The tree's OUTPUT term, x1000 - the fifth factor of {@link #euDemandOf}. */
+    public int progUpgradeMilli() {
+        return progression.upgradeMilli();
+    }
+
+    /** D-24 HEAT_SINK: extra heat bled off per tick, on top of the Cooling Towers'. 0 at mask 0. */
+    private int progHeatSink() {
+        return BTSUpgrade.channel(progression.nodes(), BTSChannel.HEAT_SINK);
+    }
+
+    /** D-24 DECAY_WINDOW: the divisor on the post-shutdown window, x1000. 1000 at mask 0. */
+    private int progDecayWindowMilli() {
+        return BTSUpgrade.channel(progression.nodes(), BTSChannel.DECAY_WINDOW);
+    }
+
+    /** The purchased-node bitmask. The ONE value the tree GUI syncs (AXIS 1). */
+    public long getUpgradeNodes() {
+        return progression.nodes();
+    }
+
+    /**
+     * BUY, SERVER-SIDE AND SERVER-AUTHORITATIVE. The only caller is the tree panel's
+     * server-only synced action and the debug command; the client sends a node INDEX and
+     * nothing else, and every rule - already owned, prerequisites, milestone gate, points - is
+     * re-asked here against the server's own record. A client that lies changes nothing.
+     */
+    public boolean buyUpgrade(BTSUpgrade node) {
+        if (!progression.buy(node)) return false;
+        markProgressionDirty();
+        return true;
+    }
+
+    /** REFUND, same terms. Free and unlimited; refused only if it would orphan a held node. */
+    public boolean refundUpgrade(BTSUpgrade node) {
+        if (!progression.refund(node)) return false;
+        markProgressionDirty();
+        return true;
+    }
+
+    /**
+     * A purchase has to reach the disk on its own, not on the next incidental save: GT tiles
+     * ride their chunk's write, so the chunk is what must be marked. Without this a buy
+     * followed by a crash - or by a chunk unload that happened to find the chunk clean - is a
+     * point spent for nothing, which is exactly the class of loss this release must not have.
+     */
+    private void markProgressionDirty() {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base instanceof TileEntity) {
+            ((TileEntity) base).markDirty();
+        }
+    }
+
+    /**
+     * D-23 BURNUP 5/6/7: the highest control-rod setting this plant may take. 24 is the design
+     * stop; the line lifts it to 26, 28 and 30. The N/24 DENOMINATOR never moves, so 30/24 is
+     * genuinely 125% of design power and not a relabelled 100%.
+     */
+    public int maxThrottle() {
+        return progression.maxThrottle(24);
+    }
+
+    /**
+     * The redline the fan is actually held to: the UNLOCKED ceiling, capped by what the operator
+     * authorised in the RPM LIMIT field (F4). At the default 12,000 setting this is 12,000 on
+     * every plant however far the TURBINE line has run, so nothing that ran yesterday changes.
+     */
+    public int getRedlineRpm() {
+        return operatingRedline(getUnlockedRedlineRpm(), rpmLimitSetting);
+    }
+
+    /**
+     * ONE body for the min, so the client (which derives the unlocked ceiling from the synced
+     * counters and node mask) and the server reach the same number (AXIS 1).
+     */
+    public static int operatingRedline(int unlockedRedline, int limitSetting) {
+        return Math.min(Math.max(RPM_REDLINE, unlockedRedline), Math.max(RPM_REDLINE, limitSetting));
+    }
+
+    /** D-23 TURBINE 5/6 + D-24: the CEILING the campaign has unlocked. 12,000 -> 19,500. */
+    public int getUnlockedRedlineRpm() {
+        return progression.redlineRpm(RPM_REDLINE);
+    }
+
+    /** The RPM LIMIT field, clamped to the live ceiling - a refunded tree node lowers it. */
+    public int getRpmLimitSetting() {
+        return operatingRedline(getUnlockedRedlineRpm(), rpmLimitSetting);
+    }
+
+    /**
+     * F4: server-side clamp to the unlocked ceiling, exactly like {@link #setThrottleSetting}.
+     * A LOWERED limit takes effect at once - leaving the fan spinning above its new ceiling
+     * would have it drawing coolant for an RPM the interlock has stopped projecting.
+     */
+    public void setRpmLimitSetting(int value) {
+        rpmLimitSetting = operatingRedline(getUnlockedRedlineRpm(), value);
+        rpmMilli = Math.min(rpmMilli, redlineMilli());
+    }
+
+    /**
+     * F4: the per-cycle RPM gain, x1000, CLAMPED TO THE AUTHORISED OVERSPEED. The redline and
+     * the gain have to move together - the equilibrium is {@code 10.486 x gain}, so 11,996 at
+     * x1.000 - and authorising 13,500 is authorising the x1.125 that reaches it. Clamping the
+     * gain here rather than only the redline is what makes this a true opt-in: a plant whose
+     * propellant tops out BELOW the redline (Lv 3 settles at ~9,227) is never pushed to a
+     * higher equilibrium, and therefore never to a higher coolant draw, until it asks.
+     */
+    private int rpmGainMilli() {
+        final int authorised = getRedlineRpm() * 1000 / RPM_REDLINE;
+        return Math.max(1000, Math.min(progression.rpmGainMilli(), authorised));
+    }
+
+    private int redlineMilli() {
+        return getRedlineRpm() * 1000;
+    }
+
+    /** D-23 UPTIME 6: 20-tick slugs the chain's steam buffer holds. 100 -> 160. */
+    private int steamBufferCapTicks() {
+        return progression.steamBufferSlugs(STEAM_BUFFER_CAP_TICKS);
+    }
+
+    private int derrickCycleTicks() {
+        return progression.moduleCycleTicks(DERRICK_CYCLE_TICKS);
+    }
+
+    private int annexCycleTicks() {
+        return progression.moduleCycleTicks(ANNEX_CYCLE_TICKS);
+    }
+
+    private int derrickTantalumEvery() {
+        return progression.derrickTantalumEvery(DERRICK_TANTALUM_EVERY);
+    }
+
+    private int annexPellets() {
+        return progression.annexPellets(ANNEX_PELLETS);
     }
 
     public int getCyclesPerMinute() {
@@ -5923,12 +6393,14 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     /** Control-rod setting as a percentage of full power (the campaign's N/24). */
     /** The EFFECTIVE throttle - a programmed circuit overrides the GUI setting. */
     public int getThrottlePercent() {
-        return Math.min(24, Math.max(1, throttleN)) * 100 / 24;
+        // D-23: capped at the UNLOCKED maximum, so a withdrawn-rod plant reads 125% rather
+        // than a flat 100% that hides the very thing the BURNUP line just paid for.
+        return Math.min(maxThrottle(), Math.max(1, throttleN)) * 100 / 24;
     }
 
     /** True when a programmed circuit is driving the rods instead of the GUI field. */
     public boolean isThrottleOverridden() {
-        return throttleN != Math.min(24, Math.max(1, throttleSetting));
+        return throttleN != Math.min(maxThrottle(), Math.max(1, throttleSetting));
     }
 
     public boolean isGalleryBuilt() {
@@ -5981,7 +6453,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
     /** The EFFECTIVE control-rod setting as the raw N of N/24 (a circuit may override it). */
     public int getThrottleN() {
-        return Math.min(24, Math.max(1, throttleN));
+        return Math.min(maxThrottle(), Math.max(1, throttleN));
     }
 
     /** Campaign steam after the Spine's speed AND efficiency - what the EU math multiplies. */
@@ -5995,15 +6467,29 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * stale the moment the campaign pauses; the math panel has to keep deriving.
      */
     public long getLiveEUDemand() {
-        return euDemandOf(spineBoostedSteam(true), rpmMilli, avgRotorFactorMilli);
+        return euDemand();
     }
 
+    /**
+     * D-24: CLAMPED to the live cap, not the raw stored field. The tree's rod nodes are
+     * refundable, so the cap is the first limit in this plant that can go DOWN - and every
+     * consumer of the setting (the cascade at {@code throttleCap}, {@link #getThrottleN},
+     * {@link #isThrottleOverridden}) already re-clamps, so an unclamped getter would only ever
+     * have made the GUI field print a number the plant refuses to run at.
+     */
     public int getThrottleSetting() {
-        return throttleSetting;
+        return Math.min(maxThrottle(), Math.max(1, throttleSetting));
     }
 
+    /**
+     * D-23: clamped to the UNLOCKED cap, server side. The GUI field's own range is the full
+     * 1..30 because a MUI2 text field's bounds are fixed at build time and the client does not
+     * get to decide what this plant may do - so a player without the unlock can type 30, and
+     * this clamps it straight back to 24 and the field re-syncs. The safe direction: the field
+     * offering a value the server refuses, never the field refusing one the server allows.
+     */
     public void setThrottleSetting(int value) {
-        throttleSetting = Math.min(24, Math.max(1, value));
+        throttleSetting = Math.min(maxThrottle(), Math.max(1, value));
     }
 
     public int getBuildTierSetting() {
@@ -6465,14 +6951,32 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return "Coolant " + coolant + " · " + String.format("%,d", drain) + " L/t (chamber coolant hatch)";
     }
 
-    public static String rpmLine(int rpm, int cyclesPerMinute, int bufferSlugsTenths, boolean benchClock) {
-        final EnumChatFormatting color = rpm >= RPM_REDLINE ? EnumChatFormatting.RED
+    /**
+     * D-23: the redline is a PARAMETER now, not the constant. TURBINE 5/6 raise it to 13,500
+     * and 15,000, and a readout that kept quoting 12,000 would paint an overspeed-trimmed
+     * plant as permanently redlined while it was still accelerating.
+     * <p>
+     * F4: {@code redline} is the OPERATING one - the unlocked ceiling capped by the RPM LIMIT
+     * field - and {@code unlocked} is the ceiling itself, so a plant sitting at the design
+     * 12,000 with an unused unlock is told there is headroom it has not asked for rather than
+     * being pushed into it.
+     */
+    public static String rpmLine(int rpm, int redline, int unlocked, int cyclesPerMinute, int bufferSlugsTenths,
+        boolean benchClock) {
+        final EnumChatFormatting color = rpm >= redline ? EnumChatFormatting.RED
             : rpm > 0 ? EnumChatFormatting.GREEN : EnumChatFormatting.GRAY;
         return color + "RPM "
             + String.format("%,d", rpm)
             + EnumChatFormatting.RESET
             + "/"
-            + String.format("%,d", RPM_REDLINE)
+            + String.format("%,d", redline)
+            + (redline > RPM_REDLINE ? EnumChatFormatting.GOLD + " (trimmed)" + EnumChatFormatting.RESET : "")
+            + (unlocked > redline
+                ? EnumChatFormatting.GOLD + " (up to "
+                    + String.format("%,d", unlocked)
+                    + " unlocked - set the RPM LIMIT field)"
+                    + EnumChatFormatting.RESET
+                : "")
             + " redline · "
             + cyclesPerMinute
             + " cyc/min ("
@@ -6633,7 +7137,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             + String.format("%,d", STEAM_PER_COLUMN);
         final String tail = EnumChatFormatting.AQUA + String.format("%,d", steam) + " L/t" + EnumChatFormatting.RESET;
         // At full throttle the base IS the output, so printing it twice only adds noise.
-        return throttleN >= 24 ? head + " = " + tail + " (rods 24/24)"
+        // D-23: EQUAL to 24, not >= 24. With the BURNUP unlocks a plant can sit at 26..30/24,
+        // and the short form would have printed "(rods 24/24)" over a 25% overdrive.
+        return throttleN == 24 ? head + " = " + tail + " (rods 24/24)"
             : head + " = " + String.format("%,d", base) + " · rods " + throttleN + "/24 -> " + tail;
     }
 
@@ -6653,8 +7159,16 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             + " through the chain";
     }
 
-    /** Step 3 - the fan: RPM/500 (x24 at the redline) and the average rotor factor. */
-    public static String mathTurbineLine(int rpm, int rotorMilli, long demand) {
+    /**
+     * Step 3 - the fan: RPM/500 (x24 at the stock redline), the average rotor factor, D-23's
+     * MILESTONE term and D-24's UPGRADE-TREE term.
+     * <p>
+     * Each progression factor is printed whenever it is not x1.000, because both are real terms of
+     * {@link #euDemandOf} and a derivation that hid it would be lying about its own
+     * arithmetic. At x1.000 nothing is printed at all, so a plant with no progress sees the
+     * exact line it saw before this system existed.
+     */
+    public static String mathTurbineLine(int rpm, int rotorMilli, int progMilli, int upgradeMilli, long demand) {
         return EnumChatFormatting.GRAY + "3) "
             + EnumChatFormatting.RESET
             + "x RPM "
@@ -6663,6 +7177,16 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             + String.format("%.2f", rpm / 500.0)
             + ") x rotors x"
             + String.format("%.2f", rotorMilli / 1000.0)
+            + (progMilli > 1000
+                ? EnumChatFormatting.GOLD + " x milestones x"
+                    + String.format("%.3f", progMilli / 1000.0)
+                    + EnumChatFormatting.RESET
+                : "")
+            + (upgradeMilli > 1000
+                ? EnumChatFormatting.GOLD + " x upgrades x"
+                    + String.format("%.3f", upgradeMilli / 1000.0)
+                    + EnumChatFormatting.RESET
+                : "")
             + " = "
             + EnumChatFormatting.AQUA
             + String.format("%,d", demand)
@@ -6769,8 +7293,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      */
     public static String mathLimiterLine(boolean spineBuilt, int spineHousings, boolean spiralBuilt,
         boolean galleryBuilt, boolean galleryActive, int live, int cap, int totalColumns, int fuelMilli, int throttleN,
-        int speedMilli, int effMilli, int rpm, int injectors, boolean injectorsDry, boolean coolantReady,
-        int rotorMilli, long demand, long ceiling, long gridCap) {
+        int throttleCap, int speedMilli, int effMilli, int rpm, int redline, int injectors, boolean injectorsDry,
+        boolean coolantReady, int rotorMilli, long demand, long ceiling, long gridCap) {
         String worstName = "";
         String worstFix = "";
         int worstPermille = 1000;
@@ -6806,10 +7330,18 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         // circuit in the controller slot overrides the GUI field - so the fix has to name both
         // places it can live rather than send a circuit-driven plant to a field that does
         // nothing. This is the one branch where naming the right control costs no new state.
-        final int throttleP = Math.min(24, Math.max(1, throttleN)) * 1000 / 24;
+        // F7: scored against THIS PLANT'S CAP, not a hard 24. With the BURNUP unlocks and the
+        // three rod nodes the cap runs 26..36, checkProcessing clamps the setting to
+        // maxThrottle() and getThrottleN() hands back the raw N - so the old min(24, N) term
+        // saturated at 100% on a setting the plant had already exceeded, while mathSteamLine
+        // one line above was correctly printing "rods 36/24". The DENOMINATOR the player reads
+        // is still 24 (36/24 really is 150% of design power); only the RATIO this line scores
+        // moves, and at an un-upgraded cap of 24 it is bit-identical to what it printed before.
+        final int rodCap = Math.max(1, throttleCap);
+        final int throttleP = Math.min(rodCap, Math.max(1, throttleN)) * 1000 / rodCap;
         if (throttleP < worstPermille) {
             worstPermille = throttleP;
-            worstName = "rods " + throttleN + "/24";
+            worstName = "rods " + throttleN + "/24" + (rodCap > 24 ? " of " + rodCap + "/24 unlocked" : "");
             worstFix = "raise the rod throttle - the GUI field, or the programmed circuit in the controller slot if one is in it";
         }
         // Spine, against the x1.553 an all-riding train reaches. Efficiency is an EU-side term:
@@ -6840,10 +7372,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             // Fan speed, against the redline. RPM is added by CYCLES, and cycles are run by the
             // Spiral's eight injectors - with no chamber there is nothing to cycle, so "cycle
             // faster" would be one more instruction to tune a building that is not there.
-            final int rpmP = (int) Math.min(1000L, (long) rpm * 1000 / RPM_REDLINE);
+            final int rpmP = (int) Math.min(1000L, (long) rpm * 1000 / Math.max(1, redline));
             if (rpmP < worstPermille) {
                 worstPermille = rpmP;
-                final String rpmNow = "RPM " + String.format("%,d", rpm) + "/" + String.format("%,d", RPM_REDLINE);
+                final String rpmNow = "RPM " + String.format("%,d", rpm) + "/" + String.format("%,d", redline);
                 // M8: RPM is added by CYCLES, and the TC-7 interlock refuses a cycle outright on
                 // three separate grounds before "not enough of them" is even a coherent reading.
                 // The branches follow the interlock's own precedence (`dry || cannot cool`), so
@@ -6976,6 +7508,15 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 annexCycles,
                 getModuleStall());
             if (!bareStall.isEmpty()) out.add(bareStall);
+            // F6: the progression block belongs to EVERY readout in EVERY state. It used to sit
+            // below this early return, so a platform with no silo yet showed milestone progress
+            // in the controller GUI (whose rows are ungated) while both control blocks and the
+            // scanner showed none - and REPROCESSING is exactly the line that accrues on a bare
+            // platform's Derrick, before there is a silo to gate on.
+            appendProgression(out);
+            if (debugAutoCycle || debugInfiniteSupplies) {
+                out.add(debugLine(debugAutoCycle, debugInfiniteSupplies));
+            }
             return out;
         }
         out.add(tierLine(getReactorTier(), getEdge(), getThrottlePercent()));
@@ -7000,7 +7541,14 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         out.add(
             coolantLine(spiralBuilt, chamberStarved, isChamberCoolantReady(), chamberCoolantName, chamberCoolantDrain));
         out.add(header("TURBINE"));
-        out.add(rpmLine(getRpm(), cyclesPerMinute, getSteamBufferSlugsTenths(), debugAutoCycle));
+        out.add(
+            rpmLine(
+                getRpm(),
+                getRedlineRpm(),
+                getUnlockedRedlineRpm(),
+                cyclesPerMinute,
+                getSteamBufferSlugsTenths(),
+                debugAutoCycle));
         out.add(rotorLine(galleryBuilt, galleryStages, avgRotorFactorMilli, rotorWear));
         final String hold = getTurbineHoldReason();
         if (!hold.isEmpty()) out.add(holdLine(hold));
@@ -7049,7 +7597,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         // empty generates nothing and the plant is genuinely exporting steam through the silo,
         // so it gets the export step, not steps 3 and 4 about a fan that is not turning.
         if (isGalleryActive()) {
-            out.add(mathTurbineLine(getRpm(), avgRotorFactorMilli, demandNow));
+            out.add(mathTurbineLine(getRpm(), avgRotorFactorMilli, progOutputMilli(), progUpgradeMilli(), demandNow));
             out.add(mathClampLine(demandNow, ceilingNow, gridCeiling()));
         } else {
             out.add(mathExportLine(spineSpeedMilli, getBoostedSteamOutput()));
@@ -7065,9 +7613,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             getTotalColumns(),
             avgFuelMilli(cascadeMode, live, activeFuelMult, fuelBaseSteam),
             getThrottleN(),
+            maxThrottle(),
             spineSpeedMilli,
             spineEffMilli,
             getRpm(),
+            getRedlineRpm(),
             spiralInjectors.size(),
             isInjectorsDry(),
             isChamberCoolantReady(),
@@ -7076,10 +7626,37 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             ceilingNow,
             gridCeiling());
         out.add(weakest);
+        appendProgression(out);
         if (debugAutoCycle || debugInfiniteSupplies) {
             out.add(debugLine(debugAutoCycle, debugInfiniteSupplies));
         }
         return out;
+    }
+
+    /**
+     * The D-23 MILESTONES and D-24 UPGRADES block, in ONE place so it cannot be appended on one
+     * path and forgotten on another (F6).
+     * <p>
+     * UNGATED on the silo, exactly like the tower and module lines - the REPROCESSING line
+     * accumulates on a bare platform's Derrick as readily as on a finished silo, and the
+     * controller GUI is the only panel that exists while a player is still building one. Every
+     * line comes out of the same static formatter the GUI's own rows call, off the same four
+     * counters and the same node mask, so the GUI, BOTH control blocks and the scanner cannot
+     * describe four different campaigns.
+     */
+    private void appendProgression(List<String> out) {
+        out.add(header("MILESTONES"));
+        final long[] progress = progression.snapshot();
+        for (final BTSMilestone line : BTSMilestone.values()) {
+            out.add(BTSMilestone.milestoneLine(line, BTSProgression.counterOf(progress, line)));
+        }
+        out.add(BTSMilestone.milestoneSummaryLine(progress));
+        out.add(BTSMilestone.milestoneUnlockLine(progress));
+        // D-24 UPGRADES: what the points earned above have been SPENT on, and what those
+        // purchases are currently moving. Both off BTSUpgrade's shared static formatters - the
+        // same two the tree panel's header prints.
+        out.add(BTSUpgrade.treeSummaryLine(progression.nodes(), progress));
+        out.add(BTSUpgrade.treeEffectLine(progression.nodes()));
     }
 
     private static String fuelName(int mult) {
@@ -7143,6 +7720,16 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             .addInfo("Hand-injecting still works and still has to hit the window; the Sensor echoes")
             .addInfo("accepted cycles.")
             .addInfo(aqua + "RPM:" + reset + " each cycle adds 176 x P x timed/8 RPM; decay 0.5%/t; redline 12,000.")
+            .addInfo(gray + "  TURBINE T5/T6 raise that CEILING to 13,500 and 15,000 - they never move the fan" + reset)
+            .addInfo(gray + "  on their own. Type the redline you want into the RPM LIMIT field." + reset)
+            .addInfo(
+                aqua + "MILESTONES:" + reset + " four lines - UPTIME, BURNUP, REPROCESSING, TURBINE - advance just by")
+            .addInfo("running. Tiers 1-4 multiply the plant's EU/t (the MATH panel prints the term);")
+            .addInfo("tiers 5-7 UNLOCK new maxima you OPT IN to: rod throttle past 24/24 in the rods field,")
+            .addInfo("a higher redline in the RPM LIMIT field, and pure reductions - cheaper")
+            .addInfo(gray + "water, faster process modules. Progress is stored on THIS controller," + reset)
+            .addInfo(gray + "which is BLAST-PROOF for that reason - it survives a wrench, a pickaxe, a" + reset)
+            .addInfo(gray + "reload, a chunk unload, an un-form and a creeper. The casings do not." + reset)
             .addInfo("Coolant drain scales with RPM SQUARED. INTERLOCK: a cycle is only accepted while")
             .addInfo("the chamber can cool the RPM it would reach and the injectors have propellant -")
             .addInfo(gray + "an unsupplied plant simply never spins up, and says why on every panel." + reset)
@@ -7175,7 +7762,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             .addInfo("    Derrick + Annex + an external centrifuge = a near-self-fuelling plant.")
             .addInfo(gray + "  Both draw their EU from the manifold's ENERGY HATCHES - the first and only" + reset)
             .addInfo(gray + "  things in this plant that consume any. Still never a structure demand." + reset)
-            .addInfo(aqua + "Control:" + reset + " rods 1-24 + Build Tier in the GUI; circuit overrides throttle.")
+            .addInfo(
+                aqua + "Control:" + reset + " rods 1-24, RPM LIMIT and Build Tier in the GUI; circuit overrides rods.")
             .addInfo(gray + "Build Tier only decides what to RAISE - a standing silo is never re-tiered," + reset)
             .addInfo(gray + "even while it is broken. Take the silo down and Build Tier is free again." + reset)
             .addInfo(red + "Heat:" + reset + " SCRAM 8,000 - MELTDOWN 10,000. Decay heat needs 20 min of water.")
