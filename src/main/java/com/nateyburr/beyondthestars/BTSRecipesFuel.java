@@ -199,6 +199,7 @@ public final class BTSRecipesFuel {
         thoriumGrade();
         naquadahGrade();
         reprocessing();
+        crudeReprocessing();
         byproductCleanup();
         keptFromBefore();
     }
@@ -1035,6 +1036,127 @@ public final class BTSRecipesFuel {
             .duration(30 * SECONDS)
             .eut(TierEU.RECIPE_IV)
             .addTo(MTEPurexCanyon.RECIPE_MAP);
+    }
+
+    // ======================================= the crude route: depleted fuel WITHOUT a PUREX Canyon
+
+    /**
+     * THE EIGHT CENTRIFUGE ROUTES, RESTORED. Every one of the eight depleted forms can be torn
+     * down on a plain Centrifuge again, at exactly the numbers it had in 0.23.0.
+     * <p>
+     * <b>Why they came back.</b> The redesign moved all reprocessing onto {@link MTEPurexCanyon},
+     * and every replacement sink - R-02, R-02h, R-03 - is on that machine's map. A world that
+     * loads into this version has depleted fuel in its chests and, very often, a Centrifuge array
+     * already piped to consume it; on the day of the update that array stops dead and its stock
+     * has NO route at all until a whole new multiblock is built. That is not a difficulty curve,
+     * it is a stall, and it is the one migration failure a release pass has to catch.
+     * <p>
+     * <b>PUREX stays the efficient route; this is the crude one.</b> The Canyon gives back
+     * {@code ceramicUO2Powder}, a ceramic that drops straight back into F-13, plus the cladding
+     * hulls for R-04 and the nuclear waste water that pays the D-09 anchor. The Centrifuge gives
+     * back raw metal DUST, which has to climb the whole conversion ladder from F-09 again, no
+     * hulls, and no waste water. So the Canyon is strictly better on every axis and remains the
+     * thing worth building. It is now an upgrade rather than a toll gate.
+     * <p>
+     * <b>Not one number moved, and no programmed circuit was added.</b> The values are the eight
+     * retired recipes verbatim, from {@code git show 5344bcf}. A circuit would have been tidier
+     * beside this file's other Centrifuge entries, but it would also have broken every standing
+     * automated line, which is the exact failure these recipes exist to prevent.
+     * {@code centrifugeRecipes} is {@code maxIO(2, 6, 1, 1)}: one item input and four chanced
+     * outputs fit with a slot to spare.
+     */
+    private static void crudeReprocessing() {
+        crudeCentrifuge(
+            BTSItems.depletedFuelAssemblyUranium,
+            1 * MINUTES,
+            TierEU.RECIPE_EV,
+            new ItemStack[] { GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uranium, 4L),
+                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Plutonium, 2L),
+                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Lead, 1L),
+                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Platinum, 2L) },
+            new int[] { 10_000, 10_000, 10_000, 5_000 });
+
+        crudeCentrifuge(
+            BTSItems.depletedFuelAssemblyMox,
+            1 * MINUTES,
+            TierEU.RECIPE_EV,
+            new ItemStack[] { GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uranium, 3L),
+                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Plutonium, 3L),
+                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Lead, 2L),
+                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Platinum, 2L) },
+            new int[] { 10_000, 10_000, 10_000, 5_000 });
+
+        crudeCentrifuge(
+            BTSItems.depletedFuelAssemblyThoriumBonded,
+            1 * MINUTES,
+            TierEU.RECIPE_IV,
+            new ItemStack[] { GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uranium, 4L),
+                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Thorium, 4L),
+                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Plutonium, 2L),
+                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Lead, 2L) },
+            new int[] { 10_000, 10_000, 10_000, 10_000 });
+
+        crudeCentrifuge(
+            BTSItems.depletedFuelAssemblyNaqBonded,
+            1 * MINUTES,
+            TierEU.RECIPE_LuV,
+            new ItemStack[] { GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uranium, 4L),
+                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Naquadah, 4L),
+                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Plutonium, 3L),
+                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Lead, 2L) },
+            new int[] { 10_000, 10_000, 10_000, 10_000 });
+
+        // The SD-1 rod cascade drops rods, so every assembly shape has its rod-scale twin here too,
+        // at a third of the numbers - exactly as R-02 and R-02h do above.
+        crudeCentrifuge(
+            BTSItems.depletedFuelRodUranium,
+            20 * SECONDS,
+            TierEU.RECIPE_EV,
+            new ItemStack[] { GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uranium, 1L),
+                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Plutonium, 1L),
+                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Lead, 1L),
+                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Platinum, 1L) },
+            new int[] { 10_000, 6_700, 10_000, 5_000 });
+
+        crudeCentrifuge(
+            BTSItems.depletedFuelRodMox,
+            20 * SECONDS,
+            TierEU.RECIPE_EV,
+            new ItemStack[] { GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uranium, 1L),
+                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Plutonium, 1L),
+                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Lead, 2L),
+                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Platinum, 1L) },
+            new int[] { 10_000, 10_000, 10_000, 5_000 });
+
+        crudeCentrifuge(
+            BTSItems.depletedFuelRodThoriumBonded,
+            20 * SECONDS,
+            TierEU.RECIPE_IV,
+            new ItemStack[] { GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uranium, 1L),
+                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Thorium, 1L),
+                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Plutonium, 1L),
+                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Lead, 2L) },
+            new int[] { 10_000, 10_000, 6_700, 10_000 });
+
+        crudeCentrifuge(
+            BTSItems.depletedFuelRodNaqBonded,
+            20 * SECONDS,
+            TierEU.RECIPE_LuV,
+            new ItemStack[] { GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uranium, 1L),
+                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Naquadah, 1L),
+                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Plutonium, 1L),
+                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Lead, 2L) },
+            new int[] { 10_000, 10_000, 10_000, 10_000 });
+    }
+
+    private static void crudeCentrifuge(Item depleted, int duration, long eut, ItemStack[] outputs, int[] chances) {
+        GTValues.RA.stdBuilder()
+            .itemInputs(new ItemStack(depleted, 1))
+            .itemOutputs(outputs)
+            .outputChances(chances)
+            .duration(duration)
+            .eut(eut)
+            .addTo(centrifugeRecipes);
     }
 
     // ============================================================ the three barren-rock streams

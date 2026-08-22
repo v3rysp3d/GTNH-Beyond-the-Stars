@@ -120,12 +120,6 @@ public final class BTSRecipesPropellant {
     private static final int SLURRY_PER_DUST = 250;
     /** D-20: the supply-rate-against-clock balance is calibrated on this. Both routes, every rung. */
     private static final int PROPELLANT_PER_CYCLE = 250;
-    /** GT++'s milling circuit convention: 10 picks the alumina ball, 11 the soapstone one. */
-    private static final int MILL_CIRCUIT_ALUMINA = 10;
-    private static final int MILL_CIRCUIT_SOAPSTONE = 11;
-    /** Alumina is the better ball in GT++ and stays the better ball here - same powder, less time. */
-    private static final int MILL_SECONDS_ALUMINA = 30;
-    private static final int MILL_SECONDS_SOAPSTONE = 40;
     /** QFT focus selector: circuit N focuses output index N-1, and P-03h has only index 0. */
     private static final int QFT_FOCUS_ONLY_OUTPUT = 1;
 
@@ -251,11 +245,16 @@ public final class BTSRecipesPropellant {
     // input array before matching, and onRecipeStart calls damageMillingBall on the bus's own
     // stack. That is why the ball is carried at stack size 0 here, exactly as GT++ carries it.
     //
-    // GT++'s own milling recipes (BaseItemMilledOre, same jar) register each input twice, once per
-    // ball type, told apart by a programmed circuit, with the alumina ball the faster of the two.
-    // Matched here: either ball mills the dust, alumina just runs the clock quicker. The map is
-    // maxIO(3, 1, 0, 0) with minInputs(1, 0), so dust + ball + circuit is exactly the three item
-    // slots on offer, and there are no fluid slots at all.
+    // ALUMINA, and only alumina - the addon-wide rule, stated in BTSRecipesFuel.millingBall() and
+    // followed here rather than forked. GT++ pairs a soapstone entry with every alumina one and
+    // keys the pair apart with a circuit, and the slot budget would allow it on this recipe: the
+    // map is maxIO(3, 1, 0, 0) with minInputs(1, 0), and dust + ball leaves the third item slot
+    // free. It is still the wrong call. GT++ registers the pair because its two entries have
+    // different YIELDS (64 milled against 48) - it is a ladder, not a compatibility shim. Ours
+    // would be two NEI entries for the same 8 dust -> 1 powder, and a second milling convention
+    // inside one addon, when the fuel line's F-01/F-19/F-21b already make an alumina ball a
+    // prerequisite three steps earlier. No circuit is demanded either: the three dusts tell the
+    // three recipes apart on their own.
     // ------------------------------------------------------------------------------------------
 
     private static void metalAdditiveMilling() {
@@ -264,33 +263,13 @@ public final class BTSRecipesPropellant {
         mill(Materials.Infinity, BTSItemsPropellant.ultrafineInfinity, TierEU.RECIPE_UHV);
     }
 
-    /**
-     * One rung, both ball types. The bill is 8 dust -> 1 powder either way, so the blending table
-     * in the class comment holds whichever ball is in the bus; only the clock moves.
-     */
     private static void mill(Materials metal, Item powder, long tier) {
-        millWith(
-            metal,
-            powder,
-            tier,
-            GregtechItemList.Milling_Ball_Alumina.get(0),
-            MILL_CIRCUIT_ALUMINA,
-            MILL_SECONDS_ALUMINA);
-        millWith(
-            metal,
-            powder,
-            tier,
-            GregtechItemList.Milling_Ball_Soapstone.get(0),
-            MILL_CIRCUIT_SOAPSTONE,
-            MILL_SECONDS_SOAPSTONE);
-    }
-
-    private static void millWith(Materials metal, Item powder, long tier, ItemStack ball, int circuit, int seconds) {
         GTValues.RA.stdBuilder()
-            .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, metal, 8L), ball)
-            .circuit(circuit)
+            .itemInputs(
+                GTOreDictUnificator.get(OrePrefixes.dust, metal, 8L),
+                GregtechItemList.Milling_Ball_Alumina.get(0))
             .itemOutputs(new ItemStack(powder, 1))
-            .duration(seconds * SECONDS)
+            .duration(30 * SECONDS)
             .eut(tier)
             .addTo(GTPPRecipeMaps.millingRecipes);
     }
