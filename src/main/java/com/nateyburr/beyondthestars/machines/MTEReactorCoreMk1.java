@@ -8449,9 +8449,12 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * machine is the catalyst for; it is NOT the hook that makes a machine process recipes.
      * That one is {@code getRecipeMap()}, which stays null here because the plant runs its own
      * {@link #checkProcessing()} over rod segments and never calls findRecipe. Returning the
-     * display maps therefore only puts the controller's icon on three pages of tables (and
+     * display maps therefore only puts the controller's icon on four pages of tables (and
      * those pages' entries are {@code .fake()} on top of that); the machine's behaviour and the
      * hatches' filtering are completely untouched.
+     * <p>
+     * D-26 adds the fourth: the purified-water ladder, which belongs on this controller's icon
+     * because one of its two terms is a term of THIS machine's EU derivation.
      */
     @Nonnull
     @Override
@@ -8459,7 +8462,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return Arrays.asList(
             com.nateyburr.beyondthestars.BTSDisplayRecipes.plantFuelRods,
             com.nateyburr.beyondthestars.BTSDisplayRecipes.plantPropellant,
-            com.nateyburr.beyondthestars.BTSDisplayRecipes.plantCoolant);
+            com.nateyburr.beyondthestars.BTSDisplayRecipes.plantCoolant,
+            com.nateyburr.beyondthestars.BTSDisplayRecipes.plantWater);
     }
 
     @Override
