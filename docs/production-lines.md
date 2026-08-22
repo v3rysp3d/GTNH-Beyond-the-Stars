@@ -1424,23 +1424,58 @@ note stated the milling-ball rule exactly backwards, in the same words the code 
 dark theming through CSS tokens (never defined only inside a media query), and a theme toggle that
 remembers its setting. It carries the master diagram as **plain SVG** — deliberately not canvas,
 which cannot be screenshotted reliably outside a `requestAnimationFrame` turn — plus every one of
-the 67 steps as a card with its machine, tier band and real inputs and outputs.
+the **68** steps as a card with its machine, tier band and real inputs and outputs.
 
-**It was verified in a real browser, not eyeballed**: served over `127.0.0.1:8731`, opened in
-Chromium, and audited in the DOM.
+**Every count on the page is summed from the step data, never typed.** The masthead reads
+**156 registered recipes · 68 steps · 4 new multiblocks**, and the five rail heads read 74 (fuel),
+35 (reprocessing), 12 (material), 32 (propellant) and 3 (coolant). Fuel + reprocessing = **109**,
+which is exactly what `BTSRecipesFuel.java` registers — the two halves of that file are drawn as two
+lanes. That is why §10.1's table and this page cannot silently drift: if they disagree, one of them
+has not been regenerated.
 
-- **0 console messages** of any level, errors and warnings alike.
-- **0 edge segments passing through a node box**, checked by walking every `path.e` and testing
-  each straight segment against every `rect.nbox`.
-- **0 text runs overflowing their box or the viewBox.**
-- **0 horizontal page overflow** at 1440 px.
+### 11.1 The release-pass re-verification
 
-That audit found four real defects that reading the file had not: the Fabrication Hall's sub-line
-ran past its own box, the material edge cut straight through the "Unit One" lane label, `.nid`'s
-`text-transform: uppercase` had turned `MTEReactorCoreMk1` into an unreadable
-`MTEREACTORCOREMK1`, and the "new multiblocks" figure counted machine **labels** rather than
-machine **identities** — reporting six where there are four, because the PUREX Canyon appears as
-"circuit 1", "circuit 2" and "circuit 3".
+Re-audited after this round's recipe changes, over the same method: `python -m http.server 8731
+--bind 127.0.0.1` from `docs/`, opened in Chromium through the Playwright browser tools, audited in
+the DOM, screenshotted in **both** explicit themes, server shut down.
+
+| Check | Result |
+|---|---|
+| Console messages, all levels (error, warning, info, debug) | **0** |
+| Edge segments passing through a node box | **0** — every `path.e` sampled at 2 px against every `rect.nbox` |
+| SVG text runs overflowing their own `nbox` | **0** |
+| SVG text runs overflowing the `viewBox` | **0** — checked with the full parent-transform chain applied |
+| Free labels drawn over a node box they do not belong to | **0** |
+| Horizontal page overflow at 1440 px | **0** (`scrollWidth − clientWidth = 0`, no element wider than the viewport without its own `overflow-x`) |
+| Light theme | renders, `body` background `rgb(242, 244, 247)` |
+| Dark theme | renders, `body` background `rgb(11, 14, 18)`, ink `rgb(204, 213, 222)` |
+| Water table | 11 rows, three graded columns, values match `BTSWaterGrade` at bases 4 / 8 / 6 |
+
+**A note on the audit itself.** The first run of the text check reported 35 false positives, because
+`text.parentNode` for a free-floating SVG label is the `<svg>` element, and
+`svg.querySelector('rect.nbox')` then returns the *first* node box on the page — so every lane label
+was measured against an unrelated box. The check now scopes to `g > rect.nbox` and walks the real
+transform chain. Worth recording: an audit that reports defects it cannot have found is worse than
+no audit, because the next person turns it off.
+
+### 11.2 What changed on the page this round
+
+- **F-01, F-19, F-21b, P-02a** now name the Alumina Milling Ball, and F-01's note no longer states
+  the rule backwards.
+- **F-20** and **F-21a** are hero cards with nine rungs each; the master SVG grew a **second YIELD
+  edge** into the `F-19 … F-23` box, and that box is drawn in the water colour.
+- The water table gained **F-20** and **F-21a** columns, computed from the same
+  `base × yieldMilli / 1000` the Java performs.
+- The formula block printed **`x rpm/1000`**. It is `rpmMilli / 500_000`. Fixed, with the divisor
+  spelled out so it cannot be "corrected" back — a player back-solving off that line was 500× out.
+- **R-00** added: the eight kept Centrifuge recipes, with what they do *not* give back.
+- The reprocessing phase note and the `kept` card no longer claim `nuclearWasteWater` had no
+  producer.
+- **P-03h** documents the circuit-1 focus trap.
+- **F-23** and **F-18n** carry their real input lists, and F-18n carries the reason it shipped
+  unregistered.
+- A note in §3 gives the **four new controllers' Assembler recipes** — they had none — and the
+  28101 → 28113 move.
 
 The mermaid graph in §9 is kept as the design-time sketch. **Where it disagrees with the HTML, the
 HTML is as-built** — §9 still draws F-16 on the Extruder and F-02 producing a solid, both of which
