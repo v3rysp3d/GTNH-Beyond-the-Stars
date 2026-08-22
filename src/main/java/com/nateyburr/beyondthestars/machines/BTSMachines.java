@@ -15,6 +15,12 @@ public final class BTSMachines {
     public static ItemStack spineSensor;
     public static ItemStack siloControlBlock;
     public static ItemStack turbineControlBlock;
+    // D-26 (docs/production-lines.md S5): the four new production multiblocks. Ids base+1,
+    // base+10, base+11 and base+12 - base+1 was the one gap left in the original block.
+    public static ItemStack cascadeHall;
+    public static ItemStack fuelFabricationHall;
+    public static ItemStack purexCanyon;
+    public static ItemStack siteBatchingPlant;
 
     private BTSMachines() {}
 
@@ -54,5 +60,21 @@ public final class BTSMachines {
             base + 9,
             "hatch.beyondthestars.turbinecontrolblock",
             "Turbine Control Block").getStackForm(1);
+
+        // D-26 THE FOUR NEW PRODUCTION MULTIBLOCKS. Ids are FROZEN once shipped: an MTE id is
+        // what a placed machine in a saved world is bound to, so these four may never be
+        // renumbered, only retired in place the way the two plant-module controllers were.
+        cascadeHall = new MTECascadeHall(base + 1, "multimachine.beyondthestars.cascadehall", "Cascade Hall")
+            .getStackForm(1);
+        fuelFabricationHall = new MTEFuelFabricationHall(
+            base + 10,
+            "multimachine.beyondthestars.fuelfabricationhall",
+            "Fuel Fabrication Hall").getStackForm(1);
+        purexCanyon = new MTEPurexCanyon(base + 11, "multimachine.beyondthestars.purexcanyon", "PUREX Canyon")
+            .getStackForm(1);
+        siteBatchingPlant = new MTESiteBatchingPlant(
+            base + 12,
+            "multimachine.beyondthestars.sitebatchingplant",
+            "Site Batching Plant").getStackForm(1);
     }
 }

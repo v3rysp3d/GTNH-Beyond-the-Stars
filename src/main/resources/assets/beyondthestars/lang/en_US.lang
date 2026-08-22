@@ -83,6 +83,12 @@ GT5U.gui.text.shutdown_reason.beyondthestars.seizure.chain=SEIZURE: coolant star
 beyondthestars.recipe.plantfuel=Nuclear Plant: Fuel Rods
 beyondthestars.recipe.plantpropellant=Nuclear Plant: Propellant
 beyondthestars.recipe.plantcoolant=Nuclear Plant: Coolant
+# D-26: the four NEW machines' REAL recipe maps (the three above are display-only). These
+# keys ARE the maps' unlocalized names, so they must match the RecipeMapBuilder.of() ids.
+beyondthestars.recipe.cascade=Gas Centrifuge Cascade
+beyondthestars.recipe.fabrication=Fuel Fabrication Line
+beyondthestars.recipe.purex=Reprocessing Canyon
+beyondthestars.recipe.batching=Site Batching Plant
 # The one fatal error a plant built by 0.19.0 or earlier reports: its silo face is the retired
 # plumbing frontage, which conflicts with the point-of-use layout cell for cell. %s = the tier
 # measured off the standing walls.
