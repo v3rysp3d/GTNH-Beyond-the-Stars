@@ -76,10 +76,15 @@ import gtPlusPlus.xmod.gregtech.api.enums.GregtechItemList;
  * every pellet, rod and assembly already in a player's chest worth precisely what it was worth
  * yesterday: the redesign changes the ROUTE, never the value (S8.2).
  * <p>
- * <b>The water step is F-12 and only F-12.</b> Nine parallel recipes, one per rung of the ruled
- * ladder, and every output count comes from {@link BTSWaterGrade#powderFor(int)} rather than from
- * a literal - so this file, the NEI page and the reactor's readout are all derived from one table
- * and cannot drift. F-20 (tails -> depleted powder) deliberately has NO water rung; S2.3 says why.
+ * <b>The water grade is the ceramic-grade wash on every oxide this line makes.</b> There are
+ * three oxide-making steps - F-12 (UO2 for the uranium grade), F-20 (depleted UO2 for MOX) and
+ * F-21a (thoria for the thorium grade) - and each carries the same nine-rung ladder, one recipe
+ * per rung. The naquadah grade needs no rung of its own: its pellet is built out of F-12's
+ * sintered pellet, so it inherits one. Every output count on all three ladders is derived from
+ * {@link BTSWaterGrade#yieldMilli(int)} through {@link #gradedOutput(int, int)} rather than
+ * typed, so this file, the NEI pages and the reactor's readout come off one table and cannot
+ * drift. {@link #gradedOutput(int, int)} also carries the balance-guard arithmetic per fuel
+ * grade, and why F-20's and F-21a's rungs had to exist for that guard to hold.
  * <p>
  * <b>A player holding nothing but distilled water can still finish the line.</b> Distilled is a
  * full rung of F-12, not an omission: it yields 2 powder against Grade 1's 4, so the whole chain
@@ -521,11 +526,13 @@ public final class BTSRecipesFuel {
     /**
      * F-12 RECONVERSION, the Integrated Dry Route: {@code UF6 + 2 H2O + H2 -> UO2 + 4 HF}.
      * <p>
-     * The water is literally the reagent, which is why the ruling's yield term lands here and
-     * nowhere else in the mod. Nine otherwise identical recipes differ only in which water they
-     * drink and how much powder they give back, and the count is asked of
-     * {@link BTSWaterGrade#powderFor(int)} rather than typed - 2, 4, 6, 8, 10, 12, 14, 16, 18 for
-     * distilled through Grade 8, every rung an integer because base 4 was chosen for that.
+     * The water is literally the reagent, which is why the ruling's yield term lands here - and,
+     * for the same reason, on the other two oxide-making steps F-20 and F-21a. Nine otherwise
+     * identical recipes differ only in which water they drink and how much powder they give back,
+     * and the count is asked of {@link BTSWaterGrade#powderFor(int)} rather than typed - 2, 4, 6,
+     * 8, 10, 12, 14, 16, 18 for distilled through Grade 8, every rung an integer because base 4
+     * was chosen for that. {@link #gradedOutput(int, int)} is the same arithmetic for the two
+     * ladders whose base is not 4.
      * <p>
      * <b>They are registered BEST RUNG FIRST, deliberately.</b> GT walks a recipe map in insertion
      * order when it is matching on fluids, so a hatch row holding several grades spends the best
@@ -539,6 +546,48 @@ public final class BTSRecipesFuel {
      * a Purification Plant still reaches all four fuel grades - slowly. That is the whole of the
      * ruling's x0.5.
      */
+    /**
+     * THE WATER LADDER, APPLIED TO A STEP WHOSE GRADE 1 OUTPUT IS {@code baseAtGradeOne}.
+     * Grade 1 is the identity rung, so a step that used to be flat keeps its exact old numbers
+     * when it grows a ladder - nothing a player already builds gets cheaper or dearer.
+     * <p>
+     * The multiplier is {@link BTSWaterGrade#yieldMilli(int)} / 1000: x0.5 distilled, x1.0 Grade
+     * 1, +0.5 a grade to x4.5 at Grade 8. The three bases in this file are 4 (F-12, giving 2..18
+     * and identical to {@link BTSWaterGrade#powderFor(int)}), 8 (F-20, giving 4..36) and 6
+     * (F-21a, giving 3..27). All three are multiples of 2, which is what makes every one of the
+     * twenty-seven rungs land on an integer, and the largest is 36 - inside one stack.
+     * <p>
+     * <b>WHY F-20 AND F-21a NEEDED RUNGS: the balance guard, per fuel grade.</b> The ruling wants
+     * the YIELD term to be the larger effect and the reactor's OUTPUT term the smaller. Yield
+     * spans x9.00 (0.5 to 4.5); output spans x1.40 (1.000 to 1.400). Write {@code f} for the share
+     * of a fuel grade's ceramic mass that comes from a water-graded step; the feed cost across the
+     * ladder is then {@code (1 - f) + f / Y}, and its span from distilled to Grade 8 is the yield
+     * effect that grade actually feels:
+     *
+     * <pre>
+     *   grade      f       cost @ x0.5   cost @ x4.5   YIELD span   OUTPUT span   guard
+     *   uranium    1.0000     2.0000        0.2222       x9.00         x1.40      holds
+     *   MOX        0.9375     1.9375        0.2708       x7.15         x1.40      holds
+     *   thorium    1.0000     2.0000        0.2222       x9.00         x1.40      holds
+     *   naquadah   0.5714     1.5714        0.5556       x2.83         x1.40      holds
+     * </pre>
+     *
+     * MOX is 30 parts depleted UO2 from F-20 to 2 parts PuO2 from R-03, so f = 30/32. Thorium is
+     * 30 parts thoria from F-21a to 2 parts UO2 from F-12 - BOTH graded, so f = 1. Naquadah is 8
+     * sintered pellets off F-12 against 4 enriched-naquadah and 2 U-235 dust in F-22, so f = 8/14;
+     * its HEU-UF6 rider comes off F-11b, upstream of F-12, and is ungraded.
+     * <p>
+     * <b>What it looked like before F-20 and F-21a had rungs</b>, which is why this is a blocking
+     * fix rather than a polish one: MOX had f = 0 and a yield span of x1.00 against an output span
+     * of x1.40, and thorium had f = 2/32 and x1.12 against x1.40. On two of the four fuel grades
+     * the reactor's water bonus was the LARGER effect - the guard was not merely weak, it was
+     * inverted, and a Purification Plant was a route to power rather than to cheaper fuel. The
+     * narrowest margin now is naquadah at x2.83 against x1.40, still twice the output term.
+     */
+    private static int gradedOutput(int grade, int baseAtGradeOne) {
+        return baseAtGradeOne * BTSWaterGrade.yieldMilli(grade) / 1000;
+    }
+
     private static void reconversion() {
         for (int grade = BTSWaterGrade.MAX_GRADE; grade >= BTSWaterGrade.DISTILLED; grade--) {
             final FluidStack water = BTSWaterGrade.fluidFor(grade, 2_000);
@@ -735,22 +784,40 @@ public final class BTSRecipesFuel {
     // ====================================================== F-19 / F-20, the MOX grade (F = 2)
 
     private static void moxGrade() {
-        // F-20 TAILS RECONVERSION. Chemically the same reaction as F-12 and DELIBERATELY without
-        // a water rung (S2.3): the water mechanic has to stay legible at nine NEI entries, and a
-        // MOX pellet's quality is set by its PuO2 blend rather than by the wash water. No HF is
-        // recovered here either - the tails route is the dirty route, which is the reason it is
-        // only ever good enough to be a diluent.
-        GTValues.RA.stdBuilder()
-            .circuit(1)
-            .fluidInputs(
-                new FluidStack(BTSFluidsProcess.depletedUF6, 5_000),
-                Materials.Hydrogen.getGas(10_000),
-                Materials.Water.getFluid(10_000))
-            .itemOutputs(new ItemStack(BTSItemsFuel.depletedUO2Powder, 20))
-            .metadata(CHEMPLANT_CASING_TIER, 3)
-            .duration(45 * SECONDS)
-            .eut(TierEU.RECIPE_IV)
-            .addTo(chemicalPlantRecipes);
+        // F-20 TAILS RECONVERSION. Chemically the same reaction as F-12, and now on the same
+        // nine-rung water ladder rather than on plain Materials.Water.
+        //
+        // It used to be flat, on the argument that a MOX pellet's quality is set by its PuO2 blend
+        // rather than by the wash water. That argument was wrong about the consequence: with plain
+        // water here, MOX was the one fuel grade the ladder could not touch at all, its yield span
+        // was x1.00 against the reactor's x1.40 output span, and the balance guard came out
+        // INVERTED. gradedOutput() has the arithmetic for all four grades.
+        //
+        // The batch is two fifths of what it was - 2,000 L of tails against 5,000 and 18 s against
+        // 45 s - which leaves powder per litre and powder per second at Grade 1 exactly where they
+        // were (8 per 2,000 L is 20 per 5,000 L; 8 in 18 s is 20 in 45 s), and keeps the top rung
+        // at 36 rather than 90, comfortably inside one stack.
+        //
+        // Registered best rung first, as F-12 is and for the same reason. No HF is recovered here
+        // even now: the tails route is still the dirty route, which is why its product is only
+        // ever good enough to be a diluent.
+        for (int grade = BTSWaterGrade.MAX_GRADE; grade >= BTSWaterGrade.DISTILLED; grade--) {
+            final FluidStack water = BTSWaterGrade.fluidFor(grade, 4_000);
+            // A rung whose fluid the pack does not have is SKIPPED, never thrown from - see F-12.
+            if (water == null) continue;
+
+            GTValues.RA.stdBuilder()
+                .circuit(1)
+                .fluidInputs(
+                    new FluidStack(BTSFluidsProcess.depletedUF6, 2_000),
+                    Materials.Hydrogen.getGas(4_000),
+                    water)
+                .itemOutputs(new ItemStack(BTSItemsFuel.depletedUO2Powder, gradedOutput(grade, 8)))
+                .metadata(CHEMPLANT_CASING_TIER, 3)
+                .duration(18 * SECONDS)
+                .eut(TierEU.RECIPE_IV)
+                .addTo(chemicalPlantRecipes);
+        }
 
         // F-19 THE MIMAS MASTERBLEND. Two parts PuO2 in thirty of depleted UO2 is 6.25 %, which is
         // the real ratio, and the mill is the real machine: MOX is co-milled, not stirred.
@@ -774,14 +841,31 @@ public final class BTSRecipesFuel {
     private static void thoriumGrade() {
         // F-21a THORIA. GoodGenerator's thorium oxalate had exactly one consumer before this
         // (collision C4); calcining it to ThO2 gives it a second without editing GG's own chain.
-        GTValues.RA.stdBuilder()
-            .itemInputs(GGMaterial.thoriumOxalate.get(OrePrefixes.dust, 8))
-            .circuit(1)
-            .itemOutputs(new ItemStack(BTSItemsFuel.thoriumDioxidePowder, 6))
-            .fluidOutputs(Materials.CarbonDioxide.getGas(2_000))
-            .duration(25 * SECONDS)
-            .eut(TierEU.RECIPE_IV)
-            .addTo(chemicalDehydratorRecipes);
+        //
+        // The oxalate cake is WASHED before it is fired, and that wash is the thorium grade's rung
+        // on the water ladder. Without it the thorium fuel was 30 parts ungraded thoria to 2 parts
+        // graded UO2, the ladder reached 6 % of the grade, its yield span was x1.12 against the
+        // reactor's x1.40 output span, and the balance guard came out inverted exactly as it did
+        // on MOX. Washing an oxalate cake before calcining is also simply what the real process
+        // does: whatever the wash water leaves behind ends up in the fired ceramic.
+        //
+        // Base 6, so Grade 1 gives the 6 this step always gave and the rung runs 3 to 27.
+        // chemicalDehydratorRecipes is maxIO(2, 9, 1, 1): the oxalate and the circuit fill both
+        // item slots, the wash water takes the only fluid input and the CO2 the only fluid output.
+        for (int grade = BTSWaterGrade.MAX_GRADE; grade >= BTSWaterGrade.DISTILLED; grade--) {
+            final FluidStack water = BTSWaterGrade.fluidFor(grade, 2_000);
+            if (water == null) continue;
+
+            GTValues.RA.stdBuilder()
+                .itemInputs(GGMaterial.thoriumOxalate.get(OrePrefixes.dust, 8))
+                .circuit(1)
+                .fluidInputs(water)
+                .itemOutputs(new ItemStack(BTSItemsFuel.thoriumDioxidePowder, gradedOutput(grade, 6)))
+                .fluidOutputs(Materials.CarbonDioxide.getGas(2_000))
+                .duration(25 * SECONDS)
+                .eut(TierEU.RECIPE_IV)
+                .addTo(chemicalDehydratorRecipes);
+        }
 
         // F-21b (Th,U)O2. Thoria is fertile, not fissile: it needs a driver, and the driver is two
         // parts of the main line's own ceramic powder - the same 6.25 % blend F-19 uses.
