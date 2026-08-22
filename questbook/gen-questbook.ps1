@@ -1030,27 +1030,29 @@ $quests = @(
     @{ Key = 'bpannex'; Name = '{3}{l}Blueprint: Enrichment Annex'; X = 144; Y = 216
         Icon = $CASING_STAINLESS; Task = 'checkbox'; Prereqs = @(); CountAs = 0
         Desc = (@(
-                '{3}{l}Optional module. The other half of the fuel cycle: it turns the ore into pellets.{r}'
+                '{3}{l}Optional module. The other half of the fuel cycle: it turns ore into yellowcake.{r}'
                 'A 5x15x6 process shed running down the platform''s FRONT edge, to the left of the silo face.'
                 ''
                 '{e}BILL{r}'
                 "  {b}$(BomReq $BTS_BOM.Annex 'Clean Stainless Steel Machine Casing')x{r} Clean Stainless Steel Machine Casing"
                 "  {b}$(BomReq $BTS_BOM.Annex 'Steel Pipe Casing')x{r} Steel Pipe Casing"
-                "  {b}$(BomReq $BTS_BOM.Annex 'Input Bus (IV)')x{r} Input Bus {8}(uraninite){r}, {b}$(BomReq $BTS_BOM.Annex 'Input Hatch (IV)')x{r} Input Hatch {8}(Hydrofluoric Acid){r}, {b}$(BomReq $BTS_BOM.Annex 'Output Bus (IV)')x{r} Output Bus {8}(pellets){r}"
+                "  {b}$(BomReq $BTS_BOM.Annex 'Input Bus (IV)')x{r} Input Bus {8}(uraninite){r}, {b}$(BomReq $BTS_BOM.Annex 'Input Hatch (IV)')x{r} Input Hatch {8}(Hydrofluoric Acid){r}, {b}$(BomReq $BTS_BOM.Annex 'Output Bus (IV)')x{r} Output Bus {8}(yellowcake){r}"
                 '  {8}307 blocks. All three sockets sit in the same wall, one course up.{r}'
                 ''
                 '{e}WHAT IT PRODUCES{r}'
                 'Every {b}600 powered ticks{r} (30 seconds):'
-                '  {2}8x Uraninite Dust + 2,000 L Hydrofluoric Acid  ->  20x Fuel Pellet + 2x Thorium Dust{r}'
+                '  {2}8x Uraninite Dust + 2,000 L Hydrofluoric Acid  ->  2x Yellowcake + 2x Thorium Dust{r}'
                 "Draws {b}$ANNEX_EUT{r} while it runs - the standalone Enrichment Train's rate, unchanged."
                 ''
                 '{c}{l}IT NEEDS POWER TOO, THROUGH THE SAME FOUR SOCKETS{r}'
                 "{b}Powered{r} ticks again: the Annex takes its $ANNEX_EUT out of the {b}output manifold's ENERGY HATCHES{r} - the four {b}E{r} sockets one course above the dynamos, from step 9 - and not out of the reactor. Fit at least one {b}Energy Hatch (IV){r} there and run a live cable into it, or this shed forms perfectly and then never starts a batch."
                 "{8}Derrick and Annex together are $MODULES_EUT, which a single IV Energy Hatch carries on its own. Starved, the panel prints {c}Annex: UNDER-POWERED - it draws $ANNEX_EUT and the manifold's Energy Hatches hold{r}{8} and then what they actually hold. Nothing is being drawn while it says that - an under-fed module banks the trickle instead of burning it, and simply advances slowly.{r}"
                 ''
-                "[warn]{c}This is a SHORTCUT past the whole fuel line, and you should know it.{r} D-26 replaced the four-step pellet chain with the twenty-three-step line on {b}The Fuel Line{r} row - but this module still pays fuel pellets directly from ore, so it skips every one of those steps. It is uranium grade ONLY ({8}x1 steam{r}), it cannot make MOX, thorium or naquadah fuel, and the purified-water yield ladder never pays it. The design intends to re-point it to {b}2x Yellowcake{r} - the same 4:1 ratio the real line achieves - so treat it as a bootstrap that is going to get shorter.[/warn]"
+                '[note]{6}It is a head start, not a shortcut - and that changed in 0.24.0.{r} This shed used to pay finished {8}Fuel Pellets{r} straight out of ore, which skipped all twenty-three steps of {b}The Fuel Line{r}. It now pays {b}YELLOWCAKE{r}, at {2}4 Uraninite per cake{r} - the exact ratio F-01 to F-08 reach by hand. So it buys you the eight-step front end and nothing else: {b}F-09 onward stays compulsory{r}, and it is still the only way to a rod of any grade.[/note]'
                 ''
-                '[note]{6}Derrick + Annex + one external centrifuge = a plant that very nearly fuels itself.{r} The Derrick digs the uraninite, the Annex enriches it, the centrifuge closes the loop.[/note]'
+                '[warn]{c}Anything reading this bus gets a DIFFERENT ITEM than it did in 0.23.0.{r} An AE2 storage bus, an interface pattern or a pipe filter pointed at the Annex product bus is now handed {b}Yellowcake{r} where it used to be handed {b}Fuel Pellet (Uranium){r}. Re-filter it before you turn the plant back on.[/warn]'
+                ''
+                '[note]{6}Derrick + Annex feed the fuel line; they do not replace it.{r} The Derrick digs the uraninite and the Annex converts it, but what comes out is {b}feedstock{r} - yellowcake and thorium dust. It joins the chain at {b}F-09{r}, and F-09 to F-18 still have to be standing before any of it becomes a rod. {8}No module in this mod makes a finished rod.{r}[/note]'
                 ''
                 '[note]These three sockets belong to the Annex alone. The rod cascade can never eat the uraninite you stock here, and nothing the silo demands can reach this acid.[/note]'
                 ''
@@ -1186,6 +1188,7 @@ $quests = @(
                 '  {2}5{r} {8}DEEP CUT - Derrick tantalum every 3rd load{r}'
                 '  {2}6{r} {8}PROCESS INTENSIFICATION - Derrick and Annex cycles -20%{r}'
                 '  {2}7{r} {8}YIELD UPLIFT - Annex batch 24 pellets{r}'
+                '     {8}The panel still says PELLETS. The Annex has paid {r}{8}YELLOWCAKE{r}{8} since 0.24.0; what this tier does is multiply the batch by 1.2, and it carries the fraction instead of dropping it - 2, 2, 3, 2, 3, twelve cakes every five batches.{r}'
                 '{b}TURBINE{r}'
                 '  {2}5{r} {8}OVERSPEED TRIM I - redline MAY BE SET to 13,500 (RPM LIMIT field); gain follows it{r}'
                 '  {2}6{r} {8}OVERSPEED TRIM II - redline MAY BE SET to 15,000 (RPM LIMIT field); gain follows it{r}'
@@ -1196,7 +1199,15 @@ $quests = @(
                 '{6}And OVERSPEED TRIM is YOURS TO SWITCH ON.{r} The tier raises the CEILING; it never moves the fan by itself. Chamber coolant draw goes with the SQUARE of RPM, so a chamber plumbed for exactly 12,000 would start refusing cycles the moment a tier pushed it to 13,500. Type the redline you want into the {b}RPM LIMIT{r} field beside the rods field - it defaults to 12,000 and clamps to whatever you have actually unlocked, exactly like the rods cap. Every panel prints the redline in use and names the headroom you have not claimed.'
                 ''
                 '{e}{l}DO THIS{r}'
-                'Assemble one {b}Naquadah-Bonded Fuel Rod{r} - the top of the cascade ladder, x9, the rod that turns BURNUP from a twenty-day line into a manageable one. It is a ZPM assembler job: Uranium rod + 3x enriched naquadah dust + U-235 dust + iridium plate + molten naquadah, programmed circuit 7.'
+                'Assemble one {b}Naquadah-Bonded Fuel Rod{r} - the top of the cascade ladder, x9, the rod that turns BURNUP from a twenty-day line into a manageable one.'
+                '{c}The one-step ZPM Assembler recipe this quest used to name is GONE.{r} It went with the rest of the four-step chain in 0.24.0. The rod is now the last rung of {b}The Fuel Line{r}, and it takes two machines:'
+                '  {b}F-22{r} {8}- Quantum Force Transformer, UHV, 60s, over an Advanced Naquadah Catalyst{r}'
+                '    {2}8x Sintered Pellet + 4x Enriched Naquadah Dust + 2x U-235 Dust + 200 L Highly Enriched UF6 + 2 ingots molten Naquadah  ->  8x Naquadah-Bonded Pellet{r}'
+                '  {b}F-23{r} {8}- Precise Assembler, casing tier 2, UV, 30s{r}'
+                '    {2}4x Naquadah-Bonded Pellet + 1x Cladding Tube + 1x Rod Hardware Set + circuit 4 + 100 L Helium  ->  1x NAQUADAH-BONDED FUEL ROD{r}'
+                '{8}Four pellets to a rod, exactly as every other grade. The 200 L of highly enriched UF6 is the F-11b cut, and this is the only step in the mod that spends it.{r}'
+                ''
+                '{8}Want the BUNDLE too? F-18n is on the {b}Assembly Line{r}{8} - 3 rods + 2 Grid Spacers + 2 Iridium Plates + 4 Zircaloy-4 Plates + 2 ingots molten Naquadah, scanned off a Thorium-Bonded Fuel Assembly. The cascade burns loose rods perfectly well, so this quest asks only for the rod.{r}'
                 ''
                 '{a}{l}DONE WHEN{r}'
                 'A Naquadah-Bonded Fuel Rod is in your inventory.'
