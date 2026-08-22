@@ -425,6 +425,13 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                         chamberCoolant.getStringValue(),
                         chamberDrain.getIntValue()),
                     siloBuilt::getBoolValue))
+            // D-26: the feedwater grade, gated exactly as the controller's own statusReport()
+            // gates it - a purified grade only. A plant on plain or distilled water sees no new
+            // row at all, which is the visible half of "no water grade is ever mandatory".
+            .child(
+                row(
+                    () -> MTEReactorCoreMk1.feedwaterLine(feedwaterGrade.getIntValue(), galleryActive.getBoolValue()),
+                    () -> siloBuilt.getBoolValue() && feedwaterGrade.getIntValue() >= 1))
             // --- TURBINE
             .child(row(() -> MTEReactorCoreMk1.header("TURBINE"), siloBuilt::getBoolValue))
             .child(
@@ -449,13 +456,6 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                         rotorFactor.getIntValue(),
                         rotorWear.getStringValue()),
                     siloBuilt::getBoolValue))
-            // D-26: the feedwater grade, gated exactly as the controller's own statusReport()
-            // gates it - a purified grade only. A plant on plain or distilled water sees no new
-            // row at all, which is the visible half of "no water grade is ever mandatory".
-            .child(
-                row(
-                    () -> MTEReactorCoreMk1.feedwaterLine(feedwaterGrade.getIntValue(), galleryActive.getBoolValue()),
-                    () -> siloBuilt.getBoolValue() && feedwaterGrade.getIntValue() >= 1))
             // The interlock's voice: WHY the fan is not accelerating (missing coolant
             // headroom, dry injectors, a missed slug). Absent while everything is fine.
             .child(
