@@ -1,0 +1,56 @@
+{
+    "preRequisites:9":  {
+                            "0:10":  {
+                                         "questIDHigh:4":  190,
+                                         "questIDLow:4":  48030
+                                     }
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  0,
+                                                    "desc:8":  "§b§lYELLOWCAKE IS NOT FUEL. IT IS 0.7% OF THE RIGHT ISOTOPE.§r\nFluorinate it into a gas, spin the gas, keep the light fraction. This is the only way anyone has ever enriched uranium at scale, and it is the only part of this chain that needs a machine GTNH did not already have.\n\n§e§lF-09 / F-10 CONVERSION§r §8- Chemical Plant t3, IV§r\n  §24x Yellowcake + 4,000 L Hydrofluoric Acid + 1,000 L Hydrogen  -\u003e  6,000 L Uranium Tetrafluoride + 2,000 L Steam§r\n  §26,000 L UF4 + 2,000 L Fluorine  -\u003e  6,000 L Uranium Hexafluoride§r\n\n[note]§6Those two fluids are GT++\u0027s OWN materials, not ours.§r If you already run an LFTR line, its uranium hexafluoride feeds straight into the Cascade Hall below - and our UF4/UF6 feed straight into the LFTR chain. Two routes to the same fluid, from ore instead of from metal. Nothing of GT++\u0027s was edited.[/note]\n\n§e§lF-11 THE CASCADE HALL§r §8- new multiblock, MTE 28113, IV, 60s§r\n  §26,000 L UF6 + circuit 1  -\u003e  1,000 L Enriched UF6 + 5,000 L Tails§r\nOne sixth leaves enriched. Five sixths leave as tails - §band the tails are a product, not waste§r.\n\n§e§lWHAT THE TAILS ARE FOR§r\n  §25,000 L Tails + 8x Calcium Dust  -\u003e  4x Depleted Uranium Ingot + 8x Fluorite§r §8(Neutron Activator, LuV)§r\n  §25,000 L Tails + Hydrogen + Water  -\u003e  20x Depleted UO2 Powder§r §8(F-20 - the MOX diluent)§r\nThe ingots are shielding: §bM-03b§r on the Site Batching Plant spends §28 of them per 8 Tungstensteel Reinforced Blocks§r. That is a deliberate interlock - §6your fuel line feeds your casing line§r.\n\n§e§lF-11b THE HEU BRANCH§r §8- Cascade Hall, circuit 2, LuV, 90s§r\n  §21,000 L Enriched UF6 + circuit 2  -\u003e  200 L Highly Enriched UF6 + 800 L Tails§r\n  §8Four fifths of the enriched cut, spent to make one fifth of something hotter. Only the naquadah fuel grade ever wants it.§r\n\n[note]The Hall\u0027s parallel comes from its §bstage banks§r: each bank doubles it, so the structure sets the throughput rather than a casing tier alone. The circuit picks the assay.[/note]\n\n[warn]A half-built bank does not quietly pass. The Hall counts its casings per bank and restores the count when a bank fails, so a wall with a hole in it fails the structure check instead of forming at the wrong size.[/warn]",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  28113,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "gregtech:gt.blockmachines"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "§b§lConversion and the Cascade",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48031,
+    "rewards:9":  {
+
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "index:3":  0,
+                                 "taskID:8":  "bq_standard:checkbox"
+                             }
+                }
+}

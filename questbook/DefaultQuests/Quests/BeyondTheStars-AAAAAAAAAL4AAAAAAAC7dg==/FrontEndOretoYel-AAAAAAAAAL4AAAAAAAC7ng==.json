@@ -1,0 +1,56 @@
+{
+    "preRequisites:9":  {
+                            "0:10":  {
+                                         "questIDHigh:4":  190,
+                                         "questIDLow:4":  48029
+                                     }
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  0,
+                                                    "desc:8":  "§b§lEIGHT STEPS, AND EVERY ONE OF THEM IS A REAL UNIT OPERATION.§r\nThis is hydrometallurgy as it is actually done. It is long, it is mostly EV, and it ends at the yellow powder every uranium mine on earth ships.\n\n§e§lF-01 COMMINUTION§r §8- Ore Milling Plant (IsaMill), HV, 20s§r\n  §216x Uraninite Dust + 1x Alumina Milling Ball + circuit 1  -\u003e  16x Milled Uraninite§r\n  §8Or 12x Pitchblende Dust on circuit 2 - the richer ore buys the same sixteen.§r\n  §6The Alumina Milling Ball is part of the RECIPE, and it is also NOT consumed.§r §8Both are true: the recipe has to name a ball or the IsaMill returns NO RECIPE and never starts, and the physical ball is then taken from the mill\u0027s Milling Ball hatch and worn down a point at a time. So stock the ball bus as usual - just do not be surprised to see the ball on the NEI page. Every milling step in this mod uses the ALUMINA ball, F-01, F-19, F-21b and the propellant\u0027s P-02a alike.§r\n\n§e§lF-02 FROTH FLOTATION§r §8- Flotation Cell, EV, 30s§r\n  first: §22x Soda Ash + circuit 4 + 1,000 L Pine Oil  -\u003e  1x Froth Cell§r §8(Mixer, MV)§r\n  then:  §216x Milled Uraninite + 1x Froth Cell + 8,000 L Water  -\u003e  8,000 L Uraninite Flotation Froth§r\n  then:  §28,000 L Froth + circuit 1  -\u003e  12x Concentrate + 4x Tailings + 2x Gangue + 3,000 L Water back§r §8(Dehydrator)§r\n  §8The cell emits a FLUID, not a solid - it has no item output slot at all, which is how GT++\u0027s own sphalerite line works too. The third step is where the solids come back and where the barren rock leaves.§r\n\n§e§lF-03 SULFURIC LEACH§r §8- Digester, EV, 40s§r\n  §212x Concentrate + 2x Pyrolusite Dust + circuit 1 + 6,000 L Sulfuric Acid  -\u003e  8,000 L Pregnant Leach Solution + 3x Leach Residue§r\n\n§e§lF-04 / F-05 / F-06 CLEAN-UP AND SOLVENT EXTRACTION§r §8- Chemical Plant t2 then t3, EV/IV§r\n  §28,000 L PLS + 1x Ion Exchange Resin  -\u003e  6,000 L Clarified Uranyl + 2,000 L Raffinate§r §8(resin returns 90% of the time)§r\n  §26,000 L Clarified + 2,000 L TBP/Kerosene  -\u003e  4,000 L Loaded Organic + 2,000 L Raffinate§r\n  §24,000 L Loaded Organic + 4x Soda Ash + 2,000 L Water  -\u003e  3,000 L Strip Liquor + 1,800 L TBP back§r\n  §8Tributyl phosphate in kerosene is the extractant every real uranium refinery uses, and you make it yourself at F-05a. 1,800 of the 2,000 L come back, so the running cost is 200 L of make-up.§r\n\n§e§lF-07 / F-08 PRECIPITATE AND CALCINE§r §8- LCR then Dehydrator, HV/EV§r\n  §23,000 L Strip Liquor + 1,000 L Ammonia  -\u003e  6x Ammonium Diuranate + 1,000 L Ammonium Sulfate Liquor§r\n  §26x Ammonium Diuranate  -\u003e  4x YELLOWCAKE + 500 L Ammonia back§r\n\n[warn]§cPlumb F-07b or your line will stall.§r §b1,000 L Ammonium Sulfate Liquor§r is a co-product with nowhere else to go, and §ba GT machine whose output hatch is full STOPS§r. Run it through a Distillation Tower - §2300 L Ammonia back + 400 L Diluted Sulfuric Acid§r - or give it a void hatch.[/warn]\n\n[note]Nothing here is waste for the sake of it. Gangue, tailings and leach residue each have a cheap Centrifuge recipe, and the §btailings give back Uraninite at 33%§r - a real scavenger circuit.[/note]\n\n[note]§6The headline number:§r §b16x Uraninite Dust in at F-01 is one Uranium Fuel Rod out§r, at Grade 1 purified water. The next two quests are why.[/note]",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  0,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "beyondthestars:uraniniteConcentrate"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "§b§lFront End - Ore to Yellowcake",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48030,
+    "rewards:9":  {
+
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "index:3":  0,
+                                 "taskID:8":  "bq_standard:checkbox"
+                             }
+                }
+}

@@ -1,0 +1,298 @@
+package com.nateyburr.beyondthestars.machines;
+
+import static com.gtnewhorizon.structurelib.structure.StructureUtility.isAir;
+import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
+import static com.gtnewhorizon.structurelib.structure.StructureUtility.onElementPass;
+import static com.gtnewhorizon.structurelib.structure.StructureUtility.transpose;
+import static com.nateyburr.beyondthestars.machines.BTSStructures.noOverwrite;
+import static gregtech.api.enums.HatchElement.Energy;
+import static gregtech.api.enums.HatchElement.InputHatch;
+import static gregtech.api.enums.HatchElement.Maintenance;
+import static gregtech.api.enums.HatchElement.OutputHatch;
+import static gregtech.api.enums.Textures.BlockIcons.OVERLAY_FRONT_DISTILLATION_TOWER;
+import static gregtech.api.enums.Textures.BlockIcons.OVERLAY_FRONT_DISTILLATION_TOWER_ACTIVE;
+import static gregtech.api.enums.Textures.BlockIcons.OVERLAY_FRONT_DISTILLATION_TOWER_ACTIVE_GLOW;
+import static gregtech.api.enums.Textures.BlockIcons.OVERLAY_FRONT_DISTILLATION_TOWER_GLOW;
+import static gregtech.api.util.GTStructureUtility.buildHatchAdder;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import net.minecraft.item.ItemStack;
+
+import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
+import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
+import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+
+import gregtech.api.GregTechAPI;
+import gregtech.api.casing.Casings;
+import gregtech.api.interfaces.ITexture;
+import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
+import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
+import gregtech.api.recipe.RecipeMap;
+import gregtech.api.recipe.RecipeMapBackend;
+import gregtech.api.recipe.RecipeMapBuilder;
+import gregtech.api.structure.error.StructureError;
+import gregtech.api.util.MultiblockTooltipBuilder;
+
+/**
+ * D-26 THE CASCADE HALL - MTE 28113, IV (docs/production-lines.md S5.1).
+ * <p>
+ * NOT 28101: tag 0.5.0 shipped MTETurbineHall on base+1, so that id is BURNED, not free -
+ * a world saved then binds a placed Turbine Hall to it and would resolve it to this class.
+ * <p>
+ * <b>Why nothing already in the pack does this.</b> GT's Industrial Centrifuge and GT++'s Reactor
+ * Processing Unit are fixed-ratio splitters: one input set, one output set, the ratio baked into
+ * the recipe. Isotope separation is a CASCADE, and its defining property is that it makes TWO
+ * streams whose split is set by how much plant you built - with the tails as a real product
+ * rather than a discard. F-11's tails go on to be MOX diluent (F-20) and the depleted-uranium
+ * shielding the casing line spends (F-11c, M-03b). Nothing in the pack expresses "the structure
+ * decides the split", which is precisely what this machine is for.
+ * <p>
+ * <b>Stage banks set PARALLEL, not assay.</b> {@code parallel = 2^banks}, so the five legal halls
+ * run 1, 2, 4, 8 and 16 recipes at once. The ASSAY is chosen by the recipe's programmed circuit -
+ * 1 for the low-enriched cut, 2 for the highly-enriched one - because a structure that changed
+ * what a recipe PRODUCES would make one machine's NEI page unreadable, while a structure that
+ * changes how MUCH is exactly the "build more cascade" fantasy this step should sell.
+ * <p>
+ * <b>Not to be confused with the Enrichment Annex</b> ({@link MTEEnrichmentTrain}, MTE 28103),
+ * which is a bootstrap module of the Nuclear Plant Foundation and a different machine entirely.
+ */
+public class MTECascadeHall extends MTEProductionHallBase<MTECascadeHall> {
+
+    /**
+     * F-11 and F-11b. A real map, not one of {@code BTSDisplayRecipes}' fake pages: this machine
+     * genuinely processes out of it.
+     */
+    public static final RecipeMap<RecipeMapBackend> RECIPE_MAP = RecipeMapBuilder.of("beyondthestars.recipe.cascade")
+        .maxIO(2, 1, 2, 3)
+        .minInputs(0, 1)
+        .build();
+
+    private static final String PIECE_FRONT = "cascadeFront";
+    private static final String PIECE_BANK = "cascadeBank";
+    private static final String PIECE_BACK = "cascadeBack";
+
+    /** N = 8 + 4k for k = 0..4, so the longest legal hall is 24 deep and runs 16 parallel. */
+    public static final int MAX_BANKS = 4;
+    private static final int PIECE_DEPTH = 4;
+
+    private static IStructureDefinition<MTECascadeHall> STRUCTURE_DEFINITION = null;
+
+    private int stageBanks;
+
+    public MTECascadeHall(int aID, String aName, String aNameRegional) {
+        super(aID, aName, aNameRegional);
+    }
+
+    public MTECascadeHall(String aName) {
+        super(aName);
+    }
+
+    @Override
+    public IMetaTileEntity newMetaEntity(IGregTechTileEntity aTileEntity) {
+        return new MTECascadeHall(this.mName);
+    }
+
+    @Override
+    public RecipeMap<?> getRecipeMap() {
+        return RECIPE_MAP;
+    }
+
+    @Override
+    protected Casings faceCasing() {
+        return Casings.TungstensteelTurbineCasing;
+    }
+
+    @Override
+    protected ITexture[] frontOverlay(boolean active) {
+        return active
+            ? overlayPair(OVERLAY_FRONT_DISTILLATION_TOWER_ACTIVE, OVERLAY_FRONT_DISTILLATION_TOWER_ACTIVE_GLOW)
+            : overlayPair(OVERLAY_FRONT_DISTILLATION_TOWER, OVERLAY_FRONT_DISTILLATION_TOWER_GLOW);
+    }
+
+    /** Stage banks fitted on the last successful structure check, 0..{@link #MAX_BANKS}. */
+    public int getStageBanks() {
+        return stageBanks;
+    }
+
+    /**
+     * {@code 2^banks}: 1, 2, 4, 8, 16. Doubling per bank is the whole reason a longer hall is
+     * worth building, and it caps at 16 so the top hall is a real target rather than an
+     * asymptote.
+     */
+    @Override
+    public int getMaxParallelRecipes() {
+        return 1 << Math.max(0, Math.min(MAX_BANKS, stageBanks));
+    }
+
+    @Override
+    public void checkMachine(IGregTechTileEntity aBaseMetaTileEntity, ItemStack aStack, List<StructureError> errors) {
+        mCasing = 0;
+        stageBanks = 0;
+        if (!checkPiece(PIECE_FRONT, 2, 2, 0, errors)) return;
+        // Probe for banks one at a time. The probe MUST restore mCasing on failure: a bank that
+        // is half-built still passes some of its cells, and every 'T' cell increments the counter
+        // from inside check() - so a failed probe would leave the casing total inflated by
+        // however far it got, and the minimum-casing test below would pass on a hall that is
+        // missing a wall.
+        while (stageBanks < MAX_BANKS) {
+            final int before = mCasing;
+            if (checkPiece(PIECE_BANK, 2, 2, -(PIECE_DEPTH + PIECE_DEPTH * stageBanks))) {
+                stageBanks++;
+            } else {
+                mCasing = before;
+                break;
+            }
+        }
+        if (!checkPiece(PIECE_BACK, 2, 2, -(PIECE_DEPTH + PIECE_DEPTH * stageBanks), errors)) return;
+        checkCasingMin(errors, mCasing, 100);
+        checkHasEnergyHatch(errors);
+        checkHasMaintenanceHatch(errors);
+        checkHasInputHatch(errors);
+        checkHasOutputHatch(errors);
+    }
+
+    /** Hologram/build size comes off the held stack: 1 gives the bare hall, 5 the full cascade. */
+    private static int requestedBanks(ItemStack stackSize) {
+        if (stackSize == null) return 0;
+        return Math.max(0, Math.min(MAX_BANKS, stackSize.stackSize - 1));
+    }
+
+    @Override
+    public void construct(ItemStack stackSize, boolean hintsOnly) {
+        final int banks = requestedBanks(stackSize);
+        buildPiece(PIECE_FRONT, stackSize, hintsOnly, 2, 2, 0);
+        for (int i = 0; i < banks; i++) {
+            buildPiece(PIECE_BANK, stackSize, hintsOnly, 2, 2, -(PIECE_DEPTH + PIECE_DEPTH * i));
+        }
+        buildPiece(PIECE_BACK, stackSize, hintsOnly, 2, 2, -(PIECE_DEPTH + PIECE_DEPTH * banks));
+    }
+
+    @Override
+    public int survivalConstruct(ItemStack stackSize, int elementBudget, ISurvivalBuildEnvironment env) {
+        if (mMachine) return -1;
+        final int banks = requestedBanks(stackSize);
+        int built = survivalBuildPiece(PIECE_FRONT, stackSize, 2, 2, 0, elementBudget, env, false, true);
+        if (built >= 0) return built;
+        for (int i = 0; i < banks; i++) {
+            built = survivalBuildPiece(
+                PIECE_BANK,
+                stackSize,
+                2,
+                2,
+                -(PIECE_DEPTH + PIECE_DEPTH * i),
+                elementBudget,
+                env,
+                false,
+                true);
+            if (built >= 0) return built;
+        }
+        return survivalBuildPiece(
+            PIECE_BACK,
+            stackSize,
+            2,
+            2,
+            -(PIECE_DEPTH + PIECE_DEPTH * banks),
+            elementBudget,
+            env,
+            false,
+            true);
+    }
+
+    @Override
+    public IStructureDefinition<MTECascadeHall> getStructureDefinition() {
+        if (STRUCTURE_DEFINITION == null) {
+            // Read [y from top][z from front][x]. TC-1: every hatch has ONE dedicated cell on
+            // the front face, so the hologram shows the exact count at the exact spot and there
+            // is no blanket wall adder to hide a miscount in.
+            final String[][] front = { { "TTTTT", "TTTTT", "TTTTT", "TTTTT" }, { "TmTeT", "TAAAT", "TAAAT", "TAAAT" },
+                { "Tu~uT", "TAAAT", "TAAAT", "TAAAT" }, { "TTiTT", "TAAAT", "TAAAT", "TAAAT" },
+                { "TTTTT", "TTTTT", "TTTTT", "TTTTT" } };
+            // One stage bank: a 3x3 ring of Iridium Reinforced Block around a centrifuge rotor
+            // bore, then three courses of empty shell before the next.
+            final String[][] bank = { { "TTTTT", "TTTTT", "TTTTT", "TTTTT" }, { "TIIIT", "TAAAT", "TAAAT", "TAAAT" },
+                { "TIRIT", "TAAAT", "TAAAT", "TAAAT" }, { "TIIIT", "TAAAT", "TAAAT", "TAAAT" },
+                { "TTTTT", "TTTTT", "TTTTT", "TTTTT" } };
+            final String[][] back = { { "TTTTT", "TTTTT", "TTTTT", "TTTTT" }, { "TAAAT", "TAAAT", "TAAAT", "TTTTT" },
+                { "TAAAT", "TAAAT", "TAAAT", "TTTTT" }, { "TAAAT", "TAAAT", "TAAAT", "TTTTT" },
+                { "TTTTT", "TTTTT", "TTTTT", "TTTTT" } };
+            STRUCTURE_DEFINITION = StructureDefinition.<MTECascadeHall>builder()
+                .addShape(PIECE_FRONT, transpose(front))
+                .addShape(PIECE_BANK, transpose(bank))
+                .addShape(PIECE_BACK, transpose(back))
+                .addElement(
+                    'T',
+                    noOverwrite(onElementPass(x -> ++x.mCasing, Casings.TungstensteelTurbineCasing.asElement())))
+                .addElement('I', noOverwrite(ofBlock(GregTechAPI.sBlockReinforced, 1)))
+                .addElement('R', noOverwrite(Casings.TungstensteelPipeCasing.asElement()))
+                .addElement('A', noOverwrite(isAir()))
+                .addElement(
+                    'm',
+                    buildHatchAdder(MTECascadeHall.class).atLeast(Maintenance)
+                        .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
+                        .hint(1)
+                        .buildAndChain(
+                            noOverwrite(
+                                onElementPass(x -> ++x.mCasing, Casings.TungstensteelTurbineCasing.asElement()))))
+                .addElement(
+                    'e',
+                    buildHatchAdder(MTECascadeHall.class).atLeast(Energy)
+                        .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
+                        .hint(2)
+                        .buildAndChain(
+                            noOverwrite(
+                                onElementPass(x -> ++x.mCasing, Casings.TungstensteelTurbineCasing.asElement()))))
+                .addElement(
+                    'i',
+                    buildHatchAdder(MTECascadeHall.class).atLeast(InputHatch)
+                        .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
+                        .hint(3)
+                        .buildAndChain(
+                            noOverwrite(
+                                onElementPass(x -> ++x.mCasing, Casings.TungstensteelTurbineCasing.asElement()))))
+                .addElement(
+                    'u',
+                    buildHatchAdder(MTECascadeHall.class).atLeast(OutputHatch)
+                        .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
+                        .hint(4)
+                        .buildAndChain(
+                            noOverwrite(
+                                onElementPass(x -> ++x.mCasing, Casings.TungstensteelTurbineCasing.asElement()))))
+                .build();
+        }
+        return STRUCTURE_DEFINITION;
+    }
+
+    @Override
+    public String[] getInfoData() {
+        final List<String> info = new ArrayList<>(Arrays.asList(super.getInfoData()));
+        info.add("Stage banks: " + stageBanks + "/" + MAX_BANKS + "  ·  hall depth " + (8 + 4 * stageBanks));
+        return info.toArray(new String[0]);
+    }
+
+    @Override
+    protected MultiblockTooltipBuilder createTooltip() {
+        final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
+        tt.addMachineType("Gas Centrifuge Cascade")
+            .addInfo("Separates uranium hexafluoride into an ENRICHED cut and a TAILS stream.")
+            .addInfo("The tails are a product, not a discard: they become MOX diluent (F-20)")
+            .addInfo("and the depleted-uranium shielding the casing line spends (F-11c).")
+            .addSeparator()
+            .addInfo("Every STAGE BANK doubles the parallel: 1, 2, 4, 8, 16.")
+            .addInfo("Programmed circuit 1 = low-enriched cut, 2 = highly-enriched cut.")
+            .addInfo("Hold 1-5 controllers when projecting to lay out 0-4 stage banks.")
+            .beginStructureBlock(5, 5, 24, false)
+            .addController("Front face, centre")
+            .addCasingInfoRange("Tungstensteel Turbine Casing", 100, 340, false)
+            .addCasingInfoExactly("Iridium Reinforced Block (8 per stage bank)", 32, false)
+            .addCasingInfoExactly("Tungstensteel Pipe Casing (1 rotor bore per bank)", 4, false)
+            .addEnergyHatch("Front face, top right", 2)
+            .addMaintenanceHatch("Front face, top left", 1)
+            .addInputHatch("Front face, below the controller", 3)
+            .addOutputHatch("Front face, either side of the controller (2)", 4)
+            .toolTipFinisher();
+        return tt;
+    }
+}

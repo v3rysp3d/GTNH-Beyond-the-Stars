@@ -78,7 +78,7 @@ public enum BTSMilestone {
         new int[] { 1000, 1020, 1045, 1070, 1100, 1100, 1100, 1100 },
         new String[] { "+2.0% output", "+4.5% output", "+7.0% output", "+10.0% output",
             "DEEP CUT - Derrick tantalum every 3rd load", "PROCESS INTENSIFICATION - Derrick and Annex cycles -20%",
-            "YIELD UPLIFT - Annex batch 24 pellets" }),
+            "YIELD UPLIFT - Annex batch x1.2 yellowcake" }),
 
     /**
      * TURBINE OPTIMIZATION - perfectly timed cycles: a cycle that had its steam slug AND had

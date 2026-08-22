@@ -15,6 +15,12 @@ public final class BTSMachines {
     public static ItemStack spineSensor;
     public static ItemStack siloControlBlock;
     public static ItemStack turbineControlBlock;
+    // D-26 (docs/production-lines.md S5): the four new production multiblocks. Ids base+10,
+    // base+11, base+12 and base+13. base+1 looks free and is not - see the ledger in register().
+    public static ItemStack cascadeHall;
+    public static ItemStack fuelFabricationHall;
+    public static ItemStack purexCanyon;
+    public static ItemStack siteBatchingPlant;
 
     private BTSMachines() {}
 
@@ -54,5 +60,38 @@ public final class BTSMachines {
             base + 9,
             "hatch.beyondthestars.turbinecontrolblock",
             "Turbine Control Block").getStackForm(1);
+
+        // D-26 THE FOUR NEW PRODUCTION MULTIBLOCKS. Ids are FROZEN once shipped: an MTE id is
+        // what a placed machine in a saved world is bound to, so these four may never be
+        // renumbered, only retired in place the way the two plant-module controllers were.
+        //
+        // ID LEDGER - base+1 IS BURNED, NOT FREE. The gap between base and base+2 is not an
+        // unused id, it is a RETIRED one. `git show 0.5.0:src/main/java/com/nateyburr/
+        // beyondthestars/machines/BTSMachines.java` registers MTETurbineHall(base + 1), and
+        // 0.5.0 is a shipped tag. Commit d96e26a deleted that machine when the Turbine Hall
+        // folded into the Reactor Silo - but deleting the class does not unbind the id, and a
+        // world saved on 0.5.0 still has a Turbine Hall sitting at 28101. GT resolves a placed
+        // machine by its id alone, so handing 28101 to a new controller would silently turn
+        // every one of those into a Cascade Hall on load. The very rule that freezes these four
+        // is what forbids reusing that one.
+        //
+        // LEDGER. base live; base+1 BURNED (0.5.0 Turbine Hall); base+2, base+3, base+6..base+9
+        // live; base+4 and base+5 live-but-retired museum pieces; base+10..base+13 the four
+        // below. NEXT FREE ID IS base+14, and there is room: gregtech.api.enums.MetaTileEntityIDs
+        // in the pinned 5.09.52.594 jar holds 2029 ids for the whole pack, and its band runs out
+        // at 28055 (CropsNHIndustrialFarm) and does not resume until 29990 (MAGLEV_PYLON_MV), so
+        // 28056..29989 is empty and our 28100..28113 sits well inside it.
+        cascadeHall = new MTECascadeHall(base + 13, "multimachine.beyondthestars.cascadehall", "Cascade Hall")
+            .getStackForm(1);
+        fuelFabricationHall = new MTEFuelFabricationHall(
+            base + 10,
+            "multimachine.beyondthestars.fuelfabricationhall",
+            "Fuel Fabrication Hall").getStackForm(1);
+        purexCanyon = new MTEPurexCanyon(base + 11, "multimachine.beyondthestars.purexcanyon", "PUREX Canyon")
+            .getStackForm(1);
+        siteBatchingPlant = new MTESiteBatchingPlant(
+            base + 12,
+            "multimachine.beyondthestars.sitebatchingplant",
+            "Site Batching Plant").getStackForm(1);
     }
 }

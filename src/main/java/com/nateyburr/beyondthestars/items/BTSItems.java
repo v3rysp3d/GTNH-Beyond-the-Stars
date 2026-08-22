@@ -40,6 +40,24 @@ public final class BTSItems {
 
     private BTSItems() {}
 
+    /**
+     * D-26: the one-line item registrar every BTS item file uses.
+     * <p>
+     * Every field in this package is a plain {@link Item} with a name, a texture and this mod's
+     * creative tab, and thirty-odd hand-written four-line blocks is thirty-odd chances to paste
+     * the wrong registry name under the right unlocalized one. The registry name is DERIVED from
+     * the same string as the unlocalized name and the texture, so the three can never disagree -
+     * which is what keeps an existing world's items bound to the fields they were bound to
+     * before the split.
+     */
+    public static Item define(String name) {
+        final Item item = new Item().setUnlocalizedName("beyondthestars." + name)
+            .setTextureName("beyondthestars:" + name)
+            .setCreativeTab(TAB);
+        GameRegistry.registerItem(item, name);
+        return item;
+    }
+
     public static void register() {
         uraniumFuelPellet = new Item().setUnlocalizedName("beyondthestars.uraniumFuelPellet")
             .setTextureName("beyondthestars:uraniumFuelPellet")
@@ -158,5 +176,14 @@ public final class BTSItems {
             .setNoRepair()
             .setCreativeTab(TAB);
         GameRegistry.registerItem(turbineRotor, "turbineRotor");
+
+        // D-26 THE SPLIT (docs/production-lines.md S7.1). The four production lines' own items
+        // are registered by the three files below - one per owning unit - so that four units
+        // can add recipes in parallel without ever opening the same file. This orchestrator and
+        // the twenty-two fields above are FROZEN: the fields are what an existing world's
+        // stacks are bound to, and nothing in 0.24.0 may move, rename or reorder them.
+        BTSItemsFuel.register();
+        BTSItemsMaterials.register();
+        BTSItemsPropellant.register();
     }
 }

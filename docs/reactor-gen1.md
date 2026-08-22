@@ -123,6 +123,8 @@ ONE controller, silo-shaped, addon-based (replaces the separate Turbine Hall):
 - **Enrichment Train** (EV): 3x3x9 conversion line (clean stainless + pipe line). Per 30s:
   8x Uraninite + 2,000 L Hydrofluoric Acid -> 20x Fuel Pellet + 2x Thorium dust — better
   yield than the bench assembler route (which stays as the entry path).
+  *(Historic. As of 0.24.0/M7 the Train and the absorbed Annex both pay **2x Yellowcake**,
+  and the bench assembler route no longer exists — see docs/production-lines.md §8.)*
 - Campus loop is closed end to end: drill -> enrich -> burn -> turbine/deck EU -> reprocess
   -> MOX/bonded -> burn richer, with waste water -> tantalum on the side.
 

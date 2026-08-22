@@ -63,7 +63,9 @@ import com.nateyburr.beyondthestars.blocks.BlockTurbineHousing;
 import com.nateyburr.beyondthestars.blocks.TileRodLoadingPort;
 import com.nateyburr.beyondthestars.blocks.TileTurbineHousing;
 import com.nateyburr.beyondthestars.fluids.BTSFluids;
+import com.nateyburr.beyondthestars.fluids.BTSWaterGrade;
 import com.nateyburr.beyondthestars.items.BTSItems;
+import com.nateyburr.beyondthestars.items.BTSItemsFuel;
 import com.nateyburr.beyondthestars.progression.BTSChannel;
 import com.nateyburr.beyondthestars.progression.BTSMilestone;
 import com.nateyburr.beyondthestars.progression.BTSProgression;
@@ -449,6 +451,20 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * 32,768 EU/t" story, so both are persisted to the GUI and both control blocks.
      */
     private long lastEUDemand;
+    /**
+     * D-26: the feedwater rung the last draw actually took. -1 = plain water or nothing, 0 =
+     * distilled, 1..8 = the purified grades.
+     * <p>
+     * AXIS 1: written by {@link #drawFeedwater} and, to park it back at the baseline over a draw
+     * that is not happening, by {@link #runFluidTick}'s Hot Coolant branch and
+     * {@link #clearCampaign} - all three server-side, so the GUI reads it through a sync value
+     * and never the field (which is -1 on the client). B7: the post-shutdown decay-heat draw
+     * deliberately does NOT write it - that draw earns no output term, and a shut-down plant
+     * must not print a grade as though it were still generating on it. AXIS 2: deliberately
+     * NOT persisted - it is re-derived every generating tick from what is standing in the hatch,
+     * which is the only way it can be right after a player swaps the water out.
+     */
+    private int feedwaterGrade = BTSWaterGrade.NOT_GRADED;
     private boolean starvedThisTick;
     private boolean wasRunningLastTick;
 
@@ -1331,7 +1347,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * edge, one conversion line of Steel Pipe Casing along its spine - the standalone
      * {@link MTEEnrichmentTrain} stretched to plant scale. THREE sockets, all in its +a wall at
      * y1 (declared LEFT), looking out over open platform at every tier: uraninite feed bus,
-     * hydrofluoric acid hatch, and the pellet/thorium product bus.
+     * hydrofluoric acid hatch, and the yellowcake/thorium product bus (M7: it paid finished fuel
+     * pellets until 0.24.0 - anything reading this bus receives Yellowcake now).
      * <p>
      * [layer b, 0 = top][row c][char a].
      */
@@ -4115,6 +4132,34 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * one it derived before this system existed. That is the regression test.
      */
     public static long euDemandOf(long afterSpine, int rpmMilliValue, int rotorMilli, int progMilli, int upgradeMilli) {
+        return euDemandOf(afterSpine, rpmMilliValue, rotorMilli, progMilli, upgradeMilli, 1000);
+    }
+
+    /**
+     * D-26: the same arithmetic with the FEEDWATER GRADE on the end - {@code x1.000} for plain and
+     * distilled water, {@code x1.05} to {@code x1.40} for purified Grades 1 to 8, straight out of
+     * {@link BTSWaterGrade#outputMilli}.
+     * <p>
+     * <b>Why it is a term of THIS method and not a private adjustment somewhere downstream.</b>
+     * Everything that derives EU goes through here, and {@link #mathTurbineLine} prints every
+     * factor this method performs. A water bonus applied anywhere else would make the published
+     * derivation false - the panel would print four factors and the plant would have used five.
+     * That defect has happened on this machine before and the fix was this rule.
+     * <p>
+     * <b>The ruling's balance guard, discharged in the arithmetic itself.</b> The water grade's
+     * OUTPUT span here is x1.000 to x1.400. Its YIELD span on the fuel line is x0.5 to x4.5, a
+     * factor of 9 - so the output effect is the SMALLER of the two by 6.4x. Put the other way:
+     * the entire water ladder is worth +40% EU, while the cheapest single rung of the FUEL ladder
+     * (ROD_MULT 1 -> 2) is worth +100% and the whole fuel ladder +800%. A Purification Plant can
+     * therefore never be a route to power; it is a route to cheaper fuel.
+     * <p>
+     * <b>The regression test.</b> {@code drawFeedwater} tries plain water FIRST and grades plain
+     * and distilled water alike at {@code waterMilli == 1000}, so the last factor is
+     * {@code x * 1000 / 1000}, which is exactly {@code x}. A plant that ran yesterday on plain
+     * water derives a BIT-IDENTICAL figure today. No water grade is, or can become, mandatory.
+     */
+    public static long euDemandOf(long afterSpine, int rpmMilliValue, int rotorMilli, int progMilli, int upgradeMilli,
+        int waterMilli) {
         return afterSpine * rpmMilliValue
             / 500_000L
             * rotorMilli
@@ -4122,6 +4167,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             * Math.max(1000, progMilli)
             / 1000L
             * Math.max(1000, upgradeMilli)
+            / 1000L
+            * Math.max(1000, waterMilli)
             / 1000L;
     }
 
@@ -4144,7 +4191,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             rpmMilli,
             avgRotorFactorMilli,
             progOutputMilli(),
-            progUpgradeMilli());
+            progUpgradeMilli(),
+            waterOutputMilli());
     }
 
     // ------------------------------------------------------------ manifold output ceiling
@@ -4527,11 +4575,115 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * water-grade coolant out from under the chamber. While the bench-supply flag is on the
      * draw is WAIVED in code rather than by filling tanks - a filled hatch can be pumped back
      * out, which would have made a test plant an unlimited water/coolant source.
+     * <p>
+     * WHAT counts as feedwater is {@link #drainFeedwaterLadder} and is deliberately not written
+     * here (B7). This method only turns the rung that ladder took into the OUTPUT term.
      */
     private boolean drawFeedwater(int litres) {
+        if (debugInfiniteSupplies) {
+            // The bench WAIVES the draw, so there is nothing standing in a hatch to grade. Park
+            // the term at the baseline rather than leaving the last grade seen: a test plant must
+            // not go on being paid a x1.40 for water it is no longer drinking.
+            feedwaterGrade = BTSWaterGrade.NOT_GRADED;
+            return true;
+        }
+        // The RUNNING draw never takes IC2 Coolant: runFluidTick offers coolant its own branch
+        // before this one and pays HOT COOLANT for it, so drinking it here would silently
+        // convert a Hot Coolant line into a steam line.
+        final int rung = drainFeedwaterLadder(litres, false);
+        feedwaterGrade = rung == NO_FEEDWATER ? BTSWaterGrade.NOT_GRADED : rung;
+        return rung != NO_FEEDWATER;
+    }
+
+    /** {@link #drainFeedwaterLadder} drew nothing: the silo's row holds no accepted fluid. */
+    private static final int NO_FEEDWATER = -2;
+
+    /**
+     * THE ACCEPTED-FEEDWATER LADDER, WRITTEN ONCE. Worst rung first, all-or-nothing per rung,
+     * out of the SILO's own hatches; returns the rung it drained - {@link BTSWaterGrade#NOT_GRADED}
+     * for plain water (and for IC2 Coolant, which has no grade), {@link BTSWaterGrade#DISTILLED}
+     * for distilled, 1..8 for the purified grades - or {@link #NO_FEEDWATER} when nothing in the
+     * row would answer.
+     * <p>
+     * <b>B7 - why this is ONE method and not two lists.</b> The running draw and the
+     * post-shutdown decay-heat obligation each used to carry their own idea of what cooling water
+     * is, and D-26 widened only the running one. A plant built to the exact spec this release
+     * REWARDS - one Grade 4 Purified Water hatch and nothing else - therefore ran perfectly, and
+     * then could not pay its decay heat: a guaranteed meltdown handed to the player who followed
+     * the tooltip. Both callers now read this ladder, so the two sets cannot drift apart again.
+     * <p>
+     * <b>Why offering ten fluids a tick is cheap.</b> {@code MTEHatchInput} inherits
+     * {@code drain(ForgeDirection, FluidStack, boolean)} from {@code CommonMetaTileEntity}; its
+     * bytecode forwards to {@code drain(dir, stack, stack.amount, doDrain)}, which returns null
+     * unless {@code getFluid().isFluidEqual(want)}. A rung the row does not hold costs one
+     * comparison and draws nothing - which is also precisely why the old three-fluid decay list
+     * came up dry against a purified hatch instead of falling back to it.
+     * <p>
+     * WORST FIRST is the mechanic and not an optimisation: a row holding plain water and Grade 8
+     * spends the plain water, so a purified feedwater line only ever pays the OUTPUT term when it
+     * is a DEDICATED line. IC2 Coolant sits between distilled and Grade 1 on the same principle -
+     * it is cheaper than purified water and dearer than distilled - and is offered only to the
+     * caller that passes {@code acceptCoolant}.
+     */
+    private int drainFeedwaterLadder(int litres, boolean acceptCoolant) {
+        if (drainFrom(feedwaterHatches, Materials.Water.getFluid(litres), false)) {
+            return BTSWaterGrade.NOT_GRADED;
+        }
+        if (drainFrom(feedwaterHatches, GTModHandler.getDistilledWater(litres), false)) {
+            return BTSWaterGrade.DISTILLED;
+        }
+        if (acceptCoolant && drainFrom(feedwaterHatches, GTModHandler.getIC2Coolant(litres), false)) {
+            return BTSWaterGrade.NOT_GRADED;
+        }
+        for (int grade = 1; grade <= BTSWaterGrade.MAX_GRADE; grade++) {
+            final FluidStack rung = BTSWaterGrade.fluidFor(grade, litres);
+            // A rung whose fluid is missing SKIPS rather than throws: this runs every tick of
+            // every running plant, and one absent material would otherwise be a crash loop.
+            if (rung != null && drainFrom(feedwaterHatches, rung, false)) {
+                return grade;
+            }
+        }
+        return NO_FEEDWATER;
+    }
+
+    /**
+     * B7: the POST-SHUTDOWN decay-heat draw - every fluid the plant was allowed to drink while it
+     * ran, plus IC2 Coolant. The obligation is paid out of the same water line that was feeding
+     * the core a tick earlier, so it must not be fussier than that line was.
+     * <p>
+     * The bench supply waives it exactly as it waives the running draw. That is the same defect
+     * in miniature: {@code refillDebugSupplies} deliberately does NOT materialise feedwater (a
+     * filled hatch can be pumped back out), so a commanded plant whose running draw is waived
+     * would still have melted down the moment it was switched off, with nothing a player could
+     * put in a hatch to stop it. The DESTRUCTION policy is untouched - the window still runs, the
+     * heat still climbs from every other source, and turning {@code /btssupply} off arms this
+     * draw again on the next tick.
+     */
+    private boolean drawDecayHeatCooling(int litres) {
         if (debugInfiniteSupplies) return true;
-        return drainFrom(feedwaterHatches, Materials.Water.getFluid(litres), false)
-            || drainFrom(feedwaterHatches, GTModHandler.getDistilledWater(litres), false);
+        return drainFeedwaterLadder(litres, true) != NO_FEEDWATER;
+    }
+
+    /**
+     * D-26 THE WATER OUTPUT TERM, as the plant is actually drinking it right now.
+     * <p>
+     * <b>AXIS 3, and this is precisely the axis-3 failure mode.</b> The grade is set inside
+     * {@link #drawFeedwater}, which reads {@code feedwaterHatches} - the SILO's own private list -
+     * and nothing else. The Spiral chamber's {@code chamberHatches} may perfectly legitimately
+     * hold Grade 8 purified water as COOLANT, and it must never pay the reactor's output term. A
+     * blanket sweep of {@code mInputHatches} would have handed every plant with good coolant a
+     * free x1.40.
+     * <p>
+     * <b>AXIS 2:</b> nothing is persisted. The grade is re-derived from what is standing in the
+     * hatch on every generating tick, so it cannot survive the water being swapped out.
+     */
+    public int waterOutputMilli() {
+        return BTSWaterGrade.outputMilli(feedwaterGrade);
+    }
+
+    /** The feedwater rung the last draw actually took: -1 none/plain, 0 distilled, 1..8 purified. */
+    public int getFeedwaterGrade() {
+        return feedwaterGrade;
     }
 
     /**
@@ -5308,6 +5460,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     private void runFluidTick(int flowPerTick, int baseFlow) {
         final int coolantFlow = reactorTier >= MAX_TIER ? baseFlow * 2 : baseFlow;
         if (drainFrom(feedwaterHatches, GTModHandler.getIC2Coolant(coolantFlow), false)) {
+            // D-26: this branch draws COOLANT, not feedwater, so it never reaches drawFeedwater
+            // and would otherwise leave the last water grade standing on the panel over a draw
+            // that is no longer happening.
+            feedwaterGrade = BTSWaterGrade.NOT_GRADED;
             addOutput(GTModHandler.getHotCoolant(coolantFlow));
             lastEUOutput = 0;
             lastEUDemand = 0;
@@ -5366,6 +5522,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         liveColumnsLastCycle = 0;
         lastEUOutput = 0;
         lastEUDemand = 0;
+        // D-26: the water term goes with the campaign. A stopped plant is drinking nothing, and a
+        // panel that kept printing "Feedwater: Grade 8" over an idle silo would be describing a
+        // draw that is not happening.
+        feedwaterGrade = BTSWaterGrade.NOT_GRADED;
         // The chain's standing steam vents with the campaign; RPM only ever coasts down.
         steamBuffer = 0;
         // Chamber bookkeeping is about a RUNNING chain: a stopped plant must not keep
@@ -5543,10 +5703,12 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 final int decayWater = Math.max(8, DECAY_WATER_PER_TICK >> towers);
                 startRecipeProcessing();
                 // Post-shutdown cooling is a REACTOR obligation, so it is paid out of the
-                // silo's feedwater line - never out of the chamber's coolant.
-                boolean cooled = drainFrom(feedwaterHatches, Materials.Water.getFluid(decayWater), false)
-                    || drainFrom(feedwaterHatches, GTModHandler.getDistilledWater(decayWater), false)
-                    || drainFrom(feedwaterHatches, GTModHandler.getIC2Coolant(decayWater), false);
+                // silo's feedwater line - never out of the chamber's coolant. B7: it takes
+                // EVERYTHING drawFeedwater takes (drainFeedwaterLadder is the single list) plus
+                // IC2 Coolant. It used to name three fluids of its own and miss all eight
+                // purified grades, so the dedicated Grade 1-8 line this release pays a x1.05 to
+                // x1.40 for could run a campaign and then not cool the core it had just run.
+                final boolean cooled = drawDecayHeatCooling(decayWater);
                 endRecipeProcessing();
                 if (!cooled) {
                     starvedThisTick = true;
@@ -5625,7 +5787,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     // is that they are the integrated endgame form of the IV entry tech, not a better version of
     // it. MTEExtractionPlatform: 200t, -TierEU.RECIPE_EV, 6 Uraninite + 1 Thorium, +1 Tantalum
     // every 4th cycle. MTEEnrichmentTrain: 600t, -TierEU.RECIPE_HV, 8 Uraninite + 2,000 L
-    // Hydrofluoric Acid -> 20 Fuel Pellets + 2 Thorium.
+    // Hydrofluoric Acid -> 2 Yellowcake + 2 Thorium (M7 re-pointed BOTH; if one of these two
+    // numbers is ever edited alone, the module has stopped being the standalone machine again).
     private static final int DERRICK_CYCLE_TICKS = 200;
     /**
      * R: {@code TierEU.RECIPE_EV}, NOT {@code TierEU.EV}. GT's RECIPE_ ladder is
@@ -5642,7 +5805,14 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     public static final long ANNEX_EU_PER_TICK = TierEU.RECIPE_HV;
     private static final int ANNEX_URANINITE = 8;
     private static final int ANNEX_ACID_MB = 2_000;
-    private static final int ANNEX_PELLETS = 20;
+    /**
+     * M7: 8 Uraninite -> 2 YELLOWCAKE, the front end's own 4:1 ratio (F-01 .. F-08 turn 16
+     * Uraninite into 4 Yellowcake). It used to be 20 finished {@code uraniumFuelPellet}, which
+     * skipped F-01 .. F-11 - the water YIELD step at F-12 included - at 1.6 Uraninite per rod
+     * against the line's 16.0 at Grade 1. See {@link MTEEnrichmentTrain} for the whole argument;
+     * the two machines are required to agree and this is one of the two numbers that says so.
+     */
+    private static final int ANNEX_YELLOWCAKE = 2;
     private static final int ANNEX_THORIUM = 2;
 
     /**
@@ -5907,7 +6077,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         // Finished, and HELD until the product bus can take all of it. The uraninite and the
         // acid are already spent, so voiding the batch or paying it out twice are both wrong.
         final List<ItemStack> out = new ArrayList<>();
-        out.add(new ItemStack(BTSItems.uraniumFuelPellet, annexPellets()));
+        // M7: YELLOWCAKE. The Annex feeds the fuel line at F-09; it does not replace it.
+        out.add(new ItemStack(BTSItemsFuel.yellowcake, annexYellowcake()));
         out.add(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Thorium, ANNEX_THORIUM));
         if (!storeAll(annexProductBus, out)) {
             note(
@@ -6637,8 +6808,33 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return progression.derrickTantalumEvery(DERRICK_TANTALUM_EVERY);
     }
 
-    private int annexPellets() {
-        return progression.annexPellets(ANNEX_PELLETS);
+    /**
+     * M7 + REPROCESSING 7: how many Yellowcake THIS batch pays.
+     * <p>
+     * {@code BTSProgression.annexPellets(base)} is {@code max(base, base * 6/5 * ANNEX_BATCH /
+     * 1000)}, so passing 1000 reads it back as a straight MILLI multiplier - 1000 unimproved,
+     * 1200 with REPROCESSING 7, more with the tree - rather than as a count. That indirection is
+     * the whole point of this method: a fifth of the old twenty-pellet batch was four whole
+     * pellets, but a fifth of two cakes is 0.4, and {@code 2 * 6 / 5} truncates straight back to
+     * 2. Left as a plain multiply, M7 would have silently turned the milestone into a no-op.
+     * <p>
+     * So the fraction is CARRIED between batches instead of being discarded: the cakes owed
+     * through this batch, minus the cakes owed through the one before it. At x1.200 that pays
+     * 2, 2, 3, 2, 3 - twelve cakes per five batches, which is the 2.4 the milestone promises.
+     * At x1.000 every term is exactly {@code ANNEX_YELLOWCAKE}, so a plant with no milestone and
+     * no tree pays the same batch it paid before this method existed.
+     * <p>
+     * AXIS 2: the carry is NOT a new field. It is derived from {@code annexCycles}, which is
+     * already persisted to both tile NBT and item NBT, so a wrenched controller resumes the
+     * sequence rather than restarting it - and any value of it derives an unbroken run of
+     * {@code ANNEX_YELLOWCAKE} while the multiplier is 1000. A held batch (product bus full)
+     * re-derives the same number every tick, because {@code annexCycles} only moves on deposit.
+     */
+    private int annexYellowcake() {
+        final long batchMilli = progression.annexPellets(1000);
+        final long owedThrough = (long) ANNEX_YELLOWCAKE * (annexCycles + 1L) * batchMilli / 1000L;
+        final long owedBefore = (long) ANNEX_YELLOWCAKE * annexCycles * batchMilli / 1000L;
+        return (int) Math.max(ANNEX_YELLOWCAKE, owedThrough - owedBefore);
     }
 
     public int getCyclesPerMinute() {
@@ -7103,6 +7299,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * D-17 3/4: the two SELF-FUELLING modules, their cycle tallies and whatever is holding them
      * up. Only drawn when at least one of them stands - a plant with neither has nothing to say
      * here and the line would be four words of noise on every panel forever.
+     * <p>
+     * M7: both quote their BASE rate, not the milestone-scaled one, and the Annex's is now
+     * 2 Yellowcake - it stopped paying finished fuel pellets in 0.24.0. What the pair make is
+     * FEEDSTOCK: the plant is self-fuelling once F-09 .. F-18 are standing, and not before.
      */
     public static String selfFuelLine(boolean derrick, boolean annex, int derrickCycles, int annexCycles,
         String stall) {
@@ -7117,7 +7317,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             + " · Annex "
             + (annex
                 ? String.format("%,d", annexCycles)
-                    + " batches (8 uraninite + 2,000 L HF -> 20 pellets + 2 thorium /30s)"
+                    + " batches (8 uraninite + 2,000 L HF -> 2 yellowcake + 2 thorium /30s)"
                 : "-");
         if (stall == null || stall.isEmpty()) return head;
         return head + EnumChatFormatting.YELLOW + " | " + stall + EnumChatFormatting.RESET;
@@ -7549,6 +7749,25 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * exact line it saw before this system existed.
      */
     public static String mathTurbineLine(int rpm, int rotorMilli, int progMilli, int upgradeMilli, long demand) {
+        return mathTurbineLine(rpm, rotorMilli, progMilli, upgradeMilli, 1000, demand);
+    }
+
+    /**
+     * D-26: the same line with the FEEDWATER term printed as its own labelled factor, in the same
+     * position {@link #euDemandOf} performs it.
+     * <p>
+     * It follows the two progression terms' rule exactly: printed only when it is not x1.000,
+     * because a derivation that hid a factor it actually used would be lying about its own
+     * arithmetic - and, in the other direction, a plant running plain water sees the EXACT line it
+     * saw in 0.23.0, character for character. That is the visible half of the regression test;
+     * {@link #euDemandOf} is the arithmetic half.
+     * <p>
+     * The water factor is BLUE where the progression terms are GOLD, because it is a different
+     * kind of thing: milestones and upgrades are earned once and kept, while this one is a live
+     * property of what is in the hatch this tick and stops the moment the good water runs out.
+     */
+    public static String mathTurbineLine(int rpm, int rotorMilli, int progMilli, int upgradeMilli, int waterMilli,
+        long demand) {
         return EnumChatFormatting.GRAY + "3) "
             + EnumChatFormatting.RESET
             + "x RPM "
@@ -7567,12 +7786,51 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                     + String.format("%.3f", upgradeMilli / 1000.0)
                     + EnumChatFormatting.RESET
                 : "")
+            + (waterMilli > 1000
+                ? EnumChatFormatting.BLUE + " x feedwater x"
+                    + String.format("%.2f", waterMilli / 1000.0)
+                    + EnumChatFormatting.RESET
+                : "")
             + " = "
             + EnumChatFormatting.AQUA
             + String.format("%,d", demand)
             + " EU/t"
             + EnumChatFormatting.RESET
             + " demand";
+    }
+
+    /**
+     * D-26: the STEAM CHAIN group's feedwater row. Empty below Grade 1, which is the whole point -
+     * a plant on plain or distilled water gets no new line, no new instruction and no suggestion
+     * that it is doing anything wrong. The purified grades are a bonus a player opts into, never a
+     * requirement, and the panel says so out loud on the one line where somebody might wonder.
+     * <p>
+     * The multiplier is read back out of {@link BTSWaterGrade#outputMilli} rather than passed in,
+     * so this line and {@link #euDemandOf}'s fifth factor come from one table and cannot drift.
+     */
+    public static String feedwaterLine(int grade, boolean galleryActive) {
+        if (grade < 1) return "";
+        final String head = EnumChatFormatting.BLUE + "Feedwater: " + BTSWaterGrade.label(grade);
+        final String mult = String.format("%.2f", BTSWaterGrade.outputMilli(grade) / 1000.0);
+        // R9's rule, applied to this term too: a plant with no Turbine Generator derives no EU at
+        // all, so telling it that its water is worth "output x1.20" would be the same lie the
+        // numbered steps used to tell it about its non-existent rotors. The multiplier is real and
+        // it is banked - it just does not pay until something turns those litres into EU.
+        if (!galleryActive) {
+            return head + " - x"
+                + mult
+                + " once a Turbine Generator turns those litres into EU"
+                + EnumChatFormatting.RESET
+                + EnumChatFormatting.GRAY
+                + " (a steam-export plant is paid in litres, and the grade moves no litres)"
+                + EnumChatFormatting.RESET;
+        }
+        return head + " - output x"
+            + mult
+            + EnumChatFormatting.RESET
+            + EnumChatFormatting.GRAY
+            + " (plain and distilled water run this plant at x1.00 - the grade is a bonus, never a requirement)"
+            + EnumChatFormatting.RESET;
     }
 
     /**
@@ -7920,6 +8178,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         out.add(spiralLine(spiralBuilt, spiralInjectors.size(), lastGoodInjectors, propellantName, propellantMilli));
         out.add(
             coolantLine(spiralBuilt, chamberStarved, isChamberCoolantReady(), chamberCoolantName, chamberCoolantDrain));
+        // D-26: the feedwater grade, and ONLY when a purified grade is actually being drunk.
+        // Empty at plain and distilled water, so a plant that ran yesterday shows the same panel
+        // it showed yesterday - the water ladder adds a line when you opt into it and not before.
+        final String feedwater = feedwaterLine(feedwaterGrade, isGalleryActive());
+        if (!feedwater.isEmpty()) out.add(feedwater);
         out.add(header("TURBINE"));
         out.add(
             rpmLine(
@@ -7987,7 +8250,14 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         // empty generates nothing and the plant is genuinely exporting steam through the silo,
         // so it gets the export step, not steps 3 and 4 about a fan that is not turning.
         if (isGalleryActive()) {
-            out.add(mathTurbineLine(getRpm(), avgRotorFactorMilli, progOutputMilli(), progUpgradeMilli(), demandNow));
+            out.add(
+                mathTurbineLine(
+                    getRpm(),
+                    avgRotorFactorMilli,
+                    progOutputMilli(),
+                    progUpgradeMilli(),
+                    waterOutputMilli(),
+                    demandNow));
             out.add(mathClampLine(demandNow, ceilingNow, gridCeiling()));
         } else {
             out.add(mathExportLine(spineSpeedMilli, getBoostedSteamOutput()));
@@ -8147,16 +8417,20 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             .addInfo(
                 "    every 4th cycle - the standalone Extraction Platform's rate. " + euRate(DERRICK_EU_PER_TICK) + ".")
             .addInfo(gray + "  Enrichment Annex:" + reset + " 5x15x6 process shed down the platform's front edge.")
-            .addInfo("    Every 30s: 8 Uraninite + 2,000 L Hydrofluoric Acid -> 20 Fuel Pellets +")
+            .addInfo("    Every 30s: 8 Uraninite + 2,000 L Hydrofluoric Acid -> 2 YELLOWCAKE +")
             .addInfo("    2 Thorium, the standalone Enrichment Train's rate. " + euRate(ANNEX_EU_PER_TICK) + ".")
-            .addInfo("    Derrick + Annex + an external centrifuge = a near-self-fuelling plant.")
+            .addInfo("    Same 4 Uraninite per cake the ore front end gets: it buys SIMPLICITY,")
+            .addInfo("    not yield. Derrick + Annex feed the FUEL LINE at its F-09 conversion")
+            .addInfo("    step - they do not replace it, and no module makes a finished rod.")
             .addInfo(gray + "  Both draw their EU from the manifold's ENERGY HATCHES - the first and only" + reset)
             .addInfo(gray + "  things in this plant that consume any. Still never a structure demand." + reset)
             .addInfo(
                 aqua + "Control:" + reset + " rods 1-24, RPM LIMIT and Build Tier in the GUI; circuit overrides rods.")
             .addInfo(gray + "Build Tier only decides what to RAISE - a standing silo is never re-tiered," + reset)
             .addInfo(gray + "even while it is broken. Take the silo down and Build Tier is free again." + reset)
-            .addInfo(red + "Heat:" + reset + " SCRAM 8,000 - MELTDOWN 10,000. Decay heat needs 20 min of water.")
+            .addInfo(red + "Heat:" + reset + " SCRAM 8,000 - MELTDOWN 10,000. Decay heat needs 20 min of")
+            .addInfo("cooling after shutdown, out of the SAME Feedwater hatch and off the same ladder the")
+            .addInfo("plant runs on - plain, distilled, IC2 Coolant or ANY purified grade, worst spent first.")
             .addInfo(aqua + "THE MATH IS ON SCREEN:" + reset + " the GUI (and both control blocks) print a numbered")
             .addInfo("derivation - pillars x fuel x 16,384 -> rods N/24 -> spine -> RPM/500 x rotors -> clamp -")
             .addInfo("and name the WEAKEST term. NEI: look this controller up for the fuel-rod, propellant")
@@ -8280,9 +8554,12 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * machine is the catalyst for; it is NOT the hook that makes a machine process recipes.
      * That one is {@code getRecipeMap()}, which stays null here because the plant runs its own
      * {@link #checkProcessing()} over rod segments and never calls findRecipe. Returning the
-     * display maps therefore only puts the controller's icon on three pages of tables (and
+     * display maps therefore only puts the controller's icon on four pages of tables (and
      * those pages' entries are {@code .fake()} on top of that); the machine's behaviour and the
      * hatches' filtering are completely untouched.
+     * <p>
+     * D-26 adds the fourth: the purified-water ladder, which belongs on this controller's icon
+     * because one of its two terms is a term of THIS machine's EU derivation.
      */
     @Nonnull
     @Override
@@ -8290,7 +8567,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return Arrays.asList(
             com.nateyburr.beyondthestars.BTSDisplayRecipes.plantFuelRods,
             com.nateyburr.beyondthestars.BTSDisplayRecipes.plantPropellant,
-            com.nateyburr.beyondthestars.BTSDisplayRecipes.plantCoolant);
+            com.nateyburr.beyondthestars.BTSDisplayRecipes.plantCoolant,
+            com.nateyburr.beyondthestars.BTSDisplayRecipes.plantWater);
     }
 
     @Override

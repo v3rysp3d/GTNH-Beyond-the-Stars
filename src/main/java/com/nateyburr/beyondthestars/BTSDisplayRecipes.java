@@ -7,6 +7,8 @@ import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.nateyburr.beyondthestars.fluids.BTSFluids;
+import com.nateyburr.beyondthestars.fluids.BTSWaterGrade;
+import com.nateyburr.beyondthestars.items.BTSItemsFuel;
 import com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1;
 
 import gregtech.api.enums.GTValues;
@@ -93,6 +95,22 @@ public final class BTSDisplayRecipes {
         .neiHandlerInfo(builder -> builder.setHeight(210))
         .build();
 
+    /**
+     * D-26: the nine rungs of the purified-water ladder, each with BOTH of its effects on one
+     * page - the fuel-line YIELD term and the reactor OUTPUT term.
+     * <p>
+     * The whole ruling lives on this page, which is why it is worth a fourth tab. Every number on
+     * it is read out of {@link BTSWaterGrade}, the same class the F-12 recipes and the reactor's
+     * own euDemandOf() call read, so the page cannot tell a player one thing while the plant does
+     * another.
+     */
+    public static final RecipeMap<RecipeMapBackend> plantWater = RecipeMapBuilder.of("beyondthestars.recipe.plantwater")
+        .maxIO(0, 1, 1, 0)
+        .minInputs(0, 1)
+        .frontend(DisplayFrontend::new)
+        .neiHandlerInfo(builder -> builder.setHeight(220))
+        .build();
+
     private static boolean loaded;
 
     /**
@@ -106,6 +124,7 @@ public final class BTSDisplayRecipes {
         addFuelRodPages();
         addPropellantPages();
         addCoolantPages();
+        addWaterPages();
     }
 
     // --------------------------------------------------------------- missing-dependency guards
@@ -357,6 +376,71 @@ public final class BTSDisplayRecipes {
                     .addTo(plantCoolant);
             } catch (RuntimeException broken) {
                 pageFailed("coolant", rung, broken);
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------- D-26 the water ladder
+
+    /**
+     * One page per rung, distilled through Grade 8. Both of the ruling's terms are printed side
+     * by side, because the single most important thing a player can learn about this mechanic is
+     * the RATIO between them: the water grade moves fuel YIELD by x9.00 and reactor OUTPUT by
+     * x1.40, so a Purification Plant buys cheaper fuel and never raw power.
+     * <p>
+     * The "Uraninite per rod" figure is the balance argument made concrete - 16.0 at Grade 1,
+     * where one Extraction Derrick exactly feeds a fully-built tier-5 plant, down to 3.6 at
+     * Grade 8. It is derived from the same yield term rather than tabulated, so it moves with the
+     * ladder if the ladder is ever retuned.
+     */
+    private static void addWaterPages() {
+        final Item powder = BTSItemsFuel.ceramicUO2Powder;
+        if (powder == null) {
+            pageSkipped("water grade", 0);
+            return;
+        }
+        for (int grade = BTSWaterGrade.DISTILLED; grade <= BTSWaterGrade.MAX_GRADE; grade++) {
+            // Same "vet it before you wrap it" rule the three ladders above use. Every rung here
+            // comes out of Materials/GTModHandler, which hand back null rather than throwing - so
+            // one null test is the whole guard, and a pack without the Purification Plant's
+            // materials loses tabs instead of the mod.
+            final FluidStack water = BTSWaterGrade.fluidFor(grade, 2_000);
+            if (water == null || !usable(water.getFluid())) {
+                pageSkipped("water grade", grade);
+                continue;
+            }
+            final int yieldMilli = BTSWaterGrade.yieldMilli(grade);
+            final int count = BTSWaterGrade.powderFor(grade);
+            final double orePerRod = yieldMilli <= 0 ? 0 : 16.0 * 1000.0 / yieldMilli;
+            try {
+                GTValues.RA.stdBuilder()
+                    .fluidInputs(water)
+                    .itemOutputs(new ItemStack(powder, count))
+                    // duration 1, not 0, to match the coolant page: GT's builder treats a
+                    // non-positive duration as a malformed recipe and the DisplayFrontend
+                    // suppresses the number anyway, so 1 costs nothing and 0 risks the tab.
+                    .duration(1)
+                    .eut(0)
+                    .fake()
+                    .ignoreCollision()
+                    .setNEIDesc(
+                        BTSWaterGrade.label(grade),
+                        "FUEL LINE - F-12 reconversion:",
+                        "  yield x" + String.format("%.1f", yieldMilli / 1000.0) + " -> " + count + " UO2 powder",
+                        "  per 1,000 L enriched UF6",
+                        "  = " + String.format("%.1f", orePerRod) + " Uraninite per fuel rod",
+                        "REACTOR - feedwater hatch:",
+                        "  EU/t output x" + String.format("%.2f", BTSWaterGrade.outputMilli(grade) / 1000.0),
+                        "Plain and distilled water",
+                        "  run the reactor at x1.00 -",
+                        "  no grade is ever required.",
+                        "Yield spans x9.00, output",
+                        "  x1.40: water buys CHEAP",
+                        "  FUEL, never raw power.",
+                        "Display only - not a recipe")
+                    .addTo(plantWater);
+            } catch (RuntimeException broken) {
+                pageFailed("water grade", grade, broken);
             }
         }
     }

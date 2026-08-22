@@ -241,7 +241,7 @@ public class CommandBTSBuild extends CommandBase {
         tell(
             player,
             EnumChatFormatting.AQUA
-                + "All four PLANT MODULES are raised too: Vent Stack (decay + radiation windows halved), Switchyard (lifts the 100,000,000 EU/t grid soft cap), Extraction Derrick (6 uraninite + 1 thorium every 10s, +1 tantalum every 4th) and Enrichment Annex (8 uraninite + 2,000 L HF -> 20 pellets + 2 thorium every 30s). The Derrick's and the Annex's buses are auto-fitted; their EU draw is WAIVED while /btssupply is on.");
+                + "All four PLANT MODULES are raised too: Vent Stack (decay + radiation windows halved), Switchyard (lifts the 100,000,000 EU/t grid soft cap), Extraction Derrick (6 uraninite + 1 thorium every 10s, +1 tantalum every 4th) and Enrichment Annex (8 uraninite + 2,000 L HF -> 2 yellowcake + 2 thorium every 30s). The Derrick's and the Annex's buses are auto-fitted; their EU draw is WAIVED while /btssupply is on.");
         tell(
             player,
             EnumChatFormatting.AQUA
