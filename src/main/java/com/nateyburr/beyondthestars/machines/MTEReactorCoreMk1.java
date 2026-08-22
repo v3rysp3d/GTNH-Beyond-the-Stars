@@ -454,8 +454,12 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * D-26: the feedwater rung the last draw actually took. -1 = plain water or nothing, 0 =
      * distilled, 1..8 = the purified grades.
      * <p>
-     * AXIS 1: written ONLY by {@link #drawFeedwater}, which is server-side, so the GUI reads it
-     * through a sync value and never the field (which is -1 on the client). AXIS 2: deliberately
+     * AXIS 1: written by {@link #drawFeedwater} and, to park it back at the baseline over a draw
+     * that is not happening, by {@link #runFluidTick}'s Hot Coolant branch and
+     * {@link #clearCampaign} - all three server-side, so the GUI reads it through a sync value
+     * and never the field (which is -1 on the client). B7: the post-shutdown decay-heat draw
+     * deliberately does NOT write it - that draw earns no output term, and a shut-down plant
+     * must not print a grade as though it were still generating on it. AXIS 2: deliberately
      * NOT persisted - it is re-derived every generating tick from what is standing in the hatch,
      * which is the only way it can be right after a player swaps the water out.
      */
@@ -4569,6 +4573,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * water-grade coolant out from under the chamber. While the bench-supply flag is on the
      * draw is WAIVED in code rather than by filling tanks - a filled hatch can be pumped back
      * out, which would have made a test plant an unlimited water/coolant source.
+     * <p>
+     * WHAT counts as feedwater is {@link #drainFeedwaterLadder} and is deliberately not written
+     * here (B7). This method only turns the rung that ladder took into the OUTPUT term.
      */
     private boolean drawFeedwater(int litres) {
         if (debugInfiniteSupplies) {
@@ -4578,29 +4585,81 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             feedwaterGrade = BTSWaterGrade.NOT_GRADED;
             return true;
         }
-        // D-26: WORST FIRST, and the order is the mechanic. A hatch row holding plain water and
-        // Grade 8 spends the plain water - which is both the cheaper draw and the reason a
-        // purified feedwater line has to be a DEDICATED line to pay anything. You cannot top up
-        // the bonus by leaving one bucket of good water in the row.
+        // The RUNNING draw never takes IC2 Coolant: runFluidTick offers coolant its own branch
+        // before this one and pays HOT COOLANT for it, so drinking it here would silently
+        // convert a Hot Coolant line into a steam line.
+        final int rung = drainFeedwaterLadder(litres, false);
+        feedwaterGrade = rung == NO_FEEDWATER ? BTSWaterGrade.NOT_GRADED : rung;
+        return rung != NO_FEEDWATER;
+    }
+
+    /** {@link #drainFeedwaterLadder} drew nothing: the silo's row holds no accepted fluid. */
+    private static final int NO_FEEDWATER = -2;
+
+    /**
+     * THE ACCEPTED-FEEDWATER LADDER, WRITTEN ONCE. Worst rung first, all-or-nothing per rung,
+     * out of the SILO's own hatches; returns the rung it drained - {@link BTSWaterGrade#NOT_GRADED}
+     * for plain water (and for IC2 Coolant, which has no grade), {@link BTSWaterGrade#DISTILLED}
+     * for distilled, 1..8 for the purified grades - or {@link #NO_FEEDWATER} when nothing in the
+     * row would answer.
+     * <p>
+     * <b>B7 - why this is ONE method and not two lists.</b> The running draw and the
+     * post-shutdown decay-heat obligation each used to carry their own idea of what cooling water
+     * is, and D-26 widened only the running one. A plant built to the exact spec this release
+     * REWARDS - one Grade 4 Purified Water hatch and nothing else - therefore ran perfectly, and
+     * then could not pay its decay heat: a guaranteed meltdown handed to the player who followed
+     * the tooltip. Both callers now read this ladder, so the two sets cannot drift apart again.
+     * <p>
+     * <b>Why offering ten fluids a tick is cheap.</b> {@code MTEHatchInput} inherits
+     * {@code drain(ForgeDirection, FluidStack, boolean)} from {@code CommonMetaTileEntity}; its
+     * bytecode forwards to {@code drain(dir, stack, stack.amount, doDrain)}, which returns null
+     * unless {@code getFluid().isFluidEqual(want)}. A rung the row does not hold costs one
+     * comparison and draws nothing - which is also precisely why the old three-fluid decay list
+     * came up dry against a purified hatch instead of falling back to it.
+     * <p>
+     * WORST FIRST is the mechanic and not an optimisation: a row holding plain water and Grade 8
+     * spends the plain water, so a purified feedwater line only ever pays the OUTPUT term when it
+     * is a DEDICATED line. IC2 Coolant sits between distilled and Grade 1 on the same principle -
+     * it is cheaper than purified water and dearer than distilled - and is offered only to the
+     * caller that passes {@code acceptCoolant}.
+     */
+    private int drainFeedwaterLadder(int litres, boolean acceptCoolant) {
         if (drainFrom(feedwaterHatches, Materials.Water.getFluid(litres), false)) {
-            feedwaterGrade = BTSWaterGrade.NOT_GRADED;
-            return true;
+            return BTSWaterGrade.NOT_GRADED;
         }
         if (drainFrom(feedwaterHatches, GTModHandler.getDistilledWater(litres), false)) {
-            feedwaterGrade = BTSWaterGrade.DISTILLED;
-            return true;
+            return BTSWaterGrade.DISTILLED;
+        }
+        if (acceptCoolant && drainFrom(feedwaterHatches, GTModHandler.getIC2Coolant(litres), false)) {
+            return BTSWaterGrade.NOT_GRADED;
         }
         for (int grade = 1; grade <= BTSWaterGrade.MAX_GRADE; grade++) {
             final FluidStack rung = BTSWaterGrade.fluidFor(grade, litres);
             // A rung whose fluid is missing SKIPS rather than throws: this runs every tick of
             // every running plant, and one absent material would otherwise be a crash loop.
             if (rung != null && drainFrom(feedwaterHatches, rung, false)) {
-                feedwaterGrade = grade;
-                return true;
+                return grade;
             }
         }
-        feedwaterGrade = BTSWaterGrade.NOT_GRADED;
-        return false;
+        return NO_FEEDWATER;
+    }
+
+    /**
+     * B7: the POST-SHUTDOWN decay-heat draw - every fluid the plant was allowed to drink while it
+     * ran, plus IC2 Coolant. The obligation is paid out of the same water line that was feeding
+     * the core a tick earlier, so it must not be fussier than that line was.
+     * <p>
+     * The bench supply waives it exactly as it waives the running draw. That is the same defect
+     * in miniature: {@code refillDebugSupplies} deliberately does NOT materialise feedwater (a
+     * filled hatch can be pumped back out), so a commanded plant whose running draw is waived
+     * would still have melted down the moment it was switched off, with nothing a player could
+     * put in a hatch to stop it. The DESTRUCTION policy is untouched - the window still runs, the
+     * heat still climbs from every other source, and turning {@code /btssupply} off arms this
+     * draw again on the next tick.
+     */
+    private boolean drawDecayHeatCooling(int litres) {
+        if (debugInfiniteSupplies) return true;
+        return drainFeedwaterLadder(litres, true) != NO_FEEDWATER;
     }
 
     /**
@@ -5642,10 +5701,12 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 final int decayWater = Math.max(8, DECAY_WATER_PER_TICK >> towers);
                 startRecipeProcessing();
                 // Post-shutdown cooling is a REACTOR obligation, so it is paid out of the
-                // silo's feedwater line - never out of the chamber's coolant.
-                boolean cooled = drainFrom(feedwaterHatches, Materials.Water.getFluid(decayWater), false)
-                    || drainFrom(feedwaterHatches, GTModHandler.getDistilledWater(decayWater), false)
-                    || drainFrom(feedwaterHatches, GTModHandler.getIC2Coolant(decayWater), false);
+                // silo's feedwater line - never out of the chamber's coolant. B7: it takes
+                // EVERYTHING drawFeedwater takes (drainFeedwaterLadder is the single list) plus
+                // IC2 Coolant. It used to name three fluids of its own and miss all eight
+                // purified grades, so the dedicated Grade 1-8 line this release pays a x1.05 to
+                // x1.40 for could run a campaign and then not cool the core it had just run.
+                final boolean cooled = drawDecayHeatCooling(decayWater);
                 endRecipeProcessing();
                 if (!cooled) {
                     starvedThisTick = true;
@@ -8325,7 +8386,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 aqua + "Control:" + reset + " rods 1-24, RPM LIMIT and Build Tier in the GUI; circuit overrides rods.")
             .addInfo(gray + "Build Tier only decides what to RAISE - a standing silo is never re-tiered," + reset)
             .addInfo(gray + "even while it is broken. Take the silo down and Build Tier is free again." + reset)
-            .addInfo(red + "Heat:" + reset + " SCRAM 8,000 - MELTDOWN 10,000. Decay heat needs 20 min of water.")
+            .addInfo(red + "Heat:" + reset + " SCRAM 8,000 - MELTDOWN 10,000. Decay heat needs 20 min of")
+            .addInfo("cooling after shutdown, out of the SAME Feedwater hatch and off the same ladder the")
+            .addInfo("plant runs on - plain, distilled, IC2 Coolant or ANY purified grade, worst spent first.")
             .addInfo(aqua + "THE MATH IS ON SCREEN:" + reset + " the GUI (and both control blocks) print a numbered")
             .addInfo("derivation - pillars x fuel x 16,384 -> rods N/24 -> spine -> RPM/500 x rotors -> clamp -")
             .addInfo("and name the WEAKEST term. NEI: look this controller up for the fuel-rod, propellant")
