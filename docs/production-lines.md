@@ -87,6 +87,14 @@ of the twenty-two keeps a route (§8). Nothing in a player's chest stops working
 recipe to distilled water + tantalum (the D-09 profit anchor) but **no producer anywhere in the
 recipe system**. The new reprocessing line (§1.6) becomes its source, which closes D-09.
 
+> **CORRECTION (release pass).** "No producer" was true of the *recipe system* and false of the
+> mod: `MTEReactorCoreMk1.emitWasteWater()` puts **one litre per live pillar into the silo's Output
+> Hatch on every generating tick** — roughly 201 L/t on a full tier-5 plant — and has done since
+> before 0.20.0. A machine emitting a fluid directly is not a recipe, which is exactly how this
+> recon missed it, and the claim then propagated into §1.6, the wiki, the questbook and the
+> flowchart. What R-02h and R-03 add is a **controllable** source, 2,000 L a batch on demand, rather
+> than an unthrottleable flood available only while the plant runs.
+
 ### 0.4 `docs/steam-dynamics.md` — the ladders as they stand (D-08, do not change)
 
 Propellant, stage factor P (all-8-timed):
@@ -283,7 +291,10 @@ fluids created by this design (§7 says who registers each). Tier is the recipe'
 ### 1.3 **F-12 — RECONVERSION. THE WATER STEP.** (arithmetic in §2)
 
 Integrated Dry Route: `UF₆ + 2 H₂O + H₂ → UO₂ + 4 HF`. Chemically exact, and the *water is
-literally the reagent* — which is why the ruling's water term belongs here and nowhere else.
+literally the reagent* — which is why the ruling's water term belongs here. **"And nowhere else" was
+the other half of this sentence and it did not survive**: the same argument applies to F-20 and
+F-21a, which make an oxide out of water for the same reason, and leaving them ungraded inverted the
+balance guard on two of the four fuel grades. See §2.3's retraction and §10.8.1.
 
 Machine: **Chemical Plant, casing tier 3** · `chemicalPlantRecipes` · IV.
 
@@ -917,8 +928,8 @@ exactly what it bought yesterday.
 > The rest of this section is the specification they were built to; §10.6 records what actually
 > landed, including the milestone interaction the plain two-line change would have broken.
 
-`MTEReactorCoreMk1.annexPellets()` and `MTEEnrichmentTrain.checkProcessing()` currently output
-**`BTSItems.uraniumFuelPellet`** directly:
+`MTEReactorCoreMk1.annexPellets()` and `MTEEnrichmentTrain.checkProcessing()` output
+**`BTSItems.uraniumFuelPellet`** directly, as the design found them:
 
 ```
 MTEEnrichmentTrain.java:145   new ItemStack(BTSItems.uraniumFuelPellet, OUTPUT_PELLETS)
@@ -926,7 +937,7 @@ MTEReactorCoreMk1.java:5910   out.add(new ItemStack(BTSItems.uraniumFuelPellet, 
 ```
 
 `8 Uraninite + 2,000 L HF → 20 Fuel Pellets` every 600 t. **Left alone, that skips the entire fuel
-line.** It must be re-pointed to yellowcake:
+line.** It was re-pointed to yellowcake — §10.6 has the shipped call sites:
 
 ```
 8 Uraninite + 2,000 L HydrofluoricAcid  ->  2 Yellowcake (U3O8)     every 600 t, 480 EU/t
