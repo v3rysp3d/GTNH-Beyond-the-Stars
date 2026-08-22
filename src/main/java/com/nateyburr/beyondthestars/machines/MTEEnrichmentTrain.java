@@ -24,7 +24,7 @@ import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructa
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
-import com.nateyburr.beyondthestars.items.BTSItems;
+import com.nateyburr.beyondthestars.items.BTSItemsFuel;
 
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.Materials;
@@ -43,17 +43,33 @@ import gregtech.api.util.GTUtility;
 import gregtech.api.util.MultiblockTooltipBuilder;
 
 /**
- * Enrichment Train - the campus processing factory. A long conversion line that leaches
- * uraninite feedstock with hydrofluoric acid into fuel pellets at better yield than the bench
- * assembler route (20 pellets per 8 dust, plus recovered thorium tails). Numbers per
- * docs/reactor-gen1.md.
+ * Enrichment Train - the campus processing factory. A long conversion line that leaches uraninite
+ * feedstock with hydrofluoric acid into YELLOWCAKE, plus the recovered thorium tails. Numbers per
+ * docs/production-lines.md S8.3.
+ * <p>
+ * <b>D-26 M7: it makes yellowcake, and it used to make finished fuel pellets.</b> Paying
+ * {@code uraniumFuelPellet} straight out of ore was a 10x bypass of the 23-step fuel line - 1.6
+ * Uraninite per rod against the line's 16.0 at Grade 1 - and it skipped F-01 through F-11
+ * entirely, F-12's water YIELD step included. That step is the ruling's PRIMARY effect, so a
+ * route that never touches it makes the whole water ladder optional decoration.
+ * <p>
+ * The ratio is the front end's own, exactly: F-01 .. F-08 turn 16 Uraninite into 4 Yellowcake, so
+ * 8 Uraninite buys 2 here. What the Train sells is therefore not yield but SIMPLICITY - one
+ * multiblock and a hydrofluoric acid line in place of a mill, a flotation cell, a dehydrator, a
+ * digester, two chemical plants, a distillation tower and their five reagent sub-recipes. It is a
+ * bootstrap past the FRONT END; F-09 .. F-18 stay compulsory.
+ * <p>
+ * <b>What an existing world sees:</b> any Output Bus, AE2 storage bus or pipe reading this
+ * machine now receives Yellowcake instead of Fuel Pellets (S8.4). Nothing already in a chest
+ * changes.
  */
 public class MTEEnrichmentTrain extends MTEExtendedPowerMultiBlockBase<MTEEnrichmentTrain>
     implements ISurvivalConstructable {
 
     private static final int INPUT_URANINITE = 8;
     private static final int ACID_MB = 2_000;
-    private static final int OUTPUT_PELLETS = 20;
+    /** 8 Uraninite -> 2 Yellowcake: 4 Uraninite per cake, the same ratio F-01 .. F-08 achieve. */
+    private static final int OUTPUT_YELLOWCAKE = 2;
     private static final int OUTPUT_THORIUM = 2;
 
     private static IStructureDefinition<MTEEnrichmentTrain> STRUCTURE_DEFINITION = null;
@@ -142,7 +158,9 @@ public class MTEEnrichmentTrain extends MTEExtendedPowerMultiBlockBase<MTEEnrich
         }
         updateSlots();
 
-        this.mOutputItems = new ItemStack[] { new ItemStack(BTSItems.uraniumFuelPellet, OUTPUT_PELLETS),
+        // M7: YELLOWCAKE, not finished pellets. This machine feeds the fuel line at F-09; it does
+        // not replace it. See the class javadoc for why that distinction is the whole design.
+        this.mOutputItems = new ItemStack[] { new ItemStack(BTSItemsFuel.yellowcake, OUTPUT_YELLOWCAKE),
             GTOreDictUnificator.get(OrePrefixes.dust, Materials.Thorium, OUTPUT_THORIUM) };
         this.mMaxProgresstime = 600;
         this.lEUt = -TierEU.RECIPE_HV;
@@ -155,9 +173,13 @@ public class MTEEnrichmentTrain extends MTEExtendedPowerMultiBlockBase<MTEEnrich
     protected MultiblockTooltipBuilder createTooltip() {
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
         tt.addMachineType("Enrichment Line")
-            .addInfo("The campus processing factory: leaches uraninite into fuel pellets.")
+            .addInfo("The campus processing factory: leaches uraninite into YELLOWCAKE.")
             .addInfo("Per 30s cycle: 8x Uraninite Dust + 2,000 L Hydrofluoric Acid ->")
-            .addInfo("20x Fuel Pellet (Uranium) + 2x Thorium Dust (better yield than the assembler).")
+            .addInfo("2x Yellowcake + 2x Thorium Dust.")
+            .addInfo("Same 4 Uraninite per cake the front end (F-01 .. F-08) gets: this buys")
+            .addInfo("SIMPLICITY, not yield - one multiblock instead of the mill, the flotation")
+            .addInfo("cell, the digester, two chemical plants and their reagents. F-09 onward")
+            .addInfo("still has to be built; the yellowcake goes to the Hydrofluorination step.")
             .beginStructureBlock(3, 3, 9, true)
             .addController("Front center")
             .addCasingInfoRange("Clean Stainless Steel Machine Casing", 65, 72, false)
