@@ -95,6 +95,12 @@ public final class BTSRecipesPropellant {
     private static final int SLURRY_PER_DUST = 250;
     /** D-20: the supply-rate-against-clock balance is calibrated on this. Both routes, every rung. */
     private static final int PROPELLANT_PER_CYCLE = 250;
+    /** GT++'s milling circuit convention: 10 picks the alumina ball, 11 the soapstone one. */
+    private static final int MILL_CIRCUIT_ALUMINA = 10;
+    private static final int MILL_CIRCUIT_SOAPSTONE = 11;
+    /** Alumina is the better ball in GT++ and stays the better ball here - same powder, less time. */
+    private static final int MILL_SECONDS_ALUMINA = 30;
+    private static final int MILL_SECONDS_SOAPSTONE = 40;
 
     private BTSRecipesPropellant() {}
 
@@ -202,10 +208,27 @@ public final class BTSRecipesPropellant {
 
     // ------------------------------------------------------------------------------------------
     // P-02a ULTRAFINE MILLING - IsaMill (Ore Milling Plant), items only
-    // The map is maxIO(3, 1, 0, 0): no fluid slots at all, and the milling ball comes from the
-    // Bus_Milling_Balls hatch rather than from the recipe - putting one in itemInputs would have
-    // made every P-02 recipe demand a ball it then consumed. The three dusts distinguish the three
-    // recipes on their own, so no circuit is demanded of the player.
+    //
+    // THE MILLING BALL IS A RECIPE INPUT. An earlier revision of this file claimed the opposite -
+    // that the ball comes only from the Bus_Milling_Balls hatch and naming it in itemInputs would
+    // make the recipe consume one. That was backwards, and it left the whole propellant chain dead
+    // at its first step. MTEIsaMill's ProcessingLogic.validateRecipe (read out of
+    // GT5-Unofficial-5.09.52.594-dev.jar) walks recipe.mInputs for a stack that satisfies
+    // MTEIsaMill.isMillingBall; when it finds none it sets millingBall = null and returns
+    // CheckRecipeResultRegistry.NO_RECIPE, so a millingRecipes entry with no ball in it can never
+    // run. Only once the recipe NAMES a ball does the machine go looking for a real one, via
+    // searchForMillingBall over getAvailableMillingBalls (the ball bus).
+    //
+    // So the ball is DECLARED by the recipe and SUPPLIED by the hatch - both, not either. It is
+    // never consumed out of an item bus: prepareCatalyst appends the ball bus's contents to the
+    // input array before matching, and onRecipeStart calls damageMillingBall on the bus's own
+    // stack. That is why the ball is carried at stack size 0 here, exactly as GT++ carries it.
+    //
+    // GT++'s own milling recipes (BaseItemMilledOre, same jar) register each input twice, once per
+    // ball type, told apart by a programmed circuit, with the alumina ball the faster of the two.
+    // Matched here: either ball mills the dust, alumina just runs the clock quicker. The map is
+    // maxIO(3, 1, 0, 0) with minInputs(1, 0), so dust + ball + circuit is exactly the three item
+    // slots on offer, and there are no fluid slots at all.
     // ------------------------------------------------------------------------------------------
 
     private static void metalAdditiveMilling() {
@@ -214,11 +237,33 @@ public final class BTSRecipesPropellant {
         mill(Materials.Infinity, BTSItemsPropellant.ultrafineInfinity, TierEU.RECIPE_UHV);
     }
 
+    /**
+     * One rung, both ball types. The bill is 8 dust -> 1 powder either way, so the blending table
+     * in the class comment holds whichever ball is in the bus; only the clock moves.
+     */
     private static void mill(Materials metal, Item powder, long tier) {
+        millWith(
+            metal,
+            powder,
+            tier,
+            GregtechItemList.Milling_Ball_Alumina.get(0),
+            MILL_CIRCUIT_ALUMINA,
+            MILL_SECONDS_ALUMINA);
+        millWith(
+            metal,
+            powder,
+            tier,
+            GregtechItemList.Milling_Ball_Soapstone.get(0),
+            MILL_CIRCUIT_SOAPSTONE,
+            MILL_SECONDS_SOAPSTONE);
+    }
+
+    private static void millWith(Materials metal, Item powder, long tier, ItemStack ball, int circuit, int seconds) {
         GTValues.RA.stdBuilder()
-            .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, metal, 8L))
+            .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, metal, 8L), ball)
+            .circuit(circuit)
             .itemOutputs(new ItemStack(powder, 1))
-            .duration(30 * SECONDS)
+            .duration(seconds * SECONDS)
             .eut(tier)
             .addTo(GTPPRecipeMaps.millingRecipes);
     }
