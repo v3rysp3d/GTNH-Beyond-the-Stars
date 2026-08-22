@@ -158,7 +158,7 @@ at tier < 5 each returns its base argument unchanged.
 |---|---|---|---|
 | **UPTIME** | `CONDENSATE RECOVERY I` — feedwater draw halved again | `STEAM ACCUMULATOR` — the chain holds 1.6× the slugs | `CONDENSATE RECOVERY II` — feedwater draw quartered again |
 | **BURNUP** | `CONTROL ROD WITHDRAWAL I` — throttle cap 26/24 | `CONTROL ROD WITHDRAWAL II` — 28/24 | `CONTROL ROD WITHDRAWAL III` — 30/24 |
-| **REPROCESSING** | `DEEP CUT` — Derrick tantalum every 3rd load | `PROCESS INTENSIFICATION` — Derrick and Annex cycles −20% | `YIELD UPLIFT` — Annex batch 24 pellets |
+| **REPROCESSING** | `DEEP CUT` — Derrick tantalum every 3rd load | `PROCESS INTENSIFICATION` — Derrick and Annex cycles −20% | `YIELD UPLIFT` — Annex batch ×1.2 (2.4 **yellowcake**) |
 | **TURBINE** | `OVERSPEED TRIM I` — redline **may be set to** 13,500 (RPM LIMIT field); gain follows it | `OVERSPEED TRIM II` — redline **may be set to** 15,000; gain follows it | `BLADE METALLURGY` — rotor wear rolled half as often |
 
 Those names are the strings the panel prints, character for character.

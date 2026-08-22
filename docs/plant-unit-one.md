@@ -71,12 +71,18 @@ standing but will not form reports why on a line every readout carries in every 
    1 Output Bus = **244 blocks**.
 4. **Enrichment Annex** (long process building) — SHIPPED 0.21.0. 5x15x6 process shed
    along the platform's front edge, `a 17..21, c 0..14, y 0..5`. Every 600 powered ticks
-   it converts 8 Uraninite Dust + 2,000 L Hydrofluoric Acid into 20 Fuel Pellets +
+   it converts 8 Uraninite Dust + 2,000 L Hydrofluoric Acid into **2 Yellowcake** +
    2 Thorium Dust, drawing 480 EU/t (`TierEU.RECIPE_HV`). The standalone
-   `MTEEnrichmentTrain`'s numbers, unchanged. Derrick + Annex + an external centrifuge =
-   a near-self-fuelling plant.
+   `MTEEnrichmentTrain`'s numbers and rate, unchanged.
+   **M7 (0.24.0): it pays YELLOWCAKE, not finished Fuel Pellets.** 4 Uraninite per cake is
+   exactly what F-01 .. F-08 reach by hand (16 -> 4), so the module buys SIMPLICITY and
+   never yield. Derrick + Annex make **feedstock**: the pair join the fuel line at F-09 and
+   F-09 .. F-18 stay compulsory. **No module in this addon makes a finished rod.** A plant
+   is self-fuelling once the fuel line is standing, and not before. Anything reading either
+   module's output socket - AE2 storage bus, pattern, pipe filter - is handed a different
+   item than it was in 0.23.0.
    Three sockets, all on the `+a` wall at `a 21, y 1`, declared LEFT: Input Bus (`c 3`,
-   uraninite), Input Hatch (`c 7`, Hydrofluoric Acid), Output Bus (`c 11`, pellets).
+   uraninite), Input Hatch (`c 7`, Hydrofluoric Acid), Output Bus (`c 11`, yellowcake).
    Bill: 291 Clean Stainless Steel Machine Casing + 13 Steel Pipe Casing + 3 sockets =
    **307 blocks**.
 5. **Vent Stack** — SHIPPED 0.21.0. 7x7x20 scrubber house and flue on the left strip
@@ -144,5 +150,5 @@ are no dock pads, no module controllers and no docking mechanic anywhere in the 
 - **P1**: silo reshape (ribs, bands, dome, spaced lattice) + Turbine Hall addon (port deck
   logic). Review swarm + smoke test + deploy. **DONE** (Hall later retired.)
 - **P2**: Cooling Towers + Vent Stack (heat/recycling systems). **DONE** (0.20.0 / 0.21.0.)
-- **P3**: Derrick + Enrichment Annex + Switchyard (self-fueling + conditioning). **DONE**
+- **P3**: Derrick + Enrichment Annex + Switchyard (feedstock + conditioning). **DONE**
   (0.21.0.)

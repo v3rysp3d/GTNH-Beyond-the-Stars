@@ -56,7 +56,7 @@ except the two pre-existing high injectors noted below).
 | `b` **Derrick Output Bus** | Derrick deck, front wall | 36 | 4 | 1 | FORWARD | `ItemList.Hatch_Output_Bus_IV` | no |
 | `e` **Annex Input Bus** (uraninite) | Annex +a wall | 21 | 3 | 1 | LEFT | `ItemList.Hatch_Input_Bus_IV` | no |
 | `f` **Annex Input Hatch** (HF acid) | Annex +a wall | 21 | 7 | 1 | LEFT | `ItemList.Hatch_Input_IV` | no |
-| `g` **Annex Output Bus** (pellets) | Annex +a wall | 21 | 11 | 1 | LEFT | `ItemList.Hatch_Output_Bus_IV` | no |
+| `g` **Annex Output Bus** (yellowcake) | Annex +a wall | 21 | 11 | 1 | LEFT | `ItemList.Hatch_Output_Bus_IV` | no |
 
 The four module sockets join **no plant-wide hatch list**. That is a correctness property,
 not tidiness: `mInputHatches` / `mOutputBusses` have no notion of which piece registered a
@@ -266,7 +266,7 @@ module never moves when the silo is re-tiered.
 | **Vent Stack** 7x7x20 | 2..8 | 21..27 | 0..19 | 161 Clean Stainless Steel Machine Casing + 152 Filter Machine Casing | none | decay-heat window **24,000t → 12,000t** (20 min → 10) and meltdown radiation **36,000t → 18,000t** (30 min → 15) |
 | **Switchyard** 21x6x6 | 20..40 | 44..49 | 0..5 | 261 Solid Steel Machine Casing + 90 Steel Frame Box | none | lifts the **100,000,000 EU/t** grid soft cap |
 | **Extraction Derrick** 7x7x20 | 33..39 | 4..10 | 0..19 | 144 Solid Steel Machine Casing + 80 Steel Frame Box + 19 Steel Pipe Casing + 1 Output Bus | 1 Output Bus (front wall, y1, FORWARD) | every 200t: 6 Uraninite + 1 Thorium, +1 Tantalum every 4th cycle; **1,920 EU/t** (`TierEU.RECIPE_EV`) |
-| **Enrichment Annex** 5x15x6 | 17..21 | 0..14 | 0..5 | 291 Clean Stainless Steel Machine Casing + 13 Steel Pipe Casing + 3 sockets | Input Bus + Input Hatch + Output Bus (+a wall, y1, LEFT) | every 600t: 8 Uraninite + 2,000 L Hydrofluoric Acid → 20 Fuel Pellets + 2 Thorium; **480 EU/t** (`TierEU.RECIPE_HV`) |
+| **Enrichment Annex** 5x15x6 | 17..21 | 0..14 | 0..5 | 291 Clean Stainless Steel Machine Casing + 13 Steel Pipe Casing + 3 sockets | Input Bus + Input Hatch + Output Bus (+a wall, y1, LEFT) | every 600t: 8 Uraninite + 2,000 L Hydrofluoric Acid → **2 Yellowcake** + 2 Thorium; **480 EU/t** (`TierEU.RECIPE_HV`) |
 
 Total module buildout: **1,215 blocks** (313 + 351 + 244 + 307). Every count in the table
 comes from `questbook/gen-bom.ps1`, which re-implements each shape cell by cell and fails
@@ -302,7 +302,7 @@ config is per-side).
 | Vent Stack | decay-heat obligation stays 24,000t and the meltdown radiation field stays 36,000t |
 | Switchyard | everything above 100,000,000 EU/t is discarded — on a tuned tier-5 plant, most of the output |
 | Extraction Derrick | no ore cycle. Never a structure demand, never stalls the plant |
-| Enrichment Annex | no pellet cycle. Never a structure demand, never stalls the plant |
+| Enrichment Annex | no yellowcake cycle. Never a structure demand, never stalls the plant |
 
 Neither of the two invariants the shipped sockets rest on is touched: nothing is built in
 the `a 43..49` strip in front of the Spiral chamber, and nothing is built behind the output
