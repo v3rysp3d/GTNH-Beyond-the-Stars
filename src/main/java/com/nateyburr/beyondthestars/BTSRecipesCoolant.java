@@ -3,6 +3,7 @@ package com.nateyburr.beyondthestars;
 import static gregtech.api.recipe.RecipeMaps.multiblockChemicalReactorRecipes;
 import static gregtech.api.recipe.RecipeMaps.vacuumFreezerRecipes;
 import static gregtech.api.util.GTRecipeBuilder.SECONDS;
+import static gregtech.api.util.GTRecipeBuilder.TICKS;
 
 import net.minecraftforge.fluids.FluidStack;
 
@@ -137,7 +138,7 @@ public final class BTSRecipesCoolant {
                 GTModHandler.getDistilledWater(BULK_LITRES),
                 new FluidStack(BTSFluidsPropellant.chemicalShim, 200))
             .fluidOutputs(coolant)
-            .duration(51 * SECONDS + 4) // 1,024 t - half of 8 stock cycles (8 x 256 t)
+            .duration(1_024 * TICKS) // half of what 8 stock cycles cost (8 x 256 t)
             .eut(TierEU.RECIPE_EV)
             .metadata(GTRecipeConstants.CHEMPLANT_CASING_TIER, 2)
             .addTo(GTPPRecipeMaps.chemicalPlantRecipes);
@@ -158,7 +159,7 @@ public final class BTSRecipesCoolant {
         GTValues.RA.stdBuilder()
             .fluidInputs(hot, new FluidStack(BTSFluidsPropellant.chemicalShim, 400))
             .fluidOutputs(Materials.SuperCoolant.getFluid(BULK_LITRES))
-            .duration(40 * SECONDS) // 800 t - half of 8 stock cycles (8 x 200 t)
+            .duration(800 * TICKS) // half of what 8 stock cycles cost (8 x 200 t)
             .eut(TierEU.RECIPE_IV)
             .addTo(vacuumFreezerRecipes);
     }
