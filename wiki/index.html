@@ -125,6 +125,8 @@
   tbody tr:nth-child(odd) { background: rgba(255,255,255,0.015); }
   td.mono, .mono { font-family: var(--mono); font-size: 12.5px; }
   td.n { text-align: right; font-family: var(--mono); font-size: 12.5px; white-space: nowrap; }
+  tr.hl td { background: #101a20; }
+  tr.hl td:first-child { box-shadow: inset 3px 0 0 var(--steel); }
   .group-row td { font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--amber-dim); background: var(--panel-2); border-top: 1px solid var(--line); }
 
   /* ---------- required / optional panels ---------- */
@@ -205,7 +207,15 @@
         <li class="l2"><a href="#progpersist">6.4 What persists, and where</a></li>
       </ol>
     </li>
-    <li><a href="#reference"><span class="num">7</span>Reference Tables</a></li>
+    <li><a href="#lines"><span class="num">7</span>Production Lines</a>
+      <ol>
+        <li class="l2"><a href="#fuelline">7.1 The fuel line</a></li>
+        <li class="l2"><a href="#waterladder">7.2 The purified-water ladder</a></li>
+        <li class="l2"><a href="#matlines">7.3 Material lines</a></li>
+        <li class="l2"><a href="#proplines">7.4 Propellant and coolant</a></li>
+      </ol>
+    </li>
+    <li><a href="#reference"><span class="num">8</span>Reference Tables</a></li>
   </ol>
 </nav>
 
@@ -559,18 +569,18 @@ coolant  = ceil((200 &times; (RPM/1000)&sup2; + |S|&sup2;&times;5/20) / Q) per t
   <div class="tablewrap"><table>
     <thead><tr><th>Rod</th><th>Mult</th><th>Steam per column (full throttle)</th><th>Sourcing</th></tr></thead>
     <tbody>
-      <tr><td><kbd class="item">Fuel Rod (Uranium)</kbd></td><td class="n">&times;1</td><td class="n">16,384 L/t</td><td>4 uranium pellets in platinum cladding (EV assembler)</td></tr>
-      <tr><td><kbd class="item">Fuel Rod (MOX)</kbd></td><td class="n">&times;2</td><td class="n">32,768 L/t</td><td>MOX pellets (mixer: 1 Pu dust + 8 U dust &rarr; 18) &mdash; the reprocessing payoff</td></tr>
-      <tr><td><kbd class="item">Thorium-Bonded Fuel Rod</kbd></td><td class="n">&times;5</td><td class="n">81,920 L/t</td><td>U rod + 3 thorium dust + Rh-Pd plate (LuV assembler)</td></tr>
-      <tr><td><kbd class="item">Naquadah-Bonded Fuel Rod</kbd></td><td class="n">&times;9</td><td class="n">147,456 L/t</td><td>U rod + 3 enriched naq dust + U-235 + iridium plate (ZPM assembler)</td></tr>
+      <tr><td><kbd class="item">Fuel Rod (Uranium)</kbd></td><td class="n">&times;1</td><td class="n">16,384 L/t</td><td>Fuel Fabrication Hall (IV) &mdash; 4 pellets + cladding tube + hardware set; see <a href="#fuelline">7.1</a></td></tr>
+      <tr><td><kbd class="item">Fuel Rod (MOX)</kbd></td><td class="n">&times;2</td><td class="n">32,768 L/t</td><td>MOX powder: 2 PuO<sub>2</sub> blended into 30 depleted UO<sub>2</sub> (6.25%), pressed and sintered like uranium</td></tr>
+      <tr><td><kbd class="item">Thorium-Bonded Fuel Rod</kbd></td><td class="n">&times;5</td><td class="n">81,920 L/t</td><td>(Th,U)O<sub>2</sub> powder from GoodGenerator thorium oxalate + 2 parts enriched uranium</td></tr>
+      <tr><td><kbd class="item">Naquadah-Bonded Fuel Rod</kbd></td><td class="n">&times;9</td><td class="n">147,456 L/t</td><td>Naquadah CVI on sintered pellets (QFT, UHV) using the highly enriched UF<sub>6</sub> cut; rod on a Precise Assembler</td></tr>
     </tbody>
   </table></div>
   <div class="formula">Plant steam L/t = live columns &times; 16,384 &times; mult &times; N/24
 <span class="c">T5 example: 201 columns, all naq-bonded, full throttle = 29,638,656 L/t before the Spine</span></div>
   <ul>
-    <li>Depleted rods exit the output bus; centrifuge them back into uranium / thorium / naquadah / plutonium (a third of the assembly yields).</li>
+    <li>Depleted rods exit the output bus. <strong>The eight Centrifuge recipes that used to shred them are gone</strong> &mdash; PUREX replaced them: cool in a Decay Warehouse, then chop-leach and partition in the <strong>PUREX Canyon</strong> for ceramic UO<sub>2</sub>, PuO<sub>2</sub>, lead and cladding hulls. Circuit 2 accepts <em>uncooled</em> fuel at the cost of the plutonium.</li>
     <li>Classic <strong>fuel assemblies</strong> (3 rods each) still run from the input bus at the 50% fallback penalty; depleted assemblies reprocess with full yields.</li>
-    <li><kbd class="item">Nuclear Waste Water</kbd> is emitted alongside &mdash; distill 8,000&nbsp;L into 7,200&nbsp;L distilled water + tantalum (the profit anchor).</li>
+    <li><kbd class="item">Nuclear Waste Water</kbd> distills 8,000&nbsp;L into 7,200&nbsp;L distilled water + tantalum (the profit anchor) &mdash; and as of 0.24.0 <strong>something finally produces it</strong>: the PUREX Canyon, closing D-09.</li>
   </ul>
 
   <h3>Propellant ladder (Spiral injectors; stage factor P, all-8-timed)</h3>
@@ -834,8 +844,129 @@ Tree effects: plant output x1.10 <span class="c">&middot;</span> control-rod cap
 </section>
 
 <!-- ============================================================ 7 REFERENCE -->
+<!-- ============================================================ 7 PRODUCTION LINES -->
+<section id="lines">
+  <h2><span class="num">7</span>Production Lines <span class="badge b-tc">D-26 &mdash; 0.24.0</span></h2>
+  <p>0.24.0 replaced the four-step fuel chain with a twenty-three-step one, and added bulk routes for the
+    plant's own casings, the propellant ladder and the coolant ladder. <strong>132 recipes across the four
+    lines</strong>, on <strong>21 machines GTNH already had</strong> plus <strong>four new multiblocks</strong>.</p>
+
+  <div class="note"><b>The whole thing is drawn on one page.</b> Open
+    <span class="mono">docs/production-flowchart.html</span> in a browser: every step of all four lines, the
+    machine each runs on, its tier band, and the two places the purified-water grade enters.</div>
+
+  <h3 id="fuelline"><span class="num">7.1</span>The fuel line &mdash; ore to bundle</h3>
+  <p>Real hydrometallurgy, in the order a real plant does it. Front end at EV, conversion and enrichment at IV.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Step</th><th>Machine</th><th>Tier</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">F-01</td><td>Ore Milling Plant</td><td class="n">HV</td><td>16 Uraninite dust &rarr; 16 Milled Uraninite (or 12 Pitchblende, circuit 2)</td></tr>
+      <tr><td class="mono">F-02</td><td>Flotation Cell</td><td class="n">EV</td><td>Milled ore + Froth Cell + water &rarr; 8,000&nbsp;L froth <em>fluid</em>; F-02b dewaters it to 12 Concentrate + tailings + gangue</td></tr>
+      <tr><td class="mono">F-03</td><td>Digester</td><td class="n">EV</td><td>Sulfuric leach with a Pyrolusite oxidant &rarr; Pregnant Leach Solution</td></tr>
+      <tr><td class="mono">F-04</td><td>Chemical Plant t2</td><td class="n">EV</td><td>Clarification + ion exchange (resin returns 90% of the time)</td></tr>
+      <tr><td class="mono">F-05/06</td><td>Chemical Plant t3</td><td class="n">IV</td><td>TBP/kerosene solvent extraction and stripping &mdash; 1,800 of 2,000&nbsp;L of solvent come back</td></tr>
+      <tr><td class="mono">F-07/08</td><td>LCR, then Dehydrator</td><td class="n">HV/EV</td><td>ADU precipitation, then 800&nbsp;&deg;C calcining &rarr; <kbd class="item">Yellowcake</kbd></td></tr>
+      <tr><td class="mono">F-09/10</td><td>Chemical Plant t3</td><td class="n">IV</td><td>Hydrofluorination then fluorination &rarr; UF<sub>4</sub> &rarr; UF<sub>6</sub> (<strong>GT++'s own materials</strong>)</td></tr>
+      <tr><td class="mono">F-11</td><td><strong>Cascade Hall</strong></td><td class="n">IV</td><td>6,000&nbsp;L UF<sub>6</sub> &rarr; 1,000&nbsp;L enriched + <strong>5,000&nbsp;L tails</strong>; circuit 2 makes the HEU cut</td></tr>
+      <tr class="hl"><td class="mono">F-12</td><td>Chemical Plant t3</td><td class="n">IV</td><td><strong>The water step.</strong> UF<sub>6</sub> + 2 H<sub>2</sub>O + H<sub>2</sub> &rarr; UO<sub>2</sub> + 4 HF &mdash; see 7.2</td></tr>
+      <tr><td class="mono">F-13/14/15</td><td>Forming Press, Vacuum Furnace, Lathe</td><td class="n">MV/IV/MV</td><td>Cold press &rarr; sinter at 1,800&nbsp;K in hydrogen &rarr; centreless grind &rarr; <kbd class="item">Fuel Pellet</kbd></td></tr>
+      <tr><td class="mono">F-16</td><td>Assembler</td><td class="n">EV</td><td>Zircaloy-4 cladding tube, rod hardware set, grid spacers</td></tr>
+      <tr><td class="mono">F-17/18</td><td><strong>Fuel Fabrication Hall</strong></td><td class="n">IV</td><td><strong>4 pellets &rarr; 1 rod</strong>, <strong>3 rods &rarr; 1 assembly</strong> &mdash; the retired chain's ratios, unchanged</td></tr>
+    </tbody>
+  </table></div>
+  <p class="dim"><strong>MOX</strong> blends 2 PuO<sub>2</sub> into 30 depleted UO<sub>2</sub> (6.25%, from the cascade tails).
+    <strong>Thorium</strong> calcines GoodGenerator's thorium oxalate to thoria and blends in two parts enriched uranium.
+    <strong>Naquadah</strong> infiltrates sintered pellets with naquadah vapour in a QFT at UHV, using F-11b's highly enriched cut.</p>
+  <div class="note"><b>The enrichment tails are a product, not waste.</b> They become depleted-uranium metal in a
+    Neutron Activator, and <span class="mono">M-03b</span> spends that metal on Tungstensteel Reinforced Blocks
+    &mdash; so the fuel line feeds the casing line. They are also the MOX diluent.</div>
+  <div class="warn"><b>The Enrichment Annex still bypasses all of this.</b> As shipped, both the Annex module and
+    the standalone Enrichment Train pay <kbd class="item">Fuel Pellet (Uranium)</kbd> directly:
+    <span class="mono">8 Uraninite + 2,000 L HF &rarr; 20 pellets + 2 thorium dust</span> every 600 powered ticks.
+    It is <strong>uranium grade only</strong>, it cannot make MOX, thorium or naquadah fuel, and the water yield
+    ladder never pays it. The design intends to re-point it to <strong>2&times; Yellowcake</strong> &mdash; the same
+    4:1 ratio the real line achieves &mdash; which would leave it a slow, HF-hungry bootstrap past the front end
+    while F-09&nbsp;&hellip;&nbsp;F-18 stay compulsory. That change has not landed.</div>
+
+  <h3 id="waterladder"><span class="num">7.2</span>The purified-water ladder</h3>
+  <p>The ruling gives the water grade <strong>two</strong> effects, and
+    <span class="mono">BTSWaterGrade.java</span> is the only place either is written down &mdash; the recipe page,
+    the reactor readout and the questbook all read that one table.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Feedwater</th><th>Fuel yield</th><th>F-12 powder</th><th>Uraninite per rod</th><th>Reactor output</th></tr></thead>
+    <tbody>
+      <tr><td><kbd class="item">Water</kbd> (plain)</td><td class="n">&mdash;</td><td class="dim">no F-12 rung</td><td class="n">&mdash;</td><td class="n">&times;1.000</td></tr>
+      <tr><td><kbd class="item">Distilled Water</kbd></td><td class="n">&times;0.5</td><td class="n">2</td><td class="n">32.0</td><td class="n">&times;1.000</td></tr>
+      <tr><td><kbd class="item">Grade 1 Purified Water</kbd></td><td class="n">&times;1.0</td><td class="n">4</td><td class="n">16.0</td><td class="n">&times;1.050</td></tr>
+      <tr><td>Grade 2 &hellip; Grade 7</td><td class="n">&times;1.5 &hellip; &times;4.0</td><td class="n">6 &hellip; 16</td><td class="n">10.7 &hellip; 4.0</td><td class="n">&times;1.10 &hellip; &times;1.35</td></tr>
+      <tr class="hl"><td><kbd class="item">Grade 8 Purified Water</kbd></td><td class="n">&times;4.5</td><td class="n">18</td><td class="n">3.6</td><td class="n">&times;1.400</td></tr>
+    </tbody>
+  </table></div>
+  <div class="formula">euDemandOf(afterSpine, rpm, rotor, prog, upgrade, <span class="c">water</span>)
+    ... &times; rpm/1000 &times; rotor/1000 &times; prog/1000 &times; upgrade/1000 <span class="c">&times; max(1000, water)/1000</span></div>
+  <ul>
+    <li><strong>One Extraction Derrick feeds one tier-5 plant, at Grade 1.</strong> The Derrick digs 3,240
+      Uraninite per 90-minute cycle; a full tier-5 silo burns 201 rods; 3,240 &divide; 16.0 = 202.5.</li>
+    <li><strong>Plain water is permanently sufficient.</strong> Plain and distilled both grade to
+      <span class="mono">&times;1.000</span>, so a plant that never sees a Purification Plant derives a
+      bit-identical EU figure to 0.23.0. No panel line appears below Grade 1.</li>
+    <li><strong>It must be a dedicated feedwater line.</strong> The reactor draws feedwater <em>worst-first</em>,
+      so a hatch row holding plain water and Grade 8 spends the plain water. F-12 does the opposite and matches
+      the best rung piped to it.</li>
+    <li><strong>Coolant never pays it.</strong> The multiplier is read from the feedwater hatches alone; Grade 8
+      in the Spiral's chamber hatches is a fine coolant and buys no EU.</li>
+  </ul>
+  <div class="note"><b>The balance guard.</b> The yield term spans &times;9.00; the output term spans &times;1.40
+    &mdash; smaller by 6.4&times;. The whole water ladder is worth <strong>+40% EU</strong>, while the
+    <em>cheapest single rung</em> of the fuel ladder (Uranium &rarr; MOX) is worth <strong>+100%</strong>.
+    A Purification Plant is a route to cheaper fuel, never to power.</div>
+
+  <h3 id="matlines"><span class="num">7.3</span>Material lines &mdash; casings in bulk</h3>
+  <p>Twelve batch recipes on the <strong>Site Batching Plant</strong>, staged EV&nbsp;&rarr;&nbsp;IV&nbsp;&rarr;&nbsp;LuV&nbsp;&rarr;&nbsp;UHV
+    by the tier of the block. They sit <em>beside</em> GT's own casing recipes &mdash; not one stock recipe is
+    overridden, so a bulk route can never soft-lock a build. A tier-5 plant is <strong>10,249 blocks</strong>.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Step</th><th>Tier</th><th>Output per batch</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">M-01a/b</td><td class="n">EV</td><td>8 Concrete dust &rarr; <strong>32 Light Concrete</strong></td><td>Clinker burning, then ready-mix and slipform casting</td></tr>
+      <tr><td class="mono">M-02a/b/c</td><td class="n">EV</td><td>8 Solid Steel / Clean Stainless / Filter</td><td>Roll-form and MAG weld under argon; the HEPA bank takes molten glass</td></tr>
+      <tr><td class="mono">M-03a</td><td class="n">IV</td><td>8 Radiation Proof</td><td>Lead liner and heavy-aggregate pour</td></tr>
+      <tr class="hl"><td class="mono">M-03b</td><td class="n">IV</td><td>8 Tungstensteel Reinforced</td><td><strong>Spends 8 Depleted Uranium Ingots</strong> &mdash; the interlock with the fuel line</td></tr>
+      <tr><td class="mono">M-03c</td><td class="n">IV</td><td>8 Iridium Reinforced</td><td>497 blocks is 2&nbsp;h&nbsp;46&nbsp;min in one stock Chemical Bath; here it is 256&nbsp;s</td></tr>
+      <tr><td class="mono">M-04</td><td class="n">LuV</td><td>8 Europium-Reinforced Rad Proof</td><td>Diffusion bonding &mdash; 8 casings would be 192 screws, and a stack stops at 64</td></tr>
+      <tr><td class="mono">M-05a/b</td><td class="n">UV/UHV</td><td>20 / <strong>32 Radiant Naquadah</strong></td><td>Vacuum brazing keeps the Indalloy; centrifugal skin casting trades it for UHV power</td></tr>
+      <tr><td class="mono">M-06</td><td class="n">EV</td><td>8 Tungstensteel Turbine</td><td>Bimetal weldment on one fixture</td></tr>
+    </tbody>
+  </table></div>
+  <p class="dim">Material cost is <strong>exact parity</strong> with GT's own recipes except in three stated places,
+    and the bulk routes are <em>dearer</em> elsewhere &mdash; 221,000&nbsp;L of argon and 43,776&nbsp;L of molten glass
+    per tier-5 plant that the bench recipes never pay. Radiant Naquadah still costs 5,088 ingots of Naquadah Alloy;
+    the tier-4 europium shell still costs 6,048 ingots of Europium.</p>
+
+  <h3 id="proplines"><span class="num">7.4</span>Propellant and coolant lines</h3>
+  <p><strong>Nothing in the D-08 ladders was re-priced, and no rung got harder.</strong> The six legacy one-step
+    Mixer recipes are <strong>kept standing, unchanged</strong> &mdash; they are what a running plant drinks, and
+    retiring them would stop a working plant dead on jar swap. The new chains are added <em>beside</em> them as a
+    cheaper route.</p>
+  <ul>
+    <li><span class="mono">P-01</span> oxidiser conditioning (Chemical Plant t2, EV) &mdash; registered against
+      <strong>both</strong> N<sub>2</sub>O<sub>4</sub> fluids in the pack, so a standing rocket-fuel line is not
+      forced to build a second one.</li>
+    <li><span class="mono">P-02a/b</span> ultrafine metal milling then slurry make-up in kerosene &mdash; aluminised
+      propellant, which is what the Lv&nbsp;1&ndash;2 saving is.</li>
+    <li><span class="mono">P-03 / P-03h</span> blending on the Chemical Plant (Lv&nbsp;1&ndash;3) or the QFT
+      (Lv&nbsp;4&ndash;6). Each rung halves its naquadah-fuel cost, 1,000&nbsp;L &rarr; 500&nbsp;L.</li>
+    <li><span class="mono">P-04</span> solidifies each propellant to a cartridge and back, both legs.</li>
+    <li><span class="mono">C-04</span> a real PWR boric-acid/LiOH chemical shim, which <span class="mono">C-02</span>
+      and <span class="mono">C-03</span> then use for &times;8 bulk IC2 Coolant and Super Coolant.</li>
+  </ul>
+  <div class="note"><b>D-20 still balances.</b> Output stays 250&nbsp;L a cycle on both routes, and the new route
+    runs 30&nbsp;s where the Mixer runs 20&nbsp;s &mdash; per-machine rate is 0.67&times;, never higher. The chain
+    never changes which rung you can <em>reach</em>, only what a litre costs; the ceiling is still the
+    GoodGenerator naquadah-fuel tier. Cryotheum and Tachyon Rich get no second route, and no coolant Q moved.</div>
+</section>
 <section id="reference">
-  <h2><span class="num">7</span>Reference Tables</h2>
+  <h2><span class="num">8</span>Reference Tables</h2>
   <p>Every machine, block, item and fluid the addon registers, with crafting hints. MTE IDs assume the default base 28100 (configurable).</p>
   <div class="tablewrap"><table>
     <thead><tr><th>Entry</th><th>ID / Type</th><th>Role</th><th>Crafting hint</th></tr></thead>
@@ -885,6 +1016,28 @@ Tree effects: plant output x1.10 <span class="c">&middot;</span> control-rod cap
         <td><kbd class="item">Turbine Control Block</kbd> <span class="badge b-tc">TC &mdash; 0.17.0</span></td><td class="mono">MTE 28109</td>
         <td>Turbine panel GUI + redstone cycle input (&sect;3.5)</td>
         <td class="dim">new in 0.17.0</td>
+      </tr>
+
+      <tr class="group-row"><td colspan="4">Production multiblocks <span style="text-transform:none;letter-spacing:0">&mdash; new in 0.24.0 (D-26)</span></td></tr>
+      <tr>
+        <td><kbd class="item">Cascade Hall</kbd> <span class="badge b-tc">D-26</span></td><td class="mono">MTE 28101</td>
+        <td>Gas centrifuge enrichment (&sect;7.1). Stage banks set the parallel &mdash; 2<sup>k</sup> &mdash; and the circuit picks the assay. The only machine in the pack whose <em>structure</em> sets a two-stream split, with the tails as a real product.</td>
+        <td class="dim">5&times;5&times;N, IV</td>
+      </tr>
+      <tr>
+        <td><kbd class="item">Fuel Fabrication Hall</kbd> <span class="badge b-tc">D-26</span></td><td class="mono">MTE 28110</td>
+        <td>Rod loading and bundle assembly (&sect;7.1). Built for throughput: a tier-5 silo eats 201 rods a cycle in up to four grades. Parallel = 8 &times; casing tier.</td>
+        <td class="dim">7&times;5&times;12, IV</td>
+      </tr>
+      <tr>
+        <td><kbd class="item">PUREX Canyon</kbd> <span class="badge b-tc">D-26</span></td><td class="mono">MTE 28111</td>
+        <td>Reprocessing (&sect;7.1). The only recipe set in the pack where an input's <strong>history</strong> changes the output &mdash; cooled fuel yields plutonium, uncooled does not. Emits <kbd class="item">Nuclear Waste Water</kbd>, closing D-09.</td>
+        <td class="dim">9&times;7&times;9, IV</td>
+      </tr>
+      <tr>
+        <td><kbd class="item">Site Batching Plant</kbd> <span class="badge b-tc">D-26</span></td><td class="mono">MTE 28112</td>
+        <td>Bulk casing manufacture (&sect;7.3). Twelve batch recipes; the cheapest of the four and the first thing worth building, since a tier-5 plant is 10,249 blocks. Item-only outputs &mdash; it has an output <em>bus</em>, not a hatch.</td>
+        <td class="dim">5&times;5&times;9, EV</td>
       </tr>
 
       <tr class="group-row"><td colspan="4">Structure blocks</td></tr>
