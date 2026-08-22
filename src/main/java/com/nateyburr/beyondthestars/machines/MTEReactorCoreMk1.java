@@ -55,6 +55,7 @@ import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 import com.gtnewhorizon.structurelib.util.Vec3Impl;
 import com.nateyburr.beyondthestars.BTSBom;
+import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.blocks.BTSBlocks;
 import com.nateyburr.beyondthestars.blocks.BlockReactorFuelColumn;
@@ -4027,27 +4028,30 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 // averages ~1.05B EU/t across the decay sawtooth, landing on the settled
                 // D-01 ~1B ceiling instead of half of it.
                 final long demand = euDemand();
-                // Clamp to the SUMMED OUTPUT CEILING before emitting - GT explodes the whole
-                // multiblock when the injected EU exceeds what the fitted hatches can take -
-                // and stay under the int-overflow EU-duplication threshold. The ceiling now
-                // counts the laser sources too (addEnergyOutputMultipleDynamos already sums
-                // and feeds mExoticDynamoHatches; only this pre-clamp was blind to them, so
-                // the plant was pinned at the four IV dynamos' 32,768 EU/t).
+                // Clamp to the SUMMED OUTPUT CEILING before emitting: never hand the hatch row
+                // more than it can absorb. The ceiling counts the laser sources as well as the
+                // dynamos - this pre-clamp was once blind to them and pinned the plant at the
+                // four IV dynamos' 32,768 EU/t.
                 // D-17: outputLimit() is min(hatch ceiling, grid ceiling), so the SWITCHYARD
                 // soft cap can only ever LOWER what is injected. It can never lift the figure
-                // above what the fitted dynamos and lasers can absorb, which is the condition
-                // addEnergyOutputMultipleDynamos explodes the multiblock over.
+                // above what the fitted dynamos and lasers can absorb.
+                // D-25: the injection itself goes through OUR distributor, not GT's
+                // addEnergyOutputMultipleDynamos - see {@link #distributeOutput} for the int
+                // overflow in GT's version that used to force a 2^31-1 clamp on this plant.
                 final long emitted = Math.min(demand, outputLimit());
+                long delivered = 0L;
                 if (emitted > 0) {
-                    addEnergyOutputMultipleDynamos(emitted, true);
+                    delivered = distributeOutput(emitted);
                     // D-23 UPTIME: a GENERATING tick, and only a generating tick. An idle,
                     // chunk-loaded plant earns nothing here, which is the whole character of
                     // the line. onRunningTick is server-only and fires once a tick, so this can
                     // neither run on the client nor be double-counted by a structure re-check.
+                    // Gated on the DEMAND side, exactly as before: a plant that asked for EU
+                    // earns its tick even if a hatch was pulled out from under it mid-tick.
                     progression.add(BTSMilestone.UPTIME, 1L);
                 }
                 lastEUDemand = demand;
-                lastEUOutput = emitted;
+                lastEUOutput = delivered;
                 emitWasteWater();
             } else {
                 starveTick();
@@ -4156,9 +4160,13 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
     /**
      * Summed A/t x V of the Laser Source Hatches in the manifold's upper row. TecTech laser
-     * sources land in mExoticDynamoHatches, which addEnergyOutputMultipleDynamos both sizes
-     * and feeds - they simply have to be counted here as well or the pre-clamp throws the
-     * power away before it is ever offered to them.
+     * sources land in mExoticDynamoHatches, which {@link #distributeOutput} walks straight
+     * after the dynamo row - they simply have to be counted here as well or the pre-clamp
+     * throws the power away before it is ever offered to them.
+     * <p>
+     * Long-clean: both {@code maxAmperesOut()} and {@code maxEUOutput()} return {@code long} in
+     * GT and the product is evaluated in long, so a UMV 4096A source contributes its full
+     * 549,755,813,888 EU/t rather than a wrapped one.
      */
     public long getLaserCapacity() {
         long capacity = 0;
@@ -4192,12 +4200,212 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     }
 
     /**
-     * The most EU/t this manifold may be handed in one tick: everything the fitted hatches
-     * can absorb, capped at 2^31-1 because addEnergyOutputMultipleDynamos accumulates its
-     * injected total in an int.
+     * D-25: THE PLANT'S OWN OUTPUT DISTRIBUTOR. This is why the manifold no longer routes a
+     * single EU through {@code MTEMultiBlockBase.addEnergyOutputMultipleDynamos}.
+     * <p>
+     * <b>The defect in GT's version</b> (confirmed against
+     * {@code GT5-Unofficial-5.09.52.594-dev.jar} with {@code javap -c}, not from the source's
+     * apparent shape). Two thirds of that method are already long-safe and are NOT the problem:
+     * <ul>
+     * <li>the CAPACITY SUM is a long local - {@code lconst_0/lstore 5}, then
+     * {@code maxEUOutput():J * maxAmperesOut():J} accumulated with {@code lmul}/{@code ladd};</li>
+     * <li>the EXPLODE GUARD is a long compare - offsets 190-194 {@code lload 5; lload_1; lcmp;
+     * iflt}, branching to {@code explodeMultiblock()} when summed capacity &lt; requested.</li>
+     * </ul>
+     * The real fault is the DISTRIBUTED-SO-FAR accumulator, local 4, which is an
+     * <b>int</b> ({@code iconst_0; istore 4}). Both distribution loops recompute it in long and
+     * then throw the top half away every single iteration - offsets 491-502:
+     * {@code iload 4; i2l; lload 12; iload 16; i2l; lmul; ladd; l2i; istore 4}. It is read back
+     * at offsets 246-251 / 413-418 as {@code remaining = requested - distributed}
+     * ({@code lload_1; iload 4; i2l; lsub}). So the moment cumulative distribution passes
+     * 2^31-1 the counter wraps NEGATIVE, {@code remaining} becomes LARGER than the original
+     * request, and every hatch after that point is over-filled. It is also the basis of the
+     * return value ({@code iload 4; ifle}).
+     * <p>
+     * <b>Which is why the old 2^31-1 clamp could not simply be widened, and why CHUNKING IS NOT
+     * A FIX.</b> Splitting the injection into several sub-2^31 calls would let EACH call walk
+     * the hatch row from the top and push every hatch to its full {@code maxAmperesOut} again -
+     * delivering several times the fitted rating per tick. The clamp guarded a real defect; it
+     * just never named the right one. What follows is GT's algorithm minus the narrowing.
+     * <p>
+     * <b>Over-injection: TWO behaviours, one switch.</b> GT detonates the whole multiblock when
+     * it is handed more than the hatches can take, and in NORMAL PLAY so do we - same trigger
+     * (summed capacity &lt; requested), same consequence, full parity with the method this
+     * replaces. Nothing about the destructiveness is softened. With
+     * {@link #isDebugOutputSafety() output safety} on - the bench switch, {@code /btssafety} -
+     * the plant is FLAGGED instead of destroyed: the excess is clamped away, the plant keeps
+     * running, and {@link #outputSafetyLine} prints the EU offered, the summed capacity, the
+     * shortfall and which hatch row came up short, on every panel, until the mode is changed.
+     * <p>
+     * Note what arms the guard in practice. {@code onRunningTick} clamps to
+     * {@link #outputLimit()} before calling here, and {@code outputLimit() <= outputCeiling()}
+     * IS the summed capacity - so on correct arithmetic the branch is unreachable and an armed
+     * plant is in no more danger than it was under GT. It fires on an arithmetic slip in OUR
+     * code, which is exactly the case it is there to catch and exactly the case the bench
+     * switch exists to let someone investigate without losing the plant.
+     * <p>
+     * <b>Mixed voltages stay legal.</b> GT's other explode branch fires when hatches of
+     * differing voltage are mixed, but only when its second argument is {@code false}; this
+     * plant has always passed {@code true}, so that branch has been off here since day one.
+     * Implementing it now would be a pure REGRESSION - and a targeted one, because the manifold
+     * is designed around exactly the mix it would kill: an IV dynamo row at y3 and a UMV laser
+     * source row at y5.
+     * <p>
+     * Every local on this path is a {@code long}. There is no {@code Math.min} against
+     * {@code Integer.MAX_VALUE} anywhere in it.
+     *
+     * @param request EU to place this tick, already clamped to {@link #outputLimit()}.
+     * @return EU actually handed to the hatch row - equal to {@code request} in every case
+     *         where the fitted hatches can absorb it.
+     */
+    private long distributeOutput(final long request) {
+        if (request <= 0) return 0L;
+        // Our OWN capacity check, in long, standing where GT's explode guard stood. Same two
+        // lists, same tick, read immediately before we walk them.
+        final long dynamoCap = getDynamoCapacity();
+        final long laserCap = getLaserCapacity();
+        final long capacity = dynamoCap + laserCap;
+        if (request > capacity) {
+            recordOutputOverrun(request, capacity, dynamoCap, laserCap);
+            // NORMAL PLAY: GT parity, and deliberately so. addEnergyOutputMultipleDynamos
+            // detonates a plant that is handed more EU than its hatches can absorb; that is
+            // intended behaviour here too and is not softened. Only the bench switch disarms it.
+            if (!debugOutputSafety) {
+                explodeMultiblock();
+                return 0L;
+            }
+            // TEST MODE: keep the plant standing and let the flag do the talking.
+        }
+        long remaining = Math.min(request, capacity);
+        if (remaining <= 0) return 0L;
+        long distributed = 0L;
+        // Dynamos first, then the exotic/laser row - GT's order, so a plant that already
+        // balances across a mixed manifold keeps filling it in the same sequence.
+        for (final MTEHatchDynamo dynamo : GTUtility.validMTEList(mDynamoHatches)) {
+            final long given = feedDynamoHatch(dynamo, remaining);
+            distributed += given;
+            remaining -= given;
+            if (remaining <= 0) return distributed;
+        }
+        for (final MTEHatch laser : GTUtility.validMTEList(mExoticDynamoHatches)) {
+            final long given = feedDynamoHatch(laser, remaining);
+            distributed += given;
+            remaining -= given;
+            if (remaining <= 0) return distributed;
+        }
+        return distributed;
+    }
+
+    /**
+     * The last over-injection, latched with its numbers, plus a rate-limited server-log entry.
+     * <p>
+     * Called on BOTH sides of the switch - an armed plant records before it detonates, so the
+     * log still says what killed it and with which figures. In test mode the latch is what the
+     * panels read, and it survives until {@link #setDebugOutputSafety} is used to change mode:
+     * a flag that cleared itself the moment the plant recovered would be exactly as useless as
+     * no flag at all.
+     * <p>
+     * The log is once per {@value #OVERRUN_LOG_TICKS} ticks, not once per tick. A plant in this
+     * state is in it every tick, and an unthrottled ERROR would put 72,000 identical lines in
+     * the log per minute and bury the first one - which is the only one anybody needs.
+     */
+    private void recordOutputOverrun(final long offered, final long capacity, final long dynamoCap,
+        final long laserCap) {
+        outputOverruns++;
+        outputOverrunOffered = offered;
+        outputOverrunCapacity = capacity;
+        outputOverrunDynamo = dynamoCap;
+        outputOverrunLaser = laserCap;
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        final long now = base == null || base.getWorld() == null ? 0L
+            : base.getWorld()
+                .getTotalWorldTime();
+        if (outputOverruns > 1 && now - outputOverrunLogTick < OVERRUN_LOG_TICKS) return;
+        outputOverrunLogTick = now;
+        BeyondTheStars.LOG.error(
+            "[Unit One @ {},{},{}] OUTPUT OVER-INJECTION #{}: offered {} EU/t into a hatch row that can absorb {} EU/t (dynamos {} + lasers {}); short by {} EU/t - {}. Mode: {}.",
+            base == null ? "?" : base.getXCoord(),
+            base == null ? "?" : base.getYCoord(),
+            base == null ? "?" : base.getZCoord(),
+            outputOverruns,
+            offered,
+            capacity,
+            dynamoCap,
+            laserCap,
+            offered - capacity,
+            shortRowName(dynamoCap, laserCap),
+            debugOutputSafety ? "OUTPUT SAFETY (clamped, plant kept running)" : "ARMED (plant exploded)");
+    }
+
+    /** Which hatch row is the shortfall, in the words the panel and the log both use. */
+    public static String shortRowName(final long dynamoCap, final long laserCap) {
+        if (dynamoCap <= 0 && laserCap <= 0) return "NEITHER row has a hatch in it";
+        if (laserCap <= 0) return "the LASER SOURCE row (y5) is empty";
+        if (dynamoCap <= 0) return "the DYNAMO row (y3) is empty";
+        return "both rows together are too small";
+    }
+
+    /**
+     * One hatch, once per tick, never above its own rating.
+     * <p>
+     * {@code maxEUOutput() * maxAmperesOut()} IS the hatch's per-tick allowance, and because
+     * {@link #distributeOutput} visits each hatch exactly once, taking the whole allowance in a
+     * single deposit spends the amp budget exactly once - it cannot be re-spent the way a
+     * chunked caller would re-spend it.
+     * <p>
+     * The single bulk deposit is also equivalent to GT's per-amp loop rather than merely close
+     * to it. {@code BaseMetaTileEntity.increaseStoredEnergyUnits(long, boolean)} is
+     * {@code if (getStoredEU() < getEUCapacity() || ignore) setStoredEU(getEUVar() + energy)} -
+     * an "is there ANY room" gate, and {@code setStoredEU} clamps only negatives, never the
+     * ceiling. So one deposit of N*V lands precisely when N deposits of V would, and it costs
+     * one interface call instead of 4096 for a UMV 4096A source. {@code false} is GT's own
+     * second argument ({@code iconst_0} at offsets 311 and 478) and is kept.
+     * <p>
+     * Like GT, the hatch's per-tick allowance is counted as SPENT whether or not the buffer had
+     * room for it, so a momentarily full hatch cannot make the plant's headline EU/t figure
+     * flicker. The one case where that matters - an UNPAINTED laser source silently buffering
+     * everything it is handed - already has its own dedicated readout in {@code laserLine()},
+     * which names the real cause instead of showing a mystery dip.
+     *
+     * @return the EU handed to this hatch, never more than {@code remaining}.
+     */
+    private static long feedDynamoHatch(final MTEHatch hatch, final long remaining) {
+        if (remaining <= 0) return 0L;
+        // Both getters return long in GT; the product is evaluated in long.
+        final long perTick = hatch.maxEUOutput() * hatch.maxAmperesOut();
+        if (perTick <= 0) return 0L;
+        final IGregTechTileEntity base = hatch.getBaseMetaTileEntity();
+        // validMTEList already excludes dead hatches, but a base can still be absent while a
+        // chunk is unloading and increaseStoredEnergyUnits is an interface call on it.
+        if (base == null) return 0L;
+        final long share = Math.min(remaining, perTick);
+        base.increaseStoredEnergyUnits(share, false);
+        return share;
+    }
+
+    /**
+     * The most EU/t this manifold may be handed in one tick: everything the fitted hatches can
+     * absorb. No clamp. Every consumer of this figure - the GUI, both control blocks, the
+     * scanner, the MATH panel's ceiling and CLAMPED lines, {@code /btsbuild} - takes it as a
+     * long and always did.
+     * <p>
+     * D-25: this used to be {@code Math.min(dynamos + lasers, Integer.MAX_VALUE)}, on the
+     * stated grounds that {@code addEnergyOutputMultipleDynamos} accumulates its injected total
+     * in an int. <b>The stated reason was wrong, and it is worth being precise about why so the
+     * clamp does not come back.</b> That method's capacity sum and its explode guard are both
+     * fully long ({@code lstore 5}, {@code lcmp}); the int is its DISTRIBUTED-SO-FAR counter,
+     * which wraps negative past 2^31-1 and makes it over-deliver. The clamp was a real
+     * safeguard against a real bug - just not the one on the label, which is exactly why it
+     * could not be widened or chunked away. {@link #distributeOutput} now does the injection in
+     * long, so nothing on this path narrows and the ceiling is free to tell the truth.
+     * <p>
+     * Long overflow on the sum is unreachable: the manifold has four dynamo sockets and four
+     * laser sockets, and eight hatches at the highest tier GT defines cannot approach
+     * {@code Long.MAX_VALUE}. The setup that prompted this - four UMV 4096A laser sources -
+     * is 4 x 134,217,728 x 4096 = 2,199,023,255,552 EU/t, about 0.00002% of a long.
      */
     public long outputCeiling() {
-        return Math.min(getDynamoCapacity() + getLaserCapacity(), Integer.MAX_VALUE);
+        return getDynamoCapacity() + getLaserCapacity();
     }
 
     // -------------------------------------------------- D-17 SWITCHYARD: the grid soft cap
@@ -4209,11 +4417,21 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * This is a LIVE BALANCE CHANGE and is treated as one: {@link Config#switchyardSoftCap} is
      * the single setting that turns it off, every panel that can print an output figure also
      * prints why the figure is short and what to build, and the cap is applied by LOWERING WHAT
-     * IS INJECTED - never by raising a ceiling. That last part is not cosmetic:
-     * {@code addEnergyOutputMultipleDynamos} calls {@code explodeMultiblock()} when the injected
-     * EU exceeds what the fitted hatches can absorb, so the number handed to it has to stay
-     * {@code <= outputCeiling()} in every branch. {@link #outputLimit()} is a {@code Math.min}
-     * of the two for exactly that reason and is the ONLY thing onRunningTick clamps to.
+     * IS INJECTED - never by raising a ceiling. That last part is not cosmetic: the number
+     * handed to the hatch row has to stay {@code <= outputCeiling()} in every branch, or the
+     * plant would be trying to push EU into hatches that cannot take it.
+     * {@link #outputLimit()} is a {@code Math.min} of the two for exactly that reason and is the
+     * ONLY thing onRunningTick clamps to.
+     * <p>
+     * D-25: this used to say GT's {@code addEnergyOutputMultipleDynamos} would call
+     * {@code explodeMultiblock()} over an over-injection. It would have - but this plant no
+     * longer calls it, and {@link #distributeOutput} deliberately REFUSES rather than
+     * detonating (see its javadoc). The invariant above is unchanged and still worth keeping:
+     * it is now enforced by clamping, in two independent places, instead of by an explosion.
+     * <p>
+     * The cap is a plain {@code long} and is unaffected by the ceiling now running past 2^31:
+     * 100,000,000 stays far below a four-UMV-laser ceiling of 2,199,023,255,552, so an
+     * un-Switchyarded plant is still held to the same 100M EU/t it always was.
      */
     public static final long GRID_SOFT_CAP = 100_000_000L;
 
@@ -4727,6 +4945,47 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      */
     private boolean debugInfiniteSupplies;
 
+    /**
+     * D-25 OUTPUT SAFETY (toggled with {@code /btssafety}, NBT-persisted in TILE NBT only).
+     * <p>
+     * {@code false} - the DEFAULT and normal play - means the over-injection guard in
+     * {@link #distributeOutput} is ARMED and behaves exactly as GT's
+     * {@code addEnergyOutputMultipleDynamos} does: hand the hatch row more EU than it can
+     * absorb and the plant explodes. {@code true} replaces the detonation with a loud,
+     * numbered flag on every panel and clamps the excess away.
+     * <p>
+     * <b>Why this is its own switch and not {@code debugInfiniteSupplies}.</b> They answer
+     * different questions and both directions of coupling break something real. Bench supplies
+     * answer "where do my fuel, water and coolant come from" - an INPUT convenience. This
+     * answers "does a mistake cost me the plant" - a DESTRUCTION policy. Fold them together and
+     * (a) the armed path becomes effectively untestable, because the only way to drive output
+     * high enough to reach it is with bench supplies, which would disarm it; and (b) a player
+     * running a real supply chain while nervous about a mis-sized hatch row cannot get the net
+     * without also cheating their inputs. Two concerns, two switches.
+     * <p>
+     * <b>AXIS 2 - deliberately NOT in {@code setItemNBT}.</b> This is M2's lesson exactly, in
+     * mirror image: {@code btsLastBuiltTier} was a value that ARMED a destructive path and
+     * carrying it across a wrench was the bug. This one DISARMS a destructive path, so carrying
+     * it would let a controller arrive - out of a creative item, off a stack, from another
+     * world - silently disarmed, which is precisely the "believes they are armed when they are
+     * not" failure. A wrenched and replaced controller comes back in normal play, and because
+     * {@link #outputSafetyLine} is printed unconditionally the reset is visible the first time
+     * anybody opens a panel. It DOES survive a reload, because a test session surviving a relog
+     * is the whole point of tile NBT.
+     */
+    private boolean debugOutputSafety;
+
+    /** How many ticks the plant has been handed more EU than its hatch row can absorb. */
+    private int outputOverruns;
+    private long outputOverrunOffered;
+    private long outputOverrunCapacity;
+    private long outputOverrunDynamo;
+    private long outputOverrunLaser;
+    /** World time of the last server-log entry, so a stuck plant does not flood the log. */
+    private long outputOverrunLogTick;
+    /** 5 seconds. One log line per over-injection episode, not 20 per second. */
+    private static final long OVERRUN_LOG_TICKS = 100L;
+
     public boolean isDebugAutoCycle() {
         return debugAutoCycle;
     }
@@ -4741,6 +5000,52 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
     public void setDebugInfiniteSupplies(boolean value) {
         debugInfiniteSupplies = value;
+    }
+
+    public boolean isDebugOutputSafety() {
+        return debugOutputSafety;
+    }
+
+    /**
+     * Changing MODE clears the latched record; re-setting the same mode leaves it standing.
+     * <p>
+     * A test session starts clean, and re-arming a plant retires the flag with the mode that
+     * produced it - which keeps the panel from reporting a shortfall against a plant that is no
+     * longer being tested. Setting the mode it is already in is a no-op precisely so somebody
+     * can type {@code /btssafety on} twice without wiping the numbers they were reading.
+     */
+    public void setDebugOutputSafety(boolean value) {
+        if (debugOutputSafety != value) clearOutputOverrun();
+        debugOutputSafety = value;
+    }
+
+    private void clearOutputOverrun() {
+        outputOverruns = 0;
+        outputOverrunOffered = 0;
+        outputOverrunCapacity = 0;
+        outputOverrunDynamo = 0;
+        outputOverrunLaser = 0;
+        outputOverrunLogTick = 0;
+    }
+
+    public int getOutputOverruns() {
+        return outputOverruns;
+    }
+
+    public long getOutputOverrunOffered() {
+        return outputOverrunOffered;
+    }
+
+    public long getOutputOverrunCapacity() {
+        return outputOverrunCapacity;
+    }
+
+    public long getOutputOverrunDynamo() {
+        return outputOverrunDynamo;
+    }
+
+    public long getOutputOverrunLaser() {
+        return outputOverrunLaser;
     }
 
     /** Best propellant that actually exists in this pack, worst-case Benzene. */
@@ -5860,6 +6165,14 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         aNBT.setInteger("btsRadCenterDepth", radiationCenterDepth);
         aNBT.setBoolean("btsDebugAutoCycle", debugAutoCycle);
         aNBT.setBoolean("btsDebugSupplies", debugInfiniteSupplies);
+        // D-25: the output-safety MODE and the record of what it caught. Tile NBT only - see
+        // the field's javadoc for why this one must never ride the wrench into item NBT.
+        aNBT.setBoolean("btsDebugOutputSafety", debugOutputSafety);
+        aNBT.setInteger("btsOutputOverruns", outputOverruns);
+        aNBT.setLong("btsOutputOverrunOffered", outputOverrunOffered);
+        aNBT.setLong("btsOutputOverrunCapacity", outputOverrunCapacity);
+        aNBT.setLong("btsOutputOverrunDynamo", outputOverrunDynamo);
+        aNBT.setLong("btsOutputOverrunLaser", outputOverrunLaser);
         aNBT.setBoolean("btsCascadeMode", cascadeMode);
         aNBT.setInteger("btsLiveColumns", liveColumnsLastCycle);
         aNBT.setInteger("btsFallbackCyclesLeft", fallbackCyclesLeft);
@@ -6042,6 +6355,14 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         radiationCenterDepth = aNBT.getInteger("btsRadCenterDepth");
         debugAutoCycle = aNBT.getBoolean("btsDebugAutoCycle");
         debugInfiniteSupplies = aNBT.getBoolean("btsDebugSupplies");
+        // D-25: absent tag -> false -> ARMED, which is both the default and the safe reading of
+        // a missing value: a plant loaded from an older world is in normal play, and says so.
+        debugOutputSafety = aNBT.getBoolean("btsDebugOutputSafety");
+        outputOverruns = Math.max(0, aNBT.getInteger("btsOutputOverruns"));
+        outputOverrunOffered = Math.max(0L, aNBT.getLong("btsOutputOverrunOffered"));
+        outputOverrunCapacity = Math.max(0L, aNBT.getLong("btsOutputOverrunCapacity"));
+        outputOverrunDynamo = Math.max(0L, aNBT.getLong("btsOutputOverrunDynamo"));
+        outputOverrunLaser = Math.max(0L, aNBT.getLong("btsOutputOverrunLaser"));
         cascadeMode = aNBT.getBoolean("btsCascadeMode");
         liveColumnsLastCycle = aNBT.getInteger("btsLiveColumns");
         fallbackCyclesLeft = aNBT.getInteger("btsFallbackCyclesLeft");
@@ -6383,7 +6704,17 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return turbineHoldReason;
     }
 
-    /** Standing steam, in tenths of a 20-tick cycle slug (a cycle needs 10 = 1.0). */
+    /**
+     * Standing steam, in tenths of a 20-tick cycle slug (a cycle needs 10 = 1.0).
+     * <p>
+     * D-25 - ASSESSED AND DELIBERATELY LEFT ALONE while the EU output path was widened to long.
+     * This {@code Integer.MAX_VALUE} is not the same animal as the one that was on
+     * {@link #outputCeiling}. It is a RATIO, not an energy figure: the value is a fill level
+     * against the buffer's own cap, so in practice it lives between 0 and about 10 and the
+     * clamp only exists so a degenerate {@code steamPerTick} cannot hand the GUI a nonsense
+     * width. Nothing downstream of it is EU, it is synced as an int because it IS an int, and
+     * widening it would change nothing except to make it look like it was part of this fix.
+     */
     public int getSteamBufferSlugsTenths() {
         final long slug = CYCLE_SLUG_TICKS * steamPerTick;
         if (slug <= 0) return 0;
@@ -7030,13 +7361,62 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 : "");
     }
 
+    /**
+     * D-25: no more {@code " (capped at 2^31-1)"} suffix. The ceiling is not capped any more -
+     * {@link #distributeOutput} injects in long - so the line now prints the fitted hatches'
+     * true total and the three numbers on it always add up. A plant reading
+     * {@code Ceiling 2,199,023,255,552 EU/t = dynamos 0 + lasers 2,199,023,255,552} is four UMV
+     * 4096A laser sources, and that is exactly what it now gets to emit.
+     */
+    /**
+     * D-25: WHICH MODE THE OVER-INJECTION GUARD IS IN, and what it has caught. Printed
+     * UNCONDITIONALLY beside the ceiling, in all four states, from the one formatter the GUI,
+     * both control blocks and the scanner share.
+     * <p>
+     * Unconditional is the point. The failure this line exists to prevent is somebody testing
+     * for an hour believing they are safe while the plant is armed, or trusting an armed plant
+     * that has quietly been disarmed since they last looked - and a line that only appears in
+     * one of the two modes cannot prevent the second of those. It sits next to
+     * {@link #ceilingLine} because that is where a player is already reading "can my hatch row
+     * take this", which is the same question the guard answers destructively.
+     */
+    public static String outputSafetyLine(boolean testMode, int overruns, long offered, long capacity, long dynamo,
+        long laser) {
+        if (!testMode) {
+            // ARMED. Calm, grey, one line - this is normal play and must not read as an alarm.
+            return EnumChatFormatting.GRAY
+                + "Output safety ARMED - over-injecting the hatch row explodes the plant (GT parity). /btssafety on to test without that."
+                + EnumChatFormatting.RESET;
+        }
+        if (overruns <= 0) {
+            return EnumChatFormatting.LIGHT_PURPLE
+                + "OUTPUT SAFETY ON (test mode) - over-injection will NOT explode this plant; it is clamped and reported here. /btssafety off to re-arm."
+                + EnumChatFormatting.RESET;
+        }
+        return EnumChatFormatting.RED + "!! OUTPUT OVER-INJECTION CAUGHT "
+            + overruns
+            + "x - THIS PLANT WOULD HAVE EXPLODED IN NORMAL PLAY !! offered "
+            + String.format("%,d", offered)
+            + " EU/t into a hatch row that can absorb "
+            + String.format("%,d", capacity)
+            + " (dynamos "
+            + String.format("%,d", dynamo)
+            + " + lasers "
+            + String.format("%,d", laser)
+            + "), short by "
+            + String.format("%,d", offered - capacity)
+            + " EU/t - "
+            + shortRowName(dynamo, laser)
+            + ". Clamped and kept running because output safety is ON."
+            + EnumChatFormatting.RESET;
+    }
+
     public static String ceilingLine(long ceiling, long dynamo, long laser) {
         return "Ceiling " + String.format("%,d", ceiling)
             + " EU/t = dynamos "
             + String.format("%,d", dynamo)
             + " + lasers "
-            + String.format("%,d", laser)
-            + (dynamo + laser > Integer.MAX_VALUE ? " (capped at 2^31-1)" : "");
+            + String.format("%,d", laser);
     }
 
     /**
@@ -7564,6 +7944,16 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 getBoostedSteamOutput()));
         if (galleryBuilt) {
             out.add(ceilingLine(outputCeiling(), getDynamoCapacity(), getLaserCapacity()));
+            // D-25: which mode the over-injection guard is in, ALWAYS, in both modes - and the
+            // numbers whenever it has caught something. Same formatter as the GUI's row.
+            out.add(
+                outputSafetyLine(
+                    debugOutputSafety,
+                    outputOverruns,
+                    outputOverrunOffered,
+                    outputOverrunCapacity,
+                    outputOverrunDynamo,
+                    outputOverrunLaser));
             // D-17: the grid cap, in all four of its states, right under the ceiling it shares a
             // Math.min with.
             out.add(switchyardLine(switchyardBuilt, Config.switchyardSoftCap, getLiveEUDemand(), outputCeiling()));

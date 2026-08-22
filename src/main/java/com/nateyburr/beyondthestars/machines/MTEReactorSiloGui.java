@@ -143,6 +143,18 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         syncManager.syncValue("bufferSlugs", new IntSyncValue(multiblock::getSteamBufferSlugsTenths));
         syncManager.syncValue("benchClock", new BooleanSyncValue(multiblock::isDebugAutoCycle));
         syncManager.syncValue("infiniteSupplies", new BooleanSyncValue(multiblock::isDebugInfiniteSupplies));
+        // D-25 OUTPUT SAFETY. Every one of these is written SERVER-side (the mode by
+        // /btssafety, the record by the tick that caught the over-injection) and read
+        // CLIENT-side here, so all six have to come across as sync values - a client-side read
+        // of the fields is 0/false and would tell a player their armed plant is in test mode.
+        // The four figures are LONGS, because the whole point of this release is that a hatch
+        // row can absorb 2,199,023,255,552 EU/t and an int cannot say so.
+        syncManager.syncValue("outputSafety", new BooleanSyncValue(multiblock::isDebugOutputSafety));
+        syncManager.syncValue("overruns", new IntSyncValue(multiblock::getOutputOverruns));
+        syncManager.syncValue("overrunOffered", new LongSyncValue(multiblock::getOutputOverrunOffered));
+        syncManager.syncValue("overrunCapacity", new LongSyncValue(multiblock::getOutputOverrunCapacity));
+        syncManager.syncValue("overrunDynamo", new LongSyncValue(multiblock::getOutputOverrunDynamo));
+        syncManager.syncValue("overrunLaser", new LongSyncValue(multiblock::getOutputOverrunLaser));
         syncManager.syncValue("holdReason", new StringSyncValue(multiblock::getTurbineHoldReason));
         syncManager.syncValue("galleryBuilt", new BooleanSyncValue(multiblock::isGalleryBuilt));
         syncManager.syncValue("galleryActive", new BooleanSyncValue(multiblock::isGalleryActive));
@@ -274,6 +286,12 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         final IntSyncValue rpmLimit = syncManager.findSyncHandler("rpmLimitSetting", IntSyncValue.class);
         final IntSyncValue cyclesPerMinute = syncManager.findSyncHandler("cyclesPerMinute", IntSyncValue.class);
         final IntSyncValue bufferSlugs = syncManager.findSyncHandler("bufferSlugs", IntSyncValue.class);
+        final BooleanSyncValue outputSafety = syncManager.findSyncHandler("outputSafety", BooleanSyncValue.class);
+        final IntSyncValue overruns = syncManager.findSyncHandler("overruns", IntSyncValue.class);
+        final LongSyncValue overrunOffered = syncManager.findSyncHandler("overrunOffered", LongSyncValue.class);
+        final LongSyncValue overrunCapacity = syncManager.findSyncHandler("overrunCapacity", LongSyncValue.class);
+        final LongSyncValue overrunDynamo = syncManager.findSyncHandler("overrunDynamo", LongSyncValue.class);
+        final LongSyncValue overrunLaser = syncManager.findSyncHandler("overrunLaser", LongSyncValue.class);
         final BooleanSyncValue benchClock = syncManager.findSyncHandler("benchClock", BooleanSyncValue.class);
         final BooleanSyncValue infiniteSupplies = syncManager
             .findSyncHandler("infiniteSupplies", BooleanSyncValue.class);
@@ -446,6 +464,20 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                 row(
                     () -> MTEReactorCoreMk1
                         .ceilingLine(euCeiling.getLongValue(), dynamoCap.getLongValue(), laserCap.getLongValue()),
+                    galleryBuilt::getBoolValue))
+            // D-25: the over-injection guard's MODE, directly under the ceiling it guards, and
+            // gated exactly as the ceiling is so the GUI, both control blocks and the scanner
+            // show it in the same states. NOT gated on the mode itself - a line that only
+            // appeared in test mode could not warn anybody that they are armed.
+            .child(
+                row(
+                    () -> MTEReactorCoreMk1.outputSafetyLine(
+                        outputSafety.getBoolValue(),
+                        overruns.getIntValue(),
+                        overrunOffered.getLongValue(),
+                        overrunCapacity.getLongValue(),
+                        overrunDynamo.getLongValue(),
+                        overrunLaser.getLongValue()),
                     galleryBuilt::getBoolValue))
             // D-17: the grid soft cap, in whichever of its four states this plant is in, right
             // under the hatch ceiling it shares a Math.min with.

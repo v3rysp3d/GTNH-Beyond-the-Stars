@@ -7,7 +7,7 @@ import com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1;
 
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 
-/** Shared plumbing for the test-bench commands (/btsclock, /btssupply). */
+/** Shared plumbing for the test-bench commands (/btsclock, /btssupply, /btssafety). */
 final class BTSCommands {
 
     static final int SEARCH_RADIUS = 64;

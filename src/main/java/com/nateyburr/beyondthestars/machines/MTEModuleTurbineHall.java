@@ -263,6 +263,17 @@ public class MTEModuleTurbineHall extends MTEPlantModuleBase implements ISurviva
         long output = fanTier == 3 ? euThisTick * 5 / 2 : euThisTick * 5 / 4;
         output *= propellantMult;
         output = Math.min(output, maxDynamoOutput());
+        // D-25 - ASSESSED AND DELIBERATELY LEFT ALONE. This is the same 2^31-1 clamp, over the
+        // same real defect, that MTEReactorCoreMk1 just shed: addEnergyOutput(long) is a one-
+        // line delegate to addEnergyOutputMultipleDynamos(aEU, true), whose distributed-so-far
+        // accumulator is an int that wraps negative past 2^31-1 and over-fills every hatch
+        // after the wrap. The difference is that THIS METHOD IS DEAD. The Turbine Hall was
+        // retired by SD-4 and absorbed by A3; nothing calls processReactorSteam any more
+        // (MTEReactorCoreMk1.isTurbineInstalled() is a hardcoded false), and the class only
+        // stays registered so worlds holding a leftover controller load without corruption.
+        // Porting the long-clean distributor into an unreachable path would add risk to a
+        // museum piece and buy nothing. If this hall is ever revived, take
+        // MTEReactorCoreMk1.distributeOutput with it and delete this clamp.
         output = Math.min(output, Integer.MAX_VALUE);
         addEnergyOutput(output);
         lastEUOutput = output;
