@@ -1,0 +1,53 @@
+{
+    "preRequisites:9":  {
+
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  0,
+                                                    "desc:8":  "§6§lTHE FOUR-STEP CHAIN IS GONE. THIS IS WHAT REPLACED IT.§r\nDust to pellet to rod to assembly used to be four Assembler recipes. It is now §btwenty-three steps§r, and they follow the real industrial process almost exactly: mill the ore, float it, leach it, extract it, calcine it, fluorinate it, enrich it, reconvert it, press it, sinter it, grind it, clad it, load it, bundle it.\n\n§c§lREAD THIS FIRST IF YOU ARE UPGRADING§r\nEighteen recipes were removed. §bNothing you are holding was deleted§r - every pellet, rod and assembly in a chest still works and still buys exactly what it bought before - but §ceighteen Assembler, Mixer and Centrifuge setups will stop§r on world load, and every AE2 pattern feeding them goes invalid. No crash, no item loss: the machine simply finds no recipe and idles.\nThe two ratios that mattered are §bpreserved exactly§r: §24 pellets to a rod§r and §23 rods to a bundle§r.\n\n§e§lTHE FIVE QUESTS ON THIS ROW§r\n  §bFront End§r §8- ore to yellowcake, eight steps, EV§r\n  §bConversion and the Cascade§r §8- yellowcake to enriched UF6, IV§r\n  §bThe Water Step§r §8- the one recipe the purified-water ladder multiplies§r\n  §bPellets, Rods, Bundles§r §8- back to the items you already know§r\n  §bReprocessing§r §8- what comes back out of the reactor§r\n\n[note]§6The whole chain is drawn on one page.§r §bdocs/production-flowchart.html§r in the mod folder shows every step of all four lines, the machine each runs on, and where the water grade enters. Open it in a browser.[/note]\n\n[note]Four new multiblocks come with it: the §bCascade Hall§r, the §bFuel Fabrication Hall§r, the §bPUREX Canyon§r and the §bSite Batching Plant§r. Everything else in the chain runs on a machine GTNH already had - an IsaMill, a Flotation Cell, a Digester, a Chemical Plant, an LCR, a Dehydrator, a Vacuum Furnace, a Forming Press, a Lathe and an Assembler.[/note]\n\n[warn]§cThe Enrichment Annex still short-circuits all of this.§r §b8x Uraninite + 2,000 L Hydrofluoric Acid -\u003e 20x Fuel Pellet§r every 600 ticks, uranium grade only, skipping every step on this row. That is what the module does TODAY - it is not a bug you can fix from your side, and the design intends to re-point it to yellowcake in a later release. Build the line anyway: the Annex makes uranium pellets and nothing else, and the water ladder never pays it.[/warn]",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  0,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "beyondthestars:yellowcake"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "§6§lThe Fuel Line",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48029,
+    "rewards:9":  {
+
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "index:3":  0,
+                                 "taskID:8":  "bq_standard:checkbox"
+                             }
+                }
+}

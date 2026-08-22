@@ -1,0 +1,56 @@
+{
+    "preRequisites:9":  {
+                            "0:10":  {
+                                         "questIDHigh:4":  190,
+                                         "questIDLow:4":  48033
+                                     }
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  0,
+                                                    "desc:8":  "§c§lA SPENT BUNDLE IS MOSTLY STILL URANIUM.§r\nThe eight old Centrifuge recipes that used to shred depleted fuel are gone. PUREX replaced them, and it gives back far more.\n\n§e§lR-01 THE COOLING POND§r §8- Decay Warehouse§r\nDepleted rods and assemblies go in and come out as their §bcooled§r form, on a real half-life. Four grades, rods and assemblies, eight recipes.\n\n§e§lR-02 / R-03 THE PUREX CANYON§r §8- new multiblock, MTE 28111, IV§r\n  §bcircuit 1§r §2cooled fuel + Nitric Acid  -\u003e  Dissolver Liquor + Cladding Hulls + that grade\u0027s own return§r\n  §bcircuit 3§r §26,000 L Dissolver Liquor + 2,000 L TBP  -\u003e  4x Ceramic UO2 + 1x PuO2 + Lead + 2,000 L Nuclear Waste Water§r\nThe uranium oxide goes §bstraight back into F-13§r. The plutonium dioxide is the §6only§r source of the MOX blend.\n\n§e§lR-02h THE UNCOOLED RUSH§r §8- PUREX Canyon, circuit 2§r\n  §2depleted fuel STRAIGHT from the reactor + 1.5x Nitric Acid  -\u003e  4x Ceramic UO2 + Lead + Hulls + 2,000 L Nuclear Waste Water§r\n  §cNo plutonium.§r §8Skipping the pond costs you the element that needed the wait - which is exactly the trade a real reprocessor makes.§r\n\n[note]§6This is your migration path.§r If you already have a pile of depleted fuel and no Decay Warehouse, the Canyon ALONE clears it on circuit 2. You only need the pond if you want plutonium, which means only if you want MOX.[/note]\n\n§e§lR-04 HULL RECOVERY§r §8- LCR, EV§r\n  §24x Cladding Hull + 1,000 L Hydrofluoric Acid  -\u003e  1x Zircaloy-4 Ingot + 1x Zirconium Dust§r\n  §8Zircaloy is expensive and the hulls are most of what a bundle weighs.§r\n\n[note]§6Nuclear Waste Water finally has a producer.§r It has had a Distillation Tower recipe since this mod shipped - §28,000 L -\u003e small Tantalum Dust + 7,200 L Distilled Water§r - and until R-02h and R-03 landed, nothing in the game made a single litre of it.[/note]\n\n[note]That distilled water is not a rounding error: it is §bthe bottom rung of the fuel ladder§r. A closed reprocessing loop pays part of its own F-12 water bill.[/note]",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  28111,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "gregtech:gt.blockmachines"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "§c§lReprocessing",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48034,
+    "rewards:9":  {
+
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "index:3":  0,
+                                 "taskID:8":  "bq_standard:checkbox"
+                             }
+                }
+}

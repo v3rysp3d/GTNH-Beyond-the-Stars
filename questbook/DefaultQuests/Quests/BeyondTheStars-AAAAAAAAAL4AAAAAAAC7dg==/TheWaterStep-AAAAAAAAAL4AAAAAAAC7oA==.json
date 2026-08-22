@@ -1,0 +1,56 @@
+{
+    "preRequisites:9":  {
+                            "0:10":  {
+                                         "questIDHigh:4":  190,
+                                         "questIDLow:4":  48031
+                                     }
+                        },
+    "properties:10":  {
+                          "betterquesting:10":  {
+                                                    "autoClaim:1":  0,
+                                                    "completion_animation:8":  "default",
+                                                    "completion_particle:8":  "default",
+                                                    "confetti_icon:10":  {
+                                                                             "Count:3":  0,
+                                                                             "Damage:2":  0,
+                                                                             "OreDict:8":  "",
+                                                                             "id:8":  "minecraft:stick"
+                                                                         },
+                                                    "countAsQuest:1":  0,
+                                                    "desc:8":  "§3§lONE RECIPE IN THE WHOLE MOD CARES WHAT GRADE YOUR WATER IS. THIS IS IT.§r\n§bF-12, reconversion§r, on a tier-3 Chemical Plant at IV for 30 seconds:\n  §21,000 L Enriched UF6 + 2,000 L Hydrogen + 2,000 L of ONE WATER RUNG  -\u003e  N x Ceramic UO2 Powder + 4,000 L HF back§r\n\nThe reaction is §bUF6 + 2 H2O + H2 -\u003e UO2 + 4 HF§r. The water is not a coolant or a solvent here - it is §6literally the reagent§r, which is why the grade lands on this step and on nothing else.\n\n§e§lTHE LADDER§r §8- nine recipes, one per rung§r\n  §8Distilled Water§r       x0.5   §22x powder§r    §8~32 Uraninite a rod§r\n  §8Grade 1 Purified§r      x1.0   §24x powder§r    §816.0 Uraninite a rod§r\n  §8Grade 2§r   x1.5  §26x§r    §8Grade 3§r   x2.0  §28x§r    §8Grade 4§r   x2.5  §210x§r\n  §8Grade 5§r   x3.0  §212x§r   §8Grade 6§r   x3.5  §214x§r   §8Grade 7§r   x4.0  §216x§r\n  §bGrade 8 Purified§r      x4.5   §218x powder§r   §b3.6 Uraninite a rod§r\n\n§e§lWHAT THAT IS WORTH§r\nOne §bExtraction Derrick§r digs 6 Uraninite every 200 ticks - 36 a minute, §b3,240 over a 90-minute decay cycle§r. A full tier-5 silo burns §b201 rods§r in that time, and 3,240 / 16.0 is 202.5.\n§6At Grade 1, one Derrick exactly feeds a fully built tier-5 plant.§r At Grade 4 you are back to what the retired four-step chain cost. At Grade 8 you are well past it.\n\n§e§lAND A SECOND, MUCH SMALLER EFFECT§r\nPurified water in the §breactor\u0027s feedwater hatch§r also multiplies the plant\u0027s EU: §2+5% a grade, x1.05 at Grade 1 up to x1.40 at Grade 8§r. The panel says so, in the STEAM CHAIN group:\n  §9Feedwater: Grade 8 Purified Water - output x1.40§r\n  §8(plain and distilled water run this plant at x1.00 - the grade is a bonus, never a requirement)§r\n\n[warn]§cIt has to be a DEDICATED feedwater line.§r The reactor draws its feedwater §bworst-first§r, so a hatch row holding plain water and Grade 8 spends the plain water and pays you nothing. The fuel line does the exact opposite - F-12 matches the BEST rung you have piped to it.[/warn]\n\n[note]§6Plain water is still enough, permanently.§r Plain and distilled both count as x1.00 on the reactor, so a plant that never sees a Purification Plant derives the same EU it derived before this release - to the last digit. No line appears on the panel below Grade 1.[/note]\n\n[note]§6Distilled water is a real rung of the FUEL ladder, not an omission.§r It yields half of Grade 1, and everything after F-12 is grade-blind - so without a Purification Plant you still reach all four fuel grades, at half rate. There is no second gate.[/note]\n\n[warn]§cThe Spiral\u0027s coolant hatches are NOT feedwater.§r Grade 8 water is a perfectly good coolant and you may run it there - but the output multiplier is read from the feedwater hatches alone, and coolant will never pay it.[/warn]\n\n[note]A water ladder is a route to §bcheaper fuel§r, never to more power. The whole ladder is worth +40% EU; moving one rung up the FUEL ladder - Uranium to MOX - is worth +100%.[/note]",
+                                                    "globalShare:1":  1,
+                                                    "icon:10":  {
+                                                                    "Count:3":  1,
+                                                                    "Damage:2":  0,
+                                                                    "OreDict:8":  "",
+                                                                    "id:8":  "minecraft:water_bucket"
+                                                                },
+                                                    "isGlobal:1":  0,
+                                                    "isMain:1":  0,
+                                                    "isSilent:1":  0,
+                                                    "lockedProgress:1":  0,
+                                                    "name:8":  "§3§lThe Water Step",
+                                                    "particle_count:3":  -1,
+                                                    "partySingleReward:1":  0,
+                                                    "questLogic:8":  "AND",
+                                                    "repeatTime:3":  -1,
+                                                    "repeat_relative:1":  1,
+                                                    "simultaneous:1":  0,
+                                                    "snd_complete:8":  "random.levelup",
+                                                    "snd_update:8":  "random.levelup",
+                                                    "taskLogic:8":  "AND",
+                                                    "visibility:8":  "NORMAL"
+                                                }
+                      },
+    "questIDHigh:4":  190,
+    "questIDLow:4":  48032,
+    "rewards:9":  {
+
+                  },
+    "tasks:9":  {
+                    "0:10":  {
+                                 "index:3":  0,
+                                 "taskID:8":  "bq_standard:checkbox"
+                             }
+                }
+}

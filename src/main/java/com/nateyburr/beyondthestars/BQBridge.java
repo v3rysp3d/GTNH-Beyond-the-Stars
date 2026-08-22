@@ -72,10 +72,10 @@ final class BQBridge {
      */
     static final long[] CHAPTER_QUEST_LOWS = { 48000L, 48001L, 48002L, 48003L, 48004L, 48005L, 48006L, 48007L, 48008L,
         48009L, 48010L, 48011L, 48012L, 48013L, 48014L, 48015L, 48016L, 48017L, 48018L, 48019L, 48021L, 48022L, 48023L,
-        48024L, 48025L, 48026L, 48027L, 48028L };
+        48024L, 48025L, 48026L, 48027L, 48028L, 48029L, 48030L, 48031L, 48032L, 48033L, 48034L };
 
     /**
-     * The chapter's ids the way a person reads them - {@code 48000-48019, 48021-48028} -
+     * The chapter's ids the way a person reads them - {@code 48000-48019, 48021-48034} -
      * collapsed into runs off {@link #CHAPTER_QUEST_LOWS} itself, so no message can advertise a
      * range the check does not actually count.
      */
