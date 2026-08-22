@@ -15,8 +15,8 @@ public final class BTSMachines {
     public static ItemStack spineSensor;
     public static ItemStack siloControlBlock;
     public static ItemStack turbineControlBlock;
-    // D-26 (docs/production-lines.md S5): the four new production multiblocks. Ids base+1,
-    // base+10, base+11 and base+12 - base+1 was the one gap left in the original block.
+    // D-26 (docs/production-lines.md S5): the four new production multiblocks. Ids base+10,
+    // base+11, base+12 and base+13. base+1 looks free and is not - see the ledger in register().
     public static ItemStack cascadeHall;
     public static ItemStack fuelFabricationHall;
     public static ItemStack purexCanyon;
@@ -64,7 +64,20 @@ public final class BTSMachines {
         // D-26 THE FOUR NEW PRODUCTION MULTIBLOCKS. Ids are FROZEN once shipped: an MTE id is
         // what a placed machine in a saved world is bound to, so these four may never be
         // renumbered, only retired in place the way the two plant-module controllers were.
-        cascadeHall = new MTECascadeHall(base + 1, "multimachine.beyondthestars.cascadehall", "Cascade Hall")
+        //
+        // ID LEDGER - base+1 IS BURNED, NOT FREE. The gap between base and base+2 is not an
+        // unused id, it is a RETIRED one. `git show 0.5.0:src/main/java/com/nateyburr/
+        // beyondthestars/machines/BTSMachines.java` registers MTETurbineHall(base + 1), and
+        // 0.5.0 is a shipped tag. Commit d96e26a deleted that machine when the Turbine Hall
+        // folded into the Reactor Silo - but deleting the class does not unbind the id, and a
+        // world saved on 0.5.0 still has a Turbine Hall sitting at 28101. GT resolves a placed
+        // machine by its id alone, so handing 28101 to a new controller would silently turn
+        // every one of those into a Cascade Hall on load. The very rule that freezes these four
+        // is what forbids reusing that one.
+        //
+        // Ids in use, and why: base live, base+1 BURNED (0.5.0 Turbine Hall), base+2..base+9
+        // live, base+4/base+5 live-but-retired museum pieces. FIRST FREE ID IS base+13.
+        cascadeHall = new MTECascadeHall(base + 13, "multimachine.beyondthestars.cascadehall", "Cascade Hall")
             .getStackForm(1);
         fuelFabricationHall = new MTEFuelFabricationHall(
             base + 10,
