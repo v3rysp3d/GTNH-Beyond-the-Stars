@@ -7299,6 +7299,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * D-17 3/4: the two SELF-FUELLING modules, their cycle tallies and whatever is holding them
      * up. Only drawn when at least one of them stands - a plant with neither has nothing to say
      * here and the line would be four words of noise on every panel forever.
+     * <p>
+     * M7: both quote their BASE rate, not the milestone-scaled one, and the Annex's is now
+     * 2 Yellowcake - it stopped paying finished fuel pellets in 0.24.0. What the pair make is
+     * FEEDSTOCK: the plant is self-fuelling once F-09 .. F-18 are standing, and not before.
      */
     public static String selfFuelLine(boolean derrick, boolean annex, int derrickCycles, int annexCycles,
         String stall) {
@@ -7313,7 +7317,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             + " · Annex "
             + (annex
                 ? String.format("%,d", annexCycles)
-                    + " batches (8 uraninite + 2,000 L HF -> 20 pellets + 2 thorium /30s)"
+                    + " batches (8 uraninite + 2,000 L HF -> 2 yellowcake + 2 thorium /30s)"
                 : "-");
         if (stall == null || stall.isEmpty()) return head;
         return head + EnumChatFormatting.YELLOW + " | " + stall + EnumChatFormatting.RESET;
