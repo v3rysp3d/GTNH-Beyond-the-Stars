@@ -95,7 +95,10 @@ import gtPlusPlus.xmod.gregtech.api.enums.GregtechItemList;
  * <ol>
  * <li><b>F-01 milling</b> - {@code millingRecipes} is {@code maxIO(3, 1, 0, 0)}: no fluid slots at
  * all and a single item output. The wash water and the gangue byproduct move off this step; the
- * IsaMill grinds and does nothing else, which is what an IsaMill is.</li>
+ * IsaMill grinds and does nothing else, which is what an IsaMill is. One of the three item slots
+ * is always the MILLING BALL, which is a recipe input rather than a hatch-only item -
+ * {@link #millingBall()} proves it against MTEIsaMill's bytecode - so F-19 and F-21b, which spend
+ * the other two slots on reagents, carry no programmed circuit.</li>
  * <li><b>F-02 flotation</b> - {@code flotationCellRecipes} is {@code maxIO(6, 0, 1, 1)}: ZERO item
  * outputs. The cell emits a froth FLUID, exactly as GT++'s own sphalerite line does, and a new
  * <b>F-02b</b> thickening step on the Dehydrator recovers the concentrate, the tailings and the
@@ -156,16 +159,48 @@ public final class BTSRecipesFuel {
 
     // =============================================================== F-01 .. F-08, ore to yellowcake
 
+    /**
+     * THE MILLING BALL, as a recipe INPUT at stack size ZERO. Every recipe this file puts on
+     * {@code millingRecipes} carries one, and a milling recipe without one is dead on arrival.
+     * <p>
+     * <b>The ball is not "taken from the hatch instead".</b> {@code MTEIsaMill$1.validateRecipe}
+     * walks {@code recipe.mInputs} looking for a stack that {@code MTEIsaMill.isMillingBall}
+     * accepts, and when it finds none it returns {@code CheckRecipeResultRegistry.NO_RECIPE} -
+     * whatever is sitting in the mill's {@code MTEHatchMillingBalls}. The ball in the RECIPE is
+     * what names the medium; {@code searchForMillingBall} then matches that name against the
+     * hatch's stacks with {@code GTUtility.areStacksEqual(.., true)} and the hatch supplies the
+     * physical ball. The recipe says which ball; the hatch pays for it.
+     * <p>
+     * <b>Stack size 0 is GT's "required but not consumed".</b> Nothing is ever pulled from an
+     * input bus for this: {@code MTEIsaMill$1.onRecipeStart} calls {@code damageMillingBall},
+     * which spends one point of the HATCH ball's durability and only decrements its stack size
+     * when the ball finally wears out. This is verbatim the shape of GT++'s own IsaMill recipes -
+     * {@code BaseItemMilledOre}'s constructor passes
+     * {@code GregtechItemList.Milling_Ball_Alumina.get(0)} as a plain second item input.
+     * <p>
+     * <b>Alumina only, on all four of this file's milling recipes.</b> GT++ registers a soapstone
+     * variant beside every alumina one and keys the pair apart with a programmed circuit. This
+     * file cannot: {@code millingRecipes} is {@code maxIO(3, 1, 0, 0)} and F-19 and F-21b already
+     * spend two of those three slots on real reagents, so the ball takes the third and no circuit
+     * fits. A two-tier ball ladder on two recipes and a one-tier one on the other two would be
+     * worse than a single uniform rule, so the rule is the alumina ball everywhere - the better of
+     * GT++'s two media, and the right one for a nuclear-grade grind.
+     */
+    private static ItemStack millingBall() {
+        return GregtechItemList.Milling_Ball_Alumina.get(0);
+    }
+
     private static void frontEnd() {
         // F-01 COMMINUTION. Wet attrition milling in the Ore Milling Plant (IsaMill).
         //
         // DEVIATION, forced: millingRecipes is maxIO(3, 1, 0, 0) - no fluid slots and one item
         // output. The spec's wash water and gangue byproduct therefore cannot live here. The mill
         // grinds; the gangue is separated downstream at F-02b, where a real circuit separates it.
-        // The milling BALLS are not an input either - the IsaMill takes them from its own
-        // MTEHatchMillingBalls, which is why no ball appears in any recipe below.
+        // The third item slot is the MILLING BALL, which IS a recipe input - millingBall() is
+        // where that is written out, and where the two lines this comment used to get exactly
+        // backwards are corrected against MTEIsaMill's own bytecode.
         GTValues.RA.stdBuilder()
-            .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uraninite, 16L))
+            .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uraninite, 16L), millingBall())
             .circuit(1)
             .itemOutputs(new ItemStack(BTSItemsFuel.milledUraninite, 16))
             .duration(20 * SECONDS)
@@ -174,7 +209,7 @@ public final class BTSRecipesFuel {
 
         // Pitchblende is the richer ore: twelve dust buys the same sixteen milled.
         GTValues.RA.stdBuilder()
-            .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Pitchblende, 12L))
+            .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Pitchblende, 12L), millingBall())
             .circuit(2)
             .itemOutputs(new ItemStack(BTSItemsFuel.milledUraninite, 16))
             .duration(20 * SECONDS)
@@ -668,11 +703,15 @@ public final class BTSRecipesFuel {
 
         // F-19 THE MIMAS MASTERBLEND. Two parts PuO2 in thirty of depleted UO2 is 6.25 %, which is
         // the real ratio, and the mill is the real machine: MOX is co-milled, not stirred.
+        //
+        // No programmed circuit: the two reagents plus the milling ball fill all three of
+        // millingRecipes' maxIO(3, 1, 0, 0) item slots, and the two reagents already key this
+        // recipe uniquely. The ball is not optional - millingBall() says why.
         GTValues.RA.stdBuilder()
             .itemInputs(
                 new ItemStack(BTSItemsFuel.plutoniumDioxide, 2),
-                new ItemStack(BTSItemsFuel.depletedUO2Powder, 30))
-            .circuit(1)
+                new ItemStack(BTSItemsFuel.depletedUO2Powder, 30),
+                millingBall())
             .itemOutputs(new ItemStack(BTSItemsFuel.moxPowder, 32))
             .duration(30 * SECONDS)
             .eut(TierEU.RECIPE_LuV)
@@ -695,11 +734,13 @@ public final class BTSRecipesFuel {
 
         // F-21b (Th,U)O2. Thoria is fertile, not fissile: it needs a driver, and the driver is two
         // parts of the main line's own ceramic powder - the same 6.25 % blend F-19 uses.
+        // As at F-19, the milling ball takes the third and last item slot, so this recipe carries
+        // no programmed circuit either.
         GTValues.RA.stdBuilder()
             .itemInputs(
                 new ItemStack(BTSItemsFuel.thoriumDioxidePowder, 30),
-                new ItemStack(BTSItemsFuel.ceramicUO2Powder, 2))
-            .circuit(1)
+                new ItemStack(BTSItemsFuel.ceramicUO2Powder, 2),
+                millingBall())
             .itemOutputs(new ItemStack(BTSItemsFuel.thoriumUraniumOxidePowder, 32))
             .duration(30 * SECONDS)
             .eut(TierEU.RECIPE_LuV)
