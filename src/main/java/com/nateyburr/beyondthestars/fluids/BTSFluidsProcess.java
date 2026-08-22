@@ -5,7 +5,7 @@ import net.minecraftforge.fluids.Fluid;
 import gregtech.api.enums.FluidState;
 
 /**
- * D-26 FUEL LINE FLUIDS - the eleven process streams of the ore-to-bundle chain and the PUREX
+ * D-26 FUEL LINE FLUIDS - the twelve process streams of the ore-to-bundle chain and the PUREX
  * head-end (docs/production-lines.md S1). Owned by <b>Agent A (Fuel)</b>.
  * <p>
  * <b>The three UF6 streams are the point of the file.</b> F-11's cascade is the only step in the
@@ -22,6 +22,19 @@ import gregtech.api.enums.FluidState;
  * concept of, are ours.
  */
 public final class BTSFluidsProcess {
+
+    // ------------------------------------------------------------------ F-02, the flotation cell
+    /**
+     * F-02 out: the floated concentrate, still as a slurry.
+     * <p>
+     * <b>This fluid exists because the Flotation Cell physically cannot make an item.</b>
+     * {@code GTPPRecipeMaps.flotationCellRecipes} is declared {@code maxIO(6, 0, 1, 1)} - six item
+     * inputs, <b>zero</b> item outputs, one fluid in, one fluid out - which is exactly how GT++'s
+     * own sphalerite and chalcopyrite lines run: milled ore plus a collector plus pine oil, out
+     * comes a froth FLUID. F-02b then thickens and filters the froth back into solids on the
+     * Dehydrator, which is what a real flotation circuit does anyway.
+     */
+    public static Fluid uraniniteFlotationFroth;
 
     // --------------------------------------------------------- F-03..F-08, the hydrometallurgy
     /** F-03 out: the pregnant leach solution off the sulfuric digest. */
@@ -54,6 +67,8 @@ public final class BTSFluidsProcess {
     private BTSFluidsProcess() {}
 
     public static void register() {
+        uraniniteFlotationFroth = liquid("btsuraniniteflotationfroth", "Uraninite Flotation Froth", 150, 145, 110, 300);
+
         pregnantLeachSolution = liquid("btspregnantleachsolution", "Pregnant Leach Solution", 210, 190, 70, 320);
         clarifiedUranylLiquor = liquid("btsclarifieduranylliquor", "Clarified Uranyl Liquor", 230, 215, 110, 320);
         raffinate = liquid("btsraffinate", "Uranium Raffinate", 130, 120, 95, 320);
