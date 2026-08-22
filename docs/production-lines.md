@@ -1,9 +1,14 @@
 # PRODUCTION LINES — the fuel, material, propellant and coolant chains (0.24.0 design of record)
 
-**Status:** design specification. No production Java is written by this document; it is the
-contract the implementing units follow. Every GT/GT++/GG/BW class, field and recipe map named
-below was read out of the pinned jar (`GT5-Unofficial-5.09.52.594-dev.jar`, D-06) during recon,
-not remembered.
+**Status: BUILT.** Sections 0-9 are the design of record - the contract the implementing units
+followed. **Section 10 is the as-built record**, read back out of the shipped Java afterwards, and
+where the two disagree section 10 is right. Section 11 is the flowchart the ruling asked for, and
+its verification. Every GT/GT++/GG/BW class, field and recipe map named below was read out of the
+pinned jar (`GT5-Unofficial-5.09.52.594-dev.jar`, D-06), not remembered.
+
+> **Read S10.6 before shipping.** The Enrichment Annex re-point that S8.3 marks REQUIRED was **not
+> made**. Until it is, `8 Uraninite + 2,000 L HF -> 20 Fuel Pellets` still skips the entire fuel
+> line and does not pay the water ladder's yield term.
 
 **My ruling, implemented here without relitigation:**
 
@@ -839,6 +844,10 @@ exactly what it bought yesterday.
 
 ### 8.3 ⚠ REQUIRED CODE CHANGE — the Enrichment Annex is now a bypass
 
+> **STATUS: NOT DONE.** Verified in the shipped source - both call sites below still pay
+> `uraniumFuelPellet`. See S10.6 for what that costs and what is left to do. The rest of this
+> section is the unchanged specification of the fix.
+
 `MTEReactorCoreMk1.annexPellets()` and `MTEEnrichmentTrain.checkProcessing()` currently output
 **`BTSItems.uraniumFuelPellet`** directly:
 
@@ -905,8 +914,8 @@ bit-identical EU figure to the one it derived before this release (§2.2).
 3. `powershell -NoProfile -ExecutionPolicy Bypass -File questbook/gen-bom.ps1` — the ONE command
    that re-renders `BTSBom.java` and the questbook together.
 4. `./gradlew.bat spotlessApply compileJava --no-daemon` to BUILD SUCCESSFUL.
-5. The flowchart (§9) checked against the shipped recipes.
-6. Changelog: the eighteen dead recipes, the Annex re-point, the water ladder.
+5. The flowchart — **built**, `docs/production-flowchart.html`, verified in-browser (§11).
+6. Changelog: the eighteen dead recipes, the water ladder, and **the Annex re-point once it lands** (§10.6).
 7. A browser mockup for each of the four new multiblocks (standing rule, D-19).
 
 ---
@@ -927,7 +936,7 @@ graph TD
     ADU -->|"F-08 Dehydrator<br/>800C calcine"| YC["YELLOWCAKE U3O8"]
   end
 
-  ANNEX["Enrichment Annex module<br/>8 Uraninite + 2,000 L HF"] -.->|"slow bootstrap<br/>re-pointed, S8.3"| YC
+  ANNEX["Enrichment Annex module<br/>8 Uraninite + 2,000 L HF"] -.->|"INTENDED: slow bootstrap<br/>S8.3 - NOT BUILT, see S10.6"| YC
 
   subgraph CONV["CONVERSION + ENRICHMENT (IV)"]
     YC -->|"F-09 Chem Plant + HF"| UF4["UF4 - GT++ material"]
@@ -1022,3 +1031,174 @@ one into `Ceramic-Grade UO2 Powder` is the **YIELD** term (×0.5 … ×4.5), the
 is the **OUTPUT** term (×1.00 … ×1.40). The dashed edges are the boosts that keep existing content
 alive — the LFTR line's UF₆ feeding our cascade, the Annex bootstrapping past the front end, and the
 uncooled reprocessing path that unblocks a legacy world's depleted-fuel backlog.
+
+---
+
+## 10. AS-BUILT — what actually shipped, and where it differs from §§1–9
+
+**Everything above this line is the design of record; everything below it was read back out of the
+Java after the fact.** Where the two disagree, this section is right and the design section is the
+history of how we got there. Every figure here was produced by grepping
+`BTSRecipesFuel/Materials/Propellant/Coolant.java`, `BTSWaterGrade.java` and
+`MTEReactorCoreMk1.java`, not by trusting an implementation report.
+
+### 10.1 The count, derived
+
+| File | Owner | `stdBuilder()` sites | Recipes actually registered |
+|---|---|---|---|
+| `BTSRecipesFuel.java` | A — Fuel | 46 | **85** (84 new + 1 kept) |
+| `BTSRecipesMaterials.java` | B — Materials | 12 | **12** |
+| `BTSRecipesPropellant.java` | C — Propellant | 14 | **32** |
+| `BTSRecipesCoolant.java` | C — Coolant | 3 | **3** |
+| `BTSRecipesMachines.java` | D — Machines | 11 | **11** (moved verbatim) |
+| | | | **143 total, 132 in the four production lines** |
+
+Sites ≠ recipes because eight helpers and one loop multiply: `pressGreenPellet`/`sinter`/`grind`/
+`loadRod`/`bundle` are called **three** times each (uranium, MOX, thorium), `coolInPond`/
+`chopLeach`/`rushLeach` **eight** times each (four grades × rod and assembly), and `reconversion()`
+loops the **nine** water rungs. That is the arithmetic behind the "132 registered recipes" the
+flowchart prints — and the flowchart computes it from its own step table rather than quoting it, so
+the two cannot drift.
+
+**Machines: 4 new, 21 existing = 25**, exactly as §6 budgeted, against a budget of 30. MTE ids
+28101 (Cascade Hall), 28110 (Fuel Fabrication Hall), 28111 (PUREX Canyon), 28112 (Site Batching
+Plant), all confirmed in the class javadoc of each.
+
+### 10.2 The water ladder, as coded
+
+`BTSWaterGrade.java` is the single source and is frozen. Verified by reading it:
+
+```java
+yieldMilli(0) = 500;  yieldMilli(g) = 1000 + (g - 1) * 500;   // distilled x0.5 .. Grade 8 x4.5
+outputMilli(g) = (g < 1) ? 1000 : 1000 + g * 50;              // x1.000 .. x1.400
+powderFor(g)   = 4 * yieldMilli(g) / 1000;                    // 2,4,6,8,10,12,14,16,18
+```
+
+The reactor's sixth factor is present at `MTEReactorCoreMk1.euDemandOf(...)` as
+`* Math.max(1000, waterMilli) / 1000`, and `feedwaterGrade` is a synced field set only inside
+`drawFeedwater()`. **The `Math.max(1000, ...)` floor is what makes the release regression-safe:**
+plain and distilled water both grade to 1000, so a standing plant multiplies by exactly 1 and
+derives a bit-identical EU figure to 0.23.0.
+
+F-12 asks `BTSWaterGrade.powderFor(grade)` for its output count rather than typing it, and skips
+any rung whose fluid the pack does not have (`fluidFor` returns null) instead of throwing —
+recipe registration runs in postInit, where one escaping exception costs the whole mod.
+
+### 10.3 Forced deviations from §§1–4 — twelve, each with the reason
+
+The design established *which* recipe maps an addon may register into, but not their **shape**.
+`maxIO` was read out of each map's static initialiser during implementation, and five of the
+tables in §1 could not be expressed as drawn.
+
+| # | Design said | Built as | Why |
+|---|---|---|---|
+| 1 | F-01 mills with wash water, drops gangue | no fluids, one output | `millingRecipes` is `maxIO(3,1,0,0)` — **zero fluid slots**. Milling balls come from the mill's own hatch, so a ball in `itemInputs` would have made every recipe eat one |
+| 2 | F-02 Flotation Cell → concentrate (solid) | → **froth FLUID**, new F-02b dewaters it | `flotationCellRecipes` is `maxIO(6,0,1,1)` — **zero item outputs**. GT++'s own sphalerite line has the same shape. This is why `uraniniteFlotationFroth` exists |
+| 3 | F-03 leaches with an Fe(III) oxidant | **dust Pyrolusite** | The Digester allows one fluid in. Pyrolusite is the solid oxidant a real acid-leach flowsheet charges anyway — the constraint improved the chemistry |
+| 4 | F-11c byproduct is calcium **chloride** | calcium **fluoride** (dust Fluorite) | There is no chlorine anywhere in this chain. Reducing a *fluoride* with calcium gives a fluoride, and 8 Ca in balances 8 fluorite out |
+| 5 | F-15 selects grade by circuit | grade-**tagged** sintered pellets | `latheRecipes` is `maxIO(1,2,0,0)` — one input, so **no circuit slot**. Hence `sinteredPelletMox` / `sinteredPelletThorium` |
+| 6 | F-13/F-14 select grade by circuit | circuit **plus** tagged items | A circuit cannot survive an item. One fungible green pellet would let uranium powder be pressed, sintered and ground on circuit 2 into MOX pellets **with no plutonium in the line** |
+| 7 | F-16 extrudes the cladding tube | **Assembler**, behind circuit 7 | `extruderRecipes` is `maxIO(2,1,0,0)` and a die spends both slots, so the recipe would be indistinguishable from GT's own `ingot + die` and one of the two would silently become unreachable |
+| 8 | P-02 mills metal in kerosene, one step | split **P-02a / P-02b** | Same zero-fluid-slot problem as F-01 |
+| 9 | P-01 uses `Materials.DinitrogenTetroxide` | `getGas`, and **both** N₂O₄ fluids | GT's N₂O₄ is gas-side, and the pack has two of them (GT core's and `GTPPFluids`') — registering both means a standing rocket-fuel line is not forced to build a second one |
+| 10 | C-04 on `UniversalChemical` | straight to the **LCR** | `UniversalChemical` fans out to the single-block reactor, which is `maxIO(2,2,1,1)` — one fluid input, and C-04 has two |
+| 11 | M-02d presses filter casings | folded into M-02c | Pressing implies a blank, which implies a new item; `BTSItemsMaterials` registers nothing by decision. Everything in the materials file goes to **one** map |
+| 12 | M-05 makes 8 casings a batch | 20 (M-05a) / 32 (M-05b) | 8× would want 96 plates in one slot and **a stack stops at 64**. The same limit forced M-04 off fasteners (8 casings = 192 screws) and onto diffusion bonding |
+
+### 10.4 Three judgement calls the implementers made, recorded here
+
+1. **The propellant ladder was NOT retired.** §4.1 and §8.1 said the six one-step Mixer recipes
+   were "kept but rebuilt" — i.e. replaced. They are **kept standing, unchanged**, and the
+   three-stage chain was added beside them. My ruling that fuel-chain automation may break
+   covers the *fuel* chain; no ruling covers the propellant ladder, and retiring the only recipe
+   that makes the fluid a running plant drinks would stop that plant dead on jar swap. The design's
+   P-03 as written was strictly dominated anyway (same naquadah fuel **plus** oxidiser and slurry),
+   so nobody would ever have built it.
+2. **C-01 was deliberately not shipped.** As specified it consumed ion-exchange resin and returned
+   its own input — a no-op that bills the player for nothing and a loop an autocrafter can chase.
+   Its stated purpose (showing the ladder's bottom in NEI) is already served by
+   `BTSDisplayRecipes.plantCoolant`.
+3. **Three ultrafine metal powders were added** to `BTSItemsPropellant`, which §7.2 had scoped to
+   cartridges only. One fungible powder would have let cheap aluminium be blended into an
+   Infinity-grade slurry — the same "a circuit cannot survive an item" rule that F-13/F-14 rest on.
+
+### 10.5 Two defects the implementers caught, and what they cost
+
+- **F-07's ammonium sulfate liquor was a stall, not untidiness.** It had a producer and no
+  consumer, and **a GT machine with a full output hatch stops.** The first player to automate F-07
+  without a void hatch would have watched the reactor's fuel supply halt on a byproduct. F-07b now
+  cracks it, returning 300 of the 1,000 L of ammonia. Every one of the fuel line's 21 fluid streams
+  and 30 item intermediates was then re-walked for the same defect.
+- **`OrePrefixes.screw.mMaterialAmount` is M/8, not M/9.** M-04's europium was computed on the
+  wrong assumption and would have shipped **7 % cheaper in europium** than the stock recipe it sits
+  beside — silently, in the one line item where 1,343 casings makes 7 % matter. The amounts are now
+  read off the decompiled `OrePrefixBuilder` calls rather than from memory.
+
+### 10.6 ⚠ OUTSTANDING — §8.3 did NOT happen. The Annex bypass is still live.
+
+**This is the one part of the design that is not built, and it is load-bearing.** Verified in the
+shipped source on the date of this section:
+
+```
+machines/MTEEnrichmentTrain.java:145   new ItemStack(BTSItems.uraniumFuelPellet, OUTPUT_PELLETS)   // 20
+machines/MTEReactorCoreMk1.java:6009   out.add(new ItemStack(BTSItems.uraniumFuelPellet, annexPellets()));
+```
+
+Both still pay **`uraniumFuelPellet` directly** from `8 Uraninite + 2,000 L HF` every 600 ticks.
+`ANNEX_PELLETS = 20` at `MTEReactorCoreMk1.java:5744` is unchanged.
+
+**Consequence, stated plainly:** a player who builds the Enrichment Annex — which is a module of the
+main controller, not a separate multiblock, and is already taught by the questbook — gets fuel
+pellets at **0.4 Uraninite per pellet** without touching F-01 … F-16. The entire twenty-three-step
+fuel line, the Cascade Hall, the Fuel Fabrication Hall and the whole water ladder become optional
+decoration for uranium-grade fuel. The yield term is the ruling's *primary* effect, and this route
+does not pay it.
+
+**The fix is still the one §8.3 specifies** — re-point both call sites to `2 Yellowcake`, which is
+the same 4 Uraninite : 1 Yellowcake ratio F-01 … F-08 achieve, so the Annex stays a slow HF-hungry
+bootstrap past the *front end* while F-09 … F-18 remain compulsory. It is a two-line change plus
+the tooltips at `MTEEnrichmentTrain:159` and `MTEReactorCoreMk1:8150`.
+
+**Until it lands, the documentation must not claim it did.** The wiki, the questbook and the D-26
+row in `../PROPOSAL.md` all describe the Annex as it currently behaves, and each carries the same
+warning. That is deliberate: a book that describes the intended design rather than the shipped code
+is how a player ends up building something that does not work.
+
+### 10.7 What still cannot be settled statically
+
+None of the four new multiblocks has been **formed in world**. Their recipe shapes are proven
+against the map limits and their structure definitions compile, but the Cascade Hall's negative
+depth offsets, the Fabrication Hall's 7×5×12 and the Canyon's 9×7×9 want a `/btsbuild` projection
+test before 0.24.0 ships (standing rule, D-19). Two further first-load questions are worth watching:
+whether the circuit numbers actually disambiguate M-03a/M-03b/M-03c in a bus holding several
+programmed circuits, and whether one Input Hatch comfortably holds M-05b's 13,824 L × parallel.
+
+---
+
+## 11. THE FLOWCHART, BUILT
+
+**`docs/production-flowchart.html`** — a self-contained page: no external requests, full light and
+dark theming through CSS tokens (never defined only inside a media query), and a theme toggle that
+remembers its setting. It carries the master diagram as **plain SVG** — deliberately not canvas,
+which cannot be screenshotted reliably outside a `requestAnimationFrame` turn — plus every one of
+the 67 steps as a card with its machine, tier band and real inputs and outputs.
+
+**It was verified in a real browser, not eyeballed**: served over `127.0.0.1:8731`, opened in
+Chromium, and audited in the DOM.
+
+- **0 console messages** of any level, errors and warnings alike.
+- **0 edge segments passing through a node box**, checked by walking every `path.e` and testing
+  each straight segment against every `rect.nbox`.
+- **0 text runs overflowing their box or the viewBox.**
+- **0 horizontal page overflow** at 1440 px.
+
+That audit found four real defects that reading the file had not: the Fabrication Hall's sub-line
+ran past its own box, the material edge cut straight through the "Unit One" lane label, `.nid`'s
+`text-transform: uppercase` had turned `MTEReactorCoreMk1` into an unreadable
+`MTEREACTORCOREMK1`, and the "new multiblocks" figure counted machine **labels** rather than
+machine **identities** — reporting six where there are four, because the PUREX Canyon appears as
+"circuit 1", "circuit 2" and "circuit 3".
+
+The mermaid graph in §9 is kept as the design-time sketch. **Where it disagrees with the HTML, the
+HTML is as-built** — §9 still draws F-16 on the Extruder and F-02 producing a solid, both of which
+§10.3 shows could not be registered that way.
