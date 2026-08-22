@@ -65,6 +65,7 @@ import com.nateyburr.beyondthestars.blocks.TileTurbineHousing;
 import com.nateyburr.beyondthestars.fluids.BTSFluids;
 import com.nateyburr.beyondthestars.fluids.BTSWaterGrade;
 import com.nateyburr.beyondthestars.items.BTSItems;
+import com.nateyburr.beyondthestars.items.BTSItemsFuel;
 import com.nateyburr.beyondthestars.progression.BTSChannel;
 import com.nateyburr.beyondthestars.progression.BTSMilestone;
 import com.nateyburr.beyondthestars.progression.BTSProgression;
@@ -1346,7 +1347,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * edge, one conversion line of Steel Pipe Casing along its spine - the standalone
      * {@link MTEEnrichmentTrain} stretched to plant scale. THREE sockets, all in its +a wall at
      * y1 (declared LEFT), looking out over open platform at every tier: uraninite feed bus,
-     * hydrofluoric acid hatch, and the pellet/thorium product bus.
+     * hydrofluoric acid hatch, and the yellowcake/thorium product bus (M7: it paid finished fuel
+     * pellets until 0.24.0 - anything reading this bus receives Yellowcake now).
      * <p>
      * [layer b, 0 = top][row c][char a].
      */
@@ -5785,7 +5787,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     // is that they are the integrated endgame form of the IV entry tech, not a better version of
     // it. MTEExtractionPlatform: 200t, -TierEU.RECIPE_EV, 6 Uraninite + 1 Thorium, +1 Tantalum
     // every 4th cycle. MTEEnrichmentTrain: 600t, -TierEU.RECIPE_HV, 8 Uraninite + 2,000 L
-    // Hydrofluoric Acid -> 20 Fuel Pellets + 2 Thorium.
+    // Hydrofluoric Acid -> 2 Yellowcake + 2 Thorium (M7 re-pointed BOTH; if one of these two
+    // numbers is ever edited alone, the module has stopped being the standalone machine again).
     private static final int DERRICK_CYCLE_TICKS = 200;
     /**
      * R: {@code TierEU.RECIPE_EV}, NOT {@code TierEU.EV}. GT's RECIPE_ ladder is
@@ -5802,7 +5805,14 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     public static final long ANNEX_EU_PER_TICK = TierEU.RECIPE_HV;
     private static final int ANNEX_URANINITE = 8;
     private static final int ANNEX_ACID_MB = 2_000;
-    private static final int ANNEX_PELLETS = 20;
+    /**
+     * M7: 8 Uraninite -> 2 YELLOWCAKE, the front end's own 4:1 ratio (F-01 .. F-08 turn 16
+     * Uraninite into 4 Yellowcake). It used to be 20 finished {@code uraniumFuelPellet}, which
+     * skipped F-01 .. F-11 - the water YIELD step at F-12 included - at 1.6 Uraninite per rod
+     * against the line's 16.0 at Grade 1. See {@link MTEEnrichmentTrain} for the whole argument;
+     * the two machines are required to agree and this is one of the two numbers that says so.
+     */
+    private static final int ANNEX_YELLOWCAKE = 2;
     private static final int ANNEX_THORIUM = 2;
 
     /**
@@ -6067,7 +6077,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         // Finished, and HELD until the product bus can take all of it. The uraninite and the
         // acid are already spent, so voiding the batch or paying it out twice are both wrong.
         final List<ItemStack> out = new ArrayList<>();
-        out.add(new ItemStack(BTSItems.uraniumFuelPellet, annexPellets()));
+        // M7: YELLOWCAKE. The Annex feeds the fuel line at F-09; it does not replace it.
+        out.add(new ItemStack(BTSItemsFuel.yellowcake, annexYellowcake()));
         out.add(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Thorium, ANNEX_THORIUM));
         if (!storeAll(annexProductBus, out)) {
             note(
@@ -6797,8 +6808,33 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return progression.derrickTantalumEvery(DERRICK_TANTALUM_EVERY);
     }
 
-    private int annexPellets() {
-        return progression.annexPellets(ANNEX_PELLETS);
+    /**
+     * M7 + REPROCESSING 7: how many Yellowcake THIS batch pays.
+     * <p>
+     * {@code BTSProgression.annexPellets(base)} is {@code max(base, base * 6/5 * ANNEX_BATCH /
+     * 1000)}, so passing 1000 reads it back as a straight MILLI multiplier - 1000 unimproved,
+     * 1200 with REPROCESSING 7, more with the tree - rather than as a count. That indirection is
+     * the whole point of this method: a fifth of the old twenty-pellet batch was four whole
+     * pellets, but a fifth of two cakes is 0.4, and {@code 2 * 6 / 5} truncates straight back to
+     * 2. Left as a plain multiply, M7 would have silently turned the milestone into a no-op.
+     * <p>
+     * So the fraction is CARRIED between batches instead of being discarded: the cakes owed
+     * through this batch, minus the cakes owed through the one before it. At x1.200 that pays
+     * 2, 2, 3, 2, 3 - twelve cakes per five batches, which is the 2.4 the milestone promises.
+     * At x1.000 every term is exactly {@code ANNEX_YELLOWCAKE}, so a plant with no milestone and
+     * no tree pays the same batch it paid before this method existed.
+     * <p>
+     * AXIS 2: the carry is NOT a new field. It is derived from {@code annexCycles}, which is
+     * already persisted to both tile NBT and item NBT, so a wrenched controller resumes the
+     * sequence rather than restarting it - and any value of it derives an unbroken run of
+     * {@code ANNEX_YELLOWCAKE} while the multiplier is 1000. A held batch (product bus full)
+     * re-derives the same number every tick, because {@code annexCycles} only moves on deposit.
+     */
+    private int annexYellowcake() {
+        final long batchMilli = progression.annexPellets(1000);
+        final long owedThrough = (long) ANNEX_YELLOWCAKE * (annexCycles + 1L) * batchMilli / 1000L;
+        final long owedBefore = (long) ANNEX_YELLOWCAKE * annexCycles * batchMilli / 1000L;
+        return (int) Math.max(ANNEX_YELLOWCAKE, owedThrough - owedBefore);
     }
 
     public int getCyclesPerMinute() {
@@ -8377,9 +8413,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             .addInfo(
                 "    every 4th cycle - the standalone Extraction Platform's rate. " + euRate(DERRICK_EU_PER_TICK) + ".")
             .addInfo(gray + "  Enrichment Annex:" + reset + " 5x15x6 process shed down the platform's front edge.")
-            .addInfo("    Every 30s: 8 Uraninite + 2,000 L Hydrofluoric Acid -> 20 Fuel Pellets +")
+            .addInfo("    Every 30s: 8 Uraninite + 2,000 L Hydrofluoric Acid -> 2 YELLOWCAKE +")
             .addInfo("    2 Thorium, the standalone Enrichment Train's rate. " + euRate(ANNEX_EU_PER_TICK) + ".")
-            .addInfo("    Derrick + Annex + an external centrifuge = a near-self-fuelling plant.")
+            .addInfo("    Same 4 Uraninite per cake the ore front end gets: it buys SIMPLICITY,")
+            .addInfo("    not yield. Derrick + Annex feed the FUEL LINE at its F-09 conversion")
+            .addInfo("    step - they do not replace it, and no module makes a finished rod.")
             .addInfo(gray + "  Both draw their EU from the manifold's ENERGY HATCHES - the first and only" + reset)
             .addInfo(gray + "  things in this plant that consume any. Still never a structure demand." + reset)
             .addInfo(
