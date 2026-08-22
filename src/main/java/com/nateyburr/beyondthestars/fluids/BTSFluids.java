@@ -80,5 +80,14 @@ public final class BTSFluids {
             .buildAndRegister()
             .addLocalizedName()
             .asFluid();
+
+        // D-26 THE SPLIT (docs/production-lines.md S7.1). The production lines' own process
+        // streams are registered by the two files below, one per owning unit, so that the
+        // units can work in parallel without either reopening this file. The seven fields
+        // above are FROZEN: nuclearWasteWater is what the D-09 profit anchor drinks and the six
+        // naqPropellant rungs are what the Spiral chamber's P table names, so not one of them
+        // may be moved, renamed or reordered in 0.24.0.
+        BTSFluidsProcess.register();
+        BTSFluidsPropellant.register();
     }
 }
