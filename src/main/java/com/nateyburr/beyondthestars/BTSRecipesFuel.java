@@ -102,7 +102,9 @@ import gtPlusPlus.xmod.gregtech.api.enums.GregtechItemList;
  * <li><b>F-02 flotation</b> - {@code flotationCellRecipes} is {@code maxIO(6, 0, 1, 1)}: ZERO item
  * outputs. The cell emits a froth FLUID, exactly as GT++'s own sphalerite line does, and a new
  * <b>F-02b</b> thickening step on the Dehydrator recovers the concentrate, the tailings and the
- * gangue. A real flotation circuit has a thickener after the cells for precisely this reason.</li>
+ * gangue. A real flotation circuit has a thickener after the cells for precisely this reason.
+ * The cell also gates on the OREDICT: an input must carry a name starting with "milled" or the
+ * recipe is never looked at, which is what {@link #registerOreDictNames()} is for.</li>
  * <li><b>F-03 leaching</b> - {@code digesterRecipes} is {@code maxIO(3, 1, 1, 1)}: one fluid input,
  * so the ferric-chloride oxidant cannot ride alongside the sulfuric acid. It is replaced by dust
  * Pyrolusite (MnO2), which is the SOLID oxidant the real Rossing-type acid-leach flowsheet
@@ -143,7 +145,51 @@ public final class BTSRecipesFuel {
 
     private BTSRecipesFuel() {}
 
+    /**
+     * F-02's ENTRY TICKET. The Froth Flotation Cell will not look at a recipe unless one of its
+     * item inputs carries an OreDictionary name beginning with "milled", so the milled
+     * intermediate has to have one - and until now it had none, which is why F-02 could never
+     * have run on either flotation implementation.
+     * <p>
+     * <b>The gate, from the bytecode.</b> {@code MTEFrothFlotationCell$1.validateRecipe} asks
+     * {@code getMilledStackName(recipe)} FIRST and returns
+     * {@code CheckRecipeResultRegistry.NO_RECIPE} the moment it answers null.
+     * {@code getMilledStackName} walks {@code recipe.mInputs}, asks
+     * {@code OreDictionary.getOreIDs} of each stack, and returns the first ore name that
+     * {@code startsWith(OrePrefixes.milled.toString())} - which is the String "milled", because
+     * {@code OrePrefixes.toString()} returns {@code getName()} and the {@code milled} prefix is
+     * built from the literal "milled". The name it finds is then LOCKED into the machine, so it
+     * has to be a stable, canonical name rather than an ad-hoc one.
+     * <p>
+     * <b>Why the oredict name and not a different machine.</b> The alternative was to move F-02
+     * onto a map with no such gate, which would have deleted the flotation cell from the line
+     * altogether - the concentrate/tailings/gangue split at F-02b only makes sense downstream of a
+     * real cell. Registering the name keeps the designed machine and costs one line.
+     * <p>
+     * <b>The name is built by GT, not typed.</b> {@code GTOreDictUnificator.registerOre(prefix,
+     * material, stack)} hands {@code OrePrefixes.milled.get(Materials.Uraninite)} to
+     * {@code ItemData.toString()}, which is {@code prefix.getName() + material.mName} - so this is
+     * GT's own canonical spelling of the name and cannot drift from it.
+     * <p>
+     * <b>Collision check.</b> Nothing in the pack registers a milled Uraninite. GT ships no milled
+     * items at all - there is no {@code ProcessingMilled} ore-processing handler, so registering
+     * this name auto-generates no GT recipes - and the only producer of {@code milled*} names is
+     * GT++'s {@code BaseItemMilledOre}, whose generated list is Sphalerite, Chalcopyrite, Nickel,
+     * Platinum, Pentlandite, Redstone, Spessartine, Grossular, Almandine, Pyrope, Monazite and
+     * Netherrack. Uraninite is not among them. {@code registerOre} is idempotent besides: it
+     * returns false without duplicating if an equal stack is already filed under the name.
+     * <p>
+     * This runs FIRST, before any recipe is built, because {@code GTRecipeBuilder.itemInputs}
+     * unifies its stacks through {@code GTOreDictUnificator.setStackArray} at build time - the
+     * name has to exist before the recipes that carry the item are compiled.
+     */
+    private static void registerOreDictNames() {
+        GTOreDictUnificator
+            .registerOre(OrePrefixes.milled, Materials.Uraninite, new ItemStack(BTSItemsFuel.milledUraninite, 1));
+    }
+
     public static void register() {
+        registerOreDictNames();
         frontEnd();
         conversionAndEnrichment();
         reconversion();
@@ -232,6 +278,10 @@ public final class BTSRecipesFuel {
         // DEVIATION, forced: flotationCellRecipes is maxIO(6, 0, 1, 1) - SIX item inputs and ZERO
         // item outputs. The cell can only ever emit a fluid, which is exactly how GT++'s own
         // sphalerite and chalcopyrite lines run. The concentrate comes back as a solid at F-02b.
+        //
+        // milledUraninite is what gets this recipe past the cell's gate: validateRecipe rejects
+        // any recipe with no "milled*" OreDictionary name among its inputs. registerOreDictNames()
+        // gives it one and explains the whole mechanism.
         GTValues.RA.stdBuilder()
             .itemInputs(new ItemStack(BTSItemsFuel.milledUraninite, 16), new ItemStack(BTSItemsFuel.frothCell, 1))
             .fluidInputs(Materials.Water.getFluid(8_000))
