@@ -101,6 +101,8 @@ public final class BTSRecipesPropellant {
     /** Alumina is the better ball in GT++ and stays the better ball here - same powder, less time. */
     private static final int MILL_SECONDS_ALUMINA = 30;
     private static final int MILL_SECONDS_SOAPSTONE = 40;
+    /** QFT focus selector: circuit N focuses output index N-1, and P-03h has only index 0. */
+    private static final int QFT_FOCUS_ONLY_OUTPUT = 1;
 
     private BTSRecipesPropellant() {}
 
@@ -293,10 +295,25 @@ public final class BTSRecipesPropellant {
 
     // ------------------------------------------------------------------------------------------
     // P-03 / P-03h BLENDING - the rung itself
-    // Lv 1-3 on the Chemical Plant tier 3; Lv 4-6 on the Quantum Force Transformer, focus tier 1,
-    // over a Simple Naquadah Catalyst - the same catalyst GoodGenerator's own naquadah fuel chain
-    // runs on, so it is a thing the player provably already has by the time they are standing here.
-    // Circuit 5 throughout, matching the legacy ladder's convention.
+    // Lv 1-3 on the Chemical Plant; Lv 4-6 on the Quantum Force Transformer over a Simple Naquadah
+    // Catalyst - the same catalyst GoodGenerator's own naquadah fuel chain runs on, so it is a
+    // thing the player provably already has by the time they are standing here.
+    //
+    // THE TWO HALVES DO NOT TAKE THE SAME CIRCUIT, and that is not a slip. On the Chemical Plant a
+    // programmed circuit is inert, so Lv 1-3 keep circuit 5 and read like the legacy ladder. On the
+    // QFT it is not inert: MTEQuantumForceTransformer.findProgrammedCircuitNumber (read out of
+    // GT5-Unofficial-5.09.52.594-dev.jar) scans the INPUT BUSES first and only falls back to the
+    // controller slot, and hands (circuit damage - 1) to getOutputChances as the index of the
+    // output to focus. Any recipe that demands a circuit in a bus therefore pins that index and
+    // takes the choice away from the controller slot. These recipes have exactly one output, at
+    // index 0, so the only circuit that names it is circuit 1.
+    //
+    // Circuit 5 named index 4, which does not exist here, and getOutputChances punishes a miss
+    // hard: with Neptunium plasma anywhere in the hatches (doNeptunium is read off the machine's
+    // available fluids, not off the recipe) and a tier-3 or tier-4 shielding core, the
+    // difference = focusingTier - mSpecialValue branch sets every non-focused chance to 0. The
+    // recipe would have eaten fuel, oxidiser, slurry and UHV+ power and returned nothing at all.
+    // Circuit 1 pins the focus to the only output, which holds it at 10000/10000 in every branch.
     // ------------------------------------------------------------------------------------------
 
     private static void blending() {
@@ -354,10 +371,13 @@ public final class BTSRecipesPropellant {
             .addTo(GTPPRecipeMaps.chemicalPlantRecipes);
     }
 
-    /** Lv 4-6, Quantum Force Transformer, focus tier 1. */
+    /**
+     * Lv 4-6, Quantum Force Transformer. Circuit 1, not 5: see the section comment - on this machine
+     * the circuit selects which output the focus lands on, and index 0 is the only one there is.
+     */
     private static void blendHigh(Werkstoff fuel, Fluid slurry, int dustEquivalent, Fluid out, long tier) {
         GTValues.RA.stdBuilder()
-            .circuit(5)
+            .circuit(QFT_FOCUS_ONLY_OUTPUT)
             .fluidInputs(
                 fuel.getFluidOrGas(NAQ_FUEL_PER_RUNG),
                 new FluidStack(BTSFluidsPropellant.oxidiserBlend, OXIDISER_PER_RUNG),
