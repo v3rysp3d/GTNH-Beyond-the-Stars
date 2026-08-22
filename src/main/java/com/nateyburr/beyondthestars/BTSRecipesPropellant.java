@@ -74,6 +74,31 @@ import gtPlusPlus.xmod.gregtech.api.enums.GregtechItemList;
  * it can never buy a higher supply rate out of one machine. That is the same shape as the water
  * ladder's balance guard - the long way round buys cheaper input, never more throughput.
  *
+ * <h2>What each map this file uses actually validates</h2>
+ *
+ * Read out of GT5-Unofficial-5.09.52.594-dev.jar, because guessing at this cost the file a dead
+ * chain once already. Every map first passes through {@code RecipeMapBackend.doAdd}, which SILENTLY
+ * returns an empty collection - dropping the recipe with no output on either side - when
+ * {@code mInputs.length < minItemInputs} or {@code mFluidInputs.length < minFluidInputs}, and drops
+ * again on collision with an already-registered recipe.
+ *
+ * <pre>
+ *   map                            maxIO / minInputs        the gate that matters
+ *   gt.recipe.mixer                (9,4,1,1) / (1,0)        -
+ *   gtpp.recipe.oremill            (3,1,0,0) / (1,0)        milling ball must be an mInputs entry
+ *   gtpp.recipe.fluidchemicaleactor(4,6,4,3) / (0,0)        mSpecialValue &lt;= mSolidCasingTier
+ *   gtpp.recipe.quantumforcesmelter(6,6,6,6) / (0,0)        QFT_CATALYST or IllegalStateException
+ *   gt.recipe.fluidsolidifier      (1,1,1,0) / (1,1)        one item AND one fluid required
+ *   gt.recipe.fluidextractor       (1,1,0,1) / (1,0)        -
+ * </pre>
+ *
+ * Two of those gates carry a trap worth spelling out. {@code CHEMPLANT_CASING_TIER} and
+ * {@code QFT_FOCUS_TIER} are both in {@code GTRecipeMapUtil.SPECIAL_VALUE_ALIASES}, so the number
+ * passed to {@code metadata} is copied verbatim into {@code mSpecialValue} - it is a 0-BASED casing
+ * index, and NEI prints it as tier {@code value + 1}. And the QFT map's {@code recipeTransformer}
+ * throws {@code IllegalStateException} when {@code QFT_CATALYST} is missing, so that one mistake is
+ * a hard crash at load rather than a quiet drop - the loud failure of the set.
+ *
  * <h2>Two nitrogen tetroxides, because the pack has two</h2>
  *
  * P-01 is registered twice. GTNH ships {@code Materials.DinitrogenTetroxide} (GT core, a GAS, made
@@ -180,7 +205,7 @@ public final class BTSRecipesPropellant {
     }
 
     // ------------------------------------------------------------------------------------------
-    // P-01 OXIDISER CONDITIONING - Chemical Plant tier 2, EV
+    // P-01 OXIDISER CONDITIONING - Chemical Plant, CHEMPLANT_CASING_TIER 2 (NEI: Tier 3), EV
     // 2,000 L Nitric Acid + 1,000 L N2O4 -> 3,000 L Oxidiser Blend. Red fuming nitric acid: HNO3
     // with N2O4 dissolved into it. The real storable oxidiser, and the reason the blend is one
     // fluid rather than two hatches feeding the blender.
@@ -271,7 +296,7 @@ public final class BTSRecipesPropellant {
     }
 
     // ------------------------------------------------------------------------------------------
-    // P-02b SLURRY BLENDING - Chemical Plant tier 2
+    // P-02b SLURRY BLENDING - Chemical Plant, CHEMPLANT_CASING_TIER 2 (NEI: Tier 3)
     // The powder goes into kerosene. 8 dust -> 2,000 L, i.e. 250 L of slurry per dust, which is the
     // conversion the blending table in the class comment is written against.
     // ------------------------------------------------------------------------------------------
@@ -356,7 +381,10 @@ public final class BTSRecipesPropellant {
             TierEU.RECIPE_UIV);
     }
 
-    /** Lv 1-3, Chemical Plant tier 3. {@code dustEquivalent} is the legacy recipe's dust count. */
+    /**
+     * Lv 1-3, Chemical Plant at {@code CHEMPLANT_CASING_TIER} 3 - a 0-based casing index, so NEI
+     * calls it Tier 4. {@code dustEquivalent} is the legacy recipe's dust count.
+     */
     private static void blendLow(Werkstoff fuel, Fluid slurry, int dustEquivalent, Fluid out, long tier) {
         GTValues.RA.stdBuilder()
             .circuit(5)
@@ -394,8 +422,10 @@ public final class BTSRecipesPropellant {
     // P-04 CARTRIDGES - storage and logistics, NOT a rung
     // A cartridge is worth exactly the 1,000 L that went into it and is round-trippable, so it
     // moves no P value, and the Spiral chamber cannot be fed one. The Fluid Solidifier map is
-    // maxIO(1, 1, 1, 0) - the mould takes the only item slot, so the fluid alone has to distinguish
-    // the six recipes, which it does.
+    // maxIO(1, 1, 1, 0) with minInputs(1, 1) - it wants one item AND one fluid or doAdd drops the
+    // recipe on the floor, and the mould is that item, so the fluid alone has to distinguish the
+    // six recipes, which it does. The return leg is maxIO(1, 1, 0, 1) with minInputs(1, 0): one
+    // item in, no item out needed, one fluid out, which is exactly its shape.
     // ------------------------------------------------------------------------------------------
 
     private static void cartridges() {
