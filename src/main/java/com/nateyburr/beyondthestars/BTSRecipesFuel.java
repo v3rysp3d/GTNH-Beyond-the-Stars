@@ -824,6 +824,13 @@ public final class BTSRecipesFuel {
         // Same four-pellets-per-rod ratio as F-17; a different machine, so that the top fuel in the
         // game still costs a real endgame multiblock and the Hall cannot become the one building
         // that makes everything.
+        //
+        // COUNT AUDIT. preciseAssemblerRecipes is RecipeMapBuilder.of("gg.recipe.precise_assembler")
+        // .maxIO(4, 1, 4, 0) with no minInputs and no custom recipe emitter, so the only limits are
+        // those four. This recipe spends 4 item inputs (three reagents plus the grade circuit) -
+        // EXACTLY at the cap, so nothing may be added here without taking something out - 1 fluid
+        // input of 4, 1 item output of 1, and 0 fluid outputs, which is the cap: a fluid output
+        // here would be silently impossible.
         GTValues.RA.stdBuilder()
             .itemInputs(
                 new ItemStack(BTSItemsFuel.naqBondedPellet, 4),
@@ -840,13 +847,36 @@ public final class BTSRecipesFuel {
         // F-18n THE NAQUADAH BUNDLE, on the Assembly Line. Three rods per assembly, as everywhere
         // else. The research item is the thorium-bonded assembly: the grade below this one, so the
         // progression is scan-what-you-already-make rather than a token from nowhere.
+        //
+        // COUNT AUDIT, AND THE REGRESSION IT FIXES. GTRecipeConstants.AssemblyLine is a recipe
+        // emitter, not a plain map, and it runs five validators before it will build anything:
+        // forceOreDictInput(), validateInputCount(4, 16), validateOutputCount(1, 1),
+        // validateOutputFluidCount(-1, 0), validateInputFluidCount(1, 4). Any of them failing
+        // calls invalidate() and the emitter returns Collections.emptyList() - the recipe is
+        // DISCARDED IN SILENCE at postInit, with no log line and no crash.
+        //
+        // This recipe shipped with THREE item inputs and was therefore never registered at all,
+        // leaving fuelAssemblyNaqBonded with no recipe anywhere in the mod - a regression against
+        // 0.23.0, where it was a five-slot Assembler recipe. The fourth input below is the
+        // bundle's outer channel box: a real fuel bundle is a shroud around the rod array, the
+        // pack already makes Zircaloy-4 (F-16 buys from the same tank), and it is the cheapest
+        // honest way back to four. Counts now: 4 item inputs of the required 4..16, 1 fluid input
+        // of the required 1..4, 1 item output of the required 1..1, 0 fluid outputs of the
+        // permitted 0. RESEARCH_ITEM is also mandatory - the emitter returns emptyList() when
+        // getMetadata(RESEARCH_ITEM) is null - and it is set on the first line.
+        //
+        // Note there is no programmed circuit here and there cannot usefully be one: GT's own
+        // AssemblyLineRecipes registers 47 recipes and not one of them calls circuit(), and
+        // circuit() writes into inputsBasic, so it would count toward validateInputCount as a
+        // fourth "component" without being one.
         GTValues.RA.stdBuilder()
             .metadata(RESEARCH_ITEM, new ItemStack(BTSItems.fuelAssemblyThoriumBonded, 1))
             .metadata(SCANNING, new Scanning(5 * MINUTES, TierEU.RECIPE_ZPM))
             .itemInputs(
                 new ItemStack(BTSItems.fuelRodNaqBonded, 3),
                 new ItemStack(BTSItemsFuel.gridSpacer, 2),
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Iridium, 2L))
+                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Iridium, 2L),
+                GGMaterial.zircaloy4.get(OrePrefixes.plate, 4))
             .fluidInputs(Materials.Naquadah.getMolten(2 * INGOTS))
             .itemOutputs(new ItemStack(BTSItems.fuelAssemblyNaqBonded, 1))
             .duration(1 * MINUTES)
