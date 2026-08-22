@@ -11,6 +11,7 @@ import com.nateyburr.beyondthestars.items.BTSItems;
 import com.nateyburr.beyondthestars.machines.BTSMachines;
 
 import bartworks.system.material.WerkstoffLoader;
+import gregtech.api.casing.Casings;
 import gregtech.api.enums.GTValues;
 import gregtech.api.enums.ItemList;
 import gregtech.api.enums.Materials;
@@ -27,10 +28,12 @@ import gregtech.api.util.GTOreDictUnificator;
  * material lines are BULK routes to stock GT casings that sit beside GT recipes, and they live in
  * {@link BTSRecipesMaterials}, not here.
  * <p>
- * <b>Still to add:</b> controller recipes for the four new multiblocks of S5 -
- * {@code BTSMachines.siteBatchingPlant} (EV, the cheapest of the four and the FIRST thing a
- * player builds), {@code cascadeHall}, {@code fuelFabricationHall} and {@code purexCanyon} (all
- * IV). All four ItemStacks are registered already and are ready to be named as recipe outputs.
+ * <b>The four new S5 multiblocks are built here too</b>, at the bottom of the file: the Site
+ * Batching Plant at EV, and the Cascade Hall, the Fuel Fabrication Hall and the PUREX Canyon at
+ * IV. Each is assembled out of the casing it is walled in, so the machine a player looks at is
+ * the machine they paid for - and none of them costs a block that only the Batching Plant can
+ * make, because every one of those keeps its stock GT recipe (S3's whole premise). There is no
+ * bootstrap loop: the Batching Plant can always be built by hand first.
  */
 public final class BTSRecipesMachines {
 
@@ -186,6 +189,88 @@ public final class BTSRecipesMachines {
             .fluidInputs(Materials.Platinum.getMolten(4 * INGOTS))
             .itemOutputs(BTSMachines.reactorCoreMk1.copy())
             .duration(60 * SECONDS)
+            .eut(TierEU.RECIPE_IV)
+            .addTo(assemblerRecipes);
+
+        // ==== D-26 S5: THE FOUR NEW PRODUCTION MULTIBLOCKS ==================================
+        // Same map and same shape as the controllers above - EV runs dry at 30s, IV takes one
+        // ingot of molten platinum at 45s, and only the reactor itself costs more than that.
+        // Checked against the pinned jar before writing rather than assumed: RecipeMaps.<clinit>
+        // builds "gt.recipe.assembler" with maxIO(9, 1, 1, 0) and minInputs(1, 0), and
+        // GTRecipeBuilder.circuit(int) APPENDS the integrated circuit into the item inputs (it
+        // calls applyPendingCircuit on inputsBasic), so a programmed circuit spends one of the
+        // nine slots. RecipeMapBackend.doAdd enforces only the MINIMUM - a recipe under
+        // minItemInputs is dropped with handleInvalidRecipeLowItems and an empty return - but it
+        // also drops any recipe that collides with one already registered, which is why these
+        // four take fresh circuit numbers 14-17 rather than reusing any above. Widest is seven.
+
+        // Site Batching Plant (EV): the M-01..M-06 host, and the FIRST of the four a player
+        // builds - before the silo, in order to build the silo. Deliberately the cheapest of
+        // them: structural steel and one EV circuit, nothing off the platinum line.
+        GTValues.RA.stdBuilder()
+            .itemInputs(
+                Casings.SolidSteelMachineCasing.toStack(8),
+                GTOreDictUnificator.get(OrePrefixes.frameGt, Materials.Steel, 4L),
+                Casings.SteelPipeCasing.toStack(2),
+                ItemList.Conveyor_Module_EV.get(2L),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.EV, 2L))
+            .circuit(14)
+            .itemOutputs(BTSMachines.siteBatchingPlant.copy())
+            .duration(30 * SECONDS)
+            .eut(TierEU.RECIPE_EV)
+            .addTo(assemblerRecipes);
+
+        // Cascade Hall (IV): the gas centrifuge cascade of F-11/F-11b. Motors and long shafts -
+        // the rotors are the machine - inside the tungstensteel turbine casing its stage banks
+        // are walled and cored with.
+        GTValues.RA.stdBuilder()
+            .itemInputs(
+                Casings.TungstensteelTurbineCasing.toStack(8),
+                Casings.TungstensteelPipeCasing.toStack(4),
+                ItemList.Electric_Motor_IV.get(4L),
+                GTOreDictUnificator.get(OrePrefixes.stickLong, Materials.TungstenSteel, 8L),
+                GTOreDictUnificator.get(OrePrefixes.plate, rhPdPalladium, 2L),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.IV, 4L))
+            .circuit(15)
+            .fluidInputs(Materials.Platinum.getMolten(1 * INGOTS))
+            .itemOutputs(BTSMachines.cascadeHall.copy())
+            .duration(45 * SECONDS)
+            .eut(TierEU.RECIPE_IV)
+            .addTo(assemblerRecipes);
+
+        // Fuel Fabrication Hall (IV): the rod and bundle line of F-17/F-18. Arms and conveyors,
+        // because that is what a fabrication line is, in the clean stainless shell it starts at
+        // tier 1 in, over the turbine-casing spine that runs down its centreline.
+        GTValues.RA.stdBuilder()
+            .itemInputs(
+                Casings.CleanStainlessSteelMachineCasing.toStack(8),
+                Casings.TungstensteelTurbineCasing.toStack(4),
+                ItemList.Robot_Arm_IV.get(4L),
+                ItemList.Conveyor_Module_IV.get(4L),
+                GTOreDictUnificator.get(OrePrefixes.plate, rhPdPalladium, 2L),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.IV, 4L))
+            .circuit(16)
+            .fluidInputs(Materials.Platinum.getMolten(1 * INGOTS))
+            .itemOutputs(BTSMachines.fuelFabricationHall.copy())
+            .duration(45 * SECONDS)
+            .eut(TierEU.RECIPE_IV)
+            .addTo(assemblerRecipes);
+
+        // PUREX Canyon (IV): the spent-fuel head end of R-02/R-03. Shielded the way the silo is,
+        // radiation proof casing over dense lead, around the mixer-settler pumps and the piping
+        // the U/Pu partition actually runs in.
+        GTValues.RA.stdBuilder()
+            .itemInputs(
+                ItemList.Casing_RadiationProof.get(8L),
+                GTOreDictUnificator.get(OrePrefixes.plateDense, Materials.Lead, 4L),
+                ItemList.Electric_Pump_IV.get(4L),
+                GTOreDictUnificator.get(OrePrefixes.pipeMedium, Materials.StainlessSteel, 4L),
+                GTOreDictUnificator.get(OrePrefixes.plate, rhPdPalladium, 2L),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.IV, 4L))
+            .circuit(17)
+            .fluidInputs(Materials.Platinum.getMolten(1 * INGOTS))
+            .itemOutputs(BTSMachines.purexCanyon.copy())
+            .duration(45 * SECONDS)
             .eut(TierEU.RECIPE_IV)
             .addTo(assemblerRecipes);
     }
