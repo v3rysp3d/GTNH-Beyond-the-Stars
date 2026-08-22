@@ -16,6 +16,7 @@ import com.cleanroommc.modularui.value.sync.StringSyncValue;
 import com.cleanroommc.modularui.widgets.ListWidget;
 import com.cleanroommc.modularui.widgets.layout.Flow;
 import com.cleanroommc.modularui.widgets.textfield.TextFieldWidget;
+import com.nateyburr.beyondthestars.fluids.BTSWaterGrade;
 import com.nateyburr.beyondthestars.progression.BTSMilestone;
 import com.nateyburr.beyondthestars.progression.BTSProgression;
 import com.nateyburr.beyondthestars.progression.BTSUpgrade;
@@ -137,6 +138,13 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         // these the coolant line reads "idle" and the weakest-term line says "cycle faster" on
         // a plant that is refusing every single cycle for want of coolant.
         syncManager.syncValue("coolantReady", new BooleanSyncValue(multiblock::isChamberCoolantReady));
+        // D-26 THE WATER OUTPUT TERM / AXIS 1. ONE handle for the whole mechanic: the feedwater
+        // GRADE (-1 plain or none, 0 distilled, 1..8 purified) is written server-side inside
+        // drawFeedwater, and every derived number - the x1.05..x1.40 multiplier, the label, the
+        // factor printed in step 3 - is a pure function of it that the client reaches by running
+        // the identical static body in BTSWaterGrade that the server's tick ran. Syncing the
+        // multiplier as well would be a second handle that could disagree with the first.
+        syncManager.syncValue("feedwaterGrade", new IntSyncValue(multiblock::getFeedwaterGrade));
         syncManager.syncValue("injectorsDry", new BooleanSyncValue(multiblock::isInjectorsDry));
         syncManager.syncValue("rpm", new IntSyncValue(multiblock::getRpm));
         syncManager.syncValue("cyclesPerMinute", new IntSyncValue(multiblock::getCyclesPerMinute));
@@ -282,6 +290,7 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         final BooleanSyncValue chamberStarved = syncManager.findSyncHandler("chamberStarved", BooleanSyncValue.class);
         final BooleanSyncValue coolantReady = syncManager.findSyncHandler("coolantReady", BooleanSyncValue.class);
         final BooleanSyncValue injectorsDry = syncManager.findSyncHandler("injectorsDry", BooleanSyncValue.class);
+        final IntSyncValue feedwaterGrade = syncManager.findSyncHandler("feedwaterGrade", IntSyncValue.class);
         final IntSyncValue rpm = syncManager.findSyncHandler("rpm", IntSyncValue.class);
         final IntSyncValue rpmLimit = syncManager.findSyncHandler("rpmLimitSetting", IntSyncValue.class);
         final IntSyncValue cyclesPerMinute = syncManager.findSyncHandler("cyclesPerMinute", IntSyncValue.class);
@@ -440,6 +449,13 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                         rotorFactor.getIntValue(),
                         rotorWear.getStringValue()),
                     siloBuilt::getBoolValue))
+            // D-26: the feedwater grade, gated exactly as the controller's own statusReport()
+            // gates it - a purified grade only. A plant on plain or distilled water sees no new
+            // row at all, which is the visible half of "no water grade is ever mandatory".
+            .child(
+                row(
+                    () -> MTEReactorCoreMk1.feedwaterLine(feedwaterGrade.getIntValue(), galleryActive.getBoolValue()),
+                    () -> siloBuilt.getBoolValue() && feedwaterGrade.getIntValue() >= 1))
             // The interlock's voice: WHY the fan is not accelerating (missing coolant
             // headroom, dry injectors, a missed slug). Absent while everything is fine.
             .child(
@@ -539,6 +555,10 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                         rotorFactor.getIntValue(),
                         BTSProgression.outputMilli(progress.get()),
                         BTSProgression.upgradeMilli(treeNodes.getLongValue()),
+                        // Derived CLIENT-side from the synced grade through the same static body
+                        // the server's euDemandOf() call ran, so the factor this line prints is
+                        // provably the factor the plant performed.
+                        BTSWaterGrade.outputMilli(feedwaterGrade.getIntValue()),
                         liveDemand.getLongValue()),
                     () -> siloBuilt.getBoolValue() && galleryActive.getBoolValue()))
             .child(
