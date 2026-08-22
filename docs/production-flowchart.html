@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Production Flowchart &mdash; GTNH: Beyond the Stars 0.24.0</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23e8a33d'/%3E%3Cpath d='M8 22 L16 9 L24 22 Z' fill='%23161a1f'/%3E%3C/svg%3E">
+<style>
+/* ============================================================================
+   THEME TOKENS.  Every colour has its definition on bare :root (the light
+   palette).  The dark palette redefines the SAME names twice - once behind
+   prefers-color-scheme for viewers on "system", once behind [data-theme=dark]
+   so the toggle wins in both directions.  No colour is ever defined ONLY
+   inside a media query.
+   ========================================================================= */
+:root {
+  --bg:          #f2f4f7;
+  --panel:       #ffffff;
+  --panel-2:     #eaedf2;
+  --panel-3:     #e1e5ec;
+  --line:        #ccd3dd;
+  --line-soft:   #dfe4eb;
+  --ink:         #1b2028;
+  --ink-dim:     #59636f;
+  --ink-faint:   #838d9a;
+  --ink-strong:  #0d1117;
+
+  --amber:       #9a6206;
+  --steel:       #14618f;
+  --green:       #2f6d1c;
+  --red:         #ad3a24;
+  --violet:      #6237a0;
+  --aqua:        #0a6f75;
+
+  /* line identities */
+  --c-fuel:      #9a6206;
+  --c-fuel-bg:   #fdf4e4;
+  --c-fuel-bd:   #d9ab5f;
+  --c-water:     #0a6f75;
+  --c-water-bg:  #e2f5f5;
+  --c-water-bd:  #58aeb2;
+  --c-mat:       #14618f;
+  --c-mat-bg:    #e6f1f8;
+  --c-mat-bd:    #6aa5cb;
+  --c-prop:      #6237a0;
+  --c-prop-bg:   #f0eafa;
+  --c-prop-bd:   #a084d0;
+  --c-cool:      #2f6d1c;
+  --c-cool-bg:   #eaf5e4;
+  --c-cool-bd:   #7fb267;
+  --c-repro:     #ad3a24;
+  --c-repro-bg:  #fceeea;
+  --c-repro-bd:  #d5907f;
+  --c-plant:     #313a46;
+  --c-plant-bg:  #e7eaef;
+  --c-plant-bd:  #97a2b2;
+
+  /* tier bands */
+  --tb-0: #7a8494;   --tb-0-bg: #eceff3;
+  --tb-1: #14618f;   --tb-1-bg: #e6f1f8;
+  --tb-2: #2f6d1c;   --tb-2-bg: #eaf5e4;
+  --tb-3: #9a6206;   --tb-3-bg: #fdf4e4;
+  --tb-4: #8c2f8c;   --tb-4-bg: #f9e9f9;
+
+  --shadow: 0 1px 2px rgba(15,20,28,.07), 0 3px 10px rgba(15,20,28,.05);
+  --shadow-lift: 0 2px 4px rgba(15,20,28,.09), 0 8px 22px rgba(15,20,28,.09);
+
+  --mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", "Consolas", "Liberation Mono", Menlo, monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:          #0b0e12;
+    --panel:       #12171d;
+    --panel-2:     #171d24;
+    --panel-3:     #1d242d;
+    --line:        #2a323c;
+    --line-soft:   #202730;
+    --ink:         #ccd5de;
+    --ink-dim:     #8a96a3;
+    --ink-faint:   #626f7c;
+    --ink-strong:  #eef3f8;
+
+    --amber:       #e8a33d;
+    --steel:       #6ea8d8;
+    --green:       #82c85a;
+    --red:         #e86a49;
+    --violet:      #a684e0;
+    --aqua:        #4bc0c6;
+
+    --c-fuel:      #e8a33d;
+    --c-fuel-bg:   #221a0c;
+    --c-fuel-bd:   #6d5220;
+    --c-water:     #4bc0c6;
+    --c-water-bg:  #08211f;
+    --c-water-bd:  #23615f;
+    --c-mat:       #6ea8d8;
+    --c-mat-bg:    #0d1a24;
+    --c-mat-bd:    #2d5170;
+    --c-prop:      #a684e0;
+    --c-prop-bg:   #170f26;
+    --c-prop-bd:   #4a3572;
+    --c-cool:      #82c85a;
+    --c-cool-bg:   #111f0c;
+    --c-cool-bd:   #3a5d29;
+    --c-repro:     #e86a49;
+    --c-repro-bg:  #241009;
+    --c-repro-bd:  #6e3423;
+    --c-plant:     #aab6c4;
+    --c-plant-bg:  #171c23;
+    --c-plant-bd:  #3b4553;
+
+    --tb-0: #7d8896;   --tb-0-bg: #171c22;
+    --tb-1: #6ea8d8;   --tb-1-bg: #0d1a24;
+    --tb-2: #82c85a;   --tb-2-bg: #111f0c;
+    --tb-3: #e8a33d;   --tb-3-bg: #221a0c;
+    --tb-4: #cf7ad0;   --tb-4-bg: #22102260;
+
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 3px 10px rgba(0,0,0,.3);
+    --shadow-lift: 0 2px 4px rgba(0,0,0,.45), 0 8px 22px rgba(0,0,0,.45);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg:          #0b0e12;
+  --panel:       #12171d;
+  --panel-2:     #171d24;
+  --panel-3:     #1d242d;
+  --line:        #2a323c;
+  --line-soft:   #202730;
+  --ink:         #ccd5de;
+  --ink-dim:     #8a96a3;
+  --ink-faint:   #626f7c;
+  --ink-strong:  #eef3f8;
+
+  --amber:       #e8a33d;
+  --steel:       #6ea8d8;
+  --green:       #82c85a;
+  --red:         #e86a49;
+  --violet:      #a684e0;
+  --aqua:        #4bc0c6;
+
+  --c-fuel:      #e8a33d;
+  --c-fuel-bg:   #221a0c;
+  --c-fuel-bd:   #6d5220;
+  --c-water:     #4bc0c6;
+  --c-water-bg:  #08211f;
+  --c-water-bd:  #23615f;
+  --c-mat:       #6ea8d8;
+  --c-mat-bg:    #0d1a24;
+  --c-mat-bd:    #2d5170;
+  --c-prop:      #a684e0;
+  --c-prop-bg:   #170f26;
+  --c-prop-bd:   #4a3572;
+  --c-cool:      #82c85a;
+  --c-cool-bg:   #111f0c;
+  --c-cool-bd:   #3a5d29;
+  --c-repro:     #e86a49;
+  --c-repro-bg:  #241009;
+  --c-repro-bd:  #6e3423;
+  --c-plant:     #aab6c4;
+  --c-plant-bg:  #171c23;
+  --c-plant-bd:  #3b4553;
+
+  --tb-0: #7d8896;   --tb-0-bg: #171c22;
+  --tb-1: #6ea8d8;   --tb-1-bg: #0d1a24;
+  --tb-2: #82c85a;   --tb-2-bg: #111f0c;
+  --tb-3: #e8a33d;   --tb-3-bg: #221a0c;
+  --tb-4: #cf7ad0;   --tb-4-bg: #221022;
+
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 3px 10px rgba(0,0,0,.3);
+  --shadow-lift: 0 2px 4px rgba(0,0,0,.45), 0 8px 22px rgba(0,0,0,.45);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1320px; margin: 0 auto; padding: 0 20px 90px; }
+
+/* ---------------------------------------------------------------- masthead */
+header.mast {
+  border-bottom: 2px solid var(--c-fuel);
+  padding: 26px 0 16px;
+  margin-bottom: 22px;
+  display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between;
+}
+.mast-kicker {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--c-fuel);
+}
+header.mast h1 {
+  font-size: 27px; font-weight: 700; letter-spacing: -.015em;
+  color: var(--ink-strong); margin: 5px 0 3px; line-height: 1.15;
+}
+.mast-sub { color: var(--ink-dim); font-size: 14.5px; max-width: 74ch; }
+.mast-meta {
+  font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint);
+  margin-top: 11px; display: flex; flex-wrap: wrap; gap: 5px 20px;
+}
+.mast-meta b { color: var(--ink-dim); font-weight: 500; }
+.mast-right { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+
+button.tgl {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .13em; text-transform: uppercase;
+  color: var(--ink-dim); background: var(--panel); border: 1px solid var(--line);
+  border-radius: 3px; padding: 6px 12px; cursor: pointer; white-space: nowrap;
+}
+button.tgl:hover { color: var(--c-fuel); border-color: var(--c-fuel); }
+
+/* ------------------------------------------------------------------ legend */
+.legend {
+  display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center;
+  background: var(--panel); border: 1px solid var(--line-soft); border-radius: 5px;
+  padding: 11px 15px; margin-bottom: 22px; box-shadow: var(--shadow);
+}
+.lg-title {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--ink-faint);
+}
+.lg { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink-dim); }
+.lg i { width: 13px; height: 13px; border-radius: 3px; border: 1.5px solid; display: inline-block; flex: none; }
+.lg.fuel  i { background: var(--c-fuel-bg);  border-color: var(--c-fuel-bd); }
+.lg.water i { background: var(--c-water-bg); border-color: var(--c-water-bd); }
+.lg.mat   i { background: var(--c-mat-bg);   border-color: var(--c-mat-bd); }
+.lg.prop  i { background: var(--c-prop-bg);  border-color: var(--c-prop-bd); }
+.lg.cool  i { background: var(--c-cool-bg);  border-color: var(--c-cool-bd); }
+.lg.repro i { background: var(--c-repro-bg); border-color: var(--c-repro-bd); }
+.lg.plant i { background: var(--c-plant-bg); border-color: var(--c-plant-bd); }
+.lg .star { color: var(--c-fuel); font-size: 14px; line-height: 1; }
+.lg-sep { width: 1px; align-self: stretch; background: var(--line); }
+
+/* ---------------------------------------------------------------- sections */
+section { margin-bottom: 40px; scroll-margin-top: 14px; }
+h2.sec {
+  font-size: 19px; font-weight: 650; color: var(--ink-strong); letter-spacing: -.01em;
+  border-bottom: 1px solid var(--line); padding-bottom: 8px; margin-bottom: 6px;
+  display: flex; align-items: baseline; gap: 11px; flex-wrap: wrap;
+}
+h2.sec .num { font-family: var(--mono); font-size: 13px; color: var(--c-fuel); }
+h2.sec .tail { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); font-weight: 400; margin-left: auto; }
+.sec-lede { color: var(--ink-dim); font-size: 14px; margin: 10px 0 16px; max-width: 96ch; }
+
+/* ------------------------------------------------------------- master chart */
+.chartbox {
+  background: var(--panel); border: 1px solid var(--line-soft); border-radius: 6px;
+  box-shadow: var(--shadow); padding: 6px; overflow-x: auto; margin-bottom: 8px;
+}
+svg.master { display: block; width: 100%; min-width: 1180px; height: auto; }
+
+svg.master .nbox { stroke-width: 1.4; }
+svg.master text { font-family: var(--sans); fill: var(--ink); }
+svg.master .nid {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em;
+  text-transform: uppercase; fill: var(--ink-faint);
+}
+svg.master .nt { font-size: 13px; font-weight: 650; fill: var(--ink-strong); }
+svg.master .ns { font-family: var(--mono); font-size: 10px; fill: var(--ink-dim); }
+svg.master .lane {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .17em;
+  text-transform: uppercase; font-weight: 600;
+}
+svg.master .lanesub { font-family: var(--mono); font-size: 9.5px; fill: var(--ink-faint); }
+svg.master .elabel { font-family: var(--mono); font-size: 9.5px; fill: var(--ink-dim); }
+svg.master .estrong { font-family: var(--mono); font-size: 10px; font-weight: 600; }
+
+svg.master .e { fill: none; stroke-width: 1.6; }
+svg.master .e.fuel  { stroke: var(--c-fuel-bd); }
+svg.master .e.water { stroke: var(--c-water); stroke-width: 2.2; }
+svg.master .e.mat   { stroke: var(--c-mat-bd); }
+svg.master .e.prop  { stroke: var(--c-prop-bd); }
+svg.master .e.cool  { stroke: var(--c-cool-bd); }
+svg.master .e.repro { stroke: var(--c-repro-bd); stroke-dasharray: 5 3; }
+svg.master .e.plant { stroke: var(--c-plant-bd); }
+svg.master .e.thin  { stroke-width: 1.2; opacity: .8; }
+
+svg.master .b-fuel  rect.nbox { fill: var(--c-fuel-bg);  stroke: var(--c-fuel-bd); }
+svg.master .b-water rect.nbox { fill: var(--c-water-bg); stroke: var(--c-water-bd); }
+svg.master .b-mat   rect.nbox { fill: var(--c-mat-bg);   stroke: var(--c-mat-bd); }
+svg.master .b-prop  rect.nbox { fill: var(--c-prop-bg);  stroke: var(--c-prop-bd); }
+svg.master .b-cool  rect.nbox { fill: var(--c-cool-bg);  stroke: var(--c-cool-bd); }
+svg.master .b-repro rect.nbox { fill: var(--c-repro-bg); stroke: var(--c-repro-bd); }
+svg.master .b-plant rect.nbox { fill: var(--c-plant-bg); stroke: var(--c-plant-bd); }
+svg.master .b-ghost rect.nbox { fill: var(--panel-2);    stroke: var(--line); stroke-dasharray: 4 3; }
+
+svg.master .crit rect.nbox { stroke-width: 2.6; }
+svg.master .newm { font-family: var(--mono); font-size: 8.5px; font-weight: 700; letter-spacing: .08em; }
+svg.master .bandbg { fill: var(--panel-2); opacity: .55; }
+
+/* ------------------------------------------------------------- detail rails */
+.railhead {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin: 26px 0 4px; padding-bottom: 7px; border-bottom: 1px solid var(--line-soft);
+}
+.railhead .tag {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+  font-weight: 700; padding: 3px 9px; border-radius: 3px; border: 1px solid;
+}
+.railhead h3 { font-size: 15.5px; font-weight: 650; color: var(--ink-strong); }
+.railhead .cnt { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); margin-left: auto; }
+
+.phase { margin: 16px 0 22px; }
+.phase-title {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .15em; text-transform: uppercase;
+  color: var(--ink-dim); margin-bottom: 9px; display: flex; align-items: center; gap: 10px;
+}
+.phase-title::after { content: ""; flex: 1; height: 1px; background: var(--line-soft); }
+.phase-note { font-size: 13px; color: var(--ink-dim); margin: -4px 0 11px; max-width: 96ch; }
+
+.steps { display: grid; grid-template-columns: repeat(auto-fill, minmax(304px, 1fr)); gap: 11px; }
+
+.step {
+  background: var(--panel); border: 1px solid var(--line-soft);
+  border-left: 3px solid var(--line); border-radius: 5px;
+  padding: 10px 13px 11px; box-shadow: var(--shadow); position: relative;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.step.l-fuel  { border-left-color: var(--c-fuel-bd); }
+.step.l-water { border-left-color: var(--c-water); border-left-width: 5px; }
+.step.l-mat   { border-left-color: var(--c-mat-bd); }
+.step.l-prop  { border-left-color: var(--c-prop-bd); }
+.step.l-cool  { border-left-color: var(--c-cool-bd); }
+.step.l-repro { border-left-color: var(--c-repro-bd); }
+.step.hero { box-shadow: var(--shadow-lift); border-color: var(--c-water-bd); background: var(--c-water-bg); }
+
+.st-top { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+.st-id {
+  font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .06em;
+  color: var(--ink-strong); background: var(--panel-2); border: 1px solid var(--line-soft);
+  border-radius: 3px; padding: 1px 6px 2px; white-space: nowrap;
+}
+.st-name { font-size: 14px; font-weight: 600; color: var(--ink-strong); }
+.st-rep {
+  font-family: var(--mono); font-size: 10px; color: var(--ink-faint);
+  border: 1px dashed var(--line); border-radius: 3px; padding: 0 5px;
+}
+.st-mach {
+  font-family: var(--mono); font-size: 11.5px; color: var(--ink-dim);
+  display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+}
+.st-mach .mstar { color: var(--c-fuel); font-weight: 700; }
+.tier {
+  font-family: var(--mono); font-size: 9.5px; font-weight: 700; letter-spacing: .1em;
+  padding: 1px 6px 2px; border-radius: 3px; border: 1px solid;
+  color: var(--tc); border-color: var(--tc); background: var(--tcbg); white-space: nowrap;
+}
+.st-io { display: grid; grid-template-columns: 14px 1fr; gap: 3px 7px; font-size: 12.5px; }
+.st-io .ar { font-family: var(--mono); color: var(--ink-faint); font-size: 11px; line-height: 1.5; }
+.st-io .v { color: var(--ink); line-height: 1.45; }
+.st-io .v.out { color: var(--ink-strong); font-weight: 500; }
+.st-note {
+  font-size: 12px; color: var(--ink-dim); border-top: 1px dashed var(--line-soft);
+  padding-top: 6px; margin-top: 1px;
+}
+.st-note b { color: var(--ink-strong); font-weight: 600; }
+.st-note.warn { color: var(--c-repro); }
+.st-note.warn b { color: var(--c-repro); }
+
+/* ------------------------------------------------------------- water table */
+.tablewrap { overflow-x: auto; border: 1px solid var(--line-soft); border-radius: 5px; box-shadow: var(--shadow); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; background: var(--panel); }
+th {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .13em; text-transform: uppercase;
+  color: var(--ink-dim); text-align: left; background: var(--panel-2);
+  padding: 8px 11px; border-bottom: 1px solid var(--line); white-space: nowrap;
+}
+td { padding: 6px 11px; border-bottom: 1px solid var(--line-soft); color: var(--ink); }
+tbody tr:last-child td { border-bottom: none; }
+td.m { font-family: var(--mono); font-size: 12.5px; white-space: nowrap; }
+tr.rung-0 td { background: var(--panel-2); }
+tr.rung-hi td { background: var(--c-water-bg); }
+td b { color: var(--ink-strong); }
+.tnum { text-align: right; }
+
+/* --------------------------------------------------------------- callouts */
+.note, .warn {
+  border: 1px solid var(--line-soft); background: var(--panel); border-radius: 5px;
+  padding: 11px 15px; margin: 14px 0; font-size: 13.5px; box-shadow: var(--shadow);
+}
+.note { border-left: 3px solid var(--c-mat); }
+.warn { border-left: 3px solid var(--c-repro); }
+.note b, .warn b { color: var(--ink-strong); font-weight: 650; }
+.warn .hd, .note .hd {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+  display: block; margin-bottom: 4px;
+}
+.warn .hd { color: var(--c-repro); }
+.note .hd { color: var(--c-mat); }
+.note p + p, .warn p + p { margin-top: 7px; }
+
+.formula {
+  font-family: var(--mono); font-size: 12.5px; white-space: pre; overflow-x: auto;
+  background: var(--panel-2); border: 1px solid var(--line-soft);
+  border-left: 3px solid var(--c-fuel); border-radius: 4px;
+  padding: 11px 15px; margin: 12px 0; line-height: 1.7; color: var(--ink);
+}
+.formula .c { color: var(--ink-faint); }
+.formula .k { color: var(--c-fuel); font-weight: 600; }
+
+/* ------------------------------------------------------------------ footer */
+footer {
+  margin-top: 44px; padding-top: 16px; border-top: 1px solid var(--line);
+  font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint);
+  display: flex; flex-wrap: wrap; gap: 6px 24px;
+}
+
+noscript .nojs {
+  border: 1px solid var(--c-repro-bd); background: var(--c-repro-bg); border-radius: 5px;
+  padding: 13px 16px; margin: 14px 0; color: var(--ink);
+}
+
+/* ------------------------------------------------------------------- print */
+@media print {
+  :root { --bg: #fff; --panel: #fff; --shadow: none; --shadow-lift: none; }
+  body { font-size: 10.5pt; }
+  .wrap { max-width: none; padding: 0; }
+  button.tgl { display: none; }
+  .chartbox { overflow: visible; border: none; padding: 0; }
+  svg.master { min-width: 0; }
+  section, .phase, .step { break-inside: avoid; }
+  .steps { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 720px) {
+  .steps { grid-template-columns: 1fr; }
+  header.mast { flex-direction: column; align-items: flex-start; }
+  .mast-right { align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="mast">
+  <div>
+    <div class="mast-kicker">GTNH: Beyond the Stars &middot; D-26</div>
+    <h1>Production Flowchart &mdash; the four lines</h1>
+    <p class="mast-sub">Every step of the fuel, material, propellant and coolant chains as
+      <b>actually registered</b> in 0.24.0 &mdash; the machine each one runs on, the tier band it sits in,
+      and the two places the purified-water grade enters the plant.</p>
+    <div class="mast-meta">
+      <span><b>Design of record</b> docs/production-lines.md</span>
+      <span><b>Pin</b> GT 5.09.52.594</span>
+      <span><b>MC</b> 1.7.10</span>
+      <span id="meta-counts"><b>&mdash;</b></span>
+    </div>
+  </div>
+  <div class="mast-right">
+    <button class="tgl" id="theme-toggle" type="button">Theme: system</button>
+  </div>
+</header>
+
+<div class="legend">
+  <span class="lg-title">Lines</span>
+  <span class="lg fuel"><i></i>Fuel</span>
+  <span class="lg water"><i></i>Water ladder</span>
+  <span class="lg repro"><i></i>Reprocessing</span>
+  <span class="lg mat"><i></i>Material</span>
+  <span class="lg prop"><i></i>Propellant</span>
+  <span class="lg cool"><i></i>Coolant</span>
+  <span class="lg plant"><i></i>Unit One</span>
+  <span class="lg-sep"></span>
+  <span class="lg"><span class="star">&#9733;</span>New multiblock (4)</span>
+  <span class="lg-sep"></span>
+  <span class="lg-title">Tier bands</span>
+  <span class="lg"><span class="tier" style="--tc:var(--tb-1);--tcbg:var(--tb-1-bg)">MV&ndash;HV</span></span>
+  <span class="lg"><span class="tier" style="--tc:var(--tb-2);--tcbg:var(--tb-2-bg)">EV&ndash;IV</span></span>
+  <span class="lg"><span class="tier" style="--tc:var(--tb-3);--tcbg:var(--tb-3-bg)">LuV&ndash;UV</span></span>
+  <span class="lg"><span class="tier" style="--tc:var(--tb-4);--tcbg:var(--tb-4-bg)">UHV+</span></span>
+</div>
+
+<noscript>
+  <div class="nojs"><b>This page needs JavaScript for the step detail below.</b>
+  The overview diagram immediately following is plain SVG and renders without it.</div>
+</noscript>
+
+<!-- ==================================================================== -->
+<section id="overview">
+  <h2 class="sec"><span class="num">1</span>The shape of it<span class="tail">one diagram, four lines</span></h2>
+  <p class="sec-lede">The <b>fuel spine</b> is the heavy-outlined row: ore in on the left, fuel bundles out on the
+    right, and nothing skips a box. The <b>Purification Plant sits directly above F-12</b> because that is the one
+    step of the mod its water grade multiplies &mdash; the second, thinner edge running down the right-hand side to
+    the reactor is the same ladder&rsquo;s much smaller output term. The three lower lanes never touch the fuel
+    spine; they feed the plant itself.</p>
+
+  <div class="chartbox">
+  <svg class="master" viewBox="0 0 1240 880" role="img"
+       aria-label="Flowchart of the fuel, material, propellant and coolant production lines and how they feed Unit One.">
+    <defs>
+      <marker id="ar-fuel"  viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0 L10 4 L0 8 z" fill="var(--c-fuel-bd)"/></marker>
+      <marker id="ar-water" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0 L10 4 L0 8 z" fill="var(--c-water)"/></marker>
+      <marker id="ar-mat"   viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0 L10 4 L0 8 z" fill="var(--c-mat-bd)"/></marker>
+      <marker id="ar-prop"  viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0 L10 4 L0 8 z" fill="var(--c-prop-bd)"/></marker>
+      <marker id="ar-cool"  viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0 L10 4 L0 8 z" fill="var(--c-cool-bd)"/></marker>
+      <marker id="ar-repro" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0 L10 4 L0 8 z" fill="var(--c-repro-bd)"/></marker>
+      <marker id="ar-plant" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0 L10 4 L0 8 z" fill="var(--c-plant-bd)"/></marker>
+    </defs>
+
+    <!-- ============================ lane backgrounds ============================ -->
+    <rect class="bandbg" x="0"  y="150" width="1240" height="150" rx="6"/>
+    <rect class="bandbg" x="0"  y="430" width="1240" height="104" rx="6"/>
+    <rect class="bandbg" x="0"  y="646" width="1240" height="92"  rx="6"/>
+
+    <!-- ============================ WATER LADDER lane ============================ -->
+    <text class="lane" x="14" y="58"  fill="var(--c-water)">Water ladder</text>
+    <text class="lanesub" x="14" y="72">GT Purification</text>
+    <text class="lanesub" x="14" y="84">Plant, 9 units</text>
+
+    <g class="b-water" transform="translate(600,36)">
+      <rect class="nbox" width="196" height="62" rx="5"/>
+      <text class="nid" x="12" y="18">Grade 1 &hellip; Grade 8</text>
+      <text class="nt"  x="12" y="36">Purified Water</text>
+      <text class="ns"  x="12" y="52">+ Distilled &mdash; the bottom rung</text>
+    </g>
+
+    <!-- YIELD edge: straight down into F-12 -->
+    <path class="e water" d="M698 98 L698 158" marker-end="url(#ar-water)"/>
+    <text class="estrong" x="708" y="120" fill="var(--c-water)">YIELD &times;0.5 &hellip; &times;4.5</text>
+    <text class="elabel"  x="708" y="133">2,000 L per F-12 batch</text>
+
+    <!-- OUTPUT edge: long, down the right side, into the reactor from below -->
+    <path class="e water thin" d="M796 67 L1196 67 L1196 806 L942 806 L942 774" marker-end="url(#ar-water)"/>
+    <text class="estrong" x="1188" y="400" fill="var(--c-water)" text-anchor="end">OUTPUT &times;1.00 &hellip; &times;1.40</text>
+    <text class="elabel"  x="1188" y="413" text-anchor="end">feedwater hatch &mdash; the SMALLER term</text>
+
+    <!-- ============================ FUEL lane ============================ -->
+    <text class="lane" x="14" y="176" fill="var(--c-fuel)">Fuel line</text>
+    <text class="lanesub" x="14" y="190">F-01 &hellip; F-23</text>
+    <text class="lanesub" x="14" y="202">85 recipes</text>
+
+    <!-- ore feed -->
+    <g class="b-ghost" transform="translate(14,232)">
+      <rect class="nbox" width="112" height="44" rx="5"/>
+      <text class="nid" x="10" y="17">Feedstock</text>
+      <text class="ns"  x="10" y="33">Uraninite &middot; Pitchblende</text>
+    </g>
+    <path class="e fuel" d="M126 254 L150 254 L150 186 L156 186" marker-end="url(#ar-fuel)"/>
+
+    <!-- spine, six boxes -->
+    <g class="b-fuel crit" transform="translate(158,158)">
+      <rect class="nbox" width="152" height="56" rx="5"/>
+      <text class="nid" x="11" y="17">F-01 &hellip; F-08</text>
+      <text class="nt"  x="11" y="34">Front end</text>
+      <text class="ns"  x="11" y="48">mill &rarr; float &rarr; leach &rarr; SX</text>
+    </g>
+    <path class="e fuel" d="M310 186 L332 186" marker-end="url(#ar-fuel)"/>
+
+    <g class="b-fuel crit" transform="translate(334,158)">
+      <rect class="nbox" width="152" height="56" rx="5"/>
+      <text class="nid" x="11" y="17">F-09 / F-10</text>
+      <text class="nt"  x="11" y="34">Conversion</text>
+      <text class="ns"  x="11" y="48">UF&#8324; &rarr; UF&#8326; &nbsp;(GT++)</text>
+    </g>
+    <path class="e fuel" d="M486 186 L508 186" marker-end="url(#ar-fuel)"/>
+
+    <g class="b-fuel crit" transform="translate(510,158)">
+      <rect class="nbox" width="152" height="56" rx="5"/>
+      <text class="nid" x="11" y="17">F-11 &nbsp;<tspan class="newm" fill="var(--c-fuel)">&#9733; NEW</tspan></text>
+      <text class="nt"  x="11" y="34">Cascade Hall</text>
+      <text class="ns"  x="11" y="48">enriched 1 : tails 5</text>
+    </g>
+    <path class="e fuel" d="M662 186 L684 186" marker-end="url(#ar-fuel)"/>
+
+    <g class="b-water crit" transform="translate(686,158)">
+      <rect class="nbox" width="152" height="56" rx="5"/>
+      <text class="nid" x="11" y="17">F-12 &mdash; 9 recipes</text>
+      <text class="nt"  x="11" y="34" fill="var(--c-water)">THE WATER STEP</text>
+      <text class="ns"  x="11" y="48">2&hellip;18 UO&#8322; powder</text>
+    </g>
+    <path class="e fuel" d="M838 186 L860 186" marker-end="url(#ar-fuel)"/>
+
+    <g class="b-fuel crit" transform="translate(862,158)">
+      <rect class="nbox" width="152" height="56" rx="5"/>
+      <text class="nid" x="11" y="17">F-13 &hellip; F-16b</text>
+      <text class="nt"  x="11" y="34">Ceramics</text>
+      <text class="ns"  x="11" y="48">press &rarr; sinter &rarr; grind</text>
+    </g>
+    <path class="e fuel" d="M1014 186 L1036 186" marker-end="url(#ar-fuel)"/>
+
+    <g class="b-fuel crit" transform="translate(1038,158)">
+      <rect class="nbox" width="152" height="56" rx="5"/>
+      <text class="nid" x="11" y="17">F-17 / F-18 &nbsp;<tspan class="newm" fill="var(--c-fuel)">&#9733; NEW</tspan></text>
+      <text class="nt"  x="11" y="34">Fabrication Hall</text>
+      <text class="ns"  x="11" y="48">4 pellets/rod &middot; 3 rods/bundle</text>
+    </g>
+
+    <!-- grade branches under the ceramics/fabrication end -->
+    <path class="e fuel thin" d="M938 214 L938 246" marker-end="url(#ar-fuel)"/>
+    <g class="b-fuel" transform="translate(862,246)">
+      <rect class="nbox" width="152" height="42" rx="5"/>
+      <text class="nid" x="11" y="16">F-19 &hellip; F-23</text>
+      <text class="ns"  x="11" y="32">MOX &middot; Thorium &middot; Naquadah</text>
+    </g>
+    <path class="e fuel thin" d="M1014 267 L1114 267 L1114 216" marker-end="url(#ar-fuel)"/>
+
+    <!-- tails split out of the cascade, down to the material lane -->
+    <path class="e mat thin" d="M586 214 L586 470 L692 470" marker-end="url(#ar-mat)"/>
+    <text class="elabel" x="594" y="330">enrichment TAILS</text>
+    <text class="elabel" x="594" y="343">&rarr; F-11c depleted-U metal</text>
+    <text class="elabel" x="594" y="356">&rarr; F-20 MOX diluent</text>
+
+    <!-- fuel bundles down to the reactor -->
+    <path class="e fuel" d="M1114 288 L1114 660 L1046 660" marker-end="url(#ar-fuel)"/>
+    <text class="elabel" x="1122" y="470">fuel bundles</text>
+    <text class="elabel" x="1122" y="483">4 grades</text>
+
+    <!-- ============================ REPROCESSING lane ============================ -->
+    <text class="lane" x="14" y="330" fill="var(--c-repro)">Reprocessing</text>
+    <text class="lanesub" x="14" y="344">R-01 &hellip; R-04</text>
+
+    <g class="b-repro" transform="translate(158,308)">
+      <rect class="nbox" width="152" height="52" rx="5"/>
+      <text class="nid" x="11" y="17">R-01 &times;8</text>
+      <text class="nt"  x="11" y="34">Cooling pond</text>
+      <text class="ns"  x="11" y="47">Decay Warehouse</text>
+    </g>
+    <path class="e repro" d="M310 334 L332 334" marker-end="url(#ar-repro)"/>
+
+    <g class="b-repro" transform="translate(334,308)">
+      <rect class="nbox" width="196" height="52" rx="5"/>
+      <text class="nid" x="11" y="17">R-02 / R-02h / R-03 &nbsp;<tspan class="newm" fill="var(--c-repro)">&#9733; NEW</tspan></text>
+      <text class="nt"  x="11" y="34">PUREX Canyon</text>
+      <text class="ns"  x="11" y="47">chop-leach &middot; partition</text>
+    </g>
+
+    <!-- depleted fuel comes back out of the reactor -->
+    <path class="e repro" d="M902 660 L902 400 L234 400 L234 362" marker-end="url(#ar-repro)"/>
+    <text class="elabel" x="470" y="394">depleted rods and assemblies</text>
+
+    <!-- recovered oxide returns to the ceramics step -->
+    <path class="e repro" d="M530 322 L560 322 L560 302 L938 302 L938 216" marker-end="url(#ar-repro)"/>
+    <text class="elabel" x="700" y="296">recovered UO&#8322; + PuO&#8322; &rarr; back into F-13</text>
+
+    <!-- waste water closes D-09 -->
+    <g class="b-ghost" transform="translate(560,336)">
+      <rect class="nbox" width="176" height="40" rx="5"/>
+      <text class="nid" x="10" y="16">closes D-09</text>
+      <text class="ns"  x="10" y="31">Nuclear Waste Water &rarr; Ta</text>
+    </g>
+    <path class="e repro thin" d="M530 352 L556 352" marker-end="url(#ar-repro)"/>
+
+    <!-- ============================ MATERIAL lane ============================ -->
+    <text class="lane" x="14" y="456" fill="var(--c-mat)">Material lines</text>
+    <text class="lanesub" x="14" y="470">M-01 &hellip; M-06</text>
+    <text class="lanesub" x="14" y="482">12 recipes</text>
+
+    <g class="b-ghost" transform="translate(158,452)">
+      <rect class="nbox" width="152" height="52" rx="5"/>
+      <text class="nid" x="11" y="17">bulk feed</text>
+      <text class="ns"  x="11" y="33">limestone &middot; plate &middot; frame</text>
+      <text class="ns"  x="11" y="46">argon &middot; molten metal</text>
+    </g>
+    <path class="e mat" d="M310 478 L332 478" marker-end="url(#ar-mat)"/>
+
+    <g class="b-mat crit" transform="translate(334,452)">
+      <rect class="nbox" width="196" height="52" rx="5"/>
+      <text class="nid" x="11" y="17">M-01 &hellip; M-06 &nbsp;<tspan class="newm" fill="var(--c-mat)">&#9733; NEW</tspan></text>
+      <text class="nt"  x="11" y="34">Site Batching Plant</text>
+      <text class="ns"  x="11" y="47">one map, twelve batch recipes</text>
+    </g>
+    <path class="e mat" d="M530 478 L556 478" marker-end="url(#ar-mat)"/>
+
+    <g class="b-mat" transform="translate(558,452)">
+      <rect class="nbox" width="176" height="52" rx="5"/>
+      <text class="nid" x="11" y="17">stock GT blocks only</text>
+      <text class="nt"  x="11" y="34">Casings, in bulk</text>
+      <text class="ns"  x="11" y="47">8&ndash;32 a batch, not 1</text>
+    </g>
+    <path class="e mat" d="M734 478 L902 478 L902 636" marker-end="url(#ar-mat)"/>
+    <text class="elabel" x="744" y="472">10,249 blocks &mdash; a whole tier-5 plant</text>
+
+    <!-- the DU interlock -->
+    <text class="estrong" x="700" y="500" fill="var(--c-mat)">M-03b: the interlock</text>
+    <text class="elabel"  x="700" y="513">tails become shielding &mdash; the fuel line feeds the casing line</text>
+
+    <!-- ============================ PROPELLANT lane ============================ -->
+    <text class="lane" x="14" y="566" fill="var(--c-prop)">Propellant</text>
+    <text class="lanesub" x="14" y="580">P-01 &hellip; P-04</text>
+
+    <g class="b-ghost" transform="translate(158,544)">
+      <rect class="nbox" width="152" height="52" rx="5"/>
+      <text class="nid" x="11" y="17">P-01 / P-02</text>
+      <text class="ns"  x="11" y="33">oxidiser blend</text>
+      <text class="ns"  x="11" y="46">+ metal slurry (Al/Ada/&#8734;)</text>
+    </g>
+    <path class="e prop" d="M310 570 L332 570" marker-end="url(#ar-prop)"/>
+
+    <g class="b-prop" transform="translate(334,544)">
+      <rect class="nbox" width="196" height="52" rx="5"/>
+      <text class="nid" x="11" y="17">P-03 / P-03h</text>
+      <text class="nt"  x="11" y="34">Blending, Lv 1&ndash;6</text>
+      <text class="ns"  x="11" y="47">Chemical Plant &middot; QFT</text>
+    </g>
+    <path class="e prop" d="M530 570 L862 570 L862 636" marker-end="url(#ar-prop)"/>
+    <text class="elabel" x="544" y="564">250 L a cycle &mdash; unchanged, so D-20&rsquo;s clock still balances</text>
+
+    <g class="b-ghost" transform="translate(558,594)">
+      <rect class="nbox" width="290" height="34" rx="5"/>
+      <text class="ns" x="10" y="21">legacy one-step Mixer recipes KEPT STANDING &mdash; the new chain is a cheaper route, not a replacement</text>
+    </g>
+
+    <!-- ============================ COOLANT lane ============================ -->
+    <text class="lane" x="14" y="672" fill="var(--c-cool)">Coolant</text>
+    <text class="lanesub" x="14" y="686">C-02 &hellip; C-04</text>
+
+    <g class="b-cool" transform="translate(158,656)">
+      <rect class="nbox" width="152" height="52" rx="5"/>
+      <text class="nid" x="11" y="17">C-04</text>
+      <text class="nt"  x="11" y="34">Chemical shim</text>
+      <text class="ns"  x="11" y="47">boric acid + LiOH</text>
+    </g>
+    <path class="e cool" d="M310 682 L332 682" marker-end="url(#ar-cool)"/>
+
+    <g class="b-cool" transform="translate(334,656)">
+      <rect class="nbox" width="196" height="52" rx="5"/>
+      <text class="nid" x="11" y="17">C-02 / C-03</text>
+      <text class="nt"  x="11" y="34">Bulk coolant, &times;8</text>
+      <text class="ns"  x="11" y="47">IC2 Coolant &middot; Super Coolant</text>
+    </g>
+    <path class="e cool" d="M530 682 L822 682 L822 700 L862 700" marker-end="url(#ar-cool)"/>
+    <text class="elabel" x="544" y="676">no rung changed price &mdash; the D-08 ladder is untouched</text>
+
+    <!-- ============================ UNIT ONE column ============================ -->
+    <text class="lane" x="884" y="628" fill="var(--c-plant)">Unit One</text>
+
+    <g class="b-plant" transform="translate(862,636)">
+      <rect class="nbox" width="184" height="56" rx="5"/>
+      <text class="nid" x="11" y="17">MTEReactorCoreMk1</text>
+      <text class="nt"  x="11" y="34">Reactor &amp; silo</text>
+      <text class="ns"  x="11" y="48">rods &rarr; heat &rarr; steam</text>
+    </g>
+    <path class="e plant" d="M954 692 L954 716" marker-end="url(#ar-plant)"/>
+
+    <g class="b-plant" transform="translate(862,716)">
+      <rect class="nbox" width="184" height="56" rx="5"/>
+      <text class="nid" x="11" y="17">Spine &middot; Spiral &middot; Manifold</text>
+      <text class="nt"  x="11" y="34">Turbine generator</text>
+      <text class="ns"  x="11" y="48">16,384 L/t a column</text>
+    </g>
+    <path class="e plant" d="M1046 744 L1082 744" marker-end="url(#ar-plant)"/>
+
+    <g class="b-plant" transform="translate(1084,720)">
+      <rect class="nbox" width="112" height="48" rx="5"/>
+      <text class="nt"  x="11" y="22" fill="var(--c-fuel)">EU output</text>
+      <text class="ns"  x="11" y="38">up to ~1B EU/t</text>
+    </g>
+
+    <!-- the two guard figures, stated on the chart itself -->
+    <g transform="translate(14,796)">
+      <rect x="0" y="0" width="828" height="66" rx="5" fill="var(--panel-2)" stroke="var(--line)" stroke-width="1"/>
+      <text class="lane" x="14" y="20" fill="var(--c-water)">The balance guard, on the chart</text>
+      <text class="elabel" x="14" y="37">YIELD spans &times;9.00 (500 &rarr; 4500 milli).  OUTPUT spans &times;1.40 (1000 &rarr; 1400 milli).  The output term is smaller by 6.4&times;.</text>
+      <text class="elabel" x="14" y="52">The WHOLE water ladder is +40 % EU.  The CHEAPEST single rung of the fuel ladder (ROD_MULT 1 &rarr; 2) is +100 %.  Water buys cheap fuel, never power.</text>
+    </g>
+  </svg>
+  </div>
+</section>
+
+<!-- ==================================================================== -->
+<section id="water">
+  <h2 class="sec"><span class="num">2</span>Where the water grade enters<span class="tail">BTSWaterGrade.java &mdash; typed once</span></h2>
+  <p class="sec-lede">Two effects, one ruling, one file. The <b>yield</b> term lands on exactly one recipe in the
+    whole mod &mdash; F-12, where water is literally the reagent of
+    <span class="tier" style="--tc:var(--tb-2);--tcbg:var(--tb-2-bg)">UF&#8326; + 2 H&#8322;O + H&#8322; &rarr; UO&#8322; + 4 HF</span>.
+    The <b>output</b> term is a sixth <span style="font-family:var(--mono)">&times; n / 1000</span> factor on the
+    reactor&rsquo;s <span style="font-family:var(--mono)">euDemandOf</span>, in the identical shape D-23&rsquo;s
+    milestone term and D-24&rsquo;s upgrade term already use.</p>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr>
+        <th>Feedwater</th>
+        <th class="tnum">Yield &times;</th>
+        <th class="tnum">F-12 powder</th>
+        <th class="tnum">Pellets</th>
+        <th class="tnum">Rods (&divide;4)</th>
+        <th class="tnum">Uraninite / rod</th>
+        <th class="tnum">Reactor output &times;</th>
+      </tr></thead>
+      <tbody id="water-rows"></tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <span class="hd">Why plain water is still enough</span>
+    <p>Plain water and distilled water are both graded at <b>waterMilli 1000</b>, so the sixth factor is
+    <span style="font-family:var(--mono)">x &times; 1000 / 1000 == x</span> and a standing plant derives a
+    <b>bit-identical</b> EU figure to 0.23.0. No panel line appears below Grade 1. Distilled is a full rung of the
+    <em>fuel</em> ladder, not an omission &mdash; everything downstream of F-12 is grade-blind, so a player who never
+    builds a Purification Plant still reaches all four fuel grades, at half rate.</p>
+    <p><b>Worst-first is the mechanic.</b> <span style="font-family:var(--mono)">drawFeedwater</span> sweeps the
+    reactor&rsquo;s hatches worst-first, so a row holding plain water and Grade 8 spends the plain water &mdash;
+    a purified feedwater line has to be a <em>dedicated</em> line to pay anything. F-12 registers its nine recipes
+    <b>best rung first</b>, which is deliberately the opposite, and for the opposite reason: a fuel line piped with
+    Grade 8 should use it.</p>
+  </div>
+
+  <div class="formula"><span class="c">// MTEReactorCoreMk1.euDemandOf - the sixth factor, added by D-26</span>
+euDemandOf(afterSpine, rpmMilli, rotorMilli, progMilli, upgradeMilli, <span class="k">waterMilli</span>)
+    ... <span class="c">x rpm/1000  x rotor/1000  x prog/1000  x upgrade/1000</span>  <span class="k">x max(1000, waterMilli)/1000</span>
+
+<span class="c">// axis 3: read from feedwaterHatches ONLY. The Spiral's chamberHatches may</span>
+<span class="c">// legitimately hold Grade 8 water as COOLANT and must never pay this term.</span></div>
+</section>
+
+<!-- ==================================================================== -->
+<section id="detail">
+  <h2 class="sec"><span class="num">3</span>Every step, as registered<span class="tail">grouped by line, then by phase</span></h2>
+  <p class="sec-lede">Machine, tier and the real inputs and outputs for each registered step. The
+    <span style="color:var(--c-fuel);font-weight:600">&#9733;</span> marks the four multiblocks this release adds;
+    everything else runs on a machine the pack already had.</p>
+  <div id="rails"></div>
+</section>
+
+<footer>
+  <span>GTNH: Beyond the Stars &mdash; 0.24.0</span>
+  <span>D-26 &mdash; the purified-water ruling</span>
+  <span>Design of record: docs/production-lines.md</span>
+  <span>Every figure on this page was read out of the Java, not the design doc.</span>
+</footer>
+
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================================
+   TIER BANDS.  Four bands plus a "no power" band for the Decay Warehouse,
+   which runs on a half-life rather than on EU.
+   ========================================================================= */
+var TIER_BAND = {
+  "MV": 1, "HV": 1,
+  "EV": 2, "IV": 2,
+  "LuV": 3, "ZPM": 3, "UV": 3,
+  "UHV": 4, "UEV": 4, "UIV": 4,
+  "—": 0
+};
+
+/* ============================================================================
+   THE STEP TABLE.  Every row transcribed from the registration source:
+   BTSRecipesFuel / Materials / Propellant / Coolant.  "n" is how many recipes
+   the row actually registers (a helper called three times registers three).
+   ========================================================================= */
+var LINES = [
+  {
+    key: "fuel", tag: "Fuel line", cls: "l-fuel",
+    colour: "var(--c-fuel)", bg: "var(--c-fuel-bg)", bd: "var(--c-fuel-bd)",
+    phases: [
+      {
+        title: "Front end — ore to yellowcake",
+        note: "Real hydrometallurgy, in order: comminution, froth flotation, acid leach, ion exchange, " +
+              "solvent extraction, precipitation, calcining. Three of these steps exist only because the " +
+              "recipe map forced them — the Flotation Cell has zero item output slots, so the cell emits " +
+              "a froth FLUID and F-02b dewaters it back to solids.",
+        steps: [
+          { id:"F-01", n:2, name:"Comminution", mach:"Ore Milling Plant (IsaMill)", tier:"HV", t:"20s",
+            in:"16 dust Uraninite + circuit 1", out:"16 Milled Uraninite",
+            note:"Second recipe: <b>12 dust Pitchblende</b> + circuit 2 buys the same sixteen — the richer ore. " +
+                 "millingRecipes is maxIO(3,1,0,0): no fluid slots at all, and the milling balls come from the " +
+                 "mill's own hatch, never from the recipe." },
+          { id:"F-02a", n:1, name:"Frother preparation", mach:"Mixer", tier:"MV", t:"10s",
+            in:"2 dust Soda Ash + circuit 4 + 1,000 L Pine Oil", out:"1 Froth Cell",
+            note:"Pine-oil collector plus a soda-ash pH modifier — the real reagent suite of a uranium flotation circuit." },
+          { id:"F-02", n:1, name:"Froth flotation", mach:"Flotation Cell", tier:"EV", t:"30s",
+            in:"16 Milled Uraninite + 1 Froth Cell + 8,000 L Water", out:"8,000 L Uraninite Flotation Froth",
+            note:"<b>Forced deviation.</b> flotationCellRecipes is maxIO(6,0,1,1) — six item inputs and " +
+                 "<b>zero item outputs</b>. GT++'s own sphalerite line has the same shape." },
+          { id:"F-02b", n:1, name:"Thickening and filtration", mach:"Chemical Dehydrator", tier:"EV", t:"25s",
+            in:"8,000 L Froth + circuit 1",
+            out:"12 Uraninite Concentrate + 4 Flotation Tailings + 2 Gangue + 3,000 L Water back",
+            note:"Where the barren rock finally leaves the line, and where most of the process water returns." },
+          { id:"F-03", n:1, name:"Agitated sulfuric leach", mach:"Digester (coil 1,000 K)", tier:"EV", t:"40s",
+            in:"12 Concentrate + 2 dust Pyrolusite + circuit 1 + 6,000 L Sulfuric Acid",
+            out:"8,000 L Pregnant Leach Solution + 3 Leach Residue",
+            note:"The Digester allows one fluid in, so the Fe(III) oxidant became <b>dust Pyrolusite</b> — " +
+                 "which is the solid oxidant a real acid-leach flowsheet charges anyway." },
+          { id:"F-04", n:1, name:"Clarification and ion exchange", mach:"Chemical Plant, tier 2", tier:"EV", t:"30s",
+            in:"8,000 L PLS + 1 Ion Exchange Resin", out:"6,000 L Clarified Uranyl + 2,000 L Raffinate + resin @ 90 %",
+            note:"The resin is a <b>tool, not a reagent</b>: it comes back 90 % of the time." },
+          { id:"—", n:1, name:"Ion exchange resin synthesis", mach:"Large Chemical Reactor", tier:"HV", t:"20s",
+            in:"molten Polystyrene + 1,000 L Ammonia + circuit 6", out:"4 Ion Exchange Resin" },
+          { id:"F-04b", n:1, name:"Acid recovery", mach:"Distillation Tower", tier:"HV", t:"15s",
+            in:"2,000 L Raffinate", out:"1,200 L Diluted Sulfuric Acid + 1 dust Calcite",
+            note:"The barren aqueous phase is not waste; it is dilute acid and a little gypsum-forming calcium." },
+          { id:"F-05a", n:1, name:"Solvent synthesis (TBP)", mach:"Chemical Plant, tier 2", tier:"EV", t:"20s",
+            in:"Butanol + Phosphoric Acid + Kerosene", out:"8,000 L TBP / Kerosene + 1,000 L Water",
+            note:"Tributyl phosphate in a kerosene diluent — the extractant every uranium refinery on earth uses." },
+          { id:"F-05", n:1, name:"Solvent extraction", mach:"Chemical Plant, tier 3", tier:"IV", t:"25s",
+            in:"6,000 L Clarified Uranyl + 2,000 L TBP", out:"4,000 L Loaded Organic + 2,000 L Raffinate",
+            note:"Uranium crosses into the organic phase; everything else stays behind." },
+          { id:"F-06", n:1, name:"Stripping and solvent recovery", mach:"Chemical Plant, tier 3", tier:"IV", t:"25s",
+            in:"4,000 L Loaded Organic + 4 dust Soda Ash + 2,000 L Water",
+            out:"3,000 L Strip Liquor + <b>1,800 L TBP back</b>",
+            note:"1,800 of the 2,000 L of solvent return, so the real running cost is 200 L of make-up." },
+          { id:"F-07", n:1, name:"ADU precipitation", mach:"Large Chemical Reactor", tier:"HV", t:"20s",
+            in:"3,000 L Strip Liquor + 1,000 L Ammonia",
+            out:"6 Ammonium Diuranate + 1,000 L Ammonium Sulfate Liquor" },
+          { id:"F-07b", n:1, name:"Ammonium sulfate cracking", mach:"Distillation Tower", tier:"HV", t:"15s",
+            in:"1,000 L Ammonium Sulfate Liquor", out:"300 L Ammonia back + 400 L Diluted Sulfuric Acid",
+            note:"<b>This step is a stall fix, not decoration.</b> Without it the sulfate liquor had a producer " +
+                 "and no consumer — and a GT machine with a full output hatch STOPS. The first player to " +
+                 "automate F-07 without a void hatch would have watched the reactor halt on a byproduct." },
+          { id:"F-08", n:1, name:"Calcining, 800 °C", mach:"Chemical Dehydrator", tier:"EV", t:"30s",
+            in:"6 Ammonium Diuranate", out:"<b>4 Yellowcake</b> (U₃O₈) + 500 L Ammonia back",
+            note:"The classic yellowcake, and the ammonia comes back off the kiln into F-07." }
+        ]
+      },
+      {
+        title: "Conversion and enrichment",
+        note: "F-09 and F-10 are collision C2's join point: they produce GT++'s OWN " +
+              "URANIUM_TETRAFLUORIDE and URANIUM_HEXAFLUORIDE, as fluids, from ore instead of from metal. " +
+              "A standing LFTR line can feed its UF₆ straight into our cascade.",
+        steps: [
+          { id:"F-09", n:1, name:"Hydrofluorination — “green salt”", mach:"Chemical Plant, tier 3", tier:"IV", t:"25s",
+            in:"4 Yellowcake + 4,000 L Hydrofluoric Acid + 1,000 L Hydrogen",
+            out:"6,000 L UF₄ <span style='opacity:.7'>(GT++ MaterialsFluorides)</span> + 2,000 L Steam" },
+          { id:"F-10", n:1, name:"Fluorination to UF₆", mach:"Chemical Plant, tier 3", tier:"IV", t:"20s",
+            in:"6,000 L UF₄ + 2,000 L Fluorine", out:"6,000 L UF₆ <span style='opacity:.7'>(GT++)</span>" },
+          { id:"F-11", n:1, star:true, name:"Gas centrifuge cascade", mach:"Cascade Hall", tier:"IV", t:"60s",
+            in:"6,000 L UF₆ + circuit 1",
+            out:"1,000 L Enriched UF₆ + <b>5,000 L Tails</b>",
+            note:"One sixth leaves enriched, five sixths leave as tails — and the <b>tails are a product</b>, " +
+                 "not waste. Stage banks set the parallel (2^k); the circuit picks the assay." },
+          { id:"F-11b", n:1, star:true, name:"The HEU branch", mach:"Cascade Hall", tier:"LuV", t:"90s",
+            in:"1,000 L Enriched UF₆ + circuit 2", out:"200 L Highly Enriched UF₆ + 800 L Tails",
+            note:"Re-feeding the enriched cut costs four fifths of it — which is why only the naquadah grade is allowed to want it." },
+          { id:"F-11c", n:1, name:"Depleted-uranium metal", mach:"Neutron Activator (NKE 20–40)", tier:"LuV", t:"40s",
+            in:"5,000 L Tails + 8 dust Calcium", out:"4 Depleted Uranium Ingot + 8 dust Fluorite",
+            note:"Calciothermic reduction. <b>Reducing a fluoride with calcium gives calcium FLUORIDE</b> — " +
+                 "the design doc's calcium chloride had no chlorine source anywhere in the chain. " +
+                 "These ingots are what M-03b spends on shielding casings." }
+        ]
+      },
+      {
+        title: "F-12 — reconversion. The water step.",
+        note: "Nine otherwise identical recipes that differ only in which water they drink and how much " +
+              "powder they give back. The count is asked of BTSWaterGrade.powderFor(grade), never typed.",
+        steps: [
+          { id:"F-12", n:9, hero:true, name:"Reconversion — the Integrated Dry Route",
+            mach:"Chemical Plant, tier 3", tier:"IV", t:"30s",
+            in:"1,000 L Enriched UF₆ + 2,000 L Hydrogen + <b>2,000 L of one water rung</b>",
+            out:"<b>2 … 18 Ceramic UO₂ Powder</b> + 4,000 L HF back",
+            note:"UF₆ + 2 H₂O + H₂ → UO₂ + 4 HF. The water is <b>literally the reagent</b>, " +
+                 "which is why the ruling's yield term lands here and nowhere else in the mod. " +
+                 "Registered <b>best rung first</b>, because GT walks a map in insertion order when matching fluids." }
+        ]
+      },
+      {
+        title: "Ceramics and rod components",
+        note: "The grade is carried by a programmed circuit at F-13 and F-14 — but a circuit cannot survive " +
+              "an item, and the Lathe is maxIO(1,2,0,0) with no circuit slot at all. That is why the pressed " +
+              "and sintered intermediates are grade-TAGGED items rather than one fungible green pellet.",
+        steps: [
+          { id:"F-13", n:3, name:"Cold pressing", mach:"Forming Press", tier:"MV", t:"8s",
+            in:"4 powder + grade circuit + 250 L Lubricant", out:"4 Green Pellet <span style='opacity:.7'>(U / MOX / Th)</span>" },
+          { id:"F-14", n:3, name:"Sintering, 1,800 K in hydrogen", mach:"Vacuum Furnace (COIL_HEAT 1800)", tier:"IV", t:"30s",
+            in:"4 Green Pellet + 1,000 L Hydrogen", out:"4 Sintered Pellet",
+            note:"The reducing atmosphere is not decoration: UO₂ fired in air oxidises." },
+          { id:"F-15", n:3, name:"Centreless grinding", mach:"Lathe", tier:"MV", t:"5s",
+            in:"1 Sintered Pellet",
+            out:"<b>1 Fuel Pellet</b> + grinding sludge @ 10 %",
+            note:"Where the chain finally lands on items that already existed: <b>uraniumFuelPellet</b>, " +
+                 "<b>moxFuelPellet</b> and the thorium pellet." },
+          { id:"F-15b", n:1, name:"Swarf recovery", mach:"Chemical Dehydrator", tier:"EV", t:"20s",
+            in:"8 Grinding Sludge", out:"4 Ceramic UO₂ Powder" },
+          { id:"F-16", n:1, name:"Cladding tube", mach:"Assembler", tier:"EV", t:"12s",
+            in:"2 plate Zircaloy-4 <span style='opacity:.7'>(GoodGenerator)</span> + circuit 7 + 100 L Lubricant",
+            out:"1 Cladding Tube",
+            note:"<b>Forced deviation.</b> extruderRecipes is maxIO(2,1,0,0) and a die spends both slots, so an " +
+                 "addon recipe there is indistinguishable from GT's own ingot+die recipe — one of the two " +
+                 "would silently become unreachable. Moved to the Assembler behind a circuit. Zircaloy-4 is the real PWR alloy (collision C5)." },
+          { id:"F-16b", n:1, name:"End plugs and plenum spring", mach:"Assembler", tier:"EV", t:"10s",
+            in:"stick + spring Stainless Steel + plate RhPdPalladium + circuit 5", out:"1 Rod Hardware Set" },
+          { id:"—", n:1, name:"Grid spacer", mach:"Assembler", tier:"EV", t:"12s",
+            in:"2 plate Zircaloy-4 + 4 ring Stainless Steel + circuit 6", out:"2 Grid Spacer" }
+        ]
+      },
+      {
+        title: "Fabrication — the two load-bearing ratios",
+        note: "F-17 and F-18 preserve the retired chain's ratios EXACTLY: four pellets to a rod, three rods to " +
+              "a bundle. Every pellet, rod and assembly already sitting in a chest buys exactly what it bought " +
+              "yesterday.",
+        steps: [
+          { id:"F-17", n:3, star:true, name:"Rod loading, welding, He pressurisation", mach:"Fuel Fabrication Hall", tier:"IV", t:"12s",
+            in:"<b>4 pellets</b> + Cladding Tube + Rod Hardware Set + grade circuit + 100 L Helium",
+            out:"<b>1 fuel rod</b>" },
+          { id:"F-18", n:3, star:true, name:"Bundle assembly", mach:"Fuel Fabrication Hall", tier:"IV", t:"20s",
+            in:"<b>3 rods</b> + 2 Grid Spacer + plate Iridium + molten Platinum",
+            out:"<b>1 fuel assembly</b>",
+            note:"Throughput is the reason this is a multiblock: a tier-5 silo eats <b>201 rods per 90-minute cycle</b> " +
+                 "in up to four grades. Parallel = 8 × casing tier." }
+        ]
+      },
+      {
+        title: "The other three fuel grades",
+        note: "MOX takes the enrichment TAILS as its diluent, which is chemically what MIMAS blending actually " +
+              "does. Thorium extends GoodGenerator's own chemistry (collision C4). Naquadah is the UHV step: " +
+              "unrealistic but shaped exactly like chemical vapour infiltration, a real ceramic process.",
+        steps: [
+          { id:"F-20", n:1, name:"Tails reconversion", mach:"Chemical Plant, tier 3", tier:"IV", t:"45s",
+            in:"5,000 L Tails + Hydrogen + Water", out:"20 Depleted UO₂ Powder",
+            note:"<b>Deliberately carries no water rung.</b> The mechanic stays legible at nine NEI entries " +
+                 "rather than twenty-seven." },
+          { id:"F-19", n:1, name:"MIMAS masterblend", mach:"Ore Milling Plant", tier:"LuV", t:"30s",
+            in:"2 PuO₂ + 30 Depleted UO₂ Powder", out:"32 MOX Powder",
+            note:"Two parts in thirty is <b>6.25 % PuO₂</b> — which is what commercial MOX actually is." },
+          { id:"F-21a", n:1, name:"Thoria", mach:"Chemical Dehydrator", tier:"IV", t:"25s",
+            in:"8 dust Thorium Oxalate <span style='opacity:.7'>(GoodGenerator)</span>", out:"6 ThO₂ + 2,000 L CO₂",
+            note:"GG's thorium oxalate had exactly one consumer before this; now it has two." },
+          { id:"F-21b", n:1, name:"(Th,U)O₂ blend", mach:"Ore Milling Plant", tier:"LuV", t:"30s",
+            in:"30 ThO₂ + 2 Ceramic UO₂ Powder", out:"32 (Th,U)O₂ Powder",
+            note:"Thoria is <b>fertile, not fissile</b> — it needs a driver, and the driver is the two parts of enriched uranium." },
+          { id:"F-22", n:1, name:"Naquadah chemical vapour infiltration", mach:"Quantum Force Transformer (focus 2)", tier:"UHV", t:"60s",
+            in:"8 Sintered Pellet + Naquadah Enriched + U-235 + <b>200 L HEU</b> + molten Naquadah",
+            out:"8 Naquadah-Bonded Pellet",
+            note:"The only consumer of F-11b's highly enriched cut." },
+          { id:"F-23", n:1, name:"Naquadah rod", mach:"Precise Assembler (tier 2)", tier:"UV", t:"30s",
+            in:"4 Naquadah Pellet + Cladding Tube + Rod Hardware Set + Helium", out:"1 fuelRodNaqBonded" },
+          { id:"F-18n", n:1, name:"Naquadah bundle", mach:"Assembly Line", tier:"UV", t:"60s",
+            in:"3 rods + 2 Grid Spacer + 2 plate Iridium + molten Naquadah", out:"1 fuelAssemblyNaqBonded",
+            note:"Research item: the thorium assembly. There is no RESEARCH_TIME key on this map." }
+        ]
+      },
+      {
+        title: "Byproduct cleanup — the three barren-rock streams",
+        note: "A chain that only ever makes rubbish teaches players to void its outputs. Each of the three gets " +
+              "one cheap Centrifuge entry, and the flotation tailings get back a little of the uranium the cell " +
+              "failed to float — which is what a real scavenger circuit is for.",
+        steps: [
+          { id:"—", n:1, name:"Gangue", mach:"Centrifuge", tier:"MV", t:"15s",
+            in:"8 Gangue Dust + circuit 1", out:"4 dust Stone + 1 dust Calcite" },
+          { id:"—", n:1, name:"Flotation tailings (scavenger)", mach:"Centrifuge", tier:"HV", t:"20s",
+            in:"8 Flotation Tailings + circuit 1", out:"4 dust Stone + 2 dust Uraninite @ 33 %" },
+          { id:"—", n:1, name:"Leach residue", mach:"Centrifuge", tier:"MV", t:"15s",
+            in:"4 Leach Residue + circuit 1", out:"2 dust Gypsum + 1 dust Silicon" }
+        ]
+      }
+    ]
+  },
+
+  {
+    key: "repro", tag: "Reprocessing", cls: "l-repro",
+    colour: "var(--c-repro)", bg: "var(--c-repro-bg)", bd: "var(--c-repro-bd)",
+    phases: [
+      {
+        title: "PUREX — and the closure of D-09",
+        note: "BTSFluids.nuclearWasteWater has had a consumer since the mod shipped and no producer anywhere. " +
+              "R-02h and R-03 finally feed it. R-02h is also the migration mitigation: it accepts UNCOOLED " +
+              "assemblies straight from the reactor, so the Canyon ALONE clears a depleted-fuel backlog and " +
+              "the Decay Warehouse is needed only for plutonium, i.e. only for MOX.",
+        steps: [
+          { id:"R-01", n:8, name:"Spent fuel cooling pond", mach:"Decay Warehouse", tier:"—", t:"half-life",
+            in:"depleted assembly or rod × 4 grades", out:"the cooled form",
+            note:"Keyed on HALF_LIFE and DECAY_TYPE. This is the only place in the pack where an input's " +
+                 "<b>history</b> changes what a recipe may produce." },
+          { id:"R-02", n:8, star:true, name:"Chop-leach dissolution (cooled)", mach:"PUREX Canyon, circuit 1", tier:"IV", t:"40s",
+            in:"cooled assembly or rod + Nitric Acid",
+            out:"Dissolver Liquor + Cladding Hulls + each grade's own return" },
+          { id:"R-02h", n:8, star:true, name:"The uncooled rush", mach:"PUREX Canyon, circuit 2", tier:"IV", t:"30s",
+            in:"depleted fuel straight from the reactor + 1.5× Nitric Acid",
+            out:"4 Ceramic UO₂ Powder + Lead + Hulls + <b>2,000 L Nuclear Waste Water</b>",
+            note:"<b>No plutonium.</b> Skipping the pond costs you the element that needed the wait — " +
+                 "which is exactly the trade a real reprocessor makes." },
+          { id:"R-03", n:1, star:true, name:"U / Pu co-extraction and partition", mach:"PUREX Canyon, circuit 3", tier:"IV", t:"40s",
+            in:"6,000 L Dissolver Liquor + 2,000 L TBP",
+            out:"4 Ceramic UO₂ + <b>1 PuO₂</b> + Lead + 2,000 L Nuclear Waste Water",
+            note:"The same TBP solvent the front end already makes at F-05a. The PuO₂ is F-19's only source." },
+          { id:"R-04", n:1, name:"Hull recovery", mach:"Large Chemical Reactor", tier:"EV", t:"20s",
+            in:"4 Cladding Hulls + 1,000 L Hydrofluoric Acid", out:"1 ingot Zircaloy-4 + 1 dust Zirconium",
+            note:"Zircaloy is expensive and the hulls are most of what a bundle weighs." },
+          { id:"kept", n:1, name:"Waste-water distillation", mach:"Distillation Tower", tier:"EV", t:"20s",
+            in:"8,000 L Nuclear Waste Water", out:"small dust Tantalum + 7,200 L Distilled Water",
+            note:"<b>The one recipe the migration kept, not one number moved.</b> It is the D-09 product slate, " +
+                 "and until R-02h and R-03 landed it was a consumer with no producer." }
+        ]
+      }
+    ]
+  },
+
+  {
+    key: "mat", tag: "Material lines", cls: "l-mat",
+    colour: "var(--c-mat)", bg: "var(--c-mat-bg)", bd: "var(--c-mat-bd)",
+    phases: [
+      {
+        title: "Bulk casings — all twelve on the Site Batching Plant",
+        note: "These sit BESIDE GT's own casing recipes; not one stock recipe is overridden, so no bulk route " +
+              "can ever soft-lock a build. The plant has no output HATCH, only an output bus — which is why " +
+              "every recipe here has item-only outputs, and why the concrete line ends at cast blocks rather " +
+              "than a tank of ready-mix. One input hatch holds one fluid, so no recipe takes more than one.",
+        steps: [
+          { id:"M-01a", n:1, name:"Rotary kiln, clinker burning", mach:"Site Batching Plant", tier:"EV", t:"16s", star:true,
+            in:"6 dust Limestone + 2 dust Clay + 1 dust Gypsum + circuit 1", out:"8 dust Concrete" },
+          { id:"M-01b", n:1, name:"Ready-mix batching, slipform casting", mach:"Site Batching Plant", tier:"EV", t:"8s", star:true,
+            in:"2 dust Concrete + 6 Sand + 8 Gravel + 2,000 L Water", out:"<b>32 Light Concrete</b>",
+            note:"A 12.5 % binder fraction, which is what structural concrete actually is. The stock route's real " +
+                 "friction was never the clock — it was 3,773 macerated stone dusts and 543,312 L of molten " +
+                 "concrete. This replaces the <b>feed chain</b>, not the machine time." },
+          { id:"M-02a", n:1, name:"Roll-form and MAG weld under argon", mach:"Site Batching Plant", tier:"EV", t:"12s", star:true,
+            in:"48 plate Steel + 8 frame Steel + circuit 1 + 1,000 L Argon", out:"8 Solid Steel Machine Casing" },
+          { id:"M-02b", n:1, name:"Same line, austenitic, argon back-purge", mach:"Site Batching Plant", tier:"EV", t:"12s", star:true,
+            in:"48 plate Stainless + 8 frame Stainless + circuit 1 + 1,000 L Argon", out:"8 Clean Stainless Machine Casing" },
+          { id:"M-02c", n:1, name:"HEPA bank — case, separators, medium", mach:"Site Batching Plant", tier:"EV", t:"12s", star:true,
+            in:"32 plate Steel + 8 frame Steel + 16 foil Aluminium + 2,304 L molten Glass", out:"8 Filter Machine Casing" },
+          { id:"M-03a", n:1, name:"Lead liner and heavy-aggregate pour", mach:"Site Batching Plant", tier:"IV", t:"16s", star:true,
+            in:"48 plateDense Lead + 8 frame Tungstensteel + circuit 1 + 10,368 L molten Concrete",
+            out:"8 Radiation Proof Machine Casing" },
+          { id:"M-03b", n:1, name:"DU ballast block — THE INTERLOCK", mach:"Site Batching Plant", tier:"IV", t:"16s", star:true,
+            in:"8 frame Tungstensteel + <b>8 Depleted Uranium Ingot</b> + circuit 2 + 1,152 L molten Concrete",
+            out:"8 Tungstensteel Reinforced Block",
+            note:"<b>The fuel line feeds the casing line.</b> 256 enrichment tails are spent per tier-5 platform. " +
+                 "This is strictly MORE expensive than the stock Chemical Bath route, which stays available — " +
+                 "so it can never soft-lock a build." },
+          { id:"M-03c", n:1, name:"Frame and melt infiltration", mach:"Site Batching Plant", tier:"IV", t:"16s", star:true,
+            in:"8 frame Iridium + circuit 3 + 1,152 L molten Iridium", out:"8 Iridium Reinforced Block",
+            note:"Where the machine genuinely WAS the wall: 497 blocks at tier 5 is <b>2 h 46 min</b> in one stock " +
+                 "Chemical Bath. Here it is 256 s." },
+          { id:"M-04", n:1, name:"Diffusion bonding — no fasteners", mach:"Site Batching Plant", tier:"LuV", t:"24s", star:true,
+            in:"8 Radiation Proof Casing + 32 Prismatic Naquadah sheet + 48 plate Lead + 5,184 L molten Europium",
+            out:"8 Europium-Reinforced Radiation Proof Casing",
+            note:"A stack stops at 64, and 8 casings is 192 screws — the stack limit is what forced this off " +
+                 "fasteners and onto diffusion bonding, and the constraint produced the better process. " +
+                 "The europium cost is <b>exact parity</b> with the stock recipe (GT's screw is M/8, not M/9)." },
+          { id:"M-05a", n:1, name:"Vacuum brazing (parity route)", mach:"Site Batching Plant", tier:"UV", t:"4s", star:true,
+            in:"5 frame PrismaticNaq + 60 plate Naquadah Alloy + 20 screw PrismaticNaq + circuit 1 + 6,480 L Indalloy 140",
+            out:"20 Radiant Naquadah Alloy Casing",
+            note:"Keeps the Indalloy exactly, at UV, for anyone not at UHV yet." },
+          { id:"M-05b", n:1, name:"Centrifugal skin casting", mach:"Site Batching Plant", tier:"UHV", t:"8s", star:true,
+            in:"8 frame PrismaticNaq + 32 screw PrismaticNaq + circuit 2 + 13,824 L molten Naquadah Alloy",
+            out:"32 Radiant Naquadah Alloy Casing",
+            note:"A cast joint needs no filler metal, so 540,108 L of Indalloy stops being spent over a tier-5 " +
+                 "silo — UHV power replaces it. The casing still costs <b>5,088 ingots of Naquadah Alloy</b>, " +
+                 "exactly what the stock recipe costs." },
+          { id:"M-06", n:1, name:"Bimetal turbine weldment, one fixture", mach:"Site Batching Plant", tier:"EV", t:"12s", star:true,
+            in:"48 plate Magnalium + 8 frame Blue Steel + 48 plate Tungstensteel + 1,000 L Argon",
+            out:"8 Tungstensteel Turbine Casing" }
+        ]
+      }
+    ]
+  },
+
+  {
+    key: "prop", tag: "Propellant", cls: "l-prop",
+    colour: "var(--c-prop)", bg: "var(--c-prop-bg)", bd: "var(--c-prop-bd)",
+    phases: [
+      {
+        title: "A real three-stage chain — added BESIDE the ladder, never over it",
+        note: "The six legacy one-step Mixer recipes are KEPT STANDING, unchanged. Those fluids are what a " +
+              "running plant drinks; retiring the only recipe that makes them would stop a working plant dead on " +
+              "jar swap and invalidate every AE2 pattern feeding it. My ruling that fuel-chain automation " +
+              "may break does not cover this ladder. No rung got harder; six got optionally cheaper.",
+        steps: [
+          { id:"P-01", n:2, name:"Oxidiser conditioning", mach:"Chemical Plant, tier 2", tier:"EV", t:"20s",
+            in:"2,000 L Nitric Acid + 1,000 L Dinitrogen Tetroxide", out:"3,000 L Oxidiser Blend",
+            note:"Registered against <b>both</b> N₂O₄ fluids in the pack — GT core's and GTPPFluids' " +
+                 "— so a standing rocket-fuel line is not forced to build a second one. " +
+                 "GT's is gas-side: getGas, not getFluid." },
+          { id:"P-02a", n:3, name:"Ultrafine metal milling", mach:"Ore Milling Plant (IsaMill)", tier:"EV / LuV / UHV", t:"30s",
+            in:"8 dust Aluminium / Adamantium / Infinity", out:"1 Ultrafine Powder",
+            note:"Split from P-02b because millingRecipes has <b>zero fluid slots</b> — the design's " +
+                 "single kerosene step was unregisterable as drawn." },
+          { id:"P-02b", n:3, name:"Slurry make-up", mach:"Chemical Plant, tier 2", tier:"EV / LuV / UHV", t:"20s",
+            in:"1 Ultrafine Powder + 1,000 L Kerosene", out:"2,000 L metal slurry",
+            note:"Three slurries for six rungs: the fluid carries the metal, the recipe carries the rung. " +
+                 "Six rung-numbered fluids would have been two pairs of identical milled metal under different names." },
+          { id:"P-03", n:3, name:"Blending, Lv 1–3", mach:"Chemical Plant, tier 3", tier:"LuV / ZPM / UV", t:"30s",
+            in:"500 L naquadah fuel + 1,000 L Oxidiser Blend + slurry + circuit 5", out:"250 L Naq Propellant Lv 1–3" },
+          { id:"P-03h", n:3, name:"Blending, Lv 4–6", mach:"Quantum Force Transformer (focus 1)", tier:"UHV / UEV / UIV", t:"30s",
+            in:"same charge over a Simple Naquadah Catalyst", out:"250 L Naq Propellant Lv 4–6",
+            note:"<b>D-20 holds two ways:</b> output stays 250 L a cycle on both routes, and the new route runs " +
+                 "30 s where the Mixer runs 20 s — per-machine rate is 0.67×, never higher. " +
+                 "Strictly a materials play, the same shape as the water ladder's guard." },
+          { id:"P-04", n:12, name:"Cartridges, both legs", mach:"Fluid Solidifier / Fluid Extractor", tier:"LuV", t:"10s",
+            in:"1,000 L propellant ⇄ 1 cartridge", out:"the other one",
+            note:"Six fluids, both directions." },
+          { id:"legacy", n:6, name:"The legacy one-step blends", mach:"Mixer", tier:"LuV … UIV", t:"20s",
+            in:"1,000 L naquadah fuel + dust", out:"250 L Naq Propellant Lv 1–6",
+            note:"<b>Kept standing, unchanged.</b> Lv 1–2 also trade Naquadah Enriched for Aluminium on the " +
+                 "new route — the largest saving here. The chain never changes which rung you can REACH, " +
+                 "only what a litre costs; the ceiling is still the GoodGenerator naquadah-fuel tier." }
+        ]
+      }
+    ]
+  },
+
+  {
+    key: "cool", tag: "Coolant", cls: "l-cool",
+    colour: "var(--c-cool)", bg: "var(--c-cool-bg)", bd: "var(--c-cool-bd)",
+    phases: [
+      {
+        title: "Bulk manufacture only — the D-08 ladder is not touched",
+        note: "No new coolant fluid and no Q value changed; that would relitigate D-08. Not one rung changed " +
+              "cost: the stock chains are untouched and still cheapest per litre. These are ×8 bulk routes " +
+              "for plants that drink faster than one Mixer pours. Cryotheum and Tachyon Rich get no second route. " +
+              "A coolant RECOVERY loop is explicitly out of scope — it needs a reactor-behaviour change, not a recipe.",
+        steps: [
+          { id:"C-04", n:1, name:"Chemical shim — a real PWR corrosion inhibitor", mach:"Large Chemical Reactor", tier:"HV", t:"20s",
+            in:"2 dust Lithium + 2,000 L Boric Acid + 1,000 L Water", out:"2,000 L Chemical Shim",
+            note:"Straight to the LCR, not UniversalChemical: that map fans out to the single-block reactor, " +
+                 "which is maxIO(2,2,1,1) — <b>one fluid input</b>, and this recipe has two." },
+          { id:"C-02", n:1, name:"IC2 Coolant, in bulk", mach:"Chemical Plant, tier 2", tier:"EV", t:"1,024 t",
+            in:"8 Lapis + 8,000 L Distilled Water + 200 L Chemical Shim", out:"8,000 L IC2 Coolant",
+            note:"<b>Null-guarded.</b> GTModHandler.getIC2Coolant returns null without IC2, and unguarded that " +
+                 "would have killed all of BTSRecipes.register() — taking the fuel, material and machine " +
+                 "lines down with it." },
+          { id:"C-03", n:1, name:"Super Coolant, in bulk", mach:"Vacuum Freezer", tier:"IV", t:"800 t",
+            in:"8,000 L Hot Super Coolant + 400 L Chemical Shim", out:"8,000 L Super Coolant" }
+        ]
+      }
+    ]
+  }
+];
+
+/* ============================================================================
+   RENDER
+   ========================================================================= */
+function el(tag, cls, html) {
+  var n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (html !== undefined && html !== null) n.innerHTML = html;
+  return n;
+}
+
+function tierChip(tier) {
+  // A step may carry several tiers ("EV / LuV / UHV"); band on the FIRST one.
+  var first = String(tier).split("/")[0].trim();
+  var band = TIER_BAND[first];
+  if (band === undefined) band = 0;
+  var c = el("span", "tier", String(tier).replace(/ /g, "&nbsp;"));
+  c.style.setProperty("--tc", "var(--tb-" + band + ")");
+  c.style.setProperty("--tcbg", "var(--tb-" + band + "-bg)");
+  return c;
+}
+
+function renderStep(s, lineCls) {
+  var card = el("div", "step " + lineCls + (s.hero ? " hero" : ""));
+
+  var top = el("div", "st-top");
+  top.appendChild(el("span", "st-id", s.id));
+  top.appendChild(el("span", "st-name", s.name));
+  if (s.n > 1) top.appendChild(el("span", "st-rep", "×" + s.n + " recipes"));
+  card.appendChild(top);
+
+  var mach = el("div", "st-mach");
+  if (s.star) mach.appendChild(el("span", "mstar", "★"));
+  mach.appendChild(el("span", null, s.mach));
+  mach.appendChild(tierChip(s.tier));
+  mach.appendChild(el("span", null, "<span style='opacity:.65'>" + s.t + "</span>"));
+  card.appendChild(mach);
+
+  var io = el("div", "st-io");
+  io.appendChild(el("span", "ar", "in"));
+  io.appendChild(el("span", "v", s.in));
+  io.appendChild(el("span", "ar", "→"));
+  io.appendChild(el("span", "v out", s.out));
+  card.appendChild(io);
+
+  if (s.note) card.appendChild(el("div", "st-note", s.note));
+  return card;
+}
+
+function renderRails() {
+  var host = document.getElementById("rails");
+  var totalRecipes = 0, totalSteps = 0, newMachines = 0;
+  var seenStars = {};
+
+  LINES.forEach(function (line) {
+    var head = el("div", "railhead");
+    var tag = el("span", "tag", line.tag);
+    tag.style.color = line.colour;
+    tag.style.borderColor = line.bd;
+    tag.style.background = line.bg;
+    head.appendChild(tag);
+
+    var n = 0, st = 0;
+    line.phases.forEach(function (p) {
+      p.steps.forEach(function (s) { n += s.n; st += 1; });
+    });
+    totalRecipes += n; totalSteps += st;
+
+    head.appendChild(el("h3", null, line.phases.length +
+      (line.phases.length === 1 ? " phase" : " phases")));
+    head.appendChild(el("span", "cnt", st + " steps · " + n + " registered recipes"));
+    host.appendChild(head);
+
+    line.phases.forEach(function (p) {
+      var box = el("div", "phase");
+      box.appendChild(el("div", "phase-title", p.title));
+      if (p.note) box.appendChild(el("p", "phase-note", p.note));
+      var grid = el("div", "steps");
+      p.steps.forEach(function (s) {
+        if (s.star) seenStars[s.mach] = true;
+        grid.appendChild(renderStep(s, line.cls));
+      });
+      box.appendChild(grid);
+      host.appendChild(box);
+    });
+  });
+
+  newMachines = Object.keys(seenStars).length;
+  document.getElementById("meta-counts").innerHTML =
+    "<b>" + totalRecipes + "</b> registered recipes &middot; <b>" + totalSteps +
+    "</b> steps &middot; <b>" + newMachines + "</b> new multiblocks";
+}
+
+/* -------------------------------------------------- the water ladder table */
+function renderWater() {
+  var body = document.getElementById("water-rows");
+  // Mirrors BTSWaterGrade: yieldMilli(0)=500, then 1000 + (g-1)*500; powderFor = 4*yield/1000;
+  // outputMilli = 1000 for anything ungraded, else 1000 + g*50.
+  for (var g = 0; g <= 8; g++) {
+    var yieldMilli = (g === 0) ? 500 : 1000 + (g - 1) * 500;
+    var powder = 4 * yieldMilli / 1000;
+    var rods = powder / 4;
+    var perRod = 16 / (yieldMilli / 1000);
+    var outMilli = (g < 1) ? 1000 : 1000 + g * 50;
+    var label = (g === 0) ? "Distilled Water" : "Grade " + g + " Purified Water";
+
+    var tr = document.createElement("tr");
+    if (g === 0) tr.className = "rung-0";
+    if (g === 8) tr.className = "rung-hi";
+    tr.innerHTML =
+      "<td>" + (g === 1 || g === 8 ? "<b>" + label + "</b>" : label) + "</td>" +
+      "<td class='m tnum'>×" + (yieldMilli / 1000).toFixed(1) + "</td>" +
+      "<td class='m tnum'><b>" + powder + "</b></td>" +
+      "<td class='m tnum'>" + powder + "</td>" +
+      "<td class='m tnum'>" + rods.toFixed(1) + "</td>" +
+      "<td class='m tnum'>" + perRod.toFixed(1) + "</td>" +
+      "<td class='m tnum'>×" + (outMilli / 1000).toFixed(3) + "</td>";
+    body.appendChild(tr);
+  }
+  // Plain water: no fuel-line rung at all, and the reactor's no-op baseline.
+  var tr2 = document.createElement("tr");
+  tr2.className = "rung-0";
+  tr2.innerHTML =
+    "<td>Water <span style='opacity:.6'>(plain)</span></td>" +
+    "<td class='m tnum' colspan='5' style='opacity:.7'>no F-12 rung — the fuel line does not accept it</td>" +
+    "<td class='m tnum'>×1.000</td>";
+  body.insertBefore(tr2, body.firstChild);
+}
+
+/* ------------------------------------------------------------ theme toggle */
+(function () {
+  var order = ["system", "light", "dark"];
+  var i = 0;
+  var btn = document.getElementById("theme-toggle");
+  try {
+    var saved = localStorage.getItem("bts-flow-theme");
+    if (saved && order.indexOf(saved) >= 0) i = order.indexOf(saved);
+  } catch (e) { /* private window, blocked storage - fall through to system */ }
+
+  function apply() {
+    var mode = order[i];
+    if (mode === "system") document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.setAttribute("data-theme", mode);
+    btn.textContent = "Theme: " + mode;
+    try { localStorage.setItem("bts-flow-theme", mode); } catch (e) { /* ignore */ }
+  }
+  btn.addEventListener("click", function () { i = (i + 1) % order.length; apply(); });
+  apply();
+})();
+
+renderWater();
+renderRails();
+</script>
+</body>
+</html>
