@@ -342,8 +342,12 @@ public final class BTSRecipesMaterials {
      * <b>diffusion-bonds</b>. The europium arrives as a melt and is infiltrated into the composite
      * under heat and pressure, so there are no fasteners left to count.
      * <p>
-     * Material parity is exact and deliberate. 6 foil (6/4 ingot) + 24 screw (24/9 ingot) = 4.167
-     * ingots of europium per casing; 4,800 L over eight casings is 600 L = 4.167 ingots each. The
+     * Material parity is exact and deliberate, and it is checked against
+     * {@code OrePrefixes.foil.mMaterialAmount} and {@code screw.mMaterialAmount} rather than
+     * against memory - <b>GT's screw is M/8, not the M/9 it is easy to assume</b>, and getting that
+     * wrong would have quietly made the bulk route 7 % cheaper in europium than the recipe it sits
+     * beside. 6 foil (6/4 ingot) + 24 screw (24/8 ingot) = <b>4.5 ingots</b> of europium per
+     * casing; 5,184 L over eight casings is 648 L = 4.5 ingots each. The
      * 864 L of molten lead per casing becomes 6 lead plates - the same metal by a different
      * delivery, because the machine has one input hatch and the europium melt has claimed it.
      */
@@ -353,7 +357,7 @@ public final class BTSRecipesMaterials {
                 Casings.RadiationProofMachineCasing.toStack(CASINGS),
                 ItemList.Radiation_Proof_Prismatic_Naquadah_Composite_Sheet.get(32L),
                 GTOreDictUnificator.get(OrePrefixes.plate, Materials.Lead, 48L))
-            .fluidInputs(Materials.Europium.getMolten(4_800))
+            .fluidInputs(Materials.Europium.getMolten(5_184))
             .itemOutputs(Casings.EuropiumReinforcedRadiationProofMachineCasing.toStack(CASINGS))
             .duration(24 * SECONDS)
             .eut(TierEU.RECIPE_LuV)
