@@ -74,8 +74,30 @@ import gtPlusPlus.core.material.MaterialsAlloy;
  *
  * Twenty-eight minutes of one machine for the entire tier-5 buildout, at the worst shell and with
  * no overclock. Re-walled in Tungstensteel Reinforced (parallel 12) it is <b>608s = 10.1
- * minutes</b>; one tier of overclock on the energy hatch halves that again. That is the difference
- * between a line and a wall, and it is the whole reason MTE 28112 exists.
+ * minutes</b>. That is the difference between a line and a wall, and it is the whole reason MTE
+ * 28112 exists.
+ * <p>
+ * <b>The table is self-consistent about power, which is the part that is easy to get wrong.</b>
+ * The plant has ONE energy hatch cell, and GT caps parallel by available EU/t before the shell tier
+ * ever gets a say - so "parallel 4, no overclock" is not two independent assumptions, it is one
+ * hatch two tiers above the recipe. An EV recipe at parallel 4 draws 7,680 EU/t; an IV hatch
+ * supplies 8,192 x 2A = 16,384, which covers it and cannot afford the 4x an overclock would cost.
+ * Parallel 12 on the same recipe draws 23,040 and wants a LuV hatch. The two top rungs are the
+ * ones to watch: <b>M-05b at UHV draws 1,966,080 EU/t a parallel, so one UHV hatch (2,097,152 x
+ * 2A) reaches parallel 2 and no further</b> - parallel 4 there means a UEV hatch. Nothing about
+ * that is unusual for GT, but it is why the table is quoted at parallel 4 and not at 12.
+ *
+ * <h2>The tier-3 and tier-4 shell, which the tier-5 table does not show</h2> A tier-5 silo uses no
+ * Europium Reinforced casings at all - Radiant Naquadah replaces them - so M-04 is missing from
+ * the table above even though it is the third-largest bill in the game. Its own arithmetic:
+ *
+ * <pre>
+ *   tier 3    963 casings  = 121 batches  ->  31 cycles x 24s =  744s = 12.4 min
+ *   tier 4  1,343 casings  = 168 batches  ->  42 cycles x 24s = 1,008s = 16.8 min
+ * </pre>
+ *
+ * The longest single line in the file, and it is a LuV recipe, so parallel 4 there wants a UV
+ * hatch.
  *
  * <h2>What actually gates each line</h2> Machine time is NOT the binding constraint for the two
  * most expensive bills - materials are, and the arithmetic says so plainly:
