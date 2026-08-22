@@ -511,9 +511,9 @@ noscript .nojs {
     </defs>
 
     <!-- ============================ lane backgrounds ============================ -->
-    <rect class="bandbg" x="0"  y="150" width="1240" height="150" rx="6"/>
-    <rect class="bandbg" x="0"  y="430" width="1240" height="104" rx="6"/>
-    <rect class="bandbg" x="0"  y="646" width="1240" height="92"  rx="6"/>
+    <rect class="bandbg" x="0" y="150" width="1240" height="150" rx="6"/>
+    <rect class="bandbg" x="0" y="430" width="850" height="108" rx="6"/>
+    <rect class="bandbg" x="0" y="646" width="850" height="92"  rx="6"/>
 
     <!-- ============================ WATER LADDER lane ============================ -->
     <text class="lane" x="14" y="58"  fill="var(--c-water)">Water ladder</text>
@@ -527,37 +527,37 @@ noscript .nojs {
       <text class="ns"  x="12" y="52">+ Distilled &mdash; the bottom rung</text>
     </g>
 
-    <!-- YIELD edge: straight down into F-12 -->
+    <!-- YIELD edge: straight down into F-12, because that is the only step it touches -->
     <path class="e water" d="M698 98 L698 158" marker-end="url(#ar-water)"/>
     <text class="estrong" x="708" y="120" fill="var(--c-water)">YIELD &times;0.5 &hellip; &times;4.5</text>
     <text class="elabel"  x="708" y="133">2,000 L per F-12 batch</text>
 
-    <!-- OUTPUT edge: long, down the right side, into the reactor from below -->
-    <path class="e water thin" d="M796 67 L1196 67 L1196 806 L942 806 L942 774" marker-end="url(#ar-water)"/>
-    <text class="estrong" x="1188" y="400" fill="var(--c-water)" text-anchor="end">OUTPUT &times;1.00 &hellip; &times;1.40</text>
-    <text class="elabel"  x="1188" y="413" text-anchor="end">feedwater hatch &mdash; the SMALLER term</text>
+    <!-- OUTPUT edge: the long thin one, down the right margin into the reactor -->
+    <path class="e water thin" d="M796 67 L1210 67 L1210 656 L1058 656" marker-end="url(#ar-water)"/>
+    <text class="estrong" x="1200" y="400" fill="var(--c-water)" text-anchor="end">OUTPUT &times;1.00 &hellip; &times;1.40</text>
+    <text class="elabel"  x="1200" y="413" text-anchor="end">feedwater hatch &mdash; the SMALLER term</text>
 
     <!-- ============================ FUEL lane ============================ -->
     <text class="lane" x="14" y="176" fill="var(--c-fuel)">Fuel line</text>
     <text class="lanesub" x="14" y="190">F-01 &hellip; F-23</text>
     <text class="lanesub" x="14" y="202">85 recipes</text>
 
-    <!-- ore feed -->
     <g class="b-ghost" transform="translate(14,232)">
-      <rect class="nbox" width="112" height="44" rx="5"/>
+      <rect class="nbox" width="112" height="52" rx="5"/>
       <text class="nid" x="10" y="17">Feedstock</text>
-      <text class="ns"  x="10" y="33">Uraninite &middot; Pitchblende</text>
+      <text class="ns"  x="10" y="32">Uraninite</text>
+      <text class="ns"  x="10" y="45">Pitchblende</text>
     </g>
-    <path class="e fuel" d="M126 254 L150 254 L150 186 L156 186" marker-end="url(#ar-fuel)"/>
+    <path class="e fuel" d="M126 254 L146 254 L146 186 L152 186" marker-end="url(#ar-fuel)"/>
 
-    <!-- spine, six boxes -->
+    <!-- the spine: six boxes, one straight line, nothing skips a box -->
     <g class="b-fuel crit" transform="translate(158,158)">
       <rect class="nbox" width="152" height="56" rx="5"/>
       <text class="nid" x="11" y="17">F-01 &hellip; F-08</text>
       <text class="nt"  x="11" y="34">Front end</text>
-      <text class="ns"  x="11" y="48">mill &rarr; float &rarr; leach &rarr; SX</text>
+      <text class="ns"  x="11" y="48">mill &rarr; leach &rarr; SX</text>
     </g>
-    <path class="e fuel" d="M310 186 L332 186" marker-end="url(#ar-fuel)"/>
+    <path class="e fuel" d="M310 186 L330 186" marker-end="url(#ar-fuel)"/>
 
     <g class="b-fuel crit" transform="translate(334,158)">
       <rect class="nbox" width="152" height="56" rx="5"/>
@@ -565,7 +565,7 @@ noscript .nojs {
       <text class="nt"  x="11" y="34">Conversion</text>
       <text class="ns"  x="11" y="48">UF&#8324; &rarr; UF&#8326; &nbsp;(GT++)</text>
     </g>
-    <path class="e fuel" d="M486 186 L508 186" marker-end="url(#ar-fuel)"/>
+    <path class="e fuel" d="M486 186 L506 186" marker-end="url(#ar-fuel)"/>
 
     <g class="b-fuel crit" transform="translate(510,158)">
       <rect class="nbox" width="152" height="56" rx="5"/>
@@ -573,15 +573,15 @@ noscript .nojs {
       <text class="nt"  x="11" y="34">Cascade Hall</text>
       <text class="ns"  x="11" y="48">enriched 1 : tails 5</text>
     </g>
-    <path class="e fuel" d="M662 186 L684 186" marker-end="url(#ar-fuel)"/>
+    <path class="e fuel" d="M662 186 L682 186" marker-end="url(#ar-fuel)"/>
 
     <g class="b-water crit" transform="translate(686,158)">
       <rect class="nbox" width="152" height="56" rx="5"/>
       <text class="nid" x="11" y="17">F-12 &mdash; 9 recipes</text>
       <text class="nt"  x="11" y="34" fill="var(--c-water)">THE WATER STEP</text>
-      <text class="ns"  x="11" y="48">2&hellip;18 UO&#8322; powder</text>
+      <text class="ns"  x="11" y="48">2 &hellip; 18 UO&#8322; powder</text>
     </g>
-    <path class="e fuel" d="M838 186 L860 186" marker-end="url(#ar-fuel)"/>
+    <path class="e fuel" d="M838 186 L858 186" marker-end="url(#ar-fuel)"/>
 
     <g class="b-fuel crit" transform="translate(862,158)">
       <rect class="nbox" width="152" height="56" rx="5"/>
@@ -589,34 +589,36 @@ noscript .nojs {
       <text class="nt"  x="11" y="34">Ceramics</text>
       <text class="ns"  x="11" y="48">press &rarr; sinter &rarr; grind</text>
     </g>
-    <path class="e fuel" d="M1014 186 L1036 186" marker-end="url(#ar-fuel)"/>
+    <path class="e fuel" d="M1014 186 L1034 186" marker-end="url(#ar-fuel)"/>
 
     <g class="b-fuel crit" transform="translate(1038,158)">
       <rect class="nbox" width="152" height="56" rx="5"/>
       <text class="nid" x="11" y="17">F-17 / F-18 &nbsp;<tspan class="newm" fill="var(--c-fuel)">&#9733; NEW</tspan></text>
       <text class="nt"  x="11" y="34">Fabrication Hall</text>
-      <text class="ns"  x="11" y="48">4 pellets/rod &middot; 3 rods/bundle</text>
+      <text class="ns"  x="11" y="48">rod + bundle assembly</text>
     </g>
 
-    <!-- grade branches under the ceramics/fabrication end -->
-    <path class="e fuel thin" d="M938 214 L938 246" marker-end="url(#ar-fuel)"/>
-    <g class="b-fuel" transform="translate(862,246)">
+    <!-- the three other grades hang off the ceramics step and rejoin at fabrication -->
+    <path class="e fuel thin" d="M900 214 L900 232 L762 232 L762 242" marker-end="url(#ar-fuel)"/>
+    <g class="b-fuel" transform="translate(686,246)">
       <rect class="nbox" width="152" height="42" rx="5"/>
       <text class="nid" x="11" y="16">F-19 &hellip; F-23</text>
-      <text class="ns"  x="11" y="32">MOX &middot; Thorium &middot; Naquadah</text>
+      <text class="ns"  x="11" y="32">MOX &middot; Thorium &middot; Naq</text>
     </g>
-    <path class="e fuel thin" d="M1014 267 L1114 267 L1114 216" marker-end="url(#ar-fuel)"/>
+    <path class="e fuel thin" d="M838 267 L1090 267 L1090 220" marker-end="url(#ar-fuel)"/>
 
-    <!-- tails split out of the cascade, down to the material lane -->
-    <path class="e mat thin" d="M586 214 L586 470 L692 470" marker-end="url(#ar-mat)"/>
-    <text class="elabel" x="594" y="330">enrichment TAILS</text>
-    <text class="elabel" x="594" y="343">&rarr; F-11c depleted-U metal</text>
-    <text class="elabel" x="594" y="356">&rarr; F-20 MOX diluent</text>
+    <!-- enrichment tails leave the spine and become casings -->
+    <path class="e mat thin" d="M586 214 L586 430 L432 430 L432 448" marker-end="url(#ar-mat)"/>
+    <text class="estrong" x="594" y="308" fill="var(--c-mat)">enrichment TAILS &mdash; a product</text>
+    <text class="elabel"  x="594" y="322">&rarr; F-11c depleted-U metal &rarr; M-03b</text>
+    <text class="elabel"  x="594" y="336">&rarr; F-20 the MOX diluent</text>
 
-    <!-- fuel bundles down to the reactor -->
-    <path class="e fuel" d="M1114 288 L1114 660 L1046 660" marker-end="url(#ar-fuel)"/>
-    <text class="elabel" x="1122" y="470">fuel bundles</text>
-    <text class="elabel" x="1122" y="483">4 grades</text>
+    <!-- finished bundles into the reactor -->
+    <path class="e fuel" d="M1140 214 L1140 672 L1058 672" marker-end="url(#ar-fuel)"/>
+    <text class="elabel" x="1148" y="470">fuel bundles</text>
+    <text class="elabel" x="1148" y="483">4 grades</text>
+    <text class="elabel" x="1148" y="502">4 pellets/rod</text>
+    <text class="elabel" x="1148" y="515">3 rods/bundle</text>
 
     <!-- ============================ REPROCESSING lane ============================ -->
     <text class="lane" x="14" y="330" fill="var(--c-repro)">Reprocessing</text>
@@ -628,7 +630,7 @@ noscript .nojs {
       <text class="nt"  x="11" y="34">Cooling pond</text>
       <text class="ns"  x="11" y="47">Decay Warehouse</text>
     </g>
-    <path class="e repro" d="M310 334 L332 334" marker-end="url(#ar-repro)"/>
+    <path class="e repro" d="M310 334 L330 334" marker-end="url(#ar-repro)"/>
 
     <g class="b-repro" transform="translate(334,308)">
       <rect class="nbox" width="196" height="52" rx="5"/>
@@ -637,21 +639,21 @@ noscript .nojs {
       <text class="ns"  x="11" y="47">chop-leach &middot; partition</text>
     </g>
 
-    <!-- depleted fuel comes back out of the reactor -->
-    <path class="e repro" d="M902 660 L902 400 L234 400 L234 362" marker-end="url(#ar-repro)"/>
-    <text class="elabel" x="470" y="394">depleted rods and assemblies</text>
-
-    <!-- recovered oxide returns to the ceramics step -->
-    <path class="e repro" d="M530 322 L560 322 L560 302 L938 302 L938 216" marker-end="url(#ar-repro)"/>
-    <text class="elabel" x="700" y="296">recovered UO&#8322; + PuO&#8322; &rarr; back into F-13</text>
-
-    <!-- waste water closes D-09 -->
-    <g class="b-ghost" transform="translate(560,336)">
-      <rect class="nbox" width="176" height="40" rx="5"/>
+    <!-- the waste-water product slate, straight down out of the canyon -->
+    <path class="e repro thin" d="M432 360 L432 368" marker-end="url(#ar-repro)"/>
+    <g class="b-ghost" transform="translate(334,372)">
+      <rect class="nbox" width="196" height="40" rx="5"/>
       <text class="nid" x="10" y="16">closes D-09</text>
       <text class="ns"  x="10" y="31">Nuclear Waste Water &rarr; Ta</text>
     </g>
-    <path class="e repro thin" d="M530 352 L556 352" marker-end="url(#ar-repro)"/>
+
+    <!-- depleted fuel comes back out of the reactor -->
+    <path class="e repro" d="M1020 636 L1020 440 L234 440 L234 366" marker-end="url(#ar-repro)"/>
+    <text class="elabel" x="620" y="434">depleted rods and assemblies</text>
+
+    <!-- recovered oxide rejoins the spine at the ceramics step -->
+    <path class="e repro" d="M432 308 L432 296 L1006 296 L1006 220" marker-end="url(#ar-repro)"/>
+    <text class="elabel" x="1014" y="292">recovered UO&#8322; + PuO&#8322; &rarr; back into F-13</text>
 
     <!-- ============================ MATERIAL lane ============================ -->
     <text class="lane" x="14" y="456" fill="var(--c-mat)">Material lines</text>
@@ -661,10 +663,10 @@ noscript .nojs {
     <g class="b-ghost" transform="translate(158,452)">
       <rect class="nbox" width="152" height="52" rx="5"/>
       <text class="nid" x="11" y="17">bulk feed</text>
-      <text class="ns"  x="11" y="33">limestone &middot; plate &middot; frame</text>
+      <text class="ns"  x="11" y="33">limestone &middot; plates</text>
       <text class="ns"  x="11" y="46">argon &middot; molten metal</text>
     </g>
-    <path class="e mat" d="M310 478 L332 478" marker-end="url(#ar-mat)"/>
+    <path class="e mat" d="M310 478 L330 478" marker-end="url(#ar-mat)"/>
 
     <g class="b-mat crit" transform="translate(334,452)">
       <rect class="nbox" width="196" height="52" rx="5"/>
@@ -672,7 +674,7 @@ noscript .nojs {
       <text class="nt"  x="11" y="34">Site Batching Plant</text>
       <text class="ns"  x="11" y="47">one map, twelve batch recipes</text>
     </g>
-    <path class="e mat" d="M530 478 L556 478" marker-end="url(#ar-mat)"/>
+    <path class="e mat" d="M530 478 L554 478" marker-end="url(#ar-mat)"/>
 
     <g class="b-mat" transform="translate(558,452)">
       <rect class="nbox" width="176" height="52" rx="5"/>
@@ -680,12 +682,11 @@ noscript .nojs {
       <text class="nt"  x="11" y="34">Casings, in bulk</text>
       <text class="ns"  x="11" y="47">8&ndash;32 a batch, not 1</text>
     </g>
-    <path class="e mat" d="M734 478 L902 478 L902 636" marker-end="url(#ar-mat)"/>
-    <text class="elabel" x="744" y="472">10,249 blocks &mdash; a whole tier-5 plant</text>
+    <path class="e mat" d="M734 478 L980 478 L980 630" marker-end="url(#ar-mat)"/>
+    <text class="elabel" x="744" y="470">10,249 blocks &mdash; a whole tier-5 plant</text>
 
-    <!-- the DU interlock -->
-    <text class="estrong" x="700" y="500" fill="var(--c-mat)">M-03b: the interlock</text>
-    <text class="elabel"  x="700" y="513">tails become shielding &mdash; the fuel line feeds the casing line</text>
+    <text class="estrong" x="158" y="516" fill="var(--c-mat)">M-03b &mdash; the interlock</text>
+    <text class="elabel"  x="158" y="529">the enrichment tails become shielding casings, so the FUEL line feeds the CASING line</text>
 
     <!-- ============================ PROPELLANT lane ============================ -->
     <text class="lane" x="14" y="566" fill="var(--c-prop)">Propellant</text>
@@ -695,9 +696,9 @@ noscript .nojs {
       <rect class="nbox" width="152" height="52" rx="5"/>
       <text class="nid" x="11" y="17">P-01 / P-02</text>
       <text class="ns"  x="11" y="33">oxidiser blend</text>
-      <text class="ns"  x="11" y="46">+ metal slurry (Al/Ada/&#8734;)</text>
+      <text class="ns"  x="11" y="46">+ metal slurry</text>
     </g>
-    <path class="e prop" d="M310 570 L332 570" marker-end="url(#ar-prop)"/>
+    <path class="e prop" d="M310 570 L330 570" marker-end="url(#ar-prop)"/>
 
     <g class="b-prop" transform="translate(334,544)">
       <rect class="nbox" width="196" height="52" rx="5"/>
@@ -705,12 +706,12 @@ noscript .nojs {
       <text class="nt"  x="11" y="34">Blending, Lv 1&ndash;6</text>
       <text class="ns"  x="11" y="47">Chemical Plant &middot; QFT</text>
     </g>
-    <path class="e prop" d="M530 570 L862 570 L862 636" marker-end="url(#ar-prop)"/>
-    <text class="elabel" x="544" y="564">250 L a cycle &mdash; unchanged, so D-20&rsquo;s clock still balances</text>
+    <path class="e prop" d="M530 570 L850 570 L850 730 L856 730" marker-end="url(#ar-prop)"/>
+    <text class="elabel" x="544" y="560">250 L a cycle &mdash; D-20 clock balance unchanged</text>
 
-    <g class="b-ghost" transform="translate(558,594)">
-      <rect class="nbox" width="290" height="34" rx="5"/>
-      <text class="ns" x="10" y="21">legacy one-step Mixer recipes KEPT STANDING &mdash; the new chain is a cheaper route, not a replacement</text>
+    <g class="b-ghost" transform="translate(558,604)">
+      <rect class="nbox" width="224" height="34" rx="5"/>
+      <text class="ns" x="10" y="21">legacy Mixer recipes KEPT STANDING</text>
     </g>
 
     <!-- ============================ COOLANT lane ============================ -->
@@ -723,7 +724,7 @@ noscript .nojs {
       <text class="nt"  x="11" y="34">Chemical shim</text>
       <text class="ns"  x="11" y="47">boric acid + LiOH</text>
     </g>
-    <path class="e cool" d="M310 682 L332 682" marker-end="url(#ar-cool)"/>
+    <path class="e cool" d="M310 682 L330 682" marker-end="url(#ar-cool)"/>
 
     <g class="b-cool" transform="translate(334,656)">
       <rect class="nbox" width="196" height="52" rx="5"/>
@@ -731,27 +732,27 @@ noscript .nojs {
       <text class="nt"  x="11" y="34">Bulk coolant, &times;8</text>
       <text class="ns"  x="11" y="47">IC2 Coolant &middot; Super Coolant</text>
     </g>
-    <path class="e cool" d="M530 682 L822 682 L822 700 L862 700" marker-end="url(#ar-cool)"/>
-    <text class="elabel" x="544" y="676">no rung changed price &mdash; the D-08 ladder is untouched</text>
+    <path class="e cool" d="M530 682 L800 682 L800 752 L856 752" marker-end="url(#ar-cool)"/>
+    <text class="elabel" x="544" y="672">no rung changed price &mdash; D-08 untouched</text>
 
     <!-- ============================ UNIT ONE column ============================ -->
-    <text class="lane" x="884" y="628" fill="var(--c-plant)">Unit One</text>
+    <text class="lane" x="866" y="628" fill="var(--c-plant)">Unit One</text>
 
     <g class="b-plant" transform="translate(862,636)">
-      <rect class="nbox" width="184" height="56" rx="5"/>
-      <text class="nid" x="11" y="17">MTEReactorCoreMk1</text>
+      <rect class="nbox" width="196" height="56" rx="5"/>
+      <text class="nid" x="11" y="17">the main controller</text>
       <text class="nt"  x="11" y="34">Reactor &amp; silo</text>
       <text class="ns"  x="11" y="48">rods &rarr; heat &rarr; steam</text>
     </g>
-    <path class="e plant" d="M954 692 L954 716" marker-end="url(#ar-plant)"/>
+    <path class="e plant" d="M960 692 L960 712" marker-end="url(#ar-plant)"/>
 
     <g class="b-plant" transform="translate(862,716)">
-      <rect class="nbox" width="184" height="56" rx="5"/>
+      <rect class="nbox" width="196" height="56" rx="5"/>
       <text class="nid" x="11" y="17">Spine &middot; Spiral &middot; Manifold</text>
       <text class="nt"  x="11" y="34">Turbine generator</text>
       <text class="ns"  x="11" y="48">16,384 L/t a column</text>
     </g>
-    <path class="e plant" d="M1046 744 L1082 744" marker-end="url(#ar-plant)"/>
+    <path class="e plant" d="M1058 744 L1080 744" marker-end="url(#ar-plant)"/>
 
     <g class="b-plant" transform="translate(1084,720)">
       <rect class="nbox" width="112" height="48" rx="5"/>
@@ -759,12 +760,13 @@ noscript .nojs {
       <text class="ns"  x="11" y="38">up to ~1B EU/t</text>
     </g>
 
-    <!-- the two guard figures, stated on the chart itself -->
-    <g transform="translate(14,796)">
-      <rect x="0" y="0" width="828" height="66" rx="5" fill="var(--panel-2)" stroke="var(--line)" stroke-width="1"/>
-      <text class="lane" x="14" y="20" fill="var(--c-water)">The balance guard, on the chart</text>
-      <text class="elabel" x="14" y="37">YIELD spans &times;9.00 (500 &rarr; 4500 milli).  OUTPUT spans &times;1.40 (1000 &rarr; 1400 milli).  The output term is smaller by 6.4&times;.</text>
-      <text class="elabel" x="14" y="52">The WHOLE water ladder is +40 % EU.  The CHEAPEST single rung of the fuel ladder (ROD_MULT 1 &rarr; 2) is +100 %.  Water buys cheap fuel, never power.</text>
+    <!-- the guard, stated on the chart itself rather than only in prose -->
+    <g transform="translate(14,788)">
+      <rect x="0" y="0" width="780" height="80" rx="5" fill="var(--panel-2)" stroke="var(--line)" stroke-width="1"/>
+      <text class="lane" x="14" y="21" fill="var(--c-water)">The balance guard, on the chart</text>
+      <text class="elabel" x="14" y="39">YIELD spans &times;9.00 (500 &rarr; 4500 milli).  OUTPUT spans &times;1.40 (1000 &rarr; 1400 milli).</text>
+      <text class="elabel" x="14" y="53">The output term is smaller by 6.4&times;, and the WHOLE water ladder is worth +40 % EU.</text>
+      <text class="elabel" x="14" y="67">The CHEAPEST single rung of the fuel ladder (ROD_MULT 1 &rarr; 2) is +100 %.  Water buys cheap fuel, never power.</text>
     </g>
   </svg>
   </div>
@@ -858,6 +860,7 @@ var TIER_BAND = {
 var LINES = [
   {
     key: "fuel", tag: "Fuel line", cls: "l-fuel",
+    desc: "Ore to fuel bundle — the chain that REPLACED the old four-step assembler route",
     colour: "var(--c-fuel)", bg: "var(--c-fuel-bg)", bd: "var(--c-fuel-bd)",
     phases: [
       {
@@ -1054,6 +1057,7 @@ var LINES = [
 
   {
     key: "repro", tag: "Reprocessing", cls: "l-repro",
+    desc: "What comes back out of the reactor, and where it rejoins the spine",
     colour: "var(--c-repro)", bg: "var(--c-repro-bg)", bd: "var(--c-repro-bd)",
     phases: [
       {
@@ -1093,6 +1097,7 @@ var LINES = [
 
   {
     key: "mat", tag: "Material lines", cls: "l-mat",
+    desc: "The plant’s own casings, in bulk, staged by tier",
     colour: "var(--c-mat)", bg: "var(--c-mat-bg)", bd: "var(--c-mat-bd)",
     phases: [
       {
@@ -1154,6 +1159,7 @@ var LINES = [
 
   {
     key: "prop", tag: "Propellant", cls: "l-prop",
+    desc: "A real three-stage chain for the D-08 ladder’s six rungs",
     colour: "var(--c-prop)", bg: "var(--c-prop-bg)", bd: "var(--c-prop-bd)",
     phases: [
       {
@@ -1198,6 +1204,7 @@ var LINES = [
 
   {
     key: "cool", tag: "Coolant", cls: "l-cool",
+    desc: "Bulk manufacture of the ladder’s existing fluids — nothing new, nothing re-priced",
     colour: "var(--c-cool)", bg: "var(--c-cool-bg)", bd: "var(--c-cool-bd)",
     phases: [
       {
@@ -1291,8 +1298,7 @@ function renderRails() {
     });
     totalRecipes += n; totalSteps += st;
 
-    head.appendChild(el("h3", null, line.phases.length +
-      (line.phases.length === 1 ? " phase" : " phases")));
+    head.appendChild(el("h3", null, line.desc));
     head.appendChild(el("span", "cnt", st + " steps · " + n + " registered recipes"));
     host.appendChild(head);
 
@@ -1302,7 +1308,9 @@ function renderRails() {
       if (p.note) box.appendChild(el("p", "phase-note", p.note));
       var grid = el("div", "steps");
       p.steps.forEach(function (s) {
-        if (s.star) seenStars[s.mach] = true;
+        // Machine IDENTITY, not label: "PUREX Canyon, circuit 1/2/3" is ONE multiblock.
+        // Counting the labels reported six new machines where there are four.
+        if (s.star) seenStars[s.mach.replace(/,.*$/, "")] = true;
         grid.appendChild(renderStep(s, line.cls));
       });
       box.appendChild(grid);
