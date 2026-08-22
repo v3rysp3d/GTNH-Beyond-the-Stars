@@ -331,6 +331,19 @@ public final class BTSRecipesFuel {
             .eut(TierEU.RECIPE_HV)
             .addTo(UniversalChemical);
 
+        // F-07b AMMONIUM SULFATE RECOVERY. Without this the co-product has a producer and no
+        // consumer at all: its output hatch fills, and a full output hatch STALLS the reactor
+        // running F-07. Cracking the liquor sends 300 L of the 1,000 L of ammonia straight back
+        // to F-07 and turns the rest into dilute acid, so a standing line needs a 200 L ammonia
+        // make-up per cycle rather than either a full feed or a free lunch.
+        GTValues.RA.stdBuilder()
+            .circuit(2)
+            .fluidInputs(new FluidStack(BTSFluidsProcess.ammoniumSulfateLiquor, 1_000))
+            .fluidOutputs(Materials.Ammonia.getGas(300), Materials.DilutedSulfuricAcid.getFluid(400))
+            .duration(15 * SECONDS)
+            .eut(TierEU.RECIPE_HV)
+            .addTo(distillationTowerRecipes);
+
         // F-08 CALCINING TO YELLOWCAKE, 800 C. Ammonia comes back off the kiln and returns to
         // F-07. Only one fluid output slot exists on this map, so the steam is not modelled.
         GTValues.RA.stdBuilder()
