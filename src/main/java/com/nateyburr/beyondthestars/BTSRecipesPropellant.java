@@ -8,7 +8,6 @@ import static gregtech.api.util.GTRecipeBuilder.SECONDS;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidStack;
 
 import com.nateyburr.beyondthestars.fluids.BTSFluids;
 import com.nateyburr.beyondthestars.fluids.BTSFluidsPropellant;
@@ -21,7 +20,6 @@ import gregtech.api.enums.ItemList;
 import gregtech.api.enums.Materials;
 import gregtech.api.enums.OrePrefixes;
 import gregtech.api.enums.TierEU;
-import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.GTRecipeConstants;
 import gtPlusPlus.api.recipe.GTPPRecipeMaps;
 import gtPlusPlus.core.fluids.GTPPFluids;
@@ -142,60 +140,72 @@ public final class BTSRecipesPropellant {
 
     private static void legacyMixerLadder() {
         // SD-3: high-grade naquadah propellants (Lv 4-6) off the deeper GoodGenerator fuels
-        GTValues.RA.stdBuilder()
-            .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Adamantium, 8L))
-            .circuit(5)
-            .fluidInputs(GGMaterial.naquadahBasedFuelMkIV.getFluidOrGas(1_000))
-            .fluidOutputs(new FluidStack(BTSFluids.naqPropellantT4, 250))
-            .duration(20 * SECONDS)
-            .eut(TierEU.RECIPE_UHV)
-            .addTo(mixerRecipes);
+        BTSRecipeGuard.recipe(
+            "SD-3",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(BTSRecipeGuard.req(OrePrefixes.dust, Materials.Adamantium, 8L))
+                .circuit(5)
+                .fluidInputs(GGMaterial.naquadahBasedFuelMkIV.getFluidOrGas(1_000))
+                .fluidOutputs(BTSRecipeGuard.fluid(BTSFluids.naqPropellantT4, 250))
+                .duration(20 * SECONDS)
+                .eut(TierEU.RECIPE_UHV)
+                .addTo(mixerRecipes));
 
-        GTValues.RA.stdBuilder()
-            .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Infinity, 2L))
-            .circuit(5)
-            .fluidInputs(GGMaterial.naquadahBasedFuelMkV.getFluidOrGas(1_000))
-            .fluidOutputs(new FluidStack(BTSFluids.naqPropellantT5, 250))
-            .duration(20 * SECONDS)
-            .eut(TierEU.RECIPE_UEV)
-            .addTo(mixerRecipes);
+        BTSRecipeGuard.recipe(
+            "naqPropellantT5",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(BTSRecipeGuard.req(OrePrefixes.dust, Materials.Infinity, 2L))
+                .circuit(5)
+                .fluidInputs(GGMaterial.naquadahBasedFuelMkV.getFluidOrGas(1_000))
+                .fluidOutputs(BTSRecipeGuard.fluid(BTSFluids.naqPropellantT5, 250))
+                .duration(20 * SECONDS)
+                .eut(TierEU.RECIPE_UEV)
+                .addTo(mixerRecipes));
 
-        GTValues.RA.stdBuilder()
-            .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Infinity, 4L))
-            .circuit(5)
-            .fluidInputs(GGMaterial.naquadahBasedFuelMkVI.getFluidOrGas(1_000))
-            .fluidOutputs(new FluidStack(BTSFluids.naqPropellantT6, 250))
-            .duration(20 * SECONDS)
-            .eut(TierEU.RECIPE_UIV)
-            .addTo(mixerRecipes);
+        BTSRecipeGuard.recipe(
+            "naqPropellantT6",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(BTSRecipeGuard.req(OrePrefixes.dust, Materials.Infinity, 4L))
+                .circuit(5)
+                .fluidInputs(GGMaterial.naquadahBasedFuelMkVI.getFluidOrGas(1_000))
+                .fluidOutputs(BTSRecipeGuard.fluid(BTSFluids.naqPropellantT6, 250))
+                .duration(20 * SECONDS)
+                .eut(TierEU.RECIPE_UIV)
+                .addTo(mixerRecipes));
 
         // Naquadah propellants: per-litre turbine accelerants from the GoodGenerator fuel family
-        GTValues.RA.stdBuilder()
-            .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, Materials.NaquadahEnriched, 2L))
-            .circuit(5)
-            .fluidInputs(GGMaterial.lightNaquadahFuel.getFluidOrGas(1_000))
-            .fluidOutputs(new FluidStack(BTSFluids.naqPropellantT1, 250))
-            .duration(20 * SECONDS)
-            .eut(TierEU.RECIPE_LuV)
-            .addTo(mixerRecipes);
+        BTSRecipeGuard.recipe(
+            "naqPropellantT1",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(BTSRecipeGuard.req(OrePrefixes.dust, Materials.NaquadahEnriched, 2L))
+                .circuit(5)
+                .fluidInputs(GGMaterial.lightNaquadahFuel.getFluidOrGas(1_000))
+                .fluidOutputs(BTSRecipeGuard.fluid(BTSFluids.naqPropellantT1, 250))
+                .duration(20 * SECONDS)
+                .eut(TierEU.RECIPE_LuV)
+                .addTo(mixerRecipes));
 
-        GTValues.RA.stdBuilder()
-            .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, Materials.NaquadahEnriched, 8L))
-            .circuit(5)
-            .fluidInputs(GGMaterial.naquadahBasedFuelMkI.getFluidOrGas(1_000))
-            .fluidOutputs(new FluidStack(BTSFluids.naqPropellantT2, 250))
-            .duration(20 * SECONDS)
-            .eut(TierEU.RECIPE_ZPM)
-            .addTo(mixerRecipes);
+        BTSRecipeGuard.recipe(
+            "naqPropellantT2",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(BTSRecipeGuard.req(OrePrefixes.dust, Materials.NaquadahEnriched, 8L))
+                .circuit(5)
+                .fluidInputs(GGMaterial.naquadahBasedFuelMkI.getFluidOrGas(1_000))
+                .fluidOutputs(BTSRecipeGuard.fluid(BTSFluids.naqPropellantT2, 250))
+                .duration(20 * SECONDS)
+                .eut(TierEU.RECIPE_ZPM)
+                .addTo(mixerRecipes));
 
-        GTValues.RA.stdBuilder()
-            .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Adamantium, 4L))
-            .circuit(5)
-            .fluidInputs(GGMaterial.naquadahBasedFuelMkIII.getFluidOrGas(1_000))
-            .fluidOutputs(new FluidStack(BTSFluids.naqPropellantT3, 250))
-            .duration(20 * SECONDS)
-            .eut(TierEU.RECIPE_UV)
-            .addTo(mixerRecipes);
+        BTSRecipeGuard.recipe(
+            "naqPropellantT3",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(BTSRecipeGuard.req(OrePrefixes.dust, Materials.Adamantium, 4L))
+                .circuit(5)
+                .fluidInputs(GGMaterial.naquadahBasedFuelMkIII.getFluidOrGas(1_000))
+                .fluidOutputs(BTSRecipeGuard.fluid(BTSFluids.naqPropellantT3, 250))
+                .duration(20 * SECONDS)
+                .eut(TierEU.RECIPE_UV)
+                .addTo(mixerRecipes));
     }
 
     // ------------------------------------------------------------------------------------------
@@ -207,24 +217,30 @@ public final class BTSRecipesPropellant {
 
     private static void oxidiserConditioning() {
         // GT core's N2O4 - registered gas-side, so getGas and NOT getFluid.
-        GTValues.RA.stdBuilder()
-            .circuit(1)
-            .fluidInputs(Materials.NitricAcid.getFluid(2_000), Materials.DinitrogenTetroxide.getGas(1_000))
-            .fluidOutputs(new FluidStack(BTSFluidsPropellant.oxidiserBlend, 3_000))
-            .duration(20 * SECONDS)
-            .eut(TierEU.RECIPE_EV)
-            .metadata(GTRecipeConstants.CHEMPLANT_CASING_TIER, 2)
-            .addTo(GTPPRecipeMaps.chemicalPlantRecipes);
+        BTSRecipeGuard.recipe(
+            "oxidiserBlend",
+            () -> GTValues.RA.stdBuilder()
+                .circuit(1)
+                .fluidInputs(Materials.NitricAcid.getFluid(2_000), Materials.DinitrogenTetroxide.getGas(1_000))
+                .fluidOutputs(BTSRecipeGuard.fluid(BTSFluidsPropellant.oxidiserBlend, 3_000))
+                .duration(20 * SECONDS)
+                .eut(TierEU.RECIPE_EV)
+                .metadata(GTRecipeConstants.CHEMPLANT_CASING_TIER, 2)
+                .addTo(GTPPRecipeMaps.chemicalPlantRecipes));
 
         // GT++'s own N2O4, the one a standing rocket-fuel line already makes.
-        GTValues.RA.stdBuilder()
-            .circuit(1)
-            .fluidInputs(Materials.NitricAcid.getFluid(2_000), new FluidStack(GTPPFluids.NitrogenTetroxide, 1_000))
-            .fluidOutputs(new FluidStack(BTSFluidsPropellant.oxidiserBlend, 3_000))
-            .duration(20 * SECONDS)
-            .eut(TierEU.RECIPE_EV)
-            .metadata(GTRecipeConstants.CHEMPLANT_CASING_TIER, 2)
-            .addTo(GTPPRecipeMaps.chemicalPlantRecipes);
+        BTSRecipeGuard.recipe(
+            "oxidiserBlend (2)",
+            () -> GTValues.RA.stdBuilder()
+                .circuit(1)
+                .fluidInputs(
+                    Materials.NitricAcid.getFluid(2_000),
+                    BTSRecipeGuard.fluid(GTPPFluids.NitrogenTetroxide, 1_000))
+                .fluidOutputs(BTSRecipeGuard.fluid(BTSFluidsPropellant.oxidiserBlend, 3_000))
+                .duration(20 * SECONDS)
+                .eut(TierEU.RECIPE_EV)
+                .metadata(GTRecipeConstants.CHEMPLANT_CASING_TIER, 2)
+                .addTo(GTPPRecipeMaps.chemicalPlantRecipes));
     }
 
     // ------------------------------------------------------------------------------------------
@@ -264,14 +280,17 @@ public final class BTSRecipesPropellant {
     }
 
     private static void mill(Materials metal, Item powder, long tier) {
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.dust, metal, 8L),
-                GregtechItemList.Milling_Ball_Alumina.get(0))
-            .itemOutputs(new ItemStack(powder, 1))
-            .duration(30 * SECONDS)
-            .eut(tier)
-            .addTo(GTPPRecipeMaps.millingRecipes);
+        BTSRecipeGuard.recipe(
+            "P-01 " + BTSRecipeGuard.name(powder),
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    BTSRecipeGuard.req(OrePrefixes.dust, metal, 8L),
+                    BTSRecipeGuard
+                        .nn(GregtechItemList.Milling_Ball_Alumina.get(0), "GregtechItemList.Milling_Ball_Alumina"))
+                .itemOutputs(new ItemStack(powder, 1))
+                .duration(30 * SECONDS)
+                .eut(tier)
+                .addTo(GTPPRecipeMaps.millingRecipes));
     }
 
     // ------------------------------------------------------------------------------------------
@@ -287,14 +306,16 @@ public final class BTSRecipesPropellant {
     }
 
     private static void slurry(Item powder, Fluid out, long tier) {
-        GTValues.RA.stdBuilder()
-            .itemInputs(new ItemStack(powder, 1))
-            .fluidInputs(new FluidStack(GTPPFluids.Kerosene, 1_000))
-            .fluidOutputs(new FluidStack(out, 2_000))
-            .duration(20 * SECONDS)
-            .eut(tier)
-            .metadata(GTRecipeConstants.CHEMPLANT_CASING_TIER, 2)
-            .addTo(GTPPRecipeMaps.chemicalPlantRecipes);
+        BTSRecipeGuard.recipe(
+            "P-02 " + BTSRecipeGuard.name(out),
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(new ItemStack(powder, 1))
+                .fluidInputs(BTSRecipeGuard.fluid(GTPPFluids.Kerosene, 1_000))
+                .fluidOutputs(BTSRecipeGuard.fluid(out, 2_000))
+                .duration(20 * SECONDS)
+                .eut(tier)
+                .metadata(GTRecipeConstants.CHEMPLANT_CASING_TIER, 2)
+                .addTo(GTPPRecipeMaps.chemicalPlantRecipes));
     }
 
     // ------------------------------------------------------------------------------------------
@@ -365,17 +386,19 @@ public final class BTSRecipesPropellant {
      * calls it Tier 4. {@code dustEquivalent} is the legacy recipe's dust count.
      */
     private static void blendLow(Werkstoff fuel, Fluid slurry, int dustEquivalent, Fluid out, long tier) {
-        GTValues.RA.stdBuilder()
-            .circuit(5)
-            .fluidInputs(
-                fuel.getFluidOrGas(NAQ_FUEL_PER_RUNG),
-                new FluidStack(BTSFluidsPropellant.oxidiserBlend, OXIDISER_PER_RUNG),
-                new FluidStack(slurry, dustEquivalent * SLURRY_PER_DUST))
-            .fluidOutputs(new FluidStack(out, PROPELLANT_PER_CYCLE))
-            .duration(30 * SECONDS)
-            .eut(tier)
-            .metadata(GTRecipeConstants.CHEMPLANT_CASING_TIER, 3)
-            .addTo(GTPPRecipeMaps.chemicalPlantRecipes);
+        BTSRecipeGuard.recipe(
+            "P-03 low " + BTSRecipeGuard.name(out),
+            () -> GTValues.RA.stdBuilder()
+                .circuit(5)
+                .fluidInputs(
+                    fuel.getFluidOrGas(NAQ_FUEL_PER_RUNG),
+                    BTSRecipeGuard.fluid(BTSFluidsPropellant.oxidiserBlend, OXIDISER_PER_RUNG),
+                    BTSRecipeGuard.fluid(slurry, dustEquivalent * SLURRY_PER_DUST))
+                .fluidOutputs(BTSRecipeGuard.fluid(out, PROPELLANT_PER_CYCLE))
+                .duration(30 * SECONDS)
+                .eut(tier)
+                .metadata(GTRecipeConstants.CHEMPLANT_CASING_TIER, 3)
+                .addTo(GTPPRecipeMaps.chemicalPlantRecipes));
     }
 
     /**
@@ -383,18 +406,23 @@ public final class BTSRecipesPropellant {
      * the circuit selects which output the focus lands on, and index 0 is the only one there is.
      */
     private static void blendHigh(Werkstoff fuel, Fluid slurry, int dustEquivalent, Fluid out, long tier) {
-        GTValues.RA.stdBuilder()
-            .circuit(QFT_FOCUS_ONLY_OUTPUT)
-            .fluidInputs(
-                fuel.getFluidOrGas(NAQ_FUEL_PER_RUNG),
-                new FluidStack(BTSFluidsPropellant.oxidiserBlend, OXIDISER_PER_RUNG),
-                new FluidStack(slurry, dustEquivalent * SLURRY_PER_DUST))
-            .fluidOutputs(new FluidStack(out, PROPELLANT_PER_CYCLE))
-            .duration(30 * SECONDS)
-            .eut(tier)
-            .metadata(GTRecipeConstants.QFT_CATALYST, GregtechItemList.SimpleNaquadahCatalyst.get(0))
-            .metadata(GTRecipeConstants.QFT_FOCUS_TIER, 1)
-            .addTo(GTPPRecipeMaps.quantumForceTransformerRecipes);
+        BTSRecipeGuard.recipe(
+            "P-03 high " + BTSRecipeGuard.name(out),
+            () -> GTValues.RA.stdBuilder()
+                .circuit(QFT_FOCUS_ONLY_OUTPUT)
+                .fluidInputs(
+                    fuel.getFluidOrGas(NAQ_FUEL_PER_RUNG),
+                    BTSRecipeGuard.fluid(BTSFluidsPropellant.oxidiserBlend, OXIDISER_PER_RUNG),
+                    BTSRecipeGuard.fluid(slurry, dustEquivalent * SLURRY_PER_DUST))
+                .fluidOutputs(BTSRecipeGuard.fluid(out, PROPELLANT_PER_CYCLE))
+                .duration(30 * SECONDS)
+                .eut(tier)
+                .metadata(
+                    GTRecipeConstants.QFT_CATALYST,
+                    BTSRecipeGuard
+                        .nn(GregtechItemList.SimpleNaquadahCatalyst.get(0), "GregtechItemList.SimpleNaquadahCatalyst"))
+                .metadata(GTRecipeConstants.QFT_FOCUS_TIER, 1)
+                .addTo(GTPPRecipeMaps.quantumForceTransformerRecipes));
     }
 
     // ------------------------------------------------------------------------------------------
@@ -417,21 +445,25 @@ public final class BTSRecipesPropellant {
     }
 
     private static void cartridge(Fluid propellant, Item cartridge) {
-        GTValues.RA.stdBuilder()
-            .itemInputs(ItemList.Shape_Mold_Ball.get(0))
-            .fluidInputs(new FluidStack(propellant, 1_000))
-            .itemOutputs(new ItemStack(cartridge, 1))
-            .duration(10 * SECONDS)
-            .eut(TierEU.RECIPE_LuV)
-            .addTo(fluidSolidifierRecipes);
+        BTSRecipeGuard.recipe(
+            "P-04 " + BTSRecipeGuard.name(cartridge),
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(BTSRecipeGuard.nn(ItemList.Shape_Mold_Ball.get(0), "ItemList.Shape_Mold_Ball"))
+                .fluidInputs(BTSRecipeGuard.fluid(propellant, 1_000))
+                .itemOutputs(new ItemStack(cartridge, 1))
+                .duration(10 * SECONDS)
+                .eut(TierEU.RECIPE_LuV)
+                .addTo(fluidSolidifierRecipes));
 
         // The return leg. Without it a cartridge is a one-way trip, and the "worth exactly the
         // fluid that went into it" claim above would simply be false.
-        GTValues.RA.stdBuilder()
-            .itemInputs(new ItemStack(cartridge, 1))
-            .fluidOutputs(new FluidStack(propellant, 1_000))
-            .duration(10 * SECONDS)
-            .eut(TierEU.RECIPE_LuV)
-            .addTo(fluidExtractionRecipes);
+        BTSRecipeGuard.recipe(
+            "P-04 empty " + BTSRecipeGuard.name(propellant),
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(new ItemStack(cartridge, 1))
+                .fluidOutputs(BTSRecipeGuard.fluid(propellant, 1_000))
+                .duration(10 * SECONDS)
+                .eut(TierEU.RECIPE_LuV)
+                .addTo(fluidExtractionRecipes));
     }
 }

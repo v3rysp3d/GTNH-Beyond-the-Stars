@@ -19,6 +19,13 @@ package com.nateyburr.beyondthestars;
  * <b>Nothing may be added to THIS file.</b> A recipe here would be a recipe with no owner, and
  * the next release would have to work out whose it was.
  * <p>
+ * <b>Every line runs under {@link BTSRecipeGuard}.</b> 0.24.0 did not boot because one OreDict
+ * lookup in one recipe answered null and the exception escaped postInit, taking all four lines with
+ * it. {@link BTSRecipeGuard#line(String, Runnable)} contains a failure to the line it happened in,
+ * {@link BTSRecipeGuard#recipe(String, Runnable)} contains it to the single recipe, and
+ * {@link BTSRecipeGuard#summary()} prints what was lost. <b>These calls are not recipes and do not
+ * break the no-recipes-here rule</b> - they are the call order's own error handling.
+ * <p>
  * <b>Order is deliberate.</b> The lines are independent - GT recipe maps do not care what order
  * they are filled in - but {@link BTSDisplayRecipes} runs LAST for a reason: its three
  * display-only NEI pages read {@code MTEReactorCoreMk1} runtime tables, and running it last keeps
@@ -30,11 +37,15 @@ public final class BTSRecipes {
     private BTSRecipes() {}
 
     public static void register() {
-        BTSRecipesFuel.register();
-        BTSRecipesMaterials.register();
-        BTSRecipesPropellant.register();
-        BTSRecipesCoolant.register();
-        BTSRecipesMachines.register();
-        BTSDisplayRecipes.register();
+        BTSRecipeGuard.begin();
+
+        BTSRecipeGuard.line("fuel", BTSRecipesFuel::register);
+        BTSRecipeGuard.line("materials", BTSRecipesMaterials::register);
+        BTSRecipeGuard.line("propellant", BTSRecipesPropellant::register);
+        BTSRecipeGuard.line("coolant", BTSRecipesCoolant::register);
+        BTSRecipeGuard.line("machines", BTSRecipesMachines::register);
+        BTSRecipeGuard.line("display", BTSDisplayRecipes::register);
+
+        BTSRecipeGuard.summary();
     }
 }

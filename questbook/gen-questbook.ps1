@@ -1398,7 +1398,7 @@ $quests = @(
                 'One sixth leaves enriched. Five sixths leave as tails - {b}and the tails are a product, not waste{r}.'
                 ''
                 '{e}{l}WHAT THE TAILS ARE FOR{r}'
-                '  {2}5,000 L Tails + 8x Calcium Dust  ->  4x Depleted Uranium Ingot + 8x Fluorite{r} {8}(Neutron Activator, LuV){r}'
+                '  {2}5,000 L Tails + 8x Calcium Dust  ->  4x Depleted Uranium Ingot + 8x Fluorspar{r} {8}(Neutron Activator, LuV){r}'
                 '  {2}5,000 L Tails + Hydrogen + Water  ->  20x Depleted UO2 Powder{r} {8}(F-20 - the MOX diluent){r}'
                 'The ingots are shielding: {b}M-03b{r} on the Site Batching Plant spends {2}8 of them per 8 Tungstensteel Reinforced Blocks{r}. That is a deliberate interlock - {6}your fuel line feeds your casing line{r}.'
                 ''

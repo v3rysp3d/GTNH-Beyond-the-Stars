@@ -15,7 +15,6 @@ import gregtech.api.enums.ItemList;
 import gregtech.api.enums.Materials;
 import gregtech.api.enums.OrePrefixes;
 import gregtech.api.enums.TierEU;
-import gregtech.api.util.GTOreDictUnificator;
 import gtPlusPlus.core.material.MaterialsAlloy;
 
 /**
@@ -191,32 +190,52 @@ public final class BTSRecipesMaterials {
         // because the Batching Plant has no output hatch (see the class comment).
         //
         // This is a FEEDSTOCK route, not a cheaper one: it lets a concrete line run off the
-        // limestone a quarry is already producing instead of competing for stone dust with
+        // carbonate rock a quarry is already producing instead of competing for stone dust with
         // everything else that wants it. GT's own route to Concrete Dust is untouched.
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Limestone, 6L),
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Clay, 2L),
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Gypsum, 1L))
-            .circuit(1)
-            .itemOutputs(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Concrete, 8L))
-            .duration(16 * SECONDS)
-            .eut(TierEU.RECIPE_EV)
-            .addTo(MTESiteBatchingPlant.RECIPE_MAP);
+        //
+        // THE CARBONATE IS CALCITE, NOT LIMESTONE, AND IT HAD TO BE. dust Materials.Limestone is
+        // the SAME BUG that stopped 0.24.0 booting at F-11c: Limestone is absent from
+        // MaterialsIDMap, so its mMetaItemSubID stays -1 and no meta-item is ever generated for
+        // it - loadLimestone() is character for character the shape of loadFluorite(), setName,
+        // setDefaultLocalName, addDustItems, constructMaterial and no ID. Nothing anywhere in the
+        // pinned jar registers the oredict name dustLimestone either, so the OreDictionary
+        // fallback inside GTOreDictUnificator.get had nothing to find. This would have been the
+        // next crash after Fluorite; the guard would now turn it into a skipped recipe, but a
+        // skipped M-01a means no cement, and no cement means no concrete for the largest line
+        // item in the entire build.
+        //
+        // Calcite is the right substitute rather than merely an available one: it is CaCO3, which
+        // is what limestone IS, it is ID 823 in MaterialsIDMap with addDustItems() and
+        // addOreItems(), and it is quarry output exactly as the paragraph above wants. The kiln
+        // chemistry is unchanged - calcination drives CO2 off a calcium carbonate either way.
+        BTSRecipeGuard.recipe(
+            "M-01a",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    BTSRecipeGuard.req(OrePrefixes.dust, Materials.Calcite, 6L),
+                    BTSRecipeGuard.req(OrePrefixes.dust, Materials.Clay, 2L),
+                    BTSRecipeGuard.req(OrePrefixes.dust, Materials.Gypsum, 1L))
+                .circuit(1)
+                .itemOutputs(BTSRecipeGuard.req(OrePrefixes.dust, Materials.Concrete, 8L))
+                .duration(16 * SECONDS)
+                .eut(TierEU.RECIPE_EV)
+                .addTo(MTESiteBatchingPlant.RECIPE_MAP));
 
         // M-01b Ready-mix batching and slipform casting. 2 cement : 6 sand : 8 gravel is a
         // 12.5 % binder fraction, which is what structural concrete actually is - and it is why
         // 118 batches cover a tier-5 platform, its two cooling towers and the Spiral's helix arcs.
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Concrete, 2L),
-                new ItemStack(Blocks.sand, 6),
-                new ItemStack(Blocks.gravel, 8))
-            .fluidInputs(Materials.Water.getFluid(2_000))
-            .itemOutputs(new ItemStack(GregTechAPI.sBlockConcretes, POUR, 8))
-            .duration(8 * SECONDS)
-            .eut(TierEU.RECIPE_EV)
-            .addTo(MTESiteBatchingPlant.RECIPE_MAP);
+        BTSRecipeGuard.recipe(
+            "M-01b",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    BTSRecipeGuard.req(OrePrefixes.dust, Materials.Concrete, 2L),
+                    new ItemStack(Blocks.sand, 6),
+                    new ItemStack(Blocks.gravel, 8))
+                .fluidInputs(Materials.Water.getFluid(2_000))
+                .itemOutputs(new ItemStack(GregTechAPI.sBlockConcretes, POUR, 8))
+                .duration(8 * SECONDS)
+                .eut(TierEU.RECIPE_EV)
+                .addTo(MTESiteBatchingPlant.RECIPE_MAP));
     }
 
     // ------------------------------------------------------------------ M-02
@@ -233,46 +252,52 @@ public final class BTSRecipesMaterials {
      */
     private static void sheetMetal() {
         // M-02a Solid Steel Machine Casing. 6 plate + 1 frame each, as stock.
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Steel, 48L),
-                GTOreDictUnificator.get(OrePrefixes.frameGt, Materials.Steel, 8L))
-            .circuit(1)
-            .fluidInputs(Materials.Argon.getGas(1_000))
-            .itemOutputs(Casings.SolidSteelMachineCasing.toStack(CASINGS))
-            .duration(12 * SECONDS)
-            .eut(TierEU.RECIPE_EV)
-            .addTo(MTESiteBatchingPlant.RECIPE_MAP);
+        BTSRecipeGuard.recipe(
+            "M-02a",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    BTSRecipeGuard.req(OrePrefixes.plate, Materials.Steel, 48L),
+                    BTSRecipeGuard.req(OrePrefixes.frameGt, Materials.Steel, 8L))
+                .circuit(1)
+                .fluidInputs(Materials.Argon.getGas(1_000))
+                .itemOutputs(Casings.SolidSteelMachineCasing.toStack(CASINGS))
+                .duration(12 * SECONDS)
+                .eut(TierEU.RECIPE_EV)
+                .addTo(MTESiteBatchingPlant.RECIPE_MAP));
 
         // M-02b Clean Stainless Steel Machine Casing. Austenitic stainless wants a full argon
         // shield AND an argon back-purge, or the weld sensitises and rusts out of the
         // heat-affected zone - which is exactly why the "clean" casing costs the same gas as the
         // plain one and not less.
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.StainlessSteel, 48L),
-                GTOreDictUnificator.get(OrePrefixes.frameGt, Materials.StainlessSteel, 8L))
-            .circuit(1)
-            .fluidInputs(Materials.Argon.getGas(1_000))
-            .itemOutputs(Casings.CleanStainlessSteelMachineCasing.toStack(CASINGS))
-            .duration(12 * SECONDS)
-            .eut(TierEU.RECIPE_EV)
-            .addTo(MTESiteBatchingPlant.RECIPE_MAP);
+        BTSRecipeGuard.recipe(
+            "M-02b",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    BTSRecipeGuard.req(OrePrefixes.plate, Materials.StainlessSteel, 48L),
+                    BTSRecipeGuard.req(OrePrefixes.frameGt, Materials.StainlessSteel, 8L))
+                .circuit(1)
+                .fluidInputs(Materials.Argon.getGas(1_000))
+                .itemOutputs(Casings.CleanStainlessSteelMachineCasing.toStack(CASINGS))
+                .duration(12 * SECONDS)
+                .eut(TierEU.RECIPE_EV)
+                .addTo(MTESiteBatchingPlant.RECIPE_MAP));
 
         // M-02c Filter Machine Casing - a HEPA bank, built the way a HEPA bank is built: a steel
         // case, aluminium separators holding the pleats apart, and a borosilicate glass-fibre
         // medium drawn from the melt. The Vent Stack wants 152 of them and nothing else in the
         // plant wants any, so this is a one-shot line that runs for a minute and stops.
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Steel, 32L),
-                GTOreDictUnificator.get(OrePrefixes.frameGt, Materials.Steel, 8L),
-                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Aluminium, 16L))
-            .fluidInputs(Materials.Glass.getMolten(2_304))
-            .itemOutputs(Casings.FilterMachineCasing.toStack(CASINGS))
-            .duration(12 * SECONDS)
-            .eut(TierEU.RECIPE_EV)
-            .addTo(MTESiteBatchingPlant.RECIPE_MAP);
+        BTSRecipeGuard.recipe(
+            "M-02c",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    BTSRecipeGuard.req(OrePrefixes.plate, Materials.Steel, 32L),
+                    BTSRecipeGuard.req(OrePrefixes.frameGt, Materials.Steel, 8L),
+                    BTSRecipeGuard.req(OrePrefixes.foil, Materials.Aluminium, 16L))
+                .fluidInputs(Materials.Glass.getMolten(2_304))
+                .itemOutputs(Casings.FilterMachineCasing.toStack(CASINGS))
+                .duration(12 * SECONDS)
+                .eut(TierEU.RECIPE_EV)
+                .addTo(MTESiteBatchingPlant.RECIPE_MAP));
     }
 
     // ------------------------------------------------------------------ M-03
@@ -288,16 +313,18 @@ public final class BTSRecipesMaterials {
     private static void shielding() {
         // M-03a Radiation Proof Machine Casing. Exactly 8x bartworks' recipe: 6 dense lead
         // plates, 1 tungstensteel frame and 1,296 L of pour per casing.
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.plateDense, Materials.Lead, 48L),
-                GTOreDictUnificator.get(OrePrefixes.frameGt, Materials.TungstenSteel, 8L))
-            .circuit(1)
-            .fluidInputs(Materials.Concrete.getMolten(10_368))
-            .itemOutputs(Casings.RadiationProofMachineCasing.toStack(CASINGS))
-            .duration(16 * SECONDS)
-            .eut(TierEU.RECIPE_IV)
-            .addTo(MTESiteBatchingPlant.RECIPE_MAP);
+        BTSRecipeGuard.recipe(
+            "M-03a",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    BTSRecipeGuard.req(OrePrefixes.plateDense, Materials.Lead, 48L),
+                    BTSRecipeGuard.req(OrePrefixes.frameGt, Materials.TungstenSteel, 8L))
+                .circuit(1)
+                .fluidInputs(Materials.Concrete.getMolten(10_368))
+                .itemOutputs(Casings.RadiationProofMachineCasing.toStack(CASINGS))
+                .duration(16 * SECONDS)
+                .eut(TierEU.RECIPE_IV)
+                .addTo(MTESiteBatchingPlant.RECIPE_MAP));
 
         // M-03b Tungstensteel Reinforced Block - THE INTERLOCK (S3). GT's Chemical Bath route is a
         // frame and 144 L of concrete; this adds one depleted uranium ingot per block as cast-in
@@ -306,29 +333,33 @@ public final class BTSRecipesMaterials {
         //
         // The stock route is untouched, so a player who has not enriched anything yet is never
         // blocked - they simply do not get the bulk route until they have tails to spend.
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.frameGt, Materials.TungstenSteel, 8L),
-                new ItemStack(BTSItemsFuel.depletedUraniumIngot, 8))
-            .circuit(2)
-            .fluidInputs(Materials.Concrete.getMolten(1_152))
-            .itemOutputs(new ItemStack(GregTechAPI.sBlockReinforced, CASINGS, 3))
-            .duration(16 * SECONDS)
-            .eut(TierEU.RECIPE_IV)
-            .addTo(MTESiteBatchingPlant.RECIPE_MAP);
+        BTSRecipeGuard.recipe(
+            "M-03b",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    BTSRecipeGuard.req(OrePrefixes.frameGt, Materials.TungstenSteel, 8L),
+                    new ItemStack(BTSItemsFuel.depletedUraniumIngot, 8))
+                .circuit(2)
+                .fluidInputs(Materials.Concrete.getMolten(1_152))
+                .itemOutputs(new ItemStack(GregTechAPI.sBlockReinforced, CASINGS, 3))
+                .duration(16 * SECONDS)
+                .eut(TierEU.RECIPE_IV)
+                .addTo(MTESiteBatchingPlant.RECIPE_MAP));
 
         // M-03c Iridium Reinforced Block. Exactly 8x GT's Chemical Bath recipe - 1 frame and
         // 144 L of melt each - but 16s for eight instead of 400 ticks for one. The tier-5 silo
         // wants 497 of these; on the stock route that is 198,800 ticks, two hours and forty-six
         // minutes, in one Chemical Bath. Here it is 63 batches and four minutes.
-        GTValues.RA.stdBuilder()
-            .itemInputs(GTOreDictUnificator.get(OrePrefixes.frameGt, Materials.Iridium, 8L))
-            .circuit(3)
-            .fluidInputs(Materials.Iridium.getMolten(1_152))
-            .itemOutputs(new ItemStack(GregTechAPI.sBlockReinforced, CASINGS, 1))
-            .duration(16 * SECONDS)
-            .eut(TierEU.RECIPE_IV)
-            .addTo(MTESiteBatchingPlant.RECIPE_MAP);
+        BTSRecipeGuard.recipe(
+            "M-03c",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(BTSRecipeGuard.req(OrePrefixes.frameGt, Materials.Iridium, 8L))
+                .circuit(3)
+                .fluidInputs(Materials.Iridium.getMolten(1_152))
+                .itemOutputs(new ItemStack(GregTechAPI.sBlockReinforced, CASINGS, 1))
+                .duration(16 * SECONDS)
+                .eut(TierEU.RECIPE_IV)
+                .addTo(MTESiteBatchingPlant.RECIPE_MAP));
     }
 
     // ------------------------------------------------------------------ M-04
@@ -352,16 +383,20 @@ public final class BTSRecipesMaterials {
      * delivery, because the machine has one input hatch and the europium melt has claimed it.
      */
     private static void europiumReinforced() {
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                Casings.RadiationProofMachineCasing.toStack(CASINGS),
-                ItemList.Radiation_Proof_Prismatic_Naquadah_Composite_Sheet.get(32L),
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Lead, 48L))
-            .fluidInputs(Materials.Europium.getMolten(5_184))
-            .itemOutputs(Casings.EuropiumReinforcedRadiationProofMachineCasing.toStack(CASINGS))
-            .duration(24 * SECONDS)
-            .eut(TierEU.RECIPE_LuV)
-            .addTo(MTESiteBatchingPlant.RECIPE_MAP);
+        BTSRecipeGuard.recipe(
+            "M-04",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    Casings.RadiationProofMachineCasing.toStack(CASINGS),
+                    BTSRecipeGuard.nn(
+                        ItemList.Radiation_Proof_Prismatic_Naquadah_Composite_Sheet.get(32L),
+                        "ItemList.Radiation_Proof_Prismatic_Naquadah_Composite_Sheet"),
+                    BTSRecipeGuard.req(OrePrefixes.plate, Materials.Lead, 48L))
+                .fluidInputs(Materials.Europium.getMolten(5_184))
+                .itemOutputs(Casings.EuropiumReinforcedRadiationProofMachineCasing.toStack(CASINGS))
+                .duration(24 * SECONDS)
+                .eut(TierEU.RECIPE_LuV)
+                .addTo(MTESiteBatchingPlant.RECIPE_MAP));
     }
 
     // ------------------------------------------------------------------ M-05
@@ -382,17 +417,21 @@ public final class BTSRecipesMaterials {
         // 4 screws and 1,296 L of Indalloy 140 per four casings. Five and not eight because 8x
         // would want 96 plates in one slot and a stack stops at 64. What this rung buys is the
         // parallel - 20 casings a batch, 4 to 12 batches at once.
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.frameGt, Materials.PrismaticNaquadah, 5L),
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.NaquadahAlloy, 60L),
-                GTOreDictUnificator.get(OrePrefixes.screw, Materials.PrismaticNaquadah, 20L))
-            .circuit(1)
-            .fluidInputs(MaterialsAlloy.INDALLOY_140.getFluidStack(6_480))
-            .itemOutputs(ItemList.RadiantNaquadahAlloyCasing.get(20L))
-            .duration(4 * SECONDS)
-            .eut(TierEU.RECIPE_UV)
-            .addTo(MTESiteBatchingPlant.RECIPE_MAP);
+        BTSRecipeGuard.recipe(
+            "M-05a",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    BTSRecipeGuard.req(OrePrefixes.frameGt, Materials.PrismaticNaquadah, 5L),
+                    BTSRecipeGuard.req(OrePrefixes.plate, Materials.NaquadahAlloy, 60L),
+                    BTSRecipeGuard.req(OrePrefixes.screw, Materials.PrismaticNaquadah, 20L))
+                .circuit(1)
+                .fluidInputs(MaterialsAlloy.INDALLOY_140.getFluidStack(6_480))
+                .itemOutputs(
+                    BTSRecipeGuard
+                        .nn(ItemList.RadiantNaquadahAlloyCasing.get(20L), "ItemList.RadiantNaquadahAlloyCasing"))
+                .duration(4 * SECONDS)
+                .eut(TierEU.RECIPE_UV)
+                .addTo(MTESiteBatchingPlant.RECIPE_MAP));
 
         // M-05b Centrifugal skin casting - UHV. The spectacular rung, and the one that deletes the
         // plate line: the naquadah-alloy skin is spun straight onto the prismatic space frame out
@@ -404,16 +443,20 @@ public final class BTSRecipesMaterials {
         // stock route. Nothing about the naquadah gets cheaper. What goes away is the 324 L of
         // Indalloy 140 per casing - 540,108 L over a tier-5 silo - because a cast joint is
         // metallurgical and needs no filler metal. What arrives in its place is a UHV energy hatch.
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.frameGt, Materials.PrismaticNaquadah, 8L),
-                GTOreDictUnificator.get(OrePrefixes.screw, Materials.PrismaticNaquadah, 32L))
-            .circuit(2)
-            .fluidInputs(Materials.NaquadahAlloy.getMolten(13_824))
-            .itemOutputs(ItemList.RadiantNaquadahAlloyCasing.get(POUR))
-            .duration(8 * SECONDS)
-            .eut(TierEU.RECIPE_UHV)
-            .addTo(MTESiteBatchingPlant.RECIPE_MAP);
+        BTSRecipeGuard.recipe(
+            "M-05b",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    BTSRecipeGuard.req(OrePrefixes.frameGt, Materials.PrismaticNaquadah, 8L),
+                    BTSRecipeGuard.req(OrePrefixes.screw, Materials.PrismaticNaquadah, 32L))
+                .circuit(2)
+                .fluidInputs(Materials.NaquadahAlloy.getMolten(13_824))
+                .itemOutputs(
+                    BTSRecipeGuard
+                        .nn(ItemList.RadiantNaquadahAlloyCasing.get(POUR), "ItemList.RadiantNaquadahAlloyCasing"))
+                .duration(8 * SECONDS)
+                .eut(TierEU.RECIPE_UHV)
+                .addTo(MTESiteBatchingPlant.RECIPE_MAP));
     }
 
     // ------------------------------------------------------------------ M-06
@@ -431,16 +474,18 @@ public final class BTSRecipesMaterials {
      * plus the argon.
      */
     private static void turbineShell() {
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Magnalium, 48L),
-                GTOreDictUnificator.get(OrePrefixes.frameGt, Materials.BlueSteel, 8L),
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.TungstenSteel, 48L))
-            .fluidInputs(Materials.Argon.getGas(1_000))
-            .itemOutputs(Casings.TungstensteelTurbineCasing.toStack(CASINGS))
-            .duration(12 * SECONDS)
-            .eut(TierEU.RECIPE_EV)
-            .addTo(MTESiteBatchingPlant.RECIPE_MAP);
+        BTSRecipeGuard.recipe(
+            "M-06",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    BTSRecipeGuard.req(OrePrefixes.plate, Materials.Magnalium, 48L),
+                    BTSRecipeGuard.req(OrePrefixes.frameGt, Materials.BlueSteel, 8L),
+                    BTSRecipeGuard.req(OrePrefixes.plate, Materials.TungstenSteel, 48L))
+                .fluidInputs(Materials.Argon.getGas(1_000))
+                .itemOutputs(Casings.TungstensteelTurbineCasing.toStack(CASINGS))
+                .duration(12 * SECONDS)
+                .eut(TierEU.RECIPE_EV)
+                .addTo(MTESiteBatchingPlant.RECIPE_MAP));
     }
 
     // ------------------------------------------------------------- self-check

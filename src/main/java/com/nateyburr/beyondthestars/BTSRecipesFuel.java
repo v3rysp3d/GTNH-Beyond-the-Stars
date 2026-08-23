@@ -228,7 +228,8 @@ public final class BTSRecipesFuel {
      * which spends one point of the HATCH ball's durability and only decrements its stack size
      * when the ball finally wears out. This is verbatim the shape of GT++'s own IsaMill recipes -
      * {@code BaseItemMilledOre}'s constructor passes
-     * {@code GregtechItemList.Milling_Ball_Alumina.get(0)} as a plain second item input.
+     * {@code GregtechItemList.Milling_Ball_Alumina.get(0)}
+     * as a plain second item input.
      * <p>
      * <b>Alumina only, on all four of this file's milling recipes.</b> GT++ registers a soapstone
      * variant beside every alumina one and keys the pair apart with a programmed circuit. This
@@ -239,7 +240,7 @@ public final class BTSRecipesFuel {
      * GT++'s two media, and the right one for a nuclear-grade grind.
      */
     private static ItemStack millingBall() {
-        return GregtechItemList.Milling_Ball_Alumina.get(0);
+        return BTSRecipeGuard.nn(GregtechItemList.Milling_Ball_Alumina.get(0), "GregtechItemList.Milling_Ball_Alumina");
     }
 
     private static void frontEnd() {
@@ -251,33 +252,39 @@ public final class BTSRecipesFuel {
         // The third item slot is the MILLING BALL, which IS a recipe input - millingBall() is
         // where that is written out, and where the two lines this comment used to get exactly
         // backwards are corrected against MTEIsaMill's own bytecode.
-        GTValues.RA.stdBuilder()
-            .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uraninite, 16L), millingBall())
-            .circuit(1)
-            .itemOutputs(new ItemStack(BTSItemsFuel.milledUraninite, 16))
-            .duration(20 * SECONDS)
-            .eut(TierEU.RECIPE_HV)
-            .addTo(millingRecipes);
+        BTSRecipeGuard.recipe(
+            "F-01",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(BTSRecipeGuard.req(OrePrefixes.dust, Materials.Uraninite, 16L), millingBall())
+                .circuit(1)
+                .itemOutputs(new ItemStack(BTSItemsFuel.milledUraninite, 16))
+                .duration(20 * SECONDS)
+                .eut(TierEU.RECIPE_HV)
+                .addTo(millingRecipes));
 
         // Pitchblende is the richer ore: twelve dust buys the same sixteen milled.
-        GTValues.RA.stdBuilder()
-            .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Pitchblende, 12L), millingBall())
-            .circuit(2)
-            .itemOutputs(new ItemStack(BTSItemsFuel.milledUraninite, 16))
-            .duration(20 * SECONDS)
-            .eut(TierEU.RECIPE_HV)
-            .addTo(millingRecipes);
+        BTSRecipeGuard.recipe(
+            "milledUraninite",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(BTSRecipeGuard.req(OrePrefixes.dust, Materials.Pitchblende, 12L), millingBall())
+                .circuit(2)
+                .itemOutputs(new ItemStack(BTSItemsFuel.milledUraninite, 16))
+                .duration(20 * SECONDS)
+                .eut(TierEU.RECIPE_HV)
+                .addTo(millingRecipes));
 
         // F-02a FROTHER PREPARATION. Pine oil collector plus soda ash pH modifier - the real
         // reagent suite of a uranium flotation circuit, made up one charge at a time.
-        GTValues.RA.stdBuilder()
-            .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, Materials.SodaAsh, 2L))
-            .circuit(4)
-            .fluidInputs(new FluidStack(GTPPFluids.PineOil, 1_000))
-            .itemOutputs(new ItemStack(BTSItemsFuel.frothCell, 1))
-            .duration(10 * SECONDS)
-            .eut(TierEU.RECIPE_MV)
-            .addTo(mixerRecipes);
+        BTSRecipeGuard.recipe(
+            "F-02a",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(BTSRecipeGuard.req(OrePrefixes.dust, Materials.SodaAsh, 2L))
+                .circuit(4)
+                .fluidInputs(BTSRecipeGuard.fluid(GTPPFluids.PineOil, 1_000))
+                .itemOutputs(new ItemStack(BTSItemsFuel.frothCell, 1))
+                .duration(10 * SECONDS)
+                .eut(TierEU.RECIPE_MV)
+                .addTo(mixerRecipes));
 
         // F-02 FROTH FLOTATION.
         //
@@ -288,28 +295,32 @@ public final class BTSRecipesFuel {
         // milledUraninite is what gets this recipe past the cell's gate: validateRecipe rejects
         // any recipe with no "milled*" OreDictionary name among its inputs. registerOreDictNames()
         // gives it one and explains the whole mechanism.
-        GTValues.RA.stdBuilder()
-            .itemInputs(new ItemStack(BTSItemsFuel.milledUraninite, 16), new ItemStack(BTSItemsFuel.frothCell, 1))
-            .fluidInputs(Materials.Water.getFluid(8_000))
-            .fluidOutputs(new FluidStack(BTSFluidsProcess.uraniniteFlotationFroth, 8_000))
-            .duration(30 * SECONDS)
-            .eut(TierEU.RECIPE_EV)
-            .addTo(flotationCellRecipes);
+        BTSRecipeGuard.recipe(
+            "F-02",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(new ItemStack(BTSItemsFuel.milledUraninite, 16), new ItemStack(BTSItemsFuel.frothCell, 1))
+                .fluidInputs(Materials.Water.getFluid(8_000))
+                .fluidOutputs(BTSRecipeGuard.fluid(BTSFluidsProcess.uraniniteFlotationFroth, 8_000))
+                .duration(30 * SECONDS)
+                .eut(TierEU.RECIPE_EV)
+                .addTo(flotationCellRecipes));
 
         // F-02b THICKENING AND FILTRATION. The froth is dewatered back into solids, and this is
         // where the barren rock finally leaves the line: concentrate to the leach, tailings and
         // gangue to the cleanup recipes below, and most of the process water straight back.
-        GTValues.RA.stdBuilder()
-            .circuit(1)
-            .fluidInputs(new FluidStack(BTSFluidsProcess.uraniniteFlotationFroth, 8_000))
-            .itemOutputs(
-                new ItemStack(BTSItemsFuel.uraniniteConcentrate, 12),
-                new ItemStack(BTSItemsFuel.flotationTailings, 4),
-                new ItemStack(BTSItemsFuel.gangueDust, 2))
-            .fluidOutputs(Materials.Water.getFluid(3_000))
-            .duration(25 * SECONDS)
-            .eut(TierEU.RECIPE_EV)
-            .addTo(chemicalDehydratorRecipes);
+        BTSRecipeGuard.recipe(
+            "F-02b",
+            () -> GTValues.RA.stdBuilder()
+                .circuit(1)
+                .fluidInputs(BTSRecipeGuard.fluid(BTSFluidsProcess.uraniniteFlotationFroth, 8_000))
+                .itemOutputs(
+                    new ItemStack(BTSItemsFuel.uraniniteConcentrate, 12),
+                    new ItemStack(BTSItemsFuel.flotationTailings, 4),
+                    new ItemStack(BTSItemsFuel.gangueDust, 2))
+                .fluidOutputs(Materials.Water.getFluid(3_000))
+                .duration(25 * SECONDS)
+                .eut(TierEU.RECIPE_EV)
+                .addTo(chemicalDehydratorRecipes));
 
         // F-03 AGITATED SULFURIC LEACH, in the Digester.
         //
@@ -318,133 +329,157 @@ public final class BTSRecipesFuel {
         // (MnO2) takes its place, and MnO2 is the solid oxidant the real Rossing-type flowsheet
         // actually charges to the leach tanks. COIL_HEAT 1000 K is below the cheapest coil, so the
         // heat requirement is the Digester's own and no coil upgrade gates this step.
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                new ItemStack(BTSItemsFuel.uraniniteConcentrate, 12),
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Pyrolusite, 2L))
-            .circuit(1)
-            .fluidInputs(Materials.SulfuricAcid.getFluid(6_000))
-            .itemOutputs(new ItemStack(BTSItemsFuel.leachResidue, 3))
-            .fluidOutputs(new FluidStack(BTSFluidsProcess.pregnantLeachSolution, 8_000))
-            .metadata(COIL_HEAT, 1_000)
-            .duration(40 * SECONDS)
-            .eut(TierEU.RECIPE_EV)
-            .addTo(digesterRecipes);
+        BTSRecipeGuard.recipe(
+            "F-03",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    new ItemStack(BTSItemsFuel.uraniniteConcentrate, 12),
+                    BTSRecipeGuard.req(OrePrefixes.dust, Materials.Pyrolusite, 2L))
+                .circuit(1)
+                .fluidInputs(Materials.SulfuricAcid.getFluid(6_000))
+                .itemOutputs(new ItemStack(BTSItemsFuel.leachResidue, 3))
+                .fluidOutputs(BTSRecipeGuard.fluid(BTSFluidsProcess.pregnantLeachSolution, 8_000))
+                .metadata(COIL_HEAT, 1_000)
+                .duration(40 * SECONDS)
+                .eut(TierEU.RECIPE_EV)
+                .addTo(digesterRecipes));
 
         // F-04 CLARIFICATION AND ION EXCHANGE. The resin bed is a tool, not a reagent: it comes
         // back nine times out of ten, so a line needs a trickle of new resin and not a stream.
-        GTValues.RA.stdBuilder()
-            .itemInputs(new ItemStack(BTSItemsFuel.ionExchangeResin, 1))
-            .circuit(1)
-            .fluidInputs(new FluidStack(BTSFluidsProcess.pregnantLeachSolution, 8_000))
-            .itemOutputs(new ItemStack(BTSItemsFuel.ionExchangeResin, 1))
-            .outputChances(9_000)
-            .fluidOutputs(
-                new FluidStack(BTSFluidsProcess.clarifiedUranylLiquor, 6_000),
-                new FluidStack(BTSFluidsProcess.raffinate, 2_000))
-            .metadata(CHEMPLANT_CASING_TIER, 2)
-            .duration(30 * SECONDS)
-            .eut(TierEU.RECIPE_EV)
-            .addTo(chemicalPlantRecipes);
+        BTSRecipeGuard.recipe(
+            "F-04",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(new ItemStack(BTSItemsFuel.ionExchangeResin, 1))
+                .circuit(1)
+                .fluidInputs(BTSRecipeGuard.fluid(BTSFluidsProcess.pregnantLeachSolution, 8_000))
+                .itemOutputs(new ItemStack(BTSItemsFuel.ionExchangeResin, 1))
+                .outputChances(9_000)
+                .fluidOutputs(
+                    BTSRecipeGuard.fluid(BTSFluidsProcess.clarifiedUranylLiquor, 6_000),
+                    BTSRecipeGuard.fluid(BTSFluidsProcess.raffinate, 2_000))
+                .metadata(CHEMPLANT_CASING_TIER, 2)
+                .duration(30 * SECONDS)
+                .eut(TierEU.RECIPE_EV)
+                .addTo(chemicalPlantRecipes));
 
         // The resin itself: sulfonated polystyrene beads aminated with ammonia. Polystyrene is
         // used in its molten form because that is the form GT generates for it.
-        GTValues.RA.stdBuilder()
-            .circuit(6)
-            .fluidInputs(Materials.Polystyrene.getMolten(2 * INGOTS), Materials.Ammonia.getGas(1_000))
-            .itemOutputs(new ItemStack(BTSItemsFuel.ionExchangeResin, 4))
-            .duration(20 * SECONDS)
-            .eut(TierEU.RECIPE_HV)
-            .addTo(UniversalChemical);
+        BTSRecipeGuard.recipe(
+            "ionExchangeResin",
+            () -> GTValues.RA.stdBuilder()
+                .circuit(6)
+                .fluidInputs(Materials.Polystyrene.getMolten(2 * INGOTS), Materials.Ammonia.getGas(1_000))
+                .itemOutputs(new ItemStack(BTSItemsFuel.ionExchangeResin, 4))
+                .duration(20 * SECONDS)
+                .eut(TierEU.RECIPE_HV)
+                .addTo(UniversalChemical));
 
         // F-04b ACID RECOVERY. The barren aqueous phase is not waste; it is dilute acid and a
         // little gypsum-forming calcium.
-        GTValues.RA.stdBuilder()
-            .circuit(1)
-            .fluidInputs(new FluidStack(BTSFluidsProcess.raffinate, 2_000))
-            .itemOutputs(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Calcite, 1L))
-            .fluidOutputs(Materials.DilutedSulfuricAcid.getFluid(1_200))
-            .duration(15 * SECONDS)
-            .eut(TierEU.RECIPE_HV)
-            .addTo(distillationTowerRecipes);
+        BTSRecipeGuard.recipe(
+            "F-04b",
+            () -> GTValues.RA.stdBuilder()
+                .circuit(1)
+                .fluidInputs(BTSRecipeGuard.fluid(BTSFluidsProcess.raffinate, 2_000))
+                .itemOutputs(BTSRecipeGuard.req(OrePrefixes.dust, Materials.Calcite, 1L))
+                .fluidOutputs(Materials.DilutedSulfuricAcid.getFluid(1_200))
+                .duration(15 * SECONDS)
+                .eut(TierEU.RECIPE_HV)
+                .addTo(distillationTowerRecipes));
 
         // F-05a SOLVENT SYNTHESIS. Tributyl phosphate in a kerosene diluent - the extractant of
         // every uranium SX plant and of PUREX itself, which is why R-03 buys from this same tank.
-        GTValues.RA.stdBuilder()
-            .circuit(3)
-            .fluidInputs(
-                new FluidStack(GTPPFluids.Butanol, 3_000),
-                Materials.PhosphoricAcid.getFluid(1_000),
-                new FluidStack(GTPPFluids.Kerosene, 4_000))
-            .fluidOutputs(new FluidStack(BTSFluidsProcess.tbpSolvent, 8_000), Materials.Water.getFluid(1_000))
-            .metadata(CHEMPLANT_CASING_TIER, 2)
-            .duration(20 * SECONDS)
-            .eut(TierEU.RECIPE_EV)
-            .addTo(chemicalPlantRecipes);
+        BTSRecipeGuard.recipe(
+            "F-05a",
+            () -> GTValues.RA.stdBuilder()
+                .circuit(3)
+                .fluidInputs(
+                    BTSRecipeGuard.fluid(GTPPFluids.Butanol, 3_000),
+                    Materials.PhosphoricAcid.getFluid(1_000),
+                    BTSRecipeGuard.fluid(GTPPFluids.Kerosene, 4_000))
+                .fluidOutputs(BTSRecipeGuard.fluid(BTSFluidsProcess.tbpSolvent, 8_000), Materials.Water.getFluid(1_000))
+                .metadata(CHEMPLANT_CASING_TIER, 2)
+                .duration(20 * SECONDS)
+                .eut(TierEU.RECIPE_EV)
+                .addTo(chemicalPlantRecipes));
 
         // F-05 SOLVENT EXTRACTION. Uranium crosses into the organic phase; everything else stays.
-        GTValues.RA.stdBuilder()
-            .circuit(1)
-            .fluidInputs(
-                new FluidStack(BTSFluidsProcess.clarifiedUranylLiquor, 6_000),
-                new FluidStack(BTSFluidsProcess.tbpSolvent, 2_000))
-            .fluidOutputs(
-                new FluidStack(BTSFluidsProcess.loadedOrganic, 4_000),
-                new FluidStack(BTSFluidsProcess.raffinate, 2_000))
-            .metadata(CHEMPLANT_CASING_TIER, 3)
-            .duration(25 * SECONDS)
-            .eut(TierEU.RECIPE_IV)
-            .addTo(chemicalPlantRecipes);
+        BTSRecipeGuard.recipe(
+            "F-05",
+            () -> GTValues.RA.stdBuilder()
+                .circuit(1)
+                .fluidInputs(
+                    BTSRecipeGuard.fluid(BTSFluidsProcess.clarifiedUranylLiquor, 6_000),
+                    BTSRecipeGuard.fluid(BTSFluidsProcess.tbpSolvent, 2_000))
+                .fluidOutputs(
+                    BTSRecipeGuard.fluid(BTSFluidsProcess.loadedOrganic, 4_000),
+                    BTSRecipeGuard.fluid(BTSFluidsProcess.raffinate, 2_000))
+                .metadata(CHEMPLANT_CASING_TIER, 3)
+                .duration(25 * SECONDS)
+                .eut(TierEU.RECIPE_IV)
+                .addTo(chemicalPlantRecipes));
 
         // F-06 STRIPPING AND SOLVENT RECOVERY. 1,800 of the 2,000 L of solvent come back - the
         // counter-current recycle, written as a flat 90 % rather than a chanced fluid output so a
         // player can size the make-up line by reading the NEI page instead of by watching it run.
-        GTValues.RA.stdBuilder()
-            .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, Materials.SodaAsh, 4L))
-            .circuit(2)
-            .fluidInputs(new FluidStack(BTSFluidsProcess.loadedOrganic, 4_000), Materials.Water.getFluid(2_000))
-            .fluidOutputs(
-                new FluidStack(BTSFluidsProcess.uranylStripLiquor, 3_000),
-                new FluidStack(BTSFluidsProcess.tbpSolvent, 1_800))
-            .metadata(CHEMPLANT_CASING_TIER, 3)
-            .duration(25 * SECONDS)
-            .eut(TierEU.RECIPE_IV)
-            .addTo(chemicalPlantRecipes);
+        BTSRecipeGuard.recipe(
+            "F-06",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(BTSRecipeGuard.req(OrePrefixes.dust, Materials.SodaAsh, 4L))
+                .circuit(2)
+                .fluidInputs(
+                    BTSRecipeGuard.fluid(BTSFluidsProcess.loadedOrganic, 4_000),
+                    Materials.Water.getFluid(2_000))
+                .fluidOutputs(
+                    BTSRecipeGuard.fluid(BTSFluidsProcess.uranylStripLiquor, 3_000),
+                    BTSRecipeGuard.fluid(BTSFluidsProcess.tbpSolvent, 1_800))
+                .metadata(CHEMPLANT_CASING_TIER, 3)
+                .duration(25 * SECONDS)
+                .eut(TierEU.RECIPE_IV)
+                .addTo(chemicalPlantRecipes));
 
         // F-07 ADU PRECIPITATION. Ammonia drops (NH4)2U2O7 out of solution and leaves an ammonium
         // sulfate liquor behind, which is a saleable co-product of every real ADU plant.
-        GTValues.RA.stdBuilder()
-            .circuit(1)
-            .fluidInputs(new FluidStack(BTSFluidsProcess.uranylStripLiquor, 3_000), Materials.Ammonia.getGas(1_000))
-            .itemOutputs(new ItemStack(BTSItemsFuel.ammoniumDiuranate, 6))
-            .fluidOutputs(new FluidStack(BTSFluidsProcess.ammoniumSulfateLiquor, 1_000))
-            .duration(20 * SECONDS)
-            .eut(TierEU.RECIPE_HV)
-            .addTo(UniversalChemical);
+        BTSRecipeGuard.recipe(
+            "F-07",
+            () -> GTValues.RA.stdBuilder()
+                .circuit(1)
+                .fluidInputs(
+                    BTSRecipeGuard.fluid(BTSFluidsProcess.uranylStripLiquor, 3_000),
+                    Materials.Ammonia.getGas(1_000))
+                .itemOutputs(new ItemStack(BTSItemsFuel.ammoniumDiuranate, 6))
+                .fluidOutputs(BTSRecipeGuard.fluid(BTSFluidsProcess.ammoniumSulfateLiquor, 1_000))
+                .duration(20 * SECONDS)
+                .eut(TierEU.RECIPE_HV)
+                .addTo(UniversalChemical));
 
         // F-07b AMMONIUM SULFATE RECOVERY. Without this the co-product has a producer and no
         // consumer at all: its output hatch fills, and a full output hatch STALLS the reactor
         // running F-07. Cracking the liquor sends 300 L of the 1,000 L of ammonia straight back
         // to F-07 and turns the rest into dilute acid, so a standing line needs a 200 L ammonia
         // make-up per cycle rather than either a full feed or a free lunch.
-        GTValues.RA.stdBuilder()
-            .circuit(2)
-            .fluidInputs(new FluidStack(BTSFluidsProcess.ammoniumSulfateLiquor, 1_000))
-            .fluidOutputs(Materials.Ammonia.getGas(300), Materials.DilutedSulfuricAcid.getFluid(400))
-            .duration(15 * SECONDS)
-            .eut(TierEU.RECIPE_HV)
-            .addTo(distillationTowerRecipes);
+        BTSRecipeGuard.recipe(
+            "F-07b",
+            () -> GTValues.RA.stdBuilder()
+                .circuit(2)
+                .fluidInputs(BTSRecipeGuard.fluid(BTSFluidsProcess.ammoniumSulfateLiquor, 1_000))
+                .fluidOutputs(Materials.Ammonia.getGas(300), Materials.DilutedSulfuricAcid.getFluid(400))
+                .duration(15 * SECONDS)
+                .eut(TierEU.RECIPE_HV)
+                .addTo(distillationTowerRecipes));
 
         // F-08 CALCINING TO YELLOWCAKE, 800 C. Ammonia comes back off the kiln and returns to
         // F-07. Only one fluid output slot exists on this map, so the steam is not modelled.
-        GTValues.RA.stdBuilder()
-            .itemInputs(new ItemStack(BTSItemsFuel.ammoniumDiuranate, 6))
-            .circuit(1)
-            .itemOutputs(new ItemStack(BTSItemsFuel.yellowcake, 4))
-            .fluidOutputs(Materials.Ammonia.getGas(500))
-            .duration(30 * SECONDS)
-            .eut(TierEU.RECIPE_EV)
-            .addTo(chemicalDehydratorRecipes);
+        BTSRecipeGuard.recipe(
+            "F-08",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(new ItemStack(BTSItemsFuel.ammoniumDiuranate, 6))
+                .circuit(1)
+                .itemOutputs(new ItemStack(BTSItemsFuel.yellowcake, 4))
+                .fluidOutputs(Materials.Ammonia.getGas(500))
+                .duration(30 * SECONDS)
+                .eut(TierEU.RECIPE_EV)
+                .addTo(chemicalDehydratorRecipes));
     }
 
     // ======================================================= F-09 .. F-11c, conversion and enrichment
@@ -456,69 +491,107 @@ public final class BTSRecipesFuel {
         // and it is produced as a FLUID because that is the form GT++ generates and consumes in its
         // LFTR chain. A player with a standing molten-salt line can feed it straight in here.
         // The HF is recovered downstream at F-12 and comes back, which is the real IDR loop.
-        GTValues.RA.stdBuilder()
-            .itemInputs(new ItemStack(BTSItemsFuel.yellowcake, 4))
-            .circuit(1)
-            .fluidInputs(Materials.HydrofluoricAcid.getFluid(4_000), Materials.Hydrogen.getGas(1_000))
-            .fluidOutputs(MaterialsFluorides.URANIUM_TETRAFLUORIDE.getFluidStack(6_000), Materials.Steam.getGas(2_000))
-            .metadata(CHEMPLANT_CASING_TIER, 3)
-            .duration(25 * SECONDS)
-            .eut(TierEU.RECIPE_IV)
-            .addTo(chemicalPlantRecipes);
+        BTSRecipeGuard.recipe(
+            "F-09",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(new ItemStack(BTSItemsFuel.yellowcake, 4))
+                .circuit(1)
+                .fluidInputs(Materials.HydrofluoricAcid.getFluid(4_000), Materials.Hydrogen.getGas(1_000))
+                .fluidOutputs(
+                    MaterialsFluorides.URANIUM_TETRAFLUORIDE.getFluidStack(6_000),
+                    Materials.Steam.getGas(2_000))
+                .metadata(CHEMPLANT_CASING_TIER, 3)
+                .duration(25 * SECONDS)
+                .eut(TierEU.RECIPE_IV)
+                .addTo(chemicalPlantRecipes));
 
         // F-10 FLUORINATION TO UF6. Again GT++'s own material, again as its own fluid.
-        GTValues.RA.stdBuilder()
-            .circuit(2)
-            .fluidInputs(
-                MaterialsFluorides.URANIUM_TETRAFLUORIDE.getFluidStack(6_000),
-                Materials.Fluorine.getGas(2_000))
-            .fluidOutputs(MaterialsFluorides.URANIUM_HEXAFLUORIDE.getFluidStack(6_000))
-            .metadata(CHEMPLANT_CASING_TIER, 3)
-            .duration(20 * SECONDS)
-            .eut(TierEU.RECIPE_IV)
-            .addTo(chemicalPlantRecipes);
+        BTSRecipeGuard.recipe(
+            "F-10",
+            () -> GTValues.RA.stdBuilder()
+                .circuit(2)
+                .fluidInputs(
+                    MaterialsFluorides.URANIUM_TETRAFLUORIDE.getFluidStack(6_000),
+                    Materials.Fluorine.getGas(2_000))
+                .fluidOutputs(MaterialsFluorides.URANIUM_HEXAFLUORIDE.getFluidStack(6_000))
+                .metadata(CHEMPLANT_CASING_TIER, 3)
+                .duration(20 * SECONDS)
+                .eut(TierEU.RECIPE_IV)
+                .addTo(chemicalPlantRecipes));
 
         // F-11 GAS CENTRIFUGE CASCADE. One sixth of the feed leaves enriched; five sixths leave as
         // tails, and the tails are a PRODUCT - F-20 makes the MOX diluent out of them and F-11c
         // makes the shielding metal Agent B's M-03b spends on casings.
-        GTValues.RA.stdBuilder()
-            .circuit(1)
-            .fluidInputs(MaterialsFluorides.URANIUM_HEXAFLUORIDE.getFluidStack(6_000))
-            .fluidOutputs(
-                new FluidStack(BTSFluidsProcess.enrichedUF6, 1_000),
-                new FluidStack(BTSFluidsProcess.depletedUF6, 5_000))
-            .duration(1 * MINUTES)
-            .eut(TierEU.RECIPE_IV)
-            .addTo(MTECascadeHall.RECIPE_MAP);
+        BTSRecipeGuard.recipe(
+            "F-11",
+            () -> GTValues.RA.stdBuilder()
+                .circuit(1)
+                .fluidInputs(MaterialsFluorides.URANIUM_HEXAFLUORIDE.getFluidStack(6_000))
+                .fluidOutputs(
+                    BTSRecipeGuard.fluid(BTSFluidsProcess.enrichedUF6, 1_000),
+                    BTSRecipeGuard.fluid(BTSFluidsProcess.depletedUF6, 5_000))
+                .duration(1 * MINUTES)
+                .eut(TierEU.RECIPE_IV)
+                .addTo(MTECascadeHall.RECIPE_MAP));
 
         // F-11b THE HEU BRANCH. Re-feeding the enriched cut costs four fifths of it to make one
         // fifth of a far hotter assay - which is why only the naquadah grade is allowed to want it.
-        GTValues.RA.stdBuilder()
-            .circuit(2)
-            .fluidInputs(new FluidStack(BTSFluidsProcess.enrichedUF6, 1_000))
-            .fluidOutputs(
-                new FluidStack(BTSFluidsProcess.highlyEnrichedUF6, 200),
-                new FluidStack(BTSFluidsProcess.depletedUF6, 800))
-            .duration(90 * SECONDS)
-            .eut(TierEU.RECIPE_LuV)
-            .addTo(MTECascadeHall.RECIPE_MAP);
+        BTSRecipeGuard.recipe(
+            "F-11b",
+            () -> GTValues.RA.stdBuilder()
+                .circuit(2)
+                .fluidInputs(BTSRecipeGuard.fluid(BTSFluidsProcess.enrichedUF6, 1_000))
+                .fluidOutputs(
+                    BTSRecipeGuard.fluid(BTSFluidsProcess.highlyEnrichedUF6, 200),
+                    BTSRecipeGuard.fluid(BTSFluidsProcess.depletedUF6, 800))
+                .duration(90 * SECONDS)
+                .eut(TierEU.RECIPE_LuV)
+                .addTo(MTECascadeHall.RECIPE_MAP));
 
         // F-11c DEPLETED-URANIUM METAL, by calciothermic reduction in the Neutron Activator.
         //
         // DEVIATION: the spec's byproduct was calcium CHLORIDE, which cannot be right - there is
         // no chlorine anywhere in this chain. Reducing a fluoride with calcium gives calcium
-        // FLUORIDE, and the eight calcium in balance the eight fluorite out exactly.
+        // FLUORIDE, and the eight calcium in balance the eight fluoride out exactly.
+        //
+        // THE CHEMISTRY WAS RIGHT; THE ITEM WAS NOT. This line is what killed 0.24.0's boot.
+        // dust Materials.Fluorite compiles, because the field exists - but it answers null at
+        // runtime and GT's builder throws "null in argument" on it. Materials.Fluorite is a
+        // VESTIGIAL GT entry: it is absent from MaterialsIDMap, so its mMetaItemSubID stays -1,
+        // so fillGeneratedMaterialsMap skips it, so MetaGeneratedItem01's generation loop - which
+        // walks sGeneratedMaterials by index rather than walking materials - never reaches it.
+        // loadFluorite() calling addDustItems() makes no difference: that flag is only read
+        // downstream of the null check the material never survives. NO prefix resolves for it,
+        // so a gem or a dustSmall would have failed in exactly the same way. GT itself never
+        // references Materials.Fluorite in a single recipe.
+        //
+        // The replacement is bartworks' Fluorspar, and it is a better answer than the original on
+        // every axis: its composition is literally Calcium x1 + Fluorine x2, so it IS CaF2 rather
+        // than a mineral that mostly is; it has DUSTS in its generation features and real
+        // worldgen; three shipping GTNH recipes in goodgenerator already emit
+        // Fluorspar.get(OrePrefixes.dust, N), which is behavioural proof rather than a bit-flag
+        // argument; and Werkstoff.get cannot return null the way GTOreDictUnificator.get can.
+        //
+        // It is NOT routed through BTSRecipeGuard.req. req delegates to GTOreDictUnificator.get,
+        // whose OrePrefixes.get(Object) path special-cases Materials and falls back to toString()
+        // for anything else - and Werkstoff does not override toString(), so a Werkstoff passed
+        // through req would build the OreDict name "dustbartworks.system.material.Werkstoff@1a2b"
+        // and find nothing. Werkstoff has its own accessor and it is the one to use.
+        //
         // NKE_RANGE is encoded max-then-min by MyRecipeAdder.computeRangeNKE(max, min).
-        GTValues.RA.stdBuilder()
-            .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Calcium, 8L))
-            .fluidInputs(new FluidStack(BTSFluidsProcess.depletedUF6, 5_000))
-            .itemOutputs(
-                new ItemStack(BTSItemsFuel.depletedUraniumIngot, 4),
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Fluorite, 8L))
-            .metadata(NKE_RANGE, MyRecipeAdder.computeRangeNKE(40, 20))
-            .duration(40 * SECONDS)
-            .eut(TierEU.RECIPE_LuV)
-            .addTo(neutronActivatorRecipes);
+        BTSRecipeGuard.recipe(
+            "F-11c",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(BTSRecipeGuard.req(OrePrefixes.dust, Materials.Calcium, 8L))
+                .fluidInputs(BTSRecipeGuard.fluid(BTSFluidsProcess.depletedUF6, 5_000))
+                .itemOutputs(
+                    new ItemStack(BTSItemsFuel.depletedUraniumIngot, 4),
+                    BTSRecipeGuard
+                        .nn(WerkstoffLoader.Fluorspar.get(OrePrefixes.dust, 8), "WerkstoffLoader.Fluorspar dust"))
+                .metadata(NKE_RANGE, MyRecipeAdder.computeRangeNKE(40, 20))
+                .duration(40 * SECONDS)
+                .eut(TierEU.RECIPE_LuV)
+                .addTo(neutronActivatorRecipes));
     }
 
     // ============================================================ F-12, THE WATER STEP. Nine rungs.
@@ -590,23 +663,26 @@ public final class BTSRecipesFuel {
 
     private static void reconversion() {
         for (int grade = BTSWaterGrade.MAX_GRADE; grade >= BTSWaterGrade.DISTILLED; grade--) {
+            final int rung = grade;
             final FluidStack water = BTSWaterGrade.fluidFor(grade, 2_000);
             // A rung whose fluid the pack does not have is SKIPPED, never thrown from: recipe
             // registration runs in postInit, where one escaping exception costs the whole mod.
             if (water == null) continue;
 
-            GTValues.RA.stdBuilder()
-                .circuit(1)
-                .fluidInputs(
-                    new FluidStack(BTSFluidsProcess.enrichedUF6, 1_000),
-                    Materials.Hydrogen.getGas(2_000),
-                    water)
-                .itemOutputs(new ItemStack(BTSItemsFuel.ceramicUO2Powder, BTSWaterGrade.powderFor(grade)))
-                .fluidOutputs(Materials.HydrofluoricAcid.getFluid(4_000))
-                .metadata(CHEMPLANT_CASING_TIER, 3)
-                .duration(30 * SECONDS)
-                .eut(TierEU.RECIPE_IV)
-                .addTo(chemicalPlantRecipes);
+            BTSRecipeGuard.recipe(
+                "F-12 rung " + rung,
+                () -> GTValues.RA.stdBuilder()
+                    .circuit(1)
+                    .fluidInputs(
+                        BTSRecipeGuard.fluid(BTSFluidsProcess.enrichedUF6, 1_000),
+                        Materials.Hydrogen.getGas(2_000),
+                        water)
+                    .itemOutputs(new ItemStack(BTSItemsFuel.ceramicUO2Powder, BTSWaterGrade.powderFor(rung)))
+                    .fluidOutputs(Materials.HydrofluoricAcid.getFluid(4_000))
+                    .metadata(CHEMPLANT_CASING_TIER, 3)
+                    .duration(30 * SECONDS)
+                    .eut(TierEU.RECIPE_IV)
+                    .addTo(chemicalPlantRecipes));
         }
     }
 
@@ -641,13 +717,15 @@ public final class BTSRecipesFuel {
         // At a 10 % sludge chance and 8 sludge to 4 powder this returns about 5 % of the line -
         // which is roughly what a real pellet shop recovers, and small enough that it never
         // competes with the water ladder as the thing that decides a plant's throughput.
-        GTValues.RA.stdBuilder()
-            .itemInputs(new ItemStack(BTSItemsFuel.grinderSludge, 8))
-            .circuit(1)
-            .itemOutputs(new ItemStack(BTSItemsFuel.ceramicUO2Powder, 4))
-            .duration(20 * SECONDS)
-            .eut(TierEU.RECIPE_EV)
-            .addTo(chemicalDehydratorRecipes);
+        BTSRecipeGuard.recipe(
+            "F-15b",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(new ItemStack(BTSItemsFuel.grinderSludge, 8))
+                .circuit(1)
+                .itemOutputs(new ItemStack(BTSItemsFuel.ceramicUO2Powder, 4))
+                .duration(20 * SECONDS)
+                .eut(TierEU.RECIPE_EV)
+                .addTo(chemicalDehydratorRecipes));
 
         // F-16 CLADDING TUBE from GoodGenerator's Zircaloy-4 (collision C5). Zircaloy-4 is the
         // real PWR cladding alloy, the pack already makes it, and this gives it a large second
@@ -662,14 +740,16 @@ public final class BTSRecipesFuel {
         // overriding a GTNH recipe by accident, which this addon does not do. The Assembler has
         // nine input slots, so a circuit keys the recipe unambiguously, and rolling and
         // seam-welding two Zircaloy strips into a tube is a real way to make one.
-        GTValues.RA.stdBuilder()
-            .itemInputs(GGMaterial.zircaloy4.get(OrePrefixes.plate, 2))
-            .circuit(7)
-            .fluidInputs(Materials.Lubricant.getFluid(100))
-            .itemOutputs(new ItemStack(BTSItemsFuel.claddingTube, 1))
-            .duration(12 * SECONDS)
-            .eut(TierEU.RECIPE_EV)
-            .addTo(assemblerRecipes);
+        BTSRecipeGuard.recipe(
+            "F-16",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(BTSRecipeGuard.nn(GGMaterial.zircaloy4.get(OrePrefixes.plate, 2), "GGMaterial.zircaloy4"))
+                .circuit(7)
+                .fluidInputs(Materials.Lubricant.getFluid(100))
+                .itemOutputs(new ItemStack(BTSItemsFuel.claddingTube, 1))
+                .duration(12 * SECONDS)
+                .eut(TierEU.RECIPE_EV)
+                .addTo(assemblerRecipes));
 
         // F-16b END PLUGS AND PLENUM SPRING.
         //
@@ -677,60 +757,70 @@ public final class BTSRecipesFuel {
         // end plugs and a spring is assembly, not chemistry, and a fluid-free LCR page is a poor
         // way to teach it - so it is an Assembler recipe. Nothing is overridden; the output is a
         // new item that nothing else in the pack produces.
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.stick, Materials.StainlessSteel, 1L),
-                GTOreDictUnificator.get(OrePrefixes.spring, Materials.StainlessSteel, 1L),
-                GTOreDictUnificator.get(OrePrefixes.plate, WerkstoffLoader.RhodiumPlatedPalladium.getGTMaterial(), 1L))
-            .circuit(5)
-            .itemOutputs(new ItemStack(BTSItemsFuel.rodHardwareSet, 1))
-            .duration(10 * SECONDS)
-            .eut(TierEU.RECIPE_EV)
-            .addTo(assemblerRecipes);
+        BTSRecipeGuard.recipe(
+            "F-16b",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    BTSRecipeGuard.req(OrePrefixes.stick, Materials.StainlessSteel, 1L),
+                    BTSRecipeGuard.req(OrePrefixes.spring, Materials.StainlessSteel, 1L),
+                    BTSRecipeGuard.req(OrePrefixes.plate, WerkstoffLoader.RhodiumPlatedPalladium.getGTMaterial(), 1L))
+                .circuit(5)
+                .itemOutputs(new ItemStack(BTSItemsFuel.rodHardwareSet, 1))
+                .duration(10 * SECONDS)
+                .eut(TierEU.RECIPE_EV)
+                .addTo(assemblerRecipes));
 
         // The bundle's spacer grids: Zircaloy strip in an Inconel-substitute frame.
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                GGMaterial.zircaloy4.get(OrePrefixes.plate, 2),
-                GTOreDictUnificator.get(OrePrefixes.ring, Materials.StainlessSteel, 4L))
-            .circuit(6)
-            .itemOutputs(new ItemStack(BTSItemsFuel.gridSpacer, 2))
-            .duration(12 * SECONDS)
-            .eut(TierEU.RECIPE_EV)
-            .addTo(assemblerRecipes);
+        BTSRecipeGuard.recipe(
+            "gridSpacer",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    BTSRecipeGuard.nn(GGMaterial.zircaloy4.get(OrePrefixes.plate, 2), "GGMaterial.zircaloy4"),
+                    BTSRecipeGuard.req(OrePrefixes.ring, Materials.StainlessSteel, 4L))
+                .circuit(6)
+                .itemOutputs(new ItemStack(BTSItemsFuel.gridSpacer, 2))
+                .duration(12 * SECONDS)
+                .eut(TierEU.RECIPE_EV)
+                .addTo(assemblerRecipes));
     }
 
     private static void pressGreenPellet(Item powder, Item green, int gradeCircuit) {
-        GTValues.RA.stdBuilder()
-            .itemInputs(new ItemStack(powder, 4))
-            .circuit(gradeCircuit)
-            .fluidInputs(Materials.Lubricant.getFluid(250))
-            .itemOutputs(new ItemStack(green, 4))
-            .duration(8 * SECONDS)
-            .eut(TierEU.RECIPE_MV)
-            .addTo(formingPressRecipes);
+        BTSRecipeGuard.recipe(
+            "F-13 " + BTSRecipeGuard.name(green),
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(new ItemStack(powder, 4))
+                .circuit(gradeCircuit)
+                .fluidInputs(Materials.Lubricant.getFluid(250))
+                .itemOutputs(new ItemStack(green, 4))
+                .duration(8 * SECONDS)
+                .eut(TierEU.RECIPE_MV)
+                .addTo(formingPressRecipes));
     }
 
     private static void sinter(Item green, Item sintered, int gradeCircuit) {
-        GTValues.RA.stdBuilder()
-            .itemInputs(new ItemStack(green, 4))
-            .circuit(gradeCircuit)
-            .fluidInputs(Materials.Hydrogen.getGas(1_000))
-            .itemOutputs(new ItemStack(sintered, 4))
-            .metadata(COIL_HEAT, 1_800)
-            .duration(30 * SECONDS)
-            .eut(TierEU.RECIPE_IV)
-            .addTo(vacuumFurnaceRecipes);
+        BTSRecipeGuard.recipe(
+            "F-14 " + BTSRecipeGuard.name(sintered),
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(new ItemStack(green, 4))
+                .circuit(gradeCircuit)
+                .fluidInputs(Materials.Hydrogen.getGas(1_000))
+                .itemOutputs(new ItemStack(sintered, 4))
+                .metadata(COIL_HEAT, 1_800)
+                .duration(30 * SECONDS)
+                .eut(TierEU.RECIPE_IV)
+                .addTo(vacuumFurnaceRecipes));
     }
 
     private static void grind(Item sintered, Item pellet) {
-        GTValues.RA.stdBuilder()
-            .itemInputs(new ItemStack(sintered, 1))
-            .itemOutputs(new ItemStack(pellet, 1), new ItemStack(BTSItemsFuel.grinderSludge, 1))
-            .outputChances(10_000, 1_000)
-            .duration(5 * SECONDS)
-            .eut(TierEU.RECIPE_MV)
-            .addTo(latheRecipes);
+        BTSRecipeGuard.recipe(
+            "F-15 " + BTSRecipeGuard.name(pellet),
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(new ItemStack(sintered, 1))
+                .itemOutputs(new ItemStack(pellet, 1), new ItemStack(BTSItemsFuel.grinderSludge, 1))
+                .outputChances(10_000, 1_000)
+                .duration(5 * SECONDS)
+                .eut(TierEU.RECIPE_MV)
+                .addTo(latheRecipes));
     }
 
     // =============================================== F-17 / F-18, the Fuel Fabrication Hall's job
@@ -754,31 +844,35 @@ public final class BTSRecipesFuel {
     }
 
     private static void loadRod(Item pellet, Item rod, int gradeCircuit) {
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                new ItemStack(pellet, 4),
-                new ItemStack(BTSItemsFuel.claddingTube, 1),
-                new ItemStack(BTSItemsFuel.rodHardwareSet, 1))
-            .circuit(gradeCircuit)
-            .fluidInputs(Materials.Helium.getGas(100))
-            .itemOutputs(new ItemStack(rod, 1))
-            .duration(12 * SECONDS)
-            .eut(TierEU.RECIPE_IV)
-            .addTo(MTEFuelFabricationHall.RECIPE_MAP);
+        BTSRecipeGuard.recipe(
+            "F-17 " + BTSRecipeGuard.name(rod),
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    new ItemStack(pellet, 4),
+                    new ItemStack(BTSItemsFuel.claddingTube, 1),
+                    new ItemStack(BTSItemsFuel.rodHardwareSet, 1))
+                .circuit(gradeCircuit)
+                .fluidInputs(Materials.Helium.getGas(100))
+                .itemOutputs(new ItemStack(rod, 1))
+                .duration(12 * SECONDS)
+                .eut(TierEU.RECIPE_IV)
+                .addTo(MTEFuelFabricationHall.RECIPE_MAP));
     }
 
     private static void bundle(Item rod, Item assembly, int gradeCircuit) {
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                new ItemStack(rod, 3),
-                new ItemStack(BTSItemsFuel.gridSpacer, 2),
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Iridium, 1L))
-            .circuit(gradeCircuit)
-            .fluidInputs(Materials.Platinum.getMolten(2 * INGOTS))
-            .itemOutputs(new ItemStack(assembly, 1))
-            .duration(20 * SECONDS)
-            .eut(TierEU.RECIPE_IV)
-            .addTo(MTEFuelFabricationHall.RECIPE_MAP);
+        BTSRecipeGuard.recipe(
+            "F-18 " + BTSRecipeGuard.name(assembly),
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    new ItemStack(rod, 3),
+                    new ItemStack(BTSItemsFuel.gridSpacer, 2),
+                    BTSRecipeGuard.req(OrePrefixes.plate, Materials.Iridium, 1L))
+                .circuit(gradeCircuit)
+                .fluidInputs(Materials.Platinum.getMolten(2 * INGOTS))
+                .itemOutputs(new ItemStack(assembly, 1))
+                .duration(20 * SECONDS)
+                .eut(TierEU.RECIPE_IV)
+                .addTo(MTEFuelFabricationHall.RECIPE_MAP));
     }
 
     // ====================================================== F-19 / F-20, the MOX grade (F = 2)
@@ -802,21 +896,24 @@ public final class BTSRecipesFuel {
         // even now: the tails route is still the dirty route, which is why its product is only
         // ever good enough to be a diluent.
         for (int grade = BTSWaterGrade.MAX_GRADE; grade >= BTSWaterGrade.DISTILLED; grade--) {
+            final int rung = grade;
             final FluidStack water = BTSWaterGrade.fluidFor(grade, 4_000);
             // A rung whose fluid the pack does not have is SKIPPED, never thrown from - see F-12.
             if (water == null) continue;
 
-            GTValues.RA.stdBuilder()
-                .circuit(1)
-                .fluidInputs(
-                    new FluidStack(BTSFluidsProcess.depletedUF6, 2_000),
-                    Materials.Hydrogen.getGas(4_000),
-                    water)
-                .itemOutputs(new ItemStack(BTSItemsFuel.depletedUO2Powder, gradedOutput(grade, 8)))
-                .metadata(CHEMPLANT_CASING_TIER, 3)
-                .duration(18 * SECONDS)
-                .eut(TierEU.RECIPE_IV)
-                .addTo(chemicalPlantRecipes);
+            BTSRecipeGuard.recipe(
+                "F-20 rung " + rung,
+                () -> GTValues.RA.stdBuilder()
+                    .circuit(1)
+                    .fluidInputs(
+                        BTSRecipeGuard.fluid(BTSFluidsProcess.depletedUF6, 2_000),
+                        Materials.Hydrogen.getGas(4_000),
+                        water)
+                    .itemOutputs(new ItemStack(BTSItemsFuel.depletedUO2Powder, gradedOutput(rung, 8)))
+                    .metadata(CHEMPLANT_CASING_TIER, 3)
+                    .duration(18 * SECONDS)
+                    .eut(TierEU.RECIPE_IV)
+                    .addTo(chemicalPlantRecipes));
         }
 
         // F-19 THE MIMAS MASTERBLEND. Two parts PuO2 in thirty of depleted UO2 is 6.25 %, which is
@@ -825,15 +922,17 @@ public final class BTSRecipesFuel {
         // No programmed circuit: the two reagents plus the milling ball fill all three of
         // millingRecipes' maxIO(3, 1, 0, 0) item slots, and the two reagents already key this
         // recipe uniquely. The ball is not optional - millingBall() says why.
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                new ItemStack(BTSItemsFuel.plutoniumDioxide, 2),
-                new ItemStack(BTSItemsFuel.depletedUO2Powder, 30),
-                millingBall())
-            .itemOutputs(new ItemStack(BTSItemsFuel.moxPowder, 32))
-            .duration(30 * SECONDS)
-            .eut(TierEU.RECIPE_LuV)
-            .addTo(millingRecipes);
+        BTSRecipeGuard.recipe(
+            "F-19",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    new ItemStack(BTSItemsFuel.plutoniumDioxide, 2),
+                    new ItemStack(BTSItemsFuel.depletedUO2Powder, 30),
+                    millingBall())
+                .itemOutputs(new ItemStack(BTSItemsFuel.moxPowder, 32))
+                .duration(30 * SECONDS)
+                .eut(TierEU.RECIPE_LuV)
+                .addTo(millingRecipes));
     }
 
     // ================================================ F-21a / F-21b, the thorium grade (F = 5)
@@ -853,33 +952,40 @@ public final class BTSRecipesFuel {
         // chemicalDehydratorRecipes is maxIO(2, 9, 1, 1): the oxalate and the circuit fill both
         // item slots, the wash water takes the only fluid input and the CO2 the only fluid output.
         for (int grade = BTSWaterGrade.MAX_GRADE; grade >= BTSWaterGrade.DISTILLED; grade--) {
+            final int rung = grade;
             final FluidStack water = BTSWaterGrade.fluidFor(grade, 2_000);
             if (water == null) continue;
 
-            GTValues.RA.stdBuilder()
-                .itemInputs(GGMaterial.thoriumOxalate.get(OrePrefixes.dust, 8))
-                .circuit(1)
-                .fluidInputs(water)
-                .itemOutputs(new ItemStack(BTSItemsFuel.thoriumDioxidePowder, gradedOutput(grade, 6)))
-                .fluidOutputs(Materials.CarbonDioxide.getGas(2_000))
-                .duration(25 * SECONDS)
-                .eut(TierEU.RECIPE_IV)
-                .addTo(chemicalDehydratorRecipes);
+            BTSRecipeGuard.recipe(
+                "F-21a rung " + rung,
+                () -> GTValues.RA.stdBuilder()
+                    .itemInputs(
+                        BTSRecipeGuard
+                            .nn(GGMaterial.thoriumOxalate.get(OrePrefixes.dust, 8), "GGMaterial.thoriumOxalate"))
+                    .circuit(1)
+                    .fluidInputs(water)
+                    .itemOutputs(new ItemStack(BTSItemsFuel.thoriumDioxidePowder, gradedOutput(rung, 6)))
+                    .fluidOutputs(Materials.CarbonDioxide.getGas(2_000))
+                    .duration(25 * SECONDS)
+                    .eut(TierEU.RECIPE_IV)
+                    .addTo(chemicalDehydratorRecipes));
         }
 
         // F-21b (Th,U)O2. Thoria is fertile, not fissile: it needs a driver, and the driver is two
         // parts of the main line's own ceramic powder - the same 6.25 % blend F-19 uses.
         // As at F-19, the milling ball takes the third and last item slot, so this recipe carries
         // no programmed circuit either.
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                new ItemStack(BTSItemsFuel.thoriumDioxidePowder, 30),
-                new ItemStack(BTSItemsFuel.ceramicUO2Powder, 2),
-                millingBall())
-            .itemOutputs(new ItemStack(BTSItemsFuel.thoriumUraniumOxidePowder, 32))
-            .duration(30 * SECONDS)
-            .eut(TierEU.RECIPE_LuV)
-            .addTo(millingRecipes);
+        BTSRecipeGuard.recipe(
+            "F-21b",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    new ItemStack(BTSItemsFuel.thoriumDioxidePowder, 30),
+                    new ItemStack(BTSItemsFuel.ceramicUO2Powder, 2),
+                    millingBall())
+                .itemOutputs(new ItemStack(BTSItemsFuel.thoriumUraniumOxidePowder, 32))
+                .duration(30 * SECONDS)
+                .eut(TierEU.RECIPE_LuV)
+                .addTo(millingRecipes));
     }
 
     // ========================================== F-22 / F-23 / F-18n, the naquadah grade (F = 9)
@@ -897,25 +1003,31 @@ public final class BTSRecipesFuel {
         // the pore network of an already-sintered body and deposits inside it. Here the gas phase
         // is the cascade's HEU cut and molten naquadah, and what comes out is a pellet no chemistry
         // permits. It is the only step in the chain that consumes highlyEnrichedUF6.
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                new ItemStack(BTSItemsFuel.sinteredPellet, 8),
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.NaquadahEnriched, 4L),
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uranium235, 2L))
-            .fluidInputs(
-                new FluidStack(BTSFluidsProcess.highlyEnrichedUF6, 200),
-                Materials.Naquadah.getMolten(2 * INGOTS))
-            .itemOutputs(new ItemStack(BTSItemsFuel.naqBondedPellet, 8))
-            // The QFT reads the programmed circuit as WHICH OUTPUT the focus lands on. With no
-            // circuit the index resolves to -1 and the machine silently voids 50-100% of what it
-            // just made - the same trap P-03h carries a circuit for. One output here, so index 0.
-            // The map is maxIO(6, 6, 6, 6), so this fourth item input is well inside the limit.
-            .circuit(QFT_FOCUS_ONLY_OUTPUT)
-            .metadata(QFT_CATALYST, GregtechItemList.AdvancedNaquadahCatalyst.get(0))
-            .metadata(QFT_FOCUS_TIER, 2)
-            .duration(1 * MINUTES)
-            .eut(TierEU.RECIPE_UHV)
-            .addTo(quantumForceTransformerRecipes);
+        BTSRecipeGuard.recipe(
+            "F-22",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    new ItemStack(BTSItemsFuel.sinteredPellet, 8),
+                    BTSRecipeGuard.req(OrePrefixes.dust, Materials.NaquadahEnriched, 4L),
+                    BTSRecipeGuard.req(OrePrefixes.dust, Materials.Uranium235, 2L))
+                .fluidInputs(
+                    BTSRecipeGuard.fluid(BTSFluidsProcess.highlyEnrichedUF6, 200),
+                    Materials.Naquadah.getMolten(2 * INGOTS))
+                .itemOutputs(new ItemStack(BTSItemsFuel.naqBondedPellet, 8))
+                // The QFT reads the programmed circuit as WHICH OUTPUT the focus lands on. With no
+                // circuit the index resolves to -1 and the machine silently voids 50-100% of what it
+                // just made - the same trap P-03h carries a circuit for. One output here, so index 0.
+                // The map is maxIO(6, 6, 6, 6), so this fourth item input is well inside the limit.
+                .circuit(QFT_FOCUS_ONLY_OUTPUT)
+                .metadata(
+                    QFT_CATALYST,
+                    BTSRecipeGuard.nn(
+                        GregtechItemList.AdvancedNaquadahCatalyst.get(0),
+                        "GregtechItemList.AdvancedNaquadahCatalyst"))
+                .metadata(QFT_FOCUS_TIER, 2)
+                .duration(1 * MINUTES)
+                .eut(TierEU.RECIPE_UHV)
+                .addTo(quantumForceTransformerRecipes));
 
         // F-23 THE NAQUADAH ROD, on the Precise Assembler rather than the Fuel Fabrication Hall.
         // Same four-pellets-per-rod ratio as F-17; a different machine, so that the top fuel in the
@@ -928,18 +1040,20 @@ public final class BTSRecipesFuel {
         // EXACTLY at the cap, so nothing may be added here without taking something out - 1 fluid
         // input of 4, 1 item output of 1, and 0 fluid outputs, which is the cap: a fluid output
         // here would be silently impossible.
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                new ItemStack(BTSItemsFuel.naqBondedPellet, 4),
-                new ItemStack(BTSItemsFuel.claddingTube, 1),
-                new ItemStack(BTSItemsFuel.rodHardwareSet, 1))
-            .circuit(GRADE_NAQ)
-            .fluidInputs(Materials.Helium.getGas(100))
-            .itemOutputs(new ItemStack(BTSItems.fuelRodNaqBonded, 1))
-            .metadata(PRECISE_ASSEMBLER_CASING_TIER, 2)
-            .duration(30 * SECONDS)
-            .eut(TierEU.RECIPE_UV)
-            .addTo(preciseAssemblerRecipes);
+        BTSRecipeGuard.recipe(
+            "F-23",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    new ItemStack(BTSItemsFuel.naqBondedPellet, 4),
+                    new ItemStack(BTSItemsFuel.claddingTube, 1),
+                    new ItemStack(BTSItemsFuel.rodHardwareSet, 1))
+                .circuit(GRADE_NAQ)
+                .fluidInputs(Materials.Helium.getGas(100))
+                .itemOutputs(new ItemStack(BTSItems.fuelRodNaqBonded, 1))
+                .metadata(PRECISE_ASSEMBLER_CASING_TIER, 2)
+                .duration(30 * SECONDS)
+                .eut(TierEU.RECIPE_UV)
+                .addTo(preciseAssemblerRecipes));
 
         // F-18n THE NAQUADAH BUNDLE, on the Assembly Line. Three rods per assembly, as everywhere
         // else. The research item is the thorium-bonded assembly: the grade below this one, so the
@@ -966,19 +1080,21 @@ public final class BTSRecipesFuel {
         // AssemblyLineRecipes registers 47 recipes and not one of them calls circuit(), and
         // circuit() writes into inputsBasic, so it would count toward validateInputCount as a
         // fourth "component" without being one.
-        GTValues.RA.stdBuilder()
-            .metadata(RESEARCH_ITEM, new ItemStack(BTSItems.fuelAssemblyThoriumBonded, 1))
-            .metadata(SCANNING, new Scanning(5 * MINUTES, TierEU.RECIPE_ZPM))
-            .itemInputs(
-                new ItemStack(BTSItems.fuelRodNaqBonded, 3),
-                new ItemStack(BTSItemsFuel.gridSpacer, 2),
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Iridium, 2L),
-                GGMaterial.zircaloy4.get(OrePrefixes.plate, 4))
-            .fluidInputs(Materials.Naquadah.getMolten(2 * INGOTS))
-            .itemOutputs(new ItemStack(BTSItems.fuelAssemblyNaqBonded, 1))
-            .duration(1 * MINUTES)
-            .eut(TierEU.RECIPE_UV)
-            .addTo(AssemblyLine);
+        BTSRecipeGuard.recipe(
+            "F-18n",
+            () -> GTValues.RA.stdBuilder()
+                .metadata(RESEARCH_ITEM, new ItemStack(BTSItems.fuelAssemblyThoriumBonded, 1))
+                .metadata(SCANNING, new Scanning(5 * MINUTES, TierEU.RECIPE_ZPM))
+                .itemInputs(
+                    new ItemStack(BTSItems.fuelRodNaqBonded, 3),
+                    new ItemStack(BTSItemsFuel.gridSpacer, 2),
+                    BTSRecipeGuard.req(OrePrefixes.plate, Materials.Iridium, 2L),
+                    BTSRecipeGuard.nn(GGMaterial.zircaloy4.get(OrePrefixes.plate, 4), "GGMaterial.zircaloy4"))
+                .fluidInputs(Materials.Naquadah.getMolten(2 * INGOTS))
+                .itemOutputs(new ItemStack(BTSItems.fuelAssemblyNaqBonded, 1))
+                .duration(1 * MINUTES)
+                .eut(TierEU.RECIPE_UV)
+                .addTo(AssemblyLine));
     }
 
     // ================================================ R-01 .. R-04, PUREX and the D-09 closure
@@ -1010,13 +1126,13 @@ public final class BTSRecipesFuel {
             6_000,
             4_000,
             2,
-            GTOreDictUnificator.get(OrePrefixes.dust, Materials.Thorium, 2L));
+            BTSRecipeGuard.req(OrePrefixes.dust, Materials.Thorium, 2L));
         chopLeach(
             BTSItemsFuel.cooledAssemblyNaqBonded,
             6_000,
             4_000,
             2,
-            GTOreDictUnificator.get(OrePrefixes.dust, Materials.Naquadah, 2L));
+            BTSRecipeGuard.req(OrePrefixes.dust, Materials.Naquadah, 2L));
 
         // The SD-1 rod cascade drops rods, not assemblies, so every reprocessing shape has a
         // rod-scale twin at one third the numbers. Three rod-scale runs make exactly the 6,000 L
@@ -1027,19 +1143,19 @@ public final class BTSRecipesFuel {
             2_000,
             1_400,
             1,
-            GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Plutonium, 1L));
+            BTSRecipeGuard.req(OrePrefixes.dustSmall, Materials.Plutonium, 1L));
         chopLeach(
             BTSItemsFuel.cooledRodThoriumBonded,
             2_000,
             1_400,
             1,
-            GTOreDictUnificator.get(OrePrefixes.dust, Materials.Thorium, 1L));
+            BTSRecipeGuard.req(OrePrefixes.dust, Materials.Thorium, 1L));
         chopLeach(
             BTSItemsFuel.cooledRodNaqBonded,
             2_000,
             1_400,
             1,
-            GTOreDictUnificator.get(OrePrefixes.dust, Materials.Naquadah, 1L));
+            BTSRecipeGuard.req(OrePrefixes.dust, Materials.Naquadah, 1L));
 
         // R-02h THE UNCOOLED RUSH. This is the mechanic that earns the PUREX Canyon its MTE slot:
         // nothing else in the pack has an input whose HISTORY changes the recipe. Fuel straight out
@@ -1063,44 +1179,50 @@ public final class BTSRecipesFuel {
         // ITS RAFFINATE IS BTSFluids.nuclearWasteWater, AND THAT CLOSES D-09. That fluid has had a
         // consumer since the mod shipped - the distillation at the bottom of this file - and no
         // producer at all. It has one now.
-        GTValues.RA.stdBuilder()
-            .circuit(PUREX_PARTITION)
-            .fluidInputs(
-                new FluidStack(BTSFluidsProcess.dissolverLiquor, 6_000),
-                new FluidStack(BTSFluidsProcess.tbpSolvent, 2_000))
-            .itemOutputs(
-                new ItemStack(BTSItemsFuel.ceramicUO2Powder, 4),
-                new ItemStack(BTSItemsFuel.plutoniumDioxide, 1),
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Lead, 1L))
-            .fluidOutputs(new FluidStack(BTSFluids.nuclearWasteWater, 2_000))
-            .duration(40 * SECONDS)
-            .eut(TierEU.RECIPE_IV)
-            .addTo(MTEPurexCanyon.RECIPE_MAP);
+        BTSRecipeGuard.recipe(
+            "R-03",
+            () -> GTValues.RA.stdBuilder()
+                .circuit(PUREX_PARTITION)
+                .fluidInputs(
+                    BTSRecipeGuard.fluid(BTSFluidsProcess.dissolverLiquor, 6_000),
+                    BTSRecipeGuard.fluid(BTSFluidsProcess.tbpSolvent, 2_000))
+                .itemOutputs(
+                    new ItemStack(BTSItemsFuel.ceramicUO2Powder, 4),
+                    new ItemStack(BTSItemsFuel.plutoniumDioxide, 1),
+                    BTSRecipeGuard.req(OrePrefixes.dust, Materials.Lead, 1L))
+                .fluidOutputs(BTSRecipeGuard.fluid(BTSFluids.nuclearWasteWater, 2_000))
+                .duration(40 * SECONDS)
+                .eut(TierEU.RECIPE_IV)
+                .addTo(MTEPurexCanyon.RECIPE_MAP));
 
         // R-04 HULL RECOVERY. Zircaloy is expensive and the hulls are most of what a bundle weighs;
         // getting the cladding back is what makes reprocessing worth building rather than merely
         // worth doing.
-        GTValues.RA.stdBuilder()
-            .itemInputs(new ItemStack(BTSItemsFuel.claddingHull, 4))
-            .circuit(1)
-            .fluidInputs(Materials.HydrofluoricAcid.getFluid(1_000))
-            .itemOutputs(
-                GGMaterial.zircaloy4.get(OrePrefixes.ingot, 1),
-                WerkstoffLoader.getCorrespondingItemStack(OrePrefixes.dust, WerkstoffLoader.Zirconium, 1))
-            .duration(20 * SECONDS)
-            .eut(TierEU.RECIPE_EV)
-            .addTo(UniversalChemical);
+        BTSRecipeGuard.recipe(
+            "R-04",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(new ItemStack(BTSItemsFuel.claddingHull, 4))
+                .circuit(1)
+                .fluidInputs(Materials.HydrofluoricAcid.getFluid(1_000))
+                .itemOutputs(
+                    BTSRecipeGuard.nn(GGMaterial.zircaloy4.get(OrePrefixes.ingot, 1), "GGMaterial.zircaloy4"),
+                    WerkstoffLoader.getCorrespondingItemStack(OrePrefixes.dust, WerkstoffLoader.Zirconium, 1))
+                .duration(20 * SECONDS)
+                .eut(TierEU.RECIPE_EV)
+                .addTo(UniversalChemical));
     }
 
     private static void coolInPond(Item depleted, Item cooled, double halfLifeSeconds) {
-        GTValues.RA.stdBuilder()
-            .itemInputs(new ItemStack(depleted, 1))
-            .itemOutputs(new ItemStack(cooled, 1))
-            .metadata(HALF_LIFE, halfLifeSeconds)
-            .metadata(DECAY_TYPE, GTRecipeConstants.DecayType.Alpha)
-            .duration(1)
-            .eut(1)
-            .addTo(isotopeDecay);
+        BTSRecipeGuard.recipe(
+            "R-01 " + BTSRecipeGuard.name(cooled),
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(new ItemStack(depleted, 1))
+                .itemOutputs(new ItemStack(cooled, 1))
+                .metadata(HALF_LIFE, halfLifeSeconds)
+                .metadata(DECAY_TYPE, GTRecipeConstants.DecayType.Alpha)
+                .duration(1)
+                .eut(1)
+                .addTo(isotopeDecay));
     }
 
     private static void chopLeach(Item cooled, int liquor, int nitric, int hulls, ItemStack gradeReturn) {
@@ -1108,30 +1230,34 @@ public final class BTSRecipesFuel {
             ? new ItemStack[] { new ItemStack(BTSItemsFuel.claddingHull, hulls) }
             : new ItemStack[] { new ItemStack(BTSItemsFuel.claddingHull, hulls), gradeReturn };
 
-        GTValues.RA.stdBuilder()
-            .itemInputs(new ItemStack(cooled, 1))
-            .circuit(PUREX_COOLED)
-            .fluidInputs(Materials.NitricAcid.getFluid(nitric))
-            .itemOutputs(outputs)
-            .fluidOutputs(new FluidStack(BTSFluidsProcess.dissolverLiquor, liquor))
-            .duration(40 * SECONDS)
-            .eut(TierEU.RECIPE_IV)
-            .addTo(MTEPurexCanyon.RECIPE_MAP);
+        BTSRecipeGuard.recipe(
+            "R-02 " + BTSRecipeGuard.name(cooled),
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(new ItemStack(cooled, 1))
+                .circuit(PUREX_COOLED)
+                .fluidInputs(Materials.NitricAcid.getFluid(nitric))
+                .itemOutputs(outputs)
+                .fluidOutputs(BTSRecipeGuard.fluid(BTSFluidsProcess.dissolverLiquor, liquor))
+                .duration(40 * SECONDS)
+                .eut(TierEU.RECIPE_IV)
+                .addTo(MTEPurexCanyon.RECIPE_MAP));
     }
 
     private static void rushLeach(Item depleted, int powder, int lead, int hulls, int nitric, int wasteWater) {
-        GTValues.RA.stdBuilder()
-            .itemInputs(new ItemStack(depleted, 1))
-            .circuit(PUREX_RUSH)
-            .fluidInputs(Materials.NitricAcid.getFluid(nitric))
-            .itemOutputs(
-                new ItemStack(BTSItemsFuel.ceramicUO2Powder, powder),
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Lead, lead),
-                new ItemStack(BTSItemsFuel.claddingHull, hulls))
-            .fluidOutputs(new FluidStack(BTSFluids.nuclearWasteWater, wasteWater))
-            .duration(30 * SECONDS)
-            .eut(TierEU.RECIPE_IV)
-            .addTo(MTEPurexCanyon.RECIPE_MAP);
+        BTSRecipeGuard.recipe(
+            "R-02h " + BTSRecipeGuard.name(depleted),
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(new ItemStack(depleted, 1))
+                .circuit(PUREX_RUSH)
+                .fluidInputs(Materials.NitricAcid.getFluid(nitric))
+                .itemOutputs(
+                    new ItemStack(BTSItemsFuel.ceramicUO2Powder, powder),
+                    BTSRecipeGuard.req(OrePrefixes.dust, Materials.Lead, lead),
+                    new ItemStack(BTSItemsFuel.claddingHull, hulls))
+                .fluidOutputs(BTSRecipeGuard.fluid(BTSFluids.nuclearWasteWater, wasteWater))
+                .duration(30 * SECONDS)
+                .eut(TierEU.RECIPE_IV)
+                .addTo(MTEPurexCanyon.RECIPE_MAP));
     }
 
     // ======================================= the crude route: depleted fuel WITHOUT a PUREX Canyon
@@ -1166,40 +1292,40 @@ public final class BTSRecipesFuel {
             BTSItems.depletedFuelAssemblyUranium,
             1 * MINUTES,
             TierEU.RECIPE_EV,
-            new ItemStack[] { GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uranium, 4L),
-                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Plutonium, 2L),
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Lead, 1L),
-                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Platinum, 2L) },
+            new ItemStack[] { BTSRecipeGuard.req(OrePrefixes.dust, Materials.Uranium, 4L),
+                BTSRecipeGuard.req(OrePrefixes.dustSmall, Materials.Plutonium, 2L),
+                BTSRecipeGuard.req(OrePrefixes.dust, Materials.Lead, 1L),
+                BTSRecipeGuard.req(OrePrefixes.foil, Materials.Platinum, 2L) },
             new int[] { 10_000, 10_000, 10_000, 5_000 });
 
         crudeCentrifuge(
             BTSItems.depletedFuelAssemblyMox,
             1 * MINUTES,
             TierEU.RECIPE_EV,
-            new ItemStack[] { GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uranium, 3L),
-                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Plutonium, 3L),
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Lead, 2L),
-                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Platinum, 2L) },
+            new ItemStack[] { BTSRecipeGuard.req(OrePrefixes.dust, Materials.Uranium, 3L),
+                BTSRecipeGuard.req(OrePrefixes.dustSmall, Materials.Plutonium, 3L),
+                BTSRecipeGuard.req(OrePrefixes.dust, Materials.Lead, 2L),
+                BTSRecipeGuard.req(OrePrefixes.foil, Materials.Platinum, 2L) },
             new int[] { 10_000, 10_000, 10_000, 5_000 });
 
         crudeCentrifuge(
             BTSItems.depletedFuelAssemblyThoriumBonded,
             1 * MINUTES,
             TierEU.RECIPE_IV,
-            new ItemStack[] { GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uranium, 4L),
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Thorium, 4L),
-                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Plutonium, 2L),
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Lead, 2L) },
+            new ItemStack[] { BTSRecipeGuard.req(OrePrefixes.dust, Materials.Uranium, 4L),
+                BTSRecipeGuard.req(OrePrefixes.dust, Materials.Thorium, 4L),
+                BTSRecipeGuard.req(OrePrefixes.dustSmall, Materials.Plutonium, 2L),
+                BTSRecipeGuard.req(OrePrefixes.dust, Materials.Lead, 2L) },
             new int[] { 10_000, 10_000, 10_000, 10_000 });
 
         crudeCentrifuge(
             BTSItems.depletedFuelAssemblyNaqBonded,
             1 * MINUTES,
             TierEU.RECIPE_LuV,
-            new ItemStack[] { GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uranium, 4L),
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Naquadah, 4L),
-                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Plutonium, 3L),
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Lead, 2L) },
+            new ItemStack[] { BTSRecipeGuard.req(OrePrefixes.dust, Materials.Uranium, 4L),
+                BTSRecipeGuard.req(OrePrefixes.dust, Materials.Naquadah, 4L),
+                BTSRecipeGuard.req(OrePrefixes.dustSmall, Materials.Plutonium, 3L),
+                BTSRecipeGuard.req(OrePrefixes.dust, Materials.Lead, 2L) },
             new int[] { 10_000, 10_000, 10_000, 10_000 });
 
         // The SD-1 rod cascade drops rods, so every assembly shape has its rod-scale twin here too,
@@ -1208,51 +1334,53 @@ public final class BTSRecipesFuel {
             BTSItems.depletedFuelRodUranium,
             20 * SECONDS,
             TierEU.RECIPE_EV,
-            new ItemStack[] { GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uranium, 1L),
-                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Plutonium, 1L),
-                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Lead, 1L),
-                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Platinum, 1L) },
+            new ItemStack[] { BTSRecipeGuard.req(OrePrefixes.dust, Materials.Uranium, 1L),
+                BTSRecipeGuard.req(OrePrefixes.dustSmall, Materials.Plutonium, 1L),
+                BTSRecipeGuard.req(OrePrefixes.dustSmall, Materials.Lead, 1L),
+                BTSRecipeGuard.req(OrePrefixes.foil, Materials.Platinum, 1L) },
             new int[] { 10_000, 6_700, 10_000, 5_000 });
 
         crudeCentrifuge(
             BTSItems.depletedFuelRodMox,
             20 * SECONDS,
             TierEU.RECIPE_EV,
-            new ItemStack[] { GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uranium, 1L),
-                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Plutonium, 1L),
-                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Lead, 2L),
-                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Platinum, 1L) },
+            new ItemStack[] { BTSRecipeGuard.req(OrePrefixes.dust, Materials.Uranium, 1L),
+                BTSRecipeGuard.req(OrePrefixes.dustSmall, Materials.Plutonium, 1L),
+                BTSRecipeGuard.req(OrePrefixes.dustSmall, Materials.Lead, 2L),
+                BTSRecipeGuard.req(OrePrefixes.foil, Materials.Platinum, 1L) },
             new int[] { 10_000, 10_000, 10_000, 5_000 });
 
         crudeCentrifuge(
             BTSItems.depletedFuelRodThoriumBonded,
             20 * SECONDS,
             TierEU.RECIPE_IV,
-            new ItemStack[] { GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uranium, 1L),
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Thorium, 1L),
-                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Plutonium, 1L),
-                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Lead, 2L) },
+            new ItemStack[] { BTSRecipeGuard.req(OrePrefixes.dust, Materials.Uranium, 1L),
+                BTSRecipeGuard.req(OrePrefixes.dust, Materials.Thorium, 1L),
+                BTSRecipeGuard.req(OrePrefixes.dustSmall, Materials.Plutonium, 1L),
+                BTSRecipeGuard.req(OrePrefixes.dustSmall, Materials.Lead, 2L) },
             new int[] { 10_000, 10_000, 6_700, 10_000 });
 
         crudeCentrifuge(
             BTSItems.depletedFuelRodNaqBonded,
             20 * SECONDS,
             TierEU.RECIPE_LuV,
-            new ItemStack[] { GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uranium, 1L),
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Naquadah, 1L),
-                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Plutonium, 1L),
-                GTOreDictUnificator.get(OrePrefixes.dustSmall, Materials.Lead, 2L) },
+            new ItemStack[] { BTSRecipeGuard.req(OrePrefixes.dust, Materials.Uranium, 1L),
+                BTSRecipeGuard.req(OrePrefixes.dust, Materials.Naquadah, 1L),
+                BTSRecipeGuard.req(OrePrefixes.dustSmall, Materials.Plutonium, 1L),
+                BTSRecipeGuard.req(OrePrefixes.dustSmall, Materials.Lead, 2L) },
             new int[] { 10_000, 10_000, 10_000, 10_000 });
     }
 
     private static void crudeCentrifuge(Item depleted, int duration, long eut, ItemStack[] outputs, int[] chances) {
-        GTValues.RA.stdBuilder()
-            .itemInputs(new ItemStack(depleted, 1))
-            .itemOutputs(outputs)
-            .outputChances(chances)
-            .duration(duration)
-            .eut(eut)
-            .addTo(centrifugeRecipes);
+        BTSRecipeGuard.recipe(
+            "crude centrifuge " + BTSRecipeGuard.name(depleted),
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(new ItemStack(depleted, 1))
+                .itemOutputs(outputs)
+                .outputChances(chances)
+                .duration(duration)
+                .eut(eut)
+                .addTo(centrifugeRecipes));
     }
 
     // ============================================================ the three barren-rock streams
@@ -1264,36 +1392,42 @@ public final class BTSRecipesFuel {
      * the cell failed to float - which is what a real scavenger circuit is for.
      */
     private static void byproductCleanup() {
-        GTValues.RA.stdBuilder()
-            .itemInputs(new ItemStack(BTSItemsFuel.gangueDust, 8))
-            .circuit(1)
-            .itemOutputs(
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Stone, 4L),
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Calcite, 1L))
-            .duration(15 * SECONDS)
-            .eut(TierEU.RECIPE_MV)
-            .addTo(centrifugeRecipes);
+        BTSRecipeGuard.recipe(
+            "dust-Stone",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(new ItemStack(BTSItemsFuel.gangueDust, 8))
+                .circuit(1)
+                .itemOutputs(
+                    BTSRecipeGuard.req(OrePrefixes.dust, Materials.Stone, 4L),
+                    BTSRecipeGuard.req(OrePrefixes.dust, Materials.Calcite, 1L))
+                .duration(15 * SECONDS)
+                .eut(TierEU.RECIPE_MV)
+                .addTo(centrifugeRecipes));
 
-        GTValues.RA.stdBuilder()
-            .itemInputs(new ItemStack(BTSItemsFuel.flotationTailings, 8))
-            .circuit(1)
-            .itemOutputs(
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Stone, 4L),
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uraninite, 2L))
-            .outputChances(10_000, 3_300)
-            .duration(20 * SECONDS)
-            .eut(TierEU.RECIPE_HV)
-            .addTo(centrifugeRecipes);
+        BTSRecipeGuard.recipe(
+            "dust-Stone (2)",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(new ItemStack(BTSItemsFuel.flotationTailings, 8))
+                .circuit(1)
+                .itemOutputs(
+                    BTSRecipeGuard.req(OrePrefixes.dust, Materials.Stone, 4L),
+                    BTSRecipeGuard.req(OrePrefixes.dust, Materials.Uraninite, 2L))
+                .outputChances(10_000, 3_300)
+                .duration(20 * SECONDS)
+                .eut(TierEU.RECIPE_HV)
+                .addTo(centrifugeRecipes));
 
-        GTValues.RA.stdBuilder()
-            .itemInputs(new ItemStack(BTSItemsFuel.leachResidue, 4))
-            .circuit(1)
-            .itemOutputs(
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Gypsum, 2L),
-                GTOreDictUnificator.get(OrePrefixes.dust, Materials.Silicon, 1L))
-            .duration(15 * SECONDS)
-            .eut(TierEU.RECIPE_MV)
-            .addTo(centrifugeRecipes);
+        BTSRecipeGuard.recipe(
+            "dust-Gypsum",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(new ItemStack(BTSItemsFuel.leachResidue, 4))
+                .circuit(1)
+                .itemOutputs(
+                    BTSRecipeGuard.req(OrePrefixes.dust, Materials.Gypsum, 2L),
+                    BTSRecipeGuard.req(OrePrefixes.dust, Materials.Silicon, 1L))
+                .duration(15 * SECONDS)
+                .eut(TierEU.RECIPE_MV)
+                .addTo(centrifugeRecipes));
     }
 
     // ================================================================= what did NOT change (D-09)
@@ -1304,13 +1438,15 @@ public final class BTSRecipesFuel {
      * was a consumer with no producer anywhere in the mod.
      */
     private static void keptFromBefore() {
-        GTValues.RA.stdBuilder()
-            .circuit(1)
-            .fluidInputs(new FluidStack(BTSFluids.nuclearWasteWater, 8_000))
-            .itemOutputs(Materials.Tantalum.getDustSmall(1))
-            .fluidOutputs(GTModHandler.getDistilledWater(7_200))
-            .duration(20 * SECONDS)
-            .eut(TierEU.RECIPE_EV)
-            .addTo(distillationTowerRecipes);
+        BTSRecipeGuard.recipe(
+            "D-09 nuclear waste water",
+            () -> GTValues.RA.stdBuilder()
+                .circuit(1)
+                .fluidInputs(BTSRecipeGuard.fluid(BTSFluids.nuclearWasteWater, 8_000))
+                .itemOutputs(Materials.Tantalum.getDustSmall(1))
+                .fluidOutputs(GTModHandler.getDistilledWater(7_200))
+                .duration(20 * SECONDS)
+                .eut(TierEU.RECIPE_EV)
+                .addTo(distillationTowerRecipes));
     }
 }

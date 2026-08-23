@@ -231,30 +231,32 @@ public final class BTSDisplayRecipes {
             final long tier1 = perPillar * MTEReactorCoreMk1.columnCapOf(1);
             final long tier5 = perPillar * MTEReactorCoreMk1.columnCapOf(5);
             try {
-                GTValues.RA.stdBuilder()
-                    .itemInputs(new ItemStack(fresh, 1))
-                    .itemOutputs(new ItemStack(depleted, 1))
-                    .duration(cycleTicks)
-                    .eut(0)
-                    .fake()
-                    .ignoreCollision()
-                    // Lines are kept to ~28 characters: the NEI description column is 170px wide
-                    // and drawText does NOT wrap (GT hard-wraps its own lines for the same reason).
-                    .setNEIDesc(
-                        "Fuel multiplier: x" + mult,
-                        "Steam/pillar " + fmt(basis) + " x" + mult + " =",
-                        "  " + fmt(perPillar) + " L/t at 24/24 rods",
-                        "1 rod = 1 of " + segments + " segments",
-                        "Burns bottom-up: " + cycleMinutes + " min ea.",
-                        "Full pillar: " + (cycleMinutes * segments / 60) + " h",
-                        "T1 (" + MTEReactorCoreMk1.columnCapOf(1) + "): " + fmt(tier1) + " L/t",
-                        "T5 (" + MTEReactorCoreMk1.columnCapOf(5) + "): " + fmt(tier5) + " L/t",
-                        "EU/t = L/t x spd x eff",
-                        "  x RPM/500 x avg rotor",
-                        "In: silo face, rod course",
-                        "Out: bus beside it, same course",
-                        "Display only - not a recipe")
-                    .addTo(plantFuelRods);
+                BTSRecipeGuard.recipe(
+                    "depleted",
+                    () -> GTValues.RA.stdBuilder()
+                        .itemInputs(new ItemStack(fresh, 1))
+                        .itemOutputs(new ItemStack(depleted, 1))
+                        .duration(cycleTicks)
+                        .eut(0)
+                        .fake()
+                        .ignoreCollision()
+                        // Lines are kept to ~28 characters: the NEI description column is 170px wide
+                        // and drawText does NOT wrap (GT hard-wraps its own lines for the same reason).
+                        .setNEIDesc(
+                            "Fuel multiplier: x" + mult,
+                            "Steam/pillar " + fmt(basis) + " x" + mult + " =",
+                            "  " + fmt(perPillar) + " L/t at 24/24 rods",
+                            "1 rod = 1 of " + segments + " segments",
+                            "Burns bottom-up: " + cycleMinutes + " min ea.",
+                            "Full pillar: " + (cycleMinutes * segments / 60) + " h",
+                            "T1 (" + MTEReactorCoreMk1.columnCapOf(1) + "): " + fmt(tier1) + " L/t",
+                            "T5 (" + MTEReactorCoreMk1.columnCapOf(5) + "): " + fmt(tier5) + " L/t",
+                            "EU/t = L/t x spd x eff",
+                            "  x RPM/500 x avg rotor",
+                            "In: silo face, rod course",
+                            "Out: bus beside it, same course",
+                            "Display only - not a recipe")
+                        .addTo(plantFuelRods));
             } catch (RuntimeException broken) {
                 // Backstop only - the guards above are the mechanism. This exists because the
                 // ladders/tables live in MTEReactorCoreMk1 and can gain entries; a new entry must
@@ -291,30 +293,33 @@ public final class BTSDisplayRecipes {
             // fuel is precisely what BTSRecipes' Mixer recipes consume to make the
             // propellant. A player who pipes the fuel to an injector gets the P x1.00 floor
             // and no error, so the page names each rung's provenance out loud.
+            final int propellantRung = rung;
             final String source = rung >= 3 ? "Mixed from Naquadah Fuel"
                 : rung == 2 ? "GT++ rocket fuel" : "GT distillation line";
             try {
-                GTValues.RA.stdBuilder()
-                    .fluidInputs(shot)
-                    .duration(MTEReactorCoreMk1.cycleSlugTicks())
-                    .eut(0)
-                    .fake()
-                    .ignoreCollision()
-                    .setNEIDesc(
-                        "Stage factor P: x" + String.format("%.2f", pMilli / 1000.0),
-                        "1 L in each of " + injectors + " injectors",
-                        "per accepted cycle (shown: " + injectors + " L)",
-                        "Gain = " + MTEReactorCoreMk1.rpmGain() + " x P x timed/8",
-                        "  = " + fmt(gain) + " RPM at 8/8 timed",
-                        "Held at 1 cycle/s: " + fmt(heldRpm(gain)),
-                        "Redline " + fmt(MTEReactorCoreMk1.RPM_REDLINE),
-                        "5 of 8 stocked = 5/8 gain",
-                        "A missed cycle burns " + injectors + " L",
-                        source,
-                        "In: Spiral chamber, front wall",
-                        "Plant lands the timed shot",
-                        "Display only - not a recipe")
-                    .addTo(plantPropellant);
+                BTSRecipeGuard.recipe(
+                    "propellant page rung " + propellantRung,
+                    () -> GTValues.RA.stdBuilder()
+                        .fluidInputs(shot)
+                        .duration(MTEReactorCoreMk1.cycleSlugTicks())
+                        .eut(0)
+                        .fake()
+                        .ignoreCollision()
+                        .setNEIDesc(
+                            "Stage factor P: x" + String.format("%.2f", pMilli / 1000.0),
+                            "1 L in each of " + injectors + " injectors",
+                            "per accepted cycle (shown: " + injectors + " L)",
+                            "Gain = " + MTEReactorCoreMk1.rpmGain() + " x P x timed/8",
+                            "  = " + fmt(gain) + " RPM at 8/8 timed",
+                            "Held at 1 cycle/s: " + fmt(heldRpm(gain)),
+                            "Redline " + fmt(MTEReactorCoreMk1.RPM_REDLINE),
+                            "5 of 8 stocked = 5/8 gain",
+                            "A missed cycle burns " + injectors + " L",
+                            source,
+                            "In: Spiral chamber, front wall",
+                            "Plant lands the timed shot",
+                            "Display only - not a recipe")
+                        .addTo(plantPropellant));
             } catch (RuntimeException broken) {
                 pageFailed("propellant", rung, broken);
             }
@@ -354,26 +359,30 @@ public final class BTSDisplayRecipes {
                 continue;
             }
             final int atHalf = MTEReactorCoreMk1.coolantDrainFor(halfLoad, rung);
+            final int coolantRung = rung;
             try {
-                GTValues.RA.stdBuilder()
-                    .fluidInputs(draw)
-                    .duration(1)
-                    .eut(0)
-                    .fake()
-                    .ignoreCollision()
-                    .setNEIDesc(
-                        "Coolant quality Q: " + String.format("%.1f", MTEReactorCoreMk1.coolantQMilli(rung) / 1000.0),
-                        "Drain = ceil(load / Q) L/t",
-                        "Load = 200 x (RPM/1000)^2",
-                        "  + swirl^2 x 5/20",
-                        "At " + fmt(MTEReactorCoreMk1.RPM_REDLINE) + " RPM: load " + fmt(redlineLoad),
-                        "  -> " + fmt(atRedline) + " L/t (shown)",
-                        "At " + fmt(MTEReactorCoreMk1.RPM_REDLINE / 2) + " RPM: " + fmt(atHalf) + " L/t",
-                        "Half the RPM, a quarter cost",
-                        "No cover = cycle refused",
-                        "In: Spiral chamber, front wall",
-                        "Display only - not a recipe")
-                    .addTo(plantCoolant);
+                BTSRecipeGuard.recipe(
+                    "coolant page rung " + coolantRung,
+                    () -> GTValues.RA.stdBuilder()
+                        .fluidInputs(draw)
+                        .duration(1)
+                        .eut(0)
+                        .fake()
+                        .ignoreCollision()
+                        .setNEIDesc(
+                            "Coolant quality Q: "
+                                + String.format("%.1f", MTEReactorCoreMk1.coolantQMilli(coolantRung) / 1000.0),
+                            "Drain = ceil(load / Q) L/t",
+                            "Load = 200 x (RPM/1000)^2",
+                            "  + swirl^2 x 5/20",
+                            "At " + fmt(MTEReactorCoreMk1.RPM_REDLINE) + " RPM: load " + fmt(redlineLoad),
+                            "  -> " + fmt(atRedline) + " L/t (shown)",
+                            "At " + fmt(MTEReactorCoreMk1.RPM_REDLINE / 2) + " RPM: " + fmt(atHalf) + " L/t",
+                            "Half the RPM, a quarter cost",
+                            "No cover = cycle refused",
+                            "In: Spiral chamber, front wall",
+                            "Display only - not a recipe")
+                        .addTo(plantCoolant));
             } catch (RuntimeException broken) {
                 pageFailed("coolant", rung, broken);
             }
@@ -412,33 +421,36 @@ public final class BTSDisplayRecipes {
             final int yieldMilli = BTSWaterGrade.yieldMilli(grade);
             final int count = BTSWaterGrade.powderFor(grade);
             final double orePerRod = yieldMilli <= 0 ? 0 : 16.0 * 1000.0 / yieldMilli;
+            final int waterGrade = grade;
             try {
-                GTValues.RA.stdBuilder()
-                    .fluidInputs(water)
-                    .itemOutputs(new ItemStack(powder, count))
-                    // duration 1, not 0, to match the coolant page: GT's builder treats a
-                    // non-positive duration as a malformed recipe and the DisplayFrontend
-                    // suppresses the number anyway, so 1 costs nothing and 0 risks the tab.
-                    .duration(1)
-                    .eut(0)
-                    .fake()
-                    .ignoreCollision()
-                    .setNEIDesc(
-                        BTSWaterGrade.label(grade),
-                        "FUEL LINE - F-12 reconversion:",
-                        "  yield x" + String.format("%.1f", yieldMilli / 1000.0) + " -> " + count + " UO2 powder",
-                        "  per 1,000 L enriched UF6",
-                        "  = " + String.format("%.1f", orePerRod) + " Uraninite per fuel rod",
-                        "REACTOR - feedwater hatch:",
-                        "  EU/t output x" + String.format("%.2f", BTSWaterGrade.outputMilli(grade) / 1000.0),
-                        "Plain and distilled water",
-                        "  run the reactor at x1.00 -",
-                        "  no grade is ever required.",
-                        "Yield spans x9.00, output",
-                        "  x1.40: water buys CHEAP",
-                        "  FUEL, never raw power.",
-                        "Display only - not a recipe")
-                    .addTo(plantWater);
+                BTSRecipeGuard.recipe(
+                    "water page grade " + waterGrade,
+                    () -> GTValues.RA.stdBuilder()
+                        .fluidInputs(water)
+                        .itemOutputs(new ItemStack(powder, count))
+                        // duration 1, not 0, to match the coolant page: GT's builder treats a
+                        // non-positive duration as a malformed recipe and the DisplayFrontend
+                        // suppresses the number anyway, so 1 costs nothing and 0 risks the tab.
+                        .duration(1)
+                        .eut(0)
+                        .fake()
+                        .ignoreCollision()
+                        .setNEIDesc(
+                            BTSWaterGrade.label(waterGrade),
+                            "FUEL LINE - F-12 reconversion:",
+                            "  yield x" + String.format("%.1f", yieldMilli / 1000.0) + " -> " + count + " UO2 powder",
+                            "  per 1,000 L enriched UF6",
+                            "  = " + String.format("%.1f", orePerRod) + " Uraninite per fuel rod",
+                            "REACTOR - feedwater hatch:",
+                            "  EU/t output x" + String.format("%.2f", BTSWaterGrade.outputMilli(waterGrade) / 1000.0),
+                            "Plain and distilled water",
+                            "  run the reactor at x1.00 -",
+                            "  no grade is ever required.",
+                            "Yield spans x9.00, output",
+                            "  x1.40: water buys CHEAP",
+                            "  FUEL, never raw power.",
+                            "Display only - not a recipe")
+                        .addTo(plantWater));
             } catch (RuntimeException broken) {
                 pageFailed("water grade", grade, broken);
             }

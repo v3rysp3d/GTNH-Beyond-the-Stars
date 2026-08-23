@@ -14,7 +14,6 @@ import gregtech.api.enums.Materials;
 import gregtech.api.enums.OrePrefixes;
 import gregtech.api.enums.TierEU;
 import gregtech.api.util.GTModHandler;
-import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.GTRecipeConstants;
 import gtPlusPlus.api.recipe.GTPPRecipeMaps;
 import gtPlusPlus.core.fluids.GTPPFluids;
@@ -107,14 +106,16 @@ public final class BTSRecipesCoolant {
     // ------------------------------------------------------------------------------------------
 
     private static void chemicalShim() {
-        GTValues.RA.stdBuilder()
-            .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Lithium, 2L))
-            .circuit(1)
-            .fluidInputs(new FluidStack(GTPPFluids.BoricAcid, 2_000), Materials.Water.getFluid(1_000))
-            .fluidOutputs(new FluidStack(BTSFluidsPropellant.chemicalShim, 2_000))
-            .duration(20 * SECONDS)
-            .eut(TierEU.RECIPE_HV)
-            .addTo(multiblockChemicalReactorRecipes);
+        BTSRecipeGuard.recipe(
+            "C-04",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(BTSRecipeGuard.req(OrePrefixes.dust, Materials.Lithium, 2L))
+                .circuit(1)
+                .fluidInputs(BTSRecipeGuard.fluid(GTPPFluids.BoricAcid, 2_000), Materials.Water.getFluid(1_000))
+                .fluidOutputs(BTSRecipeGuard.fluid(BTSFluidsPropellant.chemicalShim, 2_000))
+                .duration(20 * SECONDS)
+                .eut(TierEU.RECIPE_HV)
+                .addTo(multiblockChemicalReactorRecipes));
     }
 
     // ------------------------------------------------------------------------------------------
@@ -131,17 +132,19 @@ public final class BTSRecipesCoolant {
         final FluidStack coolant = GTModHandler.getIC2Coolant(BULK_LITRES);
         if (coolant == null) return;
 
-        GTValues.RA.stdBuilder()
-            .itemInputs(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Lapis, BULK))
-            .circuit(11)
-            .fluidInputs(
-                GTModHandler.getDistilledWater(BULK_LITRES),
-                new FluidStack(BTSFluidsPropellant.chemicalShim, 200))
-            .fluidOutputs(coolant)
-            .duration(1_024 * TICKS) // half of what 8 stock cycles cost (8 x 256 t)
-            .eut(TierEU.RECIPE_EV)
-            .metadata(GTRecipeConstants.CHEMPLANT_CASING_TIER, 2)
-            .addTo(GTPPRecipeMaps.chemicalPlantRecipes);
+        BTSRecipeGuard.recipe(
+            "C-02",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(BTSRecipeGuard.req(OrePrefixes.dust, Materials.Lapis, BULK))
+                .circuit(11)
+                .fluidInputs(
+                    GTModHandler.getDistilledWater(BULK_LITRES),
+                    BTSRecipeGuard.fluid(BTSFluidsPropellant.chemicalShim, 200))
+                .fluidOutputs(coolant)
+                .duration(1_024 * TICKS) // half of what 8 stock cycles cost (8 x 256 t)
+                .eut(TierEU.RECIPE_EV)
+                .metadata(GTRecipeConstants.CHEMPLANT_CASING_TIER, 2)
+                .addTo(GTPPRecipeMaps.chemicalPlantRecipes));
     }
 
     // ------------------------------------------------------------------------------------------
@@ -156,11 +159,13 @@ public final class BTSRecipesCoolant {
         final FluidStack hot = WerkstoffMaterialPool.HotSuperCoolant.getFluidOrGas(BULK_LITRES);
         if (hot == null) return;
 
-        GTValues.RA.stdBuilder()
-            .fluidInputs(hot, new FluidStack(BTSFluidsPropellant.chemicalShim, 400))
-            .fluidOutputs(Materials.SuperCoolant.getFluid(BULK_LITRES))
-            .duration(800 * TICKS) // half of what 8 stock cycles cost (8 x 200 t)
-            .eut(TierEU.RECIPE_IV)
-            .addTo(vacuumFreezerRecipes);
+        BTSRecipeGuard.recipe(
+            "C-03",
+            () -> GTValues.RA.stdBuilder()
+                .fluidInputs(hot, BTSRecipeGuard.fluid(BTSFluidsPropellant.chemicalShim, 400))
+                .fluidOutputs(Materials.SuperCoolant.getFluid(BULK_LITRES))
+                .duration(800 * TICKS) // half of what 8 stock cycles cost (8 x 200 t)
+                .eut(TierEU.RECIPE_IV)
+                .addTo(vacuumFreezerRecipes));
     }
 }
