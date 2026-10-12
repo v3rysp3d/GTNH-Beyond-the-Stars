@@ -1362,7 +1362,7 @@ writes the filter against it.
 | QB-4 | Recipe moves (Hexanite on the T4 Eye, the Reinforced Resonance Chamber on the T4 Eye, the BEC condensates) | No placeholder quests | Add quests when built. |
 | QB-5 | Eternity, MMM, Perfected and The SUCC stage in The Endgame until `eternityOnErgomatter` | As in §3.5 | — |
 | QB-6 | "Constrained Eternity Parts" (the mockup's new quest) | Dropped. The Door to Heaven? gains MHDCSM + Resplendent instead. | — |
-| QB-7 | The trophy quests now consume 12 / 8 of **our** Eye controllers | E63 / E64 | Fine as trophies. Alternative: drop the controller line. |
+| QB-7 | The trophy quests now consume 12 / 8 of **our** Eye controllers | E63 / E64 | **Settled 2026-10-13: "Keep as trophies"** (the trophy quests keep consuming our Eye controllers). Built as is. |
 | QB-8 | Homogeny placeholders shown although the Homogeny is on HOLD | 48118, 48142, 48184 | Keep; they say "planned". |
 | QB-9 | The Astral Array does nothing in our Eye | E47 warning | Decide in P5 (D-48 has it parallel T10). |
 | QB-10 | Eye T1 gains Godforge T2 ("A Second Ring has Hit the Godforge") as a prerequisite (D-41) | E10 `addPrereq` | — |

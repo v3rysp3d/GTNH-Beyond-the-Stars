@@ -492,9 +492,9 @@ The other families (not gates: the Eye accepts any tier of Time Dilation and Sta
 - **EOH casings** (Spatial, Temporal, Boundary): clean (Godforge casings, Hexanite, ProtoHalkonite, Shirabon, Neutronium
   nanites, LSC parts; Transcendent-tier nanites).
 
-So for P1-P3 the only loop is the WDM foil in Resonance Chamber II. **SL-P39** is GT's recipe for that chamber with 2
-SpaceTime foils instead of the foil (Condensate Assembler, same nanites, condensates and time; registered only with
-`replaceTecTechEyeOfHarmony=true`). The chamber keeps its Boundless Cosmic Solder, so the generators still need Eye
+So for P1-P3 the only loop is the WDM foil in Resonance Chamber II. **SL-G01** rewrites GT's recipe for that chamber
+in place to take 2 SpaceTime foils instead of the foil (same nanites, condensates and time; only with
+`replaceTecTechEyeOfHarmony=true`; it retired SL-P39, the same recipe registered apart, B-29 settled 2026-10-13). The chamber keeps its Boundless Cosmic Solder, so the generators still need Eye
 T1's Raw Star Matter, and each chart (SL-P23..P25) still needs the tier below. Everything else in the T2-T4
 generators is pre-Eye. UXV circuits are taken as pre-Eye because stock RC-2 already demands them for TecTech's Crude
 generators, which the stock EOH needs before it can make anything.
@@ -508,8 +508,18 @@ generators, which the stock EOH needs before it can make anything.
 | SL-P30..P32 (compression generator t-1 → t, research station) | BEC from scratch per tier, with a BHC/Kerr controller | **Retired.** The ruling keeps RC-2's generator costs; the old copy of TecTech's beta-1 inputs (Yotta cells, Infinity Chests) no longer matches anything in the pack, and `TTRecipeAdder` now charges the research EU/t they declared (`RECIPE_MAX`). SL-P39 is the replacement. |
 | SL-E01 (our Eye controller, a GT assembly line, not `TTRecipeAdder`) | n/a | Re-audited: its Tier0 generators and 64 + 64 + 64 TecTech casings are clean and craftable; the Tier0 compression and stabilisation generators inside it now cost a Kerr controller each (2 in all). Its research (Stabiliser Pylon, scanner) is unaffected by the `TTRecipeAdder` change. |
 
-**Lost with SL-P30..P32:** the "upgrade the old generator" path (#15 / B-28). Each Eye tier step re-crafts 188
-generators from scratch, as stock RC-2 does for TecTech's Eye. B-29 lists the alternative (a BEC upgrade recipe).
+**Lost with SL-P30..P32, and back on RC-2's terms (2026-10-13, B-30 "Add an upgrade path", B-83):** SL-U01..U28
+upgrade a generator from tier t-1 to t in the Condensate Assembler. The inputs are derived at load from GT's own tier t
+and t-1 recipes: the old generator plus every item and condensate tier t takes more of (an item that changes identity
+in full; nothing refunded), at GT's tier-t EU/t and duration. Its controller (a Kerr after the BHC swap), Spatial /
+Temporal casing and AE2 singularity cells stay inside, so a tier step no longer re-buys 188 Kerr controllers. A
+Stabilisation generator takes one Compression and one Time Dilation Retrofit Kit (SL-U31..U48: a Retrofit Frame plus
+exactly that difference) for the two generators it holds. Example, compression t1 -> t2 (Primitive -> Stable): the
+Primitive generator, 4 Shielding I, 12 Resonance Chamber II (GT's t2 takes 16, t1 takes 4; the chamber is the SL-G01 SpaceTime one),
+1 Cosmic Fabric Manipulator, 1 UXV circuit, 4 Singularity Shielding casings, 1 Hexanite frame, 2 long Hexanite rods,
+3 dense Six-Phased Copper plates, 1 superdense each of Hexanite, Cosmic Neutronium, Infinity and Transcendent Metal;
+10,000 L Boundless Cosmic Solder, 10 ingots Space, 20 ingots Neutronium condensate. Saved against a fresh craft: the
+Kerr controller, the Spatial casing, the two AE2 singularity cells and the shared part of every scaling input.
 
 ---
 

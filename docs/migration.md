@@ -85,9 +85,19 @@ lineage). A data stick holding the old recipe resolves to the new one, because s
 
 **Compression generator recipes (Eye T2-T4 gates).** The beta-1 "upgrade the generator" assembly lines
 (SL-P30..P32) are gone, and so are their data sticks' recipes. 2.9 makes every generator in the Condensate
-Assembler. With `replaceTecTechEyeOfHarmony=true` there is one extra Condensate Assembler recipe (SL-P39) for
-Resonance Chamber II that uses SpaceTime foil instead of White Dwarf Matter foil, so the tier 1-3 generators can be
-made before Eye T4. Generators you already crafted are the same items and still work.
+Assembler. With `replaceTecTechEyeOfHarmony=true`, GT's own Condensate Assembler recipe for Resonance Chamber II
+uses 2 SpaceTime foils instead of the White Dwarf Matter foil (rewritten in place, SL-G01; earlier jars had a second
+recipe, SL-P39, instead), so the tier 1-3 generators can be made before Eye T4. Generators you already crafted are the
+same items and still work, and from this jar they upgrade one tier at a time in the Condensate Assembler (SL-U01..U28):
+the old generator plus what the next tier adds, its Kerr controller kept inside.
+
+**Renamed in the nuclear plant (display names only; ids, items and saves unchanged).** Enrichment Train -> Yellowcake
+Mill, Spine Sensor -> Spiral Cycle Sensor, Naquadah Propellant / Propellant Cartridge Lv 1-6 -> Grade 1-6, milestone line
+REPROCESSING -> ORE PROCESSING, upgrade node Extra Centrifuge Stage -> Extra Leach Tank. GregTech stores machine and
+fluid names in `config/GregTech/GregTech.lang` and never rewrites them, but it prefers a key that a mod's lang file
+provides, and ours now provides these, so existing installs show the new names as well; the old GregTech.lang lines
+just stop being used. The production halls now honour the Power Panel's parallel limit when its "max" box is unticked
+(ticked by default) and offer input separation (off until you turn it on). `/btsbuild` with no tier now builds tier 1.
 
 **Reactor fluid sockets.** The feedwater, chamber-coolant and propellant sockets accept plain Input Hatches only. A
 crafting input buffer (CRIB) or its slave in one of them is refused. A CRIB in the feedwater socket drops the silo,

@@ -798,6 +798,10 @@ the EOH casings) is costs doc §9.4; this is the only loop in P1-P3.
 - Bring back an upgrade path on RC-2's terms: a Condensate Assembler recipe tier t-1 generator → tier t, so an Eye
   tier step stops stranding 188 generators (each now carries a Kerr controller, B-30).
 
+**Settled 2026-10-13 (your answer: "Rewrite GT's in place").** SL-G01 rewrites GT's own Resonance Chamber II
+recipe at load-complete to take the 2 SpaceTime foils, so NEI shows one recipe; SL-P39 is retired (id reserved, its
+body only a fallback if no GT chamber recipe is found). And the upgrade path is back: B-83.
+
 **Numbering.** The D-49 build plan (§10.3) claims SL-P33..P38: P33/P34 for conditional Eye T5/T6 gate recipes, and
 P35..P38 for Star Chart: Sirius B, its reclaim, Star Chart: Magnetar and the Stellar Ignition Charge. This recipe is
 therefore **SL-P39**. It was SL-P35 in commits c9b2376..the port-review fix, which collided with the plan's Sirius B
@@ -843,6 +847,9 @@ its price, and the generators stay at RC-2's stock cost.
   from the ruling's "the Kerr controller", but keeps the Kerr itself a big-ticket craft.
 - Keep this SL-K01 and cut the Eye's gate count (188 `W` cells, TecTech uses 138), which scales the whole bill.
 - Bring back a generator upgrade path (B-29), so each tier step does not re-buy 188 controllers.
+
+**Settled 2026-10-13 (your answer: "Add an upgrade path").** Built as B-83: a tier t-1 generator becomes tier t in
+the Condensate Assembler and keeps its Kerr controller; SL-K01 stays at BHC parity.
 
 ### B-31 Reactor fluid sockets refuse crafting input buffers [2.9.0-RC-2 port]
 
@@ -3152,6 +3159,7 @@ fixes)", B-80 item 8), the questbook build notes, and the Tier 13 (UXV) warning.
      Generator UMV x32 and Electric Pump UMV x64), until the UXV parts and circuits design (brief item 22a) is built.
    - *Alternatives:* keep it as built (the quest waits on the UXV design); or gate 48142 on `uxvParts` so it shows as
      "(planned)" until then.
+   - *Done (B-84):* the suggestion, as you chose for the playtest jar ("Ship UMV stopgap").
 3. **No structure checklist on 48118.** The Kerr and Eye quests have an optional "bring the blocks" retrieval built from
    the manifest; the generator needs a `bomItems.homogeny` table (one item id per legend role) for that, and there is
    none yet, so 48118 has only the controller and fluid tasks. *Suggestion:* add the table when the H/R blocks are
@@ -3175,6 +3183,145 @@ fixes)", B-80 item 8), the questbook build notes, and the Tier 13 (UXV) warning.
 
 **Checks.** `gen-singularity` `--check` and `--selftest` pass; `spotlessApply compileJava` passes. Not run in game.
 
+### B-83 The field-generator upgrade path, and Resonance Chamber II rewritten in place [user answers 2026-10-13, built]
+
+**Context.** Your answers to B-30 ("Add an upgrade path") and B-29 ("Rewrite GT's in place"). Every Eye tier step
+re-crafted 188 compression generators (and the 48 stabilisers, which hold one each), each consuming a Kerr controller;
+and Resonance Chamber II had two recipes in NEI (GT's with a White Dwarf Matter foil, our SL-P39 with SpaceTime).
+
+**What we built.**
+
+1. **SL-G01: GT's own chamber recipe, rewritten in place.** With `replaceTecTechEyeOfHarmony=true`, the Condensate
+   Assembler recipe for Resonance Chamber II takes 2 SpaceTime foils where it took 1 White Dwarf Matter foil, swapped
+   at the same input index (so its nanite tiers and condensates are untouched), and the map's lookup is rebuilt. One
+   recipe in NEI. **SL-P39 is retired**; its id stays reserved and its body registers only if no GT chamber recipe is
+   found to rewrite. SL-P33 (the Black Dwarf-free Resonance Chamber III for the T5 gate) is unchanged, a separate
+   recipe as before: you ruled on chamber II only. *Suggestion:* give it the same in-place treatment.
+2. **SL-U00..U48: tier t-1 -> t in the Condensate Assembler** (`BTSRecipesGeneratorUpgrade`, same flag). The inputs
+   are derived at load from GT's own tier t and t-1 recipes, so they follow the pack:
+   - **Compression (SL-U01..U08) and Time Dilation (SL-U11..U18):** the tier t-1 generator, plus every item and
+     condensate GT's tier-t recipe takes MORE of than its tier t-1 recipe. An item that changes identity between tiers
+     (the tier material's dense plate or gear, a manipulator or metamaterial of a new tier) is taken in full; nothing is
+     refunded. What both tiers take the same of stays inside the old generator: **the Kerr controller** (the BHC swap
+     runs on GT's recipe, both tiers hold one), the Reinforced Spatial / Temporal casing and the two AE2 singularity
+     cells. Same EU/t and duration as GT's tier-t craft, so the path is never faster than crafting from scratch, only
+     cheaper. Nanites: each input keeps the nanite GT's tier-t recipe gives it; the old generator takes its casing's.
+   - **Stabilisation (SL-U21..U28):** a stabiliser holds a compression and a time generator, whose 23 loose parts do
+     not fit the Condensate Assembler's 16 item slots. So it takes the old stabiliser, one **Spacetime Compression
+     Retrofit Kit** and one **Time Dilation Retrofit Kit** of tier t, and its own difference (circuits, frames,
+     solenoids, sensor array, manipulator, screws, rods). The generators inside are upgraded, Kerr included.
+   - **Retrofit Kits (SL-U31..U38, SL-U41..U48):** a **Field Generator Retrofit Frame** plus exactly the compression /
+     time difference above, at GT's tier-t time. The frame (SL-U00, Assembler x2: Hexanite frame, 4 SpaceTime plates,
+     a UMV circuit, 144 L molten Infinity, 20 s UIV) keeps a kit's inputs from being a subset of GT's generator recipe,
+     which the Condensate Assembler would otherwise be free to pick (it looks recipes up by items only).
+   - New item `fieldRetrofitKit` (meta 0 frame, 1-8 compression kits, 11-18 time kits; names use TecTech's tier names,
+     "Stable Spacetime Compression Retrofit Kit"), tooltips, three generated EOH-family textures.
+   - Example, compression Crude -> Primitive (as the server built it): the Crude generator, 1 Cosmic Fabric
+     Manipulator, 4 Primitive Shielding, 1 Resonance Chamber II, 1 UXV circuit, 4 Singularity Shielding casings,
+     1 Hexanite frame, 2 long Hexanite rods, 2 dense Proto-Halkonite plates, 1 superdense Hexanite / Cosmic Neutronium /
+     Infinity / Transcendent Metal plate; 10,000 L Boundless Cosmic Solder, 10 ingots Space, 20 ingots Neutronium
+     condensate. GT's fresh Primitive also takes the Kerr controller, the Spatial casing, both singularity cells and
+     the shared half of every scaling input.
+3. **Teaching (rule 14):** the Eye tooltip's field-generator lines say how a tier step works; the questbook's shared
+   gate paragraph (on every pack compression-tier quest) has a TIER STEP paragraph; the kits' tooltips say what they
+   are for; NEI shows the recipes.
+4. **Load phase (found by the test):** GT's Condensate Assembler recipes are not in the map yet when our postInit runs
+   (the first boot found nothing to rewrite or derive and skipped 41 recipes). SL-G01 and the upgrade path now run at
+   load-complete, like SL-B01/B02 and the BHC swap, and print their own summary line.
+
+**Checks.** `spotlessApply compileJava`; headless `runServer` (RC-2 deps, world `sltest-ovt`, port 25565):
+"Recipe registration complete: 281 registered, 0 skipped"; "SL-G01: GT's Resonance Chamber II ... takes 2 SpaceTime
+foils in place of 1 White Dwarf Matter foil (input 3 ...)"; "Field-generator upgrade path: 40 Condensate Assembler
+recipes + the Retrofit Frame ..., 0 skipped". `/btseye bec`: 53 Condensate Assembler recipes make our parts and GT's
+lookup finds all 53; the upgrade path's 40 are all found by GT's own lookup with their inputs (nothing shadows them;
+stabiliser upgrades use 15-16 item stacks, 3 condensates each). `/btseye gates`: every compression tier now has GT's
+recipe and our upgrade; both are CLEAN for Eye T1-T7, each Resonance Chamber II via its single (rewritten) recipe.
+T8/T9 (Tipler, Gallifreyan) show the known P4/P5 loop (Resplendent Resonance Chamber, MHDCSM foil) on both recipes,
+because the upgrade inherits what GT's tier adds. BHC consumers 0; Kerr consumers 12, as before (the upgrades take
+none). Not run: a real Condensate Assembler craft (the bench builds no BEC network).
+
+**Suggestion.** As built. **Alternatives.** Kits for every family (one recipe shape everywhere, but two crafts per
+compression upgrade); a shorter upgrade time than a fresh craft (it would make the path faster as well as cheaper).
+
+### B-84 UXV parts before Eye T7: the Homogeny Tier II Core takes the UMV stopgap, and the audit [user answers 2026-10-13, built]
+
+**Context.** Brief item 22a: the UXV-part override (D-45, item 20) waits for a design brainstorm; until then the jar
+ships B-72's stopgap ("Ship UMV stopgap"). B-82 found SL-H10 still on UXV parts.
+
+**What we built.** SL-H10 (Homogeny Tier II Core, needed before Eye T6): Field Generator UXV x16 -> **Field Generator
+UMV x32**, Electric Pump UXV x32 -> **Electric Pump UMV x64**; everything else unchanged. The Homogeny T2 quest's
+warning becomes a note, and the Tier 13 warning no longer names the core.
+
+**Audit: every recipe on master a player needs before Eye T7, for UXV parts and for circuits/parts that need
+Universium or MHDCSM.**
+
+| Recipe | Needed for | UXV parts | UXV circuits | State |
+|---|---|---|---|---|
+| SL-B70 / SL-E05 Subspace Cooling Core | Eye T4 -> T5 | none (UMV x2, B-72) | 16 | clean |
+| SL-B80 / SL-E06 Magnetar Seed Core | Eye T5 -> T6 | none (UMV x2, B-72) | 32 | clean |
+| SL-B71 / SL-B81 (Star Chart: Sirius B / SGR 1806-20) and their fallbacks SL-P35 / SL-P37 | Eye T5 / T6 | none | 1 each | clean |
+| SL-H10 Homogeny Tier II Core | Degenerate Stellar Mixture, Eye T6 | **was FG UXV 16, Pump UXV 32** | 32 | **fixed here** |
+| SL-H01..H05 (Homogeny T1 and its blocks) | Excited Stellar Plasma bank | none | none | clean |
+| RC-2 compression / time / stabilisation generators t0-t6 (Eye T1-T7 gates) and our SL-U upgrades | the gates | none | t+1 each | clean (`/btseye gates`) |
+| Kerr (SL-K*), the Eye controller and its T1-T6 parts and bands (SL-E01..E04, SL-E07, SL-P*, SL-B20..B62), SL-A01, SL-S01/S02 | Eye T1-T6 | none (UIV/UMV parts) | none, or UMV | clean |
+| SL-H20 Homogeny T3 core, SL-R01/R02 Reality machines, SL-R10..R17 their blocks | after Eye T7 (White Hole Matter, Eye T9; Ergomatter, T7) | FG / Pump / Emitter / Sensor / Robot Arm / Conveyor UXV | yes | out of scope (post-T7); they wait for the UXV parts design |
+
+**UXV circuits are not a loop.** The `circuitUXV` ore name is met by the coremod's Quantum Circuits. Two of the three
+(Polychrome: Bedrockium, Neutronium, QPIC chips, UU-Matter, Osmium; Dimensional: SpaceTime, mutated living solder) need
+neither Universium nor MHDCSM. Only the Heavenly one does (UXV parts, Universium nanites, MHDCSM). GT's Cosmic Mainframe
+and Transcendent Computer have no recipe in RC-2. (Read from the coremod 2.9.84 assembly-line dump; not crafted.)
+
+**Not ours, still open:** the pack's own UXV parts (Field Generator, Pump, Emitter, Sensor, Robot Arm, Conveyor UXV,
+the UXV CoAL) keep RC-2's Universium/MHDCSM recipes, so anything of the pack built from them waits for Eye T10 or the
+UXV design. Nothing of Beyond the Stars before Eye T7 needs one now.
+
+**Suggestion.** As built until the UXV parts and circuits brainstorm lands; then move B70/B80/H10 back to UXV parts
+if you want the old price.
+
+### B-85 The tidy questions settled: renames, defaults, the halls' parallel [my answer 2026-10-13, built]
+
+**Context.** TQ-1..TQ-8 (Part D and `tidy-old-multis.md`). Your answer: "You have full free reign on this". Each
+choice is recorded under its TQ entry in Part D.
+
+**What we built.** Display text only for the renames: registry names, MTE ids, enum names and NBT keys are unchanged,
+so worlds, progress and bought upgrade nodes carry over.
+
+| TQ | Choice |
+|---|---|
+| TQ-1 | Milestone line REPROCESSING shows as **ORE PROCESSING** (tree caption "ORE PROC."; `/btsmilestone ore`) |
+| TQ-2 | Enrichment Train -> **Yellowcake Mill** (the "Despite the name it does not enrich" line goes) |
+| TQ-3 | Spine Sensor -> **Spiral Cycle Sensor** (BOM constant `BTSBom.SPIRAL_CYCLE_SENSOR`, diagram text) |
+| TQ-4 | Propellant Lv 1-6 -> **Grade 1-6** (cartridges and fluids). Not "Mk I-VI": GoodGenerator's Naquadah Fuel MkI / MkIII feeds Grade 2 / 3 |
+| TQ-5 | `/btsbuild` and `/btskit` both default to **tier 1** |
+| TQ-6 | The halls offer **input separation**, off by default on new and existing halls |
+| TQ-7 | Extra Centrifuge Stage -> **Extra Leach Tank** |
+| TQ-8 | The halls use GT's **`getTrueParallel()`**; the GUI and scanner print the effective parallel |
+
+- **Existing installs see the new names.** GregTech writes MTE and GT-fluid names into
+  `config/GregTech/GregTech.lang` once and never refreshes them, but `GTLanguageManager` prefers a key the normal lang
+  system provides (it skips GregTech.lang when `StatCollector.canTranslate` the key, and a resource reload takes the
+  resource-pack value). Our `en_US.lang` now carries `gt.blockmachines.multimachine.beyondthestars.enrichmenttrain.name`,
+  `gt.blockmachines.hatch.beyondthestars.spinesensor.name` and `fluid.naqpropellant1..6`, so the old GregTech.lang lines
+  just stop being used. *Read from GT's code; not yet seen in a client.* If a client still shows an old name, deleting
+  that line from GregTech.lang fixes it.
+- **Questbook:** the plant chapter is regenerated (`gen-bom.ps1`, `gen-diagrams.ps1`) with the new names and the tidy
+  glossary handoff B-82 left open: "main station" -> the controller / Nuclear Plant Foundation, "Steam Generator" ->
+  Reactor Silo (the blueprint quest, and the quoted not-formed message as the code prints it now), "Unit One
+  Commissioning" -> Plant Commissioning (the tree's root was renamed by the tidy pass), the entry quest is "Beyond the
+  Stars - The Nuclear Plant". Quest ids are unchanged; the blueprint quest's DefaultQuests file name follows its title.
+- TQ-6 / TQ-8 are small gameplay changes: TQ-8 bites only for a player who unticked the Power Panel's "max" box.
+
+**Not done:** the rest of the tidy questbook handoff (mechanics cut from tooltips that the book must carry: the RPM
+rule, the dynamo ceiling, the rod ladder and so on). The names are done once, as B-82 asked; the text additions are a
+writing pass of their own. *Suggestion:* do them with the next questbook pass.
+
+**QB-7 settled (your answer: "Keep as trophies").** The trophy quests E63 / E64 keep consuming 12 / 8 of our Eye
+controllers; nothing changes.
+
+**Checks.** `spotlessApply compileJava`; `gen-bom.ps1` (BTSBom in step, DefaultQuests regenerated) and
+`gen-singularity --check` clean apart from the overlay's `srcHead`; the dev-server boot above ("281 registered, 0
+skipped"); golden 78/78.
+
 ## Part C. Settled (for the record)
 
 | Topic | Your answer | State |
@@ -3192,6 +3339,11 @@ fixes)", B-80 item 8), the questbook build notes, and the Tier 13 (UXV) warning.
 | Kerr lining [Q-16, B-12] | One new white Kerr lining block | Built: Harmonic Lining, `slCasing2:2` (B-15) |
 | Planets and compression [Q-29, B-4] | Drop TecTech's per-planet rule; the 1:1 gate alone decides | Built (B-16) |
 | Kerr T2 with the reinforcement torn down [B-1] | Won't form | Built (unchanged) |
+| Resonance Chamber II stand-in [B-29] | "Rewrite GT's in place" | Built: SL-G01 (B-83); SL-P39 retired |
+| Generator upgrade path [B-30] | "Add an upgrade path" | Built: SL-U00..U48 (B-83) |
+| UXV parts before Eye T7 [B-72, B-82; item 20 superseded] | "Ship UMV stopgap" (the UXV parts and circuits design is a brainstorm first) | Built: B-72 and SL-H10 (B-84) |
+| Old-plant renames and questions [TQ-1..TQ-8] | "You have full free reign on this" | Built: B-85 |
+| Trophy quests consume our Eye controllers [QB-7] | "Keep as trophies" | Built (as is) |
 
 ## Where the old question numbers went
 
@@ -3229,7 +3381,17 @@ old numbers; master's docs and code comments use the new ones.
 ## Part D. Tidy pass on the older multiblocks (branch tidy-old-multis)
 
 Questions from the presentation tidy of the nuclear plant and the production halls
-([`tidy-old-multis.md`](tidy-old-multis.md)). They keep that plan's TQ numbers. Nothing here changes gameplay.
+([`tidy-old-multis.md`](tidy-old-multis.md)). They keep that plan's TQ numbers. All settled 2026-10-13 ("You have full
+free reign on this", B-85); TQ-5, TQ-6 and TQ-8 change gameplay a little.
+
+### TQ-1 Rename the REPROCESSING milestone line? [tidy unit B]
+
+**Context.** The line counts Extraction Derrick loads and Enrichment Annex batches, not the PUREX Canyon's
+reprocessing. The tidy pass fixed only its unit text ("Derrick loads + Annex batches").
+
+**Settled 2026-10-13 (your answer: "You have full free reign on this").** Built (B-85): it shows as **ORE PROCESSING** (milestone
+line, tree caption "ORE PROC.", questbook). The enum and its NBT key stay `REPROCESSING`, so progress carries over;
+`/btsmilestone` takes "ore" as well as "reproc".
 
 ### TQ-2 Rename the "Enrichment Train"? [tidy unit A]
 
@@ -3245,6 +3407,8 @@ that line). The questbook text must change with it.
 
 **Alternatives.** Keep the name and rely on the tooltip line (as built).
 
+**Settled 2026-10-13 (your answer: "You have full free reign on this").** Built (B-85): **Yellowcake Mill**.
+
 ### TQ-3 Rename the "Spine Sensor"? [tidy unit A]
 
 **Context.** The sensor sits in the Spiral chamber's roof, not on the Spine, and it reports accepted turbine cycles.
@@ -3255,6 +3419,8 @@ front centre".
 **Suggestion.** "Spiral Cycle Sensor". The same GregTech.lang stickiness applies as in TQ-2.
 
 **Alternatives.** Keep the name (as built).
+
+**Settled 2026-10-13 (your answer: "You have full free reign on this").** Built (B-85): **Spiral Cycle Sensor**.
 
 ### TQ-4 Propellant "Lv 1-6" reads like GT's LV voltage tier [tidy unit A]
 
@@ -3267,6 +3433,8 @@ front centre".
 GT fluids, whose local names are written to GregTech.lang once, so those only change for new installs.
 
 **Alternatives.** "Grade 1-6", or keep "Lv".
+
+**Settled 2026-10-13 (your answer: "You have full free reign on this").** Built (B-85): **"Grade 1-6"**, the alternative, not "Mk I-VI": the rungs are made from GoodGenerator's Naquadah Fuel MkI / MkIII (Grade 2 from MkI, Grade 3 from MkIII), so "Mk" numbers would clash with the fuel that feeds them.
 
 ### TQ-5 Default tier for /btsbuild and /btskit [tidy unit C]
 
@@ -3282,6 +3450,23 @@ to raise and walk.
 
 **Alternatives.** Default both to 3 (a mid-size plant shows every piece), or keep them different (as built).
 
+**Settled 2026-10-13 (your answer: "You have full free reign on this").** Built (B-85): **both tier 1**.
+
+### TQ-6 Enable input separation on the halls? [tidy unit C]
+
+**Context.** The four production halls did not offer GT's input-separation button.
+
+**Settled 2026-10-13 (your answer: "You have full free reign on this").** Built (B-85): they offer it, and it starts **off** on new
+and existing halls (GT would default it on for a new machine), so buses keep pooling as before until a player turns it
+on.
+
+### TQ-7 Rename the upgrade node "Extra Centrifuge Stage"? [tidy unit B]
+
+**Context.** The node raises the Enrichment Annex's batch; there is no centrifuge stage.
+
+**Settled 2026-10-13 (your answer: "You have full free reign on this").** Built (B-85): **Extra Leach Tank** (tree label "Leach
+Tank"). The enum name stays, so bought nodes carry over.
+
 ### TQ-8 Should the production halls honour the Power Panel's parallel limit? [tidy review, L5]
 
 **Context.** The Fuel Fabrication Hall, Site Batching Plant, Cascade Hall and PUREX Canyon show GT's Power Panel,
@@ -3296,3 +3481,5 @@ whose "max parallel" field is saved in the controller's NBT. The halls' processi
 same time make the terminal "Parallel:" line and the scanner print the effective value (`getTrueParallel()`).
 
 **Alternatives.** Keep ignoring the limit and hide the Power Panel's parallel field on the halls.
+
+**Settled 2026-10-13 (your answer: "You have full free reign on this").** Built (B-85): **`getTrueParallel()`**, and the GUI's Parallel line and the scanner print that value.

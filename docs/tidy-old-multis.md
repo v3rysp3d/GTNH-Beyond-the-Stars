@@ -726,7 +726,11 @@ deprecated `MultiblockTooltipBuilder` calls outside kerr/eye. Handoff: Kerr/Eye 
   old controllers' NBT start to bite, so the review reverted it (gameplay is out of scope here). See TQ-8.
 
 Questions for review (implementers append these to `docs/singularity-ladder-questions.md` as
-"## Q-n" when they reach them):
+"## Q-n" when they reach them). **All eight settled 2026-10-13** (user: "You have full free reign on this"; the choices and the
+build are question B-85 and Part D of the questions doc): TQ-1 renamed to ORE PROCESSING; TQ-2 Yellowcake Mill;
+TQ-3 Spiral Cycle Sensor; TQ-4 "Grade 1-6" (not "Mk I-VI": GoodGenerator's Naquadah Fuel MkI-MkVI feeds the same
+rungs); TQ-5 both default to tier 1; TQ-6 the halls offer input separation, off by default; TQ-7 Extra Leach Tank;
+TQ-8 the halls use `getTrueParallel()`.
 - **TQ-1** Rename the milestone line REPROCESSING to ORE PROCESSING (it counts Derrick loads and
   Annex batches, not the PUREX Canyon)? This needs the questbook text changed too. This pass only
   fixes the unit text.
