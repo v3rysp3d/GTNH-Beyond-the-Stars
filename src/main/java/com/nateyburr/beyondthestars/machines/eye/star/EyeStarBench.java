@@ -59,6 +59,8 @@ import gregtech.common.misc.WirelessNetworkManager;
  * automation);</li>
  * <li>{@code render [on|off]} - the centre render: the cell, the block and the look the world holds (and the
  * per-Eye switch).</li>
+ * <li>{@code bus <chart> [n]} - n copies of a star chart into a free plinth input bus slot (the automation
+ * pickup).</li>
  * </ul>
  */
 public final class EyeStarBench {
@@ -70,7 +72,8 @@ public final class EyeStarBench {
         + "milestones <n> done | transition [abort] | event | "
         + "fill | sensor <x> <y> <z> <channel> <gt|lt> <threshold> [analog] | sensors <channel> <gt|lt> <thr> "
         + "[analog] | probe | wrench | charge [n] | buffer <fluid> <L> | core <name> | escrow | "
-        + "legacy [galactic] [run <key> <n>] | fix | gt | mefield | field <fluid> <L> | render [on|off] | "
+        + "bus <chart> [n] | legacy [galactic] [run <key> <n>] | fix | gt | mefield | field <fluid> <L> | "
+        + "render [on|off] | "
         + "directive | autorig <s> [cut <k>] | ocloop | compression <1-9> [all] | check";
 
     /** Runs {@code args} = {@code star x y z sub …}. Returns the lines to print. */
@@ -267,6 +270,16 @@ public final class EyeStarBench {
             case "charge": {
                 final int n = a5.isEmpty() ? 1 : Integer.parseInt(a5);
                 out.add(putCharges(eye, n));
+                return out;
+            }
+            case "bus": {
+                // bus <chart> [n]: n copies of a star chart into a free plinth input bus slot, as an export bus or a
+                // conveyor would push them (B-72: duplicates, no swap during a transition)
+                if (chart(a5) == null) {
+                    out.add("bus <sol|siriusa|arcturus|neutron|siriusb|magnetar> [n]");
+                    return out;
+                }
+                out.add(putInBus(eye, new ItemStack(chart(a5), args.length > 6 ? Integer.parseInt(args[6]) : 1, 0)));
                 return out;
             }
             case "buffer": {
@@ -541,13 +554,17 @@ public final class EyeStarBench {
 
     /** Puts {@code n} Stellar Ignition Charges into the first live plinth input bus. */
     private static String putCharges(MTEEyeOfHarmonyBTS eye, int n) {
+        return putInBus(eye, new ItemStack(SLItems.stellarIgnitionCharge, n, 0));
+    }
+
+    private static String putInBus(MTEEyeOfHarmonyBTS eye, ItemStack stack) {
         for (MTEHatchInputBus bus : eye.itemBuses()) {
             if (bus == null || !bus.isValid()) continue;
             for (int i = 0; i < bus.getSizeInventory(); i++) {
                 if (bus.getStackInSlot(i) != null) continue;
                 bus.getBaseMetaTileEntity()
-                    .setInventorySlotContents(i, new ItemStack(SLItems.stellarIgnitionCharge, n, 0));
-                return n + " Stellar Ignition Charge(s) in a plinth input bus (slot " + i + ")";
+                    .setInventorySlotContents(i, stack);
+                return stack.stackSize + " " + stack.getDisplayName() + " in a plinth input bus (slot " + i + ")";
             }
         }
         return "No plinth input bus with a free slot.";
