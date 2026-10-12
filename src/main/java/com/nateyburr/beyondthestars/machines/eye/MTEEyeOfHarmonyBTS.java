@@ -253,8 +253,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     /**
      * The Directive Hatches the last formed walk found. Most breaks stop the walk before it reaches the sockets, which
      * left {@link #directiveHatches} empty and the hatches silent, so the Status set's "not formed" bit never reached
-     * the redstone (B-71). An unformed walk that found none publishes to these; every formed walk replaces them, and a
-     * removed hatch drops out by {@code live}.
+     * the redstone (B-71). An unformed walk publishes to these plus any it reached (B-72); every formed walk replaces
+     * them, and a removed hatch drops out by {@code live}.
      */
     private final ArrayList<MTEHatchDirective> formedDirectiveHatches = new ArrayList<>();
     /** D-49 R-1: input buses on the plinth gas sockets (the Stellar Ignition Charges). */
@@ -1192,9 +1192,18 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         }
     }
 
-    /** The hatches that get the codes now: the walk's, else (unformed, none walked) the last formed walk's. */
+    /**
+     * The hatches that get the codes now: the walk's when formed; unformed, the last formed walk's plus any this broken
+     * walk reached (a walk that stops partway reaches only some of them, B-72). A removed hatch drops out by live().
+     */
     private List<MTEHatchDirective> publishedDirectives() {
-        return mMachine || !directiveHatches.isEmpty() ? directiveHatches : formedDirectiveHatches;
+        if (mMachine || formedDirectiveHatches.isEmpty()) return directiveHatches;
+        if (directiveHatches.isEmpty()) return formedDirectiveHatches;
+        final List<MTEHatchDirective> all = new ArrayList<>(formedDirectiveHatches);
+        for (MTEHatchDirective hatch : directiveHatches) {
+            if (!all.contains(hatch)) all.add(hatch);
+        }
+        return all;
     }
 
     @Override
