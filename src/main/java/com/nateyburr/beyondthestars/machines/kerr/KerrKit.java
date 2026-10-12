@@ -70,10 +70,12 @@ public final class KerrKit {
         giveMany(player, ItemList.Hatch_Input_Bus_MAX.get(1L), socketCount(MTEKerrEngine.PIECE_T1, 'b'));
         giveMany(player, ItemList.Hatch_Energy_UIV.get(1L), socketCount(MTEKerrEngine.PIECE_T1, 'e'));
         give(player, ItemList.Hatch_AutoMaintenance.get(1L));
+        // compressor arc: 2 input buses, 2 input hatches, 1 output bus, 1 output hatch;
+        // extractor arc (item buses only): 1 input bus, 1 output bus
         giveMany(player, ItemList.Hatch_Input_Bus_MAX.get(1L), 3);
         giveMany(player, ItemList.Hatch_Input_MAX.get(1L), 2);
-        give(player, ItemList.Hatch_Output_Bus_MAX.get(1L));
-        giveMany(player, ItemList.Hatch_Output_MAX.get(1L), 2);
+        giveMany(player, ItemList.Hatch_Output_Bus_MAX.get(1L), 2);
+        give(player, ItemList.Hatch_Output_MAX.get(1L));
         give(player, machine(MetaTileEntityIDs.HATCH_BLACK_HOLE_UTILITY.ID));
         player.inventoryContainer.detectAndSendChanges();
 
@@ -205,7 +207,7 @@ public final class KerrKit {
         for (int i = 0; i < cSockets.length && i < compressorIO.length; i++) {
             if (fit(world, alignment, x, y, z, cSockets[i], compressorIO[i])) fitted++;
         }
-        final ItemList[] extractorIO = { ItemList.Hatch_Input_Bus_MAX, ItemList.Hatch_Output_MAX };
+        final ItemList[] extractorIO = { ItemList.Hatch_Input_Bus_MAX, ItemList.Hatch_Output_Bus_MAX };
         final int[][] xSockets = MTEKerrEngine.socketRels(MTEKerrEngine.PIECE_EXTRACTOR, 'x');
         for (int i = 0; i < xSockets.length && i < extractorIO.length; i++) {
             if (fit(world, alignment, x, y, z, xSockets[i], extractorIO[i])) fitted++;

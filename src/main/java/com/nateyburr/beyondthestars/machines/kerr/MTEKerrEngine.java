@@ -55,10 +55,7 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.logic.ProcessingLogic;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBase;
-import gregtech.api.metatileentity.implementations.MTEHatchInput;
 import gregtech.api.metatileentity.implementations.MTEHatchInputBus;
-import gregtech.api.metatileentity.implementations.MTEHatchOutput;
-import gregtech.api.metatileentity.implementations.MTEHatchOutputBus;
 import gregtech.api.recipe.RecipeMap;
 import gregtech.api.recipe.RecipeMaps;
 import gregtech.api.recipe.check.CheckRecipeResult;
@@ -83,7 +80,10 @@ import gregtech.common.tileentities.machines.multi.compressor.MTEBlackHoleUtilit
  * load-complete ({@code BTSRecipeRemovals}, config {@code removeBlackHoleCompressorRecipe}), placed
  * BHCs keep working. The Kerr does nothing on its own: it needs a <b>compressor module</b> and/or an
  * <b>extractor module</b>, each an OPTIONAL CHECKED PIECE of this one controller (the D-20 pattern,
- * Q-10), and both can stand at once. Kerr T2 is the same controller with the <b>Kerr Density
+ * Q-10), and both can stand at once. The compressor runs GT's compressor and neutronium-compressor
+ * maps (the BHC's); the extractor runs GT's item extractor map only (user ruling, Q-9/Q-22). More
+ * modules come later: each is one {@link KerrModule} (its piece, core block and private I/O), see
+ * that class for the steps. Kerr T2 is the same controller with the <b>Kerr Density
  * Upgrade</b> installed: the required shape becomes {@code kerr_t2}, the setpoint range rises to
  * 512 SM and DENSIFY (Hyperdense Stellar Mixture) unlocks.
  *
@@ -191,22 +191,26 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     private int mCasing;
     private int railTierMin;
     private int railCount;
-    private int compressorCores;
-    private int extractorCores;
-    private boolean compressorBuilt;
-    private boolean extractorBuilt;
-    private String compressorFault = "";
-    private String extractorFault = "";
     private final ArrayList<MTEHatchInputBus> boltBuses = new ArrayList<>();
     private final ArrayList<MTEBlackHoleUtility> utilityHatches = new ArrayList<>();
-    private final ArrayList<MTEHatchInputBus> compInBuses = new ArrayList<>();
-    private final ArrayList<MTEHatchInput> compInHatches = new ArrayList<>();
-    private final ArrayList<MTEHatchOutputBus> compOutBuses = new ArrayList<>();
-    private final ArrayList<MTEHatchOutput> compOutHatches = new ArrayList<>();
-    private final ArrayList<MTEHatchInputBus> extInBuses = new ArrayList<>();
-    private final ArrayList<MTEHatchInput> extInHatches = new ArrayList<>();
-    private final ArrayList<MTEHatchOutputBus> extOutBuses = new ArrayList<>();
-    private final ArrayList<MTEHatchOutput> extOutHatches = new ArrayList<>();
+
+    // ------------------------------------------------------- the modules (see KerrModule)
+    /** South arc: GT's compressor + neutronium-compressor recipes, and DENSIFY at T2. Items and fluids. */
+    private final KerrModule compressor = new KerrModule(
+        "Compressor",
+        PIECE_COMPRESSOR,
+        'q',
+        BlockSLCasing2.COMPRESSOR_MODULE,
+        true);
+    /** East arc: GT's item extractor recipes ({@code extractorRecipes}) only. Item buses only. */
+    private final KerrModule extractor = new KerrModule(
+        "Extractor",
+        PIECE_EXTRACTOR,
+        'k',
+        BlockSLCasing2.EXTRACTOR_MODULE,
+        false);
+    /** Every module, in walk order. A new module is one more entry here (see KerrModule). */
+    private final KerrModule[] modules = { compressor, extractor };
 
     // -------------------------------------------------------------------- RUN state (server)
     /** The mode whose module I/O is bound into GT's lists (the running recipe's mode). */
@@ -303,8 +307,8 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
                     .buildAndChain(casing(Casings.BackgroundRadiationAbsorbentCasing)))
             .addElement(
                 'q',
-                noOverwrite(onElementPass(x -> ++x.compressorCores, ofBlock(sl2, BlockSLCasing2.COMPRESSOR_MODULE))))
-            // ---- extractor module (east arc)
+                noOverwrite(onElementPass(x -> ++x.compressor.cores, ofBlock(sl2, BlockSLCasing2.COMPRESSOR_MODULE))))
+            // ---- extractor module (east arc): item buses only, GT's extractor recipes
             .addElement(
                 'x',
                 buildHatchAdder(MTEKerrEngine.class)
@@ -314,7 +318,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
                     .buildAndChain(block(sl, BlockSLCasing.EXTRACTION)))
             .addElement(
                 'k',
-                noOverwrite(onElementPass(x -> ++x.extractorCores, ofBlock(sl2, BlockSLCasing2.EXTRACTOR_MODULE))))
+                noOverwrite(onElementPass(x -> ++x.extractor.cores, ofBlock(sl2, BlockSLCasing2.EXTRACTOR_MODULE))))
             .build();
     }
 
@@ -358,30 +362,11 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         mCasing = 0;
         railTierMin = 0;
         railCount = 0;
-        compressorCores = 0;
-        extractorCores = 0;
-        compressorBuilt = false;
-        extractorBuilt = false;
-        compressorFault = "";
-        extractorFault = "";
         boltBuses.clear();
         utilityHatches.clear();
-        clearCompressorIO();
-        clearExtractorIO();
-    }
-
-    private void clearCompressorIO() {
-        compInBuses.clear();
-        compInHatches.clear();
-        compOutBuses.clear();
-        compOutHatches.clear();
-    }
-
-    private void clearExtractorIO() {
-        extInBuses.clear();
-        extInHatches.clear();
-        extOutBuses.clear();
-        extOutHatches.clear();
+        for (KerrModule module : modules) {
+            module.resetWalk();
+        }
     }
 
     /** The core piece this controller must stand on right now (server: the installed state). */
@@ -404,50 +389,40 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             errors.add(StructureErrors.of("beyondthestars.structure.kerr.boltbus"));
         }
 
-        // The two OPTIONAL modules. Their own error lists, so nothing they report un-forms the core;
-        // their sockets live in private lists, cleared again if the walk fails (mark-and-truncate),
-        // so a half-built arc leaves nothing registered.
-        final List<StructureError> pieceErrors = new ArrayList<>();
-        final int[] co = off(PIECE_COMPRESSOR);
-        compressorBuilt = checkPiece(PIECE_COMPRESSOR, co[0], co[1], co[2], pieceErrors);
-        if (compressorBuilt && compressorCores != 1) {
-            compressorBuilt = false;
-            pieceErrors.add(StructureErrors.of("beyondthestars.structure.kerr.modulecore"));
-        }
-        if (compressorBuilt && compressorInputCount() == 0) {
-            compressorBuilt = false;
-            pieceErrors.add(StructureErrors.of("beyondthestars.structure.kerr.moduleinput"));
-        }
-        if (compressorBuilt && compressorOutputCount() == 0) {
-            compressorBuilt = false;
-            pieceErrors.add(StructureErrors.of("beyondthestars.structure.kerr.moduleoutput"));
-        }
-        if (!compressorBuilt) {
-            clearCompressorIO();
-            compressorFault = moduleFault(pieceErrors, PIECE_COMPRESSOR, 'q', BlockSLCasing2.COMPRESSOR_MODULE);
-        }
-
-        pieceErrors.clear();
-        final int[] eo = off(PIECE_EXTRACTOR);
-        extractorBuilt = checkPiece(PIECE_EXTRACTOR, eo[0], eo[1], eo[2], pieceErrors);
-        if (extractorBuilt && extractorCores != 1) {
-            extractorBuilt = false;
-            pieceErrors.add(StructureErrors.of("beyondthestars.structure.kerr.modulecore"));
-        }
-        if (extractorBuilt && extractorInputCount() == 0) {
-            extractorBuilt = false;
-            pieceErrors.add(StructureErrors.of("beyondthestars.structure.kerr.moduleinput"));
-        }
-        if (extractorBuilt && extractorOutputCount() == 0) {
-            extractorBuilt = false;
-            pieceErrors.add(StructureErrors.of("beyondthestars.structure.kerr.moduleoutput"));
-        }
-        if (!extractorBuilt) {
-            clearExtractorIO();
-            extractorFault = moduleFault(pieceErrors, PIECE_EXTRACTOR, 'k', BlockSLCasing2.EXTRACTOR_MODULE);
+        // The OPTIONAL modules, each walked on its own: nothing they report un-forms the core.
+        for (KerrModule module : modules) {
+            walkModule(module);
         }
 
         bindModuleIO(currentBinding());
+    }
+
+    /**
+     * Walks one optional module arc with its own error list. Its sockets live in the module's
+     * private lists, cleared again if the walk fails (mark-and-truncate), so a half-built arc leaves
+     * nothing registered.
+     */
+    private void walkModule(KerrModule module) {
+        final List<StructureError> pieceErrors = new ArrayList<>();
+        final int[] o = off(module.piece);
+        boolean built = checkPiece(module.piece, o[0], o[1], o[2], pieceErrors);
+        if (built && module.cores != 1) {
+            built = false;
+            pieceErrors.add(StructureErrors.of("beyondthestars.structure.kerr.modulecore"));
+        }
+        if (built && module.inputCount() == 0) {
+            built = false;
+            pieceErrors.add(StructureErrors.of("beyondthestars.structure.kerr.moduleinput"));
+        }
+        if (built && module.outputCount() == 0) {
+            built = false;
+            pieceErrors.add(StructureErrors.of("beyondthestars.structure.kerr.moduleoutput"));
+        }
+        module.built = built;
+        if (!built) {
+            module.clearIO();
+            module.fault = moduleFault(pieceErrors, module);
+        }
     }
 
     /**
@@ -455,19 +430,19 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
      * block is not standing is a CHOICE, and reporting the walk's complaint about empty air would be
      * noise; a module whose core stands and still fails is a FAULT and is reported.
      */
-    private String moduleFault(List<StructureError> walkErrors, String piece, char coreChar, int coreMeta) {
+    private String moduleFault(List<StructureError> walkErrors, KerrModule module) {
         if (walkErrors.isEmpty()) return "";
-        if (!coreStanding(piece, coreChar, coreMeta)) return "";
+        if (!coreStanding(module)) return "";
         final String reason = walkErrors.get(0)
             .getDisplayString();
         return reason == null || reason.isEmpty() ? "structure incomplete" : reason;
     }
 
     /** True when the module's core block stands in its cell (located through the manifest). */
-    private boolean coreStanding(String piece, char coreChar, int coreMeta) {
+    private boolean coreStanding(KerrModule module) {
         final IGregTechTileEntity base = getBaseMetaTileEntity();
         if (base == null || base.getWorld() == null) return false;
-        final int[] rel = socketRel(piece, coreChar, 0);
+        final int[] rel = socketRel(module.piece, module.coreChar, 0);
         if (rel == null) return true; // manifest unreadable: report rather than hide
         final int[] xyz = new int[3];
         getExtendedFacing().getWorldOffset(rel, xyz);
@@ -479,7 +454,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         return base.getWorld()
             .getBlock(x, y, z) == SLBlocks.slCasing2
             && base.getWorld()
-                .getBlockMetadata(x, y, z) == coreMeta;
+                .getBlockMetadata(x, y, z) == module.coreMeta;
     }
 
     /**
@@ -548,56 +523,22 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     }
 
     public boolean addCompressorInput(IGregTechTileEntity te, int casingIndex) {
-        return addInput(te, casingIndex, compInBuses, compInHatches);
+        return compressor.addInput(te, casingIndex);
     }
 
     public boolean addCompressorOutput(IGregTechTileEntity te, int casingIndex) {
-        return addOutput(te, casingIndex, compOutBuses, compOutHatches);
+        return compressor.addOutput(te, casingIndex);
     }
 
     public boolean addExtractorInput(IGregTechTileEntity te, int casingIndex) {
-        return addInput(te, casingIndex, extInBuses, extInHatches);
+        return extractor.addInput(te, casingIndex);
     }
 
     public boolean addExtractorOutput(IGregTechTileEntity te, int casingIndex) {
-        return addOutput(te, casingIndex, extOutBuses, extOutHatches);
+        return extractor.addOutput(te, casingIndex);
     }
 
-    private static boolean addInput(IGregTechTileEntity te, int casingIndex, List<MTEHatchInputBus> buses,
-        List<MTEHatchInput> hatches) {
-        if (te == null) return false;
-        final IMetaTileEntity mte = te.getMetaTileEntity();
-        if (mte instanceof MTEHatchInputBus) {
-            ((MTEHatchInputBus) mte).updateTexture(casingIndex);
-            buses.add((MTEHatchInputBus) mte);
-            return true;
-        }
-        if (mte instanceof MTEHatchInput) {
-            ((MTEHatchInput) mte).updateTexture(casingIndex);
-            hatches.add((MTEHatchInput) mte);
-            return true;
-        }
-        return false;
-    }
-
-    private static boolean addOutput(IGregTechTileEntity te, int casingIndex, List<MTEHatchOutputBus> buses,
-        List<MTEHatchOutput> hatches) {
-        if (te == null) return false;
-        final IMetaTileEntity mte = te.getMetaTileEntity();
-        if (mte instanceof MTEHatchOutputBus) {
-            ((MTEHatchOutputBus) mte).updateTexture(casingIndex);
-            buses.add((MTEHatchOutputBus) mte);
-            return true;
-        }
-        if (mte instanceof MTEHatchOutput) {
-            ((MTEHatchOutput) mte).updateTexture(casingIndex);
-            hatches.add((MTEHatchOutput) mte);
-            return true;
-        }
-        return false;
-    }
-
-    private static int liveCount(List<? extends MetaTileEntity> list) {
+    static int liveCount(List<? extends MetaTileEntity> list) {
         int n = 0;
         for (MetaTileEntity mte : list) {
             if (live(mte)) n++;
@@ -614,19 +555,39 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     }
 
     public int compressorInputCount() {
-        return liveCount(compInBuses) + liveCount(compInHatches);
+        return compressor.inputCount();
     }
 
     public int compressorOutputCount() {
-        return liveCount(compOutBuses) + liveCount(compOutHatches);
+        return compressor.outputCount();
     }
 
     public int extractorInputCount() {
-        return liveCount(extInBuses) + liveCount(extInHatches);
+        return extractor.inputCount();
     }
 
     public int extractorOutputCount() {
-        return liveCount(extOutBuses) + liveCount(extOutHatches);
+        return extractor.outputCount();
+    }
+
+    /** The module a mode runs on, or null for an unknown mode. A new mode adds one case here. */
+    private KerrModule moduleFor(int mode) {
+        switch (mode) {
+            case MODE_COMPRESS:
+            case MODE_DENSIFY:
+                return compressor;
+            case MODE_EXTRACT:
+                return extractor;
+            default:
+                return null;
+        }
+    }
+
+    private boolean anyModuleBuilt() {
+        for (KerrModule module : modules) {
+            if (module.built) return true;
+        }
+        return false;
     }
 
     /**
@@ -641,16 +602,12 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         mOutputBusses.clear();
         mOutputHatches.clear();
         boundMode = mode;
-        if (mode == MODE_EXTRACT && extractorBuilt) {
-            mInputBusses.addAll(extInBuses);
-            mInputHatches.addAll(extInHatches);
-            mOutputBusses.addAll(extOutBuses);
-            mOutputHatches.addAll(extOutHatches);
-        } else if ((mode == MODE_COMPRESS || mode == MODE_DENSIFY) && compressorBuilt) {
-            mInputBusses.addAll(compInBuses);
-            mInputHatches.addAll(compInHatches);
-            mOutputBusses.addAll(compOutBuses);
-            mOutputHatches.addAll(compOutHatches);
+        final KerrModule module = moduleFor(mode);
+        if (module != null && module.built) {
+            mInputBusses.addAll(module.inBuses);
+            mInputHatches.addAll(module.inHatches);
+            mOutputBusses.addAll(module.outBuses);
+            mOutputHatches.addAll(module.outHatches);
         }
     }
 
@@ -680,10 +637,10 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         final String core = stackSize != null && stackSize.stackSize >= 2 ? PIECE_T2 : PIECE_T1;
         final int[] o = off(core);
         buildPiece(core, stackSize, hintsOnly, o[0], o[1], o[2]);
-        final int[] co = off(PIECE_COMPRESSOR);
-        buildPiece(PIECE_COMPRESSOR, stackSize, hintsOnly, co[0], co[1], co[2]);
-        final int[] eo = off(PIECE_EXTRACTOR);
-        buildPiece(PIECE_EXTRACTOR, stackSize, hintsOnly, eo[0], eo[1], eo[2]);
+        for (KerrModule module : modules) {
+            final int[] mo = off(module.piece);
+            buildPiece(module.piece, stackSize, hintsOnly, mo[0], mo[1], mo[2]);
+        }
     }
 
     @Override
@@ -691,35 +648,38 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         // Server-side only, so the installed state may be read here: an upgraded Kerr builds T2, and a
         // stack of 2+ pre-builds the T2 reinforcement before the upgrade goes in.
         final String core = densityInstalled || (stackSize != null && stackSize.stackSize >= 2) ? PIECE_T2 : PIECE_T1;
-        if (mMachine && core.equals(corePiece()) && compressorBuilt && extractorBuilt) return -1;
+        if (mMachine && core.equals(corePiece()) && allModulesBuilt()) return -1;
         final int[] o = off(core);
         final int built = survivalBuildPiece(core, stackSize, o[0], o[1], o[2], elementBudget, env, false, true);
         if (built >= 0) return built;
-        // The modules are independent: an unfinished (or unwanted) compressor never blocks the extractor.
-        final int[] co = off(PIECE_COMPRESSOR);
-        final int c = survivalBuildPiece(
-            PIECE_COMPRESSOR,
-            stackSize,
-            co[0],
-            co[1],
-            co[2],
-            elementBudget,
-            env,
-            false,
-            true);
-        final int[] eo = off(PIECE_EXTRACTOR);
-        final int e = survivalBuildPiece(
-            PIECE_EXTRACTOR,
-            stackSize,
-            eo[0],
-            eo[1],
-            eo[2],
-            Math.max(0, elementBudget - Math.max(c, 0)),
-            env,
-            false,
-            true);
-        if (c < 0 && e < 0) return -1;
-        return Math.max(c, 0) + Math.max(e, 0);
+        // The modules are independent: an unfinished (or unwanted) module never blocks the next one.
+        int placed = 0;
+        boolean any = false;
+        for (KerrModule module : modules) {
+            final int[] mo = off(module.piece);
+            final int n = survivalBuildPiece(
+                module.piece,
+                stackSize,
+                mo[0],
+                mo[1],
+                mo[2],
+                Math.max(0, elementBudget - placed),
+                env,
+                false,
+                true);
+            if (n >= 0) {
+                any = true;
+                placed += n;
+            }
+        }
+        return any ? placed : -1;
+    }
+
+    private boolean allModulesBuilt() {
+        for (KerrModule module : modules) {
+            if (!module.built) return false;
+        }
+        return true;
     }
 
     // ================================================================================= modes
@@ -739,16 +699,9 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
 
     /** True when the mode's module stands (and, for DENSIFY, the Density Upgrade is installed). */
     public boolean modeAvailable(int mode) {
-        switch (mode) {
-            case MODE_COMPRESS:
-                return compressorBuilt;
-            case MODE_EXTRACT:
-                return extractorBuilt;
-            case MODE_DENSIFY:
-                return compressorBuilt && densityInstalled;
-            default:
-                return false;
-        }
+        final KerrModule module = moduleFor(mode);
+        if (module == null || !module.built) return false;
+        return mode != MODE_DENSIFY || densityInstalled;
     }
 
     /**
@@ -1032,11 +985,15 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
 
     // ============================================================================ processing
 
+    /**
+     * The mode's recipe map. EXTRACT runs GT's own item extractor map ({@code extractorRecipes}) and
+     * nothing else: no fluid extraction and no Kerr-only map (user ruling, Q-9/Q-22).
+     */
     @Override
     public RecipeMap<?> getRecipeMap() {
         switch (machineMode) {
             case MODE_EXTRACT:
-                return KerrRecipeMaps.EXTRACTION;
+                return RecipeMaps.extractorRecipes;
             case MODE_DENSIFY:
                 return KerrRecipeMaps.DENSITY;
             default:
@@ -1044,20 +1001,21 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         }
     }
 
+    /** Every map any mode runs; NEI's catalyst index reads this, so a new module's map goes here. */
     @Nonnull
     @Override
     public Collection<RecipeMap<?>> getAvailableRecipeMaps() {
         return Arrays.<RecipeMap<?>>asList(
             RecipeMaps.compressorRecipes,
             RecipeMaps.neutroniumCompressorRecipes,
-            KerrRecipeMaps.EXTRACTION,
+            RecipeMaps.extractorRecipes,
             KerrRecipeMaps.DENSITY);
     }
 
     @Override
     @Nonnull
     public CheckRecipeResult checkProcessing() {
-        if (!compressorBuilt && !extractorBuilt) {
+        if (!anyModuleBuilt()) {
             return SimpleCheckRecipeResult.ofFailure("beyondthestars.kerr.nomodule");
         }
         if (!modeAvailable(machineMode)) {
@@ -1087,7 +1045,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
                 }
                 switch (machineMode) {
                     case MODE_EXTRACT:
-                        return super.findRecipeMatches(KerrRecipeMaps.EXTRACTION);
+                        return super.findRecipeMatches(RecipeMaps.extractorRecipes);
                     case MODE_DENSIFY:
                         return super.findRecipeMatches(KerrRecipeMaps.DENSITY);
                     default: {
@@ -1199,12 +1157,11 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
                 + railCount
                 + "), bolt buses "
                 + boltBusCount());
-        out.add(
-            "Compressor module: "
-                + (compressorBuilt ? "FORMED" : compressorFault.isEmpty() ? "absent" : "FAULT - " + compressorFault));
-        out.add(
-            "Extractor module: "
-                + (extractorBuilt ? "FORMED" : extractorFault.isEmpty() ? "absent" : "FAULT - " + extractorFault));
+        for (KerrModule module : modules) {
+            out.add(
+                module.label + " module: "
+                    + (module.built ? "FORMED" : module.fault.isEmpty() ? "absent" : "FAULT - " + module.fault));
+        }
         return out;
     }
 
@@ -1231,7 +1188,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         tt.addMachineType("Black Hole Fabricator, Kerr Ergosphere Engine")
             .addInfo("Kerr T1 replaces the Black Hole Compressor. Does nothing without a module:")
             .addInfo("  Compressor module (south arc): the BHC's Compressor and Neutronium Compressor recipes")
-            .addInfo("  Extractor module (east arc): Ergosphere Extraction. Both modules can stand at once.")
+            .addInfo("  Extractor module (east arc): GT's Extractor recipes (items). Both modules can stand at once.")
             .addInfo("Right-click with a Kerr Density Upgrade for Kerr T2: heavier reinforcement, holes")
             .addInfo("  up to 512 SM, and DENSIFY (Hyperdense Stellar Mixture, needs 128+ SM). Irreversible.")
             .addSeparator()

@@ -30,7 +30,7 @@ import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.recipe.Scanning;
 
 /**
- * SINGULARITY LADDER P2: THE KERR RECIPES, SL-K01..SL-K06 (singularity-ladder-build.md §2.3).
+ * SINGULARITY LADDER P2: THE KERR RECIPES, SL-K01..SL-K05 (singularity-ladder-build.md §2.3).
  * <b>Owned by the Kerr unit.</b> Called from one line in {@link BTSRecipes}.
  *
  * <h2>Deviations from the §2.3 table, and why</h2>
@@ -42,12 +42,11 @@ import gregtech.api.util.recipe.Scanning;
  * stays at or under 16 item slots even with the fallback.</li>
  * <li><b>SL-K03</b>'s Huge Neutronium Fluid Pipe falls back to a Large one, then to Neutronium
  * plates x6 each, if this pack never generated it, so the recipe never silently disappears.</li>
- * <li><b>SL-K06</b> (new) is the extractor module's own map, Ergosphere Extraction: it melts the
- * Kerr-tier exotic metals back to their fluids at GT's standard 144 L per ingot. Neutral by
- * construction (every solidifier runs the other way at the same rate), so it adds throughput, not
- * value. Q-22 asks what the extractor should really make.</li>
+ * <li><b>SL-K06 is retired</b> (the ID stays reserved). It was a Kerr-only "Ergosphere Extraction"
+ * map that melted exotic metals; I ruled (Q-9/Q-22) that the extractor module runs GT's item
+ * extractor recipes only, so the map and its recipes are gone.</li>
  * </ul>
- * The Kerr's compressor module runs GT's own compressor maps, so it adds no recipes there.
+ * The Kerr's modules run GT's own compressor and extractor maps, so it adds no recipes there.
  */
 public final class BTSRecipesKerr {
 
@@ -57,7 +56,6 @@ public final class BTSRecipesKerr {
         controllerAndModules();
         densityUpgrade();
         densify();
-        extraction();
     }
 
     // ============================================================== controller + module cores (UIV)
@@ -179,38 +177,6 @@ public final class BTSRecipesKerr {
                 .duration(400)
                 .eut(TierEU.RECIPE_UMV)
                 .addTo(KerrRecipeMaps.DENSITY));
-    }
-
-    // ============================================================= EXTRACT (extractor module)
-
-    /** The Kerr-tier exotic metals the extractor melts. */
-    private static final Materials[] EXTRACTION_MATERIALS = { Materials.Neutronium, Materials.CosmicNeutronium,
-        Materials.Infinity, Materials.TranscendentMetal, Materials.SpaceTime, Materials.WhiteDwarfMatter,
-        Materials.BlackDwarfMatter };
-
-    private static void extraction() {
-        // SL-K06: one recipe per (material, form) that exists in this pack. A pairing GT never
-        // generated is simply not offered - nothing here is a "skipped" recipe.
-        for (Materials material : EXTRACTION_MATERIALS) {
-            extractionRecipe(material, OrePrefixes.ingot, 144, 20);
-            extractionRecipe(material, OrePrefixes.plate, 144, 20);
-            extractionRecipe(material, OrePrefixes.plateDense, 1_296, 160);
-            extractionRecipe(material, OrePrefixes.block, 1_296, 160);
-        }
-    }
-
-    private static void extractionRecipe(Materials material, OrePrefixes prefix, int litres, int ticks) {
-        final ItemStack input = GTOreDictUnificator.get(prefix, material, 1L);
-        final FluidStack output = material.getMolten(litres);
-        if (input == null || output == null) return;
-        BTSRecipeGuard.recipe(
-            "SL-K06 " + prefix + " " + material,
-            () -> GTValues.RA.stdBuilder()
-                .itemInputs(input)
-                .fluidOutputs(output)
-                .duration(ticks)
-                .eut(TierEU.RECIPE_UEV)
-                .addTo(KerrRecipeMaps.EXTRACTION));
     }
 
     // ================================================================================ helpers

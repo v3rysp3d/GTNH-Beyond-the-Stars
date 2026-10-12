@@ -63,16 +63,16 @@ public enum KerrHatchElement implements IHatchElement<MTEKerrEngine> {
             return t.compressorOutputCount();
         }
     },
-    /** Extractor arc: recipe inputs. */
-    ExtractorInput(MTEKerrEngine::addExtractorInput, MTEHatchInputBus.class, MTEHatchInput.class) {
+    /** Extractor arc: recipe inputs. GT's extractor map is items only, so input buses only. */
+    ExtractorInput(MTEKerrEngine::addExtractorInput, MTEHatchInputBus.class) {
 
         @Override
         public long count(MTEKerrEngine t) {
             return t.extractorInputCount();
         }
     },
-    /** Extractor arc: recipe outputs. */
-    ExtractorOutput(MTEKerrEngine::addExtractorOutput, MTEHatchOutputBus.class, MTEHatchOutput.class) {
+    /** Extractor arc: recipe outputs, output buses only. */
+    ExtractorOutput(MTEKerrEngine::addExtractorOutput, MTEHatchOutputBus.class) {
 
         @Override
         public long count(MTEKerrEngine t) {
