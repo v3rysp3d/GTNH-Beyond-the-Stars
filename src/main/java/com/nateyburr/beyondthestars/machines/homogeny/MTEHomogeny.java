@@ -407,7 +407,6 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
         if (escrow == null || escrow.getItem() != coreFor(next)) {
             return "right-click the Homogeny Tier " + (next == 2 ? "II" : "III") + " Core onto the controller";
         }
-        if (mMaxProgresstime > 0) return "wait for the running mix to finish";
         return "";
     }
 
@@ -468,9 +467,17 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
         markDirtyBase();
     }
 
-    /** One install tick: pays the EU/t and advances; completes at the end. True if it advanced. */
+    /**
+     * One install tick: pays the EU/t and advances; completes at the end. True if it advanced. An Install pressed while
+     * a mix runs waits for that mix (no new one starts while installing), so a Homogeny fed without a gap (ME stocking)
+     * needs no stopping first.
+     */
     private boolean installTick() {
         final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (mMaxProgresstime > 0) {
+            installStall = "waiting for the running mix to finish";
+            return false;
+        }
         if (!mMachine) {
             installStall = "the structure is not formed";
             return false;
@@ -570,7 +577,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
         if (!aBaseMetaTileEntity.isServerSide() || !installing) return;
         if (mStartUpCheck >= 0) return; // not walked yet after a load
         final boolean advanced = installTick();
-        aBaseMetaTileEntity.setActive(advanced);
+        if (mMaxProgresstime == 0) aBaseMetaTileEntity.setActive(advanced); // a finishing mix keeps its own lamp
     }
 
     // ============================================================================ processing
@@ -894,6 +901,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
                     + " (T2) / "
                     + fmt(TierEU.RECIPE_MAX)
                     + " (T3) EU/t.")
+            .addInfo("  A mix already running finishes first; no new mix starts while installing.")
             .addInfo("  Progress shows in the GUI and the scanner, and survives a wrench.")
             .addInfo("Automation: feed hatches take ME input hatches; outputs go to ME output hatches.")
             .beginVariableStructureBlock(t1[0], t3[0], t1[1], t3[1], t1[2], t3[2], false)
