@@ -92,10 +92,10 @@ public final class BTSMachines {
         //
         // LEDGER. base live; base+1 BURNED (0.5.0 Turbine Hall); base+2, base+3, base+6..base+9
         // live; base+4 and base+5 live-but-retired museum pieces; base+10..base+13 the four
-        // below. NEXT FREE ID IS base+14, and there is room: gregtech.api.enums.MetaTileEntityIDs
-        // in the pinned 5.09.52.594 jar holds 2029 ids for the whole pack, and its band runs out
-        // at 28055 (CropsNHIndustrialFarm) and does not resume until 29990 (MAGLEV_PYLON_MV), so
-        // 28056..29989 is empty and our 28100..28113 sits well inside it.
+        // below; base+14..base+39 the Singularity Ladder block (ledger further down). There is
+        // room: gregtech.api.enums.MetaTileEntityIDs in 5.09.52.594 held 2029 ids for the whole
+        // pack, its band ran out at 28055 (CropsNHIndustrialFarm) and did not resume until 29990
+        // (MAGLEV_PYLON_MV), so our 28100..28139 sits well inside the empty 28056..29989.
         cascadeHall = new MTECascadeHall(base + 13, "multimachine.beyondthestars.cascadehall", "Cascade Hall")
             .getStackForm(1);
         fuelFabricationHall = new MTEFuelFabricationHall(

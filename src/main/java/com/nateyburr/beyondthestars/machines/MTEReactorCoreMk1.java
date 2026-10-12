@@ -297,7 +297,6 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     // ------------------------------------------------------------- TC-3 RPM model
     /** Redline: the RPM the best sustained clock (1 Hz, 8/8 timed Lv 6) approaches. */
     public static final int RPM_REDLINE = 12_000;
-    private static final int RPM_REDLINE_MILLI = RPM_REDLINE * 1000;
     /**
      * RPM gained per accepted cycle = RPM_GAIN x P x timed/8. Equilibrium math: with decay
      * r *= 0.995 per tick and one cycle every 20 ticks (1 Hz - the fastest the steam budget
