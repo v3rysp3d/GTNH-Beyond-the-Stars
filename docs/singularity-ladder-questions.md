@@ -48,6 +48,9 @@ The build compiles, loads and registers every recipe. These checks from your acc
 - **Cost table.** Per-block recipe × block count → total raw materials per machine tier. Not written yet. The block
   counts are in the spec (§5.1). The structures need thousands of each casing (for example 2,852 mirror casings
   on a Kerr T1), so this table is the real fairness check.
+  **Written (cost audit):** [`singularity-ladder-costs.md`](singularity-ladder-costs.md) has the completeness check,
+  per-block costs, per-tier totals and the BHC / TecTech Eye / Godforge / Nano Forge comparison. It found two
+  uncraftable chains (Kerr T2 and Eye T2-T4) and an Eye T1 at 8× TecTech's Eye: B-21..B-24, 15 proposed changes.
 - **NEI multiblock preview.** The controllers implement the hologram interfaces, but nobody has opened the NEI
   "Multiblock" tab for them yet, or checked whether it caps the size of what it renders.
   **Checked against the bytecode (acceptance pass):** the preview finds both controllers on its own, counts Kerr 2
@@ -463,6 +466,94 @@ display-list cache, which helps every large GTNH multi.
 **Alternatives.** A bigger round (more server time per projector use). Or let survival skip the cells that hold a
 too-low compression tier and still build the later bands, leaving the gate to refuse the recipe until the player
 swaps them. That builds faster, but the half-upgraded Eye would look finished.
+
+### B-21 The Kerr Density Upgrade needs an item no one can craft [cost audit]
+
+**Context.** SL-K04 takes one Superstable Black Hole Seed (`ItemList.Black_Hole_Stabilizer`). A scan of every class
+in all of the instance's mod jars finds it only in GT's item list, its registration, the BHC, and our SL-K04. No
+recipe makes it. So Kerr T2 is uncraftable, and so is everything after it: no DENSIFY, no Hyperdense Stellar
+Mixture, no Galactic Shell, no Galactic Upgrade Core, no Sirius B chart, no Eye T4. The boot log could not see this:
+the recipe registers fine, it just can never run.
+
+**What we built.** Nothing yet; this audit changes no code.
+
+**Suggestion.** Replace the Superstable Seed in SL-K04 with 32 Black Hole Seeds (UHV Space Assembler). That costs
+about the same, fits the "density" theme, and touches nothing outside the addon. Costs doc, adjustment #1.
+
+**Alternatives.**
+
+- Give GT's Superstable Seed a recipe of ours. This also unlocks the BHC's superstable mode pack-wide (placed BHCs
+  included).
+- A new BTS "Kerr Seed" item.
+
+### B-22 Eye T2-T4's compression generators need White Dwarf Matter, which only Eye T4 makes [cost audit]
+
+**Context.** The 1:1 gate (Q-20) needs TecTech tier 2 / 3 / 4 Spacetime Compression Field Generators (metas 1-3) for
+Eye T2 / T3 / T4. Their TecTech recipes take 2 / 8 / 32 **White Dwarf Matter bolts** per generator: javap,
+`addEOHRecipes`, a shared per-tier bolt array of Shirabon, WDM ×3, BDM ×3 and MHDCSM ×2. With
+`replaceTecTechEyeOfHarmony=true`, WDM's only source is our Eye T4. So Eye T2 cannot be built without Eye T4: a
+deadlock. The spec's §0 note ("no WDM/BDM markers in the generator recipes") only checked the Tier-8 recipe.
+
+**What we built.** Nothing yet.
+
+**Suggestion.** Three alternate assembly-line recipes of ours (SL-P30..P32, registered only with the flag on):
+TecTech's own inputs, research and duration, with the WDM bolts replaced by the previous tier's product as a 4th
+fluid: Raw Star Matter 16,000 L, ESPM 4,000 L, RHSP 2,000 L. Per tier step that is 3 Sol, 7.5 Sirius A and 7.5
+Arcturus runs. Optionally, add an upgrade recipe (tier m → m+1, consuming the old generator), because every step now
+strands 188 generators: 1.7e16 EU and about 1,900 assembly-line hours for T2-T4 (costs doc, #2 and #15).
+
+**Alternatives.**
+
+- Make the dedicated tier-gate block from B-3 the gate, with its own recipes, and stop gating on compression.
+- Keep TecTech's rocket-tier 0-2 planets' WDM output (B-2 option) as a trickle.
+
+Both need D-49 (B-18) in view.
+
+### B-23 The Eye's TecTech casings cost 8× TecTech's whole Eye [cost audit]
+
+**Context.** The ruling to reuse TecTech's Eye blocks put them in bulk roles:
+
+- 13,872 Reinforced Spatial/Temporal casings in the core (TecTech's Eye: 1,430);
+- 6,426 Infinite Spacetime Energy Boundary casings across T1-T4 (TecTech's: 36).
+
+TecTech prices them for its small Eye. A Spatial/Temporal casing is ¼ of an assembly line with **32 Godforge
+Singularity Shielding Casings**. A Boundary casing is a whole LSC, 16 Active Transformers and 4 UMV wireless hatches.
+An Eye T1 today needs 118k Godforge casings (42 Godforge main rings, 8× TecTech's Eye), 3,876 LSCs and 2.3e16 EU.
+
+**What we built.** Nothing yet.
+
+**Suggestion.** Keep the blocks (and the look) and add batch Assembler recipes of ours, registered only with
+`replaceTecTechEyeOfHarmony=true`:
+
+- SL-P27/P28: 1 Godforge Shielding Casing + dense Neutronium/Cosmic Neutronium/Infinity + SpaceTime → 4 casings.
+- SL-P29: SC UMV wire + dense Neutronium/Cosmic Neutronium + 1 Emitter UIV + SpaceTime → 8 Boundary casings.
+
+With B-24 this puts Eye T1 at TecTech parity in EU (5.5e15), assembly-line hours (612) and UXV circuits, and at ¼ of
+TecTech in Godforge casings. The bands' own recipes get batch outputs too (#8-#10). Costs doc, #3, #4 and #8-#12.
+
+**Alternatives.**
+
+- New BTS look-alike blocks (same textures) for the bulk roles. This means a legend change and new metas.
+- Map most shell cells to cheaper existing blocks. This changes the look.
+
+Side effect of the suggestion: cheaper TecTech casings also make TecTech's field generators and its Stargate parts
+cheaper, but only while TecTech's own Eye is switched off.
+
+### B-24 294 placeholder stabilisation generators under the pylon feet [cost audit]
+
+**Context.** The six 7 × 7 pylon pads are 294 Stabilisation Field Generators (spec, Eye `Y`). They do nothing yet
+(B-3). Each one is crafted from a compression generator, a dilation generator and a Boundary casing. Together they
+cost 1,176 UXV circuits and 9.5e15 EU, which is 1.8× TecTech's whole Eye. TecTech's Eye uses 48.
+
+**What we built.** As exported.
+
+**Suggestion.** 48 generators, 8 per pad (the pad's centre ring), with the other 246 cells as plinth casing (`Q`).
+This is an exporter-legend change for the structure owner. Costs doc, #5.
+
+**Alternatives.**
+
+- Keep 294 and give stabilisation a real effect that justifies them.
+- One generator per pad (6).
 
 ---
 
