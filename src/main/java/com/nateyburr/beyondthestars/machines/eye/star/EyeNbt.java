@@ -14,6 +14,7 @@ import com.nateyburr.beyondthestars.machines.eye.field.FieldRng;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldState;
 import com.nateyburr.beyondthestars.machines.eye.field.TierParams;
 
+import gregtech.api.enums.GTValues;
 import gregtech.api.enums.Materials;
 
 /**
@@ -27,8 +28,9 @@ import gregtech.api.enums.Materials;
  * <p>
  * <b>Migration</b> (schema absent = written by 0.24.x): {@code btsEyeGalactic} → unlocked T4; otherwise the bands are
  * grandfathered at the first successful walk ({@link EyeStarRuntime#grandfather}); a pre-D-49 star run in flight is
- * paid out from {@link #legacyOutput} once the Eye stands. A brand-new controller never reaches {@link #read} (GT
- * calls {@code loadNBTData} only for an item or tile that carries NBT), so it starts at unlocked T1.
+ * paid out from {@link #legacyOutput} once the Eye stands. A brand-new controller with no tag never reaches
+ * {@link #read} (GT calls {@code loadNBTData} only for an item or tile that carries NBT); one with an unrelated tag
+ * (an anvil name) is told apart by {@link #isLegacy}. Either way it starts at unlocked T1.
  */
 public final class EyeNbt {
 
@@ -78,6 +80,8 @@ public final class EyeNbt {
         s.setLong("t", fs.t);
         s.setDouble("eyeT", fs.eyeT);
         s.setDouble("cycR", rt.cycR);
+        s.setInteger("cycP", rt.cycP); // the parallel the cycle / batch paid for (D-49 review)
+        s.setInteger("batchP", rt.batchP);
         for (int k = 0; k < 4; k++) s.setDouble("prevE" + k, fs.prevE[k]);
         s.setByte("prevWarn", (byte) fs.prevWarn);
         if (fs.ev != null) {
@@ -173,8 +177,10 @@ public final class EyeNbt {
      * schema): the controller then migrates its run in flight too.
      */
     public static boolean read(EyeStarRuntime rt, NBTTagCompound nbt) {
-        final boolean legacy = !nbt.hasKey(SCHEMA_KEY);
-        if (legacy) {
+        if (!nbt.hasKey(SCHEMA_KEY)) {
+            // A tag with no schema and no sign of a placed 0.24.x machine (an anvil name, any other item-only tag
+            // on a freshly crafted controller) is a NEW controller: defaults, unlocked T1, nothing grandfathered.
+            if (!isLegacy(nbt)) return false;
             if (nbt.getBoolean(GALACTIC_KEY)) {
                 rt.unlockedTier = 4; // they paid for a Galactic core; the neutron star still needs a Core Collapse
                 rt.legacyPending = false;
@@ -199,6 +205,25 @@ public final class EyeNbt {
         if (nbt.hasKey("btsEyeStar")) readStar(rt, nbt.getCompoundTag("btsEyeStar"));
         rt.trans = nbt.hasKey("btsEyeTrans") && rt.live() ? EyeTransition.read(nbt.getCompoundTag("btsEyeTrans"))
             : null;
+        return false;
+    }
+
+    /**
+     * True when schema-less NBT really comes from a 0.24.x Eye (D-49 review): tile NBT (GT's {@code mID}), any of the
+     * 0.24.x Eye's own keys ({@code btsEyeGalactic}, {@code btsEyeBuffers}, {@code btsEyeRun*}), or the keys GT's
+     * {@code getDrops} puts on a dropped machine (upgrades, colour, covers, strong redstone). A crafted controller
+     * carries none of these, so renaming it in an anvil no longer grandfathers it up to T3. A 0.24.x controller
+     * wrenched with nothing to save has no tag at all and was already treated as new (B-37 item 7).
+     */
+    static boolean isLegacy(NBTTagCompound nbt) {
+        if (nbt.hasKey("mID") || nbt.hasKey("mLockUpgrade")
+            || nbt.hasKey("mColor")
+            || nbt.hasKey("mOtherUpgrades")
+            || nbt.hasKey("mStrongRedstone")
+            || nbt.hasKey(GTValues.NBT.COVERS)) return true;
+        for (Object key : nbt.func_150296_c()) {
+            if (key instanceof String && ((String) key).startsWith("btsEye")) return true;
+        }
         return false;
     }
 
@@ -257,6 +282,8 @@ public final class EyeNbt {
             rt.state = EyeStarRuntime.StarState.DARK;
         }
         rt.cycR = s.hasKey("cycR") ? s.getDouble("cycR") : 1;
+        rt.cycP = s.getInteger("cycP"); // 0 (an older save): no cap until the next charge
+        rt.batchP = s.getInteger("batchP");
         rt.tengam = s.getDouble("tengam");
         rt.hsmOwed = s.getDouble("hsmOwed");
         rt.prodCarry = s.getDouble("prodCarry");

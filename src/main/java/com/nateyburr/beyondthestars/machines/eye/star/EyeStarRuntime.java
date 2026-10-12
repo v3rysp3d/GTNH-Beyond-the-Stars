@@ -141,10 +141,12 @@ public final class EyeStarRuntime {
      * {@link #MERGER_RESERVE_CYCLES}; each cycle spends one; at {@link #TOPUP_AT} cycles or fewer the Eye tops it up
      * from the buffers with White Dwarf Matter {@link #TOPUP_WDM} + Black Dwarf Matter {@link #TOPUP_BDM} (× p) for
      * {@link #TOPUP_CYCLES} more. A magnetar with an empty reserve starves: that cycle's r is 0 (no output, P sags).
-     * PROPOSED (B-38).
+     * PROPOSED (B-63).
      */
     public static final int MERGER_RESERVE_CYCLES = 60, TOPUP_CYCLES = 60, TOPUP_AT = 10;
     public static final long TOPUP_WDM = 1_800L, TOPUP_BDM = 450L;
+    /** T6: the Magnetar Merger charge besides {@link #BATCH_WDM} (per parallel, plan §6.1). */
+    public static final long MERGER_BDM = 4_608L, MERGER_AGENT = 100_000L;
     /** T6: Purified Tengam dust returned per 1,000 L of Agent consumed (plan §10.1). */
     public static final double TENGAM_PER_KL = 12;
 
@@ -169,6 +171,13 @@ public final class EyeStarRuntime {
     FieldState fs;
     long seed;
     double cycR = 1;
+    /**
+     * The parallel the running cycle's EU and upkeep were paid for ({@link #chargeCycle}), and the T5 batch charge's
+     * ({@link #startCooling}, {@link #nextBatch}); 0 = not known (a save from before this field), no cap. A lit second
+     * runs at {@code min(parallel, cycP[, batchP])}, so a parallel raised mid-cycle (a band put back) counts from the
+     * next charge, never for output that was not paid for.
+     */
+    int cycP, batchP;
     double hsmOwed;
     double prodCarry;
     double tengam;
@@ -194,7 +203,7 @@ public final class EyeStarRuntime {
     private FieldReadout last = FieldReadout.DARK;
     private StepResult lastOut;
     private double lastM = 1, lastFeed;
-    private int lastP = 1;
+    private int lastP = 1, lastLiveP = 1;
     private long lastTimePaid;
     private final Map<TrimDef.Kind, Long> lastTrims = new EnumMap<>(TrimDef.Kind.class);
     private String waitReason = "";
@@ -203,6 +212,8 @@ public final class EyeStarRuntime {
     String lastFailure = "";
     /** Set when a Core Collapse ends in a supernova; the centre render takes it for its flash. Not saved. */
     private boolean novaPending;
+    /** The last {@link #salvage()} was owed (the Eye was unformed), not emitted. */
+    private boolean salvageOwed;
 
     public EyeStarRuntime(Host host) {
         this.host = host;
@@ -403,6 +414,24 @@ public final class EyeStarRuntime {
         return 0;
     }
 
+    /**
+     * The parallel a lit second runs at: the live {@link #parallel}, capped by what the cycle paid for and, on a T5
+     * batch, by what the batch charge paid for. Product, the HSM feed, the trims' caps and the field's per-parallel
+     * division all use it, so the output always matches the upkeep taken.
+     */
+    int paidParallel(int live) {
+        int p = live;
+        if (cycP > 0) p = Math.min(p, cycP);
+        if (batchP > 0 && fs != null && fs.tier.batch) p = Math.min(p, batchP);
+        return Math.max(1, p);
+    }
+
+    /** The parallel the star of tier {@code n} will run at once its transition makes it (1 before it unlocks). */
+    int destParallel(int n) {
+        final int inst = host.installedTier();
+        return inst >= n ? 1 << (inst - n) : 1;
+    }
+
     // ============================================================================ settings
 
     /** Screwdriver: dial +0.25, wrapping 3.00 → 1.00. Returns the new setpoint. */
@@ -458,6 +487,7 @@ public final class EyeStarRuntime {
         fs = null;
         seed = 0;
         cycR = 1;
+        cycP = batchP = 0;
         hsmOwed = prodCarry = tengam = 0;
         cycWorst = flashState = flashTail = 0;
         flashOk = false;
@@ -518,10 +548,12 @@ public final class EyeStarRuntime {
                 }
             } else if (want == star) {
                 if (state == StarState.PENDING) state = StarState.LIT;
-            } else if (want != null && (state == StarState.LIT || state == StarState.PENDING)
+            } else if (want != null
+                && (state == StarState.LIT || state == StarState.PENDING || state == StarState.IGNITING)
                 && star.n() <= 3
                 && want.n() == star.n() + 1) {
-                    state = StarState.PENDING;
+                    // the next tier's chart: PENDING once lit (an igniting star finishes its ignition first)
+                    if (state != StarState.IGNITING) state = StarState.PENDING;
                 } else {
                     extinguish("the target changed");
                     return;
@@ -574,11 +606,14 @@ public final class EyeStarRuntime {
     private void litSecond() {
         final TierParams T = fs.tier;
         final int n = T.n;
-        final int p = parallel(n);
-        if (p < 1) {
+        final int live = parallel(n);
+        if (live < 1) {
             extinguish("the Eye no longer reaches T" + n);
             return;
         }
+        // the parallel paid for: a rise counts from the next charge, a fall at once (D-49 review fix)
+        final int p = paidParallel(live);
+        lastLiveP = live;
         final int tt = host.timeTier();
         // ---- the time dial (plan §6.4): pay Time from the Field sockets; a short payment slows the dial.
         // Transitions hold the dial at m = 1.
@@ -634,7 +669,7 @@ public final class EyeStarRuntime {
             final CollapseOverlay co = ((CoreCollapse) trans).co;
             co.dose = co.phase != 1 ? 0
                 : rig != null ? CoreCollapse.DOSE_CAP : host.drainField(timeFluid(), (long) CoreCollapse.DOSE_CAP);
-            co.spaceTimeBuffer = host.buffer(spaceTimeFluid());
+            co.spaceTimeBuffer = collapseSpaceTimeAvailable(); // the neutron star's first cycle held back
             co.hsmSeedPresent = host.buffer(SLFluids.hyperdenseStellarMixture) >= CollapseOverlay.HSM_SEED;
         }
         lastM = m;
@@ -643,7 +678,9 @@ public final class EyeStarRuntime {
 
         final StepResult out = StellarField.step(fs, trans != null ? trans : Overlay.NONE, in);
         lastOut = out;
-        if (out.zone == 0) milestones.res[n]++;
+        // milestones for tier n count only once n is unlocked (plan §7.1): not during the settle or imprint that
+        // makes the star of a still-locked tier
+        if (out.zone == 0 && n <= unlockedTier) milestones.res[n]++;
         cycWorst = Math.max(cycWorst, out.zone);
         if (ledger != null) ledger.lit(out);
         creditAgent(lastTrims.containsKey(TrimDef.Kind.AGENT) ? lastTrims.get(TrimDef.Kind.AGENT) : 0);
@@ -689,8 +726,10 @@ public final class EyeStarRuntime {
                 final int cn = fs.tier.n;
                 if (out.hasCycleProduct) {
                     emit(out.cycleProduct);
-                    if (cn <= 3) milestones.prod[cn] += out.cycleProduct;
-                    else if (cn == 4 && cycWorst <= 1) milestones.prod[4] += out.cycleProduct;
+                    if (cn <= unlockedTier) {
+                        if (cn <= 3) milestones.prod[cn] += out.cycleProduct;
+                        else if (cn == 4 && cycWorst <= 1) milestones.prod[4] += out.cycleProduct;
+                    }
                     if (ledger != null) ledger.product += out.cycleProduct;
                 }
                 if (ledger != null) ledger.cycles++;
@@ -779,6 +818,7 @@ public final class EyeStarRuntime {
             else r = 0; // starving: no dwarf matter left to hold it together
         }
         cycR = r;
+        cycP = p;
         lastP = p;
         cycWorst = 0;
         host.markDirty();
@@ -825,12 +865,38 @@ public final class EyeStarRuntime {
             return;
         }
         if (!want.tier.ignite) {
+            // T4 (D-49 review): once T4 is unlocked, a dark Eye holding the Neutron Star chart relights Arcturus by
+            // itself from a Stellar Ignition Charge, exactly as a T1-T3 star relights; Arcturus then goes PENDING
+            // and re-runs the Core Collapse (no core) once its fluids are buffered. So a lost neutron star, or one
+            // put out for a Deep Dark run, comes back with no hand on the controller slot.
+            final StarDef progenitor = StarDef.ofTier(n - 1);
+            if (n == 4 && unlockedTier >= 4 && progenitor != null && progenitor.tier.ignite) {
+                autoIgnite(progenitor, " (to re-run the Core Collapse for the neutron star)");
+                return;
+            }
             waitReason = "the neutron star is born from a lit Arcturus by the Core Collapse (light Arcturus, then put the"
-                + " Neutron Star chart in while it burns)";
+                + " Neutron Star chart in while it burns; once T4 is unlocked the Eye relights Arcturus by itself)";
             return;
         }
+        autoIgnite(want, "");
+    }
+
+    /**
+     * Ignites {@code want} (T1-T3) from one Stellar Ignition Charge, the seed cloud and 10 cycles of EU when the Eye
+     * reaches it and everything is there; otherwise sets the wait reason.
+     */
+    private void autoIgnite(StarDef want, String why) {
+        final int n = want.n();
         if (n > host.installedTier()) {
-            waitReason = "the Eye does not reach T" + n + " (unlocked T" + unlockedTier + ")";
+            // name every limit: a migrated jet-without-beam Eye is unlocked T3 but its bands give T1
+            waitReason = "the Eye does not reach T" + n
+                + " (unlocked T"
+                + unlockedTier
+                + ", bands T"
+                + host.structureTier()
+                + ", compression T"
+                + host.compressionTier()
+                + ")";
             return;
         }
         final int p = parallel(n);
@@ -857,7 +923,7 @@ public final class EyeStarRuntime {
         if (!host.takeIgnitionCharge(false) || !debit(eu10)) return;
         for (EyeRecipe.FluidAmount s : want.seed) host.takeBuffer(s.fluid, s.amount * p);
         ignite(want);
-        lastEvent = "ignition: " + want.name + " (1 charge, the seed cloud and " + sci(eu10) + " EU)";
+        lastEvent = "ignition: " + want.name + " (1 charge, the seed cloud and " + sci(eu10) + " EU)" + why;
     }
 
     /** The buffered litres an ignition needs: 10 cycles of upkeep plus the seed cloud, × p. */
@@ -919,11 +985,13 @@ public final class EyeStarRuntime {
         final int n = star == null ? 0 : star.n();
         lastEvent = (star == null ? "star" : star.name) + " LOST: "
             + reason
-            + (n == 4 ? " (collapsed to a black hole: relight Arcturus for a new Core Collapse, no core needed)"
+            + (n == 4
+                ? " (collapsed to a black hole: with the Neutron Star chart still in the slot the Eye relights Arcturus"
+                    + " from a Stellar Ignition Charge and re-runs the Core Collapse, no core needed)"
                 : n == 6 ? " (field decoherence: a re-merge needs the merger charge, no core)"
                     : n <= 3 ? " (relighting needs a new Stellar Ignition Charge)" : "");
         if (ledger != null) ledger.fails++;
-        lastFailure = lastEvent;
+        recordFailure(lastEvent);
         goDark();
     }
 
@@ -938,14 +1006,35 @@ public final class EyeStarRuntime {
                 .append(" was ABORTED (its materials are lost")
                 .append(escrow != null ? ", the core stays in escrow)" : ")");
         }
-        if (state == StarState.BATCH && fs != null && fs.batch != null) {
+        final boolean batch = state == StarState.BATCH && fs != null && fs.batch != null;
+        if (batch) {
             sb.append("; ")
-                .append(salvage())
-                .append(" L of Black Dwarf Matter salvaged");
+                .append(fmt(salvage()))
+                .append(" L of Black Dwarf Matter salvaged")
+                .append(salvageOwed ? " (owed: paid out once the Eye is formed again)" : "");
         }
         lastEvent = sb.toString();
-        lastFailure = lastEvent;
+        // A plain target change (no transition, no batch) is the player's own choice, not a failure: it must not
+        // replace a more useful "Last failure" line (B-59).
+        final boolean failure = trans != null || batch
+            || !(reason.startsWith("the target changed") || reason.startsWith("a planet was selected"));
+        if (failure) recordFailure(lastEvent);
+        else logEvent(lastEvent);
         goDark();
+    }
+
+    /**
+     * The persistent "Last failure" line (GUI, scanner; tile NBT). Only failures write it, so the auto-start that
+     * follows one (a T1-T3 relight, the next T5 batch, a re-merge) changes the event line but never this one. Every
+     * failure is logged, as a completion is.
+     */
+    private void recordFailure(String line) {
+        lastFailure = line;
+        logEvent(line);
+    }
+
+    private void logEvent(String line) {
+        com.nateyburr.beyondthestars.BeyondTheStars.LOG.info("[BTS] Eye {}", line);
     }
 
     private void goDark() {
@@ -957,6 +1046,7 @@ public final class EyeStarRuntime {
             fs.batch = null;
         }
         cycR = 1;
+        cycP = batchP = 0;
         prodCarry = 0;
         hsmOwed = 0;
         flashState = 0;
@@ -990,31 +1080,80 @@ public final class EyeStarRuntime {
         if (host.compressionTier() < from + 1) {
             out.add("every Spacetime Compression Field Generator at tier " + (from + 1) + " or higher");
         }
-        switch (from) {
-            case 1:
-            case 2:
-            case 3:
-                if (star == null || star.n() != from || !burning()) {
-                    out.add("the T" + from + " star lit");
-                } else if (lastOut == null || lastOut.zone > 1) {
-                    out.add("the star Stable or better");
-                }
-                if (from == 1) needBuffer(out, rspmFluid(), MassInfusion.RSPM);
-                if (from == 2) needBuffer(out, SLFluids.excitedStellarPlasma, ShellIgnition.ESPM);
-                if (from == 3) needBuffer(out, SLFluids.hyperdenseStellarMixture, (long) CollapseOverlay.HSM_SEED);
-                break;
-            case 4:
-                needBuffer(out, wdmFluid(), BATCH_WDM);
-                break;
-            default: {
-                final int p = Math.max(1, host.installedTier() >= 6 ? 1 << (host.installedTier() - 6) : 1);
-                needBuffer(out, wdmFluid(), BATCH_WDM * p);
-                needBuffer(out, bdmFluid(), 4_608L * p);
-                needBuffer(out, SLFluids.antipolarizationAgent, 100_000L * p);
-                break;
+        if (from <= 3) {
+            if (star == null || star.n() != from || !burning()) {
+                out.add("the T" + from + " star lit");
+            } else if (lastOut == null || lastOut.zone > 1) {
+                out.add("the star Stable or better");
             }
         }
+        for (Map.Entry<Fluid, Long> need : transitionNeeds(type).entrySet()) {
+            needBuffer(out, need.getKey(), need.getValue());
+        }
         return out;
+    }
+
+    /**
+     * The buffered litres a transition needs to begin (plan §7.2-§7.6): its event fluids (Mass Infusion RSPM, Shell
+     * Ignition ESPM, the Core Collapse's HSM seed, the First Cooling's WDM charge, the merger charge), PLUS the first
+     * cycle of the star it makes (its upkeep × its parallel, and for the neutron star one cycle of the HSM feed at the
+     * setpoint). The event takes its fluids first and the new star is charged straight after, so without that reserve
+     * an exact buffer left the new star at r = 0 during the settle or imprint that decides the transition (D-49
+     * review). The Core Collapse's SpaceTime is not an event fluid (the bounce absorbs what is there), but the
+     * neutron star's 144 L × p is reserved from it ({@link #collapseSpaceTimeReserve}).
+     */
+    public Map<Fluid, Long> transitionNeeds(EyeTransition.Type type) {
+        return transitionNeeds(type, destParallel(type.from + 1), feedSet);
+    }
+
+    /**
+     * {@link #transitionNeeds(EyeTransition.Type)} for a new star at parallel {@code pd} and an HSM feed setpoint
+     * {@code feed} (the NEI transition page uses p = 1 and the default feed).
+     */
+    public static Map<Fluid, Long> transitionNeeds(EyeTransition.Type type, int pd, double feed) {
+        final Map<Fluid, Long> need = new LinkedHashMap<>();
+        final StarDef dest = StarDef.byKey(type.dest);
+        switch (type) {
+            case MASS_INFUSION:
+                need.merge(rspmFluid(), MassInfusion.RSPM, Long::sum);
+                break;
+            case SHELL_IGNITION:
+                need.merge(SLFluids.excitedStellarPlasma, ShellIgnition.ESPM, Long::sum);
+                break;
+            case CORE_COLLAPSE:
+                need.merge(SLFluids.hyperdenseStellarMixture, (long) CollapseOverlay.HSM_SEED, Long::sum);
+                break;
+            case FIRST_COOLING:
+                need.merge(wdmFluid(), BATCH_WDM, Long::sum);
+                break;
+            default:
+                need.merge(wdmFluid(), BATCH_WDM * pd, Long::sum);
+                need.merge(bdmFluid(), MERGER_BDM * pd, Long::sum);
+                need.merge(SLFluids.antipolarizationAgent, MERGER_AGENT * pd, Long::sum);
+                break;
+        }
+        if (dest != null) {
+            for (EyeRecipe.FluidAmount up : dest.upkeep) need.merge(up.fluid, up.amount * pd, Long::sum);
+            if (dest.feed != null) {
+                need.merge(dest.feed, (long) Math.ceil(feed * StellarField.CYCLE_SECONDS * pd), Long::sum);
+            }
+        }
+        return need;
+    }
+
+    /** The neutron star's first cycle of SpaceTime, held back from what the Core Collapse's bounce may absorb. */
+    long collapseSpaceTimeReserve() {
+        final StarDef ns = StarDef.ofTier(4);
+        if (ns == null) return 0;
+        final Fluid st = spaceTimeFluid();
+        long litres = 0;
+        for (EyeRecipe.FluidAmount up : ns.upkeep) if (up.fluid == st) litres += up.amount;
+        return litres * destParallel(4);
+    }
+
+    /** The SpaceTime the bounce may absorb: the buffer minus the neutron star's first cycle. */
+    public long collapseSpaceTimeAvailable() {
+        return Math.max(0, host.buffer(spaceTimeFluid()) - collapseSpaceTimeReserve());
     }
 
     private void needBuffer(List<String> out, Fluid fluid, long litres) {
@@ -1074,7 +1213,7 @@ public final class EyeStarRuntime {
         if (ledger != null && type == EyeTransition.Type.CORE_COLLAPSE) {
             ledger.collapseBeginT = trans.beginT;
             ledger.collapseShock = bounceShock;
-            ledger.collapseStBuf = host.buffer(spaceTimeFluid());
+            ledger.collapseStBuf = collapseSpaceTimeAvailable();
         }
         host.markDirty();
         return trans;
@@ -1104,7 +1243,7 @@ public final class EyeStarRuntime {
             + reason
             + (escrow != null ? "; the " + escrow.getDisplayName() + " stays in escrow" : "");
         if (ledger != null) ledger.fails++;
-        lastFailure = lastEvent;
+        recordFailure(lastEvent);
         goDark();
     }
 
@@ -1148,6 +1287,7 @@ public final class EyeStarRuntime {
         final Fluid wdm = wdmFluid();
         if (wdm == null || host.buffer(wdm) < BATCH_WDM * p) return false;
         host.takeBuffer(wdm, BATCH_WDM * p);
+        batchP = p;
         ensureField(def);
         star = def;
         StellarField.startBatch(fs);
@@ -1170,6 +1310,7 @@ public final class EyeStarRuntime {
             return;
         }
         host.takeBuffer(wdm, BATCH_WDM * p);
+        batchP = p;
         StellarField.startBatch(fs);
         state = StarState.BATCH;
     }
@@ -1189,12 +1330,14 @@ public final class EyeStarRuntime {
             ledger.batches++;
         }
         final boolean good = out.batchMeanY >= FirstCooling.MEAN_Y;
-        if (good) milestones.goodBatches++;
+        // T5 -> T6 counts from the moment T5 unlocks (plan §7.1): the First Cooling batch itself does not count
+        if (good && unlockedTier >= 5) milestones.goodBatches++;
         String note = String.format(
             Locale.ROOT,
             "batch cooled to a black dwarf: %,.0f L Black Dwarf Matter (mean Y %.3f)",
             out.batchProduct,
             out.batchMeanY);
+        boolean failed = false;
         if (trans instanceof FirstCooling) {
             if (good) {
                 completeTransition();
@@ -1204,9 +1347,11 @@ public final class EyeStarRuntime {
                     + ")"
                     + (escrow != null ? ", the core stays in escrow" : "");
                 trans = null;
+                failed = true;
             }
         }
         lastEvent = note;
+        if (failed) recordFailure(note);
         nextBatch();
     }
 
@@ -1226,20 +1371,36 @@ public final class EyeStarRuntime {
             trans = null;
         }
         lastEvent = sb.toString();
-        lastFailure = lastEvent;
+        recordFailure(lastEvent);
         nextBatch();
     }
 
-    /** Emits the fracture salvage of the batch in progress; returns the whole litres emitted. */
+    /**
+     * The fracture salvage of the batch in progress: 25 % of the batch its charge paid for ({@link #batchP}) × the
+     * fraction done. While formed it goes out through the output hatches. While unformed GT has already cleared the
+     * hatch lists (and would void the fluid), so it is OWED instead: kept with the other owed outputs
+     * ({@link #legacyPay}, item NBT, survives a wrench) and paid the next second the Eye is formed. Returns the whole
+     * litres; {@link #salvageOwed} says which way they went.
+     */
     private long salvage() {
+        salvageOwed = false;
         if (fs == null || fs.batch == null || star == null) return 0;
-        final int p = Math.max(1, parallel(5));
+        final int p = batchP > 0 ? batchP : Math.max(1, parallel(5));
         final double litres = star.productBase() * p
             * FRACTURE_SALVAGE
             * Math.min(1, fs.batch.eyeT / StellarField.BATCH_SECONDS);
-        final double before = prodCarry;
-        emit(litres);
         if (ledger != null) ledger.product += litres;
+        final double before = prodCarry;
+        if (!host.formed()) {
+            final long whole = (long) Math.floor(before + litres);
+            prodCarry = before + litres - whole;
+            if (whole > 0 && star.product != null) {
+                legacyPay.merge(star.product.getName(), whole, Long::sum);
+                salvageOwed = true;
+            }
+            return whole;
+        }
+        emit(litres);
         return (long) Math.floor(before + litres);
     }
 
@@ -1259,9 +1420,9 @@ public final class EyeStarRuntime {
         final EyeTransition tr = beginTransition(EyeTransition.Type.MAGNETAR_MERGER);
         final int p = Math.max(1, parallel(6));
         host.takeBuffer(wdmFluid(), BATCH_WDM * p);
-        host.takeBuffer(bdmFluid(), 4_608L * p);
-        host.takeBuffer(SLFluids.antipolarizationAgent, 100_000L * p);
-        creditAgent(100_000L * p);
+        host.takeBuffer(bdmFluid(), MERGER_BDM * p);
+        host.takeBuffer(SLFluids.antipolarizationAgent, MERGER_AGENT * p);
+        creditAgent(MERGER_AGENT * p);
         ensureField(want);
         star = want;
         fs.setX(0, 0, 0, 0);
@@ -1284,6 +1445,7 @@ public final class EyeStarRuntime {
         if (def.n() > host.installedTier()) return "the Eye does not reach T" + def.n();
         if (live()) goDark();
         trans = null;
+        batchP = 0; // no charge taken: only the cycle's paid parallel caps it
         ensureField(def);
         star = def;
         if (def.tier.batch) StellarField.startBatch(fs);
@@ -1410,21 +1572,33 @@ public final class EyeStarRuntime {
     // ================================================================================ migration
 
     /**
-     * Plan §13: at the first successful walk of a pre-D-49 Eye, the bands it had built unlock their tiers under the
-     * OLD rule (the jet crescent counted without the beam band): {@code max(1, min(3, legacyStructureTier))}.
+     * Plan §13: at each successful walk of a pre-D-49 Eye, the bands it had built unlock their tiers under the OLD
+     * rule (the jet crescent counted without the beam band): {@code max(1, min(3, legacyStructureTier))}, never
+     * lowering. {@code settle} (the walk saw the whole T1-T3 footprint loaded) ends the migration; until then a later
+     * walk with more chunks loaded can still raise it (D-49 review: a first walk across unloaded band chunks used to
+     * lock an old T3 Eye at T1 for good).
      */
-    public void grandfather(int legacyStructureTier) {
+    public void grandfather(int legacyStructureTier, boolean settle) {
         if (!legacyPending) return;
-        legacyPending = false;
+        final int before = unlockedTier;
         unlockedTier = Math.max(unlockedTier, Math.max(1, Math.min(3, legacyStructureTier)));
-        lastEvent = "migrated from 0.24.x: unlocked T" + unlockedTier + " (bands grandfathered)";
-        host.markDirty();
+        if (settle) legacyPending = false;
+        if (unlockedTier != before || settle) {
+            lastEvent = "migrated from 0.24.x: unlocked T" + unlockedTier
+                + " (bands grandfathered"
+                + (settle ? ")" : "; checked again once the whole footprint is loaded)");
+            logEvent(lastEvent);
+            host.markDirty();
+        }
     }
 
-    /** Pays a pre-D-49 star run in flight (plan §13 item 3) once the Eye stands with an output hatch. */
+    /**
+     * Pays the owed outputs once the Eye stands with its output hatches: a pre-D-49 star run in flight (plan §13 item
+     * 3) and a T5 salvage made while the Eye was unformed ({@link #salvage()}).
+     */
     private void payLegacy() {
         if (legacyPay.isEmpty() || !host.formed()) return;
-        final StringBuilder sb = new StringBuilder("migration: credited ");
+        final StringBuilder sb = new StringBuilder("credited ");
         for (Map.Entry<String, Long> e : legacyPay.entrySet()) {
             final Fluid fluid = net.minecraftforge.fluids.FluidRegistry.getFluid(e.getKey());
             if (fluid == null || e.getValue() <= 0) continue;
@@ -1435,10 +1609,22 @@ public final class EyeStarRuntime {
                 .append(' ');
         }
         legacyPay.clear();
-        lastEvent = sb.append("from the run in flight")
+        lastEvent = sb.append("owed (a pre-D-49 run in flight, or a salvage made while unformed)")
             .toString();
         com.nateyburr.beyondthestars.BeyondTheStars.LOG.info("[BTS] Eye {}", lastEvent);
         host.markDirty();
+    }
+
+    /** The owed outputs, e.g. "960 L Black Dwarf Matter". */
+    public String owedLine() {
+        final StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, Long> e : legacyPay.entrySet()) {
+            if (sb.length() > 0) sb.append(", ");
+            sb.append(fmt(e.getValue()))
+                .append(" L ")
+                .append(fluidName(net.minecraftforge.fluids.FluidRegistry.getFluid(e.getKey())));
+        }
+        return sb.toString();
     }
 
     // ================================================================================== fluids
@@ -1517,7 +1703,9 @@ public final class EyeStarRuntime {
         final List<String> out = new ArrayList<>();
         out.add(
             "Unlocked T" + unlockedTier
-                + (legacyPending ? " (migration: the bands are grandfathered at the next walk)" : "")
+                + (legacyPending
+                    ? " (migration: the bands are grandfathered once a walk sees the whole T1-T3" + " footprint loaded)"
+                    : "")
                 + "; escrow: "
                 + (escrow == null ? "empty" : escrow.getDisplayName())
                 + (coreFor(unlockedTier) != null ? " (next: " + new ItemStack(coreFor(unlockedTier)).getDisplayName()
@@ -1541,7 +1729,7 @@ public final class EyeStarRuntime {
             litLines(out);
         }
         if (!lastEvent.isEmpty()) out.add("Last event: " + lastEvent);
-        if (!legacyPay.isEmpty()) out.add("Migration: a pre-D-49 run's output is owed (paid once formed)");
+        if (!legacyPay.isEmpty()) out.add("Owed output (paid once the Eye is formed): " + owedLine());
         return out;
     }
 
@@ -1556,6 +1744,7 @@ public final class EyeStarRuntime {
                 + (trans != null ? "TRANSITION" : state.toString())
                 + ", parallel "
                 + lastP
+                + (lastLiveP > lastP ? " (the structure gives " + lastLiveP + " from the next charge)" : "")
                 + ", dial m "
                 + f2(lastM)
                 + (trans != null ? " (held at 1 by the transition)"
@@ -1667,14 +1856,15 @@ public final class EyeStarRuntime {
         if (trans instanceof CoreCollapse) {
             final CoreCollapse cc = (CoreCollapse) trans;
             if (cc.co.phase == 1) {
-                final double st = host.buffer(spaceTimeFluid());
+                final double st = collapseSpaceTimeAvailable();
                 final double[] after = cc.predictedAfterBounce(fs, st);
                 out.add(
                     String.format(
                         Locale.ROOT,
-                        "  SpaceTime buffered %,.0f L: predicted shock +%.0f (bounce %.0f), P/Θ after the bounce %s / %s%s;"
-                            + " HSM seed %s",
+                        "  SpaceTime for the bounce %,.0f L (%,d L kept for the neutron star's first cycle): predicted"
+                            + " shock +%.0f (bounce %.0f), P/Θ after the bounce %s / %s%s; HSM seed %s",
                         st,
+                        collapseSpaceTimeReserve(),
                         cc.co.predictedShock(st),
                         cc.co.bounceShock,
                         StellarField.fmtSigned(after[0]),

@@ -29,8 +29,6 @@ import com.nateyburr.beyondthestars.machines.eye.field.TrimDef;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeMilestones;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeTransition;
-import com.nateyburr.beyondthestars.machines.eye.star.MassInfusion;
-import com.nateyburr.beyondthestars.machines.eye.star.ShellIgnition;
 import com.nateyburr.beyondthestars.machines.eye.star.StarDef;
 
 import gregtech.api.enums.GTValues;
@@ -459,10 +457,6 @@ public final class EyeRecipeRegistry {
             case MASS_INFUSION:
             case SHELL_IGNITION: {
                 final boolean mi = type == EyeTransition.Type.MASS_INFUSION;
-                fluids.add(
-                    new FluidStack(
-                        mi ? EyeStarRuntime.rspmFluid() : SLFluids.excitedStellarPlasma,
-                        (int) (mi ? MassInfusion.RSPM : ShellIgnition.ESPM)));
                 desc.add(
                     " " + compact((long) EyeMilestones.PROD_NEED[type.from])
                         + " L made, Resonant "
@@ -477,7 +471,7 @@ public final class EyeRecipeRegistry {
             }
             case CORE_COLLAPSE:
                 fluids.add(new FluidStack(EyeStarRuntime.timeFluid(), 94_000));
-                fluids.add(new FluidStack(SLFluids.hyperdenseStellarMixture, 5_000));
+                // the bounce absorbs up to 90,000 L of SpaceTime on top of the neutron star's first cycle
                 fluids.add(new FluidStack(EyeStarRuntime.spaceTimeFluid(), 90_000));
                 desc.add(
                     " " + compact((long) EyeMilestones.PROD_NEED[3])
@@ -494,7 +488,6 @@ public final class EyeRecipeRegistry {
                 desc.add("Re-runs need no core");
                 break;
             case FIRST_COOLING:
-                fluids.add(new FluidStack(EyeStarRuntime.wdmFluid(), (int) EyeStarRuntime.BATCH_WDM));
                 desc.add(
                     " " + compact((long) EyeMilestones.PROD_NEED[4])
                         + " L WDM (Stable), "
@@ -507,9 +500,6 @@ public final class EyeRecipeRegistry {
                 desc.add(" next charge tries again");
                 break;
             default:
-                fluids.add(new FluidStack(EyeStarRuntime.wdmFluid(), (int) EyeStarRuntime.BATCH_WDM));
-                fluids.add(new FluidStack(EyeStarRuntime.bdmFluid(), 4_608));
-                fluids.add(new FluidStack(SLFluids.antipolarizationAgent, 100_000));
                 desc.add(" " + EyeMilestones.GOOD_BATCHES_NEED + " batches, mean Y >= 0.9");
                 desc.add("No star lit. Imprint: hold");
                 desc.add(" Π in +60..+90 for 120 s");
@@ -519,6 +509,18 @@ public final class EyeRecipeRegistry {
                 break;
         }
         desc.add("Fail: star lost, core kept");
+        // the event fluids plus the new star's first cycle (p = 1, default feed): the same amounts the controller
+        // waits for before it begins (EyeStarRuntime.transitionNeeds)
+        for (Map.Entry<Fluid, Long> need : EyeStarRuntime.transitionNeeds(type, 1, EyeStarRuntime.FEED_DEFAULT)
+            .entrySet()) {
+            if (need.getKey() == null) return;
+            final FluidStack have = findFluid(fluids, need.getKey());
+            final long litres = need.getValue() + (have == null ? 0 : have.amount);
+            if (have != null) fluids.remove(have);
+            fluids.add(new FluidStack(need.getKey(), (int) Math.min(Integer.MAX_VALUE, litres)));
+        }
+        desc.add("Buffers also hold the new");
+        desc.add(" star's first cycle (x p)");
         for (FluidStack f : fluids) if (f.getFluid() == null) return;
         final double product = to.tier.feed ? StellarField.WDM_PER_HSM * 0.694 * StellarField.CYCLE_SECONDS
             : to.productBase();
@@ -532,6 +534,11 @@ public final class EyeRecipeRegistry {
             .ignoreCollision()
             .setNEIDesc(desc.toArray(new String[0]))
             .addTo(EyeRecipeMaps.TRANSITION);
+    }
+
+    private static FluidStack findFluid(List<FluidStack> list, Fluid fluid) {
+        for (FluidStack f : list) if (f.getFluid() == fluid) return f;
+        return null;
     }
 
     /**

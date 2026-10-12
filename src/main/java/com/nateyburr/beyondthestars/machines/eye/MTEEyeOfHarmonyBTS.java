@@ -491,8 +491,12 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 }
             }
         }
-        // D-49 migration (plan §13): a pre-D-49 Eye's bands are grandfathered at its first successful walk.
-        if (errors.isEmpty() && runtime.legacyPending()) runtime.grandfather(legacyStructureTier());
+        // D-49 migration (plan §13): a pre-D-49 Eye's bands are grandfathered under the old rule. Every successful
+        // walk raises it (grandfather keeps the max); it is settled only by a walk that saw the T1-T3 footprint's
+        // chunks all loaded, so an Eye first walked with its band chunks unloaded is not locked low for good.
+        if (errors.isEmpty() && runtime.legacyPending()) {
+            runtime.grandfather(legacyStructureTier(), legacyFootprintLoaded(aBaseMetaTileEntity));
+        }
     }
 
     /** "" per piece, so the status lines of a tile that has not been walked yet read "absent". */
@@ -537,6 +541,30 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     private int legacyStructureTier() {
         if (!mMachine && !bandBuilt[0]) return 0;
         return bandBuilt[2] ? 3 : bandBuilt[1] ? 2 : 1;
+    }
+
+    /**
+     * True when every chunk under the core, beam band and jet crescent (the pieces the old rule counted) is loaded,
+     * so a band that failed its walk really is not there (StructureLib fails an unloaded cell as a missing block).
+     */
+    private boolean legacyFootprintLoaded(IGregTechTileEntity base) {
+        if (base == null || base.getWorld() == null) return false;
+        final int[] box = com.nateyburr.beyondthestars.machines.SLConsoleTest.bounds(
+            getExtendedFacing(),
+            base.getXCoord(),
+            base.getYCoord(),
+            base.getZCoord(),
+            PIECE_CORE,
+            PIECE_BEAM,
+            PIECE_JET);
+        final net.minecraft.world.chunk.IChunkProvider chunks = base.getWorld()
+            .getChunkProvider();
+        for (int cx = box[0] >> 4; cx <= box[3] >> 4; cx++) {
+            for (int cz = box[2] >> 4; cz <= box[5] >> 4; cz++) {
+                if (!chunks.chunkExists(cx, cz)) return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -1075,6 +1103,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
      */
     public void debugLegacyLoad(boolean galactic, String runKey, long successes) {
         final NBTTagCompound nbt = new NBTTagCompound();
+        // a tile save always carries GT's mID (EyeNbt.isLegacy tells a real 0.24.x save from an anvil name by it)
+        nbt.setInteger("mID", 1);
         if (galactic) nbt.setBoolean(EyeNbt.GALACTIC_KEY, true);
         if (!buffers.isEmpty()) {
             final NBTTagCompound b = new NBTTagCompound();
@@ -1770,8 +1800,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addInfo("  dose extra Agent into a Field socket on a flare warning.")
             .addInfo("Stars are LIVE: a Stellar Ignition Charge in a plinth input bus lights T1-T3; every")
             .addInfo("  60 s cycle takes EU and upkeep; hold the stability field or the star is lost.")
+            .addInfo("  Once T4 is unlocked, a dark Eye with the Neutron Star chart relights Arcturus from a")
+            .addInfo("  charge and re-runs the Core Collapse by itself (no core).")
             .addInfo("Tiers unlock in order: the current star's milestones, then the next core")
             .addInfo("  (right-click it into escrow), then its transition. Sneak-punch returns the core.")
+            .addInfo("  A transition starts only when the buffers also hold the new star's first cycle.")
             .addInfo("The stability field: trim fluids into the Field sockets (plain input hatches, not")
             .addInfo("  buffered); Stellar Field Sensor Hatches read any gauge as redstone. Standard rig:")
             .addInfo("  sensor -> Fluid Regulator cover or export bus with a redstone card -> Field hatch.")
@@ -1781,7 +1814,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addInfo("Planets give TecTech's ores and plasmas, without Raw Star Matter or dwarf matter.")
             .addSeparator()
             .addInfo("Power: wireless EU (planets: per run at start; stars: per cycle); none returned.")
-            .addInfo("Parallel x2 for every installed tier above the recipe's tier.")
+            .addInfo("Parallel x2 for every installed tier above the recipe's tier (stars: from the next charge).")
             .addInfo("Field generators (any tier, mixable; the lowest tier of each type counts):")
             .addInfo("  Spacetime Compression GATES the tier: Eye TN (T1-T6) needs every one at tier N+.")
             .addInfo("  It alone decides the planets: a TN Eye runs every planet of T1..TN.")
