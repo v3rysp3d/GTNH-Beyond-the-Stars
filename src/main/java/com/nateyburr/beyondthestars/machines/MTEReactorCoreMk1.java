@@ -2225,7 +2225,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                         ModuleHatchElement.DerrickBus,
                         () -> idOf(ItemList.Hatch_Output_Bus_IV),
                         Casings.SolidSteelMachineCasing,
-                        1,
+                        2,
                         SocketFace.FORWARD))
                 .addElement(
                     'e',
@@ -2233,7 +2233,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                         ModuleHatchElement.AnnexFeed,
                         () -> idOf(ItemList.Hatch_Input_Bus_IV),
                         Casings.CleanStainlessSteelMachineCasing,
-                        1,
+                        2,
                         SocketFace.LEFT))
                 .addElement(
                     'f',
@@ -2241,7 +2241,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                         ModuleHatchElement.AnnexAcid,
                         () -> idOf(ItemList.Hatch_Input_IV),
                         Casings.CleanStainlessSteelMachineCasing,
-                        1,
+                        2,
                         SocketFace.LEFT))
                 .addElement(
                     'g',
@@ -2249,7 +2249,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                         ModuleHatchElement.AnnexProduct,
                         () -> idOf(ItemList.Hatch_Output_Bus_IV),
                         Casings.CleanStainlessSteelMachineCasing,
-                        1,
+                        2,
                         SocketFace.LEFT))
                 // R1-B: the eight LEGACY DOCK MARKER cells in the platform floor. Light
                 // Concrete is what a new platform lays and what the projection places; Solid
@@ -8378,175 +8378,101 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
+        // Info block: what it is, how to run it, the numbers a player needs at the machine.
+        // The long explanations (swirl, injector window, laser painting, module layouts) live
+        // in the questbook; the GUI's MATH section prints the live derivation.
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
-        final String gold = EnumChatFormatting.GOLD.toString();
         final String aqua = EnumChatFormatting.AQUA.toString();
-        final String gray = EnumChatFormatting.GRAY.toString();
         final String red = EnumChatFormatting.RED.toString();
-        final String reset = EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY;
-        tt.addMachineType("Nuclear Plant Foundation - Unit One main station")
-            .addInfo(aqua + "ONE controller owns the WHOLE plant - there are no module controllers." + reset)
-            .addInfo("Starter structure = the 50x50 platform. Every I/O point is AT ITS POINT OF USE.")
+        final String gray = EnumChatFormatting.GRAY.toString();
+        tt.addMachineType("Nuclear Reactor, Steam Turbine")
+            .addInfo(aqua + "A whole nuclear power plant, run from one controller.")
+            .addInfo("Fuel rods boil feedwater into steam; the turbine turns it into EU.")
+            .addInfo("One hologram projection builds every piece: platform, Reactor Silo,")
+            .addInfo("Spine, Spiral chamber, Rotor Assembly, Cooling Towers and the modules.")
             .addSeparator()
-            .addInfo(gold + "1." + reset + " Hologram-project THIS controller: ONE projection builds it ALL -")
-            .addInfo("platform, silo (GUI Build Tier 1-5), Spine, Spiral, Turbine Generator, both")
-            .addInfo("Cooling Towers AND all four plant modules. Nothing is left for a second controller.")
-            .addInfo(gold + "2." + reset + " Plumb each building where it is FED, not on one wall:")
-            .addInfo(gray + "  SILO face:" + reset + " y2 Rod Input Bus | Depleted Output Bus (the fuel course)")
-            .addInfo(gray + "            " + reset + "y1 Feedwater | SILO CONTROL BLOCK | Output Hatch (drum course)")
-            .addInfo(gray + "            " + reset + "y0 Maintenance | MAIN STATION")
-            .addInfo(gray + "  SPIRAL:" + reset + "    front wall y1: Coolant | bulk Propellant")
-            .addInfo(gray + "  MANIFOLD:" + reset + "  back face: y3 Dynamos, y4 ENERGY, y5 Laser Sources")
-            .addInfo(gold + "3." + reset + " Everything PAST those points is DISTRIBUTED INTERNALLY: rods to all")
-            .addInfo("45-201 pillars, propellant to the 8 injectors. You never touch a pillar port")
-            .addInfo(gray + "again (they still work for hand-feeding)." + reset)
-            .addSeparator()
-            .addInfo(aqua + "Fuel:" + reset + " put rods in the SILO's ROD INPUT BUS. The controller tops the")
-            .addInfo("pillars up each cycle; rods cascade down, the bottom one burns, and depleted")
-            .addInfo("rods leave through the Depleted Output Bus beside it, on the same course.")
-            .addInfo(gray + "Bus assemblies still run, at a heavy penalty." + reset)
-            .addInfo(aqua + "Spine:" + reset + " optional 3x3 duct off the silo's side, 4 rotor sockets.")
-            .addInfo("Right-click a housing to set spin: ride the swirl for speed, oppose it for efficiency.")
-            .addInfo(aqua + "Spiral:" + reset + " optional 7x7 chamber at the duct's end. Each redstone RISING")
-            .addInfo("EDGE on the Turbine Control Block runs one CYCLE: a buffered 20-tick steam slug")
-            .addInfo("+ a +/-2t window where 8 Precision Injectors each fire EXACTLY 1L of propellant.")
-            .addInfo("The chamber's own PROPELLANT hatch stocks those 8 reserves and the plant times")
-            .addInfo(gray + "the shots, so how many count as TIMED is how many it kept stocked." + reset)
-            .addInfo("Hand-injecting still works and still has to hit the window; the Sensor echoes")
-            .addInfo("accepted cycles.")
-            .addInfo(aqua + "RPM:" + reset + " each cycle adds 176 x P x timed/8 RPM; decay 0.5%/t; redline 12,000.")
-            .addInfo(gray + "  TURBINE T5/T6 raise that CEILING to 13,500 and 15,000 - they never move the fan" + reset)
-            .addInfo(gray + "  on their own. Type the redline you want into the RPM LIMIT field." + reset)
+            .addInfo(aqua + "Supply:" + gray + " rods + feedwater at the silo face; coolant + propellant at")
+            .addInfo("the Spiral chamber's front wall; Dynamos + Laser Sources at the manifold.")
+            .addInfo(aqua + "Running:" + gray + " each redstone pulse on the Turbine Control Block runs one cycle.")
             .addInfo(
-                aqua + "MILESTONES:" + reset + " four lines - UPTIME, BURNUP, REPROCESSING, TURBINE - advance just by")
-            .addInfo("running. Tiers 1-4 multiply the plant's EU/t (the MATH panel prints the term);")
-            .addInfo("tiers 5-7 UNLOCK new maxima you OPT IN to: rod throttle past 24/24 in the rods field,")
-            .addInfo("a higher redline in the RPM LIMIT field, and pure reductions - cheaper")
-            .addInfo(gray + "water, faster process modules. Progress is stored on THIS controller," + reset)
-            .addInfo(gray + "which is BLAST-PROOF for that reason - it survives a wrench, a pickaxe, a" + reset)
-            .addInfo(gray + "reload, a chunk unload, an un-form and a creeper. The casings do not." + reset)
-            .addInfo("Coolant drain scales with RPM SQUARED. INTERLOCK: a cycle is only accepted while")
-            .addInfo("the chamber can cool the RPM it would reach and the injectors have propellant -")
-            .addInfo(gray + "an unsupplied plant simply never spins up, and says why on every panel." + reset)
-            .addInfo("Lose coolant at speed and the fan TRIPS into a protective spin-down instead.")
-            .addInfo(aqua + "Rotor Assembly:" + reset + " optional gallery + 7x7x3 output manifold BEHIND the")
-            .addInfo("Spiral. Seat a TURBINE ROTOR in each of the 8 stage housings (right-click; wear")
-            .addInfo("-5%/point, shatters at 10; sneak-click empty-handed to pull). 4 Dynamos in the")
-            .addInfo("manifold's back face take EU/t = L/t x speed x eff x (RPM/500) x avgRotorFactor.")
-            .addInfo(aqua + "LASER OUTPUT:" + reset + " 4 more sockets sit two rows ABOVE the dynamos on the")
-            .addInfo("same back face and accept TecTech LASER SOURCE HATCHES. The plant's ceiling is the")
-            .addInfo("SUM of both rows, so 4 IV Dynamos alone cap a tier-5 build at 32,768 EU/t while two")
-            .addInfo("ZPM 4,096A sources carry the full ~1.1B. PAINT each source and its Laser Target")
-            .addInfo(gray + "Hatch the same colour, same voltage tier - a lower-tier target EXPLODES." + reset)
-            .addInfo(aqua + "PLANT MODULES (D-17):" + reset + " four more optional pieces of THIS controller,")
-            .addInfo("raised by the same one projection, on platform ground no silo tier can reach:")
-            .addInfo(gray + "  Vent Stack:" + reset + " 7x7x20 flue, LEFT strip between the towers. Safety systems:")
-            .addInfo("    decay-heat window 20 min -> 10, meltdown radiation 30 min -> 15. No hatches.")
-            .addInfo(gray + "  Switchyard:" + reset + " 21x6x6 transformer yard behind the silo. GRID CONDITIONING:")
+                aqua + "GUI:"
+                    + gray
+                    + String.format(
+                        " Rods 1-24 (up to 36), RPM limit %,d (up to %,d), Build Tier.",
+                        RPM_REDLINE,
+                        RPM_LIMIT_MAX))
+            .addInfo("A Programmed Circuit in the controller overrides the Rods field.")
             .addInfo(
-                red + "    without it this plant is SOFT-CAPPED at 100,000,000 EU/t" + reset + " - the reactor still")
-            .addInfo("    derives its full figure and every panel prints what is being discarded.")
-            .addInfo(gray + "    One config flag (switchyardSoftCap) turns the cap off entirely." + reset)
-            .addInfo(gray + "  Extraction Derrick:" + reset + " 7x7 deck + lattice tower, FRONT of the plant.")
-            .addInfo("    Every 10s into its OWN Output Bus: 6 Uraninite + 1 Thorium, +1 Tantalum")
-            .addInfo(
-                "    every 4th cycle - the standalone Extraction Platform's rate. " + euRate(DERRICK_EU_PER_TICK) + ".")
-            .addInfo(gray + "  Enrichment Annex:" + reset + " 5x15x6 process shed down the platform's front edge.")
-            .addInfo("    Every 30s: 8 Uraninite + 2,000 L Hydrofluoric Acid -> 2 YELLOWCAKE +")
-            .addInfo("    2 Thorium, the standalone Enrichment Train's rate. " + euRate(ANNEX_EU_PER_TICK) + ".")
-            .addInfo("    Same 4 Uraninite per cake the ore front end gets: it buys SIMPLICITY,")
-            .addInfo("    not yield. Derrick + Annex feed the FUEL LINE at its F-09 conversion")
-            .addInfo("    step - they do not replace it, and no module makes a finished rod.")
-            .addInfo(gray + "  Both draw their EU from the manifold's ENERGY HATCHES - the first and only" + reset)
-            .addInfo(gray + "  things in this plant that consume any. Still never a structure demand." + reset)
-            .addInfo(
-                aqua + "Control:" + reset + " rods 1-24, RPM LIMIT and Build Tier in the GUI; circuit overrides rods.")
-            .addInfo(gray + "Build Tier only decides what to RAISE - a standing silo is never re-tiered," + reset)
-            .addInfo(gray + "even while it is broken. Take the silo down and Build Tier is free again." + reset)
-            .addInfo(red + "Heat:" + reset + " SCRAM 8,000 - MELTDOWN 10,000. Decay heat needs 20 min of")
-            .addInfo("cooling after shutdown, out of the SAME Feedwater hatch and off the same ladder the")
-            .addInfo("plant runs on - plain, distilled, IC2 Coolant or ANY purified grade, worst spent first.")
-            .addInfo(aqua + "THE MATH IS ON SCREEN:" + reset + " the GUI (and both control blocks) print a numbered")
-            .addInfo("derivation - pillars x fuel x 16,384 -> rods N/24 -> spine -> RPM/500 x rotors -> clamp -")
-            .addInfo("and name the WEAKEST term. NEI: look this controller up for the fuel-rod, propellant")
-            .addInfo(gray + "and coolant ladder tables (display pages - nothing there is craftable)." + reset)
-            .beginStructureBlock(50, 42, 50, true)
-            .addController("Main station: front line of the shield pad, at floor level (in the silo face)")
-            .addCasingInfoExactly("Light Concrete (platform)", 2251, false)
-            .addCasingInfoExactly("Tungstensteel Reinforced Block (shield pad)", 249, false)
-            .addCasingInfoRange("Silo tier wall casing incl. ribs", 400, 1700, false)
-            .addCasingInfoRange("Radiation Proof Machine Casing (bands + the 6 face sockets)", 60, 150, false)
-            .addCasingInfoRange("Shield blocks (dome)", 40, 320, false)
-            .addEnergyHatch("OPTIONAL, up to 4 - manifold back face y4. This plant NEVER draws EU", 4)
+                red + "Heat:"
+                    + gray
+                    + String.format(
+                        " SCRAM at %,d, MELTDOWN at %,d; %d min of decay cooling.",
+                        SCRAM_HEAT,
+                        MELTDOWN_HEAT,
+                        DECAY_HEAT_TICKS / 1200))
+            .addInfo(red + String.format("Without a Switchyard, output is capped at %,d EU/t.", GRID_SOFT_CAP))
+            .addInfo(aqua + "Progress:" + gray + " milestones raise output; spend points in the Upgrade Tree.")
+            .addInfo("Progress is saved in the controller and survives breaking it.")
+            .addInfo("The GUI's MATH section shows how the EU/t is worked out.")
+            .addInfo("NEI: look up this controller for the fuel, propellant and coolant tables.")
+            .addSupportLaser()
+            // Structure block (Shift). Counts come from the shape code (questbook/gen-bom.ps1
+            // tallies the same cells); ranges run tier 1 to tier 5 or none to all pieces.
+            .beginVariableStructureBlock(50, 50, 21, 41, 50, 50, true)
+            .addController("Silo face, centre, at platform level")
+            .addCasing("2,251", "Light Concrete (platform; +50 Spiral, +736 per Cooling Tower)", false)
+            .addCasing("249", "Tungstensteel Reinforced Block (shield pad under the silo)", false)
+            .addCasing(
+                "451-1,667",
+                "Silo wall: Radiation Proof Machine Casing (T1-2), Europium Reinforced"
+                    + " Radiation Proof Machine Casing (T3-4), Radiant Naquadah Alloy Casing (T5)",
+                true)
+            .addCasing("69-141", "Radiation Proof Machine Casing (silo bands, empty face sockets)", false)
+            .addCasing(
+                "113-497",
+                "Silo dome: Tungstensteel Reinforced Block (T1-2), Iridium Reinforced Block (T3+)",
+                true)
+            .addCasing("0-830", "Tungstensteel Turbine Casing (Spine, Spiral chamber, Rotor Assembly)", false)
+            .addCasing("0-1,608", "Reactor Fuel Pillar Frame (stacks of 8 on 45-201 pillars)", false)
+            .addCasing("0-12", "Turbine Housing (4 in the Spine, 8 in the gallery)", false)
+            .addOtherStructurePart("Silo Control Block", "Silo face, directly above the controller", 1)
+            .addOtherStructurePart("Turbine Control Block", "Manifold back face, above its Maintenance Hatch", 4)
+            .addOtherStructurePart("Precision Injector", "8: Spiral chamber walls, along the helix", 3)
+            .addOtherStructurePart("Spine Sensor", "Optional: Spiral chamber roof, front centre", 3)
+            .addOtherStructurePart(
+                "Module sockets",
+                "Derrick: Output Bus; Annex: Input Bus, Acid Input Hatch, Output Bus",
+                2)
+            .addOtherStructurePart(
+                "Laser Source Hatch",
+                "0-4: manifold back face, 6th row up; paint each to match its Laser Target",
+                5)
+            .addDynamoHatch("0-4", "Output manifold back face, 4th row up", 4)
+            .addEnergyHatch(
+                "0-4",
+                "Manifold back face, 5th row up. The reactor needs none; they power the Derrick and the Annex",
+                4)
             .addMaintenanceHatch(
-                "Exactly 1 - silo face beside the main station (+1 Spiral floor, +1 manifold)",
+                "1-3",
+                "Silo face, beside the controller (required); Spiral floor and manifold",
                 1,
                 3,
                 4)
-            .addInputHatch("Exactly 1 - silo face: Feedwater (+1 chamber Coolant, +1 chamber Propellant)", 1, 3)
-            .addOutputHatch("Exactly 1 - silo face, drum course, right of the Silo Control Block", 1)
-            .addInputBus("Exactly 1 - silo face, bottom fuel course: the ROD INPUT BUS", 1)
-            .addOutputBus("Exactly 1 - silo face, bottom fuel course: the DEPLETED OUTPUT BUS", 1)
-            .addStructureInfo("Silo: 9-17 wide octagon, walls 2x the diameter tall, dome on top.")
-            .addStructureInfo("Walls by tier: Radiation Proof -> Europium-Reinforced -> Radiant Naq Alloy.")
-            .addStructureInfo("SILO FACE (point of use), reading UP from the pad, +/-1 either side of centre:")
-            .addStructureInfo("  y0  Maintenance | MAIN STATION")
-            .addStructureInfo("  y1  Feedwater IN | SILO CONTROL BLOCK | Output Hatch (waste water / steam)")
-            .addStructureInfo("  y2  Rod Input Bus | Depleted Output Bus - the course the cascade burns on")
-            .addStructureInfo("Empty face sockets are filled with Radiation Proof casing at every tier.")
-            .addStructureInfo("Spiral sockets: 8 Injectors follow the helix - back/left/front/right mid-")
-            .addStructureInfo("cells AS YOU FACE THE SILO, top 8 levels - Sensor in the roof front-center, 1")
-            .addStructureInfo("Maintenance in the floor's front-right corner, and in the FRONT WALL at y1 the")
-            .addStructureInfo("chamber's own COOLANT and bulk PROPELLANT hatches. OUTPUT MANIFOLD back face:")
-            .addStructureInfo("TURBINE CONTROL BLOCK + 1 Maintenance below it, 4 Dynamos at y3, 4 ENERGY")
-            .addStructureInfo("HATCHES at y4 and 4 LASER SOURCE sockets at y5 (same four columns) - all")
-            .addStructureInfo("reachable from outside.")
-            .addStructureInfo("Inside the silo: fuel pillar frames 8 high. Rod Loading Ports above them are")
-            .addStructureInfo("OPTIONAL - the rod bus feeds every pillar; the ports are for hand-feeding.")
-            .addStructureInfo("Rod ladder: Uranium x1 - MOX x2 - Thorium-Bonded x5 - Naquadah-Bonded x9.")
-            .addStructureInfo("Breaking a fueled pillar frame ejects its rods at the controller.")
-            .addStructureInfo("Spine: 3x3x8 Tungstensteel Turbine Casing duct on the platform, two blocks")
-            .addStructureInfo("past the silo's side wall on the strip to your RIGHT as you face the silo - the")
-            .addStructureInfo("Spiral and the rotor gallery run down that same strip, opposite the towers;")
-            .addStructureInfo("4 Turbine Housings alternate with the open bore.")
-            .addStructureInfo("Residual swirl is turbulence: a COOLED chamber carries it away with the coolant,")
-            .addStructureInfo("a starved or missing one takes it as heat - all-riding patterns drink more.")
-            .addStructureInfo("COOLING TOWERS: two optional 17x17x20 Light Concrete hyperboloids on the")
-            .addStructureInfo("platform strip to your LEFT as you face the silo (a 0-16), one in front of the")
-            .addStructureInfo("face and one behind the shell. Pieces of THIS controller - no module")
-            .addStructureInfo("controller, no dock. Each: water draw x0.5, heat decay x2, decay demand x0.5.")
-            .addStructureInfo("A tower raised by the RETIRED module controller needs 2 Solid Steel Machine")
-            .addStructureInfo("Casings added by hand where that controller stood; its 0.19.0 Maintenance Hatch")
-            .addStructureInfo("may stay in the base ring - the ring accepts one. A tower that has blocks up and")
-            .addStructureInfo("still will not form prints the reason on the \"Cooling towers:\" line, which every")
-            .addStructureInfo("panel carries in every state - before the silo exists included.")
-            .addStructureInfo("A tower's ring hatch is TOLERATED but never counted - the plant's 3 maintenance")
-            .addStructureInfo("sockets are the silo face, the Spiral floor and the manifold, and only those.")
-            .addStructureInfo("PLANT MODULES: four more optional pieces, each on a FIXED platform rectangle that")
-            .addStructureInfo("no silo tier, spine, spiral, gallery or tower can reach at any tier -")
-            .addStructureInfo("  VENT STACK   7x7x20, LEFT strip between the towers - no sockets")
-            .addStructureInfo("  SWITCHYARD   21x6x6, platform back edge behind the silo - no sockets")
-            .addStructureInfo("  DERRICK      7x7x20, in FRONT on the right - 1 Output Bus, front wall y1")
-            .addStructureInfo("  ANNEX        5x15x6, along the front edge left of the silo face - 3 sockets")
-            .addStructureInfo("               in its outward wall at y1: uraninite Input Bus, HF acid Input")
-            .addStructureInfo("               Hatch, product Output Bus. All declared, none guessed.")
-            .addStructureInfo("A module's sockets join NO plant-wide list, so none of them can ever answer a")
-            .addStructureInfo("demand made of the silo, and no reactor draw can reach a module's inventory.")
-            .addStructureInfo("A module with blocks up that will not form prints the reason on the \"Plant")
-            .addStructureInfo("modules:\" line, which every panel carries in every state - like the towers.")
-            .addStructureInfo("Module cells NEVER overwrite a standing machine: a projection onto a lived-in")
-            .addStructureInfo("platform skips any cell holding a tile entity and reports it instead.")
-            .addStructureInfo("No Rotor Assembly: exports Steam (or Hot Coolant when fed IC2 Coolant).")
-            .addStructureInfo("The 4 ENERGY HATCHES are NOT a structure demand: the plant never consumes EU,")
-            .addStructureInfo("so a missing one is a note in the OUTPUT group and never un-forms the plant.")
-            .addStructureInfo("LEGACY PLATFORM: the 8 old steel dock markers in the floor are accepted as-is -")
-            .addStructureInfo("nothing to re-block. The projector MEASURES the standing shell, so a damaged silo")
-            .addStructureInfo("keeps its own tier and projecting REPAIRS it instead of re-tiering it.")
-            .addStructureInfo("LEGACY PLANT (0.19.0 or older): its silo FACE is the retired plumbing frontage and")
-            .addStructureInfo("conflicts with the point-of-use layout cell for cell, so it cannot form at ANY tier.")
-            .addStructureInfo("Run /btsmigrate beside the main station: the face is rewritten in place at the tier")
-            .addStructureInfo("standing, the old hatches drop as items, shell/pillars/rods are untouched.")
-            .toolTipFinisher();
+            .addInputBus("1", "Rod Input Bus: silo face, 2 above the controller, left of centre", 1)
+            .addInputHatch(
+                "1-3",
+                "Feedwater: left of the Silo Control Block; Coolant, Propellant: Spiral front wall",
+                1,
+                3)
+            .addOutputBus("1", "Depleted Output Bus: silo face, 2 above the controller, right of centre", 1)
+            .addOutputHatch("1", "Silo face, right of the Silo Control Block (water / steam out)", 1)
+            .addStructureInfo("Rod Loading Ports on top of the pillars are optional (hand-feeding).")
+            .addStructureInfo("Optional pieces: Spine, Spiral chamber, Rotor Assembly, 2 Cooling Towers,")
+            .addStructureInfo("Vent Stack, Switchyard, Extraction Derrick, Enrichment Annex.")
+            .addStructureInfo("The Blueprint quests list every piece's blocks.")
+            .addMasterChannel("Silo tier 1-5 (a stack of 1 uses the GUI Build Tier)")
+            .addStructureInfo("Plants built on 0.19.0 or older: run /btsmigrate beside the controller once.")
+            .toolTipFinisher(com.nateyburr.beyondthestars.BeyondTheStars.TOOLTIP_AUTHOR);
         return tt;
     }
 
