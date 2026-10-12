@@ -137,12 +137,17 @@ const LEGEND = {
     Y: { role: "stabilisation_field", kind: "deck, the centre ring of each pylon foot pad (8 x 6)", block: "TTCasingsContainer.StabilisationFieldGenerators metas 0-8, ofBlocksTiered", tiered: true },
     R: { role: "beam_band", kind: "ring2", block: "NEW slCasing:10 Beam Band Casing" },
     S: { role: "jet_crescent", kind: "ring3", block: "NEW slCasing:11 Jet Crescent Casing" },
-    T: { role: "galactic_shell", kind: "galactic", block: "NEW slCasing:12 Galactic Shell Plating" },
+    T: { role: "galactic_shell", kind: "galactic", block: "NEW slCasing:12 Galactic Shell Plating (T4-T6 bands, D-49 R-12)" },
     h: { role: "gas_socket", kind: "gas", block: "EyeHatchElement.Gas (MTEHatchInput, private -> H/He buffers), else fallback", fallback: "Q", min: 1, hint: 1 },
     o: { role: "me_output_socket", kind: "energy (plinth)", block: "EyeHatchElement.Output (MTEHatchOutputBusME, MTEHatchOutputME), else fallback", fallback: "Q", min: "1 bus + 1 hatch", hint: 2 },
     m: { role: "maintenance_socket", kind: "maint", block: "HatchElement.Maintenance, else fallback", fallback: "Q", min: 1, hint: 3 },
     s: { role: "stellar_socket_beam", kind: "beamhatch on the beam band", block: "EyeHatchElement.Stellar (MTEHatchInput, private -> stellar buffers), else fallback", fallback: "R", min: 0, hint: 4 },
     t: { role: "stellar_socket_jet", kind: "beamhatch on the jet crescent", block: "EyeHatchElement.Stellar, else fallback", fallback: "S", min: 0, hint: 4 },
+    // D-49 (d49-build-plan.md §11.1): the stability-field sockets on the core band's outer face, and the T6 rim's
+    // four GRB cells as rim stellar sockets (R-11; GRB proper is T7+).
+    f: { role: "field_socket", kind: "eyeshell (core band outer face, 1 below the mid-plane)", block: "EyeHatchElement.Field (MTEHatchInput, unbuffered trims; ME stocking hatches are walked but never drained), else fallback", fallback: "U", min: 0, hint: 5 },
+    n: { role: "sensor_socket", kind: "eyeshell (core band outer face, on the mid-plane, above its f)", block: "EyeHatchElement.Sensor (MTEHatchStellarFieldSensor, MTE 28116), else fallback", fallback: "U", min: 0, hint: 6 },
+    g: { role: "stellar_socket_rim", kind: "grb on the T6 rim", block: "EyeHatchElement.Stellar, else fallback", fallback: "T", min: 0, hint: 4 },
   },
 };
 
@@ -180,6 +185,15 @@ const KERR_SOCKETS = [
 ];
 // Eye: the plinth ring through the hatches is ellipse (46+4.6, 35+4.6) at y = GROUND = -40.
 const EYE_PF = (a) => [50.6 * Math.cos(d2r(a)), -40, 39.6 * Math.sin(d2r(a))];
+// The plan's 15, 105, 195 and 285 sit inside the arm-blade roots (each blade covers its root +5..+30 deg one row below
+// the mid-plane at T4/T5), so every pair is 45 and 75 deg past an arm root: 15 deg clear of the nearest clamp strut.
+const EYE_FIELD_ANGLES = [45, 75, 135, 165, 225, 255, 315, 345];
+function EYE_CORE_FACE(a, y) {
+  const t = d2r(a), c = [34 * Math.cos(t), 0, 25 * Math.sin(t)];
+  const T = [-34 * Math.sin(t), 0, 25 * Math.cos(t)], tl = Math.hypot(T[0], T[2]), Tn = [T[0] / tl, 0, T[2] / tl];
+  const dot = c[0] * Tn[0] + c[2] * Tn[2], N = [c[0] - Tn[0] * dot, 0, c[2] - Tn[2] * dot], nl = Math.hypot(N[0], N[2]);
+  return [c[0] + (N[0] / nl) * 2.5, y, c[2] + (N[2] / nl) * 2.5];
+}
 const EYE_SOCKETS = [
   ...[0, 60, 120, 240, 300].map((a) => ({ at: EYE_PF(a), kind: "gas", ch: "h" })),
   { at: EYE_PF(90), kind: "control", ch: "~" },
@@ -191,6 +205,14 @@ const EYE_SOCKETS = [
     const l = Math.hypot(c[0], c[2]); return { at: [c[0] + (c[0] / l) * 2.3, 13, c[2] + (c[2] / l) * 2.3], kind: "beamhatch", ch: "s", tier: 2 }; }),
   // jet crescent (T3): ellipse a46 b34 at y-15, port 3 below the centreline at a+25
   ...[170, 220, 270, 320, 370].map((a) => { const t = d2r(a + 25); return { at: [46 * Math.cos(t), -18, 34 * Math.sin(t)], kind: "beamhatch", ch: "t", tier: 3 }; }),
+  // D-49 Field (f) and Sensor (n) sockets: the core band (ellipse a34 b25, profile w2.5 h3) outer face, at the
+  // parameter angles clear of the clamp struts (30 + 60k) and the arm roots (0, 90, 180, 270). The face cell is the
+  // centre-line point pushed 2.5 along the sweep's normal (the ellipse normal); f one row below the mid-plane, n on
+  // it, so every sensor stands right above its Field hatch.
+  ...EYE_FIELD_ANGLES.flatMap((a) => [{ at: EYE_CORE_FACE(a, -1), kind: "eyeshell", ch: "f" }, { at: EYE_CORE_FACE(a, 0), kind: "eyeshell", ch: "n" }]),
+  // T6 rim (ellipse a76 b72 at y-2): the mockup's four GRB receptors, 3.6 above the centre-line, become rim
+  // stellar sockets (R-11)
+  ...[45, 135, 225, 315].map((a) => ({ at: [76 * Math.cos(d2r(a)), -2 + 3.6, 72 * Math.sin(d2r(a))], kind: "grb", ch: "g", tier: 6 })),
 ];
 
 // ------------------------------------------------------------------------------------------------ helpers
@@ -303,12 +325,12 @@ for (const p of ["kerr_compressor", "kerr_extractor"]) {
 // Cells written by one Kerr piece and then by another belong to the LAST writer (spec §5.2); record how many.
 for (const [k, n] of Object.entries(K2.b.collide)) report.notes.push(`kerr: ${n} cells drawn by ${k.split(" × ")[0]} then by ${k.split(" × ")[1]}; the later piece owns them`);
 
-const E = [1, 2, 3, 4].map(classifyEye);
+const E = [1, 2, 3, 4, 5, 6].map(classifyEye);
 const eyePieces = {}, eyeJoins = {}, overwrites = {};
 {
-  const names = ["eye_core", "eye_beam", "eye_jet", "eye_arms"];
+  const names = ["eye_core", "eye_beam", "eye_jet", "eye_arms", "eye_arms2", "eye_rim"];
   eyePieces.eye_core = [...E[0].cells.values()];
-  for (let t = 2; t <= 4; t++) {
+  for (let t = 2; t <= names.length; t++) {
     const prev = E[t - 2].cells, cur = E[t - 1].cells, added = [];
     let joins = 0;
     for (const [k, c] of prev) {
@@ -401,6 +423,8 @@ const SPEC = [
   ["Eye T2", ["eye_core", "eye_beam"], "102x57x80"],
   ["Eye T3", ["eye_core", "eye_beam", "eye_jet"], "102x57x80"],
   ["Eye T4", ["eye_core", "eye_beam", "eye_jet", "eye_arms"], "102x57x137"],
+  ["Eye T5", ["eye_core", "eye_beam", "eye_jet", "eye_arms", "eye_arms2"], "135x57x137"],
+  ["Eye T6", ["eye_core", "eye_beam", "eye_jet", "eye_arms", "eye_arms2", "eye_rim"], "158x57x149"],
 ];
 for (const [label, names, want] of SPEC) { const got = asmBox(names); ok(got === want, `${label} assembled box ${got} (W x H x D, spec ${want})`); }
 
@@ -428,6 +452,7 @@ reach(["kerr_t1", "kerr_compressor", "kerr_extractor"], "Kerr T1 + modules");
 reach(["kerr_t2", "kerr_compressor", "kerr_extractor"], "Kerr T2 + modules");
 reach(["eye_core"], "Eye T1");
 reach(["eye_core", "eye_beam", "eye_jet", "eye_arms"], "Eye T4");
+reach(["eye_core", "eye_beam", "eye_jet", "eye_arms", "eye_arms2", "eye_rim"], "Eye T6");
 
 // ------------------------------------------------------------------------------------------------ manifest
 const ROLE = (machine, ch) => LEGEND[machine][ch];
@@ -443,8 +468,11 @@ const manifest = {
       pieces: { kerr_t1: "required without the Density Upgrade", kerr_t2: "required with the Density Upgrade (replaces kerr_t1)",
         kerr_compressor: "optional checked module", kerr_extractor: "optional checked module" } },
     eye: { controllerVoxel: [EYE_CTRL.x - E[0].b.CX, EYE_CTRL.y - E[0].b.CY, EYE_CTRL.z - E[0].b.CZ],
-      pieces: { eye_core: "T1, required", eye_beam: "T2 band, optional", eye_jet: "T3 band, optional, independent of eye_beam",
-        eye_arms: "T4 arms, optional (plus the Galactic Upgrade Core)" } },
+      pieces: { eye_core: "T1, required", eye_beam: "T2 beam band, optional",
+        eye_jet: "T3 jet crescent, optional; counts only with eye_beam (D-49: bands are cumulative)",
+        eye_arms: "T4 spiral arms, optional; counts only with eye_beam + eye_jet",
+        eye_arms2: "T5 second arm pair, optional; counts only with every band below",
+        eye_rim: "T6 galactic rim with 4 rim stellar sockets, optional; counts only with every band below" } },
   },
   assembled: Object.fromEntries(SPEC.map(([label, names]) => [label, { pieces: names, size: asmBox(names),
     blocks: names.reduce((s, n) => s + (kerrPieces[n] || eyePieces[n]).length, 0) }])),

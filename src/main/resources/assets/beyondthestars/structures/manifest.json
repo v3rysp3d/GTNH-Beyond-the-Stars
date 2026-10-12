@@ -214,7 +214,7 @@
    "T": {
     "role": "galactic_shell",
     "kind": "galactic",
-    "block": "NEW slCasing:12 Galactic Shell Plating"
+    "block": "NEW slCasing:12 Galactic Shell Plating (T4-T6 bands, D-49 R-12)"
    },
    "h": {
     "role": "gas_socket",
@@ -255,6 +255,30 @@
     "fallback": "S",
     "min": 0,
     "hint": 4
+   },
+   "f": {
+    "role": "field_socket",
+    "kind": "eyeshell (core band outer face, 1 below the mid-plane)",
+    "block": "EyeHatchElement.Field (MTEHatchInput, unbuffered trims; ME stocking hatches are walked but never drained), else fallback",
+    "fallback": "U",
+    "min": 0,
+    "hint": 5
+   },
+   "n": {
+    "role": "sensor_socket",
+    "kind": "eyeshell (core band outer face, on the mid-plane, above its f)",
+    "block": "EyeHatchElement.Sensor (MTEHatchStellarFieldSensor, MTE 28116), else fallback",
+    "fallback": "U",
+    "min": 0,
+    "hint": 6
+   },
+   "g": {
+    "role": "stellar_socket_rim",
+    "kind": "grb on the T6 rim",
+    "block": "EyeHatchElement.Stellar, else fallback",
+    "fallback": "T",
+    "min": 0,
+    "hint": 4
    }
   }
  },
@@ -280,9 +304,11 @@
    ],
    "pieces": {
     "eye_core": "T1, required",
-    "eye_beam": "T2 band, optional",
-    "eye_jet": "T3 band, optional, independent of eye_beam",
-    "eye_arms": "T4 arms, optional (plus the Galactic Upgrade Core)"
+    "eye_beam": "T2 beam band, optional",
+    "eye_jet": "T3 jet crescent, optional; counts only with eye_beam (D-49: bands are cumulative)",
+    "eye_arms": "T4 spiral arms, optional; counts only with eye_beam + eye_jet",
+    "eye_arms2": "T5 second arm pair, optional; counts only with every band below",
+    "eye_rim": "T6 galactic rim with 4 rim stellar sockets, optional; counts only with every band below"
    }
   }
  },
@@ -338,6 +364,29 @@
    ],
    "size": "102x57x137",
    "blocks": 34502
+  },
+  "Eye T5": {
+   "pieces": [
+    "eye_core",
+    "eye_beam",
+    "eye_jet",
+    "eye_arms",
+    "eye_arms2"
+   ],
+   "size": "135x57x137",
+   "blocks": 40733
+  },
+  "Eye T6": {
+   "pieces": [
+    "eye_core",
+    "eye_beam",
+    "eye_jet",
+    "eye_arms",
+    "eye_arms2",
+    "eye_rim"
+   ],
+   "size": "158x57x149",
+   "blocks": 51935
   }
  },
  "pieces": {
@@ -1606,7 +1655,7 @@
    "bom": [
     {
      "ch": "U",
-     "count": 9406,
+     "count": 9390,
      "role": "band_shell",
      "block": "Casings.ReinforcedSpatialStructureCasing (TTCasingsContainer.sBlockCasingsBA0:11)"
     },
@@ -1647,6 +1696,18 @@
      "block": "TTCasingsContainer.StabilisationFieldGenerators metas 0-8, ofBlocksTiered"
     },
     {
+     "ch": "f",
+     "count": 8,
+     "role": "field_socket",
+     "block": "EyeHatchElement.Field (MTEHatchInput, unbuffered trims; ME stocking hatches are walked but never drained), else fallback"
+    },
+    {
+     "ch": "n",
+     "count": 8,
+     "role": "sensor_socket",
+     "block": "EyeHatchElement.Sensor (MTEHatchStellarFieldSensor, MTE 28116), else fallback"
+    },
+    {
      "ch": "h",
      "count": 5,
      "role": "gas_socket",
@@ -1672,12 +1733,152 @@
     }
    ],
    "socketCounts": {
+    "f": 8,
     "h": 5,
     "m": 1,
+    "n": 8,
     "o": 2,
     "~": 1
    },
    "sockets": {
+    "f": [
+     {
+      "abc": [
+       59,
+       11,
+       13
+      ],
+      "rel": [
+       9,
+       -39,
+       13
+      ],
+      "voxel": [
+       9,
+       -1,
+       27
+      ]
+     },
+     {
+      "abc": [
+       24,
+       11,
+       20
+      ],
+      "rel": [
+       -26,
+       -39,
+       20
+      ],
+      "voxel": [
+       -26,
+       -1,
+       20
+      ]
+     },
+     {
+      "abc": [
+       76,
+       11,
+       20
+      ],
+      "rel": [
+       26,
+       -39,
+       20
+      ],
+      "voxel": [
+       26,
+       -1,
+       20
+      ]
+     },
+     {
+      "abc": [
+       15,
+       11,
+       33
+      ],
+      "rel": [
+       -35,
+       -39,
+       33
+      ],
+      "voxel": [
+       -35,
+       -1,
+       7
+      ]
+     },
+     {
+      "abc": [
+       85,
+       11,
+       47
+      ],
+      "rel": [
+       35,
+       -39,
+       47
+      ],
+      "voxel": [
+       35,
+       -1,
+       -7
+      ]
+     },
+     {
+      "abc": [
+       24,
+       11,
+       60
+      ],
+      "rel": [
+       -26,
+       -39,
+       60
+      ],
+      "voxel": [
+       -26,
+       -1,
+       -20
+      ]
+     },
+     {
+      "abc": [
+       76,
+       11,
+       60
+      ],
+      "rel": [
+       26,
+       -39,
+       60
+      ],
+      "voxel": [
+       26,
+       -1,
+       -20
+      ]
+     },
+     {
+      "abc": [
+       41,
+       11,
+       67
+      ],
+      "rel": [
+       -9,
+       -39,
+       67
+      ],
+      "voxel": [
+       -9,
+       -1,
+       -27
+      ]
+     }
+    ],
     "h": [
      {
       "abc": [
@@ -1781,6 +1982,144 @@
        2,
        -40,
        40
+      ]
+     }
+    ],
+    "n": [
+     {
+      "abc": [
+       59,
+       10,
+       13
+      ],
+      "rel": [
+       9,
+       -40,
+       13
+      ],
+      "voxel": [
+       9,
+       0,
+       27
+      ]
+     },
+     {
+      "abc": [
+       24,
+       10,
+       20
+      ],
+      "rel": [
+       -26,
+       -40,
+       20
+      ],
+      "voxel": [
+       -26,
+       0,
+       20
+      ]
+     },
+     {
+      "abc": [
+       76,
+       10,
+       20
+      ],
+      "rel": [
+       26,
+       -40,
+       20
+      ],
+      "voxel": [
+       26,
+       0,
+       20
+      ]
+     },
+     {
+      "abc": [
+       15,
+       10,
+       33
+      ],
+      "rel": [
+       -35,
+       -40,
+       33
+      ],
+      "voxel": [
+       -35,
+       0,
+       7
+      ]
+     },
+     {
+      "abc": [
+       85,
+       10,
+       47
+      ],
+      "rel": [
+       35,
+       -40,
+       47
+      ],
+      "voxel": [
+       35,
+       0,
+       -7
+      ]
+     },
+     {
+      "abc": [
+       24,
+       10,
+       60
+      ],
+      "rel": [
+       -26,
+       -40,
+       60
+      ],
+      "voxel": [
+       -26,
+       0,
+       -20
+      ]
+     },
+     {
+      "abc": [
+       76,
+       10,
+       60
+      ],
+      "rel": [
+       26,
+       -40,
+       60
+      ],
+      "voxel": [
+       26,
+       0,
+       -20
+      ]
+     },
+     {
+      "abc": [
+       41,
+       10,
+       67
+      ],
+      "rel": [
+       -9,
+       -40,
+       67
+      ],
+      "voxel": [
+       -9,
+       0,
+       -27
       ]
      }
     ],
@@ -2139,7 +2478,7 @@
      "ch": "T",
      "count": 5325,
      "role": "galactic_shell",
-     "block": "NEW slCasing:12 Galactic Shell Plating"
+     "block": "NEW slCasing:12 Galactic Shell Plating (T4-T6 bands, D-49 R-12)"
     },
     {
      "ch": "J",
@@ -2157,6 +2496,157 @@
    "socketCounts": {},
    "sockets": {},
    "cellsKeptByEarlierPiece": 84
+  },
+  "eye_arms2": {
+   "machine": "eye",
+   "file": "structures/eye_arms2.txt",
+   "w": 135,
+   "h": 11,
+   "d": 83,
+   "off": [
+    67,
+    44,
+    1
+   ],
+   "blocks": 6231,
+   "bom": [
+    {
+     "ch": "T",
+     "count": 5065,
+     "role": "galactic_shell",
+     "block": "NEW slCasing:12 Galactic Shell Plating (T4-T6 bands, D-49 R-12)"
+    },
+    {
+     "ch": "J",
+     "count": 762,
+     "role": "band_lining",
+     "block": "Casings.InfiniteSpacetimeEnergyBoundaryCasing (BA0:12)"
+    },
+    {
+     "ch": "Z",
+     "count": 404,
+     "role": "glass_channel",
+     "block": "Casings.QuantumGlass (TecTech)"
+    }
+   ],
+   "socketCounts": {},
+   "sockets": {},
+   "cellsKeptByEarlierPiece": 73
+  },
+  "eye_rim": {
+   "machine": "eye",
+   "file": "structures/eye_rim.txt",
+   "w": 158,
+   "h": 8,
+   "d": 149,
+   "off": [
+    78,
+    42,
+    34
+   ],
+   "blocks": 11202,
+   "bom": [
+    {
+     "ch": "T",
+     "count": 7286,
+     "role": "galactic_shell",
+     "block": "NEW slCasing:12 Galactic Shell Plating (T4-T6 bands, D-49 R-12)"
+    },
+    {
+     "ch": "J",
+     "count": 3159,
+     "role": "band_lining",
+     "block": "Casings.InfiniteSpacetimeEnergyBoundaryCasing (BA0:12)"
+    },
+    {
+     "ch": "Z",
+     "count": 753,
+     "role": "glass_channel",
+     "block": "Casings.QuantumGlass (TecTech)"
+    },
+    {
+     "ch": "g",
+     "count": 4,
+     "role": "stellar_socket_rim",
+     "block": "EyeHatchElement.Stellar, else fallback"
+    }
+   ],
+   "socketCounts": {
+    "g": 4
+   },
+   "sockets": {
+    "g": [
+     {
+      "abc": [
+       24,
+       0,
+       23
+      ],
+      "rel": [
+       -54,
+       -42,
+       -11
+      ],
+      "voxel": [
+       -54,
+       2,
+       51
+      ]
+     },
+     {
+      "abc": [
+       132,
+       0,
+       23
+      ],
+      "rel": [
+       54,
+       -42,
+       -11
+      ],
+      "voxel": [
+       54,
+       2,
+       51
+      ]
+     },
+     {
+      "abc": [
+       24,
+       0,
+       125
+      ],
+      "rel": [
+       -54,
+       -42,
+       91
+      ],
+      "voxel": [
+       -54,
+       2,
+       -51
+      ]
+     },
+     {
+      "abc": [
+       132,
+       0,
+       125
+      ],
+      "rel": [
+       54,
+       -42,
+       91
+      ],
+      "voxel": [
+       54,
+       2,
+       -51
+      ]
+     }
+    ]
+   },
+   "cellsKeptByEarlierPiece": 112
   }
  },
  "checks": [
@@ -2168,6 +2658,8 @@
   "ok   eye_beam: no '~' (anchored by off 45,55,-6, outside its own box)",
   "ok   eye_jet: no '~' (anchored by off 48,33,-10, outside its own box)",
   "ok   eye_arms: no '~' (anchored by off 47,44,28, outside its own box)",
+  "ok   eye_arms2: no '~' (anchored by off 67,44,1, outside its own box)",
+  "ok   eye_rim: no '~' (anchored by off 78,42,34, outside its own box)",
   "ok   kerr_t1: off resolves to the machine's controller cell",
   "ok   kerr_t2: off resolves to the machine's controller cell",
   "ok   kerr_compressor: off resolves to the machine's controller cell",
@@ -2176,6 +2668,8 @@
   "ok   eye_beam: off resolves to the machine's controller cell",
   "ok   eye_jet: off resolves to the machine's controller cell",
   "ok   eye_arms: off resolves to the machine's controller cell",
+  "ok   eye_arms2: off resolves to the machine's controller cell",
+  "ok   eye_rim: off resolves to the machine's controller cell",
   "ok   kerr_t1 and kerr_compressor share no cell",
   "ok   kerr_t1 and kerr_extractor share no cell",
   "ok   kerr_t2 and kerr_compressor share no cell",
@@ -2184,25 +2678,39 @@
   "ok   eye_core and eye_beam share no cell",
   "ok   eye_core and eye_jet share no cell",
   "ok   eye_core and eye_arms share no cell",
+  "ok   eye_core and eye_arms2 share no cell",
+  "ok   eye_core and eye_rim share no cell",
   "ok   eye_beam and eye_jet share no cell",
   "ok   eye_beam and eye_arms share no cell",
+  "ok   eye_beam and eye_arms2 share no cell",
+  "ok   eye_beam and eye_rim share no cell",
   "ok   eye_jet and eye_arms share no cell",
+  "ok   eye_jet and eye_arms2 share no cell",
+  "ok   eye_jet and eye_rim share no cell",
+  "ok   eye_arms and eye_arms2 share no cell",
+  "ok   eye_arms and eye_rim share no cell",
+  "ok   eye_arms2 and eye_rim share no cell",
   "ok   Kerr T1 assembled box 76x65x79 (W x H x D, spec 76x65x79)",
   "ok   Kerr T2 assembled box 92x65x89 (W x H x D, spec 92x65x89)",
   "ok   Eye T1 assembled box 102x52x80 (W x H x D, spec 102x52x80)",
   "ok   Eye T2 assembled box 102x57x80 (W x H x D, spec 102x57x80)",
   "ok   Eye T3 assembled box 102x57x80 (W x H x D, spec 102x57x80)",
   "ok   Eye T4 assembled box 102x57x137 (W x H x D, spec 102x57x137)",
+  "ok   Eye T5 assembled box 135x57x137 (W x H x D, spec 135x57x137)",
+  "ok   Eye T6 assembled box 158x57x149 (W x H x D, spec 158x57x149)",
   "ok   Kerr T1 + modules: every socket has an outside-reachable face",
   "ok   Kerr T2 + modules: every socket has an outside-reachable face",
   "ok   Eye T1: every socket has an outside-reachable face",
-  "ok   Eye T4: every socket has an outside-reachable face"
+  "ok   Eye T4: every socket has an outside-reachable face",
+  "ok   Eye T6: every socket has an outside-reachable face"
  ],
  "notes": [
   "kerr: 40 cells drawn by kerr_core then by kerr_compressor; the later piece owns them",
   "kerr: 9 cells drawn by kerr_core then by kerr_extractor; the later piece owns them",
   "eye_beam: 115 cells written over an earlier piece in the mockup ({\"clamp\":115}); the earlier piece keeps them",
   "eye_jet: 100 cells written over an earlier piece in the mockup ({\"clamp\":100}); the earlier piece keeps them",
-  "eye_arms: 84 cells written over an earlier piece in the mockup ({\"arm1\":40,\"arm0\":44}); the earlier piece keeps them"
+  "eye_arms: 84 cells written over an earlier piece in the mockup ({\"arm1\":40,\"arm0\":44}); the earlier piece keeps them",
+  "eye_arms2: 73 cells written over an earlier piece in the mockup ({\"arm3\":36,\"arm2\":37}); the earlier piece keeps them",
+  "eye_rim: 112 cells written over an earlier piece in the mockup ({\"rim\":104,\"clamp\":8}); the earlier piece keeps them"
  ]
 }
