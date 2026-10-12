@@ -74,13 +74,18 @@ function loadVoxel() {
   //    exporter never draws the centre at all.
   body = splice(body, "centreRender(t, mulberry32(t*7+1));", "if (!globalThis.__noCentre) ", "before");
   body += `
-globalThis.__vox = { SCENES, BLOCKS, B, RENDER_ONLY, TAGS,
+globalThis.__vox = { SCENES, BLOCKS, B, RENDER_ONLY, TAGS, CROWN,
   build(key, t, opts){ const s = SCENES.find(x => x.key === key); if (!s) throw new Error("no scene " + key);
     globalThis.__noClamps = !!(opts && opts.noClamps); globalThis.__noCentre = true;
     tagArr = new Uint8Array(270*195*260); curTag = 0; collide = {};
     s.build(t, s.style);
     if (W*H*D > tagArr.length) throw new Error("tag array too small");
-    return { W, H, D, CX, CY, CZ, world: world.slice(), tags: tagArr.slice(0, W*H*D), collide: { ...collide } }; } };
+    return { W, H, D, CX, CY, CZ, world: world.slice(), tags: tagArr.slice(0, W*H*D), collide: { ...collide } }; },
+  // P4: the quasar at any mass (only render cells may change with M), and one crown alone (base at y0 = -30)
+  quasar(M){ tagArr = new Uint8Array(270*195*260); curTag = 0; collide = {}; newWorld(149,171,149); buildQuasar(M);
+    return { W, H, D, CX, CY, CZ, world: world.slice(), tags: tagArr.slice(0, W*H*D), collide: { ...collide } }; },
+  crown(i){ tagArr = new Uint8Array(270*195*260); curTag = 0; collide = {}; newWorld(81,71,81); const top = crown(0, -30, i, 0);
+    return { W, H, D, CX, CY, CZ, world: world.slice(), tags: tagArr.slice(0, W*H*D), collide: { ...collide }, y0: -30, top }; } };
 })();`;
   const ctx2d = new Proxy({}, {
     get: (t, k) => k === "getImageData" ? () => ({ data: [0, 0, 0, 0] }) : (k === "canvas" ? {} : () => {}),
@@ -122,7 +127,7 @@ const LEGEND = {
     e: { role: "energy_socket", kind: "energy", block: "HatchElement.Energy / ExoticEnergy, else fallback", fallback: "L", min: 1, hint: 1 },
     m: { role: "maintenance_socket", kind: "maint", block: "HatchElement.Maintenance, else fallback", fallback: "L", min: 1, hint: 2 },
     b: { role: "bolt_bus", kind: "boltbus", block: "KerrHatchElement.BoltBus (private input bus list), else fallback", fallback: "A", min: 1, hint: 3 },
-    u: { role: "utility_socket", kind: "maint (beside each bolt bus)", block: "BHC utility hatch MTEBlackHoleUtility (MetaTileEntityIDs.HATCH_BLACK_HOLE_UTILITY 3012, redstone hole-state output), optional, else fallback", fallback: "A", min: 0, hint: 6 },
+    u: { role: "utility_socket", kind: "maint (beside each bolt bus)", block: "BHC utility hatch MTEBlackHoleUtility (MetaTileEntityIDs.HATCH_BLACK_HOLE_UTILITY 3012, redstone hole-state output), or a Directive Hatch (28127), or (P4, quasar-p4.md §3.1) a GRB Receptor Port (28125): the KEE's quasar link; optional, else fallback", fallback: "A", min: 0, hint: 6 },
   },
   // Kerr redesign (docs/kerr-redesign.md §6): each module arc is its own machine, exported in its own frame with its
   // own controller front-centre facing out of the cage. Its sockets go into GT's STANDARD hatch lists.
@@ -168,6 +173,74 @@ const LEGEND = {
     f: { role: "field_socket", kind: "eyeshell (core band outer face, 1 below the mid-plane)", block: "EyeHatchElement.Field (MTEHatchInput, unbuffered trims; ME stocking hatches are walked but never drained), else fallback", fallback: "U", min: 0, hint: 5 },
     n: { role: "sensor_socket", kind: "eyeshell (core band outer face, on the mid-plane, above its f)", block: "EyeHatchElement.Sensor (MTEHatchStellarFieldSensor, MTE 28116), else fallback", fallback: "U", min: 0, hint: 6 },
     g: { role: "stellar_socket_rim", kind: "grb on the T6 rim", block: "EyeHatchElement.Stellar, else fallback", fallback: "T", min: 0, hint: 4 },
+    // P4 (quasar-p4.md §7). d and p sit on plinth face cells of eye_core, so an Eye built before P4 still forms.
+    d: { role: "directive_socket", kind: "directive (plinth face, the row above the controller: 4 cells)", block: "EyeHatchElement.Directive (MTEHatchDirective, MTE 28127; sets Field / Events / Transition / Slots / any, chosen in its GUI), else fallback", fallback: "Q", min: 0, hint: 7 },
+    p: { role: "slot_bus", kind: "slotbus (plinth face, below the controller)", block: "private Slot Bus element (an Input Bus, ME input bus included): planet items and companion star charts for planets mode / companions (T7+), else fallback", fallback: "Q", min: 0, hint: 8 },
+    B: { role: "rail_halo_shell", kind: "bastion (T7 rail, rim->rail clamps, T8 shards)", block: "slCasing:13 Bastion Plate (existing)" },
+    P: { role: "rail_trim", kind: "casimir (T7 rail outer-face trim)", block: "slCasing:14 Casimir Plate (existing)" },
+    r: { role: "grb_receptor", kind: "receptor: 8 on the T7 rail's outer face (group rail-high / rail-low, by the rail's 8 deg tilt), 8 at the T8 shard roots (group halo)", block: "GRB Receptor Port (MTEHatchGRBReceptor, MTE 28125); its group is the manifest's sockets.r[i].group (match the hatch's offset from the controller), else fallback", fallback: "B", min: 0, hint: 9 },
+  },
+  // P4 (designs/docs/quasar-p4.md §1, §2, §3, §7). Every piece is in its controller's own frame (front = +z).
+  quasar: {
+    "~": { role: "controller", kind: "control (the control box's outer face, y -15)", block: "Quasar Engine controller (MTE 28120)" },
+    A: { role: "cage_casing", kind: "casing (lips, buttresses, jet-port caps, control box)", block: "Casings.ExtremeDensitySpaceBendingCasing (GregTechAPI.sBlockCasings10:11, BHC; the Kerr family)" },
+    B: { role: "cage_frame", kind: "frame (cage columns, spokes, dome ribs, tower struts, stays)", block: "GTStructureUtility.ofFrame(Materials.NaquadahAlloy) (the Kerr's frame)" },
+    C: { role: "collimator", kind: "collimator (the 16 rings round the jet towers)", block: "NEW Jet Collimator Ring" },
+    E: { role: "eddington_wall", kind: "eddington (outer wall r 64-67, inner wall r 34-36, tower hub collars)", block: "NEW Eddington Wall Casing" },
+    G: { role: "wall_glass", kind: "glass (the walls' sight bands)", block: "Casings.QuantumGlass (TecTech)" },
+    H: { role: "disc_field_coil", kind: "coil (cage coil stacks, dome rings, the hanging disc rings)", block: "NEW Disc Field Coil T1-T4 (Infinity / Transcendent Metal / SpaceTime / MagMatter), ofBlocksTiered on channel 'coil'; every coil the same tier; the tier caps b and the hole's mass (256 / 1,024 / 2,048 / 4,096 SM)", tiered: true, channel: "coil" },
+    I: { role: "rim_injector", kind: "injector (the 24 radial feed lines inside the outer wall)", block: "NEW Rim Gas Injector" },
+    P: { role: "casimir", kind: "casimir (the ring round each jet throat)", block: "slCasing:14 Casimir Plate (existing)" },
+    T: { role: "tank_wall", kind: "tank (the four wall tanks)", block: "Casings.BackgroundRadiationAbsorbentCasing (sBlockCasings10:12, BHC)" },
+    h: { role: "gas_socket", kind: "gas (24, on the outer wall between the buttresses)", block: "private Rim Gas Injector element: any Input Hatch, ME stocking included (buffered feed, quasar-p4.md §1.5), else fallback", fallback: "E", min: 1, hint: 1 },
+    t: { role: "trim_socket", kind: "trim (4, at the foot of each wall tank)", block: "private Trim element: a plain Input Hatch ONLY (no ME stocking: D-49's rule), gas pulse / Spatially Enlarged Fluid, else fallback", fallback: "T", min: 0, hint: 2 },
+    c: { role: "burst_control_socket", kind: "burstctl (2 on each jet-port cap's rim, y +-80)", block: "MTEHatchBurstControl (MTE 28126): purge on a rising edge, or b mode, set in its GUI, else fallback", fallback: "A", min: 0, hint: 3 },
+    n: { role: "sensor_socket", kind: "sensor (control box, the row above the controller)", block: "MTEHatchStellarFieldSensor (MTE 28116), quasar channels, else fallback", fallback: "A", min: 0, hint: 4 },
+    d: { role: "directive_socket", kind: "directive (control box, the row below the controller)", block: "MTEHatchDirective (MTE 28127), set Disc, else fallback", fallback: "A", min: 0, hint: 5 },
+    e: { role: "energy_socket", kind: "energy (3, control box): coil power 2 A UXV x b^2", block: "HatchElement.Energy / ExoticEnergy, else fallback", fallback: "A", min: 1, hint: 6 },
+    m: { role: "maintenance_socket", kind: "maint (control box)", block: "HatchElement.Maintenance, else fallback", fallback: "A", min: 1, hint: 7 },
+  },
+  crown: {
+    "~": { role: "controller", kind: "control (base rim, +x)", block: "Burst Thermaliser Crown controller (MTE 28124); Mk I/II/III = which of crown_mk1/2/3 checks (channel 'crown')" },
+    A: { role: "base_casing", kind: "casing (the two base discs)", block: "Casings.ExtremeDensitySpaceBendingCasing (sBlockCasings10:11, BHC)" },
+    C: { role: "collimator", kind: "collimator (the base ring, two petal hoops)", block: "NEW Jet Collimator Ring" },
+    F: { role: "thermaliser", kind: "thermal (the absorber core, the petals' old dynamo cells)", block: "NEW Burst Thermaliser Casing" },
+    R: { role: "radiator_petal", kind: "petal", block: "NEW Radiator Petal" },
+    r: { role: "grb_receptor", kind: "receptor (base rim, +z)", block: "GRB Receptor Port (MTE 28125): a conduit can feed a remote crown, else fallback", fallback: "A", min: 0, hint: 1 },
+    m: { role: "maintenance_socket", kind: "maint (base rim, -x)", block: "HatchElement.Maintenance, else fallback", fallback: "A", min: 1, hint: 2 },
+  },
+  conduit_mouth: {
+    "~": { role: "controller", kind: "control (behind the ring, 17 below its axis)", block: "Wormhole Mouth controller (MTE 28121)" },
+    A: { role: "outer_rings", kind: "casing (the two outer rings)", block: "Casings.ReinforcedTemporalStructureCasing (TecTech EOH; ruling 1)" },
+    C: { role: "collimator", kind: "collimator (the coils on both faces)", block: "NEW Jet Collimator Ring" },
+    E: { role: "throat_shell", kind: "eddington (the inner rings)", block: "Casings.ReinforcedSpatialStructureCasing (TecTech EOH; quasar-p4.md §6.2: conduit shells)" },
+    I: { role: "fuel_injector", kind: "injector (8 radial lines)", block: "NEW Rim Gas Injector" },
+    P: { role: "casimir", kind: "casimir (the throat lining)", block: "slCasing:14 Casimir Plate (existing)" },
+    u: { role: "fuel_socket", kind: "ergohatch (8, one at the end of each injector)", block: "private Throat Fuel element: any Input Hatch, ME stocking included (Molten SpaceTime before T7, Ergomatter after), else fallback", fallback: "I", min: 1, hint: 1 },
+    e: { role: "energy_socket", kind: "energy (beside the controller)", block: "HatchElement.Energy, optional (no EU upkeep is specified), else fallback", fallback: "A", min: 0, hint: 2 },
+    m: { role: "maintenance_socket", kind: "maint (beside the controller)", block: "HatchElement.Maintenance, else fallback", fallback: "A", min: 1, hint: 3 },
+  },
+  conduit_mirror: {
+    "~": { role: "controller", kind: "control (under the corner housing)", block: "Conduit Mirror controller (MTE 28122)" },
+    A: { role: "throat_rings", kind: "casing (the two throat mouths)", block: "Casings.ReinforcedTemporalStructureCasing (TecTech EOH)" },
+    C: { role: "collimator", kind: "collimator (the coil bars above and below the mirror)", block: "NEW Jet Collimator Ring" },
+    E: { role: "housing", kind: "eddington (the corner housing and the two throats)", block: "Casings.ReinforcedSpatialStructureCasing (TecTech EOH)" },
+    M: { role: "mirror", kind: "mirror (the 45 deg wall)", block: "slCasing:1 Superradiant Mirror Casing (existing, the Kerr's)" },
+    P: { role: "casimir", kind: "casimir (throat linings, housing trim)", block: "slCasing:14 Casimir Plate (existing)" },
+    u: { role: "fuel_socket", kind: "ergohatch (1, on the housing)", block: "private Throat Fuel element: any Input Hatch, ME stocking included, else fallback", fallback: "E", min: 1, hint: 1 },
+    m: { role: "maintenance_socket", kind: "maint (beside the controller)", block: "HatchElement.Maintenance, else fallback", fallback: "E", min: 1, hint: 2 },
+  },
+  conduit_junction: {
+    "~": { role: "controller", kind: "control (on top of the chamber)", block: "Conduit Junction controller (MTE 28123); split / combine is a GUI mode, the building is the same" },
+    A: { role: "throat_rings", kind: "casing (the four throat mouths)", block: "Casings.ReinforcedTemporalStructureCasing (TecTech EOH)" },
+    C: { role: "collimator", kind: "collimator (the throat tubes' coils)", block: "NEW Jet Collimator Ring" },
+    E: { role: "chamber_shell", kind: "eddington (the chamber sphere, the four throat tubes)", block: "Casings.ReinforcedSpatialStructureCasing (TecTech EOH)" },
+    G: { role: "chamber_glass", kind: "sglass (the chamber's equator band)", block: "Casings.QuantumGlass (TecTech)" },
+    P: { role: "casimir", kind: "casimir (the chamber lining, the throat linings)", block: "slCasing:14 Casimir Plate (existing)" },
+    u: { role: "fuel_socket", kind: "ergohatch (6, round the equator)", block: "private Throat Fuel element: any Input Hatch, ME stocking included (one leg in use = one throat's upkeep), else fallback", fallback: "E", min: 1, hint: 1 },
+    c: { role: "burst_control_socket", kind: "burstctl (2, beside the controller at z +-2)", block: "MTEHatchBurstControl (MTE 28126): the split's analog level s; the second is spare (a future out-3 control), else fallback", fallback: "E", min: 0, hint: 2 },
+    e: { role: "energy_socket", kind: "energy (beside the controller)", block: "HatchElement.Energy, optional (no EU upkeep is specified), else fallback", fallback: "E", min: 0, hint: 3 },
+    m: { role: "maintenance_socket", kind: "maint (beside the controller)", block: "HatchElement.Maintenance, else fallback", fallback: "E", min: 1, hint: 4 },
   },
   // The Homogeny, Reality Diffraction and Reality Refab (design repo designs/docs/homogeny-reality.md, PROPOSED). Chars
   // shared by the three machines mean the same thing in each (E crystal, J lining, K channel, L lens, Q BEC casing,
@@ -190,7 +263,7 @@ const LEGEND = {
     h: { role: "feed_socket", kind: "gas (top of each Feed Vessel)", block: "private feed Input Hatch element (MTEHatchInput), else fallback", fallback: "C", min: 1, hint: 1 },
     o: { role: "output_socket", kind: "output (throat, top and bottom faces)", block: "HatchElement.OutputHatch, else fallback", fallback: "A", min: 1, hint: 2 },
     e: { role: "energy_socket", kind: "energy (bottom cap rim)", block: "HatchElement.Energy / ExoticEnergy, else fallback", fallback: "M", min: 1, hint: 3 },
-    g: { role: "grb_port_reserved", kind: "grb (T2 stirring ring outer face, 3 cells; quasar-p4.md §3.1)", block: "RESERVED for P4's GRB Receptor Port (28125); Galactic Shell Plating until then, so adding the port never un-forms a build", fallback: "G", min: 0 },
+    g: { role: "grb_receptor", kind: "receptor (T2 stirring ring outer face, 3 cells; quasar-p4.md §3.1)", block: "GRB Receptor Port (MTE 28125): the quasar link (speed bonus, Entanglement Medium needs sigma >= 1), else fallback Galactic Shell Plating, so a build from before P4 stays formed", fallback: "G", min: 0 },
   },
   reality_diffraction: {
     "~": { role: "controller", kind: "control (base ring, front)", block: "Reality Diffraction controller (MTE 28131)" },
@@ -213,7 +286,7 @@ const LEGEND = {
     u: { role: "anchor_socket_IV", kind: "anchor, Region IV Reverse Time (y 0, 240 deg)", block: "private Region Anchor element IV, else fallback", fallback: "I", min: 0, hint: 6 },
     v: { role: "anchor_socket_V", kind: "anchor, Region V Positive Mass (y 14, 120 deg)", block: "private Region Anchor element V, else fallback", fallback: "I", min: 0, hint: 7 },
     w: { role: "anchor_socket_VI", kind: "anchor, Region VI Negative Mass (y 14, 300 deg)", block: "private Region Anchor element VI, else fallback", fallback: "I", min: 0, hint: 8 },
-    g: { role: "grb_port_reserved", kind: "grb (top deck band outer face, 6 cells; quasar-p4.md §3.1)", block: "RESERVED for P4's GRB Receptor Port (28125); Region Deck Band until then, so adding the port never un-forms a build", fallback: "A", min: 0 },
+    g: { role: "grb_receptor", kind: "receptor (top deck band outer face, 6 cells; quasar-p4.md §3.1)", block: "GRB Receptor Port (MTE 28125): region stability, speed x min(sigma, 1.5), else fallback Region Deck Band, so a build from before P4 stays formed", fallback: "A", min: 0 },
   },
   reality_refab: {
     "~": { role: "controller", kind: "control (foot, front)", block: "Reality Refab controller (MTE 28132)" },
@@ -237,8 +310,11 @@ const LEGEND = {
 // plain kind -> char (sockets and pinned cells come from the socket table instead)
 const KERR_KIND = { casing: "A", frame: "B", mirror: "C", mirrorback: "D", injector: "E", quad: "F", pipe: "G", coil: "H",
   bhc: "I", lining: "J", sglass: "K", eyeshell: "L", dump: "M", ring3: "N", bastion: "O", casimir: "P" };
-const EYE_KIND = { eyeshell: "U", deck: "Q", lining: "J", sglass: "Z", ring2: "R", ring3: "S", galactic: "T" };
-const SOCKET_KINDS = new Set(["control", "energy", "maint", "boltbus", "beamhatch", "output", "ergohatch", "gas", "grb", "dynamo"]);
+const EYE_KIND = { eyeshell: "U", deck: "Q", lining: "J", sglass: "Z", ring2: "R", ring3: "S", galactic: "T", bastion: "B", casimir: "P" };
+// P4 socket kinds on the Eye, mapped by kind (counted below): Directive and slot bus on the plinth, receptors on T7/T8
+const EYE_KIND_SOCKET = { receptor: "r", directive: "d", slotbus: "p" };
+const SOCKET_KINDS = new Set(["control", "energy", "maint", "boltbus", "beamhatch", "output", "ergohatch", "gas", "grb", "dynamo",
+  "burstctl", "trim", "receptor", "sensor", "directive", "slotbus"]);
 
 // ------------------------------------------------------------------------------------------------ socket table
 // Every hatch-like cell, pinned by its voxel coordinate (the exact expression voxel.js uses), with the char it
@@ -360,7 +436,7 @@ function classifyEye(t) {
   const cells = new Map();
   eachCell(b, (x, y, z, kind, tag) => {
     const k = keyOf(x, y, z);
-    let ch = sockets.get(k);
+    let ch = sockets.get(k) || EYE_KIND_SOCKET[kind];
     if (!ch) {
       if (SOCKET_KINDS.has(kind)) fail(`eye T${t}: unpinned hatch-like cell ${kind} at grid ${k}`);
       ch = EYE_KIND[kind];
@@ -469,10 +545,10 @@ for (const p of ["kerr_compressor", "kerr_extractor"]) {
 // Cells written by one Kerr piece and then by another belong to the LAST writer (spec §5.2); record how many.
 for (const [k, n] of Object.entries(K2.b.collide)) report.notes.push(`kerr: ${n} cells drawn by ${k.split(" × ")[0]} then by ${k.split(" × ")[1]}; the later piece owns them`);
 
-const E = [1, 2, 3, 4, 5, 6].map(classifyEye);
+const E = [1, 2, 3, 4, 5, 6, 7, 8].map(classifyEye);
 const eyePieces = {}, eyeJoins = {}, overwrites = {};
 {
-  const names = ["eye_core", "eye_beam", "eye_jet", "eye_arms", "eye_arms2", "eye_rim"];
+  const names = ["eye_core", "eye_beam", "eye_jet", "eye_arms", "eye_arms2", "eye_rim", "eye_rail", "eye_halo"];
   eyePieces.eye_core = [...E[0].cells.values()];
   for (let t = 2; t <= names.length; t++) {
     const prev = E[t - 2].cells, cur = E[t - 1].cells, added = [];
@@ -568,8 +644,8 @@ const HR_KIND = {
   reality_refab: { region: "E", lining: "J", sglass: "K", gflens: "L", emiso: "Q", hull: "R", tray: "S", claw: "T", gcoil: "V", qglass: "Z" },
 };
 const HR_SOCKET = {
-  homogeny: { control: "~", gas: "h", output: "o", energy: "e", grb: "g" },
-  reality_diffraction: { control: "~", bechatch: "b", gas: "h", energy: "e", grb: "g", anchor: null /* per region, below */ },
+  homogeny: { control: "~", gas: "h", output: "o", energy: "e", receptor: "g" },
+  reality_diffraction: { control: "~", bechatch: "b", gas: "h", energy: "e", receptor: "g", anchor: null /* per region, below */ },
   reality_refab: { control: "~", bechatch: "b", ibus: "i", obus: "o", energy: "e" },
 };
 // expected socket counts per build (cumulative)
@@ -655,6 +731,129 @@ for (const [machine, m] of Object.entries(HR)) {
   for (const n of m.names) out[n] = render(n, machine, hrPieces[n], ctrl, builds[0].b);
 }
 
+// ------------------------------------------------------------------------------------------------ P4: quasar, crowns, conduit
+// quasar-p4.md §1-§3 and §7. The P4 sockets are their own block kinds in voxel.js, so hatch cells map by KIND and are
+// counted per build (a count or kind change aborts). Every machine is exported in its controller's own frame: the
+// controller's open outward face becomes +z (the piece's front), by quarter turns about +y, as the Kerr modules.
+const P4_KIND = {
+  quasar: { casing: "A", frame: "B", collimator: "C", eddington: "E", glass: "G", coil: "H", injector: "I", casimir: "P", tank: "T" },
+  crown: { casing: "A", collimator: "C", thermal: "F", petal: "R" },
+  conduit_mouth: { casing: "A", collimator: "C", eddington: "E", injector: "I", casimir: "P" },
+  conduit_mirror: { casing: "A", collimator: "C", eddington: "E", mirror: "M", casimir: "P" },
+  conduit_junction: { casing: "A", collimator: "C", eddington: "E", sglass: "G", casimir: "P" },
+};
+const P4_SOCKET = {
+  quasar: { control: "~", maint: "m", energy: "e", gas: "h", trim: "t", burstctl: "c", sensor: "n", directive: "d" },
+  crown: { control: "~", maint: "m", receptor: "r" },
+  conduit_mouth: { control: "~", maint: "m", energy: "e", ergohatch: "u" },
+  conduit_mirror: { control: "~", maint: "m", ergohatch: "u" },
+  conduit_junction: { control: "~", maint: "m", energy: "e", ergohatch: "u", burstctl: "c" },
+};
+const P4_SOCKET_COUNT = {
+  quasar: { "~": 1, m: 1, e: 3, h: 24, t: 4, c: 4, n: 2, d: 2 },
+  crown: { "~": 1, m: 1, r: 1 },
+  conduit_mouth: { "~": 1, m: 1, e: 1, u: 8 },
+  conduit_mirror: { "~": 1, m: 1, u: 1 },
+  conduit_junction: { "~": 1, m: 1, e: 1, u: 6, c: 2 },
+};
+function classifyP4(machine, b, keep) {
+  const kinds = P4_KIND[machine], sk = P4_SOCKET[machine], cells = new Map(), count = {};
+  eachCell(b, (x, y, z, kind) => {
+    const v = [x - b.CX, y - b.CY, z - b.CZ];
+    if (keep && !keep(v)) return;
+    let ch;
+    if (SOCKET_KINDS.has(kind) || HR_SOCKET_KINDS.has(kind)) {
+      ch = sk[kind];
+      if (!ch) fail(`${machine}: unexpected hatch-like cell ${kind} at voxel ${v}`);
+      count[ch] = (count[ch] || 0) + 1;
+    } else {
+      ch = kinds[kind];
+      if (!ch) fail(`${machine}: no char for kind ${kind} at voxel ${v}`);
+    }
+    cells.set(keyOf(x, y, z), { x, y, z, ch, kind });
+  });
+  const want = P4_SOCKET_COUNT[machine], sig = (o) => JSON.stringify(Object.keys(o).sort().map((c) => c + o[c]));
+  if (sig(want) !== sig(count)) fail(`${machine}: socket counts ${JSON.stringify(count)}, expected ${JSON.stringify(want)}`);
+  return { b, cells };
+}
+const voxOf = (b, c) => [c.x - b.CX, c.y - b.CY, c.z - b.CZ];
+// the quasar: its structure must not depend on the hole's mass (only render cells grow)
+const Q = classifyP4("quasar", V.quasar(4096));
+{
+  const q64 = classifyP4("quasar", V.quasar(64));
+  const sig = (m) => [...m.cells.values()].map((c) => keyOf(c.x, c.y, c.z) + c.ch).sort().join("|");
+  if (sig(q64) !== sig(Q)) fail("quasar: the structure changes with the hole's mass (only render cells may)");
+}
+const CR = [0, 1, 2].map((i) => { const b = V.crown(i); return { ...classifyP4("crown", b), y0: b.y0, top: b.top }; });
+const MOUTH = classifyP4("conduit_mouth", V.build("conduit", "pair"), (v) => v[0] < 0); // the left mouth (centre x -44, axis +x)
+const MIRROR = classifyP4("conduit_mirror", V.build("conduit", "bend"));
+const JUNCTION = classifyP4("conduit_junction", V.build("conduit", "split"));
+// each machine's controller front (its open outward face, voxel); checked to be open air below
+const P4 = {
+  quasar: { built: Q, names: ["quasar"], mte: 28120, front: [0, 0, 1] },
+  crown: { built: CR[0], names: ["crown_mk1", "crown_mk2", "crown_mk3"], mte: 28124, front: [1, 0, 0] },
+  conduit_mouth: { built: MOUTH, names: ["conduit_mouth"], mte: 28121, front: [-1, 0, 0] },
+  conduit_mirror: { built: MIRROR, names: ["conduit_mirror"], mte: 28122, front: [-1, 0, 0] },
+  conduit_junction: { built: JUNCTION, names: ["conduit_junction"], mte: 28123, front: [0, 0, 1] },
+};
+const p4Pieces = {}, P4_CTRL = {}, P4_INFO = {};
+for (const [machine, m] of Object.entries(P4)) {
+  const builds = machine === "crown" ? CR : [m.built];
+  m.turns = quarterTurns(m.front);
+  builds.forEach((bd, i) => {
+    const ctrl0 = [...bd.cells.values()].find((c) => c.ch === "~"), n = m.names[i];
+    p4Pieces[n] = moduleFrame([...bd.cells.values()], ctrl0, m.turns, bd.b);
+    P4_CTRL[n] = p4Pieces[n].find((c) => c.ch === "~");
+    P4_INFO[n] = { machine, ctrl0, b: bd.b, cells: bd.cells };
+    out[n] = render(n, machine, p4Pieces[n], P4_CTRL[n], bd.b);
+  });
+}
+// a voxel point / direction of a P4 piece as (a,b,c) from its controller, in the piece's frame
+function p4Rel(n, v) {
+  const { ctrl0, b } = P4_INFO[n], t = P4[P4_INFO[n].machine].turns;
+  const [dx, dz] = rotQ(v[0] + b.CX - ctrl0.x, v[2] + b.CZ - ctrl0.z, t);
+  return abcDelta(dx, v[1] + b.CY - ctrl0.y, dz).map((x) => x + 0);
+}
+function p4Dir(n, d) { const t = P4[P4_INFO[n].machine].turns, [dx, dz] = rotQ(d[0], d[2], t); return abcDelta(dx, d[1], dz).map((x) => +(x + 0).toFixed(6)); }
+const PV = (n, c) => voxOf(P4_INFO[n].b, c);
+// The quasar's jet ports and dock slots (quasar-p4.md §2): the port cell is the jet axis on the slot layer just past each
+// cap (y +-81). A crown docks with its base centre on the port cell (its controller 12 out on +x); on the bottom port it
+// hangs upside down (the same shape flipped vertically). A Wormhole Mouth docks with its throat on the jet axis.
+const crownCtrlVoxel = (i) => PV("crown_mk" + (i + 1), P4_INFO["crown_mk" + (i + 1)].ctrl0); // in the crown's own build
+const QUASAR_SLOTS = Object.fromEntries([["top", 1], ["bottom", -1]].map(([k, s]) => {
+  const port = [0, s * 81, 0], cc = crownCtrlVoxel(0), crownCtrl = [cc[0], s * (81 + (cc[1] - CR[0].y0)), cc[2]];
+  return [k, { portVoxel: port, portRel: p4Rel("quasar", port), axisAbc: p4Dir("quasar", [0, s, 0]),
+    crownControllerVoxel: crownCtrl, crownControllerRel: p4Rel("quasar", crownCtrl), crownFacingAbc: p4Dir("quasar", P4.crown.front),
+    crownFlippedVertically: s < 0 }];
+}));
+// a crown docked on each port must not touch the quasar, and its base must sit on the cap
+const QSET = new Set([...Q.cells.values()].map((c) => PV("quasar", c).join(",")));
+function dockedCrown(i, s) { // crown cells in the quasar's voxel space, docked on port s (+1 top, -1 bottom: mirrored in y)
+  const n = "crown_mk" + (i + 1);
+  return [...CR[i].cells.values()].map((c) => { const v = PV(n, c), ry = v[1] - CR[i].y0; return { ch: c.ch, v: [v[0], s * (81 + ry), v[2]] }; });
+}
+// two crowns stacked: the upper one's base at the lower one's core top - 2 (as drawn), same shape and rotation
+const CROWN_STACK = CR.map((cr, i) => {
+  const n = "crown_mk" + (i + 1), lower = new Set([...cr.cells.values()].map((c) => PV(n, c).join(",")));
+  const dy = cr.top - 2 - cr.y0, cc = crownCtrlVoxel(i);
+  let clash = 0;
+  for (const c of cr.cells.values()) { const v = PV(n, c); if (lower.has([v[0], v[1] + dy, v[2]].join(","))) clash++; }
+  return { dy, clash, rel: p4Rel(n, [cc[0], cc[1] + dy, cc[2]]) };
+});
+// the conduit elements' throats (quasar-p4.md §3): centre, radius and the opening's outward normal, in voxel space
+const d2v = (a) => [Math.cos(d2r(a)), 0, Math.sin(d2r(a))];
+const THROATS = {
+  conduit_mouth: [{ role: "throat (dock: on a jet axis; pair: emits along +normal)", centre: [-44, 0, 0], normal: [1, 0, 0], radius: 15 }],
+  conduit_mirror: [{ role: "in", centre: [-16, 0, 0], normal: [-1, 0, 0], radius: 4.2 }, { role: "out", centre: [0, 0, 16], normal: [0, 0, 1], radius: 4.2 }],
+  conduit_junction: [{ role: "big: split in / combine out", centre: [-45, 0, 0], normal: [-1, 0, 0], radius: 9.6 },
+    ...[["out1 / in1 (0 deg)", 0], ["out2 / in2 (+60 deg)", 60], ["out3 / in3 (-60 deg; split: the fixed GUI share off the top)", -60]].map(([role, a]) =>
+      ({ role, centre: d2v(a).map((x) => +(x * 43).toFixed(3)), normal: d2v(a).map((x) => +x.toFixed(6)), radius: 6.8 }))],
+};
+function throatsAbc(n, machine) {
+  return THROATS[machine].map((t) => ({ role: t.role, radius: t.radius, centreVoxel: t.centre,
+    centreRel: p4Rel(n, t.centre.map(Math.round)), normalAbc: p4Dir(n, t.normal) }));
+}
+
 // ------------------------------------------------------------------------------------------------ sanity checks
 const checks = [];
 function ok(cond, msg) { checks.push((cond ? "ok   " : "FAIL ") + msg); if (!cond) report.failed = true; }
@@ -663,7 +862,7 @@ const HR_CORE = new Set(Object.values(HR).map((m) => m.names[0]));
 const hrMachineOf = (n) => Object.keys(HR).find((k) => HR[k].names.includes(n));
 // exactly one controller anchor per piece: core pieces hold the '~' at off; add-on pieces hold none
 for (const [n, r] of Object.entries(out)) {
-  const tildes = r.counts["~"] || 0, core = n === "kerr_t1" || n === "kerr_t2" || n === "eye_core" || !!MODULE_CTRL[n] || HR_CORE.has(n);
+  const tildes = r.counts["~"] || 0, core = n === "kerr_t1" || n === "kerr_t2" || n === "eye_core" || !!MODULE_CTRL[n] || HR_CORE.has(n) || !!P4_CTRL[n];
   if (core) {
     const [a, bv, c] = r.off;
     ok(tildes === 1 && r.grid[c] && r.grid[c][bv] && r.grid[c][bv][a] === "~", `${n}: one controller '~' at off ${r.off}`);
@@ -671,7 +870,7 @@ for (const [n, r] of Object.entries(out)) {
 }
 // the shared anchor: every piece of a machine resolves the controller to the same world cell
 for (const [n, r] of Object.entries(out)) {
-  const ctrl = MODULE_CTRL[n] || (hrMachineOf(n) ? HR_CTRL[hrMachineOf(n)] : n.startsWith("kerr") ? KERR_CTRL : EYE_CTRL);
+  const ctrl = MODULE_CTRL[n] || P4_CTRL[n] || (hrMachineOf(n) ? HR_CTRL[hrMachineOf(n)] : n.startsWith("kerr") ? KERR_CTRL : EYE_CTRL);
   const back = [FLIP_H ? r.bb.mx[0] - r.off[0] : r.bb.mn[0] + r.off[0], r.bb.mx[1] - r.off[1], FLIP_D ? r.bb.mn[2] + r.off[2] : r.bb.mx[2] - r.off[2]];
   ok(back[0] === ctrl.x && back[1] === ctrl.y && back[2] === ctrl.z, `${n}: off resolves to the machine's controller cell`);
 }
@@ -685,7 +884,7 @@ for (const m of KERR_MODULES) ok((out.kerr_slots.counts[m.mark] || 0) === 1, `ke
 // pieces of one machine are disjoint, except the alternative cores kerr_t1 / kerr_t2
 function disjoint(a, b) { const s = new Set(kerrOrEye(a)); let n = 0; for (const k of kerrOrEye(b)) if (s.has(k)) n++; return n; }
 function kerrOrEye(n) { return pieceCells(n).map((c) => keyOf(c.x, c.y, c.z)); }
-function pieceCells(n) { return kerrPieces[n] || eyePieces[n] || hrPieces[n]; }
+function pieceCells(n) { return kerrPieces[n] || eyePieces[n] || hrPieces[n] || p4Pieces[n]; }
 for (const core of ["kerr_t1", "kerr_t2"]) for (const m of ["kerr_compressor", "kerr_extractor"]) ok(disjoint(core, m) === 0, `${core} and ${m} share no cell`);
 ok(disjoint("kerr_compressor", "kerr_extractor") === 0, "kerr_compressor and kerr_extractor share no cell");
 { const e = Object.keys(eyePieces); for (let i = 0; i < e.length; i++) for (let j = i + 1; j < e.length; j++) ok(disjoint(e[i], e[j]) === 0, `${e[i]} and ${e[j]} share no cell`); }
@@ -714,6 +913,16 @@ const SPEC = [
   ["Homogeny T3", ["homog_t1", "homog_t2", "homog_t3"], "145x70x130"],
   ["Reality Diffraction", ["reality_diffraction"], "103x101x85"],
   ["Reality Refab", ["reality_refab"], "104x139x83"],
+  // P4 (quasar-p4.md §7)
+  ["Eye T7", ["eye_core", "eye_beam", "eye_jet", "eye_arms", "eye_arms2", "eye_rim", "eye_rail"], "183x59x175"],
+  ["Eye T8", ["eye_core", "eye_beam", "eye_jet", "eye_arms", "eye_arms2", "eye_rim", "eye_rail", "eye_halo"], "196x73x218"],
+  ["Quasar Engine", ["quasar"], "143x161x144"],
+  ["Burst Thermaliser Crown Mk I", ["crown_mk1"], "33x17x33"],
+  ["Burst Thermaliser Crown Mk II", ["crown_mk2"], "49x23x49"],
+  ["Burst Thermaliser Crown Mk III", ["crown_mk3"], "65x29x65"],
+  ["Wormhole Mouth", ["conduit_mouth"], "39x42x10"],
+  ["Conduit Mirror", ["conduit_mirror"], "23x13x24"],
+  ["Conduit Junction", ["conduit_junction"], "89x30x83"],
 ];
 for (const [label, names, want] of SPEC) { const got = asmBox(names); ok(got === want, `${label} assembled box ${got} (W x H x D, spec ${want})`); }
 
@@ -747,6 +956,42 @@ reach(["homog_t1", "homog_t2"], "Homogeny T2");
 reach(["homog_t1", "homog_t2", "homog_t3"], "Homogeny T3");
 reach(["reality_diffraction"], "Reality Diffraction");
 reach(["reality_refab"], "Reality Refab");
+reach(["eye_core", "eye_beam", "eye_jet", "eye_arms", "eye_arms2", "eye_rim", "eye_rail", "eye_halo"], "Eye T8");
+reach(["quasar"], "Quasar Engine");
+for (const n of ["crown_mk1", "crown_mk2", "crown_mk3", "conduit_mouth", "conduit_mirror", "conduit_junction"]) reach([n], n);
+
+// P4 extra checks: the Eye's new sockets, the quasar's fronts, docked and stacked crowns
+{
+  const cnt = (n, ch) => out[n].counts[ch] || 0;
+  ok(cnt("eye_core", "d") === 4 && cnt("eye_core", "p") === 1, `eye_core: 4 Directive sockets 'd' and 1 slot bus 'p' (on plinth face cells)`);
+  ok(cnt("eye_rail", "r") === 8 && cnt("eye_halo", "r") === 8, `eye_rail / eye_halo: 8 GRB Receptor Ports 'r' each (${cnt("eye_rail", "r")} / ${cnt("eye_halo", "r")})`);
+  const hi = pieceCells("eye_rail").filter((c) => c.ch === "r" && c.z - E[0].b.CZ > 0).length;
+  ok(hi === 4, `eye_rail: 4 receptors on the high half (z > 0) and 4 on the low half (${hi} / ${8 - hi})`);
+  // the d / p cells were plinth deck in the T1 build before P4: an Eye built before P4 still forms (fallback Q)
+  for (const c of pieceCells("eye_core").filter((c) => c.ch === "d" || c.ch === "p")) {
+    const below = pieceCells("eye_core").find((q) => q.x === c.x && q.z === c.z - 0 && q.y === c.y - 1 && q.ch === "Q") ||
+      pieceCells("eye_core").find((q) => q.x === c.x && q.y === c.y && q.z === c.z - 1 && q.ch === "Q");
+    ok(!!below, `eye_core: ${c.ch} socket at voxel ${voxOf(E[0].b, c)} sits in the plinth face (deck behind or below it)`);
+  }
+  for (const [machine, m] of Object.entries(P4)) for (const n of m.names) {
+    const c = P4_INFO[n].ctrl0, f = m.front, all = new Set([...P4_INFO[n].cells.keys()]);
+    ok(!all.has(keyOf(c.x + f[0], c.y + f[1], c.z + f[2])), `${n}: the controller's front face (voxel ${f}) is open air (turns ${m.turns})`);
+  }
+  for (let i = 0; i < 3; i++) for (const s of [1, -1]) {
+    const cells = dockedCrown(i, s), hit = cells.filter((c) => QSET.has(c.v.join(","))).length;
+    const seat = cells.filter((c) => c.v[1] === s * 81 && QSET.has([c.v[0], s * 80, c.v[2]].join(","))).length;
+    ok(hit === 0 && seat > 0, `crown_mk${i + 1} docked on the ${s > 0 ? "top" : "bottom"} port: touches the quasar in ${hit} cells, seats ${seat} cells on the cap`);
+  }
+  // the cap rims' Burst Control sockets stay reachable with a Mk III crown docked on both ports
+  {
+    const qs = [...Q.cells.values()].map((c) => ({ ...c, v: PV("quasar", c) })), occ = new Set([...qs.map((c) => c.v.join(",")),
+      ...dockedCrown(2, 1).map((c) => c.v.join(",")), ...dockedCrown(2, -1).map((c) => c.v.join(","))]);
+    const sealed = qs.filter((c) => c.ch === "c" && [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]
+      .every(([dx, dy, dz]) => occ.has([c.v[0] + dx, c.v[1] + dy, c.v[2] + dz].join(",")))).length;
+    ok(sealed === 0, `quasar: the 4 cap-rim Burst Control sockets keep an open face with Mk III crowns docked on both ports (${sealed} sealed)`);
+  }
+  CROWN_STACK.forEach((st, i) => ok(st.clash === 0, `crown_mk${i + 1}: a second crown stacked at core top - 2 (dy ${st.dy}) shares ${st.clash} cells with the first`));
+}
 
 // ------------------------------------------------------------------------------------------------ manifest
 const ROLE = (machine, ch) => LEGEND[machine][ch];
@@ -781,7 +1026,11 @@ const manifest = {
         eye_jet: "T3 jet crescent, optional; counts only with eye_beam (D-49: bands are cumulative)",
         eye_arms: "T4 spiral arms, optional; counts only with eye_beam + eye_jet",
         eye_arms2: "T5 second arm pair, optional; counts only with every band below",
-        eye_rim: "T6 galactic rim with 4 rim stellar sockets, optional; counts only with every band below" } },
+        eye_rim: "T6 galactic rim with 4 rim stellar sockets, optional; counts only with every band below",
+        eye_rail: "T7 stability rail (tilted 8 deg) with 8 GRB Receptor Ports, groups rail-high / rail-low; optional, counts only with every band below",
+        eye_halo: "T8 shard halo with 8 GRB Receptor Ports at the shard roots, group halo; optional, counts only with every band below" },
+      // P4: each 'r' socket's receptor group (quasar-p4.md §3.1, §4.1): match a hatch to its group by its (a,b,c) offset
+      receptorGroups: "manifest.pieces.eye_rail / eye_halo .sockets.r[i].group: rail-high (the rail's +z half, raised by the 8 deg tilt), rail-low, halo" },
     // homogeny-reality.md (PROPOSED). turns: quarter turns about +y taking the controller's outward face (outVoxel) to
     // +z, the piece frame's front. centre.rel: the machine's axis origin (the render centre) from the controller, (a,b,c).
     ...Object.fromEntries(Object.entries(HR).map(([machine, m]) => [machine, { mte: m.mte, controllerVoxel: HR_INFO[machine].ctrlVoxel,
@@ -792,15 +1041,42 @@ const manifest = {
           homog_t3: "T3 (MAX) tilted outer ring, clamps and tail; optional, counts only with homog_t2" }
         : { [m.names[0]]: "the whole machine (one tier)" } }])),
   },
+  // P4 (quasar-p4.md §1-§3, §7): merged into machines right below
+  p4: {
+    quasar: { mte: 28120, controllerVoxel: PV("quasar", P4_INFO.quasar.ctrl0), turns: P4.quasar.turns, centre: { rel: p4Rel("quasar", [0, 0, 0]) },
+      pieces: { quasar: "the whole machine; the hole, disc, jets and throats are render cells (skipped)" },
+      channels: { coil: { char: "H", tiers: ["Infinity", "Transcendent Metal", "SpaceTime", "MagMatter"], note: "Disc Field Coil T1-T4: b <= tier; mass caps 256 / 1,024 / 2,048 / 4,096 SM; every coil one tier" } },
+      // the two jet ports (quasar-p4.md §2): a dock is linked when it stands on its slot. port = the jet axis cell just past
+      // the cap (y +-81); a crown's base centre sits on it and its controller stands at crownController, facing
+      // crownFacingAbc (bottom: the crown hangs upside down, flipped vertically); a Wormhole Mouth puts its throat centre on
+      // the jet axis with its normal along axisAbc.
+      slots: QUASAR_SLOTS },
+    crown: { mte: 28124, turns: P4.crown.turns, pieces: { crown_mk1: "Mk I (32 Bu/t)", crown_mk2: "Mk II (512 Bu/t)", crown_mk3: "Mk III (8,192 Bu/t)" },
+      channels: { crown: { pieces: ["crown_mk1", "crown_mk2", "crown_mk3"], note: "alternative whole shapes (not additive); the Mk is the biggest that checks; the hologram builds the channel's Mk" } },
+      // the intake: the jet enters the base centre along +y (voxel), i.e. from below the controller row
+      intake: Object.fromEntries(["crown_mk1", "crown_mk2", "crown_mk3"].map((n, i) => [n, { rel: p4Rel(n, [0, CR[i].y0, 0]), axisAbc: p4Dir(n, [0, 1, 0]) }])),
+      // a second crown stacks on the first: its controller at stack[i].rel from the first's, same facing, same shape
+      stack: Object.fromEntries(CROWN_STACK.map((st, i) => ["crown_mk" + (i + 1), { rel: st.rel, sharedCells: st.clash }])) },
+    conduit_mouth: { mte: 28121, turns: P4.conduit_mouth.turns, pieces: { conduit_mouth: "one mouth; a pair is two mouths linked with a data stick" },
+      throats: throatsAbc("conduit_mouth", "conduit_mouth") },
+    conduit_mirror: { mte: 28122, turns: P4.conduit_mirror.turns, pieces: { conduit_mirror: "v1: the 90 deg corner; any facing" },
+      throats: throatsAbc("conduit_mirror", "conduit_mirror") },
+    conduit_junction: { mte: 28123, turns: P4.conduit_junction.turns, pieces: { conduit_junction: "split and combine are a GUI mode of the same building" },
+      throats: throatsAbc("conduit_junction", "conduit_junction") },
+  },
   assembled: Object.fromEntries(SPEC.map(([label, names]) => [label, { pieces: names, size: asmBox(names),
     blocks: names.reduce((s, n) => s + pieceCells(n).length, 0) }])),
   pieces: {},
 };
+Object.assign(manifest.machines, manifest.p4);
+delete manifest.p4;
 for (const [n, r] of Object.entries(out)) {
-  const machine = PIECE_MACHINE[n] || hrMachineOf(n) || "eye";
+  const machine = PIECE_MACHINE[n] || hrMachineOf(n) || (P4_INFO[n] && P4_INFO[n].machine) || "eye";
   const bom = Object.entries(r.counts).sort((a, b) => b[1] - a[1]).map(([ch, count]) => ({ ch, count, role: ROLE(machine, ch).role, block: ROLE(machine, ch).block }));
   const sk = {};
-  for (const s of r.sockets) (sk[s.ch] = sk[s.ch] || []).push({ abc: s.abc, rel: s.rel, voxel: s.voxel });
+  for (const s of r.sockets) (sk[s.ch] = sk[s.ch] || []).push({ abc: s.abc, rel: s.rel, voxel: s.voxel,
+    // the Eye's receptor groups (P4): rail-high / rail-low by the rail's tilt (+z half is high), halo on the shards
+    ...(s.ch === "r" && (n === "eye_rail" || n === "eye_halo") ? { group: n === "eye_halo" ? "halo" : s.voxel[2] > 0 ? "rail-high" : "rail-low" } : {}) });
   const socketCounts = Object.fromEntries(Object.entries(sk).map(([ch, l]) => [ch, l.length]));
   manifest.pieces[n] = { machine, file: `structures/${n}.txt`, w: r.w, h: r.h, d: r.d, off: r.off,
     blocks: Object.values(r.counts).reduce((a, b) => a + b, 0), bom, socketCounts, sockets: sk,

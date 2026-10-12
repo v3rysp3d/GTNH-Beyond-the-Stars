@@ -372,6 +372,22 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                     .casingIndex(shellIndex)
                     .hint(6)
                     .buildAndChain(casing(Casings.ReinforcedSpatialStructureCasing)))
+            // ---- P4 (quasar-p4.md §7): plinth face cells of eye_core. Both fall back to the plinth casing, so an
+            // Eye built before P4 (deck in every one of these cells) still forms. 'd' = 4 Directive sockets above
+            // the controller row; 'p' = the slot bus below it. TODO(P4 Eye unit): 'p' becomes a private Slot Bus
+            // element (planet items, companion star charts); until then it takes input buses like the 'h' sockets.
+            .addElement(
+                'd',
+                buildHatchAdder(MTEEyeOfHarmonyBTS.class).atLeast(EyeHatchElement.Directive)
+                    .casingIndex(plinthIndex)
+                    .hint(7)
+                    .buildAndChain(casing(Casings.ReinforcedTemporalStructureCasing)))
+            .addElement(
+                'p',
+                buildHatchAdder(MTEEyeOfHarmonyBTS.class).atLeast(EyeHatchElement.Items)
+                    .casingIndex(plinthIndex)
+                    .hint(8)
+                    .buildAndChain(casing(Casings.ReinforcedTemporalStructureCasing)))
             .build();
     }
 

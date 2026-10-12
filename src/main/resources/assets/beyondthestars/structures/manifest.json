@@ -1,7 +1,7 @@
 {
  "generator": "tools/export-structures.js",
  "source": "designs/voxel.js",
- "sha": "2742379a5cf9527c7f0dc913e2052f0167289195",
+ "sha": "fa6fec2a751c20eef04cc449df70c3e0c428e9e1",
  "format": "StructureLib native String[d][h] (w chars). Layer 0 = controller front (mockup +z), rows top to bottom, chars left to right seen from the front (mockup +x). off = controller (h,v,d) in the piece's own frame. ' ' = skip.",
  "orientation": {
   "flipH": false,
@@ -123,7 +123,7 @@
    "u": {
     "role": "utility_socket",
     "kind": "maint (beside each bolt bus)",
-    "block": "BHC utility hatch MTEBlackHoleUtility (MetaTileEntityIDs.HATCH_BLACK_HOLE_UTILITY 3012, redstone hole-state output), optional, else fallback",
+    "block": "BHC utility hatch MTEBlackHoleUtility (MetaTileEntityIDs.HATCH_BLACK_HOLE_UTILITY 3012, redstone hole-state output), or a Directive Hatch (28127), or (P4, quasar-p4.md §3.1) a GRB Receptor Port (28125): the KEE's quasar link; optional, else fallback",
     "fallback": "A",
     "min": 0,
     "hint": 6
@@ -328,6 +328,361 @@
     "fallback": "T",
     "min": 0,
     "hint": 4
+   },
+   "d": {
+    "role": "directive_socket",
+    "kind": "directive (plinth face, the row above the controller: 4 cells)",
+    "block": "EyeHatchElement.Directive (MTEHatchDirective, MTE 28127; sets Field / Events / Transition / Slots / any, chosen in its GUI), else fallback",
+    "fallback": "Q",
+    "min": 0,
+    "hint": 7
+   },
+   "p": {
+    "role": "slot_bus",
+    "kind": "slotbus (plinth face, below the controller)",
+    "block": "private Slot Bus element (an Input Bus, ME input bus included): planet items and companion star charts for planets mode / companions (T7+), else fallback",
+    "fallback": "Q",
+    "min": 0,
+    "hint": 8
+   },
+   "B": {
+    "role": "rail_halo_shell",
+    "kind": "bastion (T7 rail, rim->rail clamps, T8 shards)",
+    "block": "slCasing:13 Bastion Plate (existing)"
+   },
+   "P": {
+    "role": "rail_trim",
+    "kind": "casimir (T7 rail outer-face trim)",
+    "block": "slCasing:14 Casimir Plate (existing)"
+   },
+   "r": {
+    "role": "grb_receptor",
+    "kind": "receptor: 8 on the T7 rail's outer face (group rail-high / rail-low, by the rail's 8 deg tilt), 8 at the T8 shard roots (group halo)",
+    "block": "GRB Receptor Port (MTEHatchGRBReceptor, MTE 28125); its group is the manifest's sockets.r[i].group (match the hatch's offset from the controller), else fallback",
+    "fallback": "B",
+    "min": 0,
+    "hint": 9
+   }
+  },
+  "quasar": {
+   "~": {
+    "role": "controller",
+    "kind": "control (the control box's outer face, y -15)",
+    "block": "Quasar Engine controller (MTE 28120)"
+   },
+   "A": {
+    "role": "cage_casing",
+    "kind": "casing (lips, buttresses, jet-port caps, control box)",
+    "block": "Casings.ExtremeDensitySpaceBendingCasing (GregTechAPI.sBlockCasings10:11, BHC; the Kerr family)"
+   },
+   "B": {
+    "role": "cage_frame",
+    "kind": "frame (cage columns, spokes, dome ribs, tower struts, stays)",
+    "block": "GTStructureUtility.ofFrame(Materials.NaquadahAlloy) (the Kerr's frame)"
+   },
+   "C": {
+    "role": "collimator",
+    "kind": "collimator (the 16 rings round the jet towers)",
+    "block": "NEW Jet Collimator Ring"
+   },
+   "E": {
+    "role": "eddington_wall",
+    "kind": "eddington (outer wall r 64-67, inner wall r 34-36, tower hub collars)",
+    "block": "NEW Eddington Wall Casing"
+   },
+   "G": {
+    "role": "wall_glass",
+    "kind": "glass (the walls' sight bands)",
+    "block": "Casings.QuantumGlass (TecTech)"
+   },
+   "H": {
+    "role": "disc_field_coil",
+    "kind": "coil (cage coil stacks, dome rings, the hanging disc rings)",
+    "block": "NEW Disc Field Coil T1-T4 (Infinity / Transcendent Metal / SpaceTime / MagMatter), ofBlocksTiered on channel 'coil'; every coil the same tier; the tier caps b and the hole's mass (256 / 1,024 / 2,048 / 4,096 SM)",
+    "tiered": true,
+    "channel": "coil"
+   },
+   "I": {
+    "role": "rim_injector",
+    "kind": "injector (the 24 radial feed lines inside the outer wall)",
+    "block": "NEW Rim Gas Injector"
+   },
+   "P": {
+    "role": "casimir",
+    "kind": "casimir (the ring round each jet throat)",
+    "block": "slCasing:14 Casimir Plate (existing)"
+   },
+   "T": {
+    "role": "tank_wall",
+    "kind": "tank (the four wall tanks)",
+    "block": "Casings.BackgroundRadiationAbsorbentCasing (sBlockCasings10:12, BHC)"
+   },
+   "h": {
+    "role": "gas_socket",
+    "kind": "gas (24, on the outer wall between the buttresses)",
+    "block": "private Rim Gas Injector element: any Input Hatch, ME stocking included (buffered feed, quasar-p4.md §1.5), else fallback",
+    "fallback": "E",
+    "min": 1,
+    "hint": 1
+   },
+   "t": {
+    "role": "trim_socket",
+    "kind": "trim (4, at the foot of each wall tank)",
+    "block": "private Trim element: a plain Input Hatch ONLY (no ME stocking: D-49's rule), gas pulse / Spatially Enlarged Fluid, else fallback",
+    "fallback": "T",
+    "min": 0,
+    "hint": 2
+   },
+   "c": {
+    "role": "burst_control_socket",
+    "kind": "burstctl (2 on each jet-port cap's rim, y +-80)",
+    "block": "MTEHatchBurstControl (MTE 28126): purge on a rising edge, or b mode, set in its GUI, else fallback",
+    "fallback": "A",
+    "min": 0,
+    "hint": 3
+   },
+   "n": {
+    "role": "sensor_socket",
+    "kind": "sensor (control box, the row above the controller)",
+    "block": "MTEHatchStellarFieldSensor (MTE 28116), quasar channels, else fallback",
+    "fallback": "A",
+    "min": 0,
+    "hint": 4
+   },
+   "d": {
+    "role": "directive_socket",
+    "kind": "directive (control box, the row below the controller)",
+    "block": "MTEHatchDirective (MTE 28127), set Disc, else fallback",
+    "fallback": "A",
+    "min": 0,
+    "hint": 5
+   },
+   "e": {
+    "role": "energy_socket",
+    "kind": "energy (3, control box): coil power 2 A UXV x b^2",
+    "block": "HatchElement.Energy / ExoticEnergy, else fallback",
+    "fallback": "A",
+    "min": 1,
+    "hint": 6
+   },
+   "m": {
+    "role": "maintenance_socket",
+    "kind": "maint (control box)",
+    "block": "HatchElement.Maintenance, else fallback",
+    "fallback": "A",
+    "min": 1,
+    "hint": 7
+   }
+  },
+  "crown": {
+   "~": {
+    "role": "controller",
+    "kind": "control (base rim, +x)",
+    "block": "Burst Thermaliser Crown controller (MTE 28124); Mk I/II/III = which of crown_mk1/2/3 checks (channel 'crown')"
+   },
+   "A": {
+    "role": "base_casing",
+    "kind": "casing (the two base discs)",
+    "block": "Casings.ExtremeDensitySpaceBendingCasing (sBlockCasings10:11, BHC)"
+   },
+   "C": {
+    "role": "collimator",
+    "kind": "collimator (the base ring, two petal hoops)",
+    "block": "NEW Jet Collimator Ring"
+   },
+   "F": {
+    "role": "thermaliser",
+    "kind": "thermal (the absorber core, the petals' old dynamo cells)",
+    "block": "NEW Burst Thermaliser Casing"
+   },
+   "R": {
+    "role": "radiator_petal",
+    "kind": "petal",
+    "block": "NEW Radiator Petal"
+   },
+   "r": {
+    "role": "grb_receptor",
+    "kind": "receptor (base rim, +z)",
+    "block": "GRB Receptor Port (MTE 28125): a conduit can feed a remote crown, else fallback",
+    "fallback": "A",
+    "min": 0,
+    "hint": 1
+   },
+   "m": {
+    "role": "maintenance_socket",
+    "kind": "maint (base rim, -x)",
+    "block": "HatchElement.Maintenance, else fallback",
+    "fallback": "A",
+    "min": 1,
+    "hint": 2
+   }
+  },
+  "conduit_mouth": {
+   "~": {
+    "role": "controller",
+    "kind": "control (behind the ring, 17 below its axis)",
+    "block": "Wormhole Mouth controller (MTE 28121)"
+   },
+   "A": {
+    "role": "outer_rings",
+    "kind": "casing (the two outer rings)",
+    "block": "Casings.ReinforcedTemporalStructureCasing (TecTech EOH; ruling 1)"
+   },
+   "C": {
+    "role": "collimator",
+    "kind": "collimator (the coils on both faces)",
+    "block": "NEW Jet Collimator Ring"
+   },
+   "E": {
+    "role": "throat_shell",
+    "kind": "eddington (the inner rings)",
+    "block": "Casings.ReinforcedSpatialStructureCasing (TecTech EOH; quasar-p4.md §6.2: conduit shells)"
+   },
+   "I": {
+    "role": "fuel_injector",
+    "kind": "injector (8 radial lines)",
+    "block": "NEW Rim Gas Injector"
+   },
+   "P": {
+    "role": "casimir",
+    "kind": "casimir (the throat lining)",
+    "block": "slCasing:14 Casimir Plate (existing)"
+   },
+   "u": {
+    "role": "fuel_socket",
+    "kind": "ergohatch (8, one at the end of each injector)",
+    "block": "private Throat Fuel element: any Input Hatch, ME stocking included (Molten SpaceTime before T7, Ergomatter after), else fallback",
+    "fallback": "I",
+    "min": 1,
+    "hint": 1
+   },
+   "e": {
+    "role": "energy_socket",
+    "kind": "energy (beside the controller)",
+    "block": "HatchElement.Energy, optional (no EU upkeep is specified), else fallback",
+    "fallback": "A",
+    "min": 0,
+    "hint": 2
+   },
+   "m": {
+    "role": "maintenance_socket",
+    "kind": "maint (beside the controller)",
+    "block": "HatchElement.Maintenance, else fallback",
+    "fallback": "A",
+    "min": 1,
+    "hint": 3
+   }
+  },
+  "conduit_mirror": {
+   "~": {
+    "role": "controller",
+    "kind": "control (under the corner housing)",
+    "block": "Conduit Mirror controller (MTE 28122)"
+   },
+   "A": {
+    "role": "throat_rings",
+    "kind": "casing (the two throat mouths)",
+    "block": "Casings.ReinforcedTemporalStructureCasing (TecTech EOH)"
+   },
+   "C": {
+    "role": "collimator",
+    "kind": "collimator (the coil bars above and below the mirror)",
+    "block": "NEW Jet Collimator Ring"
+   },
+   "E": {
+    "role": "housing",
+    "kind": "eddington (the corner housing and the two throats)",
+    "block": "Casings.ReinforcedSpatialStructureCasing (TecTech EOH)"
+   },
+   "M": {
+    "role": "mirror",
+    "kind": "mirror (the 45 deg wall)",
+    "block": "slCasing:1 Superradiant Mirror Casing (existing, the Kerr's)"
+   },
+   "P": {
+    "role": "casimir",
+    "kind": "casimir (throat linings, housing trim)",
+    "block": "slCasing:14 Casimir Plate (existing)"
+   },
+   "u": {
+    "role": "fuel_socket",
+    "kind": "ergohatch (1, on the housing)",
+    "block": "private Throat Fuel element: any Input Hatch, ME stocking included, else fallback",
+    "fallback": "E",
+    "min": 1,
+    "hint": 1
+   },
+   "m": {
+    "role": "maintenance_socket",
+    "kind": "maint (beside the controller)",
+    "block": "HatchElement.Maintenance, else fallback",
+    "fallback": "E",
+    "min": 1,
+    "hint": 2
+   }
+  },
+  "conduit_junction": {
+   "~": {
+    "role": "controller",
+    "kind": "control (on top of the chamber)",
+    "block": "Conduit Junction controller (MTE 28123); split / combine is a GUI mode, the building is the same"
+   },
+   "A": {
+    "role": "throat_rings",
+    "kind": "casing (the four throat mouths)",
+    "block": "Casings.ReinforcedTemporalStructureCasing (TecTech EOH)"
+   },
+   "C": {
+    "role": "collimator",
+    "kind": "collimator (the throat tubes' coils)",
+    "block": "NEW Jet Collimator Ring"
+   },
+   "E": {
+    "role": "chamber_shell",
+    "kind": "eddington (the chamber sphere, the four throat tubes)",
+    "block": "Casings.ReinforcedSpatialStructureCasing (TecTech EOH)"
+   },
+   "G": {
+    "role": "chamber_glass",
+    "kind": "sglass (the chamber's equator band)",
+    "block": "Casings.QuantumGlass (TecTech)"
+   },
+   "P": {
+    "role": "casimir",
+    "kind": "casimir (the chamber lining, the throat linings)",
+    "block": "slCasing:14 Casimir Plate (existing)"
+   },
+   "u": {
+    "role": "fuel_socket",
+    "kind": "ergohatch (6, round the equator)",
+    "block": "private Throat Fuel element: any Input Hatch, ME stocking included (one leg in use = one throat's upkeep), else fallback",
+    "fallback": "E",
+    "min": 1,
+    "hint": 1
+   },
+   "c": {
+    "role": "burst_control_socket",
+    "kind": "burstctl (2, beside the controller at z +-2)",
+    "block": "MTEHatchBurstControl (MTE 28126): the split's analog level s; the second is spare (a future out-3 control), else fallback",
+    "fallback": "E",
+    "min": 0,
+    "hint": 2
+   },
+   "e": {
+    "role": "energy_socket",
+    "kind": "energy (beside the controller)",
+    "block": "HatchElement.Energy, optional (no EU upkeep is specified), else fallback",
+    "fallback": "E",
+    "min": 0,
+    "hint": 3
+   },
+   "m": {
+    "role": "maintenance_socket",
+    "kind": "maint (beside the controller)",
+    "block": "HatchElement.Maintenance, else fallback",
+    "fallback": "E",
+    "min": 1,
+    "hint": 4
    }
   },
   "homogeny": {
@@ -426,9 +781,9 @@
     "hint": 3
    },
    "g": {
-    "role": "grb_port_reserved",
-    "kind": "grb (T2 stirring ring outer face, 3 cells; quasar-p4.md §3.1)",
-    "block": "RESERVED for P4's GRB Receptor Port (28125); Galactic Shell Plating until then, so adding the port never un-forms a build",
+    "role": "grb_receptor",
+    "kind": "receptor (T2 stirring ring outer face, 3 cells; quasar-p4.md §3.1)",
+    "block": "GRB Receptor Port (MTE 28125): the quasar link (speed bonus, Entanglement Medium needs sigma >= 1), else fallback Galactic Shell Plating, so a build from before P4 stays formed",
     "fallback": "G",
     "min": 0
    }
@@ -562,9 +917,9 @@
     "hint": 8
    },
    "g": {
-    "role": "grb_port_reserved",
-    "kind": "grb (top deck band outer face, 6 cells; quasar-p4.md §3.1)",
-    "block": "RESERVED for P4's GRB Receptor Port (28125); Region Deck Band until then, so adding the port never un-forms a build",
+    "role": "grb_receptor",
+    "kind": "receptor (top deck band outer face, 6 cells; quasar-p4.md §3.1)",
+    "block": "GRB Receptor Port (MTE 28125): region stability, speed x min(sigma, 1.5), else fallback Region Deck Band, so a build from before P4 stays formed",
     "fallback": "A",
     "min": 0
    }
@@ -767,8 +1122,11 @@
     "eye_jet": "T3 jet crescent, optional; counts only with eye_beam (D-49: bands are cumulative)",
     "eye_arms": "T4 spiral arms, optional; counts only with eye_beam + eye_jet",
     "eye_arms2": "T5 second arm pair, optional; counts only with every band below",
-    "eye_rim": "T6 galactic rim with 4 rim stellar sockets, optional; counts only with every band below"
-   }
+    "eye_rim": "T6 galactic rim with 4 rim stellar sockets, optional; counts only with every band below",
+    "eye_rail": "T7 stability rail (tilted 8 deg) with 8 GRB Receptor Ports, groups rail-high / rail-low; optional, counts only with every band below",
+    "eye_halo": "T8 shard halo with 8 GRB Receptor Ports at the shard roots, group halo; optional, counts only with every band below"
+   },
+   "receptorGroups": "manifest.pieces.eye_rail / eye_halo .sockets.r[i].group: rail-high (the rail's +z half, raised by the 8 deg tilt), rail-low, halo"
   },
   "homogeny": {
    "mte": 28130,
@@ -843,6 +1201,348 @@
    "pieces": {
     "reality_refab": "the whole machine (one tier)"
    }
+  },
+  "quasar": {
+   "mte": 28120,
+   "controllerVoxel": [
+    0,
+    -15,
+    72
+   ],
+   "turns": 0,
+   "centre": {
+    "rel": [
+     0,
+     -15,
+     72
+    ]
+   },
+   "pieces": {
+    "quasar": "the whole machine; the hole, disc, jets and throats are render cells (skipped)"
+   },
+   "channels": {
+    "coil": {
+     "char": "H",
+     "tiers": [
+      "Infinity",
+      "Transcendent Metal",
+      "SpaceTime",
+      "MagMatter"
+     ],
+     "note": "Disc Field Coil T1-T4: b <= tier; mass caps 256 / 1,024 / 2,048 / 4,096 SM; every coil one tier"
+    }
+   },
+   "slots": {
+    "top": {
+     "portVoxel": [
+      0,
+      81,
+      0
+     ],
+     "portRel": [
+      0,
+      -96,
+      72
+     ],
+     "axisAbc": [
+      0,
+      -1,
+      0
+     ],
+     "crownControllerVoxel": [
+      12,
+      81,
+      0
+     ],
+     "crownControllerRel": [
+      12,
+      -96,
+      72
+     ],
+     "crownFacingAbc": [
+      1,
+      0,
+      0
+     ],
+     "crownFlippedVertically": false
+    },
+    "bottom": {
+     "portVoxel": [
+      0,
+      -81,
+      0
+     ],
+     "portRel": [
+      0,
+      66,
+      72
+     ],
+     "axisAbc": [
+      0,
+      1,
+      0
+     ],
+     "crownControllerVoxel": [
+      12,
+      -81,
+      0
+     ],
+     "crownControllerRel": [
+      12,
+      66,
+      72
+     ],
+     "crownFacingAbc": [
+      1,
+      0,
+      0
+     ],
+     "crownFlippedVertically": true
+    }
+   }
+  },
+  "crown": {
+   "mte": 28124,
+   "turns": 1,
+   "pieces": {
+    "crown_mk1": "Mk I (32 Bu/t)",
+    "crown_mk2": "Mk II (512 Bu/t)",
+    "crown_mk3": "Mk III (8,192 Bu/t)"
+   },
+   "channels": {
+    "crown": {
+     "pieces": [
+      "crown_mk1",
+      "crown_mk2",
+      "crown_mk3"
+     ],
+     "note": "alternative whole shapes (not additive); the Mk is the biggest that checks; the hologram builds the channel's Mk"
+    }
+   },
+   "intake": {
+    "crown_mk1": {
+     "rel": [
+      0,
+      0,
+      12
+     ],
+     "axisAbc": [
+      0,
+      -1,
+      0
+     ]
+    },
+    "crown_mk2": {
+     "rel": [
+      0,
+      0,
+      12
+     ],
+     "axisAbc": [
+      0,
+      -1,
+      0
+     ]
+    },
+    "crown_mk3": {
+     "rel": [
+      0,
+      0,
+      12
+     ],
+     "axisAbc": [
+      0,
+      -1,
+      0
+     ]
+    }
+   },
+   "stack": {
+    "crown_mk1": {
+     "rel": [
+      0,
+      -9,
+      0
+     ],
+     "sharedCells": 0
+    },
+    "crown_mk2": {
+     "rel": [
+      0,
+      -14,
+      0
+     ],
+     "sharedCells": 0
+    },
+    "crown_mk3": {
+     "rel": [
+      0,
+      -18,
+      0
+     ],
+     "sharedCells": 0
+    }
+   }
+  },
+  "conduit_mouth": {
+   "mte": 28121,
+   "turns": 3,
+   "pieces": {
+    "conduit_mouth": "one mouth; a pair is two mouths linked with a data stick"
+   },
+   "throats": [
+    {
+     "role": "throat (dock: on a jet axis; pair: emits along +normal)",
+     "radius": 15,
+     "centreVoxel": [
+      -44,
+      0,
+      0
+     ],
+     "centreRel": [
+      0,
+      -17,
+      5
+     ],
+     "normalAbc": [
+      0,
+      0,
+      1
+     ]
+    }
+   ]
+  },
+  "conduit_mirror": {
+   "mte": 28122,
+   "turns": 3,
+   "pieces": {
+    "conduit_mirror": "v1: the 90 deg corner; any facing"
+   },
+   "throats": [
+    {
+     "role": "in",
+     "radius": 4.2,
+     "centreVoxel": [
+      -16,
+      0,
+      0
+     ],
+     "centreRel": [
+      -2,
+      -5,
+      -11
+     ],
+     "normalAbc": [
+      0,
+      0,
+      -1
+     ]
+    },
+    {
+     "role": "out",
+     "radius": 4.2,
+     "centreVoxel": [
+      0,
+      0,
+      16
+     ],
+     "centreRel": [
+      14,
+      -5,
+      5
+     ],
+     "normalAbc": [
+      1,
+      0,
+      0
+     ]
+    }
+   ]
+  },
+  "conduit_junction": {
+   "mte": 28123,
+   "turns": 0,
+   "pieces": {
+    "conduit_junction": "split and combine are a GUI mode of the same building"
+   },
+   "throats": [
+    {
+     "role": "big: split in / combine out",
+     "radius": 9.6,
+     "centreVoxel": [
+      -45,
+      0,
+      0
+     ],
+     "centreRel": [
+      -45,
+      15,
+      0
+     ],
+     "normalAbc": [
+      -1,
+      0,
+      0
+     ]
+    },
+    {
+     "role": "out1 / in1 (0 deg)",
+     "radius": 6.8,
+     "centreVoxel": [
+      43,
+      0,
+      0
+     ],
+     "centreRel": [
+      43,
+      15,
+      0
+     ],
+     "normalAbc": [
+      1,
+      0,
+      0
+     ]
+    },
+    {
+     "role": "out2 / in2 (+60 deg)",
+     "radius": 6.8,
+     "centreVoxel": [
+      21.5,
+      0,
+      37.239
+     ],
+     "centreRel": [
+      22,
+      15,
+      -37
+     ],
+     "normalAbc": [
+      0.5,
+      0,
+      -0.866025
+     ]
+    },
+    {
+     "role": "out3 / in3 (-60 deg; split: the fixed GUI share off the top)",
+     "radius": 6.8,
+     "centreVoxel": [
+      21.5,
+      0,
+      -37.239
+     ],
+     "centreRel": [
+      22,
+      15,
+      37
+     ],
+     "normalAbc": [
+      0.5,
+      0,
+      0.866025
+     ]
+    }
+   ]
   }
  },
  "assembled": {
@@ -958,6 +1658,82 @@
    ],
    "size": "104x139x83",
    "blocks": 65187
+  },
+  "Eye T7": {
+   "pieces": [
+    "eye_core",
+    "eye_beam",
+    "eye_jet",
+    "eye_arms",
+    "eye_arms2",
+    "eye_rim",
+    "eye_rail"
+   ],
+   "size": "183x59x175",
+   "blocks": 67367
+  },
+  "Eye T8": {
+   "pieces": [
+    "eye_core",
+    "eye_beam",
+    "eye_jet",
+    "eye_arms",
+    "eye_arms2",
+    "eye_rim",
+    "eye_rail",
+    "eye_halo"
+   ],
+   "size": "196x73x218",
+   "blocks": 71076
+  },
+  "Quasar Engine": {
+   "pieces": [
+    "quasar"
+   ],
+   "size": "143x161x144",
+   "blocks": 51984
+  },
+  "Burst Thermaliser Crown Mk I": {
+   "pieces": [
+    "crown_mk1"
+   ],
+   "size": "33x17x33",
+   "blocks": 1835
+  },
+  "Burst Thermaliser Crown Mk II": {
+   "pieces": [
+    "crown_mk2"
+   ],
+   "size": "49x23x49",
+   "blocks": 2811
+  },
+  "Burst Thermaliser Crown Mk III": {
+   "pieces": [
+    "crown_mk3"
+   ],
+   "size": "65x29x65",
+   "blocks": 4422
+  },
+  "Wormhole Mouth": {
+   "pieces": [
+    "conduit_mouth"
+   ],
+   "size": "39x42x10",
+   "blocks": 1404
+  },
+  "Conduit Mirror": {
+   "pieces": [
+    "conduit_mirror"
+   ],
+   "size": "23x13x24",
+   "blocks": 1703
+  },
+  "Conduit Junction": {
+   "pieces": [
+    "conduit_junction"
+   ],
+   "size": "89x30x83",
+   "blocks": 17233
   }
  },
  "pieces": {
@@ -1050,7 +1826,7 @@
      "ch": "u",
      "count": 8,
      "role": "utility_socket",
-     "block": "BHC utility hatch MTEBlackHoleUtility (MetaTileEntityIDs.HATCH_BLACK_HOLE_UTILITY 3012, redstone hole-state output), optional, else fallback"
+     "block": "BHC utility hatch MTEBlackHoleUtility (MetaTileEntityIDs.HATCH_BLACK_HOLE_UTILITY 3012, redstone hole-state output), or a Directive Hatch (28127), or (P4, quasar-p4.md §3.1) a GRB Receptor Port (28125): the KEE's quasar link; optional, else fallback"
     },
     {
      "ch": "b",
@@ -1538,7 +2314,7 @@
      "ch": "u",
      "count": 8,
      "role": "utility_socket",
-     "block": "BHC utility hatch MTEBlackHoleUtility (MetaTileEntityIDs.HATCH_BLACK_HOLE_UTILITY 3012, redstone hole-state output), optional, else fallback"
+     "block": "BHC utility hatch MTEBlackHoleUtility (MetaTileEntityIDs.HATCH_BLACK_HOLE_UTILITY 3012, redstone hole-state output), or a Directive Hatch (28127), or (P4, quasar-p4.md §3.1) a GRB Receptor Port (28125): the KEE's quasar link; optional, else fallback"
     },
     {
      "ch": "b",
@@ -2329,7 +3105,7 @@
     },
     {
      "ch": "Q",
-     "count": 4704,
+     "count": 4699,
      "role": "plinth",
      "block": "Casings.ReinforcedTemporalStructureCasing (BA0:10)"
     },
@@ -2382,10 +3158,22 @@
      "block": "EyeHatchElement.Gas (MTEHatchInput, private -> H/He buffers), else fallback"
     },
     {
+     "ch": "d",
+     "count": 4,
+     "role": "directive_socket",
+     "block": "EyeHatchElement.Directive (MTEHatchDirective, MTE 28127; sets Field / Events / Transition / Slots / any, chosen in its GUI), else fallback"
+    },
+    {
      "ch": "o",
      "count": 2,
      "role": "me_output_socket",
      "block": "EyeHatchElement.Output (MTEHatchOutputBusME, MTEHatchOutputME), else fallback"
+    },
+    {
+     "ch": "p",
+     "count": 1,
+     "role": "slot_bus",
+     "block": "private Slot Bus element (an Input Bus, ME input bus included): planet items and companion star charts for planets mode / companions (T7+), else fallback"
     },
     {
      "ch": "~",
@@ -2401,14 +3189,86 @@
     }
    ],
    "socketCounts": {
+    "d": 4,
     "f": 8,
     "h": 5,
     "m": 1,
     "n": 8,
     "o": 2,
+    "p": 1,
     "~": 1
    },
    "sockets": {
+    "d": [
+     {
+      "abc": [
+       48,
+       49,
+       1
+      ],
+      "rel": [
+       -2,
+       -1,
+       1
+      ],
+      "voxel": [
+       -2,
+       -39,
+       39
+      ]
+     },
+     {
+      "abc": [
+       50,
+       49,
+       1
+      ],
+      "rel": [
+       0,
+       -1,
+       1
+      ],
+      "voxel": [
+       0,
+       -39,
+       39
+      ]
+     },
+     {
+      "abc": [
+       52,
+       49,
+       1
+      ],
+      "rel": [
+       2,
+       -1,
+       1
+      ],
+      "voxel": [
+       2,
+       -39,
+       39
+      ]
+     },
+     {
+      "abc": [
+       54,
+       49,
+       1
+      ],
+      "rel": [
+       4,
+       -1,
+       1
+      ],
+      "voxel": [
+       4,
+       -39,
+       39
+      ]
+     }
+    ],
     "f": [
      {
       "abc": [
@@ -2824,6 +3684,25 @@
        4,
        -40,
        40
+      ]
+     }
+    ],
+    "p": [
+     {
+      "abc": [
+       50,
+       51,
+       1
+      ],
+      "rel": [
+       0,
+       1,
+       1
+      ],
+      "voxel": [
+       0,
+       -41,
+       39
       ]
      }
     ],
@@ -3316,6 +4195,387 @@
    },
    "cellsKeptByEarlierPiece": 112
   },
+  "eye_rail": {
+   "machine": "eye",
+   "file": "structures/eye_rail.txt",
+   "w": 183,
+   "h": 31,
+   "d": 175,
+   "off": [
+    91,
+    57,
+    47
+   ],
+   "blocks": 15432,
+   "bom": [
+    {
+     "ch": "B",
+     "count": 9996,
+     "role": "rail_halo_shell",
+     "block": "slCasing:13 Bastion Plate (existing)"
+    },
+    {
+     "ch": "J",
+     "count": 3846,
+     "role": "band_lining",
+     "block": "Casings.InfiniteSpacetimeEnergyBoundaryCasing (BA0:12)"
+    },
+    {
+     "ch": "Z",
+     "count": 913,
+     "role": "glass_channel",
+     "block": "Casings.QuantumGlass (TecTech)"
+    },
+    {
+     "ch": "P",
+     "count": 669,
+     "role": "rail_trim",
+     "block": "slCasing:14 Casimir Plate (existing)"
+    },
+    {
+     "ch": "r",
+     "count": 8,
+     "role": "grb_receptor",
+     "block": "GRB Receptor Port (MTEHatchGRBReceptor, MTE 28125); its group is the manifest's sockets.r[i].group (match the hatch's offset from the controller), else fallback"
+    }
+   ],
+   "socketCounts": {
+    "r": 8
+   },
+   "sockets": {
+    "r": [
+     {
+      "abc": [
+       56,
+       4,
+       7
+      ],
+      "rel": [
+       -35,
+       -53,
+       -40
+      ],
+      "voxel": [
+       -35,
+       13,
+       80
+      ],
+      "group": "rail-high"
+     },
+     {
+      "abc": [
+       126,
+       4,
+       7
+      ],
+      "rel": [
+       35,
+       -53,
+       -40
+      ],
+      "voxel": [
+       35,
+       13,
+       80
+      ],
+      "group": "rail-high"
+     },
+     {
+      "abc": [
+       7,
+       10,
+       54
+      ],
+      "rel": [
+       -84,
+       -47,
+       7
+      ],
+      "voxel": [
+       -84,
+       7,
+       33
+      ],
+      "group": "rail-high"
+     },
+     {
+      "abc": [
+       175,
+       10,
+       54
+      ],
+      "rel": [
+       84,
+       -47,
+       7
+      ],
+      "voxel": [
+       84,
+       7,
+       33
+      ],
+      "group": "rail-high"
+     },
+     {
+      "abc": [
+       7,
+       20,
+       120
+      ],
+      "rel": [
+       -84,
+       -37,
+       73
+      ],
+      "voxel": [
+       -84,
+       -3,
+       -33
+      ],
+      "group": "rail-low"
+     },
+     {
+      "abc": [
+       175,
+       20,
+       120
+      ],
+      "rel": [
+       84,
+       -37,
+       73
+      ],
+      "voxel": [
+       84,
+       -3,
+       -33
+      ],
+      "group": "rail-low"
+     },
+     {
+      "abc": [
+       56,
+       26,
+       167
+      ],
+      "rel": [
+       -35,
+       -31,
+       120
+      ],
+      "voxel": [
+       -35,
+       -9,
+       -80
+      ],
+      "group": "rail-low"
+     },
+     {
+      "abc": [
+       126,
+       26,
+       167
+      ],
+      "rel": [
+       35,
+       -31,
+       120
+      ],
+      "voxel": [
+       35,
+       -9,
+       -80
+      ],
+      "group": "rail-low"
+     }
+    ]
+   },
+   "cellsKeptByEarlierPiece": 49
+  },
+  "eye_halo": {
+   "machine": "eye",
+   "file": "structures/eye_halo.txt",
+   "w": 196,
+   "h": 62,
+   "d": 218,
+   "off": [
+    98,
+    71,
+    71
+   ],
+   "blocks": 3709,
+   "bom": [
+    {
+     "ch": "B",
+     "count": 3355,
+     "role": "rail_halo_shell",
+     "block": "slCasing:13 Bastion Plate (existing)"
+    },
+    {
+     "ch": "Z",
+     "count": 346,
+     "role": "glass_channel",
+     "block": "Casings.QuantumGlass (TecTech)"
+    },
+    {
+     "ch": "r",
+     "count": 8,
+     "role": "grb_receptor",
+     "block": "GRB Receptor Port (MTEHatchGRBReceptor, MTE 28125); its group is the manifest's sockets.r[i].group (match the hatch's offset from the controller), else fallback"
+    }
+   ],
+   "socketCounts": {
+    "r": 8
+   },
+   "sockets": {
+    "r": [
+     {
+      "abc": [
+       121,
+       14,
+       25
+      ],
+      "rel": [
+       23,
+       -57,
+       -46
+      ],
+      "voxel": [
+       23,
+       17,
+       86
+      ],
+      "group": "halo"
+     },
+     {
+      "abc": [
+       65,
+       15,
+       28
+      ],
+      "rel": [
+       -33,
+       -56,
+       -43
+      ],
+      "voxel": [
+       -33,
+       16,
+       83
+      ],
+      "group": "halo"
+     },
+     {
+      "abc": [
+       170,
+       18,
+       54
+      ],
+      "rel": [
+       72,
+       -53,
+       -17
+      ],
+      "voxel": [
+       72,
+       13,
+       57
+      ],
+      "group": "halo"
+     },
+     {
+      "abc": [
+       20,
+       19,
+       61
+      ],
+      "rel": [
+       -78,
+       -52,
+       -10
+      ],
+      "voxel": [
+       -78,
+       12,
+       50
+      ],
+      "group": "halo"
+     },
+     {
+      "abc": [
+       175,
+       39,
+       162
+      ],
+      "rel": [
+       77,
+       -32,
+       91
+      ],
+      "voxel": [
+       77,
+       -8,
+       -51
+      ],
+      "group": "halo"
+     },
+     {
+      "abc": [
+       22,
+       39,
+       163
+      ],
+      "rel": [
+       -76,
+       -32,
+       92
+      ],
+      "voxel": [
+       -76,
+       -8,
+       -52
+      ],
+      "group": "halo"
+     },
+     {
+      "abc": [
+       132,
+       44,
+       194
+      ],
+      "rel": [
+       34,
+       -27,
+       123
+      ],
+      "voxel": [
+       34,
+       -13,
+       -83
+      ],
+      "group": "halo"
+     },
+     {
+      "abc": [
+       67,
+       44,
+       195
+      ],
+      "rel": [
+       -31,
+       -27,
+       124
+      ],
+      "voxel": [
+       -31,
+       -13,
+       -84
+      ],
+      "group": "halo"
+     }
+    ]
+   }
+  },
   "homog_t1": {
    "machine": "homogeny",
    "file": "structures/homog_t1.txt",
@@ -3625,8 +4885,8 @@
     {
      "ch": "g",
      "count": 3,
-     "role": "grb_port_reserved",
-     "block": "RESERVED for P4's GRB Receptor Port (28125); Galactic Shell Plating until then, so adding the port never un-forms a build"
+     "role": "grb_receptor",
+     "block": "GRB Receptor Port (MTE 28125): the quasar link (speed bonus, Entanglement Medium needs sigma >= 1), else fallback Galactic Shell Plating, so a build from before P4 stays formed"
     },
     {
      "ch": "h",
@@ -3879,8 +5139,8 @@
     {
      "ch": "g",
      "count": 6,
-     "role": "grb_port_reserved",
-     "block": "RESERVED for P4's GRB Receptor Port (28125); Region Deck Band until then, so adding the port never un-forms a build"
+     "role": "grb_receptor",
+     "block": "GRB Receptor Port (MTE 28125): region stability, speed x min(sigma, 1.5), else fallback Region Deck Band, so a build from before P4 stays formed"
     },
     {
      "ch": "e",
@@ -4495,6 +5755,1891 @@
      }
     ]
    }
+  },
+  "quasar": {
+   "machine": "quasar",
+   "file": "structures/quasar.txt",
+   "w": 143,
+   "h": 161,
+   "d": 144,
+   "off": [
+    71,
+    95,
+    0
+   ],
+   "blocks": 51984,
+   "bom": [
+    {
+     "ch": "E",
+     "count": 27815,
+     "role": "eddington_wall",
+     "block": "NEW Eddington Wall Casing"
+    },
+    {
+     "ch": "A",
+     "count": 10730,
+     "role": "cage_casing",
+     "block": "Casings.ExtremeDensitySpaceBendingCasing (GregTechAPI.sBlockCasings10:11, BHC; the Kerr family)"
+    },
+    {
+     "ch": "B",
+     "count": 6392,
+     "role": "cage_frame",
+     "block": "GTStructureUtility.ofFrame(Materials.NaquadahAlloy) (the Kerr's frame)"
+    },
+    {
+     "ch": "H",
+     "count": 3354,
+     "role": "disc_field_coil",
+     "block": "NEW Disc Field Coil T1-T4 (Infinity / Transcendent Metal / SpaceTime / MagMatter), ofBlocksTiered on channel 'coil'; every coil the same tier; the tier caps b and the hole's mass (256 / 1,024 / 2,048 / 4,096 SM)"
+    },
+    {
+     "ch": "G",
+     "count": 1528,
+     "role": "wall_glass",
+     "block": "Casings.QuantumGlass (TecTech)"
+    },
+    {
+     "ch": "T",
+     "count": 1352,
+     "role": "tank_wall",
+     "block": "Casings.BackgroundRadiationAbsorbentCasing (sBlockCasings10:12, BHC)"
+    },
+    {
+     "ch": "C",
+     "count": 596,
+     "role": "collimator",
+     "block": "NEW Jet Collimator Ring"
+    },
+    {
+     "ch": "I",
+     "count": 112,
+     "role": "rim_injector",
+     "block": "NEW Rim Gas Injector"
+    },
+    {
+     "ch": "P",
+     "count": 64,
+     "role": "casimir",
+     "block": "slCasing:14 Casimir Plate (existing)"
+    },
+    {
+     "ch": "h",
+     "count": 24,
+     "role": "gas_socket",
+     "block": "private Rim Gas Injector element: any Input Hatch, ME stocking included (buffered feed, quasar-p4.md §1.5), else fallback"
+    },
+    {
+     "ch": "c",
+     "count": 4,
+     "role": "burst_control_socket",
+     "block": "MTEHatchBurstControl (MTE 28126): purge on a rising edge, or b mode, set in its GUI, else fallback"
+    },
+    {
+     "ch": "t",
+     "count": 4,
+     "role": "trim_socket",
+     "block": "private Trim element: a plain Input Hatch ONLY (no ME stocking: D-49's rule), gas pulse / Spatially Enlarged Fluid, else fallback"
+    },
+    {
+     "ch": "e",
+     "count": 3,
+     "role": "energy_socket",
+     "block": "HatchElement.Energy / ExoticEnergy, else fallback"
+    },
+    {
+     "ch": "d",
+     "count": 2,
+     "role": "directive_socket",
+     "block": "MTEHatchDirective (MTE 28127), set Disc, else fallback"
+    },
+    {
+     "ch": "n",
+     "count": 2,
+     "role": "sensor_socket",
+     "block": "MTEHatchStellarFieldSensor (MTE 28116), quasar channels, else fallback"
+    },
+    {
+     "ch": "m",
+     "count": 1,
+     "role": "maintenance_socket",
+     "block": "HatchElement.Maintenance, else fallback"
+    },
+    {
+     "ch": "~",
+     "count": 1,
+     "role": "controller",
+     "block": "Quasar Engine controller (MTE 28120)"
+    }
+   ],
+   "socketCounts": {
+    "c": 4,
+    "d": 2,
+    "e": 3,
+    "h": 24,
+    "m": 1,
+    "n": 2,
+    "t": 4,
+    "~": 1
+   },
+   "sockets": {
+    "c": [
+     {
+      "abc": [
+       71,
+       0,
+       60
+      ],
+      "rel": [
+       0,
+       -95,
+       60
+      ],
+      "voxel": [
+       0,
+       80,
+       12
+      ]
+     },
+     {
+      "abc": [
+       71,
+       160,
+       60
+      ],
+      "rel": [
+       0,
+       65,
+       60
+      ],
+      "voxel": [
+       0,
+       -80,
+       12
+      ]
+     },
+     {
+      "abc": [
+       71,
+       0,
+       84
+      ],
+      "rel": [
+       0,
+       -95,
+       84
+      ],
+      "voxel": [
+       0,
+       80,
+       -12
+      ]
+     },
+     {
+      "abc": [
+       71,
+       160,
+       84
+      ],
+      "rel": [
+       0,
+       65,
+       84
+      ],
+      "voxel": [
+       0,
+       -80,
+       -12
+      ]
+     }
+    ],
+    "d": [
+     {
+      "abc": [
+       69,
+       97,
+       0
+      ],
+      "rel": [
+       -2,
+       2,
+       0
+      ],
+      "voxel": [
+       -2,
+       -17,
+       72
+      ]
+     },
+     {
+      "abc": [
+       73,
+       97,
+       0
+      ],
+      "rel": [
+       2,
+       2,
+       0
+      ],
+      "voxel": [
+       2,
+       -17,
+       72
+      ]
+     }
+    ],
+    "e": [
+     {
+      "abc": [
+       73,
+       95,
+       0
+      ],
+      "rel": [
+       2,
+       0,
+       0
+      ],
+      "voxel": [
+       2,
+       -15,
+       72
+      ]
+     },
+     {
+      "abc": [
+       74,
+       95,
+       0
+      ],
+      "rel": [
+       3,
+       0,
+       0
+      ],
+      "voxel": [
+       3,
+       -15,
+       72
+      ]
+     },
+     {
+      "abc": [
+       75,
+       95,
+       0
+      ],
+      "rel": [
+       4,
+       0,
+       0
+      ],
+      "voxel": [
+       4,
+       -15,
+       72
+      ]
+     }
+    ],
+    "h": [
+     {
+      "abc": [
+       62,
+       80,
+       5
+      ],
+      "rel": [
+       -9,
+       -15,
+       5
+      ],
+      "voxel": [
+       -9,
+       0,
+       67
+      ]
+     },
+     {
+      "abc": [
+       80,
+       80,
+       5
+      ],
+      "rel": [
+       9,
+       -15,
+       5
+      ],
+      "voxel": [
+       9,
+       0,
+       67
+      ]
+     },
+     {
+      "abc": [
+       45,
+       80,
+       9
+      ],
+      "rel": [
+       -26,
+       -15,
+       9
+      ],
+      "voxel": [
+       -26,
+       0,
+       63
+      ]
+     },
+     {
+      "abc": [
+       97,
+       80,
+       9
+      ],
+      "rel": [
+       26,
+       -15,
+       9
+      ],
+      "voxel": [
+       26,
+       0,
+       63
+      ]
+     },
+     {
+      "abc": [
+       30,
+       80,
+       18
+      ],
+      "rel": [
+       -41,
+       -15,
+       18
+      ],
+      "voxel": [
+       -41,
+       0,
+       54
+      ]
+     },
+     {
+      "abc": [
+       112,
+       80,
+       18
+      ],
+      "rel": [
+       41,
+       -15,
+       18
+      ],
+      "voxel": [
+       41,
+       0,
+       54
+      ]
+     },
+     {
+      "abc": [
+       17,
+       80,
+       31
+      ],
+      "rel": [
+       -54,
+       -15,
+       31
+      ],
+      "voxel": [
+       -54,
+       0,
+       41
+      ]
+     },
+     {
+      "abc": [
+       125,
+       80,
+       31
+      ],
+      "rel": [
+       54,
+       -15,
+       31
+      ],
+      "voxel": [
+       54,
+       0,
+       41
+      ]
+     },
+     {
+      "abc": [
+       8,
+       80,
+       46
+      ],
+      "rel": [
+       -63,
+       -15,
+       46
+      ],
+      "voxel": [
+       -63,
+       0,
+       26
+      ]
+     },
+     {
+      "abc": [
+       134,
+       80,
+       46
+      ],
+      "rel": [
+       63,
+       -15,
+       46
+      ],
+      "voxel": [
+       63,
+       0,
+       26
+      ]
+     },
+     {
+      "abc": [
+       4,
+       80,
+       63
+      ],
+      "rel": [
+       -67,
+       -15,
+       63
+      ],
+      "voxel": [
+       -67,
+       0,
+       9
+      ]
+     },
+     {
+      "abc": [
+       138,
+       80,
+       63
+      ],
+      "rel": [
+       67,
+       -15,
+       63
+      ],
+      "voxel": [
+       67,
+       0,
+       9
+      ]
+     },
+     {
+      "abc": [
+       4,
+       80,
+       81
+      ],
+      "rel": [
+       -67,
+       -15,
+       81
+      ],
+      "voxel": [
+       -67,
+       0,
+       -9
+      ]
+     },
+     {
+      "abc": [
+       138,
+       80,
+       81
+      ],
+      "rel": [
+       67,
+       -15,
+       81
+      ],
+      "voxel": [
+       67,
+       0,
+       -9
+      ]
+     },
+     {
+      "abc": [
+       8,
+       80,
+       98
+      ],
+      "rel": [
+       -63,
+       -15,
+       98
+      ],
+      "voxel": [
+       -63,
+       0,
+       -26
+      ]
+     },
+     {
+      "abc": [
+       134,
+       80,
+       98
+      ],
+      "rel": [
+       63,
+       -15,
+       98
+      ],
+      "voxel": [
+       63,
+       0,
+       -26
+      ]
+     },
+     {
+      "abc": [
+       17,
+       80,
+       113
+      ],
+      "rel": [
+       -54,
+       -15,
+       113
+      ],
+      "voxel": [
+       -54,
+       0,
+       -41
+      ]
+     },
+     {
+      "abc": [
+       125,
+       80,
+       113
+      ],
+      "rel": [
+       54,
+       -15,
+       113
+      ],
+      "voxel": [
+       54,
+       0,
+       -41
+      ]
+     },
+     {
+      "abc": [
+       30,
+       80,
+       126
+      ],
+      "rel": [
+       -41,
+       -15,
+       126
+      ],
+      "voxel": [
+       -41,
+       0,
+       -54
+      ]
+     },
+     {
+      "abc": [
+       112,
+       80,
+       126
+      ],
+      "rel": [
+       41,
+       -15,
+       126
+      ],
+      "voxel": [
+       41,
+       0,
+       -54
+      ]
+     },
+     {
+      "abc": [
+       45,
+       80,
+       135
+      ],
+      "rel": [
+       -26,
+       -15,
+       135
+      ],
+      "voxel": [
+       -26,
+       0,
+       -63
+      ]
+     },
+     {
+      "abc": [
+       97,
+       80,
+       135
+      ],
+      "rel": [
+       26,
+       -15,
+       135
+      ],
+      "voxel": [
+       26,
+       0,
+       -63
+      ]
+     },
+     {
+      "abc": [
+       62,
+       80,
+       139
+      ],
+      "rel": [
+       -9,
+       -15,
+       139
+      ],
+      "voxel": [
+       -9,
+       0,
+       -67
+      ]
+     },
+     {
+      "abc": [
+       80,
+       80,
+       139
+      ],
+      "rel": [
+       9,
+       -15,
+       139
+      ],
+      "voxel": [
+       9,
+       0,
+       -67
+      ]
+     }
+    ],
+    "m": [
+     {
+      "abc": [
+       69,
+       95,
+       0
+      ],
+      "rel": [
+       -2,
+       0,
+       0
+      ],
+      "voxel": [
+       -2,
+       -15,
+       72
+      ]
+     }
+    ],
+    "n": [
+     {
+      "abc": [
+       69,
+       93,
+       0
+      ],
+      "rel": [
+       -2,
+       -2,
+       0
+      ],
+      "voxel": [
+       -2,
+       -13,
+       72
+      ]
+     },
+     {
+      "abc": [
+       73,
+       93,
+       0
+      ],
+      "rel": [
+       2,
+       -2,
+       0
+      ],
+      "voxel": [
+       2,
+       -13,
+       72
+      ]
+     }
+    ],
+    "t": [
+     {
+      "abc": [
+       25,
+       105,
+       26
+      ],
+      "rel": [
+       -46,
+       10,
+       26
+      ],
+      "voxel": [
+       -46,
+       -25,
+       46
+      ]
+     },
+     {
+      "abc": [
+       117,
+       105,
+       26
+      ],
+      "rel": [
+       46,
+       10,
+       26
+      ],
+      "voxel": [
+       46,
+       -25,
+       46
+      ]
+     },
+     {
+      "abc": [
+       25,
+       105,
+       118
+      ],
+      "rel": [
+       -46,
+       10,
+       118
+      ],
+      "voxel": [
+       -46,
+       -25,
+       -46
+      ]
+     },
+     {
+      "abc": [
+       117,
+       105,
+       118
+      ],
+      "rel": [
+       46,
+       10,
+       118
+      ],
+      "voxel": [
+       46,
+       -25,
+       -46
+      ]
+     }
+    ],
+    "~": [
+     {
+      "abc": [
+       71,
+       95,
+       0
+      ],
+      "rel": [
+       0,
+       0,
+       0
+      ],
+      "voxel": [
+       0,
+       -15,
+       72
+      ]
+     }
+    ]
+   }
+  },
+  "crown_mk1": {
+   "machine": "crown",
+   "file": "structures/crown_mk1.txt",
+   "w": 33,
+   "h": 17,
+   "d": 33,
+   "off": [
+    16,
+    16,
+    4
+   ],
+   "blocks": 1835,
+   "bom": [
+    {
+     "ch": "R",
+     "count": 643,
+     "role": "radiator_petal",
+     "block": "NEW Radiator Petal"
+    },
+    {
+     "ch": "A",
+     "count": 488,
+     "role": "base_casing",
+     "block": "Casings.ExtremeDensitySpaceBendingCasing (sBlockCasings10:11, BHC)"
+    },
+    {
+     "ch": "F",
+     "count": 404,
+     "role": "thermaliser",
+     "block": "NEW Burst Thermaliser Casing"
+    },
+    {
+     "ch": "C",
+     "count": 297,
+     "role": "collimator",
+     "block": "NEW Jet Collimator Ring"
+    },
+    {
+     "ch": "m",
+     "count": 1,
+     "role": "maintenance_socket",
+     "block": "HatchElement.Maintenance, else fallback"
+    },
+    {
+     "ch": "~",
+     "count": 1,
+     "role": "controller",
+     "block": "Burst Thermaliser Crown controller (MTE 28124); Mk I/II/III = which of crown_mk1/2/3 checks (channel 'crown')"
+    },
+    {
+     "ch": "r",
+     "count": 1,
+     "role": "grb_receptor",
+     "block": "GRB Receptor Port (MTE 28125): a conduit can feed a remote crown, else fallback"
+    }
+   ],
+   "socketCounts": {
+    "m": 1,
+    "r": 1,
+    "~": 1
+   },
+   "sockets": {
+    "m": [
+     {
+      "abc": [
+       16,
+       16,
+       28
+      ],
+      "rel": [
+       0,
+       0,
+       24
+      ],
+      "voxel": [
+       -12,
+       -30,
+       0
+      ]
+     }
+    ],
+    "r": [
+     {
+      "abc": [
+       4,
+       16,
+       16
+      ],
+      "rel": [
+       -12,
+       0,
+       12
+      ],
+      "voxel": [
+       0,
+       -30,
+       12
+      ]
+     }
+    ],
+    "~": [
+     {
+      "abc": [
+       16,
+       16,
+       4
+      ],
+      "rel": [
+       0,
+       0,
+       0
+      ],
+      "voxel": [
+       12,
+       -30,
+       0
+      ]
+     }
+    ]
+   }
+  },
+  "crown_mk2": {
+   "machine": "crown",
+   "file": "structures/crown_mk2.txt",
+   "w": 49,
+   "h": 23,
+   "d": 49,
+   "off": [
+    24,
+    22,
+    12
+   ],
+   "blocks": 2811,
+   "bom": [
+    {
+     "ch": "R",
+     "count": 1428,
+     "role": "radiator_petal",
+     "block": "NEW Radiator Petal"
+    },
+    {
+     "ch": "F",
+     "count": 536,
+     "role": "thermaliser",
+     "block": "NEW Burst Thermaliser Casing"
+    },
+    {
+     "ch": "A",
+     "count": 472,
+     "role": "base_casing",
+     "block": "Casings.ExtremeDensitySpaceBendingCasing (sBlockCasings10:11, BHC)"
+    },
+    {
+     "ch": "C",
+     "count": 372,
+     "role": "collimator",
+     "block": "NEW Jet Collimator Ring"
+    },
+    {
+     "ch": "m",
+     "count": 1,
+     "role": "maintenance_socket",
+     "block": "HatchElement.Maintenance, else fallback"
+    },
+    {
+     "ch": "~",
+     "count": 1,
+     "role": "controller",
+     "block": "Burst Thermaliser Crown controller (MTE 28124); Mk I/II/III = which of crown_mk1/2/3 checks (channel 'crown')"
+    },
+    {
+     "ch": "r",
+     "count": 1,
+     "role": "grb_receptor",
+     "block": "GRB Receptor Port (MTE 28125): a conduit can feed a remote crown, else fallback"
+    }
+   ],
+   "socketCounts": {
+    "m": 1,
+    "r": 1,
+    "~": 1
+   },
+   "sockets": {
+    "m": [
+     {
+      "abc": [
+       24,
+       22,
+       36
+      ],
+      "rel": [
+       0,
+       0,
+       24
+      ],
+      "voxel": [
+       -12,
+       -30,
+       0
+      ]
+     }
+    ],
+    "r": [
+     {
+      "abc": [
+       12,
+       22,
+       24
+      ],
+      "rel": [
+       -12,
+       0,
+       12
+      ],
+      "voxel": [
+       0,
+       -30,
+       12
+      ]
+     }
+    ],
+    "~": [
+     {
+      "abc": [
+       24,
+       22,
+       12
+      ],
+      "rel": [
+       0,
+       0,
+       0
+      ],
+      "voxel": [
+       12,
+       -30,
+       0
+      ]
+     }
+    ]
+   }
+  },
+  "crown_mk3": {
+   "machine": "crown",
+   "file": "structures/crown_mk3.txt",
+   "w": 65,
+   "h": 29,
+   "d": 65,
+   "off": [
+    32,
+    28,
+    20
+   ],
+   "blocks": 4422,
+   "bom": [
+    {
+     "ch": "R",
+     "count": 2803,
+     "role": "radiator_petal",
+     "block": "NEW Radiator Petal"
+    },
+    {
+     "ch": "F",
+     "count": 692,
+     "role": "thermaliser",
+     "block": "NEW Burst Thermaliser Casing"
+    },
+    {
+     "ch": "A",
+     "count": 472,
+     "role": "base_casing",
+     "block": "Casings.ExtremeDensitySpaceBendingCasing (sBlockCasings10:11, BHC)"
+    },
+    {
+     "ch": "C",
+     "count": 452,
+     "role": "collimator",
+     "block": "NEW Jet Collimator Ring"
+    },
+    {
+     "ch": "m",
+     "count": 1,
+     "role": "maintenance_socket",
+     "block": "HatchElement.Maintenance, else fallback"
+    },
+    {
+     "ch": "~",
+     "count": 1,
+     "role": "controller",
+     "block": "Burst Thermaliser Crown controller (MTE 28124); Mk I/II/III = which of crown_mk1/2/3 checks (channel 'crown')"
+    },
+    {
+     "ch": "r",
+     "count": 1,
+     "role": "grb_receptor",
+     "block": "GRB Receptor Port (MTE 28125): a conduit can feed a remote crown, else fallback"
+    }
+   ],
+   "socketCounts": {
+    "m": 1,
+    "r": 1,
+    "~": 1
+   },
+   "sockets": {
+    "m": [
+     {
+      "abc": [
+       32,
+       28,
+       44
+      ],
+      "rel": [
+       0,
+       0,
+       24
+      ],
+      "voxel": [
+       -12,
+       -30,
+       0
+      ]
+     }
+    ],
+    "r": [
+     {
+      "abc": [
+       20,
+       28,
+       32
+      ],
+      "rel": [
+       -12,
+       0,
+       12
+      ],
+      "voxel": [
+       0,
+       -30,
+       12
+      ]
+     }
+    ],
+    "~": [
+     {
+      "abc": [
+       32,
+       28,
+       20
+      ],
+      "rel": [
+       0,
+       0,
+       0
+      ],
+      "voxel": [
+       12,
+       -30,
+       0
+      ]
+     }
+    ]
+   }
+  },
+  "conduit_mouth": {
+   "machine": "conduit_mouth",
+   "file": "structures/conduit_mouth.txt",
+   "w": 39,
+   "h": 42,
+   "d": 10,
+   "off": [
+    19,
+    39,
+    0
+   ],
+   "blocks": 1404,
+   "bom": [
+    {
+     "ch": "A",
+     "count": 413,
+     "role": "outer_rings",
+     "block": "Casings.ReinforcedTemporalStructureCasing (TecTech EOH; ruling 1)"
+    },
+    {
+     "ch": "E",
+     "count": 412,
+     "role": "throat_shell",
+     "block": "Casings.ReinforcedSpatialStructureCasing (TecTech EOH; quasar-p4.md §6.2: conduit shells)"
+    },
+    {
+     "ch": "C",
+     "count": 392,
+     "role": "collimator",
+     "block": "NEW Jet Collimator Ring"
+    },
+    {
+     "ch": "P",
+     "count": 144,
+     "role": "casimir",
+     "block": "slCasing:14 Casimir Plate (existing)"
+    },
+    {
+     "ch": "I",
+     "count": 32,
+     "role": "fuel_injector",
+     "block": "NEW Rim Gas Injector"
+    },
+    {
+     "ch": "u",
+     "count": 8,
+     "role": "fuel_socket",
+     "block": "private Throat Fuel element: any Input Hatch, ME stocking included (Molten SpaceTime before T7, Ergomatter after), else fallback"
+    },
+    {
+     "ch": "e",
+     "count": 1,
+     "role": "energy_socket",
+     "block": "HatchElement.Energy, optional (no EU upkeep is specified), else fallback"
+    },
+    {
+     "ch": "~",
+     "count": 1,
+     "role": "controller",
+     "block": "Wormhole Mouth controller (MTE 28121)"
+    },
+    {
+     "ch": "m",
+     "count": 1,
+     "role": "maintenance_socket",
+     "block": "HatchElement.Maintenance, else fallback"
+    }
+   ],
+   "socketCounts": {
+    "e": 1,
+    "m": 1,
+    "u": 8,
+    "~": 1
+   },
+   "sockets": {
+    "e": [
+     {
+      "abc": [
+       17,
+       39,
+       0
+      ],
+      "rel": [
+       -2,
+       0,
+       0
+      ],
+      "voxel": [
+       -49,
+       -17,
+       -2
+      ]
+     }
+    ],
+    "m": [
+     {
+      "abc": [
+       21,
+       39,
+       0
+      ],
+      "rel": [
+       2,
+       0,
+       0
+      ],
+      "voxel": [
+       -49,
+       -17,
+       2
+      ]
+     }
+    ],
+    "u": [
+     {
+      "abc": [
+       11,
+       3,
+       5
+      ],
+      "rel": [
+       -8,
+       -36,
+       5
+      ],
+      "voxel": [
+       -44,
+       19,
+       -8
+      ]
+     },
+     {
+      "abc": [
+       27,
+       3,
+       5
+      ],
+      "rel": [
+       8,
+       -36,
+       5
+      ],
+      "voxel": [
+       -44,
+       19,
+       8
+      ]
+     },
+     {
+      "abc": [
+       0,
+       14,
+       5
+      ],
+      "rel": [
+       -19,
+       -25,
+       5
+      ],
+      "voxel": [
+       -44,
+       8,
+       -19
+      ]
+     },
+     {
+      "abc": [
+       38,
+       14,
+       5
+      ],
+      "rel": [
+       19,
+       -25,
+       5
+      ],
+      "voxel": [
+       -44,
+       8,
+       19
+      ]
+     },
+     {
+      "abc": [
+       0,
+       30,
+       5
+      ],
+      "rel": [
+       -19,
+       -9,
+       5
+      ],
+      "voxel": [
+       -44,
+       -8,
+       -19
+      ]
+     },
+     {
+      "abc": [
+       38,
+       30,
+       5
+      ],
+      "rel": [
+       19,
+       -9,
+       5
+      ],
+      "voxel": [
+       -44,
+       -8,
+       19
+      ]
+     },
+     {
+      "abc": [
+       11,
+       41,
+       5
+      ],
+      "rel": [
+       -8,
+       2,
+       5
+      ],
+      "voxel": [
+       -44,
+       -19,
+       -8
+      ]
+     },
+     {
+      "abc": [
+       27,
+       41,
+       5
+      ],
+      "rel": [
+       8,
+       2,
+       5
+      ],
+      "voxel": [
+       -44,
+       -19,
+       8
+      ]
+     }
+    ],
+    "~": [
+     {
+      "abc": [
+       19,
+       39,
+       0
+      ],
+      "rel": [
+       0,
+       0,
+       0
+      ],
+      "voxel": [
+       -49,
+       -17,
+       0
+      ]
+     }
+    ]
+   }
+  },
+  "conduit_mirror": {
+   "machine": "conduit_mirror",
+   "file": "structures/conduit_mirror.txt",
+   "w": 23,
+   "h": 13,
+   "d": 24,
+   "off": [
+    8,
+    11,
+    11
+   ],
+   "blocks": 1703,
+   "bom": [
+    {
+     "ch": "E",
+     "count": 1071,
+     "role": "housing",
+     "block": "Casings.ReinforcedSpatialStructureCasing (TecTech EOH)"
+    },
+    {
+     "ch": "P",
+     "count": 422,
+     "role": "casimir",
+     "block": "slCasing:14 Casimir Plate (existing)"
+    },
+    {
+     "ch": "A",
+     "count": 128,
+     "role": "throat_rings",
+     "block": "Casings.ReinforcedTemporalStructureCasing (TecTech EOH)"
+    },
+    {
+     "ch": "M",
+     "count": 63,
+     "role": "mirror",
+     "block": "slCasing:1 Superradiant Mirror Casing (existing, the Kerr's)"
+    },
+    {
+     "ch": "C",
+     "count": 16,
+     "role": "collimator",
+     "block": "NEW Jet Collimator Ring"
+    },
+    {
+     "ch": "m",
+     "count": 1,
+     "role": "maintenance_socket",
+     "block": "HatchElement.Maintenance, else fallback"
+    },
+    {
+     "ch": "~",
+     "count": 1,
+     "role": "controller",
+     "block": "Conduit Mirror controller (MTE 28122)"
+    },
+    {
+     "ch": "u",
+     "count": 1,
+     "role": "fuel_socket",
+     "block": "private Throat Fuel element: any Input Hatch, ME stocking included, else fallback"
+    }
+   ],
+   "socketCounts": {
+    "m": 1,
+    "u": 1,
+    "~": 1
+   },
+   "sockets": {
+    "m": [
+     {
+      "abc": [
+       6,
+       11,
+       11
+      ],
+      "rel": [
+       -2,
+       0,
+       0
+      ],
+      "voxel": [
+       -5,
+       -5,
+       0
+      ]
+     }
+    ],
+    "u": [
+     {
+      "abc": [
+       12,
+       6,
+       22
+      ],
+      "rel": [
+       4,
+       -5,
+       11
+      ],
+      "voxel": [
+       6,
+       0,
+       6
+      ]
+     }
+    ],
+    "~": [
+     {
+      "abc": [
+       8,
+       11,
+       11
+      ],
+      "rel": [
+       0,
+       0,
+       0
+      ],
+      "voxel": [
+       -5,
+       -5,
+       2
+      ]
+     }
+    ]
+   }
+  },
+  "conduit_junction": {
+   "machine": "conduit_junction",
+   "file": "structures/conduit_junction.txt",
+   "w": 89,
+   "h": 30,
+   "d": 83,
+   "off": [
+    45,
+    0,
+    41
+   ],
+   "blocks": 17233,
+   "bom": [
+    {
+     "ch": "E",
+     "count": 8647,
+     "role": "chamber_shell",
+     "block": "Casings.ReinforcedSpatialStructureCasing (TecTech EOH)"
+    },
+    {
+     "ch": "P",
+     "count": 7145,
+     "role": "casimir",
+     "block": "slCasing:14 Casimir Plate (existing)"
+    },
+    {
+     "ch": "C",
+     "count": 648,
+     "role": "collimator",
+     "block": "NEW Jet Collimator Ring"
+    },
+    {
+     "ch": "A",
+     "count": 488,
+     "role": "throat_rings",
+     "block": "Casings.ReinforcedTemporalStructureCasing (TecTech EOH)"
+    },
+    {
+     "ch": "G",
+     "count": 294,
+     "role": "chamber_glass",
+     "block": "Casings.QuantumGlass (TecTech)"
+    },
+    {
+     "ch": "u",
+     "count": 6,
+     "role": "fuel_socket",
+     "block": "private Throat Fuel element: any Input Hatch, ME stocking included (one leg in use = one throat's upkeep), else fallback"
+    },
+    {
+     "ch": "c",
+     "count": 2,
+     "role": "burst_control_socket",
+     "block": "MTEHatchBurstControl (MTE 28126): the split's analog level s; the second is spare (a future out-3 control), else fallback"
+    },
+    {
+     "ch": "e",
+     "count": 1,
+     "role": "energy_socket",
+     "block": "HatchElement.Energy, optional (no EU upkeep is specified), else fallback"
+    },
+    {
+     "ch": "~",
+     "count": 1,
+     "role": "controller",
+     "block": "Conduit Junction controller (MTE 28123); split / combine is a GUI mode, the building is the same"
+    },
+    {
+     "ch": "m",
+     "count": 1,
+     "role": "maintenance_socket",
+     "block": "HatchElement.Maintenance, else fallback"
+    }
+   ],
+   "socketCounts": {
+    "c": 2,
+    "e": 1,
+    "m": 1,
+    "u": 6,
+    "~": 1
+   },
+   "sockets": {
+    "c": [
+     {
+      "abc": [
+       45,
+       0,
+       39
+      ],
+      "rel": [
+       0,
+       0,
+       -2
+      ],
+      "voxel": [
+       0,
+       15,
+       2
+      ]
+     },
+     {
+      "abc": [
+       45,
+       0,
+       43
+      ],
+      "rel": [
+       0,
+       0,
+       2
+      ],
+      "voxel": [
+       0,
+       15,
+       -2
+      ]
+     }
+    ],
+    "e": [
+     {
+      "abc": [
+       43,
+       0,
+       41
+      ],
+      "rel": [
+       -2,
+       0,
+       0
+      ],
+      "voxel": [
+       -2,
+       15,
+       0
+      ]
+     }
+    ],
+    "m": [
+     {
+      "abc": [
+       47,
+       0,
+       41
+      ],
+      "rel": [
+       2,
+       0,
+       0
+      ],
+      "voxel": [
+       2,
+       15,
+       0
+      ]
+     }
+    ],
+    "u": [
+     {
+      "abc": [
+       45,
+       15,
+       26
+      ],
+      "rel": [
+       0,
+       15,
+       -15
+      ],
+      "voxel": [
+       0,
+       0,
+       15
+      ]
+     },
+     {
+      "abc": [
+       35,
+       15,
+       30
+      ],
+      "rel": [
+       -10,
+       15,
+       -11
+      ],
+      "voxel": [
+       -10,
+       0,
+       11
+      ]
+     },
+     {
+      "abc": [
+       58,
+       15,
+       34
+      ],
+      "rel": [
+       13,
+       15,
+       -7
+      ],
+      "voxel": [
+       13,
+       0,
+       7
+      ]
+     },
+     {
+      "abc": [
+       58,
+       15,
+       49
+      ],
+      "rel": [
+       13,
+       15,
+       8
+      ],
+      "voxel": [
+       13,
+       0,
+       -8
+      ]
+     },
+     {
+      "abc": [
+       35,
+       15,
+       52
+      ],
+      "rel": [
+       -10,
+       15,
+       11
+      ],
+      "voxel": [
+       -10,
+       0,
+       -11
+      ]
+     },
+     {
+      "abc": [
+       45,
+       15,
+       56
+      ],
+      "rel": [
+       0,
+       15,
+       15
+      ],
+      "voxel": [
+       0,
+       0,
+       -15
+      ]
+     }
+    ],
+    "~": [
+     {
+      "abc": [
+       45,
+       0,
+       41
+      ],
+      "rel": [
+       0,
+       0,
+       0
+      ],
+      "voxel": [
+       0,
+       15,
+       0
+      ]
+     }
+    ]
+   }
   }
  },
  "checks": [
@@ -4509,11 +7654,20 @@
   "ok   eye_arms: no '~' (anchored by off 47,44,28, outside its own box)",
   "ok   eye_arms2: no '~' (anchored by off 67,44,1, outside its own box)",
   "ok   eye_rim: no '~' (anchored by off 78,42,34, outside its own box)",
+  "ok   eye_rail: no '~' (anchored by off 91,57,47, outside its own box)",
+  "ok   eye_halo: no '~' (anchored by off 98,71,71, outside its own box)",
   "ok   homog_t1: one controller '~' at off 24,35,2",
   "ok   homog_t2: no '~' (anchored by off 48,8,22, outside its own box)",
   "ok   homog_t3: no '~' (anchored by off 69,30,31, outside its own box)",
   "ok   reality_diffraction: one controller '~' at off 51,97,0",
   "ok   reality_refab: one controller '~' at off 51,137,19",
+  "ok   quasar: one controller '~' at off 71,95,0",
+  "ok   crown_mk1: one controller '~' at off 16,16,4",
+  "ok   crown_mk2: one controller '~' at off 24,22,12",
+  "ok   crown_mk3: one controller '~' at off 32,28,20",
+  "ok   conduit_mouth: one controller '~' at off 19,39,0",
+  "ok   conduit_mirror: one controller '~' at off 8,11,11",
+  "ok   conduit_junction: one controller '~' at off 45,0,41",
   "ok   kerr_t1: off resolves to the machine's controller cell",
   "ok   kerr_t2: off resolves to the machine's controller cell",
   "ok   kerr_compressor: off resolves to the machine's controller cell",
@@ -4525,11 +7679,20 @@
   "ok   eye_arms: off resolves to the machine's controller cell",
   "ok   eye_arms2: off resolves to the machine's controller cell",
   "ok   eye_rim: off resolves to the machine's controller cell",
+  "ok   eye_rail: off resolves to the machine's controller cell",
+  "ok   eye_halo: off resolves to the machine's controller cell",
   "ok   homog_t1: off resolves to the machine's controller cell",
   "ok   homog_t2: off resolves to the machine's controller cell",
   "ok   homog_t3: off resolves to the machine's controller cell",
   "ok   reality_diffraction: off resolves to the machine's controller cell",
   "ok   reality_refab: off resolves to the machine's controller cell",
+  "ok   quasar: off resolves to the machine's controller cell",
+  "ok   crown_mk1: off resolves to the machine's controller cell",
+  "ok   crown_mk2: off resolves to the machine's controller cell",
+  "ok   crown_mk3: off resolves to the machine's controller cell",
+  "ok   conduit_mouth: off resolves to the machine's controller cell",
+  "ok   conduit_mirror: off resolves to the machine's controller cell",
+  "ok   conduit_junction: off resolves to the machine's controller cell",
   "ok   kerr_compressor: the controller's front face is open air in the Kerr T1 build",
   "ok   kerr_extractor: the controller's front face is open air in the Kerr T1 build",
   "ok   kerr_compressor: the controller's front face is open air in the Kerr T2 build",
@@ -4546,16 +7709,29 @@
   "ok   eye_core and eye_arms share no cell",
   "ok   eye_core and eye_arms2 share no cell",
   "ok   eye_core and eye_rim share no cell",
+  "ok   eye_core and eye_rail share no cell",
+  "ok   eye_core and eye_halo share no cell",
   "ok   eye_beam and eye_jet share no cell",
   "ok   eye_beam and eye_arms share no cell",
   "ok   eye_beam and eye_arms2 share no cell",
   "ok   eye_beam and eye_rim share no cell",
+  "ok   eye_beam and eye_rail share no cell",
+  "ok   eye_beam and eye_halo share no cell",
   "ok   eye_jet and eye_arms share no cell",
   "ok   eye_jet and eye_arms2 share no cell",
   "ok   eye_jet and eye_rim share no cell",
+  "ok   eye_jet and eye_rail share no cell",
+  "ok   eye_jet and eye_halo share no cell",
   "ok   eye_arms and eye_arms2 share no cell",
   "ok   eye_arms and eye_rim share no cell",
+  "ok   eye_arms and eye_rail share no cell",
+  "ok   eye_arms and eye_halo share no cell",
   "ok   eye_arms2 and eye_rim share no cell",
+  "ok   eye_arms2 and eye_rail share no cell",
+  "ok   eye_arms2 and eye_halo share no cell",
+  "ok   eye_rim and eye_rail share no cell",
+  "ok   eye_rim and eye_halo share no cell",
+  "ok   eye_rail and eye_halo share no cell",
   "ok   homog_t1 and homog_t2 share no cell",
   "ok   homog_t1 and homog_t3 share no cell",
   "ok   homog_t2 and homog_t3 share no cell",
@@ -4575,6 +7751,15 @@
   "ok   Homogeny T3 assembled box 145x70x130 (W x H x D, spec 145x70x130)",
   "ok   Reality Diffraction assembled box 103x101x85 (W x H x D, spec 103x101x85)",
   "ok   Reality Refab assembled box 104x139x83 (W x H x D, spec 104x139x83)",
+  "ok   Eye T7 assembled box 183x59x175 (W x H x D, spec 183x59x175)",
+  "ok   Eye T8 assembled box 196x73x218 (W x H x D, spec 196x73x218)",
+  "ok   Quasar Engine assembled box 143x161x144 (W x H x D, spec 143x161x144)",
+  "ok   Burst Thermaliser Crown Mk I assembled box 33x17x33 (W x H x D, spec 33x17x33)",
+  "ok   Burst Thermaliser Crown Mk II assembled box 49x23x49 (W x H x D, spec 49x23x49)",
+  "ok   Burst Thermaliser Crown Mk III assembled box 65x29x65 (W x H x D, spec 65x29x65)",
+  "ok   Wormhole Mouth assembled box 39x42x10 (W x H x D, spec 39x42x10)",
+  "ok   Conduit Mirror assembled box 23x13x24 (W x H x D, spec 23x13x24)",
+  "ok   Conduit Junction assembled box 89x30x83 (W x H x D, spec 89x30x83)",
   "ok   Kerr T1 + modules: every socket has an outside-reachable face",
   "ok   Kerr T2 + modules: every socket has an outside-reachable face",
   "ok   Eye T1: every socket has an outside-reachable face",
@@ -4584,7 +7769,40 @@
   "ok   Homogeny T2: every socket has an outside-reachable face",
   "ok   Homogeny T3: every socket has an outside-reachable face",
   "ok   Reality Diffraction: every socket has an outside-reachable face",
-  "ok   Reality Refab: every socket has an outside-reachable face"
+  "ok   Reality Refab: every socket has an outside-reachable face",
+  "ok   Eye T8: every socket has an outside-reachable face",
+  "ok   Quasar Engine: every socket has an outside-reachable face",
+  "ok   crown_mk1: every socket has an outside-reachable face",
+  "ok   crown_mk2: every socket has an outside-reachable face",
+  "ok   crown_mk3: every socket has an outside-reachable face",
+  "ok   conduit_mouth: every socket has an outside-reachable face",
+  "ok   conduit_mirror: every socket has an outside-reachable face",
+  "ok   conduit_junction: every socket has an outside-reachable face",
+  "ok   eye_core: 4 Directive sockets 'd' and 1 slot bus 'p' (on plinth face cells)",
+  "ok   eye_rail / eye_halo: 8 GRB Receptor Ports 'r' each (8 / 8)",
+  "ok   eye_rail: 4 receptors on the high half (z > 0) and 4 on the low half (4 / 4)",
+  "ok   eye_core: p socket at voxel 0,-41,39 sits in the plinth face (deck behind or below it)",
+  "ok   eye_core: d socket at voxel -2,-39,39 sits in the plinth face (deck behind or below it)",
+  "ok   eye_core: d socket at voxel 0,-39,39 sits in the plinth face (deck behind or below it)",
+  "ok   eye_core: d socket at voxel 2,-39,39 sits in the plinth face (deck behind or below it)",
+  "ok   eye_core: d socket at voxel 4,-39,39 sits in the plinth face (deck behind or below it)",
+  "ok   quasar: the controller's front face (voxel 0,0,1) is open air (turns 0)",
+  "ok   crown_mk1: the controller's front face (voxel 1,0,0) is open air (turns 1)",
+  "ok   crown_mk2: the controller's front face (voxel 1,0,0) is open air (turns 1)",
+  "ok   crown_mk3: the controller's front face (voxel 1,0,0) is open air (turns 1)",
+  "ok   conduit_mouth: the controller's front face (voxel -1,0,0) is open air (turns 3)",
+  "ok   conduit_mirror: the controller's front face (voxel -1,0,0) is open air (turns 3)",
+  "ok   conduit_junction: the controller's front face (voxel 0,0,1) is open air (turns 0)",
+  "ok   crown_mk1 docked on the top port: touches the quasar in 0 cells, seats 271 cells on the cap",
+  "ok   crown_mk1 docked on the bottom port: touches the quasar in 0 cells, seats 271 cells on the cap",
+  "ok   crown_mk2 docked on the top port: touches the quasar in 0 cells, seats 271 cells on the cap",
+  "ok   crown_mk2 docked on the bottom port: touches the quasar in 0 cells, seats 271 cells on the cap",
+  "ok   crown_mk3 docked on the top port: touches the quasar in 0 cells, seats 271 cells on the cap",
+  "ok   crown_mk3 docked on the bottom port: touches the quasar in 0 cells, seats 271 cells on the cap",
+  "ok   quasar: the 4 cap-rim Burst Control sockets keep an open face with Mk III crowns docked on both ports (0 sealed)",
+  "ok   crown_mk1: a second crown stacked at core top - 2 (dy 9) shares 0 cells with the first",
+  "ok   crown_mk2: a second crown stacked at core top - 2 (dy 14) shares 0 cells with the first",
+  "ok   crown_mk3: a second crown stacked at core top - 2 (dy 18) shares 0 cells with the first"
  ],
  "notes": [
   "kerr: 40 cells drawn by kerr_core then by kerr_compressor; the later piece owns them",
@@ -4594,6 +7812,7 @@
   "eye_arms: 84 cells written over an earlier piece in the mockup ({\"arm1\":40,\"arm0\":44}); the earlier piece keeps them",
   "eye_arms2: 73 cells written over an earlier piece in the mockup ({\"arm3\":36,\"arm2\":37}); the earlier piece keeps them",
   "eye_rim: 112 cells written over an earlier piece in the mockup ({\"rim\":104,\"clamp\":8}); the earlier piece keeps them",
+  "eye_rail: 49 cells written over an earlier piece in the mockup ({\"clamp\":49}); the earlier piece keeps them",
   "homog_t2: 30 cells written over an earlier tier in the mockup; the earlier piece keeps them",
   "homog_t3: 45 cells written over an earlier tier in the mockup; the earlier piece keeps them"
  ]
