@@ -6,6 +6,7 @@ import com.nateyburr.beyondthestars.items.BTSItems;
 import com.nateyburr.beyondthestars.items.SLItems;
 import com.nateyburr.beyondthestars.machines.BTSMachines;
 
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLLoadCompleteEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
@@ -27,7 +28,12 @@ public class CommonProxy {
         BeyondTheStars.LOG.info("GTNH: Beyond the Stars " + Tags.VERSION + " loading.");
     }
 
-    public void init(FMLInitializationEvent event) {}
+    public void init(FMLInitializationEvent event) {
+        // AUTOMATION PASS: OpenComputers components, only with OpenComputers present (soft dependency).
+        if (Loader.isModLoaded("OpenComputers")) {
+            com.nateyburr.beyondthestars.integration.oc.BTSOpenComputers.register();
+        }
+    }
 
     public void postInit(FMLPostInitializationEvent event) {
         // GT registers its own recipes in postInit; required-after:gregtech orders ours after.

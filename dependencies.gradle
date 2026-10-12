@@ -39,6 +39,10 @@ dependencies {
     api("com.github.GTNewHorizons:GT5-Unofficial:5.09.54.205:dev")
     api("com.github.GTNewHorizons:StructureLib:1.4.45:dev")
 
+    // AUTOMATION PASS: OpenComputers is a SOFT dependency (P4 Q-20): its API jar at compile time only, never shipped or
+    // required; integration/oc is loaded only when Loader.isModLoaded("OpenComputers"). 1.12.61 is the 2.9.0 line.
+    compileOnly("com.github.GTNewHorizons:OpenComputers:1.12.61-GTNH:api") { transitive = false }
+
     // Dev-run only (runClient/runServer), never published. The addon references none of these classes at compile time:
     // the coremod carries the BHC controller recipe and the 64-BHC circuit array that BTSRecipeRemovals rewrites,
     // BetterQuesting is reached by reflection (BQBridge), BlockRenderer6343 is the NEI multiblock preview.
