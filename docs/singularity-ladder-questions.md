@@ -2012,6 +2012,72 @@ never logged (B-38 item 3); the code cited "PROPOSED (B-38)" for the dwarf-matte
 **Suggestion.** Accept 1-10. Re-check 1 and 6 after playing T5 / T6: with 6, each failed First Cooling spends
 18,432 L of WDM without asking.
 
+### B-64 BEC expansion: the Condensate Assembler takes the ladder's parts, cores and charts [BEC expansion, ruling 11b, built]
+
+**Context.** Ruling 11b: "we need way more things in the bose einstein". Built exactly per
+designs/docs/bec-expansion-proposal.md (build spec §2.5, costs doc §11): six addon condensates with Condensate
+Generator recipes (SL-B10..B15) and 20 Condensate Assembler recipes (SL-B20..B81). SL-B01..B04 (ruling 11a's x32 and
+its fallbacks) were already on master and are unchanged. Compile-checked (`spotlessApply compileJava`); not yet booted
+on a dev server or seen in NEI (see "Not verified" below).
+
+**Your 14 proposal questions, all taken as recommended:**
+
+| # | Question | Built |
+|---|---|---|
+| Q-B1 | The cores and the Density Upgrade lose their research steps (BEC recipes have none) | Accepted: SL-E02..E06, SL-K04 and SL-P21's scans are gone |
+| Q-B2 | Galactic Shell Plating | SL-P17 (Assembler, HSM: the T4 gate) stays; SL-B62 (x64, needs WDM) is a batch alternative for the T5/T6 bands |
+| Q-B3 | Harmonic Lining | SL-B34 (x64) added as an alternative; SL-P12 stays (Kerr T1 is pre-BEC) |
+| Q-B4 | x32 makes the casings 8x cheaper pack-wide | Accepted (ruled "regardless of flags") |
+| Q-B5 | 48 Neutronium nanites per Spatial/Temporal craft | Accepted as RC-2's economics; not rewritten |
+| Q-B6 | Magnetar Matter condensate (SL-B16) | Deferred: not registered here. The Homogeny/Reality branch registers `btsentangledmagnetar` with its first consumers, same name, so the two merge cleanly |
+| Q-B7 | SL-P29 (Boundary x8) | Unchanged |
+| Q-B8 | A config switch for BEC routes | None: the old recipes are automatic fallbacks only |
+| Q-B9 | Kerr T2 needs the BEC network | Accepted (Kerr T2 already needs Eye T1, which needs the BEC) |
+| Q-B10 | Our condensates are not in the Diode's "filters from input hatches" mode (GT maps its 19 enum types only) | Accepted; manual filter slots take any fluid |
+| Q-B11 | Stellar Field Sensor Hatch in the BEC | Included (SL-B22) |
+| Q-B12 | Metamaterial Film, Intergalactic / Homogeny cores | Not now; SL-B90+ reserved |
+| Q-B13 | Generator tiers | RSM 30 s UIV, ESPM 60 s UMV, HSM 90 s UMV, WDM 120 s UXV, BDM 150 s UXV, Agent 60 s UMV |
+| Q-B14 | WDM in the Magnetar Seed Core | Added: 256 ingots (36,864 L), the merger's white dwarf |
+
+**Judgement calls in the build:**
+
+1. **The safety net counts what GT kept.** GT's `addTo` returns an empty list (and logs) when it rejects a recipe, which
+   the guard used to count as "registered". `BTSRecipesBEC` throws on an empty `addTo`, so a rejected BEC recipe is a
+   skip and its old recipe registers. The skip still appears in the boot summary ("N registered, 1 SKIPPED") even
+   though the part stays craftable, so a pack change is visible. A condensate whose generator recipe fails makes every
+   recipe that needs it skip and fall back, so no recipe can ask for a condensate nothing makes.
+2. **Where the old bodies live.** Moved verbatim into `BTSRecipesBEC` as `legacyXnn()` methods; `BTSRecipesSingularity`,
+   `BTSRecipesEye` (now only SL-E01) and `BTSRecipesKerr` keep a one-line comment where each recipe was.
+   `BTSRecipesEye.denseSpaceTime` is package scope now (shared).
+3. **Stacks above 64** (e.g. Harmonic Lining's 72 Neutronium plates, dense-plate fallbacks) are split into 64-stacks
+   that share the slot's nanite tier, so the nanite array always matches the item array (GT's map throws otherwise).
+4. **Condensate names**: `btsentangledstarmatter`, `btsentangledexcitedplasma`, `btsentangledhyperdense`,
+   `btsentangledwhitedwarf`, `btsentangledblackdwarf`, `btsentangledantipolarization` (frozen once shipped). Their
+   display names contain the gate-audit fragments ("raw star matter", "white dwarf" ...), so `/btseye gates` would
+   catch any of them in a compression generator.
+5. **Tooltips (rule 14).** The five cores, the six charts, the Stabiliser Pylon and the Kerr Density Upgrade say
+   "Crafted in the Condensate Assembler (Bose-Einstein Condensate)" and with which condensate; the Pylon, the Density
+   Upgrade and the Sol / Sirius A / Arcturus charts switched to the tooltip item class to show it (the item class is
+   not saved in worlds). The questbook branch should mention the BEC route on the Eye T1 and Kerr T2 quests.
+6. **Costs doc section** is §11 (the proposal said §10, which D-49 took).
+7. **Rule 17 (Superdense Ergomatter)**: master's code, lang and docs had no "Supermassive Ergomatter" left (grep), so
+   nothing to rename here. **Rule 19 (loop fixes)**: none of these recipes uses Magnetar Matter or Ergomatter, so
+   neither fix applies; the UXV parts in SL-B70/B80 (Field Generator, Emitter, Sensor UXV, UXV circuits) are the same GT
+   parts SL-E05/E06 already used.
+
+**Gate audit.** Clean by construction (proposal §5.7): Eye T1 parts have no Raw Star Matter, no Boundless Cosmic
+Solder and nanites at most Transcendent; each later part uses only products of the tier below (a transition core
+also its own tier's); White Dwarf nanites first appear in the T4 -> T5 core, Black Dwarf in the T5 -> T6 core. No
+compression generator recipe changed.
+
+**Not verified (needs a dev-server boot):** the boot log should show 6 generator recipes, 20 assembler recipes, no
+"was skipped; its old recipe" lines, 0 skipped; NEI's Condensate Generator page should list the six fluids and the
+Condensate Assembler page SL-B20..B81 with their nanite tiers; a scripted craft of SL-B21 (Sol chart) on a dev network,
+and SL-B40 without Raw Star Matter condensate failing at the end with "missing condensate".
+
+**Suggestion.** Accept as built. Watch the Density Upgrade's 4M L of Raw Star Matter condensate in play: it is the
+largest single BEC bill in the ladder (the same Raw Star Matter as SL-K04 asked for, now through a Condensate Generator).
+
 ---
 
 ## Part C. Settled (for the record)

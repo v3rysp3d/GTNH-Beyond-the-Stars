@@ -103,6 +103,27 @@ the coremod's BHC entries on every bump.
 
 ## What's in the build (2026-10-12, addon 457bbf8)
 
+### BEC expansion (ruling 11b, 2026-10-13)
+
+Much more of the ladder now runs through RC-2's Bose-Einstein Condensate system (designs/docs/bec-expansion-proposal.md,
+all 14 open questions as recommended; §2.5 below; costs doc §11; question B-64):
+
+- **Six addon condensates** (`fluids/SLCondensates`): Entangled Raw Star Matter, Excited Stellar Plasma, Hyperdense
+  Stellar Mixture, White Dwarf Matter, Black Dwarf Matter, Antipolarization Agent. Each is one fluid plus one Condensate
+  Generator recipe (SL-B10..B15); the BEC network is fluid-generic, so they store, travel and feed nodes like GT's own.
+- **20 Condensate Assembler recipes** (SL-B20..B81, `BTSRecipesBEC`): the Stabiliser Pylon, all six star charts, the
+  Stellar Field Sensor Hatch, all five transition cores (Stellar Mass, Shell-Burning, Galactic Upgrade, Subspace
+  Cooling, Magnetar Seed), the Kerr Density Upgrade, Bastion Plate x64, Casimir Plate x16, Beam Band Casing x32, Jet
+  Crescent Casing x32, plus batch alternatives Harmonic Lining x64 and Galactic Shell Plating x64. Each core and chart
+  keeps its gate fluid (now as condensate).
+- **Retired** from their old files: SL-P15, P16, P18, P19, P21-P25, P35, P37, SL-E02..E07, SL-K04 (SL-P27/P28 were
+  already retired by SL-B01/B02). Each lives on in `BTSRecipesBEC` only as the **fallback** that registers if its BEC
+  replacement is skipped, so no part can become uncraftable. The cores lose their research steps (BEC recipes have none).
+- Kerr T1 is untouched (pre-BEC); controllers stay assembly lines; SL-P12 and SL-P17 stay next to their alternatives.
+- Tooltips on the cores, charts, Pylon and Density Upgrade say "Crafted in the Condensate Assembler" and with which
+  condensate.
+
+
 ### D-49: the Eye's star lifecycle (units 1-6, 2026-10-13)
 
 This block supersedes the Eye rows below where they differ. Plan: [`d49-build-plan.md`](d49-build-plan.md); judgement
@@ -450,16 +471,16 @@ Eye reaches it): Q-3.
 | SL-P12 | Harmonic Lining ×4 (Kerr only, round-4 ruling) | ASM | plate Neutronium ×6, foil Infinity ×8, plate TranscendentMetal ×1 | Infinity molten 576 | RECIPE_UIV | 600 |
 | SL-P13 | Spatial Glass Channel ×4 | ASM | IC2 reinforced glass ×4 (`GTModHandler.getIC2Item("reinforcedGlass", 4)` through `nn`), foil SpaceTime ×8, Emitter_UIV ×1 | SpaceTime molten 144 | RECIPE_UIV | 600 |
 | SL-P14 | Ergosphere Extraction Casing ×2 | ASM | plateDense Neutronium ×2, frameGt SpaceTime ×1, Electric_Piston_UIV ×1 (was a pump, cost audit #14) | SpaceTime molten 288 | RECIPE_UIV | 800 |
-| SL-P15 | Beam Band Casing ×16 (was ×4, cost audit #8) | ASM | EOH_Reinforced_Spatial_Casing ×1, Beam Focusing Quadrupole ×1, Emitter_UMV ×2, plateDense SpaceTime ×4 | SpaceTime molten 9,216 | RECIPE_UMV | 1,800 |
-| SL-P16 | Jet Crescent Casing ×16 (was ×4, cost audit #9) | ASM | EOH_Reinforced_Temporal_Casing ×1, Ergosphere Field Coil ×2, plateDense Infinity ×8, Emitter_UMV ×2, ingot SpaceTime ×32 | RawStarMatter 64,000 (4,000 per block, as before) | RECIPE_UMV | 2,400 |
+| SL-P15 | *BEC expansion: now **SL-B40** (§2.5); this row is only its fallback.* Beam Band Casing ×16 (was ×4, cost audit #8) | ASM | EOH_Reinforced_Spatial_Casing ×1, Beam Focusing Quadrupole ×1, Emitter_UMV ×2, plateDense SpaceTime ×4 | SpaceTime molten 9,216 | RECIPE_UMV | 1,800 |
+| SL-P16 | *BEC expansion: now **SL-B51** (§2.5); this row is only its fallback.* Jet Crescent Casing ×16 (was ×4, cost audit #9) | ASM | EOH_Reinforced_Temporal_Casing ×1, Ergosphere Field Coil ×2, plateDense Infinity ×8, Emitter_UMV ×2, ingot SpaceTime ×32 | RawStarMatter 64,000 (4,000 per block, as before) | RECIPE_UMV | 2,400 |
 | SL-P17 | Galactic Shell Plating ×16 (was ×2, cost audit #10) | ASM | plateDense Infinity ×8, frameGt TranscendentMetal ×2, plate CosmicNeutronium ×8, ingot TranscendentMetal ×16 | **HSM 250** (was 1,000 per 2) | RECIPE_UMV | 800 |
-| SL-P18 | Bastion Plate ×4 | ASM | plateDense Neutronium ×6, plate TranscendentMetal ×2, frameGt Infinity ×1 | Infinity molten 2,304 | RECIPE_UMV | 1,200 |
-| SL-P19 | Casimir Plate ×4 | ASM | plate Neutronium ×8, foil SpaceTime ×16 | SpaceTime molten 576 | RECIPE_UMV | 1,200 |
-| SL-P21 | Stabiliser Pylon (item) | AL (research: Star Chart: Sol, Q-36) | Eye Shell Casing ×32, Harmonic Lining ×16, Field_Generator_UMV ×8, frameGt Neutronium ×16, circuit UMV ×8, plateDense Neutronium ×16, Containment Deck Plating ×16 | SpaceTime molten 36,864 (was 147,456, cost audit #12), Super Coolant 500,000 | RECIPE_UMV ×4 | 18,000 |
-| SL-P22 | Star Chart: Sol | ASM | Tool_DataOrb ×1, circuit UMV ×1, plate Infinity ×4 | SpaceTime molten 144 | RECIPE_UMV | 200 |
-| SL-P23 | Star Chart: Sirius A | ASM | Tool_DataOrb ×1, circuit UMV ×1, plateDense SpaceTime ×1 | RSPM 10,000 | RECIPE_UMV | 200 |
-| SL-P24 | Star Chart: Arcturus | ASM | Tool_DataOrb ×1, circuit UMV ×1, plate TranscendentMetal ×4 | ESPM 1,000 | RECIPE_UMV | 200 |
-| SL-P25 | Star Chart: Sirius B | ASM | Tool_DataOrb ×1, circuit UMV ×1, Galactic Shell Plating ×1 | HSM 1,000 | RECIPE_UMV | 200 |
+| SL-P18 | *BEC expansion: now **SL-B32** (§2.5); this row is only its fallback.* Bastion Plate ×4 | ASM | plateDense Neutronium ×6, plate TranscendentMetal ×2, frameGt Infinity ×1 | Infinity molten 2,304 | RECIPE_UMV | 1,200 |
+| SL-P19 | *BEC expansion: now **SL-B33** (§2.5); this row is only its fallback.* Casimir Plate ×4 | ASM | plate Neutronium ×8, foil SpaceTime ×16 | SpaceTime molten 576 | RECIPE_UMV | 1,200 |
+| SL-P21 | *BEC expansion: now **SL-B20** (§2.5); this row is only its fallback.* Stabiliser Pylon (item) | AL (research: Star Chart: Sol, Q-36) | Eye Shell Casing ×32, Harmonic Lining ×16, Field_Generator_UMV ×8, frameGt Neutronium ×16, circuit UMV ×8, plateDense Neutronium ×16, Containment Deck Plating ×16 | SpaceTime molten 36,864 (was 147,456, cost audit #12), Super Coolant 500,000 | RECIPE_UMV ×4 | 18,000 |
+| SL-P22 | *BEC expansion: now **SL-B21** (§2.5); this row is only its fallback.* Star Chart: Sol | ASM | Tool_DataOrb ×1, circuit UMV ×1, plate Infinity ×4 | SpaceTime molten 144 | RECIPE_UMV | 200 |
+| SL-P23 | *BEC expansion: now **SL-B41** (§2.5); this row is only its fallback.* Star Chart: Sirius A | ASM | Tool_DataOrb ×1, circuit UMV ×1, plateDense SpaceTime ×1 | RSPM 10,000 | RECIPE_UMV | 200 |
+| SL-P24 | *BEC expansion: now **SL-B52** (§2.5); this row is only its fallback.* Star Chart: Arcturus | ASM | Tool_DataOrb ×1, circuit UMV ×1, plate TranscendentMetal ×4 | ESPM 1,000 | RECIPE_UMV | 200 |
+| SL-P25 | *BEC expansion: now **SL-B61** (§2.5); this row is only its fallback.* Star Chart: Sirius B | ASM | Tool_DataOrb ×1, circuit UMV ×1, Galactic Shell Plating ×1 | HSM 1,000 | RECIPE_UMV | 200 |
 | SL-P26 | Star Chart: Sirius B, Cooled (interim) | ASM | Star Chart: Sirius B ×1, circuit UMV ×1 | Super Coolant 64,000 | RECIPE_UMV | 200 |
 | SL-P27 | *retired by ruling 11a* (was Reinforced Spatial Structure Casing ×4 in the Assembler): RC-2's Condensate Assembler recipe outputs ×32 instead (SL-B01) | | | | | |
 | SL-P28 | *retired by ruling 11a* (was Reinforced Temporal Structure Casing ×4): RC-2's Condensate Assembler recipe outputs ×32 instead (SL-B02) | | | | | |
@@ -487,7 +508,7 @@ notes it in the commit.
 | SL-K01 | Kerr Ergosphere Engine (controller, MTE base+14). **Re-priced in the RC-2 port at BHC-controller parity** (B-30, costs doc §9). The card's recipe was plateDense SpaceTime ×32, frameGt SpaceTime ×32, FG/Emitter/Sensor UIV ×16, circuit UIV ×32, Mirror Segment ×8, Rail Mk I ×16, Seed ×8, TM screw ×64, Field Coil ×16, Deck ×32; SpaceTime 294,912, TM 147,456, Super Coolant 1,000,000; 18,000 ticks | AL (research: Black_Hole_Opener) | Machine_Multi_HIPCompressor ×1, Machine_Multi_NeutroniumCompressor ×1, AdvancedImplosionCompressor ×16, CompressorUIV ×8, ElectricImplosionCompressor ×4, Field_Generator_UEV ×4, circuit UIV ×4, Black_Hole_Opener ×1, Superradiant Mirror Segment ×1, Ergosphere Field Coil ×4, Extreme Density Space-Bending Casing ×1, plateSuperdense Neutronium ×16 / Naquadria ×16 / CosmicNeutronium ×8, screw TranscendentMetal ×16 | SpaceTime molten 2,304, SuperconductorUIVBase molten 43,200, Infinity molten 14,400, Super Coolant 64,000 | RECIPE_UIV | 3,600 |
 | SL-K02 | Kerr Compressor Module (block) | AL (research: Kerr controller) | Electric_Piston_UIV ×32, Field_Generator_UIV ×8, circuit UIV ×16, plateDense Neutronium ×32, Black_Hole_Opener ×4, gearGt SpaceTime ×16 | SpaceTime molten 73,728, Super Coolant 500,000 | RECIPE_UIV | 12,000 |
 | SL-K03 | Kerr Extractor Module (block) | AL (research: Extraction Casing, Q-36) | Electric_Piston_UIV ×32 (was pumps, cost audit #14), Field_Generator_UIV ×8, circuit UIV ×16, plateDense Neutronium ×32, Beam Focusing Quadrupole ×4, pipeHuge Neutronium ×16 | SpaceTime molten 73,728, Super Coolant 500,000 | RECIPE_UIV | 12,000 |
-| SL-K04 | Kerr Density Upgrade (item) | AL (research: Bastion Plate, Q-36) | Bastion Plate ×64, Bastion Plate ×64, plateDense Infinity ×64, Field_Generator_UMV ×32, circuit UMV ×32, Ergosphere Field Coil ×32, Black_Hole_Opener ×32 (was Black_Hole_Stabilizer ×1, which nothing crafts; cost audit #1, B-21), Bolt Injector Rail Mk III ×16 | RawStarMatter 4,000,000, SpaceTime molten 589,824, ExcitedDTEC 128,000 | RECIPE_UMV ×4 | 36,000 |
+| SL-K04 | *BEC expansion: now **SL-B31** (§2.5); this row is only its fallback.* Kerr Density Upgrade (item) | AL (research: Bastion Plate, Q-36) | Bastion Plate ×64, Bastion Plate ×64, plateDense Infinity ×64, Field_Generator_UMV ×32, circuit UMV ×32, Ergosphere Field Coil ×32, Black_Hole_Opener ×32 (was Black_Hole_Stabilizer ×1, which nothing crafts; cost audit #1, B-21), Bolt Injector Rail Mk III ×16 | RawStarMatter 4,000,000, SpaceTime molten 589,824, ExcitedDTEC 128,000 | RECIPE_UMV ×4 | 36,000 |
 | SL-K05 | HSM 1,000 L | `beyondthestars.recipe.kerrdensity` (new, section 3.1) | bolt Neutronium ×64 | RHSP 10,000, SpaceTime molten 288 | RECIPE_UMV | 400 |
 
 The Kerr's other maps are GT's own (`compressorRecipes`, `neutroniumCompressorRecipes`, `extractorRecipes`), so it
@@ -498,10 +519,78 @@ adds no recipes there. SL-K06 (a Kerr-only "Ergosphere Extraction" map) is retir
 | ID | Output | Map | Item inputs | Fluids | EU | Ticks |
 |---|---|---|---|---|---|---|
 | SL-E01 | Eye of Harmony (controller, MTE base+15) | AL (research: Stabiliser Pylon, Q-36) | EOH_Reinforced_Spatial_Casing ×64, EOH_Reinforced_Temporal_Casing ×64, SpacetimeCompressionFieldGeneratorTier0 ×1, TimeAccelerationFieldGeneratorTier0 ×1, StabilisationFieldGeneratorTier0 ×1 (Tier0 since the review fix pass, Q-32), circuit UMV ×64, Field_Generator_UMV ×32, plateDense SpaceTime ×64, Eye Shell Casing ×64, Harmonic Lining ×64, Stabiliser Pylon ×6, Containment Deck Plating ×64 | SpaceTime molten 294,912 (was 1,179,648, cost audit #12), ExcitedDTEC 256,000, Infinity molten 589,824 | RECIPE_UMV ×4 | 36,000 |
-| SL-E02 | Galactic Upgrade Core | AL (research: Eye controller) | Galactic Shell Plating ×64, Field_Generator_UMV ×32, circuit UMV ×64, Casimir Plate ×32, plateDense SpaceTime ×32, Emitter_UMV ×16 | **HSM 32,000** (was 256,000, cost audit #11), SpaceTime molten 147,456, TranscendentMetal molten 147,456 | RECIPE_UMV ×4 | 48,000 |
+| SL-E02 | *BEC expansion: now **SL-B60** (§2.5); this row is only its fallback.* Galactic Upgrade Core | AL (research: Eye controller) | Galactic Shell Plating ×64, Field_Generator_UMV ×32, circuit UMV ×64, Casimir Plate ×32, plateDense SpaceTime ×32, Emitter_UMV ×16 | **HSM 32,000** (was 256,000, cost audit #11), SpaceTime molten 147,456, TranscendentMetal molten 147,456 | RECIPE_UMV ×4 | 48,000 |
 
 The Eye's process recipes (SL-E1x) are **not** GT recipe-map recipes; they are section 3.3's registry, shown in NEI
 through a display-only map `beyondthestars.recipe.eye` built with `.fake()` like `BTSDisplayRecipes`.
+
+### 2.5 BEC recipes: `BTSRecipesBEC.java` (BEC expansion, ruling 11b)
+
+Map for SL-B20..B81: `TecTechRecipeMaps.condensateAssemblingRecipes` (maxIO 16 items / 1 out / 4 condensates).
+Nanite tiers are given per item slot in brackets (1 Carbon, 2 Silver, 3 Gold, 4 Transcendent, 5 Six-Phased Copper,
+6 White Dwarf, 7 Black Dwarf); the map needs exactly one per item stack, and `BTSRecipesBEC.s(...)` copies a slot's tier
+onto every stack it expands to (dense-plate fallbacks, stacks above 64). "ing" = ingots of condensate (144 L). Times
+are seconds (BEC durations are nanite-time: they shrink with the nanites in the Assembler). EU/t is constant.
+Nanites are catalysts in the Assembler's Nanite Hatch, not consumed.
+
+**Condensates (SL-B10..B15)**, map `TecTechRecipeMaps.condensateGeneratorRecipes`, source -> the same amount:
+
+| ID | Fluid (registry name) | Source (unit) | Time, EU/t | First stage |
+|---|---|---|---|---|
+| SL-B10 | Entangled Raw Star Matter (`btsentangledstarmatter`) | Raw Star Matter 1,000 L | 30 s, UIV | Eye T1 output |
+| SL-B11 | Entangled Excited Stellar Plasma (`btsentangledexcitedplasma`) | ESPM 1,000 L | 60 s, UMV | Eye T2 |
+| SL-B12 | Entangled Hyperdense Stellar Mixture (`btsentangledhyperdense`) | HSM 1,000 L | 90 s, UMV | Kerr T2 densify (Eye T3's RHSP) |
+| SL-B13 | Entangled White Dwarf Matter (`btsentangledwhitedwarf`) | molten WDM 144 L | 120 s, UXV | Eye T4 |
+| SL-B14 | Entangled Black Dwarf Matter (`btsentangledblackdwarf`) | molten BDM 144 L | 150 s, UXV | Eye T5 |
+| SL-B15 | Entangled Antipolarization Agent (`btsentangledantipolarization`) | Agent 1,000 L | 60 s, UMV | pre-Eye chemistry |
+| SL-B16 | *reserved*: Entangled Magnetar Matter (`btsentangledmagnetar`, registered by the Homogeny/Reality work) | | | Eye T6 |
+
+If GT already condenses a source fluid (a future `CondensateType`), our generator recipe is skipped and the recipes
+use GT's fluid. Amounts keep GT's half-unit rule (multiples of 500 L / 72 L). If a generator recipe fails, every
+recipe needing that condensate is skipped and falls back.
+
+**Condensate Assembler recipes:**
+
+| ID | Output | Items [nanite tier] | Condensates | Time, EU/t | Replaces |
+|---|---|---|---|---|---|
+| SL-B20 | Stabiliser Pylon | Reinforced Spatial 32 [4], Reinforced Temporal 16 [4], Boundary 16 [3], FG UMV 8 [3], frame Neutronium 16 [1], circuit UMV 8 [2], dense Neutronium 16 [1], MM Field Manipulator I 4 [4], MM Shielding I 8 [2] | SpaceTime 256 ing, Neutronium 64 ing, Space 16 ing, Time 16 ing | 1,800 s, UMV | SL-P21 |
+| SL-B21 | Star Chart: Sol | Data Orb [1], circuit UMV [2], plate Infinity 4 [1], MM Sensor Array I [3] | SpaceTime 1 ing | 120 s, UMV | SL-P22 |
+| SL-B22 | Stellar Field Sensor Hatch | Hull UMV [2], Sensor UMV 2 [3], MM Sensor Array I [4], circuit UMV 2 [2], plate SpaceTime 4 [1] | SpaceTime 4 ing | 60 s, UMV | SL-E07 |
+| SL-B30 | Stellar Mass Core | Beam Band 32 [2], FG UMV 16 [3], circuit UMV 32 [2], dense SpaceTime 16 [1], Emitter UMV 8 [3], Stellar Ignition Charge 16 [4], MM Energy Conduit I 4 [3] | **Raw Star Matter 256,000 L**, SpaceTime 256 ing, Infinity 512 ing | 2,400 s, UMV | SL-E03 |
+| SL-B31 | Kerr Density Upgrade | Bastion 64 [1], Bastion 64 [1], dense Infinity 64 [1], FG UMV 32 [3], circuit UMV 32 [2], Field Coil 32 [2], Black Hole Seed 32 [4], Rail Mk III 16 [3], MM Field Manipulator I 8 [4], MM Electrogravitic Valve I 8 [3] | **Raw Star Matter 4,000,000 L**, SpaceTime 4,096 ing, Space 64 ing | 3,600 s, 4x UMV | SL-K04 |
+| SL-B32 | Bastion Plate x64 | dense Neutronium 64 [1] + 32 [1], plate TM 32 [2], frame Infinity 16 [2], MM Shielding I 4 [3] | Infinity 256 ing | 2,400 s, UMV | SL-P18 |
+| SL-B33 | Casimir Plate x16 | plate Neutronium 32 [1], foil SpaceTime 64 [2], MM Field Manipulator I 2 [4], MM Waveguide I 2 [3] | SpaceTime 16 ing, Space 8 ing | 600 s, UMV | SL-P19 |
+| SL-B34 | Harmonic Lining x64 (alternative) | plate Neutronium 72 [1], foil Infinity 96 [1], plate TM 12 [2], MM Shielding I 2 [3] | Infinity 64 ing | 1,800 s, UMV | none: SL-P12 stays |
+| SL-B40 | Beam Band Casing x32 | Reinforced Spatial 2 [4], Quadrupole 2 [3], Emitter UMV 4 [3], dense SpaceTime 8 [1], MM Waveguide I 2 [3] | SpaceTime 128 ing, **Raw Star Matter 4,000 L** | 3,600 s, UMV | SL-P15 |
+| SL-B41 | Star Chart: Sirius A | Data Orb [1], circuit UMV [2], dense SpaceTime 1 [1], MM Sensor Array I [3] | **Raw Star Matter 10,000 L**, SpaceTime 1 ing | 120 s, UMV | SL-P23 |
+| SL-B50 | Shell-Burning Core | Jet Crescent 32 [2], FG UMV 24 [3], circuit UMV 48 [2], Field Coil 16 [2], dense SpaceTime 24 [1], Emitter UMV 12 [3], MM Resonance Chamber II 4 [5], MM Wave Focus I 4 [4] | **ESPM 128,000 L**, SpaceTime 512 ing, TM 512 ing | 3,600 s, 2x UMV | SL-E04 |
+| SL-B51 | Jet Crescent Casing x32 | Reinforced Temporal 2 [4], Field Coil 4 [2], dense Infinity 16 [1], Emitter UMV 4 [3], MM Wave Focus I 2 [3] | **Raw Star Matter 128,000 L**, SpaceTime 64 ing, ESPM 1,000 L | 4,800 s, UMV | SL-P16 |
+| SL-B52 | Star Chart: Arcturus | Data Orb [1], circuit UMV [2], plate TM 4 [1], MM Sensor Array I [3] | **ESPM 1,000 L**, SpaceTime 1 ing | 120 s, UMV | SL-P24 |
+| SL-B60 | Galactic Upgrade Core | Galactic Shell 64 [2], FG UMV 32 [3], circuit UMV 64 [2], Casimir 32 [3], dense SpaceTime 32 [1], Emitter UMV 16 [3], MM Resonance Chamber II 16 [5], MM Field Manipulator I 16 [4] | **HSM 32,000 L**, SpaceTime 1,024 ing, TM 1,024 ing | 4,800 s, 4x UMV | SL-E02 |
+| SL-B61 | Star Chart: Neutron Star | Data Orb [1], circuit UMV [2], Galactic Shell 1 [2], MM Sensor Array I [3] | **HSM 1,000 L** | 120 s, UMV | SL-P25 |
+| SL-B62 | Galactic Shell Plating x64 (alternative) | dense Infinity 32 [1], frame TM 8 [2], plate Cosmic Neutronium 32 [1], ingot TM 64 [1], MM Shielding I 2 [3] | HSM 500 L, **WDM 4 ing** | 4,800 s, UMV | none: SL-P17 (the T4 gate) stays |
+| SL-B70 | Subspace Cooling Core | Galactic Shell 64 [2], FG UXV 16 [4], circuit UXV 16 [3], Casimir 32 [3], dense SpaceTime 48 [1], Sensor UXV 8 [4], MM Sensor Array II 4 [6], MM Field Manipulator II 4 [6] | **WDM 1,024 ing**, DSS 256,000 L, SpaceTime 1,024 ing | 4,800 s, UXV | SL-E05 |
+| SL-B71 | Star Chart: Sirius B | Data Orb [1], circuit UXV [3], Galactic Shell 1 [2], MM Sensor Array II [6] | **WDM 7 ing** | 120 s, UMV | SL-P35 |
+| SL-B80 | Magnetar Seed Core | Galactic Shell 64 [2], FG UXV 32 [4], circuit UXV 32 [3], Bastion 32 [2], dense SpaceTime 64 [1], Emitter UXV 16 [4], MM Resonance Chamber III 4 [7], MM Shielding II 4 [6] | **BDM 256 ing**, **Agent 64,000 L**, WDM 256 ing, SpaceTime 2,048 ing | 6,000 s, 2x UXV | SL-E06 |
+| SL-B81 | Star Chart: SGR 1806-20 | Data Orb [1], circuit UXV [3], dense SpaceTime 1 [1], MM Sensor Array III [7] | **BDM 7 ing**, **Agent 1,000 L** | 120 s, UXV | SL-P37 |
+
+Bold = the gate (the product of the tier the part belongs to, or of the tier below). Every recipe stays inside one
+condensate family (RC-2 family 1; S1 "Stellar"; S2 "Remnant": proposal §2 R3), so one network runs a tier's set
+without the "more than 3 unrequested condensates" failure. Item sets are unique (the node looks recipes up by items
+only).
+
+**Fallback (the safety net).** `BTSRecipesBEC.replace(becId, bec, legacyId, legacy)`: if the BEC recipe is skipped (a
+missing component, a condensate without a generator recipe, more than 16 stacks, or GT keeping nothing from `addTo`),
+the old body registers instead and the boot log says "SL-Bnn (Condensate Assembler) was skipped; its old recipe SL-xnn
+is registered instead". The skip still shows in the recipe summary. No config switch (Q-B8). SL-B01..B04 (the x32
+rewrite of RC-2's Spatial / Temporal casing recipes and its fallbacks) are unchanged; see the RC-2 port section.
+
+**Gate audit (brief 8).** A part first needed to build or unlock Eye tier N uses only products of tiers below N; a
+transition core may use its own tier's product. The Eye T1 BOM (B20-B22) has no Raw Star Matter or Boundless Cosmic
+Solder and nanites at most Transcendent; White Dwarf nanites and metamaterials first appear in the T4 -> T5 core (B70)
+and B71, Black Dwarf ones in B80/B81. SL-B62 needs WDM but is only an alternative to SL-P17. No compression generator
+recipe changes, so `/btseye gates` is unaffected.
+
 
 ---
 

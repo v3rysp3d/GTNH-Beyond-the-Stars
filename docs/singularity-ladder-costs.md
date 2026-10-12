@@ -1,4 +1,4 @@
-# Singularity Ladder: recipe completeness and cost audit (Kerr T1/T2, Eye T1-T4; Eye T5/T6 in §10)
+# Singularity Ladder: recipe completeness and cost audit (Kerr T1/T2, Eye T1-T4; Eye T5/T6 in §10; the BEC expansion in §11)
 
 Status: audit, 2026-10-12, addon `7a47289`. **GTNH 2.9.0-RC-2 port: see §9 for the BHC→Kerr swap, the Kerr controller price and the RC-2 gate audit.** It reads the code and the jars and changes no code. **The recipe audit
 pass has since applied it: see §8 for what was applied, changed or skipped.** It answers the
@@ -571,3 +571,56 @@ How to read it:
   cycles.
 - **Verdict: fair.** Every block and item has a recipe, nothing loops, and each step is in line with TecTech's own
   step to the same compression tier.
+
+## 11. BEC expansion: what moving the ladder into the Condensate Assembler costs (ruling 11b, 2026-10-13)
+
+Source: designs/docs/bec-expansion-proposal.md §3-§7 (all 14 open questions as recommended), built as SL-B10..B81 in
+`BTSRecipesBEC` (build spec §2.5, question B-64). §4.1 already prices the Spatial / Temporal casings at ×32
+(SL-B01/B02); this section covers the rest. Units as above; "nanite-time" = a BEC recipe's duration, which the
+Condensate Assembler divides by its nanite count (30,720 max), so it is a ceiling, not machine-hours.
+
+### 11.1 Per-block price of the batch blocks (nanite-time per block)
+
+| Block | Old recipe | New recipe | Per block (new) | Reference |
+|---|---|---|---|---|
+| Beam Band Casing | SL-P15 ASM ×16, 1,800 t | SL-B40 ×32, 3,600 s | 112 s; + 1/16 Waveguide I, 125 L Raw Star Matter | RC-2 BEC casings 75-150 s/block |
+| Jet Crescent Casing | SL-P16 ASM ×16, 2,400 t | SL-B51 ×32, 4,800 s | 150 s; 4,000 L Raw Star Matter (as before), 31 L ESPM, 1/16 Wave Focus I | Godforge casings 150 s/block |
+| Bastion Plate | SL-P18 ASM ×4 | SL-B32 ×64, 2,400 s | 37.5 s; same metals as 16 P18 crafts + 1/16 Shielding I | plain structure: a third of RC-2's casings |
+| Casimir Plate | SL-P19 ASM ×4 | SL-B33 ×16, 600 s | 37.5 s; same metals as 4 P19 crafts + 1/8 FM I and Waveguide I | |
+| Harmonic Lining (alternative) | SL-P12 ASM ×4 (stays) | SL-B34 ×64, 1,800 s | 28 s; 75 % of 16 P12 crafts' metals + 1/32 Shielding I | the BEC reward for Kerr T2's +4,031 linings |
+| Galactic Shell Plating (alternative) | SL-P17 ASM ×16 (stays, the T4 gate) | SL-B62 ×64, 4,800 s | 75 s; same metals as 4 P17 crafts, half the HSM, + 9 L WDM | only after Eye T4 |
+| Reinforced Spatial / Temporal | (SL-P27/P28 retired) | RC-2 ×32 (SL-B01/B02) | 1,250 s | §4.1 |
+
+### 11.2 Per-step deltas against the recipes they replace
+
+Material bills otherwise equal (proposal rule R5: within about ±25 %, the gate fluid exactly, now as condensate).
+
+| Step | Added | Removed |
+|---|---|---|
+| Eye T1 | 24 MetaMaterial Field Manipulator I, 48 Shielding I, 1 + 8 Sensor Array I (Sol chart, sensor hatches); 384 ing Neutronium, 96 Space, 96 Time condensate | 3,000,000 L Super Coolant (6 Pylons); one research scan (SL-P21) |
+| Kerr T2 | 8 FM I, 8 Electrogravitic Valve I, Space 64 ing (Density Upgrade); 133 crafts × 4 Shielding I (Bastions); 47 crafts × 4 metamaterials (Casimir) | 128,000 L Excited DTEC; one research scan (SL-K04); 2,119 Bastion crafts become 133 |
+| Eye T2 | 180 Waveguide I + 360,000 L Raw Star Matter (90 Beam Band crafts); 4 Energy Conduit I (Mass core) | one research scan (SL-E03) |
+| Eye T3 | 172 Wave Focus I + 87,000 L ESPM (86 Jet Crescent crafts); 4 Resonance Chamber II + 4 Wave Focus I (Shell core) | one research scan (SL-E04) |
+| Eye T4 | 16 Resonance Chamber II + 16 FM I (Galactic core) | one research scan (SL-E02) |
+| Eye T5 | 4 Sensor Array II + 4 FM II (Cooling core), 1 Sensor Array II (chart) | one research scan (SL-E05) |
+| Eye T6 | 4 Resonance Chamber III + 4 Shielding II (Magnetar core), 36,864 L WDM (the merger's white dwarf, Q-B14), 1 Sensor Array III | one research scan (SL-E06) |
+
+The condensate itself costs little EU: a generator turns 1,000 L of Raw Star Matter into condensate in 30 s at UIV, so
+the 11.0M L the T3 jet crescent needs is about 2.1e14 EU, against the Eye T3 step's about 5.8e15 (proposal §4).
+
+### 11.3 The real new cost: infrastructure
+
+A BEC network sized for families S1 and S2: one Condensate Generator, Containment Fields (condensate may arrive any
+time during a craft, so a field does not need to hold the Density Upgrade's 4M L at once), and a Condensate Assembler
+with nanites up to Six-Phased Copper for T1-T4 parts, White Dwarf for the T4 -> T5 core and Black Dwarf for the T5 -> T6
+core. At 1,024 nanites the 90 Beam Band crafts take about 5 minutes and the 434 Spatial / Temporal crafts about
+4.7 hours; at 30,720 about 10 seconds and 9.4 minutes. RC-2's own Eye already needs this network, so the expansion adds
+nanite tiers and condensate types, not a new machine.
+
+### 11.4 Fallbacks
+
+Each retired recipe (SL-P15, P16, P18, P19, P21-P25, P35, P37, SL-E02..E07, SL-K04) is kept in `BTSRecipesBEC` and
+registers only if its BEC replacement is skipped (build spec §2.5), so a pack change can raise a cost back to the
+§3-§10 figures but never make a part uncraftable. **Verdict: fair.** The bulk blocks sit at RC-2's own per-block
+nanite-time, the gates are unchanged, and the gate audit (§9.4) holds: no part needs anything the Eye first makes at
+its own tier or later.
