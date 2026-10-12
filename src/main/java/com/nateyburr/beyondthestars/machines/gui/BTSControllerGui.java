@@ -113,6 +113,24 @@ public abstract class BTSControllerGui<T extends MTEMultiBlockBase> extends MTEM
         return 5;
     }
 
+    /**
+     * Bench: the header and the status (or Info) rows as plain text, built exactly as the GUI syncs them (server
+     * side, so a dev server can check a machine's GUI without a client).
+     */
+    public List<String> benchDump(boolean infoPage) {
+        final List<String> out = new ArrayList<>();
+        final BTSGuiKit.Badge b = badgeCode();
+        out.add(
+            ("[" + BTSText.resolve(
+                BTSText.lang(b.langKey())) + "] " + BTSText.resolve(subject()) + " | " + BTSText.resolve(rightChip()))
+                    .replaceAll("\u00a7.", ""));
+        final BTSRows.Builder rows = new BTSRows.Builder();
+        if (infoPage) addInfoRows(rows);
+        else addStatusRows(rows);
+        for (BTSRows.Row r : BTSRows.decode(rows.build())) out.add("  " + BTSRows.describe(r));
+        return out;
+    }
+
     // =================================================================================== geometry
 
     @Override

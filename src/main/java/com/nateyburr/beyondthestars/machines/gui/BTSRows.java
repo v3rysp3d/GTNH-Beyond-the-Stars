@@ -129,6 +129,101 @@ public final class BTSRows {
         return out;
     }
 
+    /** A row as one line of plain text (bench dumps, logs): the kind and its resolved texts and numbers. */
+    public static String describe(Row r) {
+        final StringBuilder sb = new StringBuilder(r.kind.name()).append(':');
+        switch (r.kind) {
+            case GAUGE:
+                sb.append(' ')
+                    .append(r.s(0))
+                    .append(' ')
+                    .append(r.s(1));
+                if (!Double.isNaN(r.d(2))) sb.append(" centre ")
+                    .append(r.s(2));
+                if (!Double.isNaN(r.d(3))) sb.append(" tick ")
+                    .append(r.s(3));
+                break;
+            case GAUGE2:
+                sb.append(' ')
+                    .append(r.s(0))
+                    .append(' ')
+                    .append(r.s(1));
+                if (!r.s(3)
+                    .isEmpty())
+                    sb.append(" | ")
+                        .append(r.s(3))
+                        .append(' ')
+                        .append(r.s(4));
+                break;
+            case BAR:
+                sb.append(' ')
+                    .append(BTSText.resolve(r.s(0)))
+                    .append(" [")
+                    .append(r.s(1))
+                    .append("] ")
+                    .append(BTSText.resolve(r.s(2)));
+                break;
+            case CHECK:
+                sb.append(r.i(0) == 0 ? " [OK] " : r.i(0) == 1 ? " [X] " : " [!] ")
+                    .append(BTSText.resolve(r.s(1)))
+                    .append(" = ")
+                    .append(BTSText.resolve(r.s(2)));
+                break;
+            case STAT:
+                sb.append(' ')
+                    .append(BTSText.resolve(r.s(0)))
+                    .append(" = ")
+                    .append(BTSText.resolve(r.s(1)));
+                break;
+            case STAT2:
+                sb.append(' ')
+                    .append(BTSText.resolve(r.s(0)))
+                    .append(" = ")
+                    .append(BTSText.resolve(r.s(1)))
+                    .append(" | ")
+                    .append(BTSText.resolve(r.s(2)))
+                    .append(" = ")
+                    .append(BTSText.resolve(r.s(3)));
+                break;
+            case SECTION:
+                sb.append(' ')
+                    .append(BTSText.resolve(r.s(0)));
+                if (!r.s(1)
+                    .isEmpty())
+                    sb.append(" (")
+                        .append(BTSText.resolve(r.s(1)))
+                        .append(')');
+                break;
+            case NOTE:
+                sb.append(' ')
+                    .append(BTSText.resolve(r.s(2)));
+                break;
+            case PARA:
+                sb.append(' ')
+                    .append(BTSText.resolve(r.s(0)));
+                break;
+            case CHIPS:
+            case LAMPS:
+                for (String[] it : r.items(r.kind == Kind.CHIPS ? 0 : 1)) {
+                    sb.append(' ')
+                        .append(BTSText.resolve(it.length > 1 ? it[1] : ""));
+                }
+                break;
+            default:
+                break;
+        }
+        final int tip = r.kind == Kind.GAUGE ? 4
+            : r.kind == Kind.GAUGE2 ? 6
+                : r.kind == Kind.BAR ? 5
+                    : r.kind == Kind.CHECK ? 4
+                        : r.kind == Kind.STAT ? 2 : r.kind == Kind.STAT2 ? 4 : r.kind == Kind.NOTE ? 3 : -1;
+        if (tip >= 0) for (String l : r.lines(tip)) sb.append("  {")
+            .append(BTSText.resolve(l))
+            .append('}');
+        return sb.toString()
+            .replaceAll("§.", "");
+    }
+
     /** Server side: appends rows in display order. */
     public static final class Builder {
 

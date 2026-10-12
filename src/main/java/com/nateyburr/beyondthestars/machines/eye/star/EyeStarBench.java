@@ -74,7 +74,7 @@ public final class EyeStarBench {
         + "[analog] | probe | wrench | charge [n] | buffer <fluid> <L> | core <name> | escrow | "
         + "bus <chart> [n] | legacy [galactic] [run <key> <n>] | fix | gt | mefield | field <fluid> <L> | "
         + "render [on|off] | "
-        + "directive | autorig <s> [cut <k>] | ocloop | compression <1-9> [all] | check";
+        + "directive | autorig <s> [cut <k>] | ocloop | compression <1-9> [all] | check | gui [info]";
 
     /** Runs {@code args} = {@code star x y z sub …}. Returns the lines to print. */
     public static List<String> run(ICommandSender sender, String[] args) {
@@ -229,6 +229,10 @@ public final class EyeStarBench {
                 out.add("checkRecipe: " + eye.benchCheckRecipe());
                 break;
             }
+            case "gui":
+                // controller GUI cleanup: the header and rows the GUI would show now (spec §5.1), as text
+                out.addAll(new com.nateyburr.beyondthestars.machines.eye.EyeGui(eye).benchDump("info".equals(a5)));
+                return out;
             case "mefield":
                 out.add(meField(eye));
                 break;
