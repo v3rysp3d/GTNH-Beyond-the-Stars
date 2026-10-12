@@ -902,6 +902,95 @@ loop (R1-B / B2 history), so it waits for your call.
 **Alternatives.** Keep it as it is: the status already says the silo is missing, and B-31's tooltip text can say
 "plain Input Hatch only".
 
+### B-33 Kerr redesign: every module recipe needs an open hole [Kerr redesign, spec only]
+
+**Context.** You ruled that the modules become separate machines "that just have a requirement of a hole being
+open to run". Today's Kerr is kinder than that: with the hole closed, COMPRESS still runs plain compressor recipes at
+the base parallel (B-8).
+
+**What the spec says** (`kerr-redesign.md` §3). A module runs nothing unless it is linked to a formed KEE with an
+open hole. This is also RC-2's Black Hole Compressor behaviour: its `validateRecipe` returns `NO_BLACK_HOLE` for
+every recipe while the hole is closed. DENSITY needs Kerr T2 and at least 128 SM, as before. The compressor module
+searches its three maps together, so it needs no machine mode at all.
+
+**Suggestion.** As specced.
+
+**Alternative.** Plain compressor and extractor recipes run with the hole closed, at 8 × tier with no bonus. That is
+friendlier, but it blurs "the hole powers the modules".
+
+### B-34 Kerr redesign: closing the hole mid-recipe pauses the modules, it does not void them [Kerr redesign, spec only]
+
+**Context.** A hole can close while a module is mid-recipe: a Collapser, evaporation when the bolts run out, the
+containment power failing, the KEE unforming, or the KEE's chunk unloading.
+
+**What the spec says** (§2.3). The Godforge pattern: an unlinked module skips its post-tick. Progress and EU stop,
+and the recipe resumes when the link returns. Parallel and speed were fixed at recipe start, so changing the mass
+mid-recipe cannot be exploited. The GUI's Collapse button takes two clicks, and the first warns how many modules
+will pause.
+
+**Suggestion.** As specced.
+
+**Alternatives.**
+
+- Void the running recipe, as the BHC does when its hole goes unstable. That is harsher, and it punishes running out
+  of bolts twice.
+- Let the running recipe finish and block only new starts.
+
+### B-35 Kerr redesign: the KEE draws containment power while the hole is open [Kerr redesign, spec only, PROPOSED number]
+
+**Context.** The KEE no longer runs recipes, so its two energy sockets and the GUI's power line would mean nothing
+(today "the hole draws no EU").
+
+**What the spec says** (§3). The hole draws 8,388,608 EU/t (1 A UEV) while it is open, and nothing while it is
+closed. Without that power the governor fires no bolts, so the hole bleeds down, shows as unstable and evaporates at
+2 SM. The modules draw their recipe EU from their **own** energy hatches.
+
+**Suggestion.** As specced; tune the number in play.
+
+**Alternatives.**
+
+- 0 EU/t: delete the KEE's energy requirement, so the GUI shows no power line.
+- Upkeep that scales with mass, for example 1 A UEV × M / 16.
+- Modules fed from the KEE's hatches (the Space Elevator pattern) instead of their own.
+
+### B-36 Kerr redesign: a whole-number setpoint, GUI open/close buttons, and the extractor controller moves [Kerr redesign, spec only]
+
+**Context.** You asked for "a neat GUI" and no screwdriver.
+
+**What the spec says** (§4, §6).
+
+- **Setpoint.** The 9-rung screwdriver ladder (2 … 512) becomes any whole number of SM: 2-64 at T1, 2-512 at T2.
+  It is set with a number field, a slider and −/+ buttons.
+- **Open and close.** Open and Collapse are GUI buttons. They are enabled only when a Seed or a Collapser is in a
+  bolt bus, and Collapse takes a second click to confirm. An "Auto" toggle (default on) keeps today's behaviour, so
+  automation still works: a Seed or Collapser dropped into a bolt bus acts on its own.
+- **Extractor controller.** The module's core cell today sits on the arc's inner face, facing the hole, where a
+  player can hardly reach it. The Extractor Module's controller therefore moves to the arc's outer face at 340°. The
+  old cell becomes an I/O socket, and two more sockets are added beside the new controller. The compressor's core
+  cell is already on the outer face, so its controller stays in that cell.
+
+**Suggestion.** As specced.
+
+**Alternative.** Keep the ladder as the only values the slider stops on.
+
+### B-37 Kerr redesign: modules cost the hole nothing; render scale and migration [Kerr redesign, spec only]
+
+**What the spec says.**
+
+- **Module cost.** None: a running module never changes the mass, the bleed or the stability (§3).
+- **Render** (§5). It reuses GT's black hole renderer through a GL scale around the hole centre: s = clamp(4 ·
+  (M / 16)^(1/3), 2, 6.5). That gives a 5.2-block horizon at 16 SM, the mockup's size, and it is capped so the disc
+  stays inside the mirror ring. GT's lasers are off, because they run along the axes and the rails sit at 45°. It is
+  toggled by the `renderKerrHole` config and a per-machine GUI button.
+- **Migration** (§7). The KEE converts legacy core blocks into module controllers once, automatically. The
+  fallback is `/btskerr migrate`. SL-K02 and SL-K03 now output the controllers, at an unchanged cost, and a
+  shapeless recipe turns old core blocks into controllers.
+
+**Suggestion.** As specced.
+
+**Alternative for the module cost.** Each running module adds a share of bleed, for example +10 % each, so the hole
+"feels" the load and a busy Kerr burns more bolts.
+
 ---
 
 ## Part C. Settled (for the record)
