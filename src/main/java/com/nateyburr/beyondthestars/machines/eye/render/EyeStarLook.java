@@ -16,9 +16,11 @@ import com.nateyburr.beyondthestars.machines.eye.star.StarDef;
  * TecTech's star textures and replaces their hue with {@link #rgb}, then raises it to {@code 1 / gamma}. So a hot
  * star has a high gamma (bright), and the T5 black dwarf cools by its gamma falling below 1 (dark), not by its RGB.
  * <p>
- * Sizes are in blocks (the sphere's radius). The nearest block of {@code eye_core} is 20.9 blocks from the centre, so
- * the largest object (Arcturus swelling in the Core Collapse: 17, with its wobble and outer shell about 19.4) still
- * clears it; the voxel mockup's star is 15. Only the supernova flash (a translucent shell) runs out past the bands.
+ * Sizes are in blocks (the sphere's radius). The nearest block of {@code eye_core} is 20.9 blocks from the centre (its
+ * face 20.4), so the largest object (Arcturus swelling in the Core Collapse: at most {@link #SWELL_PEAK} = 20, its
+ * throb
+ * only shrinking it) still clears it; the voxel mockup's star is 15. Only the supernova flash (a translucent shell)
+ * runs out past the bands.
  */
 public final class EyeStarLook {
 
@@ -149,20 +151,32 @@ public final class EyeStarLook {
     }
 
     /**
-     * Core Collapse phase 1 at {@code f} (0..1) of the way to the bounce: Arcturus swelling and reddening. The gamma
-     * starts at Arcturus's own and falls by 0.3 as it swells (render QA E5: a rising gamma washed the red-orange out
-     * to salmon; round 3 E-4: the old 2.6 -> 1.6 read yellow-orange at mid-swell).
+     * Core Collapse phase 1 at {@code f} (0..1) of the way to the bounce: Arcturus swelling and reddening. Render QA
+     * round 4 (D4: the round-3 swell, radius 16 and paler than Arcturus, read as Arcturus): the radius eases out from
+     * Arcturus's 15 to {@link #SWELL_PEAK} (19.4 at half way), the tint reaches {@link #SWELL_RGB} at gamma 0.6 by half
+     * way, the surface turns 3x Arcturus's speed at half way and faster after, and the pulse is 0.15 at half way (the
+     * renderer runs the swell's pulse as a 0.7 Hz throb, see {@code EyeStarRenderer}).
      */
     public static EyeStarLook swell(float f) {
         final float c = Math.max(0, Math.min(1, f));
+        final float early = Math.min(1f, 2f * c);
+        final float ease = 1f - (1f - c) * (1f - c) * (1f - c);
         return new EyeStarLook(
             SWELL,
-            15f + 2f * c,
-            lerp(ARCTURUS_RGB, 0xFF3C1E, c),
-            ARCTURUS_GAMMA - 0.3f * c,
-            1f + 3f * c,
-            0.04f + 0.06f * c);
+            15f + (SWELL_PEAK - 15f) * ease,
+            lerp(ARCTURUS_RGB, SWELL_RGB, early),
+            ARCTURUS_GAMMA - (ARCTURUS_GAMMA - SWELL_GAMMA) * early,
+            0.7f * (1f + 4f * c),
+            0.05f + 0.2f * c);
     }
+
+    /**
+     * The swell's largest radius (render QA round 4, D4): the nearest {@code eye_core} block face is 20.4 blocks from
+     * the centre, and the swell's throb only ever shrinks it, so 20 never touches a block.
+     */
+    public static final float SWELL_PEAK = 20f;
+    private static final int SWELL_RGB = 0xFF3A12;
+    private static final float SWELL_GAMMA = 0.6f;
 
     /** Core Collapse phase 3: the proto-neutron star and the bounce's shell, with the field's unrest (0..1). */
     public static EyeStarLook bounce(float unrest) {
@@ -221,12 +235,13 @@ public final class EyeStarLook {
      * so the late stops go much lower: brick red at 0.45, near black at 0.15, black at 0.08 (0.2 at 90 % still showed
      * copper glints).
      */
-    private static final float[] DWARF_AT = { 0f, 0.5f, 0.75f, 0.9f, 1f };
-    private static final int[] DWARF_RGB = { 0xB8CCFF, 0xFFB070, 0x8A2A18, 0x2A1210, 0x0E0A0C };
-    // the early stop B8CCFF / 1.5 and the half-way stop at 1.8 (round 3, E-3: EAF0FF / 4.5 rendered 100 % white
-    // with no features, the review's E6EEFF / 2.2 still 41-54 %, B8CCFF / 2.0 still 36-39 %: on the way from blue to
-    // orange the tint passes through grey, which adds no chroma, so only a lower gamma keeps the texture)
-    private static final float[] DWARF_GAMMA = { 1.5f, 1.8f, 0.45f, 0.15f, 0.08f };
+    private static final float[] DWARF_AT = { 0f, 0.2f, 0.5f, 0.75f, 0.9f, 1f };
+    private static final int[] DWARF_RGB = { 0xF2F5FF, 0xF2F5FF, 0xFFB070, 0x8A2A18, 0x2A1210, 0x0E0A0C };
+    // Render QA round 4 (D5): the early dwarf stays white, F2F5FF, until 20 % of the batch at gamma 2.4 -> 2.2 (round
+    // 3's B8CCFF / 1.5 measured lavender-grey 189/179/205 by day, red above green, dimmer than Sirius A); a stop at 20
+    // %
+    // keeps the 10 % case off the white-to-orange blend, which passes through pink
+    private static final float[] DWARF_GAMMA = { 2.4f, 2.2f, 1.8f, 0.45f, 0.15f, 0.08f };
 
     /**
      * Sirius B through a cooling batch (fraction 0..1): white-hot blue-white, orange at half way, a dull brick red at

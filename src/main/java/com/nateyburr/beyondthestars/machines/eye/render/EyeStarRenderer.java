@@ -6,6 +6,7 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
+import net.minecraftforge.client.MinecraftForgeClient;
 
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
@@ -43,16 +44,19 @@ import tectech.rendering.EOH.EOHRenderingUtils;
  * does not compile (an unusual GL profile), nothing is drawn and one line is logged, exactly as the Forge of the Gods
  * then draws nothing.
  * <p>
- * Shells: the Core Collapse bounce sends a shock shell out from the proto-neutron star over 5 s; a supernova is a white
- * flash expanding to three times Arcturus's radius over 3 s. Both are additive spheres timed from when the client saw
- * the object change ({@link TileEyeStar#kindAge}).
+ * <b>Two render passes</b> (render QA round 4, D1). Pass 0 draws the object itself: the opaque core, the two thin
+ * additive surface shells (1.01 / 1.02 radii), the cooling dwarf's dark-red rim, a limb darkening (colour x
+ * {@code 0.75 + 0.25 |N.V|}, D6) and the black dwarf's veil, all glued to the core's surface. Pass 1, after the
+ * translucent and glowing block faces, draws every see-through layer around it: the corona ({@code 1.12 R}, D6), the
+ * glow disc, the pulsar beams (D7), the magnetar's magnetosphere and flare shells (D3), the bounce's shock shell (D2)
+ * and the supernova's flash. Those layers blend additively, are depth-tested, write no depth, and draw their back faces
+ * before their front faces. In round 3 they were drawn in pass 0, so the bands' translucent and glow faces behind them,
+ * drawn later, showed through them untinted.
  * <p>
- * Render QA round 1 additions: the two translucent shells blend additively (E2: alpha blending let their dark texels
- * draw a grey ring against the day sky); every object gets an additive glow billboard, 2.5 times its radius and at
- * least 6 blocks (E1/E9: the crown band hides the object from the front, and the small objects were pinpricks); the
- * cooling dwarf's shells fade as it cools and a faint dark-red rim keeps the black dwarf readable (E7); the magnetar
- * has a violet flare shell that brightens on an event warning, plus a flare running out to 6 radii every 4-8 s (E8);
- * the neutron star and the magnetar sweep two polar beams (E9).
+ * <b>Rim shells</b> (D2, D3): the bounce's shock front and the magnetar's shells are untextured spheres
+ * ({@value #MESH_SLICES} x {@value #MESH_STACKS}) whose alpha rises toward the limb,
+ * {@code centre + (edge - centre) (1 - |N.V|)^3}, computed per vertex: clear in the middle, a bright edge. The cloud
+ * texture of round 3 read as fog.
  */
 @SideOnly(Side.CLIENT)
 public class EyeStarRenderer extends TileEntitySpecialRenderer {
@@ -71,35 +75,60 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
     private static final Uniform U_COLOR = STAR.uniform("u_Color");
     private static final Uniform U_GAMMA = STAR.uniform("u_Gamma");
 
-    private static final int TESSELLATION = 64;
+    /** Segments of every sphere, textured or not (render QA round 4: at most 32 x 16 per layer). */
+    private static final int MESH_SLICES = 32, MESH_STACKS = 16;
     /** Bounce shock shell and supernova flash lengths, ticks. */
     private static final double BOUNCE_TICKS = 100, NOVA_TICKS = 60;
-    /** A magnetar flare runs out to {@link #FLARE_REACH} radii over this many ticks. */
+    /** A magnetar flare runs from the magnetosphere out to the outer shell over this many ticks. */
     private static final double FLARE_TICKS = 40;
-    private static final float FLARE_REACH = 6f;
-    /** The translucent shells' gamma ceiling (they are additive, so a high gamma whitens the star's face). */
+    /** The translucent surface shells' gamma ceiling (they are additive, so a high gamma whitens the star's face). */
     private static final float SHELL_GAMMA = 1.2f;
     /**
-     * The glow billboard: radius in object radii, its least and greatest radius in blocks, and its alpha at the centre.
-     * The greatest is 20.4 because the nearest {@code eye_core} block is 20.9 blocks from the centre: a disc through
-     * the centre that never reaches a block can never be cut by one (render QA round 3, E-5).
+     * How far from the centre a see-through layer may reach: the nearest {@code eye_core} block is 20.9 blocks out
+     * (centre to centre), its face 20.4. A layer inside this sphere can never be cut by a block of the Eye (round 3,
+     * E-5), so the glow disc, the corona and the beams all stop here.
      */
-    private static final float GLOW_RADII = 2.5f, GLOW_MIN = 6f, GLOW_MAX = 20.4f, GLOW_ALPHA = 0.30f;
-    /** The additive shells' alphas (inner, outer): the bright kinds' and the others' (round 3, E-1..E-4). */
+    static final float CLEARANCE = 20.4f;
+    /**
+     * The glow billboard: radius in object radii, its least radius in blocks, and its alpha at the centre; at most
+     * {@link #CLEARANCE}.
+     */
+    private static final float GLOW_RADII = 2.5f, GLOW_MIN = 6f, GLOW_ALPHA = 0.30f;
+    /** The additive surface shells' alphas (inner, outer): the bright kinds' and the others' (round 3, E-1..E-4). */
     private static final float SHELL_A_BRIGHT = 0.12f, SHELL_B_BRIGHT = 0.06f, SHELL_A = 0.3f, SHELL_B = 0.15f;
     /** The cooling dwarf's dark veil (round 3, E-7): colour, radius in object radii, most alpha. */
     private static final float VEIL_R = 0x0E / 255f, VEIL_G = 0x0A / 255f, VEIL_B = 0x0C / 255f, VEIL_RADII = 1.003f,
         VEIL_ALPHA = 0.85f;
-    private static final int VEIL_STACKS = 24, VEIL_SLICES = 32;
+    /** Limb darkening (round 4, D6): the core's colour x {@code 1 - LIMB (1 - |N.V|)}, i.e. 0.75 at the limb. */
+    private static final float LIMB = 0.25f;
+    /** The corona (round 4, D6): out to {@code CORONA_RADII} x the limb, {@code CORONA_ALPHA} at the limb. */
+    private static final float CORONA_RADII = 1.12f, CORONA_ALPHA = 0.30f;
+    /** The neutron star's wider glow (round 4, D7), so the 2.2-block ball reads from 136 blocks. */
+    private static final float NEUTRON_GLOW_RADII = 1.6f, NEUTRON_GLOW_ALPHA = 0.45f;
+    private static final int RING_SEGMENTS = 48;
+    /** Rim shells (round 4, D2 / D3): alpha in the middle of the disc. */
+    private static final float RIM_CENTRE = 0.04f;
+    /** The bounce's shock front (D2): edge alpha, start and end radius. */
+    private static final float BOUNCE_EDGE = 0.64f, BOUNCE_FROM = 2.6f, BOUNCE_TO = 18.6f;
     /**
-     * The shock shells' gamma (the bounce's, a magnetar flare). At 4 the bounce's shell blew the proto-neutron star out
-     * to 97 % white in round 3 (and 1.5 still left it 21-27 % white with the bounce shell at alpha 0.35).
+     * The magnetar (D3): the magnetosphere (inner shell, C080FF) and the outer shell (7A4CFF), radii in blocks (2.7 x
+     * the 2.6 core at most), edge alphas at full, and the quiet magnetosphere's edge when no warning is up.
      */
-    private static final float SHOCK_GAMMA = SHELL_GAMMA;
-    private static final int GLOW_SEGMENTS = 48;
-    /** Polar beams (neutron star, magnetar): length and width in blocks, alpha at the base, tilt off the spin axis. */
-    private static final double BEAM_LENGTH = 12, BEAM_HALF_WIDTH = 0.2, BEAM_TILT = Math.toRadians(20);
-    private static final float BEAM_ALPHA = 0.5f;
+    private static final float MAG_INNER_RADIUS = 4.5f, MAG_OUTER_RADIUS = 7f, MAG_INNER_EDGE = 0.6f,
+        MAG_OUTER_EDGE = 0.5f, MAG_QUIET_EDGE = 0.3f;
+    private static final float MAG_INNER_R = 0xC0 / 255f, MAG_INNER_G = 0x80 / 255f, MAG_INNER_B = 1f;
+    private static final float MAG_OUTER_R = 0x7A / 255f, MAG_OUTER_G = 0x4C / 255f, MAG_OUTER_B = 1f;
+    /** An event warning pulses both magnetar shells' edges between these, at 2 Hz (radians per tick). */
+    private static final float WARN_LOW = 0.35f, WARN_HIGH = 0.6f;
+    private static final double WARN_RATE = 2 * Math.PI * 2 / 20;
+    /** The Core Collapse swell throbs at 0.7 Hz (radians per tick, round 4 D4). */
+    private static final double SWELL_RATE = 2 * Math.PI * 0.7 / 20;
+    /**
+     * Polar beams (neutron star, magnetar, D7): half-width in blocks, additive alpha at the root (0 at the tip), tilt
+     * off the spin axis; the tip stands one block inside {@link #CLEARANCE}.
+     */
+    private static final double BEAM_HALF_WIDTH = 0.45, BEAM_TILT = Math.toRadians(20), BEAM_TIP = CLEARANCE - 1;
+    private static final float BEAM_ALPHA = 0.6f;
 
     private static ShaderHandle shader;
     private static IVertexArrayObject sphere;
@@ -132,7 +161,7 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
             try {
                 shader = STAR.bake();
                 if (shader.isValid()) {
-                    sphere = EOHRenderingUtils.buildSphere(shader, TESSELLATION, TESSELLATION);
+                    sphere = EOHRenderingUtils.buildSphere(shader, MESH_SLICES, MESH_STACKS);
                 } else if (!warned) {
                     warned = true;
                     BeyondTheStars.LOG
@@ -155,19 +184,27 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
         final TileEyeStar star = (TileEyeStar) tile;
         final World world = star.getWorldObj();
         if (world == null || !ready()) return;
+        // 0: the object; 1: the see-through layers round it; -1 (drawn outside the world passes): both
+        final int pass = MinecraftForgeClient.getRenderPass();
 
         final double now = world.getTotalWorldTime() + partialTicks;
         final byte kind = star.getKind();
         final double age = star.kindAge(now);
         float radius = star.easedRadius(now);
-        // wobble: two incommensurate sines, so an unstable star breathes rather than ticks
+        float gamma = star.getGamma();
         final float pulse = star.getPulse();
-        if (pulse > 0) {
+        if (pulse > 0 && kind == EyeStarLook.SWELL) {
+            // D4: a 0.7 Hz throb; the radius only shrinks (by up to a third of the pulse) so the swell's peak never
+            // reaches a block, and the brightness swings by the full pulse
+            final double s = Math.sin(now * SWELL_RATE);
+            radius *= 1f - pulse / 3f * (float) (0.5 + 0.5 * s);
+            gamma *= 1f + pulse * (float) s;
+        } else if (pulse > 0) {
+            // wobble: two incommensurate sines, so an unstable star breathes rather than ticks
             radius *= 1f + pulse * (float) (0.6 * Math.sin(now * 0.31) + 0.4 * Math.sin(now * 0.87 + 1.3));
         }
         final int rgb = star.getRgb();
         final float r = ((rgb >> 16) & 255) / 255f, g = ((rgb >> 8) & 255) / 255f, b = (rgb & 255) / 255f;
-        float gamma = star.getGamma();
         float coreAlpha = 1f;
         if (kind == EyeStarLook.NOVA) {
             final float f = (float) Math.min(1, age / NOVA_TICKS);
@@ -176,8 +213,9 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
             gamma *= 1f + f;
         }
         final double spin = now * star.getSpin();
+        final double cx = x + 0.5, cy = y + 0.5, cz = z + 0.5;
 
-        base.translation((float) x + 0.5f, (float) y + 0.5f, (float) z + 0.5f);
+        base.translation((float) cx, (float) cy, (float) cz);
 
         final boolean blendWas = GL11.glGetBoolean(GL11.GL_BLEND);
         final boolean depthTestWas = GL11.glGetBoolean(GL11.GL_DEPTH_TEST);
@@ -188,6 +226,26 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
         GL13.glActiveTexture(GL13.GL_TEXTURE0);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glDisable(GL11.GL_ALPHA_TEST);
+
+        if (pass != 1) drawObject(star, kind, cx, cy, cz, radius, r, g, b, gamma, coreAlpha, spin);
+        if (pass != 0) drawSurroundings(star, kind, now, age, cx, cy, cz, radius, r, g, b, coreAlpha, spin);
+
+        RenderState.restore(GL11.GL_BLEND, blendWas);
+        RenderState.restore(GL11.GL_DEPTH_TEST, depthTestWas);
+        RenderState.restore(GL11.GL_ALPHA_TEST, alphaTestWas);
+        GL11.glDepthMask(depthMaskWas);
+        RenderState.restoreBlendFunc(blendFuncWas);
+    }
+
+    // ================================================================================ pass 0: the object
+
+    /**
+     * Pass 0: the core (opaque, writing depth; alpha-blended while a supernova's remnant fades), the two additive
+     * surface shells, the cooling dwarf's dark-red rim, then (untextured) the limb darkening and the black dwarf's
+     * veil.
+     */
+    private void drawObject(TileEyeStar star, byte kind, double cx, double cy, double cz, float radius, float r,
+        float g, float b, float gamma, float coreAlpha, double spin) {
         shader.use();
         final long cullWas = EOHRenderingUtils.beginSphereCull(false);
         sphere.bind();
@@ -199,7 +257,7 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
             GL11.glDepthMask(true);
             drawLayer(LAYER_0, r, g, b, 1f, radius, 0f, 1f, 1f, 130 + spin);
         }
-        // 2) the translucent shells, additive (E2) and without writing depth; the cooling dwarf's fade as it cools
+        // 2) the surface shells, additive and without writing depth; the cooling dwarf's fade as it cools
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glDepthMask(false);
         if (coreAlpha < 1f) {
@@ -209,11 +267,8 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
         final float aux = star.getAux();
         final float shells = coreAlpha * (kind == EyeStarLook.DWARF ? 1f - aux : 1f);
-        // additive shells with a gamma of at most 1.2: at the star's own (high) gamma they added a near-white layer
-        // over
-        // the face (render QA round 2). Round 3: the lit stars, the swell, the neutron star, the bounce and the dwarf
-        // run them at 0.12 / 0.06 (0.3 / 0.15 still blew Sol and Sirius A out to white), and every kind at 1.01 / 1.02
-        // radii, not 1.02 / 1.04, which left a dull hard-edged ring about a block wide round the limb (E-8)
+        // additive shells with a gamma of at most 1.2 (round 2); the bright kinds at 0.12 / 0.06 and every kind at
+        // 1.01 / 1.02 radii (round 3, E-1..E-4, E-8)
         final boolean bright = brightShells(kind);
         final float shellA = (bright ? SHELL_A_BRIGHT : SHELL_A) * shells;
         final float shellB = (bright ? SHELL_B_BRIGHT : SHELL_B) * shells;
@@ -224,58 +279,36 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
             // E7: a faint dark-red rim, so the near-black ball still reads against dark casings at night
             GL20.glUniform1f(shader.loc(U_GAMMA), 0.6f);
             drawLayer(LAYER_1, 0x40 / 255f, 0x18 / 255f, 0x10 / 255f, 0.25f, radius * 1.03f, 0f, 1f, 0f, spin * 0.5);
-        } else if (kind == EyeStarLook.MAGNETAR) {
-            // E8: the flare shell (brighter on an event warning) and a flare every 4-8 s
-            GL20.glUniform1f(shader.loc(U_GAMMA), 1f);
-            drawLayer(
-                LAYER_2,
-                0xB0 / 255f,
-                0x70 / 255f,
-                1f,
-                0.15f + 0.45f * aux,
-                radius * 1.8f,
-                0f,
-                1f,
-                1f,
-                -spin * 0.4);
-            final double flare = star.flareAge(now);
-            if (flare < FLARE_TICKS) {
-                shockShell(0xB0 / 255f, 0x70 / 255f, 1f, 0.3f, radius, radius * FLARE_REACH, flare / FLARE_TICKS, spin);
-            }
-        }
-
-        // 3) the transition shells, additive
-        if (kind == EyeStarLook.BOUNCE && age < BOUNCE_TICKS) {
-            shockShell(0.8f, 0.9f, 1f, 0.25f, 2.6f, 18.6f, age / BOUNCE_TICKS, spin);
-        } else if (kind == EyeStarLook.NOVA && age < NOVA_TICKS) {
-            final float f = (float) (age / NOVA_TICKS);
-            GL20.glUniform1f(shader.loc(U_GAMMA), 5f);
-            drawLayer(LAYER_1, 1f, 0.95f, 0.85f, 0.9f * (1f - f), 15f + 30f * f, 1f, 1f, 0f, spin * 0.2);
-            drawLayer(LAYER_2, 1f, 0.6f, 0.3f, 0.6f * (1f - f), 12f + 24f * f, 0f, 1f, 1f, -spin * 0.3);
         }
 
         sphere.unbind();
         EOHRenderingUtils.endSphereCull(cullWas);
         ShaderProgram.clear();
 
-        // 4) the cooling dwarf's dark veil, the glow and the polar beams: untextured, depth-tested, no depth writes
-        // (E1, E9; round 3 E-7)
-        final boolean beams = kind == EyeStarLook.NEUTRON || kind == EyeStarLook.MAGNETAR;
-        final float veil = kind == EyeStarLook.DWARF ? VEIL_ALPHA * Math.max(0f, Math.min(1f, (aux - 0.5f) / 0.4f))
+        // 3) untextured, alpha-blended, front faces only: the limb darkening (D6) and the black dwarf's veil (E-7)
+        final float veil = kind == EyeStarLook.DWARF
+            ? VEIL_ALPHA * Math.max(0f, Math.min(1f, (star.getAux() - 0.5f) / 0.4f))
             : 0f;
-        glowAndBeams(x + 0.5, y + 0.5, z + 0.5, radius, r, g, b, GLOW_ALPHA * coreAlpha, beams, spin, veil);
-
-        RenderState.restore(GL11.GL_BLEND, blendWas);
-        RenderState.restore(GL11.GL_DEPTH_TEST, depthTestWas);
-        RenderState.restore(GL11.GL_ALPHA_TEST, alphaTestWas);
-        GL11.glDepthMask(depthMaskWas);
-        RenderState.restoreBlendFunc(blendFuncWas);
+        if (coreAlpha < 1f && veil <= 0.003f) return;
+        final Flat flat = Flat.begin();
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GL11.glEnable(GL11.GL_CULL_FACE);
+        GL11.glFrontFace(GL11.GL_CCW);
+        GL11.glCullFace(GL11.GL_BACK);
+        final Tessellator t = Tessellator.instance;
+        if (coreAlpha >= 1f) {
+            sphereMesh(t, cx, cy, cz, outside(radius), 0f, 0f, 0f, 0f, LIMB, false);
+        }
+        if (veil > 0.003f) {
+            sphereMesh(t, cx, cy, cz, outside(radius * VEIL_RADII), VEIL_R, VEIL_G, VEIL_B, veil, 0f, false);
+        }
+        flat.end();
     }
 
     /**
-     * The kinds whose additive shells run at {@link #SHELL_A_BRIGHT} / {@link #SHELL_B_BRIGHT}: the lit T1-T3 stars,
-     * the Core Collapse swell and bounce, the neutron star and the cooling dwarf (render QA round 3, E-1..E-4). The
-     * protostar, the magnetar and the nova keep 0.3 / 0.15.
+     * The kinds whose additive surface shells run at {@link #SHELL_A_BRIGHT} / {@link #SHELL_B_BRIGHT}: the lit T1-T3
+     * stars, the Core Collapse swell and bounce, the neutron star and the cooling dwarf (render QA round 3,
+     * E-1..E-4). The protostar, the magnetar and the nova keep 0.3 / 0.15.
      */
     private static boolean brightShells(byte kind) {
         switch (kind) {
@@ -291,146 +324,293 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
     }
 
     /**
-     * An additive shock shell (the bounce's, a magnetar flare): {@code f} (0..1) of the way out from radius
-     * {@code from} to {@code to}, fading from {@code alpha}. The blend is already additive.
+     * The vertex radius of a {@link #MESH_SLICES} x {@link #MESH_STACKS} sphere whose flat faces all lie at least
+     * {@code minRad} from the centre: 1 / (cos(half a slice) x cos(half a stack)) further out. With the vertices AT
+     * the core's radius the faces sank up to 1 % inside it, i.e. inside the core's depth, and the depth test hid them
+     * (round 3, the veil).
      */
-    private void shockShell(float r, float g, float b, float alpha, float from, float to, double f, double spin) {
-        final float t = (float) Math.max(0, Math.min(1, f));
-        GL20.glUniform1f(shader.loc(U_GAMMA), SHOCK_GAMMA);
-        drawLayer(LAYER_2, r, g, b, alpha * (1f - t), from + (to - from) * t, 0f, 1f, 1f, spin * 0.3);
+    private static double outside(double minRad) {
+        return minRad / (Math.cos(Math.PI / MESH_SLICES) * Math.cos(Math.PI / (2 * MESH_STACKS)));
     }
 
-    /**
-     * The cooling dwarf's dark veil (if {@code veil > 0}), the glow billboard and (if {@code beams}) the two polar
-     * beams, in the TESR's camera-relative coordinates (the camera is at the origin), around the object centre
-     * {@code (cx, cy, cz)}.
-     * <p>
-     * The veil (render QA round 3, E-7) is an untextured near-black sphere just outside the core ({@link #VEIL_RADII}),
-     * alpha-blended at {@code veil}: the star shader takes only the tint's chroma, so it cannot darken the late black
-     * dwarf by colour and the veil does. Drawn after the shells, it also darkens the dark-red rim's face and leaves
-     * only its limb, so the ball still reads against dark casings at night.
-     * <p>
-     * The glow is a disc facing the camera: the object's colour at {@code alpha} in the middle, falling linearly to 0
-     * at {@link #GLOW_RADII} object radii (at least {@link #GLOW_MIN}, at most {@link #GLOW_MAX} blocks). It passes
-     * through the object's centre, so the object's depth hides its middle and the star's face stays clean, and it never
-     * reaches a block of the Eye (round 2 set it behind the object and scaled it up, and the inner crown ring cut it
-     * along a straight line: E-5). The bands in front of it hide it, and it shows through their gaps.
-     */
-    private static void glowAndBeams(double cx, double cy, double cz, float radius, float r, float g, float b,
-        float alpha, boolean beams, double spinDeg, float veil) {
-        final double dist = Math.sqrt(cx * cx + cy * cy + cz * cz);
-        if (dist <= radius + 0.5 || alpha <= 0.003f && veil <= 0.003f) return;
-        final double dx = cx / dist, dy = cy / dist, dz = cz / dist;
-        // u, v: the billboard's axes, perpendicular to the view direction
-        final double upX = Math.abs(dy) > 0.99 ? 1 : 0, upY = Math.abs(dy) > 0.99 ? 0 : 1;
-        double ux = dy * 0 - dz * upY, uy = dz * upX - dx * 0, uz = dx * upY - dy * upX;
-        final double ul = Math.sqrt(ux * ux + uy * uy + uz * uz);
-        ux /= ul;
-        uy /= ul;
-        uz /= ul;
-        final double vx = uy * dz - uz * dy, vy = uz * dx - ux * dz, vz = ux * dy - uy * dx;
+    // ===================================================================== pass 1: the see-through layers
 
-        final boolean textureWas = GL11.glGetBoolean(GL11.GL_TEXTURE_2D);
-        final boolean lightingWas = GL11.glGetBoolean(GL11.GL_LIGHTING);
-        final boolean cullWas = GL11.glGetBoolean(GL11.GL_CULL_FACE);
-        final boolean fogWas = GL11.glGetBoolean(GL11.GL_FOG);
-        final int shadeWas = GL11.glGetInteger(GL11.GL_SHADE_MODEL);
-        OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
-        final boolean lightmapWas = GL11.glGetBoolean(GL11.GL_TEXTURE_2D);
-        GL11.glDisable(GL11.GL_TEXTURE_2D);
-        OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
-        GL11.glDisable(GL11.GL_TEXTURE_2D);
-        GL11.glDisable(GL11.GL_LIGHTING);
-        GL11.glDisable(GL11.GL_CULL_FACE);
-        GL11.glDisable(GL11.GL_FOG);
-        GL11.glShadeModel(GL11.GL_SMOOTH);
+    /**
+     * Pass 1, all additive, depth-tested, no depth writes: the supernova's textured flash, the magnetar's shells, the
+     * bounce's shock front, the corona, the glow disc and the polar beams.
+     */
+    private void drawSurroundings(TileEyeStar star, byte kind, double now, double age, double cx, double cy, double cz,
+        float radius, float r, float g, float b, float coreAlpha, double spin) {
         GL11.glEnable(GL11.GL_BLEND);
-        GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glDepthMask(false);
-
-        final Tessellator t = Tessellator.instance;
-        if (veil > 0.003f) {
-            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-            veilSphere(t, cx, cy, cz, radius * VEIL_RADII, veil);
-        }
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
-        // the glow: a disc through the object's centre that never reaches a block (E-5)
-        final double R = Math.min(GLOW_MAX, Math.max(GLOW_MIN, GLOW_RADII * radius));
-        if (alpha > 0.003f) {
-            t.startDrawing(GL11.GL_TRIANGLE_FAN);
-            t.setColorRGBA_F(r, g, b, alpha);
-            t.addVertex(cx, cy, cz);
-            t.setColorRGBA_F(r, g, b, 0f);
-            for (int i = 0; i <= GLOW_SEGMENTS; i++) {
-                final double a = 2 * Math.PI * i / GLOW_SEGMENTS;
-                final double c = Math.cos(a) * R, s = Math.sin(a) * R;
-                t.addVertex(cx + ux * c + vx * s, cy + uy * c + vy * s, cz + uz * c + vz * s);
-            }
-            t.draw();
+
+        if (kind == EyeStarLook.NOVA && age < NOVA_TICKS) {
+            // the supernova's flash: TecTech's textures, expanding past the bands
+            shader.use();
+            final long cullWas = EOHRenderingUtils.beginSphereCull(false);
+            sphere.bind();
+            final float f = (float) (age / NOVA_TICKS);
+            GL20.glUniform1f(shader.loc(U_GAMMA), 5f);
+            drawLayer(LAYER_1, 1f, 0.95f, 0.85f, 0.9f * (1f - f), 15f + 30f * f, 1f, 1f, 0f, spin * 0.2);
+            drawLayer(LAYER_2, 1f, 0.6f, 0.3f, 0.6f * (1f - f), 12f + 24f * f, 0f, 1f, 1f, -spin * 0.3);
+            sphere.unbind();
+            EOHRenderingUtils.endSphereCull(cullWas);
+            ShaderProgram.clear();
         }
 
-        if (beams && alpha > 0.003f) {
-            // the beam axis leans BEAM_TILT off the vertical spin axis and sweeps round it with the object's spin
-            final double turn = Math.toRadians(spinDeg % 360.0);
-            final double ax = Math.sin(BEAM_TILT) * Math.cos(turn), ay = Math.cos(BEAM_TILT),
-                az = Math.sin(BEAM_TILT) * Math.sin(turn);
-            final float br = 0.5f + 0.5f * r, bg = 0.5f + 0.5f * g, bb = 0.5f + 0.5f * b;
-            t.startDrawingQuads();
-            for (int sign = -1; sign <= 1; sign += 2) {
-                final double x0 = cx + sign * ax * radius * 0.9, y0 = cy + sign * ay * radius * 0.9,
-                    z0 = cz + sign * az * radius * 0.9;
-                final double x1 = cx + sign * ax * (radius + BEAM_LENGTH), y1 = cy + sign * ay * (radius + BEAM_LENGTH),
-                    z1 = cz + sign * az * (radius + BEAM_LENGTH);
-                // width across the beam and the line of sight
-                double wx = ay * z0 - az * y0, wy = az * x0 - ax * z0, wz = ax * y0 - ay * x0;
-                final double wl = Math.sqrt(wx * wx + wy * wy + wz * wz);
-                if (wl < 1e-6) continue;
-                wx *= BEAM_HALF_WIDTH / wl;
-                wy *= BEAM_HALF_WIDTH / wl;
-                wz *= BEAM_HALF_WIDTH / wl;
-                t.setColorRGBA_F(br, bg, bb, BEAM_ALPHA * alpha / GLOW_ALPHA);
-                t.addVertex(x0 - wx, y0 - wy, z0 - wz);
-                t.addVertex(x0 + wx, y0 + wy, z0 + wz);
-                t.setColorRGBA_F(br, bg, bb, 0f);
-                t.addVertex(x1 + wx, y1 + wy, z1 + wz);
-                t.addVertex(x1 - wx, y1 - wy, z1 - wz);
-            }
-            t.draw();
+        final double dist = Math.sqrt(cx * cx + cy * cy + cz * cz);
+        final Flat flat = Flat.begin();
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
+        final Tessellator t = Tessellator.instance;
+
+        // the shells: back faces first, then front faces
+        if (kind == EyeStarLook.MAGNETAR) {
+            magnetarShells(t, star, now, cx, cy, cz);
+        } else if (kind == EyeStarLook.BOUNCE && age < BOUNCE_TICKS) {
+            // D2: the shock front, rim-weighted and fading as it runs out (about 7 blocks at 30 ticks)
+            final float f = (float) (age / BOUNCE_TICKS);
+            final float fade = 1f - f;
+            rimShell(
+                t,
+                cx,
+                cy,
+                cz,
+                BOUNCE_FROM + (BOUNCE_TO - BOUNCE_FROM) * f,
+                r,
+                g,
+                b,
+                RIM_CENTRE * fade,
+                BOUNCE_EDGE * fade);
         }
 
-        GL11.glShadeModel(shadeWas);
-        RenderState.restore(GL11.GL_FOG, fogWas);
-        RenderState.restore(GL11.GL_CULL_FACE, cullWas);
-        RenderState.restore(GL11.GL_LIGHTING, lightingWas);
-        RenderState.restore(GL11.GL_TEXTURE_2D, textureWas);
-        OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
-        RenderState.restore(GL11.GL_TEXTURE_2D, lightmapWas);
-        OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
+        // billboards: the corona, the glow, the beams
+        GL11.glDisable(GL11.GL_CULL_FACE);
+        if (dist > radius + 0.5) {
+            final double dx = cx / dist, dy = cy / dist, dz = cz / dist;
+            // u, v: the billboards' axes, perpendicular to the view direction
+            final double upX = Math.abs(dy) > 0.99 ? 1 : 0, upY = Math.abs(dy) > 0.99 ? 0 : 1;
+            double ux = -dz * upY, uy = dz * upX, uz = dx * upY - dy * upX;
+            final double ul = Math.sqrt(ux * ux + uy * uy + uz * uz);
+            ux /= ul;
+            uy /= ul;
+            uz /= ul;
+            final double vx = uy * dz - uz * dy, vy = uz * dx - ux * dz, vz = ux * dy - uy * dx;
+            final double[] u = { ux, uy, uz }, v = { vx, vy, vz };
+
+            // the corona (D6) and the neutron star's wider glow (D7): a ring from the limb outward, in the plane of
+            // the limb, so the star hides none of it and it hides none of the star
+            final float corona = coronaAlpha(kind, star.getAux()) * coreAlpha;
+            if (corona > 0.003f) {
+                final double limbBack = radius * radius / dist; // the limb's plane, this far toward the camera
+                final double limb = radius * Math.sqrt(1 - (radius / dist) * (radius / dist));
+                final double reach = Math.sqrt(Math.max(0, CLEARANCE * CLEARANCE - limbBack * limbBack));
+                final double outer = Math.min(reach, limb * coronaRadii(kind));
+                if (outer > limb + 0.05) {
+                    ring(
+                        t,
+                        cx - dx * limbBack,
+                        cy - dy * limbBack,
+                        cz - dz * limbBack,
+                        u,
+                        v,
+                        limb,
+                        outer,
+                        r,
+                        g,
+                        b,
+                        corona);
+                }
+            }
+
+            // the glow: a disc through the object's centre that never reaches a block (round 3, E-5)
+            final double glow = Math.min(CLEARANCE, Math.max(GLOW_MIN, GLOW_RADII * radius));
+            if (coreAlpha > 0.003f) ring(t, cx, cy, cz, u, v, 0, glow, r, g, b, GLOW_ALPHA * coreAlpha);
+
+            if ((kind == EyeStarLook.NEUTRON || kind == EyeStarLook.MAGNETAR) && coreAlpha > 0.003f) {
+                beams(t, cx, cy, cz, radius, r, g, b, BEAM_ALPHA * coreAlpha, spin);
+            }
+        }
+        flat.end();
+    }
+
+    /** The corona's alpha at the limb for {@code kind} (0: none). */
+    private static float coronaAlpha(byte kind, float aux) {
+        switch (kind) {
+            case EyeStarLook.STAR:
+            case EyeStarLook.PROTOSTAR:
+            case EyeStarLook.SWELL:
+            case EyeStarLook.BOUNCE:
+                return CORONA_ALPHA;
+            case EyeStarLook.DWARF:
+                return CORONA_ALPHA * (1f - aux);
+            case EyeStarLook.NEUTRON:
+                return NEUTRON_GLOW_ALPHA;
+            default:
+                return 0f;
+        }
+    }
+
+    private static float coronaRadii(byte kind) {
+        return kind == EyeStarLook.NEUTRON ? NEUTRON_GLOW_RADII : CORONA_RADII;
     }
 
     /**
-     * An untextured sphere round {@code (cx, cy, cz)} in the veil colour at {@code alpha}, whose faces all lie at least
-     * {@code rad} from the centre: the vertices stand out by 1 / (cos(half a slice) x cos(half a stack)). With the
-     * vertices AT {@code rad} the flat faces sank up to 0.9 % inside it, i.e. inside the core's depth, and the round-3
-     * veil barely showed.
+     * D3: the magnetosphere (4.5 blocks, C080FF) always; on an event warning the outer shell (7 blocks, 7A4CFF) as
+     * well, both edges pulsing between {@link #WARN_LOW} and {@link #WARN_HIGH} at 2 Hz so the warning reads from a
+     * distance; and a flare every 4-8 s running from the magnetosphere out to the outer shell.
      */
-    private static void veilSphere(Tessellator t, double cx, double cy, double cz, double minRad, float alpha) {
-        final double rad = minRad / (Math.cos(Math.PI / VEIL_SLICES) * Math.cos(Math.PI / (2 * VEIL_STACKS)));
+    private static void magnetarShells(Tessellator t, TileEyeStar star, double now, double cx, double cy, double cz) {
+        final boolean warn = star.getAux() > 0.5f;
+        final float p = warn ? WARN_LOW + (WARN_HIGH - WARN_LOW) * (float) (0.5 + 0.5 * Math.sin(now * WARN_RATE)) : 0f;
+        final float innerEdge = warn ? p : MAG_QUIET_EDGE;
+        rimShell(t, cx, cy, cz, MAG_INNER_RADIUS, MAG_INNER_R, MAG_INNER_G, MAG_INNER_B, RIM_CENTRE, innerEdge);
+        if (warn) {
+            rimShell(
+                t,
+                cx,
+                cy,
+                cz,
+                MAG_OUTER_RADIUS,
+                MAG_OUTER_R,
+                MAG_OUTER_G,
+                MAG_OUTER_B,
+                RIM_CENTRE,
+                p * MAG_OUTER_EDGE / MAG_INNER_EDGE);
+        }
+        final double flare = star.flareAge(now);
+        if (flare < FLARE_TICKS) {
+            final float f = (float) (flare / FLARE_TICKS);
+            rimShell(
+                t,
+                cx,
+                cy,
+                cz,
+                MAG_INNER_RADIUS + (MAG_OUTER_RADIUS - MAG_INNER_RADIUS) * f,
+                MAG_OUTER_R,
+                MAG_OUTER_G,
+                MAG_OUTER_B,
+                RIM_CENTRE * (1f - f),
+                MAG_OUTER_EDGE * (1f - f));
+        }
+    }
+
+    /**
+     * A rim-weighted additive shell: alpha {@code centre + (edge - centre) (1 - |N.V|)^3}. Back faces first, then front
+     * faces (the blend is additive, so the order only matters for the depth test against what is already drawn).
+     */
+    private static void rimShell(Tessellator t, double cx, double cy, double cz, double rad, float r, float g, float b,
+        float centre, float edge) {
+        if (edge <= 0.003f || rad <= 0.05) return;
+        GL11.glEnable(GL11.GL_CULL_FACE);
+        GL11.glFrontFace(GL11.GL_CCW);
+        GL11.glCullFace(GL11.GL_FRONT);
+        sphereMesh(t, cx, cy, cz, rad, r, g, b, centre, edge - centre, true);
+        GL11.glCullFace(GL11.GL_BACK);
+        sphereMesh(t, cx, cy, cz, rad, r, g, b, centre, edge - centre, true);
+    }
+
+    /**
+     * An untextured {@link #MESH_SLICES} x {@link #MESH_STACKS} sphere of vertex radius {@code rad} round
+     * {@code (cx, cy, cz)} (camera-relative: the camera is at the origin), its faces wound counter-clockwise seen from
+     * outside. Per vertex the alpha is {@code a0 + a1 (1 - |N.V|)^3} ({@code cubic}) or {@code a0 + a1 (1 - |N.V|)}.
+     */
+    private static void sphereMesh(Tessellator t, double cx, double cy, double cz, double rad, float r, float g,
+        float b, float a0, float a1, boolean cubic) {
         t.startDrawingQuads();
-        t.setColorRGBA_F(VEIL_R, VEIL_G, VEIL_B, alpha);
-        for (int i = 0; i < VEIL_STACKS; i++) {
-            final double p0 = Math.PI * i / VEIL_STACKS - Math.PI / 2;
-            final double p1 = Math.PI * (i + 1) / VEIL_STACKS - Math.PI / 2;
-            final double y0 = Math.sin(p0) * rad, y1 = Math.sin(p1) * rad;
-            final double r0 = Math.cos(p0) * rad, r1 = Math.cos(p1) * rad;
-            for (int j = 0; j < VEIL_SLICES; j++) {
-                final double a0 = 2 * Math.PI * j / VEIL_SLICES, a1 = 2 * Math.PI * (j + 1) / VEIL_SLICES;
-                final double c0 = Math.cos(a0), s0 = Math.sin(a0), c1 = Math.cos(a1), s1 = Math.sin(a1);
-                t.addVertex(cx + r0 * c0, cy + y0, cz + r0 * s0);
-                t.addVertex(cx + r1 * c0, cy + y1, cz + r1 * s0);
-                t.addVertex(cx + r1 * c1, cy + y1, cz + r1 * s1);
-                t.addVertex(cx + r0 * c1, cy + y0, cz + r0 * s1);
+        for (int i = 0; i < MESH_STACKS; i++) {
+            final double p0 = Math.PI * i / MESH_STACKS - Math.PI / 2;
+            final double p1 = Math.PI * (i + 1) / MESH_STACKS - Math.PI / 2;
+            final double y0 = Math.sin(p0), y1 = Math.sin(p1);
+            final double r0 = Math.cos(p0), r1 = Math.cos(p1);
+            for (int j = 0; j < MESH_SLICES; j++) {
+                final double a = 2 * Math.PI * j / MESH_SLICES, c = 2 * Math.PI * (j + 1) / MESH_SLICES;
+                final double c0 = Math.cos(a), s0 = Math.sin(a), c1 = Math.cos(c), s1 = Math.sin(c);
+                vertex(t, cx, cy, cz, rad, r0 * c0, y0, r0 * s0, r, g, b, a0, a1, cubic);
+                vertex(t, cx, cy, cz, rad, r1 * c0, y1, r1 * s0, r, g, b, a0, a1, cubic);
+                vertex(t, cx, cy, cz, rad, r1 * c1, y1, r1 * s1, r, g, b, a0, a1, cubic);
+                vertex(t, cx, cy, cz, rad, r0 * c1, y0, r0 * s1, r, g, b, a0, a1, cubic);
             }
+        }
+        t.draw();
+    }
+
+    private static void vertex(Tessellator t, double cx, double cy, double cz, double rad, double nx, double ny,
+        double nz, float r, float g, float b, float a0, float a1, boolean cubic) {
+        final double px = cx + nx * rad, py = cy + ny * rad, pz = cz + nz * rad;
+        final double pl = Math.sqrt(px * px + py * py + pz * pz);
+        final double nv = pl < 1e-6 ? 1 : Math.abs(nx * px + ny * py + nz * pz) / pl;
+        final double rim = 1 - Math.min(1, nv);
+        final double a = a0 + a1 * (cubic ? rim * rim * rim : rim);
+        t.setColorRGBA_F(r, g, b, (float) Math.max(0, Math.min(1, a)));
+        t.addVertex(px, py, pz);
+    }
+
+    /**
+     * A flat ring (or a disc, {@code inner} 0) facing the camera, centred on {@code (ox, oy, oz)} in the plane spanned
+     * by {@code u} and {@code v}: {@code alpha} at the inner edge falling linearly to 0 at {@code outer}.
+     */
+    private static void ring(Tessellator t, double ox, double oy, double oz, double[] u, double[] v, double inner,
+        double outer, float r, float g, float b, float alpha) {
+        if (alpha <= 0.003f || outer <= inner) return;
+        t.startDrawingQuads();
+        for (int i = 0; i < RING_SEGMENTS; i++) {
+            final double a = 2 * Math.PI * i / RING_SEGMENTS, c = 2 * Math.PI * (i + 1) / RING_SEGMENTS;
+            final double ca = Math.cos(a), sa = Math.sin(a), cc = Math.cos(c), sc = Math.sin(c);
+            t.setColorRGBA_F(r, g, b, alpha);
+            t.addVertex(
+                ox + (u[0] * ca + v[0] * sa) * inner,
+                oy + (u[1] * ca + v[1] * sa) * inner,
+                oz + (u[2] * ca + v[2] * sa) * inner);
+            t.setColorRGBA_F(r, g, b, 0f);
+            t.addVertex(
+                ox + (u[0] * ca + v[0] * sa) * outer,
+                oy + (u[1] * ca + v[1] * sa) * outer,
+                oz + (u[2] * ca + v[2] * sa) * outer);
+            t.addVertex(
+                ox + (u[0] * cc + v[0] * sc) * outer,
+                oy + (u[1] * cc + v[1] * sc) * outer,
+                oz + (u[2] * cc + v[2] * sc) * outer);
+            t.setColorRGBA_F(r, g, b, alpha);
+            t.addVertex(
+                ox + (u[0] * cc + v[0] * sc) * inner,
+                oy + (u[1] * cc + v[1] * sc) * inner,
+                oz + (u[2] * cc + v[2] * sc) * inner);
+        }
+        t.draw();
+    }
+
+    /**
+     * D7: two polar beams leaning {@link #BEAM_TILT} off the vertical spin axis and sweeping round it with the
+     * object's spin, from just inside the surface to {@link #BEAM_TIP} blocks from the centre (one block inside
+     * {@link #CLEARANCE}, so a beam never reaches a band), {@link #BEAM_HALF_WIDTH} wide each side, {@code alpha} at
+     * the root falling to 0 at the tip.
+     */
+    private static void beams(Tessellator t, double cx, double cy, double cz, float radius, float r, float g, float b,
+        float alpha, double spinDeg) {
+        final double turn = Math.toRadians(spinDeg % 360.0);
+        final double ax = Math.sin(BEAM_TILT) * Math.cos(turn), ay = Math.cos(BEAM_TILT),
+            az = Math.sin(BEAM_TILT) * Math.sin(turn);
+        final float br = 0.5f + 0.5f * r, bg = 0.5f + 0.5f * g, bb = 0.5f + 0.5f * b;
+        final double root = radius * 0.9;
+        if (BEAM_TIP <= root) return;
+        t.startDrawingQuads();
+        for (int sign = -1; sign <= 1; sign += 2) {
+            final double x0 = cx + sign * ax * root, y0 = cy + sign * ay * root, z0 = cz + sign * az * root;
+            final double x1 = cx + sign * ax * BEAM_TIP, y1 = cy + sign * ay * BEAM_TIP, z1 = cz + sign * az * BEAM_TIP;
+            // width across the beam and the line of sight
+            double wx = ay * z0 - az * y0, wy = az * x0 - ax * z0, wz = ax * y0 - ay * x0;
+            final double wl = Math.sqrt(wx * wx + wy * wy + wz * wz);
+            if (wl < 1e-6) continue;
+            wx *= BEAM_HALF_WIDTH / wl;
+            wy *= BEAM_HALF_WIDTH / wl;
+            wz *= BEAM_HALF_WIDTH / wl;
+            t.setColorRGBA_F(br, bg, bb, alpha);
+            t.addVertex(x0 - wx, y0 - wy, z0 - wz);
+            t.addVertex(x0 + wx, y0 + wy, z0 + wz);
+            t.setColorRGBA_F(br, bg, bb, 0f);
+            t.addVertex(x1 + wx, y1 + wy, z1 + wz);
+            t.addVertex(x1 - wx, y1 - wy, z1 - wz);
         }
         t.draw();
     }
@@ -447,5 +627,54 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
         shader.uploadModel(layer);
         GL20.glUniform4f(shader.loc(U_COLOR), r, g, b, a);
         sphere.draw();
+    }
+
+    /**
+     * The fixed-function state of the untextured layers: no texture (on either unit), no lighting, no fog (it would
+     * add the fog colour to an additive layer), smooth shading, blending and the depth test on, no depth writes. Saved
+     * by {@link #begin}, put back by {@link #end}, including the cull face, its mode and the front-face winding.
+     */
+    private static final class Flat {
+
+        private static final Flat INSTANCE = new Flat();
+
+        private boolean texture, lightmap, lighting, cull, fog;
+        private int shade, cullMode, frontFace;
+
+        static Flat begin() {
+            final Flat s = INSTANCE;
+            s.texture = GL11.glGetBoolean(GL11.GL_TEXTURE_2D);
+            s.lighting = GL11.glGetBoolean(GL11.GL_LIGHTING);
+            s.cull = GL11.glGetBoolean(GL11.GL_CULL_FACE);
+            s.fog = GL11.glGetBoolean(GL11.GL_FOG);
+            s.shade = GL11.glGetInteger(GL11.GL_SHADE_MODEL);
+            s.cullMode = GL11.glGetInteger(GL11.GL_CULL_FACE_MODE);
+            s.frontFace = GL11.glGetInteger(GL11.GL_FRONT_FACE);
+            OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
+            s.lightmap = GL11.glGetBoolean(GL11.GL_TEXTURE_2D);
+            GL11.glDisable(GL11.GL_TEXTURE_2D);
+            OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
+            GL11.glDisable(GL11.GL_TEXTURE_2D);
+            GL11.glDisable(GL11.GL_LIGHTING);
+            GL11.glDisable(GL11.GL_FOG);
+            GL11.glShadeModel(GL11.GL_SMOOTH);
+            GL11.glEnable(GL11.GL_BLEND);
+            GL11.glEnable(GL11.GL_DEPTH_TEST);
+            GL11.glDepthMask(false);
+            return s;
+        }
+
+        void end() {
+            GL11.glShadeModel(shade);
+            GL11.glCullFace(cullMode);
+            GL11.glFrontFace(frontFace);
+            RenderState.restore(GL11.GL_FOG, fog);
+            RenderState.restore(GL11.GL_CULL_FACE, cull);
+            RenderState.restore(GL11.GL_LIGHTING, lighting);
+            RenderState.restore(GL11.GL_TEXTURE_2D, texture);
+            OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
+            RenderState.restore(GL11.GL_TEXTURE_2D, lightmap);
+            OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
+        }
     }
 }

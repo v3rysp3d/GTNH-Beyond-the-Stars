@@ -213,6 +213,16 @@ public class TileEyeStar extends TileEntity {
         return frozen >= 0 ? frozen : now - flareSince;
     }
 
+    /**
+     * Render QA round 4 (D1): the opaque core in pass 0, every see-through layer (corona, glow, beams, magnetar shells,
+     * bounce and nova shells) in pass 1, after the translucent and glowing block faces, so those faces are tinted by
+     * the layers in front of them instead of drawn over them. {@link EyeStarRenderer} asks the pass.
+     */
+    @Override
+    public boolean shouldRenderInPass(int pass) {
+        return pass == 0 || pass == 1;
+    }
+
     /** The object and the nova / bounce shells (up to 3x the radius), plus a block. */
     @Override
     @SideOnly(Side.CLIENT)
