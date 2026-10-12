@@ -832,14 +832,75 @@ and answers "added". The reactor's feedwater, chamber-coolant and propellant soc
 input hatches, so a CRIB there would have formed the structure and fed nothing.
 
 **What we built.** The three sockets refuse anything that is not a plain Input Hatch, before GT's adder sees it, so
-the structure check names the wrong block instead of starving silently. A failed Spiral walk also rolls back GT's
+a CRIB can never be registered and starve the reactor silently. A failed Spiral walk also rolls back GT's
 dual-input list. The production halls, which use GT's own processing logic, accept CRIBs as before.
+
+**Measured on the RC-2 dev server (B-32).** The silo is an optional piece of the plant, so a CRIB in the feedwater
+socket does not un-form the plant. The silo walk fails, and the plant idles as a bare platform: silo T0, and the
+Spine, Spiral and gallery MISSING. The status shows that, but no error names the socket cell. Any other wrong block
+in a silo under construction behaves the same way (the B2 rule: only a legacy face gets the diagnostic re-walk).
+Putting the plain hatch back re-forms the full T3 plant. See B-32 for the open question.
 
 **Suggestion.** As built: each socket is a point-of-use line (feedwater grade, coolant grade, propellant) that the
 reactor meters itself.
 
 **Alternatives.** Support CRIBs in the sockets: give each socket its own dual-hatch list and drain the CRIB's fluid
 inventory in the per-socket draws. More code in the reactor's fluid paths for little gain.
+
+### B-32 RC-2 dev-server test: results, and a silo socket with the wrong hatch is not named [2.9.0-RC-2 test pass]
+
+**Context.** This is the first headless test of the RC-2 port: `runServer` with 76 mods, including coremod 2.9.84, on
+a fresh flat world (`sltest-rc2`), driven from the server console like B-27. The world was restarted twice.
+
+**Load.** "[BTS] Recipe registration complete: 232 registered, 0 skipped" on all three boots, with no
+`beyondthestars` warning, error or stack frame. GT's own null-input recipe errors come from pack mods missing on the
+dev server. TecTech's 43 Eye recipes and its controller recipe are removed (AL-visual 1, AL-data 1, research 2).
+"BHC->Kerr: 10 recipes now take the Kerr controller": the Empty Spatially Compressed Circuit Array and the 9
+Spacetime Compression Field Generators, Crude to Gallifreyan, all in the Condensate Assembler. Then "removed Black
+Hole Compressor controller: AL-visual 1, AL-data 1, research 0, scanner 1". The server-start pass found nothing new.
+
+**New console tools** (op only):
+
+- `/btseye gates` dumps every compression generator recipe the server has, with inputs, nanite tiers and
+  condensates. It checks the gate rule (generator tier t must not need anything the Eye first makes at Eye tier t+1
+  or later) on direct inputs and one level of Condensate Assembler sub-recipes. It also counts what still consumes
+  or makes a BHC controller.
+- `/btsbuild t<1-5> <x> <y> <z> [facing] [rod] [force] [crib] | [check]` is a console form of the reactor build.
+  `crib` swaps the first feedwater hatch for a fluid Crafting Input Buffer, re-walks the plant, puts the hatch back
+  and re-walks again.
+
+**Results.**
+
+| Check | Result |
+|---|---|
+| BHC consumers left (flag on) | **0**. 0 recipes make a BHC controller; the Kerr controller has 12 consumers |
+| Gate rule, Eye T1-T4 gates (generator t0-t3) | **clean**. t1-t3 pass through SL-P35, the second Reinforced Resonance Chamber recipe. GT's own chamber recipe still needs a White Dwarf Matter foil |
+| Gate rule, Eye T5-T9 | t4 loops on the Refined Resonance Chamber's Black Dwarf Matter foil; t5 and t6 are clean; t7 and t8 loop on the Resplendent Resonance Chamber's MHDCSM foil. This matches costs doc §9.4 and B-29 (P4/P5 work) |
+| Kerr T1 + both modules | FORMED facing N (creative) and E (survival: 15,362 blocks in 79 rounds) |
+| Kerr T2 + both modules | FORMED facing S (creative) and W (survival: 29,838 blocks in 151 rounds) |
+| Eye T1 | FORMED facing N (creative) and E (survival: 19,615 / 100 rounds) |
+| Eye T2 | FORMED facing S (creative) and W (survival: 23,958 / 122 rounds) |
+| Eye T3 | FORMED facing N (creative) and E (survival: 27,942 / 142 rounds) |
+| Eye T4 | FORMED facing S (creative, `fill`: Sirius B targeted) and W (survival: 34,501 / 175 rounds) |
+| Every build | orientation check on the viewer's right; re-projection still FORMED; damage test names the cell; survival repair puts back exactly 1 block, with tile entities unchanged |
+| Restart | all 12 still FORMED with `check`, with modules, Density Upgrade, Galactic core and bands |
+| Reactor T3 | FORMED facing N, E and S; still FORMED after a restart |
+| Reactor CRIB in the feedwater socket | refused: no dual input hatch and no feedwater hatch registered. The silo drops out (see below); the plain hatch re-forms T3. PASS |
+
+**Open: the refused socket is not named.** With a CRIB in the feedwater socket, the plant stays FORMED as a bare
+platform. The status reads "silo T0 ... spine MISSING | spiral MISSING | gallery MISSING", but no positioned error
+names the socket cell. The probes walk five silo tiers with a null error list, and only a legacy face earns the
+diagnostic re-walk (B2). Before the port the same happened to any wrong block in a silo socket, so this is not a
+regression. The CRIB case just makes it more likely: a player swaps a working hatch for a CRIB and the whole plant
+goes quiet.
+
+**Suggestion.** When the silo probes all fail and a silo socket cell holds a GT machine that is not a plain Input
+Hatch, re-walk that tier with the real error list, as the legacy-face diagnostic does. That names the cell. Or add a
+status line, "Feedwater socket holds a Crafting Input Buffer: use a plain Input Hatch". It touches the silo probe
+loop (R1-B / B2 history), so it waits for your call.
+
+**Alternatives.** Keep it as it is: the status already says the silo is missing, and B-31's tooltip text can say
+"plain Input Hatch only".
 
 ---
 
