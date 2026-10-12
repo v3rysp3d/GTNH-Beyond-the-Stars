@@ -1873,6 +1873,27 @@ breaches on Θ/Ω without trims, as designed. Golden: 78/78 PASS.
 **Suggestion.** Accept 1-5 as built. Re-check K after playing a magnetar: if flares feel unanswerable with the
 standard rig, raise K; if the trim never matters, lower it.
 
+### B-61 Package: what the test jar `0.24.1-master.137+175c89997a` contains [final integration package]
+
+**Context.** The package task asked for one jar with the Kerr redesign, the D-49 Eye T1-T6, "the BEC expansion and
+x32 structure casings" and the RC-2 lang fix, plus `dist-rc2/INSTALL.md` (design repo) with a dedicated-server
+section.
+
+**What was built.** `gradlew build` on master `175c899` (clean tree, spotless + checkstyle pass, nothing to fix). The
+jar is `dist-rc2/beyondthestars-0.24.1-master.137+175c89997a.jar`, SHA-256
+`6f29c4d7bd87c3d99f6075294f95394a28543327b74803d76b3511734432eab7`; the older `master.120` jar moved to
+`dist-rc2/superseded/`. The judgement calls:
+
+1. **The BEC expansion (ruling 11b) is not in the jar.** Master has only ruling 11a (SL-B01/B02 x32, SL-B03/B04
+   fallback); the expansion is still the proposal (B-59). INSTALL.md says so plainly instead of listing it as
+   shipped. *Suggestion:* build 11b as its own pass, then package again.
+2. **Unmerged branches are not in the jar:** `questbook`, `homogeny-reality`, `tidy-old-multis`. The package pass
+   does not merge (only the merge task may). INSTALL.md lists them under "Not in this build".
+3. **`SERVER_DIR` stays a placeholder** in the dedicated-server command, with a note to replace it: the server's folder is
+   not recorded anywhere in the repos.
+
+**Suggestion.** Accept as is; tell us the dedicated-server folder and it goes into the next INSTALL.md.
+
 ---
 
 ## Part C. Settled (for the record)
