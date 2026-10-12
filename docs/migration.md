@@ -106,7 +106,7 @@ Kerr's GUI.
 
 **Switch the Kerr off and let any running recipe finish before you update.**
 
-**Existing Kerrs convert themselves.** About two seconds after the world loads, each Kerr replaces the old module
+**Existing Kerrs convert themselves.** About two seconds after a Kerr's chunks load, it replaces the old module
 core blocks in its arcs:
 
 - Compressor arc: the core block becomes Background Radiation Absorbent Casing, and a Kerr Compressor Module

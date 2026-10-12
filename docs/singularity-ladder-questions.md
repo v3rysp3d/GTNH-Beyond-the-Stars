@@ -1043,11 +1043,28 @@ the placement calls are the render pass's (spec §5, work plan R4). Its hooks ar
 controller shapeless recipes are **SL-K07** (compressor) and **SL-K08** (extractor); SL-K06 stays retired. The two
 legacy core metas (`slCasing2:0/1`) stay registered and are hidden from NEI and the creative tab.
 
-**Migration.** The KEE converts legacy core blocks once per load, 40 ticks in (after its first structure check);
+**Migration.** The KEE converts legacy core blocks once per load, from 40 ticks in, as soon as its slot cells are loaded;
 `/btskerr migrate [x y z]` repeats it on demand. A controller cell is replaced only if it is air or the plain arc
 shell. The old in-flight recipe goes to the module it ran on (the saved `btsKerrBoundMode`, else the old machine
 mode); items that do not fit drop at the module controller, and fluids that do not fit are lost. The test bench
 `/btskerr legacy x y z` turns a built Kerr back into the old layout so this can be exercised.
+
+**Dev-server results (headless `runServer`, RC-2, 2026-10-12).**
+
+- `/btskerr t1` in all four facings and `/btskerr t2` north: the KEE and both modules FORM; each module controller
+  lands in its slot facing out of the cage; the extractor stands on the viewer's right (the mockup's side); creative
+  re-projection over every machine breaks nothing; the KEE's damage-and-repair test passes. After the hole opens
+  both modules report "Linked" (parallel 448, speed ×4.0 at 16 SM with creative UMV 16 A energy), also after their
+  chunks unload and reload (nothing about the link is saved).
+- Survival path (`survival`): KEE 13,898 blocks in 71 rounds, compressor arc 964 in 6, extractor arc 498 in 4, all
+  finished (-1) and formed.
+- Migration: `legacy` → `migrate` converts both arcs, and the modules form on their existing hatches and link. A Kerr
+  left in the legacy layout across a server restart converts itself (both arcs) about two seconds after load.
+- Not yet run: a module recipe actually completing, pausing mid-recipe on Collapse, two KEEs side by side, the
+  T2 DENSITY recipe, the GUI in a client, the NEI preview (work plan R5).
+- Test-bench only: removing a console-placed (ownerless) GT multiblock can throw inside GT's power-fail tracker
+  (`UsernameCache` with a null UUID). Player-placed machines have owners; `legacy` gives a stand-in owner and
+  carries on.
 
 **Suggestion.** As built.
 
