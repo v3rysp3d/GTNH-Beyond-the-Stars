@@ -113,6 +113,7 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
             "kerrRender",
             new BooleanSyncValue(multiblock::isRenderEnabled, multiblock::setRenderEnabled).allowC2S());
         syncManager.syncValue("kerrLinked", new IntSyncValue(multiblock::getLinkedModules));
+        syncManager.syncValue("kerrBurst", new StringSyncValue(multiblock::burstGuiLine));
         syncManager.syncValue("kerrMigration", new StringSyncValue(multiblock::getMigrationNote));
         syncManager.syncValue("kerrRenderNote", new StringSyncValue(multiblock::getRenderNote));
         for (KerrSlot slot : KerrSlot.VALUES) {
@@ -153,6 +154,7 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
         final BooleanSyncValue density = syncManager.findSyncHandler("kerrDensity", BooleanSyncValue.class);
         final StringSyncValue migration = syncManager.findSyncHandler("kerrMigration", StringSyncValue.class);
         final StringSyncValue renderNote = syncManager.findSyncHandler("kerrRenderNote", StringSyncValue.class);
+        final StringSyncValue burst = syncManager.findSyncHandler("kerrBurst", StringSyncValue.class);
         final StringSyncValue[] slots = slotValues(syncManager);
 
         return super.createTerminalTextWidget(syncManager, parent)
@@ -202,6 +204,14 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
             .child(row(() -> stabilityLine(open.getBoolValue(), stability.getDoubleValue(), evap.getLongValue())))
             .child(row(() -> containmentLine(open.getBoolValue(), powerOk.getBoolValue(), containment.getLongValue())))
             .child(row(() -> modulesLine(slots)))
+            .child(
+                IKey.dynamic(burst::getStringValue)
+                    .asWidget()
+                    .fullWidth()
+                    .marginBottom(2)
+                    .setEnabledIf(
+                        w -> !burst.getStringValue()
+                            .isEmpty()))
             .child(
                 IKey.dynamic(() -> EnumChatFormatting.AQUA + migration.getStringValue())
                     .asWidget()

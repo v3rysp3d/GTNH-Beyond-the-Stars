@@ -114,8 +114,8 @@ public abstract class MTEKerrModuleBase<T extends MTEKerrModuleBase<T>> extends 
     // --------------------------------------------- the bonus the running recipe started with (server)
     private int runParallel = 1;
     private double runSpeed = 1.0;
-    /** {@link #recipeGateOpen()} at the last 20-tick check (server, never saved). */
-    private boolean gateWasOpen;
+    /** {@link #gateState()} at the last 20-tick check (server, never saved). */
+    private int gateWas;
 
     protected MTEKerrModuleBase(int aID, String aName, String aNameRegional) {
         super(aID, aName, aNameRegional);
@@ -219,22 +219,45 @@ public abstract class MTEKerrModuleBase<T extends MTEKerrModuleBase<T>> extends 
     public void onPostTick(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
         if (aBaseMetaTileEntity.isServerSide() && aTick % LINK_INTERVAL == 0) {
             refreshLink();
-            // A recipe gate opening (the compressor's DENSITY) is a change GT is not told about either.
-            final boolean gate = recipeGateOpen();
-            if (gate && !gateWasOpen) scheduleRecipeCheck(RecipeCheckReason.IMMEDIATE);
-            gateWasOpen = gate;
+            // A recipe gate opening (the compressor's DENSITY, P4's 256 SM and quasar link) is a change GT is not told
+            // about either: any gate bit that comes on pushes a check.
+            final int gate = gateState();
+            if ((gate & ~gateWas) != 0) scheduleRecipeCheck(RecipeCheckReason.IMMEDIATE);
+            gateWas = gate;
         }
         super.onPostTick(aBaseMetaTileEntity, aTick);
-        if (aBaseMetaTileEntity.isServerSide() && link != Link.LINKED && mMaxProgresstime > 0) {
+        if (aBaseMetaTileEntity.isServerSide() && (link != Link.LINKED || !runConditionHolds())
+            && mMaxProgresstime > 0) {
             aBaseMetaTileEntity.setActive(false);
         }
     }
 
-    /** Paused while unlinked: no progress, no EU, no new recipe; a running recipe is kept (B-47). */
+    /**
+     * Paused while unlinked, or while the running recipe's own condition does not hold (P4: the Superdense refinery
+     * loses its quasar link): no progress, no EU, no new recipe; a running recipe is kept, never voided (B-47,
+     * quasar-p4.md §3.1).
+     */
     @Override
     protected void runMachine(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
         if (link != Link.LINKED) return;
+        if (mMaxProgresstime > 0 && !runConditionHolds()) return;
         super.runMachine(aBaseMetaTileEntity, aTick);
+    }
+
+    /**
+     * True while the running recipe may progress (checked every tick it runs). Default: always. The compressor's
+     * Superdense refinery needs the KEE's quasar link at σ ≥ 1.
+     */
+    protected boolean runConditionHolds() {
+        return true;
+    }
+
+    /**
+     * The recipe gates as bits, polled every 20 ticks; a bit that comes on pushes a recipe check. Default: bit 0 =
+     * {@link #recipeGateOpen()}.
+     */
+    protected int gateState() {
+        return recipeGateOpen() ? 1 : 0;
     }
 
     @Override

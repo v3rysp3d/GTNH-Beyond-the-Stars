@@ -66,7 +66,7 @@ public class CommandBTSKerr extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btskerr [t1|t2] [force]  |  /btskerr migrate [x y z]  |  /btskerr render x y z [open [m]|close|off|on|break]  |  /btskerr module x y z <c|x> [stock|status|tier|clear]  |  /btskerr damage|repair x y z  |  console: /btskerr [t1|t2] <x> <y> <z> [facing] [force] [survival] | [check]  |  /btskerr autorig x y z [s] [bolts/s] [empty]  |  /btskerr ocloop x y z  |  /btskerr ctrl x y z on|off|out  |  /btskerr ocprobe x y z";
+        return "/btskerr [t1|t2] [force]  |  /btskerr migrate [x y z]  |  /btskerr render x y z [open [m]|close|off|on|break]  |  /btskerr module x y z <c|x> [stock|status|tier|clear]  |  /btskerr damage|repair x y z  |  console: /btskerr [t1|t2] <x> <y> <z> [facing] [force] [survival] | [check]  |  /btskerr autorig x y z [s] [bolts/s] [empty]  |  /btskerr ocloop x y z  |  /btskerr ctrl x y z on|off|out  |  /btskerr ocprobe x y z  |  /btskerr receptor x y z";
     }
 
     @Override
@@ -95,7 +95,8 @@ public class CommandBTSKerr extends CommandBase {
         }
         if (args.length >= 4 && (args[0].equalsIgnoreCase("autorig") || args[0].equalsIgnoreCase("ocloop")
             || args[0].equalsIgnoreCase("ctrl")
-            || args[0].equalsIgnoreCase("ocprobe"))) {
+            || args[0].equalsIgnoreCase("ocprobe")
+            || args[0].equalsIgnoreCase("receptor"))) {
             automation(sender, args);
             return;
         }
@@ -322,6 +323,30 @@ public class CommandBTSKerr extends CommandBase {
         final MTEKerrEngine kee = keeAt(world, x, y, z);
         if (kee == null) {
             SLConsoleTest.tell(sender, "No Kerr Ergosphere Engine controller at " + x + ", " + y + ", " + z);
+            return;
+        }
+        if (args[0].equalsIgnoreCase("receptor")) {
+            // P4: a GRB Receptor Port into a free utility socket (once), then the link as the KEE sees it
+            final int[] p = com.nateyburr.beyondthestars.machines.kerr.KerrKit.fitReceptor(world, kee);
+            SLConsoleTest.tell(
+                sender,
+                p == null ? "No free utility socket for a GRB Receptor Port"
+                    : "GRB Receptor Port at " + p[0] + ", " + p[1] + ", " + p[2] + "; formed " + kee.mMachine);
+            SLConsoleTest.tell(
+                sender,
+                String.format(
+                    java.util.Locale.ROOT,
+                    "Kerr link: sigma %.3f (60 s mean), bleed x%.3f, setpoint %d (held at %d, cap %d), demand %.2f Bu/t;"
+                        + " %s",
+                    kee.burstSigma(),
+                    kee.bleedFactor(),
+                    kee.getSetpoint(),
+                    kee.effectiveSetpoint(),
+                    kee.maxSetpoint(),
+                    kee.burstDemand(),
+                    kee.burstHost()
+                        .linkLine()));
+            for (String line : kee.statusLines()) SLConsoleTest.tell(sender, line);
             return;
         }
         final List<String> lines = args[0].equalsIgnoreCase("ctrl")

@@ -16,8 +16,11 @@ import java.util.Collection;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import net.minecraft.nbt.NBTTagCompound;
+
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.nateyburr.beyondthestars.BTSRecipesQuasar;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
@@ -133,13 +136,78 @@ public class MTEKerrCompressorModule extends MTEKerrModuleBase<MTEKerrCompressor
         return map == KerrRecipeMaps.DENSITY;
     }
 
-    /** DENSITY (SL-K05) needs the linked KEE at Kerr T2 holding at least 128 SM. */
+    /**
+     * P4: the running recipe needs the KEE's quasar link (SL-Q23, the Superdense refinery). Set when the recipe is
+     * validated, saved with the run, so a restart mid-run keeps the condition.
+     */
+    private boolean runNeedsLink;
+
+    /**
+     * DENSITY needs the linked KEE at Kerr T2 holding at least 128 SM (SL-K05). P4's Quasar Seed (SL-Q09) and
+     * Superdense refinery (SL-Q23) need 256 SM, and the refinery also a quasar link on the KEE at σ ≥ 1 (60 s mean,
+     * quasar-p4.md §3.1, R.3).
+     */
     @Nullable
     @Override
     protected CheckRecipeResult gateRecipe(@Nonnull GTRecipe recipe) {
         if (!KerrRecipeMaps.DENSITY.getAllRecipes()
-            .contains(recipe)) return null;
-        return recipeGateOpen() ? null : SimpleCheckRecipeResult.ofFailure("beyondthestars.kerr.module.density");
+            .contains(recipe)) {
+            runNeedsLink = false;
+            return null;
+        }
+        if (!recipeGateOpen()) return SimpleCheckRecipeResult.ofFailure("beyondthestars.kerr.module.density");
+        final MTEKerrEngine kee = kee();
+        final double minMass = BTSRecipesQuasar.densityMinMass(recipe);
+        if (minMass > 0 && (kee == null || kee.mass() < minMass)) {
+            return SimpleCheckRecipeResult.ofFailure("beyondthestars.kerr.module.density256");
+        }
+        final boolean needsLink = BTSRecipesQuasar.densityNeedsLink(recipe);
+        if (needsLink && !linkHolds(kee)) {
+            return SimpleCheckRecipeResult.ofFailure("beyondthestars.kerr.module.quasarlink");
+        }
+        runNeedsLink = needsLink;
+        return null;
+    }
+
+    private static boolean linkHolds(@Nullable MTEKerrEngine kee) {
+        return kee != null && kee.burstSigma() >= BTSRecipesQuasar.SUPERDENSE_MIN_SIGMA;
+    }
+
+    @Override
+    @Nonnull
+    public CheckRecipeResult checkProcessing() {
+        runNeedsLink = false;
+        final CheckRecipeResult r = super.checkProcessing();
+        if (!r.wasSuccessful()) runNeedsLink = false;
+        return r;
+    }
+
+    /** A Superdense run pauses (kept, never voided) while the KEE's link is below σ 1. */
+    @Override
+    protected boolean runConditionHolds() {
+        return !runNeedsLink || linkHolds(kee());
+    }
+
+    /** Bit 0 the DENSITY gate (T2, 128 SM), bit 1 256 SM, bit 2 the quasar link at σ ≥ 1. */
+    @Override
+    protected int gateState() {
+        final MTEKerrEngine kee = kee();
+        int bits = recipeGateOpen() ? 1 : 0;
+        if (bits != 0 && kee.mass() >= BTSRecipesQuasar.DENSITY_P4_MIN_MASS) bits |= 2;
+        if (linkHolds(kee)) bits |= 4;
+        return bits;
+    }
+
+    @Override
+    public void saveNBTData(NBTTagCompound aNBT) {
+        super.saveNBTData(aNBT);
+        if (runNeedsLink) aNBT.setBoolean("btsKerrRunLink", true);
+    }
+
+    @Override
+    public void loadNBTData(NBTTagCompound aNBT) {
+        super.loadNBTData(aNBT);
+        runNeedsLink = aNBT.getBoolean("btsKerrRunLink");
     }
 
     /** The DENSITY gate: a linked open hole at Kerr T2 with at least 128 SM. */
@@ -169,7 +237,16 @@ public class MTEKerrCompressorModule extends MTEKerrModuleBase<MTEKerrCompressor
         if (kee.mass() < MTEKerrEngine.DENSIFY_MIN_MASS) {
             return "§7Densification: needs 128 SM (hole " + MTEKerrEngine.fmt(kee.mass()) + " SM)";
         }
-        return "§bDensification: available (Kerr T2, " + MTEKerrEngine.fmt(kee.mass()) + " SM)";
+        final String p4;
+        if (mMaxProgresstime > 0 && !runConditionHolds()) {
+            p4 = "§e; Superdense refining PAUSED: the KEE's quasar link is below σ 1";
+        } else if (kee.mass() < BTSRecipesQuasar.DENSITY_P4_MIN_MASS) {
+            p4 = "§7; Quasar Seed and Superdense need 256 SM";
+        } else {
+            p4 = linkHolds(kee) ? "§b; Superdense: quasar link σ " + MTEKerrEngine.fmt(kee.burstSigma())
+                : "§7; Superdense needs a quasar link on the KEE at σ ≥ 1";
+        }
+        return "§bDensification: available (Kerr T2, " + MTEKerrEngine.fmt(kee.mass()) + " SM)" + p4;
     }
 
     // ============================================================================ looks
@@ -195,6 +272,8 @@ public class MTEKerrCompressorModule extends MTEKerrModuleBase<MTEKerrCompressor
             .addInfo("  pauses and keeps its recipe; it resumes when the hole reopens.")
             .addInfo("Runs GT's Compressor and Neutronium Compressor recipes (the Black Hole Compressor's)")
             .addInfo("  and Kerr Densification (needs Kerr T2 and a hole of at least 128 SM). No modes.")
+            .addInfo("  Quasar Seed and Superdense Ergomatter need 256 SM; Superdense also a quasar link on")
+            .addInfo("  the KEE at σ ≥ 1 (a run that loses it pauses, never voids).")
             .addInfo("The hole sets the bonus, fixed when a recipe starts:")
             .addInfo("  parallel 8 x voltage tier (this module's energy) x floor(sqrt(M)),")
             .addInfo("  speed x(3200/M)/50, from 1 to 4. The module costs the hole nothing.")

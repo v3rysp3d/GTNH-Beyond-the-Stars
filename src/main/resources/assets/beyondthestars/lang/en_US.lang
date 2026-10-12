@@ -156,6 +156,8 @@ GT5U.gui.text.recipe_result.beyondthestars.kerr.module.keenotloaded=The Kerr Erg
 GT5U.gui.text.recipe_result.beyondthestars.kerr.module.wrongfacing=The KEE there faces another way: this is not one of its arcs
 GT5U.gui.text.recipe_result.beyondthestars.kerr.module.nokee=No Kerr Ergosphere Engine at this arc's slot
 GT5U.gui.text.recipe_result.beyondthestars.kerr.module.density=Kerr Densification needs Kerr T2 and a hole of at least 128 SM
+GT5U.gui.text.recipe_result.beyondthestars.kerr.module.density256=This Kerr Densification recipe needs a hole of at least 256 SM
+GT5U.gui.text.recipe_result.beyondthestars.kerr.module.quasarlink=Superdense refining needs a quasar link on the KEE at sigma 1 or more (a GRB Receptor Port in a utility socket)
 
 # ---- SINGULARITY LADDER P3: Eye of Harmony (Eye unit; singularity-ladder-build.md §3.3) ----
 beyondthestars.recipe.eye=Eye of Harmony (Beyond the Stars)
