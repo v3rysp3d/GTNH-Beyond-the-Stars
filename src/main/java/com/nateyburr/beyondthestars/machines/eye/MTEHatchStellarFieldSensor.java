@@ -20,6 +20,9 @@ import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.metatileentity.implementations.MTEHatch;
 import gregtech.api.render.TextureFactory;
+import gregtech.common.covers.Cover;
+import gregtech.common.covers.CoverRedstoneTransmitterInternal;
+import gregtech.common.covers.redstone.CoverAdvancedRedstoneTransmitterInternal;
 
 /**
  * D-49: the Stellar Field Sensor Hatch (MTE base+16 = 28116, d49-build-plan.md §12). It sits in an
@@ -34,7 +37,8 @@ import gregtech.api.render.TextureFactory;
  * <b>Channel:</b> any {@link FieldReadout.Channel}. <b>Comparator:</b> greater than (default) or less
  * than the threshold. <b>Output:</b> digital (15 or 0) or analog ({@link FieldReadout#analog}: gauges
  * map −120..+120 onto 0..15, the 0-100 channels map 0..100 onto 0..15). The signal goes out on all
- * six sides, like the addon's Spine Sensor, so it can be picked up from any face that is exposed.
+ * six sides, like the addon's Spine Sensor, so it can be picked up from any face that is exposed; covers keep working
+ * ({@link #emit}: GT's internal transmitter covers carry it, other redstone covers keep their own side).
  * The GUI is cloned from GT's pH sensor ({@code MTEHatchPHSensorGui}, MUI2).
  */
 public class MTEHatchStellarFieldSensor extends MTEHatch {
@@ -122,9 +126,27 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
         if (!aBaseMetaTileEntity.isServerSide()) return;
         final byte strength = (byte) currentOutput();
         for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS) {
-            aBaseMetaTileEntity.setOutputRedstoneSignal(side, strength);
+            emit(aBaseMetaTileEntity, side, strength);
         }
         aBaseMetaTileEntity.setActive(lastLit && aBaseMetaTileEntity.getTimer() - lastPublish <= STALE_TICKS);
+    }
+
+    /**
+     * Cover-friendly output on one side. A plain side, or one whose cover passes redstone through, gets the signal the
+     * GT way ({@code setInternalOutputRedstoneSignal}, as GT's own sensor hatches do), so a cover that drives its own
+     * side (a Redstone Receiver, a detector, a wireless receiver) is never overwritten. GT's Redstone Transmitter
+     * (Internal) and Advanced Wireless Transmitter (Internal) covers transmit what the machine puts on their side, so
+     * that side gets the signal directly: a sensor can feed a GT wireless channel to a Fluid Regulator or an export
+     * bus anywhere in the base.
+     */
+    private static void emit(IGregTechTileEntity base, ForgeDirection side, byte strength) {
+        final Cover cover = base.getCoverAtSide(side);
+        if (cover instanceof CoverRedstoneTransmitterInternal
+            || cover instanceof CoverAdvancedRedstoneTransmitterInternal) {
+            base.setOutputRedstoneSignal(side, strength);
+        } else {
+            base.setInternalOutputRedstoneSignal(side, strength);
+        }
     }
 
     // ------------------------------------------------------------------ settings
