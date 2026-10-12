@@ -302,12 +302,17 @@ Reuse GT's own black hole: its shader, its model and its tile. The KEE places a 
   - On close: `startScaleChange(false)`, and the block is removed 40 ticks later (the BHC's `collapseTimer`).
   - It is removed on `onBlockDestroyed` / `onRemoval`.
   - On load the KEE checks it once and removes a stale block.
-- **Size by mass.** s(M) = clamp(4 · (M / 16)^(1/3), 2, 6.5):
-  - at 16 SM, s = 4: horizon radius 5.2, disc out to about 8.3. That matches the mockup's `horizon` sphere (r 5.2)
-    and its photon disc (r 6.4-8.6);
-  - at 2 SM, s = 2: horizon 2.6;
-  - at 64 SM, s = 6.35: horizon 8.3, disc about 13;
-  - from 64 SM up to 512 SM it is capped at 6.5, so the disc stays inside the r 18 mirror ring.
+- **Size by mass** (render QA round 1, K1). Core scale s(M) = clamp(3.2 + 0.75 · log2(M / 16), 1.5, 6.4),
+  logarithmic so every doubling of mass is a visible step; the visible halo/disc reaches 1.35 · s blocks (GT's
+  model, drawn at GL scale k, shows its halo to about 1.8 · k, so the KEE draws it at k = 0.75 · s):
+  - 16 SM: s 3.2, halo 4.3;
+  - 64 SM (T1 cap): s 4.7, halo 6.3;
+  - 256 SM: s 6.2, halo 8.4;
+  - 512 SM (T2 cap): clamped at s 6.4, halo 8.6.
+
+  So the glow stays about 1.5 blocks inside the lowest induction-coil ring above the hole and the lining / interior
+  ring of cyan-eye casings (limits 8.5 at T1 and 9 at T2). The earlier cube-root curve (s 4 / 6.35 / 6.5 at
+  16 / 64 / 256 SM, halo about 1.8 · s) painted the halo over the coil ring and the disc into the interior ring.
 
   Pushed to the tile only when it changes by more than 2 %, at most once a second.
 - **Stability.** `setStability(coverage / 2)`: full coverage looks calm, and below 50 % coverage the shader's

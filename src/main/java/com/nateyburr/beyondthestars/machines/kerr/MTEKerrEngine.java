@@ -812,13 +812,36 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     /** The hole centre from the controller, (a, b, c): the manifest's {@code machines.kerr.centre.rel}. */
     private static volatile int[] centreRel;
 
+    /** The hole's core scale, smallest and largest (2 SM and the T2 range above 290 SM clamp here). */
+    private static final double CORE_MIN = 1.5, CORE_MAX = 6.4;
+    /** The visible halo/disc reaches this many blocks per unit of core scale (render QA K1: was about 1.8). */
+    public static final double HALO_PER_CORE = 1.35;
+    /** The halo of GT's model, drawn at GL scale 1, reaches about 1.8 blocks from the centre (render QA round 1). */
+    private static final double GT_HALO_PER_SCALE = 1.8;
+
     /**
-     * The render's scale around GT's model at {@code m} SM: {@code clamp(4 (M / 16)^(1/3), 2, 6.5)}. At
-     * 16 SM the horizon radius is 5.2 blocks (the mockup's horizon sphere) and the disc reaches about
-     * 8.3; the cap keeps a 64-512 SM disc (about 13.5) inside the r 18 mirror ring.
+     * The hole's core scale at {@code m} SM, logarithmic in mass so every doubling reads as a step (render QA
+     * K1): {@code clamp(3.2 + 0.75 log2(M / 16), 1.5, 6.4)}, so 16 SM 3.2, 64 SM 4.7, 256 SM 6.2. The visible
+     * halo/disc reaches {@link #HALO_PER_CORE} times that ({@link #haloRadiusFor}): 4.3, 6.3 and 8.4 blocks,
+     * and at most 8.6 at the 512 SM T2 cap, which keeps the glow about 1.5 blocks inside the lowest coil ring
+     * and the lining / interior ring of the cage (T1 at most 6.3 at its 64 SM cap).
+     */
+    public static double coreScaleFor(double m) {
+        final double mm = Math.max(1e-3, m);
+        return Math.max(CORE_MIN, Math.min(CORE_MAX, 3.2 + 0.75 * (Math.log(mm / 16.0) / Math.log(2))));
+    }
+
+    /** How far the hole's visible halo/disc reaches from the centre at {@code m} SM, blocks. */
+    public static double haloRadiusFor(double m) {
+        return HALO_PER_CORE * coreScaleFor(m);
+    }
+
+    /**
+     * The GL scale {@link KerrHoleRenderer} applies around GT's model at {@code m} SM: the core scale times
+     * 1.35 / 1.8 (0.75), so GT's halo, about 1.8 blocks per unit of GL scale, ends at {@link #haloRadiusFor}.
      */
     public static float renderScaleFor(double m) {
-        return (float) Math.max(2.0, Math.min(6.5, 4.0 * Math.cbrt(Math.max(0, m) / 16.0)));
+        return (float) (coreScaleFor(m) * HALO_PER_CORE / GT_HALO_PER_SCALE);
     }
 
     /** The hole centre in the world for this KEE's position and facing (T1 and T2 share the cell). */
