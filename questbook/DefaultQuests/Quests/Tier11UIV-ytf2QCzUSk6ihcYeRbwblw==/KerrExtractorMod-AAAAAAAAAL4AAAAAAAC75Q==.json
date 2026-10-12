@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "The east arc's machine: GT's §bExtractor§r recipes, items only, beside the same hole.\n\n§e§lBUILD§r\n- Place the controller where the KEE's hologram shows §bmarker 8§r, facing out of the cage.\n- Project the arc from it (16 × 11 × 9).\n- 5 sockets: at least 1 input bus, 1 output bus, and 1 laser or up to 2 energy hatches. Item buses only.\n\n§e§lRUN§r Like the compressor: open hole only, the same parallel and speed bonus, and it pauses without losing its recipe. Either module is a good start, and both can run off one hole; Hyperdense Stellar Mixture later needs the §bCompressor Module§r.\n\n[note]A legacy Extractor Module block crafts into this controller on its own.[/note]\n\n§a§lDONE WHEN§r you hold the module controller (HOLD → CLAIM → INSTALL).",
+      "desc:8": "The east arc's machine: GT's §9Extractor§r recipes, items only, beside the same hole.\n\n§5§lBUILD§r\n- Place the controller where the KEE's hologram shows §9marker 8§r, facing out of the cage.\n- Project the arc from it (16 × 11 × 9).\n- 5 sockets: at least 1 input bus, 1 output bus, and 1 laser or up to 2 energy hatches. Item buses only.\n\n§5§lRUN§r Like the compressor: open hole only, the same parallel and speed bonus, and it pauses without losing its recipe. Either module is a good start, and both can run off one hole; Hyperdense Stellar Mixture later needs the §9Compressor Module§r.\n\n[note]A legacy Extractor Module block crafts into this controller on its own.[/note]\n\n§2§lDONE WHEN§r you hold the module controller (HOLD → CLAIM → INSTALL).",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,

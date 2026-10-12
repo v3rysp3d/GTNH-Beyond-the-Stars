@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "The UXV laser source and target hatches already exist in the pack. Put them on anything that drinks more than an energy hatch can give.\n\n[note]On a Kerr module the energy hatch's voltage sets the parallels: a UXV laser makes them 8 × 13 × ⌊√M⌋.[/note]\n\n§a§lDONE WHEN§r you hold a UXV 256A/t Laser Source Hatch and a matching Target Hatch.",
+      "desc:8": "The UXV laser source and target hatches already exist in the pack. Put them on anything that drinks more than an energy hatch can give.\n\n[note]On a Kerr module the energy hatch's voltage sets the parallels: a UXV laser makes them 8 × 13 × floor(sqrt M).[/note]\n\n§2§lDONE WHEN§r you hold a UXV 256A/t Laser Source Hatch and a matching Target Hatch.",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,

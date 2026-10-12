@@ -24,7 +24,8 @@
 //   --feature k=v      override one feature flag for this run (scenario tests); repeatable.
 //   --check            write nothing; exit 1 if any generated file differs from what is on disk.
 //   --selftest         break the data on purpose (overlap, line crossing, drifted name, unknown
-//                      item, duplicate id, off-grid, ledger change) and prove each assertion fires.
+//                      item, duplicate id, off-grid, ledger change, long bold run, low-contrast
+//                      colour, odd glyph, non-empty hidden chapter) and prove each assertion fires.
 //
 // Every failure is collected and printed together, naming the offender; nothing is written
 // unless the whole run is clean.
@@ -101,11 +102,55 @@ const fmtNum = n => Number(n).toLocaleString('en-US');
 // The source is ASCII-only. {6} {l} {r} ... become the section sign + code (as Fmt() in
 // gen-questbook.ps1); named glyph tokens and {u+XXXX} carry the few non-ASCII characters the
 // Eye's own GUI prints (its gauges are literally named with Greek letters).
+// There is deliberately no {sqrt}, {Phi}, {lfloor}/{rfloor} or {sun}: Minecraft's font draws those
+// as odd glyphs in the book (seen in the 2026-10-13 screenshots), so the text says "sqrt", "flux",
+// "floor(...)" and "SM" instead; PLAYER_TEXT_RULES below rejects the characters however they arrive.
 const GLYPHS = {
-    times: '\u00d7', pm: '\u00b1', ge: '\u2265', le: '\u2264', to: '\u2192', minus: '\u2212', sun: '\u2609',
-    sq: '\u00b2', sqrt: '\u221a', deg: '\u00b0', theta: '\u0398', omega: '\u03a9', Pi: '\u03a0', lfloor: '\u230a',
-    rfloor: '\u230b', dot: '\u00b7', ast: '*', sup11: '\u00b9\u00b9', sup13: '\u00b9\u00b3', div: '\u00f7', Phi: '\u03a6',
+    times: '\u00d7', pm: '\u00b1', ge: '\u2265', le: '\u2264', to: '\u2192', minus: '\u2212',
+    sq: '\u00b2', deg: '\u00b0', theta: '\u0398', omega: '\u03a9', Pi: '\u03a0',
+    dot: '\u00b7', ast: '*', sup11: '\u00b9\u00b9', sup13: '\u00b9\u00b3', div: '\u00f7',
 };
+
+// ------------------------------------------------------------------------- player-text rules
+// Every string a player reads in the book (our quests, our chapters, the plant chapter read back
+// from gen-questbook.ps1, and every text a pack edit writes) is checked against how BetterQuesting
+// actually draws it on its parchment page (background #FBF3DF, measured from a client screenshot):
+//  - colour codes with too little contrast there: yellow 0.96:1, aqua 1.11:1, green 1.20:1.
+//    Use {5} dark purple (5.8:1) for headings, {9} blue (4.6:1) for highlights, {2} dark green
+//    (2.8:1) for "done", and {3} dark aqua / {6} gold in quest names (also drawn on dark tooltips);
+//  - BOLD runs longer than BOLD_MAX visible characters: BetterQuesting wraps a line by its plain
+//    width, but every bold glyph is one unit wider, so a long bold run pushes the line's end past
+//    the text box and the last letters are cut off. Keep bold to a few words; a long heading is
+//    colour + capitals, not bold;
+//  - glyphs Minecraft's font draws oddly (sqrt, Phi, floor brackets, the sun sign).
+const BOLD_MAX = 16;
+const LOW_CONTRAST = { e: 'yellow', b: 'aqua', a: 'green' };
+const ODD_GLYPHS = /[\u03a6\u221a\u230a\u230b\u2609]/;
+function playerTextProblems(text, isName) {
+    const out = [];
+    const s = String(text || '');
+    const bad = new Set();
+    for (const m of s.matchAll(/\u00a7([0-9a-fk-or])/g)) if (LOW_CONTRAST[m[1]]) bad.add(m[1]);
+    for (const c of bad) out.push(`colour code ${c} (${LOW_CONTRAST[c]}) is unreadable on the book's parchment page (use {5} headings, {9} highlights, {2} done; {3} or {6} in names)`);
+    const g = ODD_GLYPHS.exec(s);
+    if (g) out.push(`'${g[0]}' (U+${g[0].charCodeAt(0).toString(16).toUpperCase().padStart(4, '0')}) renders as an odd glyph in Minecraft's font; write it in words`);
+    if (isName) return out; // a title is one line: never wrapped, so bold cannot be cut
+    // bold opens at {l} and closes at {r} or any colour code (Minecraft's rule); BetterQuesting
+    // carries an open format onto the next line, so a run is measured per line it covers
+    let bold = false, run = '';
+    const check = () => { if (bold && run.trim().length > BOLD_MAX) out.push(`bold run of ${run.trim().length} characters (max ${BOLD_MAX}) is cut off where BetterQuesting wraps: "${run.trim()}"`); run = ''; };
+    for (let i = 0; i < s.length; i++) {
+        if (s[i] === '\n') { check(); continue; }
+        if (s[i] === '\u00a7' && i + 1 < s.length) {
+            const c = s[++i];
+            if (c === 'l') { if (!bold) { bold = true; run = ''; } } else if (/[0-9a-fr]/.test(c)) { check(); bold = false; }
+            continue;
+        }
+        if (bold) run += s[i];
+    }
+    check();
+    return out;
+}
 
 function makeFormatter(ctx) {
     // a text array may paste a shared block: a line '@name' is replaced by data.texts.name
@@ -780,6 +825,21 @@ function build(data, opts) {
         return L;
     }
     const layoutOn = checkTidy('on', true);
+    // ---- pack chapter edits: a pack chapter our edits leave empty is taken out of the book
+    // (BQBridge restores it on uninstall, with edits off, or when one of its quests stays)
+    const compiledChapterEdits = [];
+    for (const ce of data.packChapterEdits || []) {
+        const where = `pack chapter edit ${ce.id}`;
+        const ch = chapterByKey.get(ce.chapter);
+        if (!ch || ch.ours) { error(`${where}: '${ce.chapter}' is not a pack chapter key`); continue; }
+        if (ce.op !== 'hideWhenEmpty') { error(`${where}: unknown op '${ce.op}'`); continue; }
+        if (ch.name !== ce.expectName) drift.push(`${ce.id}: chapter ${ch.b64} is named '${ch.name}', expected '${ce.expectName}'`);
+        const left = layoutOn.get(ce.chapter) || [];
+        if (left.length) error(`${where}: ${ch.name} still holds ${left.length} quest(s) with the edits applied (${left.slice(0, 4).map(e => e.label).join(', ')}): move them, or drop the edit`);
+        if (compiledChapterEdits.some(x => x.id === ce.id)) error(`${where}: duplicate id`);
+        compiledChapterEdits.push({ id: ce.id, line: ch.b64, expectName: ce.expectName, op: ce.op });
+    }
+    for (const d of drift.filter(d => /^C\d+:/.test(d))) error('pack drift: ' + d);
     checkCycles('on');
     checkCycles('off');
     if (!opts.skipFutureLayout) {
@@ -912,11 +972,35 @@ function build(data, opts) {
     order.push(`${b64Of(HIGH, PLANT_LINE_LOW)}: Beyond the Stars`);
     files.set(`${dq}/OrderLines.txt`, order.join('\n') + '\n');
 
+    // ---- every player-facing text in the bundle, against how the book draws it (PLAYER_TEXT_RULES)
+    const lint = (text, where, isName) => { for (const p of playerTextProblems(text, isName)) error(`${where}: ${p}`); };
+    const bq = nbt => (nbt['properties:10'] || {})['betterquesting:10'] || {};
+    for (const c of overlayChapters) {
+        const p = bq(c.line), where = `chapter ${c.key}${c.key === 'plant' ? ' (questbook/gen-questbook.ps1)' : ''}`;
+        lint(p['name:8'], where + ' name', true);
+        lint(p['desc:8'], where + ' description', false);
+    }
+    for (const oq of overlayQuests) {
+        const p = bq(oq.nbt);
+        const where = `quest ${oq.low} '${strip(p['name:8'])}'${oq.key.startsWith('plant') ? ' (questbook/gen-questbook.ps1)' : ''}`;
+        lint(p['name:8'], where + ' name', true);
+        lint(p['desc:8'], where, false);
+    }
+    for (const ce of compiledEdits) {
+        for (const op of ce.ops) {
+            const where = `pack edit ${ce.id} ${op.op}`;
+            if (op.op === 'setName') lint(op.name, where, true);
+            if (op.op === 'setDesc') lint(op.desc, where, false);
+            if (op.op === 'appendText') lint(op.text, where, false);
+            if (op.op === 'replaceText') lint(op.with, where, false);
+        }
+    }
+
     const bundleCore = {
         format: 1, idHigh: HIGH, packVersion: data.packVersion,
         source: { data: 'questbook/singularity.json', src: opts.srcLabel, srcHead: src.head, manifestSha: manifest ? manifest.sha : null },
         features, orderAfter: data.packChapters.umv.id, chapters: overlayChapters, grafts: overlayGrafts, quests: overlayQuests,
-        packEdits: compiledEdits,
+        packEdits: compiledEdits, packChapterEdits: compiledChapterEdits,
     };
     // the version is the CONTENT's hash: where it was generated from (source) does not change it
     const bundleVersion = sha1(stringify(Object.assign({}, bundleCore, { source: null })));
@@ -1177,6 +1261,10 @@ function selftest(inp) {
         ['a prerequisite cycle', d => { q(d, 48114).prereqs.push(48117); return d; }, /prerequisite cycle/],
         ['a placeholder shipping with a tbd task', d => { d.features.maxParts = true; return d; }, /still 'tbd'/],
         ['a bill role reassigned in the manifest', d => { d.bomItems.eye.band_shell.expect = 'NotThisBlock'; return d; }, /bomItems expects/],
+        ['a long bold run', d => { q(d, 48100).desc = ['{5}{l}This whole sentence is bold and will be cut off.{r}']; return d; }, /bold run of/],
+        ['a low-contrast colour', d => { q(d, 48100).desc = ['A {b}light aqua{r} word.']; return d; }, /unreadable on the book/],
+        ['an odd glyph', d => { q(d, 48100).desc = ['{u+221a}M']; return d; }, /odd glyph/],
+        ['a hidden pack chapter that still holds a quest', d => { const e = d.packEdits.find(x => x.id === 'E64'); e.ops = e.ops.filter(o => o.op !== 'move'); return d; }, /still holds/],
     ];
     let failed = 0;
     for (const [name, mut, expect] of cases) {

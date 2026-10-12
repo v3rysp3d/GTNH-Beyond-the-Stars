@@ -129,7 +129,7 @@ public final class BTSBom {
         new int[] { 326, 50, 8, 2, 1, 1 });
 
     public static final Bill GALLERY = new Bill(
-        "Rotor gallery + output manifold",
+        "Rotor Assembly",
         new String[] { TUNGSTENSTEEL_TURBINE_CASING, TURBINE_HOUSING, DYNAMO_HATCH_IV, ENERGY_HATCH_IV,
             LASER_SOURCE_HATCH, MAINTENANCE_HATCH, TURBINE_CONTROL_BLOCK },
         new int[] { 408, 8, 4, 4, 4, 1, 1 });

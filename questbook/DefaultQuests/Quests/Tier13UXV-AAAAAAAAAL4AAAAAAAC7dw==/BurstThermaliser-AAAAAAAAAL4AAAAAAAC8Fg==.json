@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 0,
-      "desc:8": "The quasar's power plant. It sits on a jet and turns bursts into EU: §b1 burst unit a tick → 10¹³ EU/t§r, into your wireless network.\n- One controller; build the bigger crown around it for Mk I / II / III, capped at 32 / 512 / 8,192 Bu/t.\n- A second crown stacked on the first takes the overflow.\n- A good 1,024 SM quasar is worth about 5 to 10 × 10¹⁵ EU/t, depending on how well its disc is held.\n\n[note]§lComing in a later update.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
+      "desc:8": "The quasar's power plant. It sits on a jet and turns bursts into EU: §91 burst unit a tick → 10¹³ EU/t§r, into your wireless network.\n- One controller; build the bigger crown around it for Mk I / II / III, capped at 32 / 512 / 8,192 Bu/t.\n- A second crown stacked on the first takes the overflow.\n- A good 1,024 SM quasar is worth about 5 to 10 × 10¹⁵ EU/t, depending on how well its disc is held.\n\n[note]§lComing later.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,

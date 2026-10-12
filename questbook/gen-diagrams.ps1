@@ -158,7 +158,7 @@ $cell = 6.0
 $planX = 40.0
 $planY = 44.0
 $cv = NewCanvas $W 490
-Head $cv 'UNIT ONE - PLANT OVERVIEW' 'plan view, Build Tier 3 - one projection builds all of it'
+Head $cv 'NUCLEAR PLANT - OVERVIEW' 'plan view, Build Tier 3 - one projection builds all of it'
 
 # c = 0 (FRONT) is the bottom edge: boundary c -> planY + (50 - c) * cell.
 function PlanEdge([double]$cBoundary) { $script:planY + (50 - $cBoundary) * $script:cell }
@@ -233,7 +233,7 @@ Tag $spine.CX $spine.CY '3'
 Tag $spiral.CX $spiral.CY '4'
 Tag $gallery.CX $gallery.CY '5'
 Tag $manifold.CX $manifold.CY '6'
-# the main station is one block, so its callout sits clear of the silo with a leader line
+# the controller is one block, so its callout sits clear of the silo with a leader line
 $tag1X = $planX + 36 * $cell
 $tag1Y = $ctrlY + $cell / 2
 $g.DrawLine((Pen $C.title 1), ($ctrlX + $cell + 4), $tag1Y, ($tag1X - 9), $tag1Y)
@@ -242,8 +242,8 @@ Tag $tag1X $tag1Y '1'
 # legend
 $ly = $planY + 50 * $cell + 20
 $legend = @(
-    @('1', $C.ctrl, 'MAIN STATION', 'the only controller'),
-    @('2', $C.radproof, 'STEAM GENERATOR', 'silo + 45-201 rod pillars'),
+    @('1', $C.ctrl, 'FOUNDATION', 'the only controller'),
+    @('2', $C.radproof, 'REACTOR SILO', 'silo + 45-201 rod pillars'),
     @('3', $C.tt, 'SPINE DUCT', '4 housings: speed vs eff.'),
     @('4', $C.tt, 'SPIRAL CHAMBER', '8 injectors, +/-2t window'),
     @('5', $C.tt, 'ROTOR GALLERY', '8 turbine rotors'),
@@ -308,7 +308,7 @@ function Face($rows, [double]$gy, [string]$wallColor, [string]$wallEdge, [int]$a
     $ry + 14
 }
 
-# ---- panel A: the silo's own front face (the wall the main station is embedded in)
+# ---- panel A: the silo's own front face (the wall the controller is embedded in)
 $g.DrawString('SILO FACE - the wall your controller is set into', $fLegB, (Brush $C.title), 12, 42)
 $siloRows = @(
     @{ Y = 2; Cells = @('', '', 'ROD', '', 'DEP', '', '') },
@@ -338,7 +338,7 @@ $legend = @(
     @($C.fluidin, 'H2O', 'Input Hatch (IV)', 'FEEDWATER for the reactor drum'),
     @($C.fluidout, 'OUT', 'Output Hatch (IV)', 'waste water / exported steam'),
     @($C.panelblk, 'SILO', 'Silo Control Block', 'prints the whole instrument panel'),
-    @($C.ctrl, 'CTRL', 'MAIN STATION', 'the only controller in the plant'),
+    @($C.ctrl, 'CTRL', 'FOUNDATION', 'the only controller in the plant'),
     @($C.maint, 'MNT', 'Maintenance Hatch', 'one per building - silo, chamber, manifold'),
     @($C.fluidin, 'COOL', 'Input Hatch (IV)', 'COOLANT - the chamber is what overheats'),
     @($C.fluidin, 'PROP', 'Input Hatch (IV)', 'bulk PROPELLANT - stocks all 8 injectors')

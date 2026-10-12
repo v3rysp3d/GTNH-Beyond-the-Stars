@@ -912,7 +912,7 @@ function Get-BomJavaText {
     $L.Add('')
     $L.Add('    public static final Bill SPIRAL = ' + (Format-JavaBill 'Spiral chamber' $BTS_BOM.Spiral) + ';')
     $L.Add('')
-    $L.Add('    public static final Bill GALLERY = ' + (Format-JavaBill 'Rotor gallery + output manifold' $BTS_BOM.Gallery) + ';')
+    $L.Add('    public static final Bill GALLERY = ' + (Format-JavaBill 'Rotor Assembly' $BTS_BOM.Gallery) + ';')
     $L.Add('')
     $L.Add('    public static final Bill TOWER = ' + (Format-JavaBill 'Cooling tower (each)' $BTS_BOM.Tower) + ';')
     $L.Add('')
