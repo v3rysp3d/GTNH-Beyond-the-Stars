@@ -389,6 +389,37 @@ public enum BTSUpgrade {
         return line.displayName() + " tier " + gateTier();
     }
 
+    /**
+     * The one line that says what a click will do, and - when it will do nothing - which single
+     * requirement is in the way. Shared by the tree panel's tooltip and /btstree's refusals, so
+     * the two always give the same reason. A courtesy, not a gate: the server refuses the same
+     * cases whatever this says. Static and pure (AXIS 1): the client runs it on synced values.
+     */
+    public static String verdict(BTSUpgrade node, long mask, long[] counters) {
+        if (owns(mask, node)) {
+            for (final BTSUpgrade dependent : node.dependents()) {
+                if (!owns(mask, dependent)) continue;
+                if (!prerequisitesMet(mask & ~node.bit(), dependent)) {
+                    return EnumChatFormatting.YELLOW + "OWNED: refund "
+                        + dependent.title()
+                        + " first, it hangs off this";
+                }
+            }
+            return EnumChatFormatting.GREEN + "OWNED: right-click to refund (free, always)";
+        }
+        if (!prerequisitesMet(mask, node)) {
+            return EnumChatFormatting.GRAY + "LOCKED: buy " + node.prerequisiteText() + " first";
+        }
+        if (!gateMet(counters, node)) {
+            return EnumChatFormatting.GRAY + "LOCKED: the " + node.gateText() + " milestone opens this";
+        }
+        final int free = BTSProgression.pointsEarned(counters) - pointsSpent(mask);
+        if (free < node.cost()) {
+            return EnumChatFormatting.YELLOW + "SHORT: " + (node.cost() - free) + " more point(s) needed";
+        }
+        return EnumChatFormatting.AQUA + "AVAILABLE: left-click to buy";
+    }
+
     /** One node as a chat line: state, name, cost, effect. */
     public static String nodeLine(long mask, long[] counters, BTSUpgrade node) {
         final boolean has = owns(mask, node);

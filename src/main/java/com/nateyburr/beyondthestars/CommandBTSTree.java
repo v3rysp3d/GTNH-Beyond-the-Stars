@@ -5,6 +5,7 @@ import java.util.List;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentText;
@@ -17,8 +18,8 @@ import com.nateyburr.beyondthestars.progression.BTSProgression;
 import com.nateyburr.beyondthestars.progression.BTSUpgrade;
 
 /**
- * {@code /btstree} - reads and writes the D-24 upgrade-tree node set on the nearest Unit One main
- * station. Permission level 2, like every other bench command in this addon.
+ * {@code /btstree} - reads and writes the D-24 upgrade-tree node set on the nearest Nuclear Plant
+ * Foundation. Permission level 2, like every other bench command in this addon.
  * <p>
  * The node set is the half of the campaign that a wrench is most likely to eat, so this command
  * exists mainly to make the four survival cases testable in minutes: set a state, run
@@ -77,9 +78,7 @@ public class CommandBTSTree extends CommandBase {
 
         final MTEReactorCoreMk1 station = BTSCommands.nearestStation(player);
         if (station == null) {
-            say(
-                player,
-                EnumChatFormatting.RED + "No Unit One main station within " + BTSCommands.SEARCH_RADIUS + " blocks.");
+            BTSCommands.noStation(player);
             return;
         }
         final BTSProgression progression = station.getProgression();
@@ -117,7 +116,7 @@ public class CommandBTSTree extends CommandBase {
             // to reach the call site that consumes it, this is the line that says so.
             say(
                 player,
-                EnumChatFormatting.GRAY + "Live limits: throttle cap "
+                EnumChatFormatting.GRAY + "Live limits: rods up to "
                     + station.maxThrottle()
                     + "/24 · redline "
                     + String.format("%,d", station.getRedlineRpm())
@@ -146,31 +145,29 @@ public class CommandBTSTree extends CommandBase {
         }
         if ("buy".equals(verb) || "refund".equals(verb)) {
             if (args.length < 2) {
-                say(player, EnumChatFormatting.RED + getCommandUsage(sender));
-                return;
+                throw new WrongUsageException(getCommandUsage(sender));
             }
             final BTSUpgrade node = nodeOf(args[1]);
             if (node == null) {
-                say(player, EnumChatFormatting.RED + "Unknown node '" + args[1] + "'.");
+                say(player, EnumChatFormatting.RED + "Unknown node '" + args[1] + "' - press Tab for the list.");
                 return;
             }
             // Deliberately the SAME entry points the GUI's server-side action calls, not a
             // back door: if a rule is wrong, it is wrong in one place and this command finds it.
             final boolean done = "buy".equals(verb) ? station.buyUpgrade(node) : station.refundUpgrade(node);
             if (!done) {
-                say(
-                    player,
-                    EnumChatFormatting.RED + "Refused: "
-                        + node.title()
-                        + " - "
-                        + ("buy".equals(verb) ? "prerequisites, milestone gate or points"
-                            : "a held node hangs off it"));
+                // Tidy C9: the same verdict the tree panel's tooltip prints, so the refusal names
+                // the one requirement in the way instead of listing every possible reason.
+                final String why = "refund".equals(verb) && !BTSUpgrade.owns(progression.nodes(), node) ? "not bought"
+                    : EnumChatFormatting.getTextWithoutFormattingCodes(
+                        BTSUpgrade.verdict(node, progression.nodes(), progression.snapshot()));
+                say(player, EnumChatFormatting.RED + "Refused: " + node.title() + " - " + why);
             }
             say(player, BTSUpgrade.nodeLine(progression.nodes(), progression.snapshot(), node));
             say(player, BTSUpgrade.treeSummaryLine(progression.nodes(), progression.snapshot()));
             return;
         }
-        say(player, EnumChatFormatting.RED + getCommandUsage(sender));
+        throw new WrongUsageException(getCommandUsage(sender));
     }
 
     private static void report(EntityPlayerMP player, MTEReactorCoreMk1 station, BTSProgression progression) {

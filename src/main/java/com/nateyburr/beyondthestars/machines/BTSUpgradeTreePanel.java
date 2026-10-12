@@ -300,37 +300,7 @@ public final class BTSUpgradeTreePanel {
                     + tier
                     + " now)");
         }
-        tooltip.addLine(verdict(node, mask, counters));
-    }
-
-    /**
-     * The one line that says what a click will do, and - when it will do nothing - which single
-     * requirement is in the way. This is a courtesy, not a gate: the server refuses the same
-     * cases whatever this says.
-     */
-    private static String verdict(BTSUpgrade node, long mask, long[] counters) {
-        if (BTSUpgrade.owns(mask, node)) {
-            for (final BTSUpgrade dependent : node.dependents()) {
-                if (!BTSUpgrade.owns(mask, dependent)) continue;
-                if (!BTSUpgrade.prerequisitesMet(mask & ~node.bit(), dependent)) {
-                    return EnumChatFormatting.YELLOW + "OWNED - refund "
-                        + dependent.title()
-                        + " first, it hangs off this";
-                }
-            }
-            return EnumChatFormatting.GREEN + "OWNED - right-click to refund (free, always)";
-        }
-        if (!BTSUpgrade.prerequisitesMet(mask, node)) {
-            return EnumChatFormatting.GRAY + "LOCKED - buy " + node.prerequisiteText() + " first";
-        }
-        if (!BTSUpgrade.gateMet(counters, node)) {
-            return EnumChatFormatting.GRAY + "LOCKED - the " + node.gateText() + " milestone opens this";
-        }
-        final int free = BTSProgression.pointsEarned(counters) - BTSUpgrade.pointsSpent(mask);
-        if (free < node.cost()) {
-            return EnumChatFormatting.YELLOW + "SHORT - " + (node.cost() - free) + " more point(s) needed";
-        }
-        return EnumChatFormatting.AQUA + "AVAILABLE - left-click to buy";
+        tooltip.addLine(BTSUpgrade.verdict(node, mask, counters));
     }
 
     /** The button that opens this panel, for the controller GUI's gap row. */

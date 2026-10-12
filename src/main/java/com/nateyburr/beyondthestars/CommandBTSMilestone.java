@@ -6,6 +6,7 @@ import java.util.List;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentText;
@@ -18,8 +19,8 @@ import com.nateyburr.beyondthestars.progression.BTSProgression;
 import com.nateyburr.beyondthestars.progression.BTSUpgrade;
 
 /**
- * {@code /btsmilestone} - reads and writes the D-23 progression record on the nearest Unit One
- * main station. Permission level 2, like every other bench command in this addon.
+ * {@code /btsmilestone} - reads and writes the D-23 progression record on the nearest Nuclear
+ * Plant Foundation. Permission level 2, like every other bench command in this addon.
  * <p>
  * Progress starts at ZERO on every plant by ruling - there is no back-fill for the campaign the
  * user has already run - so this command is how a tier is reached in under an hour for testing
@@ -89,9 +90,7 @@ public class CommandBTSMilestone extends CommandBase {
 
         final MTEReactorCoreMk1 station = BTSCommands.nearestStation(player);
         if (station == null) {
-            say(
-                player,
-                EnumChatFormatting.RED + "No Unit One main station within " + BTSCommands.SEARCH_RADIUS + " blocks.");
+            BTSCommands.noStation(player);
             return;
         }
         final BTSProgression progression = station.getProgression();
@@ -166,8 +165,7 @@ public class CommandBTSMilestone extends CommandBase {
         }
         if ("all".equals(verb)) {
             if (args.length < 2) {
-                say(player, EnumChatFormatting.RED + getCommandUsage(sender));
-                return;
+                throw new WrongUsageException(getCommandUsage(sender));
             }
             final int tier = clampTier(parseInt(sender, args[1]));
             for (final BTSMilestone line : BTSMilestone.values()) {
@@ -180,8 +178,7 @@ public class CommandBTSMilestone extends CommandBase {
         }
         if ("set".equals(verb) || "tier".equals(verb)) {
             if (args.length < 3) {
-                say(player, EnumChatFormatting.RED + getCommandUsage(sender));
-                return;
+                throw new WrongUsageException(getCommandUsage(sender));
             }
             final BTSMilestone line = lineOf(args[1]);
             if (line == null) {
@@ -220,7 +217,7 @@ public class CommandBTSMilestone extends CommandBase {
             say(player, EnumChatFormatting.GREEN + BTSMilestone.milestoneLine(line, progression.get(line)));
             return;
         }
-        say(player, EnumChatFormatting.RED + getCommandUsage(sender));
+        throw new WrongUsageException(getCommandUsage(sender));
     }
 
     /** The four lines, the roll-up and the derived limits the unlocks are actually moving. */
@@ -236,7 +233,7 @@ public class CommandBTSMilestone extends CommandBase {
         // unlock ever failed to reach the code that uses it, this is the line that says so.
         say(
             player,
-            EnumChatFormatting.GRAY + "Live limits: throttle cap "
+            EnumChatFormatting.GRAY + "Live limits: rods up to "
                 + station.maxThrottle()
                 + "/24 · redline "
                 + String.format("%,d", station.getRedlineRpm())

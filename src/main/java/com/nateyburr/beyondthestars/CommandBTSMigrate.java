@@ -3,8 +3,6 @@ package com.nateyburr.beyondthestars;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 
 import com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1;
@@ -44,10 +42,6 @@ public class CommandBTSMigrate extends CommandBase {
         return 2;
     }
 
-    private static void tell(EntityPlayerMP player, String message) {
-        player.addChatMessage(new ChatComponentText(message));
-    }
-
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
         final EntityPlayerMP player = getCommandSenderAsPlayer(sender);
@@ -56,20 +50,16 @@ public class CommandBTSMigrate extends CommandBase {
 
         final MTEReactorCoreMk1 station = BTSCommands.nearestStation(player);
         if (station == null) {
-            tell(
-                player,
-                EnumChatFormatting.RED + "No Unit One main station within "
-                    + BTSCommands.SEARCH_RADIUS
-                    + " blocks. Stand beside the controller embedded in the silo face.");
+            BTSCommands.noStation(player);
             return;
         }
 
         final int standing = station.standingSiloTier();
         if (standing <= 0) {
-            tell(
+            BTSChat.warn(
                 player,
-                EnumChatFormatting.YELLOW
-                    + "No Steam Generator shell is standing on that station's pad, so there is no face to migrate. A bare platform just needs projecting - set Build Tier in the controller GUI first.");
+                "No Reactor Silo is standing on " + BTSCommands.plantAt(station)
+                    + ", so there is no face to migrate. A bare platform just needs projecting: set Build Tier in the controller GUI first.");
             return;
         }
 
@@ -79,33 +69,30 @@ public class CommandBTSMigrate extends CommandBase {
         final int salvaged = result[2];
         station.checkStructure(true, station.getBaseMetaTileEntity());
 
-        tell(player, EnumChatFormatting.AQUA + "== Silo face migrated to the point-of-use layout ==");
-        tell(
+        BTSChat.header(player, "== Silo face migrated to the point-of-use layout ==");
+        BTSChat.send(
             player,
             "Tier " + tier
-                + " shell measured off the standing walls. "
+                + " silo, measured off the standing walls: "
                 + rewritten
                 + " face cells rewritten, "
                 + salvaged
                 + " machines dropped at the wall for you to pick up.");
-        tell(
+        BTSChat.send(
             player,
-            "The face now reads, up from the pad: y0 Maintenance | MAIN STATION - y1 Feedwater | SILO CONTROL BLOCK | Output Hatch - y2 Rod Input Bus | Depleted Output Bus, all within one cell of centre.");
-        tell(
+            "The face now holds: Maintenance Hatch beside the controller; Silo Control Block above it, Feedwater Input Hatch to its left, Output Hatch to its right; Rod Input Bus and Depleted Output Bus one row higher.");
+        BTSChat.warn(
             player,
-            EnumChatFormatting.YELLOW
-                + "The four ENERGY HATCHES this wall used to carry belong on the OUTPUT MANIFOLD's back face now (y4, between the dynamos and the laser sources). They are not a structure demand - the reactor and turbine never draw EU - so the plant forms without them. Fit them anyway if you build an Extraction Derrick or an Enrichment Annex: those two draw their power through these sockets and will not run without one.");
+            "Energy Hatches no longer go in this wall: their sockets are on the output manifold's back face (5th row up). The plant forms without them; the Extraction Derrick and Enrichment Annex draw their EU through them.");
         if (station.mMachine) {
-            tell(
+            BTSChat.ok(
                 player,
-                EnumChatFormatting.GREEN + "The plant FORMS: "
-                    + station.buildSummary()
-                    + ". Refit the hatches you just picked up wherever you want them; the ones in the face are fresh and empty.");
+                "The plant forms: " + station.buildSummary()
+                    + ". Refit the hatches you picked up; the ones in the face are new and empty.");
         } else {
-            tell(
+            BTSChat.warn(
                 player,
-                EnumChatFormatting.YELLOW
-                    + "Still not formed - the FACE is correct now, so whatever is left is elsewhere. Open the main station and read the STRUCTURE ERRORS panel: it names the first wrong cell and its coordinates.");
+                "Still not formed - the face is correct now, so the fault is elsewhere. Open the Nuclear Plant Foundation and read Structure Errors: it names the first wrong cell.");
         }
     }
 }

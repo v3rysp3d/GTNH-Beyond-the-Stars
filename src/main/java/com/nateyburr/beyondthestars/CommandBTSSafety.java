@@ -1,16 +1,17 @@
 package com.nateyburr.beyondthestars;
 
+import java.util.List;
+
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 
 import com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1;
 
 /**
- * /btssafety [on|off] - D-25: which mode the nearest Unit One main station's OVER-INJECTION
+ * /btssafety [on|off] - D-25: which mode the nearest Nuclear Plant Foundation's OVER-INJECTION
  * GUARD is in, mirroring /btsclock and /btssupply.
  * <p>
  * OFF (the default, and normal play) is GT parity: hand the manifold's hatch row more EU than
@@ -44,6 +45,11 @@ public class CommandBTSSafety extends CommandBase {
     }
 
     @Override
+    public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
+        return BTSCommands.toggleCompletions(args);
+    }
+
+    @Override
     public void processCommand(ICommandSender sender, String[] args) {
         final EntityPlayerMP player = getCommandSenderAsPlayer(sender);
         final World world = player.worldObj;
@@ -51,27 +57,24 @@ public class CommandBTSSafety extends CommandBase {
 
         final MTEReactorCoreMk1 nearest = BTSCommands.nearestStation(player);
         if (nearest == null) {
-            player.addChatMessage(
-                new ChatComponentText(
-                    EnumChatFormatting.RED + "No Unit One main station within "
-                        + BTSCommands.SEARCH_RADIUS
-                        + " blocks."));
+            BTSCommands.noStation(player);
             return;
         }
-        final boolean on = args.length > 0 ? args[0].equalsIgnoreCase("on") : !nearest.isDebugOutputSafety();
+        final boolean on = BTSCommands.parseToggle(sender, this, args, nearest.isDebugOutputSafety());
         // Changing mode clears the latched record; setting the mode it is already in keeps it,
         // so re-typing the command does not wipe the numbers somebody is reading.
         nearest.setDebugOutputSafety(on);
         if (on) {
-            player.addChatMessage(
-                new ChatComponentText(
-                    EnumChatFormatting.LIGHT_PURPLE
-                        + "OUTPUT SAFETY ON (test mode) - an over-injection will NOT explode this plant. It is clamped away, flagged with its numbers on the GUI, both control blocks and the scanner, and logged server-side. This is a BENCH setting: /btssafety off to put the plant back in normal play."));
+            BTSChat.send(
+                player,
+                EnumChatFormatting.LIGHT_PURPLE + "Output safety ON (test mode) for "
+                    + BTSCommands.plantAt(nearest)
+                    + ": an over-injection is clamped and reported on the panels instead of exploding the plant. /btssafety off to re-arm.");
             return;
         }
-        player.addChatMessage(
-            new ChatComponentText(
-                EnumChatFormatting.YELLOW
-                    + "Output safety OFF - the plant is ARMED and in normal play: over-injecting the hatch row explodes it, exactly as GregTech does. Any latched over-injection record has been cleared."));
+        BTSChat.warn(
+            player,
+            "Output safety OFF for " + BTSCommands.plantAt(nearest)
+                + ": armed, as in GT - over-injecting the hatch row explodes the plant. Any caught over-injection record was cleared.");
     }
 }
