@@ -3,6 +3,7 @@ package com.nateyburr.beyondthestars.machines.kerr;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
@@ -485,6 +486,41 @@ public final class KerrKit {
                 "Orientation: the extractor module stands on the viewer's " + side
                     + (side.equals("right") ? " (matches the mockup)"
                         : " (MIRRORED vs the mockup: re-export --flipH)"));
+        }
+        return out;
+    }
+
+    /**
+     * TEST BENCH ({@code /btskerr legacy x y z}): turns a built Kerr back into the PRE-REDESIGN layout,
+     * so the migration can be tested on a fresh world: each module controller becomes the plain arc
+     * shell its cell held before, and each slot's legacy core cell gets the old module core block. The
+     * hatches stay. Returns what it did.
+     */
+    public static List<String> makeLegacy(World world, MTEKerrEngine kee) {
+        final List<String> out = new ArrayList<>();
+        final IGregTechTileEntity base = kee.getBaseMetaTileEntity();
+        final ExtendedFacing facing = kee.getExtendedFacing();
+        for (KerrSlot slot : KerrSlot.VALUES) {
+            final int[] ctrl = slot.modulePos(facing, base.getXCoord(), base.getYCoord(), base.getZCoord());
+            final int[] core = KerrSlot
+                .worldPos(facing, base.getXCoord(), base.getYCoord(), base.getZCoord(), slot.legacyCoreRel());
+            // A console-built machine has no owner, and GT's power-fail tracker throws when an ownerless
+            // multiblock is removed; give it a stand-in owner first.
+            final IGregTechTileEntity module = KerrSlot.gtTileAt(world, ctrl);
+            if (module != null && module.getOwnerUuid() == null) {
+                module.setOwnerName("BTS console");
+                module.setOwnerUuid(UUID.nameUUIDFromBytes("BTS console test".getBytes()));
+            }
+            world.setBlockToAir(ctrl[0], ctrl[1], ctrl[2]);
+            slot.placeLegacyCellCasing(world, ctrl[0], ctrl[1], ctrl[2]);
+            world.setBlockToAir(core[0], core[1], core[2]);
+            world.setBlock(core[0], core[1], core[2], SLBlocks.slCasing2, slot.legacyCoreMeta, 3);
+            out.add(
+                slot.label + ": controller cell "
+                    + pos(ctrl)
+                    + " -> plain shell, core cell "
+                    + pos(core)
+                    + " -> legacy core block");
         }
         return out;
     }

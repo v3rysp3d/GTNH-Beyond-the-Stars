@@ -32,7 +32,8 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
  * <p>
  * {@code /btskerr migrate [x y z]} converts a pre-redesign Kerr (module core blocks in the arcs) into
  * KEE + module controllers (KerrMigration; the KEE also does this on its own once per load): the KEE
- * controller at x y z, else the nearest one within 128 blocks.
+ * controller at x y z, else the nearest one within 128 blocks. Test bench: {@code /btskerr legacy x y z}
+ * turns a built Kerr back into the pre-redesign layout so the migration can be exercised.
  * <p>
  * The cage is 65 blocks tall with the controller on its middle row, so the controller goes 32 blocks
  * above the player's feet and the cage's bottom row lands at foot level. The footprint is surveyed
@@ -81,7 +82,7 @@ public class CommandBTSKerr extends CommandBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
-        if (args.length > 0 && args[0].equalsIgnoreCase("migrate")) {
+        if (args.length > 0 && (args[0].equalsIgnoreCase("migrate") || args[0].equalsIgnoreCase("legacy"))) {
             migrate(sender, args);
             return;
         }
@@ -298,6 +299,13 @@ public class CommandBTSKerr extends CommandBase {
         }
         if (kee == null) {
             SLConsoleTest.tell(sender, EnumChatFormatting.RED + "No Kerr Ergosphere Engine controller found there.");
+            return;
+        }
+        if (args[0].equalsIgnoreCase("legacy")) {
+            // Test bench: back to the pre-redesign layout, so the migration can be exercised.
+            for (String line : KerrKit.makeLegacy(world, kee)) {
+                SLConsoleTest.tell(sender, "Kerr legacy layout: " + line);
+            }
             return;
         }
         final String note = KerrMigration.convert(kee);
