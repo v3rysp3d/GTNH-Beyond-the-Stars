@@ -91,7 +91,8 @@ errors and no crash. The boot log also confirms:
 
 - The upgrade milestones and install run: upgrades still install on a right-click.
 - The cost table.
-- NEI preview and in-game build checks.
+- In-game build checks. The hologram and the NEI preview paths are verified against the StructureLib and
+  BlockRenderer6343 bytecode ("Hologram & NEI" below), but nobody has opened them in game yet.
 - The Eye's centre render.
 
 ---
@@ -535,7 +536,7 @@ the same block-count class as GTNH's Forge of the Gods. Conditions:
   `checkMachine` with a debug timer during smoke test. If one takes more than 20 ms, re-check only on structure
   updates (GT's default), never per tick.
 - **(c) Holograms:** 15-35k hint particles is heavy but works. Survival auto-place is budgeted by StructureLib per
-  use. Creative testing uses the projector's creative build.
+  use (raised to 200 elements a round, see "Hologram & NEI"). Creative testing uses the projector's creative build.
 
 ### 5.2 Exporter: `addon/tools/export-structures.js` (committed; Foundation)
 
@@ -1297,7 +1298,8 @@ Every plain element is wrapped in `noOverwrite`.
 - **Persistence:**
   - `writeEyeState` writes `btsEyeGalactic` and `btsEyeBuffers` from both `saveNBTData` and `setItemNBT`.
   - The run in flight (`btsEyeRunKey`/`Parallel`/`Successes`/`Yield`) is tile NBT only.
-- **Hologram:** a stack of 1..4 projects T1..T4, with the bands cumulative. The field generators are hinted at tier 1.
+- **Hologram:** a stack of 1..4 projects T1..T4, with the bands cumulative. Compression generators are placed at
+  the stack's 1:1 gate, Time Dilation and Stabilisation at tier 1; see "Hologram & NEI".
 - **Status:** `getInfoData` (scanner) shows the tier, the bands, the field tiers, the sockets, the buffers, the
   target (parallel, success, seconds) and the last run.
 
@@ -1327,3 +1329,80 @@ Every plain element is wrapped in `noOverwrite`.
 4. the NEI page.
 
 Each step runs inside `BTSRecipeRemovals.guard`. The old-save behaviour is in `docs/migration.md`.
+
+---
+
+## Hologram & NEI
+
+Acceptance pass, 2026-10-12. Verified by reading our code and `javap` of the instance jars (structurelib-1.4.38,
+blockrenderer6343-1.4.14, gregtech-5.09.52.594). Nothing here has been opened in game yet.
+
+### Trigger stack → tier
+
+| Controller | Stack 1 | Stack 2 | Stack 3 | Stack 4+ |
+|---|---|---|---|---|
+| Kerr | `kerr_t1` + both modules | `kerr_t2` + both modules | as 2 | as 2 |
+| Eye | `eye_core` | + `eye_beam` | + `eye_jet` | + `eye_arms` |
+
+Both tooltips state this. `construct` reads the stack only (trap 1), so the hologram never depends on server state.
+Survival auto-place on the Kerr also builds T2 once the Density Upgrade is installed, whatever the stack.
+
+### Creative build and hints (`construct`)
+
+- Every piece for the stack's tier is built or hinted, the optional modules and bands included. Each piece uses its own
+  `off` from the manifest.
+- Plain casings are wrapped in `BTSStructures.noOverwrite`: a cell holding any tile entity (a hatch, a chest, a
+  machine) is never written.
+- Tiered parts go through `BTSStructures.tieredBlock`. The walk accepts any tier (and records the lowest); builds place
+  one tier and never replace a part that is already at that tier or higher:
+  - Kerr injector rails: Mk I.
+  - Eye Spacetime Compression Field Generators: the stack's 1:1 gate (`COMPRESSION_META_FOR_TIER`), so a stack-4
+    build is T4-capable.
+  - Eye Time Dilation and Stabilisation generators: tier 1 (Crude); they have no effect yet.
+  - GT's EOH structure channels raise these when the projector sets them: `spacetime_compression` (never below the
+    gate), `time_dilation`, `stabilisation`. Channel value n = generator tier n.
+
+### Survival auto-place (`survivalConstruct`)
+
+- It works through StructureLib's `ISurvivalBuildEnvironment`, so it takes blocks from the player's inventory or a
+  linked AE system like any GT multi. Hatches are placed only when the projector's `gt_hatch` channel is set (GT's
+  rule); otherwise a socket gets its fallback casing.
+- **Order.** Kerr: the core, then each module on its own; an unfinished module does not block the other. Eye: core,
+  beam band, jet crescent, arms; a piece starts only when every piece before it is complete. It returns -1 once
+  everything the stack asks for stands.
+- **Budget.** StructureLib's default round is 25 elements every 300 ms. `BTSStructures.survivalBudget` raises a small
+  budget eightfold, capped at 200, the same kind of rule TecTech's Eye uses (×5, cap 200). A T4 Eye or a Kerr T2 then
+  takes about a minute of holding the projector. NEI's preview passes no limit.
+- **Tiered parts.** A cell already holding the wanted tier or higher is skipped. An empty cell gets the wanted tier, or
+  the next higher tier the player has. A cell holding a lower tier is left alone, because auto-place never breaks
+  blocks; that piece then stays incomplete until the player swaps the part. On the Eye this is the 1:1 gate: going
+  from T1 to T2 means swapping the core's 188 compression generators by hand before the beam band is placed.
+- Tiles are never overwritten: `noOverwrite` returns SKIP for any cell with a tile entity.
+
+### NEI multiblock preview (BlockRenderer6343)
+
+How it finds and draws a controller (bytecode of `GTNEIMultiblockHandler`, `GTConstructableScan`, `ObserverWorld`,
+`GTGuiMultiblockHandler`, `StructureHacks`):
+
+- **Discovery.** Every entry of `GregTechAPI.METATILEENTITIES` that implements `IConstructable` is listed. Both
+  controllers qualify (`ISurvivalConstructable` extends it). No registration is needed.
+- **Tier count.** A background thread reads `getStructureDefinition()` and walks every element. If any element is a
+  known tiered type (StructureLib's `ofBlocksTiered`, a `withChannel` wrapper, GT's coils), the tier slider and channel
+  sliders come from those elements. Ours have none, so for a definition with more than one shape it counts tiers
+  instead: it calls `construct(stack, false)` with stack 1, 2, 3, ... in a scratch world until a stack changes
+  nothing. That gives **Kerr: 2 tiers** and **Eye: 4 tiers** (stack 5 adds no block and no new generator tier).
+- **Drawing.** The controller is placed at (0, 64, 0) facing south, the `gt_hatch` channel is set, and
+  `survivalConstruct(stack, Integer.MAX_VALUE, creative source)` is called until a round changes nothing (at most
+  2,000 rounds). So the preview shows exactly what survival auto-place builds, hatches included. Hint-dot labels come
+  from `getStructureDescription`, i.e. the tooltip's numbered lines.
+- **Size.** There is no block-count or footprint cap. The only hard limit is the scratch world's height, y 0-255.
+  Ours span y 32-96 (Kerr) and y 63-119 (Eye bands included), so they fit. The camera zooms out with the
+  structure's size. The renderer re-tessellates every block every frame (no display list), so 30-35k blocks may run
+  at a low frame rate; the layer slider shows one y-layer at a time. See question B-19.
+- **NEI index.** `noOverwrite` and `tieredBlock` forward `getBlocksToPlace`, so NEI's "used in multiblock" lookup
+  finds our casings and generators.
+- **Thread safety.** The structure definition is built once behind a lock, because the preview reads it from its
+  scan thread.
+- **Not exposed: channel sliders.** If the field generators were channel elements, the preview's main tier slider
+  would read 1-9 (the generators' tier count) instead of 1-4, and the Kerr's would read 1-3 if the rails had one. The
+  tier count is the more important thing to get right, so the channels work on the projector only. See question B-19.
