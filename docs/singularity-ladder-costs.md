@@ -1,6 +1,7 @@
 # Singularity Ladder: recipe completeness and cost audit (Kerr T1/T2, Eye T1-T4)
 
-Status: audit, 2026-10-12, addon `7a47289`. It reads the code and the jars and changes no code. It answers the
+Status: audit, 2026-10-12, addon `7a47289`. It reads the code and the jars and changes no code. **The recipe audit
+pass has since applied it: see §8 for what was applied, changed or skipped.** It answers the
 acceptance requirement "all recipes exist and are fair", which A-3 in
 [`singularity-ladder-questions.md`](singularity-ladder-questions.md) lists as open. The judgement calls it raises are
 logged there as **B-21..B-24**.
@@ -330,3 +331,44 @@ arms is about 3 h of assembly line), SL-P10, SL-P12, SL-P18, SL-P19, SL-K02, SL-
   pays 138 × 320,000 ticks at UMV (5.6e15 EU) on top.
 - **Bedrockium is reported raw.** In GTNH it is a bulk late-game metal; the BHC's 15M ingots are the pack's own
   number.
+
+---
+
+## 8. Applied (recipe audit pass, 2026-10-12)
+
+Every uncraftable chain in §2 now has a recipe that can run: Kerr T2 (#1) and Eye T2-T4 (#2). The numbers in §1-§5
+are the audit's and were not re-run. The one place the build differs from the "proposed" columns is #2/#15 (below).
+
+**D-49 check.** None of the 15 changes the Eye's star (process) recipes, their outputs, the tier transition or
+upgrade-install code, or the stability mechanics; all are crafting recipes or structure. The ones marked D-49 were
+checked against the D-49 proposal (design repo `designs/docs/star-lifecycle.md`): compression stays the 1:1 gate
+and tiers unlock in sequence (#2, #15), the Galactic Upgrade Core stays the HSM-gated T4 unlock (#11), and HSM still
+gates T4 (#10 keeps HSM in the shell). So nothing was skipped for the D-49 hold.
+
+| # | What | Status | Where / notes |
+|---|---|---|---|
+| 1 | SL-K04: 32 Black Hole Seeds, not the Superstable Seed | **Applied** | `BTSRecipesKerr` (`DENSITY_UPGRADE_SEEDS`) |
+| 2 | Compression generator tiers 1-3 without WDM | **Applied, combined with #15** | SL-P30..P32 in `BTSRecipesSingularity.compressionGates()`, one table row per step. Each consumes the generator one tier below in place of the Spatial casing, 80,000 ticks flat, gate fluid Raw Star Matter 16,000 / ESPM 4,000 / RHSP 2,000 L. Research-station AL, researched from Star Chart Sirius A / Arcturus / Sirius B (TecTech's research items are taken by its own recipes). Gated. B-25. |
+| 3 | SL-P27/P28 batch Spatial/Temporal casings | **Applied, with a change** | Programmed circuit 1 / 2 tells them apart (the proposal had identical inputs). Gated. B-26. |
+| 4 | SL-P29 batch Boundary casing | **Applied** | Gated. |
+| 5 | Eye `Y`: 48 stabilisation generators | **Applied** | Exporter legend; `eye_core` re-exported (`Y` 48, `Q` 4,704). |
+| 6 | SL-P08 coil: 16 wires, 8,000 L | **Applied** | |
+| 7 | SL-P09 quadrupole ×4 | **Applied** | |
+| 8 | SL-P15 beam band ×16 | **Applied** | |
+| 9 | SL-P16 jet crescent ×16, 64,000 L RSM | **Applied** | Still 4,000 L Raw Star Matter per block. |
+| 10 | SL-P17 Galactic Shell ×16, 250 L HSM | **Applied** | |
+| 11 | SL-E02 32,000 L HSM | **Applied** | |
+| 12 | SL-E01 294,912 L, SL-P21 36,864 L SpaceTime | **Applied** | |
+| 13 | SL-K01 unchanged | **Skipped (no change proposed)** | The audit's own verdict: heavier than the BHC controller, but the Kerr replaces the BHC and adds a module host. |
+| 14 | SL-K03 / SL-P14 pistons, not pumps | **Applied** | |
+| 15 | Compression generator upgrade recipe | **Applied inside #2** | Not a separate recipe: a second set would need three more unique research items. |
+
+**What #2/#15 combined does to §4's proposed Eye rows** (approximate, from the per-generator figures there, not a
+model re-run): each tier step is 188 upgrades of 80,000 ticks at `RECIPE_UMV`, about **1.9e15 EU and 209
+assembly-line hours** per step, in place of 3.8 / 5.7 / 7.6e15 EU and 418 / 627 / 836 h. That takes the Eye T2 / T3 /
+T4 increments to roughly 2.0e15 EU each, and the complete Eye T4 from 2.3e16 to about 1.2e16 EU. Each step also stops
+consuming 188 Spatial casings (47 Godforge Singularity Shielding Casings through SL-P27). The gate fluids are the
+same as §4 (3.0M L Raw Star Matter, 753k L ESPM, 376k L RHSP per step).
+
+**Still open:** B-21..B-26 in the questions file record each of these as a suggestion you can still overrule. Only the
+crafting side changed; nobody has crafted the chains in game yet.
