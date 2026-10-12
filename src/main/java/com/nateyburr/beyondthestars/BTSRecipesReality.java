@@ -72,7 +72,9 @@ import tectech.thing.block.BlockQuantumGlass;
  * <b>SL-R10/R11/R13..R17</b> their blocks (stages S6-S9, nanites at most Black Dwarf: GT makes tiers 8-10 from
  * Universium, an Eye T10 product, H-17).</li>
  * </ul>
- * <b>Gate audit.</b> Nothing here needs a product first made at a later Eye tier than the thing it builds. Recipes
+ * <b>Gate audit.</b> Nothing here needs a product first made at a later Eye tier than the thing it builds, with one
+ * open exception: Eternity (SL-H20, SL-R02, anchor IV of SL-R03 and so SL-R04/R05) is pre-T10 only once D-48's
+ * Eternity-on-Ergomatter swap is built ({@link #ETERNITY_BEFORE_T10}, question B-67). Recipes
  * whose fluids belong to later phases (Ergomatter and Superdense Ergomatter, P4; White Hole Matter, P5) are
  * registered against the placeholder fluids {@link SLRealityFluids} provides, so they are visible in NEI, and
  * {@link #gateLog} prints one line per recipe (process recipes included) that cannot be run until an Eye makes them.
@@ -104,6 +106,16 @@ public final class BTSRecipesReality {
     private static Fluid whiteHole;
 
     private static int gated;
+
+    /**
+     * D-48 proposal 1 (accepted 2026-10-12): the pack's Eternity QFT loop takes Ergomatter (Eye T7) instead of
+     * Universium (Eye T10), so Eternity exists before T10. It is NOT built on any branch yet. Until it is, every recipe
+     * here that needs Eternity is a loop on the way to T10 (Eternity needs Universium, Universium needs Eye T10, Eye
+     * T10
+     * needs the Universal Upgrade Core, which needs Region IV's Eternity anchor). Set true in the commit that builds
+     * the swap (behind replaceTecTechEyeOfHarmony, with P4); {@link #gateLog} reports the loop until then.
+     */
+    static final boolean ETERNITY_BEFORE_T10 = false;
 
     private BTSRecipesReality() {}
 
@@ -387,7 +399,8 @@ public final class BTSRecipesReality {
     // ============================================================ Homogeny T3 core + Eternity Shell (S6 / S9)
 
     private static void homogenyT3() {
-        // SL-H20 Homogeny Tier III Core. Gate: White Hole Matter (Eye T9, P5): unreachable until P5.
+        // SL-H20 Homogeny Tier III Core. Gate: White Hole Matter (Eye T9, P5): unreachable until P5. Its Eternity is
+        // a loop on the way to T10 until D-48's Eternity-on-Ergomatter swap is built (ETERNITY_BEFORE_T10).
         BTSRecipeGuard.recipe(
             "SL-H20",
             () -> assemble(
@@ -557,7 +570,7 @@ public final class BTSRecipesReality {
                 s(item(ItemList.MetaMaterial_SensorArray3, 4), N7),
                 s(item(ItemList.MetaMaterial_ResonanceChamber3, 4), N7)));
 
-        // SL-R02 Reality Refab. Gate: White Hole Matter (Eye T9, P5).
+        // SL-R02 Reality Refab. Gate: White Hole Matter (Eye T9, P5); Eternity as SL-H20 (ETERNITY_BEFORE_T10).
         BTSRecipeGuard.recipe(
             "SL-R02",
             () -> assemble(
@@ -600,18 +613,18 @@ public final class BTSRecipesReality {
         gate("SL-R13 Phase Ring Casing", erg);
         gate("SL-R16 Reassembly Claw", sup);
         gate("SL-R17 Region Anchor Casing (via Region Crystal)", erg, sup);
-        gate("SL-H20 Homogeny Tier III Core", whm, sup, erg);
+        gate("SL-H20 Homogeny Tier III Core (Eternity 64 ing)", true, whm, sup, erg);
         gate("SL-R01 Reality Diffraction", whm, sup, erg);
-        gate("SL-R02 Reality Refab", whm, sup, erg);
+        gate("SL-R02 Reality Refab (Eternity 128 ing)", true, whm, sup, erg);
         // The machines' own maps (RealityProcessRecipes, line reality-process).
         gate("SL-H21 Entanglement Medium (Homogeny T3)", whm, sup);
-        gate("SL-R03 Diffraction (medium and anchors V/VI)", whm, sup);
-        gate("SL-R04 Universal Upgrade Core (Refab, from the six regions)", whm, sup);
-        gate("SL-R05 Star Chart: The Observable Universe (Refab)", whm, sup);
+        gate("SL-R03 Diffraction (medium, anchors V/VI, anchor IV molten Eternity)", true, whm, sup);
+        gate("SL-R04 Universal Upgrade Core (Refab, from the six regions incl. Region IV)", true, whm, sup);
+        gate("SL-R05 Star Chart: The Observable Universe (Refab, from the six regions)", true, whm, sup);
         if (gated == 0) {
             BeyondTheStars.LOG.info(
-                "[BTS] H/R gate: Ergomatter, Superdense Ergomatter and White Hole Matter all have an owner; "
-                    + "every Homogeny/Reality recipe is reachable.");
+                "[BTS] H/R gate: Ergomatter, Superdense Ergomatter and White Hole Matter all have an owner and "
+                    + "Eternity is made before Eye T10; every Homogeny/Reality recipe is reachable.");
         } else {
             BeyondTheStars.LOG.info(
                 "[BTS] H/R gate: {} Homogeny/Reality recipe(s) are registered but unreachable until P4/P5 build "
@@ -621,7 +634,15 @@ public final class BTSRecipesReality {
     }
 
     private static void gate(String what, Fluid... needs) {
+        gate(what, false, needs);
+    }
+
+    /** {@code eternity}: the recipe also needs Eternity, a loop on the way to T10 until D-48's swap is built. */
+    private static void gate(String what, boolean eternity, Fluid... needs) {
         final List<String> missing = new ArrayList<>();
+        if (eternity && !ETERNITY_BEFORE_T10) {
+            missing.add("Eternity before Eye T10 (D-48: the pack's Eternity loop still needs Universium, Eye T10)");
+        }
         for (Fluid fluid : needs) {
             if (!SLRealityFluids.isPlaceholder(fluid)) continue;
             if (fluid == SLRealityFluids.ergomatter) missing.add("Ergomatter (Eye T7, P4)");
