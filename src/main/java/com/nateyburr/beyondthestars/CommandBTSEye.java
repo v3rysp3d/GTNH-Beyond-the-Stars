@@ -14,6 +14,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
+import com.nateyburr.beyondthestars.machines.SLConsoleTest;
 import com.nateyburr.beyondthestars.machines.eye.EyeKit;
 import com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS;
 
@@ -28,6 +29,13 @@ import com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS;
  * starts at once. The plinth's bottom row lands at the player's feet; the T4 arms reach 28 blocks in
  * front of the controller, so the stand-off grows with the pieces built. The footprint is surveyed
  * first; more than 15% solid refuses to build without {@code force}.
+ * <p>
+ * <b>Console / command-block form:</b> {@code /btseye [t1..t4] <x> <y> <z> [north|south|east|west]
+ * [gen 1-9] [fill] [force] [survival]} puts the controller at x y z ("~" is relative to a command
+ * block) with its front facing the given way (default north), owned by a fixed test UUID; it loads
+ * the footprint's chunks first and prints FORMED or NOT FORMED with the first wrong cells, the mirror
+ * check and a re-projection check. {@code survival} builds through the hologram projector's survival
+ * path instead of the creative one.
  */
 public class CommandBTSEye extends CommandBase {
 
@@ -42,7 +50,8 @@ public class CommandBTSEye extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btseye [t1|t2|t3|t4] [gen 1-9] [fill] [force]";
+        return "/btseye [t1|t2|t3|t4] [gen 1-9] [fill] [force]  |  console: /btseye [t1..t4] <x> <y> <z> [facing] "
+            + "[gen 1-9] [fill] [force] [survival]";
     }
 
     @Override
@@ -62,6 +71,11 @@ public class CommandBTSEye extends CommandBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
+        final SLConsoleTest.Placement at = SLConsoleTest.parsePlacement(sender, args);
+        if (at != null) {
+            processAt(sender, args, at);
+            return;
+        }
         final EntityPlayerMP player = getCommandSenderAsPlayer(sender);
         final World world = player.worldObj;
         if (world.isRemote) return;
@@ -146,6 +160,92 @@ public class CommandBTSEye extends CommandBase {
                 EnumChatFormatting.YELLOW
                     + "Open the controller GUI: it names the first wrong cell. A NOT FORMED creative build is a bug - "
                     + "please report it (and check the orientation note in the build spec).");
+        }
+    }
+
+    /** Owner of console-built Eyes (its wireless EU network): a fixed, recognisable test identity. */
+    private static final java.util.UUID CONSOLE_OWNER = java.util.UUID
+        .nameUUIDFromBytes("beyondthestars:console-test".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+    /** The console / command-block form: build at the given cell and facing, then report. */
+    private void processAt(ICommandSender sender, String[] args, SLConsoleTest.Placement at) {
+        final World world = sender.getEntityWorld();
+        if (world == null || world.isRemote) return;
+        int tiers = 1;
+        int genMeta = 8;
+        boolean fill = false;
+        boolean force = false;
+        boolean survival = false;
+        for (int i = 0; i < args.length; i++) {
+            if (at.used[i]) continue;
+            final String arg = args[i].toLowerCase(java.util.Locale.ROOT);
+            if (arg.matches("t[1-4]")) tiers = arg.charAt(1) - '0';
+            if (arg.equals("gen") && i + 1 < args.length && !at.used[i + 1]) {
+                genMeta = parseIntBounded(sender, args[++i], 1, 9) - 1;
+            }
+            if (arg.equals("fill")) fill = true;
+            if (arg.equals("force") || arg.equals("-f")) force = true;
+            if (arg.equals("survival")) survival = true;
+        }
+        final ExtendedFacing alignment = ExtendedFacing.of(at.facing);
+        final String[] pieces = java.util.Arrays.copyOf(MTEEyeOfHarmonyBTS.PIECES, tiers);
+        final int[] box = SLConsoleTest.bounds(alignment, at.x, at.y, at.z, pieces);
+        final String label = "Eye T" + tiers
+            + " facing "
+            + at.facing.name()
+                .toLowerCase();
+        if (box[1] < 1 || box[4] > 255) {
+            SLConsoleTest.tell(
+                sender,
+                label + ": NOT BUILT - the footprint spans y " + box[1] + ".." + box[4] + ", outside 1..255.");
+            return;
+        }
+        final int chunks = SLConsoleTest.loadChunks(world, box);
+        if (!force) {
+            final int percent = solidPercent(world, alignment, at.x, at.y, at.z, tiers);
+            if (percent > MAX_SOLID_FRACTION * 100) {
+                SLConsoleTest.tell(
+                    sender,
+                    label + ": NOT BUILT - the footprint is " + percent + "% solid; add force to overwrite.");
+                return;
+            }
+        }
+        final long start = System.nanoTime();
+        final EyeKit.Result result = EyeKit
+            .build(world, at.x, at.y, at.z, at.facing, tiers, genMeta, fill, CONSOLE_OWNER, "BTS console", survival);
+        if (result.failure != null) {
+            SLConsoleTest.tell(sender, label + ": BUILD FAILED - " + result.failure);
+            return;
+        }
+        final long ms = (System.nanoTime() - start) / 1_000_000L;
+        SLConsoleTest.tell(
+            sender,
+            "== " + label
+                + (survival ? " (survival path)" : " (creative path)")
+                + ": "
+                + (result.formed ? "FORMED" : "NOT FORMED")
+                + " == box ("
+                + box[0]
+                + ", "
+                + box[1]
+                + ", "
+                + box[2]
+                + ")..("
+                + box[3]
+                + ", "
+                + box[4]
+                + ", "
+                + box[5]
+                + "), "
+                + chunks
+                + " chunks loaded, built in "
+                + ms
+                + " ms");
+        for (String line : result.lines) {
+            SLConsoleTest.tell(sender, line);
+        }
+        for (String line : EyeKit.diagnose(world, at.x, at.y, at.z, at.facing, tiers)) {
+            SLConsoleTest.tell(sender, line);
         }
     }
 

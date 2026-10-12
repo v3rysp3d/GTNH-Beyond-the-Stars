@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -23,6 +24,7 @@ import com.nateyburr.beyondthestars.items.SLItems;
 import com.nateyburr.beyondthestars.machines.BTSMachines;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1;
+import com.nateyburr.beyondthestars.machines.SLConsoleTest;
 
 import gregtech.api.enums.ItemList;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
@@ -187,6 +189,28 @@ public final class EyeKit {
      */
     public static Result build(World world, int x, int y, int z, ForgeDirection facing, int tiers, int genMeta,
         boolean fill, EntityPlayerMP player) {
+        return build(
+            world,
+            x,
+            y,
+            z,
+            facing,
+            tiers,
+            genMeta,
+            fill,
+            player.getUniqueID(),
+            player.getCommandSenderName(),
+            false);
+    }
+
+    /**
+     * As above, owned by {@code owner} (the console form passes a fixed test UUID). With
+     * {@code survival} the blocks go in through {@code survivalConstruct} (the hologram projector's
+     * survival path, projector-sized rounds, from an endless item source) instead of the creative
+     * {@code construct}; the field generators, hatches and forming follow either way.
+     */
+    public static Result build(World world, int x, int y, int z, ForgeDirection facing, int tiers, int genMeta,
+        boolean fill, UUID owner, String ownerName, boolean survival) {
         final Result result = new Result();
         final ItemStack controller = BTSMachines.eyeOfHarmony;
         if (controller == null) {
@@ -205,11 +229,23 @@ public final class EyeKit {
         }
         final IGregTechTileEntity base = (IGregTechTileEntity) te;
         final MTEEyeOfHarmonyBTS eye = (MTEEyeOfHarmonyBTS) base.getMetaTileEntity();
-        base.setOwnerUuid(player.getUniqueID());
-        base.setOwnerName(player.getCommandSenderName());
+        base.setOwnerUuid(owner);
+        base.setOwnerName(ownerName);
 
         // 1. Every block: the stack size picks how many bands (1 = core .. 4 = + arms).
-        eye.construct(new ItemStack(controller.getItem(), tiers, controller.getItemDamage()), false);
+        final ItemStack trigger = new ItemStack(controller.getItem(), tiers, controller.getItemDamage());
+        if (survival) {
+            final SLConsoleTest.SurvivalRun run = SLConsoleTest
+                .survivalBuild(eye, world, trigger, SURVIVAL_BUDGET, SURVIVAL_MAX_ROUNDS);
+            result.lines.add(
+                "Survival auto-place: " + qty(run.placed)
+                    + " blocks in "
+                    + run.rounds
+                    + " rounds, "
+                    + (run.finished ? "finished (-1)" : run.stalled ? "STALLED (0 placed twice)" : "round cap hit"));
+        } else {
+            eye.construct(trigger, false);
+        }
         final ExtendedFacing alignment = eye.getExtendedFacing();
 
         // 2. The field generators at the asked tier. Compression is raised to the tier's gate (Q-20,
@@ -249,8 +285,8 @@ public final class EyeKit {
         if (chart != null) base.setInventorySlotContents(eye.getControllerSlotIndex(), new ItemStack(chart, 1, 0));
         if (fill) {
             eye.debugFillBuffers(FILL_LITRES);
-            WirelessNetworkManager.strongCheckOrAddUser(player.getUniqueID());
-            WirelessNetworkManager.addEUToGlobalEnergyMap(player.getUniqueID(), FILL_EU);
+            WirelessNetworkManager.strongCheckOrAddUser(owner);
+            WirelessNetworkManager.addEUToGlobalEnergyMap(owner, FILL_EU);
         }
         eye.checkStructure(true, base);
         eye.fixAllIssues();
@@ -280,6 +316,101 @@ public final class EyeKit {
                 + ".");
         result.lines.addAll(eye.statusLines());
         return result;
+    }
+
+    /** The projector's default survival round (StructureLib's 25 elements, which survivalBudget scales). */
+    private static final int SURVIVAL_BUDGET = 25;
+    private static final int SURVIVAL_MAX_ROUNDS = 4000;
+
+    /**
+     * Console/command-block checks on an Eye {@link #build} raised: the first wrong cells if it did
+     * not form, the mirror check (the core's lone east gas hatch, and at T3+ the jet's lone east
+     * socket, are the mockup's +x side, so they must stand on the viewer's right, seen from in front
+     * of the controller), and a creative re-projection over the finished machine, which must leave it
+     * formed (no hatch paved over, no field generator downgraded).
+     */
+    public static List<String> diagnose(World world, int x, int y, int z, ForgeDirection facing, int tiers) {
+        final List<String> out = new ArrayList<>();
+        final TileEntity te = world.getTileEntity(x, y, z);
+        if (!(te instanceof IGregTechTileEntity)
+            || !(((IGregTechTileEntity) te).getMetaTileEntity() instanceof MTEEyeOfHarmonyBTS)) {
+            out.add("No Eye controller at the build point.");
+            return out;
+        }
+        final IGregTechTileEntity base = (IGregTechTileEntity) te;
+        final MTEEyeOfHarmonyBTS eye = (MTEEyeOfHarmonyBTS) base.getMetaTileEntity();
+        final ExtendedFacing alignment = eye.getExtendedFacing();
+        if (!eye.mMachine) {
+            out.add("First wrong cells:");
+            for (String line : SLConsoleTest.firstErrors(eye, base, 3)) {
+                out.add("  " + line);
+            }
+            eye.checkStructure(true, base);
+        }
+        out.add(probe(world, alignment, facing, x, y, z, "core east gas hatch", MTEEyeOfHarmonyBTS.PIECE_CORE, 'h'));
+        if (tiers >= 3) {
+            out.add(probe(world, alignment, facing, x, y, z, "jet east socket", MTEEyeOfHarmonyBTS.PIECE_JET, 't'));
+        }
+
+        if (eye.mMachine) {
+            final ItemStack controller = BTSMachines.eyeOfHarmony;
+            final int before = fieldSignature(world, alignment, x, y, z);
+            eye.construct(new ItemStack(controller.getItem(), tiers, controller.getItemDamage()), false);
+            eye.checkStructure(true, base);
+            final int after = fieldSignature(world, alignment, x, y, z);
+            out.add(
+                "Creative re-projection over the formed Eye: "
+                    + (eye.mMachine ? "still FORMED"
+                        : "BROKE IT - " + String.join("; ", SLConsoleTest.firstErrors(eye, base, 2)))
+                    + (before == after ? ", field generators unchanged" : ", FIELD GENERATORS CHANGED"));
+        }
+        out.addAll(eye.statusLines());
+        return out;
+    }
+
+    /** The socket of {@code ch} with the largest a (the mockup's +x side): what stands there, which side. */
+    private static String probe(World world, ExtendedFacing alignment, ForgeDirection facing, int x, int y, int z,
+        String label, String piece, char ch) {
+        int[] best = null;
+        for (int[] rel : socketRels(piece, ch)) {
+            if (best == null || rel[0] > best[0]) best = rel;
+        }
+        if (best == null || best[0] <= 0) return "Orientation: no +x socket '" + ch + "' in " + piece;
+        final int[] p = SLConsoleTest.worldPos(alignment, x, y, z, best);
+        final String side = SLConsoleTest.viewerSide(facing, x, z, p[0], p[2]);
+        return "Orientation: " + label
+            + " (a="
+            + best[0]
+            + ") at ("
+            + p[0]
+            + ", "
+            + p[1]
+            + ", "
+            + p[2]
+            + ") holds "
+            + SLConsoleTest.blockAt(world, p[0], p[1], p[2])
+            + ", on the viewer's "
+            + side
+            + (side.equals("right") ? " (matches the mockup)" : " (MIRRORED vs the mockup: re-export --flipH)");
+    }
+
+    /** A cheap hash of every field-generator cell's meta, to spot a downgrade by a re-projection. */
+    private static int fieldSignature(World world, ExtendedFacing alignment, int x, int y, int z) {
+        final String piece = MTEEyeOfHarmonyBTS.PIECE_CORE;
+        final String[][] shape = BTSShapes.load(piece);
+        final int[] off = BTSShapes.offset(piece);
+        int h = 1;
+        for (int c = 0; c < shape.length; c++) {
+            for (int b = 0; b < shape[c].length; b++) {
+                final String row = shape[c][b];
+                for (int a = 0; a < row.length(); a++) {
+                    if (generatorFor(row.charAt(a)) == null) continue;
+                    final int[] p = worldPos(alignment, x, y, z, new int[] { a - off[0], b - off[1], c - off[2] });
+                    h = 31 * h + world.getBlockMetadata(p[0], p[1], p[2]);
+                }
+            }
+        }
+        return h;
     }
 
     /**

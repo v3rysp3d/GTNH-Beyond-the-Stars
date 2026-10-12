@@ -23,6 +23,7 @@ import com.nateyburr.beyondthestars.items.SLItems;
 import com.nateyburr.beyondthestars.machines.BTSMachines;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1;
+import com.nateyburr.beyondthestars.machines.SLConsoleTest;
 
 import gregtech.api.GregTechAPI;
 import gregtech.api.enums.ItemList;
@@ -150,6 +151,17 @@ public final class KerrKit {
      * when {@code tier2}, then forms it. Server side only.
      */
     public static Result build(World world, int x, int y, int z, ForgeDirection facing, boolean tier2) {
+        return build(world, x, y, z, facing, tier2, false);
+    }
+
+    /**
+     * As {@link #build(World, int, int, int, ForgeDirection, boolean)}; with {@code survival} the blocks
+     * go in through the controller's {@code survivalConstruct} (the hologram projector's survival
+     * path, projector-sized rounds, from an endless item source) instead of the creative
+     * {@code construct}. Either way the hatches are then fitted and the machine formed.
+     */
+    public static Result build(World world, int x, int y, int z, ForgeDirection facing, boolean tier2,
+        boolean survival) {
         final Result result = new Result();
         final ItemStack controller = BTSMachines.kerrEngine;
         if (controller == null) {
@@ -171,7 +183,19 @@ public final class KerrKit {
         final MTEKerrEngine kerr = (MTEKerrEngine) base.getMetaTileEntity();
 
         // 1. Every block: the core (stack size picks T1/T2) and both modules.
-        kerr.construct(new ItemStack(controller.getItem(), tier2 ? 2 : 1, controller.getItemDamage()), false);
+        final ItemStack trigger = new ItemStack(controller.getItem(), tier2 ? 2 : 1, controller.getItemDamage());
+        if (survival) {
+            final SLConsoleTest.SurvivalRun run = SLConsoleTest
+                .survivalBuild(kerr, world, trigger, SURVIVAL_BUDGET, SURVIVAL_MAX_ROUNDS);
+            result.lines.add(
+                "Survival auto-place: " + qty(run.placed)
+                    + " blocks in "
+                    + run.rounds
+                    + " rounds, "
+                    + (run.finished ? "finished (-1)" : run.stalled ? "STALLED (0 placed twice)" : "round cap hit"));
+        } else {
+            kerr.construct(trigger, false);
+        }
 
         // 2. A hatch in every socket the walk demands, facing out of the cage.
         final ExtendedFacing alignment = kerr.getExtendedFacing();
@@ -238,6 +262,80 @@ public final class KerrKit {
                 + " hatches fitted.");
         result.lines.addAll(kerr.statusLines());
         return result;
+    }
+
+    /** The projector's default survival round (StructureLib's 25 elements, which survivalBudget scales). */
+    private static final int SURVIVAL_BUDGET = 25;
+    private static final int SURVIVAL_MAX_ROUNDS = 2000;
+
+    /**
+     * Console/command-block checks on a Kerr {@link #build} raised: the first wrong cells if it did
+     * not form, the mirror check (the extractor arc is the mockup's +x side, so it must stand on the
+     * viewer's right, seen from in front of the controller), and a creative re-projection over the
+     * finished machine, which must leave it formed (no hatch paved over).
+     */
+    public static List<String> diagnose(World world, int x, int y, int z, ForgeDirection facing, boolean tier2) {
+        final List<String> out = new ArrayList<>();
+        final TileEntity te = world.getTileEntity(x, y, z);
+        if (!(te instanceof IGregTechTileEntity)
+            || !(((IGregTechTileEntity) te).getMetaTileEntity() instanceof MTEKerrEngine)) {
+            out.add("No Kerr controller at the build point.");
+            return out;
+        }
+        final IGregTechTileEntity base = (IGregTechTileEntity) te;
+        final MTEKerrEngine kerr = (MTEKerrEngine) base.getMetaTileEntity();
+        final ExtendedFacing alignment = kerr.getExtendedFacing();
+        if (!kerr.mMachine) {
+            out.add("First wrong cells:");
+            for (String line : SLConsoleTest.firstErrors(kerr, base, 3)) {
+                out.add("  " + line);
+            }
+            kerr.checkStructure(true, base);
+        }
+
+        // Mirror check, read off the world: where the extractor core block actually stands.
+        final int[] rel = MTEKerrEngine.socketRel(MTEKerrEngine.PIECE_EXTRACTOR, 'k', 0);
+        if (rel != null) {
+            final int[] p = SLConsoleTest.worldPos(alignment, x, y, z, rel);
+            final boolean there = world.getBlock(p[0], p[1], p[2]) == SLBlocks.slCasing2
+                && world.getBlockMetadata(p[0], p[1], p[2]) == BlockSLCasing2.EXTRACTOR_MODULE;
+            final String side = SLConsoleTest.viewerSide(facing, x, z, p[0], p[2]);
+            out.add(
+                "Orientation: extractor core at (" + p[0]
+                    + ", "
+                    + p[1]
+                    + ", "
+                    + p[2]
+                    + ") "
+                    + (there ? "present" : "MISSING (holds " + SLConsoleTest.blockAt(world, p[0], p[1], p[2]) + ")")
+                    + ", on the viewer's "
+                    + side
+                    + (side.equals("right") ? " (matches the mockup)"
+                        : " (MIRRORED vs the mockup: re-export --flipH)"));
+        }
+
+        // Re-project the creative hologram over the formed machine: nothing may break.
+        if (kerr.mMachine) {
+            final ItemStack controller = BTSMachines.kerrEngine;
+            kerr.construct(new ItemStack(controller.getItem(), tier2 ? 2 : 1, controller.getItemDamage()), false);
+            kerr.checkStructure(true, base);
+            out.add(
+                "Creative re-projection over the formed Kerr: " + (kerr.mMachine ? "still FORMED"
+                    : "BROKE IT - " + String.join("; ", SLConsoleTest.firstErrors(kerr, base, 2))));
+            final int again = SLConsoleTest.survivalBuild(
+                kerr,
+                world,
+                new ItemStack(controller.getItem(), tier2 ? 2 : 1, controller.getItemDamage()),
+                SURVIVAL_BUDGET,
+                5).placed;
+            kerr.checkStructure(true, base);
+            out.add(
+                "Survival re-projection: placed " + again
+                    + " blocks, "
+                    + (kerr.mMachine ? "still FORMED" : "BROKE IT"));
+        }
+        out.addAll(kerr.statusLines());
+        return out;
     }
 
     /** Fills a bolt bus: optionally a Black Hole Seed first, then SpaceTime (else Neutronium) bolts. */
