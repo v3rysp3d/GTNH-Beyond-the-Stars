@@ -63,6 +63,9 @@ public final class BTSBlackHoleSwap {
 
     private BTSBlackHoleSwap() {}
 
+    /** Recipes handed to the ledger so far, for their ids (SL-K01/swap-01 ...). */
+    private static int ledgered;
+
     /** What one pass did. */
     public static final class Result {
 
@@ -124,6 +127,10 @@ public final class BTSBlackHoleSwap {
             try {
                 for (GTRecipe recipe : map.getAllRecipes()) {
                     if (recipe == null) continue;
+                    // The pack's recipe as it was, for /btsrecipes dump (taken only for a consumer).
+                    final Map<String, Object> before = contains(recipe.mInputs, from) || altContains(recipe, from)
+                        ? CommandBTSRecipes.snapshot(recipe)
+                        : null;
                     boolean hit = replace(recipe.mInputs, from, to);
                     if (recipe instanceof GTRecipe.GTRecipe_WithAlt) {
                         hit |= replace(((GTRecipe.GTRecipe_WithAlt) recipe).mOreDictAlt, from, to);
@@ -131,6 +138,14 @@ public final class BTSBlackHoleSwap {
                     if (hit) {
                         changed = true;
                         note(result, phase, place, firstOutput(recipe.mOutputs));
+                        BTSRecipeLedger.changed(
+                            String.format("SL-K01/swap-%02d", ++ledgered),
+                            CommandBTSRecipes.KERR,
+                            "removeBlackHoleCompressorRecipe=true",
+                            "Black Hole Compressor controller -> Kerr Ergosphere Engine controller (SL-K01), same count",
+                            map,
+                            recipe,
+                            before);
                     }
                 }
             } catch (RuntimeException | LinkageError failed) {

@@ -120,7 +120,14 @@ public final class BTSRecipeRemovals {
                 result.remaining);
             return;
         }
-        removeAssemblyLineByOutput(bhc, "Black Hole Compressor controller");
+        removeAssemblyLineByOutput(
+            bhc,
+            "Black Hole Compressor controller",
+            new Ledger(
+                "SL-K01/removes-BHC",
+                CommandBTSRecipes.KERR,
+                "removeBlackHoleCompressorRecipe=true",
+                "Kerr Ergosphere Engine controller (SL-K01); every recipe that consumed a BHC controller now takes it"));
         blackHoleCompressorRemoved = true;
     }
 
@@ -172,12 +179,44 @@ public final class BTSRecipeRemovals {
      * @return the total number of entries removed across all collections
      */
     public static int removeAssemblyLineByOutput(ItemStack out, String label) {
+        return removeAssemblyLineByOutput(out, label, null);
+    }
+
+    /** What {@code /btsrecipes dump} says about a removal: our id, line, config flag and the replacement. */
+    public static final class Ledger {
+
+        final String id, group, flag, replacement;
+
+        public Ledger(String id, String group, String flag, String replacement) {
+            this.id = id;
+            this.group = group;
+            this.flag = flag;
+            this.replacement = replacement;
+        }
+    }
+
+    /** As {@link #removeAssemblyLineByOutput(ItemStack, String)}; the removed NEI recipes go to the recipe ledger. */
+    public static int removeAssemblyLineByOutput(ItemStack out, String label, Ledger ledger) {
         if (out == null || out.getItem() == null) {
             BeyondTheStars.LOG.warn("[BTS] removed {}: nothing - the output stack is not in this pack.", label);
             return 0;
         }
 
-        // 1. NEI visual page.
+        // 1. NEI visual page (the copy the recipe ledger keeps for /btsrecipes dump).
+        if (ledger != null) {
+            for (GTRecipe recipe : RecipeMaps.assemblylineVisualRecipes.getAllRecipes()) {
+                if (recipe != null && outputMatches(recipe, out)) {
+                    BTSRecipeLedger.removed(
+                        ledger.id,
+                        ledger.group,
+                        ledger.flag,
+                        ledger.replacement,
+                        "assembly-line recipe removed with its data-stick, scanner and research-station entries",
+                        RecipeMaps.assemblylineVisualRecipes,
+                        recipe);
+                }
+            }
+        }
         final int visual = removeFromMap(RecipeMaps.assemblylineVisualRecipes, r -> outputMatches(r, out));
 
         // 2. What data sticks resolve against (includes TecTech's research-station recipes).

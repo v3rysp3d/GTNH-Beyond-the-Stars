@@ -143,9 +143,13 @@ public final class BTSRecipeGuard {
      */
     public static void recipe(String id, Runnable body) {
         current = id;
+        boolean ok = false;
+        // The ledger notes what this body adds to the live maps, for /btsrecipes dump (BTSRecipeLedger).
+        BTSRecipeLedger.begin();
         try {
             body.run();
             registered++;
+            ok = true;
         } catch (MissingComponent missing) {
             // A resolver named the component precisely; note() logs it and records it.
             note(id, missing.component, origin(missing));
@@ -157,6 +161,7 @@ public final class BTSRecipeGuard {
                 .getSimpleName() + (other.getMessage() == null ? "" : ": " + other.getMessage());
             note(id, what, origin(other));
         } finally {
+            BTSRecipeLedger.end(id, ok);
             current = "?";
         }
     }
@@ -167,6 +172,7 @@ public final class BTSRecipeGuard {
      * touching a moved dependency - costs that one line instead of all five.
      */
     public static void line(String name, Runnable body) {
+        BTSRecipeLedger.line(name);
         try {
             body.run();
         } catch (RuntimeException | LinkageError failed) {
@@ -176,6 +182,8 @@ public final class BTSRecipeGuard {
                     + "please report it with the stack trace below.",
                 name,
                 failed);
+        } finally {
+            BTSRecipeLedger.line(null);
         }
     }
 

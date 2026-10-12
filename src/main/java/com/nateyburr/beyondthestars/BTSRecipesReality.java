@@ -609,6 +609,11 @@ public final class BTSRecipesReality {
         }
         if (missing.isEmpty()) return;
         gated++;
+        // /btsrecipes dump marks the recipe as a placeholder; "what" starts with its id (SL-R11 Region Crystal ...).
+        final int space = what.indexOf(' ');
+        BTSRecipeLedger.placeholder(
+            space < 0 ? what : what.substring(0, space),
+            "unreachable until an Eye makes " + String.join(", ", missing));
         BeyondTheStars.LOG.info(
             "[BTS] H/R gate: {} is registered but unreachable until an Eye makes {}.",
             what,

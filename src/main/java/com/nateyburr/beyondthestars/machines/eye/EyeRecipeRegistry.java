@@ -17,8 +17,10 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
+import com.nateyburr.beyondthestars.BTSRecipeLedger;
 import com.nateyburr.beyondthestars.BTSRecipeRemovals;
 import com.nateyburr.beyondthestars.BeyondTheStars;
+import com.nateyburr.beyondthestars.CommandBTSRecipes;
 import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.fluids.SLFluids;
 import com.nateyburr.beyondthestars.items.SLItems;
@@ -94,6 +96,7 @@ public final class EyeRecipeRegistry {
     private static final Set<Fluid> INPUT_FLUIDS = new HashSet<>();
     private static boolean loaded;
     private static int converted;
+    private static boolean tecTechCleared;
 
     // ================================================================================= lookups
 
@@ -122,6 +125,11 @@ public final class EyeRecipeRegistry {
         return Collections.unmodifiableSet(INPUT_FLUIDS);
     }
 
+    /** True once TecTech's own Eye of Harmony recipes were cleared (the converted planets replace them). */
+    public static boolean tecTechReplaced() {
+        return tecTechCleared;
+    }
+
     /** Number of TecTech planet recipes converted at load-complete. */
     public static int convertedCount() {
         return converted;
@@ -144,7 +152,13 @@ public final class EyeRecipeRegistry {
                         CustomItemList.Machine_Multi_EyeOfHarmony.hasBeenSet()
                             ? CustomItemList.Machine_Multi_EyeOfHarmony.get(1)
                             : null,
-                        "TecTech Eye of Harmony controller"));
+                        "TecTech Eye of Harmony controller",
+                        new BTSRecipeRemovals.Ledger(
+                            "SL-E01/removes-EOH",
+                            CommandBTSRecipes.EYE,
+                            "replaceTecTechEyeOfHarmony=true",
+                            "Eye of Harmony (Beyond the Stars) controller (SL-E01); TecTech's planet recipes are converted "
+                                + "to it")));
             } else {
                 BeyondTheStars.LOG.error(
                     "[BTS] replaceTecTechEyeOfHarmony=true, but {} TecTech planet recipes were converted and the "
@@ -348,6 +362,8 @@ public final class EyeRecipeRegistry {
             final ItemStack trigger = source.getRecipeTriggerItem()
                 .copy();
             trigger.stackSize = 1;
+            // /btsrecipes dump shows TecTech's recipe as the "before" of this conversion.
+            BTSRecipeLedger.tecTechPlanet("planet:" + dim, source);
             add(
                 new EyeRecipe(
                     "planet:" + dim,
@@ -385,6 +401,7 @@ public final class EyeRecipeRegistry {
         final Map<String, EyeOfHarmonyRecipe> map = tecTechMap();
         final int storage = map.size();
         map.clear();
+        tecTechCleared = true;
         final Collection<GTRecipe> page = new ArrayList<>(TecTechRecipeMaps.eyeOfHarmonyRecipes.getAllRecipes());
         if (!page.isEmpty()) {
             TecTechRecipeMaps.eyeOfHarmonyRecipes.getBackend()

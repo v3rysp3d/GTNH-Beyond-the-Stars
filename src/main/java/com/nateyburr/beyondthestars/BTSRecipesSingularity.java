@@ -93,7 +93,7 @@ public final class BTSRecipesSingularity {
         // because TecTech's Eye (WDM's other source) is gone, so only they follow the flag.
         tecTechEyeBlocks();
         if (Config.replaceTecTechEyeOfHarmony) {
-            compressionGateParts();
+            BTSRecipeLedger.gated("replaceTecTechEyeOfHarmony=true", BTSRecipesSingularity::compressionGateParts);
         } else {
             BeyondTheStars.LOG.info(
                 "[BTS] replaceTecTechEyeOfHarmony=false: GT's Resonance Chamber II keeps its White Dwarf Matter foil "
@@ -378,7 +378,10 @@ public final class BTSRecipesSingularity {
             BeyondTheStars.LOG.warn(
                 "[BTS] SL-G01 found no GT Resonance Chamber II recipe to rewrite; SL-P39 (the same chamber with 2 "
                     + "SpaceTime foils, a separate Condensate Assembler recipe) is registered instead.");
-            BTSRecipeGuard.recipe("SL-P39", BTSRecipesSingularity::legacyP39);
+            BTSRecipeLedger.fallback("SL-P39", "SL-G01 found no GT Resonance Chamber II recipe to rewrite");
+            BTSRecipeLedger.gated(
+                "replaceTecTechEyeOfHarmony=true",
+                () -> BTSRecipeGuard.recipe("SL-P39", BTSRecipesSingularity::legacyP39));
         }
     }
 
@@ -443,7 +446,17 @@ public final class BTSRecipesSingularity {
                 }
                 if (isFoilOf(in, Materials.WhiteDwarfMatter)) {
                     final int was = in.stackSize;
+                    final java.util.Map<String, Object> before = CommandBTSRecipes.snapshot(recipe);
                     recipe.mInputs[i] = spaceTime.copy();
+                    BTSRecipeLedger.changed(
+                        "SL-G01",
+                        CommandBTSRecipes.EYE,
+                        "replaceTecTechEyeOfHarmony=true",
+                        "GT's Resonance Chamber II: 2 SpaceTime foils in place of " + was
+                            + " White Dwarf Matter foil (nanites and condensates unchanged)",
+                        TecTechRecipeMaps.condensateAssemblingRecipes,
+                        recipe,
+                        before);
                     done++;
                     rewritten++;
                     BeyondTheStars.LOG.info(

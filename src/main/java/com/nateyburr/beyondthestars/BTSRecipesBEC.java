@@ -786,6 +786,7 @@ public final class BTSRecipesBEC {
                 + "craftable.",
             becId,
             legacyId);
+        BTSRecipeLedger.fallback(legacyId, becId + " (Condensate Assembler) was skipped");
         BTSRecipeGuard.recipe(legacyId, legacy);
     }
 
@@ -864,6 +865,9 @@ public final class BTSRecipesBEC {
                 if (out == null || !out.isItemEqual(want)) continue;
                 hits++;
                 final int was = out.stackSize;
+                // The pack's recipe as it was, for /btsrecipes dump (before the edit; a no-op edit records nothing).
+                final java.util.Map<String, Object> snapshot = was == CASINGS_PER_CRAFT ? null
+                    : CommandBTSRecipes.snapshot(recipe);
                 if (was == CASINGS_PER_CRAFT) {
                     BeyondTheStars.LOG.info(
                         "[BTS] {}: RC-2 {} (Condensate Assembler) already outputs {}; left alone.",
@@ -873,6 +877,18 @@ public final class BTSRecipesBEC {
                     continue;
                 }
                 recipe.mOutputs[i] = GTUtility.copyAmount(CASINGS_PER_CRAFT, out);
+                BTSRecipeLedger.changed(
+                    id,
+                    CommandBTSRecipes.BEC,
+                    null,
+                    "RC-2's own recipe for TecTech's " + name
+                        + ": output x"
+                        + CASINGS_PER_CRAFT
+                        + " instead of x"
+                        + was,
+                    TecTechRecipeMaps.condensateAssemblingRecipes,
+                    recipe,
+                    snapshot);
                 if (was == 4) {
                     BeyondTheStars.LOG.info(
                         "[BTS] {}: RC-2 {} (Condensate Assembler) now outputs {}, was 4.",
@@ -917,6 +933,8 @@ public final class BTSRecipesBEC {
         final CustomItemList casing = spatial ? CustomItemList.EOH_Reinforced_Spatial_Casing
             : CustomItemList.EOH_Reinforced_Temporal_Casing;
         final int before = BTSRecipeGuard.skippedCount();
+        BTSRecipeLedger
+            .fallback(id, "no RC-2 Condensate Assembler recipe made the casing, so it could not be rewritten to x32");
         BTSRecipeGuard.recipe(
             id,
             () -> GTValues.RA.stdBuilder()
@@ -958,6 +976,7 @@ public final class BTSRecipesBEC {
         }
         // Last resort: the retired SL-P27/P28 bodies (programmed circuit 1/2 keeps them apart).
         final String last = spatial ? "SL-P27" : "SL-P28";
+        BTSRecipeLedger.fallback(last, id + " could not be built either (last resort)");
         BTSRecipeGuard.recipe(
             last,
             () -> GTValues.RA.stdBuilder()
