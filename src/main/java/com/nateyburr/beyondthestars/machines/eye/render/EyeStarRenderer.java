@@ -77,6 +77,8 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
     /** A magnetar flare runs out to {@link #FLARE_REACH} radii over this many ticks. */
     private static final double FLARE_TICKS = 40;
     private static final float FLARE_REACH = 6f;
+    /** The translucent shells' gamma ceiling (they are additive, so a high gamma whitens the star's face). */
+    private static final float SHELL_GAMMA = 1.2f;
     /** The glow billboard: radius in object radii, its least radius in blocks, and its alpha at the centre. */
     private static final float GLOW_RADII = 2.5f, GLOW_MIN = 6f, GLOW_ALPHA = 0.30f;
     private static final int GLOW_SEGMENTS = 48;
@@ -192,15 +194,18 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
         final float aux = star.getAux();
         final float shells = coreAlpha * (kind == EyeStarLook.DWARF ? 1f - aux : 1f);
-        drawLayer(LAYER_1, r, g, b, 0.4f * shells, radius * 1.02f, 1f, 1f, 0f, -49 + spin * 0.8);
-        drawLayer(LAYER_2, r, g, b, 0.2f * shells, radius * 1.04f, 1f, 0f, 1f, 67 + spin * 1.1);
+        // additive shells at 0.3 / 0.15 and a gamma of at most 1.2: at the star's own (high) gamma and 0.4 / 0.2 they
+        // added a near-white layer over the face and blew the hot stars out to flat white (render QA round 2)
+        GL20.glUniform1f(shader.loc(U_GAMMA), Math.min(gamma, SHELL_GAMMA));
+        drawLayer(LAYER_1, r, g, b, 0.3f * shells, radius * 1.02f, 1f, 1f, 0f, -49 + spin * 0.8);
+        drawLayer(LAYER_2, r, g, b, 0.15f * shells, radius * 1.04f, 1f, 0f, 1f, 67 + spin * 1.1);
         if (kind == EyeStarLook.DWARF) {
             // E7: a faint dark-red rim, so the near-black ball still reads against dark casings at night
-            GL20.glUniform1f(shader.loc(U_GAMMA), 1f);
+            GL20.glUniform1f(shader.loc(U_GAMMA), 0.6f);
             drawLayer(LAYER_1, 0x40 / 255f, 0x18 / 255f, 0x10 / 255f, 0.25f, radius * 1.03f, 0f, 1f, 0f, spin * 0.5);
         } else if (kind == EyeStarLook.MAGNETAR) {
             // E8: the flare shell (brighter on an event warning) and a flare every 4-8 s
-            GL20.glUniform1f(shader.loc(U_GAMMA), 2.5f);
+            GL20.glUniform1f(shader.loc(U_GAMMA), 1f);
             drawLayer(
                 LAYER_2,
                 0xB0 / 255f,

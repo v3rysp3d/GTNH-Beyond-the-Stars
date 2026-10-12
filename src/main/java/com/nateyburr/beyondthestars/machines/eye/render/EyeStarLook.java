@@ -89,8 +89,11 @@ public final class EyeStarLook {
     private static final float NEUTRON_GAMMA = 6f;
     private static final int BOUNCE_RGB = 0xC8E1FF;
     private static final float BOUNCE_GAMMA = 6f;
-    private static final int MAGNETAR_RGB = 0x8A3CFF;
-    private static final float MAGNETAR_GAMMA = 2.2f;
+    // 6A3CFF / 1.2, not the review's 8A3CFF / 2.2: the shader takes only the tint's chroma and raises the texture's
+    // own luminance to 1 / gamma, so 2.2 lifted the bright texels to white-pink, and 8A3CFF's chroma still rendered
+    // magenta; a bluer violet at 1.2 reads violet (render QA round 2)
+    private static final int MAGNETAR_RGB = 0x6A3CFF;
+    private static final float MAGNETAR_GAMMA = 1.2f;
 
     /** What the centre shows now, or null for nothing (dark, IDLE, no star). Server state. */
     public static EyeStarLook of(EyeStarRuntime rt) {
@@ -192,10 +195,16 @@ public final class EyeStarLook {
         }
     }
 
-    /** The cooling dwarf's palette: fraction, 0xRRGGBB and gamma per stop (render QA E7). */
+    /**
+     * The cooling dwarf's palette: fraction, 0xRRGGBB and gamma per stop (render QA E7). The shader keeps the texture's
+     * luminance and takes only the tint's chroma, so a dark tint does not darken the ball: the gamma does (luminance
+     * to the power 1 / gamma). The review's late gammas (1.2 / 0.6 / 0.4) still rendered a pink-grey Moon in round 2,
+     * so the late stops go much lower: brick red at 0.45, near black at 0.15, black at 0.08 (0.2 at 90 % still showed
+     * copper glints).
+     */
     private static final float[] DWARF_AT = { 0f, 0.5f, 0.75f, 0.9f, 1f };
     private static final int[] DWARF_RGB = { 0xEAF0FF, 0xFFB070, 0x8A2A18, 0x2A1210, 0x0E0A0C };
-    private static final float[] DWARF_GAMMA = { 4.5f, 2.5f, 1.2f, 0.6f, 0.4f };
+    private static final float[] DWARF_GAMMA = { 4.5f, 2.5f, 0.45f, 0.15f, 0.08f };
 
     /**
      * Sirius B through a cooling batch (fraction 0..1): white-hot blue-white, orange at half way, a dull brick red at
