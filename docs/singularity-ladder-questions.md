@@ -1145,6 +1145,103 @@ than after a client check.
 
 ---
 
+### B-37 D-49: live stars T1-T4, the unlocked tier, escrow and the save migration [D-49 unit 4]
+
+**Context.** Unit 4 of the D-49 build plan makes the Eye's stars live. The new package is
+`machines/eye/star/`:
+
+- `StarDef` is the per-cycle star table.
+- `EyeStarRuntime` is the state machine (DARK, IGNITING, LIT, PENDING), and it handles cycles, ignition, the time
+  dial, trims, the T4 feed, output, milestones and the core escrow.
+- `EyeNbt` is the one NBT writer and reader. It also handles the 0.24.x migration.
+- `EyeMilestones` holds the per-tier counters.
+- `EyeStarBench` is the `/btseye star …` test bench.
+
+The controller runs one field second every 20 ticks, straight after its socket drain. `installedTier` is now
+`min(unlockedTier, structureTier, compressionTier)`. Planets still run as batch runs, as built.
+
+**Dev-server results** (`runServer`, flat world, console; boot log "243 registered, 0 skipped", "6 live stars, 43 planet
+recipes"):
+
+| Plan test | Result |
+|---|---|
+| 3 (Sol, `unlock 1`, `seed 1806`, `lit`, `rig fine`, `sim 14400 compare`) | **COMPARE PASS**: the hash `3cde8ee7`, the zone counts (14,400 Resonant), the mean Y 1.489601 and the RSPM 17,875,208 L all equal offline `FieldSim` |
+| 4 (Arcturus ignition from 1 charge) | IGNITING at P −80; P was −23.0 after 38 s and lit after 40 s; the seed cloud took 4·10⁸ L of H and of He; 2.42·10¹³ EU (10 cycles) debited; no product while igniting |
+| 5 (Sol at p = 4 with 6·10⁷ L He) | First cycle r 0.30, then 0.00: P sags; the cycle's RSPM was 25,750 L = 50,000 × 4 × mean Y 0.4292 × 0.30; the star breached at P −101 |
+| 9 (neutron star, feed 1.5, 3,600 s) | **COMPARE PASS**; 5,400 L of HSM drawn (1.5 × 3,600); WDM 24,716 L = 3.6864 × 5,400 × mean Y 1.2416 |
+| 12 (sensors) | P > 5 at P +4.3 gave 0; P < 5 at P +8.7 gave 0; P > 0 at P +6.7 gave 15; Ω analog at +1.2 gave 8 (= round(15·121.2/240)) |
+| 14 (100 s, `save-all`, restart, 100 s) | **COMPARE PASS** after the restart: 200 s, hash `f29e488b`. The RNG, the clock and the bench ledger persisted |
+| 15 (`core subspace`, `set dial 1.5`, `wrench`) | Unlocked tier, milestones, escrow and buffers kept; the star is DARK |
+| 16 (migration via `legacy`) | Galactic → unlocked T4. Arcturus run in flight ×2 → 100,000 L of RHSP owed, paid on the next formed second. Bands T1-T3 → grandfathered to T3. Jet without beam → unlocked T3, but runs as T1 (the scanner names the gap) |
+| 18 | One field second takes about 2-5 µs (`sim 14400` ran in 68 ms) |
+
+Two findings came out of the run and are fixed. A tile that had just been reloaded with its chunk had no hatch lists
+until GT's start-up walk, and the status lines threw an NPE on the never-walked band faults. The bench now walks
+such a tile first.
+
+**Judgement calls.**
+
+1. **T6 upkeep: Antipolarization Agent 3,000 L per cycle (50 L/s, × p).** This follows your answer that the Agent is
+   the constant feed. WDM 18,432 + BDM 4,608 + Agent 100,000 become the merger charge (and the re-merge "top up").
+   The flare-shield Agent trim in the Field sockets stays on top of the upkeep (B-34 item 1). So a magnetar uses about
+   50 L/s of Agent as upkeep plus what the rig doses. Only the table is built here; the T6 runtime is unit 5.
+   - *Alternatives:* 6,000 L per cycle (the simulated rig's ~100 L/s as pure upkeep), or let the upkeep also charge
+     the shield (a maths change: prototype first, then regenerate the golden file).
+2. **Milestones and the escrow are built in unit 4.** The plan gives them to unit 5. The task asks for "milestones →
+   core → escrow", and their NBT belongs to `EyeNbt`. The transitions that consume the core are still unit 5's.
+   Until then, a next-tier chart in the slot parks the star in **PENDING**: it keeps burning and nothing more
+   happens. Any other chart, a planet or an empty slot puts the star out.
+3. **The escrow is returned by sneak-PUNCHING the controller with an empty hand, not sneak-right-click (plan
+   R-14).** GT's `BaseMetaTileEntity.onRightclick` never passes a sneaking right-click to the machine; it opens
+   covers instead. Left-click does reach the machine.
+   - *Alternative:* a GUI button (unit 6).
+4. **A freshly loaded star freezes until GT's first structure check (about 5 s).** It does not go out. Otherwise
+   every world load would extinguish every star, because `mMachine` is false until that walk. After the walk, an
+   unformed Eye puts the star out (R-8), and so does a disabled one (R-7). The maintenance and structure stops GT
+   applies disable the machine, so the star goes out then too.
+5. **A star chart never starts a GT run.** `checkProcessing` returns a status (`star_lit`, `star_igniting`,
+   `star_pending`, `star_dark`, `star_remnant`, `star_unit5`) or the tier gate. The tier gate is split into
+   bands (`tierN`), the new unlock (`lockedN`, new lang keys) and compression. GT's active flag is forced on while
+   the star burns.
+6. **Fractional litres.** The T4 HSM draw and every cycle's product are fractional. The remainder carries to the
+   next second or cycle (`hsmOwed`, `prodCarry` in the tile NBT), so nothing rounds away.
+7. **Migration edges.**
+   - Any `star:*` run key in a loaded tile is pre-D-49. Its output is owed (`btsEyeLegacyPay`, kept in item NBT too),
+     and GT's progress is zeroed so GT cannot finish the run.
+   - The bands are grandfathered at the first walk without errors (`btsEyeLegacyPending` persists until then).
+   - A controller wrenched to an item **before** the update with no Galactic core and no buffered fluid has no item
+     NBT at all (GT writes a tag only when there is something in it). It cannot be told apart from a new controller,
+     so it starts unlocked at T1. `migration.md` says so.
+8. **Smaller choices.**
+   - The ignition seed cloud and the 10 cycles of EU scale with p.
+   - The dial setpoint wraps 3.00 → 1.00. In use it is capped by m_max.
+   - The feed setpoint steps 0.1 and wraps 1.5 → 0.
+   - The creative `/btseye tN` build is unlocked to tN.
+   - The kit's T4 build loads Star Chart: Neutron Star.
+   - NEI star pages show one cycle: up to 4 fluid inputs (`maxIO(1, 81, 4, 18)`). The T4 page shows the HSM feed at
+     the 0.694 L/s default.
+   - `replacementStarsPresent()` now needs Sol, the neutron star and Sirius B (plan §10.4). Sirius B is registered
+     as data (its batch runtime is unit 5).
+9. **Tooltip.** Only the lines D-49 made false were edited (T4 Sirius B, the Galactic right-click, "stars always
+   succeed", the placeholder fields). The full rewrite is unit 6's.
+10. **Loading `FieldSim` in the game makes FML warn "MOD HAS DIRECT REFERENCE System.exit()".** The warning comes
+    from `FieldSim.main` (unit 1's offline runner), which the bench's `sim … compare` loads. It is harmless.
+    - *Suggestion:* swap the call for a return code in a later pass.
+
+**Not run here.** These need a client or another unit:
+
+- the controller GUI text;
+- the screwdriver and the right-click escrow (the bench's `core` / `escrow` take the same code path);
+- the time dial paid from real Field-socket Time;
+- an ME input bus as the charge source.
+
+**Suggestion.** Accept 1-10 as built.
+
+**Alternatives.** For 1, see above. For 3, a GUI button. For 4, put the star out after a load too (harsher; not
+recommended).
+
+---
+
 ## Part C. Settled (for the record)
 
 | Topic | Your answer | State |

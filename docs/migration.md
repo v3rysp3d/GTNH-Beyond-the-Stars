@@ -110,3 +110,30 @@ bands follow the spiral arms: the second arm pair (T5) and the galactic rim (T6,
 **Bands are now cumulative:** each band counts only while every band below it stands. An Eye built with the jet
 crescent but no beam band now runs as **T1** until the beam band is built; the scanner names the gap. Plinth gas
 sockets also take an input bus (for the Stellar Ignition Charges); a crafting input buffer there is refused.
+
+**Eye of Harmony stars, D-49 (live stars and the tier unlock).** Stars are no longer batch runs. Each star burns
+live: it lights from a Stellar Ignition Charge in a plinth input bus (plus 10 cycles of upkeep and EU), takes its
+EU and upkeep every 60 s cycle, and delivers its product to ME at the end of every cycle, scaled by how well you hold
+its stability field (Field and Sensor sockets on the core band). Planets still run as batch runs.
+
+- **Unlocked tier.** Every Eye now stores the tier it has unlocked; a tier runs only when it is unlocked, built and
+  gated by compression. New tiers unlock by milestones on the current star, the next core (right-click it into the
+  escrow) and that tier's transition.
+- **Existing Eyes keep what they had.** An Eye that carried the Galactic Upgrade Core is unlocked to **T4** (its
+  neutron star still needs a lit Arcturus and a core-free Core Collapse). Any other Eye from 0.24.x is unlocked, at
+  its first structure check after the update, to the tier its bands gave it under the old rule (the jet crescent
+  counted without the beam band): T1-T3. Bands are cumulative now, so a jet-without-beam Eye is unlocked to T3 but
+  runs as T1 until the beam band is built.
+- **A star run in flight is paid in full.** Its inputs and EU were paid when it started, so the Eye credits the whole
+  run (Sol 1,000,000 L Raw Star Matter, Sirius A 100,000 L Excited Stellar Plasma, Arcturus 50,000 L Raw Hyperdense
+  Stellar Plasma, Sirius B 18,432 L White Dwarf Matter, Sirius B Cooled 4,608 L Black Dwarf Matter, per success) to
+  its ME output once it stands formed, and logs it. Planet runs in flight finish as before.
+- **Buffers are kept**, including leftover helium from the old Sirius B run.
+- **Charts.** Star Chart: Sirius B is now the T5 target (Black Dwarf Matter). T4 is Star Chart: Neutron Star. An Eye
+  with Sirius B in the slot shows the T5 lock until it is unlocked.
+- **Wrenched controllers** carry the unlocked tier, the milestones, the escrowed core and the setpoints. A
+  controller wrenched to an item **before** the update carries the Galactic flag (T4) or its buffers if it had any;
+  one wrenched with neither has no item NBT at all, so it is indistinguishable from a new controller and starts
+  unlocked at T1.
+- **Galactic Upgrade Core.** It is no longer installed by right-click: it goes into the escrow and is consumed by a
+  successful Core Collapse.
