@@ -857,13 +857,28 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             checkStructure(true, aBaseMetaTileEntity);
         }
         if (!mMachine) return;
-        if (aTick % 20 == 0) {
-            handleSeeds();
-            for (MTEBlackHoleUtility hatch : utilityHatches) {
-                if (live(hatch)) hatch.updateRedstoneOutput(holeOpen);
-            }
-        }
+        if (aTick % 20 == 0) handleSeeds();
+        pulseUtilityHatches(aTick);
         tickHole();
+    }
+
+    /**
+     * The BHC utility hatch protocol as GT 2.9.0-RC-2's MTEBlackHoleCompressor drives it: while the
+     * hole is open every hatch gets cycleStart() on each 20-tick boundary and cycleMiddle() five
+     * ticks later (a hatch in pulse mode drops its signal there, so pulse mode gives a 5-tick pulse
+     * per second and continuous mode stays lit); while the hole is closed blackHoleClosed() turns
+     * every hatch off. The BHC only sends blackHoleClosed() on the close event; the Kerr repeats it on
+     * both beats while shut, so a hatch added (or reloaded lit) while the hole is shut never stays on.
+     */
+    private void pulseUtilityHatches(long aTick) {
+        final long phase = aTick % 20;
+        if (phase != 0 && phase != 5) return;
+        for (MTEBlackHoleUtility hatch : utilityHatches) {
+            if (!live(hatch)) continue;
+            if (!holeOpen) hatch.blackHoleClosed();
+            else if (phase == 0) hatch.cycleStart();
+            else hatch.cycleMiddle();
+        }
     }
 
     /**
