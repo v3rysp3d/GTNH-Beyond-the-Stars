@@ -1058,3 +1058,10 @@ The units are sequential, one unit each, with one gradle invocation at a time.
 2. **Eye T2 is REQUIRED** (strict ladder per D-49). An Eye with the T3 jet crescent but no T2 beam band runs as T1
    until the beam band is built (plan §17 item 1, adopted). When the Homogeny returns it is an alternative Excited
    plasma source, not a way to skip T2.
+3. **Centre render (user, 2026-10-12: "where is the render btw?")**: the Eye renders its current object at the centre
+   of the structure — the live star for T1-T3 (size/colour per star), the neutron star at T4, the cooling white→black
+   dwarf at T5, the magnetar at T6, and the collapse/supernova-suppression event as a visible transition. Reuse the
+   pack's own renderers where they fit (TecTech's Eye of Harmony render and the Forge of the Gods star render in the
+   RC-2 GT jar; javap them for how they spawn/sync/scale), client cosmetic behind the existing `eyeRenderCentre`
+   config (which must finally do something), no orphan render blocks on unform/break/unload. The Kerr's black-hole
+   render is done separately on the `kerr-redesign` branch.
