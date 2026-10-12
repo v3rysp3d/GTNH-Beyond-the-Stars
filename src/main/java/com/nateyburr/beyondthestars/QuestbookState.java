@@ -56,6 +56,8 @@ final class QuestbookState {
     final Set<Long> placeholders = new LinkedHashSet<>();
     /** editId -> why it was skipped at the last install. */
     final Map<String, String> skipped = new LinkedHashMap<>();
+    /** editId -> why it is switched off (a flag, an uninstall): not a warning. */
+    final Map<String, String> disabled = new LinkedHashMap<>();
     /** editId -> ops of it that were skipped (text not found, prerequisite missing). */
     final Map<String, List<String>> misses = new LinkedHashMap<>();
     /** Set when the file was read; false = a world this installer never touched. */
@@ -92,6 +94,9 @@ final class QuestbookState {
         for (final int low : root.getIntArray("placeholders")) s.placeholders.add((long) low);
         final NBTTagCompound skipped = root.getCompoundTag("skipped");
         for (final Object key : skipped.func_150296_c()) s.skipped.put((String) key, skipped.getString((String) key));
+        final NBTTagCompound disabled = root.getCompoundTag("disabled");
+        for (final Object key : disabled.func_150296_c())
+            s.disabled.put((String) key, disabled.getString((String) key));
         final NBTTagCompound misses = root.getCompoundTag("misses");
         for (final Object key : misses.func_150296_c()) {
             final NBTTagList list = misses.getTagList((String) key, 8);
@@ -134,6 +139,9 @@ final class QuestbookState {
         final NBTTagCompound skipped = new NBTTagCompound();
         for (final Map.Entry<String, String> e : this.skipped.entrySet()) skipped.setString(e.getKey(), e.getValue());
         root.setTag("skipped", skipped);
+        final NBTTagCompound disabled = new NBTTagCompound();
+        for (final Map.Entry<String, String> e : this.disabled.entrySet()) disabled.setString(e.getKey(), e.getValue());
+        root.setTag("disabled", disabled);
         final NBTTagCompound misses = new NBTTagCompound();
         for (final Map.Entry<String, List<String>> e : this.misses.entrySet()) {
             final NBTTagList list = new NBTTagList();

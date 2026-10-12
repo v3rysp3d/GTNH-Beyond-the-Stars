@@ -152,6 +152,8 @@ public class CommandBTSQuests extends CommandBase {
                 + ")");
         for (final Map.Entry<String, String> e : s.skipped.entrySet())
             tell(sender, WARN + "  " + e.getKey() + DIM + " skipped: " + e.getValue());
+        for (final Map.Entry<String, Integer> e : s.disabled.entrySet())
+            tell(sender, DIM + "  " + e.getValue() + " switched off: " + e.getKey());
         for (final Map.Entry<String, List<String>> e : s.misses.entrySet())
             for (final String m : e.getValue()) tell(sender, WARN + "  " + e.getKey() + DIM + " " + m);
         if (!s.editsChanged.isEmpty()) {
@@ -259,11 +261,16 @@ public class CommandBTSQuests extends CommandBase {
     }
 
     private static void report(ICommandSender sender, QuestbookInstaller.Report r) {
-        for (final Map.Entry<String, String> e : r.skipped.entrySet()) {
-            if (e.getValue()
-                .contains("off")) continue;
+        for (final Map.Entry<String, String> e : r.skipped.entrySet())
             tell(sender, WARN + "Skipped " + e.getKey() + ": " + e.getValue());
-        }
+        if (!r.disabled.isEmpty()) tell(
+            sender,
+            DIM + ""
+                + r.disabled.size()
+                + " pack edit(s) switched off: "
+                + r.disabled.values()
+                    .iterator()
+                    .next());
         for (final Map.Entry<String, List<String>> e : r.misses.entrySet())
             for (final String m : e.getValue()) tell(sender, WARN + e.getKey() + ": " + m);
         for (final String n : r.notes) tell(sender, DIM + n);

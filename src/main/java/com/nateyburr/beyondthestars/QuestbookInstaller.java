@@ -86,8 +86,11 @@ final class QuestbookInstaller {
         int editsRecaptured;
         int progressReset;
         int taskProgressDropped;
-        final Map<String, String> skipped = new LinkedHashMap<>();
-        final Map<String, List<String>> misses = new LinkedHashMap<>();
+        /** Edits that did not apply because the pack's quest no longer matches: warnings. */
+        final Map<String, String> skipped = new TreeMap<>();
+        /** Edits switched off on purpose (questbookPackEdits, a removal flag, an uninstall). */
+        final Map<String, String> disabled = new TreeMap<>();
+        final Map<String, List<String>> misses = new TreeMap<>();
         final List<String> notes = new ArrayList<>();
 
         String summary() {
@@ -107,6 +110,8 @@ final class QuestbookInstaller {
                 + " applied, "
                 + skipped.size()
                 + " skipped, "
+                + disabled.size()
+                + " switched off, "
                 + editsReverted
                 + " reverted";
         }
@@ -346,6 +351,8 @@ final class QuestbookInstaller {
 
         final QuestbookBundle.Edit edit;
         boolean apply;
+        /** Not applied on purpose (a flag or an uninstall), as opposed to drift. */
+        boolean disabled;
         String skip;
         NBTTagCompound original;
         Map<UUID, NBTTagCompound> entries;
@@ -384,6 +391,7 @@ final class QuestbookInstaller {
                 final Plan p = plan(e, state, packEdits, sticky, questMap, lineMap);
                 plans.add(p);
                 if (p.apply) applying.add(e.id);
+                else if (p.disabled) report.disabled.put(e.id, p.skip);
                 else report.skipped.put(e.id, p.skip);
                 if (p.recaptured) report.editsRecaptured++;
             }
@@ -540,6 +548,8 @@ final class QuestbookInstaller {
                 if (q.placeholder) state.placeholders.add(q.low);
             state.skipped.clear();
             state.skipped.putAll(report.skipped);
+            state.disabled.clear();
+            state.disabled.putAll(report.disabled);
             state.misses.clear();
             state.misses.putAll(report.misses);
             try {
@@ -556,6 +566,7 @@ final class QuestbookInstaller {
     private static Plan plan(QuestbookBundle.Edit e, QuestbookState state, boolean packEdits, String sticky,
         Map<UUID, Object> questMap, Map<UUID, Object> lineMap) throws Exception {
         final Plan p = new Plan(e);
+        p.disabled = true;
         if (!packEdits) {
             p.skip = sticky.isEmpty() ? "pack edits are off (questbookPackEdits=false)"
                 : "pack edits were uninstalled (/btsquests uninstall " + sticky + ")";
@@ -572,6 +583,7 @@ final class QuestbookInstaller {
                 return p;
             }
         }
+        p.disabled = false;
         final Object live = questMap.get(e.quest);
         if (live == null) {
             p.skip = "pack quest " + e.questB64 + " is not in this world's quest database";
@@ -1006,8 +1018,10 @@ final class QuestbookInstaller {
         int editsApplied;
         /** Applied edits whose quest changed since (a default load): the next install re-applies them. */
         final List<String> editsChanged = new ArrayList<>();
-        final Map<String, String> skipped = new LinkedHashMap<>();
-        final Map<String, List<String>> misses = new LinkedHashMap<>();
+        final Map<String, String> skipped = new TreeMap<>();
+        /** reason -> how many edits are switched off for it. */
+        final Map<String, Integer> disabled = new TreeMap<>();
+        final Map<String, List<String>> misses = new TreeMap<>();
         /** "low key (needs a, b)" per placeholder in this build. */
         final List<String> placeholders = new ArrayList<>();
         final List<String> fallbacks = new ArrayList<>();
@@ -1058,6 +1072,7 @@ final class QuestbookInstaller {
                     .equals(e.getValue().applied)) s.editsChanged.add(e.getKey());
             }
             s.skipped.putAll(state.skipped);
+            for (final String why : state.disabled.values()) s.disabled.merge(why, 1, Integer::sum);
             s.misses.putAll(state.misses);
             if (bundle != null) {
                 for (final QuestbookBundle.Quest q : bundle.quests.values()) {
@@ -1263,22 +1278,22 @@ final class QuestbookInstaller {
             final File world = BQBridge.worldDir();
             if (world == null) return;
             final Map<UUID, Object> questMap = BQBridge.quests();
-            final List<UUID> ours = new ArrayList<>();
-            for (final UUID id : questMap.keySet()) if (id.getMostSignificantBits() == BQBridge.ID_HIGH) ours.add(id);
-            if (ours.isEmpty()) return;
-            final Object db = BQBridge.questDb();
-            final NBTTagList rows = (NBTTagList) db.getClass()
-                .getMethod("writeProgressToNBT", NBTTagList.class, List.class)
-                .invoke(db, new NBTTagList(), ours);
-            final Map<UUID, NBTTagCompound> backup = QuestbookState.readProgressBackup(world);
-            for (int i = 0; i < rows.tagCount(); i++) {
-                final NBTTagCompound row = rows.getCompoundTagAt(i);
-                final UUID id = BQBridge.readId(row, "questID");
-                if (id == null) continue;
+            // One quest at a time: the List argument of QuestDatabase.writeProgressToNBT filters
+            // PLAYERS, not quests (javap: QuestInstance.writeProgressToNBT tests users.contains).
+            Map<UUID, NBTTagCompound> backup = null;
+            for (final Map.Entry<UUID, Object> e : questMap.entrySet()) {
+                if (e.getKey()
+                    .getMostSignificantBits() != BQBridge.ID_HIGH || e.getValue() == null) continue;
+                if (backup == null) backup = QuestbookState.readProgressBackup(world);
+                final NBTTagCompound row = (NBTTagCompound) e.getValue()
+                    .getClass()
+                    .getMethod("writeProgressToNBT", NBTTagCompound.class, List.class)
+                    .invoke(e.getValue(), new NBTTagCompound(), null);
+                BQBridge.writeId(row, "questID", e.getKey());
                 row.setString("btsBundle", installedBundle);
-                backup.put(id, row);
+                backup.put(e.getKey(), row);
             }
-            QuestbookState.writeProgressBackup(world, backup);
+            if (backup != null) QuestbookState.writeProgressBackup(world, backup);
         } catch (final Throwable t) {
             BeyondTheStars.LOG.warn("Questbook: could not back up progress on our quests: " + BQBridge.describe(t));
         }
