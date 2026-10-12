@@ -28,7 +28,7 @@ category `general`.
 
 **Black Hole Compressor** (`removeBlackHoleCompressorRecipe`, default `true`). Placed Black Hole Compressors keep
 working. Only the controller's crafting recipe is removed, and a data stick that holds that recipe stops resolving.
-The Kerr Ergosphere Engine takes its place at UIV.
+The Kerr Ergosphere Engine takes its place at UIV. On GTNH 2.9.0-RC-2 the recipes that consume a BHC controller also switch to the Kerr controller (see the RC-2 port notes below).
 
 **TecTech Eye of Harmony** (`replaceTecTechEyeOfHarmony`, default `true`). At load-complete, Beyond the Stars first
 copies every TecTech planet recipe into its own Eye of Harmony, then clears TecTech's recipe storage, its NEI page and
@@ -61,3 +61,37 @@ its controller recipe.
 - The Extractor Module now runs GT's item extractor recipes and takes **item buses only**. A fluid output hatch in an
   extractor socket (the earlier `/btskerr` placed one) faults the module until it is swapped for an output bus. The
   old "Ergosphere Extraction" melt recipes are gone; finish any melt run before updating, or its fluid may be lost.
+
+## Beyond the Stars: GTNH 2.9.0-RC-2 port (2026-10-12)
+
+**Pack version.** From this build on, Beyond the Stars targets **GTNH 2.9.0-RC-2** (GT5-Unofficial 5.09.54.205,
+StructureLib 1.4.45, coremod 2.9.84). It does not load on 2.9.0-beta-1: the GT++ recipe maps it registers into moved
+into GT's `RecipeMaps`, and the beta-1 jar does not have them. Update the pack first, then this mod.
+
+**For developers.** `dependencies.gradle` pins the two RC-2 lines. `runClient` / `runServer` also pull the coremod,
+BetterQuesting, BlockRenderer6343, Avaritia, Universal Singularities (with WanionLib), Avaritiaddons and Eternal
+Singularity as `runtimeOnlyNonPublishable`, so the dev server registers the recipes the port rewrites. None of them is
+a compile or published dependency. The spec's "GTNH 2.9.0-RC-2 port" section lists the API changes.
+
+**Black Hole Compressor in recipes** (`removeBlackHoleCompressorRecipe`, default `true`). In 2.9 the BHC controller is
+also an ingredient: every Spacetime Compression Field Generator tier and the Empty Spatially Compressed Circuit Array
+(64) consume one. With the switch on, those recipes now take a **Kerr Ergosphere Engine controller** instead, same
+count, and the BHC controller recipe is removed. BHC controllers you already have can no longer be used in those
+recipes; keep them as machines (placed BHCs work as before). If the Kerr controller recipe failed to register, the
+BHC recipe and its uses are left as the pack ships them, and the log says so. With the switch off, nothing changes.
+
+**Kerr controller recipe.** SL-K01 is cheaper now (about one BHC controller's worth, including the BHC's compressor
+lineage). A data stick holding the old recipe resolves to the new one, because sticks store only the output.
+
+**Compression generator recipes (Eye T2-T4 gates).** The beta-1 "upgrade the generator" assembly lines
+(SL-P30..P32) are gone, and so are their data sticks' recipes. 2.9 makes every generator in the Condensate
+Assembler. With `replaceTecTechEyeOfHarmony=true` there is one extra Condensate Assembler recipe (SL-P35) for
+Resonance Chamber II that uses SpaceTime foil instead of White Dwarf Matter foil, so the tier 1-3 generators can be
+made before Eye T4. Generators you already crafted are the same items and still work.
+
+**Reactor fluid sockets.** The feedwater, chamber-coolant and propellant sockets accept plain Input Hatches only. A
+crafting input buffer (CRIB) or its slave in one of them now un-forms the plant, and the structure check names the
+cell. Swap it for an Input Hatch. Without this check, 2.9 would have accepted the buffer and it would never have fed the plant.
+
+**Kerr utility hatches.** The BHC utility hatch now stores its on/off state (`isOn`) instead of a pulse timer. Existing
+hatches load cleanly; a hatch in pulse mode starts the first second after a reload off, as GT's own BHC does.
