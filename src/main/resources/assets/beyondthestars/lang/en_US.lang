@@ -102,6 +102,8 @@ beyondthestars.recipe.cascade=Cascade Hall
 beyondthestars.recipe.fabrication=Fuel Fabrication Hall
 beyondthestars.recipe.purex=PUREX Canyon
 beyondthestars.recipe.batching=Site Batching Plant
+# Every Cascade Hall recipe makes two fluids; a plain Output Hatch holds one.
+beyondthestars.structure.cascade.outputs=The Cascade Hall needs 2 Output Hatches (one per stream: the cut and the tails) or 1 ME Output Hatch
 # The one fatal error a plant built by 0.19.0 or earlier reports: its silo face is the retired
 # plumbing frontage, which conflicts with the point-of-use layout cell for cell. %s = the tier
 # measured off the standing walls.

@@ -17,6 +17,7 @@ import static gregtech.api.util.GTStructureUtility.buildHatchAdder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import net.minecraft.item.ItemStack;
@@ -29,6 +30,7 @@ import com.nateyburr.beyondthestars.BeyondTheStars;
 
 import gregtech.api.GregTechAPI;
 import gregtech.api.casing.Casings;
+import gregtech.api.interfaces.IHatchElement;
 import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
@@ -36,8 +38,10 @@ import gregtech.api.recipe.RecipeMap;
 import gregtech.api.recipe.RecipeMapBackend;
 import gregtech.api.recipe.RecipeMapBuilder;
 import gregtech.api.structure.error.StructureError;
+import gregtech.api.structure.error.StructureErrors;
 import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.api.util.tooltip.TooltipHelper;
+import gregtech.common.tileentities.machines.outputme.MTEHatchOutputME;
 
 /**
  * D-26 THE CASCADE HALL - MTE 28113, IV (docs/production-lines.md S5.1).
@@ -168,6 +172,13 @@ public class MTECascadeHall extends MTEProductionHallBase<MTECascadeHall> {
         checkHasMaintenanceHatch(errors);
         checkHasInputHatch(errors);
         checkHasOutputHatch(errors);
+        // Every cascade recipe makes two fluids (cut + tails) and a plain Output Hatch holds one, so one
+        // plain hatch would form and then stall on "not enough fluid output space" for good.
+        if (!mOutputHatches.isEmpty() && mOutputHatches.size() < 2
+            && mOutputHatches.stream()
+                .noneMatch(h -> h instanceof MTEHatchOutputME)) {
+            errors.add(StructureErrors.of("beyondthestars.structure.cascade.outputs"));
+        }
     }
 
     /** Hologram/build size comes off the held stack: 1 gives the bare hall, 5 the full cascade. */
@@ -270,7 +281,11 @@ public class MTECascadeHall extends MTEProductionHallBase<MTECascadeHall> {
                                 onElementPass(x -> ++x.mCasing, Casings.TungstensteelTurbineCasing.asElement()))))
                 .addElement(
                     'u',
-                    buildHatchAdder(MTECascadeHall.class).atLeast(OutputHatch)
+                    // a count of 2, so the projector's survival path fills BOTH cells (with the plain count of 1
+                    // it stops after one and the hall would not form; checkMachine wants 2 or one ME hatch)
+                    buildHatchAdder(MTECascadeHall.class)
+                        .atLeast(
+                            Collections.<IHatchElement<? super MTECascadeHall>, Integer>singletonMap(OutputHatch, 2))
                         .casingIndex(Casings.TungstensteelTurbineCasing.textureId)
                         .hint(4)
                         .buildAndChain(
