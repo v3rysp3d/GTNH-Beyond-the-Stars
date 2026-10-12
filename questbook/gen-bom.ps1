@@ -154,7 +154,7 @@ $ELEMENT_ITEM['D'] = 'Europium Reinforced Radiation Proof Machine Casing'
 $ELEMENT_ITEM['E'] = 'Radiant Naquadah Alloy Casing'
 $ELEMENT_ITEM['G'] = 'Radiation Proof Machine Casing'
 # --- silo interior
-$ELEMENT_ITEM['F'] = 'Reactor Fuel Column'
+$ELEMENT_ITEM['F'] = 'Reactor Fuel Pillar Frame'
 $ELEMENT_ITEM['J'] = 'Rod Loading Port'
 # --- silo face sockets (blank -> Radiation Proof)
 $ELEMENT_ITEM['t'] = 'Maintenance Hatch'
@@ -714,7 +714,7 @@ for ($t = 1; $t -le $MAX_TIER; $t++) {
     $k = $CUT[$t]
     $octagon = $n * $n - 2 * $k * ($k + 1)
     $interior = $COLUMN_CAP[$t]
-    $fuel = $BTS_BOM.Silo[$t]['Reactor Fuel Column']
+    $fuel = $BTS_BOM.Silo[$t]['Reactor Fuel Pillar Frame']
     if ($fuel -ne ($interior * $SEGMENTS_PER_PILLAR)) {
         throw ("gen-bom.ps1: tier $t counted $fuel fuel-column cells but COLUMN_CAP says " +
             "$interior pillars x $SEGMENTS_PER_PILLAR segments = " + ($interior * $SEGMENTS_PER_PILLAR) + ".")

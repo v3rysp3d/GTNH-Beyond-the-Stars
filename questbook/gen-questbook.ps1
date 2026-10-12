@@ -364,7 +364,7 @@ $quests = @(
                 ''
                 '{e}{l}CHECK YOUR WORK{r}'
                 'Right-click the {b}Silo Control Block{r} you just set into the face. It prints the whole instrument panel, and the REACTOR group carries a {b}Supply{r} line reading {2}0 rods queued -> 0 pillar gaps{r}.'
-                "{8}Both zeros are right. A pillar gap is an empty segment in a {b}Reactor Fuel Column{r}, and not one of those is standing yet. What this step pays you is {b}$STEP4_COLUMN_BLOCKS fuel-column BLOCKS{r} - one block is one segment and $SEGMENTS_PER_PILLAR of them make a pillar, so that is {b}$STEP4_COLUMN_PILLARS pillars{r} - and they go up in step 5. Gaps appear when you raise the pillars; the queue moves when you feed the bus.{r}"
+                "{8}Both zeros are right. A pillar gap is an empty segment in a {b}Reactor Fuel Pillar Frame{r}, and not one of those is standing yet. What this step pays you is {b}$STEP4_COLUMN_BLOCKS fuel-column BLOCKS{r} - one block is one segment and $SEGMENTS_PER_PILLAR of them make a pillar, so that is {b}$STEP4_COLUMN_PILLARS pillars{r} - and they go up in step 5. Gaps appear when you raise the pillars; the queue moves when you feed the bus.{r}"
                 '{6}This is the step where the plant FORMS for the first time.{r} {8}Maintenance, Feedwater Input, Output Hatch and Depleted Output Bus are the only four sockets the structure actually demands, and they all just went in. Everything you fit from here on is added to a plant that is already alive.{r}'
                 ''
                 '[note]You never touch a rod port inside the silo again. The controller distributes rods from that one bus to all 45-201 pillars itself, every decay cycle - best grade first, lowest empty segment first.[/note]'
@@ -377,7 +377,7 @@ $quests = @(
         Reward = @((BTSItem 'fuelRodUranium' $STEP5_RODS))
         Desc = (@(
                 '{6}{l}THE DECAY CASCADE{r}'
-                "Every fuel pillar is a gravity column $SEGMENTS_PER_PILLAR segments tall - $SEGMENTS_PER_PILLAR Reactor Fuel Column blocks, stacked. A rod dropped in falls to the lowest empty segment. Only the {b}BOTTOM{r} one burns; when it is spent it drops into the depleted bus and the stack above shifts down one."
+                "Every fuel pillar is a gravity column $SEGMENTS_PER_PILLAR segments tall - $SEGMENTS_PER_PILLAR Reactor Fuel Pillar Frame blocks, stacked. A rod dropped in falls to the lowest empty segment. Only the {b}BOTTOM{r} one burns; when it is spent it drops into the depleted bus and the stack above shifts down one."
                 ''
                 'A pillar is {2}LIVE{r} while its bottom segment holds a burning rod:'
                 '  {b}steam = live pillars x 16,384 L/t x fuel multiplier x rods N/24{r}'
@@ -389,7 +389,7 @@ $quests = @(
                 '{e}{l}DO THIS{r}'
                 'Feed fuel rods into the {b}Rod Input Bus in the silo face{r} - bottom fuel course, one cell to the LEFT of the main station {8}as you stand outside and look at the silo{r} - and keep it stocked. One rod is one segment, about 90 minutes, and a full pillar is roughly 12 hours.'
                 ''
-                "{8}You also need the pillars themselves: stacks of Reactor Fuel Column blocks, {b}$SEGMENTS_PER_PILLAR blocks to a pillar{r}, standing inside the silo. The projector treats them as optional interior and leaves those cells empty, so a silo with no pillars makes no steam at all.{r}"
+                "{8}You also need the pillars themselves: stacks of Reactor Fuel Pillar Frame blocks, {b}$SEGMENTS_PER_PILLAR blocks to a pillar{r}, standing inside the silo. The projector treats them as optional interior and leaves those cells empty, so a silo with no pillars makes no steam at all.{r}"
                 ''
                 '{a}{l}DONE WHEN{r}'
                 "$STEP5_RODS Uranium Fuel Rods are in your inventory. {8}Claim it, then feed them to the bus - a rod inside the bus is inside a machine, not on you.{r}"
@@ -397,7 +397,7 @@ $quests = @(
                 '{e}{l}CHECK YOUR WORK{r}'
                 "{6}Do the arithmetic before you read the panel, so the number does not surprise you.{r} Step 4 paid you {b}$STEP4_COLUMN_BLOCKS fuel-column BLOCKS{r} and $SEGMENTS_PER_PILLAR blocks make one pillar, so what you are holding is {b}$STEP4_COLUMN_PILLARS pillars{r} - not $STEP4_COLUMN_BLOCKS. Stand them up as $STEP4_COLUMN_PILLARS stacks of $SEGMENTS_PER_PILLAR, in $STEP4_COLUMN_PILLARS separate cells of the silo floor."
                 "$STEP4_COLUMN_PILLARS empty pillars are {b}$STEP4_COLUMN_BLOCKS empty segments{r}, so the Supply line reads {2}0 rods queued -> $STEP4_COLUMN_BLOCKS pillar gaps{r} the moment they are up. Drop this step's $STEP5_RODS rods into the bus and it reads {2}$STEP5_RODS rods queued -> $STEP4_COLUMN_BLOCKS pillar gaps{r} until the next decay cycle hands them out, then {2}0 rods queued -> $($STEP4_COLUMN_BLOCKS - $STEP5_RODS) pillar gaps{r}."
-                "{c}Gaps with an EMPTY queue{r} is the starving cascade, and that is the reading to act on; {2}0 gaps{r} is a full silo. {8}A tier-1 silo has room for $($BTS_BOM.Pillars[1]) pillars - $(Bom $BTS_BOM.Silo[1] 'Reactor Fuel Column') blocks - so $STEP4_COLUMN_PILLARS is a start, not a finish. Blueprint: Steam Generator has the count for every tier.{r}"
+                "{c}Gaps with an EMPTY queue{r} is the starving cascade, and that is the reading to act on; {2}0 gaps{r} is a full silo. {8}A tier-1 silo has room for $($BTS_BOM.Pillars[1]) pillars - $(Bom $BTS_BOM.Silo[1] 'Reactor Fuel Pillar Frame') blocks - so $STEP4_COLUMN_PILLARS is a start, not a finish. Blueprint: Steam Generator has the count for every tier.{r}"
                 ''
                 '[warn]Classic fuel ASSEMBLIES in the bus still work, but at HALF output - the panel calls it "Assembly fallback (output halved)". The cascade is where the other half lives.[/warn]'
                 ''
@@ -860,8 +860,8 @@ $quests = @(
                 "  {b}T5{r} ($($BTS_BOM.Edge[5]) wide) $(Bom $BTS_BOM.Silo[5] 'Radiant Naquadah Alloy Casing')x Radiant Naquadah Alloy + $(Bom $BTS_BOM.Silo[5] 'Radiation Proof Machine Casing')x Radiation Proof + $(Bom $BTS_BOM.Silo[5] 'Iridium Reinforced Block')x Iridium Reinforced"
                 '{8}The Radiation Proof count at T3-T5 is the three radiation band rings, which stay radiation proof at every tier.{r}'
                 ''
-                "{e}FUEL PILLARS{r} - $SEGMENTS_PER_PILLAR Reactor Fuel Column BLOCKS make one pillar. Full count per tier:"
-                "  T1 {b}$($BTS_BOM.Pillars[1]){r} pillars ($(Bom $BTS_BOM.Silo[1] 'Reactor Fuel Column') blocks) . T2 {b}$($BTS_BOM.Pillars[2]){r} ($(Bom $BTS_BOM.Silo[2] 'Reactor Fuel Column')) . T3 {b}$($BTS_BOM.Pillars[3]){r} ($(Bom $BTS_BOM.Silo[3] 'Reactor Fuel Column')) . T4 {b}$($BTS_BOM.Pillars[4]){r} ($(Bom $BTS_BOM.Silo[4] 'Reactor Fuel Column')) . T5 {b}$($BTS_BOM.Pillars[5]){r} ($(Bom $BTS_BOM.Silo[5] 'Reactor Fuel Column'))"
+                "{e}FUEL PILLARS{r} - $SEGMENTS_PER_PILLAR Reactor Fuel Pillar Frame BLOCKS make one pillar. Full count per tier:"
+                "  T1 {b}$($BTS_BOM.Pillars[1]){r} pillars ($(Bom $BTS_BOM.Silo[1] 'Reactor Fuel Pillar Frame') blocks) . T2 {b}$($BTS_BOM.Pillars[2]){r} ($(Bom $BTS_BOM.Silo[2] 'Reactor Fuel Pillar Frame')) . T3 {b}$($BTS_BOM.Pillars[3]){r} ($(Bom $BTS_BOM.Silo[3] 'Reactor Fuel Pillar Frame')) . T4 {b}$($BTS_BOM.Pillars[4]){r} ($(Bom $BTS_BOM.Silo[4] 'Reactor Fuel Pillar Frame')) . T5 {b}$($BTS_BOM.Pillars[5]){r} ($(Bom $BTS_BOM.Silo[5] 'Reactor Fuel Pillar Frame'))"
                 'Partial pillars run at partial output.'
                 ''
                 '{e}THE FRONT FACE{r} - six sockets, one cell either side of the controller''s column:'

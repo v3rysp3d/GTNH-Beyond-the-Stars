@@ -29,7 +29,7 @@ import gtPlusPlus.core.material.MaterialsAlloy;
  * not). A player who never builds the Batching Plant loses nothing but time.
  *
  * <h2>The bill this has to serve</h2> Read off {@link BTSBom#TOTAL}[5] - the generated file, not a
- * guess. A whole tier-5 plant is <b>8,440 stock blocks</b>, plus 1,608 Reactor Fuel Columns and
+ * guess. A whole tier-5 plant is <b>8,440 stock blocks</b>, plus 1,608 Reactor Fuel Pillar Frames and
  * 201 Rod Loading Ports which are BTS blocks and belong to {@link BTSRecipesMachines}:
  *
  * <pre>

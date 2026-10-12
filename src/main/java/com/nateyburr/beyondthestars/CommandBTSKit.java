@@ -84,7 +84,7 @@ public class CommandBTSKit extends CommandBase {
         return String.format(Locale.ROOT, "%,d", count);
     }
 
-    /** "1,667x Radiant Naquadah Alloy Casing, 1,608x Reactor Fuel Column, ..." */
+    /** "1,667x Radiant Naquadah Alloy Casing, 1,608x Reactor Fuel Pillar Frame, ..." */
     private static String materials(BTSBom.Bill bill) {
         final StringBuilder sb = new StringBuilder();
         for (int i = 0; i < bill.size(); i++) {
@@ -130,7 +130,7 @@ public class CommandBTSKit extends CommandBase {
         // How many of each fitted part the plant actually swallows at this tier - read off the
         // same bills the shopping list prints, so the kit can never hand out a count the
         // structure does not want.
-        final int columns = silo.of(BTSBom.REACTOR_FUEL_COLUMN);
+        final int columns = silo.of(BTSBom.REACTOR_FUEL_PILLAR_FRAME);
         final int ports = silo.of(BTSBom.ROD_LOADING_PORT);
         final int housings = duct.of(BTSBom.TURBINE_HOUSING) + BTSBom.GALLERY.of(BTSBom.TURBINE_HOUSING);
         final int stages = BTSBom.GALLERY.of(BTSBom.TURBINE_HOUSING);
