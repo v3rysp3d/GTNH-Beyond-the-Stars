@@ -526,7 +526,9 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
         final BooleanSupplier armed = () -> open.getBoolValue()
             && System.currentTimeMillis() - armedAt[0] < COLLAPSE_ARM_MS;
         final BooleanSupplier canOpen = () -> formed.getBoolValue() && !open.getBoolValue() && seeds.getIntValue() > 0;
-        final BooleanSupplier canCollapse = () -> open.getBoolValue() && collapsers.getIntValue() > 0;
+        // The server refuses a collapse while the cage is unformed (the hole is frozen), so the button does too.
+        final BooleanSupplier canCollapse = () -> formed.getBoolValue() && open.getBoolValue()
+            && collapsers.getIntValue() > 0;
 
         final Flow column = Flow.column()
             .full()
@@ -630,6 +632,7 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
                     return EnumChatFormatting.DARK_RED + "Click Collapse again: " + modules + " will pause.";
                 }
                 if (!open.getBoolValue()) return EnumChatFormatting.DARK_GRAY + "Open needs a Seed in a bolt bus.";
+                if (!formed.getBoolValue()) return EnumChatFormatting.YELLOW + "Collapse needs a formed cage.";
                 return "Collapse asks twice: " + modules + " will pause.";
             }, w, 0.75f))
             .child(
