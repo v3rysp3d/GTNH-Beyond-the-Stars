@@ -653,7 +653,10 @@ Eye's conversion snapshot.
 **What we built.**
 
 - The snapshot always runs.
-- The removal runs only if the flag is on **and** the snapshot converted at least one planet.
+- The removal runs only if the flag is on **and** the snapshot converted at least one planet **and** the replacement
+  stars registered: Sol (Raw Star Matter), Sirius B (White Dwarf Matter) and, while `interimBlackDwarfAtEyeT4` is on,
+  Sirius B Cooled (Black Dwarf Matter). Star fluids are looked up without throwing, so one missing GT fluid costs only
+  the stars that use it, and then TecTech stays intact.
 - If TecTech's private `recipeHashMap` has moved and the copy fails, TecTech's Eye is left fully intact and an ERROR
   is logged. Deleting every planet with nothing to replace them would be worse.
 - Each step is contained, so one failed step never stops the boot.

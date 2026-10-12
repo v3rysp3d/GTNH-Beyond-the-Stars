@@ -49,8 +49,10 @@ import tectech.util.ItemStackLong;
  * <li>the <b>snapshot</b>: every TecTech planet recipe is read out of the storage's private
  * {@code recipeHashMap} by reflection and converted - always, whatever the config says;</li>
  * <li>only then, and only if {@code Config.replaceTecTechEyeOfHarmony} AND the snapshot converted at
- * least one planet, TecTech's storage, NEI page and controller recipe are cleared. A failed snapshot
- * leaves TecTech's EOH fully intact rather than deleting planets with no replacement;</li>
+ * least one planet AND the replacement stars registered (Sol, Sirius B, and Sirius B Cooled while
+ * the interim flag is on), TecTech's storage, NEI page and controller recipe are cleared. A failed
+ * snapshot or a missing star leaves TecTech's EOH fully intact rather than deleting a source with no
+ * replacement;</li>
  * <li>the NEI display page.</li>
  * </ol>
  * Every step is contained ({@link BTSRecipeRemovals#guard}): a moved field costs that step, never the
@@ -123,7 +125,7 @@ public final class EyeRecipeRegistry {
         BTSRecipeRemovals.guard("Eye of Harmony star recipes", EyeRecipeRegistry::registerStars);
         BTSRecipeRemovals.guard("Eye of Harmony TecTech planet conversion", EyeRecipeRegistry::convertTecTech);
         if (Config.replaceTecTechEyeOfHarmony) {
-            if (converted > 0) {
+            if (converted > 0 && replacementStarsPresent()) {
                 BTSRecipeRemovals.guard("TecTech Eye of Harmony recipes", EyeRecipeRegistry::clearTecTech);
                 BTSRecipeRemovals.guard(
                     "TecTech Eye of Harmony controller",
@@ -134,8 +136,11 @@ public final class EyeRecipeRegistry {
                         "TecTech Eye of Harmony controller"));
             } else {
                 BeyondTheStars.LOG.error(
-                    "[BTS] replaceTecTechEyeOfHarmony=true, but no TecTech planet recipe was converted. TecTech's Eye "
-                        + "of Harmony is LEFT INTACT so no planet disappears without a replacement.");
+                    "[BTS] replaceTecTechEyeOfHarmony=true, but {} TecTech planet recipes were converted and the "
+                        + "replacement stars registered={}. TecTech's Eye of Harmony is LEFT INTACT so no planet or "
+                        + "star-matter source disappears without a replacement.",
+                    converted,
+                    replacementStarsPresent());
             }
         } else {
             BeyondTheStars.LOG.info(
@@ -150,10 +155,11 @@ public final class EyeRecipeRegistry {
     // =================================================================================== stars
 
     private static void registerStars() {
-        final Fluid hydrogen = fluidOf(Materials.Hydrogen.getGas(1L), "hydrogen gas");
-        final Fluid helium = fluidOf(Materials.Helium.getGas(1L), "helium gas");
-        final Fluid rspm = fluidOf(Materials.RawStarMatter.getFluid(1L), "Raw Star Matter");
-        final Fluid wdm = fluidOf(Materials.WhiteDwarfMatter.getMolten(1L), "molten White Dwarf Matter");
+        // fluidOrNull, never fluidOf: a missing fluid costs only the stars that use it (star() skips them).
+        final Fluid hydrogen = fluidOrNull(Materials.Hydrogen.getGas(1L));
+        final Fluid helium = fluidOrNull(Materials.Helium.getGas(1L));
+        final Fluid rspm = fluidOrNull(Materials.RawStarMatter.getFluid(1L));
+        final Fluid wdm = fluidOrNull(Materials.WhiteDwarfMatter.getMolten(1L));
 
         // T1 Sol: the pack's Raw Star Matter (= Raw Stellar Plasma Mixture, Q-1).
         star(
@@ -198,8 +204,8 @@ public final class EyeRecipeRegistry {
                 "Sirius B, Cooled (interim)",
                 4,
                 SLItems.starChartSiriusBCooled,
-                list(in(wdm, 18_432L), in(fluidOf(Materials.SuperCoolant.getFluid(1L), "Super Coolant"), 1_000_000L)),
-                list(in(fluidOf(Materials.BlackDwarfMatter.getMolten(1L), "molten Black Dwarf Matter"), 4_608L)),
+                list(in(wdm, 18_432L), in(fluidOrNull(Materials.SuperCoolant.getFluid(1L)), 1_000_000L)),
+                list(in(fluidOrNull(Materials.BlackDwarfMatter.getMolten(1L)), 4_608L)),
                 120);
         }
     }
@@ -422,6 +428,21 @@ public final class EyeRecipeRegistry {
         final List<T> out = new ArrayList<>();
         Collections.addAll(out, items);
         return out;
+    }
+
+    private static Fluid fluidOrNull(FluidStack stack) {
+        return stack == null ? null : stack.getFluid();
+    }
+
+    /**
+     * The stars that replace what TecTech's Eye was the pack's only source of (Raw Star Matter,
+     * White Dwarf Matter, and Black Dwarf Matter while the interim recipe is on). TecTech is only
+     * cleared when every one of them registered.
+     */
+    private static boolean replacementStarsPresent() {
+        boolean ok = BY_KEY.containsKey("star:sol") && BY_KEY.containsKey("star:siriusb");
+        if (Config.interimBlackDwarfAtEyeT4) ok &= BY_KEY.containsKey("star:siriusbcooled");
+        return ok;
     }
 
     private static Fluid fluidOf(FluidStack stack, String what) {
