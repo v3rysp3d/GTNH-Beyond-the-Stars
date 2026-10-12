@@ -6,7 +6,7 @@
   "source": {
     "data": "questbook/singularity.json",
     "src": "../GTNH-Addons/addon",
-    "srcHead": "d7b6617 master",
+    "srcHead": "5fcf9d2 master",
     "manifestSha": "ae5ab12085174eb7006517f43f3cbac121819908"
   },
   "features": {
