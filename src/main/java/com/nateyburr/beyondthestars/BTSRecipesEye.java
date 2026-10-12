@@ -80,8 +80,10 @@ public final class BTSRecipesEye {
                         denseSpaceTime(64),
                         tectech(CustomItemList.EOH_Infinite_Energy_Casing, 64),
                         BTSRecipeGuard.stack(SLItems.stabiliserPylon, 6)))
+                // 294,912 L SpaceTime, not the card's 1,179,648 L: the controller chain was 33k SpaceTime
+                // ingots against TecTech's controller at about 2k ingots of Time and Space (cost audit #12).
                 .fluidInputs(
-                    molten(Materials.SpaceTime, 1_179_648),
+                    molten(Materials.SpaceTime, 294_912),
                     nn(Materials.ExcitedDTEC.getFluid(256_000L), "Materials.ExcitedDTEC fluid"),
                     molten(Materials.Infinity, 589_824))
                 .itemOutputs(nn(BTSMachines.eyeOfHarmony, "BTSMachines.eyeOfHarmony").copy())
@@ -91,7 +93,9 @@ public final class BTSRecipesEye {
     }
 
     private static void galacticCore() {
-        // SL-E02 Galactic Upgrade Core (unlocks Eye T4). Research: the Eye controller. HSM is the gate.
+        // SL-E02 Galactic Upgrade Core (unlocks Eye T4). Research: the Eye controller. HSM is the gate:
+        // 32,000 L (about 6 Arcturus runs), not the card's 256,000 L (51 runs, cost audit #11). A crafting
+        // recipe only; D-49 keeps the core as the HSM-gated T4 unlock and leaves its install to the redesign.
         BTSRecipeGuard.recipe(
             "SL-E02",
             () -> GTValues.RA.stdBuilder()
@@ -106,7 +110,7 @@ public final class BTSRecipesEye {
                         denseSpaceTime(32),
                         nn(ItemList.Emitter_UMV.get(16L), "ItemList.Emitter_UMV")))
                 .fluidInputs(
-                    BTSRecipeGuard.fluid(SLFluids.hyperdenseStellarMixture, 256_000),
+                    BTSRecipeGuard.fluid(SLFluids.hyperdenseStellarMixture, 32_000),
                     molten(Materials.SpaceTime, 147_456),
                     molten(Materials.TranscendentMetal, 147_456))
                 .itemOutputs(BTSRecipeGuard.stack(SLItems.galacticUpgradeCore, 1))
