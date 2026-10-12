@@ -16,6 +16,8 @@ public final class SLBlocks {
 
     public static BlockSLCasing slCasing;
     public static BlockSLCasing2 slCasing2;
+    /** The Homogeny / Reality machines' casings (homogeny-reality.md §4.2). */
+    public static BlockSLCasing3 slCasing3;
 
     private SLBlocks() {}
 
@@ -24,6 +26,8 @@ public final class SLBlocks {
         GameRegistry.registerBlock(slCasing, ItemBlockSL.class, "slCasing");
         slCasing2 = new BlockSLCasing2();
         GameRegistry.registerBlock(slCasing2, ItemBlockSL.class, "slCasing2");
+        slCasing3 = new BlockSLCasing3();
+        GameRegistry.registerBlock(slCasing3, ItemBlockSL.class, "slCasing3");
     }
 
     /** A stack of {@code slCasing:meta}. Throws on a hole, so a retired meta is never crafted. */
@@ -34,6 +38,11 @@ public final class SLBlocks {
     /** A stack of {@code slCasing2:meta}. Throws on a hole. */
     public static ItemStack casing2(int meta, int count) {
         return stack(slCasing2, meta, count);
+    }
+
+    /** A stack of {@code slCasing3:meta}. Throws on a hole. */
+    public static ItemStack casing3(int meta, int count) {
+        return stack(slCasing3, meta, count);
     }
 
     private static ItemStack stack(BlockSLMeta block, int meta, int count) {

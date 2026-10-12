@@ -320,6 +320,21 @@ public final class SLConsoleTest {
     // ================================================================== damage and repair
 
     /** Cells next to the controller, as a/b/c offsets, tried in order for the damage test. */
+    private static final int NEAR_SEARCH_RADIUS = 4;
+
+    /** The a/b/c offsets at Chebyshev distance {@code r} from the controller, behind or level with its face. */
+    private static List<int[]> shell(int r) {
+        final List<int[]> out = new ArrayList<>();
+        for (int c = 0; c <= r; c++) {
+            for (int b = -r; b <= r; b++) {
+                for (int a = -r; a <= r; a++) {
+                    if (Math.max(Math.abs(a), Math.max(Math.abs(b), c)) == r) out.add(new int[] { a, b, c });
+                }
+            }
+        }
+        return out;
+    }
+
     private static final int[][] NEAR_CONTROLLER = { { 1, 0, 0 }, { -1, 0, 0 }, { 0, -1, 0 }, { 0, 1, 0 }, { 1, 1, 0 },
         { -1, 1, 0 }, { 1, -1, 0 }, { -1, -1, 0 }, { 0, 0, 1 } };
 
@@ -354,15 +369,32 @@ public final class SLConsoleTest {
             world.setBlockToAir(p[0], p[1], p[2]);
             if (removed.size() == 2) break;
         }
+        // Fallback (a controller boxed in by hatches or air, e.g. the Reality Refab): the nearest plain block within
+        // a few cells, nearest first.
+        for (int r = 1; removed.isEmpty() && r <= NEAR_SEARCH_RADIUS; r++) {
+            for (int[] rel : shell(r)) {
+                final int[] p = worldPos(alignment, x, y, z, rel);
+                final Block block = world.getBlock(p[0], p[1], p[2]);
+                if (block == null || block.isAir(world, p[0], p[1], p[2])
+                    || world.getTileEntity(p[0], p[1], p[2]) != null) {
+                    continue;
+                }
+                removed.add(p);
+                blocks.add(block);
+                metas.add(world.getBlockMetadata(p[0], p[1], p[2]));
+                world.setBlockToAir(p[0], p[1], p[2]);
+                break;
+            }
+        }
         if (removed.isEmpty()) {
-            out.add("Damage test: no plain block next to the controller to remove; skipped.");
+            out.add("Damage test: no plain block near the controller to remove; skipped.");
             return out;
         }
         final List<String> errors = firstErrors(machine, base, 1);
         machine.checkStructure(true, base);
         out.add(
             "Damage test: removed " + removed.size()
-                + " block(s) next to the controller -> "
+                + " block(s) near the controller -> "
                 + (machine.mMachine ? "STILL FORMED (the walk missed it)"
                     : "NOT FORMED; " + (errors.isEmpty() ? "no error reported" : errors.get(0))));
         final SurvivalRun run = survivalBuild(machine, world, trigger, 25, 50);

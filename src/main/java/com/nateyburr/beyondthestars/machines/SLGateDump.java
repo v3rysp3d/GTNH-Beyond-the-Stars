@@ -40,13 +40,17 @@ public final class SLGateDump {
     /**
      * The Eye's first-product ladder (D-42/D-43, costs doc §9.4) and what is derived from it, keyed
      * by a normalised name fragment (lower case, letters and digits only) matched against material,
-     * item and fluid names.
+     * item and fluid names. The table is the DECIDED ladder (D-48, accepted 2026-10-12): Eternity at
+     * T7 because its QFT loop moves onto Ergomatter (proposal 1; not built yet, so until it is Eternity
+     * really needs Universium, T10, and BTSRecipesReality's gate log says so), and MagMatter is not an
+     * Eye product at all because its only T10 tie was the MHDCSM quest prerequisite D-48 proposal 2
+     * drops (question B-80).
      */
     private static final Object[][] FIRST_MADE = { { "rawstarmatter", 1 }, { "boundlesscosmicsolder", 1 },
         { "primordialmatter", 1 }, { "excitedstellarplasma", 2 }, { "rawhyperdense", 3 },
         { "hyperdensestellarmixture", 3 }, { "whitedwarf", 4 }, { "blackdwarf", 5 }, { "magnetar", 6 },
         { "ergomatter", 7 }, { "eternity", 7 }, { "whitehole", 9 }, { "universium", 10 }, { "mhdcsm", 10 },
-        { "magnetohydrodynamically", 10 }, { "magmatter", 10 } };
+        { "magnetohydrodynamically", 10 } };
 
     public static void run(ICommandSender sender) {
         final RecipeMap<?> map = TecTechRecipeMaps.condensateAssemblingRecipes;

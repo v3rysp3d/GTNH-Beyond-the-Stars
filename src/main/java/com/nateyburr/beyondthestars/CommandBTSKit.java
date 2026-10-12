@@ -17,8 +17,9 @@ import com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1;
 import gregtech.api.enums.ItemList;
 
 /**
- * /btskit [1-5|kerr|eye] - hands the operator a full test kit (controllers, pillar frames for
- * the chosen silo tier, every fuel grade) and prints the casing shopping list.
+ * /btskit [1-5|kerr|eye|homogeny|diffraction|refab] - hands the operator a full test kit (controllers,
+ * pillar frames for the chosen silo tier, every fuel grade) and prints the casing shopping list; the named
+ * kits hand over that machine's controller and blocks, read from manifest.json.
  * Pair with creative mode + the StructureLib Hologram Projector for instant structure builds.
  * <p>
  * <b>Not one number below is typed by hand.</b> Review finding C5/A4 caught this command keeping
@@ -44,7 +45,7 @@ public class CommandBTSKit extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btskit [1-" + BTSBom.MAX_TIER + "|kerr|eye]";
+        return "/btskit [1-" + BTSBom.MAX_TIER + "|kerr|eye|homogeny|diffraction|refab]";
     }
 
     @Override
@@ -55,10 +56,10 @@ public class CommandBTSKit extends CommandBase {
     @Override
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
         if (args.length != 1) return null;
-        final String[] options = new String[BTSBom.MAX_TIER + 2];
+        final String[] named = { "kerr", "eye", "homogeny", "diffraction", "refab" };
+        final String[] options = new String[BTSBom.MAX_TIER + named.length];
         for (int t = 1; t <= BTSBom.MAX_TIER; t++) options[t - 1] = Integer.toString(t);
-        options[BTSBom.MAX_TIER] = "kerr";
-        options[BTSBom.MAX_TIER + 1] = "eye";
+        System.arraycopy(named, 0, options, BTSBom.MAX_TIER, named.length);
         return getListOfStringsMatchingLastWord(args, options);
     }
 
@@ -111,6 +112,15 @@ public class CommandBTSKit extends CommandBase {
         if (args.length > 0 && args[0].equalsIgnoreCase("eye")) {
             com.nateyburr.beyondthestars.machines.eye.EyeKit.giveKit(player);
             return;
+        }
+        // H/R unit 2: /btskit homogeny | diffraction | refab - read from manifest.json.
+        if (args.length > 0) {
+            final com.nateyburr.beyondthestars.machines.reality.HRKit.Machine hr = com.nateyburr.beyondthestars.machines.reality.HRKit.Machine
+                .parse(args[0]);
+            if (hr != null) {
+                com.nateyburr.beyondthestars.machines.reality.HRKit.giveKit(player, hr);
+                return;
+            }
         }
         final int tier = args.length > 0 ? Math.min(BTSBom.MAX_TIER, Math.max(1, parseInt(sender, args[0]))) : 1;
 

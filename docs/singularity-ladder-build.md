@@ -1663,6 +1663,281 @@ this section wins.
 
 ---
 
+## Contract additions (Homogeny / Reality structures + content)
+
+Written by H/R unit 1 (branch `homogeny-reality`), 2026-10-13. Source: design repo `designs/docs/homogeny-reality.md`
+(PROPOSED) and the sketch mockups in `designs/voxel.js` (`3e23c09`). Questions B-74 and B-75.
+
+### Pieces
+
+Re-run `node tools/export-structures.js` (from a worktree it finds `../GTNH-Addons/designs/voxel.js` itself). Same file
+format as every other piece. Each machine's frame has its controller facing +z (layer 0 is the front).
+
+| Piece | Machine (MTE) | w × h × d | off | Blocks | Bill of materials |
+|---|---|---|---|---|---|
+| `homog_t1` | Homogeny (28130), required | 69 × 70 × 73 | 24,35,2 | 17,783 | `Z` 5,008, `A` 3,200, `M` 2,430, `O` 2,246, `B` 1,873, `J` 1,290, `C` 690, `L` 610, `K` 303, `D` 120, `E` 5, `h` 3, `e` 2, `o` 2, `~` 1 |
+| `homog_t2` | Homogeny T2 band | 103 × 16 × 113 | 48,8,22 | 10,813 | `G` 7,110, `J` 1,745, `K` 833, `C` 690, `O` 228, `Z` 120, `D` 84, `h` 3 |
+| `homog_t3` | Homogeny T3 band | 145 × 52 × 130 | 69,30,31 | 13,002 | `F` 8,489, `J` 3,131, `K` 736, `P` 484, `O` 83, `E` 79 |
+| `reality_diffraction` | Reality Diffraction (28131) | 103 × 101 × 85 | 51,97,0 | 53,005 | `A` 11,344, `Z` 9,936, `H` 8,647, `J` 7,795, `Q` 5,756, `N` 3,743, `K` 2,630, `L` 1,916, `E` 1,215, `I` 12, `e` 2, `h` 1, `b` 1, `r`..`w` 1 each, `~` 1 |
+| `reality_refab` | Reality Refab (28132) | 104 × 139 × 83 | 51,137,19 | 59,245 | `R` 20,649, `Z` 14,260, `S` 8,952, `J` 4,432, `Q` 3,298, `L` 2,837, `K` 2,357, `E` 1,030, `V` 736, `T` 688, `i` 2, `e` 1, `b` 1, `o` 1, `~` 1 |
+
+- The Homogeny is ONE controller with tier channels: T1 = `homog_t1`; T2 adds `homog_t2`; T3 adds `homog_t3` (counts
+  only with `homog_t2`). Tiers only add cells; the earlier piece keeps the 30 / 45 cells a later tier drew over.
+- The Homogeny pieces are turned a quarter turn (`machines.homogeny.turns = 1`): the controller on the volute throat
+  faces +x in the mockup. `machines.<m>.centre.rel` is the machine axis (the render centre: vortex, region clouds,
+  reassembly stream) from the controller, in (a,b,c).
+- Assembled sizes (checked by the exporter): Homogeny T1 69 × 70 × 73, T2 103 × 70 × 113, T3 145 × 70 × 130.
+
+### Shape char → intended block
+
+Chars shared by the three machines: `E` Region Crystal (slCasing3:5), `J` Harmonic Lining (slCasing2:2), `K` and `Z`
+`Casings.QuantumGlass` (channel / wall, kept apart so either can change), `L`
+`Casings.SpatiallyTranscendentGravitationalLens`, `Q` `Casings.ElectromagneticallyIsolatedCasing` (BEC hatch casing).
+
+| Machine | Char → block |
+|---|---|
+| Homogeny | `A` slCasing3:0 Stirring Band, `B` slCasing3:1 Shear Helix Coil, `C` slCasing3:2 Feed Vessel, `D` slCasing3:3 Vortex Inlet, `F` slCasing3:10 Eternity Shell, `G` slCasing:12 Galactic Shell Plating, `M` `Casings.BoundlessGravitationallySeveredStructureCasing` (Godforge), `O` slCasing:13 Bastion Plate, `P` slCasing:14 Casimir Plate |
+| Diffraction | `A` slCasing3:4 Region Deck Band, `H` slCasing3:6 Phase Ring, `I` slCasing3:11 Region Anchor Casing, `N` `Casings.CoherencePreservingPlasmaConduit` |
+| Refab | `R` slCasing3:7 Reassembly Hull, `S` slCasing3:8 Reassembly Tray, `T` slCasing3:9 Reassembly Claw, `V` `Casings.CondensateGuidanceCoil` |
+
+### Sockets
+
+| Char | Machine | Count | Accepts (intent) | Fallback | Hint |
+|---|---|---|---|---|---|
+| `h` | Homogeny (vessel tops) | 3 at T1, +3 at T2 | private feed Input Hatch element | `C` | 1 |
+| `o` | Homogeny (throat) | 2 | Output Hatch | `A` | 2 |
+| `e` | Homogeny (bottom cap rim) | 2 | Energy / ExoticEnergy | `M` | 3 |
+| `b` | Diffraction, Refab | 1 | GT `MTEHatchBEC` | `Q` | 1 |
+| `h` | Diffraction (base ring) | 1 | Input Hatch (Entanglement Medium) | `Q` | 2 |
+| `r s t u v w` | Diffraction | 1 each | private Region Anchor I..VI (Input Hatch) | `I` | 3..8 |
+| `e` | Diffraction, Refab | 2 / 1 | Energy / ExoticEnergy | `Q` | 9 / 4 |
+| `i` | Refab (foot) | 2 | Input Bus | `Q` | 2 |
+| `o` | Refab (cap) | 1 | Output Bus | `R` | 3 |
+
+Every socket has an outside-reachable face (checked), and each controller's front face is open air in the fullest
+build (checked).
+
+### Content
+
+- **Blocks:** `SLBlocks.slCasing3` (`BlockSLCasing3`, constants `STIRRING_BAND` .. `REGION_ANCHOR`), stacks via
+  `SLBlocks.casing3(meta, n)`. Region Crystal emits light 9. Block tooltips come from
+  `tile.beyondthestars.slCasing3.<meta>.tooltip` (`ItemBlockSL`).
+- **Items:** `SLMaxItems.homogenyTier2Core`, `homogenyTier3Core`, `universalUpgradeCore`, `starChartUniverse`
+  (stack 1), with lang tooltips.
+- **Fluids** (`SLRealityFluids`): `degenerateStellarMixture` (`btsdegeneratestellarmixture`), `entanglementMedium`
+  (`btsentanglementmedium`, 0 K), `regionHyperspace` .. `regionNegativeMass` (`btsregion*`, GAS 0 K; `regions()` gives
+  I..VI in order), condensates `entangledMagnetar` (SL-B16), `entangledDegenerate` (C01), `entangledErgomatter` (C02),
+  `entangledSuperdense` (C03), `entangledWhiteHole` (C04); `ergomatter`, `superdenseErgomatter`, `whiteHoleMatter`
+  registered only if absent (H-24, B-75 item 5).
+- **Textures:** `sl_stir` .. `sl_alens`, the four item icons, and `iconsets/OVERLAY_FRONT_HOMOGENY`,
+  `_REALITY_DIFFRACTION`, `_REALITY_REFAB` (+ `_GLOW`, `_ACTIVE`, `_ACTIVE_GLOW`), all from `tools/gen-sl-textures.js`.
+- **Lang:** names and tooltips above; recipe maps `beyondthestars.recipe.homogeny`, `.reality_diffraction`,
+  `.reality_refab`; recipe results `beyondthestars.homogeny.tier` / `.installing` and `beyondthestars.reality.nonetwork`
+  / `.anchors` / `.full` / `.noassembler` / `.nanites` under `GT5U.gui.text.recipe_result.`.
+
+## Contract additions (Homogeny / Reality machines)
+
+Written by H/R unit 2 (branch `homogeny-reality`), 2026-10-13. Questions B-76 and B-77. Not yet opened in game.
+
+### Files and ids
+
+| MTE | Registry name | Class | GUI |
+|---|---|---|---|
+| 28130 (base+30) | `multimachine.beyondthestars.homogeny` | `machines/homogeny/MTEHomogeny` | `HomogenyGui` |
+| 28131 (base+31) | `multimachine.beyondthestars.realitydiffraction` | `machines/reality/MTERealityDiffraction` | `RealityDiffractionGui` |
+| 28132 (base+32) | `multimachine.beyondthestars.realityrefab` | `machines/reality/MTERealityRefab` | `RealityRefabGui` |
+
+`BTSMachines.homogeny`, `.realityDiffraction`, `.realityRefab`. 28133 and 28134 stay spare. Shared:
+`MTERealityBase` (single piece, the BEC element), `RealityHatchElement` (`Bec`, `anchor(0..5)`), `HRGui` (rows, bar,
+lamps), `HRKit` (kit, build, fill, diagnose), `CommandBTSHR` (`/btshr`).
+
+### Recipe maps (`RealityRecipeMaps`) and process recipes (`RealityProcessRecipes`, guard line `reality-process`)
+
+| Map | maxIO (items in, out, fluids in, out) | Recipes | Notes |
+|---|---|---|---|
+| `beyondthestars.recipe.homogeny` | 0, 0, 3, 1 | SL-H06 (T1), SL-H11 (T2), SL-H21 (T3) | special value = minimum Homogeny tier |
+| `beyondthestars.recipe.reality_diffraction` | 0, 0, 7, 6 | SL-R03 | fluid in 0 = medium, 1..6 = anchors I..VI; out k = region k+1; the machine reads all amounts from here |
+| `beyondthestars.recipe.reality_refab` | 16, 1, 6, 0 | SL-R04, SL-R05 | GT's BEC layout: `NANITE_TIERS` per item slot; the compile step moves fluid inputs to `CONDENSATE_INPUT` |
+
+The recipe unit owns every Condensate Assembler / Generator recipe (see "Contract additions (Homogeny / Reality
+recipes)"); it must not register the six ids above again.
+
+### Sockets as walked
+
+| Machine | Char | Element | Fallback | Required |
+|---|---|---|---|---|
+| Homogeny | `h` | GT `InputHatch` (joins `mInputHatches`; truncated if its ring does not count) | `C` | 1+ |
+| Homogeny | `o` | GT `OutputHatch` | `A` | 1+ |
+| Homogeny | `e` | GT `Energy` or `ExoticEnergy` | `M` | 1+ |
+| Homogeny | `E` | Region Crystal, or the Godforge lens glass (B-76 item 3) | | |
+| Diffraction | `b` | `RealityHatchElement.Bec` (GT `MTEHatchBEC`) | `Q` | 1+ |
+| Diffraction | `h` | GT `InputHatch` (the medium) | `Q` | 1+ |
+| Diffraction | `r s t u v w` | `RealityHatchElement.anchor(0..5)` (any `MTEHatchInput`, private list per region) | `I` | 0+ |
+| Diffraction | `e` | GT `Energy` or `ExoticEnergy` | `Q` | 1+ |
+| Refab | `b` / `i` / `o` / `e` | `Bec` / GT `InputBus` / GT `OutputBus` / energy | `Q` / `Q` / `R` / `Q` | 1+ each |
+
+Hatches are textured as the Godforge casing (Homogeny) or the Electromagnetically-Isolated Casing (Reality).
+Structure-error keys: `beyondthestars.structure.homogeny.feed|output|energy`,
+`beyondthestars.structure.reality.bec|medium|energy|inputbus|outputbus`.
+
+### State and NBT
+
+| Machine | Item + tile NBT (survives a wrench) | Tile only |
+|---|---|---|
+| Homogeny (`writeState`) | `btsHomTier`, `btsHomEspm`, `btsHomDegenerate`, `btsHomEscrow`, `btsHomInstalling`, `btsHomInstallTicks` | `btsHomPendEspm`, `btsHomPendDeg`, `btsHomNote` |
+| Diffraction | | `btsDiffMask`, `btsDiffPend0..5`, `btsDiffRuns`, `btsDiffNote` |
+| Refab | | `btsRefabLinked`, `btsRefabDim/X/Y/Z`, `btsRefabSteps`, `btsRefabCraft`, `btsRefabSub`, `btsRefabNote` |
+
+The Homogeny's one install path is `beginInstall()` then `completeInstall()` (constants `MILESTONE_LITRES` 100,000,
+`INSTALL_TICKS` 12,000, `INSTALL_EUT[tier]`). New recipe-result ids: none beyond unit 1's seven (their texts for
+`.noassembler`, `.full` and `.nanites` now match what the machines do).
+
+### Hologram, NEI, survival
+
+- Homogeny: trigger stack 1..3 = T1..T3, rings cumulative; survival builds the pieces in order. NEI counts 3 tiers
+  (stack 4 adds nothing). Reality machines: one piece, one tier.
+- Every plain element is `noOverwrite`; every socket is `buildHatchAdder(...).buildAndChain(casing)`.
+- NEI scratch-world height: Refab spans 137 above its controller (y 64 + 137 = 201), Diffraction 97, the Homogeny 35
+  above and 34 below; all inside 0-255.
+
+### Test bench (`/btshr`)
+
+- `/btshr <homogeny|diffraction|refab> [t1..t3] [fill] [force]` builds in front of the player.
+- `/btshr <machine> [t1..t3] <x> <y> <z> [facing] [fill] [force] [survival] [check]` is the console / command-block
+  form: FORMED / NOT FORMED, first wrong cells, a creative re-projection check, survival damage-and-repair.
+- `/btshr keep <machine> <x> <y> <z> <facing> [tN]` force-loads (`/btskerr release` frees).
+- `/btshr bench <x> <y> <z> <status|check|fill|wrench|milestone e d|escrow|install|itick n|relink|pending [L]|scan|on|off|project n>` (`wrench` also on the Diffraction; `pending <L>` seeds its buffer, B-80).
+- `/btskit homogeny | diffraction | refab`.
+
+## Contract additions (Homogeny / Reality recipes)
+
+Written by H/R unit 3 (branch `homogeny-reality`), 2026-10-13. Question B-78; costs §12. Not yet booted in game.
+
+### Files and ownership
+
+| File | Owns |
+|---|---|
+| `BTSRecipesReality` (guard line `reality`, after `reality-process`; after `bec` once master is merged) | every Condensate Assembler and Condensate Generator recipe of the three machines: their blocks, cores, controllers and condensates, plus the `H/R gate:` boot log |
+| `RealityProcessRecipes` (line `reality-process`, unit 2) | the machines' own maps (SL-H06/H11/H21, SL-R03, SL-R04/R05); unchanged here |
+| `SLRealityFluids.isPlaceholder(Fluid)` | true for Ergomatter / Superdense Ergomatter / White Hole Matter while only this file registered them (no Eye makes them yet) |
+| `RealityRecipeMaps` | the three NEI tabs show their controller (`neiHandlerInfo` display stack, read lazily) |
+
+### Condensates (Condensate Generator, `gt.recipe.create-condensate`, source -> the same amount)
+
+| Id | Condensate (fluid) | Source, unit | Time, EU/t |
+|---|---|---|---|
+| SL-B10 | Entangled Raw Star Matter (`btsentangledstarmatter`) | Raw Star Matter, 1,000 L | 30 s, UIV |
+| SL-B13 | Entangled White Dwarf Matter (`btsentangledwhitedwarf`) | molten WDM, 144 L | 120 s, UXV |
+| SL-B14 | Entangled Black Dwarf Matter (`btsentangledblackdwarf`) | molten BDM, 144 L | 150 s, UXV |
+| SL-C01 | Entangled Degenerate Stellar Mixture (`btsentangleddegenerate`) | Degenerate, 1,000 L | 120 s, UXV |
+| SL-C02 | Entangled Ergomatter (`btsentangledergomatter`) | Ergomatter, 1,000 L | 120 s, UXV |
+| SL-C03 | Entangled Superdense Ergomatter (`btsentangledsuperdense`) | Superdense Ergomatter, 1,000 L | 150 s, 4 × UXV |
+| SL-C04 | Entangled White Hole Matter (`btsentangledwhitehole`) | White Hole Matter, 144 L | 180 s, MAX |
+| (SL-B16) | Entangled Magnetar Matter (`btsentangledmagnetar`) | no generator recipe: ruling 19a left it without a consumer | - |
+
+SL-B10/B13/B14 are master's (`SLCondensates`, line `bec`). `BTSRecipesReality.shim` looks each up by registry name;
+only if nothing registered it does it register the fluid (same name and colour) at postInit, and it never adds a
+generator recipe on a source fluid that already has one (it uses that recipe's output instead, as master does).
+**Merging master:** keep master's `SLCondensates` and `bec` line; the shim then only reads them (boot log: "the
+Condensate Generator already makes ..."). Nothing to delete.
+
+### Condensate Assembler recipes (`gt.recipe.assemble-condensate`)
+
+Nanite tier per stack: 1 Carbon, 2 Silver, 3 Gold, 4 Transcendent, 5 Six-Phased Copper, 6 White Dwarf, 7 Black Dwarf
+(never above 7: H-17). "ing" = 144 L. Durations are nanite-time; EU/t constant.
+
+| Id | Output | Items (count; nanite tier) | Condensates | Time, EU/t | Stage |
+|---|---|---|---|---|---|
+| SL-H01 | The Homogeny | Stirring Band 16 (2); Vortex Inlet 4 (2); FG UMV 16 (3); Pump UMV 32 (2); circuit UMV 32 (2); Bastion 32 (1); dense SpaceTime 16 (1); Energy Conduit I 4 (3); Field Manipulator I 4 (4) | Raw Star Matter 1,000,000 L; SpaceTime 4,096 ing; Infinity 256 ing | 3,600 s, 4 × UMV | S1 |
+| SL-H02 | Stirring Band Casing ×32 | Reinforced Spatial 2 (4); dense Infinity 8 (1); frame SpaceTime 8 (1); Piston UMV 2 (3); Waveguide I 2 (3) | SpaceTime 64 ing; Raw Star Matter 8,000 L | 2,400 s, UMV | S1 |
+| SL-H03 | Shear Helix Coil ×32 | Ergosphere Field Coil 4 (2); wireGt04 SC UMV 8 (2); foil Infinity 32 (1); Motor UMV 2 (3); Field Manipulator I 1 (4) | SpaceTime 16 ing; Space 8 ing | 1,200 s, UMV | S1 |
+| SL-H04 | Feed Vessel Casing ×32 | plate Neutronium 32 (1); Quantum Glass 8 (1); Pump UMV 2 (2); frame Infinity 4 (1); Shielding I 1 (3) | SpaceTime 8 ing; Infinity 16 ing | 900 s, UMV | S1 |
+| SL-H05 | Vortex Inlet ×8 | Pump UMV 8 (2); huge Neutronium pipe 8 (1, large if absent); Stirring Band 4 (2); circuit UMV 4 (2) | SpaceTime 16 ing; Raw Star Matter 4,000 L | 600 s, UMV | S1 |
+| SL-H10 | Homogeny Tier II Core | Galactic Shell 64 (2); Feed Vessel 16 (2); Vortex Inlet 8 (2); FG UXV 16 (5); Pump UXV 32 (4); circuit UXV 32 (4); Bastion 32 (2); Electrogravitic Valve II 4 (6); Field Manipulator II 4 (6) | **Black Dwarf Matter 256 ing** (gate, ruling 19a); White Dwarf Matter 256 ing; SpaceTime 1,024 ing | 4,800 s, UXV | S5 |
+| SL-H20 | Homogeny Tier III Core | Eternity Shell 64 (6); Region Crystal 8 (7); FG UXV 64 (6); Pump UXV 64 (5); circuit UXV 64 (5); Galactic Shell 64 (3); Resonance Chamber III 8 (7); Sensor Array III 4 (7) | **White Hole Matter 64 ing** (gate); Superdense 32,000 L; Degenerate 64,000 L; Eternity 64 ing | 6,000 s, MAX | S9 |
+| SL-R12 | Eternity Shell Casing ×32 | Reinforced Temporal 2 (4); dense Infinity 8 (1); plate MagMatter 1 (5); frame SpaceTime 8 (2); Shielding II 2 (6) | Degenerate 500 L; SpaceTime 32 ing | 3,600 s, UXV | S6 |
+| SL-R10 | Region Deck Band ×32 | Reinforced Spatial 2 (4); dense TM 16 (2); frame Infinity 8 (1); EM-Isolated Casing 1 (4); Shielding II 1 (6) | Degenerate 500 L; SpaceTime 32 ing | 3,600 s, UXV | S6 |
+| SL-R11 | Region Crystal ×16 | Godforge lens glass 2 (6); block Hexanite 2 (4); Emitter UXV 2 (5); Wave Focus II 2 (6) | Ergomatter 1,000 L; Superdense 500 L; Degenerate 500 L; MagMatter 1 ing | 2,400 s, UXV | S8 |
+| SL-R13 | Phase Ring Casing ×32 | Reinforced Temporal 2 (4); dense Cosmic Neutronium 16 (2); FG UXV 1 (6); Condensate Transformative Coil 1 (5); Waveguide II 1 (6) | Degenerate 500 L; Ergomatter 1,000 L; SpaceTime 32 ing | 3,600 s, UXV | S8 |
+| SL-R14 | Reassembly Hull Plating ×64 | Reinforced Spatial 2 (4); dense Infinity 16 (1); dense Cosmic Neutronium 16 (2); frame TM 16 (2); Shielding II 2 (6) | Degenerate 500 L; SpaceTime 32 ing | 3,600 s, UXV | S6 |
+| SL-R15 | Reassembly Tray Plating ×32 | Reinforced Temporal 1 (4); dense TM 16 (2); Casimir Plate 4 (3); frame Infinity 8 (1); Field Manipulator II 1 (6) | Degenerate 500 L; SpaceTime 32 ing | 2,400 s, UXV | S6 |
+| SL-R16 | Reassembly Claw ×32 | Robot Arm UXV 8 (5); Conveyor UXV 4 (5); Tray Plating 4 (3); circuit UXV 4 (4); Field Manipulator II 1 (6) | Superdense 500 L; Degenerate 500 L | 1,200 s, UXV | S8 |
+| SL-R17 | Region Anchor Casing ×4 | Region Crystal 2 (7); EM-Isolated Casing 2 (4); Harmonic Lining 4 (1); Sensor UXV 1 (5) | Degenerate 500 L; SpaceTime 8 ing | 600 s, UXV | S8 |
+| SL-R01 | Reality Diffraction | Region Crystal 6 (7); Phase Ring 32 (6); Deck Band 32 (6); FG UXV 32 (6); Emitter UXV 32 (5); circuit UXV 64 (5); Coherence-Preserving Plasma Conduit 16 (5); Condensate Transformative Coil 8 (5); Sensor Array III 4 (7); Resonance Chamber III 4 (7) | **White Hole Matter 256 ing** (gate); Superdense 64,000 L; Degenerate 64,000 L; SpaceTime 4,096 ing | 7,200 s, MAX | S9 |
+| SL-R02 | Reality Refab | Region Crystal 8 (7); Hull 32 (6); Claw 24 (6); Robot Arm UXV 32 (5); FG UXV 16 (6); circuit UXV 64 (5); Condensate Guidance Coil 16 (5); EM-Isolated Casing 16 (4); Field Manipulator II 8 (6); Resonance Chamber III 4 (7) | **White Hole Matter 256 ing** (gate); Eternity 128 ing; Degenerate 64,000 L; SpaceTime 4,096 ing | 7,200 s, MAX | S9 |
+
+Stages (doc §0): S1 after Eye T1 (Raw Star Matter, nanites ≤ 4); S5 after Eye T5 (WDM, BDM, nanites ≤ 7); S6 after
+Homogeny T2 (Degenerate); S8 after Eye T8 (Ergomatter, Superdense; P4); S9 after Eye T9 (White Hole Matter; P5).
+Families (≤ 4 condensates per recipe): Homogeny T1 in S1 "Stellar" (Raw Star Matter, SpaceTime, Space, Infinity);
+SL-H10 in S2 "Remnant" (BDM, WDM, SpaceTime); everything else in S4 "Reality" (White Hole, Superdense, Ergomatter,
+Degenerate, Eternity, MagMatter, SpaceTime).
+
+### Rules the helper enforces (`assemble`, `cond`)
+
+- At most 16 item stacks (stacks above 64 split, each with its slot's tier), at most 4 condensates, one output; a
+  nanite tier above Black Dwarf throws (H-17); GT must keep the recipe (an empty `addTo` is a logged skip).
+- Our condensates' amounts are multiples of half their unit (72 L or 500 L); a condensate whose generator recipe was
+  skipped makes every recipe that needs it a logged skip, never a recipe asking for an unmakeable fluid.
+- Dense plates fall back to the block, then to 9 plates; the huge Neutronium pipe falls back to the large one.
+
+### Boot log
+
+- `[BTS] H/R gate: <recipe> is registered but unreachable until an Eye makes <fluid> (Eye T<n>, P4/P5).` for SL-C02..C04,
+  SL-R11, R13, R16, R17, SL-H20, SL-R01, R02 and the process recipes SL-H21, SL-R03, R04, R05, while the fluids are
+  placeholders; then a count line. When P4/P5 own the fluids: "every Homogeny/Reality recipe is reachable".
+- `[BTS] SL-B16 Entangled Magnetar Matter: no Condensate Generator recipe ...` (ruling 19a).
+- On a build without master's BEC expansion: `SL-B10/B13/B14: ... registered it under the same name`.
+
+## Contract additions (H/R review fixes)
+
+Written by the H/R review-fix pass (branch `homogeny-reality`), 2026-10-13. Question B-80; costs §12.
+
+### Machines
+
+- **Recipe-check pushes (RC-2 checks are event-driven).** `MTEHomogeny.beginInstall` / `completeInstall` / the
+  sneak-punch cancel call `scheduleRecipeCheckImmediate()`. `MTERealityBase.onPostTick` pushes
+  `scheduleRecipeCheck(RecipeCheckReason.THROTTLED)` once a second while the machine is formed, enabled and idle.
+  Diffraction anchor hatches go through `addIfSmartInput`; `flushPending` emptying the buffer pushes an immediate
+  check. Any new idle reason a Reality machine returns is covered by the 1 s push; a new Homogeny state that blocks
+  mixing must push a check when it clears.
+- **Diffraction item NBT.** `setItemNBT` writes `btsDiffPend0..5` (when > 0) and `btsDiffRuns`; the same keys as the
+  tile NBT.
+- **Quasar hooks (P4 fills them; all return 0 now).** `MTEHomogeny.quasarSigma()`, `MTEHomogeny.minSigma(GTRecipe)`
+  (refusal `beyondthestars.homogeny.stability`), `MTERealityDiffraction.quasarSigma()`, `MTERealityDiffraction.MIN_SIGMA`
+  (refusal `beyondthestars.reality.stability`). Both refusals have `GT5U.gui.text.recipe_result.` lang keys.
+- **Reserved port cells, char `g`.** `homog_t2`: 3 cells (stirring ring outer face), element = Galactic Shell
+  Plating. `reality_diffraction`: 6 cells (top deck band outer face), element = Region Deck Band. P4 replaces each
+  element with `buildHatchAdder(...).atLeast(<GRB Receptor Port>).buildAndChain(<the same casing>)`, never a new
+  cell, so standing builds stay formed. `HRKit` places no hatch in `g`.
+- **Homogeny caps.** Legend `M` = `Casings.ReinforcedTemporalStructureCasing` (was the Godforge Boundless casing);
+  the cap centres are `Z` (Quantum Glass; the Homogeny's `L` char is gone). `MTEHomogeny.hatchIndex()`, the energy
+  socket's fallback and the controller texture use the Temporal casing.
+
+### Recipes / gates
+
+- `BTSRecipesReality.ETERNITY_BEFORE_T10` (false) marks D-48 proposal 1 as unbuilt; the gate log reports SL-H20,
+  SL-R02, SL-R03, SL-R04, SL-R05 against it. The commit that builds the Eternity-on-Ergomatter swap sets it true and
+  flips the questbook's `eternityOnErgomatter` feature in the same merge.
+- `SLGateDump.FIRST_MADE`: Eternity 7 (decided), MagMatter not an Eye product (D-48 proposal 2).
+
+### Questbook merge (homogeny-reality + questbook; rule 15)
+
+The Homogeny T1 and T2 ship on this branch, so when the two branches merge:
+
+1. Flip `features.homogeny` to `true` in `questbook/singularity.json`, but first give **48184 The Homogeny T3** (and
+   the Reality quests) a `needs` that stays false until P4/P5 (`["homogeny", "eyeT9T10"]`), so they stay
+   placeholders: their fluids are P4/P5.
+2. **48118 The Homogeny** (`TheHomogeny`, Tier12UMV): keep the retrieval task `1x mte:28130`; add a fluid task
+   `1000x` Excited Stellar Plasma Mixture (or a checkbox "Build T1"). Rewrite the text in the present tense, drop any
+   "(planned)" / "Coming in a later update" note, and replace the "About five Homogenies keep a T3 Eye fed without a
+   second Eye" paragraph with: "Turns stockpiled Raw Star Matter into Excited Stellar Plasma Mixture unattended: no
+   hydrogen, helium, ignition or field. It costs 100 L per 1 L, 10x the Raw Star Matter an Eye T2 needs, so it suits
+   banking a Sol surplus or a hands-off line, not replacing Sirius A." Keep "Eye T2 is still required".
+3. **48142 The Homogeny T2** (Tier13UXV): replace the `tbd` task with a retrieval of the Homogeny Tier II Core
+   (`beyondthestars:homogenyTier2Core`) and a fluid task `1000x` Degenerate Stellar Mixture; present tense; mention
+   the three reserved Quasar port cells only as "later".
+4. Regenerate the bundle (`tools/gen-singularity.js`, `--check`, `--selftest`) after the edit.
+
 ## Hologram & NEI
 
 Acceptance pass, 2026-10-12. Verified by reading our code and `javap` of the instance jars (structurelib-1.4.38,

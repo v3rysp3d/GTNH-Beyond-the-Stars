@@ -2710,6 +2710,426 @@ the dedicated-server command with the new jar name. The judgement calls:
 
 ---
 
+### B-74 H/R: the three machines' shapes as exported, and what they cost in blocks [H/R unit 1, built]
+
+**Context.** Ruling 16 and the design doc `designs/docs/homogeny-reality.md` (PROPOSED, H-1..H-28). The voxel mockups
+(design repo `3e23c09`) are exported unchanged by `tools/export-structures.js` into `homog_t1..t3`,
+`reality_diffraction` and `reality_refab` (build spec "Contract additions (Homogeny / Reality structures + content)").
+
+**What was built, and the judgement calls.**
+
+1. **Sizes are the mockup's, not the doc's.** The doc's §1-§3 numbers were written before the mockup was drawn. As
+   exported (W x H x D, each in its controller's own frame): Homogeny T1 69 x 70 x 73, T2 103 x 70 x 113,
+   T3 145 x 70 x 130; Reality Diffraction 103 x 101 x 85; Reality Refab 104 x 139 x 83.
+2. **Block counts are well above the doc's §1.5 / §2.5 / §3.5 estimates.** Homogeny T1 17,783 (doc about 15,100),
+   T2 +10,813 (about 7,300), T3 +13,002 (about 10,000); Diffraction 53,005 (about 40,000); Refab 59,245 (about
+   35,600: the hull glass alone is 14,260 Quantum Glass and the hull plating 20,649). The per-block recipes and the
+   cost table must be priced from `manifest.json` (ruling 6), not the doc. **Suggestion:** keep the shapes (they
+   are the sketches) and price per block; if the Refab is too dear, thin its hull to one glass ring between ribs or
+   scale the mockup to 0.85 (about -35 % blocks). Alternative: halve the bulk casings' condensate.
+3. **The Homogeny is exported turned a quarter turn.** Its controller sits on the volute throat's outer face, which
+   faces +x in the mockup. Like the Kerr modules, every Homogeny piece is turned so that face is +z, the piece
+   frame's front (`turns: 1` in the manifest). In game it looks exactly like the mockup, seen from the throat.
+4. **Tiers only add blocks.** T2 writes over 30 T1 cells (its inlets meet the volute) and T3 over 45 T2 cells (the
+   clamps where the outer ring crosses the middle ring). As on the Eye, the earlier piece keeps them, so `homog_t1`
+   never changes when a tier is added.
+5. **Hatches are pinned by kind and count, not coordinate.** The mockup computes them from its band curves, so a
+   coordinate table would only restate voxel.js. A changed count or a new hatch kind aborts the export.
+6. **Region identity is the socket's char.** The six Region Anchor sockets export as `r s t u v w` = Regions I..VI
+   (Hyperspace, Subspace, Forward Time, Reverse Time, Positive Mass, Negative Mass). The blades sit on the deck bands
+   at y -14 / 0 / +14 (the doc's "drums 1-3"), region = 2 x band + (180 degree side).
+7. **Sockets as drawn:** Homogeny 3 feed hatches at T1 (6 at T2), 2 output hatches on the throat, 2 energy on the
+   bottom cap; Diffraction 1 BEC hatch, 1 medium input hatch, 2 energy, 6 anchors on the base ring; Refab 1 BEC
+   hatch, 2 input buses, 1 output bus on the cap, 1 energy. The doc's "any Electromagnetically-Isolated Casing" for
+   the BEC hatch is the machine unit's call (a hatch element on the `Q` casing); the shapes carry one pinned cell.
+
+**Alternatives.** Re-draw the mockups to the doc's sizes; or export the Homogeny unturned with the controller
+facing sideways (worse: the hologram would be built from the side).
+
+### B-75 H/R: the new blocks, items and fluids [H/R unit 1, built]
+
+1. **`slCasing3` is a new block (H-22).** Metas 0-11, 12-15 spare, so P4's casings (expected in `slCasing2:3+`) never
+   collide. Meta 11, **Region Anchor Casing**, is the mockup's red lens beside each anchor socket (recipe card
+   SL-R17); the doc's §4.2 table stopped at 10.
+2. **Region Crystal glows** (light 9, the sketches' orange diamonds). About 1,300 per Reality machine. **Suggestion:**
+   keep it; drop to 0 if a hologram build of a Diffraction lags on light updates.
+3. **Block tooltips.** `ItemBlockSL` now shows a `tile.beyondthestars.<registry>.<meta>.tooltip` lang line when one
+   exists (ruling 14): every slCasing3 block says which machine uses it and "Made in the Condensate Assembler".
+   Older SL casings have no tooltip key yet, so nothing changes for them.
+4. **Superdense, not Supermassive (ruling 17).** The fluid is `btssuperdenseergomatter` (P4's name) and its condensate
+   `btsentangledsuperdense`, "Entangled Superdense Ergomatter". The design doc and SL-H20/H21/R01/R11/R16 still say
+   Supermassive; the recipes must use the Superdense fluid.
+5. **Later phases' fluids are registered only if absent (H-24).** `btsergomatter`, `btssuperdenseergomatter` and
+   `btswhiteholematter` are registered by `SLRealityFluids` under exactly P4/P5's names when nothing registered them
+   first, logged at boot as placeholders. **When P4 or P5 merges, one file must own each fluid**: delete the
+   `ifAbsent` line here, or have P4 call it, so the name is never built twice.
+6. **SL-B16 (Entangled Magnetar Matter) is registered, but ruling 19a may leave it without a consumer.** The design
+   doc and recipe card SL-H10 gate the Homogeny Tier II Core on Magnetar Matter (so it registers SL-B16), while ruling
+   19a says that core must use Black Dwarf Matter instead. The fluid is registered so either choice works. If the
+   recipe unit follows 19a, the generator recipe should not be added (an orphan condensate in NEI suggests a use that
+   does not exist, BEC Q-B6), and the fluid stays as a harmless reserved name.
+7. **Entanglement Medium is a 0 K liquid (doc §4.4).** GT pipes treat fluids under 120 K as cryogenic, so it needs
+   cryo-proof pipes from the Homogeny to the Diffraction. **Suggestion:** keep it (thematic) and say so in the
+   Homogeny T3 quest and the Diffraction tooltip; alternative: 300 K. The region and entangled fluids are GAS at 0 K
+   like GT's condensates; they live in the BEC network.
+8. **Controller overlays are ready** for the machine unit: `beyondthestars:iconsets/OVERLAY_FRONT_HOMOGENY`,
+   `_REALITY_DIFFRACTION`, `_REALITY_REFAB` (+ `_GLOW`, `_ACTIVE`, `_ACTIVE_GLOW`).
+9. **Lang:** the seven recipe-result ids of the doc (`beyondthestars.homogeny.tier`, `.installing`,
+   `beyondthestars.reality.nonetwork`, `.anchors`, `.full`, `.noassembler`, `.nanites`) have
+   `GT5U.gui.text.recipe_result.` keys, and the three recipe maps' names are keyed as `beyondthestars.recipe.homogeny`,
+   `.reality_diffraction`, `.reality_refab`. Any other id the machine unit adds needs its own key (ruling 10).
+
+### B-76 H/R: the Homogeny controller [H/R unit 2, built]
+
+**Context.** Ruling 16, the design doc `designs/docs/homogeny-reality.md` §1 (PROPOSED), D-46/D-47/D-49 and brief
+rulings 4-5 (one install path, milestones + install run). Built in `machines/homogeny/MTEHomogeny` (MTE 28130) with
+its MUI2 screen `HomogenyGui`.
+
+**What was built, and the judgement calls.**
+
+1. **Tier = min(installed, structure).** The structure tier is cumulative (`homog_t1`, + `homog_t2`, + `homog_t3`; the
+   outer ring counts only with the stirring ring). The installed tier is permanent. A broken ring drops the machine to
+   the tier below until it is rebuilt; nothing is lost.
+2. **The install path** (doc §1.3, rulings 4-5): next ring built + milestone (100,000 L of the current tier's product
+   mixed over the machine's life: ESPM for T1 to T2, Degenerate for T2 to T3) + the next core in escrow (right-click
+   it onto the controller) + **Install** (a GUI button, or a screwdriver: GT never passes a sneaking right-click to a
+   machine, B-50). The run is 12,000 ticks offline, paying RECIPE_UXV (T2) / RECIPE_MAX (T3) EU/t from the energy
+   hatches every tick; a short tick pauses it, never loses progress. Sneak-punching the controller with an empty hand
+   returns the core and **cancels** an install in progress (its progress is lost), as the doc says. Escrow, the
+   milestones and an install in progress live in item NBT, so they survive a wrench. **Suggestion:** keep.
+   Alternative: start the run by itself once everything holds (one fewer click, fully automatic).
+3. **Region Crystal at the T1 throat tip is a gate violation.** Unit 1's legend puts 5 Region Crystals (`E`) at the
+   throat tip of `homog_t1` (UMV), but Region Crystal needs Ergomatter (stage S8, Eye T7). The controller accepts the
+   Godforge lens glass (Spatially Transcendent Gravitational Lens Block, already 610 cells of T1) in those cells as
+   well; hints and creative builds place the crystal, survival auto-place falls back to the lens. The T3 tail tip is
+   the same char, so it accepts the lens too. **Suggestion:** re-draw the T1 throat tip as lens glass in voxel.js (a
+   new char) and keep `E` for the tail only. Alternative: leave as built.
+4. **Feed sockets use GT's Input Hatch element**, not a private one: the Homogeny is one machine with no plant-wide
+   lists, and GT's processing logic reads `mInputHatches` (ME input hatches work). Trap 3 is still kept: a ring whose
+   walk fails drops the feed hatches it registered.
+5. **Running:** GT's processing logic on `beyondthestars.recipe.homogeny`; 1 / 4 / 16 parallels; **no overclock**
+   (EU/t = recipe EU/t x parallels, so a full T3 is one MAX amp); void protection, batch mode and recipe lock as on
+   any GT multi; no maintenance. A recipe's special value is its minimum Homogeny tier; a too-low tier fails with
+   `beyondthestars.homogeny.tier`, an install in progress with `beyondthestars.homogeny.installing`.
+6. **Milestones count at completion.** A run's product is counted when its output lands; a run stopped part-way
+   counts nothing.
+7. **Not built: the vortex render** in the column (the doc's empty render centre with a GUI toggle). The column is
+   glass with nothing inside. **Suggestion:** a render pass reusing the Eye's centre-render pattern
+   (`EyeCentreRender`, one render block at the manifest's `centre.rel`).
+8. **No questbook quests yet** (rules 14/15). The tooltip carries the mechanics; the doc's §6.2 quests are for the
+   questbook unit.
+
+**Alternatives.** Core only, instant (it is a side machine); or an install run without the milestone.
+
+### B-77 H/R: Reality Diffraction and Reality Refab [H/R unit 2, built]
+
+**Context.** Ruling 16, the design doc §2-§3 (PROPOSED, H-12..H-16, H-27, H-28). Built in `machines/reality/`
+(`MTERealityBase`, `MTERealityDiffraction` 28131, `MTERealityRefab` 28132, their GUIs, `RealityRecipeMaps`,
+`RealityProcessRecipes`).
+
+**What was built, and the judgement calls.**
+
+1. **The BEC glue on a GT multiblock (H-14 primary path, no fallback needed).** RC-2's BEC machines extend
+   `MTEBECMultiblockBase` (a TecTech multiblock with a text-structure wrapper that cannot hold our exported shapes);
+   ours keep GT's `MTEExtendedPowerMultiBlockBase` and implement `BECFactoryElement` + `NotableBECFactoryElement`
+   exactly as that base does (neighbours = our formed BEC Hatches; routed neighbours by a walk from them). **One
+   wrinkle:** GT's `MTEHatchBEC` only lists TecTech BEC controllers as its own neighbours, so when the hatch
+   re-registers itself (its first tick, a facing or colour change) the grid drops the edge to us. The controller
+   re-asserts it every second (a neighbour-set compare when nothing changed), so the worst case is one second
+   disconnected. **Suggestion:** keep; upstream, `MTEHatchBEC.addController` could take any `BECFactoryElement`.
+2. **Diffraction never voids.** Each run's regions are injected at the end; whatever the network does not take (no
+   running Containment Field: RC-2's storage accepts nothing while off) waits in the controller, is retried every
+   second, and the next run waits (`beyondthestars.reality.full`) until it is gone. The doc's "won't start without
+   free capacity" became "won't start without a network that has a storage" (`beyondthestars.reality.nonetwork`);
+   RC-2 storages have no hard capacity.
+3. **SL-R03 is read from the map.** The medium, the six anchors (input slots 1..6 = Regions I..VI), the outputs, the
+   time and the EU/t all come from the one recipe in `beyondthestars.recipe.reality_diffraction`, so tweaking the
+   recipe is the whole change. The region identity is the socket (`r..w`), never the fluid; any input hatch works,
+   ME stocking hatches included. An unanchored region is not paid and yields nothing (its share of the medium is
+   lost); no region anchored, no run.
+4. **Refab links the nearest running Condensate Assembler within 64 blocks by itself.** The doc's Data Stick link
+   cannot be done from our side (a stick right-clicked on GT's Assembler never reaches our code), and RC-2 links its
+   nodes with a line-of-sight beam, which would need a LoS hatch socket in our structure. The link is kept and
+   re-found if the Assembler goes. **Suggestion:** keep (zero setup). Alternative: a LoS-hatch socket on the Refab's
+   foot, so it links exactly like a Teleportation Node.
+5. **The reassembly lock replaces GT's end-of-craft failure.** The six regions are drawn from the Refab's OWN BEC
+   Hatch's network in lockstep with the progress; the craft never passes the fraction the scarcest region can pay
+   for, so a short region pauses it (GUI: "waiting for regions") and nothing is wasted. GT's node instead drains
+   what it can and fails the craft at the end. GT's other node rules are kept: one step per item slot, a step needs
+   nanites of at least its tier, each tier above slows it 2x, progress = nanites / tier penalty / (contaminants + 1),
+   more than three foreign condensates clog it (here it waits instead of stopping).
+6. **Refab refuses to start a recipe the Assembler's nanites cannot finish** (the recipe's highest step tier above
+   the Assembler's tier: `beyondthestars.reality.nanites`), so inputs never sit in a craft that would stall at a
+   step. GT's node starts and stalls.
+7. **Refab pays its own EU, and only on ticks that advance** (GT's node defers EU to its Assembler).
+8. **SL-R04 runs at 1 x RECIPE_MAX, not the doc's 4 x.** A GT recipe's EU/t is an int and 4 x RECIPE_MAX does not
+   fit. **Suggestion:** keep; or make it 4x longer. The Refab map takes six condensates (GT's takes four), so its NEI
+   page is taller.
+9. **The process recipes are owned by this unit** (`RealityProcessRecipes`, guard line `reality-process`):
+   SL-H06/H11/H21, SL-R03, SL-R04, SL-R05. The recipe unit must not add them again; it owns the Condensate
+   Assembler / Generator recipes of the blocks, cores and controllers.
+10. **Automation (ruling 18) as built:** GT's standard covers on the controllers (machine controller, activity
+    detector); anchors and the medium take ME input hatches (a level emitter keeps each anchor stocked); RC-2's
+    Condensate Detector hatch on the BEC network reads region stock. **Not built:** a dedicated detection hatch or
+    OpenComputers component for these machines. **Suggestion:** a "Region Anchor Sensor" (one redstone bit per
+    missing anchor) on the Diffraction's base ring, modelled on the Stellar Field Sensor Hatch.
+11. **Not built: the region-cloud and reassembly-stream renders** (doc §2.1 / §3.1, render-only). The drums and the
+    spindle are glass with nothing inside.
+12. **Not tested in game.** `spotlessApply compileJava` passes. The console bench is ready:
+    `/btshr diffraction <x> <y> <z> north fill`, then `/btshr bench <x> <y> <z> status`.
+
+**Alternatives.** The doc's fallback (six output hatches feeding six input hatches, no BEC) if the grid wrinkle in
+item 1 proves annoying in play.
+
+### B-78 H/R: every Homogeny / Reality recipe goes through the Condensate Assembler [H/R unit 3, built]
+
+**Context.** Ruling 16 ("make sure all of these recipes integrate with Bose Einstein condensate assembler and similar
+for our requirements"), ruling 6 (every BOM block craftable at a fair cost), rulings 17 and 19a, and the design doc
+`designs/docs/homogeny-reality.md` §5 (PROPOSED). Built in `BTSRecipesReality` (guard line `reality`); build spec
+"Contract additions (Homogeny / Reality recipes)"; costs §12. Numbered B-65 on the branch (master's BEC expansion took B-64); B-78 since the merge (see B-81).
+
+**What was built, and the judgement calls.**
+
+1. **All 17 block / core / controller recipes are Condensate Assembler recipes**, one nanite tier per stack, none above
+   Black Dwarf (H-17), with the condensates of the doc's families. Controllers too (H-19: ruling 16 overrides the BEC
+   proposal's R4 for these three machines). Four Condensate Generator recipes make our condensates (SL-C01..C04).
+   **Suggestion:** keep. Alternative: assembly lines for the three controllers, like the Eye and the Kerr.
+2. **SL-H10 (Homogeny Tier II Core) is gated on Black Dwarf Matter, not Magnetar Matter** (ruling 19a): 256 ingots of
+   BDM condensate (the Magnetar Seed Core's amount) + 256 ingots of WDM + 1,024 of SpaceTime. The Homogeny T2 is
+   therefore buildable right after Eye T5. As a result **SL-B16 (Entangled Magnetar Matter) has no consumer**, so it
+   gets no generator recipe (BEC Q-B6: an orphan condensate in NEI suggests a use that does not exist); its fluid stays
+   a reserved name. **Suggestion:** keep; give SL-B16 its generator when P4 adds a Magnetar consumer.
+3. **This branch has no `SLCondensates`.** Master's BEC expansion (SL-B10..B15) landed after the branch forked. The
+   Homogeny T1 needs Entangled Raw Star Matter and the T2 core needs Entangled White / Black Dwarf Matter, so
+   `BTSRecipesReality.shim` looks each up by its frozen registry name, registers the same fluid (name, colour, GAS at
+   0 K) at postInit only if nothing did, and adds a generator recipe only if none exists on that source fluid. Merged,
+   master's run first and the shim only reads them. **Suggestion:** keep (order-proof, nothing to delete on merge).
+   Alternative: delete the shim after the merge.
+4. **Recipes needing fluids nobody makes yet are registered, visible in NEI, and logged.** Ergomatter and Superdense
+   Ergomatter (Eye T7/T8, P4) and White Hole Matter (Eye T9, P5) are still `SLRealityFluids` placeholders (H-24). Every
+   recipe that needs one, directly or through a Region Crystal, prints `[BTS] H/R gate: <recipe> is registered but
+   unreachable until an Eye makes <fluid>` at boot: SL-C02..C04, SL-R11, R13, R16, R17, SL-H20, SL-R01, R02, and unit
+   2's process recipes SL-H21, SL-R03, R04, R05. So until P4 the Reality machines and the Homogeny T3 cannot be built,
+   which is the ladder's design. **Suggestion:** keep. Alternative: skip those recipes until P4/P5 ship.
+5. **Priced against the exported BOM, not the doc's estimates (B-74).** Seven per-craft inputs were trimmed because the
+   real block counts made them balloon: H02 pistons 8 → 2 (824 UMV pistons → 206), H03 field coils 8 → 4, SC UMV
+   wire 16 → 8 and motors 4 → 2, R11 emitters 4 → 2, R12 dense Infinity 16 → 8 and SpaceTime 64 → 32 ingots, R13 FG
+   UXV 2 → 1 (544 → 272), R14 dense Infinity 32 → 16 (93k → 47k Infinity ingots in the Refab hull) and SpaceTime 64
+   → 32 ingots, R15 Casimir 8 → 4. **SL-R16 outputs 32 claws, not 8**: the Refab has 688 claws, not the doc's 190, so
+   ×32 keeps the bill near the doc's (23 crafts, 216 Robot Arm UXV with the controller). **Suggestion:** keep.
+6. **Built (B-80 item 5): the caps are Reinforced Temporal Structure Casing now.** *Original:* **The Homogeny T1's 2,430 Godforge Boundless casings are its heaviest item** (column caps; 1,215 Godforge BEC
+   crafts, 29k Mellion frames, 3,645 FG UEV, 7,290 Artificial Gravity Generators), more than all its ladder blocks
+   together, at UMV. **Suggestion:** re-draw the caps in Reinforced Temporal Structure Casing (×32 since ruling 11a: 76
+   crafts) or in Stirring Band Casing (a structure change for the mockup and unit 1's legend). Alternative: keep (the
+   Homogeny becomes a post-Godforge build).
+7. **The Reality machines' Godforge lens glass is their outlier.** The Diffraction spine (1,916) and the Refab spindle
+   (2,837) plus the Region Crystal inputs are about 2.5k Godforge glass crafts, about 15k Stable Boson Containment
+   Units. **Suggestion:** swap both to Quantum Glass (they are windows for renders that are not built yet, B-77 item
+   11). Alternative: keep the Godforge look. Also heavy but in line with MAX: 752 Condensate Guidance Coils (one
+   Compact Fusion Coil T3 each) for the Refab collars, and 9.4k Electromagnetically-Isolated Casings across both bases.
+8. **SL-R17 Region Anchor Casing ×4 is new** (12 per Diffraction; unit 1 added the block after the doc's table): Region
+   Crystal 2, EM-Isolated Casing 2, Harmonic Lining 4, Sensor UXV 1; Degenerate 500 L, SpaceTime 8 ingots.
+9. **Small substitutions.** Dense plates fall back to the block, then to 9 plates; the huge Neutronium pipe of SL-H05
+   falls back to the large one. "Supermassive" in the doc is Superdense everywhere (ruling 17). Nanite tier 2 is
+   Silver (GT's own `nanites()` index, as master's BEC recipes use), not Neutronium (both are tier 2).
+10. **NEI.** Our recipes appear on GT's Condensate Assembler and Condensate Generator pages with their nanite tiers;
+    the three machine tabs now show their controller. The Homogeny Tier II / III Core tooltips name the condensates
+    and the Eye tier after which they can be made (rule 14).
+11. **Not tested in game.** `spotlessApply compileJava` passes. On a dev server: the boot summary should show 21 new
+    recipes (4 generators, 17 assembler; plus 3 generators on a build without master's BEC expansion) and 0 skipped,
+    the 14 `H/R gate:` lines, and NEI usage of Degenerate Stellar Mixture should show SL-C01.
+
+**Alternatives.** Assembly lines for the controllers (H-19); keep the doc's ×8 claws and untrimmed inputs; skip the
+P4/P5-gated recipes until their fluids have an owner.
+
+### B-79 H/R: the dev-server test of the three machines, the Install queue and a persistence fix [H/R test]
+
+**What was run.** `runServer` in the `addon-hr` worktree (RC-2 deps, fresh flat world `hrtest`, stdin console, every
+footprint force-loaded with `/btshr keep`), six boots. Bench additions for it: `/btshr bench <x y z> scan` (progress,
+the last recipe check's id and text, hatch contents, stored EU), `on` / `off`, `project <n>` (the projector's creative
+build of rings 1..n over a standing Homogeny, controller and hatches kept) and `/btshr recipes`.
+
+- **Load.** `273 registered, 0 skipped`; the three SL-B10/B13/B14 shim lines, the SL-B16 line and the 14 `H/R gate:`
+  lines as B-78 predicted; no `[beyondthestars]` WARN/ERROR and no exception with a `com.nateyburr` frame in any boot.
+  GT logs `EUt > Practical Voltage` for SL-C04 (RECIPE_MAX) and clamps it to 2,013,265,912, as it does for its own MAX
+  recipes; same clamp on SL-R03/R04/R05.
+- **Lang lint.** All 7 H/R recipe-result ids (`homogeny.tier/installing`, `reality.anchors/full/nanites/noassembler/
+  nonetwork`) have `GT5U.gui.text.recipe_result.` keys; every H/R structure-error and recipe-map key is in the lang
+  file. On the server the scanner printed readable text for `installing`, `nonetwork` and `noassembler`.
+- **Recipes.** Homogeny map 3 (SL-H06 100,000 L RSM -> 1,000 L ESPM at UMV 240 s, H11, H21), Diffraction 1 (SL-R03),
+  Refab 2 (SL-R04/R05); Condensate Assembler 17 of ours (every block, core and controller), Condensate Generator 7.
+- **Forming.** Homogeny T1 north (creative) / east (survival), T2 south / west, T3 north / east; Diffraction north /
+  west / east (survival); Refab south / east (survival) / west: all FORMED, re-projection over each keeps it formed,
+  damage-and-repair restores the cell, the tile count is unchanged. Survival auto-place: T1 17,782, T2 28,595, T3
+  41,597, Diffraction 53,004, Refab 59,244 blocks.
+- **Homogeny T1 run.** With console-stocked hatches the T1 took 100,000 L of Raw Star Matter and, 4,800 ticks later,
+  put 1,000 L of ESPM in the output hatch; the milestone read 1,000 L. T2 runs 4 parallels (400,000 L in, 4,000 L
+  out), T3 16 (1.6M L in, 16,000 L out). A bench whose two 64 A UXV hatches run dry shuts the mix down as any GT multi
+  does (power loss, inputs lost): the bench hatches hold 275 G EU, a T1 mix costs 604 G.
+- **Upgrades.** T1 -> T2 -> T3 in place on one controller: Install refused with the reason for each missing piece
+  (ring, milestone, core), the ring added by `project`, tier = min(installed, structure) until the install run ends,
+  the run pauses on power and on a disabled controller and keeps its progress, survives a wrench, then T2 (4
+  parallels) and T3 (16 parallels).
+- **Diffraction / Refab.** Recipes registered; with no BEC network they idle with "No BEC network: needs a BEC Hatch on
+  the base and a Containment Field on its network" / "No running Condensate Assembler within 64 blocks". Inputs are
+  P4/P5-gated, so no run was attempted.
+- **Restart.** Every machine re-forms; installed tiers, milestones, the escrowed core, a mix in progress and (after
+  fix 2) an install run at 48.8% come back as they were.
+
+**Fixed here.**
+1. **Install while a mix runs now queues.** `installBlocker` refused Install while a mix ran. A Homogeny fed by ME
+   stocking hatches has no gap between mixes, so the player had to soft-mallet it off, and the install then paused as
+   "controller disabled" until it was switched back on. Install now starts at once and waits for the running mix ("paused:
+   waiting for the running mix to finish"); no new mix starts while installing. The tooltip says so. Verified: the mix
+   finished, its ESPM counted, then the run advanced.
+2. **Restart persistence.** Nothing marked the controller's chunk for saving while the install advanced (GT marks
+   it only when a recipe starts or ends), so a restart reloaded the install as it was when Install was pressed (48.8%
+   -> 0.0%, and the controller disabled as it had been then). The install now marks the chunk every 20 ticks and a
+   finished mix marks it after its milestone. Verified across a restart. The same gap was closed without an in-game
+   test (no BEC network on the bench): the Refab marks the chunk every 20 ticks of lockstep progress (its drawn
+   regions would otherwise be drawn twice after a restart) and the Diffraction marks it whenever its never-void
+   buffer injects into the network (a stale buffer would otherwise be injected twice).
+
+**Not tested (open).** The `homogeny.tier` refusal (a T1 machine always has Raw Star Matter, so H06 matches first);
+Diffraction and Refab runs, their anchor / nanite / full refusals and the BEC hatch edge re-assert (they need a BEC
+network with a running Containment Field and Condensate Assembler and P4/P5 fluids); GUIs, tooltips, NEI and the
+hologram projector item on a client. *Suggestion:* a client session once P4 makes Ergomatter, using `/btshr bench`
+on a BEC network built by hand.
+
+**Small things seen (no change).** `gtnhlib: Unable to find team for player 249b60b8...` once, when the bench's console
+owner UUID owned a T3 (the bench owner is not a real player). BEC network ids change when a machine re-forms (expected,
+the grid rebuilds the network).
+
+### B-80 H/R: review fixes - recipe-check pushes, the Diffraction buffer on a wrench, the Eternity loop, D-49 teaching, the Homogeny caps, the Refab hull, reserved Quasar ports, the questbook merge [H/R review fix]
+
+**Context.** A review of the `homogeny-reality` branch against RC-2, D-49, the P4 design of record
+(`designs/docs/quasar-p4.md`, 7f91607) and ruling 6. Each fix is its own `wip: H/R review fix:` commit;
+`spotlessApply compileJava` passes after each, and `node tools/export-structures.js --check` is clean.
+
+**Dev-server re-test (`runServer`, world `hrtest`, two boots).** `273 registered, 0 skipped`; the 14 `H/R gate:`
+lines, now with the Eternity reason on SL-H20, R02, R03, R04, R05; no exception and no `beyondthestars` WARN/ERROR
+beyond FML's usual chunk-loading note.
+- *Forming with the new shapes:* Homogeny T1 east (survival path, Temporal caps), T2 north and T3 south (creative),
+  Reality Diffraction north (survival, the 6 reserved cells), Reality Refab west (survival) and north (creative, the
+  new lower hull): all FORMED, re-projection keeps them formed, damage-and-repair restores the cell, tile count
+  unchanged.
+- *Install with no hatch event at the end (fix 1):* a T1 built at 11000 100 0, its stirring ring added by `project
+  2`, milestone, escrow, Install, then `fill` + `itick 130` until the run ended. With only read-only `scan`s after
+  the last tick, the Homogeny started a T2 mix on its own (`Progress 141 / 4800`, last check "Processing recipe",
+  4,000 L ESPM running = 4 parallels). The B-79 bench's `fill` / `on` had masked this path.
+- *Diffraction buffer (fix 2):* `pending 1000`, then `wrench` (item NBT written and read back) kept `[1000 x 6]`. With
+  no hatch event, the next `scan` showed the last check as `reality.full` ("The last run's regions are still
+  waiting..."), so the once-a-second idle push runs.
+- *Not tested:* a real Diffraction / Refab run (P4/P5 fluids and a BEC network), the anchor-hatch watcher on a refill,
+  GUIs and tooltips on a client.
+
+**What was built, and the judgement calls.**
+
+1. **RC-2 recipe checks are event-driven; three idle traps closed.** `MTEMultiBlockBase.shouldCheckRecipeThisTick`
+   only runs a check when something pushes one (hatch events, structure, on/off), and `doPeriodicChecks` is off
+   without an ME stocking hatch.
+   - *Homogeny:* every check during an install returns `homogeny.installing`, including the one GT makes as the last
+     mix ends. `beginInstall`, `completeInstall` and the sneak-punch cancel now call `scheduleRecipeCheckImmediate()`,
+     so a Homogeny whose plain feed hatches filled up during the 12,000-tick run mixes at its new tier at once.
+   - *Reality Diffraction / Refab:* their own failure reasons (`reality.full`, `nonetwork`, `noassembler`,
+     `nanites`, `anchors`) clear through changes no hatch reports (a Containment Field or the linked Assembler
+     starting, the buffer draining). An idle, formed, enabled Reality machine now pushes one THROTTLED check a second
+     from `MTERealityBase.onPostTick` (GT's post-failure cooldown applies, default 0). The anchor hatches register as
+     watched inputs (`addIfSmartInput`; `clearHatches` drops them), and the Diffraction's buffer emptying pushes an
+     immediate check. *Suggestion:* keep the 1 s poll; it is one recipe check a second per idle Reality machine, and
+     there are at most a handful per base.
+2. **The Diffraction's never-void buffer rides on the controller item** (`setItemNBT`: the six pending amounts and the
+   run count; `loadNBTData` already reads them on placement, and the next second flushes them). Before, wrenching the
+   controller while no Containment Field ran deleted up to a run (6,000 L) of Entangled Regions.
+3. **The Eternity loop on the way to T10 is reported, not fixed.** SL-H20 (Tier III Core), SL-R02 (Refab
+   controller), SL-R03's Region IV anchor (molten Eternity) and so SL-R04/R05 need Eternity. The pack's Eternity QFT
+   loop needs Universium, which only Eye T10 makes, and Eye T10 needs SL-R04. D-48 proposal 1 (the loop takes
+   Ergomatter, T7) is accepted but not built on any branch (the questbook's `eternityOnErgomatter` feature flag is
+   false too). Built: `BTSRecipesReality.ETERNITY_BEFORE_T10 = false`; the gate log adds "Eternity before Eye T10" to
+   those five lines and only says "every recipe is reachable" once it is true. `SLGateDump`'s ladder is the decided
+   one: Eternity first made at T7, and MagMatter dropped (its only T10 tie was the MHDCSM quest prerequisite that
+   D-48 proposal 2 removes; our SL-R11/R12 use it before T10). The Tier III Core tooltip says Eternity needs
+   Universium until the swap ships. **Suggestion:** build the swap with P4 (rewrite the pack's Eternity QFT recipe to
+   take Ergomatter, behind `replaceTecTechEyeOfHarmony`), then set `ETERNITY_BEFORE_T10` and the questbook flag in the
+   same commit. *Alternative:* replace Eternity here with something pre-T10 (anchor IV molten Time is already
+   anchor III; Superdense Ergomatter or MagMatter for SL-H20/R02).
+4. **D-49 teaching corrected.** The tooltip, doc H-6 and the questbook outline claimed five T1 Homogenies keep a T3
+   Eye fed "without a second Eye". One live star per Eye and only Sol makes Raw Star Matter: Arcturus' 1,250 L/min of
+   ESPM is 125,000 L/min of Raw Star Matter through Homogenies (2.5 Sols), while a second Eye on Sirius A needs 25,000
+   L/min. The tooltip now says the Homogeny costs 10x the Raw Star Matter an Eye T2 needs and suits banking a Sol
+   surplus or a hands-off line; Eye T2 is still required. **Open:** if the "keeps a T3 fed" role is wanted, the ratio
+   has to change (e.g. 10 : 1 at the 10x-slower speed). *Suggestion:* keep 100 : 1 (D-46/D-47 as ruled).
+5. **The Homogeny caps are Reinforced Temporal Structure Casing** (closes B-78 item 6). The column caps were 2,430
+   Godforge Boundless casings (1,215 Godforge crafts, more than a Godforge module) plus 615 Godforge lens-glass
+   blocks, on an optional UMV side machine. Now: 2,430 Reinforced Temporal Structure Casing (TecTech's Eye casing, x32
+   in the BEC since ruling 11a: 76 crafts) with Quantum Glass centres; the mockup has a new `temporal` voxel kind.
+   Hatches and the controller take the Temporal casing texture. The throat tip's 5-cell Region Crystal still accepts
+   the Godforge lens as its survival fallback (B-76 item 3). Existing T1 test builds must be re-placed (the caps'
+   block changed). B-78 item 7 (Reality lens glass) stays open.
+6. **Reality Refab sketch fidelity: the lower hull runs to the foot.** The export closed the hull at y -40 and left a
+   bare stem for 21 blocks, so the machine read as a goblet on a post; the sketch's lower lines run from the belt to
+   the foot. The lower hull is now a tall half-oval (b 58 instead of 34) from the belt (r 34) down to the foot skirt
+   (r about 15 at y -62); the ribs and glass panels run -62 .. -5.5, and the stem and its Ground Anchor crystal stand
+   inside. The piece grew from 59,245 to 65,187 cells (hull +2,260, glass +3,092, tray +581); box unchanged (104 x
+   139 x 83). Costs §12 updated.
+7. **Quasar stability: cells reserved, one hook each, tooltips honest** (P4 design of record, quasar-p4.md §3.1). The
+   built machines said "no stability field" while P4 makes the Homogeny T2/T3 and the Diffraction Quasar hosts.
+   Built: 3 `g` cells on the T2 stirring ring's outer face (90, 210, 330 degrees, where a spoke meets it from inside)
+   and 6 `g` cells on the Diffraction's top deck band (one per 60 degrees). Each is its ring's casing now (Galactic
+   Shell / Region Deck Band); P4 chains the GRB Receptor Port (28125) in front of that casing, so adding the port never
+   un-forms a standing build. Hooks: `MTEHomogeny.quasarSigma()` / `minSigma(recipe)` (refusal
+   `homogeny.stability`) and `MTERealityDiffraction.quasarSigma()` / `MIN_SIGMA` (refusal `reality.stability`), all 0
+   until P4 (lang keys added). Tooltips say a Quasar link will speed T2/T3 up and Entanglement Medium will need one,
+   and that the Diffraction's regions will be stabilised. *Suggestion:* P4 fills these in exactly as §3.1's host table
+   says (Homogeny D_h 1.5 / 6, Entanglement Medium at sigma >= 1; Diffraction D_h 24, pause below 0.5).
+8. **Questbook merge (rule 15).** The Homogeny T1 and T2 are reachable now, but the questbook branch still has them
+   as `needs: ["homogeny"]` placeholders with "It will ..." text and the old D-49 claim. The conversion is in the build
+   spec's "Contract additions (H/R review fixes)" so the merge pass does it; nothing on this branch touches the
+   questbook.
+
+**Alternatives.** Periodic checks via `doPeriodicChecks = true` instead of the 1 s push (GT's own back-off schedule,
+but it is reset by every walk); build the Eternity swap now on this branch; keep the Godforge caps and call the
+Homogeny a post-Godforge build; draw new port cells outside the current shapes when P4 lands (un-forms builds).
+
+---
+
+### B-81 Merging tidy-old-multis, questbook and homogeny-reality into master: renumbered H/R questions [merge]
+
+**What was done.** The three finished branches are merged into master in this order, each as its own merge commit:
+`tidy-old-multis` (the presentation tidy of the nuclear plant and production halls), `questbook` (the jar-bundled
+Singularity Ladder questbook and its installer) and `homogeny-reality` (the Homogeny, Reality Diffraction and Reality
+Refab). `spotlessApply compileJava` passed after each.
+
+- **Question numbers.** The H/R branch numbered its questions B-60..B-63 and B-65..B-67 (it skipped B-64, master's
+  BEC expansion), all already used by master. Master keeps B-01..B-73; the branch's seven entries are now
+  **B-74..B-80** (B-60 -> B-74, B-61 -> B-75, B-62 -> B-76, B-63 -> B-77, B-65 -> B-78, B-66 -> B-79,
+  B-67 -> B-80). Only lines that came from the branch were rewritten (the questions, the build spec's H/R sections,
+  costs §12, the code comments in `BTSRecipesReality`, `SLGateDump`, `MTEHomogeny`, `MTERealityBase`,
+  `MTERealityRefab`, `RealityProcessRecipes` and the exporter's column-cap legend line, so `manifest.json` was
+  re-exported). H/R's references to master's B-50 and B-64 were left alone. The table is under "Where the old
+  question numbers went". Branch commit messages keep the old numbers. The tidy branch's TQ-2..TQ-8 are their own
+  series (Part D) and the questbook branch added no B entries, so nothing else moved.
+- **p4-quasar still carries the old numbers.** It merged `homogeny-reality` before this renumbering (`c8f8ca7`), so
+  its copy of the questions doc has the H/R entries as B-60..B-67 next to master's B-60..B-67. When p4-quasar is
+  merged, take master's B-74..B-80 for those seven entries and apply the same mapping to any P4 text that cites them
+  (P4's own entries are P4-nn and do not collide).
+- **Code conflicts** (all additive, both sides kept): `BTSRecipes` runs `bec`, `automation`, then `reality-process`
+  and `reality` (as P4 resolved it); `BTSFluids` registers `SLCondensates` then `SLRealityFluids`; `BTSMachines` has the
+  Directive Hatch (28127) beside the Homogeny (28130), Reality Diffraction (28131) and Reality Refab (28132) with one
+  ledger comment; `SLItems.defineWithTooltip` is package-private (H/R's `SLMaxItems` uses it) and builds the tidy
+  branch's shared `BTSTooltipItem`; `/btskit` keeps the tidy usage form, lists and tab-completes the three H/R kits;
+  the costs audit's title names §11 (BEC) and §12 (H/R). The questbook merge kept master's OpenComputers registration
+  and `renderKerrHole` beside the branch's questbook listener and config keys.
+- **Structures.** Master had not touched the exporter or the shapes since the H/R branch left it, so the merged
+  shapes are the branch's (exported from design-repo `a01c6b6`, voxel sha `2742379a5cf9`); `--check` against that
+  voxel.js is clean. The design repo's working voxel.js has since moved on with P4 (`1b407b3`); re-exporting from it is
+  P4's merge.
+- **Checks.** Lang has no duplicate keys, and every literal `ofFailure` / `ofSuccess` id has its RC-2
+  `recipe_result` key. No in-game run was part of the merges.
+
+**Suggestion.** Nothing to decide unless you would rather the H/R questions kept their branch numbers (that would mean
+renumbering master's render QA, automation and package entries, which the brief and INSTALL.md already cite).
+
 ## Part C. Settled (for the record)
 
 | Topic | Your answer | State |
@@ -2752,6 +3172,12 @@ The full original wording of Q-1..Q-38 is in git history (addon commit 457bbf8).
 master had already used for the RC-2 package and D-49 entries. They are now B-46..B-57: old B-33 -> B-46, B-34 -> B-47,
 B-35 -> B-48, B-36 -> B-49, B-37 -> B-50, B-38 -> B-51, B-39 -> B-52, B-40 -> B-53, B-41 -> B-54, B-42 -> B-55,
 B-43 -> B-56, B-44 -> B-57. Commit messages on the branch keep the old numbers; docs and code comments use the new ones.
+
+**Homogeny / Reality questions (merge of `homogeny-reality`, B-81).** The branch numbered its questions B-60..B-63 and
+B-65..B-67, which master had already used for the D-49 review fixes, the BEC expansion, the render QA and the
+automation pass. They are now B-74..B-80: old B-60 -> B-74, B-61 -> B-75, B-62 -> B-76, B-63 -> B-77, B-65 -> B-78,
+B-66 -> B-79, B-67 -> B-80. Commit messages on the branch (and the p4-quasar branch's copy of these entries) keep the
+old numbers; master's docs and code comments use the new ones.
 
 ---
 
