@@ -52,7 +52,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
   per-block costs, per-tier totals and the BHC / TecTech Eye / Godforge / Nano Forge comparison. It found two
   uncraftable chains (Kerr T2 and Eye T2-T4) and an Eye T1 at 8× TecTech's Eye: B-21..B-24, 15 proposed changes.
   **Applied (recipe audit pass):** every block and item in the BOM now has a recipe that can run; costs doc §6 lists
-  what was applied and how (B-25, B-26 are the new judgement calls).
+  what was applied and how (B-26, B-28 are the new judgement calls).
 - **NEI multiblock preview.** The controllers implement the hologram interfaces, but nobody has opened the NEI
   "Multiblock" tab for them yet, or checked whether it caps the size of what it renders.
   **Checked against the bytecode (acceptance pass):** the preview finds both controllers on its own, counts Kerr 2
@@ -504,7 +504,7 @@ Eye T2 / T3 / T4. Their TecTech recipes take 2 / 8 / 32 **White Dwarf Matter bol
 deadlock. The spec's §0 note ("no WDM/BDM markers in the generator recipes") only checked the Tier-8 recipe.
 
 **What we built.** Nothing yet.
-**Built (recipe audit pass):** SL-P30..P32, with the optional upgrade folded in; see B-25.
+**Built (recipe audit pass):** SL-P30..P32, with the optional upgrade folded in; see B-28.
 
 **Suggestion.** Three alternate assembly-line recipes of ours (SL-P30..P32, registered only with the flag on):
 TecTech's own inputs, research and duration, with the WDM bolts replaced by the previous tier's product as a 4th
@@ -596,7 +596,9 @@ twice.
 - *Alternatives:* keep +90 and fail the bounce above +40 (the Stable band), which also needs about 50,000 L; or keep
   it as written and treat the collapse as a holding test.
 
-### B-25 Compression generators: upgrade the old tier, researched from the star charts [recipe audit pass]
+### B-28 Compression generators: upgrade the old tier, researched from the star charts [recipe audit pass]
+
+*Numbered B-25 until the follow-up review; renumbered because the D-49 prototype section above already had B-25.*
 
 **Context.** B-22: Eye T2-T4 need TecTech's tier 2-4 Spacetime Compression Field Generators (metas 1-3), whose
 recipes take White Dwarf Matter bolts, and WDM has no source while TecTech's Eye is off. The audit proposed

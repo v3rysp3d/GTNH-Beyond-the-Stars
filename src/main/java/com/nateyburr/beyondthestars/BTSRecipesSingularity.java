@@ -490,7 +490,7 @@ public final class BTSRecipesSingularity {
     /**
      * SL-P30..P32: Spacetime Compression Field Generator tier t-1 -> tier t, for t = 1..3 (TecTech
      * metas 1-3, the gates of Eye T2/T3/T4 under the 1:1 rule, Q-20). Cost audit #2 and #15, B-22,
-     * B-25.
+     * B-28.
      * <p>
      * TecTech's own recipe for tier t takes 2 / 8 / 32 White Dwarf Matter bolts, and with its Eye
      * removed WDM's only source is our Eye T4: Eye T2 could never be built. This recipe is TecTech's
