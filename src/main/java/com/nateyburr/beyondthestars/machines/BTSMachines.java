@@ -93,5 +93,16 @@ public final class BTSMachines {
             base + 12,
             "multimachine.beyondthestars.sitebatchingplant",
             "Site Batching Plant").getStackForm(1);
+
+        // SINGULARITY LADDER ID BLOCK (singularity-ladder-build.md §3.4): base+14..base+39 =
+        // 28114..28139 is reserved, contiguous, for the ladder. Frozen once shipped.
+        // base+14 (28114) Kerr Ergosphere Engine multimachine.beyondthestars.kerrengine (P2)
+        // base+15 (28115) Eye of Harmony multimachine.beyondthestars.eyeofharmony (P3)
+        // base+16..19 reserved P2/P3 spares (none planned; module sockets use GT hatches)
+        // base+20..29 P4: Quasar Engine 20, Wormhole Mouth 21, Conduit Mirror 22,
+        // Conduit Junction 23, Burst Thermaliser Crown Mk I/II/III 24-26, spare 27-29
+        // base+30..34 ON HOLD: Homogeny 30, Reality Diffraction 31, Reality Refab 32, spare 33-34
+        // base+35..39 spare
+        // The Kerr and Eye units each append their own single registration line below.
     }
 }
