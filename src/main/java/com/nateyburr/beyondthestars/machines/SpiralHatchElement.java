@@ -3,6 +3,9 @@ package com.nateyburr.beyondthestars.machines;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+
+import net.minecraft.util.StatCollector;
 
 import gregtech.api.interfaces.IHatchElement;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
@@ -46,5 +49,16 @@ public enum SpiralHatchElement implements IHatchElement<MTEReactorCoreMk1> {
     @Override
     public IGTHatchAdder<? super MTEReactorCoreMk1> adder() {
         return adder;
+    }
+
+    /** Lang key of this socket's player-facing name (structure errors, NEI preview, hints). */
+    @Override
+    public String getDescriptionLangKey() {
+        return "beyondthestars.hatch." + name().toLowerCase(Locale.ROOT);
+    }
+
+    @Override
+    public String getDisplayName() {
+        return StatCollector.translateToLocal(getDescriptionLangKey());
     }
 }
