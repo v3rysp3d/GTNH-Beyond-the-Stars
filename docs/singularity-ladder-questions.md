@@ -110,8 +110,8 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
   ...") are left for that merge. [B-87]
 - Eye T8 / T9's gates loop through Resonance Chamber IV's MHDCSM foil. [B-29 "For P4/P5"]
 
-- The merge + playtest run (B-88) passed headless; the Cascade Hall tooltip fix is in. Optional: make the Cascade
-  Hall's walk require two output hatches unless one is ME. [B-88 fix 1]
+- The merge + playtest run (B-88) passed headless; the Cascade Hall tooltip fix is in, and the walk now requires two
+  output hatches unless one is ME (B-89). [B-88 fix 1, B-89]
 
 **To see in a client** (the headless dev server cannot): the hologram hints, a survival build from a real AE system,
 the NEI multiblock tab and its frame rate (a T6 Eye is 51,935 blocks), every GUI (Eye, KEE, modules, Directive Hatch,
@@ -186,7 +186,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-88
+## Part B. Entries B-1..B-89
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -3330,7 +3330,7 @@ and Resonance Chamber II had two recipes in NEI (GT's with a White Dwarf Matter 
    recipe in NEI. **SL-P39 is retired**; its id stays reserved and its body registers only if no GT chamber recipe is
    found to rewrite. SL-P33 (the Black Dwarf-free Resonance Chamber III for the T5 gate) is unchanged, a separate
    recipe as before: you ruled on chamber II only. *Suggestion:* give it the same in-place treatment.
-2. **SL-U00..U48: tier t-1 -> t in the Condensate Assembler** (`BTSRecipesGeneratorUpgrade`, same flag). The inputs
+2. **SL-U00..U48: tier t-1 -> t in the Condensate Assembler** (`BTSRecipesGeneratorUpgrade`; since B-89 whatever the flag says). The inputs
    are derived at load from GT's own tier t and t-1 recipes, so they follow the pack:
    - **Compression (SL-U01..U08) and Time Dilation (SL-U11..U18):** the tier t-1 generator, plus every item and
      condensate GT's tier-t recipe takes MORE of than its tier t-1 recipe. An item that changes identity between tiers
@@ -3662,6 +3662,39 @@ worlds:
 - Diffraction / Refab runs (they need P4/P5 fluids).
 - The Yellowcake Mill's own run: its bench input is not the recipe-map kind. It reported the missing Uraninite
   correctly.
+
+
+### B-89 Review fixes after the playtest: the Cascade Hall's two output hatches, the upgrade path with the flag off [review, built]
+
+1. **The Cascade Hall now refuses to form with one plain Output Hatch** (`d84b270`; the alternative B-88 fix 1 left
+   open).
+   - Every cascade recipe makes two fluids (the cut and the tails). A plain Output Hatch holds one, so a hall with one
+     hatch formed and then sat at "Not enough fluid output space" with no structure error.
+   - `checkMachine` now wants 2 output hatches or 1 ME Output Hatch. Otherwise it reports "The Cascade Hall needs 2
+     Output Hatches (one per stream: the cut and the tails) or 1 ME Output Hatch"
+     (`beyondthestars.structure.cascade.outputs`).
+   - The output-hatch element counts 2, so the projector's survival path fills both cells. With GT's default count of
+     1 it placed one hatch and casing in the other cell, and that hall would no longer form.
+   - A hall that was already built with one plain hatch stops forming. That takes away no working setup: it could
+     never finish a run.
+   - Dev server (`fix89`): the projector build is FORMED with 2 hatches. One plain hatch gives NOT FORMED with the new
+     error. An ME hatch alone gives FORMED. Two plain hatches run F-11 (70,000 L enriched + 350,000 L tails at 72/126).
+2. **The field-generator upgrade path registers whatever `replaceTecTechEyeOfHarmony` says** (`f5637d8`).
+   - B-83 registered SL-U00..U48 only with the flag on. But our Eye, its 1:1 compression gate, the tooltip line "Tier
+     step: upgrade each generator in place ... + Retrofit Kits" and the Retrofit Frame / Kit items exist with the flag
+     off too. With the flag off, the tooltip taught a recipe that did not exist, and every tier step re-crafted 188
+     compression generators, each with a Kerr or BHC controller inside.
+   - The recipes are derived from GT's own generator recipes and keep whichever controller the pack's recipe holds, so
+     they also serve TecTech's Eye. This is the same reasoning as B-26 for SL-P27..P29.
+   - Dev server: with the flag off, "40 Condensate Assembler recipes + the Retrofit Frame, 0 skipped", and GT's lookup
+     finds all 40 (277 registered / 0 skipped). With the flag on, the same (278 / 0).
+   - *Alternative:* keep the gate and make the Eye tooltip line, the questbook paragraph and the kit items follow the
+     flag.
+3. **Test bench** (`4fa9675`): `firstErrors` clears the hatch lists before its walk, as GT's `checkStructure` does.
+   Without the clear, every hatch was added twice and a hatch-count check passed on the doubled list, so the bench
+   printed no error for a hall that was not formed.
+
+Also: `fieldsim-golden --check --java` 78 / 78, and `spotlessApply compileJava` clean.
 
 ---
 
