@@ -100,6 +100,51 @@ the coremod's BHC entries on every bump.
 
 ## What's in the build (2026-10-12, addon 457bbf8)
 
+### D-49: the Eye's star lifecycle (units 1-6, 2026-10-13)
+
+This block supersedes the Eye rows below where they differ. Plan: [`d49-build-plan.md`](d49-build-plan.md); judgement
+calls: questions B-34..B-38 and B-45.
+
+- **Live stars, T1-T6.** A star chart in the controller slot picks the star; it burns live, in 60 s cycles of
+  wireless EU and upkeep, and is held by a four-gauge stability field (P, Θ, Ω, Π) fed from the Field sockets.
+  T1 Sol (Raw Star Matter), T2 Sirius A (Excited Stellar Plasma), T3 Arcturus (Raw Hyperdense Stellar Plasma) light
+  from a **Stellar Ignition Charge** in a plinth input bus; T4 the neutron star (White Dwarf Matter from a fed
+  Hyperdense Stellar Mixture); T5 Sirius B cooling batches (Black Dwarf Matter); T6 the magnetar SGR 1806-20
+  (Magnetar Matter, Antipolarization Agent as the constant feed). Planets still run as batch runs.
+- **Tiers unlock in order:** the current star's milestones, then the next core right-clicked into the escrow, then
+  that tier's transition: Mass Infusion, Shell Ignition, Core Collapse (with supernova suppression), First Cooling,
+  Magnetar Merger. Bands are cumulative; the compression gate stays 1:1.
+- **Sockets:** 8 Field (plain input hatches, unbuffered trims; ME stocking hatches are refused) and 8 Sensor
+  (Stellar Field Sensor Hatch, MTE 28116) sockets on the core band; input buses on the plinth gas sockets; 4 rim
+  stellar sockets at T6.
+- **Stellar Field Sensor Hatch:** one field channel (P, Θ, Ω, Π, shield, Integrity, Stability, zone, the event
+  warnings, upkeep OK, the T5 setpoint error) as digital or analog redstone, pushed every field second. Output is
+  cover-friendly: GT's Redstone Transmitter (Internal) and Advanced Wireless Transmitter (Internal) covers carry it
+  to a wireless channel, and covers that drive their own side are never overwritten.
+- **GUI (MUI2):** the tier line, the star and its state, one bar per active gauge with the zone bands (the T5 bands
+  follow the cooling setpoint), Stability / Y / Lock / Integrity, the event warning, upkeep r and the next cycle, the
+  dial and HSM feed (with - / + buttons in the gap row), the transition with a progress bar, milestones and escrow,
+  the last failure, and a Field side panel (zone legend, sockets, every sensor's status, the trims this second, the
+  standard rig). The screwdriver still steps the dial (sneak: the feed).
+- **Centre render:** the Eye draws its current object at the centre of the structure while it is formed and its star
+  exists: the igniting protostar, the live star (Sol 9, Sirius A 11, Arcturus 15 blocks, each in its own colour),
+  the neutron star, the white dwarf cooling to black over its batch, the magnetar (throbbing on its flare warnings),
+  and the Core Collapse (Arcturus swelling, then the bounce's shock shell, or a supernova flash). It uses TecTech's
+  star shader and textures (the Forge of the Gods' `tectech:star` and `StarLayer0..2`). Config `eyeRenderCentre`
+  and a per-Eye switch in the GUI; the render block is placed only into air, never into a block, and removes
+  itself when its Eye is gone.
+- **NEI:** the star pages (per cycle, up to 4 fluids), the transition pages and the stability-field pages (display
+  only).
+- **Bench (op, console):** `/btseye t1..t6 <x> <y> <z> [facing] [gen n] [fill]` builds an Eye;
+  `/btseye star <x> <y> <z> ...` drives the star (status, target, lit, sim, rig, unlock, milestones, core, escrow,
+  sensor, probe, wrench, legacy, field, **render [on|off]**: the centre cell and its look).
+- **Cost:** Eye T5 and T6 are in [`singularity-ladder-costs.md`](singularity-ladder-costs.md) §10: each step is
+  about 2.4e15 / 3.0e15 EU, almost all of it the 188 compression generators of the next tier.
+- **Verified headless** (dev server): the field equals the prototype (78 golden cases, COMPARE PASS in game), every
+  transition completes and unlocks its tier, the supernova path, persistence, the wrench, the save migration, and
+  the centre render's placement, looks and removal (B-45). **Not yet seen in a client:** the GUI and the render's
+  drawing.
+
 The jar loads cleanly in the test instance: "[BTS] Recipe registration complete: 255 registered, 0 skipped", with no
 errors and no crash. The boot log also confirms:
 
@@ -165,7 +210,7 @@ errors and no crash. The boot log also confirms:
 - `replaceTecTechEyeOfHarmony` (true) removes TecTech's Eye recipes and its controller recipe.
 - `removeBlackHoleCompressorRecipe` (true) removes the BHC controller recipe.
 - `interimBlackDwarfAtEyeT4` (true) adds the interim Black Dwarf recipe at Eye T4.
-- `eyeRenderCentre` has no effect yet.
+- `eyeRenderCentre` (true) draws the Eye's star at its centre (D-49 unit 6; see the D-49 block above).
 
 **Follow-up pass (round-3/4 rulings, after 4bd6bf2).**
 
@@ -202,7 +247,7 @@ found two dead ends and several over-priced blocks; §6 there lists what was app
   BlockRenderer6343 bytecode ("Hologram & NEI" below), but nobody has opened them in game yet. **Structure
   formation is now verified headless** (questions B-27): on a dev server, every Kerr and Eye tier formed in all
   four facings through both the creative and the survival hologram paths, with the orientation as in the mockup.
-- The Eye's centre render.
+- The Eye's centre render. *Built in D-49 unit 6*; not yet seen in a client.
 
 ---
 
@@ -1455,6 +1500,42 @@ Every plain element is wrapped in `noOverwrite`.
 4. the NEI page.
 
 Each step runs inside `BTSRecipeRemovals.guard`. The old-save behaviour is in `docs/migration.md`.
+
+## Contract additions (Eye, D-49)
+
+Units 1-6 of [`d49-build-plan.md`](d49-build-plan.md). Where this disagrees with "Contract additions (Eye)" above,
+this section wins.
+
+### Files
+
+| File | What it is |
+|---|---|
+| `machines/eye/field/*` | The pure field engine (`StellarField.step`, `TierParams`, `TrimDef`, `EventDef`, `FieldState`, `FieldRng`, `CollapseOverlay`, `FieldReadout`, `FieldRig`, `FieldSim`). No Minecraft types; bit-identical to the prototype (`tools/fixtures`, the golden file). |
+| `machines/eye/star/EyeStarRuntime.java` | Per controller: the star's state machine, cycles, ignition, dial, trims, feed, output, milestones, escrow, transitions, publishing. Read-only accessors for the GUI and the render. |
+| `machines/eye/star/EyeTransition.java` + five subclasses | The transitions as field overlays. |
+| `machines/eye/star/StarDef.java`, `EyeMilestones.java`, `EyeNbt.java`, `EyeStarBench.java` | The star table, the milestones, the one NBT writer and reader with the migration, the bench. |
+| `machines/eye/MTEHatchStellarFieldSensor.java` + `StellarFieldSensorGui.java` | MTE 28116 and its GUI. |
+| `machines/eye/EyeGui.java` | The controller's MUI2 GUI (`getGui`). |
+| `machines/eye/render/EyeStarLook.java` | What the centre shows (kind, radius, colour, gamma, spin, wobble), from the runtime. Pure data. |
+| `machines/eye/render/EyeCentreRender.java` | The server half of the render: places, updates and removes the render block. |
+| `machines/eye/render/BlockEyeStar.java` + `TileEyeStar.java` | GT's `BlockRenderer` (as the BHC) and the synced, self-policing render tile. |
+| `machines/eye/render/EyeStarRenderer.java` | The client TESR (TecTech's star shader, textures, sphere and cull helpers). Registered in `ClientProxy`, with GT's resource-reload hook. |
+
+### Centre render
+
+- **Cell:** the voxel origin of `designs/voxel.js` (where the mockup draws its star). From the controller it is
+  `(a, b, c) = (-x, y, z)` of `manifest.json` `machines.eye.controllerVoxel`, i.e. `(0, -40, 40)`, through
+  `ExtendedFacing.getWorldOffset`. Every piece leaves it empty; the nearest structure block is 20.9 blocks away.
+- **Shown** while formed, the star exists (IGNITING, LIT, PENDING, BATCH; not DARK or IDLE), the per-Eye switch is
+  on and `eyeRenderCentre` is on (the client checks its own copy before drawing). A supernova keeps the block 60
+  ticks for its flash.
+- **Placed** only into air, never over another block (the scanner and GUI then say "clear that block"); it never
+  loads a chunk. **Removed** at once on unform, star out, IDLE, switch off, a turned controller, break and wrench
+  (`onBlockDestroyed`, `onRemoval`). The tile checks its owner every 100 ticks and turns to air if the owner's cell is
+  not loaded or no Eye there claims it, so a block can never be orphaned.
+- **NBT:** the per-Eye switch (`btsEyeRender`) through `writeEyeState` (item and tile); the block position
+  (`btsEyeRenderPos`) tile only. The look is synced by the tile's description packet, only when it moves (2 % radius,
+  any colour, 0.05 gamma or spin, 0.02 wobble).
 
 ---
 

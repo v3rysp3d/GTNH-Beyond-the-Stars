@@ -1,4 +1,4 @@
-# Singularity Ladder: recipe completeness and cost audit (Kerr T1/T2, Eye T1-T4)
+# Singularity Ladder: recipe completeness and cost audit (Kerr T1/T2, Eye T1-T4; Eye T5/T6 in §10)
 
 Status: audit, 2026-10-12, addon `7a47289`. **GTNH 2.9.0-RC-2 port: see §9 for the BHC→Kerr swap, the Kerr controller price and the RC-2 gate audit.** It reads the code and the jars and changes no code. **The recipe audit
 pass has since applied it: see §8 for what was applied, changed or skipped.** It answers the
@@ -482,3 +482,63 @@ generators, which the stock EOH needs before it can make anything.
 
 **Lost with SL-P30..P32:** the "upgrade the old generator" path (#15 / B-28). Each Eye tier step re-crafts 188
 generators from scratch, as stock RC-2 does for TecTech's Eye. B-29 lists the alternative (a BEC upgrade recipe).
+
+---
+
+## 10. D-49: Eye T5 and T6 (second arms, galactic rim, their gates, cores and charts; 2026-10-13)
+
+Sources: `manifest.json` at HEAD (pieces `eye_arms2`, `eye_rim`), our recipes at HEAD (SL-P17, SL-P29, SL-P33,
+SL-P35, SL-P37, SL-E05, SL-E06), and GT 5.09.54.205's `BECRecipes.addSpacetimeCompression` (the Condensate Assembler
+recipe for every Spacetime Compression Field Generator tier). Same conventions as above: ingots, circuits rolled up,
+EU = EU/t × ticks, machine-hours on one machine with no overclock or parallel. Computed by hand from the per-block
+figures in §3.2 (the audit's model script is not kept); the arithmetic is in the questions file, B-45.
+
+### 10.1 Completeness
+
+| Tier | Block / item | Count | Recipe | Status |
+|---|---|---|---|---|
+| T5 | Galactic Shell Plating (`T`) | 5,065 | SL-P17 ASM ×16 (250 L HSM) | ✔ |
+| T5 | Infinite Spacetime Energy Boundary (`J`) / Quantum Glass (`Z`) | 762 / 404 | SL-P29 ×8 / TecTech | ✔ |
+| T5 | Compression generators, TecTech tier 5 (Superb, meta 4), all 188 `W` cells | 188 | RC-2 BEC: Resonance Chamber **III** ×1, White Dwarf nanites, UXV ×5, a Kerr controller | ✔ with **SL-P33** (the chamber with 2 WDM foils for GT's BDM foil: BDM is T5's own product, B-35) |
+| T5 | Subspace Cooling Core (the First Cooling's core) | 1 | SL-E05 AL (WDM 147,456 L, DSSF 256,000 L) | ✔ (WDM: Eye T4) |
+| T5 | Star Chart: Sirius B | 1 | SL-P35 (WDM 1,000 L) | ✔ |
+| T6 | Galactic Shell Plating (`T` + the 4 `g` rim sockets) | 7,290 | SL-P17 | ✔ |
+| T6 | Boundary / Quantum Glass | 3,159 / 753 | SL-P29 / TecTech | ✔ |
+| T6 | Compression generators tier 6 (Exotic, meta 5) | 188 | RC-2 BEC: Resonance Chamber III ×4, Creon, UXV ×6, a Kerr controller | ✔ (SL-P33 again; nothing T6 or later in it) |
+| T6 | Magnetar Seed Core (the Magnetar Merger's core) | 1 | SL-E06 AL (BDM 36,864 L, Agent 64,000 L) | ✔ (BDM: Eye T5) |
+| T6 | Star Chart: SGR 1806-20 | 1 | SL-P37 (BDM 1,000 L) | ✔ |
+| T6 | Antipolarization Agent (upkeep) | per cycle | `BTSRecipesStellar` chain | ✔ |
+
+Gate audit (§9.4's rule): the tier-5 generator needs nothing first made at Eye T5 or later once SL-P33 replaces the
+BDM foil; the tier-6 generator needs BDM (T5) and nothing from T6. Both clean.
+
+### 10.2 Totals per tier step (increments on the tier below)
+
+| Tier step | Blocks | Infinity | Transc. Metal | Neutronium | Cosmic Neut. | SpaceTime | Godforge shield casings | Circuits UIV / UXV | Main fluids | EU | Machine-hours |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Eye T5 band only (`eye_arms2`) | 6,231 | 22.8k | 6.3k | 6.9k | 9.4k | 762 | 0 | 381 / 0 | HSM 79k L | 4.6e13 | 5 |
+| Eye T5 gate (188 tier-5 generators) | | 60k (superdense) | 60k | 18.8k (condensate) | 60k | 1.9k (condensate) | 3,760 | 0 / 940 | Boundless Cosmic Solder 7.5M L, 188 Kerr controllers, 188 Resonance Chamber III (376 WDM foils) | 2.4e15 | 261 |
+| Eye T5 core + chart | | | | | | 1.5k | | 0 / 17 | WDM 148k L, DSSF 256k L | 2.4e13 | 0.7 |
+| **Eye T5 increment** | **6,231** | **83k** | **66k** | **26k** | **70k** | **4.1k** | **3,760** | **381 / 957** | | **2.4e15** | **267** |
+| Eye T6 band only (`eye_rim`) | 11,202 | 32.8k | 9.1k | 28.4k | 32.1k | 3.2k | 0 | 1,580 / 0 | HSM 114k L | 1.1e14 | 12 |
+| Eye T6 gate (188 tier-6 generators) | | 72k | 72k | 22.6k | 72k | 1.9k | 4,512 | 0 / 1,128 | Boundless Cosmic Solder 9.4M L, 188 Kerr controllers, 752 Resonance Chamber III | 2.8e15 | 313 |
+| Eye T6 core + chart | | | | | | 2.6k | | 0 / 33 | BDM 38k L, Agent 64k L | 6.0e13 | 0.8 |
+| **Eye T6 increment** | **11,202** | **105k** | **81k** | **51k** | **104k** | **7.7k** | **4,512** | **1,580 / 1,161** | | **3.0e15** | **325** |
+| REF one Eye T2-T4 step in RC-2 (188 generators of tier 1-3) | | | | | | | 1,504-3,008 | 0 / 376-752 | | **7.1e16-1.2e17** (BEC times 3-5M ticks) | 7.8k-13k |
+| REF TecTech's EOH, compression tier 4 → 5 | 1,820 (whole EOH) | | | | | | 138 × 20 = 2,760 | 0 / 690 | | 1.7e15 | 192 |
+
+How to read it:
+
+- **The bands are cheap; the gates are the price.** The arms and the rim together cost about 1.5e14 EU and 193k L
+  HSM, under 6 % of the two gate steps. That is the plan's §10.5 finding, and the TecTech parity rule (B-30): our gate
+  is 188 cells where TecTech's is 138, so each step is 1.36× TecTech's own step to the same tier.
+- **RC-2's own generator times are odd:** tiers 1-3 (our Eye T2-T4 gates) take 3, 4 and 5 million ticks per
+  generator, tier 4 and 5 (our T5/T6 gates) 100,000 and 120,000. So T5 and T6 are each about 30× cheaper in EU and
+  hours than the step to T2. This is stock GT data, not ours; B-45 logs it.
+- **Running costs** (per parallel, `StarDef`): T5 takes an 18,432 L WDM charge per 2-hour batch, 3.9e13 EU a cycle
+  (4.6e15 per batch), and DSSF trims (about 100,000 L a batch in the prototype's rig). T6 takes 3,000 L of
+  Antipolarization Agent a cycle (the constant feed, B-37), 1.55e14 EU a cycle (9.3e15 an hour), Agent shield trims,
+  and the merger charge (WDM 18,432 + BDM 4,608 + Agent 100,000 L) with WDM 1,800 + BDM 450 L top-ups every 50
+  cycles.
+- **Verdict: fair.** Every block and item has a recipe, nothing loops, and each step is in line with TecTech's own
+  step to the same compression tier.

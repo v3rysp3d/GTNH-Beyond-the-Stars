@@ -37,6 +37,8 @@ Kerr module" lists the steps for the next one.
 
 ### A-2 Upgrades still install instantly [Q-10, Q-24, Q-38]
 
+**D-49 status (unit 6).** Superseded for the Eye: the Galactic Upgrade Core (and the four new cores) go into an escrow by right-click and are consumed only by a successful transition, after the current star's milestones (B-37). The Kerr Density Upgrade belongs to the Kerr redesign branch.
+
 Your ruling is milestones plus an install run (see B-1 for the numbers). Today a plain right-click with the Kerr
 Density Upgrade or the Galactic Upgrade Core installs it at once. Both machines route the install through one method
 each, so the mechanic can drop in without rework. It is blocked only on the numbers in B-1.
@@ -74,6 +76,8 @@ The build compiles, loads and registers every recipe. These checks from your acc
 ## Part B. Needs your decision (most important first)
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
+
+**D-49 status (unit 6).** Superseded for the Eye by D-49's milestones, escrow and transitions (numbers in B-37, `EyeMilestones`). Still open for the Kerr only.
 
 **Context.** You ruled "milestones + install run" for the Kerr Density Upgrade (Kerr T1 → T2) and the Galactic
 Upgrade Core (Eye T3 → T4). The upgrade is consumed and permanent, and an install survives a wrench.
@@ -127,6 +131,8 @@ Universium, D-45; the Eternity loop on Ergomatter, D-48) no later than P4.
 
 ### B-3 What Time Dilation and Stabilisation do, and the tier-gating block [Q-16, Q-20, Q-29]
 
+**D-49 status (unit 6).** Answered by the approved D-49 proposal: Time Dilation sets the time dial's cap (1 + 0.25 x (tier - N)) and Stabilisation sets q (1 - 0.05 x (tier - 1)), which scales the field's noise and events. Compression stays the 1:1 gate. Planets keep only the compression time reward.
+
 **Context.** Following your rulings:
 
 - The Spacetime Compression Field Generators hard-gate the Eye's tier 1:1. Eye T4 needs compression tier 4 in every
@@ -169,6 +175,8 @@ reward).
 
 ### B-5 Eye balance: outputs, run times, power, success [Q-5, Q-6, Q-31]
 
+**D-49 status (unit 6).** Stars are now per-cycle (60 s) with upkeep, EU per cycle and output x mean Y x r (`StarDef`, plan §6.1); success is no longer rolled for stars. Q-31's batch-run model is replaced. The numbers below apply to planets only.
+
 **What we built** (every number is a proposal):
 
 | Tier | Star | In → out per run | Time |
@@ -200,6 +208,8 @@ The White Dwarf figure matches TecTech's best per-run amount, at about 5× its s
 - Laser or energy hatches instead of wireless.
 
 ### B-6 Eye T2 and T3 unlock by building the band; band names [Q-2, Q-11, Q-13]
+
+**D-49 status (unit 6).** Bands are cumulative now: T3 needs T2 (my answer 2), and every tier also needs its transition. The band names are unchanged.
 
 **Context.** The design says each band is "unlocked by an upgrade core", but cores exist only for T4, T7 and T10.
 Eye T2 is also optional by design (D-42). You accepted Eye T2 as the interim Excited Stellar Plasma source while the
@@ -259,6 +269,8 @@ Galactic · Universal.
 
 ### B-9 Eye fluid inputs: any input hatch takes any Eye fluid [Q-30]
 
+**D-49 status (unit 6).** Partly reversed: the 8 Field sockets are unbuffered (trims and Time are drained live, ME stocking hatches refused) and the Sensor sockets take only the Stellar Field Sensor Hatch. The gas and stellar sockets still buffer any Eye fluid.
+
 **What we built.** The Eye pulls every fluid it uses from every input hatch in its sockets, every second, into one
 big internal tank per fluid. These tanks are saved, and they survive a wrench. A T1-only Eye can therefore take Raw
 Star Matter through its plinth hatches, and ME stocking hatches work.
@@ -269,6 +281,8 @@ Star Matter through its plinth hatches, and ME stocking hatches work.
 only stellar fluids.
 
 ### B-10 The Eye's centre render is not built [Q-34]
+
+**D-49 status (unit 6): BUILT.** See B-45. The Eye draws its star, neutron star, cooling dwarf, magnetar and the Core Collapse at its centre, behind `eyeRenderCentre` and a per-Eye GUI switch.
 
 The centre of the ring is empty for now. The `eyeRenderCentre` config option exists but does nothing yet.
 
@@ -1262,6 +1276,91 @@ master already carries that fix (`f484699`).
 3. **Unit 5 and the test pass have no questions entry.** INSTALL.md's "dev-server results" line comes from the test
    pass's server logs: every transition reached COMPLETE and unlocked its tier, the Core Collapse also produced a
    supernova, and COMPARE PASS held. Unit 5's judgement calls still need their own entry.
+
+### B-45 D-49: the Eye GUI, the centre render, cover-friendly sensors and the T5/T6 cost table [D-49 unit 6]
+
+**Numbering.** This is B-45, not B-39: the `kerr-redesign` branch already uses B-35..B-44 (and master B-35..B-38), so
+the merge will have to renumber one side anyway; B-45 collides with neither.
+
+**What was built.** The Eye's MUI2 GUI (`EyeGui`), its centre render (`machines/eye/render/`), the sensor hatch's
+cover-friendly output, the bench's `render` command, the T5/T6 cost table (costs §10), the build spec's D-49 block
+and "Contract additions (Eye, D-49)", the migration note, and D-49 status lines on A-2, B-1, B-3, B-5, B-6, B-9 and
+B-10. No star maths, recipes or NBT schema changed; the only new persisted keys are `btsEyeRender` (per-Eye switch,
+item and tile) and `btsEyeRenderPos` and the star's `lastFail` (tile only).
+
+**Judgement calls.**
+
+1. **The render reuses TecTech's star, not TecTech's render tile.** TecTech's Eye render (`TileEntityEyeOfHarmony` +
+   `EOHTileEntitySR`) draws one fixed orange star with a 13-block "outer space" shell and orbiting planet blocks, and
+   the Forge of the Gods' renderer (`RenderForgeOfGods`) always draws its rings and beam with the star and keeps its
+   shader private. So the Eye has its own render block (GT's `BlockRenderer`, as the BHC and the Kerr) and TESR, which
+   bakes the Forge of the Gods' own shader recipe (`tectech:star`: the texture's luminance in our colour, raised to
+   1/gamma), uses TecTech's `StarLayer0..2` textures and `EOHRenderingUtils.buildSphere` / `beginSphereCull`, and
+   draws the layers in the Forge of the Gods' order (opaque core, then two translucent shells).
+   - *Suggestion:* keep. *Alternative:* place TecTech's own EOH render tile for T1-T3 (the exact TecTech look,
+     planets included, but always orange).
+2. **Looks (PROPOSED, `EyeStarLook`).** Sol r 9 yellow-white, Sirius A r 11 blue-white, Arcturus r 15 orange (the
+   mockup's sphere), the neutron star r 2.2 blue-white spinning fast, Sirius B r 3 white → orange → dull red → black
+   over its batch (gamma 3.5 → 0.35), the magnetar r 2.6 violet. Instability makes a star breathe (wobble up to 10 %
+   of its radius as Stability falls), an event warning adds more (the magnetar throbs 25 % on a flare warning).
+   The nearest `eye_core` block is 20.9 blocks from the centre, so the Core Collapse's swelling Arcturus is capped at
+   r 17 (about 19.4 with its wobble and outer shell).
+3. **What counts as "lit".** The render shows while the star exists: igniting (a dim red protostar swelling toward
+   the star), lit, pending and a T5 batch. T5 IDLE (no batch) and DARK show nothing. A supernova keeps the block 3 s
+   for its flash, then it goes: the one exception to "removed when the star goes out".
+   - *Alternative:* nothing until LIT; or a dark remnant while IDLE.
+4. **Unload.** GT calls no MTE hook a block could be removed from on a chunk unload, and removing blocks while a
+   chunk unloads is unsafe. Instead the render tile checks every 100 ticks and turns to air when its owner's cell is
+   not loaded or no Eye there claims it; the Eye places it again when it next ticks (the first tick after its first
+   structure check). An Eye that has lost track of its block (a save written before it was placed) clears it at once.
+   So there are no orphans, and an unloaded Eye shows nothing.
+5. **Config.** `eyeRenderCentre` off on a client: nothing is drawn there. Off on a server: no Eye places a block (and
+   placed ones go). The per-Eye switch is in the GUI. The config file is now written on every start, because Forge
+   neither reads comments back nor counts a changed comment as a change, so the old "NOT IMPLEMENTED" comment would
+   never have gone (verified on the dev server: the comment is rewritten, values kept).
+6. **Sensor output and covers.** The hatch now emits through `setInternalOutputRedstoneSignal` (as GT's own pH, lens
+   and electrode sensors), so a cover that drives its own side (a receiver, a detector) is never overwritten. GT's
+   Redstone Transmitter (Internal) and Advanced Wireless Transmitter (Internal) read the side's own output, which
+   that call skips, so those two get the signal directly: one sensor can drive a wireless channel to a Fluid
+   Regulator cover or an AE2 export bus anywhere. It is still pushed every field second.
+7. **GUI choices.** GT's standard multiblock layout, English strings in code (as the Kerr's GUI; no GT-looked-up lang
+   key and no new recipe-result id was added). Dial and feed are − / + buttons (right-click four steps) with the
+   value between them, not text fields; the server clamps. The gauge bars draw the five zones around the setpoint
+   (0, or the T5 cooling setpoint, with a yellow tick). The plan's P/Θ dial drawable (a stretch goal) is not built;
+   the Field side panel is (zone legend, sockets, every sensor's status, trims this second, the rig).
+8. **Cost table (costs §10), by hand.** The audit's model script is not kept, so §10 multiplies the manifest's
+   counts by §3.2's per-block figures and GT's BEC generator recipe (`addSpacetimeCompression`, tiers 4 and 5).
+   Verdict fair: the bands are cheap (1.5e14 EU, 193k L HSM for both), the 188 generators per step are the price
+   (2.4e15 / 2.8e15 EU), 1.36× TecTech's own step to the same tier. **RC-2 oddity:** GT's generator times are 2, 3, 4
+   and 5 million ticks for tiers 0-3 but 100,000 and 120,000 for tiers 4-5, so our T2-T4 gate steps cost about 30×
+   the T5 and T6 steps in EU and hours. That is stock GT data; we do not change it.
+   - *Suggestion:* leave it (it is the pack's balance for TecTech's Eye too). *Alternative:* our own BEC recipes for
+     tiers 1-3 at the tier-4 time.
+9. **The plan's PROPOSAL.md D-register updates (D-30, D-31, D-34, D-41, D-42, D-43)** are left to the main session
+   (the design repo is not this unit's to edit).
+
+**Dev-server results** (`runServer`, a T6 Eye built by `/btseye t6 3000 100 0 north gen 9 fill`, centre (3000, 140,
+40) as computed from the manifest; `render` prints the cell, its block and the look):
+
+| Step | Render |
+|---|---|
+| Dark Eye | nothing placed |
+| Sol / Sirius A / Arcturus lit | live star r 9 FFD678 / r 11 AAC8FF / r 15 FF8232 |
+| Neutron star lit | neutron star r 2.2 BEDCFF, spin 12 |
+| Chart removed (star out) | air at once |
+| Ignition from a charge | protostar r 3.55 E94F23, then Sol once lit |
+| Core Collapse phase 1 (300 s in) | swell r 15.6 FF6C2C |
+| Supernova at the bounce (no SpaceTime) | supernova flash (kind 8). 6 s later the block still stood, unclaimed: the controller had been reloaded and lost its position. The stray-block clearing (judgement call 4) was added after this run for exactly that |
+| Core Collapse with 60,999 L SpaceTime, settling | bounce, proto-neutron star r 2.6 |
+| Sirius B, half a batch | cooling dwarf FF9F5D, gamma 1.93 |
+| Magnetar Merger | magnetar r 2.6 C85AFF |
+| Per-Eye switch off / on | air / placed again |
+
+The dev server unloads the Eye's chunks between console commands (no player there), so each command can meet a
+freshly loaded controller; the first run's stale looks came from that, and the bench now drives the render itself
+(`render`, and every `sim` second). One check stayed inconclusive for the same reason: after breaking the controller,
+`testforblock` found the centre's chunk unloaded. The tile's own check is the path that removes the block there.
+**Not seen in a client yet:** the drawing itself (and under Angelica's core profile), the GUI layout.
 
 ---
 

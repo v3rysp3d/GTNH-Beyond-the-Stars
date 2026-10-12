@@ -137,3 +137,12 @@ its stability field (Field and Sensor sockets on the core band). Planets still r
   unlocked at T1.
 - **Galactic Upgrade Core.** It is no longer installed by right-click: it goes into the escrow and is consumed by a
   successful Core Collapse.
+
+**Eye of Harmony GUI and centre render, D-49 unit 6.** Nothing to do. The Eye now has a full GUI (gauges, setpoint
+buttons, transitions, the last failure) and draws its star at the centre of the structure while it is formed and its
+star burns. The render is a hidden, unbreakable block (`beyondthestars:gt.beyondthestars.eyeStar`) that the Eye places
+into the empty centre cell; if that cell holds a block, the GUI and the scanner name it and nothing is placed. It goes
+away with the star or the Eye, and removes itself if its Eye is gone. Turn it off per Eye in the GUI, or everywhere
+with `eyeRenderCentre=false` in `config/beyondthestars.cfg` (the file is now rewritten on every start, so its comments
+are current; values are kept). The Stellar Field Sensor Hatch now leaves covers on its faces alone; GT's internal
+redstone transmitter covers carry its signal.
