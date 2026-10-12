@@ -338,13 +338,15 @@ The ladder's part of the book (design: `docs/questbook-integration.md`) is data,
    per chapter, plus fallbacks, placeholders and edit ids. Run `gradlew spotlessApply` after.
 4. `questbook/id-ledger.txt` (appended), and `questbook/pack-drift.txt` only when the pack drifted.
 
-**Source tree.** Until `kerr-redesign` is merged into this branch, its Kerr module controllers
-(28117/28118) exist only in the integration tree, so run the build with
+**Source tree.** Our item, fluid and MTE ids are checked against the Java of this repo by default.
+`kerr-redesign` and `questbook` are both in master now, so the Kerr module controllers (28117/28118)
+are found here and a plain run needs no `BTS_QB_SRC`:
 
-    $env:BTS_QB_SRC = '../GTNH-Addons/addon'; powershell -NoProfile -ExecutionPolicy Bypass -File gen-bom.ps1
+    powershell -NoProfile -ExecutionPolicy Bypass -File gen-bom.ps1
 
-(`BTS_QB_PACK` points at another pack's `DefaultQuests`; default: the RC-2 instance). Without it
-the run fails and says so. On its own: `node tools/gen-singularity.js [--src DIR] [--pack DIR]
+`BTS_QB_SRC` is only for checking against another addon tree, for example a worktree that lacks
+a merged feature: `$env:BTS_QB_SRC = '<that tree>'` before the same command. `BTS_QB_PACK` points
+at another pack's `DefaultQuests` (default: the RC-2 instance). On its own: `node tools/gen-singularity.js [--src DIR] [--pack DIR]
 [--check] [--selftest] [--svg DIR] [--feature name=true] [--verbose]`.
 
 **What fails the build** (all errors are collected and printed together, naming the offender):

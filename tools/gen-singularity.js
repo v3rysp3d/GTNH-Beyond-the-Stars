@@ -1123,8 +1123,8 @@ function main() {
         for (const e of res.errors) console.error('  - ' + e);
         if (res.errors.some(e => /not registered in/.test(e))) {
             console.error(`hint: ids are checked against the Java of ${inp.srcLabel}. A branch that lacks a merged feature ` +
-                '(the Kerr modules 28117/28118 before kerr-redesign is merged) is checked against the integration tree ' +
-                'with --src ../GTNH-Addons/addon (gen-bom.ps1: set BTS_QB_SRC), or the feature flag is set false in singularity.json.');
+                '(a worktree cut before the feature reached master) is checked against a tree that has it with ' +
+                '--src <tree> (gen-bom.ps1: set BTS_QB_SRC), or the feature flag is set false in singularity.json.');
         }
         process.exit(1);
     }
