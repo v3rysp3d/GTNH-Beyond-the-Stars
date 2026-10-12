@@ -1561,6 +1561,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     public void setItemNBT(NBTTagCompound aNBT) {
         super.setItemNBT(aNBT);
         writeEyeState(aNBT);
+        final String fail = runtime.pickupFailureLine();
+        if (!fail.isEmpty()) aNBT.setString(EyeNbt.PICKUP_FAIL_KEY, fail);
     }
 
     @Override

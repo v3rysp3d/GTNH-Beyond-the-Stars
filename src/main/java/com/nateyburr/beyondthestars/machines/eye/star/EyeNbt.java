@@ -39,6 +39,8 @@ public final class EyeNbt {
 
     public static final String SCHEMA_KEY = "btsEyeSchema";
     public static final String GALACTIC_KEY = "btsEyeGalactic";
+    /** Item NBT only (a wrenched controller): the "Last failure" line it carries (B-71). */
+    public static final String PICKUP_FAIL_KEY = "btsEyePickupFail";
 
     private EyeNbt() {}
 
@@ -205,6 +207,7 @@ public final class EyeNbt {
         if (nbt.hasKey("btsEyeStar")) readStar(rt, nbt.getCompoundTag("btsEyeStar"));
         rt.trans = nbt.hasKey("btsEyeTrans") && rt.live() ? EyeTransition.read(nbt.getCompoundTag("btsEyeTrans"))
             : null;
+        if (nbt.hasKey(PICKUP_FAIL_KEY)) rt.restorePickupFailure(nbt.getString(PICKUP_FAIL_KEY));
         return false;
     }
 

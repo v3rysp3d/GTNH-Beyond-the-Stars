@@ -1035,6 +1035,23 @@ public final class EyeStarRuntime {
         logEvent(line);
     }
 
+    /**
+     * The "Last failure" line a controller carries in its item NBT (wrench, pick-up): a live star does not survive it
+     * (the star is tile-only), so that line says so; otherwise the last failure as it stood (B-71).
+     */
+    public String pickupFailureLine() {
+        if (!live()) return lastFailure;
+        return (star == null ? "star" : star.name) + " put out: the controller was picked up"
+            + (trans != null ? "; the " + trans.type.title + " was ABORTED" : "");
+    }
+
+    /** Item NBT only: the line {@link #pickupFailureLine} wrote, shown as the last event and failure once placed. */
+    void restorePickupFailure(String line) {
+        if (line == null || line.isEmpty()) return;
+        lastFailure = line;
+        lastEvent = line;
+    }
+
     private void logEvent(String line) {
         com.nateyburr.beyondthestars.BeyondTheStars.LOG.info("[BTS] Eye {}", line);
     }
