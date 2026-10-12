@@ -1582,6 +1582,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         writeEyeState(aNBT);
         final String fail = runtime.pickupFailureLine();
         if (!fail.isEmpty()) aNBT.setString(EyeNbt.PICKUP_FAIL_KEY, fail);
+        // a live star put out by the pick-up is a failure: logged like every other one (B-62 item 3, B-72)
+        if (runtime.live()) BeyondTheStars.LOG.info("[BTS] Eye {}", fail);
     }
 
     @Override

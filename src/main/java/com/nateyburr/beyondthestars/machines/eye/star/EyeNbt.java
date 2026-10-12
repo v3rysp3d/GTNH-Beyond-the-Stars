@@ -41,6 +41,12 @@ public final class EyeNbt {
     public static final String GALACTIC_KEY = "btsEyeGalactic";
     /** Item NBT only (a wrenched controller): the "Last failure" line it carries (B-71). */
     public static final String PICKUP_FAIL_KEY = "btsEyePickupFail";
+    /**
+     * Tile NBT only: the event and failure lines of an Eye with no field yet (a placed-back, wrenched controller that
+     * has not lit since). With a field they live in {@code btsEyeStar} (B-72).
+     */
+    public static final String DARK_EVENT_KEY = "btsEyeDarkEvent";
+    public static final String DARK_FAIL_KEY = "btsEyeDarkFail";
 
     private EyeNbt() {}
 
@@ -65,7 +71,12 @@ public final class EyeNbt {
     /** The live star (tile NBT only). */
     public static void writeStar(EyeStarRuntime rt, NBTTagCompound nbt) {
         final FieldState fs = rt.fs;
-        if (fs == null) return;
+        if (fs == null) {
+            // B-72: no star compound to carry them, so a chunk unload or restart would drop the lines again
+            if (!rt.lastEvent.isEmpty()) nbt.setString(DARK_EVENT_KEY, rt.lastEvent);
+            if (!rt.lastFailure.isEmpty()) nbt.setString(DARK_FAIL_KEY, rt.lastFailure);
+            return;
+        }
         final NBTTagCompound s = new NBTTagCompound();
         s.setByte("state", (byte) rt.state.ordinal());
         s.setByte("tier", (byte) fs.tier.n);
@@ -205,6 +216,10 @@ public final class EyeNbt {
             for (Object key : pay.func_150296_c()) rt.legacyPay.put((String) key, pay.getLong((String) key));
         }
         if (nbt.hasKey("btsEyeStar")) readStar(rt, nbt.getCompoundTag("btsEyeStar"));
+        else {
+            rt.lastEvent = nbt.getString(DARK_EVENT_KEY);
+            rt.lastFailure = nbt.getString(DARK_FAIL_KEY);
+        }
         rt.trans = nbt.hasKey("btsEyeTrans") && rt.live() ? EyeTransition.read(nbt.getCompoundTag("btsEyeTrans"))
             : null;
         if (nbt.hasKey(PICKUP_FAIL_KEY)) rt.restorePickupFailure(nbt.getString(PICKUP_FAIL_KEY));
