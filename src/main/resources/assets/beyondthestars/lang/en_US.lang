@@ -186,7 +186,7 @@ item.beyondthestars.starChartNeutronStar.tooltip=Eye of Harmony T4 target. Inser
 item.beyondthestars.starChartSiriusB.tooltip=Eye of Harmony T5 target: cooling batches turn White Dwarf Matter into Black Dwarf Matter.
 item.beyondthestars.starChartSiriusBCooled.tooltip=Obsolete since D-49: craft back into Star Chart: Sirius B (Assembler, programmed circuit 3).
 item.beyondthestars.starChartMagnetar.name=Star Chart: SGR 1806-20 (Magnetar)
-item.beyondthestars.starChartMagnetar.tooltip=Eye of Harmony T6 target: a White and Black Dwarf Matter merger spawns it.\nAntipolarization Agent is its constant feed; it makes Magnetar Matter.
+item.beyondthestars.starChartMagnetar.tooltip=Eye of Harmony T6 target: a White and Black Dwarf Matter merger spawns it.\nAntipolarization Agent is its constant feed and charges its flare shield; it makes Magnetar Matter.
 
 # GTNH 2.9.0-RC-2 looks recipe results up under GT5U.gui.text.recipe_result.<id> (the keys above are the pre-RC-2 form)
 GT5U.gui.text.recipe_result.beyondthestars.eye.notarget=No target: put a Star Chart or a dimension display block in the controller slot

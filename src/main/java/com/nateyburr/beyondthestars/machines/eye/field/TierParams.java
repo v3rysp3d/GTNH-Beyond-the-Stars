@@ -49,7 +49,7 @@ public enum TierParams {
         new TrimDef[] { trim(TrimDef.Kind.SPACE, 10, -2, 0, 0, 0, null),
             trim(TrimDef.Kind.SPACETIME, 10, 2, 0, 0, 0, null), trim(TrimDef.Kind.SUPER_COOLANT, 10, 0, -3, 0, 0, null),
             trim(TrimDef.Kind.TENGAM, 5, 0, 1, -4, 0, null),
-            trim(TrimDef.Kind.AGENT, 5, 0, 0.5, 0, 0, "shield A +4 per unit") });
+            trim(TrimDef.Kind.AGENT, 5, 0, 0.5, 0, 0, "shield A +4 per unit; the upkeep adds 2r/s") });
 
     /** Tier flags (a nested holder: an enum's constant arguments cannot forward-reference its own statics). */
     static final class F {
@@ -177,7 +177,8 @@ public enum TierParams {
     /**
      * The design invariant (plan §5): for every active gauge, the strongest trim must out-push the worst case,
      * {@code cap × |effect| > m_max·(|d| + σ + |g|·40)}, with m_max at Time Acceleration tier 9 and d at its extremes
-     * (T4 feed 0 and 1.5 L/s, T6 r 0 and 1). T6's Π is held by the shield (4 per Agent unit). Returns one line per
+     * (T4 feed 0 and 1.5 L/s, T6 r 0 and 1). T6's Π is held by the shield (4 per Agent trim unit; the upkeep's 2·r/s is
+     * not counted, r may be 0). Returns one line per
      * violation; empty means OK. For the boot log.
      */
     public static List<String> invariantViolations() {

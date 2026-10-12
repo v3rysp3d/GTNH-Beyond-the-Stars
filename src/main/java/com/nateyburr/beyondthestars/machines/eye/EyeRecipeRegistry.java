@@ -252,7 +252,8 @@ public final class EyeRecipeRegistry {
 
     /**
      * T6 upkeep: Antipolarization Agent per 60 s cycle (50 L/s), the magnetar's CONSTANT feed (my answer to
-     * plan §17 item 5). The flare-shield Agent trim in the Field sockets comes on top. PROPOSED (B-37).
+     * plan §17 item 5). It also charges the flare shield (2·r A/s, user ruling 2026-10-13, B-60); the Agent trim in the
+     * Field sockets comes on top. PROPOSED (B-37).
      */
     public static final long MAGNETAR_AGENT_PER_CYCLE = 3_000L;
 
@@ -552,7 +553,7 @@ public final class EyeRecipeRegistry {
                     + " s");
         }
         if (t.batch) desc.add("Θ follows +90 -> -90 / 7,200 s");
-        if (t.shield) desc.add("Agent charges the shield A");
+        if (t.shield) desc.add("Agent upkeep + trim charge A");
         desc.add("Trims, Field sockets only:");
         for (TrimDef trim : t.trims()) {
             final Fluid fluid = EyeStarRuntime.trimFluid(trim.kind);

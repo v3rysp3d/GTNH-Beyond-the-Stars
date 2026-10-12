@@ -1766,6 +1766,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addInfo("T3 + jet crescent: Arcturus (Raw Hyperdense Stellar Plasma) and planets R7-R8.")
             .addInfo("T4 + spiral arms: the neutron star (White Dwarf Matter, born by the Core Collapse), Deep Dark.")
             .addInfo("T5 + second arms: Sirius B (Black Dwarf Matter); T6 + galactic rim: the magnetar.")
+            .addInfo("  The magnetar's Antipolarization Agent upkeep (3,000 L/cycle) also charges its flare shield;")
+            .addInfo("  dose extra Agent into a Field socket on a flare warning.")
             .addInfo("Stars are LIVE: a Stellar Ignition Charge in a plinth input bus lights T1-T3; every")
             .addInfo("  60 s cycle takes EU and upkeep; hold the stability field or the star is lost.")
             .addInfo("Tiers unlock in order: the current star's milestones, then the next core")

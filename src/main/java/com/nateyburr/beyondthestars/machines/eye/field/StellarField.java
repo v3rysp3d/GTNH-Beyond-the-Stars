@@ -31,6 +31,12 @@ public final class StellarField {
     public static final double LOCK_Y = 1.5;
     /** T6: shield charge per Agent unit (per parallel). */
     public static final double SHIELD_PER_UNIT = 4;
+    /**
+     * T6: shield charge per second from the Agent upkeep, × r (user ruling 2026-10-13: the Agent fed also charges the
+     * shield). 3,000 L per 60 s cycle = 0.5 unit/s at {@link #SHIELD_PER_UNIT}; with no trim A settles at 40.
+     * PROPOSED (B-60).
+     */
+    public static final double SHIELD_PER_UPKEEP = 2;
     /** T4: litres of White Dwarf Matter per litre of HSM fed, before × mean Y × r. */
     public static final double WDM_PER_HSM = 3.6864;
     /** Cycle length and T5 batch length, Eye-seconds. */
@@ -220,7 +226,8 @@ public final class StellarField {
 
         // ---- T6 agent shield, after the update
         if (T.shield) {
-            s.A = Math.min(100, 0.95 * s.A + SHIELD_PER_UNIT * in.units(TrimDef.Kind.AGENT) / p);
+            s.A = Math
+                .min(100, 0.95 * s.A + SHIELD_PER_UNIT * in.units(TrimDef.Kind.AGENT) / p + SHIELD_PER_UPKEEP * r);
             final double c = Math.min(Math.min(s.A, Math.abs(s.x[PI])), 25);
             s.x[PI] -= Math.signum(s.x[PI]) * c;
             s.A -= c;

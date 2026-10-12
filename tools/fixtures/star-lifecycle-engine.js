@@ -2,8 +2,8 @@
 // regenerate with `node tools/fieldsim-golden.js --refresh-fixture`, then regenerate the golden JSON.
 // The ENGINE block of the D-49 play prototype, verbatim (the reference for the Java field maths).
 // source: designs/star-lifecycle-prototype.html (design repo GTNH-Addons)
-// source-sha1: 2e369447de28ce09017f48b643a7b0d40897f93e
-// engine-sha1: bc921e0f5fdd6d9ac8f5aaceb4bf02e211282f62
+// source-sha1: 55ffde82b28086e25e4c728506cb23cb97209fca
+// engine-sha1: bbf7e878a420735e230f80f2b01d823fc1d81ec2
 /*ENGINE-START*/
 const RECIPE_UMV = 125829120;
 const HN = 7200;
@@ -64,7 +64,7 @@ const TIERS = {
       `P < −${t} → Helium ${10*r} kL/s`,`P > +${t} → DSSF +${500*r} L/s`];}},
  6:{n:6, star:'SGR 1806-20', stage:'Magnetar, a merged remnant', gauges:['P','Th','Om','Pi'], sig:2, g:{P:-0.01,Th:0,Om:0.02,Pi:0.03},
     d:S=>{const r=S.cfg.r; return {P:-4+5*r, Th:-0.5+3*r, Om:r, Pi:0};}, shield:true,
-    trims:{Space:{cap:10,fx:{P:-2}}, ST:{cap:10,fx:{P:2}}, Cool:{cap:10,fx:{Th:-3}}, Tg:{cap:5,fx:{Om:-4,Th:1}}, Agent:{cap:5,fx:{Th:0.5},note:'A +4 per unit'}},
+    trims:{Space:{cap:10,fx:{P:-2}}, ST:{cap:10,fx:{P:2}}, Cool:{cap:10,fx:{Th:-3}}, Tg:{cap:5,fx:{Om:-4,Th:1}}, Agent:{cap:5,fx:{Th:0.5},note:'A +4 per unit; the upkeep adds 2r/s'}},
     prod:{name:'Magnetar Matter',base:15}, up:[['White Dwarf Matter',60],['Black Dwarf Matter',15]],
     ev:{name:'Giant flare', every:[60,120], warn:15, dur:4, fx:{Pi:25}, signed:true},
     ctrl:(E,w,f)=>{const u=ctl4(E,w,f), t=f?5:10; if(w || Math.abs(E.Pi)>t) u.Agent=5; return u;},
@@ -201,7 +201,7 @@ function step(S){
     S.x[k]=clamp(S.x[k]+dv,-120,120);
   }
   if(T.shield){
-    S.A=Math.min(100,0.95*S.A+4*(u.Agent||0));
+    S.A=Math.min(100,0.95*S.A+4*(u.Agent||0)+2*r); // +2r: the Agent upkeep charges the shield (ruling 2026-10-13)
     const c=Math.min(S.A,Math.abs(S.x.Pi),25); S.x.Pi-=Math.sign(S.x.Pi)*c; S.A-=c;
   }
   const err={}; let worst=0, wk=T.gauges[0];
