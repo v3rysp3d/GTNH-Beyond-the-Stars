@@ -23,6 +23,7 @@ import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.fluids.SLFluids;
 import com.nateyburr.beyondthestars.items.SLItems;
 
+import goodgenerator.items.GGMaterial;
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.CondensateType;
 import gregtech.api.enums.GTValues;
@@ -41,7 +42,10 @@ import tectech.thing.CustomItemList;
 /**
  * SINGULARITY LADDER PARTS, SL-P01..SL-P39 (singularity-ladder-build.md §2.2; SL-P27..P29 come
  * from the cost audit, docs/singularity-ladder-costs.md; SL-P39 from the 2.9.0-RC-2 gate audit;
- * SL-P30..P32 are retired; SL-P33..P38 are reserved by the D-49 build plan). <b>Owned by the
+ * SL-P30..P32 are retired; SL-P33 and SL-P35..P38 are the D-49 build's, d49-build-plan.md §10.3:
+ * the Eye T5 gate's Resonance Chamber III, the T4-T6 star charts, the Sirius B, Cooled reclaim and the
+ * Stellar Ignition Charge; SL-P26 is retired with the interim Black Dwarf Matter star; SL-P34 stays
+ * reserved and unused, because the Eye T6 gate is clean on RC-2). <b>Owned by the
  * Foundation unit.</b> The Kerr's and the Eye's own recipes live in {@code BTSRecipesKerr} and
  * {@code BTSRecipesEye}.
  *
@@ -75,6 +79,7 @@ public final class BTSRecipesSingularity {
         kerrParts();
         eyeParts();
         starCharts();
+        ignitionCharge();
         // Our Eye needs SL-P27..P29's casings whatever the flag says (B-26). Only the gate recipes exist
         // because TecTech's Eye (WDM's other source) is gone, so only they follow the flag.
         tecTechEyeBlocks();
@@ -82,8 +87,9 @@ public final class BTSRecipesSingularity {
             compressionGateParts();
         } else {
             BeyondTheStars.LOG.info(
-                "[BTS] replaceTecTechEyeOfHarmony=false: SL-P39 (WDM-free Resonance Chamber II) is not registered; "
-                    + "TecTech's Eye still makes White Dwarf Matter.");
+                "[BTS] replaceTecTechEyeOfHarmony=false: SL-P39 (WDM-free Resonance Chamber II) and SL-P33 "
+                    + "(BDM-free Resonance Chamber III) are not registered; TecTech's Eye still makes White and "
+                    + "Black Dwarf Matter.");
         }
     }
 
@@ -487,6 +493,37 @@ public final class BTSRecipesSingularity {
                 .duration(300 * SECONDS)
                 .eut(TierEU.RECIPE_UIV)
                 .addTo(TecTechRecipeMaps.condensateAssemblingRecipes));
+
+        // SL-P33 (D-49): MetaMaterial Resonance Chamber III with 2 White Dwarf Matter foils in place of GT's 1
+        // Black Dwarf Matter foil. GT's tier-3 chamber (BECMetaMaterialRecipes.registerResonanceChamber, t = 2)
+        // otherwise unchanged: 2 Emitter UIV, 2 Shirabon rods, 1 Hexanite plate; nanites White Dwarf / Gold /
+        // Transcendent / Gold; Chromatic Glass 16, Infinity 8, Boundless Cosmic Solder 3; 300 s at UMV.
+        // Why: compression generator tier index 4 (the Eye T5 gate) takes 1 Resonance Chamber III, and with the
+        // interim Eye T4 BDM star gone (D-49) Black Dwarf Matter first exists at Eye T5 itself. White Dwarf
+        // Matter is the tier below's product (Eye T4), the same "previous tier" step as SL-P39's SpaceTime for
+        // WDM. Tier index 5 (the Eye T6 gate) takes 4 chambers but may use BDM, so it needs no substitute and
+        // SL-P34 stays unused.
+        BTSRecipeGuard.recipe(
+            "SL-P33",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    nn(ItemList.Emitter_UIV.get(2L), "ItemList.Emitter_UIV"),
+                    nn(GGMaterial.shirabon.get(OrePrefixes.stick, 2), "Shirabon rod"),
+                    BTSRecipeGuard.req(OrePrefixes.foil, Materials.WhiteDwarfMatter, 2L),
+                    BTSRecipeGuard.req(OrePrefixes.plate, Materials.Hexanite, 1L))
+                .fluidInputs(
+                    entangled(CondensateType.ChromaticGlass, 16),
+                    entangled(CondensateType.Infinity, 8),
+                    entangled(CondensateType.BoundlessCosmicSolder, 3))
+                .itemOutputs(
+                    nn(ItemList.MetaMaterial_ResonanceChamber3.get(1L), "ItemList.MetaMaterial_ResonanceChamber3"))
+                .metadata(
+                    NANITE_TIERS,
+                    new NaniteTier[] { NaniteTier.WhiteDwarf, NaniteTier.Gold, NaniteTier.Transcendent,
+                        NaniteTier.Gold })
+                .duration(300 * SECONDS)
+                .eut(TierEU.RECIPE_UMV)
+                .addTo(TecTechRecipeMaps.condensateAssemblingRecipes));
     }
 
     /** {@code units} of a condensate's entangled fluid, in the condensate's own unit (GT's convention). */
@@ -543,7 +580,8 @@ public final class BTSRecipesSingularity {
                 .eut(TierEU.RECIPE_UMV)
                 .addTo(assemblerRecipes));
 
-        // SL-P25 Star Chart: Sirius B (T4), from Hyperdense Stellar Mixture
+        // SL-P25 Star Chart: Neutron Star (T4), from Hyperdense Stellar Mixture. D-49: the T4 target is the
+        // neutron star Arcturus leaves behind, so the chart takes SL-P25's slot and Sirius B moves to T5 (SL-P35).
         BTSRecipeGuard.recipe(
             "SL-P25",
             () -> GTValues.RA.stdBuilder()
@@ -552,25 +590,74 @@ public final class BTSRecipesSingularity {
                     BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UMV, 1L),
                     SLBlocks.casing(BlockSLCasing.GALACTIC_SHELL, 1))
                 .fluidInputs(BTSRecipeGuard.fluid(SLFluids.hyperdenseStellarMixture, 1_000))
+                .itemOutputs(BTSRecipeGuard.stack(SLItems.starChartNeutronStar, 1))
+                .duration(200)
+                .eut(TierEU.RECIPE_UMV)
+                .addTo(assemblerRecipes));
+
+        // SL-P26 (Star Chart: Sirius B, Cooled, the interim BDM target) is RETIRED with D-49; the ID stays a gap.
+
+        // SL-P35 Star Chart: Sirius B (T5), from White Dwarf Matter (Eye T4's product).
+        BTSRecipeGuard.recipe(
+            "SL-P35",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    dataOrb(),
+                    BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UXV, 1L),
+                    SLBlocks.casing(BlockSLCasing.GALACTIC_SHELL, 1))
+                .fluidInputs(molten(Materials.WhiteDwarfMatter, 1_000))
                 .itemOutputs(BTSRecipeGuard.stack(SLItems.starChartSiriusB, 1))
                 .duration(200)
                 .eut(TierEU.RECIPE_UMV)
                 .addTo(assemblerRecipes));
 
-        // SL-P26 Star Chart: Sirius B, Cooled (interim Black Dwarf Matter target, Q-3)
-        if (Config.interimBlackDwarfAtEyeT4) {
-            BTSRecipeGuard.recipe(
-                "SL-P26",
-                () -> GTValues.RA.stdBuilder()
-                    .itemInputs(
-                        BTSRecipeGuard.stack(SLItems.starChartSiriusB, 1),
-                        BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UMV, 1L))
-                    .fluidInputs(superCoolant(64_000))
-                    .itemOutputs(BTSRecipeGuard.stack(SLItems.starChartSiriusBCooled, 1))
-                    .duration(200)
-                    .eut(TierEU.RECIPE_UMV)
-                    .addTo(assemblerRecipes));
-        }
+        // SL-P36 Reclaim: an obsolete Star Chart: Sirius B, Cooled back into Star Chart: Sirius B
+        // (programmed circuit 3, not consumed). No fluid: the old chart already paid for its data.
+        BTSRecipeGuard.recipe(
+            "SL-P36",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(BTSRecipeGuard.stack(SLItems.starChartSiriusBCooled, 1), GTUtility.getIntegratedCircuit(3))
+                .itemOutputs(BTSRecipeGuard.stack(SLItems.starChartSiriusB, 1))
+                .duration(100)
+                .eut(TierEU.RECIPE_UMV)
+                .addTo(assemblerRecipes));
+
+        // SL-P37 Star Chart: SGR 1806-20 (Magnetar, T6), from Black Dwarf Matter (Eye T5's product).
+        BTSRecipeGuard.recipe(
+            "SL-P37",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    items(
+                        dataOrb(),
+                        BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UXV, 1L),
+                        dense(Materials.SpaceTime, 1)))
+                .fluidInputs(molten(Materials.BlackDwarfMatter, 1_000))
+                .itemOutputs(BTSRecipeGuard.stack(SLItems.starChartMagnetar, 1))
+                .duration(200)
+                .eut(TierEU.RECIPE_UXV)
+                .addTo(assemblerRecipes));
+    }
+
+    // ================================================================ Stellar Ignition Charge (D-49)
+
+    /**
+     * SL-P38 Stellar Ignition Charge x4: one lights a dark T1-T3 star (d49-build-plan.md §6.3), and a failed
+     * star needs a new one. Helium plasma is the spark; Infinity plates and a UMV emitter hold it. Sixteen
+     * also go into the Stellar Mass Core (SL-E03), which researches from the charge.
+     */
+    private static void ignitionCharge() {
+        BTSRecipeGuard.recipe(
+            "SL-P38",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    BTSRecipeGuard.req(OrePrefixes.plate, Materials.Infinity, 4L),
+                    nn(ItemList.Emitter_UMV.get(1L), "ItemList.Emitter_UMV"),
+                    BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UMV, 1L))
+                .fluidInputs(nn(Materials.Helium.getPlasma(1_000L), "Materials.Helium plasma"))
+                .itemOutputs(BTSRecipeGuard.stack(SLItems.stellarIgnitionCharge, 4))
+                .duration(200)
+                .eut(TierEU.RECIPE_UMV)
+                .addTo(assemblerRecipes));
     }
 
     // ================================================================ helpers

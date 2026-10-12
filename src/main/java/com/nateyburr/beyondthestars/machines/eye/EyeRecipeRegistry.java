@@ -198,17 +198,8 @@ public final class EyeRecipeRegistry {
             list(in(SLFluids.hyperdenseStellarMixture, 5_000L), in(helium, 4 * BILLION)),
             list(in(wdm, 18_432L)),
             120);
-        // T4 interim (Q-3): Black Dwarf Matter until Eye T5 ships in P4.
-        if (Config.interimBlackDwarfAtEyeT4) {
-            star(
-                "star:siriusbcooled",
-                "Sirius B, Cooled (interim)",
-                4,
-                SLItems.starChartSiriusBCooled,
-                list(in(wdm, 18_432L), in(fluidOrNull(Materials.SuperCoolant.getFluid(1L)), 1_000_000L)),
-                list(in(fluidOrNull(Materials.BlackDwarfMatter.getMolten(1L)), 4_608L)),
-                120);
-        }
+        // The interim T4 "Sirius B, Cooled" Black Dwarf Matter star (Q-3) is gone with D-49
+        // (d49-build-plan.md §10.4): BDM comes from Eye T5's cooling batches.
     }
 
     private static void star(String key, String name, int tier, Item chart, List<EyeRecipe.FluidAmount> inputs,
@@ -435,14 +426,12 @@ public final class EyeRecipeRegistry {
     }
 
     /**
-     * The stars that replace what TecTech's Eye was the pack's only source of (Raw Star Matter,
-     * White Dwarf Matter, and Black Dwarf Matter while the interim recipe is on). TecTech is only
-     * cleared when every one of them registered.
+     * The stars that replace what TecTech's Eye was the pack's only source of (Raw Star Matter and
+     * White Dwarf Matter; D-49 unit 4 adds the neutron star and moves Sirius B to Black Dwarf Matter).
+     * TecTech is only cleared when every one of them registered.
      */
     private static boolean replacementStarsPresent() {
-        boolean ok = BY_KEY.containsKey("star:sol") && BY_KEY.containsKey("star:siriusb");
-        if (Config.interimBlackDwarfAtEyeT4) ok &= BY_KEY.containsKey("star:siriusbcooled");
-        return ok;
+        return BY_KEY.containsKey("star:sol") && BY_KEY.containsKey("star:siriusb");
     }
 
     private static Fluid fluidOf(FluidStack stack, String what) {

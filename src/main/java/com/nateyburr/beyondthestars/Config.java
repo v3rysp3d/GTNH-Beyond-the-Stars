@@ -49,12 +49,11 @@ public class Config {
     public static boolean replaceTecTechEyeOfHarmony = true;
 
     /**
-     * SINGULARITY LADDER (Q-3): register the interim Eye T4 "Sirius B, Cooled" recipe that makes
-     * Black Dwarf Matter until Eye T5 ships in P4, and the recipe for the star chart that targets it.
-     * The star chart ITEM stays registered either way (item registry stays stable across config
-     * changes); with the flag off it has no recipe and no Eye recipe accepts it.
+     * D-49 retired {@code interimBlackDwarfAtEyeT4} (the interim Eye T4 Black Dwarf Matter recipe, Q-3):
+     * Black Dwarf Matter now comes from Eye T5's Sirius B cooling batches. The stale key is removed from
+     * the config file on load (d49-build-plan.md §10.4).
      */
-    public static boolean interimBlackDwarfAtEyeT4 = true;
+    private static final String RETIRED_INTERIM_BDM_KEY = "interimBlackDwarfAtEyeT4";
 
     /**
      * SINGULARITY LADDER (D-34): render the band's object at the Eye's centre. Client cosmetic.
@@ -119,13 +118,12 @@ public class Config {
                 + " Harmony replaces it. Placed TecTech EOHs idle. Finish or cancel running EOH recipes before"
                 + " enabling. Set false to keep TecTech's EOH as stock.");
 
-        interimBlackDwarfAtEyeT4 = configuration.getBoolean(
-            "interimBlackDwarfAtEyeT4",
-            Configuration.CATEGORY_GENERAL,
-            true,
-            "Register the interim Eye of Harmony T4 recipe (Star Chart: Sirius B, Cooled) that makes Black Dwarf"
-                + " Matter until Eye T5 exists, and the star chart's crafting recipe. The star chart item itself"
-                + " stays registered either way (it has no recipe and no use when this is false).");
+        final boolean retiredKeyPresent = configuration.getCategory(Configuration.CATEGORY_GENERAL)
+            .containsKey(RETIRED_INTERIM_BDM_KEY);
+        if (retiredKeyPresent) {
+            configuration.getCategory(Configuration.CATEGORY_GENERAL)
+                .remove(RETIRED_INTERIM_BDM_KEY);
+        }
 
         eyeRenderCentre = configuration.getBoolean(
             "eyeRenderCentre",
@@ -134,7 +132,7 @@ public class Config {
             "NOT IMPLEMENTED YET - this setting currently has no effect. Will render the star or planet at the"
                 + " centre of a formed Eye of Harmony (client cosmetic).");
 
-        if (configuration.hasChanged()) {
+        if (configuration.hasChanged() || retiredKeyPresent) {
             configuration.save();
         }
     }
