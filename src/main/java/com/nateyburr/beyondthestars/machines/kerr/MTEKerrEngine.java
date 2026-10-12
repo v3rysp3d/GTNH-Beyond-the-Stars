@@ -302,6 +302,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
                     casing(Casings.ExtremeDensitySpaceBendingCasing),
                     buildHatchAdder(MTEKerrEngine.class).atLeast(Maintenance)
                         .casingIndex(shellIndex)
+                        .hint(2) // GT's build() requires one; never shown (the casing comes first)
                         .build()))
             .addElement(
                 'b',
