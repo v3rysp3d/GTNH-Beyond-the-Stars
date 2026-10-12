@@ -46,7 +46,8 @@ public class CommandBTSConduit extends CommandBase {
     @Override
     public String getCommandUsage(ICommandSender sender) {
         return "/btsconduit status x y z | dock x y z | rig x y z | rig status | pair x1 y1 z1 x2 y2 z2 | throat x y z mk"
-            + " | fuel x y z on|off | junction x y z c k p3 [split|combine] | rebuild x y z";
+            + " | fuel x y z on|off | junction x y z c k p3 [split|combine] | rebuild x y z [tier] | keep x1 y z1 x2 z2"
+            + " | survival x y z mouth|mirror|junction|crown1|crown2|crown3";
     }
 
     @Override
@@ -94,6 +95,7 @@ public class CommandBTSConduit extends CommandBase {
         final int x = coord(sender, args[1], 0), y = coord(sender, args[2], 1), z = coord(sender, args[3], 2);
         switch (verb) {
             case "status":
+                world.getChunkFromBlockCoords(x, z);
                 for (String line : ConduitKit.status(world, x, y, z)) SLConsoleTest.tell(sender, line);
                 return;
             case "dock": {
@@ -170,12 +172,30 @@ public class CommandBTSConduit extends CommandBase {
                 for (String line : j.statusLines()) SLConsoleTest.tell(sender, line);
                 return;
             }
+            case "survival": {
+                // survival x y z <mouth|mirror|junction|crown1|crown2|crown3>: the projector's survival path
+                if (args.length < 5) break;
+                for (String line : ConduitKit.survivalTest(world, x, y, z, args[4])) SLConsoleTest.tell(sender, line);
+                return;
+            }
+            case "keep": {
+                // keep x1 y z1 x2 z2: force-load a box of chunks (a whole rig after a restart)
+                if (args.length < 6) break;
+                final int x2 = coord(sender, args[4], 0), z2 = coord(sender, args[5], 2);
+                final int n = com.nateyburr.beyondthestars.machines.kerr.KerrTestBench.keep(
+                    world,
+                    new int[] { Math.min(x, x2), 0, Math.min(z, z2), Math.max(x, x2), 255, Math.max(z, z2) });
+                SLConsoleTest.tell(sender, "Conduit bench: forced " + n + " chunk(s)");
+                return;
+            }
             case "rebuild": {
                 final MTEEnhancedMultiBlockBase<?> m = mte(world, x, y, z, MTEEnhancedMultiBlockBase.class);
                 if (!(m instanceof com.gtnewhorizon.structurelib.alignment.constructable.IConstructable)) break;
                 final IGregTechTileEntity base = m.getBaseMetaTileEntity();
                 final ItemStack trigger = m.getStackForm(1);
-                trigger.stackSize = m instanceof MTEQuasarEngine ? Math.max(1, ((MTEQuasarEngine) m).getCoilTier()) : 1;
+                // the trigger's tier: arg 5 (quasar coil tier 1-4, crown Mk 1-3), else 3 for a quasar (never read
+                // the tier off an unformed walk: it would rebuild the coils at tier 1)
+                trigger.stackSize = args.length > 4 ? Integer.parseInt(args[4]) : m instanceof MTEQuasarEngine ? 3 : 1;
                 ((com.gtnewhorizon.structurelib.alignment.constructable.IConstructable) m).construct(trigger, false);
                 m.checkStructure(true, base);
                 SLConsoleTest.tell(sender, "Re-projected: " + (m.mMachine ? "FORMED" : "NOT FORMED"));

@@ -454,6 +454,86 @@ public final class ConduitKit {
         return m;
     }
 
+    /**
+     * The hologram's survival path on one element or crown ({@code /btsconduit survival}): a bare controller facing
+     * north at (x, y, z), StructureLib's survival auto-place from an endless source until it reports done, a hatch in
+     * the first fuel socket (survival places hatches only with the projector's hatch channel), a creative
+     * re-projection over it (nothing may break) and the damage-and-repair check.
+     */
+    public static List<String> survivalTest(World world, int x, int y, int z, String kind) {
+        final List<String> out = new ArrayList<>();
+        final ExtendedFacing f = ExtendedFacing.of(ForgeDirection.NORTH);
+        final String k = kind.toLowerCase(Locale.ROOT);
+        final MTEEnhancedMultiBlockBase<?> m;
+        final ItemStack stack;
+        int tier = 1;
+        if (k.startsWith("crown")) {
+            tier = k.length() > 5 ? Math.max(1, Math.min(3, k.charAt(5) - '0')) : 1;
+            stack = BTSMachines.burstThermaliserCrown;
+            m = stack == null ? null
+                : placeController(world, stack, MTEBurstThermaliserCrown.class, new int[] { x, y, z }, f);
+        } else {
+            stack = k.equals("mouth") ? BTSMachines.wormholeMouth
+                : k.equals("mirror") ? BTSMachines.conduitMirror : BTSMachines.conduitJunction;
+            m = stack == null ? null : placeController(world, stack, MTEConduitElement.class, new int[] { x, y, z }, f);
+        }
+        if (m == null) {
+            out.add(kind + ": controller NOT PLACED");
+            return out;
+        }
+        final ItemStack trigger = stack.copy();
+        trigger.stackSize = tier;
+        final SLConsoleTest.SurvivalRun run = SLConsoleTest.survivalBuild(
+            (com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable) m,
+            world,
+            trigger,
+            25,
+            4000);
+        out.add(
+            kind + " survival auto-place: "
+                + run.placed
+                + " blocks in "
+                + run.rounds
+                + " rounds, "
+                + (run.finished ? "finished (-1)" : run.stalled ? "STALLED" : "round cap hit"));
+        if (m instanceof MTEConduitElement) {
+            final MTEConduitElement<?> e = (MTEConduitElement<?>) m;
+            final int[][] u = socketRels(e.piece(), 'u');
+            if (u.length > 0) {
+                final int[] p = plus(new int[] { x, y, z }, offset(f, u[0]));
+                place(world, p, ItemList.Hatch_Input_MAX.get(1L), openSide(world, p));
+            }
+        }
+        m.checkStructure(true, m.getBaseMetaTileEntity());
+        out.add(kind + ": " + (m.mMachine ? "FORMED" : "NOT FORMED"));
+        if (!m.mMachine) {
+            for (String line : SLConsoleTest.firstErrors(m, m.getBaseMetaTileEntity(), 3)) out.add("  " + line);
+            return out;
+        }
+        ((com.gtnewhorizon.structurelib.alignment.constructable.IConstructable) m).construct(trigger, false);
+        m.checkStructure(true, m.getBaseMetaTileEntity());
+        out.add("Creative re-projection over it: " + (m.mMachine ? "still FORMED" : "BROKE IT"));
+        if (m.mMachine && m instanceof MTEConduitElement) {
+            final MTEConduitElement<?> e = (MTEConduitElement<?>) m;
+            out.addAll(
+                SLConsoleTest.damageAndRepair(
+                    e,
+                    e.getBaseMetaTileEntity(),
+                    trigger,
+                    SLConsoleTest.bounds(f, x, y, z, e.piece())));
+        } else if (m.mMachine && m instanceof MTEBurstThermaliserCrown) {
+            final MTEBurstThermaliserCrown c = (MTEBurstThermaliserCrown) m;
+            out.add("Crown Mk " + c.getMk());
+            out.addAll(
+                SLConsoleTest.damageAndRepair(
+                    c,
+                    c.getBaseMetaTileEntity(),
+                    trigger,
+                    SLConsoleTest.bounds(f, x, y, z, MTEBurstThermaliserCrown.PIECES[tier - 1])));
+        }
+        return out;
+    }
+
     /** The whole rig's state ({@code /btsconduit rig status}). */
     public static List<String> rigStatus() {
         final List<String> out = new ArrayList<>();

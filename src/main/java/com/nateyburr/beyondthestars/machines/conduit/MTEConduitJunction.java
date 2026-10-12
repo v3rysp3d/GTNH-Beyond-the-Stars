@@ -242,7 +242,7 @@ public class MTEConduitJunction extends MTEConduitElement<MTEConduitJunction> {
                     ratio,
                     fmtGain(getGain()),
                     lastLevel < 0 ? "- (no Burst Control Hatch)" : String.valueOf(lastLevel),
-                    lastShare,
+                    share(),
                     100 * out3Share));
             routeLines(out, new int[] { 1, 2, 3 }, new String[] { "Out 1 (straight)", "Out 2 (+60)", "Out 3 (-60)" });
         } else {

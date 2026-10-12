@@ -242,7 +242,8 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
     protected void onStructureCheckFinished(IGregTechTileEntity aBaseMetaTileEntity) {
         super.onStructureCheckFinished(quietTileUpdate.wrap(aBaseMetaTileEntity));
         quietTileUpdate.after(this, aBaseMetaTileEntity);
-        routes = null;
+        // keep the last routes for the scanner, but re-trace each one on its next stream
+        if (routeTick != null) java.util.Arrays.fill(routeTick, Long.MIN_VALUE / 2);
     }
 
     static boolean live(MetaTileEntity mte) {
@@ -736,7 +737,10 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
         for (int k = 0; k < outs.length; k++) {
             final ConduitNet.Route r = lastRoute(outs[k]);
             out.add(
-                names[k] + ": " + bu(outBu(outs[k])) + " Bu/t -> " + (r == null ? "(no stream yet)" : r.describe()));
+                names[k] + ": "
+                    + bu(outBu(outs[k]))
+                    + " Bu/t -> "
+                    + (r == null ? "(not traced yet: no stream)" : r.describe()));
         }
     }
 

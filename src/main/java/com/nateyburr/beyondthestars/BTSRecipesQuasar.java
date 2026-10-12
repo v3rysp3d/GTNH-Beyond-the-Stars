@@ -537,7 +537,11 @@ public final class BTSRecipesQuasar {
                 .metadata(SCANNING, new Scanning(8 * MINUTES, TierEU.RECIPE_UMV))
                 .itemInputs(
                     items(
-                        item(ItemList.Wireless_Dynamo_Energy_UMV, 2),
+                        // RC-2 never registers GT's Wireless_Dynamo_Energy_* (unset ItemList entries): TecTech's
+                        // Energized Wireless Dynamo Hatch (tier 12 = UMV) is the pack's wireless output part (P4-55)
+                        nn(
+                            tectech.thing.CustomItemList.eM_dynamoWirelessMulti.get(2),
+                            "CustomItemList.eM_dynamoWirelessMulti"),
                         c2(BlockSLCasing2.BURST_THERMALISER, 32),
                         c2(BlockSLCasing2.RADIATOR_PETAL, 12),
                         item(ItemList.Field_Generator_UMV, 8),
