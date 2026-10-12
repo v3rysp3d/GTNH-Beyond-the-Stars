@@ -1049,3 +1049,12 @@ The units are sequential, one unit each, with one gradle invocation at a time.
 12. **Magnetar Matter has no consumer yet** (its D-43 use, T9 pellets, is P5). Universium still has no source (B-2).
 13. **The questions file has two "B-25" entries** (the prototype readings and the compression upgrades); renumber one.
 14. **The prototype lives only in my local work folder.** Copy it into the design repo.
+
+## My answers (2026-10-12, after this plan) — these override the plan where they differ
+
+1. **Magnetar (T6) feed: the Antipolarization Agent is the CONSTANT feed (upkeep).** The White + Black Dwarf Matter
+   merger spawns the magnetar and tops it up to keep it stable. This reverses the proposal's "WDM + BDM constant feed,
+   Agent as an as-needed shield trim" (plan §17 item 5). Re-balance the T6 upkeep table and field trims accordingly.
+2. **Eye T2 is REQUIRED** (strict ladder per D-49). An Eye with the T3 jet crescent but no T2 beam band runs as T1
+   until the beam band is built (plan §17 item 1, adopted). When the Homogeny returns it is an alternative Excited
+   plasma source, not a way to skip T2.
