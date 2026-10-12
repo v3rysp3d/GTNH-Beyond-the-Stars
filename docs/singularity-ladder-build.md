@@ -1938,6 +1938,9 @@ The Homogeny T1 and T2 ship on this branch, so when the two branches merge:
    the three reserved Quasar port cells only as "later".
 4. Regenerate the bundle (`tools/gen-singularity.js`, `--check`, `--selftest`) after the edit.
 
+**Done at the merge into master (2026-10-13, B-82).** Steps 1-4 as written; 48118 has no optional structure
+checklist (no `bomItems.homogeny` table yet), and 48142 warns that the Tier II Core's UXV parts still need Universium.
+
 ## Hologram & NEI
 
 Acceptance pass, 2026-10-12. Verified by reading our code and `javap` of the instance jars (structurelib-1.4.38,

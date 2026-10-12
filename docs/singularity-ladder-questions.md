@@ -3130,6 +3130,51 @@ Refab). `spotlessApply compileJava` passed after each.
 **Suggestion.** Nothing to decide unless you would rather the H/R questions kept their branch numbers (that would mean
 renumbering master's render QA, automation and package entries, which the brief and INSTALL.md already cite).
 
+---
+
+### B-82 After the merges: the Homogeny quests, the Tier 13 warning and the questbook build [merge follow-up, built]
+
+**What was done.** The questbook steps the H/R review left for the merge (build spec "Contract additions (H/R review
+fixes)", B-80 item 8), the questbook build notes, and the Tier 13 (UXV) warning.
+
+1. **The Homogeny quests are real.** `features.homogeny` is true. 48118 The Homogeny keeps the controller retrieval
+   (28130) and adds 1,000 L Excited Stellar Plasma Mixture; 48142 The Homogeny T2 takes the Homogeny Tier II Core
+   (detect only) and 1,000 L Degenerate Stellar Mixture; 48184 The Homogeny T3 now needs `homogeny` and `eyeT9T10`, so
+   it stays a placeholder (its fluids are P4/P5). The texts are present tense in the book's BUILD / RUN / AUTOMATE form,
+   with the contract's "bank a Sol surplus, not a Sirius A replacement" paragraph. Two corrections against the old
+   placeholder text: T1 has **three** feed vessels (six from T2), and the book's name "Raw Stellar Plasma" is used for
+   Raw Star Matter, as everywhere else in it.
+2. **The Homogeny T2 quest is reachable in the book but its core is not craftable in survival yet.** SL-H10 (Homogeny
+   Tier II Core) takes Field Generator UXV x16, Electric Pump UXV x32 and UXV circuits; RC-2's UXV Field Generator needs
+   molten Universium (Eye T10). B-72 noted the same loop and left SL-H10 alone. The quest carries a [warn] saying so,
+   and the Tier 13 warning names the Tier II Core.
+   - *Suggestion:* give SL-H10 the same UMV stopgap as the T5/T6 cores (B-72: twice as many UMV parts, here Field
+     Generator UMV x32 and Electric Pump UMV x64), until the UXV parts and circuits design (brief item 22a) is built.
+   - *Alternatives:* keep it as built (the quest waits on the UXV design); or gate 48142 on `uxvParts` so it shows as
+     "(planned)" until then.
+3. **No structure checklist on 48118.** The Kerr and Eye quests have an optional "bring the blocks" retrieval built from
+   the manifest; the generator needs a `bomItems.homogeny` table (one item id per legend role) for that, and there is
+   none yet, so 48118 has only the controller and fluid tasks. *Suggestion:* add the table when the H/R blocks are
+   next touched (all three machines share the legend, so one table covers the Reality machines too).
+4. **Tier 13 (UXV) warning.** It now says plainly: Universium only comes from Eye T10, which is not built; the Eye's
+   T5/T6 cores do not need it (B-72's UMV stopgap); the pack's own UXV parts, and anything built from them (the
+   Homogeny Tier II Core included), still need MHDCSM and Universium until the new UXV parts and circuits are designed
+   and built. The two "planned swap that takes Universium out of UXV parts" lines on the UXV glass and superconductor
+   placeholders are unchanged (they describe the design, not the jar).
+5. **Questbook build.** With `kerr-redesign` and `questbook` both in master, a plain `gen-bom.ps1` run checks our ids
+   against this repo and finds 28117/28118; the README no longer tells you to set `BTS_QB_SRC`. The run had been
+   failing on a tidy x questbook seam: the tidy pass renamed the pillar block to "Reactor Fuel Pillar Frame" in
+   `BTSBom` only, and `gen-bom.ps1` still mapped it to "Reactor Fuel Column". The scripts now use the new name (the
+   constant is `BTSBom.REACTOR_FUEL_PILLAR_FRAME`), and the plant chapter and the bundle were regenerated.
+   - *Not done:* the rest of the tidy pass's questbook handoff (`tidy-old-multis.md`, "Questbook handoff"): the other
+     glossary renames in quest text (Unit One main station, Steam Generator, Gas Centrifuge Cascade, Fuel Fabrication
+     Line, Reprocessing Canyon) and the mechanics cut from tooltips that the book must carry. That belongs with the
+     TQ renames (your "full free reign" answer) so the names change once.
+   - The bundle records the commit it was generated from (`srcHead`), so `gen-singularity --check` reports the overlay
+     "stale" after any later commit even when nothing else differs. Harmless; regenerate when packaging.
+
+**Checks.** `gen-singularity` `--check` and `--selftest` pass; `spotlessApply compileJava` passes. Not run in game.
+
 ## Part C. Settled (for the record)
 
 | Topic | Your answer | State |
