@@ -87,10 +87,23 @@ errors and no crash. The boot log also confirms:
   its time per tier; below it there is no penalty.
 - Kerr T2 with the reinforcement torn down still does not form (ruled: keep).
 
+**Recipe audit applied (after d0181c2).** The cost audit ([`singularity-ladder-costs.md`](singularity-ladder-costs.md))
+found two dead ends and several over-priced blocks; §6 there lists what was applied and what was not.
+
+- **Kerr T2 is craftable:** SL-K04 takes 32 Black Hole Seeds in place of the Superstable Black Hole Seed, which no
+  recipe in the pack makes.
+- **Eye T2-T4 are craftable** with `replaceTecTechEyeOfHarmony=true`: SL-P30..P32 upgrade a Spacetime Compression
+  Field Generator one tier, paying Raw Star Matter / ESPM / RHSP where TecTech's recipe wants White Dwarf Matter
+  bolts. They are research-station assembly lines researched from the Sirius A / Arcturus / Sirius B charts.
+- **Cheaper bulk blocks:** SL-P27..P29 batch-make TecTech's Spatial, Temporal and Boundary casings (flag-gated);
+  the coil, quadrupole, beam band, jet crescent, Galactic Shell, pylon, Eye controller and Galactic Upgrade Core
+  recipes are cheaper or make more per craft (§2.2-§2.4 mark each change).
+- **Eye structure:** 48 Stabilisation Field Generators (each pylon pad's centre ring), not 294; the rest of each
+  pad is plinth.
+
 **Not done yet** (questions file, part A):
 
 - The upgrade milestones and install run: upgrades still install on a right-click.
-- The cost table.
 - In-game build checks. The hologram and the NEI preview paths are verified against the StructureLib and
   BlockRenderer6343 bytecode ("Hologram & NEI" below), but nobody has opened them in game yet.
 - The Eye's centre render.
@@ -274,28 +287,38 @@ Eye reaches it): Q-3.
 | SL-P05 | Bolt Injector Rail Mk I | ASM | Robot_Arm_UIV ×1, Electric_Piston_UIV ×1, frameGt SpaceTime ×1, gearGt SpaceTime ×2 | Lubricant 1,000 | RECIPE_UIV | 300 |
 | SL-P06 | Bolt Injector Rail Mk II | ASM | Rail Mk I ×1, Conveyor_Module_UIV ×2, Robot_Arm_UIV ×1 | Lubricant 2,000 | RECIPE_UIV ×4 | 400 |
 | SL-P07 | Bolt Injector Rail Mk III | ASM | Rail Mk II ×1, Robot_Arm_UMV ×1, Electric_Piston_UMV ×1, Conveyor_Module_UMV ×1 | SpaceTime molten 576, Lubricant 4,000 | RECIPE_UMV | 600 |
-| SL-P08 | Ergosphere Field Coil | ASM | wireGt01 SuperconductorUIV ×64, frameGt TranscendentMetal ×1, plate CosmicNeutronium ×8 | Super Coolant 32,000 | RECIPE_UIV | 1,200 |
-| SL-P09 | Beam Focusing Quadrupole | ASM | Ergosphere Field Coil ×2, Sensor_UIV ×1, ParticleBeamGuidancePipeCasing ×2, plate Neutronium ×8 | Super Coolant 16,000 | RECIPE_UIV | 1,200 |
+| SL-P08 | Ergosphere Field Coil | ASM | wireGt01 SuperconductorUIV ×16 (was ×64, cost audit #6), frameGt TranscendentMetal ×1, plate CosmicNeutronium ×8 | Super Coolant 8,000 (was 32,000) | RECIPE_UIV | 1,200 |
+| SL-P09 | Beam Focusing Quadrupole ×4 (was ×1, cost audit #7) | ASM | Ergosphere Field Coil ×2, Sensor_UIV ×1, ParticleBeamGuidancePipeCasing ×2, plate Neutronium ×8 | Super Coolant 16,000 | RECIPE_UIV | 1,200 |
 | SL-P10 | Beam Dump | ASM | plateDense Neutronium ×8, ingot CosmicNeutronium ×16, frameGt NaquadahAlloy ×1 | Super Coolant 16,000 | RECIPE_UIV | 600 |
 | SL-P11 | Eye Shell Casing ×2 | ASM | plateDense Neutronium ×4, frameGt SpaceTime ×1, plate Neutronium ×4 | SpaceTime molten 576 | RECIPE_UIV | 800 |
 | SL-P12 | Harmonic Lining ×4 (Kerr only, round-4 ruling) | ASM | plate Neutronium ×6, foil Infinity ×8, plate TranscendentMetal ×1 | Infinity molten 576 | RECIPE_UIV | 600 |
 | SL-P13 | Spatial Glass Channel ×4 | ASM | IC2 reinforced glass ×4 (`GTModHandler.getIC2Item("reinforcedGlass", 4)` through `nn`), foil SpaceTime ×8, Emitter_UIV ×1 | SpaceTime molten 144 | RECIPE_UIV | 600 |
-| SL-P14 | Ergosphere Extraction Casing ×2 | ASM | plateDense Neutronium ×2, frameGt SpaceTime ×1, Electric_Pump_UIV ×1 | SpaceTime molten 288 | RECIPE_UIV | 800 |
-| SL-P15 | Beam Band Casing ×4 | ASM | EOH_Reinforced_Spatial_Casing ×1, Beam Focusing Quadrupole ×2, Emitter_UMV ×2, plateDense SpaceTime ×2 | SpaceTime molten 9,216 | RECIPE_UMV | 1,800 |
-| SL-P16 | Jet Crescent Casing ×4 | ASM | EOH_Reinforced_Temporal_Casing ×1, Ergosphere Field Coil ×2, plateDense Infinity ×8, Emitter_UMV ×1 | SpaceTime molten 4,608, RawStarMatter 16,000 | RECIPE_UMV | 2,400 |
-| SL-P17 | Galactic Shell Plating ×2 | ASM | plateDense Infinity ×4, frameGt TranscendentMetal ×1, plate CosmicNeutronium ×4 | TranscendentMetal molten 1,152, **HSM 1,000** | RECIPE_UMV | 800 |
+| SL-P14 | Ergosphere Extraction Casing ×2 | ASM | plateDense Neutronium ×2, frameGt SpaceTime ×1, Electric_Piston_UIV ×1 (was a pump, cost audit #14) | SpaceTime molten 288 | RECIPE_UIV | 800 |
+| SL-P15 | Beam Band Casing ×16 (was ×4, cost audit #8) | ASM | EOH_Reinforced_Spatial_Casing ×1, Beam Focusing Quadrupole ×1, Emitter_UMV ×2, plateDense SpaceTime ×4 | SpaceTime molten 9,216 | RECIPE_UMV | 1,800 |
+| SL-P16 | Jet Crescent Casing ×16 (was ×4, cost audit #9) | ASM | EOH_Reinforced_Temporal_Casing ×1, Ergosphere Field Coil ×2, plateDense Infinity ×8, Emitter_UMV ×2, ingot SpaceTime ×32 | RawStarMatter 64,000 (4,000 per block, as before) | RECIPE_UMV | 2,400 |
+| SL-P17 | Galactic Shell Plating ×16 (was ×2, cost audit #10) | ASM | plateDense Infinity ×8, frameGt TranscendentMetal ×2, plate CosmicNeutronium ×8, ingot TranscendentMetal ×16 | **HSM 250** (was 1,000 per 2) | RECIPE_UMV | 800 |
 | SL-P18 | Bastion Plate ×4 | ASM | plateDense Neutronium ×6, plate TranscendentMetal ×2, frameGt Infinity ×1 | Infinity molten 2,304 | RECIPE_UMV | 1,200 |
 | SL-P19 | Casimir Plate ×4 | ASM | plate Neutronium ×8, foil SpaceTime ×16 | SpaceTime molten 576 | RECIPE_UMV | 1,200 |
-| SL-P21 | Stabiliser Pylon (item) | AL (research: Star Chart: Sol, Q-36) | Eye Shell Casing ×32, Harmonic Lining ×16, Field_Generator_UMV ×8, frameGt Neutronium ×16, circuit UMV ×8, plateDense Neutronium ×16, Containment Deck Plating ×16 | SpaceTime molten 147,456, Super Coolant 500,000 | RECIPE_UMV ×4 | 18,000 |
+| SL-P21 | Stabiliser Pylon (item) | AL (research: Star Chart: Sol, Q-36) | Eye Shell Casing ×32, Harmonic Lining ×16, Field_Generator_UMV ×8, frameGt Neutronium ×16, circuit UMV ×8, plateDense Neutronium ×16, Containment Deck Plating ×16 | SpaceTime molten 36,864 (was 147,456, cost audit #12), Super Coolant 500,000 | RECIPE_UMV ×4 | 18,000 |
 | SL-P22 | Star Chart: Sol | ASM | Tool_DataOrb ×1, circuit UMV ×1, plate Infinity ×4 | SpaceTime molten 144 | RECIPE_UMV | 200 |
 | SL-P23 | Star Chart: Sirius A | ASM | Tool_DataOrb ×1, circuit UMV ×1, plateDense SpaceTime ×1 | RSPM 10,000 | RECIPE_UMV | 200 |
 | SL-P24 | Star Chart: Arcturus | ASM | Tool_DataOrb ×1, circuit UMV ×1, plate TranscendentMetal ×4 | ESPM 1,000 | RECIPE_UMV | 200 |
 | SL-P25 | Star Chart: Sirius B | ASM | Tool_DataOrb ×1, circuit UMV ×1, Galactic Shell Plating ×1 | HSM 1,000 | RECIPE_UMV | 200 |
 | SL-P26 | Star Chart: Sirius B, Cooled (interim) | ASM | Star Chart: Sirius B ×1, circuit UMV ×1 | Super Coolant 64,000 | RECIPE_UMV | 200 |
+| SL-P27 | TecTech Reinforced Spatial Structure Casing ×4 (gated) | ASM | Godforge Singularity Shielding Casing ×1, plateDense Neutronium ×4, plateDense CosmicNeutronium ×4, plateDense Infinity ×1, programmed circuit 1 | SpaceTime molten 576 | RECIPE_UMV | 1,200 |
+| SL-P28 | TecTech Reinforced Temporal Structure Casing ×4 (gated) | ASM | as SL-P27, on programmed circuit 2 | SpaceTime molten 576 | RECIPE_UMV | 1,200 |
+| SL-P29 | TecTech Infinite SpaceTime Energy Boundary Casing ×8 (gated) | ASM | wireGt16 SuperconductorUMV ×1, plateDense Neutronium ×8, plateDense CosmicNeutronium ×8, Emitter_UIV ×1 | SpaceTime molten 1,152 | RECIPE_UMV | 1,200 |
+| SL-P30 | Spacetime Compression Field Generator Tier1 (meta 1, Eye T2 gate; gated) | AL, research station (research: Star Chart: Sirius A; TecTech's computation for the tier) | Compression generator Tier0 ×1, then TecTech's own Tier1 inputs without the WDM bolts: Yotta Fluid Tank Cell ×2 (meta 6), Quantum_Tank_IV ×8, Infinity Chest ×2, Cosmic Fabric Manipulator ×2, AE2 Singularity cell ×2, circuit UXV ×1 | Mutated Living Solder 5,760, Space molten 2,880, SpaceTime molten 1,440, **RawStarMatter 16,000** | RECIPE_UMV | 80,000 |
+| SL-P31 | Compression generator Tier2 (meta 2, Eye T3 gate; gated) | as SL-P30 (research: Star Chart: Arcturus) | Compression generator Tier1 ×1, Yotta cell ×3 (meta 6), Quantum_Tank_IV ×12, Infinity Chest ×3, Cosmic Fabric Manipulator ×3, AE2 Singularity cell ×2, circuit UXV ×1 | Solder 11,520, Space 4,320, SpaceTime 1,440, **ESPM 4,000** | RECIPE_UMV | 80,000 |
+| SL-P32 | Compression generator Tier3 (meta 3, Eye T4 gate; gated) | as SL-P30 (research: Star Chart: Sirius B) | Compression generator Tier2 ×1, Yotta cell ×1 (meta 7), Quantum_Tank_IV ×16, Infinity Chest ×4, Cosmic Fabric Manipulator ×1, AE2 Singularity cell ×2, circuit UXV ×2 | Solder 23,040, Space 5,760, SpaceTime 1,440, **RHSP 2,000** | RECIPE_UMV | 80,000 |
 
 SL-P20 is reserved and unused. Keep the ID gap; do not renumber. Each star chart's fluid is the previous tier's
 product, so a chart cannot be crafted before its tier is reachable. SL-P26 registers only when
-`Config.interimBlackDwarfAtEyeT4` is true.
+`Config.interimBlackDwarfAtEyeT4` is true. SL-P27..P32 ("gated") come from the cost audit
+([`singularity-ladder-costs.md`](singularity-ladder-costs.md) §6, #2-#4 and #15) and register only when
+`Config.replaceTecTechEyeOfHarmony` is true; TecTech's own recipes for those blocks stay. SL-P30..P32 upgrade the
+generator of the tier below (TecTech's recipe makes each tier from a Spatial casing and White Dwarf Matter bolts,
+which have no source while TecTech's Eye is off; B-22, B-25).
 `plateDense SpaceTime` and the other dense-plate pairings may not be generated by GT. `req()` names a missing one at
 boot (`mGeneratedItems` check). The Foundation unit swaps any that fails to `plate` ×9 in the same recipe and
 notes it in the commit.
@@ -306,8 +329,8 @@ notes it in the commit.
 |---|---|---|---|---|---|---|
 | SL-K01 | Kerr Ergosphere Engine (controller, MTE base+14) | AL (research: Black_Hole_Opener) | plateDense SpaceTime ×32, frameGt SpaceTime ×32, Field_Generator_UIV ×16, Emitter_UIV ×16, Sensor_UIV ×16, circuit UIV ×32, Superradiant Mirror Segment ×8, Bolt Injector Rail Mk I ×16, Black_Hole_Opener ×8, screw TranscendentMetal ×64, Ergosphere Field Coil ×16, Containment Deck Plating ×32 | SpaceTime molten 294,912, TranscendentMetal molten 147,456, Super Coolant 1,000,000 | RECIPE_UIV | 18,000 |
 | SL-K02 | Kerr Compressor Module (block) | AL (research: Kerr controller) | Electric_Piston_UIV ×32, Field_Generator_UIV ×8, circuit UIV ×16, plateDense Neutronium ×32, Black_Hole_Opener ×4, gearGt SpaceTime ×16 | SpaceTime molten 73,728, Super Coolant 500,000 | RECIPE_UIV | 12,000 |
-| SL-K03 | Kerr Extractor Module (block) | AL (research: Extraction Casing, Q-36) | Electric_Pump_UIV ×32, Field_Generator_UIV ×8, circuit UIV ×16, plateDense Neutronium ×32, Beam Focusing Quadrupole ×4, pipeHuge Neutronium ×16 | SpaceTime molten 73,728, Super Coolant 500,000 | RECIPE_UIV | 12,000 |
-| SL-K04 | Kerr Density Upgrade (item) | AL (research: Bastion Plate, Q-36) | Bastion Plate ×64, Bastion Plate ×64, plateDense Infinity ×64, Field_Generator_UMV ×32, circuit UMV ×32, Ergosphere Field Coil ×32, Black_Hole_Stabilizer ×1, Bolt Injector Rail Mk III ×16 | RawStarMatter 4,000,000, SpaceTime molten 589,824, ExcitedDTEC 128,000 | RECIPE_UMV ×4 | 36,000 |
+| SL-K03 | Kerr Extractor Module (block) | AL (research: Extraction Casing, Q-36) | Electric_Piston_UIV ×32 (was pumps, cost audit #14), Field_Generator_UIV ×8, circuit UIV ×16, plateDense Neutronium ×32, Beam Focusing Quadrupole ×4, pipeHuge Neutronium ×16 | SpaceTime molten 73,728, Super Coolant 500,000 | RECIPE_UIV | 12,000 |
+| SL-K04 | Kerr Density Upgrade (item) | AL (research: Bastion Plate, Q-36) | Bastion Plate ×64, Bastion Plate ×64, plateDense Infinity ×64, Field_Generator_UMV ×32, circuit UMV ×32, Ergosphere Field Coil ×32, Black_Hole_Opener ×32 (was Black_Hole_Stabilizer ×1, which nothing crafts; cost audit #1, B-21), Bolt Injector Rail Mk III ×16 | RawStarMatter 4,000,000, SpaceTime molten 589,824, ExcitedDTEC 128,000 | RECIPE_UMV ×4 | 36,000 |
 | SL-K05 | HSM 1,000 L | `beyondthestars.recipe.kerrdensity` (new, section 3.1) | bolt Neutronium ×64 | RHSP 10,000, SpaceTime molten 288 | RECIPE_UMV | 400 |
 
 The Kerr's other maps are GT's own (`compressorRecipes`, `neutroniumCompressorRecipes`, `extractorRecipes`), so it
@@ -317,8 +340,8 @@ adds no recipes there. SL-K06 (a Kerr-only "Ergosphere Extraction" map) is retir
 
 | ID | Output | Map | Item inputs | Fluids | EU | Ticks |
 |---|---|---|---|---|---|---|
-| SL-E01 | Eye of Harmony (controller, MTE base+15) | AL (research: Stabiliser Pylon, Q-36) | EOH_Reinforced_Spatial_Casing ×64, EOH_Reinforced_Temporal_Casing ×64, SpacetimeCompressionFieldGeneratorTier0 ×1, TimeAccelerationFieldGeneratorTier0 ×1, StabilisationFieldGeneratorTier0 ×1 (Tier0 since the review fix pass, Q-32), circuit UMV ×64, Field_Generator_UMV ×32, plateDense SpaceTime ×64, Eye Shell Casing ×64, Harmonic Lining ×64, Stabiliser Pylon ×6, Containment Deck Plating ×64 | SpaceTime molten 1,179,648, ExcitedDTEC 256,000, Infinity molten 589,824 | RECIPE_UMV ×4 | 36,000 |
-| SL-E02 | Galactic Upgrade Core | AL (research: Eye controller) | Galactic Shell Plating ×64, Field_Generator_UMV ×32, circuit UMV ×64, Casimir Plate ×32, plateDense SpaceTime ×32, Emitter_UMV ×16 | **HSM 256,000**, SpaceTime molten 147,456, TranscendentMetal molten 147,456 | RECIPE_UMV ×4 | 48,000 |
+| SL-E01 | Eye of Harmony (controller, MTE base+15) | AL (research: Stabiliser Pylon, Q-36) | EOH_Reinforced_Spatial_Casing ×64, EOH_Reinforced_Temporal_Casing ×64, SpacetimeCompressionFieldGeneratorTier0 ×1, TimeAccelerationFieldGeneratorTier0 ×1, StabilisationFieldGeneratorTier0 ×1 (Tier0 since the review fix pass, Q-32), circuit UMV ×64, Field_Generator_UMV ×32, plateDense SpaceTime ×64, Eye Shell Casing ×64, Harmonic Lining ×64, Stabiliser Pylon ×6, Containment Deck Plating ×64 | SpaceTime molten 294,912 (was 1,179,648, cost audit #12), ExcitedDTEC 256,000, Infinity molten 589,824 | RECIPE_UMV ×4 | 36,000 |
+| SL-E02 | Galactic Upgrade Core | AL (research: Eye controller) | Galactic Shell Plating ×64, Field_Generator_UMV ×32, circuit UMV ×64, Casimir Plate ×32, plateDense SpaceTime ×32, Emitter_UMV ×16 | **HSM 32,000** (was 256,000, cost audit #11), SpaceTime molten 147,456, TranscendentMetal molten 147,456 | RECIPE_UMV ×4 | 48,000 |
 
 The Eye's process recipes (SL-E1x) are **not** GT recipe-map recipes; they are section 3.3's registry, shown in NEI
 through a display-only map `beyondthestars.recipe.eye` built with `.fake()` like `BTSDisplayRecipes`.
@@ -947,7 +970,7 @@ you which mockup a shape came from.
 |---|---|
 | `def("boltbus", ...)` after the last `def` | `buildKerr` writes `B.boltbus`, which the mockup never defines, so its 8 bolt-bus cells came out **empty** (the §5.1 counts are 8 short). |
 | `tag("kerr_core")` at the top of `buildKerr` and before `arc(35, 70, 110`; `tag("kerr_compressor")` before `arc(36, 245, 295`; `tag("kerr_extractor")` before `arc(36, 328, 352`; `tag("kerr_density")` inside `if (tier>=2){` | Kerr piece membership (§5.2). |
-| `tag("pad")` / `tag("ground")` around the pylon foot pads | The pads become the stabilisation field generators (below). |
+| `tag("pad")` / `tag("ground")` around the pylon foot pads | Each pad's centre ring (8 cells around the foot, 48 in all) becomes the stabilisation field generators (below); the other 246 pad cells stay plinth `Q` (cost audit #5). |
 | `if (globalThis.__noClamps) return;` at the top of `clamp()` | A second T1 build without clamps separates a clamp **strut** (air without clamps) from a clamp root inside a band. |
 | `if (!globalThis.__noCentre)` before `centreRender(...)` | The centre is render-only (D-34), but the T4 render draws one "planet" with the solid `ring2` block. That would leave 7 stray Beam Band casings in the middle of `eye_arms`, so the exporter never draws the centre. |
 
@@ -962,7 +985,7 @@ format is the earlier "Contract additions (structures)" section, and `BTSShapes`
 | `kerr_t2` | 92 × 65 × 89 | 44,32,6 | 28,375 | `O` 8,316, `J` 4,162, `D` 3,551, `B` 3,186, `C` 2,852, `A` 1,920, `K` 1,537, `H` 842, `L` 682, `P` 677, `E` 232, `F` 208, `M` 160, `G` 30, `u` 8, `b` 8, `e` 2, `m` 1, `~` 1 |
 | `kerr_compressor` | 33 × 11 × 20 | 16,5,-59 | 965 | `I` 633, `J` 253, `K` 60, `G` 12, `c` 6, `q` 1 |
 | `kerr_extractor` | 9 × 11 × 16 | -29,5,-43 | 499 | `N` 315, `J` 137, `K` 44, `x` 2, `k` 1 |
-| `eye_core` | 102 × 52 × 80 | 50,50,0 | 19,616 | `U` 9,406, `Q` 4,458, `J` 3,582, `Z` 1,541, `Y` 294, `W` 188, `X` 138, `h` 5, `o` 2, `~` 1, `m` 1 |
+| `eye_core` | 102 × 52 × 80 | 50,50,0 | 19,616 | `U` 9,406, `Q` 4,704, `J` 3,582, `Z` 1,541, `W` 188, `X` 138, `Y` 48 (was 294; cost audit #5), `h` 5, `o` 2, `~` 1, `m` 1 |
 | `eye_beam` | 92 × 9 × 69 | 45,55,-6 | 4,343 | `R` 2,856, `J` 1,106, `Z` 375, `s` 6 |
 | `eye_jet` | 97 × 12 × 67 | 48,33,-10 | 3,984 | `S` 2,750, `J` 908, `Z` 321, `t` 5 |
 | `eye_arms` | 95 × 10 × 137 | 47,44,28 | 6,559 | `T` 5,325, `J` 830, `Z` 404 |
@@ -1053,7 +1076,7 @@ is the intent. Every plain element is wrapped in `BTSStructures.noOverwrite(...)
 | `Z` | glass channel | `sglass` | `Casings.QuantumGlass` (TecTech) |
 | `W` | spacetime compression field | T1 clamp struts, upper rail → core | `TTCasingsContainer.SpacetimeCompressionFieldGenerators` metas 0-8, `ofBlocksTiered` (Q-20) |
 | `X` | time dilation field | T1 clamp struts, core → lower rail | `TTCasingsContainer.TimeAccelerationFieldGenerator` metas 0-8, `ofBlocksTiered` (Q-20) |
-| `Y` | stabilisation field | the six 7 × 7 pylon foot pads (`deck`) | `TTCasingsContainer.StabilisationFieldGenerators` metas 0-8, `ofBlocksTiered` (Q-20) |
+| `Y` | stabilisation field | the centre ring (8 cells) of each of the six 7 × 7 pylon foot pads (`deck`), 48 in all; the rest of each pad is `Q` | `TTCasingsContainer.StabilisationFieldGenerators` metas 0-8, `ofBlocksTiered` (Q-20) |
 | `R` | beam band | `ring2` | NEW slCasing:10 Beam Band Casing |
 | `S` | jet crescent | `ring3` | NEW slCasing:11 Jet Crescent Casing |
 | `T` | galactic shell | `galactic` | NEW slCasing:12 Galactic Shell Plating |
