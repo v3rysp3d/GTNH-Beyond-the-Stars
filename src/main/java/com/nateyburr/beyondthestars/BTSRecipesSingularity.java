@@ -16,6 +16,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing;
+import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.fluids.SLFluids;
 import com.nateyburr.beyondthestars.items.SLItems;
@@ -38,10 +39,12 @@ import tectech.thing.CustomItemList;
  * <h2>Deviations from the §2.2 table, and why</h2>
  *
  * <ul>
- * <li><b>Retired: SL-P01 (Containment Deck Plating), SL-P11 (Eye Shell Casing), SL-P12 (Harmonic
- * Lining), SL-P13 (Spatial Glass Channel).</b> I ruled (2026-10-12) that existing Eye of
- * Harmony and Black Hole Compressor blocks play those roles (Contract additions FC-1), so the blocks
- * are not registered. The IDs stay reserved, like SL-P20.</li>
+ * <li><b>Retired: SL-P01 (Containment Deck Plating), SL-P11 (Eye Shell Casing), SL-P13 (Spatial
+ * Glass Channel).</b> I ruled (2026-10-12) that existing Eye of Harmony and Black Hole
+ * Compressor blocks play those roles (Contract additions FC-1), so the blocks are not registered.
+ * The IDs stay reserved, like SL-P20.</li>
+ * <li><b>SL-P12 (Harmonic Lining) is back</b> as a Kerr-only block (round-4 ruling: one new white
+ * Kerr lining block, slCasing2:2), x4 per craft with one fluid instead of the card's condensates.</li>
  * <li><b>SL-P21</b> (Stabiliser Pylon) takes TecTech's EOH casings in place of those three blocks.</li>
  * <li><b>One fluid per Assembler recipe.</b> GT's {@code assemblerRecipes} is {@code maxIO(9, 1, 1, 0)}:
  * a single-block Assembler has one fluid slot. Four cards had two. SL-P03 moves its SpaceTime into
@@ -200,6 +203,23 @@ public final class BTSRecipesSingularity {
                         BTSRecipeGuard.req(OrePrefixes.frameGt, Materials.NaquadahAlloy, 1L)))
                 .fluidInputs(superCoolant(16_000))
                 .itemOutputs(SLBlocks.casing(BlockSLCasing.BEAM_DUMP, 1))
+                .duration(600)
+                .eut(TierEU.RECIPE_UIV)
+                .addTo(assemblerRecipes));
+
+        // SL-P12 Harmonic Lining x4: the Kerr's white inner face (user ruling, round 4: one new Kerr
+        // lining block). Thousands per Kerr (1,072 at T1 with both modules, 4,552 at T2), so a batch
+        // Assembler recipe of plain UIV-tier metals; it replaces the BHC's Radiation Absorbent Casing in
+        // that role, which costs 64,000 L of UU-Matter per block.
+        BTSRecipeGuard.recipe(
+            "SL-P12",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    BTSRecipeGuard.req(OrePrefixes.plate, Materials.Neutronium, 6L),
+                    BTSRecipeGuard.req(OrePrefixes.foil, Materials.Infinity, 8L),
+                    BTSRecipeGuard.req(OrePrefixes.plate, Materials.TranscendentMetal, 1L))
+                .fluidInputs(molten(Materials.Infinity, 576))
+                .itemOutputs(SLBlocks.casing2(BlockSLCasing2.LINING, 4))
                 .duration(600)
                 .eut(TierEU.RECIPE_UIV)
                 .addTo(assemblerRecipes));
