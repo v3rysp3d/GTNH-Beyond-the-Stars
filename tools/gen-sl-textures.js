@@ -38,6 +38,7 @@
  *   sl_extraction.png          slCasing:15 Ergosphere Extraction Casing      (Kerr)
  *   sl_module_compressor.png   slCasing2:0 Kerr Compressor Module            (Kerr)
  *   sl_module_extractor.png    slCasing2:1 Kerr Extractor Module             (Kerr)
+ *   sl_lining.png              slCasing2:2 Harmonic Lining                   (Kerr, white inner face)
  *
  * blocks/iconsets/  (controller front overlays; Textures.BlockIcons.custom("beyondthestars:iconsets/<NAME>"))
  *   OVERLAY_FRONT_KERR_ENGINE.png
@@ -522,6 +523,36 @@ function sl_extraction(cv, rnd) {
   });
   cv.set(6, 6, hex(0xd8fff6));
 }
+// Harmonic Lining (slCasing2:2): the mockup's bright white inner face of every Kerr arc and band. A pearl-white
+// panel on the BHC's warm near-black rim, the Radiation Absorbent casing's lavender greys as its shading and two
+// faint purple "harmonic" seams, so it reads as the BHC family's light block rather than a foreign white.
+function sl_lining(cv, rnd) {
+  bhcBase(cv, rnd, { groove: false });
+  const hiW = hex(0xfbfbf6), loW = BHC.lav6; // pearl white, top-left to bottom-right
+  for (let y = 2; y <= 13; y++) {
+    for (let x = 2; x <= 13; x++) {
+      const t = (x + y - 4) / 22;
+      cv.set(x, y, add(mix(hiW, loW, t), (rnd() - 0.5) * 6));
+    }
+  }
+  // lit inner lip top/left, lavender shade bottom/right (a recessed panel, like the BHC casings)
+  for (let i = 1; i <= 14; i++) {
+    cv.set(i, 1, i === 14 ? BHC.lav4 : hex(0xffffff));
+    cv.set(1, i, i === 14 ? BHC.lav4 : hex(0xffffff));
+    cv.set(i, 14, BHC.lav3);
+    cv.set(14, i, BHC.lav3);
+  }
+  // two horizontal harmonic seams: a soft lavender groove with a faint purple core
+  for (const y of [5, 10]) {
+    for (let x = 3; x <= 12; x++) {
+      cv.set(x, y, mix(cv.get(x, y), BHC.lav4, 0.55));
+      if (x >= 5 && x <= 10) cv.set(x, y, mix(cv.get(x, y), BHC.pHi, 0.22));
+      cv.set(x, y + 1, mix(cv.get(x, y + 1), hex(0xffffff), 0.6));
+    }
+  }
+  // corner studs in the rim colour
+  for (const [x, y] of [[2, 2], [13, 2], [2, 13], [13, 13]]) cv.set(x, y, BHC.lav2);
+}
 function moduleCore(kind) {
   return (cv, rnd) => {
     bhcBase(cv, rnd);
@@ -910,6 +941,7 @@ tile('blocks/sl_casimir.png', sl_casimir);
 tile('blocks/sl_extraction.png', sl_extraction);
 tile('blocks/sl_module_compressor.png', moduleCore('compressor'));
 tile('blocks/sl_module_extractor.png', moduleCore('extractor'));
+tile('blocks/sl_lining.png', sl_lining);
 
 OUT.push({ rel: 'blocks/iconsets/OVERLAY_FRONT_KERR_ENGINE.png', canvas: kerrOverlay(0, false, false) });
 OUT.push({ rel: 'blocks/iconsets/OVERLAY_FRONT_KERR_ENGINE_GLOW.png', canvas: kerrOverlay(0, false, true) });
