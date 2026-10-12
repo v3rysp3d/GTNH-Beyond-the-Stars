@@ -219,13 +219,15 @@ public class MTEFuelFabricationHall extends MTEProductionHallBase<MTEFuelFabrica
     @Override
     public String[] getInfoData() {
         final List<String> info = new ArrayList<>(Arrays.asList(super.getInfoData()));
+        // Tidy C12: one shell line, named as the GUI names it; the weakest block sets the tier.
+        final int t = Math.max(1, Math.min(SHELL_NAMES.length, casingTier));
         info.add(
-            "Shell: " + shellStainless
-                + " stainless / "
-                + shellIridium
-                + " iridium / "
-                + shellNaquadah
-                + " naquadah - the weakest present sets the tier");
+            "Shell: " + SHELL_NAMES[t - 1]
+                + " (tier "
+                + t
+                + "/"
+                + SHELL_NAMES.length
+                + ") - the weakest block sets the tier");
         return info.toArray(new String[0]);
     }
 

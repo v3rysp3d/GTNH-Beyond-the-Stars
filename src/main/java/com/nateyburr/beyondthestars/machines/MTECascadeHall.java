@@ -284,7 +284,7 @@ public class MTECascadeHall extends MTEProductionHallBase<MTECascadeHall> {
     @Override
     public String[] getInfoData() {
         final List<String> info = new ArrayList<>(Arrays.asList(super.getInfoData()));
-        info.add("Stage banks: " + stageBanks + "/" + MAX_BANKS + "  ·  hall depth " + (8 + 4 * stageBanks));
+        info.add("Stage banks: " + stageBanks + "/" + MAX_BANKS + " · hall depth " + (8 + 4 * stageBanks));
         return info.toArray(new String[0]);
     }
 

@@ -134,7 +134,7 @@ public abstract class MTEProductionHallBase<T extends MTEProductionHallBase<T>>
     public String[] getInfoData() {
         final List<String> info = new ArrayList<>(Arrays.asList(super.getInfoData()));
         info.add("Parallel: " + String.format("%,d", getMaxParallelRecipes()));
-        info.add("Shell tier: " + casingTier + "  -  casings counted: " + String.format("%,d", mCasing));
+        info.add("Casings: " + String.format("%,d", mCasing));
         return info.toArray(new String[0]);
     }
 

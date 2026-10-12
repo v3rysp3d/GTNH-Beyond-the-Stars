@@ -17,7 +17,6 @@ import static gregtech.api.util.GTStructureUtility.buildHatchAdder;
 import static gregtech.api.util.GTUtility.validMTEList;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import net.minecraft.init.Blocks;
@@ -106,7 +105,7 @@ public class MTEModuleTurbineHall extends MTEPlantModuleBase implements ISurviva
         buildPiece(mName, stackSize, hintsOnly, 2, 3, 0);
     }
 
-    /** Package-visible: the main station pre-builds this shell via its own hologram. */
+    /** Package-visible: the Foundation pre-builds this shell via its own hologram. */
     static String[][] hallShape() {
         final String[] roof = { "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS" };
         final String[] upper = { "SWWWS", "WAPAW", "WAPAW", "WAPAW", "WAPAW", "WAPAW", "WAPAW", "WAPAW", "SSSSS" };
@@ -306,15 +305,8 @@ public class MTEModuleTurbineHall extends MTEPlantModuleBase implements ISurviva
     }
 
     @Override
-    public String[] getInfoData() {
-        final List<String> info = new ArrayList<>(Arrays.asList(super.getInfoData()));
-        final int fan = installedFanTier();
-        info.add(
-            "Fan: " + (fan == 3 ? "Optimized TDA (x2.5)"
-                : fan == 2 ? "TDA (x1.25, propellant-rated)" : fan == 1 ? "Matched (x1.25)" : "NONE (input bus)"));
-        info.add("Propellant boost: x" + activePropellantMult);
-        info.add("Generating: " + lastEUOutput + " EU/t");
-        return info.toArray(new String[0]);
+    protected String retiredNote() {
+        return "Replaced by the plant's Spine, Spiral chamber and Rotor Assembly. This block does nothing.";
     }
 
     @Override

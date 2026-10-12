@@ -38,6 +38,7 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBase;
 import gregtech.api.recipe.check.CheckRecipeResult;
 import gregtech.api.recipe.check.CheckRecipeResultRegistry;
+import gregtech.api.recipe.check.SimpleCheckRecipeResult;
 import gregtech.api.render.TextureFactory;
 import gregtech.api.structure.error.StructureError;
 import gregtech.api.util.GTOreDictUnificator;
@@ -165,15 +166,21 @@ public class MTEEnrichmentTrain extends MTEExtendedPowerMultiBlockBase<MTEEnrich
         return available;
     }
 
+    private static final CheckRecipeResult NEEDS_URANINITE = SimpleCheckRecipeResult
+        .ofFailure("beyondthestars.train.uraninite");
+    private static final CheckRecipeResult NEEDS_ACID = SimpleCheckRecipeResult.ofFailure("beyondthestars.train.acid");
+
     @Override
     @Nonnull
     public CheckRecipeResult checkProcessing() {
         final ItemStack oneUraninite = GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uraninite, 1L);
+        // Tidy C11: say which input is missing (GT5U.gui.text.recipe_result.beyondthestars.train.*)
+        // instead of GT's generic "no recipe". Same checks, same order; only the text differs.
         if (countMatchingInputs(oneUraninite) < INPUT_URANINITE) {
-            return CheckRecipeResultRegistry.NO_RECIPE;
+            return NEEDS_URANINITE;
         }
         if (!depleteInput(Materials.HydrofluoricAcid.getFluid(ACID_MB))) {
-            return CheckRecipeResultRegistry.NO_RECIPE;
+            return NEEDS_ACID;
         }
         for (int i = 0; i < INPUT_URANINITE; i++) {
             depleteInput(oneUraninite);

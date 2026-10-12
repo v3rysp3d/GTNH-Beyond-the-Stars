@@ -32,14 +32,14 @@ import gregtech.api.util.MultiblockTooltipBuilder;
 
 /**
  * Cooling Tower - RETIRED CONTROLLER (A3). The hyperboloid itself is very much alive: it is an
- * optional CHECKED PIECE of the main station now ({@code MTEReactorCoreMk1.towerPieceName}),
+ * optional CHECKED PIECE of the Nuclear Plant Foundation now ({@code MTEReactorCoreMk1.towerPieceName}),
  * built by the same one hologram projection as everything else, and each standing tower still
  * halves the plant's water draw, doubles passive heat decay and halves the decay-heat demand
  * (max 2). What is retired is this CONTROLLER and the docking mechanic behind it - there is no
  * dock marker to stand it on any more.
  * <p>
  * The MTE id stays registered so existing worlds load cleanly; the recipe is gone and
- * {@link #towerShape()} is now read by the main station, which is the only thing that still
+ * {@link #towerShape()} is now read by the Foundation, which is the only thing that still
  * checks it.
  */
 public class MTEModuleCoolingTower extends MTEPlantModuleBase implements ISurvivalConstructable {
@@ -70,7 +70,7 @@ public class MTEModuleCoolingTower extends MTEPlantModuleBase implements ISurviv
             : rWaist + (rTop - rWaist) * ((t - waistT) / (1 - waistT));
     }
 
-    /** Package-visible: the main station pre-builds this shell via its own hologram. */
+    /** Package-visible: the Foundation pre-builds this shell via its own hologram. */
     static String[][] towerShape() {
         final String[][] layers = new String[HEIGHT][];
         for (int i = 0; i < HEIGHT; i++) {
@@ -154,6 +154,11 @@ public class MTEModuleCoolingTower extends MTEPlantModuleBase implements ISurviv
                 .build();
         }
         return STRUCTURE_DEFINITION;
+    }
+
+    @Override
+    protected String retiredNote() {
+        return "The tower is a piece of the Nuclear Plant Foundation now - project that controller.";
     }
 
     @Override
