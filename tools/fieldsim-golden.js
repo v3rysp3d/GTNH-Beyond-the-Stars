@@ -35,12 +35,17 @@ const cp = require('child_process');
 const ROOT = path.resolve(__dirname, '..');
 const FIXTURE = path.join(__dirname, 'fixtures', 'star-lifecycle-engine.js');
 const GOLDEN = path.join(ROOT, 'src', 'main', 'resources', 'assets', 'beyondthestars', 'eye', 'fieldsim-golden.json');
-const PROTOTYPE = path.resolve(ROOT, '..', 'designs', 'star-lifecycle-prototype.html');
+// the design repo: the addon is nested in it (addon/) or a sibling worktree of it (GTNH-Addons/)
+const DESIGNS = [path.resolve(ROOT, '..', 'designs'), path.resolve(ROOT, '..', 'GTNH-Addons', 'designs')]
+  .find(d => fs.existsSync(d)) || path.resolve(ROOT, '..', 'designs');
+const PROTOTYPE = path.join(DESIGNS, 'star-lifecycle-prototype.html');
 const FIELD_SRC = path.join(ROOT, 'src', 'main', 'java', 'com', 'nateyburr', 'beyondthestars', 'machines', 'eye', 'field');
 const CLASSES = path.join(ROOT, 'build', 'fieldsim-classes');
 const START = '/*ENGINE-START*/', END = '/*ENGINE-END*/';
 
 const sha1 = s => crypto.createHash('sha1').update(s, 'utf8').digest('hex');
+// line endings are normalised to LF before hashing (git's autocrlf checks the files out with CRLF on Windows)
+const readLF = f => fs.readFileSync(f, 'utf8').replace(/\r\n/g, '\n');
 function extractBlock(text, what) {
   const a = text.indexOf(START), b = text.indexOf(END);
   if (a < 0 || b < a) throw new Error(`no ${START} … ${END} block in ${what}`);
@@ -49,7 +54,7 @@ function extractBlock(text, what) {
 
 // ---------------------------------------------------------------- fixture
 function refreshFixture(src) {
-  const html = fs.readFileSync(src, 'utf8');
+  const html = readLF(src);
   const block = extractBlock(html, src);
   const header = [
     '// star-lifecycle-engine.js — FIXTURE for tools/fieldsim-golden.js. Do not edit by hand:',
@@ -65,13 +70,13 @@ function refreshFixture(src) {
 }
 
 function loadEngine() {
-  const text = fs.readFileSync(FIXTURE, 'utf8');
+  const text = readLF(FIXTURE);
   const block = extractBlock(text, FIXTURE);
   const want = (text.match(/engine-sha1: ([0-9a-f]{40})/) || [])[1];
   const sourceSha1 = (text.match(/source-sha1: ([0-9a-f]{40})/) || [])[1];
   if (want !== sha1(block)) throw new Error(`fixture engine block does not match its engine-sha1 (edited by hand?)`);
   if (fs.existsSync(PROTOTYPE)) {
-    const live = sha1(extractBlock(fs.readFileSync(PROTOTYPE, 'utf8'), PROTOTYPE));
+    const live = sha1(extractBlock(readLF(PROTOTYPE), PROTOTYPE));
     if (live !== want) console.warn(`WARNING: the design repo's prototype engine (${live}) differs from the fixture (${want}).\n` +
       '         Run --refresh-fixture if the prototype is the newer truth, then port the change to the Java.');
   }
