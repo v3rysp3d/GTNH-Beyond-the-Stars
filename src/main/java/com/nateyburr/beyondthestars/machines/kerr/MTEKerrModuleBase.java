@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
@@ -261,7 +262,20 @@ public abstract class MTEKerrModuleBase<T extends MTEKerrModuleBase<T>> extends 
         return null;
     }
 
-    /** Every map in {@link #getAvailableRecipeMaps()} is searched together: no machine modes. */
+    /**
+     * True if a match in {@code map} hides every map searched after it: the inputs are meant for that
+     * map, so a shut gate reports its reason instead of letting a later map eat the inputs. None by
+     * default.
+     */
+    protected boolean shadowsLaterMaps(@Nonnull RecipeMap<?> map) {
+        return false;
+    }
+
+    /**
+     * Every map in {@link #getAvailableRecipeMaps()} is searched together, in order: no machine modes.
+     * GT tests the last recipe ahead of a map's own recipes whatever map it came from (and never clears
+     * it, as getRecipeMap() never changes), so it is offered only to its own map.
+     */
     @Override
     protected ProcessingLogic createProcessingLogic() {
         return new ProcessingLogic() {
@@ -271,7 +285,21 @@ public abstract class MTEKerrModuleBase<T extends MTEKerrModuleBase<T>> extends 
             protected Stream<GTRecipe> findRecipeMatches(@Nullable RecipeMap<?> map) {
                 Stream<GTRecipe> all = Stream.empty();
                 for (RecipeMap<?> m : getAvailableRecipeMaps()) {
-                    all = Stream.concat(all, super.findRecipeMatches(m));
+                    final GTRecipe cached = lastRecipe != null && lastRecipe.getRecipeCategory() != null
+                        && lastRecipe.getRecipeCategory().recipeMap == m ? lastRecipe : null;
+                    final Stream<GTRecipe> found = m.findRecipeQuery()
+                        .caching(recipeCaching)
+                        .items(inputItems)
+                        .fluids(inputFluids)
+                        .specialSlot(specialSlotItem)
+                        .cachedRecipe(cached)
+                        .findAll();
+                    if (!shadowsLaterMaps(m)) {
+                        all = Stream.concat(all, found);
+                        continue;
+                    }
+                    final List<GTRecipe> matched = found.collect(Collectors.toList());
+                    if (!matched.isEmpty()) return Stream.concat(all, matched.stream());
                 }
                 return all;
             }
