@@ -59,7 +59,7 @@ public final class SLRealityFluids {
     // ---- later phases' fluids, registered only if absent (H-24)
     /** Eye T7 output (P4). */
     public static Fluid ergomatter;
-    /** Eye T8 output, or refined from Ergomatter on the Kerr (P4; renamed from Supermassive, ruling 17). */
+    /** Eye T8 output, or refined from Ergomatter on the Kerr (P4; ruling 17). */
     public static Fluid superdenseErgomatter;
     /** Eye T9 output (P5). */
     public static Fluid whiteHoleMatter;
@@ -140,9 +140,9 @@ public final class SLRealityFluids {
             regionNegativeMass };
     }
 
-    /** A condensate in GT's style: GAS at 0 K, alpha 200. */
+    /** A condensate in GT's style: GAS at 0 K, alpha 200 ({@link SLCondensates}' registrar). */
     private static Fluid condensate(String name, String localName, int r, int g, int b) {
-        return fluid(name, localName, r, g, b, 200, FluidState.GAS, 0);
+        return SLCondensates.condensate(name, localName, r, g, b);
     }
 
     /** A later phase's fluid: reuse it if its owner registered it first, else register it here under the same name. */

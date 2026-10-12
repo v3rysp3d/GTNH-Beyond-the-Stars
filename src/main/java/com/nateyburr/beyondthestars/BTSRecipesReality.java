@@ -9,31 +9,28 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing3;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
+import com.nateyburr.beyondthestars.fluids.SLCondensates;
 import com.nateyburr.beyondthestars.fluids.SLRealityFluids;
 import com.nateyburr.beyondthestars.items.SLMaxItems;
 import com.nateyburr.beyondthestars.machines.BTSMachines;
 
 import gregtech.api.enums.CondensateType;
-import gregtech.api.enums.FluidState;
 import gregtech.api.enums.GTValues;
 import gregtech.api.enums.ItemList;
 import gregtech.api.enums.Materials;
 import gregtech.api.enums.NaniteTier;
 import gregtech.api.enums.OrePrefixes;
 import gregtech.api.enums.TierEU;
-import gregtech.api.fluid.GTFluidFactory;
 import gregtech.api.recipe.RecipeMap;
 import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.GTRecipe;
@@ -48,7 +45,8 @@ import tectech.thing.block.BlockQuantumGlass;
  * HOMOGENY + REALITY MACHINES, the recipe unit (H/R unit 3; design repo {@code designs/docs/homogeny-reality.md} §5,
  * PROPOSED; brief ruling 16: "make sure all of these recipes integrate with Bose Einstein condensate assembler").
  * One owner; run from one {@code BTSRecipeGuard.line("reality", ...)} in {@link BTSRecipes}, after the machines' own
- * process recipes ({@code reality-process}) and, once master's BEC expansion is merged, after {@code bec}.
+ * process recipes ({@code reality-process}) and after {@code bec} (the order does not matter: see
+ * {@link #becCondensate}).
  * <p>
  * <b>Everything here is a Bose-Einstein Condensate recipe</b>: the Condensate Assembler (GT 2.9.0-RC-2's
  * {@code gt.recipe.assemble-condensate}, items with one nanite tier per stack, at most 16 stacks, at most 4
@@ -62,10 +60,8 @@ import tectech.thing.block.BlockQuantumGlass;
  * Core, its only consumer, from Magnetar Matter to Black Dwarf Matter, and an orphan condensate in NEI suggests a use
  * that does not exist (BEC Q-B6). Its fluid stays registered as a reserved name.</li>
  * <li><b>The BEC expansion's condensates</b> this unit needs (SL-B10 Raw Star Matter, SL-B13 White Dwarf Matter,
- * SL-B14 Black Dwarf Matter) are master's ({@code SLCondensates}, line {@code bec}). This branch forked before they
- * landed, so {@link #shim} finds each by its frozen registry name, registers it (same name, colour and generator
- * recipe as master) only if nothing did, and never adds a second generator recipe on the same source fluid. Merged,
- * master's run first and the shim only reads them.</li>
+ * SL-B14 Black Dwarf Matter) have one owner: {@code SLCondensates} registers the fluids and {@code BTSRecipesBEC}
+ * their generator recipes. {@link #becCondensate} only resolves which fluid to ask for.</li>
  * <li><b>SL-H01..H05</b> the Homogeny T1 (UMV, stage S1: Raw Star Matter only, nanites at most Transcendent),
  * <b>SL-H10</b> the Tier II Core (stage S5: Black Dwarf Matter is the gate, ruling 19a), <b>SL-H20</b> the Tier III
  * Core and <b>SL-R12</b> the Eternity Shell Casing, <b>SL-R01/R02</b> the two Reality controllers and
@@ -96,7 +92,7 @@ public final class BTSRecipesReality {
     /** Units (L) of the condensates this file meters: 1,000 for the fluids, 144 for the molten matter. */
     private static final Map<Fluid, Integer> UNITS = new LinkedHashMap<>();
 
-    // The condensates actually used (master's, GT's or ours), resolved at registration.
+    // The condensates actually used (SLCondensates', SLRealityFluids' or GT's), resolved at registration.
     private static Fluid starMatter;
     private static Fluid whiteDwarf;
     private static Fluid blackDwarf;
@@ -136,46 +132,11 @@ public final class BTSRecipesReality {
     // ===================================================================================== condensates
 
     private static void condensates() {
-        // The BEC expansion's three (master: SLCondensates + BTSRecipesBEC.condensates(), same names and numbers).
-        BTSRecipeGuard.recipe(
-            "SL-B10",
-            () -> starMatter = shim(
-                "SL-B10",
-                "btsentangledstarmatter",
-                "Entangled Raw Star Matter",
-                186,
-                120,
-                255,
-                1_000,
-                () -> Materials.RawStarMatter.getFluid(1_000L),
-                30 * SECONDS,
-                TierEU.RECIPE_UIV));
-        BTSRecipeGuard.recipe(
-            "SL-B13",
-            () -> whiteDwarf = shim(
-                "SL-B13",
-                "btsentangledwhitedwarf",
-                "Entangled White Dwarf Matter",
-                236,
-                240,
-                255,
-                144,
-                () -> Materials.WhiteDwarfMatter.getMolten(144L),
-                120 * SECONDS,
-                TierEU.RECIPE_UXV));
-        BTSRecipeGuard.recipe(
-            "SL-B14",
-            () -> blackDwarf = shim(
-                "SL-B14",
-                "btsentangledblackdwarf",
-                "Entangled Black Dwarf Matter",
-                44,
-                36,
-                64,
-                144,
-                () -> Materials.BlackDwarfMatter.getMolten(144L),
-                150 * SECONDS,
-                TierEU.RECIPE_UXV));
+        // The BEC expansion's three: SLCondensates registers the fluids (preInit) and BTSRecipesBEC owns their
+        // Condensate Generator recipes (line "bec"). Here we only resolve which fluid the recipes ask for.
+        starMatter = becCondensate(SLCondensates.entangledStarMatter, 1_000, Materials.RawStarMatter.getFluid(1_000L));
+        whiteDwarf = becCondensate(SLCondensates.entangledWhiteDwarf, 144, Materials.WhiteDwarfMatter.getMolten(144L));
+        blackDwarf = becCondensate(SLCondensates.entangledBlackDwarf, 144, Materials.BlackDwarfMatter.getMolten(144L));
 
         // Ours (doc §5.1). Tiers rise with the product, like GT's own table (BEC Q-B13).
         BTSRecipeGuard.recipe(
@@ -220,37 +181,20 @@ public final class BTSRecipesReality {
     }
 
     /**
-     * One of the BEC expansion's condensates (master's {@code SLCondensates}): the registered fluid of that name, or
-     * - on a branch without it - the same fluid registered here; and its generator recipe unless the Condensate
-     * Generator already condenses the source fluid (then that recipe's output is used, as master does).
+     * One of the BEC expansion's condensates: the output of whatever Condensate Generator recipe already condenses
+     * {@code source} (BTSRecipesBEC's, or a future GT condensate on the same source), else {@code ours}. Registers
+     * nothing, so it does not matter whether the {@code bec} line ran before this one.
      */
-    private static Fluid shim(String id, String name, String localName, int r, int g, int b, int unit,
-        Supplier<FluidStack> source, int ticks, long eut) {
-        Fluid fluid = FluidRegistry.getFluid(name);
-        if (fluid == null) {
-            fluid = GTFluidFactory.builder(name)
-                .withDefaultLocalName(localName)
-                .withTextureName("molten.autogenerated")
-                .withColorRGBA(new short[] { (short) r, (short) g, (short) b, (short) 200 })
-                .withStateAndTemperature(FluidState.GAS, 0)
-                .buildAndRegister()
-                .addLocalizedName()
-                .asFluid();
-            BeyondTheStars.LOG.info(
-                "[BTS] {}: {} was not registered (the BEC expansion's SLCondensates is not in this build); the "
-                    + "Homogeny/Reality recipes registered it under the same name.",
-                id,
-                name);
-        }
-        return generator(id, fluid, unit, BTSRecipeGuard.nn(source.get(), id + " source fluid"), ticks, eut);
+    private static Fluid becCondensate(Fluid ours, int unit, FluidStack source) {
+        final Fluid existing = existingCondensate(source);
+        final Fluid fluid = existing != null ? existing : ours;
+        UNITS.put(fluid, unit);
+        return fluid;
     }
 
-    /**
-     * The Condensate Generator recipe {@code source -> the same amount of condensate}, unless one already condenses
-     * that source fluid (master's, or a future GT condensate): then its output fluid is the one recipes ask for.
-     */
-    private static Fluid generator(String id, Fluid ours, int unit, FluidStack source, int ticks, long eut) {
-        BTSRecipeGuard.nn(ours, id + " condensate fluid");
+    /** The output fluid of a Condensate Generator recipe whose input is {@code source}'s fluid, or null. */
+    private static Fluid existingCondensate(FluidStack source) {
+        if (source == null || source.getFluid() == null) return null;
         for (GTRecipe recipe : TecTechRecipeMaps.condensateGeneratorRecipes.getAllRecipes()) {
             if (recipe == null || recipe.mFluidInputs == null
                 || recipe.mFluidInputs.length == 0
@@ -258,8 +202,19 @@ public final class BTSRecipesReality {
                 || recipe.mFluidOutputs.length == 0
                 || recipe.mFluidInputs[0] == null
                 || recipe.mFluidOutputs[0] == null) continue;
-            if (recipe.mFluidInputs[0].getFluid() != source.getFluid()) continue;
-            final Fluid theirs = recipe.mFluidOutputs[0].getFluid();
+            if (recipe.mFluidInputs[0].getFluid() == source.getFluid()) return recipe.mFluidOutputs[0].getFluid();
+        }
+        return null;
+    }
+
+    /**
+     * The Condensate Generator recipe {@code source -> the same amount of condensate}, unless one already condenses
+     * that source fluid (a future GT condensate): then its output fluid is the one recipes ask for.
+     */
+    private static Fluid generator(String id, Fluid ours, int unit, FluidStack source, int ticks, long eut) {
+        BTSRecipeGuard.nn(ours, id + " condensate fluid");
+        final Fluid theirs = existingCondensate(source);
+        if (theirs != null) {
             UNITS.put(theirs, unit);
             BeyondTheStars.LOG.info(
                 "[BTS] {}: the Condensate Generator already makes {} from {}; the Homogeny/Reality recipes use it.",
