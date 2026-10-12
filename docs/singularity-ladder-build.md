@@ -167,6 +167,8 @@ errors and no crash. The boot log also confirms:
 - `removeBlackHoleCompressorRecipe` (true) removes the BHC controller recipe.
 - `interimBlackDwarfAtEyeT4` (true) adds the interim Black Dwarf recipe at Eye T4.
 - `eyeRenderCentre` has no effect yet.
+- `renderKerrHole` (true) draws the Kerr's black hole at the cage centre, scaled by mass (GT's BHC render; each KEE
+  also has a switch in its GUI). Test bench: `/btskerr render x y z [open [m]|close|off|on|break]` (questions B-42).
 
 **Follow-up pass (round-3/4 rulings, after 4bd6bf2).**
 

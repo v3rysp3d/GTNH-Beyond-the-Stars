@@ -1103,6 +1103,61 @@ the module screen gained status lines (§4.2). A few details were judgement call
 **Alternatives.** Rebuild the slider when the tier changes (more code, same result); a server-side Collapse
 confirmation (needs per-player state for no gain, because the server re-checks anyway).
 
+### B-42 Kerr redesign: the hole render as built [Kerr redesign, built]
+
+**Context.** Spec §5 / work plan R4: a black hole at the KEE's centre, reusing GT's Black Hole Compressor render
+(`BlackholeRenderer`, `RenderingTileEntityBlackhole`, `BlockRenderer`), sized for the cage and scaled by mass,
+shown only while the hole is open, with no orphan render blocks. The judgement calls:
+
+**What is built.**
+
+- **GT's classes, three small ones of ours.** `TileKerrHole extends RenderingTileEntityBlackhole` (GT's growth /
+  collapse animation, stability input and description-packet sync, plus a synced scale and the owning KEE's
+  coordinates); `BlockKerrHole extends BlockRenderer` (GT's render block, registered by its constructor as
+  `beyondthestars:gt.beyondthestars.kerrHole`, no item in NEI or the creative tab); `KerrHoleRenderer` (client) wraps
+  GT's `BlackholeRenderer` and `glScalef`s it about the centre, so GT's shaders and model are used unchanged. GT's
+  lasers stay off (spec: they would cut through the arcs).
+- **Server places, server removes** (as GT's BHC). The KEE puts the block at `machines.kerr.centre.rel` (0, 0, 38)
+  through its own facing, the same cell for T1 and T2 (checked in both shapes: a don't-care cell, nearest solid
+  block 12.3 away, a rail tip). Only into air, or it adopts our own block already standing there; otherwise the GUI
+  terminal and the scanner say "Render blocked at x, y, z". It never loads a chunk.
+- **When it shows.** Hole open AND the KEE's GUI switch AND `Config.renderKerrHole` (default true; the server
+  places nothing when it is off, a client with it off draws nothing). Formed or not (a frozen hole is still a hole).
+  When any of the three goes false, GT's 40-tick collapse plays and the block goes after it (the spec said this only
+  for a close; a switch turning off does the same, which looks better than a pop). Re-opening during the collapse
+  regrows from zero (GT's animation has no mid-point start).
+- **Scale** `clamp(4 (M/16)^(1/3), 2, 6.5)` as specced (16 SM → 4.0, 64 SM → 6.36, 128 SM and up → 6.5).
+  **Stability**: GT's input is the governor's coverage / 2, so the shader's stability equals the coverage (calm at
+  full coverage, the disc shrinks below it, spins at 0, e.g. with no containment power). Both are pushed only when
+  the scale moves 2 % or the coverage 0.02, checked once a second.
+- **No orphans, two ways.** (1) The KEE removes the block on break (`onBlockDestroyed`), on any tile removal
+  (`onRemoval`, wrench), when its facing no longer points at that cell, and on load if the hole or a switch says it
+  should not exist. Its position is saved in the TILE NBT only, never on the wrenched item (trap 2), so a KEE placed
+  elsewhere never claims a block here. (2) **Added beyond the spec:** the render tile polices itself. Every 100 ticks
+  on the server it asks the owner's cell (only once that chunk is loaded) whether a KEE there still claims exactly
+  this cell, and turns itself to air if not. That covers what (1) cannot: a KEE broken while the centre's chunk was
+  unloaded, a world edit, a `/setblock`-placed ownerless block.
+- **Test bench** `/btskerr render x y z [open [m]|close|off|on|break]`: acts, then reports the hole, both switches,
+  the centre cell and every Kerr render block within 100 blocks.
+
+**Verified (headless `runServer`, RC-2, 2026-10-12).** T1 north, east, south and T2 west: the block lands on the
+centre cell, claimed, scale 4.01 at 16 SM, 6.36 at 64 SM, 2.32 at 3 SM, 6.50 at 128 SM (T2). Close: the block stays
+for the 40-tick collapse, then air. Render switch off: same; on again: placed again. Breaking the controller: the
+block is gone in the same tick. Two `/setblock` ownerless render blocks next to a running KEE: gone within 100 ticks,
+the KEE's own block kept. Server restart with two open holes: each KEE adopts its block (one block each, still
+claimed after the tile's 100-tick self-check). **Not verified:** the look in a game client (size against the cage,
+the disc against the rails, Angelica's core profile), R5. Dev-server note: with no player online, Forge stops ticking
+tile entities 1,200 ticks after the last player left (or the start), so console tests must finish within a minute
+of start or a player must be online.
+
+**Suggestion.** As built; look at it in a client. If the disc at the 6.5 cap looks crowded against the rail tips
+(12.3 from the centre; the disc reaches about 13.5), lower the cap to 5.8 (disc about 12).
+
+**Alternatives.** A client-only render with no block (a world-render hook keyed on the KEE: no block to orphan, but
+the KEE controller's chunk must be loaded for the client to know about the hole, and it means our own render
+dispatch instead of GT's TESR path); GT's `GregTechAPI.sBlackholeRender` block itself (no way to scale it or tag its
+owner).
+
 ---
 
 ## Part C. Settled (for the record)

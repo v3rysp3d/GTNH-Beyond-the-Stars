@@ -5,10 +5,11 @@ Spec for the `kerr-redesign` branch, written 2026-10-12. It covers the ruling in
 `singularity-ladder-build.md` §3.1 / §3.2 / "Contract additions (Kerr)" disagree, this file wins for the redesign.
 The judgement calls are logged as questions B-33..B-37 in `singularity-ladder-questions.md`.
 
-**Status (2026-10-12, built on `kerr-redesign`):** R1 (exporter), R2 (KEE) and R3 (modules) are built and compile
-against RC-2; the render (R4) is not, only its per-machine switch. Where the build differs from this spec it is
-logged as B-38 (the compressor controller cell), B-39 (pausing, the power switch, the KEE GUI) and B-40 (render hooks,
-recipe ids, migration). The "As built" section at the end lists the files.
+**Status (2026-10-12, built on `kerr-redesign`):** R1 (exporter), R2 (KEE), R3 (modules) and R4 (render) are built
+and compile against RC-2. The render's server side (placement, scale, collapse, removal, no orphans) is verified on a
+headless dev server; nobody has looked at it in a game client yet. Where the build differs from this spec it is
+logged as B-38 (the compressor controller cell), B-39 (pausing, the power switch, the KEE GUI), B-40 (render hooks,
+recipe ids, migration) and B-42 (the render as built). The "As built" section at the end lists the files.
 
 The GUI mockup is a separate page (local work folder `kerr-gui/kerr-gui.html`, not committed). It shows the KEE screen,
 a module screen and the link diagram.
@@ -443,4 +444,5 @@ The KEE does not change.
 | `machines/kerr/KerrHatchElement.java` | `BoltBus` and `Utility` only. `KerrModule.java` is deleted. |
 | `machines/kerr/KerrKit.java`, `CommandBTSKerr.java` | `/btskit kerr`; `/btskerr` builds the KEE and both modules (creative or survival path) and diagnoses every walk and link; `/btskerr migrate [x y z]`; test bench `/btskerr legacy x y z`. |
 | `BTSRecipesKerr.java` | SL-K02 / SL-K03 output the module controllers; SL-K07 / SL-K08 convert legacy cores. |
+| `machines/kerr/TileKerrHole.java`, `BlockKerrHole.java`, `KerrHoleRenderer.java` | The hole render (§5, B-42): GT's `RenderingTileEntityBlackhole` plus a synced scale and its owner KEE, polices itself (no KEE claims it → air); GT's `BlockRenderer` (`beyondthestars:gt.beyondthestars.kerrHole`, no NEI item); the client TESR that `glScalef`s GT's `BlackholeRenderer` about the centre. Bound in `ClientProxy.init`, registered from `BTSBlocks`. `Config.renderKerrHole`. The KEE's side is `MTEKerrEngine.tickRender` (place / adopt, push look, collapse, remove). Test bench `/btskerr render x y z [open [m]\|close\|off\|on\|break]`. |
 | `tools/gen-sl-textures.js` | `OVERLAY_FRONT_KERR_COMPRESSOR*` and `OVERLAY_FRONT_KERR_EXTRACTOR*` (idle, glow, active, active glow). |
