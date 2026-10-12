@@ -108,28 +108,44 @@ public final class DirectiveBench {
         return EyeTrimRule.rigRate(tier, i);
     }
 
-    /** The scripted gate rig: {@code secs} field seconds, each reacting to last second's codes. */
-    public static List<String> eyeAutorig(MTEEyeOfHarmonyBTS eye, long secs, long cut) {
-        final List<String> out = new ArrayList<>();
-        final EyeStarRuntime rt = eye.starRuntime();
-        final MTEHatchDirective trimsH = hatch(eye.directiveHatches(), DirectiveSet.EYE_TRIMS);
-        final MTEHatchDirective statusH = hatch(eye.directiveHatches(), DirectiveSet.EYE_STATUS);
-        final MTEHatchDirective transH = hatch(eye.directiveHatches(), DirectiveSet.EYE_TRANSITION);
-        if (trimsH == null || statusH == null || transH == null) {
-            out.add("The Eye needs Trims, Status and Transition Directive Hatches: run 'directive' first.");
-            return out;
+    /**
+     * The Eye's side of the gate rig, one second: what plain redstone, an export bus with a redstone card or an ME
+     * interface does with each bit of the Eye's Trims, Status and Transition hatches (the codes a comparator reads, a
+     * second late). Shared by {@link #eyeAutorig} and the P4 quasar rig ({@code machines.quasar.QuasarRigBench}).
+     */
+    public static final class EyeRig {
+
+        public final MTEHatchDirective trimsH, statusH, transH;
+        public long charges, stocks, cores, charts, tach;
+        public final long[] bitSeconds = new long[12];
+
+        private EyeRig(MTEHatchDirective trimsH, MTEHatchDirective statusH, MTEHatchDirective transH) {
+            this.trimsH = trimsH;
+            this.statusH = statusH;
+            this.transH = transH;
         }
-        final long[] zones = new long[5];
-        long lit = 0, ignitions = 0, losses = 0, charges = 0, stocks = 0, cores = 0, charts = 0, tach = 0;
-        final long[] bitSeconds = new long[12];
-        int unlockedStart = rt.unlockedTier();
-        String lastFailure = rt.lastFailure();
-        EyeStarRuntime.StarState prev = rt.state();
-        final long t0 = System.nanoTime();
-        for (long i = 0; i < secs; i++) {
-            final boolean shut = i < cut; // the valves are held shut: the rig does nothing
-            final int trims = shut ? 0 : trimsH.currentCode(), status = shut ? 0 : statusH.currentCode(),
-                trans = shut ? 0 : transH.currentCode();
+
+        /** The rig on this Eye's three hatches, or null if one is missing (run {@link #eyeSetup} first). */
+        public static EyeRig of(MTEEyeOfHarmonyBTS eye) {
+            final MTEHatchDirective trimsH = hatch(eye.directiveHatches(), DirectiveSet.EYE_TRIMS);
+            final MTEHatchDirective statusH = hatch(eye.directiveHatches(), DirectiveSet.EYE_STATUS);
+            final MTEHatchDirective transH = hatch(eye.directiveHatches(), DirectiveSet.EYE_TRANSITION);
+            return trimsH == null || statusH == null || transH == null ? null : new EyeRig(trimsH, statusH, transH);
+        }
+
+        /** One second's actions on last second's codes; {@code shut} holds every valve shut. */
+        public void act(MTEEyeOfHarmonyBTS eye, boolean shut) {
+            act(eye, shut, -1);
+        }
+
+        /**
+         * As {@link #act(MTEEyeOfHarmonyBTS, boolean)}, with the trim valves on {@code trimsCode} instead of the Trims
+         * hatch when it is 0 or more (the galaxy rig's one Space valve on Field [1], quasar-p4.md §8.4).
+         */
+        public void act(MTEEyeOfHarmonyBTS eye, boolean shut, int trimsCode) {
+            final EyeStarRuntime rt = eye.starRuntime();
+            final int trims = shut ? 0 : trimsCode >= 0 ? trimsCode : trimsH.currentCode(),
+                status = shut ? 0 : statusH.currentCode(), trans = shut ? 0 : transH.currentCode();
             for (int b = 0; b < 4; b++) {
                 if ((trims & (1 << b)) != 0) bitSeconds[b]++;
                 if ((status & (1 << b)) != 0) bitSeconds[4 + b]++;
@@ -173,6 +189,26 @@ public final class DirectiveBench {
                 pour(eye, EyeStarRuntime.timeFluid(), 100);
                 tach++;
             }
+        }
+    }
+
+    /** The scripted gate rig: {@code secs} field seconds, each reacting to last second's codes. */
+    public static List<String> eyeAutorig(MTEEyeOfHarmonyBTS eye, long secs, long cut) {
+        final List<String> out = new ArrayList<>();
+        final EyeStarRuntime rt = eye.starRuntime();
+        final EyeRig rig = EyeRig.of(eye);
+        if (rig == null) {
+            out.add("The Eye needs Trims, Status and Transition Directive Hatches: run 'directive' first.");
+            return out;
+        }
+        final long[] zones = new long[5];
+        long lit = 0, ignitions = 0, losses = 0;
+        int unlockedStart = rt.unlockedTier();
+        String lastFailure = rt.lastFailure();
+        EyeStarRuntime.StarState prev = rt.state();
+        final long t0 = System.nanoTime();
+        for (long i = 0; i < secs; i++) {
+            rig.act(eye, i < cut); // the first k seconds the valves are held shut: the rig does nothing
             eye.fieldSecond();
             final EyeStarRuntime.StarState now = rt.state();
             if (prev != EyeStarRuntime.StarState.IGNITING && now == EyeStarRuntime.StarState.IGNITING) ignitions++;
@@ -206,29 +242,29 @@ public final class DirectiveBench {
                 zones[4],
                 losses,
                 ignitions,
-                charges,
-                stocks,
-                cores,
-                charts,
-                tach,
+                rig.charges,
+                rig.stocks,
+                rig.cores,
+                rig.charts,
+                rig.tach,
                 unlockedStart,
                 rt.unlockedTier()));
         out.add(
             String.format(
                 Locale.ROOT,
                 "bit-seconds: Trims %d/%d/%d/%d, Status %d/%d/%d/%d, Transition %d/%d/%d/%d",
-                bitSeconds[0],
-                bitSeconds[1],
-                bitSeconds[2],
-                bitSeconds[3],
-                bitSeconds[4],
-                bitSeconds[5],
-                bitSeconds[6],
-                bitSeconds[7],
-                bitSeconds[8],
-                bitSeconds[9],
-                bitSeconds[10],
-                bitSeconds[11]));
+                rig.bitSeconds[0],
+                rig.bitSeconds[1],
+                rig.bitSeconds[2],
+                rig.bitSeconds[3],
+                rig.bitSeconds[4],
+                rig.bitSeconds[5],
+                rig.bitSeconds[6],
+                rig.bitSeconds[7],
+                rig.bitSeconds[8],
+                rig.bitSeconds[9],
+                rig.bitSeconds[10],
+                rig.bitSeconds[11]));
         for (MTEHatchDirective h : eye.directiveHatches()) out.add("  " + h.statusLine());
         return out;
     }
@@ -455,7 +491,7 @@ public final class DirectiveBench {
 
     // ================================================================================= helpers
 
-    static MTEHatchDirective hatch(List<MTEHatchDirective> list, DirectiveSet set) {
+    public static MTEHatchDirective hatch(List<MTEHatchDirective> list, DirectiveSet set) {
         for (MTEHatchDirective h : list) if (h != null && h.isValid() && h.getSet() == set) return h;
         return null;
     }

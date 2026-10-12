@@ -67,7 +67,7 @@ public final class EyeStarBench {
 
     public static final String USAGE = "/btseye star <x> <y> <z> status | target <name> | lit [name] | seed <n> | "
         + "rig <off|bang|fine|none> | sim <s> [compare] | set dial|feed|shock <v> | unlock <1-6> | "
-        + "milestones <n> done | transition [abort] | event | "
+        + "milestones <n> done|reset | transition [abort] | event | "
         + "fill | sensor <x> <y> <z> <channel> <gt|lt> <threshold> [analog] | sensors <channel> <gt|lt> <thr> "
         + "[analog] | probe | wrench | charge [n] | buffer <fluid> <L> | core <name> | escrow | "
         + "legacy [galactic] [run <key> <n>] | fix | gt | mefield | field <fluid> <L> | render [on|off] | "
@@ -154,7 +154,14 @@ public final class EyeStarBench {
                 out.add("Unlocked T" + rt.unlockedTier());
                 break;
             case "milestones":
-                rt.milestones.complete(Integer.parseInt(a5));
+                if (args.length > 6 && "reset".equalsIgnoreCase(args[6])) {
+                    rt.milestones.reset(Integer.parseInt(a5));
+                    rt.galaxy.resetLive(); // the link windows and streaks too
+                    if (eye.getBaseMetaTileEntity() != null) eye.getBaseMetaTileEntity()
+                        .markDirty();
+                } else {
+                    rt.milestones.complete(Integer.parseInt(a5));
+                }
                 out.add(rt.milestones.progressLine(Integer.parseInt(a5)));
                 break;
             case "fill": {

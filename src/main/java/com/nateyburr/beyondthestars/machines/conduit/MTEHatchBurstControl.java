@@ -137,6 +137,20 @@ public class MTEHatchBurstControl extends MTEHatch {
         return level;
     }
 
+    /**
+     * Test bench (the fast-forward gate rigs, {@code /btsquasar autorig}): the redstone level {@code s} as if it had
+     * just arrived on a face - a rising edge latches exactly as {@link #onPostTick} would latch it. Only for seconds
+     * stepped without world ticks; a live rig puts real redstone against the hatch.
+     */
+    public void benchSignal(int s) {
+        final int v = Math.max(0, Math.min(15, s));
+        if (level == 0 && v > 0) {
+            edge = true;
+            edges++;
+        }
+        level = v;
+    }
+
     /** True once per rising edge since the last call (the host consumes it once a second). */
     public boolean consumeRisingEdge() {
         final boolean e = edge;

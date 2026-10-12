@@ -82,6 +82,36 @@ public final class EyeGalaxyBench {
         return b;
     }
 
+    /**
+     * P4 hosts unit: a rig outside this class that feeds this Eye its scripted bursts from a real quasar
+     * ({@code machines.quasar.QuasarRigBench}): called first in {@link #liveSecond}, every real field second, while
+     * set.
+     */
+    public static volatile java.util.function.Consumer<MTEEyeOfHarmonyBTS> liveHook;
+
+    /**
+     * P4 hosts unit: this second's scripted bursts on the Eye (in place of its Receptor Ports), from {@code source}:
+     * linked when {@code linked}, paused (Q-8) when {@code paused}; {@code phi} / {@code b} are the source quasar's
+     * flux and coil field for the collapse assist (P4-73).
+     */
+    public static void scripted(MTEEyeOfHarmonyBTS eye, double hi, double lo, double halo, boolean linked,
+        String source, boolean paused, double phi, double b) {
+        final EyeStarRuntime rt = eye.starRuntime();
+        final EyeBursts e = feed(eye, hi, lo, halo, linked);
+        e.source = linked ? source : "";
+        e.paused = paused;
+        e.pausedBy = paused ? source : "";
+        rt.benchBursts = e;
+        rt.benchFlux = new double[] { phi, b };
+    }
+
+    /** P4 hosts unit: the Eye reads its GRB Receptor Ports again. */
+    public static void unscripted(MTEEyeOfHarmonyBTS eye) {
+        final EyeStarRuntime rt = eye.starRuntime();
+        rt.benchBursts = null;
+        rt.benchFlux = null;
+    }
+
     /** The bench quasar, its conduit and the gate rig's wires (one per Eye being benched; not saved). */
     static final class Rig {
 
@@ -108,6 +138,8 @@ public final class EyeGalaxyBench {
      * scripted bursts keep coming between bench commands.
      */
     public static void liveSecond(MTEEyeOfHarmonyBTS eye) {
+        final java.util.function.Consumer<MTEEyeOfHarmonyBTS> hook = liveHook;
+        if (hook != null) hook.accept(eye);
         if (!live || rig == null || rigFor != key(eye)) return;
         second(eye, eye.starRuntime(), rig);
     }
@@ -217,28 +249,52 @@ public final class EyeGalaxyBench {
         if (res.eruption) r.eruptions++;
         if (res.purge) r.purges++;
         if (res.blowOut) r.blowOuts++;
-        // ---- the conduit: both jets into Mk I mouths (cap 24 Bu/t each), combined
+        conduit(
+            eye,
+            res.reforming ? 0 : r.q.G / 2,
+            r.q.hole == QuasarState.Hole.OPEN && r.q.b > 0,
+            trans,
+            field,
+            events,
+            r.testFire,
+            r.analog,
+            "the bench quasar",
+            false,
+            r.q.Phi,
+            r.q.b);
+    }
+
+    /**
+     * The standard conduit rig, one second (shared by this bench's virtual quasar and the P4 hosts unit's real-quasar
+     * rig, {@code machines.quasar.QuasarRigBench}): both jets ({@code jetPerPort} Bu/t each) into Mk I mouths (cap 24
+     * Bu/t each), combined; J1 Eye : crown on Field [2] / [1] (or the P sensor) OR Transition [4] (OR Slots [8] at
+     * T6); J3 halo : rail on Events [1] / [2] (or the Λ sensor) at T8, 75 % halo on the T7 test fire; J2 high : low on
+     * Field [4] / [8] (or the W sensor). The result is this second's scripted bursts on the Eye, from {@code source}
+     * (linked when {@code linkable} and something flows; paused for Q-8 when {@code paused}).
+     */
+    public static void conduit(MTEEyeOfHarmonyBTS eye, double jetPerPort, boolean linkable, int trans, int field,
+        int events, boolean testFire, boolean analog, String source, boolean paused, double phi, double b) {
+        final EyeStarRuntime rt = eye.starRuntime();
         final double cap = BurstRouting.throatCap(1);
-        final double half = res.reforming ? 0 : r.q.G / 2;
-        double sIn = 2 * Math.min(half, cap);
+        double sIn = 2 * Math.min(Math.max(0, jetPerPort), cap);
         sIn = Math.min(sIn, cap);
-        final boolean linked = r.q.hole == QuasarState.Hole.OPEN && r.q.b > 0 && sIn > 1e-9;
+        final boolean linked = linkable && sIn > 1e-9;
         final int n = rt.fs == null ? 0 : rt.fs.tier.n;
         final boolean planets = rt.fs != null && rt.fs.tier.planets();
         final boolean gm = rt.transition() instanceof GalacticMerger;
         final boolean t8 = (n >= 8 && !planets) || gm;
-        final boolean test8 = n == 7 && !planets && rt.transition() == null && r.testFire;
+        final boolean test8 = n == 7 && !planets && rt.transition() == null && testFire;
         final double[] e = rt.fs == null ? new double[StellarField.GAUGES] : rt.fs.prevE;
         final boolean lit = rt.galaxyLit();
         // J1 (Eye : crown): Transition [4] OR (T6 and Slots [8]) -> 15; else two Directive bits (or the P sensor)
-        int s1 = r.analog ? BurstRouting.level(lit ? -e[StellarField.P] : 0, 30)
+        int s1 = analog ? BurstRouting.level(lit ? -e[StellarField.P] : 0, 30)
             : BurstRouting.twoLevel(bit(field, 2), bit(field, 1));
-        if (bit(trans, 3) || (r.testFire && n == 6)) s1 = 15;
+        if (bit(trans, 3) || (testFire && n == 6)) s1 = 15;
         final double sh1 = test8 ? 1 : BurstRouting.share(0.5, 2, s1);
         final double eyeS = sh1 * sIn;
         double halo = 0, rail = eyeS;
         if (t8) {
-            final int s3 = r.analog ? BurstRouting.level(lit ? e[StellarField.L] : 0, 30)
+            final int s3 = analog ? BurstRouting.level(lit ? e[StellarField.L] : 0, 30)
                 : BurstRouting.twoLevel(bit(events, 1), bit(events, 2));
             halo = eyeS * BurstRouting.share(0.2, 2, s3);
             rail = eyeS - halo;
@@ -246,11 +302,10 @@ public final class EyeGalaxyBench {
             halo = eyeS * 0.75;
             rail = eyeS - halo;
         }
-        final int s2 = r.analog ? BurstRouting.level(lit ? e[StellarField.W] : 0, 30)
+        final int s2 = analog ? BurstRouting.level(lit ? e[StellarField.W] : 0, 30)
             : BurstRouting.twoLevel(bit(field, 3), bit(field, 4));
         final double hi = rail * BurstRouting.share(0.5, 2, s2);
-        rt.benchBursts = feed(eye, hi, rail - hi, halo, linked);
-        rt.benchFlux = new double[] { r.q.Phi, r.q.b };
+        scripted(eye, hi, rail - hi, halo, linked, source, paused, phi, b);
     }
 
     /** The Eye's position as the rig's key (a chunk reload makes a new controller object, not a new Eye). */

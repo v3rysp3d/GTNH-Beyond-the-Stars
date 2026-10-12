@@ -19,6 +19,7 @@ import com.nateyburr.beyondthestars.machines.conduit.MTEHatchBurstControl;
 import com.nateyburr.beyondthestars.machines.kerr.KerrTestBench;
 import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
 import com.nateyburr.beyondthestars.machines.quasar.QuasarKit;
+import com.nateyburr.beyondthestars.machines.quasar.QuasarRigBench;
 import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarGas;
 import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarResult;
 
@@ -35,6 +36,10 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
  * damage-and-repair checks; {@code check} instead re-walks what stands there (e.g. after a restart).</li>
  * <li>Bench: {@code status | seed [M] [a] | open | collapse | purge | mass M | feed f | gas H|He|RSM | b v | run s
  * [fill] | trim g s | refill | redstone on|off | keep | release}, each with the controller's x y z.</li>
+ * <li>P4 hosts unit: {@code autorig x y z <s> [eye ex ey ez] [analog] [cut k] [mass M] | autorig off | autorig
+ * status} - the gate rig on this real quasar (and a real Eye) through their Directive and Burst Control Hatches
+ * ({@link QuasarRigBench}); {@code ocloop x y z} - the bts_quasar calls a script makes, and the 20-tick rate
+ * limit.</li>
  * </ul>
  */
 public class CommandBTSQuasar extends CommandBase {
@@ -49,7 +54,8 @@ public class CommandBTSQuasar extends CommandBase {
     @Override
     public String getCommandUsage(ICommandSender sender) {
         return "/btsquasar [t1..t4] [seed] [force]  |  console: /btsquasar [t1..t4] <x> <y> <z> [facing] [force] [survival] [seed] | [check]"
-            + "  |  /btsquasar <status|seed [M] [a]|open|collapse|purge|mass M|feed f|gas H|He|RSM|b v|run s [fill]|trim g s|refill|redstone on|off|keep> x y z  |  /btsquasar release";
+            + "  |  /btsquasar <status|seed [M] [a]|open|collapse|purge|mass M|feed f|gas H|He|RSM|b v|run s [fill]|trim g s|refill|redstone on|off|keep> x y z  |  /btsquasar release"
+            + "  |  /btsquasar autorig x y z <s> [eye ex ey ez] [analog] [cut k] [mass M] | autorig off|status  |  /btsquasar ocloop x y z";
     }
 
     @Override
@@ -107,6 +113,18 @@ public class CommandBTSQuasar extends CommandBase {
         // a console test with no player online: every call keeps the world's tile entities ticking
         if (sender.getEntityWorld() instanceof WorldServer) {
             ((WorldServer) sender.getEntityWorld()).resetUpdateEntityTick();
+        }
+        if (args.length >= 2 && args[0].equalsIgnoreCase("autorig")
+            && (args[1].equalsIgnoreCase("off") || args[1].equalsIgnoreCase("status"))) {
+            SLConsoleTest.tell(
+                sender,
+                args[1].equalsIgnoreCase("off") ? QuasarRigBench.off(sender.getEntityWorld())
+                    : QuasarRigBench.status());
+            return;
+        }
+        if (args.length >= 4 && (args[0].equalsIgnoreCase("autorig") || args[0].equalsIgnoreCase("ocloop"))) {
+            automation(sender, args);
+            return;
         }
         if (args.length > 0 && args[0].equalsIgnoreCase("release")) {
             SLConsoleTest.tell(sender, "Quasar bench: released " + KerrTestBench.release() + " chunk ticket(s)");
@@ -342,6 +360,94 @@ public class CommandBTSQuasar extends CommandBase {
                 break;
         }
         for (String line : q.statusLines()) SLConsoleTest.tell(sender, line);
+    }
+
+    /** P4 hosts unit: {@code autorig} (the gate rig on this quasar, and an Eye) and {@code ocloop}. */
+    private void automation(ICommandSender sender, String[] args) {
+        final World world = sender.getEntityWorld();
+        if (world == null || world.isRemote) return;
+        final int x = (int) func_110666_a(sender, sender.getPlayerCoordinates().posX, args[1]);
+        final int y = (int) func_110666_a(sender, sender.getPlayerCoordinates().posY, args[2]);
+        final int z = (int) func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[3]);
+        world.getChunkFromBlockCoords(x, z);
+        final MTEQuasarEngine q = QuasarKit.quasarAt(world, x, y, z);
+        if (q == null) {
+            SLConsoleTest
+                .tell(sender, EnumChatFormatting.RED + "No Quasar Engine controller at " + x + ", " + y + ", " + z);
+            return;
+        }
+        if (args[0].equalsIgnoreCase("ocloop")) {
+            for (String line : ocLoop(q)) SLConsoleTest.tell(sender, line);
+            return;
+        }
+        long secs = args.length > 4 ? Long.parseLong(args[4]) : 600;
+        com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS eye = null;
+        boolean analog = false;
+        long cut = 0;
+        double mass = 0;
+        for (int i = 5; i < args.length; i++) {
+            final String a = args[i].toLowerCase(Locale.ROOT);
+            if (a.equals("analog")) analog = true;
+            else if (a.equals("cut") && i + 1 < args.length) cut = Long.parseLong(args[++i]);
+            else if (a.equals("mass") && i + 1 < args.length) mass = Double.parseDouble(args[++i]);
+            else if (a.equals("eye") && i + 3 < args.length) {
+                final int ex = (int) func_110666_a(sender, sender.getPlayerCoordinates().posX, args[++i]);
+                final int ey = (int) func_110666_a(sender, sender.getPlayerCoordinates().posY, args[++i]);
+                final int ez = (int) func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[++i]);
+                world.getChunkFromBlockCoords(ex, ez);
+                final net.minecraft.tileentity.TileEntity te = world.getTileEntity(ex, ey, ez);
+                if (te instanceof IGregTechTileEntity && ((IGregTechTileEntity) te)
+                    .getMetaTileEntity() instanceof com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS) {
+                    eye = (com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS) ((IGregTechTileEntity) te)
+                        .getMetaTileEntity();
+                } else {
+                    SLConsoleTest.tell(sender, "No Eye of Harmony controller at " + ex + ", " + ey + ", " + ez);
+                    return;
+                }
+            }
+        }
+        if (q.isFrozen()) {
+            SLConsoleTest.tell(sender, "Quasar bench: FROZEN (not formed or a chunk unloaded): nothing runs");
+            return;
+        }
+        for (String line : QuasarRigBench.autorig(world, q, secs, eye, analog, cut, mass)) {
+            SLConsoleTest.tell(sender, line);
+        }
+    }
+
+    /**
+     * {@code ocloop}: the bts_quasar calls a script makes (through the same API the component wraps), the setters'
+     * clamps, and the 20-tick rate limit (two setFeed calls in one tick: the second is refused).
+     */
+    private static List<String> ocLoop(MTEQuasarEngine q) {
+        final List<String> out = new java.util.ArrayList<>();
+        out.add("getDisc() = " + com.nateyburr.beyondthestars.integration.QuasarComputerApi.disc(q));
+        out.add("getBurst() = " + com.nateyburr.beyondthestars.integration.QuasarComputerApi.burst(q));
+        out.add("getLinks() = " + com.nateyburr.beyondthestars.integration.QuasarComputerApi.links(q));
+        out.add("getMilestones() = " + com.nateyburr.beyondthestars.integration.QuasarComputerApi.milestones(q));
+        out.add("getDirective(5) = " + com.nateyburr.beyondthestars.integration.QuasarComputerApi.directive(q, 5));
+        final double feed = q.getFeed();
+        final double b = q.getBSetting();
+        for (double v : new double[] { 9, -1, 1.25 }) {
+            out.add("setFeed(" + v + ") = " + com.nateyburr.beyondthestars.integration.QuasarComputerApi.setFeed(q, v));
+        }
+        for (double v : new double[] { 99, 0, 2.5 }) {
+            out.add(
+                "setField(" + v + ") = " + com.nateyburr.beyondthestars.integration.QuasarComputerApi.setField(q, v));
+        }
+        out.add("setGas(argon) = " + com.nateyburr.beyondthestars.integration.QuasarComputerApi.setGas(q, "argon"));
+        q.setFeed(feed);
+        q.setBSetting(b);
+        out.add("(feed and b put back to " + feed + " / " + b + ")");
+        final boolean first = com.nateyburr.beyondthestars.integration.BTSComputerApi.rateOk(q, "ocloop.setFeed");
+        final boolean second = com.nateyburr.beyondthestars.integration.BTSComputerApi.rateOk(q, "ocloop.setFeed");
+        out.add(
+            "rate limit, two calls in one tick: first " + (first ? "accepted" : "refused")
+                + ", second "
+                + (second ? "accepted (WRONG)"
+                    : "refused: " + com.nateyburr.beyondthestars.integration.BTSComputerApi.RATE_MESSAGE));
+        out.add("purge() = " + q.requestPurge() + " (false below flux 20)");
+        return out;
     }
 
     /**

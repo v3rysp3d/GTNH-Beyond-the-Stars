@@ -106,6 +106,21 @@ public final class EyeMilestones {
         }
     }
 
+    /** Bench ({@code /btseye star … milestones n reset}): tier n's milestones back to nothing (a clean proof run). */
+    public void reset(int n) {
+        if (n < 1 || n > 7) return;
+        prod[n] = 0;
+        res[n] = 0;
+        if (n == 3) flashes = 0;
+        if (n == 4) deepDark = 0;
+        if (n == 5) goodBatches = 0;
+        if (n == 6) flares = 0;
+        if (n == 7) mergers = 0;
+        linkDone[n] = false;
+        linkBest[n] = 0;
+        linkStreak[n] = 0;
+    }
+
     /** One progress line for leaving tier {@code n}, e.g. "T1 → T2: Raw Star Matter 1.2M / 20.0M L, ...". */
     public String progressLine(int n) {
         if (n < 1 || n > 7) return "";
