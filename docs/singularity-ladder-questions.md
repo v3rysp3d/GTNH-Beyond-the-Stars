@@ -112,6 +112,7 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
 
 - The merge + playtest run (B-88) passed headless; the Cascade Hall tooltip fix is in, and the walk now requires two
   output hatches unless one is ME (B-89). [B-88 fix 1, B-89]
+- The playtest jar `master.235` is packaged with a local-install INSTALL.md and a playtest guide (B-90). [B-90]
 
 **To see in a client** (the headless dev server cannot): the hologram hints, a survival build from a real AE system,
 the NEI multiblock tab and its frame rate (a T6 Eye is 51,935 blocks), every GUI (Eye, KEE, modules, Directive Hatch,
@@ -186,7 +187,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-89
+## Part B. Entries B-1..B-90
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -3695,6 +3696,37 @@ worlds:
    printed no error for a hall that was not formed.
 
 Also: `fieldsim-golden --check --java` 78 / 78, and `spotlessApply compileJava` clean.
+
+### B-90 Package: the playtest jar `0.24.1-master.235+21c063e24d` [playtest package]
+
+**Context.** Brief items 11c and 22i: one jar with everything merged for you to test, "run locally for now".
+
+**What was built.** `gradlew build --no-daemon` on master `21c063e` (clean tree; spotless + checkstyle pass, nothing to
+fix). The jar is `dist-rc2/beyondthestars-0.24.1-master.235+21c063e24d.jar` (1,451,130 bytes), SHA-256
+`8fb935af9b6debd8d4e8da9539ea025f210fa87b5e9c906309030fe2d0c77aa0`; `master.196` moved to `dist-rc2/superseded/`.
+`dist-rc2/INSTALL.md` is rewritten for it: the local install into the Prism instance "rc - 2 TO THE STARS" first
+(back up the world, move the old `beyondthestars-*.jar` out of `mods` to `mods-bak-bts`, one PowerShell block), the
+load lines to expect (278 / 0, the 14 H/R gate lines), the config keys including the two questbook keys, the
+questbook's auto-install and `/btsquests`, what is new since `master.196` and `master.137`, what is not in it (P4, the
+UXV parts / Empyrean circuits; the UMV stopgap ships), known issues, migration from `master.93`, and the dedicated-server
+command kept for later (`SERVER_DIR` placeholder, the SSH key with the one-time authorise command).
+A playtest guide page (checklist A1..H2 with expected results and what to report, the chapters, a command card and
+section 1's open questions) went to my local work folder; it is not published.
+
+**Judgement calls.**
+
+1. **The questbook overlay's `srcHead` is left at `f8b6297`.** `gen-singularity --check` reports the overlay
+   "stale", but regenerating it changes only that one field (checked: the diff is the `srcHead` line), the bundle id
+   is the same, and committing it would make the overlay stale against the new commit again. B-82 item 5 already
+   calls this harmless. *Alternative:* teach `--check` to ignore `srcHead`.
+2. **No new dev-server boot for the package.** The jar's code is what B-88 / B-89 ran (`21c063e` is docs only on top of
+   the B-89 fixes, which were booted). The playtest guide covers what only a client can show.
+3. **The instance holds `master.93`** (read from its `mods` folder; nothing in the instance was touched), so INSTALL.md's
+   migration section leads with the `master.93` path (Kerr arcs converting, Eyes starting dark) rather than the
+   `master.196` one.
+4. **The bench commands and the render harness stay in the jar** (open question 14).
+
+**Suggestion.** Accept as is.
 
 ---
 
