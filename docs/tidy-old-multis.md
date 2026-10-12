@@ -372,7 +372,10 @@ items, and add `addInformation` to the three blocks' ItemBlocks. All text goes t
 
 ## Unit B: GUIs (controller terminal, gap row, upgrade tree, halls)
 
-### B1. Gap row: label the three number fields (HIGH)
+**Status: DONE** (commits b53a594, 496158e, 1735f21, 1647929; `spotlessApply compileJava` and `build` pass).
+What differs from the text below is listed under "Unit B: as built" at the end of this unit.
+
+### B1. Gap row: label the three number fields (HIGH) - DONE
 `MTEReactorSiloGui.createRightPanelGapRow`. Today there are three bare boxes of 20, 36 and 30 px.
 Add a short text widget before each (`IKey.str("Tier")`, `"RPM"`, `"Rods"`, scale ~0.8). The row
 is `reverseLayout(true)`, so add each label after its field. Check that it fits at the 480x270
@@ -386,15 +389,15 @@ Every field tooltip starts with a GOLD title and continues in GRAY (new keys `.t
 - `beyondthestars.gui.buildtier.title=Build Tier (1-5)`; tooltip "Steam Generator" becomes "Reactor
   Silo".
 
-### B2. Show the Programmed Circuit override (MEDIUM)
+### B2. Show the Programmed Circuit override (MEDIUM) - DONE
 `isThrottleOverridden()` exists and nothing calls it. Sync it and append to `tierLine`: `rods
 12/24 (Programmed Circuit - remove it to use the field)`. Also add it to the Rods field tooltip.
 
-### B3. One unit for rods (MEDIUM)
+### B3. One unit for rods (MEDIUM) - DONE
 `tierLine` `rods 100%` becomes `rods 24/24`. In milestone grants, `throttle cap 26/24` becomes
 `rods up to 26/24`. The tree's `control-rod cap +2` becomes `rods +2 (N/24)`.
 
-### B4. Panel lines that mislead (HIGH)
+### B4. Panel lines that mislead (HIGH) - DONE
 `MTEReactorCoreMk1` formatters:
 - Seizure: the hold reason and the tooltip (A1 already drops "TRIPS into a protective spin-down")
   must not say it is safe. The hold reason `COOLANT LOST - protective spin-down, RPM bleeding off`
@@ -435,7 +438,7 @@ Every field tooltip starts with a GOLD title and continues in GRAY (new keys `.t
   and locked text DARK_GRAY becomes GRAY.
 - `euRate`: append the voltage tier, `1,920 EU/t (EV)`, via `GTUtility.getColoredTierNameFromVoltage`.
 
-### B5. Milestones and tree summary read correctly (HIGH)
+### B5. Milestones and tree summary read correctly (HIGH) - DONE
 - `BTSUpgrade.treeEffectLine`: build each entry from `BTSChannel.describe(total - base)`. Before:
   `Tree effects: plant output x1.27 · decay-heat window x1.50 · Derrick tantalum interval +1`.
   After: `Tree effects: +27.0% plant output · decay-heat window 1.5x shorter · Derrick tantalum 1
@@ -448,18 +451,18 @@ Every field tooltip starts with a GOLD title and continues in GRAY (new keys `.t
 - Use one vocabulary: `x/112 points spent · y available` in both `treeSummaryLine` and the tree
   header.
 
-### B6. Upgrade tree panel (MEDIUM)
+### B6. Upgrade tree panel (MEDIUM) - DONE
 `BTSUpgradeTreePanel`: add a column label above each branch (UPTIME, BURNUP, REPROC., TURBINE) in
 its connector colour. The help line goes from DARK_GRAY to GRAY with the text `Left-click: buy ·
 Right-click: refund · Hover: details`. The header becomes `UPGRADES n/25 · x/112 spent · y
 available`.
 
-### B7. Hide the Power Panel where it does nothing (LOW-MEDIUM)
+### B7. Hide the Power Panel where it does nothing (LOW-MEDIUM) - DONE
 Add `supportsPowerPanel() { return false; }` to `MTEReactorCoreMk1`, `MTEEnrichmentTrain`,
 `MTEExtractionPlatform` and `MTEPlantModuleBase` (covers both retired modules). Check in game that
 the button is gone.
 
-### B8. Production halls: make the Power Panel limiter work, and show the parallel (HIGH / MEDIUM)
+### B8. Production halls: make the Power Panel limiter work, and show the parallel (HIGH / MEDIUM) - DONE
 - `MTEProductionHallBase`: `setMaxParallelSupplier(this::getMaxParallelRecipes)` becomes
   `this::getTrueParallel`. This is the RC-2 javadoc rule. With GT's default `alwaysMaxParallel =
   true` the result is identical; only a player who unticks "max" in the panel sees a difference.
@@ -468,6 +471,45 @@ the button is gone.
   `MTELargeFluidExtractorGui`): sync `getMaxParallelRecipes`, `casingTier` and stage banks, and add
   one terminal line, `Parallel: 16 (shell: Iridium Reinforced Block, tier 2/3)` or, for the
   Cascade, `Parallel: 8 (stage banks 3/4)`. Server-only fields need sync values (trap 1).
+
+### Unit B: as built (where it differs from the items above)
+
+- **B1.** Captions and titles are lang keys (`beyondthestars.gui.<field>.label` / `.title`, unit B block in
+  `en_US.lang`), drawn at 0.8 scale left of each field. The row did not fit at 480x270 with GT's four left-hand
+  gap buttons showing (they were greyed out anyway: the plant supports no void protection, input separation, batch
+  mode or recipe lock), so `MTEReactorSiloGui` hides them the way GT's own `MTETeslaTowerGui` does. With B7's Power
+  Panel button gone the row is ~175 of 192 px. The existing tooltip, milestone and tree lang lines were reworded in
+  place (same keys): "Reactor Silo", "coolant interlock", no TC-7, shorter.
+- **B2.** `isThrottleOverridden()` now reads the controller slot with the campaign commit's own test (integrated
+  circuit, damage >= 1). The old "committed N differs from the field" compare would have read "overridden" for a
+  whole campaign after a plain field edit, because N only moves at the next campaign. Display only; nothing in the
+  plant's logic calls it. Synced as `throttleOverride`; the Rods tooltip is dynamic and adds
+  `beyondthestars.gui.throttle.override` (YELLOW) while a circuit is in.
+- **B3.** `tierLine(tier, edge, rodsN, circuitOverride)`; `getThrottlePercent()` and its sync value are gone. The
+  `statusReport()` call (unit C's region) was changed only to the new signature.
+- **B4.** `selfFuelLine` takes the counters and node mask (GUI: synced; `statusReport`: `progression.snapshot()` /
+  `nodes()`), and the Annex's Yellowcake is the batch average (`2` or e.g. `2.4`). `euRate` appends the tier
+  UNCOLOURED (`1,920 EU/t (EV)`, `GTValues.VN`): GT's coloured name ends in a RESET that would cut the colour of the
+  YELLOW module-stall text it is spliced into. Also tidied on the way: module-fault and tower names in Title Case
+  (NOT FORMED kept), the suspend / under-powered stall notes (no y-coordinates, no caps), the mistimed-window hold
+  line (`1 L`, `±2 tick`), the laser-socket row ("6th row up", unit A's count), the coolant STARVED / short lines.
+  The Energy Hatch row in the GUI is gated on a Derrick or Annex standing, matching the formatter.
+- **B5.** UPTIME prints hours with one decimal (`1.3 h -> 2.0 h`); the other lines keep counts. `BTSChannel`
+  factors print as `1.5x` (trailing zeros dropped) in the node tooltips too, so tooltips and the effects line match.
+  The STEAM ACCUMULATOR and OVERSPEED TRIM grant texts were brought to the glossary as well (cycles, RPM Limit).
+- **B6.** The captions are fixed in the header (HEADER_H 32 -> 42; the graph scrolls under them), x taken from each
+  branch's depth-1 node. Colours BLUE / RED / GREEN / GOLD for the blue / red / green / orange connectors. The root
+  node is now "Plant Commissioning" (glossary: no "Unit One").
+- **B7.** Hiding the Power Panel also hides GT's power-fail-events toggle on the Extraction Platform and the
+  Enrichment Train (the two that draw EU). GT does the same on its own single-parallel multis (Heat Exchanger, Air
+  Filter, Integrated Ore Factory).
+- **B8.** `MTEProductionHallBase.getParallelDetail()` (shell tier; the Cascade Hall overrides it with stage banks)
+  and `parallelSource(int)` (argument only, runs client-side) feed `MTEProductionHallGui`. The line shows only while
+  GT's synced `machine` flag says the hall is formed. The PUREX Canyon prints `Parallel: 8 (fixed)`.
+- **Left for unit C (chat, not GUI):** `MTEReactorCoreMk1.warnLegacyFace()` (~2748, the projection-refused chat)
+  still says "Stand beside the main station".
+- **Not checked in game** (no game run in this pass): the gap-row fit and caption legibility at GUI scale 4, the
+  tree captions over the columns, the hall parallel line, and that the Power Panel button is gone.
 
 ---
 
@@ -654,6 +696,16 @@ Added by unit A:
   Plutonium Dioxide, Thorium Dioxide Powder (formulas moved to the tooltips).
 - **Kerr / Eye owners:** adopt `BeyondTheStars.TOOLTIP_AUTHOR` in `toolTipFinisher(...)`; `items/BTSTooltipItem`
   is the shared lang-tooltip item class (SLItems already uses it).
+
+Added by unit B:
+- **gen-questbook.ps1** quotes panel text that changed: the BURNUP grants (~1207-1209, "throttle cap 26/24" is now
+  "rods up to 26/24"), the root node title (~1258, ~1285, "Unit One Commissioning" is now "Plant Commissioning"),
+  and any quoted milestone line (UPTIME now prints hours and the NEXT grant; REPROCESSING's unit is "Derrick loads +
+  Annex batches"). The GUI field names are now "Rods", "RPM" and "Tier" captions with the titles "Control Rods",
+  "RPM Limit", "Build Tier".
+- **Text cut from the panel** that the questbook should carry: the silo-face migration story (0.19.0 plumbing
+  frontage, what /btsmigrate rewrites and drops), the Vent Stack's halved windows in minutes, and the
+  output-safety test mode (`/btssafety on`) now that the armed line no longer names the command.
 
 ## Done when
 
