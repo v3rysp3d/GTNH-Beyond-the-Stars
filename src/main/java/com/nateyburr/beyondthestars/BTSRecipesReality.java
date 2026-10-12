@@ -641,7 +641,7 @@ public final class BTSRecipesReality {
     private static void gate(String what, boolean eternity, Fluid... needs) {
         final List<String> missing = new ArrayList<>();
         if (eternity && !ETERNITY_BEFORE_T10) {
-            missing.add("Eternity before Eye T10 (D-48: the pack's Eternity loop still needs Universium, Eye T10)");
+            missing.add("Eternity (its pack loop needs Universium, Eye T10, until D-48's Ergomatter swap is built)");
         }
         for (Fluid fluid : needs) {
             if (!SLRealityFluids.isPlaceholder(fluid)) continue;
