@@ -285,12 +285,15 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
                     .casingIndex(shellIndex)
                     .hint(1)
                     .buildAndChain(casing(Casings.ExtremeDensitySpaceBendingCasing)))
+            // The old maintenance socket: plain shell now (the KEE runs no recipes, so it has no maintenance),
+            // still accepting the maintenance hatch a pre-fix Kerr has there. Casing first: builds place shell.
             .addElement(
                 'm',
-                buildHatchAdder(MTEKerrEngine.class).atLeast(Maintenance)
-                    .casingIndex(shellIndex)
-                    .hint(2)
-                    .buildAndChain(casing(Casings.ExtremeDensitySpaceBendingCasing)))
+                ofChain(
+                    casing(Casings.ExtremeDensitySpaceBendingCasing),
+                    buildHatchAdder(MTEKerrEngine.class).atLeast(Maintenance)
+                        .casingIndex(shellIndex)
+                        .build()))
             .addElement(
                 'b',
                 buildHatchAdder(MTEKerrEngine.class).atLeast(KerrHatchElement.BoltBus)
@@ -374,7 +377,6 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         final int[] o = off(core);
         if (!checkPiece(core, o[0], o[1], o[2], errors)) return;
         checkExoticAndNormalEnergyHatches(errors);
-        checkHasMaintenanceHatch(errors);
         if (boltBusCount() == 0) {
             errors.add(StructureErrors.of("beyondthestars.structure.kerr.boltbus"));
         }
@@ -1256,7 +1258,6 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
                 "Kerr T2 adds",
                 bom(PIECE_T2, 'O') + " Bastion Plate, " + bom(PIECE_T2, 'P') + " Casimir Plate, more lining and glass")
             .addEnergyHatch("Governor arc (2 sockets; 1 laser or up to 2 energy): containment power", 1)
-            .addMaintenanceHatch("Governor arc", 2)
             .addOtherStructurePart("Bolt bus (input bus, private)", "8 sockets on the cage, at least 1", 3)
             .addOtherStructurePart("Black Hole Compressor Utility Hatch", "optional, beside the bolt buses", 6)
             .addOtherStructurePart("Kerr Compressor Module controller", "a separate machine (marker)", 7)
@@ -1264,6 +1265,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             .addStructureInfo("Hologram: trigger stack 1 = Kerr T1, 2+ = Kerr T2. Markers 7 and 8 show where")
             .addStructureInfo("  each module controller goes; build a module with its own controller's hologram.")
             .addStructureInfo("Rails go in as Mk I; builds never overwrite hatches or downgrade rails.")
+            .addStructureInfo("No maintenance hatch (an old one in the governor arc may stay).")
             .toolTipFinisher();
         return tt;
     }
@@ -1294,6 +1296,12 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     @Override
     protected @NotNull MTEMultiBlockBaseGui<?> getGui() {
         return new MTEKerrEngineGui(this);
+    }
+
+    /** The KEE runs no recipes, so maintenance would only shut its GUI down (as the modules and RC-2's BHC). */
+    @Override
+    public boolean getDefaultHasMaintenanceChecks() {
+        return false;
     }
 
     @Override

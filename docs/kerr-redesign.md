@@ -35,7 +35,7 @@ Widget classes were checked in the ModularUI2 2.3.92 dev jar.
 | Structure | `kerr_t1`, or `kerr_t2` once the Density Upgrade is in (unchanged) | its own arc, exported in its own frame (§6) |
 | Controller | governor arc, front centre (unchanged) | the module's own controller, on the outer face of its arc |
 | Does | seed / open / close the hole, the mass setpoint, the governor and bolt buses, Hawking bleed, stability, containment power, utility hatches, the Density Upgrade (T2), the render | runs recipes from its own recipe maps |
-| Hatches | energy (1-2), maintenance, 8 bolt buses (private), 8 optional BHC utility hatches (all unchanged) | its own input / output buses and hatches and its own energy hatch, all in GT's **standard** lists |
+| Hatches | energy (1-2), 8 bolt buses (private), 8 optional BHC utility hatches (all unchanged); no maintenance (the old socket is shell and still takes an old hatch) | its own input / output buses and hatches and its own energy hatch, all in GT's **standard** lists |
 | Recipes | **none**: no recipe map, no machine modes, no `ProcessingLogic` | Compressor: `compressorRecipes` + `neutroniumCompressorRecipes` + `KerrRecipeMaps.DENSITY`. Extractor: `extractorRecipes` (items only, Q-9/Q-22). |
 | GUI | MUI2 hole console (§4.1) | the standard GT multiblock GUI, plus a "Kerr link" status (§4.2) |
 | Screwdriver | not needed for anything | not needed for anything |

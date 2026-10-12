@@ -119,8 +119,8 @@ errors and no crash. The boot log also confirms:
 
 - `/btskit kerr` gives the KEE controller, both module controllers, injector rails, a Density Upgrade, Black Hole
   Seeds/Collapser, SpaceTime bolts and hatches. It prints the bill of materials for every piece.
-- `/btskerr [t1|t2] [force]` builds a complete, formed Kerr in front of you. You get creative power, auto-maintenance
-  and every hatch, and the bolt buses come stocked. The controller ends up 32 blocks above your feet, facing you.
+- `/btskerr [t1|t2] [force]` builds a complete, formed Kerr in front of you. You get creative power and every hatch
+  (the KEE needs no maintenance hatch), and the bolt buses come stocked. The controller ends up 32 blocks above your feet, facing you.
   With `t2` it also installs the Density Upgrade.
 - `/btskit eye` gives the Eye controller, a Galactic Upgrade Core, all five star charts, the hatches, ME output
   bus and hatch, auto-maintenance and field generators. It prints the bill of materials.
@@ -744,7 +744,7 @@ by cell (a table of voxel coordinates), not by guessing.
 | Char | Machine | Cells (voxel) | Accepts | Min |
 |---|---|---|---|---|
 | `e` | Kerr | governor arc (2,0,37.6), (4,0,37.6) | Energy / ExoticEnergy (laser) | 1 |
-| `m` | Kerr | governor arc (−2,0,37.6) | Maintenance | 1 |
+| `m` | Kerr | governor arc (−2,0,37.6) | plain shell; an old Maintenance hatch is still accepted (the KEE has no maintenance) | 0 |
 | `b` | Kerr | 8 `boltbus` at r 34, y ±5 | `KerrHatchElement.BoltBus` (InputBus, private) | 1 |
 | `c` | Kerr compressor | 4 `beamhatch` at r 32.6 (255-285°) + the arc's outer `energy`/`maint` cells (0,0/2,−39.6) | InputBus / InputHatch / OutputBus / OutputHatch (standard lists, mark-and-truncate) | 1 in + 1 out |
 | `q` | Kerr compressor | the arc's `control` cell (0,−2,−39.6) | slCasing2:0, the module core (exactly 1) | 1 |
@@ -755,7 +755,7 @@ by cell (a table of voxel coordinates), not by guessing.
 | `m` | Eye | plinth `maint` | Maintenance | 1 |
 | `s` | Eye | 6 beam-band + 5 jet-crescent `beamhatch` | `EyeHatchElement.Stellar` (MTEHatchInput, private → buffer) | 0 (T2+ only use them) |
 
-Hint numbers: Kerr: energy 1, maintenance 2, bolt bus 3, compressor I/O 4, extractor I/O 5. Eye: gas 1, ME output 2,
+Hint numbers: Kerr: energy 1, (maintenance 2 retired), bolt bus 3, compressor I/O 4, extractor I/O 5. Eye: gas 1, ME output 2,
 maintenance 3, stellar 4.
 
 ### 5.4 Kerr T1 vs T2; Eye core and bands
@@ -1206,7 +1206,7 @@ from the table, or if a table entry's cell holds another kind. The manifest list
 | Char | Piece | Count | Accepts | Fallback | Min | Hint |
 |---|---|---|---|---|---|---|
 | `e` | `kerr_t1/t2` (governor arc) | 2 | Energy / ExoticEnergy | `L` | 1 | 1 |
-| `m` | `kerr_t1/t2` (governor arc) | 1 | Maintenance | `L` | 1 | 2 |
+| `m` | `kerr_t1/t2` (governor arc) | 1 | shell first, then an old Maintenance hatch (KEE has no maintenance) | `L` | 0 | - |
 | `b` | `kerr_t1/t2` (r 34, y ±5) | 8 | `KerrHatchElement.BoltBus` (private input-bus list) | `A` | 1 | 3 |
 | `u` | `kerr_t1/t2` (beside each bolt bus) | 8 | BHC utility hatch `MTEBlackHoleUtility` (id 3012, redstone hole state); optional (Q-21) | `A` | 0 | 6 |
 | `c` | `kerr_compressor` | 6 | InputBus / InputHatch / OutputBus / OutputHatch (standard lists, mark-and-truncate) | `I` | 1 in + 1 out | 4 |

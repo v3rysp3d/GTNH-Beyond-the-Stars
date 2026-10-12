@@ -67,10 +67,9 @@ public final class KerrKit {
             give(player, GTOreDictUnificator.get(OrePrefixes.bolt, Materials.SpaceTime, 64L));
             give(player, GTOreDictUnificator.get(OrePrefixes.bolt, Materials.Neutronium, 64L));
         }
-        // KEE: bolt buses, energy (containment power), maintenance, a utility hatch
+        // KEE: bolt buses, energy (containment power), a utility hatch (no maintenance)
         giveMany(player, ItemList.Hatch_Input_Bus_MAX.get(1L), socketCount(MTEKerrEngine.PIECE_T1, 'b'));
         giveMany(player, ItemList.Hatch_Energy_UIV.get(1L), socketCount(MTEKerrEngine.PIECE_T1, 'e'));
-        give(player, ItemList.Hatch_AutoMaintenance.get(1L));
         give(player, machine(MetaTileEntityIDs.HATCH_BLACK_HOLE_UTILITY.ID));
         // modules (their own hatches): compressor in bus + 2 in hatches (DENSITY takes two fluids) + out bus
         // + out hatch + energy; extractor in bus + out bus + energy
@@ -182,8 +181,8 @@ public final class KerrKit {
 
     /**
      * Raises a complete Kerr with the KEE controller at (x, y, z) facing {@code facing}: the cage
-     * (T1, or T2 with the Density Upgrade), a hatch in every KEE socket (creative energy,
-     * auto-maintenance, bolt buses stocked with a seed and bolts), then each module: its controller in
+     * (T1, or T2 with the Density Upgrade), a hatch in every KEE socket (creative energy, bolt buses
+     * stocked with a seed and bolts), then each module: its controller in
      * its slot cell facing out of the cage, its arc, its own hatches (input / output and creative
      * energy). Every machine is formed; the modules link once the hole opens (about a second). With
      * {@code survival} the blocks go in through each controller's {@code survivalConstruct} (the
@@ -219,9 +218,6 @@ public final class KerrKit {
         int fitted = 0;
         for (int[] rel : socketRels(core, 'e')) {
             if (fitDebugEnergy(world, alignment, x, y, z, rel, centre)) fitted++;
-        }
-        for (int[] rel : socketRels(core, 'm')) {
-            if (fit(world, alignment, x, y, z, rel, ItemList.Hatch_AutoMaintenance, centre)) fitted++;
         }
         boolean seeded = false;
         for (int[] rel : socketRels(core, 'b')) {
