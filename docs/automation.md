@@ -110,7 +110,7 @@ fluid buses (AE2FC), Steve's Factory Manager item and fluid nodes, conveyor and 
 | **Upkeep** (H, He, RSPM, ESPM, SpaceTime, HSM feed, WDM/BDM, Agent) | ME stocking input hatches in the gas / stellar sockets (they drain into the buffers), or level maintainers | Status bit 1 → an export bus or pump | `getBuffers()`, `getDirective("EYE_STATUS")` | Fluid node into the gas hatches on bit 1 |
 | **Ignition** (Stellar Ignition Charge) | ME input bus in a plinth socket holding charges, or an interface pushing one on Status bit 2 | Status bit 2 → a conveyor cover or export bus | `getState().waitReason`, transposer into the bus | Item node into the bus on bit 2 |
 | **Transition core into escrow** | Interface / export bus pushes the core into a plinth bus (new: the Eye takes it) | Transition bit 3 → export bus | `getTransition().coreWanted`, transposer | Item node on bit 3 |
-| **Load the next star chart** (starts the transition; also switching stars) | Export bus pushes ONE chart into a plain plinth bus on Transition bit 1; the old one comes back through the ME output bus | Transition bit 1 → export bus / conveyor | `getTransition().ready`, transposer | Item node on bit 1 |
+| **Load the next star chart** (starts the transition; also switching stars) | Export bus pushes ONE chart into a plain plinth bus on Transition bit 1 (redstone card on **Signal pulse**, so one rising edge pushes one chart); the old one comes back through the ME output bus. A copy of the chart already loaded is sent to the ME output bus too, and no chart is swapped while a transition runs or waits (B-72) | Transition bit 1 → export bus / conveyor | `getTransition().ready`, transposer | Item node on bit 1 |
 | **Tachyon** (the Core Collapse's dose, 100 L/s; the time dial's payment) | Export bus of Tachyon Rich Temporal Fluid into a Field hatch on Transition bit 4 | Transition hatch, Bit 4 mode → regulator | `getDirective("EYE_TRANSITION").bits` | Fluid node on bit 4 |
 | **Time dial** | Static; or a level emitter → a control-set Directive Hatch (two presets) | Control-set hatch: redstone 1-15 → dial | `eye.setDial(v)` | Redstone emitter (analog) into a control hatch |
 | **T4 HSM feed** | As the dial | Control-set hatch: 1-15 → 0-1.5 L/s | `eye.setFeed(v)` | As the dial |
@@ -134,7 +134,10 @@ fluid buses (AE2FC), Steve's Factory Manager item and fluid nodes, conveyor and 
 - The Field sockets take plain input hatches only in practice: an ME stocking hatch there is walked but never drained
   (R-15), so trims go in through an export bus, a pump, a regulator cover or an SFM fluid node.
 - Plinth buses: ME input buses work for charges and cores; star charts are picked up from **plain** buses only (an ME
-  stocking bus would show its configured chart every second).
+  stocking bus would show its configured chart every second). Put the redstone card of the chart and core export
+  buses on **Signal pulse**: a bit stays on until the Eye's next pickup a second later, so "active with signal" pushes
+  2-4 items. Extra copies of the loaded chart go back out through the ME output bus (B-72); a spare core stays in the
+  bus until the next transition wants it.
 - Kerr bolt buses: plain input buses only (as before).
 - The Directive Hatch and the Stellar Field Sensor Hatch emit redstone on every side and accept GT redstone covers,
   so an AE2 export bus with a redstone card, a GT cover, an SFM Redstone Receiver, a comparator or OpenComputers'

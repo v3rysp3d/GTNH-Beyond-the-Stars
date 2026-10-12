@@ -1089,13 +1089,18 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
      * <li><b>a star chart</b> different from the controller slot's target goes into the controller slot, and the old
      * target leaves through the ME output bus (same rules as swapping it by hand: the next tier's chart while the star
      * burns starts the transition, any other change puts the star out). Plain buses only: an ME stocking bus would show
-     * its configured chart every second and swap it back and forth.</li>
+     * its configured chart every second and swap it back and forth. While a transition runs or waits (PENDING) no chart
+     * is swapped in (B-72): the swap would abort it.</li>
+     * <li><b>a duplicate</b> of the controller slot's chart (a redstone-carded export bus pushing again before the bit
+     * drops, a conveyor moving a stack) leaves through the ME output bus, so it can never be swapped back in later and
+     * put out the next star (B-72).</li>
      * </ul>
-     * One chart a second; put ONE chart in at a time.
+     * One chart a second.
      */
     private void takeFromPlinthBuses() {
         final Item core = EyeStarRuntime.coreFor(runtime.unlockedTier());
         final ItemStack target = getControllerSlot();
+        final boolean holdChart = runtime.transition() != null || runtime.state() == EyeStarRuntime.StarState.PENDING;
         for (MTEHatchInputBus bus : itemBuses) {
             if (!live(bus)) continue;
             final boolean me = bus instanceof MTEHatchInputBusME;
@@ -1112,7 +1117,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                     continue;
                 }
                 if (me || StarDef.byChart(stack) == null) continue;
-                if (target != null && GTUtility.areStacksEqual(stack, target, true)) continue;
+                if (target != null && GTUtility.areStacksEqual(stack, target, true)) {
+                    ejectDuplicate(bus, i, stack);
+                    continue;
+                }
+                if (holdChart) continue;
                 swapTarget(bus, i, stack, target);
                 return;
             }
@@ -1137,6 +1146,22 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         } finally {
             if (aware) ((IRecipeProcessingAwareHatch) bus).endRecipeProcessing(this);
         }
+    }
+
+    /** A bus chart equal to the target: the whole stack out through the ME output bus (or it waits for room). */
+    private void ejectDuplicate(MTEHatchInputBus bus, int slot, ItemStack stack) {
+        final ItemEjectionHelper items = new ItemEjectionHelper(this);
+        if (items.ejectStack(stack.copy()) < stack.stackSize) return; // no room: try again next second
+        items.commit();
+        bus.getBaseMetaTileEntity()
+            .setInventorySlotContents(slot, null);
+        bus.getBaseMetaTileEntity()
+            .markDirty();
+        runtime.noteEvent(
+            "automation: " + stack.stackSize
+                + " duplicate "
+                + stack.getDisplayName()
+                + " sent from a plinth input bus to the ME output bus");
     }
 
     /** The bus chart into the controller slot; the old target out through the ME output bus (or the swap waits). */
@@ -2034,7 +2059,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addInfo("  Directive Hatches (Sensor sockets) put out what the Eye needs as a 4-bit code: Trims,")
             .addInfo("  Status, Transition (tables on the hatch); a control-set hatch takes redstone for the dial.")
             .addInfo("  A plinth input bus takes the next core into escrow and a star chart into the controller")
-            .addInfo("  slot (the old target leaves through the ME output bus). OpenComputers: Adapter -> bts_eye.")
+            .addInfo("  slot; the old target and spare copies leave through the ME output bus (export-bus card")
+            .addInfo("  on Signal pulse; no swap during a transition). OpenComputers: Adapter -> bts_eye.")
             .addInfo("The star is drawn at the Eye's centre while it burns (GUI toggle, config eyeRenderCentre).")
             .addInfo("Planets give TecTech's ores and plasmas, without Raw Star Matter or dwarf matter.")
             .addSeparator()
