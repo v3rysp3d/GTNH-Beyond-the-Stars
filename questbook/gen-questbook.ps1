@@ -1833,3 +1833,24 @@ Write-Host "Plus pack-line entry quest 'Unit One' ($HIGH/$($packQuest.Low)) in $
 Write-Host "BQBridge.CHAPTER_QUEST_LOWS agrees: /btsquests status counts all $($javaLows.Count) chapter quests, entry quest $ENTRY_LOW separately."
 Write-Host "Bills of materials derived by gen-bom.ps1 from the live shape code."
 Write-Host "Diagrams: run gen-diagrams.ps1 and merge .\resources\ into config\betterquesting\resources\"
+
+# --------------------------------------- the Singularity Ladder chapters (LAST step)
+# tools/gen-singularity.js turns questbook/singularity.json into the three ladder chapters
+# (Tier 13 - UXV, Tier 14 - MAX, The Endgame), our quests grafted into the pack's UIV and
+# UMV chapters, OrderLines.txt (which replaces OrderLine.txt above), the jar's
+# assets/beyondthestars/questbook/overlay.json (which also carries THIS plant chapter, read back
+# from the files just written) and BTSQuestIds.java. It must run after everything above,
+# because this script wiped DefaultQuests\ on the way in. Any failure of it fails this script,
+# so gen-bom.ps1 stays the one build command and rolls BTSBom.java back as usual.
+#   BTS_QB_SRC  = the addon tree whose Java + structures/manifest.json are checked (default: this repo)
+#   BTS_QB_PACK = the pack's DefaultQuests the edits are checked against (default: the RC-2 instance)
+$singArgs = @((Join-Path $PSScriptRoot '..\tools\gen-singularity.js'))
+if ($env:BTS_QB_SRC) { $singArgs += @('--src', $env:BTS_QB_SRC) }
+if ($env:BTS_QB_PACK) { $singArgs += @('--pack', $env:BTS_QB_PACK) }
+if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
+    throw 'gen-questbook.ps1: node is not on PATH, so tools/gen-singularity.js (the Singularity Ladder chapters) cannot run.'
+}
+& node @singArgs
+if ($LASTEXITCODE -ne 0) {
+    throw "gen-questbook.ps1: tools/gen-singularity.js failed (exit $LASTEXITCODE); its errors are printed above."
+}
