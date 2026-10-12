@@ -12,6 +12,7 @@ import com.nateyburr.beyondthestars.fluids.SLFluids;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldRig;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldRng;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldState;
+import com.nateyburr.beyondthestars.machines.eye.field.StellarField;
 import com.nateyburr.beyondthestars.machines.eye.field.TierParams;
 
 import gregtech.api.enums.GTValues;
@@ -52,6 +53,7 @@ public final class EyeNbt {
         if (rt.escrow != null) nbt.setTag("btsEyeEscrow", rt.escrow.writeToNBT(new NBTTagCompound()));
         nbt.setDouble("btsEyeDial", rt.dialSet);
         nbt.setDouble("btsEyeFeed", rt.feedSet);
+        rt.galaxy.writePersistent(nbt); // P4: the mode and the T8 feed setpoint (new keys; absent = defaults)
         if (rt.legacyPending) nbt.setBoolean("btsEyeLegacyPending", true);
         if (!rt.legacyPay.isEmpty()) {
             final NBTTagCompound pay = new NBTTagCompound();
@@ -67,11 +69,30 @@ public final class EyeNbt {
         final NBTTagCompound s = new NBTTagCompound();
         s.setByte("state", (byte) rt.state.ordinal());
         s.setByte("tier", (byte) fs.tier.n);
+        if (fs.tier.planets()) s.setBoolean("planets", true);
         if (rt.star != null) s.setString("key", rt.star.key);
         s.setDouble("P", fs.x[0]);
         s.setDouble("Th", fs.x[1]);
         s.setDouble("Om", fs.x[2]);
         s.setDouble("Pi", fs.x[3]);
+        // ---- P4 (all new keys: a pre-P4 save reads W = Λ = 0, s = +1, no crossing)
+        s.setDouble("W", fs.x[StellarField.W]);
+        s.setDouble("L", fs.x[StellarField.L]);
+        s.setByte("prec", (byte) fs.prec);
+        for (int k = 4; k < StellarField.GAUGES; k++) s.setDouble("prevE" + k, fs.prevE[k]);
+        if (fs.tde != null) {
+            final NBTTagCompound td = new NBTTagCompound();
+            td.setDouble("next", fs.tde.next);
+            td.setInteger("left", fs.tde.left);
+            td.setBoolean("warned", fs.tde.warned);
+            td.setBoolean("ok", fs.tde.ok);
+            td.setInteger("tau", fs.tde.tau);
+            td.setInteger("n", fs.tde.n);
+            td.setInteger("caught", fs.tde.caught);
+            s.setTag("tde", td);
+        }
+        s.setDouble("mcShock", rt.collapseShock);
+        s.setTag("galaxy", rt.galaxy.writeLive());
         s.setDouble("A", fs.A);
         s.setDouble("I", fs.I);
         s.setInteger("lock", fs.lock);
@@ -98,6 +119,8 @@ public final class EyeNbt {
         cyc.setInteger("n", fs.cyc.n);
         cyc.setDouble("rMin", fs.cyc.rMin);
         cyc.setDouble("hsm", fs.cyc.hsm);
+        cyc.setDouble("bSum", fs.cyc.bSum);
+        cyc.setDouble("f8", fs.cyc.f8);
         s.setTag("cyc", cyc);
         if (fs.batch != null) {
             final NBTTagCompound b = new NBTTagCompound();
@@ -190,12 +213,13 @@ public final class EyeNbt {
             }
             return true;
         }
-        rt.unlockedTier = Math.max(1, Math.min(6, nbt.getInteger("btsEyeUnlocked")));
+        rt.unlockedTier = Math.max(1, Math.min(EyeStarRuntime.MAX_UNLOCK, nbt.getInteger("btsEyeUnlocked")));
         rt.milestones.read(nbt.hasKey("btsEyeMilestones") ? nbt.getCompoundTag("btsEyeMilestones") : null);
         rt.escrow = nbt.hasKey("btsEyeEscrow") ? ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("btsEyeEscrow"))
             : null;
         if (nbt.hasKey("btsEyeDial")) rt.setDialQuiet(nbt.getDouble("btsEyeDial"));
         if (nbt.hasKey("btsEyeFeed")) rt.setFeedQuiet(nbt.getDouble("btsEyeFeed"));
+        rt.galaxy.readPersistent(nbt);
         rt.legacyPending = nbt.getBoolean("btsEyeLegacyPending");
         rt.legacyPay.clear();
         if (nbt.hasKey("btsEyeLegacyPay")) {
@@ -205,6 +229,8 @@ public final class EyeNbt {
         if (nbt.hasKey("btsEyeStar")) readStar(rt, nbt.getCompoundTag("btsEyeStar"));
         rt.trans = nbt.hasKey("btsEyeTrans") && rt.live() ? EyeTransition.read(nbt.getCompoundTag("btsEyeTrans"))
             : null;
+        // P4: a Galactic Merger saved without its passes' signs cannot go on (it never happens in play)
+        if (rt.trans instanceof GalacticMerger && ((GalacticMerger) rt.trans).overlay() == null) rt.trans = null;
         return false;
     }
 
@@ -230,18 +256,32 @@ public final class EyeNbt {
     private static void readStar(EyeStarRuntime rt, NBTTagCompound s) {
         final TierParams tier;
         try {
-            tier = TierParams.of(Math.max(1, s.getByte("tier")));
+            tier = TierParams.of(Math.max(1, s.getByte("tier")), s.getBoolean("planets"));
         } catch (IllegalArgumentException bad) {
             return;
         }
         final FieldState fs = new FieldState(tier, FieldRng.ofState(s.getInteger("rng")));
         fs.setX(s.getDouble("P"), s.getDouble("Th"), s.getDouble("Om"), s.getDouble("Pi"));
+        // ---- P4 (absent in a pre-P4 save: zeros, s = +1, no crossing)
+        fs.x[StellarField.W] = s.getDouble("W");
+        fs.x[StellarField.L] = s.getDouble("L");
+        fs.prec = s.getByte("prec") < 0 ? -1 : 1;
+        if (s.hasKey("tde")) {
+            final NBTTagCompound td = s.getCompoundTag("tde");
+            fs.tde = new FieldState.Crossing(td.getDouble("next"));
+            fs.tde.left = td.getInteger("left");
+            fs.tde.warned = td.getBoolean("warned");
+            fs.tde.ok = !td.hasKey("ok") || td.getBoolean("ok");
+            fs.tde.tau = td.getInteger("tau");
+            fs.tde.n = td.getInteger("n");
+            fs.tde.caught = td.getInteger("caught");
+        }
         fs.A = s.getDouble("A");
         fs.I = s.getDouble("I");
         fs.lock = s.getInteger("lock");
         fs.t = s.getLong("t");
         fs.eyeT = s.getDouble("eyeT");
-        for (int k = 0; k < 4; k++) fs.prevE[k] = s.getDouble("prevE" + k);
+        for (int k = 0; k < StellarField.GAUGES; k++) fs.prevE[k] = s.getDouble("prevE" + k);
         fs.prevWarn = s.getByte("prevWarn");
         if (s.hasKey("ev")) {
             final NBTTagCompound ev = s.getCompoundTag("ev");
@@ -258,6 +298,8 @@ public final class EyeNbt {
         fs.cyc.n = cyc.getInteger("n");
         fs.cyc.rMin = cyc.hasKey("rMin") ? cyc.getDouble("rMin") : 1;
         fs.cyc.hsm = cyc.getDouble("hsm");
+        fs.cyc.bSum = cyc.getDouble("bSum");
+        fs.cyc.f8 = cyc.getDouble("f8");
         if (s.hasKey("batch")) {
             final NBTTagCompound b = s.getCompoundTag("batch");
             fs.batch = new FieldState.Batch();
@@ -299,6 +341,8 @@ public final class EyeNbt {
         rt.dwarfReserve = s.getDouble("dwarfReserve");
         rt.topUps = s.getLong("topUps");
         rt.tengamOut = s.getLong("tengamOut");
+        if (s.hasKey("mcShock")) rt.collapseShock = s.getDouble("mcShock");
+        if (s.hasKey("galaxy")) rt.galaxy.readLive(s.getCompoundTag("galaxy"));
     }
 
     // ============================================================================== migration

@@ -118,7 +118,8 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
         return new String[] {
             "Goes in a Sensor socket (n) of the Eye of Harmony or the Quasar Engine (Beyond the Stars).",
             "Outputs redstone from one channel. Eye: P, Θ, Ω, Π, shield, Integrity, Stability, zone,",
-            "  event warning (+ / - / any), upkeep OK or the T5 setpoint error.",
+            "  event warning (+ / - / any), upkeep OK or the T5 setpoint error; T7+: W, Λ, β, the link",
+            "  streak %, its 60 s mean (Bu/t), planet slot progress %, the event countdown (s).",
             "Quasar: E, Φ, λ, a, M, M/cap, Bu/t (total, top, bottom), zone, Integrity, Stability,",
             "  eruption warning (Φ >= 90), seconds to the next eruption, best host σ, link streak %.",
             "Threshold (digital): 15 when the value is above (or below) the threshold, else 0.",
@@ -147,8 +148,9 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
         }
         lastValue = readout.value(c);
         // gauges through the window (w 120 = D-49's round(15(v+120)/240)); the rest on their fixed scales
+        // P4: the unbounded channels (the link's Bu/t mean, the countdown's seconds) read 0..w
         final int a = c.gauge ? (int) Math.round(15 * Math.max(0, Math.min(1, (lastValue + window) / (2.0 * window))))
-            : readout.analog(c);
+            : c.unbounded() ? (int) Math.round(15 * Math.max(0, Math.min(1, lastValue / window))) : readout.analog(c);
         output = shape(a);
     }
 
@@ -349,6 +351,20 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
                 return "Event warning (any)";
             case UPKEEP_OK:
                 return "Upkeep OK";
+            case W:
+                return "W (rail warp, T7+)";
+            case LAMBDA:
+                return "Λ (tidal shear, T8)";
+            case BETA:
+                return "β (bursts / demand)";
+            case LINK_STREAK:
+                return "Link streak % (of 30 min)";
+            case LINK_MEAN:
+                return "Link 60 s mean, Bu/t";
+            case SLOT_PROGRESS:
+                return "Planet slots progress %";
+            case COUNTDOWN:
+                return "Countdown, s (-1 none)";
             default:
                 return "T5 setpoint error";
         }

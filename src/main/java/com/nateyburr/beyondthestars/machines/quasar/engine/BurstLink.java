@@ -58,6 +58,33 @@ public final class BurstLink {
         return false;
     }
 
+    /**
+     * Persistence for a host that saves its streak (the Eye's Stability and Heavy Links): the window (60 values and
+     * 60 parts), then the count. The streak, best and done are public fields. Not used by the maths.
+     */
+    public double[] window() {
+        final double[] out = new double[2 * WINDOW];
+        System.arraycopy(r, 0, out, 0, WINDOW);
+        System.arraycopy(h, 0, out, WINDOW, WINDOW);
+        return out;
+    }
+
+    /** Restores a saved {@link #window()} and its count; the sums, mean and fraction are recomputed. */
+    public void restore(double[] saved, long rolled) {
+        if (saved == null || saved.length != 2 * WINDOW) return;
+        System.arraycopy(saved, 0, r, 0, WINDOW);
+        System.arraycopy(saved, WINDOW, h, 0, WINDOW);
+        n = Math.max(0, rolled);
+        sum = 0;
+        p = 0;
+        for (int i = 0; i < WINDOW; i++) {
+            sum += r[i];
+            p += h[i];
+        }
+        mean = Math.max(0, sum / WINDOW);
+        frac = sum > 1e-9 ? p / sum : 0;
+    }
+
     /** The window is full (60 s rolled since the host started measuring). */
     public boolean full() {
         return n >= WINDOW;

@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.nateyburr.beyondthestars.machines.conduit.MTEHatchBurstControl;
+import com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor;
 import com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective;
 
 import gregtech.api.interfaces.IHatchElement;
@@ -81,6 +83,33 @@ public enum EyeHatchElement implements IHatchElement<MTEEyeOfHarmonyBTS> {
         @Override
         public long count(MTEEyeOfHarmonyBTS t) {
             return t.itemBusCount();
+        }
+    },
+    /**
+     * P4 ('r', the T7 rail and the T8 halo): GRB Receptor Ports (MTE 28125). The group (rail-high, rail-low, halo) is
+     * the manifest's for the socket's offset.
+     */
+    Receptor(MTEEyeOfHarmonyBTS::addReceptor, MTEHatchGRBReceptor.class) {
+
+        @Override
+        public long count(MTEEyeOfHarmonyBTS t) {
+            return t.receptorCount();
+        }
+    },
+    /** P4 ('d'): a Burst Control Hatch (MTE 28126) in Begin mode: a rising edge begins a galaxy transition. */
+    BurstControl(MTEEyeOfHarmonyBTS::addBurstControl, MTEHatchBurstControl.class) {
+
+        @Override
+        public long count(MTEEyeOfHarmonyBTS t) {
+            return t.burstControlCount();
+        }
+    },
+    /** P4 ('p'): the slot bus, an input bus (ME included): planet items and companion star charts, never consumed. */
+    SlotBus(MTEEyeOfHarmonyBTS::addSlotBus, MTEHatchInputBus.class) {
+
+        @Override
+        public long count(MTEEyeOfHarmonyBTS t) {
+            return t.slotBusCount();
         }
     },
     /** Plinth output sockets: ME output bus and ME output hatch only (long-sized outputs). */

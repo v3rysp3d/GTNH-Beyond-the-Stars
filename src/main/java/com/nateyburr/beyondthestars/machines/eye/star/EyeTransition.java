@@ -6,6 +6,7 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import com.nateyburr.beyondthestars.machines.eye.field.FieldRig;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldState;
+import com.nateyburr.beyondthestars.machines.eye.field.MagnetarCollapseOverlay;
 import com.nateyburr.beyondthestars.machines.eye.field.Overlay;
 import com.nateyburr.beyondthestars.machines.eye.field.StellarField;
 import com.nateyburr.beyondthestars.machines.eye.field.StepInputs;
@@ -24,14 +25,18 @@ import com.nateyburr.beyondthestars.machines.eye.field.TierParams;
  */
 public abstract class EyeTransition implements Overlay {
 
-    /** The five transitions; {@link #from} is the tier they leave. */
+    /** The seven transitions (D-49's five and P4's two); {@link #from} is the tier they leave. */
     public enum Type {
 
         MASS_INFUSION(1, "Mass Infusion", "star:siriusa"),
         SHELL_IGNITION(2, "Shell Ignition", "star:arcturus"),
         CORE_COLLAPSE(3, "Core Collapse", "star:neutronstar"),
         FIRST_COOLING(4, "First Cooling", "star:siriusb"),
-        MAGNETAR_MERGER(5, "Magnetar Merger", "star:magnetar");
+        MAGNETAR_MERGER(5, "Magnetar Merger", "star:magnetar"),
+        /** P4 (quasar-p4.md §5.2): the magnetar overfed past its mass limit collapses; the halo is captured. */
+        MAGNETAR_COLLAPSE(6, "Magnetar Collapse", "star:triangulum"),
+        /** P4 (quasar-p4.md §5.3): three pericentre passes merge Triangulum into the Milky Way. */
+        GALACTIC_MERGER(7, "Galactic Merger", "star:milkyway");
 
         /** The tier the transition leaves (it unlocks from + 1). */
         public final int from;
@@ -66,6 +71,12 @@ public abstract class EyeTransition implements Overlay {
 
     /** A fresh transition of that type. {@code bounceShock} is the Core Collapse's bounce. */
     public static EyeTransition create(Type type, double bounceShock) {
+        return create(type, bounceShock, MagnetarCollapseOverlay.DEFAULT_SHOCK);
+    }
+
+    /** As {@link #create(Type, double)}; {@code collapseShock} is the Magnetar Collapse's shock (+120 adopted). */
+    public static EyeTransition create(Type type, double bounceShock, double collapseShock) {
+        if (type == Type.MAGNETAR_COLLAPSE) return new MagnetarCollapse(collapseShock);
         switch (type) {
             case MASS_INFUSION:
                 return new MassInfusion();
@@ -75,6 +86,10 @@ public abstract class EyeTransition implements Overlay {
                 return new CoreCollapse(bounceShock);
             case FIRST_COOLING:
                 return new FirstCooling();
+            case MAGNETAR_COLLAPSE:
+                return new MagnetarCollapse(MagnetarCollapseOverlay.DEFAULT_SHOCK);
+            case GALACTIC_MERGER:
+                return new GalacticMerger();
             default:
                 return new MagnetarMerger();
         }
@@ -135,7 +150,8 @@ public abstract class EyeTransition implements Overlay {
         final EyeTransition tr = create(
             type,
             nbt.hasKey("shock") ? nbt.getDouble("shock")
-                : com.nateyburr.beyondthestars.machines.eye.field.CollapseOverlay.BOUNCE_SHOCK);
+                : com.nateyburr.beyondthestars.machines.eye.field.CollapseOverlay.BOUNCE_SHOCK,
+            nbt.hasKey("mcShock") ? nbt.getDouble("mcShock") : MagnetarCollapseOverlay.DEFAULT_SHOCK);
         tr.t = nbt.getInteger("t");
         tr.beginT = nbt.getLong("beginT");
         tr.coreUsed = nbt.getBoolean("coreUsed");
