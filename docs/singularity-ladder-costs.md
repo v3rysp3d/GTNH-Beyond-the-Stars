@@ -1,6 +1,6 @@
 # Singularity Ladder: recipe completeness and cost audit (Kerr T1/T2, Eye T1-T4)
 
-Status: audit, 2026-10-12, addon `7a47289`. It reads the code and the jars and changes no code. **The recipe audit
+Status: audit, 2026-10-12, addon `7a47289`. **GTNH 2.9.0-RC-2 port: see §9 for the BHC→Kerr swap, the Kerr controller price and the RC-2 gate audit.** It reads the code and the jars and changes no code. **The recipe audit
 pass has since applied it: see §8 for what was applied, changed or skipped.** It answers the
 acceptance requirement "all recipes exist and are fair", which A-3 in
 [`singularity-ladder-questions.md`](singularity-ladder-questions.md) lists as open. The judgement calls it raises are
@@ -348,7 +348,7 @@ gates T4 (#10 keeps HSM in the shell). So nothing was skipped for the D-49 hold.
 | # | What | Status | Where / notes |
 |---|---|---|---|
 | 1 | SL-K04: 32 Black Hole Seeds, not the Superstable Seed | **Applied** | `BTSRecipesKerr` (`DENSITY_UPGRADE_SEEDS`) |
-| 2 | Compression generator tiers 1-3 without WDM | **Applied, combined with #15** | SL-P30..P32 in `BTSRecipesSingularity.compressionGates()`, one table row per step. Each consumes the generator one tier below in place of the Spatial casing, 80,000 ticks flat, gate fluid Raw Star Matter 16,000 / ESPM 4,000 / RHSP 2,000 L. Research-station AL, researched from Star Chart Sirius A / Arcturus / Sirius B (TecTech's research items are taken by its own recipes). Gated. B-28. |
+| 2 | Compression generator tiers 1-3 without WDM | **Applied, combined with #15; retired in the RC-2 port (§9.5, SL-P33 instead)** | SL-P30..P32 in `BTSRecipesSingularity.compressionGates()`, one table row per step. Each consumes the generator one tier below in place of the Spatial casing, 80,000 ticks flat, gate fluid Raw Star Matter 16,000 / ESPM 4,000 / RHSP 2,000 L. Research-station AL, researched from Star Chart Sirius A / Arcturus / Sirius B (TecTech's research items are taken by its own recipes). Gated. B-28. |
 | 3 | SL-P27/P28 batch Spatial/Temporal casings | **Applied, with a change** | Programmed circuit 1 / 2 tells them apart (the proposal had identical inputs). Registered whatever the flag says: our Eye needs them either way. B-26. |
 | 4 | SL-P29 batch Boundary casing | **Applied** | Registered whatever the flag says, as #3. B-26. |
 | 5 | Eye `Y`: 48 stabilisation generators | **Applied** | Exporter legend; `eye_core` re-exported (`Y` 48, `Q` 4,704). |
@@ -359,7 +359,7 @@ gates T4 (#10 keeps HSM in the shell). So nothing was skipped for the D-49 hold.
 | 10 | SL-P17 Galactic Shell ×16, 250 L HSM | **Applied** | |
 | 11 | SL-E02 32,000 L HSM | **Applied** | |
 | 12 | SL-E01 294,912 L, SL-P21 36,864 L SpaceTime | **Applied** | |
-| 13 | SL-K01 unchanged | **Skipped (no change proposed)** | The audit's own verdict: heavier than the BHC controller, but the Kerr replaces the BHC and adds a module host. |
+| 13 | SL-K01 unchanged | **Skipped (no change proposed); superseded by the RC-2 port (§9.2: re-priced at BHC parity)** | The audit's own verdict: heavier than the BHC controller, but the Kerr replaces the BHC and adds a module host. |
 | 14 | SL-K03 / SL-P14 pistons, not pumps | **Applied** | |
 | 15 | Compression generator upgrade recipe | **Applied inside #2** | Not a separate recipe: a second set would need three more unique research items. |
 
@@ -372,3 +372,113 @@ same as §4 (3.0M L Raw Star Matter, 753k L ESPM, 376k L RHSP per step).
 
 **Still open:** B-21..B-26 in the questions file record each of these as a suggestion you can still overrule. Only the
 crafting side changed; nobody has crafted the chains in game yet.
+
+---
+
+## 9. GTNH 2.9.0-RC-2 port: the BHC→Kerr swap, the Kerr controller price, and the gate audit (2026-10-12)
+
+Sources: GT 5.09.54.205 sources (`BECRecipes`, `BECMetaMaterialRecipes`, `NaniteChain`, `TranscendentPlasmaMixerRecipes`,
+`ElectricImplosionCompressorRecipes`, `RecipeLoaderChemicalSkips`), coremod 2.9.84 disassembly (`AssemblingLineRecipes`,
+`BECRecipes`), and a headless `runServer` of the ported addon. §1-§8 above are the beta-1 audit and were not re-run;
+this section says what RC-2 changes. Questions: B-29 (gate), B-30 (Kerr price).
+
+### 9.1 What moved in RC-2
+
+- Every Eye of Harmony casing and field generator is now a **Condensate Assembler (BEC)** recipe; TecTech's
+  research-station recipes for them are gone. One recipe per tier, from scratch (no tier-upgrade input).
+- **Every Spacetime Compression Field Generator tier consumes 1 Black Hole Compressor controller**, and the coremod's
+  Empty Spatially Compressed Circuit Array consumes 64. Every Stabilisation generator consumes a compression
+  generator of its tier, so it carries a controller too.
+- With `removeBlackHoleCompressorRecipe=true`, `BTSBlackHoleSwap` moves all of them onto the **Kerr Ergosphere Engine
+  controller** (verified in `runServer`: 10 recipes, the 9 tiers and the circuit array).
+
+### 9.2 Kerr controller vs BHC controller (SL-K01, re-priced)
+
+| | BHC controller (coremod 2.9.84 AL) | Kerr controller, card price (beta-1 SL-K01) | **Kerr controller, RC-2 SL-K01** |
+|---|---|---|---|
+| Research | Universal Singularities singularity (meta 11), 3,600 t UEV | Black Hole Seed, 4 min UIV | Black Hole Seed, 4 min UIV |
+| Compression lineage | HIP Compressor 1, Neutronium Compressor 1, Advanced Implosion 16, Compressor UIV 8, Electric Implosion 4 | none | **the same** |
+| Circuits / field gens | 4 UIV / 4 FG UEV | 32 UIV + 16 FG, 16 Emitter, 16 Sensor (UIV) | 4 UIV / 4 FG UEV |
+| Identity parts | 64 Laser Lens Special, 2 ZPM3, ProtoHalkonite ring 32 / rotor 16 / gear 8, superdense Kevlar 4 | 8 Mirror Segments, 16 Rail Mk I, 8 Seeds, 16 Field Coils, 32 ED casings, 64 TM screws | 1 Seed, 1 Mirror Segment, 4 Field Coils, 1 ED casing, 16 TM screws |
+| Superdense plates | Neutronium 16, Naquadria 16, Cosmic Neutronium 8 | (dense SpaceTime 32, SpaceTime frames 32) | Neutronium 16, Naquadria 16, Cosmic Neutronium 8 |
+| Fluids | SpaceTime 1,440, Oganesson 256,000, SC UIV base 43,200, Infinity 14,400 | SpaceTime 294,912, TM 147,456, Super Coolant 1,000,000 | SpaceTime 2,304, SC UIV base 43,200, Infinity 14,400, Super Coolant 64,000 |
+| SpaceTime (ingots, incl. parts) | 10 | about 2,400 | about 35 |
+| Time | 2,400 t at UIV | 18,000 t at UIV | 3,600 t at UIV |
+
+Judgement: the RC-2 SL-K01 is about 1.1-1.3× a BHC controller. The swapped-out BHC parts (lenses, ProtoHalkonite,
+Kevlar, Oganesson) and the swapped-in Kerr parts (a seed, a mirror segment of about 170 Infinity and 20 UIV-circuit
+equivalents, 4 coils of 32 SC UIV ingots, one ED casing of 4,096 Bedrockium) are of the same order, and the
+compression lineage, circuits, plates and three of four fluids are identical. The card price would have charged
+about 2,400 SpaceTime ingots and 8 Black Hole Seeds **per generator**.
+
+### 9.3 What the swap costs per generator, per Eye tier and per circuit array
+
+| Item | Controllers | With the card SL-K01 | With the RC-2 SL-K01 | Stock RC-2 (BHC) for comparison |
+|---|---|---|---|---|
+| One compression generator (any tier) | 1 | 2,400 SpaceTime, 8 Seeds | 35 SpaceTime, 1 Seed | 10 SpaceTime |
+| One stabilisation generator | 1 (inside its compression generator) | as above | as above | as above |
+| Empty Spatially Compressed Circuit Array | 64 | 154k SpaceTime | 2.2k SpaceTime | 640 SpaceTime |
+| **Eye T1** (188 `W` + 48 `Y` + SL-E01's Tier0 compression and stabilisation) | **238** | 571k SpaceTime | 8.3k SpaceTime, 238 HIP + 238 Neutronium Compressors | TecTech's Eye: 138 + 48 + 2 = **188** |
+| Each later Eye tier step (188 new `W` generators of the next tier) | 188 | | 6.6k SpaceTime | TecTech's Eye upgrades 138 |
+| Eye T1-T4 complete | 802 | | 28k SpaceTime, 802 of each compressor-lineage machine | |
+
+The Eye's controller count is 1.27× TecTech's (its gate is 188 cells, not 138), so the compressor-lineage bill
+scales with it. That is stock RC-2 economics on our structure; B-30 lists the levers if it is too much.
+
+### 9.4 Gate audit: compression generator tier N must not need anything the Eye first makes at tier ≥ N
+
+The Eye's first-product ladder (D-42/D-43): T1 Raw Star Matter, T2 ESPM, T3 RHSP (and HSM from Kerr T2), **T4 White
+Dwarf Matter** (+ interim Black Dwarf Matter with `interimBlackDwarfAtEyeT4`), T5 Black Dwarf Matter, T6 Magnetar
+Matter, T7 Ergomatter, T8 supermassive Ergomatter, T9 White Hole Matter, T10 Universium. Derived: White Dwarf nanites
+(WDM + RSM) T4, Black Dwarf nanites T5, Universium / Eternity / MagMatter nanites and MHDCSM (Universium or Eternity
+nanites + RSM) T10; Boundless Cosmic Solder, Primordial Matter and Excited DTSC need RSM (T1).
+
+**RC-2's compression generator, tier index t (Eye tier N = t+1):** EOH Spatial casing, BHC (now Kerr), AE2 and AE2FC
+singularity cells, a QFT manipulator (Cosmic Fabric t0-2, Infinity Infused t3-5, SpaceTime Continuum Ripper t6-8),
+MetaMaterial Shielding I ×4(t+1), **Resonance Chamber** (I at t0; II ×1/4/16 at t1-3; III ×1/4/16 at t4-6; IV ×1/4
+at t7-8), UXV circuits ×(t+1), Godforge Singularity Shielding casings, Hexanite frame/rod/superdense, dense plate of
+Netherite / ProtoHalkonite / Six-Phased Copper / TM / Mellion / Creon / SpaceTime / Hexanite / Eternity, superdense
+Cosmic Neutronium / Infinity / TM; condensates: TM (t0) or Boundless Cosmic Solder (t≥1), Space, SpaceTime,
+Neutronium; nanite tiers up to Transcendent (t0), Six-Phased Copper (t1-3), White Dwarf (t4-6), Black Dwarf (t7-8).
+
+| Eye tier (gate) | Compression tier | Eye products it needs (first tier) | Verdict |
+|---|---|---|---|
+| T1 | Crude (t0) | none (Resonance Chamber I: Tairitsu / Churitsu / Shijima / Emitter UHV; TM condensate; nanites ≤ Transcendent) | **clean** |
+| T2 | Primitive (t1) | Boundless Cosmic Solder (RSM, T1) ✔; **Resonance Chamber II: 1 White Dwarf Matter foil (T4)** ✘ | **loop**, fixed by SL-P33 |
+| T3 | Stable (t2) | as T2, 4 chambers ✘ | **loop**, fixed by SL-P33 |
+| T4 | Advanced (t3) | as T2, 16 chambers: WDM is T4's own product ✘ | **loop**, fixed by SL-P33 |
+| T5 (P4) | Superb (t4) | White Dwarf nanites (T4) ✔; **Resonance Chamber III: Black Dwarf Matter foil (T5)** | loop unless the interim T4 BDM recipe stays; P4 |
+| T6 (P4) | Exotic (t5) | BDM (T5) ✔, Creon ✔ | clean |
+| T7 (P4) | Perfect (t6) | BDM ✔, SpaceTime ✔ | clean |
+| T8 (P4) | Tipler (t7) | Black Dwarf nanites (T5) ✔; **Resonance Chamber IV: MHDCSM foil (T10), Eternity plate** | **loop**; P4/P5 (D-48 moves Eternity onto Ergomatter, T7; MHDCSM still needs Universium) |
+| T9 (P5) | Gallifreyan (t8) | as T8, plus dense Eternity | **loop**; P5 |
+
+The other families (not gates: the Eye accepts any tier of Time Dilation and Stabilisation, B-3):
+
+- **Time Dilation** tier t: Temporal casing, Godforge Graviton Modulator II, Wave Focus (I at t0, **II at t1-3: WDM
+  ring**, III at t4-6: BDM ring, IV at t7-8: MHDCSM ring), Energy Conduit I, Electrogravitic Valve I, Waveguide I.
+  Tier 0 is clean.
+- **Stabilisation** tier t: the same-tier Time Dilation and compression generators, a Boundary casing, Sensor Array
+  (I at t0-1, **II at t2-4: WDM casing**, III, IV) and Field Manipulator (I at t0, **II at t1-3: WDM ring**, ...).
+  Tier 0 is clean.
+- **EOH casings** (Spatial, Temporal, Boundary): clean (Godforge casings, Hexanite, ProtoHalkonite, Shirabon, Neutronium
+  nanites, LSC parts; Transcendent-tier nanites).
+
+So for P1-P3 the only loop is the WDM foil in Resonance Chamber II. **SL-P33** is GT's recipe for that chamber with 2
+SpaceTime foils instead of the foil (Condensate Assembler, same nanites, condensates and time; registered only with
+`replaceTecTechEyeOfHarmony=true`). The chamber keeps its Boundless Cosmic Solder, so the generators still need Eye
+T1's Raw Star Matter, and each chart (SL-P23..P25) still needs the tier below. Everything else in the T2-T4
+generators is pre-Eye. UXV circuits are taken as pre-Eye because stock RC-2 already demands them for TecTech's Crude
+generators, which the stock EOH needs before it can make anything.
+
+### 9.5 SL-P27..P32 and SL-E01 against RC-2
+
+| ID | RC-2 recipe for the same block | Decision |
+|---|---|---|
+| SL-P27 / P28 (Spatial / Temporal ×4) | BEC: 32 Godforge Shielding casings, 32 dense ProtoHalkonite, 8 Hexanite blocks, 48 Neutronium nanites, ... → ×4, 40,000 s | **Kept.** Still 8 Godforge casings per block; our Eye uses 13,872 (B-23). |
+| SL-P29 (Boundary ×8) | BEC: LSC, Lapotronic unit, 16 Active Transformers, 4 UMV wireless hatches, ... → ×1 | **Kept.** Our Eye uses 6,426. |
+| SL-P30..P32 (compression generator t-1 → t, research station) | BEC from scratch per tier, with a BHC/Kerr controller | **Retired.** The ruling keeps RC-2's generator costs; the old copy of TecTech's beta-1 inputs (Yotta cells, Infinity Chests) no longer matches anything in the pack, and `TTRecipeAdder` now charges the research EU/t they declared (`RECIPE_MAX`). SL-P33 is the replacement. |
+| SL-E01 (our Eye controller, a GT assembly line, not `TTRecipeAdder`) | n/a | Re-audited: its Tier0 generators and 64 + 64 + 64 TecTech casings are clean and craftable; the Tier0 compression and stabilisation generators inside it now cost a Kerr controller each (2 in all). Its research (Stabiliser Pylon, scanner) is unaffected by the `TTRecipeAdder` change. |
+
+**Lost with SL-P30..P32:** the "upgrade the old generator" path (#15 / B-28). Each Eye tier step re-crafts 188
+generators from scratch, as stock RC-2 does for TecTech's Eye. B-29 lists the alternative (a BEC upgrade recipe).
