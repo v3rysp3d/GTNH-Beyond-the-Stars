@@ -13,9 +13,9 @@ import gregtech.api.enums.GTValues;
 import gregtech.api.enums.Materials;
 import gregtech.api.enums.OrePrefixes;
 import gregtech.api.enums.TierEU;
+import gregtech.api.recipe.RecipeMaps;
 import gregtech.api.util.GTModHandler;
 import gregtech.api.util.GTRecipeConstants;
-import gtPlusPlus.api.recipe.GTPPRecipeMaps;
 import gtPlusPlus.core.fluids.GTPPFluids;
 import gtnhlanth.common.register.WerkstoffMaterialPool;
 
@@ -144,7 +144,7 @@ public final class BTSRecipesCoolant {
                 .duration(1_024 * TICKS) // half of what 8 stock cycles cost (8 x 256 t)
                 .eut(TierEU.RECIPE_EV)
                 .metadata(GTRecipeConstants.CHEMPLANT_CASING_TIER, 2)
-                .addTo(GTPPRecipeMaps.chemicalPlantRecipes));
+                .addTo(RecipeMaps.chemicalPlantRecipes));
     }
 
     // ------------------------------------------------------------------------------------------

@@ -28,7 +28,8 @@ public final class BTSFluidsProcess {
      * F-02 out: the floated concentrate, still as a slurry.
      * <p>
      * <b>This fluid exists because the Flotation Cell physically cannot make an item.</b>
-     * {@code GTPPRecipeMaps.flotationCellRecipes} is declared {@code maxIO(6, 0, 1, 1)} - six item
+     * {@code RecipeMaps.flotationCellRecipes} (GTPPRecipeMaps before 2.9.0-RC-2) is declared {@code maxIO(6, 0, 1, 1)}
+     * - six item
      * inputs, <b>zero</b> item outputs, one fluid in, one fluid out - which is exactly how GT++'s
      * own sphalerite and chalcopyrite lines run: milled ore plus a collector plus pine oil, out
      * comes a froth FLUID. F-02b then thickens and filters the froth back into solids on the

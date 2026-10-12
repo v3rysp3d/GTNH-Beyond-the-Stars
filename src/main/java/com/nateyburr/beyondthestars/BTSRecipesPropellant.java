@@ -20,8 +20,8 @@ import gregtech.api.enums.ItemList;
 import gregtech.api.enums.Materials;
 import gregtech.api.enums.OrePrefixes;
 import gregtech.api.enums.TierEU;
+import gregtech.api.recipe.RecipeMaps;
 import gregtech.api.util.GTRecipeConstants;
-import gtPlusPlus.api.recipe.GTPPRecipeMaps;
 import gtPlusPlus.core.fluids.GTPPFluids;
 import gtPlusPlus.xmod.gregtech.api.enums.GregtechItemList;
 
@@ -74,7 +74,8 @@ import gtPlusPlus.xmod.gregtech.api.enums.GregtechItemList;
  *
  * <h2>What each map this file uses actually validates</h2>
  *
- * Read out of GT5-Unofficial-5.09.52.594-dev.jar, because guessing at this cost the file a dead
+ * Read out of GT5-Unofficial-5.09.52.594-dev.jar (re-checked against 5.09.54.205 for 2.9.0-RC-2: the
+ * GT++ maps now live in RecipeMaps under gt.recipe.* names, same maxIO), because guessing at this cost the file a dead
  * chain once already. Every map first passes through {@code RecipeMapBackend.doAdd}, which SILENTLY
  * returns an empty collection - dropping the recipe with no output on either side - when
  * {@code mInputs.length < minItemInputs} or {@code mFluidInputs.length < minFluidInputs}, and drops
@@ -83,9 +84,9 @@ import gtPlusPlus.xmod.gregtech.api.enums.GregtechItemList;
  * <pre>
  *   map                            maxIO / minInputs        the gate that matters
  *   gt.recipe.mixer                (9,4,1,1) / (1,0)        -
- *   gtpp.recipe.oremill            (3,1,0,0) / (1,0)        milling ball must be an mInputs entry
- *   gtpp.recipe.fluidchemicaleactor(4,6,4,3) / (0,0)        mSpecialValue &lt;= mSolidCasingTier
- *   gtpp.recipe.quantumforcesmelter(6,6,6,6) / (0,0)        QFT_CATALYST or IllegalStateException
+ *   gt.recipe.oremill              (3,1,0,0) / (1,0)        milling ball must be an mInputs entry
+ *   gt.recipe.fluidchemicaleactor  (4,6,4,3) / (0,0)        mSpecialValue &lt;= mSolidCasingTier
+ *   gt.recipe.quantumforcesmelter  (6,6,6,6) / (0,0)        QFT_CATALYST or IllegalStateException
  *   gt.recipe.fluidsolidifier      (1,1,1,0) / (1,1)        one item AND one fluid required
  *   gt.recipe.fluidextractor       (1,1,0,1) / (1,0)        -
  * </pre>
@@ -226,7 +227,7 @@ public final class BTSRecipesPropellant {
                 .duration(20 * SECONDS)
                 .eut(TierEU.RECIPE_EV)
                 .metadata(GTRecipeConstants.CHEMPLANT_CASING_TIER, 2)
-                .addTo(GTPPRecipeMaps.chemicalPlantRecipes));
+                .addTo(RecipeMaps.chemicalPlantRecipes));
 
         // GT++'s own N2O4, the one a standing rocket-fuel line already makes.
         BTSRecipeGuard.recipe(
@@ -240,7 +241,7 @@ public final class BTSRecipesPropellant {
                 .duration(20 * SECONDS)
                 .eut(TierEU.RECIPE_EV)
                 .metadata(GTRecipeConstants.CHEMPLANT_CASING_TIER, 2)
-                .addTo(GTPPRecipeMaps.chemicalPlantRecipes));
+                .addTo(RecipeMaps.chemicalPlantRecipes));
     }
 
     // ------------------------------------------------------------------------------------------
@@ -290,7 +291,7 @@ public final class BTSRecipesPropellant {
                 .itemOutputs(new ItemStack(powder, 1))
                 .duration(30 * SECONDS)
                 .eut(tier)
-                .addTo(GTPPRecipeMaps.millingRecipes));
+                .addTo(RecipeMaps.millingRecipes));
     }
 
     // ------------------------------------------------------------------------------------------
@@ -315,7 +316,7 @@ public final class BTSRecipesPropellant {
                 .duration(20 * SECONDS)
                 .eut(tier)
                 .metadata(GTRecipeConstants.CHEMPLANT_CASING_TIER, 2)
-                .addTo(GTPPRecipeMaps.chemicalPlantRecipes));
+                .addTo(RecipeMaps.chemicalPlantRecipes));
     }
 
     // ------------------------------------------------------------------------------------------
@@ -398,7 +399,7 @@ public final class BTSRecipesPropellant {
                 .duration(30 * SECONDS)
                 .eut(tier)
                 .metadata(GTRecipeConstants.CHEMPLANT_CASING_TIER, 3)
-                .addTo(GTPPRecipeMaps.chemicalPlantRecipes));
+                .addTo(RecipeMaps.chemicalPlantRecipes));
     }
 
     /**
@@ -422,7 +423,7 @@ public final class BTSRecipesPropellant {
                     BTSRecipeGuard
                         .nn(GregtechItemList.SimpleNaquadahCatalyst.get(0), "GregtechItemList.SimpleNaquadahCatalyst"))
                 .metadata(GTRecipeConstants.QFT_FOCUS_TIER, 1)
-                .addTo(GTPPRecipeMaps.quantumForceTransformerRecipes));
+                .addTo(RecipeMaps.quantumForceTransformerRecipes));
     }
 
     // ------------------------------------------------------------------------------------------

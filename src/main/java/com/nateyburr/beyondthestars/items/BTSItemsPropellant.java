@@ -12,7 +12,8 @@ import net.minecraft.item.Item;
  * <p>
  * <b>P-02a ultrafine powders: why these exist at all.</b> S4.1 wanted ONE milling step -
  * "8 dust metal + Milling Ball + 1,000 L Kerosene -> 2,000 L Metal Additive Slurry" on
- * {@code GTPPRecipeMaps.millingRecipes}. That recipe cannot be registered. The Ore Milling Plant's
+ * {@code RecipeMaps.millingRecipes} (GTPPRecipeMaps before 2.9.0-RC-2). That recipe cannot be registered. The Ore
+ * Milling Plant's
  * map is built {@code maxIO(3, 1, 0, 0)} - three item inputs, one item output, and <b>zero fluid
  * slots in either direction</b>. Kerosene has nowhere to go, so the single step had to become two:
  * P-02a mills dry on the IsaMill (items only), P-02b takes the powder into kerosene on the
