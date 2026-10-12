@@ -244,7 +244,7 @@ public final class EyeKit {
         final Item[] charts = { SLItems.starChartSol, SLItems.starChartSiriusA, SLItems.starChartArcturus,
             SLItems.starChartSiriusB };
         final Item chart = charts[Math.max(0, Math.min(charts.length, tiers) - 1)];
-        if (chart != null) base.setInventorySlotContents(1, new ItemStack(chart, 1, 0));
+        if (chart != null) base.setInventorySlotContents(eye.getControllerSlotIndex(), new ItemStack(chart, 1, 0));
         if (fill) {
             eye.debugFillBuffers(FILL_LITRES);
             WirelessNetworkManager.strongCheckOrAddUser(player.getUniqueID());
