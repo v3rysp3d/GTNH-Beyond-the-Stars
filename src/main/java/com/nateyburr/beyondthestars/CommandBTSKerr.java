@@ -66,7 +66,7 @@ public class CommandBTSKerr extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btskerr [t1|t2] [force]  |  /btskerr migrate [x y z]  |  /btskerr render x y z [open [m]|close|off|on|break]  |  /btskerr module x y z <c|x> [stock|status|tier|clear]  |  /btskerr damage|repair x y z  |  console: /btskerr [t1|t2] <x> <y> <z> [facing] [force] [survival] | [check]  |  /btskerr autorig x y z [s] [bolts/s] [empty]  |  /btskerr ocloop x y z";
+        return "/btskerr [t1|t2] [force]  |  /btskerr migrate [x y z]  |  /btskerr render x y z [open [m]|close|off|on|break]  |  /btskerr module x y z <c|x> [stock|status|tier|clear]  |  /btskerr damage|repair x y z  |  console: /btskerr [t1|t2] <x> <y> <z> [facing] [force] [survival] | [check]  |  /btskerr autorig x y z [s] [bolts/s] [empty]  |  /btskerr ocloop x y z  |  /btskerr ctrl x y z on|off|out  |  /btskerr ocprobe x y z";
     }
 
     @Override
@@ -93,7 +93,9 @@ public class CommandBTSKerr extends CommandBase {
         if (sender.getEntityWorld() instanceof WorldServer) {
             ((WorldServer) sender.getEntityWorld()).resetUpdateEntityTick();
         }
-        if (args.length >= 4 && (args[0].equalsIgnoreCase("autorig") || args[0].equalsIgnoreCase("ocloop"))) {
+        if (args.length >= 4 && (args[0].equalsIgnoreCase("autorig") || args[0].equalsIgnoreCase("ocloop")
+            || args[0].equalsIgnoreCase("ctrl")
+            || args[0].equalsIgnoreCase("ocprobe"))) {
             automation(sender, args);
             return;
         }
@@ -306,19 +308,33 @@ public class CommandBTSKerr extends CommandBase {
         final int x = (int) func_110666_a(sender, sender.getPlayerCoordinates().posX, args[1]);
         final int y = (int) func_110666_a(sender, sender.getPlayerCoordinates().posY, args[2]);
         final int z = (int) func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[3]);
+        if (args[0].equalsIgnoreCase("ocprobe")) {
+            // any block: what an OpenComputers Adapter against it would get (needs OpenComputers installed)
+            if (!cpw.mods.fml.common.Loader.isModLoaded("OpenComputers")) {
+                SLConsoleTest.tell(sender, "OpenComputers is not installed.");
+                return;
+            }
+            for (String line : com.nateyburr.beyondthestars.integration.oc.BTSOpenComputers.probe(world, x, y, z)) {
+                SLConsoleTest.tell(sender, line);
+            }
+            return;
+        }
         final MTEKerrEngine kee = keeAt(world, x, y, z);
         if (kee == null) {
             SLConsoleTest.tell(sender, "No Kerr Ergosphere Engine controller at " + x + ", " + y + ", " + z);
             return;
         }
-        final List<String> lines = args[0].equalsIgnoreCase("ocloop")
-            ? com.nateyburr.beyondthestars.machines.directive.DirectiveBench.kerrOcLoop(kee)
-            : com.nateyburr.beyondthestars.machines.directive.DirectiveBench.kerrAutorig(
-                world,
-                kee,
-                args.length > 4 ? Long.parseLong(args[4]) : 600,
-                args.length > 5 ? Integer.parseInt(args[5]) : 64,
-                args.length > 6 && args[6].equalsIgnoreCase("empty"));
+        final List<String> lines = args[0].equalsIgnoreCase("ctrl")
+            ? com.nateyburr.beyondthestars.machines.directive.DirectiveBench
+                .kerrCtrl(world, kee, args.length > 4 ? args[4].toLowerCase() : "")
+            : args[0].equalsIgnoreCase("ocloop")
+                ? com.nateyburr.beyondthestars.machines.directive.DirectiveBench.kerrOcLoop(kee)
+                : com.nateyburr.beyondthestars.machines.directive.DirectiveBench.kerrAutorig(
+                    world,
+                    kee,
+                    args.length > 4 ? Long.parseLong(args[4]) : 600,
+                    args.length > 5 ? Integer.parseInt(args[5]) : 64,
+                    args.length > 6 && args[6].equalsIgnoreCase("empty"));
         for (String line : lines) SLConsoleTest.tell(sender, line);
     }
 

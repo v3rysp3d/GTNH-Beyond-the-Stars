@@ -372,6 +372,87 @@ public final class DirectiveBench {
         return out;
     }
 
+    /**
+     * {@code /btskerr ctrl x y z on|off}: the control set with a real redstone signal. {@code on} turns the KEE's
+     * Hole hatch into a mass-setpoint control and puts a redstone block against its open face (strength 15); the KEE
+     * reads it on its own once a second while the chunk ticks. {@code off} reports the setpoint, takes the block away
+     * and turns the hatch back.
+     */
+    public static List<String> kerrCtrl(World world, MTEKerrEngine kee, String mode) {
+        final List<String> out = new ArrayList<>();
+        if ("out".equals(mode)) {
+            // the output as the world sees it: what a block against the hatch's open face receives now; then the
+            // hatch's invert flips (code 0 inverted drives 15), so run it twice a few seconds apart
+            final MTEHatchDirective hole = hatch(kee.directiveHatches(), DirectiveSet.KERR_HOLE);
+            if (hole == null) {
+                out.add("No Kerr: Hole Directive Hatch on this KEE.");
+                return out;
+            }
+            final IGregTechTileEntity b = hole.getBaseMetaTileEntity();
+            final ForgeDirection f = b.getFrontFacing();
+            final int x = b.getXCoord() + f.offsetX, y = b.getYCoord() + f.offsetY, z = b.getZCoord() + f.offsetZ;
+            out.add(
+                "World redstone at the Hole hatch's face (" + x
+                    + ", "
+                    + y
+                    + ", "
+                    + z
+                    + "): "
+                    + world.getStrongestIndirectPower(x, y, z)
+                    + "; comparator value "
+                    + hole.getComparatorValue(f)
+                    + "; the hatch drives "
+                    + hole.currentOutput()
+                    + " (invert "
+                    + hole.isInvert()
+                    + "); invert now "
+                    + !hole.isInvert());
+            hole.setInvert(!hole.isInvert());
+            return out;
+        }
+        final boolean on = "on".equals(mode);
+        MTEHatchDirective h = hatch(kee.directiveHatches(), on ? DirectiveSet.KERR_HOLE : DirectiveSet.KERR_SETPOINT);
+        if (h == null) {
+            out.add("No " + (on ? "Kerr: Hole" : "control") + " Directive Hatch on this KEE.");
+            return out;
+        }
+        final IGregTechTileEntity b = h.getBaseMetaTileEntity();
+        final ForgeDirection f = b.getFrontFacing();
+        final int x = b.getXCoord() + f.offsetX, y = b.getYCoord() + f.offsetY, z = b.getZCoord() + f.offsetZ;
+        if (on) {
+            h.setSet(DirectiveSet.KERR_SETPOINT);
+            world.setBlock(x, y, z, net.minecraft.init.Blocks.redstone_block);
+            out.add(
+                "Hatch at (" + b.getXCoord()
+                    + ", "
+                    + b.getYCoord()
+                    + ", "
+                    + b.getZCoord()
+                    + ") set to the mass-setpoint control; redstone block at ("
+                    + x
+                    + ", "
+                    + y
+                    + ", "
+                    + z
+                    + "); setpoint now "
+                    + kee.getSetpoint()
+                    + " SM");
+        } else {
+            out.add(
+                "Setpoint with redstone 15 on the control hatch: " + kee.getSetpoint()
+                    + " SM (top "
+                    + kee.maxSetpoint()
+                    + "); the hatch read "
+                    + h.getControlIn()
+                    + "; "
+                    + h.statusLine());
+            world.setBlockToAir(x, y, z);
+            h.setSet(DirectiveSet.KERR_HOLE);
+            out.add("Redstone block removed, hatch back on Kerr: Hole.");
+        }
+        return out;
+    }
+
     // ================================================================================= helpers
 
     static MTEHatchDirective hatch(List<MTEHatchDirective> list, DirectiveSet set) {

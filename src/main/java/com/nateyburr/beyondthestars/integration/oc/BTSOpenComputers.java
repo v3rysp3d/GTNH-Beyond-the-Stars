@@ -17,6 +17,47 @@ public final class BTSOpenComputers {
 
     private BTSOpenComputers() {}
 
+    /**
+     * Test bench ({@code /btskerr ocprobe x y z}): whether OpenComputers' driver registry finds a driver for the block
+     * at x y z (what an Adapter would ask), and the component our driver builds there - its name, its network node and
+     * its callbacks - without a computer.
+     */
+    public static java.util.List<String> probe(net.minecraft.world.World world, int x, int y, int z) {
+        final java.util.List<String> out = new java.util.ArrayList<>();
+        final net.minecraftforge.common.util.ForgeDirection side = net.minecraftforge.common.util.ForgeDirection.UNKNOWN;
+        final li.cil.oc.api.driver.SidedBlock found = Driver.driverFor(world, x, y, z, side);
+        out.add(
+            "OpenComputers registry: " + (found == null ? "no driver"
+                : found.getClass()
+                    .getName())
+                + " for the block at "
+                + x
+                + ", "
+                + y
+                + ", "
+                + z);
+        final BTSDriver ours = new BTSDriver();
+        if (!ours.worksWith(world, x, y, z, side)) {
+            out.add("  our driver does not take this block");
+            return out;
+        }
+        final li.cil.oc.api.network.ManagedEnvironment env = ours.createEnvironment(world, x, y, z, side);
+        final java.util.TreeSet<String> callbacks = new java.util.TreeSet<>();
+        for (java.lang.reflect.Method m : env.getClass()
+            .getMethods()) {
+            if (m.isAnnotationPresent(li.cil.oc.api.machine.Callback.class)) callbacks.add(m.getName());
+        }
+        out.add(
+            "  component " + ((BTSEnvironments.Base) env).preferredName()
+                + ", node "
+                + (env.node() == null ? "MISSING"
+                    : "ok (reachability " + env.node()
+                        .reachability() + ")")
+                + ", callbacks "
+                + callbacks);
+        return out;
+    }
+
     public static void register() {
         Driver.add(new BTSDriver());
         BeyondTheStars.LOG.info(

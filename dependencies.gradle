@@ -42,6 +42,8 @@ dependencies {
     // AUTOMATION PASS: OpenComputers is a SOFT dependency (P4 Q-20): its API jar at compile time only, never shipped or
     // required; integration/oc is loaded only when Loader.isModLoaded("OpenComputers"). 1.12.61 is the 2.9.0 line.
     compileOnly("com.github.GTNewHorizons:OpenComputers:1.12.61-GTNH:api") { transitive = false }
+    // Dev-run only: OpenComputers itself, so runServer exercises the driver registration (never published).
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:OpenComputers:1.12.61-GTNH:dev") { transitive = false }
 
     // Dev-run only (runClient/runServer), never published. The addon references none of these classes at compile time:
     // the coremod carries the BHC controller recipe and the 64-BHC circuit array that BTSRecipeRemovals rewrites,
