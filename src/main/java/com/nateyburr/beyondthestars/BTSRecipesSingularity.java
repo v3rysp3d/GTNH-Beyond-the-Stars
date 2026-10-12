@@ -40,8 +40,9 @@ import tectech.recipe.TecTechRecipeMaps;
 import tectech.thing.CustomItemList;
 
 /**
- * SINGULARITY LADDER PARTS, SL-P01..SL-P39 (singularity-ladder-build.md §2.2; SL-P27..P29 come
- * from the cost audit, docs/singularity-ladder-costs.md; SL-P39 from the 2.9.0-RC-2 gate audit;
+ * SINGULARITY LADDER PARTS, SL-P01..SL-P39 (singularity-ladder-build.md §2.2; SL-P29 comes
+ * from the cost audit (SL-P27/P28 are retired for RC-2's x32 BEC recipes, SL-B01/B02),
+ * docs/singularity-ladder-costs.md; SL-P39 from the 2.9.0-RC-2 gate audit;
  * SL-P30..P32 are retired; SL-P33 and SL-P35..P38 are the D-49 build's, d49-build-plan.md §10.3:
  * the Eye T5 gate's Resonance Chamber III, the T4-T6 star charts, the Sirius B, Cooled reclaim and the
  * Stellar Ignition Charge; SL-P26 is retired with the interim Black Dwarf Matter star; SL-P34 stays
@@ -80,7 +81,7 @@ public final class BTSRecipesSingularity {
         eyeParts();
         starCharts();
         ignitionCharge();
-        // Our Eye needs SL-P27..P29's casings whatever the flag says (B-26). Only the gate recipes exist
+        // Our Eye needs SL-P29's casings whatever the flag says (B-26). Only the gate recipes exist
         // because TecTech's Eye (WDM's other source) is gone, so only they follow the flag.
         tecTechEyeBlocks();
         if (Config.replaceTecTechEyeOfHarmony) {
@@ -381,56 +382,14 @@ public final class BTSRecipesSingularity {
     // ======================================================================= TecTech Eye blocks in bulk
 
     /**
-     * SL-P27..P29: batch Assembler recipes for the TecTech Eye blocks our Eye uses in bulk (cost audit
-     * #3/#4, B-23). TecTech prices them for its own small Eye (1,430 Spatial/Temporal casings, 36
-     * Boundary casings); ours uses 13,872 and 6,426. The blocks and the look stay TecTech's (round-1
-     * ruling). Registered whatever {@code replaceTecTechEyeOfHarmony} says: our Eye is craftable either
-     * way and needs them (B-26), so a pack that keeps TecTech's Eye gets the cheaper casings for it too.
-     * TecTech's own assembly lines stay as well.
+     * SL-P29: the batch Assembler recipe for the TecTech Eye block our Eye uses in bulk (cost audit #3/#4,
+     * B-23): TecTech prices it for its own small Eye (36 Boundary casings); ours uses 6,426. The block and
+     * the look stay TecTech's (round-1 ruling). Registered whatever {@code replaceTecTechEyeOfHarmony}
+     * says: our Eye is craftable either way and needs it (B-26). TecTech's own assembly line stays as well.
+     * SL-P27/P28 (Reinforced Spatial / Temporal Structure Casing x4) are retired by ruling 11a: RC-2's own
+     * Condensate Assembler recipes for those two casings output x32 instead (SL-B01/B02, {@link BTSRecipesBEC}).
      */
     private static void tecTechEyeBlocks() {
-        // SL-P27 Reinforced Spatial Structure Casing x4: 1 Godforge Singularity Shielding Casing, not 32.
-        // Programmed circuit 1 (not consumed) keeps P27 and P28 apart: they share every other input.
-        BTSRecipeGuard.recipe(
-            "SL-P27",
-            () -> GTValues.RA.stdBuilder()
-                .itemInputs(
-                    items(
-                        tectech(
-                            CustomItemList.Godforge_SingularityShieldingCasing,
-                            1,
-                            "Godforge_SingularityShieldingCasing"),
-                        dense(Materials.Neutronium, 4),
-                        dense(Materials.CosmicNeutronium, 4),
-                        dense(Materials.Infinity, 1),
-                        GTUtility.getIntegratedCircuit(1)))
-                .fluidInputs(molten(Materials.SpaceTime, 576))
-                .itemOutputs(tectech(CustomItemList.EOH_Reinforced_Spatial_Casing, 4, "EOH_Reinforced_Spatial_Casing"))
-                .duration(1_200)
-                .eut(TierEU.RECIPE_UMV)
-                .addTo(assemblerRecipes));
-
-        // SL-P28 Reinforced Temporal Structure Casing x4: as P27, on programmed circuit 2.
-        BTSRecipeGuard.recipe(
-            "SL-P28",
-            () -> GTValues.RA.stdBuilder()
-                .itemInputs(
-                    items(
-                        tectech(
-                            CustomItemList.Godforge_SingularityShieldingCasing,
-                            1,
-                            "Godforge_SingularityShieldingCasing"),
-                        dense(Materials.Neutronium, 4),
-                        dense(Materials.CosmicNeutronium, 4),
-                        dense(Materials.Infinity, 1),
-                        GTUtility.getIntegratedCircuit(2)))
-                .fluidInputs(molten(Materials.SpaceTime, 576))
-                .itemOutputs(
-                    tectech(CustomItemList.EOH_Reinforced_Temporal_Casing, 4, "EOH_Reinforced_Temporal_Casing"))
-                .duration(1_200)
-                .eut(TierEU.RECIPE_UMV)
-                .addTo(assemblerRecipes));
-
         // SL-P29 Infinite SpaceTime Energy Boundary Casing x8: TecTech's needs an LSC, 16 Active
         // Transformers and 4 UMV wireless hatches per block. The SC UMV wire (TecTech's research item for
         // it) and an Emitter UIV keep the energy theme.

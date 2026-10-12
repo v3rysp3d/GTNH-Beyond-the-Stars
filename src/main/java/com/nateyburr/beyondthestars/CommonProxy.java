@@ -43,6 +43,7 @@ public class CommonProxy {
      */
     public void loadComplete(FMLLoadCompleteEvent event) {
         com.nateyburr.beyondthestars.machines.eye.EyeRecipeRegistry.onLoadComplete();
+        BTSRecipeRemovals.guard("TecTech Eye casings x32 (SL-B01/B02)", BTSRecipesBEC::onLoadComplete);
         BTSRecipeRemovals.run();
         BTSRecipeGuard.checkResearchCollisions();
     }

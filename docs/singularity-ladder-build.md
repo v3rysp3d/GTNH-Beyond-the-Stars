@@ -73,8 +73,9 @@ MTE ids 28100-28139 are still free in RC-2 (enum and bytecode scan).
   need White Dwarf Matter, through the Resonance Chamber II they take (1 / 4 / 16, one WDM foil each). New
   **SL-P39**: a Condensate Assembler recipe for that chamber with 2 SpaceTime foils in place of the WDM foil (only with
   `replaceTecTechEyeOfHarmony=true`). **SL-P30..P32 are retired**: RC-2 prices the generators itself (BEC, no tier
-  upgrade chain) and the ruling keeps those costs. SL-P27..P29 stay: RC-2's BEC casings still cost 8 Godforge casings
-  per Spatial/Temporal casing and a whole LSC per Boundary casing.
+  upgrade chain) and the ruling keeps those costs. SL-P29 stays (RC-2's Boundary casing costs a whole LSC). SL-P27/P28 are
+  retired by ruling 11a: RC-2's own Condensate Assembler recipes for the Spatial / Temporal casings output x32 instead
+  of x4, rewritten at load-complete (SL-B01/B02, `BTSRecipesBEC`, whatever the flags say).
 - **TecTech Eye removal** is unchanged: the controller recipe is still a `TTRecipeAdder` assembly line, removed from
   all four places.
 
@@ -245,7 +246,8 @@ found two dead ends and several over-priced blocks; §6 there lists what was app
   (research-station upgrades of a Spacetime Compression Field Generator, paying Raw Star Matter / ESPM / RHSP where
   TecTech's beta-1 recipe wanted White Dwarf Matter bolts) are retired; RC-2's Condensate Assembler recipes make the
   generators, and SL-P39 (a WDM-free Resonance Chamber II) closes the one WDM loop left in them (B-29).
-- **Cheaper bulk blocks:** SL-P27..P29 batch-make TecTech's Spatial, Temporal and Boundary casings (always registered, B-26);
+- **Cheaper bulk blocks:** RC-2's Condensate Assembler makes TecTech's Spatial and Temporal casings x32 (SL-B01/B02) and
+  SL-P29 batch-makes the Boundary casing (always registered, B-26);
   the coil, quadrupole, beam band, jet crescent, Galactic Shell, pylon, Eye controller and Galactic Upgrade Core
   recipes are cheaper or make more per craft (§2.2-§2.4 mark each change).
 - **Eye structure:** 48 Stabilisation Field Generators (each pylon pad's centre ring), not 294; the rest of each
@@ -457,8 +459,8 @@ Eye reaches it): Q-3.
 | SL-P24 | Star Chart: Arcturus | ASM | Tool_DataOrb ×1, circuit UMV ×1, plate TranscendentMetal ×4 | ESPM 1,000 | RECIPE_UMV | 200 |
 | SL-P25 | Star Chart: Sirius B | ASM | Tool_DataOrb ×1, circuit UMV ×1, Galactic Shell Plating ×1 | HSM 1,000 | RECIPE_UMV | 200 |
 | SL-P26 | Star Chart: Sirius B, Cooled (interim) | ASM | Star Chart: Sirius B ×1, circuit UMV ×1 | Super Coolant 64,000 | RECIPE_UMV | 200 |
-| SL-P27 | TecTech Reinforced Spatial Structure Casing ×4 (gated) | ASM | Godforge Singularity Shielding Casing ×1, plateDense Neutronium ×4, plateDense CosmicNeutronium ×4, plateDense Infinity ×1, programmed circuit 1 | SpaceTime molten 576 | RECIPE_UMV | 1,200 |
-| SL-P28 | TecTech Reinforced Temporal Structure Casing ×4 (gated) | ASM | as SL-P27, on programmed circuit 2 | SpaceTime molten 576 | RECIPE_UMV | 1,200 |
+| SL-P27 | *retired by ruling 11a* (was Reinforced Spatial Structure Casing ×4 in the Assembler): RC-2's Condensate Assembler recipe outputs ×32 instead (SL-B01) | | | | | |
+| SL-P28 | *retired by ruling 11a* (was Reinforced Temporal Structure Casing ×4): RC-2's Condensate Assembler recipe outputs ×32 instead (SL-B02) | | | | | |
 | SL-P29 | TecTech Infinite SpaceTime Energy Boundary Casing ×8 (gated) | ASM | wireGt16 SuperconductorUMV ×1, plateDense Neutronium ×8, plateDense CosmicNeutronium ×8, Emitter_UIV ×1 | SpaceTime molten 1,152 | RECIPE_UMV | 1,200 |
 | SL-P30..P32 | *retired in the RC-2 port* (were research-station "upgrade the compression generator" recipes, B-28) | | | | | |
 | SL-P33..P38 | *reserved* by the D-49 build plan (P33/P34: conditional Eye T5/T6 gate recipes, whose §14 post-port audit is answered by costs doc §9.4; P35..P38: Star Chart: Sirius B, its reclaim, Star Chart: Magnetar, Stellar Ignition Charge) | | | | | |
@@ -466,7 +468,7 @@ Eye reaches it): Q-3.
 
 SL-P20 is reserved and unused. Keep the ID gap; do not renumber. Each star chart's fluid is the previous tier's
 product, so a chart cannot be crafted before its tier is reachable. SL-P26 registers only when
-`Config.interimBlackDwarfAtEyeT4` is true. SL-P27..P29 come from the cost audit
+`Config.interimBlackDwarfAtEyeT4` is true. SL-P29 (and the retired SL-P27/P28) come from the cost audit
 ([`singularity-ladder-costs.md`](singularity-ladder-costs.md) §6, #3-#4) and always register, because our Eye needs
 them either way (B-26). TecTech's own recipes for those blocks (Condensate Assembler in RC-2) stay. SL-P39 ("gated")
 registers only when `Config.replaceTecTechEyeOfHarmony` is true: with TecTech's Eye kept, WDM has its stock source.
