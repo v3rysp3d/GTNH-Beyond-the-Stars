@@ -2315,6 +2315,83 @@ TecTech EOH reference 1281-1318.
 **Still open:** E-9 (K2 / E1 in B-66): Quantum Glass windows in the Eye's crown band and the Kerr drum, or accept the
 "look from above" behaviour. Both are structure changes (shapes, BOM, recipes), so they wait for your ruling.
 
+### B-68 Render fix round 3: the Eye's see-through layers in pass 1, shock-front shells, corona and limb, and round 4 [render QA]
+
+**What was built** (addon commits 9755807..f922a1d). It fixes the round-3 review's Eye defects D1-D7. The Kerr needed
+no change (the review passed it).
+
+- **D1, sorting.** The Eye's render tile now renders in passes 0 and 1. Pass 0 draws the object: the opaque core, the
+  two thin additive surface shells, the dwarf's dark-red rim, the new limb darkening and the black dwarf's veil.
+  Pass 1 runs after the translucent and glowing block faces. It draws everything see-through around the object: the
+  corona, the glow disc, the pulsar beams, the magnetar's shells, the bounce shell and the nova flash. These layers are
+  additive, depth-tested and write no depth, and back faces are drawn before front faces. In the round-4 shots the
+  bands' cyan strips behind the bounce shell and the magnetar shells are tinted.
+- **D2, bounce.** The bounce is now an untextured shock front, B8D4FF, with additive alpha
+  `0.04 + 0.60 × (1 − |N·V|)^3` per vertex. It is clear in the middle with a bright edge, and fades with
+  `1 − age / 100`. At 30 ticks it is 7.4 blocks across. The cloud texture is gone.
+- **D3, magnetar.** The magnetosphere is 4.5 blocks, C080FF, rim alpha 0.04 → 0.3 when quiet. On a warning its edge
+  pulses 0.35 ↔ 0.6 at 2 Hz, and an outer shell appears at 7 blocks (7A4CFF, edge 0.29 ↔ 0.5). Flares run from 4.5
+  to 7 blocks (edge 0.5, fading). The close view is no longer veiled.
+- **D4, swell.** The swell eases from 15 to a peak of 20 blocks (19.4 at half way). It reaches FF3A12 at gamma 0.6 by
+  half way, spins at 3× Arcturus's speed at half way, and throbs at 0.7 Hz with pulse 0.15. Measured F8280C against
+  Arcturus FC8130.
+- **D5, early dwarf.** F2F5FF holds until 20 % of the batch, at gamma 2.5 → 2.3. Its surface shells run at 0.3 / 0.15,
+  and the dark-red rim fades in with the cooling, as the veil does. Measured F7F8F9 by day and F0F2F6 by night: every
+  channel is at least 235 and blue is at or above red. The late dwarf is unchanged (170E10).
+- **D6, corona and limb.** Every live star, the swell, the bounce and the early dwarf get a corona: a ring from the limb
+  out to 1.12× the limb, star colour, 0.30 at the limb falling to 0. It lies in the limb's own plane, so it neither hides
+  the star nor is hidden by it. The core is limb-darkened to `colour × (0.75 + 0.25 |N·V|)`.
+- **D7, pulsar.** Beams are 0.45 blocks wide each side, 0.6 at the root falling to 0, with the tip 19.4 blocks from the
+  centre. The neutron star's glow ring reaches 1.6× its limb at 0.45.
+- **Meshes.** Every sphere is 32 × 16, the core included (it was 64 × 64). The untextured spheres use a unit-sphere table
+  built once, with per-vertex alphas filled once per shell for both faces. The first run built them with trig every
+  frame, and the magnetar fell to 348-939 FPS.
+- **Harness.** New `ref_gt_godforge` case: TecTech's Forge of the Gods render block alone on a site (x 6000), set up as
+  `MTEForgeOfGods.createRenderer` sets up a fresh Godforge (star 20, speed 5, one ring, default colour).
+
+**Round 4.** 96 shots are in my local work folder `render-qa/round4/`. The Kerr and reference shots come from the full
+run (`rendertest-full.log`, `fps-full.tsv`). The Eye shots come from the re-run after the mesh-table fix
+(`rendertest-eye.log`), and the T5 shots from the dwarf retune (`rendertest-dwarf.log`). Each run's raw output is in
+`run1/`..`run3/`.
+
+| Case | Close-up centre, day | FPS avg (min-max) |
+|---|---|---|
+| Sol | EFDA8A | 1122 (1109-1138) |
+| Sirius A | BDDDFC | 1119 (1086-1155) |
+| Arcturus | FC8130 | 1115 (1080-1138) |
+| Neutron star | D6E7F9, 8 % white | 1074 (1041-1130) |
+| Swell | F8280C | 1066 (1043-1088) |
+| Bounce | C2DCF9 | 1023 (978-1065) |
+| Dwarf 10 % | F7F8F9, 83 % white | 1061 (1022-1117) |
+| Dwarf 90 % | 170E10 | 1011 (946-1055) |
+| Magnetar | 845DFF | 929 (879-1017) |
+| Magnetar warning | - | 855 (765-916) |
+| Kerr T1 16 / 64, T2 256 | - | 1248 / 1262 / 1185 |
+| BHC / TT EOH / Godforge refs | - | 1319 / 1318 / 1283 |
+
+Round 3's Eye cases ran at 957-1212.
+
+**Judgement calls (built, PROPOSED):**
+1. **Swell peak 20 blocks, not 21.** The nearest `eye_core` block face is 20.4 blocks from the centre (measured from the
+   exported shape: cell (0, −6, −20)), not the review's estimated 22-24. The throb only shrinks the swell (by a third of
+   the pulse) and swings its brightness (gamma ×(1 ± 0.15)) by the full pulse, so the swell never reaches a block.
+   Every see-through layer also stops at 20.4: the glow disc, the corona's outer edge and the beam tip (minus 1). The
+   swell's corona is therefore only about one block wide.
+2. **Quiet magnetosphere at edge 0.3, outer shell only on a warning.** The review gave the warning's numbers only. At
+   rest the inner shell runs at half strength and no outer shell is drawn, so a warning reads as a clearly bigger,
+   pulsing violet ball.
+3. **The neutron star's 1.6× glow replaces its 1.12× corona** (0.45 at the limb), rather than adding a second ring.
+4. **Dwarf at 83 % near-white by day.** ">= 235 on every channel" with blue ≥ red leaves little texture. The limb
+   darkening and the shells' grey keep it reading as a ball. Round 3 measured 9-19 % white.
+5. **Magnetar FPS is 10-20 % under round 3** (855-929 avg, against TecTech's 1318). It now draws three CPU-tessellated
+   rim shells, both faces, every frame. If that matters, the next step is a small rim shader on GPU meshes instead of
+   the Tessellator.
+6. **Shell silhouettes are 32-sided.** The 32 × 16 cap shows as slight facets on the 7-block shells in the close views.
+   48 × 24 would hide them for about 2× the shell cost.
+
+**Still open:** E-9 (B-66 / B-67): from the front the bands hide the small objects (magnetar, neutron star), as in
+`eye_t6_magnetar_front_night`.
+
 ---
 
 ## Part C. Settled (for the record)
