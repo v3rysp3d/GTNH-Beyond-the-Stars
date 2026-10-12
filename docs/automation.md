@@ -60,7 +60,7 @@ rig rule with the threshold set to w; on T1, T2 and T4 it asks for exactly the s
 |---|---|---|
 | 1 (1) | **Buffers short**: the next cycle's upkeep (or this cycle ran short), a dark Eye's ignition (10 cycles and the seed cloud), a waiting Sirius B batch, the magnetar's dwarf-matter top-up, or, with the next core in escrow, the next transition's fluids | stock the gas / stellar sockets |
 | 2 (2) | **Ignition charge wanted**: a dark Eye would light its chart's star now (T4: relight Arcturus) but no Stellar Ignition Charge is in a plinth bus | push one charge |
-| 3 (4) | **Event warned / fifth trim**: T3 a helium flash is warned (open the bigger Super Coolant valve); T6 the Antipolarization Agent is wanted (Π past ±w or a flare warned; merger thresholds during the merger) | the event valve |
+| 3 (4) | **Event warned / fifth trim**: T3 a helium flash is warned (open the bigger Super Coolant valve); T6 the Antipolarization Agent is wanted (Π past ±w or a flare warned). During the Magnetar Merger: the imprint asks above Π +66, the release above +30 | the event valve; on T6 **while Transition bit 2 is on, a 1 unit/s (100 L/s) Agent valve** instead of the 5-unit one (the imprint must keep Π inside +60..+70: above +70 the field is Critical and drains Integrity 2/s, and 5 units take 20 off Π at once) |
 | 4 (8) | **Alarm**: the Eye is not formed, or the star is Critical or Breach, or Integrity is below 50 | lamp, alarm, backup |
 
 **Eye: Transition**

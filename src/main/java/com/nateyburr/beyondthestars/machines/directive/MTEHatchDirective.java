@@ -94,6 +94,7 @@ public class MTEHatchDirective extends MTEHatch {
             "  T5: [1] DSSF (P or Θ > +w) [2] Raw Star Matter (Θ < -w) [4] Helium (P < -w)",
             "§bEye Status§7: [1] buffers short [2] ignition charge wanted [4] event warned (T3 more Coolant,",
             "  T6 Agent wanted) [8] alarm (Critical, Breach, Integrity < 50, or not formed)",
+            "  Magnetar Merger: [4] asks above Π +66; feed 1 unit/s (100 L/s) while Transition [2] is on.",
             "§bEye Transition§7: [1] ready: load the next chart [2] running [4] next core wanted [8] Tachyon wanted",
             "§bKerr Hole§7: [1] closed [2] below setpoint (1 SM) [4] bolts short (< w minutes) [8] above setpoint",
             "§bKerr Status§7: [1] containment power short [2] no Black Hole Seed [4] unstable [8] not formed",
