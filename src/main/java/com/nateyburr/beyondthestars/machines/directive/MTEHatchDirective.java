@@ -171,12 +171,22 @@ public class MTEHatchDirective extends MTEHatch {
 
     // ------------------------------------------------------------------ settings (GUI, OpenComputers, bench)
 
+    /**
+     * A setting changed (GUI, OpenComputers, bench): mark the chunk for saving. GT does that only for inventory
+     * changes, so a setting changed with nothing else happening in the chunk was lost on a restart (B-71).
+     */
+    private void settingsChanged() {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base != null) base.markDirty();
+    }
+
     public DirectiveSet getSet() {
         return set;
     }
 
     public void setSet(DirectiveSet s) {
         if (s != null) set = s;
+        settingsChanged();
     }
 
     public int getSetOrdinal() {
@@ -185,12 +195,14 @@ public class MTEHatchDirective extends MTEHatch {
 
     public void setSetOrdinal(int ordinal) {
         set = DirectiveSet.VALUES[Math.floorMod(ordinal, DirectiveSet.VALUES.length)];
+        settingsChanged();
     }
 
     /** The GUI's cycle: the next set of the host the hatch sits in (any set while it has none). */
     public void cycleSet() {
         if (host == DirectiveSet.Host.NONE) setSetOrdinal(set.ordinal() + 1);
         else set = (set.host == host ? set : DirectiveSet.first(host)).next();
+        settingsChanged();
     }
 
     public DirectiveSet.Output getOutput() {
@@ -199,6 +211,7 @@ public class MTEHatchDirective extends MTEHatch {
 
     public void setOutput(DirectiveSet.Output o) {
         if (o != null) output = o;
+        settingsChanged();
     }
 
     public int getOutputOrdinal() {
@@ -207,6 +220,7 @@ public class MTEHatchDirective extends MTEHatch {
 
     public void setOutputOrdinal(int ordinal) {
         output = DirectiveSet.Output.of(ordinal);
+        settingsChanged();
     }
 
     public boolean isInvert() {
@@ -215,6 +229,7 @@ public class MTEHatchDirective extends MTEHatch {
 
     public void setInvert(boolean invert) {
         this.invert = invert;
+        settingsChanged();
     }
 
     public int getWindow() {
@@ -223,6 +238,7 @@ public class MTEHatchDirective extends MTEHatch {
 
     public void setWindow(int w) {
         window = Math.max(WINDOW_MIN, Math.min(WINDOW_MAX, w));
+        settingsChanged();
     }
 
     public DirectiveSet.Host getHost() {

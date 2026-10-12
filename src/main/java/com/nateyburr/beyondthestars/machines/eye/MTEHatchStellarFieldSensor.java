@@ -158,12 +158,22 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
         return all[Math.floorMod(channel, all.length)];
     }
 
+    /**
+     * A setting changed (GUI, OpenComputers, bench): mark the chunk for saving. GT does that only for inventory
+     * changes, so a setting changed with nothing else happening in the chunk was lost on a restart (B-71).
+     */
+    private void settingsChanged() {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base != null) base.markDirty();
+    }
+
     public int getChannelOrdinal() {
         return Math.floorMod(channel, FieldReadout.Channel.values().length);
     }
 
     public void setChannelOrdinal(int ordinal) {
         channel = Math.floorMod(ordinal, FieldReadout.Channel.values().length);
+        settingsChanged();
     }
 
     public double getThreshold() {
@@ -172,6 +182,7 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
 
     public void setThreshold(double threshold) {
         this.threshold = Math.max(-120, Math.min(120, threshold));
+        settingsChanged();
     }
 
     public boolean isLessThan() {
@@ -180,6 +191,7 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
 
     public void setLessThan(boolean lessThan) {
         this.lessThan = lessThan;
+        settingsChanged();
     }
 
     public boolean isAnalog() {
@@ -188,6 +200,7 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
 
     public void setAnalog(boolean analog) {
         this.analog = analog;
+        settingsChanged();
     }
 
     /** The last value read on the channel (NaN when dark or never published). */

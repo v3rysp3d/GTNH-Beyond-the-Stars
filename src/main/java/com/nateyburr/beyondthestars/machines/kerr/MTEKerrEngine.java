@@ -628,6 +628,10 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         if (aTick % 20 == 0) {
             refreshReadouts();
             publishDirectives();
+            // The hole's mass, setpoint and open state change without an inventory change, and GT marks the chunk
+            // for saving only on those: without this a restart brought back an old save of the hole (B-71: a
+            // 64 SM hole on setpoint 64 came back as 16 SM on 16). Once a second, as the Eye's runtime does.
+            aBaseMetaTileEntity.markDirty();
         }
         aBaseMetaTileEntity.setActive(holeOpen && mMachine);
     }
