@@ -3,7 +3,9 @@ package com.nateyburr.beyondthestars.machines.eye;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofChain;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.onElementPass;
+import static com.nateyburr.beyondthestars.machines.BTSStructures.channelIndex;
 import static com.nateyburr.beyondthestars.machines.BTSStructures.noOverwrite;
+import static com.nateyburr.beyondthestars.machines.BTSStructures.tieredBlock;
 import static gregtech.api.enums.HatchElement.Maintenance;
 import static gregtech.api.util.GTStructureUtility.buildHatchAdder;
 
@@ -26,7 +28,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
@@ -35,7 +36,6 @@ import net.minecraftforge.fluids.FluidStack;
 import com.gtnewhorizon.structurelib.alignment.IAlignmentLimits;
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
 import com.gtnewhorizon.structurelib.alignment.enumerable.Flip;
-import com.gtnewhorizon.structurelib.structure.AutoPlaceEnvironment;
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
@@ -44,6 +44,7 @@ import com.nateyburr.beyondthestars.blocks.BlockSLCasing;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.items.SLItems;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
+import com.nateyburr.beyondthestars.machines.BTSStructures;
 
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.Textures;
@@ -65,6 +66,7 @@ import gregtech.api.structure.error.StructureErrors;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.ItemEjectionHelper;
 import gregtech.api.util.MultiblockTooltipBuilder;
+import gregtech.common.misc.GTStructureChannels;
 import gregtech.common.misc.WirelessNetworkManager;
 import gregtech.common.tileentities.machines.IRecipeProcessingAwareHatch;
 import gregtech.common.tileentities.machines.MTEHatchInputME;
@@ -119,9 +121,10 @@ import tectech.thing.casing.TTCasingsContainer;
  * <li><b>Plant-wide hatch lists.</b> Input sockets live in private lists ({@link EyeHatchElement}); a
  * band whose walk fails drops its sockets again (mark-and-truncate).</li>
  * <li><b>Element chains.</b> Every socket is {@code buildHatchAdder(...).buildAndChain(casing)}, the
- * hatch first; the dilation and stabilisation chains start at tier 0, which is what holograms place.
- * Compression is not a chain: it checks any tier, and holograms place the tier the trigger stack asks
- * for (from the trigger alone, trap 1).</li>
+ * hatch first. The field generators are {@code BTSStructures.tieredBlock}s: the walk accepts any
+ * tier, and every build places one tier picked from the trigger alone (trap 1): compression at the
+ * stack's 1:1 gate, dilation and stabilisation at tier 1, each raised by GT's EOH structure channel
+ * if the projector sets one. Builds never downgrade a generator already standing.</li>
  * </ol>
  * All walk state is zeroed in {@link #resetWalk()}, the first statement of {@link #checkMachine}.
  */
@@ -168,7 +171,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     private static final IIconContainer OVERLAY_ACTIVE_GLOW = Textures.BlockIcons
         .custom("beyondthestars:iconsets/OVERLAY_FRONT_EYE_OF_HARMONY_ACTIVE_GLOW");
 
-    private static IStructureDefinition<MTEEyeOfHarmonyBTS> STRUCTURE_DEFINITION = null;
+    /** Built once, lazily; NEI's multiblock preview reads it from a background thread at load. */
+    private static volatile IStructureDefinition<MTEEyeOfHarmonyBTS> STRUCTURE_DEFINITION = null;
 
     // ---------------------------------------------------- PERSISTED (writeEyeState is the one writer)
     private boolean galacticInstalled;
@@ -216,10 +220,17 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
 
     @Override
     public IStructureDefinition<MTEEyeOfHarmonyBTS> getStructureDefinition() {
-        if (STRUCTURE_DEFINITION == null) {
-            STRUCTURE_DEFINITION = buildDefinition();
+        IStructureDefinition<MTEEyeOfHarmonyBTS> def = STRUCTURE_DEFINITION;
+        if (def == null) {
+            synchronized (MTEEyeOfHarmonyBTS.class) {
+                def = STRUCTURE_DEFINITION;
+                if (def == null) {
+                    def = buildDefinition();
+                    STRUCTURE_DEFINITION = def;
+                }
+            }
         }
-        return STRUCTURE_DEFINITION;
+        return def;
     }
 
     private static IStructureDefinition<MTEEyeOfHarmonyBTS> buildDefinition() {
@@ -237,8 +248,18 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addElement('J', casing(Casings.InfiniteSpacetimeEnergyBoundaryCasing))
             .addElement('Z', casing(Casings.QuantumGlass))
             .addElement('W', compressionField(TTCasingsContainer.SpacetimeCompressionFieldGenerators))
-            .addElement('X', field(FIELD_DILATION, TTCasingsContainer.TimeAccelerationFieldGenerator))
-            .addElement('Y', field(FIELD_STABILISATION, TTCasingsContainer.StabilisationFieldGenerators))
+            .addElement(
+                'X',
+                field(
+                    FIELD_DILATION,
+                    TTCasingsContainer.TimeAccelerationFieldGenerator,
+                    GTStructureChannels.EOH_DILATION.get()))
+            .addElement(
+                'Y',
+                field(
+                    FIELD_STABILISATION,
+                    TTCasingsContainer.StabilisationFieldGenerators,
+                    GTStructureChannels.EOH_STABILISATION.get()))
             // ---- our three per-tier band casings
             .addElement('R', block(sl, BlockSLCasing.BEAM_BAND))
             .addElement('S', block(sl, BlockSLCasing.JET_CRESCENT))
@@ -286,18 +307,29 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         return noOverwrite(onElementPass(x -> ++x.mCasing, ofBlock(block, meta)));
     }
 
+    /** Field-generator metas 0-8 (TecTech tiers 1 Crude .. 9 Gallifreyan), lowest first. */
+    private static final int[] FIELD_METAS = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+
     /**
-     * One TecTech field-generator type, tiers 0-8 MIXABLE: the walk records the lowest tier it meets
-     * (Q-20). Tier 0 comes first, so holograms and survival auto-place use it (trap 4).
+     * One TecTech field-generator type, tiers 0-8 MIXABLE in the walk: it records the lowest tier
+     * it meets (Q-20). Every build path places one wanted tier ({@code BTSStructures.tieredBlock}):
+     * the tier GT's structure channel for that generator asks for (set on the projector), else tier
+     * 1 (Crude), the cheapest, since Time Dilation and Stabilisation have no effect yet. A build
+     * never downgrades a generator that is already standing.
      */
+    private static IStructureElement<MTEEyeOfHarmonyBTS> field(int type, Block generator, String channel) {
+        return tieredBlock(generator, FIELD_METAS, fieldWalk(type, generator), t -> channelIndex(t, channel, 0));
+    }
+
+    /** The walk half of a field element: any tier passes, the lowest is recorded. */
     @SuppressWarnings("unchecked")
-    private static IStructureElement<MTEEyeOfHarmonyBTS> field(int type, Block generator) {
-        final IStructureElement<MTEEyeOfHarmonyBTS>[] tiers = new IStructureElement[9];
-        for (int meta = 0; meta < 9; meta++) {
-            final int tier = meta;
-            tiers[meta] = onElementPass(x -> x.noteField(type, tier), ofBlock(generator, meta));
+    private static IStructureElement<MTEEyeOfHarmonyBTS> fieldWalk(int type, Block generator) {
+        final IStructureElement<MTEEyeOfHarmonyBTS>[] tiers = new IStructureElement[FIELD_METAS.length];
+        for (int i = 0; i < FIELD_METAS.length; i++) {
+            final int meta = FIELD_METAS[i];
+            tiers[i] = onElementPass(x -> x.noteField(type, meta), ofBlock(generator, meta));
         }
-        return noOverwrite(ofChain(tiers));
+        return ofChain(tiers);
     }
 
     /**
@@ -306,52 +338,22 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
      * asks for ({@link #compressionMetaFor}), so a stack-4 projection builds a T4-capable Eye. The
      * placement reads the trigger stack only, never server state (trap 1).
      */
-    @SuppressWarnings("unchecked")
     private static IStructureElement<MTEEyeOfHarmonyBTS> compressionField(Block generator) {
-        final IStructureElement<MTEEyeOfHarmonyBTS> walk = field(FIELD_COMPRESSION, generator);
-        final IStructureElement<MTEEyeOfHarmonyBTS>[] place = new IStructureElement[9];
-        for (int meta = 0; meta < 9; meta++) {
-            place[meta] = noOverwrite(ofBlock(generator, meta));
-        }
-        return new IStructureElement<MTEEyeOfHarmonyBTS>() {
-
-            @Override
-            public boolean check(MTEEyeOfHarmonyBTS t, World world, int x, int y, int z) {
-                return walk.check(t, world, x, y, z);
-            }
-
-            @Override
-            public List<String> getDescription(MTEEyeOfHarmonyBTS t) {
-                return walk.getDescription(t);
-            }
-
-            @Override
-            public boolean spawnHint(MTEEyeOfHarmonyBTS t, World world, int x, int y, int z, ItemStack trigger) {
-                return place[compressionMetaFor(trigger)].spawnHint(t, world, x, y, z, trigger);
-            }
-
-            @Override
-            public boolean placeBlock(MTEEyeOfHarmonyBTS t, World world, int x, int y, int z, ItemStack trigger) {
-                return place[compressionMetaFor(trigger)].placeBlock(t, world, x, y, z, trigger);
-            }
-
-            @Override
-            public BlocksToPlace getBlocksToPlace(MTEEyeOfHarmonyBTS t, World world, int x, int y, int z,
-                ItemStack trigger, AutoPlaceEnvironment env) {
-                return place[compressionMetaFor(trigger)].getBlocksToPlace(t, world, x, y, z, trigger, env);
-            }
-
-            @Override
-            public PlaceResult survivalPlaceBlock(MTEEyeOfHarmonyBTS t, World world, int x, int y, int z,
-                ItemStack trigger, AutoPlaceEnvironment env) {
-                return place[compressionMetaFor(trigger)].survivalPlaceBlock(t, world, x, y, z, trigger, env);
-            }
-        };
+        return tieredBlock(
+            generator,
+            FIELD_METAS,
+            fieldWalk(FIELD_COMPRESSION, generator),
+            MTEEyeOfHarmonyBTS::compressionMetaFor);
     }
 
-    /** The compression generator meta a build for this trigger stack places (1..4 = T1..T4). */
+    /**
+     * The compression generator meta a build for this trigger stack places: the 1:1 gate of the
+     * stack's tier (1..4 = T1..T4, {@link #COMPRESSION_META_FOR_TIER}), or higher if GT's
+     * {@code spacetime_compression} structure channel asks for more. Never below the gate.
+     */
     public static int compressionMetaFor(ItemStack trigger) {
-        return COMPRESSION_META_FOR_TIER[bandsFor(trigger)];
+        final int gate = COMPRESSION_META_FOR_TIER[bandsFor(trigger)];
+        return Math.max(gate, channelIndex(trigger, GTStructureChannels.EOH_COMPRESSION.get(), gate));
     }
 
     private void noteField(int type, int meta) {
@@ -552,17 +554,23 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         return Math.max(1, Math.min(PIECES.length, size));
     }
 
+    /**
+     * Survival auto-place (projector, from the player's inventory or a linked AE system, and NEI's
+     * preview, which builds through here with a creative item source). The pieces go in order, core
+     * first, and a band starts only once every piece before it is complete; -1 when all the stack
+     * asks for is standing. Hatches and other tiles are never overwritten ({@code noOverwrite}).
+     */
     @Override
     public int survivalConstruct(ItemStack stackSize, int elementBudget, ISurvivalBuildEnvironment env) {
         final int n = bandsFor(stackSize);
         if (mMachine && installedBands() >= n) return -1;
-        int built = -1;
+        final int budget = BTSStructures.survivalBudget(elementBudget);
         for (int i = 0; i < n; i++) {
             final int[] o = off(PIECES[i]);
-            built = survivalBuildPiece(PIECES[i], stackSize, o[0], o[1], o[2], elementBudget, env, false, true);
+            final int built = survivalBuildPiece(PIECES[i], stackSize, o[0], o[1], o[2], budget, env, false, true);
             if (built >= 0) return built;
         }
-        return built;
+        return -1;
     }
 
     private int installedBands() {
@@ -1074,15 +1082,18 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 true)
             .addCasingInfoExactly("Time Dilation Field Generator (any tier)", bom(PIECE_CORE, 'X'), true)
             .addCasingInfoExactly("Stabilisation Field Generator (any tier)", bom(PIECE_CORE, 'Y'), true)
-            .addOtherStructurePart("T2 beam band", bom(PIECE_BEAM, 'R') + " Beam Band Casing", 4)
-            .addOtherStructurePart("T3 jet crescent", bom(PIECE_JET, 'S') + " Jet Crescent Casing", 4)
+            .addOtherStructurePart("T2 beam band", bom(PIECE_BEAM, 'R') + " Beam Band Casing")
+            .addOtherStructurePart("T3 jet crescent", bom(PIECE_JET, 'S') + " Jet Crescent Casing")
             .addOtherStructurePart("T4 spiral arms", bom(PIECE_ARMS, 'T') + " Galactic Shell Plating")
             .addOtherStructurePart("Gas input hatch (H, He)", "plinth, at least 1", 1)
             .addOtherStructurePart("ME Output Bus + ME Output Hatch", "plinth, at least 1 of each", 2)
             .addMaintenanceHatch("Plinth", 3)
             .addOtherStructurePart("Stellar input hatch", "beam band and jet crescent sockets", 4)
             .addStructureInfo("Hologram: trigger stack 1 = T1 core, 2 = + beam band, 3 = + jet crescent, 4 = + arms.")
-            .addStructureInfo("The hologram places compression generators of the trigger stack's tier.")
+            .addStructureInfo("Compression generators are placed at the stack's tier (its 1:1 gate); Time")
+            .addStructureInfo("  Dilation and Stabilisation at tier 1. The projector's EOH channels")
+            .addStructureInfo("  (spacetime_compression, time_dilation, stabilisation) raise them.")
+            .addStructureInfo("Builds never overwrite hatches, nor downgrade a field generator already placed.")
             .toolTipFinisher();
         return tt;
     }
