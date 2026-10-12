@@ -1,4 +1,4 @@
-# piece=orient_test w=3 h=3 d=3 off=1,1,0 sha=ae5ab12085174eb7006517f43f3cbac121819908
+# piece=orient_test w=3 h=3 d=3 off=1,1,0 sha=317b66f68719d4110a7ed92ed322c22450ffe730
 # expect: R right of the controller, U top-left front corner, BBB along the top of the back layer
 U
  ~R
