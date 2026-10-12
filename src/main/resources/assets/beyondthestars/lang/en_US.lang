@@ -256,9 +256,9 @@ tile.beyondthestars.slCasing3.11.name=Region Anchor Casing
 tile.beyondthestars.slCasing3.11.tooltip=Reality Diffraction: the red lens either side of each Region Anchor socket.\nMade in the Condensate Assembler.
 # items (SLMaxItems)
 item.beyondthestars.homogenyTier2Core.name=Homogeny Tier II Core
-item.beyondthestars.homogenyTier2Core.tooltip=The Homogeny T1 -> T2: build the middle stirring ring, mix 100,000 L of Excited Stellar Plasma Mixture,\nthen put this core in the controller and press Install (10 minutes, offline). Permanent.\n4 parallels; unlocks Degenerate Stellar Mixture. Made in the Condensate Assembler.
+item.beyondthestars.homogenyTier2Core.tooltip=The Homogeny T1 -> T2: build the middle stirring ring, mix 100,000 L of Excited Stellar Plasma Mixture,\nthen put this core in the controller and press Install (10 minutes, offline). Permanent.\n4 parallels; unlocks Degenerate Stellar Mixture.\nMade in the Condensate Assembler with Black Dwarf, White Dwarf and SpaceTime condensates (after Eye T5).
 item.beyondthestars.homogenyTier3Core.name=Homogeny Tier III Core
-item.beyondthestars.homogenyTier3Core.tooltip=The Homogeny T2 -> T3: build the tilted outer ring, mix 100,000 L of Degenerate Stellar Mixture,\nthen put this core in the controller and press Install (10 minutes, offline). Permanent.\n16 parallels; unlocks Entanglement Medium. Made in the Condensate Assembler.
+item.beyondthestars.homogenyTier3Core.tooltip=The Homogeny T2 -> T3: build the tilted outer ring, mix 100,000 L of Degenerate Stellar Mixture,\nthen put this core in the controller and press Install (10 minutes, offline). Permanent.\n16 parallels; unlocks Entanglement Medium.\nMade in the Condensate Assembler with White Hole Matter, Superdense Ergomatter, Degenerate and Eternity condensates (after Eye T9).
 item.beyondthestars.universalUpgradeCore.name=Universal Upgrade Core
 item.beyondthestars.universalUpgradeCore.tooltip=Eye of Harmony T9 -> T10.\nReassembled by Reality Refab from the six Entangled Regions.
 item.beyondthestars.starChartUniverse.name=Star Chart: The Observable Universe
