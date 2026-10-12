@@ -14,6 +14,7 @@ package com.nateyburr.beyondthestars;
  *   BTSRecipesPropellant  Agent C   S4.1 oxidiser / slurry / blend, the six rungs
  *   BTSRecipesCoolant     Agent C   S4.2 bulk coolant and the chemical shim
  *   BTSRecipesMachines    Agent D   controllers, hatches, control blocks, rotor
+ *   BTSRecipesStellar     D-49      the Antipolarization Agent chain (SL-S01..S02)
  * </pre>
  *
  * <b>Nothing may be added to THIS file.</b> A recipe here would be a recipe with no owner, and
@@ -47,6 +48,7 @@ public final class BTSRecipes {
         BTSRecipeGuard.line("singularity", BTSRecipesSingularity::register);
         BTSRecipeGuard.line("kerr", BTSRecipesKerr::register);
         BTSRecipeGuard.line("eye", BTSRecipesEye::register);
+        BTSRecipeGuard.line("stellar", BTSRecipesStellar::register);
         BTSRecipeGuard.line("display", BTSDisplayRecipes::register);
 
         BTSRecipeGuard.summary();
