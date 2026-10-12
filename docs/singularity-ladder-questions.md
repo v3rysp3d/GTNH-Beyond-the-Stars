@@ -545,3 +545,159 @@ optional (minimum 0) and never join a recipe list.
 re-export with `--flipH` or `--flipD`, as the Structure export section says.
 
 **Suggestion.** Run `/btskerr` and `/btskerr t2` in the test instance as the first smoke test of P2.
+
+## Q-29 What the Eye's field generators do, and that tiers can be mixed
+
+**Context.** Q-20 put TecTech's three field-generator types into `eye_core` (`W` compression on the upper clamp
+struts, `X` time dilation on the lower struts, `Y` stabilisation on the pylon foot pads) and left their mechanics to
+the Eye unit. The mid-run ruling asks to keep the tiers meaningful, as TecTech's EOH uses them.
+
+**What we built.** TecTech's own semantics and constants (read from `MTEEyeOfHarmony` with javap), applied to
+**planets and the Deep Dark only**:
+
+- **Spacetime Compression:** the lowest compression tier must reach the planet's `getSpacetimeCasingTierRequired()`,
+  otherwise the run is refused ("insufficient machine tier"). Each tier above the requirement cuts 3 % of the time
+  (×0.97 per tier).
+- **Time Dilation:** each tier halves the time and costs 9.25 % success.
+- **Stabilisation:** each tier adds 5 % success and costs 5 % yield.
+
+Stars ignore all three: they always succeed and always take their base time.
+
+Any tier 0-8 of each type is accepted in any cell, and the **lowest** tier of each type counts. This is the same rule
+as the Kerr's injector rails (Q-26). TecTech demands one uniform tier, so its machine un-forms at the first swap while
+you upgrade.
+
+Holograms place tier 1. `/btseye gen <1-9>` builds at any tier (default 9).
+
+**Suggestion.** As built.
+
+**Alternatives.**
+
+- Uniform tiers, as TecTech does (`ofBlocksTiered`).
+- Also gate each Eye tier on a minimum generator tier (for example T4 needs Perfect).
+- Let dilation speed up stars too. We left it out: a star run's EU is a fixed lump, so ×256 speed at tier 9 would be
+  ×256 throughput for free.
+
+## Q-30 The Eye has one set of fluid buffers, and every input socket feeds it
+
+**Context.** §3.3 has gas sockets (H/He) on the plinth and stellar sockets (RSPM, ESPM, HSM, WDM) on the beam band and
+jet crescent, drained into separate buffers.
+
+**What we built.**
+
+- **One buffer per fluid**, as a `long` capped at 2⁶² L.
+- **Every 20 ticks**, every live socket is drained of any fluid that some Eye recipe consumes: H, He, Raw Star Matter,
+  ESPM, HSM, molten WDM and Super Coolant (the interim recipe's coolant).
+- **Socket kinds are interchangeable.** The gas sockets (`h`) and the stellar sockets (`s`, `t`) differ only in where
+  they sit, so a T1-only Eye can take RSPM through its plinth.
+- **ME stocking input hatches work.** They are drained between `startRecipeProcessing` and `endRecipeProcessing`, as
+  GT does for recipes.
+- **Buffers persist.** They are saved with the tile and survive a wrench.
+
+**Suggestion.** As built. It is less machinery, and the band sockets remain the natural place for stellar fluids.
+
+**Alternatives.** Restrict each socket kind to its own fluids, as §3.3 had it.
+
+## Q-31 How an Eye run is sized, paid and rolled
+
+**What we built** (every amount is still PROPOSED, Q-6):
+
+- **Parallel** = 2^(installed tier − recipe tier), reduced to what the buffers can pay for, with a minimum of 1. The
+  installed tier is the highest tier whose bands stand. A T4 Eye therefore runs Sol ×8.
+- **EU** = `RECIPE_UMV × 4^(tier−1) × base ticks × parallel`. It is debited from the owner's wireless network in one
+  lump when the run starts. If the network can't pay, nothing starts. Dilation does not lower it.
+- **Success** is rolled per parallel. A failed parallel consumes its inputs and EU and outputs nothing. Planets keep
+  TecTech's base `1 − 0.05R`. Stars always succeed.
+- **Outputs** go to the ME output bus and ME output hatch only. TecTech's long-count outputs are ejected in
+  `Integer.MAX_VALUE` chunks, as TecTech does. If the ME network can't take them, they are lost.
+- **Planet times** are bh-model's ladder, `20 min × 1.25^R`. The Deep Dark is 240 min.
+- **No TecTech extras:** no astral-array parallels, no circuit-based speed, no overflow or pity rules, no SpaceTime
+  failure penalty, and no EU return (Q-4).
+- **Saving mid-run:** a run in flight is saved with the tile and completes after a reload. A wrench or a broken
+  structure loses it (see `docs/migration.md`).
+
+**Suggestion.** Play-test, then tune one knob per tier, as Q-6 says.
+
+**Alternatives.** Roll once for the whole parallel batch (all-or-nothing). Or keep the inputs when a run fails.
+
+## Q-32 Eye crafting recipes: what changed from the §2.4 cards
+
+**What we built** (`BTSRecipesEye`):
+
+- **SL-E01 (Eye controller):** follows FC-1's suggestion.
+  - The retired Eye Shell ×64 and Containment Deck ×64 lines are dropped. The card already has Reinforced Spatial ×64
+    and Reinforced Temporal ×64.
+  - Harmonic Lining ×64 becomes TecTech's Infinite SpaceTime Energy Boundary Casing ×64.
+  - The three Gallifreyan (Tier 8) field generators stay. Q-7 asked for a re-check, and a new javap scan of
+    `ResearchStationAssemblyLine.addEOHRecipes` confirms it: their own recipes contain no WDM, BDM, Universium,
+    Eternity or MHDCSM. Those materials appear only in TecTech's EOH controller recipe and in a later recipe that
+    **consumes** Tier-8 generators.
+- **Dense SpaceTime** (×64 in SL-E01, ×32 in SL-E02) is chosen in this order:
+  1. the dense plate, if GT has one;
+  2. otherwise the same mass as SpaceTime **blocks** (9 ingots each, in one slot);
+  3. otherwise the shared 9-plates fallback (Q-18).
+
+  Blocks come before plates because the 9-plates fallback would push SL-E01 to 18 item slots, over the assembly
+  line's 16.
+- **SL-E02 (Galactic Upgrade Core):** as the card. Hyperdense Stellar Mixture 256,000 L is the gate.
+
+**Suggestion.** As built. Read the boot log once to see which dense-SpaceTime form was used.
+
+**Alternatives.** Superdense SpaceTime plates, if GT generates them.
+
+## Q-33 TecTech's Eye is only removed if our copy of its planets succeeded
+
+**Context.** §4 has `replaceTecTechEyeOfHarmony` clear TecTech's storage, NEI page and controller recipe after the
+Eye's conversion snapshot.
+
+**What we built.**
+
+- The snapshot always runs.
+- The removal runs only if the flag is on **and** the snapshot converted at least one planet.
+- If TecTech's private `recipeHashMap` has moved and the copy fails, TecTech's Eye is left fully intact and an ERROR
+  is logged. Deleting every planet with nothing to replace them would be worse.
+- Each step is contained, so one failed step never stops the boot.
+
+**Suggestion.** As built.
+
+**Alternatives.** Remove regardless, as §4 literally reads.
+
+## Q-34 The Eye's centre render is not built yet
+
+**Context.** §3.3 lists a client-side render of the band's object at the Eye's centre, toggled by `eyeRenderCentre`.
+It is a stretch goal; the structure ships first.
+
+**What we built.** Nothing yet. The centre stays empty, as the exporter leaves it (render-only cells are skipped). The
+`eyeRenderCentre` flag has no effect for now.
+
+**Suggestion.** Build it after the smoke test. Reusing TecTech's `eyeOfHarmonyRenderBlock` (`TileEntityEyeOfHarmony`)
+would give the orbiting-planet look players already know, scaled to our 80-block ring.
+
+**Alternatives.** Drop it and keep the Eye render-free.
+
+## Q-35 The Eye's creative test path
+
+**What we built.**
+
+- **`/btskit eye`** gives the controller, a Galactic Upgrade Core and all five star charts. It also gives an input
+  hatch for every gas and stellar socket, an ME output bus and hatch, auto-maintenance, and tier-9 field generators,
+  in the counts the shape needs. It prints each piece's bill of materials from `manifest.json`.
+- **`/btseye [t1|t2|t3|t4] [gen 1-9] [fill] [force]`** raises a complete Eye in front of the player:
+  - the core, plus the bands for the asked tier;
+  - field generators at the asked tier;
+  - a hatch in every socket;
+  - the Galactic core at T4, and the tier's star chart in the controller slot;
+  - the player as owner.
+
+  Options and limits:
+
+  - `fill` tops every input buffer up to 10¹² L and gives the player's wireless network 10¹⁸ EU, so a run starts at
+    once. It is an op-only creative cheat.
+  - At T4 the arms reach 28 blocks in front of the controller, so the build stands further from the player.
+  - It refuses to build into a footprint that is more than 15 % solid, unless `force` is given.
+- **Hologram:** a projector stack of 1..4 projects T1..T4, with the bands cumulative.
+
+**Not verified in game.** The structure orientation (`orient_test`) is still unverified, as for the Kerr. ME outputs
+need an AE network on the ME output bus and hatch.
+
+**Suggestion.** Run `/btseye t1 fill`, then `/btseye t4 fill`, as the first smoke test of P3.

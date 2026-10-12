@@ -1103,3 +1103,103 @@ pieces, and each is checked at its own `off`. Every plain element is wrapped in 
 - **SL-K06 (new)** is Ergosphere Extraction, which melts the exotic metals at 144 L per ingot (Q-22).
 - **The BHC controller recipe** is removed by the Foundation's `BTSRecipeRemovals` under
   `removeBlackHoleCompressorRecipe`. Placed BHCs are untouched.
+
+---
+
+## Contract additions (Eye)
+
+Written by the Eye unit on 2026-10-12. This records what P3 built. Where it disagrees with §2.4, §3.3 or §4, this
+section wins, and each deviation is a question (Q-29..Q-35). The exporter needed no new anchors for the Eye, so the
+committed shapes are used unchanged (`--check` reports no drift).
+
+### Files
+
+| File | What it is |
+|---|---|
+| `machines/eye/MTEEyeOfHarmonyBTS.java` | The controller, MTE 28115 (`multimachine.beyondthestars.eyeofharmony`, "Eye of Harmony"). |
+| `machines/eye/EyeHatchElement.java` | Sockets: `Gas` and `Stellar` (private input lists) and `Output` (ME bus/hatch into GT's output lists). |
+| `machines/eye/EyeRecipe.java` | One long-sized process recipe (star or planet). |
+| `machines/eye/EyeRecipeRegistry.java` | Star recipes, the TecTech snapshot and conversion, the TecTech EOH removal, the NEI page. |
+| `machines/eye/EyeRecipeMaps.java` | `EYE` (`beyondthestars.recipe.eye`), the display-only NEI page, laid out like TecTech's. |
+| `machines/eye/EyeKit.java` | `/btskit eye` and the creative build used by `/btseye`. |
+| `BTSRecipesEye.java` | SL-E01 and SL-E02 (`line("eye")`). |
+| `CommandBTSEye.java` | `/btseye [t1\|t2\|t3\|t4] [gen 1-9] [fill] [force]`. |
+
+Shared edits, each append-only:
+
+- `BTSMachines`: the `eyeOfHarmony` field and its base+15 line.
+- `BTSRecipes`: `line("eye")`.
+- `CommonProxy`: `EyeRecipeRegistry.onLoadComplete()` above `BTSRecipeRemovals.run()`, and `CommandBTSEye`.
+- `CommandBTSKit`: an `eye` branch.
+- `en_US.lang`: the Eye section.
+- `docs/migration.md`: the old-save notes.
+
+### Shape char → element (Eye)
+
+| Char | Element |
+|---|---|
+| `U` | `Casings.ReinforcedSpatialStructureCasing` |
+| `Q` | `Casings.ReinforcedTemporalStructureCasing` |
+| `J` | `Casings.InfiniteSpacetimeEnergyBoundaryCasing` |
+| `Z` | `Casings.QuantumGlass` |
+| `W` / `X` / `Y` | `TTCasingsContainer.SpacetimeCompressionFieldGenerators` / `TimeAccelerationFieldGenerator` / `StabilisationFieldGenerators`, metas 0-8 in any mix; the lowest of each type counts (Q-29) |
+| `R` / `S` / `T` | slCasing 10 / 11 / 12 (Beam Band, Jet Crescent, Galactic Shell) |
+| `h` | `EyeHatchElement.Gas` (any `MTEHatchInput`), hint 1, else `Q`. At least 1. |
+| `o` | `EyeHatchElement.Output` (`MTEHatchOutputBusME`, `MTEHatchOutputME`), hint 2, else `Q`. At least 1 of each. |
+| `m` | Maintenance, hint 3, else `Q` |
+| `s` / `t` | `EyeHatchElement.Stellar`, hint 4, else `R` / `S`. Optional. |
+
+Every plain element is wrapped in `noOverwrite`.
+
+### Behaviour
+
+- **Pieces:** `eye_core` is required. `eye_beam`, `eye_jet` and `eye_arms` are optional, each with its own error
+  list. A band whose walk fails drops the stellar sockets it registered (mark-and-truncate).
+- **Tiers:**
+  - T1 needs the core.
+  - T2 needs the beam band.
+  - T3 needs the jet crescent (independent of the beam band).
+  - T4 needs the jet crescent, the arms and an installed Galactic Upgrade Core (plain right-click, Q-24).
+  - The installed tier is the highest available one.
+- **Target:** the controller slot holds a star chart or a TecTech dimension display block. The registry looks it up
+  by item, and it is never consumed.
+- **Buffers:** one `long` per fluid, capped at 2⁶² L. Every live socket is drained every 20 ticks (Q-30).
+- **A run** (Q-31), in order:
+  1. Parallel is 2^(installed − recipe tier), limited by the buffers.
+  2. The EU is debited from the owner's wireless network in one lump at the start.
+  3. Inputs are taken.
+  4. Success is rolled per parallel.
+  5. Planets get the field-generator time, success and yield (Q-29).
+  6. Outputs go to the ME bus/hatch when the run completes.
+- **Persistence:**
+  - `writeEyeState` writes `btsEyeGalactic` and `btsEyeBuffers` from both `saveNBTData` and `setItemNBT`.
+  - The run in flight (`btsEyeRunKey`/`Parallel`/`Successes`/`Yield`) is tile NBT only.
+- **Hologram:** a stack of 1..4 projects T1..T4, with the bands cumulative. The field generators are hinted at tier 1.
+- **Status:** `getInfoData` (scanner) shows the tier, the bands, the field tiers, the sockets, the buffers, the
+  target (parallel, success, seconds) and the last run.
+
+### Recipes
+
+- **Star recipes** are §3.3's table, with the PROPOSED amounts:
+  - Sol, Sirius A, Arcturus and Sirius B;
+  - Sirius B, Cooled, which registers only under `interimBlackDwarfAtEyeT4`.
+- **Planets** are converted from TecTech at load-complete:
+  - Each keeps TecTech's H/He, ores, plasmas, base success and compression requirement.
+  - Raw Star Matter, WDM, BDM and Universium are stripped.
+  - Rocket tiers map R0-3 → T1, R4-6 → T2 and R7-8 → T3. The Deep Dark (or anything R9+) → T4.
+- **EU per run** is `RECIPE_UMV × 4^(tier−1) × base ticks`.
+- **SL-E01 / SL-E02:** see Q-32.
+
+### Removal (`replaceTecTechEyeOfHarmony`)
+
+`EyeRecipeRegistry.onLoadComplete()` runs in this order:
+
+1. stars;
+2. the TecTech snapshot (always);
+3. if the flag is on **and** at least one planet converted (Q-33):
+   - `recipeHashMap.clear()` on `TecTech.eyeOfHarmonyRecipeStorage`;
+   - every recipe removed from `TecTechRecipeMaps.eyeOfHarmonyRecipes`;
+   - `BTSRecipeRemovals.removeAssemblyLineByOutput` for `CustomItemList.Machine_Multi_EyeOfHarmony`;
+4. the NEI page.
+
+Each step runs inside `BTSRecipeRemovals.guard`. The old-save behaviour is in `docs/migration.md`.

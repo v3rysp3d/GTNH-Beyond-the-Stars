@@ -20,3 +20,30 @@ For the reference checkout the [example mixin configuration branch](https://gith
 1. Extract mixins package and plugin configuration from `mixins.yourModId.json` to `gradle.properties`
 2. Implement MixinPlugin according to example from the reference
 3. Remove mixins.mymodid.json
+
+## Beyond the Stars: Singularity Ladder old-save notes (P2/P3)
+
+These notes are for players updating a world, not for porting the mod. Both switches are in the mod's config file,
+category `general`.
+
+**Black Hole Compressor** (`removeBlackHoleCompressorRecipe`, default `true`). Placed Black Hole Compressors keep
+working. Only the controller's crafting recipe is removed, and a data stick that holds that recipe stops resolving.
+The Kerr Ergosphere Engine takes its place at UIV.
+
+**TecTech Eye of Harmony** (`replaceTecTechEyeOfHarmony`, default `true`). At load-complete, Beyond the Stars first
+copies every TecTech planet recipe into its own Eye of Harmony, then clears TecTech's recipe storage, its NEI page and
+its controller recipe.
+
+- A placed TecTech Eye of Harmony becomes a museum piece: it still forms, but it finds no recipe and idles.
+- **Finish or cancel running TecTech EOH recipes before updating.** A run that is in flight when the recipes are
+  cleared re-resolves to nothing, and its outputs are lost.
+- If the copy fails (for example, TecTech moved its recipe storage), TecTech's Eye is left fully intact and the log
+  says so. No planet disappears without a replacement.
+- With `replaceTecTechEyeOfHarmony=false`, TecTech's EOH runs as stock beside ours, and the pack's White Dwarf Matter,
+  Black Dwarf Matter and Universium sources are untouched.
+
+**Beyond the Stars' Eye of Harmony** (new, MTE 28115).
+
+- Wrenching the controller keeps the Galactic Upgrade Core and the fluid buffers. A run that is in progress when the
+  controller is wrenched is lost: its inputs and EU were taken at the start.
+- Breaking the structure mid-run also stops the run, and its outputs are lost.
