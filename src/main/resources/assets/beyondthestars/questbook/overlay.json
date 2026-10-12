@@ -1,12 +1,12 @@
 {
-  "bundleVersion": "4180f3a02302ca3222c7b57b8125636180422737",
+  "bundleVersion": "78ad7f3203df1a9fad28196c3667b5b13a0d18c4",
   "format": 1,
   "idHigh": 190,
   "packVersion": 2171,
   "source": {
     "data": "questbook/singularity.json",
     "src": ".",
-    "srcHead": "208fb22 master",
+    "srcHead": "35dfed8 master",
     "manifestSha": "2742379a5cf9527c7f0dc913e2052f0167289195"
   },
   "features": {
@@ -5637,7 +5637,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "The Homogeny's second tier: a middle stirring ring, three more feed vessels and the outer spokes around the same controller. It mixes at §b4 parallels§r and adds §bDegenerate Stellar Mixture§r: 72 L molten White Dwarf Matter + 72 L molten Black Dwarf Matter + 1,000 L Excited Stellar Plasma Mixture → 1,000 L in 60 s.\n\n§e§lUPGRADE§r (permanent)\n- Build the stirring ring: hologram stack 2. Each new vessel takes a fluid Input Hatch on top.\n- Mix §b100,000 L§r of Excited Stellar Plasma Mixture in this Homogeny.\n- Right-click the §bHomogeny Tier II Core§r (Condensate Assembling) onto the controller. Sneak-punch with an empty hand returns it.\n- Press Install in the GUI, or use a screwdriver: §b10 minutes offline§r at UXV power. A mix already running finishes first. Progress shows in the GUI and the scanner, and survives a wrench.\n\nDegenerate Stellar Mixture feeds the Homogeny T3, the Eternity Shell Casing and the Reality machines (Tier 14 - MAX). Three Galactic Shell cells on the stirring ring's outer face are reserved for Quasar ports, later.\n\n[warn]The Tier II Core takes UXV parts. The pack's UXV Field Generator still needs Universium, which only Eye T10 makes, until the UXV parts redesign is built.[/warn]\n\n§a§lDONE WHEN§r you hold a Homogeny Tier II Core and 1,000 L of Degenerate Stellar Mixture (claim before you install the core).",
+            "desc:8": "The Homogeny's second tier: a middle stirring ring, three more feed vessels and the outer spokes around the same controller. It mixes at §b4 parallels§r and adds §bDegenerate Stellar Mixture§r: 72 L molten White Dwarf Matter + 72 L molten Black Dwarf Matter + 1,000 L Excited Stellar Plasma Mixture → 1,000 L in 60 s.\n\n§e§lUPGRADE§r (permanent)\n- Build the stirring ring: hologram stack 2. Each new vessel takes a fluid Input Hatch on top.\n- Mix §b100,000 L§r of Excited Stellar Plasma Mixture in this Homogeny.\n- Right-click the §bHomogeny Tier II Core§r (Condensate Assembling) onto the controller. Sneak-punch with an empty hand returns it.\n- Press Install in the GUI, or use a screwdriver: §b10 minutes offline§r at UXV power. A mix already running finishes first. Progress shows in the GUI and the scanner, and survives a wrench.\n\nDegenerate Stellar Mixture feeds the Homogeny T3, the Eternity Shell Casing and the Reality machines (Tier 14 - MAX). Three Galactic Shell cells on the stirring ring's outer face are reserved for Quasar ports, later.\n\n[note]The Tier II Core is built from §btwice as many UMV parts§r (32 Field Generators, 64 Electric Pumps) for now: the pack's UXV Field Generator and Pump still need Universium, which only Eye T10 makes. UXV circuits are fine (the Polychrome or Dimensional Quantum Circuit).[/note]\n\n§a§lDONE WHEN§r you hold a Homogeny Tier II Core and 1,000 L of Degenerate Stellar Mixture (claim before you install the core).",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -8377,7 +8377,7 @@
         },
         {
           "op": "setDesc",
-          "desc": "Welcome to UXV. In Beyond the Stars it is not the last tier: §6Tier 14 - MAX§r and §6The Endgame§r follow.\n\nWe hope you enjoy your stay, though be prepared for a lot of waiting.\n\nIn Beyond the Stars this is the Eye's second half: §bSirius B (T5)§r cools white dwarfs into black, and §bthe magnetar (T6)§r runs on Antipolarization Agent. The §bQuasar Engine§r and the first galaxies (T7, T8) come in a later update. The crafted Stargate has moved to §6The Endgame§r, after MAX.\n\n[warn]§lUniversium now comes only from Eye T10 (MAX), which is not built yet.§r The Eye's T5 and T6 cores do not need it: for now they are built from twice as many UMV parts, so Sirius B and the magnetar are craftable. The pack's own UXV parts (UXV components, the UXV CoAL, the UXV Field Generator) still need MHDCSM and Universium, and so does anything built from them, the Homogeny Tier II Core included. That stays so until the new UXV parts and circuits are designed and built.[/warn]\n\n[warn]This tier is far from complete. Expect changes.[/warn]"
+          "desc": "Welcome to UXV. In Beyond the Stars it is not the last tier: §6Tier 14 - MAX§r and §6The Endgame§r follow.\n\nWe hope you enjoy your stay, though be prepared for a lot of waiting.\n\nIn Beyond the Stars this is the Eye's second half: §bSirius B (T5)§r cools white dwarfs into black, and §bthe magnetar (T6)§r runs on Antipolarization Agent. The §bQuasar Engine§r and the first galaxies (T7, T8) come in a later update. The crafted Stargate has moved to §6The Endgame§r, after MAX.\n\n[warn]§lUniversium now comes only from Eye T10 (MAX), which is not built yet.§r The Eye's T5 and T6 cores do not need it: for now they are built from twice as many UMV parts, so Sirius B and the magnetar are craftable. The Homogeny Tier II Core is built the same way. The pack's own UXV parts (UXV components, the UXV CoAL, the UXV Field Generator) still need MHDCSM and Universium; nothing of Beyond the Stars before Eye T7 needs them. That stays so until the new UXV parts and circuits are designed and built. UXV circuits are craftable: the Polychrome and Dimensional Quantum Circuits need no Universium.[/warn]\n\n[warn]This tier is far from complete. Expect changes.[/warn]"
         }
       ]
     },

@@ -619,7 +619,7 @@
         "",
         "Degenerate Stellar Mixture feeds the Homogeny T3, the Eternity Shell Casing and the Reality machines (Tier 14 - MAX). Three Galactic Shell cells on the stirring ring's outer face are reserved for Quasar ports, later.",
         "",
-        "[warn]The Tier II Core takes UXV parts. The pack's UXV Field Generator still needs Universium, which only Eye T10 makes, until the UXV parts redesign is built.[/warn]",
+        "[note]The Tier II Core is built from {b}twice as many UMV parts{r} (32 Field Generators, 64 Electric Pumps) for now: the pack's UXV Field Generator and Pump still need Universium, which only Eye T10 makes. UXV circuits are fine (the Polychrome or Dimensional Quantum Circuit).[/note]",
         "",
         "{a}{l}DONE WHEN{r} you hold a Homogeny Tier II Core and 1,000 L of Degenerate Stellar Mixture (claim before you install the core)."
       ]
@@ -1079,7 +1079,7 @@
           "",
           "In Beyond the Stars this is the Eye's second half: {b}Sirius B (T5){r} cools white dwarfs into black, and {b}the magnetar (T6){r} runs on Antipolarization Agent. The {b}Quasar Engine{r} and the first galaxies (T7, T8) come in a later update. The crafted Stargate has moved to {6}The Endgame{r}, after MAX.",
           "",
-          "[warn]{l}Universium now comes only from Eye T10 (MAX), which is not built yet.{r} The Eye's T5 and T6 cores do not need it: for now they are built from twice as many UMV parts, so Sirius B and the magnetar are craftable. The pack's own UXV parts (UXV components, the UXV CoAL, the UXV Field Generator) still need MHDCSM and Universium, and so does anything built from them, the Homogeny Tier II Core included. That stays so until the new UXV parts and circuits are designed and built.[/warn]",
+          "[warn]{l}Universium now comes only from Eye T10 (MAX), which is not built yet.{r} The Eye's T5 and T6 cores do not need it: for now they are built from twice as many UMV parts, so Sirius B and the magnetar are craftable. The Homogeny Tier II Core is built the same way. The pack's own UXV parts (UXV components, the UXV CoAL, the UXV Field Generator) still need MHDCSM and Universium; nothing of Beyond the Stars before Eye T7 needs them. That stays so until the new UXV parts and circuits are designed and built. UXV circuits are craftable: the Polychrome and Dimensional Quantum Circuits need no Universium.[/warn]",
           "",
           "[warn]This tier is far from complete. Expect changes.[/warn]"
         ] }

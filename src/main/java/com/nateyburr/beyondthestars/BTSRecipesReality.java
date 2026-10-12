@@ -388,8 +388,10 @@ public final class BTSRecipesReality {
                 s(SLBlocks.casing(BlockSLCasing.GALACTIC_SHELL, 64), N2),
                 s(c3(BlockSLCasing3.FEED_VESSEL, 16), N2),
                 s(c3(BlockSLCasing3.VORTEX_INLET, 8), N2),
-                s(item(ItemList.Field_Generator_UXV, 16), N5),
-                s(item(ItemList.Electric_Pump_UXV, 32), N4),
+                // B-84: the B-72 UMV stopgap (user: "Ship UMV stopgap"). RC-2's Field Generator / Electric Pump UXV
+                // need molten Universium + MHDCSM (Eye T10), so twice as many UMV parts until the UXV parts design.
+                s(item(ItemList.Field_Generator_UMV, 32), N5),
+                s(item(ItemList.Electric_Pump_UMV, 64), N4),
                 s(circuit(Materials.UXV, 32), N4),
                 s(SLBlocks.casing(BlockSLCasing.BASTION, 32), N2),
                 s(item(ItemList.MetaMaterial_ElectrograviticValve2, 4), N6),
