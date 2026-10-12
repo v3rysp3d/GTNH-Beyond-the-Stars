@@ -92,6 +92,19 @@ public final class StellarField {
     }
 
     /**
+     * Schedules the tier's event as {@link #light} does ({@code t + uni(every) / min(dialSetpoint, m_max)}, one RNG
+     * draw), without the rest of {@code light()}: the Magnetar Merger lights the magnetar with its flares held back
+     * and schedules them when it succeeds (plan §7.6). Clears the timer when the tier has no event.
+     */
+    public static void scheduleEvent(FieldState s, double dialSetpoint, int tt) {
+        final TierParams t = s.tier;
+        s.ev = t.event != null
+            ? new FieldState.EventState(
+                s.t + uni(s.rng, t.event.everyMin, t.event.everyMax) / Math.min(dialSetpoint, mMax(t, tt)))
+            : null;
+    }
+
+    /**
      * Prototype {@code startBatch()}, field part: Θ +90, P 0, fresh batch accumulators. The caller takes the charge.
      */
     public static void startBatch(FieldState s) {
@@ -235,7 +248,7 @@ public final class StellarField {
         s.lock = z == 0 ? s.lock + 1 : 0;
         double Y = ZONE_Y[z];
         if (s.lock >= LOCK_SECONDS) Y = LOCK_Y;
-        if (T.ash) {
+        if (ov.ash(T)) {
             final double he = in.units(TrimDef.Kind.HELIUM);
             if (he != 0 && !Double.isNaN(he)) Y *= Math.max(0, 1 - 0.005 * he / p);
         }

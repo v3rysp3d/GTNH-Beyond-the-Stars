@@ -31,6 +31,11 @@ public interface Overlay {
         return t.coupling(x, k);
     }
 
+    /** True when Helium trims cut the yield (T2's ash). Shell Ignition runs T2 with the ash off (plan R-4). */
+    default boolean ash(TierParams t) {
+        return t.ash;
+    }
+
     /** Drift d (before d'). */
     default double[] drift(TierParams t, StepInputs in) {
         return t.drift(in.feed, in.r);
