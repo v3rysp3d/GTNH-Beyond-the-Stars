@@ -94,6 +94,9 @@ public class CommandBTSEye extends CommandBase {
             for (String line : com.nateyburr.beyondthestars.BTSRecipesBEC.benchLines()) {
                 SLConsoleTest.tell(sender, line);
             }
+            for (String line : com.nateyburr.beyondthestars.BTSRecipesGeneratorUpgrade.benchLines()) {
+                SLConsoleTest.tell(sender, line);
+            }
             return;
         }
         if (args.length == 1 && args[0].equalsIgnoreCase("gates")) {

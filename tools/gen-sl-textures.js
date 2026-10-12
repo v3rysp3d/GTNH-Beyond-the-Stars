@@ -74,6 +74,7 @@
  *   magnetarSeedCore.png
  *   starChartNeutronStar.png
  *   starChartMagnetar.png
+ *   B-83 upgrade path: fieldRetrofitFrame.png, compressionRetrofitKit.png, timeRetrofitKit.png
  *
  * Homogeny + Reality (design repo designs/docs/homogeny-reality.md §4.2-§4.3, PROPOSED): dark EOH/GT shells, each with
  * the sketch colour of its part.
@@ -1523,6 +1524,50 @@ for (const [name, fn, ft] of [['HOMOGENY', homogenyOverlay, 2], ['REALITY_DIFFRA
   anim(N + '_ACTIVE.png', [...Array(FR).keys()].map((f) => fn(f, true, false)), ft);
   anim(N + '_ACTIVE_GLOW.png', [...Array(FR).keys()].map((f) => fn(f, true, true)), ft);
 }
+
+// B-83 field-generator upgrade path: the Retrofit Frame (blank) and the two Retrofit Kits, in the EOH family.
+function retrofit(kind) {
+  return (cv) => {
+    // a hollow EOH-blue frame with light-blue corner rivets
+    for (let y = 1; y <= 14; y++) {
+      for (let x = 1; x <= 14; x++) {
+        const edge = x <= 2 || x >= 13 || y <= 2 || y >= 13;
+        if (!edge) continue;
+        const c = x + y < 15 ? (x <= 1 || y <= 1 ? EOH.hi : EOH.hi2) : x >= 14 || y >= 14 ? EOH.deep : EOH.base;
+        cv.set(x, y, c);
+      }
+    }
+    for (const [x, y] of [[2, 2], [13, 2], [2, 13], [13, 13]]) cv.set(x, y, EOH.l2);
+    if (kind === 'compression') {
+      // a dark spacetime knot squeezed by four purple clamps (the BHC/Kerr colours inside)
+      const d = disc(7.5, 7.5);
+      cv.each((x, y) => {
+        if (x < 3 || x > 12 || y < 3 || y > 12) return;
+        const r = d(x, y);
+        if (r < 2.2) cv.set(x, y, hex(0x12020a));
+        else if (r < 3.2) cv.set(x, y, BHC.pHi);
+      });
+      for (const [x, y] of [[7, 3], [8, 3], [7, 12], [8, 12], [3, 7], [3, 8], [12, 7], [12, 8]]) cv.set(x, y, hex(0x7d23a3));
+      cv.set(6, 6, hex(0xffd0dc));
+    } else if (kind === 'time') {
+      // a light-blue hourglass with a bright grain stream
+      for (let y = 4; y <= 11; y++) {
+        const half = y <= 7 ? 8 - y : y - 7; // 4..1, 1..4
+        for (let x = 8 - half; x <= 7 + half; x++) cv.set(x, y, y <= 7 ? EOH.l3 : EOH.l2);
+      }
+      for (let x = 4; x <= 11; x++) {
+        cv.set(x, 3, EOH.l1);
+        cv.set(x, 12, EOH.l1);
+      }
+      for (let y = 6; y <= 10; y++) cv.set(7, y, EOH.l4);
+      for (let x = 6; x <= 9; x++) cv.set(x, 11, EOH.l4);
+    }
+    cv.outline(hex(0x00101e));
+  };
+}
+tile('items/fieldRetrofitFrame.png', retrofit('frame'));
+tile('items/compressionRetrofitKit.png', retrofit('compression'));
+tile('items/timeRetrofitKit.png', retrofit('time'));
 
 // ------------------------------------------------------------------ write / check / preview
 function mcmetaText(m) {

@@ -7,6 +7,7 @@ import com.nateyburr.beyondthestars.fluids.BTSFluids;
 import com.nateyburr.beyondthestars.items.BTSItems;
 import com.nateyburr.beyondthestars.items.SLItems;
 import com.nateyburr.beyondthestars.items.SLMaxItems;
+import com.nateyburr.beyondthestars.items.SLUpgradeItems;
 import com.nateyburr.beyondthestars.machines.BTSMachines;
 
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -26,6 +27,8 @@ public class CommonProxy {
         BTSItems.register();
         SLItems.register();
         SLMaxItems.register();
+        // B-83: the field-generator upgrade path's Retrofit Frame and Kits.
+        SLUpgradeItems.register();
         BTSBlocks.register();
         BTSFluids.register();
         // GT5U registers its own machines in its preInit; required-after:gregtech guarantees ours runs later.
