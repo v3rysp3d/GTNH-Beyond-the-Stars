@@ -982,6 +982,84 @@ prototype or to `machines/eye/field/`.
 
 **Alternatives.** For 1, see the alternative above. For 2, add a tt = 6 case at m = 1.5 as well.
 
+### B-35 D-49: content for the star lifecycle; the Eye T5 gate needs a WDM chamber [D-49 unit 2]
+
+**Context.** Unit 2 of the D-49 build plan added the content:
+
+- 7 items: the Stellar Ignition Charge, the four transition cores, and Star Chart: Neutron Star and SGR 1806-20;
+- 3 fluids: Positronic Tengam Slurry, Antipolarization Agent and Magnetar Matter;
+- the Stellar Field Sensor Hatch (MTE 28116) with its MUI2 GUI;
+- recipes: the Agent chain SL-S01/S02 (new `BTSRecipesStellar`), the cores SL-E03..E06, the hatch SL-E07, and charts
+  and parts SL-P25 (now the Neutron Star chart), SL-P33 and SL-P35..P38;
+- removals: SL-P26 and the interim T4 Black Dwarf Matter star go, together with `interimBlackDwarfAtEyeT4`;
+- textures, lang entries with tooltips, and the `/btskit eye` contents.
+
+Every pack material the Agent chain uses was checked in the RC-2 GT sources (5.09.54.205): `Materials.TengamAttuned`
+has dust items, and GT's own Polarizer recipe makes it from Purified Tengam (`ProcessingTransforming`). Raw Tengam
+goes to Purified in the EMS (`ElectromagneticSeparatorRecipes`). `Materials.Antimatter` is linked to the fluid
+`antimatter` in `LoaderGTBlockFluid`. Molten Purified Tengam is generated because the material has metal items.
+
+**Judgement calls.**
+
+1. **SL-P33: Resonance Chamber III with 2 White Dwarf Matter foils instead of GT's 1 Black Dwarf Matter foil.**
+   The audit rule says compression generator tier N must not need anything the Eye first makes at tier N or later.
+   Tier index 4 (the Eye T5 gate) takes one Resonance Chamber III. That chamber takes a BDM foil, and with the
+   interim T4 BDM star gone, BDM first exists at Eye T5 itself. Everything else is GT's tier-3 chamber unchanged:
+   - inputs: 2 Emitter UIV, 2 Shirabon rods, 1 Hexanite plate;
+   - nanites: White Dwarf, Gold, Transcendent, Gold;
+   - condensates: Chromatic Glass 16, Infinity 8, Boundless Cosmic Solder 3;
+   - 300 s at UMV, in the Condensate Assembler.
+
+   WDM is the product of the tier below (Eye T4). That is the same "use the previous tier" step SL-P39 takes with
+   SpaceTime for the WDM foil. It is registered only with `replaceTecTechEyeOfHarmony=true`, like SL-P39, and GT's
+   own recipe stays. The Eye T6 gate (tier index 5: 4 chambers, Creon) may use BDM, so it is clean as it is, and
+   **SL-P34 stays reserved and unused**. Verified in `runServer` (`/btseye gates`): the tier-index-4 generator now reads "via Refined Resonance Chamber: 2 recipe(s), a clean one exists", and the gates for Eye T1-T7 are all CLEAN. Only T8 and T9 loop, through Resonance Chamber IV's MHDCSM foil (P4/P5, as B-29 found). The boot log reads "243 registered, 0 skipped".
+   - *Alternatives:* 2 SpaceTime foils (exactly SL-P39's stand-in, so the T5 gate needs no WDM at all), or a
+     Shirabon foil. Another option is to rewrite GT's chamber recipe in place, so NEI shows only one recipe.
+2. **The interim BDM star is deleted now, in unit 2, not in unit 5.** The plan gives unit 2 the
+   `Config.interimBlackDwarfAtEyeT4` removal. The flag's only readers were SL-P26 and two lines in
+   `EyeRecipeRegistry` (unit 4's file). Those two lines were removed so that unit 2 compiles: the
+   `star:siriusbcooled` registration and its check in `replacementStarsPresent()`. Until units 4 and 5 land, a jar
+   built from master has no BDM source, and the Sirius B chart is crafted from WDM (SL-P35) while Sirius B is still
+   the T4 WDM star. These intermediate commits are not a release. The stale config key is removed from the file
+   when the game loads.
+3. **The sensor hatch emits on all six sides.** Plan §12 says "as the pH sensor does", but GT's pH sensor only
+   powers its front face. The addon's Spine Sensor powers all six sides, and a hatch sunk into the Eye's shell has
+   only one exposed face anyway, so all six sides costs nothing. Other details:
+   - The output falls to 0 when no readout arrives for 60 ticks (Eye unformed, star dark, chunk unloaded).
+   - The threshold is clamped to ±120, and the comparators are strict (`>` / `<`).
+   - Analog mode ignores the threshold.
+   - The settings are saved in the tile, not the item: the Eye pushes the readings again every second.
+   - **For unit 4:** after every field second, call `publish(FieldReadout)` on each Sensor-socket hatch, and
+     `publish(FieldReadout.DARK)` when the star goes out.
+4. **Tooltips.** Plain items have no tooltip. `SLItems.defineWithTooltip` is `BTSItems.define` plus a tooltip read
+   from the lang key `item.beyondthestars.<name>.tooltip`. The Galactic Upgrade Core and both Sirius B charts now
+   use it too. The item class is not stored in a saved world, so this changes nothing in existing saves.
+5. **Agent chain cost, now that the Agent is the constant feed (your answer 1).** The chain is the proposal's. At
+   the simulated ~100 L/s of Agent, it costs:
+   - about 10 L/s of Antimatter;
+   - 1.6 Attuned Tengam dust/s, of which about 0.4/s is fresh Tengam once the Eye returns 12 Purified dust per
+     1,000 L;
+   - 200 L/s of Super Coolant in the freezer step;
+   - two LCRs and one Vacuum Freezer running all the time at UXV.
+
+   The T6 upkeep figure belongs to unit 4's star table. If it comes out well above 100 L/s, retune the 100 L of
+   Antimatter per 1,000 L of Agent before you retune the Eye.
+6. **Smaller choices.**
+   - SL-P38 makes 4 charges per craft from Helium **plasma** (`Materials.Helium.getPlasma`).
+   - SL-E03 takes 16 charges and researches from one charge. The research chain is: charge → Stellar Mass Core →
+     Shell-Burning Core, and Galactic Upgrade Core → Subspace Cooling Core → Magnetar Seed Core. Every research item
+     is unique to this mod.
+   - SL-P36 (the Sirius B, Cooled reclaim) takes programmed circuit 3 and no fluid.
+   - In the kit, Antipolarization Agent, DSSF and Tachyon Rich Temporal Fluid come in Neutronium Large Fluid Cells
+     filled to capacity. The obsolete Sirius B, Cooled chart is no longer in the kit.
+   - **For unit 4:** Tachyon Rich Temporal Fluid is a **molten** fluid in RC-2 (`Materials.Time.getMolten`; the
+     material name is `temporalFluid`). `Materials.Time.getFluid` returns null.
+
+**Suggestion.** Accept 1-6 as built.
+
+**Alternatives.** For 1, see above. For 3, use front-face output, exactly as GT's pH sensor does.
+
 ---
 
 ## Part C. Settled (for the record)
