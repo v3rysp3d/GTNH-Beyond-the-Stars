@@ -389,7 +389,7 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                         radiationSeconds.getIntValue(),
                         ventStack.getBoolValue()),
                     siloBuilt::getBoolValue))
-            // The two self-fuelling modules and whatever is holding them up. Ungated on the
+            // The two feedstock modules and whatever is holding them up. Ungated on the
             // silo - a Derrick on a bare platform mines perfectly well - but hidden while
             // neither of them stands, which is most plants.
             // C2: ...unless there is a STALL to report, which is exactly the case where a module
@@ -402,7 +402,9 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                         annex.getBoolValue(),
                         derrickCycles.getIntValue(),
                         annexCycles.getIntValue(),
-                        moduleStall.getStringValue()),
+                        moduleStall.getStringValue(),
+                        progress.get(),
+                        treeNodes.getLongValue()),
                     () -> derrick.getBoolValue() || annex.getBoolValue()
                         || !moduleStall.getStringValue()
                             .isEmpty()))
@@ -520,17 +522,17 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                 row(
                     () -> MTEReactorCoreMk1.laserLine(laserCount.getIntValue(), laserLinked.getIntValue()),
                     galleryBuilt::getBoolValue))
-            // C1/C5: a non-fatal note, not an error. The REACTOR never draws EU, so an empty E
-            // socket cannot un-form a running reactor - but the two D-17 process modules DO draw
-            // through it, and energyHatchNote says which of the two truths applies.
+            // C1/C5: a non-fatal note, not an error. The REACTOR never draws EU, so the line only
+            // appears while a Derrick or an Annex stands (they draw through these sockets) and the
+            // manifold is short of its four Energy Hatches (tidy B4).
             .child(
                 row(
                     () -> MTEReactorCoreMk1.energyHatchNote(
                         true,
                         energyHatches.getIntValue(),
                         derrick.getBoolValue() || annex.getBoolValue()),
-                    () -> galleryBuilt.getBoolValue() && (energyHatches.getIntValue() < 4
-                        || (energyHatches.getIntValue() <= 0 && (derrick.getBoolValue() || annex.getBoolValue())))))
+                    () -> galleryBuilt.getBoolValue() && energyHatches.getIntValue() < 4
+                        && (derrick.getBoolValue() || annex.getBoolValue())))
             // --- MATH: the Water-Line-style derivation of the number above. Four numbered
             // steps from the pillars to the manifold, every factor carrying its CURRENT value,
             // then the one term that is costing the most and what to do about it.
