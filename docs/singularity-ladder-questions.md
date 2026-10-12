@@ -2665,7 +2665,23 @@ A review of B-70/B-71 found seven issues; all seven were real and are fixed (eac
    set landed on the same set. The server setter now walks in the direction the button moved and wraps to the host's
    last set.
 
-**Checks.** `spotlessApply compileJava` pass after every fix; golden and dev-server results below.
+**Checks.** `spotlessApply compileJava` passed after every fix. `node tools/fieldsim-golden.js --check --java`: 78 / 78
+PASS. Headless `runServer` on `sltest-ovt`, two boots:
+
+- *Load (fix 1):* `252 registered, 0 skipped`; "BEC line: ... no legacy fallbacks"; `/btseye bec`: 20 Condensate Assembler
+  recipes, all 20 found by GT's own lookup with their inputs (so the UMV-part B70/B80 shadow nothing), 0 fallbacks.
+- *Fix 3:* T5 Eye wrenched mid-batch (`wrench`, then `target none` so no field is made). It logs
+  "[BTS] Eye Sirius B put out: the controller was picked up". After a restart the status still shows that line as
+  the last event and the last failure.
+- *Fix 2:* `bus siriusb 3` on the lit Sirius B -> "3 duplicate Star Chart: Sirius B sent ... to the ME output bus".
+  On a T2 Eye, Sol lit with the core in escrow, `bus siriusa 1` started the Mass Infusion from the bus. Then
+  `bus sol 1` stayed in the bus for 3 s with the Infusion still running (before this fix it would have been swapped
+  in and aborted it), and `bus siriusa 2` was sent out as duplicates.
+- *Fix 6:* `sensors theta gt 50`, then `sensors theta gt NaN`: all five sensors still read "> 50.0".
+- *Fix 4 regression:* the T2 Eye with the block behind its controller removed -> unformed, Status 8 (Alarm).
+- New bench sub-command `/btseye star <x> <y> <z> bus <chart> [n]` (n charts into a free plinth bus slot).
+- *Not run:* fix 5 (a comparator next to a Bit-mode hatch) and fix 7 (the GUI button) need a client or bench plumbing;
+  a partly broken walk (fix 4's exact case) was not staged. No `beyondthestars` frame in any stack trace.
 
 ---
 
