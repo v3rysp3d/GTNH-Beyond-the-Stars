@@ -78,7 +78,7 @@ public abstract class MTEKerrModuleBase<T extends MTEKerrModuleBase<T>> extends 
 
         public static final Link[] VALUES = values();
 
-        /** Lang suffix: {@code GT5U.gui.text.beyondthestars.kerr.module.<key>}. */
+        /** Lang suffix: {@code GT5U.gui.text.recipe_result.beyondthestars.kerr.module.<key>}. */
         public final String key;
         /** English fallback (scanner, chat). */
         public final String text;

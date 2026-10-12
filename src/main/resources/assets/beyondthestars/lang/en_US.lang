@@ -142,13 +142,12 @@ beyondthestars.structure.kerr.boltbus=The governor needs at least one input bus 
 beyondthestars.structure.kerr.moduleinput=The module needs at least one input bus (the compressor also takes input hatches)
 beyondthestars.structure.kerr.moduleoutput=The module needs at least one output bus (the compressor also takes output hatches)
 # ---- KERR REDESIGN: module machines (docs/kerr-redesign.md) ----
-GT5U.gui.text.beyondthestars.kerr.module.holeclosed=Hole closed: paused until the Kerr Ergosphere Engine's hole opens
-GT5U.gui.text.beyondthestars.kerr.module.keenotformed=The Kerr Ergosphere Engine is not formed
-GT5U.gui.text.beyondthestars.kerr.module.keenotloaded=The Kerr Ergosphere Engine's chunk is not loaded
-GT5U.gui.text.beyondthestars.kerr.module.wrongfacing=The KEE there faces another way: this is not one of its arcs
-GT5U.gui.text.beyondthestars.kerr.module.nokee=No Kerr Ergosphere Engine at this arc's slot
-GT5U.gui.text.beyondthestars.kerr.module.linked=Linked
-GT5U.gui.text.beyondthestars.kerr.module.density=Kerr Densification needs Kerr T2 and a hole of at least 128 SM
+GT5U.gui.text.recipe_result.beyondthestars.kerr.module.holeclosed=Hole closed: paused until the Kerr Ergosphere Engine's hole opens
+GT5U.gui.text.recipe_result.beyondthestars.kerr.module.keenotformed=The Kerr Ergosphere Engine is not formed
+GT5U.gui.text.recipe_result.beyondthestars.kerr.module.keenotloaded=The Kerr Ergosphere Engine's chunk is not loaded
+GT5U.gui.text.recipe_result.beyondthestars.kerr.module.wrongfacing=The KEE there faces another way: this is not one of its arcs
+GT5U.gui.text.recipe_result.beyondthestars.kerr.module.nokee=No Kerr Ergosphere Engine at this arc's slot
+GT5U.gui.text.recipe_result.beyondthestars.kerr.module.density=Kerr Densification needs Kerr T2 and a hole of at least 128 SM
 
 # ---- SINGULARITY LADDER P3: Eye of Harmony (Eye unit; singularity-ladder-build.md §3.3) ----
 beyondthestars.recipe.eye=Eye of Harmony (Beyond the Stars)
