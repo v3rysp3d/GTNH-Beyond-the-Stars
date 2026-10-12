@@ -26,6 +26,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
+import com.gtnewhorizon.structurelib.alignment.enumerable.Rotation;
 import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1;
 import com.nateyburr.beyondthestars.machines.SLConsoleTest;
@@ -53,7 +54,9 @@ import gregtech.api.metatileentity.implementations.MTEHatchEnergyDebug;
 import gregtech.common.tileentities.machines.multi.compressor.MTEBlackHoleCompressor;
 import tectech.thing.CustomItemList;
 import tectech.thing.block.TileEntityEyeOfHarmony;
+import tectech.thing.block.TileEntityForgeOfGods;
 import tectech.thing.casing.TTCasingsContainer;
+import tectech.thing.metaTileEntity.multi.godforge.color.ForgeOfGodsStarColor;
 
 /**
  * DEV-ONLY REAL-CLIENT RENDER QA harness, part 1 (the server half). Active only when the JVM runs with
@@ -112,7 +115,8 @@ public final class RenderTest {
         EYE_T5,
         EYE_T6,
         GT_BHC,
-        TT_EOH;
+        TT_EOH,
+        GT_GODFORGE;
 
         int originX() {
             return SITE_X0 + ordinal() * SITE_SPACING;
@@ -174,7 +178,7 @@ public final class RenderTest {
                 0,
                 EyeStarLook.bounce(0f),
                 "Eye T4 structure, Core Collapse phase 3, the bounce shell (proto-neutron star), shell frozen at"
-                    + " 30 ticks (about 7 blocks, alpha 0.42)",
+                    + " 30 ticks (about 7.4 blocks, rim alpha 0.04 -> 0.64 x 0.7)",
                 30),
             new Case(
                 "eye_t5_dwarf_early",
@@ -197,7 +201,13 @@ public final class RenderTest {
                 "Eye T6, magnetar on an event warning (flare shell bright), a flare frozen at 15 ticks",
                 15),
             new Case("ref_gt_bhc", Site.GT_BHC, 0, null, "REFERENCE: GT Black Hole Compressor, hole open (stable)"),
-            new Case("ref_tt_eoh", Site.TT_EOH, 0, null, "REFERENCE: TecTech Eye of Harmony, star render")));
+            new Case("ref_tt_eoh", Site.TT_EOH, 0, null, "REFERENCE: TecTech Eye of Harmony, star render"),
+            new Case(
+                "ref_gt_godforge",
+                Site.GT_GODFORGE,
+                0,
+                null,
+                "REFERENCE: TecTech Forge of the Gods star render (default: radius 20, one ring, default colour)")));
 
     private static List<Case> only(List<Case> all) {
         final String filter = System.getProperty("bts.rendertest.only", "")
@@ -414,6 +424,9 @@ public final class RenderTest {
                     break;
                 case TT_EOH:
                     buildTecTechEye(world, b);
+                    break;
+                case GT_GODFORGE:
+                    buildGodforge(world, b);
                     break;
                 default:
                     buildEye(world, b, site.ordinal() - Site.EYE_T1.ordinal() + 1);
@@ -647,6 +660,50 @@ public final class RenderTest {
         return star;
     }
 
+    /** The Forge of the Gods' default star size (TecTech's {@code ForgeOfGodsData.DEFAULT_STAR_SIZE}). */
+    private static final int GODFORGE_STAR_RADIUS = 20;
+
+    /**
+     * Render QA round 4: TecTech's Forge of the Gods star as the reference for "as good as the Godforge star". Only its
+     * render block stands on the site (the whole Godforge would be some 250 blocks across and needs its modules to
+     * form); it is set up as {@code MTEForgeOfGods.createRenderer} / {@code updateRenderer} do with a fresh Godforge's
+     * data: star size 20, rotation speed 5, one ring, the default colour, the controller facing north. Its rings and
+     * beam are drawn too, as in game.
+     */
+    private static void buildGodforge(WorldServer world, Built b) {
+        if (TTCasingsContainer.forgeOfGodsRenderBlock == null) {
+            b.error = "TecTech's Forge of the Gods render block is not registered";
+            return;
+        }
+        final int x = b.site.originX();
+        final int y = 100;
+        final int z = SITE_Z;
+        loadAndKeep(world, new int[] { x - 80, 0, z - 80, x + 80, 255, z + 80 });
+        b.controller = new int[] { x, y, z };
+        b.centre = new double[] { x + 0.5, y + 0.5, z + 0.5 };
+        final int r = GODFORGE_STAR_RADIUS + 4;
+        b.box = new int[] { x - r, y - r, z - r, x + r, y + r, z + r };
+        world.setBlockToAir(x, y, z);
+        world.setBlock(x, y, z, TTCasingsContainer.forgeOfGodsRenderBlock);
+        final TileEntity te = world.getTileEntity(x, y, z);
+        if (!(te instanceof TileEntityForgeOfGods)) {
+            b.error = "the Forge of the Gods render block has no TileEntityForgeOfGods";
+            return;
+        }
+        final TileEntityForgeOfGods fog = (TileEntityForgeOfGods) te;
+        fog.setRenderRotation(Rotation.NORMAL, FACING);
+        fog.setRingCount(1);
+        fog.setStarRadius(GODFORGE_STAR_RADIUS);
+        fog.setRotationSpeed(5);
+        fog.setColor(ForgeOfGodsStarColor.DEFAULT);
+        fog.updateToClient();
+        b.lines.add(
+            "TecTech Forge of the Gods render block at " + pos(b.controller)
+                + ": star radius "
+                + GODFORGE_STAR_RADIUS
+                + ", rotation speed 5, 1 ring, default colour (no structure)");
+    }
+
     /** Sets one case's state on its built site. */
     static String applyCase(Case c) {
         final Built b = current;
@@ -675,6 +732,7 @@ public final class RenderTest {
             }
             case GT_BHC:
             case TT_EOH:
+            case GT_GODFORGE:
                 return "reference machine";
             default: {
                 final MTEEyeOfHarmonyBTS eye = eyeAt(world, p[0], p[1], p[2]);
@@ -814,7 +872,9 @@ public final class RenderTest {
                     + (kee.getRenderNote()
                         .isEmpty() ? "" : ", " + kee.getRenderNote());
         }
-        if (c.site == Site.GT_BHC || c.site == Site.TT_EOH) return renderBlockAt(world, b.centre);
+        if (c.site == Site.GT_BHC || c.site == Site.TT_EOH || c.site == Site.GT_GODFORGE) {
+            return renderBlockAt(world, b.centre);
+        }
         final MTEEyeOfHarmonyBTS eye = eyeAt(world, p[0], p[1], p[2]);
         return eye == null ? "no Eye"
             : (eye.mMachine ? "formed" : "NOT FORMED") + ", centre: "
@@ -954,6 +1014,7 @@ public final class RenderTest {
         final Case c = currentCase;
         if (c == null) return 3;
         if (c.look != null) return c.look.radius;
+        if (c.site == Site.GT_GODFORGE) return GODFORGE_STAR_RADIUS;
         if (c.mass > 0) return MTEKerrEngine.haloRadiusFor(c.mass);
         return 3;
     }
@@ -986,7 +1047,8 @@ public final class RenderTest {
     private static boolean isRenderBlock(Block block) {
         return block != null && (block == BlockEyeStar.INSTANCE || block == BlockKerrHole.INSTANCE
             || block == GregTechAPI.sBlackholeRender
-            || block == TTCasingsContainer.eyeOfHarmonyRenderBlock);
+            || block == TTCasingsContainer.eyeOfHarmonyRenderBlock
+            || block == TTCasingsContainer.forgeOfGodsRenderBlock);
     }
 
     // ============================================================================= helpers
