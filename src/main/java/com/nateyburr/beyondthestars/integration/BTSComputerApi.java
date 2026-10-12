@@ -265,10 +265,10 @@ public final class BTSComputerApi {
     /** {@code bts_sensor.getState()}: the Stellar Field Sensor Hatch's channel, comparator, reading and output. */
     public static Map<String, Object> sensorState(MTEHatchStellarFieldSensor s) {
         final Map<String, Object> m = new LinkedHashMap<>();
-        m.put(
-            "channel",
-            s.channel()
-                .name());
+        m.put("host", s.getHost().label);
+        m.put("channel", s.currentChannelName());
+        m.put("window", s.getWindow());
+        m.put("invert", s.isInvert());
         m.put("threshold", s.getThreshold());
         m.put("comparator", s.isLessThan() ? "lt" : "gt");
         m.put("analog", s.isAnalog());
@@ -280,6 +280,12 @@ public final class BTSComputerApi {
 
     /** {@code bts_sensor.setChannel(name)}: P, THETA, OMEGA, PI, SHIELD, INTEGRITY, ... Returns the channel set. */
     public static String sensorSetChannel(MTEHatchStellarFieldSensor s, String name) {
+        if (s.getHost() == MTEHatchStellarFieldSensor.Host.QUASAR) {
+            final com.nateyburr.beyondthestars.machines.quasar.QuasarSensorChannel q = com.nateyburr.beyondthestars.machines.quasar.QuasarSensorChannel
+                .parse(name);
+            if (q != null) s.setChannelOrdinal(q.ordinal());
+            return s.currentChannelName();
+        }
         for (FieldReadout.Channel c : FieldReadout.Channel.values()) {
             if (c.name()
                 .equalsIgnoreCase(name)) {
@@ -287,8 +293,7 @@ public final class BTSComputerApi {
                 break;
             }
         }
-        return s.channel()
-            .name();
+        return s.currentChannelName();
     }
 
     /** {@code bts_directive.getState()}: the hatch's set, output mode, window, code, bits and output. */

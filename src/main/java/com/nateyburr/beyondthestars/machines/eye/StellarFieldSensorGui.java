@@ -9,12 +9,12 @@ import com.cleanroommc.modularui.value.sync.BooleanSyncValue;
 import com.cleanroommc.modularui.value.sync.DoubleSyncValue;
 import com.cleanroommc.modularui.value.sync.IntSyncValue;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
+import com.cleanroommc.modularui.value.sync.StringSyncValue;
 import com.cleanroommc.modularui.widget.ParentWidget;
-import com.cleanroommc.modularui.widgets.CycleButtonWidget;
+import com.cleanroommc.modularui.widgets.ButtonWidget;
 import com.cleanroommc.modularui.widgets.ToggleButton;
 import com.cleanroommc.modularui.widgets.layout.Flow;
 import com.cleanroommc.modularui.widgets.textfield.TextFieldWidget;
-import com.nateyburr.beyondthestars.machines.eye.field.FieldReadout;
 
 import gregtech.api.modularui2.GTGuiTextures;
 import gregtech.common.gui.modularui.hatch.base.MTEHatchBaseGui;
@@ -23,6 +23,9 @@ import gregtech.common.gui.modularui.hatch.base.MTEHatchBaseGui;
  * D-49: the Stellar Field Sensor Hatch's GUI, cloned from GT's {@code MTEHatchPHSensorGui} (MUI2):
  * a channel selector, the comparator (above / below), digital or analog output, the threshold, and a
  * live line with the last reading and the output it drives.
+ * <p>
+ * P4: the channel list is the host's (the Eye's field channels, or the Quasar Engine's disc channels), so the channel
+ * button asks the server for the next channel of whichever machine publishes; the window w and invert are new rows.
  */
 public class StellarFieldSensorGui extends MTEHatchBaseGui<MTEHatchStellarFieldSensor> {
 
@@ -37,8 +40,13 @@ public class StellarFieldSensorGui extends MTEHatchBaseGui<MTEHatchStellarFieldS
     protected ParentWidget<?> createContentSection(ModularPanel panel, PanelSyncManager syncManager) {
         final IntSyncValue channel = new IntSyncValue(machine::getChannelOrdinal, machine::setChannelOrdinal)
             .allowC2S();
+        final IntSyncValue count = new IntSyncValue(machine::channelCount);
+        final StringSyncValue label = new StringSyncValue(machine::currentChannelLabel);
+        final StringSyncValue host = new StringSyncValue(() -> machine.getHost().label);
         final BooleanSyncValue lessThan = new BooleanSyncValue(machine::isLessThan, machine::setLessThan).allowC2S();
         final BooleanSyncValue analog = new BooleanSyncValue(machine::isAnalog, machine::setAnalog).allowC2S();
+        final BooleanSyncValue invert = new BooleanSyncValue(machine::isInvert, machine::setInvert).allowC2S();
+        final IntSyncValue window = new IntSyncValue(machine::getWindow, machine::setWindow).allowC2S();
         // NaN (no reading) never equals itself, so MUI2's change check would resend it every tick: sync a sentinel
         // that compares equal instead
         final DoubleSyncValue reading = new DoubleSyncValue(() -> {
@@ -47,21 +55,34 @@ public class StellarFieldSensorGui extends MTEHatchBaseGui<MTEHatchStellarFieldS
         });
         final IntSyncValue output = new IntSyncValue(machine::currentOutput);
         syncManager.syncValue("btsSensorChannel", channel);
+        syncManager.syncValue("btsSensorCount", count);
+        syncManager.syncValue("btsSensorLabel", label);
+        syncManager.syncValue("btsSensorHost", host);
         syncManager.syncValue("btsSensorLessThan", lessThan);
         syncManager.syncValue("btsSensorAnalog", analog);
+        syncManager.syncValue("btsSensorInvert", invert);
+        syncManager.syncValue("btsSensorWindow", window);
         syncManager.syncValue("btsSensorReading", reading);
         syncManager.syncValue("btsSensorOutput", output);
 
         final Flow col = Flow.column()
             .child(
+                IKey.dynamic(() -> "Machine: " + host.getStringValue())
+                    .asWidget())
+            .child(
                 Flow.row()
                     .child(
-                        new CycleButtonWidget().value(channel)
-                            .stateCount(FieldReadout.Channel.values().length)
+                        new ButtonWidget<>().size(16)
                             .overlay(GTGuiTextures.OVERLAY_BUTTON_CYCLIC)
-                            .size(16))
+                            .onMousePressed(b -> {
+                                final int n = Math.max(1, count.getIntValue());
+                                final int step = b == 1 ? n - 1 : 1;
+                                channel.setIntValue(Math.floorMod(channel.getIntValue() + step, n));
+                                return true;
+                            })
+                            .tooltip(t -> t.addLine("Next channel (right-click: previous)")))
                     .child(
-                        IKey.dynamic(() -> "Channel: " + MTEHatchStellarFieldSensor.channelLabel(channel(channel)))
+                        IKey.dynamic(() -> "Channel: " + label.getStringValue())
                             .asWidget())
                     .coverChildren()
                     .childPadding(2))
@@ -94,7 +115,23 @@ public class StellarFieldSensorGui extends MTEHatchBaseGui<MTEHatchStellarFieldS
             .child(
                 Flow.row()
                     .child(
-                        new TextFieldWidget().numbersDouble(val -> Math.min(120, Math.max(-120, val)))
+                        new ToggleButton().value(invert)
+                            .overlay(true, GTGuiTextures.OVERLAY_BUTTON_REDSTONE_ON)
+                            .overlay(false, GTGuiTextures.OVERLAY_BUTTON_REDSTONE_OFF)
+                            .size(16))
+                    .child(
+                        IKey.dynamic(() -> invert.getBoolValue() ? "Inverted (15 - output)" : "Not inverted")
+                            .asWidget())
+                    .coverChildren()
+                    .childPadding(2))
+            .child(
+                Flow.row()
+                    .child(
+                        new TextFieldWidget()
+                            .numbersDouble(
+                                val -> Math.min(
+                                    MTEHatchStellarFieldSensor.THRESHOLD_LIMIT,
+                                    Math.max(-MTEHatchStellarFieldSensor.THRESHOLD_LIMIT, val)))
                             .size(60, 12)
                             .value(new DoubleSyncValue(machine::getThreshold, machine::setThreshold).allowC2S()))
                     .child(
@@ -102,20 +139,27 @@ public class StellarFieldSensorGui extends MTEHatchBaseGui<MTEHatchStellarFieldS
                             .asWidget())
                     .coverChildren()
                     .childPadding(2))
+            .child(
+                Flow.row()
+                    .child(
+                        new TextFieldWidget()
+                            .numbersInt(MTEHatchStellarFieldSensor.WINDOW_MIN, MTEHatchStellarFieldSensor.WINDOW_MAX)
+                            .size(60, 12)
+                            .value(window))
+                    .child(
+                        IKey.str("Analog window w (±w, or 0..w)")
+                            .asWidget())
+                    .coverChildren()
+                    .childPadding(2))
             .child(IKey.dynamic(() -> {
                 final double v = reading.getDoubleValue();
-                return (Double.isNaN(v) || v == NO_READING ? "No reading (star dark or Eye silent)"
-                    : String.format(Locale.ROOT, "Reading %.1f", v)) + ", output " + output.getIntValue();
+                return (Double.isNaN(v) || v == NO_READING ? "No reading (machine dark or silent)"
+                    : String.format(Locale.ROOT, "Reading %.2f", v)) + ", output " + output.getIntValue();
             })
                 .asWidget())
             .coverChildren()
             .crossAxisAlignment(Alignment.CrossAxis.START)
             .childPadding(2);
         return super.createContentSection(panel, syncManager).child(col);
-    }
-
-    private static FieldReadout.Channel channel(IntSyncValue sv) {
-        final FieldReadout.Channel[] all = FieldReadout.Channel.values();
-        return all[Math.floorMod(sv.getIntValue(), all.length)];
     }
 }
