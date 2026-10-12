@@ -99,7 +99,8 @@ an id is reused for a different quest or disappears.
 
 **Chapter order.** RC-2's `QuestLinesOrder.txt` runs `… Tier 11 - UIV, Tier 12 - UMV, Endgame Goals, Feeding
 Yourself …`. Ours go in **directly after Tier 12 - UMV**: Tier 13 - UXV, Tier 14 - MAX, The Endgame. The pack's
-Endgame Goals follows them (it keeps two legacy trophies, §3.6). The plant chapter stays parked last, as today.
+Endgame Goals followed them until the 2026-10-13 text pass; now its last two quests (the trophies) move into The
+Endgame too and the installer hides the emptied chapter (§3.6). The plant chapter stays parked last, as today.
 
 - `BQBridge` finds UMV's index in the order list by its line id (`l37V2WvbSHGZQ5oMgAfBuw==`), and falls back to
   "last" if it is missing.
@@ -152,8 +153,14 @@ Endgame Goals follows them (it keeps two legacy trophies, §3.6). The plant chap
 **Description style.**
 
 - Section signs come through the existing `{6}{l}{r}` tokens and `Fmt()`, so the source stays ASCII.
-- `[note]` and `[warn]` blocks are used. Headings are `{e}{l}BUILD{r}`, `{e}{l}RUN{r}` and `{e}{l}AUTOMATE{r}`,
+- `[note]` and `[warn]` blocks are used. Headings are `{5}{l}BUILD{r}`, `{5}{l}RUN{r}` and `{5}{l}AUTOMATE{r}`,
   matching the plant chapter's `DO THIS` / `DONE WHEN` house style.
+- **Readable on the parchment page** (2026-10-13 text pass, B-92; the generator enforces all three, README "Player-text
+  rules"): headings `{5}` dark purple, highlights `{9}` blue, "done" `{2}` dark green, quest names `{3}` / `{6}`;
+  never `{e}` yellow, `{b}` aqua or `{a}` green (0.96 / 1.11 / 1.20 : 1 on BetterQuesting's #FBF3DF page). Bold only
+  for a few words (16 characters at most): BetterQuesting wraps by plain width and cuts a long bold run off at the
+  line end. No sqrt, Phi, floor-bracket or sun glyphs: Minecraft's font draws them oddly, so the text says "sqrt",
+  "floor(...)", "SM".
 - Numbers come from the built constants. Every quest that shows a structure ends with "NEI's Multiblock tab and the
   controller tooltip have the rest."
 
@@ -183,14 +190,14 @@ x 408) and the KEE (starts at x 456).
 > The **Kerr Ergosphere Engine** (KEE) holds the hole and nothing else. It runs no recipes. The machines that use the
 > hole are the **Kerr modules**: separate machines standing in the cage's arcs (next quests).
 >
-> {e}{l}BUILD{r} Hologram Projector stack 1 projects Kerr T1, about 75 × 66 × 75. Chunk-load all of it. It is the
+> {5}{l}BUILD{r} Hologram Projector stack 1 projects Kerr T1, about 75 × 66 × 75. Chunk-load all of it. It is the
 > Black Hole Compressor's own casings (Extreme Density Space-Bending Casing, Background Radiation Absorbent Casing,
 > Hawking Radiation Realignment Focus, Naquadah Alloy frames) plus Superradiant Mirrors, Mirror Backing, Ergosphere
 > Field Coils, Beam Focusing Quadrupoles, Beam Dumps, Harmonic Lining and Bolt Injector Rails. The optional task is the
 > full bill. Hatches: 1 laser or up to 2 energy hatches in the governor arc, and up to 8 **bolt buses** (plain input
 > buses) on the cage. No maintenance hatch. Markers 7 and 8 in the hologram show where the module controllers go.
 >
-> {e}{l}RUN{r} Open the GUI.
+> {5}{l}RUN{r} Open the GUI.
 > 1. A **Black Hole Seed** (in a bolt bus, or the Open button) opens the hole at **8 SM**.
 > 2. The hole bleeds mass as Hawking radiation: **3.2 / M² SM a tick**. Small holes die fast.
 > 3. The **governor** fires bolts from the bolt buses to hold your **setpoint (2-64 SM at T1)**:
@@ -212,11 +219,11 @@ x 408) and the KEE (starts at x 456).
 > The Black Hole Compressor's job, done next to a real black hole. The module is its **own machine** in the KEE's
 > south arc, with its own GUI and its own hatches.
 >
-> {e}{l}BUILD{r} Place this controller where the KEE's hologram shows **marker 7**, facing out of the cage. Then
+> {5}{l}BUILD{r} Place this controller where the KEE's hologram shows **marker 7**, facing out of the cage. Then
 > project the arc from the module's own controller (one tier). Any arc socket takes input buses or hatches, output
 > buses or hatches, and 1 laser or up to 2 energy hatches. There is no maintenance hatch.
 >
-> {e}{l}RUN{r} It runs GT's Compressor and Neutronium Compressor recipes. There are no circuits and no modes: the
+> {5}{l}RUN{r} It runs GT's Compressor and Neutronium Compressor recipes. There are no circuits and no modes: the
 > recipe picks the map. It runs only while the KEE's hole is **open**. When the hole closes it pauses and keeps its
 > recipe, and it resumes when the hole reopens.
 >
@@ -233,11 +240,11 @@ x 408) and the KEE (starts at x 456).
 
 > The east arc's machine: GT's **Extractor** recipes, items only.
 >
-> {e}{l}BUILD{r} Place the controller where the KEE's hologram shows **marker 8**, on the 340° ray, facing out. Then
+> {5}{l}BUILD{r} Place the controller where the KEE's hologram shows **marker 8**, on the 340° ray, facing out. Then
 > project the arc from it. It has five sockets: at least 1 input bus, 1 output bus and 1 energy (1 laser or up to 2
 > energy hatches).
 >
-> {e}{l}RUN{r} It works like the compressor: open hole only, the same parallel and speed bonus, and it pauses
+> {5}{l}RUN{r} It works like the compressor: open hole only, the same parallel and speed bonus, and it pauses
 > without losing its recipe. Either module is enough to start; you can run both.
 
 **48102, Feeding the Governor:**
@@ -248,7 +255,7 @@ x 408) and the KEE (starts at x 456).
 >
 > Without bolts, a 16 SM hole lives about 21 seconds and a 64 SM hole about 23 minutes.
 >
-> {e}{l}AUTOMATE{r} Stock the bolt buses from ME: an ME Interface or export bus per bus, or a Crafting Input Proxy.
+> {5}{l}AUTOMATE{r} Stock the bolt buses from ME: an ME Interface or export bus per bus, or a Crafting Input Proxy.
 > The governor picks the bolt it needs to hold the setpoint. Better bolts carry more mass per bolt, so the rail cap
 > stops mattering. Put a Collapser in a bolt bus and switch **Auto** on: the hole is then closed and reseeded without
 > you.
@@ -273,7 +280,7 @@ to its right is moved, either within UMV onto the new grid or out to UXV, MAX an
 
 | Id | Name | Pos | Prereqs | Tasks | Rewards |
 |---|---|---|---|---|---|
-| pack `kazC…` (E10) | **An Eye at the End of Time** | 636,144 (72) | pack (unchanged) + **A Second Ring has Hit the Godforge** `Qjg1J4kuS-6937dCEUqHUw==` (D-41) | R 1× `28115`, 1× `starChartSol`, 1× `stellarIgnitionCharge`; OR `bom:eye_core` | 2× `stellarIgnitionCharge` |
+| pack `kazC…` (E10) | **Eye T1: Sol** (pack name: An Eye at the End of Time) | 636,144 (72) | pack (unchanged) + **A Second Ring has Hit the Godforge** `Qjg1J4kuS-6937dCEUqHUw==` (D-41) | R 1× `28115`, 1× `starChartSol`, 1× `stellarIgnitionCharge`; OR `bom:eye_core` | 2× `stellarIgnitionCharge` |
 | pack `cEX6…` (E18) | A Solder Singularity | 660,72 (24) | unchanged | unchanged | — |
 | pack `cO67…` (E12) | T2: Primitive | 792,72 (24) | unchanged (EOH, Solder t1) | unchanged | — |
 | pack `Hgj4…` (E13) | T3: Stable | 912,72 (24) | unchanged | unchanged | — |
@@ -294,17 +301,18 @@ to its right is moved, either within UMV onto the new grid or out to UXV, MAX an
 | 48111 | **Planets on the Eye** | 588,348 (24) | E10 | C (info) | none |
 | 48109 | *Eye of Harmony (fallback)* | 708,264 (24) | pack `kazC…` | as E10 | **only when pack edits are off** |
 
-**E10, An Eye at the End of Time** (the pack's name is kept; icon `28115`):
+**E10, Eye T1: Sol** (renamed from the pack's "An Eye at the End of Time" in the 2026-10-13 text pass, to match Eye
+T2..T10; icon `28115`):
 
 > So you have made yourself an Eternal DTPF or hopefully a few, and now it is time for the push onwards.
 >
 > Beyond the Stars replaces TecTech's Eye of Harmony with **one Eye that grows from tier 1 to tier 10**. It grows one
 > band at a time, with a **live star** at its centre.
 >
-> {e}{l}WHAT IT IS{r} Put a **Star Chart** in the controller slot (it is not consumed) to choose what the Eye runs:
+> {5}{l}WHAT IT IS{r} Put a **Star Chart** in the controller slot (it is not consumed) to choose what the Eye runs:
 > Star Chart: Sol at T1. A dimension display block runs planets instead (see *Planets on the Eye*).
 >
-> {e}{l}BUILD{r} Hologram stack 1 = the T1 core. It is mostly TecTech's own Eye blocks:
+> {5}{l}BUILD{r} Hologram stack 1 = the T1 core. It is mostly TecTech's own Eye blocks:
 > - Reinforced Spatial and Temporal Structure Casings;
 > - Infinite SpaceTime Energy Boundary Casing;
 > - Quantum Glass;
@@ -313,14 +321,14 @@ to its right is moved, either within UMV onto the new grid or out to UXV, MAX an
 > On the plinth go gas input hatches (Hydrogen, Helium), an input bus for Stellar Ignition Charges, an ME Output Bus
 > and an ME Output Hatch. Power is **wireless EU only**. Chunk-load the whole footprint.
 >
-> {e}{l}LIGHT IT{r} Sol lights when all of these hold:
+> {5}{l}LIGHT IT{r} Sol lights when all of these hold:
 > - a **Stellar Ignition Charge** is in a plinth input bus;
 > - the buffers hold 10 cycles of upkeep plus a seed cloud of **100,000,000 L Hydrogen and 100,000,000 L Helium**;
 > - the wireless network holds 10 cycles of EU.
 >
 > The protostar contracts for about 40 seconds, then lights.
 >
-> {e}{l}RUN{r} Every **60 s cycle**, Sol burns **50,000,000 L Hydrogen + 50,000,000 L Helium** and **1.51 × 10¹¹
+> {5}{l}RUN{r} Every **60 s cycle**, Sol burns **50,000,000 L Hydrogen + 50,000,000 L Helium** and **1.51 × 10¹¹
 > EU**, and makes **50,000 L Raw Star Matter** to the ME output hatch. Inputs drain into internal buffers every
 > second, so ME stocking hatches are fine on the gas sockets. Upkeep is paid in full even when the star runs badly.
 >
@@ -348,7 +356,7 @@ to its right is moved, either within UMV onto the new grid or out to UXV, MAX an
 > A live star is not a recipe. Every second the Eye updates a **stability field**. At T1 it has one gauge, **P**
 > (pressure balance): minus is collapse, plus is expansion, and **0 is the target**.
 >
-> {e}{l}ZONES{r} The worst gauge decides the zone:
+> {5}{l}ZONES{r} The worst gauge decides the zone:
 >
 > | Zone | Worst gauge | Yield |
 > |---|---|---|
@@ -362,15 +370,15 @@ to its right is moved, either within UMV onto the new grid or out to UXV, MAX an
 > star costs the star and its in-flight output, **never** blocks, cores or unlocked tiers. Relight it with a new
 > charge.
 >
-> {e}{l}TRIM{r} Pour trim fluids into the **Field sockets**: 8 plain input hatches on the core band. They are never
+> {5}{l}TRIM{r} Pour trim fluids into the **Field sockets**: 8 plain input hatches on the core band. They are never
 > buffered, and ME stocking hatches there are refused. At T1, 1,000 L Helium is **P −2** and 1,000 L Hydrogen is
 > **P +2**, up to 10 units a second.
 >
-> {e}{l}SENSE{r} A **Stellar Field Sensor Hatch** (8 sockets on the core band) reads any gauge against a threshold
+> {5}{l}SENSE{r} A **Stellar Field Sensor Hatch** (8 sockets on the core band) reads any gauge against a threshold
 > and emits redstone, digital or analog. The gauges: P, Θ, Ω, Π, Agent shield, Integrity, Stability, zone, event
 > warning and upkeep.
 >
-> {e}{l}AUTOMATE{r} The standard rig:
+> {5}{l}AUTOMATE{r} The standard rig:
 > - a sensor on **P > +10** → a Fluid Regulator cover, or an ME fluid export bus with a redstone card → Helium into a
 >   Field hatch;
 > - a second sensor on **P < −10** → Hydrogen.
@@ -436,7 +444,7 @@ replaced. Here is T2's; T3 and T4 change the tier and the star.
 >    **Mass Infusion** runs for 10 minutes: the RSPM pours into Sol and P is pushed **+4 a second**, so your rig must
 >    hold. Survive it and Sol becomes Sirius A, with T2 unlocked for good.
 >
-> {e}{l}RUN{r} Sirius A takes **12,500,000 L H + 12,500,000 L He + 25,000 L RSPM** a cycle and makes **2,500 L
+> {5}{l}RUN{r} Sirius A takes **12,500,000 L H + 12,500,000 L He + 25,000 L RSPM** a cycle and makes **2,500 L
 > Excited Stellar Plasma**.
 >
 > [warn]Sirius A drifts hard and breaches if left alone. Run the rig. Helium trims leave **ash: −0.5 % yield per
@@ -450,7 +458,7 @@ replaced. Here is T2's; T3 and T4 change the tier and the star.
 > A red giant: a helium core inside a hydrogen shell. It brings a second gauge, **Θ (core heat)**, which runs away on
 > its own.
 >
-> {e}{l}UNLOCK{r} The milestones are **1,000,000 L ESPM** and **3 h Resonant** on Sirius A. Then:
+> {5}{l}UNLOCK{r} The milestones are **1,000,000 L ESPM** and **3 h Resonant** on Sirius A. Then:
 > - put the **Shell-Burning Core** in escrow;
 > - build the **jet crescent** (stack 3: 2,750 Jet Crescent Casing; the beam band must stand too);
 > - bring compression to 3 and buffer **250,000 L ESPM**;
@@ -458,17 +466,17 @@ replaced. Here is T2's; T3 and T4 change the tier and the star.
 >
 > **Shell Ignition** (10 min): Θ appears and ramps up, and the event ends in one forced helium flash.
 >
-> {e}{l}RUN{r} Arcturus takes **12,500,000 L H + 12,500,000 L He + 1,250 L ESPM** a cycle and makes **625 L Raw
+> {5}{l}RUN{r} Arcturus takes **12,500,000 L H + 12,500,000 L He + 1,250 L ESPM** a cycle and makes **625 L Raw
 > Hyperdense Stellar Plasma**.
 >
-> {e}{l}TRIMS{r}
+> {5}{l}TRIMS{r}
 > - Helium: P −1, Θ +3.
 > - Hydrogen: P +3, Θ +0.5.
 > - Super Coolant (100 L): P −1, Θ −3.
 >
 > To pull P down without heating the core, dose Helium **and** coolant together.
 >
-> {e}{l}HELIUM FLASHES{r} Every 20-40 minutes a flash adds **Θ +30 a second for 3 s**. The sensor's event channel
+> {5}{l}HELIUM FLASHES{r} Every 20-40 minutes a flash adds **Θ +30 a second for 3 s**. The sensor's event channel
 > warns **15 s ahead**. Pre-cool on the warning and you stay Stable.
 >
 > [note]The T4 milestones: **400,000 L RHSP**, **4 h Resonant**, and **3 flashes ridden** without leaving
@@ -504,7 +512,7 @@ replaced. Here is T2's; T3 and T4 change the tier and the star.
 
 > Fast-forward a red giant into a **neutron star**, and stop it going supernova.
 >
-> {e}{l}BEFORE{r}
+> {5}{l}BEFORE{r}
 > - the T3 milestones;
 > - the **Galactic Upgrade Core** in escrow;
 > - the **spiral arms** (stack 4: 5,325 Galactic Shell Plating);
@@ -514,18 +522,18 @@ replaced. Here is T2's; T3 and T4 change the tier and the star.
 >
 > Swap in **Star Chart: Neutron Star**.
 >
-> {e}{l}1 FAST-FORWARD{r} (about 16 min). Dose **Tachyon Rich Temporal Fluid** into the Field sockets, up to 100 L/s.
+> {5}{l}1 FAST-FORWARD{r} (about 16 min). Dose **Tachyon Rich Temporal Fluid** into the Field sockets, up to 100 L/s.
 > The core climbs from 0.50 to **1.44 M☉**, which takes 94,000 L. The envelope swells as it goes, and your T3 rig must
 > hold the field through it.
 >
-> {e}{l}2 BOUNCE{r} The HSM becomes the neutron seed, and the shock hits P and Θ for **+150**.
+> {5}{l}2 BOUNCE{r} The HSM becomes the neutron seed, and the shock hits P and Θ for **+150**.
 > - Every **1,000 L of molten SpaceTime** in the buffers at that moment cancels 1 point, up to 90,000 L.
 > - Any gauge above +100 means **SUPERNOVA**: Arcturus, the Time fluid, the HSM and the SpaceTime are lost. The core
 >   stays in escrow.
 >
-> {e}{l}3 SETTLE{r} Hold Stable for 60 seconds within 180. T4 is then yours.
+> {5}{l}3 SETTLE{r} Hold Stable for 60 seconds within 180. T4 is then yours.
 >
-> {e}{l}THE NEUTRON STAR{r}
+> {5}{l}THE NEUTRON STAR{r}
 > - It has no fusion, so it needs no H or He. **144 L molten SpaceTime** a cycle holds it.
 > - Set the **HSM feed** in the GUI (0-1.5 L/s, default 0.694). **White Dwarf Matter = 3.6864 L per L of HSM fed.**
 > - Every 0.1 L/s of feed pushes P, Θ and the spin **Ω** up. Ω runs away by itself, and **glitches** kick it +20
@@ -628,7 +636,7 @@ icons.
 
 > A white dwarf, **cooled into a black dwarf**.
 >
-> {e}{l}UNLOCK{r} The T4 milestones, then:
+> {5}{l}UNLOCK{r} The T4 milestones, then:
 > - put the **Subspace Cooling Core** in escrow;
 > - build the **second arms** (stack 5: 5,065 Galactic Shell Plating);
 > - bring compression to 5;
@@ -636,18 +644,18 @@ icons.
 >
 > **First Cooling** is one batch with a mean yield of at least 0.9 and no fracture.
 >
-> {e}{l}BATCHES{r} Each batch takes **18,432 L WDM** and assembles a white dwarf at Θ +90. Over **2 h** (÷ the dial)
+> {5}{l}BATCHES{r} Each batch takes **18,432 L WDM** and assembles a white dwarf at Θ +90. Over **2 h** (÷ the dial)
 > the cooling setpoint ramps from **+90 to −90**, and you keep Θ on the curve: at T5 the gauge reads your error from
 > the setpoint. The output is **4,608 L Black Dwarf Matter × the batch's mean yield**.
 >
-> {e}{l}SUBSPACE COOLING{r}
+> {5}{l}SUBSPACE COOLING{r}
 > - Dimensionally Shifted Superfluid (100 L) is the heat sink: Θ −1, P −0.5.
 > - Raw Star Matter (1,000 L) reheats an overshoot: Θ +3.
 > - Helium (1,000 L) is accretion pressure: P +2.
 >
 > Expect about **100,000 L DSSF a batch**. Decay heat pushes Θ up the whole way, and crystallisation drags P down.
 >
-> {e}{l}THE PLATEAU{r} While the setpoint crosses −10..+10 (about 800 s), latent heat adds **Θ +0.15 a second**. The
+> {5}{l}THE PLATEAU{r} While the setpoint crosses −10..+10 (about 800 s), latent heat adds **Θ +0.15 a second**. The
 > event channel warns 15 s ahead.
 >
 > [warn]**Fracture** (Breach or Integrity 0): the batch ends and yields 25 % × the fraction done.[/warn]
@@ -667,13 +675,13 @@ icons.
 > Tengam with its electrons swapped for positrons is literally *antipolarised*. Field-cooling it locks the reversed
 > domains, and its counter-currents untwist a magnetar's field.
 >
-> {e}{l}CHAIN{r}
+> {5}{l}CHAIN{r}
 > 1. Raw Tengam → Electromagnetic Separator → Purified Tengam → Polarizer → **Attuned Tengam dust**.
 > 2. **Large Chemical Reactor** (UXV, 20 s): 16 Attuned Tengam dust + 100 L Semi-Stable Antimatter + 144 L molten
 >    SpaceTime → **1,000 L Positronic Tengam Slurry**.
 > 3. **Vacuum Freezer** (UXV, 10 s): slurry + 2,000 L Super Coolant → **1,000 L Antipolarization Agent**.
 >
-> {e}{l}USE{r}
+> {5}{l}USE{r}
 > - the magnetar's **constant feed**, 3,000 L a cycle;
 > - the merger charge, 100,000 L;
 > - the Magnetar Seed Core, 64,000 L;
@@ -684,21 +692,21 @@ icons.
 
 **48141, Eye T6: SGR 1806-20:**
 
-> {e}{l}UNLOCK{r} The T5 milestones, then:
+> {5}{l}UNLOCK{r} The T5 milestones, then:
 > - put the **Magnetar Seed Core** in escrow;
 > - build the **galactic rim** (stack 6: 7,286 Galactic Shell Plating);
 > - bring compression to 6, with **no star lit**;
 > - put **Star Chart: SGR 1806-20** in the slot;
 > - buffer **18,432 L WDM + 4,608 L BDM + 100,000 L Agent**.
 >
-> {e}{l}MAGNETAR MERGER{r} White and black dwarf matter combine into a magnetar. The dynamo winds the polarity **Π**
+> {5}{l}MAGNETAR MERGER{r} White and black dwarf matter combine into a magnetar. The dynamo winds the polarity **Π**
 > up by itself.
 > 1. Hold Π inside **+60..+90 for 120 s** to imprint the field. You have 600 s.
 > 2. Then bring Π back inside **±40 within 60 s**.
 >
 > A failure loses the charge; the core is kept.
 >
-> {e}{l}RUN{r} **3,000 L Antipolarization Agent** a cycle is its constant feed, and the same Agent charges the
+> {5}{l}RUN{r} **3,000 L Antipolarization Agent** a cycle is its constant feed, and the same Agent charges the
 > **flare shield A**. It makes **15 L Magnetar Matter** a cycle.
 > - Π runs away by itself.
 > - **Giant flares** come every 60-120 s, announced **15 s ahead with their sign**.
@@ -1006,16 +1014,21 @@ Heliocast Reinforcement, Hypercooler and T2 Exo-Foundry keep the BHC id as a pre
 | E61 | `iu0rzCLcR_K7Oc2EDtQqgg==` | UNLIMITED COMPUTATION | Endgame Goals | `move` END 720,360 | keep |
 | E62 | `2QVk9gqBSWKWZQ2T0rXh8A==` | A Universe In Your Drives | Endgame Goals | `move` END 780,360 | keep |
 
-### 3.6 Endgame Goals (stays): the trophies
+### 3.6 Endgame Goals: the trophies (moved to The Endgame; the chapter is hidden while empty)
 
 TecTech's Eye controller recipe is removed (`replaceTecTechEyeOfHarmony`), so two consume-tasks would be uncompletable.
 
 | E | Pack id | Name (expected) | Ops | Progress |
 |---|---|---|---|---|
-| E63 | `hNdNrT_aSKaYi_TnT7cowA==` | Simulating a Solar System | `swapItem` `gregtech:gt.blockmachines:15410` → `:28115` (12×) | completionOnly |
-| E64 | `ztV-j35XSXaQ0OQ1TSyKew==` | An Offering To The Gods | `swapItem` `15410` → `28115` (8×) | completionOnly |
+| E63 | `hNdNrT_aSKaYi_TnT7cowA==` | Simulating a Solar System | `swapItem` `gregtech:gt.blockmachines:15410` → `:28115` (12×); `move` END 1008,276 | completionOnly |
+| E64 | `ztV-j35XSXaQ0OQ1TSyKew==` | An Offering To The Gods | `swapItem` `15410` → `28115` (8×); `move` END 1068,276 | completionOnly |
 
-After the moves, Endgame Goals holds these two trophies. Its order position and description are not touched.
+**2026-10-13 text pass (B-92):** the two trophies move into The Endgame, under the crafted Stargate's "What, How?"
+(they still consume our Eye controllers, QB-7). That leaves Endgame Goals with no quest, so the pack chapter edit
+**C01** (`packChapterEdits`, op `hideWhenEmpty`) takes it out of the book: the installer keeps its definition and its
+order slot in the world's state file and puts it back, exactly where it was, on `uninstall`, with pack edits off, or
+whenever one of its quests stays (E63 / E64 follow `replaceTecTechEyeOfHarmony`, so with that flag off the trophies
+stay in Endgame Goals and the chapter stays). Quest ids and progress are untouched by the move.
 
 ### 3.7 Config gating of edits
 
@@ -1056,7 +1069,7 @@ One hand-edited JSON file. It is ASCII-only, with § as `{x}` tokens, as the exi
   ],
   "quests": [
     { "low": 48100, "chapter": "uiv", "x": 516, "y": 348, "size": 24,
-      "name": "{b}{l}Kerr Compressor Module", "icon": "gregtech:gt.blockmachines:28117",
+      "name": "{9}{l}Kerr Compressor Module", "icon": "gregtech:gt.blockmachines:28117",
       "prereqs": ["pack:6OibD9bRQwq_hBPWz-y9xQ=="],
       "tasks": [ { "type": "retrieval", "items": ["gregtech:gt.blockmachines:28117"] },
                  { "type": "optional_retrieval", "bom": "kerr_compressor" } ],
@@ -1164,6 +1177,12 @@ The ops act on the pack quest's NBT, as `QuestInstance.writeToNBT` gives it, and
 | `setPrereqs`, `addPrereq`, `removePrereq`, `replacePrereq` | Edit `preRequisites` (UUID + type). A missing target is skipped and reported. |
 | `move {to, x, y, size}` | Remove the quest's entry from the expected source chapter and put a `QuestLineEntry(x, y, size)` in the target chapter. A target equal to the source re-positions it. Other chapter memberships stay. |
 | `hide` | Visibility `HIDDEN` and remove every chapter entry. **Unused today** (§0); kept for RC-3. |
+
+**Pack chapter edits** (`packChapterEdits`, 2026-10-13): `hideWhenEmpty` removes a pack chapter (matched by id and
+name) that has no entry left once the quest edits are applied. Its `QuestLine.writeToNBT` and its order index go into
+the state file (`hiddenLines`); every install first puts it back (so edits are planned and reverted against the
+pack's real chapters) and hides it again only if it is still empty. The generator fails if the edits-on layout
+leaves the chapter non-empty.
 
 An edit is **atomic on its preconditions**. Name mismatch, expected source chapter missing, or quest missing: the
 whole edit is skipped, the quest is left as the pack has it, and the edit is reported.

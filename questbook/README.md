@@ -55,6 +55,12 @@ reverted on the next install and the matching fallback quest appears.
    pack chapters (edited positions only when every edit that re-lays that chapter applied);
 5. applies each edit to a **copy of the stored original**, never to the edited quest, so a
    second run gives the same database and `uninstall` restores the pack quest bit for bit;
+   then hides a pack chapter the edits left empty (`packChapterEdits`, op `hideWhenEmpty`:
+   today Endgame Goals, whose last two quests, the trophies, move into The Endgame). Its
+   definition and order slot are kept in the state file; every install puts it back first
+   (edits are planned and reverted against the real pack chapters) and hides it again only if
+   it is still empty, and `uninstall` / pack edits off / a trophy edit switched off leave it in
+   the book exactly where the pack had it;
 6. restores progress on every path (`try/finally`): completion is always kept; task progress
    is dropped only where a quest's task list changed (the `completionOnly` edits E01, E10,
    E63, E64 on their first application, never on a re-install); a planned checkbox that has
@@ -314,7 +320,7 @@ The ladder's part of the book (design: `docs/questbook-integration.md`) is data,
 
 | | |
 | --- | --- |
-| **Source** | `questbook/singularity.json`: every chapter, quest, text and pack edit. ASCII-only: `{6}{l}{r}` are section-sign codes, `{times}` `{theta}` `{u+XXXX}` are glyphs, `{bom:eye_beam:R}` / `{bomdims:kerr_t1}` are read from `structures/manifest.json`, a text line `@name` pastes `texts.name`. |
+| **Source** | `questbook/singularity.json`: every chapter, quest, text and pack edit. ASCII-only: `{6}{l}{r}` are section-sign codes, `{times}` `{theta}` `{u+XXXX}` are glyphs (there is no `{sqrt}`, `{Phi}`, `{lfloor}` or `{sun}`: see the player-text rules), `{bom:eye_beam:R}` / `{bomdims:kerr_t1}` are read from `structures/manifest.json`, a text line `@name` pastes `texts.name`. |
 | **Ids** | Explicit `low`s, never positional. `questbook/id-ledger.txt` is append-only: the generator appends new ids and throws if a shipped id disappears or changes meaning (its `key`). |
 | **Registry** | Our items, fluids and MTEs are checked against the Java of the source tree. Anything the RC-2 pack itself uses is accepted. Everything else must be in `questbook/registry.json` with where it was read (`status: verify` = derived, to confirm with `/btsquests verify`). |
 | **Generator** | `tools/gen-singularity.js` (node). It runs as the LAST step of `gen-questbook.ps1`, so `gen-bom.ps1` is still the one build command. |
@@ -369,9 +375,23 @@ at another pack's `DefaultQuests` (default: the RC-2 instance). On its own: `nod
   draws is never ours; we may never ADD one. Hover-only (implicit, type 1) lines and the edits-off
   layout only warn (`--verbose` lists them).
 
+- **player-text rules** (every text a player reads in the book: our quests and chapters, the plant
+  chapter `gen-questbook.ps1` wrote, every text a pack edit writes), from the 2026-10-13
+  screenshots against BetterQuesting's parchment page (#FBF3DF):
+  - no `{e}` yellow, `{b}` aqua or `{a}` green (0.96 / 1.11 / 1.20 : 1 contrast). House palette:
+    headings `{5}` dark purple (5.8 : 1), highlights `{9}` blue (4.6 : 1), "done" `{2}` dark
+    green, quest names `{3}` dark aqua or `{6}` gold (names also show on dark tooltips);
+  - no bold run longer than 16 visible characters. BetterQuesting wraps a line by its plain
+    width, but every bold glyph is one unit wider, so a long bold run pushes the end of the line
+    past the text box and the last letters are cut off. Bold is for a few words; a long heading
+    is colour + capitals. Quest names are exempt (one line, never wrapped);
+  - no `√ Φ ⌊ ⌋ ☉`: Minecraft's font draws them as odd glyphs. Write "sqrt", "floor(...)",
+    "flux", "SM".
+
 `--selftest` breaks the data on purpose (overlap, crossing, drifted name, unknown item and fluid,
 duplicate id, range, grid, missing prerequisite, stale replaceText, ledger change and loss, cycle,
-`tbd` shipping, a manifest role change) and fails unless every assertion fires and the real data
+`tbd` shipping, a manifest role change, a long bold run, a low-contrast colour, an odd glyph, a hidden
+pack chapter that still holds a quest) and fails unless every assertion fires and the real data
 builds clean. `--svg DIR` draws every chapter in every layout (ours blue, moved pack quests gold,
 crossings red) for eyeballing before a client screenshot.
 

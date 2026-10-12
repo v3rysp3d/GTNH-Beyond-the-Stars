@@ -54,7 +54,7 @@ Your answers, newest first. Quotes are your words.
 | The Reality machines' Godforge lens glass [B-78 item 7] | Keep: "This will be a MAX tier / Endgame item, its allowed and meant to be expensive" | Unchanged |
 | Old-plant renames and questions [TQ-1..TQ-8] | "You have full free reign on this" | Yellowcake Mill, Spiral Cycle Sensor, Grade 1-6, ORE PROCESSING, Extra Leach Tank, tier-1 defaults, input separation (off), `getTrueParallel()` (B-85, Part D) |
 | Superdense Ergomatter [ruling 17; P4's Q-13] | "it should be ergomatter and superdense ergomatter which is just compacted and refined but the t8 gives you a better version and easier to get"; then one fluid, with Eye T8 the better route (P4's Q-13 as designed) | One fluid, `btssuperdenseergomatter`; the last "Supermassive Ergomatter" text on master is renamed (B-87). The Supermassive Seed Core keeps its name |
-| Trophy quests consume our Eye controllers [QB-7] | "Keep as trophies" | Unchanged (B-85) |
+| Trophy quests consume our Eye controllers [QB-7] | "Keep as trophies" | Unchanged (B-85); since B-92 they sit in The Endgame and the emptied Endgame Goals chapter is hidden |
 | Jar handover; the dedicated-server `SERVER_DIR` [B-61, B-73] | "SSH key will be tonight, run locally for now" | The playtest jar goes to the local Prism instance; the server's SSH key exists but is not yet authorised |
 | T6 Antipolarization Agent upkeep [B-34 item 1, B-37 item 1; ruling 12] | 3,000 L per 60 s cycle, and the Agent fed also charges the flare shield (one fluid runs the whole magnetar) | Prototype, fixture, golden file and Java (B-60); the merger imprint fix (B-71) |
 | Unlocks and the Quasar [ruling 17a] | "the 'to unlock the next' doesnt need to be materials it can also be machines so the quasar can provide stability to a different machine" | P4's design (quasar-p4.md §3.1); the Homogeny T2 / T3 and the Diffraction carry reserved Quasar port cells and hooks (B-80 item 7) |
@@ -88,8 +88,8 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
 
 **To write or build.**
 
-- The tidy pass's questbook handoff: the mechanics cut from tooltips that the book must carry (the RPM rule, the
-  dynamo ceiling, the rod ladder and so on). The names are done (B-85). [B-82 item 5, B-85]
+- ~~The tidy pass's questbook handoff~~: done in the 2026-10-13 text pass. Most of the mechanics were already in the
+  plant chapter; the four that were not are added, and the last glossary names are fixed. [B-82 item 5, B-85, B-92]
 - A `bomItems.homogeny` table, so the Homogeny quest (48118) gets the optional structure checklist; one table covers
   the Reality machines too. [B-82 item 3]
 - Renders not built: the Homogeny's vortex, the Reality region clouds and the reassembly stream. [B-76 item 7, B-77
@@ -187,7 +187,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-90
+## Part B. Entries B-1..B-92
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -3783,6 +3783,129 @@ filter chips per line and badge, and one collapsible group per line. Changed rec
 script is in my local work folder, `recipedump/build_section.py`).
 
 ---
+
+### B-92 Questbook text pass: readable colours, short bold, no odd glyphs, Eye T1: Sol, Endgame Goals folded [follow-up, built]
+
+**Context.** The questbook screenshots (2026-10-13) showed text problems we said we would fix and re-shoot:
+
+- bold text cut off at line ends;
+- yellow and light-cyan text that is hard to read on the parchment page;
+- the Eye T1 quest still called "An Eye at the End of Time";
+- an "Endgame Goals" chapter left with only the two trophies;
+- `Φ` and `√` drawn as odd characters;
+- two icons (48147 / 48149) that did not resolve on the dev server.
+
+The tidy pass's questbook handoff was also still open.
+
+**What was built.**
+
+1. **Generator rules** (`tools/gen-singularity.js`, "player-text rules"). Every text a player reads in the book is
+   checked: our quests and chapters, the plant chapter read back from `gen-questbook.ps1`, and every text a pack
+   edit writes. The build fails, naming the quest, on:
+   - `§e` / `§b` / `§a`;
+   - a bold run over 16 visible characters (names are exempt: they are one line and never wrapped);
+   - any of `√ Φ ⌊ ⌋ ☉`.
+
+   The `{sqrt}`, `{Phi}`, `{lfloor}` / `{rfloor}` and `{sun}` tokens are gone. Four new `--selftest` cases prove
+   each rule fires.
+2. **Colours**, measured against the page colour in a client screenshot (#FBF3DF, contrast ratio):
+
+   | Was | Ratio | Now | Ratio | Used for |
+   |---|---|---|---|---|
+   | `§e` yellow | 0.96 | `§5` dark purple | 5.8 | headings (BUILD, RUN, DO THIS ...) |
+   | `§b` aqua | 1.11 | `§9` blue | 4.6 | highlights |
+   | `§a` green | 1.20 | `§2` dark green | 2.8 | DONE WHEN |
+
+   Quest names that were `§b` are now `§3` dark aqua, the pack's own name colour, which also reads on the dark map
+   tooltip. This covers both sources: `singularity.json` (58 / 217 / 25 tokens) and the plant chapter
+   (100 / 381 / 24).
+3. **Bold.**
+   - In the ladder: 7 runs shortened by hand. Examples: "The tier gate:" before the compression sentence, "Coming
+     later." in the planned note, "Universium:" in the Tier 13 warning (its text is otherwise unchanged, ruling h).
+   - In the plant chapter: 91 long headings keep their colour and capitals but lose the bold.
+4. **Glyphs.**
+   - `floor(sqrt M)` replaces the floor-bracket form in the Kerr parallel formula (3 places).
+   - "flux charge" replaces "flux Φ charge" (the Quasar placeholder).
+   - "1.44 SM" replaces "1.44 M☉".
+   - No tooltip or lang line used any of these glyphs (checked).
+5. **Eye T1: Sol.** E10 gets a `setName` (`§c§l§n`, the style of Eye T2-T4). The fallback quest 48109 has the same
+   name. The quest ids are kept, and the drift check still matches the pack's original name.
+6. **Endgame Goals folded.**
+   - E63 / E64 also `move` the two trophies into The Endgame at 1008,276 / 1068,276, under "What, How?". They still
+     swap in our Eye controller (QB-7).
+   - A new pack chapter edit **C01** (`packChapterEdits`, op `hideWhenEmpty`) takes the emptied chapter out of the
+     book.
+   - The installer saves the chapter's `writeToNBT` and its order index in the state file (`hiddenLines`). Every
+     install first puts it back, then hides it again only if it is still empty.
+   - `uninstall` (edits or all) and pack edits off put it back where it was. `status` shows it.
+   - The cheap check notices a default load that brought it back.
+   - The generator fails if the edits-on layout leaves the chapter with any quest.
+7. **Icons 48147 / 48149: unchanged, correctly.** The RC-2 pack's `eternalsingularity-1.4.3.jar` (read-only)
+   registers `combined_singularity` with 16 metas, 0-15: `CommonProxy` builds `new CompoundSingularityItem(16)`.
+   - :10 is the Arithmetic Singularity and :15 the Chronic Singularity.
+   - The pack's own quests use both (Eternity uses :15).
+   - Only the dev server lacks the mod. `/btsquests verify` still lists those two as its only misses.
+8. **Tidy handoff, the rest.**
+   - **Already in the plant chapter:** the RPM rule (176 x P x timed/8, 0.5 %/tick, redline 12,000; TURBINE T5/T6
+     to 13,500 / 15,000), the RPM-squared coolant drain and the interlock, the dynamo and laser ceiling (32,768 vs
+     the ZPM lasers), the rod ladder and the half-rate fallback, residual swirl as heat, Build Tier never re-tiers,
+     decay heat on the same water ladder (worst rung first), the Switchyard soft cap and its flag, the tower
+     effects, the tiers 5-7 unlocks, the slug window, `/btsmigrate`, and the Vent Stack's halved windows.
+   - **Added:**
+     - "Written in Fire" gets a WHAT SURVIVES block: the controller is blast-proof; breaking a fuelled Reactor
+       Fuel Pillar Frame drops its rods; over-injection explodes the plant like any GT generator, and
+       `/btssafety on` / `off` is the safe test mode.
+     - The module paragraph says a module socket's hatch serves only that module.
+   - **Glossary:**
+     - "WHAT UNIT ONE IS" becomes "WHAT IT IS".
+     - "Blueprint: Turbine Generator" becomes "Blueprint: Rotor Assembly" (same id 48018; the file stem follows).
+     - "throttle cap N/24" becomes "rods up to N/24".
+     - "campaign power" becomes "rods N/24".
+     - "rotor gallery + output manifold" becomes "rotor assembly", in the text and in `BTSBom.GALLERY`'s name
+       (`/btskit` prints it).
+     - "pillar frames" becomes "Reactor Fuel Pillar Frames".
+     - Units: "60s" becomes "60 s", "1,024t" becomes "1,024 ticks", and "%/t" becomes "%/tick".
+     - The diagrams (`gen-diagrams.ps1`) now say NUCLEAR PLANT - OVERVIEW, FOUNDATION and REACTOR SILO instead of
+       UNIT ONE / MAIN STATION / STEAM GENERATOR.
+     - The Gas Centrifuge Cascade, Fuel Fabrication Line and Reprocessing Canyon names were already gone from the
+       book.
+
+**Judgement calls.**
+
+- **Not gold / dark aqua.** The task suggested gold (§6) and dark aqua (§3). Against the measured page, gold is
+  1.73 : 1 and dark aqua 2.59 : 1, both still low. Dark purple (the pack's most-used quest colour) and blue reach
+  5.8 and 4.6. Gold stays where we already used it: chapter cross-references and gold quest names. *Alternative:*
+  §1 dark blue (12 : 1) for highlights if blue reads too close to the title colour.
+- **The 16-character limit.** At GUI scale 4 on 1080p the text box is about 40 characters wide. Each bold glyph
+  adds one unit, and the cut was seen with a 37-character run. 16 characters keeps the worst-case overflow to about
+  two letters, inside the usual space left at a wrap.
+- **With `replaceTecTechEyeOfHarmony` off**, E63 / E64 are off too, so the trophies stay, unedited, in Endgame Goals
+  and the chapter stays (with E20 / E37, 4 quests). The move is gated with the swap rather than split into a second
+  edit, because one quest carries one edit.
+- **Plant step labels kept.** The F-xx / R-xx / C-xx step labels stay in the plant chapter's fuel-line quests. They
+  number the chain there; the glossary's "no design ids" rule was scoped to tooltips and lang.
+
+**Checks.**
+
+- `gen-bom.ps1` (the one build command) and `gen-diagrams.ps1` ran clean.
+- `gen-singularity --check` and `--selftest` pass (20 cases).
+- `spotlessApply compileJava` passes.
+- Headless dev server, RC-2 pack DefaultQuests, fresh world `qbtext`, boot 1 with both flags on:
+  - Auto-install off, then `install`: "62 applied, 0 skipped ... 1 emptied pack chapter(s) hidden". `status` is all
+    ok and lists "C01 Endgame Goals". `verify` resolves 113 / 115; the two misses are the eternalsingularity icons
+    above.
+  - The book: 49 chapters. The Endgame holds the trophies at 1008,276 / 1068,276, and E10 is named "Eye T1: Sol".
+  - Second `install`: a no-op, with a byte-identical DB. `install force`: the same database.
+  - `uninstall edits`: all 3,813 pack quests, the 46 pack chapters (Endgame Goals back, with its 31 entries) and the
+    pack's chapter order are identical to the pre-install snapshot.
+  - `install` again: identical to the first install.
+  - `uninstall all`: the whole database (quests, chapters, entries, order) is identical to the pre-install snapshot.
+- Boot 2, both flags off: `install` (clears the sticky uninstall) applies 38, switches 24 off, and keeps Endgame Goals
+  ("still holds 4 quest(s)"). The fallbacks 48103 / 48109 are shown.
+- Boot 3, both flags on again, auto-install on (this dev server's BetterQuesting reloads its default book on every
+  start): "config changed", then 62 applied and the chapter hidden. The database is identical to the first install,
+  and the progress of our quests came back from the backup.
+- **Not re-shot.** The client screenshots are the next unit (questbook-shot client, port 25601).
 
 ## Where the old question numbers went
 
