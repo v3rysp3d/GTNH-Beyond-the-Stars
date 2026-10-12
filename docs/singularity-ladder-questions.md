@@ -1061,7 +1061,8 @@ goes to Purified in the EMS (`ElectromagneticSeparatorRecipes`). `Materials.Anti
    - SL-P38 makes 4 charges per craft from Helium **plasma** (`Materials.Helium.getPlasma`).
    - SL-E03 takes 16 charges and researches from one charge. The research chain is: charge → Stellar Mass Core →
      Shell-Burning Core, and Galactic Upgrade Core → Subspace Cooling Core → Magnetar Seed Core. Every research item
-     is unique to this mod.
+     is unique to this mod. *Changed (B-62):* GT's Scanner consumes the research item, so SL-E04/E05/E06 now research
+     from Star Chart: Arcturus / Sirius B / SGR 1806-20 instead of the previous core.
    - SL-P36 (the Sirius B, Cooled reclaim) takes programmed circuit 3 and no fluid.
    - In the kit, Antipolarization Agent, DSSF and Tachyon Rich Temporal Fluid come in Neutronium Large Fluid Cells
      filled to capacity. The obsolete Sirius B, Cooled chart is no longer in the kit.
@@ -1893,6 +1894,123 @@ jar is `dist-rc2/beyondthestars-0.24.1-master.137+175c89997a.jar`, SHA-256
    not recorded anywhere in the repos.
 
 **Suggestion.** Accept as is; tell us the dedicated-server folder and it goes into the next INSTALL.md.
+
+---
+
+### B-62 D-49 review fixes: paid parallel, first-cycle reserves, failures, milestones, migration, T4 recovery [D-49 review fix]
+
+**Context.** The D-49 review (15 findings, 8 test problems) was checked again against master after unit 6, the Kerr
+merge and the final-integration fixes. Already fixed before this pass: the centre render, the GUI, unit 6's cost table
+and build-doc contract (B-45), the persistent "Last failure" line in the GUI and scanner (B-45), ruling 12 (the Agent
+upkeep charges the shield, B-60), and INSTALL.md's retired `interimBlackDwarfAtEyeT4` text (B-61). The rest were real
+and are fixed here. Numbered after master's B-61; if a branch merged later also used B-62 / B-63, the merge renumbers
+as B-58 did.
+
+**What was built, and the judgement calls.**
+
+1. **Parallel paid vs used.** A lit second now runs at `min(live parallel, the cycle's paid parallel)`, and a T5 batch
+   also at most the parallel its WDM charge paid for (`cycP`, `batchP`, tile NBT; 0 in an older save = no cap until
+   the next charge). Product, HSM feed, trim caps and the field's per-parallel division all use it, and the fracture
+   salvage uses the batch's paid parallel. Knocking a band out at the charge and putting it back no longer gives 32x
+   the output for 1/32 of the upkeep. The scanner shows "the structure gives N from the next charge".
+   - *Call:* a parallel that FALLS mid-cycle takes effect at once (a broken band costs the rest of that cycle's
+     extra output). *Alternative:* refund, or keep the paid parallel until the cycle ends (that rewards breaking
+     bands).
+2. **The new star's first cycle is reserved.** A transition now begins only when the buffers hold its event fluids
+   plus the new star's first cycle of upkeep x its parallel (Mass Infusion: + Sirius A's H / He / RSPM; Shell
+   Ignition: + Arcturus's; the Core Collapse: + the neutron star's 144 L SpaceTime and one cycle of HSM feed at the
+   setpoint; the merger: + 3,000 L Agent). The bounce absorbs SpaceTime only above the neutron star's 144 L x p, so a
+   round 60,000 L buffer now absorbs 59 points (the scanner readout says what is kept). The NEI transition page shows
+   the same totals at p = 1 (`EyeStarRuntime.transitionNeeds`, one method for both).
+   - *Call:* the reserve is ONE cycle, not ignition's ten. *Alternative:* ten cycles (safer, much more buffer).
+3. **Failures are kept and logged.** Every failure (star lost, transition failed or aborted, fracture, a First
+   Cooling batch below mean Y 0.9, a batch put out) writes the persistent "Last failure" line and is logged at INFO;
+   the automatic restart that follows changes only the event line. A plain chart change or a planet selection is the
+   player's own choice: it is logged but no longer replaces a more useful failure line (B-59's note).
+4. **Milestones count only on unlocked tiers.** The First Cooling batch no longer counts toward the six good batches
+   for T5 -> T6, and the Resonant seconds and product of a star whose tier is still locked (the collapse settle, the
+   merger imprint, Sirius A during Mass Infusion) do not count.
+5. **Legacy NBT.** Schema-less NBT is a 0.24.x save only if it carries GT's tile key `mID`, a 0.24.x Eye key
+   (`btsEye*`) or a key GT's `getDrops` writes on a dropped machine (upgrades, colour, covers, strong redstone). An
+   anvil-renamed new controller starts at T1 instead of being grandfathered to T3. The bench's `legacy` sets `mID`.
+6. **Grandfathering with unloaded chunks.** Every successful walk of a migrating Eye raises its unlocked tier (max,
+   never lower); the migration is settled only by a walk that saw every chunk under the core, beam band and jet
+   crescent loaded. An old T3 Eye first walked with its band chunks unloaded is no longer stuck at T1.
+7. **T4 recovers unattended.** With T4 unlocked, a dark Eye holding the Neutron Star chart relights Arcturus from a
+   Stellar Ignition Charge (10 cycles + seed, as a T1-T3 relight); Arcturus goes PENDING and re-runs the Core Collapse
+   (no core) once its fluids are buffered. An igniting star whose chart is swapped for the next tier's now finishes
+   its ignition and then goes PENDING (before, it was put out).
+   - *Call:* each relight spends a charge, as T1-T3 relights do. *Alternative:* make the controller slot automatable
+     (still two chart swaps).
+8. **Research items.** GT's Scanner consumes the research item, so SL-E04 / E05 / E06 now research from Star Chart:
+   Arcturus / Sirius B / SGR 1806-20 (cheap, unique, each made from the product of the tier the core leaves) instead
+   of the previous expensive core. No other recipe (on any branch) researches from these charts. B-35 and the plan's
+   §10.2 table are annotated.
+9. **Salvage while unformed.** A batch put out because the structure broke owes its salvage (kept with the other owed
+   outputs, item NBT, survives a wrench) and pays it the next second the Eye is formed; the line says "owed". Before,
+   GT had already cleared the hatch lists, so the fluid was voided while the chat said "salvaged".
+10. **Sensor analog scaling.** Analog mode maps the zone 0..4 onto 0/4/8/11/15 and the warning and upkeep flags to 15
+    when set (they gave 0 or 1). The hatch tooltip says so.
+11. **Sensor GUI sync.** The "no reading" value syncs as a sentinel (negative infinity), not NaN, so MUI2 no longer
+    resends it every tick.
+12. **Ruling 12 (the T6 Agent upkeep charges the shield)** was already complete in B-60: the prototype (design repo
+    `feec8dd`), the fixture (re-pinned), the golden file and `StellarField.step` all use `0.95A + 4u/p + 2r`. Checked
+    again: `node tools/fieldsim-golden.js --check --java` 78/78 PASS. No change.
+13. **Small things.** The "does not reach TN" wait names all three limits (unlocked, bands, compression); it was
+    confusing for a migrated jet-without-beam Eye. The Eye tooltip has three new lines (items 1, 2 and 7). Costs §9.4:
+    the T5 gate row reads "loop, fixed by SL-P33", the interim-flag text is gone, and the T8 material is named
+    Superdense Ergomatter (ruling 17).
+
+**Not changed (design questions).** The merger's imprint band (+60..+90) sits in Strained / Critical and drains
+Integrity about 0.6-0.7/s, so an Eye with Stabilisation tier 4 can fail it; the failure line now shows why. Plan test
+17's "TierParams invariant check logs OK at boot" does not exist (the check is offline only). The questbook (its own
+branch) should mention the T4 relight and the first-cycle reserve.
+
+**Checks.** `spotlessApply compileJava` passes; golden 78/78 PASS. **Not run in-world** in this pass (no dev server):
+the paid-parallel cap, the reserves, the T4 relight and the unformed salvage still need a `/btseye star` bench run.
+
+**Suggestion.** Accept 1-13 as built.
+
+---
+
+### B-63 D-49: unlocking, transitions, T5 and T6 [D-49 unit 5]
+
+**Context.** Unit 5 (commits `788e29f`..`8f626f5`) built the five transitions as field overlays, PENDING, success and
+failure, the T5 cooling batches, the T6 magnetar, and the NEI transition and field pages. Its judgement calls were
+never logged (B-38 item 3); the code cited "PROPOSED (B-38)" for the dwarf-matter numbers, which now cites B-63.
+
+**Judgement calls.**
+
+1. **The T6 dwarf-matter reserve (PROPOSED).** The merger charge fills a reserve of 60 cycles; each cycle spends one;
+   at 10 cycles or fewer the Eye tops it up from the buffers with White Dwarf Matter 1,800 + Black Dwarf Matter
+   450 L x p for 60 more; an empty reserve makes that cycle's r 0 (no output, P sags). This is the reading of "the
+   merger spawns the star and tops it up". B-60 item 2 kept it after ruling 12.
+   - *Alternative:* no reserve; dwarf matter only for the merger and a re-merge.
+2. **T5 fracture salvage: 25 % of the batch x the fraction done** (plan §6.6), then I 100, lock 0 and the next batch
+   (or IDLE). B-62 item 9: owed while unformed.
+3. **The Purified Tengam return:** 12 dust per 1,000 L of Agent consumed (upkeep, merger charge and trims) to the ME
+   output bus; whole dust out, the rest carried in tile NBT.
+4. **PENDING is T1-T3 only.** A lit star with the next tier's chart is PENDING, and the transition begins the moment
+   every precondition holds. The First Cooling (T4 -> T5) and the Magnetar Merger (T5 -> T6) start from a dark Eye
+   with the Sirius B / Magnetar chart in the slot, because neither has a lit predecessor to transform.
+5. **The merger re-spawns automatically** from a dark Eye with the Magnetar chart: every attempt takes the full charge
+   (WDM 18,432 + BDM 4,608 + Agent 100,000, x p); no core after the first success.
+6. **The First Cooling retries automatically:** a failed First Cooling batch leaves the Eye IDLE, and the next WDM
+   charge starts another attempt (each takes a batch charge; the core stays in escrow).
+7. **A transition's new star runs at p 1** before its tier is unlocked, if the bands and compression reach it.
+   Transitions hold the time dial at m = 1.
+8. **A running transition lives in the tile NBT only:** a wrench aborts it (its materials are lost, the core stays in
+   escrow), and the escrow cannot be taken back while it runs.
+9. **The overlays (plan R-4, R-6).** Mass Infusion: 600 s with P drift +4 (RSPM 5,000,000). Shell Ignition: Θ ramps
+   in over 600 s with T3's trims and the ash off, a forced helium flash warned at 585 s and hitting at 600-602 s,
+   Arcturus at 603 s. Core Collapse: bounce +150 (B-25; the bench's `set shock 90` reproduces the golden cases).
+   Merger: Π drifts +0.5/s with no flares, imprint inside +60..+90 for 120 s within 600 s, release inside ±40 within
+   60 s.
+10. **Status ids** `star_transition`, `star_batch`, `star_idle` and `star_merger` (with recipe_result keys). The next
+    tier's chart is not hidden behind its locked gate, since putting it in is how the tier unlocks.
+
+**Suggestion.** Accept 1-10. Re-check 1 and 6 after playing T5 / T6: with 6, each failed First Cooling spends
+18,432 L of WDM without asking.
 
 ---
 

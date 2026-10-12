@@ -106,7 +106,7 @@ the coremod's BHC entries on every bump.
 ### D-49: the Eye's star lifecycle (units 1-6, 2026-10-13)
 
 This block supersedes the Eye rows below where they differ. Plan: [`d49-build-plan.md`](d49-build-plan.md); judgement
-calls: questions B-34..B-38 and B-45.
+calls: questions B-34..B-38, B-45, B-62 (review fixes) and B-63 (unit 5).
 
 - **Live stars, T1-T6.** A star chart in the controller slot picks the star; it burns live, in 60 s cycles of
   wireless EU and upkeep, and is held by a four-gauge stability field (P, Θ, Ω, Π) fed from the Field sockets.

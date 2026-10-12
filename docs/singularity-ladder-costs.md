@@ -456,8 +456,8 @@ scales with it. That is stock RC-2 economics on our structure; B-30 lists the le
 ### 9.4 Gate audit: compression generator tier N must not need anything the Eye first makes at tier ≥ N
 
 The Eye's first-product ladder (D-42/D-43): T1 Raw Star Matter, T2 ESPM, T3 RHSP (and HSM from Kerr T2), **T4 White
-Dwarf Matter** (+ interim Black Dwarf Matter with `interimBlackDwarfAtEyeT4`), T5 Black Dwarf Matter, T6 Magnetar
-Matter, T7 Ergomatter, T8 supermassive Ergomatter, T9 White Hole Matter, T10 Universium. Derived: White Dwarf nanites
+Dwarf Matter**, T5 Black Dwarf Matter (the interim `interimBlackDwarfAtEyeT4` path is gone with D-49), T6 Magnetar
+Matter, T7 Ergomatter, T8 Superdense Ergomatter, T9 White Hole Matter, T10 Universium. Derived: White Dwarf nanites
 (WDM + RSM) T4, Black Dwarf nanites T5, Universium / Eternity / MagMatter nanites and MHDCSM (Universium or Eternity
 nanites + RSM) T10; Boundless Cosmic Solder, Primordial Matter and Excited DTSC need RSM (T1).
 
@@ -475,7 +475,7 @@ Neutronium; nanite tiers up to Transcendent (t0), Six-Phased Copper (t1-3), Whit
 | T2 | Primitive (t1) | Boundless Cosmic Solder (RSM, T1) ✔; **Resonance Chamber II: 1 White Dwarf Matter foil (T4)** ✘ | **loop**, fixed by SL-P39 |
 | T3 | Stable (t2) | as T2, 4 chambers ✘ | **loop**, fixed by SL-P39 |
 | T4 | Advanced (t3) | as T2, 16 chambers: WDM is T4's own product ✘ | **loop**, fixed by SL-P39 |
-| T5 (P4) | Superb (t4) | White Dwarf nanites (T4) ✔; **Resonance Chamber III: Black Dwarf Matter foil (T5)** | loop unless the interim T4 BDM recipe stays; P4 |
+| T5 | Superb (t4) | White Dwarf nanites (T4) ✔; **Resonance Chamber III: Black Dwarf Matter foil (T5)** ✘ | **loop**, fixed by SL-P33 (BDM-free Resonance Chamber III; `/btseye gates` CLEAN, B-59) |
 | T6 (P4) | Exotic (t5) | BDM (T5) ✔, Creon ✔ | clean |
 | T7 (P4) | Perfect (t6) | BDM ✔, SpaceTime ✔ | clean |
 | T8 (P4) | Tipler (t7) | Black Dwarf nanites (T5) ✔; **Resonance Chamber IV: MHDCSM foil (T10), Eternity plate** | **loop**; P4/P5 (D-48 moves Eternity onto Ergomatter, T7; MHDCSM still needs Universium) |
