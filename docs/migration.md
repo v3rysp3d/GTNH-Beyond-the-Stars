@@ -47,6 +47,11 @@ its controller recipe.
 - Wrenching the controller keeps the Galactic Upgrade Core and the fluid buffers. A run that is in progress when the
   controller is wrenched is lost: its inputs and EU were taken at the start.
 - Breaking the structure mid-run also stops the run, and its outputs are lost.
+- **Eye cores built before the cost audit's #5 (addon 757660e and earlier, e.g. the 0.24.1-master.32 test jar, by
+  `/btseye` or a hologram) un-form.** The pylon foot pads now hold Stabilisation Field Generators only on each pad's
+  centre ring of 8 (48 in all, was 294). The other 246 pad cells now take Reinforced Temporal Structure Casing (the
+  plinth), and the walk reports the first generator it meets there as a wrong block. Swap those 246 generators for
+  Reinforced Temporal Structure Casing and the Eye forms again. The removed generators can be reused elsewhere.
 
 **Kerr Ergosphere Engine** (MTE 28114), builds from before the round-3/4 follow-up pass (addon 4bd6bf2 and earlier).
 
