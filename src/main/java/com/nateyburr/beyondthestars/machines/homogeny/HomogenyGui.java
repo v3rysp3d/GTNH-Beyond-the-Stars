@@ -5,8 +5,8 @@ import net.minecraft.util.EnumChatFormatting;
 import com.cleanroommc.modularui.api.drawable.IKey;
 import com.cleanroommc.modularui.api.widget.IWidget;
 import com.cleanroommc.modularui.screen.ModularPanel;
-import com.cleanroommc.modularui.value.sync.BooleanSyncValue;
 import com.cleanroommc.modularui.value.sync.DoubleSyncValue;
+import com.cleanroommc.modularui.value.sync.InteractionSyncHandler;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 import com.cleanroommc.modularui.value.sync.StringSyncValue;
 import com.cleanroommc.modularui.widgets.ButtonWidget;
@@ -42,9 +42,7 @@ public class HomogenyGui extends MTEMultiBlockBaseGui<MTEHomogeny> {
         syncManager.syncValue("homInstallLine", new StringSyncValue(multiblock::installLine));
         syncManager.syncValue("homInstallP", new DoubleSyncValue(multiblock::installFraction));
         syncManager.syncValue("homNote", new StringSyncValue(multiblock::lastNote));
-        syncManager.syncValue(
-            "homInstall",
-            new BooleanSyncValue(multiblock::isInstalling, v -> { if (v) multiblock.beginInstall(); }).allowC2S());
+        // Install is a server-side action (GT's InteractionSyncHandler pattern), not a synced boolean.
     }
 
     @Override
@@ -81,15 +79,13 @@ public class HomogenyGui extends MTEMultiBlockBaseGui<MTEHomogeny> {
 
     @Override
     protected Flow createLeftPanelGapRow(ModularPanel parent, PanelSyncManager syncManager) {
-        final BooleanSyncValue install = syncManager.findSyncHandler("homInstall", BooleanSyncValue.class);
+        final InteractionSyncHandler install = new InteractionSyncHandler().setOnMousePressed(
+            mouse -> { if (!mouse.isClient() && mouse.mouseButton == 0) multiblock.beginInstall(); });
         return super.createLeftPanelGapRow(parent, syncManager).childPadding(2)
             .child(
                 new ButtonWidget<>().size(40, 16)
+                    .syncHandler(install)
                     .overlay(IKey.str("Install"))
-                    .onMousePressed(button -> {
-                        install.setBoolValue(true);
-                        return true;
-                    })
                     .tooltip(
                         t -> t.addLine("Install the next tier's core")
                             .addLine(HRGui.grey("Needs: the next ring built, the milestone mixed,"))
