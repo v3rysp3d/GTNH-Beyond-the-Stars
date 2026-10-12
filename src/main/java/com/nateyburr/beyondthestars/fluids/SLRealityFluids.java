@@ -1,5 +1,8 @@
 package com.nateyburr.beyondthestars.fluids;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 
@@ -61,7 +64,18 @@ public final class SLRealityFluids {
     /** Eye T9 output (P5). */
     public static Fluid whiteHoleMatter;
 
+    /** The later phases' fluids this file registered itself (no Eye makes them yet): the recipe unit's gate log. */
+    private static final Set<Fluid> PLACEHOLDERS = new HashSet<>();
+
     private SLRealityFluids() {}
+
+    /**
+     * True if {@code fluid} is one of the later phases' fluids that only this file registered (H-24): every recipe
+     * that needs it is present in NEI but cannot be run until an Eye tier makes it. False once P4/P5 own it.
+     */
+    public static boolean isPlaceholder(Fluid fluid) {
+        return fluid != null && PLACEHOLDERS.contains(fluid);
+    }
 
     public static void register() {
         degenerateStellarMixture = fluid(
@@ -141,7 +155,9 @@ public final class SLRealityFluids {
         BeyondTheStars.LOG.info(
             "[BTS] " + name
                 + " registered as a placeholder (its Eye tier is not built yet): its recipes are unreachable.");
-        return fluid(name, localName, r, g, b, 240, state, kelvin);
+        final Fluid placeholder = fluid(name, localName, r, g, b, 240, state, kelvin);
+        PLACEHOLDERS.add(placeholder);
+        return placeholder;
     }
 
     private static Fluid fluid(String name, String localName, int r, int g, int b, int a, FluidState state,
