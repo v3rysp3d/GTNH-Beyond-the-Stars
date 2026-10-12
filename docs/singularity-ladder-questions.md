@@ -1990,6 +1990,67 @@ its MUI2 screen `HomogenyGui`.
 **Alternatives.** The doc's fallback (six output hatches feeding six input hatches, no BEC) if the grid wrinkle in
 item 1 proves annoying in play.
 
+### B-65 H/R: every Homogeny / Reality recipe goes through the Condensate Assembler [H/R unit 3, built]
+
+**Context.** Ruling 16 ("make sure all of these recipes integrate with Bose Einstein condensate assembler and similar
+for our requirements"), ruling 6 (every BOM block craftable at a fair cost), rulings 17 and 19a, and the design doc
+`designs/docs/homogeny-reality.md` §5 (PROPOSED). Built in `BTSRecipesReality` (guard line `reality`); build spec
+"Contract additions (Homogeny / Reality recipes)"; costs §12. Numbered B-65 because master's BEC expansion took B-64.
+
+**What was built, and the judgement calls.**
+
+1. **All 17 block / core / controller recipes are Condensate Assembler recipes**, one nanite tier per stack, none above
+   Black Dwarf (H-17), with the condensates of the doc's families. Controllers too (H-19: ruling 16 overrides the BEC
+   proposal's R4 for these three machines). Four Condensate Generator recipes make our condensates (SL-C01..C04).
+   **Suggestion:** keep. Alternative: assembly lines for the three controllers, like the Eye and the Kerr.
+2. **SL-H10 (Homogeny Tier II Core) is gated on Black Dwarf Matter, not Magnetar Matter** (ruling 19a): 256 ingots of
+   BDM condensate (the Magnetar Seed Core's amount) + 256 ingots of WDM + 1,024 of SpaceTime. The Homogeny T2 is
+   therefore buildable right after Eye T5. As a result **SL-B16 (Entangled Magnetar Matter) has no consumer**, so it
+   gets no generator recipe (BEC Q-B6: an orphan condensate in NEI suggests a use that does not exist); its fluid stays
+   a reserved name. **Suggestion:** keep; give SL-B16 its generator when P4 adds a Magnetar consumer.
+3. **This branch has no `SLCondensates`.** Master's BEC expansion (SL-B10..B15) landed after the branch forked. The
+   Homogeny T1 needs Entangled Raw Star Matter and the T2 core needs Entangled White / Black Dwarf Matter, so
+   `BTSRecipesReality.shim` looks each up by its frozen registry name, registers the same fluid (name, colour, GAS at
+   0 K) at postInit only if nothing did, and adds a generator recipe only if none exists on that source fluid. Merged,
+   master's run first and the shim only reads them. **Suggestion:** keep (order-proof, nothing to delete on merge).
+   Alternative: delete the shim after the merge.
+4. **Recipes needing fluids nobody makes yet are registered, visible in NEI, and logged.** Ergomatter and Superdense
+   Ergomatter (Eye T7/T8, P4) and White Hole Matter (Eye T9, P5) are still `SLRealityFluids` placeholders (H-24). Every
+   recipe that needs one, directly or through a Region Crystal, prints `[BTS] H/R gate: <recipe> is registered but
+   unreachable until an Eye makes <fluid>` at boot: SL-C02..C04, SL-R11, R13, R16, R17, SL-H20, SL-R01, R02, and unit
+   2's process recipes SL-H21, SL-R03, R04, R05. So until P4 the Reality machines and the Homogeny T3 cannot be built,
+   which is the ladder's design. **Suggestion:** keep. Alternative: skip those recipes until P4/P5 ship.
+5. **Priced against the exported BOM, not the doc's estimates (B-60).** Seven per-craft inputs were trimmed because the
+   real block counts made them balloon: H02 pistons 8 → 2 (824 UMV pistons → 206), H03 field coils 8 → 4, SC UMV
+   wire 16 → 8 and motors 4 → 2, R11 emitters 4 → 2, R12 dense Infinity 16 → 8 and SpaceTime 64 → 32 ingots, R13 FG
+   UXV 2 → 1 (544 → 272), R14 dense Infinity 32 → 16 (93k → 47k Infinity ingots in the Refab hull) and SpaceTime 64
+   → 32 ingots, R15 Casimir 8 → 4. **SL-R16 outputs 32 claws, not 8**: the Refab has 688 claws, not the doc's 190, so
+   ×32 keeps the bill near the doc's (23 crafts, 216 Robot Arm UXV with the controller). **Suggestion:** keep.
+6. **The Homogeny T1's 2,430 Godforge Boundless casings are its heaviest item** (column caps; 1,215 Godforge BEC
+   crafts, 29k Mellion frames, 3,645 FG UEV, 7,290 Artificial Gravity Generators), more than all its ladder blocks
+   together, at UMV. **Suggestion:** re-draw the caps in Reinforced Temporal Structure Casing (×32 since ruling 11a: 76
+   crafts) or in Stirring Band Casing (a structure change for the mockup and unit 1's legend). Alternative: keep (the
+   Homogeny becomes a post-Godforge build).
+7. **The Reality machines' Godforge lens glass is their outlier.** The Diffraction spine (1,916) and the Refab spindle
+   (2,837) plus the Region Crystal inputs are about 2.5k Godforge glass crafts, about 15k Stable Boson Containment
+   Units. **Suggestion:** swap both to Quantum Glass (they are windows for renders that are not built yet, B-63 item
+   11). Alternative: keep the Godforge look. Also heavy but in line with MAX: 752 Condensate Guidance Coils (one
+   Compact Fusion Coil T3 each) for the Refab collars, and 9.4k Electromagnetically-Isolated Casings across both bases.
+8. **SL-R17 Region Anchor Casing ×4 is new** (12 per Diffraction; unit 1 added the block after the doc's table): Region
+   Crystal 2, EM-Isolated Casing 2, Harmonic Lining 4, Sensor UXV 1; Degenerate 500 L, SpaceTime 8 ingots.
+9. **Small substitutions.** Dense plates fall back to the block, then to 9 plates; the huge Neutronium pipe of SL-H05
+   falls back to the large one. "Supermassive" in the doc is Superdense everywhere (ruling 17). Nanite tier 2 is
+   Silver (GT's own `nanites()` index, as master's BEC recipes use), not Neutronium (both are tier 2).
+10. **NEI.** Our recipes appear on GT's Condensate Assembler and Condensate Generator pages with their nanite tiers;
+    the three machine tabs now show their controller. The Homogeny Tier II / III Core tooltips name the condensates
+    and the Eye tier after which they can be made (rule 14).
+11. **Not tested in game.** `spotlessApply compileJava` passes. On a dev server: the boot summary should show 21 new
+    recipes (4 generators, 17 assembler; plus 3 generators on a build without master's BEC expansion) and 0 skipped,
+    the 14 `H/R gate:` lines, and NEI usage of Degenerate Stellar Mixture should show SL-C01.
+
+**Alternatives.** Assembly lines for the controllers (H-19); keep the doc's ×8 claws and untrimmed inputs; skip the
+P4/P5-gated recipes until their fluids have an owner.
+
 ## Part C. Settled (for the record)
 
 | Topic | Your answer | State |
