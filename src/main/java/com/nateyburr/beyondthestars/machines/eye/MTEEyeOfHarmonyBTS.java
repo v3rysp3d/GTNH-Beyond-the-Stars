@@ -758,7 +758,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     /**
      * D-49 §8: right-click holding a transition core puts the core for {@code unlockedTier →
      * unlockedTier+1} into the escrow (one item; any other core is refused, naming the one needed).
-     * It is consumed only when the transition succeeds (unit 5). This replaces the Galactic Upgrade
+     * It is consumed only when the transition succeeds. This replaces the Galactic Upgrade
      * Core's instant install (A-2/B-1 superseded).
      */
     @Override
@@ -793,6 +793,14 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             || !aPlayer.isSneaking()
             || aPlayer.getHeldItem() != null
             || runtime.escrow() == null) return;
+        if (runtime.transition() != null) {
+            GTUtility.sendChatToPlayer(
+                aPlayer,
+                EnumChatFormatting.YELLOW + "The "
+                    + runtime.transition().type.title
+                    + " is running: the core stays in escrow until it ends.");
+            return;
+        }
         final ItemStack core = runtime.takeEscrow();
         if (core == null) return;
         if (!aPlayer.inventory.addItemStackToInventory(core)) aPlayer.dropPlayerItemWithRandomChoice(core, false);
@@ -1059,22 +1067,30 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
      * run loop would fire {@link #outputAfterRecipe}); the controller GUI shows the star's state.
      */
     private CheckRecipeResult starStatus(StarDef star) {
-        final boolean pending = runtime.live() && runtime.star() != null
-            && runtime.star()
-                .n() + 1 == star.n();
+        if (runtime.transition() != null) {
+            return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_transition");
+        }
+        // The chart of the tier above the unlocked one is how that tier is unlocked (PENDING, the First
+        // Cooling, the Magnetar Merger), so its "locked" gate does not hide the star's own status.
+        final boolean towardNext = star.n() == runtime.unlockedTier() + 1;
         final CheckRecipeResult gate = tierGate(star.n());
-        if (gate != null && !pending) return gate;
+        if (gate != null && !towardNext) return gate;
         switch (runtime.state()) {
             case IGNITING:
                 return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_igniting");
             case PENDING:
                 return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_pending");
             case LIT:
-            case BATCH:
                 return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_lit");
+            case BATCH:
+                return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_batch");
+            case IDLE:
+                return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_idle");
             default:
-                if (star.n() >= 5) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_unit5");
+                if (star.n() == 6) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_merger");
+                if (star.n() == 5) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_idle");
                 if (!star.tier.ignite) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_remnant");
+                if (gate != null) return gate;
                 return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_dark");
         }
     }
@@ -1290,6 +1306,16 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         }
 
         @Override
+        public int structureTier() {
+            return MTEEyeOfHarmonyBTS.this.structureTier();
+        }
+
+        @Override
+        public int compressionTier() {
+            return MTEEyeOfHarmonyBTS.this.compressionTier();
+        }
+
+        @Override
         public int timeTier() {
             return generatorTier(FIELD_DILATION);
         }
@@ -1372,6 +1398,15 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         @Override
         public void output(Fluid fluid, long litres) {
             dumpFluid(fluid, litres);
+        }
+
+        /** The T6 Tengam return: through GT's item ejection (ME output buses; void protection as built). */
+        @Override
+        public void outputItems(ItemStack stack, long count) {
+            if (stack == null || count <= 0) return;
+            final ItemEjectionHelper items = new ItemEjectionHelper(MTEEyeOfHarmonyBTS.this);
+            ejectItem(items, stack, count);
+            items.commit();
         }
 
         @Override

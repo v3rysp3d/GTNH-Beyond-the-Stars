@@ -216,3 +216,11 @@ GT5U.gui.text.recipe_result.beyondthestars.eye.star_pending=The next tier's char
 GT5U.gui.text.recipe_result.beyondthestars.eye.star_dark=The star is dark: it lights with a Stellar Ignition Charge in a plinth input bus, 10 cycles of upkeep in the buffers and 10 cycles of EU
 GT5U.gui.text.recipe_result.beyondthestars.eye.star_remnant=The neutron star is born from a burning Arcturus by the Core Collapse: light Arcturus, then put this chart in
 GT5U.gui.text.recipe_result.beyondthestars.eye.star_unit5=The T5 and T6 stars are not in this build yet
+
+# D-49 unit 5: transitions, T5 cooling batches, T6 magnetar; the transition and field NEI pages
+GT5U.gui.text.recipe_result.beyondthestars.eye.star_transition=A transition is running: scan the controller for its phase (a wrench, soft mallet or another chart aborts it)
+GT5U.gui.text.recipe_result.beyondthestars.eye.star_batch=Sirius B is cooling a white dwarf: scan the controller for the setpoint and the batch
+GT5U.gui.text.recipe_result.beyondthestars.eye.star_idle=Sirius B waits: it needs a White Dwarf Matter charge (or, before T5 is unlocked, everything the First Cooling needs); scan the controller
+GT5U.gui.text.recipe_result.beyondthestars.eye.star_merger=The magnetar is spawned by the Magnetar Merger: scan the controller for what it still needs
+beyondthestars.recipe.eyetransition=Eye of Harmony: Transitions
+beyondthestars.recipe.eyefield=Eye of Harmony: Stability Field
