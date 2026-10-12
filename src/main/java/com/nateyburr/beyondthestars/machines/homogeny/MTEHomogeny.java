@@ -118,6 +118,11 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
     public static final long MILESTONE_LITRES = 100_000L;
     /** The install run, 10 minutes. */
     public static final int INSTALL_TICKS = 12_000;
+    /**
+     * Install progress marks the chunk for saving this often: nothing else touches a chunk whose only change is our
+     * counter, so without it a restart reloaded the install as it was when it started.
+     */
+    private static final int SAVE_EVERY_TICKS = 20;
     /** The install run's EU/t, index = target tier (doc §1.3: RECIPE_UXV for T2, RECIPE_MAX for T3). */
     public static final long[] INSTALL_EUT = { 0, 0, TierEU.RECIPE_UXV, TierEU.RECIPE_MAX };
 
@@ -494,6 +499,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
         installStall = "";
         installTicks++;
         if (installTicks >= INSTALL_TICKS) completeInstall();
+        else if (installTicks % SAVE_EVERY_TICKS == 0) markDirtyBase(); // else a restart reloads the last save
         return true;
     }
 
@@ -634,6 +640,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
         mixedDegenerate += pendingDegenerate;
         pendingEspm = 0;
         pendingDegenerate = 0;
+        markDirtyBase();
     }
 
     @Override

@@ -75,6 +75,8 @@ import tectech.thing.metaTileEntity.multi.bec.MTEBECAssembler;
  */
 public class MTERealityRefab extends MTERealityBase<MTERealityRefab> {
 
+    private static final int SAVE_EVERY_TICKS = 20;
+
     public static final String PIECE = "reality_refab";
     public static final int LINK_RANGE = 64;
 
@@ -441,6 +443,10 @@ public class MTERealityRefab extends MTERealityBase<MTERealityRefab> {
             wait = "waiting for regions (the reassembly lock)";
             return;
         }
+        // The regions drawn so far live in this tile's NBT while the BEC network saves its own storage: mark the
+        // chunk for saving as the craft advances (GT marks it only at start and end), so a restart cannot reload an
+        // older "consumed" and draw those regions twice.
+        if (next / SAVE_EVERY_TICKS != mProgresstime / SAVE_EVERY_TICKS) getBaseMetaTileEntity().markDirty();
         mProgresstime = next;
         stalled = false;
         wait = "";

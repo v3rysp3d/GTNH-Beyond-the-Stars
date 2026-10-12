@@ -327,12 +327,21 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
         return n;
     }
 
-    /** Injects every waiting region into the network; what it does not take keeps waiting. */
+    /**
+     * Injects every waiting region into the network; what it does not take keeps waiting. Marks the chunk for saving
+     * when anything went in: the network saves its own storage, so a restart that reloaded the older buffer would
+     * inject those litres twice.
+     */
     private void flushPending() {
         final Fluid[] regions = SLRealityFluids.regions();
+        boolean moved = false;
         for (int k = 0; k < 6; k++) {
-            if (pending[k] > 0 && regions[k] != null) pending[k] = inject(regions[k], pending[k]);
+            if (pending[k] <= 0 || regions[k] == null) continue;
+            final long left = inject(regions[k], pending[k]);
+            moved |= left != pending[k];
+            pending[k] = left;
         }
+        if (moved && getBaseMetaTileEntity() != null) getBaseMetaTileEntity().markDirty();
     }
 
     @Override
