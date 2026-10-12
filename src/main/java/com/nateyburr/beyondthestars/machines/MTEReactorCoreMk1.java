@@ -261,7 +261,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     MTEHatchSpineSensor spineSensor;
     private int lastGoodInjectors;
     private int chamberCoolantDrain;
-    private String chamberCoolantName = "";
+    /** Display only; starts "idle", as a stopped plant resets it, so a fresh plant never shows a blank coolant name. */
+    private String chamberCoolantName = "idle";
     private long lastChamberTick;
     /**
      * The chamber's COOLANT feed. Semantics unchanged from SD-3 - a dedicated list, drained
