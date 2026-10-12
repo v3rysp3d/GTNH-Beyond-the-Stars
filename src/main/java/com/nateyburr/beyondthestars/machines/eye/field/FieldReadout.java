@@ -9,32 +9,35 @@ public final class FieldReadout {
     /** The sensor hatch channels (plan §12). */
     public enum Channel {
 
-        P(true),
-        THETA(true),
-        OMEGA(true),
-        PI(true),
+        P(true, 0),
+        THETA(true, 0),
+        OMEGA(true, 0),
+        PI(true, 0),
         /** T6 shield, 0..100. */
-        SHIELD(false),
+        SHIELD(false, 100),
         /** Integrity, 0..100. */
-        INTEGRITY(false),
+        INTEGRITY(false, 100),
         /** Stability, 0..100. */
-        STABILITY(false),
-        /** 0 Resonant .. 4 Breach (−1 when not lit). */
-        ZONE(false),
-        /** +1 warning with a + sign (or unsigned), −1 with a − sign, 0 none. */
-        WARN_PLUS(false),
-        WARN_MINUS(false),
-        WARN_ANY(false),
-        /** 1 when the cycle's upkeep is fully met (r = 1). */
-        UPKEEP_OK(false),
+        STABILITY(false, 100),
+        /** 0 Resonant .. 4 Breach (−1 when not lit). Analog: 0, 4, 8, 11, 15. */
+        ZONE(false, 4),
+        /** +1 warning with a + sign (or unsigned), −1 with a − sign, 0 none. Analog: 15 or 0. */
+        WARN_PLUS(false, 1),
+        WARN_MINUS(false, 1),
+        WARN_ANY(false, 1),
+        /** 1 when the cycle's upkeep is fully met (r = 1). Analog: 15 or 0. */
+        UPKEEP_OK(false, 1),
         /** T5: Θ minus the cooling setpoint. */
-        SETPOINT_ERROR(true);
+        SETPOINT_ERROR(true, 0);
 
-        /** Gauge-scaled (−120..+120) rather than 0..100. */
+        /** Gauge-scaled (−120..+120). */
         public final boolean gauge;
+        /** Otherwise the value's full scale (0..max maps to 0..15): 100, the zone's 4, a flag's 1. */
+        public final double max;
 
-        Channel(boolean gauge) {
+        Channel(boolean gauge, double max) {
             this.gauge = gauge;
+            this.max = max;
         }
     }
 
@@ -144,10 +147,13 @@ public final class FieldReadout {
         }
     }
 
-    /** Analog redstone 0..15: {@code round(15·(v+120)/240)} for gauges, {@code round(15·v/100)} for 0-100 values. */
+    /**
+     * Analog redstone 0..15: {@code round(15·(v+120)/240)} for gauges, {@code round(15·v/max)} for the rest (0-100
+     * values, the zone 0..4, and the 0/1 flags, which give 15 when set).
+     */
     public int analog(Channel c) {
         final double v = value(c);
-        final long a = c.gauge ? Math.round(15 * (v + 120) / 240) : Math.round(15 * v / 100);
+        final long a = c.gauge ? Math.round(15 * (v + 120) / 240) : Math.round(15 * v / c.max);
         return (int) Math.max(0, Math.min(15, a));
     }
 }

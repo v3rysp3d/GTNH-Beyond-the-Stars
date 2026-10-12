@@ -26,6 +26,9 @@ import gregtech.common.gui.modularui.hatch.base.MTEHatchBaseGui;
  */
 public class StellarFieldSensorGui extends MTEHatchBaseGui<MTEHatchStellarFieldSensor> {
 
+    /** The synced "no reading" value (a finite comparison holds for it, unlike NaN). */
+    private static final double NO_READING = Double.NEGATIVE_INFINITY;
+
     public StellarFieldSensorGui(MTEHatchStellarFieldSensor sensor) {
         super(sensor);
     }
@@ -36,7 +39,12 @@ public class StellarFieldSensorGui extends MTEHatchBaseGui<MTEHatchStellarFieldS
             .allowC2S();
         final BooleanSyncValue lessThan = new BooleanSyncValue(machine::isLessThan, machine::setLessThan).allowC2S();
         final BooleanSyncValue analog = new BooleanSyncValue(machine::isAnalog, machine::setAnalog).allowC2S();
-        final DoubleSyncValue reading = new DoubleSyncValue(machine::getLastValue);
+        // NaN (no reading) never equals itself, so MUI2's change check would resend it every tick: sync a sentinel
+        // that compares equal instead
+        final DoubleSyncValue reading = new DoubleSyncValue(() -> {
+            final double v = machine.getLastValue();
+            return Double.isNaN(v) ? NO_READING : v;
+        });
         final IntSyncValue output = new IntSyncValue(machine::currentOutput);
         syncManager.syncValue("btsSensorChannel", channel);
         syncManager.syncValue("btsSensorLessThan", lessThan);
@@ -96,7 +104,7 @@ public class StellarFieldSensorGui extends MTEHatchBaseGui<MTEHatchStellarFieldS
                     .childPadding(2))
             .child(IKey.dynamic(() -> {
                 final double v = reading.getDoubleValue();
-                return (Double.isNaN(v) ? "No reading (star dark or Eye silent)"
+                return (Double.isNaN(v) || v == NO_READING ? "No reading (star dark or Eye silent)"
                     : String.format(Locale.ROOT, "Reading %.1f", v)) + ", output " + output.getIntValue();
             })
                 .asWidget())

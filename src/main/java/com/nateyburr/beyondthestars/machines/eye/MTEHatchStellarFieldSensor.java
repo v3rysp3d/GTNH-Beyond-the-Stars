@@ -36,7 +36,8 @@ import gregtech.common.covers.redstone.CoverAdvancedRedstoneTransmitterInternal;
  * <p>
  * <b>Channel:</b> any {@link FieldReadout.Channel}. <b>Comparator:</b> greater than (default) or less
  * than the threshold. <b>Output:</b> digital (15 or 0) or analog ({@link FieldReadout#analog}: gauges
- * map −120..+120 onto 0..15, the 0-100 channels map 0..100 onto 0..15). The signal goes out on all
+ * map −120..+120 onto 0..15, the 0-100 channels map 0..100 onto 0..15, the zone 0..4 onto 0..15, and the
+ * warning and upkeep flags give 15 when set). The signal goes out on all
  * six sides, like the addon's Spine Sensor, so it can be picked up from any face that is exposed; covers keep working
  * ({@link #emit}: GT's internal transmitter covers carry it, other redstone covers keep their own side).
  * The GUI is cloned from GT's pH sensor ({@code MTEHatchPHSensorGui}, MUI2).
@@ -84,7 +85,8 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
         return new String[] { "Goes in a Sensor socket (n) of the Eye of Harmony (Beyond the Stars).",
             "Outputs redstone from one stability-field channel: P, Θ, Ω, Π, shield, Integrity, Stability,",
             "zone, event warning (+ / - / any), upkeep OK or the T5 setpoint error.",
-            "Digital: 15 when the value is above (or below) the threshold. Analog: 0-15 across the range.",
+            "Digital: 15 when the value is above (or below) the threshold. Analog: 0-15 across the range",
+            "(gauges -120..+120, 0-100 values, zone 0..4 = 0/4/8/11/15; warnings and upkeep OK give 15 when set).",
             "Emits on all sides. Right-click to configure. Falls to 0 when the Eye stops reporting." };
     }
 
