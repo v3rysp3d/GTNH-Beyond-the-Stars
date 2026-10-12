@@ -9,8 +9,10 @@ import java.util.Locale;
 import java.util.Map;
 
 import net.minecraft.block.Block;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeChunkManager;
@@ -259,12 +261,45 @@ public final class KerrTestBench {
             .append(names(m.mOutputItems, null))
             .append("; in: ")
             .append(busContents(m.mInputBusses))
-            .append("; out: ")
+            .append("; out (")
+            .append(m.mOutputBusses.size())
+            .append(" bus(es), ")
+            .append(m.mOutputHatches.size())
+            .append(" hatch(es)): ")
             .append(busContents(m.mOutputBusses))
             .append("; fluids in: ")
             .append(tankContents(m.mInputHatches))
             .append("; fluids out: ")
-            .append(tankContents(m.mOutputHatches));
+            .append(tankContents(m.mOutputHatches))
+            .append("; dropped near the controller: ")
+            .append(drops(base));
+        return sb.toString();
+    }
+
+    /** Item entities near the controller, down to 40 blocks below it (migration drops what does not fit). */
+    private static String drops(IGregTechTileEntity base) {
+        final World world = base.getWorld();
+        if (world == null) return "?";
+        final AxisAlignedBB box = AxisAlignedBB.getBoundingBox(
+            base.getXCoord() - 6,
+            base.getYCoord() - 40,
+            base.getZCoord() - 6,
+            base.getXCoord() + 7,
+            base.getYCoord() + 4,
+            base.getZCoord() + 7);
+        final Map<String, Integer> totals = new LinkedHashMap<>();
+        for (Object o : world.getEntitiesWithinAABB(EntityItem.class, box)) {
+            final ItemStack s = ((EntityItem) o).getEntityItem();
+            if (s != null && s.getItem() != null) totals.merge(s.getDisplayName(), s.stackSize, Integer::sum);
+        }
+        if (totals.isEmpty()) return "none";
+        final StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, Integer> e : totals.entrySet()) {
+            if (sb.length() > 0) sb.append(", ");
+            sb.append(e.getValue())
+                .append("x ")
+                .append(e.getKey());
+        }
         return sb.toString();
     }
 
