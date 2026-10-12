@@ -1249,6 +1249,48 @@ fallback quests standing in, until an op runs `/btsquests install`.
 `/btsquests` keeps `status` as the default. Its usage line becomes `/btsquests [status|install [force]|uninstall
 [all|edits]|verify|dumpids]`, permission level 2.
 
+**As built (unit Q3, 2026-10-13).** `BQBridge` holds the reflection primitives (every member
+javap-checked against `BetterQuesting-3.8.89-GTNH`); the engine is `QuestbookInstaller`, with
+`QuestbookBundle` (the jar's `overlay.json`), `QuestbookState` and `QuestbookEvents`. Where it
+differs from the text above:
+
+- **The state file is NBT**, `saves/<world>/beyondthestars/questbook-state.dat` (gzip), not JSON:
+  it stores whole pack quests, and NBT round-trips them exactly, which is what makes `uninstall`
+  byte-identical. Besides the original it keeps each edit's quest **as applied**; the cheap
+  check compares the live quest with that (`NBTTagCompound.equals`), which catches a
+  `/bq_admin default load` and a hand edit alike.
+- **Re-capture.** When an applied edit's live quest no longer equals what we applied (a default
+  load, a pack update), the live quest is matched again and, if it still passes the id + name +
+  chapter check, becomes the new original. If it fails but the stored original passes, the edit
+  is re-applied over the stored original. Otherwise the edit is skipped and reverted.
+- **Task progress** is dropped wherever a quest's task list changed (live task NBT before vs
+  after), for our quests and pack edits alike. In practice that is exactly the `completionOnly`
+  edits on their first application; a re-install never drops anything. A `keep` edit that
+  changes tasks is reported as an op miss.
+- **`uninstall edits`** leaves the world exactly as `questbookPackEdits=false` would: every
+  pack quest restored from its original, our chapters kept, and the fallback quests 48103 /
+  48109 **shown** (rule 14: the KEE and the Eye must still be taught). The spec text said it
+  removes them.
+- **Uninstall is sticky.** Both forms record `uninstalled` in the state file, and the
+  auto-install leaves that world alone until an op runs `/btsquests install`.
+- **`install` without `force`** answers "already up to date" when the cheap check passes;
+  `install force` always runs.
+- **Progress backup** (not in the spec): BetterQuesting's own default load, which it runs by
+  itself when `pack_version` changes, clears the whole database and restores progress only
+  for quests in `DefaultQuests`. Without our mirror merged, our quests would come back from the
+  jar with no progress. `questbook-progress.dat` holds every player's progress on our quests,
+  refreshed on each overworld save; a quest the installer has to re-create gets its rows back
+  (task progress only if taken under the same bundle; a placeholder that became real gets
+  nothing).
+- **Auto-install event:** `FMLServerStartedEvent`. BetterQuesting loads the world and default-
+  loads a new world in its `FMLServerStartingEvent` handler (`SaveLoadHandler.loadDatabases`,
+  then `/bq_admin default load` when `loadDefaultsOnStartup` or `hasUpdate`). Its
+  `DatabaseEvent.Load` would need a compile dependency to subscribe to.
+- **Grafts** use their `on` position only when every edit that moves a quest into or out of that
+  chapter applied; otherwise `off`.
+- **Chapter order** is re-set on every install (ladder chapters directly after UMV, the plant
+  chapter last).
+
 ### 4.6 Progress
 
 BQ keeps progress inside each quest: a completion map per player UUID, and task progress per task index. The snapshot

@@ -1,51 +1,79 @@
 # Beyond the Stars — questbook overlay
 
-## ⚠ READ THIS FIRST: an EXISTING world will not show the quests
+## ⚠ READ THIS FIRST: how the book gets into a world
 
-BetterQuesting reads `config/betterquesting/DefaultQuests/` **exactly once — when a world is
-created**. From that moment the world owns a private copy at
-`saves/<world>/betterquesting/QuestDatabase.json` and never looks at the defaults again.
+BetterQuesting reads `config/betterquesting/DefaultQuests/` **only when a world is created**
+(and again on its own `/bq_admin default load`, which it also runs by itself when the pack's
+`pack_version` changes). From then on the world owns a private copy at
+`saves/<world>/betterquesting/QuestDatabase.json`. Merging this overlay into an instance
+therefore reaches new worlds only.
 
-So merging this overlay into an instance makes the chapter appear in **new worlds only**.
-In a world you are already playing, nothing shows up no matter how correct the files are.
-This is the single most common "the quest isn't in my book" report, and it is not a bug in
-the overlay.
+**So the mod installs the book itself.** The jar carries the whole overlay as one bundle,
+`assets/beyondthestars/questbook/overlay.json`, and on every server start
+(`FMLServerStartedEvent`, after BetterQuesting has loaded the world) it brings the world's
+LIVE database in line with it whenever the bundle, the config or our content differs:
+our chapters and quests, our quests grafted into pack chapters, and the **pack edits** (the
+BHC quest becomes the Kerr Ergosphere Engine, the EOH quest becomes our Eye, the UXV / MAX /
+endgame quests move into our chapters). An unchanged world pays one file read. Config
+(`config/beyondthestars.cfg`, category `questbook`):
 
-**Fix it in game, in that world, with one op command:**
+| Key | Default | Meaning |
+| --- | --- | --- |
+| `questbookAutoInstall` | true | Install or refresh on server start when needed. Off: only `/btsquests install`. |
+| `questbookPackEdits` | true | Apply the pack edits. Off: the next install restores every edited pack quest from its stored original, and the fallback quests 48103 (KEE) and 48109 (Eye) stand beside the untouched pack quests. |
+
+The edits also follow `removeBlackHoleCompressorRecipe` (E01-E06) and
+`replaceTecTechEyeOfHarmony` (E10-E25, E37, E40, E47, E63, E64); with a flag off, its edits are
+reverted on the next install and the matching fallback quest appears.
+
+**Op commands** (`/btsquests`, permission 2):
 
 ```
-/btsquests            # says whether our ids are in THIS world's database, and why not
-/btsquests install    # puts them there
+/btsquests                     # status: our chapters n/expected (missing ids named), pack edits
+                               #   applied / skipped (with why), planned checkboxes, auto-install
+/btsquests install [force]     # bring this world in line with the jar (force: even if it matches)
+/btsquests uninstall [all|edits]
+                               # edits: restore every pack quest from its stored original (our
+                               #   chapters and the fallback quests stay); all: that, then remove
+                               #   every chapter and quest of ours. Sticky: the server does not
+                               #   reinstall on start until an op runs /btsquests install.
+/btsquests verify              # every item/fluid/ore name in the bundle, resolved live
+/btsquests dumpids             # the same, written to config/beyondthestars/questbook-registry.json
 ```
 
-`/btsquests install` adds only our chapter (`190/47990`), our 28 quests
-(`190/48000`–`190/48019` and `190/48021`–`190/48028`) and the `Unit One` entry quest
-(`190/48020`) to the world's live
-database, snapshotting and restoring player progress around the write, then broadcasts a
-resync so open books redraw. No pack quest is read, written or reordered — the only change
-to a pack chapter is the extra `Unit One` icon in *How to Generate Power*. Re-running it is
-safe and idempotent. It needs the overlay merged into the instance first (steps below):
-it installs *from* `DefaultQuests`, it does not carry the quests inside the mod jar.
+**What every install does** (`QuestbookInstaller`, reflection only, BetterQuesting
+3.8.89-GTNH members checked with javap):
 
-**The vanilla alternative** is BetterQuesting's own `/bq_admin default load`, which reloads
-the WHOLE `DefaultQuests` folder over the world's database. On BetterQuesting **3.8.x-GTNH**
-that command snapshots quest progress and writes it back afterwards
-(`QuestDatabase.writeProgressToNBT` → reload → `readProgressFromNBT`), so completed quests
-survive — but any quest edited in-world reverts to the pack default, and progress on quests
-the defaults no longer contain is dropped. On older BetterQuesting builds it is a straight
-overwrite and **progress does not survive**. Back the world up first.
+1. snapshots every player's progress (`QuestDatabase.writeProgressToNBT`);
+2. plans each pack edit against the pack quest's **original**: matched by id **and** name **and**
+   expected chapter; a mismatch (the pack changed the quest, e.g. RC-3) **skips that edit with
+   a warning** (server log, `status`, one chat line to ops on login) and leaves the quest as the
+   pack wrote it, so the book is never half-edited;
+3. reverts every applied edit that is no longer wanted (flag off, drifted, dropped);
+4. replaces our quests and chapters wholesale from the bundle, puts UXV / MAX / The Endgame
+   directly after the pack's Tier 12 - UMV and the plant chapter last, and grafts ours into
+   pack chapters (edited positions only when every edit that re-lays that chapter applied);
+5. applies each edit to a **copy of the stored original**, never to the edited quest, so a
+   second run gives the same database and `uninstall` restores the pack quest bit for bit;
+6. restores progress on every path (`try/finally`): completion is always kept; task progress
+   is dropped only where a quest's task list changed (the `completionOnly` edits E01, E10,
+   E63, E64 on their first application, never on a re-install); a planned checkbox that has
+   become a real quest is cleared (a ticked box never stands in for the machine);
+7. writes `saves/<world>/beyondthestars/questbook-state.dat` (NBT: per applied edit the pack
+   quest's original definition and chapter entries plus the definition as applied, the
+   placeholders, the last report, a sticky-uninstall marker), marks BetterQuesting dirty and
+   resyncs every client (`NetBulkSync.sendReset`).
 
-**On the API question**, precisely: BetterQuesting's public API *does* hand out the live
-databases — `QuestingAPI.getAPI(ApiReference.QUEST_DB)` and `…LINE_DB` return the same
-`QuestDatabase` / `QuestLineDatabase` objects the world is running on — but it exposes **no
-operation** for "load this quest line out of DefaultQuests into the running world". The only
-thing shipped that comes close is `/bq_admin default load`, which is all-or-nothing.
-`/btsquests install` is that missing operation, composed from the databases' own public
-methods (`createNew`, `put`, `setOrderIndex`, `writeProgressToNBT`/`readProgressFromNBT`,
-`NetBulkSync.sendReset`, `SaveLoadHandler.markDirty`) and reached by reflection, so the mod
-keeps no compile-time or runtime dependency on BetterQuesting — see
-`src/main/java/com/nateyburr/beyondthestars/BQBridge.java`. Without BetterQuesting installed,
-`/btsquests` says so and stops.
+A `/bq_admin default load` (by hand, or BetterQuesting's own on a pack update) wipes our edits
+and, if this overlay was NOT merged into `DefaultQuests`, our quests too. The next server start
+re-applies everything, re-capturing the pack's new originals. Progress on our own quests
+survives that through `saves/<world>/beyondthestars/questbook-progress.dat`, a backup of it
+refreshed on every world save. Merging the overlay (below) is still recommended: new worlds
+then show our chapters even before the first install, and `/bq_admin default load` keeps them.
+
+A jar without a bundle falls back to the old path: our quests are added from the instance's
+`DefaultQuests` (no pack edits). Without BetterQuesting installed, `/btsquests` says so and
+stops, and the mod has no dependency on it.
 
 ## What the overlay is
 
@@ -301,7 +329,8 @@ The ladder's part of the book (design: `docs/questbook-integration.md`) is data,
    positions (`on` = pack edits applied, `off`), and the 62 compiled pack edits (variants resolved
    against `features`; ops: `setName setDesc setIcon replaceText appendText setTasks setRewards
    swapItem setPrereqs addPrereq removePrereq replacePrereq move`, ids as base64). `bundleVersion`
-   is the SHA-1 of the content. `BQBridge` (unit Q3) applies it to a live world.
+   is the SHA-1 of the content. `QuestbookInstaller` (on top of `BQBridge`) applies it to a live
+   world: see the top of this file.
 3. `src/main/java/com/nateyburr/beyondthestars/BTSQuestIds.java`: every line and quest id we own,
    per chapter, plus fallbacks, placeholders and edit ids. Run `gradlew spotlessApply` after.
 4. `questbook/id-ledger.txt` (appended), and `questbook/pack-drift.txt` only when the pack drifted.
@@ -388,19 +417,14 @@ CAMPAIGN row still hold exactly `48000`–`48019` + `48021`–`48025` — which 
 expansion safe. Confirm it the same way every time: regenerate, then check that the only new
 files are the appended ones and that no existing file's `questIDLow:4` moved.
 
-**`/btsquests status` counts a declared LIST, not a range.** `BQBridge.CHAPTER_QUEST_LOWS`
-holds all 28 lows (`48000`–`48019` plus `48021`–`48028`; `48020` is the pack-line entry
-quest and is checked separately as `ENTRY_QUEST_UUID`). It used to be a `FIRST_QUEST_LOW` /
-`LAST_QUEST_LOW` pair reading `48000..48019`; when the five new quests were appended the pair
-was not widened, so `status` looked for 20 ids, found all 20 and reported *"Everything is
-loaded"* while five blueprints were missing from the book. A range could never describe this
-chapter anyway – `48020` is a hole in the middle of it by design.
-
-`gen-questbook.ps1` reads that array back out of `BQBridge.java` and **throws** if it does not
-match the ids it just handed out, so appending a quest to `$quests` without adding its low to
-the Java fails the questbook build rather than shipping a status command that lies. The
-command also names what it could not find, so `20/25` is followed by
-`missing 190/48021, 48022, ...`.
+**`/btsquests status` counts a declared LIST, not a range.** It counts
+`BTSQuestIds.PLANT_QUESTS` (and the ladder lists beside it), which
+`tools/gen-singularity.js` GENERATES from the files `gen-questbook.ps1` just wrote, with
+`48020` (the pack-line entry quest) checked separately as `ENTRY_QUEST`. It used to be a
+`FIRST_QUEST_LOW` / `LAST_QUEST_LOW` pair reading `48000..48019`; when five quests were
+appended the pair was not widened, so `status` reported *"Everything is loaded"* while five
+blueprints were missing. A generated list cannot fall behind the chapter, and the command
+names what it could not find (`missing 190/48021, 48022, ...`).
 
 **The entry quest's file stem is pinned to `UnitOne`.** Our own chapter folder is
 clean-replaced on every merge, so a renamed quest there simply loses its stale file — but the
@@ -444,14 +468,12 @@ For reference, a healthy 2.9.0-beta-1 `HowtoGeneratePow-…` holds **169** place
    `DefaultQuests/OrderLines.txt` says: the three ladder lines go directly after the pack's
    `Tier 12 - UMV` line, the plant line at the very end (skip any already present). It
    replaced `OrderLine.txt`.
-7. New worlds pick it up automatically. For an EXISTING world, load it and run
-   `/btsquests install` (op) — see the top of this file. `/bq_admin default load` is the
-   heavier vanilla fallback.
+7. New worlds pick it up automatically, and the mod's own install (top of this file) handles
+   existing worlds on their next server start. `/btsquests install` (op) does it on the spot.
 
-Verify the merge landed by running `/btsquests` in any world: it prints whether
-`190/47990`, all 28 chapter quests (`190/48000-48019, 48021-48028`) and the entry quest
-`190/48020` are in that world's live database, where it is reading `DefaultQuests` from, and
-– when anything is short – exactly which ids are missing.
+Verify by running `/btsquests` in any world: it prints, per chapter of ours, how many of
+its quests are in that world's live database (and exactly which ids are missing), the entry
+quest `190/48020`, and every pack edit applied or skipped.
 
 ## Editing
 
