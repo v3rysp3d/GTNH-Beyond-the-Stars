@@ -96,11 +96,13 @@ public final class BTSRecipesSingularity {
                 .eut(TierEU.RECIPE_UIV)
                 .addTo(assemblerRecipes));
 
-        // SL-P04 Superradiant Mirror Segment (component, x8 per Kerr controller)
+        // SL-P04 Superradiant Mirror Segment (component, x8 per Kerr controller). Research: a Superradiant
+        // Mirror casing - addon-only, because the scanner writes only the FIRST recipe sharing a research
+        // item and the Black Hole Seed is SL-K01's (BTSRecipeGuard.checkResearchCollisions).
         BTSRecipeGuard.recipe(
             "SL-P04",
             () -> GTValues.RA.stdBuilder()
-                .metadata(RESEARCH_ITEM, nn(ItemList.Black_Hole_Opener.get(1L), "ItemList.Black_Hole_Opener"))
+                .metadata(RESEARCH_ITEM, SLBlocks.casing(BlockSLCasing.MIRROR, 1))
                 .metadata(SCANNING, new Scanning(2 * MINUTES, TierEU.RECIPE_UIV))
                 .itemInputs(
                     BTSRecipeGuard.req(OrePrefixes.plate, Materials.Neutronium, 32L),
@@ -301,13 +303,12 @@ public final class BTSRecipesSingularity {
                 .addTo(assemblerRecipes));
 
         // SL-P21 Stabiliser Pylon (component, x6 per Eye controller). TecTech's EOH casings stand in
-        // for the retired Eye Shell / Harmonic Lining / Deck blocks (FC-1).
+        // for the retired Eye Shell / Harmonic Lining / Deck blocks (FC-1). Research: Star Chart: Sol -
+        // addon-only, because TecTech's own EOH research recipes already use its EOH casings.
         BTSRecipeGuard.recipe(
             "SL-P21",
             () -> GTValues.RA.stdBuilder()
-                .metadata(
-                    RESEARCH_ITEM,
-                    tectech(CustomItemList.EOH_Reinforced_Spatial_Casing, 1, "EOH_Reinforced_Spatial_Casing"))
+                .metadata(RESEARCH_ITEM, BTSRecipeGuard.stack(SLItems.starChartSol, 1))
                 .metadata(SCANNING, new Scanning(4 * MINUTES, TierEU.RECIPE_UMV))
                 .itemInputs(
                     items(

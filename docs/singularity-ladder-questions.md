@@ -628,10 +628,17 @@ jet crescent, drained into separate buffers.
   - The retired Eye Shell ×64 and Containment Deck ×64 lines are dropped. The card already has Reinforced Spatial ×64
     and Reinforced Temporal ×64.
   - Harmonic Lining ×64 becomes TecTech's Infinite SpaceTime Energy Boundary Casing ×64.
-  - The three Gallifreyan (Tier 8) field generators stay. Q-7 asked for a re-check, and a new javap scan of
-    `ResearchStationAssemblyLine.addEOHRecipes` confirms it: their own recipes contain no WDM, BDM, Universium,
-    Eternity or MHDCSM. Those materials appear only in TecTech's EOH controller recipe and in a later recipe that
-    **consumes** Tier-8 generators.
+  - The three field generators are **Tier 0 (Crude)**, not the card's Gallifreyan (Tier 8). (Changed in the review
+    fix pass.) Each TecTech generator tier N is researched from tier N-1 at RECIPE_MAX with UXV circuits, so Tier 8
+    ingredients forced all 24 research steps (3 types x 8) before a T1 Eye could exist. Under the 1:1 compression
+    gate (Q-20) Gallifreyan is the T9 gate, so it would also unlock every later gate early. TecTech's own EOH
+    controller recipe uses the Tier 0 generators too.
+  - Research item: the **Stabiliser Pylon**, not the Reinforced Spatial Structure Casing. TecTech's own EOH
+    research recipes already use that casing (registered first), and GT's scanner writes the FIRST assembly-line
+    recipe whose research item matches, so SL-E01 could never be put on a data stick. SL-P21 (the Pylon) moved
+    for the same reason, to Star Chart: Sol. Every SL assembly line now has a unique, addon-only research item
+    (except SL-K01's Black Hole Seed, which no other pack recipe researches from), and `BTSRecipeGuard.checkResearchCollisions`
+    logs an ERROR at load-complete if any of our research items is shared.
 - **Dense SpaceTime** (×64 in SL-E01, ×32 in SL-E02) is chosen in this order:
   1. the dense plate, if GT has one;
   2. otherwise the same mass as SpaceTime **blocks** (9 ingots each, in one slot);
@@ -704,3 +711,31 @@ would give the orbiting-planet look players already know, scaled to our 80-block
 need an AE network on the ME output bus and hatch.
 
 **Suggestion.** Run `/btseye t1 fill`, then `/btseye t4 fill`, as the first smoke test of P3.
+
+## Q-36 Every SL assembly line has its own research item
+
+**Context.** GT's scanner (`ScannerHandlerLoader.doAssemblyLineResearch`, checked with javap) writes a data stick for
+the FIRST recipe in `sAssemblylineRecipes` whose research item matches the scanned stack. Two recipes sharing a
+research item means the later one can never be put on a data stick. The first build had four such collisions:
+SL-P04 and SL-K01 (Black Hole Seed); SL-K02, K03 and K04 (the Kerr controller); SL-P21 and SL-E01 (TecTech's
+Reinforced Spatial Structure Casing, which TecTech's own EOH research already uses).
+
+**What we built** (review fix pass):
+
+| Recipe | Research item |
+|---|---|
+| SL-P04 Superradiant Mirror Segment | Superradiant Mirror casing |
+| SL-K01 Kerr Ergosphere Engine | Black Hole Seed (unchanged) |
+| SL-K02 Compressor Module | Kerr controller (unchanged) |
+| SL-K03 Extractor Module | Extraction casing |
+| SL-K04 Kerr Density Upgrade | Bastion casing |
+| SL-P21 Stabiliser Pylon | Star Chart: Sol |
+| SL-E01 Eye of Harmony | Stabiliser Pylon |
+| SL-E02 Galactic Upgrade Core | Eye controller (unchanged) |
+
+`BTSRecipeGuard.checkResearchCollisions()` runs at load-complete and logs an ERROR for any of our assembly lines whose
+research item another assembly line in the pack also uses.
+
+**Suggestion.** As built. Treat that ERROR line as a release blocker.
+
+**Alternatives.** Dedicated research-only items (one "schematic" item per recipe), if I prefer a uniform look.

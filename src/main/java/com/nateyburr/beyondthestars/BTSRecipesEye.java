@@ -37,7 +37,12 @@ import tectech.thing.CustomItemList;
  * <ul>
  * <li><b>SL-E01</b> follows FC-1: the retired Eye Shell ×64 and Containment Deck ×64 lines are dropped
  * (the card already has Reinforced Spatial ×64 and Reinforced Temporal ×64), and Harmonic Lining ×64
- * becomes TecTech's Infinite SpaceTime Energy Boundary Casing ×64.</li>
+ * becomes TecTech's Infinite SpaceTime Energy Boundary Casing ×64. The three field generators are
+ * Tier0 (Crude), not the card's Tier8: under the 1:1 compression gate (Q-20) Crude is the T1 Eye's own
+ * gate, and Tier8 would force every generator research step before T1 exists (Q-32).</li>
+ * <li><b>Research items</b> are addon-only stacks (SL-E01: the Stabiliser Pylon; SL-E02: the Eye
+ * controller). TecTech's own EOH research recipes already use its EOH casings, and the scanner writes
+ * only the first recipe sharing a research item.</li>
  * <li><b>Dense SpaceTime</b> (×64, ×32) goes through {@link #denseSpaceTime}: the dense plate if GT
  * has one, else the same mass as SpaceTime blocks (one slot), else {@code BTSRecipesSingularity.dense}'s
  * 9-plates fallback (Q-18). Blocks keep both assembly lines within 16 item slots.</li>
@@ -53,19 +58,23 @@ public final class BTSRecipesEye {
     }
 
     private static void controller() {
-        // SL-E01 Eye of Harmony (controller, MTE base+15). Research: Reinforced Spatial Structure Casing.
+        // SL-E01 Eye of Harmony (controller, MTE base+15). Research: the Stabiliser Pylon - addon-only,
+        // because TecTech's own EOH research recipes already use the Reinforced Spatial Structure Casing
+        // and the scanner writes only the FIRST recipe sharing a research item.
         BTSRecipeGuard.recipe(
             "SL-E01",
             () -> GTValues.RA.stdBuilder()
-                .metadata(RESEARCH_ITEM, tectech(CustomItemList.EOH_Reinforced_Spatial_Casing, 1))
+                .metadata(RESEARCH_ITEM, BTSRecipeGuard.stack(SLItems.stabiliserPylon, 1))
                 .metadata(SCANNING, new Scanning(8 * MINUTES, TierEU.RECIPE_UMV))
                 .itemInputs(
                     items(
                         tectech(CustomItemList.EOH_Reinforced_Spatial_Casing, 64),
                         tectech(CustomItemList.EOH_Reinforced_Temporal_Casing, 64),
-                        tectech(CustomItemList.SpacetimeCompressionFieldGeneratorTier8, 1),
-                        tectech(CustomItemList.TimeAccelerationFieldGeneratorTier8, 1),
-                        tectech(CustomItemList.StabilisationFieldGeneratorTier8, 1),
+                        // Tier0 (Crude): the T1 Eye's own compression gate (1:1, Q-20), as TecTech's EOH
+                        // controller recipe uses. Tier8 would force all 24 generator research steps first.
+                        tectech(CustomItemList.SpacetimeCompressionFieldGeneratorTier0, 1),
+                        tectech(CustomItemList.TimeAccelerationFieldGeneratorTier0, 1),
+                        tectech(CustomItemList.StabilisationFieldGeneratorTier0, 1),
                         BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UMV, 64L),
                         nn(ItemList.Field_Generator_UMV.get(32L), "ItemList.Field_Generator_UMV"),
                         denseSpaceTime(64),

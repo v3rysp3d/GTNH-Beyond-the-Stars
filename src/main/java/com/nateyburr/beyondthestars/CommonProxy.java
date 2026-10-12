@@ -44,6 +44,7 @@ public class CommonProxy {
     public void loadComplete(FMLLoadCompleteEvent event) {
         com.nateyburr.beyondthestars.machines.eye.EyeRecipeRegistry.onLoadComplete();
         BTSRecipeRemovals.run();
+        BTSRecipeGuard.checkResearchCollisions();
     }
 
     public void serverStarting(FMLServerStartingEvent event) {

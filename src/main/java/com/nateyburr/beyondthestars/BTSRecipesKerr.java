@@ -112,11 +112,12 @@ public final class BTSRecipesKerr {
                 .eut(TierEU.RECIPE_UIV)
                 .addTo(AssemblyLine));
 
-        // SL-K03 Kerr Extractor Module (module core block). Research: the Kerr controller.
+        // SL-K03 Kerr Extractor Module (module core block). Research: an Extraction casing (one research
+        // item per recipe: the scanner writes only the FIRST recipe sharing one, and SL-K02 has kerr()).
         BTSRecipeGuard.recipe(
             "SL-K03",
             () -> GTValues.RA.stdBuilder()
-                .metadata(RESEARCH_ITEM, kerr())
+                .metadata(RESEARCH_ITEM, SLBlocks.casing(BlockSLCasing.EXTRACTION, 1))
                 .metadata(SCANNING, new Scanning(2 * MINUTES, TierEU.RECIPE_UIV))
                 .itemInputs(
                     items(
@@ -136,12 +137,12 @@ public final class BTSRecipesKerr {
     // ===================================================================== Kerr T2 upgrade (UMV)
 
     private static void densityUpgrade() {
-        // SL-K04 Kerr Density Upgrade. Research: the Kerr controller. RSPM is Raw Star Matter (Q-1);
+        // SL-K04 Kerr Density Upgrade. Research: a Bastion casing (unique research item, see SL-K03). RSPM is Raw Star Matter (Q-1);
         // Kerr T2 comes after Eye T1, so the Eye's own Sol output pays for it.
         BTSRecipeGuard.recipe(
             "SL-K04",
             () -> GTValues.RA.stdBuilder()
-                .metadata(RESEARCH_ITEM, kerr())
+                .metadata(RESEARCH_ITEM, SLBlocks.casing(BlockSLCasing.BASTION, 1))
                 .metadata(SCANNING, new Scanning(8 * MINUTES, TierEU.RECIPE_UMV))
                 .itemInputs(
                     items(

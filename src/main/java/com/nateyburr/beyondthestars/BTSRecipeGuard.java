@@ -10,6 +10,8 @@ import net.minecraftforge.fluids.FluidStack;
 
 import gregtech.api.enums.OrePrefixes;
 import gregtech.api.util.GTOreDictUnificator;
+import gregtech.api.util.GTRecipe;
+import gregtech.api.util.GTUtility;
 
 /**
  * THE REGISTRATION GUARD. <b>A missing component costs ONE SKIPPED RECIPE, never the game.</b>
@@ -106,12 +108,20 @@ public final class BTSRecipeGuard {
     /** The design code of the recipe currently being registered, for log messages. */
     private static String current = "?";
 
+    /** Index into GT's assembly-line list where this pass started adding; see {@link #summary()}. */
+    private static int assemblyLineStart;
+
+    /** The assembly-line recipes this mod added on the last pass, for {@link #checkResearchCollisions()}. */
+    private static final List<GTRecipe.RecipeAssemblyLine> ownAssemblyLines = new ArrayList<>();
+
     /** Clears the tally. Called once at the top of {@link BTSRecipes#register()}. */
     public static void begin() {
         registered = 0;
         skipped = 0;
         skips.clear();
         current = "?";
+        assemblyLineStart = GTRecipe.RecipeAssemblyLine.sAssemblylineRecipes.size();
+        ownAssemblyLines.clear();
     }
 
     // ------------------------------------------------------------------------------------------
@@ -219,6 +229,10 @@ public final class BTSRecipeGuard {
      * The one block worth reading after a boot. Logged at the end of {@link BTSRecipes#register()}.
      */
     public static void summary() {
+        // Registration is one single-threaded postInit pass, so everything appended since begin() is ours.
+        final List<GTRecipe.RecipeAssemblyLine> all = GTRecipe.RecipeAssemblyLine.sAssemblylineRecipes;
+        for (int i = assemblyLineStart; i < all.size(); i++) ownAssemblyLines.add(all.get(i));
+
         if (skipped == 0) {
             BeyondTheStars.LOG.info("[BTS] Recipe registration complete: {} registered, 0 skipped.", registered);
             return;
@@ -235,6 +249,52 @@ public final class BTSRecipeGuard {
 
         for (int i = 0; i < skips.size(); i++) {
             BeyondTheStars.LOG.warn("[BTS]   skipped {}/{}: {}", i + 1, skips.size(), skips.get(i));
+        }
+    }
+
+    /**
+     * RESEARCH-ITEM COLLISIONS. GT's scanner and TecTech's research station write a data stick for
+     * the FIRST assembly-line recipe whose research item matches the scanned stack (NBT ignored), so
+     * a second recipe sharing a research item can never be put on a data stick and is uncraftable.
+     * Called from {@code CommonProxy.loadComplete}, after the removals, so every mod's assembly lines
+     * are in the list. Logs an ERROR per collision; changes nothing.
+     */
+    public static void checkResearchCollisions() {
+        final List<GTRecipe.RecipeAssemblyLine> all = GTRecipe.RecipeAssemblyLine.sAssemblylineRecipes;
+        int collisions = 0;
+        for (GTRecipe.RecipeAssemblyLine own : ownAssemblyLines) {
+            if (own.mResearchItem == null) continue;
+            for (GTRecipe.RecipeAssemblyLine other : all) {
+                if (other == own) continue;
+                if (other.mResearchItem == null
+                    || !GTUtility.areStacksEqual(own.mResearchItem, other.mResearchItem, true)) continue;
+                final boolean otherFirst = all.indexOf(other) < all.indexOf(own);
+                // A pair of our own recipes is reported once, from the later one.
+                if (!otherFirst && ownAssemblyLines.contains(other)) continue;
+                collisions++;
+                BeyondTheStars.LOG.error(
+                    "[BTS] RESEARCH COLLISION: {} and {} are both researched from {}. Only the earlier one ({}) "
+                        + "can ever be written to a data stick; the other is uncraftable. Please report this.",
+                    describe(own.mOutput),
+                    describe(other.mOutput),
+                    describe(own.mResearchItem),
+                    otherFirst ? describe(other.mOutput) : describe(own.mOutput));
+            }
+        }
+        if (collisions == 0) {
+            BeyondTheStars.LOG.info(
+                "[BTS] Research items: all {} of our assembly-line recipes have a unique research item.",
+                ownAssemblyLines.size());
+        }
+    }
+
+    /** Display name and meta of a stack, for log lines that must tell metas apart. */
+    private static String describe(ItemStack stack) {
+        if (stack == null || stack.getItem() == null) return name(stack);
+        try {
+            return stack.getDisplayName() + " (" + name(stack) + ":" + stack.getItemDamage() + ")";
+        } catch (RuntimeException noName) {
+            return name(stack) + ":" + stack.getItemDamage();
         }
     }
 
