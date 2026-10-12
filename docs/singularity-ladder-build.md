@@ -1862,11 +1862,12 @@ Written by H/R unit 3 (branch `homogeny-reality`), 2026-10-13. Question B-78; co
 | SL-C04 | Entangled White Hole Matter (`btsentangledwhitehole`) | White Hole Matter, 144 L | 180 s, MAX |
 | (SL-B16) | Entangled Magnetar Matter (`btsentangledmagnetar`) | no generator recipe: ruling 19a left it without a consumer | - |
 
-SL-B10/B13/B14 are master's (`SLCondensates`, line `bec`). `BTSRecipesReality.shim` looks each up by registry name;
-only if nothing registered it does it register the fluid (same name and colour) at postInit, and it never adds a
-generator recipe on a source fluid that already has one (it uses that recipe's output instead, as master does).
-**Merging master:** keep master's `SLCondensates` and `bec` line; the shim then only reads them (boot log: "the
-Condensate Generator already makes ..."). Nothing to delete.
+SL-B10/B13/B14 have one owner: `SLCondensates` registers the fluids at preInit and `BTSRecipesBEC` (line `bec`) their
+generator recipes. `BTSRecipesReality.becCondensate` only resolves which fluid the Reality recipes ask for (the output
+of whatever generator recipe already condenses the source fluid, else `SLCondensates`' fluid) and registers nothing,
+so the order of the `bec` and `reality` lines does not matter. (Before the post-merge tidy, B-87, the H/R branch's
+`shim` could register them itself and re-ran SL-B10/B13/B14 under the same ids.) `SLRealityFluids` registers its
+condensates through `SLCondensates`' registrar.
 
 ### Condensate Assembler recipes (`gt.recipe.assemble-condensate`)
 
