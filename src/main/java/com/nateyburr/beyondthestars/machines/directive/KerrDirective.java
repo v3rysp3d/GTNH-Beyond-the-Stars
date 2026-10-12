@@ -1,9 +1,9 @@
 package com.nateyburr.beyondthestars.machines.directive;
 
 /**
- * AUTOMATION PASS: the Kerr's Directive codes as pure maths (no Minecraft types), shared by the KEE
- * ({@code MTEKerrEngine.directiveCode}) and the offline proof ({@link DirectiveRigSim}), so the simulated gate rig reads
- * exactly the bits the hatch puts out.
+ * AUTOMATION PASS: the Kerr's Directive codes as pure maths (no Minecraft types). The KEE's hatch
+ * ({@code MTEKerrEngine.directiveCode}) and the offline proof ({@link DirectiveRigSim}) both call it, so the
+ * simulated gate rig reads exactly the bits the hatch puts out.
  */
 public final class KerrDirective {
 

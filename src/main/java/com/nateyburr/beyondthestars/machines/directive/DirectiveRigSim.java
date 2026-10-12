@@ -13,24 +13,21 @@ import com.nateyburr.beyondthestars.machines.eye.field.TierParams;
 /**
  * AUTOMATION PASS (brief item 18, task 4): the offline proof that the Eye's stars and the Kerr's hole run unattended
  * on plain redstone. A plain-JDK program like {@code FieldSim} (no Minecraft, GT or library classes are loaded: the
- * field package and the Directive maths are pure), so it runs with javac + java alone:
- *
- * <pre>
- * java - cp &lt; classes &gt; com.nateyburr.beyondthestars.machines.directive.DirectiveRigSim[hours][seeds]
- * </pre>
- *
+ * field package and the Directive maths are pure). Run it with
+ * {@code java -cp build/classes/java/main com.nateyburr.beyondthestars.machines.directive.DirectiveRigSim [hours]
+ * [seeds]}.
+ * <p>
  * <b>The Eye's gate rig</b> reads ONLY Directive bits, a second late as a hatch puts them out: the Trims set (one
  * hatch per bit, "Bit n" mode) opens one fixed-rate valve per bit (a Fluid Regulator cover or an export bus with a
- * redstone card), the Status set's bit 3 opens the event valve (T3: more Super Coolant; T6: the Agent), its bit 2
- * hands over a Stellar Ignition Charge after a loss (a relight), and the Transition set's bit 2 opens the Tachyon
- * valve during the Core Collapse, which its bit 1 started (an ME interface pushing the Neutron Star chart). No logic
- * gates are needed for the Eye. It is compared, seed for seed, with the prototype's bang-bang rig.
+ * redstone card), the Status set's [4] opens the event valve (T3: more Super Coolant; T6: the Agent), its [2] hands
+ * over a Stellar Ignition Charge after a loss (a relight), the Transition set's [1] starts the Core Collapse (an ME
+ * interface pushing the Neutron Star chart) and its [8] (Tachyon wanted) holds the Tachyon valve open. No logic gates
+ * are needed for the Eye. It is compared, seed for seed, with the prototype's bang-bang rig.
  * <p>
- * <b>The Kerr's gate rig</b> reads the Hole set: bit 4 "bolts short" switches an export bus that moves bolts into a
- * bolt
- * bus, bit 1 "closed" exports one Black Hole Seed (Auto opens the hole with it). The hole physics mirror
- * {@code MTEKerrEngine.tickHole} (bleed 3.2/M² SM a tick, the governor firing up to the rail cap a tick), the bits are
- * {@link KerrDirective#code}, the same function the KEE's hatch uses. An OpenComputers-style setter loop then ramps
+ * <b>The Kerr's gate rig</b> reads the Hole set: [4] "bolts short" switches an export bus that moves bolts into a bolt
+ * bus, [1] "closed" exports one Black Hole Seed (Auto opens the hole with it). The hole physics mirror
+ * {@code MTEKerrEngine.tickHole} (bleed 3.2/M² SM a tick, the governor firing up to the rail cap a tick), and the bits
+ * are {@link KerrDirective#code}, the function the KEE's hatch uses. An OpenComputers-style setter loop then ramps
  * the setpoint the way a script would through {@code bts_kerr.setSetpoint}, with the GUI's clamp.
  * <p>
  * Exit code 0 when every Eye case loses no more stars than the prototype rig, every Kerr case never evaporates, and
@@ -40,25 +37,16 @@ public final class DirectiveRigSim {
 
     private DirectiveRigSim() {}
 
-    /** The Trims valves, units/s at p = 1 per trim-table position (the prototype's bang-bang rates). */
+    /** The Trims valves, units/s at p = 1 per trim-table position ({@link EyeTrimRule#rigRate}). */
     static double[] rates(int tier) {
-        switch (tier) {
-            case 1:
-                return new double[] { 10, 10 };
-            case 2:
-                return new double[] { 20, 20 };
-            case 3:
-                return new double[] { 10, 10, 10 };
-            case 5:
-                return new double[] { 10, 5, 10 };
-            default: // 4, 6
-                return new double[] { 10, 10, 10, 5 };
-        }
+        final double[] r = new double[4];
+        for (int i = 0; i < 4; i++) r[i] = EyeTrimRule.rigRate(tier, i);
+        return r;
     }
 
-    /** The Status bit 3 valve: T3 more Super Coolant, T6 the Agent. */
+    /** The Status bit 3 valve ({@link EyeTrimRule#rigExtraRate}). */
     static double extraRate(int tier) {
-        return tier == 3 ? 10 : tier == 6 ? 5 : 0;
+        return EyeTrimRule.rigExtraRate(tier);
     }
 
     public static final int WINDOW = 10;
@@ -95,7 +83,7 @@ public final class DirectiveRigSim {
         final Run r = new Run();
         boolean begun = false;
         for (long i = 0; i < secs; i++) {
-            // Transition bit 1 (ready) -> the next chart goes in; bit 2 (running) holds the Tachyon valve open
+            // Transition bit 1 (ready) -> the next chart goes in; bit 4 (Tachyon wanted) holds the valve open
             if (collapse && !begun && S.s.t >= c.beginAt && S.canBegin()) {
                 S.beginCollapse();
                 begun = true;
@@ -296,7 +284,7 @@ public final class DirectiveRigSim {
         ok &= settled >= settledB;
         System.out.printf(
             Locale.ROOT,
-            "%s Core Collapse T3 -> T4 (SpaceTime 90,000 L, bounce +150; begun on Transition bit 1, Tachyon on bit 2): "
+            "%s Core Collapse T3 -> T4 (SpaceTime 90,000 L, bounce +150; begun on Transition bit 1, Tachyon on bit 4): "
                 + "gate rig %d/%d settled, bang-bang %d/%d%n",
             settled >= settledB ? "PASS" : "FAIL",
             settled,
@@ -306,7 +294,7 @@ public final class DirectiveRigSim {
 
         System.out.printf(
             Locale.ROOT,
-            "== Kerr: the Hole-set gate rig (w = %d min; bit 4 -> bolt export bus, bit 1 -> one Seed) ==%n",
+            "== Kerr: the Hole-set gate rig (w = %d min; [4] bolts short -> bolt export bus, [1] closed -> one Seed) ==%n",
             WINDOW);
         final String[] kc = {
             kerrCase("T1, SpaceTime bolts, Mk I rails, setpoint 32, 64 bolts/s export", 0.25, 4, 32, 64, 64, secs, 0),

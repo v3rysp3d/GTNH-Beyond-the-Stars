@@ -92,6 +92,37 @@ public final class EyeTrimRule {
         return warn != 0;
     }
 
+    /**
+     * A plain redstone rig's valve for trim-table position {@code i}, units/s at parallel 1: the prototype's bang-bang
+     * rates (the docs' and the tests' standard rig; every rate is within the trim's cap).
+     */
+    public static double rigRate(int tier, int i) {
+        final double[] r;
+        switch (tier) {
+            case 1:
+                r = new double[] { 10, 10 };
+                break;
+            case 2:
+                r = new double[] { 20, 20 };
+                break;
+            case 3:
+                r = new double[] { 10, 10, 10 };
+                break;
+            case 5:
+                r = new double[] { 10, 5, 10 };
+                break;
+            default: // 4, 6
+                r = new double[] { 10, 10, 10, 5 };
+                break;
+        }
+        return i >= 0 && i < r.length ? r[i] : 0;
+    }
+
+    /** The Status bit-3 event valve, units/s at parallel 1: T3 more Super Coolant (10), T6 the Agent (5). */
+    public static double rigExtraRate(int tier) {
+        return tier == 3 ? 10 : tier == 6 ? 5 : 0;
+    }
+
     /** The label of trim bit i (0..3) on table {@code t}, e.g. "Helium (P > +w)"; "" when the tier has none. */
     public static String label(TierParams t, int i) {
         final List<TrimDef> trims = t.trims();

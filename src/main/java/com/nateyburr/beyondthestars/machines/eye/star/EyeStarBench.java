@@ -71,7 +71,7 @@ public final class EyeStarBench {
         + "fill | sensor <x> <y> <z> <channel> <gt|lt> <threshold> [analog] | sensors <channel> <gt|lt> <thr> "
         + "[analog] | probe | wrench | charge [n] | buffer <fluid> <L> | core <name> | escrow | "
         + "legacy [galactic] [run <key> <n>] | fix | gt | mefield | field <fluid> <L> | render [on|off] | "
-        + "directive | autorig <s> | ocloop";
+        + "directive | autorig <s> [cut <k>] | ocloop";
 
     /** Runs {@code args} = {@code star x y z sub …}. Returns the lines to print. */
     public static List<String> run(ICommandSender sender, String[] args) {
@@ -221,8 +221,10 @@ public final class EyeStarBench {
             case "autorig":
                 // AUTOMATION PASS: the scripted redstone gate rig on the Directive Hatches' codes (task 4)
                 out.addAll(
-                    com.nateyburr.beyondthestars.machines.directive.DirectiveBench
-                        .eyeAutorig(eye, a5.isEmpty() ? 600 : Long.parseLong(a5)));
+                    com.nateyburr.beyondthestars.machines.directive.DirectiveBench.eyeAutorig(
+                        eye,
+                        a5.isEmpty() ? 600 : Long.parseLong(a5),
+                        args.length > 7 && "cut".equalsIgnoreCase(args[6]) ? Long.parseLong(args[7]) : 0));
                 break;
             case "ocloop":
                 // AUTOMATION PASS: the OpenComputers calls (BTSComputerApi), as a script makes them

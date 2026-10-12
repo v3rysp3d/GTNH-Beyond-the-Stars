@@ -66,7 +66,7 @@ public class CommandBTSKerr extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btskerr [t1|t2] [force]  |  /btskerr migrate [x y z]  |  /btskerr render x y z [open [m]|close|off|on|break]  |  /btskerr module x y z <c|x> [stock|status|tier|clear]  |  /btskerr damage|repair x y z  |  console: /btskerr [t1|t2] <x> <y> <z> [facing] [force] [survival] | [check]  |  /btskerr autorig x y z [s] [bolts/s]  |  /btskerr ocloop x y z";
+        return "/btskerr [t1|t2] [force]  |  /btskerr migrate [x y z]  |  /btskerr render x y z [open [m]|close|off|on|break]  |  /btskerr module x y z <c|x> [stock|status|tier|clear]  |  /btskerr damage|repair x y z  |  console: /btskerr [t1|t2] <x> <y> <z> [facing] [force] [survival] | [check]  |  /btskerr autorig x y z [s] [bolts/s] [empty]  |  /btskerr ocloop x y z";
     }
 
     @Override
@@ -317,7 +317,8 @@ public class CommandBTSKerr extends CommandBase {
                 world,
                 kee,
                 args.length > 4 ? Long.parseLong(args[4]) : 600,
-                args.length > 5 ? Integer.parseInt(args[5]) : 64);
+                args.length > 5 ? Integer.parseInt(args[5]) : 64,
+                args.length > 6 && args[6].equalsIgnoreCase("empty"));
         for (String line : lines) SLConsoleTest.tell(sender, line);
     }
 

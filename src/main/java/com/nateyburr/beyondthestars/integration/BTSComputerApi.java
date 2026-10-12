@@ -130,7 +130,9 @@ public final class BTSComputerApi {
         m.put("ready", rt.transitionReady());
         final StarDef star = rt.star();
         final List<String> missing = rt.missing(star != null && rt.live() ? star.n() : n);
-        m.put("missing", missing.toArray(new String[0]));
+        final Map<Integer, String> list = new LinkedHashMap<>();
+        for (int i = 0; i < missing.size(); i++) list.put(i + 1, missing.get(i));
+        m.put("missing", list);
         return m;
     }
 

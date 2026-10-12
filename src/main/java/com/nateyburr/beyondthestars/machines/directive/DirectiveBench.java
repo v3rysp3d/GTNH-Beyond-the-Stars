@@ -17,6 +17,7 @@ import com.nateyburr.beyondthestars.machines.BTSMachines;
 import com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1;
 import com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS;
 import com.nateyburr.beyondthestars.machines.eye.MTEHatchStellarFieldSensor;
+import com.nateyburr.beyondthestars.machines.eye.field.EyeTrimRule;
 import com.nateyburr.beyondthestars.machines.eye.field.TierParams;
 import com.nateyburr.beyondthestars.machines.eye.field.TrimDef;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime;
@@ -45,10 +46,12 @@ import gregtech.api.util.GTOreDictUnificator;
  * sockets;</li>
  * <li>Status bit 1: stock the buffers (an AE2 level maintainer); bit 2: a Stellar Ignition Charge into the plinth
  * bus; bit 3: the event valve (T3 Super Coolant, T6 the Agent);</li>
- * <li>Transition bit 1: the next star chart into the plinth bus; bit 2: 100 L/s of Tachyon Rich Temporal Fluid into
- * the Field sockets; bit 3: the wanted core into the plinth bus.</li>
+ * <li>Transition bit 1: the next star chart into the plinth bus; bit 3: the wanted core into the plinth bus; bit 4
+ * (Tachyon wanted): 100 L/s of Tachyon Rich Temporal Fluid into the Field sockets.</li>
  * </ul>
- * The Eye itself runs unchanged (its own drain, the bus pickups, the star). {@code /btskerr autorig x y z <s>} does
+ * The Eye itself runs unchanged (its own drain, the bus pickups, the star). {@code autorig <s> cut <k>} keeps every
+ * valve shut for the first k seconds, so the star can be lost and the rig seen to bring it back.
+ * {@code /btskerr autorig x y z <s>} does
  * the same for the KEE on the Hole set; {@code ocloop} on either drives {@link BTSComputerApi}, the calls behind the
  * OpenComputers components, and prints what each returned.
  */
@@ -102,11 +105,11 @@ public final class DirectiveBench {
 
     /** The trim valve rates (units/s at p = 1) by trim-table position: the prototype's bang-bang rig. */
     private static double rate(int tier, int i) {
-        return DirectiveRigSim.rates(tier)[i];
+        return EyeTrimRule.rigRate(tier, i);
     }
 
     /** The scripted gate rig: {@code secs} field seconds, each reacting to last second's codes. */
-    public static List<String> eyeAutorig(MTEEyeOfHarmonyBTS eye, long secs) {
+    public static List<String> eyeAutorig(MTEEyeOfHarmonyBTS eye, long secs, long cut) {
         final List<String> out = new ArrayList<>();
         final EyeStarRuntime rt = eye.starRuntime();
         final MTEHatchDirective trimsH = hatch(eye.directiveHatches(), DirectiveSet.EYE_TRIMS);
@@ -124,7 +127,9 @@ public final class DirectiveBench {
         EyeStarRuntime.StarState prev = rt.state();
         final long t0 = System.nanoTime();
         for (long i = 0; i < secs; i++) {
-            final int trims = trimsH.currentCode(), status = statusH.currentCode(), trans = transH.currentCode();
+            final boolean shut = i < cut; // the valves are held shut: the rig does nothing
+            final int trims = shut ? 0 : trimsH.currentCode(), status = shut ? 0 : statusH.currentCode(),
+                trans = shut ? 0 : transH.currentCode();
             for (int b = 0; b < 4; b++) {
                 if ((trims & (1 << b)) != 0) bitSeconds[b]++;
                 if ((status & (1 << b)) != 0) bitSeconds[4 + b]++;
@@ -146,12 +151,12 @@ public final class DirectiveBench {
                         pour(
                             eye,
                             EyeStarRuntime.trimFluid(kind),
-                            DirectiveRigSim.extraRate(table.n) * p * kind.unitLitres);
+                            EyeTrimRule.rigExtraRate(table.n) * p * kind.unitLitres);
                     }
                 }
             }
             if ((status & 1) != 0) {
-                eye.debugFillBuffers(1_000_000_000L); // an AE2 level maintainer on every input the Eye takes
+                eye.debugFillBuffers(1_000_000_000_000L); // an AE2 level maintainer on every input the Eye takes
                 stocks++;
             }
             if ((status & 2) != 0 && put(eye, new ItemStack(SLItems.stellarIgnitionCharge, 1, 0))) charges++;
@@ -164,7 +169,7 @@ public final class DirectiveBench {
                 final StarDef next = cur == null ? null : StarDef.ofTier(cur.n() + 1);
                 if (next != null && !inBus(eye, next.chart) && put(eye, next.chart.copy())) charts++;
             }
-            if ((trans & 2) != 0) {
+            if ((trans & 8) != 0) {
                 pour(eye, EyeStarRuntime.timeFluid(), 100);
                 tach++;
             }
@@ -267,8 +272,20 @@ public final class DirectiveBench {
     // ==================================================================================== Kerr
 
     /** Directive Hatches into free utility sockets, then the Hole-set rig for {@code secs} seconds. */
-    public static List<String> kerrAutorig(World world, MTEKerrEngine kee, long secs, int boltsPerSecond) {
+    public static List<String> kerrAutorig(World world, MTEKerrEngine kee, long secs, int boltsPerSecond,
+        boolean empty) {
         final List<String> out = new ArrayList<>();
+        if (empty) {
+            // start from nothing: every bolt bus emptied and the hole closed, so the rig must seed and bolt it
+            for (MTEHatchInputBus bus : kee.boltBuses()) {
+                if (bus == null || !bus.isValid()) continue;
+                for (int i = 0; i < bus.getSizeInventory(); i++) bus.getBaseMetaTileEntity()
+                    .setInventorySlotContents(i, null);
+            }
+            kee.debugCloseHole();
+            kee.benchSecond();
+            out.add("Bolt buses emptied and the hole closed.");
+        }
         if (hatch(kee.directiveHatches(), DirectiveSet.KERR_HOLE) == null) {
             out.add("Fitted " + KerrKit.fitDirectives(world, kee) + " Directive Hatch(es); formed " + kee.mMachine);
         }

@@ -1994,7 +1994,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addInfo("Automation (every action has an AE2, redstone, OpenComputers and Factory Manager route):")
             .addInfo("  Directive Hatches in the Sensor sockets put out what the Eye needs now as a 4-bit code:")
             .addInfo("  Trims (which trim valve to open), Status (buffers, ignition charge, event, alarm) and")
-            .addInfo("  Transition (ready for the next chart, running, core wanted, waiting); bit tables on the hatch.")
+            .addInfo(
+                "  Transition (ready for the next chart, running, core wanted, Tachyon wanted); tables on the hatch.")
             .addInfo("  A plinth input bus also takes the next transition core into escrow and a star chart into the")
             .addInfo("  controller slot (the old target leaves through the ME output bus).")
             .addInfo("  Redstone into a control-set Directive Hatch sets the time dial or the HSM feed.")

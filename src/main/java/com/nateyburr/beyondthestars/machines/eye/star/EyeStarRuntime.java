@@ -1520,7 +1520,7 @@ public final class EyeStarRuntime {
                 if (transitionReady()) c |= 1;
                 if (trans != null || state == StarState.PENDING) c |= 2;
                 if (coreWanted()) c |= 4;
-                if ((state == StarState.DARK || state == StarState.IDLE) && !waitReason.isEmpty()) c |= 8;
+                if (timeWanted()) c |= 8;
                 return c;
             }
             default:
@@ -1647,6 +1647,17 @@ public final class EyeStarRuntime {
         final StarDef want = StarDef.byChart(host.target());
         if (want != null && want.n() == from + 1) return false;
         return missing(from).isEmpty();
+    }
+
+    /**
+     * Transition bit 4: Tachyon Rich Temporal Fluid is wanted in the Field sockets - the Core Collapse is
+     * fast-forwarding (it doses up to 100 L/s), or the time dial is set above 1 and last second could not pay for it.
+     */
+    public boolean timeWanted() {
+        if (trans instanceof CoreCollapse) return ((CoreCollapse) trans).co.phase == 1;
+        if (trans != null || !burning() || fs == null) return false;
+        final double cap = Math.min(dialSet, StellarField.mMax(fs.tier, host.timeTier()));
+        return cap > 1 + 1e-9 && lastM < cap - 1e-9;
     }
 
     /** Transition bit 3: this tier's milestones are met and the next core is not in escrow yet. */

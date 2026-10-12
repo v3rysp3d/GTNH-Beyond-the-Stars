@@ -22,7 +22,7 @@ public enum DirectiveSet {
     EYE_STATUS(Host.EYE, false, "Eye: Status", "Buffers short", "Ignition charge wanted", "Event warned / Agent wanted",
         "Alarm"),
     EYE_TRANSITION(Host.EYE, false, "Eye: Transition", "Ready: load the next chart", "Transition running",
-        "Next core wanted", "Star dark, waiting"),
+        "Next core wanted", "Tachyon wanted (collapse, dial)"),
     EYE_DIAL(Host.EYE, true, "Eye: control the time dial"),
     EYE_FEED(Host.EYE, true, "Eye: control the HSM feed"),
     KERR_HOLE(Host.KERR, false, "Kerr: Hole", "Hole closed", "Mass below setpoint", "Bolts short",
