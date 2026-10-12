@@ -8,10 +8,78 @@ Sources: `PROPOSAL.md` D-27..D-48 (the latest ruling wins), `designs/docs/{yours
 `designs/recipes.js` (groups `kerr`, `eye1`, `eye4`), `designs/voxel.js` (`buildKerr`, the Eye `BANDS`) and
 `designs/bh-model.js`. Pack facts come from `javap` on the pinned instance jars (gregtech-5.09.52.594,
 GTNewHorizonsCoreMod-2.8.279). Every resolved conflict is logged in
-[`singularity-ladder-questions.md`](singularity-ladder-questions.md) (Q-1..Q-14). This document is what gets built;
-the questions record what the player still has to rule on.
+[`singularity-ladder-questions.md`](singularity-ladder-questions.md). That file was consolidated after the build:
+items A-1..A-3 are rulings the jar does not match yet, and B-1..B-14 are open decisions. Code comments still cite the
+old Q-1..Q-38 numbers, and its last table maps them. This document is what gets built; the questions record what the
+user still has to rule on.
 
 Code references below use `<pkg>` = `com.nateyburr.beyondthestars`.
+
+---
+
+## What's in the build (2026-10-12, addon 457bbf8)
+
+The jar loads cleanly in the test instance: "[BTS] Recipe registration complete: 255 registered, 0 skipped", with no
+errors and no crash. The boot log also confirms:
+
+- TecTech's 43 Eye of Harmony recipes and its controller recipe are removed;
+- our Eye has 48 recipes: 43 planets copied from TecTech, plus 5 stars;
+- the Black Hole Compressor's controller recipe is removed;
+- all 9 of our assembly lines have a unique research item.
+
+**Machines.**
+
+| Machine | Tier | What it does | Footprint |
+|---|---|---|---|
+| **Kerr Ergosphere Engine** (replaces the Black Hole Compressor) | T1 UIV; T2 with the Kerr Density Upgrade | Module host. The **Compressor Module** arc runs GT's compressor and neutronium-compressor recipes (the BHC's). The **Extractor Module** arc runs extraction. At **T2**, DENSIFY mode turns Raw Hyperdense Stellar Plasma into Hyperdense Stellar Mixture, the Eye T4 gate. A black hole with mass trades speed for parallel. | T1 76×65×79 (~15k blocks), T2 92×65×89 (~30k) |
+| **Eye of Harmony** (Beyond the Stars; replaces TecTech's) | T1-T4, one controller, bands added on | A star chart (or a TecTech dimension block) in the controller slot picks the run. T1 Sol → Raw Star Matter. T2 Sirius A (beam band) → Excited Stellar Plasma. T3 Arcturus (jet crescent) → Raw Hyperdense Stellar Plasma. T4 Sirius B (spiral arms + Galactic Upgrade Core) → White Dwarf Matter, plus an interim Black Dwarf recipe. TecTech's planets also run, by rocket tier. Wireless EU only; outputs go to an ME bus and hatch. | T1 102×52×80 (~20k blocks), T4 102×57×137 (~35k) |
+
+**Getting them in creative** (op only):
+
+- `/btskit kerr` gives the Kerr controller, both module cores, injector rails, a Density Upgrade, Black Hole
+  Seeds/Collapser, SpaceTime bolts and hatches. It prints the bill of materials for every piece.
+- `/btskerr [t1|t2] [force]` builds a complete, formed Kerr in front of you. You get creative power, auto-maintenance
+  and every hatch, and the bolt buses come stocked. The controller ends up 32 blocks above your feet, facing you.
+  With `t2` it also installs the Density Upgrade.
+- `/btskit eye` gives the Eye controller, a Galactic Upgrade Core, all five star charts, the hatches, ME output
+  bus and hatch, auto-maintenance and field generators. It prints the bill of materials.
+- `/btseye [t1|t2|t3|t4] [gen 1-9] [fill] [force]` builds a complete Eye at that tier in front of you. `gen` sets the
+  field-generator tier. `fill` tops up every fluid tank and gives you 10¹⁸ wireless EU, so a run starts at once.
+- Both build commands refuse a spot that is more than 15 % solid, unless you add `force`. Use a flat, cleared area,
+  ideally a void or superflat world, and keep the whole footprint chunk-loaded.
+- **Hologram projector:** on the Kerr, stack 1 = T1 and 2+ = T2. On the Eye, stack 1-4 = T1-T4. Survival auto-build
+  works from inventory or AE, like other GTNH multis.
+
+**What to look at in-game.**
+
+1. Run `/btskerr`. The scanner (or the GUI) should show FORMED, the hole's mass and setpoint, and both modules.
+2. Use a screwdriver to step the setpoint. Sneak + screwdriver (or the GUI mode button) cycles COMPRESS / EXTRACT /
+   DENSIFY. Then do the same after `/btskerr t2`.
+3. Run `/btseye t1 fill`, let a Sol run finish, and check the Raw Star Matter in the ME system. Then try
+   `/btseye t4 fill`.
+4. On a `/btseye t3` Eye, swap one Spacetime Compression Field Generator for a tier-1 one. A T3 star chart must
+   then refuse with "every Spacetime Compression Field Generator must be tier 3 or higher" (the 1:1 gate).
+   `/btseye … gen n` always raises compression to the asked tier's gate, so it cannot test this.
+5. Check the NEI pages: "Kerr Densification", "Ergosphere Extraction" and "Eye of Harmony (Beyond the Stars)".
+   TecTech's Eye page should be empty.
+6. Check the NEI "Multiblock" preview tab on both controllers, and the look of the generated textures.
+7. If a build says NOT FORMED with the first wrong block on the mirrored side, the structure orientation is flipped.
+   See "Structure export" below.
+
+**Config** (`config/beyondthestars.cfg`):
+
+- `replaceTecTechEyeOfHarmony` (true) removes TecTech's Eye recipes and its controller recipe.
+- `removeBlackHoleCompressorRecipe` (true) removes the BHC controller recipe.
+- `interimBlackDwarfAtEyeT4` (true) adds the interim Black Dwarf recipe at Eye T4.
+- `eyeRenderCentre` has no effect yet.
+
+**Not done yet** (questions file, part A):
+
+- The Extractor Module should run GT's extractor recipes. It still runs its own "melt" page.
+- The upgrade milestones and install run: upgrades still install on a right-click.
+- The cost table.
+- NEI preview and in-game build checks.
+- The Eye's centre render.
 
 ---
 
