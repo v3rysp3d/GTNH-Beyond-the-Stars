@@ -457,8 +457,9 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     private String moduleFault(List<StructureError> walkErrors, KerrModule module) {
         if (walkErrors.isEmpty()) return "";
         if (!coreStanding(module)) return "";
-        final String reason = walkErrors.get(0)
-            .getDisplayString();
+        final String reason = BTSStructures.oneLine(
+            walkErrors.get(0)
+                .getDisplayString());
         return reason == null || reason.isEmpty() ? "structure incomplete" : reason;
     }
 

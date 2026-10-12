@@ -201,6 +201,26 @@ public final class BTSStructures {
     }
 
     /**
+     * A structure error's display text on one line, for status lines and chat: GT's "Any of:" lists
+     * come as "- item" lines, which turn into "item / item".
+     */
+    public static String oneLine(String text) {
+        if (text == null || text.indexOf('\n') < 0) return text;
+        final StringBuilder sb = new StringBuilder();
+        boolean lastItem = false;
+        for (String raw : text.split("\n")) {
+            String line = raw.trim();
+            if (line.isEmpty()) continue;
+            final boolean item = line.startsWith("- ");
+            if (item) line = line.substring(2);
+            if (sb.length() > 0) sb.append(item && lastItem ? " / " : " ");
+            sb.append(line);
+            lastItem = item;
+        }
+        return sb.toString();
+    }
+
+    /**
      * A StructureLib channel's value on the trigger as a 0-based tier index (channel value 1 = index
      * 0), or {@code fallback} when the trigger does not set the channel. Channels are set on the
      * Multiblock Structure Projector (its channel screen) and by the NEI preview.

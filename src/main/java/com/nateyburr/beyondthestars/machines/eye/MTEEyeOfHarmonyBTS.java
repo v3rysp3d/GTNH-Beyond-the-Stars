@@ -426,8 +426,9 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
 
     private static String fault(boolean built, List<StructureError> walkErrors) {
         if (built || walkErrors.isEmpty()) return "";
-        final String reason = walkErrors.get(0)
-            .getDisplayString();
+        final String reason = BTSStructures.oneLine(
+            walkErrors.get(0)
+                .getDisplayString());
         return reason == null || reason.isEmpty() ? "incomplete" : reason;
     }
 
