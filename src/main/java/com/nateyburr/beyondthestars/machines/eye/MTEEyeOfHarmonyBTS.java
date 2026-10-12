@@ -935,6 +935,14 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         if (base != null) base.markDirty();
     }
 
+    /**
+     * Dev-only render QA ({@code -Dbts.rendertest=true}): the centre shows {@code look} while formed (null: the
+     * star's).
+     */
+    public void debugForceLook(com.nateyburr.beyondthestars.machines.eye.render.EyeStarLook look) {
+        centre.debugForceLook(look);
+    }
+
     /** Why the centre render is missing although it should show, or "". */
     public String getRenderNote() {
         return centre.note();

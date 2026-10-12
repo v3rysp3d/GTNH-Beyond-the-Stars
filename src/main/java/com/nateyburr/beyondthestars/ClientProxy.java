@@ -4,6 +4,8 @@ import com.nateyburr.beyondthestars.machines.eye.render.EyeStarRenderer;
 import com.nateyburr.beyondthestars.machines.eye.render.TileEyeStar;
 import com.nateyburr.beyondthestars.machines.kerr.KerrHoleRenderer;
 import com.nateyburr.beyondthestars.machines.kerr.TileKerrHole;
+import com.nateyburr.beyondthestars.rendertest.RenderTest;
+import com.nateyburr.beyondthestars.rendertest.RenderTestClient;
 
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -24,5 +26,8 @@ public class ClientProxy extends CommonProxy {
 
         // KERR REDESIGN R4: the KEE's black hole, drawn by GT's BlackholeRenderer (docs/kerr-redesign.md §5).
         ClientRegistry.bindTileEntitySpecialRenderer(TileKerrHole.class, new KerrHoleRenderer());
+
+        // Dev-only render QA harness: only with -Dbts.rendertest=true (never in normal play).
+        if (RenderTest.ENABLED) RenderTestClient.register();
     }
 }

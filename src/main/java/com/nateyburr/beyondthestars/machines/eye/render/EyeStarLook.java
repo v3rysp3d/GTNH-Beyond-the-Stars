@@ -103,16 +103,9 @@ public final class EyeStarLook {
         if (tr instanceof CoreCollapse) {
             final CollapseOverlay co = ((CoreCollapse) tr).co;
             if (co.phase == 1) {
-                final float f = (float) Math.max(0, Math.min(1, co.tach / CollapseOverlay.TACH_BOUNCE));
-                return new EyeStarLook(
-                    SWELL,
-                    15f + 2f * f,
-                    lerp(ARCTURUS_RGB, 0xFF3C1E, f),
-                    2.6f + f,
-                    1f + 3f * f,
-                    0.04f + 0.06f * f);
+                return swell((float) Math.max(0, Math.min(1, co.tach / CollapseOverlay.TACH_BOUNCE)));
             }
-            return new EyeStarLook(BOUNCE, 2.6f, 0xC8E1FF, 4.5f, 10f, 0.03f + 0.1f * unrest);
+            return bounce(unrest);
         }
         if (star.n() == 5) {
             return dwarf(rt.batchFraction());
@@ -120,8 +113,24 @@ public final class EyeStarLook {
         return lit(star.n(), unrest, warn);
     }
 
+    /** Core Collapse phase 1 at {@code f} (0..1) of the way to the bounce: Arcturus swelling and reddening. */
+    public static EyeStarLook swell(float f) {
+        return new EyeStarLook(
+            SWELL,
+            15f + 2f * f,
+            lerp(ARCTURUS_RGB, 0xFF3C1E, f),
+            2.6f + f,
+            1f + 3f * f,
+            0.04f + 0.06f * f);
+    }
+
+    /** Core Collapse phase 3: the proto-neutron star and the bounce's shell, with the field's unrest (0..1). */
+    public static EyeStarLook bounce(float unrest) {
+        return new EyeStarLook(BOUNCE, 2.6f, 0xC8E1FF, 4.5f, 10f, 0.03f + 0.1f * unrest);
+    }
+
     /** The lit look of a tier's star, with the field's unrest (0..1) and an event warning (0/1) as wobble. */
-    static EyeStarLook lit(int n, float unrest, float warn) {
+    public static EyeStarLook lit(int n, float unrest, float warn) {
         switch (n) {
             case 1:
                 return new EyeStarLook(STAR, 9f, SOL_RGB, 3f, 1f, 0.02f + 0.1f * unrest + 0.06f * warn);
@@ -144,7 +153,7 @@ public final class EyeStarLook {
      * Sirius B through a cooling batch (fraction 0..1): white, then orange, then a dull red that darkens to black as
      * its gamma falls under 1.
      */
-    static EyeStarLook dwarf(double fraction) {
+    public static EyeStarLook dwarf(double fraction) {
         final float c = (float) Math.max(0, Math.min(1, fraction));
         final int rgb = c < 0.6f ? lerp(0xFFFFFF, 0xFF8C3C, c / 0.6f) : lerp(0xFF8C3C, 0x3C1428, (c - 0.6f) / 0.4f);
         final float gamma = 3.5f - 3.15f * c;

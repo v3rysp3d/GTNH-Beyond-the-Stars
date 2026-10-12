@@ -52,6 +52,12 @@ public final class EyeCentreRender {
     private long novaUntil;
     /** Why there is no render although there should be one, or "". */
     private String note = "";
+    /**
+     * Dev-only render QA ({@code -Dbts.rendertest=true}, {@code rendertest.RenderTest}): a look shown instead of the
+     * star's while the Eye is formed, so every centre object can be photographed without driving the star through its
+     * lifecycle. Null in normal play; never saved.
+     */
+    private EyeStarLook forced;
 
     public boolean isEnabled() {
         return enabled;
@@ -63,6 +69,11 @@ public final class EyeCentreRender {
 
     public String note() {
         return note;
+    }
+
+    /** Dev-only render QA: show {@code look} instead of the star's (null: back to the star). Not saved. */
+    public void debugForceLook(EyeStarLook look) {
+        forced = look;
     }
 
     /** The object shown now ("nothing" when none). Server state. */
@@ -111,7 +122,7 @@ public final class EyeCentreRender {
         if (world == null || world.isRemote) return;
         final long now = world.getTotalWorldTime();
         if (runtime.takeNova()) novaUntil = now + NOVA_TICKS;
-        final EyeStarLook look = formed ? EyeStarLook.of(runtime) : null;
+        final EyeStarLook look = !formed ? null : forced != null ? forced : EyeStarLook.of(runtime);
         final EyeStarLook want = look != null ? look : now < novaUntil && formed ? EyeStarLook.NOVA_FLASH : null;
         final boolean show = want != null && enabled && Config.eyeRenderCentre;
         final boolean changed = show != (pos != null);
