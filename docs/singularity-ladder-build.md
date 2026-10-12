@@ -7,13 +7,88 @@ Eye T5-T8), P5 (MAX) and P6 (questbook) come later.
 Sources: `PROPOSAL.md` D-27..D-48 (the latest ruling wins), `designs/docs/{yours,mine,multis,questbook}.md`,
 `designs/recipes.js` (groups `kerr`, `eye1`, `eye4`), `designs/voxel.js` (`buildKerr`, the Eye `BANDS`) and
 `designs/bh-model.js`. Pack facts come from `javap` on the pinned instance jars (gregtech-5.09.52.594,
-GTNewHorizonsCoreMod-2.8.279). Every resolved conflict is logged in
+GTNewHorizonsCoreMod-2.8.279), re-checked for the **GTNH 2.9.0-RC-2 port** against GT 5.09.54.205 and coremod
+2.9.84 (see "GTNH 2.9.0-RC-2 port" below; where a section still cites the old jars, the port notes say what changed).
+Every resolved conflict is logged in
 [`singularity-ladder-questions.md`](singularity-ladder-questions.md). That file was consolidated after the build:
 items A-1..A-3 are rulings the jar does not match yet, and B-1..B-14 are open decisions. Code comments still cite the
 old Q-1..Q-38 numbers, and its last table maps them. This document is what gets built; the questions record what the
 user still has to rule on.
 
 Code references below use `<pkg>` = `com.nateyburr.beyondthestars`.
+
+---
+
+## GTNH 2.9.0-RC-2 port (2026-10-12)
+
+User ruling: the addon targets **GTNH 2.9.0-RC-2** (DreamAssemblerXXL manifest 2026-10-04). This supersedes the D-06
+beta-1 pin. The port plan with the full API, behaviour and id diff is the session's `port-plan.md`; this section is
+what was built.
+
+**Target versions** (`dependencies.gradle`):
+
+| Dependency | Was (2.9.0-beta-1) | Now (2.9.0-RC-2) | How |
+|---|---|---|---|
+| GT5-Unofficial | 5.09.52.594 | **5.09.54.205** | `api(...:dev)` |
+| StructureLib | 1.4.38 | **1.4.45** | `api(...:dev)` |
+| NotEnoughItems / GTNHLib / ModularUI2 | 2.8.98 / 0.10.3 / 2.3.70 | 2.8.155-GTNH / 0.11.52 / 2.3.92 | GT's POM |
+| NewHorizonsCoreMod | (instance only) | 2.9.84 | `runtimeOnlyNonPublishable`, dev runs only |
+| BetterQuesting, BlockRenderer6343 | (instance only) | 3.8.89-GTNH, 1.4.24 | `runtimeOnlyNonPublishable`, `transitive = false` |
+| Avaritia, Universal Singularities (+ WanionLib), Avaritiaddons, Eternal Singularity | - | 1.99, 8.15.4 (1.10.1), 1.9.6-GTNH, 1.4.3 | `runtimeOnlyNonPublishable`, `transitive = false`: they switch on GT's Eye of Harmony Condensate Assembler recipes and the coremod's BHC recipe in `runServer` |
+
+The buildscript is unchanged (gtnhsettingsconvention 2.0.20, Gradle 9.3.1; 2.0.34 / 9.7.1 is an optional parity bump).
+MTE ids 28100-28139 are still free in RC-2 (enum and bytecode scan).
+
+**Compile breaks fixed (4 API areas, 45 errors):**
+
+- `GTPPRecipeMaps` is gone; the six GT++ maps live in `gregtech.api.recipe.RecipeMaps` (names now `gt.recipe.*`):
+  `BTSRecipesCoolant`, `BTSRecipesFuel`, `BTSRecipesPropellant`.
+- `IOutputBusTransaction` is `IOutputTransaction<ItemId, ItemStack>`: `isFilteredTo`, `storePartial(id, stack,
+  total, perParallel)`, `complete` (`MTEReactorCoreMk1.storeAll`).
+- `MTEMultiBlockBase.dumpFluid(List, FluidStack, boolean)` is gone: the Eye dumps through `addOutputPartial(stack,
+  mOutputHatches, false)` (GT's `FluidEjectionHelper`; locked / ME hatches and void protection are GT's).
+- `MTEBlackHoleUtility.updateRedstoneOutput` is gone: the Kerr drives its utility hatches with the RC-2 BHC cadence
+  (`MTEKerrEngine.pulseUtilityHatches`): hole open, `cycleStart()` every 20 ticks and `cycleMiddle()` 5 ticks later
+  (a pulse-mode hatch gives a 5-tick pulse, continuous mode stays lit); hole closed, `blackHoleClosed()`.
+
+**Behaviour changes handled:**
+
+- **Reactor sockets vs crafting input buffers.** RC-2's `addInputHatchToMachineList` also accepts fluid-capable dual
+  input hatches (CRIBs) into `mDualInputHatches`. The reactor's feedwater, chamber-coolant and propellant sockets
+  now refuse anything that is not a plain `MTEHatchInput` before super (a CRIB there would form and feed nothing),
+  and the Spiral's failed-walk rollback truncates `mDualInputHatches` too. Regression traps: the hint/autoplace
+  path uses `FluidHatchElement.mteClasses` (unchanged, client-safe); no NBT involved; the plant-wide list now rolls
+  back with the others; no chain fallback involved.
+- **BHC to Kerr in recipes** (user ruling). In RC-2 the BHC controller is an ingredient: all 9 Spacetime Compression
+  Field Generator tiers (Condensate Assembler) take one, and the coremod's Compressed Circuit Array takes 64. Under
+  `removeBlackHoleCompressorRecipe`, `BTSBlackHoleSwap` rewrites every consumer at load-complete to take the Kerr
+  Ergosphere Engine controller (same count, in place, so nanite tiers and condensates survive) in every GT recipe
+  map, the assembly-line data and research lists and the crafting table, and logs each one
+  (`[BTS] BHC->Kerr (load-complete): <map>: <output>`). The BHC recipe is removed only after that, only if SL-K01 is
+  registered and no consumer is left; otherwise it is kept and the log says why. A server-start pass catches late
+  consumers. Section 4.
+- **SL-K01 is re-priced at BHC-controller parity** (B-30): each compression generator now costs one Kerr controller.
+  Costs doc §9.
+- **Gate audit** (WDM ruling, costs doc §9, B-29). RC-2's tier 1-3 compression generators (Eye T2-T4 gates) still
+  need White Dwarf Matter, through the Resonance Chamber II they take (1 / 4 / 16, one WDM foil each). New
+  **SL-P33**: a Condensate Assembler recipe for that chamber with 2 SpaceTime foils in place of the WDM foil (only with
+  `replaceTecTechEyeOfHarmony=true`). **SL-P30..P32 are retired**: RC-2 prices the generators itself (BEC, no tier
+  upgrade chain) and the ruling keeps those costs. SL-P27..P29 stay: RC-2's BEC casings still cost 8 Godforge casings
+  per Spatial/Temporal casing and a whole LSC per Boundary casing.
+- **TecTech Eye removal** is unchanged: the controller recipe is still a `TTRecipeAdder` assembly line, removed from
+  all four places.
+
+**Verified:** `spotlessApply compileJava` against the RC-2 jars, and a headless `runServer` (76 mods, coremod 2.9.84):
+"[BTS] Recipe registration complete: 232 registered, 0 skipped"; TecTech's 43 Eye recipes and its controller removed
+(AL-visual 1, AL-data 1, research 2); "BHC->Kerr: 10 recipes now take the Kerr controller" (Crude ... Gallifreyan and
+the Empty Spatially Compressed Circuit Array); "removed Black Hole Compressor controller: AL-visual 1, AL-data 1,
+research 0, scanner 1"; GT's assembly-line validation passes. The dev server lacks Railcraft and other pack mods, so
+its recipe count is lower than the pack's (255 before the port, minus SL-P30..P32, plus SL-P33).
+
+**Still to watch at RC-3:** `MultiblockTooltipBuilder` int-count overloads (91 deprecated calls) and
+`Textures.BlockIcons.custom(String)` (8 calls) are deprecated; `MTEBlackHoleCompressor` and `MTEMultiBlockBase` keep
+changing; the BEC costs were rebalanced between beta-3 and RC-2, so re-run the gate audit (costs doc §9) and re-check
+the coremod's BHC entries on every bump.
 
 ---
 
@@ -100,9 +175,10 @@ found two dead ends and several over-priced blocks; §6 there lists what was app
 
 - **Kerr T2 is craftable:** SL-K04 takes 32 Black Hole Seeds in place of the Superstable Black Hole Seed, which no
   recipe in the pack makes.
-- **Eye T2-T4 are craftable** with `replaceTecTechEyeOfHarmony=true`: SL-P30..P32 upgrade a Spacetime Compression
-  Field Generator one tier, paying Raw Star Matter / ESPM / RHSP where TecTech's recipe wants White Dwarf Matter
-  bolts. They are research-station assembly lines researched from the Sirius A / Arcturus / Sirius B charts.
+- **Eye T2-T4 are craftable** with `replaceTecTechEyeOfHarmony=true`. *Superseded by the RC-2 port:* SL-P30..P32
+  (research-station upgrades of a Spacetime Compression Field Generator, paying Raw Star Matter / ESPM / RHSP where
+  TecTech's beta-1 recipe wanted White Dwarf Matter bolts) are retired; RC-2's Condensate Assembler recipes make the
+  generators, and SL-P33 (a WDM-free Resonance Chamber II) closes the one WDM loop left in them (B-29).
 - **Cheaper bulk blocks:** SL-P27..P29 batch-make TecTech's Spatial, Temporal and Boundary casings (always registered, B-26);
   the coil, quadrupole, beam band, jet crescent, Galactic Shell, pylon, Eye controller and Galactic Upgrade Core
   recipes are cheaper or make more per craft (§2.2-§2.4 mark each change).
@@ -276,11 +352,11 @@ HSM → Eye T4. Every input must exist before the machine that needs it.
 | MagMatter Plate | Bastion Plate | UXV per D-48 | `plate TranscendentMetal ×2` |
 | UMV Superconductor Wire, UMV components | Ergosphere Field Coil, injectors | Kerr T1 is **UIV** (D-44) and needs these blocks | `wireGt01 SuperconductorUIV`, UIV components; Mk III rails stay UMV |
 | Tachyon Rich Temporal Fluid (`Materials.Time`) | Spatial Glass Channel | the Kerr (UIV) uses the glass; Time is believed to be UMV | `Molten SpaceTime` |
-| Metamaterial, condensates, "Observation Array (BEC)" | Harmonic Lining, Casimir Plate, Galactic Core | the BEC condensate API is unverified on the 5.09.52.594 pin | moved to ASM/AL with molten metals |
+| Metamaterial, condensates, "Observation Array (BEC)" | Harmonic Lining, Casimir Plate, Galactic Core | the BEC condensate API is unverified on the 5.09.52.594 pin | moved to ASM/AL with molten metals. *RC-2:* the API is verified now (SL-P33 is a Condensate Assembler recipe); these blocks stay as built |
 | Beam Port | Beam Band, Jet Crescent | no beam I/O in P2/P3 | `Emitter_UMV` |
 | SpaceTime at UIV | Kerr cards | OK: the BHC (UIV) already burns molten SpaceTime | kept |
 | Black Hole Seed / Superstable Seed | Kerr | OK: UIV BHC items, untouched | kept |
-| Gallifreyan field generators | Eye controller | OK: the javap scan finds no WDM/BDM/Universium/Eternity/MHDCSM markers in their recipes | kept; re-verify (Q-7) |
+| Gallifreyan field generators | Eye controller | OK: the javap scan finds no WDM/BDM/Universium/Eternity/MHDCSM markers in their recipes | kept; re-verify (Q-7). *RC-2:* the controller takes the Tier0 (Crude) generators; the RC-2 gate audit (costs doc §9) finds Tier0 clean and Tier1-3 needing WDM only through Resonance Chamber II (fixed by SL-P33). Tier4+ (P4/P5) are not clean: see costs doc §9 |
 | RSPM 4,000,000 L | Kerr Density Upgrade | OK: Kerr T2 comes after Eye T1 | kept |
 
 Wider fallout of removing TecTech's recipes (everything in the pack that eats WDM, BDM or Universium before our
@@ -318,18 +394,17 @@ Eye reaches it): Q-3.
 | SL-P27 | TecTech Reinforced Spatial Structure Casing ×4 (gated) | ASM | Godforge Singularity Shielding Casing ×1, plateDense Neutronium ×4, plateDense CosmicNeutronium ×4, plateDense Infinity ×1, programmed circuit 1 | SpaceTime molten 576 | RECIPE_UMV | 1,200 |
 | SL-P28 | TecTech Reinforced Temporal Structure Casing ×4 (gated) | ASM | as SL-P27, on programmed circuit 2 | SpaceTime molten 576 | RECIPE_UMV | 1,200 |
 | SL-P29 | TecTech Infinite SpaceTime Energy Boundary Casing ×8 (gated) | ASM | wireGt16 SuperconductorUMV ×1, plateDense Neutronium ×8, plateDense CosmicNeutronium ×8, Emitter_UIV ×1 | SpaceTime molten 1,152 | RECIPE_UMV | 1,200 |
-| SL-P30 | Spacetime Compression Field Generator Tier1 (meta 1, Eye T2 gate; gated) | AL, research station (research: Star Chart: Sirius A; TecTech's computation for the tier) | Compression generator Tier0 ×1, then TecTech's own Tier1 inputs without the WDM bolts: Yotta Fluid Tank Cell ×2 (meta 6), Quantum_Tank_IV ×8, Infinity Chest ×2, Cosmic Fabric Manipulator ×2, AE2 Singularity cell ×2, circuit UXV ×1 | Mutated Living Solder 5,760, Space molten 2,880, SpaceTime molten 1,440, **RawStarMatter 16,000** | RECIPE_UMV | 80,000 |
-| SL-P31 | Compression generator Tier2 (meta 2, Eye T3 gate; gated) | as SL-P30 (research: Star Chart: Arcturus) | Compression generator Tier1 ×1, Yotta cell ×3 (meta 6), Quantum_Tank_IV ×12, Infinity Chest ×3, Cosmic Fabric Manipulator ×3, AE2 Singularity cell ×2, circuit UXV ×1 | Solder 11,520, Space 4,320, SpaceTime 1,440, **ESPM 4,000** | RECIPE_UMV | 80,000 |
-| SL-P32 | Compression generator Tier3 (meta 3, Eye T4 gate; gated) | as SL-P30 (research: Star Chart: Sirius B) | Compression generator Tier2 ×1, Yotta cell ×1 (meta 7), Quantum_Tank_IV ×16, Infinity Chest ×4, Cosmic Fabric Manipulator ×1, AE2 Singularity cell ×2, circuit UXV ×2 | Solder 23,040, Space 5,760, SpaceTime 1,440, **RHSP 2,000** | RECIPE_UMV | 80,000 |
+| SL-P30..P32 | *retired in the RC-2 port* (were research-station "upgrade the compression generator" recipes, B-28) | | | | | |
+| SL-P33 | MetaMaterial Resonance Chamber II (gated; RC-2 gate audit, B-29) | Condensate Assembler (`TecTechRecipeMaps.condensateAssemblingRecipes`), nanite tiers SixPhasedCopper / Silver / Gold / Silver | Emitter_UEV ×2, rod Hypogen ×2, **foil SpaceTime ×2** (GT's recipe: foil WhiteDwarfMatter ×1), plate ProtoHalkonite ×1 | entangled Chromatic Glass ×12, Infinity ×6, Boundless Cosmic Solder ×2 (condensate units, as GT's) | RECIPE_UIV | 6,000 |
 
 SL-P20 is reserved and unused. Keep the ID gap; do not renumber. Each star chart's fluid is the previous tier's
 product, so a chart cannot be crafted before its tier is reachable. SL-P26 registers only when
-`Config.interimBlackDwarfAtEyeT4` is true. SL-P27..P32 come from the cost audit
-([`singularity-ladder-costs.md`](singularity-ladder-costs.md) §6, #2-#4 and #15). SL-P30..P32 ("gated") register only
-when `Config.replaceTecTechEyeOfHarmony` is true; SL-P27..P29 always register, because our Eye needs them either way
-(B-26). TecTech's own recipes for those blocks stay. SL-P30..P32 upgrade the
-generator of the tier below (TecTech's recipe makes each tier from a Spatial casing and White Dwarf Matter bolts,
-which have no source while TecTech's Eye is off; B-22, B-28).
+`Config.interimBlackDwarfAtEyeT4` is true. SL-P27..P29 come from the cost audit
+([`singularity-ladder-costs.md`](singularity-ladder-costs.md) §6, #3-#4) and always register, because our Eye needs
+them either way (B-26). TecTech's own recipes for those blocks (Condensate Assembler in RC-2) stay. SL-P33 ("gated")
+registers only when `Config.replaceTecTechEyeOfHarmony` is true: with TecTech's Eye kept, WDM has its stock source.
+It is the RC-2 replacement for SL-P30..P32 (B-22, B-28, B-29): GT's Resonance Chamber II is the only place a White
+Dwarf Matter product enters RC-2's tier 1-3 Spacetime Compression Field Generators (costs doc §9).
 `plateDense SpaceTime` and the other dense-plate pairings may not be generated by GT. `req()` names a missing one at
 boot (`mGeneratedItems` check). The Foundation unit swaps any that fails to `plate` ×9 in the same recipe and
 notes it in the commit.
@@ -338,7 +413,7 @@ notes it in the commit.
 
 | ID | Output | Map | Item inputs | Fluids | EU | Ticks |
 |---|---|---|---|---|---|---|
-| SL-K01 | Kerr Ergosphere Engine (controller, MTE base+14) | AL (research: Black_Hole_Opener) | plateDense SpaceTime ×32, frameGt SpaceTime ×32, Field_Generator_UIV ×16, Emitter_UIV ×16, Sensor_UIV ×16, circuit UIV ×32, Superradiant Mirror Segment ×8, Bolt Injector Rail Mk I ×16, Black_Hole_Opener ×8, screw TranscendentMetal ×64, Ergosphere Field Coil ×16, Containment Deck Plating ×32 | SpaceTime molten 294,912, TranscendentMetal molten 147,456, Super Coolant 1,000,000 | RECIPE_UIV | 18,000 |
+| SL-K01 | Kerr Ergosphere Engine (controller, MTE base+14). **Re-priced in the RC-2 port at BHC-controller parity** (B-30, costs doc §9). The card's recipe was plateDense SpaceTime ×32, frameGt SpaceTime ×32, FG/Emitter/Sensor UIV ×16, circuit UIV ×32, Mirror Segment ×8, Rail Mk I ×16, Seed ×8, TM screw ×64, Field Coil ×16, Deck ×32; SpaceTime 294,912, TM 147,456, Super Coolant 1,000,000; 18,000 ticks | AL (research: Black_Hole_Opener) | Machine_Multi_HIPCompressor ×1, Machine_Multi_NeutroniumCompressor ×1, AdvancedImplosionCompressor ×16, CompressorUIV ×8, ElectricImplosionCompressor ×4, Field_Generator_UEV ×4, circuit UIV ×4, Black_Hole_Opener ×1, Superradiant Mirror Segment ×1, Ergosphere Field Coil ×4, Extreme Density Space-Bending Casing ×1, plateSuperdense Neutronium ×16 / Naquadria ×16 / CosmicNeutronium ×8, screw TranscendentMetal ×16 | SpaceTime molten 2,304, SuperconductorUIVBase molten 43,200, Infinity molten 14,400, Super Coolant 64,000 | RECIPE_UIV | 3,600 |
 | SL-K02 | Kerr Compressor Module (block) | AL (research: Kerr controller) | Electric_Piston_UIV ×32, Field_Generator_UIV ×8, circuit UIV ×16, plateDense Neutronium ×32, Black_Hole_Opener ×4, gearGt SpaceTime ×16 | SpaceTime molten 73,728, Super Coolant 500,000 | RECIPE_UIV | 12,000 |
 | SL-K03 | Kerr Extractor Module (block) | AL (research: Extraction Casing, Q-36) | Electric_Piston_UIV ×32 (was pumps, cost audit #14), Field_Generator_UIV ×8, circuit UIV ×16, plateDense Neutronium ×32, Beam Focusing Quadrupole ×4, pipeHuge Neutronium ×16 | SpaceTime molten 73,728, Super Coolant 500,000 | RECIPE_UIV | 12,000 |
 | SL-K04 | Kerr Density Upgrade (item) | AL (research: Bastion Plate, Q-36) | Bastion Plate ×64, Bastion Plate ×64, plateDense Infinity ×64, Field_Generator_UMV ×32, circuit UMV ×32, Ergosphere Field Coil ×32, Black_Hole_Opener ×32 (was Black_Hole_Stabilizer ×1, which nothing crafts; cost audit #1, B-21), Bolt Injector Rail Mk III ×16 | RawStarMatter 4,000,000, SpaceTime molten 589,824, ExcitedDTEC 128,000 | RECIPE_UMV ×4 | 36,000 |
@@ -522,7 +597,7 @@ reflection, so the lookup rebuilds without the removed recipe.
 
 | Removal | Config switch (`Config.java`, general) | Default | What it does |
 |---|---|---|---|
-| BHC controller | `removeBlackHoleCompressorRecipe` | true | `removeAssemblyLineByOutput(ItemList.Machine_Multi_BlackHoleCompressor.get(1))` |
+| BHC controller | `removeBlackHoleCompressorRecipe` | true | RC-2 port: first `BTSBlackHoleSwap.run(BHC, Kerr)` rewrites every recipe that consumes a BHC controller to consume the Kerr controller (see "GTNH 2.9.0-RC-2 port"); then, only if the Kerr has an assembly line and no BHC consumer is left, `removeAssemblyLineByOutput(ItemList.Machine_Multi_BlackHoleCompressor.get(1))`. `CommonProxy.serverStarting` re-runs the swap for late consumers |
 | TecTech EOH | `replaceTecTechEyeOfHarmony` | true | (a) the Eye registry's conversion snapshot runs first, always; (b) `recipeHashMap.clear()` on `TecTech.eyeOfHarmonyRecipeStorage`, so TecTech's `recipeLookUp` returns null and placed EOHs idle; (c) remove every recipe from `TecTechRecipeMaps.eyeOfHarmonyRecipes` (NEI); (d) `removeAssemblyLineByOutput(CustomItemList.Machine_Multi_EyeOfHarmony.get(1))` |
 | Interim BDM | `interimBlackDwarfAtEyeT4` | true | registers the T4 interim cooling recipe (Q-3); remove it when P4 ships Eye T5 |
 
@@ -1260,7 +1335,10 @@ bill list and to its hatch fitting.
   user ruled (Q-9/Q-22) that the extractor runs GT's item extractor recipes only; the map, its lang key and its NEI
   page are gone, and the Kerr shows up on GT's own Extractor page instead.
 - **The BHC controller recipe** is removed by the Foundation's `BTSRecipeRemovals` under
-  `removeBlackHoleCompressorRecipe`. Placed BHCs are untouched.
+  `removeBlackHoleCompressorRecipe`. Placed BHCs are untouched. RC-2 port: every recipe that consumes a BHC
+  controller takes the Kerr controller first (`BTSBlackHoleSwap`), and SL-K01 is priced at BHC-controller parity.
+- **Utility hatches** follow the RC-2 BHC protocol (`pulseUtilityHatches`): `cycleStart` / `cycleMiddle` while the
+  hole is open, `blackHoleClosed` while it is shut.
 
 ---
 
@@ -1372,7 +1450,9 @@ Each step runs inside `BTSRecipeRemovals.guard`. The old-save behaviour is in `d
 ## Hologram & NEI
 
 Acceptance pass, 2026-10-12. Verified by reading our code and `javap` of the instance jars (structurelib-1.4.38,
-blockrenderer6343-1.4.14, gregtech-5.09.52.594). Nothing here has been opened in game yet.
+blockrenderer6343-1.4.14, gregtech-5.09.52.594). Nothing here has been opened in game yet. RC-2 port: the public API
+of every StructureLib class used is identical in 1.4.45, and BlockRenderer6343 1.4.24 still discovers controllers
+through `IConstructable` / `ISurvivalConstructable`.
 
 ### Trigger stack → tier
 
