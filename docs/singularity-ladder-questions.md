@@ -1360,3 +1360,18 @@ one keystroke away.
 to raise and walk.
 
 **Alternatives.** Default both to 3 (a mid-size plant shows every piece), or keep them different (as built).
+
+### TQ-8 Should the production halls honour the Power Panel's parallel limit? [tidy review, L5]
+
+**Context.** The Fuel Fabrication Hall, Site Batching Plant, Cascade Hall and PUREX Canyon show GT's Power Panel,
+whose "max parallel" field is saved in the controller's NBT. The halls' processing logic reads
+`getMaxParallelRecipes()`, so that field has never done anything on them. GT's own multis read
+`getTrueParallel()`, which is `max(1, alwaysMaxParallel ? max : min(max, powerPanelMaxParallel))`.
+
+**What we built.** Nothing changes. Tidy B8 switched the halls to `getTrueParallel()`, but a player who had unticked
+"max" while it did nothing would suddenly run at the lower number, so the review reverted it as a gameplay change.
+
+**Suggestion.** Switch to `getTrueParallel()` in a gameplay pass (it is how every GT multi behaves), and at the
+same time make the terminal "Parallel:" line and the scanner print the effective value (`getTrueParallel()`).
+
+**Alternatives.** Keep ignoring the limit and hide the Power Panel's parallel field on the halls.

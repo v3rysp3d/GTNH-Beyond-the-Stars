@@ -506,6 +506,9 @@ the button is gone.
 - **B8.** `MTEProductionHallBase.getParallelDetail()` (shell tier; the Cascade Hall overrides it with stage banks)
   and `parallelSource(int)` (argument only, runs client-side) feed `MTEProductionHallGui`. The line shows only while
   GT's synced `machine` flag says the hall is formed. The PUREX Canyon prints `Parallel: 8 (fixed)`.
+  **Review: the supplier switch is reverted** (back to `getMaxParallelRecipes`). A limit already saved in a
+  controller's NBT would start to bite, which is a gameplay change; logged as L5 / TQ-8. The GUI line and the
+  scanner print `getMaxParallelRecipes`, which is again what the hall runs at.
 - **Left for unit C (chat, not GUI):** `MTEReactorCoreMk1.warnLegacyFace()` (~2748, the projection-refused chat)
   still says "Stand beside the main station".
 - **Not checked in game** (no game run in this pass): the gap-row fit and caption legibility at GUI scale 4, the
@@ -711,6 +714,10 @@ deprecated `MultiblockTooltipBuilder` calls outside kerr/eye. Handoff: Kerr/Eye 
   front-centre cell of row z=0 is turned into '~' when it is ring, and then `Math.round(8 - 7.5)` = 1 puts the
   anchor '~' at z=1 as well. The z=0 cell is never checked, so that ring cell can be anything. The Foundation's own
   tower pieces remap both cells to ring ('R'), so the live plant is unaffected; only the museum controller is.
+- **L5** (found in the tidy review) The production halls ignore the Power Panel's parallel limit: their
+  `ProcessingLogic` takes `getMaxParallelRecipes`, not GT's `getTrueParallel()`, so the panel's "max parallel"
+  field shows on all four halls and does nothing. Tidy B8 switched the supplier, but that makes a limit stored in
+  old controllers' NBT start to bite, so the review reverted it (gameplay is out of scope here). See TQ-8.
 
 Questions for review (implementers append these to `docs/singularity-ladder-questions.md` as
 "## Q-n" when they reach them):
@@ -727,6 +734,7 @@ Questions for review (implementers append these to `docs/singularity-ladder-ques
 - **TQ-6** Enable input separation on the halls?
 - **TQ-7** Rename upgrade node "Extra Centrifuge Stage" (it boosts the Annex) to "Extra Leach
   Tank"? This also needs questbook text.
+- **TQ-8** (logged, Part D) Should the halls honour the Power Panel's parallel limit (L5)?
 
 ## Questbook handoff (for the questbook pass)
 

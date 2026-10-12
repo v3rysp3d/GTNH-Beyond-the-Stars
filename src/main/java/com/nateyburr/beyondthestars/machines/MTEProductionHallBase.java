@@ -78,14 +78,13 @@ public abstract class MTEProductionHallBase<T extends MTEProductionHallBase<T>>
      * Radiant Naquadah Alloy) without being broken and replaced, and a logic built once with a
      * fixed number would go on paying the old parallel until the chunk unloaded.
      * <p>
-     * Tidy B8: the supplier is GT's {@code getTrueParallel()}, as RC-2's javadoc on
-     * {@code getMaxParallelRecipes} asks, so the Power Panel's parallel limit actually limits.
-     * With GT's default (the "max" box ticked) it returns exactly {@link #getMaxParallelRecipes},
-     * so nothing changes unless a player chooses a lower limit.
+     * The supplier stays {@link #getMaxParallelRecipes}, not GT's {@code getTrueParallel()}: the
+     * switch would make the Power Panel's stored parallel limit bite on existing machines, which
+     * is a gameplay change and out of scope for the presentation tidy (logged as L5 / TQ-8).
      */
     @Override
     protected ProcessingLogic createProcessingLogic() {
-        return new ProcessingLogic().setMaxParallelSupplier(this::getTrueParallel);
+        return new ProcessingLogic().setMaxParallelSupplier(this::getMaxParallelRecipes);
     }
 
     /**
