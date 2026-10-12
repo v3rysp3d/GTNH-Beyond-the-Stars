@@ -1,5 +1,6 @@
 package com.nateyburr.beyondthestars;
 
+import java.util.List;
 import java.util.Locale;
 
 import net.minecraft.block.Block;
@@ -7,8 +8,6 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.EnumChatFormatting;
 
 import com.nateyburr.beyondthestars.blocks.BTSBlocks;
 import com.nateyburr.beyondthestars.items.BTSItems;
@@ -18,8 +17,8 @@ import com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1;
 import gregtech.api.enums.ItemList;
 
 /**
- * /btskit [tier 1-5] - hands the operator a full campus test kit (controllers, fuel columns for
- * the chosen silo tier, every fuel grade, all three fans) and prints the casing shopping list.
+ * /btskit [1-5|kerr|eye] - hands the operator a full test kit (controllers, pillar frames for
+ * the chosen silo tier, every fuel grade) and prints the casing shopping list.
  * Pair with creative mode + the StructureLib Hologram Projector for instant structure builds.
  * <p>
  * <b>Not one number below is typed by hand.</b> Review finding C5/A4 caught this command keeping
@@ -45,12 +44,22 @@ public class CommandBTSKit extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btskit [siloTier 1-" + BTSBom.MAX_TIER + "] | /btskit kerr | /btskit eye";
+        return "/btskit [1-" + BTSBom.MAX_TIER + "|kerr|eye]";
     }
 
     @Override
     public int getRequiredPermissionLevel() {
         return 2;
+    }
+
+    @Override
+    public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
+        if (args.length != 1) return null;
+        final String[] options = new String[BTSBom.MAX_TIER + 2];
+        for (int t = 1; t <= BTSBom.MAX_TIER; t++) options[t - 1] = Integer.toString(t);
+        options[BTSBom.MAX_TIER] = "kerr";
+        options[BTSBom.MAX_TIER + 1] = "eye";
+        return getListOfStringsMatchingLastWord(args, options);
     }
 
     private static void give(EntityPlayerMP player, ItemStack stack) {
@@ -70,11 +79,7 @@ public class CommandBTSKit extends CommandBase {
         }
     }
 
-    private static void tell(EntityPlayerMP player, String message) {
-        player.addChatMessage(new ChatComponentText(message));
-    }
-
-    private static String qty(int count) {
+    private static String qty(long count) {
         return String.format(Locale.ROOT, "%,d", count);
     }
 
@@ -91,7 +96,7 @@ public class CommandBTSKit extends CommandBase {
     }
 
     private static void tellBill(EntityPlayerMP player, String heading, BTSBom.Bill bill) {
-        tell(player, " - " + heading + ": " + materials(bill));
+        BTSChat.send(player, " - " + heading + ": " + materials(bill));
     }
 
     @Override
@@ -122,11 +127,16 @@ public class CommandBTSKit extends CommandBase {
         final int injectors = BTSBom.SPIRAL.of(BTSBom.PRECISION_INJECTOR);
 
         // Controllers. A3 retired both plant-module controllers: the Cooling Towers and every
-        // other building are pieces of the main station now, so ONE controller raises the
-        // whole plant and the kit no longer hands out museum pieces.
+        // other building are pieces of the Nuclear Plant Foundation now, so ONE controller raises
+        // the whole plant and the kit no longer hands out museum pieces. The two standalone
+        // machines and the four production halls come along for testing the fuel chain.
         give(player, BTSMachines.reactorCoreMk1.copy());
         give(player, BTSMachines.extractionPlatform.copy());
         give(player, BTSMachines.enrichmentTrain.copy());
+        give(player, BTSMachines.siteBatchingPlant.copy());
+        give(player, BTSMachines.cascadeHall.copy());
+        give(player, BTSMachines.fuelFabricationHall.copy());
+        give(player, BTSMachines.purexCanyon.copy());
 
         // Pillar frames (8 segments per pillar) + a loading port per pillar
         giveBlocks(player, BTSBlocks.reactorFuelColumn, columns);
@@ -167,30 +177,24 @@ public class CommandBTSKit extends CommandBase {
             give(player, new ItemStack(BTSItems.turbineRotor, 1));
         }
 
-        // Fans
-        give(player, new ItemStack(BTSItems.turbineFanMatched, 1));
-        give(player, new ItemStack(BTSItems.turbineFanTDA, 1));
-        give(player, new ItemStack(BTSItems.turbineFanTDAOptimized, 1));
-
         player.inventoryContainer.detectAndSendChanges();
 
-        tell(player, EnumChatFormatting.AQUA + "== Beyond the Stars test kit (silo tier " + tier + ") ==");
-        tell(
+        BTSChat.header(player, "== Beyond the Stars test kit (Reactor Silo tier " + tier + ") ==");
+        BTSChat.send(
             player,
-            "Kit given: 3 controllers, " + qty(columns)
-                + " pillar frames, "
+            "Kit given: Nuclear Plant Foundation (+ the standalone Extraction Platform and Enrichment Train, optional), the four production hall controllers, "
+                + qty(columns)
+                + " Reactor Fuel Pillar Frames, "
                 + qty(ports)
-                + " loading ports (optional now), "
+                + " Rod Loading Ports (optional), "
                 + qty(housings)
-                + " turbine housings, "
+                + " Turbine Housings, "
                 + qty(stages)
-                + " rotors, "
+                + " Turbine Rotors, "
                 + qty(injectors)
-                + " precision injectors, rods, fuels.");
-        tell(
-            player,
-            EnumChatFormatting.YELLOW
-                + "Grab via NEI (creative). Every count below is DERIVED from the structure shape code by questbook/gen-bom.ps1 - the same tally the Blueprint quests print, so the two can never disagree:");
+                + " Precision Injectors, both control blocks, the module hatches, fuel rods and assemblies.");
+        BTSChat
+            .warn(player, "Bill of materials (the same counts the Blueprint quests show) - grab via NEI in creative:");
         tellBill(player, BTSBom.PLATFORM.piece(), BTSBom.PLATFORM);
         tellBill(
             player,
@@ -206,78 +210,73 @@ public class CommandBTSKit extends CommandBase {
         tellBill(player, BTSBom.SPIRAL.piece(), BTSBom.SPIRAL);
         tellBill(player, BTSBom.GALLERY.piece(), BTSBom.GALLERY);
         tellBill(player, BTSBom.TOWER.piece() + ", x" + BTSBom.TOWERS, BTSBom.TOWER);
-        // D-17 / D-22: the four plant modules, same one projection, same derived tally.
-        tellBill(player, BTSBom.VENT.piece() + " (safety: decay + radiation windows halved)", BTSBom.VENT);
+        // The four plant modules, same one projection, same derived tally.
+        tellBill(player, BTSBom.VENT.piece() + " (decay heat and radiation windows halved)", BTSBom.VENT);
         tellBill(
             player,
-            BTSBom.SWITCHYARD.piece() + " (grid conditioning: lifts the 100,000,000 EU/t soft cap)",
+            BTSBom.SWITCHYARD.piece() + " (lifts the " + qty(MTEReactorCoreMk1.GRID_SOFT_CAP) + " EU/t output cap)",
             BTSBom.SWITCHYARD);
         tellBill(
             player,
-            BTSBom.DERRICK.piece() + " (self-mining, "
+            BTSBom.DERRICK.piece() + " (feedstock mine, "
                 + MTEReactorCoreMk1.euRate(MTEReactorCoreMk1.DERRICK_EU_PER_TICK)
                 + ")",
             BTSBom.DERRICK);
         tellBill(
             player,
-            BTSBom.ANNEX.piece() + " (on-site pellet line, "
+            BTSBom.ANNEX.piece() + " (on-site yellowcake line, "
                 + MTEReactorCoreMk1.euRate(MTEReactorCoreMk1.ANNEX_EU_PER_TICK)
                 + ")",
             BTSBom.ANNEX);
-        tell(
+        BTSChat.warn(player, " = Whole plant at tier " + tier + ": " + materials(BTSBom.TOTAL[tier]));
+        BTSChat.send(
             player,
-            EnumChatFormatting.YELLOW + " = WHOLE PLANT at tier " + tier + ": " + materials(BTSBom.TOTAL[tier]));
-        tell(
-            player,
-            " - Point-of-use sockets (D-20): SILO face = " + silo.of(BTSBom.MAINTENANCE_HATCH)
-                + " maintenance (y0), "
+            " - Point-of-use sockets: Reactor Silo face = " + silo.of(BTSBom.MAINTENANCE_HATCH)
+                + " Maintenance Hatch (beside the controller), "
                 + silo.of(BTSBom.INPUT_HATCH_IV)
-                + " input hatch + "
+                + " Feedwater Input Hatch + "
                 + silo.of(BTSBom.SILO_CONTROL_BLOCK)
                 + " Silo Control Block + "
                 + silo.of(BTSBom.OUTPUT_HATCH_IV)
-                + " output hatch (y1), "
+                + " Output Hatch (row above), "
                 + silo.of(BTSBom.INPUT_BUS_IV)
-                + " input bus + "
+                + " Rod Input Bus + "
                 + silo.of(BTSBom.OUTPUT_BUS_IV)
-                + " output bus (y2); SPIRAL front wall = "
+                + " Depleted Output Bus (row above that); Spiral chamber front wall = "
                 + BTSBom.SPIRAL.of(BTSBom.INPUT_HATCH_IV)
-                + " input hatches, coolant + propellant (y1); MANIFOLD back face = "
+                + " Input Hatches (coolant, propellant); output manifold back face = "
                 + BTSBom.GALLERY.of(BTSBom.DYNAMO_HATCH_IV)
-                + " dynamos (y3), "
+                + " Dynamo Hatches (4th row up), "
                 + BTSBom.GALLERY.of(BTSBom.ENERGY_HATCH_IV)
-                + " ENERGY hatches (y4), "
+                + " Energy Hatches (5th), "
                 + BTSBom.GALLERY.of(BTSBom.LASER_SOURCE_HATCH)
-                + " laser sources (y5)");
-        tell(
+                + " Laser Source Hatches (6th).");
+        BTSChat.send(
             player,
             " - The projector places no Turbine Housing: the " + qty(housings)
                 + " given cover the "
                 + duct.of(BTSBom.TURBINE_HOUSING)
-                + " spine sockets + "
+                + " Spine sockets + "
                 + stages
-                + " gallery stages - seat a Turbine Rotor ("
-                + qty(stages)
-                + " given) in every stage.");
-        tell(
+                + " gallery stages. Seat a Turbine Rotor in every gallery stage.");
+        BTSChat.send(
             player,
-            " - Control blocks given: Silo Control Block (silo face, above the station) + Turbine Control Block (manifold back face; feed it a redstone clock to spin the fan)");
-        tell(
+            " - Control blocks: Silo Control Block (silo face, directly above the controller) + Turbine Control Block (output manifold back face, above its Maintenance Hatch; each redstone pulse runs one turbine cycle).");
+        BTSChat.send(
             player,
-            " - Plant module sockets: DERRICK deck front wall = " + BTSBom.DERRICK.of(BTSBom.OUTPUT_BUS_IV)
-                + " output bus; ANNEX outward wall = "
+            " - Module sockets: Extraction Derrick = " + BTSBom.DERRICK.of(BTSBom.OUTPUT_BUS_IV)
+                + " Output Bus; Enrichment Annex = "
                 + BTSBom.ANNEX.of(BTSBom.INPUT_BUS_IV)
-                + " input bus (uraninite) + "
+                + " Input Bus (Uraninite) + "
                 + BTSBom.ANNEX.of(BTSBom.INPUT_HATCH_IV)
-                + " input hatch (Hydrofluoric Acid) + "
+                + " Input Hatch (Hydrofluoric Acid) + "
                 + BTSBom.ANNEX.of(BTSBom.OUTPUT_BUS_IV)
-                + " output bus (pellets); VENT STACK and SWITCHYARD take none at all.");
-        tell(
+                + " Output Bus (yellowcake + thorium); the Vent Stack and Switchyard take none.");
+        BTSChat.ok(
             player,
-            EnumChatFormatting.GREEN
-                + "Build: place the main controller, ONE hologram projection builds EVERYTHING (platform + silo + duct + spiral + gallery + both cooling towers + all four plant modules; tier from GUI Build Tier or a 2-5 trigger stack, and a silo that already stands is never re-tiered). There is no second controller to place.");
-        tell(
+            "Build: place the Nuclear Plant Foundation; one hologram projection builds every piece (platform, Reactor Silo, Spine, Spiral chamber, Rotor Assembly, both Cooling Towers, the four modules). Tier: the GUI Build Tier or a 2-5 trigger stack; a standing silo is never re-tiered.");
+        BTSChat.send(
             player,
-            "Then: pillar frames in the core, and plumb each building where it is fed - rods and water into the SILO face, coolant and propellant into the SPIRAL chamber's front wall. The plant distributes all of it internally from there.");
+            "Then: stack the pillar frames in the silo, and supply each piece where it is fed - rods and feedwater at the silo face, coolant and propellant at the Spiral chamber's front wall.");
     }
 }
