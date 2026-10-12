@@ -3322,6 +3322,77 @@ controllers; nothing changes.
 `gen-singularity --check` clean apart from the overlay's `srcHead`; the dev-server boot above ("281 registered, 0
 skipped"); golden 78/78.
 
+### B-86 The window bands: the Kerr's hole and the Eye's star read from the front [my answer 2026-10-13, built]
+
+**Context.** Render QA K2 / E1 (B-66) and E-9 (B-67, B-68): from the front at their own height the Kerr's drum and
+governor arc hid the hole, and the Eye's core band (and from T4 its arms and rim) hid the star. Your answer: "Glass
+window bands" (a Quantum Glass band in the Kerr drum and Quantum Glass in the Eye's front ring segments at eye level;
+structure, hologram, NEI and BOM updated).
+
+**What we built.** `tools/export-structures.js` re-labels cells the mockup already places (voxel.js is not edited) at
+|y| ≤ 2 from the object's centre, a 5-row window:
+
+| Machine | Quantum Glass pane | Open behind / in front of it | Cells |
+|---|---|---|---|
+| Kerr (T1 and T2) | the governor arc's outer shell in front of the hole (z > 0, \|x\| ≤ 12); all round the rest of the drum, the outer mirror ring's casing skin | the arc's lining, every other layer of both mirror rings, and at T2 the mid band in front of the arc | 700 panes; 3,006 open (T1), 3,323 (T2) |
+| Eye (all tiers) | the core band's outer shell in its front ring segments (z > 0, \|x\| ≤ 26, between the clamp struts at 30 and 150 deg) | the band's lining behind it; the T4 / T5 arm and T6 rim cells in front of it within \|x\| ≤ 10 | 339 panes; 371 open in the core, 422 / 371 / 213 in the arms, arms2, rim |
+
+- **Old machines keep forming.** A pane char (Kerr `S` / `T`, Eye `A`) is `ofChain(Quantum Glass, the block it
+  replaced)`: glass first, so holograms, survival builds and NEI place glass; an earlier build's casing still
+  counts. An open cell is `' '` in the shape, which StructureLib never checks, so whatever an earlier build has
+  there is fine too. Hatches and sockets are untouched.
+- **Shapes, hologram, NEI, BOM.** The shapes and manifest are regenerated (legend rows, a `windows` section). New
+  exporter checks: the pane and opening counts, and a clear front sightline at y ±1 (Kerr |x| ≤ 8; Eye T1-T3
+  |x| ≤ 20, T4-T6 |x| ≤ 8). The kits' bills, the tooltips (a "Quantum Glass (window band)" line on the Kerr, the Eye's
+  glass count, one structure line each) and the questbook checklists follow (bomItems map the pane roles to
+  Quantum Glass); the Kerr and Eye build quests say where the window is.
+- **Costs** (costs doc §13): the Eye barely moves (2.4 % of the core's Spatial / Temporal casings). The Kerr T1
+  drops 1,180 mirrors, 1,595 backing, 810 Extreme Density casings and 121 linings: about a third of its Infinity
+  (54k → 35k), 10.9M → 7.6M Bedrockium, 1.3e14 → 1.0e14 EU.
+- **Render harness:** a fourth view, `level` (level with the object, 24 blocks in front of the structure's front
+  face), so every case is shot from the front at eye level; the test world moved to `bts-rendertest-L3` (the builds
+  never clear a site, and the old world's sites had blocks where the windows are open now).
+- **Bench:** `oldwindows` on the console builds of `/btskerr` and `/btseye` puts the pre-window block back into every
+  pane cell and re-walks (open cells need no test: nothing checks them).
+
+**Dev server** (`runServer`, `sltest-ovt`, "281 registered, 0 skipped"): Kerr T1 creative + `oldwindows` (700 panes back
+to casing) FORMED, modules linked; Kerr T2 survival path FORMED (25,051 blocks auto-placed) and FORMED again after
+`oldwindows`; Eye T1 creative + `oldwindows` (339) FORMED; Eye T6 survival FORMED, all bands, and after `oldwindows`.
+The damage test now hits the pane behind the KEE controller ("Any of: Quantum Glass / Extreme Density Space-Bending
+Casing") and the survival repair restores it. A Kerr T2 and an Eye T6 built earlier in the session with the old block
+in every cell the first window pass had touched (4,023 / 3,078 cells, i.e. exactly a pre-window build) re-walk FORMED
+on the final shapes.
+
+**Judgement call: one pane, not solid glass.** The first build made every window cell Quantum Glass (3,706 on the
+Kerr T1, up to 3,078 on the Eye T6). In the real client (`render-qa/round5/pass-a/`) Quantum Glass turned out to be
+a glowing blue glass, and three walls of it on the Kerr's sightline hid the hole completely; the Eye's star showed
+only as a haze through two to eight walls. So each window is now one pane with the cells behind it open, and from
+T4 the arms and the rim leave an opening in front of the core's pane instead of adding more glass. The Kerr's band
+is still a Quantum Glass band all round its drum (the outer ring's skin); only in front of the hole is the pane the
+governor arc's shell.
+
+**Round 5** (`render-qa/round5/`, 104 shots: 13 cases × front / 34 / close / level × day / night; contact sheets in
+`round5/sheets/`):
+
+- **Kerr:** the hole reads from the front through the window at 16, 64 and 256 SM: a black disc with the cream
+  lensing ring at its sides, plainest at night; by day the blue pane tints it. At 256 SM (T2) the 5-row window shows
+  the middle of the hole and the ring's sides, not the whole ring.
+- **Eye:** Sol, Sirius A (weakest by day: white-blue behind blue glass), Arcturus and the Core Collapse swell read
+  through the pane; the neutron star with its jets, the bounce, the white and the black dwarf and the magnetar read
+  through the arm / rim openings and the pane, at eye level, day and night.
+- FPS at the shots: Kerr 1,221-1,336, Eye 842-1,219 (the magnetar with its flare warning lowest, as in round 4).
+
+**Open (your call):**
+
+1. **Win the Kerr's Infinity back?** *Suggestion:* SL-P02 / SL-P03 (mirror backing, mirror) output ×2 → ×1: the
+   cavity's remaining 3,628 blocks then cost 113 % of the old 6,403. Alternative: accept the cheaper cage (it is
+   still well above the BHC it replaces).
+2. **Window height.** 5 rows shows the whole star up to Sol's size and the middle of the larger holes. *Suggestion:*
+   keep 5; a 7-row window would take the Eye core band's top and bottom rims away entirely.
+3. **P4 merge note:** P4's exporter must take over `WINDOW` / `windowKerr` / `windowEye` / `frontPane` and the open-cell
+   handling when it merges, and re-export (the current shapes were exported from voxel.js a01c6b6, the sha the
+   shapes carry; the design repo's newer voxel.js needs P4's exporter).
+
 ## Part C. Settled (for the record)
 
 | Topic | Your answer | State |
@@ -3344,6 +3415,7 @@ skipped"); golden 78/78.
 | UXV parts before Eye T7 [B-72, B-82; item 20 superseded] | "Ship UMV stopgap" (the UXV parts and circuits design is a brainstorm first) | Built: B-72 and SL-H10 (B-84) |
 | Old-plant renames and questions [TQ-1..TQ-8] | "You have full free reign on this" | Built: B-85 |
 | Trophy quests consume our Eye controllers [QB-7] | "Keep as trophies" | Built (as is) |
+| Render K2 + E-9: the hole and star hidden from the front [B-66..B-68] | "Glass window bands" | Built: one Quantum Glass pane per window, the cells behind it open (B-86) |
 
 ## Where the old question numbers went
 

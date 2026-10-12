@@ -866,6 +866,16 @@ the same block-count class as GTNH's Forge of the Gods. Conditions:
   `eye_arms` = T4 − T3. The exporter **asserts** that no non-render cell changes between tiers, only gets added (the
   D-34 overlap audit, re-proved at export).
 - Render-only kinds (`/render|not built/`) become `' '` (skip): the centre stays free for the render.
+- **Window bands** (my answer 2026-10-13, render K2 + E-9; B-86): after classifying a build, `windowKerr` /
+  `windowEye` turn the cells at |y| ≤ 2 from the object's centre that hide it from the front into ONE Quantum Glass
+  pane per sightline (a char per replaced block, whose Java element is Quantum Glass or the old block) with the cells
+  behind it open (`' '`). Kerr: the governor arc's outer shell is the pane in front of the hole, the outer mirror
+  ring's skin is the drum band's pane elsewhere. Eye: the core band's outer shell in its front ring segments; the
+  T4-T6 arm and rim cells in front of it open within |x| ≤ 10. The pane in front is the first contiguous run of
+  shell cells seen from +z in each column. voxel.js is not edited. Checks: the pane counts, the openings, and a clear
+  front sightline at y ±1 (Kerr |x| ≤ 8, Eye T1-T3 |x| ≤ 20, T4-T6 |x| ≤ 8). The manifest carries a `windows`
+  section. Run it on the voxel.js revision the shapes' `sha=` names (a01c6b6, 2742379a) until P4's exporter takes
+  the window pass over.
 - **Output:** one file per piece, `src/main/resources/assets/beyondthestars/structures/<piece>.txt`. Format:
   - a header `# piece=<name> w=<a> h=<b> d=<c> off=<h>,<v>,<d> sha=<sha1 of voxel.js>`;
   - then `d` layers separated by `---`, each layer `h` rows of `w` chars, top row first, in StructureLib's
@@ -1471,6 +1481,7 @@ pieces, and each is checked at its own `off`. Every plain element is wrapped in 
 | `c` | Compressor module piece (its own machine): GT `InputBus`, `InputHatch`, `OutputBus`, `OutputHatch`, `Energy.or(ExoticEnergy)`, hint 1, else `I`. At least 1 in, 1 out, 1 energy. |
 | `x` | Extractor module piece: GT `InputBus`, `OutputBus`, `Energy.or(ExoticEnergy)` (item buses only), hint 1, else slCasing:15. At least 1 in, 1 out, 1 energy. |
 | `~` | In `kerr_compressor` / `kerr_extractor`: the module's own controller (28117 / 28118). The old `q` / `k` core cells are `c` / `x` sockets now (B-51). |
+| `S` / `T` | **Window band pane** (my answer 2026-10-13, render K2; B-86): `ofChain(Casings.QuantumGlass, Casings.ExtremeDensitySpaceBendingCasing)`, over `A` (the outer mirror ring's casing skin, all round the drum except in front of the hole) / `L` (the governor arc's outer shell in front of the hole, z > 0, \|x\| ≤ 12). At \|y\| ≤ 2 from the hole the cells behind the pane are open (`' '`): the arc's lining, every other layer of both mirror rings, and at T2 the mid band in front of the arc. Glass first (holograms, survival builds and NEI place glass); a Kerr built before the window still forms with its old blocks. 700 pane cells; 3,006 cells opened at T1, 3,323 at T2. |
 
 ### Behaviour
 
@@ -1579,6 +1590,7 @@ Shared edits, each append-only:
 | `o` | `EyeHatchElement.Output` (`MTEHatchOutputBusME`, `MTEHatchOutputME`), hint 2, else `Q`. At least 1 of each. |
 | `m` | Maintenance, hint 3, else `Q` |
 | `s` / `t` | `EyeHatchElement.Stellar`, hint 4, else `R` / `S`. Optional. |
+| `A` | **Window band pane** (my answer 2026-10-13, render E-9; B-86): `ofChain(Casings.QuantumGlass, Casings.ReinforcedSpatialStructureCasing)` over `U`: the core band's outer shell in its front ring segments (z > 0, \|x\| ≤ 26), at \|y\| ≤ 2 from the star. Open (`' '`): the band's lining behind the pane (371 cells) and, in front of it, the T4 / T5 arm and T6 rim cells within \|x\| ≤ 10 (422 / 371 / 213). Glass first; an Eye built before the window still forms. 339 pane cells. |
 
 Every plain element is wrapped in `noOverwrite`.
 

@@ -1,4 +1,4 @@
-# Singularity Ladder: recipe completeness and cost audit (Kerr T1/T2, Eye T1-T4; Eye T5/T6 in §10; the BEC expansion in §11; Homogeny and Reality machines in §12)
+# Singularity Ladder: recipe completeness and cost audit (Kerr T1/T2, Eye T1-T4; Eye T5/T6 in §10; the BEC expansion in §11; Homogeny and Reality machines in §12; the window bands in §13)
 
 Status: audit, 2026-10-12, addon `7a47289`. **GTNH 2.9.0-RC-2 port: see §9 for the BHC→Kerr swap, the Kerr controller price and the RC-2 gate audit.** It reads the code and the jars and changes no code. **The recipe audit
 pass has since applied it: see §8 for what was applied, changed or skipped.** It answers the
@@ -61,6 +61,9 @@ parity (TecTech's Eye pays the same per generator), but the old set is stranded 
 
 ### 2.1 Kerr T1 (pieces `kerr_t1` + `kerr_compressor` + `kerr_extractor`, 15,363 blocks)
 
+*Since the window band (§13, 2026-10-13) 700 of these cells are a Quantum Glass pane and 3,006 are open: 1,180
+mirrors, 1,595 backing, 810 Extreme Density casings and 121 linings fewer than the counts below.*
+
 | Char | Block | Count | Recipe | Status |
 |---|---|---|---|---|
 | `D` | Mirror Backing Casing (slCasing:2) | 3,551 | SL-P02 ASM ×2 | ✔ |
@@ -98,6 +101,9 @@ parity (TecTech's Eye pays the same per generator), but the old set is stranded 
 no Galactic Upgrade Core (SL-E02) and no Star Chart: Sirius B (SL-P25), and therefore no Eye T4.
 
 ### 2.3 Eye T1 (piece `eye_core`, 19,616 blocks)
+
+*Since the window band (§13) 339 of these cells are a Quantum Glass pane and 371 are open: 360 Spatial casings and 350
+Boundary casings fewer.*
 
 | Char | Block | Count | Recipe | Status |
 |---|---|---|---|---|
@@ -820,3 +826,35 @@ The per-craft inputs follow `homogeny-reality.md` §5 except: SL-H10 gates on Bl
 SL-R16 outputs ×32, not ×8 (688 claws, not 190); SL-R17 is new (Region Anchor Casing ×4); and seven inputs were
 trimmed because the exported BOM made them balloon (H02 pistons, H03 coils / wire / motors, R11 emitters, R12 and
 R14 dense Infinity and SpaceTime, R13 field generators, R15 Casimir Plates).
+
+---
+
+## 13. The window bands (my answer 2026-10-13, render K2 + E-9: "Glass window bands")
+
+The cells that hid the Kerr's hole and the Eye's star from the front at their own height are now one Quantum Glass
+pane per sightline with the cells behind it open (`tools/export-structures.js` `WINDOW`, B-86). A pane cell also
+accepts the block it replaced and an open cell accepts anything, so a machine built earlier pays nothing. Quantum Glass
+is TecTech's assembler glass: 1 Containment casing + 1 Reinforced Glass + 576 L molten Trinium, 10 s at UV (about
+1.0e8 EU) per block.
+
+| Piece | Pane (Quantum Glass) | Open | Blocks no longer needed | Saved per machine (§3 per-block prices) |
+|---|---|---|---|---|
+| `kerr_t1` | 700 (535 drum skin + 165 governor arc) | 3,006 | 1,180 Superradiant Mirror, 1,595 Mirror Backing, 810 Extreme Density (drum casing 640 + arc 170), 121 Harmonic Lining | 19.0k Infinity, 2.5k SpaceTime, 2.5k Neutronium, 3.3M Bedrockium (+ 3.3M Steel, 3.3M Iron), 3.2e13 EU; the 700 panes cost 2.8k Trinium |
+| `kerr_t2` (increment) | 0 | +317 | 184 Bastion Plate, 15 Casimir Plate, 118 Harmonic Lining (the mid band in front of the arc) | 1.0k Infinity, 2.7k Neutronium, 8.1e12 EU |
+| `eye_core` | 339 | 371 | 360 Reinforced Spatial Structure Casing, 350 Infinite Spacetime Energy Boundary Casing | 360 Godforge shield casings (of 14,936 at ×32, §4.1), 1.1e15 EU; 350 Boundary (SL-P29: 350 SC UMV, 175 UIV circuits, 3.2k each Neutronium / Cosmic Neutronium) |
+| `eye_arms` | 0 | 422 | 344 Galactic Shell Plating, 78 Boundary | small (the bands are the cheap part, §10.2) |
+| `eye_arms2` | 0 | 371 | 368 Galactic Shell Plating, 3 Boundary | small |
+| `eye_rim` | 0 | 213 | 132 Galactic Shell Plating, 81 Boundary | small |
+
+**Verdict.**
+
+- **Eye: no material change.** The core loses 2.4 % of its Spatial / Temporal casings and of its EU (§4.1); the bands
+  were already the cheap part of every tier step (§10.2).
+- **Kerr T1: about a third cheaper in Infinity.** The window takes 5 of the inner ring's 9 rows and 5 of the outer
+  ring's 15, so 43 % of the mirror cavity's mirrors and backing go: §4's proposed Kerr T1 row goes from 54k to about
+  35k Infinity, 12k to 9.5k SpaceTime, 10.9M to 7.6M Bedrockium, and 1.3e14 to about 1.0e14 EU. It stays above the
+  Black Hole Compressor it replaces (15M Bedrockium, 1.2e12 EU) and its controller and modules are unchanged. B-86
+  asks whether to win the Infinity back (suggestion: SL-P02 / SL-P03 output ×2 → ×1, which doubles the price of each
+  remaining mirror and backing block: the cavity's 3,628 blocks then cost 113 % of its old 6,403) or accept the
+  cheaper cage.
+- Nothing new needs a recipe: Quantum Glass is a pack block (already 1,541 in the Eye core and used by H/R).
