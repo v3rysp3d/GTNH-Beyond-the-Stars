@@ -23,11 +23,13 @@ import java.util.Arrays;
 import java.util.List;
 
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumChatFormatting;
 
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.nateyburr.beyondthestars.BeyondTheStars;
 
 import gregtech.api.GregTechAPI;
 import gregtech.api.casing.Casings;
@@ -41,6 +43,7 @@ import gregtech.api.recipe.RecipeMapBackend;
 import gregtech.api.recipe.RecipeMapBuilder;
 import gregtech.api.structure.error.StructureError;
 import gregtech.api.util.MultiblockTooltipBuilder;
+import gregtech.api.util.tooltip.TooltipHelper;
 
 /**
  * D-26 THE SITE BATCHING PLANT - MTE 28112, EV (docs/production-lines.md S5.4).
@@ -211,25 +214,33 @@ public class MTESiteBatchingPlant extends MTEProductionHallBase<MTESiteBatchingP
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
-        tt.addMachineType("Batching Plant")
-            .addInfo("Bulk casing manufacture for the plant that has not been built yet.")
-            .addInfo("A tier-5 buildout is ~8,000 blocks and 3,773 of them are Light Concrete.")
-            .addInfo("Makes nothing GT cannot - only 8-32x the batch, for a higher voltage.")
-            .addSeparator()
-            .addInfo("Parallel = 4 x shell tier: Solid Steel 4, Clean Stainless 8,")
-            .addInfo("Tungstensteel Reinforced 12. The WEAKEST block in the wall sets the tier.")
-            .addInfo("Build this FIRST - before the silo, to build the silo.")
-            .beginStructureBlock(5, 5, 9, false)
+        final String aqua = EnumChatFormatting.AQUA.toString();
+        final String gray = EnumChatFormatting.GRAY.toString();
+        tt.addMachineType("Bulk Casing Assembler")
+            .addInfo("Bulk-makes the casings and concrete the Nuclear Plant is built from.")
+            .addInfo("A tier-5 plant is about 8,000 blocks; 3,773 of them are Light Concrete.")
+            .addInfo("Makes nothing GT cannot: each recipe is an 8-32x bulk batch")
+            .addInfo("of a stock GT recipe.")
+            .addInfo(aqua + "Build it first:" + gray + " before the silo, to build the silo.")
+            .addInfo("Parallel: " + TooltipHelper.parallelText(4) + " per shell tier (4 / 8 / 12)")
+            .addInfo(aqua + "Shell tier:" + gray + " Solid Steel 1, Clean Stainless Steel 2,")
+            .addInfo("Tungstensteel Reinforced 3. The weakest block in the wall sets it.")
+            .addInfo("Parallels are also limited by the power your Energy Hatches supply.")
+            .beginStructureBlock(5, 5, 9, true)
             .addController("Front face, centre")
-            .addCasingInfoRange("Solid Steel / Clean Stainless / Tungstensteel Reinforced shell", 100, 130, false)
-            .addCasingInfoExactly("Steel Frame Box (lattice)", 24, false)
-            .addCasingInfoExactly("Steel Pipe Casing (riser)", 3, false)
-            .addEnergyHatch("Front face, top right", 2)
-            .addMaintenanceHatch("Front face, top left", 1)
-            .addInputBus("Front face, flanking the controller (2)", 3)
-            .addInputHatch("Front face, bottom left", 4)
-            .addOutputBus("Front face, bottom right", 5)
-            .toolTipFinisher();
+            .addCasing(
+                "155-156",
+                "Solid Steel Machine Casing / Clean Stainless Steel Machine Casing / Tungstensteel Reinforced Block",
+                true)
+            .addCasing("16", "Steel Frame Box (lattice)", false)
+            .addCasing("3", "Steel Pipe Casing (riser)", false)
+            .addAir("The rest of the interior: keep pipes and cables outside")
+            .addEnergyHatch("1", "Front face, 2nd row from the top, right", 2)
+            .addMaintenanceHatch("1", "Front face, 2nd row from the top, left", 1)
+            .addInputBus("1-2", "Front face, either side of the controller", 3)
+            .addInputHatch("1", "Front face, 2nd row from the bottom, left", 4)
+            .addOutputBus("1", "Front face, 2nd row from the bottom, right", 5)
+            .toolTipFinisher(BeyondTheStars.TOOLTIP_AUTHOR);
         return tt;
     }
 }

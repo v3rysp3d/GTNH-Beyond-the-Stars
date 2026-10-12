@@ -24,12 +24,14 @@ import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructa
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.items.BTSItemsFuel;
 
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.Materials;
 import gregtech.api.enums.OrePrefixes;
 import gregtech.api.enums.TierEU;
+import gregtech.api.enums.VoltageIndex;
 import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
@@ -41,6 +43,7 @@ import gregtech.api.structure.error.StructureError;
 import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.MultiblockTooltipBuilder;
+import gregtech.api.util.tooltip.TooltipHelper;
 import gregtech.common.tileentities.machines.IDualInputHatch;
 
 /**
@@ -191,24 +194,30 @@ public class MTEEnrichmentTrain extends MTEExtendedPowerMultiBlockBase<MTEEnrich
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
-        tt.addMachineType("Enrichment Line")
-            .addInfo("The campus processing factory: leaches uraninite into YELLOWCAKE.")
-            .addInfo("Per 30s cycle: 8x Uraninite Dust + 2,000 L Hydrofluoric Acid ->")
-            .addInfo("2x Yellowcake + 2x Thorium Dust.")
-            .addInfo("Same 4 Uraninite per cake the front end (F-01 .. F-08) gets: this buys")
-            .addInfo("SIMPLICITY, not yield - one multiblock instead of the mill, the flotation")
-            .addInfo("cell, the digester, two chemical plants and their reagents. F-09 onward")
-            .addInfo("still has to be built; the yellowcake goes to the Hydrofluorination step.")
-            .beginStructureBlock(3, 3, 9, true)
-            .addController("Front center")
-            .addCasingInfoRange("Clean Stainless Steel Machine Casing", 65, 72, false)
-            .addCasingInfoExactly("Steel Pipe Casing (conversion line)", 7, false)
-            .addEnergyHatch("Any casing", 1)
-            .addMaintenanceHatch("Any casing", 1)
-            .addInputBus("Any casing", 1)
-            .addInputHatch("Any casing", 1)
-            .addOutputBus("Any casing", 1)
-            .toolTipFinisher();
+        tt.addMachineType("Yellowcake Mill")
+            .addInfo("Leaches Uraninite Dust with Hydrofluoric Acid into Yellowcake.")
+            .addInfo(String.format("Every 30 s: %d Uraninite Dust + %,d L Hydrofluoric Acid", INPUT_URANINITE, ACID_MB))
+            .addInfo(String.format("-> %d Yellowcake + %d Thorium Dust.", OUTPUT_YELLOWCAKE, OUTPUT_THORIUM))
+            .addInfo(
+                "Uses " + TooltipHelper.euRateText(TierEU.RECIPE_HV)
+                    + " ("
+                    + TooltipHelper.voltageTierText(VoltageIndex.HV, false)
+                    + ")")
+            .addInfo("Same 4 Uraninite per Yellowcake as the full ore line:")
+            .addInfo("it saves machines, not ore.")
+            .addInfo("Next step: Chemical Plant, Yellowcake -> Uranium Tetrafluoride.")
+            .addInfo("Despite the name it does not enrich; enrichment is the Cascade Hall.")
+            .addInfo("The Nuclear Plant Foundation has this built in as its Enrichment Annex.")
+            .beginStructureBlock(3, 3, 9, false)
+            .addController("Front face, centre")
+            .addCasing("65-69", "Clean Stainless Steel Machine Casing", false)
+            .addCasing("7", "Steel Pipe Casing (conversion line)", false)
+            .addEnergyHatch("1+", "Any Clean Stainless Steel Machine Casing", 1)
+            .addMaintenanceHatch("1", "Any Clean Stainless Steel Machine Casing", 1)
+            .addInputBus("1+", "Any Clean Stainless Steel Machine Casing (no Crafting Input Buffer)", 1)
+            .addInputHatch("1+", "Any Clean Stainless Steel Machine Casing (no Crafting Input Buffer)", 1)
+            .addOutputBus("1+", "Any Clean Stainless Steel Machine Casing", 1)
+            .toolTipFinisher(BeyondTheStars.TOOLTIP_AUTHOR);
         return tt;
     }
 

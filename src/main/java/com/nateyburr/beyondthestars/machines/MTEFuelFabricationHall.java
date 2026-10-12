@@ -22,10 +22,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumChatFormatting;
 
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.nateyburr.beyondthestars.BeyondTheStars;
 
 import gregtech.api.GregTechAPI;
 import gregtech.api.casing.Casings;
@@ -37,6 +39,7 @@ import gregtech.api.recipe.RecipeMapBackend;
 import gregtech.api.recipe.RecipeMapBuilder;
 import gregtech.api.structure.error.StructureError;
 import gregtech.api.util.MultiblockTooltipBuilder;
+import gregtech.api.util.tooltip.TooltipHelper;
 
 /**
  * D-26 THE FUEL FABRICATION HALL - MTE 28110, IV (docs/production-lines.md S5.2).
@@ -218,25 +221,32 @@ public class MTEFuelFabricationHall extends MTEProductionHallBase<MTEFuelFabrica
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
-        tt.addMachineType("Fuel Fabrication Line")
+        final String aqua = EnumChatFormatting.AQUA.toString();
+        final String gray = EnumChatFormatting.GRAY.toString();
+        tt.addMachineType("Fuel Rod Assembler")
             .addInfo("Loads pellets into cladding tubes and bundles rods into assemblies.")
-            .addInfo("A tier-5 silo burns 201 rods per decay cycle - this is what feeds it.")
-            .addSeparator()
-            .addInfo("Parallel = 8 x shell tier: Clean Stainless 8, Iridium Reinforced 16,")
-            .addInfo("Radiant Naquadah Alloy 24. The WEAKEST block in the wall sets the tier.")
-            .addInfo("Circuits 1/2/3 select the uranium, MOX and thorium grades.")
-            .addInfo("The naquadah grade is NOT made here - its rod is a Precise Assembler")
-            .addInfo("recipe and its bundle an Assembly Line one.")
-            .beginStructureBlock(7, 5, 12, false)
+            .addInfo("A tier-5 Reactor Silo burns 201 rods per decay cycle: this feeds it.")
+            .addInfo("Circuit 1 / 2 / 3 = the uranium, MOX and thorium grades.")
+            .addInfo("The naquadah grade is made elsewhere: its rods in a Precise Assembler,")
+            .addInfo("its assemblies on an Assembly Line.")
+            .addInfo("Parallel: " + TooltipHelper.parallelText(8) + " per shell tier (8 / 16 / 24)")
+            .addInfo(aqua + "Shell tier:" + gray + " Clean Stainless Steel 1, Iridium Reinforced 2,")
+            .addInfo("Radiant Naquadah Alloy 3. The weakest block in the wall sets it.")
+            .addInfo("Parallels are also limited by the power your Energy Hatches supply.")
+            .beginStructureBlock(7, 5, 12, true)
             .addController("Front face, centre")
-            .addCasingInfoRange("Clean Stainless / Iridium Reinforced / Radiant Naquadah shell", 250, 269, false)
-            .addCasingInfoExactly("Tungstensteel Turbine Casing (centreline spine)", 10, false)
-            .addEnergyHatch("Front face, top row (2)", 2)
-            .addMaintenanceHatch("Front face, top left", 1)
-            .addInputBus("Front face, flanking the controller (2)", 3)
-            .addInputHatch("Front face, bottom left", 4)
-            .addOutputBus("Front face, bottom right", 5)
-            .toolTipFinisher();
+            .addCasing(
+                "262-264",
+                "Clean Stainless Steel Machine Casing / Iridium Reinforced Block / Radiant Naquadah Alloy Casing",
+                true)
+            .addCasing("10", "Tungstensteel Turbine Casing (spine down the centreline)", false)
+            .addAir("The rest of the interior: keep pipes and cables outside")
+            .addEnergyHatch("1-2", "Front face, 2nd row from the top", 2)
+            .addMaintenanceHatch("1", "Front face, 2nd row from the top, left", 1)
+            .addInputBus("1-2", "Front face, either side of the controller", 3)
+            .addInputHatch("1", "Front face, 2nd row from the bottom, left", 4)
+            .addOutputBus("1", "Front face, 2nd row from the bottom, right", 5)
+            .toolTipFinisher(BeyondTheStars.TOOLTIP_AUTHOR);
         return tt;
     }
 }

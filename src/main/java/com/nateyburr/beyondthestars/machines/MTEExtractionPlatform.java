@@ -26,11 +26,13 @@ import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructa
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.nateyburr.beyondthestars.BeyondTheStars;
 
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.Materials;
 import gregtech.api.enums.OrePrefixes;
 import gregtech.api.enums.TierEU;
+import gregtech.api.enums.VoltageIndex;
 import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
@@ -41,6 +43,7 @@ import gregtech.api.render.TextureFactory;
 import gregtech.api.structure.error.StructureError;
 import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.MultiblockTooltipBuilder;
+import gregtech.api.util.tooltip.TooltipHelper;
 
 /**
  * Extraction Platform - the campus fuel front end. A drilling derrick that grinds EU into a
@@ -156,19 +159,27 @@ public class MTEExtractionPlatform extends MTEExtendedPowerMultiBlockBase<MTEExt
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
-        tt.addMachineType("Drilling Platform")
-            .addInfo("The campus fuel front end: drinks EV-tier EU, drills forever.")
-            .addInfo("Every 10s: 6x Uraninite Dust + 1x Thorium Dust; every 4th cycle +1 Tantalum Dust.")
-            .addInfo("Feed the uraninite to an Enrichment Train for fuel pellets.")
-            .beginStructureBlock(5, 8, 5, true)
-            .addController("Front center of the machine deck")
-            .addCasingInfoRange("Solid Steel Machine Casing", 60, 70, false)
-            .addCasingInfoExactly("Steel Frame Box (derrick tower)", 24, false)
-            .addCasingInfoExactly("Steel Pipe Casing (drill string)", 7, false)
-            .addEnergyHatch("Any base casing", 1)
-            .addMaintenanceHatch("Any base casing", 1)
-            .addOutputBus("Any base casing", 1)
-            .toolTipFinisher();
+        tt.addMachineType("Ore Drill")
+            .addInfo("A uranium mine that never runs dry: needs only power.")
+            .addInfo("Every 10 s: 6 Uraninite Dust + 1 Thorium Dust,")
+            .addInfo("plus 1 Tantalum Dust every 4th cycle.")
+            .addInfo(
+                "Uses " + TooltipHelper.euRateText(TierEU.RECIPE_EV)
+                    + " ("
+                    + TooltipHelper.voltageTierText(VoltageIndex.EV, false)
+                    + ")")
+            .addInfo("Feed the Uraninite to an Enrichment Train to make Yellowcake.")
+            .addInfo("Output Bus required: output is lost without one.")
+            .addInfo("The Nuclear Plant Foundation has this drill built in as its Extraction Derrick.")
+            .beginStructureBlock(5, 8, 5, false)
+            .addController("Front face, centre, 2nd layer from the bottom")
+            .addCasing("60-70", "Solid Steel Machine Casing", false)
+            .addCasing("24", "Steel Frame Box (derrick tower)", false)
+            .addCasing("7", "Steel Pipe Casing (drill string)", false)
+            .addEnergyHatch("1+", "Any Solid Steel Machine Casing", 1)
+            .addMaintenanceHatch("1", "Any Solid Steel Machine Casing", 1)
+            .addOutputBus("1+", "Any Solid Steel Machine Casing", 1)
+            .toolTipFinisher(BeyondTheStars.TOOLTIP_AUTHOR);
         return tt;
     }
 
