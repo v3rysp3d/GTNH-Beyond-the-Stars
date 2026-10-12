@@ -474,6 +474,7 @@ beyondthestars.gui.eye.fluid.tip=%s: %s / %s L: 10 cycles of upkeep (kept) plus 
 beyondthestars.gui.eye.fluid.tip2=%s: %s / %s L: the event's fluid plus the new star's first cycle
 beyondthestars.gui.eye.planet.input.tip=%s: %s / %s L for one run
 beyondthestars.gui.eye.dark=dark
+beyondthestars.gui.eye.lit=lit
 beyondthestars.gui.eye.nostar.hint=Put a Star Chart (never consumed) or a dimension display block in the controller slot.
 beyondthestars.gui.eye.gauge.0=P (pressure)
 beyondthestars.gui.eye.gauge.1=Θ (core heat)

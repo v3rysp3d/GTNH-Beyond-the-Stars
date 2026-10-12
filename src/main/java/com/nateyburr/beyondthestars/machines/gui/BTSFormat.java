@@ -13,13 +13,14 @@ public final class BTSFormat {
 
     private BTSFormat() {}
 
-    /** Litres, compact: {@code 5,000}, {@code 40.0M}, {@code 212M}, {@code 1.20G} (no unit). */
+    /** Litres, compact: {@code 5,000}, {@code 40.0M}, {@code 212M}, {@code 1.20G}, {@code 1.00T} (no unit). */
     public static String litres(double l) {
         final double a = Math.abs(l);
         if (a < 1e6) return String.format(Locale.ROOT, "%,d", Math.round(l));
         if (a < 1e9) return a >= 1e8 ? String.format(Locale.ROOT, "%.0fM", l / 1e6)
             : String.format(Locale.ROOT, "%.1fM", l / 1e6);
-        return String.format(Locale.ROOT, "%.2fG", l / 1e9);
+        if (a < 1e12) return String.format(Locale.ROOT, "%.2fG", l / 1e9);
+        return String.format(Locale.ROOT, "%.2fT", l / 1e12);
     }
 
     /** "{have} / {need}" in compact litres (no unit). */

@@ -2076,8 +2076,9 @@ public final class EyeStarRuntime {
             c.add(
                 lit && zone >= 0 && zone <= 1,
                 BTSText.lang("beyondthestars.gui.eye.chk.litstable", starName),
-                lit && zone >= 0 ? BTSText.lang("beyondthestars.gui.zone." + Math.min(4, zone))
-                    : BTSText.lang("beyondthestars.gui.eye.dark"),
+                !lit ? BTSText.lang("beyondthestars.gui.eye.dark")
+                    : zone >= 0 ? BTSText.lang("beyondthestars.gui.zone." + Math.min(4, zone))
+                        : BTSText.lang("beyondthestars.gui.eye.lit"),
                 -1);
         }
         for (Map.Entry<Fluid, Long> need : transitionNeeds(type).entrySet()) {
