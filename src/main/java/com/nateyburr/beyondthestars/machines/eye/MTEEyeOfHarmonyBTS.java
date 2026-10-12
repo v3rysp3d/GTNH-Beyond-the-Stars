@@ -250,6 +250,13 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     private final ArrayList<MTEHatchStellarFieldSensor> sensorHatches = new ArrayList<>();
     /** AUTOMATION PASS: Directive Hatches (MTE 28127) in the Sensor sockets. */
     private final ArrayList<MTEHatchDirective> directiveHatches = new ArrayList<>();
+    /**
+     * The Directive Hatches the last formed walk found. Most breaks stop the walk before it reaches the sockets, which
+     * left {@link #directiveHatches} empty and the hatches silent, so the Status set's "not formed" bit never reached
+     * the redstone (B-71). An unformed walk that found none publishes to these; every formed walk replaces them, and a
+     * removed hatch drops out by {@code live}.
+     */
+    private final ArrayList<MTEHatchDirective> formedDirectiveHatches = new ArrayList<>();
     /** D-49 R-1: input buses on the plinth gas sockets (the Stellar Ignition Charges). */
     private final ArrayList<MTEHatchInputBus> itemBuses = new ArrayList<>();
 
@@ -1151,9 +1158,18 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
 
     /** Once a second (server): every live Directive Hatch gets this Eye's codes. */
     private void publishDirectives() {
-        for (MTEHatchDirective hatch : directiveHatches) {
+        if (mMachine) {
+            formedDirectiveHatches.clear();
+            formedDirectiveHatches.addAll(directiveHatches);
+        }
+        for (MTEHatchDirective hatch : publishedDirectives()) {
             if (live(hatch)) hatch.publish(this);
         }
+    }
+
+    /** The hatches that get the codes now: the walk's, else (unformed, none walked) the last formed walk's. */
+    private List<MTEHatchDirective> publishedDirectives() {
+        return mMachine || !directiveHatches.isEmpty() ? directiveHatches : formedDirectiveHatches;
     }
 
     @Override
@@ -1860,7 +1876,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         }
         if (!lastRun.isEmpty()) out.add("Last run: " + lastRun);
         out.addAll(runtime.statusLines());
-        for (MTEHatchDirective hatch : directiveHatches) {
+        for (MTEHatchDirective hatch : publishedDirectives()) {
             if (live(hatch)) out.add("Directive: " + hatch.statusLine());
         }
         if (!runtime.lastFailure()
