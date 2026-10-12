@@ -42,6 +42,7 @@ public class HomogenyGui extends MTEMultiBlockBaseGui<MTEHomogeny> {
         syncManager.syncValue("homInstallLine", new StringSyncValue(multiblock::installLine));
         syncManager.syncValue("homInstallP", new DoubleSyncValue(multiblock::installFraction));
         syncManager.syncValue("homNote", new StringSyncValue(multiblock::lastNote));
+        syncManager.syncValue("homBurst", new StringSyncValue(multiblock::burstLine));
         // Install is a server-side action (GT's InteractionSyncHandler pattern), not a synced boolean.
     }
 
@@ -53,9 +54,15 @@ public class HomogenyGui extends MTEMultiBlockBaseGui<MTEHomogeny> {
         final StringSyncValue install = syncManager.findSyncHandler("homInstallLine", StringSyncValue.class);
         final DoubleSyncValue installP = syncManager.findSyncHandler("homInstallP", DoubleSyncValue.class);
         final StringSyncValue note = syncManager.findSyncHandler("homNote", StringSyncValue.class);
+        final StringSyncValue burst = syncManager.findSyncHandler("homBurst", StringSyncValue.class);
         return super.createTerminalTextWidget(syncManager, parent)
             .child(HRGui.row(() -> EnumChatFormatting.AQUA + head.getStringValue(), () -> true))
             .child(HRGui.row(() -> EnumChatFormatting.GRAY + rings.getStringValue(), () -> true))
+            .child(
+                HRGui.row(
+                    () -> EnumChatFormatting.AQUA + burst.getStringValue(),
+                    () -> !burst.getStringValue()
+                        .isEmpty()))
             .child(
                 HRGui.row(
                     () -> EnumChatFormatting.WHITE + upgrade.getStringValue(),

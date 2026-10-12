@@ -45,6 +45,10 @@ import com.nateyburr.beyondthestars.fluids.SLRealityFluids;
 import com.nateyburr.beyondthestars.items.SLMaxItems;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
+import com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor;
+import com.nateyburr.beyondthestars.machines.conduit.ReceptorHatchElement;
+import com.nateyburr.beyondthestars.machines.quasar.burst.BurstHost;
+import com.nateyburr.beyondthestars.machines.quasar.engine.BurstLink;
 import com.nateyburr.beyondthestars.machines.reality.RealityRecipeMaps;
 
 import gregtech.api.casing.Casings;
@@ -156,8 +160,15 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
     /** Why the install did not advance this tick ("" when it did). Server, not persisted. */
     private String installStall = "";
 
+    // ------------------------------------------------- P4 quasar link (server, never saved: nothing about a link is)
+    private final BurstHost burstHost = new BurstHost();
+    /** The running mix needs σ ≥ 1 (Entanglement Medium); restored from the run's outputs after a load. */
+    private boolean runNeedsLink;
+
     // ---------------------------------------------------------------- WALK state (resetWalk)
     private int mCasing;
+    /** P4: GRB Receptor Ports in the stirring ring's {@code g} cells (only while the ring counts). */
+    private final ArrayList<MTEHatchGRBReceptor> receptors = new ArrayList<>();
     private final boolean[] pieceBuilt = new boolean[PIECES.length];
     private final String[] pieceFault = { "", "", "" };
 
@@ -222,9 +233,15 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
             .addElement('K', casing(Casings.QuantumGlass))
             .addElement('Z', casing(Casings.QuantumGlass))
             .addElement('M', casing(Casings.ReinforcedTemporalStructureCasing))
-            // RESERVED (quasar-p4.md section 3.1): P4 chains its GRB Receptor Port in front of this casing, so the
-            // port slots into builds that stand now without un-forming them. Three cells on the T2 stirring ring.
-            .addElement('g', block(SLBlocks.slCasing, BlockSLCasing.GALACTIC_SHELL))
+            // P4 (quasar-p4.md section 3.1): a GRB Receptor Port, or the Galactic Shell these cells held before P4, so
+            // builds that stand keep forming. Three cells on the T2 stirring ring. Hologram hint 4.
+            .addElement(
+                'g',
+                buildHatchAdder(MTEHomogeny.class)
+                    .atLeast(ReceptorHatchElement.<MTEHomogeny>of(MTEHomogeny::addReceptor, MTEHomogeny::receptorCount))
+                    .casingIndex(index)
+                    .hint(4)
+                    .buildAndChain(block(SLBlocks.slCasing, BlockSLCasing.GALACTIC_SHELL)))
             // ---- sockets: the hatch first, then the casing it falls back to
             .addElement(
                 'h',
@@ -279,6 +296,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
 
     private void resetWalk() {
         mCasing = 0;
+        receptors.clear();
         Arrays.fill(pieceBuilt, false);
         Arrays.fill(pieceFault, "");
     }
@@ -296,6 +314,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
         for (int i = 1; i < PIECES.length; i++) {
             ring.clear();
             final int mark = mInputHatches.size();
+            final int rMark = receptors.size();
             final int[] at = BTSShapes.offset(PIECES[i]);
             pieceBuilt[i] = checkPiece(PIECES[i], at[0], at[1], at[2], ring);
             pieceFault[i] = pieceBuilt[i] || ring.isEmpty() ? ""
@@ -306,6 +325,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
             below = below && pieceBuilt[i];
             if (!below) {
                 while (mInputHatches.size() > mark) mInputHatches.remove(mInputHatches.size() - 1);
+                while (receptors.size() > rMark) receptors.remove(receptors.size() - 1);
             }
         }
         if (mInputHatches.isEmpty()) errors.add(StructureErrors.of("beyondthestars.structure.homogeny.feed"));
@@ -313,6 +333,29 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
         if (getExoticAndNormalEnergyHatchList().isEmpty()) {
             errors.add(StructureErrors.of("beyondthestars.structure.homogeny.energy"));
         }
+    }
+
+    /** P4: a GRB Receptor Port in a stirring-ring {@code g} cell. */
+    public boolean addReceptor(IGregTechTileEntity te, int casingIndex) {
+        if (te == null) return false;
+        final IMetaTileEntity mte = te.getMetaTileEntity();
+        if (mte instanceof MTEHatchGRBReceptor) {
+            ((MTEHatchGRBReceptor) mte).updateTexture(casingIndex);
+            receptors.add((MTEHatchGRBReceptor) mte);
+            return true;
+        }
+        return false;
+    }
+
+    public int receptorCount() {
+        int n = 0;
+        for (MTEHatchGRBReceptor r : receptors) if (r != null && r.isValid()) n++;
+        return n;
+    }
+
+    /** The stirring ring's receptor ports (server state, read-only). */
+    public List<MTEHatchGRBReceptor> receptors() {
+        return java.util.Collections.unmodifiableList(receptors);
     }
 
     /** Structural tier: T1 piece = 1, + stirring ring = 2, + outer ring = 3 (cumulative). 0 if unformed. Server. */
@@ -591,6 +634,9 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
     @Override
     public void onPostTick(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
         super.onPostTick(aBaseMetaTileEntity, aTick);
+        if (aBaseMetaTileEntity.isServerSide() && aTick % 20 == 0 && mMachine) burstSecond(aBaseMetaTileEntity);
+        if (aBaseMetaTileEntity.isServerSide() && !installing && mMaxProgresstime > 0 && !runConditionHolds())
+            aBaseMetaTileEntity.setActive(false);
         if (!aBaseMetaTileEntity.isServerSide() || !installing) return;
         if (mStartUpCheck >= 0) return; // not walked yet after a load
         final boolean advanced = installTick();
@@ -625,23 +671,87 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
             protected OverclockCalculator createOverclockCalculator(@Nonnull GTRecipe recipe) {
                 return super.createOverclockCalculator(recipe).setNoOverclock(true);
             }
-        }.setMaxParallelSupplier(this::maxParallel);
+        }.setMaxParallelSupplier(this::maxParallel)
+            .setSpeedBonusSupplier(() -> 1.0 / speedFactor());
+    }
+
+    // ======================================================================= P4: the quasar link
+
+    /** This Homogeny's burst demand D_h: 1.5 Bu/t at T2, 6 at T3 (quasar-p4.md §3.1); 0 at T1 (no ring, no ports). */
+    public double burstDemand() {
+        final int t = tier();
+        return t >= 3 ? BurstLink.HOMOGENY_T3 : t == 2 ? BurstLink.HOMOGENY_T2 : 0;
     }
 
     /**
-     * P4 HOOK (quasar-p4.md section 3.1, the design of record): the Quasar link's sigma at this host, read from GRB
-     * Receptor Ports in the reserved {@code g} cells of the stirring ring. 0 until P4 builds the port (MTE 28125).
+     * The Quasar link's σ at this host on the 60 s mean, read from GRB Receptor Ports in the stirring ring's {@code g}
+     * cells; 0 with none. Q-8: held still while its quasar is frozen or unloaded (the host keeps its last σ).
      */
     public double quasarSigma() {
-        return 0;
+        return receptorCount() == 0 || burstDemand() <= 0 ? 0 : burstHost.sigmaMean();
     }
 
     /**
-     * P4 HOOK: the sigma a recipe needs to start. P4: Entanglement Medium (SL-H21) needs 1, Degenerate never does
-     * (Eye T6 needs it before any quasar exists), and sigma speeds T2/T3 up to 6x / 24x. 0 (no condition) until P4.
+     * The speed factor σ gives at T2 / T3: 1 + 0.5·min(σ, 1), so the vortex runs at up to 6x (T2, 4 parallels) or 24x
+     * (T3, 16 parallels) the T1 rate. 1 at T1 or with no link. Fixed when a mix starts.
+     */
+    public double speedFactor() {
+        return tier() >= 2 ? 1.0 + 0.5 * Math.min(1.0, Math.max(0, quasarSigma())) : 1.0;
+    }
+
+    /**
+     * The sigma a recipe needs: Entanglement Medium (SL-H21) needs 1. Degenerate Stellar Mixture never does (Eye T6
+     * needs it before any quasar exists), nor does anything else.
      */
     static double minSigma(GTRecipe recipe) {
+        if (recipe == null || recipe.mFluidOutputs == null) return 0;
+        for (FluidStack out : recipe.mFluidOutputs) {
+            if (out != null && out.getFluid() != null && out.getFluid() == SLRealityFluids.entanglementMedium) return 1;
+        }
         return 0;
+    }
+
+    /** True while the running mix may progress: a mix that needs σ ≥ 1 pauses below it (kept, never voided). */
+    private boolean runConditionHolds() {
+        return !runNeedsLink || quasarSigma() >= 1.0;
+    }
+
+    /** Once a second: read the ring's ports (they learn their host) and report to the feeding quasars. */
+    private void burstSecond(IGregTechTileEntity base) {
+        if (receptors.isEmpty() || base.getWorld() == null) return;
+        final String key = "homogeny@" + base.getWorld().provider.dimensionId
+            + ":"
+            + base.getXCoord()
+            + ","
+            + base.getYCoord()
+            + ","
+            + base.getZCoord();
+        burstHost.second(receptors, key, "Homogeny", Math.max(BurstLink.HOMOGENY_T2, burstDemand()), 0);
+    }
+
+    public BurstHost burstHost() {
+        return burstHost;
+    }
+
+    /** "Quasar link σ 1.02: speed x1.50" for the GUI / scanner; "" with no receptor port. Server state. */
+    public String burstLine() {
+        if (receptorCount() == 0) return "";
+        if (burstHost.paused()) return burstHost.linkLine() + " (σ held)";
+        return String.format(
+            Locale.ROOT,
+            "Quasar link σ %.2f (demand %.1f Bu/t): speed x%.2f%s; %s",
+            quasarSigma(),
+            burstDemand(),
+            speedFactor(),
+            quasarSigma() >= 1 ? ", Entanglement Medium open" : "",
+            burstHost.linkLine());
+    }
+
+    /** Pauses a running Entanglement Medium mix while σ is below 1 (never voided, quasar-p4.md §3.1). */
+    @Override
+    protected void runMachine(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
+        if (mMaxProgresstime > 0 && !runConditionHolds()) return;
+        super.runMachine(aBaseMetaTileEntity, aTick);
     }
 
     @Override
@@ -649,6 +759,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
     public CheckRecipeResult checkProcessing() {
         pendingEspm = 0;
         pendingDegenerate = 0;
+        runNeedsLink = false;
         if (installing) return SimpleCheckRecipeResult.ofFailure("beyondthestars.homogeny.installing");
         final CheckRecipeResult result = super.checkProcessing();
         if (result.wasSuccessful() && mOutputFluids != null) {
@@ -657,6 +768,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
                 final Fluid f = out.getFluid();
                 if (f == SLFluids.excitedStellarPlasma) pendingEspm += out.amount;
                 else if (f == SLRealityFluids.degenerateStellarMixture) pendingDegenerate += out.amount;
+                else if (f == SLRealityFluids.entanglementMedium) runNeedsLink = true;
             }
         }
         return result;
@@ -760,6 +872,14 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
         installTicks = aNBT.getInteger("btsHomInstallTicks");
         pendingEspm = aNBT.getLong("btsHomPendEspm");
         pendingDegenerate = aNBT.getLong("btsHomPendDeg");
+        runNeedsLink = false;
+        if (mOutputFluids != null) {
+            for (FluidStack out : mOutputFluids) {
+                if (out != null && out.getFluid() != null && out.getFluid() == SLRealityFluids.entanglementMedium) {
+                    runNeedsLink = true;
+                }
+            }
+        }
         lastNote = aNBT.getString("btsHomNote");
     }
 
@@ -858,6 +978,11 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
                 + " L Degenerate Stellar Mixture");
         final String up = upgradeLine();
         if (!up.isEmpty()) out.add(up);
+        final String burst = burstLine();
+        if (!burst.isEmpty()) out.add(burst);
+        if (mMaxProgresstime > 0 && !runConditionHolds()) {
+            out.add("Entanglement Medium PAUSED: the quasar link is below σ 1 (the mix is kept)");
+        }
         final String inst = installLine();
         if (!inst.isEmpty()) out.add(inst);
         if (!lastNote.isEmpty()) out.add("Last: " + lastNote);
@@ -924,8 +1049,10 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
                     + ": 16 parallels. Unlocks Entanglement Medium, for Reality Diffraction.")
             .addInfo("No overclock: each parallel draws the recipe's EU/t.")
             .addInfo("No hydrogen or helium, no ignition, no maintenance: it runs unattended.")
-            .addInfo("No stability field of its own. Later, a Quasar link through the stirring ring's")
-            .addInfo("  three reserved port cells speeds T2/T3 up, and Entanglement Medium will need one.")
+            .addInfo("Quasar link (optional): GRB Receptor Ports in the stirring ring's 3 port cells (hint 4).")
+            .addInfo("  σ = bursts ÷ 1.5 Bu/t (T2) or 6 (T3), 60 s mean. Speed x(1 + 0.5 min(σ, 1)): up to")
+            .addInfo("  6x the T1 rate at T2, 24x at T3. Entanglement Medium needs σ ≥ 1 (a mix that loses it")
+            .addInfo("  pauses, never voids). Degenerate Stellar Mixture never needs bursts.")
             .addInfo("It costs 100 L of Raw Star Matter per 1 L: 10x what an Eye T2 (Sirius A) needs.")
             .addInfo("  Use it to bank a Sol surplus or run a hands-off line. It does not replace")
             .addInfo("  Sirius A: Eye T2 is still required, and only an Eye hosting Sol makes Raw Star Matter.")
@@ -975,7 +1102,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
             .addOtherStructurePart("Energy or Laser Hatch", "bottom cap rim", 3)
             .addStructureInfo("Sizes: T1 " + size(t1) + ", T2 " + size(t2) + ", T3 " + size(t3) + ".")
             .addStructureInfo("Rings are cumulative: the outer ring counts only with the stirring ring.")
-            .addStructureInfo("3 Galactic Shell cells on the stirring ring's outer face are reserved for Quasar ports.")
+            .addOtherStructurePart("GRB Receptor Port (optional)", "3 cells on the stirring ring's outer face", 4)
             .addStructureInfo("Hologram: stack 1 = T1, 2 = + stirring ring, 3 = + outer ring. NEI previews each tier.")
             .addStructureInfo("Builds never overwrite hatches or other tiles.")
             .toolTipFinisher();

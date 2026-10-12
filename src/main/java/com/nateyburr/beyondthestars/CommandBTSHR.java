@@ -50,7 +50,9 @@ import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBas
  * {@code off}; Homogeny
  * {@code milestone <espm> <degenerate>}, {@code escrow}, {@code install}, {@code itick <n>}, {@code project <n>} (the
  * projector's creative build of rings 1..n over the standing machine, hatches in the new sockets, controller kept);
- * Refab {@code relink}; Diffraction {@code pending}.</li>
+ * Refab {@code relink}; Diffraction {@code pending}; Homogeny / Diffraction {@code receptors} (P4: GRB Receptor Ports
+ * in
+ * the {@code g} cells).</li>
  * <li>{@code /btshr recipes}: the three machines' recipe maps and our Condensate Assembler / Generator recipes.</li>
  * </ul>
  */
@@ -428,6 +430,16 @@ public class CommandBTSHR extends CommandBase {
                     out.add(((MTERealityRefab) mte).relink() ? "Linked." : "No Condensate Assembler within range.");
                 }
                 break;
+            case "receptors": {
+                // P4: GRB Receptor Ports in the g cells (the Homogeny's stirring ring, Diffraction's portal)
+                final HRKit.Machine m = mte instanceof MTEHomogeny ? HRKit.Machine.HOMOGENY
+                    : mte instanceof MTERealityDiffraction ? HRKit.Machine.DIFFRACTION : HRKit.Machine.REFAB;
+                out.add(
+                    "GRB Receptor Ports fitted: " + HRKit.fitReceptors(world, machine, m)
+                        + "; "
+                        + (machine.mMachine ? "FORMED" : "NOT FORMED"));
+                break;
+            }
             case "pending":
                 if (mte instanceof MTERealityDiffraction) {
                     if (rest.size() >= 2) ((MTERealityDiffraction) mte).debugSeedPending(parseLong(rest.get(1)));
