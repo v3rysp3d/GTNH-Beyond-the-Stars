@@ -138,6 +138,10 @@ public class EyeGui extends MTEMultiBlockBaseGui<MTEEyeOfHarmonyBTS> {
         final EyeStarRuntime rt = rt();
         final StarDef star = rt.star();
         final StarDef target = StarDef.byChart(multiblock.getControllerSlot());
+        if (star == null && rt.state() != EyeStarRuntime.StarState.DARK) {
+            return EnumChatFormatting.GRAY + rt.state()
+                .toString();
+        }
         switch (rt.state()) {
             case IGNITING:
                 return EnumChatFormatting.GOLD + star.name
