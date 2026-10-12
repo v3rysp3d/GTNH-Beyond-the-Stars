@@ -28,6 +28,7 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 
 import com.nateyburr.beyondthestars.BeyondTheStars;
+import com.nateyburr.beyondthestars.machines.eye.render.TileEyeStar;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -97,6 +98,8 @@ public final class RenderTestClient {
     private int shot;
     private int stillTicks;
     private int lastChunks = -1;
+    /** What re-renders chunk sections, counted over each shot's still window (render QA E10). */
+    private RenderDirtTracker dirt;
     private int settleMin;
     private int settleMax;
     private String lastScreen = "";
@@ -153,6 +156,10 @@ public final class RenderTestClient {
             openLogs();
             setUpClient();
         }
+        if (mc.theWorld != null && (dirt == null || dirt.world() != mc.theWorld)) {
+            dirt = new RenderDirtTracker(mc.theWorld);
+            mc.theWorld.addWorldAccess(dirt);
+        }
         if (ticks > MAX_TICKS && phase != Phase.FINISH) {
             say("TIMEOUT after " + ticks + " ticks: closing with what was shot");
             pending = null;
@@ -206,6 +213,7 @@ public final class RenderTestClient {
         files.add(file);
         if (fps != null) fps.println(c.name + "\t" + view + "\t" + counter[0] + "\t" + counter[1] + "\t" + file);
         say("SHOT " + file + "  fps " + counter[0] + ", " + counter[1] + " chunk updates; " + clientView());
+        if (dirt != null) say("  re-render causes over the last " + stillTicks + " still ticks: " + dirt.top(6));
         shot++;
         await(RenderTest::status, r -> {
             if (r != null && !r.toString()
@@ -358,6 +366,7 @@ public final class RenderTestClient {
     }
 
     private void applyCase(RenderTest.Case c) {
+        TileEyeStar.debugEventAge = c.eventAge;
         await(() -> RenderTest.applyCase(c), r -> {
             say("  " + r);
             move();
@@ -375,6 +384,7 @@ public final class RenderTestClient {
             settleMax = first ? SITE_MAX : VIEW_MAX;
             stillTicks = 0;
             lastChunks = -1;
+            if (dirt != null) dirt.reset();
             go(Phase.SETTLE);
         });
     }
@@ -398,8 +408,12 @@ public final class RenderTestClient {
                 .isEmpty();
         // (GT's Black Hole Compressor keeps one chunk re-rendering every second, so up to 2 queued updates count as
         // still)
-        if (here && Math.abs(chunks - lastChunks) <= 2 && queued <= 2) stillTicks++;
-        else stillTicks = 0;
+        if (here && Math.abs(chunks - lastChunks) <= 2 && queued <= 2) {
+            stillTicks++;
+        } else {
+            stillTicks = 0;
+            if (dirt != null) dirt.reset();
+        }
         lastChunks = chunks;
         if (phaseTicks >= settleMax) {
             say(

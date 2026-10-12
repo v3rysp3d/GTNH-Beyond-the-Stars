@@ -129,13 +129,23 @@ public final class RenderTest {
         /** Eye: the centre object (null otherwise). */
         final EyeStarLook look;
         final String what;
+        /**
+         * Eye: the age (ticks) the bounce shell / magnetar flare is frozen at for this case's shots
+         * ({@link com.nateyburr.beyondthestars.machines.eye.render.TileEyeStar#debugEventAge}), or -1 (live).
+         */
+        final double eventAge;
 
         Case(String name, Site site, double mass, EyeStarLook look, String what) {
+            this(name, site, mass, look, what, -1);
+        }
+
+        Case(String name, Site site, double mass, EyeStarLook look, String what, double eventAge) {
             this.name = name;
             this.site = site;
             this.mass = mass;
             this.look = look;
             this.what = what;
+            this.eventAge = eventAge;
         }
     }
 
@@ -163,7 +173,9 @@ public final class RenderTest {
                 Site.EYE_T4,
                 0,
                 EyeStarLook.bounce(0f),
-                "Eye T4 structure, Core Collapse phase 3, the bounce shell (proto-neutron star)"),
+                "Eye T4 structure, Core Collapse phase 3, the bounce shell (proto-neutron star), shell frozen at"
+                    + " 30 ticks (about 7 blocks, alpha 0.42)",
+                30),
             new Case(
                 "eye_t5_dwarf_early",
                 Site.EYE_T5,
@@ -177,6 +189,13 @@ public final class RenderTest {
                 EyeStarLook.dwarf(0.9),
                 "Eye T5, Sirius B cooling batch at 90 % (near black)"),
             new Case("eye_t6_magnetar", Site.EYE_T6, 0, EyeStarLook.lit(6, 0, 0), "Eye T6, SGR 1806-20 magnetar"),
+            new Case(
+                "eye_t6_magnetar_warn",
+                Site.EYE_T6,
+                0,
+                EyeStarLook.lit(6, 0, 1),
+                "Eye T6, magnetar on an event warning (flare shell bright), a flare frozen at 15 ticks",
+                15),
             new Case("ref_gt_bhc", Site.GT_BHC, 0, null, "REFERENCE: GT Black Hole Compressor, hole open (stable)"),
             new Case("ref_tt_eoh", Site.TT_EOH, 0, null, "REFERENCE: TecTech Eye of Harmony, star render")));
 
@@ -646,8 +665,12 @@ public final class RenderTest {
                     + MTEKerrEngine.fmt(kee.mass())
                     + " SM (setpoint "
                     + kee.getSetpoint()
-                    + "), render scale "
-                    + String.format(Locale.ROOT, "%.2f", MTEKerrEngine.renderScaleFor(kee.mass()))
+                    + String.format(
+                        Locale.ROOT,
+                        "), core scale %.2f, halo radius %.1f blocks, GL scale %.2f",
+                        MTEKerrEngine.coreScaleFor(kee.mass()),
+                        MTEKerrEngine.haloRadiusFor(kee.mass()),
+                        MTEKerrEngine.renderScaleFor(kee.mass()))
                     + (kee.mMachine ? "" : ", NOT FORMED");
             }
             case GT_BHC:
@@ -660,12 +683,14 @@ public final class RenderTest {
                 return "Eye centre look: " + c.look.label()
                     + String.format(
                         Locale.ROOT,
-                        " (radius %.1f, rgb %06X, gamma %.2f, spin %.1f, pulse %.2f)",
+                        " (radius %.1f, rgb %06X, gamma %.2f, spin %.1f, pulse %.2f, aux %.2f%s)",
                         c.look.radius,
                         c.look.rgb,
                         c.look.gamma,
                         c.look.spin,
-                        c.look.pulse)
+                        c.look.pulse,
+                        c.look.aux,
+                        c.eventAge >= 0 ? ", event age frozen at " + c.eventAge : "")
                     + (eye.mMachine ? "" : ", NOT FORMED");
             }
         }
@@ -829,9 +854,29 @@ public final class RenderTest {
             }
             default: {
                 target = b.centre;
-                final double[] dir = norm(new double[] { F[0], 0.35, F[2] });
-                final double free = freeDistance(world, b.centre, dir, 80);
-                final double want = Math.max(free * 0.55, objectRadius(b) * 1.9 + 1.5);
+                final double radius = objectRadius(b);
+                double[] dir = norm(new double[] { F[0], 0.35, F[2] });
+                double free = freeDistance(world, b.centre, dir, 80);
+                double want = Math.max(free * 0.55, radius * 1.9 + 1.5);
+                if (radius > 12) {
+                    // render QA E5: a big object needs the camera at 2.2 radii + 4 or the frame is one blurred
+                    // texture; that is outside the Eye's inner space from the front, so climb until a clear line
+                    // (over the crown) is found, else take the clearest
+                    want = 2.2 * radius + 4;
+                    double[] best = dir;
+                    double bestFree = free;
+                    for (double up : new double[] { 0.35, 0.6, 0.9, 1.3, 2, 3.5, 8 }) {
+                        final double[] d = norm(new double[] { F[0], up, F[2] });
+                        final double fr = freeDistance(world, b.centre, d, 80);
+                        if (fr > bestFree) {
+                            best = d;
+                            bestFree = fr;
+                        }
+                        if (fr >= want + 2) break;
+                    }
+                    dir = best;
+                    free = bestFree;
+                }
                 final double d = Math.max(2.5, Math.min(free - 2, want));
                 eye = add(b.centre, dir, d);
                 break;
@@ -884,7 +929,7 @@ public final class RenderTest {
         final Case c = currentCase;
         if (c == null) return 3;
         if (c.look != null) return c.look.radius;
-        if (c.mass > 0) return MTEKerrEngine.renderScaleFor(c.mass) * 1.2;
+        if (c.mass > 0) return MTEKerrEngine.haloRadiusFor(c.mass);
         return 3;
     }
 
