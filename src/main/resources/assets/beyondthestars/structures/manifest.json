@@ -197,7 +197,7 @@
    },
    "Y": {
     "role": "stabilisation_field",
-    "kind": "deck, the six pylon foot pads",
+    "kind": "deck, the centre ring of each pylon foot pad (8 x 6)",
     "block": "TTCasingsContainer.StabilisationFieldGenerators metas 0-8, ofBlocksTiered",
     "tiered": true
    },
@@ -1612,7 +1612,7 @@
     },
     {
      "ch": "Q",
-     "count": 4458,
+     "count": 4704,
      "role": "plinth",
      "block": "Casings.ReinforcedTemporalStructureCasing (BA0:10)"
     },
@@ -1629,12 +1629,6 @@
      "block": "Casings.QuantumGlass (TecTech)"
     },
     {
-     "ch": "Y",
-     "count": 294,
-     "role": "stabilisation_field",
-     "block": "TTCasingsContainer.StabilisationFieldGenerators metas 0-8, ofBlocksTiered"
-    },
-    {
      "ch": "W",
      "count": 188,
      "role": "compression_field",
@@ -1645,6 +1639,12 @@
      "count": 138,
      "role": "dilation_field",
      "block": "TTCasingsContainer.TimeAccelerationFieldGenerator metas 0-8, ofBlocksTiered"
+    },
+    {
+     "ch": "Y",
+     "count": 48,
+     "role": "stabilisation_field",
+     "block": "TTCasingsContainer.StabilisationFieldGenerators metas 0-8, ofBlocksTiered"
     },
     {
      "ch": "h",

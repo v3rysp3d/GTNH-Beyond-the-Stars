@@ -59,10 +59,12 @@ function loadVoxel() {
   body = splice(body, "arc(35, 70, 110", `tag("kerr_core");`, "before");
   body = splice(body, "arc(36, 328, 352", `tag("kerr_extractor");`, "before");
   body = splice(body, "if (tier>=2){", ` tag("kerr_density");`, "after");
-  // 3. The Eye's six pylon foot pads (deck, written inside the "ground" tag) get their own tag.
-  body = splice(body, "for (let dx=-3;dx<=3;dx++) for (let dz=-3;dz<=3;dz++) set(foot[0]+dx, GROUND+1, foot[2]+dz, B.deck);",
-    `tag("pad"); `, "before");
-  body = splice(body, "set(foot[0]+dx, GROUND+1, foot[2]+dz, B.deck);", ` tag("ground");`, "after");
+  // 3. The Eye's six 7x7 pylon foot pads (deck, written inside the "ground" tag): only each pad's centre ring (the 8
+  //    cells around the foot, 48 in all, as many as TecTech's Eye uses) gets the "pad" tag and becomes the
+  //    stabilisation generators; the rest stays ground/plinth (cost audit #5, B-24: was all 294 cells).
+  body = splice(body, "set(foot[0]+dx, GROUND+1, foot[2]+dz, B.deck);",
+    `{ tag(Math.max(Math.abs(dx), Math.abs(dz)) === 1 ? "pad" : "ground"); `, "before");
+  body = splice(body, "set(foot[0]+dx, GROUND+1, foot[2]+dz, B.deck);", ` } tag("ground");`, "after");
   // 4. A switch to build without clamps, so the exporter can tell a clamp strut (air without clamps) from a clamp
   //    root that overwrote a band cell.
   body = splice(body, "function clamp(p, q, mats, w=1.2){", ` if (globalThis.__noClamps) return;`, "after");
@@ -132,7 +134,7 @@ const LEGEND = {
     Z: { role: "glass_channel", kind: "sglass", block: "Casings.QuantumGlass (TecTech)" },
     W: { role: "compression_field", kind: "eyeshell clamps, upper rail -> core (T1)", block: "TTCasingsContainer.SpacetimeCompressionFieldGenerators metas 0-8, ofBlocksTiered (as TecTech's EOH)", tiered: true },
     X: { role: "dilation_field", kind: "eyeshell clamps, core -> lower rail (T1)", block: "TTCasingsContainer.TimeAccelerationFieldGenerator metas 0-8, ofBlocksTiered", tiered: true },
-    Y: { role: "stabilisation_field", kind: "deck, the six pylon foot pads", block: "TTCasingsContainer.StabilisationFieldGenerators metas 0-8, ofBlocksTiered", tiered: true },
+    Y: { role: "stabilisation_field", kind: "deck, the centre ring of each pylon foot pad (8 x 6)", block: "TTCasingsContainer.StabilisationFieldGenerators metas 0-8, ofBlocksTiered", tiered: true },
     R: { role: "beam_band", kind: "ring2", block: "NEW slCasing:10 Beam Band Casing" },
     S: { role: "jet_crescent", kind: "ring3", block: "NEW slCasing:11 Jet Crescent Casing" },
     T: { role: "galactic_shell", kind: "galactic", block: "NEW slCasing:12 Galactic Shell Plating" },
