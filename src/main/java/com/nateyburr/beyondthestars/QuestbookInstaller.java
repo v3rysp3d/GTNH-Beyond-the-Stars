@@ -204,7 +204,8 @@ final class QuestbookInstaller {
                 report.changed = false;
                 return report;
             }
-            if (!force && state.uninstalled.isEmpty() && upToDate(bundle, state)) {
+            final String stale = force || !state.uninstalled.isEmpty() ? "forced" : staleReason(bundle, state);
+            if (stale == null) {
                 // Every applied quest is still as we left it, so no default load ran since its
                 // original was captured: an original stored without a pack_version (an older state
                 // file) belongs to the pack this world has now. Stamp it, so a later pack update is seen.
@@ -221,6 +222,7 @@ final class QuestbookInstaller {
                 report.changed = false;
                 return report;
             }
+            if (!byOp) BeyondTheStars.LOG.info("Questbook: this world differs from the jar: " + stale);
             run(bundle, state, Config.questbookPackEdits, "", report, world);
             report.ok = true;
         } catch (final Throwable t) {
@@ -355,17 +357,27 @@ final class QuestbookInstaller {
      * (a {@code /bq_admin default load} changes that, and so does an edit by hand).
      */
     static boolean upToDate(QuestbookBundle bundle, QuestbookState state) throws Exception {
-        if (!state.existed || !bundle.version.equals(state.bundleVersion)) return false;
-        if (!configKey(bundle).equals(state.configKey)) return false;
+        return staleReason(bundle, state) == null;
+    }
+
+    /** Null when the world matches the jar, else the first difference found (logged by the auto-install). */
+    static String staleReason(QuestbookBundle bundle, QuestbookState state) throws Exception {
+        if (!state.existed) return "no install state in this world yet";
+        if (!bundle.version.equals(state.bundleVersion))
+            return "bundle " + state.bundleVersion + " -> " + bundle.version;
+        if (!configKey(bundle).equals(state.configKey)) return "config changed";
         final Map<UUID, Object> questMap = BQBridge.quests();
         final Map<UUID, Object> lineMap = BQBridge.lines();
-        for (final QuestbookBundle.Chapter c : bundle.chapters) if (!lineMap.containsKey(c.id)) return false;
+        for (final QuestbookBundle.Chapter c : bundle.chapters)
+            if (!lineMap.containsKey(c.id)) return "chapter " + c.id + " missing";
         for (final QuestbookBundle.Quest q : bundle.quests.values()) {
             final boolean wanted = q.onlyWithout == null || !state.edits.containsKey(q.onlyWithout);
-            if (wanted != questMap.containsKey(q.id)) return false;
+            if (wanted != questMap.containsKey(q.id)) return "quest " + q.id + (wanted ? " missing" : " present");
         }
-        for (final QuestbookState.Applied a : state.edits.values()) if (!asApplied(a, questMap, lineMap)) return false;
-        return true;
+        for (final QuestbookState.Applied a : state.edits.values()) {
+            if (!asApplied(a, questMap, lineMap)) return "pack quest " + a.quest + " is not as the edit left it";
+        }
+        return null;
     }
 
     /**
