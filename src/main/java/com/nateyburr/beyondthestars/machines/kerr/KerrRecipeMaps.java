@@ -12,12 +12,13 @@ import gregtech.api.recipe.RecipeMapBuilder;
  * {@code compressorRecipes} and {@code neutroniumCompressorRecipes} (the Black Hole Compressor's
  * maps), the extractor module runs {@code extractorRecipes} (user ruling: GT's item extractor
  * recipes only, Q-9/Q-22; the earlier Kerr-only "Ergosphere Extraction" map is retired). Only
- * {@link #DENSITY} is new: DENSIFY mode, Kerr T2 + the compressor module + a hole of at least 128 SM,
- * holding SL-K05 (Hyperdense Stellar Mixture, the Eye T4 gate), which no GT machine makes.
+ * {@link #DENSITY} is new: the compressor module searches it with its other two maps (no mode since the
+ * Kerr redesign); a DENSITY recipe needs the linked KEE at Kerr T2 with a hole of at least 128 SM. It
+ * holds SL-K05 (Hyperdense Stellar Mixture, the Eye T4 gate), which no GT machine makes.
  * <p>
- * Built in a static initialiser that {@link MTEKerrEngine} touches at preInit (its class init), so
+ * Built in a static initialiser that the compressor module touches at preInit (its class init), so
  * the map exists before NEI builds its handlers. A future module gets a map here only if GT has no
- * machine for what it makes (see {@link KerrModule}).
+ * machine for what it makes (see {@link KerrSlot}).
  */
 public final class KerrRecipeMaps {
 

@@ -20,6 +20,7 @@ import com.nateyburr.beyondthestars.items.SLItems;
 import com.nateyburr.beyondthestars.machines.BTSMachines;
 import com.nateyburr.beyondthestars.machines.kerr.KerrRecipeMaps;
 
+import cpw.mods.fml.common.registry.GameRegistry;
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.GTValues;
 import gregtech.api.enums.ItemList;
@@ -48,6 +49,8 @@ import gregtech.api.util.recipe.Scanning;
  * <li><b>SL-K04</b> takes 32 Black Hole Seeds in place of the card's Superstable Black Hole Seed, which
  * no recipe in the pack makes (cost audit #1, B-21).</li>
  * <li><b>SL-K03</b> takes Electric Pistons UIV in place of Pumps: the module runs item recipes (#14).</li>
+ * <li><b>Kerr redesign:</b> SL-K02 / SL-K03 now make the module CONTROLLERS (the modules are separate
+ * machines), same inputs; SL-K07 / SL-K08 turn a legacy core block into its controller.</li>
  * <li><b>SL-K06 is retired</b> (the ID stays reserved). It was a Kerr-only "Ergosphere Extraction"
  * map that melted exotic metals; I ruled (Q-9/Q-22) that the extractor module runs GT's item
  * extractor recipes only, so the map and its recipes are gone.</li>
@@ -66,6 +69,7 @@ public final class BTSRecipesKerr {
 
     public static void register() {
         controllerAndModules();
+        legacyCores();
         densityUpgrade();
         densify();
     }
@@ -117,7 +121,9 @@ public final class BTSRecipesKerr {
                 .eut(TierEU.RECIPE_UIV)
                 .addTo(AssemblyLine));
 
-        // SL-K02 Kerr Compressor Module (module core block). Research: the Kerr controller.
+        // SL-K02 Kerr Compressor Module. Kerr redesign: the module is a machine now, so the same inputs make
+        // its CONTROLLER (MTE 28117) instead of the retired core block; the cost table is unchanged.
+        // Research: the Kerr controller.
         BTSRecipeGuard.recipe(
             "SL-K02",
             () -> GTValues.RA.stdBuilder()
@@ -132,12 +138,13 @@ public final class BTSRecipesKerr {
                         nn(ItemList.Black_Hole_Opener.get(4L), "ItemList.Black_Hole_Opener"),
                         BTSRecipeGuard.req(OrePrefixes.gearGt, Materials.SpaceTime, 16L)))
                 .fluidInputs(molten(Materials.SpaceTime, 73_728), superCoolant(500_000))
-                .itemOutputs(SLBlocks.casing2(BlockSLCasing2.COMPRESSOR_MODULE, 1))
+                .itemOutputs(nn(BTSMachines.kerrCompressorModule, "BTSMachines.kerrCompressorModule").copy())
                 .duration(12_000)
                 .eut(TierEU.RECIPE_UIV)
                 .addTo(AssemblyLine));
 
-        // SL-K03 Kerr Extractor Module (module core block). Research: an Extraction casing (one research
+        // SL-K03 Kerr Extractor Module: its CONTROLLER (MTE 28118), same inputs (Kerr redesign). Research: an
+        // Extraction casing (one research
         // item per recipe: the scanner writes only the FIRST recipe sharing one, and SL-K02 has kerr()).
         BTSRecipeGuard.recipe(
             "SL-K03",
@@ -155,10 +162,29 @@ public final class BTSRecipesKerr {
                         SLBlocks.casing(BlockSLCasing.QUADRUPOLE, 4),
                         neutroniumPipes(16)))
                 .fluidInputs(molten(Materials.SpaceTime, 73_728), superCoolant(500_000))
-                .itemOutputs(SLBlocks.casing2(BlockSLCasing2.EXTRACTOR_MODULE, 1))
+                .itemOutputs(nn(BTSMachines.kerrExtractorModule, "BTSMachines.kerrExtractorModule").copy())
                 .duration(12_000)
                 .eut(TierEU.RECIPE_UIV)
                 .addTo(AssemblyLine));
+    }
+
+    // ===================================================== legacy module cores -> controllers (redesign)
+
+    /**
+     * SL-K07 / SL-K08: a pre-redesign module core block (crafted by the old SL-K02 / SL-K03, same
+     * inputs) turns 1:1 into its module controller, so cores in chests are not wasted. Shapeless.
+     */
+    private static void legacyCores() {
+        BTSRecipeGuard.recipe(
+            "SL-K07",
+            () -> GameRegistry.addShapelessRecipe(
+                nn(BTSMachines.kerrCompressorModule, "BTSMachines.kerrCompressorModule").copy(),
+                SLBlocks.casing2(BlockSLCasing2.COMPRESSOR_MODULE, 1)));
+        BTSRecipeGuard.recipe(
+            "SL-K08",
+            () -> GameRegistry.addShapelessRecipe(
+                nn(BTSMachines.kerrExtractorModule, "BTSMachines.kerrExtractorModule").copy(),
+                SLBlocks.casing2(BlockSLCasing2.EXTRACTOR_MODULE, 1)));
     }
 
     // ===================================================================== Kerr T2 upgrade (UMV)
@@ -194,7 +220,7 @@ public final class BTSRecipesKerr {
                 .addTo(AssemblyLine));
     }
 
-    // ============================================================ DENSIFY (Kerr T2 + compressor)
+    // ================================================ DENSITY (Kerr T2 + the compressor module)
 
     private static void densify() {
         // SL-K05 Hyperdense Stellar Mixture: Eye T3's raw plasma, finished in a 128+ SM hole.

@@ -62,6 +62,14 @@ public class Config {
      */
     public static boolean eyeRenderCentre = true;
 
+    /**
+     * KERR REDESIGN R4 (docs/kerr-redesign.md §5): the Kerr Ergosphere Engine's black hole, drawn at the
+     * cage centre with GT's Black Hole Compressor renderer and scaled by mass. Read on both sides: the
+     * server places the render block only when it is on, and a client with it off draws nothing. Each
+     * KEE also has its own switch in its GUI.
+     */
+    public static boolean renderKerrHole = true;
+
     public static void synchronizeConfiguration(File configFile) {
         Configuration configuration = new Configuration(configFile);
 
@@ -135,6 +143,14 @@ public class Config {
                 + " (T6) and the Core Collapse. Uses TecTech's star shader and textures. Off on a client: nothing is"
                 + " drawn there. Off on a server: no Eye places its render block (and existing ones are removed)."
                 + " Each Eye also has its own switch in its GUI.");
+
+        renderKerrHole = configuration.getBoolean(
+            "renderKerrHole",
+            Configuration.CATEGORY_GENERAL,
+            true,
+            "Draw the Kerr Ergosphere Engine's black hole at the centre of its cage, scaled by its mass (GT's Black"
+                + " Hole Compressor render). Cosmetic. On a server, false places no render block at all; on a client,"
+                + " false draws nothing. Each Kerr also has its own render switch in its GUI.");
 
         // Always written back: Forge does not read comments from the file and does not count a changed comment as a
         // change, so an old file would keep saying eyeRenderCentre is "not implemented" (D-49 unit 6). Saving

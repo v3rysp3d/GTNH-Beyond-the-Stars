@@ -25,5 +25,7 @@ public final class BTSBlocks {
         SLBlocks.register();
         // D-49: the Eye of Harmony's centre render block and tile (d49-build-plan.md, my answer 3).
         com.nateyburr.beyondthestars.machines.eye.render.BlockEyeStar.register();
+        // KERR REDESIGN R4: the KEE's black-hole render block and tile (docs/kerr-redesign.md §5).
+        com.nateyburr.beyondthestars.machines.kerr.BlockKerrHole.register();
     }
 }

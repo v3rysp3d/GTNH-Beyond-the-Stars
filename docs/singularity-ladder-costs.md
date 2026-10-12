@@ -76,8 +76,8 @@ parity (TecTech's Eye pays the same per generator), but the old set is stranded 
 | `K` | Hawking Radiation Realignment Focus (BHC glass) | 199 | coremod fluid solidifier: BW glass + 1,152 L Rhugnor | ✔ |
 | `M` | Beam Dump (slCasing:8) | 160 | SL-P10 | ✔ |
 | `G` | Particle Beam Guidance Pipe Casing (`BlockQuarkPipe`) | 32 | coremod AL ×4 (UIV) | ✔ |
-| `q` | Kerr Compressor Module (slCasing2:0) | 1 | SL-K02 AL | ✔ |
-| `k` | Kerr Extractor Module (slCasing2:1) | 1 | SL-K03 AL | ✔ |
+| `~` (compressor arc) | Kerr Compressor Module controller (MTE 28117; was the slCasing2:0 core, Kerr redesign) | 1 | SL-K02 AL (same inputs) | ✔ |
+| `~` (extractor arc) | Kerr Extractor Module controller (MTE 28118; was the slCasing2:1 core) | 1 | SL-K03 AL (same inputs) | ✔ |
 | `~` | Kerr Ergosphere Engine | 1 | SL-K01 AL (needs 8 Superradiant Mirror Segments, SL-P04 AL) | ✔ |
 | sockets | energy/laser, maintenance, input buses (bolts), BHC utility hatch, compressor/extractor I/O | | GT / coremod (utility hatch: coremod ASM) | ✔ |
 | (fuel) | Black Hole Seed / Collapser | | coremod Space Assembler (UHV) | ✔ |

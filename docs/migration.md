@@ -146,3 +146,38 @@ away with the star or the Eye, and removes itself if its Eye is gone. Turn it of
 with `eyeRenderCentre=false` in `config/beyondthestars.cfg` (the file is now rewritten on every start, so its comments
 are current; values are kept). The Stellar Field Sensor Hatch now leaves covers on its faces alone; GT's internal
 redstone transmitter covers carry its signal.
+
+## Beyond the Stars: Kerr redesign (branch kerr-redesign, 2026-10-12)
+
+**What changed.** The Kerr Ergosphere Engine (MTE 28114) now controls only the black hole. The compressor and
+extractor modules are separate machines: the **Kerr Compressor Module** (MTE 28117) and the **Kerr Extractor
+Module** (MTE 28118), each with its own controller, GUI, hatches and energy, standing in its arc of the cage. A module
+runs only while the Kerr's hole is open. There are no machine modes and no screwdriver controls any more: open the
+Kerr's GUI.
+
+**Switch the Kerr off and let any running recipe finish before you update.**
+
+**Existing Kerrs convert themselves.** About two seconds after a Kerr's chunks load, it replaces the old module
+core blocks in its arcs:
+
+- Compressor arc: the core block becomes Background Radiation Absorbent Casing, and a Kerr Compressor Module
+  controller goes into the outer shell cell just below it, facing out of the cage.
+- Extractor arc: the core block (on the inner face) becomes Ergosphere Extraction Casing, and a Kerr Extractor Module
+  controller goes into the outermost shell cell of the arc at that height, facing out.
+- The hatches already in the arcs stay where they are and become the modules' own hatches. **Each module now also
+  needs its own energy hatch** (any socket in its arc), and the Kerr's own energy hatches feed its containment power
+  (8,388,608 EU/t while the hole is open).
+- If a controller cell is not plain casing or air, that arc is not converted and the Kerr's GUI says so. Clear the
+  cell and run `/btskerr migrate` (an operator command) while standing near the Kerr, or `/btskerr migrate x y z`.
+- A recipe that was running in the old Kerr is held in the Kerr (nothing is lost) and handed to the module it ran
+  on as soon as that module forms, which is after you give it its energy hatch. Items that do not fit its output
+  buses drop at the module controller; fluids wait in the Kerr until its output hatches have room. The Kerr's GUI
+  says what it is holding.
+- The Kerr no longer needs a maintenance hatch. An old one in the governor arc can stay.
+
+**Items.** Old module core blocks in chests craft 1:1 (shapeless) into the matching module controller. The Kerr
+Compressor / Extractor Module assembly-line recipes keep their inputs and now make the controllers.
+
+**Settings that changed meaning.** The setpoint is now any whole number of SM (2-64, or 2-512 with the Density
+Upgrade); an old setpoint carries over. "Auto" (on by default) keeps the old behaviour: a Black Hole Seed or
+Collapser placed in a bolt bus acts on its own.

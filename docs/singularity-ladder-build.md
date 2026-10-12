@@ -162,10 +162,10 @@ errors and no crash. The boot log also confirms:
 
 **Getting them in creative** (op only):
 
-- `/btskit kerr` gives the Kerr controller, both module cores, injector rails, a Density Upgrade, Black Hole
+- `/btskit kerr` gives the KEE controller, both module controllers, injector rails, a Density Upgrade, Black Hole
   Seeds/Collapser, SpaceTime bolts and hatches. It prints the bill of materials for every piece.
-- `/btskerr [t1|t2] [force]` builds a complete, formed Kerr in front of you. You get creative power, auto-maintenance
-  and every hatch, and the bolt buses come stocked. The controller ends up 32 blocks above your feet, facing you.
+- `/btskerr [t1|t2] [force]` builds a complete, formed Kerr in front of you. You get creative power and every hatch
+  (the KEE needs no maintenance hatch), and the bolt buses come stocked. The controller ends up 32 blocks above your feet, facing you.
   With `t2` it also installs the Density Upgrade.
 - `/btskit eye` gives the Eye controller, a Galactic Upgrade Core, all five star charts, the hatches, ME output
   bus and hatch, auto-maintenance and field generators. It prints the bill of materials.
@@ -181,6 +181,14 @@ errors and no crash. The boot log also confirms:
   builds nothing and re-walks the machine standing at x y z. To test on a dev server: put `eula=true` in
   `run/server/eula.txt`, run `tail -n 0 -f run/server/cmds.txt | ./gradlew.bat runServer` in Git Bash, append
   commands to `cmds.txt`, and finish with `stop`. See questions B-27 for what a run covers.
+- **Kerr module test bench** (B-56): `/btskerr keep x y z [t2]` force-loads a whole Kerr (a playerless server unloads
+  it within seconds; `/btskerr release` frees the tickets). `/btskerr module x y z <c|x> stock [map#] [longest|first|n]
+  [copies]` picks a recipe from one of the module's maps that fits its energy, and fills its input bus and hatches.
+  `status` shows the link, progress, outputs and fluids. `tier t [amps]` sets its creative energy hatches, and `clear`
+  empties its buses. `/btskerr damage|repair x y z` unforms the KEE by one cage block, then puts the block back.
+  `/btskerr legacy x y z [inflight]` turns a built Kerr back into the pre-redesign layout; `inflight` also strips the
+  module energy hatches and puts an old recipe in the KEE. `/btskerr module x y z <c|x> energy` fits a module a
+  creative energy hatch again (B-57).
 - **More console tools** (test bench): `/btseye gates` dumps the compression generator recipes the server actually
   has and checks the gate rule against them, and counts BHC consumers left. `/btsbuild t<1-5> <x> <y> <z> [facing]
   [rod] [force] [crib] | [check]` builds a reactor plant from the console; `crib` checks that a feedwater socket
@@ -191,8 +199,9 @@ errors and no crash. The boot log also confirms:
 **What to look at in-game.**
 
 1. Run `/btskerr`. The scanner (or the GUI) should show FORMED, the hole's mass and setpoint, and both modules.
-2. Use a screwdriver to step the setpoint. Sneak + screwdriver (or the GUI mode button) cycles COMPRESS / EXTRACT /
-   DENSIFY. Then do the same after `/btskerr t2`.
+2. Open the KEE's GUI: set the setpoint (field, − / +, or the Hole control panel's slider), try Collapse (two
+   clicks) and Open, and look at the Modules panel. Open each module's GUI: "Linked" and the hole bonus. Then do the
+   same after `/btskerr t2` (DENSITY recipes run on the compressor module).
 3. Run `/btseye t1 fill`, let a Sol run finish, and check the Raw Star Matter in the ME system. Then try
    `/btseye t4 fill`.
 4. On a `/btseye t3` Eye, swap one Spacetime Compression Field Generator for a tier-1 one. A T3 star chart must
@@ -211,6 +220,8 @@ errors and no crash. The boot log also confirms:
 - `removeBlackHoleCompressorRecipe` (true) removes the BHC controller recipe.
 - `interimBlackDwarfAtEyeT4` (true) adds the interim Black Dwarf recipe at Eye T4.
 - `eyeRenderCentre` (true) draws the Eye's star at its centre (D-49 unit 6; see the D-49 block above).
+- `renderKerrHole` (true) draws the Kerr's black hole at the cage centre, scaled by mass (GT's BHC render; each KEE
+  also has a switch in its GUI). Test bench: `/btskerr render x y z [open [m]|close|off|on|break]` (questions B-55).
 
 **Follow-up pass (round-3/4 rulings, after 4bd6bf2).**
 
@@ -781,7 +792,7 @@ by cell (a table of voxel coordinates), not by guessing.
 | Char | Machine | Cells (voxel) | Accepts | Min |
 |---|---|---|---|---|
 | `e` | Kerr | governor arc (2,0,37.6), (4,0,37.6) | Energy / ExoticEnergy (laser) | 1 |
-| `m` | Kerr | governor arc (−2,0,37.6) | Maintenance | 1 |
+| `m` | Kerr | governor arc (−2,0,37.6) | plain shell; an old Maintenance hatch is still accepted (the KEE has no maintenance) | 0 |
 | `b` | Kerr | 8 `boltbus` at r 34, y ±5 | `KerrHatchElement.BoltBus` (InputBus, private) | 1 |
 | `c` | Kerr compressor | 4 `beamhatch` at r 32.6 (255-285°) + the arc's outer `energy`/`maint` cells (0,0/2,−39.6) | InputBus / InputHatch / OutputBus / OutputHatch (standard lists, mark-and-truncate) | 1 in + 1 out |
 | `q` | Kerr compressor | the arc's `control` cell (0,−2,−39.6) | slCasing2:0, the module core (exactly 1) | 1 |
@@ -792,7 +803,7 @@ by cell (a table of voxel coordinates), not by guessing.
 | `m` | Eye | plinth `maint` | Maintenance | 1 |
 | `s` | Eye | 6 beam-band + 5 jet-crescent `beamhatch` | `EyeHatchElement.Stellar` (MTEHatchInput, private → buffer) | 0 (T2+ only use them) |
 
-Hint numbers: Kerr: energy 1, maintenance 2, bolt bus 3, compressor I/O 4, extractor I/O 5. Eye: gas 1, ME output 2,
+Hint numbers: Kerr: energy 1, (maintenance 2 retired), bolt bus 3, compressor I/O 4, extractor I/O 5. Eye: gas 1, ME output 2,
 maintenance 3, stellar 4.
 
 ### 5.4 Kerr T1 vs T2; Eye core and bands
@@ -1243,7 +1254,7 @@ from the table, or if a table entry's cell holds another kind. The manifest list
 | Char | Piece | Count | Accepts | Fallback | Min | Hint |
 |---|---|---|---|---|---|---|
 | `e` | `kerr_t1/t2` (governor arc) | 2 | Energy / ExoticEnergy | `L` | 1 | 1 |
-| `m` | `kerr_t1/t2` (governor arc) | 1 | Maintenance | `L` | 1 | 2 |
+| `m` | `kerr_t1/t2` (governor arc) | 1 | shell first, then an old Maintenance hatch (KEE has no maintenance) | `L` | 0 | - |
 | `b` | `kerr_t1/t2` (r 34, y ±5) | 8 | `KerrHatchElement.BoltBus` (private input-bus list) | `A` | 1 | 3 |
 | `u` | `kerr_t1/t2` (beside each bolt bus) | 8 | BHC utility hatch `MTEBlackHoleUtility` (id 3012, redstone hole state); optional (Q-21) | `A` | 0 | 6 |
 | `c` | `kerr_compressor` | 6 | InputBus / InputHatch / OutputBus / OutputHatch (standard lists, mark-and-truncate) | `I` | 1 in + 1 out | 4 |
@@ -1286,17 +1297,22 @@ The kit command and the tooltips read their counts from `bom` / `socketCounts` (
 Written by the Kerr unit on 2026-10-12. This records what P2 built. Where it and §3.1/§3.2/§2.3 disagree, this
 section wins; each deviation is a question (Q-22..Q-28).
 
+> **Kerr redesign (branch `kerr-redesign`).** The KEE now controls only the hole and the modules are separate
+> machines. [`kerr-redesign.md`](kerr-redesign.md) is the spec and its "As built" table lists the files; this
+> section has been updated where it changed (files, shape chars, behaviour, adding a module). Questions B-46..B-53.
+
 ### Files
 
 | File | What it is |
 |---|---|
-| `machines/kerr/MTEKerrEngine.java` | The controller, MTE 28114 (`multimachine.beyondthestars.kerrengine`, "Kerr Ergosphere Engine"). |
-| `machines/kerr/KerrHatchElement.java` | The private sockets: `BoltBus`, `Utility`, `CompressorInput`/`Output` and `ExtractorInput`/`Output`. |
+| `machines/kerr/MTEKerrEngine.java` | The KEE, MTE 28114 (`multimachine.beyondthestars.kerrengine`, "Kerr Ergosphere Engine"): the hole only. GUI: `MTEKerrEngineGui`. |
+| `machines/kerr/MTEKerrCompressorModule.java`, `MTEKerrExtractorModule.java` | The module machines, MTE 28117 / 28118 (`multimachine.beyondthestars.kerr.compressor` / `.extractor`), on `MTEKerrModuleBase` + `MTEKerrModuleGui`. |
+| `machines/kerr/KerrSlot.java`, `KerrHole.java`, `KerrMigration.java` | The slot table (manifest), the module's read-only view of the KEE, and the legacy conversion. |
+| `machines/kerr/KerrHatchElement.java` | The KEE's private sockets: `BoltBus` and `Utility`. |
 | `machines/kerr/KerrRecipeMaps.java` | `DENSITY` (`beyondthestars.recipe.kerrdensity`, maxIO 2/1/2/1). The `EXTRACTION` map is retired (the extractor runs GT's `extractorRecipes`). |
-| `machines/kerr/KerrModule.java` | One optional module arc: its piece, core block, private I/O and walk result. See "Adding a Kerr module". |
 | `machines/kerr/KerrKit.java` | `/btskit kerr` and the creative build used by `/btskerr`. |
 | `BTSRecipesKerr.java` | SL-K01..SL-K05 (`line("kerr")`); SL-K06 is retired. |
-| `CommandBTSKerr.java` | `/btskerr [t1\|t2] [force]`. |
+| `CommandBTSKerr.java` | `/btskerr [t1\|t2] [force]`, `/btskerr migrate [x y z]`, test bench `/btskerr legacy x y z`. |
 
 Shared edits, each append-only: the `kerrEngine` field and its base+14 line in `BTSMachines`; `line("kerr")` in
 `BTSRecipes`; a `kerr` branch at the top of `CommandBTSKit.processCommand`; `CommandBTSKerr` in
@@ -1322,10 +1338,10 @@ pieces, and each is checked at its own `off`. Every plain element is wrapped in 
 | `m` | Maintenance, hint 2, else `L` |
 | `b` | `KerrHatchElement.BoltBus`, a plain input bus (not ME), hint 3, else `A`. At least 1. |
 | `u` | `KerrHatchElement.Utility` (`MTEBlackHoleUtility`), hint 6, else `A`. Optional; redstone on while the hole is open (Q-27). |
-| `c` | `CompressorInput` / `CompressorOutput`, hint 4, else `I`. At least 1 in and 1 out. |
-| `q` | slCasing2:0 Kerr Compressor Module, exactly 1 |
-| `x` | `ExtractorInput` / `ExtractorOutput` (input / output **buses** only: GT's extractor map is items only), hint 5, else slCasing:15. At least 1 in and 1 out. |
-| `k` | slCasing2:1 Kerr Extractor Module, exactly 1 |
+| `1` / `2` | `kerr_slots` only: `ofHint(7)` / `ofHint(8)`, the module controller markers (no block, no tile) |
+| `c` | Compressor module piece (its own machine): GT `InputBus`, `InputHatch`, `OutputBus`, `OutputHatch`, `Energy.or(ExoticEnergy)`, hint 1, else `I`. At least 1 in, 1 out, 1 energy. |
+| `x` | Extractor module piece: GT `InputBus`, `OutputBus`, `Energy.or(ExoticEnergy)` (item buses only), hint 1, else slCasing:15. At least 1 in, 1 out, 1 energy. |
+| `~` | In `kerr_compressor` / `kerr_extractor`: the module's own controller (28117 / 28118). The old `q` / `k` core cells are `c` / `x` sockets now (B-51). |
 
 ### Behaviour
 
@@ -1334,8 +1350,10 @@ pieces, and each is checked at its own `off`. Every plain element is wrapped in 
 - **Modules:** each has its own error list and a fault string. The fault is reported only when the module's core
   block stands; the cell is found through `manifest.json`'s socket `rel`. A failed module walk clears that module's
   private lists.
-- **Modes:** COMPRESS (compressor module), EXTRACT (extractor module) and DENSIFY (compressor module + T2). DENSIFY
-  fails the recipe check below 128 SM. With no module, `checkProcessing` fails with "No Kerr module".
+- **Modes (pre-redesign; gone on `kerr-redesign`):** COMPRESS (compressor module), EXTRACT (extractor module) and
+  DENSIFY (compressor module + T2). DENSIFY fails the recipe check below 128 SM. With no module, `checkProcessing`
+  fails with "No Kerr module". Since the redesign the compressor module searches all three of its maps together and
+  every module recipe needs an open hole (B-46).
   - `bindModuleIO` puts only the active mode's module into GT's lists (Q-23).
   - COMPRESS searches `compressorRecipes`, plus `neutroniumCompressorRecipes` while the hole is open. A recipe with
     `COMPRESSION_TIER` ≥ 1 needs the hole open.
@@ -1355,31 +1373,23 @@ pieces, and each is checked at its own `off`. Every plain element is wrapped in 
 
 ### Adding a Kerr module
 
-The Kerr is a module host: compressor and extractor now, more later. A module is an optional checked piece with its
-own core block, its own private sockets and one recipe map. Adding one is additive, never a rewrite:
+The Kerr is a module host: compressor and extractor now, more later. Since the redesign a module is a separate
+machine standing in one arc; the KEE does not change when one is added:
 
 1. **Shape.** In `tools/export-structures.js`, splice a `tag("kerr_<name>")` anchor before the new arc's `arc(...)`
-   call, add the arc's socket cells and its core cell to `KERR_SOCKETS` with new chars, and add those chars to the
-   Kerr `LEGEND`. Re-export (`node tools/export-structures.js ../designs/voxel.js`). The exporter's disjointness and
-   open-air checks cover the new piece.
-2. **Core block.** One new `slCasing2` meta (constant + texture name in `BlockSLCasing2`), its PNG in
-   `tools/gen-sl-textures.js`, its lang key and its recipe (as SL-K02/SL-K03).
-3. **Sockets.** Two `KerrHatchElement` entries, `<Name>Input` and `<Name>Output`, whose adders call
-   `addInput` / `addOutput` on the new module. Pass `fluids = false` to `KerrModule` for an item-only module, and
-   list only bus classes in the hatch elements.
-4. **Controller** (`MTEKerrEngine`):
-   - one `KerrModule` field (label, piece, core char, core meta, fluids) and its entry in `modules`;
-   - `addShape` for the piece, and `addElement` for its socket char (hatch adder first, trap 4) and its core char
-     (counting into `module.cores`);
-   - a `MODE_<NAME>` constant, `MODE_COUNT` + 1, a name and a mode icon, and a case in `moduleFor`,
-     `getRecipeMap`, `findRecipeMatches` and `needsFor`;
-   - the map in `getAvailableRecipeMaps` (NEI's catalyst index reads it).
-5. **Recipe map.** Use GT's own map when one fits, as the compressor and extractor do. Add a map to
-   `KerrRecipeMaps` only for something no GT machine makes (as DENSIFY does).
+   call, add its socket cells to `KERR_SOCKETS`, and add a `KERR_MODULES` entry (piece, slot key, MTE id, marker
+   char, the controller's outward face, how to find the controller cell). Add a legend for the piece. Re-export
+   (`node tools/export-structures.js <design repo>/designs/voxel.js`): the piece comes out in its own frame and the
+   slot table gains its `rel` / `keeRel` / `facingAbc`. The disjointness, open-air and front-face checks cover it.
+2. **Slot.** One `KerrSlot` entry (key, label, piece, marker hint dots) with its cases in `controllerStack`,
+   `accepts` and the legacy-cell helpers.
+3. **Machine.** A subclass of `MTEKerrModuleBase` with an MTE id from 28119 up: its structure definition (sockets as
+   GT-standard hatch adders, `buildAndChain(casing)`), `getAvailableRecipeMaps` (all searched together), an optional
+   `gateRecipe`, its casing texture, overlays and tooltip. Register it in `BTSMachines`.
+4. **Recipe map.** GT's own map when one fits; a `KerrRecipeMaps` map only for something no GT machine makes.
+5. **Controller recipe, textures** (`tools/gen-sl-textures.js`) **and lang.**
 
-Walking, mark-and-truncate, the fault string, binding I/O for the active mode, the hologram, survival auto-build and
-the status lines all loop over `modules`, so they need no change. Add the new piece to the tooltip, to `KerrKit`'s
-bill list and to its hatch fitting.
+Linking, pausing, the hole's bonus, the GUI, the KEE's module list and `/btskerr`'s build all loop over `KerrSlot`.
 
 ### Recipes (`BTSRecipesKerr`)
 
@@ -1550,7 +1560,8 @@ through `IConstructable` / `ISurvivalConstructable`.
 
 | Controller | Stack 1 | Stack 2 | Stack 3 | Stack 4+ |
 |---|---|---|---|---|
-| Kerr | `kerr_t1` + both modules | `kerr_t2` + both modules | as 2 | as 2 |
+| Kerr (KEE) | `kerr_t1` + slot markers 7 / 8 | `kerr_t2` + slot markers | as 2 | as 2 |
+| Kerr module (28117 / 28118) | its arc | as 1 | as 1 | as 1 |
 | Eye | `eye_core` | + `eye_beam` | + `eye_jet` | + `eye_arms` |
 
 Both tooltips state this. `construct` reads the stack only (trap 1), so the hologram never depends on server state.

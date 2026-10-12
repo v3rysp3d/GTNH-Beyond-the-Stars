@@ -929,8 +929,6 @@ loop (R1-B / B2 history), so it waits for your call.
 **Alternatives.** Keep it as it is: the status already says the silo is missing, and B-31's tooltip text can say
 "plain Input Hatch only".
 
----
-
 ### B-33 The RC-2 test package: an untagged jar, the pre-redesign Kerr, and an older jar set aside [2.9.0-RC-2 package pass]
 
 **Context.** The package pass built addon `0a878c0` and copied the plain jar plus a player-facing `INSTALL.md` to
@@ -1279,8 +1277,8 @@ master already carries that fix (`f484699`).
 
 ### B-45 D-49: the Eye GUI, the centre render, cover-friendly sensors and the T5/T6 cost table [D-49 unit 6]
 
-**Numbering.** This is B-45, not B-39: the `kerr-redesign` branch already uses B-35..B-44 (and master B-35..B-38), so
-the merge will have to renumber one side anyway; B-45 collides with neither.
+**Numbering.** This is B-45, not B-39: the `kerr-redesign` branch used B-33..B-44 for its own questions. At the merge
+those became **B-46..B-57** (old kerr-redesign B-n = B-(n+13)); B-33..B-38 and B-45 are master's D-49 / RC-2 entries.
 
 **What was built.** The Eye's MUI2 GUI (`EyeGui`), its centre render (`machines/eye/render/`), the sensor hatch's
 cover-friendly output, the bench's `render` command, the T5/T6 cost table (costs §10), the build spec's D-49 block
@@ -1364,6 +1362,399 @@ freshly loaded controller; the first run's stale looks came from that, and the b
 
 ---
 
+### B-46 Kerr redesign: every module recipe needs an open hole [Kerr redesign, spec only]
+
+**Context.** You ruled that the modules become separate machines "that just have a requirement of a hole being
+open to run". Today's Kerr is kinder than that: with the hole closed, COMPRESS still runs plain compressor recipes at
+the base parallel (B-8).
+
+**What the spec says** (`kerr-redesign.md` §3). A module runs nothing unless it is linked to a formed KEE with an
+open hole. This is also RC-2's Black Hole Compressor behaviour: its `validateRecipe` returns `NO_BLACK_HOLE` for
+every recipe while the hole is closed. DENSITY needs Kerr T2 and at least 128 SM, as before. The compressor module
+searches its three maps together, so it needs no machine mode at all.
+
+**Suggestion.** As specced.
+
+**Alternative.** Plain compressor and extractor recipes run with the hole closed, at 8 × tier with no bonus. That is
+friendlier, but it blurs "the hole powers the modules".
+
+### B-47 Kerr redesign: closing the hole mid-recipe pauses the modules, it does not void them [Kerr redesign, spec only]
+
+**Context.** A hole can close while a module is mid-recipe: a Collapser, evaporation when the bolts run out, the
+containment power failing, the KEE unforming, or the KEE's chunk unloading.
+
+**What the spec says** (§2.3). The Godforge pattern: an unlinked module skips its post-tick. Progress and EU stop,
+and the recipe resumes when the link returns. Parallel and speed were fixed at recipe start, so changing the mass
+mid-recipe cannot be exploited. The GUI's Collapse button takes two clicks, and the first warns how many modules
+will pause.
+
+**Suggestion.** As specced.
+
+**Alternatives.**
+
+- Void the running recipe, as the BHC does when its hole goes unstable. That is harsher, and it punishes running out
+  of bolts twice.
+- Let the running recipe finish and block only new starts.
+
+### B-48 Kerr redesign: the KEE draws containment power while the hole is open [Kerr redesign, spec only, PROPOSED number]
+
+**Context.** The KEE no longer runs recipes, so its two energy sockets and the GUI's power line would mean nothing
+(today "the hole draws no EU").
+
+**What the spec says** (§3). The hole draws 8,388,608 EU/t (1 A UEV) while it is open, and nothing while it is
+closed. Without that power the governor fires no bolts, so the hole bleeds down, shows as unstable and evaporates at
+2 SM. The modules draw their recipe EU from their **own** energy hatches.
+
+**Suggestion.** As specced; tune the number in play.
+
+**Alternatives.**
+
+- 0 EU/t: delete the KEE's energy requirement, so the GUI shows no power line.
+- Upkeep that scales with mass, for example 1 A UEV × M / 16.
+- Modules fed from the KEE's hatches (the Space Elevator pattern) instead of their own.
+
+### B-49 Kerr redesign: a whole-number setpoint, GUI open/close buttons, and the extractor controller moves [Kerr redesign, spec only]
+
+**Context.** You asked for "a neat GUI" and no screwdriver.
+
+**What the spec says** (§4, §6).
+
+- **Setpoint.** The 9-rung screwdriver ladder (2 … 512) becomes any whole number of SM: 2-64 at T1, 2-512 at T2.
+  It is set with a number field, a slider and −/+ buttons.
+- **Open and close.** Open and Collapse are GUI buttons. They are enabled only when a Seed or a Collapser is in a
+  bolt bus, and Collapse takes a second click to confirm. An "Auto" toggle (default on) keeps today's behaviour, so
+  automation still works: a Seed or Collapser dropped into a bolt bus acts on its own.
+- **Extractor controller.** The module's core cell today sits on the arc's inner face, facing the hole, where a
+  player can hardly reach it. The Extractor Module's controller therefore moves to the arc's outer face at 340°. The
+  old cell becomes an I/O socket, and two more sockets are added beside the new controller. The compressor's core
+  cell is already on the outer face, so its controller stays in that cell.
+
+**Suggestion.** As specced.
+
+**Alternative.** Keep the ladder as the only values the slider stops on.
+
+### B-50 Kerr redesign: modules cost the hole nothing; render scale and migration [Kerr redesign, spec only]
+
+**What the spec says.**
+
+- **Module cost.** None: a running module never changes the mass, the bleed or the stability (§3).
+- **Render** (§5). It reuses GT's black hole renderer through a GL scale around the hole centre: s = clamp(4 ·
+  (M / 16)^(1/3), 2, 6.5). That gives a 5.2-block horizon at 16 SM, the mockup's size, and it is capped so the disc
+  stays inside the mirror ring. GT's lasers are off, because they run along the axes and the rails sit at 45°. It is
+  toggled by the `renderKerrHole` config and a per-machine GUI button.
+- **Migration** (§7). The KEE converts legacy core blocks into module controllers once, automatically. The
+  fallback is `/btskerr migrate`. SL-K02 and SL-K03 now output the controllers, at an unchanged cost, and a
+  shapeless recipe turns old core blocks into controllers.
+
+**Suggestion.** As specced.
+
+**Alternative for the module cost.** Each running module adds a share of bleed, for example +10 % each, so the hole
+"feels" the load and a busy Kerr burns more bolts.
+
+### B-51 Kerr redesign: the compressor module's controller sits below the T2 band, not in the old core cell [Kerr redesign, built]
+
+**Context.** The spec (§6.1) put the Kerr Compressor Module's controller in the old core cell (the mockup's
+"control" block on the south arc's outer face) and asked the exporter to assert that every module controller's
+front face is open air in a full build. That assert fails at Kerr T2: the T2 reinforcement band (Harmonic Lining,
+Bastion and Casimir plates at z −41..−44, y −2..0) closes the one-block gap in front of the old core cell, so a
+player cannot reach the controller once the Density Upgrade is in.
+
+**What is built.** The exporter puts the controller in the arc's outer shell cell straight below the old core cell,
+at the first height whose front cell and the cell above it are open air in the T2 build (voxel (0, −4, −39)). The
+old core cell becomes a seventh `c` I/O socket. The front-face assert now passes for both modules at T1 and T2. The
+extractor's controller is where the spec put it (outermost cell on the 340° ray, voxel (36, 0, −13)). Migration
+uses the exported `legacyCoreRel`, so it swaps the old core cell to casing and places the controller in the new cell.
+
+**Suggestion.** As built.
+
+**Alternatives.** Keep the old cell and carve a 1 × 1 access tunnel through the T2 band (4 blocks deep, beyond
+survival reach), or move the controller above the band (y +4).
+
+### B-52 Kerr redesign: how pausing, the power switch and the KEE's GUI work [Kerr redesign, built]
+
+**What is built, where it differs from the spec.**
+
+- **Pausing.** The spec copied Godforge: skip the whole post-tick while unlinked. Built instead: an unlinked module
+  skips only GT's `runMachine` (no progress, no EU, no new recipe, the running recipe is kept). It still walks its
+  own structure, so a module forms, and its GUI says why it waits, before any KEE exists. Godforge's version never
+  forms an unconnected module.
+- **The link check** is a full round trip: the module computes the KEE cell from its own facing (`keeRel`), and the
+  KEE there must compute this module's cell back (`rel`) with the slot's facing (`facingAbc`). The manifest also
+  carries `turns`, but only as documentation.
+- **The KEE's power switch does not touch the hole** (shown greyed out). GT switches a machine off whenever its
+  structure breaks, so if "off" stopped the governor, a cage repaired after one broken block would keep bleeding
+  until someone switched it back on. Collapse is the way to shut a hole down; containment power still matters.
+- **No power panel on the KEE.** GT's power panel holds the max-parallel field and the power-fail toggle, which mean
+  nothing on a machine that runs no recipes, so the KEE has no power-panel button. The modules keep it.
+- **Stability** counts as 100 % while the mass is at or above the setpoint (the governor is holding, or the hole is
+  being let down to a lower setpoint). Below the setpoint it is mass fed ÷ mass bled over the last second.
+- **The setpoint field** accepts 2-512 on the client; the server clamps to 64 at T1. (Superseded by B-54: the
+  field, slider and - / + now follow the synced tier range; the server still clamps.)
+
+**Suggestion.** As built.
+
+### B-53 Kerr redesign: what the render pass still has to do, and the new recipe ids [Kerr redesign, built]
+
+**Render.** This pass built only the per-machine switch: the KEE saves `btsKerrRender` (default on), and the GUI has
+the eye toggle in the gap row. The render block, `TileKerrHole`, `KerrHoleRenderer`, `Config.renderKerrHole` and
+the placement calls are the render pass's (spec §5, work plan R4). Its hooks are `MTEKerrEngine.isRenderEnabled()`,
+`isHoleOpen()`, `mass()`, `getStability()` and `KerrSlot.centreRel()` (the hole centre, from the manifest).
+
+**Recipe ids.** SL-K02 / SL-K03 keep their ids and inputs and now output the module controllers. The legacy-core →
+controller shapeless recipes are **SL-K07** (compressor) and **SL-K08** (extractor); SL-K06 stays retired. The two
+legacy core metas (`slCasing2:0/1`) stay registered and are hidden from NEI and the creative tab.
+
+**Migration.** The KEE converts legacy core blocks once per load, from 40 ticks in, as soon as its slot cells are loaded;
+`/btskerr migrate [x y z]` repeats it on demand. A controller cell is replaced only if it is air or the plain arc
+shell. The old in-flight recipe goes to the module it ran on (the saved `btsKerrBoundMode`, else the old machine
+mode); items that do not fit drop at the module controller, and fluids that do not fit are lost. The test bench
+`/btskerr legacy x y z` turns a built Kerr back into the old layout so this can be exercised.
+
+**Dev-server results (headless `runServer`, RC-2, 2026-10-12).**
+
+- `/btskerr t1` in all four facings and `/btskerr t2` north: the KEE and both modules FORM; each module controller
+  lands in its slot facing out of the cage; the extractor stands on the viewer's right (the mockup's side); creative
+  re-projection over every machine breaks nothing; the KEE's damage-and-repair test passes. After the hole opens
+  both modules report "Linked" (parallel 448, speed ×4.0 at 16 SM with creative UMV 16 A energy), also after their
+  chunks unload and reload (nothing about the link is saved).
+- Survival path (`survival`): KEE 13,898 blocks in 71 rounds, compressor arc 964 in 6, extractor arc 498 in 4, all
+  finished (-1) and formed.
+- Migration: `legacy` → `migrate` converts both arcs, and the modules form on their existing hatches and link. A Kerr
+  left in the legacy layout across a server restart converts itself (both arcs) about two seconds after load.
+- Not yet run: a module recipe actually completing, pausing mid-recipe on Collapse, two KEEs side by side, the
+  T2 DENSITY recipe, the GUI in a client, the NEI preview (work plan R5).
+- Test-bench only: removing a console-placed (ownerless) GT multiblock can throw inside GT's power-fail tracker
+  (`UsernameCache` with a null UUID). Player-placed machines have owners; `legacy` gives a stand-in owner and
+  carries on.
+
+**Suggestion.** As built.
+
+### B-54 Kerr redesign: KEE GUI details the spec and mockup left open [Kerr redesign, built]
+
+**Context.** The KEE console (`MTEKerrEngineGui`) was redone to match the mockup (`kerr-gui.html`) and spec §4.1;
+the module screen gained status lines (§4.2). A few details were judgement calls.
+
+**What is built.**
+
+- **Setpoint range follows the tier live.** The gap-row field, the panel's field, the slider and the − / + buttons
+  are all bounded by the synced maximum (64 at T1, 512 at T2). The slider runs 0..1 over the *current* range and
+  snaps to whole SM, so it follows a Density Upgrade going in while the panel is open (MUI2's slider bounds are
+  fixed at build time). Every write still goes through `MTEKerrEngine.setSetpoint`, which clamps on the server.
+  Field scroll steps: 1, shift 8, alt 64 (GT's compressed-bus idiom); right-click on − / + steps by 8.
+- **Collapse confirmation** is client-side: the first click arms it for 4 s (label "Confirm", and the line under the
+  buttons turns red with "N linked modules will pause"); a second click inside that window sends the server action,
+  which re-checks the open hole and the Collapser in a bolt bus.
+- **Auto** is a check box (GT's checkmark / cross overlays) rather than a text button, as in the mockup.
+- **Mass bar colour** is the BHC lavender, not a stability colour; stability has its own coloured line.
+- **One side panel at a time.** Hole control and Modules open in the same spot to the right of the main panel, so
+  opening one closes the other.
+- **Modules panel rows** show the module controller's item icon, its state, then either the hole bonus (linked) or a
+  short reason (paused: why; not built: "place its controller at marker N"; not formed / not loaded / not linked).
+  The mockup's "IDLE: no input" reason is not shown: the KEE does not read a module's last recipe result.
+- **Module screen:** besides the link and bonus lines, a live recipe-gate line (`gateLine()`; the compressor shows
+  "Densification: needs Kerr T2 / needs 128 SM / available", also on the scanner) and a constant maps line
+  (`mapsLine()`).
+- **Text is English in code**, like the rest of the Kerr GUIs and the scanner lines. Only GT-looked-up ids (recipe
+  results, structure errors) have lang keys.
+- **Not verified in a client.** It compiles against RC-2; nobody has opened it in a game client yet (R5).
+
+**Suggestion.** As built; move the GUI strings to `en_US.lang` when the Kerr text settles.
+
+**Alternatives.** Rebuild the slider when the tier changes (more code, same result); a server-side Collapse
+confirmation (needs per-player state for no gain, because the server re-checks anyway).
+
+### B-55 Kerr redesign: the hole render as built [Kerr redesign, built]
+
+**Context.** Spec §5 / work plan R4: a black hole at the KEE's centre, reusing GT's Black Hole Compressor render
+(`BlackholeRenderer`, `RenderingTileEntityBlackhole`, `BlockRenderer`), sized for the cage and scaled by mass,
+shown only while the hole is open, with no orphan render blocks. The judgement calls:
+
+**What is built.**
+
+- **GT's classes, three small ones of ours.** `TileKerrHole extends RenderingTileEntityBlackhole` (GT's growth /
+  collapse animation, stability input and description-packet sync, plus a synced scale and the owning KEE's
+  coordinates); `BlockKerrHole extends BlockRenderer` (GT's render block, registered by its constructor as
+  `beyondthestars:gt.beyondthestars.kerrHole`, no item in NEI or the creative tab); `KerrHoleRenderer` (client) wraps
+  GT's `BlackholeRenderer` and `glScalef`s it about the centre, so GT's shaders and model are used unchanged. GT's
+  lasers stay off (spec: they would cut through the arcs).
+- **Server places, server removes** (as GT's BHC). The KEE puts the block at `machines.kerr.centre.rel` (0, 0, 38)
+  through its own facing, the same cell for T1 and T2 (checked in both shapes: a don't-care cell, nearest solid
+  block 12.3 away, a rail tip). Only into air, or it adopts our own block already standing there; otherwise the GUI
+  terminal and the scanner say "Render blocked at x, y, z". It never loads a chunk.
+- **When it shows.** Hole open AND the KEE's GUI switch AND `Config.renderKerrHole` (default true; the server
+  places nothing when it is off, a client with it off draws nothing). Formed or not (a frozen hole is still a hole).
+  When any of the three goes false, GT's 40-tick collapse plays and the block goes after it (the spec said this only
+  for a close; a switch turning off does the same, which looks better than a pop). Re-opening during the collapse
+  regrows from zero (GT's animation has no mid-point start).
+- **Scale** `clamp(4 (M/16)^(1/3), 2, 6.5)` as specced (16 SM → 4.0, 64 SM → 6.36, 128 SM and up → 6.5).
+  **Stability**: GT's input is the governor's coverage / 2, so the shader's stability equals the coverage (calm at
+  full coverage, the disc shrinks below it, spins at 0, e.g. with no containment power). Both are pushed only when
+  the scale moves 2 % or the coverage 0.02, checked once a second.
+- **No orphans, two ways.** (1) The KEE removes the block on break (`onBlockDestroyed`), on any tile removal
+  (`onRemoval`, wrench), when its facing no longer points at that cell, and on load if the hole or a switch says it
+  should not exist. Its position is saved in the TILE NBT only, never on the wrenched item (trap 2), so a KEE placed
+  elsewhere never claims a block here. (2) **Added beyond the spec:** the render tile polices itself. Every 100 ticks
+  on the server it asks the owner's cell (only once that chunk is loaded) whether a KEE there still claims exactly
+  this cell, and turns itself to air if not. That covers what (1) cannot: a KEE broken while the centre's chunk was
+  unloaded, a world edit, a `/setblock`-placed ownerless block.
+- **Test bench** `/btskerr render x y z [open [m]|close|off|on|break]`: acts, then reports the hole, both switches,
+  the centre cell and every Kerr render block within 100 blocks.
+
+**Verified (headless `runServer`, RC-2, 2026-10-12).** T1 north, east, south and T2 west: the block lands on the
+centre cell, claimed, scale 4.01 at 16 SM, 6.36 at 64 SM, 2.32 at 3 SM, 6.50 at 128 SM (T2). Close: the block stays
+for the 40-tick collapse, then air. Render switch off: same; on again: placed again. Breaking the controller: the
+block is gone in the same tick. Two `/setblock` ownerless render blocks next to a running KEE: gone within 100 ticks,
+the KEE's own block kept. Server restart with two open holes: each KEE adopts its block (one block each, still
+claimed after the tile's 100-tick self-check). **Not verified:** the look in a game client (size against the cage,
+the disc against the rails, Angelica's core profile), R5. Dev-server note: with no player online, Forge stops ticking
+tile entities 1,200 ticks after the last player left (or the start), so console tests must finish within a minute
+of start or a player must be online.
+
+**Suggestion.** As built; look at it in a client. If the disc at the 6.5 cap looks crowded against the rail tips
+(12.3 from the centre; the disc reaches about 13.5), lower the cap to 5.8 (disc about 12).
+
+**Alternatives.** A client-only render with no block (a world-render hook keyed on the KEE: no block to orphan, but
+the KEE controller's chunk must be loaded for the client to know about the hole, and it means our own render
+dispatch instead of GT's TESR path); GT's `GregTechAPI.sBlackholeRender` block itself (no way to scale it or tag its
+owner).
+
+### B-56 Kerr redesign: module recipes on a dev server, and SL-K05 lost to the Eternal Singularity recipe [Kerr redesign, R5 test]
+
+**Context.** R5 dev-server pass (headless `runServer`, RC-2, 2026-10-12): KEE T1 and both modules formed in two
+facings through both paths, module recipes driven from the console, the hole closed and the KEE unformed mid-recipe,
+T2 with DENSITY, render cell checks and two restarts. New test bench: `/btskerr module x y z <c|x>
+stock|status|tier|clear`, `/btskerr damage|repair x y z`, `/btskerr keep x y z [t2]` / `release`.
+
+**Found and fixed: SL-K05 never ran.** The coremod's neutronium-compressor recipe turns 72 L of molten SpaceTime alone
+into an Eternal Singularity (UMV). SL-K05 also takes molten SpaceTime, and the compressor module searched DENSITY
+last, so a Kerr T2 at 128 SM fed bolts + RHSP + molten SpaceTime made Eternal Singularities batch after batch and
+never touched the bolts. **Built:** DENSITY is searched first. With the gate open (T2, 128 SM) SL-K05 ran (64 bolts →
+1,000 L Hyperdense Stellar Mixture); with the gate shut (T2 at 64 SM) the bolts stayed untouched and the module fell
+through to GT's maps. The creative kit's compressor module also gets a second input hatch, because SL-K05 takes two
+fluids and a GT input hatch holds one.
+
+**Results.**
+
+- **Formed:** T1 north and east on the creative path, T1 east and north on the survival path (KEE 13,898 blocks in 71
+  rounds, compressor arc 964 in 6, extractor arc 498 in 4), and T2 south and west. Every module formed and linked,
+  the extractor stood on the viewer's right, re-projection broke nothing, and damage-and-repair passed each time.
+- **Hole closed:** both modules sat in `HOLE_CLOSED` with their inputs untouched, through a restart too. After Open,
+  the extractor ran (128 Stemcells → 128 Plasma Membrane at parallel 448, ×4) and so did the compressor (Fusion
+  Control Computer Mk-III → Hypervisor Matrix, 14 in parallel, and Poppy → Plantball).
+- **Closed mid-recipe** (B-47): progress froze (379/2066), the recipe was kept, the machine went idle, and it resumed
+  on reopen. The module notices on its next 20-tick link check: it ran about 14 more ticks after the close.
+- **KEE unformed mid-recipe** (one cage block removed): both modules went `KEE_NOT_FORMED`. The compressor's progress
+  froze, a freshly stocked extractor did not start, and the hole stayed frozen at 16 SM with no bleed. After the
+  repair, both resumed and the recipe finished, with the outputs in the bus.
+- **Render:** placed on open (and on the auto seed), gone after the 40-tick collapse on close, gone at once when a
+  loaded KEE broke, and gone after a restart for a KEE broken while its centre chunk was unloaded (the tile's
+  self-check). A closed hole has no block after a restart; each open hole adopts its one block. **While the KEE is
+  unformed the render stays,** as built in B-55 (a frozen hole is still a hole). The R5 task list expected it to go
+  on unform. That is your call.
+- **Restart:** hole state, mass, setpoint, T2 and in-flight module recipes all persisted (a compressor batch went
+  644 → 725 across the restart and finished).
+- **Cosmetic, not changed:** the scanner bonus line shows `p112 x1.00` while the hole is closed (the GUI says
+  "none"), and GT's `lastParallel` reads 0 until a reload.
+- **Test-bench note:** a playerless dev server unloads a Kerr's chunks within seconds of the last command, so
+  console tests must force-load them with `keep`.
+- **Not run here:** the GUIs and the render's look in a game client, and the NEI preview.
+
+**Suggestion.** Keep DENSITY first. Decide whether the render should go when the KEE unforms. If yes, it is one
+condition in `MTEKerrEngine.tickRender` (`want` gains `&& mMachine`).
+
+---
+
+### B-57 Kerr redesign: review fixes (recipe-check pushes, DENSITY cache, migration hold, no KEE maintenance, Collapse button, Auto) [Kerr redesign, review fix]
+
+**Context.** A review of the Kerr redesign against GT 5.09.54.205 (RC-2) sources found six issues. All six were
+checked against the RC-2 sources and fixed. They were re-tested on the headless dev server (2026-10-12) without the
+`stock` command where a refill would hide the bug.
+
+**What was fixed.**
+
+- **Idle modules never restarted.** RC-2 checks recipes only on a push (`doPeriodicChecks` is false). A check that
+  failed with `HOLE_CLOSED`, `KEE_NOT_FORMED` or `density` used the pending push up. The module now pushes
+  `RecipeCheckReason.IMMEDIATE` when its link becomes `LINKED`, and the compressor pushes one when its DENSITY gate
+  opens (polled every 20 ticks). *Test:* the hole was closed and the extractor stocked in the same tick, so the
+  module stayed idle with `HOLE_CLOSED` and 128 Stemcells. The hole was then reopened and nothing else was touched:
+  128 Plasma Membrane came out. Same with the KEE unformed (`damage`), the compressor stocked with Poppy, then
+  `repair`: 8 Plantball.
+- **DENSITY first did not hold.** GT offers `ProcessingLogic.lastRecipe` to every map query ahead of the map's own
+  recipes, and never clears it. The last recipe is now offered only to its own map (`GTRecipe.getRecipeCategory()
+  .recipeMap`). A DENSITY match also hides GT's maps (`shadowsLaterMaps`), so a shut gate waits with "density"
+  instead of the Eternal Singularity recipe eating the SpaceTime. *Test (T2, no restart):* SL-K05 stocked at 64 SM:
+  the bolts and SpaceTime stayed untouched. Raised to 128 SM with nothing restocked: SL-K05 ran. The bolts were then
+  cleared, so an Eternal Singularity batch ran and became the cached recipe. After restocking the bolts, the next
+  recipe was SL-K05 (2,000 L Hyperdense Stellar Mixture in total).
+- **Migration destroyed in-flight recipes.** Old arcs had no energy hatch, so a converted module cannot form, and
+  every fluid was counted lost. The KEE now moves the old outputs off GT's recipe fields at load (GT's `stopMachine`
+  clears those while unformed). It holds them in its NBT (`btsKerrLegacy`, tile and wrenched item) and hands them over
+  each second once the module is formed. Items that do not fit drop at the module controller. Fluids that do not fit
+  stay held, and the GUI note says so. *Test:* `/btskerr legacy x y z inflight` (strips the module energy hatches,
+  puts 2 x 64 bolts, 1,000 L water and 500 L lava in the KEE's GT recipe fields) followed by a restart. The load
+  captured the recipe, auto-migration converted both arcs, and the note said "held until the Compressor module forms".
+  After `/btskerr module x y z c energy`, water went to the output hatch, lava stayed held, and it was still held after
+  another restart. All 128 bolts were found as drops: the test layout has no output bus, because `legacy` puts the
+  core block back on the I/O socket. Same result on a T2 without a restart.
+- **KEE maintenance.** The KEE runs no recipes. `getDefaultHasMaintenanceChecks` is now false and the
+  maintenance-hatch requirement is gone. The governor arc's `m` cell is shell first: builds place casing and there is
+  no hint. It still accepts the maintenance hatch an existing Kerr has there, so nothing unforms. *Test:* the kit's
+  KEE formed with 10 hatches and no maintenance hatch, in T1 and T2. The dev server also caught a crash in the first
+  version: GT's `HatchElementBuilder.build()` requires a hint.
+- **Collapse on an unformed KEE.** The button now needs a formed cage, as the server does. The status line says
+  "Collapse needs a formed cage". GUI only; not seen in a client.
+
+**Judgement call: Auto (finding 6).** With Auto on (the default), a Collapser placed in a bolt bus collapses the hole
+within 20 ticks, so the panel's two-click Collapse and its Collapser count are moot while Auto is on. B-54 built Auto
+as "a Seed or Collapser placed in a bolt bus acts on its own" (migration.md promises the old behaviour), so
+**built:** the behaviour is unchanged. With Auto on, the panel now says "Auto on: a Collapser in a bolt bus collapses
+at once", and the Auto tooltip says the same. **Suggestion:** Auto acts on Seeds only (evaporation recovery keeps
+working) and Collapsers are left to the button. Alternatives: split into "Auto open" / "Auto collapse" with collapse
+off by default, or keep as built.
+
+**Seen, not changed.**
+
+- A migrated module controller stands "switched off". GT disables any multiblock that is allowed to work while
+  unformed, so after adding its energy hatch the player switches it on (standard GT behaviour).
+- SL-K05 inputs that are short (for example 10 bolts instead of 64) do not match DENSITY, so they still fall through
+  and the Eternal Singularity recipe can use the SpaceTime. That is the inputs' ambiguity, not the gate.
+
+---
+
+### B-58 Merging kerr-redesign into master: renumbered questions, config save, dead Kerr lang keys [merge]
+
+**What was done.** `kerr-redesign` (hole-only KEE, the two module machines, the KEE's MUI2 GUI, the black-hole render)
+is merged into master, which carries the RC-2 port and D-49 units 1-6.
+
+- **Question numbers.** Both branches had used B-33..B-44. Master keeps B-33..B-38 and B-45; the branch's twelve
+  became **B-46..B-57** (old n -> n+13), moved after B-45, with every reference in docs and code comments rewritten
+  (only lines that came from the branch were touched, so master's B-34..B-38 references still point at D-49). The
+  table is under "Where the old question numbers went". Branch commit messages keep the old numbers.
+- **Config.** Both options are kept (`eyeRenderCentre`, `renderKerrHole`). Master's "always save" wins over the
+  branch's "save if changed", so the `renderKerrHole` comment is also rewritten on every start.
+- **Client and block registration.** Both renders are bound (TecTech-shader star for the Eye, GT's BlackholeRenderer
+  for the KEE) and both render blocks registered (`eyeStar`, `kerrHole`).
+- **Structures.** `manifest.json` was regenerated by `tools/export-structures.js` (same voxel.js sha on both sides).
+  The result is the union: Kerr machines, legend, module pieces and the `kerr_slots` table equal the branch's; the
+  Eye's machine and its pieces including the T5 `eye_arms2` and T6 `eye_rim` bands equal master's. `--check` is clean.
+- **Lang (RC-2 recipe_result).** The module results (`beyondthestars.kerr.module.<holeclosed|keenotformed|
+  keenotloaded|wrongfacing|nokee|density>`) already had their `GT5U.gui.text.recipe_result.` keys on the branch.
+  Master's f484699 had added recipe_result keys for the old KEE's `kerr.nomodule`, `kerr.modeunavailable` and
+  `kerr.lowmass`; no code produces those ids after the redesign and their text tells the player to use a
+  screwdriver, so they are removed. Every literal and generated `ofFailure` / `ofSuccess` id in the merged code has
+  its recipe_result key.
+- **Checks.** `spotlessApply compileJava` passes; `node tools/fieldsim-golden.js --check --java` 78/78 PASS. No
+  in-game run was part of the merge.
+
+**Left as it was.** SL-K04's old non-BEC path stays for the BEC step. The design repo's
+`designs/docs/bec-expansion-proposal.md` still says "start at B-41" for its questions; the next free number is now
+**B-59**.
+
+**Suggestion.** Nothing to decide unless you want the Kerr questions to keep their branch numbers (that would mean
+renumbering master's D-49 entries instead, which the brief and PROPOSAL already cite as B-34 / B-37).
+
+---
+
 ## Part C. Settled (for the record)
 
 | Topic | Your answer | State |
@@ -1401,3 +1792,8 @@ freshly loaded controller; the first run's stale looks came from that, and the b
 | Q-13 | B-6, C | Q-26 | B-8 | | |
 
 The full original wording of Q-1..Q-38 is in git history (addon commit 457bbf8).
+
+**Kerr redesign questions (merge of `kerr-redesign`, B-58).** The branch numbered its questions B-33..B-44, which
+master had already used for the RC-2 package and D-49 entries. They are now B-46..B-57: old B-33 -> B-46, B-34 -> B-47,
+B-35 -> B-48, B-36 -> B-49, B-37 -> B-50, B-38 -> B-51, B-39 -> B-52, B-40 -> B-53, B-41 -> B-54, B-42 -> B-55,
+B-43 -> B-56, B-44 -> B-57. Commit messages on the branch keep the old numbers; docs and code comments use the new ones.
