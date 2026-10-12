@@ -2536,6 +2536,83 @@ to T1, buffers empty; Kerr T1 at (12800, 100, 10000); boot log "252 registered, 
 **Not covered.** A real computer running Lua (the console has no computer). An AE2 network or a Factory Manager in a
 world (the routes go through plain GT hatches, which those mods already drive). The hatch GUI in a client.
 
+### B-71 Full RC-2 dev-server test of master after the overnight pass, and what it fixed [overnight test, built]
+
+**What was run.** Headless `runServer` (RC-2 dependencies plus OpenComputers 1.12.61) on a fresh flat world
+(`sltest-ovt`), driven from the console in five boots on the same world (boots 2-5 are the restart checks). Before
+that: a static lang lint (every `ofFailure` / `ofSuccess` id, shutdown reason, `StructureErrors.of`,
+`translateToLocal`, recipe-map name, item, block and casing meta, and every `GT5U.*` literal, checked against our
+`en_US.lang` and RC-2 GT's) and `node tools/fieldsim-golden.js --check --java`.
+
+| Area | Result |
+|---|---|
+| Load | `252 registered, 0 skipped`; `BEC line: 6 addon condensates makeable ... no legacy fallbacks`; SL-B01/B02 x32; TecTech Eye removed (43 + controller); 10 BHC->Kerr swaps; OpenComputers components registered. No `beyondthestars` frame in any stack trace in five boots (one in boot 4: fix 5 below). |
+| Lang lint | 168 lookups, **0 missing**, 0 duplicate keys. One key has no producer any more (`recipe_result.beyondthestars.eye.star_unit5`); left in place (harmless). |
+| Golden | 78 / 78 PASS before and after every fix. |
+| Kerr | T1 north / T1 east survival / T2 south / T2 west survival: KEE and both modules FORMED, re-projection, damage and repair. Extractor runs GT extractor recipes (128 Stemcells at parallel 448); compressor runs GT compressor and neutronium compressor recipes; DENSITY is refused on T1 and runs on T2 (2 parallels). Closing the hole pauses the compressor with its progress kept; it resumes when the hole opens. Render: claimed at the centre, gone 4 s after a close, off / on switch, gone at once when the controller is broken. |
+| Eye | T1-T6 in four facings, creative and survival, all FORMED with the expected bands. Sol: ignition (protostar render), lit, starved (Hydrogen 0: Status bit 1, then Breach with the rig off, render cleared, "Last failure" kept), relit with the failure line still shown. The gate rig took one Eye T1 -> T5 with no hand on it (Mass Infusion 600 s, Shell Ignition 604 s, Core Collapse 1,002 s with Tachyon on Transition bit 4 for exactly 940 s, First Cooling 7,200 s) and, after fix 1, T5 -> T6 (Magnetar Merger 181 s, core consumed). T4: 4 h held; valves cut 900 s -> lost, then relit Arcturus and re-ran the Core Collapse unattended. 1:1 gate: one compression generator swapped to tier 3 on a T4 Eye -> "This target is Eye T4: every Spacetime Compression Field Generator must be tier 4 or higher"; tier 2 under an Arcturus chart -> the T3 message. |
+| BEC | `/btseye bec`: 20 Condensate Assembler recipes make our parts, all 20 found by GT's own lookup with their inputs (no shadowing), condensates as RC-2 stores them (recipe metadata), 6 Condensate Generator recipes for our 6 condensates, 0 fallbacks. |
+| Directive codes | Eye Status 1 / 2 / 3 / 8, Trims per tier, Transition 1 / 2 / 4 / 8; Kerr Hole 1 / 2 / 4, Status 2 / 5 / 8; control sets (redstone block -> setpoint 64 / 512). |
+| OpenComputers | `ocloop` on the Eye and the KEE (clamps and refusals as the GUI's), `ocprobe`: bts_eye, bts_kerr, bts_kerr_module, bts_directive drivers from OpenComputers' own registry. |
+| Render lifecycle | Every Eye centre checked after the run: a block only where a star burns (T6 magnetar, T4 while its Core Collapse ran); none at the dark, broken or unformed Eyes; the T3 Eye's star went with its controller. |
+| Restart | Unlocked tiers, milestones, live stars and batches, transitions in progress (merger imprint seconds), last failures, render re-claimed, Kerr holes / modules mid-recipe, Directive and sensor hatch settings: as before (after fix 3). |
+
+**Fixed here (each its own commit).**
+
+1. **The Magnetar Merger could never complete.** Since ruling 12 (B-60) the paid Agent upkeep charges the flare shield
+   by 2r a second, and the shield absorbs Π every second, so the dynamo's imprint drift was eaten and Π sat at 0.0 for
+   the whole 600 s. Every merger timed out and every automatic re-merge spent the charge again: **T5 -> T6 was
+   impossible**. B-59's merger test predates B-60, and the prototype skips the merger, so the golden set never saw it.
+   - *Built:* a new `Overlay.shieldPerUpkeep` hook (default = `SHIELD_PER_UPKEEP`, so the plain field and the golden
+     cases are unchanged). During the imprint the merger returns 0: only Agent doses charge the shield there. The
+     release keeps T6's own rate.
+   - *Judgement call (PROPOSED):* the imprint's band is +60..+90, but above +70 the field is Critical (Integrity
+     −2/s), so a 120 s hold only survives inside +60..+70. The Directive's Agent bit during the imprint is now
+     **Π > +66** (was 75; release stays > +30), and the automation valve during a transition on T6 is **1 unit/s
+     (100 L/s)** (`EyeTrimRule.MERGER_AGENT_RATE`). A redstone rig opens it on Status bit 3 AND Transition bit 2.
+     The standard 5-unit valve takes 20 off Π at once and leaves the band.
+   - The Magnetar Seed Core tooltip, the Directive Hatch tooltip and `docs/automation.md` say so (rule 14).
+   - *Alternatives:* widen the survivable band (make the imprint band +60..+70, or make the imprint not drain
+     Integrity while Π is in its band). Or keep the shield on and give the dynamo a stronger drift. Both change the
+     merger's maths, which is yours to set.
+2. **Directive "not formed" never reached the redstone.** Every walk clears the hatch lists, and most breaks stop
+   the walk before it reaches the sockets. So an unformed Eye or KEE published to nobody, and its hatches fell
+   silent after 3 s (Eye Status 8 "alarm" and Kerr Status 8 "not formed" never showed).
+   - Both controllers now keep the last formed walk's Directive Hatches and publish to them while unformed.
+   - That list is not saved: after a restart, an unformed machine stays silent until it forms once.
+3. **Restart persistence.** GT marks a chunk for saving only on inventory changes. The KEE's mass, setpoint and
+   open state change without one, so a restart brought back an old save (a 64 SM hole on setpoint 64 came back as
+   16 SM on 16).
+   - The KEE marks its chunk once a second, as the Eye already does.
+   - The Directive and Stellar Field Sensor hatch setters mark theirs.
+4. **A wrench lost the failure line.** The live star is tile-only, so picking the controller up put a burning star
+   out with no event or failure line. The placed-back Eye showed only "Star: DARK".
+   - The item now carries "<star> put out: the controller was picked up", or the last failure as it stood.
+5. **Kit-built Kerr controllers had no owner.** Breaking an ownerless GT multiblock throws in GT's power-fail tracker
+   (GTNHLib team lookup) and aborts the break. In the test, that left the KEE's hole render standing until a restart.
+   Its self-check then removed it.
+   - `/btskerr` now gives the KEE and both modules the player who ran it, or the console stand-in.
+6. **Test bench** (no gameplay change):
+   - `/btseye bec`.
+   - `/btseye star … compression <1-9> [all]` and `check`.
+   - The Kerr bench now walks a machine GT has not checked yet since its chunk loaded. Right after `keep`, an
+     autorig fitted a second pair of Directive Hatches, and a module stock found no energy hatch.
+
+**Seen, not changed.**
+
+- **Merger start counts as a failure.** Putting the Magnetar chart in while Sirius B batches puts the batch out with
+  a salvage, and that is recorded as the "Last failure" (B-63's batch rule). That is right for a lost batch. But when
+  it is how the merger starts, the line reads like a fault.
+  - *Suggestion:* when the new chart is the next tier's and its transition begins, write it as an event, not a
+    failure.
+- **Creative `fill` T6 build.** It merges by itself and, with no regulation, fails and re-merges every ~10 minutes,
+  each time spending the charge. That is by design (auto re-merge), but it is costly in a creative test world.
+- **Fresh `/btskerr` and an instant autorig.** An autorig run right after building a fresh `/btskerr` can close the
+  hole once (the creative energy hatches start empty and the sim runs seconds instantly). It is a bench artifact.
+
+**Not covered.** A client: GUIs, NEI pages, the hologram preview and the renders' look. A real OpenComputers
+computer. AE2 or Factory Manager in a world.
+
 ---
 
 ## Part C. Settled (for the record)
