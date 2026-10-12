@@ -50,14 +50,24 @@ public final class EyeStarLook {
     public final float spin;
     /** Radius wobble amplitude, a fraction of the radius (instability, flares). */
     public final float pulse;
+    /**
+     * Kind-specific 0..1 the renderer needs: {@link #DWARF} the cooling fraction (its shells fade out and a dark
+     * rim shows), {@link #MAGNETAR} the event warning (its flare shell brightens). 0 for the others.
+     */
+    public final float aux;
 
     public EyeStarLook(byte kind, float radius, int rgb, float gamma, float spin, float pulse) {
+        this(kind, radius, rgb, gamma, spin, pulse, 0f);
+    }
+
+    public EyeStarLook(byte kind, float radius, int rgb, float gamma, float spin, float pulse, float aux) {
         this.kind = kind;
         this.radius = radius;
         this.rgb = rgb;
         this.gamma = gamma;
         this.spin = spin;
         this.pulse = pulse;
+        this.aux = aux;
     }
 
     /** The flash after a supernova (the star is already out). */
@@ -65,12 +75,22 @@ public final class EyeStarLook {
 
     // ------------------------------------------------------------------------------ per star
 
-    private static final int SOL_RGB = 0xFFD678;
-    private static final int SIRIUS_A_RGB = 0xAAC8FF;
+    // Render QA round 1 (E3, E4, E8): the star shader keeps the texture's luminance and swaps its hue for ours, so a
+    // saturated tint turns the texture's dark spots into coloured blobs. Pale tints with a high gamma flatten them:
+    // Sol yellow-white (was FFD678 / 3.0), Sirius A and the neutron star blue-white (were AAC8FF / 3.2 and
+    // BEDCFF / 4.0); the magnetar a deep violet with a low gamma (was C85AFF / 3.5, which read pink-lilac).
+    private static final int SOL_RGB = 0xFFF0C8;
+    private static final float SOL_GAMMA = 4.2f;
+    private static final int SIRIUS_A_RGB = 0xC8DCFF;
+    private static final float SIRIUS_A_GAMMA = 4.8f;
     private static final int ARCTURUS_RGB = 0xFF8232;
     private static final int PROTO_RGB = 0xE6401A;
-    private static final int NEUTRON_RGB = 0xBEDCFF;
-    private static final int MAGNETAR_RGB = 0xC85AFF;
+    private static final int NEUTRON_RGB = 0xDCE8FF;
+    private static final float NEUTRON_GAMMA = 6f;
+    private static final int BOUNCE_RGB = 0xC8E1FF;
+    private static final float BOUNCE_GAMMA = 6f;
+    private static final int MAGNETAR_RGB = 0x8A3CFF;
+    private static final float MAGNETAR_GAMMA = 2.2f;
 
     /** What the centre shows now, or null for nothing (dark, IDLE, no star). Server state. */
     public static EyeStarLook of(EyeStarRuntime rt) {
@@ -113,51 +133,84 @@ public final class EyeStarLook {
         return lit(star.n(), unrest, warn);
     }
 
-    /** Core Collapse phase 1 at {@code f} (0..1) of the way to the bounce: Arcturus swelling and reddening. */
+    /**
+     * Core Collapse phase 1 at {@code f} (0..1) of the way to the bounce: Arcturus swelling and reddening. The gamma
+     * falls from 2.6 to 1.6 as it swells (render QA E5: a rising gamma washed the red-orange out to salmon).
+     */
     public static EyeStarLook swell(float f) {
+        final float c = Math.max(0, Math.min(1, f));
         return new EyeStarLook(
             SWELL,
-            15f + 2f * f,
-            lerp(ARCTURUS_RGB, 0xFF3C1E, f),
-            2.6f + f,
-            1f + 3f * f,
-            0.04f + 0.06f * f);
+            15f + 2f * c,
+            lerp(ARCTURUS_RGB, 0xFF3C1E, c),
+            2.6f - c,
+            1f + 3f * c,
+            0.04f + 0.06f * c);
     }
 
     /** Core Collapse phase 3: the proto-neutron star and the bounce's shell, with the field's unrest (0..1). */
     public static EyeStarLook bounce(float unrest) {
-        return new EyeStarLook(BOUNCE, 2.6f, 0xC8E1FF, 4.5f, 10f, 0.03f + 0.1f * unrest);
+        return new EyeStarLook(BOUNCE, 2.6f, BOUNCE_RGB, BOUNCE_GAMMA, 10f, 0.03f + 0.1f * unrest);
     }
 
     /** The lit look of a tier's star, with the field's unrest (0..1) and an event warning (0/1) as wobble. */
     public static EyeStarLook lit(int n, float unrest, float warn) {
         switch (n) {
             case 1:
-                return new EyeStarLook(STAR, 9f, SOL_RGB, 3f, 1f, 0.02f + 0.1f * unrest + 0.06f * warn);
+                return new EyeStarLook(STAR, 9f, SOL_RGB, SOL_GAMMA, 1f, 0.02f + 0.1f * unrest + 0.06f * warn);
             case 2:
-                return new EyeStarLook(STAR, 11f, SIRIUS_A_RGB, 3.2f, 1.2f, 0.02f + 0.1f * unrest + 0.06f * warn);
+                return new EyeStarLook(
+                    STAR,
+                    11f,
+                    SIRIUS_A_RGB,
+                    SIRIUS_A_GAMMA,
+                    1.2f,
+                    0.02f + 0.1f * unrest + 0.06f * warn);
             case 3:
                 // Arcturus, the red giant: the helium flash warning swells it
                 return new EyeStarLook(STAR, 15f, ARCTURUS_RGB, 2.6f, 0.7f, 0.03f + 0.1f * unrest + 0.1f * warn);
             case 4:
-                return new EyeStarLook(NEUTRON, 2.2f, NEUTRON_RGB, 4f, 12f, 0.03f + 0.08f * unrest + 0.05f * warn);
+                return new EyeStarLook(
+                    NEUTRON,
+                    2.2f,
+                    NEUTRON_RGB,
+                    NEUTRON_GAMMA,
+                    12f,
+                    0.03f + 0.08f * unrest + 0.05f * warn);
             case 5:
                 return dwarf(0);
             default:
-                // the magnetar's flares: a warning makes it throb
-                return new EyeStarLook(MAGNETAR, 2.6f, MAGNETAR_RGB, 3.5f, 8f, 0.05f + 0.08f * unrest + 0.25f * warn);
+                // the magnetar's flares: a warning makes it throb and brightens its flare shell (aux)
+                return new EyeStarLook(
+                    MAGNETAR,
+                    2.6f,
+                    MAGNETAR_RGB,
+                    MAGNETAR_GAMMA,
+                    8f,
+                    0.05f + 0.08f * unrest + 0.25f * warn,
+                    warn);
         }
     }
 
+    /** The cooling dwarf's palette: fraction, 0xRRGGBB and gamma per stop (render QA E7). */
+    private static final float[] DWARF_AT = { 0f, 0.5f, 0.75f, 0.9f, 1f };
+    private static final int[] DWARF_RGB = { 0xEAF0FF, 0xFFB070, 0x8A2A18, 0x2A1210, 0x0E0A0C };
+    private static final float[] DWARF_GAMMA = { 4.5f, 2.5f, 1.2f, 0.6f, 0.4f };
+
     /**
-     * Sirius B through a cooling batch (fraction 0..1): white, then orange, then a dull red that darkens to black as
-     * its gamma falls under 1.
+     * Sirius B through a cooling batch (fraction 0..1): white-hot blue-white, orange at half way, a dull brick red at
+     * three quarters, then near black, its gamma falling under 1 (render QA E7: the old curve read as a beige Moon
+     * early and rose red late). The fraction rides along as {@link #aux}: the renderer fades the shells out with it
+     * and shows a faint dark-red rim so the black dwarf still reads against the casings.
      */
     public static EyeStarLook dwarf(double fraction) {
         final float c = (float) Math.max(0, Math.min(1, fraction));
-        final int rgb = c < 0.6f ? lerp(0xFFFFFF, 0xFF8C3C, c / 0.6f) : lerp(0xFF8C3C, 0x3C1428, (c - 0.6f) / 0.4f);
-        final float gamma = 3.5f - 3.15f * c;
-        return new EyeStarLook(DWARF, 3f, rgb, gamma, 0.6f, 0.01f);
+        int i = 0;
+        while (i < DWARF_AT.length - 2 && c > DWARF_AT[i + 1]) i++;
+        final float t = Math.max(0, Math.min(1, (c - DWARF_AT[i]) / (DWARF_AT[i + 1] - DWARF_AT[i])));
+        final int rgb = lerp(DWARF_RGB[i], DWARF_RGB[i + 1], t);
+        final float gamma = DWARF_GAMMA[i] + (DWARF_GAMMA[i + 1] - DWARF_GAMMA[i]) * t;
+        return new EyeStarLook(DWARF, 3f, rgb, gamma, 0.6f, 0.01f, c);
     }
 
     /** Linear blend of two 0xRRGGBB colours. */
@@ -169,12 +222,22 @@ public final class EyeStarLook {
         return (r << 16) | (g << 8) | bl;
     }
 
-    /** True when the two looks differ enough to be worth a packet (kind, colour, or 2 % / 0.05 moves). */
+    /** Colour channels may drift this much before a new look is sent (render QA E10). */
+    private static final int RGB_TOLERANCE = 4;
+
+    /**
+     * True when the two looks differ enough to be worth a packet: another kind, a colour channel moved more than
+     * {@link #RGB_TOLERANCE}, or 2 % / 0.05 / 0.02 moves (the cooling dwarf's colour changes every field second).
+     */
     public boolean differs(EyeStarLook o) {
-        if (o == null || o.kind != kind || o.rgb != rgb) return true;
+        if (o == null || o.kind != kind) return true;
+        for (int shift = 0; shift <= 16; shift += 8) {
+            if (Math.abs(((o.rgb >> shift) & 255) - ((rgb >> shift) & 255)) > RGB_TOLERANCE) return true;
+        }
         return Math.abs(o.radius - radius) > 0.02f * Math.max(1f, radius) || Math.abs(o.gamma - gamma) > 0.05f
             || Math.abs(o.spin - spin) > 0.05f
-            || Math.abs(o.pulse - pulse) > 0.02f;
+            || Math.abs(o.pulse - pulse) > 0.02f
+            || Math.abs(o.aux - aux) > 0.02f;
     }
 
     /** One scanner word for the object. */
