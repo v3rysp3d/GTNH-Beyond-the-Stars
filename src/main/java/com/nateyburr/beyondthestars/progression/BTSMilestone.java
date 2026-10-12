@@ -42,7 +42,8 @@ public enum BTSMilestone {
         new long[] { 72_000L, 144_000L, 288_000L, 576_000L, 1_152_000L, 2_304_000L, 4_608_000L },
         new int[] { 1000, 1020, 1050, 1090, 1150, 1150, 1150, 1150 },
         new String[] { "+2.0% output", "+5.0% output", "+9.0% output", "+15.0% output",
-            "CONDENSATE RECOVERY I - feedwater draw halved again", "STEAM ACCUMULATOR - the chain holds 1.6x the slugs",
+            "CONDENSATE RECOVERY I - feedwater draw halved again",
+            "STEAM ACCUMULATOR - the steam buffer holds 1.6x the cycles",
             "CONDENSATE RECOVERY II - feedwater draw quartered again" }),
 
     /**
@@ -61,8 +62,8 @@ public enum BTSMilestone {
         new long[] { 2_000L, 5_000L, 13_000L, 34_000L, 88_000L, 230_000L, 600_000L },
         new int[] { 1000, 1030, 1070, 1120, 1200, 1200, 1200, 1200 },
         new String[] { "+3.0% output", "+7.0% output", "+12.0% output", "+20.0% output",
-            "CONTROL ROD WITHDRAWAL I - throttle cap 26/24", "CONTROL ROD WITHDRAWAL II - throttle cap 28/24",
-            "CONTROL ROD WITHDRAWAL III - throttle cap 30/24" }),
+            "CONTROL ROD WITHDRAWAL I - rods up to 26/24", "CONTROL ROD WITHDRAWAL II - rods up to 28/24",
+            "CONTROL ROD WITHDRAWAL III - rods up to 30/24" }),
 
     /**
      * REPROCESSING - finished Extraction Derrick loads and Enrichment Annex batches. The only
@@ -73,7 +74,7 @@ public enum BTSMilestone {
      * Annex every {@code ANNEX_CYCLE_TICKS}(600) = 120/h, so a plant running both scores 480/h
      * and T7 is 100,000 / 480 = ~208 h. Correct as written.
      */
-    REPROCESSING("REPROCESSING", "loads + batches", "btsProgReproc",
+    REPROCESSING("REPROCESSING", "Derrick loads + Annex batches", "btsProgReproc",
         new long[] { 250L, 700L, 1_900L, 5_200L, 14_000L, 38_000L, 100_000L },
         new int[] { 1000, 1020, 1045, 1070, 1100, 1100, 1100, 1100 },
         new String[] { "+2.0% output", "+4.5% output", "+7.0% output", "+10.0% output",
@@ -105,8 +106,8 @@ public enum BTSMilestone {
         new long[] { 1_800L, 5_000L, 15_000L, 45_000L, 135_000L, 400_000L, 1_200_000L },
         new int[] { 1000, 1025, 1050, 1085, 1120, 1120, 1120, 1120 },
         new String[] { "+2.5% output", "+5.0% output", "+8.5% output", "+12.0% output",
-            "OVERSPEED TRIM I - redline MAY BE SET to 13,500 (RPM LIMIT field); gain follows it",
-            "OVERSPEED TRIM II - redline MAY BE SET to 15,000 (RPM LIMIT field); gain follows it",
+            "OVERSPEED TRIM I - redline may be set to 13,500 (RPM Limit field); gain follows it",
+            "OVERSPEED TRIM II - redline may be set to 15,000 (RPM Limit field); gain follows it",
             "BLADE METALLURGY - rotor wear rolled half as often" });
 
     /** Tiers on every line. 7 x 4 = 28 tiers, and 28 triangular points a line = 112 in all. */
@@ -206,7 +207,23 @@ public enum BTSMilestone {
     // controller GUI, BOTH control blocks and the scanner print the same text from the same
     // code. Nothing here reads a field, so the client renders it off the four synced longs.
 
-    /** One milestone line: tier, counter against the next threshold, and what it is paying. */
+    /** UPTIME counts generating ticks; one hour of generating is 72,000 of them. */
+    private static final double TICKS_PER_HOUR = 72_000.0;
+
+    /**
+     * A counter as the panel prints it. Tidy B5: UPTIME in hours ({@code 1.3 h}), because
+     * "90,000 generating ticks" means nothing to a player; the other lines keep their counts.
+     */
+    private String amount(long value, boolean withUnit) {
+        if (this == UPTIME) return String.format("%.1f", value / TICKS_PER_HOUR) + " h";
+        return String.format("%,d", value) + (withUnit ? " " + unit : "");
+    }
+
+    /**
+     * One milestone line: tier, counter against the next threshold, and what the NEXT tier pays.
+     * Tidy B5: what the current tier already pays is on the summary and unlock lines below; this
+     * line answers "what am I working towards".
+     */
     public static String milestoneLine(BTSMilestone line, long counter) {
         final int tier = line.tierOf(counter);
         final long next = line.nextThreshold(tier);
@@ -221,9 +238,7 @@ public enum BTSMilestone {
             .append(MAX_TIER)
             .append(EnumChatFormatting.RESET)
             .append(" · ")
-            .append(String.format("%,d", counter))
-            .append(' ')
-            .append(line.unit());
+            .append(line.amount(counter, true));
         if (next < 0) {
             out.append(" · ")
                 .append(EnumChatFormatting.LIGHT_PURPLE)
@@ -231,15 +246,13 @@ public enum BTSMilestone {
                 .append(EnumChatFormatting.RESET);
         } else {
             out.append(" -> ")
-                .append(String.format("%,d", next))
+                .append(line.amount(next, false))
                 .append(" (")
                 .append(line.progressPermille(counter) / 10)
-                .append("%)");
-        }
-        if (tier > 0) {
-            out.append(" · ")
+                .append("%) · ")
                 .append(EnumChatFormatting.GRAY)
-                .append(line.grant(tier))
+                .append("next: ")
+                .append(line.grant(tier + 1))
                 .append(EnumChatFormatting.RESET);
         }
         return out.toString();
