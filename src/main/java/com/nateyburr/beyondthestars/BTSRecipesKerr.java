@@ -46,7 +46,8 @@ import gregtech.api.util.recipe.Scanning;
  * stays at or under 16 item slots even with the fallback.</li>
  * <li><b>SL-K03</b>'s Huge Neutronium Fluid Pipe falls back to a Large one, then to Neutronium
  * plates x6 each, if this pack never generated it, so the recipe never silently disappears.</li>
- * <li><b>SL-K04</b> takes 32 Black Hole Seeds in place of the card's Superstable Black Hole Seed, which
+ * <li><b>SL-K04 moved to the Condensate Assembler</b> as SL-B31 ({@link BTSRecipesBEC}, ruling 11b; Q-B1: no
+ * research step). Both take 32 Black Hole Seeds in place of the card's Superstable Black Hole Seed, which
  * no recipe in the pack makes (cost audit #1, B-21).</li>
  * <li><b>SL-K03</b> takes Electric Pistons UIV in place of Pumps: the module runs item recipes (#14).</li>
  * <li><b>Kerr redesign:</b> SL-K02 / SL-K03 now make the module CONTROLLERS (the modules are separate
@@ -62,15 +63,16 @@ public final class BTSRecipesKerr {
     private BTSRecipesKerr() {}
 
     /**
-     * Black Hole Seeds in the Kerr Density Upgrade (SL-K04), in place of the uncraftable Superstable
-     * Black Hole Seed (cost audit #1, B-21). Each is one UHV Space Assembler craft.
+     * Black Hole Seeds in the Kerr Density Upgrade (SL-B31, and its fallback SL-K04), in place of the
+     * uncraftable Superstable Black Hole Seed (cost audit #1, B-21). Each is one UHV Space Assembler craft.
      */
     static final long DENSITY_UPGRADE_SEEDS = 32L;
 
     public static void register() {
         controllerAndModules();
         legacyCores();
-        densityUpgrade();
+        // SL-K04 (Kerr Density Upgrade) moved to the Condensate Assembler as SL-B31 (BTSRecipesBEC, ruling 11b);
+        // its old body is BTSRecipesBEC's fallback.
         densify();
     }
 
@@ -185,39 +187,6 @@ public final class BTSRecipesKerr {
             () -> GameRegistry.addShapelessRecipe(
                 nn(BTSMachines.kerrExtractorModule, "BTSMachines.kerrExtractorModule").copy(),
                 SLBlocks.casing2(BlockSLCasing2.EXTRACTOR_MODULE, 1)));
-    }
-
-    // ===================================================================== Kerr T2 upgrade (UMV)
-
-    private static void densityUpgrade() {
-        // SL-K04 Kerr Density Upgrade. Research: a Bastion casing (unique research item, see SL-K03).
-        // RSPM is Raw Star Matter (Q-1); Kerr T2 comes after Eye T1, so the Eye's own Sol output pays for it.
-        BTSRecipeGuard.recipe(
-            "SL-K04",
-            () -> GTValues.RA.stdBuilder()
-                .metadata(RESEARCH_ITEM, SLBlocks.casing(BlockSLCasing.BASTION, 1))
-                .metadata(SCANNING, new Scanning(8 * MINUTES, TierEU.RECIPE_UMV))
-                .itemInputs(
-                    items(
-                        SLBlocks.casing(BlockSLCasing.BASTION, 64),
-                        SLBlocks.casing(BlockSLCasing.BASTION, 64),
-                        BTSRecipesSingularity.dense(Materials.Infinity, 64),
-                        nn(ItemList.Field_Generator_UMV.get(32L), "ItemList.Field_Generator_UMV"),
-                        BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UMV, 32L),
-                        SLBlocks.casing(BlockSLCasing.FIELD_COIL, 32),
-                        // 32 Black Hole Seeds, not GT's Superstable Black Hole Seed: nothing in the pack
-                        // crafts that one, and giving it a recipe would switch on the BHC's superstable mode
-                        // pack-wide (cost audit #1, B-21).
-                        nn(ItemList.Black_Hole_Opener.get(DENSITY_UPGRADE_SEEDS), "ItemList.Black_Hole_Opener"),
-                        SLBlocks.casing(BlockSLCasing.INJECTOR_MK3, 16)))
-                .fluidInputs(
-                    nn(Materials.RawStarMatter.getFluid(4_000_000L), "Materials.RawStarMatter fluid"),
-                    molten(Materials.SpaceTime, 589_824),
-                    nn(Materials.ExcitedDTEC.getFluid(128_000L), "Materials.ExcitedDTEC fluid"))
-                .itemOutputs(BTSRecipeGuard.stack(SLItems.kerrDensityUpgrade, 1))
-                .duration(36_000)
-                .eut(TierEU.RECIPE_UMV * 4)
-                .addTo(AssemblyLine));
     }
 
     // ================================================ DENSITY (Kerr T2 + the compressor module)

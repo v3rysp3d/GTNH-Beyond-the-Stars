@@ -49,6 +49,11 @@ import tectech.thing.CustomItemList;
  * reserved and unused, because the Eye T6 gate is clean on RC-2). <b>Owned by the
  * Foundation unit.</b> The Kerr's and the Eye's own recipes live in {@code BTSRecipesKerr} and
  * {@code BTSRecipesEye}.
+ * <p>
+ * <b>BEC expansion (ruling 11b, bec-expansion-proposal.md):</b> SL-P15, P16, P18, P19, P21, P22-P25, P35 and P37
+ * moved to the Condensate Assembler ({@link BTSRecipesBEC}, SL-B20..B81); their old bodies live there only as
+ * fallbacks for a skipped BEC recipe. What stays here: Kerr T1 (pre-BEC), SL-P17 (the HSM T4 gate; SL-B62 is a
+ * batch alternative), SL-P29, SL-P33/P39 (already BEC), SL-P36 and SL-P38.
  *
  * <h2>Deviations from the §2.2 table, and why</h2>
  *
@@ -266,74 +271,13 @@ public final class BTSRecipesSingularity {
                 .duration(800)
                 .eut(TierEU.RECIPE_UIV)
                 .addTo(assemblerRecipes));
-
-        // SL-P18 Bastion Plate x4 (Kerr T2)
-        BTSRecipeGuard.recipe(
-            "SL-P18",
-            () -> GTValues.RA.stdBuilder()
-                .itemInputs(
-                    items(
-                        dense(Materials.Neutronium, 6),
-                        BTSRecipeGuard.req(OrePrefixes.plate, Materials.TranscendentMetal, 2L),
-                        BTSRecipeGuard.req(OrePrefixes.frameGt, Materials.Infinity, 1L)))
-                .fluidInputs(molten(Materials.Infinity, 2_304))
-                .itemOutputs(SLBlocks.casing(BlockSLCasing.BASTION, 4))
-                .duration(1_200)
-                .eut(TierEU.RECIPE_UMV)
-                .addTo(assemblerRecipes));
-
-        // SL-P19 Casimir Plate x4 (Kerr T2)
-        BTSRecipeGuard.recipe(
-            "SL-P19",
-            () -> GTValues.RA.stdBuilder()
-                .itemInputs(
-                    BTSRecipeGuard.req(OrePrefixes.plate, Materials.Neutronium, 8L),
-                    BTSRecipeGuard.req(OrePrefixes.foil, Materials.SpaceTime, 16L))
-                .fluidInputs(molten(Materials.SpaceTime, 576))
-                .itemOutputs(SLBlocks.casing(BlockSLCasing.CASIMIR, 4))
-                .duration(1_200)
-                .eut(TierEU.RECIPE_UMV)
-                .addTo(assemblerRecipes));
     }
 
     // ================================================================ Eye structure (UMV)
 
     private static void eyeParts() {
-        // SL-P15 Beam Band Casing x16 (Eye T2). The band is 2,862 blocks: x4 with 2 quadrupoles cost 715
-        // TecTech Spatial casings and 12.9k UIV/UMV circuits (cost audit #8).
-        BTSRecipeGuard.recipe(
-            "SL-P15",
-            () -> GTValues.RA.stdBuilder()
-                .itemInputs(
-                    items(
-                        tectech(CustomItemList.EOH_Reinforced_Spatial_Casing, 1, "EOH_Reinforced_Spatial_Casing"),
-                        SLBlocks.casing(BlockSLCasing.QUADRUPOLE, 1),
-                        nn(ItemList.Emitter_UMV.get(2L), "ItemList.Emitter_UMV"),
-                        dense(Materials.SpaceTime, 4)))
-                .fluidInputs(molten(Materials.SpaceTime, 9_216))
-                .itemOutputs(SLBlocks.casing(BlockSLCasing.BEAM_BAND, 16))
-                .duration(1_800)
-                .eut(TierEU.RECIPE_UMV)
-                .addTo(assemblerRecipes));
-
-        // SL-P16 Jet Crescent Casing x16 (Eye T3). Raw Star Matter is the fluid (the gate), still 4,000 L
-        // per block; the card's 4,608 L of SpaceTime arrives as 32 ingots. x16 with 2 emitters, not x4
-        // with 1: the crescent is 2,755 blocks (cost audit #9).
-        BTSRecipeGuard.recipe(
-            "SL-P16",
-            () -> GTValues.RA.stdBuilder()
-                .itemInputs(
-                    items(
-                        tectech(CustomItemList.EOH_Reinforced_Temporal_Casing, 1, "EOH_Reinforced_Temporal_Casing"),
-                        SLBlocks.casing(BlockSLCasing.FIELD_COIL, 2),
-                        dense(Materials.Infinity, 8),
-                        nn(ItemList.Emitter_UMV.get(2L), "ItemList.Emitter_UMV"),
-                        BTSRecipeGuard.req(OrePrefixes.ingot, Materials.SpaceTime, 32L)))
-                .fluidInputs(rawStarMatter(64_000))
-                .itemOutputs(SLBlocks.casing(BlockSLCasing.JET_CRESCENT, 16))
-                .duration(2_400)
-                .eut(TierEU.RECIPE_UMV)
-                .addTo(assemblerRecipes));
+        // SL-P15 (Beam Band x16) and SL-P16 (Jet Crescent x16) moved to the Condensate Assembler as SL-B40 / SL-B51
+        // (BTSRecipesBEC; their old bodies are its fallbacks). SL-P17 stays: HSM is the T4 gate (Q-B2).
 
         // SL-P17 Galactic Shell Plating x16 (Eye T4). HSM is the fluid (the T4 gate); the card's
         // 1,152 L of Transcendent Metal arrives as ingots. x16 on 250 L, not x2 on 1,000 L: the arms are
@@ -354,29 +298,7 @@ public final class BTSRecipesSingularity {
                 .eut(TierEU.RECIPE_UMV)
                 .addTo(assemblerRecipes));
 
-        // SL-P21 Stabiliser Pylon (component, x6 per Eye controller). TecTech's EOH casings stand in
-        // for the retired Eye Shell / Harmonic Lining / Deck blocks (FC-1). Research: Star Chart: Sol -
-        // addon-only, because TecTech's own EOH research recipes already use its EOH casings.
-        BTSRecipeGuard.recipe(
-            "SL-P21",
-            () -> GTValues.RA.stdBuilder()
-                .metadata(RESEARCH_ITEM, BTSRecipeGuard.stack(SLItems.starChartSol, 1))
-                .metadata(SCANNING, new Scanning(4 * MINUTES, TierEU.RECIPE_UMV))
-                .itemInputs(
-                    items(
-                        tectech(CustomItemList.EOH_Reinforced_Spatial_Casing, 32, "EOH_Reinforced_Spatial_Casing"),
-                        tectech(CustomItemList.EOH_Infinite_Energy_Casing, 16, "EOH_Infinite_Energy_Casing"),
-                        nn(ItemList.Field_Generator_UMV.get(8L), "ItemList.Field_Generator_UMV"),
-                        BTSRecipeGuard.req(OrePrefixes.frameGt, Materials.Neutronium, 16L),
-                        BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UMV, 8L),
-                        dense(Materials.Neutronium, 16),
-                        tectech(CustomItemList.EOH_Reinforced_Temporal_Casing, 16, "EOH_Reinforced_Temporal_Casing")))
-                // 36,864 L SpaceTime, not the card's 147,456 L (x6 per Eye; cost audit #12)
-                .fluidInputs(molten(Materials.SpaceTime, 36_864), superCoolant(500_000))
-                .itemOutputs(BTSRecipeGuard.stack(SLItems.stabiliserPylon, 1))
-                .duration(18_000)
-                .eut(TierEU.RECIPE_UMV * 4)
-                .addTo(AssemblyLine));
+        // SL-P21 (Stabiliser Pylon) moved to the Condensate Assembler as SL-B20 (BTSRecipesBEC).
     }
 
     // ======================================================================= TecTech Eye blocks in bulk
@@ -496,79 +418,8 @@ public final class BTSRecipesSingularity {
         // Each chart's fluid is the previous tier's product, so a chart cannot be crafted before
         // its tier is reachable (§2.2).
 
-        // SL-P22 Star Chart: Sol (T1)
-        BTSRecipeGuard.recipe(
-            "SL-P22",
-            () -> GTValues.RA.stdBuilder()
-                .itemInputs(
-                    dataOrb(),
-                    BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UMV, 1L),
-                    BTSRecipeGuard.req(OrePrefixes.plate, Materials.Infinity, 4L))
-                .fluidInputs(molten(Materials.SpaceTime, 144))
-                .itemOutputs(BTSRecipeGuard.stack(SLItems.starChartSol, 1))
-                .duration(200)
-                .eut(TierEU.RECIPE_UMV)
-                .addTo(assemblerRecipes));
-
-        // SL-P23 Star Chart: Sirius A (T2), from Raw Stellar Plasma Mixture
-        BTSRecipeGuard.recipe(
-            "SL-P23",
-            () -> GTValues.RA.stdBuilder()
-                .itemInputs(
-                    items(
-                        dataOrb(),
-                        BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UMV, 1L),
-                        dense(Materials.SpaceTime, 1)))
-                .fluidInputs(rawStarMatter(10_000))
-                .itemOutputs(BTSRecipeGuard.stack(SLItems.starChartSiriusA, 1))
-                .duration(200)
-                .eut(TierEU.RECIPE_UMV)
-                .addTo(assemblerRecipes));
-
-        // SL-P24 Star Chart: Arcturus (T3), from Excited Stellar Plasma Mixture
-        BTSRecipeGuard.recipe(
-            "SL-P24",
-            () -> GTValues.RA.stdBuilder()
-                .itemInputs(
-                    dataOrb(),
-                    BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UMV, 1L),
-                    BTSRecipeGuard.req(OrePrefixes.plate, Materials.TranscendentMetal, 4L))
-                .fluidInputs(BTSRecipeGuard.fluid(SLFluids.excitedStellarPlasma, 1_000))
-                .itemOutputs(BTSRecipeGuard.stack(SLItems.starChartArcturus, 1))
-                .duration(200)
-                .eut(TierEU.RECIPE_UMV)
-                .addTo(assemblerRecipes));
-
-        // SL-P25 Star Chart: Neutron Star (T4), from Hyperdense Stellar Mixture. D-49: the T4 target is the
-        // neutron star Arcturus leaves behind, so the chart takes SL-P25's slot and Sirius B moves to T5 (SL-P35).
-        BTSRecipeGuard.recipe(
-            "SL-P25",
-            () -> GTValues.RA.stdBuilder()
-                .itemInputs(
-                    dataOrb(),
-                    BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UMV, 1L),
-                    SLBlocks.casing(BlockSLCasing.GALACTIC_SHELL, 1))
-                .fluidInputs(BTSRecipeGuard.fluid(SLFluids.hyperdenseStellarMixture, 1_000))
-                .itemOutputs(BTSRecipeGuard.stack(SLItems.starChartNeutronStar, 1))
-                .duration(200)
-                .eut(TierEU.RECIPE_UMV)
-                .addTo(assemblerRecipes));
-
-        // SL-P26 (Star Chart: Sirius B, Cooled, the interim BDM target) is RETIRED with D-49; the ID stays a gap.
-
-        // SL-P35 Star Chart: Sirius B (T5), from White Dwarf Matter (Eye T4's product).
-        BTSRecipeGuard.recipe(
-            "SL-P35",
-            () -> GTValues.RA.stdBuilder()
-                .itemInputs(
-                    dataOrb(),
-                    BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UXV, 1L),
-                    SLBlocks.casing(BlockSLCasing.GALACTIC_SHELL, 1))
-                .fluidInputs(molten(Materials.WhiteDwarfMatter, 1_000))
-                .itemOutputs(BTSRecipeGuard.stack(SLItems.starChartSiriusB, 1))
-                .duration(200)
-                .eut(TierEU.RECIPE_UMV)
-                .addTo(assemblerRecipes));
+        // SL-P22..P25, SL-P35 and SL-P37 (the six charts) moved to the Condensate Assembler as SL-B21, B41, B52,
+        // B61, B71 and B81 (BTSRecipesBEC; the old bodies are its fallbacks). SL-P26 is retired with D-49.
 
         // SL-P36 Reclaim: an obsolete Star Chart: Sirius B, Cooled back into Star Chart: Sirius B
         // (programmed circuit 3, not consumed). No fluid: the old chart already paid for its data.
@@ -579,21 +430,6 @@ public final class BTSRecipesSingularity {
                 .itemOutputs(BTSRecipeGuard.stack(SLItems.starChartSiriusB, 1))
                 .duration(100)
                 .eut(TierEU.RECIPE_UMV)
-                .addTo(assemblerRecipes));
-
-        // SL-P37 Star Chart: SGR 1806-20 (Magnetar, T6), from Black Dwarf Matter (Eye T5's product).
-        BTSRecipeGuard.recipe(
-            "SL-P37",
-            () -> GTValues.RA.stdBuilder()
-                .itemInputs(
-                    items(
-                        dataOrb(),
-                        BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UXV, 1L),
-                        dense(Materials.SpaceTime, 1)))
-                .fluidInputs(molten(Materials.BlackDwarfMatter, 1_000))
-                .itemOutputs(BTSRecipeGuard.stack(SLItems.starChartMagnetar, 1))
-                .duration(200)
-                .eut(TierEU.RECIPE_UXV)
                 .addTo(assemblerRecipes));
     }
 
@@ -680,15 +516,6 @@ public final class BTSRecipesSingularity {
 
     private static FluidStack superCoolant(int litres) {
         return nn(Materials.SuperCoolant.getFluid(litres), "Materials.SuperCoolant fluid");
-    }
-
-    /** Raw Stellar Plasma Mixture = the pack's Raw Star Matter (Q-1). */
-    private static FluidStack rawStarMatter(int litres) {
-        return nn(Materials.RawStarMatter.getFluid(litres), "Materials.RawStarMatter fluid");
-    }
-
-    private static ItemStack dataOrb() {
-        return nn(ItemList.Tool_DataOrb.get(1L), "ItemList.Tool_DataOrb");
     }
 
     private static ItemStack tectech(CustomItemList entry, int count, String what) {
