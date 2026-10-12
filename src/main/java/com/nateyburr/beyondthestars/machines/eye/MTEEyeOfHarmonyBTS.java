@@ -26,6 +26,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
@@ -34,6 +35,7 @@ import net.minecraftforge.fluids.FluidStack;
 import com.gtnewhorizon.structurelib.alignment.IAlignmentLimits;
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
 import com.gtnewhorizon.structurelib.alignment.enumerable.Flip;
+import com.gtnewhorizon.structurelib.structure.AutoPlaceEnvironment;
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
@@ -87,13 +89,18 @@ import tectech.thing.casing.TTCasingsContainer;
  * plinth, Infinite Spacetime Energy Boundary lining, Quantum Glass, and the three tiered field
  * generators; only the three band casings are ours.
  *
- * <h2>Field generators (Q-20, TecTech's semantics)</h2>
+ * <h2>Field generators (Q-20, my rulings)</h2>
  * {@code W} Spacetime Compression (upper clamp struts), {@code X} Time Dilation (lower struts),
  * {@code Y} Stabilisation (pylon foot pads), any tier 0-8, mixable - the LOWEST of each type counts
- * (as the Kerr's rails, Q-26). On PLANETS only, as TecTech's EOH: compression must reach the
- * planet's requirement and each tier above it cuts time 3 %; each dilation tier halves time and
- * costs 9.25 % success; each stabilisation tier adds 5 % success and costs 5 % yield. Stars ignore
- * all three.
+ * (as the Kerr's rails, Q-26).
+ * <ul>
+ * <li><b>Compression is the tier gate</b> (1:1): Eye tier N needs every compression generator at
+ * TecTech tier N or higher ({@link #COMPRESSION_META_FOR_TIER}, the ONE table). On planets it also
+ * keeps TecTech's rule: it must reach the planet's requirement, and each tier above that cuts 3 %
+ * of the time.</li>
+ * <li><b>Time Dilation and Stabilisation are placeholders</b>: any tier is accepted and shown, and
+ * neither has an effect yet (TODO(Q-20): their mechanics are a pending design session).</li>
+ * </ul>
  *
  * <h2>Running</h2>
  * Inputs drain every second from the private sockets into {@code long} buffers. The controller slot
@@ -111,7 +118,9 @@ import tectech.thing.casing.TTCasingsContainer;
  * <li><b>Plant-wide hatch lists.</b> Input sockets live in private lists ({@link EyeHatchElement}); a
  * band whose walk fails drops its sockets again (mark-and-truncate).</li>
  * <li><b>Element chains.</b> Every socket is {@code buildHatchAdder(...).buildAndChain(casing)}, the
- * hatch first; the field-generator chains start at tier 0, which is what holograms place.</li>
+ * hatch first; the dilation and stabilisation chains start at tier 0, which is what holograms place.
+ * Compression is not a chain: it checks any tier, and holograms place the tier the trigger stack asks
+ * for (from the trigger alone, trap 1).</li>
  * </ol>
  * All walk state is zeroed in {@link #resetWalk()}, the first statement of {@link #checkMachine}.
  */
@@ -131,10 +140,14 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     public static final int FIELD_DILATION = 1;
     public static final int FIELD_STABILISATION = 2;
     private static final String[] FIELD_NAMES = { "Spacetime Compression", "Time Dilation", "Stabilisation" };
-    /** TecTech's EOH constants (MTEEyeOfHarmony, 5.09.52.594). */
+    /** TecTech's EOH constant (MTEEyeOfHarmony, 5.09.52.594): planet time per compression tier above need. */
     public static final double COMPRESSION_TIME_DISCOUNT = 0.97;
-    public static final double DILATION_CHANCE_COST = 0.0925;
-    public static final double STABILISATION_STEP = 0.05;
+    /**
+     * Q-20 THE COMPRESSION GATE, the one table: the lowest generator META (TecTech tier - 1) that
+     * Eye tier N needs in every compression cell. 1:1 (user ruling): T1 Crude (meta 0) .. T4 meta 3.
+     * Index 0 is unused. Change the mapping here and nowhere else.
+     */
+    public static final int[] COMPRESSION_META_FOR_TIER = { -1, 0, 1, 2, 3 };
 
     /** Buffers cap at 2^62 L each (spec §3.3). */
     public static final long BUFFER_CAP = 1L << 62;
@@ -222,7 +235,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addElement('Q', casing(Casings.ReinforcedTemporalStructureCasing))
             .addElement('J', casing(Casings.InfiniteSpacetimeEnergyBoundaryCasing))
             .addElement('Z', casing(Casings.QuantumGlass))
-            .addElement('W', field(FIELD_COMPRESSION, TTCasingsContainer.SpacetimeCompressionFieldGenerators))
+            .addElement('W', compressionField(TTCasingsContainer.SpacetimeCompressionFieldGenerators))
             .addElement('X', field(FIELD_DILATION, TTCasingsContainer.TimeAccelerationFieldGenerator))
             .addElement('Y', field(FIELD_STABILISATION, TTCasingsContainer.StabilisationFieldGenerators))
             // ---- our three per-tier band casings
@@ -284,6 +297,60 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             tiers[meta] = onElementPass(x -> x.noteField(type, tier), ofBlock(generator, meta));
         }
         return noOverwrite(ofChain(tiers));
+    }
+
+    /**
+     * The compression generators: the walk accepts ANY tier and records the lowest (as
+     * {@link #field}), but holograms, creative and survival builds place the tier the trigger stack
+     * asks for ({@link #compressionMetaFor}), so a stack-4 projection builds a T4-capable Eye. The
+     * placement reads the trigger stack only, never server state (trap 1).
+     */
+    @SuppressWarnings("unchecked")
+    private static IStructureElement<MTEEyeOfHarmonyBTS> compressionField(Block generator) {
+        final IStructureElement<MTEEyeOfHarmonyBTS> walk = field(FIELD_COMPRESSION, generator);
+        final IStructureElement<MTEEyeOfHarmonyBTS>[] place = new IStructureElement[9];
+        for (int meta = 0; meta < 9; meta++) {
+            place[meta] = noOverwrite(ofBlock(generator, meta));
+        }
+        return new IStructureElement<MTEEyeOfHarmonyBTS>() {
+
+            @Override
+            public boolean check(MTEEyeOfHarmonyBTS t, World world, int x, int y, int z) {
+                return walk.check(t, world, x, y, z);
+            }
+
+            @Override
+            public List<String> getDescription(MTEEyeOfHarmonyBTS t) {
+                return walk.getDescription(t);
+            }
+
+            @Override
+            public boolean spawnHint(MTEEyeOfHarmonyBTS t, World world, int x, int y, int z, ItemStack trigger) {
+                return place[compressionMetaFor(trigger)].spawnHint(t, world, x, y, z, trigger);
+            }
+
+            @Override
+            public boolean placeBlock(MTEEyeOfHarmonyBTS t, World world, int x, int y, int z, ItemStack trigger) {
+                return place[compressionMetaFor(trigger)].placeBlock(t, world, x, y, z, trigger);
+            }
+
+            @Override
+            public BlocksToPlace getBlocksToPlace(MTEEyeOfHarmonyBTS t, World world, int x, int y, int z,
+                ItemStack trigger, AutoPlaceEnvironment env) {
+                return place[compressionMetaFor(trigger)].getBlocksToPlace(t, world, x, y, z, trigger, env);
+            }
+
+            @Override
+            public PlaceResult survivalPlaceBlock(MTEEyeOfHarmonyBTS t, World world, int x, int y, int z,
+                ItemStack trigger, AutoPlaceEnvironment env) {
+                return place[compressionMetaFor(trigger)].survivalPlaceBlock(t, world, x, y, z, trigger, env);
+            }
+        };
+    }
+
+    /** The compression generator meta a build for this trigger stack places (1..4 = T1..T4). */
+    public static int compressionMetaFor(ItemStack trigger) {
+        return COMPRESSION_META_FOR_TIER[bandsFor(trigger)];
     }
 
     private void noteField(int type, int meta) {
@@ -363,6 +430,17 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
 
     /** True when recipes of Eye tier {@code tier} may run on this structure (server state). */
     public boolean tierAvailable(int tier) {
+        return bandsAvailable(tier) && compressionAllows(tier);
+    }
+
+    /** Q-20: every compression generator reaches the tier's gate (the one table). */
+    public boolean compressionAllows(int tier) {
+        return tier >= 1 && tier < COMPRESSION_META_FOR_TIER.length
+            && fieldMin[FIELD_COMPRESSION] >= COMPRESSION_META_FOR_TIER[tier];
+    }
+
+    /** The structural half of {@link #tierAvailable}: the bands (and the Galactic core at T4). */
+    private boolean bandsAvailable(int tier) {
         switch (tier) {
             case 1:
                 return mMachine;
@@ -495,41 +573,60 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
 
     // ============================================================================ the upgrade
 
-    /**
-     * Right-click holding a Galactic Upgrade Core: consumes one (not in creative) and unlocks T4.
-     * Irreversible (Q-10). A plain right-click, not sneak (Q-24).
-     */
+    /** Right-click holding a Galactic Upgrade Core starts the install (Q-10). A plain right-click (Q-24). */
     @Override
     public boolean onRightclick(IGregTechTileEntity aBaseMetaTileEntity, EntityPlayer aPlayer) {
         final ItemStack held = aPlayer.getHeldItem();
         if (held != null && SLItems.galacticUpgradeCore != null && held.getItem() == SLItems.galacticUpgradeCore) {
-            if (!aBaseMetaTileEntity.isServerSide()) return true;
-            if (galacticInstalled) {
-                GTUtility.sendChatToPlayer(aPlayer, "This Eye already carries the Galactic Upgrade Core.");
-                return true;
-            }
-            if (!aPlayer.capabilities.isCreativeMode) {
-                held.stackSize--;
-                if (held.stackSize <= 0) {
-                    aPlayer.inventory.setInventorySlotContents(aPlayer.inventory.currentItem, null);
-                }
-            }
-            installGalactic();
-            checkStructure(true, aBaseMetaTileEntity);
-            GTUtility.sendChatToPlayer(
-                aPlayer,
-                EnumChatFormatting.AQUA + "Galactic Upgrade Core installed."
-                    + EnumChatFormatting.RESET
-                    + " T4 (Sirius B, the Deep Dark) runs once the jet crescent and the spiral arms stand"
-                    + (tierAvailable(4) ? "." : EnumChatFormatting.YELLOW + " - not yet: build them."));
+            if (aBaseMetaTileEntity.isServerSide()) beginGalacticUpgrade(aPlayer, held);
             return true;
         }
         return super.onRightclick(aBaseMetaTileEntity, aPlayer);
     }
 
-    /** Unlocks T4. Also the creative build's hook. */
-    public void installGalactic() {
+    /**
+     * Q-10 THE ONE INSTALL PATH for the Galactic Upgrade Core: validation, consumption and the
+     * player's feedback live here, and {@link #completeGalacticUpgrade()} is the one place the
+     * upgrade takes effect. Server only. Consumed and permanent.
+     * <p>
+     * TODO(Q-10): I ruled the mechanic is MILESTONES + an INSTALL RUN (a milestone on the
+     * current tier unlocks the install; a long run with the machine offline consumes the core plus
+     * EU and fluids, with a progress readout). Until that lands, this completes at once; the
+     * milestone check goes before the consume, and the install run replaces the direct
+     * completeGalacticUpgrade() call.
+     *
+     * @return true if the install began (and the core was consumed outside creative)
+     */
+    public boolean beginGalacticUpgrade(EntityPlayer player, ItemStack held) {
+        if (galacticInstalled) {
+            GTUtility.sendChatToPlayer(player, "This Eye already carries the Galactic Upgrade Core.");
+            return false;
+        }
+        if (!player.capabilities.isCreativeMode) {
+            held.stackSize--;
+            if (held.stackSize <= 0) {
+                player.inventory.setInventorySlotContents(player.inventory.currentItem, null);
+            }
+        }
+        completeGalacticUpgrade();
+        GTUtility.sendChatToPlayer(
+            player,
+            EnumChatFormatting.AQUA + "Galactic Upgrade Core installed."
+                + EnumChatFormatting.RESET
+                + " T4 (Sirius B, the Deep Dark) runs once the jet crescent and the spiral arms stand and every"
+                + " Spacetime Compression Field Generator is tier 4 or higher"
+                + (tierAvailable(4) ? "." : EnumChatFormatting.YELLOW + " - not yet."));
+        return true;
+    }
+
+    /**
+     * The upgrade takes effect: T4 unlocks. The only writer of the installed flag besides NBT load.
+     * Also the creative build's hook. No re-walk is needed: T4 reads the flag and the last walk.
+     */
+    public void completeGalacticUpgrade() {
         galacticInstalled = true;
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base != null) base.markDirty();
     }
 
     public boolean isGalacticInstalled() {
@@ -642,8 +739,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         if (target == null) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.notarget");
         final EyeRecipe recipe = EyeRecipeRegistry.lookup(target);
         if (recipe == null) return CheckRecipeResultRegistry.NO_RECIPE;
-        if (!tierAvailable(recipe.tier)) {
+        if (!bandsAvailable(recipe.tier)) {
             return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.tier" + recipe.tier);
+        }
+        if (!compressionAllows(recipe.tier)) {
+            return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.compression" + recipe.tier);
         }
         if (recipe.isPlanet() && fieldMin[FIELD_COMPRESSION] < recipe.compressionRequired) {
             return CheckRecipeResultRegistry.insufficientMachineTier(recipe.compressionRequired + 1);
@@ -655,6 +755,9 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         if (parallel < 1) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.inputs");
         final UUID owner = owner();
         if (owner == null) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.noowner");
+        // A network that cannot pay for every parallel runs fewer, never none (the buffers only grow).
+        parallel = Math.min(parallel, affordable(owner, recipe));
+        if (parallel < 1) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.noeu");
         final BigInteger cost = BigInteger.valueOf(recipe.euPerRun)
             .multiply(BigInteger.valueOf(parallel));
         if (!WirelessNetworkManager.addEUToGlobalEnergyMap(owner, cost.negate())) {
@@ -682,26 +785,38 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         return CheckRecipeResultRegistry.SUCCESSFUL;
     }
 
-    /** Stars always succeed; planets: TecTech's base, minus dilation, plus stabilisation. */
+    /** How many runs of {@code recipe} the owner's wireless network can pay for right now. */
+    private static long affordable(UUID owner, EyeRecipe recipe) {
+        if (recipe.euPerRun <= 0) return Long.MAX_VALUE;
+        final BigInteger runs = WirelessNetworkManager.getUserEU(owner)
+            .divide(BigInteger.valueOf(recipe.euPerRun));
+        return runs.signum() <= 0 ? 0
+            : runs.min(BigInteger.valueOf(Long.MAX_VALUE))
+                .longValue();
+    }
+
+    /**
+     * Stars always succeed; planets: TecTech's base success. TODO(Q-20): Time Dilation and
+     * Stabilisation are placeholders with no effect until their mechanics are designed.
+     */
     public double successChance(EyeRecipe recipe) {
         if (!recipe.isPlanet()) return 1.0;
-        final double chance = recipe.baseSuccess - DILATION_CHANCE_COST * Math.max(0, fieldMin[FIELD_DILATION])
-            + STABILISATION_STEP * Math.max(0, fieldMin[FIELD_STABILISATION]);
-        return Math.max(0.0, Math.min(1.0, chance));
+        return Math.max(0.0, Math.min(1.0, recipe.baseSuccess));
     }
 
-    /** Stars: 1; planets: 1 - 5 % per stabilisation tier (TecTech). */
+    /** Full yield. TODO(Q-20): Stabilisation's effect on yield is undecided. */
     public double yieldOf(EyeRecipe recipe) {
-        if (!recipe.isPlanet()) return 1.0;
-        return Math.max(0.0, Math.min(1.0, 1.0 - STABILISATION_STEP * Math.max(0, fieldMin[FIELD_STABILISATION])));
+        return 1.0;
     }
 
-    /** Stars: the base time; planets: halved per dilation tier, -3 % per compression tier above need. */
+    /**
+     * Stars: the base time; planets: -3 % per compression tier above the planet's need (TecTech).
+     * TODO(Q-20): Time Dilation has no effect yet.
+     */
     public long runTicks(EyeRecipe recipe) {
         if (!recipe.isPlanet()) return Math.max(1, recipe.baseTicks);
-        final double t = recipe.baseTicks * Math.pow(2.0, -Math.max(0, fieldMin[FIELD_DILATION]))
-            * Math
-                .pow(COMPRESSION_TIME_DISCOUNT, Math.max(0, fieldMin[FIELD_COMPRESSION]) - recipe.compressionRequired);
+        final double t = recipe.baseTicks * Math
+            .pow(COMPRESSION_TIME_DISCOUNT, Math.max(0, fieldMin[FIELD_COMPRESSION]) - recipe.compressionRequired);
         return Math.max(1L, Math.round(t));
     }
 
@@ -837,7 +952,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 + ", "
                 + FIELD_NAMES[2]
                 + " "
-                + fieldName(fieldMin[2]));
+                + fieldName(fieldMin[2])
+                + " (dilation and stabilisation: no effect yet)");
         out.add(
             "Sockets: gas " + gasHatchCount()
                 + ", stellar "
@@ -869,6 +985,9 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                     + target.tier
                     + "), parallel up to "
                     + (installedTier() >= target.tier ? (1L << (installedTier() - target.tier)) : 0)
+                    + affordableNote(target)
+                    + (compressionAllows(target.tier) ? ""
+                        : " (needs every Spacetime Compression generator at tier " + target.tier + "+)")
                     + ", success "
                     + Math.round(successChance(target) * 100)
                     + "%, "
@@ -882,6 +1001,16 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         }
         if (!lastRun.isEmpty()) out.add("Last run: " + lastRun);
         return out;
+    }
+
+    /** ", N affordable" when the owner's network cannot pay for every parallel. Server state. */
+    private String affordableNote(EyeRecipe target) {
+        if (installedTier() < target.tier) return "";
+        final UUID owner = owner();
+        if (owner == null) return "";
+        final long full = 1L << (installedTier() - target.tier);
+        final long afford = affordable(owner, target);
+        return afford >= full ? "" : " (" + afford + " affordable on the owner's network)";
     }
 
     private static String state(boolean built, String fault) {
@@ -919,10 +1048,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addSeparator()
             .addInfo("Power: wireless EU, the whole run debited at start; no EU is returned.")
             .addInfo("Parallel x2 for every installed tier above the recipe's tier.")
-            .addInfo("Field generators act on planets only, as in TecTech's Eye (lowest tier of each counts):")
-            .addInfo("  Spacetime Compression: must reach the planet's tier; -3% time per tier above")
-            .addInfo("  Time Dilation: half the time per tier, -9.25% success per tier")
-            .addInfo("  Stabilisation: +5% success, -5% yield per tier. Stars always succeed.")
+            .addInfo("Field generators (any tier, mixable; the lowest tier of each type counts):")
+            .addInfo("  Spacetime Compression GATES the tier: Eye TN needs every one at tier N or higher.")
+            .addInfo("  On planets it must also reach the planet's tier; -3% time per tier above that.")
+            .addInfo("  Time Dilation, Stabilisation: placeholders, no effect yet. Stars always succeed.")
+            .addInfo("A short wireless network runs fewer parallels rather than none.")
             .addInfo("Inputs drain every second into internal buffers; outputs go to ME only.")
             .addSeparator()
             .addInfo("Chunk-load the full footprint: the structure check fails across unloaded chunks.")
@@ -938,7 +1068,10 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 "Quantum Glass",
                 bom(PIECE_CORE, 'Z') + bom(PIECE_BEAM, 'Z') + bom(PIECE_JET, 'Z') + bom(PIECE_ARMS, 'Z'),
                 false)
-            .addCasingInfoExactly("Spacetime Compression Field Generator (any tier)", bom(PIECE_CORE, 'W'), true)
+            .addCasingInfoExactly(
+                "Spacetime Compression Field Generator (tier = Eye tier or higher)",
+                bom(PIECE_CORE, 'W'),
+                true)
             .addCasingInfoExactly("Time Dilation Field Generator (any tier)", bom(PIECE_CORE, 'X'), true)
             .addCasingInfoExactly("Stabilisation Field Generator (any tier)", bom(PIECE_CORE, 'Y'), true)
             .addOtherStructurePart("T2 beam band", bom(PIECE_BEAM, 'R') + " Beam Band Casing", 4)
@@ -949,6 +1082,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addMaintenanceHatch("Plinth", 3)
             .addOtherStructurePart("Stellar input hatch", "beam band and jet crescent sockets", 4)
             .addStructureInfo("Hologram: trigger stack 1 = T1 core, 2 = + beam band, 3 = + jet crescent, 4 = + arms.")
+            .addStructureInfo("The hologram places compression generators of the trigger stack's tier.")
             .toolTipFinisher();
         return tt;
     }

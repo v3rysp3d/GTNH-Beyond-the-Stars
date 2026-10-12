@@ -212,8 +212,10 @@ public final class EyeKit {
         eye.construct(new ItemStack(controller.getItem(), tiers, controller.getItemDamage()), false);
         final ExtendedFacing alignment = eye.getExtendedFacing();
 
-        // 2. The field generators at the asked tier (holograms place tier 1).
-        final int generators = setGenerators(world, alignment, x, y, z, genMeta);
+        // 2. The field generators at the asked tier. Compression is raised to the tier's gate (Q-20,
+        // MTEEyeOfHarmonyBTS.COMPRESSION_META_FOR_TIER) so a low "gen" never leaves the Eye below "tiers".
+        final int compressionMeta = Math.max(genMeta, MTEEyeOfHarmonyBTS.COMPRESSION_META_FOR_TIER[tiers]);
+        final int generators = setGenerators(world, alignment, x, y, z, genMeta, compressionMeta);
 
         // 3. A hatch in every socket.
         int fitted = 0;
@@ -240,7 +242,7 @@ public final class EyeKit {
         }
 
         // 4. Upgrade, target, owner's power, then form.
-        if (tiers >= 4) eye.installGalactic();
+        if (tiers >= 4) eye.completeGalacticUpgrade();
         final Item[] charts = { SLItems.starChartSol, SLItems.starChartSiriusA, SLItems.starChartArcturus,
             SLItems.starChartSiriusB };
         final Item chart = charts[Math.max(0, Math.min(charts.length, tiers) - 1)];
@@ -272,13 +274,20 @@ public final class EyeKit {
                 + generators
                 + " field generators at tier "
                 + (genMeta + 1)
+                + (compressionMeta != genMeta
+                    ? " (compression raised to tier " + (compressionMeta + 1) + ", the T" + tiers + " gate)"
+                    : "")
                 + ".");
         result.lines.addAll(eye.statusLines());
         return result;
     }
 
-    /** Re-sets every W/X/Y cell of the core to generator meta {@code meta}; returns the count. */
-    private static int setGenerators(World world, ExtendedFacing alignment, int x, int y, int z, int meta) {
+    /**
+     * Re-sets every X/Y cell of the core to generator meta {@code meta} and every W (compression) cell
+     * to {@code compressionMeta}; returns the count.
+     */
+    private static int setGenerators(World world, ExtendedFacing alignment, int x, int y, int z, int meta,
+        int compressionMeta) {
         final String piece = MTEEyeOfHarmonyBTS.PIECE_CORE;
         final String[][] shape = BTSShapes.load(piece);
         final int[] off = BTSShapes.offset(piece);
@@ -290,7 +299,7 @@ public final class EyeKit {
                     final Block block = generatorFor(row.charAt(a));
                     if (block == null) continue;
                     final int[] p = worldPos(alignment, x, y, z, new int[] { a - off[0], b - off[1], c - off[2] });
-                    world.setBlock(p[0], p[1], p[2], block, meta, 2);
+                    world.setBlock(p[0], p[1], p[2], block, row.charAt(a) == 'W' ? compressionMeta : meta, 2);
                     n++;
                 }
             }

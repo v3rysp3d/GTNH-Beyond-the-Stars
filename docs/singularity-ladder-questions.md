@@ -549,34 +549,37 @@ re-export with `--flipH` or `--flipD`, as the Structure export section says.
 ## Q-29 What the Eye's field generators do, and that tiers can be mixed
 
 **Context.** Q-20 put TecTech's three field-generator types into `eye_core` (`W` compression on the upper clamp
-struts, `X` time dilation on the lower struts, `Y` stabilisation on the pylon foot pads) and left their mechanics to
-the Eye unit. The mid-run ruling asks to keep the tiers meaningful, as TecTech's EOH uses them.
+struts, `X` time dilation on the lower struts, `Y` stabilisation on the pylon foot pads). I then ruled (Q-20,
+two rounds): compression **hard-gates** the Eye's tier, **1:1**; Time Dilation and Stabilisation are separate
+upgrades whose mechanics are not decided, so they are placeholders with no effect.
 
-**What we built.** TecTech's own semantics and constants (read from `MTEEyeOfHarmony` with javap), applied to
-**planets and the Deep Dark only**:
+**What we built** (rebuilt in the review fix pass; the first build used TecTech's planet-only maths):
 
-- **Spacetime Compression:** the lowest compression tier must reach the planet's `getSpacetimeCasingTierRequired()`,
-  otherwise the run is refused ("insufficient machine tier"). Each tier above the requirement cuts 3 % of the time
-  (×0.97 per tier).
-- **Time Dilation:** each tier halves the time and costs 9.25 % success.
-- **Stabilisation:** each tier adds 5 % success and costs 5 % yield.
+- **Spacetime Compression is the tier gate.** Eye tier N runs only if every compression generator is TecTech tier N
+  or higher. The mapping is ONE table, `MTEEyeOfHarmonyBTS.COMPRESSION_META_FOR_TIER = {-, 0, 1, 2, 3}` (generator
+  meta = TecTech tier - 1). `tierAvailable`, `installedTier` and the parallel all follow from it. A gate failure has
+  its own message ("every Spacetime Compression Field Generator must be tier N or higher").
+- **Planets keep TecTech's own compression rule on top:** the lowest compression tier must reach the planet's
+  `getSpacetimeCasingTierRequired()`, and each tier above that cuts 3 % of the time. The two rules do not conflict,
+  because the gate is a minimum: a T3 Eye may carry tier-7 compression. They do interact: a T3 Eye at exactly the
+  T3 gate (tier 3) cannot run TecTech's R7-R8 planets, which need tier 7-8 compression.
+- **Time Dilation and Stabilisation: placeholders.** Any tier is accepted and shown in the scanner; neither changes
+  time, success or yield (TODO(Q-20) in code). Planet success is TecTech's base chance; yield is 1.
+- **Holograms and builds:** the compression cells place the tier the trigger stack asks for (stack 1..4 = tier 1..4),
+  read from the trigger only. Dilation and stabilisation place tier 1. `/btseye gen <1-9>` sets all three, and
+  raises compression to at least the asked Eye tier's gate.
 
-Stars ignore all three: they always succeed and always take their base time.
+Any tier 0-8 of each type is accepted in any cell, and the **lowest** tier of each type counts (as the Kerr's
+injector rails, Q-26).
 
-Any tier 0-8 of each type is accepted in any cell, and the **lowest** tier of each type counts. This is the same rule
-as the Kerr's injector rails (Q-26). TecTech demands one uniform tier, so its machine un-forms at the first swap while
-you upgrade.
-
-Holograms place tier 1. `/btseye gen <1-9>` builds at any tier (default 9).
-
-**Suggestion.** As built.
+**Suggestion.** As built. Decide in the pending design session what dilation and stabilisation do, and whether the
+planet compression requirement should stay once the 1:1 gate exists.
 
 **Alternatives.**
 
+- Drop TecTech's per-planet compression requirement and let the 1:1 gate alone decide (R7-R8 planets would then run
+  on a T3 Eye with tier-3 compression).
 - Uniform tiers, as TecTech does (`ofBlocksTiered`).
-- Also gate each Eye tier on a minimum generator tier (for example T4 needs Perfect).
-- Let dilation speed up stars too. We left it out: a star run's EU is a fixed lump, so ×256 speed at tier 9 would be
-  ×256 throughput for free.
 
 ## Q-30 The Eye has one set of fluid buffers, and every input socket feeds it
 
