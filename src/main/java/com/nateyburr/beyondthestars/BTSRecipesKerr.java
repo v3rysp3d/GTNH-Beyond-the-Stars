@@ -38,7 +38,7 @@ import gregtech.api.util.recipe.Scanning;
  * <li><b>SL-K01</b> is re-priced at Black Hole Compressor controller parity for GTNH 2.9.0-RC-2 (B-30):
  * the Kerr controller now stands in for the BHC controller in every recipe that consumes one
  * ({@link BTSBlackHoleSwap}), so the card's price (2,048 SpaceTime ingots, 8 seeds) would have been paid
- * once per Spacetime Compression Field Generator. Its Containment Deck Plating was already 32 (now 8)
+ * once per Spacetime Compression Field Generator. Its Containment Deck Plating was already 32 (now 1)
  * Extreme Density Space-Bending Casing (FC-1).</li>
  * <li><b>Dense plates</b> go through {@link BTSRecipesSingularity#dense}: a missing
  * {@code plateDense} (likely SpaceTime) becomes 9 plates each, logged once (Q-18). Every AL here
@@ -80,7 +80,7 @@ public final class BTSRecipesKerr {
         // controller's own compression lineage (HIP + Neutronium Compressor, 16 Advanced Implosion, 8
         // Compressor UIV, 4 Electric Implosion), its circuits, field generators, superdense plates and
         // fluids, with the Kerr's identity (a Black Hole Seed, a Superradiant Mirror Segment, Field Coils,
-        // BHC casings, TM screws, Super Coolant) in place of the BHC's lenses, ProtoHalkonite parts,
+        // one BHC casing, TM screws, Super Coolant) in place of the BHC's lenses, ProtoHalkonite parts,
         // Kevlar and Oganesson. The old card price (2,048 SpaceTime ingots molten, 8 seeds, 15 min) made
         // one Eye T1 gate (236 generators) cost 480k SpaceTime ingots.
         BTSRecipeGuard.recipe(
@@ -102,7 +102,7 @@ public final class BTSRecipesKerr {
                         nn(ItemList.Black_Hole_Opener.get(1L), "ItemList.Black_Hole_Opener"),
                         BTSRecipeGuard.stack(SLItems.superradiantMirrorSegment, 1),
                         SLBlocks.casing(BlockSLCasing.FIELD_COIL, 4),
-                        casingStack(Casings.ExtremeDensitySpaceBendingCasing, 8),
+                        casingStack(Casings.ExtremeDensitySpaceBendingCasing, 1),
                         BTSRecipeGuard.req(OrePrefixes.plateSuperdense, Materials.Neutronium, 16L),
                         BTSRecipeGuard.req(OrePrefixes.plateSuperdense, Materials.Naquadria, 16L),
                         BTSRecipeGuard.req(OrePrefixes.plateSuperdense, Materials.CosmicNeutronium, 8L),
