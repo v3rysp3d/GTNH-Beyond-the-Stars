@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 0,
-      "desc:8": "Every MAX part is built from §bWhite Hole Matter§r (D-47). The four quests below group them: components and casings, power, materials, and the battery.\n\n[note]Planned. This machine is not in Beyond the Stars yet: tick the box to keep going. When it ships, this quest becomes a real task under the same id, and a ticked box is cleared so the real step counts.[/note]",
+      "desc:8": "Every MAX part will be built from §bWhite Hole Matter§r, so MAX parts arrive before Eye T10. The four quests below group them: components and casings, power, materials, and the battery.\n\n[note]§lComing in a later update.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,

@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 0,
-      "desc:8": "A mega mixer: five stirring bands around a plasma vortex. It turns Raw Star Matter into §bExcited Stellar Plasma at 100 : 1§r, a bulk ESPM route alongside Sirius A. It does §lnot§r skip T2; the ladder is strict.\n\n[note]Planned. This machine is not in Beyond the Stars yet: tick the box to keep going. When it ships, this quest becomes a real task under the same id, and a ticked box is cleared so the real step counts.[/note]",
+      "desc:8": "A mega mixer: a glass mixing column wrapped in a shear helix, inside a spiral volute with six feed vessels. It will turn Raw Stellar Plasma into §bExcited Stellar Plasma Mixture at 100 : 1§r (100,000 L → 1,000 L in 240 s, about 1 A UMV), with no gases, no ignition and no stability field to watch.\n\nIts job: once your Eye moves on to Arcturus it cannot keep Sirius A lit, yet Arcturus burns 1,250 L of the mixture a cycle. About five Homogenies keep a T3 Eye fed without a second Eye.\n\nIt does §lnot§r skip T2: Eye T2 is still required.\n\n[note]§lComing in a later update.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,

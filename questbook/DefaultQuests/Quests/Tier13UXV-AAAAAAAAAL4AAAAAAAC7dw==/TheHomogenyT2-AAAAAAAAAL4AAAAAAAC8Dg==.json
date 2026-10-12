@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 0,
-      "desc:8": "Four times the T1 mixer, and a new mix: §bDegenerate Stellar Mixture§r (white + black dwarf matter).\n\n[note]Planned. This machine is not in Beyond the Stars yet: tick the box to keep going. When it ships, this quest becomes a real task under the same id, and a ticked box is cleared so the real step counts.[/note]",
+      "desc:8": "The Homogeny's second tier: a middle stirring ring and three more vessels around the same controller. It will mix at §b4 parallels§r (about one UXV amp) and add a new mix, §bDegenerate Stellar Mixture§r: 72 L White Dwarf Matter + 72 L Black Dwarf Matter + 1,000 L Excited Stellar Plasma Mixture → 1,000 L in 60 s.\n\nThe upgrade: mix 100,000 L of the T1 product, then install the Homogeny Tier II Core in a 10-minute run. Degenerate Stellar Mixture is planned for the T9 pellets, the Eternity Shell Casing and the Reality machines.\n\n[note]§lComing in a later update.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,

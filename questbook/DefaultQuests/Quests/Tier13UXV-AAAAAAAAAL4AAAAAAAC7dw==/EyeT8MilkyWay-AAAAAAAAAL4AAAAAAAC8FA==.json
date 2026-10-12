@@ -21,7 +21,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 0,
-      "desc:8": "Sgr A*. The §bGalactic Merger§r brings three pericentre passes while the burst demand climbs to 6 Bu/t. Aim a third stream into the shard halo and catch tidal disruption events. It is fed 0-10 L/s Ergomatter and makes Supermassive Ergomatter. §bRequired§r: the ladder is strict.\n\n[note]Planned. This machine is not in Beyond the Stars yet: tick the box to keep going. When it ships, this quest becomes a real task under the same id, and a ticked box is cleared so the real step counts.[/note]",
+      "desc:8": "The Milky Way. Triangulum merges into a larger galaxy, and you aim a third burst stream into the shard halo and catch the satellite crossings.\n\n§e§lTHE PLAN§r\n- Unlock: the §bHeavy Link§r (6 Bu/t into the Eye for 30 minutes, at least half of it on the halo) and item milestones on Triangulum, then the §bSupermassive Seed Core§r, then the §bGalactic Merger§r: three pericentre passes while the burst demand climbs from 1.5 to 6 Bu/t.\n- Run: an Ergomatter feed of 0-10 L/s, for §bSuperdense Ergomatter§r at 1 : 1.\n- A planets mode will run 6 planets at once.\nT8 is §brequired§r: the ladder is strict.\n\n[note]§lComing in a later update.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,

@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "§bTime Dilation§r generators above the star's tier open the §btime dial m§r, up to §b1 + 0.25 × (lowest Time Dilation tier − star tier)§r.\n- Each +0.25 costs §b10 × 2^(N−1) L/s of Tachyon Rich Temporal Fluid§r, from the Field sockets.\n- m speeds up everything the star does (upkeep, product, EU, drift, noise and events) but §lnot your trims§r. A faster star is harder to hold.\n\n§bStabilisation§r generators calm the star. Noise and event size are × (1 − 0.05 × (lowest tier − 1)), down to ×0.60 at tier 9.\n\nSet the dial with the GUI's ± buttons. It is locked at ×1 during transitions.",
+      "desc:8": "§bTime Dilation§r generators above the star's tier open the §btime dial m§r: a speed-up for the whole star.\n- The cap is §b1 + 0.25 × (lowest Time Dilation tier − star tier)§r, at most ×3.00.\n- Each +0.25 costs §b10 × 2^(N−1) L/s of Tachyon Rich Temporal Fluid§r (N = the star's tier), drawn from the Field sockets. Paid short, the dial runs slower.\n- m speeds up everything the star does (upkeep, product, EU, drift, noise and events) but §lnot§r your trims. A faster star is harder to hold.\n\n§bStabilisation§r generators calm the star: noise and event size × (1 − 0.05 × (lowest tier − 1)), down to ×0.60 at tier 9.\n\nSet the dial with the GUI's − / + buttons (right-click: four steps). It is held at ×1 during transitions, and milestone Resonant time counts real seconds, not dial seconds.\n\n§a§lDONE WHEN§r you hold 1,000 L of Tachyon Rich Temporal Fluid.",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,

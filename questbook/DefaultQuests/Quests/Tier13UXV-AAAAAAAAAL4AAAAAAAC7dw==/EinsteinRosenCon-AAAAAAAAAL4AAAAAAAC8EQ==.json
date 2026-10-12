@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 0,
-      "desc:8": "Carries bursts with no loss. A §bWormhole Mouth§r pair (linked by data stick, any distance), §bMirrors§r to turn them, and §bJunctions§r to split or combine them. Upkeep is molten SpaceTime, or Ergomatter after T7. §bGRB Receptor Ports§r on the Eye's rail take the stream.\n\n[note]Planned. This machine is not in Beyond the Stars yet: tick the box to keep going. When it ships, this quest becomes a real task under the same id, and a ticked box is cleared so the real step counts.[/note]",
+      "desc:8": "The Conduit will carry the quasar's bursts anywhere, with no loss:\n- a §bWormhole Mouth§r pair, linked with a data stick, at any distance, other dimensions included;\n- §bMirrors§r to turn a stream;\n- §bJunctions§r to split a stream (steerable by redstone) or combine up to three.\nUpkeep is molten SpaceTime before T7 and Ergomatter after. §bGRB Receptor Ports§r take the stream: on the Eye's rail, and on the Kerr, the Homogeny and Reality Diffraction, which a quasar can stabilise too.\n\n[note]§lComing in a later update.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,

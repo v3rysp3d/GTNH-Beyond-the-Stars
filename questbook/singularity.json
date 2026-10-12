@@ -32,27 +32,27 @@
       "key": "uxv", "low": 47991, "name": "Tier 13 - UXV", "dirStem": "Tier13UXV", "range": [48140, 48179],
       "icon": "mte:11233", "orderAfter": "l37V2WvbSHGZQ5oMgAfBuw==",
       "desc": [
-        "The Eye's UXV half: {b}Sirius B{r} (T5) and {b}the magnetar{r} (T6), then the {b}Quasar Engine{r} and the first galaxies (T7, T8).",
+        "The Eye's second half. {b}Sirius B{r} (T5) cools white dwarfs into black ones, and {b}the magnetar{r} (T6) runs on Antipolarization Agent. The {b}Quasar Engine{r} and the first galaxies (T7, T8) follow in a later update.",
         "",
-        "The bottom rows hold the pack's own UXV parts and machines. The Stargate waits in {6}The Endgame{r}, after MAX."
+        "The bottom rows hold the pack's own UXV parts and machines. The crafted Stargate now waits in {6}The Endgame{r}, after MAX."
       ]
     },
     {
       "key": "max", "low": 47992, "name": "Tier 14 - MAX", "dirStem": "Tier14MAX", "range": [48180, 48219],
       "icon": "mte:11234", "orderAfter": "l37V2WvbSHGZQ5oMgAfBuw==",
       "desc": [
-        "The last voltage tier. MAX parts are built from Eye T9's {b}White Hole Matter{r}; Eye T10 makes {b}Universium{r}, which opens {6}The Endgame{r}."
+        "The last voltage tier. Beyond the Stars' part of it comes in a later update: MAX parts built from Eye T9's {b}White Hole Matter{r}, and Eye T10, which makes {b}Universium{r} and opens {6}The Endgame{r}."
       ]
     },
     {
       "key": "end", "low": 47993, "name": "The Endgame", "dirStem": "TheEndgame", "range": [48220, 48249],
       "icon": "gregtech:gt.metaitem.01:11139", "orderAfter": "l37V2WvbSHGZQ5oMgAfBuw==",
       "desc": [
-        "After MAX: what Universium is for, and the Stargate."
+        "After MAX: what Universium is for, the MHDCSM line, and the crafted Stargate."
       ]
     }
   ],
-  "placeholderNote": "[note]Planned. This machine is not in Beyond the Stars yet: tick the box to keep going. When it ships, this quest becomes a real task under the same id, and a ticked box is cleared so the real step counts.[/note]",
+  "placeholderNote": "[note]{l}Coming in a later update.{r} This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
   "bomItems": {
     "kerr": {
       "mirror_backing": { "item": "beyondthestars:slCasing:2", "expect": "slCasing:2" },
@@ -92,24 +92,26 @@
   },
   "texts": {
     "kee_body": [
-      "As the materials around you achieve transcendental properties, pistons and gases stop being enough. The answer is gravity: a black hole, held in a cage of mirrors and coils, spinning fast enough that its ergosphere can be put to work.",
+      "As the materials around you achieve transcendental properties, pistons and gases stop being enough. The answer is gravity: a black hole, held in a cage of mirrors and coils and spun fast enough that its ergosphere can be put to work.",
       "",
-      "The {b}Kerr Ergosphere Engine{r} (KEE) holds the hole and nothing else. It runs no recipes. The machines that use the hole are the {b}Kerr modules{r}: separate machines standing in the cage's arcs (next quests).",
+      "The {b}Kerr Ergosphere Engine{r} (KEE) holds the hole and does nothing else: it runs no recipes. The machines that use the hole are the {b}Kerr modules{r}, separate machines standing in the cage's arcs (next quests).",
       "",
       "{e}{l}BUILD{r}",
-      "Hologram Projector stack 1 projects Kerr T1, {bomdims:kerr_t1}. Chunk-load all of it. It is the Black Hole Compressor's own casings (Extreme Density Space-Bending Casing, Background Radiation Absorbent Casing, Hawking Radiation Realignment Focus, Naquadah Alloy frames) plus Superradiant Mirrors, Mirror Backing, Ergosphere Field Coils, Beam Focusing Quadrupoles, Beam Dumps, Harmonic Lining and Bolt Injector Rails. The optional task is the full bill.",
-      "Hatches: 1 laser or up to 2 energy hatches in the governor arc, and up to 8 {b}bolt buses{r} (plain input buses) on the cage. No maintenance hatch. Markers 7 and 8 in the hologram show where the module controllers go.",
+      "- Hologram Projector, stack 1: Kerr T1, {bomdims:kerr_t1}. Chunk-load all of it.",
+      "- The Black Hole Compressor's own Extreme Density Space-Bending Casing, Hawking Radiation Realignment Focus and Naquadah Alloy frames, plus our Superradiant Mirrors, Mirror Backing, Ergosphere Field Coils, Beam Focusing Quadrupoles, Beam Dumps, Harmonic Lining and {bom:kerr_t1:E} Bolt Injector Rails. The optional task is the full bill.",
+      "- Hatches: 1 laser or up to 2 energy hatches in the governor arc, 1 to {bom:kerr_t1:b} {b}bolt buses{r} (plain input buses) on the cage, and optional BHC Utility Hatches beside them. No maintenance hatch.",
+      "- Hologram markers 7 and 8 show where the two module controllers go.",
       "",
-      "{e}{l}RUN{r} Open the GUI.",
-      "1. A {b}Black Hole Seed{r} (in a bolt bus, or the Open button) opens the hole at {b}8 SM{r}.",
-      "2. The hole bleeds mass as Hawking radiation: {b}3.2 / M{sq} SM a tick{r}. Small holes die fast.",
-      "3. The {b}governor{r} fires bolts from the bolt buses to hold your {b}setpoint (2-64 SM at T1){r}:",
-      "- Neutronium 1/64 SM, Cosmic Neutronium 1/32, Infinity 1/16, Transcendent Metal 1/8, SpaceTime 1/4 SM per bolt;",
-      "- at most 4 / 8 / 16 bolts a tick, set by the {b}lowest{r} rail (Mk I / II / III).",
-      "4. While open, the hole draws {b}8,388,608 EU/t (1 A UEV){r} of containment. Without power or bolts it bleeds, and below 2 SM it evaporates.",
-      "5. A {b}Black Hole Collapser{r} closes it safely (the Collapse button, or in a bolt bus with Auto on).",
+      "{e}{l}RUN{r} Everything is in the GUI.",
+      "1. Put a {b}Black Hole Seed{r} in a bolt bus and press Open: the hole opens at {b}8 SM{r} (solar masses).",
+      "2. It bleeds mass as Hawking radiation, {b}3.2 / M{sq} SM a tick{r}. Small holes die fast.",
+      "3. The {b}governor{r} fires bolts from the bolt buses to hold your {b}setpoint{r} (2-64 SM at T1):",
+      "- Neutronium 1/64 SM, Cosmic Neutronium 1/32, Infinity 1/16, Transcendent Metal 1/8, SpaceTime 1/4 SM a bolt;",
+      "- at most 4 / 8 / 16 bolts a tick with Mk I / II / III rails. The {l}lowest{r} rail sets the rate, so upgrade them all together.",
+      "4. While open, the hole draws {b}8,388,608 EU/t (1 A UEV){r} of containment. Without power the governor stops; below 2 SM the hole evaporates. The power switch does {l}not{r} stop the hole.",
+      "5. A {b}Black Hole Collapser{r} in a bolt bus closes it safely: press Collapse twice.",
       "",
-      "[note]A bigger hole gives the modules more parallels; a smaller one makes them faster. The GUI shows mass, setpoint, bolt stock, stability and every linked module. NEI's Multiblock tab and the controller tooltip have the rest.[/note]",
+      "[note]Mass sets the modules' bonus: a bigger hole gives more parallels, a smaller one more speed. The controller tooltip has the full block list, and NEI's Multiblock tab previews both tiers.[/note]",
       "",
       "{a}{l}DONE WHEN{r} you hold the controller (HOLD {to} CLAIM {to} INSTALL: claim before you place it)."
     ],
@@ -117,40 +119,37 @@
     "eye_body": [
       "So you have made yourself an Eternal DTPF or hopefully a few, and now it is time for the push onwards.",
       "",
-      "Beyond the Stars replaces TecTech's Eye of Harmony with {b}one Eye that grows from tier 1 to tier 10{r}. It grows one band at a time, with a {b}live star{r} at its centre.",
-      "",
-      "{e}{l}WHAT IT IS{r}",
-      "Put a {b}Star Chart{r} in the controller slot (it is not consumed) to choose what the Eye runs: Star Chart: Sol at T1. A dimension display block runs planets instead (see {c}Planets on the Eye{r}).",
+      "Beyond the Stars replaces TecTech's Eye of Harmony with {b}one Eye that grows from T1 to T10{r}, a band at a time, with a {b}live star{r} at its centre. A star is not a batch recipe: it burns every minute, it must be fed, and it must be held steady.",
       "",
       "{e}{l}BUILD{r}",
-      "Hologram stack 1 = the T1 core, {bomdims:eye_core}. It is mostly TecTech's own Eye blocks:",
-      "- Reinforced Spatial and Temporal Structure Casings;",
-      "- Infinite SpaceTime Energy Boundary Casing;",
-      "- Quantum Glass;",
-      "- the three field generator families.",
-      "On the plinth go gas input hatches (Hydrogen, Helium), an input bus for Stellar Ignition Charges, an ME Output Bus and an ME Output Hatch. Power is {b}wireless EU only{r}. Chunk-load the whole footprint.",
+      "- Hologram stack 1 is the T1 core, {bomdims:eye_core}. Chunk-load the whole footprint.",
+      "- It is mostly TecTech's own Eye blocks: {bom:eye_core:U} Reinforced Spatial and {bom:eye_core:Q} Reinforced Temporal Structure Casings (the Condensate Assembler makes these 32 at a time here), Infinite SpaceTime Energy Boundary Casing, Quantum Glass and the three field generator families.",
+      "- On the plinth: gas input hatches for Hydrogen and Helium, an input bus for Stellar Ignition Charges, an ME Output Bus, an ME Output Hatch and a maintenance hatch.",
+      "- Power is {b}wireless EU only{r}, and none of it comes back: the Eye makes matter, not power.",
       "",
-      "{e}{l}LIGHT IT{r} Sol lights when all of these hold:",
+      "{e}{l}LIGHT IT{r} Put {b}Star Chart: Sol{r} in the controller slot (never consumed). Sol lights when:",
       "- a {b}Stellar Ignition Charge{r} is in a plinth input bus;",
-      "- the buffers hold 10 cycles of upkeep plus a seed cloud of {b}100,000,000 L Hydrogen and 100,000,000 L Helium{r};",
-      "- the wireless network holds 10 cycles of EU.",
+      "- the buffers hold {b}600,000,000 L each of Hydrogen and Helium{r}: 10 cycles of upkeep (kept) plus the 100,000,000 L seed cloud (burned);",
+      "- the wireless network holds 10 cycles of EU, which the ignition spends.",
       "The protostar contracts for about 40 seconds, then lights.",
       "",
-      "{e}{l}RUN{r} Every {b}60 s cycle{r}, Sol burns {b}50,000,000 L Hydrogen + 50,000,000 L Helium{r} and {b}1.51 {times} 10{sup11} EU{r}, and makes {b}50,000 L Raw Star Matter{r} to the ME output hatch. Inputs drain into internal buffers every second, so ME stocking hatches are fine on the gas sockets. Upkeep is paid in full even when the star runs badly.",
+      "{e}{l}RUN{r} Every {b}60 s cycle{r} Sol burns {b}50,000,000 L Hydrogen + 50,000,000 L Helium{r} and {b}1.51 {times} 10{sup11} EU{r} (about 1 A UMV), and makes {b}50,000 L Raw Stellar Plasma{r} into the ME output hatch. Upkeep is paid in full in every zone; a bad zone only cuts the yield.",
       "",
-      "[warn]The {l}Spacetime Compression Field Generators gate the tier{r}: an Eye of tier N needs every compression generator at tier N or higher. Crude runs T1.[/warn]",
+      "{e}{l}AUTOMATE{r} Inputs drain into internal buffers every second, so ME stocking input hatches on the gas sockets work. Keep a few charges in the plinth bus from an ME Interface. A dimension display block in the slot runs planets instead (see {c}Planets on the Eye{r}).",
       "",
-      "[note]The Eye is a pure power sink. It makes matter, not EU. The next quests teach the stability field, planets, and how to unlock T2; the controller tooltip and GUI have the rest.[/note]",
+      "[warn]{l}Spacetime Compression gates the tier.{r} An Eye of tier N needs every compression generator at tier N or higher. Crude runs T1.[/warn]",
+      "",
+      "[note]The next quests teach the stability field, planets and the road to T2. The controller tooltip and GUI carry every number.[/note]",
       "",
       "{a}{l}DONE WHEN{r} you hold the controller, Star Chart: Sol and an Ignition Charge (HOLD {to} CLAIM {to} INSTALL)."
     ],
     "gate_pattern": [
-      "In the Beyond the Stars Eye the three families do three jobs:",
-      "- {b}Spacetime Compression is the hard gate.{r} Eye tier N needs every compression generator at tier N or higher.",
-      "- {b}Time Dilation{r} opens the time dial, but only above the star's tier (see {c}The Time Dial{r}).",
-      "- {b}Stabilisation{r} calms the field.",
+      "In Beyond the Stars the three generator families do three jobs:",
+      "- {b}Spacetime Compression is the hard gate.{r} An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.",
+      "- {b}Time Dilation{r} above the star's tier opens the time dial (see {c}The Time Dial{r}).",
+      "- {b}Stabilisation{r} calms the star: noise and events shrink 5 % per tier above the first.",
       "",
-      "The families mix freely, and the lowest of each family counts. The hologram places compression at the trigger stack's tier, and never downgrades a generator already placed."
+      "The families mix freely, and the {l}lowest{r} of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed."
     ],
     "hold_core": "{a}{l}DONE WHEN{r} you hold the core and the chart (HOLD {to} CLAIM {to} INSTALL: claim before the core goes into escrow)."
   },
@@ -164,18 +163,23 @@
         { "type": "optional_retrieval", "bom": "kerr_compressor" }
       ],
       "desc": [
-        "The Black Hole Compressor's job, done next to a real black hole. The module is its {b}own machine{r} in the KEE's south arc, with its own GUI and its own hatches.",
+        "The Black Hole Compressor's job, done beside a real black hole. The module is its {b}own machine{r} in the KEE's south arc, with its own GUI and hatches, so nothing on the KEE changes when you use it.",
         "",
-        "{e}{l}BUILD{r} Place this controller where the KEE's hologram shows {b}marker 7{r}, facing out of the cage. Then project the arc from the module's own controller (one tier, {bomdims:kerr_compressor}). Any arc socket takes input buses or hatches, output buses or hatches, and 1 laser or up to 2 energy hatches. There is no maintenance hatch.",
+        "{e}{l}BUILD{r}",
+        "- Place this controller where the KEE's hologram shows {b}marker 7{r}, facing out of the cage.",
+        "- Project the arc from the module's own controller ({bomdims:kerr_compressor}, one tier).",
+        "- {bom:kerr_compressor:c} arc sockets take input buses or hatches, output buses or hatches, and 1 laser or up to 2 energy hatches. No maintenance hatch.",
         "",
-        "{e}{l}RUN{r} It runs GT's Compressor and Neutronium Compressor recipes. There are no circuits and no modes: the recipe picks the map. It runs only while the KEE's hole is {b}open{r}. When the hole closes it pauses and keeps its recipe, and it resumes when the hole reopens.",
+        "{e}{l}RUN{r} GT's Compressor and Neutronium Compressor recipes. No circuits and no modes: the recipe picks the map. It runs only while the KEE's hole is {b}open{r}. When the hole closes it pauses, keeps its recipe and resumes when the hole reopens.",
         "",
-        "The hole sets the bonus, fixed when a recipe starts:",
-        "- {b}parallel = 8 {times} voltage tier {times} {lfloor}{sqrt}M{rfloor}{r} (at UIV: 352 at 16 SM, 704 at 64 SM);",
-        "- {b}speed {times} (3200 / M) / 50{r}, from 1 to 4.",
+        "The hole sets the bonus when a recipe starts:",
+        "- {b}parallel 8 {times} voltage tier {times} {lfloor}{sqrt}M{rfloor}{r}: at UIV (tier 11), 352 at 16 SM and 704 at 64 SM;",
+        "- {b}speed {times} (3200 / M) / 50{r}, between 1 and 4: {times}4 at 16 SM or less, {times}1 at 64 SM or more.",
         "The module costs the hole nothing.",
         "",
-        "[note]At Kerr T2 it also runs {l}Kerr Densification{r}, which needs a hole of at least 128 SM (UMV chapter).[/note]",
+        "{e}{l}AUTOMATE{r} Plain GT: ME input and output buses. The module's GUI says why it waits (hole closed, KEE not formed, KEE not loaded).",
+        "",
+        "[note]At Kerr T2 it also runs {l}Kerr Densification{r}, which needs a hole of at least 128 SM (UMV chapter). Built a Kerr before the modules were machines? Craft the old Compressor Module block on its own into this controller.[/note]",
         "",
         "{a}{l}DONE WHEN{r} you hold the module controller (HOLD {to} CLAIM {to} INSTALL)."
       ]
@@ -189,11 +193,16 @@
         { "type": "optional_retrieval", "bom": "kerr_extractor" }
       ],
       "desc": [
-        "The east arc's machine: GT's {b}Extractor{r} recipes, items only.",
+        "The east arc's machine: GT's {b}Extractor{r} recipes, items only, beside the same hole.",
         "",
-        "{e}{l}BUILD{r} Place the controller where the KEE's hologram shows {b}marker 8{r}, on the 340{deg} ray, facing out. Then project the arc from it ({bomdims:kerr_extractor}). It has five sockets: at least 1 input bus, 1 output bus and 1 energy (1 laser or up to 2 energy hatches).",
+        "{e}{l}BUILD{r}",
+        "- Place the controller where the KEE's hologram shows {b}marker 8{r}, facing out of the cage.",
+        "- Project the arc from it ({bomdims:kerr_extractor}).",
+        "- {bom:kerr_extractor:x} sockets: at least 1 input bus, 1 output bus, and 1 laser or up to 2 energy hatches. Item buses only.",
         "",
-        "{e}{l}RUN{r} It works like the compressor: open hole only, the same parallel and speed bonus, and it pauses without losing its recipe. Either module is enough to start; you can run both.",
+        "{e}{l}RUN{r} Like the compressor: open hole only, the same parallel and speed bonus, and it pauses without losing its recipe. Either module is enough to go on, and both can run off one hole.",
+        "",
+        "[note]A legacy Extractor Module block crafts into this controller on its own.[/note]",
         "",
         "{a}{l}DONE WHEN{r} you hold the module controller (HOLD {to} CLAIM {to} INSTALL)."
       ]
@@ -205,13 +214,19 @@
       "tasks": [ { "type": "retrieval", "items": ["64x ore:boltNeutronium"] } ],
       "desc": [
         "A hole is cheap to {b}hold{r} and expensive to {b}grow{r}. The bleed is 3.2 / M{sq} SM a tick:",
-        "- at 16 SM, about 0.8 Neutronium bolts a tick (16 a second);",
+        "- a fresh 8 SM hole loses 3.2 Neutronium bolts' worth a tick, so Mk I rails on Neutronium barely gain;",
+        "- at 16 SM it costs about 0.8 Neutronium bolts a tick (16 a second);",
         "- at 64 SM, about 1 a second.",
-        "Without bolts, a 16 SM hole lives about 21 seconds and a 64 SM hole about 23 minutes.",
+        "Without bolts a 16 SM hole lives about 21 seconds, and a 64 SM hole about 23 minutes.",
         "",
-        "{e}{l}AUTOMATE{r} Stock the bolt buses from ME: an ME Interface or export bus per bus, or a Crafting Input Proxy. The governor picks the bolt it needs to hold the setpoint. Better bolts carry more mass per bolt, so the rail cap stops mattering. Put a Collapser in a bolt bus and switch {b}Auto{r} on: the hole is then closed and reseeded without you.",
+        "The governor fires bolts in bus and slot order, only as many as cover the shortfall. All five bolt types work and mix freely. Heavier bolts grow a hole faster at the same rail cap.",
         "",
-        "{a}{l}DONE WHEN{r} you are holding 64 Neutronium bolts (HOLD {to} CLAIM {to} INSTALL)."
+        "{e}{l}AUTOMATE{r}",
+        "- Stock the bolt buses from ME: an ME Interface, or an export bus on each bus. The GUI shows how long the stock lasts.",
+        "- Tick {b}Auto{r} in the GUI's Hole control panel: a Seed in a bolt bus then opens a closed hole, and a Collapser closes an open one, with no button.",
+        "- BHC Utility Hatches on the cage give redstone while the hole is open. Invert it into an export bus holding Seeds, and a hole that evaporates reseeds itself.",
+        "",
+        "{a}{l}DONE WHEN{r} you hold 64 Neutronium bolts (HOLD {to} CLAIM {to} INSTALL)."
       ]
     },
     {
@@ -251,27 +266,26 @@
       "tasks": [ { "type": "retrieval", "items": ["1x mte:28116"] } ],
       "rewards": ["1x mte:28116"],
       "desc": [
-        "A live star is not a recipe. Every second the Eye updates a {b}stability field{r}. At T1 it has one gauge, {b}P{r} (pressure balance): minus is collapse, plus is expansion, and {b}0 is the target{r}.",
+        "A live star is not a recipe. Every second the Eye updates a {b}stability field{r}. At T1 it has one gauge, {b}P{r} (pressure balance): minus is collapse, plus is expansion, and {b}0 is the target{r}. Each higher star adds a gauge.",
         "",
-        "{e}{l}ZONES{r} The worst gauge decides the zone:",
-        "- {b}Resonant{r}: within {pm}10, yield {times}1.25",
-        "- {a}Stable{r}: within {pm}40, yield {times}1.00",
-        "- {e}Strained{r}: within {pm}70, yield {times}0.50",
-        "- {c}Critical{r}: within {pm}100, no yield, and Integrity drains",
-        "- {4}Breach{r}: beyond {pm}100, the star is lost",
+        "{e}{l}ZONES{r} The worst gauge sets the zone, the yield and Integrity:",
+        "- {b}Resonant{r} within {pm}10: yield {times}1.25, Integrity +1 a second",
+        "- {a}Stable{r} within {pm}40: {times}1.00, +0.2",
+        "- {e}Strained{r} within {pm}70: {times}0.50, {minus}0.5",
+        "- {c}Critical{r} within {pm}100: no yield, {minus}2",
+        "- {4}Breach{r} beyond {pm}100: the star is lost at once",
+        "{b}Integrity{r} (0-100) at 0 also loses the star. A lost star costs the star and its unfinished cycle, {l}never{r} blocks, cores or unlocked tiers. Relight it with a new charge.",
         "",
-        "{b}Integrity{r} (0-100) refills while you are Stable and drains while you are not. At 0 the star is lost. Losing a star costs the star and its in-flight output, {l}never{r} blocks, cores or unlocked tiers. Relight it with a new charge.",
+        "{e}{l}TRIM{r} Pour trim fluids into the {b}Field sockets{r}: {bom:eye_core:f} plain input hatches on the core band. They are never buffered, and ME stocking hatches there are refused. At T1, 1,000 L Helium is {b}P {minus}2{r} and 1,000 L Hydrogen is {b}P +2{r}, up to 10 units a second.",
         "",
-        "{e}{l}TRIM{r} Pour trim fluids into the {b}Field sockets{r}: 8 plain input hatches on the core band. They are never buffered, and ME stocking hatches there are refused. At T1, 1,000 L Helium is {b}P {minus}2{r} and 1,000 L Hydrogen is {b}P +2{r}, up to 10 units a second.",
-        "",
-        "{e}{l}SENSE{r} A {b}Stellar Field Sensor Hatch{r} (8 sockets on the core band) reads any gauge against a threshold and emits redstone, digital or analog. The gauges: P, {theta}, {omega}, {Pi}, Agent shield, Integrity, Stability, zone, event warning and upkeep.",
+        "{e}{l}SENSE{r} A {b}Stellar Field Sensor Hatch{r} ({bom:eye_core:n} sockets on the core band) reads one channel against a threshold and emits redstone on all sides: digital (15 above or below the threshold) or analog (0-15 across the range). Channels: P, {theta}, {omega}, {Pi}, the Agent shield, Integrity, Stability, zone, event warning (+, {minus} or any) and upkeep OK. Right-click it to set it up.",
         "",
         "{e}{l}AUTOMATE{r} The standard rig:",
         "- a sensor on {b}P > +10{r} {to} a Fluid Regulator cover, or an ME fluid export bus with a redstone card {to} Helium into a Field hatch;",
         "- a second sensor on {b}P < {minus}10{r} {to} Hydrogen.",
-        "Covers on the sensor's own side work too, wireless redstone transmitters included.",
+        "Covers on the sensor's own side work, wireless redstone transmitters included, so one sensor can drive a valve anywhere.",
         "",
-        "[note]Sol settles at about P +35 (Stable) by itself, so T1 runs unattended. The rig earns the {times}1.25. Higher stars do {l}not{r} settle.[/note]",
+        "[note]Sol settles at about P +35 (Stable) by itself, so T1 runs unattended; the rig earns the {times}1.25. Higher stars do {l}not{r} settle. A binary Directive Hatch and OpenComputers support are coming in a later update.[/note]",
         "",
         "{a}{l}DONE WHEN{r} you hold a sensor hatch. Here is a second one for the rig."
       ]
@@ -282,13 +296,16 @@
       "prereqs": ["E10"],
       "tasks": [ { "type": "checkbox" } ],
       "desc": [
-        "Planets are still {b}batch runs{r}, as TecTech ran them, but {l}without{r} Raw Star Matter or dwarf matter.",
-        "- Put the dimension display block in the controller slot.",
-        "- The planets by Eye tier: {b}T1{r} rocket tiers 0-3, {b}T2{r} 4-6, {b}T3{r} 7-8, {b}T4{r} the Deep Dark.",
-        "- A tier N Eye runs every planet of tiers 1..N, with {b}{times}2 parallel per tier above{r} the planet's.",
-        "- Compression above the planet's TecTech tier gives {minus}3 % time per tier.",
+        "Planets are still {b}batch runs{r}, as TecTech ran them. They give TecTech's ores and plasmas, but {l}no{r} Raw Stellar Plasma or dwarf matter: those come only from stars now.",
+        "- Put the planet's dimension display block in the controller slot.",
+        "- By Eye tier: {b}T1{r} rocket tiers 0-3, {b}T2{r} 4-6, {b}T3{r} 7-8, {b}T4{r} the Deep Dark.",
+        "- A tier N Eye runs every planet of tiers 1..N, at {b}{times}2 parallel per tier above{r} the planet's.",
+        "- Each compression tier above the planet's TecTech tier takes 3 % off the time.",
+        "- EU comes from wireless when a run starts.",
         "",
-        "[warn]One target per Eye: selecting a planet puts your star out.[/warn]",
+        "[warn]One target per Eye: selecting a planet puts your star out. A second Eye for planets keeps the star burning.[/warn]",
+        "",
+        "[note]One Deep Dark run on the same Eye is a T4 {to} T5 milestone.[/note]",
         "",
         "{a}{l}DONE WHEN{r} you tick the box: this one is information only."
       ]
@@ -299,9 +316,11 @@
       "prereqs": [48110],
       "tasks": [ { "type": "checkbox" } ],
       "desc": [
-        "Hold {b}Resonant for 600 consecutive real seconds{r} and the Eye locks in: {b}yield {times} 1.5{r} until the streak breaks. The GUI shows the streak. Every milestone's Resonant time counts real seconds too, so a tidy rig is how you climb.",
+        "Hold {b}Resonant for 600 seconds in a row{r} and the Eye locks in: {b}yield {times}1.5{r} until the streak breaks. The GUI's field line counts it as {l}Lock n/600{r}.",
         "",
-        "{a}{l}DONE WHEN{r} your Eye shows HARMONIC LOCK; then tick the box (a state is not an item)."
+        "Every milestone's Resonant time counts {l}real{r} seconds, so the time dial cannot shortcut it. A tidy rig is how you climb: tighter sensor thresholds (around {pm}5) keep a star inside {pm}10 more of the time.",
+        "",
+        "{a}{l}DONE WHEN{r} your Eye's GUI shows Lock at 600/600 or more and Y 1.50; then tick the box (a state is not an item)."
       ]
     },
     {
@@ -313,13 +332,17 @@
         { "type": "optional_retrieval", "bom": "kerr_t2-minus-kerr_t1" }
       ],
       "desc": [
-        "Kerr T2 is the same Kerr with more {b}density{r}. Right-click the KEE controller with the {b}Kerr Density Upgrade{r}. It is consumed and permanent, and it survives a wrench.",
+        "Kerr T2 is the same KEE, made denser. Right-click the controller with the {b}Kerr Density Upgrade{r}: it is consumed, permanent, and survives a wrench.",
         "",
-        "The cage then needs the T2 reinforcement (hologram stack 2: {b}{bom:kerr_t2:O} Bastion Plates{r}, more Harmonic Lining, Casimir Plates and glass; the optional task is exactly the difference). A T2 Kerr with the reinforcement torn down will {l}not form{r}.",
-        "- Holes go up to {b}512 SM{r}.",
-        "- The Compressor Module gains {b}Kerr Densification{r}, which needs a hole of {b}at least 128 SM{r}.",
+        "{e}{l}BUILD{r} The cage then needs the T2 reinforcement (hologram stack 2, {bomdims:kerr_t2}): {bom:kerr_t2:O} Bastion Plates, {bom:kerr_t2:P} Casimir Plates, more Harmonic Lining and more glass. The optional task is exactly the difference. A T2 Kerr with the reinforcement torn down will {l}not form{r}.",
         "",
-        "[note]The upgrade costs 4,000,000 L Raw Star Matter and 32 Black Hole Seeds. Your T1 Eye pays for it.[/note]",
+        "{e}{l}WHAT YOU GET{r}",
+        "- setpoints up to {b}512 SM{r}, so more module parallels ({lfloor}{sqrt}M{rfloor} is 22 at 512 SM, against 8 at 64 SM);",
+        "- {b}Kerr Densification{r} on the Compressor Module, with a hole of {b}at least 128 SM{r}.",
+        "",
+        "{e}{l}MAKE IT{r} In the Condensate Assembler (NEI: Condensate Assembling). The big costs are {b}4,000,000 L Entangled Raw Star Matter{r} (Raw Stellar Plasma, condensed 1 : 1; NEI: Condensate Entanglement) and {b}32 Black Hole Seeds{r}, so your T1 Eye pays for it. NEI has the whole recipe.",
+        "",
+        "[note]Growing a hole to 512 SM takes a lot of bolts: SpaceTime bolts (1/4 SM each) and Mk III rails do it fastest.[/note]",
         "",
         "{a}{l}DONE WHEN{r} you hold the upgrade (HOLD {to} CLAIM {to} INSTALL)."
       ]
@@ -335,18 +358,26 @@
       ],
       "rewards": ["1x beyondthestars:stellarIgnitionCharge"],
       "desc": [
-        "{b}Tiers unlock in order, in three steps.{r}",
-        "1. {b}Milestones{r} on the current star: {b}20,000,000 L Raw Star Matter{r} made and {b}2 h Resonant{r}. The GUI and scanner count them, and they stay with the controller through a wrench.",
-        "2. {b}The core.{r} Right-click the controller with the {b}Stellar Mass Core{r}. It goes into escrow and is consumed {l}only when the transition succeeds{r}. Sneak-punch with an empty hand to take it back.",
-        "3. {b}The transition.{r} Build the {b}beam band{r} (hologram stack 2: {bom:eye_beam:R} Beam Band Casing), bring compression to tier 2, buffer {b}5,000,000 L Raw Star Matter{r}, then put {b}Star Chart: Sirius A{r} in the slot while Sol burns. {b}Mass Infusion{r} runs for 10 minutes: the RSPM pours into Sol and P is pushed {b}+4 a second{r}, so your rig must hold. Survive it and Sol becomes Sirius A, with T2 unlocked for good.",
+        "Sirius A is a hotter, younger star, and it pushes back. Every tier unlocks in order, in the same three steps:",
+        "1. {b}milestones{r} on the current star;",
+        "2. {b}the core{r}, right-clicked into escrow;",
+        "3. {b}the transition{r}, a live event you have to survive.",
         "",
-        "{e}{l}RUN{r} Sirius A takes {b}12,500,000 L H + 12,500,000 L He + 25,000 L RSPM{r} a cycle and makes {b}2,500 L Excited Stellar Plasma{r}.",
+        "{e}{l}MILESTONES{r} On Sol: {b}20,000,000 L Raw Stellar Plasma{r} made and {b}2 h Resonant{r} (real time). The GUI and scanner count them, and they stay with the controller through a wrench.",
         "",
-        "[warn]Sirius A drifts hard and breaches if left alone. Run the rig. Helium trims leave {l}ash: {minus}0.5 % yield per 1,000 L{r} dosed that second, so a two-stage rig (small doses near the target, big ones far out) beats full-blast valves.[/warn]",
+        "{e}{l}CORE{r} Right-click the controller with the {b}Stellar Mass Core{r} (Condensate Assembling, 256,000 L Entangled Raw Star Matter). It is consumed {l}only{r} when the transition succeeds. Sneak-punch with an empty hand to take it back.",
+        "",
+        "{e}{l}MASS INFUSION{r} Build the {b}beam band{r} (hologram stack 2: {bom:eye_beam:R} Beam Band Casing) and bring compression to tier 2. Buffer {b}5,000,000 L Raw Stellar Plasma{r} plus Sirius A's first cycle, then put {b}Star Chart: Sirius A{r} in the slot while Sol burns. For 10 minutes the plasma pours into Sol and P is pushed {b}+4 a second{r}, so your rig must hold. Survive it and Sol becomes Sirius A, with T2 unlocked for good. Fail and you lose Sol and the plasma, never the core.",
+        "",
+        "{e}{l}RUN{r} Each cycle: {b}12,500,000 L Hydrogen + 12,500,000 L Helium + 25,000 L Raw Stellar Plasma{r} and 6.04 {times} 10{sup11} EU (about 1 A UXV), for {b}2,500 L Excited Stellar Plasma Mixture{r}. A relight takes a charge and a 200,000,000 L seed of each gas.",
+        "",
+        "{e}{l}TRIMS{r} As Sol (Helium P {minus}2, Hydrogen P +2 per 1,000 L), now up to 20 units a second. The beam band's {bom:eye_beam:s} stellar sockets take input hatches for the star's fluids.",
+        "",
+        "[warn]Sirius A drifts P +2 a second and breaches if left alone: run the rig. Helium leaves {l}ash{r}, {minus}0.5 % yield per 1,000 L dosed that second, so a two-stage rig (small doses near 0, big ones far out) beats full-blast valves.[/warn]",
         "",
         "[note]A higher Eye still hosts lower stars, at {times}2 parallel per tier above. There is one live star per Eye.[/note]",
         "",
-        "@hold_core"
+        "{a}{l}DONE WHEN{r} you have held the core and the chart before the core goes into escrow (that task latches), and then 1,000 L of Excited Stellar Plasma Mixture, Sirius A's first product."
       ]
     },
     {
@@ -359,28 +390,30 @@
         { "type": "optional_retrieval", "bom": "eye_jet" }
       ],
       "desc": [
-        "A red giant: a helium core inside a hydrogen shell. It brings a second gauge, {b}{theta} (core heat){r}, which runs away on its own.",
+        "Arcturus is a red giant: a helium core inside a hydrogen shell. It brings a second gauge, {b}{theta} (core heat){r}, which runs away on its own, and P now climbs with {theta}.",
         "",
-        "{e}{l}UNLOCK{r} The milestones are {b}1,000,000 L ESPM{r} and {b}3 h Resonant{r} on Sirius A. Then:",
-        "- put the {b}Shell-Burning Core{r} in escrow;",
-        "- build the {b}jet crescent{r} (stack 3: {bom:eye_jet:S} Jet Crescent Casing; the beam band must stand too);",
-        "- bring compression to 3 and buffer {b}250,000 L ESPM{r};",
-        "- swap in {b}Star Chart: Arcturus{r}.",
-        "{b}Shell Ignition{r} (10 min): {theta} appears and ramps up, and the event ends in one forced helium flash.",
+        "{e}{l}UNLOCK{r}",
+        "- Milestones on Sirius A: {b}1,000,000 L Excited Stellar Plasma Mixture{r} and {b}3 h Resonant{r}.",
+        "- The {b}Shell-Burning Core{r} in escrow (Condensate Assembling, 128,000 L Entangled Excited Stellar Plasma).",
+        "- The {b}jet crescent{r} built (stack 3: {bom:eye_jet:S} Jet Crescent Casing; the beam band must stand too) and compression at tier 3.",
+        "- {b}250,000 L Excited Stellar Plasma Mixture{r} buffered, plus Arcturus's first cycle.",
+        "Then swap in {b}Star Chart: Arcturus{r}.",
         "",
-        "{e}{l}RUN{r} Arcturus takes {b}12,500,000 L H + 12,500,000 L He + 1,250 L ESPM{r} a cycle and makes {b}625 L Raw Hyperdense Stellar Plasma{r}.",
+        "{e}{l}SHELL IGNITION{r} (10 min) {theta} appears at 0 and ramps in. The T3 trims below, Super Coolant included, work from the start. It ends in one {b}forced helium flash{r} at 600 s, warned at 585 s: pre-cool and ride it.",
         "",
-        "{e}{l}TRIMS{r}",
-        "- Helium: P {minus}1, {theta} +3.",
-        "- Hydrogen: P +3, {theta} +0.5.",
+        "{e}{l}RUN{r} Each cycle: {b}12,500,000 L Hydrogen + 12,500,000 L Helium + 1,250 L Excited Stellar Plasma Mixture{r} and 2.42 {times} 10{u+00b9}{sq} EU (about 1 A MAX), for {b}625 L Raw Hyperdense Stellar Plasma{r}.",
+        "",
+        "{e}{l}TRIMS{r} Up to 20 units a second each:",
+        "- Helium (1,000 L): P {minus}1, {theta} +3;",
+        "- Hydrogen (1,000 L): P +3, {theta} +0.5;",
         "- Super Coolant (100 L): P {minus}1, {theta} {minus}3.",
-        "To pull P down without heating the core, dose Helium {l}and{r} coolant together.",
+        "To pull P down without heating the core, dose Helium {l}and{r} coolant together. Add a sensor pair on {theta} driving the coolant.",
         "",
-        "{e}{l}HELIUM FLASHES{r} Every 20-40 minutes a flash adds {b}{theta} +30 a second for 3 s{r}. The sensor's event channel warns {b}15 s ahead{r}. Pre-cool on the warning and you stay Stable.",
+        "{e}{l}HELIUM FLASHES{r} Every 20-40 minutes a flash adds {b}{theta} +30 a second for 3 s{r}. The sensor's event channel warns {b}15 s ahead{r}: pre-cool on the warning and you stay Stable.",
         "",
-        "[note]The T4 milestones: {l}400,000 L RHSP{r}, {l}4 h Resonant{r}, and {l}3 flashes ridden{r} without leaving Stable.[/note]",
+        "[note]The T3 {to} T4 milestones: {l}400,000 L Raw Hyperdense Stellar Plasma{r}, {l}4 h Resonant{r}, and {l}3 flashes ridden{r} (never worse than Stable from the warning until 30 s after).[/note]",
         "",
-        "@hold_core"
+        "{a}{l}DONE WHEN{r} you have held the core and the chart before the core goes into escrow (that task latches), and then 1,000 L of Raw Hyperdense Stellar Plasma."
       ]
     },
     {
@@ -389,14 +422,18 @@
       "prereqs": [48115, 48113],
       "tasks": [ { "type": "fluid", "fluids": ["1000x fluid:btshyperdensestellarmixture"] } ],
       "desc": [
-        "Raw Hyperdense Stellar Plasma is too loose to seed a neutron star, so densify it. The Kerr Compressor Module runs {b}Kerr Densification{r}: RHSP + molten SpaceTime + bolts {to} {b}Hyperdense Stellar Mixture{r}. It runs only on a {b}Kerr T2 holding at least 128 SM{r}.",
+        "Raw Hyperdense Stellar Plasma is too loose to seed a neutron star, so finish it inside a black hole. The Kerr Compressor Module runs {b}Kerr Densification{r}, only on a {b}Kerr T2 holding at least 128 SM{r}:",
+        "- {b}10,000 L Raw Hyperdense Stellar Plasma + 288 L molten SpaceTime + 64 Neutronium bolts {to} 1,000 L Hyperdense Stellar Mixture{r}, 20 s at UMV, before the hole's bonus.",
         "",
-        "HSM is used for:",
-        "- seeding the Core Collapse (5,000 L);",
-        "- feeding the neutron star;",
-        "- the Galactic Upgrade Core (32,000 L);",
-        "- Galactic Shell Plating;",
-        "- the Neutron Star chart."
+        "Hyperdense Stellar Mixture (HSM) is used for:",
+        "- the Core Collapse's neutron seed (5,000 L);",
+        "- feeding the neutron star (0-1.5 L/s);",
+        "- the Galactic Upgrade Core (32,000 L, as its condensate);",
+        "- Galactic Shell Plating and Star Chart: Neutron Star.",
+        "",
+        "[note]Raise the KEE's setpoint to 128 SM or more before you start: below that the module refuses the recipe.[/note]",
+        "",
+        "{a}{l}DONE WHEN{r} you hold 1,000 L of Hyperdense Stellar Mixture."
       ]
     },
     {
@@ -408,33 +445,34 @@
         { "type": "optional_retrieval", "bom": "eye_arms" }
       ],
       "desc": [
-        "Fast-forward a red giant into a {b}neutron star{r}, and stop it going supernova.",
+        "Fast-forward a red giant into a {b}neutron star{r}, and stop it going supernova. The Core Collapse is the hardest event yet: read all of this before you start.",
         "",
         "{e}{l}BEFORE{r}",
         "- the T3 milestones;",
-        "- the {b}Galactic Upgrade Core{r} in escrow;",
-        "- the {b}spiral arms{r} (stack 4: {bom:eye_arms:T} Galactic Shell Plating);",
-        "- compression 4;",
+        "- the {b}Galactic Upgrade Core{r} in escrow (Condensate Assembling, 32,000 L Entangled Hyperdense Stellar Mixture);",
+        "- the {b}spiral arms{r} built (stack 4: {bom:eye_arms:T} Galactic Shell Plating) and compression at tier 4;",
         "- Arcturus lit and Stable;",
-        "- {b}5,000 L HSM{r} buffered.",
-        "Swap in {b}Star Chart: Neutron Star{r}.",
+        "- buffered: {b}5,000 L HSM{r} (the seed), up to {b}90,000 L molten SpaceTime{r} (the shock absorber) and the neutron star's first cycle;",
+        "- {b}94,000 L Tachyon Rich Temporal Fluid{r} on hand for the Field sockets.",
+        "Then swap in {b}Star Chart: Neutron Star{r}.",
         "",
-        "{e}{l}1 FAST-FORWARD{r} (about 16 min). Dose {b}Tachyon Rich Temporal Fluid{r} into the Field sockets, up to 100 L/s. The core climbs from 0.50 to {b}1.44 M{sun}{r}, which takes 94,000 L. The envelope swells as it goes, and your T3 rig must hold the field through it.",
+        "{e}{l}1 FAST-FORWARD{r} (about 16 min) Dose Tachyon Rich Temporal Fluid into the Field sockets, up to 100 L/s. The core climbs from 0.50 to {b}1.44 M{sun}{r} over 94,000 L. The envelope swells P and {theta} as it goes, and your T3 rig must hold.",
         "",
-        "{e}{l}2 BOUNCE{r} The HSM becomes the neutron seed, and the shock hits P and {theta} for {b}+150{r}.",
-        "- Every {b}1,000 L of molten SpaceTime{r} in the buffers at that moment cancels 1 point, up to 90,000 L.",
-        "- Any gauge above +100 means {c}{l}SUPERNOVA{r}: Arcturus, the Time fluid, the HSM and the SpaceTime are lost. The core stays in escrow.",
+        "{e}{l}2 BOUNCE{r} The HSM becomes the neutron seed, Integrity drops 20, and a shock of {b}+150{r} hits P and {theta}.",
+        "- Every {b}1,000 L molten SpaceTime{r} buffered cancels 1 point, up to 90: the shock is then +60.",
+        "- Any gauge above +100 after the shock is {c}{l}SUPERNOVA{r}: Arcturus, the Time fluid, the HSM and the SpaceTime are lost. The core stays in escrow.",
+        "So bring P and {theta} {l}below +40{r} before the bounce. The scanner predicts both.",
         "",
-        "{e}{l}3 SETTLE{r} Hold Stable for 60 seconds within 180. T4 is then yours.",
+        "{e}{l}3 SETTLE{r} The neutron star lights at P 0, {theta} +60, {omega} +30. Get it Stable for 60 seconds in a row within 180 s (Super Coolant pulls {theta} down). T4 is then yours.",
         "",
         "{e}{l}THE NEUTRON STAR{r}",
-        "- It has no fusion, so it needs no H or He. {b}144 L molten SpaceTime{r} a cycle holds it.",
-        "- Set the {b}HSM feed{r} in the GUI (0-1.5 L/s, default 0.694). {b}White Dwarf Matter = 3.6864 L per L of HSM fed.{r}",
-        "- Every 0.1 L/s of feed pushes P, {theta} and the spin {b}{omega}{r} up. {omega} runs away by itself, and {b}glitches{r} kick it +20 without warning.",
-        "- New trims: Space (P {minus}2), SpaceTime (P +2), Molten Purified Tengam 36 L ({omega} {minus}4).",
-        "- If it breaches, it collapses into a black hole. Relight Arcturus and rerun the collapse; no core is needed the second time.",
+        "- No fusion, so no Hydrogen or Helium: {b}144 L molten SpaceTime{r} a cycle and 9.66 {times} 10{u+00b9}{sq} EU (about 4 A MAX) hold it.",
+        "- Set the {b}HSM feed{r} in the GUI (0-1.5 L/s, default 0.694). {b}White Dwarf Matter = 3.6864 L per L of HSM fed{r}, about 9,200 L an hour at the default.",
+        "- The feed pushes P, {theta} and the spin {b}{omega}{r} up. {omega} runs away by itself, and {b}glitches{r} kick it +20 every 15-30 minutes {l}without warning{r}.",
+        "- Trims, up to 10 units a second: Spatially Enlarged Fluid (100 L) P {minus}2; molten SpaceTime (100 L) P +2; Super Coolant (100 L) {theta} {minus}3; molten Purified Tengam (36 L, up to 5) {theta} +1, {omega} {minus}4.",
+        "- If it breaches, it collapses into a black hole. With T4 unlocked, a dark Eye holding the Neutron Star chart relights Arcturus from a charge and reruns the Core Collapse by itself, with no core. Keep the Time fluid, HSM and SpaceTime stocked for it.",
         "",
-        "[note]The Deep Dark planet runs at T4.[/note]",
+        "[note]The Deep Dark planet runs at T4, and one Deep Dark run is a T4 {to} T5 milestone.[/note]",
         "",
         "@hold_core"
       ]
@@ -445,7 +483,11 @@
       "prereqs": ["E11"],
       "tasks": [ { "type": "retrieval", "items": ["1x mte:28130"] } ],
       "desc": [
-        "A mega mixer: five stirring bands around a plasma vortex. It turns Raw Star Matter into {b}Excited Stellar Plasma at 100 : 1{r}, a bulk ESPM route alongside Sirius A. It does {l}not{r} skip T2; the ladder is strict."
+        "A mega mixer: a glass mixing column wrapped in a shear helix, inside a spiral volute with six feed vessels. It will turn Raw Stellar Plasma into {b}Excited Stellar Plasma Mixture at 100 : 1{r} (100,000 L {to} 1,000 L in 240 s, about 1 A UMV), with no gases, no ignition and no stability field to watch.",
+        "",
+        "Its job: once your Eye moves on to Arcturus it cannot keep Sirius A lit, yet Arcturus burns 1,250 L of the mixture a cycle. About five Homogenies keep a T3 Eye fed without a second Eye.",
+        "",
+        "It does {l}not{r} skip T2: Eye T2 is still required."
       ]
     },
     {
@@ -454,13 +496,16 @@
       "prereqs": ["E12"],
       "tasks": [ { "type": "fluid", "fluids": ["1000x fluid:temporalfluid"] } ],
       "desc": [
-        "{b}Time Dilation{r} generators above the star's tier open the {b}time dial m{r}, up to {b}1 + 0.25 {times} (lowest Time Dilation tier {minus} star tier){r}.",
-        "- Each +0.25 costs {b}10 {times} 2^(N{minus}1) L/s of Tachyon Rich Temporal Fluid{r}, from the Field sockets.",
-        "- m speeds up everything the star does (upkeep, product, EU, drift, noise and events) but {l}not your trims{r}. A faster star is harder to hold.",
+        "{b}Time Dilation{r} generators above the star's tier open the {b}time dial m{r}: a speed-up for the whole star.",
+        "- The cap is {b}1 + 0.25 {times} (lowest Time Dilation tier {minus} star tier){r}, at most {times}3.00.",
+        "- Each +0.25 costs {b}10 {times} 2^(N{minus}1) L/s of Tachyon Rich Temporal Fluid{r} (N = the star's tier), drawn from the Field sockets. Paid short, the dial runs slower.",
+        "- m speeds up everything the star does (upkeep, product, EU, drift, noise and events) but {l}not{r} your trims. A faster star is harder to hold.",
         "",
-        "{b}Stabilisation{r} generators calm the star. Noise and event size are {times} (1 {minus} 0.05 {times} (lowest tier {minus} 1)), down to {times}0.60 at tier 9.",
+        "{b}Stabilisation{r} generators calm the star: noise and event size {times} (1 {minus} 0.05 {times} (lowest tier {minus} 1)), down to {times}0.60 at tier 9.",
         "",
-        "Set the dial with the GUI's {pm} buttons. It is locked at {times}1 during transitions."
+        "Set the dial with the GUI's {minus} / + buttons (right-click: four steps). It is held at {times}1 during transitions, and milestone Resonant time counts real seconds, not dial seconds.",
+        "",
+        "{a}{l}DONE WHEN{r} you hold 1,000 L of Tachyon Rich Temporal Fluid."
       ]
     },
     {
@@ -472,28 +517,29 @@
         { "type": "optional_retrieval", "bom": "eye_arms2" }
       ],
       "desc": [
-        "A white dwarf, {b}cooled into a black dwarf{r}.",
+        "A white dwarf, {b}cooled into a black dwarf{r}. Sirius B burns nothing and has no upkeep: it runs in {b}batches{r}, and your job is to follow a cooling curve.",
         "",
-        "{e}{l}UNLOCK{r} The T4 milestones, then:",
+        "{e}{l}UNLOCK{r} The T4 milestones: {b}147,456 L White Dwarf Matter{r} from cycles never worse than Stable, {b}4 h Resonant{r}, and {b}one Deep Dark run{r} on this Eye. Then:",
         "- put the {b}Subspace Cooling Core{r} in escrow;",
-        "- build the {b}second arms{r} (stack 5: {bom:eye_arms2:T} Galactic Shell Plating);",
-        "- bring compression to 5;",
-        "- put {b}Star Chart: Sirius B{r} in the slot. The neutron star goes out, because there is one star per Eye.",
-        "{b}First Cooling{r} is one batch with a mean yield of at least 0.9 and no fracture.",
+        "- build the {b}second arms{r} (stack 5: {bom:eye_arms2:T} Galactic Shell Plating) and bring compression to tier 5;",
+        "- put {b}Star Chart: Sirius B{r} in the slot. The neutron star goes out: one star per Eye.",
+        "{b}First Cooling{r} is your first batch. A mean yield of at least 0.9 with no fracture unlocks T5; fall short and the core stays for another try. The batch's Black Dwarf Matter comes out either way.",
         "",
-        "{e}{l}BATCHES{r} Each batch takes {b}18,432 L WDM{r} and assembles a white dwarf at {theta} +90. Over {b}2 h{r} ({div} the dial) the cooling setpoint ramps from {b}+90 to {minus}90{r}, and you keep {theta} on the curve: at T5 the gauge reads your error from the setpoint. The output is {b}4,608 L Black Dwarf Matter {times} the batch's mean yield{r}.",
+        "{e}{l}BATCHES{r} Each batch takes {b}18,432 L White Dwarf Matter{r} and assembles a white dwarf at {theta} +90. Over {b}2 h{r} ({div} the dial) the cooling setpoint ramps from {b}+90 to {minus}90{r}; at T5 the {theta} gauge reads your error from that setpoint. Output: {b}4,608 L Black Dwarf Matter {times} the batch's mean yield{r}. EU: 3.87 {times} 10{sup13} a cycle (about 16 A MAX).",
         "",
-        "{e}{l}SUBSPACE COOLING{r}",
-        "- Dimensionally Shifted Superfluid (100 L) is the heat sink: {theta} {minus}1, P {minus}0.5.",
-        "- Raw Star Matter (1,000 L) reheats an overshoot: {theta} +3.",
-        "- Helium (1,000 L) is accretion pressure: P +2.",
-        "Expect about {b}100,000 L DSSF a batch{r}. Decay heat pushes {theta} up the whole way, and crystallisation drags P down.",
+        "{e}{l}SUBSPACE COOLING{r} Trims:",
+        "- Dimensionally Shifted Superfluid (100 L, up to 10 a second): {theta} {minus}1, P {minus}0.5. The heat sink.",
+        "- Raw Stellar Plasma (1,000 L, up to 5): {theta} +3, for an overshoot.",
+        "- Helium (1,000 L, up to 10): P +2, accretion pressure.",
+        "Decay heat pushes {theta} up the whole way and crystallisation drags P down. Expect about {b}100,000 L of Superfluid a batch{r}.",
         "",
         "{e}{l}THE PLATEAU{r} While the setpoint crosses {minus}10..+10 (about 800 s), latent heat adds {b}{theta} +0.15 a second{r}. The event channel warns 15 s ahead.",
         "",
-        "[warn]{l}Fracture{r} (Breach or Integrity 0): the batch ends and yields 25 % {times} the fraction done.[/warn]",
+        "{e}{l}AUTOMATE{r} {theta} reads the error from the curve, so one sensor pair on {theta} drives the Superfluid valve all batch long; a pair on P drives Helium. Keep White Dwarf Matter stocked for the next charge.",
         "",
-        "[note]One T4 Eye on the default feed makes exactly enough WDM for one T5 Eye.[/note]",
+        "[warn]{l}Fracture{r} (Breach or Integrity 0) ends the batch at 25 % of its output {times} the fraction done.[/warn]",
+        "",
+        "[note]One T4 Eye on the default feed makes about enough White Dwarf Matter for one T5 Eye.[/note]",
         "",
         "@hold_core"
       ]
@@ -508,27 +554,33 @@
         { "type": "optional_retrieval", "bom": "eye_rim" }
       ],
       "desc": [
-        "{e}{l}UNLOCK{r} The T5 milestones, then:",
+        "SGR 1806-20 is a {b}magnetar{r}, the most magnetic object known. White and black dwarf matter merge into it, and its field has to be untwisted for as long as it lives.",
+        "",
+        "{e}{l}UNLOCK{r} The T5 milestone: {b}6 batches{r} at mean yield 0.9 or better with no fracture. Then:",
         "- put the {b}Magnetar Seed Core{r} in escrow;",
-        "- build the {b}galactic rim{r} (stack 6: {bom:eye_rim:T} Galactic Shell Plating);",
-        "- bring compression to 6, with {b}no star lit{r};",
-        "- put {b}Star Chart: SGR 1806-20{r} in the slot;",
-        "- buffer {b}18,432 L WDM + 4,608 L BDM + 100,000 L Agent{r}.",
+        "- build the {b}galactic rim{r} (stack 6: {bom:eye_rim:T} Galactic Shell Plating) and bring compression to tier 6, with {b}no star lit{r};",
+        "- buffer the merger charge: {b}18,432 L White Dwarf Matter + 4,608 L Black Dwarf Matter + 100,000 L Antipolarization Agent{r};",
+        "- put {b}Star Chart: SGR 1806-20{r} in the slot.",
         "",
-        "{e}{l}MAGNETAR MERGER{r} White and black dwarf matter combine into a magnetar. The dynamo winds the polarity {b}{Pi}{r} up by itself.",
-        "1. Hold {Pi} inside {b}+60..+90 for 120 s{r} to imprint the field. You have 600 s.",
-        "2. Then bring {Pi} back inside {b}{pm}40 within 60 s{r}.",
-        "A failure loses the charge; the core is kept.",
+        "{e}{l}MAGNETAR MERGER{r} The dynamo winds the polarity {b}{Pi}{r} up by itself (+0.5 a second); no flares yet. Agent doses pull {Pi} back toward 0.",
+        "1. {b}Imprint:{r} hold {Pi} inside +60..+90 for 120 s in a row, within 600 s.",
+        "2. {b}Release:{r} bring {Pi} back inside {pm}40 within 60 s.",
+        "A failure spends the charge and keeps the core.",
         "",
-        "{e}{l}RUN{r} {b}3,000 L Antipolarization Agent{r} a cycle is its constant feed, and the same Agent charges the {b}flare shield A{r}. It makes {b}15 L Magnetar Matter{r} a cycle.",
-        "- {Pi} runs away by itself.",
-        "- {b}Giant flares{r} come every 60-120 s, announced {b}15 s ahead with their sign{r}.",
-        "- Pre-charge the shield on the warning (100 L of Agent = A +4, at most 5 a second).",
+        "{e}{l}RUN{r} Each cycle: {b}3,000 L Antipolarization Agent{r} (the constant feed) and 1.55 {times} 10{u+00b9}{u+2074} EU (about 64 A MAX), for {b}15 L Magnetar Matter{r}.",
+        "- The merger charge also fills a 60-cycle {b}dwarf-matter reserve{r}. At 10 cycles left the Eye tops it up from the buffers with {b}1,800 L White Dwarf + 450 L Black Dwarf Matter{r}; an empty reserve starves the magnetar. Keep both stocked.",
+        "- The Eye gives back {b}12 Purified Tengam dust per 1,000 L{r} of Agent burned, through the ME output bus.",
+        "",
+        "{e}{l}THE FIELD{r} Four gauges: P, {theta}, {omega} and {Pi}, and {Pi} runs away by itself.",
+        "- The Agent feed charges the {b}flare shield A{r} (it settles near 40 with no trim). The shield soaks up to 25 {Pi} a second.",
+        "- {b}Giant flares{r} come every 60-120 s, warned {b}15 s ahead with their sign{r}, and push {Pi} {pm}25 a second for 4 s.",
+        "- Pre-charge the shield on the warning: Agent in a Field socket, 100 L = A +4 ({theta} +0.5), up to 5 a second.",
+        "- The other trims are the neutron star's: Spatially Enlarged Fluid, molten SpaceTime, Super Coolant and molten Purified Tengam.",
         "Lose the magnetar and a re-merge needs the charge again, but not the core.",
         "",
-        "[note]Magnetar Matter is Eye T7's upkeep and the base of the T9 pellets (planned).[/note]",
+        "[note]Magnetar Matter is the planned upkeep of Eye T7 and a base of the T9 pellets, both coming in a later update.[/note]",
         "",
-        "@hold_core"
+        "{a}{l}DONE WHEN{r} you have held the core and the chart before the core goes into escrow (that task latches), and then 1,000 L of Magnetar Matter."
       ]
     },
     {
@@ -537,7 +589,9 @@
       "prereqs": ["E25"],
       "tasks": [ { "type": "tbd", "what": "the Homogeny T2 upgrade item" } ],
       "desc": [
-        "Four times the T1 mixer, and a new mix: {b}Degenerate Stellar Mixture{r} (white + black dwarf matter)."
+        "The Homogeny's second tier: a middle stirring ring and three more vessels around the same controller. It will mix at {b}4 parallels{r} (about one UXV amp) and add a new mix, {b}Degenerate Stellar Mixture{r}: 72 L White Dwarf Matter + 72 L Black Dwarf Matter + 1,000 L Excited Stellar Plasma Mixture {to} 1,000 L in 60 s.",
+        "",
+        "The upgrade: mix 100,000 L of the T1 product, then install the Homogeny Tier II Core in a 10-minute run. Degenerate Stellar Mixture is planned for the T9 pellets, the Eternity Shell Casing and the Reality machines."
       ]
     },
     {
@@ -554,15 +608,20 @@
         "{e}{l}CHAIN{r}",
         "1. Raw Tengam {to} Electromagnetic Separator {to} Purified Tengam {to} Polarizer {to} {b}Attuned Tengam dust{r}.",
         "2. {b}Large Chemical Reactor{r} (UXV, 20 s): 16 Attuned Tengam dust + 100 L Semi-Stable Antimatter + 144 L molten SpaceTime {to} {b}1,000 L Positronic Tengam Slurry{r}.",
-        "3. {b}Vacuum Freezer{r} (UXV, 10 s): slurry + 2,000 L Super Coolant {to} {b}1,000 L Antipolarization Agent{r}.",
+        "3. {b}Vacuum Freezer{r} (UXV, 10 s): 1,000 L slurry + 2,000 L Super Coolant {to} {b}1,000 L Antipolarization Agent{r}.",
+        "Semi-Stable Antimatter comes from the Antimatter Forge (SSASS).",
         "",
         "{e}{l}USE{r}",
-        "- the magnetar's {b}constant feed{r}, 3,000 L a cycle;",
-        "- the merger charge, 100,000 L;",
-        "- the Magnetar Seed Core, 64,000 L;",
+        "- the magnetar's {b}constant feed{r}, 3,000 L a cycle (50 L/s);",
+        "- the Magnetar Merger charge, 100,000 L;",
+        "- the Magnetar Seed Core, 64,000 L (as its condensate);",
         "- the flare shield trim.",
         "",
-        "[note]The Eye returns {l}12 Purified Tengam dust per 1,000 L{r} of Agent consumed, so antimatter is the real cost.[/note]"
+        "{e}{l}AUTOMATE{r} One reactor at UXV makes 50 L/s, exactly the feed. Run two, chained to the freezer through ME, to cover the shield trims and the next merger charge.",
+        "",
+        "[note]The Eye returns {l}12 Purified Tengam dust per 1,000 L{r} of Agent burned (75 % of the Tengam), so antimatter is the real cost.[/note]",
+        "",
+        "{a}{l}DONE WHEN{r} you hold 1,000 L of Antipolarization Agent."
       ]
     },
     {
@@ -571,7 +630,10 @@
       "prereqs": [48141, 48113],
       "tasks": [ { "type": "retrieval", "items": ["1x mte:28120"] } ],
       "desc": [
-        "Its own machine with its own black hole, seeded once from a Kerr T2 (a {b}Quasar Seed{r} made on the Compressor Module with a hole of at least 256 SM). Feed it gas to build an {b}accretion disc{r}. Hold its Eddington balance E, and let its flux {Phi} charge and {b}erupt{r}. The disc spins and grows the hole and drives {b}two jets{r}. Each jet goes to the Eye (stabilisation) or to a crown (power)."
+        "The Quasar Engine will be its own machine with its own black hole, seeded once from a Kerr T2 (a {b}Quasar Seed{r} made on the Compressor Module with a hole of at least 256 SM). It runs no recipes.",
+        "- Feed it gas to build an {b}accretion disc{r}. Hold its Eddington balance {b}E{r} in the zones you know from the Eye, and let its flux {Phi} charge and {b}erupt{r}.",
+        "- The disc spins and grows the hole and drives {b}two jets{r}. Each jet goes to the Eye (stabilisation, from T7) or to a Burst Thermaliser Crown (power).",
+        "- A linked quasar holding your Eye steady will be the heart of the T6 {to} T7 milestone: the {b}Stability Link{r}, 30 minutes unbroken."
       ]
     },
     {
@@ -580,7 +642,11 @@
       "prereqs": [48144],
       "tasks": [ { "type": "retrieval", "items": ["2x mte:28121", "1x mte:28122", "1x mte:28123"] } ],
       "desc": [
-        "Carries bursts with no loss. A {b}Wormhole Mouth{r} pair (linked by data stick, any distance), {b}Mirrors{r} to turn them, and {b}Junctions{r} to split or combine them. Upkeep is molten SpaceTime, or Ergomatter after T7. {b}GRB Receptor Ports{r} on the Eye's rail take the stream."
+        "The Conduit will carry the quasar's bursts anywhere, with no loss:",
+        "- a {b}Wormhole Mouth{r} pair, linked with a data stick, at any distance, other dimensions included;",
+        "- {b}Mirrors{r} to turn a stream;",
+        "- {b}Junctions{r} to split a stream (steerable by redstone) or combine up to three.",
+        "Upkeep is molten SpaceTime before T7 and Ergomatter after. {b}GRB Receptor Ports{r} take the stream: on the Eye's rail, and on the Kerr, the Homogeny and Reality Diffraction, which a quasar can stabilise too."
       ]
     },
     {
@@ -592,7 +658,12 @@
         { "type": "tbd", "what": "an Ergomatter fluid task" }
       ],
       "desc": [
-        "The first galaxy, and the first tier the quasar holds together. The {b}Magnetar Collapse{r} overfeeds the magnetar past its mass limit, and bursts cancel the shock. The new verb is {b}aim{r}: split the bursts between the high and low banks of the tilted rail. Upkeep is 7.5 L Magnetar Matter a cycle plus 1.5 Bu/t; output is 600 L Ergomatter a cycle."
+        "Triangulum: the first galaxy, and the first tier the quasar holds together. The new verb is {b}aim{r}: split the bursts between the high and low banks of the Eye's tilted rail.",
+        "",
+        "{e}{l}THE PLAN{r}",
+        "- Unlock: the {b}Stability Link{r} (a linked quasar delivering at least 1.5 Bu/t to the rail for 30 minutes unbroken) and item milestones on the magnetar, then the {b}Intergalactic Upgrade Core{r}, then the {b}Magnetar Collapse{r}: the magnetar is overfed past its mass limit, and bursts cancel the shock as SpaceTime did at T4.",
+        "- Run: 7.5 L Magnetar Matter a cycle plus 1.5 Bu/t of bursts, for {b}600 L Ergomatter{r} a cycle.",
+        "- A planets mode will run 3 planets at once."
       ]
     },
     {
@@ -601,7 +672,7 @@
       "prereqs": [48146],
       "tasks": [ { "type": "tbd", "what": "an Ergomatter fluid task" } ],
       "desc": [
-        "T7's harvest: the Conduit's fuel after T7, Eye T8's feed and the Eternity loop's new input."
+        "Eye T7's harvest. It will be the Conduit's fuel after T7, Eye T8's feed, and the new input of the Eternity loop. A quasar-linked Kerr T2 will also refine it into Superdense Ergomatter, slowly, at 8 : 1."
       ]
     },
     {
@@ -610,16 +681,24 @@
       "prereqs": [48146, "E24"],
       "tasks": [ { "type": "tbd", "what": "the Supermassive Seed Core" } ],
       "desc": [
-        "Sgr A{ast}. The {b}Galactic Merger{r} brings three pericentre passes while the burst demand climbs to 6 Bu/t. Aim a third stream into the shard halo and catch tidal disruption events. It is fed 0-10 L/s Ergomatter and makes Supermassive Ergomatter. {b}Required{r}: the ladder is strict."
+        "The Milky Way. Triangulum merges into a larger galaxy, and you aim a third burst stream into the shard halo and catch the satellite crossings.",
+        "",
+        "{e}{l}THE PLAN{r}",
+        "- Unlock: the {b}Heavy Link{r} (6 Bu/t into the Eye for 30 minutes, at least half of it on the halo) and item milestones on Triangulum, then the {b}Supermassive Seed Core{r}, then the {b}Galactic Merger{r}: three pericentre passes while the burst demand climbs from 1.5 to 6 Bu/t.",
+        "- Run: an Ergomatter feed of 0-10 L/s, for {b}Superdense Ergomatter{r} at 1 : 1.",
+        "- A planets mode will run 6 planets at once.",
+        "T8 is {b}required{r}: the ladder is strict."
       ]
     },
     {
-      "low": 48149, "key": "supermassive_ergomatter", "chapter": "uxv", "x": 840, "y": 252, "size": 48, "main": true,
-      "name": "{4}{l}{n}Supermassive Ergomatter", "icon": "eternalsingularity:combined_singularity:10", "needs": ["eyeT7T8"],
+      "low": 48149, "key": "supermassive_ergomatter", "chapter": "uxv", "stem": "SupermassiveErgo", "x": 840, "y": 252, "size": 48, "main": true,
+      "name": "{4}{l}{n}Superdense Ergomatter", "icon": "eternalsingularity:combined_singularity:10", "needs": ["eyeT7T8"],
       "prereqs": [48148],
-      "tasks": [ { "type": "tbd", "what": "a Supermassive Ergomatter fluid task" } ],
+      "tasks": [ { "type": "tbd", "what": "a Superdense Ergomatter fluid task" } ],
       "desc": [
-        "Galaxy residue, the T9 pellets' input."
+        "Ergomatter, compacted. Eye T8 will make it from its Ergomatter feed at 1 : 1, about nine times better than refining it on the Kerr.",
+        "",
+        "It is planned for the T9 pellets, the Homogeny's Entanglement Medium and Reality Diffraction's Positive Mass anchor."
       ]
     },
     {
@@ -628,7 +707,10 @@
       "prereqs": [48144],
       "tasks": [ { "type": "retrieval", "items": ["1x mte:28124"] } ],
       "desc": [
-        "Sits on a jet. 1 burst unit a tick {to} 10{sup13} EU/t to wireless (1 %). Mk I / II / III caps are 32 / 512 / 8,192 Bu/t."
+        "The quasar's power plant. It sits on a jet and turns bursts into EU: {b}1 burst unit a tick {to} 10{sup13} EU/t{r}, into your wireless network.",
+        "- One controller; build the bigger crown around it for Mk I / II / III, capped at 32 / 512 / 8,192 Bu/t.",
+        "- A second crown stacked on the first takes the overflow.",
+        "- A good 1,024 SM quasar is worth about 5 to 10 {times} 10{u+00b9}{u+2075} EU/t, depending on how well its disc is held."
       ]
     },
     {
@@ -637,7 +719,7 @@
       "prereqs": [48141],
       "tasks": [ { "type": "tbd", "what": "the glass block" } ],
       "desc": [
-        "The UXV glass tier, from Magnetar Matter."
+        "The UXV glass tier for multiblocks that check their glass, made with Magnetar Matter. It is part of the planned swap that takes Universium out of UXV parts."
       ]
     },
     {
@@ -646,7 +728,7 @@
       "prereqs": [48141],
       "tasks": [ { "type": "tbd", "what": "the wire" } ],
       "desc": [
-        "The pack's superconductors stop at UMV; this one is drawn from Magnetar Matter."
+        "The pack's superconductors stop at UMV. This UXV one will be drawn from Magnetar Matter, with Antipolarization Agent wherever it is needed before Eye T7. It is part of the planned swap that takes Universium out of UXV parts."
       ]
     },
     {
@@ -655,7 +737,9 @@
       "prereqs": ["E29"],
       "tasks": [ { "type": "retrieval", "items": ["1x mte:15238", "1x mte:15138"] } ],
       "desc": [
-        "The UXV laser source and target hatches already exist. Put them on anything that drinks more than an energy hatch can give.",
+        "The UXV laser source and target hatches already exist in the pack. Put them on anything that drinks more than an energy hatch can give.",
+        "",
+        "[note]On a Kerr module the energy hatch's voltage sets the parallels: a UXV laser makes them 8 {times} 13 {times} {lfloor}{sqrt}M{rfloor}.[/note]",
         "",
         "{a}{l}DONE WHEN{r} you hold a UXV 256A/t Laser Source Hatch and a matching Target Hatch."
       ]
@@ -666,7 +750,12 @@
       "prereqs": [48148],
       "tasks": [ { "type": "checkbox" } ],
       "desc": [
-        "The last voltage tier. MAX parts are built from {b}White Hole Matter{r}, so they come before T10. {b}Eye T10{r} makes Universium, the only source in the game, and Universium opens {6}The Endgame{r}.",
+        "The last voltage tier. In Beyond the Stars, MAX is built from what the Eye makes at T9 and T10, and that part of the mod is {b}coming in a later update{r}: our quests in this chapter are checkboxes until then. The pack's own MAX quests here work as before.",
+        "",
+        "{e}{l}THE PLAN{r}",
+        "- Eye T9 makes {b}White Hole Matter{r}, and every MAX part is built from it, so MAX parts arrive before T10.",
+        "- The Homogeny T3 and the two Reality machines make the {b}Universal Upgrade Core{r}.",
+        "- {b}Eye T10{r} makes Universium, the only source in the game, and Universium opens {6}The Endgame{r}.",
         "",
         "{a}{l}DONE WHEN{r} you tick the box: this one is the chapter's introduction."
       ]
@@ -677,7 +766,7 @@
       "prereqs": [48180, 48149],
       "tasks": [ { "type": "tbd", "what": "the pellets" } ],
       "desc": [
-        "Gated pellets made from T6, T7 and T8 matter, fired for a higher-GeV beam that powers and stabilises T9."
+        "Pellets made from T6, T7 and T8 matter (Magnetar Matter, Ergomatter and Superdense Ergomatter, with the Homogeny's Degenerate Stellar Mixture), fired as a higher-GeV beam that powers and stabilises Eye T9."
       ]
     },
     {
@@ -686,7 +775,7 @@
       "prereqs": [48180, 48181, "E37"],
       "tasks": [ { "type": "tbd", "what": "the T9 core and chart" } ],
       "desc": [
-        "The largest galaxies; output {b}White Hole Matter{r}."
+        "Sgr A{ast}, the supermassive black hole at a galaxy's heart, with tidal disruption events to catch. Output: {b}White Hole Matter{r}. A planets mode will run 9 planets at once."
       ]
     },
     {
@@ -695,7 +784,7 @@
       "prereqs": [48182],
       "tasks": [ { "type": "tbd", "what": "a White Hole Matter fluid task" } ],
       "desc": [
-        "Eye T9's harvest, and what every MAX part is built from."
+        "Eye T9's harvest, and what every MAX part will be built from."
       ]
     },
     {
@@ -704,7 +793,7 @@
       "prereqs": [48183],
       "tasks": [ { "type": "tbd", "what": "the Homogeny T3 upgrade item" } ],
       "desc": [
-        "Sixteen times the T1 mixer; {b}Entanglement Medium{r} (White Hole Matter + Supermassive Ergomatter)."
+        "The Homogeny's third tier: a tilted outer ring and its tail. It will mix at {b}16 parallels{r} (about one MAX amp) and add the last mix, {b}Entanglement Medium{r}: White Hole Matter + Superdense Ergomatter + Degenerate Stellar Mixture. Reality Diffraction splits it."
       ]
     },
     {
@@ -713,7 +802,9 @@
       "prereqs": [48182, 48184],
       "tasks": [ { "type": "retrieval", "items": ["1x mte:28131"] } ],
       "desc": [
-        "Entangles its inputs across six regions outside reality."
+        "A stack of glass drums with six Region Blades. Each run will split Entanglement Medium into six {b}Entangled Region{r} condensates (Hyperspace, Subspace, Forward Time, Reverse Time, Positive Mass, Negative Mass) and push them into a Bose-Einstein Condensate network: outside reality.",
+        "- Each region needs its own anchor fluid in its own socket, or its sixth is lost.",
+        "- Give the Reality machines their own BEC network: six extra condensates would clog every other Condensate Assembler."
       ]
     },
     {
@@ -722,7 +813,7 @@
       "prereqs": [48185],
       "tasks": [ { "type": "retrieval", "items": ["1x mte:28132"] } ],
       "desc": [
-        "Grabs the entangled inputs and reassembles them. With Diffraction, this is the jump to T10."
+        "A tall vase of a machine. It will draw the six regions back out of the BEC network in lockstep and reassemble them, borrowing a linked Condensate Assembler's nanites. Its first job is the {b}Universal Upgrade Core{r}, which takes the Eye from T9 to T10."
       ]
     },
     {
@@ -731,7 +822,7 @@
       "prereqs": ["E37"],
       "tasks": [ { "type": "tbd", "what": "the tenth-tier compression generator" } ],
       "desc": [
-        "Gallifreyan is TecTech's last generator. Eye T10 needs a tenth tier."
+        "Gallifreyan is TecTech's last Spacetime Compression Field Generator. The gate is 1 : 1, so Eye T10 needs a new, tenth tier."
       ]
     },
     {
@@ -743,7 +834,7 @@
         { "type": "fluid", "fluids": ["144x fluid:molten.universium"] }
       ],
       "desc": [
-        "A jump as big as the T4 Nano Forge. Output: {b}Universium{r}, and only here."
+        "The Universe. A jump as big as the Nano Forge's T4. Output: {b}Universium{r}, and only here. It opens {6}The Endgame{r}."
       ]
     },
     {
@@ -752,7 +843,7 @@
       "prereqs": [48183],
       "tasks": [ { "type": "checkbox" } ],
       "desc": [
-        "Every MAX part is built from {b}White Hole Matter{r} (D-47). The four quests below group them: components and casings, power, materials, and the battery."
+        "Every MAX part will be built from {b}White Hole Matter{r}, so MAX parts arrive before Eye T10. The four quests below group them: components and casings, power, materials, and the battery."
       ]
     },
     {
@@ -761,7 +852,7 @@
       "prereqs": [48189],
       "tasks": [ { "type": "tbd", "what": "the nine MAX components, the MAX CoAL casing and the MAX machine casing" } ],
       "desc": [
-        "The nine MAX components (motor, pump, conveyor, piston, robot arm, emitter, sensor, field generator and the rest of the set), the MAX CoAL casing and the MAX machine casing. Built from White Hole Matter (D-47)."
+        "The MAX tier of GT's component set (motor, pump, conveyor, piston, robot arm, emitter, sensor, field generator and the rest), the MAX CoAL casing and the MAX machine casing, all from White Hole Matter."
       ]
     },
     {
@@ -770,7 +861,7 @@
       "prereqs": [48189],
       "tasks": [ { "type": "tbd", "what": "the MAX energy and dynamo hatches, laser source and target, wireless hatch" } ],
       "desc": [
-        "The MAX energy and dynamo hatches, the MAX laser source and target, and the MAX wireless hatch. Built from White Hole Matter (D-47)."
+        "The MAX energy and dynamo hatches, the MAX laser source and target hatches, and the MAX wireless hatch, all from White Hole Matter."
       ]
     },
     {
@@ -779,7 +870,7 @@
       "prereqs": [48189],
       "tasks": [ { "type": "tbd", "what": "the MAX superconductor, White Hole heating coil, glass and frame" } ],
       "desc": [
-        "The MAX superconductor, the White Hole heating coil, White Hole glass and the White Hole frame. Built from White Hole Matter (D-47)."
+        "The MAX superconductor, the White Hole heating coil, White Hole glass and the White Hole frame box, all from White Hole Matter."
       ]
     },
     {
@@ -788,7 +879,7 @@
       "prereqs": [48189],
       "tasks": [ { "type": "tbd", "what": "the MAX battery" } ],
       "desc": [
-        "The MAX battery. Built from White Hole Matter (D-47)."
+        "The MAX battery, built from White Hole Matter."
       ]
     },
     {
@@ -797,7 +888,11 @@
       "prereqs": [48188],
       "tasks": [ { "type": "checkbox" } ],
       "desc": [
-        "{b}Universium is not the end of the game.{r} It is where the pack's MHDCSM line begins, which coats Eternity parts, builds Resplendent Components and stands between you and the Stargate. The crafted Stargate has been pushed back to here, past MAX. The pack's own Stargate quests follow in their own order; {6}What, How?{r} is the end of the book.",
+        "{b}Universium is not the end of the game.{r} It is where the pack's MHDCSM line begins: MHDCSM coats Eternity parts, builds Resplendent Components, and stands between you and the Stargate.",
+        "",
+        "In Beyond the Stars the crafted Stargate waits here, past MAX. The pack's own Stargate quests follow in their own order, and {6}What, How?{r} is the end of the book.",
+        "",
+        "[note]Eye T10, the only Universium source, comes in a later update. Until then this chapter opens through the MAX checkboxes.[/note]",
         "",
         "{a}{l}DONE WHEN{r} you tick the box: this one is the chapter's introduction."
       ]
@@ -870,15 +965,17 @@
       "config": ["replaceTecTechEyeOfHarmony"],
       "ops": [
         { "op": "setDesc", "desc": [
-          "{l}First Light.{r} Sol's product, made 50,000 L a cycle {times} your yield.",
+          "{l}First Light.{r} Sol's product: 50,000 L a cycle {times} your yield. NEI calls it Condensed Raw Stellar Plasma Mixture.",
           "",
           "It goes into:",
           "- Sirius A's upkeep (25,000 L a cycle);",
           "- the {b}Stellar Mass Core{r} that unlocks T2 (256,000 L);",
           "- the {b}Kerr Density Upgrade{r} (4,000,000 L);",
+          "- Beam Band and Jet Crescent casings, star charts, and Sirius B's overshoot trim;",
           "- the Stellar Catalyst, as before.",
+          "For the Condensate Assembler it is condensed 1 : 1 into {b}Entangled Raw Star Matter{r} first (NEI: Condensate Entanglement).",
           "",
-          "[note]Your first milestone is counting already: {l}20,000,000 L{r} made on this Eye and {l}2 h Resonant{r} opens the road to T2.[/note]"
+          "[note]Your first milestone is counting already: {l}20,000,000 L{r} made on this Eye and {l}2 h Resonant{r} open the road to T2.[/note]"
         ] },
         { "op": "move", "to": "umv", "x": 648, "y": 252, "size": 48 }
       ]
@@ -903,7 +1000,7 @@
       "id": "E14", "quest": "-fvTafFJRo67bYWh46USSw==", "expectName": "T4: Advanced", "expectChapter": "umv",
       "config": ["replaceTecTechEyeOfHarmony"],
       "ops": [
-        { "op": "setDesc", "desc": ["The {d}Advanced{r} field generators, tier 4.", "", "@gate_pattern", "", "Advanced gates {b}T4{r}, and the Core Collapse will not start without it."] },
+        { "op": "setDesc", "desc": ["The {d}Advanced{r} field generators, tier 4.", "", "@gate_pattern", "", "Advanced gates {b}T4 (the neutron star){r}: the Core Collapse will not start without it."] },
         { "op": "move", "to": "umv", "x": 1068, "y": 72, "size": 24 }
       ]
     },
@@ -913,9 +1010,9 @@
       "ops": [
         { "op": "replacePrereq", "from": "E10", "to": 48117 },
         { "op": "setDesc", "desc": [
-          "The neutron star's harvest: the first matter that does not come from a living star.",
+          "The neutron star's harvest, 3.6864 L for every litre of Hyperdense Stellar Mixture fed: the first matter that does not come from a living star.",
           "",
-          "It feeds Sirius B at UXV and Reinforced Components here.",
+          "It feeds Sirius B at UXV (18,432 L a batch), the magnetar merger, and Reinforced Components here. As Entangled White Dwarf Matter it goes into the T5 and T6 cores.",
           "",
           "[note]The T4 {to} T5 milestones: {l}147,456 L{r} made from cycles that were never worse than Stable, {l}4 h Resonant{r}, and {l}one Deep Dark run{r} on this Eye.[/note]"
         ] },
@@ -950,9 +1047,9 @@
           "",
           "We hope you enjoy your stay, though be prepared for a lot of waiting.",
           "",
-          "In Beyond the Stars this is the Eye's UXV half: {b}Sirius B (T5){r} cools white dwarfs into black, {b}the magnetar (T6){r} runs on Antipolarization Agent, and then the {b}Quasar Engine{r} and the first galaxies (T7, T8). The Stargate has moved to {6}The Endgame{r}, after MAX.",
+          "In Beyond the Stars this is the Eye's second half: {b}Sirius B (T5){r} cools white dwarfs into black, and {b}the magnetar (T6){r} runs on Antipolarization Agent. The {b}Quasar Engine{r} and the first galaxies (T7, T8) come in a later update. The crafted Stargate has moved to {6}The Endgame{r}, after MAX.",
           "",
-          "[warn]{l}Universium now comes only from Eye T10 (MAX).{r} Until the UXV recipe swap ships, UXV components, the UXV CoAL and the UXV Field Generator still need MHDCSM and Universium. That includes the Field Generators the T5 and T6 cores are built from.[/warn]",
+          "[warn]{l}Universium now comes only from Eye T10 (MAX), which is not built yet.{r} Until the UXV recipe swap ships, UXV components, the UXV CoAL and the UXV Field Generator still need MHDCSM and Universium. That includes the Field Generators the T5 and T6 cores are built from.[/warn]",
           "",
           "[warn]This tier is far from complete. Expect changes.[/warn]"
         ] }
@@ -980,7 +1077,7 @@
       "config": ["replaceTecTechEyeOfHarmony"],
       "ops": [
         { "op": "move", "to": "uxv", "x": 660, "y": 72, "size": 24 },
-        { "op": "setDesc", "desc": ["The {b}Perfect{r} field generators, tier 7.", "", "@gate_pattern", "", "Perfect gates {b}T7 (Triangulum){r}, which is planned."] }
+        { "op": "setDesc", "desc": ["The {b}Perfect{r} field generators, tier 7.", "", "@gate_pattern", "", "Perfect gates {b}T7 (Triangulum){r}, which comes in a later update."] }
       ]
     },
     {
@@ -989,7 +1086,7 @@
       "ops": [
         { "op": "move", "to": "uxv", "x": 852, "y": 72, "size": 24 },
         { "op": "setPrereqs", "prereqs": ["E23"] },
-        { "op": "setDesc", "desc": ["The {9}Tipler{r} field generators, tier 8.", "", "@gate_pattern", "", "Tipler gates {b}T8 (the Milky Way){r}, which is planned.", "", "[warn]Its recipe still needs parts coated with Magnetohydrodynamically Constrained Star Matter, which waits behind Universium. Expect this to change.[/warn]"] }
+        { "op": "setDesc", "desc": ["The {9}Tipler{r} field generators, tier 8.", "", "@gate_pattern", "", "Tipler gates {b}T8 (the Milky Way){r}, which comes in a later update.", "", "[warn]Its recipe still needs parts coated with Magnetohydrodynamically Constrained Star Matter, which waits behind Universium. Expect this to change.[/warn]"] }
       ]
     },
     {
@@ -999,9 +1096,9 @@
         { "op": "move", "to": "uxv", "x": 168, "y": 252, "size": 48 },
         { "op": "setPrereqs", "prereqs": [48140] },
         { "op": "setDesc", "desc": [
-          "Sirius B's harvest, made batch by batch.",
+          "Sirius B's harvest, made batch by batch: 4,608 L {times} the batch's mean yield.",
           "",
-          "It goes into Refined Components, the Magnetar Seed Core and the merger that spawns the magnetar.",
+          "It goes into Refined Components, the Magnetar Seed Core (as its condensate), the merger that spawns the magnetar (4,608 L) and the magnetar's reserve top-ups (450 L at a time).",
           "",
           "[note]The T5 {to} T6 milestone: {l}6 batches{r} with mean yield {ge} 0.9 and no fracture (27,648 L).[/note]"
         ] }
@@ -1035,7 +1132,7 @@
       "config": ["replaceTecTechEyeOfHarmony"],
       "ops": [
         { "op": "move", "to": "max", "x": 180, "y": 72, "size": 24 },
-        { "op": "setDesc", "desc": ["The {c}G{6}a{e}l{a}l{b}i{9}f{d}r{c}e{6}y{e}a{a}n{r} field generators, tier 9: TecTech's last.", "", "@gate_pattern", "", "Gallifreyan gates {b}T9{r}. Eye T10 needs a new, tenth tier (planned)."] }
+        { "op": "setDesc", "desc": ["The {c}G{6}a{e}l{a}l{b}i{9}f{d}r{c}e{6}y{e}a{a}n{r} field generators, tier 9: TecTech's last.", "", "@gate_pattern", "", "Gallifreyan gates {b}T9{r}. Eye T10 will need a new, tenth tier. Both come in a later update."] }
       ]
     },
     { "id": "E38", "quest": "2rrP1wt_Qt2LlOqDppdjLQ==", "expectName": "MAX Circuits", "expectChapter": "egoals", "ops": [ { "op": "move", "to": "max", "x": 24, "y": 348, "size": 24 } ] },
@@ -1107,7 +1204,7 @@
         { "op": "move", "to": "end", "x": 432, "y": 156, "size": 48 },
         { "op": "addPrereq", "prereq": "E41" },
         { "op": "addPrereq", "prereq": "E42" },
-        { "op": "appendText", "text": "[note]It now also needs MHDCSM and Resplendent Components, so the Stargate cannot start before Eye T10.[/note]" }
+        { "op": "appendText", "text": "[note]In Beyond the Stars it also needs MHDCSM and Resplendent Components, so the Stargate cannot start before Eye T10.[/note]" }
       ]
     },
     { "id": "E49", "quest": "fTEQD_w8TTerm_ETSVcBmA==", "expectName": "Stargate Frame Part", "expectChapter": "egoals", "ops": [ { "op": "move", "to": "end", "x": 540, "y": 60, "size": 48 } ] },

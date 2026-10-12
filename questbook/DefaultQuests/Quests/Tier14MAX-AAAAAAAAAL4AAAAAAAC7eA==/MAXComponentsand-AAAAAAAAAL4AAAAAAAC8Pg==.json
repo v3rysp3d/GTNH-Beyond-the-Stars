@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 0,
-      "desc:8": "The nine MAX components (motor, pump, conveyor, piston, robot arm, emitter, sensor, field generator and the rest of the set), the MAX CoAL casing and the MAX machine casing. Built from White Hole Matter (D-47).\n\n[note]Planned. This machine is not in Beyond the Stars yet: tick the box to keep going. When it ships, this quest becomes a real task under the same id, and a ticked box is cleared so the real step counts.[/note]",
+      "desc:8": "The MAX tier of GT's component set (motor, pump, conveyor, piston, robot arm, emitter, sensor, field generator and the rest), the MAX CoAL casing and the MAX machine casing, all from White Hole Matter.\n\n[note]§lComing in a later update.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
