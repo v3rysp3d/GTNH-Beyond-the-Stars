@@ -31,7 +31,7 @@ errors and no crash. The boot log also confirms:
 
 | Machine | Tier | What it does | Footprint |
 |---|---|---|---|
-| **Kerr Ergosphere Engine** (replaces the Black Hole Compressor) | T1 UIV; T2 with the Kerr Density Upgrade | Module host. The **Compressor Module** arc runs GT's compressor and neutronium-compressor recipes (the BHC's). The **Extractor Module** arc runs extraction. At **T2**, DENSIFY mode turns Raw Hyperdense Stellar Plasma into Hyperdense Stellar Mixture, the Eye T4 gate. A black hole with mass trades speed for parallel. | T1 76×65×79 (~15k blocks), T2 92×65×89 (~30k) |
+| **Kerr Ergosphere Engine** (replaces the Black Hole Compressor) | T1 UIV; T2 with the Kerr Density Upgrade | Module host. The **Compressor Module** arc runs GT's compressor and neutronium-compressor recipes (the BHC's). The **Extractor Module** arc runs GT's item extractor recipes (`extractorRecipes` only). At **T2**, DENSIFY mode turns Raw Hyperdense Stellar Plasma into Hyperdense Stellar Mixture, the Eye T4 gate. A black hole with mass trades speed for parallel. | T1 76×65×79 (~15k blocks), T2 92×65×89 (~30k) |
 | **Eye of Harmony** (Beyond the Stars; replaces TecTech's) | T1-T4, one controller, bands added on | A star chart (or a TecTech dimension block) in the controller slot picks the run. T1 Sol → Raw Star Matter. T2 Sirius A (beam band) → Excited Stellar Plasma. T3 Arcturus (jet crescent) → Raw Hyperdense Stellar Plasma. T4 Sirius B (spiral arms + Galactic Upgrade Core) → White Dwarf Matter, plus an interim Black Dwarf recipe. TecTech's planets also run, by rocket tier. Wireless EU only; outputs go to an ME bus and hatch. | T1 102×52×80 (~20k blocks), T4 102×57×137 (~35k) |
 
 **Getting them in creative** (op only):
@@ -60,7 +60,8 @@ errors and no crash. The boot log also confirms:
 4. On a `/btseye t3` Eye, swap one Spacetime Compression Field Generator for a tier-1 one. A T3 star chart must
    then refuse with "every Spacetime Compression Field Generator must be tier 3 or higher" (the 1:1 gate).
    `/btseye … gen n` always raises compression to the asked tier's gate, so it cannot test this.
-5. Check the NEI pages: "Kerr Densification", "Ergosphere Extraction" and "Eye of Harmony (Beyond the Stars)".
+5. Check the NEI pages: "Kerr Densification", GT's Compressor, Neutronium Compressor and Extractor pages (the Kerr
+   is listed as a machine on each) and "Eye of Harmony (Beyond the Stars)".
    TecTech's Eye page should be empty.
 6. Check the NEI "Multiblock" preview tab on both controllers, and the look of the generated textures.
 7. If a build says NOT FORMED with the first wrong block on the mirrored side, the structure orientation is flipped.
@@ -73,9 +74,21 @@ errors and no crash. The boot log also confirms:
 - `interimBlackDwarfAtEyeT4` (true) adds the interim Black Dwarf recipe at Eye T4.
 - `eyeRenderCentre` has no effect yet.
 
+**Follow-up pass (round-3/4 rulings, after 4bd6bf2).**
+
+- The Extractor Module runs GT's item extractor recipes only (`RecipeMaps.extractorRecipes`). The Kerr-only
+  "Ergosphere Extraction" map, its lang key and its SL-K06 recipes are gone; its sockets take item buses only.
+  Modules are now `KerrModule` entries; "Adding a Kerr module" (in the Kerr contract below) lists the steps.
+- The Kerr's lining (shape char `J`, 1,072 blocks at T1 with both modules, 4,552 at T2) is a new white block,
+  **Harmonic Lining** (`slCasing2:2`, the meta reserved for the lining), with texture `sl_lining` and Assembler recipe
+  SL-P12. It was the BHC's Background Radiation Absorbent Casing before. The Eye's lining is unchanged.
+- The Eye no longer enforces TecTech's per-planet compression minimum: the 1:1 compression gate alone decides, so an
+  Eye at tier N runs every planet mapped to tiers 1..N. Compression above a planet's TecTech tier still cuts 3 % of
+  its time per tier; below it there is no penalty.
+- Kerr T2 with the reinforcement torn down still does not form (ruled: keep).
+
 **Not done yet** (questions file, part A):
 
-- The Extractor Module should run GT's extractor recipes. It still runs its own "melt" page.
 - The upgrade milestones and install run: upgrades still install on a right-click.
 - The cost table.
 - NEI preview and in-game build checks.
@@ -160,7 +173,7 @@ are generated from the voxel atlas painters (section 5.5), so the in-game face m
 |---|---|---|---|
 | 0 | Kerr Compressor Module | stand-in `control` at the south arc | The module core block: one per compressor arc. Crafted from the card "Kerr Compressor Module". |
 | 1 | Kerr Extractor Module | an extractor-arc shell cell | One per extractor arc. Crafted from the card "Kerr Extractor Module". |
-| 2 | Harmonic Lining | `lining` | Emissive (light 12): the white inner face of every band and arc. |
+| 2 | Harmonic Lining | `lining` | The Kerr's white inner face (every Kerr arc and band). Live again since the round-4 ruling (FC-1); the Eye keeps TecTech's Infinite Spacetime Energy Boundary Casing. Not emissive: the texture is bright, and thousands of light sources would cost lighting updates on every build. |
 
 `BlockSLGlass` (`slGlass`, translucent, render pass 1):
 
@@ -264,7 +277,7 @@ Eye reaches it): Q-3.
 | SL-P09 | Beam Focusing Quadrupole | ASM | Ergosphere Field Coil ×2, Sensor_UIV ×1, ParticleBeamGuidancePipeCasing ×2, plate Neutronium ×8 | Super Coolant 16,000 | RECIPE_UIV | 1,200 |
 | SL-P10 | Beam Dump | ASM | plateDense Neutronium ×8, ingot CosmicNeutronium ×16, frameGt NaquadahAlloy ×1 | Super Coolant 16,000 | RECIPE_UIV | 600 |
 | SL-P11 | Eye Shell Casing ×2 | ASM | plateDense Neutronium ×4, frameGt SpaceTime ×1, plate Neutronium ×4 | SpaceTime molten 576 | RECIPE_UIV | 800 |
-| SL-P12 | Harmonic Lining ×2 | ASM | foil Infinity ×8, plate TranscendentMetal ×2 | Infinity molten 288, Super Coolant 1,000 | RECIPE_UIV | 1,200 |
+| SL-P12 | Harmonic Lining ×4 (Kerr only, round-4 ruling) | ASM | plate Neutronium ×6, foil Infinity ×8, plate TranscendentMetal ×1 | Infinity molten 576 | RECIPE_UIV | 600 |
 | SL-P13 | Spatial Glass Channel ×4 | ASM | IC2 reinforced glass ×4 (`GTModHandler.getIC2Item("reinforcedGlass", 4)` through `nn`), foil SpaceTime ×8, Emitter_UIV ×1 | SpaceTime molten 144 | RECIPE_UIV | 600 |
 | SL-P14 | Ergosphere Extraction Casing ×2 | ASM | plateDense Neutronium ×2, frameGt SpaceTime ×1, Electric_Pump_UIV ×1 | SpaceTime molten 288 | RECIPE_UIV | 800 |
 | SL-P15 | Beam Band Casing ×4 | ASM | EOH_Reinforced_Spatial_Casing ×1, Beam Focusing Quadrupole ×2, Emitter_UMV ×2, plateDense SpaceTime ×2 | SpaceTime molten 9,216 | RECIPE_UMV | 1,800 |
@@ -296,8 +309,8 @@ notes it in the commit.
 | SL-K04 | Kerr Density Upgrade (item) | AL (research: Bastion Plate, Q-36) | Bastion Plate ×64, Bastion Plate ×64, plateDense Infinity ×64, Field_Generator_UMV ×32, circuit UMV ×32, Ergosphere Field Coil ×32, Black_Hole_Stabilizer ×1, Bolt Injector Rail Mk III ×16 | RawStarMatter 4,000,000, SpaceTime molten 589,824, ExcitedDTEC 128,000 | RECIPE_UMV ×4 | 36,000 |
 | SL-K05 | HSM 1,000 L | `beyondthestars.recipe.kerrdensity` (new, section 3.1) | bolt Neutronium ×64 | RHSP 10,000, SpaceTime molten 288 | RECIPE_UMV | 400 |
 
-The Kerr's other maps are GT's own (`compressorRecipes`, `neutroniumCompressorRecipes`, `extractorRecipes`,
-`fluidExtractionRecipes`), so it adds no recipes there.
+The Kerr's other maps are GT's own (`compressorRecipes`, `neutroniumCompressorRecipes`, `extractorRecipes`), so it
+adds no recipes there. SL-K06 (a Kerr-only "Ergosphere Extraction" map) is retired; the ID stays reserved.
 
 ### 2.4 Eye recipes: `BTSRecipesEye.java` + `eye/EyeRecipeRegistry.java` (Eye unit)
 
@@ -364,7 +377,7 @@ hintsOnly)` picks T1 or T2 from the trigger stack size (1 = T1, ≥2 = T2), and 
 | Mode | Needs | Maps | Notes |
 |---|---|---|---|
 | COMPRESS | compressor piece | `compressorRecipes` always; `neutroniumCompressorRecipes` only while the hole is open | BHC parity. With the hole closed it runs at the base parallel 8 × tier, like the BHC's plain-compressor mode. |
-| EXTRACT | extractor piece | `extractorRecipes`, `fluidExtractionRecipes` | the "extraction" half (Q-9) |
+| EXTRACT | extractor piece | `extractorRecipes` only | GT's item extractor recipes; no fluid extraction, no Kerr-only map (user ruling, Q-9/Q-22) |
 | DENSIFY | compressor piece **and** `kerr_t2` **and** M ≥ 128 SM | `beyondthestars.recipe.kerrdensity` (`RecipeMapBuilder.of(...).maxIO(2,1,2,1).minInputs(1,1)`) | HSM (SL-K05). "Density gates the hyperdense stuff" (D-44). |
 
 With neither module built: no modes, the machine idles, and the panel says why. **Power:** standard energy or
@@ -770,7 +783,7 @@ Four §1.2 roles are played by **existing** blocks, so they are **not registered
 |---|---|---|---|
 | slCasing:0 Containment Deck Plating | `deck` | Reinforced Temporal Structure Casing (`Casings.ReinforcedTemporalStructureCasing` = `TTCasingsContainer.sBlockCasingsBA0`:10) | (Kerr has no `deck` cells) |
 | slCasing:9 Eye Shell Casing | `eyeshell` | Reinforced Spatial Structure Casing (`Casings.ReinforcedSpatialStructureCasing` = BA0:11) | Extreme Density Space-Bending Casing (`Casings.ExtremeDensitySpaceBendingCasing`) |
-| slCasing2:2 Harmonic Lining | `lining` | Infinite Spacetime Energy Boundary Casing (`Casings.InfiniteSpacetimeEnergyBoundaryCasing` = BA0:12) | Background Radiation Absorbent Casing (`Casings.BackgroundRadiationAbsorbentCasing`) |
+| slCasing2:2 Harmonic Lining | `lining` | Infinite Spacetime Energy Boundary Casing (`Casings.InfiniteSpacetimeEnergyBoundaryCasing` = BA0:12) | **Since the round-4 ruling: the NEW Harmonic Lining itself** (slCasing2:2 is registered again, Kerr only). Before: Background Radiation Absorbent Casing. |
 | slGlass:0 Spatial Glass Channel (`BlockSLGlass` is not created) | `sglass` | Quantum Glass (`Casings.QuantumGlass`, TecTech) | Hawking Radiation Realignment Focus (`Casings.HawkingRadiationRealignmentFocus`, the BHC's glass) |
 
 These are recommendations to the Kerr and Eye units, who own the char-to-element mapping; any existing block is
@@ -782,7 +795,8 @@ Eye unit; no voxel kind maps to them yet (see the questions file).
 All other metas keep their spec numbers. The unregistered metas stay as **holes** (never reused), so the §5.3 table
 and every unit's references stay valid.
 
-**Recipe fallout.** SL-P01, SL-P11, SL-P12 and SL-P13 are retired (the IDs stay reserved, like SL-P20).
+**Recipe fallout.** SL-P01, SL-P11 and SL-P13 are retired (the IDs stay reserved, like SL-P20). SL-P12 (Harmonic
+Lining) was retired too, and is back since the round-4 ruling as the Kerr's lining recipe (§2.2).
 SL-P21 (Stabiliser Pylon) takes `EOH_Reinforced_Spatial_Casing` ×32, `EOH_Infinite_Energy_Casing` ×16 and
 `EOH_Reinforced_Temporal_Casing` ×16 in place of Eye Shell ×32, Harmonic Lining ×16 and Deck ×16. Suggested for the
 other units: SL-K01 takes `ExtremeDensitySpaceBendingCasing` ×32 for Deck ×32; SL-E01 takes
@@ -814,8 +828,9 @@ Blocks (`blocks/SLBlocks.java`, fields `SLBlocks.slCasing`, `SLBlocks.slCasing2`
 | slCasing:15 | Ergosphere Extraction Casing | `sl_extraction` |
 | slCasing2:0 | Kerr Compressor Module | `sl_module_compressor` |
 | slCasing2:1 | Kerr Extractor Module | `sl_module_extractor` |
+| slCasing2:2 | Harmonic Lining (Kerr lining, round-4 ruling) | `sl_lining` |
 
-`sl_deck`, `sl_eyeshell`, `sl_lining` and `sl_sglass` are not referenced by code (harmless if present).
+`sl_deck`, `sl_eyeshell` and `sl_sglass` are not referenced by code (harmless if present).
 
 Items (`items/SLItems.java`, fields named as the §1.3 internal names): texture
 `textures/items/<internalName>.png`, e.g. `superradiantMirrorSegment.png`, `starChartSiriusBCooled.png`; lang
@@ -859,10 +874,10 @@ an earlier draft of this section used other block names and is superseded). Ever
 `--check` regenerates in memory and exits non-zero if a committed PNG's pixels differ. The file list is the manifest
 at the top of the script. Paths are under `src/main/resources/assets/beyondthestars/textures/`.
 
-- **Blocks:** `blocks/<texture>.png` for the 16 FC-2 textures (`sl_mirror` … `sl_module_extractor`). The four
-  retired roles (`sl_deck`, `sl_eyeshell`, `sl_lining`, `sl_sglass`) are not generated. Family: Kerr blocks
+- **Blocks:** `blocks/<texture>.png` for the 17 FC-2 textures (`sl_mirror` … `sl_module_extractor`, `sl_lining`).
+  The three retired roles (`sl_deck`, `sl_eyeshell`, `sl_sglass`) are not generated. Family: Kerr blocks
   (`sl_mirror`, `sl_mirrorback`, `sl_injector_mk1..3`, `sl_coil`, `sl_quad`, `sl_dump`, `sl_bastion`, `sl_casimir`,
-  `sl_extraction`, `sl_module_*`) are drawn on the Black Hole Compressor's Extreme Density palette with its purple
+  `sl_extraction`, `sl_module_*`, `sl_lining`) are drawn on the Black Hole Compressor's Extreme Density palette with its purple
   accents; Eye blocks (`sl_ring2`, `sl_ring3`, `sl_galactic`) carry TecTech's EOH casing bevel and blue palette.
 - **Items:** `items/<internalName>.png` for the nine §1.3 items.
 - **Fluids:** none. FC-2 keeps GT's tinted `molten.autogenerated` (the registered RGBA gives each fluid its colour), so
@@ -1018,7 +1033,7 @@ is the intent. Every plain element is wrapped in `BTSStructures.noOverwrite(...)
 | `G` | beam pipe | `pipe`, plus the `beamhatch` cells at x=17 and x=47 | `Casings.ParticleBeamGuidancePipeCasing` |
 | `H` | field coil | `coil` | NEW slCasing:6 Ergosphere Field Coil |
 | `I` | compressor shell | `bhc` | `Casings.BackgroundRadiationAbsorbentCasing` (BHC) |
-| `J` | arc lining | `lining` | `Casings.BackgroundRadiationAbsorbentCasing` (FC-1) |
+| `J` | arc lining | `lining` | NEW slCasing2:2 Harmonic Lining (round-4 ruling: the white inner face; was the BHC's Background Radiation Absorbent Casing) |
 | `K` | glass channel | `sglass` | `Casings.HawkingRadiationRealignmentFocus` (the BHC's glass) |
 | `L` | arc shell | `eyeshell` (governor and dump arcs) | `Casings.ExtremeDensitySpaceBendingCasing` (FC-1) |
 | `M` | beam dump | `dump`, plus the dump arc's `ergohatch` and `output` cells | NEW slCasing:8 Beam Dump |
@@ -1081,7 +1096,8 @@ Changes from §5.3:
   casing.
 - The 8 cells beside the bolt buses are `u` sockets, not plain casing (Q-21).
 - The Eye's field generators get the new chars `W`/`X`/`Y`.
-- The Eye's `deck`/`eyeshell`/`lining`/`sglass` and the Kerr's `eyeshell`/`lining`/`sglass` follow FC-1.
+- The Eye's `deck`/`eyeshell`/`lining`/`sglass` and the Kerr's `eyeshell`/`sglass` follow FC-1. The Kerr's `lining` is
+  the new Harmonic Lining (round-4 ruling).
 
 ### manifest.json
 
@@ -1107,9 +1123,10 @@ section wins; each deviation is a question (Q-22..Q-28).
 |---|---|
 | `machines/kerr/MTEKerrEngine.java` | The controller, MTE 28114 (`multimachine.beyondthestars.kerrengine`, "Kerr Ergosphere Engine"). |
 | `machines/kerr/KerrHatchElement.java` | The private sockets: `BoltBus`, `Utility`, `CompressorInput`/`Output` and `ExtractorInput`/`Output`. |
-| `machines/kerr/KerrRecipeMaps.java` | `DENSITY` (`beyondthestars.recipe.kerrdensity`, maxIO 2/1/2/1) and `EXTRACTION` (`beyondthestars.recipe.kerrextraction`, maxIO 1/1/0/1). |
+| `machines/kerr/KerrRecipeMaps.java` | `DENSITY` (`beyondthestars.recipe.kerrdensity`, maxIO 2/1/2/1). The `EXTRACTION` map is retired (the extractor runs GT's `extractorRecipes`). |
+| `machines/kerr/KerrModule.java` | One optional module arc: its piece, core block, private I/O and walk result. See "Adding a Kerr module". |
 | `machines/kerr/KerrKit.java` | `/btskit kerr` and the creative build used by `/btskerr`. |
-| `BTSRecipesKerr.java` | SL-K01..SL-K06 (`line("kerr")`). |
+| `BTSRecipesKerr.java` | SL-K01..SL-K05 (`line("kerr")`); SL-K06 is retired. |
 | `CommandBTSKerr.java` | `/btskerr [t1\|t2] [force]`. |
 
 Shared edits, each append-only: the `kerrEngine` field and its base+14 line in `BTSMachines`; `line("kerr")` in
@@ -1129,7 +1146,8 @@ pieces, and each is checked at its own `off`. Every plain element is wrapped in 
 | `C` / `D` / `F` / `H` / `M` / `N` / `O` / `P` | slCasing 1 / 2 / 7 / 6 / 8 / 15 / 13 / 14 |
 | `E` | slCasing 3/4/5 in any mix. The walk records the lowest tier, which sets the bolt cap (Q-26). |
 | `G` | `Casings.ParticleBeamGuidancePipeCasing` |
-| `I`, `J` | `Casings.BackgroundRadiationAbsorbentCasing` |
+| `I` | `Casings.BackgroundRadiationAbsorbentCasing` |
+| `J` | slCasing2:2 Harmonic Lining (round-4 ruling) |
 | `K` | `Casings.HawkingRadiationRealignmentFocus` |
 | `e` | Energy or ExoticEnergy, hint 1, else `L`; `checkExoticAndNormalEnergyHatches` |
 | `m` | Maintenance, hint 2, else `L` |
@@ -1137,7 +1155,7 @@ pieces, and each is checked at its own `off`. Every plain element is wrapped in 
 | `u` | `KerrHatchElement.Utility` (`MTEBlackHoleUtility`), hint 6, else `A`. Optional; redstone on while the hole is open (Q-27). |
 | `c` | `CompressorInput` / `CompressorOutput`, hint 4, else `I`. At least 1 in and 1 out. |
 | `q` | slCasing2:0 Kerr Compressor Module, exactly 1 |
-| `x` | `ExtractorInput` / `ExtractorOutput`, hint 5, else slCasing:15. At least 1 in and 1 out. |
+| `x` | `ExtractorInput` / `ExtractorOutput` (input / output **buses** only: GT's extractor map is items only), hint 5, else slCasing:15. At least 1 in and 1 out. |
 | `k` | slCasing2:1 Kerr Extractor Module, exactly 1 |
 
 ### Behaviour
@@ -1152,6 +1170,10 @@ pieces, and each is checked at its own `off`. Every plain element is wrapped in 
   - `bindModuleIO` puts only the active mode's module into GT's lists (Q-23).
   - COMPRESS searches `compressorRecipes`, plus `neutroniumCompressorRecipes` while the hole is open. A recipe with
     `COMPRESSION_TIER` ≥ 1 needs the hole open.
+  - EXTRACT searches GT's `extractorRecipes` only (user ruling, Q-9/Q-22).
+  - DENSIFY searches `KerrRecipeMaps.DENSITY` (SL-K05).
+- **T2 without the reinforcement:** once the Density Upgrade is installed, only `kerr_t2` forms. With the
+  reinforcement torn down the Kerr stays unformed and does not fall back to T1 (ruled: keep).
 - **Hole:** §3.1's numbers, with speed clamped to ×1..×4 (Q-25).
   - Setpoints are 2..64 SM, plus 128/256/512 at T2. The screwdriver steps the setpoint; sneak + screwdriver cycles
     the mode.
@@ -1162,13 +1184,43 @@ pieces, and each is checked at its own `off`. Every plain element is wrapped in 
 - **Status:** `getInfoData` (scanner) shows the mode, the hole (mass, setpoint, bleed, bolts against cap), parallel,
   speed, rails, bolt buses and each module's state.
 
+### Adding a Kerr module
+
+The Kerr is a module host: compressor and extractor now, more later. A module is an optional checked piece with its
+own core block, its own private sockets and one recipe map. Adding one is additive, never a rewrite:
+
+1. **Shape.** In `tools/export-structures.js`, splice a `tag("kerr_<name>")` anchor before the new arc's `arc(...)`
+   call, add the arc's socket cells and its core cell to `KERR_SOCKETS` with new chars, and add those chars to the
+   Kerr `LEGEND`. Re-export (`node tools/export-structures.js ../designs/voxel.js`). The exporter's disjointness and
+   open-air checks cover the new piece.
+2. **Core block.** One new `slCasing2` meta (constant + texture name in `BlockSLCasing2`), its PNG in
+   `tools/gen-sl-textures.js`, its lang key and its recipe (as SL-K02/SL-K03).
+3. **Sockets.** Two `KerrHatchElement` entries, `<Name>Input` and `<Name>Output`, whose adders call
+   `addInput` / `addOutput` on the new module. Pass `fluids = false` to `KerrModule` for an item-only module, and
+   list only bus classes in the hatch elements.
+4. **Controller** (`MTEKerrEngine`):
+   - one `KerrModule` field (label, piece, core char, core meta, fluids) and its entry in `modules`;
+   - `addShape` for the piece, and `addElement` for its socket char (hatch adder first, trap 4) and its core char
+     (counting into `module.cores`);
+   - a `MODE_<NAME>` constant, `MODE_COUNT` + 1, a name and a mode icon, and a case in `moduleFor`,
+     `getRecipeMap`, `findRecipeMatches` and `needsFor`;
+   - the map in `getAvailableRecipeMaps` (NEI's catalyst index reads it).
+5. **Recipe map.** Use GT's own map when one fits, as the compressor and extractor do. Add a map to
+   `KerrRecipeMaps` only for something no GT machine makes (as DENSIFY does).
+
+Walking, mark-and-truncate, the fault string, binding I/O for the active mode, the hologram, survival auto-build and
+the status lines all loop over `modules`, so they need no change. Add the new piece to the tooltip, to `KerrKit`'s
+bill list and to its hatch fitting.
+
 ### Recipes (`BTSRecipesKerr`)
 
 - **SL-K01..K05** are as in §2.3, except that SL-K01's 32 Containment Deck Plating become 32 Extreme Density
   Space-Bending Casing (FC-1).
 - **Dense plates** use `BTSRecipesSingularity.dense()`.
 - **SL-K03's Huge Neutronium Fluid Pipe** falls back to the Large pipe, then to 6 plates per pipe.
-- **SL-K06 (new)** is Ergosphere Extraction, which melts the exotic metals at 144 L per ingot (Q-22).
+- **SL-K06 is retired.** It was a Kerr-only "Ergosphere Extraction" map melting exotic metals at 144 L per ingot. The
+  user ruled (Q-9/Q-22) that the extractor runs GT's item extractor recipes only; the map, its lang key and its NEI
+  page are gone, and the Kerr shows up on GT's own Extractor page instead.
 - **The BHC controller recipe** is removed by the Foundation's `BTSRecipeRemovals` under
   `removeBlackHoleCompressorRecipe`. Placed BHCs are untouched.
 
@@ -1239,6 +1291,9 @@ Every plain element is wrapped in `noOverwrite`.
   4. Success is rolled per parallel.
   5. Planets get the field-generator time, success and yield (Q-29).
   6. Outputs go to the ME bus/hatch when the run completes.
+- **Planet eligibility** (round-4 ruling): the 1:1 compression gate alone decides. An Eye at tier N runs every
+  planet mapped to tiers 1..N; TecTech's per-planet compression minimum is not enforced. Compression above a planet's
+  TecTech tier still cuts 3 % of its time per tier; below it there is no penalty.
 - **Persistence:**
   - `writeEyeState` writes `btsEyeGalactic` and `btsEyeBuffers` from both `saveNBTData` and `setItemNBT`.
   - The run in flight (`btsEyeRunKey`/`Parallel`/`Successes`/`Yield`) is tile NBT only.
@@ -1252,7 +1307,8 @@ Every plain element is wrapped in `noOverwrite`.
   - Sol, Sirius A, Arcturus and Sirius B;
   - Sirius B, Cooled, which registers only under `interimBlackDwarfAtEyeT4`.
 - **Planets** are converted from TecTech at load-complete:
-  - Each keeps TecTech's H/He, ores, plasmas, base success and compression requirement.
+  - Each keeps TecTech's H/He, ores, plasmas, base success and compression tier (now only the baseline of the
+    -3 %-per-tier time reward, not a requirement).
   - Raw Star Matter, WDM, BDM and Universium are stripped.
   - Rocket tiers map R0-3 → T1, R4-6 → T2 and R7-8 → T3. The Deep Dark (or anything R9+) → T4.
 - **EU per run** is `RECIPE_UMV × 4^(tier−1) × base ticks`.

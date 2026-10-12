@@ -47,3 +47,12 @@ its controller recipe.
 - Wrenching the controller keeps the Galactic Upgrade Core and the fluid buffers. A run that is in progress when the
   controller is wrenched is lost: its inputs and EU were taken at the start.
 - Breaking the structure mid-run also stops the run, and its outputs are lost.
+
+**Kerr Ergosphere Engine** (MTE 28114), builds from before the round-3/4 follow-up pass (addon 4bd6bf2 and earlier).
+
+- The Kerr's lining cells (the white inner face of every arc and band) now take the new **Harmonic Lining**
+  (`slCasing2:2`), not the Background Radiation Absorbent Casing. A Kerr built with the old block un-forms until the
+  lining is swapped. The compressor arc's outer shell is still Background Radiation Absorbent Casing.
+- The Extractor Module now runs GT's item extractor recipes and takes **item buses only**. A fluid output hatch in an
+  extractor socket (the earlier `/btskerr` placed one) faults the module until it is swapped for an output bus. The
+  old "Ergosphere Extraction" melt recipes are gone; finish any melt run before updating, or its fluid may be lost.
