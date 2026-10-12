@@ -87,7 +87,9 @@ public final class RenderTest {
      * z 4000): a run reuses the world of its own layout and rebuilds each site in place, and a layout change MUST bump
      * the suffix, or the old layout's structures stand inside the new sites.
      */
-    static final String WORLD_FOLDER = "bts-rendertest-L2";
+    // L3 (window bands, B-86): same site layout as L2, but the builds never clear a site and the windows left cells
+    // open that L2 had filled, so a fresh world
+    static final String WORLD_FOLDER = "bts-rendertest-L3";
     /** Owner of the test Eyes (their wireless network). */
     private static final UUID OWNER = UUID
         .nameUUIDFromBytes("beyondthestars:render-test".getBytes(StandardCharsets.UTF_8));
@@ -894,14 +896,16 @@ public final class RenderTest {
 
     // =============================================================================== views
 
-    /** The three viewpoints of every case, each shot by day and by night. */
-    static final String[] VIEWS = { "front", "34", "close" };
+    /** The four viewpoints of every case, each shot by day and by night. */
+    static final String[] VIEWS = { "front", "34", "close", "level" };
 
     /**
      * Sets the time of day and moves the player to view {@code view} of the current site: {@code front} (level with
      * the structure's middle, in front of the controller, far enough that the whole box fits a 70 degree view),
      * {@code 34} (three-quarter from the front-right, raised) or {@code close} (inside the open space around the
-     * render object, between it and the front, looking at it). Returns a log line.
+     * render object, between it and the front, looking at it) or {@code level} (the window-band view, render K2 / E-9:
+     * level with the render object, 24 blocks in front of the structure's front face, looking straight at it, as a
+     * player standing at its height sees it). Returns a log line.
      */
     static String view(String view, boolean night) {
         final Built b = current;
@@ -930,6 +934,14 @@ public final class RenderTest {
                 target = mid;
                 eye = add(mid, F, far);
                 break;
+            case "level": {
+                target = b.centre;
+                final double ext = F[0] != 0
+                    ? Math.max((box[0] - b.centre[0]) * F[0], (box[3] + 1 - b.centre[0]) * F[0])
+                    : Math.max((box[2] - b.centre[2]) * F[2], (box[5] + 1 - b.centre[2]) * F[2]);
+                eye = add(b.centre, F, Math.min(MAX_VIEW_DISTANCE, ext + 24));
+                break;
+            }
             case "34": {
                 target = mid;
                 final double[] dir = norm(new double[] { F[0] + L[0], 0.9, F[2] + L[2] });

@@ -44,7 +44,7 @@ import cpw.mods.fml.relauncher.SideOnly;
  * On start it sets a fixed 1280x720 window, 16-chunk render distance, no vsync / frame cap and no pause on focus loss,
  * then from the main menu creates (or reuses) the creative superflat world {@code saves/bts-rendertest} on the
  * integrated server. For each {@link RenderTest#CASES case} it has the server build the case's site (once per site) and
- * set its state, then, by day and by night, moves the player to the three {@link RenderTest#VIEWS viewpoints}, waits
+ * set its state, then, by day and by night, moves the player to the four {@link RenderTest#VIEWS viewpoints}, waits
  * until the chunks have arrived and rendered, and saves {@code screenshots/rendertest/<case>_<view>_<day|night>.png}
  * with vanilla's {@link ScreenShotHelper}. The FPS of the debug counter at each shot is logged per case in
  * {@code screenshots/rendertest/rendertest.log} and {@code fps.tsv}. When every case is done it closes the game.
