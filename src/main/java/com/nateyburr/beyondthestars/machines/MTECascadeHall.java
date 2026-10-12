@@ -296,6 +296,7 @@ public class MTECascadeHall extends MTEProductionHallBase<MTECascadeHall> {
         tt.addMachineType("Gas Centrifuge")
             .addInfo("Separates Uranium Hexafluoride into an enriched cut and a tails stream.")
             .addInfo("Circuit 1 = low-enriched cut (IV), 2 = highly-enriched cut (needs LuV power).")
+            .addInfo("The hall has no input bus: put the Programmed Circuit in the controller's slot.")
             .addInfo("The tails (Depleted UF6) are a product, not waste: they become MOX diluent")
             .addInfo("and Depleted Uranium Ingots for shielded casings.")
             .addInfo(
@@ -321,7 +322,7 @@ public class MTECascadeHall extends MTEProductionHallBase<MTECascadeHall> {
             .addEnergyHatch("1", "Front face, 2nd row from the top, right", 2)
             .addMaintenanceHatch("1", "Front face, 2nd row from the top, left", 1)
             .addInputHatch("1", "Front face, directly below the controller", 3)
-            .addOutputHatch("1-2", "Front face, either side of the controller", 4)
+            .addOutputHatch("2", "Front face, either side of the controller: one per stream, or 1 ME Output Hatch", 4)
             .addStructureInfo("Each stage bank adds 4 blocks of length: a ring of Iridium Reinforced")
             .addStructureInfo("Block around one Tungstensteel Pipe Casing.")
             .addStructureInfo("Projector: stack size 1-5 builds 0-4 stage banks.")
