@@ -61,7 +61,7 @@ public class CommandBTSEye extends CommandBase {
     @Override
     public String getCommandUsage(ICommandSender sender) {
         return "/btseye [t1..t6] [gen 1-9] [fill] [force]  |  console: /btseye [t1..t6] <x> <y> <z> [facing] "
-            + "[gen 1-9] [fill] [force] [survival] [legacy] [nobeam] | [check]  |  /btseye keep <x> <y> <z> <facing> [t1..t6]  |  /btseye gates  |  "
+            + "[gen 1-9] [fill] [force] [survival] [legacy] [nobeam] | [check]  |  /btseye keep <x> <y> <z> <facing> [t1..t6]  |  /btseye gates  |  /btseye bec  |  "
             + EyeStarBench.USAGE;
     }
 
@@ -85,6 +85,13 @@ public class CommandBTSEye extends CommandBase {
         if (args.length >= 1 && args[0].equalsIgnoreCase("star")) {
             // D-49 test bench: the live star of the Eye at x y z (EyeStarBench).
             for (String line : EyeStarBench.run(sender, args)) {
+                SLConsoleTest.tell(sender, line);
+            }
+            return;
+        }
+        if (args.length == 1 && args[0].equalsIgnoreCase("bec")) {
+            // Test bench: our Condensate Assembler / Generator recipes as the server holds them (B-71).
+            for (String line : com.nateyburr.beyondthestars.BTSRecipesBEC.benchLines()) {
                 SLConsoleTest.tell(sender, line);
             }
             return;

@@ -567,6 +567,43 @@ public final class EyeKit {
         return n;
     }
 
+    /**
+     * Test bench (the 1:1 compression gate): sets the core's first Spacetime Compression Field Generator - or every
+     * one,
+     * with {@code all} - to {@code meta} (0-8 = TecTech tiers 1-9) on the Eye standing at its controller, as a player
+     * swapping a generator would, and re-walks it. Returns the cells changed.
+     */
+    public static int setCompression(World world, MTEEyeOfHarmonyBTS eye, int meta, boolean all) {
+        final IGregTechTileEntity base = eye.getBaseMetaTileEntity();
+        final ExtendedFacing alignment = eye.getExtendedFacing();
+        final String piece = MTEEyeOfHarmonyBTS.PIECE_CORE;
+        final String[][] shape = BTSShapes.load(piece);
+        final int[] off = BTSShapes.offset(piece);
+        int n = 0;
+        for (int c = 0; c < shape.length; c++) {
+            for (int b = 0; b < shape[c].length; b++) {
+                final String row = shape[c][b];
+                for (int a = 0; a < row.length(); a++) {
+                    if (row.charAt(a) != 'W') continue;
+                    final int[] p = worldPos(
+                        alignment,
+                        base.getXCoord(),
+                        base.getYCoord(),
+                        base.getZCoord(),
+                        new int[] { a - off[0], b - off[1], c - off[2] });
+                    world.setBlock(p[0], p[1], p[2], TTCasingsContainer.SpacetimeCompressionFieldGenerators, meta, 2);
+                    n++;
+                    if (!all) {
+                        eye.checkStructure(true, base);
+                        return n;
+                    }
+                }
+            }
+        }
+        eye.checkStructure(true, base);
+        return n;
+    }
+
     private static Block generatorFor(char ch) {
         switch (ch) {
             case 'W':

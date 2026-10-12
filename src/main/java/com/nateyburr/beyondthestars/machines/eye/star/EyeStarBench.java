@@ -71,7 +71,7 @@ public final class EyeStarBench {
         + "fill | sensor <x> <y> <z> <channel> <gt|lt> <threshold> [analog] | sensors <channel> <gt|lt> <thr> "
         + "[analog] | probe | wrench | charge [n] | buffer <fluid> <L> | core <name> | escrow | "
         + "legacy [galactic] [run <key> <n>] | fix | gt | mefield | field <fluid> <L> | render [on|off] | "
-        + "directive | autorig <s> [cut <k>] | ocloop";
+        + "directive | autorig <s> [cut <k>] | ocloop | compression <1-9> [all] | check";
 
     /** Runs {@code args} = {@code star x y z sub …}. Returns the lines to print. */
     public static List<String> run(ICommandSender sender, String[] args) {
@@ -211,6 +211,21 @@ public final class EyeStarBench {
                 eye.debugRenderTick();
                 out.addAll(eye.debugRenderLines());
                 return out;
+            case "compression": {
+                // compression <1-9> [all]: swap the first (or every) Spacetime Compression Field Generator to that
+                // tier, as a player would, to test the 1:1 gate (B-71)
+                final int tier = Integer.parseInt(a5);
+                final boolean all = args.length > 6 && "all".equalsIgnoreCase(args[6]);
+                final int n = com.nateyburr.beyondthestars.machines.eye.EyeKit
+                    .setCompression(world, eye, Math.max(0, Math.min(8, tier - 1)), all);
+                out.add(n + " Spacetime Compression Field Generator(s) set to tier " + tier + "; re-walked");
+                break;
+            }
+            case "check": {
+                // the recipe check GT would run now: the gate / lock / structure reason a target is refused with
+                out.add("checkRecipe: " + eye.benchCheckRecipe());
+                break;
+            }
             case "mefield":
                 out.add(meField(eye));
                 break;

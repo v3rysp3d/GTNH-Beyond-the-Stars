@@ -324,6 +324,7 @@ public class CommandBTSKerr extends CommandBase {
             SLConsoleTest.tell(sender, "No Kerr Ergosphere Engine controller at " + x + ", " + y + ", " + z);
             return;
         }
+        com.nateyburr.beyondthestars.machines.kerr.KerrTestBench.ensureChecked(kee);
         final List<String> lines = args[0].equalsIgnoreCase("ctrl")
             ? com.nateyburr.beyondthestars.machines.directive.DirectiveBench
                 .kerrCtrl(world, kee, args.length > 4 ? args[4].toLowerCase() : "")

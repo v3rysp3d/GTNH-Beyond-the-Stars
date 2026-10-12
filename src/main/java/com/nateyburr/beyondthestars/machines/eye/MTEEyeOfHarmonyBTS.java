@@ -1391,6 +1391,25 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         return CheckRecipeResultRegistry.SUCCESSFUL;
     }
 
+    /**
+     * Bench {@code check}: the result id and text GT's run check would show now, with no side effect (a planet that
+     * would run is not started).
+     */
+    public String benchCheckRecipe() {
+        final ItemStack target = getControllerSlot();
+        if (target == null) return "beyondthestars.eye.notarget";
+        final StarDef star = StarDef.byChart(target);
+        CheckRecipeResult r;
+        if (star != null) {
+            r = starStatus(star);
+        } else {
+            final EyeRecipe recipe = EyeRecipeRegistry.lookup(target);
+            r = recipe == null ? CheckRecipeResultRegistry.NO_RECIPE : tierGate(recipe.tier);
+            if (r == null) return "the planet would run";
+        }
+        return r.getID() + " -> " + r.getDisplayString();
+    }
+
     /** Null when Eye tier {@code tier} may run; else why not (bands, unlock, compression). */
     private CheckRecipeResult tierGate(int tier) {
         if (tier > structureTier()) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.tier" + tier);
