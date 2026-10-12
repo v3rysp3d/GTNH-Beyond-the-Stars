@@ -71,9 +71,12 @@ import tectech.thing.CustomItemList;
  *
  * <h2>Config</h2>
  *
- * Registered only with {@code replaceTecTechEyeOfHarmony=true}: the 1:1 gate that strands generators is our Eye's.
- * With {@code removeBlackHoleCompressorRecipe} on or off the controller kept inside is whichever one the pack's
- * recipe holds (Kerr or BHC); nothing here names either.
+ * Registered whatever {@code replaceTecTechEyeOfHarmony} says (B-89): our Eye, its 1:1 gate and the tooltip line that
+ * teaches the in-place upgrade exist with the flag off too, and the recipes are derived from GT's own generator
+ * recipes,
+ * so they also serve TecTech's Eye. With {@code removeBlackHoleCompressorRecipe} on or off the controller kept inside
+ * is
+ * whichever one the pack's recipe holds (Kerr or BHC); nothing here names either.
  */
 public final class BTSRecipesGeneratorUpgrade {
 
@@ -95,12 +98,6 @@ public final class BTSRecipesGeneratorUpgrade {
 
     public static void register() {
         OURS.clear();
-        if (!Config.replaceTecTechEyeOfHarmony) {
-            BeyondTheStars.LOG.info(
-                "[BTS] replaceTecTechEyeOfHarmony=false: no field-generator upgrade path (SL-U00..U48); GT's "
-                    + "generator recipes are as shipped.");
-            return;
-        }
         final Snapshot[][] gt = new Snapshot[3][9];
         for (int f = 0; f < 3; f++) {
             for (int t = 0; t < 9; t++) {
@@ -394,7 +391,7 @@ public final class BTSRecipesGeneratorUpgrade {
         out.add(
             0,
             "Upgrade path: " + OURS.size()
-                + " Condensate Assembler recipe(s) (40 expected with replaceTecTechEyeOfHarmony=true), "
+                + " Condensate Assembler recipe(s) (40 expected), "
                 + unique
                 + " found by GT's own lookup with their inputs.");
         return out;

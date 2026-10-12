@@ -262,7 +262,7 @@ item.beyondthestars.subspaceCoolingCore.name=Subspace Cooling Core
 item.beyondthestars.subspaceCoolingCore.tooltip=Eye of Harmony T4 -> T5: right-click the controller to put it in escrow.\nConsumed only when the First Cooling batch ends at mean yield 0.9 or better.\nCrafted in the Condensate Assembler (Bose-Einstein Condensate) with Entangled White Dwarf Matter; needs White Dwarf nanites.
 item.beyondthestars.magnetarSeedCore.name=Magnetar Seed Core
 item.beyondthestars.magnetarSeedCore.tooltip=Eye of Harmony T5 -> T6: right-click the controller to put it in escrow.\nConsumed only when the Magnetar Merger succeeds.\nThe merger: hold Π at +60..+70 for 120 s (above +70 the field is Critical), then bring it inside ±40. Dose the Antipolarization Agent at 1 unit (100 L) a second: a Directive Hatch on Eye Status gives [4] above +66; AND it with Transition [2] for the small valve.\nCrafted in the Condensate Assembler (Bose-Einstein Condensate) with Entangled Black and White Dwarf Matter and Entangled Antipolarization Agent; needs Black Dwarf nanites.
-# B-83: the field-generator upgrade path (Condensate Assembler; replaceTecTechEyeOfHarmony=true)
+# B-83: the field-generator upgrade path (Condensate Assembler; whatever replaceTecTechEyeOfHarmony says, B-89)
 item.beyondthestars.fieldRetrofitFrame.name=Field Generator Retrofit Frame
 item.beyondthestars.fieldRetrofitFrame.tooltip=The blank a Retrofit Kit is built on (Assembler).
 item.beyondthestars.compressionRetrofitKit.name=%s Spacetime Compression Retrofit Kit
