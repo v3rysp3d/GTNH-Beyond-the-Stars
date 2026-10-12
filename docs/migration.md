@@ -85,7 +85,7 @@ lineage). A data stick holding the old recipe resolves to the new one, because s
 
 **Compression generator recipes (Eye T2-T4 gates).** The beta-1 "upgrade the generator" assembly lines
 (SL-P30..P32) are gone, and so are their data sticks' recipes. 2.9 makes every generator in the Condensate
-Assembler. With `replaceTecTechEyeOfHarmony=true` there is one extra Condensate Assembler recipe (SL-P35) for
+Assembler. With `replaceTecTechEyeOfHarmony=true` there is one extra Condensate Assembler recipe (SL-P39) for
 Resonance Chamber II that uses SpaceTime foil instead of White Dwarf Matter foil, so the tier 1-3 generators can be
 made before Eye T4. Generators you already crafted are the same items and still work.
 

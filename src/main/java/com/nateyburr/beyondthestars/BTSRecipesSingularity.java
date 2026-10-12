@@ -39,9 +39,9 @@ import tectech.recipe.TecTechRecipeMaps;
 import tectech.thing.CustomItemList;
 
 /**
- * SINGULARITY LADDER PARTS, SL-P01..SL-P35 (singularity-ladder-build.md §2.2; SL-P27..P29 come
- * from the cost audit, docs/singularity-ladder-costs.md; SL-P35 from the 2.9.0-RC-2 gate audit;
- * SL-P30..P32 are retired; SL-P33/P34 are reserved by the D-49 build plan). <b>Owned by the
+ * SINGULARITY LADDER PARTS, SL-P01..SL-P39 (singularity-ladder-build.md §2.2; SL-P27..P29 come
+ * from the cost audit, docs/singularity-ladder-costs.md; SL-P39 from the 2.9.0-RC-2 gate audit;
+ * SL-P30..P32 are retired; SL-P33..P38 are reserved by the D-49 build plan). <b>Owned by the
  * Foundation unit.</b> The Kerr's and the Eye's own recipes live in {@code BTSRecipesKerr} and
  * {@code BTSRecipesEye}.
  *
@@ -82,7 +82,7 @@ public final class BTSRecipesSingularity {
             compressionGateParts();
         } else {
             BeyondTheStars.LOG.info(
-                "[BTS] replaceTecTechEyeOfHarmony=false: SL-P35 (WDM-free Resonance Chamber II) is not registered; "
+                "[BTS] replaceTecTechEyeOfHarmony=false: SL-P39 (WDM-free Resonance Chamber II) is not registered; "
                     + "TecTech's Eye still makes White Dwarf Matter.");
         }
     }
@@ -448,7 +448,7 @@ public final class BTSRecipesSingularity {
     // replaced)
 
     /**
-     * SL-P35: MetaMaterial Resonance Chamber II with 2 SpaceTime foils in place of GT's 1 White Dwarf
+     * SL-P39: MetaMaterial Resonance Chamber II with 2 SpaceTime foils in place of GT's 1 White Dwarf
      * Matter foil. Everything else is GT 2.9.0-RC-2's own Condensate Assembler recipe
      * ({@code BECMetaMaterialRecipes.registerResonanceChamber}, tier 2): inputs, nanite tiers,
      * condensates, 300 s at UIV.
@@ -467,7 +467,7 @@ public final class BTSRecipesSingularity {
      */
     private static void compressionGateParts() {
         BTSRecipeGuard.recipe(
-            "SL-P35",
+            "SL-P39",
             () -> GTValues.RA.stdBuilder()
                 .itemInputs(
                     nn(ItemList.Emitter_UEV.get(2L), "ItemList.Emitter_UEV"),

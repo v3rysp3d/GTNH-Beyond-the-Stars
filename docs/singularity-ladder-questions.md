@@ -509,7 +509,7 @@ deadlock. The spec's §0 note ("no WDM/BDM markers in the generator recipes") on
 **What we built.** Nothing yet.
 **Built (recipe audit pass):** SL-P30..P32, with the optional upgrade folded in; see B-28.
 **2.9.0-RC-2 port:** superseded. RC-2 makes the generators in the Condensate Assembler and their WDM now comes in
-through Resonance Chamber II; SL-P30..P32 are retired and SL-P35 replaces them (B-29).
+through Resonance Chamber II; SL-P30..P32 are retired and SL-P39 replaces them (B-29).
 
 **Suggestion.** Three alternate assembly-line recipes of ours (SL-P30..P32, registered only with the flag on):
 TecTech's own inputs, research and duration, with the WDM bolts replaced by the previous tier's product as a 4th
@@ -630,7 +630,7 @@ re-crafting from scratch cost 3.8 / 5.7 / 7.6e15 EU and 418 / 627 / 836 h. The f
 7.5 Sirius A, 7.5 Arcturus runs per step). A fresh generator of tier t now takes t+1 crafts from a Crude one.
 
 **2.9.0-RC-2 port:** retired. TecTech's research-station generator recipes no longer exist in RC-2, and the ruling
-keeps RC-2's generator costs; see B-29 (SL-P35) and its alternative for an RC-2 upgrade path.
+keeps RC-2's generator costs; see B-29 (SL-P39) and its alternative for an RC-2 upgrade path.
 
 **Suggestion.** As built. It fits D-49 (compression stays the 1:1 gate, tiers unlock in sequence).
 
@@ -763,7 +763,7 @@ the EOH casings) is costs doc §9.4; this is the only loop in P1-P3.
 
 **What we built.**
 
-- **SL-P35**: GT's Resonance Chamber II recipe with **2 SpaceTime foils** in place of the WDM foil; everything else
+- **SL-P39**: GT's Resonance Chamber II recipe with **2 SpaceTime foils** in place of the WDM foil; everything else
   as GT's (Condensate Assembler, nanite tiers Six-Phased Copper / Silver / Gold / Silver, Chromatic Glass, Infinity and
   Boundless Cosmic Solder condensates, 300 s at UIV). Registered only with `replaceTecTechEyeOfHarmony=true`. GT's
   recipe stays. The chamber keeps its Boundless Cosmic Solder (made from Raw Star Matter), so the generators still
@@ -784,9 +784,14 @@ the EOH casings) is costs doc §9.4; this is the only loop in P1-P3.
 - Bring back an upgrade path on RC-2's terms: a Condensate Assembler recipe tier t-1 generator → tier t, so an Eye
   tier step stops stranding 188 generators (each now carries a Kerr controller, B-30).
 
-**Numbering.** SL-P33/P34 are reserved by the D-49 build plan for conditional Eye T5/T6 gate recipes, so this one is
-SL-P35. That plan's "post-port audit" (§14) is answered by costs doc §9.4: on RC-2 the T2-T4 gates need WDM only
-through Resonance Chamber II, and the T5 gate needs BDM through Resonance Chamber III.
+**Numbering.** The D-49 build plan (§10.3) claims SL-P33..P38: P33/P34 for conditional Eye T5/T6 gate recipes, and
+P35..P38 for Star Chart: Sirius B, its reclaim, Star Chart: Magnetar and the Stellar Ignition Charge. This recipe is
+therefore **SL-P39**. It was SL-P35 in commits c9b2376..the port-review fix, which collided with the plan's Sirius B
+chart; logs from those builds say SL-P35 for this chamber. `BTSRecipeGuard.recipe` does not check that IDs are
+unique, so a collision would register silently. That plan's "post-port audit" (§14) is answered by costs doc §9.4:
+on RC-2 the T2-T4 gates need WDM only through Resonance Chamber II, and the T5 gate needs BDM through Resonance
+Chamber III. The plan's §10.3 rows for SL-P32 (retired) and SL-P33/P34 (generator upgrades, retired with SL-P30) are
+marked obsolete there.
 
 **For P4/P5 (not built):** Eye T5's gate (tier 4) needs Resonance Chamber III (a Black Dwarf Matter foil, T5's own
 product), which only the interim T4 BDM recipe unlocks; Eye T8/T9 (tiers 7-8) need Resonance Chamber IV (an MHDCSM
@@ -882,7 +887,7 @@ Hole Compressor controller: AL-visual 1, AL-data 1, research 0, scanner 1". The 
 | Check | Result |
 |---|---|
 | BHC consumers left (flag on) | **0**. 0 recipes make a BHC controller; the Kerr controller has 12 consumers |
-| Gate rule, Eye T1-T4 gates (generator t0-t3) | **clean**. t1-t3 pass through SL-P35, the second Reinforced Resonance Chamber recipe. GT's own chamber recipe still needs a White Dwarf Matter foil |
+| Gate rule, Eye T1-T4 gates (generator t0-t3) | **clean**. t1-t3 pass through SL-P39, the second Reinforced Resonance Chamber recipe. GT's own chamber recipe still needs a White Dwarf Matter foil |
 | Gate rule, Eye T5-T9 | t4 loops on the Refined Resonance Chamber's Black Dwarf Matter foil; t5 and t6 are clean; t7 and t8 loop on the Resplendent Resonance Chamber's MHDCSM foil. This matches costs doc §9.4 and B-29 (P4/P5 work) |
 | Kerr T1 + both modules | FORMED facing N (creative) and E (survival: 15,362 blocks in 79 rounds) |
 | Kerr T2 + both modules | FORMED facing S (creative) and W (survival: 29,838 blocks in 151 rounds) |

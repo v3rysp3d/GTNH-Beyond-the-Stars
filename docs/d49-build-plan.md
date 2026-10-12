@@ -694,12 +694,12 @@ output bus.
 |---|---|
 | SL-P25 | Same inputs (Tool_DataOrb, circuit UMV, Galactic Shell Plating ×1, HSM 1,000); **output becomes Star Chart: Neutron Star** (proposal: "takes SL-P25's slot"). |
 | SL-P26 | **Deleted** (the Sirius B Cooled chart). The ID is retired; keep the gap. |
-| SL-P32 | Research item becomes **Star Chart: Neutron Star** (the T4 gate's chart). Data sticks already written keep resolving: they resolve by output. |
+| SL-P32 | **Obsolete (2.9.0-RC-2 port).** SL-P30..P32 are retired: RC-2 crafts every compression generator in the Condensate Assembler, with no research step, and the port keeps RC-2's generator costs (singularity-ladder-costs.md §9.5, B-29). There is no SL-P32 recipe whose research item could change. Was: research item becomes Star Chart: Neutron Star. |
 | SL-P35 (new) | Star Chart: Sirius B (T5): ASM, Tool_DataOrb ×1, circuit UXV ×1, Galactic Shell Plating ×1; **WDM 1,000**; UMV; 200. |
 | SL-P36 (new) | Reclaim: Star Chart: Sirius B, Cooled ×1 + programmed circuit 3 → Star Chart: Sirius B ×1; ASM; UMV; 100. |
 | SL-P37 (new) | Star Chart: Magnetar: ASM, Tool_DataOrb ×1, circuit UXV ×1, plateDense SpaceTime ×1; **BDM 1,000**; UXV; 200. |
 | SL-P38 (new) | Stellar Ignition Charge ×4: ASM, plate Infinity ×4, Emitter_UMV ×1, circuit UMV ×1; **Helium plasma** (`Materials.Helium.getPlasma`) 1,000 L; UMV; 200. |
-| SL-P33 / SL-P34 (conditional) | Compression generator meta 3→4 (Eye T5 gate; research Star Chart: Sirius B; 4th fluid WDM 2,000) and meta 4→5 (T6 gate; research Star Chart: Magnetar; 4th fluid BDM 1,000), in the SL-P30 pattern. **Build only if the post-port audit (§14) finds the 54.133 generator recipes still need a matter that only a higher Eye tier makes.** |
+| SL-P33 / SL-P34 (conditional) | **Replaced by the RC-2 port's audit (costs §9.4, B-29); do not build generator-upgrade recipes.** The SL-P30 pattern is retired. On RC-2 the Eye T2-T4 gates are clean through **SL-P39** (Resonance Chamber II with SpaceTime foils in place of the WDM foil). The Eye T5 gate (compression t4) loops only through **Resonance Chamber III's Black Dwarf Matter foil** (T5's own product). The fix there is a chamber substitute in the SL-P39 pattern (Condensate Assembler, GT's recipe with the BDM foil swapped for a stand-in to be chosen and logged then), claimed as SL-P33. The T6 gate (t5) is clean on RC-2, so SL-P34 stays reserved and unused. Both are P4 work: Eye T5 is beyond D-49's T1-T4. |
 
 ### 10.4 Removals and config
 
@@ -955,14 +955,15 @@ The units are sequential, one unit each, with one gradle invocation at a time.
   - `machines/BTSMachines.java` (append 28116);
   - `BTSRecipesStellar.java` (new) and `BTSRecipes.java` (append `line("stellar")`);
   - `BTSRecipesEye.java` (SL-E03..E07) and `BTSRecipesSingularity.java` (SL-P25 output, SL-P26 delete, SL-P32
-    research, SL-P35..P38; SL-P33/P34 only if the §14 audit says so);
+    research is obsolete, see §10.3; SL-P35..P38; SL-P33/P34 are P4 work, see §10.3. The port's WDM-free Resonance
+    Chamber II is **SL-P39**, so do not reuse that ID);
   - `Config.java` (remove `interimBlackDwarfAtEyeT4`);
   - item and hatch textures plus the generator script lines;
   - `en_US.lang`;
   - `CommandBTSKit` / `EyeKit` kit contents only.
 - **Does:**
-  - the §14 BEC re-audit of the TecTech generator and casing recipes on 54.133, logged as a question with the
-    SL-P33/P34 decision;
+  - the §14 BEC re-audit of the TecTech generator and casing recipes. Done by the 2.9.0-RC-2 port: costs doc §9.4
+    and B-29; the SL-P33/P34 position is in §10.3;
   - the sensor hatch consumes `FieldReadout` (from unit 1).
 - **Done when:** the boot log is clean (test 17); the NEI chain shows SL-S01/S02; `/btskit eye` hands out the new
   parts.

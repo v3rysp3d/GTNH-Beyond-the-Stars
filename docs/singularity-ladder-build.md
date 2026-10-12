@@ -71,7 +71,7 @@ MTE ids 28100-28139 are still free in RC-2 (enum and bytecode scan).
   Costs doc §9.
 - **Gate audit** (WDM ruling, costs doc §9, B-29). RC-2's tier 1-3 compression generators (Eye T2-T4 gates) still
   need White Dwarf Matter, through the Resonance Chamber II they take (1 / 4 / 16, one WDM foil each). New
-  **SL-P35**: a Condensate Assembler recipe for that chamber with 2 SpaceTime foils in place of the WDM foil (only with
+  **SL-P39**: a Condensate Assembler recipe for that chamber with 2 SpaceTime foils in place of the WDM foil (only with
   `replaceTecTechEyeOfHarmony=true`). **SL-P30..P32 are retired**: RC-2 prices the generators itself (BEC, no tier
   upgrade chain) and the ruling keeps those costs. SL-P27..P29 stay: RC-2's BEC casings still cost 8 Godforge casings
   per Spatial/Temporal casing and a whole LSC per Boundary casing.
@@ -83,10 +83,10 @@ MTE ids 28100-28139 are still free in RC-2 (enum and bytecode scan).
 (AL-visual 1, AL-data 1, research 2); "BHC->Kerr: 10 recipes now take the Kerr controller" (Crude ... Gallifreyan and
 the Empty Spatially Compressed Circuit Array); "removed Black Hole Compressor controller: AL-visual 1, AL-data 1,
 research 0, scanner 1"; GT's assembly-line validation passes. The dev server lacks Railcraft and other pack mods, so
-its recipe count is lower than the pack's (255 before the port, minus SL-P30..P32, plus SL-P35).
+its recipe count is lower than the pack's (255 before the port, minus SL-P30..P32, plus SL-P39).
 
 **RC-2 dev-server test** (questions B-32, fresh world, two restarts): 0 recipes still consume a BHC controller;
-`/btseye gates` finds the Eye T1-T4 gates clean (through SL-P35) and the known P4/P5 loops at T5, T8 and T9; Kerr
+`/btseye gates` finds the Eye T1-T4 gates clean (through SL-P39) and the known P4/P5 loops at T5, T8 and T9; Kerr
 T1 and T2 with both modules and Eye T1-T4 all FORMED in two facings, one creative and one survival, and still FORMED
 after a restart; the reactor forms, and a CRIB in its feedwater socket is refused (the silo drops out, but no error
 names the cell: B-32).
@@ -188,7 +188,7 @@ found two dead ends and several over-priced blocks; §6 there lists what was app
 - **Eye T2-T4 are craftable** with `replaceTecTechEyeOfHarmony=true`. *Superseded by the RC-2 port:* SL-P30..P32
   (research-station upgrades of a Spacetime Compression Field Generator, paying Raw Star Matter / ESPM / RHSP where
   TecTech's beta-1 recipe wanted White Dwarf Matter bolts) are retired; RC-2's Condensate Assembler recipes make the
-  generators, and SL-P35 (a WDM-free Resonance Chamber II) closes the one WDM loop left in them (B-29).
+  generators, and SL-P39 (a WDM-free Resonance Chamber II) closes the one WDM loop left in them (B-29).
 - **Cheaper bulk blocks:** SL-P27..P29 batch-make TecTech's Spatial, Temporal and Boundary casings (always registered, B-26);
   the coil, quadrupole, beam band, jet crescent, Galactic Shell, pylon, Eye controller and Galactic Upgrade Core
   recipes are cheaper or make more per craft (§2.2-§2.4 mark each change).
@@ -362,11 +362,11 @@ HSM → Eye T4. Every input must exist before the machine that needs it.
 | MagMatter Plate | Bastion Plate | UXV per D-48 | `plate TranscendentMetal ×2` |
 | UMV Superconductor Wire, UMV components | Ergosphere Field Coil, injectors | Kerr T1 is **UIV** (D-44) and needs these blocks | `wireGt01 SuperconductorUIV`, UIV components; Mk III rails stay UMV |
 | Tachyon Rich Temporal Fluid (`Materials.Time`) | Spatial Glass Channel | the Kerr (UIV) uses the glass; Time is believed to be UMV | `Molten SpaceTime` |
-| Metamaterial, condensates, "Observation Array (BEC)" | Harmonic Lining, Casimir Plate, Galactic Core | the BEC condensate API is unverified on the 5.09.52.594 pin | moved to ASM/AL with molten metals. *RC-2:* the API is verified now (SL-P35 is a Condensate Assembler recipe); these blocks stay as built |
+| Metamaterial, condensates, "Observation Array (BEC)" | Harmonic Lining, Casimir Plate, Galactic Core | the BEC condensate API is unverified on the 5.09.52.594 pin | moved to ASM/AL with molten metals. *RC-2:* the API is verified now (SL-P39 is a Condensate Assembler recipe); these blocks stay as built |
 | Beam Port | Beam Band, Jet Crescent | no beam I/O in P2/P3 | `Emitter_UMV` |
 | SpaceTime at UIV | Kerr cards | OK: the BHC (UIV) already burns molten SpaceTime | kept |
 | Black Hole Seed / Superstable Seed | Kerr | OK: UIV BHC items, untouched | kept |
-| Gallifreyan field generators | Eye controller | OK: the javap scan finds no WDM/BDM/Universium/Eternity/MHDCSM markers in their recipes | kept; re-verify (Q-7). *RC-2:* the controller takes the Tier0 (Crude) generators; the RC-2 gate audit (costs doc §9) finds Tier0 clean and Tier1-3 needing WDM only through Resonance Chamber II (fixed by SL-P35). Tier4+ (P4/P5) are not clean: see costs doc §9 |
+| Gallifreyan field generators | Eye controller | OK: the javap scan finds no WDM/BDM/Universium/Eternity/MHDCSM markers in their recipes | kept; re-verify (Q-7). *RC-2:* the controller takes the Tier0 (Crude) generators; the RC-2 gate audit (costs doc §9) finds Tier0 clean and Tier1-3 needing WDM only through Resonance Chamber II (fixed by SL-P39). Tier4+ (P4/P5) are not clean: see costs doc §9 |
 | RSPM 4,000,000 L | Kerr Density Upgrade | OK: Kerr T2 comes after Eye T1 | kept |
 
 Wider fallout of removing TecTech's recipes (everything in the pack that eats WDM, BDM or Universium before our
@@ -405,14 +405,14 @@ Eye reaches it): Q-3.
 | SL-P28 | TecTech Reinforced Temporal Structure Casing ×4 (gated) | ASM | as SL-P27, on programmed circuit 2 | SpaceTime molten 576 | RECIPE_UMV | 1,200 |
 | SL-P29 | TecTech Infinite SpaceTime Energy Boundary Casing ×8 (gated) | ASM | wireGt16 SuperconductorUMV ×1, plateDense Neutronium ×8, plateDense CosmicNeutronium ×8, Emitter_UIV ×1 | SpaceTime molten 1,152 | RECIPE_UMV | 1,200 |
 | SL-P30..P32 | *retired in the RC-2 port* (were research-station "upgrade the compression generator" recipes, B-28) | | | | | |
-| SL-P33, SL-P34 | *reserved* by the D-49 build plan (conditional Eye T5/T6 gate recipes; its §14 post-port audit is answered by costs doc §9.4) | | | | | |
-| SL-P35 | MetaMaterial Resonance Chamber II (gated; RC-2 gate audit, B-29) | Condensate Assembler (`TecTechRecipeMaps.condensateAssemblingRecipes`), nanite tiers SixPhasedCopper / Silver / Gold / Silver | Emitter_UEV ×2, rod Hypogen ×2, **foil SpaceTime ×2** (GT's recipe: foil WhiteDwarfMatter ×1), plate ProtoHalkonite ×1 | entangled Chromatic Glass ×12, Infinity ×6, Boundless Cosmic Solder ×2 (condensate units, as GT's) | RECIPE_UIV | 6,000 |
+| SL-P33..P38 | *reserved* by the D-49 build plan (P33/P34: conditional Eye T5/T6 gate recipes, whose §14 post-port audit is answered by costs doc §9.4; P35..P38: Star Chart: Sirius B, its reclaim, Star Chart: Magnetar, Stellar Ignition Charge) | | | | | |
+| SL-P39 | MetaMaterial Resonance Chamber II (gated; RC-2 gate audit, B-29) | Condensate Assembler (`TecTechRecipeMaps.condensateAssemblingRecipes`), nanite tiers SixPhasedCopper / Silver / Gold / Silver | Emitter_UEV ×2, rod Hypogen ×2, **foil SpaceTime ×2** (GT's recipe: foil WhiteDwarfMatter ×1), plate ProtoHalkonite ×1 | entangled Chromatic Glass ×12, Infinity ×6, Boundless Cosmic Solder ×2 (condensate units, as GT's) | RECIPE_UIV | 6,000 |
 
 SL-P20 is reserved and unused. Keep the ID gap; do not renumber. Each star chart's fluid is the previous tier's
 product, so a chart cannot be crafted before its tier is reachable. SL-P26 registers only when
 `Config.interimBlackDwarfAtEyeT4` is true. SL-P27..P29 come from the cost audit
 ([`singularity-ladder-costs.md`](singularity-ladder-costs.md) §6, #3-#4) and always register, because our Eye needs
-them either way (B-26). TecTech's own recipes for those blocks (Condensate Assembler in RC-2) stay. SL-P35 ("gated")
+them either way (B-26). TecTech's own recipes for those blocks (Condensate Assembler in RC-2) stay. SL-P39 ("gated")
 registers only when `Config.replaceTecTechEyeOfHarmony` is true: with TecTech's Eye kept, WDM has its stock source.
 It is the RC-2 replacement for SL-P30..P32 (B-22, B-28, B-29): GT's Resonance Chamber II is the only place a White
 Dwarf Matter product enters RC-2's tier 1-3 Spacetime Compression Field Generators (costs doc §9).
