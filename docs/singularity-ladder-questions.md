@@ -2231,6 +2231,90 @@ TecTech EOH reference 1237-1290.
   star fragment shader with a brightness multiplier (a tint that scales the luminance as well as the chroma). That
   adds about 30 lines of GLSL in two profiles. Suggestion: do it in round 2 of the fixes if you want them exact.
 
+### B-67 Render fix round 2: the Eye's colours, glow seam and black dwarf, the KEE's chunk churn, and round 3 [render QA]
+
+**What was built** (addon commits 0eedb59..fc1848c). It fixes the round-2 review's defects E-1..E-8, P-1 and H-1. E-9
+(readability from the front) is a structure question and stays open (K2 / E1 in B-66). The Kerr's render needed no
+change.
+
+- **E-1..E-4, E-6: colours.** Every look's core gamma is capped at 2.5 (`EyeStarLook.MAX_GAMMA`, applied in the
+  constructor, so the protostar blend and the nova flash obey it too). The tints are saturated, because the star shader
+  keeps only the tint's chroma.
+  - Sol is FFE08A at gamma 2.0. Sirius A is 9EC2FF at 1.8. The neutron star is B8D0FF at 2.5.
+  - The bounce's proto-neutron star is B8D4FF at 2.0.
+  - Arcturus is FF6A20 at **0.9**. The swell starts at Arcturus's gamma and falls by 0.3.
+  - The magnetar core is 4A30FF at **0.7**. Its flare shell is unchanged (B070FF, gamma 1).
+  - The cooling dwarf's early stop is **B8CCFF at 1.5**, and its half-way stop runs at gamma **1.8**.
+- **E-1, shells.** The two additive shells run at 0.12 / 0.06 for the lit stars, the swell, the neutron star, the bounce
+  and the dwarf. The protostar, the magnetar and the nova keep 0.3 / 0.15.
+- **E-8, limb ring.** Every kind's shells sit at 1.01 / 1.02 radii, not 1.02 / 1.04.
+- **E-5, glow seam.** The glow disc now passes through the object's centre. It is no longer pushed back or scaled up.
+  Its radius is `min(max(6, 2.5r), 20.4)` blocks, so it never reaches the nearest `eye_core` block (20.9 blocks out).
+  The core's depth still hides its middle.
+- **E-7, black dwarf.** An untextured, alpha-blended sphere in 0E0A0C is drawn over the core. Its alpha is
+  `0.85 × clamp((cooling − 0.5) / 0.4, 0, 1)` and it writes no depth. The dark-red rim (1.03r) is kept.
+- **P-1, KEE churn.** The cause was not client data or the active flag. The harness's new server-side packet spy showed
+  the server sends ONE tile description packet per KEE structure re-check, every 200 ticks. GT's
+  `MTEEnhancedMultiBlockBase.onStructureCheckFinished` issues a tile update after every formed check, to sync the
+  structure's sound centre. GT's client reads that packet through four client events plus one texture update, and each
+  marks the block. That is the "5 block updates per window" seen in round 2: one chunk rebuild every 10 s, not 2.5 per
+  second.
+  - The fix is the new `machines/QuietTileUpdate`. The KEE passes GT's request through only on the first formed check
+    (after a load, a placement or a re-form) or when the centre or radius moved.
+  - In round 3, no shot window shows a KEE block update.
+- **H-1, harness.** Close-ups use "2.2 radii + 4" from radius 9 (it was over 12). Sol's camera is now 23.8 blocks out
+  and Sirius A's 28.2.
+- **Harness diagnostics.** The client dirt tracker logs the call path of the first machine block update in each window.
+  A server-side tracker logs block-update requests. A dev-only `PacketSpy` (harness runs only) replaces the harness
+  player's net handler. It counts the tile description packets and the GT block events the server sends per shot, with
+  the call path.
+
+**Round 3.** 90 shots are in my local work folder `render-qa/round3/`. The full run is in `rendertest.log`.
+Retuned cases were re-shot and overwrite the full run's files; their earlier shots are in `pass-a/`, `pass-b/` and
+`pass-c/`:
+- `rendertest-retune.log`: Arcturus, the Core Collapse, T5 and T6.
+- `rendertest-retune2.log`: the bounce and the early dwarf.
+- `rendertest-retune3.log`: the bounce.
+
+The magnetar-warn shots were taken with the flare's shock shell at gamma 1.5. It is now 1.2, which is slightly dimmer.
+
+Measured on the close-ups (disc samples, same method as the review's judge2 statistics):
+
+| Case | Round 2 | Round 3 | Target |
+|---|---|---|---|
+| Sol | FEFEF7, 71-77 % white | F8E695 / F0DA82, 0 % white, median 216-229 | < 15 %, about FFE6A8 |
+| Sirius A | FEFEFF, 93-98 % white | B9D8FB / BFDFFD, 3-8 %, median 209-216 | < 15 %, about C0D6FF, 200-215 |
+| Arcturus | F3EC93, median 233-240 | FC7022 / F78D3C, 0 %, median 139-170 | about FF9A50, about 170 |
+| Swell (half way) | F2C47C | F07A48, median 153 | redder than Arcturus |
+| Neutron star | DDE4E6, 76 % white | D6E7FC, 6-10 % | < 20 % |
+| Bounce | 100 % white | C0DEFB / C4E1FC, 2-6 % | < 20 % |
+| Dwarf 10 % | 100 % white | D4C9E0 / E4D9ED, 9-19 % | < 20 % |
+| Dwarf 90 % | 462623, p90 74-77 | 150D0F, p90 21; the rim limb shows at night | ≤ 1E1416, p90 ≤ 35 |
+| Magnetar | FEDCFF / FDCAFF | B080FF / B584FF, 0 % | about A070FF |
+
+FPS at the shots: Kerr 1165-1306, Eye 957-1243 (lowest is the neutron star's 3/4 view), BHC reference 1239-1331,
+TecTech EOH reference 1281-1318.
+
+**Judgement calls (built, PROPOSED). The review's numbers that did not hold up in the real client:**
+1. **Arcturus at gamma 0.9, not 1.5.** At 1.5 the shots measured FEC072, median 204, which is still golden. The
+   texture's luminance has to come down before the shader's chroma reads orange.
+2. **Magnetar at gamma 0.7, not 0.9.** 0.9 measured C597FF (lilac). 0.7 lands on B080FF.
+3. **Dwarf early stop at B8CCFF / 1.5, not E6EEFF / 2.2.** The review's values measured 41-54 % white. The case sits at
+   10 % cooling, where the blue-to-orange blend passes through grey, and grey adds no chroma. Only a lower gamma keeps
+   the texture. The half-way stop runs at 1.8 for the same reason.
+4. **Bounce.** The proto-neutron star is at gamma 2.0 (not 2.5). The shock shells (the bounce's and a magnetar flare's)
+   run at gamma 1.2 (not 4), and the bounce shell at alpha 0.25 (not 0.6). The magnetar flare's burst is at alpha 0.3
+   (not 0.4). At gamma 4 the bounce shell alone blew the star out to 97 % white.
+5. **Veil geometry.** The veil's vertices stand out by `1 / (cos(π / slices) × cos(π / 2·stacks))`, about 1.007 at
+   32 × 24. Its flat faces therefore clear the core's depth. With the vertices at 1.003r the faces sank up to 0.9 %
+   inside the core, so the depth test hid most of the veil. It is drawn after the shells and the rim, so it also darkens
+   the rim's face, and only the rim's limb shows. That is the "rim still visible" reading.
+6. **P-1: a shared helper rather than a KEE-only patch.** `QuietTileUpdate` can serve any of our controllers that
+   re-check on a timer. Only the KEE uses it now. The Eye was not flagged.
+
+**Still open:** E-9 (K2 / E1 in B-66): Quantum Glass windows in the Eye's crown band and the Kerr drum, or accept the
+"look from above" behaviour. Both are structure changes (shapes, BOM, recipes), so they wait for your ruling.
+
 ---
 
 ## Part C. Settled (for the record)
