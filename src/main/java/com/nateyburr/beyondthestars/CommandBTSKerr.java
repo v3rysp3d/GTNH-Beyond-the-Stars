@@ -183,7 +183,8 @@ public class CommandBTSKerr extends CommandBase {
             }
         }
 
-        final KerrKit.Result result = KerrKit.build(world, x, y, z, facing, tier2);
+        final KerrKit.Result result = KerrKit
+            .build(world, x, y, z, facing, tier2, false, player.getUniqueID(), player.getCommandSenderName());
         if (result.failure != null) {
             tell(player, EnumChatFormatting.RED + "Kerr build FAILED: " + result.failure + ".");
             return;
