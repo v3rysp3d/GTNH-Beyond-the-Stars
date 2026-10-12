@@ -1,0 +1,2208 @@
+{
+ "generator": "tools/export-structures.js",
+ "source": "designs/voxel.js",
+ "sha": "ae5ab12085174eb7006517f43f3cbac121819908",
+ "format": "StructureLib native String[d][h] (w chars). Layer 0 = controller front (mockup +z), rows top to bottom, chars left to right seen from the front (mockup +x). off = controller (h,v,d) in the piece's own frame. ' ' = skip.",
+ "orientation": {
+  "flipH": false,
+  "flipD": false,
+  "front": "+z in voxel space for both machines (Kerr: governor arc; Eye: plinth at 90 deg)"
+ },
+ "legend": {
+  "kerr": {
+   "~": {
+    "role": "controller",
+    "kind": "control",
+    "block": "Kerr Ergosphere Engine controller (MTE 28114)"
+   },
+   "A": {
+    "role": "cage_casing",
+    "kind": "casing",
+    "block": "Casings.ExtremeDensitySpaceBendingCasing (GregTechAPI.sBlockCasings10:11, BHC)"
+   },
+   "B": {
+    "role": "cage_frame",
+    "kind": "frame",
+    "block": "GTStructureUtility.ofFrame(Materials.NaquadahAlloy) (BHC frame)"
+   },
+   "C": {
+    "role": "mirror",
+    "kind": "mirror",
+    "block": "NEW slCasing:1 Superradiant Mirror Casing"
+   },
+   "D": {
+    "role": "mirror_backing",
+    "kind": "mirrorback",
+    "block": "NEW slCasing:2 Mirror Backing Casing"
+   },
+   "E": {
+    "role": "injector_rail",
+    "kind": "injector",
+    "block": "NEW slCasing:3/4/5 Bolt Injector Rail Mk I/II/III, ofBlocksTiered (lowest tier sets the bolt cap)",
+    "tiered": true
+   },
+   "F": {
+    "role": "quadrupole",
+    "kind": "quad",
+    "block": "NEW slCasing:7 Beam Focusing Quadrupole"
+   },
+   "G": {
+    "role": "beam_pipe",
+    "kind": "pipe (+ beamhatch at x=17 and x=47)",
+    "block": "Casings.ParticleBeamGuidancePipeCasing"
+   },
+   "H": {
+    "role": "field_coil",
+    "kind": "coil",
+    "block": "NEW slCasing:6 Ergosphere Field Coil"
+   },
+   "I": {
+    "role": "compressor_shell",
+    "kind": "bhc",
+    "block": "Casings.BackgroundRadiationAbsorbentCasing (sBlockCasings10:12, BHC)"
+   },
+   "J": {
+    "role": "arc_lining",
+    "kind": "lining",
+    "block": "Casings.BackgroundRadiationAbsorbentCasing (FC-1: Harmonic Lining not registered)"
+   },
+   "K": {
+    "role": "glass_channel",
+    "kind": "sglass",
+    "block": "Casings.HawkingRadiationRealignmentFocus (sBlockGlass1:4, the BHC's glass)"
+   },
+   "L": {
+    "role": "arc_shell",
+    "kind": "eyeshell",
+    "block": "Casings.ExtremeDensitySpaceBendingCasing (governor and dump arc shells)"
+   },
+   "M": {
+    "role": "beam_dump",
+    "kind": "dump (+ dump-arc ergohatch/output cells)",
+    "block": "NEW slCasing:8 Beam Dump"
+   },
+   "N": {
+    "role": "extractor_shell",
+    "kind": "ring3",
+    "block": "NEW slCasing:15 Ergosphere Extraction Casing"
+   },
+   "O": {
+    "role": "bastion",
+    "kind": "bastion",
+    "block": "NEW slCasing:13 Bastion Plate"
+   },
+   "P": {
+    "role": "casimir",
+    "kind": "casimir",
+    "block": "NEW slCasing:14 Casimir Plate"
+   },
+   "e": {
+    "role": "energy_socket",
+    "kind": "energy",
+    "block": "HatchElement.Energy / ExoticEnergy, else fallback",
+    "fallback": "L",
+    "min": 1,
+    "hint": 1
+   },
+   "m": {
+    "role": "maintenance_socket",
+    "kind": "maint",
+    "block": "HatchElement.Maintenance, else fallback",
+    "fallback": "L",
+    "min": 1,
+    "hint": 2
+   },
+   "b": {
+    "role": "bolt_bus",
+    "kind": "boltbus",
+    "block": "KerrHatchElement.BoltBus (private input bus list), else fallback",
+    "fallback": "A",
+    "min": 1,
+    "hint": 3
+   },
+   "u": {
+    "role": "utility_socket",
+    "kind": "maint (beside each bolt bus)",
+    "block": "BHC utility hatch MTEBlackHoleUtility (MetaTileEntityIDs.HATCH_BLACK_HOLE_UTILITY 3012, redstone hole-state output), optional, else fallback",
+    "fallback": "A",
+    "min": 0,
+    "hint": 6
+   },
+   "c": {
+    "role": "compressor_io",
+    "kind": "beamhatch/energy/maint on the compressor arc",
+    "block": "InputBus / InputHatch / OutputBus / OutputHatch (standard lists, mark-and-truncate), else fallback",
+    "fallback": "I",
+    "min": "1 in + 1 out",
+    "hint": 4
+   },
+   "q": {
+    "role": "compressor_core",
+    "kind": "control on the compressor arc",
+    "block": "NEW slCasing2:0 Kerr Compressor Module (exactly 1, no fallback)",
+    "min": 1
+   },
+   "x": {
+    "role": "extractor_io",
+    "kind": "output on the extractor arc",
+    "block": "as c, else fallback",
+    "fallback": "N",
+    "min": "1 in + 1 out",
+    "hint": 5
+   },
+   "k": {
+    "role": "extractor_core",
+    "kind": "output at 340 deg",
+    "block": "NEW slCasing2:1 Kerr Extractor Module (exactly 1, no fallback)",
+    "min": 1
+   }
+  },
+  "eye": {
+   "~": {
+    "role": "controller",
+    "kind": "control",
+    "block": "Eye of Harmony controller (MTE 28115)"
+   },
+   "U": {
+    "role": "band_shell",
+    "kind": "eyeshell (core band, rails, pylons)",
+    "block": "Casings.ReinforcedSpatialStructureCasing (TTCasingsContainer.sBlockCasingsBA0:11)"
+   },
+   "Q": {
+    "role": "plinth",
+    "kind": "deck",
+    "block": "Casings.ReinforcedTemporalStructureCasing (BA0:10)"
+   },
+   "J": {
+    "role": "band_lining",
+    "kind": "lining",
+    "block": "Casings.InfiniteSpacetimeEnergyBoundaryCasing (BA0:12)"
+   },
+   "Z": {
+    "role": "glass_channel",
+    "kind": "sglass",
+    "block": "Casings.QuantumGlass (TecTech)"
+   },
+   "W": {
+    "role": "compression_field",
+    "kind": "eyeshell clamps, upper rail -> core (T1)",
+    "block": "TTCasingsContainer.SpacetimeCompressionFieldGenerators metas 0-8, ofBlocksTiered (as TecTech's EOH)",
+    "tiered": true
+   },
+   "X": {
+    "role": "dilation_field",
+    "kind": "eyeshell clamps, core -> lower rail (T1)",
+    "block": "TTCasingsContainer.TimeAccelerationFieldGenerator metas 0-8, ofBlocksTiered",
+    "tiered": true
+   },
+   "Y": {
+    "role": "stabilisation_field",
+    "kind": "deck, the six pylon foot pads",
+    "block": "TTCasingsContainer.StabilisationFieldGenerators metas 0-8, ofBlocksTiered",
+    "tiered": true
+   },
+   "R": {
+    "role": "beam_band",
+    "kind": "ring2",
+    "block": "NEW slCasing:10 Beam Band Casing"
+   },
+   "S": {
+    "role": "jet_crescent",
+    "kind": "ring3",
+    "block": "NEW slCasing:11 Jet Crescent Casing"
+   },
+   "T": {
+    "role": "galactic_shell",
+    "kind": "galactic",
+    "block": "NEW slCasing:12 Galactic Shell Plating"
+   },
+   "h": {
+    "role": "gas_socket",
+    "kind": "gas",
+    "block": "EyeHatchElement.Gas (MTEHatchInput, private -> H/He buffers), else fallback",
+    "fallback": "Q",
+    "min": 1,
+    "hint": 1
+   },
+   "o": {
+    "role": "me_output_socket",
+    "kind": "energy (plinth)",
+    "block": "EyeHatchElement.Output (MTEHatchOutputBusME, MTEHatchOutputME), else fallback",
+    "fallback": "Q",
+    "min": "1 bus + 1 hatch",
+    "hint": 2
+   },
+   "m": {
+    "role": "maintenance_socket",
+    "kind": "maint",
+    "block": "HatchElement.Maintenance, else fallback",
+    "fallback": "Q",
+    "min": 1,
+    "hint": 3
+   },
+   "s": {
+    "role": "stellar_socket_beam",
+    "kind": "beamhatch on the beam band",
+    "block": "EyeHatchElement.Stellar (MTEHatchInput, private -> stellar buffers), else fallback",
+    "fallback": "R",
+    "min": 0,
+    "hint": 4
+   },
+   "t": {
+    "role": "stellar_socket_jet",
+    "kind": "beamhatch on the jet crescent",
+    "block": "EyeHatchElement.Stellar, else fallback",
+    "fallback": "S",
+    "min": 0,
+    "hint": 4
+   }
+  }
+ },
+ "machines": {
+  "kerr": {
+   "controllerVoxel": [
+    0,
+    0,
+    38
+   ],
+   "pieces": {
+    "kerr_t1": "required without the Density Upgrade",
+    "kerr_t2": "required with the Density Upgrade (replaces kerr_t1)",
+    "kerr_compressor": "optional checked module",
+    "kerr_extractor": "optional checked module"
+   }
+  },
+  "eye": {
+   "controllerVoxel": [
+    0,
+    -40,
+    40
+   ],
+   "pieces": {
+    "eye_core": "T1, required",
+    "eye_beam": "T2 band, optional",
+    "eye_jet": "T3 band, optional, independent of eye_beam",
+    "eye_arms": "T4 arms, optional (plus the Galactic Upgrade Core)"
+   }
+  }
+ },
+ "assembled": {
+  "Kerr T1": {
+   "pieces": [
+    "kerr_t1",
+    "kerr_compressor",
+    "kerr_extractor"
+   ],
+   "size": "76x65x79",
+   "blocks": 15363
+  },
+  "Kerr T2": {
+   "pieces": [
+    "kerr_t2",
+    "kerr_compressor",
+    "kerr_extractor"
+   ],
+   "size": "92x65x89",
+   "blocks": 29839
+  },
+  "Eye T1": {
+   "pieces": [
+    "eye_core"
+   ],
+   "size": "102x52x80",
+   "blocks": 19616
+  },
+  "Eye T2": {
+   "pieces": [
+    "eye_core",
+    "eye_beam"
+   ],
+   "size": "102x57x80",
+   "blocks": 23959
+  },
+  "Eye T3": {
+   "pieces": [
+    "eye_core",
+    "eye_beam",
+    "eye_jet"
+   ],
+   "size": "102x57x80",
+   "blocks": 27943
+  },
+  "Eye T4": {
+   "pieces": [
+    "eye_core",
+    "eye_beam",
+    "eye_jet",
+    "eye_arms"
+   ],
+   "size": "102x57x137",
+   "blocks": 34502
+  }
+ },
+ "pieces": {
+  "kerr_t1": {
+   "machine": "kerr",
+   "file": "structures/kerr_t1.txt",
+   "w": 76,
+   "h": 65,
+   "d": 71,
+   "off": [
+    38,
+    32,
+    0
+   ],
+   "blocks": 13899,
+   "bom": [
+    {
+     "ch": "D",
+     "count": 3551,
+     "role": "mirror_backing",
+     "block": "NEW slCasing:2 Mirror Backing Casing"
+    },
+    {
+     "ch": "B",
+     "count": 3186,
+     "role": "cage_frame",
+     "block": "GTStructureUtility.ofFrame(Materials.NaquadahAlloy) (BHC frame)"
+    },
+    {
+     "ch": "C",
+     "count": 2852,
+     "role": "mirror",
+     "block": "NEW slCasing:1 Superradiant Mirror Casing"
+    },
+    {
+     "ch": "A",
+     "count": 1920,
+     "role": "cage_casing",
+     "block": "Casings.ExtremeDensitySpaceBendingCasing (GregTechAPI.sBlockCasings10:11, BHC)"
+    },
+    {
+     "ch": "H",
+     "count": 842,
+     "role": "field_coil",
+     "block": "NEW slCasing:6 Ergosphere Field Coil"
+    },
+    {
+     "ch": "L",
+     "count": 682,
+     "role": "arc_shell",
+     "block": "Casings.ExtremeDensitySpaceBendingCasing (governor and dump arc shells)"
+    },
+    {
+     "ch": "E",
+     "count": 232,
+     "role": "injector_rail",
+     "block": "NEW slCasing:3/4/5 Bolt Injector Rail Mk I/II/III, ofBlocksTiered (lowest tier sets the bolt cap)"
+    },
+    {
+     "ch": "F",
+     "count": 208,
+     "role": "quadrupole",
+     "block": "NEW slCasing:7 Beam Focusing Quadrupole"
+    },
+    {
+     "ch": "M",
+     "count": 160,
+     "role": "beam_dump",
+     "block": "NEW slCasing:8 Beam Dump"
+    },
+    {
+     "ch": "J",
+     "count": 131,
+     "role": "arc_lining",
+     "block": "Casings.BackgroundRadiationAbsorbentCasing (FC-1: Harmonic Lining not registered)"
+    },
+    {
+     "ch": "K",
+     "count": 95,
+     "role": "glass_channel",
+     "block": "Casings.HawkingRadiationRealignmentFocus (sBlockGlass1:4, the BHC's glass)"
+    },
+    {
+     "ch": "G",
+     "count": 20,
+     "role": "beam_pipe",
+     "block": "Casings.ParticleBeamGuidancePipeCasing"
+    },
+    {
+     "ch": "u",
+     "count": 8,
+     "role": "utility_socket",
+     "block": "BHC utility hatch MTEBlackHoleUtility (MetaTileEntityIDs.HATCH_BLACK_HOLE_UTILITY 3012, redstone hole-state output), optional, else fallback"
+    },
+    {
+     "ch": "b",
+     "count": 8,
+     "role": "bolt_bus",
+     "block": "KerrHatchElement.BoltBus (private input bus list), else fallback"
+    },
+    {
+     "ch": "e",
+     "count": 2,
+     "role": "energy_socket",
+     "block": "HatchElement.Energy / ExoticEnergy, else fallback"
+    },
+    {
+     "ch": "m",
+     "count": 1,
+     "role": "maintenance_socket",
+     "block": "HatchElement.Maintenance, else fallback"
+    },
+    {
+     "ch": "~",
+     "count": 1,
+     "role": "controller",
+     "block": "Kerr Ergosphere Engine controller (MTE 28114)"
+    }
+   ],
+   "socketCounts": {
+    "b": 8,
+    "e": 2,
+    "m": 1,
+    "u": 8,
+    "~": 1
+   },
+   "sockets": {
+    "b": [
+     {
+      "abc": [
+       14,
+       27,
+       14
+      ],
+      "rel": [
+       -24,
+       -5,
+       14
+      ],
+      "voxel": [
+       -24,
+       5,
+       24
+      ]
+     },
+     {
+      "abc": [
+       62,
+       27,
+       14
+      ],
+      "rel": [
+       24,
+       -5,
+       14
+      ],
+      "voxel": [
+       24,
+       5,
+       24
+      ]
+     },
+     {
+      "abc": [
+       14,
+       37,
+       14
+      ],
+      "rel": [
+       -24,
+       5,
+       14
+      ],
+      "voxel": [
+       -24,
+       -5,
+       24
+      ]
+     },
+     {
+      "abc": [
+       62,
+       37,
+       14
+      ],
+      "rel": [
+       24,
+       5,
+       14
+      ],
+      "voxel": [
+       24,
+       -5,
+       24
+      ]
+     },
+     {
+      "abc": [
+       14,
+       27,
+       62
+      ],
+      "rel": [
+       -24,
+       -5,
+       62
+      ],
+      "voxel": [
+       -24,
+       5,
+       -24
+      ]
+     },
+     {
+      "abc": [
+       62,
+       27,
+       62
+      ],
+      "rel": [
+       24,
+       -5,
+       62
+      ],
+      "voxel": [
+       24,
+       5,
+       -24
+      ]
+     },
+     {
+      "abc": [
+       14,
+       37,
+       62
+      ],
+      "rel": [
+       -24,
+       5,
+       62
+      ],
+      "voxel": [
+       -24,
+       -5,
+       -24
+      ]
+     },
+     {
+      "abc": [
+       62,
+       37,
+       62
+      ],
+      "rel": [
+       24,
+       5,
+       62
+      ],
+      "voxel": [
+       24,
+       -5,
+       -24
+      ]
+     }
+    ],
+    "e": [
+     {
+      "abc": [
+       40,
+       32,
+       0
+      ],
+      "rel": [
+       2,
+       0,
+       0
+      ],
+      "voxel": [
+       2,
+       0,
+       38
+      ]
+     },
+     {
+      "abc": [
+       42,
+       32,
+       0
+      ],
+      "rel": [
+       4,
+       0,
+       0
+      ],
+      "voxel": [
+       4,
+       0,
+       38
+      ]
+     }
+    ],
+    "m": [
+     {
+      "abc": [
+       36,
+       32,
+       0
+      ],
+      "rel": [
+       -2,
+       0,
+       0
+      ],
+      "voxel": [
+       -2,
+       0,
+       38
+      ]
+     }
+    ],
+    "u": [
+     {
+      "abc": [
+       14,
+       26,
+       14
+      ],
+      "rel": [
+       -24,
+       -6,
+       14
+      ],
+      "voxel": [
+       -24,
+       6,
+       24
+      ]
+     },
+     {
+      "abc": [
+       62,
+       26,
+       14
+      ],
+      "rel": [
+       24,
+       -6,
+       14
+      ],
+      "voxel": [
+       24,
+       6,
+       24
+      ]
+     },
+     {
+      "abc": [
+       14,
+       38,
+       14
+      ],
+      "rel": [
+       -24,
+       6,
+       14
+      ],
+      "voxel": [
+       -24,
+       -6,
+       24
+      ]
+     },
+     {
+      "abc": [
+       62,
+       38,
+       14
+      ],
+      "rel": [
+       24,
+       6,
+       14
+      ],
+      "voxel": [
+       24,
+       -6,
+       24
+      ]
+     },
+     {
+      "abc": [
+       14,
+       26,
+       62
+      ],
+      "rel": [
+       -24,
+       -6,
+       62
+      ],
+      "voxel": [
+       -24,
+       6,
+       -24
+      ]
+     },
+     {
+      "abc": [
+       62,
+       26,
+       62
+      ],
+      "rel": [
+       24,
+       -6,
+       62
+      ],
+      "voxel": [
+       24,
+       6,
+       -24
+      ]
+     },
+     {
+      "abc": [
+       14,
+       38,
+       62
+      ],
+      "rel": [
+       -24,
+       6,
+       62
+      ],
+      "voxel": [
+       -24,
+       -6,
+       -24
+      ]
+     },
+     {
+      "abc": [
+       62,
+       38,
+       62
+      ],
+      "rel": [
+       24,
+       6,
+       62
+      ],
+      "voxel": [
+       24,
+       -6,
+       -24
+      ]
+     }
+    ],
+    "~": [
+     {
+      "abc": [
+       38,
+       32,
+       0
+      ],
+      "rel": [
+       0,
+       0,
+       0
+      ],
+      "voxel": [
+       0,
+       0,
+       38
+      ]
+     }
+    ]
+   }
+  },
+  "kerr_t2": {
+   "machine": "kerr",
+   "file": "structures/kerr_t2.txt",
+   "w": 92,
+   "h": 65,
+   "d": 89,
+   "off": [
+    44,
+    32,
+    6
+   ],
+   "blocks": 28375,
+   "bom": [
+    {
+     "ch": "O",
+     "count": 8316,
+     "role": "bastion",
+     "block": "NEW slCasing:13 Bastion Plate"
+    },
+    {
+     "ch": "J",
+     "count": 4162,
+     "role": "arc_lining",
+     "block": "Casings.BackgroundRadiationAbsorbentCasing (FC-1: Harmonic Lining not registered)"
+    },
+    {
+     "ch": "D",
+     "count": 3551,
+     "role": "mirror_backing",
+     "block": "NEW slCasing:2 Mirror Backing Casing"
+    },
+    {
+     "ch": "B",
+     "count": 3186,
+     "role": "cage_frame",
+     "block": "GTStructureUtility.ofFrame(Materials.NaquadahAlloy) (BHC frame)"
+    },
+    {
+     "ch": "C",
+     "count": 2852,
+     "role": "mirror",
+     "block": "NEW slCasing:1 Superradiant Mirror Casing"
+    },
+    {
+     "ch": "A",
+     "count": 1920,
+     "role": "cage_casing",
+     "block": "Casings.ExtremeDensitySpaceBendingCasing (GregTechAPI.sBlockCasings10:11, BHC)"
+    },
+    {
+     "ch": "K",
+     "count": 1537,
+     "role": "glass_channel",
+     "block": "Casings.HawkingRadiationRealignmentFocus (sBlockGlass1:4, the BHC's glass)"
+    },
+    {
+     "ch": "H",
+     "count": 842,
+     "role": "field_coil",
+     "block": "NEW slCasing:6 Ergosphere Field Coil"
+    },
+    {
+     "ch": "L",
+     "count": 682,
+     "role": "arc_shell",
+     "block": "Casings.ExtremeDensitySpaceBendingCasing (governor and dump arc shells)"
+    },
+    {
+     "ch": "P",
+     "count": 677,
+     "role": "casimir",
+     "block": "NEW slCasing:14 Casimir Plate"
+    },
+    {
+     "ch": "E",
+     "count": 232,
+     "role": "injector_rail",
+     "block": "NEW slCasing:3/4/5 Bolt Injector Rail Mk I/II/III, ofBlocksTiered (lowest tier sets the bolt cap)"
+    },
+    {
+     "ch": "F",
+     "count": 208,
+     "role": "quadrupole",
+     "block": "NEW slCasing:7 Beam Focusing Quadrupole"
+    },
+    {
+     "ch": "M",
+     "count": 160,
+     "role": "beam_dump",
+     "block": "NEW slCasing:8 Beam Dump"
+    },
+    {
+     "ch": "G",
+     "count": 30,
+     "role": "beam_pipe",
+     "block": "Casings.ParticleBeamGuidancePipeCasing"
+    },
+    {
+     "ch": "u",
+     "count": 8,
+     "role": "utility_socket",
+     "block": "BHC utility hatch MTEBlackHoleUtility (MetaTileEntityIDs.HATCH_BLACK_HOLE_UTILITY 3012, redstone hole-state output), optional, else fallback"
+    },
+    {
+     "ch": "b",
+     "count": 8,
+     "role": "bolt_bus",
+     "block": "KerrHatchElement.BoltBus (private input bus list), else fallback"
+    },
+    {
+     "ch": "e",
+     "count": 2,
+     "role": "energy_socket",
+     "block": "HatchElement.Energy / ExoticEnergy, else fallback"
+    },
+    {
+     "ch": "m",
+     "count": 1,
+     "role": "maintenance_socket",
+     "block": "HatchElement.Maintenance, else fallback"
+    },
+    {
+     "ch": "~",
+     "count": 1,
+     "role": "controller",
+     "block": "Kerr Ergosphere Engine controller (MTE 28114)"
+    }
+   ],
+   "socketCounts": {
+    "b": 8,
+    "e": 2,
+    "m": 1,
+    "u": 8,
+    "~": 1
+   },
+   "sockets": {
+    "b": [
+     {
+      "abc": [
+       20,
+       27,
+       20
+      ],
+      "rel": [
+       -24,
+       -5,
+       14
+      ],
+      "voxel": [
+       -24,
+       5,
+       24
+      ]
+     },
+     {
+      "abc": [
+       68,
+       27,
+       20
+      ],
+      "rel": [
+       24,
+       -5,
+       14
+      ],
+      "voxel": [
+       24,
+       5,
+       24
+      ]
+     },
+     {
+      "abc": [
+       20,
+       37,
+       20
+      ],
+      "rel": [
+       -24,
+       5,
+       14
+      ],
+      "voxel": [
+       -24,
+       -5,
+       24
+      ]
+     },
+     {
+      "abc": [
+       68,
+       37,
+       20
+      ],
+      "rel": [
+       24,
+       5,
+       14
+      ],
+      "voxel": [
+       24,
+       -5,
+       24
+      ]
+     },
+     {
+      "abc": [
+       20,
+       27,
+       68
+      ],
+      "rel": [
+       -24,
+       -5,
+       62
+      ],
+      "voxel": [
+       -24,
+       5,
+       -24
+      ]
+     },
+     {
+      "abc": [
+       68,
+       27,
+       68
+      ],
+      "rel": [
+       24,
+       -5,
+       62
+      ],
+      "voxel": [
+       24,
+       5,
+       -24
+      ]
+     },
+     {
+      "abc": [
+       20,
+       37,
+       68
+      ],
+      "rel": [
+       -24,
+       5,
+       62
+      ],
+      "voxel": [
+       -24,
+       -5,
+       -24
+      ]
+     },
+     {
+      "abc": [
+       68,
+       37,
+       68
+      ],
+      "rel": [
+       24,
+       5,
+       62
+      ],
+      "voxel": [
+       24,
+       -5,
+       -24
+      ]
+     }
+    ],
+    "e": [
+     {
+      "abc": [
+       46,
+       32,
+       6
+      ],
+      "rel": [
+       2,
+       0,
+       0
+      ],
+      "voxel": [
+       2,
+       0,
+       38
+      ]
+     },
+     {
+      "abc": [
+       48,
+       32,
+       6
+      ],
+      "rel": [
+       4,
+       0,
+       0
+      ],
+      "voxel": [
+       4,
+       0,
+       38
+      ]
+     }
+    ],
+    "m": [
+     {
+      "abc": [
+       42,
+       32,
+       6
+      ],
+      "rel": [
+       -2,
+       0,
+       0
+      ],
+      "voxel": [
+       -2,
+       0,
+       38
+      ]
+     }
+    ],
+    "u": [
+     {
+      "abc": [
+       20,
+       26,
+       20
+      ],
+      "rel": [
+       -24,
+       -6,
+       14
+      ],
+      "voxel": [
+       -24,
+       6,
+       24
+      ]
+     },
+     {
+      "abc": [
+       68,
+       26,
+       20
+      ],
+      "rel": [
+       24,
+       -6,
+       14
+      ],
+      "voxel": [
+       24,
+       6,
+       24
+      ]
+     },
+     {
+      "abc": [
+       20,
+       38,
+       20
+      ],
+      "rel": [
+       -24,
+       6,
+       14
+      ],
+      "voxel": [
+       -24,
+       -6,
+       24
+      ]
+     },
+     {
+      "abc": [
+       68,
+       38,
+       20
+      ],
+      "rel": [
+       24,
+       6,
+       14
+      ],
+      "voxel": [
+       24,
+       -6,
+       24
+      ]
+     },
+     {
+      "abc": [
+       20,
+       26,
+       68
+      ],
+      "rel": [
+       -24,
+       -6,
+       62
+      ],
+      "voxel": [
+       -24,
+       6,
+       -24
+      ]
+     },
+     {
+      "abc": [
+       68,
+       26,
+       68
+      ],
+      "rel": [
+       24,
+       -6,
+       62
+      ],
+      "voxel": [
+       24,
+       6,
+       -24
+      ]
+     },
+     {
+      "abc": [
+       20,
+       38,
+       68
+      ],
+      "rel": [
+       -24,
+       6,
+       62
+      ],
+      "voxel": [
+       -24,
+       -6,
+       -24
+      ]
+     },
+     {
+      "abc": [
+       68,
+       38,
+       68
+      ],
+      "rel": [
+       24,
+       6,
+       62
+      ],
+      "voxel": [
+       24,
+       -6,
+       -24
+      ]
+     }
+    ],
+    "~": [
+     {
+      "abc": [
+       44,
+       32,
+       6
+      ],
+      "rel": [
+       0,
+       0,
+       0
+      ],
+      "voxel": [
+       0,
+       0,
+       38
+      ]
+     }
+    ]
+   }
+  },
+  "kerr_compressor": {
+   "machine": "kerr",
+   "file": "structures/kerr_compressor.txt",
+   "w": 33,
+   "h": 11,
+   "d": 20,
+   "off": [
+    16,
+    5,
+    -59
+   ],
+   "blocks": 965,
+   "bom": [
+    {
+     "ch": "I",
+     "count": 633,
+     "role": "compressor_shell",
+     "block": "Casings.BackgroundRadiationAbsorbentCasing (sBlockCasings10:12, BHC)"
+    },
+    {
+     "ch": "J",
+     "count": 253,
+     "role": "arc_lining",
+     "block": "Casings.BackgroundRadiationAbsorbentCasing (FC-1: Harmonic Lining not registered)"
+    },
+    {
+     "ch": "K",
+     "count": 60,
+     "role": "glass_channel",
+     "block": "Casings.HawkingRadiationRealignmentFocus (sBlockGlass1:4, the BHC's glass)"
+    },
+    {
+     "ch": "G",
+     "count": 12,
+     "role": "beam_pipe",
+     "block": "Casings.ParticleBeamGuidancePipeCasing"
+    },
+    {
+     "ch": "c",
+     "count": 6,
+     "role": "compressor_io",
+     "block": "InputBus / InputHatch / OutputBus / OutputHatch (standard lists, mark-and-truncate), else fallback"
+    },
+    {
+     "ch": "q",
+     "count": 1,
+     "role": "compressor_core",
+     "block": "NEW slCasing2:0 Kerr Compressor Module (exactly 1, no fallback)"
+    }
+   ],
+   "socketCounts": {
+    "c": 6,
+    "q": 1
+   },
+   "sockets": {
+    "c": [
+     {
+      "abc": [
+       8,
+       5,
+       10
+      ],
+      "rel": [
+       -8,
+       0,
+       69
+      ],
+      "voxel": [
+       -8,
+       0,
+       -31
+      ]
+     },
+     {
+      "abc": [
+       24,
+       5,
+       10
+      ],
+      "rel": [
+       8,
+       0,
+       69
+      ],
+      "voxel": [
+       8,
+       0,
+       -31
+      ]
+     },
+     {
+      "abc": [
+       13,
+       5,
+       11
+      ],
+      "rel": [
+       -3,
+       0,
+       70
+      ],
+      "voxel": [
+       -3,
+       0,
+       -32
+      ]
+     },
+     {
+      "abc": [
+       19,
+       5,
+       11
+      ],
+      "rel": [
+       3,
+       0,
+       70
+      ],
+      "voxel": [
+       3,
+       0,
+       -32
+      ]
+     },
+     {
+      "abc": [
+       16,
+       3,
+       19
+      ],
+      "rel": [
+       0,
+       -2,
+       78
+      ],
+      "voxel": [
+       0,
+       2,
+       -40
+      ]
+     },
+     {
+      "abc": [
+       16,
+       5,
+       19
+      ],
+      "rel": [
+       0,
+       0,
+       78
+      ],
+      "voxel": [
+       0,
+       0,
+       -40
+      ]
+     }
+    ],
+    "q": [
+     {
+      "abc": [
+       16,
+       7,
+       19
+      ],
+      "rel": [
+       0,
+       2,
+       78
+      ],
+      "voxel": [
+       0,
+       -2,
+       -40
+      ]
+     }
+    ]
+   }
+  },
+  "kerr_extractor": {
+   "machine": "kerr",
+   "file": "structures/kerr_extractor.txt",
+   "w": 9,
+   "h": 11,
+   "d": 16,
+   "off": [
+    -29,
+    5,
+    -43
+   ],
+   "blocks": 499,
+   "bom": [
+    {
+     "ch": "N",
+     "count": 315,
+     "role": "extractor_shell",
+     "block": "NEW slCasing:15 Ergosphere Extraction Casing"
+    },
+    {
+     "ch": "J",
+     "count": 137,
+     "role": "arc_lining",
+     "block": "Casings.BackgroundRadiationAbsorbentCasing (FC-1: Harmonic Lining not registered)"
+    },
+    {
+     "ch": "K",
+     "count": 44,
+     "role": "glass_channel",
+     "block": "Casings.HawkingRadiationRealignmentFocus (sBlockGlass1:4, the BHC's glass)"
+    },
+    {
+     "ch": "x",
+     "count": 2,
+     "role": "extractor_io",
+     "block": "as c, else fallback"
+    },
+    {
+     "ch": "k",
+     "count": 1,
+     "role": "extractor_core",
+     "block": "NEW slCasing2:1 Kerr Extractor Module (exactly 1, no fallback)"
+    }
+   ],
+   "socketCounts": {
+    "k": 1,
+    "x": 2
+   },
+   "sockets": {
+    "k": [
+     {
+      "abc": [
+       2,
+       5,
+       6
+      ],
+      "rel": [
+       31,
+       0,
+       49
+      ],
+      "voxel": [
+       31,
+       0,
+       -11
+      ]
+     }
+    ],
+    "x": [
+     {
+      "abc": [
+       3,
+       5,
+       3
+      ],
+      "rel": [
+       32,
+       0,
+       46
+      ],
+      "voxel": [
+       32,
+       0,
+       -8
+      ]
+     },
+     {
+      "abc": [
+       0,
+       5,
+       9
+      ],
+      "rel": [
+       29,
+       0,
+       52
+      ],
+      "voxel": [
+       29,
+       0,
+       -14
+      ]
+     }
+    ]
+   }
+  },
+  "eye_core": {
+   "machine": "eye",
+   "file": "structures/eye_core.txt",
+   "w": 102,
+   "h": 52,
+   "d": 80,
+   "off": [
+    50,
+    50,
+    0
+   ],
+   "blocks": 19616,
+   "bom": [
+    {
+     "ch": "U",
+     "count": 9406,
+     "role": "band_shell",
+     "block": "Casings.ReinforcedSpatialStructureCasing (TTCasingsContainer.sBlockCasingsBA0:11)"
+    },
+    {
+     "ch": "Q",
+     "count": 4458,
+     "role": "plinth",
+     "block": "Casings.ReinforcedTemporalStructureCasing (BA0:10)"
+    },
+    {
+     "ch": "J",
+     "count": 3582,
+     "role": "band_lining",
+     "block": "Casings.InfiniteSpacetimeEnergyBoundaryCasing (BA0:12)"
+    },
+    {
+     "ch": "Z",
+     "count": 1541,
+     "role": "glass_channel",
+     "block": "Casings.QuantumGlass (TecTech)"
+    },
+    {
+     "ch": "Y",
+     "count": 294,
+     "role": "stabilisation_field",
+     "block": "TTCasingsContainer.StabilisationFieldGenerators metas 0-8, ofBlocksTiered"
+    },
+    {
+     "ch": "W",
+     "count": 188,
+     "role": "compression_field",
+     "block": "TTCasingsContainer.SpacetimeCompressionFieldGenerators metas 0-8, ofBlocksTiered (as TecTech's EOH)"
+    },
+    {
+     "ch": "X",
+     "count": 138,
+     "role": "dilation_field",
+     "block": "TTCasingsContainer.TimeAccelerationFieldGenerator metas 0-8, ofBlocksTiered"
+    },
+    {
+     "ch": "h",
+     "count": 5,
+     "role": "gas_socket",
+     "block": "EyeHatchElement.Gas (MTEHatchInput, private -> H/He buffers), else fallback"
+    },
+    {
+     "ch": "o",
+     "count": 2,
+     "role": "me_output_socket",
+     "block": "EyeHatchElement.Output (MTEHatchOutputBusME, MTEHatchOutputME), else fallback"
+    },
+    {
+     "ch": "~",
+     "count": 1,
+     "role": "controller",
+     "block": "Eye of Harmony controller (MTE 28115)"
+    },
+    {
+     "ch": "m",
+     "count": 1,
+     "role": "maintenance_socket",
+     "block": "HatchElement.Maintenance, else fallback"
+    }
+   ],
+   "socketCounts": {
+    "h": 5,
+    "m": 1,
+    "o": 2,
+    "~": 1
+   },
+   "sockets": {
+    "h": [
+     {
+      "abc": [
+       25,
+       50,
+       6
+      ],
+      "rel": [
+       -25,
+       0,
+       6
+      ],
+      "voxel": [
+       -25,
+       -40,
+       34
+      ]
+     },
+     {
+      "abc": [
+       75,
+       50,
+       6
+      ],
+      "rel": [
+       25,
+       0,
+       6
+      ],
+      "voxel": [
+       25,
+       -40,
+       34
+      ]
+     },
+     {
+      "abc": [
+       101,
+       50,
+       40
+      ],
+      "rel": [
+       51,
+       0,
+       40
+      ],
+      "voxel": [
+       51,
+       -40,
+       0
+      ]
+     },
+     {
+      "abc": [
+       25,
+       50,
+       74
+      ],
+      "rel": [
+       -25,
+       0,
+       74
+      ],
+      "voxel": [
+       -25,
+       -40,
+       -34
+      ]
+     },
+     {
+      "abc": [
+       75,
+       50,
+       74
+      ],
+      "rel": [
+       25,
+       0,
+       74
+      ],
+      "voxel": [
+       25,
+       -40,
+       -34
+      ]
+     }
+    ],
+    "m": [
+     {
+      "abc": [
+       52,
+       50,
+       0
+      ],
+      "rel": [
+       2,
+       0,
+       0
+      ],
+      "voxel": [
+       2,
+       -40,
+       40
+      ]
+     }
+    ],
+    "o": [
+     {
+      "abc": [
+       48,
+       50,
+       0
+      ],
+      "rel": [
+       -2,
+       0,
+       0
+      ],
+      "voxel": [
+       -2,
+       -40,
+       40
+      ]
+     },
+     {
+      "abc": [
+       54,
+       50,
+       0
+      ],
+      "rel": [
+       4,
+       0,
+       0
+      ],
+      "voxel": [
+       4,
+       -40,
+       40
+      ]
+     }
+    ],
+    "~": [
+     {
+      "abc": [
+       50,
+       50,
+       0
+      ],
+      "rel": [
+       0,
+       0,
+       0
+      ],
+      "voxel": [
+       0,
+       -40,
+       40
+      ]
+     }
+    ]
+   }
+  },
+  "eye_beam": {
+   "machine": "eye",
+   "file": "structures/eye_beam.txt",
+   "w": 92,
+   "h": 9,
+   "d": 69,
+   "off": [
+    45,
+    55,
+    -6
+   ],
+   "blocks": 4343,
+   "bom": [
+    {
+     "ch": "R",
+     "count": 2856,
+     "role": "beam_band",
+     "block": "NEW slCasing:10 Beam Band Casing"
+    },
+    {
+     "ch": "J",
+     "count": 1106,
+     "role": "band_lining",
+     "block": "Casings.InfiniteSpacetimeEnergyBoundaryCasing (BA0:12)"
+    },
+    {
+     "ch": "Z",
+     "count": 375,
+     "role": "glass_channel",
+     "block": "Casings.QuantumGlass (TecTech)"
+    },
+    {
+     "ch": "s",
+     "count": 6,
+     "role": "stellar_socket_beam",
+     "block": "EyeHatchElement.Stellar (MTEHatchInput, private -> stellar buffers), else fallback"
+    }
+   ],
+   "socketCounts": {
+    "s": 6
+   },
+   "sockets": {
+    "s": [
+     {
+      "abc": [
+       45,
+       2,
+       0
+      ],
+      "rel": [
+       0,
+       -53,
+       6
+      ],
+      "voxel": [
+       0,
+       13,
+       34
+      ]
+     },
+     {
+      "abc": [
+       5,
+       2,
+       17
+      ],
+      "rel": [
+       -40,
+       -53,
+       23
+      ],
+      "voxel": [
+       -40,
+       13,
+       17
+      ]
+     },
+     {
+      "abc": [
+       85,
+       2,
+       17
+      ],
+      "rel": [
+       40,
+       -53,
+       23
+      ],
+      "voxel": [
+       40,
+       13,
+       17
+      ]
+     },
+     {
+      "abc": [
+       5,
+       2,
+       51
+      ],
+      "rel": [
+       -40,
+       -53,
+       57
+      ],
+      "voxel": [
+       -40,
+       13,
+       -17
+      ]
+     },
+     {
+      "abc": [
+       85,
+       2,
+       51
+      ],
+      "rel": [
+       40,
+       -53,
+       57
+      ],
+      "voxel": [
+       40,
+       13,
+       -17
+      ]
+     },
+     {
+      "abc": [
+       45,
+       2,
+       68
+      ],
+      "rel": [
+       0,
+       -53,
+       74
+      ],
+      "voxel": [
+       0,
+       13,
+       -34
+      ]
+     }
+    ]
+   },
+   "cellsKeptByEarlierPiece": 115
+  },
+  "eye_jet": {
+   "machine": "eye",
+   "file": "structures/eye_jet.txt",
+   "w": 97,
+   "h": 12,
+   "d": 67,
+   "off": [
+    48,
+    33,
+    -10
+   ],
+   "blocks": 3984,
+   "bom": [
+    {
+     "ch": "S",
+     "count": 2750,
+     "role": "jet_crescent",
+     "block": "NEW slCasing:11 Jet Crescent Casing"
+    },
+    {
+     "ch": "J",
+     "count": 908,
+     "role": "band_lining",
+     "block": "Casings.InfiniteSpacetimeEnergyBoundaryCasing (BA0:12)"
+    },
+    {
+     "ch": "Z",
+     "count": 321,
+     "role": "glass_channel",
+     "block": "Casings.QuantumGlass (TecTech)"
+    },
+    {
+     "ch": "t",
+     "count": 5,
+     "role": "stellar_socket_jet",
+     "block": "EyeHatchElement.Stellar, else fallback"
+    }
+   ],
+   "socketCounts": {
+    "t": 5
+   },
+   "sockets": {
+    "t": [
+     {
+      "abc": [
+       86,
+       11,
+       10
+      ],
+      "rel": [
+       38,
+       -22,
+       20
+      ],
+      "voxel": [
+       38,
+       -18,
+       20
+      ]
+     },
+     {
+      "abc": [
+       4,
+       11,
+       39
+      ],
+      "rel": [
+       -44,
+       -22,
+       49
+      ],
+      "voxel": [
+       -44,
+       -18,
+       -9
+      ]
+     },
+     {
+      "abc": [
+       92,
+       11,
+       39
+      ],
+      "rel": [
+       44,
+       -22,
+       49
+      ],
+      "voxel": [
+       44,
+       -18,
+       -9
+      ]
+     },
+     {
+      "abc": [
+       29,
+       11,
+       61
+      ],
+      "rel": [
+       -19,
+       -22,
+       71
+      ],
+      "voxel": [
+       -19,
+       -18,
+       -31
+      ]
+     },
+     {
+      "abc": [
+       67,
+       11,
+       61
+      ],
+      "rel": [
+       19,
+       -22,
+       71
+      ],
+      "voxel": [
+       19,
+       -18,
+       -31
+      ]
+     }
+    ]
+   },
+   "cellsKeptByEarlierPiece": 100
+  },
+  "eye_arms": {
+   "machine": "eye",
+   "file": "structures/eye_arms.txt",
+   "w": 95,
+   "h": 10,
+   "d": 137,
+   "off": [
+    47,
+    44,
+    28
+   ],
+   "blocks": 6559,
+   "bom": [
+    {
+     "ch": "T",
+     "count": 5325,
+     "role": "galactic_shell",
+     "block": "NEW slCasing:12 Galactic Shell Plating"
+    },
+    {
+     "ch": "J",
+     "count": 830,
+     "role": "band_lining",
+     "block": "Casings.InfiniteSpacetimeEnergyBoundaryCasing (BA0:12)"
+    },
+    {
+     "ch": "Z",
+     "count": 404,
+     "role": "glass_channel",
+     "block": "Casings.QuantumGlass (TecTech)"
+    }
+   ],
+   "socketCounts": {},
+   "sockets": {},
+   "cellsKeptByEarlierPiece": 84
+  }
+ },
+ "checks": [
+  "ok   kerr_t1: one controller '~' at off 38,32,0",
+  "ok   kerr_t2: one controller '~' at off 44,32,6",
+  "ok   kerr_compressor: no '~' (anchored by off 16,5,-59, outside its own box)",
+  "ok   kerr_extractor: no '~' (anchored by off -29,5,-43, outside its own box)",
+  "ok   eye_core: one controller '~' at off 50,50,0",
+  "ok   eye_beam: no '~' (anchored by off 45,55,-6, outside its own box)",
+  "ok   eye_jet: no '~' (anchored by off 48,33,-10, outside its own box)",
+  "ok   eye_arms: no '~' (anchored by off 47,44,28, outside its own box)",
+  "ok   kerr_t1: off resolves to the machine's controller cell",
+  "ok   kerr_t2: off resolves to the machine's controller cell",
+  "ok   kerr_compressor: off resolves to the machine's controller cell",
+  "ok   kerr_extractor: off resolves to the machine's controller cell",
+  "ok   eye_core: off resolves to the machine's controller cell",
+  "ok   eye_beam: off resolves to the machine's controller cell",
+  "ok   eye_jet: off resolves to the machine's controller cell",
+  "ok   eye_arms: off resolves to the machine's controller cell",
+  "ok   kerr_t1 and kerr_compressor share no cell",
+  "ok   kerr_t1 and kerr_extractor share no cell",
+  "ok   kerr_t2 and kerr_compressor share no cell",
+  "ok   kerr_t2 and kerr_extractor share no cell",
+  "ok   kerr_compressor and kerr_extractor share no cell",
+  "ok   eye_core and eye_beam share no cell",
+  "ok   eye_core and eye_jet share no cell",
+  "ok   eye_core and eye_arms share no cell",
+  "ok   eye_beam and eye_jet share no cell",
+  "ok   eye_beam and eye_arms share no cell",
+  "ok   eye_jet and eye_arms share no cell",
+  "ok   Kerr T1 assembled box 76x65x79 (W x H x D, spec 76x65x79)",
+  "ok   Kerr T2 assembled box 92x65x89 (W x H x D, spec 92x65x89)",
+  "ok   Eye T1 assembled box 102x52x80 (W x H x D, spec 102x52x80)",
+  "ok   Eye T2 assembled box 102x57x80 (W x H x D, spec 102x57x80)",
+  "ok   Eye T3 assembled box 102x57x80 (W x H x D, spec 102x57x80)",
+  "ok   Eye T4 assembled box 102x57x137 (W x H x D, spec 102x57x137)",
+  "ok   Kerr T1 + modules: every socket has an outside-reachable face",
+  "ok   Kerr T2 + modules: every socket has an outside-reachable face",
+  "ok   Eye T1: every socket has an outside-reachable face",
+  "ok   Eye T4: every socket has an outside-reachable face"
+ ],
+ "notes": [
+  "kerr: 40 cells drawn by kerr_core then by kerr_compressor; the later piece owns them",
+  "kerr: 9 cells drawn by kerr_core then by kerr_extractor; the later piece owns them",
+  "eye_beam: 115 cells written over an earlier piece in the mockup ({\"clamp\":115}); the earlier piece keeps them",
+  "eye_jet: 100 cells written over an earlier piece in the mockup ({\"clamp\":100}); the earlier piece keeps them",
+  "eye_arms: 84 cells written over an earlier piece in the mockup ({\"arm1\":40,\"arm0\":44}); the earlier piece keeps them"
+ ]
+}
