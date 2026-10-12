@@ -30,6 +30,10 @@ public final class BTSMachines {
     public static ItemStack eyeOfHarmony;
     // D-49 (d49-build-plan.md §9): the Stellar Field Sensor Hatch, base+16.
     public static ItemStack stellarFieldSensor;
+    // H/R unit 2 (homogeny-reality.md): the Homogeny base+30, Reality Diffraction base+31, Reality Refab base+32.
+    public static ItemStack homogeny;
+    public static ItemStack realityDiffraction;
+    public static ItemStack realityRefab;
 
     private BTSMachines() {}
 
@@ -112,7 +116,7 @@ public final class BTSMachines {
         // base+19 spare (the next Kerr module)
         // base+20..29 P4: Quasar Engine 20, Wormhole Mouth 21, Conduit Mirror 22,
         // Conduit Junction 23, Burst Thermaliser Crown Mk I/II/III 24-26, spare 27-29
-        // base+30..34 ON HOLD: Homogeny 30, Reality Diffraction 31, Reality Refab 32, spare 33-34
+        // base+30..34 Homogeny 30, Reality Diffraction 31, Reality Refab 32 (H/R unit 2, ruling 16), spare 33-34
         // base+35..39 spare
         // The Kerr and Eye units each append their own single registration line below.
         kerrEngine = new com.nateyburr.beyondthestars.machines.kerr.MTEKerrEngine(
@@ -138,5 +142,18 @@ public final class BTSMachines {
             base + 16,
             "hatch.beyondthestars.stellarfieldsensor",
             "Stellar Field Sensor Hatch").getStackForm(1);
+        // H/R unit 2 (ruling 16, homogeny-reality.md §4.1): the three machines unheld from the 28130..28134 block.
+        homogeny = new com.nateyburr.beyondthestars.machines.homogeny.MTEHomogeny(
+            base + 30,
+            "multimachine.beyondthestars.homogeny",
+            "The Homogeny").getStackForm(1);
+        realityDiffraction = new com.nateyburr.beyondthestars.machines.reality.MTERealityDiffraction(
+            base + 31,
+            "multimachine.beyondthestars.realitydiffraction",
+            "Reality Diffraction").getStackForm(1);
+        realityRefab = new com.nateyburr.beyondthestars.machines.reality.MTERealityRefab(
+            base + 32,
+            "multimachine.beyondthestars.realityrefab",
+            "Reality Refab").getStackForm(1);
     }
 }

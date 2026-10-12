@@ -49,6 +49,10 @@ public final class BTSRecipes {
         BTSRecipeGuard.line("kerr", BTSRecipesKerr::register);
         BTSRecipeGuard.line("eye", BTSRecipesEye::register);
         BTSRecipeGuard.line("stellar", BTSRecipesStellar::register);
+        // H/R unit 2: the Homogeny / Reality machines' own process recipes (their maps; the BEC recipes are the
+        // recipe unit's).
+        BTSRecipeGuard
+            .line("reality-process", com.nateyburr.beyondthestars.machines.reality.RealityProcessRecipes::register);
         BTSRecipeGuard.line("display", BTSDisplayRecipes::register);
 
         BTSRecipeGuard.summary();
