@@ -32,6 +32,7 @@ import gregtech.api.enums.OrePrefixes;
 import gregtech.api.enums.TierEU;
 import gregtech.api.util.GTModHandler;
 import gregtech.api.util.GTOreDictUnificator;
+import gregtech.api.util.GTUtility;
 import gregtech.api.util.recipe.Scanning;
 import gtPlusPlus.core.material.MaterialMisc;
 import gtPlusPlus.xmod.gregtech.api.enums.GregtechItemList;
@@ -380,7 +381,7 @@ public final class BTSRecipesSingularity {
      */
     private static void tecTechEyeBlocks() {
         // SL-P27 Reinforced Spatial Structure Casing x4: 1 Godforge Singularity Shielding Casing, not 32.
-        // The Quantum Chest is TecTech's Spatial marker (its own recipe has one) and keeps P27 and P28 apart.
+        // Programmed circuit 1 (not consumed) keeps P27 and P28 apart: they share every other input.
         BTSRecipeGuard.recipe(
             "SL-P27",
             () -> GTValues.RA.stdBuilder()
@@ -393,15 +394,14 @@ public final class BTSRecipesSingularity {
                         dense(Materials.Neutronium, 4),
                         dense(Materials.CosmicNeutronium, 4),
                         dense(Materials.Infinity, 1),
-                        nn(ItemList.Quantum_Chest_IV.get(1L), "ItemList.Quantum_Chest_IV")))
+                        GTUtility.getIntegratedCircuit(1)))
                 .fluidInputs(molten(Materials.SpaceTime, 576))
                 .itemOutputs(tectech(CustomItemList.EOH_Reinforced_Spatial_Casing, 4, "EOH_Reinforced_Spatial_Casing"))
                 .duration(1_200)
                 .eut(TierEU.RECIPE_UMV)
                 .addTo(assemblerRecipes));
 
-        // SL-P28 Reinforced Temporal Structure Casing x4: as P27, with TecTech's Temporal marker (an
-        // Accelerator UV; its own recipe has four).
+        // SL-P28 Reinforced Temporal Structure Casing x4: as P27, on programmed circuit 2.
         BTSRecipeGuard.recipe(
             "SL-P28",
             () -> GTValues.RA.stdBuilder()
@@ -414,7 +414,7 @@ public final class BTSRecipesSingularity {
                         dense(Materials.Neutronium, 4),
                         dense(Materials.CosmicNeutronium, 4),
                         dense(Materials.Infinity, 1),
-                        nn(ItemList.AcceleratorUV.get(1L), "ItemList.AcceleratorUV")))
+                        GTUtility.getIntegratedCircuit(2)))
                 .fluidInputs(molten(Materials.SpaceTime, 576))
                 .itemOutputs(
                     tectech(CustomItemList.EOH_Reinforced_Temporal_Casing, 4, "EOH_Reinforced_Temporal_Casing"))
