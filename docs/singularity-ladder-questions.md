@@ -2051,6 +2051,64 @@ for our requirements"), ruling 6 (every BOM block craftable at a fair cost), rul
 **Alternatives.** Assembly lines for the controllers (H-19); keep the doc's ×8 claws and untrimmed inputs; skip the
 P4/P5-gated recipes until their fluids have an owner.
 
+### B-66 H/R: the dev-server test of the three machines, the Install queue and a persistence fix [H/R test]
+
+**What was run.** `runServer` in the `addon-hr` worktree (RC-2 deps, fresh flat world `hrtest`, stdin console, every
+footprint force-loaded with `/btshr keep`), six boots. Bench additions for it: `/btshr bench <x y z> scan` (progress,
+the last recipe check's id and text, hatch contents, stored EU), `on` / `off`, `project <n>` (the projector's creative
+build of rings 1..n over a standing Homogeny, controller and hatches kept) and `/btshr recipes`.
+
+- **Load.** `273 registered, 0 skipped`; the three SL-B10/B13/B14 shim lines, the SL-B16 line and the 14 `H/R gate:`
+  lines as B-65 predicted; no `[beyondthestars]` WARN/ERROR and no exception with a `com.nateyburr` frame in any boot.
+  GT logs `EUt > Practical Voltage` for SL-C04 (RECIPE_MAX) and clamps it to 2,013,265,912, as it does for its own MAX
+  recipes; same clamp on SL-R03/R04/R05.
+- **Lang lint.** All 7 H/R recipe-result ids (`homogeny.tier/installing`, `reality.anchors/full/nanites/noassembler/
+  nonetwork`) have `GT5U.gui.text.recipe_result.` keys; every H/R structure-error and recipe-map key is in the lang
+  file. On the server the scanner printed readable text for `installing`, `nonetwork` and `noassembler`.
+- **Recipes.** Homogeny map 3 (SL-H06 100,000 L RSM -> 1,000 L ESPM at UMV 240 s, H11, H21), Diffraction 1 (SL-R03),
+  Refab 2 (SL-R04/R05); Condensate Assembler 17 of ours (every block, core and controller), Condensate Generator 7.
+- **Forming.** Homogeny T1 north (creative) / east (survival), T2 south / west, T3 north / east; Diffraction north /
+  west / east (survival); Refab south / east (survival) / west: all FORMED, re-projection over each keeps it formed,
+  damage-and-repair restores the cell, the tile count is unchanged. Survival auto-place: T1 17,782, T2 28,595, T3
+  41,597, Diffraction 53,004, Refab 59,244 blocks.
+- **Homogeny T1 run.** With console-stocked hatches the T1 took 100,000 L of Raw Star Matter and, 4,800 ticks later,
+  put 1,000 L of ESPM in the output hatch; the milestone read 1,000 L. T2 runs 4 parallels (400,000 L in, 4,000 L
+  out), T3 16 (1.6M L in, 16,000 L out). A bench whose two 64 A UXV hatches run dry shuts the mix down as any GT multi
+  does (power loss, inputs lost): the bench hatches hold 275 G EU, a T1 mix costs 604 G.
+- **Upgrades.** T1 -> T2 -> T3 in place on one controller: Install refused with the reason for each missing piece
+  (ring, milestone, core), the ring added by `project`, tier = min(installed, structure) until the install run ends,
+  the run pauses on power and on a disabled controller and keeps its progress, survives a wrench, then T2 (4
+  parallels) and T3 (16 parallels).
+- **Diffraction / Refab.** Recipes registered; with no BEC network they idle with "No BEC network: needs a BEC Hatch on
+  the base and a Containment Field on its network" / "No running Condensate Assembler within 64 blocks". Inputs are
+  P4/P5-gated, so no run was attempted.
+- **Restart.** Every machine re-forms; installed tiers, milestones, the escrowed core, a mix in progress and (after
+  fix 2) an install run at 48.8% come back as they were.
+
+**Fixed here.**
+1. **Install while a mix runs now queues.** `installBlocker` refused Install while a mix ran. A Homogeny fed by ME
+   stocking hatches has no gap between mixes, so the player had to soft-mallet it off, and the install then paused as
+   "controller disabled" until it was switched back on. Install now starts at once and waits for the running mix ("paused:
+   waiting for the running mix to finish"); no new mix starts while installing. The tooltip says so. Verified: the mix
+   finished, its ESPM counted, then the run advanced.
+2. **Restart persistence.** Nothing marked the controller's chunk for saving while the install advanced (GT marks
+   it only when a recipe starts or ends), so a restart reloaded the install as it was when Install was pressed (48.8%
+   -> 0.0%, and the controller disabled as it had been then). The install now marks the chunk every 20 ticks and a
+   finished mix marks it after its milestone. Verified across a restart. The same gap was closed without an in-game
+   test (no BEC network on the bench): the Refab marks the chunk every 20 ticks of lockstep progress (its drawn
+   regions would otherwise be drawn twice after a restart) and the Diffraction marks it whenever its never-void
+   buffer injects into the network (a stale buffer would otherwise be injected twice).
+
+**Not tested (open).** The `homogeny.tier` refusal (a T1 machine always has Raw Star Matter, so H06 matches first);
+Diffraction and Refab runs, their anchor / nanite / full refusals and the BEC hatch edge re-assert (they need a BEC
+network with a running Containment Field and Condensate Assembler and P4/P5 fluids); GUIs, tooltips, NEI and the
+hologram projector item on a client. *Suggestion:* a client session once P4 makes Ergomatter, using `/btshr bench`
+on a BEC network built by hand.
+
+**Small things seen (no change).** `gtnhlib: Unable to find team for player 249b60b8...` once, when the bench's console
+owner UUID owned a T3 (the bench owner is not a real player). BEC network ids change when a machine re-forms (expected,
+the grid rebuilds the network).
+
 ## Part C. Settled (for the record)
 
 | Topic | Your answer | State |
