@@ -47,7 +47,8 @@ public class CommandBTSConduit extends CommandBase {
     public String getCommandUsage(ICommandSender sender) {
         return "/btsconduit status x y z | dock x y z | rig x y z | rig status | pair x1 y1 z1 x2 y2 z2 | throat x y z mk"
             + " | fuel x y z on|off | junction x y z c k p3 [split|combine] | rebuild x y z [tier] | keep x1 y z1 x2 z2"
-            + " | survival x y z mouth|mirror|junction|crown1|crown2|crown3";
+            + " | survival x y z mouth|mirror|junction|crown1|crown2|crown3"
+            + " | inject rx ry rz qx qy qz bu | inject rx ry rz off";
     }
 
     @Override
@@ -170,6 +171,48 @@ public class CommandBTSConduit extends CommandBase {
                             : MTEConduitJunction.Mode.SPLIT);
                 }
                 for (String line : j.statusLines()) SLConsoleTest.tell(sender, line);
+                return;
+            }
+            case "inject": {
+                // inject rx ry rz qx qy qz <Bu/t> | inject rx ry rz off: a GRB Receptor Port receives a real quasar's
+                // bursts every second (the host-side bench: Kerr, Homogeny, Reality Diffraction; P4 hosts unit)
+                final com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor port = mte(
+                    world,
+                    x,
+                    y,
+                    z,
+                    com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor.class);
+                if (port == null) {
+                    SLConsoleTest.tell(sender, "No GRB Receptor Port at " + x + ", " + y + ", " + z);
+                    return;
+                }
+                if (args.length >= 5 && args[4].equalsIgnoreCase("off")) {
+                    port.debugInject(null, 0);
+                    SLConsoleTest.tell(sender, "Injection off at " + x + ", " + y + ", " + z);
+                    return;
+                }
+                if (args.length < 8) break;
+                final int qx = coord(sender, args[4], 0), qy = coord(sender, args[5], 1),
+                    qz = coord(sender, args[6], 2);
+                final MTEQuasarEngine q = mte(world, qx, qy, qz, MTEQuasarEngine.class);
+                if (q == null) {
+                    SLConsoleTest.tell(sender, "No Quasar Engine controller at " + qx + ", " + qy + ", " + qz);
+                    return;
+                }
+                port.debugInject(q.source(), Double.parseDouble(args[7]));
+                SLConsoleTest.tell(
+                    sender,
+                    "Injecting " + args[7]
+                        + " Bu/t from the quasar at "
+                        + qx
+                        + ", "
+                        + qy
+                        + ", "
+                        + qz
+                        + " every second (linkable now: "
+                        + q.linkable()
+                        + ")");
+                for (String line : port.statusLines()) SLConsoleTest.tell(sender, line);
                 return;
             }
             case "survival": {

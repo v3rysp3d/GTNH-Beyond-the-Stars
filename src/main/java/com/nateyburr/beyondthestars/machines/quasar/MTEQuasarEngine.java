@@ -1122,6 +1122,11 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         return mMachine;
     }
 
+    /** The source end of a link, as this second's jet packets carry it: formed, hole OPEN, b &gt; 0. */
+    public boolean linkable() {
+        return mMachine && q.hole == QuasarState.Hole.OPEN && q.b > 0;
+    }
+
     public int getCoilTier() {
         return Math.max(0, coilTier);
     }

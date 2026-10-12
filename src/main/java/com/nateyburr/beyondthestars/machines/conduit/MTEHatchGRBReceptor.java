@@ -20,10 +20,12 @@ import com.cleanroommc.modularui.factory.PosGuiData;
 import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.screen.UISettings;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
+import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstReading;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstSource;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstStream;
 import com.nateyburr.beyondthestars.machines.quasar.burst.JetPacket;
+import com.nateyburr.beyondthestars.machines.quasar.burst.JetPort;
 
 import gregtech.api.enums.Textures;
 import gregtech.api.interfaces.IIconContainer;
@@ -85,6 +87,10 @@ public class MTEHatchGRBReceptor extends MTEHatch {
 
     // ---- saved (positions only, for Q-8 across a restart)
     private final Map<BurstSource, Long> known = new LinkedHashMap<>();
+
+    // ---- dev-server bench only ({@code /btsconduit inject}), never saved
+    private BurstSource benchFrom;
+    private double benchBu;
 
     public MTEHatchGRBReceptor(int aID, String aName, String aNameRegional) {
         super(aID, aName, aNameRegional, 11, 0, "Takes a gamma-ray burst stream into a machine");
@@ -221,10 +227,28 @@ public class MTEHatchGRBReceptor extends MTEHatch {
 
     // ------------------------------------------------------------------ GT plumbing
 
+    /**
+     * Test bench ({@code /btsconduit inject}): every second this port receives {@code bu} Bu/t from the real quasar
+     * {@code from}, as if a conduit delivered it - linkable exactly when that quasar's own jets are (formed, OPEN,
+     * b &gt; 0); nothing while it is frozen or unloaded, so Q-8 is the real one. {@code from == null} stops it.
+     */
+    public void debugInject(BurstSource from, double bu) {
+        benchFrom = from;
+        benchBu = Math.max(0, bu);
+    }
+
+    private void benchSecond() {
+        if (benchFrom == null || benchFrom.status() != BurstSource.Status.RUNNING) return;
+        final MTEQuasarEngine q = benchFrom.resolve();
+        if (q == null) return;
+        receive(BurstStream.of(new JetPacket(benchFrom, JetPort.TOP, benchBu, q.linkable(), now())));
+    }
+
     @Override
     public void onPostTick(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
         super.onPostTick(aBaseMetaTileEntity, aTick);
         if (aBaseMetaTileEntity.isServerSide() && aTick % 20 == 0) {
+            benchSecond();
             boolean lit = false;
             final long now = now();
             for (Rec r : recs.values()) lit |= now - r.tick <= FRESH_TICKS && r.bu > 1e-9;
