@@ -15,6 +15,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.SLConsoleTest;
+import com.nateyburr.beyondthestars.machines.SLGateDump;
 import com.nateyburr.beyondthestars.machines.eye.EyeKit;
 import com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS;
 
@@ -37,6 +38,9 @@ import com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS;
  * check and a re-projection check. {@code survival} builds through the hologram projector's survival
  * path instead of the creative one; {@code check} builds nothing and re-walks the Eye already standing
  * there (e.g. after a restart).
+ * <p>
+ * {@code /btseye gates} dumps the Spacetime Compression Field Generator recipes the server has and
+ * checks the compression-gate rule against them ({@link SLGateDump}).
  */
 public class CommandBTSEye extends CommandBase {
 
@@ -52,7 +56,7 @@ public class CommandBTSEye extends CommandBase {
     @Override
     public String getCommandUsage(ICommandSender sender) {
         return "/btseye [t1|t2|t3|t4] [gen 1-9] [fill] [force]  |  console: /btseye [t1..t4] <x> <y> <z> [facing] "
-            + "[gen 1-9] [fill] [force] [survival] | [check]";
+            + "[gen 1-9] [fill] [force] [survival] | [check]  |  /btseye gates";
     }
 
     @Override
@@ -72,6 +76,11 @@ public class CommandBTSEye extends CommandBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
+        if (args.length == 1 && args[0].equalsIgnoreCase("gates")) {
+            // Test bench: the compression-gate audit against the recipes this server actually has.
+            SLGateDump.run(sender);
+            return;
+        }
         final SLConsoleTest.Placement at = SLConsoleTest.parsePlacement(sender, args);
         if (at != null) {
             processAt(sender, args, at);
