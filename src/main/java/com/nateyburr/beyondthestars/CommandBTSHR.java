@@ -21,8 +21,11 @@ import net.minecraftforge.common.util.ForgeDirection;
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.SLConsoleTest;
+import com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor;
 import com.nateyburr.beyondthestars.machines.homogeny.MTEHomogeny;
 import com.nateyburr.beyondthestars.machines.kerr.KerrTestBench;
+import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
+import com.nateyburr.beyondthestars.machines.quasar.QuasarKit;
 import com.nateyburr.beyondthestars.machines.reality.HRKit;
 import com.nateyburr.beyondthestars.machines.reality.MTERealityDiffraction;
 import com.nateyburr.beyondthestars.machines.reality.MTERealityRefab;
@@ -74,7 +77,7 @@ public class CommandBTSHR extends CommandBase {
         return "/btshr <homogeny|diffraction|refab> [t1..t3] [fill] [force]  |  console: /btshr <machine> [t1..t3] "
             + "<x> <y> <z> [facing] [fill] [force] [survival] [check]  |  /btshr keep <machine> <x> <y> <z> <facing> "
             + "[t1..t3]  |  /btshr bench <x> <y> <z> <status|check|fill|wrench|scan|on|off|milestone e d|escrow|install|itick n|"
-            + "project n|relink|pending>  |  /btshr recipes";
+            + "project n|relink|pending|receptors|inject qx qy qz bu|inject off>  |  /btshr recipes";
     }
 
     @Override
@@ -438,6 +441,40 @@ public class CommandBTSHR extends CommandBase {
                     "GRB Receptor Ports fitted: " + HRKit.fitReceptors(world, machine, m)
                         + "; "
                         + (machine.mMachine ? "FORMED" : "NOT FORMED"));
+                for (MTEHatchGRBReceptor port : receptorsOf(mte)) {
+                    final IGregTechTileEntity pb = port.getBaseMetaTileEntity();
+                    if (pb != null)
+                        out.add("  port at " + pb.getXCoord() + " " + pb.getYCoord() + " " + pb.getZCoord());
+                }
+                break;
+            }
+            case "inject": {
+                // P4 hosts unit: inject qx qy qz <Bu/t> | inject off - every port of this machine receives an equal
+                // share of a real quasar's bursts each second (the conduit's delivery; Q-8 is the real path)
+                final List<MTEHatchGRBReceptor> ports = receptorsOf(mte);
+                if (rest.size() >= 2 && rest.get(1)
+                    .equalsIgnoreCase("off")) {
+                    for (MTEHatchGRBReceptor port : ports) port.debugInject(null, 0);
+                    out.add("Injection off on " + ports.size() + " port(s).");
+                    break;
+                }
+                if (rest.size() < 5 || ports.isEmpty()) {
+                    out.add("inject qx qy qz <Bu/t> | inject off (fit the ports first: receptors)");
+                    break;
+                }
+                final MTEQuasarEngine q = QuasarKit.quasarAt(
+                    world,
+                    Integer.parseInt(rest.get(1)),
+                    Integer.parseInt(rest.get(2)),
+                    Integer.parseInt(rest.get(3)));
+                if (q == null) {
+                    out.add("No Quasar Engine controller there.");
+                    break;
+                }
+                final double bu = Double.parseDouble(rest.get(4));
+                for (MTEHatchGRBReceptor port : ports) port.debugInject(q.source(), bu / ports.size());
+                out.add(
+                    "Injecting " + bu + " Bu/t over " + ports.size() + " port(s) (linkable now: " + q.linkable() + ")");
                 break;
             }
             case "pending":
@@ -451,6 +488,12 @@ public class CommandBTSHR extends CommandBase {
         }
         out.addAll(HRKit.statusLines(mte));
         return out;
+    }
+
+    private static List<MTEHatchGRBReceptor> receptorsOf(IMetaTileEntity mte) {
+        if (mte instanceof MTEHomogeny) return ((MTEHomogeny) mte).receptors();
+        if (mte instanceof MTERealityDiffraction) return ((MTERealityDiffraction) mte).receptors();
+        return new ArrayList<>();
     }
 
     private static long parseLong(String s) {
