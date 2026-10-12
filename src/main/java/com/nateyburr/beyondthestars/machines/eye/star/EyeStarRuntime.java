@@ -199,6 +199,10 @@ public final class EyeStarRuntime {
     private final Map<TrimDef.Kind, Long> lastTrims = new EnumMap<>(TrimDef.Kind.class);
     private String waitReason = "";
     private final StepInputs in = new StepInputs();
+    /** The last way a star was lost or put out (GUI, scanner); tile NBT with the star. */
+    String lastFailure = "";
+    /** Set when a Core Collapse ends in a supernova; the centre render takes it for its flash. Not saved. */
+    private boolean novaPending;
 
     public EyeStarRuntime(Host host) {
         this.host = host;
@@ -274,6 +278,111 @@ public final class EyeStarRuntime {
         return dwarfReserve;
     }
 
+    /** The last way a star was lost or put out, or "" (GUI, scanner). */
+    public String lastFailure() {
+        return lastFailure;
+    }
+
+    /** IGNITING: the protostar's P (−80 → −20 lights); 0 when there is no field. Centre render. */
+    public double ignitionP() {
+        return fs == null ? 0 : fs.x[StellarField.P];
+    }
+
+    /** T5: how far the running cooling batch is (0..1), 0 without one. Centre render, GUI. */
+    public double batchFraction() {
+        return fs == null || fs.batch == null ? 0 : Math.min(1, fs.batch.eyeT / StellarField.BATCH_SECONDS);
+    }
+
+    /** The upkeep fraction r of the running cycle. GUI. */
+    public double upkeepR() {
+        return cycR;
+    }
+
+    /** Seconds to the next cycle at the current dial (0 when no star is lit). GUI. */
+    public double nextCycleSeconds() {
+        if (fs == null || fs.cyc == null || !burning()) return 0;
+        return Math.max(0, (StellarField.CYCLE_SECONDS - fs.cyc.eyeT) / Math.max(1e-9, lastM));
+    }
+
+    /** The dial m actually paid this second (1 when none). GUI. */
+    public double dialPaid() {
+        return lastM;
+    }
+
+    /** The time dial's cap {@code 1 + 0.25·max(0, tt − N)} for the star lit now (1 when none). GUI. */
+    public double dialMax() {
+        return fs == null ? 1 : StellarField.mMax(fs.tier, host.timeTier());
+    }
+
+    /** The T4 HSM feed actually drawn this second, L/s per parallel. GUI. */
+    public double feedActual() {
+        return lastFeed;
+    }
+
+    /** Parallel of the star this second. GUI. */
+    public int lastParallel() {
+        return lastP;
+    }
+
+    /** Why a dark (or IDLE) star waits, or "". GUI. */
+    public String waitReason() {
+        return waitReason;
+    }
+
+    /** The last event line, or "". GUI. */
+    public String lastEvent() {
+        return lastEvent;
+    }
+
+    /**
+     * How far the running transition is, 0..1 (GUI bar), or −1 with none. Mass Infusion and Shell Ignition by their
+     * clocks; the Core Collapse is half fast-forward (Time dosed) and half settle (the Stable streak); the First
+     * Cooling by its batch; the Magnetar Merger is 80 % imprint (seconds held) and 20 % release.
+     */
+    public double transitionProgress() {
+        final EyeTransition tr = trans;
+        if (tr == null) return -1;
+        final double p;
+        if (tr instanceof MassInfusion) {
+            p = tr.t / (double) MassInfusion.DURATION;
+        } else if (tr instanceof ShellIgnition) {
+            p = tr.t / (double) (ShellIgnition.END - 1);
+        } else if (tr instanceof CoreCollapse) {
+            final CollapseOverlay co = ((CoreCollapse) tr).co;
+            p = co.phase == 1 ? 0.5 * co.tach / CollapseOverlay.TACH_BOUNCE
+                : 0.5 + 0.5 * co.streak / (double) CollapseOverlay.SETTLE_STREAK;
+        } else if (tr instanceof FirstCooling) {
+            p = batchFraction();
+        } else if (tr instanceof MagnetarMerger) {
+            final MagnetarMerger mm = (MagnetarMerger) tr;
+            p = mm.phase == 1 ? 0.8 * mm.hold / MagnetarMerger.HOLD
+                : 0.8 + 0.2 * mm.t2 / (double) MagnetarMerger.RELEASE_TIMEOUT;
+        } else {
+            p = 0;
+        }
+        return Math.max(0, Math.min(1, p));
+    }
+
+    /** The running transition's phase line, or "" (GUI). */
+    public String transitionLine() {
+        final EyeTransition tr = trans;
+        if (tr == null) return "";
+        return tr instanceof FirstCooling ? ((FirstCooling) tr).line(fs) : tr.phaseLine();
+    }
+
+    /** The gauges the field shows now (a transition's own set, else the tier's); empty when no star burns. GUI. */
+    public int[] activeGauges() {
+        if (fs == null || !burning()) return new int[0];
+        return trans != null ? trans.gauges(fs.tier) : fs.tier.gauges();
+    }
+
+    /** True once after a supernova: the centre render shows its flash. */
+    public boolean takeNova() {
+        final boolean n = novaPending;
+        novaPending = false;
+        return n;
+    }
+
     /**
      * Parallel for a star of tier n on this Eye: {@code 2^(installedTier − n)}; 1 for the star a running transition
      * is making before its tier is unlocked (the First Cooling batch, the merger, the settle phase), as long as the
@@ -347,6 +456,8 @@ public final class EyeStarRuntime {
         flashOk = false;
         rig = null;
         lastEvent = "";
+        lastFailure = "";
+        novaPending = false;
         ledger = null;
         trans = null;
         bounceShock = CollapseOverlay.BOUNCE_SHOCK;
@@ -538,6 +649,7 @@ public final class EyeStarRuntime {
             if (ledger != null) ledger.stAtBounce = out.spaceTimeTaken;
         }
         if (out.supernova) {
+            novaPending = true;
             failTransition(
                 "SUPERNOVA: " + out.supernovaReason
                     + ". Arcturus is lost; the Time fluid, HSM and SpaceTime are spent");
@@ -804,6 +916,7 @@ public final class EyeStarRuntime {
                 : n == 6 ? " (field decoherence: a re-merge needs the merger charge, no core)"
                     : n <= 3 ? " (relighting needs a new Stellar Ignition Charge)" : "");
         if (ledger != null) ledger.fails++;
+        lastFailure = lastEvent;
         goDark();
     }
 
@@ -824,6 +937,7 @@ public final class EyeStarRuntime {
                 .append(" L of Black Dwarf Matter salvaged");
         }
         lastEvent = sb.toString();
+        lastFailure = lastEvent;
         goDark();
     }
 
@@ -983,6 +1097,7 @@ public final class EyeStarRuntime {
             + reason
             + (escrow != null ? "; the " + escrow.getDisplayName() + " stays in escrow" : "");
         if (ledger != null) ledger.fails++;
+        lastFailure = lastEvent;
         goDark();
     }
 
@@ -1104,6 +1219,7 @@ public final class EyeStarRuntime {
             trans = null;
         }
         lastEvent = sb.toString();
+        lastFailure = lastEvent;
         nextBatch();
     }
 

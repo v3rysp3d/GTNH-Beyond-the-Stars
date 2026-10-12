@@ -23,5 +23,7 @@ public final class BTSBlocks {
         GameRegistry.registerTileEntity(TileTurbineHousing.class, "beyondthestars.turbineHousing");
         // SINGULARITY LADDER (singularity-ladder-build.md §1.2): the Kerr / Eye-band casings.
         SLBlocks.register();
+        // D-49: the Eye of Harmony's centre render block and tile (d49-build-plan.md, my answer 3).
+        com.nateyburr.beyondthestars.machines.eye.render.BlockEyeStar.register();
     }
 }

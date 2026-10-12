@@ -42,12 +42,14 @@ import com.gtnewhorizon.structurelib.structure.IStructureElement;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 import com.nateyburr.beyondthestars.BeyondTheStars;
+import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.items.SLItems;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldReadout;
+import com.nateyburr.beyondthestars.machines.eye.render.EyeCentreRender;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeNbt;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime;
 import com.nateyburr.beyondthestars.machines.eye.star.StarDef;
@@ -213,6 +215,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
      * goes through {@link EyeNbt} (persistent part in item and tile NBT, the star in the tile only).
      */
     private final EyeStarRuntime runtime = new EyeStarRuntime(new StarHost());
+    /** D-49 my answer 3: the centre render (its per-machine switch persisted; its block position tile-only). */
+    private final EyeCentreRender centre = new EyeCentreRender();
 
     // ------------------------------------------------------------- RUN state (server, tile NBT)
     private String runningKey;
@@ -860,6 +864,45 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         }
         // GT sets the active flag from its run progress; a burning star is active too (Activity Detector).
         if (runtime.burning()) aBaseMetaTileEntity.setActive(true);
+        // D-49: the centre render follows the star (not before the first walk after a load: the star is frozen).
+        if (mStartUpCheck < 0) centre.tick(aBaseMetaTileEntity, getExtendedFacing(), mMachine, runtime, aTick);
+    }
+
+    // ============================================================================ centre render
+
+    /** True when this Eye's centre render block stands at (x, y, z) (the render tile asks). */
+    public boolean claimsRender(int x, int y, int z) {
+        return centre.claims(x, y, z);
+    }
+
+    /** The per-machine centre render switch (GUI). */
+    public boolean isRenderEnabled() {
+        return centre.isEnabled();
+    }
+
+    public void setRenderEnabled(boolean on) {
+        centre.setEnabled(on);
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base != null) base.markDirty();
+    }
+
+    /** Why the centre render is missing although it should show, or "". */
+    public String getRenderNote() {
+        return centre.note();
+    }
+
+    /** Broken: the centre render goes with the controller. */
+    @Override
+    public void onBlockDestroyed() {
+        centre.remove(getBaseMetaTileEntity());
+        super.onBlockDestroyed();
+    }
+
+    /** Any removal of the tile (a wrench too). GT does not call it on a chunk unload; the render tile polices that. */
+    @Override
+    public void onRemoval() {
+        centre.remove(getBaseMetaTileEntity());
+        super.onRemoval();
     }
 
     /**
@@ -1192,6 +1235,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
      */
     private void writeEyeState(NBTTagCompound nbt) {
         EyeNbt.writePersistent(runtime, nbt);
+        centre.writeSetting(nbt);
         if (!buffers.isEmpty()) {
             final NBTTagCompound b = new NBTTagCompound();
             for (Map.Entry<String, Long> e : buffers.entrySet()) {
@@ -1206,6 +1250,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         super.saveNBTData(aNBT);
         writeEyeState(aNBT);
         EyeNbt.writeStar(runtime, aNBT);
+        centre.writeTile(aNBT);
         if (runningKey != null) {
             aNBT.setString("btsEyeRunKey", runningKey);
             aNBT.setLong("btsEyeRunParallel", runningParallel);
@@ -1225,6 +1270,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         super.loadNBTData(aNBT);
         runtime.reset();
         final boolean legacy = EyeNbt.read(runtime, aNBT);
+        centre.read(aNBT);
         buffers.clear();
         if (aNBT.hasKey("btsEyeBuffers")) {
             final NBTTagCompound b = aNBT.getCompoundTag("btsEyeBuffers");
@@ -1530,6 +1576,14 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         }
         if (!lastRun.isEmpty()) out.add("Last run: " + lastRun);
         out.addAll(runtime.statusLines());
+        if (!runtime.lastFailure()
+            .isEmpty()) out.add("Last failure: " + runtime.lastFailure());
+        out.add(
+            "Centre render: "
+                + (!Config.eyeRenderCentre ? "off (config eyeRenderCentre)"
+                    : !centre.isEnabled() ? "off (this Eye; the GUI toggle)" : centre.label())
+                + (centre.note()
+                    .isEmpty() ? "" : "; " + centre.note()));
         return out;
     }
 

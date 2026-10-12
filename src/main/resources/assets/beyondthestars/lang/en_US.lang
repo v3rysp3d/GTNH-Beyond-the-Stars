@@ -126,6 +126,7 @@ tile.beyondthestars.slCasing.15.name=Ergosphere Extraction Casing
 tile.beyondthestars.slCasing2.0.name=Kerr Compressor Module
 tile.beyondthestars.slCasing2.1.name=Kerr Extractor Module
 tile.beyondthestars.slCasing2.2.name=Harmonic Lining
+gt.beyondthestars.eyeStar.name=Eye of Harmony Star (render)
 item.beyondthestars.superradiantMirrorSegment.name=Superradiant Mirror Segment
 item.beyondthestars.stabiliserPylon.name=Stabiliser Pylon
 item.beyondthestars.kerrDensityUpgrade.name=Kerr Density Upgrade

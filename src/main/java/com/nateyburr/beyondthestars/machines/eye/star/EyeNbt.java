@@ -113,6 +113,7 @@ public final class EyeNbt {
         s.setBoolean("flashOk", rt.flashOk);
         if (rt.rig != null) s.setString("rig", rt.rig.name());
         if (!rt.lastEvent.isEmpty()) s.setString("lastEvent", rt.lastEvent);
+        if (!rt.lastFailure.isEmpty()) s.setString("lastFail", rt.lastFailure);
         if (rt.ledger != null) s.setTag("ledger", writeLedger(rt.ledger));
         s.setDouble("shock", rt.bounceShock);
         s.setDouble("dwarfReserve", rt.dwarfReserve);
@@ -265,6 +266,7 @@ public final class EyeNbt {
         rt.flashOk = s.getBoolean("flashOk");
         rt.rig = s.hasKey("rig") ? FieldRig.Mode.parse(s.getString("rig")) : null;
         rt.lastEvent = s.getString("lastEvent");
+        rt.lastFailure = s.getString("lastFail");
         rt.ledger = s.hasKey("ledger") ? readLedger(s.getCompoundTag("ledger")) : null;
         if (s.hasKey("shock")) rt.bounceShock = s.getDouble("shock");
         rt.dwarfReserve = s.getDouble("dwarfReserve");

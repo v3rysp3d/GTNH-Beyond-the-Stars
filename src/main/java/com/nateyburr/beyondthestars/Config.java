@@ -56,8 +56,9 @@ public class Config {
     private static final String RETIRED_INTERIM_BDM_KEY = "interimBlackDwarfAtEyeT4";
 
     /**
-     * SINGULARITY LADDER (D-34): render the band's object at the Eye's centre. Client cosmetic.
-     * NOT IMPLEMENTED YET (Q-34): nothing reads this flag; it is registered so the key is stable.
+     * D-49 (my answer 3, D-34): draw the Eye's current object at its centre (machines/eye/render: the live star,
+     * neutron star, cooling dwarf, magnetar, Core Collapse). The client skips drawing when it is off; the server
+     * places no render block when it is off. Each Eye also has a GUI switch.
      */
     public static boolean eyeRenderCentre = true;
 
@@ -125,14 +126,26 @@ public class Config {
                 .remove(RETIRED_INTERIM_BDM_KEY);
         }
 
+        // The comment changed when the render landed (it used to say "not implemented"): rewrite the file once so a
+        // player reading it sees the new text (Forge does not count a changed comment as a change).
+        final String oldRenderComment = configuration.getCategory(Configuration.CATEGORY_GENERAL)
+            .containsKey("eyeRenderCentre")
+                ? configuration.getCategory(Configuration.CATEGORY_GENERAL)
+                    .get("eyeRenderCentre").comment
+                : null;
         eyeRenderCentre = configuration.getBoolean(
             "eyeRenderCentre",
             Configuration.CATEGORY_GENERAL,
             true,
-            "NOT IMPLEMENTED YET - this setting currently has no effect. Will render the star or planet at the"
-                + " centre of a formed Eye of Harmony (client cosmetic).");
+            "Draw the Eye of Harmony's current object at the centre of the structure while it is formed and its star"
+                + " burns: the live star (T1-T3), the neutron star (T4), the cooling white dwarf (T5), the magnetar"
+                + " (T6) and the Core Collapse. Uses TecTech's star shader and textures. Off on a client: nothing is"
+                + " drawn there. Off on a server: no Eye places its render block (and existing ones are removed)."
+                + " Each Eye also has its own switch in its GUI.");
 
-        if (configuration.hasChanged() || retiredKeyPresent) {
+        final boolean renderCommentStale = oldRenderComment != null && oldRenderComment.startsWith("NOT IMPLEMENTED");
+
+        if (configuration.hasChanged() || retiredKeyPresent || renderCommentStale) {
             configuration.save();
         }
     }
