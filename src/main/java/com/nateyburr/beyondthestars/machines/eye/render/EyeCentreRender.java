@@ -48,7 +48,8 @@ public final class EyeCentreRender {
      */
     private int[] pos;
     private EyeStarLook sent;
-    private int novaTicks;
+    /** World time until which a supernova's flash shows (0: none). */
+    private long novaUntil;
     /** Why there is no render although there should be one, or "". */
     private String note = "";
 
@@ -106,20 +107,28 @@ public final class EyeCentreRender {
      */
     public void tick(IGregTechTileEntity base, ExtendedFacing facing, boolean formed, EyeStarRuntime runtime,
         long aTick) {
-        if (runtime.takeNova()) novaTicks = NOVA_TICKS;
-        if (novaTicks > 0) novaTicks--;
+        final World world = base.getWorld();
+        if (world == null || world.isRemote) return;
+        final long now = world.getTotalWorldTime();
+        if (runtime.takeNova()) novaUntil = now + NOVA_TICKS;
         final EyeStarLook look = formed ? EyeStarLook.of(runtime) : null;
-        final EyeStarLook want = look != null ? look : novaTicks > 0 && formed ? EyeStarLook.NOVA_FLASH : null;
+        final EyeStarLook want = look != null ? look : now < novaUntil && formed ? EyeStarLook.NOVA_FLASH : null;
         final boolean show = want != null && enabled && Config.eyeRenderCentre;
         final boolean changed = show != (pos != null);
         if (!changed && aTick % 10 != 0) return;
-        final World world = base.getWorld();
-        if (world == null || world.isRemote) return;
         final int[] at = centrePos(facing, base.getXCoord(), base.getYCoord(), base.getZCoord());
         if (pos != null && !Arrays.equals(pos, at)) remove(base);
         if (!show) {
             note = "";
-            if (pos != null) remove(base);
+            if (pos != null) {
+                remove(base);
+            } else if (at[1] >= 0 && at[1] <= 255
+                && world.blockExists(at[0], at[1], at[2])
+                && world.getBlock(at[0], at[1], at[2]) == BlockEyeStar.INSTANCE) {
+                    // ours, but this Eye lost track of it (a reload saved before it was placed): clear it now
+                    // rather than wait for the tile's own check. Only an Eye's centre cell ever holds one.
+                    world.setBlockToAir(at[0], at[1], at[2]);
+                }
             return;
         }
         TileEyeStar tile = pos == null ? null : tileAt(world, pos);
@@ -194,6 +203,6 @@ public final class EyeCentreRender {
         final int[] p = nbt.getIntArray("btsEyeRenderPos");
         pos = p.length == 3 ? p : null;
         sent = null;
-        novaTicks = 0;
+        novaUntil = 0;
     }
 }

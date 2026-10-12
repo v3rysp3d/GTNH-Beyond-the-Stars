@@ -52,6 +52,7 @@ import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldReadout;
 import com.nateyburr.beyondthestars.machines.eye.render.EyeCentreRender;
+import com.nateyburr.beyondthestars.machines.eye.render.TileEyeStar;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeNbt;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime;
 import com.nateyburr.beyondthestars.machines.eye.star.StarDef;
@@ -911,6 +912,48 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         return centre.note();
     }
 
+    /** Bench {@code render}: the centre cell, what stands there and the look its tile holds. Server state. */
+    public List<String> debugRenderLines() {
+        final List<String> out = new ArrayList<>();
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base == null || base.getWorld() == null) return out;
+        final int[] at = EyeCentreRender
+            .centrePos(getExtendedFacing(), base.getXCoord(), base.getYCoord(), base.getZCoord());
+        final net.minecraft.world.World world = base.getWorld();
+        final Block block = world.getBlock(at[0], at[1], at[2]);
+        final net.minecraft.tileentity.TileEntity te = world.getTileEntity(at[0], at[1], at[2]);
+        out.add(
+            "Centre " + at[0]
+                + ", "
+                + at[1]
+                + ", "
+                + at[2]
+                + ": "
+                + Block.blockRegistry.getNameForObject(block)
+                + (claimsRender(at[0], at[1], at[2]) ? " (claimed by this Eye)" : " (not claimed)")
+                + "; switch "
+                + (centre.isEnabled() ? "on" : "off")
+                + ", config "
+                + (Config.eyeRenderCentre ? "on" : "off"));
+        if (te instanceof TileEyeStar) {
+            final TileEyeStar t = (TileEyeStar) te;
+            out.add(
+                String.format(
+                    Locale.ROOT,
+                    "Look: kind %d (%s), radius %.2f, rgb %06X, gamma %.2f, spin %.1f, pulse %.3f",
+                    t.getKind(),
+                    centre.label(),
+                    t.getRadius(),
+                    t.getRgb(),
+                    t.getGamma(),
+                    t.getSpin(),
+                    t.getPulse()));
+        }
+        if (!centre.note()
+            .isEmpty()) out.add(centre.note());
+        return out;
+    }
+
     /** Broken: the centre render goes with the controller. */
     @Override
     public void onBlockDestroyed() {
@@ -936,10 +979,23 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         mStartUpCheck = -1;
     }
 
-    /** Bench: one field second now (the socket drain, then the star), as the 20-tick cadence does. */
+    /**
+     * Bench: one field second now (the socket drain, then the star, then the centre render), as the 20-tick cadence
+     * does.
+     */
     public void fieldSecond() {
         if (mMachine) drainSockets();
         runtime.second();
+        debugRenderTick();
+    }
+
+    /**
+     * Bench: one centre-render update now (it touches the world), so a console test does not depend on the dev
+     * server ticking this chunk (with no player there, it unloads and reloads the Eye between commands).
+     */
+    public void debugRenderTick() {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base != null && base.isServerSide()) centre.tick(base, getExtendedFacing(), mMachine, runtime, 0);
     }
 
     /** Moves every Eye input fluid out of the sockets into the long buffers, as TecTech's EOH does. */

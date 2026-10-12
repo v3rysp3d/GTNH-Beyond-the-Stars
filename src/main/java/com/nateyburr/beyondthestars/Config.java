@@ -126,13 +126,6 @@ public class Config {
                 .remove(RETIRED_INTERIM_BDM_KEY);
         }
 
-        // The comment changed when the render landed (it used to say "not implemented"): rewrite the file once so a
-        // player reading it sees the new text (Forge does not count a changed comment as a change).
-        final String oldRenderComment = configuration.getCategory(Configuration.CATEGORY_GENERAL)
-            .containsKey("eyeRenderCentre")
-                ? configuration.getCategory(Configuration.CATEGORY_GENERAL)
-                    .get("eyeRenderCentre").comment
-                : null;
         eyeRenderCentre = configuration.getBoolean(
             "eyeRenderCentre",
             Configuration.CATEGORY_GENERAL,
@@ -143,10 +136,9 @@ public class Config {
                 + " drawn there. Off on a server: no Eye places its render block (and existing ones are removed)."
                 + " Each Eye also has its own switch in its GUI.");
 
-        final boolean renderCommentStale = oldRenderComment != null && oldRenderComment.startsWith("NOT IMPLEMENTED");
-
-        if (configuration.hasChanged() || retiredKeyPresent || renderCommentStale) {
-            configuration.save();
-        }
+        // Always written back: Forge does not read comments from the file and does not count a changed comment as a
+        // change, so an old file would keep saying eyeRenderCentre is "not implemented" (D-49 unit 6). Saving
+        // rewrites every comment from the code; values are kept.
+        configuration.save();
     }
 }

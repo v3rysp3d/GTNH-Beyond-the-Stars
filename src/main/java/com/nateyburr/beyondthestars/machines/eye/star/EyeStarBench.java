@@ -56,7 +56,9 @@ import gregtech.common.misc.WirelessNetworkManager;
  * (allowed to work, formed, maintenance, last shutdown);</li>
  * <li>{@code mefield} - swap a Field-socket hatch for an ME stocking input hatch and re-walk (R-15: walked, rejected,
  * never drained); {@code field <fluid> <L>} - pour a trim fluid into the Field-socket hatches (a player's
- * automation).</li>
+ * automation);</li>
+ * <li>{@code render [on|off]} - the centre render: the cell, the block and the look the world holds (and the
+ * per-Eye switch).</li>
  * </ul>
  */
 public final class EyeStarBench {
@@ -68,7 +70,7 @@ public final class EyeStarBench {
         + "milestones <n> done | transition [abort] | event | "
         + "fill | sensor <x> <y> <z> <channel> <gt|lt> <threshold> [analog] | sensors <channel> <gt|lt> <thr> "
         + "[analog] | probe | wrench | charge [n] | buffer <fluid> <L> | core <name> | escrow | "
-        + "legacy [galactic] [run <key> <n>] | fix | gt | mefield | field <fluid> <L>";
+        + "legacy [galactic] [run <key> <n>] | fix | gt | mefield | field <fluid> <L> | render [on|off]";
 
     /** Runs {@code args} = {@code star x y z sub …}. Returns the lines to print. */
     public static List<String> run(ICommandSender sender, String[] args) {
@@ -201,6 +203,12 @@ public final class EyeStarBench {
             }
             case "gt":
                 out.add(gtLine(eye));
+                return out;
+            case "render":
+                // render [on|off]: the centre render block as the world has it (D-49 unit 6)
+                if ("on".equals(a5) || "off".equals(a5)) eye.setRenderEnabled("on".equals(a5));
+                eye.debugRenderTick();
+                out.addAll(eye.debugRenderLines());
                 return out;
             case "mefield":
                 out.add(meField(eye));

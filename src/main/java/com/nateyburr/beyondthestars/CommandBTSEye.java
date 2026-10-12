@@ -174,7 +174,9 @@ public class CommandBTSEye extends CommandBase {
         tell(
             player,
             EnumChatFormatting.GREEN
-                + (fill ? "Buffers filled and 10^18 EU granted: the star chart in the controller slot runs at once. "
+                + (fill
+                    ? "Buffers filled and 10^18 EU granted. A T1-T3 star lights from a Stellar Ignition Charge in a"
+                        + " plinth input bus (or '/btseye star <x> <y> <z> lit'); planets run at once. "
                     : "Feed H/He into the plinth's input hatches, or re-run with 'fill'. ")
                 + "Outputs need an ME network on the ME output bus / hatch.");
         if (!result.formed) {
