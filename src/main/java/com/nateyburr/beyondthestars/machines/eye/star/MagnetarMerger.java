@@ -19,7 +19,9 @@ import com.nateyburr.beyondthestars.machines.eye.field.TierParams;
  * runtime takes the merger charge (White Dwarf Matter 18,432 + Black Dwarf Matter 4,608 + Antipolarization Agent
  * 100,000, × p) and lights the magnetar at x = 0, I = 100, A = 0 under T6 rules, with the Agent upkeep cycles running.
  * The one inverted challenge: the dynamo winds the polarity up (Π drift +0.5/s on top of T6's runaway gain) and the
- * giant flares are held back.
+ * giant flares are held back. During the imprint the Agent upkeep does not charge the flare shield (ruling 12's +2r/s):
+ * only Agent trims do, so a dose above the band's middle trims Π back into it instead of the shield pinning Π at 0
+ * (B-71).
  * <ol>
  * <li><b>Imprint:</b> hold Π inside +60..+90 for 120 consecutive seconds, within 600 s.</li>
  * <li><b>Release:</b> then bring Π back inside ±40 within 60 s. The magnetar is LIT under full T6 rules (its flares
@@ -34,6 +36,12 @@ public final class MagnetarMerger extends EyeTransition {
     public static final int HOLD = 120, IMPRINT_TIMEOUT = 600;
     public static final double RELEASE_BAND = 40;
     public static final int RELEASE_TIMEOUT = 60;
+    /**
+     * Directive Agent thresholds on Π. Imprint: 66, so Π stays inside +60..+70 where the field is only Strained
+     * (Integrity -0.5/s, 60 over the 120 s hold; above +70 it is Critical, -2/s) with the merger valve
+     * ({@code EyeTrimRule.MERGER_AGENT_RATE}, one unit a second). Release: above +30.
+     */
+    public static final double AGENT_IMPRINT = 66, AGENT_RELEASE = 30;
 
     /** 1 imprint, 2 release. */
     public int phase = 1;
@@ -55,6 +63,20 @@ public final class MagnetarMerger extends EyeTransition {
     @Override
     public void addDrift(FieldState s, StepInputs in, double[] dp) {
         dp[PI] += IMPRINT_DRIFT;
+    }
+
+    /** The imprint: the upkeep's shield charge is off (B-71); the release: T6's own rate. */
+    @Override
+    public double shieldPerUpkeep(TierParams t) {
+        return phase == 1 ? 0 : StellarField.SHIELD_PER_UPKEEP;
+    }
+
+    /**
+     * The Directive Hatch's Agent bit (Status bit 3) during the merger: the imprint wants the Agent only above
+     * {@link #AGENT_IMPRINT}, the release whenever Π is above {@link #AGENT_RELEASE}.
+     */
+    public boolean agentWanted(double pi) {
+        return phase == 1 ? pi > AGENT_IMPRINT : pi > AGENT_RELEASE;
     }
 
     @Override

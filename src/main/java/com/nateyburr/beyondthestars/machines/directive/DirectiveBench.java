@@ -151,7 +151,7 @@ public final class DirectiveBench {
                         pour(
                             eye,
                             EyeStarRuntime.trimFluid(kind),
-                            EyeTrimRule.rigExtraRate(table.n) * p * kind.unitLitres);
+                            EyeTrimRule.rigExtraRate(table.n, (trans & 2) != 0) * p * kind.unitLitres);
                     }
                 }
             }
