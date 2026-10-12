@@ -212,9 +212,10 @@ widget, and right-clicking with the Density Upgrade still installs it.
 - **Gap row, left:** the setpoint control, a `TextFieldWidget` with `numbersLong(2, max)` and `scrollValues(1, 8, 1,
   64)` (the `MTEHatchInputBusCompressedGui` idiom), flanked by `−` / `+` buttons. No void / batch / separation /
   lock / mode buttons (`shouldDisplay*` return false; `supportsMachineModeSwitch` false).
-- **Gap row, right:** GT's power-panel button, and a render toggle (eye icon, synced `render`).
-- **Button column** (bottom to top): the controller slot, power switch, structure update, **Hole control** (opens
-  panel A), **Modules** (opens panel B).
+- **Gap row, right:** **Hole control** (opens panel A), **Modules** (opens panel B), a render toggle (eye icon,
+  synced `render`) and GT's power-panel button. These are in the gap row because the button column has room for only
+  4 buttons in its 76 px.
+- **Button column** (bottom to top): the controller slot, power switch, structure update (GT's default).
 
 **Panel A, "Hole control"** (`IPanelHandler` in `panelMap`, opens to the right; 110 × ~150):
 
