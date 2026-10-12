@@ -3925,3 +3925,181 @@ The prototype reads `Q.Phi`, the flux after the quasar's last second.
 second's purge bit fires.
 
 **Suggestion.** Keep.
+
+### P4-74 No host needs a link; Reality Diffraction with ports fitted rides the stream [hosts]
+
+**Context.** R.2 and §3.1 say "No host needs a link to work". But Reality Diffraction's row says "below σ 0.5 the run
+pauses".
+
+**Built.**
+
+- **Kerr (KEE):**
+  - A GRB Receptor Port fits any utility socket (`u`), beside the BHC utility and Directive hatches. It is a private
+    list.
+  - Demand is 0.1 Bu/t at T1 and 0.25 at T2.
+  - `KerrHole.burstSigma()` is the 60 s mean σ (0 with no port).
+  - The Hawking bleed is × (1 − 0.75·min(σ, 1)).
+  - On T2 at σ ≥ 1 the setpoint cap is 768 SM instead of 512 (P4-80).
+- **Homogeny T2 / T3:**
+  - 3 ports go on the reserved `g` cells of the T2 stirring ring. The cells fall back to the old casing, so builds from
+    before P4 still form.
+  - Demand is 1.5 Bu/t at T2 and 6 at T3.
+  - Speed is × (1 + 0.5·min(σ, 1)). With the 4 / 16 parallels that is up to 6× (T2) and 24× (T3) the T1 rate.
+  - Entanglement Medium (SL-H21) needs σ ≥ 1 to start, and pauses below it.
+  - Degenerate Stellar Mixture never needs bursts.
+- **Reality Diffraction:** 6 ports on the portal `g` cells, demand 24 Bu/t.
+  - With **no port fitted** it runs at ×1 on its fluid anchors. It needs no link.
+  - With **a port fitted** the regions ride the stream: speed is × min(σ, 1.5). Below σ 0.5 no run starts, and a
+    running one pauses (it is kept, never voided).
+- **Every host:**
+  - uses `BurstHost`: σ is the 60 s mean, and is reported to the feeding quasars;
+  - follows Q-8: a frozen or unloaded quasar holds σ where it was, and the work σ gates pauses.
+
+**Dev server** (2026-10-13, port 25581). A real quasar's bursts went through real receptor ports
+(`/btsconduit inject`, `/btshr bench … inject`):
+
+- **KEE T2:**
+  - 0.5 Bu/t gave σ 2.00 (60 s mean), bleed × 0.25 and cap 768. `setSetpoint(700)` kept 700.
+  - With the injection off, the mean fell to 0 within the minute, and the hole was held at 512. The setpoint stayed
+    700.
+- **Homogeny T3:**
+  - 9 Bu/t over 3 ports gave σ 1.50, speed × 1.50 and "Entanglement Medium open".
+  - With the injection off, the mean fell below 1 and the Entanglement Medium line closed.
+- **Reality Diffraction:**
+  - 12 Bu/t over 6 ports gave σ 0.50 and speed × 0.50.
+  - 6 Bu/t gave σ 0.25: "regions UNSTABLE, runs pause below σ 0.5".
+  - With a quasar block removed, the quasar froze and the machine said "PAUSED: its quasar … is not running (σ held)".
+    When the block was rebuilt, it resumed.
+
+**Suggestion.** Keep. Fitting ports on Reality Diffraction is a choice: it runs faster with a strong link and pauses
+with a weak one. The tooltip and the questbook say so.
+
+### P4-75 The automation bench models the conduit; the real elements are proven separately [test]
+
+**Built.** `/btsquasar autorig x y z <s> [eye ex ey ez] [analog] [cut k] [mass M]` drives a **real** Quasar Engine
+and a **real** Eye.
+
+- It sees only their Directive Hatches' codes (window 5).
+- It acts only through their own hatches: trim valves, Burst Control Hatches, plinth and slot buses.
+- Between the two machines, the conduit is the standard rig's maths (`EyeGalaxyBench.conduit`): two Mk I mouth pairs,
+  a combine, J1, J3 and J2. It is fed by the real quasar's jets.
+- The real Mouth, Mirror and Junction elements are proven by `/btsconduit rig` (the conduit unit). They are not aimed
+  at the Eye's 16 ports here.
+
+**Suggestion.** Keep. A 16-port in-world conduit build is the questbook's job, and the video's.
+
+### P4-76 The next core is wanted before the link milestone [Eye T6 / T7, automation]
+
+**Context.** The Directive rule for Transition [4] ("next core wanted") was "this tier's milestones are met". On T6
+and T7 the link is one of those milestones. But the link's test fire (Slots [8]: J1 all to the Eye) is wanted only
+when the core is already in escrow. So an unattended rig never pushed the core and never got the test fire. J1 stayed
+at its 57 % centre, and the Stability Link's best streak was 14 s in a 16,000 s run.
+
+**Built.** On T6 and T7, Transition [4] comes when every milestone **but the link** is met
+(`EyeMilestones.metButLink`). The link is still a precondition of the transition (`met()`), so nothing begins early.
+Other tiers are unchanged.
+
+**Suggestion.** Keep. On T6 and T7 the order is now:
+
+1. the item milestones;
+2. the core;
+3. the test fire and the link;
+4. the chart and Begin.
+
+### P4-77 OpenComputers `trim(kind, units)` [automation]
+
+**Context.** §8.2 lists `trim("gas" | "space", units)` on `bts_quasar` and `trim("space", units)` on `bts_eye`, as "one
+second's pulse, capped". The trim sockets are plain hatches that drain whatever they hold, so a script has no reserve
+there.
+
+**Built.** `trim` queues units for the machine's next second. They are added to what its trim or Field hatches hold,
+under the same cap.
+
+- **Quasar:**
+  - "gas" is paid from the quasar's own feed buffer;
+  - "space" is paid from Spatially Enlarged Fluid in its gas sockets (an ME stocking hatch can hold it there);
+  - the cap is 10 units.
+- **Eye:**
+  - any trim of the burning star, by key or name ("space" from T7);
+  - paid from its gas and stellar sockets (ME stocking included);
+  - the cap is the trim's own cap × p.
+- Both are rate-limited like every setter.
+- `/btsquasar ocloop` showed `trim(gas, 12)` clamped to 10 and taken the next second.
+- `/btseye star … ocloop` showed `trim("space", 99)` → 10 (cap 10), and an unknown trim refused.
+
+**Suggestion.** Keep. A script needs no transposer for trims.
+
+### P4-78 Master's Magnetar Merger Directive fix, ported [D-49 fix, ported]
+
+**Context.** P4-72 ported the core of master's B-71 fix but not its Directive half. With the inline thresholds (the
+Agent above Π +75), the gate rig let Π sit in Critical during the imprint. On the dev server, the galaxy chain's
+magnetar re-spawn failed on Integrity 344 times in a row.
+
+**Built.** Master's hunks, word for word:
+
+- `MagnetarMerger.agentWanted` (imprint above +66, release above +30);
+- `EyeTrimRule.MERGER_AGENT_RATE` (1 unit a second) with `rigExtraRate(tier, transitionRunning)`;
+- the call in `EyeStarRuntime.extraWanted`;
+- the bench's Status [4] valve.
+
+Golden 78/78 is unchanged.
+
+**Suggestion.** Keep. The merge takes master's version (the hunks are identical).
+
+### P4-79 The T7 halo test fire waits for a quasar big enough [Eye T7, automation]
+
+**Context.** At T7, Slots [8] asks for the Heavy Link test fire: J1 all to the Eye, and J3 75 % to the halo. The rail
+then keeps a quarter of the stream. If the stream is under the 6 Bu/t the link needs, that quarter is below the
+1.5 Bu/t demand.
+
+On the dev server an 88 SM quasar left the rail 0.9 Bu/t, and Triangulum was lost on Integrity, twice. The link could
+not have been held anyway.
+
+**Built.**
+
+- In game, Slots [8] at T7 also needs the linked quasar's mean stream to be at least 6 Bu/t
+  (`QuasarParams.meanStream` at its G0 and Y_q, purging). That is about 130 SM at coils 3.
+- The Galaxy panel says "Heavy Link test fire waits: the quasar's mean stream x Bu/t is under 6 (grow it)".
+- `GalaxyDirective`'s rule is unchanged, so QuasarSim and the 38 golden cases keep the prototype's behaviour. (The
+  prototype starts at 120 SM.)
+
+**Suggestion.** Keep. The alternative is a lower halo preset for small quasars, but the link would still not be held.
+
+### P4-80 The 768 SM cap: what a lost link does [Kerr]
+
+**Built.**
+
+- The stored setpoint accepts up to 768 SM.
+- The governor holds min(setpoint, cap). The cap is 768 only while the 60 s mean σ ≥ 1 on T2.
+- A lost link drops the cap to 512. The hole bleeds down to it, and nothing is lost suddenly.
+- A regained link climbs back to the stored setpoint.
+- On the control-set hatch, 15 maps to the cap in force.
+
+**Suggestion.** Keep (as §3.1 says).
+
+### P4-81 The proof needs the quasar riding Eddington (f 1.0) [automation, teaching]
+
+**Context.** The GUI's default feed is f 0.85, "unattended, Stable". At f 0.85 the disc's λ is about 0.85, and the
+64 SM quasar's stream was too thin for the Stability Link: the best streak was 0:01 in 16,000 s. The prototype's
+standard rig runs f 1.0 with the disc trims, and so does the real proof.
+
+A fresh hole also starts with no spin. It settles at a ≈ 0.45 (b 3, purging at Φ 40) over about an hour, so the first
+link comes after the spin-up.
+
+**Built.** No code change.
+
+- The proof sets f 1.0 once, as a player does in the GUI.
+- The questbook text ("Riding Eddington") and the automation doc say to use f 1.0 with the Disc [1] / [2] valves for
+  the links.
+
+**Suggestion.** Keep f 0.85 as the default, because it is safe without trims. Teach f 1.0 for the link.
+
+### P4-82 Disc [8] stays on while a jet vents [quasar, observation]
+
+**Context.** The Disc set's alarm bit includes "a jet port venting". On the bench nothing is docked on the real
+quasar's ports (the conduit is modelled), so Disc [8] was on for 99.7 % of the run.
+
+**Built.** No change. In a real rig the mouths dock and the bit clears. The standard rig wires nothing but a lamp to
+Disc [8].
+
+**Suggestion.** Keep.
