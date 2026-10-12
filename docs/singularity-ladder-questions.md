@@ -1346,3 +1346,17 @@ front centre".
 GT fluids, whose local names are written to GregTech.lang once, so those only change for new installs.
 
 **Alternatives.** "Grade 1-6", or keep "Lv".
+
+### TQ-5 Default tier for /btsbuild and /btskit [tidy unit C]
+
+**Context.** `/btsbuild` with no argument raises a tier-3 plant; `/btskit` with no argument hands out the kit and
+bill of materials for a tier-1 silo. Both are bench commands, so a tester who runs one after the other gets two
+different plants.
+
+**What we built.** The defaults are unchanged. Both commands now tab-complete their tier argument, so the tier is
+one keystroke away.
+
+**Suggestion.** Default both to tier 1: the kit is the "start from nothing" path, and tier 1 is the smallest plant
+to raise and walk.
+
+**Alternatives.** Default both to 3 (a mid-size plant shows every piece), or keep them different (as built).

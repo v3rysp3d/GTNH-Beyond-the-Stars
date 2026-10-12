@@ -515,35 +515,38 @@ the button is gone.
 
 ## Unit C: scanner, chat, commands, NEI names, deprecated API
 
-### C1. One shared "no plant nearby" message (HIGH)
+**Status: DONE** (commits a5e0dde, b3c7fb7, f2b6a27, 0083183, 43c3d24, 35ddef7; `spotlessApply compileJava` and
+`build` pass). What differs from the text below is listed under "Unit C: as built" at the end of this unit.
+
+### C1. One shared "no plant nearby" message (HIGH) - DONE
 `BTSCommands.noStation(player)`, used by clock, safety, supply, migrate, milestone and tree.
 Before: `No Unit One main station within 64 blocks.` After: `No Nuclear Plant Foundation within 64
 blocks (its chunk must be loaded).` Fix the class javadocs that say "Unit One main station".
 
-### C2. Strict on/off for the bench toggles (MEDIUM)
+### C2. Strict on/off for the bench toggles (MEDIUM) - DONE
 `/btsclock`, `/btssafety`, `/btssupply`: accept `on`, `off` and no argument (toggle); anything
 else throws `WrongUsageException(getCommandUsage)`. Add `addTabCompletionOptions` returning
 on/off. Name the plant in the reply: `... for the plant at (x, y, z)`. The setters do not change.
 
-### C3. /btssupply off is not safe (HIGH)
+### C3. /btssupply off is not safe (HIGH) - DONE
 `CommandBTSSupply` ~60. Before: `Infinite supplies OFF - the plant now runs on what you plumb.
 Missing coolant or propellant just holds the RPM down (the panels say why); nothing seizes.` After:
 `Infinite supplies OFF - the plant now runs on what you plumb. Missing coolant or propellant holds
 the RPM down (the panels say why). Losing coolant at speed near SCRAM heat can still seize the
 Spine.`
 
-### C4. NEI tab names match the controllers (MEDIUM)
+### C4. NEI tab names match the controllers (MEDIUM) - DONE
 `en_US.lang`: `beyondthestars.recipe.cascade=Gas Centrifuge Cascade` becomes `Cascade Hall`;
 `fabrication=Fuel Fabrication Line` becomes `Fuel Fabrication Hall`; `purex=Reprocessing Canyon`
 becomes `PUREX Canyon`. Only the values change; the keys are the map ids.
 
-### C5. NEI page text (MEDIUM)
+### C5. NEI page text (MEDIUM) - DONE
 `BTSDisplayRecipes`: `No cover = cycle refused` becomes `Too little coolant = cycle refused`;
 `Redline 12,000` becomes `Redline 12,000 (up to 19,500 unlocked)`; `Out: bus beside it, same
 course` becomes `Out: Depleted Output Bus beside it`; `FUEL LINE - F-12 reconversion:` becomes
 `Fuel line - UF6 reconversion:`.
 
-### C6. Control blocks print their own section, not the whole plant (HIGH)
+### C6. Control blocks print their own section, not the whole plant (HIGH) - DONE
 `MTESiloControlBlock.onRightclick`, `MTETurbineControlBlock.onRightclick`, and
 `MTEReactorCoreMk1.statusReport()`. Split `statusReport()` into named groups
 (`statusReportSection(Section.X)`) that still use the same formatters. The GUI keeps the full
@@ -554,12 +557,12 @@ panel, so the shared-formatter rule still holds.
 - Not linked: `Not linked - reform the main station's structure` becomes YELLOW `Not linked: the
   Nuclear Plant Foundation is not formed - fix its structure, then right-click again.`
 
-### C7. Portable Scanner gets a summary (MEDIUM)
+### C7. Portable Scanner gets a summary (MEDIUM) - DONE
 `MTEReactorCoreMk1.getInfoData()`: replace `statusReport()` (35-45 lines) with `scannerSummary()`
 of about 8 lines: tier + rods, heat, supply, RPM/redline, EU/t (+ clamp), weakest term, milestones
 summary, and `Open the controller GUI for the full panel`.
 
-### C8. /btskit and /btsbuild wording (HIGH / MEDIUM)
+### C8. /btskit and /btsbuild wording (HIGH / MEDIUM) - DONE
 - `CommandBTSKit` 223 and 274: `(on-site pellet line, ...` becomes `(on-site yellowcake line, ...`;
   `output bus (pellets)` becomes `output bus (yellowcake + thorium)`.
 - 193: `Grab via NEI (creative). Every count below is DERIVED from the structure shape code by
@@ -574,12 +577,12 @@ summary, and `Open the controller GUI for the full panel`.
   off and /btssupply off to run it for real` line, and one unpainted-laser warning. The long
   paragraphs go to the questbook handoff. Both commands default to the same tier (TQ-5).
 
-### C9. /btstree refusals say why (MEDIUM)
+### C9. /btstree refusals say why (MEDIUM) - DONE
 Move `BTSUpgradeTreePanel.verdict()` into `BTSUpgrade` (static, plain text) and use it in both
 places. Before: `Refused: Moderator Trim - prerequisites, milestone gate or points`. After:
 `Refused: Moderator Trim - LOCKED: the BURNUP tier 1 milestone opens this`.
 
-### C10. Retired modules (HIGH / MEDIUM)
+### C10. Retired modules (HIGH / MEDIUM) - DONE
 - `MTEPlantModuleBase` scanner: the shared second line becomes an abstract `retiredNote()`.
   Cooling Tower: `The tower is a piece of the Nuclear Plant Foundation now - project that
   controller.` Turbine Hall: `Replaced by the plant's Spine, Spiral chamber and Rotor Assembly. This
@@ -590,35 +593,93 @@ places. Before: `Refused: Moderator Trim - prerequisites, milestone gate or poin
 - Delete `MTEModuleTurbineHall.getInfoData()` (the fan / boost / 0 EU/t lines).
 - Hide both from NEI (`codechicken.nei.api.API.hideItem` in our NEI config, client only).
 
-### C11. Enrichment Train says what it is missing (MEDIUM)
+### C11. Enrichment Train says what it is missing (MEDIUM) - DONE
 `checkProcessing`: two `NO_RECIPE` returns become `ofFailure("beyondthestars.train.uraninite")` and
 `ofFailure("beyondthestars.train.acid")`, with
 `GT5U.gui.text.recipe_result.beyondthestars.train.uraninite=§7Needs 8 Uraninite Dust in an input
 bus` and `...train.acid=§7Needs 2,000 L Hydrofluoric Acid in an input hatch`.
 
-### C12. Hall scanner lines (LOW-MEDIUM)
+### C12. Hall scanner lines (LOW-MEDIUM) - DONE
 `MTEProductionHallBase.getInfoData`: `Shell tier: 1  -  casings counted: N` becomes `Casings: N`.
 Fuel Fab and Batching print one shell line, `Shell: Iridium Reinforced Block (tier 2/3) - the
 weakest block sets the tier`. The Cascade `  ·  ` separator becomes ` · `. Use ` · ` everywhere.
 
-### C13. Turbine Housing right-click message (MEDIUM)
+### C13. Turbine Housing right-click message (MEDIUM) - DONE
 `BlockTurbineHousing` ~120. Before: `Rotor: CLOCKWISE (rides right-hand swirl)`. After (Spine
 housing): `Spin: CLOCKWISE - rides the swirl (more speed)` / `Spin: ANTICLOCKWISE - opposes the
 swirl (more efficiency)`. In a gallery stage add: `Gallery stages ignore spin direction`. The
 toggle itself is unchanged. If a housing cannot tell which piece it is in, word the message so it
 holds for both.
 
-### C14. Chat style helper (LOW)
+### C14. Chat style helper (LOW) - DONE
 `BTSChat` with header/ok/warn/error/note (AQUA / GREEN / YELLOW / RED / GRAY). Bad arguments throw
 `WrongUsageException`. Toggles reply in one short sentence. This is optional if time is short.
 
-### C15. Deprecated GT API sweep (MEDIUM, finishes the A work)
+### C15. Deprecated GT API sweep (MEDIUM, finishes the A work) - DONE
 Unit A writes all new tooltip lines with the count-first calls. Unit C then greps the in-scope
 files for `addCasingInfoRange|addCasingInfoExactly|addCasingInfoMin` and any `addXxxHatch("...",
 <int>` without a count argument, and migrates the rest: `addCasingInfoRange(n, a, b, t)` becomes
 `addCasing("a-b", n, t)`, `Exactly` becomes `"n"`, `Min` becomes `"n+"`. The target is zero
 deprecated `MultiblockTooltipBuilder` calls outside kerr/eye. Handoff: Kerr/Eye `BlockIcons.custom
 ("beyondthestars:iconsets/X")` becomes `custom("beyondthestars", "iconsets/X")`.
+
+### Unit C: as built (where it differs from the items above)
+
+- **C1.** `BTSCommands.noStation(sender)` is the one reply ("No Nuclear Plant Foundation within 64 blocks (its chunk
+  must be loaded).") for clock, safety, supply, migrate, milestone and tree; `/btsmigrate` dropped its extra "stand
+  beside the controller" sentence. `/btsmigrate`'s other replies were brought to the glossary on the way (Reactor
+  Silo, no MAIN STATION or y-coordinates; the Energy Hatch paragraph is one line pointing at the manifold's 5th row).
+- **C2.** `BTSCommands.parseToggle` / `toggleCompletions` / `plantAt`. The argument is checked after the plant
+  lookup, so with no plant nearby a bad argument still gets the no-plant reply. `/btsmilestone` and `/btstree`
+  also throw `WrongUsageException` for a missing or unknown verb now (they printed the usage in red).
+- **C4.** `beyondthestars.recipe.batching` already read "Site Batching Plant", so only three values changed.
+- **C5.** NEI lines stay within the ~28-character description column, so the texts are shorter than the item
+  above: `Redline 12,000 (19,500 max)` (from `RPM_LIMIT_MAX`), `Too little coolant = refused`, `Out: Depleted Output
+  Bus`. The water page also lost its caps (`Reactor - feedwater:`, "water buys cheap fuel").
+- **C6.** `MTEReactorCoreMk1.ReportSection` (REACTOR, STEAM_CHAIN, TURBINE, OUTPUT, MATH, PROGRESSION),
+  `statusReportSection(...)`, `controlBlockReport(boolean turbinePanel)` and a `weakestTermLine()` split out of
+  MATH. `statusReport()` is now built from the sections (same order, same lines) and no longer has a caller; it
+  stays as the full text panel the GUI comments refer to. Line counts: Silo Control Block 10-11; Turbine Control
+  Block 12 normally, 13 while a HOLD line shows, 14 if the manifold Energy Hatch note also shows (the OUTPUT group
+  keeps its always-printed safety and Switchyard lines). A Turbine Control Block on a plant with no silo prints
+  the silo-absent line instead of empty groups. The bench-flag line is left out of the control blocks (the RPM
+  line already says "bench clock", the safety line says test mode).
+- **C7.** `scannerSummary()`: tier/rods, heat, supply, RPM, EU/t, HOLD (only when holding), weakest term, the
+  milestone summary, the bench line when a bench flag is on, and `Open the controller GUI for the full panel` -
+  8-10 lines after GT's own scanner lines. A plant with no silo prints the silo-absent, tower and module lines.
+- **C8.** `/btskit` gives the four hall controllers and no turbine fans; the shopping-list headings read "feedstock
+  mine" / "on-site yellowcake line" and the Switchyard line takes its number from `GRID_SOFT_CAP`. The BOM piece
+  names come from `BTSBom` (generated by gen-bom.ps1) and were not edited, so "Rotor gallery + output manifold"
+  still prints there (handoff). `/btsbuild` keeps its per-site FORMED line, supplies line and ceiling line, then
+  the facing line, the bench line and the laser warning. Defaults unchanged: `/btsbuild` 3, `/btskit` 1 (TQ-5 open).
+- **C9.** `BTSUpgrade.verdict(node, mask, counters)` returns the coloured line; the tree tooltip shows it as-is
+  and `/btstree` strips the colour. The verdict words now use a colon ("LOCKED: buy X first", "SHORT: 2 more
+  point(s) needed", "OWNED: right-click to refund ..."), in the tooltip too. A refund of a node that is not held
+  says "not bought".
+- **C10.** There was no NEI config in the addon; `NEIBTSConfig` (NEI's class scan picks up `NEI*Config`, as GT's
+  `NEIGTConfig`) is new and hides only the two retired controllers. The retired result is a static
+  `SimpleCheckRecipeResult.ofFailure("beyondthestars.retired")`; key in the unit C lang block.
+- **C11.** Same checks in the same order (uraninite count first, then the acid drain); only the result text differs.
+- **C12.** The base prints `Parallel: N` and `Casings: N`; the Fuel Fabrication Hall and Site Batching Plant print
+  `Shell: <block> (tier t/3) - the weakest block sets the tier` from the GUI's `SHELL_NAMES` (their per-block
+  shell counts are no longer printed).
+- **C13.** A housing knows neither its piece nor whether it rides (that depends on the housings nearer the silo,
+  `computeSpine`), so it prints `Spin: CLOCKWISE` / `ANTICLOCKWISE` and one GRAY rule line that holds everywhere:
+  "Spine: turning with the swirl of the housings nearer the silo adds speed, against it adds efficiency. Gallery
+  stages ignore spin."
+- **C14.** `BTSChat` (root package, public) is used by the plant commands; the Kerr/Eye commands were not touched.
+- **C15.** A call-shape scan and a `-deprecation` compile find no deprecated `MultiblockTooltipBuilder` or texture
+  call in the in-scope files. Two in-scope deprecation warnings remain, both StructureLib structure code and kept
+  on purpose: `BTSStructures`' delegating `survivalPlaceBlock(..., IItemSource, ...)` override, and the Cascade
+  Hall's bank probe, which uses the error-free `checkPiece(name, h, v, d)` so a missing optional bank does not
+  post a structure error.
+- **Also:** the projection-refused chat (`warnLegacyFace`, left over from unit B) and the over-injection server-log
+  tag no longer say "main station" / "Unit One".
+- **Remaining "Unit One" strings:** `CommandBTSQuests` names the quest whose title IS "Unit One"; it changes with the
+  quest (handoff). The `F-xx` / `R-xx` / `TC-x` strings left in `BTSRecipesFuel` / `BTSRecipesMachines` are recipe
+  guard IDs for the log, not player text.
+- **Not checked in game** (no game run in this pass): control-block and scanner line counts, `/btskit` and
+  `/btsbuild` tab completion, the NEI hide (`NEIBTSConfig` discovered), the retired / Train status-line texts.
 
 ---
 
@@ -706,6 +767,20 @@ Added by unit B:
 - **Text cut from the panel** that the questbook should carry: the silo-face migration story (0.19.0 plumbing
   frontage, what /btsmigrate rewrites and drops), the Vent Stack's halved windows in minutes, and the
   output-safety test mode (`/btssafety on`) now that the armed line no longer names the command.
+
+Added by unit C:
+- **CommandBTSQuests** prints the entry quest's title, "Unit One" (lines ~102, ~109, ~190). Rename it there in the
+  same commit that renames the quest.
+- **gen-bom.ps1** piece name "Rotor gallery + output manifold" (glossary: Rotor Assembly) shows in `/btskit`'s bill.
+- **Text cut from chat** that the questbook should carry: `/btsbuild`'s module paragraph (what the Vent Stack,
+  Switchyard, Derrick and Annex do, with their rates), its point-of-use socket layout and "Spine left all-clockwise";
+  `/btsmigrate`'s face layout; the Turbine Housing's old "rides right-hand / left-hand swirl" wording (the rule is
+  now: with the swirl of the housings nearer the silo = speed, against = efficiency).
+- **Kerr / Eye owners** (from the `-deprecation` compile): `addCasingInfoExactly` (11 Kerr, 7 Eye), two-argument
+  `addOtherStructurePart` (1 Kerr, 5 Eye), `addInputBus` / `addOutputBus` / `addEnergyHatch` /
+  `addMaintenanceHatch(String, int...)` (Kerr 4, Eye 1), `BlockIcons.custom(String)` (Kerr 4, Eye 4, Stellar Field
+  Sensor 2: use `custom("beyondthestars", "iconsets/X")`), `GTUtility.sendChatToPlayer` (Kerr 4, Eye 5). `BTSChat`
+  is available for their chat. The Eye lang line `starChartSiriusBCooled.tooltip` still says "since D-49".
 
 ## Done when
 
