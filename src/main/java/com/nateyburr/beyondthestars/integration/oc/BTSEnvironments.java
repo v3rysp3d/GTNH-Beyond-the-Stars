@@ -3,6 +3,7 @@ package com.nateyburr.beyondthestars.integration.oc;
 import net.minecraft.world.World;
 
 import com.nateyburr.beyondthestars.integration.BTSComputerApi;
+import com.nateyburr.beyondthestars.integration.QuasarComputerApi;
 import com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective;
 import com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS;
 import com.nateyburr.beyondthestars.machines.eye.MTEHatchStellarFieldSensor;
@@ -229,6 +230,82 @@ public final class BTSEnvironments {
             if (a.count() > 1) s.setLessThan("lt".equalsIgnoreCase(a.checkString(1)));
             if (a.count() > 2) s.setAnalog(a.checkBoolean(2));
             return new Object[] { BTSComputerApi.sensorState(s) };
+        }
+    }
+
+    /** {@code bts_quasar}: the Quasar Engine controller (P4, quasar-p4.md §8.2). */
+    public static final class Quasar extends Base {
+
+        Quasar(World world, int x, int y, int z) {
+            super(world, x, y, z, "bts_quasar");
+        }
+
+        private com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q() {
+            final IMetaTileEntity m = mte();
+            return m instanceof com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine
+                ? (com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine) m
+                : null;
+        }
+
+        @Callback(
+            doc = "function():table -- state, E, phi, lambda, a, M, cap, integrity, zone, Yq, stability, b, power")
+        public Object[] getDisc(Context c, Arguments a) {
+            final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
+            return q == null ? GONE : new Object[] { QuasarComputerApi.disc(q) };
+        }
+
+        @Callback(doc = "function():table -- Bu/t total, top, bottom, the dock on each port, vented")
+        public Object[] getBurst(Context c, Arguments a) {
+            final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
+            return q == null ? GONE : new Object[] { QuasarComputerApi.burst(q) };
+        }
+
+        @Callback(doc = "function():number -- the feed setpoint f (0-1.5)")
+        public Object[] getFeed(Context c, Arguments a) {
+            final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
+            return q == null ? GONE : new Object[] { q.getFeed() };
+        }
+
+        @Callback(doc = "function(f:number):number -- set the feed setpoint f (0-1.5); returns it")
+        public Object[] setFeed(Context c, Arguments a) {
+            final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
+            return q == null ? GONE : new Object[] { QuasarComputerApi.setFeed(q, a.checkDouble(0)) };
+        }
+
+        @Callback(doc = "function(name:string):string -- the feed gas: H, He or RSM; returns the gas in use")
+        public Object[] setGas(Context c, Arguments a) {
+            final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
+            return q == null ? GONE : new Object[] { QuasarComputerApi.setGas(q, a.checkString(0)) };
+        }
+
+        @Callback(doc = "function(b:number):number -- the coil field b (0.5 up to the coil tier); returns it")
+        public Object[] setField(Context c, Arguments a) {
+            final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
+            return q == null ? GONE : new Object[] { QuasarComputerApi.setField(q, a.checkDouble(0)) };
+        }
+
+        @Callback(doc = "function():boolean -- purge the flux now; false below flux 20 or with no hole")
+        public Object[] purge(Context c, Arguments a) {
+            final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
+            return q == null ? GONE : new Object[] { q.requestPurge() };
+        }
+
+        @Callback(doc = "function():table -- the hosts fed: host, Bu/t, sigma, link streak")
+        public Object[] getLinks(Context c, Arguments a) {
+            final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
+            return q == null ? GONE : new Object[] { QuasarComputerApi.links(q) };
+        }
+
+        @Callback(doc = "function():table -- First Light, the first eruption, the Eddington hour, mass milestones")
+        public Object[] getMilestones(Context c, Arguments a) {
+            final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
+            return q == null ? GONE : new Object[] { QuasarComputerApi.milestones(q) };
+        }
+
+        @Callback(doc = "function([w:number]):table -- the Disc set's code and bits (w = E band, default 5)")
+        public Object[] getDirective(Context c, Arguments a) {
+            final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
+            return q == null ? GONE : new Object[] { QuasarComputerApi.directive(q, a.optInteger(0, 5)) };
         }
     }
 

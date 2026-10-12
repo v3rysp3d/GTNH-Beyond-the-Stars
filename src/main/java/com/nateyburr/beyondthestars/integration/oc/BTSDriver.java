@@ -34,7 +34,8 @@ public final class BTSDriver implements SidedBlock {
         return mte instanceof MTEEyeOfHarmonyBTS || mte instanceof MTEKerrEngine
             || mte instanceof MTEKerrModuleBase
             || mte instanceof MTEHatchStellarFieldSensor
-            || mte instanceof MTEHatchDirective;
+            || mte instanceof MTEHatchDirective
+            || mte instanceof com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
     }
 
     @Override
@@ -45,6 +46,9 @@ public final class BTSDriver implements SidedBlock {
         if (mte instanceof MTEKerrModuleBase) return new BTSEnvironments.KerrModule(world, x, y, z);
         if (mte instanceof MTEHatchStellarFieldSensor) return new BTSEnvironments.Sensor(world, x, y, z);
         if (mte instanceof MTEHatchDirective) return new BTSEnvironments.Directive(world, x, y, z);
+        if (mte instanceof com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine) {
+            return new BTSEnvironments.Quasar(world, x, y, z);
+        }
         return null;
     }
 }

@@ -46,7 +46,8 @@ public class CommandBTSKit extends CommandBase {
     @Override
     public String getCommandUsage(ICommandSender sender) {
         return "/btskit [siloTier 1-" + BTSBom.MAX_TIER
-            + "] | /btskit kerr | /btskit eye | /btskit homogeny | /btskit diffraction | /btskit refab";
+            + "] | /btskit kerr | /btskit eye | /btskit quasar [coil 1-4] | /btskit homogeny | /btskit diffraction"
+            + " | /btskit refab";
     }
 
     @Override
@@ -106,6 +107,12 @@ public class CommandBTSKit extends CommandBase {
         // SINGULARITY LADDER P3 (Eye unit): /btskit eye - the Eye's own kit, read from manifest.json.
         if (args.length > 0 && args[0].equalsIgnoreCase("eye")) {
             com.nateyburr.beyondthestars.machines.eye.EyeKit.giveKit(player);
+            return;
+        }
+        // P4: /btskit quasar [coil tier 1-4] - the Quasar Engine's kit, read from manifest.json.
+        if (args.length > 0 && args[0].equalsIgnoreCase("quasar")) {
+            com.nateyburr.beyondthestars.machines.quasar.QuasarKit
+                .giveKit(player, args.length > 1 ? parseIntBounded(sender, args[1], 1, 4) : 3);
             return;
         }
         // H/R unit 2: /btskit homogeny | diffraction | refab - read from manifest.json.

@@ -40,6 +40,12 @@ import com.nateyburr.beyondthestars.machines.kerr.KerrKit;
 import com.nateyburr.beyondthestars.machines.kerr.KerrSlot;
 import com.nateyburr.beyondthestars.machines.kerr.KerrTestBench;
 import com.nateyburr.beyondthestars.machines.kerr.MTEKerrEngine;
+import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
+import com.nateyburr.beyondthestars.machines.quasar.QuasarGeometry;
+import com.nateyburr.beyondthestars.machines.quasar.QuasarKit;
+import com.nateyburr.beyondthestars.machines.quasar.burst.JetPort;
+import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarParams;
+import com.nateyburr.beyondthestars.machines.quasar.render.BlockQuasarHole;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
@@ -116,7 +122,9 @@ public final class RenderTest {
         EYE_T6,
         GT_BHC,
         TT_EOH,
-        GT_GODFORGE;
+        GT_GODFORGE,
+        /** P4: the Quasar Engine (coils T3), appended so every older site keeps its place. */
+        QUASAR;
 
         int originX() {
             return SITE_X0 + ordinal() * SITE_SPACING;
@@ -207,7 +215,21 @@ public final class RenderTest {
                 Site.GT_GODFORGE,
                 0,
                 null,
-                "REFERENCE: TecTech Forge of the Gods star render (default: radius 20, one ring, default colour)")));
+                "REFERENCE: TecTech Forge of the Gods star render (default: radius 20, one ring, default colour)"),
+            new Case(
+                "quasar_64sm",
+                Site.QUASAR,
+                64,
+                null,
+                "Quasar Engine (coils T3), a fresh 64 SM hole at f 0.85: hole scale 3.1, the disc band r 40 to about"
+                    + " 59, Stable, both jets venting (no dock)"),
+            new Case(
+                "quasar_1024sm_eruption",
+                Site.QUASAR,
+                1024,
+                null,
+                "Quasar Engine, a 1,024 SM hole (D-32's good build): hole scale 5.1, jets bright; an eruption"
+                    + " flash at the first shot")));
 
     private static List<Case> only(List<Case> all) {
         final String filter = System.getProperty("bts.rendertest.only", "")
@@ -428,6 +450,9 @@ public final class RenderTest {
                 case GT_GODFORGE:
                     buildGodforge(world, b);
                     break;
+                case QUASAR:
+                    buildQuasar(world, b);
+                    break;
                 default:
                     buildEye(world, b, site.ordinal() - Site.EYE_T1.ordinal() + 1);
                     break;
@@ -468,6 +493,56 @@ public final class RenderTest {
         if (!kee.mMachine) b.lines.add("WARNING: KEE NOT FORMED");
         final int[] c = KerrSlot.worldPos(kee.getExtendedFacing(), x, y, z, KerrSlot.centreRel());
         b.centre = new double[] { c[0] + 0.5, c[1] + 0.5, c[2] + 0.5 };
+    }
+
+    /** P4: a formed Quasar Engine (coils T3, creative hatches, Helium) standing on the ground, facing north. */
+    private static void buildQuasar(WorldServer world, Built b) {
+        final int x = b.site.originX();
+        final int z = SITE_Z;
+        final int[] probe = QuasarKit.bounds(FACING, x, 100, z);
+        final int y = 100 + GROUND - probe[1];
+        b.box = loadAndKeep(world, QuasarKit.bounds(FACING, x, y, z));
+        b.controller = new int[] { x, y, z };
+        final QuasarKit.Result r = QuasarKit.build(world, x, y, z, FACING, 3, false, false);
+        if (r.failure != null) {
+            b.error = "Quasar build failed: " + r.failure;
+            return;
+        }
+        for (String line : r.lines) b.lines.add(strip(line));
+        final MTEQuasarEngine q = QuasarKit.quasarAt(world, x, y, z);
+        if (q == null) {
+            b.error = "no Quasar Engine after the build";
+            return;
+        }
+        if (!q.mMachine) b.lines.add("WARNING: Quasar NOT FORMED");
+        final int[] c = QuasarGeometry.world(q.getExtendedFacing(), x, y, z, QuasarGeometry.centreRel());
+        b.centre = new double[] { c[0] + 0.5, c[1] + 0.5, c[2] + 0.5 };
+    }
+
+    /**
+     * P4: the quasar case's hole: the mass, spun up to its equilibrium, 30 disc seconds run; the eruption case erupts.
+     */
+    private static String applyQuasar(WorldServer world, Built b, Case c) {
+        final int[] p = b.controller;
+        final MTEQuasarEngine q = QuasarKit.quasarAt(world, p[0], p[1], p[2]);
+        if (q == null) return "no Quasar Engine";
+        q.debugSeed(c.mass, QuasarParams.aEq(1, 3));
+        q.benchRun(30, true);
+        if (c.name.contains("eruption")) {
+            q.state().Phi = 99.9;
+            q.benchRun(1, true);
+        }
+        return String.format(
+            Locale.ROOT,
+            "Quasar %s: M %.0f SM, hole scale %.2f, lambda_c %.2f, zone %s, G %.2f Bu/t (%.2f per jet)%s",
+            q.holeName(),
+            q.getMass(),
+            MTEQuasarEngine.renderScaleFor(q.getMass()),
+            q.state().lc,
+            MTEQuasarEngine.zoneName(q.state().zone),
+            q.state().G,
+            q.jetBu(JetPort.TOP),
+            q.mMachine ? "" : ", NOT FORMED");
     }
 
     private static void buildEye(WorldServer world, Built b, int tiers) {
@@ -734,6 +809,8 @@ public final class RenderTest {
             case TT_EOH:
             case GT_GODFORGE:
                 return "reference machine";
+            case QUASAR:
+                return applyQuasar(world, b, c);
             default: {
                 final MTEEyeOfHarmonyBTS eye = eyeAt(world, p[0], p[1], p[2]);
                 if (eye == null) return "no Eye";
@@ -768,6 +845,13 @@ public final class RenderTest {
                 } catch (ReflectiveOperationException ignored) {
                     // reported at the build
                 }
+            }
+        } else if (c.site == Site.QUASAR) {
+            // the disc keeps running on its own: keep its gas stocked and its mass where the case wants it
+            final MTEQuasarEngine q = QuasarKit.quasarAt(world, p[0], p[1], p[2]);
+            if (q != null) {
+                q.debugFillBuffer();
+                if (Math.abs(q.getMass() - c.mass) > 1) q.debugMass(c.mass);
             }
         } else if (c.site == Site.TT_EOH) {
             final int x = (int) Math.floor(b.centre[0]);
@@ -874,6 +958,21 @@ public final class RenderTest {
         }
         if (c.site == Site.GT_BHC || c.site == Site.TT_EOH || c.site == Site.GT_GODFORGE) {
             return renderBlockAt(world, b.centre);
+        }
+        if (c.site == Site.QUASAR) {
+            final MTEQuasarEngine q = QuasarKit.quasarAt(world, p[0], p[1], p[2]);
+            return q == null ? "no Quasar Engine"
+                : String.join(
+                    "; ",
+                    q.statusLines()
+                        .subList(
+                            0,
+                            Math.min(
+                                3,
+                                q.statusLines()
+                                    .size())))
+                    + ", "
+                    + renderBlockAt(world, b.centre);
         }
         final MTEEyeOfHarmonyBTS eye = eyeAt(world, p[0], p[1], p[2]);
         return eye == null ? "no Eye"
@@ -1015,6 +1114,8 @@ public final class RenderTest {
         if (c == null) return 3;
         if (c.look != null) return c.look.radius;
         if (c.site == Site.GT_GODFORGE) return GODFORGE_STAR_RADIUS;
+        // the disc band reaches r 40 + 22 lambda_c
+        if (c.site == Site.QUASAR) return 62;
         if (c.mass > 0) return MTEKerrEngine.haloRadiusFor(c.mass);
         return 3;
     }
@@ -1046,6 +1147,7 @@ public final class RenderTest {
 
     private static boolean isRenderBlock(Block block) {
         return block != null && (block == BlockEyeStar.INSTANCE || block == BlockKerrHole.INSTANCE
+            || block == BlockQuasarHole.INSTANCE
             || block == GregTechAPI.sBlackholeRender
             || block == TTCasingsContainer.eyeOfHarmonyRenderBlock
             || block == TTCasingsContainer.forgeOfGodsRenderBlock);

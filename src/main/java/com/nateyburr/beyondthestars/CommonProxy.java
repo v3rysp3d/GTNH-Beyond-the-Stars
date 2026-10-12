@@ -73,5 +73,6 @@ public class CommonProxy {
         event.registerServerCommand(new CommandBTSTree());
         event.registerServerCommand(new CommandBTSKerr());
         event.registerServerCommand(new CommandBTSEye());
+        event.registerServerCommand(new CommandBTSQuasar());
     }
 }
