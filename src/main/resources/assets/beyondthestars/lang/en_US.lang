@@ -181,3 +181,20 @@ item.beyondthestars.starChartSiriusB.tooltip=Eye of Harmony T5 target: cooling b
 item.beyondthestars.starChartSiriusBCooled.tooltip=Obsolete since D-49: craft back into Star Chart: Sirius B (Assembler, programmed circuit 3).
 item.beyondthestars.starChartMagnetar.name=Star Chart: SGR 1806-20 (Magnetar)
 item.beyondthestars.starChartMagnetar.tooltip=Eye of Harmony T6 target: a White and Black Dwarf Matter merger spawns it.\nAntipolarization Agent is its constant feed; it makes Magnetar Matter.
+
+# GTNH 2.9.0-RC-2 looks recipe results up under GT5U.gui.text.recipe_result.<id> (the keys above are the pre-RC-2 form)
+GT5U.gui.text.recipe_result.beyondthestars.kerr.nomodule=No Kerr module: build the compressor arc or the extractor arc
+GT5U.gui.text.recipe_result.beyondthestars.kerr.modeunavailable=This mode's module is not formed (sneak + screwdriver to switch mode)
+GT5U.gui.text.recipe_result.beyondthestars.kerr.lowmass=DENSIFY needs an open hole of at least 128 SM (screwdriver: setpoint)
+GT5U.gui.text.recipe_result.beyondthestars.eye.notarget=No target: put a Star Chart or a dimension display block in the controller slot
+GT5U.gui.text.recipe_result.beyondthestars.eye.tier1=The Eye is not formed
+GT5U.gui.text.recipe_result.beyondthestars.eye.tier2=This target is Eye T2: build the beam band
+GT5U.gui.text.recipe_result.beyondthestars.eye.tier3=This target is Eye T3: build the jet crescent
+GT5U.gui.text.recipe_result.beyondthestars.eye.tier4=This target is Eye T4: build the jet crescent and the spiral arms, and install a Galactic Upgrade Core
+GT5U.gui.text.recipe_result.beyondthestars.eye.compression1=This target is Eye T1: every Spacetime Compression Field Generator must be tier 1 or higher
+GT5U.gui.text.recipe_result.beyondthestars.eye.compression2=This target is Eye T2: every Spacetime Compression Field Generator must be tier 2 or higher
+GT5U.gui.text.recipe_result.beyondthestars.eye.compression3=This target is Eye T3: every Spacetime Compression Field Generator must be tier 3 or higher
+GT5U.gui.text.recipe_result.beyondthestars.eye.compression4=This target is Eye T4: every Spacetime Compression Field Generator must be tier 4 or higher
+GT5U.gui.text.recipe_result.beyondthestars.eye.inputs=Not enough fluid in the Eye's buffers for one run
+GT5U.gui.text.recipe_result.beyondthestars.eye.noowner=This Eye has no owner, so it has no wireless network to draw from
+GT5U.gui.text.recipe_result.beyondthestars.eye.noeu=Not enough EU in the owner's wireless network for this run
