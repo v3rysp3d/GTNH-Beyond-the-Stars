@@ -180,7 +180,7 @@ calls: questions B-34..B-38, B-45, B-62 (review fixes) and B-63 (unit 5).
   only).
 - **Bench (op, console):** `/btseye t1..t6 <x> <y> <z> [facing] [gen n] [fill]` builds an Eye;
   `/btseye star <x> <y> <z> ...` drives the star (status, target, lit, sim, rig, unlock, milestones, core, escrow,
-  sensor, probe, wrench, legacy, field, **render [on|off]**: the centre cell and its look).
+  sensor, probe, wrench, legacy, field, **render [on|off]**: the centre cell and its look, **gui [info]**: the controller GUI's header and rows as text, B-96).
 - **Cost:** Eye T5 and T6 are in [`singularity-ladder-costs.md`](singularity-ladder-costs.md) §10: each step is
   about 2.4e15 / 3.0e15 EU, almost all of it the 188 compression generators of the next tier.
 - **Verified headless** (dev server): the field equals the prototype (78 golden cases, COMPARE PASS in game), every

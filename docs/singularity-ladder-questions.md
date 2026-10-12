@@ -113,6 +113,8 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
 - The merge + playtest run (B-88) passed headless; the Cascade Hall tooltip fix is in, and the walk now requires two
   output hatches unless one is ME (B-89). [B-88 fix 1, B-89]
 - The playtest jar `master.235` is packaged with a local-install INSTALL.md and a playtest guide (B-90). [B-90]
+- Controller GUI cleanup unit 1 (branch `gui-clean`): the GUI kit, the family frame and the Eye of Harmony GUI;
+  the questbook's "field line" sentence becomes "Lock bar" when the questbook owner applies it. [B-96]
 
 **To see in a client** (the headless dev server cannot): the hologram hints, a survival build from a real AE system,
 the NEI multiblock tab and its frame rate (a T6 Eye is 51,935 blocks), every GUI (Eye, KEE, modules, Directive Hatch,
@@ -3727,6 +3729,90 @@ section 1's open questions) went to my local work folder; it is not published.
 4. **The bench commands and the render harness stay in the jar** (open question 14).
 
 **Suggestion.** Accept as is.
+
+---
+
+### B-96 Controller GUI cleanup, unit 1: the kit, the family frame and the Eye of Harmony [user approval 2026-10-13, built on branch gui-clean]
+
+**Context.** I watched the smoke clip of the Eye GUI: "Based on the video we need more clean details in the
+controller", then approved the design ("All are good to go"): `controller-gui-spec.md` + `controller-gui-mockups.html`
+(local work folder `gui/`). This unit builds spec §2-§4 (the kit and the base class) and §5.1 (the Eye). The Kerr,
+modules, Homogeny, Reality, Silo, halls and hatches (§5.2-§5.10) are later units; the P4 machines (Quasar, Conduit,
+Crown, Receptor, Burst Control, the Eye's T7/T8 rows) come after the P4 merge. The spec's recommended answers to its
+own Q1-Q12 are taken as built (terminal 118 / panel 227, no power panel on the Eye, the zone as the lit badge, no G
+logo and no always-on maintenance icon, Info as a terminal page, lang keys, render toggle in the button column, Feed
+only for the T4 star, TecTech's disabled power-switch icon, M/G litres and 1.51e12 EU).
+
+**What was built.**
+
+- `machines/gui/`: `BTSFormat` (§4.2), `BTSText` (server-built text the client translates: lang references with
+  arguments, nested keys, literals), `BTSRows` (the terminal's rows as one synced string, decoded once per change),
+  `BTSChecklist` (§4.5 `CheckLine` with state, label, have/need value, fill fraction, tooltip), `BTSGuiKit` (palette,
+  badges, gradients, every §4.3 component, the row pool, stepper, info toggle, header), `KitDraw` (client-only text
+  and pixel icons) and `BTSControllerGui` (§4.4).
+- `EyeStarRuntime.ignitionChecklist(want)` and `transitionChecklist(from)`: every condition, met or not, read only
+  (the spec's "checks ALL conditions"). `Host.countIgnitionCharges()` counts the charges across the live plinth buses.
+- `EyeGui` rewritten on the kit; `MTEEyeOfHarmonyBTS`: `hasRunningText` false, the recipe-result line only for a
+  planet target, no power panel, `planetChecklist()`.
+- Bench: `/btseye star x y z gui [info]` prints the header and the rows the GUI would show, as text, so a headless
+  server can check every state.
+
+**Judgement calls.**
+
+1. **One row string per machine instead of one sync value per number.** The server decides which rows a state shows
+   and sends them as one `StringSyncValue` (rebuilt every 5 ticks, values rounded to what is shown); the client's
+   fixed pool of rows draws row i with its kind's component. The spec's per-component factories exist too
+   (`BTSGuiKit.gauge/bar/check/...` with suppliers) for panels that want them. Why: the Eye has 13 states with
+   different rows; keeping the choice on the server keeps it in one method per machine and makes the kit work
+   unchanged for the Kerr, Quasar and the rest. *Alternative:* a sync value per field with `setEnabledIf` per row.
+2. **Long labels are cut, not scrolled, on bar / check / stat rows** (a "." marks the cut and the tooltip holds the
+   full row); notes are `ScrollingTextWidget`s as specified. MUI2's text scrolling needs a whole widget per label;
+   the labels we send are short enough that the cut only shows with a long translation.
+3. **The dial note tells "short" from "capped".** The spec's "Dial running {paid} of {set}: Tachyon short" would also
+   fire when the Time Dilation generators cap the dial below its setpoint, which is not a fluid shortage. Built: the
+   Tachyon note when the paid dial is below min(setpoint, cap), and a separate "Dial capped at {cap} (set {set})" note
+   when the setpoint is above the cap.
+4. **The transition checklist adds "T{from} unlocked"** when the Eye is not yet at that tier (the one line of
+   `missing()` the spec's table leaves out), so the checklist is all-met exactly when `missing()` is empty.
+5. **States the spec does not tabulate**: a dark Eye holding the Sirius B chart shows the First Cooling checklist
+   (before T5) or the next batch's White Dwarf Matter check (after); a dark Eye holding the Magnetar chart shows the
+   Magnetar Merger checklist. A LIT badge before the first solved second shows STABLE.
+6. **First Cooling during TRANSITION** shows the phase bar and then the COOLING rows (batch, setpoint, Θ about it, P,
+   Integrity, mean Y against 0.90); the other transitions show the phase bar, their stat, the gauges, the bounce
+   checks (Core Collapse fast-forward), Stability, Integrity, Y | Parallel and Last.
+7. **"plateau now"** shows while the cooling setpoint is within ±10; the batch warning row names the plateau ("Event
+   warning: crystallisation plateau") rather than a countdown, because the runtime does not know the seconds to it.
+8. **Info NEXT** uses five short new keys ("T2: Sol's milestones, the Stellar Mass Core, the Mass Infusion", ...)
+   rather than the longer `recipe_result ... locked{n}` sentences.
+9. **Planet target**: GT's recipe rows, Parallel, the planet checklist (tier gate, one run of each input, owner and
+   one run's EU), plus the last run's result as the Last line (it was only in the scanner).
+10. **NO STAR with a non-chart item** in the slot shows "not a target" instead of "empty".
+11. **Two IDLE / PAUSED badges.** T5's IDLE is yellow and an idle machine's IDLE is dark (spec §4.1 lists both); P4's
+    galaxy PAUSED is red and a module's PAUSED gold. They are separate badge entries sharing one lang key.
+12. **The Field panel** keeps a scrolling list (8 sensor rows, 6 trim rows) so a rig with many sensors does not run
+    off the 196 px panel.
+13. **Litres from 10^12 up print with a T suffix** (`1.00T`); the spec's table stops at G and a filled bench buffer
+    printed `1000.00G`. A lit star whose first second has not been solved yet shows "lit" (not "dark") in "{star} lit
+    and Stable".
+
+**Verified headless** (dev server on port 25611, `/btseye t1` and `t4` with `fill`, `/btseye keep`, then `/btseye
+star x y z gui`): NO STAR, the Info page, DARK with the full Sol checklist (only the charge missing, as the runtime's
+wait reason said), IGNITING (P with the -20 tick, 10 %, "in ~36 s"), RESONANT (gauge, Stability, Integrity, Lock
+5/600, Cycle 55 s, Y | Parallel, Milestones 0 of 2 with the escrow), PENDING Sol > Sirius A (8 rows, 4 then 7 of 8
+met after `milestones 1 done` and the core), TRANSITION Core Collapse (phase 1/3, core mass, P and Θ, the three bounce
+checks), the T4 neutron star lit (three gauges, HSM feed 0.694 / 0.694), the remnant case, the Arcturus relight
+checklist, Sirius B IDLE with the First Cooling checklist and the Magnetar Merger checklist. 278 recipes / 0 skipped,
+no exception.
+
+**Not done here (logged for its owner).** The questbook sentence in "Harmonic Lock": "The GUI's field line counts it
+as Lock n/600" should read "The GUI's Lock bar counts it as Lock n/600" (spec §6); applied later on master by the
+questbook owner. Every other quest reference to the Eye GUI still holds (Dial − / + with four steps on right-click,
+the HSM feed, the Field panel).
+
+**To see in a client.** The layout against the mockups at GUI scale 2 and 3: the Feed + visible at T4, the header
+alert only on an issue, the render toggle in the column top, the Info page, the Field panel at 1.0 text.
+
+**Suggestion.** Accept; the next units (Kerr, modules, Homogeny, Reality, Silo, halls, hatches) reuse the kit as is.
 
 ---
 
