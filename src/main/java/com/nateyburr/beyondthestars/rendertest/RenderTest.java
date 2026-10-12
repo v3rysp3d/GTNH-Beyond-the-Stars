@@ -79,8 +79,12 @@ public final class RenderTest {
     /** The switch: {@code -Dbts.rendertest=true}. */
     public static final boolean ENABLED = Boolean.getBoolean("bts.rendertest");
 
-    /** Save folder of the test world under {@code run/client/saves}. */
-    static final String WORLD_FOLDER = "bts-rendertest";
+    /**
+     * Save folder of the test world under {@code run/client/saves}. It names the site layout (L2: x 1000 + 500 n,
+     * z 4000): a run reuses the world of its own layout and rebuilds each site in place, and a layout change MUST bump
+     * the suffix, or the old layout's structures stand inside the new sites.
+     */
+    static final String WORLD_FOLDER = "bts-rendertest-L2";
     /** Owner of the test Eyes (their wireless network). */
     private static final UUID OWNER = UUID
         .nameUUIDFromBytes("beyondthestars:render-test".getBytes(StandardCharsets.UTF_8));

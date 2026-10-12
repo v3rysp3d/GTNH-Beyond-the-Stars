@@ -2080,6 +2080,82 @@ largest single BEC bill in the ladder (the same Raw Star Matter as SL-K04 asked 
 
 ---
 
+### B-65 Real-client render QA, part 1: the screenshot harness and round 1 [render QA]
+
+**What was built.** A dev-only harness (`rendertest/RenderTest`, `RenderTestClient`) that is registered only when the
+client JVM runs with `-Dbts.rendertest=true`. It has no effect in normal play. Run it with
+`JAVA_TOOL_OPTIONS="-Dbts.rendertest=true" ./gradlew.bat runClient --no-daemon`: this buildscript's `runClient` takes
+no JVM-argument property, and `JAVA_TOOL_OPTIONS` reaches the forked client. Add `-Dbts.rendertest.only=<prefixes>`
+to run a subset (e.g. `kerr,ref_gt`).
+
+The harness creates or reuses the creative superflat world `run/client/saves/bts-rendertest-L2` on the integrated
+server. It builds 10 sites with the existing kit code (`KerrKit.build`, `EyeKit.build`, so the same path as `/btskerr` and
+`/btseye`) and force-loads each site. For 14 cases it shoots front, three-quarter elevated and close-up views, by day
+(time 6000) and by night (18000), into `run/client/screenshots/rendertest/<case>_<view>_<day|night>.png`. It logs the
+debug-counter FPS at each shot (`rendertest.log`, `fps.tsv`) and then closes the client.
+
+**Judgement calls (built, PROPOSED):**
+1. **The Eye's objects are forced, not lived.** Driving a real star into each state (T5 batch, magnetar, Core
+   Collapse phases) would mean running the lifecycle for hours. Instead `EyeCentreRender.debugForceLook` (via
+   `MTEEyeOfHarmonyBTS`, never saved, null in play) shows the exact `EyeStarLook` that `EyeStarLook.of` computes for
+   that state. `swell(f)` and `bounce(unrest)` were extracted from `of()` with the same numbers, and `lit` and `dwarf` are now public.
+   The cases use Sol / Sirius A / Arcturus / neutron / magnetar lit with no unrest, Core Collapse mid-swell at f = 0.5,
+   the bounce with no unrest, and Sirius B at 10 % and 90 % of its cooling batch. The Core Collapse looks are shown on
+   the T4 structure (the transition builds into T4).
+2. **The Kerr's hole** is set with `debugOpenHole(mass)` and held there once a second (T1 16 and 64 SM, T2 256 SM).
+3. **References.** GT's Black Hole Compressor is built by its own `construct`. Three of its hatch casings nearest the
+   controller become a creative energy hatch, an input bus and an output bus (it forms). The hole is opened the way a
+   seed opens it: status 2 and GT's private `createRenderBlock`, called by reflection. The harness holds its stability
+   at 100. TecTech's Eye of Harmony is built by its own `construct` (tier-9 generators) but does not form (no hatches,
+   no recipe). TecTech only places its star while a recipe runs, so the harness places the star the way
+   `createRenderBlock` does (render block 16 behind the controller, rocket tier 8, size 1.4). The controller is
+   disabled, because an unformed TT multi that is allowed to work removes its star at every check.
+4. **Viewpoints.** Every structure faces north. "front" stands level with the structure's middle, far enough that its
+   box fits a 70 degree view. "34" is front-right and raised. "close" stands inside the open space around the object,
+   between it and the front, at max(0.55 x the free distance, 1.9 x the object radius + 1.5).
+
+**Harness bugs found and fixed while running it (not mod bugs):**
+- Forge queues a chunk for unloading the moment its force-load ticket is released, even with a player in it, and
+  unloading that chunk takes the player entity out of the world. The first runs released the previous site's tickets
+  before the teleport, so the server stopped ticking the player and never sent another chunk; those shots showed
+  only sky. The harness now keeps its own tickets and releases the old site's 100 ticks after the player leaves.
+- The client player only sends movement packets while the chunk under it exists, so every camera spot is loaded on the
+  server before the teleport.
+- dreamcraft's "really quit?" Swing window cancels `Minecraft.shutdown()`, which hung the first unattended run. The
+  harness switches `DreamCoreMod.showConfirmExitWindow` off for its session only.
+- A reused world keeps an older site layout's structures, so the world folder names the layout (`-L2`).
+
+**Round 1 (84 shots, all 14 cases; copies in my local work folder `render-qa/round1/`).** RTX 4090, 1280x720,
+16-chunk render distance, no frame cap. Average FPS at the shots (min-max):
+
+| Case | FPS | Case | FPS |
+|---|---|---|---|
+| kerr_t1_16sm | 1247 (1223-1267) | eye_t4_collapse_swell | 1120 (1070-1178) |
+| kerr_t1_64sm | 1237 (1203-1254) | eye_t4_collapse_bounce | 1134 (1094-1203) |
+| kerr_t2_256sm | 1169 (1123-1191) | eye_t5_dwarf_early | 1097 (1061-1151) |
+| eye_t1_sol | 1211 (1200-1233) | eye_t5_dwarf_late | 1101 (1082-1127) |
+| eye_t2_sirius_a | 1221 (1186-1251) | eye_t6_magnetar | 1049 (887-1154) |
+| eye_t3_arcturus | 1180 (1165-1196) | ref_gt_bhc | 1301 (1258-1371) |
+| eye_t4_neutron | 1139 (1101-1203) | ref_tt_eoh | 1176 (855-1271) |
+
+None of our renders costs measurable frame time on this GPU. The spread comes from structure size: the T6 Eye is the
+largest box and has the lowest average.
+
+**First observations for part 2 (no change made here):**
+- **Late cooling dwarf.** It reads as a dull brick red (rgb 6D322D, gamma 0.66), not near-black. D-49 wants it to
+  "darken to black".
+- **Close-up of the largest objects.** The Core Collapse swell (radius 16) and Arcturus (15) fill the whole close-up
+  frame. Part 2 could pull the close view back for radii above about 12.
+- **GT's `gregtech:orbit` shader** does not compile on this NVIDIA 610.88 driver ("ambiguous overloaded function
+  reference min(int, int)"). GT logs that it will not render, which probably affects TecTech's orbiting planets in the
+  reference. That is GT's bug, not ours.
+- **GT's Black Hole Compressor** keeps one chunk re-rendering every second while its hole is open. The Kerr does not.
+
+**Suggestion.** Keep the harness as the standard way to check renders. Part 2 reviews the round-1 images against the
+mockups and acts on the observations above.
+
+---
+
 ## Part C. Settled (for the record)
 
 | Topic | Your answer | State |
