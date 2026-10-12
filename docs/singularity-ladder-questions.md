@@ -16,7 +16,7 @@ the build", explains how to get the machines in creative.
 
 ## Part A. You have answered, but the jar does not match yet
 
-### A-1 The Kerr Extractor Module still runs its own "melting" recipes [Q-9, Q-22]
+### A-1 The Kerr Extractor Module still runs its own "melting" recipes [Q-9, Q-22]: DONE
 
 **Your ruling.** The Extractor Module runs GT's normal extractor recipes only: no fluid extraction and no custom map.
 The Kerr is a module host, so adding a module later must stay cheap.
@@ -28,6 +28,12 @@ your ruling.
 **Next step.** A small code change: point EXTRACT mode at GT's extractor map and delete the melt recipes and their
 NEI page. The module system already works as "new arc + its own private hatches + a recipe map", so it stays
 extensible. No question for you; this is a to-do.
+
+**Done (follow-up pass, 2026-10-12).** EXTRACT mode runs `RecipeMaps.extractorRecipes` and nothing else. The
+"Ergosphere Extraction" map, its NEI page, its lang key and the SL-K06 melt recipes are deleted; the Kerr now shows on
+GT's own Extractor page. The extractor's sockets take item buses only (B-17). Each module is now one `KerrModule`
+entry that the walk, the hologram, survival build and the status lines loop over; the spec's new section "Adding a
+Kerr module" lists the steps for the next one.
 
 ### A-2 Upgrades still install instantly [Q-10, Q-24, Q-38]
 
@@ -70,11 +76,9 @@ Upgrade Core (Eye T3 → T4). The upgrade is consumed and permanent, and an inst
 Start the install with a plain right-click holding the upgrade. A sneak-right-click with an item in hand never
 reaches the block in 1.7.10, so it cannot be the gesture.
 
-**Also needs a ruling.** If someone tears down the Kerr's T2 reinforcement after the upgrade, the Kerr currently
-refuses to form at all.
-
-- Suggestion: keep that ("T2 is a commitment").
-- Alternative: it falls back to running as T1 until the reinforcement is rebuilt.
+**Also needed a ruling (now settled).** If someone tears down the Kerr's T2 reinforcement after the upgrade, the Kerr
+refuses to form at all. **You ruled: keep "won't form".** Built, unchanged, and now commented in the code and the
+spec.
 
 **Alternatives.** Make the milestone count running time instead of mass held or runs finished. Or skip the
 milestone and keep only the install run.
@@ -134,7 +138,7 @@ Universium, D-45; the Eternity loop on Ergomatter, D-48) no later than P4.
 
 **Alternatives for mixing.** One uniform tier per type, as TecTech does: stricter, and a swap un-forms the Eye.
 
-### B-4 Should planets still need TecTech's compression tier on top of the 1:1 gate? [Q-29]
+### B-4 Should planets still need TecTech's compression tier on top of the 1:1 gate? [Q-29]: RULED, DONE
 
 **Context.** TecTech's planets each need a minimum compression tier (R7-R8 planets need tier 7-8). We kept that rule
 on top of your 1:1 gate. So a T3 Eye with exactly tier-3 compression cannot run R7-R8 planets, even though they are
@@ -144,6 +148,10 @@ on top of your 1:1 gate. So a T3 Eye with exactly tier-3 compression cannot run 
 tier names promise.
 
 **Alternative.** Keep both rules, as built. Higher compression tiers then stay useful inside a tier.
+
+**Ruled (round 4): drop it. Done.** The Eye no longer checks a planet's compression minimum; the 1:1 gate alone
+decides, so an Eye at tier N runs every planet mapped to tiers 1..N. One judgement call is in B-16 (the -3 % time
+reward).
 
 ### B-5 Eye balance: outputs, run times, power, success [Q-5, Q-6, Q-31]
 
@@ -268,7 +276,7 @@ The centre of the ring is empty for now. The `eyeRenderCentre` config option exi
 
 **Alternative.** Adjust the mockup so nothing overlaps.
 
-### B-12 The Kerr's inner lining reads darker than the mockup [Q-16]
+### B-12 The Kerr's inner lining reads darker than the mockup [Q-16]: RULED, DONE
 
 **Context.** You ruled to reuse the Black Hole Compressor's blocks. The mockup's lining is bright white, and the BHC
 has no white casing, so we used its Background Radiation Absorbent Casing. The Eye's white-ish casing (Infinite
@@ -277,6 +285,10 @@ SpaceTime Energy Boundary) is post-UMV, too late for the UIV Kerr.
 **Suggestion.** Accept the darker look.
 
 **Alternative.** One extra new "Harmonic Lining" block just for the Kerr.
+
+**Ruled (round 4): one new white Kerr lining block. Done.** Harmonic Lining, `slCasing2:2`, white with the BHC's
+rim and lavender shading; every Kerr `J` cell uses it, and the Kerr shapes' manifest was re-exported. The choices made
+are in B-15.
 
 ### B-13 Textures are generated from code [Q-15]
 
@@ -312,6 +324,61 @@ SpaceTime Energy Boundary) is post-UMV, too late for the UIV Kerr.
   Gallifreyan. Gallifreyan would have forced all 24 field-generator research steps before a T1 Eye, and it is
   now the T9 gate.
 
+### B-15 Harmonic Lining: which meta, its recipe, no light [follow-up pass]
+
+**Context.** You ruled one new white Kerr lining block, in a reserved casing meta, with a fair recipe.
+
+**What we built.**
+
+- **Meta:** `slCasing2:2`, the meta the spec reserved for "Harmonic Lining" and left as a hole when the BHC casing took
+  the role. The other holes (`slCasing:0` deck, `slCasing:9` eye shell) belong to other roles, so they stay holes.
+  The name is the card's, "Harmonic Lining". The Eye keeps TecTech's Infinite Spacetime Energy Boundary Casing as its
+  lining; the new block is Kerr-only.
+- **Recipe SL-P12** (Assembler, UIV, 30 s): 6 Neutronium plates, 8 Infinity foil, 1 Transcendent Metal plate and
+  576 L molten Infinity make 4 linings. Per block that is 1.5 Neutronium, 1.5 Infinity (foil is ¼ ingot) and ¼
+  Transcendent Metal.
+  - A Kerr T1 with both modules needs 1,072: about 1,600 Neutronium, 1,600 Infinity and 270 Transcendent Metal.
+  - A Kerr T2 needs 4,552: about 6,800 Neutronium, 6,800 Infinity and 1,140 Transcendent Metal.
+  - For scale, the 3,551 Mirror Backing casings cost about 7 Infinity each. The block it replaces, the BHC's
+    Background Radiation Absorbent Casing, costs 64,000 L of UU-Matter each, so the old mapping was far dearer.
+- **No light.** The spec once said "emissive (light 12)". The texture is bright, and making 4,500 blocks light sources
+  would cost lighting updates on every build and hologram, so it does not emit light.
+
+**Suggestion.** As built.
+
+**Alternatives.** Make it glow (light 8-12) for the mockup look. Price it like the mirror casings if the Kerr T2
+should cost more.
+
+### B-16 The planet time reward stays, with no penalty below a planet's old tier [follow-up pass]
+
+**Context.** With TecTech's per-planet compression minimum gone (B-4), its other half was the -3 % time per
+compression tier above that minimum.
+
+**What we built.** The reward stays: each compression tier above the planet's TecTech tier still cuts 3 % of its
+time. Below that tier there is no penalty, because the gate alone decides. Stars never use it. The NEI page now says
+"-3%/field > T*n*" where it said "field T*n*+".
+
+**Suggestion.** As built: it keeps a reason to over-build compression without gating anything.
+
+**Alternative.** Drop the reward too, so compression is purely the tier gate.
+
+### B-17 The extractor module takes item buses only; extractor runs and the hole [follow-up pass]
+
+**What we built.**
+
+- GT's extractor map is items in, items out, so the extractor's two sockets accept input and output **buses** only.
+  A fluid hatch there faults the module. `/btskerr` and `/btskit kerr` now place and give output buses.
+- Extractor recipes need no open hole (they carry no compression tier). They run at the base parallel (8 × voltage
+  tier) with the hole closed, and get the hole's parallel and speed bonuses when it is open, like plain compressor
+  recipes.
+- The Kerr Extractor Module core (SL-K03, Electric Pumps and Neutronium pipes) and the Ergosphere Extraction Casing
+  (SL-P14, an Electric Pump) keep their recipes and names, which were designed around fluid extraction.
+
+**Suggestion.** Keep the names. Swap SL-K03's 32 Electric Pumps for 32 Electric Pistons and SL-P14's pump for a
+piston, so the parts match an item extractor. That is a recipe change only; say the word.
+
+**Alternative.** Leave the recipes as they are.
+
 ---
 
 ## Part C. Settled (for the record)
@@ -323,11 +390,14 @@ SpaceTime Energy Boundary) is post-UMV, too late for the UIV Kerr.
 | Eye gives EU back? [Q-4] | No, pure EU sink | Built |
 | Stale-card substitutions [Q-7] | Accepted; the review cards get redrawn | Built (spec §2.1) |
 | Kerr mass mechanic [Q-8] | Keep | Built |
-| Extractor Module [Q-9, Q-22] | GT extractor recipes only | **Not built yet (A-1)** |
+| Extractor Module [Q-9, Q-22] | GT extractor recipes only | Built (A-1, follow-up pass) |
 | Upgrades [Q-10] | Consumed, permanent, milestones + install run | **Install run not built (A-2, B-1)** |
 | Eye name [Q-13] | "Eye of Harmony" at every tier for now; per-tier names later | Built (name set in one place) |
 | Compression gate [Q-20] | Hard gate, 1:1 | Built |
 | Reuse the EOH and BHC blocks [Q-16] | Yes | Built (spec FC-1) |
+| Kerr lining [Q-16, B-12] | One new white Kerr lining block | Built: Harmonic Lining, `slCasing2:2` (B-15) |
+| Planets and compression [Q-29, B-4] | Drop TecTech's per-planet rule; the 1:1 gate alone decides | Built (B-16) |
+| Kerr T2 with the reinforcement torn down [B-1] | Won't form | Built (unchanged) |
 
 ## Where the old question numbers went
 
