@@ -331,7 +331,8 @@ public class CommandBTSKerr extends CommandBase {
         }
         if (args[0].equalsIgnoreCase("legacy")) {
             // Test bench: back to the pre-redesign layout, so the migration can be exercised.
-            for (String line : KerrKit.makeLegacy(world, kee)) {
+            final boolean inflight = args.length >= 5 && args[4].equalsIgnoreCase("inflight");
+            for (String line : KerrKit.makeLegacy(world, kee, inflight)) {
                 SLConsoleTest.tell(sender, "Kerr legacy layout: " + line);
             }
             return;
@@ -340,6 +341,8 @@ public class CommandBTSKerr extends CommandBase {
         SLConsoleTest.tell(
             sender,
             note == null ? "Kerr migration: nothing to convert (no legacy module core block in its arcs)." : note);
+        if (!kee.getMigrationNote()
+            .isEmpty()) SLConsoleTest.tell(sender, "KEE note: " + kee.getMigrationNote());
     }
 
     /**

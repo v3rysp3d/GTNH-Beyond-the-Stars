@@ -118,8 +118,11 @@ core blocks in its arcs:
   (8,388,608 EU/t while the hole is open).
 - If a controller cell is not plain casing or air, that arc is not converted and the Kerr's GUI says so. Clear the
   cell and run `/btskerr migrate` (an operator command) while standing near the Kerr, or `/btskerr migrate x y z`.
-- A recipe that was running in the old Kerr is handed to the module it ran on. Items that do not fit its output
-  buses drop at the module controller; fluids that do not fit are lost.
+- A recipe that was running in the old Kerr is held in the Kerr (nothing is lost) and handed to the module it ran
+  on as soon as that module forms, which is after you give it its energy hatch. Items that do not fit its output
+  buses drop at the module controller; fluids wait in the Kerr until its output hatches have room. The Kerr's GUI
+  says what it is holding.
+- The Kerr no longer needs a maintenance hatch. An old one in the governor arc can stay.
 
 **Items.** Old module core blocks in chests craft 1:1 (shapeless) into the matching module controller. The Kerr
 Compressor / Extractor Module assembly-line recipes keep their inputs and now make the controllers.

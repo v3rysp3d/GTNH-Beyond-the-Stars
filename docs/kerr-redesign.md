@@ -381,9 +381,14 @@ KEE holds their hatches.
    - Each conversion is logged, and the player who opens the KEE GUI sees "converted N modules".
 2. **A fallback command** for odd cases (a blocked cell, a chunk unloaded at the time): `/btskerr migrate [x y z]`
    runs the same conversion on the Kerr the player looks at.
-3. **A recipe running in the old KEE** at update time. On load, the KEE hands the old in-flight outputs
-   (`mOutputItems` / `mOutputFluids`) to the converted module's output buses, and drops what does not fit as items at
-   the module controller. The release note also says: switch the Kerr off before updating.
+3. **A recipe running in the old KEE** at update time. On load, the KEE moves the old in-flight outputs
+   (`mOutputItems` / `mOutputFluids`) off GT's recipe fields (GT's `stopMachine` clears those while the KEE is
+   unformed) and holds them in its own NBT (`btsKerrLegacy`, tile and wrenched item). Every second it offers them to
+   the module the recipe ran on, once that module is formed: an old arc had no energy hatch, so the converted module
+   forms only after the player adds one. Items that do not fit its output buses drop at the module controller;
+   fluids that do not fit stay held until its output hatches have room. The KEE's GUI note says what is held. The
+   release note still says: switch the Kerr off before updating. Test bench: `/btskerr legacy x y z inflight`, then
+   `/btskerr module x y z c energy` (B-44).
 4. **Items.**
    - SL-K02 / SL-K03 now **output the module controllers** (same inputs, so the cost table is unchanged).
    - A shapeless 1:1 recipe turns a legacy core block into its module controller, so core blocks in chests are not

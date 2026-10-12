@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.IntFunction;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
@@ -218,8 +219,16 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     /** Migration runs once per load, after the first structure check (docs/kerr-redesign.md §7). */
     private boolean migrationPending = true;
     private String migrationNote = "";
-    /** Pre-redesign NBT: the mode a running recipe started on (0/2 compressor, 1 extractor), or -1. */
-    private int legacyBoundMode = -1;
+    /**
+     * PERSISTED (writeKerrState): a pre-redesign in-flight recipe's outputs, held here until the module
+     * it ran on is formed and takes them (KerrMigration). Taken off GT's recipe fields at once, because
+     * GT's stopMachine clears those whenever the KEE is unformed. Mode 1 = extractor, else compressor.
+     */
+    private ItemStack[] legacyItems;
+    private FluidStack[] legacyFluids;
+    private int legacyMode = -1;
+    /** Where the held recipe stands (for the GUI), or "". */
+    private String legacyNote = "";
 
     public MTEKerrEngine(int aID, String aName, String aNameRegional) {
         super(aID, aName, aNameRegional);
@@ -562,6 +571,9 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             migrationPending = false;
             final String note = KerrMigration.convert(this);
             if (note != null) migrationNote = note;
+        } else if (!migrationPending && aTick % 20 == 0 && hasLegacyRecipe() && KerrMigration.cellsLoaded(this)) {
+            // A held legacy recipe waits for its module to form (an old arc had no energy hatch).
+            KerrMigration.handOffLegacyRecipe(this, false);
         }
         if (mMachine) {
             if (autoSeeds && aTick % 20 == 0) useSeedOrCollapser();
@@ -1012,7 +1024,8 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     }
 
     public String getMigrationNote() {
-        return migrationNote;
+        if (legacyNote.isEmpty()) return migrationNote;
+        return migrationNote.isEmpty() ? legacyNote : migrationNote + "; " + legacyNote;
     }
 
     /** {@code state|parallel|speed|x, y, z} for one slot, refreshed every second (server). */
@@ -1076,30 +1089,108 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
 
     // ============================================================================ migration
 
-    /** The pre-redesign mode a running recipe started on (0/2 compressor, 1 extractor), or -1. */
-    int legacyBoundMode() {
-        return legacyBoundMode;
-    }
-
-    /** Takes a pre-redesign in-flight recipe off this KEE (migration hands it to a module). */
-    Object[] takeLegacyRecipe() {
-        if (mMaxProgresstime <= 0 && mOutputItems == null && mOutputFluids == null) return null;
-        final Object[] out = { mOutputItems, mOutputFluids };
+    /**
+     * Moves a pre-redesign in-flight recipe off GT's recipe fields into the held legacy recipe. The KEE
+     * runs no recipes, so anything in those fields is an old recipe. Idempotent; {@code mode} is the
+     * mode it ran on (0/2 compressor, 1 extractor).
+     */
+    void captureLegacyRecipe(int mode) {
+        final ItemStack[] items = compact(mOutputItems);
+        final FluidStack[] fluids = compact(mOutputFluids);
         mOutputItems = null;
         mOutputFluids = null;
         mMaxProgresstime = 0;
         mProgresstime = 0;
         mEUt = 0;
-        legacyBoundMode = -1;
-        return out[0] == null && out[1] == null ? null : out;
+        if (items == null && fluids == null) return;
+        if (!hasLegacyRecipe()) legacyMode = mode;
+        legacyItems = concat(legacyItems, items, ItemStack[]::new);
+        legacyFluids = concat(legacyFluids, fluids, FluidStack[]::new);
     }
 
-    static ItemStack[] items(Object[] legacy) {
-        return legacy == null ? null : (ItemStack[]) legacy[0];
+    /** The same, with the mode GT's field holds (the test bench's injected recipe), then no modes. */
+    void captureLegacyRecipe() {
+        captureLegacyRecipe(machineMode);
+        machineMode = 0;
     }
 
-    static FluidStack[] fluids(Object[] legacy) {
-        return legacy == null ? null : (FluidStack[]) legacy[1];
+    boolean hasLegacyRecipe() {
+        return legacyItems != null || legacyFluids != null;
+    }
+
+    int legacyMode() {
+        return legacyMode;
+    }
+
+    ItemStack[] legacyItems() {
+        return legacyItems;
+    }
+
+    FluidStack[] legacyFluids() {
+        return legacyFluids;
+    }
+
+    /** After a hand-off: the items are gone (output or dropped); {@code fluidsLeft} found no room yet. */
+    void keepLegacyFluids(FluidStack[] fluidsLeft) {
+        legacyItems = null;
+        legacyFluids = compact(fluidsLeft);
+        if (legacyFluids == null) legacyMode = -1;
+    }
+
+    void setLegacyNote(String note) {
+        legacyNote = note == null ? "" : note;
+    }
+
+    /** Test bench: a pre-redesign KEE's in-flight recipe, as GT's recipe fields held it. */
+    public void debugLegacyRecipe(int mode, ItemStack[] items, FluidStack[] fluids) {
+        mOutputItems = items;
+        mOutputFluids = fluids;
+        mMaxProgresstime = 1000;
+        mProgresstime = 100;
+        machineMode = mode;
+    }
+
+    /** The non-null, non-empty entries, or null if none. */
+    private static ItemStack[] compact(ItemStack[] in) {
+        if (in == null) return null;
+        final List<ItemStack> out = new ArrayList<>();
+        for (ItemStack s : in) {
+            if (s != null && s.getItem() != null && s.stackSize > 0) out.add(s);
+        }
+        return out.isEmpty() ? null : out.toArray(new ItemStack[0]);
+    }
+
+    private static FluidStack[] compact(FluidStack[] in) {
+        if (in == null) return null;
+        final List<FluidStack> out = new ArrayList<>();
+        for (FluidStack f : in) {
+            if (f != null && f.getFluid() != null && f.amount > 0) out.add(f);
+        }
+        return out.isEmpty() ? null : out.toArray(new FluidStack[0]);
+    }
+
+    private static <S> S[] concat(S[] a, S[] b, IntFunction<S[]> make) {
+        if (a == null) return b;
+        if (b == null) return a;
+        final S[] out = make.apply(a.length + b.length);
+        System.arraycopy(a, 0, out, 0, a.length);
+        System.arraycopy(b, 0, out, a.length, b.length);
+        return out;
+    }
+
+    private static NBTTagCompound writeLegacy(ItemStack[] items, FluidStack[] fluids) {
+        final NBTTagCompound tag = new NBTTagCompound();
+        if (items != null) {
+            tag.setInteger("items", items.length);
+            for (int i = 0; i < items.length; i++) GTUtility.saveItem(tag, "item" + i, items[i]);
+        }
+        if (fluids != null) {
+            tag.setInteger("fluids", fluids.length);
+            for (int i = 0; i < fluids.length; i++) {
+                tag.setTag("fluid" + i, fluids[i].writeToNBT(new NBTTagCompound()));
+            }
+        }
+        return tag;
     }
 
     // ===================================================================================== NBT
@@ -1114,6 +1205,10 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         if (setpoint != (int) OPEN_MASS) nbt.setDouble("btsKerrSetpoint", setpoint);
         nbt.setBoolean("btsKerrAutoSeeds", autoSeeds);
         nbt.setBoolean("btsKerrRender", renderOn);
+        if (hasLegacyRecipe()) {
+            nbt.setInteger("btsKerrLegacyMode", legacyMode);
+            nbt.setTag("btsKerrLegacy", writeLegacy(legacyItems, legacyFluids));
+        }
     }
 
     @Override
@@ -1144,10 +1239,22 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         renderPos = rp.length == 3 ? rp : null;
         // A reload is no open/close: an open hole's render block is adopted as it stands, not regrown.
         renderHoleSeen = holeOpen;
-        // Pre-redesign: read once, then discarded (the next save no longer writes it).
-        // The running recipe's mode, else the selected mode while one was running (no modes any more).
-        legacyBoundMode = aNBT.hasKey("btsKerrBoundMode") ? aNBT.getInteger("btsKerrBoundMode")
-            : mMaxProgresstime > 0 ? machineMode : -1;
+        // A held legacy recipe (saved by this code), then a pre-redesign one still in GT's recipe fields:
+        // the running recipe's mode, else the selected mode (no modes any more). GT's fields are cleared.
+        legacyItems = null;
+        legacyFluids = null;
+        legacyMode = -1;
+        if (aNBT.hasKey("btsKerrLegacy")) {
+            final NBTTagCompound tag = aNBT.getCompoundTag("btsKerrLegacy");
+            final ItemStack[] items = new ItemStack[tag.getInteger("items")];
+            for (int i = 0; i < items.length; i++) items[i] = GTUtility.loadItem(tag, "item" + i);
+            final FluidStack[] fluids = new FluidStack[tag.getInteger("fluids")];
+            for (int i = 0; i < fluids.length; i++) fluids[i] = GTUtility.loadFluid(tag, "fluid" + i);
+            legacyItems = compact(items);
+            legacyFluids = compact(fluids);
+            legacyMode = hasLegacyRecipe() ? aNBT.getInteger("btsKerrLegacyMode") : -1;
+        }
+        captureLegacyRecipe(aNBT.hasKey("btsKerrBoundMode") ? aNBT.getInteger("btsKerrBoundMode") : machineMode);
         machineMode = 0;
     }
 

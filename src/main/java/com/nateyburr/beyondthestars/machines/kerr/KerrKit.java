@@ -12,6 +12,8 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.FluidStack;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -33,6 +35,7 @@ import gregtech.api.enums.MetaTileEntityIDs;
 import gregtech.api.enums.OrePrefixes;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
+import gregtech.api.metatileentity.implementations.MTEHatch;
 import gregtech.api.metatileentity.implementations.MTEHatchEnergyDebug;
 import gregtech.api.metatileentity.implementations.MTEHatchInputBus;
 import gregtech.api.util.GTOreDictUnificator;
@@ -488,17 +491,43 @@ public final class KerrKit {
     }
 
     /**
-     * TEST BENCH ({@code /btskerr legacy x y z}): turns a built Kerr back into the PRE-REDESIGN layout,
-     * so the migration can be tested on a fresh world: each module controller becomes the plain arc
-     * shell its cell held before, and each slot's legacy core cell gets the old module core block. The
-     * hatches stay. Returns what it did.
+     * TEST BENCH ({@code /btskerr legacy x y z [inflight]}): turns a built Kerr back into the
+     * PRE-REDESIGN layout, so the migration can be tested on a fresh world: each module controller becomes
+     * the plain arc shell its cell held before, and each slot's legacy core cell gets the old module core
+     * block. The hatches stay. With {@code inflight}, as a real old Kerr: the module arcs lose their
+     * energy hatches (old arcs had none) and the KEE gets an old compressor recipe in flight (2 x 64
+     * Neutronium bolts, 1,000 L water, 500 L lava in GT's recipe fields). Returns what it did.
      */
-    public static List<String> makeLegacy(World world, MTEKerrEngine kee) {
+    public static List<String> makeLegacy(World world, MTEKerrEngine kee, boolean inflight) {
         final List<String> out = new ArrayList<>();
         final IGregTechTileEntity base = kee.getBaseMetaTileEntity();
         final ExtendedFacing facing = kee.getExtendedFacing();
+        if (inflight) {
+            kee.debugLegacyRecipe(
+                0,
+                new ItemStack[] { GTOreDictUnificator.get(OrePrefixes.bolt, Materials.Neutronium, 64L),
+                    GTOreDictUnificator.get(OrePrefixes.bolt, Materials.Neutronium, 64L) },
+                new FluidStack[] { new FluidStack(FluidRegistry.WATER, 1000),
+                    new FluidStack(FluidRegistry.LAVA, 500) });
+            out.add("KEE: old compressor recipe in flight (2 x 64 Neutronium bolts, 1,000 L water, 500 L lava)");
+        }
         for (KerrSlot slot : KerrSlot.VALUES) {
             final int[] ctrl = slot.modulePos(facing, base.getXCoord(), base.getYCoord(), base.getZCoord());
+            if (inflight) {
+                final MTEKerrModuleBase<?> module = KerrTestBench.moduleOf(world, kee, slot);
+                if (module != null) {
+                    for (MTEHatch hatch : module.getExoticAndNormalEnergyHatchList()) {
+                        final IGregTechTileEntity h = hatch.getBaseMetaTileEntity();
+                        if (h == null) continue;
+                        final int hx = h.getXCoord();
+                        final int hy = h.getYCoord();
+                        final int hz = h.getZCoord();
+                        world.setBlockToAir(hx, hy, hz);
+                        slot.placeLegacyCellCasing(world, hx, hy, hz);
+                        out.add(slot.label + ": energy hatch at " + pos(new int[] { hx, hy, hz }) + " -> arc casing");
+                    }
+                }
+            }
             final int[] core = KerrSlot
                 .worldPos(facing, base.getXCoord(), base.getYCoord(), base.getZCoord(), slot.legacyCoreRel());
             // A console-built machine has no owner, and GT's power-fail tracker throws when an ownerless
@@ -542,6 +571,32 @@ public final class KerrKit {
             }
             if (bolt != null) inv.setInventorySlotContents(slot, bolt.copy());
         }
+    }
+
+    /**
+     * Test bench: a creative energy hatch in the first arc socket of {@code module} that holds no tile
+     * (the {@code inflight} legacy layout strips them). True if one was placed.
+     */
+    static boolean refitModuleEnergy(World world, MTEKerrEngine kee, MTEKerrModuleBase<?> module) {
+        final IGregTechTileEntity keeBase = kee.getBaseMetaTileEntity();
+        final IGregTechTileEntity base = module.getBaseMetaTileEntity();
+        final int[] centre = KerrSlot.worldPos(
+            kee.getExtendedFacing(),
+            keeBase.getXCoord(),
+            keeBase.getYCoord(),
+            keeBase.getZCoord(),
+            KerrSlot.centreRel());
+        final ExtendedFacing alignment = module.getExtendedFacing();
+        final char ch = module.slot() == KerrSlot.COMPRESSOR ? 'c' : 'x';
+        for (int[] rel : socketRels(module.slot().piece, ch)) {
+            final int[] p = KerrSlot.worldPos(alignment, base.getXCoord(), base.getYCoord(), base.getZCoord(), rel);
+            if (world.getTileEntity(p[0], p[1], p[2]) != null) continue;
+            if (fitDebugEnergy(world, alignment, base.getXCoord(), base.getYCoord(), base.getZCoord(), rel, centre)) {
+                module.checkStructure(true, base);
+                return true;
+            }
+        }
+        return false;
     }
 
     /** A creative energy hatch at UMV, 16 A (DENSITY is a UMV recipe; containment is 1 A UEV). */

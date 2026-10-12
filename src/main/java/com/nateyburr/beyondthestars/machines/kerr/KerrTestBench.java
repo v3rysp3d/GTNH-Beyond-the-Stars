@@ -92,6 +92,11 @@ public final class KerrTestBench {
             case "clear":
                 out.add(clear(m));
                 break;
+            case "energy":
+                out.add(
+                    KerrKit.refitModuleEnergy(world, kee, m) ? "energy: creative hatch fitted, structure re-checked"
+                        : "energy: no free arc socket");
+                break;
             default:
                 break;
         }

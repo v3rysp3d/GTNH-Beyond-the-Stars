@@ -3,9 +3,9 @@ package com.nateyburr.beyondthestars.machines.kerr;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
+import net.minecraftforge.fluids.FluidStack;
 
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.nateyburr.beyondthestars.BeyondTheStars;
@@ -27,7 +27,9 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
  * </ul>
  * A controller cell is replaced only if it is air or the plain arc shell it held before the redesign
  * (never a tile). The hatches already in the arc sockets stay and become the module's own on its
- * first walk. A recipe the old KEE had in flight is handed to the module it was running on.
+ * first walk. A recipe the old KEE had in flight is held in the KEE (tile NBT) and handed to the
+ * module it was running on once that module is formed: an old arc never had an energy hatch, so a
+ * converted module cannot form until the player adds one, and nothing is lost meanwhile.
  * <p>
  * Runs automatically once per load on the KEE (after its first structure check), and on demand from
  * {@code /btskerr migrate}.
@@ -85,8 +87,9 @@ public final class KerrMigration {
                 slot.label,
                 pos(ctrl));
         }
-        final String handOff = handOffLegacyRecipe(kee, world, facing, x, y, z);
-        if (handOff != null) notes.add(handOff);
+        // A recipe still held shows in the KEE's own note (it clears once handed off), not in this summary.
+        final String handOff = handOffLegacyRecipe(kee, true);
+        if (handOff != null && !kee.hasLegacyRecipe()) notes.add(handOff);
         if (converted == 0 && notes.isEmpty()) return null;
         final String summary = "Kerr migration: converted " + converted
             + " module"
@@ -113,32 +116,62 @@ public final class KerrMigration {
         return true;
     }
 
-    /** The old KEE's in-flight outputs go to the module they were made on (else drop at the KEE). */
-    private static String handOffLegacyRecipe(MTEKerrEngine kee, World world, ExtendedFacing facing, int x, int y,
-        int z) {
-        final int mode = kee.legacyBoundMode();
-        final Object[] legacy = kee.takeLegacyRecipe();
-        if (legacy == null) return null;
-        final KerrSlot slot = mode == 1 ? KerrSlot.EXTRACTOR : KerrSlot.COMPRESSOR;
-        final IGregTechTileEntity te = KerrSlot.gtTileAt(world, slot.modulePos(facing, x, y, z));
-        if (te != null && slot.accepts(te.getMetaTileEntity())) {
-            final MTEKerrModuleBase<?> module = (MTEKerrModuleBase<?>) te.getMetaTileEntity();
-            module.checkStructure(true, te);
-            return "the old in-flight recipe went to the " + slot.label
+    /**
+     * Hands the KEE's held pre-redesign recipe to the module it was made on, if that module is formed.
+     * Items that do not fit its output buses drop at the module controller; fluids that do not fit stay
+     * held and are retried every second (the KEE calls this). Returns a one-line note, or null when
+     * nothing is held. {@code walk}: re-check an unformed module's structure first (the conversion just
+     * placed it).
+     */
+    static String handOffLegacyRecipe(MTEKerrEngine kee, boolean walk) {
+        kee.captureLegacyRecipe();
+        if (!kee.hasLegacyRecipe()) {
+            kee.setLegacyNote("");
+            return null;
+        }
+        final IGregTechTileEntity base = kee.getBaseMetaTileEntity();
+        final World world = base.getWorld();
+        final KerrSlot slot = kee.legacyMode() == 1 ? KerrSlot.EXTRACTOR : KerrSlot.COMPRESSOR;
+        final int[] p = slot.modulePos(kee.getExtendedFacing(), base.getXCoord(), base.getYCoord(), base.getZCoord());
+        final IGregTechTileEntity te = world.blockExists(p[0], p[1], p[2]) ? KerrSlot.gtTileAt(world, p) : null;
+        final MTEKerrModuleBase<?> module = te != null && slot.accepts(te.getMetaTileEntity())
+            ? (MTEKerrModuleBase<?>) te.getMetaTileEntity()
+            : null;
+        if (module != null && walk && !module.mMachine) module.checkStructure(true, te);
+        if (module == null || !module.mMachine) {
+            final String note = "the old in-flight recipe is held in the KEE until the " + slot.label
+                + " module at "
+                + pos(p)
+                + (module == null ? " is placed and formed" : " forms (it needs its own energy hatch)");
+            kee.setLegacyNote("Kerr migration: " + note);
+            return note;
+        }
+        final int fluidsHeld = kee.legacyFluids() == null ? 0 : kee.legacyFluids().length;
+        final boolean itemsHeld = kee.legacyItems() != null;
+        final FluidStack[] left = module.acceptLegacyOutputs(kee.legacyItems(), kee.legacyFluids());
+        kee.keepLegacyFluids(left);
+        final String note;
+        if (left.length == 0) {
+            note = "the old in-flight recipe went to the " + slot.label
                 + " module ("
-                + module.acceptLegacyOutputs(MTEKerrEngine.items(legacy), MTEKerrEngine.fluids(legacy))
-                + ")";
+                + fluidsHeld
+                + " fluid(s); items that did not fit dropped at its controller)";
+            kee.setLegacyNote("");
+        } else {
+            note = "the old in-flight recipe went to the " + slot.label
+                + " module; "
+                + left.length
+                + " fluid(s) are held in the KEE until its output hatches have room";
+            kee.setLegacyNote("Kerr migration: " + note);
         }
-        int dropped = 0;
-        final ItemStack[] items = MTEKerrEngine.items(legacy);
-        if (items != null) {
-            for (ItemStack stack : items) {
-                if (stack == null || stack.stackSize <= 0) continue;
-                world.spawnEntityInWorld(new EntityItem(world, x + 0.5, y + 1.5, z + 0.5, stack.copy()));
-                dropped++;
-            }
+        // Logged only when something moved (a full output hatch is retried every second).
+        if (itemsHeld || left.length != fluidsHeld) {
+            BeyondTheStars.LOG.info(
+                "[BTS] Kerr migration: {} (KEE at {})",
+                note,
+                pos(new int[] { base.getXCoord(), base.getYCoord(), base.getZCoord() }));
         }
-        return "the old in-flight recipe had no module to go to: " + dropped + " stack(s) dropped at the KEE";
+        return note;
     }
 
     private static String pos(int[] p) {

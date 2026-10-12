@@ -387,46 +387,36 @@ public abstract class MTEKerrModuleBase<T extends MTEKerrModuleBase<T>> extends 
     // ============================================================================ migration
 
     /**
-     * Hands a pre-redesign KEE's in-flight recipe outputs to this module (docs/kerr-redesign.md §7.3):
-     * into its output buses / hatches if it is formed, else (and whatever does not fit) dropped as
-     * items at the controller. Fluids that do not fit are lost (the release note says to switch the
-     * Kerr off before updating). Returns a one-line summary.
+     * Takes a pre-redesign KEE's in-flight recipe outputs (docs/kerr-redesign.md §7.3). Call only while
+     * formed. Items go into the output buses; what does not fit drops at the controller. Returns the
+     * fluids that found no room in the output hatches (the KEE keeps them and retries).
      */
-    public String acceptLegacyOutputs(ItemStack[] items, FluidStack[] fluids) {
-        int itemsIn = 0;
-        int dropped = 0;
-        int fluidsLost = 0;
+    public FluidStack[] acceptLegacyOutputs(ItemStack[] items, FluidStack[] fluids) {
         final IGregTechTileEntity base = getBaseMetaTileEntity();
         if (items != null) {
             for (ItemStack stack : items) {
                 if (stack == null || stack.stackSize <= 0) continue;
                 final ItemStack copy = stack.copy();
-                if (mMachine) addOutputPartial(copy); // ejects what fits and subtracts it from copy
-                if (copy.stackSize <= 0) {
-                    itemsIn++;
-                    continue;
-                }
-                if (base != null && base.getWorld() != null && copy.stackSize > 0) {
-                    final EntityItem drop = new EntityItem(
-                        base.getWorld(),
-                        base.getXCoord() + 0.5,
-                        base.getYCoord() + 1.5,
-                        base.getZCoord() + 0.5,
-                        copy);
-                    base.getWorld()
-                        .spawnEntityInWorld(drop);
-                    dropped++;
-                }
+                addOutputPartial(copy); // ejects what fits and subtracts it from copy
+                if (copy.stackSize <= 0 || base == null || base.getWorld() == null) continue;
+                base.getWorld()
+                    .spawnEntityInWorld(
+                        new EntityItem(
+                            base.getWorld(),
+                            base.getXCoord() + 0.5,
+                            base.getYCoord() + 1.5,
+                            base.getZCoord() + 0.5,
+                            copy));
             }
         }
+        final List<FluidStack> left = new ArrayList<>();
         if (fluids != null) {
             for (FluidStack fluid : fluids) {
                 if (fluid == null || fluid.amount <= 0) continue;
-                if (!mMachine || !addOutputAtomic(fluid.copy())) fluidsLost++;
+                if (!addOutputAtomic(fluid.copy())) left.add(fluid);
             }
         }
-        return String
-            .format(Locale.ROOT, "%d stack(s) output, %d dropped, %d fluid(s) lost", itemsIn, dropped, fluidsLost);
+        return left.toArray(new FluidStack[0]);
     }
 
     // ================================================================================== GUI
