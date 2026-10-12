@@ -2029,13 +2029,14 @@ accepted, and §10.2's questions take their recommendations. Branch `p4-quasar`;
 | Engine maths: quasar disc, conduit maths, links, Eye T7/T8 field and transitions, P4 Directive rules, golden, rig proof | built | 4850153, 566cfe5, 1747224; design repo 330e4df |
 | Content + recipes (§6): fluids, items, slCasing2:3-11, textures, lang, BTSRecipesQuasar, SL-P40, the Eternity swap, NEI pages, P4 gate audit | built | a67ef11, 2799a9e, 486877f, e89b314 |
 | Quasar Engine MTE 28120, Burst Control Hatch 28126, burst API, sensor quasar channels, render, kit, bench, OC | built | ee919a7, c44f995, 89ac19e, c47fc63 |
+| Conduit (Mouth 28121, Mirror 28122, Junction 28123), Crown 28124, GRB Receptor Port 28125, solver, host API, OC, kit, bench | built | 0f99c6b, 92c10ca, 6d6e8db |
 
 ### MTE ledger (P4 block 28120-28129)
 
 | Id | Machine | Class (proposed) | Shape(s) |
 |---|---|---|---|
 | 28120 | Quasar Engine | `machines/quasar/MTEQuasarEngine` | `quasar` |
-| 28121 | Wormhole Mouth | `machines/conduit/MTEWormholeMouth` | `conduit_mouth` |
+| 28121 | Wormhole Mouth | `machines/conduit/MTEWormholeMouth` (built) | `conduit_mouth` |
 | 28122 | Conduit Mirror | `machines/conduit/MTEConduitMirror` | `conduit_mirror` |
 | 28123 | Conduit Junction | `machines/conduit/MTEConduitJunction` | `conduit_junction` |
 | 28124 | Burst Thermaliser Crown (Mk by structure) | `machines/quasar/MTEBurstThermaliserCrown` | `crown_mk1`, `crown_mk2`, `crown_mk3` |
@@ -2371,3 +2372,81 @@ complete: 310 registered, 0 skipped` (SL-Q01 and SL-Q20 register now).
   element-closed flag for Disc bit 4 is still to be added (P4-44).
 - Readers: `jetBu(port)`, `jetTaken(port)`, `jetDock(port)`, `getVented()`, `source()`, `isFrozen()`.
 - `MTEHatchBurstControl`: `poll(host, line, modes...)` once a second, `level()`, `consumeRisingEdge()`, `getMode()`.
+
+### The Conduit, the crowns and the GRB Receptor Port (28121-28125) (questions P4-46..P4-57)
+
+**Files.**
+
+| Class | What it is |
+|---|---|
+| `machines/conduit/MTEConduitElement` | Shared base of the three elements: the throat item (controller slot, `SLQuasarItems.throatTier`), upkeep, open / closed, `receive` (cycle, 32 hops, throat cap, clipped), `emit` through cached routes, books, scanner, NBT (tag `btsConduit`), tooltip helpers, `facingFor` (bench). |
+| `machines/conduit/MTEWormholeMouth` (28121) | A pair by data stick (`partner` {dim, x, y, z}); a dock (`IBurstDock`) on its front-face centre; front → back; `relay` on the partner. |
+| `machines/conduit/MTEConduitMirror` (28122) | 90° corner, any facing, reversible (P4-49). |
+| `machines/conduit/MTEConduitJunction` (28123) | Split (big in; out 3 = p3 first, then `BurstRouting.split` on share₁) or combine (3 small in, big out). c, k, p3, mode in its GUI / OC; s from the first Burst Control Hatch (SPLIT mode). |
+| `machines/conduit/MTEHatchGRBReceptor` (28125) | The sink: per (source, jet port) delivery of last second, same-tick arrivals add; Q-8 known sources (positions, NBT `btsReceptorKnown`). |
+| `machines/quasar/MTEBurstThermaliserCrown` (28124) | One controller, Mk = biggest of `crown_mk3/2/1` that checks (channel `crown`, else stack 1-3); dock on its intake; receptor `r`; EU to wireless; overflow to one stacked crown. |
+| `machines/conduit/ConduitNet` | The solver's world side: in-throat registry (40-tick freshness, weak per world), `trace` (ray → in-throat / receptor / blocked / unloaded / nothing), `MAX_RAY` 72, entry cos ≥ 0.5, routes cached `ROUTE_TICKS` 100. |
+| `machines/conduit/ConduitThroats` | `manifest.json machines.<piece>.throats[]` → `Throat` / `WorldThroat` (centre, unit normal, radius). |
+| `machines/conduit/FlowBook` | Per-second books: same tick adds, a later tick replaces; < 20 ticks = this second (caps), < 40 = last second (display). |
+| `machines/conduit/ConduitHatchElement`, `machines/quasar/CrownHatchElement` | Private sockets: Fuel `u`, BurstControl `c` (junction), Receptor `r` (crown). |
+| `machines/conduit/ConduitElementGui`, `GRBReceptorGui`, `machines/quasar/CrownGui` | MUI2: status terminal; fuel cycle button; the Junction's panel (mode, c slider, k cycle, out 3 slider). |
+| `machines/quasar/burst/BurstStream`, `BurstReading`, `BurstHost` | The stream in flight (source, port, Bu/t, linkable, path); a port's / host's reading; the host-side API (below). |
+| `machines/conduit/ConduitKit`, `CommandBTSConduit` | `/btskit conduit`; `/btsconduit status | dock | rig x y z | rig status | pair | throat | fuel on/off | junction | rebuild [tier] | keep | survival`. |
+| `integration/ConduitComputerApi` + `BTSEnvironments.Conduit/Junction/Crown/Receptor` | OpenComputers `bts_mouth`, `bts_mirror`, `bts_junction`, `bts_crown`, `bts_receptor` (§8.2; plus `setFuel`). |
+
+**The walk.** A quasar's second pushes each jet port's `JetPacket` into the dock on its cell. A Wormhole Mouth takes it
+(`receive`, its cap), its partner `relay`s it (its own cap) and emits it out of its back; every hop is a cached ray to the
+next in-throat or receptor, delivered at once, in the same tick. Each element applies `BurstRouting` (caps, split,
+share). A closed element (no throat, or upkeep short) loses the stream and calls `MTEQuasarEngine.noteConduitClosed`
+(Disc bit 4 for 2 s; closes P4-44). Unloaded elements break the path (P4-56).
+
+**Upkeep** (P4-48): one unit per element a second while formed with a throat, `BurstRouting.throatUpkeep(mk, fuel)`,
+from the `u` hatches; Auto / SpaceTime / Ergomatter; closed until 10 s of full upkeep.
+
+**Docking** (contract with the quasar unit, P4-52, P4-54): a crown registers its intake (`machines.crown.intake`) and
+checks in `acceptJet` that its intake axis equals the jet's world axis (standing on the top cap; rotation UPSIDE_DOWN
+under the bottom cap). A mouth registers its front-face ring centre and checks that its back axis (+c) equals the jet's.
+A misaligned dock takes 0 and says so. `/btsconduit dock <quasar>` prints both port cells and the crown cells.
+
+**NBT.** Elements: fuel mode, open, reopen, owed litres and fuel, litres used, the partner (mouth), mode / c / k / p3
+(junction). Crown: the last formed Mk and lifetime EU. Receptor: known sources. Nothing about a link is saved.
+
+**Host-side API (contract for the Eye and Hosts units).**
+
+- Put `MTEHatchGRBReceptor` sockets in the host (private element, as the crown does with `CrownHatchElement`); the Eye
+  groups them by `manifest.pieces.eye_rail|eye_halo.sockets.r[i].group`.
+- Own one `BurstHost` per host (not saved). Once per host second:
+  `BurstReading r = host.second(ports, hostKey, hostLabel, demand, streak01)` — it polls the ports (they learn the
+  host's name), rolls the 60 s mean unless paused, computes σ against `demand` (`BurstLink.KERR_T1/T2`, `HOMOGENY_T2/T3`,
+  `REALITY`, or `GalaxyField.demand(...)`), and reports the host to every feeding quasar (`reportHost`).
+- Read: `r.total`, `r.bySource`, `host.delivered()`, `host.sigma()` (last second), **`host.sigmaMean()`** (60 s mean:
+  use it for recipe conditions and bonuses, P4-50), `host.mean()`, `host.meanFull()`, `host.linked()`,
+  `host.linkSource()`, `host.linkLine()` (GUI / scanner text).
+- **Q-8:** if `r.paused` (`host.paused()`), freeze the field, cycle, streaks and recipe progress for that second; do
+  not read 0. `r.pausedBy` names the source.
+- **Groups** (the Eye): read each group with `BurstHost.read(groupPorts, label)` (a static, no rolling) and roll the
+  milestone `BurstLink`s yourself: Stability Link = roll(rail total, rail-high part), `stabilityOk(linked)`; Heavy Link
+  = roll(Eye total, halo part), `heavyOk(linked, testFire)`. `linked` = the group reading's `linked()`.
+- A link is a fresh delivery > 0 Bu/t from a linkable stream (formed, OPEN, b > 0) over an open path (P4-51).
+
+**Bench** (`/btsconduit`, dev server port 25581, flat world `p4test`, 2026-10-13):
+
+- `rig 8000 100 8000`: quasar (coils T3, 64 SM, a 0.5) + Mk I crown on the top port + mouth A on the bottom port, mouth
+  B, Mirror 1, split Junction (c 0.5, out 3 10 %), Mirror 2 turning up into a remote Mk I crown's receptor, receptors on
+  out 2 / out 3. All FORMED; every element opened after 10 s. Jets 1.35 Bu/t each; top crown 1.35 Bu/t →
+  1.35 × 10¹³ EU/t; bottom jet → mouth A → B (1.35) → Mirror 1 (40 blocks) → Junction (30) → out 1 0.61 → Mirror 2 (20)
+  → remote crown receptor (20) 6.1 × 10¹² EU/t, LINKED; out 2 0.61 and out 3 0.135 LINKED. The bench owner's wireless
+  network grew by 1.2 × 10¹⁶ EU in about 30 s.
+- Fuel off on Mirror 1: CLOSED, downstream receptors "nothing received, not linked", the quasar's Disc code 13 (bit 4,
+  "conduit closed"). Fuel back: open after 10 s, links back.
+- Two quasar blocks removed: the quasar FROZEN; receptors and the remote crown "PAUSED: its quasar ... is not running"
+  (Q-8). `rebuild` re-formed it.
+- Junction k 4, s 0: share₁ 0, out 2 takes it all.
+- Server restart: pairs, throats, open state, junction settings and litres kept; with the chunks forced the whole chain
+  flowed again (remote crown linked).
+- `survival` (StructureLib's survival path, then re-projection and damage-and-repair): mouth 1,403, mirror 1,702,
+  junction 17,232, crown Mk I / II / III 1,834 / 2,810 / 4,421 blocks, all finished, FORMED, re-projection safe, repair
+  2/2 or 1/1.
+- Boot: `Recipe registration complete: 315 registered, 0 skipped`; "P4 recipes: every machine recipe is registered"
+  (SL-Q10, Q11, Q12, Q16, Q19 now register; SL-Q16 fixed, P4-55).
+- Not tested in game: the Ergomatter fuel path, cross-dimension mouths, the GUIs and NEI preview (no client run).

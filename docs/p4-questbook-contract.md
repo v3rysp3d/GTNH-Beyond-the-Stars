@@ -237,3 +237,49 @@ A Burst Control Hatch on a cap rim reads redstone. **Purge** mode: a rising edge
 
 The controller (disc maths, trims, coils, jets, automation), the Burst Control Hatch (four modes), the Stellar Field
 Sensor Hatch (quasar channels, window, invert) and the Directive Hatch (the Disc set).
+
+## Conduit + crowns unit
+
+**Correction to "The Conduit" above:** upkeep is one unit per element (each mouth of a pair, each mirror, each
+junction), whatever it carries (F-5, P4-48), not one per Junction leg. The standard T7 rig (4 mouths, combine, J1, J2)
+is 7 units: 28 L/s of Molten SpaceTime, or 1.75 L/s of Ergomatter.
+
+### Quest: "Docking a crown" (needs: "Opening the quasar")
+
+A Burst Thermaliser Crown takes a jet when its base centre sits on the quasar's port cell: the cell just past each cap,
+on the jet axis. Stand it on the top cap; hang it upside down under the bottom cap (wrench the controller's front to
+rotate it). `/btsconduit dock <quasar x y z>` prints both cells and where the controller goes. Mk I / II / III = the
+crown you build around the controller (32 / 512 / 8,192 Bu/t); build the bigger one around the same controller to
+upgrade. 1 Bu/t = 10¹³ EU/t into your wireless network, no dynamo. A second crown stacked on the first takes the
+overflow. A port with nothing docked vents.
+
+### Quest: "A wormhole" (needs: "Throats")
+
+Build two Wormhole Mouths and right-click one with a Data Stick, then the other: they are paired. A stream enters a ring
+through its front face (the controller's side) and leaves the partner out of its back, at any distance, even in another
+dimension. To take a jet, lay a mouth on a cap with the ring's front-face centre on the port cell, facing the quasar.
+Put a Conduit Throat in each controller and fuel in its input hatches (Molten SpaceTime now, Ergomatter after T7; the
+GUI's fuel button picks Auto / SpaceTime / Ergomatter). A new element opens after 10 seconds of paid upkeep. Keep both
+ends chunk-loaded.
+
+### Quest: "Mirrors and Junctions"
+
+A stream leaves a throat in a straight line and must reach the next throat (or a GRB Receptor Port) through up to 64
+blocks of air. The scanner names the target, or "blocked at x, y, z". A Mirror turns it 90° (any facing; either throat
+in). A Junction splits (big throat in; out 3 takes its fixed % first, out 1 and out 2 share the rest by
+c + k × (s/15 − 0.5), s from its Burst Control Hatch) or combines (three in, one out). One Throat caps the whole
+element; the excess is clipped, never damage.
+
+### Quest: "A quasar link" (GRB Receptor Port)
+
+A GRB Receptor Port takes a stream into a machine: the Eye's rail and halo, a crown's base, a Kerr utility socket, the
+Homogeny's ring, Reality Diffraction's portal. It records last second's bursts per quasar: your machine is **linked**
+while bursts arrived from a formed quasar with its hole open and coils powered, through an open path. Break an element or
+starve its fuel and the link drops the next second. If the quasar's chunk unloads, linked machines pause instead of
+failing. The quasar's console lists every machine it feeds, with σ.
+
+### Tooltips already in the jar (conduit + crowns unit)
+
+The Wormhole Mouth, Conduit Mirror and Conduit Junction (throats, upkeep, rays, pairing, the split formula, OC), the
+Burst Thermaliser Crown (Mk by structure, docking, wireless EU, stacking, OC) and the GRB Receptor Port (links, hosts,
+Q-8). OpenComputers: `bts_mouth`, `bts_mirror`, `bts_junction`, `bts_crown`, `bts_receptor`.

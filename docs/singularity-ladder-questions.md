@@ -3539,3 +3539,137 @@ watchers. A render-harness site (QUASAR) with `quasar_64sm` and `quasar_1024sm_e
 unit (the desktop is in use).
 
 **Open.** Colours, widths and brightness are first guesses for the render QA pass.
+
+### P4-46 A quasar that is gone is not a pause; receptors remember who fed them [conduit, Q-8]
+
+**Context.** Q-8: a source that is not loaded pauses its hosts. `BurstSource.status()` said UNLOADED whenever no quasar
+stood at the position, so a broken quasar would have paused its hosts for ever. And a host learns its sources only from
+streams, so after a restart with the quasar's chunk unloaded it would read zero, not pause.
+
+**Built.** `BurstSource.Status.GONE` (chunk loaded, no quasar there) and `pauses()` (FROZEN or UNLOADED). Each GRB
+Receptor Port keeps the quasars that fed it (positions only, at most 8, saved in its NBT; never a link). In
+`reading()` a remembered source that no longer arrives pauses the host if it pauses, and is forgotten if it is RUNNING
+(the path broke: felt in full) or GONE.
+
+**Suggestion.** Keep. **Alternative:** no memory (a restart with the quasar unloaded reads 0 for one session).
+
+### P4-47 Rays: range, aim tolerance and what blocks them [conduit solver]
+
+**Context.** §3: "within 64 blocks", "air or one of our render cells". The throat centres are inside the elements (a
+mouth's ring centre is 5 deep) and the Junction's out 2 / out 3 leave at ±60°.
+
+**Built.** A ray leaves an out-throat's centre along its outward normal. It enters an in-throat when it crosses the
+opening's plane within radius + 0.5, travelling into it at most 60° off its axis (cos ≥ 0.5; a mouth's ring takes
+either side), at most 72 blocks centre to centre (64 of air + 8 for the two throats' depth). The cells on the way
+(Amanatides-Woo walk) must be air or `BlockQuasarHole`; the first GRB Receptor Port takes the stream; any other block
+blocks it ("blocked at x, y, z (block)"); an unloaded chunk on the way stops it ("an unloaded chunk at ..."). Routes are
+cached 5 s per out-throat and dropped on every structure check; a stale target is re-traced at once.
+
+**Suggestion.** Keep. **Alternatives:** exact 64 measured face to face; no angle tolerance (out 2 / out 3 could then
+only feed receptors, never another element).
+
+### P4-48 Throat upkeep: one unit per element, always while a throat is fitted [conduit]
+
+**Context.** §3 says "a Junction counts one per leg in use", against the doc's own rig sums (7 elements → 28 L/s); F-5
+recommends one unit per element. The design does not say whether an idle element pays.
+
+**Built.** F-5: every element (each mouth of a pair, mirror, junction) pays one unit a second for its throat Mk while
+formed with a throat in the slot, idle or not (the throat is held open). Fuel per GUI / OpenComputers: Auto (Ergomatter
+when the hatches hold the second's need, else Molten SpaceTime), SpaceTime only, Ergomatter only. Fractional rates carry
+(0.25 L/s drains 1 L every 4 s). A new or newly fuelled element is closed until 10 s of full upkeep; no throat = closed.
+A stream that reaches a closed element is lost and raises the source quasar's Disc bit 4 for 2 s (closes P4-44).
+
+**Suggestion.** Keep. **Alternatives:** pay only in seconds with traffic; one unit per leg (a 52 L/s rig).
+
+### P4-49 The Mirror is reversible [conduit]
+
+**Built.** A stream into either throat leaves by the other (the drawn in/out is only the default). One mirror then
+turns a stream both ways along the same corner; a stream that loops back is dropped by the cycle check.
+
+**Suggestion.** Keep. **Alternative:** in → out only, as drawn.
+
+### P4-50 σ: last second and the 60 s mean; conditions use the mean [host API]
+
+**Context.** R.2 defines σ = delivered ÷ D_h; F-3 says per-second floors cannot survive the Φ sawtooth; §3.1 checks a
+recipe condition "at start and every 20 ticks".
+
+**Built.** `BurstHost` gives `sigma()` (last second) and `sigmaMean()` (60 s rolling mean ÷ D_h). The contract tells the
+Hosts unit to use `sigmaMean()` for recipe conditions (Superdense refinery, Entanglement Medium, Reality pausing) and
+for bonuses (Kerr bleed and setpoint cap, Homogeny speed), so a purge dip does not pause a recipe.
+
+**Suggestion.** Keep. **Alternative:** last-second σ (bonuses flicker with the sawtooth).
+
+### P4-51 A link needs bursts, not just a path [host API]
+
+**Context.** §3.1: linked while "at least one of its ports received bursts" from a linkable quasar over an open path.
+The prototype's `linked` is the path alone (a 0 Bu/t share still links).
+
+**Built.** A source is linked when a port received more than 0 Bu/t from it last second on a linkable stream. A 0 share
+still delivers a 0 packet (the receptor knows its source for Q-8), but it is not a link. Both milestones need 1.5 / 6
+Bu/t means anyway, so this only matters for the σ hosts at a 0 share.
+
+**Suggestion.** Keep.
+
+### P4-52 How a Wormhole Mouth docks and which way a stream crosses it [conduit, contract]
+
+**Context.** P4-02 / P4-37 put a mouth's dock cell at its throat centre. The ring is 10 deep with the centre 5 in, so a
+mouth centred on the port cell would sit 5 blocks inside the quasar's cap.
+
+**Built.** The dock cell is the ring's centre on the **front face** (layer 0, the controller's side): the mouth lies on
+the cap, front toward the quasar, and the jet must run into the front along the ring's axis (else "misaligned", taken
+0). A stream crosses a pair front → back: it leaves the partner out of its back, along +c. A ray may also enter a ring
+from either side. Pairing: a Data Stick remembers the first mouth (NBT on the stick) and pairs it with the second; one
+partner each, re-pairing breaks the old pair; the pair is tile NBT (a wrench breaks it).
+
+**Suggestion.** Keep. **Alternative:** a dock offset in the manifest so the ring sits elsewhere.
+
+### P4-53 Junction details [conduit]
+
+**Built.** One throat item caps the whole stream through it (each arrival counted against this second's total). Split:
+out 3 = p3 × in off the top, then `BurstRouting.split`; the first live Burst Control Hatch (walk order) gives s, the
+second socket is spare; with no hatch or k = 0, share₁ = c. Every leg is emitted even at 0 Bu/t (Q-8 bookkeeping).
+Combine: any of the three small throats in, the sum out of the big one. Switching mode clears its books.
+
+**Suggestion.** Keep. **Alternative:** the second hatch sets p3 (the design's "future out-3 control").
+
+### P4-54 Crown details [crown]
+
+**Built.**
+
+- Mk is the biggest of `crown_mk3/2/1` that checks; a failed try reports only the errors of the Mk last formed (so an
+  upgrade in progress shows its own missing blocks).
+- Under the bottom cap the crown is **upside down** (rotation UPSIDE_DOWN), not "flipped vertically" as the manifest
+  words it: GT's wrench never sets a vertical flip, and the intake geometry is the same.
+- `acceptJet` takes up to its cap plus a stacked crown's, less what it already took this second; the crown's own second
+  adds the receptor's delivery and overflow from below, uses min(S, cap) and hands the rest to the crown stacked on it
+  (only from the base crown: two, not a tower). EU goes to the owner's wireless network once a second (20 × EU/t); no
+  owner (a console-placed crown) = no push, shown.
+- The crown reports remote feeds to their quasar (its Links list) with σ 0.
+
+**Suggestion.** Keep.
+
+### P4-55 SL-Q16 used a wireless dynamo RC-2 never registers [recipes]
+
+**Found.** First dev boot with the crown registered: SL-Q16 skipped, "Wireless_Dynamo_Energy_UMV has not been set".
+RC-2 leaves GT's `Wireless_Dynamo_Energy_*` ItemList entries unset; the pack's wireless output part is TecTech's
+Energized Wireless Dynamo Hatch (`CustomItemList.eM_dynamoWirelessMulti`, tier 12 = UMV).
+
+**Built.** SL-Q16 takes 2 Energized Wireless Dynamo Hatches instead. Everything else on the card is unchanged.
+
+**Suggestion.** Keep.
+
+### P4-56 An unloaded element breaks the path; it does not pause [conduit, Q-8]
+
+**Built.** Q-8 pauses hosts only for their source quasar. A mouth's partner, a mirror or a junction in an unloaded chunk
+simply stops the stream (the scanner says "partner ... is not loaded" or "an unloaded chunk at ..."), and the host feels
+the loss. Tooltips and the questbook say to chunk-load every element.
+
+**Suggestion.** Keep for v1. **Alternative:** a mouth whose partner is unloaded forwards a "paused" marker so hosts
+downstream pause too.
+
+### P4-57 No stream render between elements [conduit, render]
+
+**Built.** Nothing draws the beam between conduit elements (the quasar draws its own jets). The scanner and GUIs show
+every route. No render-harness case was added: there is nothing new to draw.
+
+**Suggestion.** A thin additive beam TESR along cached routes in the render QA pass (needs a client run).
