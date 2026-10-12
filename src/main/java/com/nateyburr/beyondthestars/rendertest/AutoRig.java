@@ -165,6 +165,14 @@ public final class AutoRig {
 
     /** Builds both rigs (server thread). Returns the build log. */
     static List<String> buildAll() {
+        return build(true, true);
+    }
+
+    /**
+     * Builds Rig A (the Eye T1), Rig B (the Kerr T1) or both (server thread); the recorder ({@link RecClient}) builds
+     * only the rigs its script asks for. Returns the build log.
+     */
+    static List<String> build(boolean eyeRig, boolean kerrRig) {
         buildLog.clear();
         final WorldServer world = RenderTest.world();
         helium = Materials.Helium.getGas(1L) == null ? null
@@ -173,13 +181,13 @@ public final class AutoRig {
         hydrogen = Materials.Hydrogen.getGas(1L) == null ? null
             : Materials.Hydrogen.getGas(1L)
                 .getFluid();
-        try {
+        if (eyeRig) try {
             buildEyeRig(world);
         } catch (RuntimeException bad) {
             BeyondTheStars.LOG.error("[BTS autorig] Rig A failed", bad);
             buildLog.add("RIG A FAILED: " + bad);
         }
-        try {
+        if (kerrRig) try {
             buildKerrRig(world);
         } catch (RuntimeException bad) {
             BeyondTheStars.LOG.error("[BTS autorig] Rig B failed", bad);
@@ -1043,8 +1051,14 @@ public final class AutoRig {
 
     /** Moves the player to {@code eye} looking at {@code target}; day or night. Returns a log line. */
     static String view(double[] eye, double[] target, boolean night) {
+        RenderTest.world()
+            .setWorldTime(night ? 18000 : 6000);
+        return (night ? "night: " : "day: ") + view(eye, target);
+    }
+
+    /** Moves the player to {@code eye} looking at {@code target}; the time of day is left alone. */
+    static String view(double[] eye, double[] target) {
         final WorldServer world = RenderTest.world();
-        world.setWorldTime(night ? 18000 : 6000);
         final EntityPlayerMP player = RenderTest.player();
         if (player == null) return "no player";
         double[] at = eye.clone();
@@ -1066,8 +1080,7 @@ public final class AutoRig {
             .updatePlayerPertinentChunks(player);
         return String.format(
             Locale.ROOT,
-            "%s: eye (%.1f, %.1f, %.1f) -> (%.1f, %.1f, %.1f)%s",
-            night ? "night" : "day",
+            "eye (%.1f, %.1f, %.1f) -> (%.1f, %.1f, %.1f)%s",
             at[0],
             at[1],
             at[2],
