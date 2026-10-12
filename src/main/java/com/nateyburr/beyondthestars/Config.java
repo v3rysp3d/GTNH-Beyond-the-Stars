@@ -34,6 +34,9 @@ public class Config {
      * SINGULARITY LADDER (D-44, singularity-ladder-build.md §4): remove the Black Hole Compressor
      * controller's assembly-line recipe, because the Kerr Ergosphere Engine takes its slot at UIV.
      * Placed compressors keep working; only the crafting recipe (and data sticks holding it) go.
+     * GTNH 2.9.0-RC-2: every recipe that CONSUMES a BHC controller (the Spacetime Compression Field
+     * Generators, the coremod's Compressed Circuit Array) is first rewritten to consume the Kerr
+     * controller instead (BTSBlackHoleSwap); the BHC recipe is kept if that cannot be done safely.
      */
     public static boolean removeBlackHoleCompressorRecipe = true;
 
@@ -104,7 +107,9 @@ public class Config {
             Configuration.CATEGORY_GENERAL,
             true,
             "Remove the Black Hole Compressor controller's assembly-line recipe (the Kerr Ergosphere Engine"
-                + " replaces it at UIV). Placed compressors keep working.");
+                + " replaces it at UIV). Every recipe that consumes a BHC controller (Spacetime Compression Field"
+                + " Generators, Compressed Circuit Array) is rewritten to consume a Kerr Ergosphere Engine controller"
+                + " instead. Placed compressors keep working. Set false to keep the BHC and its recipes as stock.");
 
         replaceTecTechEyeOfHarmony = configuration.getBoolean(
             "replaceTecTechEyeOfHarmony",

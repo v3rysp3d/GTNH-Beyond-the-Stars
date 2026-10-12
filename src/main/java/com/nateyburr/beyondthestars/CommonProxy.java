@@ -48,6 +48,7 @@ public class CommonProxy {
     }
 
     public void serverStarting(FMLServerStartingEvent event) {
+        BTSRecipeRemovals.lateBlackHoleCheck();
         event.registerServerCommand(new CommandBTSKit());
         event.registerServerCommand(new CommandBTSBuild());
         event.registerServerCommand(new CommandBTSMigrate());
