@@ -119,6 +119,17 @@ public final class MagnetarMerger extends EyeTransition {
         }
     }
 
+    /** GUI: imprint (1), release (2). */
+    @Override
+    public int phase() {
+        return Math.max(1, Math.min(2, phase));
+    }
+
+    @Override
+    public int phases() {
+        return 2;
+    }
+
     @Override
     public String phaseLine() {
         if (phase == 1) {

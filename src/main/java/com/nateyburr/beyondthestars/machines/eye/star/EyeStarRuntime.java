@@ -30,6 +30,9 @@ import com.nateyburr.beyondthestars.machines.eye.field.StepInputs;
 import com.nateyburr.beyondthestars.machines.eye.field.StepResult;
 import com.nateyburr.beyondthestars.machines.eye.field.TierParams;
 import com.nateyburr.beyondthestars.machines.eye.field.TrimDef;
+import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
+import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
+import com.nateyburr.beyondthestars.machines.gui.BTSText;
 
 import gregtech.api.enums.Materials;
 import gregtech.api.enums.OrePrefixes;
@@ -109,6 +112,9 @@ public final class EyeStarRuntime {
 
         /** Takes (or with {@code simulate}, finds) one Stellar Ignition Charge in a plinth input bus. */
         boolean takeIgnitionCharge(boolean simulate);
+
+        /** GUI: how many Stellar Ignition Charges the live plinth input buses hold (nothing is taken). */
+        int countIgnitionCharges();
 
         /** The wireless network's owner, or null. */
         UUID owner();
@@ -1888,6 +1894,211 @@ public final class EyeStarRuntime {
 
     static String f2(double v) {
         return String.format(Locale.ROOT, "%.2f", v);
+    }
+
+    // ======================================================================== GUI (read only)
+
+    /** The recipe-result lang key prefix of the Eye's run checks (RC-2 looks them up under this). */
+    public static final String RESULT_KEY = "GT5U.gui.text.recipe_result.beyondthestars.eye.";
+
+    /** GUI: the wireless network's EU (0 without an owner). */
+    public BigInteger networkEUForGui() {
+        return networkEU();
+    }
+
+    /** GUI: the star a dark Eye lights for this chart from a Stellar Ignition Charge (T4: Arcturus), or null. */
+    public StarDef ignitableFor(StarDef want) {
+        return ignitable(want);
+    }
+
+    /** GUI: the zone of the last solved second (0 Resonant .. 4 Breach), or −1 with none. */
+    public int lastZone() {
+        return lastOut == null ? -1 : lastOut.zone;
+    }
+
+    /** GUI: T5, the running batch's Eye-seconds (0 without one). */
+    public double batchEyeSeconds() {
+        return fs == null || fs.batch == null ? 0 : fs.batch.eyeT;
+    }
+
+    /** GUI: T5, the cooling setpoint now (NaN without a batch). */
+    public double batchSetpoint() {
+        return fs == null || fs.batch == null ? Double.NaN : StellarField.spAt(fs.batch.eyeT);
+    }
+
+    /** GUI: T5, the batch's mean Y so far (NaN before its first second). */
+    public double batchMeanY() {
+        return fs == null || fs.batch == null || fs.batch.n <= 0 ? Double.NaN : fs.batch.ySum / fs.batch.n;
+    }
+
+    /** GUI: outputs are owed (a pre-D-49 run in flight, or a salvage made while unformed). */
+    public boolean hasOwed() {
+        return !legacyPay.isEmpty();
+    }
+
+    /**
+     * GUI: the Core Collapse's bounce prediction during its fast-forward: {SpaceTime the bounce may absorb, P after,
+     * Θ after, 1 if the HSM seed is buffered else 0}; null outside a Core Collapse. The scanner's numbers.
+     */
+    public double[] collapsePrediction() {
+        if (!(trans instanceof CoreCollapse) || fs == null) return null;
+        final double st = collapseSpaceTimeAvailable();
+        final double[] after = ((CoreCollapse) trans).predictedAfterBounce(fs, st);
+        return new double[] { st, after[0], after[1],
+            host.buffer(SLFluids.hyperdenseStellarMixture) >= CollapseOverlay.HSM_SEED ? 1 : 0 };
+    }
+
+    /** GUI: the band that makes tier {@code tier} ("beam band", "jet crescent", ...). */
+    public static String bandName(int tier) {
+        return bandFor(tier);
+    }
+
+    /**
+     * GUI (controller-gui-spec.md §5.1.4): every condition a dark Eye's ignition of {@code want} needs, met or not
+     * ({@link #autoIgnite} stops at the first missing one). Reads only: the tiers, the charges in the plinth buses,
+     * the buffers (10 cycles of upkeep plus the seed cloud, × p) and the wireless network (10 cycles of EU).
+     */
+    public BTSChecklist ignitionChecklist(StarDef want) {
+        final BTSChecklist c = new BTSChecklist();
+        if (want == null) return c;
+        final int n = want.n();
+        final int inst = host.installedTier();
+        String why = "";
+        if (host.structureTier() < 1) why = "tier1";
+        else if (host.structureTier() < n) why = "tier" + n;
+        else if (unlockedTier < n) why = "locked" + n;
+        else if (host.compressionTier() < n) why = "compression" + n;
+        c.add(
+            inst >= n,
+            BTSText.lang("beyondthestars.gui.eye.chk.reach", n),
+            BTSText.lit("T" + inst + " / T" + n),
+            -1,
+            why.isEmpty() ? "" : BTSText.lang(RESULT_KEY + why));
+        final int charges = host.countIgnitionCharges();
+        c.add(
+            charges >= 1,
+            BTSText.lang("beyondthestars.gui.eye.chk.charge"),
+            BTSText.lang("beyondthestars.gui.eye.chk.inbus", charges),
+            -1,
+            BTSText.lang("beyondthestars.gui.eye.chk.charge.tip"));
+        final int p = Math.max(1, parallel(n));
+        for (Map.Entry<Fluid, Long> need : ignitionNeeds(want, p).entrySet()) {
+            final long have = host.buffer(need.getKey());
+            final String name = fluidName(need.getKey());
+            c.add(
+                have >= need.getValue(),
+                BTSText.lit(name),
+                BTSText.lit(BTSFormat.haveNeed(have, need.getValue()) + " L"),
+                BTSChecklist.frac(have, need.getValue()),
+                BTSText.lang(
+                    "beyondthestars.gui.eye.fluid.tip",
+                    name,
+                    BTSFormat.exact(have),
+                    BTSFormat.exact(need.getValue())));
+        }
+        final BigInteger eu10 = BigInteger.valueOf(want.euPerCycle)
+            .multiply(BigInteger.valueOf((long) p * StarDef.IGNITION_CYCLES));
+        if (host.owner() == null) {
+            c.add(
+                false,
+                BTSText.lang("beyondthestars.gui.eye.chk.eu"),
+                BTSText.lang("beyondthestars.gui.eye.chk.noowner"),
+                -1,
+                BTSText.lang(RESULT_KEY + "noowner"));
+        } else {
+            final BigInteger have = networkEU();
+            final boolean ok = have.compareTo(eu10) >= 0;
+            c.add(
+                ok,
+                BTSText.lang("beyondthestars.gui.eye.chk.eu"),
+                BTSText.lit(ok ? BTSFormat.eu(eu10) : BTSFormat.eu(have) + " / " + BTSFormat.eu(eu10)),
+                ok ? -1 : (float) Math.max(0, Math.min(1, have.doubleValue() / eu10.doubleValue())),
+                BTSText.lang("beyondthestars.gui.eye.chk.eu.tip", BTSFormat.eu(eu10)));
+        }
+        return c;
+    }
+
+    /**
+     * GUI (controller-gui-spec.md §5.1.4): {@link #missing(int)} turned inside out, the met lines kept: every
+     * precondition of the transition that leaves tier {@code from}. Empty when there is none. Reads only.
+     */
+    public BTSChecklist transitionChecklist(int from) {
+        final BTSChecklist c = new BTSChecklist();
+        final EyeTransition.Type type = EyeTransition.Type.leaving(from);
+        if (type == null) return c;
+        final boolean firstTime = unlockedTier <= from;
+        if (unlockedTier < from) {
+            c.add(
+                false,
+                BTSText.lang("beyondthestars.gui.eye.chk.unlocked", from),
+                BTSText.lit("T" + unlockedTier),
+                -1);
+        }
+        final StarDef fromStar = StarDef.ofTier(from);
+        final String starName = fromStar == null ? "T" + from : fromStar.name;
+        if (firstTime) {
+            final boolean met = milestones.met(from);
+            c.add(
+                met,
+                BTSText.lang("beyondthestars.gui.eye.chk.milestones", starName),
+                met ? BTSText.lang("beyondthestars.gui.eye.chk.met")
+                    : BTSText.lang("beyondthestars.gui.kit.of", milestones.done(from), milestones.parts(from)),
+                (float) milestones.fraction(from),
+                BTSText.lit(milestones.progressLine(from)));
+            final Item core = coreFor(from);
+            if (core != null) {
+                final boolean held = escrow != null && escrow.getItem() == core;
+                c.add(
+                    held,
+                    BTSText.lit(new ItemStack(core).getDisplayName()),
+                    BTSText
+                        .lang(held ? "beyondthestars.gui.eye.chk.escrow.in" : "beyondthestars.gui.eye.chk.escrow.out"),
+                    -1,
+                    BTSText.lang("beyondthestars.gui.eye.chk.escrow.tip"));
+            }
+        }
+        final String band = bandFor(from + 1);
+        c.add(
+            host.structureTier() >= from + 1,
+            BTSText.lang("beyondthestars.gui.eye.chk.band", Character.toUpperCase(band.charAt(0)) + band.substring(1)),
+            BTSText.lit("T" + (from + 1)),
+            -1,
+            BTSText.lang("beyondthestars.gui.eye.chk.band.tip", "T" + host.structureTier()));
+        c.add(
+            host.compressionTier() >= from + 1,
+            BTSText.lang("beyondthestars.gui.eye.chk.compression"),
+            BTSText.lit("T" + host.compressionTier() + " / T" + (from + 1)),
+            -1,
+            BTSText.lang(RESULT_KEY + "compression" + (from + 1)));
+        if (from <= 3) {
+            final boolean lit = star != null && star.n() == from && burning();
+            final int zone = lastOut == null ? -1 : lastOut.zone;
+            c.add(
+                lit && zone >= 0 && zone <= 1,
+                BTSText.lang("beyondthestars.gui.eye.chk.litstable", starName),
+                lit && zone >= 0 ? BTSText.lang("beyondthestars.gui.zone." + Math.min(4, zone))
+                    : BTSText.lang("beyondthestars.gui.eye.dark"),
+                -1);
+        }
+        for (Map.Entry<Fluid, Long> need : transitionNeeds(type).entrySet()) {
+            if (need.getKey() == null) {
+                c.add(false, BTSText.lang("beyondthestars.gui.eye.chk.nofluid"), "", -1);
+                continue;
+            }
+            final long have = host.buffer(need.getKey());
+            final String name = fluidName(need.getKey());
+            c.add(
+                have >= need.getValue(),
+                BTSText.lit(name),
+                BTSText.lit(BTSFormat.haveNeed(have, need.getValue()) + " L"),
+                BTSChecklist.frac(have, need.getValue()),
+                BTSText.lang(
+                    "beyondthestars.gui.eye.fluid.tip2",
+                    name,
+                    BTSFormat.exact(have),
+                    BTSFormat.exact(need.getValue())));
+        }
+        return c;
     }
 
     // ================================================================================== scanner
