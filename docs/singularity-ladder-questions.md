@@ -414,3 +414,134 @@ leave it inert for now.
 
 **Alternatives.** Make the cells plain casing as §5.3 had it (then `u` maps straight to `A`), or accept the utility
 hatch only on the governor arc.
+
+## Q-22 The Kerr Extractor Module runs its own recipe map, and for now it only melts exotic metals
+
+**Context.** Q-9 had the extractor module run GT's `extractorRecipes` and `fluidExtractionRecipes`. The Kerr build
+task asked for the extractor module "on its own new recipe map". Nothing in the design names an extraction product:
+the card only says "pulls matter back out of the ergosphere".
+
+**What we built.**
+
+- A new map, `beyondthestars.recipe.kerrextraction`, shown in NEI as "Ergosphere Extraction". The Kerr is its
+  catalyst.
+- It holds SL-K06: Neutronium, Cosmic Neutronium, Infinity, Transcendent Metal, SpaceTime, White Dwarf Matter and
+  Black Dwarf Matter, as ingot, plate, dense plate and block, melted to their molten fluids. The rate is GT's standard
+  144 L per ingot, at UEV and 1 s per ingot (8 s per dense plate or block).
+- A form that GT never generated is simply not offered, so the boot log stays at "0 skipped".
+- This is neutral by construction: every solidifier runs the other way at the same rate. It adds throughput, not
+  value.
+
+**Suggestion.** Keep the map. Give it a real Kerr-only product in P4 (for example a by-product of the hole's mass).
+Until then the melts are harmless and give the module a job.
+
+**Alternatives.**
+
+- Run GT's extractor and fluid-extractor maps as Q-9 said (the map stays for later products).
+- Mirror GT's extraction recipes into this map at load-complete. This would duplicate a few thousand NEI entries.
+- Leave the map empty until a product is decided. The module would then be pure decoration.
+
+## Q-23 Each Kerr module has its own private sockets; only the active mode's module feeds GT's recipe lists
+
+**Context.** §3.1 put the module I/O sockets into GT's standard lists (`mInputBusses` and the others). The Kerr task
+asked for private hatch elements per module.
+
+**What we built.**
+
+- `KerrHatchElement` has private lists for the bolt buses, the BHC utility hatches, the compressor's inputs and
+  outputs, and the extractor's inputs and outputs.
+- Before every recipe search, `bindModuleIO` copies only the current mode's module into GT's lists.
+- A recipe that is already running keeps the module it started on, even if the structure is re-checked.
+
+So the compressor never eats the extractor's inputs, a densify output never lands in the extractor's hatch, and
+recipes never touch the bolt buses.
+
+**Suggestion.** As built.
+
+**Alternatives.** One shared I/O list for both modules, as §3.1 had it. This is simpler, but the modes then compete
+for the same inputs.
+
+## Q-24 Upgrades are installed with a plain right-click, not a sneak-right-click
+
+**Context.** §3.1 says to sneak-right-click the controller holding the Kerr Density Upgrade. Minecraft 1.7.10 never
+activates a block for a sneaking player who is holding an item (`PlayerControllerMP` skips `onBlockActivated` unless
+the item says it bypasses sneak). A sneak-click with the upgrade would therefore do nothing.
+
+**What we built.** A plain right-click while holding a Kerr Density Upgrade installs it. One upgrade is consumed (none
+in creative), the structure is re-checked, and the GUI does not open. Any other right-click opens the GUI as usual.
+
+**Suggestion.** As built. The Eye unit should use the same gesture for the Galactic Upgrade Core.
+
+**Alternatives.** An "install" slot or button in the controller GUI.
+
+## Q-25 Kerr hole details the spec left open
+
+**What we built** (every number is still PROPOSED, Q-8):
+
+- **Speed is clamped to ×1..×4.** The §3.1 formula, time ÷ min(4, E/50) with E = 3200/M, divides by less than 1
+  above 64 SM, which makes a 512 SM hole 8× *slower*. A big hole would then be strictly worse than a small one. We
+  clamp the divisor to at least 1.
+
+  Throughput (parallel × speed) peaks around 16 SM (×16 over the base). It is ×8 at 8 SM and at 64 SM, and ×22 at
+  512 SM.
+- **Closed hole:** only plain compressor recipes run, at 8 × voltage tier. Heated (HIP) and black-hole recipes
+  (`COMPRESSION_TIER` ≥ 1) need the hole open. The neutronium map is searched only while the hole is open. The BHC
+  refused everything while it had no hole, so this is a little kinder.
+- **Screwdriver:** a plain click steps the setpoint, and sneak + screwdriver cycles the mode. The GUI's machine-mode
+  button also cycles the mode, and the cycle skips modes whose module is missing. The default setpoint is 8 SM.
+- **While the structure is broken, the hole is frozen:** there is no bleed and no governor. It does not evaporate.
+- **A wrench carries everything persistent:** the upgrade, the hole and its mass, and the setpoint. The seed was
+  already spent, so carrying the hole only hands property back.
+- **Seeds and collapsers** are checked once a second. The governor and the bleed run every tick.
+- **Bolt buses** must be plain input buses. An ME stocking bus is refused, because its slots are shadows the governor
+  cannot decrement.
+
+**Suggestion.** As built. Tune the numbers in the smoke test.
+
+**Alternatives.** Apply the §3.1 speed formula unclamped, so a big hole is a pure parallel play. Or let the hole keep
+bleeding while the structure is broken.
+
+## Q-26 Injector rails can be mixed; the lowest tier sets the bolt cap
+
+**Context.** §5.3 says `ofBlocksTiered`. StructureLib's tiered element demands one tier across the whole structure, so
+a player upgrading 232 rails from Mk I to Mk II would un-form the Kerr at the first swap.
+
+**What we built.** The rail element accepts Mk I, Mk II or Mk III in any cell. The walk records the lowest tier it
+meets, and that tier sets the bolt cap (4, 8 or 16 a tick). The hologram and the creative build place Mk I.
+
+**Suggestion.** As built. This matches §3.1's "the lowest injector-rail tier found in the walk".
+
+**Alternatives.** Uniform tiers (`ofBlocksTiered`). These are stricter and match how GT treats coils.
+
+## Q-27 The BHC utility hatch shows the hole's state as redstone
+
+**Context.** Q-21 left open what the eight optional `u` sockets do.
+
+**What we built.** Each Black Hole Compressor Utility Hatch on the cage is set every second to redstone **on while the
+hole is open** and off while it is closed (`MTEBlackHoleUtility.updateRedstoneOutput`, as the BHC drives it). They are
+optional (minimum 0) and never join a recipe list.
+
+**Suggestion.** As built. Possible later signals: mass below the setpoint, or bolts short of the cap.
+
+**Alternatives.** Make the cells plain casing (then `u` maps to `A`).
+
+## Q-28 The Kerr's creative test path
+
+**What we built.**
+
+- **`/btskit kerr`** gives the controller, both module cores, Mk I rails, a Density Upgrade, two seeds and a collapser,
+  bolts, and hatches. The number of rails comes from the shape file. It also prints every piece's bill of materials
+  from `manifest.json`.
+- **`/btskerr [t1|t2] [force]`** raises a complete Kerr in front of the player:
+  - The controller faces the player, 32 blocks above their feet, so the cage's bottom row is at foot level.
+  - It places every block and fits a hatch in every socket: creative UMV 16 A energy, auto-maintenance, MAX buses
+    and hatches on both modules, and bolt buses stocked with a seed and SpaceTime bolts.
+  - With `t2` it installs the Density Upgrade, then forms the machine and prints its status.
+  - It refuses to build into a footprint that is more than 15 % solid, unless `force` is given.
+- The hologram projector works too: a stack of 1 projects T1, 2+ projects T2, and both modules are always projected.
+
+**Not verified in game.** No in-game smoke test has run yet. In particular, the structure orientation (the
+`orient_test` piece) is unverified. If `/btskerr` reports NOT FORMED with a first wrong cell on the mirrored side,
+re-export with `--flipH` or `--flipD`, as the Structure export section says.
+
+**Suggestion.** Run `/btskerr` and `/btskerr t2` in the test instance as the first smoke test of P2.

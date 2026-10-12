@@ -1025,3 +1025,81 @@ assembled, pieces, checks, notes }`.
 cellsKeptByEarlierPiece? }`.
 
 The kit command and the tooltips read their counts from `bom` / `socketCounts` (D-22), never hand-typed.
+
+---
+
+## Contract additions (Kerr)
+
+Written by the Kerr unit on 2026-10-12. This records what P2 built. Where it and §3.1/§3.2/§2.3 disagree, this
+section wins; each deviation is a question (Q-22..Q-28).
+
+### Files
+
+| File | What it is |
+|---|---|
+| `machines/kerr/MTEKerrEngine.java` | The controller, MTE 28114 (`multimachine.beyondthestars.kerrengine`, "Kerr Ergosphere Engine"). |
+| `machines/kerr/KerrHatchElement.java` | The private sockets: `BoltBus`, `Utility`, `CompressorInput`/`Output` and `ExtractorInput`/`Output`. |
+| `machines/kerr/KerrRecipeMaps.java` | `DENSITY` (`beyondthestars.recipe.kerrdensity`, maxIO 2/1/2/1) and `EXTRACTION` (`beyondthestars.recipe.kerrextraction`, maxIO 1/1/0/1). |
+| `machines/kerr/KerrKit.java` | `/btskit kerr` and the creative build used by `/btskerr`. |
+| `BTSRecipesKerr.java` | SL-K01..SL-K06 (`line("kerr")`). |
+| `CommandBTSKerr.java` | `/btskerr [t1\|t2] [force]`. |
+
+Shared edits, each append-only: the `kerrEngine` field and its base+14 line in `BTSMachines`; `line("kerr")` in
+`BTSRecipes`; a `kerr` branch at the top of `CommandBTSKit.processCommand`; `CommandBTSKerr` in
+`CommonProxy.serverStarting`; and the Kerr section of `en_US.lang`.
+
+### Shape char → element (Kerr)
+
+The exported shapes are used unchanged; the exporter needed no new anchors. One `StructureDefinition` holds all four
+pieces, and each is checked at its own `off`. Every plain element is wrapped in `noOverwrite` and counts into
+`mCasing`.
+
+| Char | Element |
+|---|---|
+| `A`, `L` | `Casings.ExtremeDensitySpaceBendingCasing` |
+| `B` | `ofFrame(Materials.NaquadahAlloy)` |
+| `C` / `D` / `F` / `H` / `M` / `N` / `O` / `P` | slCasing 1 / 2 / 7 / 6 / 8 / 15 / 13 / 14 |
+| `E` | slCasing 3/4/5 in any mix. The walk records the lowest tier, which sets the bolt cap (Q-26). |
+| `G` | `Casings.ParticleBeamGuidancePipeCasing` |
+| `I`, `J` | `Casings.BackgroundRadiationAbsorbentCasing` |
+| `K` | `Casings.HawkingRadiationRealignmentFocus` |
+| `e` | Energy or ExoticEnergy, hint 1, else `L`; `checkExoticAndNormalEnergyHatches` |
+| `m` | Maintenance, hint 2, else `L` |
+| `b` | `KerrHatchElement.BoltBus`, a plain input bus (not ME), hint 3, else `A`. At least 1. |
+| `u` | `KerrHatchElement.Utility` (`MTEBlackHoleUtility`), hint 6, else `A`. Optional; redstone on while the hole is open (Q-27). |
+| `c` | `CompressorInput` / `CompressorOutput`, hint 4, else `I`. At least 1 in and 1 out. |
+| `q` | slCasing2:0 Kerr Compressor Module, exactly 1 |
+| `x` | `ExtractorInput` / `ExtractorOutput`, hint 5, else slCasing:15. At least 1 in and 1 out. |
+| `k` | slCasing2:1 Kerr Extractor Module, exactly 1 |
+
+### Behaviour
+
+- **Required core:** `kerr_t1`, or `kerr_t2` once the Density Upgrade is installed (a plain right-click with the
+  upgrade, Q-24).
+- **Modules:** each has its own error list and a fault string. The fault is reported only when the module's core
+  block stands; the cell is found through `manifest.json`'s socket `rel`. A failed module walk clears that module's
+  private lists.
+- **Modes:** COMPRESS (compressor module), EXTRACT (extractor module) and DENSIFY (compressor module + T2). DENSIFY
+  fails the recipe check below 128 SM. With no module, `checkProcessing` fails with "No Kerr module".
+  - `bindModuleIO` puts only the active mode's module into GT's lists (Q-23).
+  - COMPRESS searches `compressorRecipes`, plus `neutroniumCompressorRecipes` while the hole is open. A recipe with
+    `COMPRESSION_TIER` ≥ 1 needs the hole open.
+- **Hole:** §3.1's numbers, with speed clamped to ×1..×4 (Q-25).
+  - Setpoints are 2..64 SM, plus 128/256/512 at T2. The screwdriver steps the setpoint; sneak + screwdriver cycles
+    the mode.
+  - State is persisted by `writeKerrState` from both `saveNBTData` and `setItemNBT`: `btsKerrDensity`,
+    `btsKerrHoleOpen`, `btsKerrMass` and `btsKerrSetpoint`.
+- **Hologram:** stack 1 = T1, 2+ = T2; both modules are always projected. Survival auto-place builds T2 when the
+  upgrade is installed.
+- **Status:** `getInfoData` (scanner) shows the mode, the hole (mass, setpoint, bleed, bolts against cap), parallel,
+  speed, rails, bolt buses and each module's state.
+
+### Recipes (`BTSRecipesKerr`)
+
+- **SL-K01..K05** are as in §2.3, except that SL-K01's 32 Containment Deck Plating become 32 Extreme Density
+  Space-Bending Casing (FC-1).
+- **Dense plates** use `BTSRecipesSingularity.dense()`.
+- **SL-K03's Huge Neutronium Fluid Pipe** falls back to the Large pipe, then to 6 plates per pipe.
+- **SL-K06 (new)** is Ergosphere Extraction, which melts the exotic metals at 144 L per ingot (Q-22).
+- **The BHC controller recipe** is removed by the Foundation's `BTSRecipeRemovals` under
+  `removeBlackHoleCompressorRecipe`. Placed BHCs are untouched.
