@@ -62,6 +62,23 @@ public class Config {
      */
     public static boolean eyeRenderCentre = true;
 
+    /** Config category of the questbook keys (docs/questbook-integration.md §4.5). */
+    public static final String CATEGORY_QUESTBOOK = "questbook";
+
+    /**
+     * QUESTBOOK (§4.5, D3): on every server start, install or refresh our chapters and the pack edits in the world's
+     * live BetterQuesting database when the jar's bundle differs from what the world last got, or our content is
+     * missing (a {@code /bq_admin default load} leaves exactly that behind). An unchanged world pays one file read.
+     */
+    public static boolean questbookAutoInstall = true;
+
+    /**
+     * QUESTBOOK (§3.7, D10): apply the pack edits (the BHC quest becomes the Kerr Ergosphere Engine, the EOH quest
+     * becomes the Eye, the UXV/MAX/Endgame moves). Off: the next install restores every edited pack quest from its
+     * stored original, and the two fallback quests (48103 KEE, 48109 Eye) stand beside the untouched pack quests.
+     */
+    public static boolean questbookPackEdits = true;
+
     public static void synchronizeConfiguration(File configFile) {
         Configuration configuration = new Configuration(configFile);
 
@@ -135,6 +152,29 @@ public class Config {
                 + " (T6) and the Core Collapse. Uses TecTech's star shader and textures. Off on a client: nothing is"
                 + " drawn there. Off on a server: no Eye places its render block (and existing ones are removed)."
                 + " Each Eye also has its own switch in its GUI.");
+
+        configuration.setCategoryComment(
+            CATEGORY_QUESTBOOK,
+            "The Singularity Ladder questbook (BetterQuesting). /btsquests status shows what this world has.");
+
+        questbookAutoInstall = configuration.getBoolean(
+            "questbookAutoInstall",
+            CATEGORY_QUESTBOOK,
+            true,
+            "On server start, install or refresh the Beyond the Stars chapters and pack edits in the world's quest"
+                + " book when the mod's bundle changed or our content is missing (for example after"
+                + " /bq_admin default load). Player progress is kept. Set false to install only with /btsquests"
+                + " install.");
+
+        questbookPackEdits = configuration.getBoolean(
+            "questbookPackEdits",
+            CATEGORY_QUESTBOOK,
+            true,
+            "Edit the pack's own quests for the Singularity Ladder: the Black Hole Compressor quest becomes the"
+                + " Kerr Ergosphere Engine, the Eye of Harmony quest becomes our Eye, and the UXV, MAX and endgame"
+                + " quests move into our chapters. Set false and the next install restores every edited pack"
+                + " quest from its stored original; two quests of ours (Kerr and Eye) then stand beside the"
+                + " untouched pack quests.");
 
         // Always written back: Forge does not read comments from the file and does not count a changed comment as a
         // change, so an old file would keep saying eyeRenderCentre is "not implemented" (D-49 unit 6). Saving

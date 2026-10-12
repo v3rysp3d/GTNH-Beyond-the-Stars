@@ -1,9 +1,11 @@
 package com.nateyburr.beyondthestars;
 
 import java.io.File;
-import java.lang.reflect.Method;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -11,6 +13,9 @@ import java.util.UUID;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraftforge.common.DimensionManager;
+
+import com.google.gson.JsonObject;
 
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModContainer;
@@ -25,16 +30,22 @@ import cpw.mods.fml.common.ModContainer;
  * again. Dropping our overlay into an instance therefore shows the quest line in NEW worlds
  * only; an existing save shows nothing, no matter how correct the files are.
  * <p>
- * <b>What we found in BetterQuesting.</b> The database is a UUID-keyed
- * {@code BiMap<UUID, IQuest>} ({@code betterquesting.questing.QuestDatabase.INSTANCE}) plus a
- * {@code BiMap<UUID, IQuestLine>} ({@code QuestLineDatabase.INSTANCE}) with a separate order
- * list. The {@code questIDHigh}/{@code questIDLow} pair in the JSON is just the UUID's two
- * halves, so our whole overlay is addressable as {@code new UUID(190, low)}. Quest PROGRESS
- * lives inside each quest object and can be snapshotted and re-applied with
- * {@code writeProgressToNBT}/{@code readProgressFromNBT} - which is exactly how BetterQuesting's
- * own {@code /bq_admin default load} avoids wiping it. That gives a safe injection path:
- * snapshot progress, add ONLY our quests and chapter to the live database, restore progress,
- * push a bulk resync at the player. Nothing else in the world's database is read or written.
+ * <b>What we found in BetterQuesting</b> (3.8.89-GTNH, every member below checked with javap).
+ * The database is a UUID-keyed {@code BiMap<UUID, IQuest>} ({@code QuestDatabase.INSTANCE}) plus
+ * a {@code BiMap<UUID, IQuestLine>} ({@code QuestLineDatabase.INSTANCE}) with a separate order
+ * list ({@code protected List<UUID> lineOrder}). Each chapter is itself a
+ * {@code UuidDatabase<IQuestLineEntry>}, i.e. a {@code BiMap<UUID, entry>}, so chapters are read
+ * and written through the plain {@link Map} interface. The {@code questIDHigh}/{@code questIDLow}
+ * pair in the JSON is just the UUID's two halves, so our whole overlay is addressable as
+ * {@code new UUID(190, low)}. Quest PROGRESS lives inside each quest object
+ * ({@code {questIDHigh, questIDLow, completed[{uuid, ...}], tasks[{index, ...}]}}) and is
+ * snapshotted and re-applied with {@code writeProgressToNBT}/{@code readProgressFromNBT} - exactly
+ * how BetterQuesting's own {@code /bq_admin default load} avoids wiping it.
+ * {@code QuestInstance.readFromNBT} rebuilds properties, tasks, rewards and prerequisites and
+ * leaves the completion map alone; {@code resetUser(null, true)} clears it.
+ * <p>
+ * {@link QuestbookInstaller} is the engine built on these primitives (bundle, pack edits, state
+ * file, progress rules); this class only knows BetterQuesting.
  */
 final class BQBridge {
 
@@ -45,56 +56,13 @@ final class BQBridge {
      * quests all use high 0, so this single number identifies our overlay in any folder and
      * can never collide with the pack (see questbook/README.md).
      */
-    static final long ID_HIGH = 190L;
+    static final long ID_HIGH = BTSQuestIds.ID_HIGH;
 
     /** The "Beyond the Stars" chapter (questLineIDHigh 190 / questLineIDLow 47990). */
-    static final UUID LINE_UUID = new UUID(ID_HIGH, 47990L);
+    static final UUID LINE_UUID = new UUID(ID_HIGH, BTSQuestIds.LINE_PLANT);
 
     /** The "Unit One" entry quest grafted into the pack's How to Generate Power chapter. */
-    static final UUID ENTRY_QUEST_UUID = new UUID(ID_HIGH, 48020L);
-
-    /**
-     * EVERY quest low our own chapter ships - what {@link #status()} counts - and a LIST rather
-     * than a first/last RANGE on purpose.
-     * <p>
-     * It used to be the pair {@code 48000..48019}. When 0.21.0 appended the four plant-module
-     * blueprints and The 100M Wall at {@code 48021..48025} the pair was not widened, so
-     * {@code status} looked for twenty ids, found all twenty and reported "Everything is
-     * loaded" while five quests were missing from the book. A range was never able to describe
-     * this chapter anyway: {@code 48020} is the {@link #ENTRY_QUEST_UUID} grafted into the
-     * pack's own chapter and is counted separately, so the chapter has a hole in the middle of
-     * it by design.
-     * <p>
-     * {@code questbook/gen-questbook.ps1} reads this array back out of this file and throws if
-     * it does not match the ids it just handed out. Appending a quest to the book without
-     * adding its low here therefore fails the questbook build rather than shipping a status
-     * command that lies.
-     */
-    static final long[] CHAPTER_QUEST_LOWS = { 48000L, 48001L, 48002L, 48003L, 48004L, 48005L, 48006L, 48007L, 48008L,
-        48009L, 48010L, 48011L, 48012L, 48013L, 48014L, 48015L, 48016L, 48017L, 48018L, 48019L, 48021L, 48022L, 48023L,
-        48024L, 48025L, 48026L, 48027L, 48028L, 48029L, 48030L, 48031L, 48032L, 48033L, 48034L };
-
-    /**
-     * The chapter's ids the way a person reads them - {@code 48000-48019, 48021-48034} -
-     * collapsed into runs off {@link #CHAPTER_QUEST_LOWS} itself, so no message can advertise a
-     * range the check does not actually count.
-     */
-    static String chapterQuestLabel() {
-        final StringBuilder out = new StringBuilder();
-        int i = 0;
-        while (i < CHAPTER_QUEST_LOWS.length) {
-            int end = i;
-            while (end + 1 < CHAPTER_QUEST_LOWS.length && CHAPTER_QUEST_LOWS[end + 1] == CHAPTER_QUEST_LOWS[end] + 1) {
-                end++;
-            }
-            if (out.length() > 0) out.append(", ");
-            out.append(CHAPTER_QUEST_LOWS[i]);
-            if (end > i) out.append('-')
-                .append(CHAPTER_QUEST_LOWS[end]);
-            i = end + 1;
-        }
-        return out.toString();
-    }
+    static final UUID ENTRY_QUEST_UUID = new UUID(ID_HIGH, BTSQuestIds.ENTRY_QUEST);
 
     /**
      * The leading 12 base64 characters every one of our file names carries.
@@ -102,7 +70,7 @@ final class BQBridge {
      * (url-safe alphabet, see {@code UuidConverter.encodeUuid}). Twelve characters cover the
      * first nine bytes: the whole high word plus the top byte of the low word - which is zero
      * for every id we use - so this prefix matches all of ours and none of the pack's, and it
-     * lets the installer pick our files out of a folder without opening any of them.
+     * lets the legacy installer pick our files out of a folder without opening any of them.
      */
     private static final String OUR_ID_PREFIX = encodeId(new UUID(ID_HIGH, 0L)).substring(0, 12);
 
@@ -123,15 +91,14 @@ final class BQBridge {
         return "unknown";
     }
 
-    // ------------------------------------------------------- reading the live database
+    // ------------------------------------------------------------------- the databases
 
     /**
      * One of BetterQuesting's live databases, through its own public accessor
-     * {@code QuestingAPI.getAPI(ApiReference.<key>)}. That accessor is the only part of the
-     * public API that touches the live data at all: it hands back the very same
+     * {@code QuestingAPI.getAPI(ApiReference.<key>)}. It hands back the very same
      * {@code QuestDatabase.INSTANCE} / {@code QuestLineDatabase.INSTANCE} objects, and there is
-     * no API operation for "load a quest line into this world" - which is why the install
-     * below has to compose one out of the databases' own public methods.
+     * no API operation for "load a quest line into this world" - which is why everything here
+     * is composed out of the databases' own public methods.
      *
      * @param key      name of an {@code ApiReference} field, e.g. QUEST_DB
      * @param fallback the concrete singleton class to read INSTANCE off, if the API moved
@@ -154,301 +121,219 @@ final class BQBridge {
     }
 
     /** The live quest database (a Guava BiMap of UUID -> IQuest under the hood). */
-    private static Object questDb() throws Exception {
+    static Object questDb() throws Exception {
         return database("QUEST_DB", "betterquesting.questing.QuestDatabase");
     }
 
     /** The live chapter database (UUID -> IQuestLine, plus a separate order list). */
-    private static Object lineDb() throws Exception {
+    static Object lineDb() throws Exception {
         return database("LINE_DB", "betterquesting.questing.QuestLineDatabase");
     }
 
-    /** What the world's CURRENT database holds of ours. Never throws. */
-    static Status status() {
-        final Status status = new Status();
-        try {
-            final Map<?, ?> quests = (Map<?, ?>) questDb();
-            final Map<?, ?> lines = (Map<?, ?>) lineDb();
-            status.readable = true;
-            status.totalQuests = quests.size();
-            status.totalLines = lines.size();
-            status.chapterPresent = lines.containsKey(LINE_UUID);
-            status.entryQuestPresent = quests.containsKey(ENTRY_QUEST_UUID);
-            status.expectedChapterQuests = CHAPTER_QUEST_LOWS.length;
-            for (final long low : CHAPTER_QUEST_LOWS) {
-                if (quests.containsKey(new UUID(ID_HIGH, low))) status.chapterQuests++;
-                else status.missingQuestLows.add(low);
-            }
-        } catch (final Throwable t) {
-            status.readable = false;
-            status.error = describe(t);
-        }
-        return status;
+    @SuppressWarnings("unchecked")
+    static Map<UUID, Object> quests() throws Exception {
+        return (Map<UUID, Object>) questDb();
     }
 
-    /** A snapshot of what the live database holds of ours. */
-    static final class Status {
-
-        boolean readable;
-        String error = "";
-        int totalQuests;
-        int totalLines;
-        boolean chapterPresent;
-        boolean entryQuestPresent;
-        int chapterQuests;
-        int expectedChapterQuests;
-        /** The lows of {@link BQBridge#CHAPTER_QUEST_LOWS} this world's database does NOT hold. */
-        final List<Long> missingQuestLows = new ArrayList<>();
-
-        /**
-         * Complete means every id in {@link BQBridge#CHAPTER_QUEST_LOWS} is present - not that a
-         * COUNT matched, which is what let a 25-quest chapter report complete at twenty.
-         */
-        boolean complete() {
-            return readable && chapterPresent && entryQuestPresent && missingQuestLows.isEmpty();
-        }
-
-        /** The missing lows, comma-separated - empty when nothing is missing. */
-        String missingLabel() {
-            final StringBuilder out = new StringBuilder();
-            for (final long low : missingQuestLows) {
-                if (out.length() > 0) out.append(", ");
-                out.append(low);
-            }
-            return out.toString();
-        }
+    @SuppressWarnings("unchecked")
+    static Map<UUID, Object> lines() throws Exception {
+        return (Map<UUID, Object>) lineDb();
     }
 
-    // --------------------------------------------------------------------- the install
+    /** A chapter's entries: {@code QuestLine extends UuidDatabase<IQuestLineEntry>}, a BiMap. */
+    @SuppressWarnings("unchecked")
+    static Map<UUID, Object> entries(Object line) {
+        return (Map<UUID, Object>) line;
+    }
 
-    /** Outcome of one {@link #install} run. */
-    static final class Install {
+    // ------------------------------------------------------------------------- quests
 
-        boolean ok;
-        String error = "";
-        String defaultsPath = "";
-        int questsAdded;
-        int questsUpdated;
-        int chapterEntries;
-        int graftedEntries;
-        boolean chapterCreated;
-        boolean synced;
-        final List<String> notes = new ArrayList<>();
+    /** {@code QuestInstance.writeToNBT(new NBTTagCompound())}: properties, tasks, rewards, preRequisites. */
+    static NBTTagCompound questNbt(Object quest) throws Exception {
+        return (NBTTagCompound) quest.getClass()
+            .getMethod("writeToNBT", NBTTagCompound.class)
+            .invoke(quest, new NBTTagCompound());
+    }
+
+    /** {@code QuestInstance.readFromNBT}: replaces definition, keeps the completion map. */
+    static void readQuest(Object quest, NBTTagCompound nbt) throws Exception {
+        quest.getClass()
+            .getMethod("readFromNBT", NBTTagCompound.class)
+            .invoke(quest, nbt);
+    }
+
+    /** {@code QuestDatabase.createNew(UUID)}: a fresh QuestInstance put under that id. */
+    static Object createQuest(UUID id) throws Exception {
+        final Object db = questDb();
+        return db.getClass()
+            .getMethod("createNew", UUID.class)
+            .invoke(db, id);
     }
 
     /**
-     * Adds every quest and chapter this addon owns (questIDHigh 190) from the instance's
-     * {@code DefaultQuests} folder into the LIVE database of the world the player is in, then
-     * pushes a resync so the book redraws without a relog.
-     * <p>
-     * Player progress is snapshotted before the write and restored after it, so an existing
-     * campaign keeps every completed quest. Quests belonging to the pack (questIDHigh 0) are
-     * never read, written, cleared or reordered - the only change to a pack chapter is that
-     * our own entry quest gets grafted into it as one extra icon.
+     * Removes a quest from every chapter and from the database. {@code QuestDatabase.remove}
+     * also strips the id from every other quest's prerequisites; it does NOT touch chapters,
+     * which is why the entries go first.
      */
-    static Install install() {
-        final Install result = new Install();
-        try {
-            final File defaults = defaultsDir();
-            result.defaultsPath = defaults.getAbsolutePath();
-            if (!defaults.isDirectory()) {
-                result.error = "no DefaultQuests folder at " + result.defaultsPath
-                    + " - merge the overlay from questbook/ into the instance first";
-                return result;
-            }
-
-            final Object questDb = questDb();
-            final Object lineDb = lineDb();
-            final Class<?> questDbClass = questDb.getClass();
-            final Class<?> lineDbClass = lineDb.getClass();
-            final Map<?, ?> questMap = (Map<?, ?>) questDb;
-            final Map<?, ?> lineMap = (Map<?, ?>) lineDb;
-
-            // 1. Snapshot every player's progress exactly the way `/bq_admin default load`
-            // does, so nothing we touch can cost a completed quest.
-            final Method writeProgress = questDbClass.getMethod("writeProgressToNBT", NBTTagList.class, List.class);
-            final NBTTagList progress = (NBTTagList) writeProgress.invoke(questDb, new NBTTagList(), null);
-
-            // Steps 2-3 mutate the live database. If anything throws in the middle, the
-            // FINALLY below still puts the campaign back - without it a half-applied write
-            // could strand every player's progress while the command reported success.
-            try {
-                // 2. The chapters, which are also the authority on WHICH quests are ours: a
-                // QuestLine.json carrying our high word is a chapter we own and is rebuilt from
-                // scratch, and any other chapter is the pack's, so only the entry files carrying
-                // our high word are grafted into it and nothing else in it is read or written.
-                final Method putLine = lineDbClass.getMethod("put", UUID.class, Object.class);
-                final Method setOrderIndex = lineDbClass.getMethod("setOrderIndex", UUID.class, int.class);
-                final java.util.LinkedHashSet<UUID> wanted = new java.util.LinkedHashSet<>();
-                final File[] lineDirs = new File(defaults, "QuestLines").listFiles();
-                if (lineDirs != null) {
-                    Arrays.sort(lineDirs);
-                    for (final File dir : lineDirs) {
-                        if (!dir.isDirectory()) continue;
-                        final File lineFile = new File(dir, "QuestLine.json");
-                        if (!lineFile.isFile()) continue;
-                        final UUID lineId = readId(readJson(lineFile), "QUEST_LINE");
-                        if (lineId == null) continue;
-                        final boolean ours = lineId.getMostSignificantBits() == ID_HIGH;
-
-                        // A pack chapter is only interesting if one of our entries sits in it, and
-                        // that shows in the file NAME - BetterQuesting suffixes every entry file
-                        // with its quest's base64 UUID, so the pack's thousands of entry files
-                        // never have to be opened.
-                        final List<File> entryFiles = new ArrayList<>();
-                        for (final File file : jsonFilesIn(dir)) {
-                            if (file.getName()
-                                .equals("QuestLine.json")) continue;
-                            if (ours || file.getName()
-                                .contains(OUR_ID_PREFIX)) entryFiles.add(file);
-                        }
-                        if (!ours && entryFiles.isEmpty()) continue;
-
-                        Object line;
-                        if (ours) {
-                            line = Class.forName("betterquesting.questing.QuestLine")
-                                .getDeclaredConstructor()
-                                .newInstance();
-                            line.getClass()
-                                .getMethod("readFromNBT", NBTTagCompound.class)
-                                .invoke(line, readJson(lineFile));
-                            result.chapterCreated = !lineMap.containsKey(lineId);
-                        } else {
-                            line = lineMap.get(lineId);
-                            if (line == null) {
-                                result.notes.add(
-                                    "pack chapter " + dir.getName()
-                                        + " is not in this world's database - its entry quest was skipped");
-                                continue;
-                            }
-                        }
-
-                        // QuestLine extends UuidDatabase<IQuestLineEntry>, whose put(UUID, T)
-                        // erases to put(UUID, Object) - the entry type never appears in the
-                        // reflective signature.
-                        final Method putEntry = line.getClass()
-                            .getMethod("put", UUID.class, Object.class);
-                        for (final File file : entryFiles) {
-                            final NBTTagCompound nbt = readJson(file);
-                            final UUID questId = readId(nbt, "QUEST");
-                            if (questId == null || questId.getMostSignificantBits() != ID_HIGH) continue;
-                            final Object entry = Class.forName("betterquesting.questing.QuestLineEntry")
-                                .getConstructor(NBTTagCompound.class)
-                                .newInstance(nbt);
-                            putEntry.invoke(line, questId, entry);
-                            wanted.add(questId);
-                            if (ours) result.chapterEntries++;
-                            else result.graftedEntries++;
-                        }
-
-                        if (ours) {
-                            putLine.invoke(lineDb, lineId, line);
-                            // Chapters are ordered by a separate list; an index past the end is
-                            // clamped, so this simply parks ours last.
-                            setOrderIndex.invoke(lineDb, lineId, Integer.MAX_VALUE);
-                        }
-                    }
-                }
-
-                // 3. The quest definitions for exactly those ids, found by the same base64 UUID
-                // suffix their chapter entry files carry.
-                final Method createQuest = questDbClass.getMethod("createNew", UUID.class);
-                final List<File> questFiles = jsonFilesUnder(new File(defaults, "Quests"));
-                for (final UUID id : wanted) {
-                    final File file = fileFor(questFiles, id);
-                    if (file == null) {
-                        result.notes.add("no definition file under Quests/ for quest " + id + " - it was skipped");
-                        continue;
-                    }
-                    final NBTTagCompound nbt = readJson(file);
-                    Object quest = questMap.get(id);
-                    if (quest == null) {
-                        quest = createQuest.invoke(questDb, id);
-                        result.questsAdded++;
-                    } else {
-                        result.questsUpdated++;
-                    }
-                    quest.getClass()
-                        .getMethod("readFromNBT", NBTTagCompound.class)
-                        .invoke(quest, nbt);
-                }
-
-            } finally {
-                // 4. Put the campaign back exactly as it was - on every path.
-                questDbClass.getMethod("readProgressFromNBT", NBTTagList.class, boolean.class)
-                    .invoke(questDb, progress, true);
-            }
-
-            // 5. Persist and redraw. markDirty schedules the world's QuestDatabase.json write;
-            // sendReset is what `/bq_user refresh` uses to re-push the whole book to a client.
-            final Object saveLoad = Class.forName("betterquesting.handlers.SaveLoadHandler")
-                .getField("INSTANCE")
-                .get(null);
-            saveLoad.getClass()
-                .getMethod("markDirty")
-                .invoke(saveLoad);
-            // A null target broadcasts: every client drops its copy and asks for a fresh one,
-            // which is a two-byte packet rather than a database push.
-            Class.forName("betterquesting.network.handlers.NetBulkSync")
-                .getMethod("sendReset", EntityPlayerMP.class, boolean.class, boolean.class)
-                .invoke(null, null, true, true);
-            result.synced = true;
-            result.ok = true;
-        } catch (final Throwable t) {
-            result.error = describe(t);
-        }
-        return result;
+    static void removeQuest(UUID id) throws Exception {
+        removeFromAllLines(id);
+        quests().remove(id);
     }
 
-    // --------------------------------------------------------------------- reflection aids
+    /** Every chapter entry of this quest, removed. */
+    static void removeFromAllLines(UUID quest) throws Exception {
+        for (final Object line : lines().values()) {
+            if (line != null) entries(line).remove(quest);
+        }
+    }
 
-    /** {@code <instance>/config/betterquesting/DefaultQuests}, per BQ's own settings. */
-    static File defaultsDir() {
+    /**
+     * {@code QuestInstance.resetUser(null, true)}: clears every player's completion and every
+     * task's progress on this quest.
+     */
+    static void resetQuest(Object quest) throws Exception {
+        quest.getClass()
+            .getMethod("resetUser", UUID.class, boolean.class)
+            .invoke(quest, null, true);
+    }
+
+    // ----------------------------------------------------------------------- chapters
+
+    /** A new {@code QuestLine} read from a QuestLine.json-shaped compound (properties; no entries). */
+    static Object newLine(NBTTagCompound nbt) throws Exception {
+        final Object line = Class.forName("betterquesting.questing.QuestLine")
+            .getDeclaredConstructor()
+            .newInstance();
+        line.getClass()
+            .getMethod("readFromNBT", NBTTagCompound.class)
+            .invoke(line, nbt);
+        return line;
+    }
+
+    /** A {@code QuestLineEntry} from {@code {x, y, sizeX, sizeY}}. */
+    static Object newEntry(NBTTagCompound nbt) throws Exception {
+        return Class.forName("betterquesting.questing.QuestLineEntry")
+            .getConstructor(NBTTagCompound.class)
+            .newInstance(nbt);
+    }
+
+    static NBTTagCompound entryNbt(int x, int y, int sizeX, int sizeY) {
+        final NBTTagCompound nbt = new NBTTagCompound();
+        nbt.setInteger("x", x);
+        nbt.setInteger("y", y);
+        nbt.setInteger("sizeX", sizeX);
+        nbt.setInteger("sizeY", sizeY);
+        return nbt;
+    }
+
+    /** {@code QuestLineEntry.writeToNBT}: {@code {sizeX, sizeY, x, y}}. */
+    static NBTTagCompound entryNbt(Object entry) throws Exception {
+        return (NBTTagCompound) entry.getClass()
+            .getMethod("writeToNBT", NBTTagCompound.class)
+            .invoke(entry, new NBTTagCompound());
+    }
+
+    /** Puts (or replaces) a whole chapter; its order slot is set separately. */
+    static void putLine(UUID id, Object line) throws Exception {
+        lines().put(id, line);
+    }
+
+    /**
+     * Removes a chapter AND its slot in the order list: {@code UuidDatabase.remove} leaves
+     * {@code lineOrder} alone, and a stale id there would shift every later chapter's index.
+     */
+    static void removeLine(UUID id) throws Exception {
+        lines().remove(id);
+        final List<?> order = lineOrder();
+        if (order != null) order.remove(id);
+    }
+
+    /** {@code QuestLineDatabase.lineOrder}, or null if this build renamed it. */
+    private static List<?> lineOrder() {
         try {
-            final String dir = (String) Class.forName("betterquesting.api.storage.BQ_Settings")
-                .getField("defaultDir")
-                .get(null);
-            if (dir != null && !dir.isEmpty()) return new File(dir, "DefaultQuests");
+            final Object db = lineDb();
+            Class<?> type = db.getClass();
+            while (type != null) {
+                try {
+                    final Field field = type.getDeclaredField("lineOrder");
+                    field.setAccessible(true);
+                    return (List<?>) field.get(db);
+                } catch (final NoSuchFieldException next) {
+                    type = type.getSuperclass();
+                }
+            }
         } catch (final Throwable ignored) {
-            // Fall through to the stock relative path.
+            // Order list unreachable: removal still works, the slot just stays.
         }
-        return new File("config/betterquesting/DefaultQuests");
+        return null;
     }
 
-    /** JSON -> NBT through BetterQuesting's own converter, so the typed key suffixes parse. */
-    private static NBTTagCompound readJson(File file) throws Exception {
-        final Object json = Class.forName("betterquesting.api.utils.JsonHelper")
-            .getMethod("ReadFromFile", File.class)
-            .invoke(null, file);
-        final Class<?> converter = Class.forName("betterquesting.api.utils.NBTConverter");
-        final Class<?> jsonObject = Class.forName("com.google.gson.JsonObject");
-        return (NBTTagCompound) converter.getMethod("JSONtoNBT_Object", jsonObject, NBTTagCompound.class, boolean.class)
-            .invoke(null, json, new NBTTagCompound(), true);
+    /** {@code getOrderIndex}: -1 if the chapter is absent (an absent order slot is appended). */
+    static int orderIndex(UUID id) throws Exception {
+        final Object db = lineDb();
+        return (Integer) db.getClass()
+            .getMethod("getOrderIndex", UUID.class)
+            .invoke(db, id);
     }
+
+    /** {@code setOrderIndex}: removes the id from the order list and re-inserts it, clamped. */
+    static void setOrderIndex(UUID id, int index) throws Exception {
+        final Object db = lineDb();
+        db.getClass()
+            .getMethod("setOrderIndex", UUID.class, int.class)
+            .invoke(db, id, index);
+    }
+
+    // ----------------------------------------------------------------------- progress
+
+    /** Every player's progress on every quest, the way {@code /bq_admin default load} snapshots it. */
+    static NBTTagList writeProgress() throws Exception {
+        final Object db = questDb();
+        return (NBTTagList) db.getClass()
+            .getMethod("writeProgressToNBT", NBTTagList.class, List.class)
+            .invoke(db, new NBTTagList(), null);
+    }
+
+    /** {@code readProgressFromNBT(list, merge)}: entries for quests no longer present are skipped. */
+    static void readProgress(NBTTagList progress, boolean merge) throws Exception {
+        final Object db = questDb();
+        db.getClass()
+            .getMethod("readProgressFromNBT", NBTTagList.class, boolean.class)
+            .invoke(db, progress, merge);
+    }
+
+    // ------------------------------------------------------------- persist and resync
 
     /**
-     * Reads a questIDHigh/questIDLow (or questLineID*) pair as the UUID it really is.
-     * {@code type} is the name of a {@code NBTConverter.UuidValueType} constant - "QUEST" or
-     * "QUEST_LINE" - fetched as the public static field an enum constant is.
+     * markDirty schedules the world's QuestDatabase.json write; sendReset is what
+     * {@code /bq_user refresh} uses to re-push the whole book. A null target broadcasts: every
+     * client drops its copy and asks for a fresh one.
      */
-    private static UUID readId(NBTTagCompound nbt, String type) {
-        try {
-            final Class<?> kindClass = Class.forName("betterquesting.api.utils.NBTConverter$UuidValueType");
-            final Object kind = kindClass.getField(type)
-                .get(null);
-            return (UUID) kindClass.getMethod("readId", NBTTagCompound.class)
-                .invoke(kind, nbt);
-        } catch (final Throwable t) {
-            return null;
-        }
+    static void saveAndResync() throws Exception {
+        final Object saveLoad = Class.forName("betterquesting.handlers.SaveLoadHandler")
+            .getField("INSTANCE")
+            .get(null);
+        saveLoad.getClass()
+            .getMethod("markDirty")
+            .invoke(saveLoad);
+        Class.forName("betterquesting.network.handlers.NetBulkSync")
+            .getMethod("sendReset", EntityPlayerMP.class, boolean.class, boolean.class)
+            .invoke(null, null, true, true);
     }
+
+    /** The loaded world's save folder ({@code saves/<world>} or the server's level folder). */
+    static File worldDir() {
+        return DimensionManager.getCurrentSaveRootDirectory();
+    }
+
+    // --------------------------------------------------------------------- id helpers
 
     /**
      * A UUID the way BetterQuesting spells it in a file name: the 16 bytes, high word first,
      * url-safe base64, padding stripped (mirrors {@code UuidConverter.encodeUuidStripPadding},
      * and a stripped string is a prefix of the padded one, so it matches either spelling).
      */
-    private static String encodeId(UUID id) {
+    static String encodeId(UUID id) {
         final byte[] bytes = new byte[16];
         long high = id.getMostSignificantBits();
         long low = id.getLeastSignificantBits();
@@ -465,6 +350,182 @@ final class BQBridge {
             .replace("=", "");
     }
 
+    /** The inverse of {@link #encodeId}: a {@code DefaultQuests} file-name id (padded or not). */
+    static UUID decodeId(String b64) {
+        String text = b64.trim();
+        while (text.length() % 4 != 0) text += "=";
+        final byte[] bytes = java.util.Base64.getUrlDecoder()
+            .decode(text);
+        if (bytes.length != 16) throw new IllegalArgumentException("not a 16-byte quest id: " + b64);
+        long high = 0;
+        long low = 0;
+        for (int i = 0; i < 8; i++) high = (high << 8) | (bytes[i] & 0xFF);
+        for (int i = 8; i < 16; i++) low = (low << 8) | (bytes[i] & 0xFF);
+        return new UUID(high, low);
+    }
+
+    /** {@code {questIDHigh, questIDLow}} (or questLineID*) as the UUID it is; null if absent. */
+    static UUID readId(NBTTagCompound nbt, String prefix) {
+        if (!nbt.hasKey(prefix + "High") || !nbt.hasKey(prefix + "Low")) return null;
+        return new UUID(nbt.getLong(prefix + "High"), nbt.getLong(prefix + "Low"));
+    }
+
+    static void writeId(NBTTagCompound nbt, String prefix, UUID id) {
+        nbt.setLong(prefix + "High", id.getMostSignificantBits());
+        nbt.setLong(prefix + "Low", id.getLeastSignificantBits());
+    }
+
+    /** "190/48100" for ours, the base64 id for the pack's. */
+    static String label(UUID id) {
+        return id.getMostSignificantBits() == ID_HIGH ? ID_HIGH + "/" + id.getLeastSignificantBits() : encodeId(id);
+    }
+
+    // ------------------------------------------------------------------- JSON -> NBT
+
+    /**
+     * BetterQuesting's typed-key JSON ({@code "name:8"}, {@code "tasks:9"}) to NBT through its own
+     * converter, so every suffix parses exactly the way {@code DefaultQuests} files do. Gson keeps
+     * a number's digits until it is read, so 64-bit pack ids survive.
+     */
+    static NBTTagCompound jsonToNbt(JsonObject json) throws Exception {
+        final Class<?> converter = Class.forName("betterquesting.api.utils.NBTConverter");
+        return (NBTTagCompound) converter
+            .getMethod("JSONtoNBT_Object", JsonObject.class, NBTTagCompound.class, boolean.class)
+            .invoke(null, json, new NBTTagCompound(), true);
+    }
+
+    /** JSON file -> NBT through BetterQuesting's own reader and converter. */
+    private static NBTTagCompound readJson(File file) throws Exception {
+        final Object json = Class.forName("betterquesting.api.utils.JsonHelper")
+            .getMethod("ReadFromFile", File.class)
+            .invoke(null, file);
+        return jsonToNbt((JsonObject) json);
+    }
+
+    static String describe(Throwable t) {
+        Throwable cause = t;
+        while (cause.getCause() != null && cause.getCause() != cause) cause = cause.getCause();
+        final String message = cause.getMessage();
+        return cause.getClass()
+            .getSimpleName() + (message == null ? "" : ": " + message);
+    }
+
+    // ------------------------------------------------- legacy path: from DefaultQuests
+
+    /** {@code <instance>/config/betterquesting/DefaultQuests}, per BQ's own settings. */
+    static File defaultsDir() {
+        try {
+            final String dir = (String) Class.forName("betterquesting.api.storage.BQ_Settings")
+                .getField("defaultDir")
+                .get(null);
+            if (dir != null && !dir.isEmpty()) return new File(dir, "DefaultQuests");
+        } catch (final Throwable ignored) {
+            // Fall through to the stock relative path.
+        }
+        return new File("config/betterquesting/DefaultQuests");
+    }
+
+    /** Outcome of one {@link #installFromDefaults} run. */
+    static final class LegacyInstall {
+
+        boolean ok;
+        String error = "";
+        String defaultsPath = "";
+        int questsAdded;
+        int questsUpdated;
+        int chapterEntries;
+        int graftedEntries;
+        final List<String> notes = new ArrayList<>();
+    }
+
+    /**
+     * The pre-bundle installer, kept as the fallback for a jar that carries no
+     * {@code overlay.json}: adds every quest and chapter of ours (questIDHigh 190) from the
+     * instance's {@code DefaultQuests} folder into the live database. It never edits a pack
+     * quest. Progress is snapshotted before the write and restored after it, on every path.
+     */
+    static LegacyInstall installFromDefaults() {
+        final LegacyInstall result = new LegacyInstall();
+        try {
+            final File defaults = defaultsDir();
+            result.defaultsPath = defaults.getAbsolutePath();
+            if (!defaults.isDirectory()) {
+                result.error = "no DefaultQuests folder at " + result.defaultsPath
+                    + " - merge the overlay from questbook/ into the instance first";
+                return result;
+            }
+            final Map<UUID, Object> questMap = quests();
+            final Map<UUID, Object> lineMap = lines();
+            final NBTTagList progress = writeProgress();
+            try {
+                final LinkedHashSet<UUID> wanted = new LinkedHashSet<>();
+                final File[] lineDirs = new File(defaults, "QuestLines").listFiles();
+                if (lineDirs != null) {
+                    Arrays.sort(lineDirs);
+                    for (final File dir : lineDirs) {
+                        if (!dir.isDirectory()) continue;
+                        final File lineFile = new File(dir, "QuestLine.json");
+                        if (!lineFile.isFile()) continue;
+                        final UUID lineId = readId(readJson(lineFile), "questLineID");
+                        if (lineId == null) continue;
+                        final boolean ours = lineId.getMostSignificantBits() == ID_HIGH;
+                        final List<File> entryFiles = new ArrayList<>();
+                        for (final File file : jsonFilesIn(dir)) {
+                            if (file.getName()
+                                .equals("QuestLine.json")) continue;
+                            if (ours || file.getName()
+                                .contains(OUR_ID_PREFIX)) entryFiles.add(file);
+                        }
+                        if (!ours && entryFiles.isEmpty()) continue;
+                        final Object line = ours ? newLine(readJson(lineFile)) : lineMap.get(lineId);
+                        if (line == null) {
+                            result.notes.add(
+                                "pack chapter " + dir.getName()
+                                    + " is not in this world's database - its entry quest was skipped");
+                            continue;
+                        }
+                        for (final File file : entryFiles) {
+                            final NBTTagCompound nbt = readJson(file);
+                            final UUID questId = readId(nbt, "questID");
+                            if (questId == null || questId.getMostSignificantBits() != ID_HIGH) continue;
+                            entries(line).put(questId, newEntry(nbt));
+                            wanted.add(questId);
+                            if (ours) result.chapterEntries++;
+                            else result.graftedEntries++;
+                        }
+                        if (ours) {
+                            putLine(lineId, line);
+                            setOrderIndex(lineId, Integer.MAX_VALUE);
+                        }
+                    }
+                }
+                final List<File> questFiles = jsonFilesUnder(new File(defaults, "Quests"));
+                for (final UUID id : wanted) {
+                    final File file = fileFor(questFiles, id);
+                    if (file == null) {
+                        result.notes.add("no definition file under Quests/ for quest " + id + " - it was skipped");
+                        continue;
+                    }
+                    Object quest = questMap.get(id);
+                    if (quest == null) {
+                        quest = createQuest(id);
+                        result.questsAdded++;
+                    } else {
+                        result.questsUpdated++;
+                    }
+                    readQuest(quest, readJson(file));
+                }
+            } finally {
+                readProgress(progress, true);
+            }
+            saveAndResync();
+            result.ok = true;
+        } catch (final Throwable t) {
+            result.error = describe(t);
+        }
+        return result;
+    }
+
     /** The quest definition file whose name carries this UUID, or null. */
     private static File fileFor(List<File> files, UUID id) {
         final String encoded = encodeId(id);
@@ -477,7 +538,7 @@ final class BQBridge {
 
     private static List<File> jsonFilesIn(File dir) {
         final File[] files = dir.listFiles();
-        if (files == null) return java.util.Collections.emptyList();
+        if (files == null) return Collections.emptyList();
         final List<File> out = new ArrayList<>();
         for (final File file : files) {
             if (file.isFile() && file.getName()
@@ -486,11 +547,7 @@ final class BQBridge {
         return out;
     }
 
-    /**
-     * Every *.json at or below {@code root}. BetterQuesting groups quest files in one folder
-     * per chapter plus the MultipleQuestLine / NoQuestLine catch-alls, but it walks the tree
-     * recursively rather than assuming a depth, so this does too.
-     */
+    /** Every *.json at or below {@code root}; BetterQuesting walks the tree, so this does too. */
     private static List<File> jsonFilesUnder(File root) {
         final List<File> out = new ArrayList<>(jsonFilesIn(root));
         final File[] children = root.listFiles();
@@ -501,13 +558,5 @@ final class BQBridge {
             }
         }
         return out;
-    }
-
-    private static String describe(Throwable t) {
-        Throwable cause = t;
-        while (cause.getCause() != null && cause.getCause() != cause) cause = cause.getCause();
-        final String message = cause.getMessage();
-        return cause.getClass()
-            .getSimpleName() + (message == null ? "" : ": " + message);
     }
 }

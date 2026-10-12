@@ -1,6 +1,8 @@
 package com.nateyburr.beyondthestars;
 
+import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
@@ -8,16 +10,23 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 
 /**
- * /btsquests [status|install] - tells the player why the Beyond the Stars chapter is missing
- * from an existing world's quest book, and fixes it.
+ * {@code /btsquests [status|install [force]|uninstall [all|edits]|verify|dumpids]} - the
+ * Singularity Ladder questbook in this world (docs/questbook-integration.md §4.5).
  * <p>
- * BetterQuesting copies {@code config/betterquesting/DefaultQuests/} into a world exactly
- * once, when that world is created; from then on the world reads only its own
- * {@code saves/<world>/betterquesting/QuestDatabase.json}. Merging our overlay into an
- * instance therefore lands the chapter in NEW worlds and nowhere else - which is exactly the
- * "the files are right but I still can't see it" situation this command exists for.
+ * BetterQuesting copies {@code config/betterquesting/DefaultQuests/} into a world exactly once,
+ * when that world is created; from then on the world reads only its own database. The mod
+ * therefore installs its chapters, and its edits to the pack's own quests, straight into the
+ * live database ({@link QuestbookInstaller}), from the bundle inside the jar. The server does it
+ * by itself on start whenever the jar changed ({@code questbookAutoInstall}); this command shows
+ * what the world has and lets an op install, refresh or take it all out again.
  */
 public class CommandBTSQuests extends CommandBase {
+
+    private static final EnumChatFormatting OK = EnumChatFormatting.GREEN;
+    private static final EnumChatFormatting WARN = EnumChatFormatting.YELLOW;
+    private static final EnumChatFormatting BAD = EnumChatFormatting.RED;
+    private static final EnumChatFormatting DIM = EnumChatFormatting.GRAY;
+    private static final EnumChatFormatting HEAD = EnumChatFormatting.AQUA;
 
     @Override
     public String getCommandName() {
@@ -26,7 +35,7 @@ public class CommandBTSQuests extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btsquests [status|install]";
+        return "/btsquests [status|install [force]|uninstall [all|edits]|verify|dumpids]";
     }
 
     @Override
@@ -37,7 +46,12 @@ public class CommandBTSQuests extends CommandBase {
     @SuppressWarnings("rawtypes")
     @Override
     public List addTabCompletionOptions(ICommandSender sender, String[] args) {
-        if (args.length == 1) return getListOfStringsMatchingLastWord(args, "status", "install");
+        if (args.length == 1)
+            return getListOfStringsMatchingLastWord(args, "status", "install", "uninstall", "verify", "dumpids");
+        if (args.length == 2 && "install".equalsIgnoreCase(args[0]))
+            return getListOfStringsMatchingLastWord(args, "force");
+        if (args.length == 2 && "uninstall".equalsIgnoreCase(args[0]))
+            return getListOfStringsMatchingLastWord(args, "all", "edits");
         return null;
     }
 
@@ -48,174 +62,268 @@ public class CommandBTSQuests extends CommandBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
         final String sub = args.length > 0 ? args[0].toLowerCase() : "status";
+        final String arg = args.length > 1 ? args[1].toLowerCase() : "";
 
         if (!BQBridge.isLoaded()) {
-            tell(
-                sender,
-                EnumChatFormatting.RED
-                    + "BetterQuesting is not loaded in this instance - there is no quest book to add to.");
+            tell(sender, BAD + "BetterQuesting is not loaded in this instance - there is no quest book to add to.");
             return;
         }
-
-        if (sub.equals("install")) {
-            install(sender);
-            return;
+        switch (sub) {
+            case "install":
+                install(sender, "force".equals(arg));
+                return;
+            case "uninstall":
+                if (!arg.isEmpty() && !"all".equals(arg) && !"edits".equals(arg)) {
+                    tell(sender, BAD + "Usage: /btsquests uninstall [all|edits]");
+                    return;
+                }
+                uninstall(sender, !"edits".equals(arg));
+                return;
+            case "verify":
+                verify(sender);
+                return;
+            case "dumpids":
+                dumpIds(sender);
+                return;
+            case "status":
+                status(sender);
+                return;
+            default:
+                tell(sender, BAD + "Usage: " + getCommandUsage(sender));
         }
-        status(sender);
     }
 
     // ------------------------------------------------------------------------- status
 
     private static void status(ICommandSender sender) {
-        final BQBridge.Status status = BQBridge.status();
-
-        tell(sender, EnumChatFormatting.AQUA + "== Beyond the Stars questbook ==");
-        tell(sender, "BetterQuesting " + BQBridge.version() + " · defaults: " + BQBridge.defaultsDir());
-
-        if (!status.readable) {
+        final QuestbookInstaller.Status s = QuestbookInstaller.status();
+        tell(sender, HEAD + "== Beyond the Stars questbook ==");
+        tell(
+            sender,
+            "BetterQuesting " + BQBridge.version()
+                + " | jar bundle "
+                + QuestbookInstaller.shortVersion(s.jarBundle)
+                + " | this world "
+                + (s.stateExists ? QuestbookInstaller.shortVersion(s.worldBundle) : "never installed"));
+        if (!s.readable) {
+            tell(sender, BAD + "Could not read this world's quest database (" + s.error + ").");
+            return;
+        }
+        tell(sender, DIM + "This world's book: " + s.totalQuests + " quests in " + s.totalLines + " chapters.");
+        if (!s.uninstalled.isEmpty()) {
             tell(
                 sender,
-                EnumChatFormatting.RED + "Could not read this world's quest database ("
-                    + status.error
-                    + "). This BetterQuesting build is not the one the addon was written against; use the manual path below.");
+                WARN + "An op ran /btsquests uninstall "
+                    + s.uninstalled
+                    + " here; the server will not reinstall until /btsquests install.");
+        }
+
+        for (final QuestbookInstaller.ChapterCount c : s.chapters) {
+            final boolean good = c.linePresent && c.missing.isEmpty();
+            tell(
+                sender,
+                (good ? OK + "[ok] " : BAD + "[missing] ") + EnumChatFormatting.RESET
+                    + c.label
+                    + DIM
+                    + "  "
+                    + c.present
+                    + "/"
+                    + c.expected
+                    + (c.linePresent ? "" : ", chapter itself missing"));
+            if (!c.missing.isEmpty()) tell(sender, BAD + "    missing 190/" + join(c.missing));
+        }
+        tell(
+            sender,
+            (s.entryQuestPresent ? OK + "[ok] " : BAD + "[missing] ") + EnumChatFormatting.RESET
+                + "Unit One (190/48020) in How to Generate Power");
+
+        tell(
+            sender,
+            "Pack edits: " + OK
+                + s.editsApplied
+                + " applied"
+                + EnumChatFormatting.RESET
+                + " of "
+                + s.editsTotal
+                + (s.skipped.isEmpty() ? "" : ", " + WARN + s.skipped.size() + " skipped" + EnumChatFormatting.RESET)
+                + DIM
+                + "  (questbookPackEdits="
+                + Config.questbookPackEdits
+                + ")");
+        for (final Map.Entry<String, String> e : s.skipped.entrySet())
+            tell(sender, WARN + "  " + e.getKey() + DIM + " skipped: " + e.getValue());
+        for (final Map.Entry<String, List<String>> e : s.misses.entrySet())
+            for (final String m : e.getValue()) tell(sender, WARN + "  " + e.getKey() + DIM + " " + m);
+        if (!s.editsChanged.isEmpty()) {
+            tell(
+                sender,
+                WARN + "  Changed since the install (a /bq_admin default load?): "
+                    + String.join(", ", s.editsChanged)
+                    + ". /btsquests install puts them back.");
+        }
+        for (final String f : s.fallbacks) tell(sender, DIM + "  Fallback " + f);
+        if (!s.placeholders.isEmpty()) {
+            tell(
+                sender,
+                DIM + "Planned checkbox quests in this build ("
+                    + s.placeholders.size()
+                    + "): they become real quests, under the same id, when their content ships.");
+        }
+        tell(
+            sender,
+            DIM + "Auto-install on server start: "
+                + (Config.questbookAutoInstall ? "on" : "off")
+                + (s.configChanged ? WARN + " (config changed since the last install: it re-runs on next start)" : ""));
+
+        final boolean upToDate = s.complete() && s.uninstalled.isEmpty()
+            && s.editsChanged.isEmpty()
+            && !s.configChanged
+            && (s.jarBundle.isEmpty() || s.jarBundle.equals(s.worldBundle));
+        if (upToDate) {
+            tell(
+                sender,
+                OK + "Everything is in place. Not seeing it? The book redraws on a resync: /bq_user refresh, or reopen it.");
         } else {
             tell(
                 sender,
-                "This world's database holds " + status.totalQuests + " quests in " + status.totalLines + " chapters.");
-            tell(
-                sender,
-                line("Chapter \"Beyond the Stars\" (190/47990)", status.chapterPresent)
-                    + line(
-                        "  · its quests (190/" + BQBridge.chapterQuestLabel() + ")",
-                        status.missingQuestLows.isEmpty())
-                    + " "
-                    + status.chapterQuests
-                    + "/"
-                    + status.expectedChapterQuests);
-            if (!status.missingQuestLows.isEmpty()) {
-                // Naming the ids is the whole point of holding a list: "20/25" only says that
-                // something is wrong, "missing 190/48021, 48022 ..." says which quests to hunt.
-                tell(sender, EnumChatFormatting.RED + "  · missing from this world: 190/" + status.missingLabel());
-            }
-            tell(
-                sender,
-                line("Entry quest \"Unit One\" (190/48020) in How to Generate Power", status.entryQuestPresent));
+                WARN + "Not up to date. "
+                    + EnumChatFormatting.RESET
+                    + "/btsquests install"
+                    + DIM
+                    + " brings this world in line with the jar. It keeps everyone's progress; a quest whose tasks"
+                    + " changed keeps its completion and starts its tasks fresh.");
         }
-
-        if (status.readable && status.complete()) {
-            tell(
-                sender,
-                EnumChatFormatting.GREEN
-                    + "Everything is loaded. Open the quest book: \"Unit One\" sits in How to Generate Power (after Standard Nuclear Fuel: Uranium), and the full campaign is the \"Beyond the Stars\" chapter.");
-            tell(
-                sender,
-                EnumChatFormatting.GRAY
-                    + "Still not visible? The book only redraws on a resync - run /bq_user refresh, or close and reopen it.");
-            return;
-        }
-
-        tell(sender, EnumChatFormatting.YELLOW + "Not in this world yet. Why:");
-        tell(
-            sender,
-            EnumChatFormatting.GRAY
-                + "BetterQuesting reads config/betterquesting/DefaultQuests ONLY when a world is created. This world already has its own saves/<world>/betterquesting/QuestDatabase.json and never looks at the defaults again, so merging the overlay fixed new worlds and left this one alone.");
-        tell(sender, EnumChatFormatting.WHITE + "Two ways to fix it:");
-        tell(
-            sender,
-            EnumChatFormatting.GREEN + "  1) /btsquests install"
-                + EnumChatFormatting.RESET
-                + " - adds ONLY our chapter and our entry quest to this world's live database, keeps every other quest and all your progress, and resyncs your book on the spot. Preferred.");
-        tell(
-            sender,
-            EnumChatFormatting.YELLOW + "  2) /bq_admin default load"
-                + EnumChatFormatting.RESET
-                + " - BetterQuesting's own command. It reloads the WHOLE DefaultQuests folder over this world's database.");
-        tell(
-            sender,
-            EnumChatFormatting.GRAY
-                + "     On BetterQuesting 3.8.x-GTNH that command snapshots quest progress and writes it back afterwards, so completed quests survive - but any quest you edited in-world reverts to the pack default, and progress on quests the defaults no longer contain is dropped. On older BetterQuesting builds it is a straight overwrite and progress does NOT survive. Back the world up first.");
-        tell(
-            sender,
-            EnumChatFormatting.GRAY
-                + "     If the overlay is not merged into the instance yet, neither option can work - see questbook/README.md.");
-        tell(
-            sender,
-            EnumChatFormatting.GRAY
-                + "BetterQuesting hands out its live databases through QuestingAPI, but ships no \"load one chapter into this world\" operation - option 1 is that operation, built from the databases' own methods.");
-    }
-
-    private static String line(String label, boolean present) {
-        return (present ? EnumChatFormatting.GREEN + "[found] " : EnumChatFormatting.RED + "[missing] ")
-            + EnumChatFormatting.RESET
-            + label;
     }
 
     // ------------------------------------------------------------------------ install
 
-    private static void install(ICommandSender sender) {
-        final BQBridge.Install result = BQBridge.install();
-
-        if (!result.ok) {
-            tell(sender, EnumChatFormatting.RED + "Install failed: " + result.error);
-            tell(
-                sender,
-                EnumChatFormatting.YELLOW
-                    + "Nothing was changed. Fall back to /bq_admin default load (back the world up first) - see /btsquests status.");
+    private static void install(ICommandSender sender, boolean force) {
+        final QuestbookInstaller.Report r = QuestbookInstaller.install(force, true);
+        if (!r.ok) {
+            tell(sender, BAD + "Install failed: " + r.error);
+            tell(sender, WARN + "Progress was restored from the snapshot taken before the write. See the server log.");
             return;
         }
+        if (!r.changed) {
+            tell(
+                sender,
+                OK + "This world already matches the jar (" + r.summary() + "). /btsquests install force re-runs it.");
+            return;
+        }
+        tell(sender, HEAD + "== Beyond the Stars questbook installed ==");
+        tell(sender, r.summary() + ".");
+        report(sender, r);
+        tell(
+            sender,
+            OK + "Progress was snapshotted first and restored after: every completed quest is still complete.");
+        if (r.taskProgressDropped > 0 || r.progressReset > 0) {
+            tell(
+                sender,
+                DIM + ""
+                    + r.taskProgressDropped
+                    + " quest(s) changed their tasks and start them fresh (completion kept); "
+                    + r.progressReset
+                    + " planned checkbox(es) became real quests and were cleared.");
+        }
+        tell(sender, DIM + "Every open book was told to resync; /bq_user refresh forces it.");
+    }
 
-        tell(sender, EnumChatFormatting.AQUA + "== Beyond the Stars installed into this world ==");
-        tell(sender, "Read from " + result.defaultsPath);
-        tell(
-            sender,
-            "Quests: " + result.questsAdded
-                + " added, "
-                + result.questsUpdated
-                + " refreshed. Chapter entries: "
-                + result.chapterEntries
-                + (result.chapterCreated ? " (chapter created)" : " (chapter refreshed)")
-                + ". Grafted into pack chapters: "
-                + result.graftedEntries
-                + ".");
-        for (final String note : result.notes) {
-            tell(sender, EnumChatFormatting.YELLOW + "Note: " + note);
+    private static void uninstall(ICommandSender sender, boolean all) {
+        final QuestbookInstaller.Report r = QuestbookInstaller.uninstall(all);
+        if (!r.ok) {
+            tell(sender, BAD + "Uninstall failed: " + r.error);
+            tell(sender, WARN + "Progress was restored from the snapshot taken before the write. See the server log.");
+            return;
         }
-        tell(
-            sender,
-            EnumChatFormatting.GREEN
-                + "Progress was snapshotted before the write and restored after it - no completed quest was lost, and no pack quest was touched.");
-        if (result.synced) {
+        tell(sender, HEAD + "== Beyond the Stars questbook: uninstall " + (all ? "all" : "edits") + " ==");
+        if (all) {
             tell(
                 sender,
-                "Every open book was told to resync - reopen yours and look for the \"Beyond the Stars\" chapter, and \"Unit One\" in How to Generate Power.");
+                "Restored " + r.editsReverted
+                    + " pack quest(s) from their stored originals; removed "
+                    + r.chapters
+                    + " chapter(s) and "
+                    + r.questsRemoved
+                    + " quest(s) of ours.");
+        } else {
+            tell(
+                sender,
+                "Restored " + r.editsReverted
+                    + " pack quest(s) from their stored originals. Our chapters stay; the Kerr and Eye fallback quests stand beside the pack's own.");
         }
+        report(sender, r);
         tell(
             sender,
-            EnumChatFormatting.GRAY
-                + "If a client still shows the old book, /bq_user refresh forces it. The world writes the new database on its next save.");
+            WARN + "The server will not reinstall on start until an op runs /btsquests install."
+                + (all ? "" : " To keep the pack unedited for good, set questbookPackEdits=false."));
+    }
 
-        final BQBridge.Status after = BQBridge.status();
-        if (after.readable && !after.complete()) {
-            tell(
-                sender,
-                EnumChatFormatting.RED + "Verification: still incomplete - chapter "
-                    + (after.chapterPresent ? "ok" : "MISSING")
-                    + ", quests "
-                    + after.chapterQuests
-                    + "/"
-                    + after.expectedChapterQuests
-                    + (after.missingQuestLows.isEmpty() ? "" : " (missing 190/" + after.missingLabel() + ")")
-                    + ", entry quest "
-                    + (after.entryQuestPresent ? "ok" : "MISSING")
-                    + ". Check that questbook/DefaultQuests was merged into the instance.");
-        } else if (after.readable) {
-            tell(
-                sender,
-                EnumChatFormatting.GREEN + "Verification: chapter present, "
-                    + after.chapterQuests
-                    + "/"
-                    + after.expectedChapterQuests
-                    + " quests, entry quest present.");
+    private static void report(ICommandSender sender, QuestbookInstaller.Report r) {
+        for (final Map.Entry<String, String> e : r.skipped.entrySet()) {
+            if (e.getValue()
+                .contains("off")) continue;
+            tell(sender, WARN + "Skipped " + e.getKey() + ": " + e.getValue());
         }
+        for (final Map.Entry<String, List<String>> e : r.misses.entrySet())
+            for (final String m : e.getValue()) tell(sender, WARN + e.getKey() + ": " + m);
+        for (final String n : r.notes) tell(sender, DIM + n);
+    }
+
+    // ---------------------------------------------------------------- verify, dumpids
+
+    private static void verify(ICommandSender sender) {
+        final Map<String, QuestbookInstaller.Ref> refs;
+        try {
+            refs = QuestbookInstaller.verify();
+        } catch (final Throwable t) {
+            tell(sender, BAD + "Verify failed: " + BQBridge.describe(t));
+            return;
+        }
+        int misses = 0;
+        for (final QuestbookInstaller.Ref r : refs.values()) {
+            if (r.found) continue;
+            misses++;
+            tell(
+                sender,
+                BAD + "[missing] "
+                    + EnumChatFormatting.RESET
+                    + r.kind
+                    + " "
+                    + r.id
+                    + DIM
+                    + " ("
+                    + r.detail
+                    + "; used by "
+                    + String.join(", ", r.usedBy)
+                    + ")");
+        }
+        tell(
+            sender,
+            (misses == 0 ? OK : WARN) + "Questbook ids: "
+                + (refs.size() - misses)
+                + "/"
+                + refs.size()
+                + " resolved, "
+                + misses
+                + " missing.");
+    }
+
+    private static void dumpIds(ICommandSender sender) {
+        try {
+            final File out = QuestbookInstaller.dumpIds();
+            tell(sender, OK + "Wrote " + out.getAbsolutePath());
+            tell(sender, DIM + "Copy the verified entries into questbook/registry.json and re-run gen-bom.ps1.");
+        } catch (final Throwable t) {
+            tell(sender, BAD + "dumpids failed: " + BQBridge.describe(t));
+        }
+    }
+
+    private static String join(List<Long> lows) {
+        final StringBuilder out = new StringBuilder();
+        for (final long low : lows) {
+            if (out.length() > 0) out.append(", ");
+            out.append(low);
+        }
+        return out.toString();
     }
 }
