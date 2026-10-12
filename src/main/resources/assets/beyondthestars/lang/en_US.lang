@@ -134,3 +134,14 @@ item.beyondthestars.starChartSiriusA.name=Star Chart: Sirius A
 item.beyondthestars.starChartArcturus.name=Star Chart: Arcturus
 item.beyondthestars.starChartSiriusB.name=Star Chart: Sirius B
 item.beyondthestars.starChartSiriusBCooled.name=Star Chart: Sirius B, Cooled
+
+# ---- SINGULARITY LADDER P2: Kerr Ergosphere Engine (Kerr unit; singularity-ladder-build.md §3.1) ----
+beyondthestars.recipe.kerrdensity=Kerr Densification
+beyondthestars.recipe.kerrextraction=Ergosphere Extraction
+GT5U.gui.text.beyondthestars.kerr.nomodule=No Kerr module: build the compressor arc or the extractor arc
+GT5U.gui.text.beyondthestars.kerr.modeunavailable=This mode's module is not formed (sneak + screwdriver to switch mode)
+GT5U.gui.text.beyondthestars.kerr.lowmass=DENSIFY needs an open hole of at least 128 SM (screwdriver: setpoint)
+beyondthestars.structure.kerr.boltbus=The governor needs at least one input bus in a bolt-bus socket
+beyondthestars.structure.kerr.modulecore=The module's core block is missing
+beyondthestars.structure.kerr.moduleinput=The module needs at least one input bus or input hatch
+beyondthestars.structure.kerr.moduleoutput=The module needs at least one output bus or output hatch

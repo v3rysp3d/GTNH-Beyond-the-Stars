@@ -21,6 +21,8 @@ public final class BTSMachines {
     public static ItemStack fuelFabricationHall;
     public static ItemStack purexCanyon;
     public static ItemStack siteBatchingPlant;
+    // SINGULARITY LADDER P2 (Kerr unit): the Kerr Ergosphere Engine, base+14.
+    public static ItemStack kerrEngine;
 
     private BTSMachines() {}
 
@@ -104,5 +106,9 @@ public final class BTSMachines {
         // base+30..34 ON HOLD: Homogeny 30, Reality Diffraction 31, Reality Refab 32, spare 33-34
         // base+35..39 spare
         // The Kerr and Eye units each append their own single registration line below.
+        kerrEngine = new com.nateyburr.beyondthestars.machines.kerr.MTEKerrEngine(
+            base + 14,
+            "multimachine.beyondthestars.kerrengine",
+            "Kerr Ergosphere Engine").getStackForm(1);
     }
 }
