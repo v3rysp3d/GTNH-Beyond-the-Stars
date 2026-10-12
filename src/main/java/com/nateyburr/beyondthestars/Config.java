@@ -70,6 +70,13 @@ public class Config {
      */
     public static boolean renderKerrHole = true;
 
+    /**
+     * P4 (quasar-p4.md §1.6): the Quasar Engine's hole (GT's Black Hole Compressor render, scaled by mass), its
+     * accretion disc and its two jets. Read on both sides: the server places the render block only when it is on, and a
+     * client with it off draws nothing. Each quasar also has its own render switch in its GUI.
+     */
+    public static boolean renderQuasar = true;
+
     public static void synchronizeConfiguration(File configFile) {
         Configuration configuration = new Configuration(configFile);
 
@@ -151,6 +158,14 @@ public class Config {
             "Draw the Kerr Ergosphere Engine's black hole at the centre of its cage, scaled by its mass (GT's Black"
                 + " Hole Compressor render). Cosmetic. On a server, false places no render block at all; on a client,"
                 + " false draws nothing. Each Kerr also has its own render switch in its GUI.");
+
+        renderQuasar = configuration.getBoolean(
+            "renderQuasar",
+            Configuration.CATEGORY_GENERAL,
+            true,
+            "Draw the Quasar Engine's black hole, accretion disc (its width shows the gas in it, its colour the disc's"
+                + " zone) and two burst jets (as bright as their Bu/t). Cosmetic. On a server, false places no render"
+                + " block; on a client, false draws nothing. Each quasar also has its own render switch in its GUI.");
 
         // Always written back: Forge does not read comments from the file and does not count a changed comment as a
         // change, so an old file would keep saying eyeRenderCentre is "not implemented" (D-49 unit 6). Saving

@@ -27,5 +27,7 @@ public final class BTSBlocks {
         com.nateyburr.beyondthestars.machines.eye.render.BlockEyeStar.register();
         // KERR REDESIGN R4: the KEE's black-hole render block and tile (docs/kerr-redesign.md §5).
         com.nateyburr.beyondthestars.machines.kerr.BlockKerrHole.register();
+        // P4 (quasar-p4.md §1.6): the Quasar Engine's hole / disc / jet render block and tile.
+        com.nateyburr.beyondthestars.machines.quasar.render.BlockQuasarHole.register();
     }
 }

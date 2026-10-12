@@ -168,6 +168,16 @@ public final class BTSMachines {
             base + 27,
             "hatch.beyondthestars.directive",
             "Directive Hatch").getStackForm(1);
+        // P4 (quasar-p4.md §6.1): base+20 (28120) the Quasar Engine, base+26 (28126) the Burst Control Hatch. Each
+        // assignment also lets its BTSRecipesQuasar recipe (SL-Q01, SL-Q20) register.
+        quasarEngine = new com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine(
+            base + 20,
+            "multimachine.beyondthestars.quasarengine",
+            "Quasar Engine").getStackForm(1);
+        burstControlHatch = new com.nateyburr.beyondthestars.machines.conduit.MTEHatchBurstControl(
+            base + 26,
+            "hatch.beyondthestars.burstcontrol",
+            "Burst Control Hatch").getStackForm(1);
         // H/R unit 2 (ruling 16, homogeny-reality.md §4.1): the three machines unheld from the 28130..28134 block.
         homogeny = new com.nateyburr.beyondthestars.machines.homogeny.MTEHomogeny(
             base + 30,

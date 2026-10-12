@@ -111,7 +111,8 @@ public class DirectiveHatchGui extends MTEHatchBaseGui<MTEHatchDirective> {
                     .child(
                         IKey.dynamic(
                             () -> setOf(set).host == DirectiveSet.Host.KERR ? "Window w: bolt reserve, minutes"
-                                : "Window w: gauge band, ±w")
+                                : setOf(set).host == DirectiveSet.Host.QUASAR ? "Window w: the disc's E band, ±w"
+                                    : "Window w: gauge band, ±w")
                             .asWidget())
                     .coverChildren()
                     .childPadding(2));
