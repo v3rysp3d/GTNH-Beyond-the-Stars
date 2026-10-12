@@ -2961,3 +2961,181 @@ The full original wording of Q-1..Q-38 is in git history (addon commit 457bbf8).
 master had already used for the RC-2 package and D-49 entries. They are now B-46..B-57: old B-33 -> B-46, B-34 -> B-47,
 B-35 -> B-48, B-36 -> B-49, B-37 -> B-50, B-38 -> B-51, B-39 -> B-52, B-40 -> B-53, B-41 -> B-54, B-42 -> B-55,
 B-43 -> B-56, B-44 -> B-57. Commit messages on the branch keep the old numbers; docs and code comments use the new ones.
+
+
+---
+
+## P4
+
+P4 is the Quasar Engine, the Conduit and Eye T7-T8, built from `designs/docs/quasar-p4.md` (rev 7f91607, D-50). Every
+PROPOSED line there is accepted. These are the judgement calls the P4 units made while building it, numbered P4-01 up.
+Each gives the context, what was built, a suggestion and the alternatives.
+
+### P4-01 The quasar's Burst Control sockets sit on the cap rims, not where the mockup drew the old hatches [structures]
+
+**Context.** §7 says the two `ergohatch` cells at y 81, (0, 81, ±8), become `c` Burst Control sockets. §2 also puts
+a docked crown's base on the slot layer from y 81, and that base disc is radius 6-11, so it covers (0, 81, ±8).
+
+**Built.** The `c` sockets are at (0, ±80, ±12), on each cap's rim, where two of the four old GRB cells were. The other
+two GRB cells, (±12, ±80, 0), are casing. There are 2 sockets per cap and 4 in all. The exporter checks that the 4 rim
+sockets keep an open face with a Mk III crown docked on both ports.
+
+**Suggestion.** Keep this.
+
+**Alternatives.** Keep the sockets at y ±81 and dock crowns 2 blocks higher (y 83). That moves the slot cell away from
+the doc's y ±81.
+
+### P4-02 The jet-port slot contract [structures]
+
+**Built** (`manifest.json` `machines.quasar.slots.{top,bottom}`):
+
+- The **port** cell is the jet axis just past the cap: voxel (0, ±81, 0).
+- A **crown** docks with its base centre on the port cell. Its controller stands at voxel (12, ±81, 0) and faces +x,
+  away from the axis. On the bottom port the crown hangs upside down: the same shape, flipped vertically.
+- A **Wormhole Mouth** docks with its throat centre on the jet axis and its throat normal along the port's axis.
+- The manifest gives every value as an offset from the quasar controller, in its (a, b, c) frame. For the crown it
+  also gives `machines.crown.intake` (its base centre, from the crown controller) and `stack` (where a second crown's
+  controller stands).
+
+**Suggestion.** The Java link check: a dock is linked when its intake (for a crown) or its throat centre (for a mouth)
+is on the port cell, and it faces the right way. The doc's "controller on the slot cell" holds for crowns.
+
+**Also.** The crown's drawn energy hatch is dropped. EU goes to wireless (D-32) and the crown draws no power. The crown
+keeps its maintenance socket.
+
+### P4-03 The Eye's receptor groups: one char `r`, with the group in the manifest [structures]
+
+**Context.** §7 says one `r` char, with each cell's group tagged in `manifest.json`. One char per group would have
+avoided a position lookup (the Reality Diffraction anchors use one char per region).
+
+**Built.** The doc's wording is kept: `r` in `eye_rail` and in `eye_halo`. Each socket entry under
+`pieces.<piece>.sockets.r[i]` carries a `group`:
+
+- `rail-high`: the rail's +z half, which the 8° tilt raises; 4 cells.
+- `rail-low`: 4 cells.
+- `halo`: the 8 shard roots.
+
+The Java side turns each `rel` into a world position with `ExtendedFacing.getWorldOffset` and matches a found hatch by
+its position.
+
+**Alternative.** Use three chars, for example `r` (high), `l` (low) and `a` (halo). That is a one-line exporter change
+plus three private elements.
+
+### P4-04 The Eye's Directive and slot-bus sockets reuse plinth deck cells [structures + Eye definition]
+
+**Built.**
+
+- Four `d` cells sit in the plinth's outer face in the row above the controller: voxel (−2 / 0 / 2 / 4, −39, 39). They
+  are for Field, Events, Transition and one spare.
+- One `p` cell (the slot bus) sits below it: (0, −41, 39).
+- These five cells were deck before P4, and both elements fall back to the plinth casing, so every Eye built before P4
+  still forms.
+
+StructureLib rejects a shape char that has no element, so `MTEEyeOfHarmonyBTS.buildDefinition` gained two minimal
+elements:
+
+- `d`: `EyeHatchElement.Directive`, else the temporal casing.
+- `p`: `EyeHatchElement.Items` (an input bus), else the temporal casing. This is a `TODO(P4 Eye unit)`: `p` becomes a
+  private Slot Bus element for the planet items and companion charts.
+
+The Eye's `n` sockets still take Directive Hatches too, as the automation pass built them.
+
+### P4-05 Which coils are tiered [structures]
+
+**Built.**
+
+- The quasar's tiered coils, channel `coil` (char `H`, 3,354 blocks, every coil one tier): the cage coil stacks, the
+  dome rings and the hanging disc rings.
+- Jet Collimator Rings (char `C`, untiered): the 16 rings round the jet towers (596 blocks), and the coil cells on the
+  crowns and the conduit elements.
+
+**Cost flag for the recipe unit.** The quasar takes 27,815 Eddington Wall Casings (both walls and the collars), 10,730
+BHC casings and 6,392 frames. The Junction takes 7,145 Casimir Plates (its chamber lining). Cost the per-block cards so
+these totals stay sane (rule 6). The design card (Eddington Wall Casing ×2 for 4 dense BDM plates) costs about 55,000
+dense BDM plates for one quasar.
+
+### P4-06 Junction sockets moved [structures]
+
+**Built.**
+
+- The two `c` sockets are at (0, 15, ±2), beside the controller. §7 put them at (±2, 15, 0), but those two cells are
+  the maintenance and energy hatches.
+- Two of the six fuel hatches were sealed inside the big throat's wall, at 150° and 210°. They moved to 130° and 230°.
+- All six now sit on the chamber shell at r 15. They floated at r 16 before.
+
+### P4-07 The conduit elements' energy sockets are optional [structures]
+
+**Context.** The Mouth and the Junction are drawn with an energy hatch, but §3 gives the conduit no EU upkeep.
+
+**Built.** The `e` socket is exported with min 0.
+
+**Suggestion.** The MTE units ignore EU; drop the socket in a later mockup pass if nobody needs it.
+
+### P4-08 Intended blocks [structures]
+
+| Machine | Cells | Block |
+|---|---|---|
+| Conduit | shells (the mockup's Eddington cells) | TecTech Reinforced Spatial Structure Casing (§6.2) |
+| Conduit | outer rings | Reinforced Temporal Structure Casing |
+| Quasar | cage casing | the BHC's Extreme Density Space-Bending Casing |
+| Quasar | frame | Naquadah Alloy frame (the Kerr family) |
+| Quasar | tank walls | the BHC's Background Radiation Absorbent Casing |
+| Quasar | glass | Quantum Glass |
+| Mirror | mirror | the Kerr's Superradiant Mirror Casing |
+
+- §6.2's "Casimir-lined conduit casing" is not needed: the existing Casimir Plate (slCasing:14) plays it.
+- New blocks: Eddington Wall Casing, Disc Field Coil T1-T4, Rim Gas Injector, Jet Collimator Ring, Burst Thermaliser
+  Casing and Radiator Petal.
+
+### P4-09 The Directive Hatch keeps its built UIV recipe [design]
+
+**Context.** §6.3 cards the Directive Hatch at UXV. The automation pass already built it at UIV (SL-A01), because the
+Kerr and every Eye tier use it.
+
+**Built.** The design card shows SL-A01 as built.
+
+**Suggestion.** Keep UIV.
+
+### P4-10 Conduit export frames [structures]
+
+**Built.**
+
+- The Mouth is exported from the left mouth of the pair (centre x −44, throat normal +x). A pair is two copies of
+  the same shape.
+- Every element is exported in its controller's frame, with its throats in `machines.conduit_*.throats`: centre, radius
+  and outward normal, in (a, b, c).
+- Junction throats: the big throat is in for split and out for combine; out1 / out2 / out3 are at 0° / +60° / −60°,
+  and out3 is the fixed share taken off the top.
+- The Junction's controller is on top of the chamber, and its piece front is voxel +z.
+
+### P4-11 Stacked crowns use the same shape [structures]
+
+**Built.** The exporter checked a second crown stacked at its core top − 2. It shares no cell with the first at
+Mk I, II or III, in the same rotation. The mockup draws it rotated half a petal, but that rotation is not needed, so
+one shape serves both. The offsets of the second crown's controller are in `manifest.json` `machines.crown.stack`:
+9, 14 and 18 up.
+
+### P4-12 Two stale design cards [design]
+
+- The design card for the Galactic Upgrade Core listed 4 GRB Receptor Ports. A port is now a UXV part, a loop at
+  T3 → T4, so the card swaps them for Casimir Plates. Check the addon's SL-E04 for the same thing (it was built from the
+  BEC cards, so it should be clean).
+- The design card SL-H10 now matches the built recipe, gated on Black Dwarf Matter (ruling 19a).
+
+### P4-13 Sizes as exported [structures]
+
+| Machine | Size | Blocks |
+|---|---|---|
+| Quasar | 143 × 161 × 144 | 51,984 |
+| Crown Mk I | 33 × 17 × 33 | 1,835 |
+| Crown Mk II | 49 × 23 × 49 | 2,811 |
+| Crown Mk III | 65 × 29 × 65 | 4,422 |
+| Wormhole Mouth | 39 × 42 × 10 | 1,404 |
+| Conduit Mirror | 23 × 13 × 24 | 1,703 |
+| Conduit Junction | 89 × 30 × 83 | 17,233 |
+| Eye T7 | 183 × 59 × 175 | 67,367 |
+| Eye T8 | 196 × 73 × 218 | 71,076 |
+
+- The quasar is 161 tall, not the mockup title's 162, because the y 81 hatches are gone.
+- The Eye's T7 rail adds 15,432 blocks and the T8 halo adds 3,709.
+- All fit BlockRenderer6343's y 0-255.

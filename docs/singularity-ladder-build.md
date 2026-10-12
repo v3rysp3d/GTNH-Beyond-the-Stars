@@ -2010,3 +2010,143 @@ How it finds and draws a controller (bytecode of `GTNEIMultiblockHandler`, `GTCo
 - **Not exposed: channel sliders.** If the field generators were channel elements, the preview's main tier slider
   would read 1-9 (the generators' tier count) instead of 1-4, and the Kerr's would read 1-3 if the rails had one. The
   tier count is the more important thing to get right, so the channels work on the projector only. See question B-19.
+
+
+---
+
+## P4
+
+**Design of record:** `designs/docs/quasar-p4.md` (rev 7f91607; D-50 in `PROPOSAL.md`). Every PROPOSED line is
+accepted, and §10.2's questions take their recommendations. Branch `p4-quasar`; judgement calls are P4-xx in
+`singularity-ladder-questions.md`.
+
+### What's built
+
+| Unit | State | Commit |
+|---|---|---|
+| Structures: voxel cells (§7), export, manifest | built | 26b04e7 (addon); design repo 1b407b3 |
+| Design repo §9: `bh-model.js`, `recipes.js` cards, renames, D-50, page rebuilt | built | design repo 1b407b3 |
+
+### MTE ledger (P4 block 28120-28129)
+
+| Id | Machine | Class (proposed) | Shape(s) |
+|---|---|---|---|
+| 28120 | Quasar Engine | `machines/quasar/MTEQuasarEngine` | `quasar` |
+| 28121 | Wormhole Mouth | `machines/conduit/MTEWormholeMouth` | `conduit_mouth` |
+| 28122 | Conduit Mirror | `machines/conduit/MTEConduitMirror` | `conduit_mirror` |
+| 28123 | Conduit Junction | `machines/conduit/MTEConduitJunction` | `conduit_junction` |
+| 28124 | Burst Thermaliser Crown (Mk by structure) | `machines/quasar/MTEBurstThermaliserCrown` | `crown_mk1`, `crown_mk2`, `crown_mk3` |
+| 28125 | GRB Receptor Port (hatch) | `machines/conduit/MTEHatchGRBReceptor` | — |
+| 28126 | Burst Control Hatch (analog redstone in) | `machines/conduit/MTEHatchBurstControl` | — |
+| 28127 | Directive Hatch | exists (`machines/directive/MTEHatchDirective`); P4 adds the Disc / Field / Events / Transition / Slots sets | — |
+| 28116 | Stellar Field Sensor Hatch | exists; P4 adds the quasar channels, the analog window and invert | — |
+| 28128-28129 | spare | — | — |
+
+### Shapes (resources `assets/beyondthestars/structures/`, loaded with `BTSShapes.load(name)`)
+
+Regenerate the shapes with `node tools/export-structures.js`; `--check` must pass. Every new piece is in its
+controller's own frame (front = +z, layer 0), and `off=` is the controller.
+
+| Piece | Machine | Size (w × h × d) | off | Chars |
+|---|---|---|---|---|
+| `quasar` | 28120 | 143 × 161 × 144 | 71,95,0 | A B C E G H I P T · ~ m e h t c n d |
+| `crown_mk1/2/3` | 28124 | 33×17×33 / 49×23×49 / 65×29×65 | 16,16,4 / 24,22,12 / 32,28,20 | A C F R · ~ m r |
+| `conduit_mouth` | 28121 | 39 × 42 × 10 | 19,39,0 | A C E I P · ~ m e u |
+| `conduit_mirror` | 28122 | 23 × 13 × 24 | 8,11,11 | A C E M P · ~ m u |
+| `conduit_junction` | 28123 | 89 × 30 × 83 | 45,0,41 | A C E G P · ~ m e u c |
+| `eye_rail` | Eye T7 band | 183 × 31 × 175 | 91,57,47 (outside the box) | B J Z P · r |
+| `eye_halo` | Eye T8 band | 196 × 62 × 218 | 98,71,71 (outside the box) | B Z · r |
+| `eye_core` (changed) | Eye T1 | 102 × 52 × 80 | 50,50,0 | + `d` ×4, `p` ×1 on former plinth deck cells |
+| `homog_t2`, `reality_diffraction` | unchanged shapes | — | — | `g` is now the GRB Receptor Port (fallback G / A) |
+
+### Chars → elements (contract for the MTE units; the legend in `manifest.json` carries the same)
+
+**Quasar** (`quasar`):
+
+| Char | Element |
+|---|---|
+| `A` | BHC Extreme Density Space-Bending Casing |
+| `B` | Naquadah Alloy frame |
+| `C` | NEW Jet Collimator Ring |
+| `E` | NEW Eddington Wall Casing |
+| `G` | Quantum Glass |
+| `H` | NEW Disc Field Coil T1-T4, `ofBlocksTiered` on channel **`coil`** (1-4; one tier everywhere; the tier sets b ≤ tier and the mass cap 256 / 1,024 / 2,048 / 4,096 SM) |
+| `I` | NEW Rim Gas Injector |
+| `P` | Casimir Plate (slCasing:14) |
+| `T` | BHC Background Radiation Absorbent Casing |
+| `h` ×24 | private gas element: any input hatch, ME stocking included; fallback `E`; min 1 |
+| `t` ×4 | private trim element: plain input hatch only; fallback `T` |
+| `c` ×4 | Burst Control Hatch on the cap rims (0, ±80, ±12); fallback `A` |
+| `n` ×2 | Sensor Hatch; fallback `A` |
+| `d` ×2 | Directive Hatch; fallback `A` |
+| `e` ×3 | Energy / ExoticEnergy; min 1 |
+| `m` | Maintenance |
+
+**Crown** (`crown_mk1/2/3`):
+
+- Chars: `A` BHC casing, `C` Jet Collimator Ring, `F` NEW Burst Thermaliser Casing, `R` NEW Radiator Petal, `r` GRB
+  Receptor Port (fallback `A`), `m` Maintenance.
+- No dynamo and no energy socket: EU goes to wireless.
+- The Mk is whichever of the three pieces checks. Try Mk III, then II, then I. The hologram channel **`crown`** (1-3)
+  picks the piece to build.
+
+**Conduit:**
+
+| Char | Element |
+|---|---|
+| `E` | TecTech Reinforced Spatial Structure Casing |
+| `A` | Reinforced Temporal Structure Casing |
+| `C` | Jet Collimator Ring |
+| `P` | Casimir Plate |
+| `I` | Rim Gas Injector (mouth) |
+| `M` | Superradiant Mirror Casing (mirror) |
+| `G` | Quantum Glass (junction) |
+| `u` | private Throat Fuel element: any input hatch, ME stocking OK; mouth 8, mirror 1, junction 6; min 1 |
+| `c` | Burst Control Hatch, junction only, 2 cells: the split's level s, plus one spare |
+| `e` | optional energy socket (P4-07) |
+| `m` | Maintenance |
+
+**Eye:**
+
+- `B` Bastion Plate (slCasing:13).
+- `P` Casimir Plate.
+- `r` GRB Receptor Port, fallback `B`. Its group is `manifest.pieces.eye_rail|eye_halo.sockets.r[i].group`:
+  `rail-high` / `rail-low` / `halo` (P4-03).
+- `d` Directive, fallback plinth casing (element added).
+- `p` slot bus, fallback plinth casing. Its element is temporarily `EyeHatchElement.Items`; the TODO is a private
+  SlotBus element (P4-04).
+- `eye_rail` counts only with every band through `eye_rim`, and `eye_halo` only with `eye_rail` (cumulative, D-49).
+
+**Homogeny T2 / Reality Diffraction:** `g` = GRB Receptor Port (28125). Its fallback stays the ring / deck casing, so
+pre-P4 builds stay formed.
+
+**Kerr:** no shape change. The `u` utility sockets also accept a GRB Receptor Port (legend text).
+
+### Geometry contracts in `manifest.json` (all offsets in the controller's (a, b, c) frame)
+
+- `machines.quasar.slots.top|bottom`:
+  - `portRel`: the jet axis cell, (0, ±81, 0) in voxel space.
+  - `axisAbc`: the jet's direction.
+  - `crownControllerRel` and `crownFacingAbc`: where a docked crown's controller stands and faces.
+  - `crownFlippedVertically`: true on the bottom port.
+- `machines.quasar.centre.rel`: the hole (render) centre.
+- `machines.crown.intake[piece]`: the base centre, where the jet enters from the crown controller, and `axisAbc`.
+- `machines.crown.stack[piece].rel`: the controller of a second crown stacked on this one (same shape, same facing; 0
+  shared cells).
+- `machines.conduit_mouth|mirror|junction.throats[]`: `role`, `radius`, `centreRel` and `normalAbc`, the opening's
+  outward normal.
+  - Mirror: `in` and `out` (90°).
+  - Junction: the big throat (split in / combine out), then out1 (0°), out2 (+60°) and out3 (−60°, the fixed share off
+    the top).
+- `machines.quasar.channels.coil` and `machines.crown.channels.crown`.
+
+### Contracts between units
+
+- **Eye unit.** It owns the T7/T8 bands. Load `eye_rail` / `eye_halo` as cumulative optional pieces, and add the `B`,
+  `P` and `r` elements. Turn the `p` element into a private slot bus.
+- **Quasar / crown / conduit units.** Load the shapes above, with `noOverwrite` on plain casings. Read the slot / throat
+  data from `BTSShapes.manifest()`; do not hard-code offsets.
+- **Recipe unit.** Every block in the BOM above needs a recipe. Watch the totals in P4-05: Eddington Wall Casing
+  27,815 per quasar, Casimir 7,145 per Junction.
+- **Design repo.** `designs/bh-model.js` is the reference maths for the disc (`discStep`), the demand (`demand`), the
+  1.5× rule (`topTier`, `massForTier`), crown banks (`thermBank` on the mean) and throat upkeep (`throatUpkeep`).
