@@ -64,6 +64,9 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         // the slot SERVER-side and synced, so the tier line and the Rods field's tooltip can say
         // why the field is being ignored (AXIS 1).
         syncManager.syncValue("throttleOverride", new BooleanSyncValue(multiblock::isThrottleOverridden));
+        // The circuit's own rod count, also read live off the slot: throttleN is only committed
+        // at the next campaign start, so it would quote the previous setting until then.
+        syncManager.syncValue("throttleCircuitN", new IntSyncValue(multiblock::getCircuitThrottle));
         syncManager.syncValue("modules", new StringSyncValue(multiblock::getModulesSummary));
         // D-17 / D-22: the other four buildings. Every one of these is written SERVER-side by
         // checkMachine and read CLIENT-side here, so all of them have to come across as sync
@@ -698,7 +701,7 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
     protected Flow createRightPanelGapRow(ModularPanel parent, PanelSyncManager syncManager) {
         final BooleanSyncValue throttleOverride = syncManager
             .findSyncHandler("throttleOverride", BooleanSyncValue.class);
-        final IntSyncValue throttleN = syncManager.findSyncHandler("throttleN", IntSyncValue.class);
+        final IntSyncValue throttleCircuitN = syncManager.findSyncHandler("throttleCircuitN", IntSyncValue.class);
         return super.createRightPanelGapRow(parent, syncManager).child(
             // D-23/D-24: the field's range is the full 1..36 because a MUI2 text field's bounds
             // are fixed when the widget is built, and the CLIENT does not get to decide what
@@ -723,7 +726,7 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                         t.addLine(
                             EnumChatFormatting.YELLOW + translateToLocalFormatted(
                                 "beyondthestars.gui.throttle.override",
-                                throttleN == null ? "?" : String.valueOf(throttleN.getIntValue())));
+                                throttleCircuitN == null ? "?" : String.valueOf(throttleCircuitN.getIntValue())));
                     }
                 })
                 .tooltipAutoUpdate(true))

@@ -6974,6 +6974,18 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return GTUtility.isAnyIntegratedCircuit(circuit) && circuit.getItemDamage() >= 1;
     }
 
+    /**
+     * The rods the Programmed Circuit in the controller slot asks for, clamped the way the
+     * campaign commit clamps it; 0 when no circuit overrides the field. Read live off the slot,
+     * so the Rods field's tooltip quotes the circuit now in the slot rather than the N committed
+     * at the last campaign start ({@link #getThrottleN}). Server-side; the GUI syncs it (AXIS 1).
+     * Display only.
+     */
+    public int getCircuitThrottle() {
+        if (!isThrottleOverridden()) return 0;
+        return Math.min(maxThrottle(), getControllerSlot().getItemDamage());
+    }
+
     public boolean isGalleryBuilt() {
         return galleryBuilt;
     }
