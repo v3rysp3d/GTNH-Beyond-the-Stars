@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective;
+
 import gregtech.api.interfaces.IHatchElement;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.metatileentity.implementations.MTEHatchInput;
@@ -63,6 +65,14 @@ public enum EyeHatchElement implements IHatchElement<MTEEyeOfHarmonyBTS> {
         @Override
         public long count(MTEEyeOfHarmonyBTS t) {
             return t.sensorHatchCount();
+        }
+    },
+    /** AUTOMATION PASS: Directive Hatches (MTE 28127) also fit the Sensor sockets ({@code n}). */
+    Directive(MTEEyeOfHarmonyBTS::addDirectiveHatch, MTEHatchDirective.class) {
+
+        @Override
+        public long count(MTEEyeOfHarmonyBTS t) {
+            return t.directiveHatchCount();
         }
     },
     /** D-49 item input on the plinth gas sockets ({@code h}): input buses, ME input bus included (R-1). */

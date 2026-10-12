@@ -50,6 +50,9 @@ import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.items.SLItems;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
+import com.nateyburr.beyondthestars.machines.directive.DirectiveHost;
+import com.nateyburr.beyondthestars.machines.directive.DirectiveSet;
+import com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldReadout;
 import com.nateyburr.beyondthestars.machines.eye.render.EyeCentreRender;
 import com.nateyburr.beyondthestars.machines.eye.render.TileEyeStar;
@@ -83,6 +86,7 @@ import gregtech.common.misc.GTStructureChannels;
 import gregtech.common.misc.WirelessNetworkManager;
 import gregtech.common.tileentities.machines.IRecipeProcessingAwareHatch;
 import gregtech.common.tileentities.machines.MTEHatchCraftingInputME;
+import gregtech.common.tileentities.machines.MTEHatchInputBusME;
 import gregtech.common.tileentities.machines.MTEHatchInputME;
 import gregtech.common.tileentities.machines.outputme.MTEHatchOutputBusME;
 import gregtech.common.tileentities.machines.outputme.MTEHatchOutputME;
@@ -154,7 +158,7 @@ import tectech.thing.casing.TTCasingsContainer;
  * All walk state is zeroed in {@link #resetWalk()}, the first statement of {@link #checkMachine}.
  */
 public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfHarmonyBTS>
-    implements ISurvivalConstructable {
+    implements ISurvivalConstructable, DirectiveHost {
 
     // ------------------------------------------------------------------------------- pieces
     public static final String PIECE_CORE = "eye_core";
@@ -244,6 +248,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     /** D-49 R-15: ME stocking hatches found in Field sockets: walked (the Eye forms), never drained. */
     private final ArrayList<MTEHatchInput> rejectedFieldHatches = new ArrayList<>();
     private final ArrayList<MTEHatchStellarFieldSensor> sensorHatches = new ArrayList<>();
+    /** AUTOMATION PASS: Directive Hatches (MTE 28127) in the Sensor sockets. */
+    private final ArrayList<MTEHatchDirective> directiveHatches = new ArrayList<>();
     /** D-49 R-1: input buses on the plinth gas sockets (the Stellar Ignition Charges). */
     private final ArrayList<MTEHatchInputBus> itemBuses = new ArrayList<>();
 
@@ -362,7 +368,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                     .buildAndChain(casing(Casings.ReinforcedSpatialStructureCasing)))
             .addElement(
                 'n',
-                buildHatchAdder(MTEEyeOfHarmonyBTS.class).atLeast(EyeHatchElement.Sensor)
+                buildHatchAdder(MTEEyeOfHarmonyBTS.class).atLeast(EyeHatchElement.Sensor, EyeHatchElement.Directive)
                     .casingIndex(shellIndex)
                     .hint(6)
                     .buildAndChain(casing(Casings.ReinforcedSpatialStructureCasing)))
@@ -451,6 +457,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         fieldHatches.clear();
         rejectedFieldHatches.clear();
         sensorHatches.clear();
+        directiveHatches.clear();
         itemBuses.clear();
         mOutputBusses.clear();
         mOutputHatches.clear();
@@ -650,6 +657,18 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         return false;
     }
 
+    /** AUTOMATION PASS: a Directive Hatch (MTE 28127) in a Sensor socket. */
+    public boolean addDirectiveHatch(IGregTechTileEntity te, int casingIndex) {
+        if (te == null) return false;
+        final IMetaTileEntity mte = te.getMetaTileEntity();
+        if (mte instanceof MTEHatchDirective) {
+            ((MTEHatchDirective) mte).updateTexture(casingIndex);
+            directiveHatches.add((MTEHatchDirective) mte);
+            return true;
+        }
+        return false;
+    }
+
     /**
      * D-49 R-1: an input bus (ME input bus included) on a plinth gas socket, for the ignition charges.
      * Crafting input buffers are refused, as the reactor's sockets refuse them (B-31): they hold
@@ -722,6 +741,10 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         return liveCount(sensorHatches);
     }
 
+    public int directiveHatchCount() {
+        return liveCount(directiveHatches);
+    }
+
     public int itemBusCount() {
         return liveCount(itemBuses);
     }
@@ -734,6 +757,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     /** D-49: the Sensor-socket hatches, for the star runtime's publish. Server state, read-only. */
     public List<MTEHatchStellarFieldSensor> sensorHatches() {
         return Collections.unmodifiableList(sensorHatches);
+    }
+
+    /** AUTOMATION PASS: the Sensor-socket Directive Hatches. Server state, read-only. */
+    public List<MTEHatchDirective> directiveHatches() {
+        return Collections.unmodifiableList(directiveHatches);
     }
 
     /** D-49: the plinth input buses, for the ignition charges. Server state, read-only. */
@@ -906,10 +934,14 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         super.onPostTick(aBaseMetaTileEntity, aTick);
         if (!aBaseMetaTileEntity.isServerSide()) return;
         if (aTick % DRAIN_INTERVAL == 0) {
-            if (mMachine) drainSockets();
+            if (mMachine) {
+                takeFromPlinthBuses();
+                drainSockets();
+            }
             // D-49: one field second, straight after the drain (plan §4). Runs unformed too, so a broken
             // structure puts the star out (R-8); a chunk that is not ticking freezes it.
             runtime.second();
+            publishDirectives();
         }
         // GT sets the active flag from its run progress; a burning star is active too (Activity Detector).
         if (runtime.burning()) aBaseMetaTileEntity.setActive(true);
@@ -1020,8 +1052,12 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
      * does.
      */
     public void fieldSecond() {
-        if (mMachine) drainSockets();
+        if (mMachine) {
+            takeFromPlinthBuses();
+            drainSockets();
+        }
         runtime.second();
+        publishDirectives();
         debugRenderTick();
     }
 
@@ -1032,6 +1068,133 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     public void debugRenderTick() {
         final IGregTechTileEntity base = getBaseMetaTileEntity();
         if (base != null && base.isServerSide()) centre.tick(base, getExtendedFacing(), mMachine, runtime, 0);
+    }
+
+    // ============================================================================ automation
+
+    /**
+     * AUTOMATION PASS (docs/automation.md): what a plinth input bus may hand the controller, once a second before the
+     * drain, so AE2, Steve's Factory Manager, a conveyor cover or an OpenComputers transposer can do what a player does
+     * by hand:
+     * <ul>
+     * <li><b>the next transition core</b> (the one {@link EyeStarRuntime#offerCore} would take from a right-click) goes
+     * into the escrow; a wrong core stays in the bus;</li>
+     * <li><b>a star chart</b> different from the controller slot's target goes into the controller slot, and the old
+     * target leaves through the ME output bus (same rules as swapping it by hand: the next tier's chart while the star
+     * burns starts the transition, any other change puts the star out). Plain buses only: an ME stocking bus would show
+     * its configured chart every second and swap it back and forth.</li>
+     * </ul>
+     * One chart a second; put ONE chart in at a time.
+     */
+    private void takeFromPlinthBuses() {
+        final Item core = EyeStarRuntime.coreFor(runtime.unlockedTier());
+        final ItemStack target = getControllerSlot();
+        for (MTEHatchInputBus bus : itemBuses) {
+            if (!live(bus)) continue;
+            final boolean me = bus instanceof MTEHatchInputBusME;
+            for (int i = 0; i < bus.getSizeInventory(); i++) {
+                final ItemStack stack = bus.getStackInSlot(i);
+                if (stack == null || stack.stackSize <= 0) continue;
+                if (core != null && stack.getItem() == core && runtime.escrow() == null) {
+                    if (takeOne(bus, i, me) == null) continue;
+                    final boolean[] taken = new boolean[1];
+                    runtime.offerCore(new ItemStack(core, 1, stack.getItemDamage()), taken);
+                    runtime.noteEvent(
+                        "automation: the " + new ItemStack(core).getDisplayName()
+                            + " came from a plinth input bus into escrow");
+                    continue;
+                }
+                if (me || StarDef.byChart(stack) == null) continue;
+                if (target != null && GTUtility.areStacksEqual(stack, target, true)) continue;
+                swapTarget(bus, i, stack, target);
+                return;
+            }
+        }
+    }
+
+    /** One item out of a bus slot (an ME input bus through its processing hooks); null if none came. */
+    private ItemStack takeOne(MTEHatchInputBus bus, int slot, boolean me) {
+        final boolean aware = bus instanceof IRecipeProcessingAwareHatch;
+        if (aware) ((IRecipeProcessingAwareHatch) bus).startRecipeProcessing();
+        try {
+            final ItemStack stack = bus.getStackInSlot(slot);
+            if (stack == null || stack.stackSize <= 0) return null;
+            final ItemStack one = stack.copy();
+            one.stackSize = 1;
+            stack.stackSize--;
+            if (!aware && stack.stackSize <= 0) bus.getBaseMetaTileEntity()
+                .setInventorySlotContents(slot, null);
+            bus.getBaseMetaTileEntity()
+                .markDirty();
+            return one;
+        } finally {
+            if (aware) ((IRecipeProcessingAwareHatch) bus).endRecipeProcessing(this);
+        }
+    }
+
+    /** The bus chart into the controller slot; the old target out through the ME output bus (or the swap waits). */
+    private void swapTarget(MTEHatchInputBus bus, int slot, ItemStack chart, ItemStack old) {
+        if (old != null) {
+            final ItemEjectionHelper items = new ItemEjectionHelper(this);
+            if (items.ejectStack(old.copy()) < old.stackSize) return; // no room: try again next second
+            items.commit();
+        }
+        final ItemStack next = takeOne(bus, slot, false);
+        if (next == null) return;
+        mInventory[getControllerSlotIndex()] = next;
+        markDirty();
+        runtime.noteEvent(
+            "automation: " + next.getDisplayName()
+                + " loaded from a plinth input bus"
+                + (old == null ? "" : "; " + old.getDisplayName() + " sent to the ME output bus"));
+    }
+
+    /** Once a second (server): every live Directive Hatch gets this Eye's codes. */
+    private void publishDirectives() {
+        for (MTEHatchDirective hatch : directiveHatches) {
+            if (live(hatch)) hatch.publish(this);
+        }
+    }
+
+    @Override
+    public DirectiveSet.Host directiveHost() {
+        return DirectiveSet.Host.EYE;
+    }
+
+    @Override
+    public int directiveCode(DirectiveSet set, int window) {
+        return runtime.directiveCode(set, window);
+    }
+
+    @Override
+    public String directiveBitLabel(DirectiveSet set, int i) {
+        return runtime.directiveBitLabel(set, i);
+    }
+
+    /**
+     * Control sets: redstone 1-15 sets the time dial (1.00 .. 3.00 in 0.25 steps) or the T4 HSM feed (0 .. 1.5 L/s),
+     * through the GUI's own clamping setters.
+     */
+    @Override
+    public void directiveControl(DirectiveSet set, int strength) {
+        if (set == DirectiveSet.EYE_DIAL) {
+            final double v = DirectiveSet.controlValue(strength, 1, EyeStarRuntime.DIAL_MAX, EyeStarRuntime.DIAL_STEP);
+            if (Math.abs(v - runtime.dialSetpoint()) > 1e-9) runtime.setDial(v);
+        } else if (set == DirectiveSet.EYE_FEED) {
+            final double v = DirectiveSet.controlValue(strength, 0, EyeStarRuntime.FEED_MAX, 0.001);
+            if (Math.abs(v - runtime.feedSetpoint()) > 1e-9) runtime.setFeed(v);
+        }
+    }
+
+    @Override
+    public String directiveControlLine(DirectiveSet set) {
+        if (set == DirectiveSet.EYE_DIAL) {
+            return String.format(Locale.ROOT, "time dial %.2f", runtime.dialSetpoint());
+        }
+        if (set == DirectiveSet.EYE_FEED) {
+            return String.format(Locale.ROOT, "HSM feed %.3f L/s", runtime.feedSetpoint());
+        }
+        return "";
     }
 
     /** Moves every Eye input fluid out of the sockets into the long buffers, as TecTech's EOH does. */
@@ -1075,6 +1238,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         if (fluid == null) return 0;
         final Long v = buffers.get(fluid.getName());
         return v == null ? 0 : v;
+    }
+
+    /** A copy of the buffers, fluid registry name → litres (OpenComputers, bench). Server state. */
+    public Map<String, Long> bufferSnapshot() {
+        return new LinkedHashMap<>(buffers);
     }
 
     private void addBuffer(Fluid fluid, long amount) {
@@ -1637,6 +1805,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                     : "")
                 + ", Sensor "
                 + sensorHatchCount()
+                + ", Directive "
+                + directiveHatchCount()
                 + ", ME out "
                 + outputBusCount()
                 + " bus / "
@@ -1690,6 +1860,9 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         }
         if (!lastRun.isEmpty()) out.add("Last run: " + lastRun);
         out.addAll(runtime.statusLines());
+        for (MTEHatchDirective hatch : directiveHatches) {
+            if (live(hatch)) out.add("Directive: " + hatch.statusLine());
+        }
         if (!runtime.lastFailure()
             .isEmpty()) out.add("Last failure: " + runtime.lastFailure());
         out.add(
@@ -1818,6 +1991,15 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addInfo("  sensor -> Fluid Regulator cover or export bus with a redstone card -> Field hatch.")
             .addInfo("The GUI shows every gauge, upkeep, the transition and the last failure, and sets the")
             .addInfo("  time dial (Time Dilation generators; costs Tachyon Rich Temporal Fluid) and the T4 feed.")
+            .addInfo("Automation (every action has an AE2, redstone, OpenComputers and Factory Manager route):")
+            .addInfo("  Directive Hatches in the Sensor sockets put out what the Eye needs now as a 4-bit code:")
+            .addInfo("  Trims (which trim valve to open), Status (buffers, ignition charge, event, alarm) and")
+            .addInfo("  Transition (ready for the next chart, running, core wanted, waiting); bit tables on the hatch.")
+            .addInfo("  A plinth input bus also takes the next transition core into escrow and a star chart into the")
+            .addInfo("  controller slot (the old target leaves through the ME output bus).")
+            .addInfo("  Redstone into a control-set Directive Hatch sets the time dial or the HSM feed.")
+            .addInfo("  OpenComputers (Adapter on the controller or a hatch): component bts_eye (state, field,")
+            .addInfo("  buffers, transition, setDial, setFeed, getDirective).")
             .addInfo("The star is drawn at the Eye's centre while it burns (GUI toggle, config eyeRenderCentre).")
             .addInfo("Planets give TecTech's ores and plasmas, without Raw Star Matter or dwarf matter.")
             .addSeparator()
@@ -1860,7 +2042,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 "core band, " + bom(PIECE_CORE, 'f') + " sockets, optional",
                 5)
             .addOtherStructurePart(
-                "Stellar Field Sensor Hatch",
+                "Stellar Field Sensor Hatch or Directive Hatch",
                 "core band, " + bom(PIECE_CORE, 'n') + " sockets, optional",
                 6)
             .addStructureInfo("Hologram: trigger stack 1 = T1 core, 2 = + beam band, 3 = + jet crescent, 4 = + arms,")

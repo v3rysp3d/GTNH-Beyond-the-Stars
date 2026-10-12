@@ -16,8 +16,10 @@ import net.minecraftforge.fluids.FluidStack;
 
 import com.nateyburr.beyondthestars.fluids.SLFluids;
 import com.nateyburr.beyondthestars.items.SLItems;
+import com.nateyburr.beyondthestars.machines.directive.DirectiveSet;
 import com.nateyburr.beyondthestars.machines.eye.EyeRecipe;
 import com.nateyburr.beyondthestars.machines.eye.field.CollapseOverlay;
+import com.nateyburr.beyondthestars.machines.eye.field.EyeTrimRule;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldReadout;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldRig;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldRng;
@@ -1492,6 +1494,154 @@ public final class EyeStarRuntime {
     /** Debug {@code transition abort}: as a wrench would. */
     public void debugAbort() {
         if (trans != null) extinguish("aborted on the bench");
+    }
+
+    // ============================================================================ automation
+
+    /**
+     * AUTOMATION PASS: the Directive Hatch code of an Eye output set (docs/automation.md; {@link DirectiveSet}), from
+     * the last solved second (the 1 s sensor lag the prototype's rigs see). {@code w} is the hatch's window: the
+     * gauge band ±w of the Trims set.
+     */
+    public int directiveCode(DirectiveSet set, double w) {
+        switch (set) {
+            case EYE_TRIMS:
+                return burning() && fs != null ? EyeTrimRule.trimBits(trimTable(), fs.prevE, fs.prevWarn, w) : 0;
+            case EYE_STATUS: {
+                int c = 0;
+                if (buffersShort()) c |= 1;
+                if (chargeWanted()) c |= 2;
+                if (extraWanted(w)) c |= 4;
+                if (alarm()) c |= 8;
+                return c;
+            }
+            case EYE_TRANSITION: {
+                int c = 0;
+                if (transitionReady()) c |= 1;
+                if (trans != null || state == StarState.PENDING) c |= 2;
+                if (coreWanted()) c |= 4;
+                if ((state == StarState.DARK || state == StarState.IDLE) && !waitReason.isEmpty()) c |= 8;
+                return c;
+            }
+            default:
+                return 0;
+        }
+    }
+
+    /** The Trims set's bit names on the star burning now (its trim table), else the set's defaults. */
+    public String directiveBitLabel(DirectiveSet set, int i) {
+        if (set == DirectiveSet.EYE_TRIMS && fs != null && star != null) {
+            return EyeTrimRule.label(trimTable(), i);
+        }
+        if (set == DirectiveSet.EYE_STATUS && i == 2 && fs != null && star != null) {
+            final TierParams t = trimTable();
+            if (t.trims()
+                .size() > 4) {
+                return t.trims()
+                    .get(4).kind.displayName + " wanted / event warned";
+            }
+            if (t.n == 3) return "Helium flash warned (more Super Coolant)";
+        }
+        return set.bit(i);
+    }
+
+    /** The trim table in force: a transition's own (Shell Ignition drains by T3's), else the star's. */
+    private TierParams trimTable() {
+        return trans != null ? trans.trimTable(fs.tier) : fs.tier;
+    }
+
+    /**
+     * Status bit 1: the buffers cannot pay the next cycle's upkeep (or this cycle ran short, r below 1), a dark Eye's
+     * ignition (10 cycles and the seed cloud), a waiting Sirius B batch or the magnetar's dwarf-matter top-up.
+     */
+    public boolean buffersShort() {
+        if (live() && star != null) {
+            if (cycR < 1 - 1e-9) return true;
+            final int p = Math.max(1, cycP > 0 ? cycP : parallel(star.n()));
+            for (EyeRecipe.FluidAmount up : star.upkeep) if (host.buffer(up.fluid) < up.amount * p) return true;
+            if (star.feed != null
+                && host.buffer(star.feed) < (long) Math.ceil(feedSet * StellarField.CYCLE_SECONDS * p)) return true;
+            if (star.tier.shield && dwarfReserve <= TOPUP_AT) {
+                final Fluid wdm = wdmFluid(), bdm = bdmFluid();
+                if (wdm != null && host.buffer(wdm) < TOPUP_WDM * p) return true;
+                if (bdm != null && host.buffer(bdm) < TOPUP_BDM * p) return true;
+            }
+            return false;
+        }
+        final StarDef want = StarDef.byChart(host.target());
+        if (want == null) return false;
+        if (want.n() == 5) {
+            final Fluid wdm = wdmFluid();
+            return wdm != null && host.buffer(wdm) < BATCH_WDM * Math.max(1, parallel(5));
+        }
+        final StarDef def = ignitable(want);
+        if (def == null || def.n() > host.installedTier()) return false;
+        for (Map.Entry<Fluid, Long> need : ignitionNeeds(def, Math.max(1, parallel(def.n()))).entrySet()) {
+            if (host.buffer(need.getKey()) < need.getValue()) return true;
+        }
+        return false;
+    }
+
+    /** The star a dark Eye lights from a Stellar Ignition Charge for this chart (T4 relights Arcturus), or null. */
+    private StarDef ignitable(StarDef want) {
+        if (want == null) return null;
+        if (want.tier.ignite) return want;
+        if (want.n() == 4 && unlockedTier >= 4) {
+            final StarDef progenitor = StarDef.ofTier(3);
+            return progenitor != null && progenitor.tier.ignite ? progenitor : null;
+        }
+        return null;
+    }
+
+    /** Status bit 2: a dark Eye would light its chart's star now but no Stellar Ignition Charge is in a plinth bus. */
+    public boolean chargeWanted() {
+        if (state != StarState.DARK) return false;
+        final StarDef def = ignitable(StarDef.byChart(host.target()));
+        return def != null && def.n() <= host.installedTier() && !host.takeIgnitionCharge(true);
+    }
+
+    /** Status bit 3: the fifth trim is wanted (T6: the Agent; merger thresholds during the merger), else a warning. */
+    public boolean extraWanted(double w) {
+        if (!burning() || fs == null) return false;
+        if (trans instanceof MagnetarMerger) {
+            final MagnetarMerger mm = (MagnetarMerger) trans;
+            final double e = fs.prevE[StellarField.PI];
+            return mm.phase == 1 ? e > 75 : e > 30;
+        }
+        return EyeTrimRule.extra(trimTable(), fs.prevE, fs.prevWarn, w);
+    }
+
+    /** Status bit 4: the Eye is not formed, or the burning star is Critical or worse, or its Integrity is below 50. */
+    public boolean alarm() {
+        if (!host.formed()) return true;
+        if (!burning() || fs == null) return false;
+        return (lastOut != null && lastOut.zone >= 3) || fs.I < 50;
+    }
+
+    /**
+     * Transition bit 1: everything the next transition needs is in place but the chart; loading the next tier's chart
+     * (into the controller slot, or a plinth input bus) begins it.
+     */
+    public boolean transitionReady() {
+        if (trans != null || state == StarState.PENDING) return false;
+        final int from = star != null && live() ? star.n() : unlockedTier;
+        if (EyeTransition.Type.leaving(from) == null) return false;
+        final StarDef want = StarDef.byChart(host.target());
+        if (want != null && want.n() == from + 1) return false;
+        return missing(from).isEmpty();
+    }
+
+    /** Transition bit 3: this tier's milestones are met and the next core is not in escrow yet. */
+    public boolean coreWanted() {
+        final Item need = coreFor(unlockedTier);
+        if (need == null || !milestones.met(unlockedTier)) return false;
+        return escrow == null || escrow.getItem() != need;
+    }
+
+    /** AUTOMATION: the last-event line (the plinth-bus chart and core pickups). */
+    public void noteEvent(String line) {
+        lastEvent = line;
+        host.markDirty();
     }
 
     // ================================================================================ escrow
