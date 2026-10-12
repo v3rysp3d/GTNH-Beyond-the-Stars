@@ -185,6 +185,11 @@ public class CommandBTSQuests extends CommandBase {
             tell(
                 sender,
                 OK + "Everything is in place. Not seeing it? The book redraws on a resync: /bq_user refresh, or reopen it.");
+            if (!s.skipped.isEmpty()) tell(
+                sender,
+                WARN + ""
+                    + s.skipped.size()
+                    + " pack edit(s) did not apply because the pack's quest changed; those quests stay as the pack wrote them.");
         } else {
             tell(
                 sender,

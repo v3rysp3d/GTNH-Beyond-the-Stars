@@ -46,6 +46,8 @@ final class QuestbookState {
         final Map<UUID, NBTTagCompound> entries = new LinkedHashMap<>();
         /** The quest as the edit left it. */
         NBTTagCompound applied;
+        /** Its chapter entries as the edit left them (a default load puts moved quests back). */
+        final Map<UUID, NBTTagCompound> appliedEntries = new LinkedHashMap<>();
     }
 
     String bundleVersion = "";
@@ -84,11 +86,8 @@ final class QuestbookState {
             a.quest = BQBridge.readId(e, "questID");
             a.original = e.getCompoundTag("original");
             a.applied = e.getCompoundTag("applied");
-            final NBTTagList list = e.getTagList("entries", 10);
-            for (int i = 0; i < list.tagCount(); i++) {
-                final NBTTagCompound en = list.getCompoundTagAt(i);
-                a.entries.put(BQBridge.readId(en, "questLineID"), en.getCompoundTag("entry"));
-            }
+            readEntries(e.getTagList("entries", 10), a.entries);
+            readEntries(e.getTagList("appliedEntries", 10), a.appliedEntries);
             if (a.quest != null) s.edits.put((String) key, a);
         }
         for (final int low : root.getIntArray("placeholders")) s.placeholders.add((long) low);
@@ -121,14 +120,8 @@ final class QuestbookState {
             BQBridge.writeId(c, "questID", a.quest);
             c.setTag("original", a.original);
             c.setTag("applied", a.applied == null ? new NBTTagCompound() : a.applied);
-            final NBTTagList list = new NBTTagList();
-            for (final Map.Entry<UUID, NBTTagCompound> en : a.entries.entrySet()) {
-                final NBTTagCompound row = new NBTTagCompound();
-                BQBridge.writeId(row, "questLineID", en.getKey());
-                row.setTag("entry", en.getValue());
-                list.appendTag(row);
-            }
-            c.setTag("entries", list);
+            c.setTag("entries", writeEntries(a.entries));
+            c.setTag("appliedEntries", writeEntries(a.appliedEntries));
             edits.setTag(e.getKey(), c);
         }
         root.setTag("edits", edits);
@@ -150,6 +143,24 @@ final class QuestbookState {
         }
         root.setTag("misses", misses);
         writeNbt(file(worldDir), root);
+    }
+
+    private static void readEntries(NBTTagList list, Map<UUID, NBTTagCompound> into) {
+        for (int i = 0; i < list.tagCount(); i++) {
+            final NBTTagCompound en = list.getCompoundTagAt(i);
+            into.put(BQBridge.readId(en, "questLineID"), en.getCompoundTag("entry"));
+        }
+    }
+
+    private static NBTTagList writeEntries(Map<UUID, NBTTagCompound> entries) {
+        final NBTTagList list = new NBTTagList();
+        for (final Map.Entry<UUID, NBTTagCompound> en : entries.entrySet()) {
+            final NBTTagCompound row = new NBTTagCompound();
+            BQBridge.writeId(row, "questLineID", en.getKey());
+            row.setTag("entry", en.getValue());
+            list.appendTag(row);
+        }
+        return list;
     }
 
     // ------------------------------------------------------------ progress backup

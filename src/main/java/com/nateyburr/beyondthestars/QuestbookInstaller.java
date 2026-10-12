@@ -145,7 +145,7 @@ final class QuestbookInstaller {
             return;
         }
         if (!r.changed) {
-            BeyondTheStars.LOG.info("Questbook: up to date (" + r.summary() + ").");
+            BeyondTheStars.LOG.info("Questbook: " + r.summary() + ".");
             return;
         }
         BeyondTheStars.LOG.info("Questbook: " + r.summary() + ".");
@@ -336,12 +336,20 @@ final class QuestbookInstaller {
             final boolean wanted = q.onlyWithout == null || !state.edits.containsKey(q.onlyWithout);
             if (wanted != questMap.containsKey(q.id)) return false;
         }
-        for (final QuestbookState.Applied a : state.edits.values()) {
-            final Object live = questMap.get(a.quest);
-            if (live == null || !BQBridge.questNbt(live)
-                .equals(a.applied)) return false;
-        }
+        for (final QuestbookState.Applied a : state.edits.values()) if (!asApplied(a, questMap, lineMap)) return false;
         return true;
+    }
+
+    /**
+     * True when an applied edit's quest is still exactly as we left it: its definition AND its
+     * chapter entries (a /bq_admin default load with our mirror merged keeps the definition of a
+     * move-only edit but puts the quest back in its pack chapter).
+     */
+    static boolean asApplied(QuestbookState.Applied a, Map<UUID, Object> questMap, Map<UUID, Object> lineMap)
+        throws Exception {
+        final Object live = questMap.get(a.quest);
+        return live != null && BQBridge.questNbt(live)
+            .equals(a.applied) && liveEntries(a.quest, lineMap).equals(a.appliedEntries);
     }
 
     // ===================================================================== the engine
@@ -658,12 +666,14 @@ final class QuestbookInstaller {
                 misses.add("its task list changed although its progress policy is 'keep'; task progress was reset");
         }
         BQBridge.removeFromAllLines(e.quest);
+        final Map<UUID, NBTTagCompound> placed = new LinkedHashMap<>();
         for (final Map.Entry<UUID, NBTTagCompound> en : entries.entrySet()) {
             final Object line = lineMap.get(en.getKey());
             if (line == null) {
                 misses.add("chapter " + BQBridge.label(en.getKey()) + " is missing; that entry was dropped");
                 continue;
             }
+            placed.put(en.getKey(), BQBridge.entryNbt(BQBridge.newEntry(en.getValue())));
             BQBridge.entries(line)
                 .put(e.quest, BQBridge.newEntry(en.getValue()));
         }
@@ -673,6 +683,7 @@ final class QuestbookInstaller {
         a.original = p.original;
         a.entries.putAll(p.entries);
         a.applied = after;
+        a.appliedEntries.putAll(placed);
         state.edits.put(e.id, a);
         if (!misses.isEmpty()) report.misses.put(e.id, misses);
         report.editsApplied++;
@@ -1067,10 +1078,9 @@ final class QuestbookInstaller {
             s.editsTotal = BTSQuestIds.PACK_EDITS.length;
             for (final Map.Entry<String, QuestbookState.Applied> e : state.edits.entrySet()) {
                 s.editsApplied++;
-                final Object live = questMap.get(e.getValue().quest);
-                if (live == null || !BQBridge.questNbt(live)
-                    .equals(e.getValue().applied)) s.editsChanged.add(e.getKey());
+                if (!asApplied(e.getValue(), questMap, lineMap)) s.editsChanged.add(e.getKey());
             }
+            java.util.Collections.sort(s.editsChanged);
             s.skipped.putAll(state.skipped);
             for (final String why : state.disabled.values()) s.disabled.merge(why, 1, Integer::sum);
             s.misses.putAll(state.misses);
