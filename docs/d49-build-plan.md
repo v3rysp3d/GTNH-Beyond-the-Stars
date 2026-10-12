@@ -683,9 +683,9 @@ output bus.
 |---|---|---|---|---|---|---|
 | SL-E02 | Galactic Upgrade Core | (unchanged) | (unchanged) | HSM 32,000; SpaceTime 147,456; TranscendentMetal 147,456 | UMV×4 | 48,000 |
 | SL-E03 | Stellar Mass Core | Stellar Ignition Charge | Beam Band Casing ×32, Field_Generator_UMV ×16, circuit UMV ×32, plateDense SpaceTime ×16, Emitter_UMV ×8, Stellar Ignition Charge ×16 | **RSPM 256,000**; SpaceTime 36,864; Infinity 73,728 | UMV | 24,000 |
-| SL-E04 | Shell-Burning Core | Stellar Mass Core | Jet Crescent Casing ×32, Field_Generator_UMV ×24, circuit UMV ×48, Ergosphere Field Coil ×16, plateDense SpaceTime ×24, Emitter_UMV ×12 | **ESPM 128,000**; SpaceTime 73,728; TranscendentMetal 73,728 | UMV×2 | 36,000 |
-| SL-E05 | Subspace Cooling Core | Galactic Upgrade Core | Galactic Shell Plating ×64, Field_Generator_UXV ×16, circuit UXV ×16, Casimir Plate ×32, plateDense SpaceTime ×48, Sensor_UXV ×8 | **WDM 147,456 + DSSF 256,000**; SpaceTime 147,456 | UXV | 48,000 |
-| SL-E06 | Magnetar Seed Core | Subspace Cooling Core | Galactic Shell Plating ×64, Field_Generator_UXV ×32, circuit UXV ×32, Bastion Plate ×32, plateDense SpaceTime ×64, Emitter_UXV ×16 | **BDM 36,864 + Agent 64,000**; SpaceTime 294,912 | UXV×2 | 60,000 |
+| SL-E04 | Shell-Burning Core | Star Chart: Arcturus (was the Stellar Mass Core, B-62) | Jet Crescent Casing ×32, Field_Generator_UMV ×24, circuit UMV ×48, Ergosphere Field Coil ×16, plateDense SpaceTime ×24, Emitter_UMV ×12 | **ESPM 128,000**; SpaceTime 73,728; TranscendentMetal 73,728 | UMV×2 | 36,000 |
+| SL-E05 | Subspace Cooling Core | Star Chart: Sirius B (was the Galactic Upgrade Core, B-62) | Galactic Shell Plating ×64, Field_Generator_UXV ×16, circuit UXV ×16, Casimir Plate ×32, plateDense SpaceTime ×48, Sensor_UXV ×8 | **WDM 147,456 + DSSF 256,000**; SpaceTime 147,456 | UXV | 48,000 |
+| SL-E06 | Magnetar Seed Core | Star Chart: SGR 1806-20 (was the Subspace Cooling Core, B-62) | Galactic Shell Plating ×64, Field_Generator_UXV ×32, circuit UXV ×32, Bastion Plate ×32, plateDense SpaceTime ×64, Emitter_UXV ×16 | **BDM 36,864 + Agent 64,000**; SpaceTime 294,912 | UXV×2 | 60,000 |
 | SL-E07 | Stellar Field Sensor Hatch | — (Assembler) | Hull_UMV ×1, Sensor_UMV ×2, circuit UMV ×2, plate SpaceTime ×4 | SpaceTime 576 | UMV | 400 |
 
 ### 10.3 Charts and parts: `BTSRecipesSingularity.java`

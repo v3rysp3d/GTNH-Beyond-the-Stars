@@ -128,9 +128,13 @@ public final class BTSRecipesEye {
     /**
      * SL-E03..SL-E06: the escrowed transition cores (d49-build-plan.md §8, §10.2). Assembly lines in the
      * SL-E02 pattern; each one's gating fluid is the product of the tier it leaves (RSPM, ESPM, WDM, BDM),
-     * so a core can never be made before its tier runs. Each core researches from the one before it
-     * (the Galactic Upgrade Core sits between E04 and E05), and every research item is unique to this
-     * mod, so the scanner never writes the wrong recipe.
+     * so a core can never be made before its tier runs. GT's Scanner CONSUMES the research item, so
+     * the research items are cheap and unique to this mod (D-49 review: E04-E06 used to research from
+     * the previous core, which made the player build each of those cores twice): E03 the Stellar
+     * Ignition Charge, E04 Star Chart: Arcturus (SL-P24, made from ESPM), E05 Star Chart: Sirius B
+     * (SL-P35, from WDM) and E06 Star Chart: SGR 1806-20 (SL-P37, from BDM) - each the chart of the
+     * star the core's transition makes, made from the product of the tier it leaves. None is a research
+     * item anywhere else, so the scanner never writes the wrong recipe.
      */
     private static void lifecycleCores() {
         // SL-E03 Stellar Mass Core (T1 -> T2, Mass Infusion). RSPM 256,000 L = about 5 min of Sol.
@@ -160,7 +164,7 @@ public final class BTSRecipesEye {
         BTSRecipeGuard.recipe(
             "SL-E04",
             () -> GTValues.RA.stdBuilder()
-                .metadata(RESEARCH_ITEM, BTSRecipeGuard.stack(SLItems.stellarMassCore, 1))
+                .metadata(RESEARCH_ITEM, BTSRecipeGuard.stack(SLItems.starChartArcturus, 1))
                 .metadata(SCANNING, new Scanning(6 * MINUTES, TierEU.RECIPE_UMV))
                 .itemInputs(
                     items(
@@ -184,7 +188,7 @@ public final class BTSRecipesEye {
         BTSRecipeGuard.recipe(
             "SL-E05",
             () -> GTValues.RA.stdBuilder()
-                .metadata(RESEARCH_ITEM, BTSRecipeGuard.stack(SLItems.galacticUpgradeCore, 1))
+                .metadata(RESEARCH_ITEM, BTSRecipeGuard.stack(SLItems.starChartSiriusB, 1))
                 .metadata(SCANNING, new Scanning(8 * MINUTES, TierEU.RECIPE_UXV))
                 .itemInputs(
                     items(
@@ -209,7 +213,7 @@ public final class BTSRecipesEye {
         BTSRecipeGuard.recipe(
             "SL-E06",
             () -> GTValues.RA.stdBuilder()
-                .metadata(RESEARCH_ITEM, BTSRecipeGuard.stack(SLItems.subspaceCoolingCore, 1))
+                .metadata(RESEARCH_ITEM, BTSRecipeGuard.stack(SLItems.starChartMagnetar, 1))
                 .metadata(SCANNING, new Scanning(10 * MINUTES, TierEU.RECIPE_UXV))
                 .itemInputs(
                     items(
