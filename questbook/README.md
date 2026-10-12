@@ -433,11 +433,16 @@ pack's folder is file-MERGED and never emptied, so a stem that drifted would lea
 
 ## ⚠ Merge rule: NEVER delete a pack line's folder
 
-Our own line (`BeyondTheStars-*`) may be clean-replaced — delete the instance folder
-first, then copy, so renamed quests leave no stale files behind.
+Our own line (`BeyondTheStars-AAAAAAAAAL4AAAAAAAC7dg==`) may be clean-replaced — delete the
+instance folder first, then copy, so renamed quests leave no stale files behind.
 
-The same holds for the ladder's three chapters of ours (`Tier13UXV-*`, `Tier14MAX-*`,
-`TheEndgame-*`): clean-replace. The pack lines we graft into (`HowtoGeneratePow-*`,
+The same holds for the ladder's three chapters of ours, and ONLY these exact folder names:
+`Tier13UXV-AAAAAAAAAL4AAAAAAAC7dw==`, `Tier14MAX-AAAAAAAAAL4AAAAAAAC7eA==` and
+`TheEndgame-AAAAAAAAAL4AAAAAAAC7eQ==`: clean-replace. Never match them by wildcard
+(`Tier13UXV-*`): a future pack that ships its own `Tier 13 - UXV` or `Tier 14 - MAX` chapter
+gets a folder with the same name stem and a different suffix, and that folder is the pack's.
+Every folder of ours ends in a suffix starting `AAAAAAAAAL4` (questIDHigh 190); nothing else
+is ours. The pack lines we graft into (`HowtoGeneratePow-*`,
 `Tier11UIV-*`, `Tier12UMV-*`) are file-merged only.
 
 The pack line (`HowtoGeneratePow-*`) must be **file-merged only**: copy our
@@ -451,9 +456,12 @@ For reference, a healthy 2.9.0-beta-1 `HowtoGeneratePow-…` holds **169** place
 
 ## Merge into an instance
 
-1. DELETE any existing `BeyondTheStars-*`, `Tier13UXV-*`, `Tier14MAX-*` and `TheEndgame-*`
-   folders under the instance's `DefaultQuests/QuestLines/` and `DefaultQuests/Quests/`
-   first — renamed quests leave stale files behind.
+1. DELETE exactly these four folders, if present, under the instance's
+   `DefaultQuests/QuestLines/` and `DefaultQuests/Quests/` first (renamed quests leave stale
+   files behind): `BeyondTheStars-AAAAAAAAAL4AAAAAAAC7dg==`, `Tier13UXV-AAAAAAAAAL4AAAAAAAC7dw==`,
+   `Tier14MAX-AAAAAAAAAL4AAAAAAAC7eA==`, `TheEndgame-AAAAAAAAAL4AAAAAAAC7eQ==`. Match the whole
+   name, never a wildcard: a pack folder such as `Tier13UXV-<pack id>` (a future pack's own UXV
+   chapter) is NOT ours and must not be touched. Only suffixes starting `AAAAAAAAAL4` are ours.
 2. Copy those four chapter folders from `DefaultQuests/QuestLines/` into
    `<instance>/.minecraft/config/betterquesting/DefaultQuests/QuestLines/`
 3. Copy the same four from `DefaultQuests/Quests/` into
