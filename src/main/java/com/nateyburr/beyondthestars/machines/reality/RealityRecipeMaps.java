@@ -5,8 +5,12 @@ import java.util.Collections;
 
 import javax.annotation.Nonnull;
 
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
+import com.nateyburr.beyondthestars.machines.BTSMachines;
+
+import codechicken.nei.recipe.HandlerInfo;
 import gregtech.api.enums.GTValues;
 import gregtech.api.recipe.RecipeMap;
 import gregtech.api.recipe.RecipeMapBackend;
@@ -36,6 +40,14 @@ public final class RealityRecipeMaps {
 
     private RealityRecipeMaps() {}
 
+    /**
+     * The NEI tab shows the machine's controller (read when NEI builds its handlers, after the controllers exist).
+     * H/R unit 3.
+     */
+    private static HandlerInfo.Builder withController(HandlerInfo.Builder builder, ItemStack controller) {
+        return controller == null ? builder : builder.setDisplayStack(controller.copy());
+    }
+
     /** SL-H06 / H11 / H21: the Homogeny's mixes. Special value = minimum Homogeny tier (1..3). */
     public static final RecipeMap<RecipeMapBackend> HOMOGENY = RecipeMapBuilder.of("beyondthestars.recipe.homogeny")
         .maxIO(0, 0, 3, 1)
@@ -44,6 +56,7 @@ public final class RealityRecipeMaps {
             info -> Arrays.asList(
                 "Homogeny tier " + Math.max(1, info.recipe.mSpecialValue) + "+",
                 "No overclock: EU/t x parallels"))
+        .neiHandlerInfo(builder -> withController(builder, BTSMachines.homogeny))
         .build();
 
     /** SL-R03: Entanglement Medium + six anchors -> the six Entangled Regions, into the BEC network. */
@@ -56,6 +69,7 @@ public final class RealityRecipeMaps {
                 "Anchors: each in its own Region Anchor socket",
                 "An unanchored region yields nothing",
                 "Outputs go into the BEC network"))
+        .neiHandlerInfo(builder -> withController(builder, BTSMachines.realityDiffraction))
         .build();
 
     /** SL-R04 / R05: nanite-tier items + the six regions (drawn from the BEC network) -> one item. */
@@ -82,5 +96,6 @@ public final class RealityRecipeMaps {
         })
         .neiSpecialInfoFormatter(
             info -> Collections.singletonList("Regions drawn from the BEC network; nanites borrowed"))
+        .neiHandlerInfo(builder -> withController(builder, BTSMachines.realityRefab))
         .build();
 }
