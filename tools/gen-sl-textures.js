@@ -45,6 +45,8 @@
  *   OVERLAY_FRONT_KERR_ENGINE_GLOW.png
  *   OVERLAY_FRONT_KERR_ENGINE_ACTIVE.png          + .png.mcmeta  (8 frames)
  *   OVERLAY_FRONT_KERR_ENGINE_ACTIVE_GLOW.png     + .png.mcmeta  (8 frames)
+ *   OVERLAY_FRONT_KERR_COMPRESSOR.png            (+ _GLOW; _ACTIVE / _ACTIVE_GLOW + .png.mcmeta, 8 frames)  Kerr redesign
+ *   OVERLAY_FRONT_KERR_EXTRACTOR.png             (+ _GLOW; _ACTIVE / _ACTIVE_GLOW + .png.mcmeta, 8 frames)  Kerr redesign
  *   OVERLAY_FRONT_EYE_OF_HARMONY.png
  *   OVERLAY_FRONT_EYE_OF_HARMONY_GLOW.png
  *   OVERLAY_FRONT_EYE_OF_HARMONY_ACTIVE.png       + .png.mcmeta  (8 frames)
@@ -866,6 +868,36 @@ function kerrOverlay(frame, active, glowOnly) {
   }));
   return cv;
 }
+// Kerr module controllers (Kerr redesign): the KEE's family — dark corner brackets (K), a small black hole (photon
+// ring r, void v) — with four arrows: pointing IN for the compressor, OUT for the extractor. Active = brighter purples
+// and a hot pixel running along every arrow in its direction of travel.
+function moduleOverlay(kind, frame, active, glowOnly) {
+  const cv = new Canvas();
+  const put = new Map(); // "x,y" -> colour
+  const rot = ([x, y], k) => { for (let i = 0; i < k; i++) [x, y] = [15 - y, x]; return [x, y]; };
+  // corner brackets
+  if (!glowOnly) for (const [x, y] of [[0, 0], [1, 0], [2, 0], [0, 1], [0, 2]]) for (let k = 0; k < 4; k++) put.set(rot([x, y], k).join(','), BHC.k2);
+  // the core: a photon ring around a void, radius ~2
+  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
+    const r = Math.hypot(x - 7.5, y - 7.5);
+    if (r < 1.3) { if (!glowOnly) put.set(x + ',' + y, BHC.void); } else if (r < 2.3) put.set(x + ',' + y, active ? BHC.pHi : BHC.pDeep);
+  }
+  // one arrow, drawn for the TOP edge, then turned to the other three. Rows from the edge inward.
+  const inward = kind === 'compressor';
+  const arrow = inward
+    ? [[[7, 1], [8, 1]], [[7, 2], [8, 2]], [[5, 3], [6, 3], [7, 3], [8, 3], [9, 3], [10, 3]], [[6, 4], [7, 4], [8, 4], [9, 4]]]
+    : [[[7, 1], [8, 1]], [[6, 2], [7, 2], [8, 2], [9, 2]], [[5, 3], [6, 3], [7, 3], [8, 3], [9, 3], [10, 3]], [[7, 4], [8, 4]]];
+  if (!inward) arrow.reverse(); // index 0 = nearest the core, so the hot pixel travels outward
+  const base = active ? BHC.pMid : hex(0x5a1a72);
+  const hotRow = Math.floor((frame / FR) * arrow.length * 2) % (arrow.length * 2); // half the loop is dark
+  arrow.forEach((row, i) => {
+    const hot = active && hotRow === i;
+    const col = hot ? hex(0xf0c0ff) : active && hotRow === i - 1 ? hex(0xc070e8) : base;
+    for (const cell of row) for (let k = 0; k < 4; k++) put.set(rot(cell, k).join(','), col);
+  });
+  for (const [key, col] of put) { const [x, y] = key.split(',').map(Number); cv.set(x, y, col); }
+  return cv;
+}
 // Eye: TecTech EM_CONTROLLER-style blue-framed screen holding an eye; active = the iris turns.
 function eyeOverlay(frame, active, glowOnly) {
   const cv = new Canvas();
@@ -947,6 +979,13 @@ OUT.push({ rel: 'blocks/iconsets/OVERLAY_FRONT_KERR_ENGINE.png', canvas: kerrOve
 OUT.push({ rel: 'blocks/iconsets/OVERLAY_FRONT_KERR_ENGINE_GLOW.png', canvas: kerrOverlay(0, false, true) });
 anim('blocks/iconsets/OVERLAY_FRONT_KERR_ENGINE_ACTIVE.png', [...Array(FR).keys()].map((f) => kerrOverlay(f, true, false)), 3);
 anim('blocks/iconsets/OVERLAY_FRONT_KERR_ENGINE_ACTIVE_GLOW.png', [...Array(FR).keys()].map((f) => kerrOverlay(f, true, true)), 3);
+for (const kind of ['compressor', 'extractor']) {
+  const N = 'blocks/iconsets/OVERLAY_FRONT_KERR_' + kind.toUpperCase();
+  OUT.push({ rel: N + '.png', canvas: moduleOverlay(kind, 0, false, false) });
+  OUT.push({ rel: N + '_GLOW.png', canvas: moduleOverlay(kind, 0, false, true) });
+  anim(N + '_ACTIVE.png', [...Array(FR).keys()].map((f) => moduleOverlay(kind, f, true, false)), 3);
+  anim(N + '_ACTIVE_GLOW.png', [...Array(FR).keys()].map((f) => moduleOverlay(kind, f, true, true)), 3);
+}
 OUT.push({ rel: 'blocks/iconsets/OVERLAY_FRONT_EYE_OF_HARMONY.png', canvas: eyeOverlay(0, false, false) });
 OUT.push({ rel: 'blocks/iconsets/OVERLAY_FRONT_EYE_OF_HARMONY_GLOW.png', canvas: eyeOverlay(0, false, true) });
 anim('blocks/iconsets/OVERLAY_FRONT_EYE_OF_HARMONY_ACTIVE.png', [...Array(FR).keys()].map((f) => eyeOverlay(f, true, false)), 4);
