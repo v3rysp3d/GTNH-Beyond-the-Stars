@@ -254,6 +254,9 @@ public final class SLConsoleTest {
      */
     public static List<String> firstErrors(MTEMultiBlockBase machine, IGregTechTileEntity base, int max) {
         final List<StructureError> errors = new ArrayList<>();
+        // as GT's checkStructure does: without the clear, the walk re-adds every hatch to lists that already hold it,
+        // and a hatch-count check (the Cascade Hall's two output hatches) passes on the doubled list
+        machine.clearHatches();
         machine.checkMachine(base, null, errors);
         final List<String> out = new ArrayList<>();
         for (int i = 0; i < errors.size() && i < max; i++) {
