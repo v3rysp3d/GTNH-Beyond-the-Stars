@@ -941,6 +941,49 @@ clean version.
 
 ---
 
+### B-34 D-49: the field engine follows the prototype; the Agent-feed ruling lands in the star table, not the maths [D-49 unit 1]
+
+**Context.** Unit 1 of the D-49 build plan ported the stability field to pure Java (`machines/eye/field/`) and added
+the offline golden test: `node tools/fieldsim-golden.js --java` runs the prototype's own engine block (fixture
+`tools/fixtures/star-lifecycle-engine.js`, sha1-pinned to `designs/star-lifecycle-prototype.html`) and the Java on
+78 scripted cases. All 78 match bit for bit: every count, every ledger total, the final state and a per-second hash.
+Three deliberate one-line mutations of the Java each fail 6-39 cases, so the test is not vacuous. Nothing in the
+game uses the engine yet (units 4-5).
+
+**Judgement calls.**
+
+1. **Your answer "the Antipolarization Agent is the magnetar's constant feed" does not change the field maths.** In
+   the engine, T6's feed push (P −4+5r, Θ −0.5+3r, Ω r) depends only on the upkeep fraction r, whatever the upkeep
+   fluid is. So if unit 4 makes the Agent the T6 upkeep, a short Agent supply sags the magnetar exactly as a short
+   WDM + BDM supply did in the prototype. The engine and the golden file stay as the prototype has them. The Agent
+   **trim** (the flare shield, A +4 per unit) also stays.
+   - *Suggestion:* unit 4 sets the T6 upkeep per cycle to Agent only. WDM + BDM become the merger charge, and the
+     re-merge after a loss is your "tops it up". The Field-socket Agent trim stays as the flare response, so a
+     player pipes Agent to two places: bulk upkeep and the trim valve.
+   - *Alternative:* the constant feed also charges the shield. That is a maths change: update the prototype first,
+     refresh the fixture, and regenerate the golden file.
+2. **Plan §15.1's "T4 at m = 2.25 with tt = 6" cannot happen.** At T4, Time Acceleration tier 6 caps the dial at
+   1 + 0.25·(6 − 4) = 1.5. The golden cases use tt = 9, which allows 2.25, with ts = 1 and ts = 9.
+3. **The event clock is fractional.** The prototype schedules the next event at `t + uni(every)/m`, so plan §3.3's
+   `ev.next` must be saved as a double, not a long. The field state notes this for unit 4.
+4. **`light()` no longer starts the T5 batch itself.** The prototype's `light()` always starts it. In the mod, the
+   runtime calls `startBatch` only when a WDM charge is buffered, and otherwise goes IDLE (plan §7.5).
+5. **A missing 5,000 L HSM seed at the bounce is a supernova ("no neutron seed")**, as plan §7.4 says. The prototype
+   never reaches this case, because it needs the HSM before the collapse can begin, so the golden test does not
+   cover it.
+6. **The Core Collapse results at the adopted +150 shock** (seed 1806): with 0 L or 30,000 L of SpaceTime both rigs
+   go supernova, and with 60,000 L both settle. At +90 every case settles. This matches B-25's "a centred field needs
+   about 50,000 L". The golden set also runs the collapse with the bang-bang rig, which goes beyond the plan.
+7. **FieldSim's ledger uses the prototype's upkeep table** (T6: WDM 60 + BDM 15). It is a test ledger only. The mod's
+   table is unit 4's star definitions, so ruling 1 does not touch the golden file.
+
+**Suggestion.** Accept 1-7 as built. Re-run `node tools/fieldsim-golden.js --check --java` after any change to the
+prototype or to `machines/eye/field/`.
+
+**Alternatives.** For 1, see the alternative above. For 2, add a tt = 6 case at m = 1.5 as well.
+
+---
+
 ## Part C. Settled (for the record)
 
 | Topic | Your answer | State |
