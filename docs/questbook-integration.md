@@ -612,9 +612,14 @@ icons.
 > (T6)** runs on Antipolarization Agent, and then the **Quasar Engine** and the first galaxies (T7, T8). The Stargate
 > has moved to **The Endgame**, after MAX.
 >
-> [warn]**Universium now comes only from Eye T10 (MAX).** Until the UXV recipe swap ships, UXV components, the UXV
-> CoAL and the UXV Field Generator still need MHDCSM and Universium. That includes the Field Generators the T5 and T6
-> cores are built from.[/warn]
+> [warn]**Universium now comes only from Eye T10 (MAX), which is not built yet.** The Eye's T5 and T6 cores do not
+> need it: for now they are built from twice as many UMV parts, so Sirius B and the magnetar are craftable. The pack's
+> own UXV parts (UXV components, the UXV CoAL, the UXV Field Generator) still need MHDCSM and Universium, and so does
+> anything built from them, the Homogeny Tier II Core included. That stays so until the new UXV parts and circuits are
+> designed and built.[/warn]
+>
+> *(Rewritten 2026-10-13 after the merges: the T5/T6 cores take the B-72 UMV stopgap; the UXV parts and circuits
+> design is a brainstorm, brief item 22a, so D-45's part override is not built.)*
 >
 > [warn]This tier is far from complete. Expect changes.[/warn]
 

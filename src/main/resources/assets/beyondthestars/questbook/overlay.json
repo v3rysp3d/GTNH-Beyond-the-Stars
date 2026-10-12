@@ -1,12 +1,12 @@
 {
-  "bundleVersion": "9c6118d5e0e815402432e3abd85459cc92e09cfc",
+  "bundleVersion": "bd14c2901e1fd3639ad390e86c763223eda4f4a9",
   "format": 1,
   "idHigh": 190,
   "packVersion": 2171,
   "source": {
     "data": "questbook/singularity.json",
     "src": ".",
-    "srcHead": "ec9bc68 master",
+    "srcHead": "7abebfd master",
     "manifestSha": "2742379a5cf9527c7f0dc913e2052f0167289195"
   },
   "features": {
@@ -8377,7 +8377,7 @@
         },
         {
           "op": "setDesc",
-          "desc": "Welcome to UXV. In Beyond the Stars it is not the last tier: §6Tier 14 - MAX§r and §6The Endgame§r follow.\n\nWe hope you enjoy your stay, though be prepared for a lot of waiting.\n\nIn Beyond the Stars this is the Eye's second half: §bSirius B (T5)§r cools white dwarfs into black, and §bthe magnetar (T6)§r runs on Antipolarization Agent. The §bQuasar Engine§r and the first galaxies (T7, T8) come in a later update. The crafted Stargate has moved to §6The Endgame§r, after MAX.\n\n[warn]§lUniversium now comes only from Eye T10 (MAX), which is not built yet.§r Until the UXV recipe swap ships, UXV components, the UXV CoAL and the UXV Field Generator still need MHDCSM and Universium. That includes the Field Generators the T5 and T6 cores are built from.[/warn]\n\n[warn]This tier is far from complete. Expect changes.[/warn]"
+          "desc": "Welcome to UXV. In Beyond the Stars it is not the last tier: §6Tier 14 - MAX§r and §6The Endgame§r follow.\n\nWe hope you enjoy your stay, though be prepared for a lot of waiting.\n\nIn Beyond the Stars this is the Eye's second half: §bSirius B (T5)§r cools white dwarfs into black, and §bthe magnetar (T6)§r runs on Antipolarization Agent. The §bQuasar Engine§r and the first galaxies (T7, T8) come in a later update. The crafted Stargate has moved to §6The Endgame§r, after MAX.\n\n[warn]§lUniversium now comes only from Eye T10 (MAX), which is not built yet.§r The Eye's T5 and T6 cores do not need it: for now they are built from twice as many UMV parts, so Sirius B and the magnetar are craftable. The pack's own UXV parts (UXV components, the UXV CoAL, the UXV Field Generator) still need MHDCSM and Universium, and so does anything built from them, the Homogeny Tier II Core included. That stays so until the new UXV parts and circuits are designed and built.[/warn]\n\n[warn]This tier is far from complete. Expect changes.[/warn]"
         }
       ]
     },
