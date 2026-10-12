@@ -1,6 +1,7 @@
 package com.nateyburr.beyondthestars;
 
 import java.util.List;
+import java.util.UUID;
 
 import net.minecraft.block.Block;
 import net.minecraft.command.CommandBase;
@@ -17,9 +18,12 @@ import net.minecraftforge.common.util.ForgeDirection;
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.SLConsoleTest;
+import com.nateyburr.beyondthestars.machines.kerr.BlockKerrHole;
 import com.nateyburr.beyondthestars.machines.kerr.KerrKit;
 import com.nateyburr.beyondthestars.machines.kerr.KerrMigration;
+import com.nateyburr.beyondthestars.machines.kerr.KerrSlot;
 import com.nateyburr.beyondthestars.machines.kerr.MTEKerrEngine;
+import com.nateyburr.beyondthestars.machines.kerr.TileKerrHole;
 
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 
@@ -60,7 +64,7 @@ public class CommandBTSKerr extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btskerr [t1|t2] [force]  |  /btskerr migrate [x y z]  |  console: /btskerr [t1|t2] <x> <y> <z> [facing] [force] [survival] | [check]";
+        return "/btskerr [t1|t2] [force]  |  /btskerr migrate [x y z]  |  /btskerr render x y z [open [m]|close|off|on|break]  |  console: /btskerr [t1|t2] <x> <y> <z> [facing] [force] [survival] | [check]";
     }
 
     @Override
@@ -71,7 +75,7 @@ public class CommandBTSKerr extends CommandBase {
     @SuppressWarnings("rawtypes")
     @Override
     public List addTabCompletionOptions(ICommandSender sender, String[] args) {
-        if (args.length == 1) return getListOfStringsMatchingLastWord(args, "t1", "t2", "migrate");
+        if (args.length == 1) return getListOfStringsMatchingLastWord(args, "t1", "t2", "migrate", "render");
         if (args.length == 2) return getListOfStringsMatchingLastWord(args, "force");
         return null;
     }
@@ -84,6 +88,10 @@ public class CommandBTSKerr extends CommandBase {
     public void processCommand(ICommandSender sender, String[] args) {
         if (args.length > 0 && (args[0].equalsIgnoreCase("migrate") || args[0].equalsIgnoreCase("legacy"))) {
             migrate(sender, args);
+            return;
+        }
+        if (args.length >= 4 && args[0].equalsIgnoreCase("render")) {
+            render(sender, args);
             return;
         }
         final SLConsoleTest.Placement at = SLConsoleTest.parsePlacement(sender, args);
@@ -312,6 +320,119 @@ public class CommandBTSKerr extends CommandBase {
         SLConsoleTest.tell(
             sender,
             note == null ? "Kerr migration: nothing to convert (no legacy module core block in its arcs)." : note);
+    }
+
+    /**
+     * Test bench for the hole render (docs/kerr-redesign.md §5): {@code /btskerr render x y z
+     * [open [m] | close | off | on | break]} acts on the KEE controller at x y z, then reports the hole,
+     * both switches, what stands at the hole centre and every Kerr render block around x y z (an orphan
+     * shows up as a block no KEE claims). Run it again a few seconds later to see the result of an action.
+     */
+    private void render(ICommandSender sender, String[] args) {
+        final World world = sender.getEntityWorld();
+        if (world == null || world.isRemote) return;
+        final int x = (int) func_110666_a(sender, sender.getPlayerCoordinates().posX, args[1]);
+        final int y = (int) func_110666_a(sender, sender.getPlayerCoordinates().posY, args[2]);
+        final int z = (int) func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[3]);
+        final String action = args.length > 4 ? args[4].toLowerCase() : "";
+        final TileEntity te = world.getTileEntity(x, y, z);
+        final MTEKerrEngine kee = keeAt(world, x, y, z);
+        if (kee != null) {
+            switch (action) {
+                case "open":
+                    kee.debugOpenHole(args.length > 5 ? Double.parseDouble(args[5]) : 16.0);
+                    break;
+                case "close":
+                    kee.debugCloseHole();
+                    break;
+                case "off":
+                case "on":
+                    kee.setRenderEnabled(action.equals("on"));
+                    break;
+                case "break":
+                    final IGregTechTileEntity base = (IGregTechTileEntity) te;
+                    if (base.getOwnerUuid() == null) {
+                        base.setOwnerName("BTS console");
+                        base.setOwnerUuid(UUID.nameUUIDFromBytes("BTS console test".getBytes()));
+                    }
+                    try {
+                        world.setBlockToAir(x, y, z);
+                    } catch (RuntimeException ownerless) {
+                        SLConsoleTest.tell(sender, "Kerr render: GT threw while removing the controller: " + ownerless);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        final MTEKerrEngine now = keeAt(world, x, y, z);
+        if (now == null) {
+            SLConsoleTest.tell(
+                sender,
+                "Kerr render" + (action.isEmpty() ? "" : " [" + action + "]")
+                    + ": no KEE at "
+                    + x
+                    + ", "
+                    + y
+                    + ", "
+                    + z);
+        } else {
+            final int[] c = KerrSlot.worldPos(now.getExtendedFacing(), x, y, z, KerrSlot.centreRel());
+            SLConsoleTest.tell(
+                sender,
+                "Kerr render" + (action.isEmpty() ? "" : " [" + action + "]")
+                    + ": facing "
+                    + now.getExtendedFacing()
+                        .getDirection()
+                    + ", hole "
+                    + (now.isHoleOpen() ? "OPEN " + MTEKerrEngine.fmt(now.mass()) + " SM" : "closed")
+                    + ", switch "
+                    + (now.isRenderEnabled() ? "on" : "off")
+                    + ", config "
+                    + (Config.renderKerrHole ? "on" : "off")
+                    + ", centre ("
+                    + c[0]
+                    + ", "
+                    + c[1]
+                    + ", "
+                    + c[2]
+                    + ") = "
+                    + SLConsoleTest.blockAt(world, c[0], c[1], c[2])
+                    + (now.claimsRender(c[0], c[1], c[2]) ? " (claimed)" : "")
+                    + (now.getRenderNote()
+                        .isEmpty() ? "" : ", note: " + now.getRenderNote()));
+        }
+        // Every Kerr render block within the cage's reach of x y z, in loaded chunks: more than the one
+        // claimed at the centre is an orphan.
+        int found = 0;
+        final StringBuilder where = new StringBuilder();
+        for (int bx = x - 100; bx <= x + 100; bx++) {
+            for (int bz = z - 100; bz <= z + 100; bz++) {
+                if (!world.blockExists(bx, 64, bz)) continue;
+                for (int by = Math.max(0, y - 40); by <= Math.min(255, y + 40); by++) {
+                    if (world.getBlock(bx, by, bz) != BlockKerrHole.INSTANCE) continue;
+                    found++;
+                    final TileEntity t = world.getTileEntity(bx, by, bz);
+                    where.append(" (")
+                        .append(bx)
+                        .append(", ")
+                        .append(by)
+                        .append(", ")
+                        .append(bz)
+                        .append(t instanceof TileKerrHole ? " scale " + ((TileKerrHole) t).getKerrScale() : " NO TILE")
+                        .append(")");
+                }
+            }
+        }
+        SLConsoleTest.tell(sender, "Kerr render blocks within 100 of the controller: " + found + where);
+    }
+
+    private static MTEKerrEngine keeAt(World world, int x, int y, int z) {
+        final TileEntity te = world.getTileEntity(x, y, z);
+        return te instanceof IGregTechTileEntity
+            && ((IGregTechTileEntity) te).getMetaTileEntity() instanceof MTEKerrEngine
+                ? (MTEKerrEngine) ((IGregTechTileEntity) te).getMetaTileEntity()
+                : null;
     }
 
     /** Percentage of sampled cells of the piece's bounding box that are already solid. */
