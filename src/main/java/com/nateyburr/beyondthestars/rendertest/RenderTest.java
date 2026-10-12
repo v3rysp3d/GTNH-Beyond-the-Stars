@@ -726,7 +726,31 @@ public final class RenderTest {
 
     /** Live status for the log, read at the moment of a shot. */
     static String status() {
-        return serverView() + "; " + siteStatus();
+        return serverView() + "; " + siteStatus() + serverDirt();
+    }
+
+    /** Server-side block-update requests (they send the block and its tile to the watching clients), render QA P-1. */
+    private static RenderDirtTracker serverDirt;
+
+    /** What asked the server to resend a block since the last shot (then resets), or "" if nothing. */
+    private static String serverDirt() {
+        final WorldServer world = world();
+        if (serverDirt == null || serverDirt.world() != world) {
+            serverDirt = new RenderDirtTracker(world);
+            world.addWorldAccess(serverDirt);
+            return "";
+        }
+        final String top = serverDirt.top(4);
+        final String paths = serverDirt.stacks();
+        serverDirt.reset();
+        final EntityPlayerMP p = player();
+        final String sent = p == null ? "no player"
+            : PacketSpy.install(p)
+                .drain();
+        return "; server block updates since the last shot: " + top
+            + (paths.isEmpty() ? "" : "; path: " + paths)
+            + "; machine description packets sent: "
+            + sent;
     }
 
     /** The server's side of the camera (diagnostics): where it has the player, what it still owes it, chunk state. */
@@ -858,10 +882,11 @@ public final class RenderTest {
                 double[] dir = norm(new double[] { F[0], 0.35, F[2] });
                 double free = freeDistance(world, b.centre, dir, 80);
                 double want = Math.max(free * 0.55, radius * 1.9 + 1.5);
-                if (radius > 12) {
+                if (radius >= 9) {
                     // render QA E5: a big object needs the camera at 2.2 radii + 4 or the frame is one blurred
                     // texture; that is outside the Eye's inner space from the front, so climb until a clear line
-                    // (over the crown) is found, else take the clearest
+                    // (over the crown) is found, else take the clearest. Round 3 (H-1): from radius 9, not over 12,
+                    // so Sol (23.8 blocks) and Sirius A (28.2) no longer fill the frame
                     want = 2.2 * radius + 4;
                     double[] best = dir;
                     double bestFree = free;

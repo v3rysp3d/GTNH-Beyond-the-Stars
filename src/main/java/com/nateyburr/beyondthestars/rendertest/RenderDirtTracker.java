@@ -12,8 +12,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.IWorldAccess;
 import net.minecraft.world.World;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 
@@ -23,13 +21,14 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
  * the chunk-update counter busy. A block update ({@code markBlockForUpdate}: a block change or a tile asking for one)
  * and a render update ({@code markBlockForRenderUpdate}: a light change, a tile's {@code markBlockForRenderUpdate})
  * each rebuild the sections around the block; a range update comes from a chunk arriving. Only registered by
- * {@link RenderTestClient}.
+ * {@link RenderTestClient} (client world) and {@link RenderTest} (server world, dev harness only).
  */
-@SideOnly(Side.CLIENT)
 final class RenderDirtTracker implements IWorldAccess {
 
     private final World world;
     private final Map<String, Integer> counts = new HashMap<>();
+    /** The call path of the first block update per GT machine class since the last reset (render QA P-1). */
+    private final Map<String, String> stacks = new HashMap<>();
     private int total;
 
     RenderDirtTracker(World world) {
@@ -42,7 +41,20 @@ final class RenderDirtTracker implements IWorldAccess {
 
     void reset() {
         counts.clear();
+        stacks.clear();
         total = 0;
+    }
+
+    /** "class <- frame <- frame ..." for the first block update of each GT machine since the reset; "" if none. */
+    String stacks() {
+        final StringBuilder out = new StringBuilder();
+        for (Map.Entry<String, String> e : stacks.entrySet()) {
+            if (out.length() > 0) out.append(" | ");
+            out.append(e.getKey())
+                .append(" <- ")
+                .append(e.getValue());
+        }
+        return out.toString();
     }
 
     /** The busiest causes since the last reset, "n x cause block", most first; "none" if nothing. */
@@ -86,6 +98,26 @@ final class RenderDirtTracker implements IWorldAccess {
     @Override
     public void markBlockForUpdate(int x, int y, int z) {
         count("block-update", x, y, z);
+        if (y < 0 || y > 255 || !world.blockExists(x, y, z)) return;
+        if (!(world.getTileEntity(x, y, z) instanceof IGregTechTileEntity)) return;
+        final String key = what(x, y, z);
+        if (stacks.containsKey(key)) return;
+        final StringBuilder path = new StringBuilder();
+        int kept = 0;
+        for (StackTraceElement f : new Throwable().getStackTrace()) {
+            final String cls = f.getClassName();
+            if (cls.startsWith("java.") || cls.startsWith("sun.")
+                || cls.equals(RenderDirtTracker.class.getName())
+                || "markBlockForUpdate".equals(f.getMethodName()) && kept == 0) continue;
+            if (kept > 0) path.append(" <- ");
+            path.append(cls.substring(cls.lastIndexOf('.') + 1))
+                .append('.')
+                .append(f.getMethodName())
+                .append(':')
+                .append(f.getLineNumber());
+            if (++kept >= 9) break;
+        }
+        stacks.put(key, path.toString());
     }
 
     @Override

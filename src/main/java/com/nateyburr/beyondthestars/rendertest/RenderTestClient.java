@@ -213,7 +213,11 @@ public final class RenderTestClient {
         files.add(file);
         if (fps != null) fps.println(c.name + "\t" + view + "\t" + counter[0] + "\t" + counter[1] + "\t" + file);
         say("SHOT " + file + "  fps " + counter[0] + ", " + counter[1] + " chunk updates; " + clientView());
-        if (dirt != null) say("  re-render causes over the last " + stillTicks + " still ticks: " + dirt.top(6));
+        if (dirt != null) {
+            say("  re-render causes over the last " + stillTicks + " still ticks: " + dirt.top(6));
+            final String paths = dirt.stacks();
+            if (!paths.isEmpty()) say("  client call path of the first machine block update: " + paths);
+        }
         shot++;
         await(RenderTest::status, r -> {
             if (r != null && !r.toString()
