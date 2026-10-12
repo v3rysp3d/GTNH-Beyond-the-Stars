@@ -91,5 +91,7 @@ public final class BTSFluids {
         BTSFluidsPropellant.register();
         // SINGULARITY LADDER (singularity-ladder-build.md §1.1): the three stellar intermediates.
         SLFluids.register();
+        // The Homogeny and the Reality machines (homogeny-reality.md §4.4): products, regions, condensates.
+        SLRealityFluids.register();
     }
 }
