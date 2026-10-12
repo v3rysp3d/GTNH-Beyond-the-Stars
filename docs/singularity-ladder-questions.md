@@ -269,7 +269,7 @@ greyscale animated still and flowing strips. GT tints those by the registered RG
 textures for some casings (for example the mirror as a recolour of `RADIATION_ABSORBENT_CASING`). That ties them to
 GT's art, but it also ties them to GT texture changes.
 
-## Q-15 Which spec blocks became existing EOH / BHC blocks (block-reuse ruling)
+## Q-16 Which spec blocks became existing EOH / BHC blocks (block-reuse ruling)
 
 **Context.** Mid-run user ruling: "use the eye of harmony blocks that currently exist as we want to try keep
 everything similar", and prefer the Black Hole Compressor's blocks for the Kerr. The spec had 20 new block metas.
@@ -303,7 +303,7 @@ Stabiliser Pylon (SL-P21) now takes TecTech's EOH casings in their place.
 
 **Alternatives.** Keep a new "Harmonic Lining" only for the Kerr's look, at the cost of one more block.
 
-## Q-16 Assembler recipes are limited to one fluid
+## Q-17 Assembler recipes are limited to one fluid
 
 **Context.** GT's Assembler map is `maxIO(9, 1, 1, 0)`: one fluid input. Four §2.2 cards had two fluids.
 
@@ -320,7 +320,7 @@ Stabiliser Pylon (SL-P21) now takes TecTech's EOH casings in their place.
 
 **Alternatives.** Move those four to the assembly line (4 fluids), at the cost of one AL craft per batch.
 
-## Q-17 Dense SpaceTime plates may not exist in this pack
+## Q-18 Dense SpaceTime plates may not exist in this pack
 
 **Context.** No GT, TecTech or dreamcraft recipe in the pinned jars uses `plateDense` SpaceTime, so GT probably
 doesn't generate it. Dense Neutronium, Infinity and Transcendent Metal are all used by GT, so they exist.
