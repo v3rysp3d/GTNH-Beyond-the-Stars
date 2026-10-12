@@ -8,7 +8,7 @@
     "eyeD49": true,
     "agentChain": true,
     "uxvLaserIds": true,
-    "homogeny": false,
+    "homogeny": true,
     "quasar": false,
     "conduit": false,
     "crown": false,
@@ -483,13 +483,26 @@
       "low": 48118, "key": "homogeny", "chapter": "umv", "stem": "TheHomogeny", "x": 660, "y": 348, "size": 24,
       "name": "{c}{l}{n}The Homogeny", "icon": "gregtech:gt.metaitem.01:30127", "needs": ["homogeny"],
       "prereqs": ["E11"],
-      "tasks": [ { "type": "retrieval", "items": ["1x mte:28130"] } ],
+      "tasks": [
+        { "type": "retrieval", "items": ["1x mte:28130"] },
+        { "type": "fluid", "fluids": ["1000x fluid:btsexcitedstellarplasma"] }
+      ],
       "desc": [
-        "A mega mixer: a glass mixing column wrapped in a shear helix, inside a spiral volute with six feed vessels. It will turn Raw Stellar Plasma into {b}Excited Stellar Plasma Mixture at 100 : 1{r} (100,000 L {to} 1,000 L in 240 s, about 1 A UMV), with no gases, no ignition and no stability field to watch.",
+        "A mega mixer: a glass mixing column wrapped in a shear helix, inside a spiral volute with three feed vessels. It turns {b}Raw Stellar Plasma into Excited Stellar Plasma Mixture at 100 : 1{r}, with no gases, no ignition and no stability field to watch.",
         "",
-        "Its job: once your Eye moves on to Arcturus it cannot keep Sirius A lit, yet Arcturus burns 1,250 L of the mixture a cycle. About five Homogenies keep a T3 Eye fed without a second Eye.",
+        "{e}{l}BUILD{r}",
+        "- Project it from the controller at the tip of the volute's discharge throat (hologram stack 1 = T1, {bomdims:homog_t1}).",
+        "- A fluid Input Hatch on top of each Feed Vessel (3 at T1), an Output Hatch on the throat, and an Energy or Laser Hatch on the bottom cap rim. No maintenance hatch.",
         "",
-        "It does {l}not{r} skip T2: Eye T2 is still required."
+        "{e}{l}RUN{r} {b}100,000 L Raw Stellar Plasma {to} 1,000 L Excited Stellar Plasma Mixture{r} in 240 s at UMV: 1 parallel, no overclock.",
+        "",
+        "Turns stockpiled Raw Stellar Plasma into Excited Stellar Plasma Mixture unattended: no hydrogen, helium, ignition or field. It costs 100 L per 1 L, 10{times} the Raw Stellar Plasma an Eye T2 needs, so it suits banking a Sol surplus or a hands-off line, not replacing Sirius A.",
+        "",
+        "{e}{l}AUTOMATE{r} Plain GT: ME input hatches on the vessels, an ME output hatch on the throat.",
+        "",
+        "[note]It does {l}not{r} skip T2: Eye T2 is still required, and only an Eye hosting Sol makes Raw Stellar Plasma.[/note]",
+        "",
+        "{a}{l}DONE WHEN{r} you hold the Homogeny controller and 1,000 L of Excited Stellar Plasma Mixture."
       ]
     },
     {
@@ -589,11 +602,24 @@
       "low": 48142, "key": "homogeny_t2", "chapter": "uxv", "x": 228, "y": 312, "size": 24,
       "name": "{4}{l}{n}The Homogeny T2", "icon": "gregtech:gt.metaitem.01:30127", "needs": ["homogeny"],
       "prereqs": [48118, "E25"],
-      "tasks": [ { "type": "tbd", "what": "the Homogeny T2 upgrade item" } ],
+      "tasks": [
+        { "type": "retrieval", "items": ["1x beyondthestars:homogenyTier2Core"] },
+        { "type": "fluid", "fluids": ["1000x fluid:btsdegeneratestellarmixture"] }
+      ],
       "desc": [
-        "The Homogeny's second tier: a middle stirring ring and three more vessels around the same controller. It will mix at {b}4 parallels{r} (about one UXV amp) and add a new mix, {b}Degenerate Stellar Mixture{r}: 72 L White Dwarf Matter + 72 L Black Dwarf Matter + 1,000 L Excited Stellar Plasma Mixture {to} 1,000 L in 60 s.",
+        "The Homogeny's second tier: a middle stirring ring, three more feed vessels and the outer spokes around the same controller. It mixes at {b}4 parallels{r} and adds {b}Degenerate Stellar Mixture{r}: 72 L molten White Dwarf Matter + 72 L molten Black Dwarf Matter + 1,000 L Excited Stellar Plasma Mixture {to} 1,000 L in 60 s.",
         "",
-        "The upgrade: mix 100,000 L of the T1 product, then install the Homogeny Tier II Core in a 10-minute run. Degenerate Stellar Mixture is planned for the T9 pellets, the Eternity Shell Casing and the Reality machines."
+        "{e}{l}UPGRADE{r} (permanent)",
+        "- Build the stirring ring: hologram stack 2. Each new vessel takes a fluid Input Hatch on top.",
+        "- Mix {b}100,000 L{r} of Excited Stellar Plasma Mixture in this Homogeny.",
+        "- Right-click the {b}Homogeny Tier II Core{r} (Condensate Assembling) onto the controller. Sneak-punch with an empty hand returns it.",
+        "- Press Install in the GUI, or use a screwdriver: {b}10 minutes offline{r} at UXV power. A mix already running finishes first. Progress shows in the GUI and the scanner, and survives a wrench.",
+        "",
+        "Degenerate Stellar Mixture feeds the Homogeny T3, the Eternity Shell Casing and the Reality machines (Tier 14 - MAX). Three Galactic Shell cells on the stirring ring's outer face are reserved for Quasar ports, later.",
+        "",
+        "[warn]The Tier II Core takes UXV parts. The pack's UXV Field Generator still needs Universium, which only Eye T10 makes, until the UXV parts redesign is built.[/warn]",
+        "",
+        "{a}{l}DONE WHEN{r} you hold a Homogeny Tier II Core and 1,000 L of Degenerate Stellar Mixture (claim before you install the core)."
       ]
     },
     {
@@ -791,7 +817,7 @@
     },
     {
       "low": 48184, "key": "homogeny_t3", "chapter": "max", "x": 324, "y": 252, "size": 48,
-      "name": "{4}{l}{n}The Homogeny T3", "icon": "gregtech:gt.metaitem.01:30127", "needs": ["homogeny"],
+      "name": "{4}{l}{n}The Homogeny T3", "icon": "gregtech:gt.metaitem.01:30127", "needs": ["homogeny", "eyeT9T10"],
       "prereqs": [48183, 48142],
       "tasks": [ { "type": "tbd", "what": "the Homogeny T3 upgrade item" } ],
       "desc": [
