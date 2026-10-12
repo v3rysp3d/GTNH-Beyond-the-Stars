@@ -61,29 +61,29 @@ public final class KerrKit {
     /** {@code /btskit kerr}: KEE + module controllers, rails, bolts, seeds, the upgrade, hatches. */
     public static void giveKit(EntityPlayerMP player) {
         final int rails = BTSShapes.count(MTEKerrEngine.PIECE_T1, 'E');
-        give(player, copy(BTSMachines.kerrEngine));
-        give(player, copy(BTSMachines.kerrCompressorModule));
-        give(player, copy(BTSMachines.kerrExtractorModule));
-        giveMany(player, SLBlocks.casing(BlockSLCasing.INJECTOR_MK1, 1), rails);
-        give(player, new ItemStack(SLItems.kerrDensityUpgrade, 1));
-        give(player, ItemList.Black_Hole_Opener.get(2L));
-        give(player, ItemList.Black_Hole_Closer.get(1L));
+        SLConsoleTest.give(player, copy(BTSMachines.kerrEngine));
+        SLConsoleTest.give(player, copy(BTSMachines.kerrCompressorModule));
+        SLConsoleTest.give(player, copy(BTSMachines.kerrExtractorModule));
+        SLConsoleTest.giveMany(player, SLBlocks.casing(BlockSLCasing.INJECTOR_MK1, 1), rails);
+        SLConsoleTest.give(player, new ItemStack(SLItems.kerrDensityUpgrade, 1));
+        SLConsoleTest.give(player, ItemList.Black_Hole_Opener.get(2L));
+        SLConsoleTest.give(player, ItemList.Black_Hole_Closer.get(1L));
         for (int i = 0; i < 4; i++) {
-            give(player, GTOreDictUnificator.get(OrePrefixes.bolt, Materials.SpaceTime, 64L));
-            give(player, GTOreDictUnificator.get(OrePrefixes.bolt, Materials.Neutronium, 64L));
+            SLConsoleTest.give(player, GTOreDictUnificator.get(OrePrefixes.bolt, Materials.SpaceTime, 64L));
+            SLConsoleTest.give(player, GTOreDictUnificator.get(OrePrefixes.bolt, Materials.Neutronium, 64L));
         }
         // KEE: bolt buses, energy (containment power), a utility hatch (no maintenance)
-        giveMany(player, ItemList.Hatch_Input_Bus_MAX.get(1L), socketCount(MTEKerrEngine.PIECE_T1, 'b'));
-        giveMany(player, ItemList.Hatch_Energy_UIV.get(1L), socketCount(MTEKerrEngine.PIECE_T1, 'e'));
-        give(player, machine(MetaTileEntityIDs.HATCH_BLACK_HOLE_UTILITY.ID));
-        giveMany(player, copy(BTSMachines.directiveHatch), 3);
+        SLConsoleTest.giveMany(player, ItemList.Hatch_Input_Bus_MAX.get(1L), socketCount(MTEKerrEngine.PIECE_T1, 'b'));
+        SLConsoleTest.giveMany(player, ItemList.Hatch_Energy_UIV.get(1L), socketCount(MTEKerrEngine.PIECE_T1, 'e'));
+        SLConsoleTest.give(player, machine(MetaTileEntityIDs.HATCH_BLACK_HOLE_UTILITY.ID));
+        SLConsoleTest.giveMany(player, copy(BTSMachines.directiveHatch), 3);
         // modules (their own hatches): compressor in bus + 2 in hatches (DENSITY takes two fluids) + out bus
         // + out hatch + energy; extractor in bus + out bus + energy
-        giveMany(player, ItemList.Hatch_Input_Bus_MAX.get(1L), 2);
-        giveMany(player, ItemList.Hatch_Input_MAX.get(1L), 2);
-        giveMany(player, ItemList.Hatch_Output_Bus_MAX.get(1L), 2);
-        give(player, ItemList.Hatch_Output_MAX.get(1L));
-        giveMany(player, ItemList.Hatch_Energy_UIV.get(1L), 2);
+        SLConsoleTest.giveMany(player, ItemList.Hatch_Input_Bus_MAX.get(1L), 2);
+        SLConsoleTest.giveMany(player, ItemList.Hatch_Input_MAX.get(1L), 2);
+        SLConsoleTest.giveMany(player, ItemList.Hatch_Output_Bus_MAX.get(1L), 2);
+        SLConsoleTest.give(player, ItemList.Hatch_Output_MAX.get(1L));
+        SLConsoleTest.giveMany(player, ItemList.Hatch_Energy_UIV.get(1L), 2);
         player.inventoryContainer.detectAndSendChanges();
 
         tell(player, EnumChatFormatting.AQUA + "== Kerr Ergosphere Engine test kit ==");
@@ -138,38 +138,7 @@ public final class KerrKit {
     }
 
     private static int socketCount(String piece, char ch) {
-        return socketRels(piece, ch).length;
-    }
-
-    /**
-     * Every socket of one char in a piece, as (a, b, c) offsets from THAT piece's controller
-     * ({@code sockets.<ch>[i].rel} in {@code manifest.json}). For a module piece the controller is the
-     * module's own. Empty if none.
-     */
-    public static int[][] socketRels(String piece, char ch) {
-        try {
-            final JsonObject entry = BTSShapes.manifestPiece(piece);
-            if (entry == null || !entry.has("sockets")) return new int[0][];
-            final JsonObject sockets = entry.getAsJsonObject("sockets");
-            final String key = String.valueOf(ch);
-            if (!sockets.has(key)) return new int[0][];
-            final JsonArray list = sockets.getAsJsonArray(key);
-            final int[][] out = new int[list.size()][];
-            for (int i = 0; i < list.size(); i++) {
-                final JsonArray rel = list.get(i)
-                    .getAsJsonObject()
-                    .getAsJsonArray("rel");
-                out[i] = new int[] { rel.get(0)
-                    .getAsInt(),
-                    rel.get(1)
-                        .getAsInt(),
-                    rel.get(2)
-                        .getAsInt() };
-            }
-            return out;
-        } catch (RuntimeException bad) {
-            return new int[0][];
-        }
+        return BTSShapes.socketRels(piece, ch).length;
     }
 
     // ========================================================================= creative build
@@ -252,11 +221,11 @@ public final class KerrKit {
         final int[] centre = KerrSlot.worldPos(alignment, x, y, z, KerrSlot.centreRel());
         final String core = tier2 ? MTEKerrEngine.PIECE_T2 : MTEKerrEngine.PIECE_T1;
         int fitted = 0;
-        for (int[] rel : socketRels(core, 'e')) {
+        for (int[] rel : BTSShapes.socketRels(core, 'e')) {
             if (fitDebugEnergy(world, alignment, x, y, z, rel, centre)) fitted++;
         }
         boolean seeded = false;
-        for (int[] rel : socketRels(core, 'b')) {
+        for (int[] rel : BTSShapes.socketRels(core, 'b')) {
             if (!fit(world, alignment, x, y, z, rel, ItemList.Hatch_Input_Bus_MAX, centre)) continue;
             fitted++;
             final MTEHatchInputBus bus = mteAt(
@@ -272,7 +241,7 @@ public final class KerrKit {
         // AUTOMATION PASS: Directive Hatches (Hole, Status; code output) in the first two utility sockets.
         final DirectiveSet[] sets = { DirectiveSet.KERR_HOLE, DirectiveSet.KERR_STATUS };
         int d = 0;
-        for (int[] rel : socketRels(core, 'u')) {
+        for (int[] rel : BTSShapes.socketRels(core, 'u')) {
             if (d >= sets.length) break;
             if (fitDirective(world, alignment, x, y, z, rel, centre, sets[d])) {
                 fitted++;
@@ -338,7 +307,7 @@ public final class KerrKit {
             result);
         final ExtendedFacing alignment = module.getExtendedFacing();
         final char ch = slot == KerrSlot.COMPRESSOR ? 'c' : 'x';
-        final int[][] sockets = socketRels(slot.piece, ch);
+        final int[][] sockets = BTSShapes.socketRels(slot.piece, ch);
         // compressor: in bus, in hatch, out bus, out hatch, energy, a second in hatch (DENSITY takes two
         // fluids and a GT input hatch holds one); extractor: in bus, out bus, energy
         final ItemList[] plan = slot == KerrSlot.COMPRESSOR
@@ -633,7 +602,7 @@ public final class KerrKit {
             KerrSlot.centreRel());
         final ExtendedFacing alignment = module.getExtendedFacing();
         final char ch = module.slot() == KerrSlot.COMPRESSOR ? 'c' : 'x';
-        for (int[] rel : socketRels(module.slot().piece, ch)) {
+        for (int[] rel : BTSShapes.socketRels(module.slot().piece, ch)) {
             final int[] p = KerrSlot.worldPos(alignment, base.getXCoord(), base.getYCoord(), base.getZCoord(), rel);
             if (world.getTileEntity(p[0], p[1], p[2]) != null) continue;
             if (fitDebugEnergy(world, alignment, base.getXCoord(), base.getYCoord(), base.getZCoord(), rel, centre)) {
@@ -707,7 +676,7 @@ public final class KerrKit {
         final int[] centre = KerrSlot.worldPos(alignment, x, y, z, KerrSlot.centreRel());
         final DirectiveSet[] sets = { DirectiveSet.KERR_HOLE, DirectiveSet.KERR_STATUS };
         int placed = 0;
-        for (int[] rel : socketRels(kee.corePiece(), 'u')) {
+        for (int[] rel : BTSShapes.socketRels(kee.corePiece(), 'u')) {
             if (kee.directiveHatchCount() + placed >= sets.length) break;
             final int[] p = KerrSlot.worldPos(alignment, x, y, z, rel);
             if (world.getTileEntity(p[0], p[1], p[2]) != null) continue; // a hatch is there already
@@ -753,25 +722,6 @@ public final class KerrKit {
     private static ItemStack machine(int id) {
         if (id <= 0 || GregTechAPI.METATILEENTITIES[id] == null) return null;
         return new ItemStack(GregTechAPI.sBlockMachines, 1, id);
-    }
-
-    private static void give(EntityPlayerMP player, ItemStack stack) {
-        if (stack == null || stack.getItem() == null) return;
-        if (!player.inventory.addItemStackToInventory(stack)) {
-            player.entityDropItem(stack, 0.5F);
-        }
-    }
-
-    private static void giveMany(EntityPlayerMP player, ItemStack one, int count) {
-        if (one == null || count <= 0) return;
-        final int max = Math.max(1, one.getMaxStackSize());
-        int left = count;
-        while (left > 0) {
-            final ItemStack stack = one.copy();
-            stack.stackSize = Math.min(max, left);
-            give(player, stack);
-            left -= stack.stackSize;
-        }
     }
 
     private static void tell(EntityPlayerMP player, String message) {

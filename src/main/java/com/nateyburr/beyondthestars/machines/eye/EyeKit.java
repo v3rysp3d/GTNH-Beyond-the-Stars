@@ -19,7 +19,6 @@ import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidContainerItem;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
@@ -64,45 +63,47 @@ public final class EyeKit {
      * charges), Neutronium cells of Antipolarization Agent, DSSF and Tachyon Rich Temporal Fluid, top-tier fields.
      */
     public static void giveKit(EntityPlayerMP player) {
-        give(player, BTSMachines.eyeOfHarmony == null ? null : BTSMachines.eyeOfHarmony.copy());
+        SLConsoleTest.give(player, BTSMachines.eyeOfHarmony == null ? null : BTSMachines.eyeOfHarmony.copy());
         // D-49 (d49-build-plan.md §11.2): the cores in transition order, the T1-T6 charts, the ignition charges.
-        give(player, item(SLItems.stellarMassCore));
-        give(player, item(SLItems.shellBurningCore));
-        give(player, item(SLItems.galacticUpgradeCore));
-        give(player, item(SLItems.subspaceCoolingCore));
-        give(player, item(SLItems.magnetarSeedCore));
-        give(player, item(SLItems.starChartSol));
-        give(player, item(SLItems.starChartSiriusA));
-        give(player, item(SLItems.starChartArcturus));
-        give(player, item(SLItems.starChartNeutronStar));
-        give(player, item(SLItems.starChartSiriusB));
-        give(player, item(SLItems.starChartMagnetar));
-        giveMany(player, item(SLItems.stellarIgnitionCharge), 16);
-        giveMany(player, BTSMachines.stellarFieldSensor == null ? null : BTSMachines.stellarFieldSensor.copy(), 8);
-        giveMany(player, BTSMachines.directiveHatch == null ? null : BTSMachines.directiveHatch.copy(), 4);
-        giveMany(player, ItemList.Hatch_Input_MAX.get(1L), 8);
-        give(player, ItemList.Hatch_Input_Bus_MAX.get(1L));
-        give(player, fluidCell(SLFluids.antipolarizationAgent));
-        give(player, fluidCell(fluidOf(Materials.DimensionallyShiftedSuperfluid.getFluid(1L))));
-        give(player, fluidCell(fluidOf(Materials.Time.getMolten(1L))));
-        giveMany(player, ItemList.Hatch_Input_MAX.get(1L), sockets(MTEEyeOfHarmonyBTS.PIECE_CORE, 'h'));
-        giveMany(
+        SLConsoleTest.give(player, item(SLItems.stellarMassCore));
+        SLConsoleTest.give(player, item(SLItems.shellBurningCore));
+        SLConsoleTest.give(player, item(SLItems.galacticUpgradeCore));
+        SLConsoleTest.give(player, item(SLItems.subspaceCoolingCore));
+        SLConsoleTest.give(player, item(SLItems.magnetarSeedCore));
+        SLConsoleTest.give(player, item(SLItems.starChartSol));
+        SLConsoleTest.give(player, item(SLItems.starChartSiriusA));
+        SLConsoleTest.give(player, item(SLItems.starChartArcturus));
+        SLConsoleTest.give(player, item(SLItems.starChartNeutronStar));
+        SLConsoleTest.give(player, item(SLItems.starChartSiriusB));
+        SLConsoleTest.give(player, item(SLItems.starChartMagnetar));
+        SLConsoleTest.giveMany(player, item(SLItems.stellarIgnitionCharge), 16);
+        SLConsoleTest
+            .giveMany(player, BTSMachines.stellarFieldSensor == null ? null : BTSMachines.stellarFieldSensor.copy(), 8);
+        SLConsoleTest
+            .giveMany(player, BTSMachines.directiveHatch == null ? null : BTSMachines.directiveHatch.copy(), 4);
+        SLConsoleTest.giveMany(player, ItemList.Hatch_Input_MAX.get(1L), 8);
+        SLConsoleTest.give(player, ItemList.Hatch_Input_Bus_MAX.get(1L));
+        SLConsoleTest.give(player, fluidCell(SLFluids.antipolarizationAgent));
+        SLConsoleTest.give(player, fluidCell(fluidOf(Materials.DimensionallyShiftedSuperfluid.getFluid(1L))));
+        SLConsoleTest.give(player, fluidCell(fluidOf(Materials.Time.getMolten(1L))));
+        SLConsoleTest.giveMany(player, ItemList.Hatch_Input_MAX.get(1L), sockets(MTEEyeOfHarmonyBTS.PIECE_CORE, 'h'));
+        SLConsoleTest.giveMany(
             player,
             ItemList.Hatch_Input_MAX.get(1L),
             sockets(MTEEyeOfHarmonyBTS.PIECE_BEAM, 's') + sockets(MTEEyeOfHarmonyBTS.PIECE_JET, 't')
                 + sockets(MTEEyeOfHarmonyBTS.PIECE_RIM, 'g'));
-        give(player, ItemList.Hatch_Output_Bus_ME.get(1L));
-        give(player, ItemList.Hatch_Output_ME.get(1L));
-        give(player, ItemList.Hatch_AutoMaintenance.get(1L));
-        giveMany(
+        SLConsoleTest.give(player, ItemList.Hatch_Output_Bus_ME.get(1L));
+        SLConsoleTest.give(player, ItemList.Hatch_Output_ME.get(1L));
+        SLConsoleTest.give(player, ItemList.Hatch_AutoMaintenance.get(1L));
+        SLConsoleTest.giveMany(
             player,
             generator(TTCasingsContainer.SpacetimeCompressionFieldGenerators, 8),
             BTSShapes.count(MTEEyeOfHarmonyBTS.PIECE_CORE, 'W'));
-        giveMany(
+        SLConsoleTest.giveMany(
             player,
             generator(TTCasingsContainer.TimeAccelerationFieldGenerator, 8),
             BTSShapes.count(MTEEyeOfHarmonyBTS.PIECE_CORE, 'X'));
-        giveMany(
+        SLConsoleTest.giveMany(
             player,
             generator(TTCasingsContainer.StabilisationFieldGenerators, 8),
             BTSShapes.count(MTEEyeOfHarmonyBTS.PIECE_CORE, 'Y'));
@@ -183,34 +184,7 @@ public final class EyeKit {
     }
 
     private static int sockets(String piece, char ch) {
-        return socketRels(piece, ch).length;
-    }
-
-    /** Every socket of one char in a piece, as a/b/c offsets from the controller. Empty if none. */
-    public static int[][] socketRels(String piece, char ch) {
-        try {
-            final JsonObject entry = BTSShapes.manifestPiece(piece);
-            if (entry == null || !entry.has("sockets")) return new int[0][];
-            final JsonObject all = entry.getAsJsonObject("sockets");
-            final String key = String.valueOf(ch);
-            if (!all.has(key)) return new int[0][];
-            final JsonArray list = all.getAsJsonArray(key);
-            final int[][] out = new int[list.size()][];
-            for (int i = 0; i < list.size(); i++) {
-                final JsonArray rel = list.get(i)
-                    .getAsJsonObject()
-                    .getAsJsonArray("rel");
-                out[i] = new int[] { rel.get(0)
-                    .getAsInt(),
-                    rel.get(1)
-                        .getAsInt(),
-                    rel.get(2)
-                        .getAsInt() };
-            }
-            return out;
-        } catch (RuntimeException bad) {
-            return new int[0][];
-        }
+        return BTSShapes.socketRels(piece, ch).length;
     }
 
     // ========================================================================= creative build
@@ -309,7 +283,7 @@ public final class EyeKit {
 
         // 3. A hatch in every socket.
         int fitted = 0;
-        final int[][] gas = socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'h');
+        final int[][] gas = BTSShapes.socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'h');
         for (int i = 0; i < gas.length; i++) {
             // D-49 R-1: the last gas socket takes an input bus (the ignition charges); the rest gas hatches
             final ItemList hatch = !legacy && i == gas.length - 1 && gas.length > 1 ? ItemList.Hatch_Input_Bus_MAX
@@ -317,12 +291,12 @@ public final class EyeKit {
             if (fit(world, alignment, x, y, z, gas[i], hatch)) fitted++;
         }
         if (!legacy) {
-            for (int[] rel : socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'f')) {
+            for (int[] rel : BTSShapes.socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'f')) {
                 if (fit(world, alignment, x, y, z, rel, ItemList.Hatch_Input_MAX)) fitted++;
             }
             // AUTOMATION PASS: the first three Sensor sockets get Directive Hatches (Trims, Status, Transition, code
             // mode), the rest Stellar Field Sensor Hatches
-            final int[][] n = socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'n');
+            final int[][] n = BTSShapes.socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'n');
             for (int i = 0; i < n.length; i++) {
                 if (i < DIRECTIVE_SETS.length) {
                     if (fitDirective(world, alignment, x, y, z, n[i], DIRECTIVE_SETS[i])) fitted++;
@@ -332,25 +306,25 @@ public final class EyeKit {
             }
         }
         final ItemList[] outputs = { ItemList.Hatch_Output_Bus_ME, ItemList.Hatch_Output_ME };
-        final int[][] o = socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'o');
+        final int[][] o = BTSShapes.socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'o');
         for (int i = 0; i < o.length && i < outputs.length; i++) {
             if (fit(world, alignment, x, y, z, o[i], outputs[i])) fitted++;
         }
-        for (int[] rel : socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'm')) {
+        for (int[] rel : BTSShapes.socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'm')) {
             if (fit(world, alignment, x, y, z, rel, ItemList.Hatch_AutoMaintenance)) fitted++;
         }
         if (tiers >= 2) {
-            for (int[] rel : socketRels(MTEEyeOfHarmonyBTS.PIECE_BEAM, 's')) {
+            for (int[] rel : BTSShapes.socketRels(MTEEyeOfHarmonyBTS.PIECE_BEAM, 's')) {
                 if (fit(world, alignment, x, y, z, rel, ItemList.Hatch_Input_MAX)) fitted++;
             }
         }
         if (tiers >= 3) {
-            for (int[] rel : socketRels(MTEEyeOfHarmonyBTS.PIECE_JET, 't')) {
+            for (int[] rel : BTSShapes.socketRels(MTEEyeOfHarmonyBTS.PIECE_JET, 't')) {
                 if (fit(world, alignment, x, y, z, rel, ItemList.Hatch_Input_MAX)) fitted++;
             }
         }
         if (tiers >= 6 && !legacy) {
-            for (int[] rel : socketRels(MTEEyeOfHarmonyBTS.PIECE_RIM, 'g')) {
+            for (int[] rel : BTSShapes.socketRels(MTEEyeOfHarmonyBTS.PIECE_RIM, 'g')) {
                 if (fit(world, alignment, x, y, z, rel, ItemList.Hatch_Input_MAX)) fitted++;
             }
         }
@@ -487,7 +461,8 @@ public final class EyeKit {
                 final String row = shape[c][b];
                 for (int a = 0; a < row.length(); a++) {
                     if (row.charAt(a) == ' ') continue;
-                    final int[] p = worldPos(alignment, x, y, z, new int[] { a - off[0], b - off[1], c - off[2] });
+                    final int[] p = SLConsoleTest
+                        .worldPos(alignment, x, y, z, new int[] { a - off[0], b - off[1], c - off[2] });
                     world.setBlockToAir(p[0], p[1], p[2]);
                     n++;
                 }
@@ -501,7 +476,7 @@ public final class EyeKit {
     private static String probe(World world, ExtendedFacing alignment, ForgeDirection facing, int x, int y, int z,
         String label, String piece, char ch) {
         int[] best = null;
-        for (int[] rel : socketRels(piece, ch)) {
+        for (int[] rel : BTSShapes.socketRels(piece, ch)) {
             if (best == null || rel[0] > best[0]) best = rel;
         }
         if (best == null || best[0] <= 0) return "Orientation: no +x socket '" + ch + "' in " + piece;
@@ -534,7 +509,8 @@ public final class EyeKit {
                 final String row = shape[c][b];
                 for (int a = 0; a < row.length(); a++) {
                     if (generatorFor(row.charAt(a)) == null) continue;
-                    final int[] p = worldPos(alignment, x, y, z, new int[] { a - off[0], b - off[1], c - off[2] });
+                    final int[] p = SLConsoleTest
+                        .worldPos(alignment, x, y, z, new int[] { a - off[0], b - off[1], c - off[2] });
                     h = 31 * h + world.getBlockMetadata(p[0], p[1], p[2]);
                 }
             }
@@ -558,7 +534,8 @@ public final class EyeKit {
                 for (int a = 0; a < row.length(); a++) {
                     final Block block = generatorFor(row.charAt(a));
                     if (block == null) continue;
-                    final int[] p = worldPos(alignment, x, y, z, new int[] { a - off[0], b - off[1], c - off[2] });
+                    final int[] p = SLConsoleTest
+                        .worldPos(alignment, x, y, z, new int[] { a - off[0], b - off[1], c - off[2] });
                     world.setBlock(p[0], p[1], p[2], block, row.charAt(a) == 'W' ? compressionMeta : meta, 2);
                     n++;
                 }
@@ -585,7 +562,7 @@ public final class EyeKit {
                 final String row = shape[c][b];
                 for (int a = 0; a < row.length(); a++) {
                     if (row.charAt(a) != 'W') continue;
-                    final int[] p = worldPos(
+                    final int[] p = SLConsoleTest.worldPos(
                         alignment,
                         base.getXCoord(),
                         base.getYCoord(),
@@ -632,7 +609,7 @@ public final class EyeKit {
     private static boolean fitDirective(World world, ExtendedFacing alignment, int x, int y, int z, int[] rel,
         DirectiveSet set) {
         if (!fitStack(world, alignment, x, y, z, rel, BTSMachines.directiveHatch)) return false;
-        final int[] p = worldPos(alignment, x, y, z, rel);
+        final int[] p = SLConsoleTest.worldPos(alignment, x, y, z, rel);
         final TileEntity te = world.getTileEntity(p[0], p[1], p[2]);
         if (te instanceof IGregTechTileEntity
             && ((IGregTechTileEntity) te).getMetaTileEntity() instanceof MTEHatchDirective) {
@@ -646,7 +623,7 @@ public final class EyeKit {
     private static boolean fitStack(World world, ExtendedFacing alignment, int x, int y, int z, int[] rel,
         ItemStack stack) {
         if (stack == null) return false;
-        final int[] p = worldPos(alignment, x, y, z, rel);
+        final int[] p = SLConsoleTest.worldPos(alignment, x, y, z, rel);
         return MTEReactorCoreMk1.placeGtMachine(
             world,
             p[0],
@@ -656,15 +633,9 @@ public final class EyeKit {
             outward(world, alignment, x, y, z, p));
     }
 
-    private static int[] worldPos(ExtendedFacing alignment, int x, int y, int z, int[] rel) {
-        final int[] xyz = new int[3];
-        alignment.getWorldOffset(rel, xyz);
-        return new int[] { x + xyz[0], y + xyz[1], z + xyz[2] };
-    }
-
     /** The air-facing side of a socket that points most directly away from the Eye's centre. */
     private static ForgeDirection outward(World world, ExtendedFacing alignment, int x, int y, int z, int[] p) {
-        final int[] c = worldPos(alignment, x, y, z, CENTRE_REL);
+        final int[] c = SLConsoleTest.worldPos(alignment, x, y, z, CENTRE_REL);
         ForgeDirection best = alignment.getDirection();
         double bestDot = Double.NEGATIVE_INFINITY;
         for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
@@ -679,25 +650,6 @@ public final class EyeKit {
     }
 
     // ================================================================================ helpers
-
-    private static void give(EntityPlayerMP player, ItemStack stack) {
-        if (stack == null || stack.getItem() == null) return;
-        if (!player.inventory.addItemStackToInventory(stack)) {
-            player.entityDropItem(stack, 0.5F);
-        }
-    }
-
-    private static void giveMany(EntityPlayerMP player, ItemStack one, int count) {
-        if (one == null || count <= 0) return;
-        final int max = Math.max(1, one.getMaxStackSize());
-        int left = count;
-        while (left > 0) {
-            final ItemStack stack = one.copy();
-            stack.stackSize = Math.min(max, left);
-            give(player, stack);
-            left -= stack.stackSize;
-        }
-    }
 
     private static void tell(EntityPlayerMP player, String message) {
         player.addChatMessage(new ChatComponentText(message));

@@ -118,6 +118,25 @@ public final class SLConsoleTest {
         sender.addChatMessage(new ChatComponentText(message));
     }
 
+    /** Gives a stack to a player, dropping it at their feet if the inventory is full. Null-safe. */
+    public static void give(EntityPlayer player, ItemStack stack) {
+        if (stack == null || stack.getItem() == null) return;
+        if (!player.inventory.addItemStackToInventory(stack)) player.entityDropItem(stack, 0.5F);
+    }
+
+    /** Gives {@code count} of {@code one} in full stacks. Null-safe; nothing for count &lt;= 0. */
+    public static void giveMany(EntityPlayer player, ItemStack one, int count) {
+        if (one == null || count <= 0) return;
+        final int max = Math.max(1, one.getMaxStackSize());
+        int left = count;
+        while (left > 0) {
+            final ItemStack stack = one.copy();
+            stack.stackSize = Math.min(max, left);
+            give(player, stack);
+            left -= stack.stackSize;
+        }
+    }
+
     // ================================================================================ chunks
 
     /**

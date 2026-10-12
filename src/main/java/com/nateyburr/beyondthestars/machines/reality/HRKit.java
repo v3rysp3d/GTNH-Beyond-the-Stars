@@ -116,28 +116,28 @@ public final class HRKit {
 
     /** {@code /btskit <machine>}: the controller, every hatch the sockets take, the cores and cells for a test. */
     public static void giveKit(EntityPlayerMP player, Machine m) {
-        give(player, copy(m.controller()));
+        SLConsoleTest.give(player, copy(m.controller()));
         int feeds = 0;
         for (String piece : m.pieces) feeds += sockets(piece, 'h');
-        giveMany(player, ItemList.Hatch_Input_MAX.get(1L), feeds);
-        giveMany(player, energyHatch(), sockets(m.pieces[0], 'e'));
+        SLConsoleTest.giveMany(player, ItemList.Hatch_Input_MAX.get(1L), feeds);
+        SLConsoleTest.giveMany(player, energyHatch(), sockets(m.pieces[0], 'e'));
         switch (m) {
             case HOMOGENY:
-                giveMany(player, ItemList.Hatch_Output_MAX.get(1L), sockets(m.pieces[0], 'o'));
-                give(player, item(SLMaxItems.homogenyTier2Core));
-                give(player, item(SLMaxItems.homogenyTier3Core));
-                give(player, cell(fluidOf(Materials.RawStarMatter.getFluid(1L))));
+                SLConsoleTest.giveMany(player, ItemList.Hatch_Output_MAX.get(1L), sockets(m.pieces[0], 'o'));
+                SLConsoleTest.give(player, item(SLMaxItems.homogenyTier2Core));
+                SLConsoleTest.give(player, item(SLMaxItems.homogenyTier3Core));
+                SLConsoleTest.give(player, cell(fluidOf(Materials.RawStarMatter.getFluid(1L))));
                 break;
             case DIFFRACTION:
-                giveMany(player, ItemList.Hatch_Input_MAX.get(1L), 6);
-                give(player, CustomItemList.Hatch_BEC_Connector.get(1L));
-                give(player, cell(SLRealityFluids.entanglementMedium));
-                for (int k = 0; k < 6; k++) give(player, cell(MTERealityDiffraction.anchorFluid(k)));
+                SLConsoleTest.giveMany(player, ItemList.Hatch_Input_MAX.get(1L), 6);
+                SLConsoleTest.give(player, CustomItemList.Hatch_BEC_Connector.get(1L));
+                SLConsoleTest.give(player, cell(SLRealityFluids.entanglementMedium));
+                for (int k = 0; k < 6; k++) SLConsoleTest.give(player, cell(MTERealityDiffraction.anchorFluid(k)));
                 break;
             default:
-                giveMany(player, ItemList.Hatch_Input_Bus_MAX.get(1L), sockets(m.pieces[0], 'i'));
-                give(player, ItemList.Hatch_Output_Bus_MAX.get(1L));
-                give(player, CustomItemList.Hatch_BEC_Connector.get(1L));
+                SLConsoleTest.giveMany(player, ItemList.Hatch_Input_Bus_MAX.get(1L), sockets(m.pieces[0], 'i'));
+                SLConsoleTest.give(player, ItemList.Hatch_Output_Bus_MAX.get(1L));
+                SLConsoleTest.give(player, CustomItemList.Hatch_BEC_Connector.get(1L));
                 break;
         }
         player.inventoryContainer.detectAndSendChanges();
@@ -222,34 +222,7 @@ public final class HRKit {
     }
 
     private static int sockets(String piece, char ch) {
-        return socketRels(piece, ch).length;
-    }
-
-    /** Every socket of one char in a piece, as a/b/c offsets from the controller. Empty if none. */
-    public static int[][] socketRels(String piece, char ch) {
-        try {
-            final JsonObject entry = BTSShapes.manifestPiece(piece);
-            if (entry == null || !entry.has("sockets")) return new int[0][];
-            final JsonObject all = entry.getAsJsonObject("sockets");
-            final String key = String.valueOf(ch);
-            if (!all.has(key)) return new int[0][];
-            final JsonArray list = all.getAsJsonArray(key);
-            final int[][] out = new int[list.size()][];
-            for (int i = 0; i < list.size(); i++) {
-                final JsonArray rel = list.get(i)
-                    .getAsJsonObject()
-                    .getAsJsonArray("rel");
-                out[i] = new int[] { rel.get(0)
-                    .getAsInt(),
-                    rel.get(1)
-                        .getAsInt(),
-                    rel.get(2)
-                        .getAsInt() };
-            }
-            return out;
-        } catch (RuntimeException bad) {
-            return new int[0][];
-        }
+        return BTSShapes.socketRels(piece, ch).length;
     }
 
     /** The machine axis (the render centre) as a/b/c from the controller, from the manifest; {0,0,0} if absent. */
@@ -374,40 +347,40 @@ public final class HRKit {
         int fitted = 0;
         for (int i = 0; i < tiers; i++) {
             final String piece = m.pieces[i];
-            for (int[] rel : socketRels(piece, 'h')) {
+            for (int[] rel : BTSShapes.socketRels(piece, 'h')) {
                 if (fit(world, alignment, x, y, z, rel, centre, ItemList.Hatch_Input_MAX.get(1L))) fitted++;
             }
         }
         final String p0 = m.pieces[0];
-        for (int[] rel : socketRels(p0, 'e')) {
+        for (int[] rel : BTSShapes.socketRels(p0, 'e')) {
             if (fit(world, alignment, x, y, z, rel, centre, energyHatch())) fitted++;
         }
         switch (m) {
             case HOMOGENY:
-                for (int[] rel : socketRels(p0, 'o')) {
+                for (int[] rel : BTSShapes.socketRels(p0, 'o')) {
                     if (fit(world, alignment, x, y, z, rel, centre, ItemList.Hatch_Output_MAX.get(1L))) fitted++;
                 }
                 break;
             case DIFFRACTION:
                 for (char ch : MTERealityDiffraction.ANCHOR_CHARS) {
-                    for (int[] rel : socketRels(p0, ch)) {
+                    for (int[] rel : BTSShapes.socketRels(p0, ch)) {
                         if (fit(world, alignment, x, y, z, rel, centre, ItemList.Hatch_Input_MAX.get(1L))) fitted++;
                     }
                 }
-                for (int[] rel : socketRels(p0, 'b')) {
+                for (int[] rel : BTSShapes.socketRels(p0, 'b')) {
                     if (fit(world, alignment, x, y, z, rel, centre, CustomItemList.Hatch_BEC_Connector.get(1L))) {
                         fitted++;
                     }
                 }
                 break;
             default:
-                for (int[] rel : socketRels(p0, 'i')) {
+                for (int[] rel : BTSShapes.socketRels(p0, 'i')) {
                     if (fit(world, alignment, x, y, z, rel, centre, ItemList.Hatch_Input_Bus_MAX.get(1L))) fitted++;
                 }
-                for (int[] rel : socketRels(p0, 'o')) {
+                for (int[] rel : BTSShapes.socketRels(p0, 'o')) {
                     if (fit(world, alignment, x, y, z, rel, centre, ItemList.Hatch_Output_Bus_MAX.get(1L))) fitted++;
                 }
-                for (int[] rel : socketRels(p0, 'b')) {
+                for (int[] rel : BTSShapes.socketRels(p0, 'b')) {
                     if (fit(world, alignment, x, y, z, rel, centre, CustomItemList.Hatch_BEC_Connector.get(1L))) {
                         fitted++;
                     }
@@ -674,23 +647,6 @@ public final class HRKit {
     }
 
     // ================================================================================ helpers
-
-    private static void give(EntityPlayerMP player, ItemStack stack) {
-        if (stack == null || stack.getItem() == null) return;
-        if (!player.inventory.addItemStackToInventory(stack)) player.entityDropItem(stack, 0.5F);
-    }
-
-    private static void giveMany(EntityPlayerMP player, ItemStack one, int count) {
-        if (one == null || count <= 0) return;
-        final int max = Math.max(1, one.getMaxStackSize());
-        int left = count;
-        while (left > 0) {
-            final ItemStack stack = one.copy();
-            stack.stackSize = Math.min(max, left);
-            give(player, stack);
-            left -= stack.stackSize;
-        }
-    }
 
     private static void tell(EntityPlayerMP player, String message) {
         player.addChatMessage(new ChatComponentText(message));

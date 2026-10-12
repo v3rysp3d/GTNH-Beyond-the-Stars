@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -147,6 +148,37 @@ public final class BTSShapes {
             .isJsonObject() ? root.getAsJsonObject("pieces") : root;
         final JsonElement entry = scope.get(piece);
         return entry != null && entry.isJsonObject() ? entry.getAsJsonObject() : null;
+    }
+
+    /**
+     * Every socket of one char in a piece, as (a, b, c) offsets from THAT piece's controller
+     * ({@code sockets.<ch>[i].rel} in {@code manifest.json}; for a Kerr module piece the module's own
+     * controller). Empty if none.
+     */
+    public static int[][] socketRels(String piece, char ch) {
+        try {
+            final JsonObject entry = manifestPiece(piece);
+            if (entry == null || !entry.has("sockets")) return new int[0][];
+            final JsonObject all = entry.getAsJsonObject("sockets");
+            final String key = String.valueOf(ch);
+            if (!all.has(key)) return new int[0][];
+            final JsonArray list = all.getAsJsonArray(key);
+            final int[][] out = new int[list.size()][];
+            for (int i = 0; i < list.size(); i++) {
+                final JsonArray rel = list.get(i)
+                    .getAsJsonObject()
+                    .getAsJsonArray("rel");
+                out[i] = new int[] { rel.get(0)
+                    .getAsInt(),
+                    rel.get(1)
+                        .getAsInt(),
+                    rel.get(2)
+                        .getAsInt() };
+            }
+            return out;
+        } catch (RuntimeException bad) {
+            return new int[0][];
+        }
     }
 
     // ------------------------------------------------------------------------------------------
