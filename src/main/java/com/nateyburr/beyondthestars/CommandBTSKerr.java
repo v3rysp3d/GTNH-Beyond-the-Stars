@@ -82,7 +82,7 @@ public class CommandBTSKerr extends CommandBase {
         boolean tier2 = false;
         boolean force = false;
         for (String arg : args) {
-            if (arg.equalsIgnoreCase("t2") || arg.equals("2")) tier2 = true;
+            if (arg.equalsIgnoreCase("t2")) tier2 = true; // no bare "2": it reads as an x coordinate
             if (arg.equalsIgnoreCase("force") || arg.equalsIgnoreCase("-f")) force = true;
         }
         final String core = tier2 ? MTEKerrEngine.PIECE_T2 : MTEKerrEngine.PIECE_T1;
@@ -175,7 +175,7 @@ public class CommandBTSKerr extends CommandBase {
         for (int i = 0; i < args.length; i++) {
             if (at.used[i]) continue;
             final String arg = args[i];
-            if (arg.equalsIgnoreCase("t2") || arg.equals("2")) tier2 = true;
+            if (arg.equalsIgnoreCase("t2")) tier2 = true; // no bare "2": it reads as an x coordinate
             if (arg.equalsIgnoreCase("force") || arg.equalsIgnoreCase("-f")) force = true;
             if (arg.equalsIgnoreCase("survival")) survival = true;
             if (arg.equalsIgnoreCase("check")) check = true;
