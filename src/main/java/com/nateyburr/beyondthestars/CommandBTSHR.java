@@ -321,7 +321,10 @@ public class CommandBTSHR extends CommandBase {
             case "check":
                 machine.checkStructure(true, base);
                 out.add("Re-walked: " + (machine.mMachine ? "FORMED" : "NOT FORMED"));
-                if (!machine.mMachine) out.addAll(SLConsoleTest.firstErrors(machine, base, 3));
+                if (!machine.mMachine) {
+                    out.addAll(SLConsoleTest.firstErrors(machine, base, 3));
+                    machine.checkStructure(true, base); // firstErrors walks without clearing the hatch lists
+                }
                 break;
             case "fill":
                 out.addAll(HRKit.fill(machine));

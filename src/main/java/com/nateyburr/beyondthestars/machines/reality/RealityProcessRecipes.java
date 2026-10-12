@@ -135,7 +135,7 @@ public final class RealityProcessRecipes {
 
     private static void refab() {
         // SL-R04 Universal Upgrade Core (Eye T9 -> T10, D-43). Doc: 4 x RECIPE_MAX; a GT recipe's EU/t is an int,
-        // so it is registered at 1 x RECIPE_MAX (question H/R-13).
+        // so it is registered at 1 x RECIPE_MAX (question B-63 item 8).
         BTSRecipeGuard.recipe(
             "SL-R04",
             () -> GTValues.RA.stdBuilder()

@@ -1888,6 +1888,108 @@ facing sideways (worse: the hologram would be built from the side).
    `GT5U.gui.text.recipe_result.` keys, and the three recipe maps' names are keyed as `beyondthestars.recipe.homogeny`,
    `.reality_diffraction`, `.reality_refab`. Any other id the machine unit adds needs its own key (ruling 10).
 
+### B-62 H/R: the Homogeny controller [H/R unit 2, built]
+
+**Context.** Ruling 16, the design doc `designs/docs/homogeny-reality.md` §1 (PROPOSED), D-46/D-47/D-49 and brief
+rulings 4-5 (one install path, milestones + install run). Built in `machines/homogeny/MTEHomogeny` (MTE 28130) with
+its MUI2 screen `HomogenyGui`.
+
+**What was built, and the judgement calls.**
+
+1. **Tier = min(installed, structure).** The structure tier is cumulative (`homog_t1`, + `homog_t2`, + `homog_t3`; the
+   outer ring counts only with the stirring ring). The installed tier is permanent. A broken ring drops the machine to
+   the tier below until it is rebuilt; nothing is lost.
+2. **The install path** (doc §1.3, rulings 4-5): next ring built + milestone (100,000 L of the current tier's product
+   mixed over the machine's life: ESPM for T1 to T2, Degenerate for T2 to T3) + the next core in escrow (right-click
+   it onto the controller) + **Install** (a GUI button, or a screwdriver: GT never passes a sneaking right-click to a
+   machine, B-50). The run is 12,000 ticks offline, paying RECIPE_UXV (T2) / RECIPE_MAX (T3) EU/t from the energy
+   hatches every tick; a short tick pauses it, never loses progress. Sneak-punching the controller with an empty hand
+   returns the core and **cancels** an install in progress (its progress is lost), as the doc says. Escrow, the
+   milestones and an install in progress live in item NBT, so they survive a wrench. **Suggestion:** keep.
+   Alternative: start the run by itself once everything holds (one fewer click, fully automatic).
+3. **Region Crystal at the T1 throat tip is a gate violation.** Unit 1's legend puts 5 Region Crystals (`E`) at the
+   throat tip of `homog_t1` (UMV), but Region Crystal needs Ergomatter (stage S8, Eye T7). The controller accepts the
+   Godforge lens glass (Spatially Transcendent Gravitational Lens Block, already 610 cells of T1) in those cells as
+   well; hints and creative builds place the crystal, survival auto-place falls back to the lens. The T3 tail tip is
+   the same char, so it accepts the lens too. **Suggestion:** re-draw the T1 throat tip as lens glass in voxel.js (a
+   new char) and keep `E` for the tail only. Alternative: leave as built.
+4. **Feed sockets use GT's Input Hatch element**, not a private one: the Homogeny is one machine with no plant-wide
+   lists, and GT's processing logic reads `mInputHatches` (ME input hatches work). Trap 3 is still kept: a ring whose
+   walk fails drops the feed hatches it registered.
+5. **Running:** GT's processing logic on `beyondthestars.recipe.homogeny`; 1 / 4 / 16 parallels; **no overclock**
+   (EU/t = recipe EU/t x parallels, so a full T3 is one MAX amp); void protection, batch mode and recipe lock as on
+   any GT multi; no maintenance. A recipe's special value is its minimum Homogeny tier; a too-low tier fails with
+   `beyondthestars.homogeny.tier`, an install in progress with `beyondthestars.homogeny.installing`.
+6. **Milestones count at completion.** A run's product is counted when its output lands; a run stopped part-way
+   counts nothing.
+7. **Not built: the vortex render** in the column (the doc's empty render centre with a GUI toggle). The column is
+   glass with nothing inside. **Suggestion:** a render pass reusing the Eye's centre-render pattern
+   (`EyeCentreRender`, one render block at the manifest's `centre.rel`).
+8. **No questbook quests yet** (rules 14/15). The tooltip carries the mechanics; the doc's §6.2 quests are for the
+   questbook unit.
+
+**Alternatives.** Core only, instant (it is a side machine); or an install run without the milestone.
+
+### B-63 H/R: Reality Diffraction and Reality Refab [H/R unit 2, built]
+
+**Context.** Ruling 16, the design doc §2-§3 (PROPOSED, H-12..H-16, H-27, H-28). Built in `machines/reality/`
+(`MTERealityBase`, `MTERealityDiffraction` 28131, `MTERealityRefab` 28132, their GUIs, `RealityRecipeMaps`,
+`RealityProcessRecipes`).
+
+**What was built, and the judgement calls.**
+
+1. **The BEC glue on a GT multiblock (H-14 primary path, no fallback needed).** RC-2's BEC machines extend
+   `MTEBECMultiblockBase` (a TecTech multiblock with a text-structure wrapper that cannot hold our exported shapes);
+   ours keep GT's `MTEExtendedPowerMultiBlockBase` and implement `BECFactoryElement` + `NotableBECFactoryElement`
+   exactly as that base does (neighbours = our formed BEC Hatches; routed neighbours by a walk from them). **One
+   wrinkle:** GT's `MTEHatchBEC` only lists TecTech BEC controllers as its own neighbours, so when the hatch
+   re-registers itself (its first tick, a facing or colour change) the grid drops the edge to us. The controller
+   re-asserts it every second (a neighbour-set compare when nothing changed), so the worst case is one second
+   disconnected. **Suggestion:** keep; upstream, `MTEHatchBEC.addController` could take any `BECFactoryElement`.
+2. **Diffraction never voids.** Each run's regions are injected at the end; whatever the network does not take (no
+   running Containment Field: RC-2's storage accepts nothing while off) waits in the controller, is retried every
+   second, and the next run waits (`beyondthestars.reality.full`) until it is gone. The doc's "won't start without
+   free capacity" became "won't start without a network that has a storage" (`beyondthestars.reality.nonetwork`);
+   RC-2 storages have no hard capacity.
+3. **SL-R03 is read from the map.** The medium, the six anchors (input slots 1..6 = Regions I..VI), the outputs, the
+   time and the EU/t all come from the one recipe in `beyondthestars.recipe.reality_diffraction`, so tweaking the
+   recipe is the whole change. The region identity is the socket (`r..w`), never the fluid; any input hatch works,
+   ME stocking hatches included. An unanchored region is not paid and yields nothing (its share of the medium is
+   lost); no region anchored, no run.
+4. **Refab links the nearest running Condensate Assembler within 64 blocks by itself.** The doc's Data Stick link
+   cannot be done from our side (a stick right-clicked on GT's Assembler never reaches our code), and RC-2 links its
+   nodes with a line-of-sight beam, which would need a LoS hatch socket in our structure. The link is kept and
+   re-found if the Assembler goes. **Suggestion:** keep (zero setup). Alternative: a LoS-hatch socket on the Refab's
+   foot, so it links exactly like a Teleportation Node.
+5. **The reassembly lock replaces GT's end-of-craft failure.** The six regions are drawn from the Refab's OWN BEC
+   Hatch's network in lockstep with the progress; the craft never passes the fraction the scarcest region can pay
+   for, so a short region pauses it (GUI: "waiting for regions") and nothing is wasted. GT's node instead drains
+   what it can and fails the craft at the end. GT's other node rules are kept: one step per item slot, a step needs
+   nanites of at least its tier, each tier above slows it 2x, progress = nanites / tier penalty / (contaminants + 1),
+   more than three foreign condensates clog it (here it waits instead of stopping).
+6. **Refab refuses to start a recipe the Assembler's nanites cannot finish** (the recipe's highest step tier above
+   the Assembler's tier: `beyondthestars.reality.nanites`), so inputs never sit in a craft that would stall at a
+   step. GT's node starts and stalls.
+7. **Refab pays its own EU, and only on ticks that advance** (GT's node defers EU to its Assembler).
+8. **SL-R04 runs at 1 x RECIPE_MAX, not the doc's 4 x.** A GT recipe's EU/t is an int and 4 x RECIPE_MAX does not
+   fit. **Suggestion:** keep; or make it 4x longer. The Refab map takes six condensates (GT's takes four), so its NEI
+   page is taller.
+9. **The process recipes are owned by this unit** (`RealityProcessRecipes`, guard line `reality-process`):
+   SL-H06/H11/H21, SL-R03, SL-R04, SL-R05. The recipe unit must not add them again; it owns the Condensate
+   Assembler / Generator recipes of the blocks, cores and controllers.
+10. **Automation (ruling 18) as built:** GT's standard covers on the controllers (machine controller, activity
+    detector); anchors and the medium take ME input hatches (a level emitter keeps each anchor stocked); RC-2's
+    Condensate Detector hatch on the BEC network reads region stock. **Not built:** a dedicated detection hatch or
+    OpenComputers component for these machines. **Suggestion:** a "Region Anchor Sensor" (one redstone bit per
+    missing anchor) on the Diffraction's base ring, modelled on the Stellar Field Sensor Hatch.
+11. **Not built: the region-cloud and reassembly-stream renders** (doc §2.1 / §3.1, render-only). The drums and the
+    spindle are glass with nothing inside.
+12. **Not tested in game.** `spotlessApply compileJava` passes. The console bench is ready:
+    `/btshr diffraction <x> <y> <z> north fill`, then `/btshr bench <x> <y> <z> status`.
+
+**Alternatives.** The doc's fallback (six output hatches feeding six input hatches, no BEC) if the grid wrinkle in
+item 1 proves annoying in play.
+
 ## Part C. Settled (for the record)
 
 | Topic | Your answer | State |

@@ -64,7 +64,7 @@ import tectech.thing.metaTileEntity.hatch.bec.MTEHatchBEC;
  * <li>We register with {@link BECFactoryGrid} on the first tick and after every walk, and leave it on removal and
  * unload. GT's hatch only lists TecTech BEC controllers as its own neighbours, so a hatch that re-registers itself
  * (its first tick, a facing or colour change) drops the edge to us; we re-assert it every second
- * ({@link #REASSERT_TICKS}), which costs one neighbour-set compare when nothing changed (question H/R-9).</li>
+ * ({@link #REASSERT_TICKS}), which costs one neighbour-set compare when nothing changed (question B-63 item 1).</li>
  * </ul>
  * Condensate moves through GT's own network calls: {@link BECFactoryNetwork#injectCondensate},
  * {@link BECFactoryNetwork#drainCondensate}, {@link BECFactoryNetwork#getStoredCondensate}, so diodes and filters

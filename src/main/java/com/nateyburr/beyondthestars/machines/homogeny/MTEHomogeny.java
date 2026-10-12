@@ -247,7 +247,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
     /**
      * {@code E}: the throat tip's glowing core (T1, 5 cells) and the T3 tail's tip. Region Crystal is the drawn block,
      * but it needs Ergomatter (stage S8), which a UMV player cannot have, so the Godforge lens glass is accepted too
-     * (question H/R-7). Hints and creative builds place the crystal; survival auto-place falls back to the lens.
+     * (question B-62 item 3). Hints and creative builds place the crystal; survival auto-place falls back to the lens.
      */
     private static IStructureElement<MTEHomogeny> crystalOrLens() {
         return noOverwrite(

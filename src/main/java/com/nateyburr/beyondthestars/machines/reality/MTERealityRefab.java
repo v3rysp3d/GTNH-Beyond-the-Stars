@@ -58,7 +58,7 @@ import tectech.thing.metaTileEntity.multi.bec.MTEBECAssembler;
  * HOMOGENY + REALITY MACHINES (H/R unit 2): REALITY REFAB, MTE base+32 (28132), my "reality refab" sketch
  * (design repo {@code designs/docs/homogeny-reality.md} §3, PROPOSED; D-43). "The other will grab it and reassemble."
  * <p>
- * Built like RC-2's Teleportation (I/O) Node, with three differences (questions H/R-10..12):
+ * Built like RC-2's Teleportation (I/O) Node, with three differences (question B-63 items 4-7):
  * <ul>
  * <li><b>Assembler link.</b> It borrows the nanites of a formed, running Condensate Assembler: the nearest one within
  * {@value #LINK_RANGE} blocks in the same dimension, found by itself and kept (re-found if it goes). They are a

@@ -1623,6 +1623,79 @@ build (checked).
   `.reality_refab`; recipe results `beyondthestars.homogeny.tier` / `.installing` and `beyondthestars.reality.nonetwork`
   / `.anchors` / `.full` / `.noassembler` / `.nanites` under `GT5U.gui.text.recipe_result.`.
 
+## Contract additions (Homogeny / Reality machines)
+
+Written by H/R unit 2 (branch `homogeny-reality`), 2026-10-13. Questions B-62 and B-63. Not yet opened in game.
+
+### Files and ids
+
+| MTE | Registry name | Class | GUI |
+|---|---|---|---|
+| 28130 (base+30) | `multimachine.beyondthestars.homogeny` | `machines/homogeny/MTEHomogeny` | `HomogenyGui` |
+| 28131 (base+31) | `multimachine.beyondthestars.realitydiffraction` | `machines/reality/MTERealityDiffraction` | `RealityDiffractionGui` |
+| 28132 (base+32) | `multimachine.beyondthestars.realityrefab` | `machines/reality/MTERealityRefab` | `RealityRefabGui` |
+
+`BTSMachines.homogeny`, `.realityDiffraction`, `.realityRefab`. 28133 and 28134 stay spare. Shared:
+`MTERealityBase` (single piece, the BEC element), `RealityHatchElement` (`Bec`, `anchor(0..5)`), `HRGui` (rows, bar,
+lamps), `HRKit` (kit, build, fill, diagnose), `CommandBTSHR` (`/btshr`).
+
+### Recipe maps (`RealityRecipeMaps`) and process recipes (`RealityProcessRecipes`, guard line `reality-process`)
+
+| Map | maxIO (items in, out, fluids in, out) | Recipes | Notes |
+|---|---|---|---|
+| `beyondthestars.recipe.homogeny` | 0, 0, 3, 1 | SL-H06 (T1), SL-H11 (T2), SL-H21 (T3) | special value = minimum Homogeny tier |
+| `beyondthestars.recipe.reality_diffraction` | 0, 0, 7, 6 | SL-R03 | fluid in 0 = medium, 1..6 = anchors I..VI; out k = region k+1; the machine reads all amounts from here |
+| `beyondthestars.recipe.reality_refab` | 16, 1, 6, 0 | SL-R04, SL-R05 | GT's BEC layout: `NANITE_TIERS` per item slot; the compile step moves fluid inputs to `CONDENSATE_INPUT` |
+
+The recipe unit owns every Condensate Assembler / Generator recipe; it must not register the six ids above again.
+
+### Sockets as walked
+
+| Machine | Char | Element | Fallback | Required |
+|---|---|---|---|---|
+| Homogeny | `h` | GT `InputHatch` (joins `mInputHatches`; truncated if its ring does not count) | `C` | 1+ |
+| Homogeny | `o` | GT `OutputHatch` | `A` | 1+ |
+| Homogeny | `e` | GT `Energy` or `ExoticEnergy` | `M` | 1+ |
+| Homogeny | `E` | Region Crystal, or the Godforge lens glass (B-62 item 3) | | |
+| Diffraction | `b` | `RealityHatchElement.Bec` (GT `MTEHatchBEC`) | `Q` | 1+ |
+| Diffraction | `h` | GT `InputHatch` (the medium) | `Q` | 1+ |
+| Diffraction | `r s t u v w` | `RealityHatchElement.anchor(0..5)` (any `MTEHatchInput`, private list per region) | `I` | 0+ |
+| Diffraction | `e` | GT `Energy` or `ExoticEnergy` | `Q` | 1+ |
+| Refab | `b` / `i` / `o` / `e` | `Bec` / GT `InputBus` / GT `OutputBus` / energy | `Q` / `Q` / `R` / `Q` | 1+ each |
+
+Hatches are textured as the Godforge casing (Homogeny) or the Electromagnetically-Isolated Casing (Reality).
+Structure-error keys: `beyondthestars.structure.homogeny.feed|output|energy`,
+`beyondthestars.structure.reality.bec|medium|energy|inputbus|outputbus`.
+
+### State and NBT
+
+| Machine | Item + tile NBT (survives a wrench) | Tile only |
+|---|---|---|
+| Homogeny (`writeState`) | `btsHomTier`, `btsHomEspm`, `btsHomDegenerate`, `btsHomEscrow`, `btsHomInstalling`, `btsHomInstallTicks` | `btsHomPendEspm`, `btsHomPendDeg`, `btsHomNote` |
+| Diffraction | | `btsDiffMask`, `btsDiffPend0..5`, `btsDiffRuns`, `btsDiffNote` |
+| Refab | | `btsRefabLinked`, `btsRefabDim/X/Y/Z`, `btsRefabSteps`, `btsRefabCraft`, `btsRefabSub`, `btsRefabNote` |
+
+The Homogeny's one install path is `beginInstall()` then `completeInstall()` (constants `MILESTONE_LITRES` 100,000,
+`INSTALL_TICKS` 12,000, `INSTALL_EUT[tier]`). New recipe-result ids: none beyond unit 1's seven (their texts for
+`.noassembler`, `.full` and `.nanites` now match what the machines do).
+
+### Hologram, NEI, survival
+
+- Homogeny: trigger stack 1..3 = T1..T3, rings cumulative; survival builds the pieces in order. NEI counts 3 tiers
+  (stack 4 adds nothing). Reality machines: one piece, one tier.
+- Every plain element is `noOverwrite`; every socket is `buildHatchAdder(...).buildAndChain(casing)`.
+- NEI scratch-world height: Refab spans 137 above its controller (y 64 + 137 = 201), Diffraction 97, the Homogeny 35
+  above and 34 below; all inside 0-255.
+
+### Test bench (`/btshr`)
+
+- `/btshr <homogeny|diffraction|refab> [t1..t3] [fill] [force]` builds in front of the player.
+- `/btshr <machine> [t1..t3] <x> <y> <z> [facing] [fill] [force] [survival] [check]` is the console / command-block
+  form: FORMED / NOT FORMED, first wrong cells, a creative re-projection check, survival damage-and-repair.
+- `/btshr keep <machine> <x> <y> <z> <facing> [tN]` force-loads (`/btskerr release` frees).
+- `/btshr bench <x> <y> <z> <status|check|fill|wrench|milestone e d|escrow|install|itick n|relink|pending>`.
+- `/btskit homogeny | diffraction | refab`.
+
 ## Hologram & NEI
 
 Acceptance pass, 2026-10-12. Verified by reading our code and `javap` of the instance jars (structurelib-1.4.38,
