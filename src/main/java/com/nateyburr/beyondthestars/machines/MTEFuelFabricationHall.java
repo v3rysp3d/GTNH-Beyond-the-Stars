@@ -110,6 +110,17 @@ public class MTEFuelFabricationHall extends MTEProductionHallBase<MTEFuelFabrica
         return 8 * Math.max(1, casingTier);
     }
 
+    /** Tidy B8: the shell block for each tier, weakest first, as the GUI names it. */
+    private static final String[] SHELL_NAMES = { "Clean Stainless Steel Machine Casing", "Iridium Reinforced Block",
+        "Radiant Naquadah Alloy Casing" };
+
+    /** Tidy B8, GUI line: {@code shell: Iridium Reinforced Block, tier 2/3}. Argument only (AXIS 1). */
+    @Override
+    public String parallelSource(int tier) {
+        final int t = Math.max(1, Math.min(SHELL_NAMES.length, tier));
+        return "shell: " + SHELL_NAMES[t - 1] + ", tier " + t + "/" + SHELL_NAMES.length;
+    }
+
     @Override
     public void checkMachine(IGregTechTileEntity aBaseMetaTileEntity, ItemStack aStack, List<StructureError> errors) {
         mCasing = 0;

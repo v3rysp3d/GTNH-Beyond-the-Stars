@@ -131,6 +131,18 @@ public class MTECascadeHall extends MTEProductionHallBase<MTECascadeHall> {
         return 1 << Math.max(0, Math.min(MAX_BANKS, stageBanks));
     }
 
+    /** Tidy B8: the GUI's detail number is the stage-bank count, not a shell tier. */
+    @Override
+    public int getParallelDetail() {
+        return stageBanks;
+    }
+
+    /** Tidy B8, GUI line: {@code stage banks 3/4}. Argument only (AXIS 1). */
+    @Override
+    public String parallelSource(int banks) {
+        return "stage banks " + Math.max(0, Math.min(MAX_BANKS, banks)) + "/" + MAX_BANKS;
+    }
+
     @Override
     public void checkMachine(IGregTechTileEntity aBaseMetaTileEntity, ItemStack aStack, List<StructureError> errors) {
         mCasing = 0;

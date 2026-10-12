@@ -107,6 +107,12 @@ public class MTEPurexCanyon extends MTEProductionHallBase<MTEPurexCanyon> {
         return PARALLEL;
     }
 
+    /** Tidy B8, GUI line: the PUREX parallel is not set by the structure. */
+    @Override
+    public String parallelSource(int detail) {
+        return "fixed";
+    }
+
     @Override
     public void checkMachine(IGregTechTileEntity aBaseMetaTileEntity, ItemStack aStack, List<StructureError> errors) {
         mCasing = 0;
