@@ -87,8 +87,8 @@ import gregtech.common.tileentities.machines.multi.compressor.MTEBlackHoleUtilit
  * own in a bolt bus while "Auto" is on). Every tick the hole bleeds {@code 3.2 / M^2} SM and draws
  * {@link #CONTAINMENT_EUT} EU of containment power; with the power the governor fires bolts from the
  * bolt buses to hold the setpoint, at most {@code cap} a tick (the LOWEST injector-rail tier: Mk I 4,
- * Mk II 8, Mk III 16). Without it, or with the machine switched off, the governor stops and the hole
- * bleeds; below 2 SM it evaporates. An unformed KEE freezes its hole (B-8).
+ * Mk II 8, Mk III 16). Without it the governor stops and the hole bleeds; below 2 SM it evaporates. GT's
+ * power switch does not touch the hole (B-39). An unformed KEE freezes its hole (B-8).
  *
  * <h2>The four traps</h2>
  * <ol>
@@ -545,7 +545,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         if (mMachine) {
             if (autoSeeds && aTick % 20 == 0) useSeedOrCollapser();
             pulseUtilityHatches(aTick);
-            tickHole(aBaseMetaTileEntity.isAllowedToWork());
+            tickHole();
         }
         if (aTick % 20 == 0) refreshReadouts();
         aBaseMetaTileEntity.setActive(holeOpen && mMachine);
@@ -581,10 +581,12 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     }
 
     /**
-     * Hawking bleed, containment power, then the governor. Runs every tick while formed. Switched off
-     * (GT's power button) or without containment power the governor stops and the hole bleeds.
+     * Hawking bleed, containment power, then the governor. Runs every tick while formed. Without
+     * containment power the governor stops and the hole bleeds. GT's power switch does NOT stop it: GT
+     * switches a machine off whenever its structure breaks, so a repaired cage would otherwise bleed
+     * until someone noticed (B-39). Collapse is the way to shut a hole down.
      */
-    private void tickHole(boolean enabled) {
+    private void tickHole() {
         if (!holeOpen) {
             lastBoltsFired = 0;
             lastBleed = 0;
@@ -598,7 +600,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         lastBleed = BLEED_K / (mass * mass);
         mass -= lastBleed;
         windowBled += lastBleed;
-        powerOk = enabled && drainEnergyInput(CONTAINMENT_EUT);
+        powerOk = drainEnergyInput(CONTAINMENT_EUT);
         final double deficit = setpoint - mass;
         final double before = mass;
         lastBoltsFired = powerOk && deficit > 0 ? fireBolts(deficit, boltCap()) : 0;
@@ -960,6 +962,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
 
     /** The status lines the scanner and the creative build print. Server-side state. */
     public List<String> statusLines() {
+        if (getBaseMetaTileEntity() != null && getBaseMetaTileEntity().isServerSide()) refreshReadouts();
         final List<String> out = new ArrayList<>();
         out.add(
             "Kerr " + (densityInstalled ? "T2 (Density Upgrade installed)" : "T1") + (mMachine ? "" : ", NOT FORMED"));
@@ -1030,8 +1033,8 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             .addInfo("  bus with Auto on). Hawking bleed 3.2/M² SM a tick; the governor fires bolts to hold")
             .addInfo("  the setpoint: Neutronium 1/64, Cosmic Neutronium 1/32, Infinity 1/16, Transcendent 1/8,")
             .addInfo("  SpaceTime 1/4 SM, at most 4/8/16 a tick by the LOWEST injector rail (Mk I/II/III).")
-            .addInfo("Containment: 8,388,608 EU/t (1 A UEV) while open. Without it, or switched off, the")
-            .addInfo("  governor stops and the hole bleeds; below 2 SM it evaporates.")
+            .addInfo("Containment: 8,388,608 EU/t (1 A UEV) while open. Without it the governor stops and")
+            .addInfo("  the hole bleeds; below 2 SM it evaporates. The power switch does not stop the hole.")
             .addInfo("Modules get parallel 8 x tier x floor(sqrt(M)) and speed x(3200/M)/50 (1 to 4).")
             .addInfo("Optional BHC Utility Hatches on the cage emit redstone while the hole is open.")
             .addSeparator()

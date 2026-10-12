@@ -227,7 +227,6 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
 
     static String containmentLine(boolean open, boolean enabled, boolean powerOk, long eut) {
         if (!open) return EnumChatFormatting.DARK_GRAY + "Containment: idle (no hole)";
-        if (!enabled) return EnumChatFormatting.RED + "Switched OFF: governor stopped, the hole bleeds";
         if (!powerOk) return EnumChatFormatting.RED + "Containment power LOW: governor stopped";
         return EnumChatFormatting.GRAY + "Containment " + String.format(Locale.ROOT, "%,d", eut) + " EU/t";
     }
@@ -278,6 +277,12 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
             default:
                 return "-";
         }
+    }
+
+    /** The power switch does not stop the hole (B-39): shown greyed out. */
+    @Override
+    protected boolean isPowerSwitchDisabled() {
+        return true;
     }
 
     // ================================================================================ gap row
