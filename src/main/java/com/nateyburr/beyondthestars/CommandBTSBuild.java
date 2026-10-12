@@ -80,7 +80,8 @@ public class CommandBTSBuild extends CommandBase {
     @Override
     public String getCommandUsage(ICommandSender sender) {
         return "/btsbuild [1-5|all] [uranium|mox|thorium|naq] [force]  |  console: /btsbuild t<1-5> <x> <y> <z> "
-            + "[facing] [rod] [force] [crib] | [check]";
+            + "[facing] [rod] [force] [crib] | [check]  |  "
+            + com.nateyburr.beyondthestars.machines.HallBench.USAGE;
     }
 
     @Override
@@ -261,6 +262,13 @@ public class CommandBTSBuild extends CommandBase {
     private void processAt(ICommandSender sender, String[] args, SLConsoleTest.Placement at) {
         final World world = sender.getEntityWorld();
         if (world == null || world.isRemote) return;
+        if (args.length > 0 && args[0].equalsIgnoreCase("hall")) {
+            // test bench: the standalone halls, the Yellowcake Mill and the Extraction Platform
+            for (String line : com.nateyburr.beyondthestars.machines.HallBench.run(world, at, args)) {
+                SLConsoleTest.tell(sender, line);
+            }
+            return;
+        }
         int tier = 1;
         String rodArg = null;
         boolean force = false;
