@@ -67,16 +67,14 @@ public final class SLItems {
 
     public static void register() {
         superradiantMirrorSegment = BTSItems.define("superradiantMirrorSegment");
-        stabiliserPylon = BTSItems.define("stabiliserPylon");
-        kerrDensityUpgrade = BTSItems.define("kerrDensityUpgrade");
+        // BEC expansion: these five are Condensate Assembler parts now, so they carry a tooltip saying so (rule 14).
+        stabiliserPylon = defineWithTooltip("stabiliserPylon");
+        kerrDensityUpgrade = defineWithTooltip("kerrDensityUpgrade");
         galacticUpgradeCore = defineWithTooltip("galacticUpgradeCore");
 
-        starChartSol = BTSItems.define("starChartSol")
-            .setMaxStackSize(1);
-        starChartSiriusA = BTSItems.define("starChartSiriusA")
-            .setMaxStackSize(1);
-        starChartArcturus = BTSItems.define("starChartArcturus")
-            .setMaxStackSize(1);
+        starChartSol = defineWithTooltip("starChartSol").setMaxStackSize(1);
+        starChartSiriusA = defineWithTooltip("starChartSiriusA").setMaxStackSize(1);
+        starChartArcturus = defineWithTooltip("starChartArcturus").setMaxStackSize(1);
         starChartSiriusB = defineWithTooltip("starChartSiriusB").setMaxStackSize(1);
         starChartSiriusBCooled = defineWithTooltip("starChartSiriusBCooled").setMaxStackSize(1);
 
