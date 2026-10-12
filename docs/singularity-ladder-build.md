@@ -2027,6 +2027,7 @@ accepted, and §10.2's questions take their recommendations. Branch `p4-quasar`;
 | Structures: voxel cells (§7), export, manifest | built | 26b04e7 (addon); design repo 1b407b3 |
 | Design repo §9: `bh-model.js`, `recipes.js` cards, renames, D-50, page rebuilt | built | design repo 1b407b3 |
 | Engine maths: quasar disc, conduit maths, links, Eye T7/T8 field and transitions, P4 Directive rules, golden, rig proof | built | 4850153, 566cfe5, 1747224; design repo 330e4df |
+| Content + recipes (§6): fluids, items, slCasing2:3-11, textures, lang, BTSRecipesQuasar, SL-P40, the Eternity swap, NEI pages, P4 gate audit | built | a67ef11, 2799a9e, 486877f, e89b314 |
 
 ### MTE ledger (P4 block 28120-28129)
 
@@ -2147,14 +2148,93 @@ pre-P4 builds stay formed.
   `P` and `r` elements. Turn the `p` element into a private slot bus.
 - **Quasar / crown / conduit units.** Load the shapes above, with `noOverwrite` on plain casings. Read the slot / throat
   data from `BTSShapes.manifest()`; do not hard-code offsets.
-- **Recipe unit.** Every block in the BOM above needs a recipe. Watch the totals in P4-05: Eddington Wall Casing
-  27,815 per quasar, Casimir 7,145 per Junction.
+- **Recipe unit.** Done: every block in the BOM above has a batch recipe (see "Content and recipes" below, costs
+  §13).
 - **Design repo.** `designs/bh-model.js` summarises the disc (`discStep`), the demand (`demand`), the 1.5× rule
   (`topTier`, `massForTier`), crown banks (`thermBank` on the mean) and throat upkeep (`throatUpkeep`). The **reference
   for the Java** is the prototype's engine (`designs/quasar-p4-prototype.html`, ENGINE + P4 blocks), which the golden
   test pins. `discStep` is the same maths, but some of its float operations are grouped differently.
 - **Every MTE unit** calls the engine below and never re-derives a formula. A tuning change goes into the prototype
   first, then `--refresh-fixture`, then the Java, then the golden.
+
+### Content and recipes (§6; questions P4-23..P4-35, costs §13)
+
+**Fluids** (`fluids/SLQuasarFluids`, registered before `SLRealityFluids`; `SLRealityFluids.ergomatter` /
+`superdenseErgomatter` are aliases):
+
+| Field | Registry name | Made by |
+|---|---|---|
+| `SLQuasarFluids.ergomatter` | `btsergomatter` | Eye T7 |
+| `SLQuasarFluids.superdenseErgomatter` | `btssuperdenseergomatter` | Eye T8 (1 : 1), or SL-Q23 (8 : 1) |
+| `SLRealityFluids.entangledMagnetar` | `btsentangledmagnetar` | SL-B16 (now P4's generator) |
+
+**Items** (`items/SLQuasarItems`; texture and lang key from the field name; tooltips in the lang file):
+`quasarSeed`, `conduitThroatMk1` / `Mk2` / `Mk3` (`throatTier(stack)` 0-3, `throat(tier)`), `intergalacticUpgradeCore`,
+`supermassiveSeedCore`, `starChartTriangulum`, `starChartMilkyWay`, `gammaRayBurst` (NEI display only, no creative tab).
+
+**Blocks** (`blocks/BlockSLCasing2`, `SLBlocks.casing2(meta, n)`):
+
+| Meta | Constant | Block | Shape char |
+|---|---|---|---|
+| 3-6 | `DISC_COIL_T1..T4` (`discCoil(tier)`, `discCoilTier(meta)`) | Disc Field Coil T1-T4 | quasar `H`, channel `coil` |
+| 7 | `EDDINGTON_WALL` | Eddington Wall Casing | quasar `E` |
+| 8 | `RIM_GAS_INJECTOR` | Rim Gas Injector | quasar / mouth `I` |
+| 9 | `JET_COLLIMATOR` | Jet Collimator Ring | `C` everywhere |
+| 10 | `BURST_THERMALISER` | Burst Thermaliser Casing | crown `F` |
+| 11 | `RADIATOR_PETAL` | Radiator Petal | crown `R` |
+
+**Machine stacks** (`BTSMachines`, null until the MTE unit registers its machine; its recipe waits until then):
+`quasarEngine` 28120, `wormholeMouth` 28121, `conduitMirror` 28122, `conduitJunction` 28123,
+`burstThermaliserCrown` 28124, `grbReceptorPort` 28125, `burstControlHatch` 28126.
+
+**Overlays** (`Textures.BlockIcons.custom("beyondthestars:iconsets/<NAME>")`, from `tools/gen-sl-textures.js`):
+`OVERLAY_FRONT_QUASAR_ENGINE`, `OVERLAY_FRONT_BURST_CROWN`, `OVERLAY_FRONT_WORMHOLE_MOUTH`, `OVERLAY_FRONT_CONDUIT_MIRROR`,
+`OVERLAY_FRONT_CONDUIT_JUNCTION` (each `+ _GLOW`, `_ACTIVE`, `_ACTIVE_GLOW`, 8 frames), `OVERLAY_HATCH_GRB_RECEPTOR`,
+`OVERLAY_HATCH_BURST_CONTROL` (each `+ _GLOW`). Block textures `sl_disccoil_t1..t4`, `sl_eddington`, `sl_rimgas`,
+`sl_collimator`, `sl_thermaliser`, `sl_petal`.
+
+**Recipes** (`BTSRecipesQuasar`, one owner, guard line `quasar` after `reality`):
+
+| Id | Output | Machine | Notes |
+|---|---|---|---|
+| SL-B16 | Entangled Magnetar Matter | Condensate Generator | 144 L → 144 L, 180 s, 2 A UXV |
+| SL-Q01 | Quasar Engine | assembly line (research: Quasar Seed) | Agent 256,000 L; Magnetar 21,888 L; waits for 28120 |
+| SL-Q02..Q05 | Disc Field Coil T1-T4 ×32 | Condensate Assembler | T4 keeps MagMatter (optional, P4-24) |
+| SL-Q06 | Eddington Wall Casing ×64 | Condensate Assembler | |
+| SL-Q07 | Rim Gas Injector ×8 | Condensate Assembler | |
+| SL-Q08 | Jet Collimator Ring ×32 | Condensate Assembler | |
+| SL-Q09 | Quasar Seed | `KerrRecipeMaps.DENSITY` | HSM 64,000 + Magnetar 1,440 L + 4 Black Hole Seeds |
+| SL-Q10 / Q11 / Q12 | Wormhole Mouth / Conduit Mirror / Conduit Junction | assembly line | Agent; wait for 28121-28123 |
+| SL-Q13 / Q14 / Q15 | Conduit Throat Mk I / II / III | CA / CA / assembly line | Mk III takes Ergomatter |
+| SL-Q16 | Burst Thermaliser Crown | assembly line | waits for 28124 |
+| SL-Q17 / Q18 | Burst Thermaliser Casing ×64 / Radiator Petal ×64 | Condensate Assembler | |
+| SL-Q19 / Q20 | GRB Receptor Port / Burst Control Hatch | Assembler, UMV (Hull UMV) | wait for 28125 / 28126 |
+| SL-Q21 | Intergalactic Upgrade Core | Condensate Assembler | SpaceTime fallback for MagMatter (Q-22) |
+| SL-Q22 | Supermassive Seed Core | Condensate Assembler | Entangled Ergomatter 128,000 L |
+| SL-Q23 | Superdense Ergomatter 500 L | `KerrRecipeMaps.DENSITY` | Ergomatter 4,000 + SpaceTime 1,440 L, circuit 8 |
+| SL-Q24 / Q25 | Star Chart: Triangulum / Milky Way | Condensate Assembler | |
+| SL-Q26 | Eternity on Ergomatter | load-complete rewrite | catalyst 9,216 L, Timepiece 4,608 L Ergomatter |
+| SL-Q27 / Q28 | NEI pages | `QuasarRecipeMaps.QUASAR` / `THERMALISER` | fake recipes |
+| SL-P40 | Resonance Chamber IV | Condensate Assembler | SpaceTime foils + 1,500 L Entangled Ergomatter |
+
+SL-P40 and SL-Q26 run only with `replaceTecTechEyeOfHarmony`. `BTSRecipesReality.ETERNITY_BEFORE_T10` =
+`BTSRecipesQuasar.eternityBeforeT10()`; `eternitySwapped()` reports SL-Q26's outcome after load-complete.
+
+**Dev-server check** (this worktree, `runServer` on port 25581, `/btseye gates`): `Recipe registration complete: 308
+registered, 0 skipped`; "P4 recipes: 7 wait for their machine's MTE unit"; SL-Q26 rewrote 1 catalyst and 1 Timepiece
+recipe; research items unique; compression gates T1-T9 clean; P4 gate audit 27 parts, 0 loops (P4-34).
+
+**Contracts.**
+
+- **MTE units:** assign your `BTSMachines` stack in `register()`; your recipe then registers on the next boot with no
+  other change. Use the overlays above. The Quasar and crown controllers return `QuasarRecipeMaps.QUASAR` /
+  `THERMALISER` from `getAvailableRecipeMaps()`.
+- **Conduit units:** read a throat with `SLQuasarItems.throatTier(stack)`; `BurstRouting`'s Mk index is that value.
+- **Hosts unit (Kerr):** in the Compressor module's DENSITY gate, require `BTSRecipesQuasar.densityMinMass(recipe)` SM
+  and, if `densityNeedsLink(recipe)`, the KEE's quasar link at σ ≥ `SUPERDENSE_MIN_SIGMA`. Add the GT5U recipe-result
+  lang keys for any new failure ids (ruling 10).
+- **Questbook merge:** `docs/p4-questbook-contract.md` "Content + recipes unit"; flip `eternityOnErgomatter`.
+- **Recipe cost:** `singularity-ladder-costs.md` §13.
 
 ### Engine maths (pure Java; the B-37 discipline)
 

@@ -138,3 +138,70 @@ Each code adds its bits: [1] [2] [4] [8]. The window w is set in the hatch's GUI
   - J2: Field [4] / [8];
   - J3: Events [1] / [2].
   It does even better (T8 about 90 % Resonant).
+
+## Content + recipes unit
+
+Item and block ids for the quest tasks (registry names; `beyondthestars:` prefix): `quasarSeed`, `conduitThroatMk1`,
+`conduitThroatMk2`, `conduitThroatMk3`, `intergalacticUpgradeCore`, `supermassiveSeedCore`, `starChartTriangulum`,
+`starChartMilkyWay`; blocks `slCasing2` metas 3-6 (Disc Field Coil T1-T4), 7 (Eddington Wall Casing), 8 (Rim Gas
+Injector), 9 (Jet Collimator Ring), 10 (Burst Thermaliser Casing), 11 (Radiator Petal). Fluids `btsergomatter`,
+`btssuperdenseergomatter`. NEI pages: `beyondthestars.recipe.quasar`, `beyondthestars.recipe.thermaliser`.
+
+### Quest: "A seed for a quasar" (needs: Kerr T2)
+
+Task: retrieve 1 Quasar Seed. Text:
+
+> The Quasar Engine needs its own black hole. A Kerr T2 makes the seed without spending its own hole: put 4 Black Hole
+> Seeds, 64,000 L of Hyperdense Stellar Mixture and 1,440 L of Magnetar Matter into its Compressor Module while the
+> KEE holds at least 256 SM. The seed opens a 64 SM hole once; a hole that collapses goes dormant and can be reopened,
+> so you only ever need one.
+
+### Quest: "Building the quasar" (needs: Eye T6)
+
+Tasks: retrieve 64 Eddington Wall Casing, 32 Disc Field Coil (Tier I), 32 Jet Collimator Ring, 8 Rim Gas Injector.
+Text:
+
+> The quasar is the largest machine in the UXV chapter: about 28,000 Eddington Wall Casings, 3,354 Disc Field Coils,
+> 596 Jet Collimator Rings and 112 Rim Gas Injectors, plus the Black Hole Compressor's own casings for the cage. Every
+> one of them is a batch recipe in the Condensate Assembler (64, 32, 32 and 8 a craft). Start with Tier I coils
+> (Infinity): the coil tier caps the field b and how big the hole may grow (256 / 1,024 / 2,048 / 4,096 SM), and you
+> can rebuild the coils later. Nothing in the quasar needs Ergomatter: the Antipolarization Agent takes its place in
+> every recipe you need before Eye T7.
+
+### Quest: "Throats" (needs: the Conduit quest)
+
+Tasks: retrieve 1 Conduit Throat Mk I; optional Mk II. Text:
+
+> A throat sits in a Wormhole Mouth, Conduit Mirror or Junction controller like a turbine rotor. Mk I carries 24 Bu/t,
+> Mk II 384, Mk III 6,144 (Mk III takes Ergomatter, so it is a T7 part). Each element burns throat fuel while a stream
+> passes: Molten SpaceTime before T7 (4 / 16 / 64 L/s per element), Ergomatter after (0.25 / 1 / 4 L/s).
+
+### Quest: "Intergalactic Upgrade Core" (needs: Stability Link)
+
+Task: retrieve 1. Text: the core of the Magnetar Collapse. Made in the Condensate Assembler from Entangled Magnetar
+Matter, the Agent, SpaceTime and Black Dwarf condensates, two Mk I throats and White Dwarf nanites. Held in escrow,
+consumed only when the collapse succeeds.
+
+### Quest: "Supermassive Seed Core" (needs: Eye T7, Heavy Link)
+
+Task: retrieve 1. Text: 128,000 L of Ergomatter (Entangled) and 2,304 L of Magnetar Matter make the Galactic Merger's
+core; Black Dwarf nanites. The name is the hole it seeds, not the fluid.
+
+### Quest: "Superdense Ergomatter, the slow way" (needs: Eye T7, a quasar link on the Kerr)
+
+Task: retrieve 500 L Superdense Ergomatter. Text: the Kerr Compressor Module refines Ergomatter 8 : 1 (4,000 L +
+1,440 L Molten SpaceTime → 500 L, 10 min, UXV) with the KEE at T2, at least 256 SM, and a quasar link on the KEE at
+σ ≥ 1. Eye T8 makes the same fluid 1 : 1 from its feed, about nine times better: this route is for before T8.
+
+### Quest: "Eternity before the end" (needs: Eye T7)
+
+Text (replaces the pack's Eternity prerequisite text where it mentions Universium): with Beyond the Stars' Eye of
+Harmony, the Temporal Harmony Catalyst takes 9,216 L of Ergomatter instead of a Universium Nanite, and the Plasma
+Forge's Timepiece takes 4,608 L of Ergomatter instead of one, so Eternity is made from Eye T7. Set the questbook's
+`eternityOnErgomatter` feature flag to true at the merge (it gates the same text in the questbook branch).
+
+### Tooltips already in the jar (rule 14)
+
+Every item and block above has a lang tooltip (what it is for, the key numbers, where it is made). The NEI pages
+"Quasar Engine (accretion disc)" and "Burst Thermaliser Crown" show the Eddington feed per gas and each crown's cap and
+EU/t; quests can point at them.

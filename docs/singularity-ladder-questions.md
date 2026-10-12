@@ -3263,3 +3263,172 @@ The plain-rig golden case (assist off, +120) loses the magnetar, as F-2 says.
 - The parallel p in the T7/T8 feed, product and bonus. It is 1 in the prototype, where the forms are identical.
 
 **Suggestion.** Keep this.
+
+### P4-23 Ergomatter and Superdense Ergomatter now belong to P4 [content]
+
+**Context.** The Homogeny / Reality branch registered `btsergomatter` and `btssuperdenseergomatter` as placeholders
+(`SLRealityFluids.ifAbsent`, H-24) so its recipes showed in NEI.
+
+**Built.** `fluids/SLQuasarFluids` registers both under the same frozen names and colours, before `SLRealityFluids`.
+`SLRealityFluids.ergomatter` / `superdenseErgomatter` are now aliases of P4's fields, so the H/R code reads the same and
+neither is a placeholder any more. The H/R gate log no longer names them. White Hole Matter stays a placeholder (P5).
+
+**Suggestion.** Keep this. The P5 unit does the same for White Hole Matter.
+
+### P4-24 Q-22 failed: MagMatter is not attainable before T7 in RC-2 [recipes, design]
+
+**Context.** Q-22 asked to check that MagMatter is attainable before the tier that needs it, and §6.5 named the check.
+
+**Found (RC-2 sources).** The only MagMatter source is the Godforge's Heliofusion Exoticizer in magmatter mode
+(`MTEExoticModule.generateMagmatterRecipe`: molten Time + molten Space). That mode needs the Godforge upgrade **EE**
+(`GodforgeMath`: `setMagmatterCapable(data.isUpgradeActive(EE))`). EE's extra cost (`tectech/loader/recipe/Godforge`)
+is 64 White Dwarf + 64 Black Dwarf Matter frames, **16 Eternity frames** (Eye T7 with SL-Q26) and **2 Universium frame
+boxes** (Eye T10), plus 48 Stabilisation Field Generators tier 6 and other parts. So MagMatter waits for Eye T10.
+
+**Built.**
+
+- The Intergalactic Upgrade Core (SL-Q21) takes §6.5's fallback: no MagMatter Condensate; SpaceTime Condensate rises to
+  1,120 ingots (161,280 L, the card's 128,000 L + 32,000 L, rounded to whole ingots).
+- The optional Disc Field Coil T4 (SL-Q05) keeps MagMatter (§6.3, "tier 4 is optional"). It is reachable only after
+  T10 until EE is rewritten. Its tooltip says "optional".
+- The gate dump reports T4 coils without judging them.
+
+**Suggestion.** Under `replaceTecTechEyeOfHarmony`, rewrite the EE upgrade's 2 Universium frame boxes to 2 frames of a
+pre-T7 product (Magnetar Matter has no frame; e.g. 8 Black Dwarf Matter frames), the same D-48 item 2 spirit that keeps
+MagMatter in UXV. Then MagMatter (and T4 coils) arrive at T7 with Eternity. **Alternative:** give the T4 coil a
+different metal (Superdense Ergomatter would make it a T8 part).
+
+### P4-25 UXV parts on pre-T7 cards: the B-72 UMV stopgap [recipes]
+
+**Context.** RC-2's Field Generator / Sensor / Emitter UXV each need 576 L molten Universium + 576 L MHDCSM, and the UXV
+Machine Casing needs 4 MHDCSM + 4 MagMatter plates. You chose "Ship UMV stopgap" (ruling 22a) until the UXV-part
+brainstorm.
+
+**Built.** Every P4 card needed before T7 takes **twice as many UMV parts** for the card's UXV parts (Quasar Engine FG /
+Emitter / Sensor 32 → UMV 64 each; Throat Mk I FG 2 → 4; Mk II 8 → 16; Intergalactic Core FG 32 → 64; Triangulum and
+Milky Way charts Sensor 2 → 4). The GRB Receptor Port and the Burst Control Hatch use a **Machine Hull UMV**, are
+Assembler recipes at UMV, and take Sensor UMV ×4 / Sensor + Emitter UMV ×2. UXV circuits stay (RC-2's own Eye T5/T6
+compression generators take them; the gate dump passes them).
+
+§6.5's "UXV Superconductor Wire takes the Agent" (ruling 19b) has nothing to change in the build: the pack stops at
+UMV superconductors and no recipe makes a UXV wire. The P4 cards that named it (Disc Field Coil T4) take UMV wire
+(×16 per 32 coils, twice the other tiers).
+
+**Suggestion.** When the UXV-part design lands, move these cards back to UXV parts in one pass (they are all in
+`BTSRecipesQuasar`, marked "B-72 stopgap").
+
+### P4-26 The block recipes are Condensate Assembler batches, priced per block [recipes, costs]
+
+**Context.** P4-05: one quasar takes 27,815 Eddington Wall Casings and 3,354 coils; a Junction takes 7,145 Casimir
+Plates. The cards were single-block assembler / assembly-line recipes (the Eddington card alone was about 55,000 dense
+Black Dwarf Matter plates per quasar; the Jet Collimator card 8 Field Generators per ring).
+
+**Built** (ruling 11b, the SL-B32 Bastion pattern, about RC-2's BEC casing time per block):
+
+| Id | Block | Per craft | Time | Per block |
+|---|---|---|---|---|
+| SL-Q02..Q05 | Disc Field Coil T1-T4 | ×32 | 2,400 / 3,000 / 3,600 / 4,200 s | 75-131 s |
+| SL-Q06 | Eddington Wall Casing | ×64 | 2,400 s | 37.5 s |
+| SL-Q07 | Rim Gas Injector | ×8 | 3,600 s | 450 s |
+| SL-Q08 | Jet Collimator Ring | ×32 | 2,400 s | 75 s |
+| SL-Q17 | Burst Thermaliser Casing | ×64 | 2,400 s | 37.5 s |
+| SL-Q18 | Radiator Petal | ×64 | 1,800 s | 28 s |
+
+Each keeps the card's identity in batch form (the Eddington wall's Black Dwarf Matter as 72 L of condensate per 64;
+the coil's tier metal as frames + condensate; the collimator's Disc Field Coil T3 and White Dwarf Matter). Totals per
+machine are in `singularity-ladder-costs.md` §13: a quasar is about 70k neutronium, 35k Infinity and 3.3k SpaceTime
+ingots (T1 coils), 392 h nanite-time, in line with one Eye T5/T6 step.
+
+**Suggestion.** Keep. *Alternative:* raise the Eddington batch if the quasar should cost more than an Eye step.
+
+### P4-27 The Quasar Engine card's Magnetar Matter items and condensate [recipes]
+
+**Built (SL-Q01).**
+
+- "Dense Magnetar Matter Plate ×8" and "Magnetar Matter Frame Box ×8" do not exist: Magnetar Matter is our fluid, not a
+  GT material. They are folded into the molten feed: 9,216 + 8 × 1,296 + 8 × 288 = **21,888 L**, §6.3's "about 20,000 L".
+- "Black Dwarf Matter Condensate 64,000 L" is **molten Black Dwarf Matter 448 ingots (64,512 L)**: an assembly line
+  cannot draw from a BEC network.
+- Research item: the Quasar Seed. Ergomatter → Antipolarization Agent 256,000 L, as §6.3.
+
+### P4-28 The two transition cores and the charts [recipes]
+
+**Built.**
+
+- **SL-Q21 Intergalactic Upgrade Core** (Condensate Assembler, 3,000 s, UXV): Entangled Magnetar Matter 4,608 L,
+  Entangled Agent 32,000 L, SpaceTime Condensate 1,120 ingots (P4-24), Entangled Black Dwarf Matter 448 ingots. The
+  Assembler takes at most 4 condensates, so the card's White Dwarf Matter Condensate (64,000 L) is 48 dense White Dwarf
+  Matter plates. The card's "Metamaterial 64 ×2" is Field Manipulator II ×16 + Shielding II ×16 (tier-II metamaterials,
+  White Dwarf nanites, T4-legal). Throat Mk I ×2, FG UMV ×64, UXV circuits 32, Bastion 64.
+- **SL-Q22 Supermassive Seed Core** (3,600 s, UXV): Entangled Ergomatter 128,000 L + Entangled Magnetar 2,304 L;
+  Bastion 64, Resonance Chamber III ×32, Field Manipulator II ×32 (the card's "Metamaterial 64").
+- **SL-Q24 / SL-Q25 Star Charts**: Data Orb + Sensor UMV ×4 + Entangled Magnetar 2,304 L (Triangulum) or Entangled
+  Ergomatter 4,000 L (Milky Way), SpaceTime 28 ingots. A Casimir Plate / Bastion Plate keeps the two item sets apart
+  (the Assembler finds recipes by items only).
+- **SL-B16** (the BEC proposal's reserved Entangled Magnetar Matter): its generator is added here (144 L → 144 L,
+  180 s, 2 A UXV), because P4 is its first consumer.
+- SpaceTime Condensate "4,000 L" on the throats and charts is 28 ingots (4,032 L): GT's half-unit rule.
+
+### P4-29 Conduit Mirror: "BEC Metamaterial Film" was never built [recipes]
+
+**Built.** SL-Q11 takes 4 MetaMaterial Wave Focus II (GT's focusing metamaterial) where the card has 4 BEC
+Metamaterial Film. Everything else as carded, with the Agent for Ergomatter. **Alternative:** build the film item.
+
+### P4-30 Machine recipes wait for their MTE unit [recipes]
+
+**Built.** `BTSMachines` holds the seven P4 stacks (`quasarEngine`, `wormholeMouth`, `conduitMirror`,
+`conduitJunction`, `burstThermaliserCrown`, `grbReceptorPort`, `burstControlHatch`), null until each MTE unit
+registers its machine. A recipe whose output is null is not registered and not counted as a skip; the boot log names
+the waiting ones in one line ("P4 recipes: 7 wait for their machine's MTE unit"). The Junction also consumes a
+Wormhole Mouth. Research items are unique (the Quasar Seed, the Rim Gas Injector, the Superradiant Mirror Segment, the
+Jet Collimator Ring, the Burst Thermaliser Casing, Throat Mk II).
+
+### P4-31 The DENSITY gates are the Hosts unit's [recipes, contract]
+
+**Built.** SL-Q09 (Quasar Seed) and SL-Q23 (Superdense refined) are on `KerrRecipeMaps.DENSITY`. Today the Compressor
+module's own gate applies (Kerr T2, 128 SM). `BTSRecipesQuasar.densityMinMass(recipe)` (256 SM for both) and
+`densityNeedsLink(recipe)` (SL-Q23: the KEE's quasar link at σ ≥ 1) are the hooks for the Hosts unit's
+`validateRecipe`. SL-Q23 takes a programmed circuit 8 (not consumed): the DENSITY map needs one item input.
+
+### P4-32 SL-P40 and the Eternity swap (SL-Q26) [recipes]
+
+**Built.**
+
+- **SL-P40**, the SL-P39 pattern (a separate Condensate Assembler recipe behind `replaceTecTechEyeOfHarmony`): RC-2's
+  Resonance Chamber IV with the MHDCSM foil replaced by 2 SpaceTime foils + 1,500 L Entangled Ergomatter (the card's
+  1,440 L on the 500 L half-unit rule). Ruling 22c moves SL-P39 to an in-place rewrite of GT's recipe; SL-P40 can
+  follow it in the same commit when that lands.
+- **SL-Q26** (D-48 proposal 1, Q-10), at load-complete, behind `replaceTecTechEyeOfHarmony`, rewritten in place:
+  - GT++'s Temporal Harmony Catalyst (Assembler, the QFT catalyst of the coremod's Eternity recipe): the Universium
+    Nanite goes; Ergomatter 9,216 L takes the one fluid slot; its Dark Iron (10 stacks of molten) moves into the items
+    as 64 + 7 blocks.
+  - The gate dump then found a second Universium Nanite: the only other **Timepiece** recipe (coremod DTPF, 3
+    Timepieces) eats one, and the catalyst consumes a Timepiece. Its nanite becomes Ergomatter 4,608 L (a ninth fluid
+    slot is free). The Eternity QFT recipe hands a Timepiece back, so the loop feeds itself after the first catalyst.
+  - `BTSRecipesReality.ETERNITY_BEFORE_T10` follows `BTSRecipesQuasar.eternityBeforeT10()` (true: with the flag on SL-Q26
+    runs; with it off TecTech's Eye still makes Universium). The H/R "Eternity" gate lines are gone from the boot log;
+    SL-Q26 logs an error if it finds nothing to rewrite.
+- **Suggestion.** Flip the questbook's `eternityOnErgomatter` feature flag at the questbook merge (the questbook branch
+  is not in this base).
+
+### P4-33 NEI pages for the quasar and the crowns [content]
+
+**Built.** `machines/quasar/QuasarRecipeMaps`: two display-only maps with fake recipes (the `BTSDisplayRecipes`
+pattern, numbers read from the engine). `beyondthestars.recipe.quasar`: one page per feed gas (Hydrogen, Helium, Raw
+Star Matter → the Gamma-Ray Burst display item) with κ, the Eddington feed at 64 and 1,024 SM, the coil power and the
+jet split. `beyondthestars.recipe.thermaliser`: one page per crown Mk (cap, EU/t at cap, petals). **Contract:** the
+Quasar and crown MTEs return these maps from `getAvailableRecipeMaps()` so NEI lists them as catalysts.
+
+### P4-34 The P4 gate audit on the dev server [recipes, test]
+
+**Run.** `/btseye gates` on a headless `runServer` (this worktree, port 25581). `SLGateDump` now also checks every P4
+part (27) against the Eye tier it gates (7: everything built before T7 and the T6 → T7 core and chart; 8: Throat Mk III,
+the T7 → T8 core, the Milky Way chart, Resonance Chamber IV and the Eternity catalyst; 9: Superdense Ergomatter), its
+direct inputs, nanites and fluids, and one level down. Results in the build spec's P4 section. The seven machine
+recipes are not checked until their MTE units land; their inputs are the blocks and parts above.
+
+### P4-35 Casimir-lined conduit casing: not a block [content]
+
+§6.2 lists it; P4-08 found the existing Casimir Plate (`slCasing:14`) plays the role in every conduit shape, so no new
+meta was added (a block nothing uses would only be a recipe and a texture to keep). **Alternative:** add it as
+`slCasing2:12` if the conduit shapes are redrawn with a distinct lining.
