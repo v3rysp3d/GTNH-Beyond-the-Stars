@@ -2683,6 +2683,31 @@ PASS. Headless `runServer` on `sltest-ovt`, two boots:
 - *Not run:* fix 5 (a comparator next to a Bit-mode hatch) and fix 7 (the GUI button) need a client or bench plumbing;
   a partly broken walk (fix 4's exact case) was not staged. No `beyondthestars` frame in any stack trace.
 
+### B-73 Package: the interim test jar `0.24.1-master.196+fcea018132` [interim package]
+
+**Context.** The overnight queue asked for an interim jar with the D-49 fixes, the BEC expansion, the automation pass
+(Directive Hatch, OpenComputers) and the render QA results, plus an updated `dist-rc2/INSTALL.md` (design repo).
+
+**What was built.** `gradlew build --no-daemon` on master `fcea018` (clean tree; spotless + checkstyle pass, nothing to
+fix). The jar is `dist-rc2/beyondthestars-0.24.1-master.196+fcea018132.jar` (1,077,713 bytes), SHA-256
+`6cb840e4e27a40bfff41fe05b61e5323e0e2cbc25962ae8950d54e579ff766d0`; the previous test jar `master.137` moved to
+`dist-rc2/superseded/`. INSTALL.md gained a "what's new" table (section 0), the D-49 fixes (3.2.1), the render QA
+results (3.2.2), the BEC expansion (3.3), automation (3.5), the new bench commands, a `master.137` migration line, and
+the dedicated-server command with the new jar name. The judgement calls:
+
+1. **Unmerged branches stay out.** `tidy-old-multis`, `questbook`, `homogeny-reality` and `p4-quasar` are not
+   ancestors of master; the package pass does not merge. INSTALL.md says so at the top and in 3.6, and notes that
+   the quest book therefore still has the old chapter (the new mechanics are learnable from tooltips only until the
+   questbook branch lands, rule 14).
+2. **The jar still carries the dev-only render-QA harness classes** (`rendertest/*`, inert unless the JVM runs with
+   `-Dbts.rendertest=true`) and the OpenComputers driver classes (registered only when OpenComputers is loaded; no
+   OpenComputers classes are shipped). Left as built. *Alternative:* exclude `rendertest/**` from the release jar.
+3. **Render QA is reported as "fixed, awaiting review"** for the Eye cases (B-69: no verdict on round 4 yet), with
+   the open structure question (E-9 / K2: windows in the crown band and the Kerr drum) listed as open.
+4. **`SERVER_DIR` stays a placeholder** in the dedicated-server command (still not recorded anywhere).
+
+**Suggestion.** Accept as is; package again once the tidy, questbook and Homogeny/Reality branches are merged.
+
 ---
 
 ## Part C. Settled (for the record)
