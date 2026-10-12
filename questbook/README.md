@@ -66,7 +66,10 @@ reverted on the next install and the matching fallback quest appears.
 
 A `/bq_admin default load` (by hand, or BetterQuesting's own on a pack update) wipes our edits
 and, if this overlay was NOT merged into `DefaultQuests`, our quests too. The next server start
-re-applies everything, re-capturing the pack's new originals. Progress on our own quests
+re-applies everything. Each stored original remembers the world's `pack_version`: after a pack
+update the pack's new quests become the originals (an edit whose quest the pack renamed or moved
+is skipped with a warning), while with the same `pack_version` the stored originals stay and the
+edits are re-applied over them. Progress on our own quests
 survives that through `saves/<world>/beyondthestars/questbook-progress.dat`, a backup of it
 refreshed on every world save. Merging the overlay (below) is still recommended: new worlds
 then show our chapters even before the first install, and `/bq_admin default load` keeps them.

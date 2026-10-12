@@ -321,6 +321,30 @@ final class BQBridge {
             .invoke(null, null, true, true);
     }
 
+    /**
+     * The loaded world's {@code pack_version} ({@code QuestSettings.INSTANCE.getProperty(NativeProps.PACK_VER)},
+     * javap-checked on 3.8.89-GTNH), or -1 if it cannot be read. BetterQuesting copies it from
+     * {@code DefaultQuests/QuestSettings.json} on every default load, including the automatic one
+     * it runs when the pack's number changes, so a change of it means the pack's quests were
+     * reloaded from a different pack.
+     */
+    static int packVersion() {
+        try {
+            final Object settings = Class.forName("betterquesting.storage.QuestSettings")
+                .getField("INSTANCE")
+                .get(null);
+            final Object key = Class.forName("betterquesting.api.properties.NativeProps")
+                .getField("PACK_VER")
+                .get(null);
+            final Object v = settings.getClass()
+                .getMethod("getProperty", Class.forName("betterquesting.api.properties.IPropertyType"))
+                .invoke(settings, key);
+            return v instanceof Integer ? (Integer) v : -1;
+        } catch (final Throwable t) {
+            return -1;
+        }
+    }
+
     /** The loaded world's save folder ({@code saves/<world>} or the server's level folder). */
     static File worldDir() {
         return DimensionManager.getCurrentSaveRootDirectory();

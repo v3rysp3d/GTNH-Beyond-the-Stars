@@ -36,9 +36,10 @@ import cpw.mods.fml.common.registry.GameRegistry;
  * <ol>
  * <li>snapshot every player's progress;</li>
  * <li>plan the pack edits: each one is matched by id AND name, and by the chapter it is
- * expected in, against the pack quest's ORIGINAL (stored in {@link QuestbookState} the first
- * time, or captured from the live quest); a mismatch skips that edit with a warning and the
- * quest stays as the pack wrote it (RC-3 safety);</li>
+ * expected in, against the pack quest's ORIGINAL (stored in {@link QuestbookState} with the
+ * world's {@code pack_version}, and trusted while that number is unchanged; captured from the
+ * live quest the first time and after a pack update); a mismatch skips that edit with a warning
+ * and the quest stays as the pack wrote it (RC-3 safety);</li>
  * <li>revert every edit that is applied but no longer wanted (flag off, drifted, dropped);</li>
  * <li>replace our quests and chapters wholesale from the bundle, order our chapters after
  * UMV, graft ours into pack chapters;</li>
@@ -131,6 +132,13 @@ final class QuestbookInstaller {
     static void onServerStarted() {
         loginNotice = null;
         if (!BQBridge.isLoaded()) return;
+        // The progress backup tags its rows with this, so it must describe THIS world even when
+        // the auto-install is off (an integrated server opens several worlds in one JVM).
+        try {
+            installedBundle = QuestbookState.read(BQBridge.worldDir()).bundleVersion;
+        } catch (final Throwable t) {
+            installedBundle = "";
+        }
         if (!Config.questbookAutoInstall) {
             BeyondTheStars.LOG
                 .info("Questbook: auto-install is off (questbookAutoInstall); /btsquests install by hand.");
@@ -197,6 +205,18 @@ final class QuestbookInstaller {
                 return report;
             }
             if (!force && state.uninstalled.isEmpty() && upToDate(bundle, state)) {
+                // Every applied quest is still as we left it, so no default load ran since its
+                // original was captured: an original stored without a pack_version (an older state
+                // file) belongs to the pack this world has now. Stamp it, so a later pack update is seen.
+                final int packNow = BQBridge.packVersion();
+                boolean stamped = false;
+                for (final QuestbookState.Applied a : state.edits.values()) {
+                    if (a.packVersion < 0 && packNow >= 0) {
+                        a.packVersion = packNow;
+                        stamped = true;
+                    }
+                }
+                if (stamped) state.write(world);
                 report.ok = true;
                 report.changed = false;
                 return report;
@@ -248,6 +268,13 @@ final class QuestbookInstaller {
                 }
                 for (final UUID line : new ArrayList<>(lineMap.keySet())) {
                     if (line.getMostSignificantBits() != BQBridge.ID_HIGH) continue;
+                    for (final UUID quest : strandedPackQuests(line, lineMap, questMap, new HashSet<>())) {
+                        report.notes.add(
+                            "pack quest " + BQBridge.label(quest)
+                                + " sat only in our chapter "
+                                + BQBridge.label(line)
+                                + " and is in no chapter now; the BetterQuesting editor or /bq_admin default load puts it back");
+                    }
                     BQBridge.removeLine(line);
                     report.chapters++;
                 }
@@ -261,7 +288,8 @@ final class QuestbookInstaller {
                 installedBundle = "";
                 state.uninstalled = "all";
                 state.bundleVersion = "";
-                state.placeholders.clear();
+                // state.placeholders is kept: the next install must still know which quests were
+                // ticked boxes, so a quest that is real by then does not inherit a checkbox completion.
                 state.skipped.clear();
                 state.misses.clear();
                 state.write(world);
@@ -364,7 +392,11 @@ final class QuestbookInstaller {
         String skip;
         NBTTagCompound original;
         Map<UUID, NBTTagCompound> entries;
+        /** The world's pack_version {@link #original} belongs to (-1 = unknown). */
+        int packVersion = -1;
         boolean recaptured;
+        /** The live quest differed from both what we applied and the stored original. */
+        boolean handEdited;
 
         Plan(QuestbookBundle.Edit edit) {
             this.edit = edit;
@@ -395,13 +427,17 @@ final class QuestbookInstaller {
             // 2. Plan the pack edits against their originals.
             final List<Plan> plans = new ArrayList<>();
             final Set<String> applying = new HashSet<>();
+            final int packNow = BQBridge.packVersion();
             for (final QuestbookBundle.Edit e : bundle.edits) {
-                final Plan p = plan(e, state, packEdits, sticky, questMap, lineMap);
+                final Plan p = plan(e, state, packEdits, sticky, packNow, questMap, lineMap);
                 plans.add(p);
                 if (p.apply) applying.add(e.id);
                 else if (p.disabled) report.disabled.put(e.id, p.skip);
                 else report.skipped.put(e.id, p.skip);
                 if (p.recaptured) report.editsRecaptured++;
+                if (p.apply && p.handEdited) report.notes.add(
+                    "pack edit " + e.id
+                        + ": its quest was changed since the install (by hand?); the edit was re-applied over the stored pack original");
             }
 
             // 3. Revert every applied edit that is not wanted now.
@@ -442,9 +478,18 @@ final class QuestbookInstaller {
                     live = BQBridge.createQuest(q.id);
                     report.questsAdded++;
                     final NBTTagCompound row = backup.get(q.id);
-                    final boolean nowBuilt = state.placeholders.contains(q.low) && !q.placeholder
-                        && !isLoneCheckbox(q.nbt);
-                    if (row != null && !nowBuilt) {
+                    // Was it a ticked box when its progress was saved? The state's list, or the
+                    // row's own flag (written by backupProgress, so it does not depend on the state).
+                    final boolean wasBox = state.placeholders.contains(q.low)
+                        || (row != null && row.getBoolean("btsPlaceholder"));
+                    final boolean nowBuilt = wasBox && !q.placeholder && !isLoneCheckbox(q.nbt);
+                    if (row != null && nowBuilt) {
+                        report.notes.add(
+                            "quest " + BQBridge.label(q.id)
+                                + " ("
+                                + q.key
+                                + ") is built now: its saved checkbox completion was not restored");
+                    } else if (row != null) {
                         // Re-created (a default load without our DefaultQuests mirror removed it): put its
                         // progress back. Task progress only if it was taken under this same bundle.
                         final NBTTagCompound restored = (NBTTagCompound) row.copy();
@@ -474,8 +519,28 @@ final class QuestbookInstaller {
 
             // 6. Our chapters: rebuilt, then ordered (ladder chapters directly after UMV, in bundle
             // order; the plant chapter parked last).
+            final Set<UUID> placing = new HashSet<>();
+            for (final Plan p : plans) if (p.apply) placing.add(p.edit.quest);
             for (final QuestbookBundle.Chapter c : bundle.chapters) {
                 final Object line = BQBridge.newLine((NBTTagCompound) c.line.copy());
+                // A pack quest that sits only in this chapter and that no applying edit will place
+                // again (its edit was dropped without a stored original to go back to) keeps its
+                // entry, rather than vanish from the book.
+                final Object old = lineMap.get(c.id);
+                for (final UUID quest : strandedPackQuests(c.id, lineMap, questMap, placing)) {
+                    BQBridge.entries(line)
+                        .put(
+                            quest,
+                            BQBridge.newEntry(
+                                BQBridge.entryNbt(
+                                    BQBridge.entries(old)
+                                        .get(quest))));
+                    report.notes.add(
+                        "pack quest " + BQBridge.label(quest)
+                            + " sat only in our chapter "
+                            + c.key
+                            + " with no edit to place it; it was kept there");
+                }
                 for (final Map.Entry<UUID, NBTTagCompound> en : c.entries.entrySet()) {
                     if (!questMap.containsKey(en.getKey())) continue;
                     BQBridge.entries(line)
@@ -551,9 +616,12 @@ final class QuestbookInstaller {
             state.bundleVersion = finished ? bundle.version : "";
             state.configKey = finished ? configKey(bundle) : "";
             state.uninstalled = sticky;
-            state.placeholders.clear();
-            for (final QuestbookBundle.Quest q : bundle.quests.values())
-                if (q.placeholder) state.placeholders.add(q.low);
+            if (finished) {
+                // Only a finished install changes which quests are boxes; a failed one keeps the old list.
+                state.placeholders.clear();
+                for (final QuestbookBundle.Quest q : bundle.quests.values())
+                    if (q.placeholder) state.placeholders.add(q.low);
+            }
             state.skipped.clear();
             state.skipped.putAll(report.skipped);
             state.disabled.clear();
@@ -572,7 +640,7 @@ final class QuestbookInstaller {
     }
 
     private static Plan plan(QuestbookBundle.Edit e, QuestbookState state, boolean packEdits, String sticky,
-        Map<UUID, Object> questMap, Map<UUID, Object> lineMap) throws Exception {
+        int packNow, Map<UUID, Object> questMap, Map<UUID, Object> lineMap) throws Exception {
         final Plan p = new Plan(e);
         p.disabled = true;
         if (!packEdits) {
@@ -599,37 +667,40 @@ final class QuestbookInstaller {
         }
         final NBTTagCompound liveNbt = BQBridge.questNbt(live);
         final QuestbookState.Applied prev = state.edits.get(e.id);
-        String why = null;
-        if (prev != null && e.quest.equals(prev.quest) && liveNbt.equals(prev.applied)) {
-            // Still exactly as we left it: the stored original is the truth.
+        final boolean ours = prev != null && e.quest.equals(prev.quest);
+        if (ours && (asApplied(prev, questMap, lineMap) || samePack(prev.packVersion, packNow))) {
+            // Exactly as we left it, or changed while the pack stayed the same (a hand edit, a
+            // same-pack default load): the stored original is still the pack's quest. Re-apply over
+            // it; never recapture a live quest that may still carry our ops.
             p.original = prev.original;
             p.entries = new LinkedHashMap<>(prev.entries);
-            why = drift(e, p.original, p.entries);
+            p.packVersion = prev.packVersion >= 0 ? prev.packVersion : packNow;
+            p.handEdited = !liveNbt.equals(prev.applied) && !liveNbt.equals(prev.original);
         } else {
-            // First time, or the live quest changed since (a /bq_admin default load, a pack
-            // update): match the LIVE quest, which is then the pack's original.
+            // First time, or the world's pack_version changed since the original was captured (a
+            // pack update and BetterQuesting's default load): the LIVE quest is the pack's now.
+            // If it no longer matches, the edit is skipped; step 3 then reverts what is left of
+            // the old application and drops it from the state, so an uninstall never restores
+            // the old pack's quest.
             p.original = liveNbt;
             p.entries = liveEntries(e.quest, lineMap);
-            why = drift(e, p.original, p.entries);
-            if (why != null && prev != null && e.quest.equals(prev.quest)) {
-                // The live quest is neither ours nor the pack's (edited by hand after our edit):
-                // re-apply over the stored original rather than lose it.
-                final String storedWhy = drift(e, prev.original, prev.entries);
-                if (storedWhy == null) {
-                    p.original = prev.original;
-                    p.entries = new LinkedHashMap<>(prev.entries);
-                    why = null;
-                }
-            } else if (why == null && prev != null) {
-                p.recaptured = true;
-            }
+            p.packVersion = packNow;
+            p.recaptured = prev != null;
         }
+        final String why = drift(e, p.original, p.entries);
         if (why != null) {
             p.skip = why;
+            p.recaptured = false;
+            p.handEdited = false;
             return p;
         }
         p.apply = true;
         return p;
+    }
+
+    /** Same pack: both numbers known and equal, or either unknown (then trust what is stored). */
+    private static boolean samePack(int stored, int now) {
+        return stored < 0 || now < 0 || stored == now;
     }
 
     /** Null when the quest is the one the edit was written for, else why it is not. */
@@ -684,6 +755,7 @@ final class QuestbookInstaller {
         a.entries.putAll(p.entries);
         a.applied = after;
         a.appliedEntries.putAll(placed);
+        a.packVersion = p.packVersion;
         state.edits.put(e.id, a);
         if (!misses.isEmpty()) report.misses.put(e.id, misses);
         report.editsApplied++;
@@ -699,13 +771,28 @@ final class QuestbookInstaller {
         }
         final NBTTagCompound before = BQBridge.questNbt(live);
         if (a.applied != null && !before.equals(a.applied)) {
-            // A /bq_admin default load (or a hand edit) already replaced it: leave it.
-            report.notes
-                .add("pack edit " + id + ": its quest changed since the install (default load?); left as it is");
+            // A /bq_admin default load (or a hand edit) already replaced its definition: leave
+            // that. Its PLACEMENT still goes back if it is where we put it, or only in chapters of
+            // ours - those are rebuilt or removed next, and the quest would drop out of the book.
+            final Map<UUID, NBTTagCompound> now = liveEntries(a.quest, lineMap);
+            if (now.equals(a.appliedEntries) || onlyInOurLines(now)) {
+                placeBack(a, lineMap);
+                report.notes.add(
+                    "pack edit " + id
+                        + ": its quest changed since the install (a hand edit or a default load); its text was left as it is, its chapter placement restored");
+            } else {
+                report.notes
+                    .add("pack edit " + id + ": its quest changed since the install (default load?); left as it is");
+            }
             return;
         }
         BQBridge.readQuest(live, (NBTTagCompound) a.original.copy());
         if (!tasksOf(before).equals(tasksOf(BQBridge.questNbt(live)))) dropTasks.add(a.quest);
+        placeBack(a, lineMap);
+    }
+
+    /** The pack quest's stored chapter entries back, and no others. */
+    private static void placeBack(QuestbookState.Applied a, Map<UUID, Object> lineMap) throws Exception {
         BQBridge.removeFromAllLines(a.quest);
         for (final Map.Entry<UUID, NBTTagCompound> en : a.entries.entrySet()) {
             final Object line = lineMap.get(en.getKey());
@@ -717,6 +804,42 @@ final class QuestbookInstaller {
                         (NBTTagCompound) en.getValue()
                             .copy()));
         }
+    }
+
+    /** True when the quest has entries and every one is in a chapter of ours (questIDHigh 190). */
+    private static boolean onlyInOurLines(Map<UUID, NBTTagCompound> entries) {
+        if (entries.isEmpty()) return false;
+        for (final UUID line : entries.keySet()) if (line.getMostSignificantBits() != BQBridge.ID_HIGH) return false;
+        return true;
+    }
+
+    /**
+     * Pack quests (not questIDHigh 190) in our chapter {@code line} that have no entry in any
+     * pack chapter and are not in {@code placing}: removing or rebuilding {@code line} would
+     * leave them in no chapter at all.
+     */
+    private static List<UUID> strandedPackQuests(UUID line, Map<UUID, Object> lineMap, Map<UUID, Object> questMap,
+        Set<UUID> placing) {
+        final List<UUID> out = new ArrayList<>();
+        final Object ourLine = lineMap.get(line);
+        if (ourLine == null) return out;
+        for (final UUID quest : BQBridge.entries(ourLine)
+            .keySet()) {
+            if (quest.getMostSignificantBits() == BQBridge.ID_HIGH || placing.contains(quest)
+                || !questMap.containsKey(quest)) continue;
+            boolean housed = false;
+            for (final Map.Entry<UUID, Object> l : lineMap.entrySet()) {
+                if (l.getKey()
+                    .getMostSignificantBits() == BQBridge.ID_HIGH || l.getValue() == null) continue;
+                if (BQBridge.entries(l.getValue())
+                    .containsKey(quest)) {
+                    housed = true;
+                    break;
+                }
+            }
+            if (!housed) out.add(quest);
+        }
+        return out;
     }
 
     /**
@@ -1301,6 +1424,11 @@ final class QuestbookInstaller {
                     .invoke(e.getValue(), new NBTTagCompound(), null);
                 BQBridge.writeId(row, "questID", e.getKey());
                 row.setString("btsBundle", installedBundle);
+                // Whether it was a checkbox placeholder when saved (how the generator builds one:
+                // a lone checkbox that does not count as a quest), so a later install can refuse to
+                // hand a ticked box's completion to the real quest even without the state file.
+                final NBTTagCompound def = BQBridge.questNbt(e.getValue());
+                row.setBoolean("btsPlaceholder", isLoneCheckbox(def) && countAsQuest(def) == 0);
                 backup.put(e.getKey(), row);
             }
             if (backup != null) QuestbookState.writeProgressBackup(world, backup);

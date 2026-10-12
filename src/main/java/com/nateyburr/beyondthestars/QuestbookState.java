@@ -24,7 +24,8 @@ import net.minecraft.nbt.NBTTagString;
  * <ul>
  * <li>the applied bundle version and the config key it was applied under;</li>
  * <li>per applied pack edit: the pack quest's ORIGINAL definition and chapter entries (captured
- * the first time the edit was applied and never overwritten while it stays applied) and the
+ * the first time the edit was applied, and replaced only after the world's {@code pack_version}
+ * changed, i.e. by a pack update), the {@code pack_version} it was captured under, and the
  * definition as applied (to notice a {@code /bq_admin default load} or a hand edit);</li>
  * <li>which quests of ours were checkbox placeholders at the last install;</li>
  * <li>the last install's report (skipped edits and per-op misses), for {@code status} and the
@@ -48,6 +49,13 @@ final class QuestbookState {
         NBTTagCompound applied;
         /** Its chapter entries as the edit left them (a default load puts moved quests back). */
         final Map<UUID, NBTTagCompound> appliedEntries = new LinkedHashMap<>();
+        /**
+         * The world's BetterQuesting {@code pack_version} when {@link #original} was captured, or -1
+         * (unknown: a state file from before this was kept, or BetterQuesting would not say). While
+         * the world's number is the same, the stored original is still the pack's quest; once it
+         * differs, the pack's quests were reloaded from another pack and the live quest is the truth.
+         */
+        int packVersion = -1;
     }
 
     String bundleVersion = "";
@@ -88,6 +96,7 @@ final class QuestbookState {
             a.applied = e.getCompoundTag("applied");
             readEntries(e.getTagList("entries", 10), a.entries);
             readEntries(e.getTagList("appliedEntries", 10), a.appliedEntries);
+            a.packVersion = e.hasKey("packVersion") ? e.getInteger("packVersion") : -1;
             if (a.quest != null) s.edits.put((String) key, a);
         }
         for (final int low : root.getIntArray("placeholders")) s.placeholders.add((long) low);
@@ -122,6 +131,7 @@ final class QuestbookState {
             c.setTag("applied", a.applied == null ? new NBTTagCompound() : a.applied);
             c.setTag("entries", writeEntries(a.entries));
             c.setTag("appliedEntries", writeEntries(a.appliedEntries));
+            c.setInteger("packVersion", a.packVersion);
             edits.setTag(e.getKey(), c);
         }
         root.setTag("edits", edits);

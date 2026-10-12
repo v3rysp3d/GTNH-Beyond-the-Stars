@@ -1259,10 +1259,20 @@ differs from the text above:
   byte-identical. Besides the original it keeps each edit's quest **as applied**; the cheap
   check compares the live quest with that (`NBTTagCompound.equals`), which catches a
   `/bq_admin default load` and a hand edit alike.
-- **Re-capture.** When an applied edit's live quest no longer equals what we applied (a default
-  load, a pack update), the live quest is matched again and, if it still passes the id + name +
-  chapter check, becomes the new original. If it fails but the stored original passes, the edit
-  is re-applied over the stored original. Otherwise the edit is skipped and reverted.
+- **Re-capture, gated on `pack_version`.** Each stored original records the world's
+  BetterQuesting `pack_version` it was captured under. While the world's number is unchanged,
+  the stored original stays the truth: a live quest that differs from what we applied (a hand
+  edit, a same-pack `/bq_admin default load`) gets the edit re-applied over the stored original,
+  and is never recaptured (it may still carry our ops). Once the number differs (a pack update
+  and BetterQuesting's default load), the live quest is the pack's: it is matched again and, if
+  it passes the id + name + chapter check, becomes the new original; if not, the edit is skipped
+  with a warning and its old application reverted and dropped, so a renamed or moved RC-3 quest
+  is left as RC-3 wrote it and `uninstall` never restores the old pack's quest.
+- **Revert keeps the book whole.** Reverting an edit whose quest no longer equals what we
+  applied leaves its definition alone but still restores its chapter placement when the quest
+  is where we put it, or only in chapters of ours (those are rebuilt or removed right after).
+  As a safety net, rebuilding one of our chapters keeps any pack quest that would otherwise be
+  left in no chapter; `uninstall all` names any it has to strand.
 - **Task progress** is dropped wherever a quest's task list changed (live task NBT before vs
   after), for our quests and pack edits alike. In practice that is exactly the `completionOnly`
   edits on their first application; a re-install never drops anything. A `keep` edit that
@@ -1281,7 +1291,9 @@ differs from the text above:
   jar with no progress. `questbook-progress.dat` holds every player's progress on our quests,
   refreshed on each overworld save; a quest the installer has to re-create gets its rows back
   (task progress only if taken under the same bundle; a placeholder that became real gets
-  nothing).
+  nothing). Each row says whether its quest was a checkbox placeholder when saved, and
+  `uninstall all` keeps the state's placeholder list, so `uninstall all`, a jar update and
+  `install` cannot hand a ticked box's completion to the real quest.
 - **Auto-install event:** `FMLServerStartedEvent`. BetterQuesting loads the world and default-
   loads a new world in its `FMLServerStartingEvent` handler (`SaveLoadHandler.loadDatabases`,
   then `/bq_admin default load` when `loadDefaultsOnStartup` or `hasUpdate`). Its
