@@ -237,6 +237,9 @@ errors and no crash. The boot log also confirms:
   has and checks the gate rule against them, and counts BHC consumers left. `/btsbuild t<1-5> <x> <y> <z> [facing]
   [rod] [force] [crib] | [check]` builds a reactor plant from the console; `crib` checks that a feedwater socket
   refuses a Crafting Input Buffer. Questions B-32.
+- **Older standalone multis** (B-88): `/btsbuild hall <yellowcake|platform|cascade|fuelfab|purex|batching> x y z
+  [facing] build|check|status|stock|tier|circuit|place` builds one through the projector's survival path with test
+  hatches fitted, stocks a recipe, puts a circuit in the controller slot and prints the localized name.
 - **Hologram projector:** on the Kerr, stack 1 = T1 and 2+ = T2. On the Eye, stack 1-4 = T1-T4. Survival auto-build
   works from inventory or AE, like other GTNH multis.
 

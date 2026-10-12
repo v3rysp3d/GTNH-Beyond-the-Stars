@@ -110,6 +110,9 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
   ...") are left for that merge. [B-87]
 - Eye T8 / T9's gates loop through Resonance Chamber IV's MHDCSM foil. [B-29 "For P4/P5"]
 
+- The merge + playtest run (B-88) passed headless; the Cascade Hall tooltip fix is in. Optional: make the Cascade
+  Hall's walk require two output hatches unless one is ME. [B-88 fix 1]
+
 **To see in a client** (the headless dev server cannot): the hologram hints, a survival build from a real AE system,
 the NEI multiblock tab and its frame rate (a T6 Eye is 51,935 blocks), every GUI (Eye, KEE, modules, Directive Hatch,
 Homogeny, Reality), the round-4 and round-5 render verdicts, a real Condensate Assembler craft (the BEC parts, the
@@ -183,7 +186,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-87
+## Part B. Entries B-1..B-88
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -3575,6 +3578,90 @@ and remove the worktrees of branches that are fully merged.
    machine's own pieces); the BTSMachines ledger lines P4 also edits (left for that merge).
 
 **Checks.** `spotlessApply compileJava`; `node tools/gen-singularity.js` (regenerated); the dev-server boot above.
+
+### B-88 Merge + playtest: the full RC-2 dev-server test of merged master [playtest, built]
+
+**What was run.** Master `6ca4490`, which has the three merges, the 2026-10-13 answers, the window bands and the
+tidy pass.
+
+Static checks first:
+- `spotlessApply compileJava`.
+- The lang lint, 214 lookups: every `ofFailure` / `ofSuccess` id (including the H/R ids and the dynamic Eye / Kerr
+  ids), the shutdown reasons, `StructureErrors.of`, `translateToLocal`, the recipe-map names, items, blocks, casing
+  metas and every `GT5U.*` literal, checked against our `en_US.lang` and RC-2 GT's.
+- `node tools/fieldsim-golden.js --check --java`.
+
+Then headless `runServer` (RC-2 deps + OpenComputers + BetterQuesting, port 25565), eight boots on two fresh flat
+worlds:
+- `pt-main` for the machines. Its questbook came from the RC-2 pack's DefaultQuests with our overlay merged as the
+  README says.
+- `pt-qb`, standing in for an existing world: the pack's DefaultQuests only, and two fake players with progress.
+
+| Area | Result |
+|---|---|
+| Load | `278 registered, 0 skipped` in every boot. The expected `H/R gate:` placeholder lines are all there: 14 recipe lines (SL-C02, SL-C03, SL-C04, SL-R11, SL-R13, SL-R16, SL-R17, SL-H20, SL-R01, SL-R02, SL-H21, SL-R03, SL-R04, SL-R05) plus the summary "14 Homogeny/Reality recipe(s) are registered but unreachable until P4/P5". The BEC line reports 6 condensates and no legacy fallbacks. SL-B01/B02 are x32. SL-G01 rewrote GT's Resonance Chamber II (input 3). "Field-generator upgrade path: 40 ... + the Retrofit Frame, 0 skipped". 10 BHC->Kerr swaps. TecTech's Eye recipes are removed. None of the eight logs has a `com.nateyburr` frame or a `[beyondthestars]` WARN/ERROR. |
+| Lang lint | 0 missing and 0 duplicate keys. One false positive: `item.beyondthestars.fieldRetrofitKit.name`. The kit names come per meta from `fieldRetrofitFrame` / `compressionRetrofitKit` / `timeRetrofitKit`, and all three are present. `recipe_result.beyondthestars.eye.star_unit5` still has no producer; it is harmless (as in B-71). |
+| Golden | 78 / 78 PASS, before and after. |
+| Gate dump | `/btseye gates`: Eye T1-T7 are CLEAN, on GT's recipes and on our upgrade recipes. Resonance Chamber II now has one recipe, the rewritten one. T8 / T9 LOOP through the Resplendent Resonance Chamber's MHDCSM foil (known; P4/P5, B-29). 0 BHC consumers are left. |
+| BEC | `/btseye bec`: 53 Condensate Assembler recipes make our parts, and GT's own lookup finds all 53. There are 6 Condensate Generator recipes. GT's lookup finds all 40 upgrade-path recipes. `/btshr recipes`: Homogeny 3, Diffraction 1, Refab 2; 52 Condensate Assembler recipes and 10 condensate generators of ours. SL-H10 (the Homogeny Tier II Core on the UMV stopgap) is registered and is not in the H/R gate list. |
+| Kerr | Four builds, KEE and both modules FORMED each time, with re-projection, damage and repair: T1 north (creative), T1 east (survival), T2 south (creative + `oldwindows`, 700 panes back to the old casing), T2 west (survival). The damaged cell names "Quantum Glass / Extreme Density Space-Bending Casing". Extractor: 128 Stemcells -> 128 Plasma Membrane at parallel 896. Compressor: GT compressor recipes at parallel 1,232 on T2. DENSITY is refused on T1 and runs on T2 (2,000 L Hyperdense Stellar Mixture, 2 parallels). The render is claimed at the centre and scales with mass. |
+| Eye | Seven builds, all FORMED with the expected bands, with re-projection, damage and repair: T1 north, T2 east survival, T3 south + `oldwindows`, T4 west survival, T5 north + `oldwindows`, T6 east survival, T6 south + `oldwindows`. Lifecycle on a T6 structure from unlocked T1, unattended (`directive` + `autorig`, milestones forced): Sol lit -> Mass Infusion 600 s -> Shell Ignition 604 s -> Core Collapse 1,001 s -> First Cooling 7,200 s -> Magnetar Merger 177 s. Each core was consumed and T6 lit. 1:1 gate: one compression generator at tier 3 under a T4 chart -> "every Spacetime Compression Field Generator must be tier 4 or higher"; tier 2 under Arcturus -> the T3 message; all back to tier 4 -> runs. |
+| Homogeny / Reality | Homogeny T1 north: 100,000 L Raw Star Matter -> 1,000 L ESPM. T1 -> T2: Install was refused for the missing ring, then the milestone, then the core. With all three in place, the install queued behind the running mix, paused on power and finished: T2, 4 parallels. Diffraction (survival build, 53,004 blocks) and Refab are FORMED and idle with "No BEC network ..." / "No running Condensate Assembler within 64 blocks ...". |
+| Directive / OC | Eye `ocloop`: getState / getField / getTransition / getDirective, the dial and feed clamps, control EYE_DIAL. Kerr `ocloop`: setpoint clamps, collapse / open refusals and successes. `ocprobe` finds bts_kerr in OpenComputers' registry. `ctrl out`: comparator and invert. Kerr `autorig 120`: no self-close, mass within 0.25 SM. |
+| Old plant (tidy pass) | `/btsbuild t1` and `t3`: FORMED. With the new `/btsbuild hall` bench, all six standalone multis form from the projector's survival path: Yellowcake Mill, Extraction Platform, Cascade Hall, Fuel Fabrication Hall, PUREX Canyon and Site Batching Plant. Runs: PUREX (128 Cladding Hull + 384,000 L Dissolver Liquor at parallel 8), Fuel Fabrication (16 Uranium Fuel Rods), Batching (80 Concrete Dust at parallel 4), Platform (Thorium / Uraninite / Tantalum dust), and Cascade after fix 1. Names: GT's lookup shows "Yellowcake Mill" although the server's `GregTech.lang` still holds `enrichmenttrain.name=Enrichment Train`, so B-85's override works on a server with an old GregTech.lang. |
+| Questbook | See the list below the table. |
+| Restart | `pt-main` across three restarts: Kerr holes (64 / 130 SM) and setpoints, linked modules, the Eye's unlocked tiers, compression tiers, transition state and last failures, the Homogeny's installed T2, hall contents, and Directive codes (after the first tick) all came back as before. |
+
+**Questbook results.**
+- **Fresh world** (merged DefaultQuests): the auto-install applied 62 / 62 edits and `status` is all ok. `verify`
+  resolves 113 / 115. The 2 misses are `eternalsingularity:combined_singularity:10` / `:15`, the icons of 48149 /
+  48147. The pack's own quests use both metas, so they exist in RC-2; the dev server lacks the mods that add them.
+- **Existing world with progress** (pack DefaultQuests). Player a1 had completed the BHC, EOH, Stargate Ring Block,
+  T5: Superb, Universium and quest 191; player a2 had Star Fuel, Simulating a Solar System and the BHC.
+  - Install keeps every completion. E01 / E10 / E63 / E64 restart their tasks, as specified.
+  - A second install is a no-op (the DB is byte-identical). `install force` gives the same DB apart from key order.
+  - `uninstall edits` restores all 3,813 pack quest definitions identical to the snapshot, and the fallbacks 48103 /
+    48109 appear.
+  - `uninstall all` restores the pack exactly (quests and lines), and stays in force across a restart. Installing
+    again brings our quests' progress back from the backup.
+- **Restarts.** With the pack's BQ setting, a restart says "already up to date". With BQ's "Load the default quest DB
+  on world startup" = true, which wipes our chapters on every start, the book is re-applied, every completion is kept,
+  and our own quests (48000, 48114) come back from the progress backup.
+
+**Fixed here (each its own commit).**
+1. **The Cascade Hall could not be run from its tooltip** (`33f0996`).
+   - The hall has no input bus, and the circuit that picks the cut is read from the controller slot. Nothing said so.
+   - Every cascade recipe makes two fluids, but the tooltip allowed "1-2" output hatches. With one plain Output Hatch
+     the hall forms and then sits at "Not enough fluid output space".
+   - The tooltip now says where the circuit goes and asks for 2 output hatches (or 1 ME Output Hatch).
+   - Verified: with one hatch it is stuck; with the circuit in the controller slot and a second hatch it runs.
+   - *Judgement call:* tooltip only. The structure still forms with one output hatch, because one ME Output Hatch is
+     enough. *Alternative:* make the walk require two plain output hatches unless one is ME.
+2. **The questbook auto-install now logs why it runs** (`aa459b8`; no behaviour change).
+   - On `pt-main` every boot re-applied the book.
+   - Cause: the dev server's `betterquesting.cfg` had BQ's default "Load the default quest DB on world startup" = true
+     (the RC-2 pack ships false), so BQ's own default load put the fallback quests back on each start.
+   - That is the documented path and it kept all progress, but the log only said "62 applied". It now names the
+     reason.
+3. **Test bench** (`21969a9`): `/btsbuild hall <kind> x y z [facing] build|check|status|stock|tier|circuit|place`, the
+   first console bench for the six older standalone multis.
+
+**Seen, not changed.**
+- An Eye left unregulated at T6 fails and re-runs the Magnetar Merger about every 40 s, each time spending the merger
+  charge (B-71 "seen"). This happened on the `/btseye ... fill` T6 build and on the lifecycle Eye after its `autorig`
+  ended. A player without the rig would lose charges the same way. The tooltip and the questbook already say the
+  merger needs the Agent valve.
+- After a DENSITY run, the compressor module turns leftover Molten SpaceTime in its hatch into Eternal Singularities
+  (72 L each). This is GT's own fluid-only recipe, as on the BHC; known since B-56.
+- `oldwindows` reverts only the pane cells (700 / 339). The opened cells are ' ' in the shapes, so StructureLib never
+  checks them and a pre-window build forms by construction.
+
+**Not covered.**
+- A client: GUIs, NEI, hologram hints, renders and the questbook screens.
+- A real Condensate Assembler craft of an upgrade or kit (the bench builds no BEC network).
+- Diffraction / Refab runs (they need P4/P5 fluids).
+- The Yellowcake Mill's own run: its bench input is not the recipe-map kind. It reported the missing Uraninite
+  correctly.
 
 ---
 
