@@ -45,7 +45,8 @@ public class CommandBTSKit extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btskit [siloTier 1-" + BTSBom.MAX_TIER + "] | /btskit kerr | /btskit eye";
+        return "/btskit [siloTier 1-" + BTSBom.MAX_TIER
+            + "] | /btskit kerr | /btskit eye | /btskit homogeny | /btskit diffraction | /btskit refab";
     }
 
     @Override
@@ -106,6 +107,15 @@ public class CommandBTSKit extends CommandBase {
         if (args.length > 0 && args[0].equalsIgnoreCase("eye")) {
             com.nateyburr.beyondthestars.machines.eye.EyeKit.giveKit(player);
             return;
+        }
+        // H/R unit 2: /btskit homogeny | diffraction | refab - read from manifest.json.
+        if (args.length > 0) {
+            final com.nateyburr.beyondthestars.machines.reality.HRKit.Machine hr = com.nateyburr.beyondthestars.machines.reality.HRKit.Machine
+                .parse(args[0]);
+            if (hr != null) {
+                com.nateyburr.beyondthestars.machines.reality.HRKit.giveKit(player, hr);
+                return;
+            }
         }
         final int tier = args.length > 0 ? Math.min(BTSBom.MAX_TIER, Math.max(1, parseInt(sender, args[0]))) : 1;
 

@@ -409,6 +409,19 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
         return n;
     }
 
+    /** Bench {@code fill}: fills every anchor socket's hatch with its own region's anchor. Returns hatches filled. */
+    public int debugFillAnchors() {
+        int n = 0;
+        for (int k = 0; k < 6; k++) {
+            final Fluid f = anchorFluid(k);
+            if (f == null) continue;
+            for (MTEHatchInput h : anchorHatches[k]) {
+                if (live(h) && h.fill(new FluidStack(f, Integer.MAX_VALUE), true) > 0) n++;
+            }
+        }
+        return n;
+    }
+
     /** Bench: the six pending amounts. */
     public long[] debugPending() {
         return pending.clone();
