@@ -72,10 +72,10 @@ public final class KerrKit {
         giveMany(player, ItemList.Hatch_Energy_UIV.get(1L), socketCount(MTEKerrEngine.PIECE_T1, 'e'));
         give(player, ItemList.Hatch_AutoMaintenance.get(1L));
         give(player, machine(MetaTileEntityIDs.HATCH_BLACK_HOLE_UTILITY.ID));
-        // modules (their own hatches): compressor in bus + in hatch + out bus + out hatch + energy;
-        // extractor in bus + out bus + energy
+        // modules (their own hatches): compressor in bus + 2 in hatches (DENSITY takes two fluids) + out bus
+        // + out hatch + energy; extractor in bus + out bus + energy
         giveMany(player, ItemList.Hatch_Input_Bus_MAX.get(1L), 2);
-        give(player, ItemList.Hatch_Input_MAX.get(1L));
+        giveMany(player, ItemList.Hatch_Input_MAX.get(1L), 2);
         giveMany(player, ItemList.Hatch_Output_Bus_MAX.get(1L), 2);
         give(player, ItemList.Hatch_Output_MAX.get(1L));
         giveMany(player, ItemList.Hatch_Energy_UIV.get(1L), 2);
@@ -296,10 +296,11 @@ public final class KerrKit {
         final ExtendedFacing alignment = module.getExtendedFacing();
         final char ch = slot == KerrSlot.COMPRESSOR ? 'c' : 'x';
         final int[][] sockets = socketRels(slot.piece, ch);
-        // compressor: in bus, in hatch, out bus, out hatch, energy; extractor: in bus, out bus, energy
+        // compressor: in bus, in hatch, out bus, out hatch, energy, a second in hatch (DENSITY takes two
+        // fluids and a GT input hatch holds one); extractor: in bus, out bus, energy
         final ItemList[] plan = slot == KerrSlot.COMPRESSOR
             ? new ItemList[] { ItemList.Hatch_Input_Bus_MAX, ItemList.Hatch_Input_MAX, ItemList.Hatch_Output_Bus_MAX,
-                ItemList.Hatch_Output_MAX, null }
+                ItemList.Hatch_Output_MAX, null, ItemList.Hatch_Input_MAX }
             : new ItemList[] { ItemList.Hatch_Input_Bus_MAX, ItemList.Hatch_Output_Bus_MAX, null };
         int fitted = 0;
         for (int i = 0; i < sockets.length && i < plan.length; i++) {

@@ -13,6 +13,7 @@ import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
@@ -22,6 +23,7 @@ import com.nateyburr.beyondthestars.machines.kerr.BlockKerrHole;
 import com.nateyburr.beyondthestars.machines.kerr.KerrKit;
 import com.nateyburr.beyondthestars.machines.kerr.KerrMigration;
 import com.nateyburr.beyondthestars.machines.kerr.KerrSlot;
+import com.nateyburr.beyondthestars.machines.kerr.KerrTestBench;
 import com.nateyburr.beyondthestars.machines.kerr.MTEKerrEngine;
 import com.nateyburr.beyondthestars.machines.kerr.TileKerrHole;
 
@@ -64,7 +66,7 @@ public class CommandBTSKerr extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btskerr [t1|t2] [force]  |  /btskerr migrate [x y z]  |  /btskerr render x y z [open [m]|close|off|on|break]  |  console: /btskerr [t1|t2] <x> <y> <z> [facing] [force] [survival] | [check]";
+        return "/btskerr [t1|t2] [force]  |  /btskerr migrate [x y z]  |  /btskerr render x y z [open [m]|close|off|on|break]  |  /btskerr module x y z <c|x> [stock|status|tier|clear]  |  /btskerr damage|repair x y z  |  console: /btskerr [t1|t2] <x> <y> <z> [facing] [force] [survival] | [check]";
     }
 
     @Override
@@ -86,6 +88,24 @@ public class CommandBTSKerr extends CommandBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
+        // Test bench: with no player online the server stops ticking tile entities 1,200 ticks after the
+        // last command-free minute; every /btskerr call keeps a console test's machines ticking.
+        if (sender.getEntityWorld() instanceof WorldServer) {
+            ((WorldServer) sender.getEntityWorld()).resetUpdateEntityTick();
+        }
+        if (args.length >= 5 && args[0].equalsIgnoreCase("module")) {
+            testBench(sender, args);
+            return;
+        }
+        if (args.length > 0 && args[0].equalsIgnoreCase("release")) {
+            SLConsoleTest.tell(sender, "Kerr test bench: released " + KerrTestBench.release() + " chunk ticket(s)");
+            return;
+        }
+        if (args.length >= 4 && (args[0].equalsIgnoreCase("damage") || args[0].equalsIgnoreCase("repair")
+            || args[0].equalsIgnoreCase("keep"))) {
+            testBench(sender, args);
+            return;
+        }
         if (args.length > 0 && (args[0].equalsIgnoreCase("migrate") || args[0].equalsIgnoreCase("legacy"))) {
             migrate(sender, args);
             return;
@@ -425,6 +445,62 @@ public class CommandBTSKerr extends CommandBase {
             }
         }
         SLConsoleTest.tell(sender, "Kerr render blocks within 100 of the controller: " + found + where);
+    }
+
+    /**
+     * Test bench: {@code /btskerr module x y z <c|x> [stock [map#] [longest|first|n] [copies] | status |
+     * tier t [amps] | clear]} drives the module in the compressor / extractor slot of the KEE at x y z;
+     * {@code /btskerr damage|repair x y z} unforms the KEE by one cage block and puts it back (KerrTestBench).
+     */
+    private void testBench(ICommandSender sender, String[] args) {
+        final World world = sender.getEntityWorld();
+        if (world == null || world.isRemote) return;
+        final int x = (int) func_110666_a(sender, sender.getPlayerCoordinates().posX, args[1]);
+        final int y = (int) func_110666_a(sender, sender.getPlayerCoordinates().posY, args[2]);
+        final int z = (int) func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[3]);
+        final MTEKerrEngine kee = keeAt(world, x, y, z);
+        if (kee == null) {
+            SLConsoleTest.tell(sender, "Kerr test bench: no KEE at " + x + ", " + y + ", " + z);
+            return;
+        }
+        final String verb = args[0].toLowerCase();
+        if (verb.equals("damage")) {
+            SLConsoleTest.tell(sender, "Kerr test bench: " + KerrTestBench.damage(world, kee));
+            return;
+        }
+        if (verb.equals("keep")) {
+            final boolean t2 = args.length > 4 && args[4].equalsIgnoreCase("t2");
+            final int[] box = KerrKit.assemblyBounds(
+                kee.getExtendedFacing()
+                    .getDirection(),
+                x,
+                y,
+                z,
+                t2);
+            SLConsoleTest.tell(
+                sender,
+                "Kerr test bench: forced " + KerrTestBench
+                    .keep(world, box) + " chunk(s) around the Kerr at " + x + ", " + y + ", " + z);
+            return;
+        }
+        if (verb.equals("repair")) {
+            SLConsoleTest.tell(sender, "Kerr test bench: " + KerrTestBench.repair(world, kee));
+            return;
+        }
+        final String which = args[4].toLowerCase();
+        final KerrSlot slot = which.startsWith("c") ? KerrSlot.COMPRESSOR
+            : which.startsWith("x") || which.startsWith("e") ? KerrSlot.EXTRACTOR : null;
+        if (slot == null) {
+            SLConsoleTest.tell(sender, "Kerr test bench: module must be c (compressor) or x (extractor)");
+            return;
+        }
+        try {
+            for (String line : KerrTestBench.module(world, kee, slot, args, 5)) {
+                SLConsoleTest.tell(sender, "Kerr test bench: " + line);
+            }
+        } catch (RuntimeException bad) {
+            SLConsoleTest.tell(sender, "Kerr test bench: failed - " + bad);
+        }
     }
 
     private static MTEKerrEngine keeAt(World world, int x, int y, int z) {
