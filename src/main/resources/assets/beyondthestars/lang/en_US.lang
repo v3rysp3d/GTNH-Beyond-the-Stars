@@ -70,6 +70,17 @@ item.beyondthestars.propellantCartridge3.name=Propellant Cartridge Grade 3
 item.beyondthestars.propellantCartridge4.name=Propellant Cartridge Grade 4
 item.beyondthestars.propellantCartridge5.name=Propellant Cartridge Grade 5
 item.beyondthestars.propellantCartridge6.name=Propellant Cartridge Grade 6
+# TQ-2 / TQ-3 / TQ-4 renames (2026-10-13). GregTech writes MTE and GT-fluid names into config/GregTech/GregTech.lang
+# once and keeps them, but it prefers a key the normal lang system provides (GTLanguageManager), so these keys make
+# the new names reach existing installs too. The old GregTech.lang lines become unused.
+gt.blockmachines.multimachine.beyondthestars.enrichmenttrain.name=Yellowcake Mill
+gt.blockmachines.hatch.beyondthestars.spinesensor.name=Spiral Cycle Sensor
+fluid.naqpropellant1=Naquadah Propellant Grade 1
+fluid.naqpropellant2=Naquadah Propellant Grade 2
+fluid.naqpropellant3=Naquadah Propellant Grade 3
+fluid.naqpropellant4=Naquadah Propellant Grade 4
+fluid.naqpropellant5=Naquadah Propellant Grade 5
+fluid.naqpropellant6=Naquadah Propellant Grade 6
 tile.beyondthestars.reactorFuelColumn.name=Reactor Fuel Pillar Frame
 tile.beyondthestars.rodLoadingPort.name=Rod Loading Port
 tile.beyondthestars.turbineHousing.name=Turbine Housing
