@@ -451,6 +451,18 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
         aNBT.setString("btsDiffNote", lastNote);
     }
 
+    /**
+     * Trap 2: the never-void buffer and the run count ride on the controller item, so wrenching or breaking it never
+     * deletes litres waiting for a Containment Field; {@link #loadNBTData} reads the same keys on placement and the
+     * next {@link #onSecond} flushes them.
+     */
+    @Override
+    public void setItemNBT(NBTTagCompound aNBT) {
+        super.setItemNBT(aNBT);
+        for (int k = 0; k < 6; k++) if (pending[k] > 0) aNBT.setLong("btsDiffPend" + k, pending[k]);
+        if (runs > 0) aNBT.setLong("btsDiffRuns", runs);
+    }
+
     @Override
     public void loadNBTData(NBTTagCompound aNBT) {
         super.loadNBTData(aNBT);
