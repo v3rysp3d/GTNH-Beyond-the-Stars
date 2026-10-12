@@ -64,36 +64,45 @@ public final class EyeStarLook {
         this.kind = kind;
         this.radius = radius;
         this.rgb = rgb;
-        this.gamma = gamma;
+        this.gamma = Math.min(gamma, MAX_GAMMA);
         this.spin = spin;
         this.pulse = pulse;
         this.aux = aux;
     }
 
+    /**
+     * The core's gamma ceiling for every look (render QA round 3, E-3): the star shader raises the texture's luminance
+     * to {@code 1 / gamma}, and from about 4 up every look saturated to flat white with no texture left.
+     */
+    public static final float MAX_GAMMA = 2.5f;
+
     /** The flash after a supernova (the star is already out). */
-    public static final EyeStarLook NOVA_FLASH = new EyeStarLook(NOVA, 15f, 0xFFF0DC, 5f, 1f, 0f);
+    public static final EyeStarLook NOVA_FLASH = new EyeStarLook(NOVA, 15f, 0xFFF0DC, MAX_GAMMA, 1f, 0f);
 
     // ------------------------------------------------------------------------------ per star
 
-    // Render QA round 1 (E3, E4, E8): the star shader keeps the texture's luminance and swaps its hue for ours, so a
-    // saturated tint turns the texture's dark spots into coloured blobs. Pale tints with a high gamma flatten them:
-    // Sol yellow-white (was FFD678 / 3.0), Sirius A and the neutron star blue-white (were AAC8FF / 3.2 and
-    // BEDCFF / 4.0); the magnetar a deep violet with a low gamma (was C85AFF / 3.5, which read pink-lilac).
-    private static final int SOL_RGB = 0xFFF0C8;
-    private static final float SOL_GAMMA = 4.2f;
-    private static final int SIRIUS_A_RGB = 0xC8DCFF;
-    private static final float SIRIUS_A_GAMMA = 4.8f;
-    private static final int ARCTURUS_RGB = 0xFF8232;
+    // Render QA round 3 (E-1..E-4, E-6): the star shader keeps only the tint's chroma and raises the texture's own
+    // luminance to 1 / gamma, so the round-1 pale tints at gamma 4.2-6 rendered flat white discs (71-100 % of the
+    // pixels pure white). The tints are now saturated and every gamma is at most MAX_GAMMA: Sol yellow-white with
+    // granulation (was FFF0C8 / 4.2), Sirius A blue-white (was C8DCFF / 4.8), Arcturus orange rather than golden
+    // (was FF8232 / 2.6), the neutron star and the bounce's proto-neutron star blue-white with texture (were
+    // DCE8FF / 6 and C8E1FF / 6).
+    private static final int SOL_RGB = 0xFFE08A;
+    private static final float SOL_GAMMA = 2.0f;
+    private static final int SIRIUS_A_RGB = 0x9EC2FF;
+    private static final float SIRIUS_A_GAMMA = 1.8f;
+    private static final int ARCTURUS_RGB = 0xFF6A20;
+    private static final float ARCTURUS_GAMMA = 1.5f;
     private static final int PROTO_RGB = 0xE6401A;
-    private static final int NEUTRON_RGB = 0xDCE8FF;
-    private static final float NEUTRON_GAMMA = 6f;
-    private static final int BOUNCE_RGB = 0xC8E1FF;
-    private static final float BOUNCE_GAMMA = 6f;
-    // 6A3CFF / 1.2, not the review's 8A3CFF / 2.2: the shader takes only the tint's chroma and raises the texture's
-    // own luminance to 1 / gamma, so 2.2 lifted the bright texels to white-pink, and 8A3CFF's chroma still rendered
-    // magenta; a bluer violet at 1.2 reads violet (render QA round 2)
-    private static final int MAGNETAR_RGB = 0x6A3CFF;
-    private static final float MAGNETAR_GAMMA = 1.2f;
+    private static final int NEUTRON_RGB = 0xB8D0FF;
+    private static final float NEUTRON_GAMMA = 2.5f;
+    private static final int BOUNCE_RGB = 0xB8D4FF;
+    private static final float BOUNCE_GAMMA = 2.5f;
+    // 4A30FF / 0.9 (round 3, E-6; was 6A3CFF / 1.2, which read pink-lilac): the shader's hue swap pushes a violet
+    // toward magenta, so the tint leans blue to land on violet, and the lower gamma keeps the core darker than the
+    // flare shell's rim
+    private static final int MAGNETAR_RGB = 0x4A30FF;
+    private static final float MAGNETAR_GAMMA = 0.9f;
 
     /** What the centre shows now, or null for nothing (dark, IDLE, no star). Server state. */
     public static EyeStarLook of(EyeStarRuntime rt) {
@@ -138,7 +147,8 @@ public final class EyeStarLook {
 
     /**
      * Core Collapse phase 1 at {@code f} (0..1) of the way to the bounce: Arcturus swelling and reddening. The gamma
-     * falls from 2.6 to 1.6 as it swells (render QA E5: a rising gamma washed the red-orange out to salmon).
+     * starts at Arcturus's own and falls by 0.4 as it swells (render QA E5: a rising gamma washed the red-orange out
+     * to salmon; round 3 E-4: the old 2.6 -> 1.6 read yellow-orange at mid-swell).
      */
     public static EyeStarLook swell(float f) {
         final float c = Math.max(0, Math.min(1, f));
@@ -146,7 +156,7 @@ public final class EyeStarLook {
             SWELL,
             15f + 2f * c,
             lerp(ARCTURUS_RGB, 0xFF3C1E, c),
-            2.6f - c,
+            ARCTURUS_GAMMA - 0.4f * c,
             1f + 3f * c,
             0.04f + 0.06f * c);
     }
@@ -171,7 +181,13 @@ public final class EyeStarLook {
                     0.02f + 0.1f * unrest + 0.06f * warn);
             case 3:
                 // Arcturus, the red giant: the helium flash warning swells it
-                return new EyeStarLook(STAR, 15f, ARCTURUS_RGB, 2.6f, 0.7f, 0.03f + 0.1f * unrest + 0.1f * warn);
+                return new EyeStarLook(
+                    STAR,
+                    15f,
+                    ARCTURUS_RGB,
+                    ARCTURUS_GAMMA,
+                    0.7f,
+                    0.03f + 0.1f * unrest + 0.1f * warn);
             case 4:
                 return new EyeStarLook(
                     NEUTRON,
@@ -203,8 +219,9 @@ public final class EyeStarLook {
      * copper glints).
      */
     private static final float[] DWARF_AT = { 0f, 0.5f, 0.75f, 0.9f, 1f };
-    private static final int[] DWARF_RGB = { 0xEAF0FF, 0xFFB070, 0x8A2A18, 0x2A1210, 0x0E0A0C };
-    private static final float[] DWARF_GAMMA = { 4.5f, 2.5f, 0.45f, 0.15f, 0.08f };
+    private static final int[] DWARF_RGB = { 0xE6EEFF, 0xFFB070, 0x8A2A18, 0x2A1210, 0x0E0A0C };
+    // the early stop E6EEFF / 2.2 (round 3, E-3; EAF0FF / 4.5 rendered 100 % white with no features)
+    private static final float[] DWARF_GAMMA = { 2.2f, 2.5f, 0.45f, 0.15f, 0.08f };
 
     /**
      * Sirius B through a cooling batch (fraction 0..1): white-hot blue-white, orange at half way, a dull brick red at
