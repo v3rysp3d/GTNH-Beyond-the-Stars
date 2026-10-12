@@ -92,6 +92,18 @@ final class QuestbookBundle {
         }
     }
 
+    /**
+     * One pack chapter edit ({@code packChapterEdits}): today only {@code hideWhenEmpty}, a pack
+     * chapter that our edits leave with no quest at all is taken out of the book while it is empty.
+     */
+    static final class ChapterEdit {
+
+        String id;
+        UUID line;
+        String expectName;
+        String op;
+    }
+
     String version;
     int packVersion;
     String sourceHead = "";
@@ -100,6 +112,7 @@ final class QuestbookBundle {
     final List<Graft> grafts = new ArrayList<>();
     final Map<UUID, Quest> quests = new LinkedHashMap<>();
     final List<Edit> edits = new ArrayList<>();
+    final List<ChapterEdit> chapterEdits = new ArrayList<>();
 
     private QuestbookBundle() {}
 
@@ -196,6 +209,15 @@ final class QuestbookBundle {
             e.progress = o.has("progress") ? str(o, "progress") : "keep";
             for (final JsonElement op : array(o, "ops")) e.ops.add(op.getAsJsonObject());
             b.edits.add(e);
+        }
+        for (final JsonElement el : array(root, "packChapterEdits")) {
+            final JsonObject o = el.getAsJsonObject();
+            final ChapterEdit c = new ChapterEdit();
+            c.id = str(o, "id");
+            c.line = BQBridge.decodeId(str(o, "line"));
+            c.expectName = str(o, "expectName");
+            c.op = str(o, "op");
+            b.chapterEdits.add(c);
         }
         return b;
     }

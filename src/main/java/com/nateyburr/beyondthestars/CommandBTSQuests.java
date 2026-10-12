@@ -164,6 +164,11 @@ public class CommandBTSQuests extends CommandBase {
                     + ". /btsquests install puts them back.");
         }
         for (final String f : s.fallbacks) tell(sender, DIM + "  Fallback " + f);
+        for (final String h : s.hiddenChapters) tell(
+            sender,
+            DIM + "  Pack chapter hidden while empty: "
+                + h
+                + " (its quests moved into our chapters; uninstall puts it back)");
         if (!s.placeholders.isEmpty()) {
             tell(
                 sender,
@@ -260,6 +265,9 @@ public class CommandBTSQuests extends CommandBase {
                 "Restored " + r.editsReverted
                     + " pack quest(s) from their stored originals. Our chapters stay; the Kerr and Eye fallback quests stand beside the pack's own.");
         }
+        if (r.chaptersRestored > 0) tell(
+            sender,
+            "Put " + r.chaptersRestored + " pack chapter(s) back that the install had hidden while empty.");
         report(sender, r);
         tell(
             sender,

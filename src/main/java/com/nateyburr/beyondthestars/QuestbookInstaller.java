@@ -85,6 +85,9 @@ final class QuestbookInstaller {
         int editsApplied;
         int editsReverted;
         int editsRecaptured;
+        /** Pack chapters our edits left empty, taken out of the book (hideWhenEmpty). */
+        int chaptersHidden;
+        int chaptersRestored;
         int progressReset;
         int taskProgressDropped;
         /** Edits that did not apply because the pack's quest no longer matches: warnings. */
@@ -114,7 +117,8 @@ final class QuestbookInstaller {
                 + disabled.size()
                 + " switched off, "
                 + editsReverted
-                + " reverted";
+                + " reverted"
+                + (chaptersHidden > 0 ? "; " + chaptersHidden + " emptied pack chapter(s) hidden" : "");
         }
     }
 
@@ -263,6 +267,8 @@ final class QuestbookInstaller {
             final NBTTagList progress = BQBridge.writeProgress();
             final Set<UUID> dropTasks = new HashSet<>();
             try {
+                // The emptied pack chapters first: the reverted quests are placed back into them.
+                restoreHidden(state, lineMap, report);
                 for (final String id : new ArrayList<>(state.edits.keySet())) {
                     revert(id, state.edits.get(id), questMap, lineMap, dropTasks, report);
                     state.edits.remove(id);
@@ -377,6 +383,18 @@ final class QuestbookInstaller {
         for (final QuestbookState.Applied a : state.edits.values()) {
             if (!asApplied(a, questMap, lineMap)) return "pack quest " + a.quest + " is not as the edit left it";
         }
+        for (final QuestbookState.Hidden h : state.hidden.values()) {
+            if (lineMap.containsKey(h.line)) return "hidden pack chapter " + BQBridge.label(h.line) + " is back";
+        }
+        if (Config.questbookPackEdits) {
+            for (final QuestbookBundle.ChapterEdit c : bundle.chapterEdits) {
+                final Object line = lineMap.get(c.line);
+                if (!state.hidden.containsKey(c.id) && line != null
+                    && BQBridge.entries(line)
+                        .isEmpty())
+                    return "pack chapter " + BQBridge.label(c.line) + " is empty and still shown";
+            }
+        }
         return null;
     }
 
@@ -436,6 +454,11 @@ final class QuestbookInstaller {
         }
         boolean finished = false;
         try {
+            // 1b. Every pack chapter we hid comes back first, empty and in its old order slot: the
+            // edits are planned against the pack's chapters, reverted quests are placed back into
+            // it, and step 8b hides it again if it is still left empty.
+            restoreHidden(state, lineMap, report);
+
             // 2. Plan the pack edits against their originals.
             final List<Plan> plans = new ArrayList<>();
             final Set<String> applying = new HashSet<>();
@@ -617,6 +640,9 @@ final class QuestbookInstaller {
             for (final Plan p : plans) {
                 if (p.apply) apply(p, state, questMap, lineMap, dropTasks, report);
             }
+
+            // 8b. A pack chapter the edits left empty leaves the book (hideWhenEmpty).
+            if (packEdits) hideEmpty(bundle, state, lineMap, report);
             finished = true;
         } finally {
             // 9. Put the campaign back, on every path.
@@ -708,6 +734,69 @@ final class QuestbookInstaller {
         }
         p.apply = true;
         return p;
+    }
+
+    /**
+     * Puts every pack chapter we hid back into the book: its stored definition (empty, as it was
+     * when it was hidden) at its old slot in the chapter order. A chapter a default load already
+     * brought back is left as it is. The record is dropped either way.
+     */
+    private static void restoreHidden(QuestbookState state, Map<UUID, Object> lineMap, Report report) throws Exception {
+        for (final String id : new ArrayList<>(state.hidden.keySet())) {
+            final QuestbookState.Hidden h = state.hidden.remove(id);
+            if (lineMap.containsKey(h.line)) continue;
+            BQBridge.putLine(h.line, BQBridge.newLine((NBTTagCompound) h.nbt.copy()));
+            BQBridge.setOrderIndex(h.line, h.order);
+            report.chaptersRestored++;
+        }
+    }
+
+    /**
+     * {@code hideWhenEmpty}: a pack chapter whose every quest our applied edits moved out is
+     * taken out of the book, and its definition and order slot go into the state file. Matched by
+     * id AND name, like a quest edit; a chapter that still holds a quest (an edit switched off or
+     * skipped) stays, with a note.
+     */
+    private static void hideEmpty(QuestbookBundle bundle, QuestbookState state, Map<UUID, Object> lineMap,
+        Report report) throws Exception {
+        for (final QuestbookBundle.ChapterEdit c : bundle.chapterEdits) {
+            if (!"hideWhenEmpty".equals(c.op)) {
+                report.skipped.put(c.id, "unknown chapter op '" + c.op + "' (a newer bundle?)");
+                continue;
+            }
+            final Object line = lineMap.get(c.line);
+            if (line == null) {
+                report.notes
+                    .add("pack chapter edit " + c.id + ": chapter " + BQBridge.label(c.line) + " is not in this world");
+                continue;
+            }
+            final NBTTagCompound nbt = BQBridge.lineNbt(line);
+            final String name = strip(props(nbt).getString("name"));
+            if (!name.equals(c.expectName)) {
+                report.skipped
+                    .put(c.id, "chapter name drift: expected '" + c.expectName + "', the pack has '" + name + "'");
+                continue;
+            }
+            final int left = BQBridge.entries(line)
+                .size();
+            if (left > 0) {
+                report.notes.add(
+                    "pack chapter '" + c.expectName
+                        + "' still holds "
+                        + left
+                        + " quest(s), so it stays in the book ("
+                        + c.id
+                        + ")");
+                continue;
+            }
+            final QuestbookState.Hidden h = new QuestbookState.Hidden();
+            h.line = c.line;
+            h.nbt = nbt;
+            h.order = BQBridge.orderIndex(c.line);
+            BQBridge.removeLine(c.line);
+            state.hidden.put(c.id, h);
+            report.chaptersHidden++;
+        }
     }
 
     /** Same pack: both numbers known and equal, or either unknown (then trust what is stored). */
@@ -1171,6 +1260,8 @@ final class QuestbookInstaller {
         /** "low key (needs a, b)" per placeholder in this build. */
         final List<String> placeholders = new ArrayList<>();
         final List<String> fallbacks = new ArrayList<>();
+        /** "C01 Endgame Goals" per pack chapter the install took out of the book. */
+        final List<String> hiddenChapters = new ArrayList<>();
 
         boolean complete() {
             if (!readable || !entryQuestPresent) return false;
@@ -1216,6 +1307,14 @@ final class QuestbookInstaller {
                 if (!asApplied(e.getValue(), questMap, lineMap)) s.editsChanged.add(e.getKey());
             }
             java.util.Collections.sort(s.editsChanged);
+            for (final Map.Entry<String, QuestbookState.Hidden> e : state.hidden.entrySet()) {
+                final String name = strip(props(e.getValue().nbt).getString("name"));
+                s.hiddenChapters.add(
+                    e.getKey() + " "
+                        + name
+                        + (lineMap.containsKey(e.getValue().line) ? " (back in the book: a default load?)" : ""));
+                if (lineMap.containsKey(e.getValue().line)) s.editsChanged.add(e.getKey());
+            }
             s.skipped.putAll(state.skipped);
             for (final String why : state.disabled.values()) s.disabled.merge(why, 1, Integer::sum);
             s.misses.putAll(state.misses);

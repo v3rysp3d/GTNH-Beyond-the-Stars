@@ -27,6 +27,8 @@ import net.minecraft.nbt.NBTTagString;
  * the first time the edit was applied, and replaced only after the world's {@code pack_version}
  * changed, i.e. by a pack update), the {@code pack_version} it was captured under, and the
  * definition as applied (to notice a {@code /bq_admin default load} or a hand edit);</li>
+ * <li>per pack chapter the edits left empty and the installer hid ({@code hideWhenEmpty}): its
+ * definition and its slot in the chapter order, to put it back exactly;</li>
  * <li>which quests of ours were checkbox placeholders at the last install;</li>
  * <li>the last install's report (skipped edits and per-op misses), for {@code status} and the
  * op login line;</li>
@@ -58,11 +60,25 @@ final class QuestbookState {
         int packVersion = -1;
     }
 
+    /**
+     * One pack chapter our edits left empty and the installer took out of the book
+     * ({@code hideWhenEmpty}): its definition as BetterQuesting wrote it and its slot in the
+     * chapter order, so it goes back exactly where it was.
+     */
+    static final class Hidden {
+
+        UUID line;
+        NBTTagCompound nbt;
+        int order;
+    }
+
     String bundleVersion = "";
     String configKey = "";
     /** "" = installed (or never touched), "edits" or "all" = an op uninstalled that much. */
     String uninstalled = "";
     final Map<String, Applied> edits = new LinkedHashMap<>();
+    /** chapterEditId -> the pack chapter it hid. */
+    final Map<String, Hidden> hidden = new LinkedHashMap<>();
     final Set<Long> placeholders = new LinkedHashSet<>();
     /** editId -> why it was skipped at the last install. */
     final Map<String, String> skipped = new LinkedHashMap<>();
@@ -98,6 +114,15 @@ final class QuestbookState {
             readEntries(e.getTagList("appliedEntries", 10), a.appliedEntries);
             a.packVersion = e.hasKey("packVersion") ? e.getInteger("packVersion") : -1;
             if (a.quest != null) s.edits.put((String) key, a);
+        }
+        final NBTTagCompound hidden = root.getCompoundTag("hiddenLines");
+        for (final Object key : hidden.func_150296_c()) {
+            final NBTTagCompound h = hidden.getCompoundTag((String) key);
+            final Hidden x = new Hidden();
+            x.line = BQBridge.readId(h, "questLineID");
+            x.nbt = h.getCompoundTag("line");
+            x.order = h.getInteger("order");
+            if (x.line != null) s.hidden.put((String) key, x);
         }
         for (final int low : root.getIntArray("placeholders")) s.placeholders.add((long) low);
         final NBTTagCompound skipped = root.getCompoundTag("skipped");
@@ -135,6 +160,15 @@ final class QuestbookState {
             edits.setTag(e.getKey(), c);
         }
         root.setTag("edits", edits);
+        final NBTTagCompound hidden = new NBTTagCompound();
+        for (final Map.Entry<String, Hidden> e : this.hidden.entrySet()) {
+            final NBTTagCompound h = new NBTTagCompound();
+            BQBridge.writeId(h, "questLineID", e.getValue().line);
+            h.setTag("line", e.getValue().nbt);
+            h.setInteger("order", e.getValue().order);
+            hidden.setTag(e.getKey(), h);
+        }
+        root.setTag("hiddenLines", hidden);
         final int[] lows = new int[placeholders.size()];
         int i = 0;
         for (final long low : placeholders) lows[i++] = (int) low;

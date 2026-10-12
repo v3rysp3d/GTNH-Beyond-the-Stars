@@ -210,6 +210,13 @@ final class BQBridge {
         return line;
     }
 
+    /** {@code QuestLine.writeToNBT}: properties plus its entries, as {@link #newLine} reads them back. */
+    static NBTTagCompound lineNbt(Object line) throws Exception {
+        return (NBTTagCompound) line.getClass()
+            .getMethod("writeToNBT", NBTTagCompound.class)
+            .invoke(line, new NBTTagCompound());
+    }
+
     /** A {@code QuestLineEntry} from {@code {x, y, sizeX, sizeY}}. */
     static Object newEntry(NBTTagCompound nbt) throws Exception {
         return Class.forName("betterquesting.questing.QuestLineEntry")
