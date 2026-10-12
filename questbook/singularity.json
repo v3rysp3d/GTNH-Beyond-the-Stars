@@ -96,6 +96,8 @@
       "",
       "The {b}Kerr Ergosphere Engine{r} (KEE) holds the hole and does nothing else: it runs no recipes. The machines that use the hole are the {b}Kerr modules{r}, separate machines standing in the cage's arcs (next quests).",
       "",
+      "{e}{l}MAKE IT{r} The controller is an {b}Assembly Line{r} recipe: scan a {b}Black Hole Seed{r} in the Scanner to research it. NEI shows the rest.",
+      "",
       "{e}{l}BUILD{r}",
       "- Hologram Projector, stack 1: Kerr T1, {bomdims:kerr_t1}. Chunk-load all of it.",
       "- The Black Hole Compressor's own Extreme Density Space-Bending Casing, Hawking Radiation Realignment Focus and Naquadah Alloy frames, plus our Superradiant Mirrors, Mirror Backing, Ergosphere Field Coils, Beam Focusing Quadrupoles, Beam Dumps, Harmonic Lining and {bom:kerr_t1:E} Bolt Injector Rails. The optional task is the full bill.",
@@ -115,7 +117,7 @@
       "",
       "{a}{l}DONE WHEN{r} you hold the controller (HOLD {to} CLAIM {to} INSTALL: claim before you place it)."
     ],
-    "kee_note_pack": "[note]The Black Hole Compressor is gone: its recipe now makes this. Every recipe that consumed a BHC controller (the Spacetime Compression Field Generators, the Compressed Circuit Array) takes a Kerr Ergosphere Engine controller instead. A BHC you already placed keeps working.[/note]",
+    "kee_note_pack": "[note]The Black Hole Compressor's recipe is removed. The KEE has its own Assembly Line recipe (scan a {b}Black Hole Seed{r} to research it; NEI shows the rest). Every recipe that consumed a BHC controller (the Spacetime Compression Field Generators, the Compressed Circuit Array) now takes a KEE controller instead. A BHC you already placed keeps working.[/note]",
     "eye_body": [
       "So you have made yourself an Eternal DTPF or hopefully a few, and now it is time for the push onwards.",
       "",
@@ -133,7 +135,7 @@
       "- the wireless network holds 10 cycles of EU, which the ignition spends.",
       "The protostar contracts for about 40 seconds, then lights.",
       "",
-      "{e}{l}RUN{r} Every {b}60 s cycle{r} Sol burns {b}50,000,000 L Hydrogen + 50,000,000 L Helium{r} and {b}1.51 {times} 10{sup11} EU{r} (about 1 A UMV), and makes {b}50,000 L Raw Stellar Plasma{r} into the ME output hatch. Upkeep is paid in full in every zone; a bad zone only cuts the yield.",
+      "{e}{l}RUN{r} Every {b}60 s cycle{r} Sol burns {b}50,000,000 L Hydrogen + 50,000,000 L Helium{r} and {b}1.51 {times} 10{sup11} EU{r} (about 1 A UMV), and makes {b}50,000 L Raw Stellar Plasma{r} (Raw Star Matter in the GUI) into the ME output hatch. Upkeep is paid in full in every zone; a bad zone only cuts the yield.",
       "",
       "{e}{l}AUTOMATE{r} Inputs drain into internal buffers every second, so ME stocking input hatches on the gas sockets work. Keep a few charges in the plinth bus from an ME Interface. A dimension display block in the slot runs planets instead (see {c}Planets on the Eye{r}).",
       "",
@@ -200,7 +202,7 @@
         "- Project the arc from it ({bomdims:kerr_extractor}).",
         "- {bom:kerr_extractor:x} sockets: at least 1 input bus, 1 output bus, and 1 laser or up to 2 energy hatches. Item buses only.",
         "",
-        "{e}{l}RUN{r} Like the compressor: open hole only, the same parallel and speed bonus, and it pauses without losing its recipe. Either module is enough to go on, and both can run off one hole.",
+        "{e}{l}RUN{r} Like the compressor: open hole only, the same parallel and speed bonus, and it pauses without losing its recipe. Either module is a good start, and both can run off one hole; Hyperdense Stellar Mixture later needs the {b}Compressor Module{r}.",
         "",
         "[note]A legacy Extractor Module block crafts into this controller on its own.[/note]",
         "",
@@ -260,7 +262,7 @@
       ]
     },
     {
-      "low": 48110, "key": "stability_field", "chapter": "umv", "stem": "TheStabilityFiel", "x": 588, "y": 288, "size": 24,
+      "low": 48110, "key": "stability_field", "chapter": "umv", "stem": "TheStabilityFiel", "x": 732, "y": 216, "size": 24,
       "name": "{c}{l}{n}The Stability Field", "icon": "mte:28116", "needs": ["eyeD49"],
       "prereqs": ["E10"],
       "tasks": [ { "type": "retrieval", "items": ["1x mte:28116"] } ],
@@ -311,7 +313,7 @@
       ]
     },
     {
-      "low": 48112, "key": "harmonic_lock", "chapter": "umv", "stem": "HarmonicLock", "x": 528, "y": 288, "size": 24,
+      "low": 48112, "key": "harmonic_lock", "chapter": "umv", "stem": "HarmonicLock", "x": 852, "y": 216, "size": 24,
       "name": "{c}{l}{n}Harmonic Lock", "icon": "beyondthestars:stellarIgnitionCharge", "needs": ["eyeD49"],
       "prereqs": [48110],
       "tasks": [ { "type": "checkbox" } ],
@@ -350,7 +352,7 @@
     {
       "low": 48114, "key": "eye_t2", "chapter": "umv", "stem": "EyeT2SiriusA", "x": 780, "y": 156, "size": 48, "main": true,
       "name": "{c}{l}{n}Eye T2: Sirius A", "icon": "beyondthestars:starChartSiriusA", "needs": ["eyeD49"],
-      "prereqs": ["E10", "E12"],
+      "prereqs": ["E10", "E12", 48110],
       "tasks": [
         { "type": "retrieval", "items": ["1x beyondthestars:stellarMassCore", "1x beyondthestars:starChartSiriusA"] },
         { "type": "fluid", "fluids": ["1000x fluid:btsexcitedstellarplasma"] },
@@ -419,7 +421,7 @@
     {
       "low": 48116, "key": "hyperdense_stellar_mixture", "chapter": "umv", "stem": "HyperdenseStella", "x": 972, "y": 252, "size": 48, "main": true,
       "name": "{c}{l}{n}Hyperdense Stellar Mixture", "icon": "gregtech:gt.metaitem.01:11588", "needs": ["eyeD49", "kerrRedesign"],
-      "prereqs": [48115, 48113],
+      "prereqs": [48115, 48113, 48100],
       "tasks": [ { "type": "fluid", "fluids": ["1000x fluid:btshyperdensestellarmixture"] } ],
       "desc": [
         "Raw Hyperdense Stellar Plasma is too loose to seed a neutron star, so finish it inside a black hole. The Kerr Compressor Module runs {b}Kerr Densification{r}, only on a {b}Kerr T2 holding at least 128 SM{r}:",
@@ -586,7 +588,7 @@
     {
       "low": 48142, "key": "homogeny_t2", "chapter": "uxv", "x": 228, "y": 312, "size": 24,
       "name": "{4}{l}{n}The Homogeny T2", "icon": "gregtech:gt.metaitem.01:30127", "needs": ["homogeny"],
-      "prereqs": ["E25"],
+      "prereqs": [48118, "E25"],
       "tasks": [ { "type": "tbd", "what": "the Homogeny T2 upgrade item" } ],
       "desc": [
         "The Homogeny's second tier: a middle stirring ring and three more vessels around the same controller. It will mix at {b}4 parallels{r} (about one UXV amp) and add a new mix, {b}Degenerate Stellar Mixture{r}: 72 L White Dwarf Matter + 72 L Black Dwarf Matter + 1,000 L Excited Stellar Plasma Mixture {to} 1,000 L in 60 s.",
@@ -763,7 +765,7 @@
     {
       "low": 48181, "key": "t9_pellets", "chapter": "max", "x": 108, "y": 264, "size": 24,
       "name": "{4}{l}{n}T9 Pellets", "icon": "gregtech:gt.metaitem.01:32419", "needs": ["eyeT9T10"],
-      "prereqs": [48180, 48149],
+      "prereqs": [48180, 48149, 48142],
       "tasks": [ { "type": "tbd", "what": "the pellets" } ],
       "desc": [
         "Pellets made from T6, T7 and T8 matter (Magnetar Matter, Ergomatter and Superdense Ergomatter, with the Homogeny's Degenerate Stellar Mixture), fired as a higher-GeV beam that powers and stabilises Eye T9."
@@ -790,7 +792,7 @@
     {
       "low": 48184, "key": "homogeny_t3", "chapter": "max", "x": 324, "y": 252, "size": 48,
       "name": "{4}{l}{n}The Homogeny T3", "icon": "gregtech:gt.metaitem.01:30127", "needs": ["homogeny"],
-      "prereqs": [48183],
+      "prereqs": [48183, 48142],
       "tasks": [ { "type": "tbd", "what": "the Homogeny T3 upgrade item" } ],
       "desc": [
         "The Homogeny's third tier: a tilted outer ring and its tail. It will mix at {b}16 parallels{r} (about one MAX amp) and add the last mix, {b}Entanglement Medium{r}: White Hole Matter + Superdense Ergomatter + Degenerate Stellar Mixture. Reality Diffraction splits it."
@@ -965,7 +967,7 @@
       "config": ["replaceTecTechEyeOfHarmony"],
       "ops": [
         { "op": "setDesc", "desc": [
-          "{l}First Light.{r} Sol's product: 50,000 L a cycle {times} your yield. NEI calls it Condensed Raw Stellar Plasma Mixture.",
+          "{l}First Light.{r} Sol's product: 50,000 L a cycle {times} your yield. NEI calls it Condensed Raw Stellar Plasma Mixture, and the Eye's GUI and tooltips call it Raw Star Matter.",
           "",
           "It goes into:",
           "- Sirius A's upkeep (25,000 L a cycle);",
@@ -1043,7 +1045,7 @@
         { "op": "move", "to": "uxv", "x": 24, "y": 144, "size": 72 },
         { "op": "replacePrereq", "from": "pack:U7Ta5d7PSii76sbIPbltlw==", "to": 48117 },
         { "op": "setDesc", "desc": [
-          "Welcome to the final tier of NH (for now).",
+          "Welcome to UXV. In Beyond the Stars it is not the last tier: {6}Tier 14 - MAX{r} and {6}The Endgame{r} follow.",
           "",
           "We hope you enjoy your stay, though be prepared for a lot of waiting.",
           "",
@@ -1105,7 +1107,7 @@
       ]
     },
     { "id": "E26", "quest": "teFEMExsSEWHYV79M8gpHw==", "expectName": "Refined Components", "expectChapter": "umv", "ops": [ { "op": "move", "to": "uxv", "x": 228, "y": 264, "size": 24 } ] },
-    { "id": "E27", "quest": "AAAAAAAAAAAAAAAAAAAM4A==", "expectName": "You Made It!", "expectChapter": "egoals", "ops": [ { "op": "move", "to": "uxv", "x": 192, "y": 420, "size": 24 } ] },
+    { "id": "E27", "quest": "AAAAAAAAAAAAAAAAAAAM4A==", "expectName": "You Made It!", "expectChapter": "egoals", "ops": [ { "op": "move", "to": "uxv", "x": 192, "y": 420, "size": 24 }, { "op": "appendText", "text": "[note]In Beyond the Stars, MAX (Tier 14) comes next.[/note]" } ] },
     {
       "id": "E28", "quest": "smCKxKkMSeyIAUeFInS4hQ==", "expectName": "Your Lord and Saviour, UXV CoAL", "expectChapter": "egoals",
       "ops": [

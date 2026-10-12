@@ -1,12 +1,12 @@
 {
-  "bundleVersion": "c36847b92504c054b28573edb8197eb318713709",
+  "bundleVersion": "bf9a33e381f9c22278c722fecb3040932a8a78f0",
   "format": 1,
   "idHigh": 190,
   "packVersion": 2171,
   "source": {
     "data": "questbook/singularity.json",
     "src": "../GTNH-Addons/addon",
-    "srcHead": "f587250 master",
+    "srcHead": "b443c04 master",
     "manifestSha": "ae5ab12085174eb7006517f43f3cbac121819908"
   },
   "features": {
@@ -717,13 +717,13 @@
       "quest": 48110,
       "line": "l37V2WvbSHGZQ5oMgAfBuw==",
       "on": {
-        "x": 588,
-        "y": 288,
+        "x": 732,
+        "y": 216,
         "size": 24
       },
       "off": {
-        "x": 588,
-        "y": 672,
+        "x": 732,
+        "y": 600,
         "size": 24
       }
     },
@@ -745,13 +745,13 @@
       "quest": 48112,
       "line": "l37V2WvbSHGZQ5oMgAfBuw==",
       "on": {
-        "x": 528,
-        "y": 288,
+        "x": 852,
+        "y": 216,
         "size": 24
       },
       "off": {
-        "x": 528,
-        "y": 672,
+        "x": 852,
+        "y": 600,
         "size": 24
       }
     },
@@ -3727,7 +3727,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "The east arc's machine: GT's §bExtractor§r recipes, items only, beside the same hole.\n\n§e§lBUILD§r\n- Place the controller where the KEE's hologram shows §bmarker 8§r, facing out of the cage.\n- Project the arc from it (16 × 11 × 9).\n- 5 sockets: at least 1 input bus, 1 output bus, and 1 laser or up to 2 energy hatches. Item buses only.\n\n§e§lRUN§r Like the compressor: open hole only, the same parallel and speed bonus, and it pauses without losing its recipe. Either module is enough to go on, and both can run off one hole.\n\n[note]A legacy Extractor Module block crafts into this controller on its own.[/note]\n\n§a§lDONE WHEN§r you hold the module controller (HOLD → CLAIM → INSTALL).",
+            "desc:8": "The east arc's machine: GT's §bExtractor§r recipes, items only, beside the same hole.\n\n§e§lBUILD§r\n- Place the controller where the KEE's hologram shows §bmarker 8§r, facing out of the cage.\n- Project the arc from it (16 × 11 × 9).\n- 5 sockets: at least 1 input bus, 1 output bus, and 1 laser or up to 2 energy hatches. Item buses only.\n\n§e§lRUN§r Like the compressor: open hole only, the same parallel and speed bonus, and it pauses without losing its recipe. Either module is a good start, and both can run off one hole; Hyperdense Stellar Mixture later needs the §bCompressor Module§r.\n\n[note]A legacy Extractor Module block crafts into this controller on its own.[/note]\n\n§a§lDONE WHEN§r you hold the module controller (HOLD → CLAIM → INSTALL).",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -3928,7 +3928,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "As the materials around you achieve transcendental properties, pistons and gases stop being enough. The answer is gravity: a black hole, held in a cage of mirrors and coils and spun fast enough that its ergosphere can be put to work.\n\nThe §bKerr Ergosphere Engine§r (KEE) holds the hole and does nothing else: it runs no recipes. The machines that use the hole are the §bKerr modules§r, separate machines standing in the cage's arcs (next quests).\n\n§e§lBUILD§r\n- Hologram Projector, stack 1: Kerr T1, 76 × 65 × 71. Chunk-load all of it.\n- The Black Hole Compressor's own Extreme Density Space-Bending Casing, Hawking Radiation Realignment Focus and Naquadah Alloy frames, plus our Superradiant Mirrors, Mirror Backing, Ergosphere Field Coils, Beam Focusing Quadrupoles, Beam Dumps, Harmonic Lining and 232 Bolt Injector Rails. The optional task is the full bill.\n- Hatches: 1 laser or up to 2 energy hatches in the governor arc, 1 to 8 §bbolt buses§r (plain input buses) on the cage, and optional BHC Utility Hatches beside them. No maintenance hatch.\n- Hologram markers 7 and 8 show where the two module controllers go.\n\n§e§lRUN§r Everything is in the GUI.\n1. Put a §bBlack Hole Seed§r in a bolt bus and press Open: the hole opens at §b8 SM§r (solar masses).\n2. It bleeds mass as Hawking radiation, §b3.2 / M² SM a tick§r. Small holes die fast.\n3. The §bgovernor§r fires bolts from the bolt buses to hold your §bsetpoint§r (2-64 SM at T1):\n- Neutronium 1/64 SM, Cosmic Neutronium 1/32, Infinity 1/16, Transcendent Metal 1/8, SpaceTime 1/4 SM a bolt;\n- at most 4 / 8 / 16 bolts a tick with Mk I / II / III rails. The §llowest§r rail sets the rate, so upgrade them all together.\n4. While open, the hole draws §b8,388,608 EU/t (1 A UEV)§r of containment. Without power the governor stops; below 2 SM the hole evaporates. The power switch does §lnot§r stop the hole.\n5. A §bBlack Hole Collapser§r in a bolt bus closes it safely: press Collapse twice.\n\n[note]Mass sets the modules' bonus: a bigger hole gives more parallels, a smaller one more speed. The controller tooltip has the full block list, and NEI's Multiblock tab previews both tiers.[/note]\n\n§a§lDONE WHEN§r you hold the controller (HOLD → CLAIM → INSTALL: claim before you place it).\n\n[note]The Black Hole Compressor quest is left as the pack wrote it, because pack edits are turned off (questbookPackEdits in config/beyondthestars.cfg).[/note]",
+            "desc:8": "As the materials around you achieve transcendental properties, pistons and gases stop being enough. The answer is gravity: a black hole, held in a cage of mirrors and coils and spun fast enough that its ergosphere can be put to work.\n\nThe §bKerr Ergosphere Engine§r (KEE) holds the hole and does nothing else: it runs no recipes. The machines that use the hole are the §bKerr modules§r, separate machines standing in the cage's arcs (next quests).\n\n§e§lMAKE IT§r The controller is an §bAssembly Line§r recipe: scan a §bBlack Hole Seed§r in the Scanner to research it. NEI shows the rest.\n\n§e§lBUILD§r\n- Hologram Projector, stack 1: Kerr T1, 76 × 65 × 71. Chunk-load all of it.\n- The Black Hole Compressor's own Extreme Density Space-Bending Casing, Hawking Radiation Realignment Focus and Naquadah Alloy frames, plus our Superradiant Mirrors, Mirror Backing, Ergosphere Field Coils, Beam Focusing Quadrupoles, Beam Dumps, Harmonic Lining and 232 Bolt Injector Rails. The optional task is the full bill.\n- Hatches: 1 laser or up to 2 energy hatches in the governor arc, 1 to 8 §bbolt buses§r (plain input buses) on the cage, and optional BHC Utility Hatches beside them. No maintenance hatch.\n- Hologram markers 7 and 8 show where the two module controllers go.\n\n§e§lRUN§r Everything is in the GUI.\n1. Put a §bBlack Hole Seed§r in a bolt bus and press Open: the hole opens at §b8 SM§r (solar masses).\n2. It bleeds mass as Hawking radiation, §b3.2 / M² SM a tick§r. Small holes die fast.\n3. The §bgovernor§r fires bolts from the bolt buses to hold your §bsetpoint§r (2-64 SM at T1):\n- Neutronium 1/64 SM, Cosmic Neutronium 1/32, Infinity 1/16, Transcendent Metal 1/8, SpaceTime 1/4 SM a bolt;\n- at most 4 / 8 / 16 bolts a tick with Mk I / II / III rails. The §llowest§r rail sets the rate, so upgrade them all together.\n4. While open, the hole draws §b8,388,608 EU/t (1 A UEV)§r of containment. Without power the governor stops; below 2 SM the hole evaporates. The power switch does §lnot§r stop the hole.\n5. A §bBlack Hole Collapser§r in a bolt bus closes it safely: press Collapse twice.\n\n[note]Mass sets the modules' bonus: a bigger hole gives more parallels, a smaller one more speed. The controller tooltip has the full block list, and NEI's Multiblock tab previews both tiers.[/note]\n\n§a§lDONE WHEN§r you hold the controller (HOLD → CLAIM → INSTALL: claim before you place it).\n\n[note]The Black Hole Compressor quest is left as the pack wrote it, because pack edits are turned off (questbookPackEdits in config/beyondthestars.cfg).[/note]",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -4125,7 +4125,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "So you have made yourself an Eternal DTPF or hopefully a few, and now it is time for the push onwards.\n\nBeyond the Stars replaces TecTech's Eye of Harmony with §bone Eye that grows from T1 to T10§r, a band at a time, with a §blive star§r at its centre. A star is not a batch recipe: it burns every minute, it must be fed, and it must be held steady.\n\n§e§lBUILD§r\n- Hologram stack 1 is the T1 core, 102 × 52 × 80. Chunk-load the whole footprint.\n- It is mostly TecTech's own Eye blocks: 9,390 Reinforced Spatial and 4,704 Reinforced Temporal Structure Casings (the Condensate Assembler makes these 32 at a time here), Infinite SpaceTime Energy Boundary Casing, Quantum Glass and the three field generator families.\n- On the plinth: gas input hatches for Hydrogen and Helium, an input bus for Stellar Ignition Charges, an ME Output Bus, an ME Output Hatch and a maintenance hatch.\n- Power is §bwireless EU only§r, and none of it comes back: the Eye makes matter, not power.\n\n§e§lLIGHT IT§r Put §bStar Chart: Sol§r in the controller slot (never consumed). Sol lights when:\n- a §bStellar Ignition Charge§r is in a plinth input bus;\n- the buffers hold §b600,000,000 L each of Hydrogen and Helium§r: 10 cycles of upkeep (kept) plus the 100,000,000 L seed cloud (burned);\n- the wireless network holds 10 cycles of EU, which the ignition spends.\nThe protostar contracts for about 40 seconds, then lights.\n\n§e§lRUN§r Every §b60 s cycle§r Sol burns §b50,000,000 L Hydrogen + 50,000,000 L Helium§r and §b1.51 × 10¹¹ EU§r (about 1 A UMV), and makes §b50,000 L Raw Stellar Plasma§r into the ME output hatch. Upkeep is paid in full in every zone; a bad zone only cuts the yield.\n\n§e§lAUTOMATE§r Inputs drain into internal buffers every second, so ME stocking input hatches on the gas sockets work. Keep a few charges in the plinth bus from an ME Interface. A dimension display block in the slot runs planets instead (see §cPlanets on the Eye§r).\n\n[warn]§lSpacetime Compression gates the tier.§r An Eye of tier N needs every compression generator at tier N or higher. Crude runs T1.[/warn]\n\n[note]The next quests teach the stability field, planets and the road to T2. The controller tooltip and GUI carry every number.[/note]\n\n§a§lDONE WHEN§r you hold the controller, Star Chart: Sol and an Ignition Charge (HOLD → CLAIM → INSTALL).\n\n[note]The pack's own Eye of Harmony quest is left as the pack wrote it, because pack edits are turned off (questbookPackEdits in config/beyondthestars.cfg).[/note]",
+            "desc:8": "So you have made yourself an Eternal DTPF or hopefully a few, and now it is time for the push onwards.\n\nBeyond the Stars replaces TecTech's Eye of Harmony with §bone Eye that grows from T1 to T10§r, a band at a time, with a §blive star§r at its centre. A star is not a batch recipe: it burns every minute, it must be fed, and it must be held steady.\n\n§e§lBUILD§r\n- Hologram stack 1 is the T1 core, 102 × 52 × 80. Chunk-load the whole footprint.\n- It is mostly TecTech's own Eye blocks: 9,390 Reinforced Spatial and 4,704 Reinforced Temporal Structure Casings (the Condensate Assembler makes these 32 at a time here), Infinite SpaceTime Energy Boundary Casing, Quantum Glass and the three field generator families.\n- On the plinth: gas input hatches for Hydrogen and Helium, an input bus for Stellar Ignition Charges, an ME Output Bus, an ME Output Hatch and a maintenance hatch.\n- Power is §bwireless EU only§r, and none of it comes back: the Eye makes matter, not power.\n\n§e§lLIGHT IT§r Put §bStar Chart: Sol§r in the controller slot (never consumed). Sol lights when:\n- a §bStellar Ignition Charge§r is in a plinth input bus;\n- the buffers hold §b600,000,000 L each of Hydrogen and Helium§r: 10 cycles of upkeep (kept) plus the 100,000,000 L seed cloud (burned);\n- the wireless network holds 10 cycles of EU, which the ignition spends.\nThe protostar contracts for about 40 seconds, then lights.\n\n§e§lRUN§r Every §b60 s cycle§r Sol burns §b50,000,000 L Hydrogen + 50,000,000 L Helium§r and §b1.51 × 10¹¹ EU§r (about 1 A UMV), and makes §b50,000 L Raw Stellar Plasma§r (Raw Star Matter in the GUI) into the ME output hatch. Upkeep is paid in full in every zone; a bad zone only cuts the yield.\n\n§e§lAUTOMATE§r Inputs drain into internal buffers every second, so ME stocking input hatches on the gas sockets work. Keep a few charges in the plinth bus from an ME Interface. A dimension display block in the slot runs planets instead (see §cPlanets on the Eye§r).\n\n[warn]§lSpacetime Compression gates the tier.§r An Eye of tier N needs every compression generator at tier N or higher. Crude runs T1.[/warn]\n\n[note]The next quests teach the stability field, planets and the road to T2. The controller tooltip and GUI carry every number.[/note]\n\n§a§lDONE WHEN§r you hold the controller, Star Chart: Sol and an Ignition Charge (HOLD → CLAIM → INSTALL).\n\n[note]The pack's own Eye of Harmony quest is left as the pack wrote it, because pack edits are turned off (questbookPackEdits in config/beyondthestars.cfg).[/note]",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -4652,6 +4652,10 @@
           "1:10": {
             "questIDHigh:4": 8137647415205708492,
             "questIDLow:4": -8965035435801102116
+          },
+          "2:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48110
           }
         },
         "properties:10": {
@@ -4944,6 +4948,10 @@
           "1:10": {
             "questIDHigh:4": 190,
             "questIDLow:4": 48113
+          },
+          "2:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48100
           }
         },
         "properties:10": {
@@ -5587,6 +5595,10 @@
       "nbt": {
         "preRequisites:9": {
           "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48118
+          },
+          "1:10": {
             "questIDHigh:4": 7851484242627545128,
             "questIDLow:4": -7959189288003028041
           }
@@ -6606,6 +6618,10 @@
           "1:10": {
             "questIDHigh:4": 190,
             "questIDLow:4": 48149
+          },
+          "2:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48142
           }
         },
         "properties:10": {
@@ -6836,6 +6852,10 @@
           "0:10": {
             "questIDHigh:4": 190,
             "questIDLow:4": 48183
+          },
+          "1:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48142
           }
         },
         "properties:10": {
@@ -7670,7 +7690,7 @@
         },
         {
           "op": "setDesc",
-          "desc": "As the materials around you achieve transcendental properties, pistons and gases stop being enough. The answer is gravity: a black hole, held in a cage of mirrors and coils and spun fast enough that its ergosphere can be put to work.\n\nThe §bKerr Ergosphere Engine§r (KEE) holds the hole and does nothing else: it runs no recipes. The machines that use the hole are the §bKerr modules§r, separate machines standing in the cage's arcs (next quests).\n\n§e§lBUILD§r\n- Hologram Projector, stack 1: Kerr T1, 76 × 65 × 71. Chunk-load all of it.\n- The Black Hole Compressor's own Extreme Density Space-Bending Casing, Hawking Radiation Realignment Focus and Naquadah Alloy frames, plus our Superradiant Mirrors, Mirror Backing, Ergosphere Field Coils, Beam Focusing Quadrupoles, Beam Dumps, Harmonic Lining and 232 Bolt Injector Rails. The optional task is the full bill.\n- Hatches: 1 laser or up to 2 energy hatches in the governor arc, 1 to 8 §bbolt buses§r (plain input buses) on the cage, and optional BHC Utility Hatches beside them. No maintenance hatch.\n- Hologram markers 7 and 8 show where the two module controllers go.\n\n§e§lRUN§r Everything is in the GUI.\n1. Put a §bBlack Hole Seed§r in a bolt bus and press Open: the hole opens at §b8 SM§r (solar masses).\n2. It bleeds mass as Hawking radiation, §b3.2 / M² SM a tick§r. Small holes die fast.\n3. The §bgovernor§r fires bolts from the bolt buses to hold your §bsetpoint§r (2-64 SM at T1):\n- Neutronium 1/64 SM, Cosmic Neutronium 1/32, Infinity 1/16, Transcendent Metal 1/8, SpaceTime 1/4 SM a bolt;\n- at most 4 / 8 / 16 bolts a tick with Mk I / II / III rails. The §llowest§r rail sets the rate, so upgrade them all together.\n4. While open, the hole draws §b8,388,608 EU/t (1 A UEV)§r of containment. Without power the governor stops; below 2 SM the hole evaporates. The power switch does §lnot§r stop the hole.\n5. A §bBlack Hole Collapser§r in a bolt bus closes it safely: press Collapse twice.\n\n[note]Mass sets the modules' bonus: a bigger hole gives more parallels, a smaller one more speed. The controller tooltip has the full block list, and NEI's Multiblock tab previews both tiers.[/note]\n\n§a§lDONE WHEN§r you hold the controller (HOLD → CLAIM → INSTALL: claim before you place it).\n\n[note]The Black Hole Compressor is gone: its recipe now makes this. Every recipe that consumed a BHC controller (the Spacetime Compression Field Generators, the Compressed Circuit Array) takes a Kerr Ergosphere Engine controller instead. A BHC you already placed keeps working.[/note]"
+          "desc": "As the materials around you achieve transcendental properties, pistons and gases stop being enough. The answer is gravity: a black hole, held in a cage of mirrors and coils and spun fast enough that its ergosphere can be put to work.\n\nThe §bKerr Ergosphere Engine§r (KEE) holds the hole and does nothing else: it runs no recipes. The machines that use the hole are the §bKerr modules§r, separate machines standing in the cage's arcs (next quests).\n\n§e§lMAKE IT§r The controller is an §bAssembly Line§r recipe: scan a §bBlack Hole Seed§r in the Scanner to research it. NEI shows the rest.\n\n§e§lBUILD§r\n- Hologram Projector, stack 1: Kerr T1, 76 × 65 × 71. Chunk-load all of it.\n- The Black Hole Compressor's own Extreme Density Space-Bending Casing, Hawking Radiation Realignment Focus and Naquadah Alloy frames, plus our Superradiant Mirrors, Mirror Backing, Ergosphere Field Coils, Beam Focusing Quadrupoles, Beam Dumps, Harmonic Lining and 232 Bolt Injector Rails. The optional task is the full bill.\n- Hatches: 1 laser or up to 2 energy hatches in the governor arc, 1 to 8 §bbolt buses§r (plain input buses) on the cage, and optional BHC Utility Hatches beside them. No maintenance hatch.\n- Hologram markers 7 and 8 show where the two module controllers go.\n\n§e§lRUN§r Everything is in the GUI.\n1. Put a §bBlack Hole Seed§r in a bolt bus and press Open: the hole opens at §b8 SM§r (solar masses).\n2. It bleeds mass as Hawking radiation, §b3.2 / M² SM a tick§r. Small holes die fast.\n3. The §bgovernor§r fires bolts from the bolt buses to hold your §bsetpoint§r (2-64 SM at T1):\n- Neutronium 1/64 SM, Cosmic Neutronium 1/32, Infinity 1/16, Transcendent Metal 1/8, SpaceTime 1/4 SM a bolt;\n- at most 4 / 8 / 16 bolts a tick with Mk I / II / III rails. The §llowest§r rail sets the rate, so upgrade them all together.\n4. While open, the hole draws §b8,388,608 EU/t (1 A UEV)§r of containment. Without power the governor stops; below 2 SM the hole evaporates. The power switch does §lnot§r stop the hole.\n5. A §bBlack Hole Collapser§r in a bolt bus closes it safely: press Collapse twice.\n\n[note]Mass sets the modules' bonus: a bigger hole gives more parallels, a smaller one more speed. The controller tooltip has the full block list, and NEI's Multiblock tab previews both tiers.[/note]\n\n§a§lDONE WHEN§r you hold the controller (HOLD → CLAIM → INSTALL: claim before you place it).\n\n[note]The Black Hole Compressor's recipe is removed. The KEE has its own Assembly Line recipe (scan a §bBlack Hole Seed§r to research it; NEI shows the rest). Every recipe that consumed a BHC controller (the Spacetime Compression Field Generators, the Compressed Circuit Array) now takes a KEE controller instead. A BHC you already placed keeps working.[/note]"
         },
         {
           "op": "setTasks",
@@ -7950,7 +7970,7 @@
         },
         {
           "op": "setDesc",
-          "desc": "So you have made yourself an Eternal DTPF or hopefully a few, and now it is time for the push onwards.\n\nBeyond the Stars replaces TecTech's Eye of Harmony with §bone Eye that grows from T1 to T10§r, a band at a time, with a §blive star§r at its centre. A star is not a batch recipe: it burns every minute, it must be fed, and it must be held steady.\n\n§e§lBUILD§r\n- Hologram stack 1 is the T1 core, 102 × 52 × 80. Chunk-load the whole footprint.\n- It is mostly TecTech's own Eye blocks: 9,390 Reinforced Spatial and 4,704 Reinforced Temporal Structure Casings (the Condensate Assembler makes these 32 at a time here), Infinite SpaceTime Energy Boundary Casing, Quantum Glass and the three field generator families.\n- On the plinth: gas input hatches for Hydrogen and Helium, an input bus for Stellar Ignition Charges, an ME Output Bus, an ME Output Hatch and a maintenance hatch.\n- Power is §bwireless EU only§r, and none of it comes back: the Eye makes matter, not power.\n\n§e§lLIGHT IT§r Put §bStar Chart: Sol§r in the controller slot (never consumed). Sol lights when:\n- a §bStellar Ignition Charge§r is in a plinth input bus;\n- the buffers hold §b600,000,000 L each of Hydrogen and Helium§r: 10 cycles of upkeep (kept) plus the 100,000,000 L seed cloud (burned);\n- the wireless network holds 10 cycles of EU, which the ignition spends.\nThe protostar contracts for about 40 seconds, then lights.\n\n§e§lRUN§r Every §b60 s cycle§r Sol burns §b50,000,000 L Hydrogen + 50,000,000 L Helium§r and §b1.51 × 10¹¹ EU§r (about 1 A UMV), and makes §b50,000 L Raw Stellar Plasma§r into the ME output hatch. Upkeep is paid in full in every zone; a bad zone only cuts the yield.\n\n§e§lAUTOMATE§r Inputs drain into internal buffers every second, so ME stocking input hatches on the gas sockets work. Keep a few charges in the plinth bus from an ME Interface. A dimension display block in the slot runs planets instead (see §cPlanets on the Eye§r).\n\n[warn]§lSpacetime Compression gates the tier.§r An Eye of tier N needs every compression generator at tier N or higher. Crude runs T1.[/warn]\n\n[note]The next quests teach the stability field, planets and the road to T2. The controller tooltip and GUI carry every number.[/note]\n\n§a§lDONE WHEN§r you hold the controller, Star Chart: Sol and an Ignition Charge (HOLD → CLAIM → INSTALL)."
+          "desc": "So you have made yourself an Eternal DTPF or hopefully a few, and now it is time for the push onwards.\n\nBeyond the Stars replaces TecTech's Eye of Harmony with §bone Eye that grows from T1 to T10§r, a band at a time, with a §blive star§r at its centre. A star is not a batch recipe: it burns every minute, it must be fed, and it must be held steady.\n\n§e§lBUILD§r\n- Hologram stack 1 is the T1 core, 102 × 52 × 80. Chunk-load the whole footprint.\n- It is mostly TecTech's own Eye blocks: 9,390 Reinforced Spatial and 4,704 Reinforced Temporal Structure Casings (the Condensate Assembler makes these 32 at a time here), Infinite SpaceTime Energy Boundary Casing, Quantum Glass and the three field generator families.\n- On the plinth: gas input hatches for Hydrogen and Helium, an input bus for Stellar Ignition Charges, an ME Output Bus, an ME Output Hatch and a maintenance hatch.\n- Power is §bwireless EU only§r, and none of it comes back: the Eye makes matter, not power.\n\n§e§lLIGHT IT§r Put §bStar Chart: Sol§r in the controller slot (never consumed). Sol lights when:\n- a §bStellar Ignition Charge§r is in a plinth input bus;\n- the buffers hold §b600,000,000 L each of Hydrogen and Helium§r: 10 cycles of upkeep (kept) plus the 100,000,000 L seed cloud (burned);\n- the wireless network holds 10 cycles of EU, which the ignition spends.\nThe protostar contracts for about 40 seconds, then lights.\n\n§e§lRUN§r Every §b60 s cycle§r Sol burns §b50,000,000 L Hydrogen + 50,000,000 L Helium§r and §b1.51 × 10¹¹ EU§r (about 1 A UMV), and makes §b50,000 L Raw Stellar Plasma§r (Raw Star Matter in the GUI) into the ME output hatch. Upkeep is paid in full in every zone; a bad zone only cuts the yield.\n\n§e§lAUTOMATE§r Inputs drain into internal buffers every second, so ME stocking input hatches on the gas sockets work. Keep a few charges in the plinth bus from an ME Interface. A dimension display block in the slot runs planets instead (see §cPlanets on the Eye§r).\n\n[warn]§lSpacetime Compression gates the tier.§r An Eye of tier N needs every compression generator at tier N or higher. Crude runs T1.[/warn]\n\n[note]The next quests teach the stability field, planets and the road to T2. The controller tooltip and GUI carry every number.[/note]\n\n§a§lDONE WHEN§r you hold the controller, Star Chart: Sol and an Ignition Charge (HOLD → CLAIM → INSTALL)."
         },
         {
           "op": "setTasks",
@@ -8080,7 +8100,7 @@
       "ops": [
         {
           "op": "setDesc",
-          "desc": "§lFirst Light.§r Sol's product: 50,000 L a cycle × your yield. NEI calls it Condensed Raw Stellar Plasma Mixture.\n\nIt goes into:\n- Sirius A's upkeep (25,000 L a cycle);\n- the §bStellar Mass Core§r that unlocks T2 (256,000 L);\n- the §bKerr Density Upgrade§r (4,000,000 L);\n- Beam Band and Jet Crescent casings, star charts, and Sirius B's overshoot trim;\n- the Stellar Catalyst, as before.\nFor the Condensate Assembler it is condensed 1 : 1 into §bEntangled Raw Star Matter§r first (NEI: Condensate Entanglement).\n\n[note]Your first milestone is counting already: §l20,000,000 L§r made on this Eye and §l2 h Resonant§r open the road to T2.[/note]"
+          "desc": "§lFirst Light.§r Sol's product: 50,000 L a cycle × your yield. NEI calls it Condensed Raw Stellar Plasma Mixture, and the Eye's GUI and tooltips call it Raw Star Matter.\n\nIt goes into:\n- Sirius A's upkeep (25,000 L a cycle);\n- the §bStellar Mass Core§r that unlocks T2 (256,000 L);\n- the §bKerr Density Upgrade§r (4,000,000 L);\n- Beam Band and Jet Crescent casings, star charts, and Sirius B's overshoot trim;\n- the Stellar Catalyst, as before.\nFor the Condensate Assembler it is condensed 1 : 1 into §bEntangled Raw Star Matter§r first (NEI: Condensate Entanglement).\n\n[note]Your first milestone is counting already: §l20,000,000 L§r made on this Eye and §l2 h Resonant§r open the road to T2.[/note]"
         },
         {
           "op": "move",
@@ -8306,7 +8326,7 @@
         },
         {
           "op": "setDesc",
-          "desc": "Welcome to the final tier of NH (for now).\n\nWe hope you enjoy your stay, though be prepared for a lot of waiting.\n\nIn Beyond the Stars this is the Eye's second half: §bSirius B (T5)§r cools white dwarfs into black, and §bthe magnetar (T6)§r runs on Antipolarization Agent. The §bQuasar Engine§r and the first galaxies (T7, T8) come in a later update. The crafted Stargate has moved to §6The Endgame§r, after MAX.\n\n[warn]§lUniversium now comes only from Eye T10 (MAX), which is not built yet.§r Until the UXV recipe swap ships, UXV components, the UXV CoAL and the UXV Field Generator still need MHDCSM and Universium. That includes the Field Generators the T5 and T6 cores are built from.[/warn]\n\n[warn]This tier is far from complete. Expect changes.[/warn]"
+          "desc": "Welcome to UXV. In Beyond the Stars it is not the last tier: §6Tier 14 - MAX§r and §6The Endgame§r follow.\n\nWe hope you enjoy your stay, though be prepared for a lot of waiting.\n\nIn Beyond the Stars this is the Eye's second half: §bSirius B (T5)§r cools white dwarfs into black, and §bthe magnetar (T6)§r runs on Antipolarization Agent. The §bQuasar Engine§r and the first galaxies (T7, T8) come in a later update. The crafted Stargate has moved to §6The Endgame§r, after MAX.\n\n[warn]§lUniversium now comes only from Eye T10 (MAX), which is not built yet.§r Until the UXV recipe swap ships, UXV components, the UXV CoAL and the UXV Field Generator still need MHDCSM and Universium. That includes the Field Generators the T5 and T6 cores are built from.[/warn]\n\n[warn]This tier is far from complete. Expect changes.[/warn]"
         }
       ]
     },
@@ -8501,6 +8521,10 @@
           "y": 420,
           "sizeX": 24,
           "sizeY": 24
+        },
+        {
+          "op": "appendText",
+          "text": "[note]In Beyond the Stars, MAX (Tier 14) comes next.[/note]"
         }
       ]
     },
