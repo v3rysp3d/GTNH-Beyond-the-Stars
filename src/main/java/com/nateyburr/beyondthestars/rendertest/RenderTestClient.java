@@ -392,7 +392,12 @@ public final class RenderTestClient {
                 .getLoadedChunkCount();
         final int queued = renderQueue();
         // the loaded-chunk count flickers by a chunk or two at the render-distance edge; only a real stream counts
-        if (Math.abs(chunks - lastChunks) <= 2 && queued <= 0) stillTicks++;
+        // and nothing counts as settled until the client has the chunk under the camera (else it draws only sky)
+        final boolean here = mc.thePlayer != null && mc.theWorld != null
+            && !mc.theWorld
+                .getChunkFromBlockCoords((int) Math.floor(mc.thePlayer.posX), (int) Math.floor(mc.thePlayer.posZ))
+                .isEmpty();
+        if (here && Math.abs(chunks - lastChunks) <= 2 && queued <= 0) stillTicks++;
         else stillTicks = 0;
         lastChunks = chunks;
         if (phaseTicks >= settleMax) {

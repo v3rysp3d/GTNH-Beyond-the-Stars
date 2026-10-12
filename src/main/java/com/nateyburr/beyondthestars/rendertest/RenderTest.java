@@ -519,6 +519,8 @@ public final class RenderTest {
         }
         ((ISurvivalConstructable) mte).construct(new ItemStack(stack.getItem(), 9, stack.getItemDamage()), false);
         b.box = scanBox(world, x, y, z, 40);
+        // an unformed TT multi that is allowed to work calls stopMachine every check, which removes its star
+        ((IGregTechTileEntity) te).disableWorking();
         final ForgeDirection back = FACING.getOpposite();
         final int cx = x + 16 * back.offsetX;
         final int cz = z + 16 * back.offsetZ;
@@ -527,18 +529,24 @@ public final class RenderTest {
             b.error = "TecTech's EOH render block is not registered";
             return;
         }
-        world.setBlockToAir(cx, y, cz);
-        world.setBlock(cx, y, cz, TTCasingsContainer.eyeOfHarmonyRenderBlock);
-        final TileEntity star = world.getTileEntity(cx, y, cz);
-        if (star instanceof TileEntityEyeOfHarmony) {
-            ((TileEntityEyeOfHarmony) star).setTier(8);
-            ((TileEntityEyeOfHarmony) star).setStarSize(0.4 + 8 / 8.0);
-            world.markBlockForUpdate(cx, y, cz);
-        }
+        final TileEntity star = placeTecTechStar(world, cx, y, cz);
         b.lines.add(
             "TecTech EOH built by its construct (tier-9 generators) at " + pos(b.controller)
                 + "; not formed (no hatches, no recipe); star placed as its createRenderBlock does: "
                 + (star instanceof TileEntityEyeOfHarmony ? "rocket tier 8, size 1.4" : "NO RENDER TILE"));
+    }
+
+    /** TecTech's star at (x, y, z): its render block, rocket tier 8, size 0.4 + 8 / 8 (a top recipe). */
+    private static TileEntity placeTecTechStar(World world, int x, int y, int z) {
+        world.setBlockToAir(x, y, z);
+        world.setBlock(x, y, z, TTCasingsContainer.eyeOfHarmonyRenderBlock);
+        final TileEntity star = world.getTileEntity(x, y, z);
+        if (star instanceof TileEntityEyeOfHarmony) {
+            ((TileEntityEyeOfHarmony) star).setTier(8);
+            ((TileEntityEyeOfHarmony) star).setStarSize(0.4 + 8 / 8.0);
+            world.markBlockForUpdate(x, y, z);
+        }
+        return star;
     }
 
     /** Sets one case's state on its built site. */
@@ -584,7 +592,7 @@ public final class RenderTest {
         }
     }
 
-    /** Once a second while a case is photographed: holds the Kerr's mass and the BHC's stability. */
+    /** Once a second while a case is photographed: holds the Kerr's mass, the BHC's stability, TecTech's star. */
     private static void maintain(WorldServer world, Built b, Case c) {
         final int[] p = b.controller;
         if (c.site == Site.KERR_T1 || c.site == Site.KERR_T2) {
@@ -598,6 +606,14 @@ public final class RenderTest {
                 } catch (ReflectiveOperationException ignored) {
                     // reported at the build
                 }
+            }
+        } else if (c.site == Site.TT_EOH) {
+            final int x = (int) Math.floor(b.centre[0]);
+            final int y = (int) Math.floor(b.centre[1]);
+            final int z = (int) Math.floor(b.centre[2]);
+            if (world.getBlock(x, y, z) != TTCasingsContainer.eyeOfHarmonyRenderBlock) {
+                BeyondTheStars.LOG.info("[BTS render test] TecTech's star was removed; placing it again");
+                placeTecTechStar(world, x, y, z);
             }
         }
         final EntityPlayerMP player = player();
@@ -705,13 +721,17 @@ public final class RenderTest {
         final float yaw = (float) (Math.toDegrees(Math.atan2(dz, dx)) - 90);
         final float pitch = (float) -Math.toDegrees(Math.atan2(dy, Math.sqrt(dx * dx + dz * dz)));
         fly(player);
+        // The server ticks a player (and so sends it chunks, EntityPlayerMP.onUpdate) only while the chunks within 32
+        // blocks of it are loaded; a camera far outside the site box would stand in unloaded chunks and the client
+        // would never get any terrain. Load and hold them first.
+        final int ex = (int) Math.floor(eye[0]);
+        final int ez = (int) Math.floor(eye[2]);
+        loadAndKeep(world, new int[] { ex - 48, 0, ez - 48, ex + 48, 255, ez + 48 });
         player.playerNetServerHandler.setPlayerLocation(eye[0], eye[1] - 1.62, eye[2], yaw, pitch);
         player.motionX = 0;
         player.motionY = 0;
         player.motionZ = 0;
-        // Re-register the chunks the player watches now, instead of waiting for the client's movement packet to do it:
-        // in this dev runtime that update did not always happen after a long jump, and the new site's chunks were
-        // then never sent (the client drew only sky).
+        // re-register the chunks the player watches now rather than on its next movement packet
         world.getPlayerManager()
             .updatePlayerPertinentChunks(player);
         return String.format(
