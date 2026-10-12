@@ -861,7 +861,8 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             collapseTimer = -1;
             removeRender();
         }
-        final boolean want = holeOpen && renderOn && Config.renderKerrHole;
+        final boolean want = mMachine && holeOpen && renderOn && Config.renderKerrHole; // an unformed cage shows no
+                                                                                        // hole
         if (!want) {
             renderNote = "";
             if (renderPos == null || collapseTimer > 0) return;
