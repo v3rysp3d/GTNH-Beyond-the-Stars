@@ -23,6 +23,9 @@ public final class BTSMachines {
     public static ItemStack siteBatchingPlant;
     // SINGULARITY LADDER P2 (Kerr unit): the Kerr Ergosphere Engine, base+14.
     public static ItemStack kerrEngine;
+    // KERR REDESIGN: the module machines, base+17 / base+18 (docs/kerr-redesign.md).
+    public static ItemStack kerrCompressorModule;
+    public static ItemStack kerrExtractorModule;
     // SINGULARITY LADDER P3 (Eye unit): the Eye of Harmony, base+15.
     public static ItemStack eyeOfHarmony;
 
@@ -102,7 +105,9 @@ public final class BTSMachines {
         // 28114..28139 is reserved, contiguous, for the ladder. Frozen once shipped.
         // base+14 (28114) Kerr Ergosphere Engine multimachine.beyondthestars.kerrengine (P2)
         // base+15 (28115) Eye of Harmony multimachine.beyondthestars.eyeofharmony (P3)
-        // base+16..19 reserved P2/P3 spares (none planned; module sockets use GT hatches)
+        // base+16 reserved (D-49 plan: Stellar Field Sensor Hatch)
+        // base+17 (28117) Kerr Compressor Module, base+18 (28118) Kerr Extractor Module (Kerr redesign)
+        // base+19 spare (the next Kerr module)
         // base+20..29 P4: Quasar Engine 20, Wormhole Mouth 21, Conduit Mirror 22,
         // Conduit Junction 23, Burst Thermaliser Crown Mk I/II/III 24-26, spare 27-29
         // base+30..34 ON HOLD: Homogeny 30, Reality Diffraction 31, Reality Refab 32, spare 33-34
@@ -112,6 +117,14 @@ public final class BTSMachines {
             base + 14,
             "multimachine.beyondthestars.kerrengine",
             "Kerr Ergosphere Engine").getStackForm(1);
+        kerrCompressorModule = new com.nateyburr.beyondthestars.machines.kerr.MTEKerrCompressorModule(
+            base + 17,
+            "multimachine.beyondthestars.kerr.compressor",
+            "Kerr Compressor Module").getStackForm(1);
+        kerrExtractorModule = new com.nateyburr.beyondthestars.machines.kerr.MTEKerrExtractorModule(
+            base + 18,
+            "multimachine.beyondthestars.kerr.extractor",
+            "Kerr Extractor Module").getStackForm(1);
         eyeOfHarmony = new com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS(
             base + 15,
             "multimachine.beyondthestars.eyeofharmony",
