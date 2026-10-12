@@ -1819,6 +1819,75 @@ was lost or put out"), so it replaces an older, more useful failure line.
 
 ---
 
+### B-60 H/R: the three machines' shapes as exported, and what they cost in blocks [H/R unit 1, built]
+
+**Context.** Ruling 16 and the design doc `designs/docs/homogeny-reality.md` (PROPOSED, H-1..H-28). The voxel mockups
+(design repo `3e23c09`) are exported unchanged by `tools/export-structures.js` into `homog_t1..t3`,
+`reality_diffraction` and `reality_refab` (build spec "Contract additions (Homogeny / Reality structures + content)").
+
+**What was built, and the judgement calls.**
+
+1. **Sizes are the mockup's, not the doc's.** The doc's §1-§3 numbers were written before the mockup was drawn. As
+   exported (W x H x D, each in its controller's own frame): Homogeny T1 69 x 70 x 73, T2 103 x 70 x 113,
+   T3 145 x 70 x 130; Reality Diffraction 103 x 101 x 85; Reality Refab 104 x 139 x 83.
+2. **Block counts are well above the doc's §1.5 / §2.5 / §3.5 estimates.** Homogeny T1 17,783 (doc about 15,100),
+   T2 +10,813 (about 7,300), T3 +13,002 (about 10,000); Diffraction 53,005 (about 40,000); Refab 59,245 (about
+   35,600: the hull glass alone is 14,260 Quantum Glass and the hull plating 20,649). The per-block recipes and the
+   cost table must be priced from `manifest.json` (ruling 6), not the doc. **Suggestion:** keep the shapes (they
+   are the sketches) and price per block; if the Refab is too dear, thin its hull to one glass ring between ribs or
+   scale the mockup to 0.85 (about -35 % blocks). Alternative: halve the bulk casings' condensate.
+3. **The Homogeny is exported turned a quarter turn.** Its controller sits on the volute throat's outer face, which
+   faces +x in the mockup. Like the Kerr modules, every Homogeny piece is turned so that face is +z, the piece
+   frame's front (`turns: 1` in the manifest). In game it looks exactly like the mockup, seen from the throat.
+4. **Tiers only add blocks.** T2 writes over 30 T1 cells (its inlets meet the volute) and T3 over 45 T2 cells (the
+   clamps where the outer ring crosses the middle ring). As on the Eye, the earlier piece keeps them, so `homog_t1`
+   never changes when a tier is added.
+5. **Hatches are pinned by kind and count, not coordinate.** The mockup computes them from its band curves, so a
+   coordinate table would only restate voxel.js. A changed count or a new hatch kind aborts the export.
+6. **Region identity is the socket's char.** The six Region Anchor sockets export as `r s t u v w` = Regions I..VI
+   (Hyperspace, Subspace, Forward Time, Reverse Time, Positive Mass, Negative Mass). The blades sit on the deck bands
+   at y -14 / 0 / +14 (the doc's "drums 1-3"), region = 2 x band + (180 degree side).
+7. **Sockets as drawn:** Homogeny 3 feed hatches at T1 (6 at T2), 2 output hatches on the throat, 2 energy on the
+   bottom cap; Diffraction 1 BEC hatch, 1 medium input hatch, 2 energy, 6 anchors on the base ring; Refab 1 BEC
+   hatch, 2 input buses, 1 output bus on the cap, 1 energy. The doc's "any Electromagnetically-Isolated Casing" for
+   the BEC hatch is the machine unit's call (a hatch element on the `Q` casing); the shapes carry one pinned cell.
+
+**Alternatives.** Re-draw the mockups to the doc's sizes; or export the Homogeny unturned with the controller
+facing sideways (worse: the hologram would be built from the side).
+
+### B-61 H/R: the new blocks, items and fluids [H/R unit 1, built]
+
+1. **`slCasing3` is a new block (H-22).** Metas 0-11, 12-15 spare, so P4's casings (expected in `slCasing2:3+`) never
+   collide. Meta 11, **Region Anchor Casing**, is the mockup's red lens beside each anchor socket (recipe card
+   SL-R17); the doc's §4.2 table stopped at 10.
+2. **Region Crystal glows** (light 9, the sketches' orange diamonds). About 1,300 per Reality machine. **Suggestion:**
+   keep it; drop to 0 if a hologram build of a Diffraction lags on light updates.
+3. **Block tooltips.** `ItemBlockSL` now shows a `tile.beyondthestars.<registry>.<meta>.tooltip` lang line when one
+   exists (ruling 14): every slCasing3 block says which machine uses it and "Made in the Condensate Assembler".
+   Older SL casings have no tooltip key yet, so nothing changes for them.
+4. **Superdense, not Supermassive (ruling 17).** The fluid is `btssuperdenseergomatter` (P4's name) and its condensate
+   `btsentangledsuperdense`, "Entangled Superdense Ergomatter". The design doc and SL-H20/H21/R01/R11/R16 still say
+   Supermassive; the recipes must use the Superdense fluid.
+5. **Later phases' fluids are registered only if absent (H-24).** `btsergomatter`, `btssuperdenseergomatter` and
+   `btswhiteholematter` are registered by `SLRealityFluids` under exactly P4/P5's names when nothing registered them
+   first, logged at boot as placeholders. **When P4 or P5 merges, one file must own each fluid**: delete the
+   `ifAbsent` line here, or have P4 call it, so the name is never built twice.
+6. **SL-B16 (Entangled Magnetar Matter) is registered, but ruling 19a may leave it without a consumer.** The design
+   doc and recipe card SL-H10 gate the Homogeny Tier II Core on Magnetar Matter (so it registers SL-B16), while ruling
+   19a says that core must use Black Dwarf Matter instead. The fluid is registered so either choice works. If the
+   recipe unit follows 19a, the generator recipe should not be added (an orphan condensate in NEI suggests a use that
+   does not exist, BEC Q-B6), and the fluid stays as a harmless reserved name.
+7. **Entanglement Medium is a 0 K liquid (doc §4.4).** GT pipes treat fluids under 120 K as cryogenic, so it needs
+   cryo-proof pipes from the Homogeny to the Diffraction. **Suggestion:** keep it (thematic) and say so in the
+   Homogeny T3 quest and the Diffraction tooltip; alternative: 300 K. The region and entangled fluids are GAS at 0 K
+   like GT's condensates; they live in the BEC network.
+8. **Controller overlays are ready** for the machine unit: `beyondthestars:iconsets/OVERLAY_FRONT_HOMOGENY`,
+   `_REALITY_DIFFRACTION`, `_REALITY_REFAB` (+ `_GLOW`, `_ACTIVE`, `_ACTIVE_GLOW`).
+9. **Lang:** the seven recipe-result ids of the doc (`beyondthestars.homogeny.tier`, `.installing`,
+   `beyondthestars.reality.nonetwork`, `.anchors`, `.full`, `.noassembler`, `.nanites`) have
+   `GT5U.gui.text.recipe_result.` keys, and the three recipe maps' names are keyed as `beyondthestars.recipe.homogeny`,
+   `.reality_diffraction`, `.reality_refab`. Any other id the machine unit adds needs its own key (ruling 10).
+
 ## Part C. Settled (for the record)
 
 | Topic | Your answer | State |

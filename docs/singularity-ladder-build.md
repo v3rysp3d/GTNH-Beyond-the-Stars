@@ -1551,6 +1551,78 @@ this section wins.
 
 ---
 
+## Contract additions (Homogeny / Reality structures + content)
+
+Written by H/R unit 1 (branch `homogeny-reality`), 2026-10-13. Source: design repo `designs/docs/homogeny-reality.md`
+(PROPOSED) and the sketch mockups in `designs/voxel.js` (`3e23c09`). Questions B-60 and B-61.
+
+### Pieces
+
+Re-run `node tools/export-structures.js` (from a worktree it finds `../GTNH-Addons/designs/voxel.js` itself). Same file
+format as every other piece. Each machine's frame has its controller facing +z (layer 0 is the front).
+
+| Piece | Machine (MTE) | w × h × d | off | Blocks | Bill of materials |
+|---|---|---|---|---|---|
+| `homog_t1` | Homogeny (28130), required | 69 × 70 × 73 | 24,35,2 | 17,783 | `Z` 5,008, `A` 3,200, `M` 2,430, `O` 2,246, `B` 1,873, `J` 1,290, `C` 690, `L` 610, `K` 303, `D` 120, `E` 5, `h` 3, `e` 2, `o` 2, `~` 1 |
+| `homog_t2` | Homogeny T2 band | 103 × 16 × 113 | 48,8,22 | 10,813 | `G` 7,110, `J` 1,745, `K` 833, `C` 690, `O` 228, `Z` 120, `D` 84, `h` 3 |
+| `homog_t3` | Homogeny T3 band | 145 × 52 × 130 | 69,30,31 | 13,002 | `F` 8,489, `J` 3,131, `K` 736, `P` 484, `O` 83, `E` 79 |
+| `reality_diffraction` | Reality Diffraction (28131) | 103 × 101 × 85 | 51,97,0 | 53,005 | `A` 11,344, `Z` 9,936, `H` 8,647, `J` 7,795, `Q` 5,756, `N` 3,743, `K` 2,630, `L` 1,916, `E` 1,215, `I` 12, `e` 2, `h` 1, `b` 1, `r`..`w` 1 each, `~` 1 |
+| `reality_refab` | Reality Refab (28132) | 104 × 139 × 83 | 51,137,19 | 59,245 | `R` 20,649, `Z` 14,260, `S` 8,952, `J` 4,432, `Q` 3,298, `L` 2,837, `K` 2,357, `E` 1,030, `V` 736, `T` 688, `i` 2, `e` 1, `b` 1, `o` 1, `~` 1 |
+
+- The Homogeny is ONE controller with tier channels: T1 = `homog_t1`; T2 adds `homog_t2`; T3 adds `homog_t3` (counts
+  only with `homog_t2`). Tiers only add cells; the earlier piece keeps the 30 / 45 cells a later tier drew over.
+- The Homogeny pieces are turned a quarter turn (`machines.homogeny.turns = 1`): the controller on the volute throat
+  faces +x in the mockup. `machines.<m>.centre.rel` is the machine axis (the render centre: vortex, region clouds,
+  reassembly stream) from the controller, in (a,b,c).
+- Assembled sizes (checked by the exporter): Homogeny T1 69 × 70 × 73, T2 103 × 70 × 113, T3 145 × 70 × 130.
+
+### Shape char → intended block
+
+Chars shared by the three machines: `E` Region Crystal (slCasing3:5), `J` Harmonic Lining (slCasing2:2), `K` and `Z`
+`Casings.QuantumGlass` (channel / wall, kept apart so either can change), `L`
+`Casings.SpatiallyTranscendentGravitationalLens`, `Q` `Casings.ElectromagneticallyIsolatedCasing` (BEC hatch casing).
+
+| Machine | Char → block |
+|---|---|
+| Homogeny | `A` slCasing3:0 Stirring Band, `B` slCasing3:1 Shear Helix Coil, `C` slCasing3:2 Feed Vessel, `D` slCasing3:3 Vortex Inlet, `F` slCasing3:10 Eternity Shell, `G` slCasing:12 Galactic Shell Plating, `M` `Casings.BoundlessGravitationallySeveredStructureCasing` (Godforge), `O` slCasing:13 Bastion Plate, `P` slCasing:14 Casimir Plate |
+| Diffraction | `A` slCasing3:4 Region Deck Band, `H` slCasing3:6 Phase Ring, `I` slCasing3:11 Region Anchor Casing, `N` `Casings.CoherencePreservingPlasmaConduit` |
+| Refab | `R` slCasing3:7 Reassembly Hull, `S` slCasing3:8 Reassembly Tray, `T` slCasing3:9 Reassembly Claw, `V` `Casings.CondensateGuidanceCoil` |
+
+### Sockets
+
+| Char | Machine | Count | Accepts (intent) | Fallback | Hint |
+|---|---|---|---|---|---|
+| `h` | Homogeny (vessel tops) | 3 at T1, +3 at T2 | private feed Input Hatch element | `C` | 1 |
+| `o` | Homogeny (throat) | 2 | Output Hatch | `A` | 2 |
+| `e` | Homogeny (bottom cap rim) | 2 | Energy / ExoticEnergy | `M` | 3 |
+| `b` | Diffraction, Refab | 1 | GT `MTEHatchBEC` | `Q` | 1 |
+| `h` | Diffraction (base ring) | 1 | Input Hatch (Entanglement Medium) | `Q` | 2 |
+| `r s t u v w` | Diffraction | 1 each | private Region Anchor I..VI (Input Hatch) | `I` | 3..8 |
+| `e` | Diffraction, Refab | 2 / 1 | Energy / ExoticEnergy | `Q` | 9 / 4 |
+| `i` | Refab (foot) | 2 | Input Bus | `Q` | 2 |
+| `o` | Refab (cap) | 1 | Output Bus | `R` | 3 |
+
+Every socket has an outside-reachable face (checked), and each controller's front face is open air in the fullest
+build (checked).
+
+### Content
+
+- **Blocks:** `SLBlocks.slCasing3` (`BlockSLCasing3`, constants `STIRRING_BAND` .. `REGION_ANCHOR`), stacks via
+  `SLBlocks.casing3(meta, n)`. Region Crystal emits light 9. Block tooltips come from
+  `tile.beyondthestars.slCasing3.<meta>.tooltip` (`ItemBlockSL`).
+- **Items:** `SLMaxItems.homogenyTier2Core`, `homogenyTier3Core`, `universalUpgradeCore`, `starChartUniverse`
+  (stack 1), with lang tooltips.
+- **Fluids** (`SLRealityFluids`): `degenerateStellarMixture` (`btsdegeneratestellarmixture`), `entanglementMedium`
+  (`btsentanglementmedium`, 0 K), `regionHyperspace` .. `regionNegativeMass` (`btsregion*`, GAS 0 K; `regions()` gives
+  I..VI in order), condensates `entangledMagnetar` (SL-B16), `entangledDegenerate` (C01), `entangledErgomatter` (C02),
+  `entangledSuperdense` (C03), `entangledWhiteHole` (C04); `ergomatter`, `superdenseErgomatter`, `whiteHoleMatter`
+  registered only if absent (H-24, B-61 item 5).
+- **Textures:** `sl_stir` .. `sl_alens`, the four item icons, and `iconsets/OVERLAY_FRONT_HOMOGENY`,
+  `_REALITY_DIFFRACTION`, `_REALITY_REFAB` (+ `_GLOW`, `_ACTIVE`, `_ACTIVE_GLOW`), all from `tools/gen-sl-textures.js`.
+- **Lang:** names and tooltips above; recipe maps `beyondthestars.recipe.homogeny`, `.reality_diffraction`,
+  `.reality_refab`; recipe results `beyondthestars.homogeny.tier` / `.installing` and `beyondthestars.reality.nonetwork`
+  / `.anchors` / `.full` / `.noassembler` / `.nanites` under `GT5U.gui.text.recipe_result.`.
+
 ## Hologram & NEI
 
 Acceptance pass, 2026-10-12. Verified by reading our code and `javap` of the instance jars (structurelib-1.4.38,
