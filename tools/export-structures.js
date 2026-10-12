@@ -183,14 +183,14 @@ const LEGEND = {
     G: { role: "stirring_ring_shell", kind: "galactic (T2 middle ring)", block: "slCasing:12 Galactic Shell Plating (existing)" },
     J: { role: "band_lining", kind: "lining", block: "slCasing2:2 Harmonic Lining (existing)" },
     K: { role: "glass_channel", kind: "sglass", block: "Casings.QuantumGlass (TecTech)" },
-    L: { role: "cap_lens", kind: "gflens (the column caps' centres)", block: "Casings.SpatiallyTranscendentGravitationalLens (Godforge glass)" },
-    M: { role: "column_cap", kind: "godforge2 (column caps, cap-rim clamps)", block: "Casings.BoundlessGravitationallySeveredStructureCasing (Godforge, gt.godforgecasing:2)" },
+    M: { role: "column_cap", kind: "temporal (column caps, cap-rim clamps; the caps' centres are qglass, Z)", block: "Casings.ReinforcedTemporalStructureCasing (TecTech EOH, x32 in the BEC since ruling 11a; was Godforge casing + lens glass, B-67)" },
     O: { role: "rail", kind: "bastion (rails, spikes, clamps, T2 spokes)", block: "slCasing:13 Bastion Plate (existing)" },
     P: { role: "ring_trim", kind: "casimir (T3 outer ring trim)", block: "slCasing:14 Casimir Plate (existing)" },
     Z: { role: "column_glass", kind: "qglass (mixing column wall, vessel sight bands)", block: "Casings.QuantumGlass (TecTech)" },
     h: { role: "feed_socket", kind: "gas (top of each Feed Vessel)", block: "private feed Input Hatch element (MTEHatchInput), else fallback", fallback: "C", min: 1, hint: 1 },
     o: { role: "output_socket", kind: "output (throat, top and bottom faces)", block: "HatchElement.OutputHatch, else fallback", fallback: "A", min: 1, hint: 2 },
     e: { role: "energy_socket", kind: "energy (bottom cap rim)", block: "HatchElement.Energy / ExoticEnergy, else fallback", fallback: "M", min: 1, hint: 3 },
+    g: { role: "grb_port_reserved", kind: "grb (T2 stirring ring outer face, 3 cells; quasar-p4.md §3.1)", block: "RESERVED for P4's GRB Receptor Port (28125); Galactic Shell Plating until then, so adding the port never un-forms a build", fallback: "G", min: 0 },
   },
   reality_diffraction: {
     "~": { role: "controller", kind: "control (base ring, front)", block: "Reality Diffraction controller (MTE 28131)" },
@@ -213,6 +213,7 @@ const LEGEND = {
     u: { role: "anchor_socket_IV", kind: "anchor, Region IV Reverse Time (y 0, 240 deg)", block: "private Region Anchor element IV, else fallback", fallback: "I", min: 0, hint: 6 },
     v: { role: "anchor_socket_V", kind: "anchor, Region V Positive Mass (y 14, 120 deg)", block: "private Region Anchor element V, else fallback", fallback: "I", min: 0, hint: 7 },
     w: { role: "anchor_socket_VI", kind: "anchor, Region VI Negative Mass (y 14, 300 deg)", block: "private Region Anchor element VI, else fallback", fallback: "I", min: 0, hint: 8 },
+    g: { role: "grb_port_reserved", kind: "grb (top deck band outer face, 6 cells; quasar-p4.md §3.1)", block: "RESERVED for P4's GRB Receptor Port (28125); Region Deck Band until then, so adding the port never un-forms a build", fallback: "A", min: 0 },
   },
   reality_refab: {
     "~": { role: "controller", kind: "control (foot, front)", block: "Reality Refab controller (MTE 28132)" },
@@ -561,22 +562,22 @@ for (const [n, cells] of Object.entries(eyePieces)) out[n] = render(n, "eye", ce
 // char, never the fluid (homogeny-reality.md §7 regression traps).
 const HR_KIND = {
   homogeny: { stir: "A", helix: "B", vessel: "C", inlet: "D", region: "E", eternity: "F", galactic: "G", lining: "J", sglass: "K",
-    gflens: "L", godforge2: "M", bastion: "O", casimir: "P", qglass: "Z" },
+    temporal: "M", bastion: "O", casimir: "P", qglass: "Z" },
   reality_diffraction: { deckband: "A", region: "E", phase: "H", alens: "I", lining: "J", sglass: "K", gflens: "L", cpconduit: "N",
     emiso: "Q", qglass: "Z" },
   reality_refab: { region: "E", lining: "J", sglass: "K", gflens: "L", emiso: "Q", hull: "R", tray: "S", claw: "T", gcoil: "V", qglass: "Z" },
 };
 const HR_SOCKET = {
-  homogeny: { control: "~", gas: "h", output: "o", energy: "e" },
-  reality_diffraction: { control: "~", bechatch: "b", gas: "h", energy: "e", anchor: null /* per region, below */ },
+  homogeny: { control: "~", gas: "h", output: "o", energy: "e", grb: "g" },
+  reality_diffraction: { control: "~", bechatch: "b", gas: "h", energy: "e", grb: "g", anchor: null /* per region, below */ },
   reality_refab: { control: "~", bechatch: "b", ibus: "i", obus: "o", energy: "e" },
 };
 // expected socket counts per build (cumulative)
 const HR_SOCKET_COUNT = {
   "homogeny/1": { "~": 1, h: 3, o: 2, e: 2 },
-  "homogeny/2": { "~": 1, h: 6, o: 2, e: 2 },
-  "homogeny/3": { "~": 1, h: 6, o: 2, e: 2 },
-  "reality_diffraction/diffraction": { "~": 1, b: 1, h: 1, e: 2, r: 1, s: 1, t: 1, u: 1, v: 1, w: 1 },
+  "homogeny/2": { "~": 1, h: 6, o: 2, e: 2, g: 3 },
+  "homogeny/3": { "~": 1, h: 6, o: 2, e: 2, g: 3 },
+  "reality_diffraction/diffraction": { "~": 1, b: 1, h: 1, e: 2, g: 6, r: 1, s: 1, t: 1, u: 1, v: 1, w: 1 },
   "reality_refab/refab": { "~": 1, b: 1, i: 2, o: 1, e: 1 },
 };
 const HR_SOCKET_KINDS = new Set(["control", "gas", "output", "energy", "bechatch", "anchor", "ibus", "obus"]);

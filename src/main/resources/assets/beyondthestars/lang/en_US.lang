@@ -270,11 +270,13 @@ beyondthestars.recipe.reality_refab=Reality Refab
 # recipe results (GT 5.09.54.x key form, ruling 10)
 GT5U.gui.text.recipe_result.beyondthestars.homogeny.tier=Needs a higher Homogeny tier: build the next ring and install its core
 GT5U.gui.text.recipe_result.beyondthestars.homogeny.installing=Installing an upgrade core: the Homogeny is offline until the install run ends
+GT5U.gui.text.recipe_result.beyondthestars.homogeny.stability=Needs a Quasar link: GRB Receptor Ports on the stirring ring
 GT5U.gui.text.recipe_result.beyondthestars.reality.nonetwork=No BEC network: needs a BEC Hatch on the base and a Containment Field on its network
 GT5U.gui.text.recipe_result.beyondthestars.reality.anchors=No region anchored: fill at least one Region Anchor socket with its anchor fluid
 GT5U.gui.text.recipe_result.beyondthestars.reality.full=The last run's regions are still waiting to enter the BEC network: start a Containment Field on it
 GT5U.gui.text.recipe_result.beyondthestars.reality.noassembler=No running Condensate Assembler within 64 blocks: Reality Refab links the nearest one by itself
 GT5U.gui.text.recipe_result.beyondthestars.reality.nanites=The linked Condensate Assembler's nanites are below this recipe's highest step tier
+GT5U.gui.text.recipe_result.beyondthestars.reality.stability=Regions unstable: needs a Quasar link through the GRB Receptor Ports on the top deck band
 # structure errors (H/R unit 2)
 beyondthestars.structure.homogeny.feed=The Homogeny needs at least one Input Hatch on a Feed Vessel top
 beyondthestars.structure.homogeny.output=The Homogeny needs at least one Output Hatch on the discharge throat

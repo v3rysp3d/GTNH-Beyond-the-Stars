@@ -150,6 +150,9 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
             .addElement('L', casing(Casings.SpatiallyTranscendentGravitationalLens))
             .addElement('N', casing(Casings.CoherencePreservingPlasmaConduit))
             .addElement('Q', casing(Casings.ElectromagneticallyIsolatedCasing))
+            // RESERVED (quasar-p4.md section 3.1): P4 chains its GRB Receptor Port in front of this band, so the six
+            // ports slot into builds that stand now without un-forming them. Top deck band, outer face, one per region.
+            .addElement('g', block(c3, BlockSLCasing3.REGION_DECK_BAND))
             .addElement(
                 'b',
                 buildHatchAdder(MTERealityDiffraction.class).atLeast(RealityHatchElement.Bec)
@@ -262,6 +265,17 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
         return m;
     }
 
+    /**
+     * P4 HOOK (quasar-p4.md section 3.1, the design of record): the sigma a run needs (P4: 0.5, below which runs
+     * pause; speed x min(sigma, 1.5)). 0 (no condition) until P4.
+     */
+    static final double MIN_SIGMA = 0;
+
+    /** P4 HOOK: the Quasar link's sigma, read from GRB Receptor Ports in the six reserved {@code g} cells. 0 now. */
+    public double quasarSigma() {
+        return 0;
+    }
+
     private long mediumAvailable(Fluid medium) {
         long n = 0;
         for (FluidStack s : getStoredFluids()) {
@@ -279,6 +293,7 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
         }
         final GTRecipe r = recipe();
         if (r == null) return CheckRecipeResultRegistry.NO_RECIPE;
+        if (quasarSigma() < MIN_SIGMA) return SimpleCheckRecipeResult.ofFailure("beyondthestars.reality.stability");
         if (network == null || !hasStorage()) {
             return SimpleCheckRecipeResult.ofFailure("beyondthestars.reality.nonetwork");
         }
@@ -440,6 +455,19 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
         return pending.clone();
     }
 
+    /** Bench: puts {@code litres} of every region in the buffer (as a run with no Containment Field would). */
+    public void debugSeedPending(long litres) {
+        for (int k = 0; k < 6; k++) pending[k] += Math.max(0, litres);
+        if (getBaseMetaTileEntity() != null) getBaseMetaTileEntity().markDirty();
+    }
+
+    /** Bench {@code wrench}: what picking the controller up and placing it back keeps (item NBT only). */
+    public void debugWrench() {
+        final NBTTagCompound item = new NBTTagCompound();
+        setItemNBT(item);
+        loadNBTData(item);
+    }
+
     // ===================================================================================== NBT
 
     @Override
@@ -508,11 +536,13 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
             .addInfo("  What the network cannot take waits in the controller (never voided).")
             .addInfo("  Give the regions their own network, or fence them with a Condensate Diode")
             .addInfo("  (manual filters): more than three foreign condensates clog Condensate Assembler crafts.")
+            .addInfo("Later, a Quasar link through the six reserved port cells on the top deck band")
+            .addInfo("  will stabilise the regions (faster runs; too little stability pauses them).")
             .addInfo("Automation: anchors take ME input hatches; a level emitter on each keeps them stocked.")
             .addInfo("Entanglement Medium is 0 K: pipe it with cryo-proof pipes.")
             .beginStructureBlock(s[0], s[1], s[2], false)
             .addController("Base ring, front")
-            .addCasingInfoExactly("Region Deck Band", bom(PIECE, 'A'), false)
+            .addCasingInfoExactly("Region Deck Band", bom(PIECE, 'A') + bom(PIECE, 'g'), false)
             .addCasingInfoExactly("Phase Ring Casing", bom(PIECE, 'H'), false)
             .addCasingInfoExactly("Region Crystal", bom(PIECE, 'E'), false)
             .addCasingInfoExactly("Region Anchor Casing", bom(PIECE, 'I'), false)
@@ -526,6 +556,7 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
             .addOtherStructurePart("Region Anchor I..VI (any Input Hatch)", "under each blade, one each", 3)
             .addOtherStructurePart("Energy or Laser Hatch", "base ring", 9)
             .addStructureInfo("Anchor hints 3..8 = Regions I..VI (" + anchorName(0) + " .. " + anchorName(5) + ").")
+            .addStructureInfo("6 Region Deck Band cells on the top band's outer face are reserved for Quasar ports.")
             .addStructureInfo("Builds never overwrite hatches or other tiles.")
             .toolTipFinisher();
         return tt;

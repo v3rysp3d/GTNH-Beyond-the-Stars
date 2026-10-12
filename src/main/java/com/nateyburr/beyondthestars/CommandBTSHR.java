@@ -347,8 +347,13 @@ public class CommandBTSHR extends CommandBase {
                 if (mte instanceof MTEHomogeny) {
                     ((MTEHomogeny) mte).debugWrench();
                     out.add("Wrenched: the item NBT was written and read back.");
+                } else if (mte instanceof MTERealityDiffraction) {
+                    ((MTERealityDiffraction) mte).debugWrench();
+                    out.add(
+                        "Wrenched: the item NBT was written and read back; pending (L): "
+                            + Arrays.toString(((MTERealityDiffraction) mte).debugPending()));
                 } else {
-                    out.add("wrench: only the Homogeny keeps state in item NBT.");
+                    out.add("wrench: only the Homogeny and the Diffraction keep state in item NBT.");
                 }
                 break;
             case "milestone":
@@ -425,6 +430,7 @@ public class CommandBTSHR extends CommandBase {
                 break;
             case "pending":
                 if (mte instanceof MTERealityDiffraction) {
+                    if (rest.size() >= 2) ((MTERealityDiffraction) mte).debugSeedPending(parseLong(rest.get(1)));
                     out.add("Pending (L): " + Arrays.toString(((MTERealityDiffraction) mte).debugPending()));
                 }
                 break;

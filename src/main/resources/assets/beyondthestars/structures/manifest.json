@@ -1,7 +1,7 @@
 {
  "generator": "tools/export-structures.js",
  "source": "designs/voxel.js",
- "sha": "317b66f68719d4110a7ed92ed322c22450ffe730",
+ "sha": "2742379a5cf9527c7f0dc913e2052f0167289195",
  "format": "StructureLib native String[d][h] (w chars). Layer 0 = controller front (mockup +z), rows top to bottom, chars left to right seen from the front (mockup +x). off = controller (h,v,d) in the piece's own frame. ' ' = skip.",
  "orientation": {
   "flipH": false,
@@ -381,15 +381,10 @@
     "kind": "sglass",
     "block": "Casings.QuantumGlass (TecTech)"
    },
-   "L": {
-    "role": "cap_lens",
-    "kind": "gflens (the column caps' centres)",
-    "block": "Casings.SpatiallyTranscendentGravitationalLens (Godforge glass)"
-   },
    "M": {
     "role": "column_cap",
-    "kind": "godforge2 (column caps, cap-rim clamps)",
-    "block": "Casings.BoundlessGravitationallySeveredStructureCasing (Godforge, gt.godforgecasing:2)"
+    "kind": "temporal (column caps, cap-rim clamps; the caps' centres are qglass, Z)",
+    "block": "Casings.ReinforcedTemporalStructureCasing (TecTech EOH, x32 in the BEC since ruling 11a; was Godforge casing + lens glass, B-67)"
    },
    "O": {
     "role": "rail",
@@ -429,6 +424,13 @@
     "fallback": "M",
     "min": 1,
     "hint": 3
+   },
+   "g": {
+    "role": "grb_port_reserved",
+    "kind": "grb (T2 stirring ring outer face, 3 cells; quasar-p4.md §3.1)",
+    "block": "RESERVED for P4's GRB Receptor Port (28125); Galactic Shell Plating until then, so adding the port never un-forms a build",
+    "fallback": "G",
+    "min": 0
    }
   },
   "reality_diffraction": {
@@ -558,6 +560,13 @@
     "fallback": "I",
     "min": 0,
     "hint": 8
+   },
+   "g": {
+    "role": "grb_port_reserved",
+    "kind": "grb (top deck band outer face, 6 cells; quasar-p4.md §3.1)",
+    "block": "RESERVED for P4's GRB Receptor Port (28125); Region Deck Band until then, so adding the port never un-forms a build",
+    "fallback": "A",
+    "min": 0
    }
   },
   "reality_refab": {
@@ -925,7 +934,7 @@
     "homog_t2"
    ],
    "size": "103x70x113",
-   "blocks": 28596
+   "blocks": 28598
   },
   "Homogeny T3": {
    "pieces": [
@@ -934,7 +943,7 @@
     "homog_t3"
    ],
    "size": "145x70x130",
-   "blocks": 41598
+   "blocks": 41600
   },
   "Reality Diffraction": {
    "pieces": [
@@ -948,7 +957,7 @@
     "reality_refab"
    ],
    "size": "104x139x83",
-   "blocks": 59245
+   "blocks": 65187
   }
  },
  "pieces": {
@@ -3322,7 +3331,7 @@
    "bom": [
     {
      "ch": "Z",
-     "count": 5008,
+     "count": 5618,
      "role": "column_glass",
      "block": "Casings.QuantumGlass (TecTech)"
     },
@@ -3336,7 +3345,7 @@
      "ch": "M",
      "count": 2430,
      "role": "column_cap",
-     "block": "Casings.BoundlessGravitationallySeveredStructureCasing (Godforge, gt.godforgecasing:2)"
+     "block": "Casings.ReinforcedTemporalStructureCasing (TecTech EOH, x32 in the BEC since ruling 11a; was Godforge casing + lens glass, B-67)"
     },
     {
      "ch": "O",
@@ -3361,12 +3370,6 @@
      "count": 690,
      "role": "feed_vessel",
      "block": "NEW slCasing3:2 Feed Vessel Casing"
-    },
-    {
-     "ch": "L",
-     "count": 610,
-     "role": "cap_lens",
-     "block": "Casings.SpatiallyTranscendentGravitationalLens (Godforge glass)"
     },
     {
      "ch": "K",
@@ -3575,11 +3578,11 @@
     8,
     22
    ],
-   "blocks": 10813,
+   "blocks": 10815,
    "bom": [
     {
      "ch": "G",
-     "count": 7110,
+     "count": 7109,
      "role": "stirring_ring_shell",
      "block": "slCasing:12 Galactic Shell Plating (existing)"
     },
@@ -3620,6 +3623,12 @@
      "block": "NEW slCasing3:3 Vortex Inlet"
     },
     {
+     "ch": "g",
+     "count": 3,
+     "role": "grb_port_reserved",
+     "block": "RESERVED for P4's GRB Receptor Port (28125); Galactic Shell Plating until then, so adding the port never un-forms a build"
+    },
+    {
      "ch": "h",
      "count": 3,
      "role": "feed_socket",
@@ -3627,9 +3636,63 @@
     }
    ],
    "socketCounts": {
+    "g": 3,
     "h": 3
    },
    "sockets": {
+    "g": [
+     {
+      "abc": [
+       79,
+       8,
+       8
+      ],
+      "rel": [
+       31,
+       0,
+       -14
+      ],
+      "voxel": [
+       48,
+       0,
+       -28
+      ]
+     },
+     {
+      "abc": [
+       0,
+       8,
+       56
+      ],
+      "rel": [
+       -48,
+       0,
+       34
+      ],
+      "voxel": [
+       0,
+       0,
+       51
+      ]
+     },
+     {
+      "abc": [
+       79,
+       8,
+       104
+      ],
+      "rel": [
+       31,
+       0,
+       82
+      ],
+      "voxel": [
+       -48,
+       0,
+       -28
+      ]
+     }
+    ],
     "h": [
      {
       "abc": [
@@ -3755,7 +3818,7 @@
    "bom": [
     {
      "ch": "A",
-     "count": 11344,
+     "count": 11338,
      "role": "deck_band_shell",
      "block": "NEW slCasing3:4 Region Deck Band"
     },
@@ -3812,6 +3875,12 @@
      "count": 12,
      "role": "anchor_lens",
      "block": "NEW slCasing3:11 Region Anchor Casing"
+    },
+    {
+     "ch": "g",
+     "count": 6,
+     "role": "grb_port_reserved",
+     "block": "RESERVED for P4's GRB Receptor Port (28125); Region Deck Band until then, so adding the port never un-forms a build"
     },
     {
      "ch": "e",
@@ -3877,6 +3946,7 @@
    "socketCounts": {
     "b": 1,
     "e": 2,
+    "g": 6,
     "h": 1,
     "r": 1,
     "s": 1,
@@ -3939,6 +4009,110 @@
        20,
        -44,
        38
+      ]
+     }
+    ],
+    "g": [
+     {
+      "abc": [
+       34,
+       25,
+       12
+      ],
+      "rel": [
+       -17,
+       -72,
+       12
+      ],
+      "voxel": [
+       -17,
+       28,
+       30
+      ]
+     },
+     {
+      "abc": [
+       68,
+       25,
+       12
+      ],
+      "rel": [
+       17,
+       -72,
+       12
+      ],
+      "voxel": [
+       17,
+       28,
+       30
+      ]
+     },
+     {
+      "abc": [
+       15,
+       25,
+       42
+      ],
+      "rel": [
+       -36,
+       -72,
+       42
+      ],
+      "voxel": [
+       -36,
+       28,
+       0
+      ]
+     },
+     {
+      "abc": [
+       87,
+       25,
+       42
+      ],
+      "rel": [
+       36,
+       -72,
+       42
+      ],
+      "voxel": [
+       36,
+       28,
+       0
+      ]
+     },
+     {
+      "abc": [
+       34,
+       25,
+       72
+      ],
+      "rel": [
+       -17,
+       -72,
+       72
+      ],
+      "voxel": [
+       -17,
+       28,
+       -30
+      ]
+     },
+     {
+      "abc": [
+       68,
+       25,
+       72
+      ],
+      "rel": [
+       17,
+       -72,
+       72
+      ],
+      "voxel": [
+       17,
+       28,
+       -30
       ]
      }
     ],
@@ -4107,35 +4281,35 @@
     137,
     19
    ],
-   "blocks": 59245,
+   "blocks": 65187,
    "bom": [
     {
      "ch": "R",
-     "count": 20649,
+     "count": 22909,
      "role": "hull_shell",
      "block": "NEW slCasing3:7 Reassembly Hull Plating"
     },
     {
      "ch": "Z",
-     "count": 14260,
+     "count": 17352,
      "role": "hull_glass",
      "block": "Casings.QuantumGlass (TecTech)"
     },
     {
      "ch": "S",
-     "count": 8952,
+     "count": 9533,
      "role": "tray",
      "block": "NEW slCasing3:8 Reassembly Tray Plating"
     },
     {
      "ch": "J",
-     "count": 4432,
+     "count": 4504,
      "role": "band_lining",
      "block": "slCasing2:2 Harmonic Lining (existing)"
     },
     {
      "ch": "Q",
-     "count": 3298,
+     "count": 3230,
      "role": "foot",
      "block": "Casings.ElectromagneticallyIsolatedCasing (RC-2 BEC, sBlockCasingsBEC:1)"
     },
@@ -4147,7 +4321,7 @@
     },
     {
      "ch": "K",
-     "count": 2357,
+     "count": 2370,
      "role": "glass_channel",
      "block": "Casings.QuantumGlass (TecTech)"
     },
@@ -4165,7 +4339,7 @@
     },
     {
      "ch": "T",
-     "count": 688,
+     "count": 680,
      "role": "claw",
      "block": "NEW slCasing3:9 Reassembly Claw"
     },

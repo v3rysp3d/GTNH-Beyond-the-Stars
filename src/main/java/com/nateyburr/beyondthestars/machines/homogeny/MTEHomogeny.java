@@ -191,9 +191,13 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
         return def;
     }
 
-    /** The texture page index hatches on the Homogeny take (the Godforge casing of the column caps). */
+    /**
+     * The texture page index hatches on the Homogeny take: the column caps' Reinforced Temporal Structure Casing
+     * (TecTech's Eye casing, x32 in the BEC since ruling 11a). The caps were Godforge casing + lens glass: 2,430
+     * Godforge casings on an optional UMV machine was more than a Godforge module costs (question B-67).
+     */
     static int hatchIndex() {
-        return Casings.BoundlessGravitationallySeveredStructureCasing.getTextureId();
+        return Casings.ReinforcedTemporalStructureCasing.getTextureId();
     }
 
     private static IStructureDefinition<MTEHomogeny> buildDefinition() {
@@ -217,8 +221,10 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
             // ---- pack blocks
             .addElement('K', casing(Casings.QuantumGlass))
             .addElement('Z', casing(Casings.QuantumGlass))
-            .addElement('L', casing(Casings.SpatiallyTranscendentGravitationalLens))
-            .addElement('M', casing(Casings.BoundlessGravitationallySeveredStructureCasing))
+            .addElement('M', casing(Casings.ReinforcedTemporalStructureCasing))
+            // RESERVED (quasar-p4.md section 3.1): P4 chains its GRB Receptor Port in front of this casing, so the
+            // port slots into builds that stand now without un-forming them. Three cells on the T2 stirring ring.
+            .addElement('g', block(SLBlocks.slCasing, BlockSLCasing.GALACTIC_SHELL))
             // ---- sockets: the hatch first, then the casing it falls back to
             .addElement(
                 'h',
@@ -237,7 +243,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
                 buildHatchAdder(MTEHomogeny.class).atLeast(Energy.or(ExoticEnergy))
                     .casingIndex(index)
                     .hint(3)
-                    .buildAndChain(casing(Casings.BoundlessGravitationallySeveredStructureCasing)))
+                    .buildAndChain(casing(Casings.ReinforcedTemporalStructureCasing)))
             .build();
     }
 
@@ -608,6 +614,9 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
                 if (recipe.mSpecialValue > tier()) {
                     return SimpleCheckRecipeResult.ofFailure("beyondthestars.homogeny.tier");
                 }
+                if (quasarSigma() < minSigma(recipe)) {
+                    return SimpleCheckRecipeResult.ofFailure("beyondthestars.homogeny.stability");
+                }
                 return super.validateRecipe(recipe);
             }
 
@@ -617,6 +626,22 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
                 return super.createOverclockCalculator(recipe).setNoOverclock(true);
             }
         }.setMaxParallelSupplier(this::maxParallel);
+    }
+
+    /**
+     * P4 HOOK (quasar-p4.md section 3.1, the design of record): the Quasar link's sigma at this host, read from GRB
+     * Receptor Ports in the reserved {@code g} cells of the stirring ring. 0 until P4 builds the port (MTE 28125).
+     */
+    public double quasarSigma() {
+        return 0;
+    }
+
+    /**
+     * P4 HOOK: the sigma a recipe needs to start. P4: Entanglement Medium (SL-H21) needs 1, Degenerate never does
+     * (Eye T6 needs it before any quasar exists), and sigma speeds T2/T3 up to 6x / 24x. 0 (no condition) until P4.
+     */
+    static double minSigma(GTRecipe recipe) {
+        return 0;
     }
 
     @Override
@@ -898,7 +923,9 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
                     + EnumChatFormatting.GRAY
                     + ": 16 parallels. Unlocks Entanglement Medium, for Reality Diffraction.")
             .addInfo("No overclock: each parallel draws the recipe's EU/t.")
-            .addInfo("No stability field, no hydrogen or helium, no maintenance: it runs unattended.")
+            .addInfo("No hydrogen or helium, no ignition, no maintenance: it runs unattended.")
+            .addInfo("No stability field of its own. Later, a Quasar link through the stirring ring's")
+            .addInfo("  three reserved port cells speeds T2/T3 up, and Entanglement Medium will need one.")
             .addInfo("It costs 100 L of Raw Star Matter per 1 L: 10x what an Eye T2 (Sirius A) needs.")
             .addInfo("  Use it to bank a Sol surplus or run a hands-off line. It does not replace")
             .addInfo("  Sirius A: Eye T2 is still required, and only an Eye hosting Sol makes Raw Star Matter.")
@@ -932,13 +959,14 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
                 "Quantum Glass",
                 bom(PIECE_T1, 'Z') + bom(PIECE_T1, 'K') + bom(PIECE_T2, 'K') + bom(PIECE_T2, 'Z') + bom(PIECE_T3, 'K'),
                 false)
-            .addCasingInfoExactly("Boundless Gravitationally Severed Structure Casing", bom(PIECE_T1, 'M'), false)
-            .addCasingInfoExactly("Spatially Transcendent Gravitational Lens Block", bom(PIECE_T1, 'L'), false)
+            .addCasingInfoExactly("Reinforced Temporal Structure Casing", bom(PIECE_T1, 'M'), false)
             .addCasingInfoExactly(
                 "Region Crystal (or lens glass at the throat tip)",
                 bom(PIECE_T1, 'E') + bom(PIECE_T3, 'E'),
                 false)
-            .addOtherStructurePart("T2 stirring ring", bom(PIECE_T2, 'G') + " Galactic Shell Plating, 3 more vessels")
+            .addOtherStructurePart(
+                "T2 stirring ring",
+                bom(PIECE_T2, 'G') + bom(PIECE_T2, 'g') + " Galactic Shell Plating, 3 more vessels")
             .addOtherStructurePart(
                 "T3 outer ring + tail",
                 bom(PIECE_T3, 'F') + " Eternity Shell Casing, " + bom(PIECE_T3, 'P') + " Casimir Plate")
@@ -947,6 +975,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
             .addOtherStructurePart("Energy or Laser Hatch", "bottom cap rim", 3)
             .addStructureInfo("Sizes: T1 " + size(t1) + ", T2 " + size(t2) + ", T3 " + size(t3) + ".")
             .addStructureInfo("Rings are cumulative: the outer ring counts only with the stirring ring.")
+            .addStructureInfo("3 Galactic Shell cells on the stirring ring's outer face are reserved for Quasar ports.")
             .addStructureInfo("Hologram: stack 1 = T1, 2 = + stirring ring, 3 = + outer ring. NEI previews each tier.")
             .addStructureInfo("Builds never overwrite hatches or other tiles.")
             .toolTipFinisher();
@@ -956,7 +985,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
     @Override
     public ITexture[] getTexture(IGregTechTileEntity aBaseMetaTileEntity, ForgeDirection side, ForgeDirection aFacing,
         int colorIndex, boolean aActive, boolean redstoneLevel) {
-        final ITexture base = Casings.BoundlessGravitationallySeveredStructureCasing.getCasingTexture();
+        final ITexture base = Casings.ReinforcedTemporalStructureCasing.getCasingTexture();
         if (side != aFacing) return new ITexture[] { base };
         return new ITexture[] { base, TextureFactory.builder()
             .addIcon(aActive ? OVERLAY_ACTIVE : OVERLAY)
