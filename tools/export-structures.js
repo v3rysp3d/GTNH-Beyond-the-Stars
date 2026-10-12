@@ -24,7 +24,9 @@ const args = process.argv.slice(2);
 const flag = (f) => args.includes(f);
 const optVal = (f) => { const i = args.indexOf(f); return i >= 0 ? args[i + 1] : null; };
 const positional = args.filter((a, i) => !a.startsWith("--") && args[i - 1] !== "--out");
-const VOXEL = path.resolve(positional[0] || path.join(ADDON, "..", "designs", "voxel.js"));
+// A git worktree of the addon sits beside the design repo, not inside it: fall back to ../GTNH-Addons/designs.
+const VOXEL = path.resolve(positional[0] || [path.join(ADDON, "..", "designs", "voxel.js"), path.join(ADDON, "..", "GTNH-Addons", "designs", "voxel.js")]
+  .find((p) => fs.existsSync(p)) || path.join(ADDON, "..", "designs", "voxel.js"));
 const OUT = path.resolve(optVal("--out") || path.join(ADDON, "src/main/resources/assets/beyondthestars/structures"));
 const FLIP_H = flag("--flipH"), FLIP_D = flag("--flipD"), CHECK = flag("--check"), QUIET = flag("--quiet");
 const log = (...a) => { if (!QUIET) console.log(...a); };
@@ -166,6 +168,69 @@ const LEGEND = {
     f: { role: "field_socket", kind: "eyeshell (core band outer face, 1 below the mid-plane)", block: "EyeHatchElement.Field (MTEHatchInput, unbuffered trims; ME stocking hatches are walked but never drained), else fallback", fallback: "U", min: 0, hint: 5 },
     n: { role: "sensor_socket", kind: "eyeshell (core band outer face, on the mid-plane, above its f)", block: "EyeHatchElement.Sensor (MTEHatchStellarFieldSensor, MTE 28116), else fallback", fallback: "U", min: 0, hint: 6 },
     g: { role: "stellar_socket_rim", kind: "grb on the T6 rim", block: "EyeHatchElement.Stellar, else fallback", fallback: "T", min: 0, hint: 4 },
+  },
+  // The Homogeny, Reality Diffraction and Reality Refab (design repo designs/docs/homogeny-reality.md, PROPOSED). Chars
+  // shared by the three machines mean the same thing in each (E crystal, J lining, K channel, L lens, Q BEC casing,
+  // Z glass); the rest are per machine. New blocks are the slCasing3 metas (BlockSLCasing3).
+  homogeny: {
+    "~": { role: "controller", kind: "control (the volute throat's outer face)", block: "The Homogeny controller (MTE 28130)" },
+    A: { role: "volute_shell", kind: "stir (volute, discharge throat, throat tip shell)", block: "NEW slCasing3:0 Stirring Band Casing" },
+    B: { role: "shear_helix", kind: "helix", block: "NEW slCasing3:1 Shear Helix Coil" },
+    C: { role: "feed_vessel", kind: "vessel", block: "NEW slCasing3:2 Feed Vessel Casing" },
+    D: { role: "vortex_inlet", kind: "inlet", block: "NEW slCasing3:3 Vortex Inlet" },
+    E: { role: "region_crystal", kind: "region (throat tip core; T3 tail tip)", block: "NEW slCasing3:5 Region Crystal" },
+    F: { role: "outer_ring_shell", kind: "eternity (T3 outer ring and tail)", block: "NEW slCasing3:10 Eternity Shell Casing" },
+    G: { role: "stirring_ring_shell", kind: "galactic (T2 middle ring)", block: "slCasing:12 Galactic Shell Plating (existing)" },
+    J: { role: "band_lining", kind: "lining", block: "slCasing2:2 Harmonic Lining (existing)" },
+    K: { role: "glass_channel", kind: "sglass", block: "Casings.QuantumGlass (TecTech)" },
+    M: { role: "column_cap", kind: "temporal (column caps, cap-rim clamps; the caps' centres are qglass, Z)", block: "Casings.ReinforcedTemporalStructureCasing (TecTech EOH, x32 in the BEC since ruling 11a; was Godforge casing + lens glass, B-67)" },
+    O: { role: "rail", kind: "bastion (rails, spikes, clamps, T2 spokes)", block: "slCasing:13 Bastion Plate (existing)" },
+    P: { role: "ring_trim", kind: "casimir (T3 outer ring trim)", block: "slCasing:14 Casimir Plate (existing)" },
+    Z: { role: "column_glass", kind: "qglass (mixing column wall, vessel sight bands)", block: "Casings.QuantumGlass (TecTech)" },
+    h: { role: "feed_socket", kind: "gas (top of each Feed Vessel)", block: "private feed Input Hatch element (MTEHatchInput), else fallback", fallback: "C", min: 1, hint: 1 },
+    o: { role: "output_socket", kind: "output (throat, top and bottom faces)", block: "HatchElement.OutputHatch, else fallback", fallback: "A", min: 1, hint: 2 },
+    e: { role: "energy_socket", kind: "energy (bottom cap rim)", block: "HatchElement.Energy / ExoticEnergy, else fallback", fallback: "M", min: 1, hint: 3 },
+    g: { role: "grb_port_reserved", kind: "grb (T2 stirring ring outer face, 3 cells; quasar-p4.md §3.1)", block: "RESERVED for P4's GRB Receptor Port (28125); Galactic Shell Plating until then, so adding the port never un-forms a build", fallback: "G", min: 0 },
+  },
+  reality_diffraction: {
+    "~": { role: "controller", kind: "control (base ring, front)", block: "Reality Diffraction controller (MTE 28131)" },
+    A: { role: "deck_band_shell", kind: "deckband", block: "NEW slCasing3:4 Region Deck Band" },
+    E: { role: "region_crystal", kind: "region (six Region Blades, apex crystal)", block: "NEW slCasing3:5 Region Crystal" },
+    H: { role: "phase_ring_shell", kind: "phase", block: "NEW slCasing3:6 Phase Ring Casing" },
+    I: { role: "anchor_lens", kind: "alens (either side of each anchor socket)", block: "NEW slCasing3:11 Region Anchor Casing" },
+    J: { role: "band_lining", kind: "lining", block: "slCasing2:2 Harmonic Lining (existing)" },
+    K: { role: "glass_channel", kind: "sglass", block: "Casings.QuantumGlass (TecTech)" },
+    L: { role: "spine_glass", kind: "gflens (spine)", block: "Casings.SpatiallyTranscendentGravitationalLens (Godforge glass)" },
+    N: { role: "spine_conduit", kind: "cpconduit (spine ribs, cap, struts, base glass line)", block: "Casings.CoherencePreservingPlasmaConduit (RC-2 BEC, sBlockCasingsBEC:0)" },
+    Q: { role: "base_ring", kind: "emiso (base ring, hub, spokes)", block: "Casings.ElectromagneticallyIsolatedCasing (RC-2 BEC, sBlockCasingsBEC:1)" },
+    Z: { role: "drum_glass", kind: "qglass (drum walls)", block: "Casings.QuantumGlass (TecTech)" },
+    b: { role: "bec_socket", kind: "bechatch (base ring)", block: "GT MTEHatchBEC (BEC Hatch), else fallback", fallback: "Q", min: 1, hint: 1 },
+    h: { role: "medium_socket", kind: "gas (base ring)", block: "HatchElement.InputHatch (Entanglement Medium), else fallback", fallback: "Q", min: 1, hint: 2 },
+    e: { role: "energy_socket", kind: "energy (base ring)", block: "HatchElement.Energy / ExoticEnergy, else fallback", fallback: "Q", min: 1, hint: 9 },
+    r: { role: "anchor_socket_I", kind: "anchor, Region I Hyperspace (drum band y -14, 0 deg)", block: "private Region Anchor element I (MTEHatchInput), else fallback", fallback: "I", min: 0, hint: 3 },
+    s: { role: "anchor_socket_II", kind: "anchor, Region II Subspace (y -14, 180 deg)", block: "private Region Anchor element II, else fallback", fallback: "I", min: 0, hint: 4 },
+    t: { role: "anchor_socket_III", kind: "anchor, Region III Forward Time (y 0, 60 deg)", block: "private Region Anchor element III, else fallback", fallback: "I", min: 0, hint: 5 },
+    u: { role: "anchor_socket_IV", kind: "anchor, Region IV Reverse Time (y 0, 240 deg)", block: "private Region Anchor element IV, else fallback", fallback: "I", min: 0, hint: 6 },
+    v: { role: "anchor_socket_V", kind: "anchor, Region V Positive Mass (y 14, 120 deg)", block: "private Region Anchor element V, else fallback", fallback: "I", min: 0, hint: 7 },
+    w: { role: "anchor_socket_VI", kind: "anchor, Region VI Negative Mass (y 14, 300 deg)", block: "private Region Anchor element VI, else fallback", fallback: "I", min: 0, hint: 8 },
+    g: { role: "grb_port_reserved", kind: "grb (top deck band outer face, 6 cells; quasar-p4.md §3.1)", block: "RESERVED for P4's GRB Receptor Port (28125); Region Deck Band until then, so adding the port never un-forms a build", fallback: "A", min: 0 },
+  },
+  reality_refab: {
+    "~": { role: "controller", kind: "control (foot, front)", block: "Reality Refab controller (MTE 28132)" },
+    E: { role: "region_crystal", kind: "region (Ground Anchor, six Region Receivers, Reality Focus)", block: "NEW slCasing3:5 Region Crystal" },
+    J: { role: "band_lining", kind: "lining", block: "slCasing2:2 Harmonic Lining (existing)" },
+    K: { role: "glass_channel", kind: "sglass", block: "Casings.QuantumGlass (TecTech)" },
+    L: { role: "spindle_glass", kind: "gflens (spindle, focus tip)", block: "Casings.SpatiallyTranscendentGravitationalLens (Godforge glass)" },
+    Q: { role: "foot", kind: "emiso (foot and skirt)", block: "Casings.ElectromagneticallyIsolatedCasing (RC-2 BEC, sBlockCasingsBEC:1)" },
+    R: { role: "hull_shell", kind: "hull (stem, ribs, belt, cap, clamps)", block: "NEW slCasing3:7 Reassembly Hull Plating" },
+    S: { role: "tray", kind: "tray", block: "NEW slCasing3:8 Reassembly Tray Plating" },
+    T: { role: "claw", kind: "claw", block: "NEW slCasing3:9 Reassembly Claw" },
+    V: { role: "collar", kind: "gcoil (tray collars)", block: "Casings.CondensateGuidanceCoil (RC-2 BEC, sBlockCasingsBEC:6)" },
+    Z: { role: "hull_glass", kind: "qglass (hull panels)", block: "Casings.QuantumGlass (TecTech)" },
+    b: { role: "bec_socket", kind: "bechatch (foot)", block: "GT MTEHatchBEC (BEC Hatch), else fallback", fallback: "Q", min: 1, hint: 1 },
+    i: { role: "input_bus_socket", kind: "ibus (foot)", block: "HatchElement.InputBus, else fallback", fallback: "Q", min: 1, hint: 2 },
+    o: { role: "output_bus_socket", kind: "obus (cap, by the Reality Focus)", block: "HatchElement.OutputBus, else fallback", fallback: "R", min: 1, hint: 3 },
+    e: { role: "energy_socket", kind: "energy (foot)", block: "HatchElement.Energy / ExoticEnergy, else fallback", fallback: "Q", min: 1, hint: 4 },
   },
 };
 
@@ -490,13 +555,115 @@ out.kerr_slots = render("kerr_slots", "kerr_slots",
   KERR_MODULES.map((m) => ({ ...KM1[m.slot], ch: m.mark })), KERR_CTRL, K1.b);
 for (const [n, cells] of Object.entries(eyePieces)) out[n] = render(n, "eye", cells, EYE_CTRL, E[0].b);
 
+// ------------------------------------------------------------------------------------------------ Homogeny + Reality
+// homogeny-reality.md §1-§3 (PROPOSED). Hatch cells are pinned by kind and COUNT per build (the mockup computes their
+// positions from the same curves the bands use, so a coordinate table would only restate voxel.js); a count or kind
+// change aborts. Region Anchor sockets get one char per region (r..w = I..VI), so region identity is the socket's
+// char, never the fluid (homogeny-reality.md §7 regression traps).
+const HR_KIND = {
+  homogeny: { stir: "A", helix: "B", vessel: "C", inlet: "D", region: "E", eternity: "F", galactic: "G", lining: "J", sglass: "K",
+    temporal: "M", bastion: "O", casimir: "P", qglass: "Z" },
+  reality_diffraction: { deckband: "A", region: "E", phase: "H", alens: "I", lining: "J", sglass: "K", gflens: "L", cpconduit: "N",
+    emiso: "Q", qglass: "Z" },
+  reality_refab: { region: "E", lining: "J", sglass: "K", gflens: "L", emiso: "Q", hull: "R", tray: "S", claw: "T", gcoil: "V", qglass: "Z" },
+};
+const HR_SOCKET = {
+  homogeny: { control: "~", gas: "h", output: "o", energy: "e", grb: "g" },
+  reality_diffraction: { control: "~", bechatch: "b", gas: "h", energy: "e", grb: "g", anchor: null /* per region, below */ },
+  reality_refab: { control: "~", bechatch: "b", ibus: "i", obus: "o", energy: "e" },
+};
+// expected socket counts per build (cumulative)
+const HR_SOCKET_COUNT = {
+  "homogeny/1": { "~": 1, h: 3, o: 2, e: 2 },
+  "homogeny/2": { "~": 1, h: 6, o: 2, e: 2, g: 3 },
+  "homogeny/3": { "~": 1, h: 6, o: 2, e: 2, g: 3 },
+  "reality_diffraction/diffraction": { "~": 1, b: 1, h: 1, e: 2, g: 6, r: 1, s: 1, t: 1, u: 1, v: 1, w: 1 },
+  "reality_refab/refab": { "~": 1, b: 1, i: 2, o: 1, e: 1 },
+};
+const HR_SOCKET_KINDS = new Set(["control", "gas", "output", "energy", "bechatch", "anchor", "ibus", "obus"]);
+// Diffraction anchors: one under each blade root, 2 below the blade's deck band. The blades sit on the bands at
+// y -14 / 0 / +14 (drums 1-3 in the doc), two per band, 60 deg on per band: region = 2 * band + (180 deg side).
+const DIFF_BLADE_Y = [-14, 0, 14];
+function anchorChar(v) {
+  const j = DIFF_BLADE_Y.findIndex((y) => y - 2 === v[1]);
+  if (j < 0) fail(`diffraction: anchor at voxel ${v} is not 2 below a blade band`);
+  const a = Math.atan2(v[2], v[0]) - d2r(60 * j);
+  return "rstuvw"[2 * j + (Math.cos(a) > 0 ? 0 : 1)];
+}
+function classifyHR(machine, key, t) {
+  const b = V.build(key, t), kinds = HR_KIND[machine], sk = HR_SOCKET[machine], cells = new Map(), count = {};
+  eachCell(b, (x, y, z, kind) => {
+    const k = keyOf(x, y, z), v = [x - b.CX, y - b.CY, z - b.CZ];
+    let ch;
+    if (HR_SOCKET_KINDS.has(kind) || SOCKET_KINDS.has(kind)) {
+      if (!(kind in sk)) fail(`${machine} ${t}: unexpected hatch-like cell ${kind} at voxel ${v}`);
+      ch = kind === "anchor" ? anchorChar(v) : sk[kind];
+      count[ch] = (count[ch] || 0) + 1;
+    } else {
+      ch = kinds[kind];
+      if (!ch) fail(`${machine} ${t}: no char for kind ${kind} at voxel ${v}`);
+    }
+    cells.set(k, { x, y, z, ch, kind });
+  });
+  const want = HR_SOCKET_COUNT[`${machine}/${t}`];
+  if (JSON.stringify(Object.keys(want).sort().map((c) => c + want[c])) !== JSON.stringify(Object.keys(count).sort().map((c) => c + count[c]))) {
+    fail(`${machine} ${t}: socket counts ${JSON.stringify(count)}, expected ${JSON.stringify(want)}`);
+  }
+  return { b, cells };
+}
+// The controller's front: the horizontal neighbour, open air in the fullest build, most aligned with the outward
+// radial at the controller (voxel origin = the machine's axis). Every piece is turned by quarter turns so that face
+// becomes +z, the front of the piece frame (as the Kerr modules).
+function hrFront(full, ctrl) {
+  const r = [ctrl.x - full.b.CX, 0, ctrl.z - full.b.CZ];
+  let best = null;
+  for (const o of [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]]) {
+    if (full.cells.has(keyOf(ctrl.x + o[0], ctrl.y, ctrl.z + o[2]))) continue;
+    const s = o[0] * r[0] + o[2] * r[2];
+    if (!best || s > best.s) best = { o, s };
+  }
+  if (!best || best.s <= 0) fail(`controller at grid ${keyOf(ctrl.x, ctrl.y, ctrl.z)} has no open outward face`);
+  return best.o;
+}
+const HR = {
+  homogeny: { key: "homog", builds: [1, 2, 3], names: ["homog_t1", "homog_t2", "homog_t3"], mte: 28130 },
+  reality_diffraction: { key: "reality", builds: ["diffraction"], names: ["reality_diffraction"], mte: 28131 },
+  reality_refab: { key: "reality", builds: ["refab"], names: ["reality_refab"], mte: 28132 },
+};
+const hrPieces = {}, hrJoins = {}, HR_CTRL = {}, HR_INFO = {};
+for (const [machine, m] of Object.entries(HR)) {
+  const builds = m.builds.map((t) => classifyHR(machine, m.key, t)), full = builds[builds.length - 1];
+  const ctrls = [...builds[0].cells.values()].filter((c) => c.ch === "~");
+  if (ctrls.length !== 1) fail(`${machine}: ${ctrls.length} controllers`);
+  const ctrl0 = ctrls[0], out0 = hrFront(full, ctrl0), turns = quarterTurns(out0);
+  // tiers only add cells; a later tier writing over an earlier cell leaves it with the earlier piece (as the Eye)
+  const raw = [[...builds[0].cells.values()]];
+  for (let i = 1; i < builds.length; i++) {
+    const prev = builds[i - 1].cells, cur = builds[i].cells, added = [];
+    let joins = 0;
+    for (const [k, c] of prev) { const d = cur.get(k); if (!d) fail(`${machine} T${i + 1} removed a T${i} cell at ${k}`); if (d.ch !== c.ch) joins++; }
+    for (const [k, c] of cur) if (!prev.has(k)) added.push(c);
+    raw.push(added);
+    if (joins) { hrJoins[m.names[i]] = joins; report.notes.push(`${m.names[i]}: ${joins} cells written over an earlier tier in the mockup; the earlier piece keeps them`); }
+  }
+  m.names.forEach((n, i) => { hrPieces[n] = moduleFrame(raw[i], ctrl0, turns, builds[0].b); });
+  const ctrl = hrPieces[m.names[0]].find((c) => c.ch === "~");
+  HR_CTRL[machine] = ctrl;
+  HR_INFO[machine] = { turns, outVoxel: out0, ctrlVoxel: [ctrl0.x - full.b.CX, ctrl0.y - full.b.CY, ctrl0.z - full.b.CZ],
+    // the machine's axis origin (render centre) from the controller, in the controller's (a,b,c) frame
+    centreRel: (() => { const [dx, dz] = rotQ(full.b.CX - ctrl0.x, full.b.CZ - ctrl0.z, turns); return abcDelta(dx, full.b.CY - ctrl0.y, dz); })() };
+  for (const n of m.names) out[n] = render(n, machine, hrPieces[n], ctrl, builds[0].b);
+}
+
 // ------------------------------------------------------------------------------------------------ sanity checks
 const checks = [];
 function ok(cond, msg) { checks.push((cond ? "ok   " : "FAIL ") + msg); if (!cond) report.failed = true; }
 
+const HR_CORE = new Set(Object.values(HR).map((m) => m.names[0]));
+const hrMachineOf = (n) => Object.keys(HR).find((k) => HR[k].names.includes(n));
 // exactly one controller anchor per piece: core pieces hold the '~' at off; add-on pieces hold none
 for (const [n, r] of Object.entries(out)) {
-  const tildes = r.counts["~"] || 0, core = n === "kerr_t1" || n === "kerr_t2" || n === "eye_core" || !!MODULE_CTRL[n];
+  const tildes = r.counts["~"] || 0, core = n === "kerr_t1" || n === "kerr_t2" || n === "eye_core" || !!MODULE_CTRL[n] || HR_CORE.has(n);
   if (core) {
     const [a, bv, c] = r.off;
     ok(tildes === 1 && r.grid[c] && r.grid[c][bv] && r.grid[c][bv][a] === "~", `${n}: one controller '~' at off ${r.off}`);
@@ -504,7 +671,7 @@ for (const [n, r] of Object.entries(out)) {
 }
 // the shared anchor: every piece of a machine resolves the controller to the same world cell
 for (const [n, r] of Object.entries(out)) {
-  const ctrl = MODULE_CTRL[n] || (n.startsWith("kerr") ? KERR_CTRL : EYE_CTRL);
+  const ctrl = MODULE_CTRL[n] || (hrMachineOf(n) ? HR_CTRL[hrMachineOf(n)] : n.startsWith("kerr") ? KERR_CTRL : EYE_CTRL);
   const back = [FLIP_H ? r.bb.mx[0] - r.off[0] : r.bb.mn[0] + r.off[0], r.bb.mx[1] - r.off[1], FLIP_D ? r.bb.mn[2] + r.off[2] : r.bb.mx[2] - r.off[2]];
   ok(back[0] === ctrl.x && back[1] === ctrl.y && back[2] === ctrl.z, `${n}: off resolves to the machine's controller cell`);
 }
@@ -517,13 +684,20 @@ for (const [K, KM, label] of [[K1, KM1, "T1"], [K2, KM2, "T2"]]) for (const m of
 for (const m of KERR_MODULES) ok((out.kerr_slots.counts[m.mark] || 0) === 1, `kerr_slots: one '${m.mark}' marker (${m.slot})`);
 // pieces of one machine are disjoint, except the alternative cores kerr_t1 / kerr_t2
 function disjoint(a, b) { const s = new Set(kerrOrEye(a)); let n = 0; for (const k of kerrOrEye(b)) if (s.has(k)) n++; return n; }
-function kerrOrEye(n) { return (kerrPieces[n] || eyePieces[n]).map((c) => keyOf(c.x, c.y, c.z)); }
+function kerrOrEye(n) { return pieceCells(n).map((c) => keyOf(c.x, c.y, c.z)); }
+function pieceCells(n) { return kerrPieces[n] || eyePieces[n] || hrPieces[n]; }
 for (const core of ["kerr_t1", "kerr_t2"]) for (const m of ["kerr_compressor", "kerr_extractor"]) ok(disjoint(core, m) === 0, `${core} and ${m} share no cell`);
 ok(disjoint("kerr_compressor", "kerr_extractor") === 0, "kerr_compressor and kerr_extractor share no cell");
 { const e = Object.keys(eyePieces); for (let i = 0; i < e.length; i++) for (let j = i + 1; j < e.length; j++) ok(disjoint(e[i], e[j]) === 0, `${e[i]} and ${e[j]} share no cell`); }
+{ const e = HR.homogeny.names; for (let i = 0; i < e.length; i++) for (let j = i + 1; j < e.length; j++) ok(disjoint(e[i], e[j]) === 0, `${e[i]} and ${e[j]} share no cell`); }
+// a Homogeny / Reality controller's front face (+z in its own frame) is open air in the fullest build
+for (const [machine, m] of Object.entries(HR)) {
+  const all = new Set(m.names.flatMap((n) => kerrOrEye(n))), c = HR_CTRL[machine];
+  ok(!all.has(keyOf(c.x, c.y, c.z + 1)), `${machine}: the controller's front face is open air in the fullest build (turns ${HR_INFO[machine].turns})`);
+}
 
 // sizes against the spec's §5.1 table (whole assembled machine, render-only cells excluded)
-function asmBox(names) { return bbox(names.flatMap((n) => kerrPieces[n] || eyePieces[n])).size.join("x"); }
+function asmBox(names) { return bbox(names.flatMap((n) => pieceCells(n))).size.join("x"); }
 const SPEC = [
   ["Kerr T1", ["kerr_t1", "kerr_compressor", "kerr_extractor"], "76x65x79"],
   ["Kerr T2", ["kerr_t2", "kerr_compressor", "kerr_extractor"], "92x65x89"],
@@ -533,13 +707,20 @@ const SPEC = [
   ["Eye T4", ["eye_core", "eye_beam", "eye_jet", "eye_arms"], "102x57x137"],
   ["Eye T5", ["eye_core", "eye_beam", "eye_jet", "eye_arms", "eye_arms2"], "135x57x137"],
   ["Eye T6", ["eye_core", "eye_beam", "eye_jet", "eye_arms", "eye_arms2", "eye_rim"], "158x57x149"],
+  // homogeny-reality.md (PROPOSED), in each controller's own frame (the Homogeny is turned a quarter, so its W and D
+  // swap against the mockup's title)
+  ["Homogeny T1", ["homog_t1"], "69x70x73"],
+  ["Homogeny T2", ["homog_t1", "homog_t2"], "103x70x113"],
+  ["Homogeny T3", ["homog_t1", "homog_t2", "homog_t3"], "145x70x130"],
+  ["Reality Diffraction", ["reality_diffraction"], "103x101x85"],
+  ["Reality Refab", ["reality_refab"], "104x139x83"],
 ];
 for (const [label, names, want] of SPEC) { const got = asmBox(names); ok(got === want, `${label} assembled box ${got} (W x H x D, spec ${want})`); }
 
 // sockets reachable from outside: a face of every socket touches air that flood-fills to the outside of the box,
 // in the fullest build (every piece placed; render-only cells count as air)
 function reach(names, label) {
-  const cells = names.flatMap((n) => kerrPieces[n] || eyePieces[n]);
+  const cells = names.flatMap((n) => pieceCells(n));
   const bb = bbox(cells), [w, h, d] = bb.size.map((s) => s + 2);
   const solid = new Uint8Array(w * h * d), idx = (x, y, z) => x + y * w + z * w * h;
   for (const c of cells) solid[idx(c.x - bb.mn[0] + 1, c.y - bb.mn[1] + 1, c.z - bb.mn[2] + 1)] = 1;
@@ -561,6 +742,11 @@ reach(["kerr_t2", "kerr_compressor", "kerr_extractor"], "Kerr T2 + modules");
 reach(["eye_core"], "Eye T1");
 reach(["eye_core", "eye_beam", "eye_jet", "eye_arms"], "Eye T4");
 reach(["eye_core", "eye_beam", "eye_jet", "eye_arms", "eye_arms2", "eye_rim"], "Eye T6");
+reach(["homog_t1"], "Homogeny T1");
+reach(["homog_t1", "homog_t2"], "Homogeny T2");
+reach(["homog_t1", "homog_t2", "homog_t3"], "Homogeny T3");
+reach(["reality_diffraction"], "Reality Diffraction");
+reach(["reality_refab"], "Reality Refab");
 
 // ------------------------------------------------------------------------------------------------ manifest
 const ROLE = (machine, ch) => LEGEND[machine][ch];
@@ -596,20 +782,29 @@ const manifest = {
         eye_arms: "T4 spiral arms, optional; counts only with eye_beam + eye_jet",
         eye_arms2: "T5 second arm pair, optional; counts only with every band below",
         eye_rim: "T6 galactic rim with 4 rim stellar sockets, optional; counts only with every band below" } },
+    // homogeny-reality.md (PROPOSED). turns: quarter turns about +y taking the controller's outward face (outVoxel) to
+    // +z, the piece frame's front. centre.rel: the machine's axis origin (the render centre) from the controller, (a,b,c).
+    ...Object.fromEntries(Object.entries(HR).map(([machine, m]) => [machine, { mte: m.mte, controllerVoxel: HR_INFO[machine].ctrlVoxel,
+      outVoxel: HR_INFO[machine].outVoxel, turns: HR_INFO[machine].turns, centre: { rel: HR_INFO[machine].centreRel },
+      pieces: machine === "homogeny"
+        ? { homog_t1: "T1 (UMV): column, helix, rails, volute + throat, 3 feed vessels; required",
+          homog_t2: "T2 (UXV) middle stirring ring, 3 more vessels, outer spokes; optional, counts with homog_t1",
+          homog_t3: "T3 (MAX) tilted outer ring, clamps and tail; optional, counts only with homog_t2" }
+        : { [m.names[0]]: "the whole machine (one tier)" } }])),
   },
   assembled: Object.fromEntries(SPEC.map(([label, names]) => [label, { pieces: names, size: asmBox(names),
-    blocks: names.reduce((s, n) => s + (kerrPieces[n] || eyePieces[n]).length, 0) }])),
+    blocks: names.reduce((s, n) => s + pieceCells(n).length, 0) }])),
   pieces: {},
 };
 for (const [n, r] of Object.entries(out)) {
-  const machine = PIECE_MACHINE[n] || "eye";
+  const machine = PIECE_MACHINE[n] || hrMachineOf(n) || "eye";
   const bom = Object.entries(r.counts).sort((a, b) => b[1] - a[1]).map(([ch, count]) => ({ ch, count, role: ROLE(machine, ch).role, block: ROLE(machine, ch).block }));
   const sk = {};
   for (const s of r.sockets) (sk[s.ch] = sk[s.ch] || []).push({ abc: s.abc, rel: s.rel, voxel: s.voxel });
   const socketCounts = Object.fromEntries(Object.entries(sk).map(([ch, l]) => [ch, l.length]));
   manifest.pieces[n] = { machine, file: `structures/${n}.txt`, w: r.w, h: r.h, d: r.d, off: r.off,
     blocks: Object.values(r.counts).reduce((a, b) => a + b, 0), bom, socketCounts, sockets: sk,
-    ...(eyeJoins[n] ? { cellsKeptByEarlierPiece: eyeJoins[n] } : {}) };
+    ...(eyeJoins[n] || hrJoins[n] ? { cellsKeptByEarlierPiece: eyeJoins[n] || hrJoins[n] } : {}) };
 }
 manifest.checks = checks;
 if (report.warnings.length) manifest.warnings = report.warnings;

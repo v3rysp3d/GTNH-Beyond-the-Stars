@@ -1,7 +1,7 @@
 {
  "generator": "tools/export-structures.js",
  "source": "designs/voxel.js",
- "sha": "ae5ab12085174eb7006517f43f3cbac121819908",
+ "sha": "2742379a5cf9527c7f0dc913e2052f0167289195",
  "format": "StructureLib native String[d][h] (w chars). Layer 0 = controller front (mockup +z), rows top to bottom, chars left to right seen from the front (mockup +x). off = controller (h,v,d) in the piece's own frame. ' ' = skip.",
  "orientation": {
   "flipH": false,
@@ -329,6 +329,334 @@
     "min": 0,
     "hint": 4
    }
+  },
+  "homogeny": {
+   "~": {
+    "role": "controller",
+    "kind": "control (the volute throat's outer face)",
+    "block": "The Homogeny controller (MTE 28130)"
+   },
+   "A": {
+    "role": "volute_shell",
+    "kind": "stir (volute, discharge throat, throat tip shell)",
+    "block": "NEW slCasing3:0 Stirring Band Casing"
+   },
+   "B": {
+    "role": "shear_helix",
+    "kind": "helix",
+    "block": "NEW slCasing3:1 Shear Helix Coil"
+   },
+   "C": {
+    "role": "feed_vessel",
+    "kind": "vessel",
+    "block": "NEW slCasing3:2 Feed Vessel Casing"
+   },
+   "D": {
+    "role": "vortex_inlet",
+    "kind": "inlet",
+    "block": "NEW slCasing3:3 Vortex Inlet"
+   },
+   "E": {
+    "role": "region_crystal",
+    "kind": "region (throat tip core; T3 tail tip)",
+    "block": "NEW slCasing3:5 Region Crystal"
+   },
+   "F": {
+    "role": "outer_ring_shell",
+    "kind": "eternity (T3 outer ring and tail)",
+    "block": "NEW slCasing3:10 Eternity Shell Casing"
+   },
+   "G": {
+    "role": "stirring_ring_shell",
+    "kind": "galactic (T2 middle ring)",
+    "block": "slCasing:12 Galactic Shell Plating (existing)"
+   },
+   "J": {
+    "role": "band_lining",
+    "kind": "lining",
+    "block": "slCasing2:2 Harmonic Lining (existing)"
+   },
+   "K": {
+    "role": "glass_channel",
+    "kind": "sglass",
+    "block": "Casings.QuantumGlass (TecTech)"
+   },
+   "M": {
+    "role": "column_cap",
+    "kind": "temporal (column caps, cap-rim clamps; the caps' centres are qglass, Z)",
+    "block": "Casings.ReinforcedTemporalStructureCasing (TecTech EOH, x32 in the BEC since ruling 11a; was Godforge casing + lens glass, B-67)"
+   },
+   "O": {
+    "role": "rail",
+    "kind": "bastion (rails, spikes, clamps, T2 spokes)",
+    "block": "slCasing:13 Bastion Plate (existing)"
+   },
+   "P": {
+    "role": "ring_trim",
+    "kind": "casimir (T3 outer ring trim)",
+    "block": "slCasing:14 Casimir Plate (existing)"
+   },
+   "Z": {
+    "role": "column_glass",
+    "kind": "qglass (mixing column wall, vessel sight bands)",
+    "block": "Casings.QuantumGlass (TecTech)"
+   },
+   "h": {
+    "role": "feed_socket",
+    "kind": "gas (top of each Feed Vessel)",
+    "block": "private feed Input Hatch element (MTEHatchInput), else fallback",
+    "fallback": "C",
+    "min": 1,
+    "hint": 1
+   },
+   "o": {
+    "role": "output_socket",
+    "kind": "output (throat, top and bottom faces)",
+    "block": "HatchElement.OutputHatch, else fallback",
+    "fallback": "A",
+    "min": 1,
+    "hint": 2
+   },
+   "e": {
+    "role": "energy_socket",
+    "kind": "energy (bottom cap rim)",
+    "block": "HatchElement.Energy / ExoticEnergy, else fallback",
+    "fallback": "M",
+    "min": 1,
+    "hint": 3
+   },
+   "g": {
+    "role": "grb_port_reserved",
+    "kind": "grb (T2 stirring ring outer face, 3 cells; quasar-p4.md §3.1)",
+    "block": "RESERVED for P4's GRB Receptor Port (28125); Galactic Shell Plating until then, so adding the port never un-forms a build",
+    "fallback": "G",
+    "min": 0
+   }
+  },
+  "reality_diffraction": {
+   "~": {
+    "role": "controller",
+    "kind": "control (base ring, front)",
+    "block": "Reality Diffraction controller (MTE 28131)"
+   },
+   "A": {
+    "role": "deck_band_shell",
+    "kind": "deckband",
+    "block": "NEW slCasing3:4 Region Deck Band"
+   },
+   "E": {
+    "role": "region_crystal",
+    "kind": "region (six Region Blades, apex crystal)",
+    "block": "NEW slCasing3:5 Region Crystal"
+   },
+   "H": {
+    "role": "phase_ring_shell",
+    "kind": "phase",
+    "block": "NEW slCasing3:6 Phase Ring Casing"
+   },
+   "I": {
+    "role": "anchor_lens",
+    "kind": "alens (either side of each anchor socket)",
+    "block": "NEW slCasing3:11 Region Anchor Casing"
+   },
+   "J": {
+    "role": "band_lining",
+    "kind": "lining",
+    "block": "slCasing2:2 Harmonic Lining (existing)"
+   },
+   "K": {
+    "role": "glass_channel",
+    "kind": "sglass",
+    "block": "Casings.QuantumGlass (TecTech)"
+   },
+   "L": {
+    "role": "spine_glass",
+    "kind": "gflens (spine)",
+    "block": "Casings.SpatiallyTranscendentGravitationalLens (Godforge glass)"
+   },
+   "N": {
+    "role": "spine_conduit",
+    "kind": "cpconduit (spine ribs, cap, struts, base glass line)",
+    "block": "Casings.CoherencePreservingPlasmaConduit (RC-2 BEC, sBlockCasingsBEC:0)"
+   },
+   "Q": {
+    "role": "base_ring",
+    "kind": "emiso (base ring, hub, spokes)",
+    "block": "Casings.ElectromagneticallyIsolatedCasing (RC-2 BEC, sBlockCasingsBEC:1)"
+   },
+   "Z": {
+    "role": "drum_glass",
+    "kind": "qglass (drum walls)",
+    "block": "Casings.QuantumGlass (TecTech)"
+   },
+   "b": {
+    "role": "bec_socket",
+    "kind": "bechatch (base ring)",
+    "block": "GT MTEHatchBEC (BEC Hatch), else fallback",
+    "fallback": "Q",
+    "min": 1,
+    "hint": 1
+   },
+   "h": {
+    "role": "medium_socket",
+    "kind": "gas (base ring)",
+    "block": "HatchElement.InputHatch (Entanglement Medium), else fallback",
+    "fallback": "Q",
+    "min": 1,
+    "hint": 2
+   },
+   "e": {
+    "role": "energy_socket",
+    "kind": "energy (base ring)",
+    "block": "HatchElement.Energy / ExoticEnergy, else fallback",
+    "fallback": "Q",
+    "min": 1,
+    "hint": 9
+   },
+   "r": {
+    "role": "anchor_socket_I",
+    "kind": "anchor, Region I Hyperspace (drum band y -14, 0 deg)",
+    "block": "private Region Anchor element I (MTEHatchInput), else fallback",
+    "fallback": "I",
+    "min": 0,
+    "hint": 3
+   },
+   "s": {
+    "role": "anchor_socket_II",
+    "kind": "anchor, Region II Subspace (y -14, 180 deg)",
+    "block": "private Region Anchor element II, else fallback",
+    "fallback": "I",
+    "min": 0,
+    "hint": 4
+   },
+   "t": {
+    "role": "anchor_socket_III",
+    "kind": "anchor, Region III Forward Time (y 0, 60 deg)",
+    "block": "private Region Anchor element III, else fallback",
+    "fallback": "I",
+    "min": 0,
+    "hint": 5
+   },
+   "u": {
+    "role": "anchor_socket_IV",
+    "kind": "anchor, Region IV Reverse Time (y 0, 240 deg)",
+    "block": "private Region Anchor element IV, else fallback",
+    "fallback": "I",
+    "min": 0,
+    "hint": 6
+   },
+   "v": {
+    "role": "anchor_socket_V",
+    "kind": "anchor, Region V Positive Mass (y 14, 120 deg)",
+    "block": "private Region Anchor element V, else fallback",
+    "fallback": "I",
+    "min": 0,
+    "hint": 7
+   },
+   "w": {
+    "role": "anchor_socket_VI",
+    "kind": "anchor, Region VI Negative Mass (y 14, 300 deg)",
+    "block": "private Region Anchor element VI, else fallback",
+    "fallback": "I",
+    "min": 0,
+    "hint": 8
+   },
+   "g": {
+    "role": "grb_port_reserved",
+    "kind": "grb (top deck band outer face, 6 cells; quasar-p4.md §3.1)",
+    "block": "RESERVED for P4's GRB Receptor Port (28125); Region Deck Band until then, so adding the port never un-forms a build",
+    "fallback": "A",
+    "min": 0
+   }
+  },
+  "reality_refab": {
+   "~": {
+    "role": "controller",
+    "kind": "control (foot, front)",
+    "block": "Reality Refab controller (MTE 28132)"
+   },
+   "E": {
+    "role": "region_crystal",
+    "kind": "region (Ground Anchor, six Region Receivers, Reality Focus)",
+    "block": "NEW slCasing3:5 Region Crystal"
+   },
+   "J": {
+    "role": "band_lining",
+    "kind": "lining",
+    "block": "slCasing2:2 Harmonic Lining (existing)"
+   },
+   "K": {
+    "role": "glass_channel",
+    "kind": "sglass",
+    "block": "Casings.QuantumGlass (TecTech)"
+   },
+   "L": {
+    "role": "spindle_glass",
+    "kind": "gflens (spindle, focus tip)",
+    "block": "Casings.SpatiallyTranscendentGravitationalLens (Godforge glass)"
+   },
+   "Q": {
+    "role": "foot",
+    "kind": "emiso (foot and skirt)",
+    "block": "Casings.ElectromagneticallyIsolatedCasing (RC-2 BEC, sBlockCasingsBEC:1)"
+   },
+   "R": {
+    "role": "hull_shell",
+    "kind": "hull (stem, ribs, belt, cap, clamps)",
+    "block": "NEW slCasing3:7 Reassembly Hull Plating"
+   },
+   "S": {
+    "role": "tray",
+    "kind": "tray",
+    "block": "NEW slCasing3:8 Reassembly Tray Plating"
+   },
+   "T": {
+    "role": "claw",
+    "kind": "claw",
+    "block": "NEW slCasing3:9 Reassembly Claw"
+   },
+   "V": {
+    "role": "collar",
+    "kind": "gcoil (tray collars)",
+    "block": "Casings.CondensateGuidanceCoil (RC-2 BEC, sBlockCasingsBEC:6)"
+   },
+   "Z": {
+    "role": "hull_glass",
+    "kind": "qglass (hull panels)",
+    "block": "Casings.QuantumGlass (TecTech)"
+   },
+   "b": {
+    "role": "bec_socket",
+    "kind": "bechatch (foot)",
+    "block": "GT MTEHatchBEC (BEC Hatch), else fallback",
+    "fallback": "Q",
+    "min": 1,
+    "hint": 1
+   },
+   "i": {
+    "role": "input_bus_socket",
+    "kind": "ibus (foot)",
+    "block": "HatchElement.InputBus, else fallback",
+    "fallback": "Q",
+    "min": 1,
+    "hint": 2
+   },
+   "o": {
+    "role": "output_bus_socket",
+    "kind": "obus (cap, by the Reality Focus)",
+    "block": "HatchElement.OutputBus, else fallback",
+    "fallback": "R",
+    "min": 1,
+    "hint": 3
+   },
+   "e": {
+    "role": "energy_socket",
+    "kind": "energy (foot)",
+    "block": "HatchElement.Energy / ExoticEnergy, else fallback",
+    "fallback": "Q",
+    "min": 1,
+    "hint": 4
+   }
   }
  },
  "machines": {
@@ -441,6 +769,80 @@
     "eye_arms2": "T5 second arm pair, optional; counts only with every band below",
     "eye_rim": "T6 galactic rim with 4 rim stellar sockets, optional; counts only with every band below"
    }
+  },
+  "homogeny": {
+   "mte": 28130,
+   "controllerVoxel": [
+    34,
+    0,
+    3
+   ],
+   "outVoxel": [
+    1,
+    0,
+    0
+   ],
+   "turns": 1,
+   "centre": {
+    "rel": [
+     3,
+     0,
+     34
+    ]
+   },
+   "pieces": {
+    "homog_t1": "T1 (UMV): column, helix, rails, volute + throat, 3 feed vessels; required",
+    "homog_t2": "T2 (UXV) middle stirring ring, 3 more vessels, outer spokes; optional, counts with homog_t1",
+    "homog_t3": "T3 (MAX) tilted outer ring, clamps and tail; optional, counts only with homog_t2"
+   }
+  },
+  "reality_diffraction": {
+   "mte": 28131,
+   "controllerVoxel": [
+    0,
+    -44,
+    42
+   ],
+   "outVoxel": [
+    0,
+    0,
+    1
+   ],
+   "turns": 0,
+   "centre": {
+    "rel": [
+     0,
+     -44,
+     42
+    ]
+   },
+   "pieces": {
+    "reality_diffraction": "the whole machine (one tier)"
+   }
+  },
+  "reality_refab": {
+   "mte": 28132,
+   "controllerVoxel": [
+    0,
+    -65,
+    22
+   ],
+   "outVoxel": [
+    0,
+    0,
+    1
+   ],
+   "turns": 0,
+   "centre": {
+    "rel": [
+     0,
+     -65,
+     22
+    ]
+   },
+   "pieces": {
+    "reality_refab": "the whole machine (one tier)"
+   }
   }
  },
  "assembled": {
@@ -518,6 +920,44 @@
    ],
    "size": "158x57x149",
    "blocks": 51935
+  },
+  "Homogeny T1": {
+   "pieces": [
+    "homog_t1"
+   ],
+   "size": "69x70x73",
+   "blocks": 17783
+  },
+  "Homogeny T2": {
+   "pieces": [
+    "homog_t1",
+    "homog_t2"
+   ],
+   "size": "103x70x113",
+   "blocks": 28598
+  },
+  "Homogeny T3": {
+   "pieces": [
+    "homog_t1",
+    "homog_t2",
+    "homog_t3"
+   ],
+   "size": "145x70x130",
+   "blocks": 41600
+  },
+  "Reality Diffraction": {
+   "pieces": [
+    "reality_diffraction"
+   ],
+   "size": "103x101x85",
+   "blocks": 53005
+  },
+  "Reality Refab": {
+   "pieces": [
+    "reality_refab"
+   ],
+   "size": "104x139x83",
+   "blocks": 65187
   }
  },
  "pieces": {
@@ -2875,6 +3315,1186 @@
     ]
    },
    "cellsKeptByEarlierPiece": 112
+  },
+  "homog_t1": {
+   "machine": "homogeny",
+   "file": "structures/homog_t1.txt",
+   "w": 69,
+   "h": 70,
+   "d": 73,
+   "off": [
+    24,
+    35,
+    2
+   ],
+   "blocks": 17783,
+   "bom": [
+    {
+     "ch": "Z",
+     "count": 5618,
+     "role": "column_glass",
+     "block": "Casings.QuantumGlass (TecTech)"
+    },
+    {
+     "ch": "A",
+     "count": 3200,
+     "role": "volute_shell",
+     "block": "NEW slCasing3:0 Stirring Band Casing"
+    },
+    {
+     "ch": "M",
+     "count": 2430,
+     "role": "column_cap",
+     "block": "Casings.ReinforcedTemporalStructureCasing (TecTech EOH, x32 in the BEC since ruling 11a; was Godforge casing + lens glass, B-67)"
+    },
+    {
+     "ch": "O",
+     "count": 2246,
+     "role": "rail",
+     "block": "slCasing:13 Bastion Plate (existing)"
+    },
+    {
+     "ch": "B",
+     "count": 1873,
+     "role": "shear_helix",
+     "block": "NEW slCasing3:1 Shear Helix Coil"
+    },
+    {
+     "ch": "J",
+     "count": 1290,
+     "role": "band_lining",
+     "block": "slCasing2:2 Harmonic Lining (existing)"
+    },
+    {
+     "ch": "C",
+     "count": 690,
+     "role": "feed_vessel",
+     "block": "NEW slCasing3:2 Feed Vessel Casing"
+    },
+    {
+     "ch": "K",
+     "count": 303,
+     "role": "glass_channel",
+     "block": "Casings.QuantumGlass (TecTech)"
+    },
+    {
+     "ch": "D",
+     "count": 120,
+     "role": "vortex_inlet",
+     "block": "NEW slCasing3:3 Vortex Inlet"
+    },
+    {
+     "ch": "E",
+     "count": 5,
+     "role": "region_crystal",
+     "block": "NEW slCasing3:5 Region Crystal"
+    },
+    {
+     "ch": "h",
+     "count": 3,
+     "role": "feed_socket",
+     "block": "private feed Input Hatch element (MTEHatchInput), else fallback"
+    },
+    {
+     "ch": "e",
+     "count": 2,
+     "role": "energy_socket",
+     "block": "HatchElement.Energy / ExoticEnergy, else fallback"
+    },
+    {
+     "ch": "o",
+     "count": 2,
+     "role": "output_socket",
+     "block": "HatchElement.OutputHatch, else fallback"
+    },
+    {
+     "ch": "~",
+     "count": 1,
+     "role": "controller",
+     "block": "The Homogeny controller (MTE 28130)"
+    }
+   ],
+   "socketCounts": {
+    "e": 2,
+    "h": 3,
+    "o": 2,
+    "~": 1
+   },
+   "sockets": {
+    "e": [
+     {
+      "abc": [
+       42,
+       62,
+       41
+      ],
+      "rel": [
+       18,
+       27,
+       39
+      ],
+      "voxel": [
+       -5,
+       -27,
+       -15
+      ]
+     },
+     {
+      "abc": [
+       32,
+       62,
+       51
+      ],
+      "rel": [
+       8,
+       27,
+       49
+      ],
+      "voxel": [
+       -15,
+       -27,
+       -5
+      ]
+     }
+    ],
+    "h": [
+     {
+      "abc": [
+       8,
+       27,
+       3
+      ],
+      "rel": [
+       -16,
+       -8,
+       1
+      ],
+      "voxel": [
+       33,
+       8,
+       19
+      ]
+     },
+     {
+      "abc": [
+       65,
+       27,
+       36
+      ],
+      "rel": [
+       41,
+       -8,
+       34
+      ],
+      "voxel": [
+       0,
+       8,
+       -38
+      ]
+     },
+     {
+      "abc": [
+       8,
+       27,
+       69
+      ],
+      "rel": [
+       -16,
+       -8,
+       67
+      ],
+      "voxel": [
+       -33,
+       8,
+       19
+      ]
+     }
+    ],
+    "o": [
+     {
+      "abc": [
+       28,
+       32,
+       6
+      ],
+      "rel": [
+       4,
+       -3,
+       4
+      ],
+      "voxel": [
+       30,
+       3,
+       -1
+      ]
+     },
+     {
+      "abc": [
+       28,
+       38,
+       6
+      ],
+      "rel": [
+       4,
+       3,
+       4
+      ],
+      "voxel": [
+       30,
+       -3,
+       -1
+      ]
+     }
+    ],
+    "~": [
+     {
+      "abc": [
+       24,
+       35,
+       2
+      ],
+      "rel": [
+       0,
+       0,
+       0
+      ],
+      "voxel": [
+       34,
+       0,
+       3
+      ]
+     }
+    ]
+   }
+  },
+  "homog_t2": {
+   "machine": "homogeny",
+   "file": "structures/homog_t2.txt",
+   "w": 103,
+   "h": 16,
+   "d": 113,
+   "off": [
+    48,
+    8,
+    22
+   ],
+   "blocks": 10815,
+   "bom": [
+    {
+     "ch": "G",
+     "count": 7109,
+     "role": "stirring_ring_shell",
+     "block": "slCasing:12 Galactic Shell Plating (existing)"
+    },
+    {
+     "ch": "J",
+     "count": 1745,
+     "role": "band_lining",
+     "block": "slCasing2:2 Harmonic Lining (existing)"
+    },
+    {
+     "ch": "K",
+     "count": 833,
+     "role": "glass_channel",
+     "block": "Casings.QuantumGlass (TecTech)"
+    },
+    {
+     "ch": "C",
+     "count": 690,
+     "role": "feed_vessel",
+     "block": "NEW slCasing3:2 Feed Vessel Casing"
+    },
+    {
+     "ch": "O",
+     "count": 228,
+     "role": "rail",
+     "block": "slCasing:13 Bastion Plate (existing)"
+    },
+    {
+     "ch": "Z",
+     "count": 120,
+     "role": "column_glass",
+     "block": "Casings.QuantumGlass (TecTech)"
+    },
+    {
+     "ch": "D",
+     "count": 84,
+     "role": "vortex_inlet",
+     "block": "NEW slCasing3:3 Vortex Inlet"
+    },
+    {
+     "ch": "g",
+     "count": 3,
+     "role": "grb_port_reserved",
+     "block": "RESERVED for P4's GRB Receptor Port (28125); Galactic Shell Plating until then, so adding the port never un-forms a build"
+    },
+    {
+     "ch": "h",
+     "count": 3,
+     "role": "feed_socket",
+     "block": "private feed Input Hatch element (MTEHatchInput), else fallback"
+    }
+   ],
+   "socketCounts": {
+    "g": 3,
+    "h": 3
+   },
+   "sockets": {
+    "g": [
+     {
+      "abc": [
+       79,
+       8,
+       8
+      ],
+      "rel": [
+       31,
+       0,
+       -14
+      ],
+      "voxel": [
+       48,
+       0,
+       -28
+      ]
+     },
+     {
+      "abc": [
+       0,
+       8,
+       56
+      ],
+      "rel": [
+       -48,
+       0,
+       34
+      ],
+      "voxel": [
+       0,
+       0,
+       51
+      ]
+     },
+     {
+      "abc": [
+       79,
+       8,
+       104
+      ],
+      "rel": [
+       31,
+       0,
+       82
+      ],
+      "voxel": [
+       -48,
+       0,
+       -28
+      ]
+     }
+    ],
+    "h": [
+     {
+      "abc": [
+       70,
+       0,
+       23
+      ],
+      "rel": [
+       22,
+       -8,
+       1
+      ],
+      "voxel": [
+       33,
+       8,
+       -19
+      ]
+     },
+     {
+      "abc": [
+       13,
+       0,
+       56
+      ],
+      "rel": [
+       -35,
+       -8,
+       34
+      ],
+      "voxel": [
+       0,
+       8,
+       38
+      ]
+     },
+     {
+      "abc": [
+       70,
+       0,
+       89
+      ],
+      "rel": [
+       22,
+       -8,
+       67
+      ],
+      "voxel": [
+       -33,
+       8,
+       -19
+      ]
+     }
+    ]
+   },
+   "cellsKeptByEarlierPiece": 30
+  },
+  "homog_t3": {
+   "machine": "homogeny",
+   "file": "structures/homog_t3.txt",
+   "w": 145,
+   "h": 52,
+   "d": 130,
+   "off": [
+    69,
+    30,
+    31
+   ],
+   "blocks": 13002,
+   "bom": [
+    {
+     "ch": "F",
+     "count": 8489,
+     "role": "outer_ring_shell",
+     "block": "NEW slCasing3:10 Eternity Shell Casing"
+    },
+    {
+     "ch": "J",
+     "count": 3131,
+     "role": "band_lining",
+     "block": "slCasing2:2 Harmonic Lining (existing)"
+    },
+    {
+     "ch": "K",
+     "count": 736,
+     "role": "glass_channel",
+     "block": "Casings.QuantumGlass (TecTech)"
+    },
+    {
+     "ch": "P",
+     "count": 484,
+     "role": "ring_trim",
+     "block": "slCasing:14 Casimir Plate (existing)"
+    },
+    {
+     "ch": "O",
+     "count": 83,
+     "role": "rail",
+     "block": "slCasing:13 Bastion Plate (existing)"
+    },
+    {
+     "ch": "E",
+     "count": 79,
+     "role": "region_crystal",
+     "block": "NEW slCasing3:5 Region Crystal"
+    }
+   ],
+   "socketCounts": {},
+   "sockets": {},
+   "cellsKeptByEarlierPiece": 45
+  },
+  "reality_diffraction": {
+   "machine": "reality_diffraction",
+   "file": "structures/reality_diffraction.txt",
+   "w": 103,
+   "h": 101,
+   "d": 85,
+   "off": [
+    51,
+    97,
+    0
+   ],
+   "blocks": 53005,
+   "bom": [
+    {
+     "ch": "A",
+     "count": 11338,
+     "role": "deck_band_shell",
+     "block": "NEW slCasing3:4 Region Deck Band"
+    },
+    {
+     "ch": "Z",
+     "count": 9936,
+     "role": "drum_glass",
+     "block": "Casings.QuantumGlass (TecTech)"
+    },
+    {
+     "ch": "H",
+     "count": 8647,
+     "role": "phase_ring_shell",
+     "block": "NEW slCasing3:6 Phase Ring Casing"
+    },
+    {
+     "ch": "J",
+     "count": 7795,
+     "role": "band_lining",
+     "block": "slCasing2:2 Harmonic Lining (existing)"
+    },
+    {
+     "ch": "Q",
+     "count": 5756,
+     "role": "base_ring",
+     "block": "Casings.ElectromagneticallyIsolatedCasing (RC-2 BEC, sBlockCasingsBEC:1)"
+    },
+    {
+     "ch": "N",
+     "count": 3743,
+     "role": "spine_conduit",
+     "block": "Casings.CoherencePreservingPlasmaConduit (RC-2 BEC, sBlockCasingsBEC:0)"
+    },
+    {
+     "ch": "K",
+     "count": 2630,
+     "role": "glass_channel",
+     "block": "Casings.QuantumGlass (TecTech)"
+    },
+    {
+     "ch": "L",
+     "count": 1916,
+     "role": "spine_glass",
+     "block": "Casings.SpatiallyTranscendentGravitationalLens (Godforge glass)"
+    },
+    {
+     "ch": "E",
+     "count": 1215,
+     "role": "region_crystal",
+     "block": "NEW slCasing3:5 Region Crystal"
+    },
+    {
+     "ch": "I",
+     "count": 12,
+     "role": "anchor_lens",
+     "block": "NEW slCasing3:11 Region Anchor Casing"
+    },
+    {
+     "ch": "g",
+     "count": 6,
+     "role": "grb_port_reserved",
+     "block": "RESERVED for P4's GRB Receptor Port (28125); Region Deck Band until then, so adding the port never un-forms a build"
+    },
+    {
+     "ch": "e",
+     "count": 2,
+     "role": "energy_socket",
+     "block": "HatchElement.Energy / ExoticEnergy, else fallback"
+    },
+    {
+     "ch": "h",
+     "count": 1,
+     "role": "medium_socket",
+     "block": "HatchElement.InputHatch (Entanglement Medium), else fallback"
+    },
+    {
+     "ch": "b",
+     "count": 1,
+     "role": "bec_socket",
+     "block": "GT MTEHatchBEC (BEC Hatch), else fallback"
+    },
+    {
+     "ch": "~",
+     "count": 1,
+     "role": "controller",
+     "block": "Reality Diffraction controller (MTE 28131)"
+    },
+    {
+     "ch": "s",
+     "count": 1,
+     "role": "anchor_socket_II",
+     "block": "private Region Anchor element II, else fallback"
+    },
+    {
+     "ch": "r",
+     "count": 1,
+     "role": "anchor_socket_I",
+     "block": "private Region Anchor element I (MTEHatchInput), else fallback"
+    },
+    {
+     "ch": "u",
+     "count": 1,
+     "role": "anchor_socket_IV",
+     "block": "private Region Anchor element IV, else fallback"
+    },
+    {
+     "ch": "t",
+     "count": 1,
+     "role": "anchor_socket_III",
+     "block": "private Region Anchor element III, else fallback"
+    },
+    {
+     "ch": "w",
+     "count": 1,
+     "role": "anchor_socket_VI",
+     "block": "private Region Anchor element VI, else fallback"
+    },
+    {
+     "ch": "v",
+     "count": 1,
+     "role": "anchor_socket_V",
+     "block": "private Region Anchor element V, else fallback"
+    }
+   ],
+   "socketCounts": {
+    "b": 1,
+    "e": 2,
+    "g": 6,
+    "h": 1,
+    "r": 1,
+    "s": 1,
+    "t": 1,
+    "u": 1,
+    "v": 1,
+    "w": 1,
+    "~": 1
+   },
+   "sockets": {
+    "b": [
+     {
+      "abc": [
+       61,
+       97,
+       1
+      ],
+      "rel": [
+       10,
+       0,
+       1
+      ],
+      "voxel": [
+       10,
+       -44,
+       41
+      ]
+     }
+    ],
+    "e": [
+     {
+      "abc": [
+       31,
+       97,
+       4
+      ],
+      "rel": [
+       -20,
+       0,
+       4
+      ],
+      "voxel": [
+       -20,
+       -44,
+       38
+      ]
+     },
+     {
+      "abc": [
+       71,
+       97,
+       4
+      ],
+      "rel": [
+       20,
+       0,
+       4
+      ],
+      "voxel": [
+       20,
+       -44,
+       38
+      ]
+     }
+    ],
+    "g": [
+     {
+      "abc": [
+       34,
+       25,
+       12
+      ],
+      "rel": [
+       -17,
+       -72,
+       12
+      ],
+      "voxel": [
+       -17,
+       28,
+       30
+      ]
+     },
+     {
+      "abc": [
+       68,
+       25,
+       12
+      ],
+      "rel": [
+       17,
+       -72,
+       12
+      ],
+      "voxel": [
+       17,
+       28,
+       30
+      ]
+     },
+     {
+      "abc": [
+       15,
+       25,
+       42
+      ],
+      "rel": [
+       -36,
+       -72,
+       42
+      ],
+      "voxel": [
+       -36,
+       28,
+       0
+      ]
+     },
+     {
+      "abc": [
+       87,
+       25,
+       42
+      ],
+      "rel": [
+       36,
+       -72,
+       42
+      ],
+      "voxel": [
+       36,
+       28,
+       0
+      ]
+     },
+     {
+      "abc": [
+       34,
+       25,
+       72
+      ],
+      "rel": [
+       -17,
+       -72,
+       72
+      ],
+      "voxel": [
+       -17,
+       28,
+       -30
+      ]
+     },
+     {
+      "abc": [
+       68,
+       25,
+       72
+      ],
+      "rel": [
+       17,
+       -72,
+       72
+      ],
+      "voxel": [
+       17,
+       28,
+       -30
+      ]
+     }
+    ],
+    "h": [
+     {
+      "abc": [
+       41,
+       97,
+       1
+      ],
+      "rel": [
+       -10,
+       0,
+       1
+      ],
+      "voxel": [
+       -10,
+       -44,
+       41
+      ]
+     }
+    ],
+    "r": [
+     {
+      "abc": [
+       88,
+       69,
+       42
+      ],
+      "rel": [
+       37,
+       -28,
+       42
+      ],
+      "voxel": [
+       37,
+       -16,
+       0
+      ]
+     }
+    ],
+    "s": [
+     {
+      "abc": [
+       14,
+       69,
+       42
+      ],
+      "rel": [
+       -37,
+       -28,
+       42
+      ],
+      "voxel": [
+       -37,
+       -16,
+       0
+      ]
+     }
+    ],
+    "t": [
+     {
+      "abc": [
+       69,
+       55,
+       12
+      ],
+      "rel": [
+       18,
+       -42,
+       12
+      ],
+      "voxel": [
+       18,
+       -2,
+       30
+      ]
+     }
+    ],
+    "u": [
+     {
+      "abc": [
+       33,
+       55,
+       72
+      ],
+      "rel": [
+       -18,
+       -42,
+       72
+      ],
+      "voxel": [
+       -18,
+       -2,
+       -30
+      ]
+     }
+    ],
+    "v": [
+     {
+      "abc": [
+       33,
+       41,
+       12
+      ],
+      "rel": [
+       -18,
+       -56,
+       12
+      ],
+      "voxel": [
+       -18,
+       12,
+       30
+      ]
+     }
+    ],
+    "w": [
+     {
+      "abc": [
+       69,
+       41,
+       72
+      ],
+      "rel": [
+       18,
+       -56,
+       72
+      ],
+      "voxel": [
+       18,
+       12,
+       -30
+      ]
+     }
+    ],
+    "~": [
+     {
+      "abc": [
+       51,
+       97,
+       0
+      ],
+      "rel": [
+       0,
+       0,
+       0
+      ],
+      "voxel": [
+       0,
+       -44,
+       42
+      ]
+     }
+    ]
+   }
+  },
+  "reality_refab": {
+   "machine": "reality_refab",
+   "file": "structures/reality_refab.txt",
+   "w": 104,
+   "h": 139,
+   "d": 83,
+   "off": [
+    51,
+    137,
+    19
+   ],
+   "blocks": 65187,
+   "bom": [
+    {
+     "ch": "R",
+     "count": 22909,
+     "role": "hull_shell",
+     "block": "NEW slCasing3:7 Reassembly Hull Plating"
+    },
+    {
+     "ch": "Z",
+     "count": 17352,
+     "role": "hull_glass",
+     "block": "Casings.QuantumGlass (TecTech)"
+    },
+    {
+     "ch": "S",
+     "count": 9533,
+     "role": "tray",
+     "block": "NEW slCasing3:8 Reassembly Tray Plating"
+    },
+    {
+     "ch": "J",
+     "count": 4504,
+     "role": "band_lining",
+     "block": "slCasing2:2 Harmonic Lining (existing)"
+    },
+    {
+     "ch": "Q",
+     "count": 3230,
+     "role": "foot",
+     "block": "Casings.ElectromagneticallyIsolatedCasing (RC-2 BEC, sBlockCasingsBEC:1)"
+    },
+    {
+     "ch": "L",
+     "count": 2837,
+     "role": "spindle_glass",
+     "block": "Casings.SpatiallyTranscendentGravitationalLens (Godforge glass)"
+    },
+    {
+     "ch": "K",
+     "count": 2370,
+     "role": "glass_channel",
+     "block": "Casings.QuantumGlass (TecTech)"
+    },
+    {
+     "ch": "E",
+     "count": 1030,
+     "role": "region_crystal",
+     "block": "NEW slCasing3:5 Region Crystal"
+    },
+    {
+     "ch": "V",
+     "count": 736,
+     "role": "collar",
+     "block": "Casings.CondensateGuidanceCoil (RC-2 BEC, sBlockCasingsBEC:6)"
+    },
+    {
+     "ch": "T",
+     "count": 680,
+     "role": "claw",
+     "block": "NEW slCasing3:9 Reassembly Claw"
+    },
+    {
+     "ch": "i",
+     "count": 2,
+     "role": "input_bus_socket",
+     "block": "HatchElement.InputBus, else fallback"
+    },
+    {
+     "ch": "e",
+     "count": 1,
+     "role": "energy_socket",
+     "block": "HatchElement.Energy / ExoticEnergy, else fallback"
+    },
+    {
+     "ch": "b",
+     "count": 1,
+     "role": "bec_socket",
+     "block": "GT MTEHatchBEC (BEC Hatch), else fallback"
+    },
+    {
+     "ch": "~",
+     "count": 1,
+     "role": "controller",
+     "block": "Reality Refab controller (MTE 28132)"
+    },
+    {
+     "ch": "o",
+     "count": 1,
+     "role": "output_bus_socket",
+     "block": "HatchElement.OutputBus, else fallback"
+    }
+   ],
+   "socketCounts": {
+    "b": 1,
+    "e": 1,
+    "i": 2,
+    "o": 1,
+    "~": 1
+   },
+   "sockets": {
+    "b": [
+     {
+      "abc": [
+       57,
+       137,
+       20
+      ],
+      "rel": [
+       6,
+       0,
+       1
+      ],
+      "voxel": [
+       6,
+       -65,
+       21
+      ]
+     }
+    ],
+    "e": [
+     {
+      "abc": [
+       62,
+       137,
+       23
+      ],
+      "rel": [
+       11,
+       0,
+       4
+      ],
+      "voxel": [
+       11,
+       -65,
+       18
+      ]
+     }
+    ],
+    "i": [
+     {
+      "abc": [
+       45,
+       137,
+       20
+      ],
+      "rel": [
+       -6,
+       0,
+       1
+      ],
+      "voxel": [
+       -6,
+       -65,
+       21
+      ]
+     },
+     {
+      "abc": [
+       40,
+       137,
+       23
+      ],
+      "rel": [
+       -11,
+       0,
+       4
+      ],
+      "voxel": [
+       -11,
+       -65,
+       18
+      ]
+     }
+    ],
+    "o": [
+     {
+      "abc": [
+       51,
+       24,
+       28
+      ],
+      "rel": [
+       0,
+       -113,
+       9
+      ],
+      "voxel": [
+       0,
+       48,
+       13
+      ]
+     }
+    ],
+    "~": [
+     {
+      "abc": [
+       51,
+       137,
+       19
+      ],
+      "rel": [
+       0,
+       0,
+       0
+      ],
+      "voxel": [
+       0,
+       -65,
+       22
+      ]
+     }
+    ]
+   }
   }
  },
  "checks": [
@@ -2889,6 +4509,11 @@
   "ok   eye_arms: no '~' (anchored by off 47,44,28, outside its own box)",
   "ok   eye_arms2: no '~' (anchored by off 67,44,1, outside its own box)",
   "ok   eye_rim: no '~' (anchored by off 78,42,34, outside its own box)",
+  "ok   homog_t1: one controller '~' at off 24,35,2",
+  "ok   homog_t2: no '~' (anchored by off 48,8,22, outside its own box)",
+  "ok   homog_t3: no '~' (anchored by off 69,30,31, outside its own box)",
+  "ok   reality_diffraction: one controller '~' at off 51,97,0",
+  "ok   reality_refab: one controller '~' at off 51,137,19",
   "ok   kerr_t1: off resolves to the machine's controller cell",
   "ok   kerr_t2: off resolves to the machine's controller cell",
   "ok   kerr_compressor: off resolves to the machine's controller cell",
@@ -2900,6 +4525,11 @@
   "ok   eye_arms: off resolves to the machine's controller cell",
   "ok   eye_arms2: off resolves to the machine's controller cell",
   "ok   eye_rim: off resolves to the machine's controller cell",
+  "ok   homog_t1: off resolves to the machine's controller cell",
+  "ok   homog_t2: off resolves to the machine's controller cell",
+  "ok   homog_t3: off resolves to the machine's controller cell",
+  "ok   reality_diffraction: off resolves to the machine's controller cell",
+  "ok   reality_refab: off resolves to the machine's controller cell",
   "ok   kerr_compressor: the controller's front face is open air in the Kerr T1 build",
   "ok   kerr_extractor: the controller's front face is open air in the Kerr T1 build",
   "ok   kerr_compressor: the controller's front face is open air in the Kerr T2 build",
@@ -2926,6 +4556,12 @@
   "ok   eye_arms and eye_arms2 share no cell",
   "ok   eye_arms and eye_rim share no cell",
   "ok   eye_arms2 and eye_rim share no cell",
+  "ok   homog_t1 and homog_t2 share no cell",
+  "ok   homog_t1 and homog_t3 share no cell",
+  "ok   homog_t2 and homog_t3 share no cell",
+  "ok   homogeny: the controller's front face is open air in the fullest build (turns 1)",
+  "ok   reality_diffraction: the controller's front face is open air in the fullest build (turns 0)",
+  "ok   reality_refab: the controller's front face is open air in the fullest build (turns 0)",
   "ok   Kerr T1 assembled box 76x65x79 (W x H x D, spec 76x65x79)",
   "ok   Kerr T2 assembled box 92x65x89 (W x H x D, spec 92x65x89)",
   "ok   Eye T1 assembled box 102x52x80 (W x H x D, spec 102x52x80)",
@@ -2934,11 +4570,21 @@
   "ok   Eye T4 assembled box 102x57x137 (W x H x D, spec 102x57x137)",
   "ok   Eye T5 assembled box 135x57x137 (W x H x D, spec 135x57x137)",
   "ok   Eye T6 assembled box 158x57x149 (W x H x D, spec 158x57x149)",
+  "ok   Homogeny T1 assembled box 69x70x73 (W x H x D, spec 69x70x73)",
+  "ok   Homogeny T2 assembled box 103x70x113 (W x H x D, spec 103x70x113)",
+  "ok   Homogeny T3 assembled box 145x70x130 (W x H x D, spec 145x70x130)",
+  "ok   Reality Diffraction assembled box 103x101x85 (W x H x D, spec 103x101x85)",
+  "ok   Reality Refab assembled box 104x139x83 (W x H x D, spec 104x139x83)",
   "ok   Kerr T1 + modules: every socket has an outside-reachable face",
   "ok   Kerr T2 + modules: every socket has an outside-reachable face",
   "ok   Eye T1: every socket has an outside-reachable face",
   "ok   Eye T4: every socket has an outside-reachable face",
-  "ok   Eye T6: every socket has an outside-reachable face"
+  "ok   Eye T6: every socket has an outside-reachable face",
+  "ok   Homogeny T1: every socket has an outside-reachable face",
+  "ok   Homogeny T2: every socket has an outside-reachable face",
+  "ok   Homogeny T3: every socket has an outside-reachable face",
+  "ok   Reality Diffraction: every socket has an outside-reachable face",
+  "ok   Reality Refab: every socket has an outside-reachable face"
  ],
  "notes": [
   "kerr: 40 cells drawn by kerr_core then by kerr_compressor; the later piece owns them",
@@ -2947,6 +4593,8 @@
   "eye_jet: 100 cells written over an earlier piece in the mockup ({\"clamp\":100}); the earlier piece keeps them",
   "eye_arms: 84 cells written over an earlier piece in the mockup ({\"arm1\":40,\"arm0\":44}); the earlier piece keeps them",
   "eye_arms2: 73 cells written over an earlier piece in the mockup ({\"arm3\":36,\"arm2\":37}); the earlier piece keeps them",
-  "eye_rim: 112 cells written over an earlier piece in the mockup ({\"rim\":104,\"clamp\":8}); the earlier piece keeps them"
+  "eye_rim: 112 cells written over an earlier piece in the mockup ({\"rim\":104,\"clamp\":8}); the earlier piece keeps them",
+  "homog_t2: 30 cells written over an earlier tier in the mockup; the earlier piece keeps them",
+  "homog_t3: 45 cells written over an earlier tier in the mockup; the earlier piece keeps them"
  ]
 }

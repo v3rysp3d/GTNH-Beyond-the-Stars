@@ -17,6 +17,7 @@ package com.nateyburr.beyondthestars;
  *   BTSRecipesStellar     D-49      the Antipolarization Agent chain (SL-S01..S02)
  *   BTSRecipesBEC         BEC       condensates + Condensate Assembler recipes (SL-B01..B81)
  *   BTSRecipesAutomation  automation the Directive Hatch (SL-A01)
+ *   BTSRecipesReality     H/R       the Homogeny / Reality BEC recipes (SL-C01..C04, SL-H01..H20, SL-R01..R17)
  * </pre>
  *
  * <b>Nothing may be added to THIS file.</b> A recipe here would be a recipe with no owner, and
@@ -53,6 +54,13 @@ public final class BTSRecipes {
         BTSRecipeGuard.line("stellar", BTSRecipesStellar::register);
         BTSRecipeGuard.line("bec", BTSRecipesBEC::register);
         BTSRecipeGuard.line("automation", BTSRecipesAutomation::register);
+        // H/R unit 2: the Homogeny / Reality machines' own process recipes (their maps; the BEC recipes are the
+        // recipe unit's).
+        BTSRecipeGuard
+            .line("reality-process", com.nateyburr.beyondthestars.machines.reality.RealityProcessRecipes::register);
+        // H/R unit 3: every block, core and controller of the three machines in the Condensate Assembler, and their
+        // condensates (BTSRecipesReality, one owner). After "bec" once master's BEC expansion is merged.
+        BTSRecipeGuard.line("reality", BTSRecipesReality::register);
         BTSRecipeGuard.line("display", BTSDisplayRecipes::register);
 
         BTSRecipeGuard.summary();

@@ -232,3 +232,62 @@ GT5U.gui.text.recipe_result.beyondthestars.eye.star_idle=Sirius B waits: it need
 GT5U.gui.text.recipe_result.beyondthestars.eye.star_merger=The magnetar is spawned by the Magnetar Merger: scan the controller for what it still needs
 beyondthestars.recipe.eyetransition=Eye of Harmony: Transitions
 beyondthestars.recipe.eyefield=Eye of Harmony: Stability Field
+
+# ---- HOMOGENY + REALITY MACHINES (H/R unit 1: blocks, items, recipe maps, recipe results; homogeny-reality.md, PROPOSED) ----
+# slCasing3 (BlockSLCasing3). Tooltips (ItemBlockSL): which machine uses the block, and where it is made (ruling 14).
+tile.beyondthestars.slCasing3.0.name=Stirring Band Casing
+tile.beyondthestars.slCasing3.0.tooltip=The Homogeny T1: the volute and its discharge throat.\nMade in the Condensate Assembler.
+tile.beyondthestars.slCasing3.1.name=Shear Helix Coil
+tile.beyondthestars.slCasing3.1.tooltip=The Homogeny T1: the helix wound round the mixing column.\nMade in the Condensate Assembler.
+tile.beyondthestars.slCasing3.2.name=Feed Vessel Casing
+tile.beyondthestars.slCasing3.2.tooltip=The Homogeny T1/T2: the six feed vessels. Each vessel's top takes one Input Hatch.\nMade in the Condensate Assembler.
+tile.beyondthestars.slCasing3.3.name=Vortex Inlet
+tile.beyondthestars.slCasing3.3.tooltip=The Homogeny T1/T2: the pipes from each feed vessel into the volute.\nMade in the Condensate Assembler.
+tile.beyondthestars.slCasing3.4.name=Region Deck Band
+tile.beyondthestars.slCasing3.4.tooltip=Reality Diffraction: the five deck bands between the drums.\nMade in the Condensate Assembler.
+tile.beyondthestars.slCasing3.5.name=Region Crystal
+tile.beyondthestars.slCasing3.5.tooltip=Reality Diffraction's six blades, Reality Refab's receivers and focus, the Homogeny T3 tail tip. Glows.\nMade in the Condensate Assembler.
+tile.beyondthestars.slCasing3.6.name=Phase Ring Casing
+tile.beyondthestars.slCasing3.6.tooltip=Reality Diffraction: the two phase rings round the stack.\nMade in the Condensate Assembler.
+tile.beyondthestars.slCasing3.7.name=Reassembly Hull Plating
+tile.beyondthestars.slCasing3.7.tooltip=Reality Refab: the stem, hull ribs, belt and cap.\nMade in the Condensate Assembler.
+tile.beyondthestars.slCasing3.8.name=Reassembly Tray Plating
+tile.beyondthestars.slCasing3.8.tooltip=Reality Refab: the three reassembly trays.\nMade in the Condensate Assembler.
+tile.beyondthestars.slCasing3.9.name=Reassembly Claw
+tile.beyondthestars.slCasing3.9.tooltip=Reality Refab: eight claws on each tray.\nMade in the Condensate Assembler.
+tile.beyondthestars.slCasing3.10.name=Eternity Shell Casing
+tile.beyondthestars.slCasing3.10.tooltip=The Homogeny T3: the tilted outer ring and its tail.\nMade in the Condensate Assembler.
+tile.beyondthestars.slCasing3.11.name=Region Anchor Casing
+tile.beyondthestars.slCasing3.11.tooltip=Reality Diffraction: the red lens either side of each Region Anchor socket.\nMade in the Condensate Assembler.
+# items (SLMaxItems)
+item.beyondthestars.homogenyTier2Core.name=Homogeny Tier II Core
+item.beyondthestars.homogenyTier2Core.tooltip=The Homogeny T1 -> T2: build the middle stirring ring, mix 100,000 L of Excited Stellar Plasma Mixture,\nthen put this core in the controller and press Install (10 minutes, offline). Permanent.\n4 parallels; unlocks Degenerate Stellar Mixture.\nMade in the Condensate Assembler with Black Dwarf, White Dwarf and SpaceTime condensates (after Eye T5).
+item.beyondthestars.homogenyTier3Core.name=Homogeny Tier III Core
+item.beyondthestars.homogenyTier3Core.tooltip=The Homogeny T2 -> T3: build the tilted outer ring, mix 100,000 L of Degenerate Stellar Mixture,\nthen put this core in the controller and press Install (10 minutes, offline). Permanent.\n16 parallels; unlocks Entanglement Medium.\nMade in the Condensate Assembler with White Hole Matter (Eye T9), Superdense Ergomatter, Degenerate and Eternity condensates.\nEternity: the pack's Eternity line. Until this addon moves its loop onto Ergomatter it needs Universium (Eye T10), so this core waits for that change.
+item.beyondthestars.universalUpgradeCore.name=Universal Upgrade Core
+item.beyondthestars.universalUpgradeCore.tooltip=Eye of Harmony T9 -> T10.\nReassembled by Reality Refab from the six Entangled Regions.
+item.beyondthestars.starChartUniverse.name=Star Chart: The Observable Universe
+item.beyondthestars.starChartUniverse.tooltip=Eye of Harmony T10 target (not consumed).\nReassembled by Reality Refab.
+# recipe maps (these keys ARE the maps' unlocalized names: RecipeMapBuilder.of() ids)
+beyondthestars.recipe.homogeny=The Homogeny
+beyondthestars.recipe.reality_diffraction=Reality Diffraction
+beyondthestars.recipe.reality_refab=Reality Refab
+# recipe results (GT 5.09.54.x key form, ruling 10)
+GT5U.gui.text.recipe_result.beyondthestars.homogeny.tier=Needs a higher Homogeny tier: build the next ring and install its core
+GT5U.gui.text.recipe_result.beyondthestars.homogeny.installing=Installing an upgrade core: the Homogeny is offline until the install run ends
+GT5U.gui.text.recipe_result.beyondthestars.homogeny.stability=Needs a Quasar link: GRB Receptor Ports on the stirring ring
+GT5U.gui.text.recipe_result.beyondthestars.reality.nonetwork=No BEC network: needs a BEC Hatch on the base and a Containment Field on its network
+GT5U.gui.text.recipe_result.beyondthestars.reality.anchors=No region anchored: fill at least one Region Anchor socket with its anchor fluid
+GT5U.gui.text.recipe_result.beyondthestars.reality.full=The last run's regions are still waiting to enter the BEC network: start a Containment Field on it
+GT5U.gui.text.recipe_result.beyondthestars.reality.noassembler=No running Condensate Assembler within 64 blocks: Reality Refab links the nearest one by itself
+GT5U.gui.text.recipe_result.beyondthestars.reality.nanites=The linked Condensate Assembler's nanites are below this recipe's highest step tier
+GT5U.gui.text.recipe_result.beyondthestars.reality.stability=Regions unstable: needs a Quasar link through the GRB Receptor Ports on the top deck band
+# structure errors (H/R unit 2)
+beyondthestars.structure.homogeny.feed=The Homogeny needs at least one Input Hatch on a Feed Vessel top
+beyondthestars.structure.homogeny.output=The Homogeny needs at least one Output Hatch on the discharge throat
+beyondthestars.structure.homogeny.energy=The Homogeny needs at least one Energy or Laser Hatch on the bottom cap rim
+beyondthestars.structure.reality.bec=Needs a BEC Hatch in its socket (front facing a BEC conduit)
+beyondthestars.structure.reality.medium=Reality Diffraction needs an Input Hatch on the base ring (Entanglement Medium)
+beyondthestars.structure.reality.energy=Needs at least one Energy or Laser Hatch
+beyondthestars.structure.reality.inputbus=Reality Refab needs an Input Bus on the foot
+beyondthestars.structure.reality.outputbus=Reality Refab needs an Output Bus on the cap

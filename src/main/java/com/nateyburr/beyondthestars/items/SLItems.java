@@ -94,7 +94,7 @@ public final class SLItems {
      * on a literal backslash-n, shown in grey) when the lang file has that key. The item class is not part of a
      * saved world, so an existing item may switch to this one.
      */
-    private static Item defineWithTooltip(String name) {
+    static Item defineWithTooltip(String name) {
         final Item item = new TooltipItem().setUnlocalizedName("beyondthestars." + name)
             .setTextureName("beyondthestars:" + name)
             .setCreativeTab(BTSItems.TAB);
