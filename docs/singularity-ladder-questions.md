@@ -386,13 +386,16 @@ time. Below that tier there is no penalty, because the gate alone decides. Stars
 - Extractor recipes need no open hole (they carry no compression tier). They run at the base parallel (8 × voltage
   tier) with the hole closed, and get the hole's parallel and speed bonuses when it is open, like plain compressor
   recipes.
-- The Kerr Extractor Module core (SL-K03, Electric Pumps and Neutronium pipes) and the Ergosphere Extraction Casing
-  (SL-P14, an Electric Pump) keep their recipes and names, which were designed around fluid extraction.
+- The Kerr Extractor Module core (SL-K03) and the Ergosphere Extraction Casing (SL-P14) keep their names, which were
+  designed around fluid extraction.
 
-**Suggestion.** Keep the names. Swap SL-K03's 32 Electric Pumps for 32 Electric Pistons and SL-P14's pump for a
-piston, so the parts match an item extractor. That is a recipe change only; say the word.
+**Built (recipe audit pass):** pistons, cost audit #14. SL-K03 takes 32 Electric Pistons UIV in place of the 32
+Electric Pumps (fc3eff4), and SL-P14 takes an Electric Piston UIV in place of its pump (6b7346b), so the parts match
+an item extractor.
 
-**Alternative.** Leave the recipes as they are.
+**Suggestion.** As built: keep the names, with pistons.
+
+**Alternative.** Revert both recipes to Electric Pumps.
 
 ### B-18 D-49 star lifecycle and stability field: the proposal and its open choices [follow-up pass, design only]
 
