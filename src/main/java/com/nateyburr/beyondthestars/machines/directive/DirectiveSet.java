@@ -45,9 +45,9 @@ public enum DirectiveSet {
     /** The Eye's galaxy transitions (T6 → T7 Magnetar Collapse, T7 → T8 Galactic Merger). */
     EYE_GALAXY_TRANSITION(Host.EYE, false, "Eye: Galaxy Transition", "Ready: begin", "Transition running",
         "Purge now (collapse assist)", "Hold the regulator's purges"),
-    /** The Eye's planet and companion slots (T7+). */
-    EYE_SLOTS(Host.EYE, false, "Eye: Slots (T7+)", "A slot is idle", "Companion upkeep short",
-        "Planet run lost parallels", "Heavy Link wanted: test fire");
+    /** The Eye's planet and companion slots (T7+), and the link test fire (T6 / T7). */
+    EYE_SLOTS(Host.EYE, false, "Eye: Slots", "A slot is idle", "Companion upkeep short", "Planet run lost parallels",
+        "Link test fire wanted");
 
     /** The machines a Directive Hatch can sit in. */
     public enum Host {

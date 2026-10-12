@@ -14,8 +14,9 @@ package com.nateyburr.beyondthestars.machines.directive;
  * Galaxy Transition (T6-T8): [1] ready to begin   [2] a transition is running
  *                         [4] purge now (the collapse assist: T−80 s if Φ would erupt before the collapse, and the
  *                             collapse second)       [8] hold the regulator's purges (T−80 s to T−1 s)
- * Slots (T7+):            [1] a planet / companion slot is idle   [2] a companion's upkeep is short (r &lt; 1)
- *                         [4] the last planet run lost parallels  [8] Heavy Link wanted (turn on the test fire)
+ * Slots:                  [1] a planet / companion slot is idle   [2] a companion's upkeep is short (r &lt; 1)
+ *                         [4] the last planet run lost parallels  [8] link test fire wanted: T6 Stability Link
+ *                             (J1 all to the Eye) or T7 Heavy Link (J1 all to the Eye, J3 75 % to the halo)
  * </pre>
  * 
  * In planets mode the Field set's bits 4 and 8 and the whole Events set stay 0. Errors are last second's
@@ -87,22 +88,26 @@ public final class GalaxyDirective {
     }
 
     /**
-     * The Slots set. {@code heavyLinkWanted}: T7 galaxy, the Heavy Link not held, the Supermassive Seed Core and the
-     * Ergomatter charge in place (the rig turns the test fire on).
+     * The Slots set. {@code testFireWanted}: {@link #testFireWanted} (the rig turns the link test fire on).
      */
     public static int slots(boolean slotIdle, boolean companionShort, boolean planetLostParallels,
-        boolean heavyLinkWanted) {
+        boolean testFireWanted) {
         int c = 0;
         if (slotIdle) c |= 1;
         if (companionShort) c |= 2;
         if (planetLostParallels) c |= 4;
-        if (heavyLinkWanted) c |= 8;
+        if (testFireWanted) c |= 8;
         return c;
     }
 
-    /** Heavy Link wanted: T7 galaxy, lit, no transition, the link not done, the core and charge in place. */
-    public static boolean heavyLinkWanted(int tier, boolean planets, boolean lit, boolean running, boolean linkDone,
+    /**
+     * Link test fire wanted (Slots bit 4): the next transition's link milestone is not held yet while its core and
+     * charge are in place, on a lit Eye with no transition. T6: the Stability Link (the rig sends J1 all to the Eye);
+     * T7 galaxy: the Heavy Link (J1 all to the Eye and J3 75 % to the halo ports). Other tiers: false.
+     */
+    public static boolean testFireWanted(int tier, boolean planets, boolean lit, boolean running, boolean linkDone,
         boolean coreInEscrow, boolean chargeBuffered) {
-        return tier == 7 && !planets && lit && !running && !linkDone && coreInEscrow && chargeBuffered;
+        if (tier != 6 && !(tier == 7 && !planets)) return false;
+        return lit && !running && !linkDone && coreInEscrow && chargeBuffered;
     }
 }

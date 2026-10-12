@@ -102,6 +102,34 @@ public final class QuasarSim {
         public boolean disc = true, aim = true, space = true, assist = true;
     }
 
+    /**
+     * A rig that replaces the prototype's automation (null in every golden case): {@link QuasarRigSim}'s gate rig,
+     * which reads only Directive codes and three analog sensor wires. Called during {@link World#tick} in the
+     * prototype's order; the codes it reads are the ones the hatches put out (last second's, except the Galaxy
+     * Transition set, which the tick computes first).
+     */
+    public interface GateRig {
+
+        /** Called first in the tick, after the Galaxy Transition bits: request purges, set the test fire. */
+        void beginTick(World w);
+
+        /** The quasar's trim valves this second: {gas units, Space units}. */
+        double[] discTrims(World w);
+
+        /** The Eye's Space valve this second, units (T7+). */
+        double eyeSpace(World w);
+
+        /** J1 / J2 / J3 Burst Control levels (0-15) this second. */
+        int j1(World w);
+
+        int j2(World w);
+
+        int j3(World w);
+
+        /** The Heavy Link test fire is on. */
+        boolean testFire(World w);
+    }
+
     /** The prototype's Directive window (the rig's thresholds ±5). */
     public static final double DIRECTIVE_W = 5;
     /** The prototype's binary Space valve on the Eye: Field bit 1 opens it at 10 units/s. */
@@ -126,6 +154,8 @@ public final class QuasarSim {
         public PlanetSlots slots;
         /** The field's event-channel warning at the last lit second (prototype {@code S.warn}). */
         public int warn;
+        /** The last finished planet run lost parallels (field factor under 1): the Slots set's bit 3. */
+        public boolean lastRunLost;
         final StepInputs in = new StepInputs();
 
         Eye(int tier, Cfg c, Rig rig) {
@@ -224,7 +254,9 @@ public final class QuasarSim {
             if (T.n <= 6) raw = FieldRig.ctrl(T, s.prevE, s.prevWarn, FieldRig.Mode.FINE);
             else {
                 raw = new LinkedHashMap<>();
-                if (rig.space && s.prevE[StellarField.P] > 5) raw.put("Space", SPACE_ON);
+                final double sp = w.gate != null ? w.gate.eyeSpace(w)
+                    : rig.space && s.prevE[StellarField.P] > 5 ? SPACE_ON : 0;
+                if (sp > 0) raw.put("Space", sp);
             }
             FieldRig.toUnits(T, raw, in.u);
             final StepResult out = StellarField.step(s, tr != null ? tr : Overlay.NONE, in);
@@ -263,8 +295,10 @@ public final class QuasarSim {
             final TierParams Tn = s.tier;
             if (out.ergoFed) FieldSim.add(L.up, "Ergomatter", out.ergoToDraw);
             if (out.crossingCaught) FieldSim.add(L.prod, "Superdense Ergomatter", out.crossingBonus);
-            if (Tn.planets() && slots != null)
-                for (PlanetSlots.Run run : slots.tick(Tn.n, out.zone, m)) FieldSim.add(runs, run.key(), run.succeeded);
+            if (Tn.planets() && slots != null) for (PlanetSlots.Run run : slots.tick(Tn.n, out.zone, m)) {
+                FieldSim.add(runs, run.key(), run.succeeded);
+                lastRunLost = run.fieldFactor < 1;
+            }
             if (out.cycleEnded) {
                 if (out.hasCycleProduct) {
                     if (out.companionCycle) for (int k : comps(Tn)) {
@@ -362,6 +396,10 @@ public final class QuasarSim {
         public double vent;
         /** The Directive codes (prototype {@code W.dir}): disc, field, event, transition. */
         public int dirDisc, dirField, dirEvent, dirTrans;
+        /** The Slots code (not in the prototype; the gate rig's test fire reads its bit 4). */
+        public int dirSlots;
+        /** The gate rig, or null for the prototype's automation. */
+        public GateRig gate;
         /** The Eye's burst inputs this second (prototype {@code S.g}). */
         public double gBeta, gHi, gLo, gHalo, gEye, gD;
         /** Bu/t into crowns this second (EU/t = 10¹³ × this). */
@@ -381,10 +419,16 @@ public final class QuasarSim {
         public void tick() {
             final int tb = transBits();
             dirTrans = tb;
-            final boolean assist = rig.assist;
-            hold = assist && (tb & 8) != 0;
-            if (assist && (tb & 4) != 0) q.requestPurge();
-            force1 = assist && (tb & 4) != 0;
+            if (gate != null) {
+                hold = false;
+                force1 = false;
+                gate.beginTick(this);
+            } else {
+                final boolean assist = rig.assist;
+                hold = assist && (tb & 8) != 0;
+                if (assist && (tb & 4) != 0) q.requestPurge();
+                force1 = assist && (tb & 4) != 0;
+            }
             quasarStep();
             conduitStep();
             eye.step(this);
@@ -408,6 +452,19 @@ public final class QuasarSim {
                 eye.warn,
                 s.tde != null && s.tde.warned,
                 DIRECTIVE_W);
+            final boolean six = s.tier.n == 6;
+            dirSlots = GalaxyDirective.slots(
+                eye.slots != null && eye.slots.anyIdle(s.tier.n),
+                s.tier.galaxy && c.r < 1 && eye.comps(s.tier).length > 0,
+                eye.lastRunLost,
+                GalaxyDirective.testFireWanted(
+                    s.tier.n,
+                    s.tier.planets(),
+                    eye.state == Eye.LIT,
+                    eye.trans != null,
+                    six ? link.done : link8.done,
+                    six ? c.coreMC : c.coreGM,
+                    six ? c.bufMC : c.bufGM));
         }
 
         /** The Galaxy Transition bits (prototype {@code transBits}) from last second's state. */
@@ -439,13 +496,17 @@ public final class QuasarSim {
             qin.gasDrawn = F;
             QL.gas += F;
             double uG = 0, uS = 0;
-            if (auto) {
+            if (gate != null) {
+                final double[] u = gate.discTrims(this);
+                uG = u[0];
+                uS = u[1];
+            } else if (auto) {
                 if (q.lagE < -5) uG = 10;
                 else if (q.lagE > 5) uS = 10;
             }
             qin.gasTrimUnits = uG;
             qin.spaceTrimUnits = uS;
-            qin.regulatorPurge = auto && qc.purgeAt > 0 && !hold && q.lagPhi >= qc.purgeAt;
+            qin.regulatorPurge = gate == null && auto && qc.purgeAt > 0 && !hold && q.lagPhi >= qc.purgeAt;
             final QuasarResult r = QuasarDisc.step(q, qin);
             QL.coilEU += r.coilEUt * 20;
             if (r.reforming) return;
@@ -472,7 +533,9 @@ public final class QuasarSim {
             final int nMouth = (k.top == Dock.MOUTH ? 1 : 0) + (k.bot == Dock.MOUTH ? 1 : 0);
             final boolean planets = T.n >= 7 && T.planets();
             final boolean t8 = (T.n >= 8 && !planets) || eye.trans instanceof GalacticMergerOverlay;
-            final boolean test8 = T.n == 7 && !planets && eye.trans == null && k.test8;
+            final boolean test8 = T.n == 7 && !planets
+                && eye.trans == null
+                && (gate != null ? gate.testFire(this) : k.test8);
             final int mouths = 2 * nMouth, comb = nMouth == 2 ? 1 : 0, j1 = nMouth > 0 ? 1 : 0;
             final int j3 = nMouth > 0 && (t8 || test8) ? 1 : 0, j2 = j1;
             final int elements = mouths + comb + j1 + j3 + j2;
@@ -507,18 +570,21 @@ public final class QuasarSim {
             final boolean lit = eye.state == Eye.LIT;
             final double P = lit ? s.prevE[StellarField.P] : 0, Wg = lit ? s.prevE[StellarField.W] : 0;
             final double Lg = lit ? s.prevE[StellarField.L] : 0;
-            int s1 = k.twoLevel ? BurstRouting.twoLevel((dirField & 2) != 0, (dirField & 1) != 0)
-                : k.inv1 ? BurstRouting.level(-P, k.win) : BurstRouting.level(P, k.win);
+            int s1 = gate != null ? gate.j1(this)
+                : k.twoLevel ? BurstRouting.twoLevel((dirField & 2) != 0, (dirField & 1) != 0)
+                    : k.inv1 ? BurstRouting.level(-P, k.win) : BurstRouting.level(P, k.win);
             if (force1) s1 = 15;
-            final double k1 = (wired && T.n >= 7) || force1 ? k.k1 : 0;
+            // the prototype wires J1's P loop from T7 (or when forced); a gate rig's Junction always has its gain
+            final double k1 = gate != null || (wired && T.n >= 7) || force1 ? k.k1 : 0;
             final double sh1 = test8 ? 1 : BurstRouting.share(k.c1, k1, s1);
             final double out3 = k.p3 * sIn, eyeS = sh1 * (1 - k.p3) * sIn;
             final double crownLeg = (1 - sh1) * (1 - k.p3) * sIn + out3;
             double halo = 0, rail = eyeS, dump = 0;
             if (j3 == 1 && T.n >= 8 && !planets) {
-                final int s3 = k.twoLevel ? BurstRouting.twoLevel((dirEvent & 1) != 0, (dirEvent & 2) != 0)
-                    : BurstRouting.level(Lg, k.win);
-                final double sh3 = BurstRouting.share(k.c3, wired ? k.k3 : 0, s3);
+                final int s3 = gate != null ? gate.j3(this)
+                    : k.twoLevel ? BurstRouting.twoLevel((dirEvent & 1) != 0, (dirEvent & 2) != 0)
+                        : BurstRouting.level(Lg, k.win);
+                final double sh3 = BurstRouting.share(k.c3, gate != null || wired ? k.k3 : 0, s3);
                 halo = eyeS * sh3;
                 rail = eyeS - halo;
             } else if (j3 == 1 && test8) {
@@ -526,9 +592,10 @@ public final class QuasarSim {
                 rail = eyeS - halo;
                 dump = halo;
             }
-            final int s2 = k.twoLevel ? BurstRouting.twoLevel((dirField & 4) != 0, (dirField & 8) != 0)
-                : BurstRouting.level(Wg, k.win);
-            final double sh2 = BurstRouting.share(k.c2, wired ? k.k2 : 0, s2);
+            final int s2 = gate != null ? gate.j2(this)
+                : k.twoLevel ? BurstRouting.twoLevel((dirField & 4) != 0, (dirField & 8) != 0)
+                    : BurstRouting.level(Wg, k.win);
+            final double sh2 = BurstRouting.share(k.c2, gate != null || wired ? k.k2 : 0, s2);
             final double hi = rail * sh2, lo = rail - hi;
             // crowns: on each docked jet cap, and the power plant on J1's crown leg
             final double ccap = BurstRouting.crownCap(k.mk) * (k.stack ? 2 : 1);
