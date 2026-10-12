@@ -85,6 +85,12 @@ the Empty Spatially Compressed Circuit Array); "removed Black Hole Compressor co
 research 0, scanner 1"; GT's assembly-line validation passes. The dev server lacks Railcraft and other pack mods, so
 its recipe count is lower than the pack's (255 before the port, minus SL-P30..P32, plus SL-P35).
 
+**RC-2 dev-server test** (questions B-32, fresh world, two restarts): 0 recipes still consume a BHC controller;
+`/btseye gates` finds the Eye T1-T4 gates clean (through SL-P35) and the known P4/P5 loops at T5, T8 and T9; Kerr
+T1 and T2 with both modules and Eye T1-T4 all FORMED in two facings, one creative and one survival, and still FORMED
+after a restart; the reactor forms, and a CRIB in its feedwater socket is refused (the silo drops out, but no error
+names the cell: B-32).
+
 **Still to watch at RC-3:** `MultiblockTooltipBuilder` int-count overloads (91 deprecated calls) and
 `Textures.BlockIcons.custom(String)` (8 calls) are deprecated; `MTEBlackHoleCompressor` and `MTEMultiBlockBase` keep
 changing; the BEC costs were rebalanced between beta-3 and RC-2, so re-run the gate audit (costs doc §9) and re-check
@@ -130,6 +136,10 @@ errors and no crash. The boot log also confirms:
   builds nothing and re-walks the machine standing at x y z. To test on a dev server: put `eula=true` in
   `run/server/eula.txt`, run `tail -n 0 -f run/server/cmds.txt | ./gradlew.bat runServer` in Git Bash, append
   commands to `cmds.txt`, and finish with `stop`. See questions B-27 for what a run covers.
+- **More console tools** (test bench): `/btseye gates` dumps the compression generator recipes the server actually
+  has and checks the gate rule against them, and counts BHC consumers left. `/btsbuild t<1-5> <x> <y> <z> [facing]
+  [rod] [force] [crib] | [check]` builds a reactor plant from the console; `crib` checks that a feedwater socket
+  refuses a Crafting Input Buffer. Questions B-32.
 - **Hologram projector:** on the Kerr, stack 1 = T1 and 2+ = T2. On the Eye, stack 1-4 = T1-T4. Survival auto-build
   works from inventory or AE, like other GTNH multis.
 
