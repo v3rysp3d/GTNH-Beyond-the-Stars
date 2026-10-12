@@ -24,6 +24,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import com.google.gson.JsonArray;
@@ -173,6 +174,12 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         .custom("beyondthestars:iconsets/OVERLAY_FRONT_KERR_ENGINE_ACTIVE_GLOW");
 
     private static IStructureDefinition<MTEKerrEngine> STRUCTURE_DEFINITION = null;
+
+    /** Periodic structure re-check intervals in ticks (see structureChunksLoaded). */
+    private static final int RECHECK_IDLE = 200;
+    private static final int RECHECK_RUNNING = 1000;
+    /** Horizontal reach that covers every Kerr piece from the controller (kerr_t2 is 92 x 89). */
+    private static final int RECHECK_RADIUS = 96;
 
     // ---------------------------------------------------- PERSISTED (writeKerrState is the one writer)
     private boolean densityInstalled;
@@ -652,6 +659,19 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         return mMaxProgresstime > 0 && boundMode >= 0 ? boundMode : machineMode;
     }
 
+    /**
+     * GT brackets every recipe attempt with start/endRecipeProcessing over mInputBusses and
+     * mInputHatches (ME stocking hatches snapshot and commit there), so the selected mode's module
+     * must be bound BEFORE the bracket opens, never inside checkProcessing: binding there would end
+     * the bracket on a different module's hatches than it started on. Only checkRecipe calls this,
+     * and only while idle, so the binding is the selected mode.
+     */
+    @Override
+    public void startRecipeProcessing() {
+        bindModuleIO(currentBinding());
+        super.startRecipeProcessing();
+    }
+
     // ==================================================================== construct / survival
 
     /** Trap 1: the trigger stack alone picks the core (1 = T1, 2+ = T2); both modules always. */
@@ -668,17 +688,38 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
 
     @Override
     public int survivalConstruct(ItemStack stackSize, int elementBudget, ISurvivalBuildEnvironment env) {
-        if (mMachine && compressorBuilt && extractorBuilt) return -1;
-        // Server-side only, so the installed state may be read here: an upgraded Kerr builds T2.
+        // Server-side only, so the installed state may be read here: an upgraded Kerr builds T2, and a
+        // stack of 2+ pre-builds the T2 reinforcement before the upgrade goes in.
         final String core = densityInstalled || (stackSize != null && stackSize.stackSize >= 2) ? PIECE_T2 : PIECE_T1;
+        if (mMachine && core.equals(corePiece()) && compressorBuilt && extractorBuilt) return -1;
         final int[] o = off(core);
-        int built = survivalBuildPiece(core, stackSize, o[0], o[1], o[2], elementBudget, env, false, true);
+        final int built = survivalBuildPiece(core, stackSize, o[0], o[1], o[2], elementBudget, env, false, true);
         if (built >= 0) return built;
+        // The modules are independent: an unfinished (or unwanted) compressor never blocks the extractor.
         final int[] co = off(PIECE_COMPRESSOR);
-        built = survivalBuildPiece(PIECE_COMPRESSOR, stackSize, co[0], co[1], co[2], elementBudget, env, false, true);
-        if (built >= 0) return built;
+        final int c = survivalBuildPiece(
+            PIECE_COMPRESSOR,
+            stackSize,
+            co[0],
+            co[1],
+            co[2],
+            elementBudget,
+            env,
+            false,
+            true);
         final int[] eo = off(PIECE_EXTRACTOR);
-        return survivalBuildPiece(PIECE_EXTRACTOR, stackSize, eo[0], eo[1], eo[2], elementBudget, env, false, true);
+        final int e = survivalBuildPiece(
+            PIECE_EXTRACTOR,
+            stackSize,
+            eo[0],
+            eo[1],
+            eo[2],
+            Math.max(0, elementBudget - Math.max(c, 0)),
+            env,
+            false,
+            true);
+        if (c < 0 && e < 0) return -1;
+        return Math.max(c, 0) + Math.max(e, 0);
     }
 
     // ================================================================================= modes
@@ -825,7 +866,12 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     @Override
     public void onPostTick(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
         super.onPostTick(aBaseMetaTileEntity, aTick);
-        if (!aBaseMetaTileEntity.isServerSide() || !mMachine) return;
+        if (!aBaseMetaTileEntity.isServerSide()) return;
+        if (aTick > 0 && aTick % (mMaxProgresstime > 0 ? RECHECK_RUNNING : RECHECK_IDLE) == 0
+            && structureChunksLoaded(aBaseMetaTileEntity)) {
+            checkStructure(true, aBaseMetaTileEntity);
+        }
+        if (!mMachine) return;
         if (aTick % 20 == 0) {
             handleSeeds();
             for (MTEBlackHoleUtility hatch : utilityHatches) {
@@ -833,6 +879,20 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             }
         }
         tickHole();
+    }
+
+    /**
+     * The cage, the arcs and the modules are hundreds of separate islands as far as GT's
+     * block-update walk is concerned, so most edits never reach the controller. A periodic walk
+     * catches them (a built or broken module, swapped rails, the last hologram block). It is skipped
+     * while any chunk the structure could touch is unloaded, so a half-loaded cage never un-forms.
+     */
+    private static boolean structureChunksLoaded(IGregTechTileEntity base) {
+        final World world = base.getWorld();
+        final int x = base.getXCoord();
+        final int z = base.getZCoord();
+        return world != null && world
+            .checkChunksExist(x - RECHECK_RADIUS, 0, z - RECHECK_RADIUS, x + RECHECK_RADIUS, 255, z + RECHECK_RADIUS);
     }
 
     /** Hawking bleed, then the governor. Runs every tick while the machine is formed. */
@@ -1006,7 +1066,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         if (machineMode == MODE_DENSIFY && (!holeOpen || mass < DENSIFY_MIN_MASS)) {
             return SimpleCheckRecipeResult.ofFailure("beyondthestars.kerr.lowmass");
         }
-        bindModuleIO(machineMode);
+        // The module's I/O was bound in startRecipeProcessing, before GT opened the processing bracket.
         return super.checkProcessing();
     }
 
@@ -1078,6 +1138,9 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     public void saveNBTData(NBTTagCompound aNBT) {
         super.saveNBTData(aNBT);
         writeKerrState(aNBT);
+        // Tile only (a wrenched machine carries no running recipe): the module a running recipe started
+        // on, so a reload mid-run still sends its outputs there even if the mode was switched since.
+        if (mMaxProgresstime > 0 && boundMode >= 0) aNBT.setInteger("btsKerrBoundMode", boundMode);
     }
 
     @Override
@@ -1093,6 +1156,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         holeOpen = aNBT.getBoolean("btsKerrHoleOpen");
         mass = holeOpen ? Math.max(MASS_FLOOR, aNBT.getDouble("btsKerrMass")) : 0;
         setpoint = aNBT.hasKey("btsKerrSetpoint") ? clampSetpoint(aNBT.getDouble("btsKerrSetpoint")) : OPEN_MASS;
+        boundMode = aNBT.hasKey("btsKerrBoundMode") ? aNBT.getInteger("btsKerrBoundMode") : -1;
     }
 
     // ============================================================================ panel/tooltip
