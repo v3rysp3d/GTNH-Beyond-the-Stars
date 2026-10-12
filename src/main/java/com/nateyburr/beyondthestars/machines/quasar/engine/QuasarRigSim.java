@@ -3,6 +3,7 @@ package com.nateyburr.beyondthestars.machines.quasar.engine;
 import java.util.Locale;
 
 import com.nateyburr.beyondthestars.machines.directive.DirectiveSet;
+import com.nateyburr.beyondthestars.machines.eye.field.MagnetarCollapseOverlay;
 import com.nateyburr.beyondthestars.machines.eye.field.StellarField;
 import com.nateyburr.beyondthestars.machines.eye.field.TierParams;
 
@@ -129,7 +130,7 @@ public final class QuasarRigSim {
     static Run chain(int tier, long seed, long secs, boolean allBinary, double M0) {
         final QuasarSim.Cfg c = new QuasarSim.Cfg();
         c.seed = seed;
-        c.shock = 120; // F-2's recommended shock (the prototype's default is 80)
+        c.shock = MagnetarCollapseOverlay.DEFAULT_SHOCK; // F-2's +120 (the prototype's default is 80)
         if (tier == 6) {
             c.unlocked7 = false;
             c.coreGM = false; // no Supermassive Seed Core yet: no Heavy Link test fire right after the collapse

@@ -26,8 +26,10 @@ public final class MagnetarCollapseOverlay implements Overlay {
     public static final int OVERFEED_SECONDS = 300, COUNTDOWN_AT = 270;
     public static final double WDM_PER_SECOND = 61.44, BDM_PER_SECOND = 15.36;
     public static final double MNS_START = 2.0, MNS_RISE = 0.3;
-    /** The proposal's shock (F-2 recommends +120; the prototype's default is +80). */
-    public static final double DEFAULT_SHOCK = 80;
+    /** The adopted collapse shock (F-2's recommendation, P4-21); a shock of 0 or less means this. */
+    public static final double DEFAULT_SHOCK = 120;
+    /** The prototype's default shock, for the golden test. */
+    public static final double PROTOTYPE_SHOCK = 80;
     /** Shock points cancelled per Bu/t above D₇ that second. */
     public static final double CANCEL_PER_BU = 10;
     public static final double INTEGRITY_LOSS = 20;
