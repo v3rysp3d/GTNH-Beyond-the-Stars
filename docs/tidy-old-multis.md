@@ -450,7 +450,8 @@ Every field tooltip starts with a GOLD title and continues in GRAY (new keys `.t
   load sooner`.
 - `BTSMilestone.milestoneLine`: show the NEXT grant after the progress, and UPTIME in hours. Before:
   `UPTIME T1/7 · 90,000 generating ticks -> 144,000 (25%) · +2.0% output`. After: `UPTIME T1/7 ·
-  1.3 h -> 2.0 h (25%) · next: +5.0% output`.
+  1.3 h -> 2.0 h (25%) · next: +5.0% output`. Review: the output grants are the line's running total, so a held
+  tier adds the current total, `next: +5.0% output (now +2.0%)`, and "next:" cannot be read as a further +5.0%.
 - REPROCESSING unit text: `loads + batches` becomes `Derrick loads + Annex batches`. The rename to
   "ORE PROCESSING" is TQ-1.
 - Use one vocabulary: `x/112 points spent · y available` in both `treeSummaryLine` and the tree

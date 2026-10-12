@@ -252,10 +252,24 @@ public enum BTSMilestone {
                 .append("%) · ")
                 .append(EnumChatFormatting.GRAY)
                 .append("next: ")
-                .append(line.grant(tier + 1))
+                .append(line.nextGrantText(tier))
                 .append(EnumChatFormatting.RESET);
         }
         return out.toString();
+    }
+
+    /**
+     * What the next tier pays, as the milestone line prints it after "next: ". The output grants
+     * are the line's TOTAL (UPTIME T2 "+5.0% output" includes T1's +2.0%), so once a tier is
+     * held the current total follows in brackets - "+5.0% output (now +2.0%)" - and "next:"
+     * cannot be read as a further +5.0%. Named unlocks print as they are. Reads only the enum's
+     * constants, so it is safe on the client.
+     */
+    private String nextGrantText(int tier) {
+        final String next = grant(tier + 1);
+        final int nowMilli = multiplierMilli(tier);
+        if (tier <= 0 || multiplierMilli(tier + 1) <= nowMilli) return next;
+        return next + " (now +" + String.format("%.1f", (nowMilli - 1000) / 10.0) + "%)";
     }
 
     /** The four lines rolled up: tiers earned, the output term they buy, and the points. */
