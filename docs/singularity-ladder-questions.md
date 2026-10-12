@@ -379,6 +379,39 @@ piston, so the parts match an item extractor. That is a recipe change only; say 
 
 **Alternative.** Leave the recipes as they are.
 
+### B-18 D-49 star lifecycle and stability field: the proposal and its open choices [follow-up pass, design only]
+
+**Context.** D-49 redesigns the Eye: live T1-T3 stars, a T4 neutron star reached by Core Collapse, T5 black-dwarf
+cooling, a T6 magnetar on Antipolarization Agent, and a stability field on every tier. Three designs were judged and
+merged into one proposal: design repo `designs/docs/star-lifecycle.md`, everything PROPOSED. Nothing is built. The
+Eye freeze holds until you accept it.
+
+**In short.**
+
+- Stars run in 60 s cycles at today's per-minute economy.
+- The field is a gauge model on every tier: P, then Θ from T3, Ω from T4, and Π plus an agent shield at T6. Zones
+  set the yield. Integrity stops one bad second from killing a star.
+- A new sensor hatch (MTE 28116) and unbuffered Field sockets make the field automatable with threshold rigs. This
+  is simulated.
+- Tiers unlock in sequence: milestone, then core, then transition event.
+- This supersedes A-2/B-1, answers B-3, and changes B-5, B-6 and B-9 (partly).
+
+**Open choices** (recommendation first; details in §7 of the doc):
+
+1. **T2 optional?** Required. Alternative: a direct Sol → red giant route that takes 5.7× longer.
+2. **T5 cooling.** Subspace Cooling (DSSF) plus the general time dial. Alternatives: Urca + subspace, chrono-cooling
+   or a phonon drain.
+3. **Failure.** Lose the star, in-flight output and event materials. Cores are consumed only on success. No block or
+   tier loss.
+4. **T3 star.** Keep Arcturus, pushed past 1.44 M☉. Alternative: Betelgeuse.
+5. **Time dial.** Tachyon Rich Temporal Fluid buys output per hour at a harder field, capped by the Time Acceleration
+   tier above the Eye's tier. Alternative: the dial only at T5.
+6. **Trim budgets** (Super Coolant, Purified Tengam, SpaceTime). Accept, and tune after a play test.
+7. **Antimatter for the Agent** (about 10 L/s at T6). Check the Antimatter Forge's throughput before P4.
+8. **One live star per Eye.** Yes.
+9. **T4 HSM feed up to 1.5 L/s** (about 2.16× today's WDM rate). Yes.
+10. **A wrench during a transition.** Aborts it: event materials are lost, the core is kept.
+
 ---
 
 ## Part C. Settled (for the record)
