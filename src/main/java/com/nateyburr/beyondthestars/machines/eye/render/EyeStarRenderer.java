@@ -90,7 +90,12 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
     /** The cooling dwarf's dark veil (round 3, E-7): colour, radius in object radii, most alpha. */
     private static final float VEIL_R = 0x0E / 255f, VEIL_G = 0x0A / 255f, VEIL_B = 0x0C / 255f, VEIL_RADII = 1.003f,
         VEIL_ALPHA = 0.85f;
-    private static final int VEIL_STACKS = 16, VEIL_SLICES = 24;
+    private static final int VEIL_STACKS = 24, VEIL_SLICES = 32;
+    /**
+     * The shock shells' gamma (the bounce's, a magnetar flare). At 4 the bounce's shell blew the proto-neutron star out
+     * to 97 % white in round 3 (and 1.5 still left it 21-27 % white with the bounce shell at alpha 0.35).
+     */
+    private static final float SHOCK_GAMMA = SHELL_GAMMA;
     private static final int GLOW_SEGMENTS = 48;
     /** Polar beams (neutron star, magnetar): length and width in blocks, alpha at the base, tilt off the spin axis. */
     private static final double BEAM_LENGTH = 12, BEAM_HALF_WIDTH = 0.2, BEAM_TILT = Math.toRadians(20);
@@ -235,13 +240,13 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
                 -spin * 0.4);
             final double flare = star.flareAge(now);
             if (flare < FLARE_TICKS) {
-                shockShell(0xB0 / 255f, 0x70 / 255f, 1f, 0.4f, radius, radius * FLARE_REACH, flare / FLARE_TICKS, spin);
+                shockShell(0xB0 / 255f, 0x70 / 255f, 1f, 0.3f, radius, radius * FLARE_REACH, flare / FLARE_TICKS, spin);
             }
         }
 
         // 3) the transition shells, additive
         if (kind == EyeStarLook.BOUNCE && age < BOUNCE_TICKS) {
-            shockShell(0.8f, 0.9f, 1f, 0.6f, 2.6f, 18.6f, age / BOUNCE_TICKS, spin);
+            shockShell(0.8f, 0.9f, 1f, 0.25f, 2.6f, 18.6f, age / BOUNCE_TICKS, spin);
         } else if (kind == EyeStarLook.NOVA && age < NOVA_TICKS) {
             final float f = (float) (age / NOVA_TICKS);
             GL20.glUniform1f(shader.loc(U_GAMMA), 5f);
@@ -291,7 +296,7 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
      */
     private void shockShell(float r, float g, float b, float alpha, float from, float to, double f, double spin) {
         final float t = (float) Math.max(0, Math.min(1, f));
-        GL20.glUniform1f(shader.loc(U_GAMMA), 4f);
+        GL20.glUniform1f(shader.loc(U_GAMMA), SHOCK_GAMMA);
         drawLayer(LAYER_2, r, g, b, alpha * (1f - t), from + (to - from) * t, 0f, 1f, 1f, spin * 0.3);
     }
 
@@ -403,8 +408,14 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
         OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
     }
 
-    /** An untextured sphere of radius {@code rad} round {@code (cx, cy, cz)} in the veil colour at {@code alpha}. */
-    private static void veilSphere(Tessellator t, double cx, double cy, double cz, double rad, float alpha) {
+    /**
+     * An untextured sphere round {@code (cx, cy, cz)} in the veil colour at {@code alpha}, whose faces all lie at least
+     * {@code rad} from the centre: the vertices stand out by 1 / (cos(half a slice) x cos(half a stack)). With the
+     * vertices AT {@code rad} the flat faces sank up to 0.9 % inside it, i.e. inside the core's depth, and the round-3
+     * veil barely showed.
+     */
+    private static void veilSphere(Tessellator t, double cx, double cy, double cz, double minRad, float alpha) {
+        final double rad = minRad / (Math.cos(Math.PI / VEIL_SLICES) * Math.cos(Math.PI / (2 * VEIL_STACKS)));
         t.startDrawingQuads();
         t.setColorRGBA_F(VEIL_R, VEIL_G, VEIL_B, alpha);
         for (int i = 0; i < VEIL_STACKS; i++) {

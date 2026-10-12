@@ -92,17 +92,20 @@ public final class EyeStarLook {
     private static final int SIRIUS_A_RGB = 0x9EC2FF;
     private static final float SIRIUS_A_GAMMA = 1.8f;
     private static final int ARCTURUS_RGB = 0xFF6A20;
-    private static final float ARCTURUS_GAMMA = 1.5f;
+    // 0.9, not the review's 1.5: at 1.5 the round-3 shots still read golden (mean FEC072, median luminance 204); the
+    // texture's luminance has to come down for the shader's chroma to read orange
+    private static final float ARCTURUS_GAMMA = 0.9f;
     private static final int PROTO_RGB = 0xE6401A;
     private static final int NEUTRON_RGB = 0xB8D0FF;
     private static final float NEUTRON_GAMMA = 2.5f;
     private static final int BOUNCE_RGB = 0xB8D4FF;
-    private static final float BOUNCE_GAMMA = 2.5f;
-    // 4A30FF / 0.9 (round 3, E-6; was 6A3CFF / 1.2, which read pink-lilac): the shader's hue swap pushes a violet
-    // toward magenta, so the tint leans blue to land on violet, and the lower gamma keeps the core darker than the
-    // flare shell's rim
+    // 2.0, not 2.5: with the bounce's shock shell over it the proto-neutron star measured 14-34 % white at 2.5
+    private static final float BOUNCE_GAMMA = 2.0f;
+    // 4A30FF / 0.7 (round 3, E-6; was 6A3CFF / 1.2, which read pink-lilac): the shader's hue swap pushes a violet
+    // toward magenta, so the tint leans blue to land on violet, and the low gamma keeps the core darker than the
+    // flare shell's rim (the review's 0.9 still measured C597FF, lilac)
     private static final int MAGNETAR_RGB = 0x4A30FF;
-    private static final float MAGNETAR_GAMMA = 0.9f;
+    private static final float MAGNETAR_GAMMA = 0.7f;
 
     /** What the centre shows now, or null for nothing (dark, IDLE, no star). Server state. */
     public static EyeStarLook of(EyeStarRuntime rt) {
@@ -147,7 +150,7 @@ public final class EyeStarLook {
 
     /**
      * Core Collapse phase 1 at {@code f} (0..1) of the way to the bounce: Arcturus swelling and reddening. The gamma
-     * starts at Arcturus's own and falls by 0.4 as it swells (render QA E5: a rising gamma washed the red-orange out
+     * starts at Arcturus's own and falls by 0.3 as it swells (render QA E5: a rising gamma washed the red-orange out
      * to salmon; round 3 E-4: the old 2.6 -> 1.6 read yellow-orange at mid-swell).
      */
     public static EyeStarLook swell(float f) {
@@ -156,7 +159,7 @@ public final class EyeStarLook {
             SWELL,
             15f + 2f * c,
             lerp(ARCTURUS_RGB, 0xFF3C1E, c),
-            ARCTURUS_GAMMA - 0.4f * c,
+            ARCTURUS_GAMMA - 0.3f * c,
             1f + 3f * c,
             0.04f + 0.06f * c);
     }
@@ -219,9 +222,11 @@ public final class EyeStarLook {
      * copper glints).
      */
     private static final float[] DWARF_AT = { 0f, 0.5f, 0.75f, 0.9f, 1f };
-    private static final int[] DWARF_RGB = { 0xE6EEFF, 0xFFB070, 0x8A2A18, 0x2A1210, 0x0E0A0C };
-    // the early stop E6EEFF / 2.2 (round 3, E-3; EAF0FF / 4.5 rendered 100 % white with no features)
-    private static final float[] DWARF_GAMMA = { 2.2f, 2.5f, 0.45f, 0.15f, 0.08f };
+    private static final int[] DWARF_RGB = { 0xB8CCFF, 0xFFB070, 0x8A2A18, 0x2A1210, 0x0E0A0C };
+    // the early stop B8CCFF / 1.5 and the half-way stop at 1.8 (round 3, E-3: EAF0FF / 4.5 rendered 100 % white
+    // with no features, the review's E6EEFF / 2.2 still 41-54 %, B8CCFF / 2.0 still 36-39 %: on the way from blue to
+    // orange the tint passes through grey, which adds no chroma, so only a lower gamma keeps the texture)
+    private static final float[] DWARF_GAMMA = { 1.5f, 1.8f, 0.45f, 0.15f, 0.08f };
 
     /**
      * Sirius B through a cooling batch (fraction 0..1): white-hot blue-white, orange at half way, a dull brick red at
