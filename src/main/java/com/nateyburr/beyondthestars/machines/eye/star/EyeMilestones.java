@@ -90,6 +90,23 @@ public final class EyeMilestones {
         }
     }
 
+    /**
+     * P4 (P4-76): leaving T6 / T7, everything but the link milestone is met. The link's test fire (Slots [8]) needs the
+     * next core in escrow, so the core is wanted from here (Transition [4]); the link itself stays a precondition of
+     * the
+     * transition through {@link #met}. Other tiers: {@link #met}.
+     */
+    public boolean metButLink(int n) {
+        switch (n) {
+            case 6:
+                return prod[6] >= PROD_NEED[6] && res[6] >= RES_NEED[6] && flares >= FLARES_NEED;
+            case 7:
+                return prod[7] >= PROD_NEED[7] && res[7] >= RES_NEED[7] && mergers >= MERGERS_NEED;
+            default:
+                return met(n);
+        }
+    }
+
     /** Debug ({@code /btseye star … milestones n done}): marks tier n's milestones met. */
     public void complete(int n) {
         if (n < 1 || n > 7) return;

@@ -117,6 +117,14 @@ public final class EyeStarRuntime {
         /** Drains up to {@code max} litres of {@code fluid} from the live Field sockets; returns litres drained. */
         long drainField(Fluid fluid, long max);
 
+        /**
+         * P4-77: drains up to {@code max} litres of {@code fluid} from the stock sockets (gas and stellar hatches, ME
+         * stocking hatches included): an OpenComputers trim pulse's source. Returns litres drained.
+         */
+        default long drainStock(Fluid fluid, long max) {
+            return 0;
+        }
+
         /** Takes (or with {@code simulate}, finds) one Stellar Ignition Charge in a plinth input bus. */
         boolean takeIgnitionCharge(boolean simulate);
 
@@ -903,13 +911,20 @@ public final class EyeStarRuntime {
                 final Fluid fluid = trimFluid(trim.kind);
                 if (fluid == null) continue;
                 final long max = (long) Math.floor(trim.cap * p * trim.kind.unitLitres);
-                final long got = host.drainField(fluid, max);
+                long got = host.drainField(fluid, max);
+                // P4-77: an OpenComputers trim(kind, units) pulse tops it up from the stock sockets, same cap
+                final double oc = ocTrim.getOrDefault(trim.kind, 0.0);
+                if (oc > 0 && got < max) {
+                    got += host
+                        .drainStock(fluid, Math.min(max - got, (long) Math.floor(oc * p * trim.kind.unitLitres)));
+                }
                 if (got > 0) {
                     in.u.put(trim, got / (double) trim.kind.unitLitres);
                     lastTrims.put(trim.kind, got);
                 }
             }
         }
+        ocTrim.clear(); // a pulse is one second
         // ---- T4: the HSM feed actually available this second, L/s per parallel. A Core Collapse computes it
         // too, so the bounce second feeds the proto-neutron star exactly as the prototype does.
         in.feed = 0;
@@ -2604,9 +2619,7 @@ public final class EyeStarRuntime {
     public boolean extraWanted(double w) {
         if (!burning() || fs == null) return false;
         if (trans instanceof MagnetarMerger) {
-            final MagnetarMerger mm = (MagnetarMerger) trans;
-            final double e = fs.prevE[StellarField.PI];
-            return mm.phase == 1 ? e > 75 : e > 30;
+            return ((MagnetarMerger) trans).agentWanted(fs.prevE[StellarField.PI]);
         }
         return EyeTrimRule.extra(trimTable(), fs.prevE, fs.prevWarn, w);
     }
@@ -2642,10 +2655,41 @@ public final class EyeStarRuntime {
         return cap > 1 + 1e-9 && lastM < cap - 1e-9;
     }
 
-    /** Transition bit 3: this tier's milestones are met and the next core is not in escrow yet. */
+    /** P4-77: OpenComputers trim pulses for the next field second, units per parallel by kind (not saved). */
+    private final java.util.EnumMap<TrimDef.Kind, Double> ocTrim = new java.util.EnumMap<>(TrimDef.Kind.class);
+
+    /**
+     * OpenComputers {@code trim(kind, units)} (quasar-p4.md §8.2, P4-77): the next field second takes up to
+     * {@code units} (per parallel, capped at the trim's own cap) of one of the burning star's trims - "space", or any
+     * trim by its key or name - from the stock sockets, on top of what the Field sockets hold, within the same cap.
+     * Returns what was queued, or why not.
+     */
+    public String requestTrim(String kind, double units) {
+        if (fs == null || star == null || !burning()) return "no star burning: nothing to trim";
+        if (rig != null) return "the debug rig replaces the Field sockets";
+        final String k = kind == null ? "" : kind.trim();
+        for (TrimDef trim : trimTable().trims()) {
+            if (!trim.kind.key.equalsIgnoreCase(k) && !trim.kind.displayName.equalsIgnoreCase(k)
+                && !trim.kind.name()
+                    .equalsIgnoreCase(k)) {
+                continue;
+            }
+            final double u = Math.max(0, Math.min(trim.cap, Double.isNaN(units) ? 0 : units));
+            ocTrim.put(trim.kind, u);
+            return String
+                .format(Locale.ROOT, "%s: %.1f units next second (cap %.0f)", trim.kind.displayName, u, trim.cap);
+        }
+        return "no trim '" + k + "' on this star (its trims: " + trimTable().trims() + ")";
+    }
+
+    /**
+     * Transition bit 3: this tier's milestones are met (T6 / T7: all but the link) and the next core is not in escrow
+     * yet.
+     */
     public boolean coreWanted() {
         final Item need = coreFor(unlockedTier);
-        if (need == null || !milestones.met(unlockedTier)) return false;
+        // T6 / T7: wanted once all but the link is met - the link's test fire needs the core in place (P4-76)
+        if (need == null || !milestones.metButLink(unlockedTier)) return false;
         return escrow == null || escrow.getItem() != need;
     }
 

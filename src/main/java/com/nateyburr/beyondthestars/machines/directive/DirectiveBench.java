@@ -167,7 +167,7 @@ public final class DirectiveBench {
                         pour(
                             eye,
                             EyeStarRuntime.trimFluid(kind),
-                            EyeTrimRule.rigExtraRate(table.n) * p * kind.unitLitres);
+                            EyeTrimRule.rigExtraRate(table.n, (trans & 2) != 0) * p * kind.unitLitres);
                     }
                 }
             }
@@ -289,6 +289,14 @@ public final class DirectiveBench {
         BTSComputerApi.eyeSetDial(eye, dial);
         BTSComputerApi.eyeSetFeed(eye, feed);
         out.add("(dial and feed put back to " + dial + " / " + feed + ")");
+        // P4-77: trim(kind, units), one second's pulse from the stock sockets (bts_eye.trim)
+        for (String k : new String[] { "space", "Space", "argon" }) {
+            out.add(
+                "trim(\"" + k
+                    + "\", 99) = "
+                    + eye.starRuntime()
+                        .requestTrim(k, 99));
+        }
         // the control hatches: redstone 1..15 into the dial and the feed, as a Directive Hatch on a control set
         final StringBuilder sb = new StringBuilder("control EYE_DIAL 1..15 ->");
         for (int s = 1; s <= 15; s++) {

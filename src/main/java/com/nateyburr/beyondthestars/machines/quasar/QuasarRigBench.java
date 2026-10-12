@@ -116,7 +116,19 @@ public final class QuasarRigBench {
         EyeGalaxyBench.liveHook = null;
         if (r == null) return "No quasar rig running.";
         clearBlocks(world, r);
-        return "Quasar rig off: the Eye reads its GRB Receptor Ports again on the next autorig-free second.";
+        final MTEEyeOfHarmonyBTS eye = r.withEye ? eyeAt(world, r.ex, r.ey, r.ez) : null;
+        // the scripted bursts are the Eye's until cleared: drop them, or the last second's would be felt for ever
+        if (eye != null) EyeGalaxyBench.unscripted(eye);
+        return "Quasar rig off: the Eye reads its GRB Receptor Ports again"
+            + (eye == null ? " once its chunk loads." : " from its next second.");
+    }
+
+    private static MTEEyeOfHarmonyBTS eyeAt(World world, int x, int y, int z) {
+        if (world == null || !world.blockExists(x, y, z)) return null;
+        final net.minecraft.tileentity.TileEntity te = world.getTileEntity(x, y, z);
+        if (!(te instanceof IGregTechTileEntity)) return null;
+        final Object m = ((IGregTechTileEntity) te).getMetaTileEntity();
+        return m instanceof MTEEyeOfHarmonyBTS ? (MTEEyeOfHarmonyBTS) m : null;
     }
 
     /**
@@ -325,7 +337,7 @@ public final class QuasarRigBench {
             eventsH.currentCode(),
             bit(slotsH.currentCode(), 4),
             r.analog,
-            "the quasar at " + r.qx + ", " + r.qy + ", " + r.qz,
+            r.qx + ", " + r.qy + ", " + r.qz, // as BurstSource.label(): the Eye says "the quasar at <label>"
             q.isFrozen(),
             s.Phi,
             s.b);
@@ -370,9 +382,14 @@ public final class QuasarRigBench {
         if (r == null || !r.isEye(eye)) return;
         final IGregTechTileEntity eb = eye.getBaseMetaTileEntity();
         final World world = eb == null ? null : eb.getWorld();
-        if (world == null || !world.blockExists(r.qx, r.qy, r.qz)) return;
-        final MTEQuasarEngine q = QuasarKit.quasarAt(world, r.qx, r.qy, r.qz);
-        if (q == null) return;
+        final MTEQuasarEngine q = world == null || !world.blockExists(r.qx, r.qy, r.qz) ? null
+            : QuasarKit.quasarAt(world, r.qx, r.qy, r.qz);
+        if (q == null) {
+            // the quasar is unloaded or gone: the conduit carries nothing, so nothing scripted may linger (Q-8: the
+            // real receptor path pauses an Eye whose source is unloaded; the bench reads the ports again)
+            EyeGalaxyBench.unscripted(eye);
+            return;
+        }
         final MTEHatchDirective disc = DirectiveBench.hatch(q.directiveHatches(), DirectiveSet.QUASAR_DISC);
         final MTEHatchBurstControl purgeH = hatch(q.burstControlHatches(), MTEHatchBurstControl.Mode.PURGE);
         final MTEHatchDirective transH = DirectiveBench

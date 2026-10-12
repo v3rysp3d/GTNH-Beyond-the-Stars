@@ -36,6 +36,12 @@ public final class MagnetarMerger extends EyeTransition {
     public static final int HOLD = 120, IMPRINT_TIMEOUT = 600;
     public static final double RELEASE_BAND = 40;
     public static final int RELEASE_TIMEOUT = 60;
+    /**
+     * Directive Agent thresholds on Π. Imprint: 66, so Π stays inside +60..+70 where the field is only Strained
+     * (Integrity -0.5/s, 60 over the 120 s hold; above +70 it is Critical, -2/s) with the merger valve
+     * ({@code EyeTrimRule.MERGER_AGENT_RATE}, one unit a second). Release: above +30.
+     */
+    public static final double AGENT_IMPRINT = 66, AGENT_RELEASE = 30;
 
     /** 1 imprint, 2 release. */
     public int phase = 1;
@@ -63,6 +69,14 @@ public final class MagnetarMerger extends EyeTransition {
     @Override
     public double shieldPerUpkeep(TierParams t) {
         return phase == 1 ? 0 : StellarField.SHIELD_PER_UPKEEP;
+    }
+
+    /**
+     * The Directive Hatch's Agent bit (Status bit 3) during the merger: the imprint wants the Agent only above
+     * {@link #AGENT_IMPRINT}, the release whenever Π is above {@link #AGENT_RELEASE}.
+     */
+    public boolean agentWanted(double pi) {
+        return phase == 1 ? pi > AGENT_IMPRINT : pi > AGENT_RELEASE;
     }
 
     @Override

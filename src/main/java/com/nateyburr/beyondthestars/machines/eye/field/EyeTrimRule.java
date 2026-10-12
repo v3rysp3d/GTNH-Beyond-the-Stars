@@ -123,6 +123,21 @@ public final class EyeTrimRule {
         return tier == 3 ? 10 : tier == 6 ? 5 : 0;
     }
 
+    /**
+     * The T6 Agent valve while a transition runs (Status bit 3 AND Transition bit 2: the Magnetar Merger), units/s at
+     * parallel 1. The imprint must hold Π inside +60..+70 to keep its Integrity (Strained loses 0.5/s, Critical 2/s),
+     * so the dose is one unit (shield +4, Π -4 a second); the standard 5-unit valve moves Π by 20 and leaves the band
+     * (B-71).
+     */
+    public static final double MERGER_AGENT_RATE = 1;
+
+    /**
+     * The Status bit-3 valve a gate rig opens: {@link #rigExtraRate}, or the merger valve on T6 during a transition.
+     */
+    public static double rigExtraRate(int tier, boolean transitionRunning) {
+        return tier == 6 && transitionRunning ? MERGER_AGENT_RATE : rigExtraRate(tier);
+    }
+
     /** The label of trim bit i (0..3) on table {@code t}, e.g. "Helium (P > +w)"; "" when the tier has none. */
     public static String label(TierParams t, int i) {
         final List<TrimDef> trims = t.trims();
