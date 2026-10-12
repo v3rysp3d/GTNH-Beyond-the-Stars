@@ -20,10 +20,15 @@ import com.nateyburr.beyondthestars.machines.eye.star.EyeTransition;
 import com.nateyburr.beyondthestars.machines.eye.star.GalacticMerger;
 import com.nateyburr.beyondthestars.machines.eye.star.MagnetarCollapse;
 import com.nateyburr.beyondthestars.machines.eye.star.StarDef;
+import com.nateyburr.beyondthestars.machines.homogeny.MTEHomogeny;
 import com.nateyburr.beyondthestars.machines.kerr.MTEKerrEngine;
 import com.nateyburr.beyondthestars.machines.kerr.MTEKerrModuleBase;
+import com.nateyburr.beyondthestars.machines.quasar.burst.BurstHost;
+import com.nateyburr.beyondthestars.machines.quasar.burst.BurstSource;
 import com.nateyburr.beyondthestars.machines.quasar.engine.BurstLink;
+import com.nateyburr.beyondthestars.machines.reality.MTERealityDiffraction;
 
+import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 
 /**
@@ -40,6 +45,92 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 public final class BTSComputerApi {
 
     private BTSComputerApi() {}
+
+    // ============================================================================ rate limit
+
+    /** Setters take one call per this many ticks per machine and method: the field's own step (quasar-p4.md §8.2). */
+    public static final long RATE_TICKS = 20;
+    /** What a refused setter returns to the computer: nil and the reason. */
+    public static final String RATE_MESSAGE = "rate limited: one call per 20 ticks (1 s, the field's step)";
+    /** "dim:x,y,z#method" -> world tick of the last accepted call; the oldest entries go first past 4,096. */
+    private static final Map<String, Long> LAST_SET = new LinkedHashMap<String, Long>(64, 0.75f, false) {
+
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, Long> eldest) {
+            return size() > 4096;
+        }
+    };
+
+    /**
+     * True if {@code method} may run on {@code mte} now (and records the call); false within {@link #RATE_TICKS} of
+     * the last accepted call, so a script cannot beat the 1 s lag. Server thread.
+     */
+    public static boolean rateOk(IMetaTileEntity mte, String method) {
+        final IGregTechTileEntity base = mte == null ? null : mte.getBaseMetaTileEntity();
+        if (base == null || base.getWorld() == null) return true;
+        final long now = base.getWorld()
+            .getTotalWorldTime();
+        final String key = base.getWorld().provider.dimensionId + ":"
+            + base.getXCoord()
+            + ","
+            + base.getYCoord()
+            + ","
+            + base.getZCoord()
+            + "#"
+            + method;
+        final Long last = LAST_SET.get(key);
+        if (last != null && now - last < RATE_TICKS && now >= last) return false;
+        LAST_SET.put(key, now);
+        return true;
+    }
+
+    // ============================================================================ burst hosts
+
+    /** The quasar link as a host sees it: sigma (60 s mean and last second), delivered, linked, source, paused. */
+    public static Map<String, Object> burstLink(BurstHost h, double sigmaUsed, int ports) {
+        final Map<String, Object> m = new LinkedHashMap<>();
+        m.put("ports", ports);
+        m.put("sigma", sigmaUsed);
+        m.put("sigmaLast", h.sigma());
+        m.put("delivered", h.delivered());
+        m.put("mean", h.mean());
+        m.put("linked", h.linked());
+        final BurstSource s = h.linkSource();
+        m.put("source", s == null ? "" : s.label());
+        m.put("paused", h.paused());
+        m.put("line", h.linkLine());
+        return m;
+    }
+
+    /** {@code bts_homogeny.getState()}: tier, parallels, the quasar link and what it does (P4, §3.1). */
+    public static Map<String, Object> homogenyState(MTEHomogeny h) {
+        final Map<String, Object> m = new LinkedHashMap<>();
+        m.put("formed", h.isFormedForGui());
+        m.put("tier", h.tier());
+        m.put("installedTier", h.installedTier());
+        m.put("parallels", h.maxParallel());
+        m.put("speed", h.speedFactor());
+        m.put("demand", h.burstDemand());
+        m.put("entanglementOpen", h.quasarSigma() >= 1.0);
+        m.put("running", h.mMaxProgresstime > 0);
+        m.put("progress", h.mMaxProgresstime > 0 ? (double) h.mProgresstime / h.mMaxProgresstime : 0.0);
+        m.put("link", burstLink(h.burstHost(), h.quasarSigma(), h.receptorCount()));
+        return m;
+    }
+
+    /** {@code bts_reality.getState()}: runs, the burst-driven regions and their speed (P4, §3.1). */
+    public static Map<String, Object> realityState(MTERealityDiffraction r) {
+        final Map<String, Object> m = new LinkedHashMap<>();
+        m.put("formed", r.mMachine);
+        m.put("burstDriven", r.burstDriven());
+        m.put("speed", r.speedFactor());
+        m.put("demand", BurstLink.REALITY);
+        m.put("running", r.mMaxProgresstime > 0);
+        m.put("progress", r.mMaxProgresstime > 0 ? (double) r.mProgresstime / r.mMaxProgresstime : 0.0);
+        m.put("anchorMask", r.anchorMask() & 63);
+        m.put("link", burstLink(r.burstHost(), r.quasarSigma(), r.receptorCount()));
+        return m;
+    }
 
     // ===================================================================================== Eye
 
@@ -324,6 +415,10 @@ public final class BTSComputerApi {
         m.put("collapsers", kee.getCollapsers());
         m.put("linkedModules", kee.getLinkedModules());
         m.put("auto", kee.isAutoSeeds());
+        // P4: the quasar link (a GRB Receptor Port in a utility socket)
+        m.put("setpointHeld", kee.effectiveSetpoint());
+        m.put("bleedFactor", kee.bleedFactor());
+        m.put("link", burstLink(kee.burstHost(), kee.burstSigma(), kee.receptorCount()));
         return m;
     }
 
@@ -429,6 +524,25 @@ public final class BTSComputerApi {
         final Map<String, Object> bits = new LinkedHashMap<>();
         for (int i = 0; i < 4; i++) bits.put(h.label(i), (h.currentCode() & (1 << i)) != 0);
         m.put("bits", bits);
+        return m;
+    }
+
+    /**
+     * {@code bts_directive.getBits()}: the current code as four booleans, [1] [2] [4] [8] (Lua indices 1-4), with
+     * their labels.
+     */
+    public static Map<String, Object> directiveBits(MTEHatchDirective h) {
+        final Map<String, Object> m = new LinkedHashMap<>();
+        final int code = h.currentCode();
+        final Map<Integer, Object> on = new LinkedHashMap<>();
+        final Map<Integer, Object> names = new LinkedHashMap<>();
+        for (int i = 0; i < 4; i++) {
+            on.put(i + 1, (code & (1 << i)) != 0);
+            names.put(i + 1, h.label(i));
+        }
+        m.put("code", code);
+        m.put("on", on);
+        m.put("names", names);
         return m;
     }
 

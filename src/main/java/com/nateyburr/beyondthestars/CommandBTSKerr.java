@@ -66,7 +66,7 @@ public class CommandBTSKerr extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btskerr [t1|t2] [force]  |  /btskerr migrate [x y z]  |  /btskerr render x y z [open [m]|close|off|on|break]  |  /btskerr module x y z <c|x> [stock|status|tier|clear]  |  /btskerr damage|repair x y z  |  console: /btskerr [t1|t2] <x> <y> <z> [facing] [force] [survival] | [check]  |  /btskerr autorig x y z [s] [bolts/s] [empty]  |  /btskerr ocloop x y z  |  /btskerr ctrl x y z on|off|out  |  /btskerr ocprobe x y z  |  /btskerr receptor x y z";
+        return "/btskerr [t1|t2] [force]  |  /btskerr migrate [x y z]  |  /btskerr render x y z [open [m]|close|off|on|break]  |  /btskerr module x y z <c|x> [stock|status|tier|clear]  |  /btskerr damage|repair x y z  |  console: /btskerr [t1|t2] <x> <y> <z> [facing] [force] [survival] | [check]  |  /btskerr autorig x y z [s] [bolts/s] [empty]  |  /btskerr ocloop x y z  |  /btskerr ctrl x y z on|off|out  |  /btskerr ocprobe x y z  |  /btskerr receptor x y z  |  /btskerr occall x y z method[x2] [args]";
     }
 
     @Override
@@ -96,6 +96,7 @@ public class CommandBTSKerr extends CommandBase {
         if (args.length >= 4 && (args[0].equalsIgnoreCase("autorig") || args[0].equalsIgnoreCase("ocloop")
             || args[0].equalsIgnoreCase("ctrl")
             || args[0].equalsIgnoreCase("ocprobe")
+            || args[0].equalsIgnoreCase("occall")
             || args[0].equalsIgnoreCase("receptor"))) {
             automation(sender, args);
             return;
@@ -309,6 +310,18 @@ public class CommandBTSKerr extends CommandBase {
         final int x = (int) func_110666_a(sender, sender.getPlayerCoordinates().posX, args[1]);
         final int y = (int) func_110666_a(sender, sender.getPlayerCoordinates().posY, args[2]);
         final int z = (int) func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[3]);
+        if (args[0].equalsIgnoreCase("occall")) {
+            // P4: any of our blocks - call one OpenComputers callback as a computer would (x2: twice in one tick)
+            if (!cpw.mods.fml.common.Loader.isModLoaded("OpenComputers") || args.length < 5) {
+                SLConsoleTest.tell(sender, "OpenComputers is not installed, or no method given.");
+                return;
+            }
+            for (String line : com.nateyburr.beyondthestars.integration.oc.BTSOpenComputers
+                .call(world, x, y, z, args[4], java.util.Arrays.copyOfRange(args, 5, args.length))) {
+                SLConsoleTest.tell(sender, line);
+            }
+            return;
+        }
         if (args[0].equalsIgnoreCase("ocprobe")) {
             // any block: what an OpenComputers Adapter against it would get (needs OpenComputers installed)
             if (!cpw.mods.fml.common.Loader.isModLoaded("OpenComputers")) {

@@ -38,7 +38,9 @@ public final class BTSDriver implements SidedBlock {
             || mte instanceof com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine
             || mte instanceof com.nateyburr.beyondthestars.machines.conduit.MTEConduitElement
             || mte instanceof com.nateyburr.beyondthestars.machines.quasar.MTEBurstThermaliserCrown
-            || mte instanceof com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor;
+            || mte instanceof com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor
+            || mte instanceof com.nateyburr.beyondthestars.machines.homogeny.MTEHomogeny
+            || mte instanceof com.nateyburr.beyondthestars.machines.reality.MTERealityDiffraction;
     }
 
     @Override
@@ -66,6 +68,12 @@ public final class BTSDriver implements SidedBlock {
         }
         if (mte instanceof com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor) {
             return new BTSEnvironments.Receptor(world, x, y, z);
+        }
+        if (mte instanceof com.nateyburr.beyondthestars.machines.homogeny.MTEHomogeny) {
+            return new BTSEnvironments.Homogeny(world, x, y, z);
+        }
+        if (mte instanceof com.nateyburr.beyondthestars.machines.reality.MTERealityDiffraction) {
+            return new BTSEnvironments.Reality(world, x, y, z);
         }
         return null;
     }
