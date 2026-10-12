@@ -4402,7 +4402,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         if (outputOverruns > 1 && now - outputOverrunLogTick < OVERRUN_LOG_TICKS) return;
         outputOverrunLogTick = now;
         BeyondTheStars.LOG.error(
-            "[Unit One @ {},{},{}] OUTPUT OVER-INJECTION #{}: offered {} EU/t into a hatch row that can absorb {} EU/t (dynamos {} + lasers {}); short by {} EU/t - {}. Mode: {}.",
+            "[Nuclear Plant Foundation @ {},{},{}] OUTPUT OVER-INJECTION #{}: offered {} EU/t into a hatch row that can absorb {} EU/t (dynamos {} + lasers {}); short by {} EU/t - {}. Mode: {}.",
             base == null ? "?" : base.getXCoord(),
             base == null ? "?" : base.getYCoord(),
             base == null ? "?" : base.getZCoord(),
