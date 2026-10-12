@@ -203,3 +203,16 @@ GT5U.gui.text.recipe_result.beyondthestars.eye.tier5=This target is Eye T5: buil
 GT5U.gui.text.recipe_result.beyondthestars.eye.tier6=This target is Eye T6: build every band up to the galactic rim, and unlock T6
 GT5U.gui.text.recipe_result.beyondthestars.eye.compression5=This target is Eye T5: every Spacetime Compression Field Generator must be tier 5 or higher
 GT5U.gui.text.recipe_result.beyondthestars.eye.compression6=This target is Eye T6: every Spacetime Compression Field Generator must be tier 6 or higher
+
+# D-49 unit 4: the Eye's live stars and tier unlock (recipe-result text, GT 5.09.54.x key form)
+GT5U.gui.text.recipe_result.beyondthestars.eye.locked2=This target is Eye T2: T2 is not unlocked yet (Sol's milestones, the Stellar Mass Core, the Mass Infusion)
+GT5U.gui.text.recipe_result.beyondthestars.eye.locked3=This target is Eye T3: T3 is not unlocked yet (Sirius A's milestones, the Shell-Burning Core, the Shell Ignition)
+GT5U.gui.text.recipe_result.beyondthestars.eye.locked4=This target is Eye T4: T4 is not unlocked yet (Arcturus's milestones, the Galactic Upgrade Core, the Core Collapse)
+GT5U.gui.text.recipe_result.beyondthestars.eye.locked5=This target is Eye T5: T5 is not unlocked yet (the neutron star's milestones, the Subspace Cooling Core, the First Cooling)
+GT5U.gui.text.recipe_result.beyondthestars.eye.locked6=This target is Eye T6: T6 is not unlocked yet (Sirius B's milestones, the Magnetar Seed Core, the Magnetar Merger)
+GT5U.gui.text.recipe_result.beyondthestars.eye.star_lit=A live star is burning: scan the controller for its stability field
+GT5U.gui.text.recipe_result.beyondthestars.eye.star_igniting=The protostar is igniting (no output until it lights)
+GT5U.gui.text.recipe_result.beyondthestars.eye.star_pending=The next tier's chart is in: the star keeps burning while its transition waits
+GT5U.gui.text.recipe_result.beyondthestars.eye.star_dark=The star is dark: it lights with a Stellar Ignition Charge in a plinth input bus, 10 cycles of upkeep in the buffers and 10 cycles of EU
+GT5U.gui.text.recipe_result.beyondthestars.eye.star_remnant=The neutron star is born from a burning Arcturus by the Core Collapse: light Arcturus, then put this chart in
+GT5U.gui.text.recipe_result.beyondthestars.eye.star_unit5=The T5 and T6 stars are not in this build yet

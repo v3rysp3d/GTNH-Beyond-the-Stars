@@ -18,6 +18,7 @@ import com.nateyburr.beyondthestars.machines.SLConsoleTest;
 import com.nateyburr.beyondthestars.machines.SLGateDump;
 import com.nateyburr.beyondthestars.machines.eye.EyeKit;
 import com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS;
+import com.nateyburr.beyondthestars.machines.eye.star.EyeStarBench;
 
 /**
  * /btseye [t1..t6] [gen 1-9] [fill] [force] - SINGULARITY LADDER P3 creative build: raises a
@@ -43,6 +44,8 @@ import com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS;
  * <p>
  * {@code /btseye gates} dumps the Spacetime Compression Field Generator recipes the server has and
  * checks the compression-gate rule against them ({@link SLGateDump}).
+ * <p>
+ * {@code /btseye star <x> <y> <z> <sub> …} is the D-49 live-star bench ({@link EyeStarBench}).
  */
 public class CommandBTSEye extends CommandBase {
 
@@ -58,7 +61,8 @@ public class CommandBTSEye extends CommandBase {
     @Override
     public String getCommandUsage(ICommandSender sender) {
         return "/btseye [t1..t6] [gen 1-9] [fill] [force]  |  console: /btseye [t1..t6] <x> <y> <z> [facing] "
-            + "[gen 1-9] [fill] [force] [survival] [legacy] [nobeam] | [check]  |  /btseye gates";
+            + "[gen 1-9] [fill] [force] [survival] [legacy] [nobeam] | [check]  |  /btseye gates  |  "
+            + EyeStarBench.USAGE;
     }
 
     @Override
@@ -78,6 +82,13 @@ public class CommandBTSEye extends CommandBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
+        if (args.length >= 1 && args[0].equalsIgnoreCase("star")) {
+            // D-49 test bench: the live star of the Eye at x y z (EyeStarBench).
+            for (String line : EyeStarBench.run(sender, args)) {
+                SLConsoleTest.tell(sender, line);
+            }
+            return;
+        }
         if (args.length == 1 && args[0].equalsIgnoreCase("gates")) {
             // Test bench: the compression-gate audit against the recipes this server actually has.
             SLGateDump.run(sender);

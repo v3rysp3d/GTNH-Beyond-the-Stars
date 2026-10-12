@@ -20,7 +20,8 @@ import gregtech.nei.RecipeDisplayInfo;
  * <p>
  * DISPLAY ONLY. The Eye runs its own registry ({@link EyeRecipeRegistry}) because its amounts are
  * longs; every entry on this page is {@code .fake()} and mirrors one registry recipe, with the true
- * (long) amounts, time, EU and success in the description. The layout copies TecTech's EOH page: the
+ * (long) amounts, time, EU and success in the description. D-49 stars show one 60 s cycle: up to four
+ * upkeep fluids in, the product out. The layout copies TecTech's EOH page: the
  * target in the top centre, a 9 x 9 output grid, two rows of output fluids.
  * <p>
  * Built in a static initialiser that {@link MTEEyeOfHarmonyBTS} touches at its class init (preInit),
@@ -33,7 +34,7 @@ public final class EyeRecipeMaps {
 
     /** NEI page: the target in, everything the run makes out. */
     public static final RecipeMap<RecipeMapBackend> EYE = RecipeMapBuilder.of("beyondthestars.recipe.eye")
-        .maxIO(1, 81, 2, 18)
+        .maxIO(1, 81, 4, 18)
         .minInputs(1, 0)
         .frontend(EyeFrontend::new)
         .neiHandlerInfo(builder -> builder.setHeight(330))
@@ -61,7 +62,8 @@ public final class EyeRecipeMaps {
 
         @Override
         public List<Pos2d> getFluidInputPositions(int fluidInputCount) {
-            return UIHelper.getGridPositions(fluidInputCount, 115, 8, 2, 1);
+            // D-49: up to 4 inputs (a star's upkeep per cycle), a 2 x 2 grid right of the target
+            return UIHelper.getGridPositions(fluidInputCount, 115, 8, 2, 2);
         }
 
         @Override

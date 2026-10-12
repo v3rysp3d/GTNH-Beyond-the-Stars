@@ -225,7 +225,7 @@ public final class EyeKit {
      * first {@code tiers - 1} bands (1..6), the field generators at {@code genMeta} (0-8), a hatch in every
      * socket (D-49: the last plinth gas socket takes an input bus for the ignition charges, every Field
      * socket a plain input hatch, every Sensor socket a Stellar Field Sensor Hatch, the T6 rim's sockets
-     * input hatches), the Galactic core at T4+, the top tier's star chart in the controller slot, the player as
+     * input hatches), unlocked to its tier (D-49), the top tier's chart in the controller slot, the player as
      * owner; with {@code fill}, full input buffers and 10^18 wireless EU. Then forms it. Server only.
      */
     public static Result build(World world, int x, int y, int z, ForgeDirection facing, int tiers, int genMeta,
@@ -346,11 +346,10 @@ public final class EyeKit {
         }
 
         // 4. Upgrade, target, owner's power, then form.
-        if (tiers >= 4) eye.completeGalacticUpgrade();
-        // TODO(D-49 unit 4): T4 becomes Star Chart: Neutron Star once the star runtime lands; until then Sirius B
-        // is still the T4 white-dwarf run, and T5/T6 have no star of their own yet.
+        // D-49: a creative test build is unlocked to its tier (the milestones, cores and transitions are skipped).
+        eye.debugUnlock(tiers);
         final Item[] charts = { SLItems.starChartSol, SLItems.starChartSiriusA, SLItems.starChartArcturus,
-            SLItems.starChartSiriusB, SLItems.starChartSiriusB, SLItems.starChartMagnetar };
+            SLItems.starChartNeutronStar, SLItems.starChartSiriusB, SLItems.starChartMagnetar };
         final Item chart = charts[Math.max(0, Math.min(charts.length, tiers) - 1)];
         if (chart != null) base.setInventorySlotContents(eye.getControllerSlotIndex(), new ItemStack(chart, 1, 0));
         if (fill) {

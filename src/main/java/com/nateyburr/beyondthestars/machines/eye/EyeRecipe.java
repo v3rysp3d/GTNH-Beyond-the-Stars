@@ -13,9 +13,10 @@ import net.minecraftforge.fluids.Fluid;
  * <p>
  * Not a GT recipe-map recipe: amounts are {@code long} (a Sol run eats a billion litres of each gas),
  * so the Eye keeps its own registry ({@link EyeRecipeRegistry}) the way TecTech's EOH does, and NEI
- * shows a display-only copy. A recipe is either a <b>star</b> (fixed inputs, always succeeds, the
- * field generators do not touch it) or a <b>planet</b> converted from TecTech's EOH (H/He in, ores
- * and plasmas out, success and speed moved by the field generators as in TecTech, Q-20).
+ * shows a display-only copy. Since D-49 every recipe here is a <b>planet</b> converted from TecTech's
+ * EOH (H/He in, ores and plasmas out, success and speed moved by the field generators as in TecTech,
+ * Q-20); the stars are live {@code star.StarDef}s run by {@code star.EyeStarRuntime}. The star-only
+ * fields ({@link #compressionRequired} = -1) are kept for the class's shape.
  */
 public final class EyeRecipe {
 

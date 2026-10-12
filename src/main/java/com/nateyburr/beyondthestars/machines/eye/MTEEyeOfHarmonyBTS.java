@@ -25,6 +25,7 @@ import javax.annotation.Nonnull;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
@@ -40,11 +41,16 @@ import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.items.SLItems;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
+import com.nateyburr.beyondthestars.machines.eye.field.FieldReadout;
+import com.nateyburr.beyondthestars.machines.eye.star.EyeNbt;
+import com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime;
+import com.nateyburr.beyondthestars.machines.eye.star.StarDef;
 
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.Textures;
@@ -88,8 +94,8 @@ import tectech.thing.casing.TTCasingsContainer;
  * checked at its own {@code off=}: {@code eye_core} (T1, required), {@code eye_beam} (T2 beam band),
  * {@code eye_jet} (T3 jet crescent), {@code eye_arms} (T4 spiral arms), {@code eye_arms2} (T5 second
  * arms) and {@code eye_rim} (T6 galactic rim). D-49 makes the bands CUMULATIVE ({@link #structureTier}):
- * T2 is required, and a band counts only while every band below it stands. T4 also needs an installed
- * Galactic Upgrade Core (Q-11) until D-49's unlock lands. The core band carries D-49's Field
+ * T2 is required, and a band counts only while every band below it stands. A tier also needs D-49's
+ * permanent unlock (milestones, core, transition; {@link EyeStarRuntime}). The core band carries D-49's Field
  * ({@code f}) and Sensor ({@code n}) sockets, the rim four more stellar sockets ({@code g}); all of
  * them fall back to their casing, so older Eyes still form. The blocks are TecTech's own EOH
  * blocks wherever a role fits (the mid-run ruling): Reinforced Spatial shell, Reinforced Temporal
@@ -106,23 +112,31 @@ import tectech.thing.casing.TTCasingsContainer;
  * decides which planets run: an Eye at tier N runs every planet mapped to tiers 1..N (round-4 ruling;
  * TecTech's per-planet compression minimum is NOT enforced). The only planet effect kept is TecTech's
  * reward: each compression tier above the planet's TecTech requirement cuts 3 % of the time.</li>
- * <li><b>Time Dilation and Stabilisation are placeholders</b>: any tier is accepted and shown, and
- * neither has an effect yet (TODO(Q-20): their mechanics are a pending design session).</li>
+ * <li><b>Time Dilation and Stabilisation act on the stars</b> (D-49 §3.6, which the approved proposal
+ * makes supersede the Q-20 placeholders): Time Dilation tier tt caps the time dial at
+ * {@code 1 + 0.25·max(0, tt − N)}; Stabilisation tier ts sets {@code q = 1 − 0.05·(ts − 1)}, which scales the
+ * field's noise and events. Planets keep only the compression reward.</li>
  * </ul>
  *
  * <h2>Running</h2>
- * Inputs drain every second from the private sockets into {@code long} buffers. The controller slot
- * holds the target (a star chart or a dimension display block; never consumed). A run debits its
- * whole EU from the owner's wireless network at start (no EU return, Q-4), takes the inputs, rolls
- * success per parallel, and on completion puts the outputs into the ME output bus / hatch. Parallel =
- * {@code 2^(installed tier - recipe tier)}, cut down to what the buffers can pay for.
+ * Inputs drain every second from the private gas and stellar sockets into {@code long} buffers. The
+ * controller slot holds the target (a star chart or a dimension display block; never consumed).
+ * <ul>
+ * <li><b>Stars</b> (D-49) are live: {@link EyeStarRuntime} runs one field second every 20 ticks
+ * (ignition, 60 s cycles of wireless EU and upkeep, the stability field fed by the Field sockets,
+ * product to ME per cycle). GT's run loop never runs a star.</li>
+ * <li><b>Planets</b> are batch runs as built: the whole EU from the owner's wireless network at start (no
+ * EU return, Q-4), the inputs, success rolled per parallel, outputs to the ME output bus / hatch.</li>
+ * </ul>
+ * Parallel = {@code 2^(installed tier - recipe tier)} (planets: cut down to what the buffers can pay for).
  *
  * <h2>The four traps</h2>
  * <ol>
  * <li><b>Client vs server.</b> {@link #construct} reads only the trigger stack (1..6 = T1..T6, bands
- * cumulative); it never reads {@link #galacticInstalled}.</li>
+ * cumulative); it never reads the unlocked tier or the star.</li>
  * <li><b>Tile vs item NBT.</b> {@link #writeEyeState} is the one serializer of the persisted state (the
- * Galactic core and the buffers), called from both {@link #saveNBTData} and {@link #setItemNBT}.</li>
+ * D-49 unlock, milestones, escrow and setpoints, and the buffers), called from both {@link #saveNBTData}
+ * and {@link #setItemNBT}; the live star is tile-only.</li>
  * <li><b>Plant-wide hatch lists.</b> Input sockets live in private lists ({@link EyeHatchElement}); a
  * band whose walk fails drops its sockets again (mark-and-truncate).</li>
  * <li><b>Element chains.</b> Every socket is {@code buildHatchAdder(...).buildAndChain(casing)}, the
@@ -192,9 +206,13 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     private static volatile IStructureDefinition<MTEEyeOfHarmonyBTS> STRUCTURE_DEFINITION = null;
 
     // ---------------------------------------------------- PERSISTED (writeEyeState is the one writer)
-    private boolean galacticInstalled;
     /** Fluid name → litres. */
     private final Map<String, Long> buffers = new LinkedHashMap<>();
+    /**
+     * D-49: the live star, the unlocked tier, the milestones and the core escrow ({@link EyeStarRuntime}); its NBT
+     * goes through {@link EyeNbt} (persistent part in item and tile NBT, the star in the tile only).
+     */
+    private final EyeStarRuntime runtime = new EyeStarRuntime(new StarHost());
 
     // ------------------------------------------------------------- RUN state (server, tile NBT)
     private String runningKey;
@@ -465,6 +483,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 }
             }
         }
+        // D-49 migration (plan §13): a pre-D-49 Eye's bands are grandfathered at its first successful walk.
+        if (errors.isEmpty() && runtime.legacyPending()) runtime.grandfather(legacyStructureTier());
     }
 
     private static String fault(boolean built, List<StructureError> walkErrors) {
@@ -487,18 +507,21 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     }
 
     /**
-     * The structural half of {@link #tierAvailable}: the cumulative bands, and the tier unlock.
-     * TODO(D-49 unit 4/5): the unlock becomes {@code unlockedTier} (milestones, cores, transitions);
-     * until then it is the pre-D-49 rule, the Galactic Upgrade Core unlocking T4, so T5 and T6 stand
-     * (and project) but never run.
+     * The structural half of {@link #tierAvailable}: the cumulative bands, and D-49's permanent
+     * unlocked tier (milestone, core, transition; §6.5 {@code installedTier = min(unlockedTier,
+     * structureTier, compressionTier)}).
      */
     private boolean bandsAvailable(int tier) {
-        return tier >= 1 && tier <= structureTier() && tier <= legacyUnlockedTier();
+        return tier >= 1 && tier <= structureTier() && tier <= runtime.unlockedTier();
     }
 
-    /** Pre-D-49 unlock (see {@link #bandsAvailable}): T1-T3 by the bands alone, T4 with the Galactic core. */
-    private int legacyUnlockedTier() {
-        return galacticInstalled ? 4 : 3;
+    /**
+     * Plan §13: the tier a pre-D-49 Eye's bands gave it under the OLD rule, where the jet crescent
+     * counted without the beam band (T1-T3; T4 came from the Galactic core). Server state.
+     */
+    private int legacyStructureTier() {
+        if (!mMachine && !bandBuilt[0]) return 0;
+        return bandBuilt[2] ? 3 : bandBuilt[1] ? 2 : 1;
     }
 
     /**
@@ -723,66 +746,89 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         return structureTier();
     }
 
-    // ============================================================================ the upgrade
+    // =================================================================== cores, escrow, screwdriver
 
-    /** Right-click holding a Galactic Upgrade Core starts the install (Q-10). A plain right-click (Q-24). */
+    /**
+     * D-49 §8: right-click holding a transition core puts the core for {@code unlockedTier →
+     * unlockedTier+1} into the escrow (one item; any other core is refused, naming the one needed).
+     * It is consumed only when the transition succeeds (unit 5). This replaces the Galactic Upgrade
+     * Core's instant install (A-2/B-1 superseded).
+     */
     @Override
     public boolean onRightclick(IGregTechTileEntity aBaseMetaTileEntity, EntityPlayer aPlayer) {
         final ItemStack held = aPlayer.getHeldItem();
-        if (held != null && SLItems.galacticUpgradeCore != null && held.getItem() == SLItems.galacticUpgradeCore) {
-            if (aBaseMetaTileEntity.isServerSide()) beginGalacticUpgrade(aPlayer, held);
+        if (held != null && EyeStarRuntime.isCore(held.getItem())) {
+            if (aBaseMetaTileEntity.isServerSide()) {
+                final boolean[] taken = new boolean[1];
+                final String line = runtime.offerCore(held, taken);
+                if (taken[0] && !aPlayer.capabilities.isCreativeMode) {
+                    held.stackSize--;
+                    if (held.stackSize <= 0) {
+                        aPlayer.inventory.setInventorySlotContents(aPlayer.inventory.currentItem, null);
+                    }
+                }
+                GTUtility
+                    .sendChatToPlayer(aPlayer, (taken[0] ? EnumChatFormatting.AQUA : EnumChatFormatting.YELLOW) + line);
+            }
             return true;
         }
         return super.onRightclick(aBaseMetaTileEntity, aPlayer);
     }
 
     /**
-     * Q-10 THE ONE INSTALL PATH for the Galactic Upgrade Core: validation, consumption and the
-     * player's feedback live here, and {@link #completeGalacticUpgrade()} is the one place the
-     * upgrade takes effect. Server only. Consumed and permanent.
-     * <p>
-     * TODO(Q-10): I ruled the mechanic is MILESTONES + an INSTALL RUN (a milestone on the
-     * current tier unlocks the install; a long run with the machine offline consumes the core plus
-     * EU and fluids, with a progress readout). Until that lands, this completes at once; the
-     * milestone check goes before the consume, and the install run replaces the direct
-     * completeGalacticUpgrade() call.
-     *
-     * @return true if the install began (and the core was consumed outside creative)
+     * D-49 R-14: sneak-PUNCH with an empty hand returns the escrowed core. (Plan R-14 said
+     * sneak-right-click, but GT never passes a sneaking right-click to the machine: B-37.)
      */
-    public boolean beginGalacticUpgrade(EntityPlayer player, ItemStack held) {
-        if (galacticInstalled) {
-            GTUtility.sendChatToPlayer(player, "This Eye already carries the Galactic Upgrade Core.");
-            return false;
-        }
-        if (!player.capabilities.isCreativeMode) {
-            held.stackSize--;
-            if (held.stackSize <= 0) {
-                player.inventory.setInventorySlotContents(player.inventory.currentItem, null);
-            }
-        }
-        completeGalacticUpgrade();
-        GTUtility.sendChatToPlayer(
-            player,
-            EnumChatFormatting.AQUA + "Galactic Upgrade Core installed."
-                + EnumChatFormatting.RESET
-                + " T4 (Sirius B, the Deep Dark) runs once the jet crescent and the spiral arms stand and every"
-                + " Spacetime Compression Field Generator is tier 4 or higher"
-                + (tierAvailable(4) ? "." : EnumChatFormatting.YELLOW + " - not yet."));
-        return true;
+    @Override
+    public void onLeftclick(IGregTechTileEntity aBaseMetaTileEntity, EntityPlayer aPlayer) {
+        super.onLeftclick(aBaseMetaTileEntity, aPlayer);
+        if (!aBaseMetaTileEntity.isServerSide() || aPlayer == null
+            || !aPlayer.isSneaking()
+            || aPlayer.getHeldItem() != null
+            || runtime.escrow() == null) return;
+        final ItemStack core = runtime.takeEscrow();
+        if (core == null) return;
+        if (!aPlayer.inventory.addItemStackToInventory(core)) aPlayer.dropPlayerItemWithRandomChoice(core, false);
+        GTUtility.sendChatToPlayer(aPlayer, "Escrow returned: " + core.getDisplayName() + ".");
     }
 
     /**
-     * The upgrade takes effect: T4 unlocks. The only writer of the installed flag besides NBT load.
-     * Also the creative build's hook. No re-walk is needed: T4 reads the flag and the last walk.
+     * Screwdriver (plan §12): plain = the time dial +0.25 (wraps 3.00 → 1.00; capped in use by the
+     * Time Dilation generators); sneaking = the T4 HSM feed +0.1 L/s (wraps 1.5 → 0). Single-recipe
+     * locking is not offered.
      */
-    public void completeGalacticUpgrade() {
-        galacticInstalled = true;
-        final IGregTechTileEntity base = getBaseMetaTileEntity();
-        if (base != null) base.markDirty();
+    @Override
+    public void onScrewdriverRightClick(ForgeDirection side, EntityPlayer aPlayer, float aX, float aY, float aZ,
+        ItemStack aTool) {
+        if (aPlayer.isSneaking()) {
+            final double feed = runtime.stepFeed();
+            GTUtility.sendChatToPlayer(
+                aPlayer,
+                "Eye HSM feed setpoint: " + EnumChatFormatting.AQUA
+                    + String.format(Locale.ROOT, "%.3f", feed)
+                    + " L/s"
+                    + EnumChatFormatting.RESET
+                    + " per parallel (the neutron star; 0 .. 1.5)");
+            return;
+        }
+        final double dial = runtime.stepDial();
+        GTUtility.sendChatToPlayer(
+            aPlayer,
+            "Eye time dial: " + EnumChatFormatting.AQUA
+                + String.format(Locale.ROOT, "%.2f", dial)
+                + EnumChatFormatting.RESET
+                + " (each +0.25 costs 10 x 2^(N-1) L/s of Tachyon Rich Temporal Fluid from the Field sockets;"
+                + " the cap is 1 + 0.25 x (Time Dilation tier - star tier))");
     }
 
-    public boolean isGalacticInstalled() {
-        return galacticInstalled;
+    /** The D-49 star runtime (bench commands, kit). Server state. */
+    public EyeStarRuntime starRuntime() {
+        return runtime;
+    }
+
+    /** Creative / bench: sets the permanent unlocked tier (the kit's T{@code n} build). */
+    public void debugUnlock(int n) {
+        runtime.setUnlocked(n);
     }
 
     // ============================================================================== buffers
@@ -790,9 +836,21 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     @Override
     public void onPostTick(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
         super.onPostTick(aBaseMetaTileEntity, aTick);
-        if (aBaseMetaTileEntity.isServerSide() && mMachine && aTick % DRAIN_INTERVAL == 0) {
-            drainSockets();
+        if (!aBaseMetaTileEntity.isServerSide()) return;
+        if (aTick % DRAIN_INTERVAL == 0) {
+            if (mMachine) drainSockets();
+            // D-49: one field second, straight after the drain (plan §4). Runs unformed too, so a broken
+            // structure puts the star out (R-8); a chunk that is not ticking freezes it.
+            runtime.second();
         }
+        // GT sets the active flag from its run progress; a burning star is active too (Activity Detector).
+        if (runtime.burning()) aBaseMetaTileEntity.setActive(true);
+    }
+
+    /** Bench: one field second now (the socket drain, then the star), as the 20-tick cadence does. */
+    public void fieldSecond() {
+        if (mMachine) drainSockets();
+        runtime.second();
     }
 
     /** Moves every Eye input fluid out of the sockets into the long buffers, as TecTech's EOH does. */
@@ -889,14 +947,14 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     public CheckRecipeResult checkProcessing() {
         final ItemStack target = getControllerSlot();
         if (target == null) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.notarget");
+        final StarDef star = StarDef.byChart(target);
+        if (star != null) return starStatus(star);
         final EyeRecipe recipe = EyeRecipeRegistry.lookup(target);
         if (recipe == null) return CheckRecipeResultRegistry.NO_RECIPE;
-        if (!bandsAvailable(recipe.tier)) {
-            return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.tier" + recipe.tier);
-        }
-        if (!compressionAllows(recipe.tier)) {
-            return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.compression" + recipe.tier);
-        }
+        final CheckRecipeResult gate = tierGate(recipe.tier);
+        if (gate != null) return gate;
+        // One live star per Eye: selecting a planet puts the star out (plan §6.7).
+        runtime.extinguish("a planet was selected");
         long parallel = 1L << (installedTier() - recipe.tier);
         for (EyeRecipe.FluidAmount in : recipe.inputs) {
             parallel = Math.min(parallel, in.amount <= 0 ? parallel : buffer(in.fluid) / in.amount);
@@ -934,6 +992,43 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         return CheckRecipeResultRegistry.SUCCESSFUL;
     }
 
+    /** Null when Eye tier {@code tier} may run; else why not (bands, unlock, compression). */
+    private CheckRecipeResult tierGate(int tier) {
+        if (tier > structureTier()) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.tier" + tier);
+        if (tier > runtime.unlockedTier()) {
+            return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.locked" + tier);
+        }
+        if (!compressionAllows(tier)) {
+            return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.compression" + tier);
+        }
+        return null;
+    }
+
+    /**
+     * D-49: a star chart never starts a GT run (the live star runs from {@link #onPostTick}, and GT's
+     * run loop would fire {@link #outputAfterRecipe}); the controller GUI shows the star's state.
+     */
+    private CheckRecipeResult starStatus(StarDef star) {
+        final boolean pending = runtime.live() && runtime.star() != null
+            && runtime.star()
+                .n() + 1 == star.n();
+        final CheckRecipeResult gate = tierGate(star.n());
+        if (gate != null && !pending) return gate;
+        switch (runtime.state()) {
+            case IGNITING:
+                return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_igniting");
+            case PENDING:
+                return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_pending");
+            case LIT:
+            case BATCH:
+                return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_lit");
+            default:
+                if (star.n() >= 5) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_unit5");
+                if (!star.tier.ignite) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_remnant");
+                return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_dark");
+        }
+    }
+
     /** How many runs of {@code recipe} the owner's wireless network can pay for right now. */
     private static long affordable(UUID owner, EyeRecipe recipe) {
         if (recipe.euPerRun <= 0) return Long.MAX_VALUE;
@@ -945,15 +1040,15 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     }
 
     /**
-     * Stars always succeed; planets: TecTech's base success. TODO(Q-20): Time Dilation and
-     * Stabilisation are placeholders with no effect until their mechanics are designed.
+     * Planets: TecTech's base success (D-49 keeps planets as built; the field generators act on the
+     * stars through the time dial and q, plan §3.6).
      */
     public double successChance(EyeRecipe recipe) {
         if (!recipe.isPlanet()) return 1.0;
         return Math.max(0.0, Math.min(1.0, recipe.baseSuccess));
     }
 
-    /** Full yield. TODO(Q-20): Stabilisation's effect on yield is undecided. */
+    /** Planets: full yield (as built). */
     public double yieldOf(EyeRecipe recipe) {
         return 1.0;
     }
@@ -961,7 +1056,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     /**
      * Stars: the base time; planets: -3 % per compression tier above the planet's TecTech requirement
      * (TecTech's reward). Below the requirement there is no penalty: the tier gate alone decides
-     * whether a planet runs (round-4 ruling). TODO(Q-20): Time Dilation has no effect yet.
+     * whether a planet runs (round-4 ruling). Time Dilation acts on stars only (the dial, D-49).
      */
     public long runTicks(EyeRecipe recipe) {
         if (!recipe.isPlanet()) return Math.max(1, recipe.baseTicks);
@@ -989,6 +1084,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 dumpFluid(out.fluid, (long) Math.floor(out.amount * mult));
             }
             lastRun = recipe.name + ": " + runningSuccesses + "/" + runningParallel + " succeeded";
+            // D-49 T4 -> T5 milestone: a Deep Dark run completed on this Eye.
+            if ("planet:DD".equals(recipe.key)) runtime.milestones().deepDark++;
         }
         runningKey = null;
         runningParallel = 0;
@@ -1022,9 +1119,13 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
 
     // ===================================================================================== NBT
 
-    /** The ONE serializer of the persisted state (trap 2): the Galactic core and the buffers. */
+    /**
+     * The ONE serializer of the persisted state (trap 2): the D-49 schema, unlocked tier, milestones,
+     * escrow and setpoints ({@link EyeNbt#writePersistent}) and the buffers. The live star is tile-only
+     * ({@link #saveNBTData}): a wrenched controller comes back DARK, its core still in escrow.
+     */
     private void writeEyeState(NBTTagCompound nbt) {
-        if (galacticInstalled) nbt.setBoolean("btsEyeGalactic", true);
+        EyeNbt.writePersistent(runtime, nbt);
         if (!buffers.isEmpty()) {
             final NBTTagCompound b = new NBTTagCompound();
             for (Map.Entry<String, Long> e : buffers.entrySet()) {
@@ -1038,6 +1139,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     public void saveNBTData(NBTTagCompound aNBT) {
         super.saveNBTData(aNBT);
         writeEyeState(aNBT);
+        EyeNbt.writeStar(runtime, aNBT);
         if (runningKey != null) {
             aNBT.setString("btsEyeRunKey", runningKey);
             aNBT.setLong("btsEyeRunParallel", runningParallel);
@@ -1055,7 +1157,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     @Override
     public void loadNBTData(NBTTagCompound aNBT) {
         super.loadNBTData(aNBT);
-        galacticInstalled = aNBT.getBoolean("btsEyeGalactic");
+        runtime.reset();
+        final boolean legacy = EyeNbt.read(runtime, aNBT);
         buffers.clear();
         if (aNBT.hasKey("btsEyeBuffers")) {
             final NBTTagCompound b = aNBT.getCompoundTag("btsEyeBuffers");
@@ -1070,6 +1173,169 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         runningParallel = aNBT.getLong("btsEyeRunParallel");
         runningSuccesses = aNBT.getLong("btsEyeRunSuccesses");
         runningYield = aNBT.hasKey("btsEyeRunYield") ? aNBT.getDouble("btsEyeRunYield") : 1.0;
+        // D-49 migration (plan §13 item 3): a pre-D-49 star run in flight was paid for at its start, so its
+        // full output is credited once the Eye stands; GT must not finish it (stars are no GT runs now).
+        if (runningKey != null && runningKey.startsWith("star:")) {
+            EyeNbt.owe(runtime, runningKey, runningSuccesses, runningYield);
+            runningKey = null;
+            runningParallel = 0;
+            runningSuccesses = 0;
+            runningYield = 1.0;
+            mMaxProgresstime = 0;
+            mProgresstime = 0;
+        }
+        if (legacy) {
+            BeyondTheStars.LOG.info(
+                "[BTS] Eye of Harmony: migrated pre-D-49 NBT (unlocked T{}{}).",
+                runtime.unlockedTier(),
+                runtime.legacyPending() ? ", bands grandfathered at the first walk" : ", Galactic core");
+        }
+    }
+
+    /**
+     * Bench {@code wrench}: what picking the controller up and placing it back does to its state
+     * (item NBT only: unlocked tier, milestones, escrow, setpoints, buffers; the star is lost).
+     */
+    public void debugWrench() {
+        final NBTTagCompound item = new NBTTagCompound();
+        setItemNBT(item);
+        loadNBTData(item);
+    }
+
+    /** Bench {@code target}: puts a chart (or null) in the controller slot. */
+    public void debugSetTarget(ItemStack chart) {
+        mInventory[getControllerSlotIndex()] = chart;
+        markDirty();
+    }
+
+    // ============================================================================ the star's host
+
+    /** Lowest tier (1..9) of a field-generator type, 1 if none was walked. */
+    private int generatorTier(int type) {
+        return fieldMin[type] < 0 ? 1 : fieldMin[type] + 1;
+    }
+
+    /** The world the D-49 star runtime sees (plan §4: the controller around step). Server side. */
+    private final class StarHost implements EyeStarRuntime.Host {
+
+        @Override
+        public boolean structureChecked() {
+            return mStartUpCheck < 0;
+        }
+
+        @Override
+        public boolean formed() {
+            return mMachine;
+        }
+
+        @Override
+        public boolean allowedToWork() {
+            final IGregTechTileEntity base = getBaseMetaTileEntity();
+            return base != null && base.isAllowedToWork();
+        }
+
+        @Override
+        public int installedTier() {
+            return MTEEyeOfHarmonyBTS.this.installedTier();
+        }
+
+        @Override
+        public int timeTier() {
+            return generatorTier(FIELD_DILATION);
+        }
+
+        @Override
+        public int stabilisationTier() {
+            return generatorTier(FIELD_STABILISATION);
+        }
+
+        @Override
+        public ItemStack target() {
+            return getControllerSlot();
+        }
+
+        @Override
+        public long buffer(Fluid fluid) {
+            return MTEEyeOfHarmonyBTS.this.buffer(fluid);
+        }
+
+        @Override
+        public void takeBuffer(Fluid fluid, long litres) {
+            MTEEyeOfHarmonyBTS.this.takeBuffer(fluid, litres);
+        }
+
+        /** Trims and Time come from the live Field sockets only (never buffered; ME stocking hatches rejected). */
+        @Override
+        public long drainField(Fluid fluid, long max) {
+            if (fluid == null || max <= 0) return 0;
+            long got = 0;
+            for (MTEHatchInput hatch : fieldHatches) {
+                if (got >= max) break;
+                if (!live(hatch)) continue;
+                for (FluidStack stored : storedFluids(hatch)) {
+                    if (got >= max) break;
+                    if (stored == null || stored.amount <= 0 || stored.getFluid() != fluid) continue;
+                    final int want = (int) Math.min(stored.amount, max - got);
+                    final FluidStack drained = hatch.drain(ForgeDirection.UNKNOWN, new FluidStack(fluid, want), true);
+                    if (drained != null && drained.amount > 0) got += drained.amount;
+                }
+            }
+            return got;
+        }
+
+        /** R-1: a Stellar Ignition Charge from a plinth input bus (ME input buses through their shadow stacks). */
+        @Override
+        public boolean takeIgnitionCharge(boolean simulate) {
+            final Item charge = SLItems.stellarIgnitionCharge;
+            if (charge == null) return false;
+            for (MTEHatchInputBus bus : itemBuses) {
+                if (!live(bus)) continue;
+                final boolean aware = bus instanceof IRecipeProcessingAwareHatch;
+                if (aware) ((IRecipeProcessingAwareHatch) bus).startRecipeProcessing();
+                try {
+                    for (int i = 0; i < bus.getSizeInventory(); i++) {
+                        final ItemStack stack = bus.getStackInSlot(i);
+                        if (stack == null || stack.getItem() != charge || stack.stackSize <= 0) continue;
+                        if (!simulate) {
+                            stack.stackSize--;
+                            if (!aware && stack.stackSize <= 0) {
+                                bus.getBaseMetaTileEntity()
+                                    .setInventorySlotContents(i, null);
+                            }
+                            bus.getBaseMetaTileEntity()
+                                .markDirty();
+                        }
+                        return true;
+                    }
+                } finally {
+                    if (aware) ((IRecipeProcessingAwareHatch) bus).endRecipeProcessing(MTEEyeOfHarmonyBTS.this);
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public UUID owner() {
+            return MTEEyeOfHarmonyBTS.this.owner();
+        }
+
+        @Override
+        public void output(Fluid fluid, long litres) {
+            dumpFluid(fluid, litres);
+        }
+
+        @Override
+        public void publish(FieldReadout readout) {
+            for (MTEHatchStellarFieldSensor sensor : sensorHatches) {
+                if (live(sensor)) sensor.publish(readout);
+            }
+        }
+
+        @Override
+        public void markDirty() {
+            final IGregTechTileEntity base = getBaseMetaTileEntity();
+            if (base != null) base.markDirty();
+        }
     }
 
     // ============================================================================ panel/tooltip
@@ -1087,7 +1353,9 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         final List<String> out = new ArrayList<>();
         out.add(
             "Eye T" + installedTier()
-                + (galacticInstalled ? " (Galactic Upgrade Core installed)" : "")
+                + " (unlocked T"
+                + runtime.unlockedTier()
+                + ")"
                 + ": structure T"
                 + structureTier()
                 + ", compression T"
@@ -1108,7 +1376,9 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 + FIELD_NAMES[2]
                 + " "
                 + fieldName(fieldMin[2])
-                + " (dilation and stabilisation: no effect yet)");
+                + " (dilation: the time dial's cap; stabilisation: q "
+                + String.format(Locale.ROOT, "%.2f", 1 - 0.05 * (generatorTier(FIELD_STABILISATION) - 1))
+                + ")");
         out.add(
             "Sockets: gas " + gasHatchCount()
                 + ", input bus "
@@ -1141,8 +1411,18 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             }
             out.add(sb.toString());
         }
+        final StarDef starTarget = StarDef.byChart(getControllerSlot());
         final EyeRecipe target = EyeRecipeRegistry.lookup(getControllerSlot());
-        if (target != null) {
+        if (starTarget != null) {
+            out.add(
+                "Target: " + starTarget.name
+                    + " (T"
+                    + starTarget.n()
+                    + " live star), parallel "
+                    + runtime.parallel(starTarget.n())
+                    + (compressionAllows(starTarget.n()) ? ""
+                        : " (needs every Spacetime Compression generator at tier " + starTarget.n() + "+)"));
+        } else if (target != null) {
             out.add(
                 "Target: " + target.name
                     + " (T"
@@ -1164,6 +1444,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             out.add("Running: " + runningKey + " x" + runningParallel + " (" + runningSuccesses + " will succeed)");
         }
         if (!lastRun.isEmpty()) out.add("Last run: " + lastRun);
+        out.addAll(runtime.statusLines());
         return out;
     }
 
@@ -1268,18 +1549,21 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addInfo("T1 core: Sol (Raw Star Matter) and planets R0-R3.")
             .addInfo("T2 + beam band: Sirius A (Excited Stellar Plasma) and planets R4-R6.")
             .addInfo("T3 + jet crescent: Arcturus (Raw Hyperdense Stellar Plasma) and planets R7-R8.")
-            .addInfo("T4 + spiral arms + Galactic Upgrade Core (right-click it in):")
-            .addInfo("  Sirius B (White Dwarf Matter) and the Deep Dark.")
-            .addInfo("T5 + second arms, T6 + galactic rim: built and walked; their stars come with D-49.")
+            .addInfo("T4 + spiral arms: the neutron star (White Dwarf Matter, born by the Core Collapse), Deep Dark.")
+            .addInfo("T5 + second arms: Sirius B (Black Dwarf Matter); T6 + galactic rim: the magnetar.")
+            .addInfo("Stars are LIVE: a Stellar Ignition Charge in a plinth input bus lights T1-T3; every")
+            .addInfo("  60 s cycle takes EU and upkeep; hold the stability field or the star is lost.")
+            .addInfo("Tiers unlock in order: the current star's milestones, then the next core")
+            .addInfo("  (right-click it into escrow), then its transition.")
             .addInfo("Planets give TecTech's ores and plasmas, without Raw Star Matter or dwarf matter.")
             .addSeparator()
-            .addInfo("Power: wireless EU, the whole run debited at start; no EU is returned.")
+            .addInfo("Power: wireless EU (planets: per run at start; stars: per cycle); none returned.")
             .addInfo("Parallel x2 for every installed tier above the recipe's tier.")
             .addInfo("Field generators (any tier, mixable; the lowest tier of each type counts):")
             .addInfo("  Spacetime Compression GATES the tier: Eye TN (T1-T6) needs every one at tier N+.")
             .addInfo("  It alone decides the planets: a TN Eye runs every planet of T1..TN.")
             .addInfo("  Planets: -3% time per compression tier above the planet's TecTech tier.")
-            .addInfo("  Time Dilation, Stabilisation: placeholders, no effect yet. Stars always succeed.")
+            .addInfo("  Time Dilation above the star's tier opens the time dial; Stabilisation calms the field.")
             .addInfo("A short wireless network runs fewer parallels rather than none.")
             .addInfo("Inputs drain every second into internal buffers; outputs go to ME only.")
             .addSeparator()
