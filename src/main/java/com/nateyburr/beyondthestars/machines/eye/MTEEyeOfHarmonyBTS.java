@@ -865,7 +865,10 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         long left = amount;
         while (left > 0) {
             final int n = (int) Math.min(Integer.MAX_VALUE, left);
-            dumpFluid(mOutputHatches, new FluidStack(fluid, n), false);
+            // RC-2 dropped the static dumpFluid(List, FluidStack, boolean); addOutputPartial goes through
+            // GT's FluidEjectionHelper (locked / ME hatches, void protection). protectFluids=false keeps
+            // the old "store what fits, void the rest" behaviour.
+            addOutputPartial(new FluidStack(fluid, n), mOutputHatches, false);
             left -= n;
         }
     }
