@@ -41,6 +41,7 @@ import gregtech.api.structure.error.StructureError;
 import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.MultiblockTooltipBuilder;
+import gregtech.common.tileentities.machines.IDualInputHatch;
 
 /**
  * Enrichment Train - the campus processing factory. A long conversion line that leaches uraninite
@@ -87,6 +88,24 @@ public class MTEEnrichmentTrain extends MTEExtendedPowerMultiBlockBase<MTEEnrich
     @Override
     public IMetaTileEntity newMetaEntity(IGregTechTileEntity aTileEntity) {
         return new MTEEnrichmentTrain(this.mName);
+    }
+
+    /**
+     * The Train draws by hand ({@link #checkProcessing()}: {@code depleteInput}), and GT's helpers
+     * walk only {@code mInputHatches} / {@code mInputBusses}, never {@code mDualInputHatches}. A
+     * crafting input buffer (or its slave) in a casing would form the structure and feed nothing,
+     * so the Train refuses dual input hatches outright: the bus adder via this flag, the hatch
+     * adder (GT 2.9.0-RC-2 also takes fluid CRIBs there, regardless of this flag) below.
+     */
+    @Override
+    protected boolean supportsCraftingMEBuffer() {
+        return false;
+    }
+
+    @Override
+    public boolean addInputHatchToMachineList(IGregTechTileEntity aTileEntity, int aBaseCasingIndex) {
+        if (aTileEntity != null && aTileEntity.getMetaTileEntity() instanceof IDualInputHatch) return false;
+        return super.addInputHatchToMachineList(aTileEntity, aBaseCasingIndex);
     }
 
     @Override

@@ -90,8 +90,15 @@ Resonance Chamber II that uses SpaceTime foil instead of White Dwarf Matter foil
 made before Eye T4. Generators you already crafted are the same items and still work.
 
 **Reactor fluid sockets.** The feedwater, chamber-coolant and propellant sockets accept plain Input Hatches only. A
-crafting input buffer (CRIB) or its slave in one of them now un-forms the plant, and the structure check names the
-cell. Swap it for an Input Hatch. Without this check, 2.9 would have accepted the buffer and it would never have fed the plant.
+crafting input buffer (CRIB) or its slave in one of them is refused. A CRIB in the feedwater socket drops the silo,
+so the plant stands as a bare platform (silo T0; Spine, Spiral and gallery MISSING), and no error names the cell yet
+(B-32). Swap it for an Input Hatch. Without this check, 2.9 would have accepted the buffer and it would never have fed
+the plant.
+
+**Enrichment Train.** Its casings no longer take crafting input buffers or their slaves, in either the bus or the
+hatch role. The Train draws its uraninite and acid by hand from plain buses and hatches, so a buffer there never fed
+it, even before 2.9. A Train with a buffer in its casing now fails to form at that cell. Swap the buffer for an Input
+Bus or Input Hatch.
 
 **Kerr utility hatches.** The BHC utility hatch now stores its on/off state (`isOn`) instead of a pulse timer. Existing
 hatches load cleanly; a hatch in pulse mode starts the first second after a reload off, as GT's own BHC does.

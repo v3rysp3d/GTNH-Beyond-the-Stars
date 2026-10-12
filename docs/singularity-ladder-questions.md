@@ -833,7 +833,15 @@ input hatches, so a CRIB there would have formed the structure and fed nothing.
 
 **What we built.** The three sockets refuse anything that is not a plain Input Hatch, before GT's adder sees it, so
 a CRIB can never be registered and starve the reactor silently. A failed Spiral walk also rolls back GT's
-dual-input list. The production halls, which use GT's own processing logic, accept CRIBs as before.
+dual-input list. The production halls that run through GT's own processing logic (`createProcessingLogic`, which
+reads `mDualInputHatches`) accept CRIBs as before. Two machines do not use that logic. Their notes:
+- **The Enrichment Train (MTE 28103)** draws its uraninite and HF by hand with `depleteInput`, and GT's helpers walk
+  only the plain hatch and bus lists. A CRIB in one of its casings would form and feed nothing. This was already true
+  before the port, through the bus adder. The Train now refuses dual input hatches in both adders
+  (`supportsCraftingMEBuffer() = false` plus an `addInputHatchToMachineList` override), so the walk fails at that cell
+  instead.
+- **The Turbine Hall (MTE 28104, `MTEPlantModuleBase`)** is a retired museum piece. Nothing calls its
+  `processReactorSteam`, and it never processes, so a CRIB in it changes nothing. It is left as it is.
 
 **Measured on the RC-2 dev server (B-32).** The silo is an optional piece of the plant, so a CRIB in the feedwater
 socket does not un-form the plant. The silo walk fails, and the plant idles as a bare platform: silo T0, and the
