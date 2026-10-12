@@ -29,14 +29,17 @@ public class DirectiveHatchGui extends MTEHatchBaseGui<MTEHatchDirective> {
 
     @Override
     protected ParentWidget<?> createContentSection(ModularPanel panel, PanelSyncManager syncManager) {
-        // the server setter skips to the next set of the hatch's host, so a plain +1 cycle never lands on a foreign one
+        // the server setter skips on to the host's next set in the direction the button moved (left click +1, right
+        // click -1, B-72), so a cycle never lands on a foreign set and a backward cycle wraps to the host's last one
         final IntSyncValue set = new IntSyncValue(machine::getSetOrdinal, v -> {
             final DirectiveSet.Host host = machine.getHost();
+            final int n = DirectiveSet.VALUES.length;
+            final int step = Math.floorMod(v - machine.getSetOrdinal(), n) == n - 1 ? -1 : 1;
             int o = v;
-            for (int i = 0; i < DirectiveSet.VALUES.length; i++) {
-                final DirectiveSet s = DirectiveSet.VALUES[Math.floorMod(o, DirectiveSet.VALUES.length)];
+            for (int i = 0; i < n; i++) {
+                final DirectiveSet s = DirectiveSet.VALUES[Math.floorMod(o, n)];
                 if (host == DirectiveSet.Host.NONE || s.host == host) break;
-                o++;
+                o += step;
             }
             machine.setSetOrdinal(o);
         }).allowC2S();
