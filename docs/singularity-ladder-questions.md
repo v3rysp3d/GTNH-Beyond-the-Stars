@@ -1755,6 +1755,70 @@ renumbering master's D-49 entries instead, which the brief and PROPOSAL already 
 
 ---
 
+### B-59 Final integration: the RC-2 dev-server test of master, and ruling 11a found missing [final integration test]
+
+**What was run.** `runServer` (RC-2 deps, fresh flat world `sltest-final`, stdin console), the static lang lint and
+`node tools/fieldsim-golden.js --check --java` on master `5efdfb6` and again after the fixes below.
+
+- **Load.** `Recipe registration complete: 245 registered, 0 skipped` (243 after SL-P27/P28 retired); TecTech Eye
+  recipes removed (43 + controller); 10 BHC->Kerr swap lines (Empty Spatially Compressed Circuit Array + the 9
+  compression generator tiers, all `gt.recipe.assemble-condensate`); BHC controller recipe removed; 13 research items
+  unique. No `[BTS]` warning or error; the GT load errors in the log are the pack's own (absent mods), as in earlier runs.
+- **Lang lint.** All 18 literal `ofFailure` ids plus the generated `eye.tier1-6`, `eye.locked2-6`,
+  `eye.compression1-6` and `kerr.module.<link>` ids have `GT5U.gui.text.recipe_result.` keys; the five shutdown reasons
+  have `GT5U.gui.text.shutdown_reason.` keys; every `StructureErrors.of`, `translateToLocal`, recipe-map name, item and
+  casing meta has its key. Nothing was missing.
+- **Golden.** 78/78 PASS, the committed JSON is up to date.
+- **Kerr.** T1 north (creative), T1 east (survival), T2 south (creative), T2 west (survival): KEE and both modules FORMED,
+  re-projection keeps them formed, damage/repair works. Modules stay idle with the hole closed and run when it opens
+  (extractor: GT item extractor recipes; compressor: GT compressor recipes at parallel 7, x4 speed). Closing the hole and
+  unforming the KEE mid-recipe pause the compressor (progress kept) and it resumes. T2 DENSITY waits at 64 SM and runs at
+  130 SM (SL-K05: 1,000 L Hyperdense Stellar Mixture). Render: one claimed block at the centre, cleared on close, on the
+  off switch, while unformed and when the controller is broken; no orphans. A `legacy inflight` Kerr migrates (2 modules,
+  the old recipe handed to the compressor, a fluid held in the KEE). After a restart the hole, render and running recipe
+  are as before.
+- **Eye.** T1-T6 each in two facings, creative and survival: all FORMED with the expected bands and compression tier.
+  Ignition by a charge (protostar render, then lit), upkeep starvation (r 0, P sags, Sol lost to a Breach, failure line
+  shown, render cleared), sensor-hatch regulation (bang-bang on P through the Field sockets keeps P in about -2..+9; with
+  no regulation P drifts to +30), Mass Infusion, Shell Ignition, a failed Core Collapse (SpaceTime 0: SUPERNOVA, core
+  kept in escrow, the reason stays in "Last failure", supernova flash render then air) and a successful one (T4 unlocked,
+  neutron star render), First Cooling and T5 batches (Black Dwarf Matter per batch, milestones count good batches), the
+  Magnetar Merger, the Agent at 3,000 L per 60 s cycle charging the shield (starved: shield 0, magnetar lost to
+  decoherence, re-merge waits for 100,000 L of Agent). Unforming and breaking the controller put the star out and clear
+  the render; no orphan render block at any of the 13 Eyes' centres. Restart: unlocked tiers, live stars, milestones,
+  escrow and last failures are as before. Legacy 0.24.x NBT migrates (galactic -> unlocked T4; plain -> bands
+  grandfathered).
+- **BEC.** The server has 111 Condensate Assembler recipes. Ours: SL-P39 (WDM-free Resonance Chamber II) and SL-P33
+  (BDM-free Resonance Chamber III) are in the map (`/btseye gates`: "a clean one exists" for both chambers, gates CLEAN
+  for Eye T1-T7), and the RC-2 Spatial / Temporal casing recipes now output 32. Nothing can be crafted on the console:
+  a Condensate Assembler needs a whole BEC network (generator, containment field, nanites), which the bench does not
+  build.
+
+**Fixed here.**
+1. **Ruling 11a was not on master** (no branch had it): `BTSRecipesBEC` now rewrites RC-2's Condensate Assembler
+   recipes for TecTech's Reinforced Spatial / Temporal Structure Casing to x32 at load-complete (SL-B01/B02: logged per
+   hit, a WARN for an unexpected old size or several matches, idempotent, whatever the flags say) and SL-P27/P28 are
+   retired. Verified: `SL-B01 ... now outputs 32, was 4`, same for SL-B02.
+2. **Test bench:** `/btseye keep x y z facing [tN]` force-loads an Eye's footprint. Without it the dev server unloads the
+   centre cell's chunk between console commands, and several early render checks read "nothing" for a burning star
+   (a test artifact: with the chunks kept, every render check matched the star).
+
+**Not done (open).**
+- **SL-B03/B04** (the proposal's fallback BEC recipes if RC-2's casing recipe is missing) are not built: a missing
+  recipe logs an ERROR saying the shell costs 8x what we intend. *Suggestion:* leave it; RC-2 has the recipe.
+- **Ruling 11b, the BEC expansion** (6 condensates, 20 Condensate Assembler recipes, 20 retired ids) is still only the
+  proposal (`designs/docs/bec-expansion-proposal.md`, PROPOSED). Nothing of it is on master. *Suggestion:* build it as
+  its own pass once you have read the proposal; `BTSRecipesBEC` is where it would live.
+- **Docs that still describe SL-P27/P28 as live:** `singularity-ladder-costs.md` §6/§9.5 cost rows (the build spec is
+  updated). *Suggestion:* refresh the cost table with the x32 numbers from the proposal §3 in the BEC pass.
+
+**Small things seen (no change).** The module bench line prints `lastParallel 0` while a recipe runs (it shows GT's
+field before GT fills it; after a restart it read 17). A legacy-layout Eye (`legacy` build) has no input bus, so it
+cannot take a Stellar Ignition Charge until the player puts one on a plinth gas socket (`migration.md` already says so). A target change that puts a star out is recorded as the "Last failure" (by design: "the last way a star
+was lost or put out"), so it replaces an older, more useful failure line.
+
+---
+
 ## Part C. Settled (for the record)
 
 | Topic | Your answer | State |
