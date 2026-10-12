@@ -107,3 +107,30 @@ beyondthestars.gui.tree.tooltip=Spend the progression points the milestone lines
 beyondthestars.gui.tree.refund=Left-click a node to buy it, right-click to refund. Refunds are free, unlimited, and refused only when another node you hold hangs off it.
 beyondthestars.gui.buildtier.tooltip=Build Tier: the Steam Generator tier the hologram/projector builds (1-5). A trigger stack of 2-5 overrides this. A silo that already stands is never re-tiered - dismantle it first.
 
+# ---- SINGULARITY LADDER (Foundation; singularity-ladder-build.md §1, Contract additions FC-1/FC-2) ----
+# slCasing metas 0 and 9 and slCasing2 meta 2 are retired holes (existing EOH/BHC blocks play those roles).
+tile.beyondthestars.slCasing.1.name=Superradiant Mirror Casing
+tile.beyondthestars.slCasing.2.name=Mirror Backing Casing
+tile.beyondthestars.slCasing.3.name=Bolt Injector Rail (Mk I)
+tile.beyondthestars.slCasing.4.name=Bolt Injector Rail (Mk II)
+tile.beyondthestars.slCasing.5.name=Bolt Injector Rail (Mk III)
+tile.beyondthestars.slCasing.6.name=Ergosphere Field Coil
+tile.beyondthestars.slCasing.7.name=Beam Focusing Quadrupole
+tile.beyondthestars.slCasing.8.name=Beam Dump
+tile.beyondthestars.slCasing.10.name=Beam Band Casing
+tile.beyondthestars.slCasing.11.name=Jet Crescent Casing
+tile.beyondthestars.slCasing.12.name=Galactic Shell Plating
+tile.beyondthestars.slCasing.13.name=Bastion Plate
+tile.beyondthestars.slCasing.14.name=Casimir Plate
+tile.beyondthestars.slCasing.15.name=Ergosphere Extraction Casing
+tile.beyondthestars.slCasing2.0.name=Kerr Compressor Module
+tile.beyondthestars.slCasing2.1.name=Kerr Extractor Module
+item.beyondthestars.superradiantMirrorSegment.name=Superradiant Mirror Segment
+item.beyondthestars.stabiliserPylon.name=Stabiliser Pylon
+item.beyondthestars.kerrDensityUpgrade.name=Kerr Density Upgrade
+item.beyondthestars.galacticUpgradeCore.name=Galactic Upgrade Core
+item.beyondthestars.starChartSol.name=Star Chart: Sol
+item.beyondthestars.starChartSiriusA.name=Star Chart: Sirius A
+item.beyondthestars.starChartArcturus.name=Star Chart: Arcturus
+item.beyondthestars.starChartSiriusB.name=Star Chart: Sirius B
+item.beyondthestars.starChartSiriusBCooled.name=Star Chart: Sirius B, Cooled

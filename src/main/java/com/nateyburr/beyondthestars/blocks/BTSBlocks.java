@@ -21,5 +21,7 @@ public final class BTSBlocks {
         turbineHousing = new BlockTurbineHousing();
         GameRegistry.registerBlock(turbineHousing, "turbineHousing");
         GameRegistry.registerTileEntity(TileTurbineHousing.class, "beyondthestars.turbineHousing");
+        // SINGULARITY LADDER (singularity-ladder-build.md §1.2): the Kerr / Eye-band casings.
+        SLBlocks.register();
     }
 }

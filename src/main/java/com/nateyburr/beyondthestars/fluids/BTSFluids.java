@@ -89,5 +89,7 @@ public final class BTSFluids {
         // may be moved, renamed or reordered in 0.24.0.
         BTSFluidsProcess.register();
         BTSFluidsPropellant.register();
+        // SINGULARITY LADDER (singularity-ladder-build.md §1.1): the three stellar intermediates.
+        SLFluids.register();
     }
 }
