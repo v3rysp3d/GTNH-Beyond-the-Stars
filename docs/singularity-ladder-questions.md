@@ -2613,6 +2613,69 @@ that: a static lang lint (every `ofFailure` / `ofSuccess` id, shutdown reason, `
 **Not covered.** A client: GUIs, NEI pages, the hologram preview and the renders' look. A real OpenComputers
 computer. AE2 or Factory Manager in a world.
 
+### B-72 Automation built for real: two photo rigs in a dev client, and what they taught [automation photos, built]
+
+**What was asked.** "Since you have an automation proven, can you make me an artifact with photos of it so I can see
+an example?" The earlier proof (B-70) was scripted. This one is real blocks in a real client
+(`-Dbts.rendertest=true -Dbts.rendertest.cases=automation`, dev-only harness `rendertest/AutoRig*`), and the only
+actor on the machines is the wiring: the harness builds, reads the state once a second into `eye.tsv` / `kerr.tsv`,
+and moves the camera. Page: local work folder `autoshots/automation-example.html` (not published).
+
+**Rig A, Eye T1 (Sol), redstone and GT covers.** Kit-built Eye, Crude field generators (the offline proof's ts = tt =
+1), empty buffers. Directive Hatches in five Sensor sockets: Trims Bit 1 (Helium valve), Trims Bit 2 (Hydrogen valve),
+Status Bit 1 (both upkeep valves, through a 48-cell redstone staircase with 3 repeater landings and two ground lines
+with 5 and 6 repeaters), Trims Any (a torch NOT gate lights an "in band" lamp), Transition Code (a comparator and a
+lamp). Each valve is a GT Debug Fluid Tank (the endless supply) with a Machine Controller cover (enable with redstone)
+and a Fluid Regulator cover set to Conditional: HV 500 L/t on the trims (Sol's rig rate, 10 units/s), UV 150,000 L/t on
+the upkeep. Four Stellar Ignition Charges in the plinth bus. **Result (run 4):** the upkeep valves stocked the
+ignition in 202 s, the Eye lit itself (Sol lit at 243 s) and burned 866 s (14 cycles): 837 s Resonant (96.7 %), 29 s
+Stable, 0 worse, Integrity 100 throughout, mean Y 1.242 (the offline proof: 96.6 %, 1.242). Helium valve open 28 s
+(280,000 L), Hydrogen 1 s (the first lit second). Status bit 1 re-opened the upkeep valves 6 times as the buffers ran
+down. Star runtime test rig: off the whole time.
+
+**Rig B, Kerr T1, AE2.** Kit-built Kerr, every bolt bus emptied, hole closed. Directive Hatches in the two upper front
+utility sockets: Hole Bit 3 (bolts short, window 1 minute) and Hole Bit 1 (closed). In front of each bolt bus an AE2
+cable block with an export bus (redstone card, active with signal; the bolt bus one with 3 acceleration cards) and a
+quartz facade on top; dust on the facade in front of the hatch powers it. ME: creative-energy controller, drive (64k
+cell, 4,096 SpaceTime bolts, 4 Seeds, inserted once the camera was ready), interface, glass cable, a level emitter
+(bolts >= 512) with a lamp. **Result:** Seed out, hole open 2 s after the cell went in, 16.1 SM a second later; open
+1,002 s, 0 evaporations, mass 16.00-16.25 SM, bolt stock 57-121, bit 3 on 41 s, 1,088 bolts exported.
+
+**What failed on the way, and what changed.**
+1. *My wiring:* the 1.7.10 diode direction bits were reversed in the harness (direction 2 outputs south), so every
+   repeater faced backwards; the wire dump showed the first landing stuck. Fixed in the harness.
+2. *My wiring:* a step-up dust beside the export bus's cable block lit its lamp but not the cable block (dust powers
+   only the way it flows). Redesign: the hatch above the bus, a facade on the cable block, dust on the facade.
+3. *My rig:* one acceleration card (8 bolts a move) could not feed the hole's climb from 8 to 16 SM (bleed 1 SM/s at
+   8 SM); it evaporated twice. Three cards (64 a move) hold it. The cell also got only 64 bolts at first: GT's stack
+   helper caps an ItemStack at 64; the AE stack now carries the count.
+4. *Real bug, fixed:* the Eye's GUI head line stayed "The star is dark" while Sol burned. On GT 5.09.54 recipe checks
+   are event-driven, and a star changes state with no hatch event. The Eye now schedules a check when the star state,
+   a transition or the unlocked tier changes (`refreshStatusLine`).
+5. *Real bug, fixed:* the Directive Hatch GUI drew its four bit lines and its drive line under the player inventory
+   (ten lines in a standard hatch panel). `DirectiveHatchGui.getBasePanelHeight` adds 64 px.
+6. *Docs, fixed:* automation.md said the regulator is "enable with signal". RC-2's Fluid Regulator has no redstone
+   mode; Conditional follows the block's work flag, so a GT valve is two covers. automation.md (§2.1, §4, new §4.1,
+   the questbook text) and the Directive Hatch tooltip (two lines) now say so.
+
+**Seen, not fixed.** The KEE GUI shows a missing texture (magenta and black) in one slot of its right-hand button
+column (runs 3 and 4).
+
+**Judgement calls (please confirm or change).**
+- Trims window left at the default 10: P peaks just over +10 for one second each cycle (Stable), as the offline proof
+  does. A window of 9 would keep every second Resonant; I left the documented default.
+- Kerr bolt window 1 minute (default 10): at 16 SM the hole burns a SpaceTime bolt every 4 s, so w = 10 would keep
+  about 600-660 bolts in the bus and w = 1 keeps 60-120 (the log: 57-121). Either way the bit fires about once a
+  minute, because each export moves 64 bolts. I used 1 so the bus starts near empty and the refills show; both work.
+- The upkeep valve rate (3 M L/s) is a choice: fast enough to stock the 600 M L ignition in about 3 minutes and to
+  refill a cycle (50 M L) in about 17 s.
+- The ME cell went into the drive when the camera was ready (a harness action, logged); everything after it was the
+  wiring.
+- Not built: the OpenComputers computer (optional in the brief).
+
+**Not covered.** Tiers above T1, events (T3 flash, T6 Agent), transitions, Kerr T2, real supply chains (endless tanks,
+creative ME power), OpenComputers in a world.
+
 ---
 
 ## Part C. Settled (for the record)
