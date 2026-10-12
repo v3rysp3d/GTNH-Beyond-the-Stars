@@ -1550,11 +1550,29 @@ public final class EyeStarRuntime {
         return trans != null ? trans.trimTable(fs.tier) : fs.tier;
     }
 
+    /** The trim table the Trims bits name now (bench rigs, scanner), or null with no field. */
+    public TierParams directiveTrimTable() {
+        return fs == null ? null : trimTable();
+    }
+
+    /** With the next core in escrow, the next transition's event fluids and first cycle are not all buffered. */
+    private boolean transitionFluidsShort() {
+        final Item core = coreFor(unlockedTier);
+        final EyeTransition.Type type = EyeTransition.Type.leaving(unlockedTier);
+        if (core == null || type == null || escrow == null || escrow.getItem() != core) return false;
+        for (Map.Entry<Fluid, Long> need : transitionNeeds(type).entrySet()) {
+            if (need.getKey() != null && host.buffer(need.getKey()) < need.getValue()) return true;
+        }
+        return false;
+    }
+
     /**
      * Status bit 1: the buffers cannot pay the next cycle's upkeep (or this cycle ran short, r below 1), a dark Eye's
-     * ignition (10 cycles and the seed cloud), a waiting Sirius B batch or the magnetar's dwarf-matter top-up.
+     * ignition (10 cycles and the seed cloud), a waiting Sirius B batch, the magnetar's dwarf-matter top-up, or - with
+     * the next core in escrow - the next transition's event fluids and its new star's first cycle.
      */
     public boolean buffersShort() {
+        if (transitionFluidsShort()) return true;
         if (live() && star != null) {
             if (cycR < 1 - 1e-9) return true;
             final int p = Math.max(1, cycP > 0 ? cycP : parallel(star.n()));

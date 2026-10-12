@@ -66,7 +66,7 @@ public class CommandBTSKerr extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btskerr [t1|t2] [force]  |  /btskerr migrate [x y z]  |  /btskerr render x y z [open [m]|close|off|on|break]  |  /btskerr module x y z <c|x> [stock|status|tier|clear]  |  /btskerr damage|repair x y z  |  console: /btskerr [t1|t2] <x> <y> <z> [facing] [force] [survival] | [check]";
+        return "/btskerr [t1|t2] [force]  |  /btskerr migrate [x y z]  |  /btskerr render x y z [open [m]|close|off|on|break]  |  /btskerr module x y z <c|x> [stock|status|tier|clear]  |  /btskerr damage|repair x y z  |  console: /btskerr [t1|t2] <x> <y> <z> [facing] [force] [survival] | [check]  |  /btskerr autorig x y z [s] [bolts/s]  |  /btskerr ocloop x y z";
     }
 
     @Override
@@ -92,6 +92,10 @@ public class CommandBTSKerr extends CommandBase {
         // last command-free minute; every /btskerr call keeps a console test's machines ticking.
         if (sender.getEntityWorld() instanceof WorldServer) {
             ((WorldServer) sender.getEntityWorld()).resetUpdateEntityTick();
+        }
+        if (args.length >= 4 && (args[0].equalsIgnoreCase("autorig") || args[0].equalsIgnoreCase("ocloop"))) {
+            automation(sender, args);
+            return;
         }
         if (args.length >= 5 && args[0].equalsIgnoreCase("module")) {
             testBench(sender, args);
@@ -289,6 +293,32 @@ public class CommandBTSKerr extends CommandBase {
         for (String line : KerrKit.diagnose(world, at.x, at.y, at.z, at.facing, tier2, true)) {
             SLConsoleTest.tell(sender, line);
         }
+    }
+
+    /**
+     * AUTOMATION PASS test bench: {@code /btskerr autorig x y z [seconds] [bolts/s]} runs the KEE on the Hole-set gate
+     * rig (Directive Hatches fitted into free utility sockets first); {@code /btskerr ocloop x y z} makes the
+     * OpenComputers calls a script would (machines/directive/DirectiveBench).
+     */
+    private void automation(ICommandSender sender, String[] args) {
+        final World world = sender.getEntityWorld();
+        if (world == null || world.isRemote) return;
+        final int x = (int) func_110666_a(sender, sender.getPlayerCoordinates().posX, args[1]);
+        final int y = (int) func_110666_a(sender, sender.getPlayerCoordinates().posY, args[2]);
+        final int z = (int) func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[3]);
+        final MTEKerrEngine kee = keeAt(world, x, y, z);
+        if (kee == null) {
+            SLConsoleTest.tell(sender, "No Kerr Ergosphere Engine controller at " + x + ", " + y + ", " + z);
+            return;
+        }
+        final List<String> lines = args[0].equalsIgnoreCase("ocloop")
+            ? com.nateyburr.beyondthestars.machines.directive.DirectiveBench.kerrOcLoop(kee)
+            : com.nateyburr.beyondthestars.machines.directive.DirectiveBench.kerrAutorig(
+                world,
+                kee,
+                args.length > 4 ? Long.parseLong(args[4]) : 600,
+                args.length > 5 ? Integer.parseInt(args[5]) : 64);
+        for (String line : lines) SLConsoleTest.tell(sender, line);
     }
 
     /**

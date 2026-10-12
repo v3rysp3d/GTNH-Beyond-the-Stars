@@ -29,6 +29,8 @@ import com.nateyburr.beyondthestars.machines.BTSMachines;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1;
 import com.nateyburr.beyondthestars.machines.SLConsoleTest;
+import com.nateyburr.beyondthestars.machines.directive.DirectiveSet;
+import com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective;
 
 import gregtech.api.enums.ItemList;
 import gregtech.api.enums.Materials;
@@ -77,6 +79,7 @@ public final class EyeKit {
         give(player, item(SLItems.starChartMagnetar));
         giveMany(player, item(SLItems.stellarIgnitionCharge), 16);
         giveMany(player, BTSMachines.stellarFieldSensor == null ? null : BTSMachines.stellarFieldSensor.copy(), 8);
+        giveMany(player, BTSMachines.directiveHatch == null ? null : BTSMachines.directiveHatch.copy(), 4);
         giveMany(player, ItemList.Hatch_Input_MAX.get(1L), 8);
         give(player, ItemList.Hatch_Input_Bus_MAX.get(1L));
         give(player, fluidCell(SLFluids.antipolarizationAgent));
@@ -110,7 +113,7 @@ public final class EyeKit {
             player,
             "Given: the controller, the five transition cores, the six star charts, 16 Stellar Ignition Charges, "
                 + "input hatches for every socket (plus 8 for the Field sockets and an input bus for the charges), "
-                + "8 Stellar Field Sensor Hatches, cells of Antipolarization Agent, DSSF and Tachyon Rich Temporal "
+                + "8 Stellar Field Sensor Hatches, 4 Directive Hatches, cells of Antipolarization Agent, DSSF and Tachyon Rich Temporal "
                 + "Fluid, an ME output bus + hatch, auto-maintenance and tier-9 field generators.");
         tell(player, EnumChatFormatting.YELLOW + "Grab the casings through NEI. Bills read from manifest.json:");
         for (String piece : MTEEyeOfHarmonyBTS.PIECES) {
@@ -317,8 +320,15 @@ public final class EyeKit {
             for (int[] rel : socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'f')) {
                 if (fit(world, alignment, x, y, z, rel, ItemList.Hatch_Input_MAX)) fitted++;
             }
-            for (int[] rel : socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'n')) {
-                if (fitStack(world, alignment, x, y, z, rel, BTSMachines.stellarFieldSensor)) fitted++;
+            // AUTOMATION PASS: the first three Sensor sockets get Directive Hatches (Trims, Status, Transition, code
+            // mode), the rest Stellar Field Sensor Hatches
+            final int[][] n = socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'n');
+            for (int i = 0; i < n.length; i++) {
+                if (i < DIRECTIVE_SETS.length) {
+                    if (fitDirective(world, alignment, x, y, z, n[i], DIRECTIVE_SETS[i])) fitted++;
+                } else if (fitStack(world, alignment, x, y, z, n[i], BTSMachines.stellarFieldSensor)) {
+                    fitted++;
+                }
             }
         }
         final ItemList[] outputs = { ItemList.Hatch_Output_Bus_ME, ItemList.Hatch_Output_ME };
@@ -577,6 +587,25 @@ public final class EyeKit {
     }
 
     /** Places the GT machine {@code stack} (a hatch's item) at the socket, facing away from the Eye's centre. */
+    /** The kit's Directive Hatches, in Sensor-socket order (code output). */
+    private static final DirectiveSet[] DIRECTIVE_SETS = { DirectiveSet.EYE_TRIMS, DirectiveSet.EYE_STATUS,
+        DirectiveSet.EYE_TRANSITION };
+
+    /** A Directive Hatch in the socket, set to {@code set} with code output. */
+    private static boolean fitDirective(World world, ExtendedFacing alignment, int x, int y, int z, int[] rel,
+        DirectiveSet set) {
+        if (!fitStack(world, alignment, x, y, z, rel, BTSMachines.directiveHatch)) return false;
+        final int[] p = worldPos(alignment, x, y, z, rel);
+        final TileEntity te = world.getTileEntity(p[0], p[1], p[2]);
+        if (te instanceof IGregTechTileEntity
+            && ((IGregTechTileEntity) te).getMetaTileEntity() instanceof MTEHatchDirective) {
+            final MTEHatchDirective h = (MTEHatchDirective) ((IGregTechTileEntity) te).getMetaTileEntity();
+            h.setSet(set);
+            h.setOutput(DirectiveSet.Output.CODE);
+        }
+        return true;
+    }
+
     private static boolean fitStack(World world, ExtendedFacing alignment, int x, int y, int z, int[] rel,
         ItemStack stack) {
         if (stack == null) return false;

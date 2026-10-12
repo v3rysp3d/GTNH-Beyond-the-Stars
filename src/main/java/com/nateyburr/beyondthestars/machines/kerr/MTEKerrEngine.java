@@ -460,6 +460,11 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         return n;
     }
 
+    /** The bolt buses (bench, read-only). Server state. */
+    public List<MTEHatchInputBus> boltBuses() {
+        return java.util.Collections.unmodifiableList(boltBuses);
+    }
+
     public int boltBusCount() {
         return liveCount(boltBuses);
     }

@@ -70,7 +70,8 @@ public final class EyeStarBench {
         + "milestones <n> done | transition [abort] | event | "
         + "fill | sensor <x> <y> <z> <channel> <gt|lt> <threshold> [analog] | sensors <channel> <gt|lt> <thr> "
         + "[analog] | probe | wrench | charge [n] | buffer <fluid> <L> | core <name> | escrow | "
-        + "legacy [galactic] [run <key> <n>] | fix | gt | mefield | field <fluid> <L> | render [on|off]";
+        + "legacy [galactic] [run <key> <n>] | fix | gt | mefield | field <fluid> <L> | render [on|off] | "
+        + "directive | autorig <s> | ocloop";
 
     /** Runs {@code args} = {@code star x y z sub …}. Returns the lines to print. */
     public static List<String> run(ICommandSender sender, String[] args) {
@@ -213,6 +214,20 @@ public final class EyeStarBench {
             case "mefield":
                 out.add(meField(eye));
                 break;
+            case "directive":
+                // AUTOMATION PASS: Trims / Status / Transition Directive Hatches in three Sensor sockets
+                out.addAll(com.nateyburr.beyondthestars.machines.directive.DirectiveBench.eyeSetup(eye));
+                return out;
+            case "autorig":
+                // AUTOMATION PASS: the scripted redstone gate rig on the Directive Hatches' codes (task 4)
+                out.addAll(
+                    com.nateyburr.beyondthestars.machines.directive.DirectiveBench
+                        .eyeAutorig(eye, a5.isEmpty() ? 600 : Long.parseLong(a5)));
+                break;
+            case "ocloop":
+                // AUTOMATION PASS: the OpenComputers calls (BTSComputerApi), as a script makes them
+                out.addAll(com.nateyburr.beyondthestars.machines.directive.DirectiveBench.eyeOcLoop(eye));
+                return out;
             case "field": {
                 // field <fluid registry name> <L>: pour a trim fluid into the Field-socket hatches (what a player's
                 // automation does), so the sockets, not a debug rig, regulate the star

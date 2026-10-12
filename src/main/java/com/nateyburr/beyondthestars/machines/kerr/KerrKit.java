@@ -27,6 +27,8 @@ import com.nateyburr.beyondthestars.machines.BTSMachines;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1;
 import com.nateyburr.beyondthestars.machines.SLConsoleTest;
+import com.nateyburr.beyondthestars.machines.directive.DirectiveSet;
+import com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective;
 
 import gregtech.api.GregTechAPI;
 import gregtech.api.enums.ItemList;
@@ -74,6 +76,7 @@ public final class KerrKit {
         giveMany(player, ItemList.Hatch_Input_Bus_MAX.get(1L), socketCount(MTEKerrEngine.PIECE_T1, 'b'));
         giveMany(player, ItemList.Hatch_Energy_UIV.get(1L), socketCount(MTEKerrEngine.PIECE_T1, 'e'));
         give(player, machine(MetaTileEntityIDs.HATCH_BLACK_HOLE_UTILITY.ID));
+        giveMany(player, copy(BTSMachines.directiveHatch), 3);
         // modules (their own hatches): compressor in bus + 2 in hatches (DENSITY takes two fluids) + out bus
         // + out hatch + energy; extractor in bus + out bus + energy
         giveMany(player, ItemList.Hatch_Input_Bus_MAX.get(1L), 2);
@@ -87,7 +90,8 @@ public final class KerrKit {
         tell(
             player,
             "Given: the KEE controller, both module controllers, " + qty(rails)
-                + " Bolt Injector Rails (Mk I), a Density Upgrade, 2 seeds + a collapser, bolts, and hatches.");
+                + " Bolt Injector Rails (Mk I), a Density Upgrade, 2 seeds + a collapser, bolts, and hatches"
+                + " (3 Directive Hatches for the utility sockets).");
         tell(player, EnumChatFormatting.YELLOW + "Grab the casings through NEI. Bills read from manifest.json:");
         for (String piece : new String[] { MTEKerrEngine.PIECE_T1, MTEKerrEngine.PIECE_T2,
             MTEKerrEngine.PIECE_COMPRESSOR, MTEKerrEngine.PIECE_EXTRACTOR }) {
@@ -233,6 +237,17 @@ public final class KerrKit {
             if (bus != null) {
                 stockBoltBus(bus, !seeded);
                 seeded = true;
+            }
+        }
+
+        // AUTOMATION PASS: Directive Hatches (Hole, Status; code output) in the first two utility sockets.
+        final DirectiveSet[] sets = { DirectiveSet.KERR_HOLE, DirectiveSet.KERR_STATUS };
+        int d = 0;
+        for (int[] rel : socketRels(core, 'u')) {
+            if (d >= sets.length) break;
+            if (fitDirective(world, alignment, x, y, z, rel, centre, sets[d])) {
+                fitted++;
+                d++;
             }
         }
 
@@ -628,6 +643,50 @@ public final class KerrKit {
             p[2],
             (short) stack.getItemDamage(),
             outward(world, alignment, p, centre));
+    }
+
+    /** A Directive Hatch in a KEE socket, facing out, set to {@code set} with code output. */
+    static boolean fitDirective(World world, ExtendedFacing alignment, int x, int y, int z, int[] rel, int[] centre,
+        DirectiveSet set) {
+        final ItemStack stack = BTSMachines.directiveHatch;
+        if (stack == null) return false;
+        final int[] p = KerrSlot.worldPos(alignment, x, y, z, rel);
+        if (!MTEReactorCoreMk1.placeGtMachine(
+            world,
+            p[0],
+            p[1],
+            p[2],
+            (short) stack.getItemDamage(),
+            outward(world, alignment, p, centre))) return false;
+        final MTEHatchDirective h = mteAt(world, p, MTEHatchDirective.class);
+        if (h != null) {
+            h.setSet(set);
+            h.setOutput(DirectiveSet.Output.CODE);
+        }
+        return true;
+    }
+
+    /**
+     * Test bench ({@code /btskerr autorig}): Directive Hatches (Hole, Status) into the first free utility sockets of an
+     * already built KEE (a socket still holding its casing), then a re-walk. Returns how many it placed.
+     */
+    public static int fitDirectives(World world, MTEKerrEngine kee) {
+        final IGregTechTileEntity base = kee.getBaseMetaTileEntity();
+        final ExtendedFacing alignment = kee.getExtendedFacing();
+        final int x = base.getXCoord(), y = base.getYCoord(), z = base.getZCoord();
+        final int[] centre = KerrSlot.worldPos(alignment, x, y, z, KerrSlot.centreRel());
+        final DirectiveSet[] sets = { DirectiveSet.KERR_HOLE, DirectiveSet.KERR_STATUS };
+        int placed = 0;
+        for (int[] rel : socketRels(kee.corePiece(), 'u')) {
+            if (kee.directiveHatchCount() + placed >= sets.length) break;
+            final int[] p = KerrSlot.worldPos(alignment, x, y, z, rel);
+            if (world.getTileEntity(p[0], p[1], p[2]) != null) continue; // a hatch is there already
+            if (fitDirective(world, alignment, x, y, z, rel, centre, sets[kee.directiveHatchCount() + placed])) {
+                placed++;
+            }
+        }
+        kee.checkStructure(true, base);
+        return placed;
     }
 
     private static <T> T mteAt(World world, int[] p, Class<T> type) {
