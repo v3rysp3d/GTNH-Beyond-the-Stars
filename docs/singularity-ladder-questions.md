@@ -3673,3 +3673,255 @@ downstream pause too.
 every route. No render-harness case was added: there is nothing new to draw.
 
 **Suggestion.** A thin additive beam TESR along cached routes in the render QA pass (needs a client run).
+
+### P4-58 A galaxy transition begins on a signal, with the next chart in the slot [Eye T7/T8]
+
+**Context.** D-49's T1-T3 transitions begin by themselves once the next chart is in and every precondition holds.
+§8.1 makes Galaxy Transition bit 1 "Ready: begin", and the Burst Control Hatch's begin mode "a rising edge begins the
+transition when bit 1 is on". The collapse assist times the quasar's purge against the overfeed, so the begin is a
+timed act.
+
+**Built.**
+
+- The next galaxy chart in the controller slot makes the Eye PENDING, as on T1-T3: Triangulum on a lit magnetar, or
+  the Milky Way on a lit Triangulum. The object keeps burning.
+- The transition begins only on a request while every precondition holds: the milestones (link included), the core in
+  escrow, the receptor ports, Stable, and the charge plus the new object's first cycle buffered.
+- A request is one of: the GUI Galaxy panel's **Begin**, the rising edge of a **Burst Control Hatch in Begin mode** in
+  a plinth `d` socket, or OpenComputers `beginTransition()`.
+- A request while not ready is ignored, and the answer names what is missing. Bit 1 is on only while PENDING and
+  ready.
+
+**Suggestion.** Keep. **Alternative:** an "auto-begin" toggle that begins the moment it is ready, as T1-T3 do.
+
+### P4-59 The galaxy chain: a dark Eye with a galaxy chart is re-born from the magnetar [Eye T7/T8]
+
+**Context.** §4.6 / §4.7: a lost galaxy re-runs "from a lit magnetar (charge again, no core)" or "from a lit
+Triangulum". D-49's T4 relights Arcturus by itself to re-run the Core Collapse.
+
+**Built.**
+
+- In galaxy mode, a dark Eye with the Triangulum or Milky Way chart and T6 unlocked spawns the magnetar (the Magnetar
+  Merger re-spawn and its charge).
+- The magnetar is then PENDING toward the chart. The Magnetar Collapse re-runs (no core, no link), then the Galactic
+  Merger (for the Milky Way, once T7 is unlocked).
+- A chart more than one tier past the unlocked tier does not chain: the first Milky Way needs T7 unlocked.
+- Each galaxy transition still begins on a signal (P4-58), so a re-run needs the Begin wire. The standard rig has it.
+
+**Suggestion.** Keep.
+
+### P4-60 A companion change relights the galaxy in place [Eye T7/T8]
+
+**Context.** §4.8: "Changing a companion extinguishes and relights the galaxy, as a target change does today." Read
+literally, the galaxy goes out and must be re-born by the Magnetar Collapse (and the Galactic Merger): an hour or more.
+
+**Built.**
+
+- The companions are the slot bus's star charts of earlier objects: T1-T6, unlocked, one per tier, in slot order. T7
+  runs 1, T8 runs 2.
+- When the set changes, the galaxy **re-forms in place**: the gauges go to 0, Integrity to 100, a fresh cycle starts
+  (the cycle in flight is lost), and the new set's upkeep is charged. No transition re-runs.
+- Each companion pays its own upkeep per cycle in full: `GalaxyField.Companion`'s table × 2^(N−1−k) × p, with
+  fractional litres carried. It keeps its own r.
+- Its product is × the galaxy's mean Y × min(the galaxy's r, its own r).
+- Companions are ignored during a transition. The Galactic Merger needs none loaded.
+
+**Suggestion.** Keep. **Alternative:** the literal reading (the galaxy goes out).
+
+### P4-61 Planets mode: the Eye's mode switch; the galaxy chart picks the slots [Eye T7/T8]
+
+**Context.** §4.8 says planets mode is chosen like a planet target (it extinguishes the galaxy). §6.3 says "planets
+mode needs no chart". §8.2 has `setMode("galaxy" | "planets")`.
+
+**Built.**
+
+- **The switch:** a mode on the Eye, set in the GUI Galaxy panel, by OpenComputers `setMode` or by the bench `mode`;
+  item NBT.
+- **Slots:** in planets mode the Triangulum chart means 3 slots (PLANETS7) and the Milky Way 6 (PLANETS8). There is no
+  new chart: the galaxy's own picks the tier.
+- **Lighting:** the planets field lights at once on an Eye with T7 / T8 unlocked: no collapse, just its EU per cycle.
+  Switching the mode puts the other field out.
+- **The slot bus** (`p`, any input bus, ME included; read, never consumed) fills the slots with converted TecTech
+  planet items in slot order.
+- **A slot's run:**
+  - it pays at the start: the planet's H/He × parallel from the buffers and its EU from the network, and waits until
+    it can;
+  - it runs the planet's base time with the compression reward;
+  - at the end it rolls each parallel at (1 − 0.05·R) × the field factor averaged over the run;
+  - its parallel is 2^(installed − k).
+- **A Breach** (or Integrity 0) fails the runs in flight and re-forms the field.
+- A Deep Dark run still counts toward the T4 → T5 milestone. Planets-mode seconds do not count toward Triangulum's
+  Resonant milestone.
+
+**Suggestion.** Keep. **Alternative:** a separate planets chart.
+
+### P4-62 The halo test fire is automatic; the "setting" is the Junctions' [Eye T7]
+
+**Context.** R.1: "The test fire setting forces J1 to the Eye and J3 to 75 % halo". The Eye cannot set Junctions. The
+rig proof drives them from Slots [8].
+
+**Built.**
+
+- At T7 (galaxy mode) and through the Magnetar Collapse, bursts on the halo ports are always a test fire. They count
+  for the Heavy Link (the Eye's total, the halo's share) and are dumped from the field (β, γ_halo).
+- From the Galactic Merger on, and at T8, they are the field's halo input.
+- Slots [8] ("link test fire wanted") is the setting: the player wires it to J1's and J3's Burst Control Hatches. The
+  questbook, the Directive tooltip and the GUI's rig line say so.
+- `heavyOk` gets testFire = "the halo has ports".
+
+**Suggestion.** Keep. **Alternative:** an Eye toggle that refuses halo bursts at T7 unless it is on.
+
+### P4-63 Parallel in the galaxy maths [Eye T7/T8]
+
+**Built.**
+
+- β and the γs divide by D · m · p, per StepInputs' contract.
+- `gEye` (the collapse shock's cancel) is the Eye's Bu/t ÷ p.
+- The Magnetar Collapse's overfeed charge is × the magnetar's parallel; the Galactic Merger's Ergomatter is × the
+  Triangulum's. The transitions' buffer checks match (`transitionNeeds(type, ps, pd, feed, f8)`).
+- Companions are × p.
+- At p = 1 (the first time through, on an Eye unlocked to the tier it runs) every form equals the prototype's.
+
+**Suggestion.** Keep.
+
+### P4-64 The galaxies' render [Eye render]
+
+**Built.**
+
+- **New looks:** EyeStarLook kinds TRIANGULUM (9), MILKY_WAY (10) and PLANETS (11).
+- **The bulge** is the shader's textured core: 2.4 blocks, A8C4FF, γ 1.4 (Triangulum); 3 blocks, FFD49A, γ 1.6 (the
+  Milky Way).
+- **The arms** are additive, camera-facing dots on log spirals in the rail's 8° plane:
+  - Triangulum: 3 arms × 44 dots to r 16, with a few pink knots;
+  - the Milky Way: 4 arms × 56 dots to r 19, plus a 30-dot bar.
+
+  They turn once in about 2.6 min, brighten on a warning, and sit on a faint disc glow.
+- **Planets mode:** a dim core with up to nine coloured planets on orbits at r 5-18.
+- **The overfed magnetar** shrinks by 30 %, spins up and throbs before the collapse.
+- **Render-harness cases:** `eye_t7_triangulum`, `eye_t7_merger_warn`, `eye_t8_milky_way` and `eye_t8_planets`, on
+  two new sites. The sites are appended, so the layout suffix stays. None was run: the desktop is in use.
+
+**Suggestion.** Review in the render QA pass: sizes, colours, dot counts and frame rate.
+
+### P4-65 Where the Eye's Burst Control Hatch goes, and the kit's socket layout [Eye T7/T8]
+
+**Context.** §7 gives the Eye no `c` socket, and the Begin wire needs one.
+
+**Built.**
+
+- The four plinth `d` sockets take a Directive Hatch or a Burst Control Hatch. The Burst Control Hatch is in Begin
+  mode; a hatch in another mode adopts Begin.
+- `/btseye t6+` fits:
+  - Field, Events and Galaxy Transition Directive Hatches on `d` 1-3;
+  - a Begin Burst Control Hatch on `d` 4;
+  - a Slots Directive Hatch on the fourth Sensor socket `n`;
+  - an input bus on the slot bus `p`;
+  - at T7 / T8, a GRB Receptor Port in every rail / halo socket.
+
+**Suggestion.** Keep.
+
+### P4-66 Receptor-port preconditions [Eye T7/T8]
+
+**Built.**
+
+- The Stability Link counts only with at least one rail-high and one rail-low port, and the Magnetar Collapse needs
+  them (§5.2).
+- The Galactic Merger needs all 8 halo ports (§5.3, "the 8 halo ports are built").
+- A rail or halo band that does not count (a band below it is missing) drops its ports (mark-and-truncate, as for the
+  stellar sockets).
+
+**Suggestion.** Keep. **Alternative:** allow the merger with one halo port or more.
+
+### P4-67 What a link saves [Eye T7/T8]
+
+**Built.** R.1 saves the milestone, and the task asks for the streaks in NBT.
+
+- The two `BurstLink`s' 60 s windows, counts, streaks and best streaks are saved with the live star (tile NBT), so a
+  restart continues a 30 min streak.
+- `done` and the best streak are milestones (item NBT): they survive a wrench.
+- A wrench restarts the window and the streak, as it aborts a transition.
+- Nothing about the link itself (the source) is saved.
+
+**Suggestion.** Keep.
+
+### P4-68 Q-8 on the Eye [Eye T7/T8]
+
+**Built.**
+
+- When a quasar that fed the receptor ports is frozen or not loaded (`BurstReading.paused`), a burst-driven field
+  holds still that second: no field step, no clock, no cycle, no link roll. That covers T7, T8, planets mode, and
+  either galaxy transition. The scanner names the quasar.
+- At T6 (where bursts have no effect) only the Stability Link's roll pauses.
+- A quasar that is running but dark, or one that is gone, is felt in full (P4-46).
+
+**Suggestion.** Keep.
+
+### P4-69 Milestone details [Eye T7/T8]
+
+**Built.** The item milestones are the doc's halved numbers:
+
+- **T6 → T7:** Magnetar Matter 2,700 L from cycles with no second worse than Stable, 2 h Resonant, and 50 giant flares
+  ridden (the helium-flash watch: never worse than Stable from the warning to 30 s after).
+- **T7 → T8:** Ergomatter 216,000 L from all-Stable cycles, 2 h Resonant, and 4 minor mergers ridden.
+
+They count once the tier is unlocked, and never during a transition, so the forced merger in the halo capture does not
+count.
+
+**Suggestion.** Keep.
+
+### P4-70 Triangulum's upkeep and the NEI pages [Eye T7/T8]
+
+**Built.**
+
+- Molten Magnetar Matter 7.5 L a cycle × p is a fractional upkeep, drawn with a carry (8 L, then 7 L, and so on).
+- The T7 star page shows it rounded up (8 L) and says 7.5.
+- The T8 page shows the default feed (300 L a cycle) in and 300 L of Superdense Ergomatter out.
+- The planets pages carry the slot rules.
+- The two transition pages list the link, the milestones, the phases, and the charge plus the new object's first cycle.
+
+**Suggestion.** Keep.
+
+### P4-71 The dev-server bench's scripted link [test]
+
+**Built.**
+
+- `/btseye star <x y z> galaxy <s> [analog] [mass M] [fresh]` runs the §8.4 rig on the real Eye:
+  - a virtual quasar: the engine's disc on helium, coils 3, b 3, f 1;
+  - the standard conduit: two Mk I mouth pairs, a combine, J1, J3 and J2;
+  - the gate rig, which reads only the Eye's Directive codes and the disc's.
+
+  Its streams reach the Eye as a scripted reading each second (the bench quasar is not a machine), and its Φ and b go
+  to the collapse assist. After a run the rig keeps stepping in real time until `galaxy off`.
+- `inject <qx qy qz> <hi> <lo> <halo>` pushes real streams from a real quasar through the receptor hatches every
+  second. This exercises the BurstHost path, σ reported back, and Q-8.
+- `burst <Bu/t> [high] [halo]` is a constant feed.
+
+**Suggestion.** Keep as the bench. The full in-world rig (a quasar, mouths, mirrors and junctions aimed at the Eye's
+ports) is the questbook's build.
+
+### P4-72 The Magnetar Merger's imprint could never complete on this branch [D-49 fix, ported]
+
+**Context.** Since ruling 12 (B-60), the paid Agent upkeep charges the flare shield at 2r a second. The shield eats
+the dynamo's Π during the merger's imprint, so Π never reached its band. The dev-server chain showed it: every magnetar
+re-spawn timed out. Master fixed this in B-71 (c97a35e), but that commit is not in this base.
+
+**Built.** The core of B-71, with the same text as master:
+
+- the `Overlay.shieldPerUpkeep(T)` hook (default `SHIELD_PER_UPKEEP`, so the 78 golden cases are unchanged);
+- `StellarField` charges `ov.shieldPerUpkeep(T) * r`;
+- `MagnetarMerger` returns 0 during the imprint.
+
+Master's Directive changes for the merger (`AGENT_IMPRINT`, the merger valve) arrive with the merge.
+
+**Suggestion.** Keep. The merge takes master's version.
+
+### P4-73 The collapse assist reads the linked quasar's flux as it stands [Eye T7]
+
+**Context.** The Galaxy Transition set's purge-now bit needs the linked quasar's Φ and b (`GalaxyDirective.transition`).
+The prototype reads `Q.Phi`, the flux after the quasar's last second.
+
+**Built.** The Eye resolves its strongest linked source (`BurstSource.resolve()`) and reads that quasar's `Phi` and
+`b`. It does not read `lagPhi`, the sensor's one-second lag. With no linked quasar both are 0: only the collapse
+second's purge bit fires.
+
+**Suggestion.** Keep.

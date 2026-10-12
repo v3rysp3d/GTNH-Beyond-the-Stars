@@ -2030,6 +2030,7 @@ accepted, and §10.2's questions take their recommendations. Branch `p4-quasar`;
 | Content + recipes (§6): fluids, items, slCasing2:3-11, textures, lang, BTSRecipesQuasar, SL-P40, the Eternity swap, NEI pages, P4 gate audit | built | a67ef11, 2799a9e, 486877f, e89b314 |
 | Quasar Engine MTE 28120, Burst Control Hatch 28126, burst API, sensor quasar channels, render, kit, bench, OC | built | ee919a7, c44f995, 89ac19e, c47fc63 |
 | Conduit (Mouth 28121, Mirror 28122, Junction 28123), Crown 28124, GRB Receptor Port 28125, solver, host API, OC, kit, bench | built | 0f99c6b, 92c10ca, 6d6e8db |
+| Eye T7 Triangulum + T8 Milky Way: rail / halo bands, receptor groups, the two galaxy transitions, links, planets mode, companions, Directive sets, sensor channels, GUI, render, NEI, OC, kit, bench | built | 57ff9a9, 4d7f61c, + this unit's later commits |
 
 ### MTE ledger (P4 block 28120-28129)
 
@@ -2450,3 +2451,134 @@ A misaligned dock takes 0 and says so. `/btsconduit dock <quasar>` prints both p
 - Boot: `Recipe registration complete: 315 registered, 0 skipped`; "P4 recipes: every machine recipe is registered"
   (SL-Q10, Q11, Q12, Q16, Q19 now register; SL-Q16 fixed, P4-55).
 - Not tested in game: the Ergomatter fuel path, cross-dimension mouths, the GUIs and NEI preview (no client run).
+
+### Eye T7 Triangulum and T8 Milky Way (questions P4-58..P4-73)
+
+**What's built.** The Eye (MTE 28115) runs T7 and T8 on the engine unit's field maths (`TierParams` T7 / T8 /
+PLANETS7 / PLANETS8, and `StellarField`'s galaxy hooks). It also runs the T6 → T7 Magnetar Collapse and the T7 → T8
+Galactic Merger in the D-49 frame: milestone, then the core in escrow, then the charge, then the transition.
+
+**Files.**
+
+| Class | What it is |
+|---|---|
+| `eye/MTEEyeOfHarmonyBTS` | `PIECES` gains `eye_rail` (T7) and `eye_halo` (T8): cumulative bands, `MAX_TIER` 8, compression gate metas 6 / 7. New elements: `B` (Bastion), `P` (Casimir), `r` (a GRB Receptor Port, falling back to `B`; its group comes from the manifest, matched by its offset, `receptorSockets()`). `d` takes a Directive Hatch or a Burst Control Hatch; `p` is the private slot bus. `StarHost.bursts()` reads the three groups through `BurstHost` and reports the Eye to its quasars. Bench: `debugInject`, `firstSlotBus`. |
+| `eye/EyeHatchElement` | `Receptor`, `BurstControl`, `SlotBus`. |
+| `eye/star/EyeStarRuntime` | The galaxy flow: `wanted()` (planets-mode variants), the galaxy chain (`galaxyChain`, `towardDest`, `tryGalaxy`), `galaxyInputs` (β, the γs, `gEye`, f₈, companions), `takeCharges`, `collapsed` / `merged`, `galaxyAfterStep` (the T8 feed, the crossing, countdowns, planets, companions, the two links), `requestBegin`, the P4 Directive codes, `galaxyReady`, `testFireWanted`, planets mode, companions, and the scanner lines. |
+| `eye/star/EyeGalaxy` | The galaxy state and its NBT: the mode and f₈ (item NBT); the links' windows and streaks, carries, companions and planet slots (tile NBT). |
+| `eye/star/EyeBursts` | One second of the receptor groups (hi, lo, halo, linked, paused, source, port counts). |
+| `eye/star/MagnetarCollapse`, `GalacticMerger` | `EyeTransition`s wrapping `MagnetarCollapseOverlay` (shock 120) and `GalacticMergerOverlay`, with NBT. |
+| `eye/star/EyeMilestones` | T6 → T7 and T7 → T8 (`linkDone`, `linkBest`, flares, mergers, `prod[6..7]`, `res[6..7]`). |
+| `eye/star/EyeGalaxyBench` | `/btseye star … burst | galaxy`: the scripted link (P4-71). |
+| `eye/field/FieldReadout` | Channels W, LAMBDA, BETA, LINK_STREAK, LINK_MEAN, SLOT_PROGRESS, COUNTDOWN (appended); `withGalaxy`. |
+| `eye/render/EyeStarLook`, `EyeStarRenderer` | TRIANGULUM, MILKY_WAY, PLANETS; arms, bar and orbits (P4-64). |
+| `eye/EyeGui` | Galaxy terminal lines and the Galaxy panel (mode, f₈, Begin). |
+| `integration/BTSComputerApi`, `oc/BTSEnvironments` | `bts_eye` `getEvent`, `getUnlock`, `beginTransition`, `setFeed8`, `setMode`, `getSlots`, plus `getField`'s W, L, β, γs, D. |
+
+**Stars** (`EyeRecipeRegistry.registerGalaxies`):
+
+- `star:triangulum`:
+  - T7, chart Triangulum;
+  - upkeep: Molten Magnetar Matter 7.5 L a cycle (`StarDef.exactUpkeep`, carried);
+  - product: Ergomatter 600 × Y × r × min(β̄, 1.5);
+  - charge, NEI only: the collapse's WDM 18,432 + BDM 4,608.
+- `star:milkyway`:
+  - T8, chart the Milky Way;
+  - feed: Ergomatter f₈ (0-10 L/s, default 5);
+  - product: Superdense Ergomatter 1 : 1 × Y × r;
+  - charge, NEI only: Ergomatter 9,000.
+- `star:planets7` / `star:planets8`: registered by key only (`StarDef.registerVariant`). `StarDef.ofTier` skips them.
+
+**The flow.**
+
+1. **The link.** The magnetar is lit at T6. The rail's receptor ports feed the Stability Link: rail total, high bank,
+   1.5 Bu/t, 25-75 %, 1,800 s. The galaxy rig wires Slots [8] to J1 = 15.
+2. **The begin.** With the item milestones met, the Intergalactic Upgrade Core in escrow and the Triangulum chart in
+   the slot, the Eye is PENDING. Galaxy Transition [1] goes on; Begin starts the Magnetar Collapse.
+3. **The collapse.** Overfeed, collapse (`collapsed()`: the star becomes Triangulum and its first cycle is charged),
+   halo capture, then T7 is unlocked.
+4. **T7 steady state.** P is held by bursts and Space trims, W by the rail's banks. The Heavy Link counts the Eye's
+   total with the halo share (the halo is a test fire at T7).
+5. **The merger.** The Supermassive Seed Core and the Milky Way chart, then Begin: the Galactic Merger (`merged()` at
+   the first pass), then T8 (the Milky Way lit by `relit()`).
+6. **T8 steady state.** P, W and Λ; the feed; the satellite crossing and its bonus.
+
+A lost galaxy re-runs from a re-spawned magnetar (P4-59).
+
+**NBT** (every key is new; a pre-P4 save reads defaults):
+
+- **Item NBT:** `btsEyeMode` and `btsEyeF8`; milestones `t6` / `t7` (prod, res, flares / mergers, link, linkBest).
+- **Tile NBT, star:** `planets`, `W`, `L`, `prec`, `prevE4..5`, `tde{next, left, warned, ok, tau, n, caught}`,
+  `cyc.bSum`, `cyc.f8`, `mcShock`.
+- **Tile NBT, `galaxy{}`:** the links' sparse windows, n, streak, best and done; carries; companions with their r;
+  slots; the last run.
+- **Transitions:** `btsEyeTrans`. A MAGNETAR_COLLAPSE saves its phase, st, streak, Mns and the shock readouts; a
+  GALACTIC_MERGER saves its phase, st, streak and signs. A merger with no signs is dropped.
+
+**Contracts for other units.**
+
+- **Hosts unit.** The Eye uses the host-side API as specified. Its host key is `eye@dim:x,y,z`, its label "Eye of
+  Harmony", and its demand is `galaxyDemand × p`.
+- **The Directive Hatch's tooltip** has the Eye's Field, Events, Galaxy Transition and Slots tables.
+- **Questbook merge:** `docs/p4-questbook-contract.md` "Eye T7 + T8 unit".
+- **Master merge:** P4-72 ports B-71's core (`Overlay.shieldPerUpkeep`); take master's version.
+
+**Dev-server run** (port 25581, world `p4test`, Eye T8 at 12000 100 12000 north).
+
+**Dev-server results** (2026-10-13). The Eye was built with `/btseye t8 12000 100 12000 north gen 9 fill force` and
+formed T8. The structure checks passed:
+
+- 16 receptor ports grouped 4 rail-high, 4 rail-low and 8 halo;
+- creative re-projection safe; damage and repair 1/1.
+
+Boot: 315 recipes, 0 skipped. 10 live stars: T1-T8 plus the two planets variants.
+
+1. **T6 → T7.**
+   - A magnetar lit at T6, with the Triangulum chart and the Intergalactic core in escrow, and the galaxy rig on a 64 SM
+     bench quasar.
+   - The Stability Link held after about 2,500 s. The item milestones were met at about 12,000 s.
+   - The rig's Transition [1] edge began the Magnetar Collapse. The assist's eruption landed 9.07 Bu/t on the collapse
+     second and cancelled 76 of the 120 shock.
+   - The halo was captured: COMPLETE in 779 s, T7 unlocked, the core consumed.
+   - The first attempt, before the bench passed the quasar's Φ to the assist (P4-73), failed at P +102.8 as designed:
+     the core was kept and the chain re-spawned the magnetar.
+2. **T7 steady state.** 7,200 s: 0 failures; Ergomatter 97,000 L in 2 h (about 46,000 L/h; the design says about
+   43,000); 5 minor mergers ridden.
+3. **T7 → T8.**
+   - The Supermassive core and the Milky Way chart; the rig at a 125 SM bench quasar.
+   - The Heavy Link held (the halo test fire on Slots [8]).
+   - A merger begun on a 66 SM quasar failed on Integrity (the core was kept), as §5.3 predicts.
+   - The re-run chain at 125 SM: magnetar re-spawn (COMPLETE in 178 s), the collapse re-run (12 Bu/t cancelled 105 of
+     120), and the Galactic Merger COMPLETE in 1,920 s, with the first pass binding the nuclei. T8 unlocked and the core
+     consumed.
+4. **T8 steady state.** 14,400 s from a fresh light at 130-147 SM: 0 failures, zones 94 % Resonant / 6 % Stable,
+   mean Y 1.24, Superdense Ergomatter 90,800 L (about 22,700 L/h; the design says about 20,000), 5 of 5 satellite
+   crossings caught (+300 L each).
+   - An earlier T8 run was lost to P −100 when the bench owner's wireless network ran dry (r = 0, the upkeep sag): the
+     designed failure.
+5. **Planets mode.**
+   - `mode planets` on the Milky Way chart lit "Milky Way: 6 planets". The slot bus took Moon, Mars, Phobos, Io, Titan
+     and the Deep Dark, one per slot. Slots waited while their H/He × 128 was not buffered (Slots [1] on).
+   - Mars finished 123 of 128 parallels at field factor 1.00 (expected about 122), and the Deep Dark ran.
+   - 7,200 s, 0 failures, 89 % Resonant.
+6. **Companions.** Sol and the magnetar charts in the slot bus: the galaxy re-formed in place ("companions changed").
+   One hour at 140 SM with both: 0 failures, Y 1.14, a crossing caught (+450 L at f₈ 7.5).
+7. **The real receptor path and Q-8.**
+   - A real quasar (`/btsquasar t3`) fed the Eye's ports through `inject`: 1.50 Bu/t read as 0.60 / 0.50 / 0.40,
+     "linked to 12000, 100, 12600". The quasar listed the host "Eye of Harmony, 1.50 Bu/t, sigma 1.00".
+   - A quasar block removed: the quasar FROZE, and the Eye reported "PAUSED: its quasar … is not running (Q-8)" with P
+     held.
+   - Rebuilt: the Eye resumed.
+8. **Persistence and the wrench.**
+   - After a server restart the item milestones (link HELD), the escrow and a merger in progress all came back.
+   - `wrench` kept T8 unlocked, planets mode and f₈ 7.5; the star went DARK (tile-only).
+9. **Golden.** 78/78 and 38/38 still pass, with the B-71 port (P4-72).
+
+**Not run:**
+
+- no client: the GUI, the centre render's galaxies and the four harness cases, the NEI pages;
+- OpenComputers in game: the calls go through `BTSComputerApi`, compiled only;
+- a full in-world conduit rig aimed at the Eye (the bench's virtual quasar stands in for it).
+
+The rig keeps stepping in real time after a run (`galaxy off` stops it); after a restart run `/btseye keep` again,
+because the chunk tickets do not persist.

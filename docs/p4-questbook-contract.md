@@ -283,3 +283,86 @@ failing. The quasar's console lists every machine it feeds, with σ.
 The Wormhole Mouth, Conduit Mirror and Conduit Junction (throats, upkeep, rays, pairing, the split formula, OC), the
 Burst Thermaliser Crown (Mk by structure, docking, wireless EU, stacking, OC) and the GRB Receptor Port (links, hosts,
 Q-8). OpenComputers: `bts_mouth`, `bts_mirror`, `bts_junction`, `bts_crown`, `bts_receptor`.
+
+## Eye T7 + T8 unit
+
+This text goes with the engine maths unit's quests above, "Stability Link" to "Planets mode" and "Companions". It
+corrects or adds the following. Quest ids follow the questbook branch's scheme.
+
+### Quest: "The stability rail" (needs: Eye T6, "A quasar link")
+
+Build the T7 band, the **stability rail**, round the galactic rim. It is Bastion Plate with Casimir trim, tilted 8°.
+Its 8 sockets take **GRB Receptor Ports**: 4 on the high bank and 4 on the low bank.
+
+- At T6 the rail's bursts do nothing to the magnetar. They only count for the **Stability Link**: a 60 s mean of at
+  least 1.5 Bu/t on the rail, with the high bank taking 25-75 %, for 30 min unbroken.
+- Wire the Eye's **Slots [8]** (link test fire wanted) to J1's Burst Control Hatch, so everything goes to the Eye while
+  the link is wanted.
+- The GUI, the scanner, the sensor's "Link streak %" and "Link 60 s mean" channels, and OpenComputers `getUnlock()`
+  show the streak and the mean.
+
+### Quest: "Magnetar Collapse" (corrections)
+
+- Put the **Intergalactic Upgrade Core** in escrow (right-click the controller) and the **Star Chart: Triangulum** in
+  the controller slot while the magnetar burns. The Eye is then PENDING, and the magnetar keeps burning.
+- The collapse does not begin by itself. When **Galaxy Transition [1]** (ready) is on, **Begin** it: from the GUI's
+  Galaxy panel, with a rising edge on a **Burst Control Hatch in Begin mode** in a plinth `d` socket, or with
+  OpenComputers `beginTransition()`.
+- Before you begin, the buffers must hold the charge: White Dwarf Matter 18,432 L + Black Dwarf Matter 4,608 L (× p),
+  plus Triangulum's first cycle (8 L of Magnetar Matter).
+- The collapse assist: Galaxy Transition [8] holds your regulator's purges from T−80 s, and [4] purges at T−80 s and on
+  the collapse second. Wire them as the standard rig does, and the eruption lands on the collapse.
+- If it fails, the magnetar is lost and the core stays in escrow. Leave the Triangulum chart in: the Eye re-spawns the
+  magnetar (the Magnetar Merger's charge) and the collapse can run again, with no core and no link.
+
+### Quest: "Triangulum" (additions)
+
+- The **Galaxy panel** (the GUI's galaxy button) sets the mode, the T8 feed and Begin.
+- The terminal shows the bursts, β against the demand, W and the event countdown.
+- The 4 plinth `d` sockets take Directive Hatches. The standard set is Field, Events and Galaxy Transition, plus a
+  Begin hatch; a Slots hatch can go in a Sensor socket.
+
+### Quest: "The shard halo" (needs: Triangulum)
+
+Build the T8 band, the **shard halo**. Its 8 shard roots take GRB Receptor Ports, and the Galactic Merger needs all
+eight.
+
+- At T7 the halo's bursts are a **test fire**: they count for the **Heavy Link** (6 Bu/t on the Eye's ports, at least
+  half of it on the halo, for 30 min) and do nothing to the galaxy.
+- Slots [8] asks for the test fire: J1 all to the Eye, and J3 at its 75 % halo preset. In practice this needs a quasar
+  of about 120 SM.
+
+### Quest: "Galactic Merger" (corrections)
+
+- Put the **Supermassive Seed Core** in escrow and the **Star Chart: Milky Way** in the slot while Triangulum burns, in
+  galaxy mode with no companion charts in the slot bus.
+- The buffers must hold Ergomatter 9,000 L (× p) plus the Milky Way's first feed cycle.
+- Then **Begin**.
+- A failure loses Triangulum and keeps the core. The Eye re-runs the chain from the magnetar.
+
+### Quest: "Planets mode" (corrections)
+
+- Planets mode is the Eye's **mode switch**: the GUI's Galaxy panel, or OpenComputers `setMode("planets")`. The galaxy
+  chart in the slot picks the tier: Triangulum gives 3 slots, the Milky Way 6. The planets field lights at once, with
+  no collapse.
+- Put **planet items** (the dimension display blocks) in the **slot bus**, the plinth's `p` input bus. They are read,
+  never consumed.
+- Each slot pays its run at the start (H/He × parallel from the buffers, and its EU) and waits while it cannot.
+- A Breach fails the runs in flight and re-forms the field.
+- Switching the mode puts a lit galaxy out, and the galaxy comes back only through the Magnetar Collapse.
+
+### Quest: "Companions" (corrections)
+
+- Put the **star charts** of earlier objects (Sol to the magnetar) in the slot bus: 1 at T7, 2 at T8.
+- Each companion pays its own upkeep every cycle, in full, and makes its own product at the galaxy's yield.
+- Changing the companions **re-forms the galaxy in place**: the gauges go to 0 and the cycle in flight is lost.
+
+### Tooltips in the jar (Eye T7 + T8 unit)
+
+- **The Eye controller** has six lines on T7 / T8 (bursts, the rail and halo, the links, Begin, planets, companions),
+  two automation lines (the `d` sockets) and structure lines for the rail, the halo, the Receptor Ports and the `d` /
+  `p` sockets.
+- **The Directive Hatch** has the Eye Field, Events, Galaxy Transition and Slots tables.
+- **The Stellar Field Sensor Hatch** has W, Λ, β, the link streak and mean, slot progress and the countdown.
+- **The two galaxy charts** explain how to begin and what planets mode does.
+- **NEI** has the T7, T8 and planets-mode pages and the Magnetar Collapse and Galactic Merger pages.
