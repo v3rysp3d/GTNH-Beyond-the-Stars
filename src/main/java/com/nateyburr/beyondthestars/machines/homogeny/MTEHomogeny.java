@@ -426,6 +426,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
         installTicks = 0;
         lastNote = "Install T" + (installedTier + 1) + " started";
         markDirtyBase();
+        scheduleRecipeCheckImmediate(); // the idle "installing" result shows at once
         return "Install run started: " + INSTALL_TICKS / 20
             + " s offline at "
             + fmt(INSTALL_EUT[installedTier + 1])
@@ -440,6 +441,9 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
         installTicks = 0;
         lastNote = "Installed T" + installedTier;
         markDirtyBase();
+        // RC-2 recipe checks are event-driven: feeds that filled up during the run never fire a hatch event again,
+        // so without this push the machine sat idle at its new tier until a hatch changed or it was toggled.
+        scheduleRecipeCheckImmediate();
     }
 
     /** Creative / bench: sets the permanent installed tier (the kit's T{@code n} build). */
@@ -559,6 +563,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
         installing = false;
         installTicks = 0;
         markDirtyBase();
+        if (cancelled) scheduleRecipeCheckImmediate(); // mixing resumes without waiting for a hatch event
         if (!aPlayer.inventory.addItemStackToInventory(core)) aPlayer.dropPlayerItemWithRandomChoice(core, false);
         GTUtility.sendChatToPlayer(
             aPlayer,
