@@ -336,6 +336,9 @@ items, and add `addInformation` to the three blocks' ItemBlocks. All text goes t
   in the info block; **the review removed it**: GT's green "Supports Laser Hatches!" means laser energy INPUT, and
   the plant's Energy Hatch sockets (`HatchElement.Energy`) refuse a Laser Target Hatch. Its lasers are Laser Source
   (output) hatches, already named in the info block and the structure block.
+  The review also corrected the structure height from `21, 41` to `2, 42`: the silo piece is dome + wall - 1 layers
+  (21 at T1, 41 at T5) standing at controller level, and the platform's floor layer adds one below it, so a plant is
+  22 tall at T1 and 42 at T5 (as the old tooltip's 42 said); the bare platform, which forms on its own, is 2.
 - **A2.** Counts re-derived from the shape code with `questbook/gen-bom.ps1`'s shape functions (per-char tallies),
   and several differ from the audit numbers above: silo wall `451-1,667` (Radiation Proof T1-2, Europium Reinforced
   T3-4, Radiant Naquadah T5), bands `69-141`, dome `113-497` (not 40-320), and the pillar line counts blocks, not

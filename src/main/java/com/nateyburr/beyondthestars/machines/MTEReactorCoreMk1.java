@@ -8625,7 +8625,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             // (output) hatches, which the info line above and the structure block name.
             // Structure block (Shift). Counts come from the shape code (questbook/gen-bom.ps1
             // tallies the same cells); ranges run tier 1 to tier 5 or none to all pieces.
-            .beginVariableStructureBlock(50, 50, 21, 41, 50, 50, true)
+            // Height: 2 for the bare platform (floor layer + controller level), up to 42 with a
+            // tier-5 silo - the floor layer plus 1 + plantHeightFor(5) = 41 layers from the
+            // controller up (22 with a tier-1 silo).
+            .beginVariableStructureBlock(50, 50, 2, 42, 50, 50, true)
             .addController("Silo face, centre, at platform level")
             .addCasing("2,251", "Light Concrete (platform; +50 Spiral, +736 per Cooling Tower)", false)
             .addCasing("249", "Tungstensteel Reinforced Block (shield pad under the silo)", false)
