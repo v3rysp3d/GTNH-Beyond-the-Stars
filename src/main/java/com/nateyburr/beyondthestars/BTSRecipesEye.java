@@ -1,5 +1,6 @@
 package com.nateyburr.beyondthestars;
 
+import static gregtech.api.recipe.RecipeMaps.assemblerRecipes;
 import static gregtech.api.util.GTRecipeBuilder.MINUTES;
 import static gregtech.api.util.GTRecipeConstants.AssemblyLine;
 import static gregtech.api.util.GTRecipeConstants.RESEARCH_ITEM;
@@ -28,7 +29,8 @@ import tectech.thing.CustomItemList;
 
 /**
  * SINGULARITY LADDER P3: THE EYE'S CRAFTING RECIPES, SL-E01 and SL-E02 (singularity-ladder-build.md
- * §2.4). <b>Owned by the Eye unit.</b> Called from one line in {@link BTSRecipes}.
+ * §2.4), plus D-49's transition cores and sensor hatch, SL-E03..SL-E07 (d49-build-plan.md §10.2).
+ * <b>Owned by the Eye unit.</b> Called from one line in {@link BTSRecipes}.
  * <p>
  * The Eye's PROCESS recipes are not here: they are long-sized and live in
  * {@code machines/eye/EyeRecipeRegistry}, built at load-complete.
@@ -55,6 +57,8 @@ public final class BTSRecipesEye {
     public static void register() {
         controller();
         galacticCore();
+        lifecycleCores();
+        sensorHatch();
     }
 
     private static void controller() {
@@ -95,7 +99,7 @@ public final class BTSRecipesEye {
     private static void galacticCore() {
         // SL-E02 Galactic Upgrade Core (unlocks Eye T4). Research: the Eye controller. HSM is the gate:
         // 32,000 L (about 6 Arcturus runs), not the card's 256,000 L (51 runs, cost audit #11). A crafting
-        // recipe only; D-49 keeps the core as the HSM-gated T4 unlock and leaves its install to the redesign.
+        // recipe only; under D-49 the core goes into escrow for the T3 -> T4 Core Collapse (d49-build-plan.md §8).
         BTSRecipeGuard.recipe(
             "SL-E02",
             () -> GTValues.RA.stdBuilder()
@@ -117,6 +121,129 @@ public final class BTSRecipesEye {
                 .duration(48_000)
                 .eut(TierEU.RECIPE_UMV * 4)
                 .addTo(AssemblyLine));
+    }
+
+    // ================================================================================ D-49 cores
+
+    /**
+     * SL-E03..SL-E06: the escrowed transition cores (d49-build-plan.md §8, §10.2). Assembly lines in the
+     * SL-E02 pattern; each one's gating fluid is the product of the tier it leaves (RSPM, ESPM, WDM, BDM),
+     * so a core can never be made before its tier runs. Each core researches from the one before it
+     * (the Galactic Upgrade Core sits between E04 and E05), and every research item is unique to this
+     * mod, so the scanner never writes the wrong recipe.
+     */
+    private static void lifecycleCores() {
+        // SL-E03 Stellar Mass Core (T1 -> T2, Mass Infusion). RSPM 256,000 L = about 5 min of Sol.
+        BTSRecipeGuard.recipe(
+            "SL-E03",
+            () -> GTValues.RA.stdBuilder()
+                .metadata(RESEARCH_ITEM, BTSRecipeGuard.stack(SLItems.stellarIgnitionCharge, 1))
+                .metadata(SCANNING, new Scanning(4 * MINUTES, TierEU.RECIPE_UMV))
+                .itemInputs(
+                    items(
+                        SLBlocks.casing(BlockSLCasing.BEAM_BAND, 32),
+                        nn(ItemList.Field_Generator_UMV.get(16L), "ItemList.Field_Generator_UMV"),
+                        BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UMV, 32L),
+                        denseSpaceTime(16),
+                        nn(ItemList.Emitter_UMV.get(8L), "ItemList.Emitter_UMV"),
+                        BTSRecipeGuard.stack(SLItems.stellarIgnitionCharge, 16)))
+                .fluidInputs(
+                    nn(Materials.RawStarMatter.getFluid(256_000L), "Materials.RawStarMatter fluid"),
+                    molten(Materials.SpaceTime, 36_864),
+                    molten(Materials.Infinity, 73_728))
+                .itemOutputs(BTSRecipeGuard.stack(SLItems.stellarMassCore, 1))
+                .duration(24_000)
+                .eut(TierEU.RECIPE_UMV)
+                .addTo(AssemblyLine));
+
+        // SL-E04 Shell-Burning Core (T2 -> T3, Shell Ignition). ESPM 128,000 L = about 51 min of Sirius A.
+        BTSRecipeGuard.recipe(
+            "SL-E04",
+            () -> GTValues.RA.stdBuilder()
+                .metadata(RESEARCH_ITEM, BTSRecipeGuard.stack(SLItems.stellarMassCore, 1))
+                .metadata(SCANNING, new Scanning(6 * MINUTES, TierEU.RECIPE_UMV))
+                .itemInputs(
+                    items(
+                        SLBlocks.casing(BlockSLCasing.JET_CRESCENT, 32),
+                        nn(ItemList.Field_Generator_UMV.get(24L), "ItemList.Field_Generator_UMV"),
+                        BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UMV, 48L),
+                        SLBlocks.casing(BlockSLCasing.FIELD_COIL, 16),
+                        denseSpaceTime(24),
+                        nn(ItemList.Emitter_UMV.get(12L), "ItemList.Emitter_UMV")))
+                .fluidInputs(
+                    BTSRecipeGuard.fluid(SLFluids.excitedStellarPlasma, 128_000),
+                    molten(Materials.SpaceTime, 73_728),
+                    molten(Materials.TranscendentMetal, 73_728))
+                .itemOutputs(BTSRecipeGuard.stack(SLItems.shellBurningCore, 1))
+                .duration(36_000)
+                .eut(TierEU.RECIPE_UMV * 2)
+                .addTo(AssemblyLine));
+
+        // SL-E05 Subspace Cooling Core (T4 -> T5, First Cooling). WDM 147,456 L = the T4 milestone's own
+        // figure; DSSF is the T5 heat sink's fluid.
+        BTSRecipeGuard.recipe(
+            "SL-E05",
+            () -> GTValues.RA.stdBuilder()
+                .metadata(RESEARCH_ITEM, BTSRecipeGuard.stack(SLItems.galacticUpgradeCore, 1))
+                .metadata(SCANNING, new Scanning(8 * MINUTES, TierEU.RECIPE_UXV))
+                .itemInputs(
+                    items(
+                        SLBlocks.casing(BlockSLCasing.GALACTIC_SHELL, 64),
+                        nn(ItemList.Field_Generator_UXV.get(16L), "ItemList.Field_Generator_UXV"),
+                        BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UXV, 16L),
+                        SLBlocks.casing(BlockSLCasing.CASIMIR, 32),
+                        denseSpaceTime(48),
+                        nn(ItemList.Sensor_UXV.get(8L), "ItemList.Sensor_UXV")))
+                .fluidInputs(
+                    molten(Materials.WhiteDwarfMatter, 147_456),
+                    nn(
+                        Materials.DimensionallyShiftedSuperfluid.getFluid(256_000L),
+                        "Materials.DimensionallyShiftedSuperfluid fluid"),
+                    molten(Materials.SpaceTime, 147_456))
+                .itemOutputs(BTSRecipeGuard.stack(SLItems.subspaceCoolingCore, 1))
+                .duration(48_000)
+                .eut(TierEU.RECIPE_UXV)
+                .addTo(AssemblyLine));
+
+        // SL-E06 Magnetar Seed Core (T5 -> T6, Magnetar Merger). BDM 36,864 L = 8 cooling batches at p = 1.
+        BTSRecipeGuard.recipe(
+            "SL-E06",
+            () -> GTValues.RA.stdBuilder()
+                .metadata(RESEARCH_ITEM, BTSRecipeGuard.stack(SLItems.subspaceCoolingCore, 1))
+                .metadata(SCANNING, new Scanning(10 * MINUTES, TierEU.RECIPE_UXV))
+                .itemInputs(
+                    items(
+                        SLBlocks.casing(BlockSLCasing.GALACTIC_SHELL, 64),
+                        nn(ItemList.Field_Generator_UXV.get(32L), "ItemList.Field_Generator_UXV"),
+                        BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UXV, 32L),
+                        SLBlocks.casing(BlockSLCasing.BASTION, 32),
+                        denseSpaceTime(64),
+                        nn(ItemList.Emitter_UXV.get(16L), "ItemList.Emitter_UXV")))
+                .fluidInputs(
+                    molten(Materials.BlackDwarfMatter, 36_864),
+                    BTSRecipeGuard.fluid(SLFluids.antipolarizationAgent, 64_000),
+                    molten(Materials.SpaceTime, 294_912))
+                .itemOutputs(BTSRecipeGuard.stack(SLItems.magnetarSeedCore, 1))
+                .duration(60_000)
+                .eut(TierEU.RECIPE_UXV * 2)
+                .addTo(AssemblyLine));
+    }
+
+    /** SL-E07 Stellar Field Sensor Hatch (MTE 28116): a UMV hull with two sensors. */
+    private static void sensorHatch() {
+        BTSRecipeGuard.recipe(
+            "SL-E07",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    nn(ItemList.Hull_UMV.get(1L), "ItemList.Hull_UMV"),
+                    nn(ItemList.Sensor_UMV.get(2L), "ItemList.Sensor_UMV"),
+                    BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UMV, 2L),
+                    BTSRecipeGuard.req(OrePrefixes.plate, Materials.SpaceTime, 4L))
+                .fluidInputs(molten(Materials.SpaceTime, 576))
+                .itemOutputs(nn(BTSMachines.stellarFieldSensor, "BTSMachines.stellarFieldSensor").copy())
+                .duration(400)
+                .eut(TierEU.RECIPE_UMV)
+                .addTo(assemblerRecipes));
     }
 
     // ================================================================================ helpers
