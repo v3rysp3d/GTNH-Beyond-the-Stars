@@ -38,6 +38,7 @@ import gregtech.api.structure.error.StructureError;
 import gregtech.api.structure.error.StructureErrors;
 import gregtech.api.util.GTRecipe;
 import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
+import gregtech.common.tileentities.machines.RecipeCheckReason;
 
 /**
  * KERR REDESIGN: a Kerr module, a SEPARATE multiblock machine standing in one arc of a Kerr
@@ -112,6 +113,8 @@ public abstract class MTEKerrModuleBase<T extends MTEKerrModuleBase<T>> extends 
     // --------------------------------------------- the bonus the running recipe started with (server)
     private int runParallel = 1;
     private double runSpeed = 1.0;
+    /** {@link #recipeGateOpen()} at the last 20-tick check (server, never saved). */
+    private boolean gateWasOpen;
 
     protected MTEKerrModuleBase(int aID, String aName, String aNameRegional) {
         super(aID, aName, aNameRegional);
@@ -162,7 +165,13 @@ public abstract class MTEKerrModuleBase<T extends MTEKerrModuleBase<T>> extends 
         return setLink(Link.LINKED, kee);
     }
 
+    /**
+     * GT 5.09.54 checks recipes only when something pushes a check (doPeriodicChecks is false), and a
+     * check that failed because the hole was closed used up the pending push. So the module pushes one
+     * itself when the link comes back, or an idle module with stocked inputs would never restart.
+     */
     private Link setLink(Link state, MTEKerrEngine kee) {
+        if (state == Link.LINKED && link != Link.LINKED) scheduleRecipeCheck(RecipeCheckReason.IMMEDIATE);
         link = state;
         if (keeRef.get() != kee) keeRef = new WeakReference<>(kee);
         return state;
@@ -207,7 +216,13 @@ public abstract class MTEKerrModuleBase<T extends MTEKerrModuleBase<T>> extends 
 
     @Override
     public void onPostTick(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
-        if (aBaseMetaTileEntity.isServerSide() && aTick % LINK_INTERVAL == 0) refreshLink();
+        if (aBaseMetaTileEntity.isServerSide() && aTick % LINK_INTERVAL == 0) {
+            refreshLink();
+            // A recipe gate opening (the compressor's DENSITY) is a change GT is not told about either.
+            final boolean gate = recipeGateOpen();
+            if (gate && !gateWasOpen) scheduleRecipeCheck(RecipeCheckReason.IMMEDIATE);
+            gateWasOpen = gate;
+        }
         super.onPostTick(aBaseMetaTileEntity, aTick);
         if (aBaseMetaTileEntity.isServerSide() && link != Link.LINKED && mMaxProgresstime > 0) {
             aBaseMetaTileEntity.setActive(false);
@@ -230,6 +245,14 @@ public abstract class MTEKerrModuleBase<T extends MTEKerrModuleBase<T>> extends 
         runParallel = bonusParallel();
         runSpeed = bonusSpeed();
         return super.checkProcessing();
+    }
+
+    /**
+     * True while this module's recipe gate (see {@link #gateRecipe}) would let its gated recipes run.
+     * Polled every 20 ticks; a false-to-true change pushes a recipe check. No gate: always true.
+     */
+    protected boolean recipeGateOpen() {
+        return true;
     }
 
     /** A recipe-specific gate (DENSITY on the compressor), or null to let GT decide. */

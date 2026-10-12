@@ -132,11 +132,16 @@ public class MTEKerrCompressorModule extends MTEKerrModuleBase<MTEKerrCompressor
     protected CheckRecipeResult gateRecipe(@Nonnull GTRecipe recipe) {
         if (!KerrRecipeMaps.DENSITY.getAllRecipes()
             .contains(recipe)) return null;
+        return recipeGateOpen() ? null : SimpleCheckRecipeResult.ofFailure("beyondthestars.kerr.module.density");
+    }
+
+    /** The DENSITY gate: a linked open hole at Kerr T2 with at least 128 SM. */
+    @Override
+    protected boolean recipeGateOpen() {
         final MTEKerrEngine kee = kee();
-        if (kee == null || !kee.densityInstalled() || kee.mass() < MTEKerrEngine.DENSIFY_MIN_MASS) {
-            return SimpleCheckRecipeResult.ofFailure("beyondthestars.kerr.module.density");
-        }
-        return null;
+        return kee != null && kee.isHoleOpen()
+            && kee.densityInstalled()
+            && kee.mass() >= MTEKerrEngine.DENSIFY_MIN_MASS;
     }
 
     @Override
