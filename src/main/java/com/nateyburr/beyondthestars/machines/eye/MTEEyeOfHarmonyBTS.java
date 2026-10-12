@@ -228,7 +228,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     /** Per piece: did its walk pass (index 0, the core, mirrors mMachine). Cumulation is applied on read. */
     private final boolean[] bandBuilt = new boolean[PIECES.length];
     /** Per piece: the first walk error of a band that did not pass, "" otherwise. */
-    private final String[] bandFault = new String[PIECES.length];
+    private final String[] bandFault = emptyFaults();
     private final ArrayList<MTEHatchInput> gasHatches = new ArrayList<>();
     private final ArrayList<MTEHatchInput> stellarHatches = new ArrayList<>();
     /** D-49 Field sockets: live trim hatches (never buffered; the star runtime drains them per field second). */
@@ -485,6 +485,13 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         }
         // D-49 migration (plan §13): a pre-D-49 Eye's bands are grandfathered at its first successful walk.
         if (errors.isEmpty() && runtime.legacyPending()) runtime.grandfather(legacyStructureTier());
+    }
+
+    /** "" per piece, so the status lines of a tile that has not been walked yet read "absent". */
+    private static String[] emptyFaults() {
+        final String[] faults = new String[PIECES.length];
+        Arrays.fill(faults, "");
+        return faults;
     }
 
     private static String fault(boolean built, List<StructureError> walkErrors) {
@@ -847,6 +854,17 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         if (runtime.burning()) aBaseMetaTileEntity.setActive(true);
     }
 
+    /**
+     * Bench: a tile just (re)loaded with its chunk has not been walked yet, and its star freezes until
+     * GT's start-up check; the bench walks it at once instead of waiting.
+     */
+    public void benchEnsureChecked() {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (mStartUpCheck < 0 || base == null) return;
+        checkStructure(true, base);
+        mStartUpCheck = -1;
+    }
+
     /** Bench: one field second now (the socket drain, then the star), as the 20-tick cadence does. */
     public void fieldSecond() {
         if (mMachine) drainSockets();
@@ -915,6 +933,38 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         for (Fluid fluid : EyeRecipeRegistry.inputFluids()) {
             buffers.put(fluid.getName(), Math.min(BUFFER_CAP, Math.max(buffer(fluid), litres)));
         }
+    }
+
+    /** Bench: sets one buffer to exactly {@code litres} (0 empties it). */
+    public void debugSetBuffer(Fluid fluid, long litres) {
+        if (fluid == null) return;
+        if (litres > 0) buffers.put(fluid.getName(), Math.min(BUFFER_CAP, litres));
+        else buffers.remove(fluid.getName());
+    }
+
+    /**
+     * Bench {@code legacy}: loads 0.24.x-shaped NBT (no schema; optionally the Galactic flag and a star
+     * run in flight) and re-walks, exactly what a pre-D-49 save does on its first load (plan §13).
+     */
+    public void debugLegacyLoad(boolean galactic, String runKey, long successes) {
+        final NBTTagCompound nbt = new NBTTagCompound();
+        if (galactic) nbt.setBoolean(EyeNbt.GALACTIC_KEY, true);
+        if (!buffers.isEmpty()) {
+            final NBTTagCompound b = new NBTTagCompound();
+            for (Map.Entry<String, Long> e : buffers.entrySet()) b.setLong(e.getKey(), e.getValue());
+            nbt.setTag("btsEyeBuffers", b);
+        }
+        if (runKey != null) {
+            nbt.setString("btsEyeRunKey", runKey);
+            nbt.setLong("btsEyeRunParallel", successes);
+            nbt.setLong("btsEyeRunSuccesses", successes);
+            nbt.setDouble("btsEyeRunYield", 1.0);
+            nbt.setInteger("mMaxProgresstime", 24000);
+            nbt.setInteger("mProgresstime", 100);
+        }
+        loadNBTData(nbt);
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base != null) checkStructure(true, base);
     }
 
     // ============================================================================ processing

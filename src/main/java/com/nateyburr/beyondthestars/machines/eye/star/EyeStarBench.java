@@ -13,6 +13,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.world.World;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
 
 import com.nateyburr.beyondthestars.items.SLItems;
 import com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS;
@@ -23,6 +25,7 @@ import com.nateyburr.beyondthestars.machines.eye.field.FieldSim;
 
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
+import gregtech.api.metatileentity.implementations.MTEHatchInputBus;
 import gregtech.common.misc.WirelessNetworkManager;
 
 /**
@@ -50,7 +53,9 @@ public final class EyeStarBench {
 
     public static final String USAGE = "/btseye star <x> <y> <z> status | target <name> | lit [name] | seed <n> | "
         + "rig <off|bang|fine|none> | sim <s> [compare] | set dial|feed <v> | unlock <1-6> | milestones <n> done | "
-        + "fill | sensor <x> <y> <z> <channel> <gt|lt> <threshold> [analog] | probe | wrench";
+        + "fill | sensor <x> <y> <z> <channel> <gt|lt> <threshold> [analog] | sensors <channel> <gt|lt> <thr> "
+        + "[analog] | probe | wrench | charge [n] | buffer <fluid> <L> | core <name> | escrow | "
+        + "legacy [galactic] [run <key> <n>]";
 
     /** Runs {@code args} = {@code star x y z sub …}. Returns the lines to print. */
     public static List<String> run(ICommandSender sender, String[] args) {
@@ -66,6 +71,7 @@ public final class EyeStarBench {
             out.add("No Eye of Harmony controller at (" + x + ", " + y + ", " + z + ").");
             return out;
         }
+        eye.benchEnsureChecked(); // a chunk just reloaded: walk now so the hatch lists are there
         final EyeStarRuntime rt = eye.starRuntime();
         final String sub = args[4].toLowerCase(Locale.ROOT);
         final String a5 = args.length > 5 ? args[5].toLowerCase(Locale.ROOT) : "";
@@ -150,6 +156,73 @@ public final class EyeStarBench {
                 eye.debugWrench();
                 out.add("Wrenched and placed back (item NBT only):");
                 break;
+            case "charge": {
+                final int n = a5.isEmpty() ? 1 : Integer.parseInt(a5);
+                out.add(putCharges(eye, n));
+                return out;
+            }
+            case "buffer": {
+                final Fluid fluid = args.length > 6 ? FluidRegistry.getFluid(args[5]) : null;
+                if (fluid == null) {
+                    out.add("buffer <fluid registry name> <litres>");
+                    return out;
+                }
+                eye.debugSetBuffer(fluid, Long.parseLong(args[6]));
+                out.add("Buffer " + fluid.getName() + " = " + args[6] + " L");
+                break;
+            }
+            case "sensors": {
+                if (args.length < 8) {
+                    out.add("sensors <channel> <gt|lt> <threshold> [analog]");
+                    return out;
+                }
+                final FieldReadout.Channel ch = channel(args[5]);
+                if (ch == null) {
+                    out.add("Unknown channel " + args[5] + ".");
+                    return out;
+                }
+                for (MTEHatchStellarFieldSensor s : eye.sensorHatches()) {
+                    s.setChannelOrdinal(ch.ordinal());
+                    s.setLessThan("lt".equalsIgnoreCase(args[6]));
+                    s.setThreshold(Double.parseDouble(args[7]));
+                    s.setAnalog(args.length > 8 && "analog".equalsIgnoreCase(args[8]));
+                }
+                out.add(
+                    eye.sensorHatches()
+                        .size() + " sensors set");
+                return out;
+            }
+            case "core": {
+                final Item core = core(a5);
+                if (core == null) {
+                    out.add("core <stellarmass|shellburning|galactic|subspace|magnetar>");
+                    return out;
+                }
+                out.add(rt.offerCore(new ItemStack(core), new boolean[1]));
+                return out;
+            }
+            case "escrow": {
+                final ItemStack back = rt.takeEscrow();
+                out.add("Escrow returned: " + (back == null ? "nothing" : back.getDisplayName()));
+                break;
+            }
+            case "legacy": {
+                // legacy [galactic] [run <key> <successes>]
+                boolean galactic = false;
+                String run = null;
+                long successes = 0;
+                for (int i = 5; i < args.length; i++) {
+                    if ("galactic".equalsIgnoreCase(args[i])) galactic = true;
+                    if ("run".equalsIgnoreCase(args[i]) && i + 2 < args.length) {
+                        run = args[++i];
+                        successes = Long.parseLong(args[++i]);
+                    }
+                }
+                eye.debugLegacyLoad(galactic, run, successes);
+                out.add(
+                    "Loaded 0.24.x NBT (galactic " + galactic + ", run " + run + " x" + successes + "), re-walked:");
+                break;
+            }
             default:
                 out.add(USAGE);
                 return out;
@@ -276,6 +349,37 @@ public final class EyeStarBench {
                     .equals(n)) return c;
                 return null;
         }
+    }
+
+    private static Item core(String name) {
+        switch (name) {
+            case "stellarmass":
+                return SLItems.stellarMassCore;
+            case "shellburning":
+                return SLItems.shellBurningCore;
+            case "galactic":
+                return SLItems.galacticUpgradeCore;
+            case "subspace":
+                return SLItems.subspaceCoolingCore;
+            case "magnetar":
+                return SLItems.magnetarSeedCore;
+            default:
+                return null;
+        }
+    }
+
+    /** Puts {@code n} Stellar Ignition Charges into the first live plinth input bus. */
+    private static String putCharges(MTEEyeOfHarmonyBTS eye, int n) {
+        for (MTEHatchInputBus bus : eye.itemBuses()) {
+            if (bus == null || !bus.isValid()) continue;
+            for (int i = 0; i < bus.getSizeInventory(); i++) {
+                if (bus.getStackInSlot(i) != null) continue;
+                bus.getBaseMetaTileEntity()
+                    .setInventorySlotContents(i, new ItemStack(SLItems.stellarIgnitionCharge, n, 0));
+                return n + " Stellar Ignition Charge(s) in a plinth input bus (slot " + i + ")";
+            }
+        }
+        return "No plinth input bus with a free slot.";
     }
 
     private static Item chart(String name) {

@@ -498,6 +498,7 @@ public final class EyeStarRuntime {
             r = Math.min(r, need <= 0 ? 1 : got / (double) need);
         }
         cycR = r;
+        lastP = p;
         cycWorst = 0;
         host.markDirty();
     }
@@ -621,6 +622,7 @@ public final class EyeStarRuntime {
 
     private void goDark() {
         state = StarState.DARK;
+        waitReason = "";
         if (fs != null) StellarField.resetLost(fs);
         cycR = 1;
         prodCarry = 0;
