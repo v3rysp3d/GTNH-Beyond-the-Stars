@@ -91,5 +91,7 @@ public final class BTSFluids {
         BTSFluidsPropellant.register();
         // SINGULARITY LADDER (singularity-ladder-build.md §1.1): the three stellar intermediates.
         SLFluids.register();
+        // BEC EXPANSION (bec-expansion-proposal.md §4): the six addon condensates.
+        SLCondensates.register();
     }
 }
