@@ -489,25 +489,39 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * chamber's coolant and the Spiral chamber's bulk propellant line. Each socket char
      * therefore has its own adder, exactly like the control-block sockets - and each keeps its
      * own list, so no draw can ever reach across into another line's fluid.
+     *
+     * <p>
+     * GT 2.9.0-RC-2: {@code addInputHatchToMachineList} now also accepts fluid-capable dual input
+     * hatches (crafting input buffers / slaves) into {@code mDualInputHatches} and answers true.
+     * The plant never reads that list - each socket drains only its own {@link MTEHatchInput}
+     * list - so a CRIB in a socket would form the structure and feed nothing. The sockets
+     * therefore refuse anything that is not a plain {@link MTEHatchInput} BEFORE super sees it,
+     * and the walk fails visibly instead of starving silently.
      */
-    public boolean addFeedwaterHatchToMachineList(IGregTechTileEntity aTileEntity, int aBaseCasingIndex) {
-        if (!addInputHatchToMachineList(aTileEntity, aBaseCasingIndex)) return false;
+    private static MTEHatchInput socketInput(IGregTechTileEntity aTileEntity) {
+        if (aTileEntity == null) return null;
         final IMetaTileEntity mte = aTileEntity.getMetaTileEntity();
-        if (mte instanceof MTEHatchInput) feedwaterHatches.add((MTEHatchInput) mte);
+        return mte instanceof MTEHatchInput ? (MTEHatchInput) mte : null;
+    }
+
+    public boolean addFeedwaterHatchToMachineList(IGregTechTileEntity aTileEntity, int aBaseCasingIndex) {
+        final MTEHatchInput hatch = socketInput(aTileEntity);
+        if (hatch == null || !addInputHatchToMachineList(aTileEntity, aBaseCasingIndex)) return false;
+        feedwaterHatches.add(hatch);
         return true;
     }
 
     public boolean addChamberCoolantHatchToMachineList(IGregTechTileEntity aTileEntity, int aBaseCasingIndex) {
-        if (!addInputHatchToMachineList(aTileEntity, aBaseCasingIndex)) return false;
-        final IMetaTileEntity mte = aTileEntity.getMetaTileEntity();
-        if (mte instanceof MTEHatchInput) chamberHatches.add((MTEHatchInput) mte);
+        final MTEHatchInput hatch = socketInput(aTileEntity);
+        if (hatch == null || !addInputHatchToMachineList(aTileEntity, aBaseCasingIndex)) return false;
+        chamberHatches.add(hatch);
         return true;
     }
 
     public boolean addPropellantHatchToMachineList(IGregTechTileEntity aTileEntity, int aBaseCasingIndex) {
-        if (!addInputHatchToMachineList(aTileEntity, aBaseCasingIndex)) return false;
-        final IMetaTileEntity mte = aTileEntity.getMetaTileEntity();
-        if (mte instanceof MTEHatchInput) propellantHatches.add((MTEHatchInput) mte);
+        final MTEHatchInput hatch = socketInput(aTileEntity);
+        if (hatch == null || !addInputHatchToMachineList(aTileEntity, aBaseCasingIndex)) return false;
+        propellantHatches.add(hatch);
         return true;
     }
 
@@ -3051,6 +3065,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             propellantHatches.clear();
             final int maintMark = mMaintenanceHatches.size();
             final int inputMark = mInputHatches.size();
+            // RC-2: GT's input adder can now register dual input hatches (CRIBs) too. The supply
+            // sockets refuse them before super, so this list should never grow during the walk;
+            // it is marked and truncated anyway so a failed Spiral can never leave one behind.
+            final int dualInputMark = mDualInputHatches.size();
             spiralBuilt = checkPiece(spiralPieceName(mName), -18, SPIRAL_HEIGHT - 1, spiralDOff(reactorTier), null);
             if (!spiralBuilt) {
                 spiralInjectors.clear();
@@ -3063,6 +3081,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 }
                 while (mInputHatches.size() > inputMark) {
                     mInputHatches.remove(mInputHatches.size() - 1);
+                }
+                while (mDualInputHatches.size() > dualInputMark) {
+                    mDualInputHatches.remove(mDualInputHatches.size() - 1);
                 }
             }
             // The Rotor Assembly (optional): same mark-and-truncate discipline for its
@@ -6224,7 +6245,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
      * (its own {@code MEFilterItem}, not {@code lockedItem}). Without this test a Derrick bus
      * locked to Uraninite, so a downstream AE2 Storage Bus only ever sees uraninite, had
      * Thorium and Tantalum forced into it. {@code IOutputBusTransaction.isFiltered()} /
-     * {@code isFilteredToItem(ItemId)} are GT's own question for this and delegate to the bus,
+     * {@code isFilteredTo(ItemId)} (isFilteredToItem before 2.9.0-RC-2) are GT's own question for this and delegate to
+     * the bus,
      * so the standard and compressed buses answer out of {@code lockedItem} and the ME bus out
      * of its filter - one test, correct for all four bus families.
      * <p>
@@ -6242,7 +6264,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             final GTUtility.ItemId id = GTUtility.ItemId.create(stack);
             // D2: the lock, before anything is offered. A locked bus that is not locked to THIS
             // item refuses the whole batch, exactly as the old simulate pass did.
-            if (transaction.isFiltered() && !transaction.isFilteredToItem(id)) return false;
+            if (transaction.isFiltered() && !transaction.isFilteredTo(id)) return false;
             // D1: storePartial mutates the stack it is handed - what it could not take is left
             // in stackSize. Drive on THAT, never on the return value, and stop the moment a
             // call stops shrinking it.
@@ -6250,10 +6272,13 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             int before;
             do {
                 before = pending.stackSize;
-                transaction.storePartial(id, pending);
+                // RC-2 (IOutputTransaction): the two parallel weights are only read when
+                // needsTotalParallelData() is true (an ME bus put in recipe-check mode, which a
+                // plain createTransaction() never is), so the stack's own size is a safe value.
+                transaction.storePartial(id, pending, pending.stackSize, pending.stackSize);
             } while (pending.stackSize > 0 && pending.stackSize < before);
             if (pending.stackSize > 0) return false;
-            transaction.completeItem(id);
+            transaction.complete(id);
         }
         transaction.commit();
         return true;
