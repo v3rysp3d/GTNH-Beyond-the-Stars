@@ -306,7 +306,8 @@ if (K1.b.CX !== K2.b.CX || K1.b.W !== K2.b.W) fail("kerr T1/T2 worlds differ in 
 //    y +-2 beside it become 'x' sockets (the compressor's stacked control / energy / maintenance layout).
 const KERR_MODULES = [
   { piece: "kerr_compressor", slot: "compressor", mte: 28117, mark: "1", out: [0, 0, -1], below: "q" },
-  { piece: "kerr_extractor", slot: "extractor", mte: 28118, mark: "2", out: [1, 0, 0], ray: 340, extraSockets: [2, -2] },
+  { piece: "kerr_extractor", slot: "extractor", mte: 28118, mark: "2", out: [1, 0, 0], ray: 340, extraSockets: [2, -2],
+    legacyAt: polar(32.8, 340, 0) },
 ];
 function moduleControllers(K, t) {
   const { b, cells } = K, found = {};
@@ -327,6 +328,7 @@ function moduleControllers(K, t) {
       if (!ctrl) fail(`kerr T${t}: no reachable shell cell below the ${m.piece} core cell`);
       if (ctrl.ch !== "I") fail(`kerr T${t}: ${m.piece} controller cell holds '${ctrl.ch}', expected shell 'I'`);
       core.ch = "c";
+      found[m.slot + ".legacy"] = core;
     } else {
       for (let r = 20; r <= 60; r += 0.25) {
         const c = at(Math.round(r * Math.cos(d2r(m.ray))), 0, Math.round(r * Math.sin(d2r(m.ray))));
@@ -342,6 +344,8 @@ function moduleControllers(K, t) {
     }
     ctrl.ch = "~";
     found[m.slot] = ctrl;
+    if (m.legacyAt) found[m.slot + ".legacy"] = cells.get(keyOf(...gridOf(b, m.legacyAt)));
+    if (!found[m.slot + ".legacy"]) fail(`kerr T${t}: ${m.piece} has no legacy core cell`);
   }
   return found;
 }
@@ -553,7 +557,9 @@ const manifest = {
       slots: Object.fromEntries(KERR_MODULES.map((m) => {
         const c = KM1[m.slot], d = [KERR_CTRL.x - c.x, KERR_CTRL.y - c.y, KERR_CTRL.z - c.z], [rx, rz] = rotQ(d[0], d[2], m.turns);
         return [m.slot, { piece: m.piece, mte: m.mte, mark: m.mark, rel: abcDelta(-d[0], -d[1], -d[2]), keeRel: abcDelta(rx, d[1], rz),
-          facingAbc: abcDelta(...m.out), turns: m.turns, controllerVoxel: [c.x - K1.b.CX, c.y - K1.b.CY, c.z - K1.b.CZ] }];
+          facingAbc: abcDelta(...m.out), turns: m.turns, controllerVoxel: [c.x - K1.b.CX, c.y - K1.b.CY, c.z - K1.b.CZ],
+          // where the pre-redesign module core block (slCasing2) stood, from the KEE controller, KEE (a,b,c): migration
+          legacyCoreRel: (() => { const l = KM1[m.slot + ".legacy"]; return abcDelta(l.x - KERR_CTRL.x, l.y - KERR_CTRL.y, l.z - KERR_CTRL.z); })() }];
       })),
       // the hole centre (voxel origin) from the KEE controller, KEE (a,b,c): the render block's cell
       centre: { rel: abcDelta(K1.b.CX - KERR_CTRL.x, K1.b.CY - KERR_CTRL.y, K1.b.CZ - KERR_CTRL.z) } },
