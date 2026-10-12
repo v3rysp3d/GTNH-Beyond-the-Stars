@@ -5,6 +5,11 @@ Spec for the `kerr-redesign` branch, written 2026-10-12. It covers the ruling in
 `singularity-ladder-build.md` §3.1 / §3.2 / "Contract additions (Kerr)" disagree, this file wins for the redesign.
 The judgement calls are logged as questions B-33..B-37 in `singularity-ladder-questions.md`.
 
+**Status (2026-10-12, built on `kerr-redesign`):** R1 (exporter), R2 (KEE) and R3 (modules) are built and compile
+against RC-2; the render (R4) is not, only its per-machine switch. Where the build differs from this spec it is
+logged as B-38 (the compressor controller cell), B-39 (pausing, the power switch, the KEE GUI) and B-40 (render hooks,
+recipe ids, migration). The "As built" section at the end lists the files.
+
 The GUI mockup is a separate page (local work folder `kerr-gui/kerr-gui.html`, not committed). It shows the KEE screen,
 a module screen and the link diagram.
 
@@ -421,3 +426,21 @@ Regression traps to re-check:
 4. a controller recipe, textures and lang.
 
 The KEE does not change.
+
+---
+
+## As built (2026-10-12)
+
+| File | What it is |
+|---|---|
+| `tools/export-structures.js` | Module pieces in their own frame (`~` = the module controller), `kerr_slots`, and `machines.kerr.slots` (`rel`, `keeRel`, `facingAbc`, `turns`, `legacyCoreRel`, `controllerVoxel`) + `machines.kerr.centre` in the manifest. Asserts each module controller's front is open air at T1 and T2. |
+| `machines/kerr/MTEKerrEngine.java` | The KEE: the hole only (B-35 containment power, whole-number setpoint, Auto seeds, render switch). Implements `KerrHole`. Derives the module list every second (`slotStatus`). |
+| `machines/kerr/MTEKerrEngineGui.java` | The KEE console: terminal (hole, mass bar with setpoint tick, governor, bolt stock, stability, containment, modules), setpoint field with − / +, Hole control panel (slider, Open, two-click Collapse, Auto), Modules panel, render toggle. |
+| `machines/kerr/KerrHole.java`, `KerrSlot.java` | The module's view of the KEE; the slot table (geometry from the manifest, world math, which MTE class fits). |
+| `machines/kerr/MTEKerrModuleBase.java`, `MTEKerrModuleGui.java` | A module machine: link (pull, every 20 ticks and before each recipe), pause by skipping `runMachine`, the hole's bonus fixed at recipe start, own structure / hologram / survival build, GUI with the link label and two terminal lines. |
+| `machines/kerr/MTEKerrCompressorModule.java` (28117), `MTEKerrExtractorModule.java` (28118) | The two modules: their arcs, sockets (GT-standard hatches + own energy, no maintenance), maps, tooltips, overlays. |
+| `machines/kerr/KerrMigration.java` | Legacy core blocks → module controllers; the old in-flight recipe handed to its module. |
+| `machines/kerr/KerrHatchElement.java` | `BoltBus` and `Utility` only. `KerrModule.java` is deleted. |
+| `machines/kerr/KerrKit.java`, `CommandBTSKerr.java` | `/btskit kerr`; `/btskerr` builds the KEE and both modules (creative or survival path) and diagnoses every walk and link; `/btskerr migrate [x y z]`; test bench `/btskerr legacy x y z`. |
+| `BTSRecipesKerr.java` | SL-K02 / SL-K03 output the module controllers; SL-K07 / SL-K08 convert legacy cores. |
+| `tools/gen-sl-textures.js` | `OVERLAY_FRONT_KERR_COMPRESSOR*` and `OVERLAY_FRONT_KERR_EXTRACTOR*` (idle, glow, active, active glow). |

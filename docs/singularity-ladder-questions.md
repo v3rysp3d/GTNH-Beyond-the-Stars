@@ -991,6 +991,66 @@ closed. Without that power the governor fires no bolts, so the hole bleeds down,
 **Alternative for the module cost.** Each running module adds a share of bleed, for example +10 % each, so the hole
 "feels" the load and a busy Kerr burns more bolts.
 
+### B-38 Kerr redesign: the compressor module's controller sits below the T2 band, not in the old core cell [Kerr redesign, built]
+
+**Context.** The spec (§6.1) put the Kerr Compressor Module's controller in the old core cell (the mockup's
+"control" block on the south arc's outer face) and asked the exporter to assert that every module controller's
+front face is open air in a full build. That assert fails at Kerr T2: the T2 reinforcement band (Harmonic Lining,
+Bastion and Casimir plates at z −41..−44, y −2..0) closes the one-block gap in front of the old core cell, so a
+player cannot reach the controller once the Density Upgrade is in.
+
+**What is built.** The exporter puts the controller in the arc's outer shell cell straight below the old core cell,
+at the first height whose front cell and the cell above it are open air in the T2 build (voxel (0, −4, −39)). The
+old core cell becomes a seventh `c` I/O socket. The front-face assert now passes for both modules at T1 and T2. The
+extractor's controller is where the spec put it (outermost cell on the 340° ray, voxel (36, 0, −13)). Migration
+uses the exported `legacyCoreRel`, so it swaps the old core cell to casing and places the controller in the new cell.
+
+**Suggestion.** As built.
+
+**Alternatives.** Keep the old cell and carve a 1 × 1 access tunnel through the T2 band (4 blocks deep, beyond
+survival reach), or move the controller above the band (y +4).
+
+### B-39 Kerr redesign: how pausing, the power switch and the KEE's GUI work [Kerr redesign, built]
+
+**What is built, where it differs from the spec.**
+
+- **Pausing.** The spec copied Godforge: skip the whole post-tick while unlinked. Built instead: an unlinked module
+  skips only GT's `runMachine` (no progress, no EU, no new recipe, the running recipe is kept). It still walks its
+  own structure, so a module forms, and its GUI says why it waits, before any KEE exists. Godforge's version never
+  forms an unconnected module.
+- **The link check** is a full round trip: the module computes the KEE cell from its own facing (`keeRel`), and the
+  KEE there must compute this module's cell back (`rel`) with the slot's facing (`facingAbc`). The manifest also
+  carries `turns`, but only as documentation.
+- **The KEE's power switch does not touch the hole** (shown greyed out). GT switches a machine off whenever its
+  structure breaks, so if "off" stopped the governor, a cage repaired after one broken block would keep bleeding
+  until someone switched it back on. Collapse is the way to shut a hole down; containment power still matters.
+- **No power panel on the KEE.** GT's power panel holds the max-parallel field and the power-fail toggle, which mean
+  nothing on a machine that runs no recipes, so the KEE has no power-panel button. The modules keep it.
+- **Stability** counts as 100 % while the mass is at or above the setpoint (the governor is holding, or the hole is
+  being let down to a lower setpoint). Below the setpoint it is mass fed ÷ mass bled over the last second.
+- **The setpoint field** accepts 2-512 on the client; the server clamps to 64 at T1.
+
+**Suggestion.** As built.
+
+### B-40 Kerr redesign: what the render pass still has to do, and the new recipe ids [Kerr redesign, built]
+
+**Render.** This pass built only the per-machine switch: the KEE saves `btsKerrRender` (default on), and the GUI has
+the eye toggle in the gap row. The render block, `TileKerrHole`, `KerrHoleRenderer`, `Config.renderKerrHole` and
+the placement calls are the render pass's (spec §5, work plan R4). Its hooks are `MTEKerrEngine.isRenderEnabled()`,
+`isHoleOpen()`, `mass()`, `getStability()` and `KerrSlot.centreRel()` (the hole centre, from the manifest).
+
+**Recipe ids.** SL-K02 / SL-K03 keep their ids and inputs and now output the module controllers. The legacy-core →
+controller shapeless recipes are **SL-K07** (compressor) and **SL-K08** (extractor); SL-K06 stays retired. The two
+legacy core metas (`slCasing2:0/1`) stay registered and are hidden from NEI and the creative tab.
+
+**Migration.** The KEE converts legacy core blocks once per load, 40 ticks in (after its first structure check);
+`/btskerr migrate [x y z]` repeats it on demand. A controller cell is replaced only if it is air or the plain arc
+shell. The old in-flight recipe goes to the module it ran on (the saved `btsKerrBoundMode`, else the old machine
+mode); items that do not fit drop at the module controller, and fluids that do not fit are lost. The test bench
+`/btskerr legacy x y z` turns a built Kerr back into the old layout so this can be exercised.
+
+**Suggestion.** As built.
+
 ---
 
 ## Part C. Settled (for the record)
