@@ -25,6 +25,8 @@ public final class BTSMachines {
     public static ItemStack kerrEngine;
     // SINGULARITY LADDER P3 (Eye unit): the Eye of Harmony, base+15.
     public static ItemStack eyeOfHarmony;
+    // D-49 (d49-build-plan.md §9): the Stellar Field Sensor Hatch, base+16.
+    public static ItemStack stellarFieldSensor;
 
     private BTSMachines() {}
 
@@ -116,5 +118,12 @@ public final class BTSMachines {
             base + 15,
             "multimachine.beyondthestars.eyeofharmony",
             "Eye of Harmony").getStackForm(1);
+        // D-49: base+16 (28116), the first of the reserved P2/P3 spares, is the Stellar Field Sensor Hatch
+        // hatch.beyondthestars.stellarfieldsensor (the Eye's n sockets). base+17 / base+18 are claimed by the
+        // Kerr redesign's module controllers (Compressor 28117, Extractor 28118); base+19 is spare.
+        stellarFieldSensor = new com.nateyburr.beyondthestars.machines.eye.MTEHatchStellarFieldSensor(
+            base + 16,
+            "hatch.beyondthestars.stellarfieldsensor",
+            "Stellar Field Sensor Hatch").getStackForm(1);
     }
 }
