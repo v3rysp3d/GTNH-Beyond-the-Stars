@@ -2026,7 +2026,7 @@ for our requirements"), ruling 6 (every BOM block craftable at a fair cost), rul
    UXV 2 → 1 (544 → 272), R14 dense Infinity 32 → 16 (93k → 47k Infinity ingots in the Refab hull) and SpaceTime 64
    → 32 ingots, R15 Casimir 8 → 4. **SL-R16 outputs 32 claws, not 8**: the Refab has 688 claws, not the doc's 190, so
    ×32 keeps the bill near the doc's (23 crafts, 216 Robot Arm UXV with the controller). **Suggestion:** keep.
-6. **The Homogeny T1's 2,430 Godforge Boundless casings are its heaviest item** (column caps; 1,215 Godforge BEC
+6. **Built (B-67 item 5): the caps are Reinforced Temporal Structure Casing now.** *Original:* **The Homogeny T1's 2,430 Godforge Boundless casings are its heaviest item** (column caps; 1,215 Godforge BEC
    crafts, 29k Mellion frames, 3,645 FG UEV, 7,290 Artificial Gravity Generators), more than all its ladder blocks
    together, at UMV. **Suggestion:** re-draw the caps in Reinforced Temporal Structure Casing (×32 since ruling 11a: 76
    crafts) or in Stirring Band Casing (a structure change for the mockup and unit 1's legend). Alternative: keep (the
@@ -2108,6 +2108,97 @@ on a BEC network built by hand.
 **Small things seen (no change).** `gtnhlib: Unable to find team for player 249b60b8...` once, when the bench's console
 owner UUID owned a T3 (the bench owner is not a real player). BEC network ids change when a machine re-forms (expected,
 the grid rebuilds the network).
+
+### B-67 H/R: review fixes - recipe-check pushes, the Diffraction buffer on a wrench, the Eternity loop, D-49 teaching, the Homogeny caps, the Refab hull, reserved Quasar ports, the questbook merge [H/R review fix]
+
+**Context.** A review of the `homogeny-reality` branch against RC-2, D-49, the P4 design of record
+(`designs/docs/quasar-p4.md`, 7f91607) and ruling 6. Each fix is its own `wip: H/R review fix:` commit;
+`spotlessApply compileJava` passes after each, and `node tools/export-structures.js --check` is clean.
+
+**Dev-server re-test (`runServer`, world `hrtest`, two boots).** `273 registered, 0 skipped`; the 14 `H/R gate:`
+lines, now with the Eternity reason on SL-H20, R02, R03, R04, R05; no exception and no `beyondthestars` WARN/ERROR
+beyond FML's usual chunk-loading note.
+- *Forming with the new shapes:* Homogeny T1 east (survival path, Temporal caps), T2 north and T3 south (creative),
+  Reality Diffraction north (survival, the 6 reserved cells), Reality Refab west (survival) and north (creative, the
+  new lower hull): all FORMED, re-projection keeps them formed, damage-and-repair restores the cell, tile count
+  unchanged.
+- *Install with no hatch event at the end (fix 1):* a T1 built at 11000 100 0, its stirring ring added by `project
+  2`, milestone, escrow, Install, then `fill` + `itick 130` until the run ended. With only read-only `scan`s after
+  the last tick, the Homogeny started a T2 mix on its own (`Progress 141 / 4800`, last check "Processing recipe",
+  4,000 L ESPM running = 4 parallels). The B-66 bench's `fill` / `on` had masked this path.
+- *Diffraction buffer (fix 2):* `pending 1000`, then `wrench` (item NBT written and read back) kept `[1000 x 6]`. With
+  no hatch event, the next `scan` showed the last check as `reality.full` ("The last run's regions are still
+  waiting..."), so the once-a-second idle push runs.
+- *Not tested:* a real Diffraction / Refab run (P4/P5 fluids and a BEC network), the anchor-hatch watcher on a refill,
+  GUIs and tooltips on a client.
+
+**What was built, and the judgement calls.**
+
+1. **RC-2 recipe checks are event-driven; three idle traps closed.** `MTEMultiBlockBase.shouldCheckRecipeThisTick`
+   only runs a check when something pushes one (hatch events, structure, on/off), and `doPeriodicChecks` is off
+   without an ME stocking hatch.
+   - *Homogeny:* every check during an install returns `homogeny.installing`, including the one GT makes as the last
+     mix ends. `beginInstall`, `completeInstall` and the sneak-punch cancel now call `scheduleRecipeCheckImmediate()`,
+     so a Homogeny whose plain feed hatches filled up during the 12,000-tick run mixes at its new tier at once.
+   - *Reality Diffraction / Refab:* their own failure reasons (`reality.full`, `nonetwork`, `noassembler`,
+     `nanites`, `anchors`) clear through changes no hatch reports (a Containment Field or the linked Assembler
+     starting, the buffer draining). An idle, formed, enabled Reality machine now pushes one THROTTLED check a second
+     from `MTERealityBase.onPostTick` (GT's post-failure cooldown applies, default 0). The anchor hatches register as
+     watched inputs (`addIfSmartInput`; `clearHatches` drops them), and the Diffraction's buffer emptying pushes an
+     immediate check. *Suggestion:* keep the 1 s poll; it is one recipe check a second per idle Reality machine, and
+     there are at most a handful per base.
+2. **The Diffraction's never-void buffer rides on the controller item** (`setItemNBT`: the six pending amounts and the
+   run count; `loadNBTData` already reads them on placement, and the next second flushes them). Before, wrenching the
+   controller while no Containment Field ran deleted up to a run (6,000 L) of Entangled Regions.
+3. **The Eternity loop on the way to T10 is reported, not fixed.** SL-H20 (Tier III Core), SL-R02 (Refab
+   controller), SL-R03's Region IV anchor (molten Eternity) and so SL-R04/R05 need Eternity. The pack's Eternity QFT
+   loop needs Universium, which only Eye T10 makes, and Eye T10 needs SL-R04. D-48 proposal 1 (the loop takes
+   Ergomatter, T7) is accepted but not built on any branch (the questbook's `eternityOnErgomatter` feature flag is
+   false too). Built: `BTSRecipesReality.ETERNITY_BEFORE_T10 = false`; the gate log adds "Eternity before Eye T10" to
+   those five lines and only says "every recipe is reachable" once it is true. `SLGateDump`'s ladder is the decided
+   one: Eternity first made at T7, and MagMatter dropped (its only T10 tie was the MHDCSM quest prerequisite that
+   D-48 proposal 2 removes; our SL-R11/R12 use it before T10). The Tier III Core tooltip says Eternity needs
+   Universium until the swap ships. **Suggestion:** build the swap with P4 (rewrite the pack's Eternity QFT recipe to
+   take Ergomatter, behind `replaceTecTechEyeOfHarmony`), then set `ETERNITY_BEFORE_T10` and the questbook flag in the
+   same commit. *Alternative:* replace Eternity here with something pre-T10 (anchor IV molten Time is already
+   anchor III; Superdense Ergomatter or MagMatter for SL-H20/R02).
+4. **D-49 teaching corrected.** The tooltip, doc H-6 and the questbook outline claimed five T1 Homogenies keep a T3
+   Eye fed "without a second Eye". One live star per Eye and only Sol makes Raw Star Matter: Arcturus' 1,250 L/min of
+   ESPM is 125,000 L/min of Raw Star Matter through Homogenies (2.5 Sols), while a second Eye on Sirius A needs 25,000
+   L/min. The tooltip now says the Homogeny costs 10x the Raw Star Matter an Eye T2 needs and suits banking a Sol
+   surplus or a hands-off line; Eye T2 is still required. **Open:** if the "keeps a T3 fed" role is wanted, the ratio
+   has to change (e.g. 10 : 1 at the 10x-slower speed). *Suggestion:* keep 100 : 1 (D-46/D-47 as ruled).
+5. **The Homogeny caps are Reinforced Temporal Structure Casing** (closes B-65 item 6). The column caps were 2,430
+   Godforge Boundless casings (1,215 Godforge crafts, more than a Godforge module) plus 615 Godforge lens-glass
+   blocks, on an optional UMV side machine. Now: 2,430 Reinforced Temporal Structure Casing (TecTech's Eye casing, x32
+   in the BEC since ruling 11a: 76 crafts) with Quantum Glass centres; the mockup has a new `temporal` voxel kind.
+   Hatches and the controller take the Temporal casing texture. The throat tip's 5-cell Region Crystal still accepts
+   the Godforge lens as its survival fallback (B-62 item 3). Existing T1 test builds must be re-placed (the caps'
+   block changed). B-65 item 7 (Reality lens glass) stays open.
+6. **Reality Refab sketch fidelity: the lower hull runs to the foot.** The export closed the hull at y -40 and left a
+   bare stem for 21 blocks, so the machine read as a goblet on a post; the sketch's lower lines run from the belt to
+   the foot. The lower hull is now a tall half-oval (b 58 instead of 34) from the belt (r 34) down to the foot skirt
+   (r about 15 at y -62); the ribs and glass panels run -62 .. -5.5, and the stem and its Ground Anchor crystal stand
+   inside. The piece grew from 59,245 to 65,187 cells (hull +2,260, glass +3,092, tray +581); box unchanged (104 x
+   139 x 83). Costs §12 updated.
+7. **Quasar stability: cells reserved, one hook each, tooltips honest** (P4 design of record, quasar-p4.md §3.1). The
+   built machines said "no stability field" while P4 makes the Homogeny T2/T3 and the Diffraction Quasar hosts.
+   Built: 3 `g` cells on the T2 stirring ring's outer face (90, 210, 330 degrees, where a spoke meets it from inside)
+   and 6 `g` cells on the Diffraction's top deck band (one per 60 degrees). Each is its ring's casing now (Galactic
+   Shell / Region Deck Band); P4 chains the GRB Receptor Port (28125) in front of that casing, so adding the port never
+   un-forms a standing build. Hooks: `MTEHomogeny.quasarSigma()` / `minSigma(recipe)` (refusal
+   `homogeny.stability`) and `MTERealityDiffraction.quasarSigma()` / `MIN_SIGMA` (refusal `reality.stability`), all 0
+   until P4 (lang keys added). Tooltips say a Quasar link will speed T2/T3 up and Entanglement Medium will need one,
+   and that the Diffraction's regions will be stabilised. *Suggestion:* P4 fills these in exactly as §3.1's host table
+   says (Homogeny D_h 1.5 / 6, Entanglement Medium at sigma >= 1; Diffraction D_h 24, pause below 0.5).
+8. **Questbook merge (rule 15).** The Homogeny T1 and T2 are reachable now, but the questbook branch still has them
+   as `needs: ["homogeny"]` placeholders with "It will ..." text and the old D-49 claim. The conversion is in the build
+   spec's "Contract additions (H/R review fixes)" so the merge pass does it; nothing on this branch touches the
+   questbook.
+
+**Alternatives.** Periodic checks via `doPeriodicChecks = true` instead of the 1 s push (GT's own back-off schedule,
+but it is reset by every walk); build the Eternity swap now on this branch; keep the Godforge caps and call the
+Homogeny a post-Godforge build; draw new port cells outside the current shapes when P4 lands (un-forms builds).
 
 ## Part C. Settled (for the record)
 

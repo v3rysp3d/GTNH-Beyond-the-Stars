@@ -586,14 +586,13 @@ Assembler's nanites (RC-2: progress per tick = nanites), and a step runs 2× slo
 
 | Block / part | Count | Recipe | Crafts |
 |---|---|---|---|
-| Quantum Glass | 5,487 | pack: TecTech assembler |  |
+| Quantum Glass | 6,097 | pack: TecTech assembler |  |
 | Stirring Band Casing | 3,280 | SL-H02 ×32 | 103 |
-| Godforge Boundless casing | 2,430 | pack: RC-2 BEC x2 | 1,215 |
+| Reinforced Temporal Structure Casing (column caps; was Godforge Boundless, B-67) | 2,430 | pack: RC-2 BEC ×32 (ruling 11a) | 76 |
 | Bastion Plate | 2,278 | SL-P18 ×4 | 570 |
 | Shear Helix Coil | 1,873 | SL-H03 ×32 | 59 |
 | Harmonic Lining | 1,290 | SL-P12 ×4 | 323 |
 | Feed Vessel Casing | 690 | SL-H04 ×32 | 22 |
-| Godforge lens glass | 615 | pack: RC-2 BEC x2 | 308 |
 | Ergosphere Field Coil | 236 | SL-P08 ×1 | 236 |
 | Vortex Inlet | 124 | SL-H05 ×8 | 16 |
 | The Homogeny (controller) | 1 | SL-H01 ×1 | 1 |
@@ -606,7 +605,7 @@ Assembler's nanites (RC-2: progress per tick = nanites), and a step runs 2× slo
 
 | Block / part | Count | Recipe | Crafts |
 |---|---|---|---|
-| Galactic Shell Plating | 7,174 | SL-P17 ×16 | 449 |
+| Galactic Shell Plating (incl. the 3 reserved Quasar port cells, B-67) | 7,176 | SL-P17 ×16 | 449 |
 | Harmonic Lining | 1,745 | SL-P12 ×4 | 437 |
 | Quantum Glass | 1,137 | pack: TecTech assembler |  |
 | Feed Vessel Casing | 706 | SL-H04 ×32 | 23 |
@@ -660,11 +659,11 @@ Assembler's nanites (RC-2: progress per tick = nanites), and a step runs 2× slo
 
 | Block / part | Count | Recipe | Crafts |
 |---|---|---|---|
-| Reassembly Hull Plating | 21k | SL-R14 ×64 | 324 |
-| Quantum Glass | 17k | pack: TecTech assembler |  |
-| Reassembly Tray Plating | 9,044 | SL-R15 ×32 | 283 |
-| Harmonic Lining | 4,432 | SL-P12 ×4 | 1,108 |
-| Electromagnetically-Isolated Casing | 3,314 | pack: RC-2 BEC x16 | 208 |
+| Reassembly Hull Plating | 23k | SL-R14 ×64 | 360 |
+| Quantum Glass | 20k | pack: TecTech assembler |  |
+| Reassembly Tray Plating | 9,625 | SL-R15 ×32 | 301 |
+| Harmonic Lining | 4,504 | SL-P12 ×4 | 1,126 |
+| Electromagnetically-Isolated Casing | 3,246 | pack: RC-2 BEC x16 | 203 |
 | Godforge lens glass | 2,967 | pack: RC-2 BEC x2 | 1,484 |
 | Casimir Plate | 1,132 | SL-P19 ×4 | 283 |
 | Region Crystal | 1,038 | SL-R11 ×16 | 65 |
@@ -675,6 +674,10 @@ Assembler's nanites (RC-2: progress per tick = nanites), and a step runs 2× slo
 - **Components (consumed, BEC recipes only):** block Hexanite 130; circuit UXV 156; Conveyor Module UXV 92; dense Cosmic Neutronium 5,184; dense Infinity 5,184; dense Transcendent Metal 4,528; Emitter UXV 130; Field Generator UXV 16; frame Infinity 2,264; frame Transcendent Metal 5,184; MM Field Manipulator II 314; MM Resonance Chamber III 4; MM Shielding II 648; MM Wave Focus II 130; Reinforced Spatial Casing 648; Reinforced Temporal Casing 283; Robot Arm UXV 216.
 - **Condensates:** Degenerate Stellar Mixture 412k L; SpaceTime 3.39M L (24k ing); Ergomatter 65k L; Superdense Ergomatter 44k L; MagMatter 9,360 L (65 ing); White Hole Matter 37k L (256 ing); Eternity 18k L (128 ing).
 - **Nanite-time:** 2.04M s; real time 0.55 h at 1,024 nanites, 1.1 min at 30,720. EU at 1,024 nanites: 2.0e13.
+- **Revised 2026-10-13 (B-67, sketch fidelity):** the lower hull now runs from the belt down to the foot skirt, so the
+  piece grew from 59,245 to 65,187 cells (hull +2,260, glass +3,092, tray +581, lining +72, foot −68). The table's
+  counts are the new export; the component and condensate lines above are the old export's and grow by about 10 %
+  for the hull and tray recipes (about +36 SL-R14 and +18 SL-R15 crafts).
 
 
 ### 12.3 What the pack blocks cost (the heavy part)
@@ -684,22 +687,21 @@ machines is in the pack blocks the mockups reuse:
 
 | Pack block | Homogeny T1 | Diffraction | Refab | Per craft (RC-2) | What it adds up to |
 |---|---|---|---|---|---|
-| Boundless Gravitationally Severed Structure Casing (Godforge) | 2,430 (column caps) | | | ×2: 24 Mellion + 24 Six-Phased Copper + 12 TM + 12 Astral Titanium frames, 9 Creon plates, 2 Stable Boson Containment Units, 3 FG UEV, 6 Artificial Gravity Generators; Hypogen 4 + Neutronium 32 ing; 300 s UIV | **1,215 crafts**: 29k Mellion frames, 29k SPC frames, 3,645 FG UEV, 2,430 SBCU, 7,290 gravity generators |
-| Spatially Transcendent Gravitational Lens Block (Godforge glass) | 615 | 2,070 | 2,967 | ×2: 12 Quantum Glass, 12 BW glass, 12 force-field glass, 6 SBCU, 27 lenses, 24 Rhugnor plates, long rods, 24 superdense Nitinol; Chromatic Glass 243 ing; 300 s UIV | 308 / 1,035 / 1,484 crafts: **1,848 / 6,210 / 8,904 SBCU** |
+| Reinforced Temporal Structure Casing (TecTech) | 2,430 (column caps, B-67) | | | ×32 in the RC-2 BEC since ruling 11a | 76 crafts. *Was the Godforge Boundless casing: 1,215 crafts, 29k Mellion frames, 29k SPC frames, 3,645 FG UEV, 2,430 SBCU, 7,290 gravity generators.* |
+| Spatially Transcendent Gravitational Lens Block (Godforge glass) | 0 (cap centres now Quantum Glass, B-67) | 2,070 | 2,967 | ×2: 12 Quantum Glass, 12 BW glass, 12 force-field glass, 6 SBCU, 27 lenses, 24 Rhugnor plates, long rods, 24 superdense Nitinol; Chromatic Glass 243 ing; 300 s UIV | 308 / 1,035 / 1,484 crafts: **1,848 / 6,210 / 8,904 SBCU** |
 | Electromagnetically-Isolated Casing (BEC) | | 6,118 | 3,314 | ×16; Chromatic Glass 256 ing; 1,200 s UIV | 383 / 208 crafts |
 | Coherence-Preserving Plasma Conduit (BEC) | | 3,759 | | ×8: 1 Quark Pipe, 8 Peace Enforcement casings; 1,200 s UIV | 470 crafts |
 | Condensate Guidance Coil (BEC) | | | 752 | ×1: 1 Compact Fusion Coil T3; Chromatic Glass 256 ing; 150 s UIV | 752 crafts, 752 Compact Fusion Coil T3 |
-| Quantum Glass (TecTech) | 5,487 | 12,566 | 16,617 | cheap assembler glass | - |
+| Quantum Glass (TecTech) | 6,097 | 12,566 | 19,722 | cheap assembler glass | - |
 
 ### 12.4 Verdict, per tier (against §5's references)
 
-- **Homogeny T1: our part fair, the Godforge caps heavy.** The ladder blocks are about 200 BEC crafts, 1.9M L Raw Star
-  Matter (38 minutes of one Sol), 12k ingots of SpaceTime condensate and 206 Reinforced Spatial casings (206 Godforge
-  shielding casings), the controller's 1M L gate included: well under the Eye T1 step it sits beside. The 2,430
-  **Boundless** casings of the column caps are 1,215 Godforge crafts, more than a Godforge module's worth, for a side
-  machine at UMV. **Suggestion (B-65 item 6):** re-draw the caps in Reinforced Temporal Structure Casing (×32 in the
-  BEC since ruling 11a: 76 crafts) or in Stirring Band Casing; or keep them and accept the Homogeny as a post-Godforge
-  build.
+- **Homogeny T1: fair.** The ladder blocks are about 200 BEC crafts, 1.9M L Raw Star Matter (38 minutes of one Sol),
+  12k ingots of SpaceTime condensate and 206 Reinforced Spatial casings (206 Godforge shielding casings), the
+  controller's 1M L gate included: well under the Eye T1 step it sits beside. **Built 2026-10-13 (B-67, closes B-65
+  item 6):** the column caps are Reinforced Temporal Structure Casing (2,430 blocks, 76 BEC crafts at ×32) with Quantum
+  Glass centres. They were 2,430 Godforge Boundless casings (1,215 Godforge crafts, more than a Godforge module) plus
+  615 Godforge lens-glass blocks (1,848 SBCU) on an optional UMV side machine.
 - **Homogeny T2: fair.** 449 Galactic Shell crafts (112k L HSM) and a core gated on 36,864 L Black Dwarf Matter, about
   one Eye T6 core's worth of dwarf matter.
 - **Homogeny T3: fair.** 268 Eternity Shell crafts (536 Temporal casings, 268 MagMatter plates, 134k L Degenerate) and

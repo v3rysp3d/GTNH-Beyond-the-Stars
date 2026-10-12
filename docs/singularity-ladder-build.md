@@ -1694,7 +1694,7 @@ The Homogeny's one install path is `beginInstall()` then `completeInstall()` (co
 - `/btshr <machine> [t1..t3] <x> <y> <z> [facing] [fill] [force] [survival] [check]` is the console / command-block
   form: FORMED / NOT FORMED, first wrong cells, a creative re-projection check, survival damage-and-repair.
 - `/btshr keep <machine> <x> <y> <z> <facing> [tN]` force-loads (`/btskerr release` frees).
-- `/btshr bench <x> <y> <z> <status|check|fill|wrench|milestone e d|escrow|install|itick n|relink|pending>`.
+- `/btshr bench <x> <y> <z> <status|check|fill|wrench|milestone e d|escrow|install|itick n|relink|pending [L]|scan|on|off|project n>` (`wrench` also on the Diffraction; `pending <L>` seeds its buffer, B-67).
 - `/btskit homogeny | diffraction | refab`.
 
 ## Contract additions (Homogeny / Reality recipes)
@@ -1775,6 +1775,56 @@ Degenerate, Eternity, MagMatter, SpaceTime).
   placeholders; then a count line. When P4/P5 own the fluids: "every Homogeny/Reality recipe is reachable".
 - `[BTS] SL-B16 Entangled Magnetar Matter: no Condensate Generator recipe ...` (ruling 19a).
 - On a build without master's BEC expansion: `SL-B10/B13/B14: ... registered it under the same name`.
+
+## Contract additions (H/R review fixes)
+
+Written by the H/R review-fix pass (branch `homogeny-reality`), 2026-10-13. Question B-67; costs §12.
+
+### Machines
+
+- **Recipe-check pushes (RC-2 checks are event-driven).** `MTEHomogeny.beginInstall` / `completeInstall` / the
+  sneak-punch cancel call `scheduleRecipeCheckImmediate()`. `MTERealityBase.onPostTick` pushes
+  `scheduleRecipeCheck(RecipeCheckReason.THROTTLED)` once a second while the machine is formed, enabled and idle.
+  Diffraction anchor hatches go through `addIfSmartInput`; `flushPending` emptying the buffer pushes an immediate
+  check. Any new idle reason a Reality machine returns is covered by the 1 s push; a new Homogeny state that blocks
+  mixing must push a check when it clears.
+- **Diffraction item NBT.** `setItemNBT` writes `btsDiffPend0..5` (when > 0) and `btsDiffRuns`; the same keys as the
+  tile NBT.
+- **Quasar hooks (P4 fills them; all return 0 now).** `MTEHomogeny.quasarSigma()`, `MTEHomogeny.minSigma(GTRecipe)`
+  (refusal `beyondthestars.homogeny.stability`), `MTERealityDiffraction.quasarSigma()`, `MTERealityDiffraction.MIN_SIGMA`
+  (refusal `beyondthestars.reality.stability`). Both refusals have `GT5U.gui.text.recipe_result.` lang keys.
+- **Reserved port cells, char `g`.** `homog_t2`: 3 cells (stirring ring outer face), element = Galactic Shell
+  Plating. `reality_diffraction`: 6 cells (top deck band outer face), element = Region Deck Band. P4 replaces each
+  element with `buildHatchAdder(...).atLeast(<GRB Receptor Port>).buildAndChain(<the same casing>)`, never a new
+  cell, so standing builds stay formed. `HRKit` places no hatch in `g`.
+- **Homogeny caps.** Legend `M` = `Casings.ReinforcedTemporalStructureCasing` (was the Godforge Boundless casing);
+  the cap centres are `Z` (Quantum Glass; the Homogeny's `L` char is gone). `MTEHomogeny.hatchIndex()`, the energy
+  socket's fallback and the controller texture use the Temporal casing.
+
+### Recipes / gates
+
+- `BTSRecipesReality.ETERNITY_BEFORE_T10` (false) marks D-48 proposal 1 as unbuilt; the gate log reports SL-H20,
+  SL-R02, SL-R03, SL-R04, SL-R05 against it. The commit that builds the Eternity-on-Ergomatter swap sets it true and
+  flips the questbook's `eternityOnErgomatter` feature in the same merge.
+- `SLGateDump.FIRST_MADE`: Eternity 7 (decided), MagMatter not an Eye product (D-48 proposal 2).
+
+### Questbook merge (homogeny-reality + questbook; rule 15)
+
+The Homogeny T1 and T2 ship on this branch, so when the two branches merge:
+
+1. Flip `features.homogeny` to `true` in `questbook/singularity.json`, but first give **48184 The Homogeny T3** (and
+   the Reality quests) a `needs` that stays false until P4/P5 (`["homogeny", "eyeT9T10"]`), so they stay
+   placeholders: their fluids are P4/P5.
+2. **48118 The Homogeny** (`TheHomogeny`, Tier12UMV): keep the retrieval task `1x mte:28130`; add a fluid task
+   `1000x` Excited Stellar Plasma Mixture (or a checkbox "Build T1"). Rewrite the text in the present tense, drop any
+   "(planned)" / "Coming in a later update" note, and replace the "About five Homogenies keep a T3 Eye fed without a
+   second Eye" paragraph with: "Turns stockpiled Raw Star Matter into Excited Stellar Plasma Mixture unattended: no
+   hydrogen, helium, ignition or field. It costs 100 L per 1 L, 10x the Raw Star Matter an Eye T2 needs, so it suits
+   banking a Sol surplus or a hands-off line, not replacing Sirius A." Keep "Eye T2 is still required".
+3. **48142 The Homogeny T2** (Tier13UXV): replace the `tbd` task with a retrieval of the Homogeny Tier II Core
+   (`beyondthestars:homogenyTier2Core`) and a fluid task `1000x` Degenerate Stellar Mixture; present tense; mention
+   the three reserved Quasar port cells only as "later".
+4. Regenerate the bundle (`tools/gen-singularity.js`, `--check`, `--selftest`) after the edit.
 
 ## Hologram & NEI
 
