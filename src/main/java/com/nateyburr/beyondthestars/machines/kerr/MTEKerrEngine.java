@@ -841,12 +841,15 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
 
     /**
      * Server, every tick (the world is touched only on an open/close and every 10 ticks). The render
-     * exists while the hole is open and both switches are on, formed or not (a frozen hole is still a
-     * hole). When it should go it plays GT's collapse and goes 40 ticks later; if the KEE turned, the old
-     * block goes at once. It is placed only into air (or adopted where ours already stands), never over
-     * anything else, and never loads a chunk.
+     * exists while the cage is formed, the hole is open and both switches are on. Nothing happens until
+     * GT's first structure check after a load or placement (mStartUpCheck, as the Eye's centre render):
+     * mMachine is false until then, and a saved render must be adopted, not collapsed and regrown. When it
+     * should go it plays GT's collapse and goes 40 ticks later; if the KEE turned, the old block goes at
+     * once. It is placed only into air (or adopted where ours already stands), never over anything else,
+     * and never loads a chunk.
      */
     private void tickRender(IGregTechTileEntity base, long aTick) {
+        if (mStartUpCheck >= 0) return;
         final boolean holeChanged = holeOpen != renderHoleSeen;
         renderHoleSeen = holeOpen;
         if (collapseTimer > 0 && --collapseTimer == 0) {
@@ -861,8 +864,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             collapseTimer = -1;
             removeRender();
         }
-        final boolean want = mMachine && holeOpen && renderOn && Config.renderKerrHole; // an unformed cage shows no
-                                                                                        // hole
+        final boolean want = mMachine && holeOpen && renderOn && Config.renderKerrHole;
         if (!want) {
             renderNote = "";
             if (renderPos == null || collapseTimer > 0) return;
