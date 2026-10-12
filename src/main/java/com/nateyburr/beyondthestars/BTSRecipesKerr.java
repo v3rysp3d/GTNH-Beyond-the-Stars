@@ -137,8 +137,8 @@ public final class BTSRecipesKerr {
     // ===================================================================== Kerr T2 upgrade (UMV)
 
     private static void densityUpgrade() {
-        // SL-K04 Kerr Density Upgrade. Research: a Bastion casing (unique research item, see SL-K03). RSPM is Raw Star Matter (Q-1);
-        // Kerr T2 comes after Eye T1, so the Eye's own Sol output pays for it.
+        // SL-K04 Kerr Density Upgrade. Research: a Bastion casing (unique research item, see SL-K03).
+        // RSPM is Raw Star Matter (Q-1); Kerr T2 comes after Eye T1, so the Eye's own Sol output pays for it.
         BTSRecipeGuard.recipe(
             "SL-K04",
             () -> GTValues.RA.stdBuilder()
