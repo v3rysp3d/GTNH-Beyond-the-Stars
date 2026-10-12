@@ -335,3 +335,82 @@ dense SpaceTime becomes 288 or 576 plates, which is 5 or 9 extra assembly-line s
 SpaceTime, or to ingots, rather than to plate stacks.
 
 **Alternatives.** Ask the pack to generate dense SpaceTime.
+
+## Q-19 The mockup's bands cut into each other at the joins; the earlier piece keeps those cells
+
+**Context.** The spec (§5.2) asserted that no Eye tier changes a cell of an earlier tier. The headless export finds
+three places where `designs/voxel.js` breaks that:
+
+- the T2 beam-band clamps start inside the upper rail (115 cells);
+- the T3 jet-crescent clamps start inside the lower rail (100 cells);
+- the T4 spiral-arm blades start 1.8 blocks outside the core band's centreline, with a 7.5-block half-width, so their
+  roots cut into the core band (84 cells).
+
+On the Kerr, the compressor arc is drawn over 40 cells of the r 33 frame ring and the extractor arc over 9.
+
+**What we built.**
+
+- **Eye:** the earlier piece keeps every such cell, and the later piece starts where it ends. `eye_core` is
+  identical whatever bands are built, and each band piece only adds cells. The arm roots butt against the core band
+  instead of sinking into it.
+- **Kerr:** per §5.2, the last writer owns the cell, so those 49 cells belong to the module. Without the module, the
+  frame ring has a gap in that arc.
+
+**Suggestion.** As built. The visible difference is a few blocks at each join.
+
+**Alternatives.**
+
+- Let the later band own its join cells. The earlier piece would then need "either block" elements at those cells,
+  which is more machinery.
+- Adjust the mockup so the arm roots start outside the core band.
+
+## Q-20 Where TecTech's field generators go in our Eye, and what their tiers do
+
+**Context.** The mid-run ruling says to reuse TecTech's EOH blocks, including the Spacetime Compression, Time
+Dilation and Stabilisation field generators, and to "keep the field-generator tiers meaningful where it fits the band
+tiers". The mockup has no field-generator kind. TecTech's own EOH uses 138 compression, 168 dilation and 48
+stabilisation generators.
+
+**What we built** (shape chars only; the Eye unit owns the elements and the mechanics):
+
+- `W`, Spacetime Compression: the six T1 clamp struts between the upper rail and the core band, 188 blocks.
+- `X`, Time Dilation: the six struts between the core band and the lower rail, 138 blocks.
+- `Y`, Stabilisation: the six 7 × 7 pylon foot pads, 294 blocks. The Stabiliser Pylons stand on stabilisation
+  fields.
+- Only the open span between bands counts as a strut. Clamp roots inside a band stay band shell.
+
+All three sit in `eye_core`, as in TecTech's single-structure EOH, so a T1 Eye already has all three.
+
+**Suggestion.** Keep TecTech's semantics, which the player already knows:
+
+- The lowest compression tier caps which planets run, by rocket tier.
+- The dilation tier buys speed.
+- The stabilisation tier raises planet success.
+
+Stars ignore all three. Each type uses `ofBlocksTiered`, and mixed tiers count as the lowest, or as invalid like
+TecTech's.
+
+**Alternatives.**
+
+- Accept any tier, with no effect (decorative). This is the least machinery.
+- Gate each Eye tier on a minimum generator tier, for example T2 needs Stable, T3 Superb and T4 Perfect.
+- Move the generators onto the band clamps instead: compression on the T1 clamps, dilation on the T2 beam clamps and
+  stabilisation on the T3 jet clamps. This ties each generator type to a band, but a T1 Eye would have only one type.
+
+## Q-21 The Kerr's eight "maintenance" cells beside the bolt buses become optional BHC utility-hatch sockets
+
+**Context.** The mockup puts a `maint` cell beside each of the 8 bolt buses. The spec (§5.3) made them plain casing,
+because 8 maintenance hatches would be noise. The mid-run ruling prefers the Black Hole Compressor's own blocks and
+utility hatch for the Kerr. The BHC utility hatch (`MTEBlackHoleUtility`, id 3012) is not an item bus: it emits
+redstone from the hole's state.
+
+**What we built.** Those 8 cells are `u` sockets in `kerr_t1`/`kerr_t2`. Each accepts a BHC utility hatch, with a
+minimum of 0, and falls back to Extreme Density Space-Bending Casing. The bolt buses (`b`) stay a private input-bus
+list.
+
+**Suggestion.** The Kerr unit drives each placed utility hatch from the hole's state (open, mass below setpoint,
+bolts short), the way the BHC drives it from its stability. If that is more than P2 wants, accept the hatch and
+leave it inert for now.
+
+**Alternatives.** Make the cells plain casing as §5.3 had it (then `u` maps straight to `A`), or accept the utility
+hatch only on the governor arc.

@@ -829,3 +829,199 @@ section (run command, legend, manifest) follows once the exporter is committed.
 - **Layer order**: layer 0 is the controller's front (the outermost +z layer of the mockup), rows run top to
   bottom, chars run left to right as seen from in front of the controller (mockup +x), so `[d][h]` is StructureLib's
   native layout with no `transpose`.
+
+---
+
+## Structure export
+
+Written by the structures unit, 2026-10-12. This section is the contract for the generated shape files. Where it
+and §5.2/§5.3 disagree, this section wins. It builds on "Contract additions (foundation-code)" FC-1 and FC-3.
+
+### Run
+
+From the addon root (Node 18+, no npm dependencies):
+
+```
+node tools/export-structures.js ../designs/voxel.js          # regenerate src/main/resources/assets/beyondthestars/structures/
+node tools/export-structures.js ../designs/voxel.js --check  # regenerate in memory, diff against the committed files, exit 1 on drift
+```
+
+The voxel path defaults to `../designs/voxel.js`. Options:
+
+- `--out <dir>` writes somewhere else.
+- `--flipH` / `--flipD` mirror the horizontal / depth axis if the in-world orientation test fails.
+- `--quiet` prints only the result.
+
+A run takes under a second. It prints every sanity check and writes nothing if one fails. Re-run it and commit the
+output whenever `designs/voxel.js` changes. The `sha=` in every header (sha1 of voxel.js with LF line endings) tells
+you which mockup a shape came from.
+
+**voxel.js is never edited.** The exporter cuts the source at the GL banner, splices these hooks into the source
+**string** at asserted anchors (it throws if an anchor is missing or not unique), and runs it in `vm`:
+
+| Hook | Why |
+|---|---|
+| `def("boltbus", ...)` after the last `def` | `buildKerr` writes `B.boltbus`, which the mockup never defines, so its 8 bolt-bus cells came out **empty** (the §5.1 counts are 8 short). |
+| `tag("kerr_core")` at the top of `buildKerr` and before `arc(35, 70, 110`; `tag("kerr_compressor")` before `arc(36, 245, 295`; `tag("kerr_extractor")` before `arc(36, 328, 352`; `tag("kerr_density")` inside `if (tier>=2){` | Kerr piece membership (§5.2). |
+| `tag("pad")` / `tag("ground")` around the pylon foot pads | The pads become the stabilisation field generators (below). |
+| `if (globalThis.__noClamps) return;` at the top of `clamp()` | A second T1 build without clamps separates a clamp **strut** (air without clamps) from a clamp root inside a band. |
+| `if (!globalThis.__noCentre)` before `centreRender(...)` | The centre is render-only (D-34), but the T4 render draws one "planet" with the solid `ring2` block. That would leave 7 stray Beam Band casings in the middle of `eye_arms`, so the exporter never draws the centre. |
+
+### Pieces
+
+The files are `structures/<piece>.txt`, `structures/manifest.json` and `structures/orient_test.txt`. The `.txt`
+format is the earlier "Contract additions (structures)" section, and `BTSShapes` parses it.
+
+| Piece | w × h × d | off (h,v,d) | Blocks | Bill of materials (char count) |
+|---|---|---|---|---|
+| `kerr_t1` | 76 × 65 × 71 | 38,32,0 | 13,899 | `D` 3,551, `B` 3,186, `C` 2,852, `A` 1,920, `H` 842, `L` 682, `E` 232, `F` 208, `M` 160, `J` 131, `K` 95, `G` 20, `u` 8, `b` 8, `e` 2, `m` 1, `~` 1 |
+| `kerr_t2` | 92 × 65 × 89 | 44,32,6 | 28,375 | `O` 8,316, `J` 4,162, `D` 3,551, `B` 3,186, `C` 2,852, `A` 1,920, `K` 1,537, `H` 842, `L` 682, `P` 677, `E` 232, `F` 208, `M` 160, `G` 30, `u` 8, `b` 8, `e` 2, `m` 1, `~` 1 |
+| `kerr_compressor` | 33 × 11 × 20 | 16,5,-59 | 965 | `I` 633, `J` 253, `K` 60, `G` 12, `c` 6, `q` 1 |
+| `kerr_extractor` | 9 × 11 × 16 | -29,5,-43 | 499 | `N` 315, `J` 137, `K` 44, `x` 2, `k` 1 |
+| `eye_core` | 102 × 52 × 80 | 50,50,0 | 19,616 | `U` 9,406, `Q` 4,458, `J` 3,582, `Z` 1,541, `Y` 294, `W` 188, `X` 138, `h` 5, `o` 2, `~` 1, `m` 1 |
+| `eye_beam` | 92 × 9 × 69 | 45,55,-6 | 4,343 | `R` 2,856, `J` 1,106, `Z` 375, `s` 6 |
+| `eye_jet` | 97 × 12 × 67 | 48,33,-10 | 3,984 | `S` 2,750, `J` 908, `Z` 321, `t` 5 |
+| `eye_arms` | 95 × 10 × 137 | 47,44,28 | 6,559 | `T` 5,325, `J` 830, `Z` 404 |
+
+- **One controller anchor per piece.**
+  - `kerr_t1`, `kerr_t2` and `eye_core` each hold exactly one `~`, at `off`.
+  - The module and band pieces hold no `~`. Their `off` is the same controller cell in the piece's own frame, so it
+    can be negative or outside the piece; StructureLib accepts that.
+  - Pass each piece its own `off` in `checkPiece` / `buildPiece` / `survivalBuildPiece`.
+- **Assembled sizes match §5.1.** The exporter checks these:
+
+  | Build | Size | Blocks |
+  |---|---|---|
+  | Kerr T1 | 76 × 65 × 79 | 15,363 |
+  | Kerr T2 | 92 × 65 × 89 | 29,839 |
+  | Eye T1 | 102 × 52 × 80 | 19,616 |
+  | Eye T2 | 102 × 57 × 80 | 23,959 |
+  | Eye T3 | 102 × 57 × 80 | 27,943 |
+  | Eye T4 | 102 × 57 × 137 | 34,502 |
+
+  The Kerr counts are 8 higher than §5.1 because the bolt buses now exist. Eye T4 is 7 lower because the stray centre
+  planet is gone.
+- **Orientation.** Both machines face **+z** in voxel space: the Kerr outward on the governor arc, the Eye outward on
+  the plinth at 90°. Layer 0 is the front. Rows run top to bottom. Chars run left to right as seen from in front of
+  the controller (= voxel +x), so the in-game geometry is the mockup, unmirrored.
+- **Not yet verified in-world.** Build `orient_test` and check:
+  - The controller `~` is front-centre.
+  - `R` is to the viewer's right of the controller. If it is on the left, re-export with `--flipH`.
+  - `U` is at the top-left front corner.
+  - `BBB` runs along the top of the back layer. If it is in front, re-export with `--flipD`.
+
+  Commit any re-export.
+
+### Overlap policy
+
+- **Kerr: the last writer owns a cell** (§5.2). The compressor arc is drawn over 40 core cells (the r 33 frame ring
+  passes through it) and the extractor arc over 9, so those cells belong to the module. Without the module the
+  frame ring has a gap there, which is also what the mockup shows.
+- **Kerr T2 ⊇ T1.** `kerr_t2` contains every `kerr_t1` cell with the same char. The modules are identical in both
+  builds. The exporter asserts both.
+- **Eye: the earlier piece keeps a cell.** §5.2 asserted that no tier changes an earlier cell. The mockup breaks this
+  in three places, all at joins:
+  - the T2 clamps' roots (115 cells);
+  - the T3 clamps' roots (100 cells);
+  - the T4 blade roots, which cut into the core band (84 cells).
+
+  The earlier piece keeps those cells and the later piece starts where it ends. So every band piece only adds
+  cells, and `eye_core` never changes (Q-19).
+- **Disjoint.** No two pieces of one machine share a cell, except the alternatives `kerr_t1` / `kerr_t2`. The
+  exporter checks this.
+
+### Legend: char → role → intended block
+
+The manifest's `legend` carries the same tables. They follow the mid-run ruling and FC-1: existing TecTech EOH blocks
+on the Eye, and Black Hole Compressor blocks on the Kerr. The Java units own the final char → element mapping; this
+is the intent. Every plain element is wrapped in `BTSStructures.noOverwrite(...)`.
+
+**Kerr** (`kerr_*`):
+
+| Char | Role | Voxel kind | Intended block |
+|---|---|---|---|
+| `~` | controller | `control` (governor arc) | Kerr Ergosphere Engine (28114) |
+| `A` | cage casing | `casing` | `Casings.ExtremeDensitySpaceBendingCasing` (BHC) |
+| `B` | cage frame | `frame` | `ofFrame(Materials.NaquadahAlloy)` (BHC) |
+| `C` | mirror | `mirror` | NEW slCasing:1 Superradiant Mirror Casing |
+| `D` | mirror backing | `mirrorback` | NEW slCasing:2 Mirror Backing Casing |
+| `E` | injector rail | `injector` | NEW slCasing:3/4/5 Bolt Injector Rail Mk I/II/III, `ofBlocksTiered` (the lowest tier sets the bolt cap) |
+| `F` | quadrupole | `quad` | NEW slCasing:7 Beam Focusing Quadrupole |
+| `G` | beam pipe | `pipe`, plus the `beamhatch` cells at x=17 and x=47 | `Casings.ParticleBeamGuidancePipeCasing` |
+| `H` | field coil | `coil` | NEW slCasing:6 Ergosphere Field Coil |
+| `I` | compressor shell | `bhc` | `Casings.BackgroundRadiationAbsorbentCasing` (BHC) |
+| `J` | arc lining | `lining` | `Casings.BackgroundRadiationAbsorbentCasing` (FC-1) |
+| `K` | glass channel | `sglass` | `Casings.HawkingRadiationRealignmentFocus` (the BHC's glass) |
+| `L` | arc shell | `eyeshell` (governor and dump arcs) | `Casings.ExtremeDensitySpaceBendingCasing` (FC-1) |
+| `M` | beam dump | `dump`, plus the dump arc's `ergohatch` and `output` cells | NEW slCasing:8 Beam Dump |
+| `N` | extractor shell | `ring3` | NEW slCasing:15 Ergosphere Extraction Casing |
+| `O` | bastion | `bastion` | NEW slCasing:13 Bastion Plate |
+| `P` | casimir | `casimir` | NEW slCasing:14 Casimir Plate |
+
+**Eye** (`eye_*`):
+
+| Char | Role | Voxel kind | Intended block |
+|---|---|---|---|
+| `~` | controller | `control` (plinth, 90°) | Eye of Harmony (28115) |
+| `U` | band shell | `eyeshell` (core band, rails, pylons, clamp roots) | `Casings.ReinforcedSpatialStructureCasing` (BA0:11) |
+| `Q` | plinth | `deck` | `Casings.ReinforcedTemporalStructureCasing` (BA0:10) |
+| `J` | band lining | `lining` | `Casings.InfiniteSpacetimeEnergyBoundaryCasing` (BA0:12) |
+| `Z` | glass channel | `sglass` | `Casings.QuantumGlass` (TecTech) |
+| `W` | spacetime compression field | T1 clamp struts, upper rail → core | `TTCasingsContainer.SpacetimeCompressionFieldGenerators` metas 0-8, `ofBlocksTiered` (Q-20) |
+| `X` | time dilation field | T1 clamp struts, core → lower rail | `TTCasingsContainer.TimeAccelerationFieldGenerator` metas 0-8, `ofBlocksTiered` (Q-20) |
+| `Y` | stabilisation field | the six 7 × 7 pylon foot pads (`deck`) | `TTCasingsContainer.StabilisationFieldGenerators` metas 0-8, `ofBlocksTiered` (Q-20) |
+| `R` | beam band | `ring2` | NEW slCasing:10 Beam Band Casing |
+| `S` | jet crescent | `ring3` | NEW slCasing:11 Jet Crescent Casing |
+| `T` | galactic shell | `galactic` | NEW slCasing:12 Galactic Shell Plating |
+
+The Kerr and the Eye use separate structure definitions, so a char means only what its own machine's table says.
+`J`, `m` and `~` appear in both, with the same role but different blocks.
+
+### Sockets
+
+Each socket is `ofChain(hatchAdder, fallback)`, hatch adder first (trap 4), and the counts are checked after the walk.
+
+The exporter pins sockets by voxel coordinate in its socket table. The export aborts if a hatch-like cell is missing
+from the table, or if a table entry's cell holds another kind. The manifest lists every socket per piece with:
+
+- `abc`: its position in the piece;
+- `rel`: its offset from the controller, in StructureLib a/b/c;
+- `voxel`: its mockup coordinate.
+
+| Char | Piece | Count | Accepts | Fallback | Min | Hint |
+|---|---|---|---|---|---|---|
+| `e` | `kerr_t1/t2` (governor arc) | 2 | Energy / ExoticEnergy | `L` | 1 | 1 |
+| `m` | `kerr_t1/t2` (governor arc) | 1 | Maintenance | `L` | 1 | 2 |
+| `b` | `kerr_t1/t2` (r 34, y ±5) | 8 | `KerrHatchElement.BoltBus` (private input-bus list) | `A` | 1 | 3 |
+| `u` | `kerr_t1/t2` (beside each bolt bus) | 8 | BHC utility hatch `MTEBlackHoleUtility` (id 3012, redstone hole state); optional (Q-21) | `A` | 0 | 6 |
+| `c` | `kerr_compressor` | 6 | InputBus / InputHatch / OutputBus / OutputHatch (standard lists, mark-and-truncate) | `I` | 1 in + 1 out | 4 |
+| `q` | `kerr_compressor` | 1 | the module core block, NEW slCasing2:0 Kerr Compressor Module (not a hatch) | none | 1 | |
+| `x` | `kerr_extractor` (334°, 346°) | 2 | as `c` | `N` | 1 in + 1 out | 5 |
+| `k` | `kerr_extractor` (340°) | 1 | the module core block, NEW slCasing2:1 Kerr Extractor Module | none | 1 | |
+| `h` | `eye_core` (plinth) | 5 | `EyeHatchElement.Gas` (MTEHatchInput, private) | `Q` | 1 | 1 |
+| `o` | `eye_core` (plinth; the mockup's `energy` cells) | 2 | `EyeHatchElement.Output` (MTEHatchOutputBusME, MTEHatchOutputME) | `Q` | 1 bus + 1 hatch | 2 |
+| `m` | `eye_core` (plinth) | 1 | Maintenance | `Q` | 1 | 3 |
+| `s` | `eye_beam` | 6 | `EyeHatchElement.Stellar` (MTEHatchInput, private) | `R` | 0 | 4 |
+| `t` | `eye_jet` | 5 | `EyeHatchElement.Stellar` | `S` | 0 | 4 |
+
+Every socket has a face that reaches open air outside the fully built machine. The exporter checks this on Kerr T1
+and T2 with both modules, and on Eye T1 and T4.
+
+Changes from §5.3:
+
+- The Eye's stellar sockets are split into `s` (beam band) and `t` (jet crescent), so each falls back to its own band
+  casing.
+- The 8 cells beside the bolt buses are `u` sockets, not plain casing (Q-21).
+- The Eye's field generators get the new chars `W`/`X`/`Y`.
+- The Eye's `deck`/`eyeshell`/`lining`/`sglass` and the Kerr's `eyeshell`/`lining`/`sglass` follow FC-1.
+
+### manifest.json
+
+The top level is `{ generator, source, sha, format, orientation, legend: { kerr, eye }, machines: { kerr, eye },
+assembled, pieces, checks, notes }`.
+
+`pieces.<piece>`, which `BTSShapes.manifestPiece(piece)` returns, is `{ machine, file, w, h, d, off, blocks, bom:
+[{ ch, count, role, block }], socketCounts: { ch: n }, sockets: { ch: [{ abc, rel, voxel }] },
+cellsKeptByEarlierPiece? }`.
+
+The kit command and the tooltips read their counts from `bom` / `socketCounts` (D-22), never hand-typed.
