@@ -583,7 +583,7 @@ replaced. Here is T2's; T3 and T4 change the tier and the star.
 | 48142 ⧗ | **The Homogeny T2** | 324,336 (24) | 48140 | real: R tbd |
 | 48150 ⧗ | **Burst Thermaliser Crown** | 468,264 (24) | 48144 | real: R 1× `28124` |
 | 48147 ⧗ | **Ergomatter** | 648,252 (48) | 48146 | real: F Ergomatter |
-| 48149 ⧗ | **Supermassive Ergomatter** | 840,252 (48) | 48148 | real: F Supermassive Ergomatter |
+| 48149 ⧗ | **Superdense Ergomatter** | 840,252 (48) | 48148 | real: F Superdense Ergomatter |
 | pack `M4A=` (E27) | You Made It! | 24,420 (24) | unchanged (Tier 13) | unchanged |
 | pack `smCK…` (E28) | Your Lord and Saviour, UXV CoAL | 84,408 (48) | unchanged | unchanged |
 | pack `DGfr…` (E29) | UXV Energy Hatch | 156,420 (24) | unchanged | unchanged |
@@ -744,9 +744,9 @@ planned note follows each one.
 
   > Sgr A*. The **Galactic Merger** brings three pericentre passes while the burst demand climbs to 6 Bu/t. Aim a
   > third stream into the shard halo and catch tidal disruption events. It is fed 0-10 L/s Ergomatter and makes
-  > Supermassive Ergomatter. **Required**: the ladder is strict.
+  > Superdense Ergomatter. **Required**: the ladder is strict.
 
-- **48149 Supermassive Ergomatter:**
+- **48149 Superdense Ergomatter:**
 
   > Galaxy residue, the T9 pellets' input.
 
@@ -810,7 +810,7 @@ planned note follows each one.
 
 - **48184:**
 
-  > Sixteen times the T1 mixer; Entanglement Medium (White Hole Matter + Supermassive Ergomatter).
+  > Sixteen times the T1 mixer; Entanglement Medium (White Hole Matter + Superdense Ergomatter).
 
 - **48185:**
 

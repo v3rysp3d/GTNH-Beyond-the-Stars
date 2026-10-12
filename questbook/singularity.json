@@ -724,7 +724,7 @@
       ]
     },
     {
-      "low": 48149, "key": "supermassive_ergomatter", "chapter": "uxv", "stem": "SupermassiveErgo", "x": 840, "y": 252, "size": 48, "main": true,
+      "low": 48149, "key": "supermassive_ergomatter", "chapter": "uxv", "stem": "SuperdenseErgo", "x": 840, "y": 252, "size": 48, "main": true,
       "name": "{4}{l}{n}Superdense Ergomatter", "icon": "eternalsingularity:combined_singularity:10", "needs": ["eyeT7T8"],
       "prereqs": [48148],
       "tasks": [ { "type": "tbd", "what": "a Superdense Ergomatter fluid task" } ],

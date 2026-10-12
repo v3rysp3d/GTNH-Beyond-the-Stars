@@ -6,7 +6,7 @@
   "source": {
     "data": "questbook/singularity.json",
     "src": ".",
-    "srcHead": "e9b442e master",
+    "srcHead": "f8b6297 master",
     "manifestSha": "2742379a5cf9527c7f0dc913e2052f0167289195"
   },
   "features": {
