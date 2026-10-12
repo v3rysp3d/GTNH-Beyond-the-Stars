@@ -63,6 +63,11 @@ The build compiles, loads and registers every recipe. These checks from your acc
   structure orientation, the hologram and survival auto-build from AE are unverified. If a build reports
   NOT FORMED with the first wrong block on the mirrored side, the structure files need re-exporting flipped
   (spec, "Structure export").
+  **Done headless (dev server, console forms of the build commands):** every Kerr and Eye tier forms in all four
+  facings, through both the creative and the survival hologram paths. The orientation matches the mockup, so no
+  re-export was needed. A re-projection never breaks a formed machine, a survival repair puts back exactly the
+  missing blocks, and every build survives a server restart. Results and limits: B-27. Still to do in game: the
+  client-side hologram hints, survival build from a real AE system, and the NEI tab.
 
 ---
 
@@ -639,6 +644,90 @@ own assembly lines stay.
 **Alternatives.** TecTech's own markers (a Quantum Chest IV for Spatial, an Accelerator UV for Temporal), at one per
 4 casings. For the 14,000-odd casings that is about 2,350 Quantum Chests and 1,180 World Accelerators, which is why
 we did not.
+
+### B-27 Headless structure test: what it covers, and the console forms of the build commands [structure test pass]
+
+**Context.** No one had built the structures in a world yet (A-3). The test ran on the gradle dev server
+(`runServer`, flat world, no player), driven through the server console's stdin.
+
+**What we built.** Console and command-block forms of the two build commands:
+
+- `/btskerr [t1|t2] <x> <y> <z> [north|south|east|west] [force] [survival]`
+- `/btseye [t1..t4] <x> <y> <z> [facing] [gen n] [fill] [force] [survival]`
+
+`~` makes a coordinate relative to a command block. The facing is the way the controller's front faces, default
+north. Each command:
+
+1. loads the footprint's chunks first, with a 1-chunk margin, so world population has run before anything is placed;
+2. builds through `KerrKit` / `EyeKit`, as the player form does;
+3. prints FORMED or NOT FORMED, and the first wrong cells with what stands there;
+4. runs a mirror check, reading where the mockup's +x landmark actually stands: the Kerr's extractor core, the Eye
+   core's lone east gas hatch, and the jet band's east socket;
+5. re-projects the creative hologram over the formed machine and checks it is still formed, with no field
+   generator changed;
+6. runs a damage-and-repair test: it knocks out the plain block next to the controller, checks that the walk names
+   that cell, runs the survival auto-place, and checks that it puts back exactly that block, leaves every tile entity
+   alone, and the machine forms again.
+
+`survival` builds the whole machine through `survivalConstruct` instead of `construct`: projector-sized rounds (25,
+scaled to 200), from an endless item source, with a Forge fake player as the actor. `check` builds nothing and
+re-walks the machine already standing at x y z. A console-built Eye is owned by a fixed test UUID
+(`beyondthestars:console-test`) for its wireless EU. All of this lives in `machines/SLConsoleTest.java`.
+
+**Results (every case FORMED):**
+
+| Case | Facings | Path |
+|---|---|---|
+| Kerr T1 + both modules | N, E, S, W | creative N/E/S; survival E/W (15,362 blocks in 79 rounds) |
+| Kerr T2 + both modules | S, W, E, N | creative S/W/E; survival N (29,838 blocks in 151 rounds; trigger stack 2 before the upgrade) |
+| Eye T1 | N, E, S | creative N/E; survival S (19,615 / 100 rounds) |
+| Eye T2 | E, N, E (`~` coords) | creative |
+| Eye T3 | S, W, W | creative S/W; survival W (27,942 / 142 rounds) |
+| Eye T4 | W, N (`fill`), S, E | creative W/N/S; survival E (34,501 / 175 rounds) |
+
+- **Survival counts.** Each survival count is the §5.1 assembled size minus the controller, and every run ended
+  with -1 (no stall).
+- **Orientation.** On every case the +x landmark stands on the viewer's right, as in the mockup. The exporter's
+  `--flipH` / `--flipD` stay off.
+- **Re-projection and repair.** A creative re-projection always left the machine formed. The damage test always
+  named the missing cell ("Expects Extreme Density Space-Bending Casing / Reinforced Temporal Structure Casing at
+  ..."), and the survival repair placed exactly 1 block. Tile-entity counts were unchanged (20 → 20 on the Kerr
+  and Eye T3/T4).
+- **Restart.** After a restart, all 11 machines rechecked with `check` were still FORMED: modules, Density Upgrade,
+  Galactic core and bands all came back.
+
+**Also fixed.** GT's multi-line "Any of:" structure errors split the Eye/Kerr band and module fault strings over
+several lines in the scanner and status output. `BTSStructures.oneLine` now flattens them to "Any of: Stellar /
+Beam Band Casing".
+
+**Not covered by a headless run.**
+
+- The client-side hologram hints (`construct(stack, true)`).
+- Survival build from a real AE system or player inventory. The endless source supplies exact stacks only, so a
+  hatch socket gets its casing and `KerrKit` / `EyeKit` then fit the hatch.
+- The NEI preview.
+- The 1:1 compression gate and recipe runs (D-49 is in progress, so this pass leaves the star code alone).
+
+**Dev runtime notes.** The dev server loads 63 mods. It has no `dreamcraft` (GTNewHorizonsCoreMod) and no
+AvaritiaAddons, and the code tolerates both:
+
+- SL-P30..P32 are SKIPPED: "could not resolve AvaritiaAddons InfinityChest". The dev log says 231 registered,
+  3 skipped.
+- The Black Hole Compressor controller removal and TecTech's Eye controller removal both log "NOTHING matched ...
+  the removal is a no-op". TecTech's 43 Eye recipes are still removed, and our Eye has its 48.
+
+In the full pack these resolve, as the earlier smoke test showed (255 registered, 0 skipped).
+
+**Observation, not a structure problem.** With no player online, the server unloads chunks after a command
+finishes. A machine built from the console stops ticking until something loads it again. Two of the T2 Kerrs
+still showed "Hole closed" at `check` time, because their seed had not been fired yet. In game, the spec's "keep
+the whole footprint chunk-loaded" advice stands.
+
+**Suggestion.** Keep the console forms. They are op-only, cost nothing in play, and give a regression test for
+every future structure change: re-export, `runServer`, then pipe the command list in.
+
+**Alternatives.** Move the bench into a dev-only source set so it does not ship in the jar. That needs a
+buildscript change for about 400 lines of op tooling.
 
 ---
 

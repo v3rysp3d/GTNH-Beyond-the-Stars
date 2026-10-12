@@ -47,6 +47,14 @@ errors and no crash. The boot log also confirms:
   field-generator tier. `fill` tops up every fluid tank and gives you 10¹⁸ wireless EU, so a run starts at once.
 - Both build commands refuse a spot that is more than 15 % solid, unless you add `force`. Use a flat, cleared area,
   ideally a void or superflat world, and keep the whole footprint chunk-loaded.
+- **Console / command-block forms** (no player needed): `/btskerr [t1|t2] <x> <y> <z> [facing] [force] [survival]`
+  and `/btseye [t1..t4] <x> <y> <z> [facing] [gen n] [fill] [force] [survival]`. `~` coordinates are relative to a
+  command block, and the facing is the controller front (default north). Each command loads the footprint's chunks,
+  builds, and prints FORMED / NOT FORMED with the first wrong cells. It then runs the mirror check, a re-projection
+  check and a survival damage-and-repair check. `survival` builds through the projector's survival path. `check`
+  builds nothing and re-walks the machine standing at x y z. To test on a dev server: put `eula=true` in
+  `run/server/eula.txt`, run `tail -n 0 -f run/server/cmds.txt | ./gradlew.bat runServer` in Git Bash, append
+  commands to `cmds.txt`, and finish with `stop`. See questions B-27 for what a run covers.
 - **Hologram projector:** on the Kerr, stack 1 = T1 and 2+ = T2. On the Eye, stack 1-4 = T1-T4. Survival auto-build
   works from inventory or AE, like other GTNH multis.
 
@@ -105,7 +113,9 @@ found two dead ends and several over-priced blocks; §6 there lists what was app
 
 - The upgrade milestones and install run: upgrades still install on a right-click.
 - In-game build checks. The hologram and the NEI preview paths are verified against the StructureLib and
-  BlockRenderer6343 bytecode ("Hologram & NEI" below), but nobody has opened them in game yet.
+  BlockRenderer6343 bytecode ("Hologram & NEI" below), but nobody has opened them in game yet. **Structure
+  formation is now verified headless** (questions B-27): on a dev server, every Kerr and Eye tier formed in all
+  four facings through both the creative and the survival hologram paths, with the orientation as in the mockup.
 - The Eye's centre render.
 
 ---
@@ -1011,7 +1021,10 @@ format is the earlier "Contract additions (structures)" section, and `BTSShapes`
 - **Orientation.** Both machines face **+z** in voxel space: the Kerr outward on the governor arc, the Eye outward on
   the plinth at 90°. Layer 0 is the front. Rows run top to bottom. Chars run left to right as seen from in front of
   the controller (= voxel +x), so the in-game geometry is the mockup, unmirrored.
-- **Not yet verified in-world.** Build `orient_test` and check:
+- **Verified in-world (2026-10-12, headless dev server, questions B-27):** in all four facings the mockup's +x
+  landmarks (the Kerr's extractor core, the Eye core's east gas hatch and the jet band's east socket) stand on the
+  viewer's right, seen from in front of the controller. So the shapes are unmirrored, and `--flipH` / `--flipD`
+  stay off. The original manual check, kept for reference: build `orient_test` and check:
   - The controller `~` is front-centre.
   - `R` is to the viewer's right of the controller. If it is on the left, re-export with `--flipH`.
   - `U` is at the top-left front corner.
