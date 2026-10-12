@@ -95,14 +95,14 @@ public final class EyeGalaxyBench {
      * flux and coil field for the collapse assist (P4-73).
      */
     public static void scripted(MTEEyeOfHarmonyBTS eye, double hi, double lo, double halo, boolean linked,
-        String source, boolean paused, double phi, double b) {
+        String source, boolean paused, double phi, double b, double stream) {
         final EyeStarRuntime rt = eye.starRuntime();
         final EyeBursts e = feed(eye, hi, lo, halo, linked);
         e.source = linked ? source : "";
         e.paused = paused;
         e.pausedBy = paused ? source : "";
         rt.benchBursts = e;
-        rt.benchFlux = new double[] { phi, b };
+        rt.benchFlux = new double[] { phi, b, stream }; // the source quasar as the Eye reads it (P4-73, P4-79)
     }
 
     /** P4 hosts unit: the Eye reads its GRB Receptor Ports again. */
@@ -261,7 +261,8 @@ public final class EyeGalaxyBench {
             "the bench quasar",
             false,
             r.q.Phi,
-            r.q.b);
+            r.q.b,
+            com.nateyburr.beyondthestars.machines.quasar.engine.QuasarParams.meanStream(r.q.G0, r.q.Yq, true));
     }
 
     /**
@@ -273,7 +274,8 @@ public final class EyeGalaxyBench {
      * (linked when {@code linkable} and something flows; paused for Q-8 when {@code paused}).
      */
     public static void conduit(MTEEyeOfHarmonyBTS eye, double jetPerPort, boolean linkable, int trans, int field,
-        int events, boolean testFire, boolean analog, String source, boolean paused, double phi, double b) {
+        int events, boolean testFire, boolean analog, String source, boolean paused, double phi, double b,
+        double stream) {
         final EyeStarRuntime rt = eye.starRuntime();
         final double cap = BurstRouting.throatCap(1);
         double sIn = 2 * Math.min(Math.max(0, jetPerPort), cap);
@@ -305,7 +307,7 @@ public final class EyeGalaxyBench {
         final int s2 = analog ? BurstRouting.level(lit ? e[StellarField.W] : 0, 30)
             : BurstRouting.twoLevel(bit(field, 3), bit(field, 4));
         final double hi = rail * BurstRouting.share(0.5, 2, s2);
-        scripted(eye, hi, rail - hi, halo, linked, source, paused, phi, b);
+        scripted(eye, hi, rail - hi, halo, linked, source, paused, phi, b, stream);
     }
 
     /** The Eye's position as the rig's key (a chunk reload makes a new controller object, not a new Eye). */

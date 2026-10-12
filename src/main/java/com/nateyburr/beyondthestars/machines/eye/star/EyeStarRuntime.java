@@ -2518,7 +2518,23 @@ public final class EyeStarRuntime {
             }
         }
         return GalaxyDirective
-            .testFireWanted(n, fs.tier.planets(), burning(), false, milestones.linkDone[n], coreIn, buffered);
+            .testFireWanted(n, fs.tier.planets(), burning(), false, milestones.linkDone[n], coreIn, buffered)
+            && (n != 7 || linkedQuasarStream() >= GalaxyField.demandT(8));
+    }
+
+    /**
+     * P4-79: the linked quasar's mean stream, Bu/t ({@code QuasarParams.meanStream} at its current G0 and Y_q, purging
+     * at Φ 40), 0 with no link. The T7 halo test fire sends J1 all to the Eye and J3 75 % to the halo, so the rail
+     * keeps a quarter: below the Heavy Link's 6 Bu/t it would starve Triangulum (P falls, Integrity drains) and the
+     * link could not be held anyway, so Slots [8] waits for a quasar big enough (about 130 SM at coils 3).
+     */
+    public double linkedQuasarStream() {
+        if (benchBursts != null && benchFlux != null) return benchFlux.length > 2 ? benchFlux[2] : 0;
+        final BurstSource s = galaxy.bursts.sourceId;
+        final MTEQuasarEngine q = s == null ? null : s.resolve();
+        if (q == null || !q.isFormed()) return 0;
+        return com.nateyburr.beyondthestars.machines.quasar.engine.QuasarParams
+            .meanStream(q.state().G0, q.state().Yq, true);
     }
 
     /** The Trims set's bit names on the star burning now (its trim table), else the set's defaults. */

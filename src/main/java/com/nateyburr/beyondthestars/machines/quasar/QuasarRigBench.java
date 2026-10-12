@@ -340,7 +340,8 @@ public final class QuasarRigBench {
             r.qx + ", " + r.qy + ", " + r.qz, // as BurstSource.label(): the Eye says "the quasar at <label>"
             q.isFrozen(),
             s.Phi,
-            s.b);
+            s.b,
+            com.nateyburr.beyondthestars.machines.quasar.engine.QuasarParams.meanStream(s.G0, s.Yq, true));
     }
 
     /** A wire into a Burst Control Hatch: its bench input (fast-forward) or a real redstone block (live). */

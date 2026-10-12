@@ -73,7 +73,7 @@ public final class EyeStarBench {
         + "legacy [galactic] [run <key> <n>] | fix | gt | mefield | field <fluid> <L> | render [on|off] | "
         + "directive | autorig <s> [cut <k>] | ocloop | "
         + "P4: burst <Bu/t> [high] [halo] | burst off | galaxy <s> [analog] [mass M] [fresh] | begin | "
-        + "mode galaxy|planets | set mcshock|f8 <v> | slots <planet keys and chart names...> | slots clear";
+        + "mode galaxy|planets | set mcshock|f8 <v> | slots <planet keys and chart names...> | slots clear | buses clear";
 
     /** Runs {@code args} = {@code star x y z sub …}. Returns the lines to print. */
     public static List<String> run(ICommandSender sender, String[] args) {
@@ -289,6 +289,21 @@ public final class EyeStarBench {
             case "slots":
                 out.add(fillSlotBus(eye, args));
                 break;
+            case "buses": {
+                // P4 hosts unit: empty the plinth input buses (the rig's item path) for a clean proof run
+                int n = 0;
+                for (gregtech.api.metatileentity.implementations.MTEHatchInputBus bus : eye.itemBuses()) {
+                    if (bus == null || !bus.isValid()) continue;
+                    for (int i = 0; i < bus.getSizeInventory(); i++) {
+                        if (bus.getStackInSlot(i) == null) continue;
+                        bus.getBaseMetaTileEntity()
+                            .setInventorySlotContents(i, null);
+                        n++;
+                    }
+                }
+                out.add("Plinth input buses emptied: " + n + " stack(s) removed.");
+                break;
+            }
             case "field": {
                 // field <fluid registry name> <L>: pour a trim fluid into the Field-socket hatches (what a player's
                 // automation does), so the sockets, not a debug rig, regulate the star
