@@ -2154,6 +2154,83 @@ largest box and has the lowest average.
 **Suggestion.** Keep the harness as the standard way to check renders. Part 2 reviews the round-1 images against the
 mockups and acts on the observations above.
 
+### B-66 Render fix round 1: the Kerr hole's size, the Eye's glow, colours and flares, and round 2 [render QA]
+
+**What was built** (addon commits 06b16e3..e479cb9). It fixes the defects the part-2 review found in round 1 (B-65).
+
+- **Kerr K1, size and clipping.** The core scale is now logarithmic in mass: `clamp(3.2 + 0.75 log2(M / 16), 1.5, 6.4)`,
+  which gives 3.2 at 16 SM, 4.7 at 64 SM and 6.2 at 256 SM. The visible halo/disc reaches 1.35 times the core scale:
+  4.3, 6.3 and 8.4 blocks, and at most 8.6 at the 512 SM T2 cap. Before the fix it was about 11.5 blocks at 64 SM.
+  This keeps the halo about 1.5 blocks inside the lowest coil ring and inside the interior ring of cyan-eye casings.
+  GT's model draws its halo at about 1.8 blocks per unit of GL scale (measured in round 1), so the KEE draws it at
+  0.75 times the core scale. The functions are `MTEKerrEngine.coreScaleFor`, `haloRadiusFor` and `renderScaleFor`.
+- **Eye E1/E9, glow.** Every object gets an additive glow billboard. Its radius is 2.5 times the object's radius, at
+  least 6 blocks. It uses the object's colour at alpha 0.30, falling to 0 at the edge. It is depth-tested and writes
+  no depth. It stands just behind the object (scaled up so it looks the same size), so the star's face stays clean.
+  The glow shows through the crown band's gaps.
+- **Eye E9, beams.** The neutron star and the magnetar sweep two polar beams: 12 blocks long, 0.4 wide, additive
+  alpha 0.5, tilted 20 degrees off the vertical and turning with the spin.
+- **E2, shells.** The two shells are additive. The NOVA core pass keeps ONE_MINUS_SRC_ALPHA.
+- **E3/E4/E5, colours.** The colours are as the review proposed: Sol FFF0C8 at gamma 4.2, Sirius A C8DCFF at 4.8, the
+  neutron star DCE8FF at 6, the bounce C8E1FF at 6. The swell's gamma falls from 2.6 to 1.6.
+- **E7, cooling dwarf.** It uses the 4-stop palette. Its shells fade by (1 − cooling), and it gets the faint dark-red
+  rim.
+- **E8, magnetar.** It gets a flare shell (1.8 times its radius, B070FF, alpha 0.15 + 0.45 × warning). It also flares
+  every 80-160 ticks, out to 6 radii over 40 ticks, using the bounce shell's code. The warning reaches the client as
+  a new synced value, `EyeStarLook.aux`, which for the dwarf carries the cooling fraction.
+- **E10, chunk churn.** `TileEyeStar.setLook` sends the look as a description packet straight to the players watching
+  the chunk. It used to call `markBlockForUpdate`, which also sent a block change, so every client rebuilt the chunk
+  section. `differs()` now allows 4 per colour channel.
+- **Harness.**
+  - The bounce case freezes its shell at 30 ticks (dev-only `TileEyeStar.debugEventAge`).
+  - A new case, `eye_t6_magnetar_warn`, shows the magnetar with warning 1 and a flare frozen at 15 ticks.
+  - Close-ups of objects with a radius over 12 stand at 2.2 radii + 4. The camera climbs over the crown until it
+    has a clear line.
+  - The Kerr cases log the core scale, the halo radius and the GL scale.
+  - `RenderDirtTracker`, a client world listener, logs what re-rendered chunk sections during each shot's still
+    window.
+
+**Judgement calls (built, PROPOSED). The review's numbers that did not hold up in the real client:**
+1. **Shell strength.** At the review's 0.4 / 0.2 and the star's own gamma, the additive shells blew Sol, Sirius A, the
+   neutron star and the white dwarf out to flat white. The shells now run at the review's fallback of 0.3 / 0.15,
+   with their gamma capped at 1.2. Round 2 shows Sol yellow-white and Sirius A blue-white, both with visible texture,
+   and no cyan blobs.
+2. **Why the review's dark colours do not darken.** The tectech:star shader (checked in the RC-2 jar) keeps the
+   texture's luminance and takes only the tint's chroma (YIQ). A dark tint therefore does not darken the ball; only
+   the gamma does (luminance^(1/gamma)). The review's late dwarf gammas (1.2 / 0.6 / 0.4) still rendered a pink-grey
+   Moon at 90 %. The late stops are now 0.45 / 0.15 / 0.08. At 90 % the ball reads dark copper-brown with some bright
+   glints, and the rim is at gamma 0.6. Going fully black would need a shader of our own (see the suggestion below).
+3. **Magnetar colour.** It is 6A3CFF at gamma 1.2, not 8A3CFF at 2.2, which rendered white-pink. At night it reads
+   violet with a violet halo. By day the core still reads pink-violet, because the chroma swap puts its hue near
+   magenta. Its flare shell runs at gamma 1.
+4. **E10 diagnosis.** Over 90 still windows, the only things that re-rendered chunks at the Eye sites were
+   `minecraft:dirt` block updates: superflat grass dying in the shade of the freshly built structures. None came from
+   the Eye's render tile or its hatches. Round 1 ran on a fresh world, which explains most of its 4-18 updates/s. In
+   round 2 (the same world) the Eye sites average 0-1.8 per shot. The setLook packet change still removes a rebuild
+   per look change in live play (the cooling dwarf changed colour every field second).
+   - Also seen: GT's BHC re-renders its render block once a second.
+   - Also seen: the KEE controller asks for a block update about every 8 ticks, but only for a nearby player (5 per
+     40-tick window, close views only). This is probably GT's client data / active-flag traffic. It is harmless at
+     these numbers. If it matters on weak clients, investigate.
+
+**Round 2.** 90 shots, all 15 cases, copied to my local work folder `render-qa/round2/`. The T5/T6 shots come from a
+re-run after the last tuning (`rendertest-t5t6-rerun.log`). The first pass, before the shell and dwarf tuning, is in
+`round2/pass-a/`. FPS at the shots: Kerr 1152-1269, Eye 978-1209 (lowest: Sol 34-view), BHC reference 1134-1315,
+TecTech EOH reference 1237-1290.
+
+**Open design questions (no render change made):**
+- **K2: the hole is hidden from the front at eye level.** It is hidden by the drum at T1, and at T2 only two cream
+  crescents show. GT's BHC behaves the same. Suggestion: add a Quantum Glass window, 3 high and about 9 wide, in the
+  drum's front wall at the hole's equator (a structure change: re-export the Kerr shapes and the BOM). The
+  alternative is to accept it.
+- **E1: the crown at eye level.** With the glow, the Eye's object reads from the front at night as a bright slit
+  through the band gaps with a halo above the crown. By day the additive glow barely shows against the sky. TecTech's
+  Eye is fully readable from the front. Suggestion: open a 3-block window ring in the crown band at the object's
+  height (a structure change). The alternative is to accept "look from above / inside", as the Forge of the Gods does.
+- **Dwarf and magnetar colour.** To reach a true black dwarf and a non-pink violet magnetar, ship our own copy of the
+  star fragment shader with a brightness multiplier (a tint that scales the luminance as well as the chroma). That
+  adds about 30 lines of GLSL in two profiles. Suggestion: do it in round 2 of the fixes if you want them exact.
+
 ---
 
 ## Part C. Settled (for the record)
