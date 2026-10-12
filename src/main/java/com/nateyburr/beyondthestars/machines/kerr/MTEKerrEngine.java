@@ -371,7 +371,11 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         }
     }
 
-    /** The core piece this controller must stand on right now (server: the installed state). */
+    /**
+     * The core piece this controller must stand on right now (server: the installed state). Once the
+     * Density Upgrade is in, only {@code kerr_t2} forms: with the reinforcement torn down the Kerr does
+     * NOT fall back to T1, it stays unformed (user ruling 2026-10-12, round 4: "won't form").
+     */
     public String corePiece() {
         return densityInstalled ? PIECE_T2 : PIECE_T1;
     }
