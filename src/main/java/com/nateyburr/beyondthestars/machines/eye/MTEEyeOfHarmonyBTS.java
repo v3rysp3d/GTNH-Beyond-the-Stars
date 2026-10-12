@@ -1889,6 +1889,34 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             return got;
         }
 
+        /** P4-77: an OpenComputers trim pulse's fluid, from the gas and stellar sockets (ME stocking included). */
+        @Override
+        public long drainStock(Fluid fluid, long max) {
+            if (fluid == null || max <= 0) return 0;
+            long got = 0;
+            for (List<MTEHatchInput> list : java.util.Arrays.asList(gasHatches, stellarHatches)) {
+                for (MTEHatchInput hatch : list) {
+                    if (got >= max) return got;
+                    if (!live(hatch)) continue;
+                    final boolean aware = hatch instanceof IRecipeProcessingAwareHatch;
+                    if (aware) ((IRecipeProcessingAwareHatch) hatch).startRecipeProcessing();
+                    try {
+                        for (FluidStack stored : storedFluids(hatch)) {
+                            if (got >= max) break;
+                            if (stored == null || stored.amount <= 0 || stored.getFluid() != fluid) continue;
+                            final int want = (int) Math.min(stored.amount, max - got);
+                            final FluidStack drained = hatch
+                                .drain(ForgeDirection.UNKNOWN, new FluidStack(fluid, want), true);
+                            if (drained != null && drained.amount > 0) got += drained.amount;
+                        }
+                    } finally {
+                        if (aware) ((IRecipeProcessingAwareHatch) hatch).endRecipeProcessing(MTEEyeOfHarmonyBTS.this);
+                    }
+                }
+            }
+            return got;
+        }
+
         /** R-1: a Stellar Ignition Charge from a plinth input bus (ME input buses through their shadow stacks). */
         @Override
         public boolean takeIgnitionCharge(boolean simulate) {

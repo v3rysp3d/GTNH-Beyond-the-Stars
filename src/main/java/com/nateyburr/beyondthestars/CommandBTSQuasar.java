@@ -436,6 +436,15 @@ public class CommandBTSQuasar extends CommandBase {
                 "setField(" + v + ") = " + com.nateyburr.beyondthestars.integration.QuasarComputerApi.setField(q, v));
         }
         out.add("setGas(argon) = " + com.nateyburr.beyondthestars.integration.QuasarComputerApi.setGas(q, "argon"));
+        out.add("trim(gas, 12) = " + q.requestTrim("gas", 12) + " (clamped to 10)");
+        out.add("trim(argon, 1) = " + q.requestTrim("argon", 1));
+        out.add("trim(space, 3) = " + q.requestTrim("space", 3));
+        final com.nateyburr.beyondthestars.machines.quasar.engine.QuasarResult tr = q.benchRun(1, true);
+        out.add(
+            "  the next disc second took trims gas " + (tr == null ? 0 : tr.gasTrimUnits)
+                + " / space "
+                + (tr == null ? 0 : tr.spaceTrimUnits)
+                + " units (space needs Spatially Enlarged Fluid in a gas socket)");
         q.setFeed(feed);
         q.setBSetting(b);
         out.add("(feed and b put back to " + feed + " / " + b + ")");

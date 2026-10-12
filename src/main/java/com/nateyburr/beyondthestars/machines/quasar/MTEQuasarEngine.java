@@ -593,13 +593,27 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             // trims: what the plain trim hatches hold, in whole units, at most 10 each
             final double gasUnitL = QuasarParams.gasTrimUnitLitres(q.M);
             final double spaceUnitL = QuasarParams.spaceTrimUnitLitres(q.M);
+            // P4-77: an OpenComputers trim pulse adds units paid from the feed buffer (gas) or the gas sockets
+            // (Spatially Enlarged Fluid, ME stocking included), within the same cap of 10
+            final double ocG = Math.min(ocGasUnits, Math.floor(buffer(gasFluid(gas)) / gasUnitL));
+            final double ocS = Math.min(ocSpaceUnits, Math.floor(available(gasHatches, spaceFluid()) / spaceUnitL));
+            ocGasUnits = 0;
+            ocSpaceUnits = 0;
             in.gasTrimUnits = Math
-                .min(QuasarParams.TRIM_CAP, Math.floor(available(trimHatches, gasFluid(gas)) / gasUnitL));
+                .min(QuasarParams.TRIM_CAP, Math.floor(available(trimHatches, gasFluid(gas)) / gasUnitL) + ocG);
             in.spaceTrimUnits = Math
-                .min(QuasarParams.TRIM_CAP, Math.floor(available(trimHatches, spaceFluid()) / spaceUnitL));
+                .min(QuasarParams.TRIM_CAP, Math.floor(available(trimHatches, spaceFluid()) / spaceUnitL) + ocS);
             final QuasarResult r = QuasarDisc.step(q, in);
-            if (r.gasTrimLitres > 0) take(trimHatches, gasFluid(gas), (long) Math.ceil(r.gasTrimLitres));
-            if (r.spaceLitres > 0) take(trimHatches, spaceFluid(), (long) Math.ceil(r.spaceLitres));
+            if (r.gasTrimLitres > 0) {
+                final long need = (long) Math.ceil(r.gasTrimLitres);
+                final long got = take(trimHatches, gasFluid(gas), need);
+                if (got < need) takeBuffer(gasFluid(gas), need - got);
+            }
+            if (r.spaceLitres > 0) {
+                final long need = (long) Math.ceil(r.spaceLitres);
+                final long got = take(trimHatches, spaceFluid(), need);
+                if (got < need) take(gasHatches, spaceFluid(), need - got);
+            }
             trimGasUnits = r.gasTrimUnits;
             trimSpaceUnits = r.spaceTrimUnits;
             bInUse = r.b;
@@ -853,6 +867,32 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         q.collapse();
         lastEvent = "Collapsed: the hole is dormant (mass kept)";
         return true;
+    }
+
+    /** P4-77: OpenComputers trim pulses for the next disc second, in units (not saved). */
+    private double ocGasUnits, ocSpaceUnits;
+
+    /**
+     * OpenComputers {@code trim(kind, units)} (quasar-p4.md §8.2, P4-77): the next disc second takes up to
+     * {@code units} (0-10) trim units of the feed gas ("gas", from the quasar's own feed buffer) or of Spatially
+     * Enlarged Fluid ("space", from the gas sockets: an ME stocking hatch can hold it there), on top of what the trim
+     * hatches hold, within the same cap of 10. Returns what was queued, or why not.
+     */
+    public String requestTrim(String kind, double units) {
+        if (!running()) return "no hole running: nothing to trim";
+        final double u = Math.max(0, Math.min(QuasarParams.TRIM_CAP, Double.isNaN(units) ? 0 : units));
+        final String k = kind == null ? ""
+            : kind.trim()
+                .toLowerCase(Locale.ROOT);
+        if (k.equals("gas") || k.equals("feed")) {
+            ocGasUnits = u;
+            return String.format(Locale.ROOT, "%s: %.1f units next second", gas.displayName, u);
+        }
+        if (k.equals("space") || k.equals("spatially enlarged fluid")) {
+            ocSpaceUnits = u;
+            return String.format(Locale.ROOT, "Spatially Enlarged Fluid: %.1f units next second", u);
+        }
+        return "trim gas|space";
     }
 
     /** A purge request (GUI, OpenComputers): false when the hole is not running or the flux is under 20. */

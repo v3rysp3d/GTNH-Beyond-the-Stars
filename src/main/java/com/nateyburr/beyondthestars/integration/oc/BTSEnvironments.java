@@ -179,6 +179,17 @@ public final class BTSEnvironments {
             return e == null ? GONE : new Object[] { BTSComputerApi.eyeSetMode(e, a.checkString(0)) };
         }
 
+        @Callback(
+            doc = "function(kind:string, units:number):string -- one second's trim pulse (T7+: \"space\"; any trim of the"
+                + " burning star by key or name) from the gas / stellar sockets, on top of the Field sockets, same cap")
+        public Object[] trim(Context c, Arguments a) {
+            if (limited("trim")) return RATE_LIMITED;
+            final MTEEyeOfHarmonyBTS e = eye();
+            return e == null ? GONE
+                : new Object[] { e.starRuntime()
+                    .requestTrim(a.checkString(0), a.checkDouble(1)) };
+        }
+
         @Callback(doc = "function():table -- mode, planet slots, progress, companions, idle, companionShort")
         public Object[] getSlots(Context c, Arguments a) {
             final MTEEyeOfHarmonyBTS e = eye();
@@ -352,6 +363,15 @@ public final class BTSEnvironments {
             if (limited("setField")) return RATE_LIMITED;
             final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
             return q == null ? GONE : new Object[] { QuasarComputerApi.setField(q, a.checkDouble(0)) };
+        }
+
+        @Callback(
+            doc = "function(kind:string, units:number):string -- one second's trim pulse: \"gas\" (from the feed buffer)"
+                + " or \"space\" (Spatially Enlarged Fluid from the gas sockets), 0-10 units on top of the trim hatches")
+        public Object[] trim(Context c, Arguments a) {
+            if (limited("trim")) return RATE_LIMITED;
+            final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
+            return q == null ? GONE : new Object[] { q.requestTrim(a.checkString(0), a.checkDouble(1)) };
         }
 
         @Callback(doc = "function():boolean -- purge the flux now; false below flux 20 or with no hole")
