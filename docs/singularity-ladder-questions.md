@@ -742,3 +742,35 @@ research item another assembly line in the pack also uses.
 **Suggestion.** As built. Treat that ERROR line as a release blocker.
 
 **Alternatives.** Dedicated research-only items (one "schematic" item per recipe), if I prefer a uniform look.
+
+## Q-37 The Kerr re-checks its structure on a timer
+
+**Context.** GT re-checks a multiblock only after a block update reaches the controller, and that update only walks
+through registered machine blocks. Our SL casings were not registered (fixed: they are GT machine blocks now and
+cause machine updates, like GT's casings). Even so, the Kerr's cage, arcs and modules are hundreds of separate
+islands to GT's walk, so a module built or broken, rails swapped, or the last hologram block placed would not reach
+the controller until a relog.
+
+**What we built.** The Kerr re-walks its structure every 200 ticks while idle and every 1,000 while running. The walk
+is skipped while any chunk within 96 blocks of the controller is unloaded, so a half-loaded cage never un-forms.
+
+**Suggestion.** As built. The Eye relies on GT's update walk (its bands are now machine blocks); give it the same
+timer if play-testing shows a stale band.
+
+**Alternatives.** Shorter intervals (more responsive, more cost on a ~30,000-block walk), or a "re-check" screwdriver
+action instead of a timer.
+
+## Q-38 The upgrade install mechanic is routed but not built yet
+
+**Context.** Q-10 (third round): the Kerr Density Upgrade and the Galactic Upgrade Core install through MILESTONES +
+an INSTALL RUN, not a free right-click.
+
+**What we built.** The Eye now has the one install path the ruling asks for: `beginGalacticUpgrade(player, stack)`
+owns validation, consumption and feedback, and `completeGalacticUpgrade()` is the one place the upgrade takes effect
+(the creative build calls it). Today `begin` still completes at once, marked TODO(Q-10). The Kerr's Density Upgrade
+still installs on right-click through `installDensity()`.
+
+**Suggestion.** Build the milestone check and the install run as their own task, inside `beginGalacticUpgrade` (and a
+matching `beginDensityUpgrade` on the Kerr), reusing the progression/ milestone code.
+
+**Alternatives.** None proposed; the mechanic is ruled.

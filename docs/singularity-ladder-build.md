@@ -188,7 +188,7 @@ Eye reaches it): Q-3.
 | SL-P01 | Containment Deck Plating ×4 | ASM | plate Neutronium ×6, frameGt NaquadahAlloy ×1 | CosmicNeutronium molten 576 | RECIPE_UIV | 400 |
 | SL-P02 | Mirror Backing Casing ×2 | ASM | plate Infinity ×6, frameGt SpaceTime ×1 | Infinity molten 1,152 | RECIPE_UIV | 600 |
 | SL-P03 | Superradiant Mirror Casing ×2 | ASM | plate Neutronium ×4, foil Infinity ×8, Mirror Backing Casing ×1 | Infinity molten 576, SpaceTime molten 144 | RECIPE_UIV | 600 |
-| SL-P04 | Superradiant Mirror Segment (item) | AL (research: Black_Hole_Opener) | plate Neutronium ×32, foil Infinity ×64, Emitter_UIV ×4, circuit UIV ×4, Superradiant Mirror Casing ×4 | Infinity molten 18,432, SpaceTime molten 2,304 | RECIPE_UIV | 4,800 |
+| SL-P04 | Superradiant Mirror Segment (item) | AL (research: Superradiant Mirror Casing, Q-36) | plate Neutronium ×32, foil Infinity ×64, Emitter_UIV ×4, circuit UIV ×4, Superradiant Mirror Casing ×4 | Infinity molten 18,432, SpaceTime molten 2,304 | RECIPE_UIV | 4,800 |
 | SL-P05 | Bolt Injector Rail Mk I | ASM | Robot_Arm_UIV ×1, Electric_Piston_UIV ×1, frameGt SpaceTime ×1, gearGt SpaceTime ×2 | Lubricant 1,000 | RECIPE_UIV | 300 |
 | SL-P06 | Bolt Injector Rail Mk II | ASM | Rail Mk I ×1, Conveyor_Module_UIV ×2, Robot_Arm_UIV ×1 | Lubricant 2,000 | RECIPE_UIV ×4 | 400 |
 | SL-P07 | Bolt Injector Rail Mk III | ASM | Rail Mk II ×1, Robot_Arm_UMV ×1, Electric_Piston_UMV ×1, Conveyor_Module_UMV ×1 | SpaceTime molten 576, Lubricant 4,000 | RECIPE_UMV | 600 |
@@ -204,7 +204,7 @@ Eye reaches it): Q-3.
 | SL-P17 | Galactic Shell Plating ×2 | ASM | plateDense Infinity ×4, frameGt TranscendentMetal ×1, plate CosmicNeutronium ×4 | TranscendentMetal molten 1,152, **HSM 1,000** | RECIPE_UMV | 800 |
 | SL-P18 | Bastion Plate ×4 | ASM | plateDense Neutronium ×6, plate TranscendentMetal ×2, frameGt Infinity ×1 | Infinity molten 2,304 | RECIPE_UMV | 1,200 |
 | SL-P19 | Casimir Plate ×4 | ASM | plate Neutronium ×8, foil SpaceTime ×16 | SpaceTime molten 576 | RECIPE_UMV | 1,200 |
-| SL-P21 | Stabiliser Pylon (item) | AL (research: EOH_Reinforced_Spatial_Casing) | Eye Shell Casing ×32, Harmonic Lining ×16, Field_Generator_UMV ×8, frameGt Neutronium ×16, circuit UMV ×8, plateDense Neutronium ×16, Containment Deck Plating ×16 | SpaceTime molten 147,456, Super Coolant 500,000 | RECIPE_UMV ×4 | 18,000 |
+| SL-P21 | Stabiliser Pylon (item) | AL (research: Star Chart: Sol, Q-36) | Eye Shell Casing ×32, Harmonic Lining ×16, Field_Generator_UMV ×8, frameGt Neutronium ×16, circuit UMV ×8, plateDense Neutronium ×16, Containment Deck Plating ×16 | SpaceTime molten 147,456, Super Coolant 500,000 | RECIPE_UMV ×4 | 18,000 |
 | SL-P22 | Star Chart: Sol | ASM | Tool_DataOrb ×1, circuit UMV ×1, plate Infinity ×4 | SpaceTime molten 144 | RECIPE_UMV | 200 |
 | SL-P23 | Star Chart: Sirius A | ASM | Tool_DataOrb ×1, circuit UMV ×1, plateDense SpaceTime ×1 | RSPM 10,000 | RECIPE_UMV | 200 |
 | SL-P24 | Star Chart: Arcturus | ASM | Tool_DataOrb ×1, circuit UMV ×1, plate TranscendentMetal ×4 | ESPM 1,000 | RECIPE_UMV | 200 |
@@ -224,8 +224,8 @@ notes it in the commit.
 |---|---|---|---|---|---|---|
 | SL-K01 | Kerr Ergosphere Engine (controller, MTE base+14) | AL (research: Black_Hole_Opener) | plateDense SpaceTime ×32, frameGt SpaceTime ×32, Field_Generator_UIV ×16, Emitter_UIV ×16, Sensor_UIV ×16, circuit UIV ×32, Superradiant Mirror Segment ×8, Bolt Injector Rail Mk I ×16, Black_Hole_Opener ×8, screw TranscendentMetal ×64, Ergosphere Field Coil ×16, Containment Deck Plating ×32 | SpaceTime molten 294,912, TranscendentMetal molten 147,456, Super Coolant 1,000,000 | RECIPE_UIV | 18,000 |
 | SL-K02 | Kerr Compressor Module (block) | AL (research: Kerr controller) | Electric_Piston_UIV ×32, Field_Generator_UIV ×8, circuit UIV ×16, plateDense Neutronium ×32, Black_Hole_Opener ×4, gearGt SpaceTime ×16 | SpaceTime molten 73,728, Super Coolant 500,000 | RECIPE_UIV | 12,000 |
-| SL-K03 | Kerr Extractor Module (block) | AL (research: Kerr controller) | Electric_Pump_UIV ×32, Field_Generator_UIV ×8, circuit UIV ×16, plateDense Neutronium ×32, Beam Focusing Quadrupole ×4, pipeHuge Neutronium ×16 | SpaceTime molten 73,728, Super Coolant 500,000 | RECIPE_UIV | 12,000 |
-| SL-K04 | Kerr Density Upgrade (item) | AL (research: Kerr controller) | Bastion Plate ×64, Bastion Plate ×64, plateDense Infinity ×64, Field_Generator_UMV ×32, circuit UMV ×32, Ergosphere Field Coil ×32, Black_Hole_Stabilizer ×1, Bolt Injector Rail Mk III ×16 | RawStarMatter 4,000,000, SpaceTime molten 589,824, ExcitedDTEC 128,000 | RECIPE_UMV ×4 | 36,000 |
+| SL-K03 | Kerr Extractor Module (block) | AL (research: Extraction Casing, Q-36) | Electric_Pump_UIV ×32, Field_Generator_UIV ×8, circuit UIV ×16, plateDense Neutronium ×32, Beam Focusing Quadrupole ×4, pipeHuge Neutronium ×16 | SpaceTime molten 73,728, Super Coolant 500,000 | RECIPE_UIV | 12,000 |
+| SL-K04 | Kerr Density Upgrade (item) | AL (research: Bastion Plate, Q-36) | Bastion Plate ×64, Bastion Plate ×64, plateDense Infinity ×64, Field_Generator_UMV ×32, circuit UMV ×32, Ergosphere Field Coil ×32, Black_Hole_Stabilizer ×1, Bolt Injector Rail Mk III ×16 | RawStarMatter 4,000,000, SpaceTime molten 589,824, ExcitedDTEC 128,000 | RECIPE_UMV ×4 | 36,000 |
 | SL-K05 | HSM 1,000 L | `beyondthestars.recipe.kerrdensity` (new, section 3.1) | bolt Neutronium ×64 | RHSP 10,000, SpaceTime molten 288 | RECIPE_UMV | 400 |
 
 The Kerr's other maps are GT's own (`compressorRecipes`, `neutroniumCompressorRecipes`, `extractorRecipes`,
@@ -235,7 +235,7 @@ The Kerr's other maps are GT's own (`compressorRecipes`, `neutroniumCompressorRe
 
 | ID | Output | Map | Item inputs | Fluids | EU | Ticks |
 |---|---|---|---|---|---|---|
-| SL-E01 | Eye of Harmony (controller, MTE base+15) | AL (research: EOH_Reinforced_Spatial_Casing) | EOH_Reinforced_Spatial_Casing ×64, EOH_Reinforced_Temporal_Casing ×64, SpacetimeCompressionFieldGeneratorTier8 ×1, TimeAccelerationFieldGeneratorTier8 ×1, StabilisationFieldGeneratorTier8 ×1, circuit UMV ×64, Field_Generator_UMV ×32, plateDense SpaceTime ×64, Eye Shell Casing ×64, Harmonic Lining ×64, Stabiliser Pylon ×6, Containment Deck Plating ×64 | SpaceTime molten 1,179,648, ExcitedDTEC 256,000, Infinity molten 589,824 | RECIPE_UMV ×4 | 36,000 |
+| SL-E01 | Eye of Harmony (controller, MTE base+15) | AL (research: Stabiliser Pylon, Q-36) | EOH_Reinforced_Spatial_Casing ×64, EOH_Reinforced_Temporal_Casing ×64, SpacetimeCompressionFieldGeneratorTier0 ×1, TimeAccelerationFieldGeneratorTier0 ×1, StabilisationFieldGeneratorTier0 ×1 (Tier0 since the review fix pass, Q-32), circuit UMV ×64, Field_Generator_UMV ×32, plateDense SpaceTime ×64, Eye Shell Casing ×64, Harmonic Lining ×64, Stabiliser Pylon ×6, Containment Deck Plating ×64 | SpaceTime molten 1,179,648, ExcitedDTEC 256,000, Infinity molten 589,824 | RECIPE_UMV ×4 | 36,000 |
 | SL-E02 | Galactic Upgrade Core | AL (research: Eye controller) | Galactic Shell Plating ×64, Field_Generator_UMV ×32, circuit UMV ×64, Casimir Plate ×32, plateDense SpaceTime ×32, Emitter_UMV ×16 | **HSM 256,000**, SpaceTime molten 147,456, TranscendentMetal molten 147,456 | RECIPE_UMV ×4 | 48,000 |
 
 The Eye's process recipes (SL-E1x) are **not** GT recipe-map recipes; they are section 3.3's registry, shown in NEI
