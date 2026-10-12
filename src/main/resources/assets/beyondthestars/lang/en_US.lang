@@ -162,3 +162,22 @@ GT5U.gui.text.beyondthestars.eye.noowner=This Eye has no owner, so it has no wir
 GT5U.gui.text.beyondthestars.eye.noeu=Not enough EU in the owner's wireless network for this run
 beyondthestars.structure.eye.gas=The plinth needs at least one input hatch in a gas socket
 beyondthestars.structure.eye.output=The plinth needs an ME Output Bus and an ME Output Hatch
+
+# ---- D-49 star lifecycle: items and tooltips (D-49 content unit; d49-build-plan.md §9) ----
+item.beyondthestars.stellarIgnitionCharge.name=Stellar Ignition Charge
+item.beyondthestars.stellarIgnitionCharge.tooltip=Lights a dark Eye of Harmony star (T1-T3): one charge per ignition.\nPut it in an input bus on the plinth's gas sockets; the Eye takes it with the seed cloud.\nA star that fails needs a new charge.
+item.beyondthestars.stellarMassCore.name=Stellar Mass Core
+item.beyondthestars.stellarMassCore.tooltip=Eye of Harmony T1 -> T2: right-click the controller to put it in escrow.\nConsumed only when the Mass Infusion succeeds (Sol becomes Sirius A).
+item.beyondthestars.shellBurningCore.name=Shell-Burning Core
+item.beyondthestars.shellBurningCore.tooltip=Eye of Harmony T2 -> T3: right-click the controller to put it in escrow.\nConsumed only when the Shell Ignition succeeds (Sirius A becomes Arcturus).
+item.beyondthestars.galacticUpgradeCore.tooltip=Eye of Harmony T3 -> T4: right-click the controller to put it in escrow.\nConsumed only when the Core Collapse settles into a neutron star.
+item.beyondthestars.subspaceCoolingCore.name=Subspace Cooling Core
+item.beyondthestars.subspaceCoolingCore.tooltip=Eye of Harmony T4 -> T5: right-click the controller to put it in escrow.\nConsumed only when the First Cooling batch ends at mean yield 0.9 or better.
+item.beyondthestars.magnetarSeedCore.name=Magnetar Seed Core
+item.beyondthestars.magnetarSeedCore.tooltip=Eye of Harmony T5 -> T6: right-click the controller to put it in escrow.\nConsumed only when the Magnetar Merger succeeds.
+item.beyondthestars.starChartNeutronStar.name=Star Chart: Neutron Star (Arcturus Remnant)
+item.beyondthestars.starChartNeutronStar.tooltip=Eye of Harmony T4 target. Insert it while Arcturus burns to start the Core Collapse.\nFeeds on Hyperdense Stellar Mixture; makes White Dwarf Matter.
+item.beyondthestars.starChartSiriusB.tooltip=Eye of Harmony T5 target: cooling batches turn White Dwarf Matter into Black Dwarf Matter.
+item.beyondthestars.starChartSiriusBCooled.tooltip=Obsolete since D-49: craft back into Star Chart: Sirius B (Assembler, programmed circuit 3).
+item.beyondthestars.starChartMagnetar.name=Star Chart: SGR 1806-20 (Magnetar)
+item.beyondthestars.starChartMagnetar.tooltip=Eye of Harmony T6 target: a White and Black Dwarf Matter merger spawns it.\nAntipolarization Agent is its constant feed; it makes Magnetar Matter.

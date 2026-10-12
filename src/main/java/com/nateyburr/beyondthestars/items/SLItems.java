@@ -1,6 +1,16 @@
 package com.nateyburr.beyondthestars.items;
 
+import java.util.List;
+
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.StatCollector;
+
+import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 /**
  * SINGULARITY LADDER items (singularity-ladder-build.md §1.3). Owned by the Foundation unit;
@@ -9,7 +19,8 @@ import net.minecraft.item.Item;
  * Every field is a plain {@link Item} from {@link BTSItems#define(String)}: registry name,
  * unlocalized name ({@code item.beyondthestars.<name>}) and texture ({@code beyondthestars:<name>})
  * all derive from the one string, so they cannot drift. The field names ARE the registry names, so
- * they are frozen once shipped.
+ * they are frozen once shipped. The Eye's D-49 items use {@link #defineWithTooltip(String)}, the same
+ * rule plus a lang-file tooltip.
  */
 public final class SLItems {
 
@@ -30,8 +41,27 @@ public final class SLItems {
     public static Item starChartArcturus;
     /** Eye T4 star target. */
     public static Item starChartSiriusB;
-    /** Eye T4 interim Black Dwarf Matter target (Q-3). Delete with P4's Eye T5. */
+    /**
+     * Obsolete since D-49 (the interim Eye T4 Black Dwarf Matter target, Q-3). Stays registered so saved
+     * worlds keep their charts; SL-P36 crafts it back into Star Chart: Sirius B.
+     */
     public static Item starChartSiriusBCooled;
+
+    // ---- D-49 star lifecycle (d49-build-plan.md §9). Field names are registry names: frozen once shipped.
+    /** Lights a dark T1-T3 star (one per ignition), taken from a plinth input bus. */
+    public static Item stellarIgnitionCharge;
+    /** Escrowed core for the T1 -> T2 Mass Infusion. */
+    public static Item stellarMassCore;
+    /** Escrowed core for the T2 -> T3 Shell Ignition. */
+    public static Item shellBurningCore;
+    /** Escrowed core for the T4 -> T5 First Cooling. */
+    public static Item subspaceCoolingCore;
+    /** Escrowed core for the T5 -> T6 Magnetar Merger. */
+    public static Item magnetarSeedCore;
+    /** Eye T4 target: the neutron star left by Arcturus' Core Collapse. */
+    public static Item starChartNeutronStar;
+    /** Eye T6 target: SGR 1806-20. */
+    public static Item starChartMagnetar;
 
     private SLItems() {}
 
@@ -39,7 +69,7 @@ public final class SLItems {
         superradiantMirrorSegment = BTSItems.define("superradiantMirrorSegment");
         stabiliserPylon = BTSItems.define("stabiliserPylon");
         kerrDensityUpgrade = BTSItems.define("kerrDensityUpgrade");
-        galacticUpgradeCore = BTSItems.define("galacticUpgradeCore");
+        galacticUpgradeCore = defineWithTooltip("galacticUpgradeCore");
 
         starChartSol = BTSItems.define("starChartSol")
             .setMaxStackSize(1);
@@ -47,9 +77,46 @@ public final class SLItems {
             .setMaxStackSize(1);
         starChartArcturus = BTSItems.define("starChartArcturus")
             .setMaxStackSize(1);
-        starChartSiriusB = BTSItems.define("starChartSiriusB")
-            .setMaxStackSize(1);
-        starChartSiriusBCooled = BTSItems.define("starChartSiriusBCooled")
-            .setMaxStackSize(1);
+        starChartSiriusB = defineWithTooltip("starChartSiriusB").setMaxStackSize(1);
+        starChartSiriusBCooled = defineWithTooltip("starChartSiriusBCooled").setMaxStackSize(1);
+
+        // D-49 (d49-build-plan.md §9): appended, never reordered.
+        stellarIgnitionCharge = defineWithTooltip("stellarIgnitionCharge").setMaxStackSize(16);
+        stellarMassCore = defineWithTooltip("stellarMassCore");
+        shellBurningCore = defineWithTooltip("shellBurningCore");
+        subspaceCoolingCore = defineWithTooltip("subspaceCoolingCore");
+        magnetarSeedCore = defineWithTooltip("magnetarSeedCore");
+        starChartNeutronStar = defineWithTooltip("starChartNeutronStar").setMaxStackSize(1);
+        starChartMagnetar = defineWithTooltip("starChartMagnetar").setMaxStackSize(1);
+    }
+
+    /**
+     * {@link BTSItems#define(String)} with a tooltip: the same registry name, unlocalized name and
+     * texture from the one string, plus the lines of {@code item.beyondthestars.<name>.tooltip} (split
+     * on a literal backslash-n, shown in grey) when the lang file has that key. The item class is not part of a
+     * saved world, so an existing item may switch to this one.
+     */
+    private static Item defineWithTooltip(String name) {
+        final Item item = new TooltipItem().setUnlocalizedName("beyondthestars." + name)
+            .setTextureName("beyondthestars:" + name)
+            .setCreativeTab(BTSItems.TAB);
+        GameRegistry.registerItem(item, name);
+        return item;
+    }
+
+    /** A plain item whose tooltip comes from the lang file. */
+    private static final class TooltipItem extends Item {
+
+        @Override
+        @SideOnly(Side.CLIENT)
+        @SuppressWarnings({ "rawtypes", "unchecked" })
+        public void addInformation(ItemStack stack, EntityPlayer player, List lines, boolean advanced) {
+            final String key = getUnlocalizedName(stack) + ".tooltip";
+            if (!StatCollector.canTranslate(key)) return;
+            for (String line : StatCollector.translateToLocal(key)
+                .split("\\\\n")) {
+                lines.add(EnumChatFormatting.GRAY + line);
+            }
+        }
     }
 }

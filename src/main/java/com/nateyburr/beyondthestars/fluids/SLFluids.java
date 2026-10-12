@@ -22,6 +22,14 @@ public final class SLFluids {
     /** Kerr T2 densify output; the Eye T4 gate. */
     public static Fluid hyperdenseStellarMixture;
 
+    // ---- D-49 star lifecycle (d49-build-plan.md §9, star-lifecycle.md §5). Appended; names frozen once shipped.
+    /** Attuned Tengam + Semi-Stable Antimatter + SpaceTime (LCR, SL-S01); frozen into the Agent. */
+    public static Fluid positronicTengamSlurry;
+    /** The magnetar's constant feed and its flare-shield trim (Eye T6); SL-S02. */
+    public static Fluid antipolarizationAgent;
+    /** Eye T6 (SGR 1806-20) output. No consumer until P5 (plan §17 item 12). */
+    public static Fluid magnetarMatter;
+
     private SLFluids() {}
 
     public static void register() {
@@ -40,6 +48,10 @@ public final class SLFluids {
             26,
             58,
             120_000);
+
+        positronicTengamSlurry = liquid("btspositronictengamslurry", "Positronic Tengam Slurry", 196, 92, 214, 2_000);
+        antipolarizationAgent = liquid("btsantipolarizationagent", "Antipolarization Agent", 120, 230, 255, 4);
+        magnetarMatter = liquid("btsmagnetarmatter", "Magnetar Matter", 214, 40, 140, 10_000_000);
     }
 
     /** Same shape as {@code BTSFluidsProcess.build}: GT's tinted molten texture, no PNG needed. */
