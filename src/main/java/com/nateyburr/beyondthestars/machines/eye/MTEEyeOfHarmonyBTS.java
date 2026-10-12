@@ -55,6 +55,7 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBase;
 import gregtech.api.metatileentity.implementations.MTEHatchInput;
+import gregtech.api.metatileentity.implementations.MTEHatchInputBus;
 import gregtech.api.metatileentity.implementations.MTEHatchMultiInput;
 import gregtech.api.recipe.RecipeMap;
 import gregtech.api.recipe.check.CheckRecipeResult;
@@ -69,6 +70,7 @@ import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.common.misc.GTStructureChannels;
 import gregtech.common.misc.WirelessNetworkManager;
 import gregtech.common.tileentities.machines.IRecipeProcessingAwareHatch;
+import gregtech.common.tileentities.machines.MTEHatchCraftingInputME;
 import gregtech.common.tileentities.machines.MTEHatchInputME;
 import gregtech.common.tileentities.machines.outputme.MTEHatchOutputBusME;
 import gregtech.common.tileentities.machines.outputme.MTEHatchOutputME;
@@ -82,11 +84,14 @@ import tectech.thing.casing.TTCasingsContainer;
  * Harmony ({@code Config.replaceTecTechEyeOfHarmony}, {@link EyeRecipeRegistry}).
  *
  * <h2>Shape and tiers</h2>
- * Four resource pieces exported from {@code designs/voxel.js}, loaded by {@link BTSShapes}, each
+ * Six resource pieces exported from {@code designs/voxel.js}, loaded by {@link BTSShapes}, each
  * checked at its own {@code off=}: {@code eye_core} (T1, required), {@code eye_beam} (T2 beam band),
- * {@code eye_jet} (T3 jet crescent, INDEPENDENT of the beam band so T2 stays optional, D-42) and
- * {@code eye_arms} (T4 spiral arms). T2 recipes need the beam band, T3 the jet crescent, T4 the jet
- * crescent + the arms + an installed Galactic Upgrade Core (Q-11). The blocks are TecTech's own EOH
+ * {@code eye_jet} (T3 jet crescent), {@code eye_arms} (T4 spiral arms), {@code eye_arms2} (T5 second
+ * arms) and {@code eye_rim} (T6 galactic rim). D-49 makes the bands CUMULATIVE ({@link #structureTier}):
+ * T2 is required, and a band counts only while every band below it stands. T4 also needs an installed
+ * Galactic Upgrade Core (Q-11) until D-49's unlock lands. The core band carries D-49's Field
+ * ({@code f}) and Sensor ({@code n}) sockets, the rim four more stellar sockets ({@code g}); all of
+ * them fall back to their casing, so older Eyes still form. The blocks are TecTech's own EOH
  * blocks wherever a role fits (the mid-run ruling): Reinforced Spatial shell, Reinforced Temporal
  * plinth, Infinite Spacetime Energy Boundary lining, Quantum Glass, and the three tiered field
  * generators; only the three band casings are ours.
@@ -114,7 +119,7 @@ import tectech.thing.casing.TTCasingsContainer;
  *
  * <h2>The four traps</h2>
  * <ol>
- * <li><b>Client vs server.</b> {@link #construct} reads only the trigger stack (1..4 = T1..T4, bands
+ * <li><b>Client vs server.</b> {@link #construct} reads only the trigger stack (1..6 = T1..T6, bands
  * cumulative); it never reads {@link #galacticInstalled}.</li>
  * <li><b>Tile vs item NBT.</b> {@link #writeEyeState} is the one serializer of the persisted state (the
  * Galactic core and the buffers), called from both {@link #saveNBTData} and {@link #setItemNBT}.</li>
@@ -136,8 +141,20 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     public static final String PIECE_BEAM = "eye_beam";
     public static final String PIECE_JET = "eye_jet";
     public static final String PIECE_ARMS = "eye_arms";
-    /** Pieces in hologram order; the trigger stack size (1..4) projects the first N. */
-    public static final String[] PIECES = { PIECE_CORE, PIECE_BEAM, PIECE_JET, PIECE_ARMS };
+    /** D-49: the T5 band, the second pair of spiral arms. */
+    public static final String PIECE_ARMS2 = "eye_arms2";
+    /** D-49: the T6 band, the galactic rim with its four rim stellar sockets. */
+    public static final String PIECE_RIM = "eye_rim";
+    /**
+     * Pieces in hologram and tier order; the trigger stack size (1..6) projects the first N. D-49: the
+     * bands are CUMULATIVE, so piece i (tier i+1) counts only while every piece before it stands.
+     */
+    public static final String[] PIECES = { PIECE_CORE, PIECE_BEAM, PIECE_JET, PIECE_ARMS, PIECE_ARMS2, PIECE_RIM };
+    /** What the scanner calls each piece (index = piece index). */
+    private static final String[] BAND_NAMES = { "core", "beam band", "jet crescent", "spiral arms", "second arms",
+        "galactic rim" };
+    /** The highest tier the structure can carry. */
+    public static final int MAX_TIER = PIECES.length;
 
     // -------------------------------------------------------------------- field generators
     public static final int FIELD_COMPRESSION = 0;
@@ -148,10 +165,10 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     public static final double COMPRESSION_TIME_DISCOUNT = 0.97;
     /**
      * Q-20 THE COMPRESSION GATE, the one table: the lowest generator META (TecTech tier - 1) that
-     * Eye tier N needs in every compression cell. 1:1 (user ruling): T1 Crude (meta 0) .. T4 meta 3.
-     * Index 0 is unused. Change the mapping here and nowhere else.
+     * Eye tier N needs in every compression cell. 1:1 (user ruling): T1 Crude (meta 0) .. T6 meta 5
+     * (D-49 extends the gate to T6). Index 0 is unused. Change the mapping here and nowhere else.
      */
-    public static final int[] COMPRESSION_META_FOR_TIER = { -1, 0, 1, 2, 3 };
+    public static final int[] COMPRESSION_META_FOR_TIER = { -1, 0, 1, 2, 3, 4, 5 };
 
     /** Buffers cap at 2^62 L each (spec §3.3). */
     public static final long BUFFER_CAP = 1L << 62;
@@ -190,14 +207,19 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     private int mCasing;
     private final int[] fieldMin = { -1, -1, -1 };
     private final int[] fieldCount = new int[3];
-    private boolean beamBuilt;
-    private boolean jetBuilt;
-    private boolean armsBuilt;
-    private String beamFault = "";
-    private String jetFault = "";
-    private String armsFault = "";
+    /** Per piece: did its walk pass (index 0, the core, mirrors mMachine). Cumulation is applied on read. */
+    private final boolean[] bandBuilt = new boolean[PIECES.length];
+    /** Per piece: the first walk error of a band that did not pass, "" otherwise. */
+    private final String[] bandFault = new String[PIECES.length];
     private final ArrayList<MTEHatchInput> gasHatches = new ArrayList<>();
     private final ArrayList<MTEHatchInput> stellarHatches = new ArrayList<>();
+    /** D-49 Field sockets: live trim hatches (never buffered; the star runtime drains them per field second). */
+    private final ArrayList<MTEHatchInput> fieldHatches = new ArrayList<>();
+    /** D-49 R-15: ME stocking hatches found in Field sockets: walked (the Eye forms), never drained. */
+    private final ArrayList<MTEHatchInput> rejectedFieldHatches = new ArrayList<>();
+    private final ArrayList<MTEHatchStellarFieldSensor> sensorHatches = new ArrayList<>();
+    /** D-49 R-1: input buses on the plinth gas sockets (the Stellar Ignition Charges). */
+    private final ArrayList<MTEHatchInputBus> itemBuses = new ArrayList<>();
 
     public MTEEyeOfHarmonyBTS(int aID, String aName, String aNameRegional) {
         super(aID, aName, aNameRegional);
@@ -242,6 +264,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addShape(PIECE_BEAM, BTSShapes.load(PIECE_BEAM))
             .addShape(PIECE_JET, BTSShapes.load(PIECE_JET))
             .addShape(PIECE_ARMS, BTSShapes.load(PIECE_ARMS))
+            .addShape(PIECE_ARMS2, BTSShapes.load(PIECE_ARMS2))
+            .addShape(PIECE_RIM, BTSShapes.load(PIECE_RIM))
             // ---- TecTech's own EOH blocks (the mid-run ruling)
             .addElement('U', casing(Casings.ReinforcedSpatialStructureCasing))
             .addElement('Q', casing(Casings.ReinforcedTemporalStructureCasing))
@@ -264,10 +288,10 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addElement('R', block(sl, BlockSLCasing.BEAM_BAND))
             .addElement('S', block(sl, BlockSLCasing.JET_CRESCENT))
             .addElement('T', block(sl, BlockSLCasing.GALACTIC_SHELL))
-            // ---- plinth sockets
+            // ---- plinth sockets (D-49 R-1: the gas sockets also take input buses for the ignition charges)
             .addElement(
                 'h',
-                buildHatchAdder(MTEEyeOfHarmonyBTS.class).atLeast(EyeHatchElement.Gas)
+                buildHatchAdder(MTEEyeOfHarmonyBTS.class).atLeast(EyeHatchElement.Gas, EyeHatchElement.Items)
                     .casingIndex(plinthIndex)
                     .hint(1)
                     .buildAndChain(casing(Casings.ReinforcedTemporalStructureCasing)))
@@ -296,6 +320,26 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                     .casingIndex(shellIndex)
                     .hint(4)
                     .buildAndChain(block(sl, BlockSLCasing.JET_CRESCENT)))
+            .addElement(
+                'g',
+                buildHatchAdder(MTEEyeOfHarmonyBTS.class).atLeast(EyeHatchElement.Stellar)
+                    .casingIndex(shellIndex)
+                    .hint(4)
+                    .buildAndChain(block(sl, BlockSLCasing.GALACTIC_SHELL)))
+            // ---- D-49 stability-field sockets on the core band's outer face. Both fall back to the band
+            // shell, so an Eye built before D-49 (shell in every one of these cells) still forms.
+            .addElement(
+                'f',
+                buildHatchAdder(MTEEyeOfHarmonyBTS.class).atLeast(EyeHatchElement.Field)
+                    .casingIndex(shellIndex)
+                    .hint(5)
+                    .buildAndChain(casing(Casings.ReinforcedSpatialStructureCasing)))
+            .addElement(
+                'n',
+                buildHatchAdder(MTEEyeOfHarmonyBTS.class).atLeast(EyeHatchElement.Sensor)
+                    .casingIndex(shellIndex)
+                    .hint(6)
+                    .buildAndChain(casing(Casings.ReinforcedSpatialStructureCasing)))
             .build();
     }
 
@@ -348,7 +392,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
 
     /**
      * The compression generator meta a build for this trigger stack places: the 1:1 gate of the
-     * stack's tier (1..4 = T1..T4, {@link #COMPRESSION_META_FOR_TIER}), or higher if GT's
+     * stack's tier (1..6 = T1..T6, {@link #COMPRESSION_META_FOR_TIER}), or higher if GT's
      * {@code spacetime_compression} structure channel asks for more. Never below the gate.
      */
     public static int compressionMetaFor(ItemStack trigger) {
@@ -374,14 +418,14 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         mCasing = 0;
         Arrays.fill(fieldMin, -1);
         Arrays.fill(fieldCount, 0);
-        beamBuilt = false;
-        jetBuilt = false;
-        armsBuilt = false;
-        beamFault = "";
-        jetFault = "";
-        armsFault = "";
+        Arrays.fill(bandBuilt, false);
+        Arrays.fill(bandFault, "");
         gasHatches.clear();
         stellarHatches.clear();
+        fieldHatches.clear();
+        rejectedFieldHatches.clear();
+        sensorHatches.clear();
+        itemBuses.clear();
         mOutputBusses.clear();
         mOutputHatches.clear();
     }
@@ -399,29 +443,28 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             errors.add(StructureErrors.of("beyondthestars.structure.eye.output"));
         }
 
-        // The three OPTIONAL bands: their own error lists, so nothing they report un-forms the core.
-        // A failed band drops the stellar sockets it registered (mark-and-truncate).
-        final List<StructureError> pieceErrors = new ArrayList<>();
-        beamBuilt = band(PIECE_BEAM, pieceErrors);
-        beamFault = fault(beamBuilt, pieceErrors);
-        pieceErrors.clear();
-        jetBuilt = band(PIECE_JET, pieceErrors);
-        jetFault = fault(jetBuilt, pieceErrors);
-        pieceErrors.clear();
-        armsBuilt = band(PIECE_ARMS, pieceErrors);
-        armsFault = fault(armsBuilt, pieceErrors);
-    }
+        bandBuilt[0] = true;
 
-    private boolean band(String piece, List<StructureError> pieceErrors) {
-        final int mark = stellarHatches.size();
-        final int[] o = off(piece);
-        final boolean built = checkPiece(piece, o[0], o[1], o[2], pieceErrors);
-        if (!built) {
-            while (stellarHatches.size() > mark) {
-                stellarHatches.remove(stellarHatches.size() - 1);
+        // The OPTIONAL bands, in tier order, each with its own error list, so nothing they report
+        // un-forms the core. Every band is walked (so the scanner can name a band that stands without
+        // the one below it), but D-49 makes them cumulative: a band counts only while every band below
+        // it counts, and a band that does not count drops the stellar sockets it registered
+        // (mark-and-truncate).
+        final List<StructureError> pieceErrors = new ArrayList<>();
+        boolean below = true;
+        for (int i = 1; i < PIECES.length; i++) {
+            pieceErrors.clear();
+            final int mark = stellarHatches.size();
+            final int[] at = off(PIECES[i]);
+            bandBuilt[i] = checkPiece(PIECES[i], at[0], at[1], at[2], pieceErrors);
+            bandFault[i] = fault(bandBuilt[i], pieceErrors);
+            below = below && bandBuilt[i];
+            if (!below) {
+                while (stellarHatches.size() > mark) {
+                    stellarHatches.remove(stellarHatches.size() - 1);
+                }
             }
         }
-        return built;
     }
 
     private static String fault(boolean built, List<StructureError> walkErrors) {
@@ -443,28 +486,56 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             && fieldMin[FIELD_COMPRESSION] >= COMPRESSION_META_FOR_TIER[tier];
     }
 
-    /** The structural half of {@link #tierAvailable}: the bands (and the Galactic core at T4). */
+    /**
+     * The structural half of {@link #tierAvailable}: the cumulative bands, and the tier unlock.
+     * TODO(D-49 unit 4/5): the unlock becomes {@code unlockedTier} (milestones, cores, transitions);
+     * until then it is the pre-D-49 rule, the Galactic Upgrade Core unlocking T4, so T5 and T6 stand
+     * (and project) but never run.
+     */
     private boolean bandsAvailable(int tier) {
-        switch (tier) {
-            case 1:
-                return mMachine;
-            case 2:
-                return mMachine && beamBuilt;
-            case 3:
-                return mMachine && jetBuilt;
-            case 4:
-                return mMachine && jetBuilt && armsBuilt && galacticInstalled;
-            default:
-                return false;
+        return tier >= 1 && tier <= structureTier() && tier <= legacyUnlockedTier();
+    }
+
+    /** Pre-D-49 unlock (see {@link #bandsAvailable}): T1-T3 by the bands alone, T4 with the Galactic core. */
+    private int legacyUnlockedTier() {
+        return galacticInstalled ? 4 : 3;
+    }
+
+    /**
+     * D-49 §6.5 {@code structureTier}: core = 1, + beam band = 2, + jet crescent = 3, + spiral arms = 4,
+     * + second arms = 5, + galactic rim = 6. CUMULATIVE: a band counts only if every band below it
+     * stands (a jet crescent without the beam band is a T1 Eye). 0 if unformed. Server state.
+     */
+    public int structureTier() {
+        if (!mMachine) return 0;
+        int tier = 1;
+        while (tier < PIECES.length && bandBuilt[tier]) tier++;
+        return tier;
+    }
+
+    /**
+     * D-49 §6.5 {@code compressionTier}: the highest tier whose 1:1 gate every compression generator
+     * meets ({@link #COMPRESSION_META_FOR_TIER}), 0 if none was walked.
+     */
+    public int compressionTier() {
+        int tier = 0;
+        for (int t = 1; t < COMPRESSION_META_FOR_TIER.length; t++) {
+            if (compressionAllows(t)) tier = t;
         }
+        return tier;
     }
 
     /** The highest tier available, 0 if unformed. */
     public int installedTier() {
-        for (int t = 4; t >= 1; t--) {
+        for (int t = MAX_TIER; t >= 1; t--) {
             if (tierAvailable(t)) return t;
         }
         return 0;
+    }
+
+    /** True if piece {@code index} (0 = core .. 5 = rim) passed its own walk, whether or not it counts. */
+    public boolean bandStands(int index) {
+        return mMachine && index >= 0 && index < PIECES.length && bandBuilt[index];
     }
 
     /** Lowest tier (generator meta 0-8) of one field type, or -1 if none was walked. */
@@ -484,6 +555,49 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
 
     public boolean addStellarHatch(IGregTechTileEntity te, int casingIndex) {
         return addInput(te, casingIndex, stellarHatches);
+    }
+
+    /**
+     * D-49 Field socket: a plain input hatch joins the trim list; an ME stocking hatch is accepted (the
+     * Eye still forms) but kept on the rejected list, never drained (R-15).
+     */
+    public boolean addFieldHatch(IGregTechTileEntity te, int casingIndex) {
+        if (te == null) return false;
+        final IMetaTileEntity mte = te.getMetaTileEntity();
+        if (mte instanceof MTEHatchInputME) {
+            ((MTEHatchInputME) mte).updateTexture(casingIndex);
+            rejectedFieldHatches.add((MTEHatchInputME) mte);
+            return true;
+        }
+        return addInput(te, casingIndex, fieldHatches);
+    }
+
+    /** D-49 Sensor socket: Stellar Field Sensor Hatches only. */
+    public boolean addSensorHatch(IGregTechTileEntity te, int casingIndex) {
+        if (te == null) return false;
+        final IMetaTileEntity mte = te.getMetaTileEntity();
+        if (mte instanceof MTEHatchStellarFieldSensor) {
+            ((MTEHatchStellarFieldSensor) mte).updateTexture(casingIndex);
+            sensorHatches.add((MTEHatchStellarFieldSensor) mte);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * D-49 R-1: an input bus (ME input bus included) on a plinth gas socket, for the ignition charges.
+     * Crafting input buffers are refused, as the reactor's sockets refuse them (B-31): they hold
+     * patterns, not stock.
+     */
+    public boolean addItemBus(IGregTechTileEntity te, int casingIndex) {
+        if (te == null) return false;
+        final IMetaTileEntity mte = te.getMetaTileEntity();
+        if (mte instanceof MTEHatchInputBus && !(mte instanceof MTEHatchCraftingInputME)) {
+            ((MTEHatchInputBus) mte).updateTexture(casingIndex);
+            itemBuses.add((MTEHatchInputBus) mte);
+            return true;
+        }
+        return false;
     }
 
     private static boolean addInput(IGregTechTileEntity te, int casingIndex, List<MTEHatchInput> list) {
@@ -530,6 +644,37 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         return liveCount(stellarHatches);
     }
 
+    public int fieldHatchCount() {
+        return liveCount(fieldHatches);
+    }
+
+    public int rejectedFieldHatchCount() {
+        return liveCount(rejectedFieldHatches);
+    }
+
+    public int sensorHatchCount() {
+        return liveCount(sensorHatches);
+    }
+
+    public int itemBusCount() {
+        return liveCount(itemBuses);
+    }
+
+    /** D-49: the Field-socket trim hatches, for the star runtime. Server state, read-only. */
+    public List<MTEHatchInput> fieldHatches() {
+        return Collections.unmodifiableList(fieldHatches);
+    }
+
+    /** D-49: the Sensor-socket hatches, for the star runtime's publish. Server state, read-only. */
+    public List<MTEHatchStellarFieldSensor> sensorHatches() {
+        return Collections.unmodifiableList(sensorHatches);
+    }
+
+    /** D-49: the plinth input buses, for the ignition charges. Server state, read-only. */
+    public List<MTEHatchInputBus> itemBuses() {
+        return Collections.unmodifiableList(itemBuses);
+    }
+
     public int outputBusCount() {
         return liveCount(mOutputBusses);
     }
@@ -540,7 +685,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
 
     // ==================================================================== construct / survival
 
-    /** Trap 1: the trigger stack alone picks how many bands to project (1 = T1 .. 4 = T4). */
+    /** Trap 1: the trigger stack alone picks how many bands to project (1 = T1 .. 6 = T6, cumulative). */
     @Override
     public void construct(ItemStack stackSize, boolean hintsOnly) {
         final int n = bandsFor(stackSize);
@@ -575,10 +720,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     }
 
     private int installedBands() {
-        if (!mMachine) return 0;
-        if (armsBuilt && jetBuilt && beamBuilt) return 4;
-        if (jetBuilt && beamBuilt) return 3;
-        return beamBuilt ? 2 : 1;
+        return structureTier();
     }
 
     // ============================================================================ the upgrade
@@ -946,12 +1088,14 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         out.add(
             "Eye T" + installedTier()
                 + (galacticInstalled ? " (Galactic Upgrade Core installed)" : "")
-                + ": beam band "
-                + state(beamBuilt, beamFault)
-                + ", jet crescent "
-                + state(jetBuilt, jetFault)
-                + ", spiral arms "
-                + state(armsBuilt, armsFault));
+                + ": structure T"
+                + structureTier()
+                + ", compression T"
+                + compressionTier()
+                + "; "
+                + bandStates());
+        final String gap = bandGap();
+        if (!gap.isEmpty()) out.add(gap);
         out.add(
             "Fields: " + FIELD_NAMES[0]
                 + " "
@@ -967,8 +1111,17 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 + " (dilation and stabilisation: no effect yet)");
         out.add(
             "Sockets: gas " + gasHatchCount()
+                + ", input bus "
+                + itemBusCount()
                 + ", stellar "
                 + stellarHatchCount()
+                + ", Field "
+                + fieldHatchCount()
+                + (rejectedFieldHatchCount() > 0
+                    ? " (+" + rejectedFieldHatchCount() + " ME stocking hatch REJECTED: never drained)"
+                    : "")
+                + ", Sensor "
+                + sensorHatchCount()
                 + ", ME out "
                 + outputBusCount()
                 + " bus / "
@@ -1028,11 +1181,71 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         return built ? "FORMED" : fault.isEmpty() ? "absent" : "absent (" + fault + ")";
     }
 
+    /** "beam band FORMED, jet crescent absent (...), ..." for every band. Server state. */
+    private String bandStates() {
+        final StringBuilder sb = new StringBuilder();
+        for (int i = 1; i < PIECES.length; i++) {
+            if (i > 1) sb.append(", ");
+            sb.append(BAND_NAMES[i])
+                .append(' ')
+                .append(state(bandBuilt[i], bandFault[i]));
+        }
+        return sb.toString();
+    }
+
+    /**
+     * D-49 cumulative bands: names the first band that stands above a missing one (e.g. an Eye built
+     * before D-49 with the jet crescent but no beam band, which now runs as T1). "" if there is none.
+     */
+    private String bandGap() {
+        if (!mMachine) return "";
+        final int tier = structureTier();
+        for (int i = tier; i < PIECES.length; i++) {
+            if (bandBuilt[i]) {
+                return "Bands are cumulative (D-49): the " + BAND_NAMES[i]
+                    + " stands but does not count until the "
+                    + BAND_NAMES[tier]
+                    + " is built, so this Eye is structurally T"
+                    + tier
+                    + ".";
+            }
+        }
+        return "";
+    }
+
     @Override
     public String[] getInfoData() {
         final List<String> info = new ArrayList<>(Arrays.asList(super.getInfoData()));
         info.addAll(statusLines());
         return info.toArray(new String[0]);
+    }
+
+    /** {@link #bom} summed over every piece. */
+    private static int bomAll(char c) {
+        int n = 0;
+        for (String piece : PIECES) {
+            n += bom(piece, c);
+        }
+        return n;
+    }
+
+    /** The full T6 Eye's bounding box {w, h, d}, from the pieces' sizes and offsets. */
+    private static int[] assembledSize() {
+        final int[] lo = { Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE };
+        final int[] hi = { Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE };
+        try {
+            for (String piece : PIECES) {
+                final int[] o = BTSShapes.offset(piece);
+                final int[] sz = BTSShapes.size(piece);
+                for (int k = 0; k < 3; k++) {
+                    lo[k] = Math.min(lo[k], -o[k]);
+                    hi[k] = Math.max(hi[k], sz[k] - 1 - o[k]);
+                }
+            }
+        } catch (RuntimeException missing) {
+            return BTSShapes.size(PIECE_CORE);
+        }
+        return new int[] { hi[0] - lo[0] + 1, hi[1] - lo[1] + 1, hi[2] - lo[2] + 1 };
     }
 
     private static int bom(String piece, char c) {
@@ -1046,21 +1259,24 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
         final int[] core = BTSShapes.size(PIECE_CORE);
+        final int[] full = assembledSize();
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
         tt.addMachineType("Stellar Forge, Eye of Harmony")
             .addInfo("Beyond the Stars: replaces TecTech's Eye of Harmony.")
             .addInfo("Put a Star Chart or a dimension display block in the controller slot (not consumed).")
+            .addInfo("Bands are cumulative: each tier needs every band below it.")
             .addInfo("T1 core: Sol (Raw Star Matter) and planets R0-R3.")
-            .addInfo("T2 beam band (optional): Sirius A (Excited Stellar Plasma) and planets R4-R6.")
-            .addInfo("T3 jet crescent: Arcturus (Raw Hyperdense Stellar Plasma) and planets R7-R8.")
-            .addInfo("T4 jet crescent + spiral arms + Galactic Upgrade Core (right-click it in):")
+            .addInfo("T2 + beam band: Sirius A (Excited Stellar Plasma) and planets R4-R6.")
+            .addInfo("T3 + jet crescent: Arcturus (Raw Hyperdense Stellar Plasma) and planets R7-R8.")
+            .addInfo("T4 + spiral arms + Galactic Upgrade Core (right-click it in):")
             .addInfo("  Sirius B (White Dwarf Matter) and the Deep Dark.")
+            .addInfo("T5 + second arms, T6 + galactic rim: built and walked; their stars come with D-49.")
             .addInfo("Planets give TecTech's ores and plasmas, without Raw Star Matter or dwarf matter.")
             .addSeparator()
             .addInfo("Power: wireless EU, the whole run debited at start; no EU is returned.")
             .addInfo("Parallel x2 for every installed tier above the recipe's tier.")
             .addInfo("Field generators (any tier, mixable; the lowest tier of each type counts):")
-            .addInfo("  Spacetime Compression GATES the tier: Eye TN needs every one at tier N or higher.")
+            .addInfo("  Spacetime Compression GATES the tier: Eye TN (T1-T6) needs every one at tier N+.")
             .addInfo("  It alone decides the planets: a TN Eye runs every planet of T1..TN.")
             .addInfo("  Planets: -3% time per compression tier above the planet's TecTech tier.")
             .addInfo("  Time Dilation, Stabilisation: placeholders, no effect yet. Stars always succeed.")
@@ -1068,18 +1284,12 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addInfo("Inputs drain every second into internal buffers; outputs go to ME only.")
             .addSeparator()
             .addInfo("Chunk-load the full footprint: the structure check fails across unloaded chunks.")
-            .beginVariableStructureBlock(core[0], core[0], core[1], core[1] + 5, core[2], core[2] + 57, false)
+            .beginVariableStructureBlock(core[0], full[0], core[1], full[1], core[2], full[2], false)
             .addController("Plinth, front centre")
             .addCasingInfoExactly("Reinforced Spatial Structure Casing", bom(PIECE_CORE, 'U'), false)
             .addCasingInfoExactly("Reinforced Temporal Structure Casing", bom(PIECE_CORE, 'Q'), false)
-            .addCasingInfoExactly(
-                "Infinite SpaceTime Energy Boundary Casing",
-                bom(PIECE_CORE, 'J') + bom(PIECE_BEAM, 'J') + bom(PIECE_JET, 'J') + bom(PIECE_ARMS, 'J'),
-                false)
-            .addCasingInfoExactly(
-                "Quantum Glass",
-                bom(PIECE_CORE, 'Z') + bom(PIECE_BEAM, 'Z') + bom(PIECE_JET, 'Z') + bom(PIECE_ARMS, 'Z'),
-                false)
+            .addCasingInfoExactly("Infinite SpaceTime Energy Boundary Casing", bomAll('J'), false)
+            .addCasingInfoExactly("Quantum Glass", bomAll('Z'), false)
             .addCasingInfoExactly(
                 "Spacetime Compression Field Generator (tier = Eye tier or higher)",
                 bom(PIECE_CORE, 'W'),
@@ -1089,11 +1299,24 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addOtherStructurePart("T2 beam band", bom(PIECE_BEAM, 'R') + " Beam Band Casing")
             .addOtherStructurePart("T3 jet crescent", bom(PIECE_JET, 'S') + " Jet Crescent Casing")
             .addOtherStructurePart("T4 spiral arms", bom(PIECE_ARMS, 'T') + " Galactic Shell Plating")
-            .addOtherStructurePart("Gas input hatch (H, He)", "plinth, at least 1", 1)
+            .addOtherStructurePart("T5 second arms", bom(PIECE_ARMS2, 'T') + " Galactic Shell Plating")
+            .addOtherStructurePart(
+                "T6 galactic rim",
+                (bom(PIECE_RIM, 'T') + bom(PIECE_RIM, 'g')) + " Galactic Shell Plating (4 may be sockets)")
+            .addOtherStructurePart("Gas input hatch (H, He), or input bus (ignition charges)", "plinth, 1+ hatch", 1)
             .addOtherStructurePart("ME Output Bus + ME Output Hatch", "plinth, at least 1 of each", 2)
             .addMaintenanceHatch("Plinth", 3)
-            .addOtherStructurePart("Stellar input hatch", "beam band and jet crescent sockets", 4)
-            .addStructureInfo("Hologram: trigger stack 1 = T1 core, 2 = + beam band, 3 = + jet crescent, 4 = + arms.")
+            .addOtherStructurePart("Stellar input hatch", "beam band, jet crescent and rim sockets", 4)
+            .addOtherStructurePart(
+                "Field input hatch (stability trims, not buffered; no ME stocking)",
+                "core band, " + bom(PIECE_CORE, 'f') + " sockets, optional",
+                5)
+            .addOtherStructurePart(
+                "Stellar Field Sensor Hatch",
+                "core band, " + bom(PIECE_CORE, 'n') + " sockets, optional",
+                6)
+            .addStructureInfo("Hologram: trigger stack 1 = T1 core, 2 = + beam band, 3 = + jet crescent, 4 = + arms,")
+            .addStructureInfo("  5 = + second arms, 6 = + galactic rim.")
             .addStructureInfo("Compression generators are placed at the stack's tier (its 1:1 gate); Time")
             .addStructureInfo("  Dilation and Stabilisation at tier 1. The projector's EOH channels")
             .addStructureInfo("  (spacetime_compression, time_dilation, stabilisation) raise them.")

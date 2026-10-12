@@ -7,6 +7,7 @@ import java.util.List;
 import gregtech.api.interfaces.IHatchElement;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.metatileentity.implementations.MTEHatchInput;
+import gregtech.api.metatileentity.implementations.MTEHatchInputBus;
 import gregtech.api.util.IGTHatchAdder;
 import gregtech.common.tileentities.machines.outputme.MTEHatchOutputBusME;
 import gregtech.common.tileentities.machines.outputme.MTEHatchOutputME;
@@ -21,6 +22,11 @@ import gregtech.common.tileentities.machines.outputme.MTEHatchOutputME;
  * (mark-and-truncate), so a half-built band feeds nothing. The ME outputs are the Eye's ONLY output
  * path, so they register into GT's {@code mOutputBusses} / {@code mOutputHatches}, which GT's
  * ejection helpers read.
+ * <p>
+ * <b>D-49</b> (d49-build-plan.md §11.2): {@link #Field} (the stability-field trims, never buffered),
+ * {@link #Sensor} (the Stellar Field Sensor Hatch) and {@link #Items} (input buses on the plinth gas
+ * sockets, for the Stellar Ignition Charges). An ME stocking input hatch in a Field socket is walked,
+ * so the Eye still forms, but it goes to a rejected list and is never drained (R-15).
  */
 public enum EyeHatchElement implements IHatchElement<MTEEyeOfHarmonyBTS> {
 
@@ -38,6 +44,33 @@ public enum EyeHatchElement implements IHatchElement<MTEEyeOfHarmonyBTS> {
         @Override
         public long count(MTEEyeOfHarmonyBTS t) {
             return t.stellarHatchCount();
+        }
+    },
+    /**
+     * D-49 Field sockets ({@code f}, core band): plain input hatches whose fluids are trims, drained per field
+     * second by the star runtime and never buffered. ME stocking hatches register as rejected (R-15).
+     */
+    Field(MTEEyeOfHarmonyBTS::addFieldHatch, MTEHatchInput.class) {
+
+        @Override
+        public long count(MTEEyeOfHarmonyBTS t) {
+            return t.fieldHatchCount() + t.rejectedFieldHatchCount();
+        }
+    },
+    /** D-49 Sensor sockets ({@code n}, core band): Stellar Field Sensor Hatches (MTE 28116) only. */
+    Sensor(MTEEyeOfHarmonyBTS::addSensorHatch, MTEHatchStellarFieldSensor.class) {
+
+        @Override
+        public long count(MTEEyeOfHarmonyBTS t) {
+            return t.sensorHatchCount();
+        }
+    },
+    /** D-49 item input on the plinth gas sockets ({@code h}): input buses, ME input bus included (R-1). */
+    Items(MTEEyeOfHarmonyBTS::addItemBus, MTEHatchInputBus.class) {
+
+        @Override
+        public long count(MTEEyeOfHarmonyBTS t) {
+            return t.itemBusCount();
         }
     },
     /** Plinth output sockets: ME output bus and ME output hatch only (long-sized outputs). */
