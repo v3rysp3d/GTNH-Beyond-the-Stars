@@ -1,0 +1,4707 @@
+{
+ "about": "P4 golden results (quasar disc, conduit rig, links, Directive bits, Eye T7/T8) from the prototype engine (tools/quasar-golden.js). QuasarSim golden must match every number exactly. Regenerate; do not edit.",
+ "engineSha1": "c28c22097debf085fd21226aed3f656c7706d04b",
+ "p4Sha1": "fe1dff025f9bb324f31248da0c76dc85ad33b91c",
+ "sourceSha1": "b03e302d3f0a318e2d24338b386699b12f2c8e05",
+ "cases": [
+  {
+   "name": "T7 standard 64SM s1",
+   "spec": {
+    "secs": 14400,
+    "tier": 7,
+    "seed": 1
+   },
+   "expect": {
+    "zoneT": [
+     12117,
+     2259,
+     24,
+     0,
+     0
+    ],
+    "ySum": 17423,
+    "yN": 14400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 240,
+    "eu": 149052545040384000,
+    "up": {
+     "Magnetar Matter": 1807.5
+    },
+    "prod": {
+     "Ergomatter": 171008.9912443533
+    },
+    "trims": {
+     "Space": 9000
+    },
+    "runs": {},
+    "x": [
+     -2.838013380610138,
+     0,
+     0,
+     0,
+     -4.756327538030041,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 110,
+    "t": 14400,
+    "eyeT": 14400,
+    "tier": 7,
+    "state": 0,
+    "prec": -1,
+    "crossing": null,
+    "quasar": {
+     "M": 75.43529273923168,
+     "a": 0.4522951877165222,
+     "E": 6.2504744091772775,
+     "Phi": 27.303097910797927,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 1,
+     "gas": 200328104.7787485,
+     "gasTrim": 43181407.38792759,
+     "space": 4137215.4207590166,
+     "coilEU": 2783138807808000,
+     "zoneT": [
+      10567,
+      3833,
+      0,
+      0,
+      0
+     ],
+     "ySum": 17041.75,
+     "n": 14400,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 416,
+     "bu": 30077.416717536566,
+     "firstLight": true,
+     "edd": 1,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 403200,
+     "eu": 1775426551790183700,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.4842819445558348,
+     "frac": 0.3775313781536453,
+     "n": 14400
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.4842819445558348,
+     "frac": 0,
+     "n": 14400
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 1658076107,
+     "quasar": 976322612,
+     "bursts": 3614412215,
+     "directive": 4275103827
+    }
+   }
+  },
+  {
+   "name": "T7 standard 64SM s2",
+   "spec": {
+    "secs": 14400,
+    "tier": 7,
+    "seed": 2
+   },
+   "expect": {
+    "zoneT": [
+     12414,
+     1951,
+     35,
+     0,
+     0
+    ],
+    "ySum": 17554.5,
+    "yN": 14400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 240,
+    "eu": 149052545040384000,
+    "up": {
+     "Magnetar Matter": 1807.5
+    },
+    "prod": {
+     "Ergomatter": 171834.6521467079
+    },
+    "trims": {
+     "Space": 7000
+    },
+    "runs": {},
+    "x": [
+     -3.4277863717486055,
+     0,
+     0,
+     0,
+     -3.9799053879192083,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 200,
+    "t": 14400,
+    "eyeT": 14400,
+    "tier": 7,
+    "state": 0,
+    "prec": -1,
+    "crossing": null,
+    "quasar": {
+     "M": 75.45283689553948,
+     "a": 0.4520441516519049,
+     "E": -8.287662782551754,
+     "Phi": 7.168693092401943,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 1,
+     "gas": 200354891.69373822,
+     "gasTrim": 40966156.30698708,
+     "space": 3895049.722804394,
+     "coilEU": 2783138807808000,
+     "zoneT": [
+      10791,
+      3609,
+      0,
+      0,
+      0
+     ],
+     "ySum": 17097.75,
+     "n": 14400,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 417,
+     "bu": 30237.807566124215,
+     "firstLight": true,
+     "edd": 0,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 403200,
+     "eu": 1818462260344623000,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.5372186919883146,
+     "frac": 0.3779307233721259,
+     "n": 14400
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.5372186919883146,
+     "frac": 0,
+     "n": 14400
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 1022312441,
+     "quasar": 3297434330,
+     "bursts": 1882308315,
+     "directive": 3693390462
+    }
+   }
+  },
+  {
+   "name": "T7 standard 64SM s3",
+   "spec": {
+    "secs": 14400,
+    "tier": 7,
+    "seed": 3
+   },
+   "expect": {
+    "zoneT": [
+     11796,
+     2576,
+     28,
+     0,
+     0
+    ],
+    "ySum": 17335,
+    "yN": 14400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 240,
+    "eu": 149052545040384000,
+    "up": {
+     "Magnetar Matter": 1807.5
+    },
+    "prod": {
+     "Ergomatter": 170164.84532551837
+    },
+    "trims": {
+     "Space": 10000
+    },
+    "runs": {},
+    "x": [
+     -2.7508497982419553,
+     0,
+     0,
+     0,
+     -2.636857501244396,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 87,
+    "t": 14400,
+    "eyeT": 14400,
+    "tier": 7,
+    "state": 0,
+    "prec": -1,
+    "crossing": null,
+    "quasar": {
+     "M": 75.41876007599326,
+     "a": 0.45257954274337453,
+     "E": 5.993331118258865,
+     "Phi": 40.979689926967254,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 1,
+     "gas": 200301162.52513903,
+     "gasTrim": 44583940.71109252,
+     "space": 4274757.518545214,
+     "coilEU": 2783138807808000,
+     "zoneT": [
+      10428,
+      3972,
+      0,
+      0,
+      0
+     ],
+     "ySum": 17007,
+     "n": 14400,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 415,
+     "bu": 29894.60057117606,
+     "firstLight": true,
+     "edd": 1,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 403200,
+     "eu": 1737806605183372300,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.4599953586517103,
+     "frac": 0.35435897070864414,
+     "n": 14400
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.4599953586517103,
+     "frac": 0,
+     "n": 14400
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 891816056,
+     "quasar": 4098214790,
+     "bursts": 94162122,
+     "directive": 562320776
+    }
+   }
+  },
+  {
+   "name": "T8 standard 120SM crossing s1",
+   "spec": {
+    "secs": 14400,
+    "tier": 8,
+    "seed": 1,
+    "qc": {
+     "M0": 120
+    }
+   },
+   "expect": {
+    "zoneT": [
+     7709,
+     6610,
+     53,
+     27,
+     1
+    ],
+    "ySum": 16272.75,
+    "yN": 14400,
+    "fails": 1,
+    "charges": 0,
+    "cycles": 239,
+    "eu": 596210180161536000,
+    "up": {
+     "Ergomatter": 71995
+    },
+    "prod": {
+     "Superdense Ergomatter": 82112.5
+    },
+    "trims": {
+     "Space": 21000
+    },
+    "runs": {},
+    "x": [
+     -5.360504970375169,
+     0,
+     0,
+     0,
+     -7.548151811495685,
+     1.3776212965200125
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 109,
+    "t": 14400,
+    "eyeT": 14399,
+    "tier": 8,
+    "state": 0,
+    "prec": -1,
+    "crossing": {
+     "n": 3,
+     "caught": 2,
+     "left": 0
+    },
+    "quasar": {
+     "M": 141.4411738860588,
+     "a": 0.4522951877165222,
+     "E": 6.2504744091772775,
+     "Phi": 27.303097910797927,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 1,
+     "gas": 375615196.4601565,
+     "gasTrim": 80965138.8523646,
+     "space": 7757278.913923183,
+     "coilEU": 2783138807808000,
+     "zoneT": [
+      10567,
+      3833,
+      0,
+      0,
+      0
+     ],
+     "ySum": 17041.75,
+     "n": 14400,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 416,
+     "bu": 105740.91814758994,
+     "firstLight": true,
+     "edd": 1,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 460800,
+     "eu": 4553745819734918700,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 4.174265169503517,
+     "frac": 0.29868461375139443,
+     "n": 14400
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 5.386614280758419,
+     "frac": 0.2250669990583124,
+     "n": 14400
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 2119539606,
+     "quasar": 2886505723,
+     "bursts": 1027585765,
+     "directive": 1980014588
+    }
+   }
+  },
+  {
+   "name": "T8 standard 120SM crossing s2",
+   "spec": {
+    "secs": 14400,
+    "tier": 8,
+    "seed": 2,
+    "qc": {
+     "M0": 120
+    }
+   },
+   "expect": {
+    "zoneT": [
+     7987,
+     6355,
+     58,
+     0,
+     0
+    ],
+    "ySum": 16367.75,
+    "yN": 14400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 240,
+    "eu": 596210180161536000,
+    "up": {
+     "Ergomatter": 72000
+    },
+    "prod": {
+     "Superdense Ergomatter": 83038.75
+    },
+    "trims": {
+     "Space": 16000
+    },
+    "runs": {},
+    "x": [
+     -5.676233362186614,
+     0,
+     0,
+     0,
+     6.52317841662094,
+     1.2520471914483242
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 24,
+    "t": 14400,
+    "eyeT": 14400,
+    "tier": 8,
+    "state": 0,
+    "prec": 1,
+    "crossing": {
+     "n": 4,
+     "caught": 4,
+     "left": 0
+    },
+    "quasar": {
+     "M": 141.47406917913491,
+     "a": 0.4520441516519049,
+     "E": -8.287662782551754,
+     "Phi": 7.168693092401943,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 1,
+     "gas": 375665421.92575574,
+     "gasTrim": 76811543.07560043,
+     "space": 7303218.230258203,
+     "coilEU": 2783138807808000,
+     "zoneT": [
+      10791,
+      3609,
+      0,
+      0,
+      0
+     ],
+     "ySum": 17097.75,
+     "n": 14400,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 417,
+     "bu": 106304.79222465413,
+     "firstLight": true,
+     "edd": 0,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 460800,
+     "eu": 4676940166749161000,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 4.941131811934503,
+     "frac": 0.6679952549269702,
+     "n": 14400
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 6.1411861905174545,
+     "frac": 0.1954108443147198,
+     "n": 14400
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 3708345117,
+     "quasar": 2043702113,
+     "bursts": 1817665476,
+     "directive": 637557216
+    }
+   }
+  },
+  {
+   "name": "T8 standard 120SM crossing s3",
+   "spec": {
+    "secs": 14400,
+    "tier": 8,
+    "seed": 3,
+    "qc": {
+     "M0": 120
+    }
+   },
+   "expect": {
+    "zoneT": [
+     7294,
+     7084,
+     22,
+     0,
+     0
+    ],
+    "ySum": 16212.5,
+    "yN": 14400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 240,
+    "eu": 596210180161536000,
+    "up": {
+     "Ergomatter": 72000
+    },
+    "prod": {
+     "Superdense Ergomatter": 82262.5
+    },
+    "trims": {
+     "Space": 19000
+    },
+    "runs": {},
+    "x": [
+     -5.423354838714749,
+     0,
+     0,
+     0,
+     6.139009272799866,
+     -0.8645588509725675
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 10,
+    "t": 14400,
+    "eyeT": 14400,
+    "tier": 8,
+    "state": 0,
+    "prec": 1,
+    "crossing": {
+     "n": 5,
+     "caught": 4,
+     "left": 0
+    },
+    "quasar": {
+     "M": 141.41017514248537,
+     "a": 0.45257954274337453,
+     "E": 5.993331118258865,
+     "Phi": 40.979689926967254,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 1,
+     "gas": 375564679.734635,
+     "gasTrim": 83594888.83329777,
+     "space": 8015170.347272247,
+     "coilEU": 2783138807808000,
+     "zoneT": [
+      10428,
+      3972,
+      0,
+      0,
+      0
+     ],
+     "ySum": 17007,
+     "n": 14400,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 415,
+     "bu": 105098.20513304025,
+     "firstLight": true,
+     "edd": 1,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 460800,
+     "eu": 4394718682770224000,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 4.508105687335746,
+     "frac": 0.6833044780100739,
+     "n": 14400
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 5.795351603500913,
+     "frac": 0.22211696618847712,
+     "n": 14400
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 2520769806,
+     "quasar": 3626581930,
+     "bursts": 7917039,
+     "directive": 2431660848
+    }
+   }
+  },
+  {
+   "name": "T7 never purged (eruptions) s1",
+   "spec": {
+    "secs": 7200,
+    "tier": 7,
+    "seed": 1,
+    "qc": {
+     "purgeAt": 0
+    }
+   },
+   "expect": {
+    "zoneT": [
+     6036,
+     1153,
+     11,
+     0,
+     0
+    ],
+    "ySum": 8703.5,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 74835510165504000,
+    "up": {
+     "Magnetar Matter": 907.5
+    },
+    "prod": {
+     "Ergomatter": 92928.72855694203
+    },
+    "trims": {
+     "Space": 90000
+    },
+    "runs": {},
+    "x": [
+     -0.20796087891659765,
+     0,
+     0,
+     0,
+     -3.7048163925491933,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 42,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 7,
+    "state": 0,
+    "prec": -1,
+    "crossing": null,
+    "quasar": {
+     "M": 69.4878403978401,
+     "a": 0.4541967662715402,
+     "E": 7.025481205136865,
+     "Phi": 73.55306821357163,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 1,
+     "gas": 96054386.20514365,
+     "gasTrim": 19187816.177437644,
+     "space": 1840718.6585997608,
+     "coilEU": 1391569403904000,
+     "zoneT": [
+      5384,
+      1816,
+      0,
+      0,
+      0
+     ],
+     "ySum": 8546,
+     "n": 7200,
+     "fails": 0,
+     "eruptions": 86,
+     "purges": 0,
+     "bu": 19423.0613504293,
+     "firstLight": true,
+     "edd": 1,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 201600,
+     "eu": 1577978426916137000,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.5548679828613736,
+     "frac": 0.38591904960307094,
+     "n": 7200
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.5548679828613736,
+     "frac": 0,
+     "n": 7200
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 4128667823,
+     "quasar": 2515484415,
+     "bursts": 3397173651,
+     "directive": 968046031
+    }
+   }
+  },
+  {
+   "name": "T7 purge at phi 60 s2",
+   "spec": {
+    "secs": 7200,
+    "tier": 7,
+    "seed": 2,
+    "qc": {
+     "purgeAt": 60
+    }
+   },
+   "expect": {
+    "zoneT": [
+     5148,
+     2050,
+     2,
+     0,
+     0
+    ],
+    "ySum": 8486,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 74835510165504000,
+    "up": {
+     "Magnetar Matter": 907.5
+    },
+    "prod": {
+     "Ergomatter": 88081.60401014886
+    },
+    "trims": {
+     "Space": 74000
+    },
+    "runs": {},
+    "x": [
+     -14.688319316985964,
+     0,
+     0,
+     0,
+     4.841345487789051,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 0,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 7,
+    "state": 0,
+    "prec": 1,
+    "crossing": null,
+    "quasar": {
+     "M": 69.49098557270541,
+     "a": 0.45294492854926266,
+     "E": -3.5259731209989416,
+     "Phi": 9.840767064931415,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 10,
+     "gas": 96058732.13797311,
+     "gasTrim": 18965016.298800446,
+     "space": 1801611.5279750696,
+     "coilEU": 1391569403904000,
+     "zoneT": [
+      5435,
+      1765,
+      0,
+      0,
+      0
+     ],
+     "ySum": 8558.75,
+     "n": 7200,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 141,
+     "bu": 16065.98160276015,
+     "firstLight": true,
+     "edd": 10,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 201600,
+     "eu": 968256875236405800,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.491828845156423,
+     "frac": 0.6306724975363376,
+     "n": 7200
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.491828845156423,
+     "frac": 0,
+     "n": 7200
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 3002814799,
+     "quasar": 172746964,
+     "bursts": 3056539165,
+     "directive": 328810496
+    }
+   }
+  },
+  {
+   "name": "T7 purge refused under phi 20 s3",
+   "spec": {
+    "secs": 7200,
+    "tier": 7,
+    "seed": 3,
+    "qc": {
+     "purgeAt": 10
+    }
+   },
+   "expect": {
+    "zoneT": [
+     2868,
+     4323,
+     9,
+     0,
+     0
+    ],
+    "ySum": 7912.5,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 74835510165504000,
+    "up": {
+     "Magnetar Matter": 907.5
+    },
+    "prod": {
+     "Ergomatter": 76133.07849308086
+    },
+    "trims": {},
+    "runs": {},
+    "x": [
+     -7.190718219966381,
+     0,
+     0,
+     0,
+     -4.176996267833161,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 5,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 7,
+    "state": 0,
+    "prec": -1,
+    "crossing": null,
+    "quasar": {
+     "M": 69.4715689756613,
+     "a": 0.4529512992178613,
+     "E": -9.62586966803195,
+     "Phi": 4.761499803080427,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 1,
+     "gas": 96040821.64948367,
+     "gasTrim": 22611362.854488946,
+     "space": 2179567.645838291,
+     "coilEU": 1391569403904000,
+     "zoneT": [
+      5054,
+      2146,
+      0,
+      0,
+      0
+     ],
+     "ySum": 8463.5,
+     "n": 7200,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 422,
+     "bu": 12237.68622851475,
+     "firstLight": true,
+     "edd": 0,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 201600,
+     "eu": 368711885836585150,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.4820299858705295,
+     "frac": 0.3591221946140703,
+     "n": 7200
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.4820299858705295,
+     "frac": 0,
+     "n": 7200
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 3377544481,
+     "quasar": 1987978771,
+     "bursts": 2249480217,
+     "directive": 3339102600
+    }
+   }
+  },
+  {
+   "name": "T7 quasar unattended f0.85 s1",
+   "spec": {
+    "secs": 7200,
+    "tier": 7,
+    "seed": 1,
+    "qc": {
+     "f": 0.85
+    },
+    "rig": {
+     "disc": false
+    }
+   },
+   "expect": {
+    "zoneT": [
+     853,
+     3573,
+     2766,
+     8,
+     0
+    ],
+    "ySum": 6022.25,
+    "yN": 7200,
+    "fails": 4,
+    "charges": 0,
+    "cycles": 117,
+    "eu": 75453985456128000,
+    "up": {
+     "Magnetar Matter": 915
+    },
+    "prod": {
+     "Ergomatter": 52864.72604275985
+    },
+    "trims": {
+     "Space": 9000
+    },
+    "runs": {},
+    "x": [
+     -30.78440067575388,
+     0,
+     0,
+     0,
+     -8.304290399933127,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 0,
+    "t": 7200,
+    "eyeT": 7196,
+    "tier": 7,
+    "state": 0,
+    "prec": -1,
+    "crossing": null,
+    "quasar": {
+     "M": 68.35380493035152,
+     "a": 0.40562064784225005,
+     "E": -23.48201008997354,
+     "Phi": 21.080646667071907,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 0,
+     "gas": 80966861.56384511,
+     "gasTrim": 0,
+     "space": 0,
+     "coilEU": 1391569403904000,
+     "zoneT": [
+      251,
+      6571,
+      378,
+      0,
+      0
+     ],
+     "ySum": 7073.75,
+     "n": 7200,
+     "fails": 0,
+     "eruptions": 69,
+     "purges": 0,
+     "bu": 10296.80425621005,
+     "firstLight": true,
+     "edd": 0,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 201600,
+     "eu": 141187009623381680,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.4424828114549182,
+     "frac": 0.3816414838462347,
+     "n": 7200
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.4424828114549182,
+     "frac": 0,
+     "n": 7200
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 2545229941,
+     "quasar": 269111866,
+     "bursts": 2036047584,
+     "directive": 1062061107
+    }
+   }
+  },
+  {
+   "name": "blow-out over-Eddington f1.3 s2",
+   "spec": {
+    "secs": 7200,
+    "tier": 7,
+    "seed": 2,
+    "qc": {
+     "f": 1.3
+    },
+    "rig": {
+     "disc": false
+    }
+   },
+   "expect": {
+    "zoneT": [
+     633,
+     2210,
+     2062,
+     2151,
+     144
+    ],
+    "ySum": 4032.25,
+    "yN": 7200,
+    "fails": 147,
+    "charges": 0,
+    "cycles": 21,
+    "eu": 104522324115456000,
+    "up": {
+     "Magnetar Matter": 1267.5
+    },
+    "prod": {
+     "Ergomatter": 8379.613984729078
+    },
+    "trims": {},
+    "runs": {},
+    "x": [
+     -2.9074065783061087,
+     0,
+     0,
+     0,
+     2.145851624663919,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 1,
+    "t": 7200,
+    "eyeT": 7053,
+    "tier": 7,
+    "state": 0,
+    "prec": 1,
+    "crossing": null,
+    "quasar": {
+     "M": 65.15520896605507,
+     "a": 0.4996410045011731,
+     "E": 100.77467312624319,
+     "Phi": 0,
+     "I": 49,
+     "open": false,
+     "reform": 258,
+     "lock": 0,
+     "gas": 120905974.26653539,
+     "gasTrim": 0,
+     "space": 0,
+     "coilEU": 1391569403904000,
+     "zoneT": [
+      165,
+      499,
+      461,
+      398,
+      19
+     ],
+     "ySum": 935.75,
+     "n": 1523,
+     "fails": 19,
+     "eruptions": 3,
+     "purges": 0,
+     "bu": 1741.1475439087358,
+     "firstLight": true,
+     "edd": 0,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 201600,
+     "eu": 24673258491667250,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.9947007009098644e-15,
+     "frac": 0,
+     "n": 7200
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.9947007009098644e-15,
+     "frac": 0,
+     "n": 7200
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 2039653110,
+     "quasar": 3208506191,
+     "bursts": 1561777042,
+     "directive": 2641343523
+    }
+   }
+  },
+  {
+   "name": "blow-out starved f0.35 then re-form s3",
+   "spec": {
+    "secs": 7200,
+    "tier": 7,
+    "seed": 3,
+    "qc": {
+     "f": 0.35
+    },
+    "rig": {
+     "disc": false
+    }
+   },
+   "expect": {
+    "zoneT": [
+     505,
+     1919,
+     2176,
+     2434,
+     166
+    ],
+    "ySum": 3638.25,
+    "yN": 7200,
+    "fails": 166,
+    "charges": 0,
+    "cycles": 0,
+    "eu": 103285373534208000,
+    "up": {
+     "Magnetar Matter": 1252.5
+    },
+    "prod": {},
+    "trims": {},
+    "runs": {},
+    "x": [
+     -70.82755521403398,
+     0,
+     0,
+     0,
+     25.267947650853163,
+     0
+    ],
+    "A": 0,
+    "I": 89.5,
+    "lock": 0,
+    "t": 7200,
+    "eyeT": 7034,
+    "tier": 7,
+    "state": 0,
+    "prec": 1,
+    "crossing": null,
+    "quasar": {
+     "M": 64.94349024327839,
+     "a": 0.2828272898550064,
+     "E": -31.41141371057924,
+     "Phi": 22.19577932425848,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 0,
+     "gas": 32501259.631987207,
+     "gasTrim": 0,
+     "space": 0,
+     "coilEU": 1391569403904000,
+     "zoneT": [
+      70,
+      388,
+      1981,
+      261,
+      0
+     ],
+     "ySum": 1464.5,
+     "n": 2685,
+     "fails": 15,
+     "eruptions": 12,
+     "purges": 0,
+     "bu": 508.24684299540473,
+     "firstLight": true,
+     "edd": 0,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 201600,
+     "eu": 2429988449278614.5,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0.13878861824366406,
+     "frac": 0.9917034508665205,
+     "n": 7200
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0.13878861824366406,
+     "frac": 0,
+     "n": 7200
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 2209480395,
+     "quasar": 3481453979,
+     "bursts": 1069580407,
+     "directive": 2065588548
+    }
+   }
+  },
+  {
+   "name": "feed unstocked, gas trims hold E s1",
+   "spec": {
+    "secs": 1800,
+    "tier": 7,
+    "seed": 1,
+    "qc": {
+     "stocked": false
+    }
+   },
+   "expect": {
+    "zoneT": [
+     1394,
+     404,
+     2,
+     0,
+     0
+    ],
+    "ySum": 2147.5,
+    "yN": 1800,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 30,
+    "eu": 19172734009344000,
+    "up": {
+     "Magnetar Matter": 232.5
+    },
+    "prod": {
+     "Ergomatter": 20906.80837735466
+    },
+    "trims": {},
+    "runs": {},
+    "x": [
+     -11.66297942610403,
+     0,
+     0,
+     0,
+     4.483362850734693,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 0,
+    "t": 1800,
+    "eyeT": 1800,
+    "tier": 7,
+    "state": 0,
+    "prec": 1,
+    "crossing": null,
+    "quasar": {
+     "M": 65.30499381429712,
+     "a": 0.4692241487692275,
+     "E": -5.036349426335457,
+     "Phi": 17.906418176058825,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 2,
+     "gas": 0,
+     "gasTrim": 6959509.41787275,
+     "space": 378766.2013575314,
+     "coilEU": 347892350976000,
+     "zoneT": [
+      1288,
+      512,
+      0,
+      0,
+      0
+     ],
+     "ySum": 2122,
+     "n": 1800,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 51,
+     "bu": 3529.8520595786804,
+     "firstLight": true,
+     "edd": 0,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 50400,
+     "eu": 180174820681632350,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.4097276171679631,
+     "frac": 0.6466434773192993,
+     "n": 1800
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.4097276171679631,
+     "frac": 0,
+     "n": 1800
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 1273120408,
+     "quasar": 4175480475,
+     "bursts": 2307185623,
+     "directive": 2705822023
+    }
+   }
+  },
+  {
+   "name": "coil cap tier1 RSM 250SM s1",
+   "spec": {
+    "secs": 7200,
+    "tier": 7,
+    "seed": 1,
+    "qc": {
+     "coil": 1,
+     "b": 1,
+     "gas": "RSM",
+     "M0": 250
+    }
+   },
+   "expect": {
+    "zoneT": [
+     5136,
+     2054,
+     10,
+     0,
+     0
+    ],
+    "ySum": 8479,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 74835510165504000,
+    "up": {
+     "Magnetar Matter": 907.5
+    },
+    "prod": {
+     "Ergomatter": 127185
+    },
+    "trims": {
+     "Space": 2804000
+    },
+    "runs": {},
+    "x": [
+     2.4039840781862623,
+     0,
+     0,
+     0,
+     -5.590614134004897,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 1,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 7,
+    "state": 0,
+    "prec": -1,
+    "crossing": null,
+    "quasar": {
+     "M": 256,
+     "a": 0.8830994440127192,
+     "E": 10.114224013133304,
+     "Phi": 30.566490521615247,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 0,
+     "gas": 735917376.4175981,
+     "gasTrim": 66733789.18750861,
+     "space": 6697355.112987906,
+     "coilEU": 154618822656000,
+     "zoneT": [
+      5496,
+      1704,
+      0,
+      0,
+      0
+     ],
+     "ySum": 8574,
+     "n": 7200,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 71,
+     "bu": 77051.53884138932,
+     "firstLight": true,
+     "edd": 0,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 201600,
+     "eu": 7580477462524680000,
+     "vent": 0,
+     "clip": 329.4746676083309
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 5.114114111890462,
+     "frac": 0.46826064347548174,
+     "n": 7200
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 5.114114111890462,
+     "frac": 0,
+     "n": 7200
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 443188457,
+     "quasar": 2528021322,
+     "bursts": 1166569277,
+     "directive": 3630833355
+    }
+   }
+  },
+  {
+   "name": "coil cap tier2 hydrogen b1.5 1020SM s2",
+   "spec": {
+    "secs": 7200,
+    "tier": 8,
+    "seed": 2,
+    "qc": {
+     "coil": 2,
+     "b": 1.5,
+     "gas": "H",
+     "M0": 1020
+    }
+   },
+   "expect": {
+    "zoneT": [
+     5922,
+     1278,
+     0,
+     0,
+     0
+    ],
+    "ySum": 8680.5,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 299342040662016000,
+    "up": {
+     "Ergomatter": 36000
+    },
+    "prod": {
+     "Superdense Ergomatter": 44002.5
+    },
+    "trims": {
+     "Space": 1261000
+    },
+    "runs": {},
+    "x": [
+     -6.904579573947217,
+     0,
+     0,
+     0,
+     -1.599585014581808,
+     -3.935890550693612
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 1,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 8,
+    "state": 0,
+    "prec": 1,
+    "crossing": {
+     "n": 2,
+     "caught": 2,
+     "left": 0
+    },
+    "quasar": {
+     "M": 1024,
+     "a": 0.7754702785185554,
+     "E": -3.9591915605732506,
+     "Phi": 30.35091556239355,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 12,
+     "gas": 737136565.3426404,
+     "gasTrim": 288117175.9742492,
+     "space": 28379799.70345039,
+     "coilEU": 347892350976000,
+     "zoneT": [
+      5422,
+      1778,
+      0,
+      0,
+      0
+     ],
+     "ySum": 8555.5,
+     "n": 7200,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 106,
+     "bu": 2208726.7791964877,
+     "firstLight": true,
+     "edd": 12,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 230400,
+     "eu": 16048000000000000000,
+     "vent": 0,
+     "clip": 2035926.779196486
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 11.90400000000004,
+     "frac": 0.5590999601752261,
+     "n": 7200
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 13.120000000000015,
+     "frac": 0.09268292682926808,
+     "n": 7200
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 3057275584,
+     "quasar": 4201192470,
+     "bursts": 3276074881,
+     "directive": 1193469779
+    }
+   }
+  },
+  {
+   "name": "coil tier4 b4 4000SM RSM s3",
+   "spec": {
+    "secs": 7200,
+    "tier": 8,
+    "seed": 3,
+    "qc": {
+     "coil": 4,
+     "b": 4,
+     "gas": "RSM",
+     "M0": 4000
+    }
+   },
+   "expect": {
+    "zoneT": [
+     5923,
+     1276,
+     1,
+     0,
+     0
+    ],
+    "ySum": 8680.25,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 299342040662016000,
+    "up": {
+     "Ergomatter": 36000
+    },
+    "prod": {
+     "Superdense Ergomatter": 44001.25
+    },
+    "trims": {
+     "Space": 1259000
+    },
+    "runs": {},
+    "x": [
+     4.635120604176084,
+     0,
+     0,
+     0,
+     1.3381591898126024,
+     -1.4490178956438289
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 3,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 8,
+    "state": 0,
+    "prec": 1,
+    "crossing": {
+     "n": 2,
+     "caught": 2,
+     "left": 0
+    },
+    "quasar": {
+     "M": 4096,
+     "a": 0.2999248345355705,
+     "E": -3.01859867205867,
+     "Phi": 38.55781389006225,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 9,
+     "gas": 11776630268.288588,
+     "gasTrim": 1253108417.817214,
+     "space": 117449473.7027119,
+     "coilEU": 2473901162496000,
+     "zoneT": [
+      5346,
+      1854,
+      0,
+      0,
+      0
+     ],
+     "ySum": 8536.5,
+     "n": 7200,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 273,
+     "bu": 45493388.80752343,
+     "firstLight": true,
+     "edd": 9,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 230400,
+     "eu": 15998720000000000000,
+     "vent": 0,
+     "clip": 45320588.8075234
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 11.391999999999976,
+     "frac": 0.5697253433208477,
+     "n": 7200
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 12.533333333333323,
+     "frac": 0.0910638297872341,
+     "n": 7200
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 723365381,
+     "quasar": 2325771030,
+     "bursts": 2716022803,
+     "directive": 1028295699
+    }
+   }
+  },
+  {
+   "name": "coil power lost s1",
+   "spec": {
+    "secs": 1800,
+    "tier": 7,
+    "seed": 1,
+    "qc": {
+     "power": false
+    }
+   },
+   "expect": {
+    "zoneT": [
+     131,
+     474,
+     535,
+     616,
+     44
+    ],
+    "ySum": 905.25,
+    "yN": 1800,
+    "fails": 44,
+    "charges": 0,
+    "cycles": 0,
+    "eu": 27831388078080000,
+    "up": {
+     "Magnetar Matter": 337.5
+    },
+    "prod": {},
+    "trims": {},
+    "runs": {},
+    "x": [
+     -15.475633443770464,
+     0,
+     0,
+     0,
+     10.389491325433141,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 0,
+    "t": 1800,
+    "eyeT": 1756,
+    "tier": 7,
+    "state": 0,
+    "prec": 1,
+    "crossing": null,
+    "quasar": {
+     "M": 65.29617429659227,
+     "a": 0.8163388820439463,
+     "E": -2.5099902367648976,
+     "Phi": 0,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 20,
+     "gas": 23274345.50968287,
+     "gasTrim": 4171955.6555325016,
+     "space": 429325.45726758166,
+     "coilEU": 0,
+     "zoneT": [
+      1362,
+      438,
+      0,
+      0,
+      0
+     ],
+     "ySum": 2140.5,
+     "n": 1800,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 0,
+     "bu": 0,
+     "firstLight": false,
+     "edd": 20,
+     "eddDone": false,
+     "firstErupt": false
+    },
+    "conduit": {
+     "Molten SpaceTime": 50400,
+     "eu": 0,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 1800
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 1800
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 321692395,
+     "quasar": 944885279,
+     "bursts": 1504790597,
+     "directive": 1858264740
+    }
+   }
+  },
+  {
+   "name": "T7 one jet vented s2",
+   "spec": {
+    "secs": 7200,
+    "tier": 7,
+    "seed": 2,
+    "k": {
+     "bot": "vent"
+    }
+   },
+   "expect": {
+    "zoneT": [
+     308,
+     1934,
+     3296,
+     1662,
+     0
+    ],
+    "ySum": 3967,
+    "yN": 7200,
+    "fails": 49,
+    "charges": 0,
+    "cycles": 98,
+    "eu": 91534343012352000,
+    "up": {
+     "Magnetar Matter": 1110
+    },
+    "prod": {
+     "Ergomatter": 24571.85466651434
+    },
+    "trims": {},
+    "runs": {},
+    "x": [
+     -63.55684769297871,
+     0,
+     0,
+     0,
+     6.690332421979759,
+     0
+    ],
+    "A": 0,
+    "I": 72.00000000000001,
+    "lock": 0,
+    "t": 7200,
+    "eyeT": 7151,
+    "tier": 7,
+    "state": 0,
+    "prec": 1,
+    "crossing": null,
+    "quasar": {
+     "M": 69.48759222035883,
+     "a": 0.45347407906449055,
+     "E": -7.400600580784543,
+     "Phi": 20.4231424647056,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 1,
+     "gas": 96053670.37310626,
+     "gasTrim": 19707188.053168353,
+     "space": 1876864.175043617,
+     "coilEU": 1391569403904000,
+     "zoneT": [
+      5392,
+      1808,
+      0,
+      0,
+      0
+     ],
+     "ySum": 8548,
+     "n": 7200,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 208,
+     "bu": 14264.616909700673,
+     "firstLight": true,
+     "edd": 0,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 115200,
+     "eu": 25177042682817316,
+     "vent": 7132.308454850337,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.0399754592248385,
+     "frac": 0.682027867427162,
+     "n": 7200
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.0399754592248385,
+     "frac": 0,
+     "n": 7200
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 1434366704,
+     "quasar": 2429772802,
+     "bursts": 899374183,
+     "directive": 696867425
+    }
+   }
+  },
+  {
+   "name": "T7 crowns on both jets s3",
+   "spec": {
+    "secs": 1800,
+    "tier": 7,
+    "seed": 3,
+    "k": {
+     "top": "crown",
+     "bot": "crown"
+    }
+   },
+   "expect": {
+    "zoneT": [
+     128,
+     482,
+     532,
+     614,
+     44
+    ],
+    "ySum": 908,
+    "yN": 1800,
+    "fails": 44,
+    "charges": 0,
+    "cycles": 0,
+    "eu": 27831388078080000,
+    "up": {
+     "Magnetar Matter": 337.5
+    },
+    "prod": {},
+    "trims": {},
+    "runs": {},
+    "x": [
+     -23.908903972199454,
+     0,
+     0,
+     0,
+     19.853821734229513,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 0,
+    "t": 1800,
+    "eyeT": 1756,
+    "tier": 7,
+    "state": 0,
+    "prec": 1,
+    "crossing": null,
+    "quasar": {
+     "M": 65.32232361133654,
+     "a": 0.47131399670603286,
+     "E": -2.37498551664969,
+     "Phi": 37.57938471610145,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 3,
+     "gas": 23277336.118315466,
+     "gasTrim": 5620976.567356395,
+     "space": 546941.4339369512,
+     "coilEU": 347892350976000,
+     "zoneT": [
+      1263,
+      537,
+      0,
+      0,
+      0
+     ],
+     "ySum": 2115.75,
+     "n": 1800,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 51,
+     "bu": 3596.4578398885646,
+     "firstLight": true,
+     "edd": 3,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 0,
+     "eu": 719291567977713300,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 1800
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 1800
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 3730660057,
+     "quasar": 2204607363,
+     "bursts": 1504790597,
+     "directive": 2673716039
+    }
+   }
+  },
+  {
+   "name": "T7 10% out3 tap s1",
+   "spec": {
+    "secs": 7200,
+    "tier": 7,
+    "seed": 1,
+    "k": {
+     "p3": 0.1
+    }
+   },
+   "expect": {
+    "zoneT": [
+     3079,
+     4105,
+     16,
+     0,
+     0
+    ],
+    "ySum": 7961.75,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 74835510165504000,
+    "up": {
+     "Magnetar Matter": 907.5
+    },
+    "prod": {
+     "Ergomatter": 76822.29164571907
+    },
+    "trims": {},
+    "runs": {},
+    "x": [
+     -12.559098416752398,
+     0,
+     0,
+     0,
+     -4.151995387050723,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 0,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 7,
+    "state": 0,
+    "prec": -1,
+    "crossing": null,
+    "quasar": {
+     "M": 69.47830930448728,
+     "a": 0.45316946411593156,
+     "E": -5.82319646689178,
+     "Phi": 18.067617904613844,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 1,
+     "gas": 96047953.50299521,
+     "gasTrim": 21064402.92624113,
+     "space": 2029452.22678849,
+     "coilEU": 1391569403904000,
+     "zoneT": [
+      5240,
+      1960,
+      0,
+      0,
+      0
+     ],
+     "ySum": 8510,
+     "n": 7200,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 208,
+     "bu": 14174.975054652268,
+     "firstLight": true,
+     "edd": 0,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 201600,
+     "eu": 750350660796622800,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.431137619399039,
+     "frac": 0.37356186606043773,
+     "n": 7200
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.431137619399039,
+     "frac": 0,
+     "n": 7200
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 612201587,
+     "quasar": 3172410898,
+     "bursts": 1837407976,
+     "directive": 3519776335
+    }
+   }
+  },
+  {
+   "name": "T7 conduit fuel short s2",
+   "spec": {
+    "secs": 1800,
+    "tier": 7,
+    "seed": 2,
+    "k": {
+     "fuelOK": false
+    }
+   },
+   "expect": {
+    "zoneT": [
+     135,
+     480,
+     542,
+     599,
+     44
+    ],
+    "ySum": 919.75,
+    "yN": 1800,
+    "fails": 44,
+    "charges": 0,
+    "cycles": 0,
+    "eu": 27831388078080000,
+    "up": {
+     "Magnetar Matter": 337.5
+    },
+    "prod": {},
+    "trims": {},
+    "runs": {},
+    "x": [
+     -49.71343052735961,
+     0,
+     0,
+     0,
+     33.08378205680291,
+     0
+    ],
+    "A": 0,
+    "I": 97.5,
+    "lock": 0,
+    "t": 1800,
+    "eyeT": 1756,
+    "tier": 7,
+    "state": 0,
+    "prec": 1,
+    "crossing": null,
+    "quasar": {
+     "M": 65.32803747674637,
+     "a": 0.4714558499995107,
+     "E": 5.408400343487199,
+     "Phi": 6.070469551808896,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 2,
+     "gas": 23277662.380406663,
+     "gasTrim": 4674790.911741316,
+     "space": 444212.5500571467,
+     "coilEU": 347892350976000,
+     "zoneT": [
+      1359,
+      441,
+      0,
+      0,
+      0
+     ],
+     "ySum": 2139.75,
+     "n": 1800,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 52,
+     "bu": 3659.1815505132795,
+     "firstLight": true,
+     "edd": 2,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 0,
+     "eu": 0,
+     "vent": 3659.1815505132795,
+     "clip": 0
+    },
+    "open": false,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 1800
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 1800
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 3558745313,
+     "quasar": 4267420926,
+     "bursts": 1504790597,
+     "directive": 2192968864
+    }
+   }
+  },
+  {
+   "name": "T7 junctions unwired s3",
+   "spec": {
+    "secs": 3600,
+    "tier": 7,
+    "seed": 3,
+    "rig": {
+     "aim": false
+    }
+   },
+   "expect": {
+    "zoneT": [
+     491,
+     1291,
+     965,
+     771,
+     82
+    ],
+    "ySum": 2387.25,
+    "yN": 3600,
+    "fails": 82,
+    "charges": 0,
+    "cycles": 0,
+    "eu": 51333449121792000,
+    "up": {
+     "Magnetar Matter": 622.5
+    },
+    "prod": {},
+    "trims": {
+     "Space": 1000
+    },
+    "runs": {},
+    "x": [
+     -28.5407313709392,
+     0,
+     0,
+     0,
+     50.478007775228065,
+     0
+    ],
+    "A": 0,
+    "I": 97.5,
+    "lock": 0,
+    "t": 3600,
+    "eyeT": 3518,
+    "tier": 7,
+    "state": 0,
+    "prec": 1,
+    "crossing": null,
+    "quasar": {
+     "M": 66.67735352968248,
+     "a": 0.4595246872753018,
+     "E": -14.657440454198687,
+     "Phi": 38.37288070145375,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 0,
+     "gas": 47035886.450532466,
+     "gasTrim": 10494282.682000766,
+     "space": 1013636.5376514543,
+     "coilEU": 695784701952000,
+     "zoneT": [
+      2604,
+      996,
+      0,
+      0,
+      0
+     ],
+     "ySum": 4251,
+     "n": 3600,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 103,
+     "bu": 7062.654560506432,
+     "firstLight": true,
+     "edd": 0,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 100800,
+     "eu": 706265456050644500,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0.9765548093247612,
+     "frac": 0.5,
+     "n": 3600
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0.9765548093247612,
+     "frac": 0,
+     "n": 3600
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 1083958005,
+     "quasar": 227934366,
+     "bursts": 3749130030,
+     "directive": 2366734486
+    }
+   }
+  },
+  {
+   "name": "T7 all binary (two-level) s1",
+   "spec": {
+    "secs": 7200,
+    "tier": 7,
+    "seed": 1,
+    "k": {
+     "twoLevel": true
+    }
+   },
+   "expect": {
+    "zoneT": [
+     6744,
+     443,
+     13,
+     0,
+     0
+    ],
+    "ySum": 8930.5,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 74835510165504000,
+    "up": {
+     "Magnetar Matter": 907.5
+    },
+    "prod": {
+     "Ergomatter": 89042.16923657533
+    },
+    "trims": {
+     "Space": 18000
+    },
+    "runs": {},
+    "x": [
+     -16.57701001884035,
+     0,
+     0,
+     0,
+     -4.823255508251771,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 0,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 7,
+    "state": 0,
+    "prec": -1,
+    "crossing": null,
+    "quasar": {
+     "M": 69.47830930448728,
+     "a": 0.45316946411593156,
+     "E": -5.82319646689178,
+     "Phi": 18.067617904613844,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 1,
+     "gas": 96047953.50299521,
+     "gasTrim": 21064402.92624113,
+     "space": 2029452.22678849,
+     "coilEU": 1391569403904000,
+     "zoneT": [
+      5240,
+      1960,
+      0,
+      0,
+      0
+     ],
+     "ySum": 8510,
+     "n": 7200,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 208,
+     "bu": 14174.975054652268,
+     "firstLight": true,
+     "edd": 0,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 201600,
+     "eu": 679763511322516400,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.5174278640627423,
+     "frac": 0.3886912179005997,
+     "n": 7200
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.5174278640627423,
+     "frac": 0,
+     "n": 7200
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 3274774391,
+     "quasar": 3172410898,
+     "bursts": 343092598,
+     "directive": 3112607503
+    }
+   }
+  },
+  {
+   "name": "T8 all binary (two-level) 120SM s2",
+   "spec": {
+    "secs": 7200,
+    "tier": 8,
+    "seed": 2,
+    "qc": {
+     "M0": 120
+    },
+    "k": {
+     "twoLevel": true
+    }
+   },
+   "expect": {
+    "zoneT": [
+     6539,
+     630,
+     31,
+     0,
+     0
+    ],
+    "ySum": 8819.25,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 299342040662016000,
+    "up": {
+     "Ergomatter": 36000
+    },
+    "prod": {
+     "Superdense Ergomatter": 44696.25
+    },
+    "trims": {
+     "Space": 9000
+    },
+    "runs": {},
+    "x": [
+     -11.298006205136334,
+     0,
+     0,
+     0,
+     5.1119360404215755,
+     2.0319425704152643
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 0,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 8,
+    "state": 0,
+    "prec": 1,
+    "crossing": {
+     "n": 2,
+     "caught": 2,
+     "left": 0
+    },
+    "quasar": {
+     "M": 130.2892354131723,
+     "a": 0.45347407906449055,
+     "E": -7.400600580784543,
+     "Phi": 20.4231424647056,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 1,
+     "gas": 180100631.94957533,
+     "gasTrim": 36950977.59969074,
+     "space": 3519120.3282067915,
+     "coilEU": 1391569403904000,
+     "zoneT": [
+      5392,
+      1808,
+      0,
+      0,
+      0
+     ],
+     "ySum": 8548,
+     "n": 7200,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 208,
+     "bu": 50149.04382316652,
+     "firstLight": true,
+     "edd": 0,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 230400,
+     "eu": 1672329151456167200,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 4.749682364522459,
+     "frac": 0.646643606136375,
+     "n": 7200
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 5.889616925086335,
+     "frac": 0.19354986496802754,
+     "n": 7200
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 511225792,
+     "quasar": 4180916251,
+     "bursts": 3842083472,
+     "directive": 3784371376
+    }
+   }
+  },
+  {
+   "name": "T8 140SM f8 10 s3",
+   "spec": {
+    "secs": 7200,
+    "tier": 8,
+    "seed": 3,
+    "qc": {
+     "M0": 140
+    },
+    "cfg": {
+     "f8": 10
+    }
+   },
+   "expect": {
+    "zoneT": [
+     4934,
+     2201,
+     65,
+     0,
+     0
+    ],
+    "ySum": 8401,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 299342040662016000,
+    "up": {
+     "Ergomatter": 72000
+    },
+    "prod": {
+     "Superdense Ergomatter": 85210
+    },
+    "trims": {
+     "Space": 46000
+    },
+    "runs": {},
+    "x": [
+     -3.8726307214961064,
+     0,
+     0,
+     0,
+     6.548932586970006,
+     7.294502453646225
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 15,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 8,
+    "state": 0,
+    "prec": 1,
+    "crossing": {
+     "n": 2,
+     "caught": 2,
+     "left": 0
+    },
+    "quasar": {
+     "M": 151.9638131227062,
+     "a": 0.452669514185722,
+     "E": -8.325926688862774,
+     "Phi": 31.265005463234438,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 1,
+     "gas": 210093890.96797138,
+     "gasTrim": 48132472.7949984,
+     "space": 4637237.007198446,
+     "coilEU": 1391569403904000,
+     "zoneT": [
+      5166,
+      2034,
+      0,
+      0,
+      0
+     ],
+     "ySum": 8491.5,
+     "n": 7200,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 207,
+     "bu": 67487.39175747393,
+     "firstLight": true,
+     "edd": 0,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 230400,
+     "eu": 4757602546209239000,
+     "vent": 0,
+     "clip": 0.05826259870945805
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 3.2340737611113437,
+     "frac": 0.7494575380950568,
+     "n": 7200
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 5.612532256019073,
+     "frac": 0.42377636090322174,
+     "n": 7200
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 420810691,
+     "quasar": 292027118,
+     "bursts": 3819906727,
+     "directive": 3188150114
+    }
+   }
+  },
+  {
+   "name": "T7 planets 64SM s1",
+   "spec": {
+    "secs": 7200,
+    "tier": 7,
+    "seed": 1,
+    "cfg": {
+     "mode": "planets"
+    }
+   },
+   "expect": {
+    "zoneT": [
+     6279,
+     921,
+     0,
+     0,
+     0
+    ],
+    "ySum": 8769.75,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 74835510165504000,
+    "up": {},
+    "prod": {},
+    "trims": {
+     "Space": 661000
+    },
+    "runs": {
+     "Mars (R2 → T1) ×64": 172.8,
+     "Titan (R5 → T2) ×32": 24,
+     "Barnard E (R8 → T3) ×16": 9.6
+    },
+    "x": [
+     -1.3961612960280159,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 6,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 7,
+    "state": 0,
+    "prec": 1,
+    "crossing": null,
+    "quasar": {
+     "M": 69.47830930448728,
+     "a": 0.45316946411593156,
+     "E": -5.82319646689178,
+     "Phi": 18.067617904613844,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 1,
+     "gas": 96047953.50299521,
+     "gasTrim": 21064402.92624113,
+     "space": 2029452.22678849,
+     "coilEU": 1391569403904000,
+     "zoneT": [
+      5240,
+      1960,
+      0,
+      0,
+      0
+     ],
+     "ySum": 8510,
+     "n": 7200,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 208,
+     "bu": 14174.975054652268,
+     "firstLight": true,
+     "edd": 0,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 201600,
+     "eu": 1310731758835461000,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.2059885894161924,
+     "frac": 0.5666666666666607,
+     "n": 7200
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.2059885894161924,
+     "frac": 0,
+     "n": 7200
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 1372138711,
+     "quasar": 3172410898,
+     "bursts": 3692715273,
+     "directive": 2292798068
+    }
+   }
+  },
+  {
+   "name": "T8 planets 64SM s2",
+   "spec": {
+    "secs": 7200,
+    "tier": 8,
+    "seed": 2,
+    "cfg": {
+     "mode": "planets"
+    }
+   },
+   "expect": {
+    "zoneT": [
+     7195,
+     5,
+     0,
+     0,
+     0
+    ],
+    "ySum": 10498,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 299342040662016000,
+    "up": {},
+    "prod": {},
+    "trims": {},
+    "runs": {
+     "Mars (R2 → T1) ×128": 345.6,
+     "Io (R3 → T1) ×128": 326.4,
+     "Titan (R5 → T2) ×64": 48,
+     "Pluto (R6 → T2) ×64": 44.8,
+     "Barnard E (R8 → T3) ×32": 19.2
+    },
+    "x": [
+     -8.101743469645315,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 4791,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 8,
+    "state": 0,
+    "prec": 1,
+    "crossing": null,
+    "quasar": {
+     "M": 69.48759222035883,
+     "a": 0.45347407906449055,
+     "E": -7.400600580784543,
+     "Phi": 20.4231424647056,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 1,
+     "gas": 96053670.37310626,
+     "gasTrim": 19707188.053168353,
+     "space": 1876864.175043617,
+     "coilEU": 1391569403904000,
+     "zoneT": [
+      5392,
+      1808,
+      0,
+      0,
+      0
+     ],
+     "ySum": 8548,
+     "n": 7200,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 208,
+     "bu": 14264.616909700673,
+     "firstLight": true,
+     "edd": 0,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 201600,
+     "eu": 839593909552633900,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.4723353979952967,
+     "frac": 0.5666666666666702,
+     "n": 7200
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.4723353979952967,
+     "frac": 0,
+     "n": 7200
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 2715359080,
+     "quasar": 2429772802,
+     "bursts": 3554596739,
+     "directive": 3832864485
+    }
+   }
+  },
+  {
+   "name": "T7 + 1 companion s3",
+   "spec": {
+    "secs": 7200,
+    "tier": 7,
+    "seed": 3,
+    "cfg": {
+     "comp": [
+      6
+     ]
+    }
+   },
+   "expect": {
+    "zoneT": [
+     1339,
+     5852,
+     9,
+     0,
+     0
+    ],
+    "ySum": 7530.25,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 74835510165504000,
+    "up": {
+     "Magnetar Matter": 907.5,
+     "White Dwarf Matter": 7260,
+     "Black Dwarf Matter": 1815,
+     "Antipolarization Agent": 363000
+    },
+    "prod": {
+     "Magnetar Matter (companion)": 1882.5625,
+     "Ergomatter": 71628.82295600777
+    },
+    "trims": {},
+    "runs": {},
+    "x": [
+     -14.732649368581688,
+     0,
+     0,
+     0,
+     -3.5064827062223376,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 0,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 7,
+    "state": 0,
+    "prec": -1,
+    "crossing": null,
+    "quasar": {
+     "M": 69.46917171323787,
+     "a": 0.452669514185722,
+     "E": -8.325926688862774,
+     "Phi": 31.265005463234438,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 1,
+     "gas": 96042921.58535904,
+     "gasTrim": 22003416.134856567,
+     "space": 2119879.7747192984,
+     "coilEU": 1391569403904000,
+     "zoneT": [
+      5166,
+      2034,
+      0,
+      0,
+      0
+     ],
+     "ySum": 8491.5,
+     "n": 7200,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 207,
+     "bu": 14103.487583602842,
+     "firstLight": true,
+     "edd": 0,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 201600,
+     "eu": 252020058329688450,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.7094803366966744,
+     "frac": 0.34452608582787225,
+     "n": 7200
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 1.7094803366966744,
+     "frac": 0,
+     "n": 7200
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 2428169115,
+     "quasar": 1437866358,
+     "bursts": 2569139013,
+     "directive": 1849007584
+    }
+   }
+  },
+  {
+   "name": "T8 + 2 companions 140SM s1",
+   "spec": {
+    "secs": 7200,
+    "tier": 8,
+    "seed": 1,
+    "qc": {
+     "M0": 140
+    },
+    "cfg": {
+     "comp": [
+      6,
+      4
+     ]
+    }
+   },
+   "expect": {
+    "zoneT": [
+     1481,
+     5661,
+     21,
+     36,
+     1
+    ],
+    "ySum": 7522.75,
+    "yN": 7200,
+    "fails": 1,
+    "charges": 0,
+    "cycles": 119,
+    "eu": 299342040662016000,
+    "up": {
+     "White Dwarf Matter": 14520,
+     "Black Dwarf Matter": 3630,
+     "Antipolarization Agent": 726000,
+     "Hyperdense Stellar Mixture": 40307.520000000026,
+     "Molten SpaceTime": 139392,
+     "Ergomatter": 35995
+    },
+    "prod": {
+     "Magnetar Matter (companion)": 3752.875,
+     "White Dwarf Matter (companion)": 153617.6833333334,
+     "Superdense Ergomatter": 37828.75
+    },
+    "trims": {
+     "Space": 6000
+    },
+    "runs": {},
+    "x": [
+     -14.517440616402054,
+     0,
+     0,
+     0,
+     7.80513365564047,
+     1.3803449167414814
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 0,
+    "t": 7200,
+    "eyeT": 7199,
+    "tier": 8,
+    "state": 0,
+    "prec": 1,
+    "crossing": {
+     "n": 0,
+     "caught": 0,
+     "left": 0
+    },
+    "quasar": {
+     "M": 151.98380160356749,
+     "a": 0.45316946411593156,
+     "E": -5.82319646689178,
+     "Phi": 18.067617904613844,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 1,
+     "gas": 210104898.2878026,
+     "gasTrim": 46078381.40115287,
+     "space": 4439426.746099858,
+     "coilEU": 1391569403904000,
+     "zoneT": [
+      5240,
+      1960,
+      0,
+      0,
+      0
+     ],
+     "ySum": 8510,
+     "n": 7200,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 208,
+     "bu": 67829.47047636399,
+     "firstLight": true,
+     "edd": 0,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 230400,
+     "eu": 1359845424142412800,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 7.048458376940199,
+     "frac": 0.6692902583444832,
+     "n": 7200
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 8.759753247163864,
+     "frac": 0.1953587985800602,
+     "n": 7200
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 424807002,
+     "quasar": 3340947910,
+     "bursts": 1782500147,
+     "directive": 163751047
+    }
+   }
+  },
+  {
+   "name": "T8 time dial m1.25 tt9 s2",
+   "spec": {
+    "secs": 7200,
+    "tier": 8,
+    "seed": 2,
+    "qc": {
+     "M0": 120
+    },
+    "cfg": {
+     "m": 1.25,
+     "tt": 9,
+     "ts": 5
+    }
+   },
+   "expect": {
+    "zoneT": [
+     229,
+     6846,
+     125,
+     0,
+     0
+    ],
+    "ySum": 7194.75,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 150,
+    "eu": 373559075536896000,
+    "up": {
+     "Ergomatter": 45000
+    },
+    "prod": {
+     "Superdense Ergomatter": 45267.1875
+    },
+    "trims": {
+     "Space": 3000
+    },
+    "runs": {},
+    "x": [
+     -18.928826486451484,
+     0,
+     0,
+     0,
+     7.796382653131227,
+     6.047328512775613
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 0,
+    "t": 7200,
+    "eyeT": 9000,
+    "tier": 8,
+    "state": 0,
+    "prec": 1,
+    "crossing": {
+     "n": 2,
+     "caught": 1,
+     "left": 0
+    },
+    "quasar": {
+     "M": 130.2892354131723,
+     "a": 0.45347407906449055,
+     "E": -7.400600580784543,
+     "Phi": 20.4231424647056,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 1,
+     "gas": 180100631.94957533,
+     "gasTrim": 36950977.59969074,
+     "space": 3519120.3282067915,
+     "coilEU": 1391569403904000,
+     "zoneT": [
+      5392,
+      1808,
+      0,
+      0,
+      0
+     ],
+     "ySum": 8548,
+     "n": 7200,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 208,
+     "bu": 50149.04382316652,
+     "firstLight": true,
+     "edd": 0,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 230400,
+     "eu": 188590078972631900,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 5.318676207768028,
+     "frac": 0.7257217258971423,
+     "n": 7200
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 7.0716039840390605,
+     "frac": 0.2478826275096168,
+     "n": 7200
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": -1,
+    "beginKind": "",
+    "hash": {
+     "eye": 4264090253,
+     "quasar": 4180916251,
+     "bursts": 930363521,
+     "directive": 2496752792
+    }
+   }
+  },
+  {
+   "name": "chain T6->T7 auto s1",
+   "spec": {
+    "secs": 14400,
+    "tier": 6,
+    "seed": 1,
+    "autoBegin": true,
+    "cfg": {
+     "unlocked7": false,
+     "unlocked8": false
+    },
+    "k": {
+     "c1": 1
+    }
+   },
+   "expect": {
+    "zoneT": [
+     11977,
+     2423,
+     0,
+     0,
+     0
+    ],
+    "ySum": 17394.25,
+    "yN": 14400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 239,
+    "eu": 131735236902912000,
+    "up": {
+     "White Dwarf Matter": 20591.999999999953,
+     "Black Dwarf Matter": 5147.999999999988,
+     "Magnetar Matter": 1530
+    },
+    "prod": {
+     "Magnetar Matter": 654.6875,
+     "Ergomatter": 190312.32976655095
+    },
+    "trims": {
+     "Cool": 237500,
+     "Tg": 21510,
+     "Space": 810500,
+     "Agent": 212500,
+     "ST": 11500
+    },
+    "runs": {},
+    "x": [
+     0.5883987450215311,
+     0,
+     0,
+     0,
+     -3.0028285269743087,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 16,
+    "t": 14400,
+    "eyeT": 14400,
+    "tier": 7,
+    "state": 0,
+    "prec": -1,
+    "crossing": null,
+    "quasar": {
+     "M": 75.44010085260665,
+     "a": 0.4522093033979251,
+     "E": 2.5477035478763286,
+     "Phi": 17.344051514849085,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 16,
+     "gas": 200331990.25757697,
+     "gasTrim": 42596168.33106375,
+     "space": 4077573.4936283133,
+     "coilEU": 2783138807808000,
+     "zoneT": [
+      10605,
+      3795,
+      0,
+      0,
+      0
+     ],
+     "ySum": 17051.25,
+     "n": 14400,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 416,
+     "bu": 30104.369262428394,
+     "firstLight": true,
+     "edd": 14,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 403200,
+     "eu": 237631861514143680,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 1800,
+     "best": 1800,
+     "done": true,
+     "mean": 2.2875067226825996,
+     "frac": 0.40607421456902476,
+     "n": 14400
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 2.2875067226825996,
+     "frac": 0,
+     "n": 14400
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": false,
+    "coreGM": true,
+    "trans": null,
+    "beginT": 1860,
+    "beginKind": "mc",
+    "hash": {
+     "eye": 772500265,
+     "quasar": 1845882120,
+     "bursts": 666294260,
+     "directive": 1544668890
+    }
+   }
+  },
+  {
+   "name": "chain T6->T7 auto s2",
+   "spec": {
+    "secs": 14400,
+    "tier": 6,
+    "seed": 2,
+    "autoBegin": true,
+    "cfg": {
+     "unlocked7": false,
+     "unlocked8": false
+    },
+    "k": {
+     "c1": 1
+    }
+   },
+   "expect": {
+    "zoneT": [
+     11891,
+     2491,
+     18,
+     0,
+     0
+    ],
+    "ySum": 17363.75,
+    "yN": 14400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 239,
+    "eu": 131735236902912000,
+    "up": {
+     "White Dwarf Matter": 20591.999999999953,
+     "Black Dwarf Matter": 5147.999999999988,
+     "Magnetar Matter": 1530
+    },
+    "prod": {
+     "Magnetar Matter": 654.5625,
+     "Ergomatter": 189218.71649490696
+    },
+    "trims": {
+     "Cool": 237500,
+     "Space": 814000,
+     "Tg": 23130,
+     "Agent": 210500,
+     "ST": 11000
+    },
+    "runs": {},
+    "x": [
+     -7.418786432809493,
+     0,
+     0,
+     0,
+     -2.014938931265016,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 8,
+    "t": 14400,
+    "eyeT": 14400,
+    "tier": 7,
+    "state": 0,
+    "prec": -1,
+    "crossing": null,
+    "quasar": {
+     "M": 75.44102524321728,
+     "a": 0.45200570244423693,
+     "E": -8.287662782551754,
+     "Phi": 7.168693092401943,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 1,
+     "gas": 200335557.09299704,
+     "gasTrim": 42628264.77361381,
+     "space": 4064491.9713241076,
+     "coilEU": 2783138807808000,
+     "zoneT": [
+      10644,
+      3756,
+      0,
+      0,
+      0
+     ],
+     "ySum": 17061,
+     "n": 14400,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 416,
+     "bu": 30158.29011604212,
+     "firstLight": true,
+     "edd": 0,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 403200,
+     "eu": 235905119177004260,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 1800,
+     "best": 1800,
+     "done": true,
+     "mean": 2.3692560707471744,
+     "frac": 0.40678282182760656,
+     "n": 14400
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 2.3692560707471744,
+     "frac": 0,
+     "n": 14400
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": false,
+    "coreGM": true,
+    "trans": null,
+    "beginT": 1860,
+    "beginKind": "mc",
+    "hash": {
+     "eye": 1294304121,
+     "quasar": 4202975602,
+     "bursts": 501474366,
+     "directive": 2631963926
+    }
+   }
+  },
+  {
+   "name": "chain T6->T7 auto s3",
+   "spec": {
+    "secs": 14400,
+    "tier": 6,
+    "seed": 3,
+    "autoBegin": true,
+    "cfg": {
+     "unlocked7": false,
+     "unlocked8": false
+    },
+    "k": {
+     "c1": 1
+    }
+   },
+   "expect": {
+    "zoneT": [
+     11904,
+     2487,
+     9,
+     0,
+     0
+    ],
+    "ySum": 17371.5,
+    "yN": 14400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 239,
+    "eu": 131735236902912000,
+    "up": {
+     "White Dwarf Matter": 20591.999999999953,
+     "Black Dwarf Matter": 5147.999999999988,
+     "Magnetar Matter": 1530
+    },
+    "prod": {
+     "Magnetar Matter": 655.0625,
+     "Ergomatter": 189719.37903227756
+    },
+    "trims": {
+     "Cool": 232000,
+     "Tg": 22410,
+     "Space": 815000,
+     "Agent": 194500,
+     "ST": 13500
+    },
+    "runs": {},
+    "x": [
+     2.8933910639744154,
+     0,
+     0,
+     0,
+     -1.921793014274579,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 4,
+    "t": 14400,
+    "eyeT": 14400,
+    "tier": 7,
+    "state": 0,
+    "prec": -1,
+    "crossing": null,
+    "quasar": {
+     "M": 75.43264904548514,
+     "a": 0.45197559170460205,
+     "E": -9.55130471977249,
+     "Phi": 4.7581146780073125,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 6,
+     "gas": 200315996.55505648,
+     "gasTrim": 42437401.67272503,
+     "space": 4056798.9979613163,
+     "coilEU": 2783138807808000,
+     "zoneT": [
+      10633,
+      3767,
+      0,
+      0,
+      0
+     ],
+     "ySum": 17058.25,
+     "n": 14400,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 415,
+     "bu": 30112.007902699916,
+     "firstLight": true,
+     "edd": 0,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 403200,
+     "eu": 227867543046816130,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 1800,
+     "best": 1800,
+     "done": true,
+     "mean": 2.330556988077878,
+     "frac": 0.41502763879247034,
+     "n": 14400
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 2.330556988077878,
+     "frac": 0,
+     "n": 14400
+    },
+    "unlocked7": true,
+    "unlocked8": false,
+    "coreMC": false,
+    "coreGM": true,
+    "trans": null,
+    "beginT": 1860,
+    "beginKind": "mc",
+    "hash": {
+     "eye": 2958160774,
+     "quasar": 11805300,
+     "bursts": 1132912754,
+     "directive": 3996537797
+    }
+   }
+  },
+  {
+   "name": "chain T6->T7 plain rig shock120 s1",
+   "spec": {
+    "secs": 10800,
+    "tier": 6,
+    "seed": 1,
+    "autoBegin": true,
+    "cfg": {
+     "shock": 120,
+     "unlocked7": false,
+     "unlocked8": false
+    },
+    "k": {
+     "c1": 1
+    },
+    "rig": {
+     "assist": false
+    }
+   },
+   "expect": {
+    "zoneT": [
+     8900,
+     1899,
+     1,
+     0,
+     0
+    ],
+    "ySum": 13024.5,
+    "yN": 10800,
+    "fails": 1,
+    "charges": 0,
+    "cycles": 179,
+    "eu": 95245194756096000,
+    "up": {
+     "White Dwarf Matter": 20591.999999999953,
+     "Black Dwarf Matter": 5147.999999999988,
+     "Magnetar Matter": 1087.5
+    },
+    "prod": {
+     "Magnetar Matter": 654.6875,
+     "Ergomatter": 133818.81819978417
+    },
+    "trims": {
+     "Cool": 237500,
+     "Tg": 21510,
+     "Space": 519500,
+     "Agent": 212500,
+     "ST": 11500
+    },
+    "runs": {},
+    "x": [
+     -5.811808399012161,
+     0,
+     0,
+     0,
+     -1.0280006796797894,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 2,
+    "t": 10800,
+    "eyeT": 10799,
+    "tier": 7,
+    "state": 0,
+    "prec": -1,
+    "crossing": null,
+    "quasar": {
+     "M": 72.39781552167355,
+     "a": 0.4528291830470231,
+     "E": -2.4644650627033617,
+     "Phi": 30.601100392229785,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 25,
+     "gas": 147115557.7548824,
+     "gasTrim": 31157172.54052733,
+     "space": 2985590.623680044,
+     "coilEU": 2087354105856000,
+     "zoneT": [
+      7973,
+      2827,
+      0,
+      0,
+      0
+     ],
+     "ySum": 12793.25,
+     "n": 10800,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 312,
+     "bu": 21835.736784218545,
+     "firstLight": true,
+     "edd": 25,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 302400,
+     "eu": 140875232481145820,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 1800,
+     "best": 1800,
+     "done": true,
+     "mean": 2.084025883495685,
+     "frac": 0.4063662484876489,
+     "n": 10800
+    },
+    "link8": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 2.084025883495685,
+     "frac": 0,
+     "n": 10800
+    },
+    "unlocked7": false,
+    "unlocked8": false,
+    "coreMC": true,
+    "coreGM": true,
+    "trans": null,
+    "beginT": 1860,
+    "beginKind": "mc",
+    "hash": {
+     "eye": 2300310738,
+     "quasar": 3983172252,
+     "bursts": 1635719628,
+     "directive": 1104018110
+    }
+   }
+  },
+  {
+   "name": "chain T7->T8 auto 120SM s1",
+   "spec": {
+    "secs": 14400,
+    "tier": 7,
+    "seed": 1,
+    "autoBegin": true,
+    "qc": {
+     "M0": 120
+    },
+    "k": {
+     "test8": true
+    }
+   },
+   "expect": {
+    "zoneT": [
+     10054,
+     4303,
+     43,
+     0,
+     0
+    ],
+    "ySum": 16892,
+    "yN": 14400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 239,
+    "eu": 367992797921280000,
+    "up": {
+     "Magnetar Matter": 922.5,
+     "Ergomatter": 38340
+    },
+    "prod": {
+     "Ergomatter": 89348.48466922177,
+     "Superdense Ergomatter": 34085
+    },
+    "trims": {
+     "Space": 265000
+    },
+    "runs": {},
+    "x": [
+     -8.149193829087832,
+     0,
+     0,
+     0,
+     5.174729869471057,
+     1.323234413495205
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 34,
+    "t": 14400,
+    "eyeT": 14400,
+    "tier": 8,
+    "state": 0,
+    "prec": 1,
+    "crossing": {
+     "n": 2,
+     "caught": 1,
+     "left": 0
+    },
+    "quasar": {
+     "M": 141.4411738860588,
+     "a": 0.4522951877165222,
+     "E": 6.2504744091772775,
+     "Phi": 27.303097910797927,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 1,
+     "gas": 375615196.4601565,
+     "gasTrim": 80965138.8523646,
+     "space": 7757278.913923183,
+     "coilEU": 2783138807808000,
+     "zoneT": [
+      10567,
+      3833,
+      0,
+      0,
+      0
+     ],
+     "ySum": 17041.75,
+     "n": 14400,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 416,
+     "bu": 105740.91814758994,
+     "firstLight": true,
+     "edd": 1,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 460800,
+     "eu": 3490207969857661400,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 4.924022750695905,
+     "frac": 0.6891669528779952,
+     "n": 14400
+    },
+    "link8": {
+     "streak": 1800,
+     "best": 1800,
+     "done": true,
+     "mean": 6.058043577517647,
+     "frac": 0.18719258326735655,
+     "n": 14400
+    },
+    "unlocked7": true,
+    "unlocked8": true,
+    "coreMC": true,
+    "coreGM": false,
+    "trans": null,
+    "beginT": 6733,
+    "beginKind": "gm",
+    "hash": {
+     "eye": 1952893103,
+     "quasar": 2886505723,
+     "bursts": 3665546412,
+     "directive": 2363325477
+    }
+   }
+  },
+  {
+   "name": "chain T7->T8 auto 120SM s2",
+   "spec": {
+    "secs": 14400,
+    "tier": 7,
+    "seed": 2,
+    "autoBegin": true,
+    "qc": {
+     "M0": 120
+    },
+    "k": {
+     "test8": true
+    }
+   },
+   "expect": {
+    "zoneT": [
+     9314,
+     5033,
+     53,
+     0,
+     0
+    ],
+    "ySum": 16702,
+    "yN": 14400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 239,
+    "eu": 520137719414784000,
+    "up": {
+     "Magnetar Matter": 307.5,
+     "Ergomatter": 62705
+    },
+    "prod": {
+     "Ergomatter": 26338.517254179613,
+     "Superdense Ergomatter": 60897.5
+    },
+    "trims": {
+     "Space": 139000
+    },
+    "runs": {},
+    "x": [
+     -2.6235017743406415,
+     0,
+     0,
+     0,
+     4.472200263749627,
+     4.497428345031583
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 24,
+    "t": 14400,
+    "eyeT": 14400,
+    "tier": 8,
+    "state": 0,
+    "prec": 1,
+    "crossing": {
+     "n": 2,
+     "caught": 1,
+     "left": 68
+    },
+    "quasar": {
+     "M": 141.47406917913491,
+     "a": 0.4520441516519049,
+     "E": -8.287662782551754,
+     "Phi": 7.168693092401943,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 1,
+     "gas": 375665421.92575574,
+     "gasTrim": 76811543.07560043,
+     "space": 7303218.230258203,
+     "coilEU": 2783138807808000,
+     "zoneT": [
+      10791,
+      3609,
+      0,
+      0,
+      0
+     ],
+     "ySum": 17097.75,
+     "n": 14400,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 417,
+     "bu": 106304.79222465413,
+     "firstLight": true,
+     "edd": 0,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 460800,
+     "eu": 4663494514815072000,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 4.9546542643128735,
+     "frac": 0.6612354584644233,
+     "n": 14400
+    },
+    "link8": {
+     "streak": 1800,
+     "best": 1800,
+     "done": true,
+     "mean": 6.1052521721831585,
+     "frac": 0.188460341263648,
+     "n": 14400
+    },
+    "unlocked7": true,
+    "unlocked8": true,
+    "coreMC": true,
+    "coreGM": false,
+    "trans": null,
+    "beginT": 1860,
+    "beginKind": "gm",
+    "hash": {
+     "eye": 411599478,
+     "quasar": 2043702113,
+     "bursts": 340327661,
+     "directive": 2048295300
+    }
+   }
+  },
+  {
+   "name": "chain T7->T8 auto 120SM s3",
+   "spec": {
+    "secs": 14400,
+    "tier": 7,
+    "seed": 3,
+    "autoBegin": true,
+    "qc": {
+     "M0": 120
+    },
+    "k": {
+     "test8": true
+    }
+   },
+   "expect": {
+    "zoneT": [
+     9661,
+     4685,
+     54,
+     0,
+     0
+    ],
+    "ySum": 16788.25,
+    "yN": 14400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 239,
+    "eu": 390257908383744000,
+    "up": {
+     "Magnetar Matter": 832.5,
+     "Ergomatter": 41915
+    },
+    "prod": {
+     "Ergomatter": 78905.2418939773,
+     "Superdense Ergomatter": 38296.25
+    },
+    "trims": {
+     "Space": 237000
+    },
+    "runs": {},
+    "x": [
+     -5.005801818972479,
+     0,
+     0,
+     0,
+     -5.583491208575945,
+     -0.2345800728752523
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 36,
+    "t": 14400,
+    "eyeT": 14400,
+    "tier": 8,
+    "state": 0,
+    "prec": -1,
+    "crossing": {
+     "n": 2,
+     "caught": 2,
+     "left": 0
+    },
+    "quasar": {
+     "M": 141.41017514248537,
+     "a": 0.45257954274337453,
+     "E": 5.993331118258865,
+     "Phi": 40.979689926967254,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 1,
+     "gas": 375564679.734635,
+     "gasTrim": 83594888.83329777,
+     "space": 8015170.347272247,
+     "coilEU": 2783138807808000,
+     "zoneT": [
+      10428,
+      3972,
+      0,
+      0,
+      0
+     ],
+     "ySum": 17007,
+     "n": 14400,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 415,
+     "bu": 105098.20513304025,
+     "firstLight": true,
+     "edd": 1,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 460800,
+     "eu": 3566537986404493300,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 4.669246576346373,
+     "frac": 0.32432363328713726,
+     "n": 14400
+    },
+    "link8": {
+     "streak": 1800,
+     "best": 1800,
+     "done": true,
+     "mean": 6.013626956647507,
+     "frac": 0.2235556661550375,
+     "n": 14400
+    },
+    "unlocked7": true,
+    "unlocked8": true,
+    "coreMC": true,
+    "coreGM": false,
+    "trans": null,
+    "beginT": 6018,
+    "beginKind": "gm",
+    "hash": {
+     "eye": 87085230,
+     "quasar": 3626581930,
+     "bursts": 3806639370,
+     "directive": 613533836
+    }
+   }
+  },
+  {
+   "name": "chain T7->T8 all binary 120SM s2",
+   "spec": {
+    "secs": 14400,
+    "tier": 7,
+    "seed": 2,
+    "autoBegin": true,
+    "qc": {
+     "M0": 120
+    },
+    "k": {
+     "test8": true,
+     "twoLevel": true
+    }
+   },
+   "expect": {
+    "zoneT": [
+     12611,
+     1713,
+     76,
+     0,
+     0
+    ],
+    "ySum": 17514.75,
+    "yN": 14400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 239,
+    "eu": 520137719414784000,
+    "up": {
+     "Magnetar Matter": 307.5,
+     "Ergomatter": 62705
+    },
+    "prod": {
+     "Ergomatter": 26326.107271423447,
+     "Superdense Ergomatter": 65223.75
+    },
+    "trims": {
+     "Space": 205000
+    },
+    "runs": {},
+    "x": [
+     -16.916839109867905,
+     0,
+     0,
+     0,
+     -5.6070798103058355,
+     -3.666914450065913
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 0,
+    "t": 14400,
+    "eyeT": 14400,
+    "tier": 8,
+    "state": 0,
+    "prec": -1,
+    "crossing": {
+     "n": 3,
+     "caught": 2,
+     "left": 0
+    },
+    "quasar": {
+     "M": 141.47406917913491,
+     "a": 0.4520441516519049,
+     "E": -8.287662782551754,
+     "Phi": 7.168693092401943,
+     "I": 100,
+     "open": true,
+     "reform": 0,
+     "lock": 1,
+     "gas": 375665421.92575574,
+     "gasTrim": 76811543.07560043,
+     "space": 7303218.230258203,
+     "coilEU": 2783138807808000,
+     "zoneT": [
+      10791,
+      3609,
+      0,
+      0,
+      0
+     ],
+     "ySum": 17097.75,
+     "n": 14400,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 417,
+     "bu": 106304.79222465413,
+     "firstLight": true,
+     "edd": 0,
+     "eddDone": false,
+     "firstErupt": true
+    },
+    "conduit": {
+     "Molten SpaceTime": 460800,
+     "eu": 4181683941570243600,
+     "vent": 0,
+     "clip": 0
+    },
+    "open": true,
+    "link": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 5.539790485628706,
+     "frac": 0.3622158327499264,
+     "n": 14400
+    },
+    "link8": {
+     "streak": 1800,
+     "best": 1800,
+     "done": true,
+     "mean": 6.67933192458164,
+     "frac": 0.17060709840742225,
+     "n": 14400
+    },
+    "unlocked7": true,
+    "unlocked8": true,
+    "coreMC": true,
+    "coreGM": false,
+    "trans": null,
+    "beginT": 1860,
+    "beginKind": "gm",
+    "hash": {
+     "eye": 373683409,
+     "quasar": 2043702113,
+     "bursts": 2008414705,
+     "directive": 2690628932
+    }
+   }
+  }
+ ]
+}
