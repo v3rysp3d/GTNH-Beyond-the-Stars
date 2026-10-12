@@ -1302,3 +1302,47 @@ master already carries that fix (`f484699`).
 | Q-13 | B-6, C | Q-26 | B-8 | | |
 
 The full original wording of Q-1..Q-38 is in git history (addon commit 457bbf8).
+
+---
+
+## Part D. Tidy pass on the older multiblocks (branch tidy-old-multis)
+
+Questions from the presentation tidy of the nuclear plant and the production halls
+([`tidy-old-multis.md`](tidy-old-multis.md)). They keep that plan's TQ numbers. Nothing here changes gameplay.
+
+### TQ-2 Rename the "Enrichment Train"? [tidy unit A]
+
+**Context.** The Enrichment Train (MTE 28103) leaches Uraninite with Hydrofluoric Acid into Yellowcake. It does no
+enrichment; enrichment is the Cascade Hall. The name sends players looking in the wrong place.
+
+**What we built.** The name is unchanged. The tooltip's machine type is now "Yellowcake Mill", and a line says
+"Despite the name it does not enrich; enrichment is the Cascade Hall."
+
+**Suggestion.** Rename it to "Yellowcake Mill". GregTech writes an MTE's display name into the player's
+GregTech.lang on first run and never refreshes it, so the rename only reaches new installs (or players who delete
+that line). The questbook text must change with it.
+
+**Alternatives.** Keep the name and rely on the tooltip line (as built).
+
+### TQ-3 Rename the "Spine Sensor"? [tidy unit A]
+
+**Context.** The sensor sits in the Spiral chamber's roof, not on the Spine, and it reports accepted turbine cycles.
+
+**What we built.** The name is unchanged. Its tooltip now starts with its place: "Optional: Spiral chamber roof,
+front centre".
+
+**Suggestion.** "Spiral Cycle Sensor". The same GregTech.lang stickiness applies as in TQ-2.
+
+**Alternatives.** Keep the name (as built).
+
+### TQ-4 Propellant "Lv 1-6" reads like GT's LV voltage tier [tidy unit A]
+
+**Context.** Propellant cartridges and fluids are named "Lv 1" to "Lv 6". In GTNH "LV" means Low Voltage, so
+"Propellant Cartridge Lv 3" reads like an LV item.
+
+**What we built.** Nothing changed.
+
+**Suggestion.** "Mk I" to "Mk VI". The item names are plain lang keys and update everywhere. The fluid names are
+GT fluids, whose local names are written to GregTech.lang once, so those only change for new installs.
+
+**Alternatives.** "Grade 1-6", or keep "Lv".

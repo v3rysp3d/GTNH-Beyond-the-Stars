@@ -93,7 +93,10 @@ lines.
 
 ## Unit A: tooltips, lang, item and block names
 
-### A1. Nuclear Plant Foundation: cut the info block from 79 lines to about 16 (HIGH)
+**Status: DONE** (commits fbadc70, 24afcd4, da737a2, 5ce97c3; `spotlessApply compileJava` and `build` pass).
+What differs from the text below is listed under "Unit A: as built" at the end of this unit.
+
+### A1. Nuclear Plant Foundation: cut the info block from 79 lines to about 16 (HIGH) - DONE
 `machines/MTEReactorCoreMk1.java` `createTooltip()`.
 At GUI scale 2-3 the block is taller than the screen, so players never see Heat, Control or the
 math. Replace it with this. Text in `assets/beyondthestars/lang/en_US/tooltip/nuclear-plant.md`
@@ -123,7 +126,7 @@ Before deleting any paragraph, check that the questbook already explains it; add
 "Questbook handoff" list below. Drop the 0.19.0 migration story, "furniture", "AT ITS POINT OF
 USE", "BLAST-PROOF", and all caps except SCRAM, MELTDOWN and NOT FORMED.
 
-### A2. Foundation: structure section, about 22 lines, with every hint dot named (HIGH)
+### A2. Foundation: structure section, about 22 lines, with every hint dot named (HIGH) - DONE
 Same method. Currently 41 `addStructureInfo` lines, a wrong Energy Hatch line, and no Dynamo,
 Laser, Injector, Sensor or control-block lines. Target (verify every count against the socket
 definitions and `checkMachine` before writing it):
@@ -159,7 +162,7 @@ Delete the duplicated "Energy Hatches are NOT a structure demand" lines (they co
 Derrick/Annex text) and the 8 legacy/migration lines. Before: `"OPTIONAL, up to 4 - manifold back
 face y4. This plant NEVER draws EU"`. After: as above.
 
-### A3. Foundation: machine type, author footer, and a shared author constant (MEDIUM)
+### A3. Foundation: machine type, author footer, and a shared author constant (MEDIUM) - DONE
 `addMachineType("Nuclear Plant Foundation - Unit One main station")` becomes
 `addMachineType("Nuclear Reactor, Steam Turbine")`. Add
 `BeyondTheStars.TOOLTIP_AUTHOR = EnumChatFormatting.AQUA + "Beyond the Stars"` and call
@@ -167,12 +170,12 @@ face y4. This plant NEVER draws EU"`. After: as above.
 4 halls, Platform, Train, 2 retired modules). The Kerr/Eye owners adopt the same constant later
 (handoff).
 
-### A4. Module sockets get hint 2 (HIGH, presentation)
+### A4. Module sockets get hint 2 (HIGH, presentation) - DONE
 `MTEReactorCoreMk1.java` ~2224-2255: the four `moduleSocket(..., 1, ...)` calls for `b e f g`
 become `2`. Hints then read 1 silo face, 2 modules, 3 Spiral, 4 manifold, 5 lasers, and A2
 documents hint 2. Only the hint int changes; elements, casings and faces stay as they are.
 
-### A5. Hatch element display names (MEDIUM)
+### A5. Hatch element display names (MEDIUM) - DONE
 `ModuleHatchElement`, `PanelHatchElement`, `SpiralHatchElement`, `FluidHatchElement`: override
 `getDisplayName()` through a constructor string (lang keys `beyondthestars.hatch.<name>`).
 Structure errors and NEI previews currently show raw enum names.
@@ -189,7 +192,7 @@ Structure errors and NEI previews currently show raw enum names.
 
 Also fix the `AnnexProduct` javadoc ("fuel pellets" becomes Yellowcake).
 
-### A6. Turbine Control Block tooltip points at the wrong building (HIGH)
+### A6. Turbine Control Block tooltip points at the wrong building (HIGH) - DONE
 `MTETurbineControlBlock.java` constructor + class javadoc (line ~18).
 Before: `The turbine panel - socket it in the rotor gallery's front wall` /
 `A redstone RISING EDGE runs one turbine cycle:` / `one buffered steam slug + one +/-2t injector
@@ -198,13 +201,13 @@ After: `Turbine panel: output manifold back face, above its Maintenance Hatch` /
 pulse runs one turbine cycle (one steam slug + one injector window)` / `No pulses: the RPM decays
 to zero` / `Right-click: turbine and output readout`. The last line must match C6.
 
-### A7. Silo Control Block tooltip (MEDIUM)
+### A7. Silo Control Block tooltip (MEDIUM) - DONE
 Before: `The reactor panel - socket it in the silo face above the main station` / `Right-click for
 the live reactor readout:` / `tier, rod cascade, core heat, decay heat, radiation`.
 After: `Reactor panel: silo face, middle row, directly above the controller` / `Right-click:
 reactor readout (tier, rods, heat, supplies)`. Must match C6.
 
-### A8. Precision Injector tooltip (MEDIUM)
+### A8. Precision Injector tooltip (MEDIUM) - DONE
 Before: `Feeds the Spiral chamber 1L of propellant at a time` / `Every litre is stamped with its
 arrival tick - the slug window wants EXACTLY 1L` / `Mistimed or excess litres are wasted and heat
 the chamber` / `Capacity: 16L - by design`.
@@ -212,13 +215,13 @@ After: `Spiral chamber injector (8 per plant, along the helix)` / `Stocked and t
 from the chamber's Propellant Input Hatch` / `Hand-feeding works, but only 1 L inside the ±2 tick
 window counts` / `Propellants: see NEI "Nuclear Plant: Propellant" · Capacity 16 L`.
 
-### A9. Spine Sensor tooltip (MEDIUM)
+### A9. Spine Sensor tooltip (MEDIUM) - DONE
 Keep the name (GregTech.lang caching, see TQ-3). Before: three long lines, the second 105
 characters. After: `Optional: Spiral chamber roof, front centre` / `Emits a 2-tick redstone
 pulse on every accepted turbine cycle` / `Use it as the timing reference if you inject propellant
 by hand`.
 
-### A10. Production halls: structure counts, hollow flag, air, count-first hatches (HIGH)
+### A10. Production halls: structure counts, hollow flag, air, count-first hatches (HIGH) - DONE
 `MTEFuelFabricationHall`, `MTEPurexCanyon`, `MTECascadeHall`, `MTESiteBatchingPlant`.
 Re-count every casing from the shape before writing it (a short script over the `String[][]` is
 fine). The numbers below are from the audit.
@@ -233,7 +236,7 @@ fine). The numbers below are from the audit.
 | all four | `hollow=false`, no air line | `hollow=true` + `.addAir("The whole interior: keep pipes and cables outside")` |
 | all four | `addEnergyHatch("Front face, top row (2)", 2)` | `addEnergyHatch("1-2", "Front face, 2nd row from the top", 2)`; same pattern for every hatch, with the true row ("top row" is the roof) |
 
-### A11. Production halls: info text (MEDIUM)
+### A11. Production halls: info text (MEDIUM) - DONE
 - NEI-tab and machine-type consistency (with C4): machine type = category, item name = NEI tab.
   `Reprocessing Canyon` becomes `Fuel Reprocessor`; `Fuel Fabrication Line` becomes `Fuel Rod
   Assembler`; `Gas Centrifuge Cascade` becomes `Gas Centrifuge`; `Batching Plant` becomes `Bulk
@@ -254,7 +257,7 @@ fine). The numbers below are from the audit.
   `Makes nothing GT cannot: each recipe is an 8-32x bulk batch of a stock GT recipe.`
 - Fix the Cascade class javadoc that calls `MTEEnrichmentTrain` "the Enrichment Annex".
 
-### A12. Extraction Platform and Enrichment Train tooltips (HIGH)
+### A12. Extraction Platform and Enrichment Train tooltips (HIGH) - DONE
 Platform before: `Machine Type: Drilling Platform` / `The campus fuel front end: drinks EV-tier
 EU, drills forever.` / `Every 10s: 6x Uraninite Dust + 1x Thorium Dust; every 4th cycle +1
 Tantalum Dust.` / `Feed the uraninite to an Enrichment Train for fuel pellets.`
@@ -278,7 +281,7 @@ Structure: `beginStructureBlock(3, 3, 9, false)`; casing `"65-69"`; bus and hatc
 Clean Stainless Steel Machine Casing (no Crafting Input Buffer)"`; `addController("Front face,
 centre")`.
 
-### A13. Retired module controllers use GT's deprecation line (MEDIUM)
+### A13. Retired module controllers use GT's deprecation line (MEDIUM) - DONE
 `MTEModuleCoolingTower`, `MTEModuleTurbineHall`. Cooling Tower (17 info lines) becomes:
 ```
 Machine Type: Plant Module - Cooling Tower
@@ -292,7 +295,7 @@ Turbine Hall: `§4DEPRECATED - this controller does nothing; replaced by the pla
 chamber and Rotor Assembly.` plus 1-2 lines. Correct the structure counts (tower: 51 Solid Steel,
 736 Light Concrete; hall: 76 Clean Stainless + 17 Glass) or drop the structure section.
 
-### A14. Item and block tooltips (MEDIUM)
+### A14. Item and block tooltips (MEDIUM) - DONE
 Move `SLItems.TooltipItem` to a shared class (`items/BTSTooltipItem`), use it for the in-scope
 items, and add `addInformation` to the three blocks' ItemBlocks. All text goes through lang keys
 `item.beyondthestars.<name>.tooltip` / `tile.beyondthestars.<name>.tooltip` (`\n` splits lines).
@@ -310,7 +313,7 @@ items, and add `addInformation` to the three blocks' ItemBlocks. All text goes t
   Plant -> Uranium Tetrafluoride.`
 - Legacy turbine fans (3): `Legacy part: only the retired Turbine Hall used this.`
 
-### A15. Lang names and shutdown reasons (LOW-MEDIUM)
+### A15. Lang names and shutdown reasons (LOW-MEDIUM) - DONE
 - Shutdown reasons (5 lines): add `§4`, replace the em dash with ` - `, end with a full stop.
   `...scram=SCRAM: core overheat — re-enable the reactor to restart` becomes `...scram=§4SCRAM: core
   overheat - re-enable the reactor to restart.`
@@ -324,6 +327,46 @@ items, and add `addInformation` to the three blocks' ItemBlocks. All text goes t
   Re-running the questbook BOM generator is the questbook pass's job (handoff).
 - Lang hygiene: move the stray `# D-24` comment above the tree keys; delete the orphan "instrument
   panel" comment.
+
+### Unit A: as built (where it differs from the items above)
+
+- **A1.** Plain `addInfo`, not `addMarkdown` (a missing .md throws and this pass had no game run to prove the
+  file loads). The numbers come from the constants (`RPM_REDLINE`, `RPM_LIMIT_MAX`, `SCRAM_HEAT`, `MELTDOWN_HEAT`,
+  `DECAY_HEAT_TICKS`, `GRID_SOFT_CAP`), so a tuning change cannot leave the tooltip behind. `addSupportLaser()` is in
+  the info block.
+- **A2.** Counts re-derived from the shape code with `questbook/gen-bom.ps1`'s shape functions (per-char tallies),
+  and several differ from the audit numbers above: silo wall `451-1,667` (Radiation Proof T1-2, Europium Reinforced
+  T3-4, Radiant Naquadah T5), bands `69-141`, dome `113-497` (not 40-320), and the pillar line counts blocks, not
+  pillars: `0-1,608` Reactor Fuel Pillar Frames (stacks of 8 on 45-201 pillars; frames and ports are optional
+  cells). Added `0-830` Tungstensteel Turbine Casing (Spine 64-96 + Spiral 326 + gallery 408). The manifold back
+  face is 7 rows: casing, Maintenance, Turbine Control Block, Dynamos (4th row up), Energy (5th), Lasers (6th),
+  casing, so the hatch lines say "4th / 5th / 6th row up" instead of bottom / middle / top. Silo face sockets are
+  worded from the controller: Silo Control Block directly above it, Feedwater left of the panel, Output Hatch right
+  of it, Rod Input Bus / Depleted Output Bus two above the controller either side of centre. Extra structure lines:
+  Rod Loading Ports optional; the list of optional pieces; "The Blueprint quests list every piece's blocks."
+- **A8.** RC-2's `MTEHatchInput.getDescription()` returns GT's generic input-hatch text and ignored the injector's
+  own lines. `MTEHatchPrecisionInjector` now overrides `getDescription()` to return its description array.
+- **A10.** The Cascade Hall and the Batching Plant have ONE Energy Hatch socket each, so their count is `1`, not
+  `1-2` (PUREX and the Fuel Rod Assembler have two). The Fuel Rod Assembler and the Batching Plant say "The rest of
+  the interior" in the air line, because their interiors also hold the spine / lattice / riser. Hatch rows are
+  counted from the front face of each shape (the roof row is the top row). "Left / right" follows the shapes'
+  column order, the same convention the old tooltips used; check it in game.
+- **A11 / A12.** PUREX circuit line: "Circuit 1 = cooled fuel, 2 = uncooled fuel, 3 = partition the liquor."
+  The Train's numbers come from its constants. Long lines are split to stay near 70 characters.
+- **A13.** The retired Cooling Tower's own shape holds 50 Solid Steel cells, not 51: it has two controller cells
+  (see L4). Both retired controllers keep a short structure section, because they still form and the hologram and
+  NEI preview still use it. The Turbine Hall's plinth line is `4-42` (44 cells less the required Dynamo and
+  Maintenance Hatch, at least 4 casings to reach its 80 minimum).
+- **A14.** `BTSItems.define()` and the 22 frozen `BTSItems` fields now create `BTSTooltipItem` (no lang key = no
+  tooltip, so nothing else changes); `SLItems.defineWithTooltip` uses the same class. Cooled fuel says "circuit 1
+  dissolves it; circuit 3 then partitions out plutonium", because plutonium comes out of the partition step (R-03),
+  not the dissolver (R-02). Fuel assemblies say "burned at half rate (rods do better)" (the bus-fallback rule). The
+  Turbine Rotor says "gallery Turbine Housing (8 per plant)"; the housing tooltip adds the spin toggle line.
+- **A15.** `BTSBom.REACTOR_FUEL_COLUMN` keeps its constant name and now holds "Reactor Fuel Pillar Frame". gen-bom.ps1
+  still maps shape char `F` to "Reactor Fuel Column", so its check now reports BTSBom as stale until the questbook
+  pass re-runs it (see the handoff).
+- **Not checked in game** (no game run in this pass): the Foundation tooltip height at GUI scale 3, the Shift view
+  hints 1-5, the hall left/right wording, and the Yellowcake / PuO2 / ThO2 subscript glyphs.
 
 ---
 
@@ -561,17 +604,21 @@ deprecated `MultiblockTooltipBuilder` calls outside kerr/eye. Handoff: Kerr/Eye 
 - **L3** The halls' energy sockets take plain Energy Hatches only, so top parallels need ZPM+
   hatches and re-walls feel inert at IV. Allow ExoticEnergy, or document the cap (A11 adds the
   line).
+- **L4** (found in unit A) The retired Cooling Tower controller's `towerShape()` marks TWO controller cells: the
+  front-centre cell of row z=0 is turned into '~' when it is ring, and then `Math.round(8 - 7.5)` = 1 puts the
+  anchor '~' at z=1 as well. The z=0 cell is never checked, so that ring cell can be anything. The Foundation's own
+  tower pieces remap both cells to ring ('R'), so the live plant is unaffected; only the museum controller is.
 
 Questions for review (implementers append these to `docs/singularity-ladder-questions.md` as
 "## Q-n" when they reach them):
 - **TQ-1** Rename the milestone line REPROCESSING to ORE PROCESSING (it counts Derrick loads and
   Annex batches, not the PUREX Canyon)? This needs the questbook text changed too. This pass only
   fixes the unit text.
-- **TQ-2** Rename "Enrichment Train" (it does no enrichment)? MTE display names are sticky in
+- **TQ-2** (logged in singularity-ladder-questions.md Part D) Rename "Enrichment Train" (it does no enrichment)? MTE display names are sticky in
   GregTech.lang, so a rename only reaches new installs.
-- **TQ-3** Rename "Spine Sensor" to "Spiral Cycle Sensor"? The same stickiness applies; this pass
+- **TQ-3** (logged, Part D) Rename "Spine Sensor" to "Spiral Cycle Sensor"? The same stickiness applies; this pass
   adds a placement line only.
-- **TQ-4** Propellant "Lv 1-6" (items and fluids) reads like GT's LV tier. Change it to "Mk I-VI"?
+- **TQ-4** (logged, Part D) Propellant "Lv 1-6" (items and fluids) reads like GT's LV tier. Change it to "Mk I-VI"?
   The fluid names are sticky as above.
 - **TQ-5** Default tier for `/btsbuild` (3) vs `/btskit` (1): which one?
 - **TQ-6** Enable input separation on the halls?
@@ -587,6 +634,26 @@ the same water ladder; the milestone tiers 5-7 opt-in unlocks; controller blast-
 /btsbuild module and point-of-use paragraphs. Names changed by the glossary (update quest text and
 re-run gen-bom): Unit One main station, Steam Generator, Reactor Fuel Column, Gas Centrifuge
 Cascade, Fuel Fabrication Line, Reprocessing Canyon.
+
+Added by unit A:
+- **gen-bom.ps1:** change `$ELEMENT_ITEM['F']` to "Reactor Fuel Pillar Frame", then re-run it. The constant it
+  renders will be named `REACTOR_FUEL_PILLAR_FRAME`, so rename `BTSBom.REACTOR_FUEL_COLUMN` in `CommandBTSKit` (line
+  ~118) in the same commit. Until then gen-bom reports BTSBom.java as stale (unit A changed only the value).
+- **Text cut from the Foundation tooltip** that the questbook must carry if it does not already: the RPM rule
+  (each cycle adds 176 x propellant x timed/8 RPM, 0.5%/tick decay, redline 12,000; TURBINE T5/T6 raise the
+  ceiling to 13,500 / 15,000 and the player opts in through the RPM Limit field); coolant drain goes with RPM
+  squared and the interlock refuses a cycle the chamber cannot cool; the dynamo and laser ceiling (4 IV Dynamos cap
+  a tier-5 plant at 32,768 EU/t, two ZPM Laser Sources carry the full ~1.1B); the rod ladder (Uranium x1, MOX x2,
+  Thorium-Bonded x5, Naquadah-Bonded x9) and the half-rate assembly fallback; residual swirl becomes heat in an
+  uncooled chamber; Build Tier never re-tiers a standing silo; decay heat draws the same feedwater ladder (plain,
+  distilled, IC2 Coolant, purified grades, worst first); breaking a fuelled pillar frame ejects its rods; module
+  sockets join no plant-wide list; projections never overwrite a standing machine.
+- **Tooltip names changed by unit A** (machine types only; the MTE display names are unchanged): Fuel Reprocessor
+  (PUREX Canyon), Fuel Rod Assembler (Fuel Fabrication Hall), Gas Centrifuge (Cascade Hall), Bulk Casing Assembler
+  (Site Batching Plant), Ore Drill (Extraction Platform), Yellowcake Mill (Enrichment Train). Item names: Yellowcake,
+  Plutonium Dioxide, Thorium Dioxide Powder (formulas moved to the tooltips).
+- **Kerr / Eye owners:** adopt `BeyondTheStars.TOOLTIP_AUTHOR` in `toolTipFinisher(...)`; `items/BTSTooltipItem`
+  is the shared lang-tooltip item class (SLItems already uses it).
 
 ## Done when
 
