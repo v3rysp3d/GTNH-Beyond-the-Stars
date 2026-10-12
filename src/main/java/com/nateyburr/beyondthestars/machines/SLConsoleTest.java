@@ -12,6 +12,7 @@ import net.minecraft.block.Block;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.world.World;
@@ -25,6 +26,7 @@ import com.gtnewhorizon.structurelib.structure.IItemSource;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
+import gregtech.api.metatileentity.implementations.MTEEnhancedMultiBlockBase;
 import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
 import gregtech.api.structure.error.StructureError;
 
@@ -248,16 +250,16 @@ public final class SLConsoleTest {
             error.getClass()
                 .getSimpleName())
             .append(": ")
-            .append(error.getDisplayString());
+            .append(BTSStructures.oneLine(error.getDisplayString()));
         final int[] p = position(error);
         if (p != null) {
-            sb.append(" at (")
+            sb.append(" -> (")
                 .append(p[0])
                 .append(", ")
                 .append(p[1])
                 .append(", ")
                 .append(p[2])
-                .append(") holding ")
+                .append(") holds ")
                 .append(blockAt(world, p[0], p[1], p[2]));
         }
         return sb.toString();
@@ -313,6 +315,97 @@ public final class SLConsoleTest {
         final int rightZ = -facing.offsetX;
         final int dot = (x - cx) * rightX + (z - cz) * rightZ;
         return dot > 0 ? "right" : dot < 0 ? "left" : "centre";
+    }
+
+    // ================================================================== damage and repair
+
+    /** Cells next to the controller, as a/b/c offsets, tried in order for the damage test. */
+    private static final int[][] NEAR_CONTROLLER = { { 1, 0, 0 }, { -1, 0, 0 }, { 0, -1, 0 }, { 0, 1, 0 }, { 1, 1, 0 },
+        { -1, 1, 0 }, { 1, -1, 0 }, { -1, -1, 0 }, { 0, 0, 1 } };
+
+    /**
+     * The hologram's survival REPAIR path on a formed machine: knocks out up to two plain blocks next
+     * to the controller (never a tile), checks that the walk now fails and names the cell, then runs
+     * the survival auto-place and checks that it puts back exactly those blocks, leaves every tile
+     * entity (hatch) in the box alone, and the machine forms again.
+     */
+    public static <M extends MTEEnhancedMultiBlockBase<?> & ISurvivalConstructable> List<String> damageAndRepair(
+        M machine, IGregTechTileEntity base, ItemStack trigger, int[] box) {
+        final List<String> out = new ArrayList<>();
+        final World world = base.getWorld();
+        final ExtendedFacing alignment = machine.getExtendedFacing();
+        final int x = base.getXCoord();
+        final int y = base.getYCoord();
+        final int z = base.getZCoord();
+        final int tilesBefore = countTiles(world, box);
+        final List<int[]> removed = new ArrayList<>();
+        final List<Block> blocks = new ArrayList<>();
+        final List<Integer> metas = new ArrayList<>();
+        for (int[] rel : NEAR_CONTROLLER) {
+            final int[] p = worldPos(alignment, x, y, z, rel);
+            final Block block = world.getBlock(p[0], p[1], p[2]);
+            if (block == null || block.isAir(world, p[0], p[1], p[2])
+                || world.getTileEntity(p[0], p[1], p[2]) != null) {
+                continue;
+            }
+            removed.add(p);
+            blocks.add(block);
+            metas.add(world.getBlockMetadata(p[0], p[1], p[2]));
+            world.setBlockToAir(p[0], p[1], p[2]);
+            if (removed.size() == 2) break;
+        }
+        if (removed.isEmpty()) {
+            out.add("Damage test: no plain block next to the controller to remove; skipped.");
+            return out;
+        }
+        final List<String> errors = firstErrors(machine, base, 1);
+        machine.checkStructure(true, base);
+        out.add(
+            "Damage test: removed " + removed.size()
+                + " block(s) next to the controller -> "
+                + (machine.mMachine ? "STILL FORMED (the walk missed it)"
+                    : "NOT FORMED; " + (errors.isEmpty() ? "no error reported" : errors.get(0))));
+        final SurvivalRun run = survivalBuild(machine, world, trigger, 25, 50);
+        machine.checkStructure(true, base);
+        int restored = 0;
+        for (int i = 0; i < removed.size(); i++) {
+            final int[] p = removed.get(i);
+            if (world.getBlock(p[0], p[1], p[2]) == blocks.get(i)
+                && world.getBlockMetadata(p[0], p[1], p[2]) == metas.get(i)) {
+                restored++;
+            }
+        }
+        final int tilesAfter = countTiles(world, box);
+        out.add(
+            "Survival repair: placed " + run.placed
+                + " in "
+                + run.rounds
+                + " round(s), "
+                + restored
+                + "/"
+                + removed.size()
+                + " cells restored as before, tile entities in the box "
+                + tilesBefore
+                + " -> "
+                + tilesAfter
+                + ", "
+                + (machine.mMachine ? "FORMED again" : "STILL NOT FORMED"));
+        return out;
+    }
+
+    /** Live tile entities inside the box (hatches, the controller). */
+    public static int countTiles(World world, int[] box) {
+        int n = 0;
+        for (Object o : world.loadedTileEntityList) {
+            final TileEntity te = (TileEntity) o;
+            if (te.isInvalid()) continue;
+            if (te.xCoord >= box[0] && te.xCoord <= box[3]
+                && te.yCoord >= box[1]
+                && te.yCoord <= box[4]
+                && te.zCoord >= box[2]
+                && te.zCoord <= box[5]) n++;
+        }
+        return n;
     }
 
     /** World position of a shape-relative offset (a, b, c) from the controller at (x, y, z). */

@@ -272,9 +272,12 @@ public final class KerrKit {
      * Console/command-block checks on a Kerr {@link #build} raised: the first wrong cells if it did
      * not form, the mirror check (the extractor arc is the mockup's +x side, so it must stand on the
      * viewer's right, seen from in front of the controller), and a creative re-projection over the
-     * finished machine, which must leave it formed (no hatch paved over).
+     * finished machine, which must leave it formed (no hatch paved over), then the survival repair
+     * test ({@link SLConsoleTest#damageAndRepair}). With {@code full} false only the walk and status
+     * are reported (the {@code check} form).
      */
-    public static List<String> diagnose(World world, int x, int y, int z, ForgeDirection facing, boolean tier2) {
+    public static List<String> diagnose(World world, int x, int y, int z, ForgeDirection facing, boolean tier2,
+        boolean full) {
         final List<String> out = new ArrayList<>();
         final TileEntity te = world.getTileEntity(x, y, z);
         if (!(te instanceof IGregTechTileEntity)
@@ -285,12 +288,26 @@ public final class KerrKit {
         final IGregTechTileEntity base = (IGregTechTileEntity) te;
         final MTEKerrEngine kerr = (MTEKerrEngine) base.getMetaTileEntity();
         final ExtendedFacing alignment = kerr.getExtendedFacing();
+        if (!full) kerr.checkStructure(true, base);
+        out.add(
+            "Kerr at (" + x
+                + ", "
+                + y
+                + ", "
+                + z
+                + "): "
+                + (kerr.mMachine ? "FORMED" : "NOT FORMED")
+                + (kerr.isDensityInstalled() ? " (Density Upgrade installed)" : ""));
         if (!kerr.mMachine) {
             out.add("First wrong cells:");
             for (String line : SLConsoleTest.firstErrors(kerr, base, 3)) {
                 out.add("  " + line);
             }
             kerr.checkStructure(true, base);
+        }
+        if (!full) {
+            out.addAll(kerr.statusLines());
+            return out;
         }
 
         // Mirror check, read off the world: where the extractor core block actually stands.
@@ -322,17 +339,21 @@ public final class KerrKit {
             out.add(
                 "Creative re-projection over the formed Kerr: " + (kerr.mMachine ? "still FORMED"
                     : "BROKE IT - " + String.join("; ", SLConsoleTest.firstErrors(kerr, base, 2))));
-            final int again = SLConsoleTest.survivalBuild(
-                kerr,
-                world,
-                new ItemStack(controller.getItem(), tier2 ? 2 : 1, controller.getItemDamage()),
-                SURVIVAL_BUDGET,
-                5).placed;
-            kerr.checkStructure(true, base);
-            out.add(
-                "Survival re-projection: placed " + again
-                    + " blocks, "
-                    + (kerr.mMachine ? "still FORMED" : "BROKE IT"));
+            if (kerr.mMachine) {
+                out.addAll(
+                    SLConsoleTest.damageAndRepair(
+                        kerr,
+                        base,
+                        new ItemStack(controller.getItem(), tier2 ? 2 : 1, controller.getItemDamage()),
+                        SLConsoleTest.bounds(
+                            alignment,
+                            x,
+                            y,
+                            z,
+                            kerr.corePiece(),
+                            MTEKerrEngine.PIECE_COMPRESSOR,
+                            MTEKerrEngine.PIECE_EXTRACTOR)));
+            }
         }
         out.addAll(kerr.statusLines());
         return out;

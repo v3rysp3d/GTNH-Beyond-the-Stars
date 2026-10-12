@@ -327,9 +327,12 @@ public final class EyeKit {
      * not form, the mirror check (the core's lone east gas hatch, and at T3+ the jet's lone east
      * socket, are the mockup's +x side, so they must stand on the viewer's right, seen from in front
      * of the controller), and a creative re-projection over the finished machine, which must leave it
-     * formed (no hatch paved over, no field generator downgraded).
+     * formed (no hatch paved over, no field generator downgraded), then the survival repair test
+     * ({@link SLConsoleTest#damageAndRepair}). With {@code full} false only the walk and status are
+     * reported (the {@code check} form).
      */
-    public static List<String> diagnose(World world, int x, int y, int z, ForgeDirection facing, int tiers) {
+    public static List<String> diagnose(World world, int x, int y, int z, ForgeDirection facing, int tiers,
+        boolean full) {
         final List<String> out = new ArrayList<>();
         final TileEntity te = world.getTileEntity(x, y, z);
         if (!(te instanceof IGregTechTileEntity)
@@ -340,12 +343,18 @@ public final class EyeKit {
         final IGregTechTileEntity base = (IGregTechTileEntity) te;
         final MTEEyeOfHarmonyBTS eye = (MTEEyeOfHarmonyBTS) base.getMetaTileEntity();
         final ExtendedFacing alignment = eye.getExtendedFacing();
+        if (!full) eye.checkStructure(true, base);
+        out.add("Eye at (" + x + ", " + y + ", " + z + "): " + (eye.mMachine ? "FORMED" : "NOT FORMED"));
         if (!eye.mMachine) {
             out.add("First wrong cells:");
             for (String line : SLConsoleTest.firstErrors(eye, base, 3)) {
                 out.add("  " + line);
             }
             eye.checkStructure(true, base);
+        }
+        if (!full) {
+            out.addAll(eye.statusLines());
+            return out;
         }
         out.add(probe(world, alignment, facing, x, y, z, "core east gas hatch", MTEEyeOfHarmonyBTS.PIECE_CORE, 'h'));
         if (tiers >= 3) {
@@ -363,6 +372,15 @@ public final class EyeKit {
                     + (eye.mMachine ? "still FORMED"
                         : "BROKE IT - " + String.join("; ", SLConsoleTest.firstErrors(eye, base, 2)))
                     + (before == after ? ", field generators unchanged" : ", FIELD GENERATORS CHANGED"));
+            if (eye.mMachine) {
+                out.addAll(
+                    SLConsoleTest.damageAndRepair(
+                        eye,
+                        base,
+                        new ItemStack(controller.getItem(), tiers, controller.getItemDamage()),
+                        SLConsoleTest
+                            .bounds(alignment, x, y, z, java.util.Arrays.copyOf(MTEEyeOfHarmonyBTS.PIECES, tiers))));
+            }
         }
         out.addAll(eye.statusLines());
         return out;

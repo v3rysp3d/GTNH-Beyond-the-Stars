@@ -32,7 +32,8 @@ import com.nateyburr.beyondthestars.machines.kerr.MTEKerrEngine;
  * [force] [survival]} puts the controller at x y z ("~" is relative to a command block) with its
  * front facing the given way (default north), loads the footprint's chunks first, and prints FORMED
  * or NOT FORMED with the first wrong cells, the mirror check and a re-projection check.
- * {@code survival} builds through the hologram projector's survival path instead of the creative one.
+ * {@code survival} builds through the hologram projector's survival path instead of the creative one;
+ * {@code check} builds nothing and re-walks the Kerr already standing there (e.g. after a restart).
  */
 public class CommandBTSKerr extends CommandBase {
 
@@ -48,7 +49,7 @@ public class CommandBTSKerr extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btskerr [t1|t2] [force]  |  console: /btskerr [t1|t2] <x> <y> <z> [facing] [force] [survival]";
+        return "/btskerr [t1|t2] [force]  |  console: /btskerr [t1|t2] <x> <y> <z> [facing] [force] [survival] | [check]";
     }
 
     @Override
@@ -170,12 +171,14 @@ public class CommandBTSKerr extends CommandBase {
         boolean tier2 = false;
         boolean force = false;
         boolean survival = false;
+        boolean check = false;
         for (int i = 0; i < args.length; i++) {
             if (at.used[i]) continue;
             final String arg = args[i];
             if (arg.equalsIgnoreCase("t2") || arg.equals("2")) tier2 = true;
             if (arg.equalsIgnoreCase("force") || arg.equalsIgnoreCase("-f")) force = true;
             if (arg.equalsIgnoreCase("survival")) survival = true;
+            if (arg.equalsIgnoreCase("check")) check = true;
         }
         final String core = tier2 ? MTEKerrEngine.PIECE_T2 : MTEKerrEngine.PIECE_T1;
         final ExtendedFacing alignment = ExtendedFacing.of(at.facing);
@@ -192,6 +195,12 @@ public class CommandBTSKerr extends CommandBase {
             return;
         }
         final int chunks = SLConsoleTest.loadChunks(world, box);
+        if (check) {
+            for (String line : KerrKit.diagnose(world, at.x, at.y, at.z, at.facing, tier2, false)) {
+                SLConsoleTest.tell(sender, line);
+            }
+            return;
+        }
         if (!force) {
             final int percent = solidPercent(world, alignment, at.x, at.y, at.z, core);
             if (percent > MAX_SOLID_FRACTION * 100) {
@@ -234,7 +243,7 @@ public class CommandBTSKerr extends CommandBase {
         for (String line : result.lines) {
             SLConsoleTest.tell(sender, line);
         }
-        for (String line : KerrKit.diagnose(world, at.x, at.y, at.z, at.facing, tier2)) {
+        for (String line : KerrKit.diagnose(world, at.x, at.y, at.z, at.facing, tier2, true)) {
             SLConsoleTest.tell(sender, line);
         }
     }

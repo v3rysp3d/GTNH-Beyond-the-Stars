@@ -35,7 +35,8 @@ import com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS;
  * block) with its front facing the given way (default north), owned by a fixed test UUID; it loads
  * the footprint's chunks first and prints FORMED or NOT FORMED with the first wrong cells, the mirror
  * check and a re-projection check. {@code survival} builds through the hologram projector's survival
- * path instead of the creative one.
+ * path instead of the creative one; {@code check} builds nothing and re-walks the Eye already standing
+ * there (e.g. after a restart).
  */
 public class CommandBTSEye extends CommandBase {
 
@@ -51,7 +52,7 @@ public class CommandBTSEye extends CommandBase {
     @Override
     public String getCommandUsage(ICommandSender sender) {
         return "/btseye [t1|t2|t3|t4] [gen 1-9] [fill] [force]  |  console: /btseye [t1..t4] <x> <y> <z> [facing] "
-            + "[gen 1-9] [fill] [force] [survival]";
+            + "[gen 1-9] [fill] [force] [survival] | [check]";
     }
 
     @Override
@@ -176,6 +177,7 @@ public class CommandBTSEye extends CommandBase {
         boolean fill = false;
         boolean force = false;
         boolean survival = false;
+        boolean check = false;
         for (int i = 0; i < args.length; i++) {
             if (at.used[i]) continue;
             final String arg = args[i].toLowerCase(java.util.Locale.ROOT);
@@ -186,6 +188,7 @@ public class CommandBTSEye extends CommandBase {
             if (arg.equals("fill")) fill = true;
             if (arg.equals("force") || arg.equals("-f")) force = true;
             if (arg.equals("survival")) survival = true;
+            if (arg.equals("check")) check = true;
         }
         final ExtendedFacing alignment = ExtendedFacing.of(at.facing);
         final String[] pieces = java.util.Arrays.copyOf(MTEEyeOfHarmonyBTS.PIECES, tiers);
@@ -201,6 +204,12 @@ public class CommandBTSEye extends CommandBase {
             return;
         }
         final int chunks = SLConsoleTest.loadChunks(world, box);
+        if (check) {
+            for (String line : EyeKit.diagnose(world, at.x, at.y, at.z, at.facing, tiers, false)) {
+                SLConsoleTest.tell(sender, line);
+            }
+            return;
+        }
         if (!force) {
             final int percent = solidPercent(world, alignment, at.x, at.y, at.z, tiers);
             if (percent > MAX_SOLID_FRACTION * 100) {
@@ -244,7 +253,7 @@ public class CommandBTSEye extends CommandBase {
         for (String line : result.lines) {
             SLConsoleTest.tell(sender, line);
         }
-        for (String line : EyeKit.diagnose(world, at.x, at.y, at.z, at.facing, tiers)) {
+        for (String line : EyeKit.diagnose(world, at.x, at.y, at.z, at.facing, tiers, true)) {
             SLConsoleTest.tell(sender, line);
         }
     }
