@@ -46,6 +46,7 @@ public final class BTSRecipes {
         BTSRecipeGuard.line("machines", BTSRecipesMachines::register);
         BTSRecipeGuard.line("singularity", BTSRecipesSingularity::register);
         BTSRecipeGuard.line("kerr", BTSRecipesKerr::register);
+        BTSRecipeGuard.line("eye", BTSRecipesEye::register);
         BTSRecipeGuard.line("display", BTSDisplayRecipes::register);
 
         BTSRecipeGuard.summary();
