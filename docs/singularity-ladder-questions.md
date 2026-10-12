@@ -2063,7 +2063,7 @@ on a dev server or seen in NEI (see "Not verified" below).
 7. **Rule 17 (Superdense Ergomatter)**: master's code, lang and docs had no "Supermassive Ergomatter" left (grep), so
    nothing to rename here. **Rule 19 (loop fixes)**: none of these recipes uses Magnetar Matter or Ergomatter, so
    neither fix applies; the UXV parts in SL-B70/B80 (Field Generator, Emitter, Sensor UXV, UXV circuits) are the same GT
-   parts SL-E05/E06 already used.
+   parts SL-E05/E06 already used (they needed Universium, Eye T10; replaced by UMV parts in B-72).
 
 **Gate audit.** Clean by construction (proposal §5.7): Eye T1 parts have no Raw Star Matter, no Boundless Cosmic
 Solder and nanites at most Transcendent; each later part uses only products of the tier below (a transition core
@@ -2612,6 +2612,60 @@ that: a static lang lint (every `ofFailure` / `ofSuccess` id, shutdown reason, `
 
 **Not covered.** A client: GUIs, NEI pages, the hologram preview and the renders' look. A real OpenComputers
 computer. AE2 or Factory Manager in a world.
+
+### B-72 Review fixes after the dev-server test: the T5/T6 cores' UXV parts, chart pickups, Directive edges [review fix, built]
+
+A review of B-70/B-71 found seven issues; all seven were real and are fixed (each its own commit).
+
+1. **The T4 -> T5 and T5 -> T6 cores were not craftable in survival (progression).** SL-B70 (Subspace Cooling Core)
+   and SL-B80 (Magnetar Seed Core), and their fallbacks SL-E05/E06, took Field Generator UXV x16 / x32, Sensor UXV x8
+   and Emitter UXV x16. In RC-2 each of those parts needs 576 L molten Universium and 576 L MHDCSM. With
+   `replaceTecTechEyeOfHarmony=true`, Universium only exists at Eye T10, so survival stopped at Eye T4. The B-71
+   T5 -> T6 run passed only because the Eye was kit-built. The BEC gate audit (B-64, spec §2.5) called these recipes
+   gate-clean; it was wrong, because it checked our condensates and not GT's parts.
+   - *Built (PROPOSED, the interim from the review):* the UXV parts become **twice as many UMV parts**. B70: FG UMV
+     x32, Sensor UMV x16. B80: FG UMV x64, Emitter UMV x32. Everything else is unchanged (UXV circuits, tier-II/III
+     metamaterials, nanite tiers, condensates). RC-2's UMV parts use SpaceTime, Hypogen, Celestial Tungsten,
+     Quantium, Mutated Living Solder and DSS, all pre-T4. The change is not behind the config: it is our own recipe.
+   - *Not done:* ruling 20 / D-45 itself (overriding RC-2's UXV part research-station recipes so every UXV part drops
+     Universium/MHDCSM). That is a larger change to GT's own assembly-line recipes and data sticks, and it needs an
+     in-game check. The UXV circuits (coremod Quantum Circuit and GT's Cosmic Mainframe / Transcendent Computer) were
+     not re-audited.
+   - *Cross-branch:* the homogeny-reality / p4-quasar branches' SL-H10 (Homogeny Tier II Core: FG UXV 16, Pump UXV)
+     and later H/R cores take UXV parts too. SL-H10 sits before Eye T6, so it has the same loop. It was not touched
+     here (other worktree).
+   - *Suggestion:* build D-45 next (Field Generator, Sensor, Emitter, Pump, Motor, Piston, Conveyor, Robot Arm UXV:
+     swap molten Universium and MHDCSM for molten White Dwarf Matter / Hyperdense Stellar Mixture, and swap the
+     Universium/MHDCSM foils and wires for Infinity / Transcendent Metal, behind `replaceTecTechEyeOfHarmony`). Then
+     move B70/B80 back to UXV parts if you want the old price.
+   - *Alternatives:* keep UMV parts for good (cheaper than the UXV parts would have been), or make the swap depend on
+     the config (UXV parts when the TecTech Eye stays and makes Universium).
+2. **Duplicate charts in a plinth bus put a later star out (bug).** An AE2 export bus with a redstone card on
+   "active with signal" pushes 2-4 charts while Transition bit 1 stays on until the next pickup. A conveyor cover
+   moves a whole stack. The extras equalled the target, so they stayed in the bus. When the rig later loaded the next
+   tier's chart, the stale one was swapped back in a second later. That aborted the Shell Ignition: the star and the
+   event fluids were lost.
+   - *Built:* the Eye sends a copy of the loaded chart (the whole stack) to the ME output bus, and swaps no chart in
+     while a transition runs or is PENDING.
+   - The Eye's tooltip and `docs/automation.md` recommend the redstone card's **Signal pulse** mode for the chart and
+     core export buses. A spare core stays in the bus until the next transition wants it.
+3. **"Last failure" after a wrench was lost again on a restart (minor).** 871bf2d put the line in item NBT. Once the
+   controller was placed, the tile saved it only inside the star compound, and a wrenched Eye has none until it
+   lights.
+   - *Built:* with no field, the tile saves the event and failure lines as `btsEyeDarkEvent` / `btsEyeDarkFail`.
+   - A live star put out by a pick-up is now logged at INFO, like every other failure.
+4. **Partly broken walks left some Directive Hatches silent (minor).** The "not formed" fallback applied only when
+   the broken walk reached no hatch at all. A walk that stopped between two hatches published only to the one it
+   reached. The Eye and the KEE now publish to the last formed walk's hatches plus any the broken walk reached.
+5. **A comparator on a Directive Hatch went stale in Bit n / Any mode (minor).** GT tells the neighbours only when a
+   redstone output changes. The hatch now issues a block update whenever its raw code changes.
+6. **An OpenComputers NaN threshold stuck the sensor at 0 (minor).** `setThreshold` keeps the old value on NaN.
+   `bts_sensor.setThreshold` returns `nil, "threshold is not a number"`.
+7. **The Directive Hatch GUI's Set button could not cycle backwards (minor).** A right-click from the host's first
+   set landed on the same set. The server setter now walks in the direction the button moved and wraps to the host's
+   last set.
+
+**Checks.** `spotlessApply compileJava` pass after every fix; golden and dev-server results below.
 
 ---
 

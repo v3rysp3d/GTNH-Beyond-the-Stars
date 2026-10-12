@@ -584,9 +584,9 @@ recipe needing that condensate is skipped and falls back.
 | SL-B60 | Galactic Upgrade Core | Galactic Shell 64 [2], FG UMV 32 [3], circuit UMV 64 [2], Casimir 32 [3], dense SpaceTime 32 [1], Emitter UMV 16 [3], MM Resonance Chamber II 16 [5], MM Field Manipulator I 16 [4] | **HSM 32,000 L**, SpaceTime 1,024 ing, TM 1,024 ing | 4,800 s, 4x UMV | SL-E02 |
 | SL-B61 | Star Chart: Neutron Star | Data Orb [1], circuit UMV [2], Galactic Shell 1 [2], MM Sensor Array I [3] | **HSM 1,000 L** | 120 s, UMV | SL-P25 |
 | SL-B62 | Galactic Shell Plating x64 (alternative) | dense Infinity 32 [1], frame TM 8 [2], plate Cosmic Neutronium 32 [1], ingot TM 64 [1], MM Shielding I 2 [3] | HSM 500 L, **WDM 4 ing** | 4,800 s, UMV | none: SL-P17 (the T4 gate) stays |
-| SL-B70 | Subspace Cooling Core | Galactic Shell 64 [2], FG UXV 16 [4], circuit UXV 16 [3], Casimir 32 [3], dense SpaceTime 48 [1], Sensor UXV 8 [4], MM Sensor Array II 4 [6], MM Field Manipulator II 4 [6] | **WDM 1,024 ing**, DSS 256,000 L, SpaceTime 1,024 ing | 4,800 s, UXV | SL-E05 |
+| SL-B70 | Subspace Cooling Core | Galactic Shell 64 [2], FG UMV 32 [4], circuit UXV 16 [3], Casimir 32 [3], dense SpaceTime 48 [1], Sensor UMV 16 [4], MM Sensor Array II 4 [6], MM Field Manipulator II 4 [6] | **WDM 1,024 ing**, DSS 256,000 L, SpaceTime 1,024 ing | 4,800 s, UXV | SL-E05 |
 | SL-B71 | Star Chart: Sirius B | Data Orb [1], circuit UXV [3], Galactic Shell 1 [2], MM Sensor Array II [6] | **WDM 7 ing** | 120 s, UMV | SL-P35 |
-| SL-B80 | Magnetar Seed Core | Galactic Shell 64 [2], FG UXV 32 [4], circuit UXV 32 [3], Bastion 32 [2], dense SpaceTime 64 [1], Emitter UXV 16 [4], MM Resonance Chamber III 4 [7], MM Shielding II 4 [6] | **BDM 256 ing**, **Agent 64,000 L**, WDM 256 ing, SpaceTime 2,048 ing | 6,000 s, 2x UXV | SL-E06 |
+| SL-B80 | Magnetar Seed Core | Galactic Shell 64 [2], FG UMV 64 [4], circuit UXV 32 [3], Bastion 32 [2], dense SpaceTime 64 [1], Emitter UMV 32 [4], MM Resonance Chamber III 4 [7], MM Shielding II 4 [6] | **BDM 256 ing**, **Agent 64,000 L**, WDM 256 ing, SpaceTime 2,048 ing | 6,000 s, 2x UXV | SL-E06 |
 | SL-B81 | Star Chart: SGR 1806-20 | Data Orb [1], circuit UXV [3], dense SpaceTime 1 [1], MM Sensor Array III [7] | **BDM 7 ing**, **Agent 1,000 L** | 120 s, UXV | SL-P37 |
 
 Bold = the gate (the product of the tier the part belongs to, or of the tier below). Every recipe stays inside one
@@ -604,7 +604,11 @@ rewrite of RC-2's Spatial / Temporal casing recipes and its fallbacks) are uncha
 transition core may use its own tier's product. The Eye T1 BOM (B20-B22) has no Raw Star Matter or Boundless Cosmic
 Solder and nanites at most Transcendent; White Dwarf nanites and metamaterials first appear in the T4 -> T5 core (B70)
 and B71, Black Dwarf ones in B80/B81. SL-B62 needs WDM but is only an alternative to SL-P17. No compression generator
-recipe changes, so `/btseye gates` is unaffected.
+recipe changes, so `/btseye gates` is unaffected. GT's own parts count too: RC-2's UXV Field Generator, Sensor and
+Emitter each need 576 L molten Universium and 576 L MHDCSM, which only Eye T10 makes once the TecTech Eye is replaced,
+so B70/B80 (and their fallbacks SL-E05/E06) take twice as many **UMV** parts instead (question B-72; until then they
+were not gate-clean and survival stopped at Eye T4). Ruling 20 / D-45 (overriding RC-2's UXV part recipes) is still
+open; the UXV circuits are not re-audited here.
 
 
 ---

@@ -75,7 +75,11 @@ import tectech.thing.CustomItemList;
  * <li><b>Gate audit (brief 8, R2):</b> a part first needed to build or unlock Eye tier N uses only products of tiers
  * below N (a transition core, made while running tier N, may use tier N's product). So Eye T1 parts carry no Raw Star
  * Matter or Boundless Cosmic Solder and nanites at most Transcendent; White Dwarf nanites/metamaterials appear first
- * in the T4 -> T5 core, Black Dwarf ones in the T5 -> T6 core. No compression generator recipe is touched.</li>
+ * in the T4 -> T5 core, Black Dwarf ones in the T5 -> T6 core. No compression generator recipe is touched. The audit
+ * covers GT's parts too: RC-2's UXV Field Generator / Sensor / Emitter need molten Universium and MHDCSM (Eye T10
+ * with the TecTech Eye replaced), so the T4 -> T5 and T5 -> T6 cores take twice as many UMV parts instead (B-72;
+ * the D-45 override of RC-2's UXV part recipes is still open). The UXV circuits are unchanged and not re-audited
+ * here.</li>
  * <li><b>Families (R3):</b> each recipe uses at most 4 condensates from one family (RC-2 family 1; S1 "Stellar": Raw
  * Star Matter, Excited Stellar Plasma, Hyperdense Stellar Mixture, SpaceTime, Space, Infinity, Transcendent Metal;
  * S2 "Remnant": White / Black Dwarf Matter, Antipolarization Agent, SpaceTime, DSS, Hyperdense), so one network runs
@@ -617,7 +621,8 @@ public final class BTSRecipesBEC {
                 s(item(ItemList.MetaMaterial_Shielding1, 2), N3)));
 
         // SL-B70 Subspace Cooling Core (T4 -> T5). Replaces SL-E05. White Dwarf nanites and metamaterials are T4
-        // products: legal for the core that leaves T4.
+        // products: legal for the core that leaves T4. UMV parts x2, not UXV: RC-2's UXV Field Generator / Sensor /
+        // Emitter need molten Universium and MHDCSM, which only Eye T10 makes with the TecTech Eye replaced (B-72).
         replace(
             "SL-B70",
             () -> assemble(
@@ -629,11 +634,11 @@ public final class BTSRecipesBEC {
                     entangled(CondensateType.DimensionallyShiftedSuperfluid, 256_000),
                     entangled(CondensateType.SpaceTime, 1_024 * INGOTS)),
                 s(SLBlocks.casing(BlockSLCasing.GALACTIC_SHELL, 64), N2),
-                s(item(ItemList.Field_Generator_UXV, 16), N4),
+                s(item(ItemList.Field_Generator_UMV, 32), N4),
                 s(circuit(Materials.UXV, 16), N3),
                 s(SLBlocks.casing(BlockSLCasing.CASIMIR, 32), N3),
                 s(BTSRecipesEye.denseSpaceTime(48), N1),
-                s(item(ItemList.Sensor_UXV, 8), N4),
+                s(item(ItemList.Sensor_UMV, 16), N4),
                 s(item(ItemList.MetaMaterial_SensorArray2, 4), N6),
                 s(item(ItemList.MetaMaterial_FieldManipulator2, 4), N6)),
             "SL-E05",
@@ -655,7 +660,7 @@ public final class BTSRecipesBEC {
             BTSRecipesBEC::legacyP35);
 
         // SL-B80 Magnetar Seed Core (T5 -> T6, the Magnetar Merger). Replaces SL-E06; adds the merger's White Dwarf
-        // Matter (D-49 answer 1, Q-B14). Black Dwarf nanites and Chamber III are T5-legal.
+        // Matter (D-49 answer 1, Q-B14). Black Dwarf nanites and Chamber III are T5-legal. UMV parts x2 (B-72).
         replace(
             "SL-B80",
             () -> assemble(
@@ -668,11 +673,11 @@ public final class BTSRecipesBEC {
                     ours(SLCondensates.entangledWhiteDwarf, 256 * INGOTS),
                     entangled(CondensateType.SpaceTime, 2_048 * INGOTS)),
                 s(SLBlocks.casing(BlockSLCasing.GALACTIC_SHELL, 64), N2),
-                s(item(ItemList.Field_Generator_UXV, 32), N4),
+                s(item(ItemList.Field_Generator_UMV, 64), N4),
                 s(circuit(Materials.UXV, 32), N3),
                 s(SLBlocks.casing(BlockSLCasing.BASTION, 32), N2),
                 s(BTSRecipesEye.denseSpaceTime(64), N1),
-                s(item(ItemList.Emitter_UXV, 16), N4),
+                s(item(ItemList.Emitter_UMV, 32), N4),
                 s(item(ItemList.MetaMaterial_ResonanceChamber3, 4), N7),
                 s(item(ItemList.MetaMaterial_Shielding2, 4), N6)),
             "SL-E06",
@@ -1211,11 +1216,11 @@ public final class BTSRecipesBEC {
             .itemInputs(
                 items(
                     SLBlocks.casing(BlockSLCasing.GALACTIC_SHELL, 64),
-                    item(ItemList.Field_Generator_UXV, 16),
+                    item(ItemList.Field_Generator_UMV, 32),
                     circuit(Materials.UXV, 16),
                     SLBlocks.casing(BlockSLCasing.CASIMIR, 32),
                     BTSRecipesEye.denseSpaceTime(48),
-                    item(ItemList.Sensor_UXV, 8)))
+                    item(ItemList.Sensor_UMV, 16)))
             .fluidInputs(
                 molten(Materials.WhiteDwarfMatter, 147_456),
                 BTSRecipeGuard.nn(
@@ -1236,11 +1241,11 @@ public final class BTSRecipesBEC {
             .itemInputs(
                 items(
                     SLBlocks.casing(BlockSLCasing.GALACTIC_SHELL, 64),
-                    item(ItemList.Field_Generator_UXV, 32),
+                    item(ItemList.Field_Generator_UMV, 64),
                     circuit(Materials.UXV, 32),
                     SLBlocks.casing(BlockSLCasing.BASTION, 32),
                     BTSRecipesEye.denseSpaceTime(64),
-                    item(ItemList.Emitter_UXV, 16)))
+                    item(ItemList.Emitter_UMV, 32)))
             .fluidInputs(
                 molten(Materials.BlackDwarfMatter, 36_864),
                 BTSRecipeGuard.fluid(SLFluids.antipolarizationAgent, 64_000),
