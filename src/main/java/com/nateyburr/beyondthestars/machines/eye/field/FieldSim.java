@@ -48,6 +48,11 @@ public final class FieldSim {
         public double shock = CollapseOverlay.PROTOTYPE_BOUNCE_SHOCK;
         public boolean collapse;
         public long beginAt = 600;
+        /**
+         * AUTOMATION PASS: a rig that replaces the prototype's ({@link #rig}) when set - the Directive gate rig of
+         * {@link DirectiveRigSim}. Null in every golden case.
+         */
+        public java.util.function.BiFunction<TierParams, FieldState, LinkedHashMap<String, Double>> rigFn;
     }
 
     /** The prototype's ledger ({@code newLedger}). Map keys are the prototype's display names. */
@@ -224,7 +229,8 @@ public final class FieldSim {
             in.feed = c.feed;
             in.dialSetpoint = c.m;
             in.tt = c.tt;
-            FieldRig.toUnits(T, FieldRig.ctrl(T, s.prevE, s.prevWarn, c.rig), in.u);
+            FieldRig
+                .toUnits(T, c.rigFn != null ? c.rigFn.apply(T, s) : FieldRig.ctrl(T, s.prevE, s.prevWarn, c.rig), in.u);
             if (tr != null) {
                 tr.dose = c.tachRate;
                 tr.spaceTimeBuffer = c.stBuf;

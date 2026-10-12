@@ -12,7 +12,7 @@ import java.util.List;
  * AUTOMATION PASS: which trims the stability field wants now, as the Directive Hatch's Eye Trims bits (one bit per
  * trim, in the tier's trim-table order) - the conditions of the prototype's bang-bang rig ({@link FieldRig#ctrl}) with
  * the threshold a free window w, and no rates: a redstone rig opens a fixed-rate valve per bit. Pure maths (no
- * Minecraft types), so {@link DirectiveRigSim} runs the same rule offline.
+ * Minecraft types), so {@code machines.directive.DirectiveRigSim} runs the same rule offline.
  * <ul>
  * <li>T1, T2: Helium when P > +w, Hydrogen when P < −w.</li>
  * <li>T3: Helium when P > +w or Θ < −w; Hydrogen when P < −w; Super Coolant when P > +w, Θ > +w, or a helium flash is
@@ -100,7 +100,8 @@ public final class EyeTrimRule {
     }
 
     /**
-     * A redstone gate rig's request for one second (the offline proof, {@link DirectiveRigSim}): every wanted trim's
+     * A redstone gate rig's request for one second (the offline proof, {@code machines.directive.DirectiveRigSim}):
+     * every wanted trim's
      * valve at its fixed rate ({@code rate[i]} units/s for table trim i), plus {@code extraRate} units on the Status
      * bit 3 valve (T3: Super Coolant; T6: the Agent). Keys are the prototype's trim keys, in table order.
      */

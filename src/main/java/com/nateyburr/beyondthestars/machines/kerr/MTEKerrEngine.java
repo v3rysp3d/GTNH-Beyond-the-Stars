@@ -47,6 +47,7 @@ import com.nateyburr.beyondthestars.machines.BTSStructures;
 import com.nateyburr.beyondthestars.machines.QuietTileUpdate;
 import com.nateyburr.beyondthestars.machines.directive.DirectiveHost;
 import com.nateyburr.beyondthestars.machines.directive.DirectiveSet;
+import com.nateyburr.beyondthestars.machines.directive.KerrDirective;
 import com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective;
 
 import gregtech.api.casing.Casings;
@@ -1056,37 +1057,27 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     }
 
     /**
-     * AUTOMATION PASS (docs/automation.md): the Kerr's Directive codes. Hole: 1 closed (formed), 2 mass more than
-     * {@link #DIRECTIVE_BAND} SM below the setpoint, 4 bolts short (an open hole's stock lasts less than {@code window}
-     * minutes at the current bleed, or a closed one has none), 8 mass more than the band above the setpoint. Status: 1
-     * containment power short, 2 no Black Hole Seed in a bolt bus while closed, 4 stability below 100 %, 8 not formed.
+     * AUTOMATION PASS (docs/automation.md): the Kerr's Directive codes, {@link KerrDirective#code} on this second's
+     * readouts (the offline rig proof uses the same function).
      */
     @Override
     public int directiveCode(DirectiveSet set, int window) {
-        int c = 0;
-        if (set == DirectiveSet.KERR_HOLE) {
-            if (mMachine && !holeOpen) c |= 1;
-            if (holeOpen && mass < setpoint - DIRECTIVE_BAND) c |= 2;
-            if (boltsShort(window)) c |= 4;
-            if (holeOpen && mass > setpoint + DIRECTIVE_BAND) c |= 8;
-        } else if (set == DirectiveSet.KERR_STATUS) {
-            if (holeOpen && !powerOk) c |= 1;
-            if (!holeOpen && seeds == 0) c |= 2;
-            if (holeOpen && stability < 1 - 1e-9) c |= 4;
-            if (!mMachine) c |= 8;
-        }
-        return c;
+        return KerrDirective.code(set, directiveState(), window);
     }
 
-    /** The Hole set's "above / below the setpoint" band, SM. */
-    public static final double DIRECTIVE_BAND = 1.0;
-
-    /** Bolts short: an open hole's stock lasts under {@code minutes} at the current bleed; a closed hole has none. */
-    public boolean boltsShort(int minutes) {
-        if (!holeOpen) return boltStockSm <= 0;
-        if (boltStockSm <= 0) return true;
-        final double perSecond = Math.max(lastBleed, 0) * 20;
-        return perSecond > 0 && boltStockSm / perSecond < minutes * 60.0;
+    /** This KEE's state as the Directive maths reads it. */
+    public KerrDirective.State directiveState() {
+        final KerrDirective.State s = new KerrDirective.State();
+        s.formed = mMachine;
+        s.open = holeOpen;
+        s.powerOk = powerOk;
+        s.mass = holeOpen ? mass : 0;
+        s.setpoint = setpoint;
+        s.boltStockSm = boltStockSm;
+        s.bleedPerTick = holeOpen ? lastBleed : 0;
+        s.stability = holeOpen ? stability : 1;
+        s.seeds = seeds;
+        return s;
     }
 
     /** Control set: redstone 1-15 sets the mass setpoint from 2 SM to the tier's top (64 or 512 SM). */
