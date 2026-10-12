@@ -95,9 +95,10 @@ import tectech.thing.casing.TTCasingsContainer;
  * (as the Kerr's rails, Q-26).
  * <ul>
  * <li><b>Compression is the tier gate</b> (1:1): Eye tier N needs every compression generator at
- * TecTech tier N or higher ({@link #COMPRESSION_META_FOR_TIER}, the ONE table). On planets it also
- * keeps TecTech's rule: it must reach the planet's requirement, and each tier above that cuts 3 %
- * of the time.</li>
+ * TecTech tier N or higher ({@link #COMPRESSION_META_FOR_TIER}, the ONE table), and that gate alone
+ * decides which planets run: an Eye at tier N runs every planet mapped to tiers 1..N (round-4 ruling;
+ * TecTech's per-planet compression minimum is NOT enforced). The only planet effect kept is TecTech's
+ * reward: each compression tier above the planet's TecTech requirement cuts 3 % of the time.</li>
  * <li><b>Time Dilation and Stabilisation are placeholders</b>: any tier is accepted and shown, and
  * neither has an effect yet (TODO(Q-20): their mechanics are a pending design session).</li>
  * </ul>
@@ -745,9 +746,6 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         if (!compressionAllows(recipe.tier)) {
             return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.compression" + recipe.tier);
         }
-        if (recipe.isPlanet() && fieldMin[FIELD_COMPRESSION] < recipe.compressionRequired) {
-            return CheckRecipeResultRegistry.insufficientMachineTier(recipe.compressionRequired + 1);
-        }
         long parallel = 1L << (installedTier() - recipe.tier);
         for (EyeRecipe.FluidAmount in : recipe.inputs) {
             parallel = Math.min(parallel, in.amount <= 0 ? parallel : buffer(in.fluid) / in.amount);
@@ -810,13 +808,14 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     }
 
     /**
-     * Stars: the base time; planets: -3 % per compression tier above the planet's need (TecTech).
-     * TODO(Q-20): Time Dilation has no effect yet.
+     * Stars: the base time; planets: -3 % per compression tier above the planet's TecTech requirement
+     * (TecTech's reward). Below the requirement there is no penalty: the tier gate alone decides
+     * whether a planet runs (round-4 ruling). TODO(Q-20): Time Dilation has no effect yet.
      */
     public long runTicks(EyeRecipe recipe) {
         if (!recipe.isPlanet()) return Math.max(1, recipe.baseTicks);
-        final double t = recipe.baseTicks * Math
-            .pow(COMPRESSION_TIME_DISCOUNT, Math.max(0, fieldMin[FIELD_COMPRESSION]) - recipe.compressionRequired);
+        final int above = Math.max(0, Math.max(0, fieldMin[FIELD_COMPRESSION]) - recipe.compressionRequired);
+        final double t = recipe.baseTicks * Math.pow(COMPRESSION_TIME_DISCOUNT, above);
         return Math.max(1L, Math.round(t));
     }
 
@@ -1050,7 +1049,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addInfo("Parallel x2 for every installed tier above the recipe's tier.")
             .addInfo("Field generators (any tier, mixable; the lowest tier of each type counts):")
             .addInfo("  Spacetime Compression GATES the tier: Eye TN needs every one at tier N or higher.")
-            .addInfo("  On planets it must also reach the planet's tier; -3% time per tier above that.")
+            .addInfo("  It alone decides the planets: a TN Eye runs every planet of T1..TN.")
+            .addInfo("  Planets: -3% time per compression tier above the planet's TecTech tier.")
             .addInfo("  Time Dilation, Stabilisation: placeholders, no effect yet. Stars always succeed.")
             .addInfo("A short wireless network runs fewer parallels rather than none.")
             .addInfo("Inputs drain every second into internal buffers; outputs go to ME only.")

@@ -61,8 +61,10 @@ public final class EyeRecipe {
     /** Base success chance; stars are 1.0. */
     public final double baseSuccess;
     /**
-     * Planets: the Spacetime Compression field tier (generator meta 0-8) the recipe needs, as
-     * TecTech's {@code getSpacetimeCasingTierRequired()}. Stars: -1 (ignore the generators).
+     * Planets: TecTech's Spacetime Compression field tier for the planet (generator meta 0-8,
+     * {@code getSpacetimeCasingTierRequired()}). NOT a requirement any more (round-4 ruling: the Eye's
+     * 1:1 tier gate alone decides); it is only the baseline of the -3 %-per-tier time reward.
+     * Stars: -1 (ignore the generators).
      */
     public final int compressionRequired;
 

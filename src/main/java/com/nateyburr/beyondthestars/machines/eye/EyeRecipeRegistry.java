@@ -60,7 +60,8 @@ import tectech.util.ItemStackLong;
  *
  * <h2>Conversion (Q-12)</h2>
  * Same target item, TecTech's H/He requirement, TecTech's ores and plasmas, its base success
- * {@code 1 - 0.05R} and its Spacetime Compression requirement. Raw Star Matter and the special fluid
+ * {@code 1 - 0.05R} and its Spacetime Compression tier (kept only as the baseline of the time reward;
+ * the Eye's 1:1 tier gate alone decides whether a planet runs). Raw Star Matter and the special fluid
  * (WDM / BDM / Universium) are dropped ("planets without the matters", D-42): Sol is the only Raw
  * Star Matter source and T4 Sirius B the only WDM source. Rocket tier R0-3 → Eye T1, R4-6 → T2,
  * R7-8 → T3, the Deep Dark → T4. Times follow bh-model's ladder, {@code 20 min x 1.25^R}; the Deep
@@ -388,9 +389,8 @@ public final class EyeRecipeRegistry {
         desc.add(
             recipe.isPlanet()
                 ? "Success " + Math.round(recipe.baseSuccess * 100)
-                    + "%, field T"
+                    + "%, -3%/field > T"
                     + (recipe.compressionRequired + 1)
-                    + "+"
                 : "Star: always succeeds");
         if (recipe.itemOutputs.size() > items.size()) {
             desc.add("+" + (recipe.itemOutputs.size() - items.size()) + " items not shown");
