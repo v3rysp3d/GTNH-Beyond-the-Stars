@@ -2028,6 +2028,7 @@ accepted, and §10.2's questions take their recommendations. Branch `p4-quasar`;
 | Design repo §9: `bh-model.js`, `recipes.js` cards, renames, D-50, page rebuilt | built | design repo 1b407b3 |
 | Engine maths: quasar disc, conduit maths, links, Eye T7/T8 field and transitions, P4 Directive rules, golden, rig proof | built | 4850153, 566cfe5, 1747224; design repo 330e4df |
 | Content + recipes (§6): fluids, items, slCasing2:3-11, textures, lang, BTSRecipesQuasar, SL-P40, the Eternity swap, NEI pages, P4 gate audit | built | a67ef11, 2799a9e, 486877f, e89b314 |
+| Quasar Engine MTE 28120, Burst Control Hatch 28126, burst API, sensor quasar channels, render, kit, bench, OC | built | ee919a7, c44f995, 89ac19e, c47fc63 |
 
 ### MTE ledger (P4 block 28120-28129)
 
@@ -2314,3 +2315,59 @@ endings.
 - **Directive Hatch tooltip** (rule 14). The P4 sets are selectable now and read 0 until their host reports them. The
   hatch's tooltip must gain the P4 tables when the hosts land (shift-expansion; `docs/p4-questbook-contract.md` has the
   text).
+
+### Quasar Engine MTE (28120) and the Burst Control Hatch (28126) (questions P4-36..P4-45)
+
+**Files.**
+
+| Class | What it is |
+|---|---|
+| `machines/quasar/MTEQuasarEngine` | The controller: shape `quasar`, coils on channel `coil`, private sockets, the disc second, jets, Directive / sensor publishing, NBT, render placement, tooltip. |
+| `machines/quasar/MTEQuasarEngineGui` | MUI2 console: terminal (hole, mass bar, spin / λ / Bu/t, E dial, flux bar, Integrity / Y_q / Stability, jets, feed, coils, links, last event), gap row (feed f), side panels Disc control and Jets & links, render toggle. |
+| `machines/quasar/QuasarHatchElement` | Private sockets: Gas `h`, Trim `t` (plain only), BurstControl `c`, Sensor `n`, Directive `d`. |
+| `machines/quasar/QuasarGeometry` | `manifest.json machines.quasar`: centre, port cells and axes, crown controller cells. |
+| `machines/quasar/QuasarSensorChannel` | The sensor hatch's 16 quasar channels and their analog mapping. |
+| `machines/quasar/QuasarKit` | `/btskit quasar`, `build` (creative / survival + standard hatches + seed), `diagnose`. |
+| `machines/quasar/render/*` | `TileQuasarHole`, `BlockQuasarHole`, `QuasarHoleRenderer` (client). `Config.renderQuasar`. |
+| `machines/quasar/burst/*` | The burst API (below). |
+| `machines/conduit/MTEHatchBurstControl` (+ GUI) | 28126: level s, latched rising edge, modes PURGE / FIELD / SPLIT / BEGIN. |
+| `CommandBTSQuasar` | `/btsquasar` build / check / bench. |
+| `integration/QuasarComputerApi` | `bts_quasar` (OpenComputers, soft). |
+
+**The second** (every 20 ticks while formed and every structure chunk loaded): Burst Control polls (PURGE edge →
+`requestPurge`, FIELD → b); refill the gas buffer from `h`; draw f·Ṁ_Edd; trims from `t`; `QuasarDisc.step`; drain the
+trim litres; a `JetPacket` per port to the dock on its cell, else vent; Directive + sensor publish. Coil power
+`coilEUt(min(b, coil))` is drained every tick while OPEN or REFORM; one short tick makes the next second's
+`powerOk = false`.
+
+**Frozen** (`isFrozen()`): not formed, or any chunk under the structure's box unloaded. Nothing steps or publishes.
+
+**NBT.** `writeQuasarState` (tag `btsQuasar`) is the one serializer for tile and item: every `QuasarState` field, the
+RNG state, feed, gas, b, purge setpoint, render switch, counters. Tile only: `btsQuasarBuffer` (fluid → L) and
+`btsQuasarRenderPos`.
+
+**Bench** (`/btsquasar`, dev server port 25581): `[t1..t4] x y z [facing] [force] [survival] [seed] | check`;
+`status | seed [M] [a] | open | collapse | purge | mass M | feed f | gas H|He|RSM | b v | run s [fill] | trim g s |
+refill | redstone on|off | keep` + `x y z`; `release`. Run (2026-10-13): creative FORMED; survival 51,983 blocks in
+261 rounds FORMED, re-projection safe, damage-and-repair 2/2; seeded from the item, an hour of bench seconds (spin
+0 → 0.35, 35 eruptions), trims, a redstone edge on a Burst Control Hatch purged flux 48 → 4, collapse at 1,024 SM →
+dormant, Open refused without a Black Hole Seed; both holes identical after a server restart. `Recipe registration
+complete: 310 registered, 0 skipped` (SL-Q01 and SL-Q20 register now).
+
+**The burst API (contract for the Conduit, crown, receptor and host units).**
+
+- `JetPort` TOP / BOTTOM. Port cell = `QuasarGeometry.portRel(port)` from the controller; `MTEQuasarEngine.portCell`.
+- `BurstSource(dim, x, y, z)`: the quasar controller. `resolve()` gives the MTE if loaded; `status()` gives RUNNING /
+  FROZEN / UNLOADED. **Q-8:** a host whose source is FROZEN or UNLOADED pauses (freezes its field / cycle); RUNNING
+  with 0 Bu/t is felt in full.
+- `JetPacket(source, port, buPerTick, linkable, tick)`: one port's second. `linkable` = formed, hole OPEN, b > 0 (the
+  source end of a link). Stale after 40 ticks (`stale(now)`).
+- `IBurstDock`: `dockReady()`, `acceptJet(JetPacket)` returns the Bu/t taken (the rest shows as clipped),
+  `dockLabel()`. A crown or mouth calls `BurstDocks.register(world, x, y, z, this)` every second with its intake cell
+  (crown: its base centre, `machines.crown.intake[piece].rel`; mouth: its throat centre) while formed and facing the
+  axis; `unregister` on unform is optional.
+- Back to the quasar: `MTEQuasarEngine.reportHost(key, label, buPerTick, sigma, streak0to1)` once a second per host
+  fed (the GUI's Links, the sensor's σ / streak channels, `getLinks()`); entries expire after 60 ticks. A Conduit
+  element-closed flag for Disc bit 4 is still to be added (P4-44).
+- Readers: `jetBu(port)`, `jetTaken(port)`, `jetDock(port)`, `getVented()`, `source()`, `isFrozen()`.
+- `MTEHatchBurstControl`: `poll(host, line, modes...)` once a second, `level()`, `consumeRisingEdge()`, `getMode()`.

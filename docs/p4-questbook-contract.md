@@ -205,3 +205,35 @@ Forge's Timepiece takes 4,608 L of Ergomatter instead of one, so Eternity is mad
 Every item and block above has a lang tooltip (what it is for, the key numbers, where it is made). The NEI pages
 "Quasar Engine (accretion disc)" and "Burst Thermaliser Crown" show the Eddington feed per gas and each crown's cap and
 EU/t; quests can point at them.
+
+## Quasar Engine MTE unit
+
+### Quest: "Opening the quasar" (needs: "Building the quasar")
+
+Put the Quasar Seed in the controller's slot (beside the power button in its GUI) and press **Open** in the Disc
+control panel. The hole starts at 64 SM with no spin: the jets are faint for the first hour while the spin climbs (the
+GUI says "spinning up"). Feed Helium into the 24 rim Input Hatches (ME stocking hatches are fine); the quasar keeps 10
+seconds of feed in its own buffer. Coil power is 2 A UXV × b² from the control box's Energy or Laser Hatches (any
+mix). **Collapse** makes the hole dormant (mass kept); a Black Hole Seed in the slot re-opens it. Nothing ever destroys
+the hole or a block. Keep the whole quasar chunk-loaded: an unloaded chunk freezes the disc and pauses every machine it
+feeds.
+
+### Quest: "Reading the disc" (sensors and the console)
+
+The console's E dial is the disc's Eddington balance (keep it near 0; the bands are Resonant, Stable, Strained). The
+flux bar fills to an eruption at 100 (yellow tick: your purge setpoint; red tick: the 90 warning). A Stellar Field
+Sensor Hatch in a control-box socket reads E, flux, λ, a, M, Bu/t and more: analog with a window w (E ±w), or 15
+above / below a threshold. Invert flips it. Trims go into the 4 plain Input Hatches in the wall tanks: the feed gas
+(1,000 × M/64 L a unit) raises E by 2, Spatially Enlarged Fluid (100 × M/64 L) lowers it by 2, at most 10 units a
+second each.
+
+### Quest: "Burst Control" (the purge hatch)
+
+A Burst Control Hatch on a cap rim reads redstone. **Purge** mode: a rising edge dumps the flux early (from 20).
+**Field b** mode: the redstone level sets b = 0.5 + (coil tier − 0.5) × level/15. The standard rig: Directive Hatch
+(Disc set, code output) → bit 3 AND NOT the Eye's Transition bit 4 → this hatch.
+
+### Tooltips already in the jar (Quasar Engine unit)
+
+The controller (disc maths, trims, coils, jets, automation), the Burst Control Hatch (four modes), the Stellar Field
+Sensor Hatch (quasar channels, window, invert) and the Directive Hatch (the Disc set).

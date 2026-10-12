@@ -3432,3 +3432,110 @@ recipes are not checked until their MTE units land; their inputs are the blocks 
 §6.2 lists it; P4-08 found the existing Casimir Plate (`slCasing:14`) plays the role in every conduit shape, so no new
 meta was added (a block nothing uses would only be a recipe and a texture to keep). **Alternative:** add it as
 `slCasing2:12` if the conduit shapes are redrawn with a distinct lining.
+
+### P4-36 The quasar's energy sockets take any mix of energy and laser hatches [quasar MTE]
+
+**Context.** §7 draws three energy cells for coil power, 2 A UXV × b²: 2 A at b = 1, 18 A at b = 3, 32 A at b = 4. GT's
+`checkExoticAndNormalEnergyHatches` allows "1 exotic or 2 normal" hatches, which refused the creative build's three
+hatches.
+
+**Built.** The quasar's own check: at least one Energy or Laser Hatch in the `e` sockets, any mix, all drained by
+`drainEnergyInput` (lang `beyondthestars.structure.quasar.energy`).
+
+**Suggestion.** Keep. **Alternative:** GT's rule, which forces one laser hatch at b ≥ 2.
+
+### P4-37 How a jet finds its dock: a registry keyed on the port cell [quasar MTE, contract]
+
+**Context.** P4-02 says a dock is linked when its intake (crown) or throat centre (mouth) sits on the port cell. The
+quasar knows the port cell but not where a Wormhole Mouth's controller stands.
+
+**Built.** `machines/quasar/burst`: a dock (`IBurstDock`) registers its intake cell every second while formed and
+facing the right way (`BurstDocks.register`, entries stale after 40 ticks, weak per-world table). The quasar looks up
+each port cell once a second and calls `acceptJet(JetPacket)`; with no ready dock the port vents. The facing check is
+the dock's (it simply does not register when it faces wrong).
+
+**Suggestion.** Keep: one mechanism for crowns and mouths, no geometry duplicated. **Alternative:** the quasar probes
+`crownControllerRel` directly for crowns and only mouths register.
+
+### P4-38 The gas buffer [quasar MTE]
+
+**Built.** The 24 rim hatches (any input hatch, ME stocking included) refill a buffer of the selected gas only, up to
+10 s of the maximum feed (10 × 1.5 × Ṁ_Edd: 192,000 L at 64 SM on Helium, 3.07 ML at 1,024 SM). The disc draws f·Ṁ_Edd
+from it every second; a short buffer gives a lower f_eff (the engine's own reaction). Switching gas leaves the old
+buffer in place (unused). The buffer is tile NBT only: a wrenched controller keeps its hole but not its gas.
+
+**Suggestion.** Keep. **Alternative:** no buffer (drain the hatches directly each second); a big ME network then sees a
+200 kL/s pull per second instead of a 10 s refill.
+
+### P4-39 Trims drain on their own; no OpenComputers trim() call [quasar MTE, automation]
+
+**Context.** §8.2 lists `trim("gas" | "space", units)` for `bts_quasar`.
+
+**Built.** As on the Eye (D-49), the 4 plain trim hatches are drained every second: whole units of the feed gas
+(1,000·M/64 L, E +2) and Spatially Enlarged Fluid (100·M/64 L, E −2), at most 10 each. The automation is the valve
+that fills the hatch (AE2 export bus on Disc bit 1 / 2, a regulator cover, SFM, an OC transposer). A `trim()` call
+would need fluid from nowhere, so it is not built.
+
+**Suggestion.** Keep; the questbook names the valve routes. **Alternative:** a `trim()` that only drains what the trim
+hatches already hold (it would duplicate the automatic drain).
+
+### P4-40 Open, Collapse and the controller slot [quasar MTE]
+
+**Built.** The controller slot is shown (GT's MUI2 slot beside the power button). Open (GUI, OpenComputers has no open
+call, `/btsquasar open`) consumes a Quasar Seed for a hole that never existed (64 SM, a = 0, P4-16) or one of GT's
+Black Hole Seeds for a dormant one. Collapse needs no item (§1.1) and asks twice. Nothing opens on its own when an item
+is inserted, because opening the hole is one of §8.3's three manual steps. A new hole gets its own disc noise sequence
+(position and world time), saved with the state.
+
+**Suggestion.** Keep.
+
+### P4-41 Burst Control Hatch details [quasar MTE + 28126]
+
+**Built.**
+
+- The level is the strongest redstone on any side (covers included), read every tick; a rising edge is 0 → 1 or more
+  and is latched until the host's next second, so a one-tick pulse counts.
+- Modes PURGE, FIELD, SPLIT, BEGIN; a hatch adopts its host's first mode when its own is not used there (the
+  Directive Hatch pattern). The quasar uses PURGE and FIELD; FIELD with s = 0 gives b = 0.5; several FIELD hatches →
+  the highest s. A PURGE edge while the hole is dormant is dropped.
+- The Junction (SPLIT) and the Eye (BEGIN) read `level()` / `consumeRisingEdge()` and call `poll()` themselves.
+
+**Suggestion.** Keep.
+
+### P4-42 The sensor window applies to the Eye too [quasar MTE + 28116]
+
+**Built.** The window w (default 120) maps the Eye's signed gauges as ±w; at 120 this is exactly D-49's
+`round(15(v + 120)/240)`, so every placed Eye hatch reads the same. Invert and the wider threshold range (±100,000, for
+masses) apply to both hosts. The hatch's host (and so its channel list) is whichever machine last published; the
+channel ordinal is kept across hosts (append-only lists).
+
+### P4-43 NEI preview: the bottom row falls below the scratch world [quasar MTE, NEI]
+
+**Found.** BlockRenderer6343 1.4.24 places every controller at (0, 64, 0) (`GuiMultiblockHandler.MB_PLACE_POS`). The
+quasar's controller sits 65 rows above its bottom (voxel y −15 against the bottom cap at −80), so the bottom cap's
+outer layer (voxel y −80, with two `c` sockets) lands at y −1 and is not drawn. Everything else (y 0..159) fits. The
+preview's frame rate with 51,984 blocks is not measured (no client run in this unit); `INEIPreviewModifier` only
+offers hooks, it cannot move or thin the build.
+
+**Suggestion.** Accept the missing row (the hologram projector builds it). **Alternatives:** move the controller one
+row down in the mockup (a voxel.js + manifest change); or ask BlockRenderer6343 to lift tall structures.
+
+### P4-44 What the Disc set's alarm bit sees [quasar MTE, automation]
+
+**Built.** Disc bit 4 is on while the hole is not OPEN (re-forming, dormant), b = 0 (no coil power), or any Bu/t vented
+last second. "A Conduit element closed" needs the Conduit unit: `conduitOpen` is true until it reports.
+
+**Contract.** The Conduit unit sets a closed-element flag (a `reportHost`-style call) that the quasar folds into
+`QuasarDirective.State.conduitOpen`.
+
+### P4-45 The render [quasar MTE, render]
+
+**Built.** `TileQuasarHole` (a GT `RenderingTileEntityBlackhole`) at the manifest's centre cell while the quasar is
+formed and has a hole (open, re-forming or dormant; a dormant or re-forming disc is drawn dark and thin). GT's model is
+scaled (4 + 4·log₂(M/64)/6)/1.3; its shader stability is the disc's Stability/100. Our TESR adds the disc (r 40 to
+40 + 22·λc, additive, zone colours, three turning arms, puffing above E 0, a 3 s outward flash on an eruption or a
+purge) and the jet cones (±78 blocks, brightness log₁₀ of each port's Bu/t). Look packets go straight to the chunk's
+watchers. A render-harness site (QUASAR) with `quasar_64sm` and `quasar_1024sm_eruption` is added; not run in this
+unit (the desktop is in use).
+
+**Open.** Colours, widths and brightness are first guesses for the render QA pass.
