@@ -8620,7 +8620,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             .addInfo("Progress is saved in the controller and survives breaking it.")
             .addInfo("The GUI's MATH section shows how the EU/t is worked out.")
             .addInfo("NEI: look up this controller for the fuel, propellant and coolant tables.")
-            .addSupportLaser()
+            // No addSupportLaser(): GT's green line means laser ENERGY INPUT, and the plant's
+            // Energy Hatch sockets take plain Energy Hatches only. Its lasers are Laser Source
+            // (output) hatches, which the info line above and the structure block name.
             // Structure block (Shift). Counts come from the shape code (questbook/gen-bom.ps1
             // tallies the same cells); ranges run tier 1 to tier 5 or none to all pieces.
             .beginVariableStructureBlock(50, 50, 21, 41, 50, 50, true)

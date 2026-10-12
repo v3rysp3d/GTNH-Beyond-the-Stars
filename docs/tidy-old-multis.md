@@ -332,8 +332,10 @@ items, and add `addInformation` to the three blocks' ItemBlocks. All text goes t
 
 - **A1.** Plain `addInfo`, not `addMarkdown` (a missing .md throws and this pass had no game run to prove the
   file loads). The numbers come from the constants (`RPM_REDLINE`, `RPM_LIMIT_MAX`, `SCRAM_HEAT`, `MELTDOWN_HEAT`,
-  `DECAY_HEAT_TICKS`, `GRID_SOFT_CAP`), so a tuning change cannot leave the tooltip behind. `addSupportLaser()` is in
-  the info block.
+  `DECAY_HEAT_TICKS`, `GRID_SOFT_CAP`), so a tuning change cannot leave the tooltip behind. `addSupportLaser()` was
+  in the info block; **the review removed it**: GT's green "Supports Laser Hatches!" means laser energy INPUT, and
+  the plant's Energy Hatch sockets (`HatchElement.Energy`) refuse a Laser Target Hatch. Its lasers are Laser Source
+  (output) hatches, already named in the info block and the structure block.
 - **A2.** Counts re-derived from the shape code with `questbook/gen-bom.ps1`'s shape functions (per-char tallies),
   and several differ from the audit numbers above: silo wall `451-1,667` (Radiation Proof T1-2, Europium Reinforced
   T3-4, Radiant Naquadah T5), bands `69-141`, dome `113-497` (not 40-320), and the pillar line counts blocks, not
