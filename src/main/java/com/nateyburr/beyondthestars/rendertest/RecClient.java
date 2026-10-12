@@ -5,8 +5,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -16,6 +20,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -26,15 +31,20 @@ import net.minecraft.client.gui.GuiDownloadTerrain;
 import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.RenderGlobal;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.WorldSettings;
 import net.minecraft.world.WorldType;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.glu.GLU;
 
 import com.gtnewhorizon.structurelib.StructureLibAPI;
 import com.gtnewhorizon.structurelib.alignment.constructable.ConstructableUtility;
@@ -79,8 +89,13 @@ public final class RecClient {
 
     private final Minecraft mc = Minecraft.getMinecraft();
     private int width = 1920, height = 1080;
-    /** GUI scale for {@code gui} / {@code questbook}: 2 at 720p, 3 at 1080p (the height / 360). */
-    private int guiScaleDefault = 3;
+    /**
+     * GUI scale for {@code gui} / {@code questbook} / {@code nei}: {@code -Dbts.rec.guiscale}, else the height / 270
+     * rounded (4 at 1080p, 3 at 720p), so a machine GUI reads at video size.
+     */
+    private int guiScaleDefault = 4;
+    /** The world view's GUI scale (cards and captions are drawn in window pixels, so this only matters for GUIs). */
+    private int guiScaleWorld = 3;
     private double fps = 30;
     private File outRoot, runDir, scriptFile;
     private String runName;
@@ -113,6 +128,31 @@ public final class RecClient {
     private String tag;
     private boolean guiOpen;
     private long sceneRecStart = -1;
+    /** The caption now on screen (a scene can change it as it goes), when it came up, and whether it waits for frames. */
+    private String caption = "";
+    private long captionStart = -1;
+    private boolean captionPending;
+    /** Callouts: a world point, its text, the box side; screen positions are worked out each frame. */
+    private final List<Label> labels = new ArrayList<>();
+    private final FloatBuffer mvBuf = BufferUtils.createFloatBuffer(16), prBuf = BufferUtils.createFloatBuffer(16),
+        winBuf = BufferUtils.createFloatBuffer(3);
+    private final IntBuffer vpBuf = BufferUtils.createIntBuffer(16);
+    /** Lines from server tasks fired and forgotten (written on the client thread). */
+    private final ConcurrentLinkedQueue<String> asyncLog = new ConcurrentLinkedQueue<>();
+
+    private static final class Label {
+
+        final double[] at;
+        final String text, side;
+        double sx = Double.NaN, sy = Double.NaN;
+        long since = -1;
+
+        Label(double[] at, String text, String side) {
+            this.at = at;
+            this.text = text;
+            this.side = side;
+        }
+    }
 
     // ---- per-scene frame statistics
     private long renderFrames, lastFrame = -1, maxGap;
@@ -154,7 +194,8 @@ public final class RecClient {
         } catch (RuntimeException bad) {
             BeyondTheStars.LOG.error("[BTS rec] bad -Dbts.rec.size=" + size + ", using 1920x1080");
         }
-        guiScaleDefault = Math.max(2, height / 360);
+        guiScaleWorld = Math.max(2, height / 360);
+        guiScaleDefault = Integer.getInteger("bts.rec.guiscale", Math.max(2, (int) Math.round(height / 270.0)));
         fps = Double.parseDouble(System.getProperty("bts.rec.fps", "30"));
         final String onlyProp = System.getProperty("bts.rec.only", "")
             .trim();
@@ -209,9 +250,76 @@ public final class RecClient {
         mc.gameSettings.viewBobbing = false;
         mc.gameSettings.difficulty = EnumDifficulty.PEACEFUL;
         mc.gameSettings.showDebugInfo = false;
-        mc.gameSettings.guiScale = guiScaleDefault;
+        mc.gameSettings.guiScale = guiScaleWorld;
         lockWindow();
-        say("window " + mc.displayWidth + "x" + mc.displayHeight + " (video " + width + "x" + height + ")");
+        say(
+            "window " + mc.displayWidth
+                + "x"
+                + mc.displayHeight
+                + " (video "
+                + width
+                + "x"
+                + height
+                + "), GUI scale "
+                + guiScaleDefault
+                + " for screens");
+        if (Boolean.parseBoolean(System.getProperty("bts.rec.quests", "true"))) installQuests();
+    }
+
+    /**
+     * The addon's questbook for the dev run: the worktree's {@code questbook/DefaultQuests} (and its
+     * {@code resources}) copied into the client's {@code config/betterquesting/}, BEFORE the recorder creates its
+     * world, so BetterQuesting loads them into the new world as it would in a pack instance with the overlay merged
+     * (questbook/README.md). The dev run has no pack quests, so the copy is a plain overwrite of our own files.
+     */
+    private void installQuests() {
+        File root = null;
+        for (File base : new File[] { new File(mc.mcDataDir, "../.."), new File(".") }) {
+            if (new File(base, "questbook/DefaultQuests/QuestLines").isDirectory()) {
+                root = canonical(base);
+                break;
+            }
+        }
+        if (root == null) {
+            say("questbook: no questbook/DefaultQuests in the worktree; the book will be empty");
+            return;
+        }
+        final File bq = new File(mc.mcDataDir, "config/betterquesting");
+        try {
+            final int quests = copyTree(new File(root, "questbook/DefaultQuests"), new File(bq, "DefaultQuests"));
+            final File res = new File(root, "questbook/resources");
+            final int files = res.isDirectory() ? copyTree(res, new File(bq, "resources")) : 0;
+            say(
+                "questbook: " + quests
+                    + " DefaultQuests files and "
+                    + files
+                    + " resource files copied into "
+                    + bq
+                    + " (BetterQuesting loads them into the new world)");
+        } catch (IOException bad) {
+            say("questbook: copying the DefaultQuests failed: " + bad);
+        }
+    }
+
+    private static int copyTree(File from, File to) throws IOException {
+        final Path src = from.toPath();
+        final int[] n = { 0 };
+        try (java.util.stream.Stream<Path> walk = Files.walk(src)) {
+            for (Path p : (Iterable<Path>) walk::iterator) {
+                final Path dst = to.toPath()
+                    .resolve(
+                        src.relativize(p)
+                            .toString());
+                if (Files.isDirectory(p)) {
+                    Files.createDirectories(dst);
+                } else {
+                    Files.createDirectories(dst.getParent());
+                    Files.copy(p, dst, StandardCopyOption.REPLACE_EXISTING);
+                    n[0]++;
+                }
+            }
+        }
+        return n[0];
     }
 
     private File findScript(String path) {
@@ -271,6 +379,7 @@ public final class RecClient {
         ticks++;
         phaseTicks++;
         if (ticks == 1) setUp();
+        for (String line; (line = asyncLog.poll()) != null;) say(line);
         if (ticks > MAX_TICKS && phase != Phase.FINISH) {
             say("TIMEOUT after " + ticks + " ticks: finishing with what was recorded");
             endScene();
@@ -353,20 +462,56 @@ public final class RecClient {
     }
 
     private void drawOverlay(long now) {
-        if (card == null && tag == null && (scene == null || scene.caption.isEmpty())) return;
+        if (card == null && tag == null && caption.isEmpty() && labels.isEmpty()) return;
         RecOverlay.begin(mc);
         try {
             if (card != null) {
                 RecOverlay.card(mc, card, cardAlpha);
             } else {
-                if (scene != null && !scene.caption.isEmpty()) {
-                    final float a = sceneRecStart < 0 ? 1f : (float) Math.min(1.0, (now - sceneRecStart) / 0.4e9);
-                    RecOverlay.caption(mc, scene.caption, Math.max(0.05f, a));
+                if (!guiOpen) for (Label l : labels) {
+                    if (Double.isNaN(l.sx)) continue;
+                    if (l.since < 0) l.since = now;
+                    final float a = (float) Math.min(1.0, (now - l.since) / 0.35e9);
+                    RecOverlay.label(mc, l.sx, l.sy, l.text, l.side, Math.max(0.05f, a));
+                }
+                if (!caption.isEmpty()) {
+                    final float a = captionStart < 0 ? 1f : (float) Math.min(1.0, (now - captionStart) / 0.4e9);
+                    RecOverlay.caption(mc, caption, Math.max(0.05f, a));
                 }
                 if (tag != null) RecOverlay.tag(mc, tag);
             }
         } finally {
             RecOverlay.end();
+        }
+    }
+
+    /** Where each callout's world point lands on screen this frame (the world's own matrices). */
+    @SubscribeEvent
+    public void onRenderWorldLast(RenderWorldLastEvent event) {
+        if (phase != Phase.RUN || labels.isEmpty()) return;
+        mvBuf.clear();
+        prBuf.clear();
+        vpBuf.clear();
+        GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, mvBuf);
+        GL11.glGetFloat(GL11.GL_PROJECTION_MATRIX, prBuf);
+        GL11.glGetInteger(GL11.GL_VIEWPORT, vpBuf);
+        for (Label l : labels) {
+            winBuf.clear();
+            final boolean ok = GLU.gluProject(
+                (float) (l.at[0] - RenderManager.renderPosX),
+                (float) (l.at[1] - RenderManager.renderPosY),
+                (float) (l.at[2] - RenderManager.renderPosZ),
+                mvBuf,
+                prBuf,
+                vpBuf,
+                winBuf);
+            final float wz = winBuf.get(2);
+            if (!ok || wz < 0 || wz > 1) {
+                l.sx = l.sy = Double.NaN;
+            } else {
+                l.sx = winBuf.get(0);
+                l.sy = mc.displayHeight - winBuf.get(1);
+            }
         }
     }
 
@@ -484,6 +629,9 @@ public final class RecClient {
         recordedSeconds = 0;
         card = null;
         tag = null;
+        caption = "";
+        captionStart = -1;
+        labels.clear();
     }
 
     private void endScene() {
@@ -510,9 +658,16 @@ public final class RecClient {
             summary.add(line);
             if (exit == 0 && frames > 0) segments.add(f);
         }
+        if (mc.getIntegratedServer() != null) RenderTest.onServer(() -> {
+            final String s = RecServer.status();
+            if (!s.isEmpty()) asyncLog.add("  rigs: " + s);
+            return s;
+        });
         sceneRecStart = -1;
         card = null;
         tag = null;
+        caption = "";
+        labels.clear();
         scene = null;
     }
 
@@ -532,6 +687,10 @@ public final class RecClient {
                 }
             }
             if (sceneRecStart < 0) sceneRecStart = now;
+            if (captionPending) {
+                captionStart = now;
+                captionPending = false;
+            }
             lastFrame = -1;
         }
         a.start(now);
@@ -559,14 +718,59 @@ public final class RecClient {
                 break;
             }
             case "hold":
-                acts.add(new Hold(Double.parseDouble(c.arg(0))));
+                acts.add(new Hold(Double.parseDouble(c.arg(0)), c.num("speed", 1), c.flag("clock")));
                 break;
+            case "caption":
+                acts.add(new CaptionAct(c.rest));
+                break;
+            case "label":
+                acts.add(labelAct(c));
+                break;
+            case "fov": {
+                final float fov = Float.parseFloat(c.arg(0));
+                acts.add(new Instant("fov " + fov, () -> mc.gameSettings.fovSetting = fov));
+                break;
+            }
             case "build": {
                 final String which = c.opt(0, "both");
+                if (which.equals("eyeae")) {
+                    acts.add(new Server("build the AE2 Eye rig", () -> AutoRigEyeAE.build(RenderTest.world())));
+                    break;
+                }
                 final boolean eye = !which.equals("kerr"), kerr = !which.equals("eye");
                 acts.add(new Server("build " + which, () -> AutoRig.build(eye, kerr)));
                 break;
             }
+            case "aecells":
+                acts.add(
+                    new Server("AE2 Eye rig: the cells into the drive", () -> AutoRigEyeAE.insertCells(RenderTest.world())));
+                break;
+            case "kit": {
+                final String what = c.arg(0)
+                    .toLowerCase(Locale.ROOT);
+                final int tier = Integer.parseInt(
+                    c.arg(1)
+                        .toLowerCase(Locale.ROOT)
+                        .replace("t", ""));
+                final int[] p = block(resolve(c.arg(2)));
+                final String facing = c.kv.getOrDefault("facing", "north");
+                final int gen = (int) c.num("gen", 0);
+                final String name = c.kv.get("name");
+                acts.add(
+                    new Server(
+                        "kit " + what + " T" + tier + " at " + RenderTest.pos(p),
+                        () -> RecServer.kit(what, tier, p, RecServer.facing(facing), gen, name)));
+                break;
+            }
+            case "nei":
+                acts.add(
+                    new Nei(
+                        c.arg(0)
+                            .toLowerCase(Locale.ROOT),
+                        c.arg(1),
+                        c.kv.getOrDefault("tab", ""),
+                        (int) c.num("scale", guiScaleDefault)));
+                break;
             case "goto": {
                 final double[] at = resolve(c.arg(0));
                 final double[] look = c.kv.containsKey("look") ? resolve(c.kv.get("look")) : null;
@@ -580,7 +784,7 @@ public final class RecClient {
             }
             case "pan": {
                 final double[] target = resolve(c.arg(0));
-                acts.add(new Pan(target, c.need("seconds")));
+                acts.add(new Pan(target, c.need("seconds"), c.num("speed", 1)));
                 break;
             }
             case "orbit": {
@@ -594,7 +798,9 @@ public final class RecClient {
                     c.num("from", 0),
                     c.num("to", 90),
                     c.need("seconds"),
-                    c.kv.getOrDefault("ease", "inout"));
+                    c.kv.getOrDefault("ease", "inout"),
+                    c.num("speed", 1),
+                    c.flag("clock"));
                 moveFirst(o.at(0), look);
                 acts.add(o);
                 break;
@@ -603,17 +809,32 @@ public final class RecClient {
                 final double[] from = resolve(c.arg(0)), to = resolve(c.arg(1));
                 final double[] look = c.kv.containsKey("look") ? resolve(c.kv.get("look")) : null;
                 moveFirst(from, look == null ? to : look);
-                acts.add(new Dolly(from, to, look, c.need("seconds"), c.kv.getOrDefault("ease", "inout")));
+                acts.add(
+                    new Dolly(
+                        from,
+                        to,
+                        look,
+                        c.need("seconds"),
+                        c.kv.getOrDefault("ease", "inout"),
+                        c.num("speed", 1),
+                        c.flag("clock")));
                 break;
             }
             case "timelapse":
-                acts.add(new Timelapse(Double.parseDouble(c.arg(0)), c.num("speed", 20), c.flag("sky")));
+                acts.add(
+                    new Timelapse(
+                        Double.parseDouble(c.arg(0)),
+                        c.num("speed", 20),
+                        c.flag("sky"),
+                        c.kv.get("until"),
+                        c.num("tail", 0),
+                        c.flag("clock")));
                 break;
             case "gui":
                 acts.add(new Gui(block(resolve(c.arg(0))), (int) c.num("scale", guiScaleDefault)));
                 break;
             case "questbook":
-                acts.add(new Questbook(c.opt(0, ""), (int) c.num("scale", guiScaleDefault)));
+                acts.add(new Questbook(c.opt(0, ""), c.opt(1, ""), (int) c.num("scale", guiScaleDefault)));
                 break;
             case "close":
                 acts.add(new Close());
@@ -622,15 +843,28 @@ public final class RecClient {
                 final String spec = c.arg(0);
                 final int[] p = block(resolve(c.arg(1)));
                 final String facing = c.kv.getOrDefault("facing", "north");
-                acts.add(new Server("place " + spec, () -> RecServer.place(spec, p, RecServer.facing(facing))));
+                final String name = c.kv.get("name");
+                acts.add(
+                    new Server("place " + spec, () -> RecServer.place(spec, p, RecServer.facing(facing), name)));
                 break;
             }
             case "hologram": {
                 final int[] p = block(resolve(c.arg(0)));
                 final int tier = (int) c.num("tier", 1);
-                if (c.opt(1, "hints")
-                    .equals("build")) {
+                final String mode = c.opt(1, "hints");
+                if (mode.equals("build")) {
                     acts.add(new Server("hologram build", () -> RecServer.construct(p, tier)));
+                } else if (mode.equals("survival")) {
+                    acts.add(
+                        new Survival(
+                            p,
+                            tier,
+                            (int) c.num("budget", 25),
+                            (int) c.num("every", 1),
+                            c.num("speed", 1),
+                            c.num("tail", 1),
+                            c.num("max", 120),
+                            c.flag("clock")));
                 } else {
                     acts.add(new Hints(p, tier));
                 }
@@ -697,7 +931,9 @@ public final class RecClient {
                 break;
             }
             default:
-                throw new IllegalArgumentException("unknown place '" + name + "'");
+                // a named point a rig registered as it was built (ae.drive, k.core, ...) or a kit / place name
+                base = need(AutoRig.POINTS.get(name), "place '" + name + "' (not built yet?)");
+                break;
         }
         return new double[] { base[0] + off[0], base[1] + off[1], base[2] + off[2] };
     }
@@ -815,18 +1051,35 @@ public final class RecClient {
         }
     }
 
-    /** A recorded span of {@code seconds}. */
+    /**
+     * A recorded span of {@code seconds} of video. With {@code speed} above 1 it is a time-lapse: {@code seconds x
+     * speed} of real time go into it (one frame every {@code speed} frame periods), the game runs at its own rate, and
+     * the TIME-LAPSE tag shows (with {@code clock}, the real time elapsed since the span began).
+     */
     private class Hold extends Act {
 
-        final double seconds;
+        final double seconds, speedX;
+        final boolean clock;
+        long clockStart;
 
         Hold(double seconds) {
-            this("hold " + seconds + " s", seconds);
+            this(seconds, 1, false);
+        }
+
+        Hold(double seconds, double speed, boolean clock) {
+            this("hold " + seconds + " s" + (speed > 1 ? " at " + FrameRecorder.fmt(speed) + "x" : ""), seconds, speed,
+                clock);
         }
 
         Hold(String what, double seconds) {
+            this(what, seconds, 1, false);
+        }
+
+        Hold(String what, double seconds, double speed, boolean clock) {
             super(what);
             this.seconds = seconds;
+            this.speedX = Math.max(1, speed);
+            this.clock = clock;
         }
 
         @Override
@@ -835,9 +1088,91 @@ public final class RecClient {
         }
 
         @Override
+        double speed() {
+            return speedX;
+        }
+
+        @Override
         void start(long now) {
             until = now + nanos(seconds * speed());
+            clockStart = now;
+            if (speed() > 1) tag = tagText(now);
         }
+
+        String tagText(long now) {
+            final String base = "TIME-LAPSE  ×" + FrameRecorder.fmt(speed());
+            if (!clock) return base;
+            final long s = Math.max(0, (now - clockStart) / 1_000_000_000L);
+            return base + "   +" + String.format(Locale.ROOT, "%d:%02d", s / 60, s % 60);
+        }
+
+        @Override
+        void frame(long now) {
+            if (speed() > 1 && clock) tag = tagText(now);
+        }
+
+        @Override
+        void end() {
+            if (speed() > 1) tag = null;
+        }
+    }
+
+    /** Runs a small client action at once (not recorded). */
+    private final class Instant extends Act {
+
+        final Runnable r;
+
+        Instant(String what, Runnable r) {
+            super(what);
+            this.r = r;
+        }
+
+        @Override
+        void start(long now) {
+            r.run();
+            done = true;
+        }
+    }
+
+    /** Changes the caption; it fades in when the next recorded span starts (or at once, mid-span). */
+    private final class CaptionAct extends Act {
+
+        final String text;
+
+        CaptionAct(String text) {
+            super("caption: " + text);
+            this.text = text;
+        }
+
+        @Override
+        void start(long now) {
+            caption = text;
+            final boolean recording = sceneRecStart >= 0 && rec != null && rec.isOpen();
+            captionStart = recording ? now : -1;
+            captionPending = !recording;
+            done = true;
+        }
+    }
+
+    /**
+     * {@code label <place> [side up|down|left|right] | <text>} adds a callout pointing at the place;
+     * {@code label clear} removes them all. Callouts last until the scene ends.
+     */
+    private Act labelAct(RecScript.Cmd c) {
+        final String raw = c.rest.trim();
+        if (raw.equalsIgnoreCase("clear")) return new Instant("labels cleared", labels::clear);
+        final int bar = raw.indexOf('|');
+        if (bar < 0) throw new IllegalArgumentException("label <place> [side <dir>] | <text>");
+        final List<String> head = RecScript.tokens(raw.substring(0, bar));
+        final String text = RecScript.unquote(raw.substring(bar + 1));
+        if (head.isEmpty()) throw new IllegalArgumentException("label needs a place");
+        final double[] at = resolve(head.get(0));
+        String side = "";
+        for (int i = 1; i + 1 < head.size(); i++) if (head.get(i)
+            .equalsIgnoreCase("side")) side = head.get(i + 1)
+                .toLowerCase(Locale.ROOT);
+        final String s = side;
+        return new Instant("label at " + Arrays.toString(at) + ": " + text, () -> labels.add(new Label(at, text, s)));
     }
 
     private final class Card extends Hold {
@@ -875,11 +1210,11 @@ public final class RecClient {
         final String ease;
 
         Orbit(double[] centre, double[] look, double radius, double h, double from, double to, double seconds,
-            String ease) {
+            String ease, double speed, boolean clock) {
             super(
                 String.format(
                     Locale.ROOT,
-                    "orbit r %.0f h %.0f %.0f..%.0f deg in %.1f s around (%.1f, %.1f, %.1f)",
+                    "orbit r %.0f h %.0f %.0f..%.0f deg in %.1f s around (%.1f, %.1f, %.1f)%s",
                     radius,
                     h,
                     from,
@@ -887,8 +1222,11 @@ public final class RecClient {
                     seconds,
                     centre[0],
                     centre[1],
-                    centre[2]),
-                seconds);
+                    centre[2],
+                    speed > 1 ? " at " + FrameRecorder.fmt(speed) + "x" : ""),
+                seconds,
+                speed,
+                clock);
             this.centre = centre;
             this.look = look;
             this.radius = radius;
@@ -912,6 +1250,7 @@ public final class RecClient {
 
         @Override
         void frame(long now) {
+            super.frame(now);
             pose = lookAt(at(ease(ease, u(now))), look);
         }
     }
@@ -922,8 +1261,9 @@ public final class RecClient {
         final String ease;
         float yaw, pitch;
 
-        Dolly(double[] from, double[] to, double[] look, double seconds, String ease) {
-            super("dolly in " + seconds + " s", seconds);
+        Dolly(double[] from, double[] to, double[] look, double seconds, String ease, double speed, boolean clock) {
+            super("dolly in " + seconds + " s" + (speed > 1 ? " at " + FrameRecorder.fmt(speed) + "x" : ""), seconds,
+                speed, clock);
             this.from = from;
             this.to = to;
             this.look = look;
@@ -946,6 +1286,7 @@ public final class RecClient {
 
         @Override
         void frame(long now) {
+            super.frame(now);
             final double[] p = at(ease(ease, u(now)));
             pose = look != null ? lookAt(p, look) : new double[] { p[0], p[1], p[2], yaw, pitch };
         }
@@ -958,7 +1299,12 @@ public final class RecClient {
         double[] a, b;
 
         Pan(double[] target, double seconds) {
-            super((seconds > 0 ? "pan " + seconds + " s" : "look") + " at " + Arrays.toString(target), seconds);
+            this(target, seconds, 1);
+        }
+
+        Pan(double[] target, double seconds, double speed) {
+            super((seconds > 0 ? "pan " + seconds + " s" : "look") + " at " + Arrays.toString(target), seconds, speed,
+                false);
             this.target = target;
         }
 
@@ -988,39 +1334,158 @@ public final class RecClient {
         @Override
         void frame(long now) {
             if (done || a == null) return;
+            super.frame(now);
             final double e = ease("inout", u(now));
             pose = new double[] { a[0], a[1], a[2], a[3] + (b[3] - a[3]) * e, a[4] + (b[4] - a[4]) * e };
         }
     }
 
-    /** A time-lapse: {@code seconds} of video recorded over {@code seconds x speed} of real time. */
+    /**
+     * A time-lapse: up to {@code seconds} of video recorded over {@code seconds x speed} of real time (one frame every
+     * {@code speed} frame periods; the game runs at its real rate). With {@code until <condition>} it ends early once
+     * the server condition holds ({@code tail} more video seconds are kept after it), so a long real process (a star
+     * lighting itself, a hole climbing) is shown in full but short.
+     */
     private final class Timelapse extends Hold {
 
-        final double speed;
         final boolean sky;
+        final String untilCond;
+        final double tail;
+        CompletableFuture<Boolean> f;
+        int ticks;
+        boolean met;
 
-        Timelapse(double seconds, double speed, boolean sky) {
-            super("time-lapse " + seconds + " s of video at " + speed + "x" + (sky ? ", sky moving" : ""), seconds);
-            this.speed = speed;
+        Timelapse(double seconds, double speed, boolean sky, String until, double tail, boolean clock) {
+            super(
+                "time-lapse up to " + seconds
+                    + " s of video at "
+                    + speed
+                    + "x"
+                    + (sky ? ", sky moving" : "")
+                    + (until != null ? ", until " + until + " (+" + tail + " s)" : ""),
+                seconds,
+                Math.max(1.0001, speed),
+                clock);
             this.sky = sky;
-        }
-
-        @Override
-        double speed() {
-            return speed;
+            this.untilCond = until;
+            this.tail = tail;
         }
 
         @Override
         void start(long now) {
             super.start(now);
-            tag = "TIME-LAPSE  " + FrameRecorder.fmt(speed) + "x";
+            tag = tagText(now);
             if (sky) RenderTest.onServer(() -> RecServer.daylight(true));
         }
 
         @Override
+        void tick() {
+            if (untilCond == null || met) return;
+            ticks++;
+            if (f != null && f.isDone()) {
+                try {
+                    if (Boolean.TRUE.equals(f.get())) {
+                        met = true;
+                        final long now = System.nanoTime();
+                        until = Math.min(until, now + nanos(tail * speed()));
+                        say(
+                            String.format(
+                                Locale.ROOT,
+                                "    %s after %.0f s real time (%.1f s of video); %.1f s more",
+                                untilCond,
+                                (now - t0) / 1e9,
+                                (now - t0) / 1e9 / speed(),
+                                tail));
+                    }
+                } catch (Exception bad) {
+                    say("    condition FAILED: " + bad);
+                }
+                f = null;
+            }
+            if (f == null && ticks % 10 == 1) f = RenderTest.onServer(() -> RecServer.cond(untilCond));
+        }
+
+        @Override
         void end() {
-            tag = null;
+            super.end();
+            if (untilCond != null && !met) say("    " + untilCond + " NOT met within the time-lapse");
             if (sky) RenderTest.onServer(() -> RecServer.daylight(false));
+        }
+    }
+
+    /**
+     * The Hologram Projector's survival auto-place, recorded: one {@code survivalConstruct} round of {@code budget}
+     * elements every {@code every} ticks, so the structure goes up in the order the projector places it; ends
+     * {@code tail} video seconds after the last block (or at {@code max}). {@code speed} above 1 makes it a time-lapse.
+     */
+    private final class Survival extends Hold {
+
+        final int[] p;
+        final int tier, budget, every;
+        final double tail, max;
+        CompletableFuture<Integer> f;
+        int ticks, rounds, placed, idle;
+        boolean finished;
+
+        Survival(int[] p, int tier, int budget, int every, double speed, double tail, double max, boolean clock) {
+            super(
+                "survival auto-place at " + RenderTest.pos(p)
+                    + " (tier "
+                    + tier
+                    + ", "
+                    + budget
+                    + " elements every "
+                    + every
+                    + " ticks"
+                    + (speed > 1 ? ", " + FrameRecorder.fmt(speed) + "x" : "")
+                    + ")",
+                max,
+                speed,
+                clock);
+            this.p = p;
+            this.tier = tier;
+            this.budget = budget;
+            this.every = Math.max(1, every);
+            this.tail = tail;
+            this.max = max;
+        }
+
+        @Override
+        void tick() {
+            if (finished) return;
+            ticks++;
+            if (f != null && f.isDone()) {
+                int n;
+                try {
+                    n = f.get();
+                } catch (Exception bad) {
+                    say("    round FAILED: " + bad);
+                    n = -2;
+                }
+                f = null;
+                rounds++;
+                if (n >= 0) placed += n;
+                idle = n == 0 ? idle + 1 : 0;
+                if (n < 0 || idle >= 3) {
+                    finished = true;
+                    until = Math.min(until, System.nanoTime() + nanos(tail * speed()));
+                    say(
+                        "    " + (n == -1 ? "finished" : n == -2 ? "nothing to build there" : "stalled")
+                            + " after "
+                            + rounds
+                            + " rounds, "
+                            + placed
+                            + " elements placed");
+                    return;
+                }
+            }
+            if (f == null && ticks % every == 0) f = RenderTest.onServer(() -> RecServer.survivalRound(p, tier, budget));
+        }
+
+        @Override
+        void end() {
+            super.end();
+            if (!finished) say("    survival auto-place cut at the max: " + rounds + " rounds, " + placed + " placed");
         }
     }
 
@@ -1156,17 +1621,35 @@ public final class RecClient {
         }
     }
 
-    /** BetterQuesting's quest book (by reflection): the chapter list, or one quest by its id low (high 190). */
+    /**
+     * BetterQuesting's quest book (by reflection): {@code questbook} (the chapter view as it opens),
+     * {@code questbook chapter [<id>]} (that chapter selected; default the addon's, 190:47990),
+     * {@code questbook quest <id>} or {@code questbook <id>} (one quest's page). An id is a low word (high 190) or
+     * {@code high:low}.
+     */
     private final class Questbook extends Act {
 
-        final String id;
+        final String mode, id;
         final int scale;
         int up, waited;
 
-        Questbook(String id, int scale) {
-            super("open the quest book" + (id.isEmpty() ? "" : " at quest " + id));
-            this.id = id;
+        Questbook(String a, String b, int scale) {
+            super("open the quest book" + (a.isEmpty() ? "" : " " + a + (b.isEmpty() ? "" : " " + b)));
+            if (a.equals("chapter") || a.equals("quest")) {
+                mode = a;
+                id = b;
+            } else {
+                mode = a.isEmpty() ? "" : "quest";
+                id = a;
+            }
             this.scale = scale;
+        }
+
+        private UUID uuid(String s, long defLow) {
+            if (s.isEmpty()) return new UUID(190L, defLow);
+            final String[] hl = s.split(":");
+            return hl.length == 2 ? new UUID(Long.parseLong(hl[0]), Long.parseLong(hl[1]))
+                : new UUID(190L, Long.parseLong(s));
         }
 
         @Override
@@ -1176,17 +1659,19 @@ public final class RecClient {
             mc.gameSettings.guiScale = scale;
             try {
                 final GuiScreen screen;
-                if (id.isEmpty()) {
-                    screen = (GuiScreen) Class.forName("betterquesting.client.gui2.GuiQuestLines")
-                        .getConstructor(GuiScreen.class)
-                        .newInstance((Object) null);
-                } else {
-                    final String[] hl = id.split(":");
-                    final UUID uuid = hl.length == 2 ? new UUID(Long.parseLong(hl[0]), Long.parseLong(hl[1]))
-                        : new UUID(190L, Long.parseLong(id));
+                if (mode.equals("quest")) {
                     screen = (GuiScreen) Class.forName("betterquesting.client.gui2.GuiQuest")
                         .getConstructor(GuiScreen.class, UUID.class)
-                        .newInstance(null, uuid);
+                        .newInstance(null, uuid(id, 48000L));
+                } else {
+                    final Class<?> lines = Class.forName("betterquesting.client.gui2.GuiQuestLines");
+                    if (mode.equals("chapter")) {
+                        final java.lang.reflect.Field sel = lines.getDeclaredField("selectedLineId");
+                        sel.setAccessible(true);
+                        sel.set(null, uuid(id, 47990L));
+                    }
+                    screen = (GuiScreen) lines.getConstructor(GuiScreen.class)
+                        .newInstance((Object) null);
                 }
                 mc.displayGuiScreen(screen);
             } catch (ReflectiveOperationException | LinkageError | RuntimeException bad) {
@@ -1216,8 +1701,113 @@ public final class RecClient {
             mc.displayGuiScreen(null);
             guiOpen = false;
             hideNei(false);
-            mc.gameSettings.guiScale = guiScaleDefault;
+            mc.gameSettings.guiScale = guiScaleWorld;
             done = true;
+        }
+    }
+
+    /**
+     * NEI's recipe screen for an item ({@code ItemList.<name>} or {@code bts.<field>}): {@code nei usage <item>} (what
+     * it is used in; BlockRenderer6343's multiblock preview is one of these tabs) or {@code nei recipe <item>} (how it
+     * is made), with {@code tab <text>} the first tab whose name or handler class contains the text selected.
+     */
+    private final class Nei extends Act {
+
+        final String kind, spec, tab;
+        final int scale;
+        int up, waited;
+        boolean tabbed;
+
+        Nei(String kind, String spec, String tab, int scale) {
+            super("NEI " + kind + " " + spec + (tab.isEmpty() ? "" : " (tab " + tab + ")"));
+            this.kind = kind;
+            this.spec = spec;
+            this.tab = tab.toLowerCase(Locale.ROOT);
+            this.scale = scale;
+        }
+
+        @Override
+        void start(long now) {
+            guiOpen = true;
+            hideNei(true);
+            mc.gameSettings.guiScale = scale;
+            try {
+                final ItemStack stack = RecServer.machine(spec);
+                final String cls = kind.equals("usage") ? "codechicken.nei.recipe.GuiUsageRecipe"
+                    : "codechicken.nei.recipe.GuiCraftingRecipe";
+                final Object ok = Class.forName(cls)
+                    .getMethod("openRecipeGui", String.class, Object[].class)
+                    .invoke(null, "item", new Object[] { stack });
+                say("    NEI " + kind + " for " + stack.getDisplayName() + ": " + ok);
+                if (!Boolean.TRUE.equals(ok)) {
+                    guiOpen = false;
+                    done = true;
+                }
+            } catch (ReflectiveOperationException | LinkageError | RuntimeException bad) {
+                say("    NEI FAILED: " + bad);
+                guiOpen = false;
+                done = true;
+            }
+        }
+
+        @Override
+        void tick() {
+            waited++;
+            if (mc.currentScreen != null) up++;
+            if (!tabbed && !tab.isEmpty() && up >= 2) {
+                tabbed = true;
+                selectTab();
+            }
+            if (up >= 20 || waited >= 200) done = true;
+        }
+
+        private void selectTab() {
+            try {
+                final Class<?> gr = Class.forName("codechicken.nei.recipe.GuiRecipe");
+                if (!gr.isInstance(mc.currentScreen)) return;
+                final List<?> handlers = (List<?>) gr.getField("currenthandlers")
+                    .get(mc.currentScreen);
+                final StringBuilder names = new StringBuilder();
+                int found = -1;
+                for (int i = 0; i < handlers.size(); i++) {
+                    final Object h = handlers.get(i);
+                    String name;
+                    try {
+                        name = String.valueOf(
+                            h.getClass()
+                                .getMethod("getRecipeName")
+                                .invoke(h));
+                    } catch (ReflectiveOperationException none) {
+                        name = "?";
+                    }
+                    names.append(i)
+                        .append('=')
+                        .append(name)
+                        .append(" (")
+                        .append(
+                            h.getClass()
+                                .getSimpleName())
+                        .append(") ");
+                    if (found < 0 && (name.toLowerCase(Locale.ROOT)
+                        .contains(tab)
+                        || h.getClass()
+                            .getName()
+                            .toLowerCase(Locale.ROOT)
+                            .contains(tab)))
+                        found = i;
+                }
+                say("    NEI tabs: " + names);
+                if (found < 0) {
+                    say("    no tab matching '" + tab + "'");
+                    return;
+                }
+                final java.lang.reflect.Method set = gr.getDeclaredMethod("setRecipePage", int.class);
+                set.setAccessible(true);
+                set.invoke(mc.currentScreen, found);
+                say("    NEI tab " + found + " selected");
+            } catch (ReflectiveOperationException | LinkageError | RuntimeException bad) {
+                say("    NEI tab FAILED: " + bad);
+            }
         }
     }
 
@@ -1263,15 +1853,7 @@ public final class RecClient {
         }
 
         private boolean cond() {
-            switch (what2) {
-                case "eyelit":
-                    return AutoRig.eyeLit();
-                case "holeopen":
-                    return AutoRig.kee() != null && AutoRig.kee()
-                        .isHoleOpen();
-                default:
-                    return false;
-            }
+            return RecServer.cond(what2);
         }
 
         @Override

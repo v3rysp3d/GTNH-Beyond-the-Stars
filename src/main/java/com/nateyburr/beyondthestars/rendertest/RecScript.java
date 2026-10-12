@@ -47,7 +47,12 @@ final class RecScript {
             "time",
             "wait",
             "cell",
-            "command"));
+            "command",
+            "label",
+            "kit",
+            "nei",
+            "aecells",
+            "fov"));
 
     /** The verbs whose time is recorded. */
     static final Set<String> RECORDING = new HashSet<>(
@@ -67,7 +72,15 @@ final class RecScript {
             "facing",
             "tier",
             "timeout",
-            "ease"));
+            "ease",
+            "until",
+            "max",
+            "tail",
+            "budget",
+            "every",
+            "tab",
+            "name",
+            "gen"));
 
     /** One command line. */
     static final class Cmd {
@@ -178,11 +191,14 @@ final class RecScript {
             if (verb.equals("caption")) {
                 if (cur.setup()) throw new IllegalArgumentException(
                     file.getName() + " line " + n + ": caption before the first scene");
-                cur.caption = unquote(rest);
+                // the first caption names the scene in the log; every caption is also a command, so a scene can
+                // change its caption as it goes (a walk-through)
+                if (cur.caption.isEmpty()) cur.caption = unquote(rest);
+                cur.cmds.add(new Cmd(n, verb, unquote(rest)));
                 continue;
             }
             final Cmd c = new Cmd(n, verb, rest);
-            if (!verb.equals("card") && !verb.equals("command")) {
+            if (!verb.equals("card") && !verb.equals("command") && !verb.equals("label")) {
                 final List<String> toks = tokens(rest);
                 for (int k = 0; k < toks.size(); k++) {
                     final String t = toks.get(k);

@@ -1,0 +1,89 @@
+# Dev test of the AE2 rigs and the new recorder commands (docs/recording.md). Not a showcase.
+
+# setup (never recorded)
+build eyeae
+build kerr
+time day
+
+scene overview
+  caption Overview of the AE2 Eye rig
+  orbit aeeye+0,-10,0 radius 95 height 35 from -50 to 50 seconds 4
+
+scene front
+  caption Front: the ground trunk and the risers
+  goto aeeye+0,-22,-85 look aeeye+0,-28,-35
+  hold 1
+
+scene core
+  caption The ME core
+  goto ae.core+4,4,-8 look ae.core+4,0,2
+  label ae.drive side left | ME drive
+  label ae.core side down | creative-energy ME controller
+  label ae.emitter side right | level emitter lamp
+  hold 1.5
+
+scene stock
+  caption Stocking hatch and bus
+  goto ae.stockhatch+-4,4,-9 look ae.stockhatch
+  label ae.stockhatch | ME stocking input hatch
+  hold 1
+  goto ae.stockbus+4,4,-9 look ae.stockbus
+  hold 1
+
+scene trim
+  caption Trim station
+  goto ae.trimhe+0,4,-9 look ae.trimhe+0,1,0
+  label ae.trimhe side left | fluid export bus
+  label ae.dirhe side right | Directive Hatch
+  hold 1.5
+
+scene light
+  caption The cells go in; the Eye lights itself
+  goto aeeye+0,-15,-80 look aeeye+0,-10,0
+  aecells
+  timelapse 40 speed 30 until aelit tail 4 clock
+
+scene burning
+  caption Burning: the trims hold the field
+  goto ae.trimhe+0,4,-9 look ae.trimhe+0,1,0
+  timelapse 6 speed 20 clock
+
+scene eyegui
+  caption The Eye's controller screen
+  goto aeeyectrl+0,0.2,-3.5 look aeeyectrl
+  gui aeeyectrl
+  hold 2
+  close
+
+scene kerr
+  caption Kerr rig, tidied
+  goto k.core+10,8,-20 look k.core+0,-3,6
+  hold 1
+  cell
+  timelapse 20 speed 30 until holeopen tail 4 clock
+
+scene quests
+  caption Questbook
+  questbook chapter
+  hold 1.5
+  close
+  questbook quest 48000
+  hold 1.5
+  close
+
+scene nei
+  caption NEI
+  nei usage bts.eyeOfHarmony tab multiblock
+  hold 2
+  close
+  nei recipe bts.eyeOfHarmony
+  hold 2
+  close
+
+scene survival
+  caption Survival auto-place
+  place bts.eyeOfHarmony 3200,5,4000 facing north name build1
+  goto build1+0,45,-70 look build1+0,10,40
+  hologram build1 hints
+  hold 1.5
+  hologram build1 survival tier 1 budget 25 every 1 tail 1 max 40

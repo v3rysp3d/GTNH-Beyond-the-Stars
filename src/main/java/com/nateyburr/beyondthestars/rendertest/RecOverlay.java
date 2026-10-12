@@ -138,6 +138,78 @@ final class RecOverlay {
         }
     }
 
+    /**
+     * A callout: a dot on the target (window pixels {@code tx, ty}), a line out to a box with the text, the box set off
+     * towards {@code side} (up, down, left, right; up-right by default). Off-screen targets are skipped.
+     */
+    static void label(Minecraft mc, double tx, double ty, String text, String side, float a) {
+        if (a <= 0.02f || text == null || text.isEmpty()) return;
+        final FontRenderer f = mc.fontRenderer;
+        final int w = mc.displayWidth, h = mc.displayHeight;
+        if (tx < -50 || ty < -50 || tx > w + 50 || ty > h + 50) return;
+        final float scale = Math.max(1.5f, Math.round(h / 400f));
+        final List<String> lines = wrap(f, text, (int) (w * 0.28), scale);
+        int tw = 0;
+        for (String l : lines) tw = Math.max(tw, f.getStringWidth(l));
+        final int pad = Math.round(4 * scale);
+        final int bw = Math.round(tw * scale) + pad * 2, bh = Math.round(lines.size() * 10 * scale) + pad * 2 - 1;
+        final int off = Math.round(28 * scale);
+        double bx, by; // the box's top-left
+        switch (side == null ? "" : side) {
+            case "left":
+                bx = tx - off - bw;
+                by = ty - bh / 2.0;
+                break;
+            case "right":
+                bx = tx + off;
+                by = ty - bh / 2.0;
+                break;
+            case "down":
+                bx = tx - bw / 2.0;
+                by = ty + off;
+                break;
+            case "up":
+                bx = tx - bw / 2.0;
+                by = ty - off - bh;
+                break;
+            default:
+                bx = tx + off * 0.7;
+                by = ty - off * 0.7 - bh;
+                break;
+        }
+        // keep the box on screen and clear of the caption bar
+        bx = Math.max(8, Math.min(w - bw - 8, bx));
+        by = Math.max(8, Math.min(h - bh - Math.round(48 * h / 1080f) - 8, by));
+        // the box edge point nearest the target, for the leader line
+        final double ex = Math.max(bx, Math.min(bx + bw, tx)), ey = Math.max(by, Math.min(by + bh, ty));
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GL11.glLineWidth(Math.max(2f, scale * 1.2f));
+        GL11.glColor4f(1f, 0.84f, 0.29f, a);
+        GL11.glBegin(GL11.GL_LINES);
+        GL11.glVertex2d(tx, ty);
+        GL11.glVertex2d(ex, ey);
+        GL11.glEnd();
+        final double r = 3.5 * scale;
+        GL11.glBegin(GL11.GL_QUADS);
+        GL11.glVertex2d(tx - r, ty - r);
+        GL11.glVertex2d(tx - r, ty + r);
+        GL11.glVertex2d(tx + r, ty + r);
+        GL11.glVertex2d(tx + r, ty - r);
+        GL11.glEnd();
+        GL11.glColor4f(1, 1, 1, 1);
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+        final int x0 = (int) Math.round(bx), y0 = (int) Math.round(by);
+        rect(x0, y0, x0 + bw, y0 + bh, alpha(0xC8000000, a));
+        rect(x0, y0, x0 + Math.max(2, Math.round(scale)), y0 + bh, alpha(0xFFFFD54A, a));
+        double y = y0 + pad;
+        for (String l : lines) {
+            text(f, l, x0 + pad + scale, y, scale, 0xFFFFFF, a);
+            y += 10 * scale;
+        }
+    }
+
     /** A tag in the top-right corner (e.g. "TIME-LAPSE x20"). */
     static void tag(Minecraft mc, String tag) {
         final FontRenderer f = mc.fontRenderer;
