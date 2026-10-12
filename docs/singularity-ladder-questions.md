@@ -268,3 +268,70 @@ greyscale animated still and flowing strips. GT tints those by the registered RG
 **Alternatives.** (a) Hand-drawn textures from a ruling or an artist; the file names stay the same. (b) Reuse GT's own
 textures for some casings (for example the mirror as a recolour of `RADIATION_ABSORBENT_CASING`). That ties them to
 GT's art, but it also ties them to GT texture changes.
+
+## Q-15 Which spec blocks became existing EOH / BHC blocks (block-reuse ruling)
+
+**Context.** Mid-run user ruling: "use the eye of harmony blocks that currently exist as we want to try keep
+everything similar", and prefer the Black Hole Compressor's blocks for the Kerr. The spec had 20 new block metas.
+
+**What we built** (Foundation, build spec "Contract additions FC-1"). Four roles use existing blocks and are not
+registered; their metas stay as reserved holes so nothing renumbers:
+
+| Role (voxel kind) | Eye | Kerr |
+|---|---|---|
+| Containment Deck Plating (`deck`) | Reinforced Temporal Structure Casing | (no deck cells) |
+| Eye Shell Casing (`eyeshell`) | Reinforced Spatial Structure Casing | Extreme Density Space-Bending Casing |
+| Harmonic Lining (`lining`) | Infinite Spacetime Energy Boundary Casing | Background Radiation Absorbent Casing |
+| Spatial Glass Channel (`sglass`) | Quantum Glass (TecTech) | Hawking Radiation Realignment Focus |
+
+New blocks remain only where nothing existing fits: the Kerr's mirror, mirror backing, three injector rails, field
+coil, quadrupole, beam dump, Bastion, Casimir, extraction casing and the two module cores, and the Eye's three
+per-tier band casings (Beam Band, Jet Crescent, Galactic Shell). Recipes SL-P01/P11/P12/P13 are retired, and the
+Stabiliser Pylon (SL-P21) now takes TecTech's EOH casings in their place.
+
+**Open points.**
+
+- The Kerr's lining was a bright white inner face in the mockup; the BHC has no white casing, so it reads darker
+  in-game. The EOH's Infinite Spacetime Energy Boundary Casing is the closest look, but EOH casings are post-UMV and
+  the Kerr is UIV.
+- TecTech's tiered field generators (Spacetime Compression / Time Dilation / Stabilisation, 9 tiers each) have no
+  voxel kind in the mockup yet, so no piece uses them. A natural mapping: pylon cores = compression, rails = time
+  dilation, clamps = stabilisation, with a minimum tier per Eye tier (for example T1 needs tier 5, T4 needs tier 8).
+  That needs a new shape char from the exporter and a call from the Eye unit.
+
+**Suggestion.** Accept the table. Rule on whether the Eye should demand field-generator tiers.
+
+**Alternatives.** Keep a new "Harmonic Lining" only for the Kerr's look, at the cost of one more block.
+
+## Q-16 Assembler recipes are limited to one fluid
+
+**Context.** GT's Assembler map is `maxIO(9, 1, 1, 0)`: one fluid input. Four §2.2 cards had two fluids.
+
+**What we built.**
+
+- SL-P03 (Superradiant Mirror Casing) takes its SpaceTime as 2 SpaceTime foils.
+- SL-P07 (Injector Rail Mk III) drops the Lubricant and keeps the molten SpaceTime.
+- SL-P16 (Jet Crescent) keeps Raw Star Matter as the fluid, because it is the gate, and takes the 4,608 L of SpaceTime as
+  32 ingots.
+- SL-P17 (Galactic Shell) keeps Hyperdense Stellar Mixture, because it is the T4 gate, and takes the 1,152 L of
+  Transcendent Metal as 8 ingots.
+
+**Suggestion.** As built.
+
+**Alternatives.** Move those four to the assembly line (4 fluids), at the cost of one AL craft per batch.
+
+## Q-17 Dense SpaceTime plates may not exist in this pack
+
+**Context.** No GT, TecTech or dreamcraft recipe in the pinned jars uses `plateDense` SpaceTime, so GT probably
+doesn't generate it. Dense Neutronium, Infinity and Transcendent Metal are all used by GT, so they exist.
+
+**What we built.** Every dense plate in the Foundation recipes goes through
+`BTSRecipesSingularity.dense(material, n)`. It returns the dense plate if GT has one. Otherwise it returns 9 plates
+per dense plate, in stacks of at most 64, and logs a single warning for that material. SL-P15 and SL-P23 are affected.
+The helper is public so the Kerr (SL-K01) and Eye (SL-E01, SL-E02) units can use the same rule. Note: ×32 or ×64
+dense SpaceTime becomes 288 or 576 plates, which is 5 or 9 extra assembly-line slots.
+
+**Suggestion.** Read the boot log once. If the warning appears, swap the big AL inputs to `plateSuperdense`
+SpaceTime, or to ingots, rather than to plate stacks.
+
+**Alternatives.** Ask the pack to generate dense SpaceTime.
