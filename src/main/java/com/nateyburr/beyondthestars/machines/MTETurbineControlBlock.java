@@ -15,15 +15,15 @@ import gregtech.api.metatileentity.implementations.MTEHatch;
 import gregtech.api.render.TextureFactory;
 
 /**
- * Turbine Control Block (TC-2/3) - the turbine panel socketed in the rotor gallery's front
- * wall, and the plant's THROTTLE LEVER: every redstone RISING EDGE on any side requests one
- * turbine cycle from the main station (one buffered steam slug + one +/-2t injector window
- * + RPM gain). Right-click reads the turbine out loud: RPM, cycles/min, stages, rotor
+ * Turbine Control Block (TC-2/3) - the turbine panel socketed in the output manifold's back
+ * face, above its Maintenance Hatch, and the plant's THROTTLE LEVER: every redstone RISING EDGE
+ * on any side requests one turbine cycle from the Nuclear Plant Foundation (one buffered steam
+ * slug + one +/-2t injector window + RPM gain). Right-click reads the turbine out loud: RPM, cycles/min, stages, rotor
  * health, propellant, EU. Same chat-readout ruling as the Silo Control Block.
  */
 public class MTETurbineControlBlock extends MTEHatch {
 
-    /** The main station this panel is socketed into; set by the structure walk. */
+    /** The Nuclear Plant Foundation this panel is socketed into; set by the structure walk. */
     private MTEReactorCoreMk1 parent;
     /**
      * Last observed max input signal, for rising-edge detection (persisted so a held-high
@@ -38,10 +38,9 @@ public class MTETurbineControlBlock extends MTEHatch {
             aNameRegional,
             4,
             0,
-            new String[] { "The turbine panel - socket it in the rotor gallery's front wall",
-                "A redstone RISING EDGE runs one turbine cycle:",
-                "one buffered steam slug + one +/-2t injector window + RPM gain",
-                "No clock = RPM decays to zero. Right-click for the live turbine readout" });
+            new String[] { "Turbine panel: output manifold back face, above its Maintenance Hatch",
+                "Each redstone pulse runs one turbine cycle (one steam slug + one injector window)",
+                "No pulses: the RPM decays to zero", "Right-click: turbine and output readout" });
     }
 
     public MTETurbineControlBlock(String aName, int aTier, String[] aDescription,
@@ -117,10 +116,14 @@ public class MTETurbineControlBlock extends MTEHatch {
         prevPowered = aNBT.getBoolean("btsPrevPowered");
     }
 
+    /** Both control blocks' reply while the structure walk has not linked them to a formed plant. */
+    static final String NOT_LINKED = EnumChatFormatting.YELLOW
+        + "Not linked: the Nuclear Plant Foundation is not formed - fix its structure, then right-click again.";
+
     /**
-     * The FULL plant panel, identical to the Silo Control Block's: RPM and cycles are what
-     * this block controls, but a player standing at the manifold must also be able to see why
-     * the turbine is not accelerating - which is usually a reactor or coolant fact.
+     * Tidy C6: the turbine's own section of the plant panel (the TURBINE and OUTPUT groups and
+     * the weakest term), not the whole panel. The hold line in the TURBINE group already names
+     * the reactor or coolant fact that stops the fan, and the weakest term names the rest.
      */
     @Override
     public boolean onRightclick(IGregTechTileEntity aBaseMetaTileEntity, EntityPlayer aPlayer) {
@@ -129,10 +132,10 @@ public class MTETurbineControlBlock extends MTEHatch {
         final String reset = EnumChatFormatting.RESET.toString();
         aPlayer.addChatMessage(new ChatComponentText(aqua + "== Turbine Control Block ==" + reset));
         if (!parentValid()) {
-            aPlayer.addChatMessage(new ChatComponentText("Not linked - reform the main station's structure"));
+            aPlayer.addChatMessage(new ChatComponentText(NOT_LINKED));
             return true;
         }
-        for (final String line : parent.statusReport()) {
+        for (final String line : parent.controlBlockReport(true)) {
             aPlayer.addChatMessage(new ChatComponentText(line));
         }
         return true;

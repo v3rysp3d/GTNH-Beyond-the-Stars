@@ -20,10 +20,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumChatFormatting;
 
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.nateyburr.beyondthestars.BeyondTheStars;
 
 import gregtech.api.GregTechAPI;
 import gregtech.api.casing.Casings;
@@ -35,6 +37,7 @@ import gregtech.api.recipe.RecipeMapBackend;
 import gregtech.api.recipe.RecipeMapBuilder;
 import gregtech.api.structure.error.StructureError;
 import gregtech.api.util.MultiblockTooltipBuilder;
+import gregtech.api.util.tooltip.TooltipHelper;
 
 /**
  * D-26 THE CASCADE HALL - MTE 28113, IV (docs/production-lines.md S5.1).
@@ -56,8 +59,9 @@ import gregtech.api.util.MultiblockTooltipBuilder;
  * what a recipe PRODUCES would make one machine's NEI page unreadable, while a structure that
  * changes how MUCH is exactly the "build more cascade" fantasy this step should sell.
  * <p>
- * <b>Not to be confused with the Enrichment Annex</b> ({@link MTEEnrichmentTrain}, MTE 28103),
- * which is a bootstrap module of the Nuclear Plant Foundation and a different machine entirely.
+ * <b>Not to be confused with the Enrichment Train</b> ({@link MTEEnrichmentTrain}, MTE 28103), the
+ * standalone Yellowcake mill that the Nuclear Plant Foundation also carries built in as its
+ * Enrichment Annex. Despite the name it does no enrichment; this hall is where enrichment happens.
  */
 public class MTECascadeHall extends MTEProductionHallBase<MTECascadeHall> {
 
@@ -125,6 +129,18 @@ public class MTECascadeHall extends MTEProductionHallBase<MTECascadeHall> {
     @Override
     public int getMaxParallelRecipes() {
         return 1 << Math.max(0, Math.min(MAX_BANKS, stageBanks));
+    }
+
+    /** Tidy B8: the GUI's detail number is the stage-bank count, not a shell tier. */
+    @Override
+    public int getParallelDetail() {
+        return stageBanks;
+    }
+
+    /** Tidy B8, GUI line: {@code stage banks 3/4}. Argument only (AXIS 1). */
+    @Override
+    public String parallelSource(int banks) {
+        return "stage banks " + Math.max(0, Math.min(MAX_BANKS, banks)) + "/" + MAX_BANKS;
     }
 
     @Override
@@ -268,31 +284,48 @@ public class MTECascadeHall extends MTEProductionHallBase<MTECascadeHall> {
     @Override
     public String[] getInfoData() {
         final List<String> info = new ArrayList<>(Arrays.asList(super.getInfoData()));
-        info.add("Stage banks: " + stageBanks + "/" + MAX_BANKS + "  ·  hall depth " + (8 + 4 * stageBanks));
+        info.add("Stage banks: " + stageBanks + "/" + MAX_BANKS + " · hall depth " + (8 + 4 * stageBanks));
         return info.toArray(new String[0]);
     }
 
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
-        tt.addMachineType("Gas Centrifuge Cascade")
-            .addInfo("Separates uranium hexafluoride into an ENRICHED cut and a TAILS stream.")
-            .addInfo("The tails are a product, not a discard: they become MOX diluent (F-20)")
-            .addInfo("and the depleted-uranium shielding the casing line spends (F-11c).")
-            .addSeparator()
-            .addInfo("Every STAGE BANK doubles the parallel: 1, 2, 4, 8, 16.")
-            .addInfo("Programmed circuit 1 = low-enriched cut, 2 = highly-enriched cut.")
-            .addInfo("Hold 1-5 controllers when projecting to lay out 0-4 stage banks.")
-            .beginStructureBlock(5, 5, 24, false)
+        final String aqua = EnumChatFormatting.AQUA.toString();
+        final String gray = EnumChatFormatting.GRAY.toString();
+        tt.addMachineType("Gas Centrifuge")
+            .addInfo("Separates Uranium Hexafluoride into an enriched cut and a tails stream.")
+            .addInfo("Circuit 1 = low-enriched cut (IV), 2 = highly-enriched cut (needs LuV power).")
+            .addInfo("The tails (Depleted UF6) are a product, not waste: they become MOX diluent")
+            .addInfo("and Depleted Uranium Ingots for shielded casings.")
+            .addInfo(
+                aqua + "Stage banks:"
+                    + gray
+                    + " each one doubles the parallel: "
+                    + TooltipHelper.parallelText(1)
+                    + " / "
+                    + TooltipHelper.parallelText(2)
+                    + " / "
+                    + TooltipHelper.parallelText(4)
+                    + " / "
+                    + TooltipHelper.parallelText(8)
+                    + " / "
+                    + TooltipHelper.parallelText(16))
+            .addInfo("Parallels are also limited by the power your Energy Hatches supply.")
+            .beginVariableStructureBlock(5, 5, 5, 5, 8, 24, true)
             .addController("Front face, centre")
-            .addCasingInfoRange("Tungstensteel Turbine Casing", 100, 340, false)
-            .addCasingInfoExactly("Iridium Reinforced Block (8 per stage bank)", 32, false)
-            .addCasingInfoExactly("Tungstensteel Pipe Casing (1 rotor bore per bank)", 4, false)
-            .addEnergyHatch("Front face, top right", 2)
-            .addMaintenanceHatch("Front face, top left", 1)
-            .addInputHatch("Front face, below the controller", 3)
-            .addOutputHatch("Front face, either side of the controller (2)", 4)
-            .toolTipFinisher();
+            .addCasing("140-397", "Tungstensteel Turbine Casing (+64 per stage bank)", false)
+            .addCasing("0-32", "Iridium Reinforced Block (8 per stage bank)", false)
+            .addCasing("0-4", "Tungstensteel Pipe Casing (1 per stage bank)", false)
+            .addAir("The whole interior: keep pipes and cables outside")
+            .addEnergyHatch("1", "Front face, 2nd row from the top, right", 2)
+            .addMaintenanceHatch("1", "Front face, 2nd row from the top, left", 1)
+            .addInputHatch("1", "Front face, directly below the controller", 3)
+            .addOutputHatch("1-2", "Front face, either side of the controller", 4)
+            .addStructureInfo("Each stage bank adds 4 blocks of length: a ring of Iridium Reinforced")
+            .addStructureInfo("Block around one Tungstensteel Pipe Casing.")
+            .addStructureInfo("Projector: stack size 1-5 builds 0-4 stage banks.")
+            .toolTipFinisher(BeyondTheStars.TOOLTIP_AUTHOR);
         return tt;
     }
 }

@@ -52,7 +52,7 @@ public enum BTSUpgrade {
 
     // -------------------------------------------------------------------------- the root
     /** Free, effect-free, and the only node buyable at zero points. Click it and begin. */
-    COMMISSIONING("COMMISSION", "Unit One Commissioning", -1, 0, 0),
+    COMMISSIONING("COMMISSION", "Plant Commissioning", -1, 0, 0),
 
     // ------------------------------------------------------- depth 1 (one per branch, cheap)
     FEEDWATER_PREHEAT("Preheat", "Feedwater Preheat", 0, 1, 1, BTSChannel.OUTPUT.by(20)),
@@ -389,12 +389,43 @@ public enum BTSUpgrade {
         return line.displayName() + " tier " + gateTier();
     }
 
+    /**
+     * The one line that says what a click will do, and - when it will do nothing - which single
+     * requirement is in the way. Shared by the tree panel's tooltip and /btstree's refusals, so
+     * the two always give the same reason. A courtesy, not a gate: the server refuses the same
+     * cases whatever this says. Static and pure (AXIS 1): the client runs it on synced values.
+     */
+    public static String verdict(BTSUpgrade node, long mask, long[] counters) {
+        if (owns(mask, node)) {
+            for (final BTSUpgrade dependent : node.dependents()) {
+                if (!owns(mask, dependent)) continue;
+                if (!prerequisitesMet(mask & ~node.bit(), dependent)) {
+                    return EnumChatFormatting.YELLOW + "OWNED: refund "
+                        + dependent.title()
+                        + " first, it hangs off this";
+                }
+            }
+            return EnumChatFormatting.GREEN + "OWNED: right-click to refund (free, always)";
+        }
+        if (!prerequisitesMet(mask, node)) {
+            return EnumChatFormatting.GRAY + "LOCKED: buy " + node.prerequisiteText() + " first";
+        }
+        if (!gateMet(counters, node)) {
+            return EnumChatFormatting.GRAY + "LOCKED: the " + node.gateText() + " milestone opens this";
+        }
+        final int free = BTSProgression.pointsEarned(counters) - pointsSpent(mask);
+        if (free < node.cost()) {
+            return EnumChatFormatting.YELLOW + "SHORT: " + (node.cost() - free) + " more point(s) needed";
+        }
+        return EnumChatFormatting.AQUA + "AVAILABLE: left-click to buy";
+    }
+
     /** One node as a chat line: state, name, cost, effect. */
     public static String nodeLine(long mask, long[] counters, BTSUpgrade node) {
         final boolean has = owns(mask, node);
         final boolean open = prerequisitesMet(mask, node) && gateMet(counters, node);
         final EnumChatFormatting color = has ? EnumChatFormatting.GREEN
-            : open ? EnumChatFormatting.AQUA : EnumChatFormatting.DARK_GRAY;
+            : open ? EnumChatFormatting.AQUA : EnumChatFormatting.GRAY;
         return color + (has ? "[x] " : open ? "[ ] " : "[-] ")
             + node.title()
             + EnumChatFormatting.RESET
@@ -424,7 +455,7 @@ public enum BTSUpgrade {
             + spent
             + "/"
             + TOTAL_COST
-            + " points committed · "
+            + " points spent · "
             + (earned - spent >= 0 ? EnumChatFormatting.AQUA : EnumChatFormatting.RED)
             + (earned - spent)
             + " available"
@@ -434,6 +465,10 @@ public enum BTSUpgrade {
     /**
      * The channels the tree is actually moving right now. Prints only what is off its base, so
      * a plant that has bought nothing prints the one line that says exactly that.
+     * <p>
+     * Tidy B5: each entry is the channel's own {@link BTSChannel#describe} of the summed delta,
+     * so the panel reads "+27.0% plant output · decay-heat window 1.5x shorter" in the same words
+     * the node tooltips use, instead of "plant output x1.27 · Derrick tantalum interval +1".
      */
     public static String treeEffectLine(long mask) {
         final StringBuilder out = new StringBuilder();
@@ -441,10 +476,7 @@ public enum BTSUpgrade {
             final int total = channel(mask, channel);
             if (total == channel.base()) continue;
             if (out.length() > 0) out.append(" · ");
-            out.append(channel.subject())
-                .append(
-                    channel.kind() == BTSChannel.Kind.MILLI ? " x" + String.format("%.2f", total / 1000.0)
-                        : " +" + total);
+            out.append(channel.describe(total - channel.base()));
         }
         if (out.length() == 0) {
             return EnumChatFormatting.GRAY + "Tree effects: none - nothing purchased, the plant runs stock"

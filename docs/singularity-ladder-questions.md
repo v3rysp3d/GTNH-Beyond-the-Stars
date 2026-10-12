@@ -2752,3 +2752,76 @@ The full original wording of Q-1..Q-38 is in git history (addon commit 457bbf8).
 master had already used for the RC-2 package and D-49 entries. They are now B-46..B-57: old B-33 -> B-46, B-34 -> B-47,
 B-35 -> B-48, B-36 -> B-49, B-37 -> B-50, B-38 -> B-51, B-39 -> B-52, B-40 -> B-53, B-41 -> B-54, B-42 -> B-55,
 B-43 -> B-56, B-44 -> B-57. Commit messages on the branch keep the old numbers; docs and code comments use the new ones.
+
+---
+
+## Part D. Tidy pass on the older multiblocks (branch tidy-old-multis)
+
+Questions from the presentation tidy of the nuclear plant and the production halls
+([`tidy-old-multis.md`](tidy-old-multis.md)). They keep that plan's TQ numbers. Nothing here changes gameplay.
+
+### TQ-2 Rename the "Enrichment Train"? [tidy unit A]
+
+**Context.** The Enrichment Train (MTE 28103) leaches Uraninite with Hydrofluoric Acid into Yellowcake. It does no
+enrichment; enrichment is the Cascade Hall. The name sends players looking in the wrong place.
+
+**What we built.** The name is unchanged. The tooltip's machine type is now "Yellowcake Mill", and a line says
+"Despite the name it does not enrich; enrichment is the Cascade Hall."
+
+**Suggestion.** Rename it to "Yellowcake Mill". GregTech writes an MTE's display name into the player's
+GregTech.lang on first run and never refreshes it, so the rename only reaches new installs (or players who delete
+that line). The questbook text must change with it.
+
+**Alternatives.** Keep the name and rely on the tooltip line (as built).
+
+### TQ-3 Rename the "Spine Sensor"? [tidy unit A]
+
+**Context.** The sensor sits in the Spiral chamber's roof, not on the Spine, and it reports accepted turbine cycles.
+
+**What we built.** The name is unchanged. Its tooltip now starts with its place: "Optional: Spiral chamber roof,
+front centre".
+
+**Suggestion.** "Spiral Cycle Sensor". The same GregTech.lang stickiness applies as in TQ-2.
+
+**Alternatives.** Keep the name (as built).
+
+### TQ-4 Propellant "Lv 1-6" reads like GT's LV voltage tier [tidy unit A]
+
+**Context.** Propellant cartridges and fluids are named "Lv 1" to "Lv 6". In GTNH "LV" means Low Voltage, so
+"Propellant Cartridge Lv 3" reads like an LV item.
+
+**What we built.** Nothing changed.
+
+**Suggestion.** "Mk I" to "Mk VI". The item names are plain lang keys and update everywhere. The fluid names are
+GT fluids, whose local names are written to GregTech.lang once, so those only change for new installs.
+
+**Alternatives.** "Grade 1-6", or keep "Lv".
+
+### TQ-5 Default tier for /btsbuild and /btskit [tidy unit C]
+
+**Context.** `/btsbuild` with no argument raises a tier-3 plant; `/btskit` with no argument hands out the kit and
+bill of materials for a tier-1 silo. Both are bench commands, so a tester who runs one after the other gets two
+different plants.
+
+**What we built.** The defaults are unchanged. Both commands now tab-complete their tier argument, so the tier is
+one keystroke away.
+
+**Suggestion.** Default both to tier 1: the kit is the "start from nothing" path, and tier 1 is the smallest plant
+to raise and walk.
+
+**Alternatives.** Default both to 3 (a mid-size plant shows every piece), or keep them different (as built).
+
+### TQ-8 Should the production halls honour the Power Panel's parallel limit? [tidy review, L5]
+
+**Context.** The Fuel Fabrication Hall, Site Batching Plant, Cascade Hall and PUREX Canyon show GT's Power Panel,
+whose "max parallel" field is saved in the controller's NBT. The halls' processing logic reads
+`getMaxParallelRecipes()`, so that field has never done anything on them. GT's own multis read
+`getTrueParallel()`, which is `max(1, alwaysMaxParallel ? max : min(max, powerPanelMaxParallel))`.
+
+**What we built.** Nothing changes. Tidy B8 switched the halls to `getTrueParallel()`, but a player who had unticked
+"max" while it did nothing would suddenly run at the lower number, so the review reverted it as a gameplay change.
+
+**Suggestion.** Switch to `getTrueParallel()` in a gameplay pass (it is how every GT multi behaves), and at the
+same time make the terminal "Parallel:" line and the scanner print the effective value (`getTrueParallel()`).
+
+**Alternatives.** Keep ignoring the limit and hide the Power Panel's parallel field on the halls.

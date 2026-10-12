@@ -20,11 +20,13 @@ import static gregtech.api.util.GTStructureUtility.buildHatchAdder;
 import java.util.List;
 
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumChatFormatting;
 
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.nateyburr.beyondthestars.BeyondTheStars;
 
 import gregtech.api.GregTechAPI;
 import gregtech.api.casing.Casings;
@@ -105,6 +107,12 @@ public class MTEPurexCanyon extends MTEProductionHallBase<MTEPurexCanyon> {
         return PARALLEL;
     }
 
+    /** Tidy B8, GUI line: the PUREX parallel is not set by the structure. */
+    @Override
+    public String parallelSource(int detail) {
+        return "fixed";
+    }
+
     @Override
     public void checkMachine(IGregTechTileEntity aBaseMetaTileEntity, ItemStack aStack, List<StructureError> errors) {
         mCasing = 0;
@@ -180,27 +188,29 @@ public class MTEPurexCanyon extends MTEProductionHallBase<MTEPurexCanyon> {
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
-        tt.addMachineType("Reprocessing Canyon")
-            .addInfo("Chops, dissolves and partitions spent fuel. The head-end of PUREX.")
-            .addSeparator()
-            .addInfo("HOW LONG THE FUEL COOLED CHANGES WHAT COMES OUT.")
-            .addInfo("Fuel cooled in a Decay Warehouse yields plutonium, and therefore MOX.")
-            .addInfo("Fuel fed straight from the reactor yields uranium and waste only -")
-            .addInfo("which is how a plant clears a depleted-fuel backlog with no pond built.")
-            .addSeparator()
-            .addInfo("Emits Nuclear Waste Water: the fluid the Distillation Tower turns into")
-            .addInfo("distilled water and a tantalum trace. Parallel 8, fixed.")
-            .beginStructureBlock(9, 7, 9, false)
+        final String aqua = EnumChatFormatting.AQUA.toString();
+        final String gray = EnumChatFormatting.GRAY.toString();
+        tt.addMachineType("Fuel Reprocessor")
+            .addInfo("Chops, dissolves and partitions spent fuel: the head-end of PUREX.")
+            .addInfo(aqua + "Cooling time matters:" + gray + " how long the fuel cooled changes what")
+            .addInfo("comes out. Fuel cooled in a Decay Warehouse yields plutonium (for MOX);")
+            .addInfo("fuel straight from the reactor yields uranium and waste only.")
+            .addInfo("Circuit 1 = cooled fuel, 2 = uncooled fuel, 3 = partition the liquor.")
+            .addInfo("Its Nuclear Waste Water goes to a Distillation Tower: distilled water")
+            .addInfo("and a tantalum trace.")
+            .addStaticParallelInfo(PARALLEL)
+            .beginStructureBlock(9, 7, 9, true)
             .addController("Front face, centre")
-            .addCasingInfoRange("Radiation Proof Machine Casing", 220, 240, false)
-            .addCasingInfoExactly("Light Concrete (cell floor)", 81, false)
-            .addEnergyHatch("Front face, top row (2)", 2)
-            .addMaintenanceHatch("Front face, top left", 1)
-            .addInputBus("Front face, left of the controller", 3)
-            .addInputHatch("Front face, either side of the controller (2)", 4)
-            .addOutputBus("Front face, right of the controller", 5)
-            .addOutputHatch("Front face, bottom row (2)", 6)
-            .toolTipFinisher();
+            .addCasing("231-234", "Radiation Proof Machine Casing", false)
+            .addCasing("81", "Light Concrete (floor)", false)
+            .addAir("The whole interior: keep pipes and cables outside")
+            .addEnergyHatch("1-2", "Front face, 2nd row from the top", 2)
+            .addMaintenanceHatch("1", "Front face, 2nd row from the top, left", 1)
+            .addInputBus("1", "Front face, controller row, left", 3)
+            .addInputHatch("1-2", "Front face, either side of the controller", 4)
+            .addOutputBus("1", "Front face, controller row, right", 5)
+            .addOutputHatch("1-2", "Front face, 2nd row from the bottom", 6)
+            .toolTipFinisher(BeyondTheStars.TOOLTIP_AUTHOR);
         return tt;
     }
 }

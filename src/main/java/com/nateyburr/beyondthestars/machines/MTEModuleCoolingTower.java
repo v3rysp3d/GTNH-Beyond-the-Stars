@@ -19,6 +19,7 @@ import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructa
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.nateyburr.beyondthestars.BeyondTheStars;
 
 import gregtech.api.GregTechAPI;
 import gregtech.api.casing.Casings;
@@ -31,14 +32,14 @@ import gregtech.api.util.MultiblockTooltipBuilder;
 
 /**
  * Cooling Tower - RETIRED CONTROLLER (A3). The hyperboloid itself is very much alive: it is an
- * optional CHECKED PIECE of the main station now ({@code MTEReactorCoreMk1.towerPieceName}),
+ * optional CHECKED PIECE of the Nuclear Plant Foundation now ({@code MTEReactorCoreMk1.towerPieceName}),
  * built by the same one hologram projection as everything else, and each standing tower still
  * halves the plant's water draw, doubles passive heat decay and halves the decay-heat demand
  * (max 2). What is retired is this CONTROLLER and the docking mechanic behind it - there is no
  * dock marker to stand it on any more.
  * <p>
  * The MTE id stays registered so existing worlds load cleanly; the recipe is gone and
- * {@link #towerShape()} is now read by the main station, which is the only thing that still
+ * {@link #towerShape()} is now read by the Foundation, which is the only thing that still
  * checks it.
  */
 public class MTEModuleCoolingTower extends MTEPlantModuleBase implements ISurvivalConstructable {
@@ -69,7 +70,7 @@ public class MTEModuleCoolingTower extends MTEPlantModuleBase implements ISurviv
             : rWaist + (rTop - rWaist) * ((t - waistT) / (1 - waistT));
     }
 
-    /** Package-visible: the main station pre-builds this shell via its own hologram. */
+    /** Package-visible: the Foundation pre-builds this shell via its own hologram. */
     static String[][] towerShape() {
         final String[][] layers = new String[HEIGHT][];
         for (int i = 0; i < HEIGHT; i++) {
@@ -156,37 +157,25 @@ public class MTEModuleCoolingTower extends MTEPlantModuleBase implements ISurviv
     }
 
     @Override
+    protected String retiredNote() {
+        return "The tower is a piece of the Nuclear Plant Foundation now - project that controller.";
+    }
+
+    @Override
     protected MultiblockTooltipBuilder createTooltip() {
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
-        final String aqua = net.minecraft.util.EnumChatFormatting.AQUA.toString();
-        final String gray = net.minecraft.util.EnumChatFormatting.GRAY.toString();
-        final String reset = net.minecraft.util.EnumChatFormatting.RESET.toString()
-            + net.minecraft.util.EnumChatFormatting.GRAY;
-        final String yellow = net.minecraft.util.EnumChatFormatting.YELLOW.toString();
-        tt.addMachineType("Plant Module - Cooling Tower (RETIRED)")
-            .addInfo(yellow + "RETIRED - this controller does nothing any more." + reset)
-            .addSeparator()
-            .addInfo(aqua + "The tower itself is now part of the MAIN PLANT." + reset)
-            .addInfo("Project the Nuclear Plant Foundation: ONE projection raises the platform, the")
-            .addInfo("silo, the whole steam chain AND both Cooling Towers, and the main station")
-            .addInfo("checks them as optional pieces - no dock, no second controller.")
-            .addInfo("Per standing tower: water draw x0.5 - passive heat decay x2 - decay demand x0.5.")
-            .addInfo("Two towers: post-shutdown cooling is fully passive. Max 2.")
-            .addInfo(yellow + "MIGRATION - exactly one thing to do:" + reset)
-            .addInfo(yellow + "The main station wants a CLOSED base ring, and this controller is standing in")
-            .addInfo("it. Break this block, put a Solid Steel Machine Casing in its place, and one more")
-            .addInfo("in the cell directly OUTWARD of it - two casings per tower, and that is all." + reset)
-            .addInfo(aqua + "The 0.19.0 MAINTENANCE HATCH in the base ring can STAY." + reset)
-            .addInfo("The main station accepts it as a ring cell, but does NOT count it: the plant's")
-            .addInfo("three real maintenance sockets are the silo face, the Spiral floor and the")
-            .addInfo("manifold. Replacing it with a Solid Steel casing is equally fine.")
-            .addInfo(gray + "Kept only so worlds holding one of these still load. No recipe." + reset)
+        tt.addMachineType("Plant Module - Cooling Tower")
+            .addDeprecatedLine("this controller does nothing; kept so old worlds load.")
+            .addInfo("Cooling Towers are now pieces of the Nuclear Plant Foundation.")
+            .addInfo("To migrate: break this block, place a Solid Steel Machine Casing here")
+            .addInfo("and one in the cell directly outward of it (2 per tower).")
+            .addInfo("A legacy Maintenance Hatch in the ring may stay (it is not counted).")
             .beginStructureBlock(17, 20, 17, true)
-            .addController("Museum piece - the tower is checked by the main station now")
-            .addMaintenanceHatch("Base ring - OPTIONAL now; a legacy one is tolerated, never counted", 1)
-            .addCasingInfoRange("Solid Steel Machine Casing (base ring)", 30, 46, false)
-            .addCasingInfoRange("Light Concrete (hyperboloid shell)", 500, 700, false)
-            .toolTipFinisher();
+            .addController("Base ring, front centre")
+            .addCasing("50", "Solid Steel Machine Casing (base ring)", false)
+            .addCasing("736", "Light Concrete (hyperboloid shell)", false)
+            .addMaintenanceHatch("0-1", "Base ring: a legacy one may stay; it is never counted", 1)
+            .toolTipFinisher(BeyondTheStars.TOOLTIP_AUTHOR);
         return tt;
     }
 

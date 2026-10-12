@@ -32,7 +32,7 @@ item.beyondthestars.flotationTailings.name=Flotation Tailings
 item.beyondthestars.leachResidue.name=Leach Residue
 item.beyondthestars.ionExchangeResin.name=Ion Exchange Resin
 item.beyondthestars.ammoniumDiuranate.name=Ammonium Diuranate
-item.beyondthestars.yellowcake.name=Yellowcake (U3O8)
+item.beyondthestars.yellowcake.name=Yellowcake
 item.beyondthestars.depletedUraniumIngot.name=Depleted Uranium Ingot
 item.beyondthestars.ceramicUO2Powder.name=Ceramic-Grade UO2 Powder
 item.beyondthestars.greenPellet.name=Green Pellet (Uranium)
@@ -42,9 +42,9 @@ item.beyondthestars.claddingTube.name=Zircaloy-4 Cladding Tube
 item.beyondthestars.rodHardwareSet.name=Rod Hardware Set
 item.beyondthestars.gridSpacer.name=Grid Spacer
 item.beyondthestars.depletedUO2Powder.name=Depleted UO2 Powder
-item.beyondthestars.plutoniumDioxide.name=Plutonium Dioxide (PuO2)
+item.beyondthestars.plutoniumDioxide.name=Plutonium Dioxide
 item.beyondthestars.moxPowder.name=MOX Powder
-item.beyondthestars.thoriumDioxidePowder.name=Thorium Dioxide Powder (ThO2)
+item.beyondthestars.thoriumDioxidePowder.name=Thorium Dioxide Powder
 item.beyondthestars.thoriumUraniumOxidePowder.name=Thorium-Uranium Oxide Powder
 item.beyondthestars.greenPelletMox.name=Green Pellet (MOX)
 item.beyondthestars.greenPelletThorium.name=Green Pellet (Thorium)
@@ -73,39 +73,102 @@ item.beyondthestars.propellantCartridge6.name=Propellant Cartridge Lv 6
 tile.beyondthestars.reactorFuelColumn.name=Reactor Fuel Pillar Frame
 tile.beyondthestars.rodLoadingPort.name=Rod Loading Port
 tile.beyondthestars.turbineHousing.name=Turbine Housing
-GT5U.gui.text.shutdown_reason.beyondthestars.scram=SCRAM: core overheat — re-enable the reactor to restart
-GT5U.gui.text.shutdown_reason.beyondthestars.meltdown=MELTDOWN: core destroyed — the site is irradiated
-GT5U.gui.text.shutdown_reason.beyondthestars.blowout=BLOWOUT: propellant on a non-TDA fan destroyed the turbine
-GT5U.gui.text.shutdown_reason.beyondthestars.seizure=SEIZURE: propellant starvation destroyed the turbine fan
-GT5U.gui.text.shutdown_reason.beyondthestars.seizure.chain=SEIZURE: coolant starvation tore the turbine apart — the Spine's rotor housings are destroyed
-# The instrument panel itself is built by MTEReactorCoreMk1's shared formatters, so the GUI,
-# both control blocks and the scanner print byte-identical lines; only the standalone labels
-# below still live here.
+GT5U.gui.text.shutdown_reason.beyondthestars.scram=§4SCRAM: core overheat - re-enable the reactor to restart.
+GT5U.gui.text.shutdown_reason.beyondthestars.meltdown=§4MELTDOWN: core destroyed - the site is irradiated.
+GT5U.gui.text.shutdown_reason.beyondthestars.blowout=§4BLOWOUT: propellant on a non-TDA fan destroyed the turbine.
+GT5U.gui.text.shutdown_reason.beyondthestars.seizure=§4SEIZURE: propellant starvation destroyed the turbine fan.
+GT5U.gui.text.shutdown_reason.beyondthestars.seizure.chain=§4SEIZURE: coolant starvation tore the turbine apart - the Spine's rotor housings are destroyed.
 # NEI tab names. These keys ARE the recipe maps' unlocalized names (GT translates them for the
 # tab title and the page header), so they must match BTSDisplayRecipes exactly.
 beyondthestars.recipe.plantfuel=Nuclear Plant: Fuel Rods
 beyondthestars.recipe.plantpropellant=Nuclear Plant: Propellant
 beyondthestars.recipe.plantcoolant=Nuclear Plant: Coolant
 beyondthestars.recipe.plantwater=Nuclear Plant: Water Grades
-# D-26: the four NEW machines' REAL recipe maps (the three above are display-only). These
-# keys ARE the maps' unlocalized names, so they must match the RecipeMapBuilder.of() ids.
-beyondthestars.recipe.cascade=Gas Centrifuge Cascade
-beyondthestars.recipe.fabrication=Fuel Fabrication Line
-beyondthestars.recipe.purex=Reprocessing Canyon
+# The four production halls' real recipe maps (the four above are display-only). These keys ARE
+# the maps' unlocalized names, so they must match the RecipeMapBuilder.of() ids; the values
+# are the controllers' names, so the NEI tab and the machine it belongs to read the same.
+beyondthestars.recipe.cascade=Cascade Hall
+beyondthestars.recipe.fabrication=Fuel Fabrication Hall
+beyondthestars.recipe.purex=PUREX Canyon
 beyondthestars.recipe.batching=Site Batching Plant
 # The one fatal error a plant built by 0.19.0 or earlier reports: its silo face is the retired
 # plumbing frontage, which conflicts with the point-of-use layout cell for cell. %s = the tier
 # measured off the standing walls.
-beyondthestars.structure.silo.standing=Tier %s Steam Generator IS STANDING and does not match the current silo face — the first wrong cell is listed above. A plant raised by 0.19.0 or earlier has the retired face: stand beside the main station and run /btsmigrate to rewrite it in place.
-beyondthestars.gui.throttle.tooltip=Control rods: campaign power = N/24. A programmed circuit in the controller overrides this.
-beyondthestars.gui.throttle.milestone=Values above 24 need the BURNUP milestone line (T5 26/24, T6 28/24, T7 30/24) and the upgrade tree's rod nodes (Rod Seals, Deep Burn Profile, Overpower Licence, +2 each, to 36/24). Without them the plant clamps back to what it has actually unlocked.
+beyondthestars.structure.silo.standing=Tier %s Reactor Silo is standing but not formed: the first wrong cell is listed above. Built on 0.19.0 or older? Run /btsmigrate beside the controller.
+beyondthestars.gui.throttle.tooltip=Rods N/24 set reactor power (24/24 = 100%). A Programmed Circuit in the controller overrides this field.
+beyondthestars.gui.throttle.milestone=Settings above 24/24 need the BURNUP milestones (T5 26/24, T6 28/24, T7 30/24) and the Upgrade Tree's rod nodes (Rod Seals, Deep Burn Profile, Overpower Licence: +2 each, up to 36/24). Until then the field clamps to what the plant has unlocked.
+beyondthestars.gui.rpmlimit.tooltip=The redline the turbine is held to. 12,000 RPM is the design limit and the default.
+beyondthestars.gui.rpmlimit.milestone=Settings above 12,000 need the TURBINE milestones (T5 13,500, T6 15,000) and the Upgrade Tree's Overspeed Certification (+10%) and Synchronous Condenser (+20%), up to 19,500. Coolant draw grows with the square of RPM: raise this only once the Spiral chamber can cool it, or the coolant interlock refuses cycles.
 # D-24: the upgrade tree button in the controller's gap row.
-beyondthestars.gui.rpmlimit.tooltip=RPM LIMIT: the redline the fan is held to. 12,000 is the design stop and the default - a plant that never touches this field behaves exactly as it did before the TURBINE line existed.
-beyondthestars.gui.rpmlimit.milestone=Values above 12,000 need the TURBINE milestone line (T5 13,500, T6 15,000) and the upgrade tree's Overspeed Certification (+10%) and Synchronous Condenser (+20%), to 19,500. Without them the plant clamps back to 12,000. Chamber coolant draw goes with the SQUARE of RPM: raise this only once the Spiral chamber can pay for it, or the TC-7 interlock will start refusing cycles.
 beyondthestars.gui.tree.title=Upgrade Tree
-beyondthestars.gui.tree.tooltip=Spend the progression points the milestone lines pay out. 25 nodes, 112 points, four branches - one per milestone line, opened by that line's tiers.
-beyondthestars.gui.tree.refund=Left-click a node to buy it, right-click to refund. Refunds are free, unlimited, and refused only when another node you hold hangs off it.
-beyondthestars.gui.buildtier.tooltip=Build Tier: the Steam Generator tier the hologram/projector builds (1-5). A trigger stack of 2-5 overrides this. A silo that already stands is never re-tiered - dismantle it first.
+beyondthestars.gui.tree.tooltip=Spend the points the milestone lines pay out: 25 nodes, 112 points, four branches (one per milestone line, opened by that line's tiers).
+beyondthestars.gui.tree.refund=Left-click: buy. Right-click: refund (free; refused only while another node you hold hangs off it).
+beyondthestars.gui.buildtier.tooltip=The Reactor Silo tier the hologram projector builds. A trigger stack of 2-5 overrides this. A standing silo is never re-tiered: dismantle it first.
+
+# ---- tidy-old-multis: unit A ----
+# Socket names of the Nuclear Plant Foundation's own hatch elements (structure errors, NEI preview).
+beyondthestars.hatch.derrickbus=Extraction Derrick Output Bus
+beyondthestars.hatch.annexfeed=Enrichment Annex Uraninite Input Bus
+beyondthestars.hatch.annexacid=Enrichment Annex Acid Input Hatch
+beyondthestars.hatch.annexproduct=Enrichment Annex Output Bus
+beyondthestars.hatch.silopanel=Silo Control Block
+beyondthestars.hatch.turbinepanel=Turbine Control Block
+beyondthestars.hatch.injector=Precision Injector
+beyondthestars.hatch.sensor=Spine Sensor
+beyondthestars.hatch.feedwater=Feedwater Input Hatch
+beyondthestars.hatch.coolant=Coolant Input Hatch
+beyondthestars.hatch.propellant=Propellant Input Hatch
+# Item and block tooltips (BTSTooltipItem / ItemBlockBTSTooltip; \n splits lines).
+tile.beyondthestars.reactorFuelColumn.tooltip=Stack 8 high inside the Reactor Silo.\nHolds the fuel rods the Rod Input Bus feeds.\nBreaking a fuelled frame ejects its rods.
+tile.beyondthestars.rodLoadingPort.tooltip=Optional: sits on a pillar; hand-feed rods here.
+tile.beyondthestars.turbineHousing.tooltip=Spine (4): right-click to flip the spin.\nRotor Assembly gallery (8): right-click with a Turbine Rotor to seat it;\nsneak-right-click empty-handed to remove it. Only gallery rotors count.
+item.beyondthestars.turbineRotor.tooltip=Seat in a gallery Turbine Housing (8 per plant).\nWear 0-9 (-5% output each); shatters at 10.
+item.beyondthestars.turbineFanMatched.tooltip=Legacy part: only the retired Turbine Hall used this.
+item.beyondthestars.turbineFanTDA.tooltip=Legacy part: only the retired Turbine Hall used this.
+item.beyondthestars.turbineFanTDAOptimized.tooltip=Legacy part: only the retired Turbine Hall used this.
+item.beyondthestars.fuelRodUranium.tooltip=Steam multiplier x1 per pillar.\nLoad into the silo's Rod Input Bus.
+item.beyondthestars.fuelRodMox.tooltip=Steam multiplier x2 per pillar.\nLoad into the silo's Rod Input Bus.
+item.beyondthestars.fuelRodThoriumBonded.tooltip=Steam multiplier x5 per pillar.\nLoad into the silo's Rod Input Bus.
+item.beyondthestars.fuelRodNaqBonded.tooltip=Steam multiplier x9 per pillar.\nLoad into the silo's Rod Input Bus.
+item.beyondthestars.fuelAssemblyUranium.tooltip=Steam multiplier x1 per pillar, burned at half rate (rods do better).\nLoad into the silo's Rod Input Bus.
+item.beyondthestars.fuelAssemblyMox.tooltip=Steam multiplier x2 per pillar, burned at half rate (rods do better).\nLoad into the silo's Rod Input Bus.
+item.beyondthestars.fuelAssemblyThoriumBonded.tooltip=Steam multiplier x5 per pillar, burned at half rate (rods do better).\nLoad into the silo's Rod Input Bus.
+item.beyondthestars.fuelAssemblyNaqBonded.tooltip=Steam multiplier x9 per pillar, burned at half rate (rods do better).\nLoad into the silo's Rod Input Bus.
+item.beyondthestars.depletedFuelRodUranium.tooltip=Cool it in a Decay Warehouse first:\nonly cooled fuel yields plutonium in the PUREX Canyon.
+item.beyondthestars.depletedFuelRodMox.tooltip=Cool it in a Decay Warehouse first:\nonly cooled fuel yields plutonium in the PUREX Canyon.
+item.beyondthestars.depletedFuelRodThoriumBonded.tooltip=Cool it in a Decay Warehouse first:\nonly cooled fuel yields plutonium in the PUREX Canyon.
+item.beyondthestars.depletedFuelRodNaqBonded.tooltip=Cool it in a Decay Warehouse first:\nonly cooled fuel yields plutonium in the PUREX Canyon.
+item.beyondthestars.depletedFuelAssemblyUranium.tooltip=Cool it in a Decay Warehouse first:\nonly cooled fuel yields plutonium in the PUREX Canyon.
+item.beyondthestars.depletedFuelAssemblyMox.tooltip=Cool it in a Decay Warehouse first:\nonly cooled fuel yields plutonium in the PUREX Canyon.
+item.beyondthestars.depletedFuelAssemblyThoriumBonded.tooltip=Cool it in a Decay Warehouse first:\nonly cooled fuel yields plutonium in the PUREX Canyon.
+item.beyondthestars.depletedFuelAssemblyNaqBonded.tooltip=Cool it in a Decay Warehouse first:\nonly cooled fuel yields plutonium in the PUREX Canyon.
+item.beyondthestars.cooledRodUranium.tooltip=PUREX Canyon, circuit 1: dissolves it;\ncircuit 3 then partitions out plutonium for MOX.
+item.beyondthestars.cooledRodMox.tooltip=PUREX Canyon, circuit 1: dissolves it;\ncircuit 3 then partitions out plutonium for MOX.
+item.beyondthestars.cooledRodThoriumBonded.tooltip=PUREX Canyon, circuit 1: dissolves it;\ncircuit 3 then partitions out plutonium for MOX.
+item.beyondthestars.cooledRodNaqBonded.tooltip=PUREX Canyon, circuit 1: dissolves it;\ncircuit 3 then partitions out plutonium for MOX.
+item.beyondthestars.cooledAssemblyUranium.tooltip=PUREX Canyon, circuit 1: dissolves it;\ncircuit 3 then partitions out plutonium for MOX.
+item.beyondthestars.cooledAssemblyMox.tooltip=PUREX Canyon, circuit 1: dissolves it;\ncircuit 3 then partitions out plutonium for MOX.
+item.beyondthestars.cooledAssemblyThoriumBonded.tooltip=PUREX Canyon, circuit 1: dissolves it;\ncircuit 3 then partitions out plutonium for MOX.
+item.beyondthestars.cooledAssemblyNaqBonded.tooltip=PUREX Canyon, circuit 1: dissolves it;\ncircuit 3 then partitions out plutonium for MOX.
+item.beyondthestars.yellowcake.tooltip=U₃O₈\nFrom an Enrichment Train, the Annex, or the ore line's Chemical Dehydrator.\nNext: Chemical Plant -> Uranium Tetrafluoride.
+item.beyondthestars.plutoniumDioxide.tooltip=PuO₂
+item.beyondthestars.thoriumDioxidePowder.tooltip=ThO₂
+
+# ---- tidy-old-multis: unit B ----
+# Nuclear Plant Foundation gap row: the captions drawn left of each field, and the GOLD tooltip titles.
+beyondthestars.gui.throttle.label=Rods
+beyondthestars.gui.throttle.title=Control Rods (1-36)
+beyondthestars.gui.throttle.override=A Programmed Circuit is setting rods %s/24 - remove it to use this field.
+beyondthestars.gui.rpmlimit.label=RPM
+beyondthestars.gui.rpmlimit.title=RPM Limit
+beyondthestars.gui.buildtier.label=Tier
+beyondthestars.gui.buildtier.title=Build Tier (1-5)
+
+# ---- tidy-old-multis: unit C ----
+# Status-line text for the older machines' failure results (RC-2 looks them up under recipe_result.<id>).
+GT5U.gui.text.recipe_result.beyondthestars.retired=§eRetired controller - it does nothing (see its tooltip)
+GT5U.gui.text.recipe_result.beyondthestars.train.uraninite=§7Needs 8 Uraninite Dust in an input bus
+GT5U.gui.text.recipe_result.beyondthestars.train.acid=§7Needs 2,000 L Hydrofluoric Acid in an input hatch
 
 # ---- SINGULARITY LADDER (Foundation; singularity-ladder-build.md §1, Contract additions FC-1/FC-2) ----
 # slCasing metas 0 and 9 are retired holes (existing EOH/BHC blocks play those roles).

@@ -17,7 +17,6 @@ import static gregtech.api.util.GTStructureUtility.buildHatchAdder;
 import static gregtech.api.util.GTUtility.validMTEList;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import net.minecraft.init.Blocks;
@@ -32,6 +31,7 @@ import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructa
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.fluids.BTSFluids;
 import com.nateyburr.beyondthestars.items.BTSItems;
@@ -105,7 +105,7 @@ public class MTEModuleTurbineHall extends MTEPlantModuleBase implements ISurviva
         buildPiece(mName, stackSize, hintsOnly, 2, 3, 0);
     }
 
-    /** Package-visible: the main station pre-builds this shell via its own hologram. */
+    /** Package-visible: the Foundation pre-builds this shell via its own hologram. */
     static String[][] hallShape() {
         final String[] roof = { "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS", "SSSSS" };
         final String[] upper = { "SWWWS", "WAPAW", "WAPAW", "WAPAW", "WAPAW", "WAPAW", "WAPAW", "WAPAW", "SSSSS" };
@@ -305,46 +305,26 @@ public class MTEModuleTurbineHall extends MTEPlantModuleBase implements ISurviva
     }
 
     @Override
-    public String[] getInfoData() {
-        final List<String> info = new ArrayList<>(Arrays.asList(super.getInfoData()));
-        final int fan = installedFanTier();
-        info.add(
-            "Fan: " + (fan == 3 ? "Optimized TDA (x2.5)"
-                : fan == 2 ? "TDA (x1.25, propellant-rated)" : fan == 1 ? "Matched (x1.25)" : "NONE (input bus)"));
-        info.add("Propellant boost: x" + activePropellantMult);
-        info.add("Generating: " + lastEUOutput + " EU/t");
-        return info.toArray(new String[0]);
+    protected String retiredNote() {
+        return "Replaced by the plant's Spine, Spiral chamber and Rotor Assembly. This block does nothing.";
     }
 
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
-        final String aqua = net.minecraft.util.EnumChatFormatting.AQUA.toString();
-        final String reset = net.minecraft.util.EnumChatFormatting.RESET.toString()
-            + net.minecraft.util.EnumChatFormatting.GRAY;
-        final String yellow = net.minecraft.util.EnumChatFormatting.YELLOW.toString();
-        tt.addMachineType("Plant Module - Turbine Hall (RETIRED)")
-            .addInfo(yellow + "RETIRED - this controller does nothing any more." + reset)
-            .addInfo("The Steam Dynamics chain replaced it: Spine -> Spiral -> Rotor Assembly, all")
-            .addInfo("pieces of the main station. There is no dock marker to stand this on.")
-            .addInfo("Build the Nuclear Plant Foundation instead - ONE projection raises everything.")
-            .addInfo("Kept only so worlds holding one of these still load. No recipe.")
-            .addSeparator()
-            .addInfo("Museum reference - what it used to do:")
-            .addInfo(
-                aqua + "Fan" + reset + " (input bus): Matched x1.25 - TDA x1.25 propellant-rated - Optimized x2.5.")
-            .addInfo(aqua + "Coolant" + reset + " (input hatch): IC2 Coolant charge x2.5 (tier-5 silo: x5).")
-            .addInfo(aqua + "Propellant" + reset + " Naq Lv 1/2/3: x2/x3/x10 - blowout on non-TDA fans.")
+        tt.addMachineType("Plant Module - Turbine Hall")
+            .addDeprecatedLine("this controller does nothing; kept so old worlds load.")
+            .addInfo("Replaced by the plant's Spine, Spiral chamber and Rotor Assembly.")
+            .addInfo("Build the Nuclear Plant Foundation instead.")
             .beginStructureBlock(5, 4, 9, true)
-            .addController("Museum piece - place it anywhere; it powers nothing")
-            .addCasingInfoRange("Clean Stainless Steel Machine Casing (walls/roof)", 60, 75, false)
-            .addCasingInfoRange("Tungstensteel Turbine Casing (plinth)", 37, 45, false)
-            .addCasingInfoExactly("Steel Pipe Casing (shaft)", 14, false)
-            .addDynamoHatch("Plinth, 1+", 1)
-            .addMaintenanceHatch("Plinth", 1)
-            .addInputHatch("Plinth (coolant + propellant)", 1)
-            .addInputBus("Plinth (fan)", 1)
-            .toolTipFinisher();
+            .addController("Plinth, front face, centre")
+            .addCasing("76", "Clean Stainless Steel Machine Casing (walls, roof)", false)
+            .addCasing("17", "Glass (windows)", false)
+            .addCasing("14", "Steel Pipe Casing (shaft)", false)
+            .addCasing("4-42", "Tungstensteel Turbine Casing (plinth)", false)
+            .addDynamoHatch("1+", "Plinth", 1)
+            .addMaintenanceHatch("1", "Plinth", 1)
+            .toolTipFinisher(BeyondTheStars.TOOLTIP_AUTHOR);
         return tt;
     }
 

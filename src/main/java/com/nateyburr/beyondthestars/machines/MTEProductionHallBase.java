@@ -6,6 +6,8 @@ import java.util.List;
 
 import net.minecraftforge.common.util.ForgeDirection;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
 
 import gregtech.api.casing.Casings;
@@ -14,6 +16,7 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.logic.ProcessingLogic;
 import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBase;
 import gregtech.api.render.TextureFactory;
+import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
 
 /**
  * D-26: the shared body of the four new production multiblocks (docs/production-lines.md S5).
@@ -25,9 +28,8 @@ import gregtech.api.render.TextureFactory;
  * <p>
  * <b>AXIS 1, CLIENT vs SERVER.</b> {@link #casingTier} and {@link #mCasing} are written by
  * {@code checkMachine}, which runs SERVER-side only, and are read by {@link #getMaxParallelRecipes}
- * (server, inside the recipe check) and {@link #getInfoData} (server, for the scanner). None of
- * these four machines has a GUI of its own that reads them, so no sync handle is needed - and if
- * one ever grows one, that panel must sync them rather than read the fields, which are 0 on the
+ * (server, inside the recipe check) and {@link #getInfoData} (server, for the scanner). The GUI
+ * ({@link MTEProductionHallGui}) reads them only through sync values - the fields are 0 on the
  * client.
  * <p>
  * <b>AXIS 2, TILE vs ITEM NBT.</b> Neither field is persisted. Both are re-derived by every
@@ -75,10 +77,36 @@ public abstract class MTEProductionHallBase<T extends MTEProductionHallBase<T>>
      * be re-formed larger (another Cascade Hall stage bank, a Fuel Fabrication Hall re-walled in
      * Radiant Naquadah Alloy) without being broken and replaced, and a logic built once with a
      * fixed number would go on paying the old parallel until the chunk unloaded.
+     * <p>
+     * The supplier stays {@link #getMaxParallelRecipes}, not GT's {@code getTrueParallel()}: the
+     * switch would make the Power Panel's stored parallel limit bite on existing machines, which
+     * is a gameplay change and out of scope for the presentation tidy (logged as L5 / TQ-8).
      */
     @Override
     protected ProcessingLogic createProcessingLogic() {
         return new ProcessingLogic().setMaxParallelSupplier(this::getMaxParallelRecipes);
+    }
+
+    /**
+     * Tidy B8: the one number behind the parallel, for the GUI line - the shell tier here; the
+     * Cascade Hall overrides it with its stage banks. Server-side value; the GUI syncs it.
+     */
+    public int getParallelDetail() {
+        return casingTier;
+    }
+
+    /**
+     * Tidy B8: what sets the parallel, as the GUI prints it in brackets after the number, from
+     * the SYNCED {@link #getParallelDetail} value. It runs CLIENT-side, so overrides must use only
+     * the argument and constants, never a field (AXIS 1). "" prints the bare number.
+     */
+    public String parallelSource(int detail) {
+        return "";
+    }
+
+    @Override
+    protected @NotNull MTEMultiBlockBaseGui<?> getGui() {
+        return new MTEProductionHallGui(this);
     }
 
     @Override
@@ -105,7 +133,7 @@ public abstract class MTEProductionHallBase<T extends MTEProductionHallBase<T>>
     public String[] getInfoData() {
         final List<String> info = new ArrayList<>(Arrays.asList(super.getInfoData()));
         info.add("Parallel: " + String.format("%,d", getMaxParallelRecipes()));
-        info.add("Shell tier: " + casingTier + "  -  casings counted: " + String.format("%,d", mCasing));
+        info.add("Casings: " + String.format("%,d", mCasing));
         return info.toArray(new String[0]);
     }
 

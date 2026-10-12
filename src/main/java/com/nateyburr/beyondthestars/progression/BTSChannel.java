@@ -115,7 +115,7 @@ public enum BTSChannel {
             case OUTPUT:
                 return "+" + String.format("%.1f", delta / 10.0) + "% plant output";
             case THROTTLE:
-                return "control-rod cap +" + delta + " (N/24)";
+                return "rods +" + delta + " (N/24)";
             case CONDENSATE:
                 return delta == 1 ? "feedwater draw halved again" : "feedwater draw shifted " + delta + " more stages";
             case TANTALUM:
@@ -123,18 +123,22 @@ public enum BTSChannel {
             case HEAT_SINK:
                 return "+" + delta + " heat/t bled off";
             case ROTOR_WEAR:
-                return "rotor wear rolled x" + milli(delta) + " less often";
+                return "rotor wear rolled " + milli(delta) + " less often";
             case MODULE_SPEED:
-                return "Derrick and Annex cycles x" + milli(delta) + " faster";
+                return "Derrick and Annex cycles " + milli(delta) + " faster";
             case DECAY_WINDOW:
-                return "decay-heat window x" + milli(delta) + " shorter";
+                return "decay-heat window " + milli(delta) + " shorter";
             default:
-                return subject + " x" + milli(delta);
+                return subject + " " + milli(delta);
         }
     }
 
+    /** {@code 1500 -> "1.5x"}, {@code 1250 -> "1.25x"}: the factor, without trailing zeros. */
     private static String milli(int delta) {
-        return String.format("%.2f", (1000 + delta) / 1000.0);
+        String factor = String.format("%.2f", (1000 + delta) / 1000.0);
+        while (factor.endsWith("0")) factor = factor.substring(0, factor.length() - 1);
+        if (factor.endsWith(".")) factor = factor.substring(0, factor.length() - 1);
+        return factor + "x";
     }
 
     /**

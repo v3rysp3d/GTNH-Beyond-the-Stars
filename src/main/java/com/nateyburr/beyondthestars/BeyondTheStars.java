@@ -1,5 +1,7 @@
 package com.nateyburr.beyondthestars;
 
+import net.minecraft.util.EnumChatFormatting;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -21,6 +23,11 @@ public class BeyondTheStars {
 
     public static final String MODID = "beyondthestars";
     public static final Logger LOG = LogManager.getLogger(MODID);
+    /**
+     * The "Added by" credit every multiblock tooltip of this addon passes to
+     * {@code MultiblockTooltipBuilder.toolTipFinisher(...)}, so they all sign off the same way.
+     */
+    public static final String TOOLTIP_AUTHOR = EnumChatFormatting.AQUA + "Beyond the Stars";
 
     @SidedProxy(
         clientSide = "com.nateyburr.beyondthestars.ClientProxy",

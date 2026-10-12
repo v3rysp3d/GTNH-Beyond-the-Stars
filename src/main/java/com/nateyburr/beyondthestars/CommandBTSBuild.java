@@ -30,12 +30,12 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.common.tileentities.machines.IDualInputHatch;
 
 /**
- * /btsbuild [1-5|all] [rod] [force] - builds COMPLETE, RUNNING Unit One plants where the
+ * /btsbuild [1-5|all] [rod] [force] - builds COMPLETE, RUNNING nuclear plants where the
  * player stands.
  * <p>
  * The hologram projector can only preview one piece at a time and is height-capped, so this
  * is the way to get a whole plant on the ground for testing: the platform, the silo, Spine,
- * Spiral, Turbine Generator, both Cooling Towers and all four D-17 plant modules (checked
+ * Spiral, Rotor Assembly, both Cooling Towers and all four D-17 plant modules (checked
  * pieces now, not separate module buildings), every hatch and control block fitted AT ITS POINT
  * OF USE, rotors seated, water and fuel loaded, and the bench clock enabled so the turbine spins
  * without wiring redstone first.
@@ -229,50 +229,31 @@ public class CommandBTSBuild extends CommandBase {
         }
 
         // ------------------------------------------------------------------- the report
+        // Tidy C8: the result, one bench line and one laser warning. The long paragraphs that used
+        // to follow (modules, point-of-use sockets, the Spine pattern) are the questbook's job.
         if (everyTier) {
-            tell(
+            BTSChat.header(
                 player,
-                EnumChatFormatting.AQUA + "== Unit One, all "
-                    + maxTier
-                    + " tiers, side by side (pitch "
+                "== Nuclear plants, all " + maxTier
+                    + " tiers, side by side ("
                     + pitch
-                    + " blocks to your right) ==");
+                    + " blocks apart, to your right) ==");
         } else {
-            tell(player, EnumChatFormatting.AQUA + "== Unit One built (tier " + singleTier + ") ==");
+            BTSChat.header(player, "== Nuclear plant built (tier " + singleTier + ") ==");
         }
         for (final Site site : built) {
             report(player, site, everyTier);
         }
-        tell(
+        BTSChat.send(
             player,
             "Every controller faces " + facing.name()
                 + "; each plant extends 32 blocks behind it, 17 in front, 25 to each side.");
-        tell(
+        BTSChat.ok(player, "Bench clock + infinite supplies ON - /btsclock off and /btssupply off to run it for real.");
+        BTSChat.warn(
             player,
-            EnumChatFormatting.GREEN
-                + "Bench clock ON - the turbine cycles once a second without redstone. Wire a real clock to the Turbine Control Block (manifold back face) to control the rate, then /btsclock off.");
-        tell(
-            player,
-            EnumChatFormatting.GREEN
-                + "Infinite supplies ON - feedwater, coolant and propellant are refilled every tick and each cycle gets a perfectly timed 1L per injector, so it runs indefinitely. /btssupply off to plumb it for real.");
-        tell(player, "Spine left all-CLOCKWISE (riding pattern). Right-click a housing to retune it.");
-        tell(
-            player,
-            EnumChatFormatting.AQUA
-                + "All four PLANT MODULES are raised too: Vent Stack (decay + radiation windows halved), Switchyard (lifts the 100,000,000 EU/t grid soft cap), Extraction Derrick (6 uraninite + 1 thorium every 10s, +1 tantalum every 4th) and Enrichment Annex (8 uraninite + 2,000 L HF -> 2 yellowcake + 2 thorium every 30s). The Derrick's and the Annex's buses are auto-fitted; their EU draw is WAIVED while /btssupply is on.");
-        tell(
-            player,
-            EnumChatFormatting.AQUA
-                + "Every I/O point is AT ITS POINT OF USE: the SILO face carries maintenance (y0), feedwater + the Silo Control Block + the output hatch (y1) and the rod bus + depleted bus (y2); the SPIRAL chamber's front wall carries coolant and the bulk propellant line (y1); the MANIFOLD back face carries 4 dynamos (y3), 4 energy hatches (y4) and 4 laser sources (y5). Everything past those points is distributed internally.");
-        tell(
-            player,
-            EnumChatFormatting.YELLOW
-                + "The laser sources are UNPAINTED, so only the dynamos reach a cable. Paint each one and aim it down laser pipes at a same-tier, same-colour Laser Target Hatch to collect the rest.");
+            "The Laser Source Hatches are unpainted, so only the Dynamo Hatches reach a cable: paint each source to match its Laser Target Hatch.");
         if (everyTier) {
-            tell(
-                player,
-                EnumChatFormatting.YELLOW
-                    + "/btsclock and /btssupply act on the NEAREST station only - stand next to the tier you want to retune.");
+            BTSChat.note(player, "/btsclock and /btssupply act on the nearest plant only.");
         }
     }
 
@@ -505,12 +486,12 @@ public class CommandBTSBuild extends CommandBase {
         site.z = z;
 
         if (!MTEReactorCoreMk1.placeGtMachine(world, x, y, z, idOf(BTSMachines.reactorCoreMk1), facing)) {
-            site.failure = "could not place the main station here";
+            site.failure = "could not place the Nuclear Plant Foundation here";
             return site;
         }
         final TileEntity te = world.getTileEntity(x, y, z);
         if (!(te instanceof IGregTechTileEntity)) {
-            site.failure = "main station did not initialise";
+            site.failure = "the Nuclear Plant Foundation did not initialise";
             return site;
         }
         final IMetaTileEntity mte = ((IGregTechTileEntity) te).getMetaTileEntity();

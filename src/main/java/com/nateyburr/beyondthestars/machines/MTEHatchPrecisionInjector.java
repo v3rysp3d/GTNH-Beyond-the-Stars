@@ -39,9 +39,19 @@ public class MTEHatchPrecisionInjector extends MTEHatchInput {
             aName,
             aNameRegional,
             4,
-            new String[] { "Feeds the Spiral chamber 1L of propellant at a time",
-                "Every litre is stamped with its arrival tick - the slug window wants EXACTLY 1L",
-                "Mistimed or excess litres are wasted and heat the chamber", "Capacity: 16L - by design" });
+            new String[] { "Spiral chamber injector (8 per plant, along the helix)",
+                "Stocked and timed automatically from the chamber's Propellant Input Hatch",
+                "Hand-feeding works, but only 1 L inside the ±2 tick window counts",
+                "Propellants: see NEI \"Nuclear Plant: Propellant\" · Capacity 16 L" });
+    }
+
+    /**
+     * MTEHatchInput replaces the description array with GT's generic input-hatch text, so without
+     * this the injector's own lines (placement, timing, capacity) never reach the tooltip.
+     */
+    @Override
+    public String[] getDescription() {
+        return mDescriptionArray;
     }
 
     public MTEHatchPrecisionInjector(String aName, int aTier, String[] aDescription,

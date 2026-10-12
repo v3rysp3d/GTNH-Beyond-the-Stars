@@ -8,6 +8,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 
@@ -115,10 +116,16 @@ public class BlockTurbineHousing extends BlockContainer {
         if (world.isRemote) return true;
         final int flipped = world.getBlockMetadata(x, y, z) == META_CW ? META_CCW : META_CW;
         world.setBlockMetadataWithNotify(x, y, z, flipped, 3);
+        // Tidy C13: a housing cannot tell whether it rides or opposes - that depends on the
+        // housings nearer the silo (computeSpine) - nor whether it sits in the Spine or the
+        // gallery, so the second line states the rule in a form that holds for every housing.
         player.addChatMessage(
             new ChatComponentText(
-                flipped == META_CW ? "Rotor: CLOCKWISE (rides right-hand swirl)"
-                    : "Rotor: ANTICLOCKWISE (rides left-hand swirl)"));
+                EnumChatFormatting.AQUA + "Spin: " + (flipped == META_CW ? "CLOCKWISE" : "ANTICLOCKWISE")));
+        player.addChatMessage(
+            new ChatComponentText(
+                EnumChatFormatting.GRAY
+                    + "Spine: turning with the swirl of the housings nearer the silo adds speed, against it adds efficiency. Gallery stages ignore spin."));
         return true;
     }
 

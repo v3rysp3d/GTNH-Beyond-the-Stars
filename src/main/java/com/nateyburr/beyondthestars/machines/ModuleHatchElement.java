@@ -3,6 +3,9 @@ package com.nateyburr.beyondthestars.machines;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+
+import net.minecraft.util.StatCollector;
 
 import gregtech.api.interfaces.IHatchElement;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
@@ -13,7 +16,7 @@ import gregtech.api.util.IGTHatchAdder;
 
 /**
  * D-17 / D-22: the sockets of the two PROCESS modules - the Extraction Derrick's product bus
- * and the Enrichment Annex's feed bus, acid hatch and pellet bus. Four dedicated sockets, on
+ * and the Enrichment Annex's feed bus, acid hatch and Yellowcake bus. Four dedicated sockets, on
  * the buildings that consume and produce through them, exactly as POINT OF USE (D-20) asks.
  * <p>
  * <b>None of them joins a plant-wide list.</b> That is the whole reason they exist as their
@@ -58,7 +61,7 @@ public enum ModuleHatchElement implements IHatchElement<MTEReactorCoreMk1> {
             return t.getAnnexAcidHatchCount();
         }
     },
-    /** Enrichment Annex: the bus its fuel pellets and thorium tails leave through. */
+    /** Enrichment Annex: the bus its Yellowcake and thorium leave through. */
     AnnexProduct(MTEReactorCoreMk1::addAnnexProductBusToMachineList, MTEHatchOutputBus.class) {
 
         @Override
@@ -84,5 +87,16 @@ public enum ModuleHatchElement implements IHatchElement<MTEReactorCoreMk1> {
     @Override
     public IGTHatchAdder<? super MTEReactorCoreMk1> adder() {
         return adder;
+    }
+
+    /** Lang key of this socket's player-facing name (structure errors, NEI preview, hints). */
+    @Override
+    public String getDescriptionLangKey() {
+        return "beyondthestars.hatch." + name().toLowerCase(Locale.ROOT);
+    }
+
+    @Override
+    public String getDisplayName() {
+        return StatCollector.translateToLocal(getDescriptionLangKey());
     }
 }

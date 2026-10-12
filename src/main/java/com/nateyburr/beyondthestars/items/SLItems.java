@@ -1,16 +1,8 @@
 package com.nateyburr.beyondthestars.items;
 
-import java.util.List;
-
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.StatCollector;
 
 import cpw.mods.fml.common.registry.GameRegistry;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 /**
  * SINGULARITY LADDER items (singularity-ladder-build.md §1.3). Owned by the Foundation unit;
@@ -95,26 +87,10 @@ public final class SLItems {
      * saved world, so an existing item may switch to this one.
      */
     private static Item defineWithTooltip(String name) {
-        final Item item = new TooltipItem().setUnlocalizedName("beyondthestars." + name)
+        final Item item = new BTSTooltipItem().setUnlocalizedName("beyondthestars." + name)
             .setTextureName("beyondthestars:" + name)
             .setCreativeTab(BTSItems.TAB);
         GameRegistry.registerItem(item, name);
         return item;
-    }
-
-    /** A plain item whose tooltip comes from the lang file. */
-    private static final class TooltipItem extends Item {
-
-        @Override
-        @SideOnly(Side.CLIENT)
-        @SuppressWarnings({ "rawtypes", "unchecked" })
-        public void addInformation(ItemStack stack, EntityPlayer player, List lines, boolean advanced) {
-            final String key = getUnlocalizedName(stack) + ".tooltip";
-            if (!StatCollector.canTranslate(key)) return;
-            for (String line : StatCollector.translateToLocal(key)
-                .split("\\\\n")) {
-                lines.add(EnumChatFormatting.GRAY + line);
-            }
-        }
     }
 }

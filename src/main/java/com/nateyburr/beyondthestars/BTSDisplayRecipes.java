@@ -254,7 +254,7 @@ public final class BTSDisplayRecipes {
                             "EU/t = L/t x spd x eff",
                             "  x RPM/500 x avg rotor",
                             "In: silo face, rod course",
-                            "Out: bus beside it, same course",
+                            "Out: Depleted Output Bus",
                             "Display only - not a recipe")
                         .addTo(plantFuelRods));
             } catch (RuntimeException broken) {
@@ -312,7 +312,10 @@ public final class BTSDisplayRecipes {
                             "Gain = " + MTEReactorCoreMk1.rpmGain() + " x P x timed/8",
                             "  = " + fmt(gain) + " RPM at 8/8 timed",
                             "Held at 1 cycle/s: " + fmt(heldRpm(gain)),
-                            "Redline " + fmt(MTEReactorCoreMk1.RPM_REDLINE),
+                            "Redline " + fmt(MTEReactorCoreMk1.RPM_REDLINE)
+                                + " ("
+                                + fmt(MTEReactorCoreMk1.RPM_LIMIT_MAX)
+                                + " max)",
                             "5 of 8 stocked = 5/8 gain",
                             "A missed cycle burns " + injectors + " L",
                             source,
@@ -379,7 +382,7 @@ public final class BTSDisplayRecipes {
                             "  -> " + fmt(atRedline) + " L/t (shown)",
                             "At " + fmt(MTEReactorCoreMk1.RPM_REDLINE / 2) + " RPM: " + fmt(atHalf) + " L/t",
                             "Half the RPM, a quarter cost",
-                            "No cover = cycle refused",
+                            "Too little coolant = refused",
                             "In: Spiral chamber, front wall",
                             "Display only - not a recipe")
                         .addTo(plantCoolant));
@@ -437,18 +440,18 @@ public final class BTSDisplayRecipes {
                         .ignoreCollision()
                         .setNEIDesc(
                             BTSWaterGrade.label(waterGrade),
-                            "FUEL LINE - F-12 reconversion:",
+                            "Fuel line - UF6 reconversion:",
                             "  yield x" + String.format("%.1f", yieldMilli / 1000.0) + " -> " + count + " UO2 powder",
                             "  per 1,000 L enriched UF6",
                             "  = " + String.format("%.1f", orePerRod) + " Uraninite per fuel rod",
-                            "REACTOR - feedwater hatch:",
+                            "Reactor - feedwater:",
                             "  EU/t output x" + String.format("%.2f", BTSWaterGrade.outputMilli(waterGrade) / 1000.0),
                             "Plain and distilled water",
                             "  run the reactor at x1.00 -",
                             "  no grade is ever required.",
                             "Yield spans x9.00, output",
-                            "  x1.40: water buys CHEAP",
-                            "  FUEL, never raw power.",
+                            "  x1.40: water buys cheap",
+                            "  fuel, never raw power.",
                             "Display only - not a recipe")
                         .addTo(plantWater));
             } catch (RuntimeException broken) {

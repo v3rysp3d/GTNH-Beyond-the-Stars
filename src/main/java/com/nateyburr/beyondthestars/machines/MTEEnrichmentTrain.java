@@ -24,23 +24,27 @@ import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructa
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.items.BTSItemsFuel;
 
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.Materials;
 import gregtech.api.enums.OrePrefixes;
 import gregtech.api.enums.TierEU;
+import gregtech.api.enums.VoltageIndex;
 import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBase;
 import gregtech.api.recipe.check.CheckRecipeResult;
 import gregtech.api.recipe.check.CheckRecipeResultRegistry;
+import gregtech.api.recipe.check.SimpleCheckRecipeResult;
 import gregtech.api.render.TextureFactory;
 import gregtech.api.structure.error.StructureError;
 import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.MultiblockTooltipBuilder;
+import gregtech.api.util.tooltip.TooltipHelper;
 import gregtech.common.tileentities.machines.IDualInputHatch;
 
 /**
@@ -162,15 +166,21 @@ public class MTEEnrichmentTrain extends MTEExtendedPowerMultiBlockBase<MTEEnrich
         return available;
     }
 
+    private static final CheckRecipeResult NEEDS_URANINITE = SimpleCheckRecipeResult
+        .ofFailure("beyondthestars.train.uraninite");
+    private static final CheckRecipeResult NEEDS_ACID = SimpleCheckRecipeResult.ofFailure("beyondthestars.train.acid");
+
     @Override
     @Nonnull
     public CheckRecipeResult checkProcessing() {
         final ItemStack oneUraninite = GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uraninite, 1L);
+        // Tidy C11: say which input is missing (GT5U.gui.text.recipe_result.beyondthestars.train.*)
+        // instead of GT's generic "no recipe". Same checks, same order; only the text differs.
         if (countMatchingInputs(oneUraninite) < INPUT_URANINITE) {
-            return CheckRecipeResultRegistry.NO_RECIPE;
+            return NEEDS_URANINITE;
         }
         if (!depleteInput(Materials.HydrofluoricAcid.getFluid(ACID_MB))) {
-            return CheckRecipeResultRegistry.NO_RECIPE;
+            return NEEDS_ACID;
         }
         for (int i = 0; i < INPUT_URANINITE; i++) {
             depleteInput(oneUraninite);
@@ -191,24 +201,30 @@ public class MTEEnrichmentTrain extends MTEExtendedPowerMultiBlockBase<MTEEnrich
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
-        tt.addMachineType("Enrichment Line")
-            .addInfo("The campus processing factory: leaches uraninite into YELLOWCAKE.")
-            .addInfo("Per 30s cycle: 8x Uraninite Dust + 2,000 L Hydrofluoric Acid ->")
-            .addInfo("2x Yellowcake + 2x Thorium Dust.")
-            .addInfo("Same 4 Uraninite per cake the front end (F-01 .. F-08) gets: this buys")
-            .addInfo("SIMPLICITY, not yield - one multiblock instead of the mill, the flotation")
-            .addInfo("cell, the digester, two chemical plants and their reagents. F-09 onward")
-            .addInfo("still has to be built; the yellowcake goes to the Hydrofluorination step.")
-            .beginStructureBlock(3, 3, 9, true)
-            .addController("Front center")
-            .addCasingInfoRange("Clean Stainless Steel Machine Casing", 65, 72, false)
-            .addCasingInfoExactly("Steel Pipe Casing (conversion line)", 7, false)
-            .addEnergyHatch("Any casing", 1)
-            .addMaintenanceHatch("Any casing", 1)
-            .addInputBus("Any casing", 1)
-            .addInputHatch("Any casing", 1)
-            .addOutputBus("Any casing", 1)
-            .toolTipFinisher();
+        tt.addMachineType("Yellowcake Mill")
+            .addInfo("Leaches Uraninite Dust with Hydrofluoric Acid into Yellowcake.")
+            .addInfo(String.format("Every 30 s: %d Uraninite Dust + %,d L Hydrofluoric Acid", INPUT_URANINITE, ACID_MB))
+            .addInfo(String.format("-> %d Yellowcake + %d Thorium Dust.", OUTPUT_YELLOWCAKE, OUTPUT_THORIUM))
+            .addInfo(
+                "Uses " + TooltipHelper.euRateText(TierEU.RECIPE_HV)
+                    + " ("
+                    + TooltipHelper.voltageTierText(VoltageIndex.HV, false)
+                    + ")")
+            .addInfo("Same 4 Uraninite per Yellowcake as the full ore line:")
+            .addInfo("it saves machines, not ore.")
+            .addInfo("Next step: Chemical Plant, Yellowcake -> Uranium Tetrafluoride.")
+            .addInfo("Despite the name it does not enrich; enrichment is the Cascade Hall.")
+            .addInfo("The Nuclear Plant Foundation has this built in as its Enrichment Annex.")
+            .beginStructureBlock(3, 3, 9, false)
+            .addController("Front face, centre")
+            .addCasing("65-69", "Clean Stainless Steel Machine Casing", false)
+            .addCasing("7", "Steel Pipe Casing (conversion line)", false)
+            .addEnergyHatch("1+", "Any Clean Stainless Steel Machine Casing", 1)
+            .addMaintenanceHatch("1", "Any Clean Stainless Steel Machine Casing", 1)
+            .addInputBus("1+", "Any Clean Stainless Steel Machine Casing (no Crafting Input Buffer)", 1)
+            .addInputHatch("1+", "Any Clean Stainless Steel Machine Casing (no Crafting Input Buffer)", 1)
+            .addOutputBus("1+", "Any Clean Stainless Steel Machine Casing", 1)
+            .toolTipFinisher(BeyondTheStars.TOOLTIP_AUTHOR);
         return tt;
     }
 
@@ -253,6 +269,16 @@ public class MTEEnrichmentTrain extends MTEExtendedPowerMultiBlockBase<MTEEnrich
 
     @Override
     public boolean supportsSingleRecipeLocking() {
+        return false;
+    }
+
+    /**
+     * Tidy B7: no parallel to limit, so GT's Power Panel would hold only its power-fail toggle. GT
+     * hides it on its own single-parallel multis (Heat Exchanger, Air Filter, Integrated Ore Factory)
+     * the same way. GUI only.
+     */
+    @Override
+    public boolean supportsPowerPanel() {
         return false;
     }
 }

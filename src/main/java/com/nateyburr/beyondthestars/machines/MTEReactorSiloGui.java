@@ -1,9 +1,12 @@
 package com.nateyburr.beyondthestars.machines;
 
 import static net.minecraft.util.StatCollector.translateToLocal;
+import static net.minecraft.util.StatCollector.translateToLocalFormatted;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
+
+import net.minecraft.util.EnumChatFormatting;
 
 import com.cleanroommc.modularui.api.drawable.IKey;
 import com.cleanroommc.modularui.api.widget.IWidget;
@@ -57,7 +60,13 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         // being hand-built reads 0 here and is told to keep projecting, not to migrate.
         syncManager.syncValue("standingTier", new IntSyncValue(multiblock::legacySiloTier));
         syncManager.syncValue("siloEdge", new IntSyncValue(multiblock::getEdge));
-        syncManager.syncValue("throttlePct", new IntSyncValue(multiblock::getThrottlePercent));
+        // Tidy B2: is a Programmed Circuit in the controller slot driving the rods? Read off
+        // the slot SERVER-side and synced, so the tier line and the Rods field's tooltip can say
+        // why the field is being ignored (AXIS 1).
+        syncManager.syncValue("throttleOverride", new BooleanSyncValue(multiblock::isThrottleOverridden));
+        // The circuit's own rod count, also read live off the slot: throttleN is only committed
+        // at the next campaign start, so it would quote the previous setting until then.
+        syncManager.syncValue("throttleCircuitN", new IntSyncValue(multiblock::getCircuitThrottle));
         syncManager.syncValue("modules", new StringSyncValue(multiblock::getModulesSummary));
         // D-17 / D-22: the other four buildings. Every one of these is written SERVER-side by
         // checkMachine and read CLIENT-side here, so all of them have to come across as sync
@@ -240,7 +249,8 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         final IntSyncValue tier = syncManager.findSyncHandler("siloTier", IntSyncValue.class);
         final IntSyncValue standingTier = syncManager.findSyncHandler("standingTier", IntSyncValue.class);
         final IntSyncValue edge = syncManager.findSyncHandler("siloEdge", IntSyncValue.class);
-        final IntSyncValue throttlePct = syncManager.findSyncHandler("throttlePct", IntSyncValue.class);
+        final BooleanSyncValue throttleOverride = syncManager
+            .findSyncHandler("throttleOverride", BooleanSyncValue.class);
         final StringSyncValue modules = syncManager.findSyncHandler("modules", StringSyncValue.class);
         final StringSyncValue plantModules = syncManager.findSyncHandler("plantModules", StringSyncValue.class);
         final BooleanSyncValue ventStack = syncManager.findSyncHandler("ventStack", BooleanSyncValue.class);
@@ -339,7 +349,11 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                     () -> !siloBuilt.getBoolValue()))
             .child(
                 row(
-                    () -> MTEReactorCoreMk1.tierLine(tier.getIntValue(), edge.getIntValue(), throttlePct.getIntValue()),
+                    () -> MTEReactorCoreMk1.tierLine(
+                        tier.getIntValue(),
+                        edge.getIntValue(),
+                        throttleN.getIntValue(),
+                        throttleOverride.getBoolValue()),
                     siloBuilt::getBoolValue))
             .child(
                 row(
@@ -378,7 +392,7 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                         radiationSeconds.getIntValue(),
                         ventStack.getBoolValue()),
                     siloBuilt::getBoolValue))
-            // The two self-fuelling modules and whatever is holding them up. Ungated on the
+            // The two feedstock modules and whatever is holding them up. Ungated on the
             // silo - a Derrick on a bare platform mines perfectly well - but hidden while
             // neither of them stands, which is most plants.
             // C2: ...unless there is a STALL to report, which is exactly the case where a module
@@ -391,7 +405,9 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                         annex.getBoolValue(),
                         derrickCycles.getIntValue(),
                         annexCycles.getIntValue(),
-                        moduleStall.getStringValue()),
+                        moduleStall.getStringValue(),
+                        progress.get(),
+                        treeNodes.getLongValue()),
                     () -> derrick.getBoolValue() || annex.getBoolValue()
                         || !moduleStall.getStringValue()
                             .isEmpty()))
@@ -509,17 +525,17 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                 row(
                     () -> MTEReactorCoreMk1.laserLine(laserCount.getIntValue(), laserLinked.getIntValue()),
                     galleryBuilt::getBoolValue))
-            // C1/C5: a non-fatal note, not an error. The REACTOR never draws EU, so an empty E
-            // socket cannot un-form a running reactor - but the two D-17 process modules DO draw
-            // through it, and energyHatchNote says which of the two truths applies.
+            // C1/C5: a non-fatal note, not an error. The REACTOR never draws EU, so the line only
+            // appears while a Derrick or an Annex stands (they draw through these sockets) and the
+            // manifold is short of its four Energy Hatches (tidy B4).
             .child(
                 row(
                     () -> MTEReactorCoreMk1.energyHatchNote(
                         true,
                         energyHatches.getIntValue(),
                         derrick.getBoolValue() || annex.getBoolValue()),
-                    () -> galleryBuilt.getBoolValue() && (energyHatches.getIntValue() < 4
-                        || (energyHatches.getIntValue() <= 0 && (derrick.getBoolValue() || annex.getBoolValue())))))
+                    () -> galleryBuilt.getBoolValue() && energyHatches.getIntValue() < 4
+                        && (derrick.getBoolValue() || annex.getBoolValue())))
             // --- MATH: the Water-Line-style derivation of the number above. Four numbered
             // steps from the pillars to the manifold, every factor carrying its CURRENT value,
             // then the one term that is costing the most and what to do about it.
@@ -634,17 +650,58 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
     }
 
     /**
-     * The three editable fields, in the order they are DRAWN: Build Tier on the left, then the
-     * RPM LIMIT, then the control-rod throttle on the right.
+     * Tidy B1: the plant has no void protection, input separation, batch mode or recipe lock, so
+     * GT's four left-hand gap buttons would only ever be greyed out. GT's own Tesla Tower GUI
+     * hides them the same way. It also frees the row's width for the field labels below.
+     */
+    @Override
+    protected boolean shouldDisplayVoidExcess() {
+        return false;
+    }
+
+    @Override
+    protected boolean shouldDisplayInputSeparation() {
+        return false;
+    }
+
+    @Override
+    protected boolean shouldDisplayBatchMode() {
+        return false;
+    }
+
+    @Override
+    protected boolean shouldDisplayRecipeLock() {
+        return false;
+    }
+
+    /** A short caption for the field drawn to its right (tidy B1). */
+    private static IWidget fieldLabel(String langKey) {
+        return IKey.lang(langKey)
+            .scale(0.8f)
+            .asWidget()
+            .marginLeft(4)
+            .marginRight(2);
+    }
+
+    /**
+     * The three editable fields, in the order they are DRAWN: [Tier] Build Tier on the left,
+     * then [RPM] the RPM Limit, then [Rods] the control rods on the right, each with its caption
+     * immediately to its left.
      * <p>
      * GT's gap row is {@code Flow.row().mainAxisAlignment(END)...reverseLayout(true)}, so the
      * flow lays its children out through a {@code ReversedList} - the LAST child added is the
-     * LEFTMOST on screen. That is why the throttle is appended first and Build Tier second, and
-     * why the questbook's step 2 names Build Tier first: both describe the same left-to-right
-     * strip. Add a child here and it lands on the LEFT of everything already in the row.
+     * LEFTMOST on screen. That is why the rods field is appended first and its caption straight
+     * after it, and why the questbook's step 2 names Build Tier first: both describe the same
+     * left-to-right strip. Add a child here and it lands on the LEFT of everything already in
+     * the row.
+     * <p>
+     * Every field tooltip opens with a GOLD title and carries on in GRAY, the GT layout.
      */
     @Override
     protected Flow createRightPanelGapRow(ModularPanel parent, PanelSyncManager syncManager) {
+        final BooleanSyncValue throttleOverride = syncManager
+            .findSyncHandler("throttleOverride", BooleanSyncValue.class);
+        final IntSyncValue throttleCircuitN = syncManager.findSyncHandler("throttleCircuitN", IntSyncValue.class);
         return super.createRightPanelGapRow(parent, syncManager).child(
             // D-23/D-24: the field's range is the full 1..36 because a MUI2 text field's bounds
             // are fixed when the widget is built, and the CLIENT does not get to decide what
@@ -659,9 +716,21 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                 .numbersInt(1, 36)
                 .syncHandler("throttleSetting")
                 .width(30)
-                .tooltip(
-                    t -> t.addLine(translateToLocal("beyondthestars.gui.throttle.tooltip"))
-                        .addLine(translateToLocal("beyondthestars.gui.throttle.milestone"))))
+                // Tidy B2: the tooltip is rebuilt while it is open, so a circuit dropped into
+                // the controller slot shows up here at once.
+                .tooltipDynamic(t -> {
+                    t.addLine(EnumChatFormatting.GOLD + translateToLocal("beyondthestars.gui.throttle.title"))
+                        .addLine(EnumChatFormatting.GRAY + translateToLocal("beyondthestars.gui.throttle.tooltip"))
+                        .addLine(EnumChatFormatting.GRAY + translateToLocal("beyondthestars.gui.throttle.milestone"));
+                    if (throttleOverride != null && throttleOverride.getBoolValue()) {
+                        t.addLine(
+                            EnumChatFormatting.YELLOW + translateToLocalFormatted(
+                                "beyondthestars.gui.throttle.override",
+                                throttleCircuitN == null ? "?" : String.valueOf(throttleCircuitN.getIntValue())));
+                    }
+                })
+                .tooltipAutoUpdate(true))
+            .child(fieldLabel("beyondthestars.gui.throttle.label"))
             // F4: the RPM LIMIT, sitting next to the rods field because the two are the same
             // kind of control - an operating limit the player sets, held below a ceiling the
             // campaign raises. Range fixed at 12,000..19,500 for the same reason the rods field
@@ -675,15 +744,22 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                     .syncHandler("rpmLimitSetting")
                     .width(36)
                     .tooltip(
-                        t -> t.addLine(translateToLocal("beyondthestars.gui.rpmlimit.tooltip"))
-                            .addLine(translateToLocal("beyondthestars.gui.rpmlimit.milestone"))))
+                        t -> t.addLine(EnumChatFormatting.GOLD + translateToLocal("beyondthestars.gui.rpmlimit.title"))
+                            .addLine(EnumChatFormatting.GRAY + translateToLocal("beyondthestars.gui.rpmlimit.tooltip"))
+                            .addLine(
+                                EnumChatFormatting.GRAY + translateToLocal("beyondthestars.gui.rpmlimit.milestone"))))
+            .child(fieldLabel("beyondthestars.gui.rpmlimit.label"))
             .child(
                 new TextFieldWidget().formatAsInteger(true)
                     .defaultNumber(1)
                     .numbersInt(1, 5)
                     .syncHandler("buildTierSetting")
                     .width(20)
-                    .tooltip(t -> t.addLine(translateToLocal("beyondthestars.gui.buildtier.tooltip"))))
+                    .tooltip(
+                        t -> t.addLine(EnumChatFormatting.GOLD + translateToLocal("beyondthestars.gui.buildtier.title"))
+                            .addLine(
+                                EnumChatFormatting.GRAY + translateToLocal("beyondthestars.gui.buildtier.tooltip"))))
+            .child(fieldLabel("beyondthestars.gui.buildtier.label"))
             // D-24: the upgrade tree opens on a panel of its own, so the controller's own layout
             // is untouched - this row is reverseLayout(true), so the last child added is the
             // LEFTMOST, and the three fields keep their places against the right edge. F8: that

@@ -49,7 +49,7 @@ public final class BTSBom {
     public static final String PRECISION_INJECTOR = "Precision Injector";
     public static final String RADIANT_NAQUADAH_ALLOY_CASING = "Radiant Naquadah Alloy Casing";
     public static final String RADIATION_PROOF_MACHINE_CASING = "Radiation Proof Machine Casing";
-    public static final String REACTOR_FUEL_COLUMN = "Reactor Fuel Column";
+    public static final String REACTOR_FUEL_COLUMN = "Reactor Fuel Pillar Frame";
     public static final String ROD_LOADING_PORT = "Rod Loading Port";
     public static final String SILO_CONTROL_BLOCK = "Silo Control Block";
     public static final String SOLID_STEEL_MACHINE_CASING = "Solid Steel Machine Casing";

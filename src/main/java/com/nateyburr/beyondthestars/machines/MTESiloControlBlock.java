@@ -15,13 +15,13 @@ import gregtech.api.render.TextureFactory;
 
 /**
  * Silo Control Block (TC-2) - the reactor panel socketed in the silo face directly above the
- * main station. Right-click reads the reactor out loud: tier, cascade, heat, decay heat,
+ * Nuclear Plant Foundation controller. Right-click reads the reactor out loud: tier, cascade, heat, decay heat,
  * radiation. GUI-risk ruling: a hatch cannot cleanly host the main controller's MUI2 screen
  * in .52, so the panel is an explicit chat readout - testable and always in sync.
  */
 public class MTESiloControlBlock extends MTEHatch {
 
-    /** The main station this panel is socketed into; set by the structure walk. */
+    /** The Nuclear Plant Foundation this panel is socketed into; set by the structure walk. */
     private MTEReactorCoreMk1 parent;
 
     public MTESiloControlBlock(int aID, String aName, String aNameRegional) {
@@ -31,8 +31,8 @@ public class MTESiloControlBlock extends MTEHatch {
             aNameRegional,
             4,
             0,
-            new String[] { "The reactor panel - socket it in the silo face above the main station",
-                "Right-click for the live reactor readout:", "tier, rod cascade, core heat, decay heat, radiation" });
+            new String[] { "Reactor panel: silo face, directly above the controller",
+                "Right-click: reactor readout (tier, rods, heat, supplies)" });
     }
 
     public MTESiloControlBlock(String aName, int aTier, String[] aDescription,
@@ -82,9 +82,9 @@ public class MTESiloControlBlock extends MTEHatch {
     }
 
     /**
-     * The FULL plant panel, not a reactor-only excerpt: both control blocks print the
-     * controller's one grouped, colour-coded report (reactor, steam chain, turbine, output and
-     * the debug flags), so whichever block a player walks up to answers every question.
+     * Tidy C6: the reactor's own section of the plant panel (the REACTOR group and the weakest
+     * term), not the whole 35-45 line panel - that is the controller GUI's job. Same formatters,
+     * so the two cannot disagree.
      */
     @Override
     public boolean onRightclick(IGregTechTileEntity aBaseMetaTileEntity, EntityPlayer aPlayer) {
@@ -93,10 +93,10 @@ public class MTESiloControlBlock extends MTEHatch {
         final String reset = EnumChatFormatting.RESET.toString();
         aPlayer.addChatMessage(new ChatComponentText(aqua + "== Silo Control Block ==" + reset));
         if (!parentValid()) {
-            aPlayer.addChatMessage(new ChatComponentText("Not linked - reform the main station's structure"));
+            aPlayer.addChatMessage(new ChatComponentText(MTETurbineControlBlock.NOT_LINKED));
             return true;
         }
-        for (final String line : parent.statusReport()) {
+        for (final String line : parent.controlBlockReport(false)) {
             aPlayer.addChatMessage(new ChatComponentText(line));
         }
         return true;

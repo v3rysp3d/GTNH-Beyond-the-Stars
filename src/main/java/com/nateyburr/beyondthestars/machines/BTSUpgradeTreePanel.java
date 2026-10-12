@@ -92,7 +92,8 @@ public final class BTSUpgradeTreePanel {
      */
     private static final int PANEL_W = 300;
     private static final int PANEL_H = 232;
-    private static final int HEADER_H = 32;
+    /** Header: the summary line, the help line, then one branch caption over each column. */
+    private static final int HEADER_H = 42;
     private static final int CONNECTOR_W = 6;
     private static final int TOOLTIP_DELAY = 8;
 
@@ -100,6 +101,10 @@ public final class BTSUpgradeTreePanel {
     private static final UITexture[] CONNECTOR = { GTGuiTextures.PICTURE_UPGRADE_CONNECTOR_BLUE,
         GTGuiTextures.PICTURE_UPGRADE_CONNECTOR_RED, GTGuiTextures.PICTURE_UPGRADE_CONNECTOR_GREEN,
         GTGuiTextures.PICTURE_UPGRADE_CONNECTOR_ORANGE };
+    /** Tidy B6: the branch captions, in the same colours as the branch's connector lines. */
+    private static final String[] BRANCH_CAPTION = { "UPTIME", "BURNUP", "REPROC.", "TURBINE" };
+    private static final EnumChatFormatting[] BRANCH_COLOR = { EnumChatFormatting.BLUE, EnumChatFormatting.RED,
+        EnumChatFormatting.GREEN, EnumChatFormatting.GOLD };
     private static final UITexture[] CONNECTOR_LIT = { GTGuiTextures.PICTURE_UPGRADE_CONNECTOR_BLUE_OPAQUE,
         GTGuiTextures.PICTURE_UPGRADE_CONNECTOR_RED_OPAQUE, GTGuiTextures.PICTURE_UPGRADE_CONNECTOR_GREEN_OPAQUE,
         GTGuiTextures.PICTURE_UPGRADE_CONNECTOR_ORANGE_OPAQUE };
@@ -141,10 +146,25 @@ public final class BTSUpgradeTreePanel {
                 .pos(5, 5)
                 .size(PANEL_W - 26, 10));
         panel.child(
-            IKey.dynamic(() -> EnumChatFormatting.DARK_GRAY + "left-click buy · right-click refund · hover for detail")
+            IKey.str(EnumChatFormatting.GRAY + "Left-click: buy · Right-click: refund · Hover: details")
                 .asWidget()
                 .pos(5, 17)
                 .size(PANEL_W - 10, 10));
+        // Tidy B6: which milestone line each column belongs to, above the column and fixed (the
+        // graph scrolls under it). The x is the column's own node x, so a caption cannot drift
+        // from its column.
+        for (int branch = 0; branch < BTSUpgrade.BRANCHES; branch++) {
+            panel.child(
+                IKey.str(BRANCH_COLOR[branch] + BRANCH_CAPTION[branch])
+                    .scale(0.8f)
+                    .alignment(Alignment.CENTER)
+                    .asWidget()
+                    .pos(
+                        4 + BTSUpgrade.at(branch, 1)
+                            .treeX(),
+                        30)
+                    .size(BTSUpgrade.BUTTON_W, 9));
+        }
 
         // ListWidget cannot lay this out - the nodes are absolutely positioned, which is the
         // whole point of a graph. VerticalScrollData only, deliberately: ScrollWidget's public
@@ -246,14 +266,14 @@ public final class BTSUpgradeTreePanel {
             + " spent · "
             + (free > 0 ? EnumChatFormatting.AQUA : free < 0 ? EnumChatFormatting.RED : EnumChatFormatting.GRAY)
             + free
-            + " free";
+            + " available";
     }
 
-    /** Owned green, buyable aqua, affordable-later yellow, locked grey. */
+    /** Owned green, buyable aqua, affordable-later yellow, locked grey (GRAY: readable on the dark button). */
     private static String stateColor(BTSUpgrade node, long mask, long[] counters) {
         if (BTSUpgrade.owns(mask, node)) return EnumChatFormatting.GREEN.toString();
         if (!BTSUpgrade.prerequisitesMet(mask, node) || !BTSUpgrade.gateMet(counters, node)) {
-            return EnumChatFormatting.DARK_GRAY.toString();
+            return EnumChatFormatting.GRAY.toString();
         }
         final int free = BTSProgression.pointsEarned(counters) - BTSUpgrade.pointsSpent(mask);
         return free >= node.cost() ? EnumChatFormatting.AQUA.toString() : EnumChatFormatting.YELLOW.toString();
@@ -280,37 +300,7 @@ public final class BTSUpgradeTreePanel {
                     + tier
                     + " now)");
         }
-        tooltip.addLine(verdict(node, mask, counters));
-    }
-
-    /**
-     * The one line that says what a click will do, and - when it will do nothing - which single
-     * requirement is in the way. This is a courtesy, not a gate: the server refuses the same
-     * cases whatever this says.
-     */
-    private static String verdict(BTSUpgrade node, long mask, long[] counters) {
-        if (BTSUpgrade.owns(mask, node)) {
-            for (final BTSUpgrade dependent : node.dependents()) {
-                if (!BTSUpgrade.owns(mask, dependent)) continue;
-                if (!BTSUpgrade.prerequisitesMet(mask & ~node.bit(), dependent)) {
-                    return EnumChatFormatting.YELLOW + "OWNED - refund "
-                        + dependent.title()
-                        + " first, it hangs off this";
-                }
-            }
-            return EnumChatFormatting.GREEN + "OWNED - right-click to refund (free, always)";
-        }
-        if (!BTSUpgrade.prerequisitesMet(mask, node)) {
-            return EnumChatFormatting.DARK_GRAY + "LOCKED - buy " + node.prerequisiteText() + " first";
-        }
-        if (!BTSUpgrade.gateMet(counters, node)) {
-            return EnumChatFormatting.DARK_GRAY + "LOCKED - the " + node.gateText() + " milestone opens this";
-        }
-        final int free = BTSProgression.pointsEarned(counters) - BTSUpgrade.pointsSpent(mask);
-        if (free < node.cost()) {
-            return EnumChatFormatting.YELLOW + "SHORT - " + (node.cost() - free) + " more point(s) needed";
-        }
-        return EnumChatFormatting.AQUA + "AVAILABLE - left-click to buy";
+        tooltip.addLine(BTSUpgrade.verdict(node, mask, counters));
     }
 
     /** The button that opens this panel, for the controller GUI's gap row. */

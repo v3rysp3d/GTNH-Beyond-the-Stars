@@ -31,9 +31,9 @@ public class MTEHatchSpineSensor extends MTEHatch {
             aNameRegional,
             4,
             0,
-            new String[] { "Echoes each ACCEPTED turbine cycle with a full-strength 2-tick redstone pulse",
-                "A cycle is accepted when a redstone rising edge on the Turbine Control Block finds a buffered steam slug",
-                "The +/-2 tick injection window opens on that edge - use this echo as the confirmation reference" });
+            new String[] { "Optional: Spiral chamber roof, front centre",
+                "Emits a 2-tick redstone pulse on every accepted turbine cycle",
+                "Use it as the timing reference if you inject propellant by hand" });
     }
 
     public MTEHatchSpineSensor(String aName, int aTier, String[] aDescription,

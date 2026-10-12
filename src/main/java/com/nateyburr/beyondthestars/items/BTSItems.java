@@ -49,9 +49,12 @@ public final class BTSItems {
      * the same string as the unlocalized name and the texture, so the three can never disagree -
      * which is what keeps an existing world's items bound to the fields they were bound to
      * before the split.
+     * <p>
+     * The item is a {@link BTSTooltipItem}, so a {@code item.beyondthestars.<name>.tooltip} lang key
+     * gives it a tooltip; without that key it behaves exactly like a plain item.
      */
     public static Item define(String name) {
-        final Item item = new Item().setUnlocalizedName("beyondthestars." + name)
+        final Item item = new BTSTooltipItem().setUnlocalizedName("beyondthestars." + name)
             .setTextureName("beyondthestars:" + name)
             .setCreativeTab(TAB);
         GameRegistry.registerItem(item, name);
@@ -59,117 +62,120 @@ public final class BTSItems {
     }
 
     public static void register() {
-        uraniumFuelPellet = new Item().setUnlocalizedName("beyondthestars.uraniumFuelPellet")
+        uraniumFuelPellet = new BTSTooltipItem().setUnlocalizedName("beyondthestars.uraniumFuelPellet")
             .setTextureName("beyondthestars:uraniumFuelPellet")
             .setCreativeTab(TAB);
         GameRegistry.registerItem(uraniumFuelPellet, "uraniumFuelPellet");
 
-        fuelRodUranium = new Item().setUnlocalizedName("beyondthestars.fuelRodUranium")
+        fuelRodUranium = new BTSTooltipItem().setUnlocalizedName("beyondthestars.fuelRodUranium")
             .setTextureName("beyondthestars:fuelRodUranium")
             .setCreativeTab(TAB);
         GameRegistry.registerItem(fuelRodUranium, "fuelRodUranium");
 
-        fuelAssemblyUranium = new Item().setUnlocalizedName("beyondthestars.fuelAssemblyUranium")
+        fuelAssemblyUranium = new BTSTooltipItem().setUnlocalizedName("beyondthestars.fuelAssemblyUranium")
             .setTextureName("beyondthestars:fuelAssemblyUranium")
             .setCreativeTab(TAB);
         GameRegistry.registerItem(fuelAssemblyUranium, "fuelAssemblyUranium");
 
-        depletedFuelAssemblyUranium = new Item().setUnlocalizedName("beyondthestars.depletedFuelAssemblyUranium")
+        depletedFuelAssemblyUranium = new BTSTooltipItem()
+            .setUnlocalizedName("beyondthestars.depletedFuelAssemblyUranium")
             .setTextureName("beyondthestars:depletedFuelAssemblyUranium")
             .setCreativeTab(TAB);
         GameRegistry.registerItem(depletedFuelAssemblyUranium, "depletedFuelAssemblyUranium");
 
-        moxFuelPellet = new Item().setUnlocalizedName("beyondthestars.moxFuelPellet")
+        moxFuelPellet = new BTSTooltipItem().setUnlocalizedName("beyondthestars.moxFuelPellet")
             .setTextureName("beyondthestars:moxFuelPellet")
             .setCreativeTab(TAB);
         GameRegistry.registerItem(moxFuelPellet, "moxFuelPellet");
 
-        fuelRodMox = new Item().setUnlocalizedName("beyondthestars.fuelRodMox")
+        fuelRodMox = new BTSTooltipItem().setUnlocalizedName("beyondthestars.fuelRodMox")
             .setTextureName("beyondthestars:fuelRodMox")
             .setCreativeTab(TAB);
         GameRegistry.registerItem(fuelRodMox, "fuelRodMox");
 
-        fuelAssemblyMox = new Item().setUnlocalizedName("beyondthestars.fuelAssemblyMox")
+        fuelAssemblyMox = new BTSTooltipItem().setUnlocalizedName("beyondthestars.fuelAssemblyMox")
             .setTextureName("beyondthestars:fuelAssemblyMox")
             .setCreativeTab(TAB);
         GameRegistry.registerItem(fuelAssemblyMox, "fuelAssemblyMox");
 
-        depletedFuelAssemblyMox = new Item().setUnlocalizedName("beyondthestars.depletedFuelAssemblyMox")
+        depletedFuelAssemblyMox = new BTSTooltipItem().setUnlocalizedName("beyondthestars.depletedFuelAssemblyMox")
             .setTextureName("beyondthestars:depletedFuelAssemblyMox")
             .setCreativeTab(TAB);
         GameRegistry.registerItem(depletedFuelAssemblyMox, "depletedFuelAssemblyMox");
 
-        fuelAssemblyThoriumBonded = new Item().setUnlocalizedName("beyondthestars.fuelAssemblyThoriumBonded")
+        fuelAssemblyThoriumBonded = new BTSTooltipItem().setUnlocalizedName("beyondthestars.fuelAssemblyThoriumBonded")
             .setTextureName("beyondthestars:fuelAssemblyThoriumBonded")
             .setCreativeTab(TAB);
         GameRegistry.registerItem(fuelAssemblyThoriumBonded, "fuelAssemblyThoriumBonded");
 
-        depletedFuelAssemblyThoriumBonded = new Item()
+        depletedFuelAssemblyThoriumBonded = new BTSTooltipItem()
             .setUnlocalizedName("beyondthestars.depletedFuelAssemblyThoriumBonded")
             .setTextureName("beyondthestars:depletedFuelAssemblyThoriumBonded")
             .setCreativeTab(TAB);
         GameRegistry.registerItem(depletedFuelAssemblyThoriumBonded, "depletedFuelAssemblyThoriumBonded");
 
-        fuelAssemblyNaqBonded = new Item().setUnlocalizedName("beyondthestars.fuelAssemblyNaqBonded")
+        fuelAssemblyNaqBonded = new BTSTooltipItem().setUnlocalizedName("beyondthestars.fuelAssemblyNaqBonded")
             .setTextureName("beyondthestars:fuelAssemblyNaqBonded")
             .setCreativeTab(TAB);
         GameRegistry.registerItem(fuelAssemblyNaqBonded, "fuelAssemblyNaqBonded");
 
-        depletedFuelAssemblyNaqBonded = new Item().setUnlocalizedName("beyondthestars.depletedFuelAssemblyNaqBonded")
+        depletedFuelAssemblyNaqBonded = new BTSTooltipItem()
+            .setUnlocalizedName("beyondthestars.depletedFuelAssemblyNaqBonded")
             .setTextureName("beyondthestars:depletedFuelAssemblyNaqBonded")
             .setCreativeTab(TAB);
         GameRegistry.registerItem(depletedFuelAssemblyNaqBonded, "depletedFuelAssemblyNaqBonded");
 
-        fuelRodThoriumBonded = new Item().setUnlocalizedName("beyondthestars.fuelRodThoriumBonded")
+        fuelRodThoriumBonded = new BTSTooltipItem().setUnlocalizedName("beyondthestars.fuelRodThoriumBonded")
             .setTextureName("beyondthestars:fuelRodThoriumBonded")
             .setCreativeTab(TAB);
         GameRegistry.registerItem(fuelRodThoriumBonded, "fuelRodThoriumBonded");
 
-        fuelRodNaqBonded = new Item().setUnlocalizedName("beyondthestars.fuelRodNaqBonded")
+        fuelRodNaqBonded = new BTSTooltipItem().setUnlocalizedName("beyondthestars.fuelRodNaqBonded")
             .setTextureName("beyondthestars:fuelRodNaqBonded")
             .setCreativeTab(TAB);
         GameRegistry.registerItem(fuelRodNaqBonded, "fuelRodNaqBonded");
 
-        depletedFuelRodUranium = new Item().setUnlocalizedName("beyondthestars.depletedFuelRodUranium")
+        depletedFuelRodUranium = new BTSTooltipItem().setUnlocalizedName("beyondthestars.depletedFuelRodUranium")
             .setTextureName("beyondthestars:depletedFuelRodUranium")
             .setCreativeTab(TAB);
         GameRegistry.registerItem(depletedFuelRodUranium, "depletedFuelRodUranium");
 
-        depletedFuelRodMox = new Item().setUnlocalizedName("beyondthestars.depletedFuelRodMox")
+        depletedFuelRodMox = new BTSTooltipItem().setUnlocalizedName("beyondthestars.depletedFuelRodMox")
             .setTextureName("beyondthestars:depletedFuelRodMox")
             .setCreativeTab(TAB);
         GameRegistry.registerItem(depletedFuelRodMox, "depletedFuelRodMox");
 
-        depletedFuelRodThoriumBonded = new Item().setUnlocalizedName("beyondthestars.depletedFuelRodThoriumBonded")
+        depletedFuelRodThoriumBonded = new BTSTooltipItem()
+            .setUnlocalizedName("beyondthestars.depletedFuelRodThoriumBonded")
             .setTextureName("beyondthestars:depletedFuelRodThoriumBonded")
             .setCreativeTab(TAB);
         GameRegistry.registerItem(depletedFuelRodThoriumBonded, "depletedFuelRodThoriumBonded");
 
-        depletedFuelRodNaqBonded = new Item().setUnlocalizedName("beyondthestars.depletedFuelRodNaqBonded")
+        depletedFuelRodNaqBonded = new BTSTooltipItem().setUnlocalizedName("beyondthestars.depletedFuelRodNaqBonded")
             .setTextureName("beyondthestars:depletedFuelRodNaqBonded")
             .setCreativeTab(TAB);
         GameRegistry.registerItem(depletedFuelRodNaqBonded, "depletedFuelRodNaqBonded");
 
-        turbineFanMatched = new Item().setUnlocalizedName("beyondthestars.turbineFanMatched")
+        turbineFanMatched = new BTSTooltipItem().setUnlocalizedName("beyondthestars.turbineFanMatched")
             .setTextureName("beyondthestars:turbineFanMatched")
             .setMaxStackSize(1)
             .setCreativeTab(TAB);
         GameRegistry.registerItem(turbineFanMatched, "turbineFanMatched");
 
-        turbineFanTDA = new Item().setUnlocalizedName("beyondthestars.turbineFanTDA")
+        turbineFanTDA = new BTSTooltipItem().setUnlocalizedName("beyondthestars.turbineFanTDA")
             .setTextureName("beyondthestars:turbineFanTDA")
             .setMaxStackSize(1)
             .setCreativeTab(TAB);
         GameRegistry.registerItem(turbineFanTDA, "turbineFanTDA");
 
-        turbineFanTDAOptimized = new Item().setUnlocalizedName("beyondthestars.turbineFanTDAOptimized")
+        turbineFanTDAOptimized = new BTSTooltipItem().setUnlocalizedName("beyondthestars.turbineFanTDAOptimized")
             .setTextureName("beyondthestars:turbineFanTDAOptimized")
             .setMaxStackSize(1)
             .setCreativeTab(TAB);
         GameRegistry.registerItem(turbineFanTDAOptimized, "turbineFanTDAOptimized");
 
         // TC-4: the gallery stage rotor - wear lives on the item (0-9; shatters at 10).
-        turbineRotor = new Item().setUnlocalizedName("beyondthestars.turbineRotor")
+        turbineRotor = new BTSTooltipItem().setUnlocalizedName("beyondthestars.turbineRotor")
             .setTextureName("beyondthestars:turbineRotor")
             .setMaxStackSize(1)
             .setMaxDamage(10)
