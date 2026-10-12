@@ -1,0 +1,94 @@
+{
+  "preRequisites:9": {
+    "0:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48140
+    }
+  },
+  "properties:10": {
+    "betterquesting:10": {
+      "autoClaim:1": 0,
+      "completion_animation:8": "default",
+      "completion_particle:8": "default",
+      "confetti_icon:10": {
+        "Count:3": 0,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "minecraft:stick"
+      },
+      "countAsQuest:1": 1,
+      "desc:8": "Tengam with its electrons swapped for positrons is literally §bantipolarised§r. Field-cooling it locks the reversed domains, and its counter-currents untwist a magnetar's field.\n\n§e§lCHAIN§r\n1. Raw Tengam → Electromagnetic Separator → Purified Tengam → Polarizer → §bAttuned Tengam dust§r.\n2. §bLarge Chemical Reactor§r (UXV, 20 s): 16 Attuned Tengam dust + 100 L Semi-Stable Antimatter + 144 L molten SpaceTime → §b1,000 L Positronic Tengam Slurry§r.\n3. §bVacuum Freezer§r (UXV, 10 s): 1,000 L slurry + 2,000 L Super Coolant → §b1,000 L Antipolarization Agent§r.\nSemi-Stable Antimatter comes from the Antimatter Forge (SSASS).\n\n§e§lUSE§r\n- the magnetar's §bconstant feed§r, 3,000 L a cycle (50 L/s);\n- the Magnetar Merger charge, 100,000 L;\n- the Magnetar Seed Core, 64,000 L (as its condensate);\n- the flare shield trim.\n\n§e§lAUTOMATE§r One reactor at UXV makes 50 L/s, exactly the feed. Run two, chained to the freezer through ME, to cover the shield trims and the next merger charge.\n\n[note]The Eye returns §l12 Purified Tengam dust per 1,000 L§r of Agent burned (75 % of the Tengam), so antimatter is the real cost.[/note]\n\n§a§lDONE WHEN§r you hold 1,000 L of Antipolarization Agent.",
+      "globalShare:1": 0,
+      "icon:10": {
+        "Count:3": 1,
+        "Damage:2": 2112,
+        "OreDict:8": "dustTengamAttuned",
+        "id:8": "gregtech:gt.metaitem.01"
+      },
+      "isMain:1": 1,
+      "isSilent:1": 0,
+      "lockedProgress:1": 0,
+      "name:8": "§4§l§nAntipolarization Agent",
+      "notification_duration:5": -1.0,
+      "notification_effect:3": -1,
+      "notification_fade_in:5": -1.0,
+      "notification_fade_out:5": -1.0,
+      "notification_icon_offset_y:3": -2147483648,
+      "notification_icon_scale:5": -1.0,
+      "notification_pos_x:3": -2147483648,
+      "notification_pos_y:3": -2147483648,
+      "notification_show_icon:8": "default",
+      "notification_style:8": "default",
+      "notification_subtitle:8": "",
+      "notification_subtitle_scale:5": -1.0,
+      "notification_title:8": "",
+      "notification_title_scale:5": -1.0,
+      "particle_count:3": -1,
+      "questLogic:8": "AND",
+      "repeatTime:3": -1,
+      "repeat_relative:1": 1,
+      "simultaneous:1": 0,
+      "snd_complete:8": "random.levelup",
+      "snd_update:8": "random.levelup",
+      "taskLogic:8": "AND",
+      "visibility:8": "NORMAL"
+    }
+  },
+  "questIDHigh:4": 190,
+  "questIDLow:4": 48143,
+  "rewards:9": {},
+  "tasks:9": {
+    "0:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
+      "index:3": 0,
+      "requiredFluids:9": {
+        "0:10": {
+          "Amount:3": 1000,
+          "FluidName:8": "btsantipolarizationagent"
+        }
+      },
+      "taskID:8": "bq_standard:fluid"
+    },
+    "1:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
+      "index:3": 1,
+      "partialMatch:1": 1,
+      "requireOnlyOneItem:1": 0,
+      "requiredItems:9": {
+        "0:10": {
+          "Count:3": 16,
+          "Damage:2": 2112,
+          "OreDict:8": "dustTengamAttuned",
+          "id:8": "gregtech:gt.metaitem.01"
+        }
+      },
+      "taskID:8": "bq_standard:optional_retrieval"
+    }
+  }
+}

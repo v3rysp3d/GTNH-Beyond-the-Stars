@@ -1,0 +1,26 @@
+{
+  "about": "Item, fluid and ore ids the ladder chapters use that are NOT ours and NOT already used by an RC-2 pack quest (the generator accepts any id the pack itself uses, and checks ours against the Java of --src). Each entry names where it was read. status 'verify' = derived, to be confirmed in game by /btsquests verify (docs/questbook-integration.md, unit Q4); /btsquests dumpids writes the resolved table to copy back here.",
+  "items": {
+    "gregtech:gt.metaitem.01:32418": { "name": "Black Hole Seed", "source": "RC-2 IDMetaItem01 418 + 32000", "status": "verified" },
+    "gregtech:gt.metaitem.01:32419": { "name": "Black Hole Collapser", "source": "RC-2 IDMetaItem01 419 + 32000", "status": "verified" },
+    "gregtech:gt.blockmachines:15238": { "name": "UXV 256A/t Laser Source Hatch", "source": "RC-2 MetaTileEntityIDs.UXV256AtLaserSourceHatch (tectech MachineLoader eM_dynamoTunnel1_UXV)", "status": "verified" },
+    "gregtech:gt.blockmachines:15138": { "name": "UXV 256A/t Laser Target Hatch", "source": "RC-2 MetaTileEntityIDs.UXV256AtLaserTargetHatch (tectech MachineLoader eM_energyTunnel1_UXV)", "status": "verified" },
+    "gregtech:gt.blockmachines:15465": { "name": "Laser Vacuum Pipe", "source": "tectech MachineLoader; questbook/README.md id table", "status": "verified" },
+    "gregtech:gt.blockmachines:11234": { "name": "MAX Machine Hull", "source": "RC-2 MetaTileEntityIDs.HULL_MAX", "status": "verified" },
+    "gregtech:gt.blockmachines:286": { "name": "MAX Wireless Energy Hatch", "source": "RC-2 MetaTileEntityIDs.WIRELESS_HATCH_ENERGY_MAX", "status": "verified" },
+    "gregtech:gt.blockmachines:11245": { "name": "MAX 4x4 Battery Buffer", "source": "RC-2 MetaTileEntityIDs.BATTERY_BUFFER_4_BY_4_MAX", "status": "verified" },
+    "gregtech:gt.blockmachines:12102": { "name": "MAX Input Hatch", "source": "RC-2 MetaTileEntityIDs.INPUT_HATCH_MAX", "status": "verified" },
+    "gregtech:gt.blockcasings9:14": { "name": "Particle Beam Guidance Pipe Casing", "source": "RC-2 gregtech/api/casing/Casings.ParticleBeamGuidancePipeCasing (sBlockCasings9, 14)", "status": "verified" },
+    "tectech:tile.quantumGlass:0": { "name": "Quantum Glass", "source": "RC-2 tectech BlockQuantumGlass: GameRegistry.registerBlock(INSTANCE, ..., getUnlocalizedName() = tile.quantumGlass)", "status": "verified" },
+    "gregtech:gt.metaitem.01:26129": { "name": "Neutronium Bolt", "source": "MetaGeneratedItem01 prefix index 26 (bolt) x 1000 + Materials.Neutronium id 129 (MaterialsIDMap)", "status": "verify" },
+    "gregtech:gt.metaitem.01:2112": { "name": "Attuned Tengam Dust", "source": "MetaGeneratedItem01 prefix index 2 (dust) x 1000 + Materials.TengamAttuned id 112 (MaterialsIDMap)", "status": "verify" },
+    "gregtech:gt.metaitem.01:11588": { "name": "SpaceTime Ingot", "source": "pack quest 'Your First SpaceTime' icon", "status": "verified" }
+  },
+  "fluids": {
+    "temporalfluid": { "name": "Tachyon Rich Temporal Fluid", "source": "RC-2 en_US.lang Material.temporalfluid", "status": "verify" }
+  },
+  "ore": {
+    "boltNeutronium": { "rep": "gregtech:gt.metaitem.01:26129", "status": "verify" },
+    "dustTengamAttuned": { "rep": "gregtech:gt.metaitem.01:2112", "status": "verify" }
+  }
+}

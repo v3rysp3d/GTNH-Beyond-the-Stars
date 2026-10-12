@@ -1,0 +1,94 @@
+{
+  "preRequisites:9": {
+    "0:10": {
+      "questIDHigh:4": -7949765678093284760,
+      "questIDLow:4": -7384462910267243515
+    }
+  },
+  "properties:10": {
+    "betterquesting:10": {
+      "autoClaim:1": 0,
+      "completion_animation:8": "default",
+      "completion_particle:8": "default",
+      "confetti_icon:10": {
+        "Count:3": 0,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "minecraft:stick"
+      },
+      "countAsQuest:1": 1,
+      "desc:8": "A live star is not a recipe. Every second the Eye updates a §bstability field§r. At T1 it has one gauge, §bP§r (pressure balance): minus is collapse, plus is expansion, and §b0 is the target§r. Each higher star adds a gauge.\n\n§e§lZONES§r The worst gauge sets the zone, the yield and Integrity:\n- §bResonant§r within ±10: yield ×1.25, Integrity +1 a second\n- §aStable§r within ±40: ×1.00, +0.2\n- §eStrained§r within ±70: ×0.50, −0.5\n- §cCritical§r within ±100: no yield, −2\n- §4Breach§r beyond ±100: the star is lost at once\n§bIntegrity§r (0-100) at 0 also loses the star. A lost star costs the star and its unfinished cycle, §lnever§r blocks, cores or unlocked tiers. Relight it with a new charge.\n\n§e§lTRIM§r Pour trim fluids into the §bField sockets§r: 8 plain input hatches on the core band. They are never buffered, and ME stocking hatches there are refused. At T1, 1,000 L Helium is §bP −2§r and 1,000 L Hydrogen is §bP +2§r, up to 10 units a second.\n\n§e§lSENSE§r A §bStellar Field Sensor Hatch§r (8 sockets on the core band) reads one channel against a threshold and emits redstone on all sides: digital (15 above or below the threshold) or analog (0-15 across the range). Channels: P, Θ, Ω, Π, the Agent shield, Integrity, Stability, zone, event warning (+, − or any) and upkeep OK. Right-click it to set it up.\n\n§e§lAUTOMATE§r The standard rig:\n- a sensor on §bP > +10§r → a Fluid Regulator cover, or an ME fluid export bus with a redstone card → Helium into a Field hatch;\n- a second sensor on §bP < −10§r → Hydrogen.\nCovers on the sensor's own side work, wireless redstone transmitters included, so one sensor can drive a valve anywhere.\n\n[note]Sol settles at about P +35 (Stable) by itself, so T1 runs unattended; the rig earns the ×1.25. Higher stars do §lnot§r settle. A binary Directive Hatch and OpenComputers support are coming in a later update.[/note]\n\n§a§lDONE WHEN§r you hold a sensor hatch. Here is a second one for the rig.",
+      "globalShare:1": 0,
+      "icon:10": {
+        "Count:3": 1,
+        "Damage:2": 28116,
+        "OreDict:8": "",
+        "id:8": "gregtech:gt.blockmachines"
+      },
+      "isMain:1": 0,
+      "isSilent:1": 0,
+      "lockedProgress:1": 0,
+      "name:8": "§c§l§nThe Stability Field",
+      "notification_duration:5": -1.0,
+      "notification_effect:3": -1,
+      "notification_fade_in:5": -1.0,
+      "notification_fade_out:5": -1.0,
+      "notification_icon_offset_y:3": -2147483648,
+      "notification_icon_scale:5": -1.0,
+      "notification_pos_x:3": -2147483648,
+      "notification_pos_y:3": -2147483648,
+      "notification_show_icon:8": "default",
+      "notification_style:8": "default",
+      "notification_subtitle:8": "",
+      "notification_subtitle_scale:5": -1.0,
+      "notification_title:8": "",
+      "notification_title_scale:5": -1.0,
+      "particle_count:3": -1,
+      "questLogic:8": "AND",
+      "repeatTime:3": -1,
+      "repeat_relative:1": 1,
+      "simultaneous:1": 0,
+      "snd_complete:8": "random.levelup",
+      "snd_update:8": "random.levelup",
+      "taskLogic:8": "AND",
+      "visibility:8": "NORMAL"
+    }
+  },
+  "questIDHigh:4": 190,
+  "questIDLow:4": 48110,
+  "rewards:9": {
+    "0:10": {
+      "ignoreDisabled:1": 0,
+      "index:3": 0,
+      "rewardID:8": "bq_standard:item",
+      "rewards:9": {
+        "0:10": {
+          "Count:3": 1,
+          "Damage:2": 28116,
+          "OreDict:8": "",
+          "id:8": "gregtech:gt.blockmachines"
+        }
+      }
+    }
+  },
+  "tasks:9": {
+    "0:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
+      "index:3": 0,
+      "partialMatch:1": 1,
+      "requireOnlyOneItem:1": 0,
+      "requiredItems:9": {
+        "0:10": {
+          "Count:3": 1,
+          "Damage:2": 28116,
+          "OreDict:8": "",
+          "id:8": "gregtech:gt.blockmachines"
+        }
+      },
+      "taskID:8": "bq_standard:retrieval"
+    }
+  }
+}

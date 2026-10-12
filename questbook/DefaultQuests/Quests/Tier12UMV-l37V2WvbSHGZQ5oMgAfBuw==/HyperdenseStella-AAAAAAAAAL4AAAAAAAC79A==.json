@@ -1,0 +1,84 @@
+{
+  "preRequisites:9": {
+    "0:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48115
+    },
+    "1:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48113
+    },
+    "2:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48100
+    }
+  },
+  "properties:10": {
+    "betterquesting:10": {
+      "autoClaim:1": 0,
+      "completion_animation:8": "default",
+      "completion_particle:8": "default",
+      "confetti_icon:10": {
+        "Count:3": 0,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "minecraft:stick"
+      },
+      "countAsQuest:1": 1,
+      "desc:8": "Raw Hyperdense Stellar Plasma is too loose to seed a neutron star, so finish it inside a black hole. The Kerr Compressor Module runs §bKerr Densification§r, only on a §bKerr T2 holding at least 128 SM§r:\n- §b10,000 L Raw Hyperdense Stellar Plasma + 288 L molten SpaceTime + 64 Neutronium bolts → 1,000 L Hyperdense Stellar Mixture§r, 20 s at UMV, before the hole's bonus.\n\nHyperdense Stellar Mixture (HSM) is used for:\n- the Core Collapse's neutron seed (5,000 L);\n- feeding the neutron star (0-1.5 L/s);\n- the Galactic Upgrade Core (32,000 L, as its condensate);\n- Galactic Shell Plating and Star Chart: Neutron Star.\n\n[note]Raise the KEE's setpoint to 128 SM or more before you start: below that the module refuses the recipe.[/note]\n\n§a§lDONE WHEN§r you hold 1,000 L of Hyperdense Stellar Mixture.",
+      "globalShare:1": 0,
+      "icon:10": {
+        "Count:3": 1,
+        "Damage:2": 11588,
+        "OreDict:8": "",
+        "id:8": "gregtech:gt.metaitem.01"
+      },
+      "isMain:1": 1,
+      "isSilent:1": 0,
+      "lockedProgress:1": 0,
+      "name:8": "§c§l§nHyperdense Stellar Mixture",
+      "notification_duration:5": -1.0,
+      "notification_effect:3": -1,
+      "notification_fade_in:5": -1.0,
+      "notification_fade_out:5": -1.0,
+      "notification_icon_offset_y:3": -2147483648,
+      "notification_icon_scale:5": -1.0,
+      "notification_pos_x:3": -2147483648,
+      "notification_pos_y:3": -2147483648,
+      "notification_show_icon:8": "default",
+      "notification_style:8": "default",
+      "notification_subtitle:8": "",
+      "notification_subtitle_scale:5": -1.0,
+      "notification_title:8": "",
+      "notification_title_scale:5": -1.0,
+      "particle_count:3": -1,
+      "questLogic:8": "AND",
+      "repeatTime:3": -1,
+      "repeat_relative:1": 1,
+      "simultaneous:1": 0,
+      "snd_complete:8": "random.levelup",
+      "snd_update:8": "random.levelup",
+      "taskLogic:8": "AND",
+      "visibility:8": "NORMAL"
+    }
+  },
+  "questIDHigh:4": 190,
+  "questIDLow:4": 48116,
+  "rewards:9": {},
+  "tasks:9": {
+    "0:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
+      "index:3": 0,
+      "requiredFluids:9": {
+        "0:10": {
+          "Amount:3": 1000,
+          "FluidName:8": "btshyperdensestellarmixture"
+        }
+      },
+      "taskID:8": "bq_standard:fluid"
+    }
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "preRequisites:9": {
+    "0:10": {
+      "questIDHigh:4": -1224350904333220370,
+      "questIDLow:4": -6509950608256890330
+    },
+    "1:10": {
+      "questIDHigh:4": -4778474450178651835,
+      "questIDLow:4": -5656051784975508899
+    },
+    "2:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48117
+    }
+  },
+  "properties:10": {
+    "betterquesting:10": {
+      "autoClaim:1": 0,
+      "completion_animation:8": "default",
+      "completion_particle:8": "default",
+      "confetti_icon:10": {
+        "Count:3": 0,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "minecraft:stick"
+      },
+      "countAsQuest:1": 1,
+      "desc:8": "A white dwarf, §bcooled into a black dwarf§r. Sirius B burns nothing and has no upkeep: it runs in §bbatches§r, and your job is to follow a cooling curve.\n\n§e§lUNLOCK§r The T4 milestones: §b147,456 L White Dwarf Matter§r from cycles never worse than Stable, §b4 h Resonant§r, and §bone Deep Dark run§r on this Eye. Then:\n- put the §bSubspace Cooling Core§r in escrow;\n- build the §bsecond arms§r (stack 5: 5,065 Galactic Shell Plating) and bring compression to tier 5;\n- put §bStar Chart: Sirius B§r in the slot. The neutron star goes out: one star per Eye.\n§bFirst Cooling§r is your first batch. A mean yield of at least 0.9 with no fracture unlocks T5; fall short and the core stays for another try. The batch's Black Dwarf Matter comes out either way.\n\n§e§lBATCHES§r Each batch takes §b18,432 L White Dwarf Matter§r and assembles a white dwarf at Θ +90. Over §b2 h§r (÷ the dial) the cooling setpoint ramps from §b+90 to −90§r; at T5 the Θ gauge reads your error from that setpoint. Output: §b4,608 L Black Dwarf Matter × the batch's mean yield§r. EU: 3.87 × 10¹³ a cycle (about 16 A MAX).\n\n§e§lSUBSPACE COOLING§r Trims:\n- Dimensionally Shifted Superfluid (100 L, up to 10 a second): Θ −1, P −0.5. The heat sink.\n- Raw Stellar Plasma (1,000 L, up to 5): Θ +3, for an overshoot.\n- Helium (1,000 L, up to 10): P +2, accretion pressure.\nDecay heat pushes Θ up the whole way and crystallisation drags P down. Expect about §b100,000 L of Superfluid a batch§r.\n\n§e§lTHE PLATEAU§r While the setpoint crosses −10..+10 (about 800 s), latent heat adds §bΘ +0.15 a second§r. The event channel warns 15 s ahead.\n\n§e§lAUTOMATE§r Θ reads the error from the curve, so one sensor pair on Θ drives the Superfluid valve all batch long; a pair on P drives Helium. Keep White Dwarf Matter stocked for the next charge.\n\n[warn]§lFracture§r (Breach or Integrity 0) ends the batch at 25 % of its output × the fraction done.[/warn]\n\n[note]One T4 Eye on the default feed makes about enough White Dwarf Matter for one T5 Eye.[/note]\n\n§a§lDONE WHEN§r you hold the core and the chart (HOLD → CLAIM → INSTALL: claim before the core goes into escrow).",
+      "globalShare:1": 0,
+      "icon:10": {
+        "Count:3": 1,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "beyondthestars:starChartSiriusB"
+      },
+      "isMain:1": 1,
+      "isSilent:1": 0,
+      "lockedProgress:1": 0,
+      "name:8": "§4§l§nEye T5: Sirius B",
+      "notification_duration:5": -1.0,
+      "notification_effect:3": -1,
+      "notification_fade_in:5": -1.0,
+      "notification_fade_out:5": -1.0,
+      "notification_icon_offset_y:3": -2147483648,
+      "notification_icon_scale:5": -1.0,
+      "notification_pos_x:3": -2147483648,
+      "notification_pos_y:3": -2147483648,
+      "notification_show_icon:8": "default",
+      "notification_style:8": "default",
+      "notification_subtitle:8": "",
+      "notification_subtitle_scale:5": -1.0,
+      "notification_title:8": "",
+      "notification_title_scale:5": -1.0,
+      "particle_count:3": -1,
+      "questLogic:8": "AND",
+      "repeatTime:3": -1,
+      "repeat_relative:1": 1,
+      "simultaneous:1": 0,
+      "snd_complete:8": "random.levelup",
+      "snd_update:8": "random.levelup",
+      "taskLogic:8": "AND",
+      "visibility:8": "NORMAL"
+    }
+  },
+  "questIDHigh:4": 190,
+  "questIDLow:4": 48140,
+  "rewards:9": {},
+  "tasks:9": {
+    "0:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
+      "index:3": 0,
+      "partialMatch:1": 1,
+      "requireOnlyOneItem:1": 0,
+      "requiredItems:9": {
+        "0:10": {
+          "Count:3": 1,
+          "Damage:2": 0,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:subspaceCoolingCore"
+        },
+        "1:10": {
+          "Count:3": 1,
+          "Damage:2": 0,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:starChartSiriusB"
+        }
+      },
+      "taskID:8": "bq_standard:retrieval"
+    },
+    "1:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
+      "index:3": 1,
+      "partialMatch:1": 1,
+      "requireOnlyOneItem:1": 0,
+      "requiredItems:9": {
+        "0:10": {
+          "Count:3": 5065,
+          "Damage:2": 12,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:slCasing"
+        },
+        "1:10": {
+          "Count:3": 762,
+          "Damage:2": 12,
+          "OreDict:8": "",
+          "id:8": "tectech:gt.blockcasingsBA0"
+        },
+        "2:10": {
+          "Count:3": 404,
+          "Damage:2": 0,
+          "OreDict:8": "",
+          "id:8": "tectech:tile.quantumGlass"
+        }
+      },
+      "taskID:8": "bq_standard:optional_retrieval"
+    }
+  }
+}

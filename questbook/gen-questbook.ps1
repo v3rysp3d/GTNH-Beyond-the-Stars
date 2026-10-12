@@ -21,14 +21,10 @@
 # to that array. Inserting one in the middle renumbers every quest after it and orphans the
 # progress each installed world has already recorded against those ids.
 #
-# BQBridge.CHAPTER_QUEST_LOWS is the LIST of lows /btsquests STATUS counts. It used to be a
-# FIRST..LAST pair reading 48000..48019; when 48021..48025 were appended the pair was not
-# widened, so `status` counted 20 ids out of a 25-quest chapter, found all 20 and reported
-# "Everything is loaded" with five blueprints missing. A range cannot describe this chapter
-# - 48020 is a hole in the middle of it by design - so it is a list now, and the gate near
-# the foot of this file reads that array back out of BQBridge.java and THROWS if it does not
-# match the ids handed out below. Append a quest without adding its low there and the
-# questbook build fails instead of shipping a status command that lies.
+# /btsquests STATUS counts BTSQuestIds.PLANT_QUESTS, a LIST of lows (a FIRST..LAST pair once
+# reported "Everything is loaded" with five blueprints missing: 48020 is a hole in the middle
+# of this chapter by design). tools/gen-singularity.js generates that list from the files this
+# script writes, so appending a quest here updates the status command with it.
 #
 # ---------------------------------------------------------------------------------
 # FORMATTING. This file is ASCII-only on purpose: Windows PowerShell 5.1 reads a .ps1
@@ -1580,36 +1576,9 @@ foreach ($q in $quests) {
 # it - so when 48021..48025 were appended, `status` counted 20 ids, found 20, and told the
 # player "Everything is loaded" with five blueprint quests missing from the book.
 #
-# The Java holds one declared LIST now, and this is the gate that stops it rotting: the ids
-# handed out above are compared against that array, and a mismatch fails the questbook
-# build. There is deliberately no way to add a quest here and ship a stale status command.
-$bridgeJava = Join-Path $PSScriptRoot '..\src\main\java\com\nateyburr\beyondthestars\BQBridge.java'
-if (-not (Test-Path $bridgeJava)) {
-    throw "gen-questbook.ps1: BQBridge.java is not at $bridgeJava, so /btsquests status cannot be checked against this chapter."
-}
-$bridgeText = [System.IO.File]::ReadAllText($bridgeJava)
-$bridgeMatch = [regex]::Match($bridgeText, 'CHAPTER_QUEST_LOWS\s*=\s*\{(?<body>[^}]*)\}')
-if (-not $bridgeMatch.Success) {
-    throw ('gen-questbook.ps1: BQBridge.CHAPTER_QUEST_LOWS was not found in ' + $bridgeJava +
-        '. /btsquests status counts exactly that array; without it this chapter cannot be verified.')
-}
-$javaLows = @([regex]::Matches($bridgeMatch.Groups['body'].Value, '\d+') | ForEach-Object { [int]$_.Value }) | Sort-Object
-$ourLows = @($quests | ForEach-Object { [int]$_.Low }) | Sort-Object
-$lowDiff = Compare-Object $javaLows $ourLows
-if ($lowDiff) {
-    $addToJava = @($lowDiff | Where-Object { $_.SideIndicator -eq '=>' } | ForEach-Object { $_.InputObject }) -join ', '
-    $dropFromJava = @($lowDiff | Where-Object { $_.SideIndicator -eq '<=' } | ForEach-Object { $_.InputObject }) -join ', '
-    throw ("gen-questbook.ps1: BQBridge.CHAPTER_QUEST_LOWS does not describe this chapter. " +
-        "ADD to the Java array: [$addToJava]. REMOVE from it: [$dropFromJava]. " +
-        '/btsquests status counts exactly that array, so a stale one reports a complete chapter ' +
-        'while quests are missing from the book - which is the bug this gate exists to stop.')
-}
-if ($javaLows -contains $ENTRY_LOW) {
-    throw "gen-questbook.ps1: BQBridge.CHAPTER_QUEST_LOWS contains $ENTRY_LOW, which belongs to the pack-line entry quest and is checked separately as ENTRY_QUEST_UUID."
-}
-if ($bridgeText.IndexOf('new UUID(ID_HIGH, ' + $ENTRY_LOW + 'L)') -lt 0) {
-    throw "gen-questbook.ps1: BQBridge.ENTRY_QUEST_UUID is no longer new UUID(ID_HIGH, ${ENTRY_LOW}L) - the pack-line entry quest and the Java disagree about its id."
-}
+# The hand-kept BQBridge.CHAPTER_QUEST_LOWS array this gate used to compare is gone: status
+# now counts BTSQuestIds.PLANT_QUESTS, which tools/gen-singularity.js (the last step of this
+# script) GENERATES from the very files written below, so the list cannot go stale.
 
 # Every icon / task / reward stack must be a REAL stack. Icon takes (id, damage, count) and
 # dropping the last argument silently yields Count 0 - a retrieval task that can never be
@@ -1830,6 +1799,26 @@ WriteText (Join-Path $out 'OrderLine.txt') "${lineB64}: Beyond the Stars`n"
 
 Write-Host "Generated quest line $lineDir with $($quests.Count) quests (IDs $HIGH/$($quests[0].Low)..$($quests[-1].Low))"
 Write-Host "Plus pack-line entry quest 'Unit One' ($HIGH/$($packQuest.Low)) in $packLineDir"
-Write-Host "BQBridge.CHAPTER_QUEST_LOWS agrees: /btsquests status counts all $($javaLows.Count) chapter quests, entry quest $ENTRY_LOW separately."
 Write-Host "Bills of materials derived by gen-bom.ps1 from the live shape code."
 Write-Host "Diagrams: run gen-diagrams.ps1 and merge .\resources\ into config\betterquesting\resources\"
+
+# --------------------------------------- the Singularity Ladder chapters (LAST step)
+# tools/gen-singularity.js turns questbook/singularity.json into the three ladder chapters
+# (Tier 13 - UXV, Tier 14 - MAX, The Endgame), our quests grafted into the pack's UIV and
+# UMV chapters, OrderLines.txt (which replaces OrderLine.txt above), the jar's
+# assets/beyondthestars/questbook/overlay.json (which also carries THIS plant chapter, read back
+# from the files just written) and BTSQuestIds.java. It must run after everything above,
+# because this script wiped DefaultQuests\ on the way in. Any failure of it fails this script,
+# so gen-bom.ps1 stays the one build command and rolls BTSBom.java back as usual.
+#   BTS_QB_SRC  = the addon tree whose Java + structures/manifest.json are checked (default: this repo)
+#   BTS_QB_PACK = the pack's DefaultQuests the edits are checked against (default: the RC-2 instance)
+$singArgs = @((Join-Path $PSScriptRoot '..\tools\gen-singularity.js'))
+if ($env:BTS_QB_SRC) { $singArgs += @('--src', $env:BTS_QB_SRC) }
+if ($env:BTS_QB_PACK) { $singArgs += @('--pack', $env:BTS_QB_PACK) }
+if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
+    throw 'gen-questbook.ps1: node is not on PATH, so tools/gen-singularity.js (the Singularity Ladder chapters) cannot run.'
+}
+& node @singArgs
+if ($LASTEXITCODE -ne 0) {
+    throw "gen-questbook.ps1: tools/gen-singularity.js failed (exit $LASTEXITCODE); its errors are printed above."
+}
