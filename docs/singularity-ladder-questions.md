@@ -1204,6 +1204,63 @@ condition in `MTEKerrEngine.tickRender` (`want` gains `&& mMachine`).
 
 ---
 
+### B-44 Kerr redesign: review fixes (recipe-check pushes, DENSITY cache, migration hold, no KEE maintenance, Collapse button, Auto) [Kerr redesign, review fix]
+
+**Context.** A review of the Kerr redesign against GT 5.09.54.205 (RC-2) sources found six issues. All six were
+checked against the RC-2 sources and fixed. They were re-tested on the headless dev server (2026-10-12) without the
+`stock` command where a refill would hide the bug.
+
+**What was fixed.**
+
+- **Idle modules never restarted.** RC-2 checks recipes only on a push (`doPeriodicChecks` is false). A check that
+  failed with `HOLE_CLOSED`, `KEE_NOT_FORMED` or `density` used the pending push up. The module now pushes
+  `RecipeCheckReason.IMMEDIATE` when its link becomes `LINKED`, and the compressor pushes one when its DENSITY gate
+  opens (polled every 20 ticks). *Test:* the hole was closed and the extractor stocked in the same tick, so the
+  module stayed idle with `HOLE_CLOSED` and 128 Stemcells. The hole was then reopened and nothing else was touched:
+  128 Plasma Membrane came out. Same with the KEE unformed (`damage`), the compressor stocked with Poppy, then
+  `repair`: 8 Plantball.
+- **DENSITY first did not hold.** GT offers `ProcessingLogic.lastRecipe` to every map query ahead of the map's own
+  recipes, and never clears it. The last recipe is now offered only to its own map (`GTRecipe.getRecipeCategory()
+  .recipeMap`). A DENSITY match also hides GT's maps (`shadowsLaterMaps`), so a shut gate waits with "density"
+  instead of the Eternal Singularity recipe eating the SpaceTime. *Test (T2, no restart):* SL-K05 stocked at 64 SM:
+  the bolts and SpaceTime stayed untouched. Raised to 128 SM with nothing restocked: SL-K05 ran. The bolts were then
+  cleared, so an Eternal Singularity batch ran and became the cached recipe. After restocking the bolts, the next
+  recipe was SL-K05 (2,000 L Hyperdense Stellar Mixture in total).
+- **Migration destroyed in-flight recipes.** Old arcs had no energy hatch, so a converted module cannot form, and
+  every fluid was counted lost. The KEE now moves the old outputs off GT's recipe fields at load (GT's `stopMachine`
+  clears those while unformed). It holds them in its NBT (`btsKerrLegacy`, tile and wrenched item) and hands them over
+  each second once the module is formed. Items that do not fit drop at the module controller. Fluids that do not fit
+  stay held, and the GUI note says so. *Test:* `/btskerr legacy x y z inflight` (strips the module energy hatches,
+  puts 2 x 64 bolts, 1,000 L water and 500 L lava in the KEE's GT recipe fields) followed by a restart. The load
+  captured the recipe, auto-migration converted both arcs, and the note said "held until the Compressor module forms".
+  After `/btskerr module x y z c energy`, water went to the output hatch, lava stayed held, and it was still held after
+  another restart. All 128 bolts were found as drops: the test layout has no output bus, because `legacy` puts the
+  core block back on the I/O socket. Same result on a T2 without a restart.
+- **KEE maintenance.** The KEE runs no recipes. `getDefaultHasMaintenanceChecks` is now false and the
+  maintenance-hatch requirement is gone. The governor arc's `m` cell is shell first: builds place casing and there is
+  no hint. It still accepts the maintenance hatch an existing Kerr has there, so nothing unforms. *Test:* the kit's
+  KEE formed with 10 hatches and no maintenance hatch, in T1 and T2. The dev server also caught a crash in the first
+  version: GT's `HatchElementBuilder.build()` requires a hint.
+- **Collapse on an unformed KEE.** The button now needs a formed cage, as the server does. The status line says
+  "Collapse needs a formed cage". GUI only; not seen in a client.
+
+**Judgement call: Auto (finding 6).** With Auto on (the default), a Collapser placed in a bolt bus collapses the hole
+within 20 ticks, so the panel's two-click Collapse and its Collapser count are moot while Auto is on. B-41 built Auto
+as "a Seed or Collapser placed in a bolt bus acts on its own" (migration.md promises the old behaviour), so
+**built:** the behaviour is unchanged. With Auto on, the panel now says "Auto on: a Collapser in a bolt bus collapses
+at once", and the Auto tooltip says the same. **Suggestion:** Auto acts on Seeds only (evaporation recovery keeps
+working) and Collapsers are left to the button. Alternatives: split into "Auto open" / "Auto collapse" with collapse
+off by default, or keep as built.
+
+**Seen, not changed.**
+
+- A migrated module controller stands "switched off". GT disables any multiblock that is allowed to work while
+  unformed, so after adding its energy hatch the player switches it on (standard GT behaviour).
+- SL-K05 inputs that are short (for example 10 bolts instead of 64) do not match DENSITY, so they still fall through
+  and the Eternal Singularity recipe can use the SpaceTime. That is the inputs' ambiguity, not the gate.
+
+---
+
 ## Part C. Settled (for the record)
 
 | Topic | Your answer | State |
