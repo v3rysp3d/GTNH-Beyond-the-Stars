@@ -4,6 +4,7 @@ import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofChain;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.onElementPass;
 import static com.nateyburr.beyondthestars.machines.BTSStructures.noOverwrite;
+import static com.nateyburr.beyondthestars.machines.BTSStructures.tieredBlock;
 import static gregtech.api.enums.HatchElement.Energy;
 import static gregtech.api.enums.HatchElement.ExoticEnergy;
 import static gregtech.api.enums.HatchElement.Maintenance;
@@ -41,6 +42,7 @@ import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.items.SLItems;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
+import com.nateyburr.beyondthestars.machines.BTSStructures;
 
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.ItemList;
@@ -174,7 +176,8 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     private static final IIconContainer OVERLAY_ACTIVE_GLOW = Textures.BlockIcons
         .custom("beyondthestars:iconsets/OVERLAY_FRONT_KERR_ENGINE_ACTIVE_GLOW");
 
-    private static IStructureDefinition<MTEKerrEngine> STRUCTURE_DEFINITION = null;
+    /** Built once, lazily; NEI's multiblock preview reads it from a background thread at load. */
+    private static volatile IStructureDefinition<MTEKerrEngine> STRUCTURE_DEFINITION = null;
 
     /** Periodic structure re-check intervals in ticks (see structureChunksLoaded). */
     private static final int RECHECK_IDLE = 200;
@@ -240,10 +243,17 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
 
     @Override
     public IStructureDefinition<MTEKerrEngine> getStructureDefinition() {
-        if (STRUCTURE_DEFINITION == null) {
-            STRUCTURE_DEFINITION = buildDefinition();
+        IStructureDefinition<MTEKerrEngine> def = STRUCTURE_DEFINITION;
+        if (def == null) {
+            synchronized (MTEKerrEngine.class) {
+                def = STRUCTURE_DEFINITION;
+                if (def == null) {
+                    def = buildDefinition();
+                    STRUCTURE_DEFINITION = def;
+                }
+            }
         }
-        return STRUCTURE_DEFINITION;
+        return def;
     }
 
     private static IStructureDefinition<MTEKerrEngine> buildDefinition() {
@@ -332,18 +342,26 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         return noOverwrite(onElementPass(x -> ++x.mCasing, ofBlock(block, meta)));
     }
 
+    /** The injector rail metas, Mk I first. */
+    private static final int[] RAIL_METAS = { BlockSLCasing.INJECTOR_MK1, BlockSLCasing.INJECTOR_MK2,
+        BlockSLCasing.INJECTOR_MK3 };
+
     /**
      * The injector rails, Mk I/II/III, MIXABLE: unlike {@code ofBlocksTiered} (which demands one tier
      * across the whole structure) the walk records the LOWEST tier it meets, and that sets the bolt cap
-     * - so upgrading rails one at a time never un-forms the machine. Mk I comes first, so the hologram
-     * and the creative build use Mk I (trap 4).
+     * - so upgrading rails one at a time never un-forms the machine. Builds place Mk I (survival takes
+     * a higher Mk if the player has no Mk I) and never downgrade a rail already standing
+     * ({@code BTSStructures.tieredBlock}).
      */
     private static IStructureElement<MTEKerrEngine> rails(Block sl) {
-        return noOverwrite(
+        return tieredBlock(
+            sl,
+            RAIL_METAS,
             ofChain(
                 onElementPass(x -> x.noteRail(1), ofBlock(sl, BlockSLCasing.INJECTOR_MK1)),
                 onElementPass(x -> x.noteRail(2), ofBlock(sl, BlockSLCasing.INJECTOR_MK2)),
-                onElementPass(x -> x.noteRail(3), ofBlock(sl, BlockSLCasing.INJECTOR_MK3))));
+                onElementPass(x -> x.noteRail(3), ofBlock(sl, BlockSLCasing.INJECTOR_MK3))),
+            trigger -> 0);
     }
 
     private void noteRail(int tier) {
@@ -649,19 +667,26 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         }
     }
 
+    /**
+     * Survival auto-place (projector, from the player's inventory or a linked AE system, and NEI's
+     * preview, which builds through here with a creative item source). Server-side only, so the
+     * installed state may be read here: an upgraded Kerr builds T2, and a stack of 2+ pre-builds the
+     * T2 reinforcement before the upgrade goes in. The core goes first; once it is complete every
+     * module arc is built, each on its own (an unfinished module never blocks the next). -1 when
+     * everything is standing. Hatches and other tiles are never overwritten ({@code noOverwrite}).
+     */
     @Override
     public int survivalConstruct(ItemStack stackSize, int elementBudget, ISurvivalBuildEnvironment env) {
-        // Server-side only, so the installed state may be read here: an upgraded Kerr builds T2, and a
-        // stack of 2+ pre-builds the T2 reinforcement before the upgrade goes in.
         final String core = densityInstalled || (stackSize != null && stackSize.stackSize >= 2) ? PIECE_T2 : PIECE_T1;
         if (mMachine && core.equals(corePiece()) && allModulesBuilt()) return -1;
+        final int budget = BTSStructures.survivalBudget(elementBudget);
         final int[] o = off(core);
-        final int built = survivalBuildPiece(core, stackSize, o[0], o[1], o[2], elementBudget, env, false, true);
+        final int built = survivalBuildPiece(core, stackSize, o[0], o[1], o[2], budget, env, false, true);
         if (built >= 0) return built;
-        // The modules are independent: an unfinished (or unwanted) module never blocks the next one.
         int placed = 0;
         boolean any = false;
         for (KerrModule module : modules) {
+            if (placed >= budget) return placed;
             final int[] mo = off(module.piece);
             final int n = survivalBuildPiece(
                 module.piece,
@@ -669,7 +694,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
                 mo[0],
                 mo[1],
                 mo[2],
-                Math.max(0, elementBudget - placed),
+                budget - placed,
                 env,
                 false,
                 true);
@@ -1249,6 +1274,9 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             .addInputBus("Module arcs (the active mode's module only)", 4, 5)
             .addOutputBus("Module arcs (the active mode's module only)", 4, 5)
             .addStructureInfo("Hologram: trigger stack 1 = Kerr T1, 2+ = Kerr T2; both modules are projected.")
+            .addStructureInfo("Survival auto-place builds T2 once the Density Upgrade is in, and the modules")
+            .addStructureInfo(
+                "  after the core. Rails go in as Mk I; builds never overwrite hatches or downgrade rails.")
             .toolTipFinisher();
         return tt;
     }
