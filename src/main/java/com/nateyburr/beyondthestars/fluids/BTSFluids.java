@@ -93,6 +93,8 @@ public final class BTSFluids {
         SLFluids.register();
         // BEC EXPANSION (bec-expansion-proposal.md §4): the six addon condensates.
         SLCondensates.register();
+        // P4 (quasar-p4.md §6.2): Ergomatter and Superdense Ergomatter. Before SLRealityFluids, which reads them.
+        SLQuasarFluids.register();
         // The Homogeny and the Reality machines (homogeny-reality.md §4.4): products, regions, condensates.
         SLRealityFluids.register();
     }
