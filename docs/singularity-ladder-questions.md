@@ -1242,6 +1242,29 @@ recommended).
 
 ---
 
+### B-38 D-49: the test package ships without the Eye GUI and the centre render [D-49 package pass]
+
+**Context.** The D-49 package is `dist-rc2/beyondthestars-0.24.1-master.120+12fcf51c4a.jar` (sha256 `36ab9d10…56e4`),
+built from `12fcf51` with `gradlew build` clean (no spotless or checkstyle fixes needed). `dist-rc2/INSTALL.md` is
+rewritten for D-49. The hotfix jar `0.24.1-hotfix-rc2-recipe-result-lang.95+b320e4e8e6` moved to `superseded/`;
+master already carries that fix (`f484699`).
+
+**Judgement calls.**
+
+1. **Packaged as is, with plan unit 6 not built.** There is no `EyeGui` (gauge bars, dial/feed buttons), no centre
+   render (`eyeRenderCentre` is still read by nothing, and its config comment still says so), and the controller
+   tooltip is only partly rewritten. INSTALL.md says all three are missing and points players at the scanner and the
+   screwdriver. The task was to package, not to build them.
+2. **The `/btseye tN` chat line is stale.** `CommandBTSEye` still says "the star chart in the controller slot runs at
+   once" after a `fill` build. Under D-49 a T1-T3 star still needs an ignition charge (or `/btseye star … lit`). It is
+   not a spotless/checkstyle fix, so I left it; INSTALL.md warns about it.
+   - *Suggestion:* reword it in the unit 6 pass ("drop a Stellar Ignition Charge in the plinth input bus").
+3. **Unit 5 and the test pass have no questions entry.** INSTALL.md's "dev-server results" line comes from the test
+   pass's server logs: every transition reached COMPLETE and unlocked its tier, the Core Collapse also produced a
+   supernova, and COMPARE PASS held. Unit 5's judgement calls still need their own entry.
+
+---
+
 ## Part C. Settled (for the record)
 
 | Topic | Your answer | State |
