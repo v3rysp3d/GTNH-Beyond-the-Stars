@@ -12,11 +12,13 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.World;
 
 import com.nateyburr.beyondthestars.items.BTSItems;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import gregtech.api.GregTechAPI;
 
 /**
  * SINGULARITY LADDER: the shared base of the tile-less structure meta-blocks (singularity-ladder-build.md
@@ -30,6 +32,11 @@ import cpw.mods.fml.relauncher.SideOnly;
  * <p>
  * Hardness, resistance and the wrench harvest level follow GT's casings, and nothing spawns on
  * them, so a 30,000-block structure does not become a mob farm.
+ * <p>
+ * Like GT's own casings ({@code BlockCasingsAbstract}), every meta is a registered GT MACHINE BLOCK
+ * and placing or breaking one calls {@code GregTechAPI.causeMachineUpdate}: GT's update walk only
+ * travels through machine blocks, so without this a Kerr or Eye never noticed a change to these
+ * casings (and they cut the walk between GT casings on either side).
  */
 public abstract class BlockSLMeta extends Block {
 
@@ -52,6 +59,22 @@ public abstract class BlockSLMeta extends Block {
                 setHarvestLevel("wrench", 2, meta);
             }
         }
+        GregTechAPI.registerMachineBlock(this, -1);
+    }
+
+    @Override
+    public void onBlockAdded(World world, int x, int y, int z) {
+        if (GregTechAPI.isMachineBlock(this, world.getBlockMetadata(x, y, z))) {
+            GregTechAPI.causeMachineUpdate(world, x, y, z);
+        }
+    }
+
+    @Override
+    public void breakBlock(World world, int x, int y, int z, Block block, int meta) {
+        if (GregTechAPI.isMachineBlock(this, meta)) {
+            GregTechAPI.causeMachineUpdate(world, x, y, z);
+        }
+        super.breakBlock(world, x, y, z, block, meta);
     }
 
     private static String firstReal(String[] textures) {
