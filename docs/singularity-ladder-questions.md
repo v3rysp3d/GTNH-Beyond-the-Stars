@@ -2392,6 +2392,32 @@ Round 3's Eye cases ran at 957-1212.
 **Still open:** E-9 (B-66 / B-67): from the front the bands hide the small objects (magnetar, neutron star), as in
 `eye_t6_magnetar_front_night`.
 
+### B-69 Render gallery: one page with every round-4 shot and its verdict [render QA]
+
+**What was built.** A single HTML page, `render-qa/gallery.html` in my local work folder (6.6 MB). It holds all 96
+round-4 shots, grouped by machine (Kerr Ergosphere Engine, Eye of Harmony) and by case. Each case shows the
+harness's description, the FPS at every shot, the case's average and range, and the chunk rebuilds counted during its
+shots. It also gives the verdict, the defect codes, the measured centre colour and any open structure question. The
+references (GT's Black Hole Compressor for the Kerr, TecTech's Eye of Harmony and Forge of the Gods for the Eye) open
+each machine. Clicking a shot opens it beside the reference from the same view and time. The page has View and Time
+filters and works at 400 px in light and dark themes. Its generator is `render-qa/gallery-build/build_gallery.py`,
+which reads `verdicts.json` and the 1024-px JPEG copies in `thumbs/`.
+
+**Judgement calls (built, PROPOSED):**
+1. **No round-4 verdict exists yet.** No judge has reviewed round 4. Each case therefore shows the judge's latest
+   ruling (the round-3 review) and what round 4 changed in answer (B-68). On that basis:
+   - The Kerr cases are **Pass**, because the round-3 review passed them and the Kerr has not changed since.
+   - The late dwarf shows **No defect raised**, because round 3 named no defect for it.
+   - The nine other Eye cases show **Fixed, awaiting review**.
+   - The banner at the top says so. When the round-4 review lands, edit `verdicts.json` and re-run the generator. A
+     `fail` status is supported.
+2. **FPS per shot comes from the run that produced the final file.** Following B-68, that is the full run for the
+   Kerr and the references, the Eye re-run for T1-T4 and T6, and the dwarf retune for T5. This was checked by
+   comparing file hashes against `run1/`..`run3/`. The case averages are recomputed from the six shots. They match
+   B-68's table to within 1 FPS (rounding).
+3. **Downscaled to 1024 × 576 JPEG, quality 80** (4.6 MB of images), so the page stays well under 12 MB while
+   keeping close-up detail. The full-size PNGs stay in `round4/`.
+
 ---
 
 ## Part C. Settled (for the record)
