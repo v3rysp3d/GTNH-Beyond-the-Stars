@@ -237,11 +237,11 @@ public final class EyeStarLook {
      */
     private static final float[] DWARF_AT = { 0f, 0.2f, 0.5f, 0.75f, 0.9f, 1f };
     private static final int[] DWARF_RGB = { 0xF2F5FF, 0xF2F5FF, 0xFFB070, 0x8A2A18, 0x2A1210, 0x0E0A0C };
-    // Render QA round 4 (D5): the early dwarf stays white, F2F5FF, until 20 % of the batch at gamma 2.4 -> 2.2 (round
+    // Render QA round 4 (D5): the early dwarf stays white, F2F5FF, until 20 % of the batch at gamma 2.5 -> 2.3 (round
     // 3's B8CCFF / 1.5 measured lavender-grey 189/179/205 by day, red above green, dimmer than Sirius A); a stop at 20
     // %
     // keeps the 10 % case off the white-to-orange blend, which passes through pink
-    private static final float[] DWARF_GAMMA = { 2.4f, 2.2f, 1.8f, 0.45f, 0.15f, 0.08f };
+    private static final float[] DWARF_GAMMA = { 2.5f, 2.3f, 1.8f, 0.45f, 0.15f, 0.08f };
 
     /**
      * Sirius B through a cooling batch (fraction 0..1): white-hot blue-white, orange at half way, a dull brick red at

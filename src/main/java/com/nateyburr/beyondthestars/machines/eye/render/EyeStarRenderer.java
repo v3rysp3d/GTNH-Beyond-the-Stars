@@ -322,8 +322,9 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
 
     /**
      * The kinds whose additive surface shells run at {@link #SHELL_A_BRIGHT} / {@link #SHELL_B_BRIGHT}: the lit T1-T3
-     * stars, the Core Collapse swell and bounce, the neutron star and the cooling dwarf (render QA round 3,
-     * E-1..E-4). The protostar, the magnetar and the nova keep 0.3 / 0.15.
+     * stars, the Core Collapse swell and bounce and the neutron star (render QA round 3, E-1..E-4). The protostar,
+     * the magnetar, the nova and (round 4, D5: the early white dwarf measured D9DBE2 at 0.12 / 0.06, under the 235 per
+     * channel it needs) the cooling dwarf keep 0.3 / 0.15; the dwarf's fade out as it cools.
      */
     private static boolean brightShells(byte kind) {
         switch (kind) {
@@ -331,7 +332,6 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
             case EyeStarLook.SWELL:
             case EyeStarLook.NEUTRON:
             case EyeStarLook.BOUNCE:
-            case EyeStarLook.DWARF:
                 return true;
             default:
                 return false;
