@@ -508,6 +508,8 @@ deadlock. The spec's §0 note ("no WDM/BDM markers in the generator recipes") on
 
 **What we built.** Nothing yet.
 **Built (recipe audit pass):** SL-P30..P32, with the optional upgrade folded in; see B-28.
+**2.9.0-RC-2 port:** superseded. RC-2 makes the generators in the Condensate Assembler and their WDM now comes in
+through Resonance Chamber II; SL-P30..P32 are retired and SL-P33 replaces them (B-29).
 
 **Suggestion.** Three alternate assembly-line recipes of ours (SL-P30..P32, registered only with the flag on):
 TecTech's own inputs, research and duration, with the WDM bolts replaced by the previous tier's product as a 4th
@@ -626,6 +628,9 @@ TecTech's recipes stay (they need WDM). Crude (tier 1, the Eye T1 gate) keeps Te
 Effect: a tier step costs 188 upgrades at about 1.9e15 EU and 209 assembly-line hours, the same at every step, where
 re-crafting from scratch cost 3.8 / 5.7 / 7.6e15 EU and 418 / 627 / 836 h. The fluid gate is unchanged (3 Sol,
 7.5 Sirius A, 7.5 Arcturus runs per step). A fresh generator of tier t now takes t+1 crafts from a Crude one.
+
+**2.9.0-RC-2 port:** retired. TecTech's research-station generator recipes no longer exist in RC-2, and the ruling
+keeps RC-2's generator costs; see B-29 (SL-P33) and its alternative for an RC-2 upgrade path.
 
 **Suggestion.** As built. It fits D-49 (compression stays the 1:1 gate, tiers unlock in sequence).
 
@@ -746,6 +751,91 @@ every future structure change: re-export, `runServer`, then pipe the command lis
 
 **Alternatives.** Move the bench into a dev-only source set so it does not ship in the jar. That needs a
 buildscript change for about 400 lines of op tooling.
+
+### B-29 RC-2's Eye T2-T4 compression generators still need White Dwarf Matter, through Resonance Chamber II [2.9.0-RC-2 port]
+
+**Context.** In RC-2 every Spacetime Compression Field Generator is a Condensate Assembler recipe, and TecTech's old
+WDM bolts are gone, so the port plan read tiers 1-3 as WDM-free. They are not: tiers 1-3 (the Eye T2 / T3 / T4
+gates) take 1 / 4 / 16 MetaMaterial **Resonance Chamber II**, and each chamber takes one **White Dwarf Matter foil**
+(`BECMetaMaterialRecipes`, the 4-tier "gray" material). With TecTech's Eye replaced, WDM first exists at our Eye T4,
+so Eye T2 would need Eye T4: the same deadlock as B-22. The full per-tier audit (all three generator families and
+the EOH casings) is costs doc §9.4; this is the only loop in P1-P3.
+
+**What we built.**
+
+- **SL-P33**: GT's Resonance Chamber II recipe with **2 SpaceTime foils** in place of the WDM foil; everything else
+  as GT's (Condensate Assembler, nanite tiers Six-Phased Copper / Silver / Gold / Silver, Chromatic Glass, Infinity and
+  Boundless Cosmic Solder condensates, 300 s at UIV). Registered only with `replaceTecTechEyeOfHarmony=true`. GT's
+  recipe stays. The chamber keeps its Boundless Cosmic Solder (made from Raw Star Matter), so the generators still
+  need Eye T1's product, and each star chart still needs the tier below.
+- **SL-P30..P32 retired** (B-28's upgrade recipes). The ruling keeps RC-2's generator costs, their inputs were a copy
+  of TecTech's beta-1 recipe that no longer exists, and `TTRecipeAdder` now charges the research EU/t they declared
+  (`RECIPE_MAX`). The IDs stay reserved.
+- SL-P27..P29 kept: RC-2's BEC casings cost what TecTech's assembly lines did (8 Godforge casings per Spatial/Temporal
+  casing, a whole LSC per Boundary casing).
+
+**Suggestion.** As built.
+
+**Alternatives.**
+
+- Another stand-in for the WDM foil: a Raw Star Matter or ESPM product (the chamber already carries RSM through the
+  solder), or a Shirabon / Transcendent Metal foil.
+- Rewrite GT's own chamber recipe in place under the flag (like the BHC swap), so NEI shows one recipe, not two.
+- Bring back an upgrade path on RC-2's terms: a Condensate Assembler recipe tier t-1 generator → tier t, so an Eye
+  tier step stops stranding 188 generators (each now carries a Kerr controller, B-30).
+
+**For P4/P5 (not built):** Eye T5's gate (tier 4) needs Resonance Chamber III (a Black Dwarf Matter foil, T5's own
+product), which only the interim T4 BDM recipe unlocks; Eye T8/T9 (tiers 7-8) need Resonance Chamber IV (an MHDCSM
+foil, Universium-based) and Eternity plates. Time Dilation and Stabilisation tiers 1+ also need WDM (Wave Focus II,
+Field Manipulator II, Sensor Array II); harmless while the Eye accepts any tier of those (B-3), but revisit if B-3
+gives their tiers a meaning.
+
+### B-30 The Kerr controller replaces the BHC controller in recipes, so it is priced like one [2.9.0-RC-2 port]
+
+**Context.** I ruled that, with `removeBlackHoleCompressorRecipe=true`, every recipe consuming a BHC
+controller takes the Kerr Ergosphere Engine controller instead. In RC-2 that is all 9 compression generator tiers
+(and with them every stabilisation generator) plus the coremod's Empty Spatially Compressed Circuit Array (64). An
+Eye T1 consumes 238 controllers (188 `W` + 48 `Y` + 2 in SL-E01) and each later tier step 188 more; TecTech's own
+Eye consumes 188. The card's SL-K01 cost about 2,400 SpaceTime ingots and 8 Black Hole Seeds: 571k SpaceTime for one
+Eye T1 gate set.
+
+**What we built.**
+
+- `BTSBlackHoleSwap` rewrites every BHC consumer in place at load-complete (every recipe map, the assembly-line data
+  and research lists, the crafting table), logs each one, and the BHC recipe is removed only when the Kerr is
+  craftable and nothing consumes a BHC any more. Verified in `runServer`: 10 recipes rewritten, then the BHC recipe
+  removed.
+- **SL-K01 re-priced at BHC-controller parity** (costs doc §9.2): the BHC's compression lineage (HIP + Neutronium
+  Compressor, 16 Advanced Implosion, 8 Compressor UIV, 4 Electric Implosion), circuits, field generators, superdense
+  plates and three of its four fluids, with the Kerr's identity (1 Black Hole Seed, 1 Superradiant Mirror Segment,
+  4 Field Coils, 1 Extreme Density casing, TM screws, Super Coolant) in place of the BHC's lenses, ProtoHalkonite
+  parts, Kevlar and Oganesson. About 1.1-1.3× a BHC controller; 3,600 ticks.
+
+**Suggestion.** As built. The Kerr is the BHC's successor (D-44), so it inherits the BHC's role as an ingredient and
+its price, and the generators stay at RC-2's stock cost.
+
+**Alternatives.**
+
+- Keep the card's expensive SL-K01 and put a cheaper BTS item (a "Kerr core") in the generators instead. Deviates
+  from the ruling's "the Kerr controller", but keeps the Kerr itself a big-ticket craft.
+- Keep this SL-K01 and cut the Eye's gate count (188 `W` cells, TecTech uses 138), which scales the whole bill.
+- Bring back a generator upgrade path (B-29), so each tier step does not re-buy 188 controllers.
+
+### B-31 Reactor fluid sockets refuse crafting input buffers [2.9.0-RC-2 port]
+
+**Context.** In RC-2, GT's input-hatch adder also accepts fluid-capable dual input hatches (CRIBs and their slaves)
+and answers "added". The reactor's feedwater, chamber-coolant and propellant sockets drain only their own plain
+input hatches, so a CRIB there would have formed the structure and fed nothing.
+
+**What we built.** The three sockets refuse anything that is not a plain Input Hatch, before GT's adder sees it, so
+the structure check names the wrong block instead of starving silently. A failed Spiral walk also rolls back GT's
+dual-input list. The production halls, which use GT's own processing logic, accept CRIBs as before.
+
+**Suggestion.** As built: each socket is a point-of-use line (feedwater grade, coolant grade, propellant) that the
+reactor meters itself.
+
+**Alternatives.** Support CRIBs in the sockets: give each socket its own dual-hatch list and drain the CRIB's fluid
+inventory in the per-socket draws. More code in the reactor's fluid paths for little gain.
 
 ---
 
