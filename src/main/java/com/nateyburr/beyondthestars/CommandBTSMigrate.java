@@ -80,7 +80,7 @@ public class CommandBTSMigrate extends CommandBase {
                 + " machines dropped at the wall for you to pick up.");
         BTSChat.send(
             player,
-            "The face now holds: Maintenance Hatch beside the controller; Silo Control Block above it, Feedwater Input Hatch to its left, Output Hatch to its right; Rod Input Bus and Depleted Output Bus one row higher.");
+            "The face now holds: Maintenance Hatch beside the controller; Silo Control Block directly above the controller, with the Feedwater Input Hatch to its left and the Output Hatch to its right; Rod Input Bus and Depleted Output Bus one row higher.");
         BTSChat.warn(
             player,
             "Energy Hatches no longer go in this wall: their sockets are on the output manifold's back face (5th row up). The plant forms without them; the Extraction Derrick and Enrichment Annex draw their EU through them.");
