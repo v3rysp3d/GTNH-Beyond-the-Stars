@@ -15,11 +15,15 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.IFluidContainerItem;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
+import com.nateyburr.beyondthestars.fluids.SLFluids;
 import com.nateyburr.beyondthestars.items.SLItems;
 import com.nateyburr.beyondthestars.machines.BTSMachines;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
@@ -27,6 +31,7 @@ import com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1;
 import com.nateyburr.beyondthestars.machines.SLConsoleTest;
 
 import gregtech.api.enums.ItemList;
+import gregtech.api.enums.Materials;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.common.misc.WirelessNetworkManager;
 import tectech.thing.casing.TTCasingsContainer;
@@ -51,15 +56,32 @@ public final class EyeKit {
 
     // ===================================================================================== kit
 
-    /** {@code /btskit eye}: controller, Galactic core, every star chart, hatches, top-tier fields. */
+    /**
+     * {@code /btskit eye}: controller, every transition core, every star chart, 16 ignition charges, hatches
+     * (D-49: 8 Stellar Field Sensor Hatches, 8 plain input hatches for the Field sockets, 1 input bus for the
+     * charges), Neutronium cells of Antipolarization Agent, DSSF and Tachyon Rich Temporal Fluid, top-tier fields.
+     */
     public static void giveKit(EntityPlayerMP player) {
         give(player, BTSMachines.eyeOfHarmony == null ? null : BTSMachines.eyeOfHarmony.copy());
+        // D-49 (d49-build-plan.md §11.2): the cores in transition order, the T1-T6 charts, the ignition charges.
+        give(player, item(SLItems.stellarMassCore));
+        give(player, item(SLItems.shellBurningCore));
         give(player, item(SLItems.galacticUpgradeCore));
+        give(player, item(SLItems.subspaceCoolingCore));
+        give(player, item(SLItems.magnetarSeedCore));
         give(player, item(SLItems.starChartSol));
         give(player, item(SLItems.starChartSiriusA));
         give(player, item(SLItems.starChartArcturus));
+        give(player, item(SLItems.starChartNeutronStar));
         give(player, item(SLItems.starChartSiriusB));
-        give(player, item(SLItems.starChartSiriusBCooled));
+        give(player, item(SLItems.starChartMagnetar));
+        giveMany(player, item(SLItems.stellarIgnitionCharge), 16);
+        giveMany(player, BTSMachines.stellarFieldSensor == null ? null : BTSMachines.stellarFieldSensor.copy(), 8);
+        giveMany(player, ItemList.Hatch_Input_MAX.get(1L), 8);
+        give(player, ItemList.Hatch_Input_Bus_MAX.get(1L));
+        give(player, fluidCell(SLFluids.antipolarizationAgent));
+        give(player, fluidCell(fluidOf(Materials.DimensionallyShiftedSuperfluid.getFluid(1L))));
+        give(player, fluidCell(fluidOf(Materials.Time.getMolten(1L))));
         giveMany(player, ItemList.Hatch_Input_MAX.get(1L), sockets(MTEEyeOfHarmonyBTS.PIECE_CORE, 'h'));
         giveMany(
             player,
@@ -85,8 +107,10 @@ public final class EyeKit {
         tell(player, EnumChatFormatting.AQUA + "== Eye of Harmony test kit ==");
         tell(
             player,
-            "Given: the controller, a Galactic Upgrade Core, all five star charts, input hatches for every socket, "
-                + "an ME output bus + hatch, auto-maintenance and tier-9 field generators.");
+            "Given: the controller, the five transition cores, the six star charts, 16 Stellar Ignition Charges, "
+                + "input hatches for every socket (plus 8 for the Field sockets and an input bus for the charges), "
+                + "8 Stellar Field Sensor Hatches, cells of Antipolarization Agent, DSSF and Tachyon Rich Temporal "
+                + "Fluid, an ME output bus + hatch, auto-maintenance and tier-9 field generators.");
         tell(player, EnumChatFormatting.YELLOW + "Grab the casings through NEI. Bills read from manifest.json:");
         for (String piece : MTEEyeOfHarmonyBTS.PIECES) {
             tell(player, " - " + piece + ": " + bill(piece));
@@ -95,6 +119,19 @@ public final class EyeKit {
             player,
             EnumChatFormatting.GREEN + "Fastest look: /btseye t1..t4 [gen 1-9] [fill] raises a complete, formed Eye "
                 + "in front of you. Or a hologram projector on the controller: stack 1..4 = T1..T4.");
+    }
+
+    /** A Neutronium Large Fluid Cell filled to capacity with {@code fluid}, or null. */
+    private static ItemStack fluidCell(Fluid fluid) {
+        if (fluid == null) return null;
+        final ItemStack cell = ItemList.Large_Fluid_Cell_Neutronium.get(1L);
+        if (cell == null || !(cell.getItem() instanceof IFluidContainerItem)) return null;
+        ((IFluidContainerItem) cell.getItem()).fill(cell, new FluidStack(fluid, Integer.MAX_VALUE), true);
+        return cell;
+    }
+
+    private static Fluid fluidOf(FluidStack stack) {
+        return stack == null ? null : stack.getFluid();
     }
 
     private static ItemStack generator(Block block, int meta) {
