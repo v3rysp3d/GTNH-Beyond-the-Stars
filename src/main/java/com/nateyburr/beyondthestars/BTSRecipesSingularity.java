@@ -75,13 +75,15 @@ public final class BTSRecipesSingularity {
         kerrParts();
         eyeParts();
         starCharts();
+        // Our Eye needs SL-P27..P29's casings whatever the flag says (B-26). Only the gate recipes exist
+        // because TecTech's Eye (WDM's other source) is gone, so only they follow the flag.
+        tecTechEyeBlocks();
         if (Config.replaceTecTechEyeOfHarmony) {
-            tecTechEyeBlocks();
             compressionGates();
         } else {
             BeyondTheStars.LOG.info(
-                "[BTS] replaceTecTechEyeOfHarmony=false: SL-P27..P32 (batch TecTech Eye casings and the "
-                    + "compression-generator gate recipes) are not registered; TecTech's own recipes apply.");
+                "[BTS] replaceTecTechEyeOfHarmony=false: SL-P30..P32 (compression-generator gate recipes) are "
+                    + "not registered; TecTech's own generator recipes apply.");
         }
     }
 
@@ -370,14 +372,15 @@ public final class BTSRecipesSingularity {
                 .addTo(AssemblyLine));
     }
 
-    // ======================================= TecTech Eye blocks in bulk (only with TecTech's Eye replaced)
+    // ======================================================================= TecTech Eye blocks in bulk
 
     /**
      * SL-P27..P29: batch Assembler recipes for the TecTech Eye blocks our Eye uses in bulk (cost audit
      * #3/#4, B-23). TecTech prices them for its own small Eye (1,430 Spatial/Temporal casings, 36
      * Boundary casings); ours uses 13,872 and 6,426. The blocks and the look stay TecTech's (round-1
-     * ruling). Registered only while {@code replaceTecTechEyeOfHarmony} is on, so a pack that keeps
-     * TecTech's Eye keeps TecTech's prices for it. TecTech's own assembly lines stay as well.
+     * ruling). Registered whatever {@code replaceTecTechEyeOfHarmony} says: our Eye is craftable either
+     * way and needs them (B-26), so a pack that keeps TecTech's Eye gets the cheaper casings for it too.
+     * TecTech's own assembly lines stay as well.
      */
     private static void tecTechEyeBlocks() {
         // SL-P27 Reinforced Spatial Structure Casing x4: 1 Godforge Singularity Shielding Casing, not 32.

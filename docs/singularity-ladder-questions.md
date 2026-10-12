@@ -534,7 +534,7 @@ An Eye T1 today needs 118k Godforge casings (42 Godforge main rings, 8× TecTech
 **Built (recipe audit pass):** the suggestion, SL-P27..P29, plus the band batch sizes (#8-#12); see B-26.
 
 **Suggestion.** Keep the blocks (and the look) and add batch Assembler recipes of ours, registered only with
-`replaceTecTechEyeOfHarmony=true`:
+`replaceTecTechEyeOfHarmony=true` (since changed: they now register whatever the flag says, B-26):
 
 - SL-P27/P28: 1 Godforge Shielding Casing + dense Neutronium/Cosmic Neutronium/Infinity + SpaceTime → 4 casings.
 - SL-P29: SC UMV wire + dense Neutronium/Cosmic Neutronium + 1 Emitter UIV + SpaceTime → 8 Boundary casings.
@@ -631,20 +631,32 @@ re-crafting from scratch cost 3.8 / 5.7 / 7.6e15 EU and 418 / 627 / 836 h. The f
 - Remove TecTech's tier 2-4 recipes under the flag and give ours TecTech's research items (the generator below).
   Cleaner in NEI, but it is more recipe-removal code.
 
-### B-26 Batch TecTech casings: told apart by a programmed circuit, flag-gated [recipe audit pass]
+### B-26 Batch TecTech casings: told apart by a programmed circuit, registered whatever the flag says [recipe audit pass]
 
 **Context.** B-23's SL-P27 (Spatial) and SL-P28 (Temporal) have the same inputs in the audit's proposal, and GT's
 Assembler cannot hold two recipes with the same inputs.
 
-**What we built.** Programmed circuit 1 (Spatial) and 2 (Temporal); circuits are not consumed. SL-P27..P32 register
-only while `replaceTecTechEyeOfHarmony=true`, so a pack that keeps TecTech's Eye keeps TecTech's prices. TecTech's
-own assembly lines stay.
+**What we built.** Programmed circuit 1 (Spatial) and 2 (Temporal); circuits are not consumed. TecTech's own
+assembly lines stay.
+
+- **The flag (follow-up review).** SL-P27..P29 first registered only with `replaceTecTechEyeOfHarmony=true`. But our
+  Eye is craftable with the flag off too, and then its 13,872 Spatial/Temporal casings came only from TecTech's
+  assembly line, about 111k Godforge casings: the "8× TecTech's whole Eye" cost of B-23. So SL-P27..P29 now
+  register whatever the flag says. Only SL-P30..P32 follow the flag: they exist because White Dwarf Matter loses its
+  source when TecTech's Eye goes, and with the flag off TecTech's Eye still makes it.
+- **The side effect.** A pack with the flag off can also build TecTech's own Eye from the cheaper casings, so it is
+  no longer at TecTech's stock price.
 
 **Suggestion.** As built.
 
-**Alternatives.** TecTech's own markers (a Quantum Chest IV for Spatial, an Accelerator UV for Temporal), at one per
-4 casings. For the 14,000-odd casings that is about 2,350 Quantum Chests and 1,180 World Accelerators, which is why
-we did not.
+**Alternatives.**
+
+- Gate SL-P27..P29 on the flag again, which keeps TecTech's Eye at stock price but puts our Eye back at the 8× cost
+  when the flag is off.
+- Also remove our Eye's controller recipe when the flag is off, so a flag-off pack has TecTech's Eye only.
+- TecTech's own markers (a Quantum Chest IV for Spatial, an Accelerator UV for Temporal), at one per
+  4 casings. For the 14,000-odd casings that is about 2,350 Quantum Chests and 1,180 World Accelerators, which is why
+  we did not.
 
 ### B-27 Headless structure test: what it covers, and the console forms of the build commands [structure test pass]
 
