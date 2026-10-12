@@ -121,7 +121,7 @@ beyondthestars.hatch.propellant=Propellant Input Hatch
 # Item and block tooltips (BTSTooltipItem / ItemBlockBTSTooltip; \n splits lines).
 tile.beyondthestars.reactorFuelColumn.tooltip=Stack 8 high inside the Reactor Silo.\nHolds the fuel rods the Rod Input Bus feeds.\nBreaking a fuelled frame ejects its rods.
 tile.beyondthestars.rodLoadingPort.tooltip=Optional: sits on a pillar; hand-feed rods here.
-tile.beyondthestars.turbineHousing.tooltip=Rotor socket: 4 in the Spine, 8 in the Rotor Assembly gallery.\nRight-click with a Turbine Rotor to seat it;\nsneak-right-click empty-handed to remove it.\nPlain right-click flips the spin (matters in the Spine only).
+tile.beyondthestars.turbineHousing.tooltip=Spine (4): right-click to flip the spin.\nRotor Assembly gallery (8): right-click with a Turbine Rotor to seat it;\nsneak-right-click empty-handed to remove it. Only gallery rotors count.
 item.beyondthestars.turbineRotor.tooltip=Seat in a gallery Turbine Housing (8 per plant).\nWear 0-9 (-5% output each); shatters at 10.
 item.beyondthestars.turbineFanMatched.tooltip=Legacy part: only the retired Turbine Hall used this.
 item.beyondthestars.turbineFanTDA.tooltip=Legacy part: only the retired Turbine Hall used this.
