@@ -187,6 +187,8 @@ public final class EyeStarRuntime {
     /** T6: the dwarf-matter reserve in cycles, and the top-ups taken. */
     double dwarfReserve;
     long topUps;
+    /** T6: Purified Tengam dust returned so far (display). */
+    long tengamOut;
 
     // ---------------------------------------------------------------- transient (scanner)
     private FieldReadout last = FieldReadout.DARK;
@@ -350,6 +352,7 @@ public final class EyeStarRuntime {
         bounceShock = CollapseOverlay.BOUNCE_SHOCK;
         dwarfReserve = 0;
         topUps = 0;
+        tengamOut = 0;
         last = FieldReadout.DARK;
         lastOut = null;
         lastTrims.clear();
@@ -628,6 +631,7 @@ public final class EyeStarRuntime {
         if (dust == null) return;
         host.outputItems(dust, whole);
         tengam -= whole;
+        tengamOut += whole;
     }
 
     // ========================================================================= cycles, ignition
@@ -701,13 +705,13 @@ public final class EyeStarRuntime {
             tryMerger(want);
             return;
         }
-        if (n > host.installedTier()) {
-            waitReason = "the Eye does not reach T" + n + " (unlocked T" + unlockedTier + ")";
+        if (!want.tier.ignite) {
+            waitReason = "the neutron star is born from a lit Arcturus by the Core Collapse (light Arcturus, then put the"
+                + " Neutron Star chart in while it burns)";
             return;
         }
-        if (!want.tier.ignite) {
-            waitReason = "the neutron star is born from a lit Arcturus by the Core Collapse (put the Neutron Star chart in"
-                + " while Arcturus burns)";
+        if (n > host.installedTier()) {
+            waitReason = "the Eye does not reach T" + n + " (unlocked T" + unlockedTier + ")";
             return;
         }
         final int p = parallel(n);
@@ -1510,13 +1514,14 @@ public final class EyeStarRuntime {
                 String.format(
                     Locale.ROOT,
                     "Dwarf-matter reserve: %.0f cycles (%d top-ups; at %d or fewer the Eye tops it up with WDM %,d +"
-                        + " BDM %,d L x p%s)",
+                        + " BDM %,d L x p%s); Purified Tengam returned %,d dust",
                     dwarfReserve,
                     topUps,
                     TOPUP_AT,
                     TOPUP_WDM,
                     TOPUP_BDM,
-                    dwarfReserve < 1 ? "; EMPTY: the magnetar starves, r 0" : ""));
+                    dwarfReserve < 1 ? "; EMPTY: the magnetar starves, r 0" : "",
+                    tengamOut));
         }
         if (!lastTrims.isEmpty()) {
             final StringBuilder t = new StringBuilder("Trims this second:");

@@ -117,6 +117,7 @@ public final class EyeNbt {
         s.setDouble("shock", rt.bounceShock);
         s.setDouble("dwarfReserve", rt.dwarfReserve);
         s.setLong("topUps", rt.topUps);
+        s.setLong("tengamOut", rt.tengamOut);
         nbt.setTag("btsEyeStar", s);
         // D-49 unit 5: the transition running (tile only: a wrench aborts it, plan Q-10)
         if (rt.trans != null) nbt.setTag("btsEyeTrans", EyeTransition.write(rt.trans));
@@ -268,6 +269,7 @@ public final class EyeNbt {
         if (s.hasKey("shock")) rt.bounceShock = s.getDouble("shock");
         rt.dwarfReserve = s.getDouble("dwarfReserve");
         rt.topUps = s.getLong("topUps");
+        rt.tengamOut = s.getLong("tengamOut");
     }
 
     // ============================================================================== migration
