@@ -219,4 +219,14 @@ public class MTEExtractionPlatform extends MTEExtendedPowerMultiBlockBase<MTEExt
     public boolean supportsSingleRecipeLocking() {
         return false;
     }
+
+    /**
+     * Tidy B7: no parallel to limit, so GT's Power Panel would hold only its power-fail toggle. GT
+     * hides it on its own single-parallel multis (Heat Exchanger, Air Filter, Integrated Ore Factory)
+     * the same way. GUI only.
+     */
+    @Override
+    public boolean supportsPowerPanel() {
+        return false;
+    }
 }

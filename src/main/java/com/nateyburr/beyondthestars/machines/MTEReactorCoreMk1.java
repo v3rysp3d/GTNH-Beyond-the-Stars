@@ -6952,17 +6952,18 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return (int) Math.min(Integer.MAX_VALUE, steamBuffer * 10 / slug);
     }
 
-    /** Control-rod setting as a percentage of full power (the campaign's N/24). */
-    /** The EFFECTIVE throttle - a programmed circuit overrides the GUI setting. */
-    public int getThrottlePercent() {
-        // D-23: capped at the UNLOCKED maximum, so a withdrawn-rod plant reads 125% rather
-        // than a flat 100% that hides the very thing the BURNUP line just paid for.
-        return Math.min(maxThrottle(), Math.max(1, throttleN)) * 100 / 24;
-    }
-
-    /** True when a programmed circuit is driving the rods instead of the GUI field. */
+    /**
+     * True when a programmed circuit is driving the rods instead of the GUI field.
+     * <p>
+     * Tidy B2: read straight off the controller slot with the same test the campaign commit uses,
+     * rather than by comparing the committed N with the field. The committed N only moves at the
+     * next campaign, so the old comparison read "overridden" for a whole campaign after a player
+     * merely edited the field. Server-side; the GUI syncs it (AXIS 1). Display only - nothing in
+     * the plant's logic calls this.
+     */
     public boolean isThrottleOverridden() {
-        return throttleN != Math.min(maxThrottle(), Math.max(1, throttleSetting));
+        final ItemStack circuit = getControllerSlot();
+        return GTUtility.isAnyIntegratedCircuit(circuit) && circuit.getItemDamage() >= 1;
     }
 
     public boolean isGalleryBuilt() {
@@ -7298,8 +7299,24 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return EnumChatFormatting.AQUA + "" + EnumChatFormatting.BOLD + group + EnumChatFormatting.RESET;
     }
 
-    public static String tierLine(int tier, int edge, int throttlePct) {
-        return "Tier " + tier + " · " + edge + "x" + edge + " octagon · rods " + throttlePct + "%";
+    /**
+     * Tidy B2/B3: the rods are quoted in the one unit the GUI field, the milestones and the tree
+     * all use (N/24), and a Programmed Circuit that is overriding the field says so here, on the
+     * line a player reads first, instead of the field silently doing nothing.
+     */
+    public static String tierLine(int tier, int edge, int rodsN, boolean circuitOverride) {
+        return "Tier " + tier
+            + " · "
+            + edge
+            + "x"
+            + edge
+            + " octagon · rods "
+            + rodsN
+            + "/24"
+            + (circuitOverride
+                ? EnumChatFormatting.YELLOW + " (Programmed Circuit - remove it to use the field)"
+                    + EnumChatFormatting.RESET
+                : "");
     }
 
     /**
@@ -8192,7 +8209,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             }
             return out;
         }
-        out.add(tierLine(getReactorTier(), getEdge(), getThrottlePercent()));
+        out.add(tierLine(getReactorTier(), getEdge(), getThrottleN(), isThrottleOverridden()));
         out.add(supplyLine(true, getRodsQueued(), pillarGaps(), getPropellantLitres(), getChamberCoolantLitres()));
         out.add(towerLine(getModulesSummary()));
         out.add(moduleLine(getPlantModulesSummary()));
@@ -8539,6 +8556,16 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
     @Override
     public boolean supportsSingleRecipeLocking() {
+        return false;
+    }
+
+    /**
+     * Tidy B7: no parallel to limit, so GT's Power Panel would hold only its power-fail toggle. GT
+     * hides it on its own single-parallel multis (Heat Exchanger, Air Filter, Integrated Ore Factory)
+     * the same way. GUI only.
+     */
+    @Override
+    public boolean supportsPowerPanel() {
         return false;
     }
 }
