@@ -1062,6 +1062,89 @@ goes to Purified in the EMS (`ElectromagneticSeparatorRecipes`). `Materials.Anti
 
 ---
 
+### B-36 D-49: the Eye's T5/T6 bands, cumulative bands and the new sockets [D-49 unit 3]
+
+**Context.** Unit 3 of the D-49 build plan built the Eye's structure to T6:
+
+- **Exporter.** `tools/export-structures.js` now exports two more pieces from `designs/voxel.js`:
+  - `eye_arms2` (T5, the second arm pair): 135 × 11 × 83, 6,231 blocks;
+  - `eye_rim` (T6, the galactic rim): 158 × 8 × 149, 11,202 blocks, with 4 rim stellar sockets `g` at the mockup's
+    GRB cells.
+- **`eye_core` re-export.** It now carries 8 Field sockets `f` and 8 Sensor sockets `n`. Those 16 cells were
+  Reinforced Spatial casing (`U` 9,406 → 9,390). The assembled T5 Eye is 135 × 57 × 137 (40,733 blocks), and the T6
+  Eye is 158 × 57 × 149 (51,935 blocks). `--check` is clean, and the Kerr shapes did not change.
+- **Controller.**
+  - `MTEEyeOfHarmonyBTS` gains the two pieces, `structureTier()` (the bands are cumulative), `compressionTier()`, and
+    the 1:1 gate table extended to T6: `{-1, 0, 1, 2, 3, 4, 5}`.
+  - Hologram and survival auto-place take stacks 1..6.
+  - `EyeHatchElement` gains `Field`, `Sensor` and `Items`. The `h` sockets also take input buses.
+  - The scanner names a band that stands above a missing one.
+  - The tooltip lists the bill of materials for all six pieces.
+- **Test bench.** `/btseye t5|t6`, plus two console tokens: `legacy` builds without the D-49 hatches, and `nobeam`
+  clears the beam band after the build.
+
+**Dev-server results (`runServer`, 243 registered, 0 skipped):**
+
+| Case | Result |
+|---|---|
+| T6 north, creative, `fill` | FORMED. Sockets: gas 4, input bus 1, stellar 15 (6 + 5 + 4), Field 8, Sensor 8. Mirror check right, re-projection still FORMED, survival repair 1/1. |
+| T6 east, survival path | FORMED. 51,934 blocks in 264 rounds (the whole T6 minus the controller), ended -1 |
+| T5 south, creative | FORMED, structure T5 (rim absent) |
+| T4 west, `legacy` (f/n cells left as Reinforced Spatial casing) | FORMED, Field 0, Sensor 0 |
+| T6 north, `legacy` | FORMED, Field 0, Sensor 0 |
+| T3 north, `nobeam` | FORMED as T3, then 4,343 beam-band cells cleared → "Eye T1: structure T1", the scanner says the jet crescent stands but does not count, and the jet's stellar sockets dropped (stellar 11 → 0) |
+| `check` on the T6 | walk + status 9.4 ms the first time, 2.7 ms later (the plan's target is under 20 ms) |
+| `/btseye gates` | CLEAN for Eye T1-T7 (T5 through unit 2's SL-P33; T6 clean as GT ships it), LOOP only at T8/T9 (P4/P5) |
+
+**Judgement calls.**
+
+1. **The Field and Sensor sockets moved.** Plan §11.1 put them at 15, 75, 105, 165, 195, 255, 285 and 345 degrees.
+   The exporter's socket check found 15, 105, 195 and 285 inside the arm blades: each blade covers its root
+   +5..+30 degrees one row below the mid-plane, and ±5 degrees does not clear it. So every pair now sits **45 and 75
+   degrees past an arm root** (45, 75, 135, 165, 225, 255, 315, 345). That is 15 degrees from the nearest clamp strut
+   and rotationally symmetric. `f` is one row below the core band's mid-plane on its outer face, and `n` is on the
+   mid-plane directly above it, so every sensor touches its Field hatch. The T6 reach check passes: every socket has
+   an outside face.
+   - *Alternative:* put the 16 sockets on the upper and lower rails instead.
+2. **The tier unlock stays the pre-D-49 rule until units 4 and 5.** `installedTier` is the highest tier allowed by
+   both the cumulative bands and the compression gate, capped by the old unlock: T1-T3 by the bands, T4 with the
+   Galactic Upgrade Core. So a full T6 Eye forms and reports "structure T6, compression T6", but runs as T4, with no
+   extra parallels from the T5/T6 bands. Unit 4 replaces the cap with `unlockedTier`.
+3. **Every band is walked, even above a missing one.** This lets the scanner name the gap ("the jet crescent stands
+   but does not count until the beam band is built"). A band that does not count drops the stellar sockets it
+   registered, the same as a failed band. It costs at most a few milliseconds per walk.
+4. **No crafting input buffers on the plinth.** The input-bus role of the `h` sockets refuses a CRIB, as the reactor
+   sockets do (B-31): it holds patterns, not stock. As with B-31, the socket then fails and the Eye does not form
+   until it is swapped.
+   - *Alternative:* accept a CRIB and read its inventory like a bus.
+5. **Kit and test build.**
+   - The last plinth gas socket takes an input bus, for the ignition charges; the other four take gas hatches.
+   - The T4 build still loads Star Chart: Sirius B, which is still the T4 white-dwarf run until unit 4.
+   - T5 loads Sirius B and T6 loads the Magnetar chart. Neither has a star until units 4 and 5.
+6. **Status text.** The recipe-result lines for tier 3 and tier 4 were edited in place to name the beam band, since
+   the bands are cumulative now. This is an exception to the append-only rule for `en_US.lang`. The tier5/6 and
+   compression5/6 lines were appended.
+7. **NEI preview (B-19 follow-up), not checked in a client.** BlockRenderer6343 counts tiers by building stack after
+   stack until one adds nothing, so it should find 6 (stack 7 is clamped to 6). The T6 Eye is the same height as T4
+   (57 blocks), so it still fits the scratch world, but it has 51,935 blocks against T4's 34,502 (+50 %). Expect the
+   frame rate in the preview tab to be worse than at T4.
+   - *Suggestion:* check it in the client. If it stutters, use B-19's fallback: an `INEIPreviewModifier` that leaves
+     the band linings and glass (about 14,100 blocks across the six pieces) out of the preview only.
+8. **The hologram at stacks 5 and 6** places compression generators at tiers 5 and 6 (metas 4 and 5), the T5/T6
+   gates. The client-side hint path (`construct(stack, true)`) was not run headless. It reads only the trigger stack
+   and the shape files, which the server paths above exercised.
+9. **Migration.** A pre-D-49 Eye has Reinforced Spatial casing in all 16 new socket cells. The old `eye_core.txt`
+   had `U` there, as the exporter diff shows, and both new sockets fall back to that casing, so old Eyes still form.
+   The `legacy` runs prove this. An Eye built with the jet crescent but no beam band now runs as **T1** (your answer
+   2), and the scanner says why. A pre-D-49 jar was not loaded; the `legacy` token reproduces the old cells exactly.
+
+**Suggestion.** Accept 1-9 as built.
+
+**Alternatives.** For 1, sockets on the rails. For 4, accept CRIBs. For 7, build the lighter NEI preview now rather
+than after a client check.
+
+---
+
 ## Part C. Settled (for the record)
 
 | Topic | Your answer | State |

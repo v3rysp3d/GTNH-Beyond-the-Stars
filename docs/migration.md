@@ -102,3 +102,11 @@ Bus or Input Hatch.
 
 **Kerr utility hatches.** The BHC utility hatch now stores its on/off state (`isOn`) instead of a pulse timer. Existing
 hatches load cleanly; a hatch in pulse mode starts the first second after a reload off, as GT's own BHC does.
+
+**Eye of Harmony structure, D-49 (T5/T6 bands and the stability-field sockets).** The core band now has 8 Field
+sockets and 8 Sensor sockets on its outer face. In an Eye built before D-49 those 16 cells hold Reinforced Spatial
+Structure Casing, and both sockets accept that casing, so existing Eyes still form and need nothing. Two new optional
+bands follow the spiral arms: the second arm pair (T5) and the galactic rim (T6, with 4 more stellar sockets).
+**Bands are now cumulative:** each band counts only while every band below it stands. An Eye built with the jet
+crescent but no beam band now runs as **T1** until the beam band is built; the scanner names the gap. Plinth gas
+sockets also take an input bus (for the Stellar Ignition Charges); a crafting input buffer there is refused.
