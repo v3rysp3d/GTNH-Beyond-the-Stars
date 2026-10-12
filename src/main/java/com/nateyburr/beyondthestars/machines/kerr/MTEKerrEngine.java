@@ -44,6 +44,7 @@ import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.items.SLItems;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
+import com.nateyburr.beyondthestars.machines.QuietTileUpdate;
 
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.ItemList;
@@ -175,6 +176,8 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     private boolean autoSeeds = true;
     /** Per-machine render switch (GUI); {@link Config#renderKerrHole} switches every KEE. */
     private boolean renderOn = true;
+    /** GT's per-check tile update, kept to real changes (render QA round 3, P-1; {@link QuietTileUpdate}). */
+    private final QuietTileUpdate quietTileUpdate = new QuietTileUpdate();
 
     // ------------------------------------------------- RENDER state (server; docs/kerr-redesign.md §5)
     /**
@@ -584,6 +587,18 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         tickRender(aBaseMetaTileEntity, aTick);
         if (aTick % 20 == 0) refreshReadouts();
         aBaseMetaTileEntity.setActive(holeOpen && mMachine);
+    }
+
+    /**
+     * GT sends the whole controller to every nearby client after each structure check while formed; the KEE re-checks
+     * every {@link #RECHECK} ticks, so only a check that changed the structure's centre (or re-formed it) sends it
+     * (render QA round 3, P-1). The hole's own state travels on the render tile, and only when it moves
+     * ({@link #pushLook}).
+     */
+    @Override
+    protected void onStructureCheckFinished(IGregTechTileEntity aBaseMetaTileEntity) {
+        super.onStructureCheckFinished(quietTileUpdate.wrap(aBaseMetaTileEntity));
+        quietTileUpdate.after(this, aBaseMetaTileEntity);
     }
 
     /**
