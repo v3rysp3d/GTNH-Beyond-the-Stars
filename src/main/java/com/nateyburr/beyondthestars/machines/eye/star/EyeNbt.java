@@ -114,12 +114,23 @@ public final class EyeNbt {
         if (rt.rig != null) s.setString("rig", rt.rig.name());
         if (!rt.lastEvent.isEmpty()) s.setString("lastEvent", rt.lastEvent);
         if (rt.ledger != null) s.setTag("ledger", writeLedger(rt.ledger));
+        s.setDouble("shock", rt.bounceShock);
+        s.setDouble("dwarfReserve", rt.dwarfReserve);
+        s.setLong("topUps", rt.topUps);
         nbt.setTag("btsEyeStar", s);
+        // D-49 unit 5: the transition running (tile only: a wrench aborts it, plan Q-10)
+        if (rt.trans != null) nbt.setTag("btsEyeTrans", EyeTransition.write(rt.trans));
     }
 
     private static NBTTagCompound writeLedger(EyeStarRuntime.Ledger l) {
         final NBTTagCompound out = new NBTTagCompound();
         out.setLong("seed", l.seed);
+        out.setInteger("startTier", l.startTier);
+        out.setLong("batches", l.batches);
+        out.setLong("collapseBeginT", l.collapseBeginT);
+        out.setDouble("collapseShock", l.collapseShock);
+        out.setDouble("collapseStBuf", l.collapseStBuf);
+        out.setDouble("stAtBounce", l.stAtBounce);
         for (int z = 0; z < 5; z++) out.setLong("z" + z, l.zoneT[z]);
         out.setDouble("ySum", l.ySum);
         out.setLong("yN", l.yN);
@@ -133,7 +144,14 @@ public final class EyeNbt {
     }
 
     private static EyeStarRuntime.Ledger readLedger(NBTTagCompound in) {
-        final EyeStarRuntime.Ledger l = new EyeStarRuntime.Ledger(in.getLong("seed"));
+        final EyeStarRuntime.Ledger l = new EyeStarRuntime.Ledger(
+            in.getLong("seed"),
+            in.hasKey("startTier") ? in.getInteger("startTier") : 1);
+        l.batches = in.getLong("batches");
+        l.collapseBeginT = in.hasKey("collapseBeginT") ? in.getLong("collapseBeginT") : -1;
+        l.collapseShock = in.getDouble("collapseShock");
+        l.collapseStBuf = in.getDouble("collapseStBuf");
+        l.stAtBounce = in.getDouble("stAtBounce");
         for (int z = 0; z < 5; z++) l.zoneT[z] = in.getLong("z" + z);
         l.ySum = in.getDouble("ySum");
         l.yN = in.getLong("yN");
@@ -177,6 +195,8 @@ public final class EyeNbt {
             for (Object key : pay.func_150296_c()) rt.legacyPay.put((String) key, pay.getLong((String) key));
         }
         if (nbt.hasKey("btsEyeStar")) readStar(rt, nbt.getCompoundTag("btsEyeStar"));
+        rt.trans = nbt.hasKey("btsEyeTrans") && rt.live() ? EyeTransition.read(nbt.getCompoundTag("btsEyeTrans"))
+            : null;
         return false;
     }
 
@@ -245,6 +265,9 @@ public final class EyeNbt {
         rt.rig = s.hasKey("rig") ? FieldRig.Mode.parse(s.getString("rig")) : null;
         rt.lastEvent = s.getString("lastEvent");
         rt.ledger = s.hasKey("ledger") ? readLedger(s.getCompoundTag("ledger")) : null;
+        if (s.hasKey("shock")) rt.bounceShock = s.getDouble("shock");
+        rt.dwarfReserve = s.getDouble("dwarfReserve");
+        rt.topUps = s.getLong("topUps");
     }
 
     // ============================================================================== migration

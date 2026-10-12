@@ -42,7 +42,10 @@ import gregtech.common.misc.WirelessNetworkManager;
  * sockets again);</li>
  * <li>{@code sim <seconds> [compare]} - run field seconds now; {@code compare} also runs {@code FieldSim} offline
  * from the same seed and settings and prints both hashes (equal when the Eye matches the prototype);</li>
- * <li>{@code set dial|feed <v>}, {@code unlock <1-6>}, {@code milestones <n> done}, {@code fill};</li>
+ * <li>{@code set dial|feed|shock <v>} ({@code shock}: the next Core Collapse's bounce, 150 adopted, 90 for the golden
+ * cases), {@code unlock <1-6>}, {@code milestones <n> done}, {@code fill};</li>
+ * <li>{@code transition [abort]} - the running transition's phase, or abort it as a wrench would; {@code event} - the
+ * tier's next event now (its warning this second);</li>
  * <li>{@code sensor <x> <y> <z> <channel> <gt|lt> <threshold> [analog]} and {@code probe} - the sensor hatches;</li>
  * <li>{@code wrench} - what picking the controller up and placing it back keeps (item NBT only).</li>
  * </ul>
@@ -52,7 +55,8 @@ public final class EyeStarBench {
     private EyeStarBench() {}
 
     public static final String USAGE = "/btseye star <x> <y> <z> status | target <name> | lit [name] | seed <n> | "
-        + "rig <off|bang|fine|none> | sim <s> [compare] | set dial|feed <v> | unlock <1-6> | milestones <n> done | "
+        + "rig <off|bang|fine|none> | sim <s> [compare] | set dial|feed|shock <v> | unlock <1-6> | "
+        + "milestones <n> done | transition [abort] | event | "
         + "fill | sensor <x> <y> <z> <channel> <gt|lt> <threshold> [analog] | sensors <channel> <gt|lt> <thr> "
         + "[analog] | probe | wrench | charge [n] | buffer <fluid> <L> | core <name> | escrow | "
         + "legacy [galactic] [run <key> <n>]";
@@ -115,14 +119,17 @@ public final class EyeStarBench {
             case "set":
                 if ("dial".equals(a5)) rt.setDial(Double.parseDouble(args[6]));
                 else if ("feed".equals(a5)) rt.setFeed(Double.parseDouble(args[6]));
+                else if ("shock".equals(a5)) rt.setBounceShock(Double.parseDouble(args[6]));
                 else {
-                    out.add("set dial|feed <v> (shock is the Core Collapse's, unit 5)");
+                    out.add("set dial|feed|shock <v>");
                     return out;
                 }
                 out.add(
                     "dial " + EyeStarRuntime.f2(rt.dialSetpoint())
                         + ", feed "
-                        + String.format(Locale.ROOT, "%.3f", rt.feedSetpoint()));
+                        + String.format(Locale.ROOT, "%.3f", rt.feedSetpoint())
+                        + ", next Core Collapse bounce +"
+                        + Math.round(rt.bounceShock()));
                 break;
             case "unlock":
                 rt.setUnlocked(Integer.parseInt(a5));
@@ -152,6 +159,23 @@ public final class EyeStarBench {
                 if (eye.sensorHatches()
                     .isEmpty()) out.add("No Stellar Field Sensor Hatches in the Sensor sockets.");
                 return out;
+            case "transition": {
+                if ("abort".equals(a5)) {
+                    rt.debugAbort();
+                    out.add("Transition aborted (as a wrench would).");
+                    break;
+                }
+                final EyeTransition tr = rt.transition();
+                out.add(
+                    tr == null ? "No transition running."
+                        : tr.type.title + " running for " + tr.t + " s (began at field second " + tr.beginT + ")");
+                break;
+            }
+            case "event": {
+                final String err = rt.debugEvent();
+                out.add(err == null ? "The next event is due now (warning this second)." : "event refused: " + err);
+                break;
+            }
             case "wrench":
                 eye.debugWrench();
                 out.add("Wrenched and placed back (item NBT only):");
@@ -259,6 +283,8 @@ public final class EyeStarBench {
                 + l.fails
                 + ", cycles "
                 + l.cycles
+                + ", batches "
+                + l.batches
                 + ", product "
                 + String.format(Locale.ROOT, "%.3f", l.product)
                 + " L, HSM fed "
@@ -268,16 +294,27 @@ public final class EyeStarBench {
         if (!compare || rt.fs == null) return;
         final FieldSim.Cfg c = new FieldSim.Cfg();
         c.seed = l.seed;
+        if (l.collapseBeginT >= 0) {
+            // replay the Core Collapse: it began at that field second, with that bounce and SpaceTime buffer
+            c.collapse = true;
+            c.beginAt = l.collapseBeginT;
+            c.shock = l.collapseShock;
+            c.stBuf = l.collapseStBuf;
+            c.tachRate = 100;
+        }
         c.rig = rt.rig == null ? FieldRig.Mode.OFF : rt.rig;
         c.m = rt.dialSet;
         c.tt = rt.host.timeTier();
         c.ts = rt.host.stabilisationTier();
         c.r = 1;
         c.feed = rt.feedSet;
-        final Map<String, Object> res = FieldSim.runCase(rt.fs.tier.n, c, l.steps);
+        final Map<String, Object> res = FieldSim.runCase(l.startTier, c, l.steps);
         final long hash = ((Number) res.get("hash")).longValue();
         out.add(
-            "offline FieldSim T" + rt.fs.tier.n
+            "offline FieldSim T" + l.startTier
+                + (c.collapse
+                    ? " (Core Collapse at " + c.beginAt + ", shock " + c.shock + ", SpaceTime " + c.stBuf + ")"
+                    : "")
                 + " seed "
                 + c.seed
                 + " rig "
