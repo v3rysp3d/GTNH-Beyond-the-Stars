@@ -291,3 +291,42 @@ beyondthestars.structure.reality.medium=Reality Diffraction needs an Input Hatch
 beyondthestars.structure.reality.energy=Needs at least one Energy or Laser Hatch
 beyondthestars.structure.reality.inputbus=Reality Refab needs an Input Bus on the foot
 beyondthestars.structure.reality.outputbus=Reality Refab needs an Output Bus on the cap
+# ---- P4: the Quasar Engine, its crowns, the Einstein-Rosen Conduit, Eye T7-T8 (content + recipes unit; quasar-p4.md §6) ----
+# slCasing2 metas 3-11 (BlockSLCasing2). Tooltips: which machine uses the block, what it does there, where it is made (rule 14).
+tile.beyondthestars.slCasing2.3.name=Disc Field Coil (Tier I)
+tile.beyondthestars.slCasing2.3.tooltip=The Quasar Engine's disc coils (Infinity). Every coil in one quasar is the same tier.\nTier I: the field setting b is at most 1; the hole grows to at most 256 SM.\nCoil power: 2 A UXV x b squared. Made in the Condensate Assembler (32 a craft).
+tile.beyondthestars.slCasing2.4.name=Disc Field Coil (Tier II)
+tile.beyondthestars.slCasing2.4.tooltip=The Quasar Engine's disc coils (Transcendent Metal). Every coil in one quasar is the same tier.\nTier II: b at most 2; the hole grows to at most 1,024 SM.\nCoil power: 2 A UXV x b squared. Made in the Condensate Assembler (32 a craft).
+tile.beyondthestars.slCasing2.5.name=Disc Field Coil (Tier III)
+tile.beyondthestars.slCasing2.5.tooltip=The Quasar Engine's disc coils (SpaceTime). Every coil in one quasar is the same tier.\nTier III: b at most 3; the hole grows to at most 2,048 SM.\nCoil power: 2 A UXV x b squared. Made in the Condensate Assembler (32 a craft).
+tile.beyondthestars.slCasing2.6.name=Disc Field Coil (Tier IV)
+tile.beyondthestars.slCasing2.6.tooltip=The Quasar Engine's disc coils (MagMatter). Every coil in one quasar is the same tier.\nTier IV (optional): b at most 4; the hole grows to at most 4,096 SM.\nCoil power: 2 A UXV x b squared. Made in the Condensate Assembler (32 a craft).
+tile.beyondthestars.slCasing2.7.name=Eddington Wall Casing
+tile.beyondthestars.slCasing2.7.tooltip=The Quasar Engine's walls and collars: they hold the disc at its Eddington limit.\nAlso in the conduit throats, the GRB Receptor Port and the Quasar Engine controller.\nMade in the Condensate Assembler (64 a craft).
+tile.beyondthestars.slCasing2.8.name=Rim Gas Injector
+tile.beyondthestars.slCasing2.8.tooltip=The Quasar Engine's disc rim (gas in through the Input Hatches beside them) and the Wormhole Mouth's fuel ring.\nMade in the Condensate Assembler (8 a craft).
+tile.beyondthestars.slCasing2.9.name=Jet Collimator Ring
+tile.beyondthestars.slCasing2.9.tooltip=Holds a gamma-ray burst stream on axis: the Quasar Engine's jet towers, the Burst Thermaliser Crowns\nand every conduit element (Wormhole Mouth, Conduit Mirror, Conduit Junction).\nMade in the Condensate Assembler (32 a craft).
+tile.beyondthestars.slCasing2.10.name=Burst Thermaliser Casing
+tile.beyondthestars.slCasing2.10.tooltip=The Burst Thermaliser Crown's core: turns bursts into heat, then EU to your wireless network (1 Bu/t = 10^13 EU/t).\nMade in the Condensate Assembler (64 a craft).
+tile.beyondthestars.slCasing2.11.name=Radiator Petal
+tile.beyondthestars.slCasing2.11.tooltip=The Burst Thermaliser Crown's petals: 643 / 1,428 / 2,803 make a Mk I / II / III crown (32 / 512 / 8,192 Bu/t).\nMade in the Condensate Assembler (64 a craft).
+# items (SLQuasarItems)
+item.beyondthestars.quasarSeed.name=Quasar Seed
+item.beyondthestars.quasarSeed.tooltip=Opens the Quasar Engine's own black hole at 64 SM, once (put it in the controller).\nA hole is never lost: a collapsed one goes dormant and reopens.\nMade on a Kerr T2 Compressor Module (Kerr Densification) with the KEE holding at least 256 SM; it costs the Kerr's hole nothing.
+item.beyondthestars.conduitThroatMk1.name=Conduit Throat Mk I
+item.beyondthestars.conduitThroatMk1.tooltip=Sits in a Wormhole Mouth, Conduit Mirror or Conduit Junction controller like a turbine rotor: swap it to upgrade.\nCarries up to 24 Bu/t. Upkeep per element: 4 L/s Molten SpaceTime, or 0.25 L/s Ergomatter (after Eye T7).\nMade in the Condensate Assembler.
+item.beyondthestars.conduitThroatMk2.name=Conduit Throat Mk II
+item.beyondthestars.conduitThroatMk2.tooltip=Sits in a conduit element's controller like a turbine rotor.\nCarries up to 384 Bu/t. Upkeep per element: 16 L/s Molten SpaceTime, or 1 L/s Ergomatter.\nMade in the Condensate Assembler with Entangled Antipolarization Agent.
+item.beyondthestars.conduitThroatMk3.name=Conduit Throat Mk III
+item.beyondthestars.conduitThroatMk3.tooltip=Sits in a conduit element's controller like a turbine rotor.\nCarries up to 6,144 Bu/t (for streams above 384). Upkeep per element: 64 L/s Molten SpaceTime, or 4 L/s Ergomatter.\nAssembly line, with 256,000 L of Ergomatter (Eye T7's product).
+item.beyondthestars.intergalacticUpgradeCore.name=Intergalactic Upgrade Core
+item.beyondthestars.intergalacticUpgradeCore.tooltip=Eye of Harmony T6 -> T7 (the Magnetar Collapse): right-click the controller to put it in escrow.\nConsumed only when the collapse succeeds, after the Stability Link: a linked Quasar Engine holds\n1.5 Bu/t on the Eye's rail for 30 minutes unbroken.\nMade in the Condensate Assembler with Entangled Magnetar Matter and Antipolarization Agent; needs White Dwarf nanites.
+item.beyondthestars.supermassiveSeedCore.name=Supermassive Seed Core
+item.beyondthestars.supermassiveSeedCore.tooltip=Eye of Harmony T7 -> T8 (the Galactic Merger): right-click the controller to put it in escrow.\nConsumed only when the merger succeeds, after the Heavy Link: 6 Bu/t into the Eye, at least half on the halo, 30 minutes.\nIt seeds a supermassive black hole (the name is the hole, not the fluid).\nMade in the Condensate Assembler with Entangled Ergomatter (Eye T7's product); needs Black Dwarf nanites.
+item.beyondthestars.starChartTriangulum.name=Star Chart: Triangulum (M33)
+item.beyondthestars.starChartTriangulum.tooltip=Eye of Harmony T7 target: the magnetar collapses into Triangulum's first black hole.\nUpkeep Magnetar Matter 7.5 L a cycle plus bursts; makes Ergomatter. Gauges P and W: aim the bursts between the rail's high and low banks.\nMade in the Condensate Assembler with Entangled Magnetar Matter.
+item.beyondthestars.starChartMilkyWay.name=Star Chart: Milky Way
+item.beyondthestars.starChartMilkyWay.tooltip=Eye of Harmony T8 target (required): the merged galaxy. Its central black hole, Sgr A*, is T9's.\nFeed Ergomatter 0-10 L/s; makes Superdense Ergomatter 1 : 1. Gauges P, W and Lambda: aim into the shard halo, catch the satellite crossing.\nMade in the Condensate Assembler with Entangled Ergomatter.
+item.beyondthestars.gammaRayBurst.name=Gamma-Ray Burst (Bu/t)
+item.beyondthestars.gammaRayBurst.tooltip=Display only (NEI): a burst stream, in Bu/t. Never crafted or consumed.\nA Quasar Engine's two jets each carry half its stream; Wormhole Mouths, Mirrors and Junctions carry it losslessly;\na GRB Receptor Port takes it into a host (Eye T7/T8, Kerr, Homogeny, Reality Diffraction); a crown turns 1 Bu/t into 10^13 EU/t.

@@ -32,6 +32,22 @@ public final class BTSMachines {
     public static ItemStack stellarFieldSensor;
     // AUTOMATION PASS (brief item 18): the Directive Hatch, base+27 (P4's reserved id, one MTE for every host).
     public static ItemStack directiveHatch;
+    // P4 (quasar-p4.md §6.1): the stacks the recipes make (BTSRecipesQuasar). Each MTE unit assigns its own in
+    // register() below; until it does the field is null and its recipe waits (one "[BTS] P4 recipe ... waits" line).
+    /** base+20, Quasar Engine (MTE 28120). */
+    public static ItemStack quasarEngine;
+    /** base+21, Wormhole Mouth (28121). */
+    public static ItemStack wormholeMouth;
+    /** base+22, Conduit Mirror (28122). */
+    public static ItemStack conduitMirror;
+    /** base+23, Conduit Junction (28123). */
+    public static ItemStack conduitJunction;
+    /** base+24, Burst Thermaliser Crown, Mk by structure (28124). */
+    public static ItemStack burstThermaliserCrown;
+    /** base+25, GRB Receptor Port hatch (28125). */
+    public static ItemStack grbReceptorPort;
+    /** base+26, Burst Control Hatch (28126). */
+    public static ItemStack burstControlHatch;
     // H/R unit 2 (homogeny-reality.md): the Homogeny base+30, Reality Diffraction base+31, Reality Refab base+32.
     public static ItemStack homogeny;
     public static ItemStack realityDiffraction;
@@ -116,9 +132,10 @@ public final class BTSMachines {
         // base+16 (28116) Stellar Field Sensor Hatch hatch.beyondthestars.stellarfieldsensor (D-49)
         // base+17 (28117) Kerr Compressor Module, base+18 (28118) Kerr Extractor Module (Kerr redesign)
         // base+19 spare (the next Kerr module)
-        // base+20..29 P4: Quasar Engine 20, Wormhole Mouth 21, Conduit Mirror 22,
-        // Conduit Junction 23, Burst Thermaliser Crown Mk I/II/III 24-26, Directive Hatch 27 (claimed by the
-        // automation pass: ONE hatch for the Eye, the Kerr and later the Quasar), spare 28-29
+        // base+20..29 P4 (quasar-p4.md §6.1): Quasar Engine 20, Wormhole Mouth 21, Conduit Mirror 22,
+        // Conduit Junction 23, Burst Thermaliser Crown 24 (one controller, Mk by structure), GRB Receptor Port 25,
+        // Burst Control Hatch 26, Directive Hatch 27 (claimed by the automation pass: ONE hatch for the Eye, the Kerr
+        // and the Quasar), spare 28-29
         // base+30..34 Homogeny 30, Reality Diffraction 31, Reality Refab 32 (H/R unit 2, ruling 16), spare 33-34
         // base+35..39 spare
         // The Kerr and Eye units each append their own single registration line below.
