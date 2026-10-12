@@ -1863,6 +1863,13 @@ was lost or put out"), so it replaces an older, more useful failure line.
    4.7e16 EU and 5,186 BEC hours; complete Eye T4 15,851 casings = 5.7 Godforge main rings), §5, §6 #3 and §9.5 now
    describe the ×32 BEC recipe. That is about 1.3× TecTech's stock RC-2 shell (11,456 Godforge casings, 3.6e16 EU).
 
+**Dev-server results (RC-2, this build).** Load: `SL-B01 ... now outputs 32, was 4` and the same for SL-B02; no
+SL-B03/B04 or last-resort line (RC-2 has the recipe). Kerr: after a restart, `/btskerr keep` on the T2 Kerr with an
+open 130 SM hole, then `/btskerr render` every second for 11 s: the one claimed render block stood the whole time
+(scale 6.5; the old code removed it at tick 40 and replaced it at tick 100). Eye T6: magnetar lit (debug), rig off (no
+trims at all), r 1: after 30 s Π 0.0 and shield A 18 (it was 0 without trims before this fix); the field itself still
+breaches on Θ/Ω without trims, as designed. Golden: 78/78 PASS.
+
 **Suggestion.** Accept 1-5 as built. Re-check K after playing a magnetar: if flares feel unanswerable with the
 standard rig, raise K; if the trim never matters, lower it.
 
