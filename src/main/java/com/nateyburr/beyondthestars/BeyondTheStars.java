@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLLoadCompleteEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
@@ -15,7 +16,7 @@ import cpw.mods.fml.common.event.FMLServerStartingEvent;
     version = Tags.VERSION,
     name = "GTNH: Beyond the Stars",
     acceptedMinecraftVersions = "[1.7.10]",
-    dependencies = "required-after:gregtech;required-after:structurelib")
+    dependencies = "required-after:gregtech;required-after:structurelib;after:dreamcraft;after:tectech")
 public class BeyondTheStars {
 
     public static final String MODID = "beyondthestars";
@@ -39,6 +40,11 @@ public class BeyondTheStars {
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
         proxy.postInit(event);
+    }
+
+    @Mod.EventHandler
+    public void loadComplete(FMLLoadCompleteEvent event) {
+        proxy.loadComplete(event);
     }
 
     @Mod.EventHandler

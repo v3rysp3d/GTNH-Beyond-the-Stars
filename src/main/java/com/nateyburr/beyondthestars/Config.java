@@ -30,6 +30,30 @@ public class Config {
      */
     public static boolean switchyardSoftCap = true;
 
+    /**
+     * SINGULARITY LADDER (D-44, singularity-ladder-build.md §4): remove the Black Hole Compressor
+     * controller's assembly-line recipe, because the Kerr Ergosphere Engine takes its slot at UIV.
+     * Placed compressors keep working; only the crafting recipe (and data sticks holding it) go.
+     */
+    public static boolean removeBlackHoleCompressorRecipe = true;
+
+    /**
+     * SINGULARITY LADDER (D-28): clear TecTech's Eye of Harmony recipes, its NEI page and its
+     * controller recipe; our Eye of Harmony replaces it. Placed TecTech EOHs form but idle. Off:
+     * TecTech's EOH runs as stock beside ours, and the pack's White/Black Dwarf Matter and
+     * Universium sources are untouched.
+     */
+    public static boolean replaceTecTechEyeOfHarmony = true;
+
+    /**
+     * SINGULARITY LADDER (Q-3): register the interim Eye T4 "Sirius B, Cooled" recipe that makes
+     * Black Dwarf Matter until Eye T5 ships in P4, and the star chart that targets it.
+     */
+    public static boolean interimBlackDwarfAtEyeT4 = true;
+
+    /** SINGULARITY LADDER (D-34): render the band's object at the Eye's centre. Client cosmetic. */
+    public static boolean eyeRenderCentre = true;
+
     public static void synchronizeConfiguration(File configFile) {
         Configuration configuration = new Configuration(configFile);
 
@@ -69,6 +93,34 @@ public class Config {
             "Nuclear plants without a Switchyard are soft-capped at 100,000,000 EU/t of output."
                 + " The reactor still derives its full figure; the surplus is discarded and every panel"
                 + " says so. Set false to let a plant export its full output with no Switchyard.");
+
+        removeBlackHoleCompressorRecipe = configuration.getBoolean(
+            "removeBlackHoleCompressorRecipe",
+            Configuration.CATEGORY_GENERAL,
+            true,
+            "Remove the Black Hole Compressor controller's assembly-line recipe (the Kerr Ergosphere Engine"
+                + " replaces it at UIV). Placed compressors keep working.");
+
+        replaceTecTechEyeOfHarmony = configuration.getBoolean(
+            "replaceTecTechEyeOfHarmony",
+            Configuration.CATEGORY_GENERAL,
+            true,
+            "Clear TecTech's Eye of Harmony recipes, NEI page and controller recipe; Beyond the Stars' Eye of"
+                + " Harmony replaces it. Placed TecTech EOHs idle. Finish or cancel running EOH recipes before"
+                + " enabling. Set false to keep TecTech's EOH as stock.");
+
+        interimBlackDwarfAtEyeT4 = configuration.getBoolean(
+            "interimBlackDwarfAtEyeT4",
+            Configuration.CATEGORY_GENERAL,
+            true,
+            "Register the interim Eye of Harmony T4 recipe (Star Chart: Sirius B, Cooled) that makes Black Dwarf"
+                + " Matter until Eye T5 exists.");
+
+        eyeRenderCentre = configuration.getBoolean(
+            "eyeRenderCentre",
+            Configuration.CATEGORY_GENERAL,
+            true,
+            "Render the star or planet at the centre of a formed Eye of Harmony (client cosmetic).");
 
         if (configuration.hasChanged()) {
             configuration.save();
