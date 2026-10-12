@@ -50,6 +50,10 @@ The build compiles, loads and registers every recipe. These checks from your acc
   on a Kerr T1), so this table is the real fairness check.
 - **NEI multiblock preview.** The controllers implement the hologram interfaces, but nobody has opened the NEI
   "Multiblock" tab for them yet, or checked whether it caps the size of what it renders.
+  **Checked against the bytecode (acceptance pass):** the preview finds both controllers on its own, counts Kerr 2
+  tiers and Eye 4, builds them through our survival auto-place, and has no size cap our structures exceed. The
+  hologram paths were reviewed and fixed at the same time. Details: spec, "Hologram & NEI"; open points B-19, B-20.
+  Still to do: open both in game.
 - **In-game build test.** The smoke test only loaded the game. Nobody has run `/btskerr` or `/btseye` yet, so the
   structure orientation, the hologram and survival auto-build from AE are unverified. If a build reports
   NOT FORMED with the first wrong block on the mirrored side, the structure files need re-exporting flipped
@@ -411,6 +415,54 @@ Eye freeze holds until you accept it.
 8. **One live star per Eye.** Yes.
 9. **T4 HSM feed up to 1.5 L/s** (about 2.16× today's WDM rate). Yes.
 10. **A wrench during a transition.** Aborts it: event materials are lost, the core is kept.
+
+### B-19 NEI preview: a large render and no channel sliders [acceptance pass]
+
+**Context.** You asked that both controllers show in NEI's multiblock preview at every tier, and that any size cap be
+logged.
+
+**What we found.** BlockRenderer6343 has no block-count or footprint cap. Its only hard limit is the scratch world's
+height (y 0-255), and ours fit (Kerr y 32-96, Eye y 63-119). The preview counts **2 tiers on the Kerr and 4 on the
+Eye** by building each tier until one adds nothing, then draws each tier through our survival auto-place, hatches
+included. Two catches:
+
+- **Frame rate.** The preview redraws every block every frame, with no caching. A T4 Eye (34,502 blocks) or a Kerr
+  T2 (29,839) may stutter while the tab is open. The layer slider (one y-layer at a time) stays fast.
+- **No field-generator sliders.** TecTech's own Eye gives NEI a slider for each field generator. If ours did the
+  same, NEI would also stretch the main tier slider to 1-9 (the generators' tier count), and tiers 5-9 would show
+  the T4 Eye again. We kept the slider at 1-4. The generators follow GT's EOH channels on the projector only.
+
+**What we built.** As described; no fallback was needed. The spec section "Hologram & NEI" has the details.
+
+**Suggestion.** Keep it as built, and check the frame rate in game. If the T4 Eye is too slow, the cheapest fallback
+is a lighter preview: implement GT's `INEIPreviewModifier` and leave the band interiors (the linings and glass, about
+a third of the blocks) out of the NEI build only. The real structure would not change.
+
+**Alternatives.** Expose the generator sliders and accept a 1-9 main slider. Or ask BlockRenderer6343 upstream for a
+display-list cache, which helps every large GTNH multi.
+
+### B-20 Hologram build rules: budget, rails, and the compression swap [acceptance pass]
+
+**What we built.**
+
+- **Speed.** Survival auto-place now does up to 200 blocks per round, not StructureLib's default 25. It uses the same
+  kind of rule TecTech's Eye uses (×5, capped at 200); ours is ×8, capped at 200. A T4 Eye or a Kerr T2 then takes
+  about a minute of holding the projector, not about seven.
+- **Tiered parts are never downgraded.** Re-projecting over upgraded parts no longer replaces them with lower tiers,
+  in creative or in survival. This covers the Kerr's Mk II/III rails and the Eye's field generators. A creative
+  projection used to downgrade Mk III rails to Mk I.
+- **Survival takes what you have.** If the player has no Mk I rail or no tier-N generator, survival places the next
+  higher tier they do have.
+- **Compression swaps are by hand.** Survival auto-place never breaks blocks. To take an Eye from T1 to T2, the
+  player must swap the core's 188 compression generators for tier 2 before the projector places the beam band.
+- **Projector channels.** GT's `spacetime_compression`, `time_dilation` and `stabilisation` channels raise the
+  generator tier a build places. Compression never goes below the stack's 1:1 gate.
+
+**Suggestion.** As built.
+
+**Alternatives.** A bigger round (more server time per projector use). Or let survival skip the cells that hold a
+too-low compression tier and still build the later bands, leaving the gate to refuse the recipe until the player
+swaps them. That builds faster, but the half-upgraded Eye would look finished.
 
 ---
 
