@@ -151,7 +151,9 @@
       "- {b}Time Dilation{r} above the star's tier opens the time dial (see {c}The Time Dial{r}).",
       "- {b}Stabilisation{r} calms the star: noise and events shrink 5 % per tier above the first.",
       "",
-      "The families mix freely, and the {l}lowest{r} of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed."
+      "The families mix freely, and the {l}lowest{r} of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.",
+      "",
+      "{e}{l}TIER STEP{r} You do not re-craft. In the {b}Condensate Assembler{r} a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A {b}Stabilisation{r} generator takes one {b}Spacetime Compression{r} and one {b}Time Dilation Retrofit Kit{r} of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper."
     ],
     "hold_core": "{a}{l}DONE WHEN{r} you hold the core and the chart (HOLD {to} CLAIM {to} INSTALL: claim before the core goes into escrow)."
   },

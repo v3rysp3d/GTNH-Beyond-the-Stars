@@ -1,12 +1,12 @@
 {
-  "bundleVersion": "bd14c2901e1fd3639ad390e86c763223eda4f4a9",
+  "bundleVersion": "4180f3a02302ca3222c7b57b8125636180422737",
   "format": 1,
   "idHigh": 190,
   "packVersion": 2171,
   "source": {
     "data": "questbook/singularity.json",
     "src": ".",
-    "srcHead": "7abebfd master",
+    "srcHead": "208fb22 master",
     "manifestSha": "2742379a5cf9527c7f0dc913e2052f0167289195"
   },
   "features": {
@@ -8176,7 +8176,7 @@
       "ops": [
         {
           "op": "setDesc",
-          "desc": "The §dPrimitive§r field generators, tier 2.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §bSpacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §bTime Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §bStabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\nPrimitive lets your Eye reach §bT2 (Sirius A)§r."
+          "desc": "The §dPrimitive§r field generators, tier 2.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §bSpacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §bTime Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §bStabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§e§lTIER STEP§r You do not re-craft. In the §bCondensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §bStabilisation§r generator takes one §bSpacetime Compression§r and one §bTime Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\nPrimitive lets your Eye reach §bT2 (Sirius A)§r."
         },
         {
           "op": "move",
@@ -8201,7 +8201,7 @@
       "ops": [
         {
           "op": "setDesc",
-          "desc": "The §dStable§r field generators, tier 3.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §bSpacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §bTime Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §bStabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\nStable gates §bT3 (Arcturus)§r."
+          "desc": "The §dStable§r field generators, tier 3.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §bSpacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §bTime Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §bStabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§e§lTIER STEP§r You do not re-craft. In the §bCondensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §bStabilisation§r generator takes one §bSpacetime Compression§r and one §bTime Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\nStable gates §bT3 (Arcturus)§r."
         },
         {
           "op": "move",
@@ -8226,7 +8226,7 @@
       "ops": [
         {
           "op": "setDesc",
-          "desc": "The §dAdvanced§r field generators, tier 4.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §bSpacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §bTime Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §bStabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\nAdvanced gates §bT4 (the neutron star)§r: the Core Collapse will not start without it."
+          "desc": "The §dAdvanced§r field generators, tier 4.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §bSpacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §bTime Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §bStabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§e§lTIER STEP§r You do not re-craft. In the §bCondensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §bStabilisation§r generator takes one §bSpacetime Compression§r and one §bTime Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\nAdvanced gates §bT4 (the neutron star)§r: the Core Collapse will not start without it."
         },
         {
           "op": "move",
@@ -8415,7 +8415,7 @@
         },
         {
           "op": "setDesc",
-          "desc": "The §aSuperb§r field generators, tier 5.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §bSpacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §bTime Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §bStabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\nSuperb gates §bT5 (Sirius B)§r. Its Black Dwarf Matter part is replaced in Beyond the Stars, because Black Dwarf Matter first comes from Eye T5 itself."
+          "desc": "The §aSuperb§r field generators, tier 5.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §bSpacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §bTime Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §bStabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§e§lTIER STEP§r You do not re-craft. In the §bCondensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §bStabilisation§r generator takes one §bSpacetime Compression§r and one §bTime Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\nSuperb gates §bT5 (Sirius B)§r. Its Black Dwarf Matter part is replaced in Beyond the Stars, because Black Dwarf Matter first comes from Eye T5 itself."
         }
       ]
     },
@@ -8440,7 +8440,7 @@
         },
         {
           "op": "setDesc",
-          "desc": "The §5Exotic§r field generators, tier 6.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §bSpacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §bTime Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §bStabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\nExotic gates §bT6 (SGR 1806-20)§r."
+          "desc": "The §5Exotic§r field generators, tier 6.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §bSpacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §bTime Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §bStabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§e§lTIER STEP§r You do not re-craft. In the §bCondensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §bStabilisation§r generator takes one §bSpacetime Compression§r and one §bTime Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\nExotic gates §bT6 (SGR 1806-20)§r."
         }
       ]
     },
@@ -8465,7 +8465,7 @@
         },
         {
           "op": "setDesc",
-          "desc": "The §bPerfect§r field generators, tier 7.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §bSpacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §bTime Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §bStabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\nPerfect gates §bT7 (Triangulum)§r, which comes in a later update."
+          "desc": "The §bPerfect§r field generators, tier 7.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §bSpacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §bTime Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §bStabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§e§lTIER STEP§r You do not re-craft. In the §bCondensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §bStabilisation§r generator takes one §bSpacetime Compression§r and one §bTime Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\nPerfect gates §bT7 (Triangulum)§r, which comes in a later update."
         }
       ]
     },
@@ -8499,7 +8499,7 @@
         },
         {
           "op": "setDesc",
-          "desc": "The §9Tipler§r field generators, tier 8.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §bSpacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §bTime Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §bStabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\nTipler gates §bT8 (the Milky Way)§r, which comes in a later update.\n\n[warn]Its recipe still needs parts coated with Magnetohydrodynamically Constrained Star Matter, which waits behind Universium. Expect this to change.[/warn]"
+          "desc": "The §9Tipler§r field generators, tier 8.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §bSpacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §bTime Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §bStabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§e§lTIER STEP§r You do not re-craft. In the §bCondensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §bStabilisation§r generator takes one §bSpacetime Compression§r and one §bTime Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\nTipler gates §bT8 (the Milky Way)§r, which comes in a later update.\n\n[warn]Its recipe still needs parts coated with Magnetohydrodynamically Constrained Star Matter, which waits behind Universium. Expect this to change.[/warn]"
         }
       ]
     },
@@ -8781,7 +8781,7 @@
         },
         {
           "op": "setDesc",
-          "desc": "The §cG§6a§el§al§bi§9f§dr§ce§6y§ea§an§r field generators, tier 9: TecTech's last.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §bSpacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §bTime Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §bStabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\nGallifreyan gates §bT9§r. Eye T10 will need a new, tenth tier. Both come in a later update."
+          "desc": "The §cG§6a§el§al§bi§9f§dr§ce§6y§ea§an§r field generators, tier 9: TecTech's last.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §bSpacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §bTime Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §bStabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§e§lTIER STEP§r You do not re-craft. In the §bCondensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §bStabilisation§r generator takes one §bSpacetime Compression§r and one §bTime Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\nGallifreyan gates §bT9§r. Eye T10 will need a new, tenth tier. Both come in a later update."
         }
       ]
     },

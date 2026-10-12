@@ -2080,6 +2080,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addInfo("  It alone decides the planets: a TN Eye runs every planet of T1..TN.")
             .addInfo("  Planets: -3% time per compression tier above the planet's TecTech tier.")
             .addInfo("  Time Dilation above the star's tier opens the time dial; Stabilisation calms the field.")
+            .addInfo("  Tier step: upgrade each generator in place in the Condensate Assembler (the old one plus")
+            .addInfo("  what the new tier adds; its Kerr controller stays inside). Stabilisation: + Retrofit Kits.")
             .addInfo("A short wireless network runs fewer parallels rather than none.")
             .addInfo("Inputs drain every second into internal buffers; outputs go to ME only.")
             .addSeparator()
