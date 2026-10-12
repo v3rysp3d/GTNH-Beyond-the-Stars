@@ -84,11 +84,12 @@ beyondthestars.recipe.plantfuel=Nuclear Plant: Fuel Rods
 beyondthestars.recipe.plantpropellant=Nuclear Plant: Propellant
 beyondthestars.recipe.plantcoolant=Nuclear Plant: Coolant
 beyondthestars.recipe.plantwater=Nuclear Plant: Water Grades
-# D-26: the four NEW machines' REAL recipe maps (the three above are display-only). These
-# keys ARE the maps' unlocalized names, so they must match the RecipeMapBuilder.of() ids.
-beyondthestars.recipe.cascade=Gas Centrifuge Cascade
-beyondthestars.recipe.fabrication=Fuel Fabrication Line
-beyondthestars.recipe.purex=Reprocessing Canyon
+# The four production halls' real recipe maps (the four above are display-only). These keys ARE
+# the maps' unlocalized names, so they must match the RecipeMapBuilder.of() ids; the values
+# are the controllers' names, so the NEI tab and the machine it belongs to read the same.
+beyondthestars.recipe.cascade=Cascade Hall
+beyondthestars.recipe.fabrication=Fuel Fabrication Hall
+beyondthestars.recipe.purex=PUREX Canyon
 beyondthestars.recipe.batching=Site Batching Plant
 # The one fatal error a plant built by 0.19.0 or earlier reports: its silo face is the retired
 # plumbing frontage, which conflicts with the point-of-use layout cell for cell. %s = the tier
@@ -162,6 +163,12 @@ beyondthestars.gui.rpmlimit.label=RPM
 beyondthestars.gui.rpmlimit.title=RPM Limit
 beyondthestars.gui.buildtier.label=Tier
 beyondthestars.gui.buildtier.title=Build Tier (1-5)
+
+# ---- tidy-old-multis: unit C ----
+# Status-line text for the older machines' failure results (RC-2 looks them up under recipe_result.<id>).
+GT5U.gui.text.recipe_result.beyondthestars.retired=§eRetired controller - it does nothing (see its tooltip)
+GT5U.gui.text.recipe_result.beyondthestars.train.uraninite=§7Needs 8 Uraninite Dust in an input bus
+GT5U.gui.text.recipe_result.beyondthestars.train.acid=§7Needs 2,000 L Hydrofluoric Acid in an input hatch
 
 # ---- SINGULARITY LADDER (Foundation; singularity-ladder-build.md §1, Contract additions FC-1/FC-2) ----
 # slCasing metas 0 and 9 are retired holes (existing EOH/BHC blocks play those roles).
