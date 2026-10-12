@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
@@ -21,18 +22,25 @@ import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.fluids.SLFluids;
 import com.nateyburr.beyondthestars.items.SLItems;
 
+import goodgenerator.loader.Loaders;
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.GTValues;
 import gregtech.api.enums.ItemList;
 import gregtech.api.enums.Materials;
+import gregtech.api.enums.Mods;
 import gregtech.api.enums.OrePrefixes;
 import gregtech.api.enums.TierEU;
+import gregtech.api.util.GTModHandler;
 import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.recipe.Scanning;
+import gtPlusPlus.core.material.MaterialMisc;
+import gtPlusPlus.xmod.gregtech.api.enums.GregtechItemList;
+import tectech.recipe.TTRecipeAdder;
 import tectech.thing.CustomItemList;
 
 /**
- * SINGULARITY LADDER PARTS, SL-P01..SL-P26 (singularity-ladder-build.md §2.2). <b>Owned by the
+ * SINGULARITY LADDER PARTS, SL-P01..SL-P32 (singularity-ladder-build.md §2.2; SL-P27..P32 come
+ * from the cost audit, docs/singularity-ladder-costs.md). <b>Owned by the
  * Foundation unit.</b> The Kerr's and the Eye's own recipes live in {@code BTSRecipesKerr} and
  * {@code BTSRecipesEye}.
  *
@@ -66,6 +74,14 @@ public final class BTSRecipesSingularity {
         kerrParts();
         eyeParts();
         starCharts();
+        if (Config.replaceTecTechEyeOfHarmony) {
+            tecTechEyeBlocks();
+            compressionGates();
+        } else {
+            BeyondTheStars.LOG.info(
+                "[BTS] replaceTecTechEyeOfHarmony=false: SL-P27..P32 (batch TecTech Eye casings and the "
+                    + "compression-generator gate recipes) are not registered; TecTech's own recipes apply.");
+        }
     }
 
     // ================================================================ Kerr structure (UIV / UMV)
@@ -163,21 +179,22 @@ public final class BTSRecipesSingularity {
                 .eut(TierEU.RECIPE_UMV)
                 .addTo(assemblerRecipes));
 
-        // SL-P08 Ergosphere Field Coil
+        // SL-P08 Ergosphere Field Coil. A Kerr T1 holds 1,258 coils (842 placed, 416 inside quadrupoles),
+        // so 16 wires and 8,000 L, not the card's 64 and 32,000 L (cost audit #6).
         BTSRecipeGuard.recipe(
             "SL-P08",
             () -> GTValues.RA.stdBuilder()
                 .itemInputs(
-                    BTSRecipeGuard.req(OrePrefixes.wireGt01, Materials.SuperconductorUIV, 64L),
+                    BTSRecipeGuard.req(OrePrefixes.wireGt01, Materials.SuperconductorUIV, 16L),
                     BTSRecipeGuard.req(OrePrefixes.frameGt, Materials.TranscendentMetal, 1L),
                     BTSRecipeGuard.req(OrePrefixes.plate, Materials.CosmicNeutronium, 8L))
-                .fluidInputs(superCoolant(32_000))
+                .fluidInputs(superCoolant(8_000))
                 .itemOutputs(SLBlocks.casing(BlockSLCasing.FIELD_COIL, 1))
                 .duration(1_200)
                 .eut(TierEU.RECIPE_UIV)
                 .addTo(assemblerRecipes));
 
-        // SL-P09 Beam Focusing Quadrupole
+        // SL-P09 Beam Focusing Quadrupole x4 (the card made 1; 208 per Kerr T1, cost audit #7)
         BTSRecipeGuard.recipe(
             "SL-P09",
             () -> GTValues.RA.stdBuilder()
@@ -187,7 +204,7 @@ public final class BTSRecipesSingularity {
                     casingStack(Casings.ParticleBeamGuidancePipeCasing, 2),
                     BTSRecipeGuard.req(OrePrefixes.plate, Materials.Neutronium, 8L))
                 .fluidInputs(superCoolant(16_000))
-                .itemOutputs(SLBlocks.casing(BlockSLCasing.QUADRUPOLE, 1))
+                .itemOutputs(SLBlocks.casing(BlockSLCasing.QUADRUPOLE, 4))
                 .duration(1_200)
                 .eut(TierEU.RECIPE_UIV)
                 .addTo(assemblerRecipes));
@@ -232,7 +249,8 @@ public final class BTSRecipesSingularity {
                     items(
                         dense(Materials.Neutronium, 2),
                         BTSRecipeGuard.req(OrePrefixes.frameGt, Materials.SpaceTime, 1L),
-                        nn(ItemList.Electric_Pump_UIV.get(1L), "ItemList.Electric_Pump_UIV")))
+                        // a Piston, not a Pump: the module runs item recipes (cost audit #14, B-17)
+                        nn(ItemList.Electric_Piston_UIV.get(1L), "ItemList.Electric_Piston_UIV")))
                 .fluidInputs(molten(Materials.SpaceTime, 288))
                 .itemOutputs(SLBlocks.casing(BlockSLCasing.EXTRACTION, 2))
                 .duration(800)
@@ -271,24 +289,26 @@ public final class BTSRecipesSingularity {
     // ================================================================ Eye structure (UMV)
 
     private static void eyeParts() {
-        // SL-P15 Beam Band Casing x4 (Eye T2)
+        // SL-P15 Beam Band Casing x16 (Eye T2). The band is 2,862 blocks: x4 with 2 quadrupoles cost 715
+        // TecTech Spatial casings and 12.9k UIV/UMV circuits (cost audit #8).
         BTSRecipeGuard.recipe(
             "SL-P15",
             () -> GTValues.RA.stdBuilder()
                 .itemInputs(
                     items(
                         tectech(CustomItemList.EOH_Reinforced_Spatial_Casing, 1, "EOH_Reinforced_Spatial_Casing"),
-                        SLBlocks.casing(BlockSLCasing.QUADRUPOLE, 2),
+                        SLBlocks.casing(BlockSLCasing.QUADRUPOLE, 1),
                         nn(ItemList.Emitter_UMV.get(2L), "ItemList.Emitter_UMV"),
-                        dense(Materials.SpaceTime, 2)))
+                        dense(Materials.SpaceTime, 4)))
                 .fluidInputs(molten(Materials.SpaceTime, 9_216))
-                .itemOutputs(SLBlocks.casing(BlockSLCasing.BEAM_BAND, 4))
+                .itemOutputs(SLBlocks.casing(BlockSLCasing.BEAM_BAND, 16))
                 .duration(1_800)
                 .eut(TierEU.RECIPE_UMV)
                 .addTo(assemblerRecipes));
 
-        // SL-P16 Jet Crescent Casing x4 (Eye T3). Raw Star Matter is the fluid (the gate);
-        // the card's 4,608 L of SpaceTime arrives as 32 ingots.
+        // SL-P16 Jet Crescent Casing x16 (Eye T3). Raw Star Matter is the fluid (the gate), still 4,000 L
+        // per block; the card's 4,608 L of SpaceTime arrives as 32 ingots. x16 with 2 emitters, not x4
+        // with 1: the crescent is 2,755 blocks (cost audit #9).
         BTSRecipeGuard.recipe(
             "SL-P16",
             () -> GTValues.RA.stdBuilder()
@@ -297,27 +317,29 @@ public final class BTSRecipesSingularity {
                         tectech(CustomItemList.EOH_Reinforced_Temporal_Casing, 1, "EOH_Reinforced_Temporal_Casing"),
                         SLBlocks.casing(BlockSLCasing.FIELD_COIL, 2),
                         dense(Materials.Infinity, 8),
-                        nn(ItemList.Emitter_UMV.get(1L), "ItemList.Emitter_UMV"),
+                        nn(ItemList.Emitter_UMV.get(2L), "ItemList.Emitter_UMV"),
                         BTSRecipeGuard.req(OrePrefixes.ingot, Materials.SpaceTime, 32L)))
-                .fluidInputs(rawStarMatter(16_000))
-                .itemOutputs(SLBlocks.casing(BlockSLCasing.JET_CRESCENT, 4))
+                .fluidInputs(rawStarMatter(64_000))
+                .itemOutputs(SLBlocks.casing(BlockSLCasing.JET_CRESCENT, 16))
                 .duration(2_400)
                 .eut(TierEU.RECIPE_UMV)
                 .addTo(assemblerRecipes));
 
-        // SL-P17 Galactic Shell Plating x2 (Eye T4). HSM is the fluid (the T4 gate); the card's
-        // 1,152 L of Transcendent Metal arrives as 8 ingots.
+        // SL-P17 Galactic Shell Plating x16 (Eye T4). HSM is the fluid (the T4 gate); the card's
+        // 1,152 L of Transcendent Metal arrives as ingots. x16 on 250 L, not x2 on 1,000 L: the arms are
+        // 5,325 blocks, which was 2.66M L HSM = 532 Arcturus runs; now about 83k L (cost audit #10).
+        // A crafting recipe only: D-49 keeps HSM as the T4 gate and leaves this recipe alone.
         BTSRecipeGuard.recipe(
             "SL-P17",
             () -> GTValues.RA.stdBuilder()
                 .itemInputs(
                     items(
-                        dense(Materials.Infinity, 4),
-                        BTSRecipeGuard.req(OrePrefixes.frameGt, Materials.TranscendentMetal, 1L),
-                        BTSRecipeGuard.req(OrePrefixes.plate, Materials.CosmicNeutronium, 4L),
-                        BTSRecipeGuard.req(OrePrefixes.ingot, Materials.TranscendentMetal, 8L)))
-                .fluidInputs(BTSRecipeGuard.fluid(SLFluids.hyperdenseStellarMixture, 1_000))
-                .itemOutputs(SLBlocks.casing(BlockSLCasing.GALACTIC_SHELL, 2))
+                        dense(Materials.Infinity, 8),
+                        BTSRecipeGuard.req(OrePrefixes.frameGt, Materials.TranscendentMetal, 2L),
+                        BTSRecipeGuard.req(OrePrefixes.plate, Materials.CosmicNeutronium, 8L),
+                        BTSRecipeGuard.req(OrePrefixes.ingot, Materials.TranscendentMetal, 16L)))
+                .fluidInputs(BTSRecipeGuard.fluid(SLFluids.hyperdenseStellarMixture, 250))
+                .itemOutputs(SLBlocks.casing(BlockSLCasing.GALACTIC_SHELL, 16))
                 .duration(800)
                 .eut(TierEU.RECIPE_UMV)
                 .addTo(assemblerRecipes));
@@ -339,11 +361,220 @@ public final class BTSRecipesSingularity {
                         BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UMV, 8L),
                         dense(Materials.Neutronium, 16),
                         tectech(CustomItemList.EOH_Reinforced_Temporal_Casing, 16, "EOH_Reinforced_Temporal_Casing")))
-                .fluidInputs(molten(Materials.SpaceTime, 147_456), superCoolant(500_000))
+                // 36,864 L SpaceTime, not the card's 147,456 L (x6 per Eye; cost audit #12)
+                .fluidInputs(molten(Materials.SpaceTime, 36_864), superCoolant(500_000))
                 .itemOutputs(BTSRecipeGuard.stack(SLItems.stabiliserPylon, 1))
                 .duration(18_000)
                 .eut(TierEU.RECIPE_UMV * 4)
                 .addTo(AssemblyLine));
+    }
+
+    // ======================================= TecTech Eye blocks in bulk (only with TecTech's Eye replaced)
+
+    /**
+     * SL-P27..P29: batch Assembler recipes for the TecTech Eye blocks our Eye uses in bulk (cost audit
+     * #3/#4, B-23). TecTech prices them for its own small Eye (1,430 Spatial/Temporal casings, 36
+     * Boundary casings); ours uses 13,872 and 6,426. The blocks and the look stay TecTech's (round-1
+     * ruling). Registered only while {@code replaceTecTechEyeOfHarmony} is on, so a pack that keeps
+     * TecTech's Eye keeps TecTech's prices for it. TecTech's own assembly lines stay as well.
+     */
+    private static void tecTechEyeBlocks() {
+        // SL-P27 Reinforced Spatial Structure Casing x4: 1 Godforge Singularity Shielding Casing, not 32.
+        // The Quantum Chest is TecTech's Spatial marker (its own recipe has one) and keeps P27 and P28 apart.
+        BTSRecipeGuard.recipe(
+            "SL-P27",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    items(
+                        tectech(
+                            CustomItemList.Godforge_SingularityShieldingCasing,
+                            1,
+                            "Godforge_SingularityShieldingCasing"),
+                        dense(Materials.Neutronium, 4),
+                        dense(Materials.CosmicNeutronium, 4),
+                        dense(Materials.Infinity, 1),
+                        nn(ItemList.Quantum_Chest_IV.get(1L), "ItemList.Quantum_Chest_IV")))
+                .fluidInputs(molten(Materials.SpaceTime, 576))
+                .itemOutputs(tectech(CustomItemList.EOH_Reinforced_Spatial_Casing, 4, "EOH_Reinforced_Spatial_Casing"))
+                .duration(1_200)
+                .eut(TierEU.RECIPE_UMV)
+                .addTo(assemblerRecipes));
+
+        // SL-P28 Reinforced Temporal Structure Casing x4: as P27, with TecTech's Temporal marker (an
+        // Accelerator UV; its own recipe has four).
+        BTSRecipeGuard.recipe(
+            "SL-P28",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    items(
+                        tectech(
+                            CustomItemList.Godforge_SingularityShieldingCasing,
+                            1,
+                            "Godforge_SingularityShieldingCasing"),
+                        dense(Materials.Neutronium, 4),
+                        dense(Materials.CosmicNeutronium, 4),
+                        dense(Materials.Infinity, 1),
+                        nn(ItemList.AcceleratorUV.get(1L), "ItemList.AcceleratorUV")))
+                .fluidInputs(molten(Materials.SpaceTime, 576))
+                .itemOutputs(
+                    tectech(CustomItemList.EOH_Reinforced_Temporal_Casing, 4, "EOH_Reinforced_Temporal_Casing"))
+                .duration(1_200)
+                .eut(TierEU.RECIPE_UMV)
+                .addTo(assemblerRecipes));
+
+        // SL-P29 Infinite SpaceTime Energy Boundary Casing x8: TecTech's needs an LSC, 16 Active
+        // Transformers and 4 UMV wireless hatches per block. The SC UMV wire (TecTech's research item for
+        // it) and an Emitter UIV keep the energy theme.
+        BTSRecipeGuard.recipe(
+            "SL-P29",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    items(
+                        BTSRecipeGuard.req(OrePrefixes.wireGt16, Materials.SuperconductorUMV, 1L),
+                        dense(Materials.Neutronium, 8),
+                        dense(Materials.CosmicNeutronium, 8),
+                        nn(ItemList.Emitter_UIV.get(1L), "ItemList.Emitter_UIV")))
+                .fluidInputs(molten(Materials.SpaceTime, 1_152))
+                .itemOutputs(tectech(CustomItemList.EOH_Infinite_Energy_Casing, 8, "EOH_Infinite_Energy_Casing"))
+                .duration(1_200)
+                .eut(TierEU.RECIPE_UMV)
+                .addTo(assemblerRecipes));
+    }
+
+    // ============================== Compression gate: generator tier upgrades (only with TecTech's Eye replaced)
+
+    /** TecTech's per-tier generator research cost (x(t+1)), researched from our star charts. */
+    private static final int GATE_RESEARCH_COMPUTATION = 48_000_000;
+
+    private static final int GATE_RESEARCH_PER_SECOND = 16_384;
+
+    /** Flat time for an upgrade step (cost audit #15): the old generator has already paid for its tier. */
+    private static final int GATE_UPGRADE_TICKS = 80_000;
+
+    /**
+     * One row of the gate table in {@link #compressionGates()}: TecTech's irregular per-tier counts
+     * (Yotta Fluid Tank Cell count and meta, Cosmic Fabric Manipulators, UXV circuits), the gate fluid
+     * and the research chart.
+     */
+    private static final class GateStep {
+
+        final String id;
+        final int tier;
+        final CustomItemList from;
+        final CustomItemList to;
+        final int yottaCount;
+        final int yottaMeta;
+        final int fabric;
+        final int uxv;
+        final Supplier<FluidStack> gate;
+        final Supplier<ItemStack> research;
+
+        GateStep(String id, int tier, CustomItemList from, CustomItemList to, int yottaCount, int yottaMeta, int fabric,
+            int uxv, Supplier<FluidStack> gate, Supplier<ItemStack> research) {
+            this.id = id;
+            this.tier = tier;
+            this.from = from;
+            this.to = to;
+            this.yottaCount = yottaCount;
+            this.yottaMeta = yottaMeta;
+            this.fabric = fabric;
+            this.uxv = uxv;
+            this.gate = gate;
+            this.research = research;
+        }
+    }
+
+    /**
+     * SL-P30..P32: Spacetime Compression Field Generator tier t-1 -> tier t, for t = 1..3 (TecTech
+     * metas 1-3, the gates of Eye T2/T3/T4 under the 1:1 rule, Q-20). Cost audit #2 and #15, B-22,
+     * B-25.
+     * <p>
+     * TecTech's own recipe for tier t takes 2 / 8 / 32 White Dwarf Matter bolts, and with its Eye
+     * removed WDM's only source is our Eye T4: Eye T2 could never be built. This recipe is TecTech's
+     * (the same items, fluids and research cost, decoded with javap from
+     * {@code ResearchStationAssemblyLine.addEOHRecipes}) with three changes:
+     * <ol>
+     * <li>the WDM bolts become a 4th fluid, the product of the Eye tier below (the table here);</li>
+     * <li>the generator of the tier below replaces the Reinforced Spatial Structure Casing, so an Eye
+     * tier step upgrades its 188 generators instead of stranding them, at {@link #GATE_UPGRADE_TICKS}
+     * flat (TecTech: 80,000 x (t+1));</li>
+     * <li>the research item is the tier's star chart, not the generator below: TecTech's recipe
+     * already uses that one, and a research item can belong to one recipe only.</li>
+     * </ol>
+     * TecTech's recipes stay; they simply cannot run without WDM. The Tier0 (Crude) generator, the
+     * Eye T1 gate, keeps TecTech's own recipe (Shirabon bolts, no WDM).
+     */
+    private static void compressionGates() {
+        final GateStep[] table = {
+            new GateStep(
+                "SL-P30",
+                1,
+                CustomItemList.SpacetimeCompressionFieldGeneratorTier0,
+                CustomItemList.SpacetimeCompressionFieldGeneratorTier1,
+                2,
+                6,
+                2,
+                1,
+                () -> rawStarMatter(16_000),
+                () -> BTSRecipeGuard.stack(SLItems.starChartSiriusA, 1)),
+            new GateStep(
+                "SL-P31",
+                2,
+                CustomItemList.SpacetimeCompressionFieldGeneratorTier1,
+                CustomItemList.SpacetimeCompressionFieldGeneratorTier2,
+                3,
+                6,
+                3,
+                1,
+                () -> BTSRecipeGuard.fluid(SLFluids.excitedStellarPlasma, 4_000),
+                () -> BTSRecipeGuard.stack(SLItems.starChartArcturus, 1)),
+            new GateStep(
+                "SL-P32",
+                3,
+                CustomItemList.SpacetimeCompressionFieldGeneratorTier2,
+                CustomItemList.SpacetimeCompressionFieldGeneratorTier3,
+                1,
+                7,
+                1,
+                2,
+                () -> BTSRecipeGuard.fluid(SLFluids.rawHyperdensePlasma, 2_000),
+                () -> BTSRecipeGuard.stack(SLItems.starChartSiriusB, 1)) };
+        for (GateStep step : table) {
+            BTSRecipeGuard.recipe(step.id, () -> compressionGate(step));
+        }
+    }
+
+    private static void compressionGate(GateStep g) {
+        final int t = g.tier;
+        final Object[] inputs = { tectech(g.from, 1, g.from.name()),
+            new ItemStack(nn(Loaders.yottaFluidTankCell, "Loaders.yottaFluidTankCell"), g.yottaCount, g.yottaMeta),
+            nn(ItemList.Quantum_Tank_IV.get(4L * (t + 1)), "ItemList.Quantum_Tank_IV"),
+            nn(GTModHandler.getModItem(Mods.AvaritiaAddons.ID, "InfinityChest", t + 1), "AvaritiaAddons InfinityChest"),
+            nn(GregtechItemList.CosmicFabricManipulator.get(g.fabric), "GregtechItemList.CosmicFabricManipulator"),
+            singularityCell(), singularityCell(), new Object[] { OrePrefixes.circuit.get(Materials.UXV), g.uxv } };
+        final FluidStack[] fluids = {
+            nn(MaterialMisc.MUTATED_LIVING_SOLDER.getFluidStack(2_880 << t), "MUTATED_LIVING_SOLDER fluid"),
+            molten(Materials.Space, 1_440 * (t + 1)), molten(Materials.SpaceTime, 1_440), g.gate.get() };
+        final boolean added = TTRecipeAdder.addResearchableAssemblylineRecipe(
+            g.research.get(),
+            GATE_RESEARCH_COMPUTATION * (t + 1),
+            GATE_RESEARCH_PER_SECOND * (t + 1),
+            (int) TierEU.RECIPE_MAX,
+            8 * (t + 1),
+            inputs,
+            fluids,
+            tectech(g.to, 1, g.to.name()),
+            GATE_UPGRADE_TICKS,
+            (int) TierEU.RECIPE_UMV);
+        if (!added) {
+            throw new IllegalStateException("TTRecipeAdder refused " + g.id);
+        }
+    }
+
+    private static ItemStack singularityCell() {
+        return nn(
+            GTModHandler.getModItem("appliedenergistics2", "item.ItemExtremeStorageCell.Singularity", 1L),
+            "AE2 Singularity storage cell");
     }
 
     // ================================================================ Star charts (Eye targets)
