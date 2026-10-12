@@ -29,5 +29,8 @@ public class ClientProxy extends CommonProxy {
 
         // Dev-only render QA harness: only with -Dbts.rendertest=true (never in normal play).
         if (RenderTest.ENABLED) RenderTestClient.register();
+
+        // Dev-only questbook screenshot harness: only with -Dbts.qbshots=true (never in normal play).
+        if (Boolean.getBoolean("bts.qbshots")) com.nateyburr.beyondthestars.devshots.QuestbookShots.register();
     }
 }
