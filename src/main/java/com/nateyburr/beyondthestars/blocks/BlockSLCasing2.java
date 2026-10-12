@@ -3,9 +3,9 @@ package com.nateyburr.beyondthestars.blocks;
 import net.minecraft.block.material.Material;
 
 /**
- * SINGULARITY LADDER: {@code slCasing2}, the Kerr module core blocks and the Kerr's lining
- * (singularity-ladder-build.md §1.2, Contract additions FC-1/FC-2). One core sits in each optional
- * module arc; its presence is what the Kerr controller checks for.
+ * SINGULARITY LADDER: {@code slCasing2}, the (retired) Kerr module core blocks and the Kerr's lining
+ * (singularity-ladder-build.md §1.2, Contract additions FC-1/FC-2). Before the Kerr redesign one core
+ * sat in each optional module arc; the modules are separate machines now (docs/kerr-redesign.md).
  * <p>
  * Meta 2 (Harmonic Lining) was a hole while the Kerr's lining role was played by the Black Hole
  * Compressor's Background Radiation Absorbent Casing. I ruled (2026-10-12, round 4) that the
@@ -27,5 +27,16 @@ public class BlockSLCasing2 extends BlockSLMeta {
 
     public BlockSLCasing2() {
         super(Material.iron, "slCasing2", TEXTURES);
+    }
+
+    /**
+     * KERR REDESIGN: the two module CORE blocks are retired (the modules are machines with their own
+     * controllers now). The metas stay registered, because a live block must never lose a meta, but
+     * they are hidden from NEI and the creative tab; a shapeless recipe turns one into its module
+     * controller, and the KEE converts placed ones (KerrMigration).
+     */
+    @Override
+    protected boolean listed(int meta) {
+        return meta != COMPRESSOR_MODULE && meta != EXTRACTOR_MODULE;
     }
 }

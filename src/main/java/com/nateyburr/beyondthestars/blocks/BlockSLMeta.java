@@ -120,10 +120,18 @@ public abstract class BlockSLMeta extends Block {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public void getSubBlocks(Item item, CreativeTabs tab, List list) {
         for (int meta = 0; meta < textures.length; meta++) {
-            if (textures[meta] != null) {
+            if (textures[meta] != null && listed(meta)) {
                 list.add(new ItemStack(item, 1, meta));
             }
         }
+    }
+
+    /**
+     * False hides a still-registered meta from the creative tab and NEI's item list (a retired block
+     * that must stay placeable and loadable in old worlds, e.g. the pre-redesign Kerr module cores).
+     */
+    protected boolean listed(int meta) {
+        return true;
     }
 
     @Override
