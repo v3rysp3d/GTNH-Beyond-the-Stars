@@ -133,6 +133,27 @@ public class MTEKerrCompressorModule extends MTEKerrModuleBase<MTEKerrCompressor
         return null;
     }
 
+    @Override
+    public String mapsLine() {
+        return "§7Maps: compressor + neutronium compressor + Kerr density (the inputs pick)";
+    }
+
+    /** The DENSITY gate, live: what is missing, or that it is open. */
+    @Override
+    public String gateLine() {
+        final MTEKerrEngine kee = kee();
+        if (kee == null || !kee.isHoleOpen()) {
+            return "§8Densification: needs a linked Kerr T2 hole of 128 SM";
+        }
+        if (!kee.densityInstalled()) {
+            return "§7Densification: needs Kerr T2 (Density Upgrade in the KEE)";
+        }
+        if (kee.mass() < MTEKerrEngine.DENSIFY_MIN_MASS) {
+            return "§7Densification: needs 128 SM (hole " + MTEKerrEngine.fmt(kee.mass()) + " SM)";
+        }
+        return "§bDensification: available (Kerr T2, " + MTEKerrEngine.fmt(kee.mass()) + " SM)";
+    }
+
     // ============================================================================ looks
 
     @Override

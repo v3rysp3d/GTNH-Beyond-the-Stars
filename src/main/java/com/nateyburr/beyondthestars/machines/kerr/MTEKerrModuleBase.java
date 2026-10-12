@@ -409,11 +409,29 @@ public abstract class MTEKerrModuleBase<T extends MTEKerrModuleBase<T>> extends 
         return String.format(Locale.ROOT, "§bHole bonus: parallel %,d, speed x%.2f", parallel, speed);
     }
 
+    /**
+     * What this module runs, one terminal line ("Maps: ..."). A constant per class, so the GUI reads
+     * it on the client without syncing it.
+     */
+    public String mapsLine() {
+        return "";
+    }
+
+    /**
+     * A recipe gate's live status for the GUI (the compressor's DENSITY needs Kerr T2 and 128 SM), or
+     * "" for none. Server state: the GUI syncs it.
+     */
+    public String gateLine() {
+        return "";
+    }
+
     @Override
     public String[] getInfoData() {
         final List<String> info = new ArrayList<>(Arrays.asList(super.getInfoData()));
         info.add(linkLine(link, keePosText(), linkedMass()));
         info.add(bonusLine(link, bonusParallel(), bonusSpeed()));
+        final String gate = gateLine();
+        if (!gate.isEmpty()) info.add(gate);
         return info.toArray(new String[0]);
     }
 

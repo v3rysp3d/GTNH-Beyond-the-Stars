@@ -13,6 +13,7 @@ import com.cleanroommc.modularui.value.sync.IntSyncValue;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 import com.cleanroommc.modularui.value.sync.StringSyncValue;
 import com.cleanroommc.modularui.widgets.ListWidget;
+import com.cleanroommc.modularui.widgets.TextWidget;
 import com.cleanroommc.modularui.widgets.layout.Flow;
 
 import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
@@ -42,11 +43,13 @@ public class MTEKerrModuleGui extends MTEMultiBlockBaseGui<MTEKerrModuleBase<?>>
         syncManager.syncValue("kerrMass", new DoubleSyncValue(multiblock::linkedMass));
         syncManager.syncValue("kerrParallel", new IntSyncValue(multiblock::bonusParallel));
         syncManager.syncValue("kerrSpeed", new DoubleSyncValue(multiblock::bonusSpeed));
+        syncManager.syncValue("kerrGate", new StringSyncValue(multiblock::gateLine));
     }
 
-    private static IWidget row(Supplier<String> text) {
+    private static TextWidget<?> row(Supplier<String> text) {
         return IKey.dynamic(text::get)
             .asWidget()
+            .fullWidth()
             .marginBottom(2);
     }
 
@@ -57,6 +60,8 @@ public class MTEKerrModuleGui extends MTEMultiBlockBaseGui<MTEKerrModuleBase<?>>
         final DoubleSyncValue mass = syncManager.findSyncHandler("kerrMass", DoubleSyncValue.class);
         final IntSyncValue parallel = syncManager.findSyncHandler("kerrParallel", IntSyncValue.class);
         final DoubleSyncValue speed = syncManager.findSyncHandler("kerrSpeed", DoubleSyncValue.class);
+        final StringSyncValue gate = syncManager.findSyncHandler("kerrGate", StringSyncValue.class);
+        final String maps = multiblock.mapsLine();
         return super.createTerminalTextWidget(syncManager, parent)
             .child(
                 row(
@@ -69,7 +74,12 @@ public class MTEKerrModuleGui extends MTEMultiBlockBaseGui<MTEKerrModuleBase<?>>
                     () -> MTEKerrModuleBase.bonusLine(
                         MTEKerrModuleBase.Link.of(link.getIntValue()),
                         parallel.getIntValue(),
-                        speed.getDoubleValue())));
+                        speed.getDoubleValue())))
+            .child(
+                row(gate::getStringValue).setEnabledIf(
+                    w -> !gate.getStringValue()
+                        .isEmpty()))
+            .childIf(!maps.isEmpty(), () -> row(() -> maps));
     }
 
     /** Godforge's connection label: "Linked" in green, "Not linked" in red. */

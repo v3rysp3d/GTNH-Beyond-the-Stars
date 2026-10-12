@@ -100,6 +100,11 @@ public class MTEKerrExtractorModule extends MTEKerrModuleBase<MTEKerrExtractorMo
         return RecipeMaps.extractorRecipes;
     }
 
+    @Override
+    public String mapsLine() {
+        return "§7Maps: GT extractor (items only)";
+    }
+
     /** GT's item extractor map only (Q-9/Q-22). */
     @Nonnull
     @Override
