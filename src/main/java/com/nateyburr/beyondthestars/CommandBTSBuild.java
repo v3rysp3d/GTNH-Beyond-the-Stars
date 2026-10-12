@@ -22,9 +22,12 @@ import com.nateyburr.beyondthestars.blocks.TileTurbineHousing;
 import com.nateyburr.beyondthestars.items.BTSItems;
 import com.nateyburr.beyondthestars.machines.BTSMachines;
 import com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1;
+import com.nateyburr.beyondthestars.machines.SLConsoleTest;
 
+import gregtech.api.enums.ItemList;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
+import gregtech.common.tileentities.machines.IDualInputHatch;
 
 /**
  * /btsbuild [1-5|all] [rod] [force] - builds COMPLETE, RUNNING Unit One plants where the
@@ -41,6 +44,15 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
  * compared. They are laid out along the plant's own RIGHT axis (which is the player's right,
  * since the controller is placed looking the way the player looks) on a fixed pitch of
  * platform + gap, so no two footprints can touch.
+ * <p>
+ * <b>Console / command-block form</b> (test bench, no player needed): {@code /btsbuild t<1-5> <x> <y>
+ * <z> [north|south|east|west] [rod] [force] [crib] | [check]} raises one plant with its controller at
+ * x y z facing the given way (default north), loading the footprint's chunks first, and prints FORMED
+ * or NOT FORMED with the first wrong cells. {@code crib} then swaps the first feedwater hatch for a
+ * fluid-capable Crafting Input Buffer, re-walks (the socket must refuse it: the silo drops out, no dual
+ * input hatch registered), puts the plain hatch back and re-walks again. {@code check} builds nothing and
+ * re-walks the plant standing there. The tier must be written {@code t<n>} here, so it is never read as
+ * a coordinate.
  */
 public class CommandBTSBuild extends CommandBase {
 
@@ -67,7 +79,8 @@ public class CommandBTSBuild extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btsbuild [1-5|all] [uranium|mox|thorium|naq] [force]";
+        return "/btsbuild [1-5|all] [uranium|mox|thorium|naq] [force]  |  console: /btsbuild t<1-5> <x> <y> <z> "
+            + "[facing] [rod] [force] [crib] | [check]";
     }
 
     @Override
@@ -96,6 +109,11 @@ public class CommandBTSBuild extends CommandBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
+        final SLConsoleTest.Placement at = SLConsoleTest.parsePlacement(sender, args);
+        if (at != null) {
+            processAt(sender, args, at);
+            return;
+        }
         final EntityPlayerMP player = getCommandSenderAsPlayer(sender);
         final World world = player.worldObj;
         if (world.isRemote) return;
@@ -256,6 +274,200 @@ public class CommandBTSBuild extends CommandBase {
                 EnumChatFormatting.YELLOW
                     + "/btsclock and /btssupply act on the NEAREST station only - stand next to the tier you want to retune.");
         }
+    }
+
+    /** The console / command-block form: one plant at the given cell and facing, then the report. */
+    private void processAt(ICommandSender sender, String[] args, SLConsoleTest.Placement at) {
+        final World world = sender.getEntityWorld();
+        if (world == null || world.isRemote) return;
+        int tier = 3;
+        String rodArg = null;
+        boolean force = false;
+        boolean crib = false;
+        boolean check = false;
+        for (int i = 0; i < args.length; i++) {
+            if (at.used[i]) continue;
+            final String arg = args[i].toLowerCase(java.util.Locale.ROOT);
+            if (arg.matches("t[0-9]+")) {
+                tier = Math.min(MTEReactorCoreMk1.maxTier(), Math.max(1, parseInt(sender, arg.substring(1))));
+            } else if (arg.equals("force") || arg.equals("-f")) {
+                force = true;
+            } else if (arg.equals("crib")) {
+                crib = true;
+            } else if (arg.equals("check")) {
+                check = true;
+            } else if (rodArg == null) {
+                rodArg = arg;
+            }
+        }
+        final String label = "Reactor T" + tier
+            + " facing "
+            + at.facing.name()
+                .toLowerCase(java.util.Locale.ROOT);
+        final int height = MTEReactorCoreMk1.plantHeightFor(tier);
+        if (at.y < 1 || at.y + height > 255) {
+            SLConsoleTest
+                .tell(sender, label + ": NOT BUILT - the plant reaches y " + (at.y + height) + ", outside 1..255.");
+            return;
+        }
+        // Generous box: the plant reaches 32 behind, 17 in front and 25 to each side of the controller.
+        final int reach = MTEReactorCoreMk1.platformSize() + 8;
+        final int chunks = SLConsoleTest.loadChunks(
+            world,
+            new int[] { at.x - reach, at.y - 2, at.z - reach, at.x + reach, at.y + height, at.z + reach });
+        if (check) {
+            final MTEReactorCoreMk1 core = coreAt(world, at.x, at.y, at.z);
+            if (core == null) {
+                SLConsoleTest.tell(sender, label + ": CHECK - no reactor controller at the cell.");
+                return;
+            }
+            core.checkStructure(true, core.getBaseMetaTileEntity());
+            SLConsoleTest.tell(
+                sender,
+                "== " + label
+                    + " (check): "
+                    + (core.mMachine ? "FORMED" : "NOT FORMED")
+                    + " == "
+                    + core.buildSummary());
+            for (String line : SLConsoleTest.firstErrors(core, core.getBaseMetaTileEntity(), 3)) {
+                SLConsoleTest.tell(sender, "  " + line);
+            }
+            return;
+        }
+        if (!force) {
+            final int percent = solidPercent(world, ExtendedFacing.of(at.facing), at.x, at.y, at.z);
+            if (percent > MAX_SOLID_FRACTION * 100) {
+                SLConsoleTest.tell(
+                    sender,
+                    label + ": NOT BUILT - the footprint is " + percent + "% solid; add force to overwrite.");
+                return;
+            }
+        }
+        final Site site = raise(world, at.x, at.y, at.z, at.facing, tier, rodFor(rodArg));
+        if (site.failure != null) {
+            SLConsoleTest.tell(sender, label + ": BUILD FAILED - " + site.failure);
+            return;
+        }
+        SLConsoleTest.tell(
+            sender,
+            "== " + label
+                + " (creative path): "
+                + (site.formed ? "FORMED" : "NOT FORMED")
+                + " == "
+                + chunks
+                + " chunks loaded; "
+                + site.summary);
+        SLConsoleTest.tell(
+            sender,
+            "  " + site.rotors
+                + " rotors, "
+                + site.ports
+                + " rod ports, supplies "
+                + site.supplies[0]
+                + "/"
+                + site.supplies[1]
+                + "/"
+                + site.supplies[2]);
+        final MTEReactorCoreMk1 core = coreAt(world, at.x, at.y, at.z);
+        if (core == null) return;
+        if (!site.formed) {
+            for (String line : SLConsoleTest.firstErrors(core, core.getBaseMetaTileEntity(), 3)) {
+                SLConsoleTest.tell(sender, "  " + line);
+            }
+        }
+        if (crib) cribTest(sender, world, core);
+    }
+
+    private static MTEReactorCoreMk1 coreAt(World world, int x, int y, int z) {
+        final TileEntity te = world.getTileEntity(x, y, z);
+        if (!(te instanceof IGregTechTileEntity)) return null;
+        final IMetaTileEntity mte = ((IGregTechTileEntity) te).getMetaTileEntity();
+        return mte instanceof MTEReactorCoreMk1 ? (MTEReactorCoreMk1) mte : null;
+    }
+
+    /**
+     * 2.9.0-RC-2 regression check (port plan C3): a fluid-capable Crafting Input Buffer in a feedwater
+     * socket must be REFUSED (GT's input adder would accept it into mDualInputHatches, which the plant
+     * never drains). The silo is an optional piece of the plant, so a refused socket un-forms the SILO
+     * (reactor tier 0, the plant idles as a bare platform) rather than the whole plant - the same as any
+     * other wrong block in the silo. Swaps the first feedwater hatch for a CRIB, re-walks, then restores
+     * it and re-walks again.
+     */
+    private static void cribTest(ICommandSender sender, World world, MTEReactorCoreMk1 core) {
+        final IGregTechTileEntity base = core.getBaseMetaTileEntity();
+        final List<int[]> cells = core.feedwaterHatchCells();
+        if (cells.isEmpty()) {
+            SLConsoleTest.tell(sender, "  CRIB test: SKIPPED - the formed plant lists no feedwater hatch.");
+            return;
+        }
+        final ItemStack cribStack = ItemList.Hatch_CraftingInput_Bus_ME.get(1);
+        if (cribStack == null || cribStack.getItem() == null) {
+            SLConsoleTest.tell(sender, "  CRIB test: SKIPPED - no Crafting Input Buffer item in this pack.");
+            return;
+        }
+        final int[] c = cells.get(0);
+        final IGregTechTileEntity hatch = (IGregTechTileEntity) world.getTileEntity(c[0], c[1], c[2]);
+        final short hatchId = (short) hatch.getMetaTileID();
+        final ForgeDirection face = hatch.getFrontFacing();
+        final int feedBefore = core.getFeedwaterHatchCount();
+        final int tierBefore = core.getReactorTier();
+        final String cell = "(" + c[0] + ", " + c[1] + ", " + c[2] + ")";
+
+        MTEReactorCoreMk1.placeGtMachine(world, c[0], c[1], c[2], (short) cribStack.getItemDamage(), face);
+        final TileEntity placed = world.getTileEntity(c[0], c[1], c[2]);
+        final IMetaTileEntity placedMte = placed instanceof IGregTechTileEntity
+            ? ((IGregTechTileEntity) placed).getMetaTileEntity()
+            : null;
+        final boolean fluidDual = placedMte instanceof IDualInputHatch
+            && ((IDualInputHatch) placedMte).supportsFluids();
+        core.checkStructure(true, base);
+        final boolean formedWithCrib = core.mMachine;
+        final int dual = core.mDualInputHatches.size();
+        final int feedWithCrib = core.getFeedwaterHatchCount();
+        final boolean siloWithCrib = core.isSiloBuilt();
+        SLConsoleTest.tell(
+            sender,
+            "  CRIB test: feedwater socket " + cell
+                + " now holds "
+                + SLConsoleTest.blockAt(world, c[0], c[1], c[2])
+                + " (fluid-capable dual input hatch: "
+                + fluidDual
+                + "); walk "
+                + (formedWithCrib ? "FORMED" : "NOT FORMED")
+                + ", silo "
+                + (siloWithCrib ? "T" + core.getReactorTier() : "not built")
+                + " (was T"
+                + tierBefore
+                + "), mDualInputHatches "
+                + dual
+                + ", feedwater hatches "
+                + feedWithCrib);
+        SLConsoleTest.tell(sender, "    summary: " + core.buildSummary());
+        for (String line : SLConsoleTest.firstErrors(core, base, 2)) {
+            SLConsoleTest.tell(sender, "    " + line);
+        }
+
+        MTEReactorCoreMk1.placeGtMachine(world, c[0], c[1], c[2], hatchId, face);
+        core.checkStructure(true, base);
+        core.fixAllIssues();
+        final boolean formedAgain = core.mMachine && core.isSiloBuilt()
+            && core.getReactorTier() == tierBefore
+            && core.getFeedwaterHatchCount() == feedBefore;
+        SLConsoleTest.tell(
+            sender,
+            "  CRIB test: plain hatch restored -> " + (core.mMachine ? "FORMED" : "NOT FORMED")
+                + ", silo tier "
+                + core.getReactorTier()
+                + ", feedwater hatches "
+                + core.getFeedwaterHatchCount()
+                + " (was "
+                + feedBefore
+                + ")");
+        final boolean pass = fluidDual && dual == 0 && feedWithCrib == 0 && !siloWithCrib && formedAgain;
+        SLConsoleTest.tell(
+            sender,
+            "  CRIB test: " + (pass ? "PASS" : "FAIL")
+                + " - the feedwater socket refuses a CRIB (silo drops out, nothing registered) and takes the plain hatch back.");
     }
 
     /** One built plant and everything the report needs to say about it. */

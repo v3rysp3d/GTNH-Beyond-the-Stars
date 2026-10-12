@@ -529,6 +529,16 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         return feedwaterHatches.size();
     }
 
+    /** World cells {x, y, z} of the silo's feedwater hatches (console test bench: the CRIB socket check). */
+    public List<int[]> feedwaterHatchCells() {
+        final List<int[]> cells = new ArrayList<>();
+        for (final MTEHatchInput hatch : GTUtility.validMTEList(feedwaterHatches)) {
+            final IGregTechTileEntity base = hatch.getBaseMetaTileEntity();
+            cells.add(new int[] { base.getXCoord(), base.getYCoord(), base.getZCoord() });
+        }
+        return cells;
+    }
+
     public int getChamberCoolantHatchCount() {
         return chamberHatches.size();
     }
