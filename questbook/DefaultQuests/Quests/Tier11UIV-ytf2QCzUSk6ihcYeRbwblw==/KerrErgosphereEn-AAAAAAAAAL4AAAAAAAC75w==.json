@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "As the materials around you achieve transcendental properties, pistons and gases stop being enough. The answer is gravity: a black hole, held in a cage of mirrors and coils and spun fast enough that its ergosphere can be put to work.\n\nThe §bKerr Ergosphere Engine§r (KEE) holds the hole and does nothing else: it runs no recipes. The machines that use the hole are the §bKerr modules§r, separate machines standing in the cage's arcs (next quests).\n\n§e§lMAKE IT§r The controller is an §bAssembly Line§r recipe: scan a §bBlack Hole Seed§r in the Scanner to research it. NEI shows the rest.\n\n§e§lBUILD§r\n- Hologram Projector, stack 1: Kerr T1, 76 × 65 × 71. Chunk-load all of it.\n- The Black Hole Compressor's own Extreme Density Space-Bending Casing, Hawking Radiation Realignment Focus and Naquadah Alloy frames, plus our Superradiant Mirrors, Mirror Backing, Ergosphere Field Coils, Beam Focusing Quadrupoles, Beam Dumps, Harmonic Lining and 232 Bolt Injector Rails. The optional task is the full bill.\n- Hatches: 1 laser or up to 2 energy hatches in the governor arc, 1 to 8 §bbolt buses§r (plain input buses) on the cage, and optional BHC Utility Hatches beside them. No maintenance hatch.\n- Hologram markers 7 and 8 show where the two module controllers go.\n\n§e§lRUN§r Everything is in the GUI.\n1. Put a §bBlack Hole Seed§r in a bolt bus and press Open: the hole opens at §b8 SM§r (solar masses).\n2. It bleeds mass as Hawking radiation, §b3.2 / M² SM a tick§r. Small holes die fast.\n3. The §bgovernor§r fires bolts from the bolt buses to hold your §bsetpoint§r (2-64 SM at T1):\n- Neutronium 1/64 SM, Cosmic Neutronium 1/32, Infinity 1/16, Transcendent Metal 1/8, SpaceTime 1/4 SM a bolt;\n- at most 4 / 8 / 16 bolts a tick with Mk I / II / III rails. The §llowest§r rail sets the rate, so upgrade them all together.\n4. While open, the hole draws §b8,388,608 EU/t (1 A UEV)§r of containment. Without power the governor stops; below 2 SM the hole evaporates. The power switch does §lnot§r stop the hole.\n5. A §bBlack Hole Collapser§r in a bolt bus closes it safely: press Collapse twice.\n\n[note]Mass sets the modules' bonus: a bigger hole gives more parallels, a smaller one more speed. The controller tooltip has the full block list, and NEI's Multiblock tab previews both tiers.[/note]\n\n§a§lDONE WHEN§r you hold the controller (HOLD → CLAIM → INSTALL: claim before you place it).\n\n[note]The Black Hole Compressor quest is left as the pack wrote it, because pack edits are turned off (questbookPackEdits in config/beyondthestars.cfg).[/note]",
+      "desc:8": "As the materials around you achieve transcendental properties, pistons and gases stop being enough. The answer is gravity: a black hole, held in a cage of mirrors and coils and spun fast enough that its ergosphere can be put to work.\n\nThe §bKerr Ergosphere Engine§r (KEE) holds the hole and does nothing else: it runs no recipes. The machines that use the hole are the §bKerr modules§r, separate machines standing in the cage's arcs (next quests).\n\n§e§lMAKE IT§r The controller is an §bAssembly Line§r recipe: scan a §bBlack Hole Seed§r in the Scanner to research it. NEI shows the rest.\n\n§e§lBUILD§r\n- Hologram Projector, stack 1: Kerr T1, 76 × 65 × 71. Chunk-load all of it.\n- The Black Hole Compressor's own Extreme Density Space-Bending Casing, Hawking Radiation Realignment Focus and Naquadah Alloy frames, plus our Superradiant Mirrors, Mirror Backing, Ergosphere Field Coils, Beam Focusing Quadrupoles, Beam Dumps, Harmonic Lining and 232 Bolt Injector Rails. A Quantum Glass window band runs through the drum at the hole's height (and the governor arc in front of it), so the hole shows from the front; a Kerr built before the window keeps its old blocks there. The optional task is the full bill.\n- Hatches: 1 laser or up to 2 energy hatches in the governor arc, 1 to 8 §bbolt buses§r (plain input buses) on the cage, and optional BHC Utility Hatches beside them. No maintenance hatch.\n- Hologram markers 7 and 8 show where the two module controllers go.\n\n§e§lRUN§r Everything is in the GUI.\n1. Put a §bBlack Hole Seed§r in a bolt bus and press Open: the hole opens at §b8 SM§r (solar masses).\n2. It bleeds mass as Hawking radiation, §b3.2 / M² SM a tick§r. Small holes die fast.\n3. The §bgovernor§r fires bolts from the bolt buses to hold your §bsetpoint§r (2-64 SM at T1):\n- Neutronium 1/64 SM, Cosmic Neutronium 1/32, Infinity 1/16, Transcendent Metal 1/8, SpaceTime 1/4 SM a bolt;\n- at most 4 / 8 / 16 bolts a tick with Mk I / II / III rails. The §llowest§r rail sets the rate, so upgrade them all together.\n4. While open, the hole draws §b8,388,608 EU/t (1 A UEV)§r of containment. Without power the governor stops; below 2 SM the hole evaporates. The power switch does §lnot§r stop the hole.\n5. A §bBlack Hole Collapser§r in a bolt bus closes it safely: press Collapse twice.\n\n[note]Mass sets the modules' bonus: a bigger hole gives more parallels, a smaller one more speed. The controller tooltip has the full block list, and NEI's Multiblock tab previews both tiers.[/note]\n\n§a§lDONE WHEN§r you hold the controller (HOLD → CLAIM → INSTALL: claim before you place it).\n\n[note]The Black Hole Compressor quest is left as the pack wrote it, because pack edits are turned off (questbookPackEdits in config/beyondthestars.cfg).[/note]",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
@@ -113,10 +113,10 @@
       "requireOnlyOneItem:1": 0,
       "requiredItems:9": {
         "0:10": {
-          "Count:3": 3551,
-          "Damage:2": 2,
+          "Count:3": 3706,
+          "Damage:2": 0,
           "OreDict:8": "",
-          "id:8": "beyondthestars:slCasing"
+          "id:8": "tectech:tile.quantumGlass"
         },
         "1:10": {
           "Count:3": 3186,
@@ -125,46 +125,46 @@
           "id:8": "gregtech:gt.blockframes"
         },
         "2:10": {
-          "Count:3": 2852,
-          "Damage:2": 1,
+          "Count:3": 1956,
+          "Damage:2": 2,
           "OreDict:8": "",
           "id:8": "beyondthestars:slCasing"
         },
         "3:10": {
-          "Count:3": 2603,
+          "Count:3": 1793,
           "Damage:2": 11,
           "OreDict:8": "",
           "id:8": "gregtech:gt.blockcasings10"
         },
         "4:10": {
+          "Count:3": 1672,
+          "Damage:2": 1,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:slCasing"
+        },
+        "5:10": {
           "Count:3": 842,
           "Damage:2": 6,
           "OreDict:8": "",
           "id:8": "beyondthestars:slCasing"
         },
-        "5:10": {
+        "6:10": {
           "Count:3": 232,
           "Damage:2": 3,
           "OreDict:8": "",
           "id:8": "beyondthestars:slCasing"
         },
-        "6:10": {
+        "7:10": {
           "Count:3": 208,
           "Damage:2": 7,
           "OreDict:8": "",
           "id:8": "beyondthestars:slCasing"
         },
-        "7:10": {
+        "8:10": {
           "Count:3": 160,
           "Damage:2": 8,
           "OreDict:8": "",
           "id:8": "beyondthestars:slCasing"
-        },
-        "8:10": {
-          "Count:3": 131,
-          "Damage:2": 2,
-          "OreDict:8": "",
-          "id:8": "beyondthestars:slCasing2"
         },
         "9:10": {
           "Count:3": 95,
@@ -179,6 +179,12 @@
           "id:8": "gregtech:gt.blockcasings9"
         },
         "11:10": {
+          "Count:3": 10,
+          "Damage:2": 2,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:slCasing2"
+        },
+        "12:10": {
           "Count:3": 1,
           "Damage:2": 32418,
           "OreDict:8": "",

@@ -1,12 +1,12 @@
 {
-  "bundleVersion": "31a79c57e0a5a2f0584c8517a7a6a9b4832e84cf",
+  "bundleVersion": "918122c8eec47b991a41a1a9a03e1174848f5519",
   "format": 1,
   "idHigh": 190,
   "packVersion": 2171,
   "source": {
     "data": "questbook/singularity.json",
     "src": ".",
-    "srcHead": "ed1b4ce master",
+    "srcHead": "b999959 master",
     "manifestSha": "2742379a5cf9527c7f0dc913e2052f0167289195"
   },
   "features": {
@@ -3928,7 +3928,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "As the materials around you achieve transcendental properties, pistons and gases stop being enough. The answer is gravity: a black hole, held in a cage of mirrors and coils and spun fast enough that its ergosphere can be put to work.\n\nThe §bKerr Ergosphere Engine§r (KEE) holds the hole and does nothing else: it runs no recipes. The machines that use the hole are the §bKerr modules§r, separate machines standing in the cage's arcs (next quests).\n\n§e§lMAKE IT§r The controller is an §bAssembly Line§r recipe: scan a §bBlack Hole Seed§r in the Scanner to research it. NEI shows the rest.\n\n§e§lBUILD§r\n- Hologram Projector, stack 1: Kerr T1, 76 × 65 × 71. Chunk-load all of it.\n- The Black Hole Compressor's own Extreme Density Space-Bending Casing, Hawking Radiation Realignment Focus and Naquadah Alloy frames, plus our Superradiant Mirrors, Mirror Backing, Ergosphere Field Coils, Beam Focusing Quadrupoles, Beam Dumps, Harmonic Lining and 232 Bolt Injector Rails. The optional task is the full bill.\n- Hatches: 1 laser or up to 2 energy hatches in the governor arc, 1 to 8 §bbolt buses§r (plain input buses) on the cage, and optional BHC Utility Hatches beside them. No maintenance hatch.\n- Hologram markers 7 and 8 show where the two module controllers go.\n\n§e§lRUN§r Everything is in the GUI.\n1. Put a §bBlack Hole Seed§r in a bolt bus and press Open: the hole opens at §b8 SM§r (solar masses).\n2. It bleeds mass as Hawking radiation, §b3.2 / M² SM a tick§r. Small holes die fast.\n3. The §bgovernor§r fires bolts from the bolt buses to hold your §bsetpoint§r (2-64 SM at T1):\n- Neutronium 1/64 SM, Cosmic Neutronium 1/32, Infinity 1/16, Transcendent Metal 1/8, SpaceTime 1/4 SM a bolt;\n- at most 4 / 8 / 16 bolts a tick with Mk I / II / III rails. The §llowest§r rail sets the rate, so upgrade them all together.\n4. While open, the hole draws §b8,388,608 EU/t (1 A UEV)§r of containment. Without power the governor stops; below 2 SM the hole evaporates. The power switch does §lnot§r stop the hole.\n5. A §bBlack Hole Collapser§r in a bolt bus closes it safely: press Collapse twice.\n\n[note]Mass sets the modules' bonus: a bigger hole gives more parallels, a smaller one more speed. The controller tooltip has the full block list, and NEI's Multiblock tab previews both tiers.[/note]\n\n§a§lDONE WHEN§r you hold the controller (HOLD → CLAIM → INSTALL: claim before you place it).\n\n[note]The Black Hole Compressor quest is left as the pack wrote it, because pack edits are turned off (questbookPackEdits in config/beyondthestars.cfg).[/note]",
+            "desc:8": "As the materials around you achieve transcendental properties, pistons and gases stop being enough. The answer is gravity: a black hole, held in a cage of mirrors and coils and spun fast enough that its ergosphere can be put to work.\n\nThe §bKerr Ergosphere Engine§r (KEE) holds the hole and does nothing else: it runs no recipes. The machines that use the hole are the §bKerr modules§r, separate machines standing in the cage's arcs (next quests).\n\n§e§lMAKE IT§r The controller is an §bAssembly Line§r recipe: scan a §bBlack Hole Seed§r in the Scanner to research it. NEI shows the rest.\n\n§e§lBUILD§r\n- Hologram Projector, stack 1: Kerr T1, 76 × 65 × 71. Chunk-load all of it.\n- The Black Hole Compressor's own Extreme Density Space-Bending Casing, Hawking Radiation Realignment Focus and Naquadah Alloy frames, plus our Superradiant Mirrors, Mirror Backing, Ergosphere Field Coils, Beam Focusing Quadrupoles, Beam Dumps, Harmonic Lining and 232 Bolt Injector Rails. A Quantum Glass window band runs through the drum at the hole's height (and the governor arc in front of it), so the hole shows from the front; a Kerr built before the window keeps its old blocks there. The optional task is the full bill.\n- Hatches: 1 laser or up to 2 energy hatches in the governor arc, 1 to 8 §bbolt buses§r (plain input buses) on the cage, and optional BHC Utility Hatches beside them. No maintenance hatch.\n- Hologram markers 7 and 8 show where the two module controllers go.\n\n§e§lRUN§r Everything is in the GUI.\n1. Put a §bBlack Hole Seed§r in a bolt bus and press Open: the hole opens at §b8 SM§r (solar masses).\n2. It bleeds mass as Hawking radiation, §b3.2 / M² SM a tick§r. Small holes die fast.\n3. The §bgovernor§r fires bolts from the bolt buses to hold your §bsetpoint§r (2-64 SM at T1):\n- Neutronium 1/64 SM, Cosmic Neutronium 1/32, Infinity 1/16, Transcendent Metal 1/8, SpaceTime 1/4 SM a bolt;\n- at most 4 / 8 / 16 bolts a tick with Mk I / II / III rails. The §llowest§r rail sets the rate, so upgrade them all together.\n4. While open, the hole draws §b8,388,608 EU/t (1 A UEV)§r of containment. Without power the governor stops; below 2 SM the hole evaporates. The power switch does §lnot§r stop the hole.\n5. A §bBlack Hole Collapser§r in a bolt bus closes it safely: press Collapse twice.\n\n[note]Mass sets the modules' bonus: a bigger hole gives more parallels, a smaller one more speed. The controller tooltip has the full block list, and NEI's Multiblock tab previews both tiers.[/note]\n\n§a§lDONE WHEN§r you hold the controller (HOLD → CLAIM → INSTALL: claim before you place it).\n\n[note]The Black Hole Compressor quest is left as the pack wrote it, because pack edits are turned off (questbookPackEdits in config/beyondthestars.cfg).[/note]",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -4024,10 +4024,10 @@
             "requireOnlyOneItem:1": 0,
             "requiredItems:9": {
               "0:10": {
-                "Count:3": 3551,
-                "Damage:2": 2,
+                "Count:3": 3706,
+                "Damage:2": 0,
                 "OreDict:8": "",
-                "id:8": "beyondthestars:slCasing"
+                "id:8": "tectech:tile.quantumGlass"
               },
               "1:10": {
                 "Count:3": 3186,
@@ -4036,46 +4036,46 @@
                 "id:8": "gregtech:gt.blockframes"
               },
               "2:10": {
-                "Count:3": 2852,
-                "Damage:2": 1,
+                "Count:3": 1956,
+                "Damage:2": 2,
                 "OreDict:8": "",
                 "id:8": "beyondthestars:slCasing"
               },
               "3:10": {
-                "Count:3": 2603,
+                "Count:3": 1793,
                 "Damage:2": 11,
                 "OreDict:8": "",
                 "id:8": "gregtech:gt.blockcasings10"
               },
               "4:10": {
+                "Count:3": 1672,
+                "Damage:2": 1,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing"
+              },
+              "5:10": {
                 "Count:3": 842,
                 "Damage:2": 6,
                 "OreDict:8": "",
                 "id:8": "beyondthestars:slCasing"
               },
-              "5:10": {
+              "6:10": {
                 "Count:3": 232,
                 "Damage:2": 3,
                 "OreDict:8": "",
                 "id:8": "beyondthestars:slCasing"
               },
-              "6:10": {
+              "7:10": {
                 "Count:3": 208,
                 "Damage:2": 7,
                 "OreDict:8": "",
                 "id:8": "beyondthestars:slCasing"
               },
-              "7:10": {
+              "8:10": {
                 "Count:3": 160,
                 "Damage:2": 8,
                 "OreDict:8": "",
                 "id:8": "beyondthestars:slCasing"
-              },
-              "8:10": {
-                "Count:3": 131,
-                "Damage:2": 2,
-                "OreDict:8": "",
-                "id:8": "beyondthestars:slCasing2"
               },
               "9:10": {
                 "Count:3": 95,
@@ -4090,6 +4090,12 @@
                 "id:8": "gregtech:gt.blockcasings9"
               },
               "11:10": {
+                "Count:3": 10,
+                "Damage:2": 2,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing2"
+              },
+              "12:10": {
                 "Count:3": 1,
                 "Damage:2": 32418,
                 "OreDict:8": "",
@@ -4125,7 +4131,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "So you have made yourself an Eternal DTPF or hopefully a few, and now it is time for the push onwards.\n\nBeyond the Stars replaces TecTech's Eye of Harmony with §bone Eye that grows from T1 to T10§r, a band at a time, with a §blive star§r at its centre. A star is not a batch recipe: it burns every minute, it must be fed, and it must be held steady.\n\n§e§lBUILD§r\n- Hologram stack 1 is the T1 core, 102 × 52 × 80. Chunk-load the whole footprint.\n- It is mostly TecTech's own Eye blocks: 9,390 Reinforced Spatial and 4,704 Reinforced Temporal Structure Casings (the Condensate Assembler makes these 32 at a time here), Infinite SpaceTime Energy Boundary Casing, Quantum Glass and the three field generator families.\n- On the plinth: gas input hatches for Hydrogen and Helium, an input bus for Stellar Ignition Charges, an ME Output Bus, an ME Output Hatch and a maintenance hatch.\n- Power is §bwireless EU only§r, and none of it comes back: the Eye makes matter, not power.\n\n§e§lLIGHT IT§r Put §bStar Chart: Sol§r in the controller slot (never consumed). Sol lights when:\n- a §bStellar Ignition Charge§r is in a plinth input bus;\n- the buffers hold §b600,000,000 L each of Hydrogen and Helium§r: 10 cycles of upkeep (kept) plus the 100,000,000 L seed cloud (burned);\n- the wireless network holds 10 cycles of EU, which the ignition spends.\nThe protostar contracts for about 40 seconds, then lights.\n\n§e§lRUN§r Every §b60 s cycle§r Sol burns §b50,000,000 L Hydrogen + 50,000,000 L Helium§r and §b1.51 × 10¹¹ EU§r (about 1 A UMV), and makes §b50,000 L Raw Stellar Plasma§r (Raw Star Matter in the GUI) into the ME output hatch. Upkeep is paid in full in every zone; a bad zone only cuts the yield.\n\n§e§lAUTOMATE§r Inputs drain into internal buffers every second, so ME stocking input hatches on the gas sockets work. Keep a few charges in the plinth bus from an ME Interface. A dimension display block in the slot runs planets instead (see §cPlanets on the Eye§r).\n\n[warn]§lSpacetime Compression gates the tier.§r An Eye of tier N needs every compression generator at tier N or higher. Crude runs T1.[/warn]\n\n[note]The next quests teach the stability field, planets and the road to T2. The controller tooltip and GUI carry every number.[/note]\n\n§a§lDONE WHEN§r you hold the controller, Star Chart: Sol and an Ignition Charge (HOLD → CLAIM → INSTALL).\n\n[note]The pack's own Eye of Harmony quest is left as the pack wrote it, because pack edits are turned off (questbookPackEdits in config/beyondthestars.cfg).[/note]",
+            "desc:8": "So you have made yourself an Eternal DTPF or hopefully a few, and now it is time for the push onwards.\n\nBeyond the Stars replaces TecTech's Eye of Harmony with §bone Eye that grows from T1 to T10§r, a band at a time, with a §blive star§r at its centre. A star is not a batch recipe: it burns every minute, it must be fed, and it must be held steady.\n\n§e§lBUILD§r\n- Hologram stack 1 is the T1 core, 102 × 52 × 80. Chunk-load the whole footprint.\n- It is mostly TecTech's own Eye blocks: 9,030 Reinforced Spatial and 4,704 Reinforced Temporal Structure Casings (the Condensate Assembler makes these 32 at a time here), Infinite SpaceTime Energy Boundary Casing, Quantum Glass and the three field generator families. The core band's front segments are Quantum Glass at the star's height (and so are the arm and rim cells later tiers put there), so the star shows from the front; an Eye built before the window keeps its old blocks there.\n- On the plinth: gas input hatches for Hydrogen and Helium, an input bus for Stellar Ignition Charges, an ME Output Bus, an ME Output Hatch and a maintenance hatch.\n- Power is §bwireless EU only§r, and none of it comes back: the Eye makes matter, not power.\n\n§e§lLIGHT IT§r Put §bStar Chart: Sol§r in the controller slot (never consumed). Sol lights when:\n- a §bStellar Ignition Charge§r is in a plinth input bus;\n- the buffers hold §b600,000,000 L each of Hydrogen and Helium§r: 10 cycles of upkeep (kept) plus the 100,000,000 L seed cloud (burned);\n- the wireless network holds 10 cycles of EU, which the ignition spends.\nThe protostar contracts for about 40 seconds, then lights.\n\n§e§lRUN§r Every §b60 s cycle§r Sol burns §b50,000,000 L Hydrogen + 50,000,000 L Helium§r and §b1.51 × 10¹¹ EU§r (about 1 A UMV), and makes §b50,000 L Raw Stellar Plasma§r (Raw Star Matter in the GUI) into the ME output hatch. Upkeep is paid in full in every zone; a bad zone only cuts the yield.\n\n§e§lAUTOMATE§r Inputs drain into internal buffers every second, so ME stocking input hatches on the gas sockets work. Keep a few charges in the plinth bus from an ME Interface. A dimension display block in the slot runs planets instead (see §cPlanets on the Eye§r).\n\n[warn]§lSpacetime Compression gates the tier.§r An Eye of tier N needs every compression generator at tier N or higher. Crude runs T1.[/warn]\n\n[note]The next quests teach the stability field, planets and the road to T2. The controller tooltip and GUI carry every number.[/note]\n\n§a§lDONE WHEN§r you hold the controller, Star Chart: Sol and an Ignition Charge (HOLD → CLAIM → INSTALL).\n\n[note]The pack's own Eye of Harmony quest is left as the pack wrote it, because pack edits are turned off (questbookPackEdits in config/beyondthestars.cfg).[/note]",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -4220,7 +4226,7 @@
             "requireOnlyOneItem:1": 0,
             "requiredItems:9": {
               "0:10": {
-                "Count:3": 9390,
+                "Count:3": 9030,
                 "Damage:2": 11,
                 "OreDict:8": "",
                 "id:8": "tectech:gt.blockcasingsBA0"
@@ -4232,13 +4238,13 @@
                 "id:8": "tectech:gt.blockcasingsBA0"
               },
               "2:10": {
-                "Count:3": 3582,
+                "Count:3": 3232,
                 "Damage:2": 12,
                 "OreDict:8": "",
                 "id:8": "tectech:gt.blockcasingsBA0"
               },
               "3:10": {
-                "Count:3": 1541,
+                "Count:3": 2251,
                 "Damage:2": 0,
                 "OreDict:8": "",
                 "id:8": "tectech:tile.quantumGlass"
@@ -4535,7 +4541,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "Kerr T2 is the same KEE, made denser. Right-click the controller with the §bKerr Density Upgrade§r: it is consumed, permanent, and survives a wrench.\n\n§e§lBUILD§r The cage then needs the T2 reinforcement (hologram stack 2, 92 × 65 × 89): 8,316 Bastion Plates, 677 Casimir Plates, more Harmonic Lining and more glass. The optional task is exactly the difference. A T2 Kerr with the reinforcement torn down will §lnot form§r.\n\n§e§lWHAT YOU GET§r\n- setpoints up to §b512 SM§r, so more module parallels (⌊√M⌋ is 22 at 512 SM, against 8 at 64 SM);\n- §bKerr Densification§r on the Compressor Module, with a hole of §bat least 128 SM§r.\n\n§e§lMAKE IT§r In the Condensate Assembler (NEI: Condensate Assembling). The big costs are §b4,000,000 L Entangled Raw Star Matter§r (Raw Stellar Plasma, condensed 1 : 1; NEI: Condensate Entanglement) and §b32 Black Hole Seeds§r, so your T1 Eye pays for it. NEI has the whole recipe.\n\n[note]Growing a hole to 512 SM takes a lot of bolts: SpaceTime bolts (1/4 SM each) and Mk III rails do it fastest.[/note]\n\n§a§lDONE WHEN§r you hold the upgrade (HOLD → CLAIM → INSTALL).",
+            "desc:8": "Kerr T2 is the same KEE, made denser. Right-click the controller with the §bKerr Density Upgrade§r: it is consumed, permanent, and survives a wrench.\n\n§e§lBUILD§r The cage then needs the T2 reinforcement (hologram stack 2, 92 × 65 × 89): 8,132 Bastion Plates, 662 Casimir Plates, more Harmonic Lining and more glass. The optional task is exactly the difference. A T2 Kerr with the reinforcement torn down will §lnot form§r.\n\n§e§lWHAT YOU GET§r\n- setpoints up to §b512 SM§r, so more module parallels (⌊√M⌋ is 22 at 512 SM, against 8 at 64 SM);\n- §bKerr Densification§r on the Compressor Module, with a hole of §bat least 128 SM§r.\n\n§e§lMAKE IT§r In the Condensate Assembler (NEI: Condensate Assembling). The big costs are §b4,000,000 L Entangled Raw Star Matter§r (Raw Stellar Plasma, condensed 1 : 1; NEI: Condensate Entanglement) and §b32 Black Hole Seeds§r, so your T1 Eye pays for it. NEI has the whole recipe.\n\n[note]Growing a hole to 512 SM takes a lot of bolts: SpaceTime bolts (1/4 SM each) and Mk III rails do it fastest.[/note]\n\n§a§lDONE WHEN§r you hold the upgrade (HOLD → CLAIM → INSTALL).",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -4604,13 +4610,13 @@
             "requireOnlyOneItem:1": 0,
             "requiredItems:9": {
               "0:10": {
-                "Count:3": 8316,
+                "Count:3": 8132,
                 "Damage:2": 13,
                 "OreDict:8": "",
                 "id:8": "beyondthestars:slCasing"
               },
               "1:10": {
-                "Count:3": 4031,
+                "Count:3": 3913,
                 "Damage:2": 2,
                 "OreDict:8": "",
                 "id:8": "beyondthestars:slCasing2"
@@ -4622,12 +4628,18 @@
                 "id:8": "gregtech:gt.blockglass1"
               },
               "3:10": {
-                "Count:3": 677,
+                "Count:3": 662,
                 "Damage:2": 14,
                 "OreDict:8": "",
                 "id:8": "beyondthestars:slCasing"
               },
               "4:10": {
+                "Count:3": 317,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "tectech:tile.quantumGlass"
+              },
+              "5:10": {
                 "Count:3": 10,
                 "Damage:2": 14,
                 "OreDict:8": "",
@@ -5055,7 +5067,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "Fast-forward a red giant into a §bneutron star§r, and stop it going supernova. The Core Collapse is the hardest event yet: read all of this before you start.\n\n§e§lBEFORE§r\n- the T3 milestones;\n- the §bGalactic Upgrade Core§r in escrow (Condensate Assembling, 32,000 L Entangled Hyperdense Stellar Mixture);\n- the §bspiral arms§r built (stack 4: 5,325 Galactic Shell Plating) and compression at tier 4;\n- Arcturus lit and Stable;\n- buffered: §b5,000 L HSM§r (the seed), up to §b90,000 L molten SpaceTime§r (the shock absorber) and the neutron star's first cycle;\n- §b94,000 L Tachyon Rich Temporal Fluid§r on hand for the Field sockets.\nThen swap in §bStar Chart: Neutron Star§r.\n\n§e§l1 FAST-FORWARD§r (about 16 min) Dose Tachyon Rich Temporal Fluid into the Field sockets, up to 100 L/s. The core climbs from 0.50 to §b1.44 M☉§r over 94,000 L. The envelope swells P and Θ as it goes, and your T3 rig must hold.\n\n§e§l2 BOUNCE§r The HSM becomes the neutron seed, Integrity drops 20, and a shock of §b+150§r hits P and Θ.\n- Every §b1,000 L molten SpaceTime§r buffered cancels 1 point, up to 90: the shock is then +60.\n- Any gauge above +100 after the shock is §c§lSUPERNOVA§r: Arcturus, the Time fluid, the HSM and the SpaceTime are lost. The core stays in escrow.\nSo bring P and Θ §lbelow +40§r before the bounce. The scanner predicts both.\n\n§e§l3 SETTLE§r The neutron star lights at P 0, Θ +60, Ω +30. Get it Stable for 60 seconds in a row within 180 s (Super Coolant pulls Θ down). T4 is then yours.\n\n§e§lTHE NEUTRON STAR§r\n- No fusion, so no Hydrogen or Helium: §b144 L molten SpaceTime§r a cycle and 9.66 × 10¹² EU (about 4 A MAX) hold it.\n- Set the §bHSM feed§r in the GUI (0-1.5 L/s, default 0.694). §bWhite Dwarf Matter = 3.6864 L per L of HSM fed§r, about 9,200 L an hour at the default.\n- The feed pushes P, Θ and the spin §bΩ§r up. Ω runs away by itself, and §bglitches§r kick it +20 every 15-30 minutes §lwithout warning§r.\n- Trims, up to 10 units a second: Spatially Enlarged Fluid (100 L) P −2; molten SpaceTime (100 L) P +2; Super Coolant (100 L) Θ −3; molten Purified Tengam (36 L, up to 5) Θ +1, Ω −4.\n- If it breaches, it collapses into a black hole. With T4 unlocked, a dark Eye holding the Neutron Star chart relights Arcturus from a charge and reruns the Core Collapse by itself, with no core. Keep the Time fluid, HSM and SpaceTime stocked for it.\n\n[note]The Deep Dark planet runs at T4, and one Deep Dark run is a T4 → T5 milestone.[/note]\n\n§a§lDONE WHEN§r you hold the core and the chart (HOLD → CLAIM → INSTALL: claim before the core goes into escrow).",
+            "desc:8": "Fast-forward a red giant into a §bneutron star§r, and stop it going supernova. The Core Collapse is the hardest event yet: read all of this before you start.\n\n§e§lBEFORE§r\n- the T3 milestones;\n- the §bGalactic Upgrade Core§r in escrow (Condensate Assembling, 32,000 L Entangled Hyperdense Stellar Mixture);\n- the §bspiral arms§r built (stack 4: 4,516 Galactic Shell Plating) and compression at tier 4;\n- Arcturus lit and Stable;\n- buffered: §b5,000 L HSM§r (the seed), up to §b90,000 L molten SpaceTime§r (the shock absorber) and the neutron star's first cycle;\n- §b94,000 L Tachyon Rich Temporal Fluid§r on hand for the Field sockets.\nThen swap in §bStar Chart: Neutron Star§r.\n\n§e§l1 FAST-FORWARD§r (about 16 min) Dose Tachyon Rich Temporal Fluid into the Field sockets, up to 100 L/s. The core climbs from 0.50 to §b1.44 M☉§r over 94,000 L. The envelope swells P and Θ as it goes, and your T3 rig must hold.\n\n§e§l2 BOUNCE§r The HSM becomes the neutron seed, Integrity drops 20, and a shock of §b+150§r hits P and Θ.\n- Every §b1,000 L molten SpaceTime§r buffered cancels 1 point, up to 90: the shock is then +60.\n- Any gauge above +100 after the shock is §c§lSUPERNOVA§r: Arcturus, the Time fluid, the HSM and the SpaceTime are lost. The core stays in escrow.\nSo bring P and Θ §lbelow +40§r before the bounce. The scanner predicts both.\n\n§e§l3 SETTLE§r The neutron star lights at P 0, Θ +60, Ω +30. Get it Stable for 60 seconds in a row within 180 s (Super Coolant pulls Θ down). T4 is then yours.\n\n§e§lTHE NEUTRON STAR§r\n- No fusion, so no Hydrogen or Helium: §b144 L molten SpaceTime§r a cycle and 9.66 × 10¹² EU (about 4 A MAX) hold it.\n- Set the §bHSM feed§r in the GUI (0-1.5 L/s, default 0.694). §bWhite Dwarf Matter = 3.6864 L per L of HSM fed§r, about 9,200 L an hour at the default.\n- The feed pushes P, Θ and the spin §bΩ§r up. Ω runs away by itself, and §bglitches§r kick it +20 every 15-30 minutes §lwithout warning§r.\n- Trims, up to 10 units a second: Spatially Enlarged Fluid (100 L) P −2; molten SpaceTime (100 L) P +2; Super Coolant (100 L) Θ −3; molten Purified Tengam (36 L, up to 5) Θ +1, Ω −4.\n- If it breaches, it collapses into a black hole. With T4 unlocked, a dark Eye holding the Neutron Star chart relights Arcturus from a charge and reruns the Core Collapse by itself, with no core. Keep the Time fluid, HSM and SpaceTime stocked for it.\n\n[note]The Deep Dark planet runs at T4, and one Deep Dark run is a T4 → T5 milestone.[/note]\n\n§a§lDONE WHEN§r you hold the core and the chart (HOLD → CLAIM → INSTALL: claim before the core goes into escrow).",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -5130,22 +5142,22 @@
             "requireOnlyOneItem:1": 0,
             "requiredItems:9": {
               "0:10": {
-                "Count:3": 5325,
+                "Count:3": 4516,
                 "Damage:2": 12,
                 "OreDict:8": "",
                 "id:8": "beyondthestars:slCasing"
               },
               "1:10": {
-                "Count:3": 830,
-                "Damage:2": 12,
-                "OreDict:8": "",
-                "id:8": "tectech:gt.blockcasingsBA0"
-              },
-              "2:10": {
-                "Count:3": 404,
+                "Count:3": 1430,
                 "Damage:2": 0,
                 "OreDict:8": "",
                 "id:8": "tectech:tile.quantumGlass"
+              },
+              "2:10": {
+                "Count:3": 613,
+                "Damage:2": 12,
+                "OreDict:8": "",
+                "id:8": "tectech:gt.blockcasingsBA0"
               }
             },
             "taskID:8": "bq_standard:optional_retrieval"
@@ -5364,7 +5376,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "A white dwarf, §bcooled into a black dwarf§r. Sirius B burns nothing and has no upkeep: it runs in §bbatches§r, and your job is to follow a cooling curve.\n\n§e§lUNLOCK§r The T4 milestones: §b147,456 L White Dwarf Matter§r from cycles never worse than Stable, §b4 h Resonant§r, and §bone Deep Dark run§r on this Eye. Then:\n- put the §bSubspace Cooling Core§r in escrow;\n- build the §bsecond arms§r (stack 5: 5,065 Galactic Shell Plating) and bring compression to tier 5;\n- put §bStar Chart: Sirius B§r in the slot. The neutron star goes out: one star per Eye.\n§bFirst Cooling§r is your first batch. A mean yield of at least 0.9 with no fracture unlocks T5; fall short and the core stays for another try. The batch's Black Dwarf Matter comes out either way.\n\n§e§lBATCHES§r Each batch takes §b18,432 L White Dwarf Matter§r and assembles a white dwarf at Θ +90. Over §b2 h§r (÷ the dial) the cooling setpoint ramps from §b+90 to −90§r; at T5 the Θ gauge reads your error from that setpoint. Output: §b4,608 L Black Dwarf Matter × the batch's mean yield§r. EU: 3.87 × 10¹³ a cycle (about 16 A MAX).\n\n§e§lSUBSPACE COOLING§r Trims:\n- Dimensionally Shifted Superfluid (100 L, up to 10 a second): Θ −1, P −0.5. The heat sink.\n- Raw Stellar Plasma (1,000 L, up to 5): Θ +3, for an overshoot.\n- Helium (1,000 L, up to 10): P +2, accretion pressure.\nDecay heat pushes Θ up the whole way and crystallisation drags P down. Expect about §b100,000 L of Superfluid a batch§r.\n\n§e§lTHE PLATEAU§r While the setpoint crosses −10..+10 (about 800 s), latent heat adds §bΘ +0.15 a second§r. The event channel warns 15 s ahead.\n\n§e§lAUTOMATE§r Θ reads the error from the curve, so one sensor pair on Θ drives the Superfluid valve all batch long; a pair on P drives Helium. Keep White Dwarf Matter stocked for the next charge.\n\n[warn]§lFracture§r (Breach or Integrity 0) ends the batch at 25 % of its output × the fraction done.[/warn]\n\n[note]One T4 Eye on the default feed makes about enough White Dwarf Matter for one T5 Eye.[/note]\n\n§a§lDONE WHEN§r you hold the core and the chart (HOLD → CLAIM → INSTALL: claim before the core goes into escrow).",
+            "desc:8": "A white dwarf, §bcooled into a black dwarf§r. Sirius B burns nothing and has no upkeep: it runs in §bbatches§r, and your job is to follow a cooling curve.\n\n§e§lUNLOCK§r The T4 milestones: §b147,456 L White Dwarf Matter§r from cycles never worse than Stable, §b4 h Resonant§r, and §bone Deep Dark run§r on this Eye. Then:\n- put the §bSubspace Cooling Core§r in escrow;\n- build the §bsecond arms§r (stack 5: 4,319 Galactic Shell Plating) and bring compression to tier 5;\n- put §bStar Chart: Sirius B§r in the slot. The neutron star goes out: one star per Eye.\n§bFirst Cooling§r is your first batch. A mean yield of at least 0.9 with no fracture unlocks T5; fall short and the core stays for another try. The batch's Black Dwarf Matter comes out either way.\n\n§e§lBATCHES§r Each batch takes §b18,432 L White Dwarf Matter§r and assembles a white dwarf at Θ +90. Over §b2 h§r (÷ the dial) the cooling setpoint ramps from §b+90 to −90§r; at T5 the Θ gauge reads your error from that setpoint. Output: §b4,608 L Black Dwarf Matter × the batch's mean yield§r. EU: 3.87 × 10¹³ a cycle (about 16 A MAX).\n\n§e§lSUBSPACE COOLING§r Trims:\n- Dimensionally Shifted Superfluid (100 L, up to 10 a second): Θ −1, P −0.5. The heat sink.\n- Raw Stellar Plasma (1,000 L, up to 5): Θ +3, for an overshoot.\n- Helium (1,000 L, up to 10): P +2, accretion pressure.\nDecay heat pushes Θ up the whole way and crystallisation drags P down. Expect about §b100,000 L of Superfluid a batch§r.\n\n§e§lTHE PLATEAU§r While the setpoint crosses −10..+10 (about 800 s), latent heat adds §bΘ +0.15 a second§r. The event channel warns 15 s ahead.\n\n§e§lAUTOMATE§r Θ reads the error from the curve, so one sensor pair on Θ drives the Superfluid valve all batch long; a pair on P drives Helium. Keep White Dwarf Matter stocked for the next charge.\n\n[warn]§lFracture§r (Breach or Integrity 0) ends the batch at 25 % of its output × the fraction done.[/warn]\n\n[note]One T4 Eye on the default feed makes about enough White Dwarf Matter for one T5 Eye.[/note]\n\n§a§lDONE WHEN§r you hold the core and the chart (HOLD → CLAIM → INSTALL: claim before the core goes into escrow).",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -5439,22 +5451,22 @@
             "requireOnlyOneItem:1": 0,
             "requiredItems:9": {
               "0:10": {
-                "Count:3": 5065,
+                "Count:3": 4319,
                 "Damage:2": 12,
                 "OreDict:8": "",
                 "id:8": "beyondthestars:slCasing"
               },
               "1:10": {
-                "Count:3": 762,
-                "Damage:2": 12,
-                "OreDict:8": "",
-                "id:8": "tectech:gt.blockcasingsBA0"
-              },
-              "2:10": {
-                "Count:3": 404,
+                "Count:3": 1190,
                 "Damage:2": 0,
                 "OreDict:8": "",
                 "id:8": "tectech:tile.quantumGlass"
+              },
+              "2:10": {
+                "Count:3": 722,
+                "Damage:2": 12,
+                "OreDict:8": "",
+                "id:8": "tectech:gt.blockcasingsBA0"
               }
             },
             "taskID:8": "bq_standard:optional_retrieval"
@@ -5498,7 +5510,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "SGR 1806-20 is a §bmagnetar§r, the most magnetic object known. White and black dwarf matter merge into it, and its field has to be untwisted for as long as it lives.\n\n§e§lUNLOCK§r The T5 milestone: §b6 batches§r at mean yield 0.9 or better with no fracture. Then:\n- put the §bMagnetar Seed Core§r in escrow;\n- build the §bgalactic rim§r (stack 6: 7,286 Galactic Shell Plating) and bring compression to tier 6, with §bno star lit§r;\n- buffer the merger charge: §b18,432 L White Dwarf Matter + 4,608 L Black Dwarf Matter + 100,000 L Antipolarization Agent§r;\n- put §bStar Chart: SGR 1806-20§r in the slot.\n\n§e§lMAGNETAR MERGER§r The dynamo winds the polarity §bΠ§r up by itself (+0.5 a second); no flares yet. Agent doses pull Π back toward 0.\n1. §bImprint:§r hold Π inside +60..+90 for 120 s in a row, within 600 s.\n2. §bRelease:§r bring Π back inside ±40 within 60 s.\nA failure spends the charge and keeps the core.\n\n§e§lRUN§r Each cycle: §b3,000 L Antipolarization Agent§r (the constant feed) and 1.55 × 10¹⁴ EU (about 64 A MAX), for §b15 L Magnetar Matter§r.\n- The merger charge also fills a 60-cycle §bdwarf-matter reserve§r. At 10 cycles left the Eye tops it up from the buffers with §b1,800 L White Dwarf + 450 L Black Dwarf Matter§r; an empty reserve starves the magnetar. Keep both stocked.\n- The Eye gives back §b12 Purified Tengam dust per 1,000 L§r of Agent burned, through the ME output bus.\n\n§e§lTHE FIELD§r Four gauges: P, Θ, Ω and Π, and Π runs away by itself.\n- The Agent feed charges the §bflare shield A§r (it settles near 40 with no trim). The shield soaks up to 25 Π a second.\n- §bGiant flares§r come every 60-120 s, warned §b15 s ahead with their sign§r, and push Π ±25 a second for 4 s.\n- Pre-charge the shield on the warning: Agent in a Field socket, 100 L = A +4 (Θ +0.5), up to 5 a second.\n- The other trims are the neutron star's: Spatially Enlarged Fluid, molten SpaceTime, Super Coolant and molten Purified Tengam.\nLose the magnetar and a re-merge needs the charge again, but not the core.\n\n[note]Magnetar Matter is the planned upkeep of Eye T7 and a base of the T9 pellets, both coming in a later update.[/note]\n\n§a§lDONE WHEN§r you have held the core and the chart before the core goes into escrow (that task latches), and then 1,000 L of Magnetar Matter.",
+            "desc:8": "SGR 1806-20 is a §bmagnetar§r, the most magnetic object known. White and black dwarf matter merge into it, and its field has to be untwisted for as long as it lives.\n\n§e§lUNLOCK§r The T5 milestone: §b6 batches§r at mean yield 0.9 or better with no fracture. Then:\n- put the §bMagnetar Seed Core§r in escrow;\n- build the §bgalactic rim§r (stack 6: 6,899 Galactic Shell Plating) and bring compression to tier 6, with §bno star lit§r;\n- buffer the merger charge: §b18,432 L White Dwarf Matter + 4,608 L Black Dwarf Matter + 100,000 L Antipolarization Agent§r;\n- put §bStar Chart: SGR 1806-20§r in the slot.\n\n§e§lMAGNETAR MERGER§r The dynamo winds the polarity §bΠ§r up by itself (+0.5 a second); no flares yet. Agent doses pull Π back toward 0.\n1. §bImprint:§r hold Π inside +60..+90 for 120 s in a row, within 600 s.\n2. §bRelease:§r bring Π back inside ±40 within 60 s.\nA failure spends the charge and keeps the core.\n\n§e§lRUN§r Each cycle: §b3,000 L Antipolarization Agent§r (the constant feed) and 1.55 × 10¹⁴ EU (about 64 A MAX), for §b15 L Magnetar Matter§r.\n- The merger charge also fills a 60-cycle §bdwarf-matter reserve§r. At 10 cycles left the Eye tops it up from the buffers with §b1,800 L White Dwarf + 450 L Black Dwarf Matter§r; an empty reserve starves the magnetar. Keep both stocked.\n- The Eye gives back §b12 Purified Tengam dust per 1,000 L§r of Agent burned, through the ME output bus.\n\n§e§lTHE FIELD§r Four gauges: P, Θ, Ω and Π, and Π runs away by itself.\n- The Agent feed charges the §bflare shield A§r (it settles near 40 with no trim). The shield soaks up to 25 Π a second.\n- §bGiant flares§r come every 60-120 s, warned §b15 s ahead with their sign§r, and push Π ±25 a second for 4 s.\n- Pre-charge the shield on the warning: Agent in a Field socket, 100 L = A +4 (Θ +0.5), up to 5 a second.\n- The other trims are the neutron star's: Spatially Enlarged Fluid, molten SpaceTime, Super Coolant and molten Purified Tengam.\nLose the magnetar and a re-merge needs the charge again, but not the core.\n\n[note]Magnetar Matter is the planned upkeep of Eye T7 and a base of the T9 pellets, both coming in a later update.[/note]\n\n§a§lDONE WHEN§r you have held the core and the chart before the core goes into escrow (that task latches), and then 1,000 L of Magnetar Matter.",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -5587,19 +5599,19 @@
             "requireOnlyOneItem:1": 0,
             "requiredItems:9": {
               "0:10": {
-                "Count:3": 7286,
+                "Count:3": 6899,
                 "Damage:2": 12,
                 "OreDict:8": "",
                 "id:8": "beyondthestars:slCasing"
               },
               "1:10": {
-                "Count:3": 3159,
+                "Count:3": 2990,
                 "Damage:2": 12,
                 "OreDict:8": "",
                 "id:8": "tectech:gt.blockcasingsBA0"
               },
               "2:10": {
-                "Count:3": 753,
+                "Count:3": 1309,
                 "Damage:2": 0,
                 "OreDict:8": "",
                 "id:8": "tectech:tile.quantumGlass"
@@ -7741,7 +7753,7 @@
         },
         {
           "op": "setDesc",
-          "desc": "As the materials around you achieve transcendental properties, pistons and gases stop being enough. The answer is gravity: a black hole, held in a cage of mirrors and coils and spun fast enough that its ergosphere can be put to work.\n\nThe §bKerr Ergosphere Engine§r (KEE) holds the hole and does nothing else: it runs no recipes. The machines that use the hole are the §bKerr modules§r, separate machines standing in the cage's arcs (next quests).\n\n§e§lMAKE IT§r The controller is an §bAssembly Line§r recipe: scan a §bBlack Hole Seed§r in the Scanner to research it. NEI shows the rest.\n\n§e§lBUILD§r\n- Hologram Projector, stack 1: Kerr T1, 76 × 65 × 71. Chunk-load all of it.\n- The Black Hole Compressor's own Extreme Density Space-Bending Casing, Hawking Radiation Realignment Focus and Naquadah Alloy frames, plus our Superradiant Mirrors, Mirror Backing, Ergosphere Field Coils, Beam Focusing Quadrupoles, Beam Dumps, Harmonic Lining and 232 Bolt Injector Rails. The optional task is the full bill.\n- Hatches: 1 laser or up to 2 energy hatches in the governor arc, 1 to 8 §bbolt buses§r (plain input buses) on the cage, and optional BHC Utility Hatches beside them. No maintenance hatch.\n- Hologram markers 7 and 8 show where the two module controllers go.\n\n§e§lRUN§r Everything is in the GUI.\n1. Put a §bBlack Hole Seed§r in a bolt bus and press Open: the hole opens at §b8 SM§r (solar masses).\n2. It bleeds mass as Hawking radiation, §b3.2 / M² SM a tick§r. Small holes die fast.\n3. The §bgovernor§r fires bolts from the bolt buses to hold your §bsetpoint§r (2-64 SM at T1):\n- Neutronium 1/64 SM, Cosmic Neutronium 1/32, Infinity 1/16, Transcendent Metal 1/8, SpaceTime 1/4 SM a bolt;\n- at most 4 / 8 / 16 bolts a tick with Mk I / II / III rails. The §llowest§r rail sets the rate, so upgrade them all together.\n4. While open, the hole draws §b8,388,608 EU/t (1 A UEV)§r of containment. Without power the governor stops; below 2 SM the hole evaporates. The power switch does §lnot§r stop the hole.\n5. A §bBlack Hole Collapser§r in a bolt bus closes it safely: press Collapse twice.\n\n[note]Mass sets the modules' bonus: a bigger hole gives more parallels, a smaller one more speed. The controller tooltip has the full block list, and NEI's Multiblock tab previews both tiers.[/note]\n\n§a§lDONE WHEN§r you hold the controller (HOLD → CLAIM → INSTALL: claim before you place it).\n\n[note]The Black Hole Compressor's recipe is removed. The KEE has its own Assembly Line recipe (scan a §bBlack Hole Seed§r to research it; NEI shows the rest). Every recipe that consumed a BHC controller (the Spacetime Compression Field Generators, the Compressed Circuit Array) now takes a KEE controller instead. A BHC you already placed keeps working.[/note]"
+          "desc": "As the materials around you achieve transcendental properties, pistons and gases stop being enough. The answer is gravity: a black hole, held in a cage of mirrors and coils and spun fast enough that its ergosphere can be put to work.\n\nThe §bKerr Ergosphere Engine§r (KEE) holds the hole and does nothing else: it runs no recipes. The machines that use the hole are the §bKerr modules§r, separate machines standing in the cage's arcs (next quests).\n\n§e§lMAKE IT§r The controller is an §bAssembly Line§r recipe: scan a §bBlack Hole Seed§r in the Scanner to research it. NEI shows the rest.\n\n§e§lBUILD§r\n- Hologram Projector, stack 1: Kerr T1, 76 × 65 × 71. Chunk-load all of it.\n- The Black Hole Compressor's own Extreme Density Space-Bending Casing, Hawking Radiation Realignment Focus and Naquadah Alloy frames, plus our Superradiant Mirrors, Mirror Backing, Ergosphere Field Coils, Beam Focusing Quadrupoles, Beam Dumps, Harmonic Lining and 232 Bolt Injector Rails. A Quantum Glass window band runs through the drum at the hole's height (and the governor arc in front of it), so the hole shows from the front; a Kerr built before the window keeps its old blocks there. The optional task is the full bill.\n- Hatches: 1 laser or up to 2 energy hatches in the governor arc, 1 to 8 §bbolt buses§r (plain input buses) on the cage, and optional BHC Utility Hatches beside them. No maintenance hatch.\n- Hologram markers 7 and 8 show where the two module controllers go.\n\n§e§lRUN§r Everything is in the GUI.\n1. Put a §bBlack Hole Seed§r in a bolt bus and press Open: the hole opens at §b8 SM§r (solar masses).\n2. It bleeds mass as Hawking radiation, §b3.2 / M² SM a tick§r. Small holes die fast.\n3. The §bgovernor§r fires bolts from the bolt buses to hold your §bsetpoint§r (2-64 SM at T1):\n- Neutronium 1/64 SM, Cosmic Neutronium 1/32, Infinity 1/16, Transcendent Metal 1/8, SpaceTime 1/4 SM a bolt;\n- at most 4 / 8 / 16 bolts a tick with Mk I / II / III rails. The §llowest§r rail sets the rate, so upgrade them all together.\n4. While open, the hole draws §b8,388,608 EU/t (1 A UEV)§r of containment. Without power the governor stops; below 2 SM the hole evaporates. The power switch does §lnot§r stop the hole.\n5. A §bBlack Hole Collapser§r in a bolt bus closes it safely: press Collapse twice.\n\n[note]Mass sets the modules' bonus: a bigger hole gives more parallels, a smaller one more speed. The controller tooltip has the full block list, and NEI's Multiblock tab previews both tiers.[/note]\n\n§a§lDONE WHEN§r you hold the controller (HOLD → CLAIM → INSTALL: claim before you place it).\n\n[note]The Black Hole Compressor's recipe is removed. The KEE has its own Assembly Line recipe (scan a §bBlack Hole Seed§r to research it; NEI shows the rest). Every recipe that consumed a BHC controller (the Spacetime Compression Field Generators, the Compressed Circuit Array) now takes a KEE controller instead. A BHC you already placed keeps working.[/note]"
         },
         {
           "op": "setTasks",
@@ -7774,10 +7786,10 @@
               "requireOnlyOneItem:1": 0,
               "requiredItems:9": {
                 "0:10": {
-                  "Count:3": 3551,
-                  "Damage:2": 2,
+                  "Count:3": 3706,
+                  "Damage:2": 0,
                   "OreDict:8": "",
-                  "id:8": "beyondthestars:slCasing"
+                  "id:8": "tectech:tile.quantumGlass"
                 },
                 "1:10": {
                   "Count:3": 3186,
@@ -7786,46 +7798,46 @@
                   "id:8": "gregtech:gt.blockframes"
                 },
                 "2:10": {
-                  "Count:3": 2852,
-                  "Damage:2": 1,
+                  "Count:3": 1956,
+                  "Damage:2": 2,
                   "OreDict:8": "",
                   "id:8": "beyondthestars:slCasing"
                 },
                 "3:10": {
-                  "Count:3": 2603,
+                  "Count:3": 1793,
                   "Damage:2": 11,
                   "OreDict:8": "",
                   "id:8": "gregtech:gt.blockcasings10"
                 },
                 "4:10": {
+                  "Count:3": 1672,
+                  "Damage:2": 1,
+                  "OreDict:8": "",
+                  "id:8": "beyondthestars:slCasing"
+                },
+                "5:10": {
                   "Count:3": 842,
                   "Damage:2": 6,
                   "OreDict:8": "",
                   "id:8": "beyondthestars:slCasing"
                 },
-                "5:10": {
+                "6:10": {
                   "Count:3": 232,
                   "Damage:2": 3,
                   "OreDict:8": "",
                   "id:8": "beyondthestars:slCasing"
                 },
-                "6:10": {
+                "7:10": {
                   "Count:3": 208,
                   "Damage:2": 7,
                   "OreDict:8": "",
                   "id:8": "beyondthestars:slCasing"
                 },
-                "7:10": {
+                "8:10": {
                   "Count:3": 160,
                   "Damage:2": 8,
                   "OreDict:8": "",
                   "id:8": "beyondthestars:slCasing"
-                },
-                "8:10": {
-                  "Count:3": 131,
-                  "Damage:2": 2,
-                  "OreDict:8": "",
-                  "id:8": "beyondthestars:slCasing2"
                 },
                 "9:10": {
                   "Count:3": 95,
@@ -7840,6 +7852,12 @@
                   "id:8": "gregtech:gt.blockcasings9"
                 },
                 "11:10": {
+                  "Count:3": 10,
+                  "Damage:2": 2,
+                  "OreDict:8": "",
+                  "id:8": "beyondthestars:slCasing2"
+                },
+                "12:10": {
                   "Count:3": 1,
                   "Damage:2": 32418,
                   "OreDict:8": "",
@@ -8021,7 +8039,7 @@
         },
         {
           "op": "setDesc",
-          "desc": "So you have made yourself an Eternal DTPF or hopefully a few, and now it is time for the push onwards.\n\nBeyond the Stars replaces TecTech's Eye of Harmony with §bone Eye that grows from T1 to T10§r, a band at a time, with a §blive star§r at its centre. A star is not a batch recipe: it burns every minute, it must be fed, and it must be held steady.\n\n§e§lBUILD§r\n- Hologram stack 1 is the T1 core, 102 × 52 × 80. Chunk-load the whole footprint.\n- It is mostly TecTech's own Eye blocks: 9,390 Reinforced Spatial and 4,704 Reinforced Temporal Structure Casings (the Condensate Assembler makes these 32 at a time here), Infinite SpaceTime Energy Boundary Casing, Quantum Glass and the three field generator families.\n- On the plinth: gas input hatches for Hydrogen and Helium, an input bus for Stellar Ignition Charges, an ME Output Bus, an ME Output Hatch and a maintenance hatch.\n- Power is §bwireless EU only§r, and none of it comes back: the Eye makes matter, not power.\n\n§e§lLIGHT IT§r Put §bStar Chart: Sol§r in the controller slot (never consumed). Sol lights when:\n- a §bStellar Ignition Charge§r is in a plinth input bus;\n- the buffers hold §b600,000,000 L each of Hydrogen and Helium§r: 10 cycles of upkeep (kept) plus the 100,000,000 L seed cloud (burned);\n- the wireless network holds 10 cycles of EU, which the ignition spends.\nThe protostar contracts for about 40 seconds, then lights.\n\n§e§lRUN§r Every §b60 s cycle§r Sol burns §b50,000,000 L Hydrogen + 50,000,000 L Helium§r and §b1.51 × 10¹¹ EU§r (about 1 A UMV), and makes §b50,000 L Raw Stellar Plasma§r (Raw Star Matter in the GUI) into the ME output hatch. Upkeep is paid in full in every zone; a bad zone only cuts the yield.\n\n§e§lAUTOMATE§r Inputs drain into internal buffers every second, so ME stocking input hatches on the gas sockets work. Keep a few charges in the plinth bus from an ME Interface. A dimension display block in the slot runs planets instead (see §cPlanets on the Eye§r).\n\n[warn]§lSpacetime Compression gates the tier.§r An Eye of tier N needs every compression generator at tier N or higher. Crude runs T1.[/warn]\n\n[note]The next quests teach the stability field, planets and the road to T2. The controller tooltip and GUI carry every number.[/note]\n\n§a§lDONE WHEN§r you hold the controller, Star Chart: Sol and an Ignition Charge (HOLD → CLAIM → INSTALL)."
+          "desc": "So you have made yourself an Eternal DTPF or hopefully a few, and now it is time for the push onwards.\n\nBeyond the Stars replaces TecTech's Eye of Harmony with §bone Eye that grows from T1 to T10§r, a band at a time, with a §blive star§r at its centre. A star is not a batch recipe: it burns every minute, it must be fed, and it must be held steady.\n\n§e§lBUILD§r\n- Hologram stack 1 is the T1 core, 102 × 52 × 80. Chunk-load the whole footprint.\n- It is mostly TecTech's own Eye blocks: 9,030 Reinforced Spatial and 4,704 Reinforced Temporal Structure Casings (the Condensate Assembler makes these 32 at a time here), Infinite SpaceTime Energy Boundary Casing, Quantum Glass and the three field generator families. The core band's front segments are Quantum Glass at the star's height (and so are the arm and rim cells later tiers put there), so the star shows from the front; an Eye built before the window keeps its old blocks there.\n- On the plinth: gas input hatches for Hydrogen and Helium, an input bus for Stellar Ignition Charges, an ME Output Bus, an ME Output Hatch and a maintenance hatch.\n- Power is §bwireless EU only§r, and none of it comes back: the Eye makes matter, not power.\n\n§e§lLIGHT IT§r Put §bStar Chart: Sol§r in the controller slot (never consumed). Sol lights when:\n- a §bStellar Ignition Charge§r is in a plinth input bus;\n- the buffers hold §b600,000,000 L each of Hydrogen and Helium§r: 10 cycles of upkeep (kept) plus the 100,000,000 L seed cloud (burned);\n- the wireless network holds 10 cycles of EU, which the ignition spends.\nThe protostar contracts for about 40 seconds, then lights.\n\n§e§lRUN§r Every §b60 s cycle§r Sol burns §b50,000,000 L Hydrogen + 50,000,000 L Helium§r and §b1.51 × 10¹¹ EU§r (about 1 A UMV), and makes §b50,000 L Raw Stellar Plasma§r (Raw Star Matter in the GUI) into the ME output hatch. Upkeep is paid in full in every zone; a bad zone only cuts the yield.\n\n§e§lAUTOMATE§r Inputs drain into internal buffers every second, so ME stocking input hatches on the gas sockets work. Keep a few charges in the plinth bus from an ME Interface. A dimension display block in the slot runs planets instead (see §cPlanets on the Eye§r).\n\n[warn]§lSpacetime Compression gates the tier.§r An Eye of tier N needs every compression generator at tier N or higher. Crude runs T1.[/warn]\n\n[note]The next quests teach the stability field, planets and the road to T2. The controller tooltip and GUI carry every number.[/note]\n\n§a§lDONE WHEN§r you hold the controller, Star Chart: Sol and an Ignition Charge (HOLD → CLAIM → INSTALL)."
         },
         {
           "op": "setTasks",
@@ -8066,7 +8084,7 @@
               "requireOnlyOneItem:1": 0,
               "requiredItems:9": {
                 "0:10": {
-                  "Count:3": 9390,
+                  "Count:3": 9030,
                   "Damage:2": 11,
                   "OreDict:8": "",
                   "id:8": "tectech:gt.blockcasingsBA0"
@@ -8078,13 +8096,13 @@
                   "id:8": "tectech:gt.blockcasingsBA0"
                 },
                 "2:10": {
-                  "Count:3": 3582,
+                  "Count:3": 3232,
                   "Damage:2": 12,
                   "OreDict:8": "",
                   "id:8": "tectech:gt.blockcasingsBA0"
                 },
                 "3:10": {
-                  "Count:3": 1541,
+                  "Count:3": 2251,
                   "Damage:2": 0,
                   "OreDict:8": "",
                   "id:8": "tectech:tile.quantumGlass"

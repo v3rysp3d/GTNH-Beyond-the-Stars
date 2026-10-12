@@ -21,7 +21,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "Kerr T2 is the same KEE, made denser. Right-click the controller with the §bKerr Density Upgrade§r: it is consumed, permanent, and survives a wrench.\n\n§e§lBUILD§r The cage then needs the T2 reinforcement (hologram stack 2, 92 × 65 × 89): 8,316 Bastion Plates, 677 Casimir Plates, more Harmonic Lining and more glass. The optional task is exactly the difference. A T2 Kerr with the reinforcement torn down will §lnot form§r.\n\n§e§lWHAT YOU GET§r\n- setpoints up to §b512 SM§r, so more module parallels (⌊√M⌋ is 22 at 512 SM, against 8 at 64 SM);\n- §bKerr Densification§r on the Compressor Module, with a hole of §bat least 128 SM§r.\n\n§e§lMAKE IT§r In the Condensate Assembler (NEI: Condensate Assembling). The big costs are §b4,000,000 L Entangled Raw Star Matter§r (Raw Stellar Plasma, condensed 1 : 1; NEI: Condensate Entanglement) and §b32 Black Hole Seeds§r, so your T1 Eye pays for it. NEI has the whole recipe.\n\n[note]Growing a hole to 512 SM takes a lot of bolts: SpaceTime bolts (1/4 SM each) and Mk III rails do it fastest.[/note]\n\n§a§lDONE WHEN§r you hold the upgrade (HOLD → CLAIM → INSTALL).",
+      "desc:8": "Kerr T2 is the same KEE, made denser. Right-click the controller with the §bKerr Density Upgrade§r: it is consumed, permanent, and survives a wrench.\n\n§e§lBUILD§r The cage then needs the T2 reinforcement (hologram stack 2, 92 × 65 × 89): 8,132 Bastion Plates, 662 Casimir Plates, more Harmonic Lining and more glass. The optional task is exactly the difference. A T2 Kerr with the reinforcement torn down will §lnot form§r.\n\n§e§lWHAT YOU GET§r\n- setpoints up to §b512 SM§r, so more module parallels (⌊√M⌋ is 22 at 512 SM, against 8 at 64 SM);\n- §bKerr Densification§r on the Compressor Module, with a hole of §bat least 128 SM§r.\n\n§e§lMAKE IT§r In the Condensate Assembler (NEI: Condensate Assembling). The big costs are §b4,000,000 L Entangled Raw Star Matter§r (Raw Stellar Plasma, condensed 1 : 1; NEI: Condensate Entanglement) and §b32 Black Hole Seeds§r, so your T1 Eye pays for it. NEI has the whole recipe.\n\n[note]Growing a hole to 512 SM takes a lot of bolts: SpaceTime bolts (1/4 SM each) and Mk III rails do it fastest.[/note]\n\n§a§lDONE WHEN§r you hold the upgrade (HOLD → CLAIM → INSTALL).",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
@@ -90,13 +90,13 @@
       "requireOnlyOneItem:1": 0,
       "requiredItems:9": {
         "0:10": {
-          "Count:3": 8316,
+          "Count:3": 8132,
           "Damage:2": 13,
           "OreDict:8": "",
           "id:8": "beyondthestars:slCasing"
         },
         "1:10": {
-          "Count:3": 4031,
+          "Count:3": 3913,
           "Damage:2": 2,
           "OreDict:8": "",
           "id:8": "beyondthestars:slCasing2"
@@ -108,12 +108,18 @@
           "id:8": "gregtech:gt.blockglass1"
         },
         "3:10": {
-          "Count:3": 677,
+          "Count:3": 662,
           "Damage:2": 14,
           "OreDict:8": "",
           "id:8": "beyondthestars:slCasing"
         },
         "4:10": {
+          "Count:3": 317,
+          "Damage:2": 0,
+          "OreDict:8": "",
+          "id:8": "tectech:tile.quantumGlass"
+        },
+        "5:10": {
           "Count:3": 10,
           "Damage:2": 14,
           "OreDict:8": "",

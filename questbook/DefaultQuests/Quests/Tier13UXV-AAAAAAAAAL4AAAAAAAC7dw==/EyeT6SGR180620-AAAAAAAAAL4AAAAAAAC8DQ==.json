@@ -30,7 +30,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "SGR 1806-20 is a §bmagnetar§r, the most magnetic object known. White and black dwarf matter merge into it, and its field has to be untwisted for as long as it lives.\n\n§e§lUNLOCK§r The T5 milestone: §b6 batches§r at mean yield 0.9 or better with no fracture. Then:\n- put the §bMagnetar Seed Core§r in escrow;\n- build the §bgalactic rim§r (stack 6: 7,286 Galactic Shell Plating) and bring compression to tier 6, with §bno star lit§r;\n- buffer the merger charge: §b18,432 L White Dwarf Matter + 4,608 L Black Dwarf Matter + 100,000 L Antipolarization Agent§r;\n- put §bStar Chart: SGR 1806-20§r in the slot.\n\n§e§lMAGNETAR MERGER§r The dynamo winds the polarity §bΠ§r up by itself (+0.5 a second); no flares yet. Agent doses pull Π back toward 0.\n1. §bImprint:§r hold Π inside +60..+90 for 120 s in a row, within 600 s.\n2. §bRelease:§r bring Π back inside ±40 within 60 s.\nA failure spends the charge and keeps the core.\n\n§e§lRUN§r Each cycle: §b3,000 L Antipolarization Agent§r (the constant feed) and 1.55 × 10¹⁴ EU (about 64 A MAX), for §b15 L Magnetar Matter§r.\n- The merger charge also fills a 60-cycle §bdwarf-matter reserve§r. At 10 cycles left the Eye tops it up from the buffers with §b1,800 L White Dwarf + 450 L Black Dwarf Matter§r; an empty reserve starves the magnetar. Keep both stocked.\n- The Eye gives back §b12 Purified Tengam dust per 1,000 L§r of Agent burned, through the ME output bus.\n\n§e§lTHE FIELD§r Four gauges: P, Θ, Ω and Π, and Π runs away by itself.\n- The Agent feed charges the §bflare shield A§r (it settles near 40 with no trim). The shield soaks up to 25 Π a second.\n- §bGiant flares§r come every 60-120 s, warned §b15 s ahead with their sign§r, and push Π ±25 a second for 4 s.\n- Pre-charge the shield on the warning: Agent in a Field socket, 100 L = A +4 (Θ +0.5), up to 5 a second.\n- The other trims are the neutron star's: Spatially Enlarged Fluid, molten SpaceTime, Super Coolant and molten Purified Tengam.\nLose the magnetar and a re-merge needs the charge again, but not the core.\n\n[note]Magnetar Matter is the planned upkeep of Eye T7 and a base of the T9 pellets, both coming in a later update.[/note]\n\n§a§lDONE WHEN§r you have held the core and the chart before the core goes into escrow (that task latches), and then 1,000 L of Magnetar Matter.",
+      "desc:8": "SGR 1806-20 is a §bmagnetar§r, the most magnetic object known. White and black dwarf matter merge into it, and its field has to be untwisted for as long as it lives.\n\n§e§lUNLOCK§r The T5 milestone: §b6 batches§r at mean yield 0.9 or better with no fracture. Then:\n- put the §bMagnetar Seed Core§r in escrow;\n- build the §bgalactic rim§r (stack 6: 6,899 Galactic Shell Plating) and bring compression to tier 6, with §bno star lit§r;\n- buffer the merger charge: §b18,432 L White Dwarf Matter + 4,608 L Black Dwarf Matter + 100,000 L Antipolarization Agent§r;\n- put §bStar Chart: SGR 1806-20§r in the slot.\n\n§e§lMAGNETAR MERGER§r The dynamo winds the polarity §bΠ§r up by itself (+0.5 a second); no flares yet. Agent doses pull Π back toward 0.\n1. §bImprint:§r hold Π inside +60..+90 for 120 s in a row, within 600 s.\n2. §bRelease:§r bring Π back inside ±40 within 60 s.\nA failure spends the charge and keeps the core.\n\n§e§lRUN§r Each cycle: §b3,000 L Antipolarization Agent§r (the constant feed) and 1.55 × 10¹⁴ EU (about 64 A MAX), for §b15 L Magnetar Matter§r.\n- The merger charge also fills a 60-cycle §bdwarf-matter reserve§r. At 10 cycles left the Eye tops it up from the buffers with §b1,800 L White Dwarf + 450 L Black Dwarf Matter§r; an empty reserve starves the magnetar. Keep both stocked.\n- The Eye gives back §b12 Purified Tengam dust per 1,000 L§r of Agent burned, through the ME output bus.\n\n§e§lTHE FIELD§r Four gauges: P, Θ, Ω and Π, and Π runs away by itself.\n- The Agent feed charges the §bflare shield A§r (it settles near 40 with no trim). The shield soaks up to 25 Π a second.\n- §bGiant flares§r come every 60-120 s, warned §b15 s ahead with their sign§r, and push Π ±25 a second for 4 s.\n- Pre-charge the shield on the warning: Agent in a Field socket, 100 L = A +4 (Θ +0.5), up to 5 a second.\n- The other trims are the neutron star's: Spatially Enlarged Fluid, molten SpaceTime, Super Coolant and molten Purified Tengam.\nLose the magnetar and a re-merge needs the charge again, but not the core.\n\n[note]Magnetar Matter is the planned upkeep of Eye T7 and a base of the T9 pellets, both coming in a later update.[/note]\n\n§a§lDONE WHEN§r you have held the core and the chart before the core goes into escrow (that task latches), and then 1,000 L of Magnetar Matter.",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
@@ -119,19 +119,19 @@
       "requireOnlyOneItem:1": 0,
       "requiredItems:9": {
         "0:10": {
-          "Count:3": 7286,
+          "Count:3": 6899,
           "Damage:2": 12,
           "OreDict:8": "",
           "id:8": "beyondthestars:slCasing"
         },
         "1:10": {
-          "Count:3": 3159,
+          "Count:3": 2990,
           "Damage:2": 12,
           "OreDict:8": "",
           "id:8": "tectech:gt.blockcasingsBA0"
         },
         "2:10": {
-          "Count:3": 753,
+          "Count:3": 1309,
           "Damage:2": 0,
           "OreDict:8": "",
           "id:8": "tectech:tile.quantumGlass"
