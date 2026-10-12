@@ -62,6 +62,14 @@ public class Config {
      */
     public static boolean eyeRenderCentre = true;
 
+    /**
+     * KERR REDESIGN R4 (docs/kerr-redesign.md §5): the Kerr Ergosphere Engine's black hole, drawn at the
+     * cage centre with GT's Black Hole Compressor renderer and scaled by mass. Read on both sides: the
+     * server places the render block only when it is on, and a client with it off draws nothing. Each
+     * KEE also has its own switch in its GUI.
+     */
+    public static boolean renderKerrHole = true;
+
     public static void synchronizeConfiguration(File configFile) {
         Configuration configuration = new Configuration(configFile);
 
@@ -133,6 +141,14 @@ public class Config {
             true,
             "NOT IMPLEMENTED YET - this setting currently has no effect. Will render the star or planet at the"
                 + " centre of a formed Eye of Harmony (client cosmetic).");
+
+        renderKerrHole = configuration.getBoolean(
+            "renderKerrHole",
+            Configuration.CATEGORY_GENERAL,
+            true,
+            "Draw the Kerr Ergosphere Engine's black hole at the centre of its cage, scaled by its mass (GT's Black"
+                + " Hole Compressor render). Cosmetic. On a server, false places no render block at all; on a client,"
+                + " false draws nothing. Each Kerr also has its own render switch in its GUI.");
 
         if (configuration.hasChanged()) {
             configuration.save();

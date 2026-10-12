@@ -23,5 +23,7 @@ public final class BTSBlocks {
         GameRegistry.registerTileEntity(TileTurbineHousing.class, "beyondthestars.turbineHousing");
         // SINGULARITY LADDER (singularity-ladder-build.md §1.2): the Kerr / Eye-band casings.
         SLBlocks.register();
+        // KERR REDESIGN R4: the KEE's black-hole render block and tile (docs/kerr-redesign.md §5).
+        com.nateyburr.beyondthestars.machines.kerr.BlockKerrHole.register();
     }
 }

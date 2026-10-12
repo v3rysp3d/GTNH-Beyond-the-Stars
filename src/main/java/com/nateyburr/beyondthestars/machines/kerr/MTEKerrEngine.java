@@ -21,6 +21,7 @@ import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -35,6 +36,7 @@ import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
@@ -170,8 +172,24 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     private int setpoint = (int) OPEN_MASS;
     /** A Seed / Collapser in a bolt bus acts on its own (automation); the GUI buttons work either way. */
     private boolean autoSeeds = true;
-    /** Per-machine render toggle (the render itself is the render pass's; this is its switch). */
+    /** Per-machine render switch (GUI); {@link Config#renderKerrHole} switches every KEE. */
     private boolean renderOn = true;
+
+    // ------------------------------------------------- RENDER state (server; docs/kerr-redesign.md §5)
+    /**
+     * Where this KEE's render block stands, or null. Saved in the TILE NBT only, never on the wrenched
+     * item (trap 2): a KEE placed somewhere else must never think it owns a render block here.
+     */
+    private int[] renderPos;
+    /** The hole state the render last saw (an open/close is handled on the tick it happens). */
+    private boolean renderHoleSeen;
+    /** Ticks left of the collapse animation before the render block goes, or -1. */
+    private int collapseTimer = -1;
+    /** The scale and coverage last pushed to the render tile (-1: push next time). */
+    private float sentScale = -1f;
+    private float sentCoverage = -1f;
+    /** Why there is no render although there should be one, or "". */
+    private String renderNote = "";
 
     // ---------------------------------------------------------- WALK state (server, resetWalk)
     private int mCasing;
@@ -548,6 +566,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             pulseUtilityHatches(aTick);
             tickHole();
         }
+        tickRender(aBaseMetaTileEntity, aTick);
         if (aTick % 20 == 0) refreshReadouts();
         aBaseMetaTileEntity.setActive(holeOpen && mMachine);
     }
@@ -727,6 +746,11 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         setpoint = clampSetpoint((int) Math.round(mass));
     }
 
+    /** Debug/test bench: close the hole without a collapser. */
+    public void debugCloseHole() {
+        closeHole();
+    }
+
     /** Debug/creative: set the setpoint (clamped to the tier's range). */
     public void debugSetpoint(double wanted) {
         setpoint = clampSetpoint((int) Math.round(wanted));
@@ -764,6 +788,171 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
 
     public void setRenderEnabled(boolean on) {
         renderOn = on;
+    }
+
+    // ============================================================================== render
+
+    /** GT's collapse animation length (RenderingTileEntityBlackhole's 40-tick smootherstep). */
+    private static final int COLLAPSE_TICKS = 40;
+    /** The hole centre from the controller, (a, b, c): the manifest's {@code machines.kerr.centre.rel}. */
+    private static volatile int[] centreRel;
+
+    /**
+     * The render's scale around GT's model at {@code m} SM: {@code clamp(4 (M / 16)^(1/3), 2, 6.5)}. At
+     * 16 SM the horizon radius is 5.2 blocks (the mockup's horizon sphere) and the disc reaches about
+     * 8.3; the cap keeps a 64-512 SM disc (about 13.5) inside the r 18 mirror ring.
+     */
+    public static float renderScaleFor(double m) {
+        return (float) Math.max(2.0, Math.min(6.5, 4.0 * Math.cbrt(Math.max(0, m) / 16.0)));
+    }
+
+    /** The hole centre in the world for this KEE's position and facing (T1 and T2 share the cell). */
+    private int[] centrePos(IGregTechTileEntity base) {
+        int[] rel = centreRel;
+        if (rel == null) centreRel = rel = KerrSlot.centreRel();
+        return KerrSlot.worldPos(getExtendedFacing(), base.getXCoord(), base.getYCoord(), base.getZCoord(), rel);
+    }
+
+    /** True when this KEE's render block stands at (x, y, z) (the render tile asks, see TileKerrHole). */
+    public boolean claimsRender(int x, int y, int z) {
+        final int[] p = renderPos;
+        return p != null && p[0] == x && p[1] == y && p[2] == z;
+    }
+
+    /** Why the render is missing although it should show, or "". */
+    public String getRenderNote() {
+        return renderNote;
+    }
+
+    /**
+     * Server, every tick (the world is touched only on an open/close and every 10 ticks). The render
+     * exists while the hole is open and both switches are on, formed or not (a frozen hole is still a
+     * hole). When it should go it plays GT's collapse and goes 40 ticks later; if the KEE turned, the old
+     * block goes at once. It is placed only into air (or adopted where ours already stands), never over
+     * anything else, and never loads a chunk.
+     */
+    private void tickRender(IGregTechTileEntity base, long aTick) {
+        final boolean holeChanged = holeOpen != renderHoleSeen;
+        renderHoleSeen = holeOpen;
+        if (collapseTimer > 0 && --collapseTimer == 0) {
+            collapseTimer = -1;
+            removeRender();
+        }
+        if (!holeChanged && aTick % 10 != 0) return;
+        final World world = base.getWorld();
+        if (world == null) return;
+        final int[] at = centrePos(base);
+        if (renderPos != null && !Arrays.equals(renderPos, at)) {
+            collapseTimer = -1;
+            removeRender();
+        }
+        final boolean want = holeOpen && renderOn && Config.renderKerrHole;
+        if (!want) {
+            renderNote = "";
+            if (renderPos == null || collapseTimer > 0) return;
+            final TileKerrHole tile = renderTile(world, renderPos);
+            if (tile == null) {
+                removeRender();
+            } else {
+                tile.startScaleChange(false);
+                collapseTimer = COLLAPSE_TICKS;
+            }
+            return;
+        }
+        TileKerrHole tile = renderPos == null ? null : renderTile(world, renderPos);
+        if (tile != null && collapseTimer > 0) {
+            collapseTimer = -1;
+            tile.startScaleChange(true);
+        }
+        if (tile == null) {
+            tile = placeRender(base, world, at);
+            if (tile == null) return;
+        }
+        if (holeChanged || aTick % 20 == 0) pushLook(tile);
+    }
+
+    /** Our render tile at a loaded cell, or null. */
+    private static TileKerrHole renderTile(World world, int[] p) {
+        if (p[1] < 0 || p[1] > 255 || !world.blockExists(p[0], p[1], p[2])) return null;
+        final TileEntity te = world.getTileEntity(p[0], p[1], p[2]);
+        return te instanceof TileKerrHole ? (TileKerrHole) te : null;
+    }
+
+    /** Places (or adopts) the render block at {@code at}; null if the cell is unloaded or not air. */
+    private TileKerrHole placeRender(IGregTechTileEntity base, World world, int[] at) {
+        if (BlockKerrHole.INSTANCE == null || at[1] < 0 || at[1] > 255 || !world.blockExists(at[0], at[1], at[2])) {
+            return null;
+        }
+        final Block block = world.getBlock(at[0], at[1], at[2]);
+        final boolean fresh = block != BlockKerrHole.INSTANCE;
+        if (fresh) {
+            if (!block.isAir(world, at[0], at[1], at[2])) {
+                renderNote = "Render blocked at " + at[0] + ", " + at[1] + ", " + at[2] + ": clear that block";
+                return null;
+            }
+            world.setBlock(at[0], at[1], at[2], BlockKerrHole.INSTANCE, 0, 3);
+        }
+        final TileKerrHole tile = renderTile(world, at);
+        if (tile == null) return null;
+        renderNote = "";
+        renderPos = at;
+        tile.setOwner(base.getXCoord(), base.getYCoord(), base.getZCoord());
+        sentScale = sentCoverage = -1f;
+        pushLook(tile);
+        if (fresh || !tile.getScaling()) tile.startScaleChange(true);
+        return tile;
+    }
+
+    /**
+     * Scale by mass and GT's stability input, pushed only when the scale moved 2 % or the coverage 0.02
+     * (checked every 20 ticks). GT reads an input of 0.5 and up as calm; the input is coverage / 2, so the
+     * shader's stability IS the governor's coverage: full coverage is calm, less shrinks the disc, and none
+     * (no containment power, no bolts) makes it spin.
+     */
+    private void pushLook(TileKerrHole tile) {
+        final float scale = renderScaleFor(mass);
+        final float coverage = (float) Math.max(0, Math.min(1, getStability()));
+        if (sentScale > 0 && Math.abs(scale - sentScale) <= 0.02f * sentScale
+            && sentCoverage >= 0
+            && Math.abs(coverage - sentCoverage) <= 0.02f) {
+            return;
+        }
+        sentScale = scale;
+        sentCoverage = coverage;
+        tile.setLook(scale, coverage);
+    }
+
+    /**
+     * Removes this KEE's render block at once if its chunk is loaded. Otherwise the position is kept and
+     * retried, and the render tile removes itself once it finds no KEE claiming it (TileKerrHole).
+     */
+    private void removeRender() {
+        final int[] p = renderPos;
+        if (p == null) return;
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        final World world = base == null ? null : base.getWorld();
+        if (world == null || world.isRemote) return;
+        if (p[1] >= 0 && p[1] <= 255) {
+            if (!world.blockExists(p[0], p[1], p[2])) return;
+            if (world.getBlock(p[0], p[1], p[2]) == BlockKerrHole.INSTANCE) world.setBlockToAir(p[0], p[1], p[2]);
+        }
+        renderPos = null;
+        collapseTimer = -1;
+        sentScale = sentCoverage = -1f;
+    }
+
+    /** Broken: the hole's render goes with the controller (as GT's BHC). */
+    @Override
+    public void onBlockDestroyed() {
+        removeRender();
+        super.onBlockDestroyed();
+    }
+
+    /** Any removal of the tile (a wrench too). GT does not call it on a chunk unload. */
+    @Override
+    public void onRemoval() {
+        removeRender();
+        super.onRemoval();
     }
 
     // ============================================================================ readouts
@@ -929,6 +1118,8 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     public void saveNBTData(NBTTagCompound aNBT) {
         super.saveNBTData(aNBT);
         writeKerrState(aNBT);
+        // Tile only (not setItemNBT): where this KEE's render block stands, so a reload finds it again.
+        if (renderPos != null) aNBT.setIntArray("btsKerrRenderPos", renderPos);
     }
 
     @Override
@@ -947,6 +1138,10 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             : (int) OPEN_MASS;
         autoSeeds = !aNBT.hasKey("btsKerrAutoSeeds") || aNBT.getBoolean("btsKerrAutoSeeds");
         renderOn = !aNBT.hasKey("btsKerrRender") || aNBT.getBoolean("btsKerrRender");
+        final int[] rp = aNBT.getIntArray("btsKerrRenderPos");
+        renderPos = rp.length == 3 ? rp : null;
+        // A reload is no open/close: an open hole's render block is adopted as it stands, not regrown.
+        renderHoleSeen = holeOpen;
         // Pre-redesign: read once, then discarded (the next save no longer writes it).
         // The running recipe's mode, else the selected mode while one was running (no modes any more).
         legacyBoundMode = aNBT.hasKey("btsKerrBoundMode") ? aNBT.getInteger("btsKerrBoundMode")
@@ -1000,6 +1195,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             out.add(slot.label + " module: " + f[0] + (f.length > 3 && !f[3].isEmpty() ? " at (" + f[3] + ")" : ""));
         }
         if (!migrationNote.isEmpty()) out.add(migrationNote);
+        if (!renderNote.isEmpty()) out.add(renderNote);
         return out;
     }
 

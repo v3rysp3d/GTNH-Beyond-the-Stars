@@ -114,6 +114,7 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
             new BooleanSyncValue(multiblock::isRenderEnabled, multiblock::setRenderEnabled).allowC2S());
         syncManager.syncValue("kerrLinked", new IntSyncValue(multiblock::getLinkedModules));
         syncManager.syncValue("kerrMigration", new StringSyncValue(multiblock::getMigrationNote));
+        syncManager.syncValue("kerrRenderNote", new StringSyncValue(multiblock::getRenderNote));
         for (KerrSlot slot : KerrSlot.VALUES) {
             syncManager.syncValue("kerrSlot." + slot.key, new StringSyncValue(() -> multiblock.slotStatus(slot)));
         }
@@ -151,6 +152,7 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
         final BooleanSyncValue powerOk = syncManager.findSyncHandler("kerrPowerOk", BooleanSyncValue.class);
         final BooleanSyncValue density = syncManager.findSyncHandler("kerrDensity", BooleanSyncValue.class);
         final StringSyncValue migration = syncManager.findSyncHandler("kerrMigration", StringSyncValue.class);
+        final StringSyncValue renderNote = syncManager.findSyncHandler("kerrRenderNote", StringSyncValue.class);
         final StringSyncValue[] slots = slotValues(syncManager);
 
         return super.createTerminalTextWidget(syncManager, parent)
@@ -207,6 +209,14 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
                     .marginBottom(2)
                     .setEnabledIf(
                         w -> !migration.getStringValue()
+                            .isEmpty()))
+            .child(
+                IKey.dynamic(() -> EnumChatFormatting.GOLD + renderNote.getStringValue())
+                    .asWidget()
+                    .fullWidth()
+                    .marginBottom(2)
+                    .setEnabledIf(
+                        w -> !renderNote.getStringValue()
                             .isEmpty()));
     }
 

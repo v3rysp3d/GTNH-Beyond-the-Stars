@@ -125,6 +125,8 @@ tile.beyondthestars.slCasing.14.name=Casimir Plate
 tile.beyondthestars.slCasing.15.name=Ergosphere Extraction Casing
 tile.beyondthestars.slCasing2.0.name=Kerr Compressor Module Core (legacy: craft into the module controller)
 tile.beyondthestars.slCasing2.1.name=Kerr Extractor Module Core (legacy: craft into the module controller)
+# KERR REDESIGN R4: the KEE's black-hole render block (GT BlockRenderer: its name has no "tile." prefix)
+gt.beyondthestars.kerrHole.name=Kerr Black Hole
 tile.beyondthestars.slCasing2.2.name=Harmonic Lining
 item.beyondthestars.superradiantMirrorSegment.name=Superradiant Mirror Segment
 item.beyondthestars.stabiliserPylon.name=Stabiliser Pylon
