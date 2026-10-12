@@ -2030,7 +2030,7 @@ accepted, and §10.2's questions take their recommendations. Branch `p4-quasar`;
 | Content + recipes (§6): fluids, items, slCasing2:3-11, textures, lang, BTSRecipesQuasar, SL-P40, the Eternity swap, NEI pages, P4 gate audit | built | a67ef11, 2799a9e, 486877f, e89b314 |
 | Quasar Engine MTE 28120, Burst Control Hatch 28126, burst API, sensor quasar channels, render, kit, bench, OC | built | ee919a7, c44f995, 89ac19e, c47fc63 |
 | Conduit (Mouth 28121, Mirror 28122, Junction 28123), Crown 28124, GRB Receptor Port 28125, solver, host API, OC, kit, bench | built | 0f99c6b, 92c10ca, 6d6e8db |
-| Eye T7 Triangulum + T8 Milky Way: rail / halo bands, receptor groups, the two galaxy transitions, links, planets mode, companions, Directive sets, sensor channels, GUI, render, NEI, OC, kit, bench | built | 57ff9a9, 4d7f61c, + this unit's later commits |
+| Eye T7 Triangulum + T8 Milky Way: rail / halo bands, receptor groups, the two galaxy transitions, links, planets mode, companions, Directive sets, sensor channels, GUI, render, NEI, OC, kit, bench | built | 57ff9a9, 4d7f61c, 6ff4868, 60a569f |
 
 ### MTE ledger (P4 block 28120-28129)
 
