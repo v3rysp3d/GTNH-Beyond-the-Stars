@@ -127,6 +127,48 @@
     "fallback": "A",
     "min": 0,
     "hint": 6
+   },
+   "Q": {
+    "role": "window_mirror",
+    "kind": "mirror (drum band, |y| <= 2)",
+    "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Superradiant Mirror Casing (slCasing:1), so a Kerr built before the window bands still forms",
+    "window": "C"
+   },
+   "R": {
+    "role": "window_mirror_backing",
+    "kind": "mirrorback (drum band, |y| <= 2)",
+    "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Mirror Backing Casing (slCasing:2), so a Kerr built before the window bands still forms",
+    "window": "D"
+   },
+   "S": {
+    "role": "window_cage_casing",
+    "kind": "casing (the outer drum ring's backing, |y| <= 2)",
+    "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Extreme Density Space-Bending Casing (sBlockCasings10:11), so a Kerr built before the window bands still forms",
+    "window": "A"
+   },
+   "T": {
+    "role": "window_arc_shell",
+    "kind": "eyeshell (governor arc, in front of the hole)",
+    "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Extreme Density Space-Bending Casing (sBlockCasings10:11), so a Kerr built before the window bands still forms",
+    "window": "L"
+   },
+   "U": {
+    "role": "window_arc_lining",
+    "kind": "lining (governor arc / T2 mid band, in front of the hole)",
+    "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Harmonic Lining (slCasing2:2), so a Kerr built before the window bands still forms",
+    "window": "J"
+   },
+   "V": {
+    "role": "window_bastion",
+    "kind": "bastion (T2 mid band, in front of the hole)",
+    "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Bastion Plate (slCasing:13), so a Kerr built before the window bands still forms",
+    "window": "O"
+   },
+   "W": {
+    "role": "window_casimir",
+    "kind": "casimir (T2 mid band trim, in front of the hole)",
+    "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Casimir Plate (slCasing:14), so a Kerr built before the window bands still forms",
+    "window": "P"
    }
   },
   "kerr_compressor": {
@@ -328,6 +370,24 @@
     "fallback": "T",
     "min": 0,
     "hint": 4
+   },
+   "A": {
+    "role": "window_band_shell",
+    "kind": "eyeshell (front ring segments, |y| <= 2)",
+    "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Reinforced Spatial Structure Casing (BA0:11), so an Eye built before the window bands still forms",
+    "window": "U"
+   },
+   "B": {
+    "role": "window_band_lining",
+    "kind": "lining (front ring segments and front arm/rim cells, |y| <= 2)",
+    "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Infinite SpaceTime Energy Boundary Casing (BA0:12), so an Eye built before the window bands still forms",
+    "window": "J"
+   },
+   "C": {
+    "role": "window_galactic_shell",
+    "kind": "galactic (T4-T6 arm and rim cells in the front window, |y| <= 2)",
+    "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Galactic Shell Plating (slCasing:12), so an Eye built before the window bands still forms",
+    "window": "T"
    }
   },
   "homogeny": {
@@ -845,6 +905,20 @@
    }
   }
  },
+ "windows": {
+  "half": 2,
+  "kerr": "the drum (both mirror rings: mirror, backing, outer casing) all round at |y| <= 2, and in front of the hole (z > 0, |x| <= 12) the governor arc's shell and lining and the T2 mid band",
+  "eye": "in front of the star (z > 0, |x| <= 26) at |y| <= 2: the core band's front ring segments, and the T4/T5 arm and T6 rim cells there",
+  "accepts": "each window char takes Quantum Glass OR the block it replaced (legend: window = that old char), so builds from before the windows still form",
+  "cells": {
+   "kerr_t1": 3706,
+   "kerr_t2": 4023,
+   "eye_core": 710,
+   "eye_arms": 1026,
+   "eye_arms2": 786,
+   "eye_rim": 556
+  }
+ },
  "assembled": {
   "Kerr T1": {
    "pieces": [
@@ -975,28 +1049,40 @@
    "blocks": 13899,
    "bom": [
     {
-     "ch": "D",
-     "count": 3551,
-     "role": "mirror_backing",
-     "block": "NEW slCasing:2 Mirror Backing Casing"
-    },
-    {
      "ch": "B",
      "count": 3186,
      "role": "cage_frame",
      "block": "GTStructureUtility.ofFrame(Materials.NaquadahAlloy) (BHC frame)"
     },
     {
+     "ch": "D",
+     "count": 1956,
+     "role": "mirror_backing",
+     "block": "NEW slCasing:2 Mirror Backing Casing"
+    },
+    {
      "ch": "C",
-     "count": 2852,
+     "count": 1672,
      "role": "mirror",
      "block": "NEW slCasing:1 Superradiant Mirror Casing"
     },
     {
+     "ch": "R",
+     "count": 1595,
+     "role": "window_mirror_backing",
+     "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Mirror Backing Casing (slCasing:2), so a Kerr built before the window bands still forms"
+    },
+    {
      "ch": "A",
-     "count": 1920,
+     "count": 1280,
      "role": "cage_casing",
      "block": "Casings.ExtremeDensitySpaceBendingCasing (GregTechAPI.sBlockCasings10:11, BHC)"
+    },
+    {
+     "ch": "Q",
+     "count": 1180,
+     "role": "window_mirror",
+     "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Superradiant Mirror Casing (slCasing:1), so a Kerr built before the window bands still forms"
     },
     {
      "ch": "H",
@@ -1005,8 +1091,14 @@
      "block": "NEW slCasing:6 Ergosphere Field Coil"
     },
     {
+     "ch": "S",
+     "count": 640,
+     "role": "window_cage_casing",
+     "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Extreme Density Space-Bending Casing (sBlockCasings10:11), so a Kerr built before the window bands still forms"
+    },
+    {
      "ch": "L",
-     "count": 682,
+     "count": 512,
      "role": "arc_shell",
      "block": "Casings.ExtremeDensitySpaceBendingCasing (governor and dump arc shells)"
     },
@@ -1023,16 +1115,22 @@
      "block": "NEW slCasing:7 Beam Focusing Quadrupole"
     },
     {
+     "ch": "T",
+     "count": 170,
+     "role": "window_arc_shell",
+     "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Extreme Density Space-Bending Casing (sBlockCasings10:11), so a Kerr built before the window bands still forms"
+    },
+    {
      "ch": "M",
      "count": 160,
      "role": "beam_dump",
      "block": "NEW slCasing:8 Beam Dump"
     },
     {
-     "ch": "J",
-     "count": 131,
-     "role": "arc_lining",
-     "block": "NEW slCasing2:2 Harmonic Lining (the white inner face; round-4 ruling, BHC family)"
+     "ch": "U",
+     "count": 121,
+     "role": "window_arc_lining",
+     "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Harmonic Lining (slCasing2:2), so a Kerr built before the window bands still forms"
     },
     {
      "ch": "K",
@@ -1045,6 +1143,12 @@
      "count": 20,
      "role": "beam_pipe",
      "block": "Casings.ParticleBeamGuidancePipeCasing"
+    },
+    {
+     "ch": "J",
+     "count": 10,
+     "role": "arc_lining",
+     "block": "NEW slCasing2:2 Harmonic Lining (the white inner face; round-4 ruling, BHC family)"
     },
     {
      "ch": "u",
@@ -1452,21 +1556,15 @@
    "bom": [
     {
      "ch": "O",
-     "count": 8316,
+     "count": 8132,
      "role": "bastion",
      "block": "NEW slCasing:13 Bastion Plate"
     },
     {
      "ch": "J",
-     "count": 4162,
+     "count": 3923,
      "role": "arc_lining",
      "block": "NEW slCasing2:2 Harmonic Lining (the white inner face; round-4 ruling, BHC family)"
-    },
-    {
-     "ch": "D",
-     "count": 3551,
-     "role": "mirror_backing",
-     "block": "NEW slCasing:2 Mirror Backing Casing"
     },
     {
      "ch": "B",
@@ -1475,16 +1573,22 @@
      "block": "GTStructureUtility.ofFrame(Materials.NaquadahAlloy) (BHC frame)"
     },
     {
+     "ch": "D",
+     "count": 1956,
+     "role": "mirror_backing",
+     "block": "NEW slCasing:2 Mirror Backing Casing"
+    },
+    {
      "ch": "C",
-     "count": 2852,
+     "count": 1672,
      "role": "mirror",
      "block": "NEW slCasing:1 Superradiant Mirror Casing"
     },
     {
-     "ch": "A",
-     "count": 1920,
-     "role": "cage_casing",
-     "block": "Casings.ExtremeDensitySpaceBendingCasing (GregTechAPI.sBlockCasings10:11, BHC)"
+     "ch": "R",
+     "count": 1595,
+     "role": "window_mirror_backing",
+     "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Mirror Backing Casing (slCasing:2), so a Kerr built before the window bands still forms"
     },
     {
      "ch": "K",
@@ -1493,22 +1597,46 @@
      "block": "Casings.HawkingRadiationRealignmentFocus (sBlockGlass1:4, the BHC's glass)"
     },
     {
+     "ch": "A",
+     "count": 1280,
+     "role": "cage_casing",
+     "block": "Casings.ExtremeDensitySpaceBendingCasing (GregTechAPI.sBlockCasings10:11, BHC)"
+    },
+    {
+     "ch": "Q",
+     "count": 1180,
+     "role": "window_mirror",
+     "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Superradiant Mirror Casing (slCasing:1), so a Kerr built before the window bands still forms"
+    },
+    {
      "ch": "H",
      "count": 842,
      "role": "field_coil",
      "block": "NEW slCasing:6 Ergosphere Field Coil"
     },
     {
+     "ch": "P",
+     "count": 662,
+     "role": "casimir",
+     "block": "NEW slCasing:14 Casimir Plate"
+    },
+    {
+     "ch": "S",
+     "count": 640,
+     "role": "window_cage_casing",
+     "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Extreme Density Space-Bending Casing (sBlockCasings10:11), so a Kerr built before the window bands still forms"
+    },
+    {
      "ch": "L",
-     "count": 682,
+     "count": 512,
      "role": "arc_shell",
      "block": "Casings.ExtremeDensitySpaceBendingCasing (governor and dump arc shells)"
     },
     {
-     "ch": "P",
-     "count": 677,
-     "role": "casimir",
-     "block": "NEW slCasing:14 Casimir Plate"
+     "ch": "U",
+     "count": 239,
+     "role": "window_arc_lining",
+     "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Harmonic Lining (slCasing2:2), so a Kerr built before the window bands still forms"
     },
     {
      "ch": "E",
@@ -1523,6 +1651,18 @@
      "block": "NEW slCasing:7 Beam Focusing Quadrupole"
     },
     {
+     "ch": "V",
+     "count": 184,
+     "role": "window_bastion",
+     "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Bastion Plate (slCasing:13), so a Kerr built before the window bands still forms"
+    },
+    {
+     "ch": "T",
+     "count": 170,
+     "role": "window_arc_shell",
+     "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Extreme Density Space-Bending Casing (sBlockCasings10:11), so a Kerr built before the window bands still forms"
+    },
+    {
      "ch": "M",
      "count": 160,
      "role": "beam_dump",
@@ -1533,6 +1673,12 @@
      "count": 30,
      "role": "beam_pipe",
      "block": "Casings.ParticleBeamGuidancePipeCasing"
+    },
+    {
+     "ch": "W",
+     "count": 15,
+     "role": "window_casimir",
+     "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Casimir Plate (slCasing:14), so a Kerr built before the window bands still forms"
     },
     {
      "ch": "u",
@@ -2323,7 +2469,7 @@
    "bom": [
     {
      "ch": "U",
-     "count": 9390,
+     "count": 9030,
      "role": "band_shell",
      "block": "Casings.ReinforcedSpatialStructureCasing (TTCasingsContainer.sBlockCasingsBA0:11)"
     },
@@ -2335,7 +2481,7 @@
     },
     {
      "ch": "J",
-     "count": 3582,
+     "count": 3232,
      "role": "band_lining",
      "block": "Casings.InfiniteSpacetimeEnergyBoundaryCasing (BA0:12)"
     },
@@ -2344,6 +2490,18 @@
      "count": 1541,
      "role": "glass_channel",
      "block": "Casings.QuantumGlass (TecTech)"
+    },
+    {
+     "ch": "A",
+     "count": 360,
+     "role": "window_band_shell",
+     "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Reinforced Spatial Structure Casing (BA0:11), so an Eye built before the window bands still forms"
+    },
+    {
+     "ch": "B",
+     "count": 350,
+     "role": "window_band_lining",
+     "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Infinite SpaceTime Energy Boundary Casing (BA0:12), so an Eye built before the window bands still forms"
     },
     {
      "ch": "W",
@@ -3144,13 +3302,19 @@
    "bom": [
     {
      "ch": "T",
-     "count": 5325,
+     "count": 4516,
      "role": "galactic_shell",
      "block": "NEW slCasing:12 Galactic Shell Plating (T4-T6 bands, D-49 R-12)"
     },
     {
+     "ch": "C",
+     "count": 809,
+     "role": "window_galactic_shell",
+     "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Galactic Shell Plating (slCasing:12), so an Eye built before the window bands still forms"
+    },
+    {
      "ch": "J",
-     "count": 830,
+     "count": 613,
      "role": "band_lining",
      "block": "Casings.InfiniteSpacetimeEnergyBoundaryCasing (BA0:12)"
     },
@@ -3159,6 +3323,12 @@
      "count": 404,
      "role": "glass_channel",
      "block": "Casings.QuantumGlass (TecTech)"
+    },
+    {
+     "ch": "B",
+     "count": 217,
+     "role": "window_band_lining",
+     "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Infinite SpaceTime Energy Boundary Casing (BA0:12), so an Eye built before the window bands still forms"
     }
    ],
    "socketCounts": {},
@@ -3180,13 +3350,19 @@
    "bom": [
     {
      "ch": "T",
-     "count": 5065,
+     "count": 4319,
      "role": "galactic_shell",
      "block": "NEW slCasing:12 Galactic Shell Plating (T4-T6 bands, D-49 R-12)"
     },
     {
+     "ch": "C",
+     "count": 746,
+     "role": "window_galactic_shell",
+     "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Galactic Shell Plating (slCasing:12), so an Eye built before the window bands still forms"
+    },
+    {
      "ch": "J",
-     "count": 762,
+     "count": 722,
      "role": "band_lining",
      "block": "Casings.InfiniteSpacetimeEnergyBoundaryCasing (BA0:12)"
     },
@@ -3195,6 +3371,12 @@
      "count": 404,
      "role": "glass_channel",
      "block": "Casings.QuantumGlass (TecTech)"
+    },
+    {
+     "ch": "B",
+     "count": 40,
+     "role": "window_band_lining",
+     "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Infinite SpaceTime Energy Boundary Casing (BA0:12), so an Eye built before the window bands still forms"
     }
    ],
    "socketCounts": {},
@@ -3216,13 +3398,13 @@
    "bom": [
     {
      "ch": "T",
-     "count": 7286,
+     "count": 6899,
      "role": "galactic_shell",
      "block": "NEW slCasing:12 Galactic Shell Plating (T4-T6 bands, D-49 R-12)"
     },
     {
      "ch": "J",
-     "count": 3159,
+     "count": 2990,
      "role": "band_lining",
      "block": "Casings.InfiniteSpacetimeEnergyBoundaryCasing (BA0:12)"
     },
@@ -3231,6 +3413,18 @@
      "count": 753,
      "role": "glass_channel",
      "block": "Casings.QuantumGlass (TecTech)"
+    },
+    {
+     "ch": "C",
+     "count": 387,
+     "role": "window_galactic_shell",
+     "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Galactic Shell Plating (slCasing:12), so an Eye built before the window bands still forms"
+    },
+    {
+     "ch": "B",
+     "count": 169,
+     "role": "window_band_lining",
+     "block": "Casings.QuantumGlass (TecTech) window; also accepts the old Infinite SpaceTime Energy Boundary Casing (BA0:12), so an Eye built before the window bands still forms"
     },
     {
      "ch": "g",
@@ -4584,7 +4778,21 @@
   "ok   Homogeny T2: every socket has an outside-reachable face",
   "ok   Homogeny T3: every socket has an outside-reachable face",
   "ok   Reality Diffraction: every socket has an outside-reachable face",
-  "ok   Reality Refab: every socket has an outside-reachable face"
+  "ok   Reality Refab: every socket has an outside-reachable face",
+  "ok   kerr_t1: 3706 window cells",
+  "ok   kerr_t2: 4023 window cells",
+  "ok   eye_core: 710 window cells",
+  "ok   eye_arms: 1026 window cells",
+  "ok   eye_arms2: 786 window cells",
+  "ok   eye_rim: 556 window cells",
+  "ok   Kerr T1: the front window is clear at y +-1, |x| <= 8",
+  "ok   Kerr T2: the front window is clear at y +-1, |x| <= 8",
+  "ok   Eye T1: the front window is clear at y +-1, |x| <= 20",
+  "ok   Eye T2: the front window is clear at y +-1, |x| <= 20",
+  "ok   Eye T3: the front window is clear at y +-1, |x| <= 20",
+  "ok   Eye T4: the front window is clear at y +-1, |x| <= 20",
+  "ok   Eye T5: the front window is clear at y +-1, |x| <= 20",
+  "ok   Eye T6: the front window is clear at y +-1, |x| <= 20"
  ],
  "notes": [
   "kerr: 40 cells drawn by kerr_core then by kerr_compressor; the later piece owns them",

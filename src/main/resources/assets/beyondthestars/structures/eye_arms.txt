@@ -5,272 +5,272 @@
 
 
 
-                                   TTTTTT  T
-                                TTT
+                                   CCCCCC  C
+                                CCC
 
 
 
 ---
 
 
-                                      TTT TT
-                               TTTTTTTTTTTTTT
-                            TTTTTTTTTTTTTTTTTTTTT
-                          TTTTTTTTT  TTTTTTTTTTT
-                          TTTTTTTTTTTTT
+                                      CCC CC
+                               CCCCCCCCCCCCCC
+                            CCCCCCCCCCCCCCCCCCCCC
+                          CCCCCCCCC  CCCCCCCCCCC
+                          CCCCCCCCCCCCC
 
 
 
 ---
 
 
-                                      TTTTTTTTTTT
-                         TTTTTTTTTTTTTTTTTT TTTTTTTT
-                       TTTTTTTTT              TTTTTTT
-                       TTTTTT            TTTTTTTTTT
-                     TTTTTTTTTTTTTTTTTTTTTT
+                                      CCCCCCCCCCC
+                         CCCCCCCCCCCCCCCCCC CCCCCCCC
+                       CCCCCCCCC              CCCCCCC
+                       CCCCCC            CCCCCCCCCC
+                     CCCCCCCCCCCCCCCCCCCCCC
                      TTTTTTTTT
 
 
 ---
 
                                                    TT
-                                          TTTTTTTTTTTT
-                             TTTZZZTTTTTTTTT     TTTTTT
-                     TTTTTTTZTZZZZ                 TTTTTT
-                   TTTT                    TTTTTTTTTT
-                   TTTT           TTTTTTTTTTTT
+                                          CCCCCCCCCCCC
+                             CCCZZZCCCCCCCCC     CCCCCC
+                     CCCCCCCZCZZZZ                 CCCCCC
+                   TTCC                    CCCCCCCCCC
+                   TTCC           CCCCCCCCCCCC
                   TTTTTTTTTTTTTTTTTT
 
 
 ---
 
                                                     TTTTT
-                                             TTTTTTTTTTTTT
-                                   ZZZZZZZZZTTT       TTTTT
-                  ZZTZZZZZZTZZZZZZZZZZ               TTTTTT
-                 TTTT                         TTTTTTTTT
-                 TTT                 TTTTTTTTTTT
+                                             CCCCCCCCCCCCC
+                                   ZZZZZZZZZCCC       CCCCC
+                  ZZTZZZZZZCZZZZZZZZZZ               CCCCCC
+                 TTTT                         CCCCCCCCC
+                 TTT                 CCCCCCCCCCC
                  TTTTTTTTTJTTTTTTTTTTTT
                       JJJ
 
 ---
 
                                                       TTTTT
-                                               ZZTTTTTTT TTT
-                                       TTTZZZZZZZ         TTTT
-                 ZZZZZZZZTTTTTTTTTTTTTTTTT             TTTTTTT
-                 ZJZJZJTJJJJJJJJJJJ              TTTTTTTT
-                  JJJJJJJJJJJJJJJJJJJJJ  TTTTTTTTTT
+                                               ZZCCCCCCC CCC
+                                       CCCZZZZZZZ         CCCC
+                 ZZZZZZZZCCCCCCCCCCCCCCCCC             CCCCCCC
+                 ZJZJZBCBBBBBBBBBBB              CCCCCCCC
+                  JJJBBBBBBBBBBBBBBBBBB  CCCCCCCCCC
                   JJJJJJJJJJJJJJJJJJTTTTTT
                   JJJJJ
 
 ---
 
                                                         TTTTTT
-                                                  ZZTTTTT  TTTT
-                                         TTTTTZTZZZ         TTT
-                              JJJJJJTTTTTTTT             TTTTTTT
-                  JJJJJ          JJJJJJJJJ        TTTTTTTT
-                                    JJJJJJJJTTTTTTTT
+                                                  ZZCCCCC  CCCC
+                                         CCCCCZCZZZ         CCC
+                              BBBBBBCCCCCCCC             CCCCCCC
+                  JJJBB          BBBBBBBBB        CCCCCCCC
+                                    BBBBBBBBCCCCCCCC
                                        JJJTTTT
 
 
 ---
 
                                                          TTTTTTT
-                                                   ZZZTTTTT   TT
-                                             TTTTTTZZ         TTTT
-                                       JJJTTTT            TTTTTTT
-                                        JJJJJJ      TTTTTTTT
-                                          JJJJTTTTTTTT
+                                                   ZZZCCCCC   CC
+                                             CCCCCCZZ         CCCC
+                                       BBBCCCC            CCCCCCC
+                                        BBBBBB      CCCCCCCC
+                                          BBBBCCCCCCCC
                                             JJJJ
 
 
 ---
 
                                                            TTTTTTT
-                                                     ZZZZTTTT  TTTT
-                                               TTTTTTZZ         TTTT
-                                            JJTTT           TTTTTT
-                                             JJJJ      TTTTTTT
-                                              JJJTTTTTTT
+                                                     ZZZZCCCC  CCCC
+                                               CCCCCCZZ         CCCC
+                                            BBCCC           CCCCCC
+                                             BBBB      CCCCCCC
+                                              BBBCCCCCCC
                                                JJJ
 
 
 ---
                                                                  TT
                                                              TTTTTTT
-                                                       TZZZTTT    TT
-                                                 TTTTTTT          TTT
-                                               JJTJ           TTTTT
-                                                JJJJ    TTTTTTT
-                                                 JJJTTTTTT
+                                                       CZZZCCC    CC
+                                                 CCCCCCC          CCC
+                                               BBCB           CCCCC
+                                                BBBB    CCCCCCC
+                                                 BBBCCCCCC
 
 
 
 ---
                                                                    TT
                                                               TTTTTTT
-                                                         TZZZTT    TTT
-                                                   TTTTTTT         TTTT
-                                                  JJJJ         TTTTTT
-                                                   JJJJ   TTTTTT
-                                                    JJTTTTT
+                                                         CZZZCC    CCC
+                                                   CCCCCCC         CCCC
+                                                  BBBB         CCCCCC
+                                                   BBBB   CCCCCC
+                                                    BBCCCCC
 
 
 
 ---
                                                                     TTT
                                                                TTTTTTTT
-                                                           TZZZTZ    TTT
-                                                     TTTTTTT         TTT
-                                                    JJJJ        TTTTTT
-                                                      JJJ   TTTTT
-                                                      JJTTTTT
+                                                           CZZZCZ    CCC
+                                                     CCCCCCC         CCC
+                                                    BBBB        CCCCCC
+                                                      BBB   CCCCC
+                                                      BBCCCCC
 
 
 
 ---
                                                                      TTT
                                                                  TTTTTTTT
-                                                            TTZZZZ     TT
-                                                      JJTTTTT         TTT
-                                                       JJJ       TTTTTT
-                                                        JJ   TTTTTT
-                                                        JJTTTT
+                                                            CCZZZZ     CC
+                                                      BBCCCCC         CCC
+                                                       BBB       CCCCCC
+                                                        BB   CCCCCC
+                                                        BBCCCC
 
 
 
 ---
                                                                       TTT
                                                                   TTTTTTTT
-                                                             TTTZZZ     TTT
-                                                        JJTTTT         TTTT
-                                                         JJ        TTTTT
-                                                         JJJ  TTTTTT
-                                                          JJTTT
+                                                             CCCZZZ     CCT
+                                                        BBCCCC         CCCT
+                                                         BB        CCCCC
+                                                         BBB  CCCCCC
+                                                          BBCCC
 
 
 
 ---
                                                                         TTT
                                                                    TTTTTTTT
-                                                              TTTZZZ     TTT
-                                                          JTTTTT        TTTT
-                                                          JJJ       TTTTTT
-                                                           JJJ TTTTTT
-                                                            JTTTT
+                                                              CCCZZZ     CTT
+                                                          BCCCCC        CCTT
+                                                          BBB       CCCCCC
+                                                           BBB CCCCCC
+                                                            BCCCC
 
 
 
 ---
                                                                          TTT
                                                                     TTTTTTTT
-                                                                TTTZZZ     TT
-                                                            JTTTT        TTTT
-                                                            JJJ      TTTTTT
-                                                             JJ  TTTTT
-                                                             JJTTT
+                                                                CCCZZZ     TT
+                                                            BCCCC        CTTT
+                                                            BBB      CCCCCT
+                                                             BB  CCCCC
+                                                             BBCCC
 
 
 
 ---
                                                                           TTT
                                                                      TTTTTTTT
-                                                                 TTTZZZ     TT
-                                                             JTTTT        TTTT
-                                                             JJJ      TTTTTT
-                                                              JJ  TTTTTT
-                                                               JTTT
+                                                                 CCCZZZ     TT
+                                                             BCCCC        TTTT
+                                                             BBB      CCCCTT
+                                                              BB  CCCCCC
+                                                               BCCC
 
 
 
 ---
                                                                            TTT
                                                                        TTTTTTTT
-                                                                   TTZZZ     TT
-                                                               JTTTT       TTTTT
-                                                               JJ      TTTTTT
-                                                               JJJ TTTTT
-                                                                JJTT
+                                                                   CCZZZ     TT
+                                                               BCCCC       TTTTT
+                                                               BB      CCCTTT
+                                                               BBB CCCCC
+                                                                BBCC
 
 
 
 ---
                                                                             TTT
                                                                         ZTTTTTTT
-                                                                   TTTZZZ    TTT
-                                                                JTTTT       TTTTT
-                                                                JJ       TTTT
-                                                                 JJ TTTTT
-                                                                 JJTT
+                                                                   CCCZZZ    TTT
+                                                                BCCCC       TTTTT
+                                                                BB       CTTT
+                                                                 BB CCCCC
+                                                                 BBCC
 
 
 
 ---
                                                                              TTT
                                                                          ZTTTT TT
-                                                                     TTTZZ     TT
-                                                                 JTTTT       TTTT
-                                                                 JJ      TTTTT
-                                                                  JJ TTTTTT
-                                                                  JJTTT
+                                                                     CCCZZ     TT
+                                                                 BCCCC       TTTT
+                                                                 BB      CTTTT
+                                                                  BB CCCCCT
+                                                                  BBCCC
 
 
 
 ---
                                                                              TTTT
                                                                           ZTTT  T
-                                                                      TTTZZ     TT
-                                                                  JTTTT       TTTT
-                                                                   JJ     TTTTT
-                                                                   JJ TTTTT
-                                                                   JJTT
+                                                                      CCCZZ     TT
+                                                                  BCCCC       TTTT
+                                                                   BB     TTTTT
+                                                                   BB CCCCT
+                                                                   BBCC
 
 
 
 ---
                                                                               TTT
                                                                            ZTTTTTT
-                                                                       TTTZZ     TT
-                                                                   JJTTT       TTTT
-                                                                    JJ     TTTTT
-                                                                    JJ TTTTT
-                                                                     JTTT
+                                                                       CCCZZ     TT
+                                                                   BBCCC       TTTT
+                                                                    BB     TTTTT
+                                                                    BB CCCTT
+                                                                     BCCC
 
 
 
 ---
                                                                                 TTT
                                                                            ZTTTTTTT
-                                                                        TTTZ      TT
-                                                                    JTTTT       TTTT
-                                                                     JJ     TTTTT
-                                                                     JJ TTTTT
-                                                                     JJTT
+                                                                        CCTZ      TT
+                                                                    BCCCC       TTTT
+                                                                     BB     TTTTT
+                                                                     BB CCTTT
+                                                                     BBCC
 
 
 
 ---
                                                                                 TTTT
                                                                             ZTTTT TT
-                                                                        TTTZZ      T
-                                                                     JTTTT       TTTT
-                                                                      J      TTTTT
-                                                                      JJ TTTTT
-                                                                      JJTT
+                                                                        CCTZZ      T
+                                                                     BCCCC       TTTT
+                                                                      B      TTTTT
+                                                                      BB CTTTT
+                                                                      BBCC
 
 
 
 ---
                                                                                  TTT
                                                                              ZTTTT TT
-                                                                         TTTZZZ    TT
-                                                                      JTTT       TTTT
-                                                                       J      TTTT
-                                                                       JJ TTTTT
-                                                                       JTTT
+                                                                         CTTZZZ    TT
+                                                                      BCCC       TTTT
+                                                                       B      TTTT
+                                                                       BB TTTTT
+                                                                       BCCT
 
 
 
@@ -278,10 +278,10 @@
                                                                                   TTT
                                                                               ZTTTT T
                                                                           TTTZZ     TT
-                                                                       JTTT       TTTT
-                                                                       JJ      TTTT
-                                                                        JJ TTTTT
-                                                                        JTTT
+                                                                       BCCT       TTTT
+                                                                       BB      TTTT
+                                                                        BB TTTTT
+                                                                        BCTT
 
 
 
@@ -289,10 +289,10 @@
                                                                                   TTTT
                                                                                ZTTTTTT
                                                                            TTTZZ     TT
-                                                                        JTTT       TTTT
-                                                                        JJ     TTTTT
-                                                                        JJ TTTTT
-                                                                         JTT
+                                                                        BCTT       TTTT
+                                                                        BB     TTTTT
+                                                                        BB TTTTT
+                                                                         BTT
 
 
 
@@ -300,9 +300,9 @@
                                                                                    TTTT
                                                                                ZTTTT TT
                                                                             TTTZ      T
-                                                                         JTTT       TTTT
-                                                                         JJ     TTTTT
-                                                                         JJ TTTTT
+                                                                         BTTT       TTTT
+                                                                         BJ     TTTTT
+                                                                         BJ TTTTT
                                                                           JTTT
 
 
@@ -311,7 +311,7 @@
                                                                                     TTT
                                                                                 ZTTTT T
                                                                              TTZZ     TT
-                                                                         JTTTT      TTTT
+                                                                         BTTTT      TTTT
                                                                           J      TTTT
                                                                           JJ TTTTT
                                                                           JJTT

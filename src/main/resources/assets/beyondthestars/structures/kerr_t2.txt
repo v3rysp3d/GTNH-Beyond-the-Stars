@@ -30,11 +30,11 @@
 
 
                                    OOOPOOOO OOOPOOOOPO
-                                   OOOOOOOOPOOOOOOOOPO
-                                   OOOOOOOOPOOOOOOOOPO
-                                   OOOOOOOOPOOOOOOOOPO
-                                   OOOOOOOOPOOOOOOOOPO
-                                   OOOOOOOOPOOOOOOOOPO
+                                   VVVVVVVVWVVVVVVVVWV
+                                   VVVVVVVVWVVVVVVVVWV
+                                   VVVVVVVVWVVVVVVVVWV
+                                   VVVVVVVVWVVVVVVVVWV
+                                   VVVVVVVVWVVVVVVVVWV
                                    OOO OO   OOOPO  OO
 
 
@@ -96,11 +96,11 @@
 
 
                                O OPOOOKKKKKKKKKKKKKOOO OOP
-                               OOOPO  KKK  K KKK  K  OOOOP
-                               OOOPO                  OOOP
-                               OOOPO                  OOOP
-                               OOOPO                  OOOP
-                               OOOPOOOOOOOOOOOOOOOOOOOOOOP
+                               OVVWV  KKK  K KKK  K  VVVVP
+                               OVVWV                  VVVP
+                               OVVWV                  VVVP
+                               OVVWV                  VVVP
+                               OVVWVVVVVVVVVVVVVVVVVVVVVVP
                                  O OOO OO   OOOOO  OO  O
 
 
@@ -162,11 +162,11 @@
 
 
                             OOOOOKKKKKKKKKKKKKKKKKKKK  KOOOOO
-                            OOOOOKK   KOK  K KKK KK  KK  OOOO
+                            OOOOVKK   KVK  K KKK KK  KK  OOOO
                             OOOO                         OOOO
                             OOOO                         OOOO
                             OOOO                         OOOO
-                            OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+                            OOOOVVVVVVVVVVVVVVVVVVVVVVVVVOOOO
                              OOO O OOOOOO   OOOOO  OO  O OOOO
 
 
@@ -228,11 +228,11 @@
 
 
                           OOOKKKKKOKJOJJJJJJJJJJJJJOO KKKKKOOPO
-                          OOOOKKKKKOJJJJJJJJJJJJJJJJJOK KK  OPO
-                          OOO      JJJJJJJJJJJJJJJJJJJ      OPO
-                          OOO      JJJJJJJJJJJJJJJJJJJ      OPO
-                          OOO      JJJJJJJJJJJJJJJJJJJ      OPO
-                          OOOOOOOOOOJJJJJJJJJJJJJJJOOOOOOOOOOPO
+                          OOOOKKKKKVUUUUUUUUUUUUUUUUUVK KK  OPO
+                          OOO      UUUUUUUUUUUUUUUUUUU      OPO
+                          OOO      UUUUUUUUUUUUUUUUUUU      OPO
+                          OOO      UUUUUUUUUUUUUUUUUUU      OPO
+                          OOOOOOVVVVUUUUUUUUUUUUUUUVVVVVVOOOOPO
                               OO OOOOOJJJ   JJJJJ  OO  O OOOO O
 
 
@@ -294,11 +294,11 @@
                                  O                     O
                                  O                     O
                         OPOKKKKOJOJJ                  JOOOKKKKOOO
-                        OP KKKKKJOJJ                 JJOJJ   O OO
-                        OP     JJOJJ                 JJOJJ     OO
-                        OP     JJOJJ                 JJOJJ     OO
-                        OP     JJOJJ                 JJOJJ     OO
-                        OPOOOOOOJOJJ                 JJOOJOOOOOOO
+                        OP KKKKKUVUU                 UUVUJ   O OO
+                        OP     JUVUU                 UUVUJ     OO
+                        OP     JUVUU                 UUVUJ     OO
+                        OP     JUVUU                 UUVUJ     OO
+                        OPOOOOOOUVUU                 UUVVJOOOOOOO
                         O     OOJOJ                   JO OOO  OO
                                  O                     O
                                  O                     O
@@ -492,11 +492,11 @@
 
 
                    OOKKKKOJ           LLLLLLLLLLLLL           JOOKKKOP
-                   OOOKKJJJ           LLLLLLLLLLLLL           JJKKKOOP
-                   OO   JJJ           LLLLLLLLLLLLL           JJJ   OP
-                   OO   JJJ           LLLLLLLLLLLLL           JJJ   OP
-                   OO   JJJ           LLLLLLLLLLLLL           JJJ   OP
-                   OOOOOOJJ           LLLLLLLLLLLLL           JJOOOOOP
+                   OOOKKJJJ           TTTTTTTTTTTTT           JJKKKOOP
+                   OO   JJJ           TTTTTTTTTTTTT           JJJ   OP
+                   OO   JJJ           TTTTTTTTTTTTT           JJJ   OP
+                   OO   JJJ           TTTTTTTTTTTTT           JJJ   OP
+                   OOOOOOJJ           TTTTTTTTTTTTT           JJOOOOOP
                    OO   O J           LLLLLLLLLLLLL            JO    P
 
 
@@ -558,11 +558,11 @@
 
 
                   OOKKOJJ           LLLLLLLLLLLLLLLLL           JOKKKOOO
-                 OOOK KJJ          LLLL           LLLL          JJK   OO
-                 OO    JJ          LLLL           LLLL          JJ    OO
-                 OO    JJ          LLLL           LLLL          JJ    OO
-                 OO    JJ          LLLL           LLLL          JJ    OO
-                 OOOOOOJJ          LLLL           LLLL          JOOOOOOO
+                 OOOK KJJ          TTTT           TTTT          JJK   OO
+                 OO    JJ          TTTT           TTTT          JJ    OO
+                 OO    JJ          TTTT           TTTT          JJ    OO
+                 OO    JJ          TTTT           TTTT          JJ    OO
+                 OOOOOOJJ          TTTT           TTTT          JOOOOOOO
                     O              LLLLLLLLLLLLLLLLLLL              OO O
 
 
@@ -624,11 +624,11 @@
 
 
                 OOKKKKJ             LLLKKKKKKKKKKKKLL             JOKKOOO
-                OPOKKOJ           LLL               LLL           JJ KKOO
-                OP   JJ          LLL                 LLL          JJ   OO
-                OP   JJ          LLL                 LLL          JJ   OO
-                OP   JJ          LLL                 LLL          JJ   OO
-                OOOOOOJ          LLL                 LLL          JOOOOOO
+                OPOKKOJ           TTT               TTT           JJ KKOO
+                OP   JJ          TTT                 TTT          JJ   OO
+                OP   JJ          TTT                 TTT          JJ   OO
+                OP   JJ          TTT                 TTT          JJ   OO
+                OOOOOOJ          TTT                 TTT          JOOOOOO
                      O             LLLLLLLLLLLLLLLLLLL              O O
 
 
@@ -691,10 +691,10 @@
 
                OOKKKJJ               KKKLKKKKKKKKKKK               JJKKKOO
                OO KOJJ            KKK               KKK            JJKKKOP
-               OO   JJ          LL                     KL          JJ   OP
-               OO   JJ          LL                     LL          JJ   OP
-               OO   JJ          LL                     LL          JJ   OP
-               OOOOOJJ           LLL                 LLL           JJOOOOP
+               OO   JJ          TT                     KT          JJ   OP
+               OO   JJ          TT                     TT          JJ   OP
+               OO   JJ          TT                     TT          JJ   OP
+               OOOOOJJ           TTT                 TTT           JJOOOOP
                OO                   LLLLLLLLLLLLLLLLL              J OO
 
 
@@ -756,11 +756,11 @@
                                       BBBBBBBBBBBB
 
               OOKKOJ                 LLLLLLLLLLLLLLL                 JOKKOO
-              OO  JJ              KKKLJJJJJJJJJJJJJLLKK              JKKKOO
-              OO  JJ            KKK   JJJJJJJJJJJJJ   KKK            JJ  OO
-              OO  JJ                  JJJJJJJJJJJJJ                  JJ  OO
-              OO  JJ            LL    JJJJJJJJJJJJJ    LL            JJ  OO
-              OOOOOJ             LLLL JJJJJJJJJJJJJ LLLL             JOOOOO
+              OO  JJ              KKKTUUUUUUUUUUUUUTTKK              JKKKOO
+              OO  JJ            KKK   UUUUUUUUUUUUU   KKK            JJ  OO
+              OO  JJ                  UUUUUUUUUUUUU                  JJ  OO
+              OO  JJ            TT    UUUUUUUUUUUUU    TT            JJ  OO
+              OOOOOJ             TTTT UUUUUUUUUUUUU TTTT             JOOOOO
                 O                   LLLLLLLLLLLLLLLLL                J    O
 
                                       BBBBBBBBBBBB
@@ -822,11 +822,11 @@
                                   BBBBB           BBBBB
 
              OOKKOJ                  JJ           JJ                  JOKKOO
-             O  KJJ               JJJJJ           JJJJJ               JOK OO
-             O   JJ             KKJJJJJ           JJJJJJK             JJ  OO
-             O   JJ             JJJJJJJ           JJJJJJJ             JJ  OO
-             O   JJ             LLJJJJJ           JJJJJJL             JJ  OO
-             OOOOOJ               JJJJJ           JJJJJ               JOOOOO
+             O  KJJ               UUUUU           UUUUU               JOK OO
+             O   JJ             KKUUUUU           UUUUUUK             JJ  OO
+             O   JJ             UUUUUUU           UUUUUUU             JJ  OO
+             O   JJ             TTUUUUU           UUUUUUT             JJ  OO
+             OOOOOJ               UUUUU           UUUUU               JOOOOO
                 OO                  JJJ           JJJ                    OOO
 
                                   BBBBB           BBBBB
@@ -1152,11 +1152,11 @@
                         BB            AAA       AAA           BB
                                       AAA       AAA
         OOKKOJ                        AAA       AAA                        JOKKOO
-        OOKKOJ                        AAA       AAA                        JJKKPO
-        OO  JJ                        AAA       AAA                        JJ  PO
-        OO  JJ                        AAA       AAA                        JJ  PO
-        OO  JJ                        AAA       AAA                        JJ  PO
-        OOOOOJ                        AAA       AAA                        JOOOOO
+        OOKKOJ                        SSS       SSS                        JJKKPO
+        OO  JJ                        SSS       SSS                        JJ  PO
+        OO  JJ                        SSS       SSS                        JJ  PO
+        OO  JJ                        SSS       SSS                        JJ  PO
+        OOOOOJ                        SSS       SSS                        JOOOOO
           OOO                         AAA       AAA                          OOOO
                                       AAA       AAA
                         BB            AAA       AAA           BB
@@ -1218,11 +1218,11 @@
                        BB B      B AAAADD       DDDAAA B      B BB
                           B      B AAAADD       DDDAAA B      B
         OKKKJ             B      B AAAADD       DDDAAA B      B             JOKKO
-        O KOJ             B      B AAAADD       DDDAAA B      B             JJK O
-        O  JJ             B      B AAAADD       DDDAAA B      B             JJ  O
-        O  JJ             B      B AAAADD       DDDAAA B      B             JJ  O
-        O  JJ             B      B AAAADD       DDDAAA B      B             JJ  O
-        OOOOJ             B      B AAAADD       DDDAAA B      B             JOOOO
+        O KOJ             B      B SSSSRR       RRRSSS B      B             JJK O
+        O  JJ             B      B SSSSRR       RRRSSS B      B             JJ  O
+        O  JJ             B      B SSSSRR       RRRSSS B      B             JJ  O
+        O  JJ             B      B SSSSRR       RRRSSS B      B             JJ  O
+        OOOOJ             B      B SSSSRR       RRRSSS B      B             JOOOO
         OO OJ             B      B AAAADD       DDDAAA B      B             JOOO
                           B      B AAAADD       DDDAAA B      B
                        BB B      B AAAADD       DDDAAA B      B BB
@@ -1284,11 +1284,11 @@
                       BB        AAADDDDCC       CCDDDDAAA        BB
                                 AAADDDDCC       CCDDDDAAA
        OOKKJ                    AAADDDDCC       CCDDDDAAA                    JOKOO
-       OOK J                    AAADDDDCC       CCDDDDAAA                    JOKOO
-       O   J                    AAADDDDCC       CCDDDDAAA                    J   O
-       O   J                    AAADDDDCC       CCDDDDAAA                    J   O
-       O   J                    AAADDDDCC       CCDDDDAAA                    J   O
-       OOOOJ                    AAADDDDCC       CCDDDDAAA                    JOOOO
+       OOK J                    SSSRRRRQQ       QQRRRRSSS                    JOKOO
+       O   J                    SSSRRRRQQ       QQRRRRSSS                    J   O
+       O   J                    SSSRRRRQQ       QQRRRRSSS                    J   O
+       O   J                    SSSRRRRQQ       QQRRRRSSS                    J   O
+       OOOOJ                    SSSRRRRQQ       QQRRRRSSS                    JOOOO
        POOO                     AAADDDDCC       CCDDDDAAA                    JO
                                 AAADDDDCC       CCDDDDAAA
                       BB        AAADDDDCC       CCDDDDAAA        BB
@@ -1350,11 +1350,11 @@
                     bBB       AAADDDCCCC         CCCCDDDAAA       BBb
                               AAADDDCCCC         CCCCDDDAAA
        OKKJ                   AAADDDCCCC         CCCCDDDAAA                   JKKO
-      OOKKJ                   AAADDDCCCC         CCCCDDDAAA                   JKKOP
-      OO  J                   AAADDDCCCC         CCCCDDDAAA                   J  OP
-      OO  J                   AAADDDCCCC         CCCCDDDAAA                   J  OP
-      OO  J                   AAADDDCCCC         CCCCDDDAAA                   J  OP
-      OOOOJ                   AAADDDCCCC         CCCCDDDAAA                   JOOOP
+      OOKKJ                   SSSRRRQQQQ         QQQQRRRSSS                   JKKOP
+      OO  J                   SSSRRRQQQQ         QQQQRRRSSS                   J  OP
+      OO  J                   SSSRRRQQQQ         QQQQRRRSSS                   J  OP
+      OO  J                   SSSRRRQQQQ         QQQQRRRSSS                   J  OP
+      OOOOJ                   SSSRRRQQQQ         QQQQRRRSSS                   JOOOP
         OOJ                   AAADDDCCCC         CCCCDDDAAA
                               AAADDDCCCC         CCCCDDDAAA
                     bBB       AAADDDCCCC         CCCCDDDAAA       BBb
@@ -1416,11 +1416,11 @@
                     BB       AADDCCC                 CCCDDAA       BB
                              AADDCCC                 CCCDDAA
       OKKOJ                  AADDCCC                 CCCDDAA                   OKOP
-      OOKOJ                  AADDCCC                 CCCDDAA                  JOKKP
-      O  JJ                  AADDCCC                 CCCDDAA                  JJ  P
-      O  JJ                  AADDCCC                 CCCDDAA                  JJ  P
-      O  JJ                  AADDCCC                 CCCDDAA                  JJ  P
-      OOOOJ                  AADDCCC                 CCCDDAA                  JOOOP
+      OOKOJ                  SSRRQQQ                 QQQRRSS                  JOKKP
+      O  JJ                  SSRRQQQ                 QQQRRSS                  JJ  P
+      O  JJ                  SSRRQQQ                 QQQRRSS                  JJ  P
+      O  JJ                  SSRRQQQ                 QQQRRSS                  JJ  P
+      OOOOJ                  SSRRQQQ                 QQQRRSS                  JOOOP
       OO  J                  AADDCCC                 CCCDDAA
                              AADDCCC                 CCCDDAA
                     BB       AADDCCC                 CCCDDAA       BB
@@ -1482,11 +1482,11 @@
                    BB E     AADCCC                     CCCDDA     E BB
                             AADCCC                     CCCDDA
      OOKKJ                  AADCCC                     CCCDDA                  JKKOO
-     OO OJ                  AADCCC                     CCCDDA                  JOKOO
-     O   J                  AADCCC                     CCCDDA                  J  OO
-     O   J                  AADCCC                     CCCDDA                  J  OO
-     O   J                  AADCCC                     CCCDDA                  J  OO
-     OOOOJ                  AADCCC                     CCCDDA                  JOOOO
+     OO OJ                  SSRQQQ                     QQQRRS                  JOKOO
+     O   J                  SSRQQQ                     QQQRRS                  J  OO
+     O   J                  SSRQQQ                     QQQRRS                  J  OO
+     O   J                  SSRQQQ                     QQQRRS                  J  OO
+     OOOOJ                  SSRQQQ                     QQQRRS                  JOOOO
       OOOJ                  AADCCC                     CCCDDA                     OO
                             AADCCC                     CCCDDA
                    BB E     AADCCC                     CCCDDA     E BB
@@ -1548,11 +1548,11 @@
                   BB   E     DCC                         CCDD F EE   BB
                              DCC                         CCDD F
      OKKO                    DCC                         CCDD  F                JKKO
-     OKKJ                    DCC                         CCDD                   JK O
-     O  J                    DCC                         CCDD                   J  O
-     O  J                    DCC                         CCDD                   J  O
-     O  J                    DCC                         CCDD                   J  O
-     OOOJ                    DCC                         CCDD                   JOOO
+     OKKJ                    RQQ                         QQRR                   JK O
+     O  J                    RQQ                         QQRR                   J  O
+     O  J                    RQQ                         QQRR                   J  O
+     O  J                    RQQ                         QQRR                   J  O
+     OOOJ                    RQQ                         QQRR                   JOOO
      PO O                    DCC                         CCDD  F                 OOO
                              DCC                         CCDD F
                   BB   E     DCC                         CCDD F EE   BB
@@ -1614,11 +1614,11 @@
                  BB    EFF   C                            CC   EF     B
                         F    C         DDDD   DDDD        CC  EEF
     OOKOJ               F    C         DDDD   DDDD        CC   FF               JOKOO
-    OOKKJ                    C         DDDD   DDDD        CC                    JJKOO
-    O  JJ                    C         DDDD   DDDD        CC                    JJ  O
-    O  JJ                    C         DDDD   DDDD        CC                    JJ  O
-    O  JJ                    C         DDDD   DDDD        CC                    JJ  O
-    OOOOJ                    C         DDDD   DDDD        CC                    JOOOO
+    OOKKJ                    Q         RRRR   RRRR        QQ                    JJKOO
+    O  JJ                    Q         RRRR   RRRR        QQ                    JJ  O
+    O  JJ                    Q         RRRR   RRRR        QQ                    JJ  O
+    O  JJ                    Q         RRRR   RRRR        QQ                    JJ  O
+    OOOOJ                    Q         RRRR   RRRR        QQ                    JOOOO
        OJ               F    C         DDDD   DDDD        CC   FF               JO
                         F    C         DDDD   DDDD        CC  EEF
                  BB    EFF   C                            CC   EF     B
@@ -1680,11 +1680,11 @@
                  B      E                                       F      B
                         E           DDDDDDD   DDDDDDD       EE
     OKKO               FF           DDDDDDD   DDDDDDD                            OKKP
-    OKKJ                            DDDDDDD   DDDDDDD                            JKKP
-    O  J                            DDDDDDD   DDDDDDD                            J  P
-    O  J                            DDDDDDD   DDDDDDD                            J  P
-    O  J                            DDDDDDD   DDDDDDD                            J  P
-    OOOJ                            DDDDDDD   DDDDDDD                            OOOP
+    OKKJ                            RRRRRRR   RRRRRRR                            JKKP
+    O  J                            RRRRRRR   RRRRRRR                            J  P
+    O  J                            RRRRRRR   RRRRRRR                            J  P
+    O  J                            RRRRRRR   RRRRRRR                            J  P
+    OOOJ                            RRRRRRR   RRRRRRR                            OOOP
     OO                 FF           DDDDDDD   DDDDDDD                               O
                         E           DDDDDDD   DDDDDDD       EE
                  B      E                                       F      B
@@ -1746,11 +1746,11 @@
                 BBB    F                                 F            BBB
                   B    FE         DDDDDDCCC   CCCDDDDDD  FEEE         B
    OOKOJ          B               DDDDDDCCC   CCCDDDDDD  F            B          JOKOO
-   OOKKJ          B               DDDDDDCCC   CCCDDDDDD  F            B          JKKOO
-   OO  J          B               DDDDDDCCC   CCCDDDDDD               B          JJ  O
-   OO  J          B               DDDDDDCCC   CCCDDDDDD               B          JJ  O
-   OO  J          B               DDDDDDCCC   CCCDDDDDD               B          JJ  O
-   OOOOJ          B               DDDDDDCCC   CCCDDDDDD  F            B          JOOOO
+   OOKKJ          B               RRRRRRQQQ   QQQRRRRRR  F            B          JKKOO
+   OO  J          B               RRRRRRQQQ   QQQRRRRRR               B          JJ  O
+   OO  J          B               RRRRRRQQQ   QQQRRRRRR               B          JJ  O
+   OO  J          B               RRRRRRQQQ   QQQRRRRRR               B          JJ  O
+   OOOOJ          B               RRRRRRQQQ   QQQRRRRRR  F            B          JOOOO
    O OOJ          B               DDDDDDCCC   CCCDDDDDD  F            B           OOOO
                   B    FE         DDDDDDCCC   CCCDDDDDD  FEEE         B
                 BBB    F                                 F            BBB
@@ -1812,11 +1812,11 @@
                BB                                         F             B
                          E       DDDDCCCC       CCCCDDDD EF
    OKKO                          DDDDCCCC       CCCCDDDDEEF                       JKOO
-   OKKO                          DDDDCCCC       CCCCDDDD  F                       JKKO
-   O  J                          DDDDCCCC       CCCCDDDD                          J  O
-   O  J                          DDDDCCCC       CCCCDDDD                          J  O
-   O  J                          DDDDCCCC       CCCCDDDD                          J  O
-   OOOO                          DDDDCCCC       CCCCDDDD  F                       JOOO
+   OKKO                          RRRRQQQQ       QQQQRRRR  F                       JKKO
+   O  J                          RRRRQQQQ       QQQQRRRR                          J  O
+   O  J                          RRRRQQQQ       QQQQRRRR                          J  O
+   O  J                          RRRRQQQQ       QQQQRRRR                          J  O
+   OOOO                          RRRRQQQQ       QQQQRRRR  F                       JOOO
    POO                           DDDDCCCC       CCCCDDDDEEF                       JOOO
                          E       DDDDCCCC       CCCCDDDD EF
                BB                                         F             B
@@ -1878,11 +1878,11 @@
                B      AD                                          A      B
                       AD EE    DDDDCCC             CCCDDDD F      A
    OKKJ               AD       DDDDCCC             CCCEEDD        A               JOKOO
-  OO  J               AD       DDDDCCC             CCCDDDD        A               JKKOO
-  OO  J               AD       DDDDCCC             CCCDDDD        A               J  OO
-  OO  J               AD       DDDDCCC             CCCDDDD        A               J  OO
-  OO  J               AD       DDDDCCC             CCCDDDD        A               J  OO
-  OOOOJ               AD       DDDDCCC             CCCDDDD        A               JOOOO
+  OO  J               SR       RRRRQQQ             QQQRRRR        S               JKKOO
+  OO  J               SR       RRRRQQQ             QQQRRRR        S               J  OO
+  OO  J               SR       RRRRQQQ             QQQRRRR        S               J  OO
+  OO  J               SR       RRRRQQQ             QQQRRRR        S               J  OO
+  OOOOJ               SR       RRRRQQQ             QQQRRRR        S               JOOOO
     OOJ               AD       DDDDCCC             CCCEEDD        A               JO OO
                       AD EE    DDDDCCC             CCCDDDD F      A
                B      AD                                          A      B
@@ -1944,11 +1944,11 @@
                B     ADDC                                       CDAA     BB
                      ADDC E F   DCCC                 CCCD       CDAA
   OOKO               ADDC       DCCC                EEECD       CDAA               OKKP
-  OOKO               ADDC       DCCC                 CCCD       CDAA               O  P
-  O  J               ADDC       DCCC                 CCCD       CDAA               J  P
-  O  J               ADDC       DCCC                 CCCD       CDAA               J  P
-  O  J               ADDC       DCCC                 CCCD       CDAA               J  P
-  OOOO               ADDC       DCCC                 CCCD       CDAA               OOOP
+  OOKO               SRRQ       RQQQ                 QQQR       QRSS               O  P
+  O  J               SRRQ       RQQQ                 QQQR       QRSS               J  P
+  O  J               SRRQ       RQQQ                 QQQR       QRSS               J  P
+  O  J               SRRQ       RQQQ                 QQQR       QRSS               J  P
+  OOOO               SRRQ       RQQQ                 QQQR       QRSS               OOOP
                      ADDC       DCCC                EEECD       CDAA               OOOP
                      ADDC E F   DCCC                 CCCD       CDAA
                B     ADDC                                       CDAA     BB
@@ -2010,11 +2010,11 @@
               B     AADCC  F                                     CDAA     B
                     AADCC EF     C                     C         CDAA
   OKKJ              AADCC  F     C                 EE  C         CDAA              JKKO
-  OKKJ              AADCC  F     C                EE   C         CDAA              JKKO
-  O  J              AADCC        C                     C         CDAA              J  O
-  O  J              AADCC        C                     C         CDAA              J  O
-  O  J              AADCC        C                     C         CDAA              J  O
-  OOOJ              AADCC  F     C                EE   C         CDAA              JOOO
+  OKKJ              SSRQQ  F     Q                EE   Q         QRSS              JKKO
+  O  J              SSRQQ        Q                     Q         QRSS              J  O
+  O  J              SSRQQ        Q                     Q         QRSS              J  O
+  O  J              SSRQQ        Q                     Q         QRSS              J  O
+  OOOJ              SSRQQ  F     Q                EE   Q         QRSS              JOOO
   O                 AADCC  F     C                 EE  C         CDAA              OOO
                     AADCC EF     C                     C         CDAA
               B     AADCC  F                                     CDAA     B
@@ -2076,11 +2076,11 @@
               B     ADCC  F                                      CCDA     B
                     ADCC  FED                               D    CCDA
   OKK               ADCC  FED                               D    CCDA              JOKOO
- POKJJ              ADCC  F D                   EEE         D    CCDA              JKKOO
- PO JJ              ADCC    D                               D    CCDA              JJ OO
- PO JJ              ADCC    D                               D    CCDA              JJ OO
- PO JJ              ADCC    D                               D    CCDA              JJ OO
- POOJJ              ADCC  F D                   EEE         D    CCDA              JOOOO
+ POKJJ              SRQQ  F R                   EEE         R    QQRS              JKKOO
+ PO JJ              SRQQ    R                               R    QQRS              JJ OO
+ PO JJ              SRQQ    R                               R    QQRS              JJ OO
+ PO JJ              SRQQ    R                               R    QQRS              JJ OO
+ POOJJ              SRQQ  F R                   EEE         R    QQRS              JOOOO
   OOO               ADCC  FED                               D    CCDA               OOO
                     ADCC  FED                               D    CCDA
               B     ADCC  F                                      CCDA     B
@@ -2142,11 +2142,11 @@
              B     AADC                                           CDAA     B
                    AADC     DD                             DD     CDAA
  OOKO              AADC    EDD                             DD     CDAA              JKKO
- OOKO              AADC     DD                EEE          DD     CDAA              J OO
- O  J     LKK      AADC     DD                             DD     CDAA              J  O
- O  J     L M      AADC     DD                             DD     CDAA              J  O
- O  J     LLL      AADC     DD                             DD     CDAA              J  O
- OOOO              AADC     DD                EEE          DD     CDAA              JOOO
+ OOKO              SSRQ     RR                EEE          RR     QRSS              J OO
+ O  J     LKK      SSRQ     RR                             RR     QRSS              J  O
+ O  J     L M      SSRQ     RR                             RR     QRSS              J  O
+ O  J     LLL      SSRQ     RR                             RR     QRSS              J  O
+ OOOO              SSRQ     RR                EEE          RR     QRSS              JOOO
  OOOO              AADC    EDD                             DD     CDAA              JOOO
                    AADC     DD                             DD     CDAA
              B     AADC                                           CDAA     B
@@ -2208,11 +2208,11 @@
     O        B    BADCC                                           CCDAB    B        O
     O             BADCC    DDCC                           CCDD    CCDAB             O
  OK O             BADCC    DECC                           CCDD    CCDAB             OKKO
- OKKO    LLK      BADCC    DDCC                           CCDD    CCDAB             OKKO
- O  O    LLKL     BADCC    DDCC                           CCDD    CCDAB             O  O
- O  O    LL M     BADCC    DDCC                           CCDD    CCDAB             O  O
- O  O    LLLM     BADCC    DDCC                           CCDD    CCDAB             O  O
- OOOO    LLLL     BADCC    DDCC                           CCDD    CCDAB             OOOO
+ OKKO    LLK      BSRQQ    RRQQ                           QQRR    QQRSB             OKKO
+ O  O    LLKL     BSRQQ    RRQQ                           QQRR    QQRSB             O  O
+ O  O    LL M     BSRQQ    RRQQ                           QQRR    QQRSB             O  O
+ O  O    LLLM     BSRQQ    RRQQ                           QQRR    QQRSB             O  O
+ OOOO    LLLL     BSRQQ    RRQQ                           QQRR    QQRSB             OOOO
  OO O             BADCC    DECC                           CCDD    CCDAB             OO
     O             BADCC    DDCC                           CCDD    CCDAB             O
     O        B    BADCC                                           CCDAB    B        O
@@ -2274,11 +2274,11 @@
             BB     ADC                                             CDA     BB
                    ADC    DDDC                             CDDD    CDA
  OKKJ              ADC    DDEE                             CDDD    CDA              JOKO
- O  J    LKKL      ADC    DDDC                             CDDD    CDA              J  O
- O  J    L  M      ADC    DDDC                             CDDD    CDA              J  O
- O  J    L  M      ADC    DDDC                             CDDD    CDA              J  O
- O  J    L  M      ADC    DDDC                             CDDD    CDA              J  O
- OOOJ    LLLL      ADC    DDDC                             CDDD    CDA              JOOO
+ O  J    LKKL      SRQ    RRRQ                             QRRR    QRS              J  O
+ O  J    L  M      SRQ    RRRQ                             QRRR    QRS              J  O
+ O  J    L  M      SRQ    RRRQ                             QRRR    QRS              J  O
+ O  J    L  M      SRQ    RRRQ                             QRRR    QRS              J  O
+ OOOJ    LLLL      SRQ    RRRQ                             QRRR    QRS              JOOO
   OOJ    LL        ADC    DDEE                             CDDD    CDA               OOO
                    ADC    DDDC                             CDDD    CDA
             BB     ADC                                             CDA     BB
@@ -2340,11 +2340,11 @@
             B     ADDC                                             CDDA     B
                   ADDC    DDCC                             CCDD    CDDA
 OOKOJ   LLKKL     ADDC    DDCE                             CCDD    CDDA             JKKOO
-OOKJJ   LLKKL     ADDC    DDCC                             CCDD    CDDA             JJ OO
-O  JJ   LL  M     ADDC    DDCC                             CCDD    CDDA             JJ OO
-O  JJ   LL  M     ADDC    DDCC                             CCDD    CDDA             JJ OO
-O  JJ   LL  M     ADDC    DDCC                             CCDD    CDDA             JJ OO
-OOOOJ   LL  M     ADDC    DDCC                             CCDD    CDDA             JOOOO
+OOKJJ   LLKKL     SRRQ    RRQQ                             QQRR    QRRS             JJ OO
+O  JJ   LL  M     SRRQ    RRQQ                             QQRR    QRRS             JJ OO
+O  JJ   LL  M     SRRQ    RRQQ                             QQRR    QRRS             JJ OO
+O  JJ   LL  M     SRRQ    RRQQ                             QQRR    QRRS             JJ OO
+OOOOJ   LL  M     SRRQ    RRQQ                             QQRR    QRRS             JOOOO
 OOOO    LLLLL     ADDC    DDCE                             CCDD    CDDA             J
                   ADDC    DDCC                             CCDD    CDDA
             B     ADDC                                             CDDA     B
@@ -2406,11 +2406,11 @@ OOOO    LLLLL     ADDC    DDCE                             CCDD    CDDA         
             B     ADC                                               CDA     B
         LL        ADC    DDDC                               CDDD    CDA
 OOKO    LLKLL     ADC    DDDCEE                             CDDD    CDA              OKOO
-OOKO    L   M     ADC    DDDC                               CDDD    CDA              J  O
-O  J    L   M     ADC    DDDC                               CDDD    CDA              J  O
-O  J    L   M     ADC    DDDC                               CDDD    CDA              J  O
-O  J    L   M     ADC    DDDC                               CDDD    CDA              J  O
-OOOO    L   M     ADC    DDDC                               CDDD    CDA              OOOO
+OOKO    L   M     SRQ    RRRQ                               QRRR    QRS              J  O
+O  J    L   M     SRQ    RRRQ                               QRRR    QRS              J  O
+O  J    L   M     SRQ    RRRQ                               QRRR    QRS              J  O
+O  J    L   M     SRQ    RRRQ                               QRRR    QRS              J  O
+OOOO    L   M     SRQ    RRRQ                               QRRR    QRS              OOOO
 OO      LLLLL     ADC    DDDCEE                             CDDD    CDA
         LLLL      ADC    DDDC                               CDDD    CDA
             B     ADC                                               CDA     B
@@ -2472,11 +2472,11 @@ OO      LLLLL     ADC    DDDCEE                             CDDD    CDA
             B     ADC                                               CDA     B
        LLLKLL     ADC    DDCC                               CCDD    CDA
 OOKO   L   LM     ADC    DDCC E                             CCDD    CDA              OKO
-OOKO   L    M     ADC    DDCC E                             CCDD    CDA              JKOO
-O  J   L    M     ADC    DDCC                               CCDD    CDA              J  O
-O  J   L    M     ADC    DDCC                               CCDD    CDA              J  O
-O  J   L    M     ADC    DDCC                               CCDD    CDA              J  O
-OOOO   L    M     ADC    DDCC E                             CCDD    CDA              OOOO
+OOKO   L    M     SRQ    RRQQ E                             QQRR    QRS              JKOO
+O  J   L    M     SRQ    RRQQ                               QQRR    QRS              J  O
+O  J   L    M     SRQ    RRQQ                               QQRR    QRS              J  O
+O  J   L    M     SRQ    RRQQ                               QQRR    QRS              J  O
+OOOO   L    M     SRQ    RRQQ E                             QQRR    QRS              OOOO
 OOOO   L    M     ADC    DDCC E                             CCDD    CDA
        LLLLLL     ADC    DDCC                               CCDD    CDA
             B     ADC                                               CDA     B
@@ -2538,11 +2538,11 @@ OOOO   L    M     ADC    DDCC E                             CCDD    CDA
             BB   ADDC                                               CDAA   BBB
        LLKKLLB   ADDC    DDC                                 CDD    CDAA   B
 OKKJ   L    MB   ADDC    DDC                                 CDD    CDAA   B         JKKP
-OKKJ   L    MB   ADDC    DDC  EE                             CDD    CDAA   B         OKKO
-O  J   L    MB   ADDC    DDC                                 CDD    CDAA   B         J  P
-O  J   L    MB   ADDC    DDC                                 CDD    CDAA   B         J  P
-O  J   L    MB   ADDC    DDC                                 CDD    CDAA   B         J  P
-OOOJ   L    MB   ADDC    DDC  EE                             CDD    CDAA   B         OOOO
+OKKJ   L    MB   SRRQ    RRQ  EE                             QRR    QRSS   B         OKKO
+O  J   L    MB   SRRQ    RRQ                                 QRR    QRSS   B         J  P
+O  J   L    MB   SRRQ    RRQ                                 QRR    QRSS   B         J  P
+O  J   L    MB   SRRQ    RRQ                                 QRR    QRSS   B         J  P
+OOOJ   L    MB   SRRQ    RRQ  EE                             QRR    QRSS   B         OOOO
 OOOJ   L    MB   ADDC    DDC                                 CDD    CDAA   B
        LLLLLLB   ADDC    DDC                                 CDD    CDAA   B
             BB   ADDC                                               CDAA   BBB
@@ -2604,11 +2604,11 @@ OOOJ   L    MB   ADDC    DDC                                 CDD    CDAA   B
            B     ADCC                                               CCDA     B
        LLKKLM    ADCC   DDDC                                 CDDD   CCDA
 OKKJ   L    M    ADCC   DDDC                                 CDDD   CCDA
-OKKJ   L    M    ADCC   DDDC   E                             CDDD   CCDA
-O  J   L    M    ADCC   DDDC                                 CDDD   CCDA
-O  J   L    M    ADCC   DDDC                                 CDDD   CCDA
-O  J   L    M    ADCC   DDDC                                 CDDD   CCDA
-OOOJ   L    M    ADCC   DDDC   E                             CDDD   CCDA
+OKKJ   L    M    SRQQ   RRRQ   E                             QRRR   QQRS
+O  J   L    M    SRQQ   RRRQ                                 QRRR   QQRS
+O  J   L    M    SRQQ   RRRQ                                 QRRR   QQRS
+O  J   L    M    SRQQ   RRRQ                                 QRRR   QQRS
+OOOJ   L    M    SRQQ   RRRQ   E                             QRRR   QQRS
 OOOJ   L    M    ADCC   DDDC                                 CDDD   CCDA
        LLLLLM    ADCC   DDDC                                 CDDD   CCDA
            B     ADCC                                               CCDA     B
@@ -2670,11 +2670,11 @@ OOOJ   L    M    ADCC   DDDC                                 CDDD   CCDA
            B     ADC                                                 CDA     B
        LLKKLM    ADC    DDCC                                 CCDD    CDA
 PKKJ   L    M    ADC    DDCC                                 CCDD    CDA
-PKKJ   L    M    ADC    DDCC   EE                            CCDD    CDA
-P  J   L    M    ADC    DDCC                                 CCDD    CDA
-P  J   L    M    ADC    DDCC                                 CCDD    CDA
-P  J   L    M    ADC    DDCC                                 CCDD    CDA
-POOJ   L    M    ADC    DDCC   EE                            CCDD    CDA
+PKKJ   L    M    SRQ    RRQQ   EE                            QQRR    QRS
+P  J   L    M    SRQ    RRQQ                                 QQRR    QRS
+P  J   L    M    SRQ    RRQQ                                 QQRR    QRS
+P  J   L    M    SRQ    RRQQ                                 QQRR    QRS
+POOJ   L    M    SRQ    RRQQ   EE                            QQRR    QRS
 OOOJ   L    M    ADC    DDCC                                 CCDD    CDA
        LLLLLM    ADC    DDCC                                 CCDD    CDA
            B     ADC                                                 CDA     B
@@ -2736,11 +2736,11 @@ OOOJ   L    M    ADC    DDCC                                 CCDD    CDA
            B                                                                 B
        LLKKLM           DDC                                   CDD
 OKKJ   L    M           DDC                                   CDD
-O  J   L    M           DDC     E                             CDD
-O  J   L    M           DDC                                   CDD
-O  J   L    M           DDC                                   CDD
-O  J   L    M           DDC                                   CDD
-OOOJ   L    M           DDC     E                             CDD
+O  J   L    M           RRQ     E                             QRR
+O  J   L    M           RRQ                                   QRR
+O  J   L    M           RRQ                                   QRR
+O  J   L    M           RRQ                                   QRR
+OOOJ   L    M           RRQ     E                             QRR
 POOJ   L    M           DDC                                   CDD
        LLLLLM           DDC                                   CDD
            B                                                                 B
@@ -2802,11 +2802,11 @@ POOJ   L    M           DDC                                   CDD
            B                                                                BB
        LLKKLM            DC                                   CDD           B
 OKKJ   L    M            DC                                   CDD
-OKKJ   L    M            DC     E                             CDD
-O  J   L    M            DC                                   CDD     F    F    F
-O  J   L    M            DC                                   CDD     F    F    F
-O  J   L    M            DC                                   CDD     F    F    F
-OOOJ   L    M            DC     E                             CDD
+OKKJ   L    M            RQ     E                             QRR
+O  J   L    M            RQ                                   QRR     F    F    F
+O  J   L    M            RQ                                   QRR     F    F    F
+O  J   L    M            RQ                                   QRR     F    F    F
+OOOJ   L    M            RQ     E                             QRR
 OOOJ   L    M            DC                                   CDD
        LLLLLM            DC                                   CDD           B
            B                                                                BB
@@ -3066,11 +3066,11 @@ OOOJ   L    M                                                         F    F B  
            B                                                                BB
        LLKKLM           DDC                                   CD            B
 OKKJ   L    M           DDC                                   CD
-OKKJ   L    M           DDC                             E     CD
-O  J   L    M           DDC                                   CD      F    F    F
-O  J   L    M           DDC                                   CD      F    F    F
-O  J   L    M           DDC                                   CD      F    F    F
-OOOJ   L    M           DDC                             E     CD
+OKKJ   L    M           RRQ                             E     QR
+O  J   L    M           RRQ                                   QR      F    F    F
+O  J   L    M           RRQ                                   QR      F    F    F
+O  J   L    M           RRQ                                   QR      F    F    F
+OOOJ   L    M           RRQ                             E     QR
 OOOJ   L    M           DDC                                   CD
        LLLLLM           DDC                                   CD            B
            B                                                                BB
@@ -3132,11 +3132,11 @@ OOOJ   L    M           DDC                                   CD
            B                                                                 B
        LLKKLM           DDC                                   CDD
 OKKJ   L    M           DDC                                   CDD
-O  J   L    M           DDC                             E     CDD
-O  J   L    M           DDC                                   CDD
-O  J   L    M           DDC                                   CDD
-O  J   L    M           DDC                                   CDD
-OOOJ   L    M           DDC                             E     CDD
+O  J   L    M           RRQ                             E     QRR
+O  J   L    M           RRQ                                   QRR
+O  J   L    M           RRQ                                   QRR
+O  J   L    M           RRQ                                   QRR
+OOOJ   L    M           RRQ                             E     QRR
 OOOJ   L    M           DDC                                   CDD
        LLLLLM           DDC                                   CDD
            B                                                                 B
@@ -3198,11 +3198,11 @@ OOOJ   L    M           DDC                                   CDD
            B     ADC                                                 CDA     B
        LLKLLM    ADC    DDCC                                 CCDD    CDA
 OKKJ   L    M    ADC    DDCC                                 CCDD    CDA
-OKKJ   L    M    ADC    DDCC                            EE   CCDD    CDA
-O  J   L    M    ADC    DDCC                                 CCDD    CDA
-O  J   L    M    ADC    DDCC                                 CCDD    CDA
-O  J   L    M    ADC    DDCC                                 CCDD    CDA
-OOOJ   L    M    ADC    DDCC                            EE   CCDD    CDA
+OKKJ   L    M    SRQ    RRQQ                            EE   QQRR    QRS
+O  J   L    M    SRQ    RRQQ                                 QQRR    QRS
+O  J   L    M    SRQ    RRQQ                                 QQRR    QRS
+O  J   L    M    SRQ    RRQQ                                 QQRR    QRS
+OOOJ   L    M    SRQ    RRQQ                            EE   QQRR    QRS
 OOOJ   L    M    ADC    DDCC                                 CCDD    CDA
        LLLLLM    ADC    DDCC                                 CCDD    CDA
            B     ADC                                                 CDA     B
@@ -3264,11 +3264,11 @@ OOOJ   L    M    ADC    DDCC                                 CCDD    CDA
            B     ADCC                                               CCDA     B
        LLKKLM    ADCC   DDDC                                 CDDD   CCDA
 PKKJ   L    M    ADCC   DDDC                                 CDDD   CCDA
-PKOJ   L    M    ADCC   DDDC                             E   CDDD   CCDA
-P  J   L    M    ADCC   DDDC                                 CDDD   CCDA
-P  J   L    M    ADCC   DDDC                                 CDDD   CCDA
-P  J   L    M    ADCC   DDDC                                 CDDD   CCDA
-POOJ   L    M    ADCC   DDDC                             E   CDDD   CCDA
+PKOJ   L    M    SRQQ   RRRQ                             E   QRRR   QQRS
+P  J   L    M    SRQQ   RRRQ                                 QRRR   QQRS
+P  J   L    M    SRQQ   RRRQ                                 QRRR   QQRS
+P  J   L    M    SRQQ   RRRQ                                 QRRR   QQRS
+POOJ   L    M    SRQQ   RRRQ                             E   QRRR   QQRS
 POOJ   L    M    ADCC   DDDC                                 CDDD   CCDA
        LLLLLM    ADCC   DDDC                                 CDDD   CCDA
            B     ADCC                                               CCDA     B
@@ -3330,11 +3330,11 @@ POOJ   L    M    ADCC   DDDC                                 CDDD   CCDA
             BB   AADC                                               CDDA   BBB
        LLLKLLB   AADC    DDC                                 CDD    CDDA   B
 OKKJ   L    MB   AADC    DDC                                 CDD    CDDA   B         JKKO
-OKKJ   L    MB   AADC    DDC                             EE  CDD    CDDA   B         J  O
-O  J   L    MB   AADC    DDC                                 CDD    CDDA   B         J  O
-O  J   L    MB   AADC    DDC                                 CDD    CDDA   B         J  O
-O  J   L    MB   AADC    DDC                                 CDD    CDDA   B         J  O
-OOOJ   L    MB   AADC    DDC                             EE  CDD    CDDA   B         JOOO
+OKKJ   L    MB   SSRQ    RRQ                             EE  QRR    QRRS   B         J  O
+O  J   L    MB   SSRQ    RRQ                                 QRR    QRRS   B         J  O
+O  J   L    MB   SSRQ    RRQ                                 QRR    QRRS   B         J  O
+O  J   L    MB   SSRQ    RRQ                                 QRR    QRRS   B         J  O
+OOOJ   L    MB   SSRQ    RRQ                             EE  QRR    QRRS   B         JOOO
 OOOJ   L    MB   AADC    DDC                                 CDD    CDDA   B         JOOO
        LLLLLLB   AADC    DDC                                 CDD    CDDA   B
             BB   AADC                                               CDDA   BBB
@@ -3396,11 +3396,11 @@ OOOJ   L    MB   AADC    DDC                                 CDD    CDDA   B    
             B     ADC                                               CDA     B
        LLLKLL     ADC    DDCC                               CCDD    CDA
 OOKO   L   LL     ADC    DDCC                             E CCDD    CDA              OKOO
-OOKO   L    M     ADC    DDCC                             E CCDD    CDA              OKOO
-O  J   L    M     ADC    DDCC                               CCDD    CDA              J  O
-O  J   L    M     ADC    DDCC                               CCDD    CDA              J  O
-O  J   L    M     ADC    DDCC                               CCDD    CDA              J  O
-OOOO   L    M     ADC    DDCC                             E CCDD    CDA              OOOO
+OOKO   L    M     SRQ    RRQQ                             E QQRR    QRS              OKOO
+O  J   L    M     SRQ    RRQQ                               QQRR    QRS              J  O
+O  J   L    M     SRQ    RRQQ                               QQRR    QRS              J  O
+O  J   L    M     SRQ    RRQQ                               QQRR    QRS              J  O
+OOOO   L    M     SRQ    RRQQ                             E QQRR    QRS              OOOO
 OOOO   L    M     ADC    DDCC                             E CCDD    CDA
        LLLLLL     ADC    DDCC                               CCDD    CDA
             B     ADC                                               CDA     B
@@ -3462,11 +3462,11 @@ OOOO   L    M     ADC    DDCC                             E CCDD    CDA
             B     ADC                                               CDA     B
         LL        ADC    DDDC                               CDDD    CDA
 OOKO    LLKLM     ADC    DDDC                             EECDDD    CDA              OKOO
-OOKJ    L   M     ADC    DDDC                               CDDD    CDA              JKOO
-O  J    L   M     ADC    DDDC                               CDDD    CDA              J  O
-O  J    L   M     ADC    DDDC                               CDDD    CDA              J  O
-O  J    L   M     ADC    DDDC                               CDDD    CDA              J  O
-OOOJ    L   M     ADC    DDDC                               CDDD    CDA              OOOO
+OOKJ    L   M     SRQ    RRRQ                               QRRR    QRS              JKOO
+O  J    L   M     SRQ    RRRQ                               QRRR    QRS              J  O
+O  J    L   M     SRQ    RRRQ                               QRRR    QRS              J  O
+O  J    L   M     SRQ    RRRQ                               QRRR    QRS              J  O
+OOOJ    L   M     SRQ    RRRQ                               QRRR    QRS              OOOO
         LLLLM     ADC    DDDC                             EECDDD    CDA              OOOO
         LLLL      ADC    DDDC                               CDDD    CDA
             B     ADC                                               CDA     B
@@ -3528,11 +3528,11 @@ OOOJ    L   M     ADC    DDDC                               CDDD    CDA         
             B     ADDC                                             CDDA
                   ADDC    DDCC                             CCDD    CDDA
 OOKOJ   LLKKL     ADDC    DDCC                             ECDD    CDDA               KOP
-OOKJJ   LLKKM     ADDC    DDCC                             CCDD    CDDA             JOKOP
-O  JJ   LL  M     ADDC    DDCC                             CCDD    CDDA             JJ OP
-O  JJ   LL  M     ADDC    DDCC                             CCDD    CDDA             JJ OP
-O  JJ   LL  M     ADDC    DDCC                             CCDD    CDDA             JJ OP
-OOOOJ   LL  M     ADDC    DDCC                             CCDD    CDDA             JOOOP
+OOKJJ   LLKKM     SRRQ    RRQQ                             QQRR    QRRS             JOKOP
+O  JJ   LL  M     SRRQ    RRQQ                             QQRR    QRRS             JJ OP
+O  JJ   LL  M     SRRQ    RRQQ                             QQRR    QRRS             JJ OP
+O  JJ   LL  M     SRRQ    RRQQ                             QQRR    QRRS             JJ OP
+OOOOJ   LL  M     SRRQ    RRQQ                             QQRR    QRRS             JOOOP
         LLLLL     ADDC    DDCC                             ECDD    CDDA
                   ADDC    DDCC                             CCDD    CDDA
             B     ADDC                                             CDDA     B
@@ -3594,11 +3594,11 @@ OOOOJ   LL  M     ADDC    DDCC                             CCDD    CDDA         
             BB     ADC                                             CDA     B
                    ADC    DDDC                             CDDD    CDA
  PKKJ              ADC    DDDC                             EEDD    CDA              JKK
- PKKJ    LLKL      ADC    DDDC                             CDDD    CDA              JKKO
- P  J    L  M      ADC    DDDC                             CDDD    CDA              J  O
- P  J    L  M      ADC    DDDC                             CDDD    CDA              J  O
- P  J    L  M      ADC    DDDC                             CDDD    CDA              J  O
- POOJ    LLLL      ADC    DDDC                             CDDD    CDA              JOOO
+ PKKJ    LLKL      SRQ    RRRQ                             QRRR    QRS              JKKO
+ P  J    L  M      SRQ    RRRQ                             QRRR    QRS              J  O
+ P  J    L  M      SRQ    RRRQ                             QRRR    QRS              J  O
+ P  J    L  M      SRQ    RRRQ                             QRRR    QRS              J  O
+ POOJ    LLLL      SRQ    RRRQ                             QRRR    QRS              JOOO
   OOJ    LL        ADC    DDDC                             EEDD    CDA
                    ADC    DDDC                             CDDD    CDA
             BB     ADC                                             CDA     B
@@ -3660,11 +3660,11 @@ OOOOJ   LL  M     ADDC    DDCC                             CCDD    CDDA         
     O        B    BADCC                                           CCDAB             O
     O             BADCC    DDCC                           CCDD    CCDAB             O
  O  O             BADCC    DDCC                           CCED    CCDAB             OKKO
- OOKO    LLK      BADCC    DDCC                           CCDD    CCDAB             OKKO
- O  O    LLKK     BADCC    DDCC                           CCDD    CCDAB             O  O
- O  O    LL M     BADCC    DDCC                           CCDD    CCDAB             O  O
- O  O    LLLL     BADCC    DDCC                           CCDD    CCDAB             O  O
- OOOO    LLLL     BADCC    DDCC                           CCDD    CCDAB             OOOO
+ OOKO    LLK      BSRQQ    RRQQ                           QQRR    QQRSB             OKKO
+ O  O    LLKK     BSRQQ    RRQQ                           QQRR    QQRSB             O  O
+ O  O    LL M     BSRQQ    RRQQ                           QQRR    QQRSB             O  O
+ O  O    LLLL     BSRQQ    RRQQ                           QQRR    QQRSB             O  O
+ OOOO    LLLL     BSRQQ    RRQQ                           QQRR    QQRSB             OOOO
  O  O             BADCC    DDCC                           CCED    CCDAB             O
     O             BADCC    DDCC                           CCDD    CCDAB             O
     O        B    BADCC                                           CCDAB    B        O
@@ -3726,11 +3726,11 @@ OOOOJ   LL  M     ADDC    DDCC                             CCDD    CDDA         
              B     AADC                                           CDAA
                    AADC     DD                             DD     CDAA
   OKO              AADC     DD                             DDE    CDAA              OKOO
- OOKO              AADC     DD          EEE                DD     CDAA              JKKO
- O  J     LKK      AADC     DD                             DD     CDAA              J  O
- O  J     L M      AADC     DD                             DD     CDAA              J  O
- O  J     LLL      AADC     DD                             DD     CDAA              J  O
- OOOO              AADC     DD          EEE                DD     CDAA              OOOO
+ OOKO              SSRQ     RR          EEE                RR     QRSS              JKKO
+ O  J     LKK      SSRQ     RR                             RR     QRSS              J  O
+ O  J     L M      SSRQ     RR                             RR     QRSS              J  O
+ O  J     LLL      SSRQ     RR                             RR     QRSS              J  O
+ OOOO              SSRQ     RR          EEE                RR     QRSS              OOOO
   OOO              AADC     DD                             DDE    CDAA
                    AADC     DD                             DD     CDAA
              B     AADC                                           CDAA     B
@@ -3792,11 +3792,11 @@ OOOOJ   LL  M     ADDC    DDCC                             CCDD    CDDA         
               B     ADCC                                      F  CCDA     B
                     ADCC                                    DEF  CCDA
  OOKOJ              ADCC                                    DEF  CCDA              JOKOO
- OOKJJ              ADCC              EEE                   D F  CCDA              JJ OO
- OO JJ              ADCC                                    D    CCDA              JJ PO
- OO JJ              ADCC                                    D    CCDA              JJ PO
- OO JJ              ADCC                                    D    CCDA              JJ PO
- OOOOJ              ADCC              EEE                   D F  CCDA              JOOOO
+ OOKJJ              SRQQ              EEE                   R F  QQRS              JJ OO
+ OO JJ              SRQQ                                    R    QQRS              JJ PO
+ OO JJ              SRQQ                                    R    QQRS              JJ PO
+ OO JJ              SRQQ                                    R    QQRS              JJ PO
+ OOOOJ              SRQQ              EEE                   R F  QQRS              JOOOO
  O                  ADCC                                    DEF  CCDA              JO
                     ADCC                                    DEF  CCDA
               B     ADCC                                      F  CCDA     B
@@ -3858,11 +3858,11 @@ OOOOJ   LL  M     ADDC    DDCC                             CCDD    CDDA         
               B     AADC                                     F  CCDAA
                     AADC         C                     C     FE CCDAA
   OKKJ              AADC         C  EE                 C     F  CCDAA              JKKP
-  PKKJ              AADC         C   EE                C     F  CCDAA              JK P
-  P  J              AADC         C                     C        CCDAA              J  P
-  P  J              AADC         C                     C        CCDAA              J  P
-  P  J              AADC         C                     C        CCDAA              J  P
-  POOJ              AADC         C   EE                C     F  CCDAA              JOOP
+  PKKJ              SSRQ         Q   EE                Q     F  QQRSS              JK P
+  P  J              SSRQ         Q                     Q        QQRSS              J  P
+  P  J              SSRQ         Q                     Q        QQRSS              J  P
+  P  J              SSRQ         Q                     Q        QQRSS              J  P
+  POOJ              SSRQ         Q   EE                Q     F  QQRSS              JOOP
                     AADC         C  EE                 C     F  CCDAA              JOOO
                     AADC         C                     C     FE CCDAA
               B     AADC                                     F  CCDAA
@@ -3924,11 +3924,11 @@ OOOOJ   LL  M     ADDC    DDCC                             CCDD    CDDA         
                B     AADC                                       CDDA     B
                      AADC       DCCC                 CCCD   F E CDDA
   OOKO               AADC       DCEEE                CCCD       CDDA               OKOO
-  OKKJ               AADC       DCCC                 CCCD       CDDA               JKOO
-  O  J               AADC       DCCC                 CCCD       CDDA               J  O
-  O  J               AADC       DCCC                 CCCD       CDDA               J  O
-  O  J               AADC       DCCC                 CCCD       CDDA               J  O
-  OOOO               AADC       DCCC                 CCCD       CDDA               OOOO
+  OKKJ               SSRQ       RQQQ                 QQQR       QRRS               JKOO
+  O  J               SSRQ       RQQQ                 QQQR       QRRS               J  O
+  O  J               SSRQ       RQQQ                 QQQR       QRRS               J  O
+  O  J               SSRQ       RQQQ                 QQQR       QRRS               J  O
+  OOOO               SSRQ       RQQQ                 QQQR       QRRS               OOOO
     OO               AADC       DCEEE                CCCD       CDDA                 OO
                      AADC       DCCC                 CCCD   F E CDDA
                B     AADC                                       CDDA     B
@@ -3990,11 +3990,11 @@ OOOOJ   LL  M     ADDC    DDCC                             CCDD    CDDA         
                B      A                                          DA      B
                       A      F DDDDCCC             CCCDDD     EE DA
   OOKKJ               A        DDEECCC             CCCDDD        DA               JKKOO
-  OO  J               A        DDDDCCC             CCCDDD        DA               JOKOO
-  OO  J               A        DDDDCCC             CCCDDD        DA               J  OO
-  OO  J               A        DDDDCCC             CCCDDD        DA               J  OO
-  OO  J               A        DDDDCCC             CCCDDD        DA               J  OO
-  OOOOJ               A        DDDDCCC             CCCDDD        DA               JOOOO
+  OO  J               S        RRRRQQQ             QQQRRR        RS               JOKOO
+  OO  J               S        RRRRQQQ             QQQRRR        RS               J  OO
+  OO  J               S        RRRRQQQ             QQQRRR        RS               J  OO
+  OO  J               S        RRRRQQQ             QQQRRR        RS               J  OO
+  OOOOJ               S        RRRRQQQ             QQQRRR        RS               JOOOO
   OOOOJ               A        DDEECCC             CCCDDD        DA
                       A      F DDDDCCC             CCCDDD     EE DA
                B      A                                          DA      B
@@ -4056,11 +4056,11 @@ OOOOJ   LL  M     ADDC    DDCC                             CCDD    CDDA         
                BB             F                                         B
                               FE DDDDCCCC       CCCCDDDD       E
    OOKO                       FEEDDDDCCCC       CCCCDDDD                          OKKO
-   OKKJ                       F  DDDDCCCC       CCCCDDDD                          JKKO
-   O  J                          DDDDCCCC       CCCCDDDD                          J  O
-   O  J                          DDDDCCCC       CCCCDDDD                          J  O
-   O  J                          DDDDCCCC       CCCCDDDD                          J  O
-   OOOJ                       F  DDDDCCCC       CCCCDDDD                          JOOO
+   OKKJ                       F  RRRRQQQQ       QQQQRRRR                          JKKO
+   O  J                          RRRRQQQQ       QQQQRRRR                          J  O
+   O  J                          RRRRQQQQ       QQQQRRRR                          J  O
+   O  J                          RRRRQQQQ       QQQQRRRR                          J  O
+   OOOJ                       F  RRRRQQQQ       QQQQRRRR                          JOOO
    OOO                        FEEDDDDCCCC       CCCCDDDD                          OO
                               FE DDDDCCCC       CCCCDDDD       E
                BB             F                                         B
@@ -4122,11 +4122,11 @@ OOOOJ   LL  M     ADDC    DDCC                             CCDD    CDDA         
                 BBB            F                                 F    BBB
                   B         EEEF  DDDDDDCCC   CCCDDDDDD         EF    B
    OOKKJ          B            F  DDDDDDCCC   CCCDDDDDD               B          JOKOP
-   OOKOJ          B            F  DDDDDDCCC   CCCDDDDDD               B          JOKOP
-   OO  J          B               DDDDDDCCC   CCCDDDDDD               B          JJ  P
-   OO  J          B               DDDDDDCCC   CCCDDDDDD               B          JJ  P
-   OO  J          B               DDDDDDCCC   CCCDDDDDD               B          JJ  P
-   OOOOJ          B            F  DDDDDDCCC   CCCDDDDDD               B          JOOOP
+   OOKOJ          B            F  RRRRRRQQQ   QQQRRRRRR               B          JOKOP
+   OO  J          B               RRRRRRQQQ   QQQRRRRRR               B          JJ  P
+   OO  J          B               RRRRRRQQQ   QQQRRRRRR               B          JJ  P
+   OO  J          B               RRRRRRQQQ   QQQRRRRRR               B          JJ  P
+   OOOOJ          B            F  RRRRRRQQQ   QQQRRRRRR               B          JOOOP
    O OOJ          B            F  DDDDDDCCC   CCCDDDDDD               B           OOOP
                   B         EEEF  DDDDDDCCC   CCCDDDDDD         EF    B
                 BBB            F                                 F    BBB
@@ -4188,11 +4188,11 @@ OOOOJ   LL  M     ADDC    DDCC                             CCDD    CDDA         
                  B      F                                       E      B
                            EE       DDDDDDD   DDDDDDD           E
     OOKO                            DDDDDDD   DDDDDDD           FF               JKKO
-    O KJ                            DDDDDDD   DDDDDDD                            JKKO
-    O  J                            DDDDDDD   DDDDDDD                            J  O
-    O  J                            DDDDDDD   DDDDDDD                            J  O
-    O  J                            DDDDDDD   DDDDDDD                            J  O
-    OOOJ                            DDDDDDD   DDDDDDD                            JOOO
+    O KJ                            RRRRRRR   RRRRRRR                            JKKO
+    O  J                            RRRRRRR   RRRRRRR                            J  O
+    O  J                            RRRRRRR   RRRRRRR                            J  O
+    O  J                            RRRRRRR   RRRRRRR                            J  O
+    OOOJ                            RRRRRRR   RRRRRRR                            JOOO
     POOO                            DDDDDDD   DDDDDDD           FF               JO O
                            EE       DDDDDDD   DDDDDDD           E
                  B      F                                       E      B
@@ -4254,11 +4254,11 @@ OOOOJ   LL  M     ADDC    DDCC                             CCDD    CDDA         
                  BB     FE   CC                            C   FFE    B
                         FEE  CC        DDD    DDDD         C    F
     OOKOJ               FF   CC        DDD    DDDD         C    F               J KOO
-    OOKJJ                    CC        DDD    DDDD         C                    JOKOO
-    O  JJ                    CC        DDD    DDDD         C                    JJ  O
-    O  JJ                    CC        DDD    DDDD         C                    JJ  O
-    O  JJ                    CC        DDD    DDDD         C                    JJ  O
-    OOOOJ                    CC        DDD    DDDD         C                    JOOOO
+    OOKJJ                    QQ        RRR    RRRR         Q                    JOKOO
+    O  JJ                    QQ        RRR    RRRR         Q                    JJ  O
+    O  JJ                    QQ        RRR    RRRR         Q                    JJ  O
+    O  JJ                    QQ        RRR    RRRR         Q                    JJ  O
+    OOOOJ                    QQ        RRR    RRRR         Q                    JOOOO
     OOOOJ               FF   CC        DDD    DDDD         C    F                  OO
                         FEE  CC        DDD    DDDD         C    F
                  BB     FE   CC                            C   FFE    B
@@ -4320,11 +4320,11 @@ OOOOJ   LL  M     ADDC    DDCC                             CCDD    CDDA         
                   BB   EE F DDCC                         CCD     E   BB
                           F DDCC                         CCD
      OOKO                F  DDCC                         CCD                    OKKO
-     O KJ                   DDCC                         CCD                    JKKO
-     O  J                   DDCC                         CCD                    J  O
-     O  J                   DDCC                         CCD                    J  O
-     O  J                   DDCC                         CCD                    J  O
-     OOOJ                   DDCC                         CCD                    OOOO
+     O KJ                   RRQQ                         QQR                    JKKO
+     O  J                   RRQQ                         QQR                    J  O
+     O  J                   RRQQ                         QQR                    J  O
+     O  J                   RRQQ                         QQR                    J  O
+     OOOJ                   RRQQ                         QQR                    OOOO
      OO O                F  DDCC                         CCD
                           F DDCC                         CCD
                   BB   EE F DDCC                         CCD     E   BB
@@ -4386,11 +4386,11 @@ OOOOJ   LL  M     ADDC    DDCC                             CCDD    CDDA         
                    BB E     ADDCCC                     CCCDAA     E BB
                             ADDCCC                     CCCDAA
      OOKOJ                  ADDCCC                     CCCDAA                  JKKOP
-     OOKKJ                  ADDCCC                     CCCDAA                  JKKOP
-     O   J                  ADDCCC                     CCCDAA                  J  OP
-     O   J                  ADDCCC                     CCCDAA                  J  OP
-     O   J                  ADDCCC                     CCCDAA                  J  OP
-     OOOOJ                  ADDCCC                     CCCDAA                  JOOOP
+     OOKKJ                  SRRQQQ                     QQQRSS                  JKKOP
+     O   J                  SRRQQQ                     QQQRSS                  J  OP
+     O   J                  SRRQQQ                     QQQRSS                  J  OP
+     O   J                  SRRQQQ                     QQQRSS                  J  OP
+     OOOOJ                  SRRQQQ                     QQQRSS                  JOOOP
       OO                    ADDCCC                     CCCDAA
                             ADDCCC                     CCCDAA
                    BB E     ADDCCC                     CCCDAA     E BB
@@ -4452,11 +4452,11 @@ OOOOJ   LL  M     ADDC    DDCC                             CCDD    CDDA         
                     BB       AADDCCC                 CCCDDAA       BB
                              AADDCCC                 CCCDDAA
       OKKOJ                  AADDCCC                 CCCDDAA                  JOKKO
-      O KJJ                  AADDCCC                 CCCDDAA                  JOKOO
-      O  JJ                  AADDCCC                 CCCDDAA                  JJ  O
-      O  JJ                  AADDCCC                 CCCDDAA                  JJ  O
-      O  JJ                  AADDCCC                 CCCDDAA                  JJ  O
-      OOOOJ                  AADDCCC                 CCCDDAA                  JOOOO
+      O KJJ                  SSRRQQQ                 QQQRRSS                  JOKOO
+      O  JJ                  SSRRQQQ                 QQQRRSS                  JJ  O
+      O  JJ                  SSRRQQQ                 QQQRRSS                  JJ  O
+      O  JJ                  SSRRQQQ                 QQQRRSS                  JJ  O
+      OOOOJ                  SSRRQQQ                 QQQRRSS                  JOOOO
       O                      AADDCCC                 CCCDDAA
                              AADDCCC                 CCCDDAA
                     BB       AADDCCC                 CCCDDAA       BB
@@ -4518,11 +4518,11 @@ OOOOJ   LL  M     ADDC    DDCC                             CCDD    CDDA         
                     bBB       AAADDDCCCC         CCCCDDDAAA       BBb
                               AAADDDCCCC         CCCCDDDAAA
       OOKKO                   AAADDDCCCC         CCCCDDDAAA                   OKKOO
-      OOK J                   AAADDDCCCC         CCCCDDDAAA                   JKKOO
-      OO  J                   AAADDDCCCC         CCCCDDDAAA                   J  OO
-      OO  J                   AAADDDCCCC         CCCCDDDAAA                   J  OO
-      OO  J                   AAADDDCCCC         CCCCDDDAAA                   J  OO
-      OOOOJ                   AAADDDCCCC         CCCCDDDAAA                   OOOOO
+      OOK J                   SSSRRRQQQQ         QQQQRRRSSS                   JKKOO
+      OO  J                   SSSRRRQQQQ         QQQQRRRSSS                   J  OO
+      OO  J                   SSSRRRQQQQ         QQQQRRRSSS                   J  OO
+      OO  J                   SSSRRRQQQQ         QQQQRRRSSS                   J  OO
+      OOOOJ                   SSSRRRQQQQ         QQQQRRRSSS                   OOOOO
                               AAADDDCCCC         CCCCDDDAAA                   J
                               AAADDDCCCC         CCCCDDDAAA
                     bBB       AAADDDCCCC         CCCCDDDAAA       BBb
@@ -4584,11 +4584,11 @@ OOOOJ   LL  M     ADDC    DDCC                             CCDD    CDDA         
                       BB        AAADDDDCC       CCDDDDAAA        BB
                                 AAADDDDCC       CCDDDDAAA
        OOKOJ                    AAADDDDCC       CCDDDDAAA                    JOKOO
-       O KKJ                    AAADDDDCC       CCDDDDAAA                    J  OO
-       O   J                    AAADDDDCC       CCDDDDAAA                    J   O
-       O   J                    AAADDDDCC       CCDDDDAAA                    J   O
-       O   J                    AAADDDDCC       CCDDDDAAA                    J   O
-       OOOOJ                    AAADDDDCC       CCDDDDAAA                    JOOOO
+       O KKJ                    SSSRRRRQQ       QQRRRRSSS                    J  OO
+       O   J                    SSSRRRRQQ       QQRRRRSSS                    J   O
+       O   J                    SSSRRRRQQ       QQRRRRSSS                    J   O
+       O   J                    SSSRRRRQQ       QQRRRRSSS                    J   O
+       OOOOJ                    SSSRRRRQQ       QQRRRRSSS                    JOOOO
           OJ                    AAADDDDCC       CCDDDDAAA                    JOO
                                 AAADDDDCC       CCDDDDAAA
                       BB        AAADDDDCC       CCDDDDAAA        BB
@@ -4650,11 +4650,11 @@ OOOOJ   LL  M     ADDC    DDCC                             CCDD    CDDA         
                        BB B      B AAADDD       DDAAAA B      B BB
                           B      B AAADDD       DDAAAA B      B
         OKKKJ             B      B AAADDD       DDAAAA B      B             JOKKP
-        OO OJ             B      B AAADDD       DDAAAA B      B             JJ  P
-        O  JJ             B      B AAADDD       DDAAAA B      B             JJ  P
-        O  JJ             B      B AAADDD       DDAAAA B      B             JJ  P
-        O  JJ             B      B AAADDD       DDAAAA B      B             JJ  P
-        OOOOJ             B      B AAADDD       DDAAAA B      B             JOOOP
+        OO OJ             B      B SSSRRR       RRSSSS B      B             JJ  P
+        O  JJ             B      B SSSRRR       RRSSSS B      B             JJ  P
+        O  JJ             B      B SSSRRR       RRSSSS B      B             JJ  P
+        O  JJ             B      B SSSRRR       RRSSSS B      B             JJ  P
+        OOOOJ             B      B SSSRRR       RRSSSS B      B             JOOOP
          OOO              B      B AAADDD       DDAAAA B      B              OOOP
                           B      B AAADDD       DDAAAA B      B
                        BB B      B AAADDD       DDAAAA B      B BB
@@ -4716,11 +4716,11 @@ OOOOJ   LL  M     ADDC    DDCC                             CCDD    CDDA         
                         BB            AAA       AAA           BB
                                       AAA       AAA
         POKKOJ                        AAA       AAA                        JOKKOO
-        POKKJJ                        AAA       AAA                        JOKKOO
-        PO  JJ                        AAA       AAA                        JJ  OO
-        PO  JJ                        AAA       AAA                        JJ  OO
-        PO  JJ                        AAA       AAA                        JJ  OO
-        POOOOJ                        AAA       AAA                        JOOOOO
+        POKKJJ                        SSS       SSS                        JOKKOO
+        PO  JJ                        SSS       SSS                        JJ  OO
+        PO  JJ                        SSS       SSS                        JJ  OO
+        PO  JJ                        SSS       SSS                        JJ  OO
+        POOOOJ                        SSS       SSS                        JOOOOO
         POO                           AAA       AAA                           OO
                                       AAA       AAA
                         BB            AAA       AAA           BB

@@ -96,11 +96,11 @@
 
 
                                 LLLLLLLLLLLLL
-                                LLLLLLLLLLLLL
-                                LLLLLLLLLLLLL
-                                LLLLLLLLLLLLL
-                                LLLLLLLLLLLLL
-                                LLLLLLLLLLLLL
+                                TTTTTTTTTTTTT
+                                TTTTTTTTTTTTT
+                                TTTTTTTTTTTTT
+                                TTTTTTTTTTTTT
+                                TTTTTTTTTTTTT
                                 LLLLLLLLLLLLL
 
 
@@ -162,11 +162,11 @@
 
 
                               LLLLLLLLLLLLLLLLL
-                             LLLL           LLLL
-                             LLLL           LLLL
-                             LLLL           LLLL
-                             LLLL           LLLL
-                             LLLL           LLLL
+                             TTTT           TTTT
+                             TTTT           TTTT
+                             TTTT           TTTT
+                             TTTT           TTTT
+                             TTTT           TTTT
                              LLLLLLLLLLLLLLLLLLL
 
 
@@ -228,11 +228,11 @@
 
 
                               LLLKKKKKKKKKKKKLL
-                            LLL               LLL
-                           LLL                 LLL
-                           LLL                 LLL
-                           LLL                 LLL
-                           LLL                 LLL
+                            TTT               TTT
+                           TTT                 TTT
+                           TTT                 TTT
+                           TTT                 TTT
+                           TTT                 TTT
                              LLLLLLLLLLLLLLLLLLL
 
 
@@ -295,10 +295,10 @@
 
                                KKKLKKKKKKKKKKK
                             KKK               KKK
-                          LL                     KL
-                          LL                     LL
-                          LL                     LL
-                           LLL                 LLL
+                          TT                     KT
+                          TT                     TT
+                          TT                     TT
+                           TTT                 TTT
                               LLLLLLLLLLLLLLLLL
 
 
@@ -360,11 +360,11 @@
                                 BBBBBBBBBBBB
 
                                LLLLLLLLLLLLLLL
-                            KKKLJJJJJJJJJJJJJLLKK
-                          KKK   JJJJJJJJJJJJJ   KKK
-                                JJJJJJJJJJJJJ
-                          LL    JJJJJJJJJJJJJ    LL
-                           LLLL JJJJJJJJJJJJJ LLLL
+                            KKKTUUUUUUUUUUUUUTTKK
+                          KKK   UUUUUUUUUUUUU   KKK
+                                UUUUUUUUUUUUU
+                          TT    UUUUUUUUUUUUU    TT
+                           TTTT UUUUUUUUUUUUU TTTT
                               LLLLLLLLLLLLLLLLL
 
                                 BBBBBBBBBBBB
@@ -426,11 +426,11 @@
                             BBBBB           BBBBB
 
                                JJ           JJ
-                            JJJJJ           JJJJJ
-                          KKJJJJJ           JJJJJJK
-                          JJJJJJJ           JJJJJJJ
-                          LLJJJJJ           JJJJJJL
-                            JJJJJ           JJJJJ
+                            UUUUU           UUUUU
+                          KKUUUUU           UUUUUUK
+                          UUUUUUU           UUUUUUU
+                          TTUUUUU           UUUUUUT
+                            UUUUU           UUUUU
                               JJJ           JJJ
 
                             BBBBB           BBBBB
@@ -756,11 +756,11 @@
                   BB            AAA       AAA           BB
                                 AAA       AAA
                                 AAA       AAA
-                                AAA       AAA
-                                AAA       AAA
-                                AAA       AAA
-                                AAA       AAA
-                                AAA       AAA
+                                SSS       SSS
+                                SSS       SSS
+                                SSS       SSS
+                                SSS       SSS
+                                SSS       SSS
                                 AAA       AAA
                                 AAA       AAA
                   BB            AAA       AAA           BB
@@ -822,11 +822,11 @@
                  BB B      B AAAADD       DDDAAA B      B BB
                     B      B AAAADD       DDDAAA B      B
                     B      B AAAADD       DDDAAA B      B
-                    B      B AAAADD       DDDAAA B      B
-                    B      B AAAADD       DDDAAA B      B
-                    B      B AAAADD       DDDAAA B      B
-                    B      B AAAADD       DDDAAA B      B
-                    B      B AAAADD       DDDAAA B      B
+                    B      B SSSSRR       RRRSSS B      B
+                    B      B SSSSRR       RRRSSS B      B
+                    B      B SSSSRR       RRRSSS B      B
+                    B      B SSSSRR       RRRSSS B      B
+                    B      B SSSSRR       RRRSSS B      B
                     B      B AAAADD       DDDAAA B      B
                     B      B AAAADD       DDDAAA B      B
                  BB B      B AAAADD       DDDAAA B      B BB
@@ -888,11 +888,11 @@
                 BB        AAADDDDCC       CCDDDDAAA        BB
                           AAADDDDCC       CCDDDDAAA
                           AAADDDDCC       CCDDDDAAA
-                          AAADDDDCC       CCDDDDAAA
-                          AAADDDDCC       CCDDDDAAA
-                          AAADDDDCC       CCDDDDAAA
-                          AAADDDDCC       CCDDDDAAA
-                          AAADDDDCC       CCDDDDAAA
+                          SSSRRRRQQ       QQRRRRSSS
+                          SSSRRRRQQ       QQRRRRSSS
+                          SSSRRRRQQ       QQRRRRSSS
+                          SSSRRRRQQ       QQRRRRSSS
+                          SSSRRRRQQ       QQRRRRSSS
                           AAADDDDCC       CCDDDDAAA
                           AAADDDDCC       CCDDDDAAA
                 BB        AAADDDDCC       CCDDDDAAA        BB
@@ -954,11 +954,11 @@
               bBB       AAADDDCCCC         CCCCDDDAAA       BBb
                         AAADDDCCCC         CCCCDDDAAA
                         AAADDDCCCC         CCCCDDDAAA
-                        AAADDDCCCC         CCCCDDDAAA
-                        AAADDDCCCC         CCCCDDDAAA
-                        AAADDDCCCC         CCCCDDDAAA
-                        AAADDDCCCC         CCCCDDDAAA
-                        AAADDDCCCC         CCCCDDDAAA
+                        SSSRRRQQQQ         QQQQRRRSSS
+                        SSSRRRQQQQ         QQQQRRRSSS
+                        SSSRRRQQQQ         QQQQRRRSSS
+                        SSSRRRQQQQ         QQQQRRRSSS
+                        SSSRRRQQQQ         QQQQRRRSSS
                         AAADDDCCCC         CCCCDDDAAA
                         AAADDDCCCC         CCCCDDDAAA
               bBB       AAADDDCCCC         CCCCDDDAAA       BBb
@@ -1020,11 +1020,11 @@
               BB       AADDCCC                 CCCDDAA       BB
                        AADDCCC                 CCCDDAA
                        AADDCCC                 CCCDDAA
-                       AADDCCC                 CCCDDAA
-                       AADDCCC                 CCCDDAA
-                       AADDCCC                 CCCDDAA
-                       AADDCCC                 CCCDDAA
-                       AADDCCC                 CCCDDAA
+                       SSRRQQQ                 QQQRRSS
+                       SSRRQQQ                 QQQRRSS
+                       SSRRQQQ                 QQQRRSS
+                       SSRRQQQ                 QQQRRSS
+                       SSRRQQQ                 QQQRRSS
                        AADDCCC                 CCCDDAA
                        AADDCCC                 CCCDDAA
               BB       AADDCCC                 CCCDDAA       BB
@@ -1086,11 +1086,11 @@
              BB E     AADCCC                     CCCDDA     E BB
                       AADCCC                     CCCDDA
                       AADCCC                     CCCDDA
-                      AADCCC                     CCCDDA
-                      AADCCC                     CCCDDA
-                      AADCCC                     CCCDDA
-                      AADCCC                     CCCDDA
-                      AADCCC                     CCCDDA
+                      SSRQQQ                     QQQRRS
+                      SSRQQQ                     QQQRRS
+                      SSRQQQ                     QQQRRS
+                      SSRQQQ                     QQQRRS
+                      SSRQQQ                     QQQRRS
                       AADCCC                     CCCDDA
                       AADCCC                     CCCDDA
              BB E     AADCCC                     CCCDDA     E BB
@@ -1152,11 +1152,11 @@
             BB   E     DCC                         CCDD F EE   BB
                        DCC                         CCDD F
                        DCC                         CCDD  F
-                       DCC                         CCDD
-                       DCC                         CCDD
-                       DCC                         CCDD
-                       DCC                         CCDD
-                       DCC                         CCDD
+                       RQQ                         QQRR
+                       RQQ                         QQRR
+                       RQQ                         QQRR
+                       RQQ                         QQRR
+                       RQQ                         QQRR
                        DCC                         CCDD  F
                        DCC                         CCDD F
             BB   E     DCC                         CCDD F EE   BB
@@ -1218,11 +1218,11 @@
            BB    EFF   C                            CC   EF     B
                   F    C         DDDD   DDDD        CC  EEF
                   F    C         DDDD   DDDD        CC   FF
-                       C         DDDD   DDDD        CC
-                       C         DDDD   DDDD        CC
-                       C         DDDD   DDDD        CC
-                       C         DDDD   DDDD        CC
-                       C         DDDD   DDDD        CC
+                       Q         RRRR   RRRR        QQ
+                       Q         RRRR   RRRR        QQ
+                       Q         RRRR   RRRR        QQ
+                       Q         RRRR   RRRR        QQ
+                       Q         RRRR   RRRR        QQ
                   F    C         DDDD   DDDD        CC   FF
                   F    C         DDDD   DDDD        CC  EEF
            BB    EFF   C                            CC   EF     B
@@ -1284,11 +1284,11 @@
            B      E                                       F      B
                   E           DDDDDDD   DDDDDDD       EE
                  FF           DDDDDDD   DDDDDDD
-                              DDDDDDD   DDDDDDD
-                              DDDDDDD   DDDDDDD
-                              DDDDDDD   DDDDDDD
-                              DDDDDDD   DDDDDDD
-                              DDDDDDD   DDDDDDD
+                              RRRRRRR   RRRRRRR
+                              RRRRRRR   RRRRRRR
+                              RRRRRRR   RRRRRRR
+                              RRRRRRR   RRRRRRR
+                              RRRRRRR   RRRRRRR
                  FF           DDDDDDD   DDDDDDD
                   E           DDDDDDD   DDDDDDD       EE
            B      E                                       F      B
@@ -1350,11 +1350,11 @@
           BBB    F                                 F            BBB
             B    FE         DDDDDDCCC   CCCDDDDDD  FEEE         B
             B               DDDDDDCCC   CCCDDDDDD  F            B
-            B               DDDDDDCCC   CCCDDDDDD  F            B
-            B               DDDDDDCCC   CCCDDDDDD               B
-            B               DDDDDDCCC   CCCDDDDDD               B
-            B               DDDDDDCCC   CCCDDDDDD               B
-            B               DDDDDDCCC   CCCDDDDDD  F            B
+            B               RRRRRRQQQ   QQQRRRRRR  F            B
+            B               RRRRRRQQQ   QQQRRRRRR               B
+            B               RRRRRRQQQ   QQQRRRRRR               B
+            B               RRRRRRQQQ   QQQRRRRRR               B
+            B               RRRRRRQQQ   QQQRRRRRR  F            B
             B               DDDDDDCCC   CCCDDDDDD  F            B
             B    FE         DDDDDDCCC   CCCDDDDDD  FEEE         B
           BBB    F                                 F            BBB
@@ -1416,11 +1416,11 @@
          BB                                         F             B
                    E       DDDDCCCC       CCCCDDDD EF
                            DDDDCCCC       CCCCDDDDEEF
-                           DDDDCCCC       CCCCDDDD  F
-                           DDDDCCCC       CCCCDDDD
-                           DDDDCCCC       CCCCDDDD
-                           DDDDCCCC       CCCCDDDD
-                           DDDDCCCC       CCCCDDDD  F
+                           RRRRQQQQ       QQQQRRRR  F
+                           RRRRQQQQ       QQQQRRRR
+                           RRRRQQQQ       QQQQRRRR
+                           RRRRQQQQ       QQQQRRRR
+                           RRRRQQQQ       QQQQRRRR  F
                            DDDDCCCC       CCCCDDDDEEF
                    E       DDDDCCCC       CCCCDDDD EF
          BB                                         F             B
@@ -1482,11 +1482,11 @@
          B      AD                                          A      B
                 AD EE    DDDDCCC             CCCDDDD F      A
                 AD       DDDDCCC             CCCEEDD        A
-                AD       DDDDCCC             CCCDDDD        A
-                AD       DDDDCCC             CCCDDDD        A
-                AD       DDDDCCC             CCCDDDD        A
-                AD       DDDDCCC             CCCDDDD        A
-                AD       DDDDCCC             CCCDDDD        A
+                SR       RRRRQQQ             QQQRRRR        S
+                SR       RRRRQQQ             QQQRRRR        S
+                SR       RRRRQQQ             QQQRRRR        S
+                SR       RRRRQQQ             QQQRRRR        S
+                SR       RRRRQQQ             QQQRRRR        S
                 AD       DDDDCCC             CCCEEDD        A
                 AD EE    DDDDCCC             CCCDDDD F      A
          B      AD                                          A      B
@@ -1548,11 +1548,11 @@
          B     ADDC                                       CDAA     BB
                ADDC E F   DCCC                 CCCD       CDAA
                ADDC       DCCC                EEECD       CDAA
-               ADDC       DCCC                 CCCD       CDAA
-               ADDC       DCCC                 CCCD       CDAA
-               ADDC       DCCC                 CCCD       CDAA
-               ADDC       DCCC                 CCCD       CDAA
-               ADDC       DCCC                 CCCD       CDAA
+               SRRQ       RQQQ                 QQQR       QRSS
+               SRRQ       RQQQ                 QQQR       QRSS
+               SRRQ       RQQQ                 QQQR       QRSS
+               SRRQ       RQQQ                 QQQR       QRSS
+               SRRQ       RQQQ                 QQQR       QRSS
                ADDC       DCCC                EEECD       CDAA
                ADDC E F   DCCC                 CCCD       CDAA
          B     ADDC                                       CDAA     BB
@@ -1614,11 +1614,11 @@
         B     AADCC  F                                     CDAA     B
               AADCC EF     C                     C         CDAA
               AADCC  F     C                 EE  C         CDAA
-              AADCC  F     C                EE   C         CDAA
-              AADCC        C                     C         CDAA
-              AADCC        C                     C         CDAA
-              AADCC        C                     C         CDAA
-              AADCC  F     C                EE   C         CDAA
+              SSRQQ  F     Q                EE   Q         QRSS
+              SSRQQ        Q                     Q         QRSS
+              SSRQQ        Q                     Q         QRSS
+              SSRQQ        Q                     Q         QRSS
+              SSRQQ  F     Q                EE   Q         QRSS
               AADCC  F     C                 EE  C         CDAA
               AADCC EF     C                     C         CDAA
         B     AADCC  F                                     CDAA     B
@@ -1680,11 +1680,11 @@
         B     ADCC  F                                      CCDA     B
               ADCC  FED                               D    CCDA
               ADCC  FED                               D    CCDA
-              ADCC  F D                   EEE         D    CCDA
-              ADCC    D                               D    CCDA
-              ADCC    D                               D    CCDA
-              ADCC    D                               D    CCDA
-              ADCC  F D                   EEE         D    CCDA
+              SRQQ  F R                   EEE         R    QQRS
+              SRQQ    R                               R    QQRS
+              SRQQ    R                               R    QQRS
+              SRQQ    R                               R    QQRS
+              SRQQ  F R                   EEE         R    QQRS
               ADCC  FED                               D    CCDA
               ADCC  FED                               D    CCDA
         B     ADCC  F                                      CCDA     B
@@ -1746,11 +1746,11 @@
        B     AADC                                           CDAA     B
              AADC     DD                             DD     CDAA
              AADC    EDD                             DD     CDAA
-             AADC     DD                EEE          DD     CDAA
-    LKK      AADC     DD                             DD     CDAA
-    L M      AADC     DD                             DD     CDAA
-    LLL      AADC     DD                             DD     CDAA
-             AADC     DD                EEE          DD     CDAA
+             SSRQ     RR                EEE          RR     QRSS
+    LKK      SSRQ     RR                             RR     QRSS
+    L M      SSRQ     RR                             RR     QRSS
+    LLL      SSRQ     RR                             RR     QRSS
+             SSRQ     RR                EEE          RR     QRSS
              AADC    EDD                             DD     CDAA
              AADC     DD                             DD     CDAA
        B     AADC                                           CDAA     B
@@ -1812,11 +1812,11 @@
        B    BADCC                                           CCDAB    B
             BADCC    DDCC                           CCDD    CCDAB
             BADCC    DECC                           CCDD    CCDAB
-   LLK      BADCC    DDCC                           CCDD    CCDAB
-   LLKL     BADCC    DDCC                           CCDD    CCDAB
-   LL M     BADCC    DDCC                           CCDD    CCDAB
-   LLLM     BADCC    DDCC                           CCDD    CCDAB
-   LLLL     BADCC    DDCC                           CCDD    CCDAB
+   LLK      BSRQQ    RRQQ                           QQRR    QQRSB
+   LLKL     BSRQQ    RRQQ                           QQRR    QQRSB
+   LL M     BSRQQ    RRQQ                           QQRR    QQRSB
+   LLLM     BSRQQ    RRQQ                           QQRR    QQRSB
+   LLLL     BSRQQ    RRQQ                           QQRR    QQRSB
             BADCC    DECC                           CCDD    CCDAB
             BADCC    DDCC                           CCDD    CCDAB
        B    BADCC                                           CCDAB    B
@@ -1878,11 +1878,11 @@
       BB     ADC                                             CDA     BB
              ADC    DDDC                             CDDD    CDA
              ADC    DDEE                             CDDD    CDA
-   LKKL      ADC    DDDC                             CDDD    CDA
-   L  M      ADC    DDDC                             CDDD    CDA
-   L  M      ADC    DDDC                             CDDD    CDA
-   L  M      ADC    DDDC                             CDDD    CDA
-   LLLL      ADC    DDDC                             CDDD    CDA
+   LKKL      SRQ    RRRQ                             QRRR    QRS
+   L  M      SRQ    RRRQ                             QRRR    QRS
+   L  M      SRQ    RRRQ                             QRRR    QRS
+   L  M      SRQ    RRRQ                             QRRR    QRS
+   LLLL      SRQ    RRRQ                             QRRR    QRS
    LL        ADC    DDEE                             CDDD    CDA
              ADC    DDDC                             CDDD    CDA
       BB     ADC                                             CDA     BB
@@ -1944,11 +1944,11 @@
       B     ADDC                                             CDDA     B
             ADDC    DDCC                             CCDD    CDDA
   LLKKL     ADDC    DDCE                             CCDD    CDDA
-  LLKKL     ADDC    DDCC                             CCDD    CDDA
-  LL  M     ADDC    DDCC                             CCDD    CDDA
-  LL  M     ADDC    DDCC                             CCDD    CDDA
-  LL  M     ADDC    DDCC                             CCDD    CDDA
-  LL  M     ADDC    DDCC                             CCDD    CDDA
+  LLKKL     SRRQ    RRQQ                             QQRR    QRRS
+  LL  M     SRRQ    RRQQ                             QQRR    QRRS
+  LL  M     SRRQ    RRQQ                             QQRR    QRRS
+  LL  M     SRRQ    RRQQ                             QQRR    QRRS
+  LL  M     SRRQ    RRQQ                             QQRR    QRRS
   LLLLL     ADDC    DDCE                             CCDD    CDDA
             ADDC    DDCC                             CCDD    CDDA
       B     ADDC                                             CDDA     B
@@ -2010,11 +2010,11 @@
       B     ADC                                               CDA     B
   LL        ADC    DDDC                               CDDD    CDA
   LLKLL     ADC    DDDCEE                             CDDD    CDA
-  L   M     ADC    DDDC                               CDDD    CDA
-  L   M     ADC    DDDC                               CDDD    CDA
-  L   M     ADC    DDDC                               CDDD    CDA
-  L   M     ADC    DDDC                               CDDD    CDA
-  L   M     ADC    DDDC                               CDDD    CDA
+  L   M     SRQ    RRRQ                               QRRR    QRS
+  L   M     SRQ    RRRQ                               QRRR    QRS
+  L   M     SRQ    RRRQ                               QRRR    QRS
+  L   M     SRQ    RRRQ                               QRRR    QRS
+  L   M     SRQ    RRRQ                               QRRR    QRS
   LLLLL     ADC    DDDCEE                             CDDD    CDA
   LLLL      ADC    DDDC                               CDDD    CDA
       B     ADC                                               CDA     B
@@ -2076,11 +2076,11 @@
       B     ADC                                               CDA     B
  LLLKLL     ADC    DDCC                               CCDD    CDA
  L   LM     ADC    DDCC E                             CCDD    CDA
- L    M     ADC    DDCC E                             CCDD    CDA
- L    M     ADC    DDCC                               CCDD    CDA
- L    M     ADC    DDCC                               CCDD    CDA
- L    M     ADC    DDCC                               CCDD    CDA
- L    M     ADC    DDCC E                             CCDD    CDA
+ L    M     SRQ    RRQQ E                             QQRR    QRS
+ L    M     SRQ    RRQQ                               QQRR    QRS
+ L    M     SRQ    RRQQ                               QQRR    QRS
+ L    M     SRQ    RRQQ                               QQRR    QRS
+ L    M     SRQ    RRQQ E                             QQRR    QRS
  L    M     ADC    DDCC E                             CCDD    CDA
  LLLLLL     ADC    DDCC                               CCDD    CDA
       B     ADC                                               CDA     B
@@ -2142,11 +2142,11 @@
       BB   ADDC                                               CDAA   BBB
  LLKKLLB   ADDC    DDC                                 CDD    CDAA   B
  L    MB   ADDC    DDC                                 CDD    CDAA   B
- L    MB   ADDC    DDC  EE                             CDD    CDAA   B
- L    MB   ADDC    DDC                                 CDD    CDAA   B
- L    MB   ADDC    DDC                                 CDD    CDAA   B
- L    MB   ADDC    DDC                                 CDD    CDAA   B
- L    MB   ADDC    DDC  EE                             CDD    CDAA   B
+ L    MB   SRRQ    RRQ  EE                             QRR    QRSS   B
+ L    MB   SRRQ    RRQ                                 QRR    QRSS   B
+ L    MB   SRRQ    RRQ                                 QRR    QRSS   B
+ L    MB   SRRQ    RRQ                                 QRR    QRSS   B
+ L    MB   SRRQ    RRQ  EE                             QRR    QRSS   B
  L    MB   ADDC    DDC                                 CDD    CDAA   B
  LLLLLLB   ADDC    DDC                                 CDD    CDAA   B
       BB   ADDC                                               CDAA   BBB
@@ -2208,11 +2208,11 @@
      B     ADCC                                               CCDA     B
  LLKKLM    ADCC   DDDC                                 CDDD   CCDA
  L    M    ADCC   DDDC                                 CDDD   CCDA
- L    M    ADCC   DDDC   E                             CDDD   CCDA
- L    M    ADCC   DDDC                                 CDDD   CCDA
- L    M    ADCC   DDDC                                 CDDD   CCDA
- L    M    ADCC   DDDC                                 CDDD   CCDA
- L    M    ADCC   DDDC   E                             CDDD   CCDA
+ L    M    SRQQ   RRRQ   E                             QRRR   QQRS
+ L    M    SRQQ   RRRQ                                 QRRR   QQRS
+ L    M    SRQQ   RRRQ                                 QRRR   QQRS
+ L    M    SRQQ   RRRQ                                 QRRR   QQRS
+ L    M    SRQQ   RRRQ   E                             QRRR   QQRS
  L    M    ADCC   DDDC                                 CDDD   CCDA
  LLLLLM    ADCC   DDDC                                 CDDD   CCDA
      B     ADCC                                               CCDA     B
@@ -2274,11 +2274,11 @@
      B     ADC                                                 CDA     B
  LLKKLM    ADC    DDCC                                 CCDD    CDA
  L    M    ADC    DDCC                                 CCDD    CDA
- L    M    ADC    DDCC   EE                            CCDD    CDA
- L    M    ADC    DDCC                                 CCDD    CDA
- L    M    ADC    DDCC                                 CCDD    CDA
- L    M    ADC    DDCC                                 CCDD    CDA
- L    M    ADC    DDCC   EE                            CCDD    CDA
+ L    M    SRQ    RRQQ   EE                            QQRR    QRS
+ L    M    SRQ    RRQQ                                 QQRR    QRS
+ L    M    SRQ    RRQQ                                 QQRR    QRS
+ L    M    SRQ    RRQQ                                 QQRR    QRS
+ L    M    SRQ    RRQQ   EE                            QQRR    QRS
  L    M    ADC    DDCC                                 CCDD    CDA
  LLLLLM    ADC    DDCC                                 CCDD    CDA
      B     ADC                                                 CDA     B
@@ -2340,11 +2340,11 @@
      B                                                                 B
  LLKKLM           DDC                                   CDD
  L    M           DDC                                   CDD
- L    M           DDC     E                             CDD
- L    M           DDC                                   CDD
- L    M           DDC                                   CDD
- L    M           DDC                                   CDD
- L    M           DDC     E                             CDD
+ L    M           RRQ     E                             QRR
+ L    M           RRQ                                   QRR
+ L    M           RRQ                                   QRR
+ L    M           RRQ                                   QRR
+ L    M           RRQ     E                             QRR
  L    M           DDC                                   CDD
  LLLLLM           DDC                                   CDD
      B                                                                 B
@@ -2406,11 +2406,11 @@
      B                                                                BB
  LLKKLM            DC                                   CDD           B
  L    M            DC                                   CDD
- L    M            DC     E                             CDD
- L    M            DC                                   CDD     F    F    F
- L    M            DC                                   CDD     F    F    F
- L    M            DC                                   CDD     F    F    F
- L    M            DC     E                             CDD
+ L    M            RQ     E                             QRR
+ L    M            RQ                                   QRR     F    F    F
+ L    M            RQ                                   QRR     F    F    F
+ L    M            RQ                                   QRR     F    F    F
+ L    M            RQ     E                             QRR
  L    M            DC                                   CDD
  LLLLLM            DC                                   CDD           B
      B                                                                BB
@@ -2670,11 +2670,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
      B                                                                BB
  LLKKLM           DDC                                   CD            B
  L    M           DDC                                   CD
- L    M           DDC                             E     CD
- L    M           DDC                                   CD      F    F    F
- L    M           DDC                                   CD      F    F    F
- L    M           DDC                                   CD      F    F    F
- L    M           DDC                             E     CD
+ L    M           RRQ                             E     QR
+ L    M           RRQ                                   QR      F    F    F
+ L    M           RRQ                                   QR      F    F    F
+ L    M           RRQ                                   QR      F    F    F
+ L    M           RRQ                             E     QR
  L    M           DDC                                   CD
  LLLLLM           DDC                                   CD            B
      B                                                                BB
@@ -2736,11 +2736,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
      B                                                                 B
  LLKKLM           DDC                                   CDD
  L    M           DDC                                   CDD
- L    M           DDC                             E     CDD
- L    M           DDC                                   CDD
- L    M           DDC                                   CDD
- L    M           DDC                                   CDD
- L    M           DDC                             E     CDD
+ L    M           RRQ                             E     QRR
+ L    M           RRQ                                   QRR
+ L    M           RRQ                                   QRR
+ L    M           RRQ                                   QRR
+ L    M           RRQ                             E     QRR
  L    M           DDC                                   CDD
  LLLLLM           DDC                                   CDD
      B                                                                 B
@@ -2802,11 +2802,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
      B     ADC                                                 CDA     B
  LLKLLM    ADC    DDCC                                 CCDD    CDA
  L    M    ADC    DDCC                                 CCDD    CDA
- L    M    ADC    DDCC                            EE   CCDD    CDA
- L    M    ADC    DDCC                                 CCDD    CDA
- L    M    ADC    DDCC                                 CCDD    CDA
- L    M    ADC    DDCC                                 CCDD    CDA
- L    M    ADC    DDCC                            EE   CCDD    CDA
+ L    M    SRQ    RRQQ                            EE   QQRR    QRS
+ L    M    SRQ    RRQQ                                 QQRR    QRS
+ L    M    SRQ    RRQQ                                 QQRR    QRS
+ L    M    SRQ    RRQQ                                 QQRR    QRS
+ L    M    SRQ    RRQQ                            EE   QQRR    QRS
  L    M    ADC    DDCC                                 CCDD    CDA
  LLLLLM    ADC    DDCC                                 CCDD    CDA
      B     ADC                                                 CDA     B
@@ -2868,11 +2868,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
      B     ADCC                                               CCDA     B
  LLKKLM    ADCC   DDDC                                 CDDD   CCDA
  L    M    ADCC   DDDC                                 CDDD   CCDA
- L    M    ADCC   DDDC                             E   CDDD   CCDA
- L    M    ADCC   DDDC                                 CDDD   CCDA
- L    M    ADCC   DDDC                                 CDDD   CCDA
- L    M    ADCC   DDDC                                 CDDD   CCDA
- L    M    ADCC   DDDC                             E   CDDD   CCDA
+ L    M    SRQQ   RRRQ                             E   QRRR   QQRS
+ L    M    SRQQ   RRRQ                                 QRRR   QQRS
+ L    M    SRQQ   RRRQ                                 QRRR   QQRS
+ L    M    SRQQ   RRRQ                                 QRRR   QQRS
+ L    M    SRQQ   RRRQ                             E   QRRR   QQRS
  L    M    ADCC   DDDC                                 CDDD   CCDA
  LLLLLM    ADCC   DDDC                                 CDDD   CCDA
      B     ADCC                                               CCDA     B
@@ -2934,11 +2934,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
       BB   AADC                                               CDDA   BBB
  LLLKLLB   AADC    DDC                                 CDD    CDDA   B
  L    MB   AADC    DDC                                 CDD    CDDA   B
- L    MB   AADC    DDC                             EE  CDD    CDDA   B
- L    MB   AADC    DDC                                 CDD    CDDA   B
- L    MB   AADC    DDC                                 CDD    CDDA   B
- L    MB   AADC    DDC                                 CDD    CDDA   B
- L    MB   AADC    DDC                             EE  CDD    CDDA   B
+ L    MB   SSRQ    RRQ                             EE  QRR    QRRS   B
+ L    MB   SSRQ    RRQ                                 QRR    QRRS   B
+ L    MB   SSRQ    RRQ                                 QRR    QRRS   B
+ L    MB   SSRQ    RRQ                                 QRR    QRRS   B
+ L    MB   SSRQ    RRQ                             EE  QRR    QRRS   B
  L    MB   AADC    DDC                                 CDD    CDDA   B
  LLLLLLB   AADC    DDC                                 CDD    CDDA   B
       BB   AADC                                               CDDA   BBB
@@ -3000,11 +3000,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
       B     ADC                                               CDA     B
  LLLKLL     ADC    DDCC                               CCDD    CDA
  L   LL     ADC    DDCC                             E CCDD    CDA
- L    M     ADC    DDCC                             E CCDD    CDA
- L    M     ADC    DDCC                               CCDD    CDA
- L    M     ADC    DDCC                               CCDD    CDA
- L    M     ADC    DDCC                               CCDD    CDA
- L    M     ADC    DDCC                             E CCDD    CDA
+ L    M     SRQ    RRQQ                             E QQRR    QRS
+ L    M     SRQ    RRQQ                               QQRR    QRS
+ L    M     SRQ    RRQQ                               QQRR    QRS
+ L    M     SRQ    RRQQ                               QQRR    QRS
+ L    M     SRQ    RRQQ                             E QQRR    QRS
  L    M     ADC    DDCC                             E CCDD    CDA
  LLLLLL     ADC    DDCC                               CCDD    CDA
       B     ADC                                               CDA     B
@@ -3066,11 +3066,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
       B     ADC                                               CDA     B
   LL        ADC    DDDC                               CDDD    CDA
   LLKLM     ADC    DDDC                             EECDDD    CDA
-  L   M     ADC    DDDC                               CDDD    CDA
-  L   M     ADC    DDDC                               CDDD    CDA
-  L   M     ADC    DDDC                               CDDD    CDA
-  L   M     ADC    DDDC                               CDDD    CDA
-  L   M     ADC    DDDC                               CDDD    CDA
+  L   M     SRQ    RRRQ                               QRRR    QRS
+  L   M     SRQ    RRRQ                               QRRR    QRS
+  L   M     SRQ    RRRQ                               QRRR    QRS
+  L   M     SRQ    RRRQ                               QRRR    QRS
+  L   M     SRQ    RRRQ                               QRRR    QRS
   LLLLM     ADC    DDDC                             EECDDD    CDA
   LLLL      ADC    DDDC                               CDDD    CDA
       B     ADC                                               CDA     B
@@ -3132,11 +3132,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
       B     ADDC                                             CDDA
             ADDC    DDCC                             CCDD    CDDA
   LLKKL     ADDC    DDCC                             ECDD    CDDA
-  LLKKM     ADDC    DDCC                             CCDD    CDDA
-  LL  M     ADDC    DDCC                             CCDD    CDDA
-  LL  M     ADDC    DDCC                             CCDD    CDDA
-  LL  M     ADDC    DDCC                             CCDD    CDDA
-  LL  M     ADDC    DDCC                             CCDD    CDDA
+  LLKKM     SRRQ    RRQQ                             QQRR    QRRS
+  LL  M     SRRQ    RRQQ                             QQRR    QRRS
+  LL  M     SRRQ    RRQQ                             QQRR    QRRS
+  LL  M     SRRQ    RRQQ                             QQRR    QRRS
+  LL  M     SRRQ    RRQQ                             QQRR    QRRS
   LLLLL     ADDC    DDCC                             ECDD    CDDA
             ADDC    DDCC                             CCDD    CDDA
       B     ADDC                                             CDDA     B
@@ -3198,11 +3198,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
       BB     ADC                                             CDA     B
              ADC    DDDC                             CDDD    CDA
              ADC    DDDC                             EEDD    CDA
-   LLKL      ADC    DDDC                             CDDD    CDA
-   L  M      ADC    DDDC                             CDDD    CDA
-   L  M      ADC    DDDC                             CDDD    CDA
-   L  M      ADC    DDDC                             CDDD    CDA
-   LLLL      ADC    DDDC                             CDDD    CDA
+   LLKL      SRQ    RRRQ                             QRRR    QRS
+   L  M      SRQ    RRRQ                             QRRR    QRS
+   L  M      SRQ    RRRQ                             QRRR    QRS
+   L  M      SRQ    RRRQ                             QRRR    QRS
+   LLLL      SRQ    RRRQ                             QRRR    QRS
    LL        ADC    DDDC                             EEDD    CDA
              ADC    DDDC                             CDDD    CDA
       BB     ADC                                             CDA     B
@@ -3264,11 +3264,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
        B    BADCC                                           CCDAB
             BADCC    DDCC                           CCDD    CCDAB
             BADCC    DDCC                           CCED    CCDAB
-   LLK      BADCC    DDCC                           CCDD    CCDAB
-   LLKK     BADCC    DDCC                           CCDD    CCDAB
-   LL M     BADCC    DDCC                           CCDD    CCDAB
-   LLLL     BADCC    DDCC                           CCDD    CCDAB
-   LLLL     BADCC    DDCC                           CCDD    CCDAB
+   LLK      BSRQQ    RRQQ                           QQRR    QQRSB
+   LLKK     BSRQQ    RRQQ                           QQRR    QQRSB
+   LL M     BSRQQ    RRQQ                           QQRR    QQRSB
+   LLLL     BSRQQ    RRQQ                           QQRR    QQRSB
+   LLLL     BSRQQ    RRQQ                           QQRR    QQRSB
             BADCC    DDCC                           CCED    CCDAB
             BADCC    DDCC                           CCDD    CCDAB
        B    BADCC                                           CCDAB    B
@@ -3330,11 +3330,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
        B     AADC                                           CDAA
              AADC     DD                             DD     CDAA
              AADC     DD                             DDE    CDAA
-             AADC     DD          EEE                DD     CDAA
-    LKK      AADC     DD                             DD     CDAA
-    L M      AADC     DD                             DD     CDAA
-    LLL      AADC     DD                             DD     CDAA
-             AADC     DD          EEE                DD     CDAA
+             SSRQ     RR          EEE                RR     QRSS
+    LKK      SSRQ     RR                             RR     QRSS
+    L M      SSRQ     RR                             RR     QRSS
+    LLL      SSRQ     RR                             RR     QRSS
+             SSRQ     RR          EEE                RR     QRSS
              AADC     DD                             DDE    CDAA
              AADC     DD                             DD     CDAA
        B     AADC                                           CDAA     B
@@ -3396,11 +3396,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
         B     ADCC                                      F  CCDA     B
               ADCC                                    DEF  CCDA
               ADCC                                    DEF  CCDA
-              ADCC              EEE                   D F  CCDA
-              ADCC                                    D    CCDA
-              ADCC                                    D    CCDA
-              ADCC                                    D    CCDA
-              ADCC              EEE                   D F  CCDA
+              SRQQ              EEE                   R F  QQRS
+              SRQQ                                    R    QQRS
+              SRQQ                                    R    QQRS
+              SRQQ                                    R    QQRS
+              SRQQ              EEE                   R F  QQRS
               ADCC                                    DEF  CCDA
               ADCC                                    DEF  CCDA
         B     ADCC                                      F  CCDA     B
@@ -3462,11 +3462,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
         B     AADC                                     F  CCDAA
               AADC         C                     C     FE CCDAA
               AADC         C  EE                 C     F  CCDAA
-              AADC         C   EE                C     F  CCDAA
-              AADC         C                     C        CCDAA
-              AADC         C                     C        CCDAA
-              AADC         C                     C        CCDAA
-              AADC         C   EE                C     F  CCDAA
+              SSRQ         Q   EE                Q     F  QQRSS
+              SSRQ         Q                     Q        QQRSS
+              SSRQ         Q                     Q        QQRSS
+              SSRQ         Q                     Q        QQRSS
+              SSRQ         Q   EE                Q     F  QQRSS
               AADC         C  EE                 C     F  CCDAA
               AADC         C                     C     FE CCDAA
         B     AADC                                     F  CCDAA
@@ -3528,11 +3528,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
          B     AADC                                       CDDA     B
                AADC       DCCC                 CCCD   F E CDDA
                AADC       DCEEE                CCCD       CDDA
-               AADC       DCCC                 CCCD       CDDA
-               AADC       DCCC                 CCCD       CDDA
-               AADC       DCCC                 CCCD       CDDA
-               AADC       DCCC                 CCCD       CDDA
-               AADC       DCCC                 CCCD       CDDA
+               SSRQ       RQQQ                 QQQR       QRRS
+               SSRQ       RQQQ                 QQQR       QRRS
+               SSRQ       RQQQ                 QQQR       QRRS
+               SSRQ       RQQQ                 QQQR       QRRS
+               SSRQ       RQQQ                 QQQR       QRRS
                AADC       DCEEE                CCCD       CDDA
                AADC       DCCC                 CCCD   F E CDDA
          B     AADC                                       CDDA     B
@@ -3594,11 +3594,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
          B      A                                          DA      B
                 A      F DDDDCCC             CCCDDD     EE DA
                 A        DDEECCC             CCCDDD        DA
-                A        DDDDCCC             CCCDDD        DA
-                A        DDDDCCC             CCCDDD        DA
-                A        DDDDCCC             CCCDDD        DA
-                A        DDDDCCC             CCCDDD        DA
-                A        DDDDCCC             CCCDDD        DA
+                S        RRRRQQQ             QQQRRR        RS
+                S        RRRRQQQ             QQQRRR        RS
+                S        RRRRQQQ             QQQRRR        RS
+                S        RRRRQQQ             QQQRRR        RS
+                S        RRRRQQQ             QQQRRR        RS
                 A        DDEECCC             CCCDDD        DA
                 A      F DDDDCCC             CCCDDD     EE DA
          B      A                                          DA      B
@@ -3660,11 +3660,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
          BB             F                                         B
                         FE DDDDCCCC       CCCCDDDD       E
                         FEEDDDDCCCC       CCCCDDDD
-                        F  DDDDCCCC       CCCCDDDD
-                           DDDDCCCC       CCCCDDDD
-                           DDDDCCCC       CCCCDDDD
-                           DDDDCCCC       CCCCDDDD
-                        F  DDDDCCCC       CCCCDDDD
+                        F  RRRRQQQQ       QQQQRRRR
+                           RRRRQQQQ       QQQQRRRR
+                           RRRRQQQQ       QQQQRRRR
+                           RRRRQQQQ       QQQQRRRR
+                        F  RRRRQQQQ       QQQQRRRR
                         FEEDDDDCCCC       CCCCDDDD
                         FE DDDDCCCC       CCCCDDDD       E
          BB             F                                         B
@@ -3726,11 +3726,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
           BBB            F                                 F    BBB
             B         EEEF  DDDDDDCCC   CCCDDDDDD         EF    B
             B            F  DDDDDDCCC   CCCDDDDDD               B
-            B            F  DDDDDDCCC   CCCDDDDDD               B
-            B               DDDDDDCCC   CCCDDDDDD               B
-            B               DDDDDDCCC   CCCDDDDDD               B
-            B               DDDDDDCCC   CCCDDDDDD               B
-            B            F  DDDDDDCCC   CCCDDDDDD               B
+            B            F  RRRRRRQQQ   QQQRRRRRR               B
+            B               RRRRRRQQQ   QQQRRRRRR               B
+            B               RRRRRRQQQ   QQQRRRRRR               B
+            B               RRRRRRQQQ   QQQRRRRRR               B
+            B            F  RRRRRRQQQ   QQQRRRRRR               B
             B            F  DDDDDDCCC   CCCDDDDDD               B
             B         EEEF  DDDDDDCCC   CCCDDDDDD         EF    B
           BBB            F                                 F    BBB
@@ -3792,11 +3792,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
            B      F                                       E      B
                      EE       DDDDDDD   DDDDDDD           E
                               DDDDDDD   DDDDDDD           FF
-                              DDDDDDD   DDDDDDD
-                              DDDDDDD   DDDDDDD
-                              DDDDDDD   DDDDDDD
-                              DDDDDDD   DDDDDDD
-                              DDDDDDD   DDDDDDD
+                              RRRRRRR   RRRRRRR
+                              RRRRRRR   RRRRRRR
+                              RRRRRRR   RRRRRRR
+                              RRRRRRR   RRRRRRR
+                              RRRRRRR   RRRRRRR
                               DDDDDDD   DDDDDDD           FF
                      EE       DDDDDDD   DDDDDDD           E
            B      F                                       E      B
@@ -3858,11 +3858,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
            BB     FE   CC                            C   FFE    B
                   FEE  CC        DDD    DDDD         C    F
                   FF   CC        DDD    DDDD         C    F
-                       CC        DDD    DDDD         C
-                       CC        DDD    DDDD         C
-                       CC        DDD    DDDD         C
-                       CC        DDD    DDDD         C
-                       CC        DDD    DDDD         C
+                       QQ        RRR    RRRR         Q
+                       QQ        RRR    RRRR         Q
+                       QQ        RRR    RRRR         Q
+                       QQ        RRR    RRRR         Q
+                       QQ        RRR    RRRR         Q
                   FF   CC        DDD    DDDD         C    F
                   FEE  CC        DDD    DDDD         C    F
            BB     FE   CC                            C   FFE    B
@@ -3924,11 +3924,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
             BB   EE F DDCC                         CCD     E   BB
                     F DDCC                         CCD
                    F  DDCC                         CCD
-                      DDCC                         CCD
-                      DDCC                         CCD
-                      DDCC                         CCD
-                      DDCC                         CCD
-                      DDCC                         CCD
+                      RRQQ                         QQR
+                      RRQQ                         QQR
+                      RRQQ                         QQR
+                      RRQQ                         QQR
+                      RRQQ                         QQR
                    F  DDCC                         CCD
                     F DDCC                         CCD
             BB   EE F DDCC                         CCD     E   BB
@@ -3990,11 +3990,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
              BB E     ADDCCC                     CCCDAA     E BB
                       ADDCCC                     CCCDAA
                       ADDCCC                     CCCDAA
-                      ADDCCC                     CCCDAA
-                      ADDCCC                     CCCDAA
-                      ADDCCC                     CCCDAA
-                      ADDCCC                     CCCDAA
-                      ADDCCC                     CCCDAA
+                      SRRQQQ                     QQQRSS
+                      SRRQQQ                     QQQRSS
+                      SRRQQQ                     QQQRSS
+                      SRRQQQ                     QQQRSS
+                      SRRQQQ                     QQQRSS
                       ADDCCC                     CCCDAA
                       ADDCCC                     CCCDAA
              BB E     ADDCCC                     CCCDAA     E BB
@@ -4056,11 +4056,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
               BB       AADDCCC                 CCCDDAA       BB
                        AADDCCC                 CCCDDAA
                        AADDCCC                 CCCDDAA
-                       AADDCCC                 CCCDDAA
-                       AADDCCC                 CCCDDAA
-                       AADDCCC                 CCCDDAA
-                       AADDCCC                 CCCDDAA
-                       AADDCCC                 CCCDDAA
+                       SSRRQQQ                 QQQRRSS
+                       SSRRQQQ                 QQQRRSS
+                       SSRRQQQ                 QQQRRSS
+                       SSRRQQQ                 QQQRRSS
+                       SSRRQQQ                 QQQRRSS
                        AADDCCC                 CCCDDAA
                        AADDCCC                 CCCDDAA
               BB       AADDCCC                 CCCDDAA       BB
@@ -4122,11 +4122,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
               bBB       AAADDDCCCC         CCCCDDDAAA       BBb
                         AAADDDCCCC         CCCCDDDAAA
                         AAADDDCCCC         CCCCDDDAAA
-                        AAADDDCCCC         CCCCDDDAAA
-                        AAADDDCCCC         CCCCDDDAAA
-                        AAADDDCCCC         CCCCDDDAAA
-                        AAADDDCCCC         CCCCDDDAAA
-                        AAADDDCCCC         CCCCDDDAAA
+                        SSSRRRQQQQ         QQQQRRRSSS
+                        SSSRRRQQQQ         QQQQRRRSSS
+                        SSSRRRQQQQ         QQQQRRRSSS
+                        SSSRRRQQQQ         QQQQRRRSSS
+                        SSSRRRQQQQ         QQQQRRRSSS
                         AAADDDCCCC         CCCCDDDAAA
                         AAADDDCCCC         CCCCDDDAAA
               bBB       AAADDDCCCC         CCCCDDDAAA       BBb
@@ -4188,11 +4188,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
                 BB        AAADDDDCC       CCDDDDAAA        BB
                           AAADDDDCC       CCDDDDAAA
                           AAADDDDCC       CCDDDDAAA
-                          AAADDDDCC       CCDDDDAAA
-                          AAADDDDCC       CCDDDDAAA
-                          AAADDDDCC       CCDDDDAAA
-                          AAADDDDCC       CCDDDDAAA
-                          AAADDDDCC       CCDDDDAAA
+                          SSSRRRRQQ       QQRRRRSSS
+                          SSSRRRRQQ       QQRRRRSSS
+                          SSSRRRRQQ       QQRRRRSSS
+                          SSSRRRRQQ       QQRRRRSSS
+                          SSSRRRRQQ       QQRRRRSSS
                           AAADDDDCC       CCDDDDAAA
                           AAADDDDCC       CCDDDDAAA
                 BB        AAADDDDCC       CCDDDDAAA        BB
@@ -4254,11 +4254,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
                  BB B      B AAADDD       DDAAAA B      B BB
                     B      B AAADDD       DDAAAA B      B
                     B      B AAADDD       DDAAAA B      B
-                    B      B AAADDD       DDAAAA B      B
-                    B      B AAADDD       DDAAAA B      B
-                    B      B AAADDD       DDAAAA B      B
-                    B      B AAADDD       DDAAAA B      B
-                    B      B AAADDD       DDAAAA B      B
+                    B      B SSSRRR       RRSSSS B      B
+                    B      B SSSRRR       RRSSSS B      B
+                    B      B SSSRRR       RRSSSS B      B
+                    B      B SSSRRR       RRSSSS B      B
+                    B      B SSSRRR       RRSSSS B      B
                     B      B AAADDD       DDAAAA B      B
                     B      B AAADDD       DDAAAA B      B
                  BB B      B AAADDD       DDAAAA B      B BB
@@ -4320,11 +4320,11 @@ ML    M                                                GGGGGGGGGGGGGGGGBGGGG
                   BB            AAA       AAA           BB
                                 AAA       AAA
                                 AAA       AAA
-                                AAA       AAA
-                                AAA       AAA
-                                AAA       AAA
-                                AAA       AAA
-                                AAA       AAA
+                                SSS       SSS
+                                SSS       SSS
+                                SSS       SSS
+                                SSS       SSS
+                                SSS       SSS
                                 AAA       AAA
                                 AAA       AAA
                   BB            AAA       AAA           BB

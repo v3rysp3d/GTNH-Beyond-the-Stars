@@ -123,6 +123,14 @@ const LEGEND = {
     m: { role: "maintenance_socket", kind: "maint", block: "HatchElement.Maintenance, else fallback", fallback: "L", min: 1, hint: 2 },
     b: { role: "bolt_bus", kind: "boltbus", block: "KerrHatchElement.BoltBus (private input bus list), else fallback", fallback: "A", min: 1, hint: 3 },
     u: { role: "utility_socket", kind: "maint (beside each bolt bus)", block: "BHC utility hatch MTEBlackHoleUtility (MetaTileEntityIDs.HATCH_BLACK_HOLE_UTILITY 3012, redstone hole-state output), optional, else fallback", fallback: "A", min: 0, hint: 6 },
+
+    Q: { role: "window_mirror", kind: "mirror (drum band, |y| <= 2)", block: "Casings.QuantumGlass (TecTech) window; also accepts the old Superradiant Mirror Casing (slCasing:1), so a Kerr built before the window bands still forms", window: "C" },
+    R: { role: "window_mirror_backing", kind: "mirrorback (drum band, |y| <= 2)", block: "Casings.QuantumGlass (TecTech) window; also accepts the old Mirror Backing Casing (slCasing:2), so a Kerr built before the window bands still forms", window: "D" },
+    S: { role: "window_cage_casing", kind: "casing (the outer drum ring's backing, |y| <= 2)", block: "Casings.QuantumGlass (TecTech) window; also accepts the old Extreme Density Space-Bending Casing (sBlockCasings10:11), so a Kerr built before the window bands still forms", window: "A" },
+    T: { role: "window_arc_shell", kind: "eyeshell (governor arc, in front of the hole)", block: "Casings.QuantumGlass (TecTech) window; also accepts the old Extreme Density Space-Bending Casing (sBlockCasings10:11), so a Kerr built before the window bands still forms", window: "L" },
+    U: { role: "window_arc_lining", kind: "lining (governor arc / T2 mid band, in front of the hole)", block: "Casings.QuantumGlass (TecTech) window; also accepts the old Harmonic Lining (slCasing2:2), so a Kerr built before the window bands still forms", window: "J" },
+    V: { role: "window_bastion", kind: "bastion (T2 mid band, in front of the hole)", block: "Casings.QuantumGlass (TecTech) window; also accepts the old Bastion Plate (slCasing:13), so a Kerr built before the window bands still forms", window: "O" },
+    W: { role: "window_casimir", kind: "casimir (T2 mid band trim, in front of the hole)", block: "Casings.QuantumGlass (TecTech) window; also accepts the old Casimir Plate (slCasing:14), so a Kerr built before the window bands still forms", window: "P" },
   },
   // Kerr redesign (docs/kerr-redesign.md §6): each module arc is its own machine, exported in its own frame with its
   // own controller front-centre facing out of the cage. Its sockets go into GT's STANDARD hatch lists.
@@ -168,6 +176,10 @@ const LEGEND = {
     f: { role: "field_socket", kind: "eyeshell (core band outer face, 1 below the mid-plane)", block: "EyeHatchElement.Field (MTEHatchInput, unbuffered trims; ME stocking hatches are walked but never drained), else fallback", fallback: "U", min: 0, hint: 5 },
     n: { role: "sensor_socket", kind: "eyeshell (core band outer face, on the mid-plane, above its f)", block: "EyeHatchElement.Sensor (MTEHatchStellarFieldSensor, MTE 28116), else fallback", fallback: "U", min: 0, hint: 6 },
     g: { role: "stellar_socket_rim", kind: "grb on the T6 rim", block: "EyeHatchElement.Stellar, else fallback", fallback: "T", min: 0, hint: 4 },
+
+    A: { role: "window_band_shell", kind: "eyeshell (front ring segments, |y| <= 2)", block: "Casings.QuantumGlass (TecTech) window; also accepts the old Reinforced Spatial Structure Casing (BA0:11), so an Eye built before the window bands still forms", window: "U" },
+    B: { role: "window_band_lining", kind: "lining (front ring segments and front arm/rim cells, |y| <= 2)", block: "Casings.QuantumGlass (TecTech) window; also accepts the old Infinite SpaceTime Energy Boundary Casing (BA0:12), so an Eye built before the window bands still forms", window: "J" },
+    C: { role: "window_galactic_shell", kind: "galactic (T4-T6 arm and rim cells in the front window, |y| <= 2)", block: "Casings.QuantumGlass (TecTech) window; also accepts the old Galactic Shell Plating (slCasing:12), so an Eye built before the window bands still forms", window: "T" },
   },
   // The Homogeny, Reality Diffraction and Reality Refab (design repo designs/docs/homogeny-reality.md, PROPOSED). Chars
   // shared by the three machines mean the same thing in each (E crystal, J lining, K channel, L lens, Q BEC casing,
@@ -325,6 +337,49 @@ function eachCell(b, cb) {
   }
 }
 
+// ------------------------------------------------------------------------------------------------ window bands
+// my answer 2026-10-13 (render QA K2 + E-9, "Glass window bands"): the Kerr's hole and the Eye's centre object
+// must read from the front at eye level, so the cells that hide them at their own height become Quantum Glass
+// windows. Every window cell gets its OWN char per block it replaces, and the Java element for that char accepts
+// Quantum Glass OR the old block (glass first, so holograms and auto-builds place glass), so a Kerr or Eye built
+// before the windows still forms. The mockup (voxel.js) is not edited: this is a pure re-labelling of cells it
+// already places, at the object's height (|y| <= WINDOW_HALF from the voxel origin, which is the hole / star centre).
+const WINDOW_HALF = 2; // 5 rows: the object's equator +-2
+const WINDOW = {
+  // Kerr: (1) the whole drum (both superradiant mirror rings: mirror, backing and the outer ring's casing), all the
+  // way round, "a Quantum Glass band in the Kerr drum"; (2) in front of the hole (z > 0, |x| <= 12, the governor
+  // arc's span), whatever stands between the drum and the viewer: the governor arc's shell and lining, and at T2 the
+  // reinforcement's mid band (bastion, lining, casimir trim). Frames, rails, quadrupoles, pipes and the BHC glass
+  // already let the hole show and stay as they are.
+  kerr: { drum: { kinds: new Set(["mirror", "mirrorback", "casing"]), rMin: 16.5, rMax: 28.5 },
+    front: { kinds: new Set(["eyeshell", "lining", "bastion", "casimir"]), half: 12, rMin: 28.5 },
+    chars: { C: "Q", D: "R", A: "S", L: "T", J: "U", O: "V", P: "W" } },
+  // Eye: the front ring segments at eye level (z > 0, |x| <= 26: the core band from its 40 to its 140 deg, between
+  // the clamp struts at 30 and 150), and the same front window through whatever a later tier puts there at the
+  // star's height (the T4/T5 spiral arms and the T6 rim), so the window reads at every tier. Struts (W/X), the field
+  // and sensor sockets and the glass channel (already Quantum Glass) stay as they are.
+  eye: { front: { kinds: new Set(["eyeshell", "lining", "galactic"]), half: 26 },
+    chars: { U: "A", J: "B", T: "C" } },
+};
+function windowKerr(b, cells) {
+  const w = WINDOW.kerr;
+  for (const c of cells.values()) {
+    const x = c.x - b.CX, y = c.y - b.CY, z = c.z - b.CZ, r = Math.hypot(x, z);
+    if (Math.abs(y) > WINDOW_HALF || !w.chars[c.ch] || c.piece !== "kerr_core" && c.piece !== "kerr_density") continue;
+    const drum = w.drum.kinds.has(c.kind) && r >= w.drum.rMin && r <= w.drum.rMax;
+    const front = w.front.kinds.has(c.kind) && z > 0 && Math.abs(x) <= w.front.half && r >= w.front.rMin;
+    if (drum || front) { c.was = c.ch; c.ch = w.chars[c.ch]; }
+  }
+}
+function windowEye(b, cells) {
+  const w = WINDOW.eye;
+  for (const c of cells.values()) {
+    const x = c.x - b.CX, y = c.y - b.CY, z = c.z - b.CZ;
+    if (Math.abs(y) > WINDOW_HALF || !w.chars[c.ch] || !w.front.kinds.has(c.kind)) continue;
+    if (z > 0 && Math.abs(x) <= w.front.half) { c.was = c.ch; c.ch = w.chars[c.ch]; }
+  }
+}
+
 // ------------------------------------------------------------------------------------------------ classify
 function classifyKerr(t) {
   const b = V.build("kerr", t), sockets = socketMap(b, KERR_SOCKETS, t);
@@ -341,6 +396,7 @@ function classifyKerr(t) {
     cells.set(k, { x, y, z, ch, kind, piece: tag });
   });
   for (const k of sockets.keys()) if (!cells.has(k)) fail(`kerr T${t}: socket ${k} not placed`);
+  windowKerr(b, cells);
   return { b, cells };
 }
 
@@ -373,6 +429,7 @@ function classifyEye(t) {
     cells.set(k, { x, y, z, ch, kind, tag });
   });
   for (const k of sockets.keys()) if (!cells.has(k)) fail(`eye T${t}: socket ${k} not placed`);
+  windowEye(b, cells);
   return { b, cells };
 }
 
@@ -748,6 +805,28 @@ reach(["homog_t1", "homog_t2", "homog_t3"], "Homogeny T3");
 reach(["reality_diffraction"], "Reality Diffraction");
 reach(["reality_refab"], "Reality Refab");
 
+// window bands: every piece that should carry one does, and the sightline through it is clear. From the front, at
+// rows y +-1 (the controller and the Kerr's hatches stand on y 0), no cell between the viewer and the object's centre
+// may be opaque within |x| <= `half`; window cells, Quantum Glass, the BHC's glass and frame boxes count as clear, and
+// so do sockets (a hatch is one cell; the Eye's field and sensor sockets stand in its window).
+const windowCount = (n) => pieceCells(n).filter((c) => c.was).length;
+for (const n of ["kerr_t1", "kerr_t2", "eye_core", "eye_arms", "eye_arms2", "eye_rim"]) ok(windowCount(n) > 0, `${n}: ${windowCount(n)} window cells`);
+function sightline(names, label, b, half, clear) {
+  const cells = new Map(names.flatMap((n) => pieceCells(n)).map((c) => [keyOf(c.x, c.y, c.z), c]));
+  const bad = [];
+  for (const y of [-1, 1]) for (let x = -half; x <= half; x++) for (let z = 1; z <= 120; z++) {
+    const c = cells.get(keyOf(x + b.CX, y + b.CY, z + b.CZ));
+    if (c && !c.was && !clear.has(c.ch) && !/[a-z~]/.test(c.ch)) { bad.push(`${c.ch}@${x},${y},${z}`); break; }
+  }
+  ok(bad.length === 0, `${label}: the front window is clear at y +-1, |x| <= ${half}${bad.length ? " - blocked: " + bad.slice(0, 8).join(" ") : ""}`);
+}
+sightline(["kerr_t1"], "Kerr T1", K1.b, 8, new Set(["B", "K"]));
+sightline(["kerr_t2"], "Kerr T2", K2.b, 8, new Set(["B", "K"]));
+for (let t = 1; t <= 6; t++) {
+  const names = ["eye_core", "eye_beam", "eye_jet", "eye_arms", "eye_arms2", "eye_rim"].slice(0, t);
+  sightline(names, `Eye T${t}`, E[0].b, 20, new Set(["Z"]));
+}
+
 // ------------------------------------------------------------------------------------------------ manifest
 const ROLE = (machine, ch) => LEGEND[machine][ch];
 const manifest = {
@@ -792,6 +871,12 @@ const manifest = {
           homog_t3: "T3 (MAX) tilted outer ring, clamps and tail; optional, counts only with homog_t2" }
         : { [m.names[0]]: "the whole machine (one tier)" } }])),
   },
+  // the window bands (my answer 2026-10-13, render K2 + E-9): which cells, and how many per piece
+  windows: { half: WINDOW_HALF,
+    kerr: "the drum (both mirror rings: mirror, backing, outer casing) all round at |y| <= 2, and in front of the hole (z > 0, |x| <= 12) the governor arc's shell and lining and the T2 mid band",
+    eye: "in front of the star (z > 0, |x| <= 26) at |y| <= 2: the core band's front ring segments, and the T4/T5 arm and T6 rim cells there",
+    accepts: "each window char takes Quantum Glass OR the block it replaced (legend: window = that old char), so builds from before the windows still form",
+    cells: Object.fromEntries(["kerr_t1", "kerr_t2", "eye_core", "eye_arms", "eye_arms2", "eye_rim"].map((n) => [n, windowCount(n)])) },
   assembled: Object.fromEntries(SPEC.map(([label, names]) => [label, { pieces: names, size: asmBox(names),
     blocks: names.reduce((s, n) => s + pieceCells(n).length, 0) }])),
   pieces: {},

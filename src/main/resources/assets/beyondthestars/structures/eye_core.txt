@@ -697,11 +697,11 @@
 
 
                                         UUUUUUUUUUUUUUUUUUUU
-                                        UUUUUUUUUUUUUUUUUUUU
-                                        UUUUUUUUUUUUUUUUUUUU
-                                        UUUUUUUUUUUUUUUUUUUn
-                                        UUUUUUUUUUUUUUUUUUUf
-                                        UUUUUUUUUUUUUUUUUUUU
+                                        AAAAAAAAAAAAAAAAAAAA
+                                        AAAAAAAAAAAAAAAAAAAA
+                                        AAAAAAAAAAAAAAAAAAAn
+                                        AAAAAAAAAAAAAAAAAAAf
+                                        AAAAAAAAAAAAAAAAAAAA
                                         UUUUUUUUUUUUUUUUUUUU
 
 
@@ -750,11 +750,11 @@
 
 
                                     UUUUUUUUUUUUUUUUUUUUUUUUUUUU
-                                    UUUUU                   UUUU
-                                    UUUUU        UUU        UUUU
-                                    UUUUU        UUU        UUUU
-                                    UUUUU        UUU        UUUU
-                                    UUUUU                   UUUU
+                                    AAAAA                   AAAA
+                                    AAAAA        AAA        AAAA
+                                    AAAAA        AAA        AAAA
+                                    AAAAA        AAA        AAAA
+                                    AAAAA                   AAAA
                                     UUUUUUUUUUUUUUUUUUUUUUUUUUUU
 
 
@@ -803,11 +803,11 @@
 
                                                  WWW
                                   UUUUUUUUUZZZZZZUUUZZZZZZUUUUUUUUU
-                                  UUU            UUU            UUU
-                                  UUU            U U            UUU
-                                  UUU            U U            UUU
-                                  UUU            U U            UUU
-                                  UUU            UUU            UUU
+                                  AAA            AAA            AAA
+                                  AAA            A A            AAA
+                                  AAA            A A            AAA
+                                  AAA            A A            AAA
+                                  AAA            AAA            AAA
                                   UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU
                                                  XXX
 
@@ -856,11 +856,11 @@
                                                  WWW
                                                  WWW
                                UUUUUUUZZZZZZUUZZZUZUZZZZZZZZZZZUUUUUUU
-                               UUU               U U               UUU
-                               UUU               UUU               UUU
-                               UUU               UUU               UUU
-                               UUU               UUU               UUU
-                               UUU               U U               UUU
+                               AAA               A A               AAA
+                               AAA               AAA               AAA
+                               AAA               AAA               AAA
+                               AAA               AAA               AAA
+                               AAA               A A               AAA
                                UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU
                                                  XXX
                                                  XXX
@@ -909,11 +909,11 @@
                                                  W W
                                                  WWW
                              UUUUUUZZZZZZUUUUUUUUUUUUUUUUUUUZZZZZZUUUUUU
-                             UUU                 UUU                 UUU
-                             UUU                 UUU                 UUU
-                             UUU                                     UUU
-                             UUU                 UUU                 UUU
-                             UUU                 UUU                 UUU
+                             AAA                 AAA                 AAA
+                             AAA                 AAA                 AAA
+                             AAA                                     AAA
+                             AAA                 AAA                 AAA
+                             AAA                 AAA                 AAA
                              UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU
                                                  XXX
                                                  X X
@@ -962,11 +962,11 @@
                                                  WWW
                                                  WWW
                            UUUUUZZZZZZUUUUUUJJJJJJJJJJJJJUUUUUUUZZZZUUUUUU
-                           UUU           JJJJJJJJJJJJJJJJJJJ           UUU
-                           UUU           JJJJJJJJJJJJJJJJJJJ           UUU
-                           UUU           JJJJJJJJJJJJJJJJJJJ           UUU
-                           UUU           JJJJJJJJJJJJJJJJJJJ           UUU
-                           UUU           JJJJJJJJJJJJJJJJJJJ           UUU
+                           AAA           BBBBBBBBBBBBBBBBBBB           AAA
+                           AAA           BBBBBBBBBBBBBBBBBBB           AAA
+                           AAA           BBBBBBBBBBBBBBBBBBB           AAA
+                           AAA           BBBBBBBBBBBBBBBBBBB           AAA
+                           AAA           BBBBBBBBBBBBBBBBBBB           AAA
                            UUUUUUUUUUUUUUUUUJJJJJJJJJJJJJUUUUUUUUUUUUUUUUU
                                                  XXX
                                                  XXX
@@ -1015,11 +1015,11 @@
 
 
                           UUUUUZZZZUUUUUJJ                 JJJUUUUUZZZUUUUU
-                          UU         JJJJJ                 JJJJJ         UU
-                          UU         JJJJJ                 JJJJJ         UU
-                          UU         JJJJJ                 JJJJJ         UU
-                          UU         JJJJJ                 JJJJJ         UU
-                          UU         JJJJJ                 JJJJJ         UU
+                          AA         BBBBB                 BBBBB         AA
+                          AA         BBBBB                 BBBBB         AA
+                          AA         BBBBB                 BBBBB         AA
+                          AA         BBBBB                 BBBBB         AA
+                          AA         BBBBB                 BBBBB         AA
                           UUUUUUUUUUUUUUJJ                 JJJUUUUUUUUUUUUU
 
 
@@ -1068,11 +1068,11 @@
 
 
                         UUUUUZZZUUUJJJ                         JJUUUUZZZUUUUU
-                        UUU       JJJJ                         JJJ         UU
-                        UUU       JJJJ                         JJJ         UU
-                        nUU       JJJJ                         JJJ         Un
-                        fUU       JJJJ                         JJJ         Uf
-                        UUU       JJJJ                         JJJ         UU
+                        AAA       BBBB                         BBB         AA
+                        AAA       BBBB                         BBB         AA
+                        nAA       BBBB                         BBB         An
+                        fAA       BBBB                         BBB         Af
+                        AAA       BBBB                         BBB         AA
                         UUUUUUUUUUUJJJ                         JJUUUUUUUUUUUU
 
 
@@ -1121,11 +1121,11 @@
 
 
                        UUUUZZZUUUJJ                               JJUUUZZZUUUU
-                       UU       JJJ                               JJJ       UU
-                       UU       JJJ                               JJJ       UU
-                       UU       JJJ                               JJJ       UU
-                       UU       JJJ                               JJJ       UU
-                       UU       JJJ                               JJJ       UU
+                       UA       BBB                               BBB       AU
+                       UA       BBB                               BBB       AU
+                       UA       BBB                               BBB       AU
+                       UA       BBB                               BBB       AU
+                       UA       BBB                               BBB       AU
                        UUUUUUUUUUJJ                               JJUUUUUUUUUU
 
 
@@ -1174,11 +1174,11 @@
 
 
                       UUUUZZUUUJJ                                   JJUUUZZUUUU
-                      UU      JJJ                                   JJ       UU
-                      UU      JJJ                                   JJ       UU
-                      UU      JJJ                                   JJ       UU
-                      UU      JJJ                                   JJ       UU
-                      UU      JJJ                                   JJ       UU
+                      UU      BBB                                   BB       UU
+                      UU      BBB                                   BB       UU
+                      UU      BBB                                   BB       UU
+                      UU      BBB                                   BB       UU
+                      UU      BBB                                   BB       UU
                       UUUUUUUUUJJ                                   JJUUUUUUUUU
 
 
@@ -1227,11 +1227,11 @@
 
 
                      UUUZZZUUUJ                                       JUUUZZUUUU
-                     UU      JJ                                       JJ      UU
-                     UU      JJ                                       JJ      UU
-                     UU      JJ                                       JJ      UU
-                     UU      JJ                                       JJ      UU
-                     UU      JJ                                       JJ      UU
+                     UU      BB                                       BB      UU
+                     UU      BB                                       BB      UU
+                     UU      BB                                       BB      UU
+                     UU      BB                                       BB      UU
+                     UU      BB                                       BB      UU
                      UUUUUUUUUJ                                       JUUUUUUUUU
 
 
@@ -1280,11 +1280,11 @@
 
 
                     UUUZZZUUJJ                                          JUUZZZUUU
-                    UU     JJJ                                          JJ     UU
-                    UU     JJJ                                          JJ     UU
-                    UU     JJJ                                          JJ     UU
-                    UU     JJJ                                          JJ     UU
-                    UU     JJJ                                          JJ     UU
+                    UU     BBB                                          BB     UU
+                    UU     BBB                                          BB     UU
+                    UU     BBB                                          BB     UU
+                    UU     BBB                                          BB     UU
+                    UU     BBB                                          BB     UU
                     UUUUUUUUJJ                                          JUUUUUUUU
 
 
@@ -1333,11 +1333,11 @@
 
 
                    UUUZZZUUJ                                             JUUUZZUUU
-                   UU     JJ                                             JJ     UU
-                   UU     JJ                                             JJ     UU
-                   UU     JJ                                             JJ     UU
-                   UU     JJ                                             JJ     UU
-                   UU     JJ                                             JJ     UU
+                   UU     BB                                             BB     UU
+                   UU     BB                                             BB     UU
+                   UU     BB                                             BB     UU
+                   UU     BB                                             BB     UU
+                   UU     BB                                             BB     UU
                    UUUUUUUUJ                                             JUUUUUUUU
 
 
@@ -1386,11 +1386,11 @@
 
 
                   UUUUZUUUJ                                               JUUZZZUUU
-                  UU U   JJ                                               JJ   U UU
-                  UUU    JJ                                               JJ    UUU
-                  UUUU   JJ                                               JJ   UUUU
-                  UUU    JJ                                               JJ    UUU
-                  UU U   JJ                                               JJ   U UU
+                  UU U   BB                                               BB   U UU
+                  UUU    BB                                               BB    UUU
+                  UUUU   BB                                               BB   UUUU
+                  UUU    BB                                               BB    UUU
+                  UU U   BB                                               BB   U UU
                   UUUUUUUUJ                                               JUUUUUUUU
 
 
@@ -1439,11 +1439,11 @@
                       WW                                                     WW
                      WWW                                                     WWW
                   UUUUUUUJ                                                 JUUUUUUU
-                  U UUUUJJ                                                 JJUUUU U
-                  U UUUUJJ                                                 JJUUUU U
-                  U UUU JJ                                                 JJ UUU U
-                  U UUUUJJ                                                 JJUUUU U
-                  U UUUUJJ                                                 JJUUUU U
+                  U UUUUBB                                                 BBUUUU U
+                  U UUUUBB                                                 BBUUUU U
+                  U UUU BB                                                 BB UUU U
+                  U UUUUBB                                                 BBUUUU U
+                  U UUUUBB                                                 BBUUUU U
                   UUUUUUUJ                                                 JUUUUUUU
                      XXX                                                     XXX
                       XX                                                     XX
@@ -1492,11 +1492,11 @@
                      WWWW                                                   WWWW
                      W WW                                                   WW W
                  UUUUUUUJ                                                   JUUUUUUU
-                 U  UUUUJ                                                   JUUUU  U
-                 U UU UJJ                                                   JJU UU U
-                 U UUUUJJ                                                   JJUUUU U
-                 U UU UJJ                                                   JJU UU U
-                 U  UUUUJ                                                   JUUUU  U
+                 U  UUUUB                                                   BUUUU  U
+                 U UU UJB                                                   BJU UU U
+                 U UUUUJB                                                   BJUUUU U
+                 U UU UJB                                                   BJU UU U
+                 U  UUUUB                                                   BUUUU  U
                  UUUUUUUJ                                                   JUUUUUUU
                      X XX                                                   XX X
                      XXXX                                                   XXXX
