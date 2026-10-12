@@ -45,7 +45,7 @@ public class CommandBTSKit extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btskit [siloTier 1-" + BTSBom.MAX_TIER + "]";
+        return "/btskit [siloTier 1-" + BTSBom.MAX_TIER + "] | /btskit kerr";
     }
 
     @Override
@@ -97,6 +97,11 @@ public class CommandBTSKit extends CommandBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
         final EntityPlayerMP player = getCommandSenderAsPlayer(sender);
+        // SINGULARITY LADDER P2 (Kerr unit): /btskit kerr - the Kerr's own kit, read from manifest.json.
+        if (args.length > 0 && args[0].equalsIgnoreCase("kerr")) {
+            com.nateyburr.beyondthestars.machines.kerr.KerrKit.giveKit(player);
+            return;
+        }
         final int tier = args.length > 0 ? Math.min(BTSBom.MAX_TIER, Math.max(1, parseInt(sender, args[0]))) : 1;
 
         final BTSBom.Bill silo = BTSBom.SILO[tier];

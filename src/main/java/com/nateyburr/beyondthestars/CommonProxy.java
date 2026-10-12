@@ -55,5 +55,6 @@ public class CommonProxy {
         event.registerServerCommand(new CommandBTSQuests());
         event.registerServerCommand(new CommandBTSMilestone());
         event.registerServerCommand(new CommandBTSTree());
+        event.registerServerCommand(new CommandBTSKerr());
     }
 }

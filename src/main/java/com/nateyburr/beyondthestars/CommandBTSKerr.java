@@ -1,0 +1,183 @@
+package com.nateyburr.beyondthestars;
+
+import java.util.List;
+
+import net.minecraft.block.Block;
+import net.minecraft.command.CommandBase;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.MathHelper;
+import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
+
+import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
+import com.nateyburr.beyondthestars.machines.BTSShapes;
+import com.nateyburr.beyondthestars.machines.kerr.KerrKit;
+import com.nateyburr.beyondthestars.machines.kerr.MTEKerrEngine;
+
+/**
+ * /btskerr [t1|t2] [force] - SINGULARITY LADDER P2 creative build: raises a complete, formed,
+ * running Kerr Ergosphere Engine (both modules, every hatch, bolt buses stocked with a Black Hole
+ * Seed and bolts, creative energy) a few blocks in front of the player, its controller facing the
+ * player and the cage stretching away from them. Owned by the Kerr unit.
+ * <p>
+ * The cage is 65 blocks tall with the controller on its middle row, so the controller goes 32 blocks
+ * above the player's feet and the cage's bottom row lands at foot level. The footprint is surveyed
+ * first; more than 15% solid refuses to build without {@code force}.
+ */
+public class CommandBTSKerr extends CommandBase {
+
+    /** Gap between the player and the controller's face. */
+    private static final int STAND_OFF = 3;
+    private static final double MAX_SOLID_FRACTION = 0.15;
+    private static final int SURVEY_STRIDE = 4;
+
+    @Override
+    public String getCommandName() {
+        return "btskerr";
+    }
+
+    @Override
+    public String getCommandUsage(ICommandSender sender) {
+        return "/btskerr [t1|t2] [force]";
+    }
+
+    @Override
+    public int getRequiredPermissionLevel() {
+        return 2;
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public List addTabCompletionOptions(ICommandSender sender, String[] args) {
+        if (args.length == 1) return getListOfStringsMatchingLastWord(args, "t1", "t2");
+        if (args.length == 2) return getListOfStringsMatchingLastWord(args, "force");
+        return null;
+    }
+
+    private static void tell(EntityPlayerMP player, String message) {
+        player.addChatMessage(new ChatComponentText(message));
+    }
+
+    @Override
+    public void processCommand(ICommandSender sender, String[] args) {
+        final EntityPlayerMP player = getCommandSenderAsPlayer(sender);
+        final World world = player.worldObj;
+        if (world.isRemote) return;
+        boolean tier2 = false;
+        boolean force = false;
+        for (String arg : args) {
+            if (arg.equalsIgnoreCase("t2") || arg.equals("2")) tier2 = true;
+            if (arg.equalsIgnoreCase("force") || arg.equalsIgnoreCase("-f")) force = true;
+        }
+        final String core = tier2 ? MTEKerrEngine.PIECE_T2 : MTEKerrEngine.PIECE_T1;
+        final int[] off = BTSShapes.offset(core);
+        final int[] size = BTSShapes.size(core);
+        final int below = size[1] - 1 - off[1];
+
+        final ForgeDirection look = ForgeDirection.getOrientation(
+            net.minecraft.util.Direction.directionToFacing[MathHelper
+                .floor_double(player.rotationYaw * 4.0F / 360.0F + 0.5D) & 3]);
+        final ForgeDirection facing = look.getOpposite();
+        final int px = MathHelper.floor_double(player.posX);
+        final int py = MathHelper.floor_double(player.posY);
+        final int pz = MathHelper.floor_double(player.posZ);
+        final int x = px + look.offsetX * STAND_OFF;
+        final int z = pz + look.offsetZ * STAND_OFF;
+        final int y = py + below;
+        if (y + off[1] > 255 || py < 1) {
+            tell(
+                player,
+                EnumChatFormatting.RED + "No room: the cage is "
+                    + size[1]
+                    + " blocks tall and its bottom row sits at your feet. Stand between y=1 and y="
+                    + (255 - off[1] - below)
+                    + ".");
+            return;
+        }
+
+        final ExtendedFacing alignment = ExtendedFacing.of(facing);
+        if (!force) {
+            final int percent = solidPercent(world, alignment, x, y, z, core);
+            if (percent > MAX_SOLID_FRACTION * 100) {
+                tell(
+                    player,
+                    EnumChatFormatting.RED + "Refusing to build: the "
+                        + size[0]
+                        + "x"
+                        + size[1]
+                        + "x"
+                        + size[2]
+                        + " footprint ahead of you is "
+                        + percent
+                        + "% solid and would be overwritten. Move to open ground (or the sky), or add "
+                        + EnumChatFormatting.WHITE
+                        + "force"
+                        + EnumChatFormatting.RED
+                        + ".");
+                return;
+            }
+        }
+
+        final KerrKit.Result result = KerrKit.build(world, x, y, z, facing, tier2);
+        if (result.failure != null) {
+            tell(player, EnumChatFormatting.RED + "Kerr build FAILED: " + result.failure + ".");
+            return;
+        }
+        tell(player, EnumChatFormatting.AQUA + "== Kerr Ergosphere Engine (" + (tier2 ? "T2" : "T1") + ") ==");
+        for (String line : result.lines) {
+            tell(player, line);
+        }
+        tell(
+            player,
+            "The controller is " + below
+                + " blocks above your feet on the cage's front (governor arc); the cage runs "
+                + (size[2] + 8)
+                + " blocks away from you.");
+        tell(
+            player,
+            EnumChatFormatting.GREEN
+                + "Creative energy hatches (UMV, 16 A) and an auto-maintenance hatch are fitted. Bolt buses hold a "
+                + "Black Hole Seed and SpaceTime bolts: the hole opens within a second. Feed the compressor arc's "
+                + "input bus to compress; screwdriver = setpoint, sneak + screwdriver = mode.");
+        if (!result.formed) {
+            tell(
+                player,
+                EnumChatFormatting.YELLOW
+                    + "Open the controller GUI: it names the first wrong cell. A NOT FORMED creative build is a bug - "
+                    + "please report it (and check the orientation note in the build spec).");
+        }
+    }
+
+    /** Percentage of sampled cells of the piece's bounding box that are already solid. */
+    private static int solidPercent(World world, ExtendedFacing alignment, int x, int y, int z, String core) {
+        final int[] off = BTSShapes.offset(core);
+        final int[] size = BTSShapes.size(core);
+        final int[] abc = new int[3];
+        final int[] xyz = new int[3];
+        int solid = 0;
+        int total = 0;
+        for (int a = 0; a < size[0]; a += SURVEY_STRIDE) {
+            for (int b = 0; b < size[1]; b += SURVEY_STRIDE) {
+                for (int c = 0; c < size[2] + 8; c += SURVEY_STRIDE) {
+                    abc[0] = a - off[0];
+                    abc[1] = b - off[1];
+                    abc[2] = c - off[2];
+                    alignment.getWorldOffset(abc, xyz);
+                    final int wx = x + xyz[0];
+                    final int wy = y + xyz[1];
+                    final int wz = z + xyz[2];
+                    if (wy < 0 || wy > 255) continue;
+                    total++;
+                    final Block block = world.getBlock(wx, wy, wz);
+                    if (block == null || block.isAir(world, wx, wy, wz)) continue;
+                    if (block.isReplaceable(world, wx, wy, wz)) continue;
+                    solid++;
+                }
+            }
+        }
+        return total == 0 ? 0 : solid * 100 / total;
+    }
+}
