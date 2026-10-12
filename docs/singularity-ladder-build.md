@@ -812,3 +812,20 @@ at the top of the script. Paths are under `src/main/resources/assets/beyondthest
   Overlays are transparent outside the emblem, so they sit on the controller's casing background (Kerr: the
   `Casings.ExtremeDensitySpaceBendingCasing` texture index; Eye: TecTech's Reinforced Spatial Structure Casing index).
   Active files are vertical strips of 16×16 frames with a `.mcmeta` (`frametime` inside).
+
+---
+
+## Contract additions (structures)
+
+Written by the structures unit on 2026-10-12, early, so the loader matches the files. The full "Structure export"
+section (run command, legend, manifest) follows once the exporter is committed.
+
+- **Blank rows are rows.** Shape rows are written with trailing spaces stripped, so a row that is all skip is an
+  **empty line**. Inside a layer, every line up to the next `---` (or end of file) is a row, blank or not; the loader
+  right-pads each to `w`. A layer always has exactly `h` lines. Only lines before the header and `#` lines are
+  skipped.
+- **Header** is exactly `# piece=<name> w=<w> h=<h> d=<d> off=<h>,<v>,<d> sha=<sha1>` on the first line. Extra
+  `# key=value` lines may follow it (ignored by the loader).
+- **Layer order**: layer 0 is the controller's front (the outermost +z layer of the mockup), rows run top to
+  bottom, chars run left to right as seen from in front of the controller (mockup +x), so `[d][h]` is StructureLib's
+  native layout with no `transpose`.
