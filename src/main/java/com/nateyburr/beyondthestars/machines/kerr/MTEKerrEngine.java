@@ -92,7 +92,8 @@ import gregtech.common.tileentities.machines.multi.compressor.MTEBlackHoleUtilit
  * loaded by {@link BTSShapes}: {@code kerr_t1} / {@code kerr_t2} (alternatives; exactly one is
  * required), {@code kerr_compressor} and {@code kerr_extractor}. Each piece is checked at its own
  * {@code off=}. The char-to-block mapping follows the "Structure export" legend and the mid-run
- * ruling: Black Hole Compressor blocks wherever a role fits.
+ * ruling: Black Hole Compressor blocks wherever a role fits, plus one new white lining block
+ * (Harmonic Lining, slCasing2:2, char {@code J}) for the mockup's bright inner face.
  *
  * <h2>The hole (Q-8, numbers PROPOSED)</h2>
  * A Black Hole Seed in any bolt bus opens a hole at 8 SM; a Black Hole Collapser closes it. Every
@@ -265,7 +266,8 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             .addElement('G', casing(Casings.ParticleBeamGuidancePipeCasing))
             .addElement('H', block(sl, BlockSLCasing.FIELD_COIL))
             .addElement('I', casing(Casings.BackgroundRadiationAbsorbentCasing))
-            .addElement('J', casing(Casings.BackgroundRadiationAbsorbentCasing))
+            // the white inner face of every arc and band: the one new Kerr lining block (round-4 ruling)
+            .addElement('J', block(sl2, BlockSLCasing2.LINING))
             .addElement('K', casing(Casings.HawkingRadiationRealignmentFocus))
             .addElement('L', casing(Casings.ExtremeDensitySpaceBendingCasing))
             .addElement('M', block(sl, BlockSLCasing.BEAM_DUMP))
@@ -1216,7 +1218,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             .addCasingInfoExactly("Ergosphere Field Coil", bom(PIECE_T1, 'H'), false)
             .addCasingInfoExactly("Beam Focusing Quadrupole", bom(PIECE_T1, 'F'), false)
             .addCasingInfoExactly("Beam Dump", bom(PIECE_T1, 'M'), false)
-            .addCasingInfoExactly("Background Radiation Absorbent Casing", bom(PIECE_T1, 'J'), false)
+            .addCasingInfoExactly("Harmonic Lining", bom(PIECE_T1, 'J'), false)
             .addCasingInfoExactly("Hawking Radiation Realignment Focus", bom(PIECE_T1, 'K'), false)
             .addCasingInfoExactly("Particle Beam Guidance Pipe Casing", bom(PIECE_T1, 'G'), false)
             .addOtherStructurePart(
@@ -1225,13 +1227,16 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             .addOtherStructurePart(
                 "Compressor module",
                 "1 Kerr Compressor Module, " + bom(PIECE_COMPRESSOR, 'I')
-                    + " + "
+                    + " Background Radiation Absorbent Casing, "
                     + bom(PIECE_COMPRESSOR, 'J')
-                    + " Background Radiation Absorbent Casing",
+                    + " Harmonic Lining",
                 4)
             .addOtherStructurePart(
                 "Extractor module",
-                "1 Kerr Extractor Module, " + bom(PIECE_EXTRACTOR, 'N') + " Ergosphere Extraction Casing",
+                "1 Kerr Extractor Module, " + bom(PIECE_EXTRACTOR, 'N')
+                    + " Ergosphere Extraction Casing, "
+                    + bom(PIECE_EXTRACTOR, 'J')
+                    + " Harmonic Lining",
                 5)
             .addEnergyHatch("Governor arc (2 sockets; 1 laser or up to 2 energy)", 1)
             .addMaintenanceHatch("Governor arc", 2)

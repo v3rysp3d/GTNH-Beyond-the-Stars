@@ -64,7 +64,7 @@
    "J": {
     "role": "arc_lining",
     "kind": "lining",
-    "block": "Casings.BackgroundRadiationAbsorbentCasing (FC-1: Harmonic Lining not registered)"
+    "block": "NEW slCasing2:2 Harmonic Lining (the white inner face; round-4 ruling, BHC family)"
    },
    "K": {
     "role": "glass_channel",
@@ -412,7 +412,7 @@
      "ch": "J",
      "count": 131,
      "role": "arc_lining",
-     "block": "Casings.BackgroundRadiationAbsorbentCasing (FC-1: Harmonic Lining not registered)"
+     "block": "NEW slCasing2:2 Harmonic Lining (the white inner face; round-4 ruling, BHC family)"
     },
     {
      "ch": "K",
@@ -840,7 +840,7 @@
      "ch": "J",
      "count": 4162,
      "role": "arc_lining",
-     "block": "Casings.BackgroundRadiationAbsorbentCasing (FC-1: Harmonic Lining not registered)"
+     "block": "NEW slCasing2:2 Harmonic Lining (the white inner face; round-4 ruling, BHC family)"
     },
     {
      "ch": "D",
@@ -1328,7 +1328,7 @@
      "ch": "J",
      "count": 253,
      "role": "arc_lining",
-     "block": "Casings.BackgroundRadiationAbsorbentCasing (FC-1: Harmonic Lining not registered)"
+     "block": "NEW slCasing2:2 Harmonic Lining (the white inner face; round-4 ruling, BHC family)"
     },
     {
      "ch": "K",
@@ -1508,7 +1508,7 @@
      "ch": "J",
      "count": 137,
      "role": "arc_lining",
-     "block": "Casings.BackgroundRadiationAbsorbentCasing (FC-1: Harmonic Lining not registered)"
+     "block": "NEW slCasing2:2 Harmonic Lining (the white inner face; round-4 ruling, BHC family)"
     },
     {
      "ch": "K",

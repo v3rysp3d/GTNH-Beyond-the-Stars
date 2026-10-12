@@ -108,7 +108,7 @@ const LEGEND = {
     G: { role: "beam_pipe", kind: "pipe (+ beamhatch at x=17 and x=47)", block: "Casings.ParticleBeamGuidancePipeCasing" },
     H: { role: "field_coil", kind: "coil", block: "NEW slCasing:6 Ergosphere Field Coil" },
     I: { role: "compressor_shell", kind: "bhc", block: "Casings.BackgroundRadiationAbsorbentCasing (sBlockCasings10:12, BHC)" },
-    J: { role: "arc_lining", kind: "lining", block: "Casings.BackgroundRadiationAbsorbentCasing (FC-1: Harmonic Lining not registered)" },
+    J: { role: "arc_lining", kind: "lining", block: "NEW slCasing2:2 Harmonic Lining (the white inner face; round-4 ruling, BHC family)" },
     K: { role: "glass_channel", kind: "sglass", block: "Casings.HawkingRadiationRealignmentFocus (sBlockGlass1:4, the BHC's glass)" },
     L: { role: "arc_shell", kind: "eyeshell", block: "Casings.ExtremeDensitySpaceBendingCasing (governor and dump arc shells)" },
     M: { role: "beam_dump", kind: "dump (+ dump-arc ergohatch/output cells)", block: "NEW slCasing:8 Beam Dump" },
