@@ -3728,6 +3728,60 @@ section 1's open questions) went to my local work folder; it is not published.
 
 **Suggestion.** Accept as is.
 
+### B-91 `/btsrecipes dump`: every recipe we add, rewrite or remove, from the live maps [follow-up, built]
+
+**Context.** I asked for "all new recipes" in the playtest guide. A list kept by hand drifts, so the list is
+read from the server after load.
+
+**What was built.** `/btsrecipes [status | dump [file]]` (op or console; default file `bts-recipes.json` in the server
+folder) writes JSON. Each entry has our id, the line, the badge (`new`, `changed-GT`, `removed`), the machine and recipe
+map, items (display name, `registry:meta`, count, nanite tier, "or" alternatives, chance) and fluids (L, condensate
+mark), EU/t with the tier name, seconds, special values (Homogeny tier, recipe metadata such as research or coil heat,
+the Eye's tier / EU per run / compression baseline), the config flag, and the fallback and placeholder marks with their
+reasons. A `changed-GT` entry carries the pack's recipe as it was before our edit. A `removed` entry carries the
+removed recipe and what replaces it.
+
+How it knows what is ours: `BTSRecipeGuard.recipe` (the one door every recipe goes through) now notes the size of every
+category list of every GT recipe map, of the crafting table and of GT's assembly-line data around each body.
+`BTSRecipeLedger` remembers by identity whatever a body added. The dump walks the live maps and asks the ledger, so a
+recipe that GT or a load-complete pass dropped is not listed, and ids that left nothing live are reported apart
+(`registeredWithoutLiveRecipe`, empty today). The code that edits or removes pack recipes reports to the ledger:
+the BHC -> Kerr swap (`SL-K01/swap-NN`), the BHC and EOH controller removals (`SL-K01/removes-BHC`,
+`SL-E01/removes-EOH`), SL-G01 (Resonance Chamber II), SL-B01 / B02 (x32) and TecTech's planets converted to our Eye.
+`BTSRecipeLedger.gated` marks the flag-gated block (`compressionGateParts`, SL-P39). The H/R gate and the BEC
+fallbacks mark placeholders and fallbacks.
+
+*Dev server* (headless `runServer`, fresh flat world `recipedump`, port 25565, two boots):
+- Shipped defaults (both flags `true`): `278 registered, 0 skipped` at postInit, 320 with load-complete. The dump has
+  **386 entries**: 328 new, 56 changed-GT, 2 removed. By line: Kerr 28, Eye 59, BEC / Condensate 28, Homogeny / Reality
+  27, Automation 1, Upgrade path 41, old plant 202, other 0. There are 28 NEI-only display recipes, 14 placeholders
+  (the H/R gate lines) and 0 fallbacks.
+- Both flags `false`: `277 registered, 0 skipped`, **372 entries** (370 new, 2 changed-GT, 0 removed). Gone are the 10
+  BHC -> Kerr swaps, both controller removals, SL-G01 and SL-P33. The 43 planets become `new` copies (TecTech's Eye
+  keeps its own). SL-B01 / B02 stay `changed-GT`: they ship whatever the flags say.
+
+The playtest guide (local work folder) has a new "All new recipes" section built from both dumps. It has a search and
+filter chips per line and badge, and one collapsible group per line. Changed recipes show the pack's lines, then ours.
+
+**Judgement calls.**
+
+1. **A new command, not a subcommand.** `/btseye` and `/btshr` are machine benches. A recipe dump covers every line, so
+   it gets its own `/btsrecipes`. *Alternative:* `/btseye recipes dump`.
+2. **Line assignment.** The line is the `BTSRecipeGuard.line` the recipe registered in. The `singularity` line is split:
+   SL-P02..P14 (the Kerr's structure parts) go to Kerr, the rest to Eye. Load-complete ids are placed by prefix: SL-U to
+   Upgrade path, SL-B to BEC, SL-G to Eye. The BHC swaps are Kerr even when the rewritten recipe is a compression
+   generator. *Alternative:* a line argument on every `recipe()` call.
+3. **TecTech's 43 planets count as `changed-GT`** with the flag on: our Eye's planet recipe replaces TecTech's, and
+   TecTech's is the "before". Their item outputs are identical. Only the run time, the EU and the success figures
+   change.
+4. **The pack's recipe as it was before is a snapshot** taken just before each in-place edit (`CommandBTSRecipes.snapshot`).
+   It is not re-read from the pack, so it is exactly what our code saw.
+5. **Cost.** One size snapshot of every recipe map per registered recipe at load, about 320 snapshots and no
+   measurable load time. The ledger holds references only to recipes that already exist.
+
+**Suggestion.** Keep. Re-run the dump before each playtest package and rebuild the guide section from it (the builder
+script is in my local work folder, `recipedump/build_section.py`).
+
 ---
 
 ## Where the old question numbers went
