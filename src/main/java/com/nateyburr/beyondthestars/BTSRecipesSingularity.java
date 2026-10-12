@@ -2,7 +2,9 @@ package com.nateyburr.beyondthestars;
 
 import static gregtech.api.recipe.RecipeMaps.assemblerRecipes;
 import static gregtech.api.util.GTRecipeBuilder.MINUTES;
+import static gregtech.api.util.GTRecipeBuilder.SECONDS;
 import static gregtech.api.util.GTRecipeConstants.AssemblyLine;
+import static gregtech.api.util.GTRecipeConstants.NANITE_TIERS;
 import static gregtech.api.util.GTRecipeConstants.RESEARCH_ITEM;
 import static gregtech.api.util.GTRecipeConstants.SCANNING;
 
@@ -10,7 +12,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
@@ -22,26 +23,25 @@ import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.fluids.SLFluids;
 import com.nateyburr.beyondthestars.items.SLItems;
 
-import goodgenerator.loader.Loaders;
 import gregtech.api.casing.Casings;
+import gregtech.api.enums.CondensateType;
 import gregtech.api.enums.GTValues;
 import gregtech.api.enums.ItemList;
 import gregtech.api.enums.Materials;
-import gregtech.api.enums.Mods;
+import gregtech.api.enums.NaniteTier;
 import gregtech.api.enums.OrePrefixes;
 import gregtech.api.enums.TierEU;
-import gregtech.api.util.GTModHandler;
 import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.recipe.Scanning;
-import gtPlusPlus.core.material.MaterialMisc;
-import gtPlusPlus.xmod.gregtech.api.enums.GregtechItemList;
-import tectech.recipe.TTRecipeAdder;
+import gtPlusPlus.core.material.MaterialsElements;
+import tectech.recipe.TecTechRecipeMaps;
 import tectech.thing.CustomItemList;
 
 /**
- * SINGULARITY LADDER PARTS, SL-P01..SL-P32 (singularity-ladder-build.md §2.2; SL-P27..P32 come
- * from the cost audit, docs/singularity-ladder-costs.md). <b>Owned by the
+ * SINGULARITY LADDER PARTS, SL-P01..SL-P33 (singularity-ladder-build.md §2.2; SL-P27..P29 come
+ * from the cost audit, docs/singularity-ladder-costs.md; SL-P33 from the 2.9.0-RC-2 gate audit;
+ * SL-P30..P32 are retired). <b>Owned by the
  * Foundation unit.</b> The Kerr's and the Eye's own recipes live in {@code BTSRecipesKerr} and
  * {@code BTSRecipesEye}.
  *
@@ -79,11 +79,11 @@ public final class BTSRecipesSingularity {
         // because TecTech's Eye (WDM's other source) is gone, so only they follow the flag.
         tecTechEyeBlocks();
         if (Config.replaceTecTechEyeOfHarmony) {
-            compressionGates();
+            compressionGateParts();
         } else {
             BeyondTheStars.LOG.info(
-                "[BTS] replaceTecTechEyeOfHarmony=false: SL-P30..P32 (compression-generator gate recipes) are "
-                    + "not registered; TecTech's own generator recipes apply.");
+                "[BTS] replaceTecTechEyeOfHarmony=false: SL-P33 (WDM-free Resonance Chamber II) is not registered; "
+                    + "TecTech's Eye still makes White Dwarf Matter.");
         }
     }
 
@@ -444,140 +444,54 @@ public final class BTSRecipesSingularity {
                 .addTo(assemblerRecipes));
     }
 
-    // ============================== Compression gate: generator tier upgrades (only with TecTech's Eye replaced)
-
-    /** TecTech's per-tier generator research cost (x(t+1)), researched from our star charts. */
-    private static final int GATE_RESEARCH_COMPUTATION = 48_000_000;
-
-    private static final int GATE_RESEARCH_PER_SECOND = 16_384;
-
-    /** Flat time for an upgrade step (cost audit #15): the old generator has already paid for its tier. */
-    private static final int GATE_UPGRADE_TICKS = 80_000;
+    // ============================== Compression gate: the WDM-free Resonance Chamber II (only with TecTech's Eye
+    // replaced)
 
     /**
-     * One row of the gate table in {@link #compressionGates()}: TecTech's irregular per-tier counts
-     * (Yotta Fluid Tank Cell count and meta, Cosmic Fabric Manipulators, UXV circuits), the gate fluid
-     * and the research chart.
-     */
-    private static final class GateStep {
-
-        final String id;
-        final int tier;
-        final CustomItemList from;
-        final CustomItemList to;
-        final int yottaCount;
-        final int yottaMeta;
-        final int fabric;
-        final int uxv;
-        final Supplier<FluidStack> gate;
-        final Supplier<ItemStack> research;
-
-        GateStep(String id, int tier, CustomItemList from, CustomItemList to, int yottaCount, int yottaMeta, int fabric,
-            int uxv, Supplier<FluidStack> gate, Supplier<ItemStack> research) {
-            this.id = id;
-            this.tier = tier;
-            this.from = from;
-            this.to = to;
-            this.yottaCount = yottaCount;
-            this.yottaMeta = yottaMeta;
-            this.fabric = fabric;
-            this.uxv = uxv;
-            this.gate = gate;
-            this.research = research;
-        }
-    }
-
-    /**
-     * SL-P30..P32: Spacetime Compression Field Generator tier t-1 -> tier t, for t = 1..3 (TecTech
-     * metas 1-3, the gates of Eye T2/T3/T4 under the 1:1 rule, Q-20). Cost audit #2 and #15, B-22,
-     * B-28.
+     * SL-P33: MetaMaterial Resonance Chamber II with 2 SpaceTime foils in place of GT's 1 White Dwarf
+     * Matter foil. Everything else is GT 2.9.0-RC-2's own Condensate Assembler recipe
+     * ({@code BECMetaMaterialRecipes.registerResonanceChamber}, tier 2): inputs, nanite tiers,
+     * condensates, 300 s at UIV.
      * <p>
-     * TecTech's own recipe for tier t takes 2 / 8 / 32 White Dwarf Matter bolts, and with its Eye
-     * removed WDM's only source is our Eye T4: Eye T2 could never be built. This recipe is TecTech's
-     * (the same items, fluids and research cost, decoded with javap from
-     * {@code ResearchStationAssemblyLine.addEOHRecipes}) with three changes:
-     * <ol>
-     * <li>the WDM bolts become a 4th fluid, the product of the Eye tier below (the table here);</li>
-     * <li>the generator of the tier below replaces the Reinforced Spatial Structure Casing, so an Eye
-     * tier step upgrades its 188 generators instead of stranding them, at {@link #GATE_UPGRADE_TICKS}
-     * flat (TecTech: 80,000 x (t+1));</li>
-     * <li>the research item is the tier's star chart, not the generator below: TecTech's recipe
-     * already uses that one, and a research item can belong to one recipe only.</li>
-     * </ol>
-     * TecTech's recipes stay; they simply cannot run without WDM. The Tier0 (Crude) generator, the
-     * Eye T1 gate, keeps TecTech's own recipe (Shirabon bolts, no WDM).
+     * <b>Why (gate audit, 2.9.0-RC-2 port, B-29).</b> In RC-2 every Spacetime Compression Field
+     * Generator is a Condensate Assembler recipe. Tiers 1-3 (TecTech metas 1-3: the 1:1 gates of Eye
+     * T2/T3/T4) take 1 / 4 / 16 Resonance Chamber II, and each chamber takes a White Dwarf Matter foil.
+     * With TecTech's Eye replaced, WDM's only source is our Eye T4, so Eye T2 would need Eye T4 first.
+     * This is the only WDM (or later Eye product) anywhere in those three generators' chains. The
+     * chamber still takes Boundless Cosmic Solder, which is made from Raw Star Matter (our Eye T1), so
+     * the generators still need the tier below, never a tier above.
+     * <p>
+     * GT's recipe stays; with TecTech's Eye kept, WDM has its stock source and this recipe is not
+     * registered. Retired IDs: SL-P30..P32 (the old research-station "upgrade the generator" recipes)
+     * are gone because RC-2 prices the generators itself (user ruling: keep RC-2's generator costs).
      */
-    private static void compressionGates() {
-        final GateStep[] table = {
-            new GateStep(
-                "SL-P30",
-                1,
-                CustomItemList.SpacetimeCompressionFieldGeneratorTier0,
-                CustomItemList.SpacetimeCompressionFieldGeneratorTier1,
-                2,
-                6,
-                2,
-                1,
-                () -> rawStarMatter(16_000),
-                () -> BTSRecipeGuard.stack(SLItems.starChartSiriusA, 1)),
-            new GateStep(
-                "SL-P31",
-                2,
-                CustomItemList.SpacetimeCompressionFieldGeneratorTier1,
-                CustomItemList.SpacetimeCompressionFieldGeneratorTier2,
-                3,
-                6,
-                3,
-                1,
-                () -> BTSRecipeGuard.fluid(SLFluids.excitedStellarPlasma, 4_000),
-                () -> BTSRecipeGuard.stack(SLItems.starChartArcturus, 1)),
-            new GateStep(
-                "SL-P32",
-                3,
-                CustomItemList.SpacetimeCompressionFieldGeneratorTier2,
-                CustomItemList.SpacetimeCompressionFieldGeneratorTier3,
-                1,
-                7,
-                1,
-                2,
-                () -> BTSRecipeGuard.fluid(SLFluids.rawHyperdensePlasma, 2_000),
-                () -> BTSRecipeGuard.stack(SLItems.starChartSiriusB, 1)) };
-        for (GateStep step : table) {
-            BTSRecipeGuard.recipe(step.id, () -> compressionGate(step));
-        }
+    private static void compressionGateParts() {
+        BTSRecipeGuard.recipe(
+            "SL-P33",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    nn(ItemList.Emitter_UEV.get(2L), "ItemList.Emitter_UEV"),
+                    nn(MaterialsElements.STANDALONE.HYPOGEN.getRod(2), "Hypogen rod"),
+                    BTSRecipeGuard.req(OrePrefixes.foil, Materials.SpaceTime, 2L),
+                    BTSRecipeGuard.req(OrePrefixes.plate, Materials.ProtoHalkonite, 1L))
+                .fluidInputs(
+                    entangled(CondensateType.ChromaticGlass, 12),
+                    entangled(CondensateType.Infinity, 6),
+                    entangled(CondensateType.BoundlessCosmicSolder, 2))
+                .itemOutputs(
+                    nn(ItemList.MetaMaterial_ResonanceChamber2.get(1L), "ItemList.MetaMaterial_ResonanceChamber2"))
+                .metadata(
+                    NANITE_TIERS,
+                    new NaniteTier[] { NaniteTier.SixPhasedCopper, NaniteTier.Silver, NaniteTier.Gold,
+                        NaniteTier.Silver })
+                .duration(300 * SECONDS)
+                .eut(TierEU.RECIPE_UIV)
+                .addTo(TecTechRecipeMaps.condensateAssemblingRecipes));
     }
 
-    private static void compressionGate(GateStep g) {
-        final int t = g.tier;
-        final Object[] inputs = { tectech(g.from, 1, g.from.name()),
-            new ItemStack(nn(Loaders.yottaFluidTankCell, "Loaders.yottaFluidTankCell"), g.yottaCount, g.yottaMeta),
-            nn(ItemList.Quantum_Tank_IV.get(4L * (t + 1)), "ItemList.Quantum_Tank_IV"),
-            nn(GTModHandler.getModItem(Mods.AvaritiaAddons.ID, "InfinityChest", t + 1), "AvaritiaAddons InfinityChest"),
-            nn(GregtechItemList.CosmicFabricManipulator.get(g.fabric), "GregtechItemList.CosmicFabricManipulator"),
-            singularityCell(), singularityCell(), new Object[] { OrePrefixes.circuit.get(Materials.UXV), g.uxv } };
-        final FluidStack[] fluids = {
-            nn(MaterialMisc.MUTATED_LIVING_SOLDER.getFluidStack(2_880 << t), "MUTATED_LIVING_SOLDER fluid"),
-            molten(Materials.Space, 1_440 * (t + 1)), molten(Materials.SpaceTime, 1_440), g.gate.get() };
-        final boolean added = TTRecipeAdder.addResearchableAssemblylineRecipe(
-            g.research.get(),
-            GATE_RESEARCH_COMPUTATION * (t + 1),
-            GATE_RESEARCH_PER_SECOND * (t + 1),
-            (int) TierEU.RECIPE_MAX,
-            8 * (t + 1),
-            inputs,
-            fluids,
-            tectech(g.to, 1, g.to.name()),
-            GATE_UPGRADE_TICKS,
-            (int) TierEU.RECIPE_UMV);
-        if (!added) {
-            throw new IllegalStateException("TTRecipeAdder refused " + g.id);
-        }
-    }
-
-    private static ItemStack singularityCell() {
-        return nn(
-            GTModHandler.getModItem("appliedenergistics2", "item.ItemExtremeStorageCell.Singularity", 1L),
-            "AE2 Singularity storage cell");
+    /** {@code units} of a condensate's entangled fluid, in the condensate's own unit (GT's convention). */
+    private static FluidStack entangled(CondensateType type, int units) {
+        return nn(type.getEntangled(units * type.getUnit()), "entangled " + type.name());
     }
 
     // ================================================================ Star charts (Eye targets)
