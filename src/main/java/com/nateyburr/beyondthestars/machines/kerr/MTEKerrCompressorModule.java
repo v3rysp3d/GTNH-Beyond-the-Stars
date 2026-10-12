@@ -110,14 +110,20 @@ public class MTEKerrCompressorModule extends MTEKerrModuleBase<MTEKerrCompressor
         return RecipeMaps.compressorRecipes;
     }
 
-    /** Searched together, in this order; NEI's catalyst index reads it too. */
+    /**
+     * Searched together, in this order; NEI's catalyst index reads it too. DENSITY goes FIRST: its
+     * recipe (SL-K05) takes molten SpaceTime, and the coremod's neutronium-compressor recipe turns 72 L
+     * of molten SpaceTime alone into an Eternal Singularity, so with DENSITY searched last a T2 module
+     * fed for SL-K05 made Eternal Singularities instead (dev-server test, B-43). When the DENSITY gate
+     * is shut (T1, under 128 SM) the search falls through to GT's maps as before.
+     */
     @Nonnull
     @Override
     public Collection<RecipeMap<?>> getAvailableRecipeMaps() {
         return Arrays.<RecipeMap<?>>asList(
+            KerrRecipeMaps.DENSITY,
             RecipeMaps.compressorRecipes,
-            RecipeMaps.neutroniumCompressorRecipes,
-            KerrRecipeMaps.DENSITY);
+            RecipeMaps.neutroniumCompressorRecipes);
     }
 
     /** DENSITY (SL-K05) needs the linked KEE at Kerr T2 holding at least 128 SM. */
