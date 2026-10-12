@@ -220,9 +220,13 @@ public class CommandBTSEye extends CommandBase {
         }
         final int chunks = SLConsoleTest.loadChunks(world, box);
         if (check) {
-            for (String line : EyeKit.diagnose(world, at.x, at.y, at.z, at.facing, tiers, false)) {
+            final long walkStart = System.nanoTime();
+            final List<String> lines = EyeKit.diagnose(world, at.x, at.y, at.z, at.facing, tiers, false);
+            final long walkUs = (System.nanoTime() - walkStart) / 1_000L;
+            for (String line : lines) {
                 SLConsoleTest.tell(sender, line);
             }
+            SLConsoleTest.tell(sender, "check: walk + status in " + walkUs / 1000 + "." + walkUs % 1000 / 100 + " ms");
             return;
         }
         if (!force) {
