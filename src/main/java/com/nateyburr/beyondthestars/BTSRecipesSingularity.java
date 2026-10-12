@@ -226,7 +226,7 @@ public final class BTSRecipesSingularity {
                 .addTo(assemblerRecipes));
 
         // SL-P12 Harmonic Lining x4: the Kerr's white inner face (user ruling, round 4: one new Kerr
-        // lining block). Thousands per Kerr (1,072 at T1 with both modules, 4,552 at T2), so a batch
+        // lining block). Hundreds to thousands per Kerr (521 at T1 with both modules, 4,552 at T2), so a batch
         // Assembler recipe of plain UIV-tier metals; it replaces the BHC's Radiation Absorbent Casing in
         // that role, which costs 64,000 L of UU-Matter per block.
         BTSRecipeGuard.recipe(

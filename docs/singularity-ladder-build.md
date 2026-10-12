@@ -87,7 +87,7 @@ errors and no crash. The boot log also confirms:
 - The Extractor Module runs GT's item extractor recipes only (`RecipeMaps.extractorRecipes`). The Kerr-only
   "Ergosphere Extraction" map, its lang key and its SL-K06 recipes are gone; its sockets take item buses only.
   Modules are now `KerrModule` entries; "Adding a Kerr module" (in the Kerr contract below) lists the steps.
-- The Kerr's lining (shape char `J`, 1,072 blocks at T1 with both modules, 4,552 at T2) is a new white block,
+- The Kerr's lining (shape char `J`, 521 blocks at T1 with both modules, 4,552 at T2) is a new white block,
   **Harmonic Lining** (`slCasing2:2`, the meta reserved for the lining), with texture `sl_lining` and Assembler recipe
   SL-P12. It was the BHC's Background Radiation Absorbent Casing before. The Eye's lining is unchanged.
 - The Eye no longer enforces TecTech's per-planet compression minimum: the 1:1 compression gate alone decides, so an

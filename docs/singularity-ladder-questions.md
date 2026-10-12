@@ -351,7 +351,8 @@ are in B-15.
 - **Recipe SL-P12** (Assembler, UIV, 30 s): 6 Neutronium plates, 8 Infinity foil, 1 Transcendent Metal plate and
   576 L molten Infinity make 4 linings. Per block that is 1.5 Neutronium, 1.5 Infinity (foil is ¼ ingot) and ¼
   Transcendent Metal.
-  - A Kerr T1 with both modules needs 1,072: about 1,600 Neutronium, 1,600 Infinity and 270 Transcendent Metal.
+  - A Kerr T1 with both modules needs 521 (131 in the T1 cage, 253 in the compressor arc, 137 in the extractor
+    arc): about 790 Neutronium, 790 Infinity and 130 Transcendent Metal.
   - A Kerr T2 needs 4,552: about 6,800 Neutronium, 6,800 Infinity and 1,140 Transcendent Metal.
   - For scale, the 3,551 Mirror Backing casings cost about 7 Infinity each. The block it replaces, the BHC's
     Background Radiation Absorbent Casing, costs 64,000 L of UU-Matter each, so the old mapping was far dearer.
