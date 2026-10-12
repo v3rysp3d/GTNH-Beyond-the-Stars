@@ -1622,9 +1622,7 @@ public final class EyeStarRuntime {
     public boolean extraWanted(double w) {
         if (!burning() || fs == null) return false;
         if (trans instanceof MagnetarMerger) {
-            final MagnetarMerger mm = (MagnetarMerger) trans;
-            final double e = fs.prevE[StellarField.PI];
-            return mm.phase == 1 ? e > 75 : e > 30;
+            return ((MagnetarMerger) trans).agentWanted(fs.prevE[StellarField.PI]);
         }
         return EyeTrimRule.extra(trimTable(), fs.prevE, fs.prevWarn, w);
     }
