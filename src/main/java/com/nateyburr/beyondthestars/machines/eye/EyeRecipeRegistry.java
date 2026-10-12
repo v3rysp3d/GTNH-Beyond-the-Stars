@@ -22,8 +22,15 @@ import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.fluids.SLFluids;
 import com.nateyburr.beyondthestars.items.SLItems;
+import com.nateyburr.beyondthestars.machines.eye.field.CollapseOverlay;
 import com.nateyburr.beyondthestars.machines.eye.field.StellarField;
 import com.nateyburr.beyondthestars.machines.eye.field.TierParams;
+import com.nateyburr.beyondthestars.machines.eye.field.TrimDef;
+import com.nateyburr.beyondthestars.machines.eye.star.EyeMilestones;
+import com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime;
+import com.nateyburr.beyondthestars.machines.eye.star.EyeTransition;
+import com.nateyburr.beyondthestars.machines.eye.star.MassInfusion;
+import com.nateyburr.beyondthestars.machines.eye.star.ShellIgnition;
 import com.nateyburr.beyondthestars.machines.eye.star.StarDef;
 
 import gregtech.api.enums.GTValues;
@@ -411,7 +418,172 @@ public final class EyeRecipeRegistry {
                 BeyondTheStars.LOG.warn("[BTS] Eye NEI page for {} skipped: {}", recipe.key, broken.toString());
             }
         }
+        // D-49 unit 5: the transition and stability-field pages
+        for (EyeTransition.Type type : EyeTransition.Type.values()) {
+            try {
+                displayTransition(type);
+            } catch (RuntimeException broken) {
+                failed++;
+                BeyondTheStars.LOG.warn("[BTS] Eye transition page {} skipped: {}", type, broken.toString());
+            }
+        }
+        for (StarDef def : StarDef.all()) {
+            try {
+                displayField(def);
+            } catch (RuntimeException broken) {
+                failed++;
+                BeyondTheStars.LOG.warn("[BTS] Eye field page for {} skipped: {}", def.key, broken.toString());
+            }
+        }
         if (failed > 0) BeyondTheStars.LOG.warn("[BTS] {} Eye NEI pages skipped (see above).", failed);
+    }
+
+    /**
+     * D-49 transition page (plan §12 NEI (b)): the chart that goes in the slot (not consumed) and the core in, the
+     * event fluids in, the new star's product out; the milestones and the rules in the description.
+     */
+    private static void displayTransition(EyeTransition.Type type) {
+        final StarDef from = StarDef.ofTier(type.from), to = StarDef.byKey(type.dest);
+        final Item core = EyeStarRuntime.coreFor(type.from);
+        if (to == null || core == null) return;
+        final List<FluidStack> fluids = new ArrayList<>();
+        final List<String> desc = new ArrayList<>();
+        final String fromName = from == null ? "T" + type.from : clip(from.name, 14);
+        desc.add("T" + type.from + " -> T" + (type.from + 1) + ": " + type.title);
+        desc.add("Chart in the slot, core in");
+        desc.add(" escrow (consumed on");
+        desc.add(" success, first time only)");
+        desc.add("Milestones on " + fromName + ":");
+        switch (type) {
+            case MASS_INFUSION:
+            case SHELL_IGNITION: {
+                final boolean mi = type == EyeTransition.Type.MASS_INFUSION;
+                fluids.add(
+                    new FluidStack(
+                        mi ? EyeStarRuntime.rspmFluid() : SLFluids.excitedStellarPlasma,
+                        (int) (mi ? MassInfusion.RSPM : ShellIgnition.ESPM)));
+                desc.add(
+                    " " + compact((long) EyeMilestones.PROD_NEED[type.from])
+                        + " L made, Resonant "
+                        + fmt(EyeMilestones.RES_NEED[type.from])
+                        + " s");
+                desc.add(fromName + " lit, Stable or better;");
+                desc.add(" the fluid taken at start");
+                desc.add(mi ? "600 s live, P drift +4" : "603 s: Θ ramps in, T3 trims");
+                if (!mi) desc.add(" forced helium flash at 600 s");
+                desc.add("Survive: it becomes " + clip(to.name, 9));
+                break;
+            }
+            case CORE_COLLAPSE:
+                fluids.add(new FluidStack(EyeStarRuntime.timeFluid(), 94_000));
+                fluids.add(new FluidStack(SLFluids.hyperdenseStellarMixture, 5_000));
+                fluids.add(new FluidStack(EyeStarRuntime.spaceTimeFluid(), 90_000));
+                desc.add(
+                    " " + compact((long) EyeMilestones.PROD_NEED[3])
+                        + " L, "
+                        + fmt(EyeMilestones.RES_NEED[3])
+                        + " s, "
+                        + EyeMilestones.FLASHES_NEED
+                        + " flashes");
+                desc.add("1: Time <=100 L/s, 94,000 L");
+                desc.add("2: bounce +" + Math.round(CollapseOverlay.BOUNCE_SHOCK) + ", -1 per");
+                desc.add(" 1,000 L SpaceTime (<=90k)");
+                desc.add(" P or Θ > +100: SUPERNOVA");
+                desc.add("3: Stable 60 s within 180 s");
+                desc.add("Re-runs need no core");
+                break;
+            case FIRST_COOLING:
+                fluids.add(new FluidStack(EyeStarRuntime.wdmFluid(), (int) EyeStarRuntime.BATCH_WDM));
+                desc.add(
+                    " " + compact((long) EyeMilestones.PROD_NEED[4])
+                        + " L WDM (Stable), "
+                        + fmt(EyeMilestones.RES_NEED[4])
+                        + " s");
+                desc.add(" Resonant, 1 Deep Dark run");
+                desc.add("The first Sirius B batch:");
+                desc.add(" mean Y >= 0.9, no fracture");
+                desc.add("Fail: BDM salvaged, the");
+                desc.add(" next charge tries again");
+                break;
+            default:
+                fluids.add(new FluidStack(EyeStarRuntime.wdmFluid(), (int) EyeStarRuntime.BATCH_WDM));
+                fluids.add(new FluidStack(EyeStarRuntime.bdmFluid(), 4_608));
+                fluids.add(new FluidStack(SLFluids.antipolarizationAgent, 100_000));
+                desc.add(" " + EyeMilestones.GOOD_BATCHES_NEED + " batches, mean Y >= 0.9");
+                desc.add("No star lit. Imprint: hold");
+                desc.add(" Π in +60..+90 for 120 s");
+                desc.add(" (<=600 s); release: Π");
+                desc.add(" inside ±40 within 60 s");
+                desc.add("Every re-spawn: the charge");
+                break;
+        }
+        desc.add("Fail: star lost, core kept");
+        for (FluidStack f : fluids) if (f.getFluid() == null) return;
+        final double product = to.tier.feed ? StellarField.WDM_PER_HSM * 0.694 * StellarField.CYCLE_SECONDS
+            : to.productBase();
+        GTValues.RA.stdBuilder()
+            .itemInputs(to.chart.copy(), new ItemStack(core, 1, 0))
+            .fluidInputs(fluids.toArray(new FluidStack[0]))
+            .fluidOutputs(new FluidStack(to.product, (int) Math.max(1, Math.round(product))))
+            .duration(20)
+            .eut(0)
+            .fake()
+            .ignoreCollision()
+            .setNEIDesc(desc.toArray(new String[0]))
+            .addTo(EyeRecipeMaps.TRANSITION);
+    }
+
+    /**
+     * D-49 stability-field page (plan §12 NEI (c)): the chart in, one unit of each trim fluid in, the effects per
+     * unit and the caps (per second, x parallel) in the description.
+     */
+    private static void displayField(StarDef def) {
+        final TierParams t = def.tier;
+        final List<FluidStack> fluids = new ArrayList<>();
+        final List<String> desc = new ArrayList<>();
+        desc.add("T" + t.n + " " + clip(def.name, 25));
+        desc.add("Gauges " + gaugeList(t) + ", 0 is the target");
+        if (t.event != null) {
+            desc.add(
+                clip(t.event.name, 12) + " every "
+                    + Math.round(t.event.everyMin)
+                    + "-"
+                    + Math.round(t.event.everyMax)
+                    + " s");
+        }
+        if (t.batch) desc.add("Θ follows +90 -> -90 / 7,200 s");
+        if (t.shield) desc.add("Agent charges the shield A");
+        desc.add("Trims, Field sockets only:");
+        for (TrimDef trim : t.trims()) {
+            final Fluid fluid = EyeStarRuntime.trimFluid(trim.kind);
+            if (fluid == null) continue;
+            if (fluids.size() < 6) fluids.add(new FluidStack(fluid, trim.kind.unitLitres));
+            final StringBuilder fx = new StringBuilder(clip(trim.kind.key, 6)).append(':');
+            for (int k = 0; k < 4; k++) {
+                final double v = trim.fx(k);
+                if (v == 0) continue;
+                fx.append(' ')
+                    .append(StellarField.GAUGE_SYM[k])
+                    .append(v > 0 ? "+" : "")
+                    .append(v == Math.rint(v) ? String.valueOf((long) v) : String.valueOf(v));
+            }
+            if (trim.kind == TrimDef.Kind.AGENT) fx.append(" A+4");
+            fx.append(" cap ")
+                .append(Math.round(trim.cap));
+            desc.add(fx.toString());
+        }
+        desc.add("Per unit shown; cap units/s");
+        desc.add(" x parallel; not buffered");
+        if (fluids.isEmpty()) return;
+        GTValues.RA.stdBuilder()
+            .itemInputs(def.chart.copy())
+            .fluidInputs(fluids.toArray(new FluidStack[0]))
+            .duration(20)
+            .eut(0)
+            .fake()
+            .ignoreCollision()
+            .setNEIDesc(desc.toArray(new String[0]))
+            .addTo(EyeRecipeMaps.FIELD);
     }
 
     /**
@@ -446,6 +618,10 @@ public final class EyeRecipeRegistry {
         if (def.feed != null) desc.add("HSM feed 0-1.5 L/s (shown 0.694)");
         if (t.batch) desc.add("Charge per batch: WDM 18,432 L");
         if (!def.charge.isEmpty() && !t.batch) desc.add("Spawned by the Magnetar Merger");
+        if (t.shield) {
+            desc.add("Dwarf top-up: WDM " + compact(EyeStarRuntime.TOPUP_WDM));
+            desc.add(" + BDM " + EyeStarRuntime.TOPUP_BDM + " L per " + EyeStarRuntime.TOPUP_CYCLES + " cycles");
+        }
         desc.add(sci(def.euPerCycle) + " EU/cycle, wireless");
         desc.add("Out x mean Y x upkeep r");
         if (t.ignite) {

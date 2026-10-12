@@ -40,6 +40,45 @@ public final class EyeRecipeMaps {
         .neiHandlerInfo(builder -> builder.setHeight(330))
         .build();
 
+    /**
+     * D-49 (d49-build-plan.md §12 NEI (b)): one page per transition. The star chart that goes in the slot and the
+     * core in; the event fluids in; the next star's chart (or, for the First Cooling and the Magnetar Merger, the
+     * product) out. The description lists the milestones and the rules. Display only ({@code .fake()}).
+     */
+    public static final RecipeMap<RecipeMapBackend> TRANSITION = RecipeMapBuilder
+        .of("beyondthestars.recipe.eyetransition")
+        .maxIO(2, 1, 4, 1)
+        .minInputs(1, 0)
+        .frontend(TextFrontend::new)
+        .neiHandlerInfo(builder -> builder.setHeight(240))
+        .build();
+
+    /**
+     * D-49 (plan §12 NEI (c)): one page per star tier, its stability-field trims. The chart in; the trim fluids in,
+     * one unit each; the effects per unit and the caps in the description. Display only ({@code .fake()}).
+     */
+    public static final RecipeMap<RecipeMapBackend> FIELD = RecipeMapBuilder.of("beyondthestars.recipe.eyefield")
+        .maxIO(1, 0, 6, 0)
+        .minInputs(1, 0)
+        .frontend(TextFrontend::new)
+        .neiHandlerInfo(builder -> builder.setHeight(240))
+        .build();
+
+    /** The default layout without the energy and duration lines (nothing on these pages is a timed GT run). */
+    public static final class TextFrontend extends RecipeMapFrontend {
+
+        public TextFrontend(BasicUIPropertiesBuilder uiPropertiesBuilder,
+            NEIRecipePropertiesBuilder neiPropertiesBuilder) {
+            super(uiPropertiesBuilder, neiPropertiesBuilder);
+        }
+
+        @Override
+        protected void drawEnergyInfo(RecipeDisplayInfo recipeInfo) {}
+
+        @Override
+        protected void drawDurationInfo(RecipeDisplayInfo recipeInfo) {}
+    }
+
     /** TecTech's EOH layout, with the energy and duration lines suppressed (they are in the text). */
     public static final class EyeFrontend extends RecipeMapFrontend {
 
