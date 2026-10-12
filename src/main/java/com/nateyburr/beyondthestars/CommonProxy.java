@@ -5,6 +5,7 @@ import com.nateyburr.beyondthestars.fluids.BTSFluids;
 import com.nateyburr.beyondthestars.items.BTSItems;
 import com.nateyburr.beyondthestars.items.SLItems;
 import com.nateyburr.beyondthestars.items.SLMaxItems;
+import com.nateyburr.beyondthestars.items.SLQuasarItems;
 import com.nateyburr.beyondthestars.machines.BTSMachines;
 
 import cpw.mods.fml.common.Loader;
@@ -22,6 +23,7 @@ public class CommonProxy {
         BTSItems.register();
         SLItems.register();
         SLMaxItems.register();
+        SLQuasarItems.register();
         BTSBlocks.register();
         BTSFluids.register();
         // GT5U registers its own machines in its preInit; required-after:gregtech guarantees ours runs later.
@@ -52,6 +54,7 @@ public class CommonProxy {
     public void loadComplete(FMLLoadCompleteEvent event) {
         com.nateyburr.beyondthestars.machines.eye.EyeRecipeRegistry.onLoadComplete();
         BTSRecipeRemovals.guard("TecTech Eye casings x32 (SL-B01/B02)", BTSRecipesBEC::onLoadComplete);
+        BTSRecipeRemovals.guard("Eternity on Ergomatter (SL-Q26, D-48)", BTSRecipesQuasar::onLoadComplete);
         BTSRecipeRemovals.run();
         BTSRecipeGuard.checkResearchCollisions();
     }

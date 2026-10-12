@@ -18,6 +18,7 @@ package com.nateyburr.beyondthestars;
  *   BTSRecipesBEC         BEC       condensates + Condensate Assembler recipes (SL-B01..B81)
  *   BTSRecipesAutomation  automation the Directive Hatch (SL-A01)
  *   BTSRecipesReality     H/R       the Homogeny / Reality BEC recipes (SL-C01..C04, SL-H01..H20, SL-R01..R17)
+ *   BTSRecipesQuasar      P4        the quasar / conduit / Eye T7-T8 recipes (SL-B16, SL-Q01..Q26, SL-P40)
  * </pre>
  *
  * <b>Nothing may be added to THIS file.</b> A recipe here would be a recipe with no owner, and
@@ -61,6 +62,9 @@ public final class BTSRecipes {
         // H/R unit 3: every block, core and controller of the three machines in the Condensate Assembler, and their
         // condensates (BTSRecipesReality, one owner). After "bec" once master's BEC expansion is merged.
         BTSRecipeGuard.line("reality", BTSRecipesReality::register);
+        // P4: the quasar, conduit, crowns, their blocks, the T7/T8 cores and charts, SL-P40 (BTSRecipesQuasar, one
+        // owner). After "reality": it uses that line's Entangled Ergomatter (SL-C02).
+        BTSRecipeGuard.line("quasar", BTSRecipesQuasar::register);
         BTSRecipeGuard.line("display", BTSDisplayRecipes::register);
 
         BTSRecipeGuard.summary();

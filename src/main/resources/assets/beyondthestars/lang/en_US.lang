@@ -330,3 +330,6 @@ item.beyondthestars.starChartMilkyWay.name=Star Chart: Milky Way
 item.beyondthestars.starChartMilkyWay.tooltip=Eye of Harmony T8 target (required): the merged galaxy. Its central black hole, Sgr A*, is T9's.\nFeed Ergomatter 0-10 L/s; makes Superdense Ergomatter 1 : 1. Gauges P, W and Lambda: aim into the shard halo, catch the satellite crossing.\nMade in the Condensate Assembler with Entangled Ergomatter.
 item.beyondthestars.gammaRayBurst.name=Gamma-Ray Burst (Bu/t)
 item.beyondthestars.gammaRayBurst.tooltip=Display only (NEI): a burst stream, in Bu/t. Never crafted or consumed.\nA Quasar Engine's two jets each carry half its stream; Wormhole Mouths, Mirrors and Junctions carry it losslessly;\na GRB Receptor Port takes it into a host (Eye T7/T8, Kerr, Homogeny, Reality Diffraction); a crown turns 1 Bu/t into 10^13 EU/t.
+# NEI display pages (QuasarRecipeMaps; these keys ARE the maps' unlocalized names)
+beyondthestars.recipe.quasar=Quasar Engine (accretion disc)
+beyondthestars.recipe.thermaliser=Burst Thermaliser Crown
