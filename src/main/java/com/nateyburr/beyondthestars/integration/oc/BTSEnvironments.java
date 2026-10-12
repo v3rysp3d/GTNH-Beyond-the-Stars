@@ -225,7 +225,9 @@ public final class BTSEnvironments {
         public Object[] setThreshold(Context c, Arguments a) {
             final MTEHatchStellarFieldSensor s = sensor();
             if (s == null) return GONE;
-            s.setThreshold(a.checkDouble(0));
+            final double v = a.checkDouble(0);
+            if (Double.isNaN(v)) return new Object[] { null, "threshold is not a number" };
+            s.setThreshold(v);
             if (a.count() > 1) s.setLessThan("lt".equalsIgnoreCase(a.checkString(1)));
             if (a.count() > 2) s.setAnalog(a.checkBoolean(2));
             return new Object[] { BTSComputerApi.sensorState(s) };

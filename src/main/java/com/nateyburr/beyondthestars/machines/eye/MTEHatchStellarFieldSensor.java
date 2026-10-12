@@ -181,6 +181,8 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
     }
 
     public void setThreshold(double threshold) {
+        // NaN passes the clamp and would stick the output at 0 forever (an OpenComputers 0/0): keep the old value
+        if (Double.isNaN(threshold)) return;
         this.threshold = Math.max(-120, Math.min(120, threshold));
         settingsChanged();
     }
