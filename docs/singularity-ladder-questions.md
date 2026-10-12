@@ -917,6 +917,30 @@ loop (R1-B / B2 history), so it waits for your call.
 
 ---
 
+### B-33 The RC-2 test package: an untagged jar, the pre-redesign Kerr, and an older jar set aside [2.9.0-RC-2 package pass]
+
+**Context.** The package pass built addon `0a878c0` and copied the plain jar plus a player-facing `INSTALL.md` to
+`GTNH-Addons/dist-rc2/`, which is outside the addon repo and is not tracked anywhere.
+
+**What was done (judgement calls).**
+
+- **Version name.** The jar is `beyondthestars-0.24.1-master.93+0a878c0080.jar`. Agents never tag, so it carries the
+  untagged build name rather than a release number like `0.25.0`.
+- **What is in it.** It is the main tree as it stands: the Kerr with modes and screwdriver controls (the
+  `kerr-redesign` branch is not merged) and the Eye before D-49. `INSTALL.md` says both will change.
+- **Older jar.** `dist-rc2/` already held `beyondthestars-0.24.1-master.85+07deec8b78.jar`, the one now in the
+  `rc - 2 TO THE STARS` instance. It was moved to `dist-rc2/superseded/`, not deleted, so nobody installs two copies.
+  `INSTALL.md` tells the player to replace it in the instance. The package pass did not touch any instance.
+- **RC-3.** `INSTALL.md` tells the player not to install on RC-3 and to ask for a re-pin first (port plan §7
+  watch-list).
+
+**Suggestion.** When you want a numbered release, tag it (e.g. `0.25.0-rc2`) and rebuild, so the Mods list shows a
+clean version.
+
+**Alternatives.** Ship the untagged name as it is (it is a test build), or delete `superseded/`.
+
+---
+
 ## Part C. Settled (for the record)
 
 | Topic | Your answer | State |
