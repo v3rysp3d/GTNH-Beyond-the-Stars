@@ -230,6 +230,13 @@ GT5U.gui.text.recipe_result.beyondthestars.eye.star_transition=A transition is r
 GT5U.gui.text.recipe_result.beyondthestars.eye.star_batch=Sirius B is cooling a white dwarf: scan the controller for the setpoint and the batch
 GT5U.gui.text.recipe_result.beyondthestars.eye.star_idle=Sirius B waits: it needs a White Dwarf Matter charge (or, before T5 is unlocked, everything the First Cooling needs); scan the controller
 GT5U.gui.text.recipe_result.beyondthestars.eye.star_merger=The magnetar is spawned by the Magnetar Merger: scan the controller for what it still needs
+GT5U.gui.text.recipe_result.beyondthestars.eye.star_galaxy=The galaxy is born from a lit magnetar by the Magnetar Collapse (planets mode lights at once): scan the controller for what it still needs
+GT5U.gui.text.recipe_result.beyondthestars.eye.tier7=This target is Eye T7: build every band up to the stability rail
+GT5U.gui.text.recipe_result.beyondthestars.eye.tier8=This target is Eye T8: build every band up to the shard halo
+GT5U.gui.text.recipe_result.beyondthestars.eye.compression7=This target is Eye T7: every Spacetime Compression Field Generator must be tier 7 or higher
+GT5U.gui.text.recipe_result.beyondthestars.eye.compression8=This target is Eye T8: every Spacetime Compression Field Generator must be tier 8 or higher
+GT5U.gui.text.recipe_result.beyondthestars.eye.locked7=This target is Eye T7: T7 is not unlocked yet (the magnetar's milestones and the Stability Link, the Intergalactic Upgrade Core, the Magnetar Collapse)
+GT5U.gui.text.recipe_result.beyondthestars.eye.locked8=This target is Eye T8: T8 is not unlocked yet (Triangulum's milestones and the Heavy Link, the Supermassive Seed Core, the Galactic Merger)
 beyondthestars.recipe.eyetransition=Eye of Harmony: Transitions
 beyondthestars.recipe.eyefield=Eye of Harmony: Stability Field
 
@@ -325,9 +332,9 @@ item.beyondthestars.intergalacticUpgradeCore.tooltip=Eye of Harmony T6 -> T7 (th
 item.beyondthestars.supermassiveSeedCore.name=Supermassive Seed Core
 item.beyondthestars.supermassiveSeedCore.tooltip=Eye of Harmony T7 -> T8 (the Galactic Merger): right-click the controller to put it in escrow.\nConsumed only when the merger succeeds, after the Heavy Link: 6 Bu/t into the Eye, at least half on the halo, 30 minutes.\nIt seeds a supermassive black hole (the name is the hole, not the fluid).\nMade in the Condensate Assembler with Entangled Ergomatter (Eye T7's product); needs Black Dwarf nanites.
 item.beyondthestars.starChartTriangulum.name=Star Chart: Triangulum (M33)
-item.beyondthestars.starChartTriangulum.tooltip=Eye of Harmony T7 target: the magnetar collapses into Triangulum's first black hole.\nUpkeep Magnetar Matter 7.5 L a cycle plus bursts; makes Ergomatter. Gauges P and W: aim the bursts between the rail's high and low banks.\nMade in the Condensate Assembler with Entangled Magnetar Matter.
+item.beyondthestars.starChartTriangulum.tooltip=Eye of Harmony T7 target: the magnetar collapses into Triangulum's first black hole.\nUpkeep Magnetar Matter 7.5 L a cycle plus bursts; makes Ergomatter. Gauges P and W: aim the bursts between the rail's high and low banks.\nPut it in the slot while the magnetar burns: once ready, Begin (GUI, a Burst Control Hatch, OpenComputers) runs the Magnetar Collapse.\nPlanets mode (the GUI's Galaxy panel): 3 planets from the slot bus instead.\nMade in the Condensate Assembler with Entangled Magnetar Matter.
 item.beyondthestars.starChartMilkyWay.name=Star Chart: Milky Way
-item.beyondthestars.starChartMilkyWay.tooltip=Eye of Harmony T8 target (required): the merged galaxy. Its central black hole, Sgr A*, is T9's.\nFeed Ergomatter 0-10 L/s; makes Superdense Ergomatter 1 : 1. Gauges P, W and Lambda: aim into the shard halo, catch the satellite crossing.\nMade in the Condensate Assembler with Entangled Ergomatter.
+item.beyondthestars.starChartMilkyWay.tooltip=Eye of Harmony T8 target (required): the merged galaxy. Its central black hole, Sgr A*, is T9's.\nFeed Ergomatter 0-10 L/s; makes Superdense Ergomatter 1 : 1. Gauges P, W and Lambda: aim into the shard halo, catch the satellite crossing.\nPut it in the slot while Triangulum burns: once ready, Begin runs the Galactic Merger.\nPlanets mode: 6 planets from the slot bus instead.\nMade in the Condensate Assembler with Entangled Ergomatter.
 item.beyondthestars.gammaRayBurst.name=Gamma-Ray Burst (Bu/t)
 item.beyondthestars.gammaRayBurst.tooltip=Display only (NEI): a burst stream, in Bu/t. Never crafted or consumed.\nA Quasar Engine's two jets each carry half its stream; Wormhole Mouths, Mirrors and Junctions carry it losslessly;\na GRB Receptor Port takes it into a host (Eye T7/T8, Kerr, Homogeny, Reality Diffraction); a crown turns 1 Bu/t into 10^13 EU/t.
 # NEI display pages (QuasarRecipeMaps; these keys ARE the maps' unlocalized names)

@@ -13,11 +13,16 @@ import com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS;
 import com.nateyburr.beyondthestars.machines.eye.MTEHatchStellarFieldSensor;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldReadout;
 import com.nateyburr.beyondthestars.machines.eye.field.StellarField;
+import com.nateyburr.beyondthestars.machines.eye.star.EyeBursts;
+import com.nateyburr.beyondthestars.machines.eye.star.EyeGalaxy;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeTransition;
+import com.nateyburr.beyondthestars.machines.eye.star.GalacticMerger;
+import com.nateyburr.beyondthestars.machines.eye.star.MagnetarCollapse;
 import com.nateyburr.beyondthestars.machines.eye.star.StarDef;
 import com.nateyburr.beyondthestars.machines.kerr.MTEKerrEngine;
 import com.nateyburr.beyondthestars.machines.kerr.MTEKerrModuleBase;
+import com.nateyburr.beyondthestars.machines.quasar.engine.BurstLink;
 
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 
@@ -97,6 +102,114 @@ public final class BTSComputerApi {
         m.put("r", r.r);
         m.put("m", r.m);
         m.put("p", r.p);
+        // P4 (T7+): the galaxy gauges and the bursts as the field saw them
+        final EyeGalaxy g = eye.starRuntime()
+            .galaxy();
+        m.put("W", r.value(FieldReadout.Channel.W));
+        m.put("L", r.value(FieldReadout.Channel.LAMBDA));
+        m.put("beta", g.beta());
+        m.put("gammaHi", g.gammaHi());
+        m.put("gammaLo", g.gammaLo());
+        m.put("gammaHalo", g.gammaHalo());
+        m.put("D", g.demand());
+        m.put("planets", r.planets);
+        return m;
+    }
+
+    /**
+     * P4 {@code bts_eye.getEvent()}: the running countdown: kind ("collapse", "pass", "crossing", "merger" or ""),
+     * secondsLeft (−1 none) and sign (+1 / −1, 0 unsigned).
+     */
+    public static Map<String, Object> eyeEvent(MTEEyeOfHarmonyBTS eye) {
+        final EyeStarRuntime rt = eye.starRuntime();
+        final Map<String, Object> m = new LinkedHashMap<>();
+        final EyeTransition tr = rt.transition();
+        final int left = rt.countdownSeconds();
+        String kind = "";
+        int sign = 0;
+        if (tr instanceof MagnetarCollapse && left >= 0) kind = "collapse";
+        else if (tr instanceof GalacticMerger && left >= 0) {
+            kind = "pass";
+            sign = ((GalacticMerger) tr).nextPassSign();
+        } else if (rt.crossingCountdown() >= 0 || rt.crossingLeft() > 0) kind = "crossing";
+        else if (rt.mergerWarning() != 0) {
+            kind = "merger";
+            sign = rt.mergerWarning();
+        }
+        m.put("kind", kind);
+        m.put("secondsLeft", kind.isEmpty() ? -1 : left);
+        m.put("sign", sign);
+        m.put("crossingLeft", rt.crossingLeft());
+        m.put("precession", rt.precession());
+        return m;
+    }
+
+    /**
+     * P4 {@code bts_eye.getUnlock()}: the link milestone in progress: kind ("stability", "heavy" or ""), streak,
+     * best, mean (Bu/t, 60 s), frac (the high bank's or the halo's share), linked, source, done, and the transition's
+     * readiness.
+     */
+    public static Map<String, Object> eyeUnlock(MTEEyeOfHarmonyBTS eye) {
+        final EyeStarRuntime rt = eye.starRuntime();
+        final Map<String, Object> m = new LinkedHashMap<>();
+        final int n = rt.linkTier();
+        final BurstLink l = rt.activeLink();
+        final EyeBursts b = rt.galaxy()
+            .bursts();
+        m.put("kind", n == 6 ? "stability" : n == 7 ? "heavy" : "");
+        m.put("streak", l == null ? 0 : l.streak);
+        m.put("best", l == null ? 0 : Math.max(l.best, rt.milestones().linkBest[n]));
+        m.put("mean", l == null ? b.mean60 : l.mean);
+        m.put("frac", l == null ? 0 : l.frac);
+        m.put("linked", n == 6 ? b.linkedRail : b.linkedAll);
+        m.put("source", b.source);
+        m.put("stabilityLinkHeld", rt.milestones().linkDone[6]);
+        m.put("heavyLinkHeld", rt.milestones().linkDone[7]);
+        m.put("ready", rt.galaxyReady());
+        m.put("testFireWanted", rt.testFireWanted());
+        return m;
+    }
+
+    /** P4 {@code bts_eye.beginTransition()}: begins a ready galaxy transition; returns what happened. */
+    public static String eyeBegin(MTEEyeOfHarmonyBTS eye) {
+        return eye.starRuntime()
+            .requestBegin();
+    }
+
+    /** P4 {@code bts_eye.setFeed8(v)}: the T8 Ergomatter feed (0-10 L/s per parallel); returns it. */
+    public static double eyeSetFeed8(MTEEyeOfHarmonyBTS eye, double v) {
+        eye.starRuntime()
+            .setF8(v);
+        return eye.starRuntime()
+            .f8Setpoint();
+    }
+
+    /** P4 {@code bts_eye.setMode("galaxy" | "planets")}: returns the mode now (the GUI's switch). */
+    public static String eyeSetMode(MTEEyeOfHarmonyBTS eye, String name) {
+        final EyeGalaxy.Mode mode = EyeGalaxy.Mode.parse(name);
+        if (mode != null) eye.starRuntime()
+            .setMode(mode);
+        return eye.starRuntime()
+            .mode().key;
+    }
+
+    /** P4 {@code bts_eye.getSlots()}: the mode, the planet slots (one line each), the companions, idle / short. */
+    public static Map<String, Object> eyeSlots(MTEEyeOfHarmonyBTS eye) {
+        final EyeStarRuntime rt = eye.starRuntime();
+        final Map<String, Object> m = new LinkedHashMap<>();
+        m.put("mode", rt.mode().key);
+        final Map<Integer, String> slots = new LinkedHashMap<>();
+        final List<String> lines = rt.slotLines();
+        for (int i = 0; i < lines.size(); i++) slots.put(i + 1, lines.get(i));
+        m.put("slots", slots);
+        m.put("progress", rt.slotProgress());
+        m.put("companions", rt.companionNames());
+        m.put("idle", rt.slotIdle());
+        m.put("companionShort", rt.companionShort());
+        m.put(
+            "lastRunLostParallels",
+            rt.galaxy()
+                .lastRunLost());
         return m;
     }
 

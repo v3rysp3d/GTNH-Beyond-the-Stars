@@ -124,7 +124,18 @@ public final class RenderTest {
         TT_EOH,
         GT_GODFORGE,
         /** P4: the Quasar Engine (coils T3), appended so every older site keeps its place. */
-        QUASAR;
+        QUASAR,
+        /** P4: the Eye at T7 (the stability rail) and T8 (the shard halo), appended. */
+        EYE_T7,
+        EYE_T8;
+
+        /** The Eye tier this site builds (1..8), or 0 for a non-Eye site. */
+        int eyeTier() {
+            if (this == EYE_T7) return 7;
+            if (this == EYE_T8) return 8;
+            return ordinal() >= EYE_T1.ordinal() && ordinal() <= EYE_T6.ordinal() ? ordinal() - EYE_T1.ordinal() + 1
+                : 0;
+        }
 
         int originX() {
             return SITE_X0 + ordinal() * SITE_SPACING;
@@ -229,7 +240,33 @@ public final class RenderTest {
                 1024,
                 null,
                 "Quasar Engine, a 1,024 SM hole (D-32's good build): hole scale 5.1, jets bright; an eruption"
-                    + " flash at the first shot")));
+                    + " flash at the first shot"),
+            // P4 Eye T7 / T8 (the centre render's galaxies; first guesses for the render QA pass, P4-64)
+            new Case(
+                "eye_t7_triangulum",
+                Site.EYE_T7,
+                0,
+                EyeStarLook.galaxy(7, 0, 0),
+                "Eye T7, Triangulum: three loose blue-white arms of dots to r 16 round a small bright core, tilted 8"
+                    + " deg, turning once in about 2.6 min"),
+            new Case(
+                "eye_t7_merger_warn",
+                Site.EYE_T7,
+                0,
+                EyeStarLook.galaxy(7, 0.3f, 1),
+                "Eye T7, Triangulum on a minor merger's warning (the arms 60 % brighter, the core throbbing)"),
+            new Case(
+                "eye_t8_milky_way",
+                Site.EYE_T8,
+                0,
+                EyeStarLook.galaxy(8, 0, 0),
+                "Eye T8, the Milky Way: a warm bar and four arms to r 19 round a 3-block bulge, under the shard halo"),
+            new Case(
+                "eye_t8_planets",
+                Site.EYE_T8,
+                0,
+                EyeStarLook.planets(6),
+                "Eye T8 in planets mode: a calm glow with six planets on their orbits (r 5 to 13)")));
 
     private static List<Case> only(List<Case> all) {
         final String filter = System.getProperty("bts.rendertest.only", "")
@@ -454,7 +491,7 @@ public final class RenderTest {
                     buildQuasar(world, b);
                     break;
                 default:
-                    buildEye(world, b, site.ordinal() - Site.EYE_T1.ordinal() + 1);
+                    buildEye(world, b, site.eyeTier());
                     break;
             }
         } catch (RuntimeException bad) {
@@ -1112,6 +1149,10 @@ public final class RenderTest {
     private static double objectRadius(Built b) {
         final Case c = currentCase;
         if (c == null) return 3;
+        if (c.look != null && (c.look.kind == EyeStarLook.TRIANGULUM || c.look.kind == EyeStarLook.MILKY_WAY)) {
+            return EyeStarLook.galaxyReach(c.look.kind); // P4: the arms reach past the bulge
+        }
+        if (c.look != null && c.look.kind == EyeStarLook.PLANETS) return 14;
         if (c.look != null) return c.look.radius;
         if (c.site == Site.GT_GODFORGE) return GODFORGE_STAR_RADIUS;
         // the disc band reaches r 40 + 22 lambda_c

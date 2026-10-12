@@ -84,7 +84,7 @@ public class MTEHatchDirective extends MTEHatch {
     @Override
     public String[] getDescription() {
         return new String[] { "Tells automation what its machine needs now, as a 4-bit redstone code (Degasser style).",
-            "Goes in an Eye of Harmony Sensor socket (n), a Kerr Ergosphere Engine utility socket (u)",
+            "Goes in an Eye of Harmony Sensor (n) or plinth (d) socket, a Kerr Ergosphere Engine utility socket (u)",
             "  or a Quasar Engine control-box socket (d).",
             "GUI: the set; the output (the code, one bit, any bit; invert); the window w. Comparators read the code.",
             "Codes add up: [1] [2] [4] [8] are bits 1-4, several at once. Updates every second; 0 when silent.",
@@ -96,6 +96,11 @@ public class MTEHatchDirective extends MTEHatch {
             "§bEye Status§7: [1] buffers short [2] ignition charge wanted [4] event warned (T3 more Coolant,",
             "  T6 Agent wanted) [8] alarm (Critical, Breach, Integrity < 50, or not formed)",
             "§bEye Transition§7: [1] ready: load the next chart [2] running [4] next core wanted [8] Tachyon wanted",
+            "§bEye Field§7 (T7+): [1] P > +w: Space trim [2] P < -w: more bursts [4] W > +w: aim high [8] W < -w: low",
+            "§bEye Events§7 (T7+): [1] Λ > +w: more to the halo [2] Λ < -w: less [4] a countdown runs [8] its sign -",
+            "§bEye Galaxy Transition§7: [1] ready: begin [2] running [4] purge now (the collapse assist) [8] hold",
+            "  the purges (T-80 s to T-1 s). §bEye Slots§7: [1] a slot idle [2] companion upkeep short [4] the last",
+            "  planet run lost parallels [8] link test fire wanted (J1 all to the Eye; T7 also J3 75 % halo)",
             "§bKerr Hole§7: [1] closed [2] below setpoint (1 SM) [4] bolts short (< w minutes) [8] above setpoint",
             "§bKerr Status§7: [1] containment power short [2] no Black Hole Seed [4] unstable [8] not formed",
             "§bQuasar Disc§7: [1] E < -w: pulse feed gas [2] E > +w: Space trim [4] flux at the purge setpoint:",

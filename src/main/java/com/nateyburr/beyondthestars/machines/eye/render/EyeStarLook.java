@@ -5,6 +5,8 @@ import com.nateyburr.beyondthestars.machines.eye.field.FieldReadout;
 import com.nateyburr.beyondthestars.machines.eye.star.CoreCollapse;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeTransition;
+import com.nateyburr.beyondthestars.machines.eye.star.GalacticMerger;
+import com.nateyburr.beyondthestars.machines.eye.star.MagnetarCollapse;
 import com.nateyburr.beyondthestars.machines.eye.star.StarDef;
 
 /**
@@ -42,6 +44,16 @@ public final class EyeStarLook {
     public static final byte BOUNCE = 7;
     /** A supernova (the Core Collapse failed at the bounce): a flash that runs out, then nothing. */
     public static final byte NOVA = 8;
+    /**
+     * P4 T7 Triangulum (M33): a loose, flocculent spiral seen on its 8° tilt, blue-white arms round a small bright
+     * core;
+     * {@link #aux} the minor merger's warning (the arms brighten).
+     */
+    public static final byte TRIANGULUM = 9;
+    /** P4 T8 the Milky Way: a barred spiral, four arms round a warm bulge; {@link #aux} a warning or the crossing. */
+    public static final byte MILKY_WAY = 10;
+    /** P4 planets mode: a calm glow with the slots' planets on their orbits; {@link #aux} = planets / 9. */
+    public static final byte PLANETS = 11;
 
     public final byte kind;
     public final float radius;
@@ -144,6 +156,26 @@ public final class EyeStarLook {
             }
             return bounce(unrest);
         }
+        if (tr instanceof MagnetarCollapse) {
+            final MagnetarCollapse mc = (MagnetarCollapse) tr;
+            if (mc.overfeed()) {
+                // the overfed magnetar: it shrinks, spins up and throbs harder toward the collapse
+                final float f = (float) Math.max(0, Math.min(1, mc.mc.st / 300.0));
+                return new EyeStarLook(
+                    MAGNETAR,
+                    2.6f * (1f - 0.3f * f),
+                    MAGNETAR_RGB,
+                    MAGNETAR_GAMMA,
+                    8f + 16f * f,
+                    0.05f + 0.25f * f + 0.25f * warn,
+                    Math.max(warn, f));
+            }
+            return galaxy(7, Math.max(unrest, 0.3f), warn);
+        }
+        if (tr instanceof GalacticMerger) {
+            return galaxy(rt.galaxyLit() && star.n() == 8 ? 8 : 7, Math.max(unrest, 0.3f), Math.max(warn, 0.5f));
+        }
+        if (star.tier.planets()) return planets(star.tier.slots);
         if (star.n() == 5) {
             return dwarf(rt.batchFraction());
         }
@@ -215,6 +247,9 @@ public final class EyeStarLook {
                     0.03f + 0.08f * unrest + 0.05f * warn);
             case 5:
                 return dwarf(0);
+            case 7:
+            case 8:
+                return galaxy(n, unrest, warn);
             default:
                 // the magnetar's flares: a warning makes it throb and brightens its flare shell (aux)
                 return new EyeStarLook(
@@ -226,6 +261,47 @@ public final class EyeStarLook {
                     0.05f + 0.08f * unrest + 0.25f * warn,
                     warn);
         }
+    }
+
+    // P4 galaxies: the core is the bulge (the shader's textured sphere), the arms are additive billboards drawn by the
+    // renderer out to GALAXY_REACH (the core band's nearest block is 20.4 blocks out). First guesses for the render QA
+    // pass (P4-64).
+    private static final int TRIANGULUM_RGB = 0xA8C4FF;
+    private static final float TRIANGULUM_GAMMA = 1.4f;
+    private static final int MILKY_WAY_RGB = 0xFFD49A;
+    private static final float MILKY_WAY_GAMMA = 1.6f;
+    private static final int PLANETS_RGB = 0xFFE6B0;
+
+    /** The arms' reach, blocks: Triangulum 16, the Milky Way 19 (inside the core band's 20.4). */
+    public static float galaxyReach(byte kind) {
+        return kind == MILKY_WAY ? 19f : 16f;
+    }
+
+    /** A lit galaxy (7 Triangulum, 8 the Milky Way) with the field's unrest and an event warning. */
+    public static EyeStarLook galaxy(int n, float unrest, float warn) {
+        if (n >= 8) {
+            return new EyeStarLook(
+                MILKY_WAY,
+                3.0f,
+                MILKY_WAY_RGB,
+                MILKY_WAY_GAMMA,
+                0.8f,
+                0.02f + 0.06f * unrest + 0.04f * warn,
+                warn);
+        }
+        return new EyeStarLook(
+            TRIANGULUM,
+            2.4f,
+            TRIANGULUM_RGB,
+            TRIANGULUM_GAMMA,
+            1.2f,
+            0.02f + 0.06f * unrest + 0.04f * warn,
+            warn);
+    }
+
+    /** Planets mode with {@code slots} planet slots (3 or 6). */
+    public static EyeStarLook planets(int slots) {
+        return new EyeStarLook(PLANETS, 1.6f, PLANETS_RGB, 1.4f, 0.6f, 0.01f, Math.max(0, Math.min(9, slots)) / 9f);
     }
 
     /**
@@ -305,6 +381,12 @@ public final class EyeStarLook {
                 return "Core Collapse (bounce, proto-neutron star)";
             case NOVA:
                 return "supernova";
+            case TRIANGULUM:
+                return "Triangulum (galaxy)";
+            case MILKY_WAY:
+                return "the Milky Way (galaxy)";
+            case PLANETS:
+                return "planets mode";
             default:
                 return "nothing";
         }

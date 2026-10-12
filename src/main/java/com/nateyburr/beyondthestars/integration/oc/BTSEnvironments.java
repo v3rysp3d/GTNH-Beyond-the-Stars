@@ -109,7 +109,7 @@ public final class BTSEnvironments {
         }
 
         @Callback(
-            doc = "function(set:string[, w:number]):table -- a Directive code: EYE_TRIMS, EYE_STATUS, "
+            doc = "function(set:string[, w:number]):table -- a Directive code: EYE_TRIMS, EYE_STATUS, EYE_FIELD, EYE_EVENTS, EYE_GALAXY_TRANSITION, EYE_SLOTS, "
                 + "EYE_TRANSITION (w = gauge band, default 10)")
         public Object[] getDirective(Context c, Arguments a) {
             final MTEEyeOfHarmonyBTS e = eye();
@@ -129,6 +129,48 @@ public final class BTSEnvironments {
         public Object[] setFeed(Context c, Arguments a) {
             final MTEEyeOfHarmonyBTS e = eye();
             return e == null ? GONE : new Object[] { BTSComputerApi.eyeSetFeed(e, a.checkDouble(0)) };
+        }
+
+        // ---- P4 (T7+; quasar-p4.md §8.2)
+
+        @Callback(
+            doc = "function():table -- the running countdown: kind (collapse, pass, crossing, merger), secondsLeft,"
+                + " sign")
+        public Object[] getEvent(Context c, Arguments a) {
+            final MTEEyeOfHarmonyBTS e = eye();
+            return e == null ? GONE : new Object[] { BTSComputerApi.eyeEvent(e) };
+        }
+
+        @Callback(
+            doc = "function():table -- the link milestone: kind (stability, heavy), streak, best, mean, frac, linked,"
+                + " source; ready; testFireWanted")
+        public Object[] getUnlock(Context c, Arguments a) {
+            final MTEEyeOfHarmonyBTS e = eye();
+            return e == null ? GONE : new Object[] { BTSComputerApi.eyeUnlock(e) };
+        }
+
+        @Callback(doc = "function():string -- begins a ready Magnetar Collapse or Galactic Merger (else says why not)")
+        public Object[] beginTransition(Context c, Arguments a) {
+            final MTEEyeOfHarmonyBTS e = eye();
+            return e == null ? GONE : new Object[] { BTSComputerApi.eyeBegin(e) };
+        }
+
+        @Callback(doc = "function(v:number):number -- the T8 Ergomatter feed f8 (0-10 L/s per parallel); returns it")
+        public Object[] setFeed8(Context c, Arguments a) {
+            final MTEEyeOfHarmonyBTS e = eye();
+            return e == null ? GONE : new Object[] { BTSComputerApi.eyeSetFeed8(e, a.checkDouble(0)) };
+        }
+
+        @Callback(doc = "function(mode:string):string -- galaxy or planets (puts a lit T7 / T8 field out); returns it")
+        public Object[] setMode(Context c, Arguments a) {
+            final MTEEyeOfHarmonyBTS e = eye();
+            return e == null ? GONE : new Object[] { BTSComputerApi.eyeSetMode(e, a.checkString(0)) };
+        }
+
+        @Callback(doc = "function():table -- mode, planet slots, progress, companions, idle, companionShort")
+        public Object[] getSlots(Context c, Arguments a) {
+            final MTEEyeOfHarmonyBTS e = eye();
+            return e == null ? GONE : new Object[] { BTSComputerApi.eyeSlots(e) };
         }
     }
 

@@ -28,10 +28,18 @@ import com.cleanroommc.modularui.widgets.ToggleButton;
 import com.cleanroommc.modularui.widgets.layout.Flow;
 import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldReadout;
+import com.nateyburr.beyondthestars.machines.eye.field.GalaxyField;
 import com.nateyburr.beyondthestars.machines.eye.field.StellarField;
 import com.nateyburr.beyondthestars.machines.eye.field.TierParams;
+import com.nateyburr.beyondthestars.machines.eye.star.EyeBursts;
+import com.nateyburr.beyondthestars.machines.eye.star.EyeGalaxy;
+import com.nateyburr.beyondthestars.machines.eye.star.EyeMilestones;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime;
+import com.nateyburr.beyondthestars.machines.eye.star.EyeTransition;
+import com.nateyburr.beyondthestars.machines.eye.star.GalacticMerger;
+import com.nateyburr.beyondthestars.machines.eye.star.MagnetarCollapse;
 import com.nateyburr.beyondthestars.machines.eye.star.StarDef;
+import com.nateyburr.beyondthestars.machines.quasar.engine.BurstLink;
 
 import gregtech.api.modularui2.GTGuiTextures;
 import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
@@ -96,10 +104,25 @@ public class EyeGui extends MTEMultiBlockBaseGui<MTEEyeOfHarmonyBTS> {
         syncManager.syncValue("eyeFail", new StringSyncValue(() -> rt().lastFailure()));
         syncManager.syncValue("eyeRenderNote", new StringSyncValue(multiblock::getRenderNote));
         syncManager.syncValue("eyeGaugeMask", new IntSyncValue(this::gaugeMask));
-        for (int k = 0; k < 4; k++) {
+        for (int k = 0; k < StellarField.GAUGES; k++) {
             final int gauge = k;
             syncManager.syncValue("eyeGauge" + k, new DoubleSyncValue(() -> gaugeValue(gauge)));
         }
+        // ---- P4: the galaxy tiers (T6's link, T7 / T8, planets mode, companions)
+        syncManager.syncValue("eyeGalaxy", new StringSyncValue(this::galaxyLine));
+        syncManager.syncValue("eyeLink", new StringSyncValue(this::linkLine));
+        syncManager.syncValue("eyeEvent", new StringSyncValue(this::eventLine));
+        syncManager.syncValue("eyeSlotLine", new StringSyncValue(this::slotLine));
+        syncManager.syncValue("eyeGalaxyText", new StringSyncValue(this::galaxyPanelText));
+        syncManager.syncValue(
+            "eyePlanets",
+            new BooleanSyncValue(
+                () -> rt().mode() == EyeGalaxy.Mode.PLANETS,
+                v -> rt().setMode(v ? EyeGalaxy.Mode.PLANETS : EyeGalaxy.Mode.GALAXY)).allowC2S());
+        syncManager.syncValue("eyeF8", new DoubleSyncValue(() -> rt().f8Setpoint(), v -> rt().setF8(v)).allowC2S());
+        syncManager.syncValue("eyeReady", new BooleanSyncValue(() -> rt().galaxyReady()));
+        syncManager.syncValue("eyeBeginMsg", new StringSyncValue(() -> beginMsg));
+        syncManager.registerServerSyncedAction("eyeBegin", packet -> beginMsg = rt().requestBegin());
         syncManager.syncValue("eyeSp", new DoubleSyncValue(this::setpoint));
         syncManager
             .syncValue("eyeDial", new DoubleSyncValue(() -> rt().dialSetpoint(), v -> rt().setDial(v)).allowC2S());
@@ -198,10 +221,155 @@ public class EyeGui extends MTEMultiBlockBaseGui<MTEEyeOfHarmonyBTS> {
             + (r.tier == 6 ? String.format(Locale.ROOT, ", shield %.0f", r.A) : "");
     }
 
+    // ------------------------------------------------------------------------ P4 server text
+
+    /** The last Begin click's answer (server side; synced to the panel). */
+    private String beginMsg = "";
+
+    /** "Bursts 2.31 Bu/t: β 1.12 (demand 1.50 Bu/t); rail high 0.45 / low 0.41, halo 0; linked to x, y, z". */
+    private String galaxyLine() {
+        final EyeStarRuntime rt = rt();
+        final StarDef star = rt.star();
+        if (!rt.burning() || star == null || star.n() < 6) return "";
+        final EyeBursts b = rt.galaxy()
+            .bursts();
+        if (b.paused) return EnumChatFormatting.RED + b.line();
+        if (b.ports() == 0) {
+            return star.n() == 6 ? EnumChatFormatting.DARK_GRAY + "No GRB Receptor Ports yet (the T7 stability rail)"
+                : EnumChatFormatting.RED + "No GRB Receptor Ports: the galaxy has no bursts";
+        }
+        final StringBuilder sb = new StringBuilder(EnumChatFormatting.LIGHT_PURPLE.toString()).append(
+            String.format(
+                Locale.ROOT,
+                "Bursts %.2f Bu/t: high %.2f / low %.2f, halo %.2f",
+                b.total(),
+                b.hi,
+                b.lo,
+                b.halo));
+        if (star.tier.burstDriven() || rt.galaxyTransition()) {
+            sb.append(EnumChatFormatting.GRAY)
+                .append(
+                    String.format(
+                        Locale.ROOT,
+                        "; β %.2f of %.2f Bu/t",
+                        rt.galaxy()
+                            .beta(),
+                        rt.galaxy()
+                            .demand()));
+        }
+        sb.append(EnumChatFormatting.GRAY)
+            .append(b.source.isEmpty() ? ", not linked" : ", linked " + b.source);
+        return sb.toString();
+    }
+
+    /** The link milestone in progress (or held) on T6 / T7. */
+    private String linkLine() {
+        final EyeStarRuntime rt = rt();
+        final StarDef star = rt.star();
+        if (star == null || !rt.burning() || (star.n() != 6 && star.n() != 7) || star.tier.planets()) return "";
+        final int n = star.n();
+        if (rt.milestones().linkDone[n]) {
+            return EnumChatFormatting.GREEN + EyeMilestones.LINK_NAME[n] + " HELD (milestone)";
+        }
+        final BurstLink l = rt.activeLink();
+        if (l == null) return "";
+        return (l.streak > 0 ? EnumChatFormatting.AQUA : EnumChatFormatting.GRAY) + String.format(
+            Locale.ROOT,
+            "%s %s / 30:00 (best %s), mean %.2f Bu/t, %s %.0f%%",
+            EyeMilestones.LINK_NAME[n],
+            EyeMilestones.clock(l.streak),
+            EyeMilestones.clock(Math.max(l.best, rt.milestones().linkBest[n])),
+            l.mean,
+            n == 6 ? "high bank" : "halo",
+            100 * l.frac);
+    }
+
+    /** The running countdown: the collapse, a pericentre pass, the satellite crossing, a minor merger. */
+    private String eventLine() {
+        final EyeStarRuntime rt = rt();
+        if (!rt.burning()) return "";
+        final int c = rt.countdownSeconds();
+        final EyeTransition tr = rt.transition();
+        if (tr instanceof MagnetarCollapse && c >= 0) {
+            return EnumChatFormatting.GOLD + "The magnetar collapses in " + c + " s: time a purge onto it";
+        }
+        if (tr instanceof GalacticMerger && c >= 0) {
+            return EnumChatFormatting.GOLD + "Pericentre pass in "
+                + c
+                + " s ("
+                + (((GalacticMerger) tr).nextPassSign() < 0 ? "-" : "+")
+                + "): W ±12, P +5 for 5 s";
+        }
+        if (rt.crossingCountdown() >= 0) {
+            return EnumChatFormatting.GOLD + "Satellite crossing in " + rt.crossingCountdown() + " s: hold Stable";
+        }
+        if (rt.crossingLeft() > 0) {
+            return EnumChatFormatting.GOLD + "Satellite crossing: " + rt.crossingLeft() + " s left";
+        }
+        if (rt.mergerWarning() != 0) {
+            return EnumChatFormatting.GOLD + "Minor merger in "
+                + Math.max(0, c)
+                + " s ("
+                + (rt.mergerWarning() < 0 ? "-" : "+")
+                + "): W pushed, then the precession flips";
+        }
+        return "";
+    }
+
+    /** Planets mode's slots, or the companions. */
+    private String slotLine() {
+        final EyeStarRuntime rt = rt();
+        final StarDef star = rt.star();
+        if (star == null || !rt.burning() || star.n() < 7) return "";
+        if (star.tier.planets()) {
+            final List<String> lines = rt.slotLines();
+            int running = 0;
+            for (String l : lines) if (l.contains("%")) running++;
+            return EnumChatFormatting.GRAY + String.format(
+                Locale.ROOT,
+                "Planets: %d / %d running, %.0f%% done%s",
+                running,
+                lines.size(),
+                100 * rt.slotProgress(),
+                rt.galaxy()
+                    .lastRunLost() ? ", last run lost parallels" : "");
+        }
+        return EnumChatFormatting.GRAY + "Companions: " + rt.companionNames();
+    }
+
+    /** The Galaxy panel's body: mode, the slots or companions, the transition's state, the rig in brief. */
+    private String galaxyPanelText() {
+        final EyeStarRuntime rt = rt();
+        final StringBuilder sb = new StringBuilder();
+        sb.append("Mode: ")
+            .append(
+                rt.mode()
+                    .name()
+                    .toLowerCase(Locale.ROOT))
+            .append(
+                rt.mode() == EyeGalaxy.Mode.PLANETS ? " (3 / 6 planets from the slot bus)"
+                    : " (the galaxy, 1 / 2 companions)");
+        for (String l : rt.slotLines()) sb.append('\n')
+            .append(l);
+        if (rt.mode() == EyeGalaxy.Mode.GALAXY) sb.append("\nCompanions: ")
+            .append(rt.companionNames());
+        final StarDef star = rt.star();
+        if (star != null && (star.n() == 6 || star.n() == 7) && rt.state() == EyeStarRuntime.StarState.PENDING) {
+            final List<String> miss = rt.missing(star.n());
+            sb.append('\n')
+                .append(
+                    miss.isEmpty() ? "READY: Begin starts the " + EyeTransition.Type.leaving(star.n()).title
+                        : "Waits for: " + miss.get(0));
+        }
+        if (rt.testFireWanted()) sb.append("\nLink test fire wanted: J1 all to the Eye")
+            .append(star != null && star.n() == 7 ? ", J3 75 % to the halo" : "");
+        return sb.toString();
+    }
+
     private String warnLine() {
         final FieldReadout r = rt().lastReadout();
         if (r == null || !r.lit || r.warn == 0) return "";
-        final TierParams t = TierParams.of(Math.max(1, Math.min(6, r.tier)));
+        final TierParams t = TierParams.of(Math.max(1, Math.min(8, r.tier)), r.planets);
         final boolean signed = t.event != null && t.event.signed && !t.batch;
         return EnumChatFormatting.GOLD + "Event warning: "
             + (t.batch ? "crystallisation plateau" : t.event != null ? t.event.name : "event")
@@ -239,7 +407,7 @@ public class EyeGui extends MTEMultiBlockBaseGui<MTEEyeOfHarmonyBTS> {
     private String milestoneLine() {
         final EyeStarRuntime rt = rt();
         final StringBuilder sb = new StringBuilder();
-        if (rt.unlockedTier() <= 5) sb.append(
+        if (rt.unlockedTier() <= 7) sb.append(
             rt.milestones()
                 .progressLine(rt.unlockedTier()));
         if (rt.escrow() != null) {
@@ -344,9 +512,14 @@ public class EyeGui extends MTEMultiBlockBaseGui<MTEEyeOfHarmonyBTS> {
         final IntSyncValue mask = syncManager.findSyncHandler("eyeGaugeMask", IntSyncValue.class);
         final DoubleSyncValue sp = syncManager.findSyncHandler("eyeSp", DoubleSyncValue.class);
 
+        final StringSyncValue galaxy = syncManager.findSyncHandler("eyeGalaxy", StringSyncValue.class);
+        final StringSyncValue link = syncManager.findSyncHandler("eyeLink", StringSyncValue.class);
+        final StringSyncValue event = syncManager.findSyncHandler("eyeEvent", StringSyncValue.class);
+        final StringSyncValue slots = syncManager.findSyncHandler("eyeSlotLine", StringSyncValue.class);
+
         final ListWidget<IWidget, ?> list = super.createTerminalTextWidget(syncManager, parent).child(row(head))
             .child(row(star));
-        for (int k = 0; k < 4; k++) {
+        for (int k = 0; k < StellarField.GAUGES; k++) {
             final int gauge = k;
             final DoubleSyncValue v = syncManager.findSyncHandler("eyeGauge" + k, DoubleSyncValue.class);
             list.child(
@@ -371,6 +544,10 @@ public class EyeGui extends MTEMultiBlockBaseGui<MTEEyeOfHarmonyBTS> {
         }
         return list.child(row(field))
             .child(row(warn))
+            .child(row(galaxy))
+            .child(row(link))
+            .child(row(event))
+            .child(row(slots))
             .child(row(upkeep))
             .child(row(dial))
             .child(
@@ -562,21 +739,38 @@ public class EyeGui extends MTEMultiBlockBaseGui<MTEEyeOfHarmonyBTS> {
     protected Flow createRightPanelGapRow(ModularPanel parent, PanelSyncManager syncManager) {
         final IPanelHandler fieldPanel = syncManager
             .syncedPanel("eyeFieldPanel", true, (sub, handler) -> buildFieldPanel(syncManager, parent));
+        final IPanelHandler galaxyPanel = syncManager
+            .syncedPanel("eyeGalaxyPanel", true, (sub, handler) -> buildGalaxyPanel(syncManager, parent));
         final BooleanSyncValue render = syncManager.findSyncHandler("eyeRender", BooleanSyncValue.class);
         return super.createRightPanelGapRow(parent, syncManager).child(
-            new ToggleButton().size(18, 18)
+            new ButtonWidget<>().size(18, 18)
                 .marginLeft(2)
-                .value(render)
-                .overlay(true, GTGuiTextures.OVERLAY_BUTTON_SHOW_WORK_AREA)
-                .overlay(false, GTGuiTextures.OVERLAY_BUTTON_WORK_AREA)
-                .tooltipBuilder(
-                    t -> t.addLine("Centre render on / off (this Eye)")
-                        .addLine(EnumChatFormatting.GRAY + "The star, neutron star, dwarf or magnetar at the")
-                        .addLine(EnumChatFormatting.GRAY + "Eye's centre. The config (eyeRenderCentre) can")
-                        .addLine(
-                            EnumChatFormatting.GRAY + "turn it off everywhere"
-                                + (Config.eyeRenderCentre ? "." : ": it is OFF in your config.")))
+                .overlay(GTGuiTextures.OVERLAY_BUTTON_MACHINEMODE_SINGULARITY)
+                .onMousePressed(button -> {
+                    if (galaxyPanel.isPanelOpen()) galaxyPanel.closePanel();
+                    else galaxyPanel.openPanel();
+                    return true;
+                })
+                .tooltip(
+                    t -> t.addLine("Galaxy (T7 / T8): mode, the T8 feed, Begin, slots")
+                        .addLine(EnumChatFormatting.GRAY + "Galaxy or planets mode, the Ergomatter feed f8,")
+                        .addLine(EnumChatFormatting.GRAY + "and Begin for a ready Magnetar Collapse or")
+                        .addLine(EnumChatFormatting.GRAY + "Galactic Merger."))
                 .tooltipShowUpTimer(TOOLTIP_DELAY))
+            .child(
+                new ToggleButton().size(18, 18)
+                    .marginLeft(2)
+                    .value(render)
+                    .overlay(true, GTGuiTextures.OVERLAY_BUTTON_SHOW_WORK_AREA)
+                    .overlay(false, GTGuiTextures.OVERLAY_BUTTON_WORK_AREA)
+                    .tooltipBuilder(
+                        t -> t.addLine("Centre render on / off (this Eye)")
+                            .addLine(EnumChatFormatting.GRAY + "The star, neutron star, dwarf or magnetar at the")
+                            .addLine(EnumChatFormatting.GRAY + "Eye's centre. The config (eyeRenderCentre) can")
+                            .addLine(
+                                EnumChatFormatting.GRAY + "turn it off everywhere"
+                                    + (Config.eyeRenderCentre ? "." : ": it is OFF in your config.")))
+                    .tooltipShowUpTimer(TOOLTIP_DELAY))
             .child(
                 new ButtonWidget<>().size(18, 18)
                     .marginLeft(2)
@@ -588,6 +782,150 @@ public class EyeGui extends MTEMultiBlockBaseGui<MTEEyeOfHarmonyBTS> {
                     })
                     .tooltip(t -> t.addLine("Field: zones, sockets, sensors, trims, the standard rig"))
                     .tooltipShowUpTimer(TOOLTIP_DELAY));
+    }
+
+    // ============================================================================= galaxy panel
+
+    private static final int GALAXY_PANEL_W = 184;
+    private static final int GALAXY_PANEL_H = 176;
+
+    /**
+     * P4: the Galaxy panel: the mode (galaxy / planets; switching puts a lit T7 / T8 field out and lights the other),
+     * the T8 Ergomatter feed f₈ with − / +, Begin (enabled while Galaxy Transition bit 1 is on), and the slots or
+     * companions with what the next transition waits for.
+     */
+    private ModularPanel buildGalaxyPanel(PanelSyncManager main, ModularPanel parent) {
+        final BooleanSyncValue planets = main.findSyncHandler("eyePlanets", BooleanSyncValue.class);
+        final DoubleSyncValue f8 = main.findSyncHandler("eyeF8", DoubleSyncValue.class);
+        final BooleanSyncValue ready = main.findSyncHandler("eyeReady", BooleanSyncValue.class);
+        final StringSyncValue msg = main.findSyncHandler("eyeBeginMsg", StringSyncValue.class);
+        final StringSyncValue text = main.findSyncHandler("eyeGalaxyText", StringSyncValue.class);
+        final int w = GALAXY_PANEL_W - 8;
+        final Flow column = Flow.column()
+            .full()
+            .padding(4)
+            .childPadding(3)
+            .crossAxisAlignment(Alignment.CrossAxis.START)
+            .child(
+                IKey.str(EnumChatFormatting.BOLD + "Galaxy (T7 / T8)")
+                    .asWidget()
+                    .width(w)
+                    .textAlign(Alignment.Center))
+            .child(
+                Flow.row()
+                    .width(w)
+                    .height(14)
+                    .childPadding(3)
+                    .crossAxisAlignment(Alignment.CrossAxis.CENTER)
+                    .child(
+                        new ButtonWidget<>().size(14, 14)
+                            .overlay(GTGuiTextures.OVERLAY_BUTTON_CYCLIC)
+                            .onMousePressed(btn -> {
+                                planets.setBoolValue(!planets.getBoolValue());
+                                return true;
+                            })
+                            .tooltip(
+                                t -> t.addLine("Galaxy or planets mode")
+                                    .addLine(EnumChatFormatting.GRAY + "Planets: 3 (T7) / 6 (T8) planet slots from the")
+                                    .addLine(EnumChatFormatting.GRAY + "slot bus, a calm one-gauge field at a quarter")
+                                    .addLine(
+                                        EnumChatFormatting.GRAY + "of the demand. Switching puts a lit galaxy out:")
+                                    .addLine(EnumChatFormatting.GRAY + "it comes back by the Magnetar Collapse."))
+                            .tooltipShowUpTimer(TOOLTIP_DELAY))
+                    .child(
+                        IKey.dynamic(() -> "Mode: " + (planets.getBoolValue() ? "planets" : "galaxy"))
+                            .asWidget()
+                            .heightRel(1f)))
+            .child(
+                Flow.row()
+                    .width(w)
+                    .height(14)
+                    .childPadding(1)
+                    .crossAxisAlignment(Alignment.CrossAxis.CENTER)
+                    .child(
+                        IKey.str("T8 feed f8")
+                            .asWidget()
+                            .marginRight(2)
+                            .heightRel(1f))
+                    .child(
+                        stepButton(
+                            f8,
+                            -EyeGalaxy.F8_STEP,
+                            GalaxyField.F8_MIN,
+                            GalaxyField.F8_MAX,
+                            "Ergomatter feed -0.5 L/s (right-click: -2)",
+                            false))
+                    .child(
+                        IKey.dynamic(() -> String.format(Locale.ROOT, "%.1f L/s", f8.getDoubleValue()))
+                            .asWidget()
+                            .width(34)
+                            .textAlign(Alignment.Center)
+                            .heightRel(1f)
+                            .tooltip(
+                                t -> t.addLine("The Milky Way's Ergomatter feed, L/s per parallel (0-10)")
+                                    .addLine(EnumChatFormatting.GRAY + "Superdense Ergomatter = 1.0 x fed x Y x r.")
+                                    .addLine(EnumChatFormatting.GRAY + "It drives Λ by 0.4 x f8: halo bursts hold it.")
+                                    .addLine(
+                                        EnumChatFormatting.GRAY + "Lower it for a satellite crossing at high feed."))
+                            .tooltipShowUpTimer(TOOLTIP_DELAY))
+                    .child(
+                        stepButton(
+                            f8,
+                            EyeGalaxy.F8_STEP,
+                            GalaxyField.F8_MIN,
+                            GalaxyField.F8_MAX,
+                            "Ergomatter feed +0.5 L/s (right-click: +2)",
+                            false)))
+            .child(
+                Flow.row()
+                    .width(w)
+                    .height(16)
+                    .childPadding(3)
+                    .crossAxisAlignment(Alignment.CrossAxis.CENTER)
+                    .child(
+                        new ButtonWidget<>().size(16, 16)
+                            .overlay(GTGuiTextures.OVERLAY_BUTTON_CHECKMARK)
+                            .onMousePressed(btn -> {
+                                main.callSyncedAction("eyeBegin", packet -> {});
+                                return true;
+                            })
+                            .tooltip(
+                                t -> t.addLine("Begin the galaxy transition")
+                                    .addLine(EnumChatFormatting.GRAY + "Only while it is READY (Galaxy Transition")
+                                    .addLine(EnumChatFormatting.GRAY + "bit 1): the Magnetar Collapse from a lit")
+                                    .addLine(EnumChatFormatting.GRAY + "magnetar, the Galactic Merger from Triangulum.")
+                                    .addLine(
+                                        EnumChatFormatting.GRAY + "A Burst Control Hatch in Begin mode does it too."))
+                            .tooltipShowUpTimer(TOOLTIP_DELAY))
+                    .child(
+                        IKey.dynamic(
+                            () -> (ready.getBoolValue() ? EnumChatFormatting.GREEN + "READY"
+                                : EnumChatFormatting.GRAY + "not ready")
+                                + EnumChatFormatting.GRAY
+                                + (msg.getStringValue()
+                                    .isEmpty() ? "" : ": " + msg.getStringValue()))
+                            .asWidget()
+                            .scale(0.75f)
+                            .maxWidth(w - 20)))
+            .child(
+                IKey.dynamic(text::getStringValue)
+                    .asWidget()
+                    .scale(0.75f)
+                    .maxWidth(w))
+            .child(
+                IKey.str(
+                    EnumChatFormatting.DARK_GRAY
+                        + "Rig: Field [1] -> the Space valve; J1 on Field [2]/[1], J2 on Field [4]/[8], J3 on Events"
+                        + " [1]/[2] (15 / 8 / 0); Galaxy Transition [1] -> a Begin hatch, [4] / [8] the purge assist;"
+                        + " Slots [8] -> the test fire.")
+                    .asWidget()
+                    .scale(0.75f)
+                    .maxWidth(w));
+        return new ModularPanel("eyeGalaxyPanel").relative(parent)
+            .leftRel(1)
+            .topRel(0)
+            .size(GALAXY_PANEL_W, GALAXY_PANEL_H)
+            .child(column);
     }
 
     // ============================================================================== field panel

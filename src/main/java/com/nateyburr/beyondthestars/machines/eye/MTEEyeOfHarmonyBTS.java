@@ -866,6 +866,12 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         return Collections.unmodifiableList(receptors[group]);
     }
 
+    /** P4 bench: the first live slot bus, or null. */
+    public MTEHatchInputBus firstSlotBus() {
+        for (MTEHatchInputBus bus : slotBuses) if (live(bus)) return bus;
+        return null;
+    }
+
     /** P4: the Burst Control Hatches. Server state, read-only. */
     public List<MTEHatchBurstControl> burstControlHatches() {
         return Collections.unmodifiableList(burstControls);
