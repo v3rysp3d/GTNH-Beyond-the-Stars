@@ -2,6 +2,7 @@ package com.nateyburr.beyondthestars.machines.kerr;
 
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofChain;
+import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofHint;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.onElementPass;
 import static com.nateyburr.beyondthestars.machines.BTSStructures.noOverwrite;
 import static com.nateyburr.beyondthestars.machines.BTSStructures.tieredBlock;
@@ -13,12 +14,8 @@ import static gregtech.api.util.GTStructureUtility.ofFrame;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Stream;
-
-import javax.annotation.Nonnull;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
@@ -27,9 +24,10 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+import net.minecraftforge.fluids.FluidStack;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import org.jetbrains.annotations.NotNull;
+
 import com.gtnewhorizon.structurelib.alignment.IAlignmentLimits;
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
 import com.gtnewhorizon.structurelib.alignment.enumerable.Flip;
@@ -49,94 +47,72 @@ import gregtech.api.enums.ItemList;
 import gregtech.api.enums.Materials;
 import gregtech.api.enums.OrePrefixes;
 import gregtech.api.enums.Textures;
-import gregtech.api.gui.modularui.GTUITextures;
 import gregtech.api.interfaces.IIconContainer;
 import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
-import gregtech.api.logic.ProcessingLogic;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBase;
 import gregtech.api.metatileentity.implementations.MTEHatchInputBus;
-import gregtech.api.recipe.RecipeMap;
-import gregtech.api.recipe.RecipeMaps;
-import gregtech.api.recipe.check.CheckRecipeResult;
-import gregtech.api.recipe.check.CheckRecipeResultRegistry;
-import gregtech.api.recipe.check.SimpleCheckRecipeResult;
 import gregtech.api.render.TextureFactory;
 import gregtech.api.structure.error.StructureError;
 import gregtech.api.structure.error.StructureErrors;
 import gregtech.api.util.GTOreDictUnificator;
-import gregtech.api.util.GTRecipe;
-import gregtech.api.util.GTRecipeConstants;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.MultiblockTooltipBuilder;
+import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
 import gregtech.common.tileentities.machines.MTEHatchInputBusME;
 import gregtech.common.tileentities.machines.multi.compressor.MTEBlackHoleUtility;
 
 /**
- * SINGULARITY LADDER P2: THE KERR ERGOSPHERE ENGINE - MTE base+14 (28114), UIV
- * (singularity-ladder-build.md §3.1 / §3.2, D-41, D-42, D-44). Owned by the Kerr unit.
+ * SINGULARITY LADDER P2 / KERR REDESIGN: THE KERR ERGOSPHERE ENGINE (KEE) - MTE base+14 (28114), UIV
+ * (docs/kerr-redesign.md; singularity-ladder-build.md §3.1 / §3.2, D-41, D-42, D-44).
  * <p>
- * Kerr T1 takes the Black Hole Compressor's slot: the BHC's crafting recipe is removed at
- * load-complete ({@code BTSRecipeRemovals}, config {@code removeBlackHoleCompressorRecipe}), placed
- * BHCs keep working. The Kerr does nothing on its own: it needs a <b>compressor module</b> and/or an
- * <b>extractor module</b>, each an OPTIONAL CHECKED PIECE of this one controller (the D-20 pattern,
- * Q-10), and both can stand at once. The compressor runs GT's compressor and neutronium-compressor
- * maps (the BHC's); the extractor runs GT's item extractor map only (user ruling, Q-9/Q-22). More
- * modules come later: each is one {@link KerrModule} (its piece, core block and private I/O), see
- * that class for the steps. Kerr T2 is the same controller with the <b>Kerr Density
- * Upgrade</b> installed: the required shape becomes {@code kerr_t2}, the setpoint range rises to
- * 512 SM and DENSIFY (Hyperdense Stellar Mixture) unlocks.
+ * The KEE controls ONLY the hole (user ruling, brief item 9): seed / open / close, the mass setpoint,
+ * the bolt governor and its bolt buses, Hawking bleed, stability, containment power, the BHC utility
+ * hatches and the Density Upgrade (Kerr T2). It runs no recipes and has no machine modes; nothing a
+ * player needs takes a screwdriver. Everything is in its MUI2 GUI ({@link MTEKerrEngineGui}).
+ * <p>
+ * The <b>modules</b> are separate machines ({@link MTEKerrModuleBase}) standing in the cage's arcs.
+ * They find this KEE through the exporter's slot table ({@link KerrSlot}) and read it through
+ * {@link KerrHole}; the KEE never stores them, and never needs reconfiguring to use one. The KEE's
+ * module list is derived every second ({@link #slotStatus}).
+ * <p>
+ * Kerr T1 takes the Black Hole Compressor's slot (its recipe is removed and its uses rewritten to this
+ * controller, see BTSBlackHoleSwap). Kerr T2 is this controller with the Kerr Density Upgrade: the
+ * required shape becomes {@code kerr_t2} and the setpoint range rises to 512 SM.
  *
- * <h2>Shapes</h2>
- * Four resource pieces exported from {@code designs/voxel.js} by {@code tools/export-structures.js},
- * loaded by {@link BTSShapes}: {@code kerr_t1} / {@code kerr_t2} (alternatives; exactly one is
- * required), {@code kerr_compressor} and {@code kerr_extractor}. Each piece is checked at its own
- * {@code off=}. The char-to-block mapping follows the "Structure export" legend and the mid-run
- * ruling: Black Hole Compressor blocks wherever a role fits, plus one new white lining block
- * (Harmonic Lining, slCasing2:2, char {@code J}) for the mockup's bright inner face.
- *
- * <h2>The hole (Q-8, numbers PROPOSED)</h2>
- * A Black Hole Seed in any bolt bus opens a hole at 8 SM; a Black Hole Collapser closes it. Every
- * tick the hole bleeds {@code 3.2 / M^2} SM (Hawking) and the governor fires bolts from the bolt
- * buses to hold the setpoint, at most {@code cap} bolts a tick where the cap is set by the LOWEST
- * injector-rail tier in the cage (Mk I 4, Mk II 8, Mk III 16). Below 2 SM the hole evaporates.
- * Mass buys parallel ({@code 8 x voltage tier x floor(sqrt(M))}); heat buys speed (recipe time
- * divided by {@code clamp(E / 50, 1, 4)} with {@code E = 3200 / M} GeV).
+ * <h2>The hole (Q-8 / B-35, numbers PROPOSED)</h2>
+ * A Black Hole Seed opens a hole at 8 SM; a Black Hole Collapser closes it (GUI buttons, or on their
+ * own in a bolt bus while "Auto" is on). Every tick the hole bleeds {@code 3.2 / M^2} SM and draws
+ * {@link #CONTAINMENT_EUT} EU of containment power; with the power the governor fires bolts from the
+ * bolt buses to hold the setpoint, at most {@code cap} a tick (the LOWEST injector-rail tier: Mk I 4,
+ * Mk II 8, Mk III 16). Without it, or with the machine switched off, the governor stops and the hole
+ * bleeds; below 2 SM it evaporates. An unformed KEE freezes its hole (B-8).
  *
  * <h2>The four traps</h2>
  * <ol>
- * <li><b>Client vs server.</b> {@link #construct} picks T1 or T2 from the trigger stack size only (1 =
- * T1, 2+ = T2) and always projects both modules; it never reads {@link #densityInstalled}, which is
- * 0 on a client that has not synced it. The walk fields are server-side; nothing client-side reads
- * them except the GUI's own synced values.</li>
- * <li><b>Tile vs item NBT.</b> {@link #writeKerrState} is the ONE serializer of the persisted state
- * (density, hole, setpoint), called from both {@link #saveNBTData} and {@link #setItemNBT}, so a
- * wrenched Kerr keeps its upgrade and its hole.</li>
- * <li><b>Plant-wide hatch lists.</b> Bolt buses, utility hatches and every module socket register into
- * PRIVATE lists ({@link KerrHatchElement}); only the active mode's module is bound into GT's
- * standard lists, by {@link #bindModuleIO}.</li>
- * <li><b>Element chains.</b> Every socket is {@code buildHatchAdder(...).buildAndChain(casing)}: the
- * hatch adder comes first, so the hologram hints the hatch.</li>
+ * <li><b>Client vs server.</b> {@link #construct} reads only the trigger stack (1 = T1, 2+ = T2) and
+ * hints the module slots with {@code ofHint}; the GUI reads synced values only.</li>
+ * <li><b>Tile vs item NBT.</b> {@link #writeKerrState} is the ONE serializer of the persisted state,
+ * called from both {@link #saveNBTData} and {@link #setItemNBT}.</li>
+ * <li><b>Plant-wide hatch lists.</b> Bolt buses and utility hatches register into PRIVATE lists
+ * ({@link KerrHatchElement}); the KEE has no recipe lists at all. Modules use their own standard
+ * lists.</li>
+ * <li><b>Element chains.</b> Every socket is {@code buildHatchAdder(...).buildAndChain(casing)}.</li>
  * </ol>
- * All walk state is zeroed in {@link #resetWalk()}, the first statement of {@link #checkMachine},
- * so an early return cannot leave a module asserting it stands.
  */
-public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine> implements ISurvivalConstructable {
+public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
+    implements ISurvivalConstructable, KerrHole {
 
     // ------------------------------------------------------------------------------- pieces
     public static final String PIECE_T1 = "kerr_t1";
     public static final String PIECE_T2 = "kerr_t2";
+    /** Hint-only: where each module controller stands (the KEE's hologram marks it; nothing placed). */
+    public static final String PIECE_SLOTS = "kerr_slots";
+    /** The module machines' own pieces (each module checks its own; the KEE never does). */
     public static final String PIECE_COMPRESSOR = "kerr_compressor";
     public static final String PIECE_EXTRACTOR = "kerr_extractor";
-
-    // -------------------------------------------------------------------------------- modes
-    public static final int MODE_COMPRESS = 0;
-    public static final int MODE_EXTRACT = 1;
-    public static final int MODE_DENSIFY = 2;
-    private static final int MODE_COUNT = 3;
-    private static final String[] MODE_NAMES = { "Compress", "Extract", "Densify" };
 
     // --------------------------------------------------------------- the hole (Q-8, PROPOSED)
     /** Mass a fresh hole opens at, SM. */
@@ -145,25 +121,28 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     public static final double MASS_FLOOR = 2.0;
     /** Hawking bleed: {@code BLEED_K / M^2} SM per tick. */
     public static final double BLEED_K = 3.2;
-    /** DENSIFY needs at least this much mass in the hole, SM. */
+    /** DENSITY recipes need at least this much mass in the hole, SM. */
     public static final double DENSIFY_MIN_MASS = 128.0;
     /** Particle energy {@code E = ENERGY_K / M} GeV; speed = clamp(E / SPEED_DIVISOR, 1, MAX_SPEED). */
     public static final double ENERGY_K = 3200.0;
     public static final double SPEED_DIVISOR = 50.0;
     public static final double MAX_SPEED = 4.0;
-    /** Setpoint ladder. The first {@link #T1_SETPOINTS} entries are open at T1; T2 opens the rest. */
-    public static final double[] SETPOINTS = { 2, 4, 8, 16, 32, 64, 128, 256, 512 };
-    private static final int T1_SETPOINTS = 6;
+    /** Whole-number setpoint range, SM (B-36): T1 2..64, T2 2..512. */
+    public static final int SETPOINT_MIN = 2;
+    public static final int SETPOINT_MAX_T1 = 64;
+    public static final int SETPOINT_MAX_T2 = 512;
     /** Bolts per tick by the LOWEST injector-rail tier found in the walk (index = tier, Mk I = 1). */
     public static final int[] RAIL_CAP = { 0, 4, 8, 16 };
     /** Base parallel per voltage tier, the Black Hole Compressor's figure. */
     public static final int PARALLEL_PER_TIER = 8;
+    /** Containment power while the hole is open: 1 A UEV (B-35, PROPOSED). */
+    public static final long CONTAINMENT_EUT = 8_388_608L;
 
     /** Bolt materials and their masses in SM, lightest first. */
     private static final Materials[] BOLT_MATERIALS = { Materials.Neutronium, Materials.CosmicNeutronium,
         Materials.Infinity, Materials.TranscendentMetal, Materials.SpaceTime };
     private static final double[] BOLT_MASSES = { 1.0 / 64, 1.0 / 32, 1.0 / 16, 1.0 / 8, 1.0 / 4 };
-    /** Resolved lazily (GT's items exist only after its preInit): {item, meta} per bolt material. */
+    /** Resolved lazily (GT's items exist only after its preInit). */
     private static ItemStack[] boltStacks;
 
     // ------------------------------------------------------------------------------ textures
@@ -179,9 +158,8 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     /** Built once, lazily; NEI's multiblock preview reads it from a background thread at load. */
     private static volatile IStructureDefinition<MTEKerrEngine> STRUCTURE_DEFINITION = null;
 
-    /** Periodic structure re-check intervals in ticks (see structureChunksLoaded). */
-    private static final int RECHECK_IDLE = 200;
-    private static final int RECHECK_RUNNING = 1000;
+    /** Periodic structure re-check interval in ticks (see structureChunksLoaded). */
+    private static final int RECHECK = 200;
     /** Horizontal reach that covers every Kerr piece from the controller (kerr_t2 is 92 x 89). */
     private static final int RECHECK_RADIUS = 96;
 
@@ -189,7 +167,11 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     private boolean densityInstalled;
     private boolean holeOpen;
     private double mass;
-    private double setpoint = OPEN_MASS;
+    private int setpoint = (int) OPEN_MASS;
+    /** A Seed / Collapser in a bolt bus acts on its own (automation); the GUI buttons work either way. */
+    private boolean autoSeeds = true;
+    /** Per-machine render toggle (the render itself is the render pass's; this is its switch). */
+    private boolean renderOn = true;
 
     // ---------------------------------------------------------- WALK state (server, resetWalk)
     private int mCasing;
@@ -198,29 +180,28 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     private final ArrayList<MTEHatchInputBus> boltBuses = new ArrayList<>();
     private final ArrayList<MTEBlackHoleUtility> utilityHatches = new ArrayList<>();
 
-    // ------------------------------------------------------- the modules (see KerrModule)
-    /** South arc: GT's compressor + neutronium-compressor recipes, and DENSIFY at T2. Items and fluids. */
-    private final KerrModule compressor = new KerrModule(
-        "Compressor",
-        PIECE_COMPRESSOR,
-        'q',
-        BlockSLCasing2.COMPRESSOR_MODULE,
-        true);
-    /** East arc: GT's item extractor recipes ({@code extractorRecipes}) only. Item buses only. */
-    private final KerrModule extractor = new KerrModule(
-        "Extractor",
-        PIECE_EXTRACTOR,
-        'k',
-        BlockSLCasing2.EXTRACTOR_MODULE,
-        false);
-    /** Every module, in walk order. A new module is one more entry here (see KerrModule). */
-    private final KerrModule[] modules = { compressor, extractor };
-
     // -------------------------------------------------------------------- RUN state (server)
-    /** The mode whose module I/O is bound into GT's lists (the running recipe's mode). */
-    private int boundMode = -1;
     private int lastBoltsFired;
     private double lastBleed;
+    private boolean powerOk = true;
+    /** 20-tick window: mass fed, mass bled, bolts fired. */
+    private double windowFed;
+    private double windowBled;
+    private int windowBolts;
+    private int windowTicks;
+    private double stability = 1.0;
+    private double boltsPerTick;
+    /** Refreshed every second: bolt stock, seeds, collapsers, slot lines. */
+    private double boltStockSm;
+    private int seeds;
+    private int collapsers;
+    private final String[] slotLines = new String[KerrSlot.VALUES.length];
+    private int linkedModules;
+    /** Migration runs once per load, after the first structure check (docs/kerr-redesign.md §7). */
+    private boolean migrationPending = true;
+    private String migrationNote = "";
+    /** Pre-redesign NBT: the mode a running recipe started on (0/2 compressor, 1 extractor), or -1. */
+    private int legacyBoundMode = -1;
 
     public MTEKerrEngine(int aID, String aName, String aNameRegional) {
         super(aID, aName, aNameRegional);
@@ -260,12 +241,10 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         final Block sl = SLBlocks.slCasing;
         final Block sl2 = SLBlocks.slCasing2;
         final int shellIndex = Casings.ExtremeDensitySpaceBendingCasing.textureId;
-        final int bhcIndex = Casings.BackgroundRadiationAbsorbentCasing.textureId;
         return StructureDefinition.<MTEKerrEngine>builder()
             .addShape(PIECE_T1, BTSShapes.load(PIECE_T1))
             .addShape(PIECE_T2, BTSShapes.load(PIECE_T2))
-            .addShape(PIECE_COMPRESSOR, BTSShapes.load(PIECE_COMPRESSOR))
-            .addShape(PIECE_EXTRACTOR, BTSShapes.load(PIECE_EXTRACTOR))
+            .addShape(PIECE_SLOTS, BTSShapes.load(PIECE_SLOTS))
             // ---- the cage (BHC family where a BHC block fits: the mid-run ruling)
             .addElement('A', casing(Casings.ExtremeDensitySpaceBendingCasing))
             .addElement('B', noOverwrite(onElementPass(x -> ++x.mCasing, ofFrame(Materials.NaquadahAlloy))))
@@ -275,13 +254,10 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             .addElement('F', block(sl, BlockSLCasing.QUADRUPOLE))
             .addElement('G', casing(Casings.ParticleBeamGuidancePipeCasing))
             .addElement('H', block(sl, BlockSLCasing.FIELD_COIL))
-            .addElement('I', casing(Casings.BackgroundRadiationAbsorbentCasing))
-            // the white inner face of every arc and band: the one new Kerr lining block (round-4 ruling)
             .addElement('J', block(sl2, BlockSLCasing2.LINING))
             .addElement('K', casing(Casings.HawkingRadiationRealignmentFocus))
             .addElement('L', casing(Casings.ExtremeDensitySpaceBendingCasing))
             .addElement('M', block(sl, BlockSLCasing.BEAM_DUMP))
-            .addElement('N', block(sl, BlockSLCasing.EXTRACTION))
             .addElement('O', block(sl, BlockSLCasing.BASTION))
             .addElement('P', block(sl, BlockSLCasing.CASIMIR))
             // ---- cage sockets
@@ -309,28 +285,9 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
                     .casingIndex(shellIndex)
                     .hint(6)
                     .buildAndChain(casing(Casings.ExtremeDensitySpaceBendingCasing)))
-            // ---- compressor module (south arc)
-            .addElement(
-                'c',
-                buildHatchAdder(MTEKerrEngine.class)
-                    .atLeast(KerrHatchElement.CompressorInput, KerrHatchElement.CompressorOutput)
-                    .casingIndex(bhcIndex)
-                    .hint(4)
-                    .buildAndChain(casing(Casings.BackgroundRadiationAbsorbentCasing)))
-            .addElement(
-                'q',
-                noOverwrite(onElementPass(x -> ++x.compressor.cores, ofBlock(sl2, BlockSLCasing2.COMPRESSOR_MODULE))))
-            // ---- extractor module (east arc): item buses only, GT's extractor recipes
-            .addElement(
-                'x',
-                buildHatchAdder(MTEKerrEngine.class)
-                    .atLeast(KerrHatchElement.ExtractorInput, KerrHatchElement.ExtractorOutput)
-                    .casingIndex(shellIndex)
-                    .hint(5)
-                    .buildAndChain(block(sl, BlockSLCasing.EXTRACTION)))
-            .addElement(
-                'k',
-                noOverwrite(onElementPass(x -> ++x.extractor.cores, ofBlock(sl2, BlockSLCasing2.EXTRACTOR_MODULE))))
+            // ---- module slots: hint dots only (check always passes, nothing is placed, trap 4)
+            .addElement('1', ofHint(KerrSlot.COMPRESSOR.hintDots))
+            .addElement('2', ofHint(KerrSlot.EXTRACTOR.hintDots))
             .build();
     }
 
@@ -347,11 +304,9 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         BlockSLCasing.INJECTOR_MK3 };
 
     /**
-     * The injector rails, Mk I/II/III, MIXABLE: unlike {@code ofBlocksTiered} (which demands one tier
-     * across the whole structure) the walk records the LOWEST tier it meets, and that sets the bolt cap
-     * - so upgrading rails one at a time never un-forms the machine. Builds place Mk I (survival takes
-     * a higher Mk if the player has no Mk I) and never downgrade a rail already standing
-     * ({@code BTSStructures.tieredBlock}).
+     * The injector rails, Mk I/II/III, MIXABLE: the walk records the LOWEST tier it meets, and that
+     * sets the bolt cap, so upgrading rails one at a time never un-forms the machine. Builds place Mk I
+     * and never downgrade a rail already standing ({@code BTSStructures.tieredBlock}).
      */
     private static IStructureElement<MTEKerrEngine> rails(Block sl) {
         return tieredBlock(
@@ -384,15 +339,11 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         railCount = 0;
         boltBuses.clear();
         utilityHatches.clear();
-        for (KerrModule module : modules) {
-            module.resetWalk();
-        }
     }
 
     /**
      * The core piece this controller must stand on right now (server: the installed state). Once the
-     * Density Upgrade is in, only {@code kerr_t2} forms: with the reinforcement torn down the Kerr does
-     * NOT fall back to T1, it stays unformed (user ruling 2026-10-12, round 4: "won't form").
+     * Density Upgrade is in, only {@code kerr_t2} forms (round-4 ruling: "won't form").
      */
     public String corePiece() {
         return densityInstalled ? PIECE_T2 : PIECE_T1;
@@ -403,118 +354,11 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         resetWalk();
         final String core = corePiece();
         final int[] o = off(core);
-        if (!checkPiece(core, o[0], o[1], o[2], errors)) {
-            bindModuleIO(currentBinding());
-            return;
-        }
+        if (!checkPiece(core, o[0], o[1], o[2], errors)) return;
         checkExoticAndNormalEnergyHatches(errors);
         checkHasMaintenanceHatch(errors);
         if (boltBusCount() == 0) {
             errors.add(StructureErrors.of("beyondthestars.structure.kerr.boltbus"));
-        }
-
-        // The OPTIONAL modules, each walked on its own: nothing they report un-forms the core.
-        for (KerrModule module : modules) {
-            walkModule(module);
-        }
-
-        bindModuleIO(currentBinding());
-    }
-
-    /**
-     * Walks one optional module arc with its own error list. Its sockets live in the module's
-     * private lists, cleared again if the walk fails (mark-and-truncate), so a half-built arc leaves
-     * nothing registered.
-     */
-    private void walkModule(KerrModule module) {
-        final List<StructureError> pieceErrors = new ArrayList<>();
-        final int[] o = off(module.piece);
-        boolean built = checkPiece(module.piece, o[0], o[1], o[2], pieceErrors);
-        if (built && module.cores != 1) {
-            built = false;
-            pieceErrors.add(StructureErrors.of("beyondthestars.structure.kerr.modulecore"));
-        }
-        if (built && module.inputCount() == 0) {
-            built = false;
-            pieceErrors.add(StructureErrors.of("beyondthestars.structure.kerr.moduleinput"));
-        }
-        if (built && module.outputCount() == 0) {
-            built = false;
-            pieceErrors.add(StructureErrors.of("beyondthestars.structure.kerr.moduleoutput"));
-        }
-        module.built = built;
-        if (!built) {
-            module.clearIO();
-            module.fault = moduleFault(pieceErrors, module);
-        }
-    }
-
-    /**
-     * Why an optional module did not form, or "" when it simply is not there. A module whose core
-     * block is not standing is a CHOICE, and reporting the walk's complaint about empty air would be
-     * noise; a module whose core stands and still fails is a FAULT and is reported.
-     */
-    private String moduleFault(List<StructureError> walkErrors, KerrModule module) {
-        if (walkErrors.isEmpty()) return "";
-        if (!coreStanding(module)) return "";
-        final String reason = BTSStructures.oneLine(
-            walkErrors.get(0)
-                .getDisplayString());
-        return reason == null || reason.isEmpty() ? "structure incomplete" : reason;
-    }
-
-    /** True when the module's core block stands in its cell (located through the manifest). */
-    private boolean coreStanding(KerrModule module) {
-        final IGregTechTileEntity base = getBaseMetaTileEntity();
-        if (base == null || base.getWorld() == null) return false;
-        final int[] rel = socketRel(module.piece, module.coreChar, 0);
-        if (rel == null) return true; // manifest unreadable: report rather than hide
-        final int[] xyz = new int[3];
-        getExtendedFacing().getWorldOffset(rel, xyz);
-        final int x = base.getXCoord() + xyz[0];
-        final int y = base.getYCoord() + xyz[1];
-        final int z = base.getZCoord() + xyz[2];
-        if (!base.getWorld()
-            .blockExists(x, y, z)) return false;
-        return base.getWorld()
-            .getBlock(x, y, z) == SLBlocks.slCasing2
-            && base.getWorld()
-                .getBlockMetadata(x, y, z) == module.coreMeta;
-    }
-
-    /**
-     * A socket's offset from the controller in StructureLib a/b/c ({@code sockets.<ch>[i].rel} in
-     * {@code manifest.json}), or null if the manifest does not list it.
-     */
-    public static int[] socketRel(String piece, char ch, int index) {
-        final int[][] all = socketRels(piece, ch);
-        return all.length > index ? all[index] : null;
-    }
-
-    /** Every socket of one char in a piece, as a/b/c offsets from the controller. Empty if none. */
-    public static int[][] socketRels(String piece, char ch) {
-        try {
-            final JsonObject entry = BTSShapes.manifestPiece(piece);
-            if (entry == null || !entry.has("sockets")) return new int[0][];
-            final JsonObject sockets = entry.getAsJsonObject("sockets");
-            final String key = String.valueOf(ch);
-            if (!sockets.has(key)) return new int[0][];
-            final JsonArray list = sockets.getAsJsonArray(key);
-            final int[][] out = new int[list.size()][];
-            for (int i = 0; i < list.size(); i++) {
-                final JsonArray rel = list.get(i)
-                    .getAsJsonObject()
-                    .getAsJsonArray("rel");
-                out[i] = new int[] { rel.get(0)
-                    .getAsInt(),
-                    rel.get(1)
-                        .getAsInt(),
-                    rel.get(2)
-                        .getAsInt() };
-            }
-            return out;
-        } catch (RuntimeException bad) {
-            return new int[0][];
         }
     }
 
@@ -547,22 +391,6 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         return false;
     }
 
-    public boolean addCompressorInput(IGregTechTileEntity te, int casingIndex) {
-        return compressor.addInput(te, casingIndex);
-    }
-
-    public boolean addCompressorOutput(IGregTechTileEntity te, int casingIndex) {
-        return compressor.addOutput(te, casingIndex);
-    }
-
-    public boolean addExtractorInput(IGregTechTileEntity te, int casingIndex) {
-        return extractor.addInput(te, casingIndex);
-    }
-
-    public boolean addExtractorOutput(IGregTechTileEntity te, int casingIndex) {
-        return extractor.addOutput(te, casingIndex);
-    }
-
     static int liveCount(List<? extends MetaTileEntity> list) {
         int n = 0;
         for (MetaTileEntity mte : list) {
@@ -579,235 +407,50 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         return liveCount(utilityHatches);
     }
 
-    public int compressorInputCount() {
-        return compressor.inputCount();
-    }
-
-    public int compressorOutputCount() {
-        return compressor.outputCount();
-    }
-
-    public int extractorInputCount() {
-        return extractor.inputCount();
-    }
-
-    public int extractorOutputCount() {
-        return extractor.outputCount();
-    }
-
-    /** The module a mode runs on, or null for an unknown mode. A new mode adds one case here. */
-    private KerrModule moduleFor(int mode) {
-        switch (mode) {
-            case MODE_COMPRESS:
-            case MODE_DENSIFY:
-                return compressor;
-            case MODE_EXTRACT:
-                return extractor;
-            default:
-                return null;
-        }
-    }
-
-    private boolean anyModuleBuilt() {
-        for (KerrModule module : modules) {
-            if (module.built) return true;
-        }
-        return false;
-    }
-
-    /**
-     * Binds ONE module's sockets into GT's standard recipe lists. GT's processing reads
-     * {@code mInputBusses} / {@code mInputHatches} and writes {@code mOutputBusses} /
-     * {@code mOutputHatches}; binding only the mode's own module keeps the compressor's inputs out
-     * of extraction and vice versa, and keeps the bolt buses out of everything.
-     */
-    private void bindModuleIO(int mode) {
-        mInputBusses.clear();
-        mInputHatches.clear();
-        mOutputBusses.clear();
-        mOutputHatches.clear();
-        boundMode = mode;
-        final KerrModule module = moduleFor(mode);
-        if (module != null && module.built) {
-            mInputBusses.addAll(module.inBuses);
-            mInputHatches.addAll(module.inHatches);
-            mOutputBusses.addAll(module.outBuses);
-            mOutputHatches.addAll(module.outHatches);
-        }
-    }
-
-    /** A running recipe keeps the module it started on; an idle machine binds the selected mode. */
-    private int currentBinding() {
-        return mMaxProgresstime > 0 && boundMode >= 0 ? boundMode : machineMode;
-    }
-
-    /**
-     * GT brackets every recipe attempt with start/endRecipeProcessing over mInputBusses and
-     * mInputHatches (ME stocking hatches snapshot and commit there), so the selected mode's module
-     * must be bound BEFORE the bracket opens, never inside checkProcessing: binding there would end
-     * the bracket on a different module's hatches than it started on. Only checkRecipe calls this,
-     * and only while idle, so the binding is the selected mode.
-     */
-    @Override
-    public void startRecipeProcessing() {
-        bindModuleIO(currentBinding());
-        super.startRecipeProcessing();
-    }
-
     // ==================================================================== construct / survival
 
-    /** Trap 1: the trigger stack alone picks the core (1 = T1, 2+ = T2); both modules always. */
+    /**
+     * Trap 1: the trigger stack alone picks the core (1 = T1, 2+ = T2). The module slots are hinted
+     * ({@code ofHint}: no block, no tile), so no module machine ever enters the KEE's build or
+     * preview; each module builds and previews its own arc.
+     */
     @Override
     public void construct(ItemStack stackSize, boolean hintsOnly) {
         final String core = stackSize != null && stackSize.stackSize >= 2 ? PIECE_T2 : PIECE_T1;
         final int[] o = off(core);
         buildPiece(core, stackSize, hintsOnly, o[0], o[1], o[2]);
-        for (KerrModule module : modules) {
-            final int[] mo = off(module.piece);
-            buildPiece(module.piece, stackSize, hintsOnly, mo[0], mo[1], mo[2]);
+        if (hintsOnly) {
+            final int[] so = off(PIECE_SLOTS);
+            buildPiece(PIECE_SLOTS, stackSize, true, so[0], so[1], so[2]);
         }
     }
 
     /**
-     * Survival auto-place (projector, from the player's inventory or a linked AE system, and NEI's
-     * preview, which builds through here with a creative item source). Server-side only, so the
-     * installed state may be read here: an upgraded Kerr builds T2, and a stack of 2+ pre-builds the
-     * T2 reinforcement before the upgrade goes in. The core goes first; once it is complete every
-     * module arc is built, each on its own (an unfinished module never blocks the next). -1 when
-     * everything is standing. Hatches and other tiles are never overwritten ({@code noOverwrite}).
+     * Survival auto-place (projector, NEI preview): the cage only. An upgraded Kerr builds T2, and a
+     * stack of 2+ pre-builds the T2 reinforcement. -1 when it stands. Tiles are never overwritten.
      */
     @Override
     public int survivalConstruct(ItemStack stackSize, int elementBudget, ISurvivalBuildEnvironment env) {
         final String core = densityInstalled || (stackSize != null && stackSize.stackSize >= 2) ? PIECE_T2 : PIECE_T1;
-        if (mMachine && core.equals(corePiece()) && allModulesBuilt()) return -1;
-        final int budget = BTSStructures.survivalBudget(elementBudget);
+        if (mMachine && core.equals(corePiece())) return -1;
         final int[] o = off(core);
-        final int built = survivalBuildPiece(core, stackSize, o[0], o[1], o[2], budget, env, false, true);
-        if (built >= 0) return built;
-        int placed = 0;
-        boolean any = false;
-        for (KerrModule module : modules) {
-            if (placed >= budget) return placed;
-            final int[] mo = off(module.piece);
-            final int n = survivalBuildPiece(
-                module.piece,
-                stackSize,
-                mo[0],
-                mo[1],
-                mo[2],
-                budget - placed,
-                env,
-                false,
-                true);
-            if (n >= 0) {
-                any = true;
-                placed += n;
-            }
-        }
-        return any ? placed : -1;
-    }
-
-    private boolean allModulesBuilt() {
-        for (KerrModule module : modules) {
-            if (!module.built) return false;
-        }
-        return true;
-    }
-
-    // ================================================================================= modes
-
-    @Override
-    public boolean supportsMachineModeSwitch() {
-        return true;
-    }
-
-    @Override
-    public void setMachineModeIcons() {
-        machineModeIcons.clear();
-        machineModeIcons.add(GTUITextures.OVERLAY_BUTTON_MACHINEMODE_COMPRESSING);
-        machineModeIcons.add(GTUITextures.OVERLAY_BUTTON_MACHINEMODE_SEPARATOR);
-        machineModeIcons.add(GTUITextures.OVERLAY_BUTTON_MACHINEMODE_SINGULARITY);
-    }
-
-    /** True when the mode's module stands (and, for DENSIFY, the Density Upgrade is installed). */
-    public boolean modeAvailable(int mode) {
-        final KerrModule module = moduleFor(mode);
-        if (module == null || !module.built) return false;
-        return mode != MODE_DENSIFY || densityInstalled;
-    }
-
-    /**
-     * The next AVAILABLE mode. The walk fields are server-side, so a client asking (the GUI button)
-     * sees nothing available and gets a plain cycle; the server re-checks every mode at recipe time.
-     */
-    @Override
-    public int nextMachineMode() {
-        for (int step = 1; step <= MODE_COUNT; step++) {
-            final int candidate = (machineMode + step) % MODE_COUNT;
-            if (modeAvailable(candidate)) return candidate;
-        }
-        return (machineMode + 1) % MODE_COUNT;
-    }
-
-    public static String modeName(int mode) {
-        return mode >= 0 && mode < MODE_COUNT ? MODE_NAMES[mode] : "?";
-    }
-
-    /**
-     * Screwdriver: plain = step the hole's mass SETPOINT; sneaking = cycle the machine MODE (the GUI
-     * button cycles the mode too). Single-recipe locking is not offered.
-     */
-    @Override
-    public void onScrewdriverRightClick(ForgeDirection side, EntityPlayer aPlayer, float aX, float aY, float aZ,
-        ItemStack aTool) {
-        if (aPlayer.isSneaking()) {
-            setMachineMode(nextMachineMode());
-            GTUtility.sendChatToPlayer(
-                aPlayer,
-                "Kerr mode: " + EnumChatFormatting.AQUA
-                    + modeName(machineMode)
-                    + EnumChatFormatting.RESET
-                    + (modeAvailable(machineMode) ? ""
-                        : EnumChatFormatting.RED + "  (needs " + needsFor(machineMode) + ")"));
-            return;
-        }
-        final int open = densityInstalled ? SETPOINTS.length : T1_SETPOINTS;
-        int index = 0;
-        for (int i = 0; i < open; i++) {
-            if (SETPOINTS[i] <= setpoint + 1e-9) index = i;
-        }
-        setpoint = SETPOINTS[(index + 1) % open];
-        GTUtility.sendChatToPlayer(
-            aPlayer,
-            "Kerr hole setpoint: " + EnumChatFormatting.AQUA
-                + fmt(setpoint)
-                + " SM"
-                + EnumChatFormatting.RESET
-                + (densityInstalled ? "" : "  (T1 tops out at 64 SM; the Density Upgrade opens 128-512)"));
-    }
-
-    private static String needsFor(int mode) {
-        switch (mode) {
-            case MODE_COMPRESS:
-                return "the compressor module";
-            case MODE_EXTRACT:
-                return "the extractor module";
-            default:
-                return "the compressor module and the Kerr Density Upgrade";
-        }
-    }
-
-    @Override
-    public boolean supportsSingleRecipeLocking() {
-        return false;
+        return survivalBuildPiece(
+            core,
+            stackSize,
+            o[0],
+            o[1],
+            o[2],
+            BTSStructures.survivalBudget(elementBudget),
+            env,
+            false,
+            true);
     }
 
     // ============================================================================ the upgrade
 
     /**
      * Right-click holding a Kerr Density Upgrade: consumes one (not in creative), installs Kerr T2
-     * and re-checks the structure. Irreversible (Q-10). A plain right-click, not sneak: Minecraft
-     * never activates a block for a sneaking player holding an item.
+     * and re-checks the structure. Irreversible (Q-10). A plain right-click, not sneak.
      */
     @Override
     public boolean onRightclick(IGregTechTileEntity aBaseMetaTileEntity, EntityPlayer aPlayer) {
@@ -830,7 +473,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
                 aPlayer,
                 EnumChatFormatting.AQUA + "Kerr Density Upgrade installed."
                     + EnumChatFormatting.RESET
-                    + " The cage now needs the T2 reinforcement (kerr_t2); setpoints up to 512 SM and DENSIFY are open."
+                    + " The cage now needs the T2 reinforcement (kerr_t2); setpoints up to 512 SM and DENSITY recipes are open."
                     + (mMachine ? "" : EnumChatFormatting.YELLOW + " Not formed yet: build the reinforcement."));
             return true;
         }
@@ -846,29 +489,73 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         return densityInstalled;
     }
 
+    // ============================================================================== KerrHole
+
+    @Override
+    public boolean isFormed() {
+        return mMachine;
+    }
+
+    @Override
+    public boolean isHoleOpen() {
+        return holeOpen;
+    }
+
+    @Override
+    public double mass() {
+        return holeOpen ? mass : 0;
+    }
+
+    @Override
+    public boolean densityInstalled() {
+        return densityInstalled;
+    }
+
+    /** The hole's parallel for a module: {@code 8 x tier(module energy) x floor(sqrt(M))}. */
+    public static int parallelFor(long moduleMaxInputEu, double m) {
+        final int base = PARALLEL_PER_TIER * Math.max(1, GTUtility.getTierExtended(moduleMaxInputEu));
+        return base * Math.max(1, (int) Math.floor(Math.sqrt(Math.max(0, m))));
+    }
+
+    /** The hole's speed factor for a module: {@code clamp((3200 / M) / 50, 1, 4)}; 1 at no mass. */
+    public static double speedFor(double m) {
+        if (m <= 0) return 1.0;
+        return Math.max(1.0, Math.min(MAX_SPEED, ENERGY_K / m / SPEED_DIVISOR));
+    }
+
     // =============================================================================== the hole
+
+    /** The KEE runs no recipes: GT's recipe loop never starts here. */
+    @Override
+    protected void runMachine(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {}
 
     @Override
     public void onPostTick(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
         super.onPostTick(aBaseMetaTileEntity, aTick);
         if (!aBaseMetaTileEntity.isServerSide()) return;
-        if (aTick > 0 && aTick % (mMaxProgresstime > 0 ? RECHECK_RUNNING : RECHECK_IDLE) == 0
-            && structureChunksLoaded(aBaseMetaTileEntity)) {
+        final boolean chunksLoaded = aTick % 20 == 0 && structureChunksLoaded(aBaseMetaTileEntity);
+        if (aTick > 0 && aTick % RECHECK == 0 && chunksLoaded) {
             checkStructure(true, aBaseMetaTileEntity);
         }
-        if (!mMachine) return;
-        if (aTick % 20 == 0) handleSeeds();
-        pulseUtilityHatches(aTick);
-        tickHole();
+        if (migrationPending && aTick >= 40 && chunksLoaded) {
+            migrationPending = false;
+            final String note = KerrMigration.convert(this);
+            if (note != null) migrationNote = note;
+        }
+        if (mMachine) {
+            if (autoSeeds && aTick % 20 == 0) useSeedOrCollapser();
+            pulseUtilityHatches(aTick);
+            tickHole(aBaseMetaTileEntity.isAllowedToWork());
+        }
+        if (aTick % 20 == 0) refreshReadouts();
+        aBaseMetaTileEntity.setActive(holeOpen && mMachine);
     }
 
     /**
      * The BHC utility hatch protocol as GT 2.9.0-RC-2's MTEBlackHoleCompressor drives it: while the
      * hole is open every hatch gets cycleStart() on each 20-tick boundary and cycleMiddle() five
-     * ticks later (a hatch in pulse mode drops its signal there, so pulse mode gives a 5-tick pulse
-     * per second and continuous mode stays lit); while the hole is closed blackHoleClosed() turns
-     * every hatch off. The BHC only sends blackHoleClosed() on the close event; the Kerr repeats it on
-     * both beats while shut, so a hatch added (or reloaded lit) while the hole is shut never stays on.
+     * ticks later; while the hole is closed blackHoleClosed() turns every hatch off (repeated on both
+     * beats, so a hatch added or reloaded lit while the hole is shut never stays on).
      */
     private void pulseUtilityHatches(long aTick) {
         final long phase = aTick % 20;
@@ -882,10 +569,8 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     }
 
     /**
-     * The cage, the arcs and the modules are hundreds of separate islands as far as GT's
-     * block-update walk is concerned, so most edits never reach the controller. A periodic walk
-     * catches them (a built or broken module, swapped rails, the last hologram block). It is skipped
-     * while any chunk the structure could touch is unloaded, so a half-loaded cage never un-forms.
+     * Most edits to the cage never reach the controller through GT's block-update walk, so a periodic
+     * walk catches them. It is skipped while any chunk the structure could touch is unloaded.
      */
     private static boolean structureChunksLoaded(IGregTechTileEntity base) {
         final World world = base.getWorld();
@@ -895,26 +580,47 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             .checkChunksExist(x - RECHECK_RADIUS, 0, z - RECHECK_RADIUS, x + RECHECK_RADIUS, 255, z + RECHECK_RADIUS);
     }
 
-    /** Hawking bleed, then the governor. Runs every tick while the machine is formed. */
-    private void tickHole() {
+    /**
+     * Hawking bleed, containment power, then the governor. Runs every tick while formed. Switched off
+     * (GT's power button) or without containment power the governor stops and the hole bleeds.
+     */
+    private void tickHole(boolean enabled) {
         if (!holeOpen) {
             lastBoltsFired = 0;
             lastBleed = 0;
+            powerOk = true;
+            stability = 1.0;
+            boltsPerTick = 0;
+            windowFed = windowBled = 0;
+            windowBolts = windowTicks = 0;
             return;
         }
         lastBleed = BLEED_K / (mass * mass);
         mass -= lastBleed;
+        windowBled += lastBleed;
+        powerOk = enabled && drainEnergyInput(CONTAINMENT_EUT);
         final double deficit = setpoint - mass;
-        lastBoltsFired = deficit > 0 ? fireBolts(deficit, boltCap()) : 0;
-        if (mass < MASS_FLOOR) {
-            holeOpen = false;
-            mass = 0;
+        final double before = mass;
+        lastBoltsFired = powerOk && deficit > 0 ? fireBolts(deficit, boltCap()) : 0;
+        windowFed += mass - before;
+        windowBolts += lastBoltsFired;
+        if (++windowTicks >= 20) {
+            final boolean holding = mass >= setpoint - 1e-3;
+            stability = windowBled <= 0 || holding ? 1.0 : Math.min(1.0, windowFed / windowBled);
+            boltsPerTick = windowBolts / (double) windowTicks;
+            windowFed = windowBled = 0;
+            windowBolts = windowTicks = 0;
         }
+        if (mass < MASS_FLOOR) closeHole();
     }
 
     /** Bolts per tick the cage's rails allow (the lowest rail tier sets it). */
     public int boltCap() {
         return RAIL_CAP[Math.max(0, Math.min(RAIL_CAP.length - 1, railTierMin))];
+    }
+
+    public int railTier() {
+        return railTierMin;
     }
 
     /** Fires up to {@code cap} bolts out of the bolt buses to cover {@code deficit} SM. */
@@ -963,10 +669,19 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         return 0;
     }
 
-    /** A Black Hole Seed opens a closed hole; a Black Hole Collapser closes an open one. */
-    private void handleSeeds() {
-        final ItemStack wanted = holeOpen ? ItemList.Black_Hole_Closer.get(1L) : ItemList.Black_Hole_Opener.get(1L);
-        if (wanted == null) return;
+    /** "Auto": a Seed in a bolt bus opens a closed hole; a Collapser closes an open one. */
+    private void useSeedOrCollapser() {
+        if (holeOpen) {
+            if (takeFromBoltBuses(ItemList.Black_Hole_Closer.get(1L))) closeHole();
+        } else if (takeFromBoltBuses(ItemList.Black_Hole_Opener.get(1L))) {
+            holeOpen = true;
+            mass = OPEN_MASS;
+        }
+    }
+
+    /** Takes one {@code wanted} out of the bolt buses; true if one was there. */
+    private boolean takeFromBoltBuses(ItemStack wanted) {
+        if (wanted == null) return false;
         for (MTEHatchInputBus bus : boltBuses) {
             if (!live(bus)) continue;
             final IGregTechTileEntity inv = bus.getBaseMetaTileEntity();
@@ -974,157 +689,223 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
                 final ItemStack stack = inv.getStackInSlot(slot);
                 if (stack == null || !GTUtility.areStacksEqual(stack, wanted, true)) continue;
                 inv.decrStackSize(slot, 1);
-                if (holeOpen) {
-                    holeOpen = false;
-                    mass = 0;
-                } else {
-                    holeOpen = true;
-                    mass = OPEN_MASS;
-                }
-                return;
+                return true;
             }
         }
+        return false;
     }
 
-    public boolean isHoleOpen() {
-        return holeOpen;
+    /** GUI "Open hole": needs a formed KEE, a closed hole and a Seed in a bolt bus (consumes it). */
+    public boolean openHoleFromGui() {
+        if (!mMachine || holeOpen) return false;
+        if (!takeFromBoltBuses(ItemList.Black_Hole_Opener.get(1L))) return false;
+        holeOpen = true;
+        mass = OPEN_MASS;
+        return true;
     }
 
-    public double getMass() {
-        return mass;
+    /** GUI "Collapse": needs an open hole and a Collapser in a bolt bus (consumes it). */
+    public boolean collapseHoleFromGui() {
+        if (!mMachine || !holeOpen) return false;
+        if (!takeFromBoltBuses(ItemList.Black_Hole_Closer.get(1L))) return false;
+        closeHole();
+        return true;
+    }
+
+    private void closeHole() {
+        holeOpen = false;
+        mass = 0;
     }
 
     /** Debug/creative: open the hole at {@code m} SM without a seed. */
     public void debugOpenHole(double m) {
         holeOpen = true;
         mass = Math.max(MASS_FLOOR, m);
-        setpoint = clampSetpoint(mass);
+        setpoint = clampSetpoint((int) Math.round(mass));
     }
 
-    /** Debug/creative: set the setpoint to the highest legal rung at or below {@code wanted}. */
+    /** Debug/creative: set the setpoint (clamped to the tier's range). */
     public void debugSetpoint(double wanted) {
+        setpoint = clampSetpoint((int) Math.round(wanted));
+    }
+
+    public int maxSetpoint() {
+        return densityInstalled ? SETPOINT_MAX_T2 : SETPOINT_MAX_T1;
+    }
+
+    private int clampSetpoint(int wanted) {
+        return Math.max(SETPOINT_MIN, Math.min(maxSetpoint(), wanted));
+    }
+
+    public int getSetpoint() {
+        return setpoint;
+    }
+
+    /** GUI setter (server side): any whole number of SM in the tier's range (B-36). */
+    public void setSetpoint(int wanted) {
         setpoint = clampSetpoint(wanted);
     }
 
-    private double clampSetpoint(double wanted) {
-        final int open = densityInstalled ? SETPOINTS.length : T1_SETPOINTS;
-        double best = SETPOINTS[0];
-        for (int i = 0; i < open; i++) {
-            if (SETPOINTS[i] <= wanted + 1e-9) best = SETPOINTS[i];
-        }
-        return best;
+    public boolean isAutoSeeds() {
+        return autoSeeds;
     }
 
-    /** Heat buys speed: {@code clamp((3200 / M) / 50, 1, 4)} while the hole is open, else 1. */
-    public double speedFactor() {
-        if (!holeOpen || mass <= 0) return 1.0;
-        final double energy = ENERGY_K / mass;
-        return Math.max(1.0, Math.min(MAX_SPEED, energy / SPEED_DIVISOR));
+    public void setAutoSeeds(boolean on) {
+        autoSeeds = on;
     }
 
-    /** Mass buys parallel: {@code 8 x voltage tier x floor(sqrt(M))}; closed: {@code 8 x tier}. */
-    @Override
-    public int getMaxParallelRecipes() {
-        final int base = PARALLEL_PER_TIER * Math.max(1, GTUtility.getTierExtended(getMaxInputEu()));
-        if (!holeOpen) return base;
-        return base * Math.max(1, (int) Math.floor(Math.sqrt(mass)));
+    /** The per-machine render switch (the render pass reads it). */
+    public boolean isRenderEnabled() {
+        return renderOn;
     }
 
-    // ============================================================================ processing
-
-    /**
-     * The mode's recipe map. EXTRACT runs GT's own item extractor map ({@code extractorRecipes}) and
-     * nothing else: no fluid extraction and no Kerr-only map (user ruling, Q-9/Q-22).
-     */
-    @Override
-    public RecipeMap<?> getRecipeMap() {
-        switch (machineMode) {
-            case MODE_EXTRACT:
-                return RecipeMaps.extractorRecipes;
-            case MODE_DENSIFY:
-                return KerrRecipeMaps.DENSITY;
-            default:
-                return RecipeMaps.compressorRecipes;
-        }
+    public void setRenderEnabled(boolean on) {
+        renderOn = on;
     }
 
-    /** Every map any mode runs; NEI's catalyst index reads this, so a new module's map goes here. */
-    @Nonnull
-    @Override
-    public Collection<RecipeMap<?>> getAvailableRecipeMaps() {
-        return Arrays.<RecipeMap<?>>asList(
-            RecipeMaps.compressorRecipes,
-            RecipeMaps.neutroniumCompressorRecipes,
-            RecipeMaps.extractorRecipes,
-            KerrRecipeMaps.DENSITY);
+    // ============================================================================ readouts
+
+    public double getMass() {
+        return mass();
     }
 
-    @Override
-    @Nonnull
-    public CheckRecipeResult checkProcessing() {
-        if (!anyModuleBuilt()) {
-            return SimpleCheckRecipeResult.ofFailure("beyondthestars.kerr.nomodule");
-        }
-        if (!modeAvailable(machineMode)) {
-            return SimpleCheckRecipeResult.ofFailure("beyondthestars.kerr.modeunavailable");
-        }
-        if (machineMode == MODE_DENSIFY && (!holeOpen || mass < DENSIFY_MIN_MASS)) {
-            return SimpleCheckRecipeResult.ofFailure("beyondthestars.kerr.lowmass");
-        }
-        // The module's I/O was bound in startRecipeProcessing, before GT opened the processing bracket.
-        return super.checkProcessing();
+    public double getBleed() {
+        return holeOpen ? lastBleed : 0;
     }
 
-    @Override
-    protected ProcessingLogic createProcessingLogic() {
-        return new ProcessingLogic() {
+    public double getBoltsPerTick() {
+        return boltsPerTick;
+    }
 
-            /** Mode and hole state the cached recipe was found under; a change drops the cache. */
-            private int lastKey = -1;
+    public double getStability() {
+        return holeOpen ? stability : 1.0;
+    }
 
-            @Nonnull
-            @Override
-            protected Stream<GTRecipe> findRecipeMatches(RecipeMap<?> map) {
-                final int key = machineMode * 2 + (holeOpen ? 1 : 0);
-                if (key != lastKey) {
-                    lastRecipe = null;
-                    lastKey = key;
-                }
-                switch (machineMode) {
-                    case MODE_EXTRACT:
-                        return super.findRecipeMatches(RecipeMaps.extractorRecipes);
-                    case MODE_DENSIFY:
-                        return super.findRecipeMatches(KerrRecipeMaps.DENSITY);
-                    default: {
-                        final Stream<GTRecipe> plain = super.findRecipeMatches(RecipeMaps.compressorRecipes);
-                        return holeOpen
-                            ? Stream.concat(plain, super.findRecipeMatches(RecipeMaps.neutroniumCompressorRecipes))
-                            : plain;
-                    }
-                }
+    public boolean isPowerOk() {
+        return powerOk;
+    }
+
+    public long getContainmentEut() {
+        return holeOpen ? CONTAINMENT_EUT : 0;
+    }
+
+    public double getBoltStockSm() {
+        return boltStockSm;
+    }
+
+    /** Seconds the bolt stock lasts at the current bleed (the governor feeds what bleeds). */
+    public long getBoltStockSeconds() {
+        if (!holeOpen || lastBleed <= 0) return -1;
+        return (long) (boltStockSm / lastBleed / 20.0);
+    }
+
+    /** Seconds until the hole evaporates with no bolts: {@code (M^3 - 8) / 9.6} ticks. */
+    public long getEvapSeconds() {
+        if (!holeOpen) return 0;
+        return (long) Math.max(0, (Math.pow(mass, 3) - Math.pow(MASS_FLOOR, 3)) / (3 * BLEED_K) / 20.0);
+    }
+
+    public int getSeeds() {
+        return seeds;
+    }
+
+    public int getCollapsers() {
+        return collapsers;
+    }
+
+    public int getLinkedModules() {
+        return linkedModules;
+    }
+
+    public String getMigrationNote() {
+        return migrationNote;
+    }
+
+    /** {@code state|parallel|speed|x, y, z} for one slot, refreshed every second (server). */
+    public String slotStatus(KerrSlot slot) {
+        final String s = slotLines[slot.ordinal()];
+        return s == null ? "NOT BUILT|0|1|" : s;
+    }
+
+    /** Every second: bolt stock, seed and collapser counts, and the module slots. */
+    private void refreshReadouts() {
+        double stock = 0;
+        int s = 0;
+        int c = 0;
+        final ItemStack seed = ItemList.Black_Hole_Opener.get(1L);
+        final ItemStack collapser = ItemList.Black_Hole_Closer.get(1L);
+        for (MTEHatchInputBus bus : boltBuses) {
+            if (!live(bus)) continue;
+            final IGregTechTileEntity inv = bus.getBaseMetaTileEntity();
+            for (int slot = 0; slot < inv.getSizeInventory(); slot++) {
+                final ItemStack stack = inv.getStackInSlot(slot);
+                if (stack == null) continue;
+                stock += boltMass(stack) * stack.stackSize;
+                if (seed != null && GTUtility.areStacksEqual(stack, seed, true)) s += stack.stackSize;
+                if (collapser != null && GTUtility.areStacksEqual(stack, collapser, true)) c += stack.stackSize;
             }
-
-            /** Heated (HIP) and black-hole compressor recipes need the hole open; plain ones never do. */
-            @Nonnull
-            @Override
-            protected CheckRecipeResult validateRecipe(@Nonnull GTRecipe recipe) {
-                if (!holeOpen && recipe.getMetadataOrDefault(GTRecipeConstants.COMPRESSION_TIER, 0) > 0) {
-                    return CheckRecipeResultRegistry.NO_BLACK_HOLE;
-                }
-                return super.validateRecipe(recipe);
+        }
+        boltStockSm = stock;
+        seeds = s;
+        collapsers = c;
+        int linked = 0;
+        for (KerrSlot slot : KerrSlot.VALUES) {
+            slotLines[slot.ordinal()] = computeSlot(slot);
+            if (slotLines[slot.ordinal()].startsWith("RUNNING") || slotLines[slot.ordinal()].startsWith("IDLE")) {
+                linked++;
             }
-        }.setMaxParallelSupplier(this::getMaxParallelRecipes)
-            .setSpeedBonusSupplier(() -> 1.0 / speedFactor());
+        }
+        linkedModules = linked;
     }
 
-    @Override
-    public boolean supportsVoidProtection() {
-        return true;
+    /** The mirror of the module's link check, from this side (docs/kerr-redesign.md §2.2). */
+    private String computeSlot(KerrSlot slot) {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base == null || base.getWorld() == null) return "NOT BUILT|0|1|";
+        final int[] p = slot.modulePos(getExtendedFacing(), base.getXCoord(), base.getYCoord(), base.getZCoord());
+        final String pos = p[0] + ", " + p[1] + ", " + p[2];
+        if (p[1] < 0 || p[1] > 255
+            || !base.getWorld()
+                .blockExists(p[0], p[1], p[2])) {
+            return "NOT LOADED|0|1|" + pos;
+        }
+        final IGregTechTileEntity te = KerrSlot.gtTileAt(base.getWorld(), p);
+        if (te == null || !slot.accepts(te.getMetaTileEntity())) return "NOT BUILT|0|1|" + pos;
+        final MTEKerrModuleBase<?> module = (MTEKerrModuleBase<?>) te.getMetaTileEntity();
+        if (!module.mMachine) return "NOT FORMED|0|1|" + pos;
+        if (module.kee() != this) return "NOT LINKED: " + module.getLink().text + "|0|1|" + pos;
+        if (!mMachine) return "PAUSED: KEE not formed|0|1|" + pos;
+        if (!holeOpen) return "PAUSED: hole closed|0|1|" + pos;
+        final String state = te.isActive() ? "RUNNING" : "IDLE";
+        return String.format(Locale.ROOT, "%s|%d|%.2f|%s", state, module.bonusParallel(), module.bonusSpeed(), pos);
     }
 
-    @Override
-    public boolean supportsBatchMode() {
-        return true;
+    // ============================================================================ migration
+
+    /** The pre-redesign mode a running recipe started on (0/2 compressor, 1 extractor), or -1. */
+    int legacyBoundMode() {
+        return legacyBoundMode;
+    }
+
+    /** Takes a pre-redesign in-flight recipe off this KEE (migration hands it to a module). */
+    Object[] takeLegacyRecipe() {
+        if (mMaxProgresstime <= 0 && mOutputItems == null && mOutputFluids == null) return null;
+        final Object[] out = { mOutputItems, mOutputFluids };
+        mOutputItems = null;
+        mOutputFluids = null;
+        mMaxProgresstime = 0;
+        mProgresstime = 0;
+        mEUt = 0;
+        legacyBoundMode = -1;
+        return out[0] == null && out[1] == null ? null : out;
+    }
+
+    static ItemStack[] items(Object[] legacy) {
+        return legacy == null ? null : (ItemStack[]) legacy[0];
+    }
+
+    static FluidStack[] fluids(Object[] legacy) {
+        return legacy == null ? null : (FluidStack[]) legacy[1];
     }
 
     // ===================================================================================== NBT
@@ -1136,16 +917,15 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             nbt.setBoolean("btsKerrHoleOpen", true);
             nbt.setDouble("btsKerrMass", mass);
         }
-        if (setpoint != OPEN_MASS) nbt.setDouble("btsKerrSetpoint", setpoint);
+        if (setpoint != (int) OPEN_MASS) nbt.setDouble("btsKerrSetpoint", setpoint);
+        nbt.setBoolean("btsKerrAutoSeeds", autoSeeds);
+        nbt.setBoolean("btsKerrRender", renderOn);
     }
 
     @Override
     public void saveNBTData(NBTTagCompound aNBT) {
         super.saveNBTData(aNBT);
         writeKerrState(aNBT);
-        // Tile only (a wrenched machine carries no running recipe): the module a running recipe started
-        // on, so a reload mid-run still sends its outputs there even if the mode was switched since.
-        if (mMaxProgresstime > 0 && boundMode >= 0) aNBT.setInteger("btsKerrBoundMode", boundMode);
     }
 
     @Override
@@ -1160,13 +940,20 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         densityInstalled = aNBT.getBoolean("btsKerrDensity");
         holeOpen = aNBT.getBoolean("btsKerrHoleOpen");
         mass = holeOpen ? Math.max(MASS_FLOOR, aNBT.getDouble("btsKerrMass")) : 0;
-        setpoint = aNBT.hasKey("btsKerrSetpoint") ? clampSetpoint(aNBT.getDouble("btsKerrSetpoint")) : OPEN_MASS;
-        boundMode = aNBT.hasKey("btsKerrBoundMode") ? aNBT.getInteger("btsKerrBoundMode") : -1;
+        setpoint = aNBT.hasKey("btsKerrSetpoint") ? clampSetpoint((int) Math.round(aNBT.getDouble("btsKerrSetpoint")))
+            : (int) OPEN_MASS;
+        autoSeeds = !aNBT.hasKey("btsKerrAutoSeeds") || aNBT.getBoolean("btsKerrAutoSeeds");
+        renderOn = !aNBT.hasKey("btsKerrRender") || aNBT.getBoolean("btsKerrRender");
+        // Pre-redesign: read once, then discarded (the next save no longer writes it).
+        // The running recipe's mode, else the selected mode while one was running (no modes any more).
+        legacyBoundMode = aNBT.hasKey("btsKerrBoundMode") ? aNBT.getInteger("btsKerrBoundMode")
+            : mMaxProgresstime > 0 ? machineMode : -1;
+        machineMode = 0;
     }
 
     // ============================================================================ panel/tooltip
 
-    private static String fmt(double v) {
+    public static String fmt(double v) {
         if (v >= 100) return String.format(Locale.ROOT, "%,.0f", v);
         return String.format(Locale.ROOT, "%.2f", v);
     }
@@ -1175,40 +962,40 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     public List<String> statusLines() {
         final List<String> out = new ArrayList<>();
         out.add(
-            "Kerr " + (densityInstalled ? "T2 (Density Upgrade installed)" : "T1")
-                + ", mode "
-                + modeName(machineMode)
-                + (modeAvailable(machineMode) ? "" : " - needs " + needsFor(machineMode)));
+            "Kerr " + (densityInstalled ? "T2 (Density Upgrade installed)" : "T1") + (mMachine ? "" : ", NOT FORMED"));
         if (holeOpen) {
             out.add(
                 "Hole OPEN: " + fmt(mass)
                     + " SM (setpoint "
-                    + fmt(setpoint)
+                    + setpoint
                     + "), bleed "
                     + String.format(Locale.ROOT, "%.4f", lastBleed)
                     + " SM/t, bolts "
                     + lastBoltsFired
                     + "/"
                     + boltCap()
-                    + " a tick");
+                    + " a tick, stability "
+                    + Math.round(stability * 100)
+                    + "%"
+                    + (powerOk ? "" : ", CONTAINMENT POWER LOW"));
         } else {
-            out.add("Hole closed: put a Black Hole Seed in a bolt bus (setpoint " + fmt(setpoint) + " SM)");
+            out.add("Hole closed: a Black Hole Seed in a bolt bus, or Open in the GUI (setpoint " + setpoint + " SM)");
         }
         out.add(
-            "Parallel " + String.format(Locale.ROOT, "%,d", getMaxParallelRecipes())
-                + ", speed x"
-                + String.format(Locale.ROOT, "%.2f", speedFactor())
-                + ", rails Mk "
-                + railTierMin
+            "Rails Mk " + railTierMin
                 + " ("
                 + railCount
                 + "), bolt buses "
-                + boltBusCount());
-        for (KerrModule module : modules) {
-            out.add(
-                module.label + " module: "
-                    + (module.built ? "FORMED" : module.fault.isEmpty() ? "absent" : "FAULT - " + module.fault));
+                + boltBusCount()
+                + ", bolt stock "
+                + fmt(boltStockSm)
+                + " SM, auto seeds "
+                + (autoSeeds ? "on" : "off"));
+        for (KerrSlot slot : KerrSlot.VALUES) {
+            final String[] f = slotStatus(slot).split("\\|", -1);
+            out.add(slot.label + " module: " + f[0] + (f.length > 3 && !f[3].isEmpty() ? " at (" + f[3] + ")" : ""));
         }
+        if (!migrationNote.isEmpty()) out.add(migrationNote);
         return out;
     }
 
@@ -1232,25 +1019,24 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         final int[] t1 = BTSShapes.size(PIECE_T1);
         final int[] t2 = BTSShapes.size(PIECE_T2);
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
-        tt.addMachineType("Black Hole Fabricator, Kerr Ergosphere Engine")
-            .addInfo("Kerr T1 replaces the Black Hole Compressor. Does nothing without a module:")
-            .addInfo("  Compressor module (south arc): the BHC's Compressor and Neutronium Compressor recipes")
-            .addInfo("  Extractor module (east arc): GT's Extractor recipes (items). Both modules can stand at once.")
-            .addInfo("Right-click with a Kerr Density Upgrade for Kerr T2: heavier reinforcement, holes")
-            .addInfo("  up to 512 SM, and DENSIFY (Hyperdense Stellar Mixture, needs 128+ SM). Irreversible.")
+        tt.addMachineType("Black Hole Containment, Kerr Ergosphere Engine")
+            .addInfo("Holds a black hole. Runs no recipes: the Kerr modules are separate machines in its arcs")
+            .addInfo("  (Compressor: south arc; Extractor: east arc) that run while this KEE's hole is open.")
+            .addInfo("Everything is in the GUI: hole state, setpoint, Open / Collapse, bolts, modules.")
+            .addInfo("Right-click with a Kerr Density Upgrade for Kerr T2: heavier reinforcement, holes up")
+            .addInfo("  to 512 SM, and Kerr Densification on the compressor module. Irreversible.")
             .addSeparator()
-            .addInfo("A Black Hole Seed in a bolt bus opens the hole at 8 SM; a Collapser closes it.")
-            .addInfo("Hawking bleed 3.2/M² SM a tick; the governor fires bolts to hold the setpoint:")
-            .addInfo("  Neutronium 1/64, Cosmic Neutronium 1/32, Infinity 1/16, Transcendent 1/8, SpaceTime 1/4 SM")
-            .addInfo(
-                "  at most 4/8/16 bolts a tick by the LOWEST injector rail (Mk I/II/III). Below 2 SM it evaporates.")
-            .addInfo("Parallel 8 x voltage tier x floor(sqrt(M)). Speed x(3200/M)/50, 1 to 4: small holes are fast,")
-            .addInfo("  big holes are wide. Closed hole: plain compressor recipes only, at 8 x tier.")
-            .addInfo("Screwdriver: hole setpoint. Sneak + screwdriver (or the GUI button): mode.")
+            .addInfo("A Black Hole Seed opens the hole at 8 SM; a Collapser closes it (GUI, or in a bolt")
+            .addInfo("  bus with Auto on). Hawking bleed 3.2/M² SM a tick; the governor fires bolts to hold")
+            .addInfo("  the setpoint: Neutronium 1/64, Cosmic Neutronium 1/32, Infinity 1/16, Transcendent 1/8,")
+            .addInfo("  SpaceTime 1/4 SM, at most 4/8/16 a tick by the LOWEST injector rail (Mk I/II/III).")
+            .addInfo("Containment: 8,388,608 EU/t (1 A UEV) while open. Without it, or switched off, the")
+            .addInfo("  governor stops and the hole bleeds; below 2 SM it evaporates.")
+            .addInfo("Modules get parallel 8 x tier x floor(sqrt(M)) and speed x(3200/M)/50 (1 to 4).")
             .addInfo("Optional BHC Utility Hatches on the cage emit redstone while the hole is open.")
             .addSeparator()
             .addInfo("Chunk-load the full footprint: the structure check fails across unloaded chunks.")
-            .beginVariableStructureBlock(t1[0], t2[0], t1[1], t2[1], t1[2] + 8, t2[2], false)
+            .beginVariableStructureBlock(t1[0], t2[0], t1[1], t2[1], t1[2], t2[2], false)
             .addController("Governor arc, front centre")
             .addCasingInfoExactly(
                 "Extreme Density Space-Bending Casing",
@@ -1269,30 +1055,15 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             .addOtherStructurePart(
                 "Kerr T2 adds",
                 bom(PIECE_T2, 'O') + " Bastion Plate, " + bom(PIECE_T2, 'P') + " Casimir Plate, more lining and glass")
-            .addOtherStructurePart(
-                "Compressor module",
-                "1 Kerr Compressor Module, " + bom(PIECE_COMPRESSOR, 'I')
-                    + " Background Radiation Absorbent Casing, "
-                    + bom(PIECE_COMPRESSOR, 'J')
-                    + " Harmonic Lining",
-                4)
-            .addOtherStructurePart(
-                "Extractor module",
-                "1 Kerr Extractor Module, " + bom(PIECE_EXTRACTOR, 'N')
-                    + " Ergosphere Extraction Casing, "
-                    + bom(PIECE_EXTRACTOR, 'J')
-                    + " Harmonic Lining",
-                5)
-            .addEnergyHatch("Governor arc (2 sockets; 1 laser or up to 2 energy)", 1)
+            .addEnergyHatch("Governor arc (2 sockets; 1 laser or up to 2 energy): containment power", 1)
             .addMaintenanceHatch("Governor arc", 2)
             .addOtherStructurePart("Bolt bus (input bus, private)", "8 sockets on the cage, at least 1", 3)
             .addOtherStructurePart("Black Hole Compressor Utility Hatch", "optional, beside the bolt buses", 6)
-            .addInputBus("Module arcs (the active mode's module only)", 4, 5)
-            .addOutputBus("Module arcs (the active mode's module only)", 4, 5)
-            .addStructureInfo("Hologram: trigger stack 1 = Kerr T1, 2+ = Kerr T2; both modules are projected.")
-            .addStructureInfo("Survival auto-place builds T2 once the Density Upgrade is in, and the modules")
-            .addStructureInfo(
-                "  after the core. Rails go in as Mk I; builds never overwrite hatches or downgrade rails.")
+            .addOtherStructurePart("Kerr Compressor Module controller", "a separate machine (marker)", 7)
+            .addOtherStructurePart("Kerr Extractor Module controller", "a separate machine (marker)", 8)
+            .addStructureInfo("Hologram: trigger stack 1 = Kerr T1, 2+ = Kerr T2. Markers 7 and 8 show where")
+            .addStructureInfo("  each module controller goes; build a module with its own controller's hologram.")
+            .addStructureInfo("Rails go in as Mk I; builds never overwrite hatches or downgrade rails.")
             .toolTipFinisher();
         return tt;
     }
@@ -1311,5 +1082,47 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
                 .extFacing()
                 .glow()
                 .build() };
+    }
+
+    // ===================================================================================== GUI
+
+    @Override
+    protected boolean useMui2() {
+        return true;
+    }
+
+    @Override
+    protected @NotNull MTEMultiBlockBaseGui<?> getGui() {
+        return new MTEKerrEngineGui(this);
+    }
+
+    @Override
+    public boolean supportsVoidProtection() {
+        return false;
+    }
+
+    @Override
+    public boolean supportsBatchMode() {
+        return false;
+    }
+
+    @Override
+    public boolean supportsInputSeparation() {
+        return false;
+    }
+
+    @Override
+    public boolean supportsSingleRecipeLocking() {
+        return false;
+    }
+
+    @Override
+    public boolean supportsPowerPanel() {
+        return false;
+    }
+
+    @Override
+    public boolean showRecipeTextInGUI() {
+        return false;
     }
 }
