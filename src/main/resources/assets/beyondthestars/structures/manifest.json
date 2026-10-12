@@ -127,34 +127,83 @@
     "fallback": "A",
     "min": 0,
     "hint": 6
+   }
+  },
+  "kerr_compressor": {
+   "~": {
+    "role": "controller",
+    "kind": "control on the compressor arc (the old core cell)",
+    "block": "Kerr Compressor Module controller (MTE 28117)"
+   },
+   "G": {
+    "role": "beam_pipe",
+    "kind": "pipe",
+    "block": "Casings.ParticleBeamGuidancePipeCasing"
+   },
+   "I": {
+    "role": "compressor_shell",
+    "kind": "bhc",
+    "block": "Casings.BackgroundRadiationAbsorbentCasing (sBlockCasings10:12, BHC)"
+   },
+   "J": {
+    "role": "arc_lining",
+    "kind": "lining",
+    "block": "NEW slCasing2:2 Harmonic Lining"
+   },
+   "K": {
+    "role": "glass_channel",
+    "kind": "sglass",
+    "block": "Casings.HawkingRadiationRealignmentFocus (sBlockGlass1:4, the BHC's glass)"
    },
    "c": {
-    "role": "compressor_io",
+    "role": "module_io",
     "kind": "beamhatch/energy/maint on the compressor arc",
-    "block": "InputBus / InputHatch / OutputBus / OutputHatch (standard lists, mark-and-truncate), else fallback",
+    "block": "HatchElement InputBus / InputHatch / OutputBus / OutputHatch / Energy / ExoticEnergy (the module's own standard lists), else fallback",
     "fallback": "I",
-    "min": "1 in + 1 out",
-    "hint": 4
+    "min": "1 in + 1 out + 1 energy",
+    "hint": 1
+   }
+  },
+  "kerr_extractor": {
+   "~": {
+    "role": "controller",
+    "kind": "ring3, the outermost arc cell on the 340 deg ray at y 0",
+    "block": "Kerr Extractor Module controller (MTE 28118)"
    },
-   "q": {
-    "role": "compressor_core",
-    "kind": "control on the compressor arc",
-    "block": "NEW slCasing2:0 Kerr Compressor Module (exactly 1, no fallback)",
-    "min": 1
+   "J": {
+    "role": "arc_lining",
+    "kind": "lining",
+    "block": "NEW slCasing2:2 Harmonic Lining"
+   },
+   "K": {
+    "role": "glass_channel",
+    "kind": "sglass",
+    "block": "Casings.HawkingRadiationRealignmentFocus (sBlockGlass1:4, the BHC's glass)"
+   },
+   "N": {
+    "role": "extractor_shell",
+    "kind": "ring3",
+    "block": "NEW slCasing:15 Ergosphere Extraction Casing"
    },
    "x": {
-    "role": "extractor_io",
-    "kind": "output on the extractor arc",
-    "block": "as c, else fallback",
+    "role": "module_io",
+    "kind": "output on the inner face (334/340/346 deg) and ring3 at y +-2 beside the controller",
+    "block": "HatchElement InputBus / OutputBus / Energy / ExoticEnergy (item buses only: GT's extractor map), else fallback",
     "fallback": "N",
-    "min": "1 in + 1 out",
-    "hint": 5
+    "min": "1 in + 1 out + 1 energy",
+    "hint": 1
+   }
+  },
+  "kerr_slots": {
+   "1": {
+    "role": "compressor_slot",
+    "kind": "marker",
+    "block": "StructureLib ofHint(7): the Kerr Compressor Module controller goes here"
    },
-   "k": {
-    "role": "extractor_core",
-    "kind": "output at 340 deg",
-    "block": "NEW slCasing2:1 Kerr Extractor Module (exactly 1, no fallback)",
-    "min": 1
+   "2": {
+    "role": "extractor_slot",
+    "kind": "marker",
+    "block": "StructureLib ofHint(8): the Kerr Extractor Module controller goes here"
    }
   },
   "eye": {
@@ -268,8 +317,80 @@
    "pieces": {
     "kerr_t1": "required without the Density Upgrade",
     "kerr_t2": "required with the Density Upgrade (replaces kerr_t1)",
-    "kerr_compressor": "optional checked module",
-    "kerr_extractor": "optional checked module"
+    "kerr_slots": "hint only: where each module controller stands"
+   },
+   "slots": {
+    "compressor": {
+     "piece": "kerr_compressor",
+     "mte": 28117,
+     "mark": "1",
+     "rel": [
+      0,
+      4,
+      77
+     ],
+     "keeRel": [
+      0,
+      -4,
+      77
+     ],
+     "facingAbc": [
+      0,
+      0,
+      1
+     ],
+     "turns": 2,
+     "controllerVoxel": [
+      0,
+      -4,
+      -39
+     ]
+    },
+    "extractor": {
+     "piece": "kerr_extractor",
+     "mte": 28118,
+     "mark": "2",
+     "rel": [
+      36,
+      0,
+      51
+     ],
+     "keeRel": [
+      -51,
+      0,
+      36
+     ],
+     "facingAbc": [
+      1,
+      0,
+      0
+     ],
+     "turns": 1,
+     "controllerVoxel": [
+      36,
+      0,
+      -13
+     ]
+    }
+   },
+   "centre": {
+    "rel": [
+     0,
+     0,
+     38
+    ]
+   }
+  },
+  "kerr_compressor": {
+   "mte": 28117,
+   "pieces": {
+    "kerr_compressor": "the whole machine: the south arc, in its own frame"
+   }
+  },
+  "kerr_extractor": {
+   "mte": 28118,
+   "pieces": {
+    "kerr_extractor": "the whole machine: the east arc, in its own frame"
    }
   },
   "eye": {
@@ -1306,21 +1427,21 @@
    }
   },
   "kerr_compressor": {
-   "machine": "kerr",
+   "machine": "kerr_compressor",
    "file": "structures/kerr_compressor.txt",
    "w": 33,
    "h": 11,
    "d": 20,
    "off": [
     16,
-    5,
-    -59
+    9,
+    1
    ],
    "blocks": 965,
    "bom": [
     {
      "ch": "I",
-     "count": 633,
+     "count": 632,
      "role": "compressor_shell",
      "block": "Casings.BackgroundRadiationAbsorbentCasing (sBlockCasings10:12, BHC)"
     },
@@ -1328,7 +1449,7 @@
      "ch": "J",
      "count": 253,
      "role": "arc_lining",
-     "block": "NEW slCasing2:2 Harmonic Lining (the white inner face; round-4 ruling, BHC family)"
+     "block": "NEW slCasing2:2 Harmonic Lining"
     },
     {
      "ch": "K",
@@ -1344,70 +1465,87 @@
     },
     {
      "ch": "c",
-     "count": 6,
-     "role": "compressor_io",
-     "block": "InputBus / InputHatch / OutputBus / OutputHatch (standard lists, mark-and-truncate), else fallback"
+     "count": 7,
+     "role": "module_io",
+     "block": "HatchElement InputBus / InputHatch / OutputBus / OutputHatch / Energy / ExoticEnergy (the module's own standard lists), else fallback"
     },
     {
-     "ch": "q",
+     "ch": "~",
      "count": 1,
-     "role": "compressor_core",
-     "block": "NEW slCasing2:0 Kerr Compressor Module (exactly 1, no fallback)"
+     "role": "controller",
+     "block": "Kerr Compressor Module controller (MTE 28117)"
     }
    ],
    "socketCounts": {
-    "c": 6,
-    "q": 1
+    "c": 7,
+    "~": 1
    },
    "sockets": {
     "c": [
      {
       "abc": [
-       8,
-       5,
-       10
+       16,
+       3,
+       0
       ],
       "rel": [
-       -8,
        0,
-       69
+       -6,
+       -1
       ],
       "voxel": [
-       -8,
        0,
-       -31
+       2,
+       -40
       ]
      },
      {
       "abc": [
-       24,
+       16,
        5,
-       10
+       0
       ],
       "rel": [
-       8,
        0,
-       69
+       -4,
+       -1
       ],
       "voxel": [
-       8,
        0,
-       -31
+       0,
+       -40
+      ]
+     },
+     {
+      "abc": [
+       16,
+       7,
+       0
+      ],
+      "rel": [
+       0,
+       -2,
+       -1
+      ],
+      "voxel": [
+       0,
+       -2,
+       -40
       ]
      },
      {
       "abc": [
        13,
        5,
-       11
+       8
       ],
       "rel": [
        -3,
-       0,
-       70
+       -4,
+       7
       ],
       "voxel": [
-       -3,
+       3,
        0,
        -32
       ]
@@ -1416,91 +1554,91 @@
       "abc": [
        19,
        5,
-       11
+       8
       ],
       "rel": [
        3,
-       0,
-       70
+       -4,
+       7
       ],
       "voxel": [
-       3,
+       -3,
        0,
        -32
       ]
      },
      {
       "abc": [
-       16,
-       3,
-       19
+       8,
+       5,
+       9
       ],
       "rel": [
-       0,
-       -2,
-       78
+       -8,
+       -4,
+       8
       ],
       "voxel": [
+       8,
        0,
-       2,
-       -40
+       -31
       ]
      },
      {
       "abc": [
-       16,
+       24,
        5,
-       19
+       9
       ],
       "rel": [
-       0,
-       0,
-       78
+       8,
+       -4,
+       8
       ],
       "voxel": [
+       -8,
        0,
-       0,
-       -40
+       -31
       ]
      }
     ],
-    "q": [
+    "~": [
      {
       "abc": [
        16,
-       7,
-       19
+       9,
+       1
       ],
       "rel": [
        0,
-       2,
-       78
+       0,
+       0
       ],
       "voxel": [
        0,
-       -2,
-       -40
+       -4,
+       -39
       ]
      }
     ]
    }
   },
   "kerr_extractor": {
-   "machine": "kerr",
+   "machine": "kerr_extractor",
    "file": "structures/kerr_extractor.txt",
-   "w": 9,
+   "w": 16,
    "h": 11,
-   "d": 16,
+   "d": 9,
    "off": [
-    -29,
+    8,
     5,
-    -43
+    1
    ],
    "blocks": 499,
    "bom": [
     {
      "ch": "N",
-     "count": 315,
+     "count": 312,
      "role": "extractor_shell",
      "block": "NEW slCasing:15 Ergosphere Extraction Casing"
     },
@@ -1508,7 +1646,7 @@
      "ch": "J",
      "count": 137,
      "role": "arc_lining",
-     "block": "NEW slCasing2:2 Harmonic Lining (the white inner face; round-4 ruling, BHC family)"
+     "block": "NEW slCasing2:2 Harmonic Lining"
     },
     {
      "ch": "K",
@@ -1518,52 +1656,67 @@
     },
     {
      "ch": "x",
-     "count": 2,
-     "role": "extractor_io",
-     "block": "as c, else fallback"
+     "count": 5,
+     "role": "module_io",
+     "block": "HatchElement InputBus / OutputBus / Energy / ExoticEnergy (item buses only: GT's extractor map), else fallback"
     },
     {
-     "ch": "k",
+     "ch": "~",
      "count": 1,
-     "role": "extractor_core",
-     "block": "NEW slCasing2:1 Kerr Extractor Module (exactly 1, no fallback)"
+     "role": "controller",
+     "block": "Kerr Extractor Module controller (MTE 28118)"
     }
    ],
    "socketCounts": {
-    "k": 1,
-    "x": 2
+    "x": 5,
+    "~": 1
    },
    "sockets": {
-    "k": [
+    "x": [
      {
       "abc": [
-       2,
-       5,
-       6
+       8,
+       3,
+       1
       ],
       "rel": [
-       31,
        0,
-       49
+       -2,
+       0
       ],
       "voxel": [
-       31,
-       0,
-       -11
+       36,
+       2,
+       -13
       ]
-     }
-    ],
-    "x": [
+     },
+     {
+      "abc": [
+       8,
+       7,
+       1
+      ],
+      "rel": [
+       0,
+       2,
+       0
+      ],
+      "voxel": [
+       36,
+       -2,
+       -13
+      ]
+     },
      {
       "abc": [
        3,
        5,
-       3
+       5
       ],
       "rel": [
-       32,
+       -5,
        0,
-       46
+       4
       ],
       "voxel": [
        32,
@@ -1573,14 +1726,31 @@
      },
      {
       "abc": [
-       0,
+       6,
        5,
-       9
+       6
       ],
       "rel": [
-       29,
+       -2,
        0,
-       52
+       5
+      ],
+      "voxel": [
+       31,
+       0,
+       -11
+      ]
+     },
+     {
+      "abc": [
+       9,
+       5,
+       8
+      ],
+      "rel": [
+       1,
+       0,
+       7
       ],
       "voxel": [
        29,
@@ -1588,8 +1758,56 @@
        -14
       ]
      }
+    ],
+    "~": [
+     {
+      "abc": [
+       8,
+       5,
+       1
+      ],
+      "rel": [
+       0,
+       0,
+       0
+      ],
+      "voxel": [
+       36,
+       0,
+       -13
+      ]
+     }
     ]
    }
+  },
+  "kerr_slots": {
+   "machine": "kerr_slots",
+   "file": "structures/kerr_slots.txt",
+   "w": 37,
+   "h": 5,
+   "d": 27,
+   "off": [
+    0,
+    0,
+    -51
+   ],
+   "blocks": 2,
+   "bom": [
+    {
+     "ch": "1",
+     "count": 1,
+     "role": "compressor_slot",
+     "block": "StructureLib ofHint(7): the Kerr Compressor Module controller goes here"
+    },
+    {
+     "ch": "2",
+     "count": 1,
+     "role": "extractor_slot",
+     "block": "StructureLib ofHint(8): the Kerr Extractor Module controller goes here"
+    }
+   ],
+   "socketCounts": {},
+   "sockets": {}
   },
   "eye_core": {
    "machine": "eye",
@@ -2162,8 +2380,9 @@
  "checks": [
   "ok   kerr_t1: one controller '~' at off 38,32,0",
   "ok   kerr_t2: one controller '~' at off 44,32,6",
-  "ok   kerr_compressor: no '~' (anchored by off 16,5,-59, outside its own box)",
-  "ok   kerr_extractor: no '~' (anchored by off -29,5,-43, outside its own box)",
+  "ok   kerr_compressor: one controller '~' at off 16,9,1",
+  "ok   kerr_extractor: one controller '~' at off 8,5,1",
+  "ok   kerr_slots: no '~' (anchored by off 0,0,-51, outside its own box)",
   "ok   eye_core: one controller '~' at off 50,50,0",
   "ok   eye_beam: no '~' (anchored by off 45,55,-6, outside its own box)",
   "ok   eye_jet: no '~' (anchored by off 48,33,-10, outside its own box)",
@@ -2172,10 +2391,17 @@
   "ok   kerr_t2: off resolves to the machine's controller cell",
   "ok   kerr_compressor: off resolves to the machine's controller cell",
   "ok   kerr_extractor: off resolves to the machine's controller cell",
+  "ok   kerr_slots: off resolves to the machine's controller cell",
   "ok   eye_core: off resolves to the machine's controller cell",
   "ok   eye_beam: off resolves to the machine's controller cell",
   "ok   eye_jet: off resolves to the machine's controller cell",
   "ok   eye_arms: off resolves to the machine's controller cell",
+  "ok   kerr_compressor: the controller's front face is open air in the Kerr T1 build",
+  "ok   kerr_extractor: the controller's front face is open air in the Kerr T1 build",
+  "ok   kerr_compressor: the controller's front face is open air in the Kerr T2 build",
+  "ok   kerr_extractor: the controller's front face is open air in the Kerr T2 build",
+  "ok   kerr_slots: one '1' marker (compressor)",
+  "ok   kerr_slots: one '2' marker (extractor)",
   "ok   kerr_t1 and kerr_compressor share no cell",
   "ok   kerr_t1 and kerr_extractor share no cell",
   "ok   kerr_t2 and kerr_compressor share no cell",

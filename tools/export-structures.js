@@ -121,10 +121,28 @@ const LEGEND = {
     m: { role: "maintenance_socket", kind: "maint", block: "HatchElement.Maintenance, else fallback", fallback: "L", min: 1, hint: 2 },
     b: { role: "bolt_bus", kind: "boltbus", block: "KerrHatchElement.BoltBus (private input bus list), else fallback", fallback: "A", min: 1, hint: 3 },
     u: { role: "utility_socket", kind: "maint (beside each bolt bus)", block: "BHC utility hatch MTEBlackHoleUtility (MetaTileEntityIDs.HATCH_BLACK_HOLE_UTILITY 3012, redstone hole-state output), optional, else fallback", fallback: "A", min: 0, hint: 6 },
-    c: { role: "compressor_io", kind: "beamhatch/energy/maint on the compressor arc", block: "InputBus / InputHatch / OutputBus / OutputHatch (standard lists, mark-and-truncate), else fallback", fallback: "I", min: "1 in + 1 out", hint: 4 },
-    q: { role: "compressor_core", kind: "control on the compressor arc", block: "NEW slCasing2:0 Kerr Compressor Module (exactly 1, no fallback)", min: 1 },
-    x: { role: "extractor_io", kind: "output on the extractor arc", block: "as c, else fallback", fallback: "N", min: "1 in + 1 out", hint: 5 },
-    k: { role: "extractor_core", kind: "output at 340 deg", block: "NEW slCasing2:1 Kerr Extractor Module (exactly 1, no fallback)", min: 1 },
+  },
+  // Kerr redesign (docs/kerr-redesign.md §6): each module arc is its own machine, exported in its own frame with its
+  // own controller front-centre facing out of the cage. Its sockets go into GT's STANDARD hatch lists.
+  kerr_compressor: {
+    "~": { role: "controller", kind: "control on the compressor arc (the old core cell)", block: "Kerr Compressor Module controller (MTE 28117)" },
+    G: { role: "beam_pipe", kind: "pipe", block: "Casings.ParticleBeamGuidancePipeCasing" },
+    I: { role: "compressor_shell", kind: "bhc", block: "Casings.BackgroundRadiationAbsorbentCasing (sBlockCasings10:12, BHC)" },
+    J: { role: "arc_lining", kind: "lining", block: "NEW slCasing2:2 Harmonic Lining" },
+    K: { role: "glass_channel", kind: "sglass", block: "Casings.HawkingRadiationRealignmentFocus (sBlockGlass1:4, the BHC's glass)" },
+    c: { role: "module_io", kind: "beamhatch/energy/maint on the compressor arc", block: "HatchElement InputBus / InputHatch / OutputBus / OutputHatch / Energy / ExoticEnergy (the module's own standard lists), else fallback", fallback: "I", min: "1 in + 1 out + 1 energy", hint: 1 },
+  },
+  kerr_extractor: {
+    "~": { role: "controller", kind: "ring3, the outermost arc cell on the 340 deg ray at y 0", block: "Kerr Extractor Module controller (MTE 28118)" },
+    J: { role: "arc_lining", kind: "lining", block: "NEW slCasing2:2 Harmonic Lining" },
+    K: { role: "glass_channel", kind: "sglass", block: "Casings.HawkingRadiationRealignmentFocus (sBlockGlass1:4, the BHC's glass)" },
+    N: { role: "extractor_shell", kind: "ring3", block: "NEW slCasing:15 Ergosphere Extraction Casing" },
+    x: { role: "module_io", kind: "output on the inner face (334/340/346 deg) and ring3 at y +-2 beside the controller", block: "HatchElement InputBus / OutputBus / Energy / ExoticEnergy (item buses only: GT's extractor map), else fallback", fallback: "N", min: "1 in + 1 out + 1 energy", hint: 1 },
+  },
+  // Hint-only: where each module controller stands, in the KEE's frame (the KEE's hologram marks them; nothing is placed).
+  kerr_slots: {
+    1: { role: "compressor_slot", kind: "marker", block: "StructureLib ofHint(7): the Kerr Compressor Module controller goes here" },
+    2: { role: "extractor_slot", kind: "marker", block: "StructureLib ofHint(8): the Kerr Extractor Module controller goes here" },
   },
   eye: {
     "~": { role: "controller", kind: "control", block: "Eye of Harmony controller (MTE 28115)" },
@@ -173,9 +191,10 @@ const KERR_SOCKETS = [
   ...[255, 265, 275, 285].map((a) => ({ at: polar(32.6, a, 0), kind: "beamhatch", ch: "c" })),
   { at: [0, 0, -39.6], kind: "energy", ch: "c" },
   { at: [0, 2, -39.6], kind: "maint", ch: "c" },
-  { at: [0, -2, -39.6], kind: "control", ch: "q" },
+  { at: [0, -2, -39.6], kind: "control", ch: "q" }, // the compressor module's controller (becomes '~' in its own piece)
   { at: polar(32.8, 334, 0), kind: "output", ch: "x" },
-  { at: polar(32.8, 340, 0), kind: "output", ch: "k" },
+  // the old extractor core cell: an I/O socket since the redesign (the module's controller moved to the outer face)
+  { at: polar(32.8, 340, 0), kind: "output", ch: "x" },
   { at: polar(32.8, 346, 0), kind: "output", ch: "x" },
 ];
 // Eye: the plinth ring through the hatches is ellipse (46+4.6, 35+4.6) at y = GROUND = -40.
@@ -275,6 +294,62 @@ const report = { warnings: [], notes: [] };
 
 const K1 = classifyKerr(1), K2 = classifyKerr(2);
 if (K1.b.CX !== K2.b.CX || K1.b.W !== K2.b.W) fail("kerr T1/T2 worlds differ in size");
+
+// Kerr redesign (docs/kerr-redesign.md §6.1): every module arc is a separate machine with its own controller on the
+// arc's OUTER face. `out` is the controller's outward face in voxel space (it becomes the module piece's front, +z).
+//  - Compressor: the old core cell 'q' (the mockup's "control", outer face at 270 deg) protrudes into the gap that the
+//    Kerr T2 reinforcement band (lining + bastion, z -41..-44 for y -2..0) closes, so a player could not reach it at
+//    T2. The controller therefore takes the arc's outer shell cell straight below it, at the first y whose front cell
+//    and the cell above that are open air in the T2 build (y -4), and the old core cell becomes a 'c' socket.
+//  - Extractor: the old core cell sits on the INNER face facing the hole (it is an 'x' socket now, see the socket
+//    table); the controller moves to the outermost arc cell on the 340 deg ray at y 0, and the two outer-face cells at
+//    y +-2 beside it become 'x' sockets (the compressor's stacked control / energy / maintenance layout).
+const KERR_MODULES = [
+  { piece: "kerr_compressor", slot: "compressor", mte: 28117, mark: "1", out: [0, 0, -1], below: "q" },
+  { piece: "kerr_extractor", slot: "extractor", mte: 28118, mark: "2", out: [1, 0, 0], ray: 340, extraSockets: [2, -2] },
+];
+function moduleControllers(K, t) {
+  const { b, cells } = K, found = {};
+  const at = (x, y, z) => cells.get(keyOf(x + b.CX, y + b.CY, z + b.CZ));
+  // open air in the FULLEST build (T2), so T1 and T2 pick the same cell
+  const airT2 = (x, y, z) => !K2.cells.has(keyOf(x + b.CX, y + b.CY, z + b.CZ));
+  for (const m of KERR_MODULES) {
+    let ctrl;
+    if (m.below) {
+      const l = [...cells.values()].filter((c) => c.piece === m.piece && c.ch === m.below);
+      if (l.length !== 1) fail(`kerr T${t}: ${m.piece} has ${l.length} '${m.below}' cells`);
+      const core = l[0], cx = core.x - b.CX, cz = core.z - b.CZ, sx = cx - m.out[0], sz = cz - m.out[2];
+      for (let y = core.y - b.CY - 1; y >= -b.CY && !ctrl; y--) {
+        const c = at(sx, y, sz);
+        if (!c || c.piece !== m.piece) continue;
+        if (airT2(cx, y, cz) && airT2(cx, y + 1, cz)) ctrl = c;
+      }
+      if (!ctrl) fail(`kerr T${t}: no reachable shell cell below the ${m.piece} core cell`);
+      if (ctrl.ch !== "I") fail(`kerr T${t}: ${m.piece} controller cell holds '${ctrl.ch}', expected shell 'I'`);
+      core.ch = "c";
+    } else {
+      for (let r = 20; r <= 60; r += 0.25) {
+        const c = at(Math.round(r * Math.cos(d2r(m.ray))), 0, Math.round(r * Math.sin(d2r(m.ray))));
+        if (c && c.piece === m.piece) ctrl = c;
+      }
+      if (!ctrl) fail(`kerr T${t}: no ${m.piece} cell on the ${m.ray} deg ray`);
+      if (ctrl.ch !== "N") fail(`kerr T${t}: ${m.piece} controller cell holds '${ctrl.ch}', expected shell 'N'`);
+      for (const dy of m.extraSockets) {
+        const s = at(ctrl.x - b.CX, ctrl.y - b.CY + dy, ctrl.z - b.CZ);
+        if (!s || s.piece !== m.piece || s.ch !== "N") fail(`kerr T${t}: ${m.piece} has no shell cell at y ${dy} beside its controller`);
+        s.ch = "x";
+      }
+    }
+    ctrl.ch = "~";
+    found[m.slot] = ctrl;
+  }
+  return found;
+}
+const KM1 = moduleControllers(K1, 1), KM2 = moduleControllers(K2, 2);
+for (const m of KERR_MODULES) {
+  const a = KM1[m.slot], c = KM2[m.slot];
+  if (a.x !== c.x || a.y !== c.y || a.z !== c.z) fail(`${m.piece}: controller differs between the T1 and T2 builds`);
+}
 const pick = (cells, pred) => [...cells.values()].filter(pred);
 const kerrPieces = {
   kerr_t1: pick(K1.cells, (c) => c.piece === "kerr_core"),
@@ -355,7 +430,7 @@ function render(name, machine, cells, ctrl, b) {
   const sockets = cells.filter((c) => /[a-z~]/.test(c.ch)).map((c) => {
     const p = toABC(bb, c.x, c.y, c.z);
     return { ch: c.ch, abc: p, rel: [p[0] - off[0], p[1] - off[1], p[2] - off[2]],
-      voxel: [c.x - b.CX, c.y - b.CY, c.z - b.CZ] };
+      voxel: c.ov || [c.x - b.CX, c.y - b.CY, c.z - b.CZ] };
   }).sort((p, q) => (p.ch < q.ch ? -1 : p.ch > q.ch ? 1 : p.abc[2] - q.abc[2] || p.abc[1] - q.abc[1] || p.abc[0] - q.abc[0]));
   const lines = [`# piece=${name} w=${w} h=${h} d=${d} off=${off.join(",")} sha=${SHA}`,
     `# machine=${machine} cells=${cells.length} generated by tools/export-structures.js from designs/voxel.js; do not edit`];
@@ -363,8 +438,30 @@ function render(name, machine, cells, ctrl, b) {
   return { text: lines.join("\n") + "\n", w, h, d, off, counts, sockets, bb, grid };
 }
 
+// A voxel offset (dx, dy, dz) as a StructureLib (a, b, c) offset; bbox-independent.
+const abcDelta = (dx, dy, dz) => [FLIP_H ? -dx : dx, -dy, FLIP_D ? dz : -dz];
+// R: a quarter turn about +y, (x, z) -> (-z, x). A module's turns = how many R take its outward face to +z, the
+// front of its own frame (layer 0 side), so its piece reads like any GT multi seen from the controller's front.
+function rotQ(dx, dz, k) { let v = [dx, dz]; for (let i = 0; i < k; i++) v = [-v[1], v[0]]; return v; }
+function quarterTurns(o) { for (let k = 0; k < 4; k++) { const v = rotQ(o[0], o[2], k); if (v[0] === 0 && v[1] === 1) return k; } return fail(`no quarter turn takes ${o} to +z`); }
+function moduleFrame(cells, ctrl, k, b) {
+  return cells.map((c) => { const [x, z] = rotQ(c.x - ctrl.x, c.z - ctrl.z, k);
+    return { ...c, x, z, ov: [c.x - b.CX, c.y - b.CY, c.z - b.CZ] }; });
+}
+const PIECE_MACHINE = { kerr_t1: "kerr", kerr_t2: "kerr", kerr_compressor: "kerr_compressor", kerr_extractor: "kerr_extractor", kerr_slots: "kerr_slots" };
+const MODULE_CTRL = {}; // piece -> controller cell in the module's own (rotated) frame
 const out = {};
-for (const [n, cells] of Object.entries(kerrPieces)) out[n] = render(n, "kerr", cells, KERR_CTRL, K1.b);
+for (const [n, cells] of Object.entries(kerrPieces)) {
+  const m = KERR_MODULES.find((q) => q.piece === n);
+  if (!m) { out[n] = render(n, "kerr", cells, KERR_CTRL, K1.b); continue; }
+  m.turns = quarterTurns(m.out);
+  const rotated = moduleFrame(cells, KM1[m.slot], m.turns, K1.b);
+  MODULE_CTRL[n] = rotated.find((c) => c.ch === "~");
+  out[n] = render(n, n, rotated, MODULE_CTRL[n], K1.b);
+}
+// The KEE's hint-only piece: one marker per module controller cell, in the KEE's frame.
+out.kerr_slots = render("kerr_slots", "kerr_slots",
+  KERR_MODULES.map((m) => ({ ...KM1[m.slot], ch: m.mark })), KERR_CTRL, K1.b);
 for (const [n, cells] of Object.entries(eyePieces)) out[n] = render(n, "eye", cells, EYE_CTRL, E[0].b);
 
 // ------------------------------------------------------------------------------------------------ sanity checks
@@ -373,7 +470,7 @@ function ok(cond, msg) { checks.push((cond ? "ok   " : "FAIL ") + msg); if (!con
 
 // exactly one controller anchor per piece: core pieces hold the '~' at off; add-on pieces hold none
 for (const [n, r] of Object.entries(out)) {
-  const tildes = r.counts["~"] || 0, core = n === "kerr_t1" || n === "kerr_t2" || n === "eye_core";
+  const tildes = r.counts["~"] || 0, core = n === "kerr_t1" || n === "kerr_t2" || n === "eye_core" || !!MODULE_CTRL[n];
   if (core) {
     const [a, bv, c] = r.off;
     ok(tildes === 1 && r.grid[c] && r.grid[c][bv] && r.grid[c][bv][a] === "~", `${n}: one controller '~' at off ${r.off}`);
@@ -381,10 +478,17 @@ for (const [n, r] of Object.entries(out)) {
 }
 // the shared anchor: every piece of a machine resolves the controller to the same world cell
 for (const [n, r] of Object.entries(out)) {
-  const ctrl = n.startsWith("kerr") ? KERR_CTRL : EYE_CTRL;
+  const ctrl = MODULE_CTRL[n] || (n.startsWith("kerr") ? KERR_CTRL : EYE_CTRL);
   const back = [FLIP_H ? r.bb.mx[0] - r.off[0] : r.bb.mn[0] + r.off[0], r.bb.mx[1] - r.off[1], FLIP_D ? r.bb.mn[2] + r.off[2] : r.bb.mx[2] - r.off[2]];
   ok(back[0] === ctrl.x && back[1] === ctrl.y && back[2] === ctrl.z, `${n}: off resolves to the machine's controller cell`);
 }
+// a module controller's front face (its outward neighbour) is open air in the fullest build, so a player can reach it
+for (const [K, KM, label] of [[K1, KM1, "T1"], [K2, KM2, "T2"]]) for (const m of KERR_MODULES) {
+  const c = KM[m.slot], k = keyOf(c.x + m.out[0], c.y + m.out[1], c.z + m.out[2]);
+  ok(!K.cells.has(k), `${m.piece}: the controller's front face is open air in the Kerr ${label} build`);
+}
+// the slot markers sit exactly on the module controllers
+for (const m of KERR_MODULES) ok((out.kerr_slots.counts[m.mark] || 0) === 1, `kerr_slots: one '${m.mark}' marker (${m.slot})`);
 // pieces of one machine are disjoint, except the alternative cores kerr_t1 / kerr_t2
 function disjoint(a, b) { const s = new Set(kerrOrEye(a)); let n = 0; for (const k of kerrOrEye(b)) if (s.has(k)) n++; return n; }
 function kerrOrEye(n) { return (kerrPieces[n] || eyePieces[n]).map((c) => keyOf(c.x, c.y, c.z)); }
@@ -441,7 +545,20 @@ const manifest = {
   machines: {
     kerr: { controllerVoxel: [KERR_CTRL.x - K1.b.CX, KERR_CTRL.y - K1.b.CY, KERR_CTRL.z - K1.b.CZ],
       pieces: { kerr_t1: "required without the Density Upgrade", kerr_t2: "required with the Density Upgrade (replaces kerr_t1)",
-        kerr_compressor: "optional checked module", kerr_extractor: "optional checked module" } },
+        kerr_slots: "hint only: where each module controller stands" },
+      // Module link geometry (kerr-redesign.md §2.2). rel: module controller from the KEE controller, KEE (a,b,c).
+      // keeRel: KEE controller from the module controller, module (a,b,c). facingAbc: the module controller's front
+      // as a unit vector in the KEE's (a,b,c) frame. turns: quarter turns about +y taking the module's outward face
+      // to its own front (informational; the Java side uses facingAbc and the two offsets).
+      slots: Object.fromEntries(KERR_MODULES.map((m) => {
+        const c = KM1[m.slot], d = [KERR_CTRL.x - c.x, KERR_CTRL.y - c.y, KERR_CTRL.z - c.z], [rx, rz] = rotQ(d[0], d[2], m.turns);
+        return [m.slot, { piece: m.piece, mte: m.mte, mark: m.mark, rel: abcDelta(-d[0], -d[1], -d[2]), keeRel: abcDelta(rx, d[1], rz),
+          facingAbc: abcDelta(...m.out), turns: m.turns, controllerVoxel: [c.x - K1.b.CX, c.y - K1.b.CY, c.z - K1.b.CZ] }];
+      })),
+      // the hole centre (voxel origin) from the KEE controller, KEE (a,b,c): the render block's cell
+      centre: { rel: abcDelta(K1.b.CX - KERR_CTRL.x, K1.b.CY - KERR_CTRL.y, K1.b.CZ - KERR_CTRL.z) } },
+    kerr_compressor: { mte: 28117, pieces: { kerr_compressor: "the whole machine: the south arc, in its own frame" } },
+    kerr_extractor: { mte: 28118, pieces: { kerr_extractor: "the whole machine: the east arc, in its own frame" } },
     eye: { controllerVoxel: [EYE_CTRL.x - E[0].b.CX, EYE_CTRL.y - E[0].b.CY, EYE_CTRL.z - E[0].b.CZ],
       pieces: { eye_core: "T1, required", eye_beam: "T2 band, optional", eye_jet: "T3 band, optional, independent of eye_beam",
         eye_arms: "T4 arms, optional (plus the Galactic Upgrade Core)" } },
@@ -451,7 +568,7 @@ const manifest = {
   pieces: {},
 };
 for (const [n, r] of Object.entries(out)) {
-  const machine = n.startsWith("kerr") ? "kerr" : "eye";
+  const machine = PIECE_MACHINE[n] || "eye";
   const bom = Object.entries(r.counts).sort((a, b) => b[1] - a[1]).map(([ch, count]) => ({ ch, count, role: ROLE(machine, ch).role, block: ROLE(machine, ch).block }));
   const sk = {};
   for (const s of r.sockets) (sk[s.ch] = sk[s.ch] || []).push({ abc: s.abc, rel: s.rel, voxel: s.voxel });
