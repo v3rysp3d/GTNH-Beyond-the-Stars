@@ -333,10 +333,44 @@ public final class HRKit {
         } else {
             ((com.gtnewhorizon.structurelib.alignment.constructable.IConstructable) mte).construct(trigger, false);
         }
+        final int fitted = fitHatches(world, mte, m, tiers);
+
+        if (mte instanceof MTEHomogeny) ((MTEHomogeny) mte).debugInstall(tiers);
+        mte.checkStructure(true, base);
+        base.enableWorking();
+        if (fill) result.lines.addAll(fill(mte));
+
+        result.formed = mte.mMachine;
+        result.lines.add(
+            (result.formed ? EnumChatFormatting.GREEN + m.title() + " FORMED"
+                : EnumChatFormatting.RED + m.title() + " NOT FORMED") + EnumChatFormatting.RESET
+                + (m == Machine.HOMOGENY ? " (T" + tiers + ")" : "")
+                + " at ("
+                + x
+                + ", "
+                + y
+                + ", "
+                + z
+                + "), facing "
+                + facing.name()
+                + "; "
+                + fitted
+                + " hatches fitted.");
+        result.lines.addAll(statusLines(mte));
+        return result;
+    }
+
+    /**
+     * A hatch in every socket of the first {@code tiers} pieces (energy: a 64 A UXV multi-amp hatch); a socket that
+     * already holds a tile is left alone. Returns the hatches placed. Server only.
+     */
+    public static int fitHatches(World world, MTEExtendedPowerMultiBlockBase<?> mte, Machine m, int tiers) {
         final ExtendedFacing alignment = mte.getExtendedFacing();
         final int[] centre = centreRel(m);
-
-        // Hatches in every socket of the built pieces.
+        final IGregTechTileEntity base = mte.getBaseMetaTileEntity();
+        final int x = base.getXCoord();
+        final int y = base.getYCoord();
+        final int z = base.getZCoord();
         int fitted = 0;
         for (int i = 0; i < tiers; i++) {
             final String piece = m.pieces[i];
@@ -380,30 +414,7 @@ public final class HRKit {
                 }
                 break;
         }
-
-        if (mte instanceof MTEHomogeny) ((MTEHomogeny) mte).debugInstall(tiers);
-        mte.checkStructure(true, base);
-        base.enableWorking();
-        if (fill) result.lines.addAll(fill(mte));
-
-        result.formed = mte.mMachine;
-        result.lines.add(
-            (result.formed ? EnumChatFormatting.GREEN + m.title() + " FORMED"
-                : EnumChatFormatting.RED + m.title() + " NOT FORMED") + EnumChatFormatting.RESET
-                + (m == Machine.HOMOGENY ? " (T" + tiers + ")" : "")
-                + " at ("
-                + x
-                + ", "
-                + y
-                + ", "
-                + z
-                + "), facing "
-                + facing.name()
-                + "; "
-                + fitted
-                + " hatches fitted.");
-        result.lines.addAll(statusLines(mte));
-        return result;
+        return fitted;
     }
 
     /** The machine's status lines (Homogeny or Reality). */
@@ -509,11 +520,12 @@ public final class HRKit {
         return new ArrayList<>();
     }
 
-    /** Places the GT machine {@code stack} at the socket, facing away from the machine's axis. */
+    /** Places the GT machine {@code stack} at the socket, facing away from the machine's axis (not over a GT tile). */
     private static boolean fit(World world, ExtendedFacing alignment, int x, int y, int z, int[] rel, int[] centre,
         ItemStack stack) {
         if (stack == null) return false;
         final int[] p = SLConsoleTest.worldPos(alignment, x, y, z, rel);
+        if (world.getTileEntity(p[0], p[1], p[2]) instanceof IGregTechTileEntity) return false;
         final int[] c = SLConsoleTest.worldPos(alignment, x, y, z, centre);
         ForgeDirection best = alignment.getDirection();
         double bestDot = Double.NEGATIVE_INFINITY;
@@ -526,6 +538,139 @@ public final class HRKit {
             }
         }
         return MTEReactorCoreMk1.placeGtMachine(world, p[0], p[1], p[2], (short) stack.getItemDamage(), best);
+    }
+
+    // ================================================================================ bench
+
+    /**
+     * Bench {@code project <n>}: the projector's creative build of pieces 1..n over a standing machine (the controller,
+     * its NBT and the hatches already in place are kept), a hatch in every new socket, then a re-walk. Server only.
+     */
+    public static String project(World world, MTEExtendedPowerMultiBlockBase<?> mte, Machine m, int tiers) {
+        final ItemStack controller = m.controller();
+        final int n = Math.max(1, Math.min(m.maxTier(), tiers));
+        final IGregTechTileEntity base = mte.getBaseMetaTileEntity();
+        SLConsoleTest.loadChunks(
+            world,
+            SLConsoleTest.bounds(
+                mte.getExtendedFacing(),
+                base.getXCoord(),
+                base.getYCoord(),
+                base.getZCoord(),
+                Arrays.copyOf(m.pieces, n)));
+        ((com.gtnewhorizon.structurelib.alignment.constructable.IConstructable) mte)
+            .construct(new ItemStack(controller.getItem(), n, controller.getItemDamage()), false);
+        final int fitted = fitHatches(world, mte, m, n);
+        mte.checkStructure(true, base);
+        return "Projected pieces 1.." + n
+            + ", "
+            + fitted
+            + " new hatch(es) fitted: "
+            + (mte.mMachine ? "FORMED" : "NOT FORMED");
+    }
+
+    /** Bench {@code scan}: what the input and output hatches hold, and the stored EU. */
+    public static List<String> hatchLines(MTEExtendedPowerMultiBlockBase<?> mte) {
+        final List<String> out = new ArrayList<>();
+        final StringBuilder in = new StringBuilder("Input hatches:");
+        for (MTEHatchInput h : mte.mInputHatches) {
+            final FluidStack f = h.getFluid();
+            in.append(' ')
+                .append(f == null ? "empty" : qty(f.amount) + " L " + f.getLocalizedName())
+                .append(';');
+        }
+        out.add(in.toString());
+        final StringBuilder o = new StringBuilder("Output hatches:");
+        for (gregtech.api.metatileentity.implementations.MTEHatchOutput h : mte.mOutputHatches) {
+            final FluidStack f = h.getFluid();
+            o.append(' ')
+                .append(f == null ? "empty" : qty(f.amount) + " L " + f.getLocalizedName())
+                .append(';');
+        }
+        out.add(o.toString());
+        long eu = 0;
+        for (MTEHatch h : mte.getExoticAndNormalEnergyHatchList()) eu += h.getEUVar();
+        out.add("Stored EU in the energy hatches: " + qty(eu));
+        return out;
+    }
+
+    /** {@code /btshr recipes}: the three process maps, and our Condensate Assembler / Generator recipes. */
+    public static List<String> recipeLines() {
+        final List<String> out = new ArrayList<>();
+        final gregtech.api.recipe.RecipeMap<?>[] maps = { RealityRecipeMaps.HOMOGENY, RealityRecipeMaps.DIFFRACTION,
+            RealityRecipeMaps.REFAB };
+        for (gregtech.api.recipe.RecipeMap<?> map : maps) {
+            final java.util.Collection<gregtech.api.util.GTRecipe> all = map.getAllRecipes();
+            out.add(map.unlocalizedName + ": " + all.size() + " recipe(s)");
+            for (gregtech.api.util.GTRecipe r : all) out.add("  " + recipeLine(r));
+        }
+        int assembler = 0;
+        final List<String> names = new ArrayList<>();
+        for (gregtech.api.util.GTRecipe r : tectech.recipe.TecTechRecipeMaps.condensateAssemblingRecipes
+            .getAllRecipes()) {
+            final ItemStack o = r.mOutputs == null || r.mOutputs.length == 0 ? null : r.mOutputs[0];
+            if (o == null || !ours(o)) continue;
+            assembler++;
+            names.add(o.stackSize + "x " + name(o));
+        }
+        out.add("Condensate Assembler: " + assembler + " of ours: " + String.join(", ", names));
+        int generator = 0;
+        names.clear();
+        for (gregtech.api.util.GTRecipe r : tectech.recipe.TecTechRecipeMaps.condensateGeneratorRecipes
+            .getAllRecipes()) {
+            if (r.mFluidOutputs == null) continue;
+            for (FluidStack f : r.mFluidOutputs) {
+                if (f == null || !f.getFluid()
+                    .getName()
+                    .startsWith("bts")) continue;
+                generator++;
+                names.add(
+                    f.getFluid()
+                        .getName());
+            }
+        }
+        out.add("Condensate Generator: " + generator + " of ours: " + String.join(", ", names));
+        return out;
+    }
+
+    private static boolean ours(ItemStack s) {
+        final Object id = Item.itemRegistry.getNameForObject(s.getItem());
+        if (id != null && String.valueOf(id)
+            .startsWith("beyondthestars:")) return true;
+        for (Machine m : Machine.values()) {
+            final ItemStack c = m.controller();
+            if (c != null && c.getItem() == s.getItem() && c.getItemDamage() == s.getItemDamage()) return true;
+        }
+        return false;
+    }
+
+    private static String name(ItemStack s) {
+        try {
+            return s.getDisplayName();
+        } catch (RuntimeException e) {
+            return String.valueOf(Item.itemRegistry.getNameForObject(s.getItem())) + ":" + s.getItemDamage();
+        }
+    }
+
+    private static String recipeLine(gregtech.api.util.GTRecipe r) {
+        final List<String> in = new ArrayList<>();
+        if (r.mInputs != null) for (ItemStack s : r.mInputs) if (s != null) in.add(s.stackSize + "x " + name(s));
+        if (r.mFluidInputs != null) {
+            for (FluidStack f : r.mFluidInputs) if (f != null) in.add(qty(f.amount) + " L " + f.getLocalizedName());
+        }
+        final List<String> res = new ArrayList<>();
+        if (r.mOutputs != null) for (ItemStack s : r.mOutputs) if (s != null) res.add(s.stackSize + "x " + name(s));
+        if (r.mFluidOutputs != null) {
+            for (FluidStack f : r.mFluidOutputs) if (f != null) res.add(qty(f.amount) + " L " + f.getLocalizedName());
+        }
+        return String.join(" + ", in) + " -> "
+            + String.join(" + ", res)
+            + " | "
+            + qty(r.mEUt)
+            + " EU/t, "
+            + r.mDuration / 20
+            + " s, special "
+            + r.mSpecialValue;
     }
 
     // ================================================================================ helpers

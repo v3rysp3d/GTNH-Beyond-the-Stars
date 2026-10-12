@@ -46,8 +46,12 @@ import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBas
  * <li>{@code /btshr keep <machine> <x> <y> <z> <facing> [t1..t3]} force-loads the footprint ({@code /btskerr
  * release} frees it).</li>
  * <li>{@code /btshr bench <x> <y> <z> <sub>} on a machine already standing: {@code status}, {@code check},
- * {@code fill}, {@code wrench}; Homogeny {@code milestone <espm> <degenerate>}, {@code escrow}, {@code install},
- * {@code itick <n>}; Refab {@code relink}; Diffraction {@code pending}.</li>
+ * {@code fill}, {@code wrench}, {@code scan} (progress, the last recipe check, hatch contents), {@code on} /
+ * {@code off}; Homogeny
+ * {@code milestone <espm> <degenerate>}, {@code escrow}, {@code install}, {@code itick <n>}, {@code project <n>} (the
+ * projector's creative build of rings 1..n over the standing machine, hatches in the new sockets, controller kept);
+ * Refab {@code relink}; Diffraction {@code pending}.</li>
+ * <li>{@code /btshr recipes}: the three machines' recipe maps and our Condensate Assembler / Generator recipes.</li>
  * </ul>
  */
 public class CommandBTSHR extends CommandBase {
@@ -67,8 +71,8 @@ public class CommandBTSHR extends CommandBase {
     public String getCommandUsage(ICommandSender sender) {
         return "/btshr <homogeny|diffraction|refab> [t1..t3] [fill] [force]  |  console: /btshr <machine> [t1..t3] "
             + "<x> <y> <z> [facing] [fill] [force] [survival] [check]  |  /btshr keep <machine> <x> <y> <z> <facing> "
-            + "[t1..t3]  |  /btshr bench <x> <y> <z> <status|check|fill|wrench|milestone e d|escrow|install|itick n|"
-            + "relink|pending>";
+            + "[t1..t3]  |  /btshr bench <x> <y> <z> <status|check|fill|wrench|scan|on|off|milestone e d|escrow|install|itick n|"
+            + "project n|relink|pending>  |  /btshr recipes";
     }
 
     @Override
@@ -79,8 +83,14 @@ public class CommandBTSHR extends CommandBase {
     @SuppressWarnings("rawtypes")
     @Override
     public List addTabCompletionOptions(ICommandSender sender, String[] args) {
-        if (args.length == 1)
-            return getListOfStringsMatchingLastWord(args, "homogeny", "diffraction", "refab", "keep", "bench");
+        if (args.length == 1) return getListOfStringsMatchingLastWord(
+            args,
+            "homogeny",
+            "diffraction",
+            "refab",
+            "keep",
+            "bench",
+            "recipes");
         return getListOfStringsMatchingLastWord(args, "t1", "t2", "t3", "fill", "force", "survival", "check");
     }
 
@@ -93,6 +103,10 @@ public class CommandBTSHR extends CommandBase {
         if (args[0].equalsIgnoreCase("bench")) {
             for (String line : bench(sender, Arrays.copyOfRange(args, 1, args.length)))
                 SLConsoleTest.tell(sender, line);
+            return;
+        }
+        if (args[0].equalsIgnoreCase("recipes")) {
+            for (String line : HRKit.recipeLines()) SLConsoleTest.tell(sender, line);
             return;
         }
         if (args[0].equalsIgnoreCase("keep")) {
@@ -361,6 +375,47 @@ public class CommandBTSHR extends CommandBase {
                     final int n = rest.size() >= 2 ? (int) Math.min(MTEHomogeny.INSTALL_TICKS, parseLong(rest.get(1)))
                         : MTEHomogeny.INSTALL_TICKS;
                     out.add("Install ticks advanced: " + ((MTEHomogeny) mte).debugInstallTicks(n) + " of " + n);
+                }
+                break;
+            case "scan":
+                out.add(
+                    "Progress " + machine.mProgresstime
+                        + " / "
+                        + machine.mMaxProgresstime
+                        + " ticks, active "
+                        + base.isActive()
+                        + ", allowed "
+                        + base.isAllowedToWork());
+                out.add(
+                    "Last recipe check: " + machine.getCheckRecipeResult()
+                        .getID()
+                        + " = \""
+                        + machine.getCheckRecipeResult()
+                            .getDisplayString()
+                        + "\"");
+                if (machine.mOutputFluids != null) {
+                    for (net.minecraftforge.fluids.FluidStack f : machine.mOutputFluids) {
+                        if (f != null) out.add("Running output: " + f.amount + " L " + f.getLocalizedName());
+                    }
+                }
+                out.addAll(HRKit.hatchLines(machine));
+                break;
+            case "on":
+                base.enableWorking();
+                out.add("Enabled (as a soft mallet would).");
+                break;
+            case "off":
+                base.disableWorking();
+                out.add("Disabled (as a soft mallet would).");
+                break;
+            case "project":
+                if (mte instanceof MTEHomogeny) {
+                    final int n = rest.size() >= 2
+                        ? (int) Math.max(1, Math.min(MTEHomogeny.MAX_TIER, parseLong(rest.get(1))))
+                        : MTEHomogeny.MAX_TIER;
+                    out.add(HRKit.project(world, machine, HRKit.Machine.HOMOGENY, n));
+                } else {
+                    out.add("project: Homogeny only (the Reality machines are one piece).");
                 }
                 break;
             case "relink":
