@@ -18,8 +18,10 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
@@ -39,6 +41,8 @@ import com.nateyburr.beyondthestars.machines.kerr.KerrTestBench;
 import com.nateyburr.beyondthestars.machines.kerr.MTEKerrEngine;
 
 import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import gregtech.api.GregTechAPI;
@@ -243,6 +247,7 @@ public final class RenderTest {
             if (event.phase != TickEvent.Phase.END) return;
             Runnable task;
             while ((task = TASKS.poll()) != null) task.run();
+            retireOldTickets();
             if (++ticks % 20 == 0) {
                 final Built b = current;
                 final Case c = currentCase;
@@ -255,6 +260,76 @@ public final class RenderTest {
                 }
             }
         }
+    }
+
+    // ============================================================================ chunk tickets
+
+    /** Tickets holding the current site (and its camera spots) loaded. */
+    private static final List<ForgeChunkManager.Ticket> HELD = new ArrayList<>();
+    /** The previous site's tickets, released only once the player has left it. */
+    private static final List<ForgeChunkManager.Ticket> RETIRING = new ArrayList<>();
+    /** Server tick at which RETIRING goes (-1: not scheduled). */
+    private static int retireAt = -1;
+    private static int serverTicks;
+    private static boolean callbackSet;
+    /** Ticks between the first teleport onto a new site and the release of the old site's tickets. */
+    private static final int RETIRE_DELAY = 100;
+
+    /**
+     * Force-loads every chunk of {@code box} with the harness's own tickets. Forge queues a chunk for unloading the
+     * moment its ticket is released, even with a player standing in it, and unloading that chunk takes the player
+     * entity out of the world (it stops ticking, so the server never sends it another chunk and the client draws only
+     * sky). So a site's tickets are never released while the player may still be there: see {@link #retireOldTickets}.
+     */
+    private static void hold(World world, int[] box) {
+        final ModContainer mc = Loader.instance()
+            .getIndexedModList()
+            .get(BeyondTheStars.MODID);
+        if (mc == null) return;
+        final Object mod = mc.getMod();
+        if (!callbackSet) {
+            ForgeChunkManager.setForcedChunkLoadingCallback(
+                mod,
+                (tickets, w) -> { for (ForgeChunkManager.Ticket t : tickets) ForgeChunkManager.releaseTicket(t); });
+            callbackSet = true;
+        }
+        ForgeChunkManager.Ticket ticket = null;
+        for (int cx = box[0] >> 4; cx <= box[3] >> 4; cx++) {
+            for (int cz = box[2] >> 4; cz <= box[5] >> 4; cz++) {
+                if (ticket == null || ticket.getChunkList()
+                    .size() >= ticket.getMaxChunkListDepth()) {
+                    ticket = ForgeChunkManager.requestTicket(mod, world, ForgeChunkManager.Type.NORMAL);
+                    if (ticket == null) return;
+                    HELD.add(ticket);
+                }
+                ForgeChunkManager.forceChunk(ticket, new ChunkCoordIntPair(cx, cz));
+            }
+        }
+    }
+
+    /** A new site: the old site's tickets retire once the player has been moved off it ({@link #view}). */
+    private static void retireCurrentSite() {
+        RETIRING.addAll(HELD);
+        HELD.clear();
+        retireAt = -1;
+    }
+
+    private static void retireOldTickets() {
+        serverTicks++;
+        if (retireAt < 0 || serverTicks < retireAt) return;
+        for (ForgeChunkManager.Ticket t : RETIRING) ForgeChunkManager.releaseTicket(t);
+        RETIRING.clear();
+        retireAt = -1;
+    }
+
+    /** Releases every harness ticket (end of the run). */
+    static String releaseAll() {
+        final int n = HELD.size() + RETIRING.size();
+        for (ForgeChunkManager.Ticket t : RETIRING) ForgeChunkManager.releaseTicket(t);
+        for (ForgeChunkManager.Ticket t : HELD) ForgeChunkManager.releaseTicket(t);
+        RETIRING.clear();
+        HELD.clear();
+        return n + " chunk tickets released";
     }
 
     static WorldServer world() {
@@ -299,7 +374,7 @@ public final class RenderTest {
     /** Builds (or rebuilds over) one site and force-loads its chunks; the previous site's tickets are released. */
     static Built buildSite(Site site) {
         final WorldServer world = world();
-        KerrTestBench.release();
+        retireCurrentSite();
         current = null;
         currentCase = null;
         final Built b = new Built();
@@ -332,7 +407,7 @@ public final class RenderTest {
 
     private static int[] loadAndKeep(World world, int[] box) {
         SLConsoleTest.loadChunks(world, box);
-        KerrTestBench.keep(world, box);
+        hold(world, box);
         return box;
     }
 
@@ -622,6 +697,56 @@ public final class RenderTest {
 
     /** Live status for the log, read at the moment of a shot. */
     static String status() {
+        return serverView() + "; " + siteStatus();
+    }
+
+    /** The server's side of the camera (diagnostics): where it has the player, what it still owes it, chunk state. */
+    private static String serverView() {
+        final EntityPlayerMP p = player();
+        if (p == null) return "server: no player";
+        final WorldServer world = world();
+        final int x = (int) Math.floor(p.posX);
+        final int z = (int) Math.floor(p.posZ);
+        String chunk = "unloaded";
+        if (world.getChunkProvider()
+            .chunkExists(x >> 4, z >> 4)) {
+            final net.minecraft.world.chunk.Chunk ch = world.getChunkFromBlockCoords(x, z);
+            chunk = "ticked " + ch.field_150815_m
+                + " populated "
+                + ch.isTerrainPopulated
+                + " lit "
+                + ch.isLightPopulated;
+        }
+        boolean moved = false;
+        try {
+            final Field f = cpw.mods.fml.relauncher.ReflectionHelper
+                .findField(net.minecraft.network.NetHandlerPlayServer.class, "hasMoved", "field_147380_r");
+            moved = f.getBoolean(p.playerNetServerHandler);
+        } catch (Exception ignored) {
+            // diagnostics only
+        }
+        return String.format(
+            Locale.ROOT,
+            "server player (%.1f, %.1f, %.1f) managed (%.1f, %.1f), owed %d chunks, hasMoved %s, in world %s, dead %s, chunk %s, ticksExisted %d, in entity list %s, added to chunk %s (%d, %d), 32-block area loaded %s",
+            p.posX,
+            p.posY,
+            p.posZ,
+            p.managedPosX,
+            p.managedPosZ,
+            p.loadedChunks.size(),
+            moved,
+            world.playerEntities.contains(p),
+            p.isDead,
+            chunk,
+            p.ticksExisted,
+            world.loadedEntityList.contains(p),
+            p.addedToChunk,
+            p.chunkCoordX,
+            p.chunkCoordZ,
+            world.checkChunksExist(x - 32, 0, z - 32, x + 32, 0, z + 32));
+    }
+
+    private static String siteStatus() {
         final Built b = current;
         final Case c = currentCase;
         if (b == null || c == null || b.error != null) return "";
@@ -731,6 +856,7 @@ public final class RenderTest {
         player.motionX = 0;
         player.motionY = 0;
         player.motionZ = 0;
+        if (!RETIRING.isEmpty() && retireAt < 0) retireAt = serverTicks + RETIRE_DELAY;
         // re-register the chunks the player watches now rather than on its next movement packet
         world.getPlayerManager()
             .updatePlayerPertinentChunks(player);

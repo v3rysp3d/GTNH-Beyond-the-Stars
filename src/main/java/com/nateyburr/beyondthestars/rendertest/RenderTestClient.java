@@ -28,7 +28,6 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 
 import com.nateyburr.beyondthestars.BeyondTheStars;
-import com.nateyburr.beyondthestars.machines.kerr.KerrTestBench;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -397,7 +396,9 @@ public final class RenderTestClient {
             && !mc.theWorld
                 .getChunkFromBlockCoords((int) Math.floor(mc.thePlayer.posX), (int) Math.floor(mc.thePlayer.posZ))
                 .isEmpty();
-        if (here && Math.abs(chunks - lastChunks) <= 2 && queued <= 0) stillTicks++;
+        // (GT's Black Hole Compressor keeps one chunk re-rendering every second, so up to 2 queued updates count as
+        // still)
+        if (here && Math.abs(chunks - lastChunks) <= 2 && queued <= 2) stillTicks++;
         else stillTicks = 0;
         lastChunks = chunks;
         if (phaseTicks >= settleMax) {
@@ -440,10 +441,7 @@ public final class RenderTestClient {
             say("=== SUMMARY (fps = the debug counter at each shot) ===");
             for (String line : summary) say(line);
             say(files.size() + " screenshots in " + dir.getAbsolutePath());
-            await(() -> {
-                KerrTestBench.release();
-                return "chunk tickets released";
-            }, r -> {
+            await(RenderTest::releaseAll, r -> {
                 say(String.valueOf(r));
                 go(Phase.FINISH);
                 phaseTicks = 2;
