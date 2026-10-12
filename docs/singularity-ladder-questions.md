@@ -51,6 +51,8 @@ The build compiles, loads and registers every recipe. These checks from your acc
   **Written (cost audit):** [`singularity-ladder-costs.md`](singularity-ladder-costs.md) has the completeness check,
   per-block costs, per-tier totals and the BHC / TecTech Eye / Godforge / Nano Forge comparison. It found two
   uncraftable chains (Kerr T2 and Eye T2-T4) and an Eye T1 at 8× TecTech's Eye: B-21..B-24, 15 proposed changes.
+  **Applied (recipe audit pass):** every block and item in the BOM now has a recipe that can run; costs doc §6 lists
+  what was applied and how (B-25, B-26 are the new judgement calls).
 - **NEI multiblock preview.** The controllers implement the hologram interfaces, but nobody has opened the NEI
   "Multiblock" tab for them yet, or checked whether it caps the size of what it renders.
   **Checked against the bytecode (acceptance pass):** the preview finds both controllers on its own, counts Kerr 2
@@ -476,6 +478,7 @@ Mixture, no Galactic Shell, no Galactic Upgrade Core, no Sirius B chart, no Eye 
 the recipe registers fine, it just can never run.
 
 **What we built.** Nothing yet; this audit changes no code.
+**Built (recipe audit pass):** the suggestion. SL-K04 takes 32 Black Hole Seeds (`BTSRecipesKerr.DENSITY_UPGRADE_SEEDS`).
 
 **Suggestion.** Replace the Superstable Seed in SL-K04 with 32 Black Hole Seeds (UHV Space Assembler). That costs
 about the same, fits the "density" theme, and touches nothing outside the addon. Costs doc, adjustment #1.
@@ -495,6 +498,7 @@ Eye T2 / T3 / T4. Their TecTech recipes take 2 / 8 / 32 **White Dwarf Matter bol
 deadlock. The spec's §0 note ("no WDM/BDM markers in the generator recipes") only checked the Tier-8 recipe.
 
 **What we built.** Nothing yet.
+**Built (recipe audit pass):** SL-P30..P32, with the optional upgrade folded in; see B-25.
 
 **Suggestion.** Three alternate assembly-line recipes of ours (SL-P30..P32, registered only with the flag on):
 TecTech's own inputs, research and duration, with the WDM bolts replaced by the previous tier's product as a 4th
@@ -521,6 +525,7 @@ Singularity Shielding Casings**. A Boundary casing is a whole LSC, 16 Active Tra
 An Eye T1 today needs 118k Godforge casings (42 Godforge main rings, 8× TecTech's Eye), 3,876 LSCs and 2.3e16 EU.
 
 **What we built.** Nothing yet.
+**Built (recipe audit pass):** the suggestion, SL-P27..P29, plus the band batch sizes (#8-#12); see B-26.
 
 **Suggestion.** Keep the blocks (and the look) and add batch Assembler recipes of ours, registered only with
 `replaceTecTechEyeOfHarmony=true`:
@@ -546,6 +551,9 @@ cheaper, but only while TecTech's own Eye is switched off.
 cost 1,176 UXV circuits and 9.5e15 EU, which is 1.8× TecTech's whole Eye. TecTech's Eye uses 48.
 
 **What we built.** As exported.
+**Built (recipe audit pass):** the suggestion. The exporter tags only each pad's centre ring (8 cells around the
+foot) as `Y`; `eye_core` is re-exported with `Y` 48 and `Q` 4,704. The tooltip, kit and hologram read the counts
+from the shape, so nothing else changed.
 
 **Suggestion.** 48 generators, 8 per pad (the pad's centre ring), with the other 246 cells as plinth casing (`Q`).
 This is an exporter-legend change for the structure owner. Costs doc, #5.
@@ -581,6 +589,56 @@ twice.
   needs at least 50,000 L, and a tidy rig about 60,000 L.
 - *Alternatives:* keep +90 and fail the bounce above +40 (the Stable band), which also needs about 50,000 L; or keep
   it as written and treat the collapse as a holding test.
+
+### B-25 Compression generators: upgrade the old tier, researched from the star charts [recipe audit pass]
+
+**Context.** B-22: Eye T2-T4 need TecTech's tier 2-4 Spacetime Compression Field Generators (metas 1-3), whose
+recipes take White Dwarf Matter bolts, and WDM has no source while TecTech's Eye is off. The audit proposed
+TecTech-copy recipes with a stellar fluid in place of the bolts (#2), and separately an optional "upgrade the old
+generator" recipe (#15), because every tier step strands 188 generators.
+
+**What we built.** One recipe per step, #2 and #15 combined (SL-P30/P31/P32, only with
+`replaceTecTechEyeOfHarmony=true`):
+
+- tier t-1 generator + TecTech's own tier-t items and fluids (javap'd from `addEOHRecipes`: Yotta cells, Quantum
+  Tanks, Infinity Chests, Cosmic Fabric Manipulators, AE2 Singularity cells, UXV circuits, Mutated Living Solder,
+  Space, SpaceTime) **→ tier t generator**;
+- the WDM bolts become a 4th fluid: Raw Star Matter 16,000 L / ESPM 4,000 L / RHSP 2,000 L;
+- the Reinforced Spatial casing TecTech's recipe takes is replaced by the old generator;
+- 80,000 ticks flat at UMV (TecTech: 80,000 × (t+1));
+- research-station assembly lines with TecTech's research cost for the tier, but researched from **Star Chart:
+  Sirius A / Arcturus / Sirius B**. TecTech's own recipe already researches from the generator below, and a
+  research item can serve only one recipe.
+
+TecTech's recipes stay (they need WDM). Crude (tier 1, the Eye T1 gate) keeps TecTech's recipe.
+
+Effect: a tier step costs 188 upgrades at about 1.9e15 EU and 209 assembly-line hours, the same at every step, where
+re-crafting from scratch cost 3.8 / 5.7 / 7.6e15 EU and 418 / 627 / 836 h. The fluid gate is unchanged (3 Sol,
+7.5 Sirius A, 7.5 Arcturus runs per step). A fresh generator of tier t now takes t+1 crafts from a Crude one.
+
+**Suggestion.** As built. It fits D-49 (compression stays the 1:1 gate, tiers unlock in sequence).
+
+**Alternatives.**
+
+- Two recipes per step, as the audit listed: a from-scratch copy (Spatial casing, TecTech's duration) and the
+  upgrade. That needs three more unique research items.
+- Remove TecTech's tier 2-4 recipes under the flag and give ours TecTech's research items (the generator below).
+  Cleaner in NEI, but it is more recipe-removal code.
+
+### B-26 Batch TecTech casings: told apart by a programmed circuit, flag-gated [recipe audit pass]
+
+**Context.** B-23's SL-P27 (Spatial) and SL-P28 (Temporal) have the same inputs in the audit's proposal, and GT's
+Assembler cannot hold two recipes with the same inputs.
+
+**What we built.** Programmed circuit 1 (Spatial) and 2 (Temporal); circuits are not consumed. SL-P27..P32 register
+only while `replaceTecTechEyeOfHarmony=true`, so a pack that keeps TecTech's Eye keeps TecTech's prices. TecTech's
+own assembly lines stay.
+
+**Suggestion.** As built.
+
+**Alternatives.** TecTech's own markers (a Quantum Chest IV for Spatial, an Accelerator UV for Temporal), at one per
+4 casings. For the 14,000-odd casings that is about 2,350 Quantum Chests and 1,180 World Accelerators, which is why
+we did not.
 
 ---
 
