@@ -1158,6 +1158,50 @@ the KEE controller's chunk must be loaded for the client to know about the hole,
 dispatch instead of GT's TESR path); GT's `GregTechAPI.sBlackholeRender` block itself (no way to scale it or tag its
 owner).
 
+### B-43 Kerr redesign: module recipes on a dev server, and SL-K05 lost to the Eternal Singularity recipe [Kerr redesign, R5 test]
+
+**Context.** R5 dev-server pass (headless `runServer`, RC-2, 2026-10-12): KEE T1 and both modules formed in two
+facings through both paths, module recipes driven from the console, the hole closed and the KEE unformed mid-recipe,
+T2 with DENSITY, render cell checks and two restarts. New test bench: `/btskerr module x y z <c|x>
+stock|status|tier|clear`, `/btskerr damage|repair x y z`, `/btskerr keep x y z [t2]` / `release`.
+
+**Found and fixed: SL-K05 never ran.** The coremod's neutronium-compressor recipe turns 72 L of molten SpaceTime alone
+into an Eternal Singularity (UMV). SL-K05 also takes molten SpaceTime, and the compressor module searched DENSITY
+last, so a Kerr T2 at 128 SM fed bolts + RHSP + molten SpaceTime made Eternal Singularities batch after batch and
+never touched the bolts. **Built:** DENSITY is searched first. With the gate open (T2, 128 SM) SL-K05 ran (64 bolts →
+1,000 L Hyperdense Stellar Mixture); with the gate shut (T2 at 64 SM) the bolts stayed untouched and the module fell
+through to GT's maps. The creative kit's compressor module also gets a second input hatch, because SL-K05 takes two
+fluids and a GT input hatch holds one.
+
+**Results.**
+
+- **Formed:** T1 north and east on the creative path, T1 east and north on the survival path (KEE 13,898 blocks in 71
+  rounds, compressor arc 964 in 6, extractor arc 498 in 4), and T2 south and west. Every module formed and linked,
+  the extractor stood on the viewer's right, re-projection broke nothing, and damage-and-repair passed each time.
+- **Hole closed:** both modules sat in `HOLE_CLOSED` with their inputs untouched, through a restart too. After Open,
+  the extractor ran (128 Stemcells → 128 Plasma Membrane at parallel 448, ×4) and so did the compressor (Fusion
+  Control Computer Mk-III → Hypervisor Matrix, 14 in parallel, and Poppy → Plantball).
+- **Closed mid-recipe** (B-34): progress froze (379/2066), the recipe was kept, the machine went idle, and it resumed
+  on reopen. The module notices on its next 20-tick link check: it ran about 14 more ticks after the close.
+- **KEE unformed mid-recipe** (one cage block removed): both modules went `KEE_NOT_FORMED`. The compressor's progress
+  froze, a freshly stocked extractor did not start, and the hole stayed frozen at 16 SM with no bleed. After the
+  repair, both resumed and the recipe finished, with the outputs in the bus.
+- **Render:** placed on open (and on the auto seed), gone after the 40-tick collapse on close, gone at once when a
+  loaded KEE broke, and gone after a restart for a KEE broken while its centre chunk was unloaded (the tile's
+  self-check). A closed hole has no block after a restart; each open hole adopts its one block. **While the KEE is
+  unformed the render stays,** as built in B-42 (a frozen hole is still a hole). The R5 task list expected it to go
+  on unform. That is your call.
+- **Restart:** hole state, mass, setpoint, T2 and in-flight module recipes all persisted (a compressor batch went
+  644 → 725 across the restart and finished).
+- **Cosmetic, not changed:** the scanner bonus line shows `p112 x1.00` while the hole is closed (the GUI says
+  "none"), and GT's `lastParallel` reads 0 until a reload.
+- **Test-bench note:** a playerless dev server unloads a Kerr's chunks within seconds of the last command, so
+  console tests must force-load them with `keep`.
+- **Not run here:** the GUIs and the render's look in a game client, and the NEI preview.
+
+**Suggestion.** Keep DENSITY first. Decide whether the render should go when the KEE unforms. If yes, it is one
+condition in `MTEKerrEngine.tickRender` (`want` gains `&& mMachine`).
+
 ---
 
 ## Part C. Settled (for the record)

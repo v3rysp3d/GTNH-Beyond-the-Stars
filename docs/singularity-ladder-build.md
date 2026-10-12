@@ -136,6 +136,11 @@ errors and no crash. The boot log also confirms:
   builds nothing and re-walks the machine standing at x y z. To test on a dev server: put `eula=true` in
   `run/server/eula.txt`, run `tail -n 0 -f run/server/cmds.txt | ./gradlew.bat runServer` in Git Bash, append
   commands to `cmds.txt`, and finish with `stop`. See questions B-27 for what a run covers.
+- **Kerr module test bench** (B-43): `/btskerr keep x y z [t2]` force-loads a whole Kerr (a playerless server unloads
+  it within seconds; `/btskerr release` frees the tickets). `/btskerr module x y z <c|x> stock [map#] [longest|first|n]
+  [copies]` picks a recipe from one of the module's maps that fits its energy, and fills its input bus and hatches.
+  `status` shows the link, progress, outputs and fluids. `tier t [amps]` sets its creative energy hatches, and `clear`
+  empties its buses. `/btskerr damage|repair x y z` unforms the KEE by one cage block, then puts the block back.
 - **More console tools** (test bench): `/btseye gates` dumps the compression generator recipes the server actually
   has and checks the gate rule against them, and counts BHC consumers left. `/btsbuild t<1-5> <x> <y> <z> [facing]
   [rod] [force] [crib] | [check]` builds a reactor plant from the console; `crib` checks that a feedwater socket
