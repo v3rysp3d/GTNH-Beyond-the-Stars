@@ -276,9 +276,21 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
         drawLayer(LAYER_1, r, g, b, shellA, radius * 1.01f, 1f, 1f, 0f, -49 + spin * 0.8);
         drawLayer(LAYER_2, r, g, b, shellB, radius * 1.02f, 1f, 0f, 1f, 67 + spin * 1.1);
         if (kind == EyeStarLook.DWARF) {
-            // E7: a faint dark-red rim, so the near-black ball still reads against dark casings at night
+            // E7: a faint dark-red rim, so the near-black ball still reads against dark casings at night. Round 4
+            // (D5): it fades in with the cooling (0 up to half way, full at 90 %), as the veil does; at full from the
+            // start it added red over the early white dwarf's whole face (measured F6F1F4, red above blue)
             GL20.glUniform1f(shader.loc(U_GAMMA), 0.6f);
-            drawLayer(LAYER_1, 0x40 / 255f, 0x18 / 255f, 0x10 / 255f, 0.25f, radius * 1.03f, 0f, 1f, 0f, spin * 0.5);
+            drawLayer(
+                LAYER_1,
+                0x40 / 255f,
+                0x18 / 255f,
+                0x10 / 255f,
+                0.25f * cooled(aux),
+                radius * 1.03f,
+                0f,
+                1f,
+                0f,
+                spin * 0.5);
         }
 
         sphere.unbind();
@@ -286,9 +298,7 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
         ShaderProgram.clear();
 
         // 3) untextured, alpha-blended, front faces only: the limb darkening (D6) and the black dwarf's veil (E-7)
-        final float veil = kind == EyeStarLook.DWARF
-            ? VEIL_ALPHA * Math.max(0f, Math.min(1f, (star.getAux() - 0.5f) / 0.4f))
-            : 0f;
+        final float veil = kind == EyeStarLook.DWARF ? VEIL_ALPHA * cooled(aux) : 0f;
         if (coreAlpha < 1f && veil <= 0.003f) return;
         final Flat flat = Flat.begin();
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
@@ -303,6 +313,11 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
             sphereMesh(t, cx, cy, cz, outside(radius * VEIL_RADII), VEIL_R, VEIL_G, VEIL_B, veil, 0f, false);
         }
         flat.end();
+    }
+
+    /** How far the cooling dwarf has gone dark: 0 up to half its batch, 1 from 90 % (the veil and the rim). */
+    private static float cooled(float aux) {
+        return Math.max(0f, Math.min(1f, (aux - 0.5f) / 0.4f));
     }
 
     /**
@@ -502,22 +517,34 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
     private static void rimShell(Tessellator t, double cx, double cy, double cz, double rad, float r, float g, float b,
         float centre, float edge) {
         if (edge <= 0.003f || rad <= 0.05) return;
+        alphas(cx, cy, cz, rad, centre, edge - centre, true);
         GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glFrontFace(GL11.GL_CCW);
         GL11.glCullFace(GL11.GL_FRONT);
-        sphereMesh(t, cx, cy, cz, rad, r, g, b, centre, edge - centre, true);
+        emit(t, cx, cy, cz, rad, r, g, b);
         GL11.glCullFace(GL11.GL_BACK);
-        sphereMesh(t, cx, cy, cz, rad, r, g, b, centre, edge - centre, true);
+        emit(t, cx, cy, cz, rad, r, g, b);
+    }
+
+    /** One untextured sphere: {@link #alphas} then {@link #emit} (the caller sets the blend and the culling). */
+    private static void sphereMesh(Tessellator t, double cx, double cy, double cz, double rad, float r, float g,
+        float b, float a0, float a1, boolean cubic) {
+        alphas(cx, cy, cz, rad, a0, a1, cubic);
+        emit(t, cx, cy, cz, rad, r, g, b);
     }
 
     /**
-     * An untextured {@link #MESH_SLICES} x {@link #MESH_STACKS} sphere of vertex radius {@code rad} round
-     * {@code (cx, cy, cz)} (camera-relative: the camera is at the origin), its faces wound counter-clockwise seen from
-     * outside. Per vertex the alpha is {@code a0 + a1 (1 - |N.V|)^3} ({@code cubic}) or {@code a0 + a1 (1 - |N.V|)}.
+     * The corners of every quad of a unit {@link #MESH_SLICES} x {@link #MESH_STACKS} sphere (x, y, z per corner, four
+     * corners per quad), wound counter-clockwise seen from outside. Built once: the round-4 harness showed the trig of
+     * building it per frame (three magnetar shells, both faces, plus the limb darkening) cost about 0.4 ms a frame.
      */
-    private static void sphereMesh(Tessellator t, double cx, double cy, double cz, double rad, float r, float g,
-        float b, float a0, float a1, boolean cubic) {
-        t.startDrawingQuads();
+    private static final float[] UNIT_SPHERE = unitSphere();
+    /** Per-corner alpha of the sphere being drawn (render thread only). */
+    private static final float[] CORNER_ALPHA = new float[UNIT_SPHERE.length / 3];
+
+    private static float[] unitSphere() {
+        final float[] v = new float[MESH_STACKS * MESH_SLICES * 12];
+        int k = 0;
         for (int i = 0; i < MESH_STACKS; i++) {
             final double p0 = Math.PI * i / MESH_STACKS - Math.PI / 2;
             final double p1 = Math.PI * (i + 1) / MESH_STACKS - Math.PI / 2;
@@ -526,24 +553,49 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
             for (int j = 0; j < MESH_SLICES; j++) {
                 final double a = 2 * Math.PI * j / MESH_SLICES, c = 2 * Math.PI * (j + 1) / MESH_SLICES;
                 final double c0 = Math.cos(a), s0 = Math.sin(a), c1 = Math.cos(c), s1 = Math.sin(c);
-                vertex(t, cx, cy, cz, rad, r0 * c0, y0, r0 * s0, r, g, b, a0, a1, cubic);
-                vertex(t, cx, cy, cz, rad, r1 * c0, y1, r1 * s0, r, g, b, a0, a1, cubic);
-                vertex(t, cx, cy, cz, rad, r1 * c1, y1, r1 * s1, r, g, b, a0, a1, cubic);
-                vertex(t, cx, cy, cz, rad, r0 * c1, y0, r0 * s1, r, g, b, a0, a1, cubic);
+                final double[] q = { r0 * c0, y0, r0 * s0, r1 * c0, y1, r1 * s0, r1 * c1, y1, r1 * s1, r0 * c1, y0,
+                    r0 * s1 };
+                for (double d : q) v[k++] = (float) d;
             }
+        }
+        return v;
+    }
+
+    /**
+     * Fills {@link #CORNER_ALPHA} for a sphere of vertex radius {@code rad} round {@code (cx, cy, cz)}
+     * (camera-relative: the camera is at the origin): {@code a0 + a1 (1 - |N.V|)^3} ({@code cubic}) or
+     * {@code a0 + a1 (1 - |N.V|)}.
+     */
+    private static void alphas(double cx, double cy, double cz, double rad, float a0, float a1, boolean cubic) {
+        final float[] n = UNIT_SPHERE;
+        for (int i = 0, k = 0; k < CORNER_ALPHA.length; i += 3, k++) {
+            final double px = cx + n[i] * rad, py = cy + n[i + 1] * rad, pz = cz + n[i + 2] * rad;
+            final double pl = Math.sqrt(px * px + py * py + pz * pz);
+            final double nv = pl < 1e-6 ? 1 : Math.abs(n[i] * px + n[i + 1] * py + n[i + 2] * pz) / pl;
+            final double rim = 1 - Math.min(1, nv);
+            final double a = a0 + a1 * (cubic ? rim * rim * rim : rim);
+            CORNER_ALPHA[k] = (float) Math.max(0, Math.min(1, a));
+        }
+    }
+
+    /** Draws the sphere with the alphas of the last {@link #alphas} call. */
+    private static void emit(Tessellator t, double cx, double cy, double cz, double rad, float r, float g, float b) {
+        final float[] n = UNIT_SPHERE;
+        t.startDrawingQuads();
+        for (int i = 0, k = 0; k < CORNER_ALPHA.length; i += 3, k++) {
+            t.setColorRGBA_F(r, g, b, CORNER_ALPHA[k]);
+            t.addVertex(cx + n[i] * rad, cy + n[i + 1] * rad, cz + n[i + 2] * rad);
         }
         t.draw();
     }
 
-    private static void vertex(Tessellator t, double cx, double cy, double cz, double rad, double nx, double ny,
-        double nz, float r, float g, float b, float a0, float a1, boolean cubic) {
-        final double px = cx + nx * rad, py = cy + ny * rad, pz = cz + nz * rad;
-        final double pl = Math.sqrt(px * px + py * py + pz * pz);
-        final double nv = pl < 1e-6 ? 1 : Math.abs(nx * px + ny * py + nz * pz) / pl;
-        final double rim = 1 - Math.min(1, nv);
-        final double a = a0 + a1 * (cubic ? rim * rim * rim : rim);
-        t.setColorRGBA_F(r, g, b, (float) Math.max(0, Math.min(1, a)));
-        t.addVertex(px, py, pz);
+    private static final double[] RING_COS = new double[RING_SEGMENTS + 1], RING_SIN = new double[RING_SEGMENTS + 1];
+
+    static {
+        for (int i = 0; i <= RING_SEGMENTS; i++) {
+            RING_COS[i] = Math.cos(2 * Math.PI * i / RING_SEGMENTS);
+            RING_SIN[i] = Math.sin(2 * Math.PI * i / RING_SEGMENTS);
+        }
     }
 
     /**
@@ -555,8 +607,7 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
         if (alpha <= 0.003f || outer <= inner) return;
         t.startDrawingQuads();
         for (int i = 0; i < RING_SEGMENTS; i++) {
-            final double a = 2 * Math.PI * i / RING_SEGMENTS, c = 2 * Math.PI * (i + 1) / RING_SEGMENTS;
-            final double ca = Math.cos(a), sa = Math.sin(a), cc = Math.cos(c), sc = Math.sin(c);
+            final double ca = RING_COS[i], sa = RING_SIN[i], cc = RING_COS[i + 1], sc = RING_SIN[i + 1];
             t.setColorRGBA_F(r, g, b, alpha);
             t.addVertex(
                 ox + (u[0] * ca + v[0] * sa) * inner,
