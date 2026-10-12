@@ -61,7 +61,7 @@ public class CommandBTSEye extends CommandBase {
     @Override
     public String getCommandUsage(ICommandSender sender) {
         return "/btseye [t1..t6] [gen 1-9] [fill] [force]  |  console: /btseye [t1..t6] <x> <y> <z> [facing] "
-            + "[gen 1-9] [fill] [force] [survival] [legacy] [nobeam] | [check]  |  /btseye gates  |  "
+            + "[gen 1-9] [fill] [force] [survival] [legacy] [nobeam] | [check]  |  /btseye keep <x> <y> <z> <facing> [t1..t6]  |  /btseye gates  |  "
             + EyeStarBench.USAGE;
     }
 
@@ -95,6 +95,27 @@ public class CommandBTSEye extends CommandBase {
             return;
         }
         final SLConsoleTest.Placement at = SLConsoleTest.parsePlacement(sender, args);
+        if (at != null && args[0].equalsIgnoreCase("keep")) {
+            // Test bench: force-load the Eye's footprint (as /btskerr keep), so a console test is not confounded
+            // by the dev server unloading the centre-render cell's chunk between commands. /btskerr release frees.
+            int tiers = 6;
+            for (String arg : args) {
+                if (arg.toLowerCase(java.util.Locale.ROOT)
+                    .matches("t[1-6]")) tiers = arg.charAt(1) - '0';
+            }
+            final int[] box = SLConsoleTest.bounds(
+                ExtendedFacing.of(at.facing),
+                at.x,
+                at.y,
+                at.z,
+                java.util.Arrays.copyOf(MTEEyeOfHarmonyBTS.PIECES, tiers));
+            SLConsoleTest.tell(
+                sender,
+                "Eye test bench: forced " + com.nateyburr.beyondthestars.machines.kerr.KerrTestBench.keep(
+                    sender.getEntityWorld(),
+                    box) + " chunk(s) around the Eye T" + tiers + " at " + at.x + ", " + at.y + ", " + at.z);
+            return;
+        }
         if (at != null) {
             processAt(sender, args, at);
             return;
