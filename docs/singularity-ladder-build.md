@@ -2026,6 +2026,7 @@ accepted, and §10.2's questions take their recommendations. Branch `p4-quasar`;
 |---|---|---|
 | Structures: voxel cells (§7), export, manifest | built | 26b04e7 (addon); design repo 1b407b3 |
 | Design repo §9: `bh-model.js`, `recipes.js` cards, renames, D-50, page rebuilt | built | design repo 1b407b3 |
+| Engine maths: quasar disc, conduit maths, links, Eye T7/T8 field and transitions, P4 Directive rules, golden, rig proof | built | 4850153, 566cfe5, 1747224; design repo 330e4df |
 
 ### MTE ledger (P4 block 28120-28129)
 
@@ -2148,5 +2149,88 @@ pre-P4 builds stay formed.
   data from `BTSShapes.manifest()`; do not hard-code offsets.
 - **Recipe unit.** Every block in the BOM above needs a recipe. Watch the totals in P4-05: Eddington Wall Casing
   27,815 per quasar, Casimir 7,145 per Junction.
-- **Design repo.** `designs/bh-model.js` is the reference maths for the disc (`discStep`), the demand (`demand`), the
-  1.5× rule (`topTier`, `massForTier`), crown banks (`thermBank` on the mean) and throat upkeep (`throatUpkeep`).
+- **Design repo.** `designs/bh-model.js` summarises the disc (`discStep`), the demand (`demand`), the 1.5× rule
+  (`topTier`, `massForTier`), crown banks (`thermBank` on the mean) and throat upkeep (`throatUpkeep`). The **reference
+  for the Java** is the prototype's engine (`designs/quasar-p4-prototype.html`, ENGINE + P4 blocks), which the golden
+  test pins. `discStep` is the same maths, but some of its float operations are grouped differently.
+- **Every MTE unit** calls the engine below and never re-derives a formula. A tuning change goes into the prototype
+  first, then `--refresh-fixture`, then the Java, then the golden.
+
+### Engine maths (pure Java; the B-37 discipline)
+
+The engine has no Minecraft or GT types. It is bit-identical to the prototype on 38 golden cases (`node
+tools/quasar-golden.js --check --java`), and the T1-T6 golden still passes 78 of 78 (`node tools/fieldsim-golden.js
+--check --java`). Both tools compile only the pure packages with javac, so no gradle run is needed. `QuasarRigSim` is
+the §8.4 proof: `java -cp build/classes/java/main com.nateyburr.beyondthestars.machines.quasar.engine.QuasarRigSim
+[hours] [seeds]`.
+
+**One engine definition.** The D-49 ENGINE block is the same text in `star-lifecycle-prototype.html` and
+`quasar-p4-prototype.html` (P4-14). `tools/fixtures/star-lifecycle-engine.js` is that block.
+`tools/fixtures/quasar-engine.js` is the P4 block, cut against the same engine sha. Both tools hash with LF line
+endings.
+
+| Class | What it is |
+|---|---|
+| `quasar/engine/QuasarDisc` | `step(QuasarState, QuasarInputs) → QuasarResult`: one disc second (the prototype's `quasarStep`, without its rig). |
+| `quasar/engine/QuasarState` | The hole and disc: `hole` (NONE / OPEN / REFORM / DORMANT), M, a, E, Φ, I, lock, zone, Y_q, the eruption, re-form count, lagE / lagPhi, G0 / G / λ / λc / f_eff / b / Ṁ_Edd, the purge latch, milestones, `rng`. It has `seed(M0, a0)`, `collapse()`, `reopen()`, `requestPurge()` and `rngFor(seed)`. |
+| `quasar/engine/QuasarInputs` | Per second: gas, coil tier, b setpoint, `powerOk`, `gasDrawn` (L), trim units (gas / Space, ≤ 10), `regulatorPurge` (golden only). |
+| `quasar/engine/QuasarResult` | b, coil EU/t, Ṁ_Edd, f_eff, G (both jets), `jet` (= G/2 per port), G0, trim litres, zone, reforming / reformed / blowOut (+ reason), eruption / purge / purgeRefused, massCapped, milestones. |
+| `quasar/engine/QuasarParams` | Constants and helpers: `eddingtonFeed`, `coilEUt` (2·UXV·b²), `massCap` (256 / 1,024 / 2,048 / 4,096), `aEq`, `iscoEta`, `g0`, `stream`, trim litres per unit, `meanStream` (× 1.11 with no purge, × 0.8 at Φ 40), `stability`, `EU_PER_BU` (10¹³). |
+| `quasar/engine/QuasarGas` | H (κ 0.4), He (0.2), Raw Star Matter (0.1). |
+| `quasar/engine/BurstRouting` | Throat caps (24 / 384 / 6,144) and upkeep (SpaceTime 4 / 16 / 64, Ergomatter 0.25 / 1 / 4 L/s per element-leg), crown caps (32 / 512 / 8,192), `crownEUt`, the Junction `share(c, k, s)` and `split`, the sensor `level(v, w)`, `twoLevel(hi, lo)`, the reopen time (10 s), hop limits (64 blocks, 32 hops). |
+| `quasar/engine/BurstLink` | A host's link check: `roll(v, part)` (60 s window), `update(ok)` (1,800 s streak, `done`, `best`), `stabilityOk(linked)`, `heavyOk(linked, testFire)`, `sigma(delivered, D_h)`, host demands. |
+| `quasar/engine/QuasarSim` | The prototype's world (quasar, standard conduit rig, links, Directive bits, Eye T6-T8) and the golden runner. It is not loaded in game. |
+| `quasar/engine/QuasarRigSim` | The §8.4 proof: Directive bits plus three analog wires, and the all-binary variant. |
+| `eye/field/TierParams` | `T7` (Triangulum: P, W), `T8` (Milky Way: P, W, Λ), `PLANETS7` / `PLANETS8` (one gauge, 3 / 6 slots). `of(n)` gives galaxy mode and `of(n, planets)` picks the mode. Also `burstDriven()`, `burstDrift`, `burstTerm`, `sigma(k, companions)`. |
+| `eye/field/StellarField` | Gauges W = 4 and Λ = 5 (`GAUGES` = 6). T7/T8 run inside the same `step`: the minor merger's precession flip, the satellite crossing, the β sum, the T8 feed, and the galaxy cycle product (0 while a transition runs). |
+| `eye/field/GalaxyField` | `demandT(T)` = 1.5·4^(T−7), `demand(T, planets, companions)`, the products (600 × Y × r × min(β̄, 1.5); 1.0 × fed × Y × r), Magnetar 7.5 L per cycle, f₈ 0-10 (default 5), the minor merger, the crossing (`crossingKick`, `crossingBonus`), planets and companions (parallels, the `Companion` table). |
+| `eye/field/MagnetarCollapseOverlay` | T6 → T7: overfeed (WDM 61.44 + BDM 15.36 L/s, Ω and Π +2·t/300, countdown at 270), the collapse at 300 (shock − 10 per Bu/t above D₇, Integrity −20, the tier becomes T7, a forced merger at +450), and the halo capture (60 s Stable within 420-600). It has `demand()`, `normDemand()` and `predictedShock(G)`. |
+| `eye/field/GalacticMergerOverlay` | T7 → T8: `begin(s)` (3 sign draws, events held), passes at 600 / 1,200 / 1,800 (W ±12, P +5 for 5 s, warned 60 s ahead), the tier becomes T8 at 600 (Λ and its gain ramp in), Ergomatter 5 L/s, a 120 s Stable streak within 300 s, then `light()`. It has `demand()`, `ramp()`, `warnedPass()` and `restore(..)`. |
+| `eye/field/PlanetSlots` | Planets mode: `tick(tier, zone, m)` returns the finished `Run`s (parallel 2^(N − k), success (1 − 0.05R) × field factor). Also `failRuns()` and `anyIdle(tier)`. |
+| `directive/QuasarDirective` | `disc(State, w)`: the Disc set. |
+| `directive/GalaxyDirective` | `field`, `events`, `transition` (with the collapse-assist schedule), `ready`, `slots` and `testFireWanted`. |
+| `directive/DirectiveSet` | The new sets, appended: QUASAR_DISC (host QUASAR), EYE_FIELD, EYE_EVENTS, EYE_GALAXY_TRANSITION and EYE_SLOTS. The Eye's built Transition set is unchanged (P4-17). |
+
+**StepInputs / StepResult additions** (the Eye unit's side):
+
+- In: `beta`, `gHi`, `gLo`, `gHalo` (β and γ, normalised by D·m·p, halo test fire excluded), `gEye` (raw Bu/t, for
+  the collapse shock), `f8` (L/s per parallel), `companions`.
+- Out: `cycleMeanY`, `cycleRMin` (companion products are base × 2^(N−1−k) × mY × rMin), `companionCycle`, `ergoFed` /
+  `ergoToDraw`, `crossingWarned` / `Hit` / `Caught` / `Missed` / `Bonus`, `countdown`, `wdmCharged` / `bdmCharged` /
+  `ergoCharged` (a transition's charge, taken even on its failing second), `collapsed`, `merged`.
+- `Overlay` gains `running()` (false only on NONE), `drift(t, s, in)`, `sigma(t, k, in)` and `addEvents(s, in, E, q,
+  out)`. T1-T6 overlays are untouched.
+- `FieldState` gains `prec` and `tde` (Crossing), and `Cycle.bSum` / `Cycle.f8`. `x` and `prevE` are 6 long. **The Eye
+  unit must save** `prec`, `tde` (next, left, warned, ok, tau, n, caught), `x[4..5]`, `prevE[4..5]`, `cyc.bSum` and
+  `cyc.f8`, and each overlay's phase, st, streak (and, for the merger, its signs) to NBT.
+
+**Contracts between the engine and the MTE units:**
+
+- **Quasar unit (28120).** Each second, if the hole is OPEN or REFORM:
+  1. `medd = QuasarParams.eddingtonFeed(M, gas)`; drain up to `f·medd` L of gas from the `h` sockets into
+     `in.gasDrawn`.
+  2. Drain `coilEUt(min(b, coil))` and set `powerOk`.
+  3. Read the `t` sockets into the trim units (the litres come out of `QuasarResult`).
+  4. Call `QuasarDisc.step`, then push `result.jet` into each jet port's dock. A port with no formed dock vents.
+  5. A Burst Control Hatch rising edge (or OpenComputers `purge()`) calls `requestPurge()`. In b mode the hatch sets
+     the b setpoint to 0.5 + (tier − 0.5)·s/15.
+  6. Directive hatches: `QuasarDirective.disc` with the hatch's window. The state is `lagE`, `lagPhi`, the GUI's purge
+     setpoint, open, `b`, the vented Bu/t, and conduit-open.
+  7. Save the whole `QuasarState` (and M, a on the item). Seed new holes with `seed(64, SEED_SPIN)` (P4-16).
+- **Conduit / crown units.** Use `BurstRouting` for every cap, upkeep, split and level. The crown's EU/t is
+  `crownEUt(min(stream, cap))`, pushed to wireless.
+- **Receptor / host units.** Each GRB Receptor Port records last second's Bu/t per source. A host rolls a `BurstLink`
+  per milestone:
+  - Eye T6 Stability Link: roll the rail total, with the rail-high part.
+  - Eye T7 Heavy Link: roll the Eye total, with the halo part.
+  - Other hosts read `BurstLink.sigma`.
+- **Eye unit.**
+  - Fill the StepInputs above from the receptor groups.
+  - Use `TierParams.of(n, planets)`.
+  - Run the transitions through `MagnetarCollapseOverlay` (shock 120, P4-21) and `GalacticMergerOverlay`.
+  - Apply the StepResult extras: Magnetar Matter 7.5 L per cycle at T7, Ergomatter `ergoToDraw`, the crossing bonus,
+    companion upkeep and products from `GalaxyField.Companion`, and planet runs from `PlanetSlots`.
+  - Codes for the new sets come from `GalaxyDirective`, with `testFireWanted` for Slots [8] (P4-18).
+- **Directive Hatch tooltip** (rule 14). The P4 sets are selectable now and read 0 until their host reports them. The
+  hatch's tooltip must gain the P4 tables when the hosts land (shift-expansion; `docs/p4-questbook-contract.md` has the
+  text).

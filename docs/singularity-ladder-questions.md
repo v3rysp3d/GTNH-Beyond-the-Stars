@@ -3139,3 +3139,127 @@ one shape serves both. The offsets of the second crown's controller are in `mani
 - The quasar is 161 tall, not the mockup title's 162, because the y 81 hatches are gone.
 - The Eye's T7 rail adds 15,432 blocks and the T8 halo adds 3,709.
 - All fit BlockRenderer6343's y 0-255.
+
+### P4-14 One engine definition for both prototypes [engine]
+
+**Context.** The P4 prototype carried its own copy of the D-49 ENGINE block, taken before the T6 Agent ruling (the
+upkeep charges the shield, +2r per s). The star-lifecycle prototype had the ruling but not the P4 hooks.
+
+**Built.** One ENGINE block, the same text in both pages (design repo 330e4df): the P4 hooks (W and Λ, per-gauge σ,
+burst terms, per-second and cycle hooks, the satellite crossing, the galaxy transitions) plus the +2r shield. The T7/T8
+tier tables, the quasar and the conduit stay in the P4 page's P4 block, cut to `tools/fixtures/quasar-engine.js`. The
+golden tools check the engine sha on both pages. The 78 T1-T6 expectations are unchanged byte for byte.
+
+**Consequence.** The P4 page's T6 numbers now include the +2r charge. The T6 → T7 chain still reaches T7 on every
+seed (3 of 3 in the golden, 5 of 5 in the rig proof).
+
+**Suggestion.** Keep this.
+
+**Alternatives.** Copy the P4 block into the star-lifecycle page too. That gives two copies to keep in step.
+
+### P4-15 The golden relights with the engine's relight() [engine]
+
+**Context.** The local work folder harness that produced the doc's tables relit a lost Eye inline: no `light()`, so no new
+event draw and no new cycle charge. The T1-T6 golden tool calls the engine's `relight(S)`.
+
+**Built.** `tools/quasar-golden.js` calls `relight(S)`, as the T1-T6 tool does and as the page's button does. Runs
+with no failures match the doc's tables exactly: T7 standard 84 / 16 % Resonant / Stable with Y 1.21; T8 at 120 SM
+has 1, 0 and 0 failures with Y 1.13. Runs with failures differ slightly from the doc's counts.
+
+**Suggestion.** Keep this. The doc's failure counts are illustrations, and the golden pins the engine.
+
+### P4-16 A seeded hole starts at a = 0 [engine]
+
+**Context.** §1.1 seeds the hole at 64 SM with a = 0. The prototype and every simulated table start at a_eq (about
+0.5 at coil 3). With a = 0, G0 = λc·a²·b²·(M/64)² is 0 at first, and a relaxes over 1,800 s.
+
+**Built.** `QuasarState.seed(M0, a0)` takes the spin. The MTE should pass `QuasarParams.SEED_SPIN` (0), per the doc.
+The golden passes a_eq, as the prototype does. First Light comes in the first seconds because G > 0 as soon as a > 0.
+Full output takes about an hour of spin-up.
+
+**Suggestion.** Keep a = 0, and show "spinning up" in the GUI while a < 0.9·a_eq.
+
+**Alternatives.** Seed at a_eq, which matches the simulated tables from the first second.
+
+### P4-17 The Eye's galaxy transitions get their own Directive set [engine + automation]
+
+**Context.** §8.1's Transition set gives bits 3 and 4 as "purge now" and "hold" (the collapse assist). The built Eye
+Transition set (automation pass, B-70) already uses bits 3 and 4 for "next core wanted" and "Tachyon wanted" on
+T1-T6. The Magnetar Collapse starts from T6, so the two tables would collide on the same tier.
+
+**Built.** A new set, **Eye: Galaxy Transition** (`EYE_GALAXY_TRANSITION`): [1] ready to begin, [2] running, [4] purge
+now, [8] hold the regulator's purges. The built Eye Transition set is unchanged. The other P4 sets are also new:
+Quasar: Disc (with a new host, QUASAR), Eye: Field, Eye: Events and Eye: Slots. They are appended to `DirectiveSet`,
+whose NBT keeps names. The bit rules are `QuasarDirective.disc` and the `GalaxyDirective` functions.
+
+**Suggestion.** Keep this. A rig picks the set it needs, and nothing that is built changes.
+
+**Alternatives.** Make the Transition set's bits 3 and 4 depend on the tier, as the Trims set does. Labels would change
+under a running rig.
+
+### P4-18 Slots bit 4 is "link test fire wanted" for both links [engine + automation]
+
+**Context.** F-6 says the Stability Link at T6 needs J1 at centre 1.0, "everything to the Eye". §8.1's Slots [8] is
+"Heavy Link wanted" at T7 only. An unattended chain from T6 would leave J1 at centre 1.0 after the collapse. That
+over-delivers at T7: on the all-binary wiring the galaxy runs Stable instead of Resonant.
+
+**Built.** `GalaxyDirective.testFireWanted` sets Slots [8] while the next link is not held and its core and charge are
+in place:
+
+- At T6 it asks for the Stability Link. The rig forces J1 to 15.
+- At T7 it asks for the Heavy Link. J1 goes to 15 and J3 to its 75 % preset, as in F-7.
+
+J1 keeps the standard centre 0.5 through the whole chain. The rig proof runs 5 of 5 on both chains.
+
+**Suggestion.** Keep this. Questbook: "wire Slots [8] to J1's Burst Control Hatch (OR) and to J3's 75 % preset".
+
+**Alternatives.** Keep the bit T7-only. The player then sets J1's centre to 1.0 at T6 and back to 0.5 after the
+collapse.
+
+### P4-19 The Events set stays 0 below T7 [engine]
+
+**Context.** §8.1 lists the collapse among the Events countdowns. The prototype computes Events only at T7+, so the
+T6 collapse countdown does not show there.
+
+**Built.** As the prototype. During the overfeed the collapse countdown shows on the Galaxy Transition set as the hold
+window ([8] from T−80 s) and on the field's warning (the T6 Status set's "event warned" bit).
+
+**Suggestion.** Keep this. Nothing in the standard rig reads it.
+
+**Alternatives.** Raise Events [4] at T6 during the countdown. That needs a prototype change and a new golden.
+
+### P4-20 Purges are edges and latches in the mod [engine]
+
+**Context.** The prototype's regulator purges in any second where the condition holds (Φ at the setpoint and not held),
+and the collapse assist sets a force flag. In the mod a purge is a rising redstone edge on the Burst Control Hatch, or
+an OpenComputers call.
+
+**Built.** `QuasarState.requestPurge()` latches a request. The next disc second that is not re-forming consumes it,
+and a purge below Φ 20 is refused (`purgeRefused`). The golden passes the regulator as `QuasarInputs.regulatorPurge`
+(level), exactly like the prototype. The rig proof wires the hatch's rising edge. The results are the same, because a
+purge resets Φ, so the condition drops the next second.
+
+**Suggestion.** Keep this.
+
+### P4-21 The collapse shock: 80 in the golden, 120 in the rig proof [engine]
+
+**Context.** The prototype's default shock is +80. F-2 recommends +120, the value the doc's assist proof used.
+
+**Built.** `MagnetarCollapseOverlay.DEFAULT_SHOCK` is the adopted +120, and `PROTOTYPE_SHOCK` is 80, the same
+pattern as the Core Collapse's adopted 150 against the prototype's 90. The golden uses 80, and `QuasarRigSim` uses 120.
+The plain-rig golden case (assist off, +120) loses the magnetar, as F-2 says.
+
+**Suggestion.** Keep +120. The Eye unit constructs the overlay with `DEFAULT_SHOCK`.
+
+### P4-22 Additions that are not in the prototype [engine]
+
+**Built.** None of these draw from the RNG or touch the golden numbers:
+
+- The hole states NONE and DORMANT (§1.1's Collapse and re-open). A dormant hole is frozen and draws no coil power.
+- The mass milestones 128 / 415 / 1,024 / 4,096 SM (§5.1).
+- `purgeRefused`, `massCapped` and the readouts in `QuasarResult`.
+- `BurstLink.sigma` and the host demands for the Kerr, the Homogeny and Reality Diffraction (R.2). Their effects (bleed
+  ×(1 − 0.75·min(σ, 1)), the speed bonuses) belong to the host units.
+- The parallel p in the T7/T8 feed, product and bonus. It is 1 in the prototype, where the forms are identical.
+
+**Suggestion.** Keep this.
