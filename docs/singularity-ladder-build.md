@@ -103,6 +103,20 @@ the coremod's BHC entries on every bump.
 
 ## What's in the build (2026-10-12, addon 457bbf8)
 
+### Automation pass (ruling 18, 2026-10-13)
+
+Every action on the Eye and the Kerr now has an AE2, redstone, OpenComputers and Steve's Factory Manager route
+([`automation.md`](automation.md); question B-70):
+
+- **Directive Hatch, MTE 28127** (`machines/directive`, recipe SL-A01 at UIV): a Degasser-style 4-bit redstone code per
+  set (Eye Trims / Status / Transition, Kerr Hole / Status), or a control input that sets the Kerr mass setpoint, the
+  Eye time dial or the HSM feed. It fits the Eye's Sensor sockets and the KEE's utility sockets (no structure change).
+- **Eye plinth-bus pickups:** the next transition core goes into escrow, and a star chart goes into the controller slot.
+- **OpenComputers** (soft dependency): Adapter components `bts_eye`, `bts_kerr`, `bts_kerr_module`, `bts_sensor`,
+  `bts_directive` over `integration/BTSComputerApi`.
+- **Proof:** `DirectiveRigSim` (offline) and the dev-server bench (`autorig`, `ocloop`, `ctrl`, `ocprobe`): Eye T1 to T4
+  climbed and held on redstone bits alone; the Kerr was fed and opened from empty buses.
+
 ### BEC expansion (ruling 11b, 2026-10-13)
 
 Much more of the ladder now runs through RC-2's Bose-Einstein Condensate system (designs/docs/bec-expansion-proposal.md,
@@ -724,8 +738,10 @@ Q-12). The interim BDM recipe registers only if `Config.interimBlackDwarfAtEyeT4
 |---|---|---|
 | 28114 | base+14 | **Kerr Ergosphere Engine**: `multimachine.beyondthestars.kerrengine` (P2) |
 | 28115 | base+15 | **Eye of Harmony**: `multimachine.beyondthestars.eyeofharmony` (P3) |
-| 28116-28119 | base+16..19 | reserved for P2/P3 spares (none planned; module sockets use GT hatches) |
-| 28120-28129 | base+20..29 | P4: Quasar Engine 28120, Wormhole Mouth 28121, Conduit Mirror 28122, Conduit Junction 28123, Burst Thermaliser Crown Mk I/II/III 28124-28126, spare 28127-28129 |
+| 28116 | base+16 | **Stellar Field Sensor Hatch** (D-49) |
+| 28117-28118 | base+17..18 | **Kerr Compressor Module**, **Kerr Extractor Module** (Kerr redesign) |
+| 28119 | base+19 | spare (the next Kerr module) |
+| 28120-28129 | base+20..29 | P4: Quasar Engine 28120, Wormhole Mouth 28121, Conduit Mirror 28122, Conduit Junction 28123, Burst Thermaliser Crown Mk I/II/III 28124-28126, **Directive Hatch 28127** (built by the automation pass: one hatch for the Eye, the Kerr and the Quasar), spare 28128-28129 |
 | 28130-28134 | base+30..34 | ON HOLD: Homogeny 28130, Reality Diffraction 28131, Reality Refab 28132, spare 28133-28134 |
 | 28135-28139 | base+35..39 | spare |
 

@@ -2418,6 +2418,124 @@ which reads `verdicts.json` and the 1024-px JPEG copies in `thumbs/`.
 3. **Downscaled to 1024 × 576 JPEG, quality 80** (4.6 MB of images), so the page stays well under 12 MB while
    keeping close-up detail. The full-size PNGs stay in `round4/`.
 
+### B-70 Automation pass: the Directive Hatch, OpenComputers, plinth-bus pickups and the unattended proof [automation pass, built]
+
+**Context.** Ruling 18: every player action on every system must have a working route through AE2, redstone and
+logic gates, OpenComputers and Steve's Factory Manager, with detection hatches including a "degasser-style"
+binary-coded one. This pass covers what is on master: the Eye of Harmony (D-49, T1-T6) and the Kerr Ergosphere
+Engine with its modules. `docs/automation.md` has the bit tables, the route matrix for every action, the
+OpenComputers methods, the minimal rigs and a questbook section to copy.
+
+**What was built.**
+
+- **Directive Hatch, MTE 28127** (`machines/directive`). Once a second its machine pushes a 4-bit code. The hatch
+  outputs the code, one bit, or "any bit" (with invert) on every side, and a comparator reads the raw code. Control
+  sets turn it into a redstone input for a setpoint. It goes in the Eye's Sensor sockets (`n`) and the KEE's utility
+  sockets (`u`), so no structure changed. Recipe SL-A01: an Assembler at UIV. Overlay textures come from
+  `gen-sl-textures.js`. The bit tables are in its tooltip.
+- **Eye plinth-bus pickups.** The next transition core in a plinth input bus goes into the escrow. A star chart in a
+  plain plinth bus goes into the controller slot, and the old target leaves through the ME output bus.
+- **OpenComputers**, a soft dependency. It compiles against OpenComputers 1.12.61's API jar, and the driver is
+  registered only if the mod is loaded. Adapter components: `bts_eye`, `bts_kerr`, `bts_kerr_module`, `bts_sensor`
+  and `bts_directive`. They are thin wrappers over `BTSComputerApi`, which calls the GUI's own setters.
+- **The creative builds** now fit Directive Hatches: Eye Trims / Status / Transition in three Sensor sockets, and Kerr
+  Hole / Status in two utility sockets. The kits hand some out.
+- **The proof.** `DirectiveRigSim` is a plain-JDK offline run. The dev-server bench adds
+  `/btseye star … directive | autorig <s> [cut <k>] | ocloop` and
+  `/btskerr autorig | ocloop | ctrl on|off|out | ocprobe`.
+
+**Judgement calls (built, PROPOSED):**
+
+1. **One hatch MTE for every host, on 28127** (P4's reserved id, P4's Q-19 recommendation). Its set is picked in its
+   GUI, and a hatch adopts its machine's first set when placed. The P4 Quasar adds its sets (Disc, Field, Events,
+   Transition, Slots) to `DirectiveSet`; the enum is saved by name. *Alternative:* one MTE per host.
+2. **The code is a bitmask, as on the Degasser.** Several bits can be on at once, and each bit names one thing
+   wanted now. It is not a single enumerated "most needed" number: an enumeration cannot drive two valves at once and
+   needs a decoder for every use. *Alternative:* add a "Priority" set whose value 0-15 names the single most urgent
+   action.
+3. **Output modes are Code / Bit n / Any (+ invert), not P4's "split: bit n on face n".** A hatch in a socket shows
+   one open face, so a per-face split would show a single bit. Instead, one hatch per bit in Bit mode, or one hatch
+   in Code mode decoded with comparators or SFM's analog redstone conditions. *Alternative:* add Split for hatches
+   with several open faces.
+4. **The Eye's sets.**
+   - **Trims:** one bit per trim, in the star's trim-table order. A bit is on when the prototype's bang-bang rule
+     with threshold w asks for that trim. The default w is 10, the bang-bang threshold the D-49 tests use; P4 suggests
+     5 for T7+.
+   - **Status:** buffers short, ignition charge wanted, event, alarm.
+   - **Transition:** ready, running, next core wanted, Tachyon wanted.
+   - The T6 magnetar's fifth trim (the Agent) shares Status bit 3 with "event warned". That bit is a T3 flash or a
+     T6 flare, and either way it means open the event valve.
+   - **Transition bit 4 changed after the first dev-server run.** It was "dark, waiting". Then the rig poured
+     Tachyon all through the Mass Infusion and the Shell Ignition, because bit 2 "running" was its only cue. It is
+     now **Tachyon wanted**: the Core Collapse is fast-forwarding, or the dial is set above 1 and could not be paid.
+5. **The Kerr's sets.**
+   - **Hole** uses the task's four conditions: closed; more than 1 SM below the setpoint; bolts short; more than
+     1 SM above the setpoint.
+   - **Status:** containment power short, no Seed while closed, unstable, not formed.
+   - **"Bolts short"** means the bolt stock lasts less than w minutes at the current bleed (default 10).
+6. **Control sets.** Redstone 1-15 into a Directive Hatch sets the Kerr mass setpoint (2 SM to the tier's top), the
+   Eye's time dial (1.00-3.00 in 0.25 steps) or the HSM feed (0-1.5 L/s). The mapping is linear. Strength 0 leaves the
+   GUI's value, so an unwired control hatch changes nothing. This gives setpoints an AE2 route (a level emitter) and an
+   SFM route (an analog emitter), not only OpenComputers. *Alternative:* setpoints by GUI and OpenComputers only, as P4
+   has for f₈.
+7. **The plinth-bus pickups change the Eye's input behaviour.** They react only to a transition core or a star chart
+   put into a plinth input bus.
+   - A wrong core stays in the bus.
+   - Charts are taken from plain buses only. An ME stocking bus would show its configured chart every second and swap
+     back and forth.
+   - Only one chart is taken a second. The docs say to put ONE in at a time.
+   - Swapping a chart this way follows the same rules as by hand: the next tier's chart while the star burns starts
+     the transition; any other chart puts the star out.
+   - *Alternative:* chart swaps by hand or OpenComputers only. Climbing tiers unattended would then need a player at
+     each step.
+8. **The recipe is at UIV, not P4's UXV card.** The Kerr (UIV) needs the hatch from day one. The Stellar Field Sensor
+   Hatch stays an Eye-only UMV Condensate Assembler part. *Alternative:* a BEC recipe at UMV, and a cheaper Kerr-only
+   variant.
+9. **OpenComputers uses an Adapter driver, not SimpleComponent.** Our machines are GT tiles (BaseMetaTileEntity), so a
+   block driver is the clean route; P4 assumed this too.
+   - Setters exist only where the GUI has one, with the same clamps. Open and Collapse still need the Seed or
+     Collapser in a bolt bus.
+   - There is no 20-tick rate limit: there is no trim setter to race the field's 1 s lag. P4's limit is for its own
+     trim setters.
+   - `runServer` now also loads OpenComputers (dev-only, `runtimeOnlyNonPublishable`), so the driver registration is
+     tested headless.
+10. **Status bit 1 also counts the next transition's fluids** (its event fluids and its new star's first cycle), but
+    only once the core is in escrow. An AE2 level maintainer on bit 1 therefore stocks a transition too.
+11. **The bench's milestones were completed by command** (`milestones n done`). Milestones are hours of play, not an
+    automation step. Everything after that (the core, the chart, the transition and its doses) was done by the rig.
+
+**Results.**
+
+*Offline* (`DirectiveRigSim 4 5`: 4 h x 5 seeds per case, with valves only on Directive bits, a second late):
+
+- **T1-T6:** 0 stars lost on the gate rig and on the prototype's bang-bang rig. The yields are equal; T3 differs
+  by 0.003.
+- **T1, T2 and T4:** the gate rig asks for exactly the bang-bang trims every second (0 differing seconds).
+- **Core Collapse (begun on Transition bit 1, Tachyon on bit 4):** 5 / 5 settled.
+- **Kerr:** 5 cases (T1 / T2; SpaceTime, Neutronium and Infinity bolts; setpoints 16-512; from a closed hole). Every
+  case had 0 evaporations, and the OpenComputers-style setter loop reached 64 and 512 SM.
+- **FieldSim golden:** still 78 / 78.
+
+*Dev server* (headless `runServer`, RC-2 deps plus OpenComputers; Eye T4 structure at (44000, 100, 0), unlocked set
+to T1, buffers empty; Kerr T1 at (12800, 100, 10000); boot log "252 registered, 0 skipped" and the OpenComputers line):
+
+| Step | Result |
+|---|---|
+| T1 from a dark, empty Eye | Status bit 1 stocked the buffers, bit 2 put in a charge, Sol lit; 860 s burning, 829 Resonant |
+| T1 → T2 (milestones set) | Transition bit 3 put the Stellar Mass Core in the bus (taken into escrow), bit 1 put Sirius A's chart in (swapped into the slot), Mass Infusion completed in 600 s, no Tachyon poured |
+| T2 → T3 | Shell Ignition completed in 604 s; the forced flash rode on Status bit 3 (17 s of the event valve) |
+| T3 → T4 | Core Collapse completed in 1,002 s; Tachyon on Transition bit 4 for exactly the 940 s of fast-forward |
+| T4, 4 h | 14,400 s burning, 0 lost, 61 % Resonant |
+| T4 lost (valves held shut), then left to the rig | Breach; Status bit 2 put in a charge, Arcturus relit and the Core Collapse re-ran with no core: the neutron star was back |
+| Kerr from emptied bolt buses and a closed hole, 1 h | The rig put in 1 Seed and 4,176 SpaceTime bolts; open 3,600 s, never closed, 16.08 SM at setpoint 16 |
+| Real redstone (`ctrl out`) | The world read 4 at the Hole hatch's face (bolts short), and 11 inverted; the comparator read 4 |
+| Control set with a redstone block (`ctrl on/off`) | The hatch read 15; the setpoint went from 16 to 64 SM |
+| `ocloop` (the calls behind the OpenComputers components) | setDial 2.1 → 2.0, 9 → 3.0, 0 → 1.0; setFeed 2 → 1.5, −1 → 0; setSetpoint 100000 → 64, 1 → 2; collapse() / open() refused without a Collapser / Seed, accepted with one; getDirective rejects another machine's set |
+| `ocprobe` (OpenComputers' own driver registry) | A compound driver for the Eye, the KEE, a Directive Hatch and a Kerr module, with our components bts_eye, bts_kerr, bts_directive and bts_kerr_module and their callbacks; no driver for a plain casing |
+
+**Not covered.** A real computer running Lua (the console has no computer). An AE2 network or a Factory Manager in a
+world (the routes go through plain GT hatches, which those mods already drive). The hatch GUI in a client.
+
 ---
 
 ## Part C. Settled (for the record)
