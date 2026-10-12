@@ -1237,9 +1237,9 @@ public final class RecClient {
         void start(long now) {
             try {
                 final ItemStack projector = new ItemStack(StructureLibAPI.getDefaultHologramItem(), Math.max(1, tier));
-                final boolean ok = ConstructableUtility
-                    .handle(projector, mc.thePlayer, mc.theWorld, p[0], p[1], p[2], 1);
-                say("    hints " + (ok ? "shown" : "NOT shown (nothing constructable there on the client?)"));
+                ConstructableUtility.handle(projector, mc.thePlayer, mc.theWorld, p[0], p[1], p[2], 1);
+                // (on the client handle() returns false even when the hints are shown)
+                say("    hints requested");
             } catch (RuntimeException | LinkageError bad) {
                 say("    hints FAILED: " + bad);
             }
