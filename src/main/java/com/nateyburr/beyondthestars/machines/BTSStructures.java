@@ -1,11 +1,22 @@
 package com.nateyburr.beyondthestars.machines;
 
-import java.util.List;
+import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
+import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofChain;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.ToIntFunction;
+
+import net.minecraft.block.Block;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 
+import com.gtnewhorizon.structurelib.alignment.constructable.ChannelDataAccessor;
 import com.gtnewhorizon.structurelib.structure.AutoPlaceEnvironment;
+import com.gtnewhorizon.structurelib.structure.IItemSource;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
 
 /**
@@ -26,6 +37,11 @@ import com.gtnewhorizon.structurelib.structure.IStructureElement;
  * {@code buildHatchAdder} do not need it - they already refuse to overwrite - but the casing they
  * chain to does, and {@code ofChain} returns at the FIRST fallback whose {@code placeBlock}
  * answers true, so the casing half is exactly the half that would do the damage.
+ * <p>
+ * <b>NEI.</b> The wrapper also forwards {@code getBlocksToPlace}: the NEI multiblock preview
+ * (BlockRenderer6343) cannot see through an unknown element class and asks it for its blocks
+ * directly, so without the forward every wrapped casing would be missing from NEI's "used in
+ * multiblock" index.
  */
 public final class BTSStructures {
 
@@ -46,6 +62,11 @@ public final class BTSStructures {
             }
 
             @Override
+            public boolean couldBeValid(T t, World world, int x, int y, int z, ItemStack trigger) {
+                return base.couldBeValid(t, world, x, y, z, trigger);
+            }
+
+            @Override
             public boolean spawnHint(T t, World world, int x, int y, int z, ItemStack trigger) {
                 return base.spawnHint(t, world, x, y, z, trigger);
             }
@@ -62,11 +83,142 @@ public final class BTSStructures {
             }
 
             @Override
+            public BlocksToPlace getBlocksToPlace(T t, World world, int x, int y, int z, ItemStack trigger,
+                AutoPlaceEnvironment env) {
+                return base.getBlocksToPlace(t, world, x, y, z, trigger, env);
+            }
+
+            @Override
             public PlaceResult survivalPlaceBlock(T t, World world, int x, int y, int z, ItemStack trigger,
                 AutoPlaceEnvironment env) {
                 if (standsOnTile(world, x, y, z)) return PlaceResult.SKIP;
                 return base.survivalPlaceBlock(t, world, x, y, z, trigger, env);
             }
+
+            @Override
+            public PlaceResult survivalPlaceBlock(T t, World world, int x, int y, int z, ItemStack trigger,
+                IItemSource source, EntityPlayerMP actor, Consumer<IChatComponent> chatter) {
+                if (standsOnTile(world, x, y, z)) return PlaceResult.SKIP;
+                return base.survivalPlaceBlock(t, world, x, y, z, trigger, source, actor, chatter);
+            }
         };
+    }
+
+    /**
+     * A tiered block that the WALK accepts at any tier (the caller's {@code walk}, typically an
+     * {@code ofChain} of {@code onElementPass} elements that records the lowest tier it meets),
+     * while every BUILD path places one wanted tier and never downgrades:
+     * <ul>
+     * <li>{@code wanted} maps the trigger stack to an index into {@code metas} (low to high). It must
+     * read the trigger only, never server state: holograms run client-side (trap 1).</li>
+     * <li><b>Hologram hints</b> show the wanted tier.</li>
+     * <li><b>Creative build</b> places the wanted tier, but keeps a cell that already holds this
+     * block at the wanted tier or higher (so re-projecting over upgraded parts never downgrades
+     * them) and never writes into a tile entity.</li>
+     * <li><b>Survival auto-place</b> skips a cell that already holds the wanted tier or higher, and
+     * otherwise places the wanted tier or, if the player has none, the next higher tier they do
+     * have. A cell holding a LOWER tier is left alone (auto-place never breaks blocks); the player
+     * swaps it by hand.</li>
+     * </ul>
+     *
+     * @param block  the tiered block
+     * @param metas  its metas, lowest tier first
+     * @param walk   the element the structure check uses
+     * @param wanted trigger stack to the wanted index into {@code metas}, clamped to the range
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> IStructureElement<T> tieredBlock(Block block, int[] metas, IStructureElement<T> walk,
+        ToIntFunction<ItemStack> wanted) {
+        final int n = metas.length;
+        final IStructureElement<T>[] place = new IStructureElement[n];
+        for (int i = 0; i < n; i++) {
+            place[i] = noOverwrite(ofBlock(block, metas[i]));
+        }
+        // chains[i] = place[i], place[i + 1], ..., place[n - 1]: survival takes the first tier the
+        // player can supply, and the chain only forwards "missing block" chat if all of them fail.
+        final IStructureElement<T>[] chains = new IStructureElement[n];
+        for (int i = 0; i < n; i++) {
+            chains[i] = ofChain(Arrays.copyOfRange(place, i, n));
+        }
+        return new IStructureElement<T>() {
+
+            private int want(ItemStack trigger) {
+                return Math.max(0, Math.min(n - 1, wanted.applyAsInt(trigger)));
+            }
+
+            /** The tier index standing in the cell, or -1 if the cell holds something else. */
+            private int present(World world, int x, int y, int z) {
+                if (world.getBlock(x, y, z) != block) return -1;
+                final int meta = world.getBlockMetadata(x, y, z);
+                for (int i = 0; i < n; i++) {
+                    if (metas[i] == meta) return i;
+                }
+                return -1;
+            }
+
+            @Override
+            public boolean check(T t, World world, int x, int y, int z) {
+                return walk.check(t, world, x, y, z);
+            }
+
+            @Override
+            public boolean couldBeValid(T t, World world, int x, int y, int z, ItemStack trigger) {
+                return walk.couldBeValid(t, world, x, y, z, trigger);
+            }
+
+            @Override
+            public List<String> getDescription(T t) {
+                return walk.getDescription(t);
+            }
+
+            @Override
+            public boolean spawnHint(T t, World world, int x, int y, int z, ItemStack trigger) {
+                return place[want(trigger)].spawnHint(t, world, x, y, z, trigger);
+            }
+
+            @Override
+            public boolean placeBlock(T t, World world, int x, int y, int z, ItemStack trigger) {
+                final int w = want(trigger);
+                if (present(world, x, y, z) >= w) return true;
+                return place[w].placeBlock(t, world, x, y, z, trigger);
+            }
+
+            @Override
+            public BlocksToPlace getBlocksToPlace(T t, World world, int x, int y, int z, ItemStack trigger,
+                AutoPlaceEnvironment env) {
+                return place[want(trigger)].getBlocksToPlace(t, world, x, y, z, trigger, env);
+            }
+
+            @Override
+            public PlaceResult survivalPlaceBlock(T t, World world, int x, int y, int z, ItemStack trigger,
+                AutoPlaceEnvironment env) {
+                if (standsOnTile(world, x, y, z)) return PlaceResult.SKIP;
+                final int w = want(trigger);
+                if (present(world, x, y, z) >= w) return PlaceResult.SKIP;
+                return chains[w].survivalPlaceBlock(t, world, x, y, z, trigger, env);
+            }
+        };
+    }
+
+    /**
+     * A StructureLib channel's value on the trigger as a 0-based tier index (channel value 1 = index
+     * 0), or {@code fallback} when the trigger does not set the channel. Channels are set on the
+     * Multiblock Structure Projector (its channel screen) and by the NEI preview.
+     */
+    public static int channelIndex(ItemStack trigger, String channel, int fallback) {
+        if (trigger == null || !ChannelDataAccessor.hasSubChannel(trigger, channel)) return fallback;
+        return ChannelDataAccessor.getChannelData(trigger, channel) - 1;
+    }
+
+    /**
+     * The per-round survival auto-place budget for a structure of tens of thousands of blocks.
+     * StructureLib's default round is 25 elements every 300 ms, which would take minutes per
+     * thousand blocks; GT's largest multis (TecTech's Eye of Harmony among them) scale a small
+     * budget up, and this is the same rule with a factor sized for our structures: 25 becomes 200.
+     * A budget already at 200 or more (a raised config, or NEI's preview, which passes
+     * {@code Integer.MAX_VALUE}) is used as is.
+     */
+    public static int survivalBudget(int elementBudget) {
+        return elementBudget >= 200 ? elementBudget : Math.min(200, elementBudget * 8);
     }
 }
