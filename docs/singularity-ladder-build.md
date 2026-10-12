@@ -75,7 +75,9 @@ MTE ids 28100-28139 are still free in RC-2 (enum and bytecode scan).
   `replaceTecTechEyeOfHarmony=true`). **SL-P30..P32 are retired**: RC-2 prices the generators itself (BEC, no tier
   upgrade chain) and the ruling keeps those costs. SL-P29 stays (RC-2's Boundary casing costs a whole LSC). SL-P27/P28 are
   retired by ruling 11a: RC-2's own Condensate Assembler recipes for the Spatial / Temporal casings output x32 instead
-  of x4, rewritten at load-complete (SL-B01/B02, `BTSRecipesBEC`, whatever the flags say).
+  of x4, rewritten at load-complete (SL-B01/B02, `BTSRecipesBEC`, whatever the flags say). It is their only recipe in
+  RC-2, so if no BEC recipe makes a casing, SL-B03/B04 register RC-2's own recipe at x32, and if that cannot be built
+  the old SL-P27/P28 Assembler bodies return as a last resort (B-60).
 - **TecTech Eye removal** is unchanged: the controller recipe is still a `TTRecipeAdder` assembly line, removed from
   all four places.
 

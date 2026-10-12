@@ -44,7 +44,7 @@ Inputs:
 |---|---|---|---|
 | **Kerr T1** (UIV, replaces the BHC) | **Fair**, a little heavy | It reuses about 70 % of a BHC's own casing bill (2,621 Extreme Density, 639 Background Radiation) and adds an Infinity/SpaceTime body. Coils and quadrupoles are over-priced: 41k SC UIV ingots, 47M L Super Coolant, 448 Particle Beam Guidance Pipe Casings. | Fair: about 1.5× a BHC (#6, #7) |
 | **Kerr T2** (UMV) | **Uncraftable** | SL-K04 needs a Superstable Black Hole Seed. **No recipe for it exists anywhere in the pack** (all 242 mod jars scanned). The reinforcement itself is fair, cheaper than one Godforge ring. | Fair (#1) |
-| **Eye T1** (UMV, replaces TecTech's EOH) | **Far too expensive** | 13,872 TecTech Reinforced Spatial/Temporal casings (TecTech's Eye: 1,430) at 8 Godforge Singularity Shielding casings each, which is **118k Godforge casings = 42 Godforge main rings**. Plus 3,582 Infinite Spacetime Energy Boundary casings (TecTech's: 36), each 1 LSC + 16 Active Transformers. Plus 620 field generators (TecTech's: 354), 294 of them placeholders. **8× TecTech's whole Eye.** | Fair: about TecTech's crude Eye in EU, UXV circuits and assembly-line hours, and ¼ of it in Godforge casings (#3, #4, #5, #12) |
+| **Eye T1** (UMV, replaces TecTech's EOH) | **Far too expensive** | 13,872 TecTech Reinforced Spatial/Temporal casings (TecTech's Eye: 1,430) at 8 Godforge Singularity Shielding casings each, which is **118k Godforge casings = 42 Godforge main rings**. Plus 3,582 Infinite Spacetime Energy Boundary casings (TecTech's: 36), each 1 LSC + 16 Active Transformers. Plus 620 field generators (TecTech's: 354), 294 of them placeholders. **8× TecTech's whole Eye.** | Fair: about TecTech's crude Eye in EU, UXV circuits and assembly-line hours (#4, #5, #12). **Shell since ruling 11a (§4.1):** RC-2's BEC recipe at ×32, about 1.3× TecTech's stock RC-2 shell in Godforge casings and in BEC time; #3's ¼-casing Assembler recipes are retired |
 | **Eye T2** | **Uncraftable** with `replaceTecTechEyeOfHarmony=true` | The 1:1 gate needs tier-2 Spacetime Compression generators. TecTech's recipe takes **2 White Dwarf Matter bolts** each, and WDM's only source is now our Eye T4: circular. The beam band is also over-priced (12.9k UIV/UMV circuits, 114M L Super Coolant). | Fair (#2, #8) |
 | **Eye T3** | **Uncraftable** (as T2) | Tier-3 generators need 8 WDM bolts each. The jet crescent is over-priced (689 TecTech casings, 1,378 coils). | Fair (#2, #9) |
 | **Eye T4** | **Uncraftable** (as T2, plus the HSM chain is blocked by #1) | Tier-4 generators need 32 WDM bolts each. Galactic Shell needs 2.66M L HSM, which is 532 Arcturus runs (about 710 h of an Eye T3). | Fair (#2, #10, #11) |
@@ -172,7 +172,8 @@ always a craftable one, though: the two ✘/⚠ chains above register fine.
 | Beam Band (#8) | 2.5 | 6.3 | 0.6 | 8.7 | 1.7 | 1/16 Spatial casing | 0.5 UMV | 1.9e10 |
 | Jet Crescent (#9) | 5.1 | 2.1 | 0.8 | 8.6 | 2.1 | 1/16 Temporal casing, 4,000 L Raw Star Matter | 0.5 UMV | 2.6e10 |
 | Galactic Shell (#10) | 4.5 | | 1.25 | | 0.5 | 15.6 L HSM | | 6.3e9 |
-| Spatial / Temporal via SL-P27/P28 (#3) | 10.3 | 1 | 8 | 137 | 17 | ¼ Godforge casing (1,024 Bedrockium) | | 3.9e10 |
+| ~~Spatial / Temporal via SL-P27/P28 (#3)~~ retired by ruling 11a | ~~10.3~~ | ~~1~~ | ~~8~~ | ~~137~~ | ~~17~~ | ~~¼ Godforge casing~~ | | ~~3.9e10~~ |
+| Spatial / Temporal via RC-2's BEC recipe at ×32 (SL-B01/B02, ruling 11a) | 4 | | | 16 condensate + 1.5 nanites (consumed) | 4 + 16 condensate | **1 Godforge casing**, 1 dense ProtoHalkonite, ¼ Hexanite block, 4 Bedrockium + 8 Bedrockium condensate, 4 Shirabon, 2 GraviSuite parts, 1/32 UV Solar + Energised Tesseract (+ 1/32 Quantum Chest IV or 1/8 Accelerator UV), 0.3 ingot Space / Time condensate; a **BEC network** (Condensate Assembler, nanites) | | 3.1e12 (1,250 s of a 40,000 s UMV craft) |
 | Boundary via SL-P29 (#4) | | 1 | | 9 | 9 | 1 SC UMV | ½ UIV | 1.9e10 |
 
 ---
@@ -203,6 +204,31 @@ How to read the proposed Eye T1 row:
 - **Gate fluid per tier step:** Eye T2's generators take 3.0M L Raw Star Matter (3 Sol runs), Eye T3's take 753k L
   ESPM (7.5 Sirius A runs), and Eye T4's take 376k L RHSP (7.5 Arcturus runs).
 
+### 4.1 The Spatial / Temporal casings since ruling 11a (supersedes the Eye rows' Godforge column above)
+
+The table above prices every Reinforced Spatial / Temporal Structure Casing through SL-P27/P28 (¼ Godforge casing, an
+Assembler). Ruling 11a retired those: the casings now come only from RC-2's Condensate Assembler recipe, rewritten to
+output ×32 (SL-B01/B02; SL-B03/B04 register the same recipe if a pack moved it). So for the Eye rows, read the Godforge
+column (and add the BEC inputs) from this table instead. Casing counts are from the live shapes (`eye_core`: `U`
+9,390, `Q` 4,704 after the D-49 sockets) plus the generators (1 casing each; a stabilisation generator consumes one
+of each type), SL-E01 with its 6 Pylons (258 Spatial + 162 Temporal) and the band recipes (1/16 casing per Beam Band
+or Jet Crescent). EU and hours are nominal: one Condensate Assembler, 40,000 s at `RECIPE_UMV` per craft of 32.
+
+| Machine tier | Spatial + Temporal casings | BEC crafts | Godforge shield casings | Neutronium nanites (consumed) | Neutronium / Cosmic Neut. condensate (ingots each) | Bedrockium condensate | EU | BEC hours |
+|---|---|---|---|---|---|---|---|---|
+| Eye T1 (core + generators + controller) | 14,936 | 467 | **14,936** (was 3,740) | 22,404 | 239k | 119k | 4.7e16 | 5,186 |
+| Eye T2 increment | 367 | 11.5 | **367** (was 92) | 550 | 5,870 | 2,935 | 1.2e15 | 127 |
+| Eye T3 increment | 360 | 11.3 | **360** (was 90) | 540 | 5,763 | 2,882 | 1.1e15 | 125 |
+| Eye T4 increment | 188 | 5.9 | **188** (was 47) | 282 | 3,008 | 1,504 | 5.9e14 | 65 |
+| **Eye T4 complete** | 15,851 | 495 | **15,851** (was 3,969) ≈ 5.7 Godforge main rings | 23,777 | 254k | 127k | 5.0e16 | 5,504 |
+| REF TecTech's Eye, stock RC-2 (1,430 casings) | 1,430 | 358 | 11,456 | 17,184 | 183k | 92k | 3.6e16 | 3,978 |
+
+RC-2's own compression / dilation generator recipes also take Godforge casings directly; that is RC-2's price for
+every Eye (TecTech's too) and is not in either table. **Verdict: fair.** The Eye T1 shell at ×32 costs about 1.3× TecTech's
+stock RC-2 shell in Godforge casings and in BEC time, for a structure about 10× larger; it is 4× SL-P27/P28's
+shielding bill (my "a bit too cheap") and 1/8 of stock ×4. The Eye now needs a working BEC network before T1,
+as TecTech's does in RC-2. Every other column of §4 (bands, gates, circuits, gate fluids) is unchanged by 11a.
+
 ---
 
 ## 5. Comparison with GTNH multis at the same tier (jar counts)
@@ -226,8 +252,9 @@ Judgement per tier:
   it unlocks. Only #1 is needed.
 - **Eye T1 vs TecTech's Eye.** Today it is 8× TecTech's Eye in Godforge casings and 4.3× in EU, so **too expensive**.
   After #3/#4/#5 it lands at TecTech parity in EU (5.5e15 vs 5.3e15), assembly-line hours (612 vs 606) and UXV
-  circuits (844 vs 498, of which 326 are the controller). It is ¼ of TecTech in Godforge casings (3.7k = 1.3 Godforge
-  main rings). That is right for the bottom tier of a ladder that, unlike TecTech's Eye, needs no Godforge controllers.
+  circuits (844 vs 498, of which 326 are the controller). It was ¼ of TecTech in Godforge casings (3.7k) through
+  SL-P27/P28; since ruling 11a the shell goes through RC-2's BEC at ×32 and is about TecTech's stock RC-2 shell (14.9k
+  vs 11.5k Godforge casings, 4.7e16 vs 3.6e16 EU of BEC time, §4.1). Still no Godforge controllers, unlike TecTech's Eye.
 - **Eye T2-T4 vs Godforge rings / Nano Forge T4.** After the fixes, each step is dominated by TecTech's own generator
   recipes: 3.9 / 5.8 / 7.7 × 10¹⁵ EU and 188 / 188 / 376 UXV circuits. The bands themselves are small (≤ 1e14 EU,
   ≤ 1.4k UMV circuits). The complete Eye T4 is 2.3e16 EU and 1.7k UXV circuits, against the Nano Forge T4's roughly
@@ -263,6 +290,7 @@ against the D-49 redesign (B-18) before they are built.
    - *Why:* the Eye core uses 13,872 of them (TecTech's Eye: 1,430), which is 111k Godforge casings for the shell
      alone. The proposal keeps the exact TecTech blocks and look (my ruling) and keeps the Godforge gate, at
      ¼ casing per block. Alternatives are in B-23.
+   - *Superseded (ruling 11a):* SL-P27/P28 are retired; the casings come from RC-2's BEC recipe at ×32 (§4.1, §9.5).
 4. **New SL-P29** (gated). A batch recipe for TecTech's Infinite Spacetime Energy Boundary Casing.
    - *Current:* TecTech AL ×1: LSC, 16 Active Transformers, 4 UMV wireless hatches, 4,096 Neutronium + 4,096 Cosmic
      Neutronium.
@@ -475,7 +503,7 @@ generators, which the stock EOH needs before it can make anything.
 
 | ID | RC-2 recipe for the same block | Decision |
 |---|---|---|
-| SL-P27 / P28 (Spatial / Temporal ×4) | BEC: 32 Godforge Shielding casings, 32 dense ProtoHalkonite, 8 Hexanite blocks, 48 Neutronium nanites, ... → ×4, 40,000 s | **Kept.** Still 8 Godforge casings per block; our Eye uses 13,872 (B-23). |
+| SL-P27 / P28 (Spatial / Temporal ×4) | BEC: 32 Godforge Shielding casings, 32 dense ProtoHalkonite, 8 Hexanite blocks, 48 Neutronium nanites, ... → ×4, 40,000 s | **Retired (ruling 11a) → SL-B01/B02:** RC-2's BEC recipe rewritten to ×32 at load-complete (1 Godforge casing per block; §4.1). SL-B03/B04 register that recipe at ×32 if a pack moved it, and the old SL-P27/P28 bodies return only if even that cannot be built (B-60). |
 | SL-P29 (Boundary ×8) | BEC: LSC, Lapotronic unit, 16 Active Transformers, 4 UMV wireless hatches, ... → ×1 | **Kept.** Our Eye uses 6,426. |
 | SL-P30..P32 (compression generator t-1 → t, research station) | BEC from scratch per tier, with a BHC/Kerr controller | **Retired.** The ruling keeps RC-2's generator costs; the old copy of TecTech's beta-1 inputs (Yotta cells, Infinity Chests) no longer matches anything in the pack, and `TTRecipeAdder` now charges the research EU/t they declared (`RECIPE_MAX`). SL-P39 is the replacement. |
 | SL-E01 (our Eye controller, a GT assembly line, not `TTRecipeAdder`) | n/a | Re-audited: its Tier0 generators and 64 + 64 + 64 TecTech casings are clean and craftable; the Tier0 compression and stabilisation generators inside it now cost a Kerr controller each (2 in all). Its research (Stabiliser Pylon, scanner) is unaffected by the `TTRecipeAdder` change. |
@@ -537,7 +565,8 @@ How to read it:
   hours than the step to T2. This is stock GT data, not ours; B-45 logs it.
 - **Running costs** (per parallel, `StarDef`): T5 takes an 18,432 L WDM charge per 2-hour batch, 3.9e13 EU a cycle
   (4.6e15 per batch), and DSSF trims (about 100,000 L a batch in the prototype's rig). T6 takes 3,000 L of
-  Antipolarization Agent a cycle (the constant feed, B-37), 1.55e14 EU a cycle (9.3e15 an hour), Agent shield trims,
+  Antipolarization Agent a cycle (the constant feed, B-37; it also charges the flare shield, 2·r A/s, B-60), 1.55e14 EU a
+  cycle (9.3e15 an hour), Agent shield trims for the flares,
   and the merger charge (WDM 18,432 + BDM 4,608 + Agent 100,000 L) with WDM 1,800 + BDM 450 L top-ups every 50
   cycles.
 - **Verdict: fair.** Every block and item has a recipe, nothing loops, and each step is in line with TecTech's own

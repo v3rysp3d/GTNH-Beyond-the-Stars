@@ -1783,8 +1783,9 @@ renumbering master's D-49 entries instead, which the brief and PROPOSAL already 
   no regulation P drifts to +30), Mass Infusion, Shell Ignition, a failed Core Collapse (SpaceTime 0: SUPERNOVA, core
   kept in escrow, the reason stays in "Last failure", supernova flash render then air) and a successful one (T4 unlocked,
   neutron star render), First Cooling and T5 batches (Black Dwarf Matter per batch, milestones count good batches), the
-  Magnetar Merger, the Agent at 3,000 L per 60 s cycle charging the shield (starved: shield 0, magnetar lost to
-  decoherence, re-merge waits for 100,000 L of Agent). Unforming and breaking the controller put the star out and clear
+  Magnetar Merger, the Agent upkeep at 3,000 L per 60 s cycle with the rig's Agent trim charging the shield (starved:
+  shield 0, magnetar lost to decoherence, re-merge waits for 100,000 L of Agent). *Correction (B-60):* in this build
+  the upkeep did NOT charge the shield; only the trim did. Ruling 12 (the upkeep charges it) is built in B-60. Unforming and breaking the controller put the star out and clear
   the render; no orphan render block at any of the 13 Eyes' centres. Restart: unlocked tiers, live stars, milestones,
   escrow and last failures are as before. Legacy 0.24.x NBT migrates (galactic -> unlocked T4; plain -> bands
   grandfathered).
@@ -1806,16 +1807,64 @@ renumbering master's D-49 entries instead, which the brief and PROPOSAL already 
 **Not done (open).**
 - **SL-B03/B04** (the proposal's fallback BEC recipes if RC-2's casing recipe is missing) are not built: a missing
   recipe logs an ERROR saying the shell costs 8x what we intend. *Suggestion:* leave it; RC-2 has the recipe.
+  *Correction (B-60):* that ERROR was wrong. RC-2 has no other recipe for these casings (TecTech's research-station
+  one is gone), so a missing BEC recipe would make every Eye part uncraftable. SL-B03/B04 are built in B-60.
 - **Ruling 11b, the BEC expansion** (6 condensates, 20 Condensate Assembler recipes, 20 retired ids) is still only the
   proposal (`designs/docs/bec-expansion-proposal.md`, PROPOSED). Nothing of it is on master. *Suggestion:* build it as
   its own pass once you have read the proposal; `BTSRecipesBEC` is where it would live.
 - **Docs that still describe SL-P27/P28 as live:** `singularity-ladder-costs.md` §6/§9.5 cost rows (the build spec is
-  updated). *Suggestion:* refresh the cost table with the x32 numbers from the proposal §3 in the BEC pass.
+  updated). *Suggestion:* refresh the cost table with the x32 numbers from the proposal §3 in the BEC pass. *Done in
+  B-60* (costs §3.2, §4.1, §5, §6 #3, §9.5).
 
 **Small things seen (no change).** The module bench line prints `lastParallel 0` while a recipe runs (it shows GT's
 field before GT fills it; after a restart it read 17). A legacy-layout Eye (`legacy` build) has no input bus, so it
 cannot take a Stellar Ignition Charge until the player puts one on a plinth gas socket (`migration.md` already says so). A target change that puts a star out is recorded as the "Last failure" (by design: "the last way a star
 was lost or put out"), so it replaces an older, more useful failure line.
+
+### B-60 Final integration fixes: the Agent upkeep charges the shield, a BEC fallback for the Eye casings, the Kerr render on load [final integration fix]
+
+**Context.** A review of the final-integration build found four things; all four were real and are fixed here.
+
+**What was built, and the judgement calls.**
+
+1. **Ruling 12: the Antipolarization Agent upkeep charges the T6 flare shield.** Built in the order the ruling sets:
+   the prototype engine first (`designs/star-lifecycle-prototype.html`, design repo), then the fixture
+   (`tools/fixtures/star-lifecycle-engine.js`, re-pinned), the golden file, and `StellarField.step`:
+   `A <- min(100, 0.95·A + 4·u_agent/p + 2·r)`. `node tools/fieldsim-golden.js --check --java`: 78/78 PASS, bit
+   for bit. **PROPOSED number: `SHIELD_PER_UPKEEP` = 2.** 3,000 L per 60 s cycle is 50 L/s = 0.5 Agent unit (100 L)
+   per second; at the trim's 4 A per unit that gives 2 A/s. r is the cycle's delivered fraction (EU and every upkeep
+   fluid, so for T6 the Agent), so a starved magnetar's shield decays. With no trim the shield settles at 40, which
+   absorbs about 40 of a giant flare's 100 (25/s for 4 s) and keeps Π's noise near 0. Flares still need the Agent
+   trim in a Field socket. The design-invariant check still counts only the trim (r may be 0). The Eye tooltip, the
+   Magnetar chart tooltip, the NEI eyefield line, the T6 trim note and the costs doc §10 say so.
+   - *Alternatives:* a bigger K (K = 5 settles at 100 and would absorb a whole flare with no trim, which makes the
+     trim pointless), or scale the shield with litres actually drained per second instead of r (the upkeep is
+     taken once per cycle, so that would need a per-second upkeep drain).
+2. **The WDM 1,800 + BDM 450 L dwarf-matter top-up stays.** "One fluid runs the whole magnetar" could be read as
+   dropping it, but your 2026-10-12 answer says "the dwarf-matter merger spawns the star **and tops it up**", and
+   the 2026-10-13 ruling only makes the Agent do the upkeep and the shield. So the per-cycle running cost is one
+   fluid (Agent) and the dwarf matter is the merger charge plus a top-up every 50 cycles.
+   - *Alternative:* delete the reserve (`dwarfReserve`, `TOPUP_*`, its NEI and bench lines); then a magnetar needs
+     dwarf matter only for the merger and a re-merge.
+3. **The Eye casings can no longer become uncraftable.** RC-2's Condensate Assembler recipe is the only recipe that
+   makes TecTech's Reinforced Spatial / Temporal Structure Casing (the coremod and Godforge only consume them;
+   TecTech's research-station recipe is gone in RC-2). `BTSRecipesBEC` now matches a recipe on any output slot and
+   rewrites that slot. If nothing matches: **SL-B03 / SL-B04** register RC-2's own recipe at ×32 (same 12 inputs,
+   nanite tiers 4,1,1,2,1,1,4,1,1,1,1,2, Neutronium / Cosmic Neutronium / Bedrockium / Space or Time condensate,
+   40,000 s UMV), every input through `req` / `nn`. If even that is skipped (an input missing from the pack), the old
+   SL-P27 / SL-P28 Assembler bodies (×4) come back as a last resort with an ERROR. In RC-2 as shipped neither
+   fallback runs. The wrong "falls back to TecTech's research-station recipe at 8x" ERROR and javadoc are gone.
+4. **The Kerr's hole render no longer collapses and regrows on every load.** `tickRender` now waits for GT's first
+   structure check (`mStartUpCheck`, as the Eye's centre render does). Before, at tick 0 `mMachine` was still
+   false, so a formed Kerr with an open hole started GT's collapse, removed its block at tick 40 and placed a new one
+   at tick 100.
+5. **Costs doc** (the fourth finding): §3.2, a new §4.1 (Eye T1 14,936 Spatial + Temporal casings = 467 BEC crafts =
+   14,936 Godforge casings, 22,404 Neutronium nanites, 239k ingots each of Neutronium / Cosmic Neutronium condensate,
+   4.7e16 EU and 5,186 BEC hours; complete Eye T4 15,851 casings = 5.7 Godforge main rings), §5, §6 #3 and §9.5 now
+   describe the ×32 BEC recipe. That is about 1.3× TecTech's stock RC-2 shell (11,456 Godforge casings, 3.6e16 EU).
+
+**Suggestion.** Accept 1-5 as built. Re-check K after playing a magnetar: if flares feel unanswerable with the
+standard rig, raise K; if the trim never matters, lower it.
 
 ---
 
