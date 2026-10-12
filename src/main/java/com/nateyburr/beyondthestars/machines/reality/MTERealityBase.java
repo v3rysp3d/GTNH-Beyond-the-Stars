@@ -38,6 +38,7 @@ import gregtech.api.render.TextureFactory;
 import gregtech.api.util.GTUtility;
 import gregtech.common.tileentities.machines.IRecipeProcessingAwareHatch;
 import gregtech.common.tileentities.machines.MTEHatchInputME;
+import gregtech.common.tileentities.machines.RecipeCheckReason;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import tectech.mechanics.boseEinsteinCondensate.BECFactoryElement;
 import tectech.mechanics.boseEinsteinCondensate.BECFactoryGrid;
@@ -228,10 +229,16 @@ public abstract class MTERealityBase<T extends MTERealityBase<T>> extends MTEExt
         if (aBaseMetaTileEntity.isServerSide() && aTick % REASSERT_TICKS == 0) {
             BECFactoryGrid.INSTANCE.updateElement(this);
             onSecond();
+            // RC-2 recipe checks are event-driven, but our idle reasons (no running Containment Field, buffer full,
+            // Assembler between crafts, no network) clear through changes no hatch of ours reports. An idle, formed,
+            // enabled machine therefore asks for one check a second (throttled: GT's post-failure cooldown applies).
+            if (mMachine && mMaxProgresstime == 0 && aBaseMetaTileEntity.isAllowedToWork()) {
+                scheduleRecipeCheck(RecipeCheckReason.THROTTLED);
+            }
         }
     }
 
-    /** Once a second on the server (after the BEC re-assert). */
+    /** Once a second on the server (after the BEC re-assert, before the idle recipe-check push). */
     protected void onSecond() {}
 
     @Override

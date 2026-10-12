@@ -205,6 +205,9 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
         final IMetaTileEntity mte = te.getMetaTileEntity();
         if (mte instanceof MTEHatchInput) {
             ((MTEHatchInput) mte).updateTexture(casingIndex);
+            // Watch the anchor (GT's clearHatches drops the watcher again): refilling it after a "reality.anchors"
+            // failure then pushes a recipe check like any input hatch does.
+            addIfSmartInput(mte);
             anchorHatches[region].add((MTEHatchInput) mte);
             return true;
         }
@@ -342,6 +345,7 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
             pending[k] = left;
         }
         if (moved && getBaseMetaTileEntity() != null) getBaseMetaTileEntity().markDirty();
+        if (moved && pendingTotal() == 0) scheduleRecipeCheckImmediate(); // the "full" wait is over
     }
 
     @Override
