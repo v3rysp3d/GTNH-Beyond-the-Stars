@@ -16,23 +16,17 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.UUID;
 
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.oredict.OreDictionary;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.registry.GameData;
 import cpw.mods.fml.common.registry.GameRegistry;
 
@@ -1073,7 +1067,8 @@ final class QuestbookInstaller {
                         q.low + " "
                             + q.key
                             + (questMap.containsKey(q.id) ? " shown (" + q.onlyWithout + " not applied)"
-                                : " hidden (" + q.onlyWithout + " applied)"));
+                                : state.edits.containsKey(q.onlyWithout) ? " hidden (" + q.onlyWithout + " applied)"
+                                    : " not in this world"));
                 }
             }
         } catch (final Throwable t) {
@@ -1289,26 +1284,8 @@ final class QuestbookInstaller {
         }
     }
 
-    /**
-     * Registered on both FML's bus (login) and Forge's (world save): tells an op, once per login,
-     * that the last auto-install skipped edits or failed, and keeps the progress backup fresh.
-     */
-    static final class Events {
-
-        @SubscribeEvent
-        public void onWorldSave(WorldEvent.Save event) {
-            if (event.world == null || event.world.isRemote || event.world.provider.dimensionId != 0) return;
-            if (!BQBridge.isLoaded()) return;
-            backupProgress();
-        }
-
-        @SubscribeEvent
-        public void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
-            final String notice = loginNotice;
-            if (notice == null) return;
-            final EntityPlayer player = event.player;
-            if (player == null || !player.canCommandSenderUseCommand(2, "btsquests")) return;
-            player.addChatMessage(new ChatComponentText(EnumChatFormatting.YELLOW + notice));
-        }
+    /** For {@link QuestbookEvents}: the line to show an op on login, or null. */
+    static String loginNotice() {
+        return loginNotice;
     }
 }

@@ -34,7 +34,7 @@ public class CommonProxy {
     public void init(FMLInitializationEvent event) {
         // Questbook: the op login line after an auto-install that skipped pack edits (FML bus), and the
         // progress backup of our quests on world save (Forge bus). One listener object, on both buses.
-        final QuestbookInstaller.Events questbookEvents = new QuestbookInstaller.Events();
+        final QuestbookEvents questbookEvents = new QuestbookEvents();
         FMLCommonHandler.instance()
             .bus()
             .register(questbookEvents);
