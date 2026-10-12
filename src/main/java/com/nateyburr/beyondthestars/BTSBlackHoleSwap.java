@@ -13,6 +13,7 @@ import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.ShapedRecipes;
 import net.minecraft.item.crafting.ShapelessRecipes;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 import net.minecraftforge.oredict.ShapelessOreRecipe;
 
@@ -342,6 +343,7 @@ public final class BTSBlackHoleSwap {
         } catch (RuntimeException unnamed) {
             name = stack.getUnlocalizedName();
         }
-        return stack.stackSize + " x " + name;
+        final String plain = EnumChatFormatting.getTextWithoutFormattingCodes(name);
+        return stack.stackSize + " x " + (plain != null ? plain : name);
     }
 }
