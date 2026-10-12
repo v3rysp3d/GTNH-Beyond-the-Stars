@@ -45,6 +45,9 @@ import com.nateyburr.beyondthestars.items.SLItems;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
 import com.nateyburr.beyondthestars.machines.QuietTileUpdate;
+import com.nateyburr.beyondthestars.machines.directive.DirectiveHost;
+import com.nateyburr.beyondthestars.machines.directive.DirectiveSet;
+import com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective;
 
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.ItemList;
@@ -107,7 +110,7 @@ import gregtech.common.tileentities.machines.multi.compressor.MTEBlackHoleUtilit
  * </ol>
  */
 public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
-    implements ISurvivalConstructable, KerrHole {
+    implements ISurvivalConstructable, KerrHole, DirectiveHost {
 
     // ------------------------------------------------------------------------------- pieces
     public static final String PIECE_T1 = "kerr_t1";
@@ -201,6 +204,8 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     private int railCount;
     private final ArrayList<MTEHatchInputBus> boltBuses = new ArrayList<>();
     private final ArrayList<MTEBlackHoleUtility> utilityHatches = new ArrayList<>();
+    /** AUTOMATION PASS: Directive Hatches (MTE 28127) in the utility sockets. */
+    private final ArrayList<MTEHatchDirective> directiveHatches = new ArrayList<>();
 
     // -------------------------------------------------------------------- RUN state (server)
     private int lastBoltsFired;
@@ -315,7 +320,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
                     .buildAndChain(casing(Casings.ExtremeDensitySpaceBendingCasing)))
             .addElement(
                 'u',
-                buildHatchAdder(MTEKerrEngine.class).atLeast(KerrHatchElement.Utility)
+                buildHatchAdder(MTEKerrEngine.class).atLeast(KerrHatchElement.Utility, KerrHatchElement.Directive)
                     .casingIndex(shellIndex)
                     .hint(6)
                     .buildAndChain(casing(Casings.ExtremeDensitySpaceBendingCasing)))
@@ -373,6 +378,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         railCount = 0;
         boltBuses.clear();
         utilityHatches.clear();
+        directiveHatches.clear();
     }
 
     /**
@@ -422,6 +428,27 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             return true;
         }
         return false;
+    }
+
+    /** AUTOMATION PASS: a Directive Hatch in a utility socket. */
+    public boolean addDirectiveHatch(IGregTechTileEntity te, int casingIndex) {
+        if (te == null) return false;
+        final IMetaTileEntity mte = te.getMetaTileEntity();
+        if (mte instanceof MTEHatchDirective) {
+            ((MTEHatchDirective) mte).updateTexture(casingIndex);
+            directiveHatches.add((MTEHatchDirective) mte);
+            return true;
+        }
+        return false;
+    }
+
+    public int directiveHatchCount() {
+        return liveCount(directiveHatches);
+    }
+
+    /** The utility-socket Directive Hatches. Server state, read-only. */
+    public List<MTEHatchDirective> directiveHatches() {
+        return java.util.Collections.unmodifiableList(directiveHatches);
     }
 
     static int liveCount(List<? extends MetaTileEntity> list) {
@@ -585,7 +612,10 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             tickHole();
         }
         tickRender(aBaseMetaTileEntity, aTick);
-        if (aTick % 20 == 0) refreshReadouts();
+        if (aTick % 20 == 0) {
+            refreshReadouts();
+            publishDirectives();
+        }
         aBaseMetaTileEntity.setActive(holeOpen && mMachine);
     }
 
@@ -1011,6 +1041,80 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         super.onRemoval();
     }
 
+    // ============================================================================ automation
+
+    /** Once a second (server, formed or not): every live Directive Hatch gets this KEE's codes. */
+    private void publishDirectives() {
+        for (MTEHatchDirective hatch : directiveHatches) {
+            if (live(hatch)) hatch.publish(this);
+        }
+    }
+
+    @Override
+    public DirectiveSet.Host directiveHost() {
+        return DirectiveSet.Host.KERR;
+    }
+
+    /**
+     * AUTOMATION PASS (docs/automation.md): the Kerr's Directive codes. Hole: 1 closed (formed), 2 mass more than
+     * {@link #DIRECTIVE_BAND} SM below the setpoint, 4 bolts short (an open hole's stock lasts less than {@code window}
+     * minutes at the current bleed, or a closed one has none), 8 mass more than the band above the setpoint. Status: 1
+     * containment power short, 2 no Black Hole Seed in a bolt bus while closed, 4 stability below 100 %, 8 not formed.
+     */
+    @Override
+    public int directiveCode(DirectiveSet set, int window) {
+        int c = 0;
+        if (set == DirectiveSet.KERR_HOLE) {
+            if (mMachine && !holeOpen) c |= 1;
+            if (holeOpen && mass < setpoint - DIRECTIVE_BAND) c |= 2;
+            if (boltsShort(window)) c |= 4;
+            if (holeOpen && mass > setpoint + DIRECTIVE_BAND) c |= 8;
+        } else if (set == DirectiveSet.KERR_STATUS) {
+            if (holeOpen && !powerOk) c |= 1;
+            if (!holeOpen && seeds == 0) c |= 2;
+            if (holeOpen && stability < 1 - 1e-9) c |= 4;
+            if (!mMachine) c |= 8;
+        }
+        return c;
+    }
+
+    /** The Hole set's "above / below the setpoint" band, SM. */
+    public static final double DIRECTIVE_BAND = 1.0;
+
+    /** Bolts short: an open hole's stock lasts under {@code minutes} at the current bleed; a closed hole has none. */
+    public boolean boltsShort(int minutes) {
+        if (!holeOpen) return boltStockSm <= 0;
+        if (boltStockSm <= 0) return true;
+        final double perSecond = Math.max(lastBleed, 0) * 20;
+        return perSecond > 0 && boltStockSm / perSecond < minutes * 60.0;
+    }
+
+    /** Control set: redstone 1-15 sets the mass setpoint from 2 SM to the tier's top (64 or 512 SM). */
+    @Override
+    public void directiveControl(DirectiveSet set, int strength) {
+        if (set != DirectiveSet.KERR_SETPOINT) return;
+        final int v = (int) Math.round(DirectiveSet.controlValue(strength, SETPOINT_MIN, maxSetpoint(), 1));
+        if (v != setpoint) setSetpoint(v);
+    }
+
+    @Override
+    public String directiveControlLine(DirectiveSet set) {
+        return set == DirectiveSet.KERR_SETPOINT ? "mass setpoint " + setpoint + " SM" : "";
+    }
+
+    /**
+     * Test bench ({@code /btskerr autorig}): one second of the hole as 20 ticks run it (bleed, containment power and
+     * the governor), then the readouts and the Directive push, without waiting for the world to tick the controller.
+     */
+    public void benchSecond() {
+        if (mMachine && autoSeeds) useSeedOrCollapser();
+        for (int i = 0; i < 20; i++) {
+            if (mMachine) tickHole();
+        }
+        refreshReadouts();
+        publishDirectives();
+    }
+
     // ============================================================================ readouts
 
     public double getMass() {
@@ -1345,6 +1449,9 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             final String[] f = slotStatus(slot).split("\\|", -1);
             out.add(slot.label + " module: " + f[0] + (f.length > 3 && !f[3].isEmpty() ? " at (" + f[3] + ")" : ""));
         }
+        for (MTEHatchDirective hatch : directiveHatches) {
+            if (live(hatch)) out.add("Directive: " + hatch.statusLine());
+        }
         if (!migrationNote.isEmpty()) out.add(migrationNote);
         if (!renderNote.isEmpty()) out.add(renderNote);
         return out;
@@ -1385,6 +1492,11 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             .addInfo("  the hole bleeds; below 2 SM it evaporates. The power switch does not stop the hole.")
             .addInfo("Modules get parallel 8 x tier x floor(sqrt(M)) and speed x(3200/M)/50 (1 to 4).")
             .addInfo("Optional BHC Utility Hatches on the cage emit redstone while the hole is open.")
+            .addInfo("Automation: bolts, Seeds and Collapsers go into the bolt buses (AE2 export bus, Factory")
+            .addInfo("  Manager, conveyor). Directive Hatches in the utility sockets put out a 4-bit code - Hole:")
+            .addInfo("  1 closed, 2 below setpoint, 4 bolts short, 8 above setpoint; Status: 1 power short, 2 no")
+            .addInfo("  Seed, 4 unstable, 8 not formed - or, on the control set, redstone 1-15 sets the setpoint.")
+            .addInfo("  OpenComputers (Adapter): component bts_kerr (state, setSetpoint, open, collapse, setAuto).")
             .addSeparator()
             .addInfo("Chunk-load the full footprint: the structure check fails across unloaded chunks.")
             .beginVariableStructureBlock(t1[0], t2[0], t1[1], t2[1], t1[2], t2[2], false)
@@ -1408,7 +1520,10 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
                 bom(PIECE_T2, 'O') + " Bastion Plate, " + bom(PIECE_T2, 'P') + " Casimir Plate, more lining and glass")
             .addEnergyHatch("Governor arc (2 sockets; 1 laser or up to 2 energy): containment power", 1)
             .addOtherStructurePart("Bolt bus (input bus, private)", "8 sockets on the cage, at least 1", 3)
-            .addOtherStructurePart("Black Hole Compressor Utility Hatch", "optional, beside the bolt buses", 6)
+            .addOtherStructurePart(
+                "Black Hole Compressor Utility Hatch or Directive Hatch",
+                "optional, beside the bolt buses",
+                6)
             .addOtherStructurePart("Kerr Compressor Module controller", "a separate machine (marker)", 7)
             .addOtherStructurePart("Kerr Extractor Module controller", "a separate machine (marker)", 8)
             .addStructureInfo("Hologram: trigger stack 1 = Kerr T1, 2+ = Kerr T2. Markers 7 and 8 show where")

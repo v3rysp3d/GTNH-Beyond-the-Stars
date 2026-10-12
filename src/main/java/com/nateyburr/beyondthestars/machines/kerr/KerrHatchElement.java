@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective;
+
 import gregtech.api.interfaces.IHatchElement;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.metatileentity.implementations.MTEHatchInputBus;
@@ -31,6 +33,14 @@ public enum KerrHatchElement implements IHatchElement<MTEKerrEngine> {
         @Override
         public long count(MTEKerrEngine t) {
             return t.boltBusCount();
+        }
+    },
+    /** Cage, optional (AUTOMATION PASS): a Directive Hatch (MTE 28127) in a utility socket. */
+    Directive(MTEKerrEngine::addDirectiveHatch, MTEHatchDirective.class) {
+
+        @Override
+        public long count(MTEKerrEngine t) {
+            return t.directiveHatchCount();
         }
     },
     /** Cage, optional: the Black Hole Compressor's utility hatch, redstone on while the hole is open. */
