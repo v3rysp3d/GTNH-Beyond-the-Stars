@@ -555,6 +555,33 @@ This is an exporter-legend change for the structure owner. Costs doc, #5.
 - Keep 294 and give stabilisation a real effect that justifies them.
 - One generator per pad (6).
 
+### B-25 D-49 play prototype: two readings of the proposal, and a weak supernova check [follow-up pass, design only]
+
+**Context.** A playable page of the D-49 proposal (B-18) was built in my local work folder
+(`lifecycle/star-lifecycle.html`). It runs the §3.2 field update once per second with the §3.4 numbers, the
+sensor-hatch rigs and the T3 → T4 Core Collapse. Its engine reproduces the proposal's simulated-rig table (for
+example T3 two-stage: 99 % Resonant, 0 failures, Y 1.29; T6 left alone: 411 failures in 4 h). No addon code changed;
+the Eye freeze holds.
+
+**Judgement calls in the prototype.**
+
+1. **The T4 HSM feed push and the T6 WDM + BDM feed push scale with the time dial m.** §3.4 lists them under drift
+   d, which §3.2 multiplies by m; `judge/synthsim.py` adds them unscaled, as trims. The two agree at m = 1.
+   *Suggestion:* scale them with m. The feed is upkeep, upkeep is drawn per Eye-second, so a faster star eats and
+   pushes faster. *Alternative:* treat them as trims, as in synthsim.
+2. **T5's pressure trim is Helium (P +2 per 1,000 L, cap 10)**, as the proposal says. synthsim used molten
+   SpaceTime with the same numbers, so the results carry over.
+
+**Finding: the Core Collapse rarely threatens a supernova.** The bounce adds +90 to P and Θ, and a supernova needs a
+gauge above +100. So the SpaceTime buffer only matters if the field sits above +10 at that second. In five seeded
+runs with no SpaceTime buffered, the two-stage rig survived all five bounces and the bang-bang rig went supernova
+twice.
+
+- *Suggestion:* raise the bounce to +150 and keep "1,000 L absorbs 1 point, up to 90,000 L". A centred field then
+  needs at least 50,000 L, and a tidy rig about 60,000 L.
+- *Alternatives:* keep +90 and fail the bounce above +40 (the Stable band), which also needs about 50,000 L; or keep
+  it as written and treat the collapse as a holding test.
+
 ---
 
 ## Part C. Settled (for the record)
