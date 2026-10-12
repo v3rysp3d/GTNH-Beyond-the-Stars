@@ -178,6 +178,29 @@ public final class BTSMachines {
             base + 26,
             "hatch.beyondthestars.burstcontrol",
             "Burst Control Hatch").getStackForm(1);
+        // P4 conduit + crowns unit (quasar-p4.md §2, §3): base+21..25. Each assignment lets its recipe (SL-Q10, Q11,
+        // Q12,
+        // Q16, Q19) register.
+        wormholeMouth = new com.nateyburr.beyondthestars.machines.conduit.MTEWormholeMouth(
+            base + 21,
+            "multimachine.beyondthestars.wormholemouth",
+            "Wormhole Mouth").getStackForm(1);
+        conduitMirror = new com.nateyburr.beyondthestars.machines.conduit.MTEConduitMirror(
+            base + 22,
+            "multimachine.beyondthestars.conduitmirror",
+            "Conduit Mirror").getStackForm(1);
+        conduitJunction = new com.nateyburr.beyondthestars.machines.conduit.MTEConduitJunction(
+            base + 23,
+            "multimachine.beyondthestars.conduitjunction",
+            "Conduit Junction").getStackForm(1);
+        burstThermaliserCrown = new com.nateyburr.beyondthestars.machines.quasar.MTEBurstThermaliserCrown(
+            base + 24,
+            "multimachine.beyondthestars.burstcrown",
+            "Burst Thermaliser Crown").getStackForm(1);
+        grbReceptorPort = new com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor(
+            base + 25,
+            "hatch.beyondthestars.grbreceptor",
+            "GRB Receptor Port").getStackForm(1);
         // H/R unit 2 (ruling 16, homogeny-reality.md §4.1): the three machines unheld from the 28130..28134 block.
         homogeny = new com.nateyburr.beyondthestars.machines.homogeny.MTEHomogeny(
             base + 30,

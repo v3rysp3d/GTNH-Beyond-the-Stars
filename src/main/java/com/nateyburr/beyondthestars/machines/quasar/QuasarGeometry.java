@@ -17,7 +17,7 @@ public final class QuasarGeometry {
     private QuasarGeometry() {}
 
     private static volatile int[] centre;
-    private static volatile int[][] ports, axes, crowns;
+    private static volatile int[][] ports, axes, crowns, crownFacings;
 
     private static void load() {
         if (crowns != null) return;
@@ -32,16 +32,19 @@ public final class QuasarGeometry {
             final int[][] p = new int[JetPort.VALUES.length][];
             final int[][] a = new int[JetPort.VALUES.length][];
             final int[][] k = new int[JetPort.VALUES.length][];
+            final int[][] cf = new int[JetPort.VALUES.length][];
             for (JetPort port : JetPort.VALUES) {
                 final JsonObject s = slots.getAsJsonObject(port.key);
                 if (s == null) throw new IllegalStateException("[BTS] manifest.json: no quasar slot " + port.key);
                 p[port.ordinal()] = vec(s, "portRel");
                 a[port.ordinal()] = vec(s, "axisAbc");
                 k[port.ordinal()] = vec(s, "crownControllerRel");
+                cf[port.ordinal()] = vec(s, "crownFacingAbc");
             }
             centre = c;
             ports = p;
             axes = a;
+            crownFacings = cf;
             crowns = k;
         }
     }
@@ -68,6 +71,12 @@ public final class QuasarGeometry {
     public static int[] crownControllerRel(JetPort port) {
         load();
         return crowns[port.ordinal()].clone();
+    }
+
+    /** The way a docked crown's controller faces, (a, b, c) in the quasar's frame. */
+    public static int[] crownFacingAbc(JetPort port) {
+        load();
+        return crownFacings[port.ordinal()].clone();
     }
 
     /** {@code (x, y, z) + facing.worldOffset(rel)}. */

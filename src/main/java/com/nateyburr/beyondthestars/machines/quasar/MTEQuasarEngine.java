@@ -204,6 +204,9 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     private boolean renderOpenSeen;
     private int collapseTimer = -1;
     private boolean flashPending;
+    /** The last time a Conduit element on one of this quasar's paths was closed (Disc bit 4, P4-44). */
+    private long conduitClosedTick = Long.MIN_VALUE / 2;
+    private String conduitClosedAt = "";
 
     /** One host fed from this quasar, as the conduit or the host reported it last second. */
     public static final class HostReport {
@@ -915,6 +918,26 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
                     .getTotalWorldTime()));
     }
 
+    /**
+     * The conduit, inside this quasar's walk: a stream from it reached a closed element (upkeep short, or no throat).
+     * Directive Disc bit 4 (the alarm) holds while this was seen in the last 2 s (P4-44).
+     */
+    public void noteConduitClosed(String where) {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base == null || base.getWorld() == null) return;
+        conduitClosedTick = base.getWorld()
+            .getTotalWorldTime();
+        conduitClosedAt = where == null ? "" : where;
+    }
+
+    /** True while no stream of this quasar met a closed Conduit element in the last 2 s. */
+    public boolean conduitOpen() {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base == null || base.getWorld() == null) return true;
+        return base.getWorld()
+            .getTotalWorldTime() - conduitClosedTick > 40;
+    }
+
     private void pruneHosts(long now) {
         for (Iterator<HostReport> it = hosts.values()
             .iterator(); it.hasNext();) {
@@ -977,7 +1000,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         s.open = mMachine && q.hole == QuasarState.Hole.OPEN;
         s.b = mMachine ? q.b : 0;
         s.vented = lastVented;
-        s.conduitOpen = true;
+        s.conduitOpen = conduitOpen();
         return s;
     }
 
@@ -1265,6 +1288,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         for (HostReport h : hosts.values()) {
             out.add(String.format(Locale.ROOT, "Link: %s, %s Bu/t, sigma %.2f", h.label, bu(h.bu), h.sigma));
         }
+        if (!conduitOpen()) out.add("Conduit: " + conduitClosedAt + " (Directive Disc bit 4 on)");
         out.add(
             "Sockets: gas " + gasHatchCount()
                 + ", trim "

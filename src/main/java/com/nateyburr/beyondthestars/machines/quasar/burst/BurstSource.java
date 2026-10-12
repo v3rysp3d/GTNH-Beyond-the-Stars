@@ -32,7 +32,12 @@ public final class BurstSource {
         /** Loaded but frozen (unformed, or a chunk of its structure is unloaded): hosts pause. */
         FROZEN,
         /** Its world or chunk is not loaded: hosts pause. */
-        UNLOADED
+        UNLOADED,
+        /**
+         * Its chunk is loaded and no Quasar Engine stands there any more (broken or moved): not a pause, the source is
+         * simply gone and its hosts feel the loss in full. Added by the Conduit unit (P4-46).
+         */
+        GONE
     }
 
     public final int dim, x, y, z;
@@ -63,11 +68,33 @@ public final class BurstSource {
         return mte instanceof MTEQuasarEngine ? (MTEQuasarEngine) mte : null;
     }
 
-    /** Q-8: whether the source is running, frozen or not loaded. */
+    /** Q-8: whether the source is running, frozen, not loaded, or gone (its chunk loaded, no quasar there). */
     public Status status() {
         final MTEQuasarEngine q = resolve();
-        if (q == null) return Status.UNLOADED;
+        if (q == null) return loaded() ? Status.GONE : Status.UNLOADED;
         return q.isFrozen() ? Status.FROZEN : Status.RUNNING;
+    }
+
+    /** True when the source's world and chunk are loaded (never loads one). */
+    public boolean loaded() {
+        final World world = DimensionManager.getWorld(dim);
+        return world != null && y >= 0 && y <= 255 && world.blockExists(x, y, z);
+    }
+
+    /** A pause (Q-8): the source exists but cannot speak (frozen or not loaded). */
+    public boolean pauses() {
+        final Status s = status();
+        return s == Status.FROZEN || s == Status.UNLOADED;
+    }
+
+    /** {dim, x, y, z}, for NBT. */
+    public int[] toArray() {
+        return new int[] { dim, x, y, z };
+    }
+
+    /** The source an {@link #toArray()} wrote, or null. */
+    public static BurstSource fromArray(int[] a) {
+        return a == null || a.length != 4 ? null : new BurstSource(a[0], a[1], a[2], a[3]);
     }
 
     /** "x, y, z (dim d)" for GUIs and the scanner: "Quasar link: 120, 80, -40 (dim 0)". */
