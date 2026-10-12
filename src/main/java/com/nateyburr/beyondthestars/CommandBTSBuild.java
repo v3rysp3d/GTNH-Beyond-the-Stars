@@ -133,7 +133,7 @@ public class CommandBTSBuild extends CommandBase {
         final boolean everyTier = tierArg != null && tierArg.equalsIgnoreCase("all");
         final int maxTier = MTEReactorCoreMk1.maxTier();
         final int singleTier = everyTier ? 0
-            : tierArg == null ? 3 : Math.min(maxTier, Math.max(1, parseInt(sender, tierArg)));
+            : tierArg == null ? 1 : Math.min(maxTier, Math.max(1, parseInt(sender, tierArg)));
         final net.minecraft.item.Item rod = rodFor(rodArg);
 
         final int[] tiers;
@@ -261,7 +261,7 @@ public class CommandBTSBuild extends CommandBase {
     private void processAt(ICommandSender sender, String[] args, SLConsoleTest.Placement at) {
         final World world = sender.getEntityWorld();
         if (world == null || world.isRemote) return;
-        int tier = 3;
+        int tier = 1;
         String rodArg = null;
         boolean force = false;
         boolean crib = false;

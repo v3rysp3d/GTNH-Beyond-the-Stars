@@ -78,13 +78,27 @@ public abstract class MTEProductionHallBase<T extends MTEProductionHallBase<T>>
      * Radiant Naquadah Alloy) without being broken and replaced, and a logic built once with a
      * fixed number would go on paying the old parallel until the chunk unloaded.
      * <p>
-     * The supplier stays {@link #getMaxParallelRecipes}, not GT's {@code getTrueParallel()}: the
-     * switch would make the Power Panel's stored parallel limit bite on existing machines, which
-     * is a gameplay change and out of scope for the presentation tidy (logged as L5 / TQ-8).
+     * The supplier is GT's {@code getTrueParallel()} (TQ-8, settled 2026-10-13: "You have full free reign on
+     * this"), as on every GT multi: the structure's parallel, capped by the Power Panel's limit when its "max"
+     * box is unticked. The box is ticked by default, so only a player who set a limit sees a lower number.
      */
     @Override
     protected ProcessingLogic createProcessingLogic() {
-        return new ProcessingLogic().setMaxParallelSupplier(this::getMaxParallelRecipes);
+        return new ProcessingLogic().setMaxParallelSupplier(this::getTrueParallel);
+    }
+
+    /**
+     * TQ-6 (settled 2026-10-13): the halls offer GT's input-separation button like other GT multis. It starts OFF
+     * (new and existing machines alike), so buses keep pooling until the player turns it on.
+     */
+    @Override
+    public boolean supportsInputSeparation() {
+        return true;
+    }
+
+    @Override
+    public boolean getDefaultInputSeparationMode() {
+        return false;
     }
 
     /**
@@ -132,7 +146,7 @@ public abstract class MTEProductionHallBase<T extends MTEProductionHallBase<T>>
     @Override
     public String[] getInfoData() {
         final List<String> info = new ArrayList<>(Arrays.asList(super.getInfoData()));
-        info.add("Parallel: " + String.format("%,d", getMaxParallelRecipes()));
+        info.add("Parallel: " + String.format("%,d", getTrueParallel()));
         info.add("Casings: " + String.format("%,d", mCasing));
         return info.toArray(new String[0]);
     }

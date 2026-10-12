@@ -35,7 +35,7 @@ public class MTEProductionHallGui extends MTEMultiBlockBaseGui<MTEProductionHall
     @Override
     protected void registerSyncValues(PanelSyncManager syncManager) {
         super.registerSyncValues(syncManager);
-        syncManager.syncValue("hallParallel", new IntSyncValue(multiblock::getMaxParallelRecipes));
+        syncManager.syncValue("hallParallel", new IntSyncValue(multiblock::getTrueParallel));
         syncManager.syncValue("hallDetail", new IntSyncValue(multiblock::getParallelDetail));
     }
 
