@@ -16,6 +16,7 @@ package com.nateyburr.beyondthestars;
  *   BTSRecipesMachines    Agent D   controllers, hatches, control blocks, rotor
  *   BTSRecipesStellar     D-49      the Antipolarization Agent chain (SL-S01..S02)
  *   BTSRecipesBEC         BEC       condensates + Condensate Assembler recipes (SL-B01..B81)
+ *   BTSRecipesAutomation  automation the Directive Hatch (SL-A01)
  * </pre>
  *
  * <b>Nothing may be added to THIS file.</b> A recipe here would be a recipe with no owner, and
@@ -51,6 +52,7 @@ public final class BTSRecipes {
         BTSRecipeGuard.line("eye", BTSRecipesEye::register);
         BTSRecipeGuard.line("stellar", BTSRecipesStellar::register);
         BTSRecipeGuard.line("bec", BTSRecipesBEC::register);
+        BTSRecipeGuard.line("automation", BTSRecipesAutomation::register);
         BTSRecipeGuard.line("display", BTSDisplayRecipes::register);
 
         BTSRecipeGuard.summary();

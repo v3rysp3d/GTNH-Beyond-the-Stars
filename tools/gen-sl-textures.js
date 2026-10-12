@@ -53,6 +53,8 @@
  *   OVERLAY_FRONT_EYE_OF_HARMONY_ACTIVE_GLOW.png  + .png.mcmeta  (8 frames)
  *   OVERLAY_HATCH_STELLAR_FIELD_SENSOR.png        (D-49: Stellar Field Sensor Hatch, MTE 28116)
  *   OVERLAY_HATCH_STELLAR_FIELD_SENSOR_GLOW.png
+ *   OVERLAY_HATCH_DIRECTIVE.png                   (automation pass: Directive Hatch, MTE 28127)
+ *   OVERLAY_HATCH_DIRECTIVE_GLOW.png
  *
  * items/  (SLItems internal names, §1.3)
  *   superradiantMirrorSegment.png
@@ -975,6 +977,34 @@ function sensorOverlay(glowOnly) {
   return cv;
 }
 
+// Directive Hatch (automation pass): a dark panel with a row of four bit lamps (the 4-bit code, bits 1 and 3 lit
+// as the example "5") over a down-pointing chevron (the signal going out). The glow layer is the lit lamps only.
+function directiveOverlay(glowOnly) {
+  const cv = new Canvas();
+  if (!glowOnly) {
+    for (let y = 3; y <= 12; y++) for (let x = 1; x <= 14; x++) {
+      const edge = x === 1 || x === 14 || y === 3 || y === 12;
+      cv.set(x, y, edge ? ((x + y) % 2 === 0 ? EOH.l1 : EOH.dark) : hex(0x02060c));
+    }
+    // the chevron: the signal going out
+    for (const [x, y] of [[5, 8], [6, 9], [7, 10], [8, 10], [9, 9], [10, 8]]) cv.set(x, y, EOH.l2);
+  }
+  // four 2x2 lamps, bit 4 (left) .. bit 1 (right): code 5 = bits 3 and 1 lit
+  const lit = [false, true, false, true];
+  for (let i = 0; i < 4; i++) {
+    const x0 = 3 + i * 3;
+    const on = lit[i];
+    if (glowOnly && !on) continue;
+    const c0 = on ? hex(0x7dff7d) : hex(0x1f4426);
+    const c1 = on ? hex(0xd8ffd8) : hex(0x2c5a34);
+    cv.set(x0, 5, c1);
+    cv.set(x0 + 1, 5, c0);
+    cv.set(x0, 6, c0);
+    cv.set(x0 + 1, 6, c0);
+  }
+  return cv;
+}
+
 // ------------------------------------------------------------------ controller overlays
 const FR = 8; // animation frames
 // Kerr: a spinning black hole, drawn as a pixel template — OVERLAY_MULTI_BLACKHOLE's edge bars (K dark, b purple),
@@ -1150,6 +1180,8 @@ anim('blocks/iconsets/OVERLAY_FRONT_EYE_OF_HARMONY_ACTIVE.png', [...Array(FR).ke
 anim('blocks/iconsets/OVERLAY_FRONT_EYE_OF_HARMONY_ACTIVE_GLOW.png', [...Array(FR).keys()].map((f) => eyeOverlay(f, true, true)), 4);
 OUT.push({ rel: 'blocks/iconsets/OVERLAY_HATCH_STELLAR_FIELD_SENSOR.png', canvas: sensorOverlay(false) });
 OUT.push({ rel: 'blocks/iconsets/OVERLAY_HATCH_STELLAR_FIELD_SENSOR_GLOW.png', canvas: sensorOverlay(true) });
+OUT.push({ rel: 'blocks/iconsets/OVERLAY_HATCH_DIRECTIVE.png', canvas: directiveOverlay(false) });
+OUT.push({ rel: 'blocks/iconsets/OVERLAY_HATCH_DIRECTIVE_GLOW.png', canvas: directiveOverlay(true) });
 
 tile('items/superradiantMirrorSegment.png', superradiantMirrorSegment);
 tile('items/stabiliserPylon.png', stabiliserPylon);

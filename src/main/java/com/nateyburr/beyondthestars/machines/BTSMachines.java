@@ -30,6 +30,8 @@ public final class BTSMachines {
     public static ItemStack eyeOfHarmony;
     // D-49 (d49-build-plan.md §9): the Stellar Field Sensor Hatch, base+16.
     public static ItemStack stellarFieldSensor;
+    // AUTOMATION PASS (brief item 18): the Directive Hatch, base+27 (P4's reserved id, one MTE for every host).
+    public static ItemStack directiveHatch;
 
     private BTSMachines() {}
 
@@ -111,7 +113,8 @@ public final class BTSMachines {
         // base+17 (28117) Kerr Compressor Module, base+18 (28118) Kerr Extractor Module (Kerr redesign)
         // base+19 spare (the next Kerr module)
         // base+20..29 P4: Quasar Engine 20, Wormhole Mouth 21, Conduit Mirror 22,
-        // Conduit Junction 23, Burst Thermaliser Crown Mk I/II/III 24-26, spare 27-29
+        // Conduit Junction 23, Burst Thermaliser Crown Mk I/II/III 24-26, Directive Hatch 27 (claimed by the
+        // automation pass: ONE hatch for the Eye, the Kerr and later the Quasar), spare 28-29
         // base+30..34 ON HOLD: Homogeny 30, Reality Diffraction 31, Reality Refab 32, spare 33-34
         // base+35..39 spare
         // The Kerr and Eye units each append their own single registration line below.
@@ -138,5 +141,11 @@ public final class BTSMachines {
             base + 16,
             "hatch.beyondthestars.stellarfieldsensor",
             "Stellar Field Sensor Hatch").getStackForm(1);
+        // AUTOMATION PASS: base+27 (28127), the Directive Hatch (machines/directive), P4's reserved id. One MTE for the
+        // Eye (Sensor sockets), the Kerr (utility sockets) and later the Quasar; its set is chosen in its GUI.
+        directiveHatch = new com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective(
+            base + 27,
+            "hatch.beyondthestars.directive",
+            "Directive Hatch").getStackForm(1);
     }
 }
