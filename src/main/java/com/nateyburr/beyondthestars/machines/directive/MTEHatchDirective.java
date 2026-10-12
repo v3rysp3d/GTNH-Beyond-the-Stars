@@ -66,6 +66,8 @@ public class MTEHatchDirective extends MTEHatch {
     private String controlLine = "";
     private final String[] labels = new String[4];
     private long lastPublish = Long.MIN_VALUE / 2;
+    /** The comparator value last announced to the neighbours (-1: none yet; not saved). */
+    private int lastComparator = -1;
 
     public MTEHatchDirective(int aID, String aName, String aNameRegional) {
         super(aID, aName, aNameRegional, 11, 0, "Tells automation what the machine needs now, as redstone");
@@ -149,6 +151,13 @@ public class MTEHatchDirective extends MTEHatch {
         final byte strength = (byte) currentOutput();
         for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS) emit(aBaseMetaTileEntity, side, strength);
         aBaseMetaTileEntity.setActive(fresh() && (set.control ? controlIn > 0 : code != 0));
+        // GT tells the neighbours only when a redstone output changes; in Bit n / Any mode the code can change with
+        // the output steady, so a comparator reading the raw code would go stale without this (B-72)
+        final int comparator = currentCode();
+        if (comparator != lastComparator) {
+            lastComparator = comparator;
+            aBaseMetaTileEntity.issueBlockUpdate();
+        }
     }
 
     /**
