@@ -633,6 +633,9 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
                 }
                 if (!open.getBoolValue()) return EnumChatFormatting.DARK_GRAY + "Open needs a Seed in a bolt bus.";
                 if (!formed.getBoolValue()) return EnumChatFormatting.YELLOW + "Collapse needs a formed cage.";
+                if (auto.getBoolValue()) {
+                    return EnumChatFormatting.YELLOW + "Auto on: a Collapser in a bolt bus collapses at once.";
+                }
                 return "Collapse asks twice: " + modules + " will pause.";
             }, w, 0.75f))
             .child(
@@ -647,7 +650,8 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
                             .overlay(false, GTGuiTextures.OVERLAY_BUTTON_CROSS)
                             .tooltip(
                                 t -> t.addLine("Auto ON: a Seed or Collapser placed in a bolt bus")
-                                    .addLine("acts on its own (automation keeps working).")
+                                    .addLine("acts on its own (automation keeps working): a Collapser")
+                                    .addLine("collapses the hole within a second, without asking.")
                                     .addLine(EnumChatFormatting.GRAY + "OFF: only these buttons open and close."))
                             .tooltipShowUpTimer(TOOLTIP_DELAY))
                     .child(panelText(() -> "Auto: act on Seeds / Collapsers", w - 15, 0.75f).heightRel(1f)));
