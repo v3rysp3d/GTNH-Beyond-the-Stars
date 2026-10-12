@@ -47,11 +47,16 @@ public class Config {
 
     /**
      * SINGULARITY LADDER (Q-3): register the interim Eye T4 "Sirius B, Cooled" recipe that makes
-     * Black Dwarf Matter until Eye T5 ships in P4, and the star chart that targets it.
+     * Black Dwarf Matter until Eye T5 ships in P4, and the recipe for the star chart that targets it.
+     * The star chart ITEM stays registered either way (item registry stays stable across config
+     * changes); with the flag off it has no recipe and no Eye recipe accepts it.
      */
     public static boolean interimBlackDwarfAtEyeT4 = true;
 
-    /** SINGULARITY LADDER (D-34): render the band's object at the Eye's centre. Client cosmetic. */
+    /**
+     * SINGULARITY LADDER (D-34): render the band's object at the Eye's centre. Client cosmetic.
+     * NOT IMPLEMENTED YET (Q-34): nothing reads this flag; it is registered so the key is stable.
+     */
     public static boolean eyeRenderCentre = true;
 
     public static void synchronizeConfiguration(File configFile) {
@@ -114,13 +119,15 @@ public class Config {
             Configuration.CATEGORY_GENERAL,
             true,
             "Register the interim Eye of Harmony T4 recipe (Star Chart: Sirius B, Cooled) that makes Black Dwarf"
-                + " Matter until Eye T5 exists.");
+                + " Matter until Eye T5 exists, and the star chart's crafting recipe. The star chart item itself"
+                + " stays registered either way (it has no recipe and no use when this is false).");
 
         eyeRenderCentre = configuration.getBoolean(
             "eyeRenderCentre",
             Configuration.CATEGORY_GENERAL,
             true,
-            "Render the star or planet at the centre of a formed Eye of Harmony (client cosmetic).");
+            "NOT IMPLEMENTED YET - this setting currently has no effect. Will render the star or planet at the"
+                + " centre of a formed Eye of Harmony (client cosmetic).");
 
         if (configuration.hasChanged()) {
             configuration.save();
