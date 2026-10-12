@@ -376,6 +376,13 @@ public final class EyeStarRuntime {
         return trans != null ? trans.gauges(fs.tier) : fs.tier.gauges();
     }
 
+    /** The trims drained from the Field sockets this second, display name → litres (GUI). */
+    public Map<String, Long> lastTrimsByName() {
+        final Map<String, Long> out = new LinkedHashMap<>();
+        for (Map.Entry<TrimDef.Kind, Long> e : lastTrims.entrySet()) out.put(e.getKey().displayName, e.getValue());
+        return out;
+    }
+
     /** True once after a supernova: the centre render shows its flash. */
     public boolean takeNova() {
         final boolean n = novaPending;

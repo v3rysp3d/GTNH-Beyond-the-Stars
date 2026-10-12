@@ -34,6 +34,8 @@ import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.gtnewhorizon.structurelib.alignment.IAlignmentLimits;
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
 import com.gtnewhorizon.structurelib.alignment.enumerable.Flip;
@@ -75,6 +77,7 @@ import gregtech.api.structure.error.StructureErrors;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.ItemEjectionHelper;
 import gregtech.api.util.MultiblockTooltipBuilder;
+import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
 import gregtech.common.misc.GTStructureChannels;
 import gregtech.common.misc.WirelessNetworkManager;
 import gregtech.common.tileentities.machines.IRecipeProcessingAwareHatch;
@@ -838,6 +841,23 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 + EnumChatFormatting.RESET
                 + " (each +0.25 costs 10 x 2^(N-1) L/s of Tachyon Rich Temporal Fluid from the Field sockets;"
                 + " the cap is 1 + 0.25 x (Time Dilation tier - star tier))");
+    }
+
+    // ===================================================================================== GUI
+
+    @Override
+    protected boolean useMui2() {
+        return true;
+    }
+
+    @Override
+    protected @NotNull MTEMultiBlockBaseGui<?> getGui() {
+        return new EyeGui(this);
+    }
+
+    /** Formed (the GUI's head line). Server state. */
+    public boolean isFormedForGui() {
+        return mMachine;
     }
 
     /** The D-49 star runtime (bench commands, kit). Server state. */
