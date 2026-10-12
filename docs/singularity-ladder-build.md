@@ -1647,7 +1647,8 @@ lamps), `HRKit` (kit, build, fill, diagnose), `CommandBTSHR` (`/btshr`).
 | `beyondthestars.recipe.reality_diffraction` | 0, 0, 7, 6 | SL-R03 | fluid in 0 = medium, 1..6 = anchors I..VI; out k = region k+1; the machine reads all amounts from here |
 | `beyondthestars.recipe.reality_refab` | 16, 1, 6, 0 | SL-R04, SL-R05 | GT's BEC layout: `NANITE_TIERS` per item slot; the compile step moves fluid inputs to `CONDENSATE_INPUT` |
 
-The recipe unit owns every Condensate Assembler / Generator recipe; it must not register the six ids above again.
+The recipe unit owns every Condensate Assembler / Generator recipe (see "Contract additions (Homogeny / Reality
+recipes)"); it must not register the six ids above again.
 
 ### Sockets as walked
 
@@ -1695,6 +1696,85 @@ The Homogeny's one install path is `beginInstall()` then `completeInstall()` (co
 - `/btshr keep <machine> <x> <y> <z> <facing> [tN]` force-loads (`/btskerr release` frees).
 - `/btshr bench <x> <y> <z> <status|check|fill|wrench|milestone e d|escrow|install|itick n|relink|pending>`.
 - `/btskit homogeny | diffraction | refab`.
+
+## Contract additions (Homogeny / Reality recipes)
+
+Written by H/R unit 3 (branch `homogeny-reality`), 2026-10-13. Question B-65; costs §12. Not yet booted in game.
+
+### Files and ownership
+
+| File | Owns |
+|---|---|
+| `BTSRecipesReality` (guard line `reality`, after `reality-process`; after `bec` once master is merged) | every Condensate Assembler and Condensate Generator recipe of the three machines: their blocks, cores, controllers and condensates, plus the `H/R gate:` boot log |
+| `RealityProcessRecipes` (line `reality-process`, unit 2) | the machines' own maps (SL-H06/H11/H21, SL-R03, SL-R04/R05); unchanged here |
+| `SLRealityFluids.isPlaceholder(Fluid)` | true for Ergomatter / Superdense Ergomatter / White Hole Matter while only this file registered them (no Eye makes them yet) |
+| `RealityRecipeMaps` | the three NEI tabs show their controller (`neiHandlerInfo` display stack, read lazily) |
+
+### Condensates (Condensate Generator, `gt.recipe.create-condensate`, source -> the same amount)
+
+| Id | Condensate (fluid) | Source, unit | Time, EU/t |
+|---|---|---|---|
+| SL-B10 | Entangled Raw Star Matter (`btsentangledstarmatter`) | Raw Star Matter, 1,000 L | 30 s, UIV |
+| SL-B13 | Entangled White Dwarf Matter (`btsentangledwhitedwarf`) | molten WDM, 144 L | 120 s, UXV |
+| SL-B14 | Entangled Black Dwarf Matter (`btsentangledblackdwarf`) | molten BDM, 144 L | 150 s, UXV |
+| SL-C01 | Entangled Degenerate Stellar Mixture (`btsentangleddegenerate`) | Degenerate, 1,000 L | 120 s, UXV |
+| SL-C02 | Entangled Ergomatter (`btsentangledergomatter`) | Ergomatter, 1,000 L | 120 s, UXV |
+| SL-C03 | Entangled Superdense Ergomatter (`btsentangledsuperdense`) | Superdense Ergomatter, 1,000 L | 150 s, 4 × UXV |
+| SL-C04 | Entangled White Hole Matter (`btsentangledwhitehole`) | White Hole Matter, 144 L | 180 s, MAX |
+| (SL-B16) | Entangled Magnetar Matter (`btsentangledmagnetar`) | no generator recipe: ruling 19a left it without a consumer | - |
+
+SL-B10/B13/B14 are master's (`SLCondensates`, line `bec`). `BTSRecipesReality.shim` looks each up by registry name;
+only if nothing registered it does it register the fluid (same name and colour) at postInit, and it never adds a
+generator recipe on a source fluid that already has one (it uses that recipe's output instead, as master does).
+**Merging master:** keep master's `SLCondensates` and `bec` line; the shim then only reads them (boot log: "the
+Condensate Generator already makes ..."). Nothing to delete.
+
+### Condensate Assembler recipes (`gt.recipe.assemble-condensate`)
+
+Nanite tier per stack: 1 Carbon, 2 Silver, 3 Gold, 4 Transcendent, 5 Six-Phased Copper, 6 White Dwarf, 7 Black Dwarf
+(never above 7: H-17). "ing" = 144 L. Durations are nanite-time; EU/t constant.
+
+| Id | Output | Items (count; nanite tier) | Condensates | Time, EU/t | Stage |
+|---|---|---|---|---|---|
+| SL-H01 | The Homogeny | Stirring Band 16 (2); Vortex Inlet 4 (2); FG UMV 16 (3); Pump UMV 32 (2); circuit UMV 32 (2); Bastion 32 (1); dense SpaceTime 16 (1); Energy Conduit I 4 (3); Field Manipulator I 4 (4) | Raw Star Matter 1,000,000 L; SpaceTime 4,096 ing; Infinity 256 ing | 3,600 s, 4 × UMV | S1 |
+| SL-H02 | Stirring Band Casing ×32 | Reinforced Spatial 2 (4); dense Infinity 8 (1); frame SpaceTime 8 (1); Piston UMV 2 (3); Waveguide I 2 (3) | SpaceTime 64 ing; Raw Star Matter 8,000 L | 2,400 s, UMV | S1 |
+| SL-H03 | Shear Helix Coil ×32 | Ergosphere Field Coil 4 (2); wireGt04 SC UMV 8 (2); foil Infinity 32 (1); Motor UMV 2 (3); Field Manipulator I 1 (4) | SpaceTime 16 ing; Space 8 ing | 1,200 s, UMV | S1 |
+| SL-H04 | Feed Vessel Casing ×32 | plate Neutronium 32 (1); Quantum Glass 8 (1); Pump UMV 2 (2); frame Infinity 4 (1); Shielding I 1 (3) | SpaceTime 8 ing; Infinity 16 ing | 900 s, UMV | S1 |
+| SL-H05 | Vortex Inlet ×8 | Pump UMV 8 (2); huge Neutronium pipe 8 (1, large if absent); Stirring Band 4 (2); circuit UMV 4 (2) | SpaceTime 16 ing; Raw Star Matter 4,000 L | 600 s, UMV | S1 |
+| SL-H10 | Homogeny Tier II Core | Galactic Shell 64 (2); Feed Vessel 16 (2); Vortex Inlet 8 (2); FG UXV 16 (5); Pump UXV 32 (4); circuit UXV 32 (4); Bastion 32 (2); Electrogravitic Valve II 4 (6); Field Manipulator II 4 (6) | **Black Dwarf Matter 256 ing** (gate, ruling 19a); White Dwarf Matter 256 ing; SpaceTime 1,024 ing | 4,800 s, UXV | S5 |
+| SL-H20 | Homogeny Tier III Core | Eternity Shell 64 (6); Region Crystal 8 (7); FG UXV 64 (6); Pump UXV 64 (5); circuit UXV 64 (5); Galactic Shell 64 (3); Resonance Chamber III 8 (7); Sensor Array III 4 (7) | **White Hole Matter 64 ing** (gate); Superdense 32,000 L; Degenerate 64,000 L; Eternity 64 ing | 6,000 s, MAX | S9 |
+| SL-R12 | Eternity Shell Casing ×32 | Reinforced Temporal 2 (4); dense Infinity 8 (1); plate MagMatter 1 (5); frame SpaceTime 8 (2); Shielding II 2 (6) | Degenerate 500 L; SpaceTime 32 ing | 3,600 s, UXV | S6 |
+| SL-R10 | Region Deck Band ×32 | Reinforced Spatial 2 (4); dense TM 16 (2); frame Infinity 8 (1); EM-Isolated Casing 1 (4); Shielding II 1 (6) | Degenerate 500 L; SpaceTime 32 ing | 3,600 s, UXV | S6 |
+| SL-R11 | Region Crystal ×16 | Godforge lens glass 2 (6); block Hexanite 2 (4); Emitter UXV 2 (5); Wave Focus II 2 (6) | Ergomatter 1,000 L; Superdense 500 L; Degenerate 500 L; MagMatter 1 ing | 2,400 s, UXV | S8 |
+| SL-R13 | Phase Ring Casing ×32 | Reinforced Temporal 2 (4); dense Cosmic Neutronium 16 (2); FG UXV 1 (6); Condensate Transformative Coil 1 (5); Waveguide II 1 (6) | Degenerate 500 L; Ergomatter 1,000 L; SpaceTime 32 ing | 3,600 s, UXV | S8 |
+| SL-R14 | Reassembly Hull Plating ×64 | Reinforced Spatial 2 (4); dense Infinity 16 (1); dense Cosmic Neutronium 16 (2); frame TM 16 (2); Shielding II 2 (6) | Degenerate 500 L; SpaceTime 32 ing | 3,600 s, UXV | S6 |
+| SL-R15 | Reassembly Tray Plating ×32 | Reinforced Temporal 1 (4); dense TM 16 (2); Casimir Plate 4 (3); frame Infinity 8 (1); Field Manipulator II 1 (6) | Degenerate 500 L; SpaceTime 32 ing | 2,400 s, UXV | S6 |
+| SL-R16 | Reassembly Claw ×32 | Robot Arm UXV 8 (5); Conveyor UXV 4 (5); Tray Plating 4 (3); circuit UXV 4 (4); Field Manipulator II 1 (6) | Superdense 500 L; Degenerate 500 L | 1,200 s, UXV | S8 |
+| SL-R17 | Region Anchor Casing ×4 | Region Crystal 2 (7); EM-Isolated Casing 2 (4); Harmonic Lining 4 (1); Sensor UXV 1 (5) | Degenerate 500 L; SpaceTime 8 ing | 600 s, UXV | S8 |
+| SL-R01 | Reality Diffraction | Region Crystal 6 (7); Phase Ring 32 (6); Deck Band 32 (6); FG UXV 32 (6); Emitter UXV 32 (5); circuit UXV 64 (5); Coherence-Preserving Plasma Conduit 16 (5); Condensate Transformative Coil 8 (5); Sensor Array III 4 (7); Resonance Chamber III 4 (7) | **White Hole Matter 256 ing** (gate); Superdense 64,000 L; Degenerate 64,000 L; SpaceTime 4,096 ing | 7,200 s, MAX | S9 |
+| SL-R02 | Reality Refab | Region Crystal 8 (7); Hull 32 (6); Claw 24 (6); Robot Arm UXV 32 (5); FG UXV 16 (6); circuit UXV 64 (5); Condensate Guidance Coil 16 (5); EM-Isolated Casing 16 (4); Field Manipulator II 8 (6); Resonance Chamber III 4 (7) | **White Hole Matter 256 ing** (gate); Eternity 128 ing; Degenerate 64,000 L; SpaceTime 4,096 ing | 7,200 s, MAX | S9 |
+
+Stages (doc §0): S1 after Eye T1 (Raw Star Matter, nanites ≤ 4); S5 after Eye T5 (WDM, BDM, nanites ≤ 7); S6 after
+Homogeny T2 (Degenerate); S8 after Eye T8 (Ergomatter, Superdense; P4); S9 after Eye T9 (White Hole Matter; P5).
+Families (≤ 4 condensates per recipe): Homogeny T1 in S1 "Stellar" (Raw Star Matter, SpaceTime, Space, Infinity);
+SL-H10 in S2 "Remnant" (BDM, WDM, SpaceTime); everything else in S4 "Reality" (White Hole, Superdense, Ergomatter,
+Degenerate, Eternity, MagMatter, SpaceTime).
+
+### Rules the helper enforces (`assemble`, `cond`)
+
+- At most 16 item stacks (stacks above 64 split, each with its slot's tier), at most 4 condensates, one output; a
+  nanite tier above Black Dwarf throws (H-17); GT must keep the recipe (an empty `addTo` is a logged skip).
+- Our condensates' amounts are multiples of half their unit (72 L or 500 L); a condensate whose generator recipe was
+  skipped makes every recipe that needs it a logged skip, never a recipe asking for an unmakeable fluid.
+- Dense plates fall back to the block, then to 9 plates; the huge Neutronium pipe falls back to the large one.
+
+### Boot log
+
+- `[BTS] H/R gate: <recipe> is registered but unreachable until an Eye makes <fluid> (Eye T<n>, P4/P5).` for SL-C02..C04,
+  SL-R11, R13, R16, R17, SL-H20, SL-R01, R02 and the process recipes SL-H21, SL-R03, R04, R05, while the fluids are
+  placeholders; then a count line. When P4/P5 own the fluids: "every Homogeny/Reality recipe is reachable".
+- `[BTS] SL-B16 Entangled Magnetar Matter: no Condensate Generator recipe ...` (ruling 19a).
+- On a build without master's BEC expansion: `SL-B10/B13/B14: ... registered it under the same name`.
 
 ## Hologram & NEI
 
