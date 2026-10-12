@@ -175,12 +175,7 @@ public final class AutoRig {
     static List<String> build(boolean eyeRig, boolean kerrRig) {
         buildLog.clear();
         final WorldServer world = RenderTest.world();
-        helium = Materials.Helium.getGas(1L) == null ? null
-            : Materials.Helium.getGas(1L)
-                .getFluid();
-        hydrogen = Materials.Hydrogen.getGas(1L) == null ? null
-            : Materials.Hydrogen.getGas(1L)
-                .getFluid();
+        initFluids();
         if (eyeRig) try {
             buildEyeRig(world);
         } catch (RuntimeException bad) {
@@ -198,6 +193,20 @@ public final class AutoRig {
         built = true;
         return new ArrayList<>(buildLog);
     }
+
+    /** Helium and Hydrogen (GT's gases), once. */
+    static void initFluids() {
+        if (helium == null && Materials.Helium.getGas(1L) != null) helium = Materials.Helium.getGas(1L)
+            .getFluid();
+        if (hydrogen == null && Materials.Hydrogen.getGas(1L) != null) hydrogen = Materials.Hydrogen.getGas(1L)
+            .getFluid();
+    }
+
+    /**
+     * Named camera points the rigs register as they are built (block centres): the recorder's places
+     * ({@code ae.drive}, {@code k.core}, ...; docs/recording.md).
+     */
+    static final Map<String, double[]> POINTS = new java.util.concurrent.ConcurrentHashMap<>();
 
     // ------------------------------------------------------------------------------- Rig A
 
@@ -286,7 +295,7 @@ public final class AutoRig {
      * A frame on a socket: origin at the socket, o = the hatch's front (outward), s = the horizontal side whose test
      * cells (o 1..maxO, y lo..hi, s 1..maxS) are clearest.
      */
-    private static Frame frame(World world, ExtendedFacing al, int[] rel, int lo, int hi, int maxO, int maxS) {
+    static Frame frame(World world, ExtendedFacing al, int[] rel, int lo, int hi, int maxO, int maxS) {
         final int[] p = SLConsoleTest.worldPos(al, eyeOrKerr()[0], eyeOrKerr()[1], eyeOrKerr()[2], rel);
         final TileEntity te = world.getTileEntity(p[0], p[1], p[2]);
         ForgeDirection o = te instanceof IGregTechTileEntity ? ((IGregTechTileEntity) te).getFrontFacing()
@@ -299,7 +308,7 @@ public final class AutoRig {
     }
 
     /** Whose controller {@link #frame} measures from (the rig being built). */
-    private static int[] buildingFor;
+    static int[] buildingFor;
 
     private static int[] eyeOrKerr() {
         return buildingFor != null ? buildingFor : eyeCtrl;
@@ -316,7 +325,7 @@ public final class AutoRig {
     }
 
     /** A Directive Hatch at {@code p} (placed if the socket holds something else), set and output mode. */
-    private static MTEHatchDirective directive(World world, int[] p, ForgeDirection facing, DirectiveSet set,
+    static MTEHatchDirective directive(World world, int[] p, ForgeDirection facing, DirectiveSet set,
         DirectiveSet.Output out, int window) {
         MTEHatchDirective h = mteAt(world, p, MTEHatchDirective.class);
         if (h == null) {
@@ -642,15 +651,15 @@ public final class AutoRig {
 
     // ===================================================================================== blocks
 
-    private static void solid(World world, int[] p) {
+    static void solid(World world, int[] p) {
         if (world.isAirBlock(p[0], p[1], p[2])) world.setBlock(p[0], p[1], p[2], Blocks.quartz_block, 0, 3);
     }
 
-    private static void dust(World world, int[] p) {
+    static void dust(World world, int[] p) {
         world.setBlock(p[0], p[1], p[2], Blocks.redstone_wire, 0, 3);
     }
 
-    private static void lamp(World world, int[] p) {
+    static void lamp(World world, int[] p) {
         world.setBlock(p[0], p[1], p[2], Blocks.redstone_lamp, 0, 3);
     }
 
@@ -671,7 +680,7 @@ public final class AutoRig {
         }
     }
 
-    private static void repeater(World world, int[] p, ForgeDirection out, int delay) {
+    static void repeater(World world, int[] p, ForgeDirection out, int delay) {
         world.setBlock(p[0], p[1], p[2], Blocks.unpowered_repeater, diodeDir(out) | (delay << 2), 3);
     }
 
@@ -680,7 +689,7 @@ public final class AutoRig {
     }
 
     /** A wall torch pointing {@code out} (attached to the block behind it). */
-    private static void torch(World world, int[] p, ForgeDirection out) {
+    static void torch(World world, int[] p, ForgeDirection out) {
         final int meta;
         switch (out) {
             case EAST:
@@ -700,7 +709,7 @@ public final class AutoRig {
     }
 
     /** A wall sign facing {@code out} (attached to the block behind it), up to four lines of 15 characters. */
-    private static void sign(World world, int[] p, ForgeDirection out, String... lines) {
+    static void sign(World world, int[] p, ForgeDirection out, String... lines) {
         if (!world.isAirBlock(p[0], p[1], p[2])) {
             buildLog.add("sign skipped at " + RenderTest.pos(p) + " (not air)");
             return;
@@ -851,7 +860,7 @@ public final class AutoRig {
             if (event.phase != TickEvent.Phase.END) return;
             serverTick++;
             if (!built || serverTick % 20 != 0) return;
-            if (seconds() == 5 || seconds() == 40) dumpWires();
+            if ((seconds() == 5 || seconds() == 40) && eyeCtrl != null && fStatus != null) dumpWires();
             try {
                 sampleEye();
             } catch (RuntimeException bad) {
@@ -993,7 +1002,7 @@ public final class AutoRig {
         }
     }
 
-    private static int code(World world, int[] p) {
+    static int code(World world, int[] p) {
         final MTEHatchDirective h = mteAt(world, p, MTEHatchDirective.class);
         return h == null ? -1 : h.currentCode();
     }
