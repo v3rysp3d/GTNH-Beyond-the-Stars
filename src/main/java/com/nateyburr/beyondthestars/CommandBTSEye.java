@@ -61,7 +61,7 @@ public class CommandBTSEye extends CommandBase {
     @Override
     public String getCommandUsage(ICommandSender sender) {
         return "/btseye [t1..t6] [gen 1-9] [fill] [force]  |  console: /btseye [t1..t6] <x> <y> <z> [facing] "
-            + "[gen 1-9] [fill] [force] [survival] [legacy] [nobeam] | [check]  |  /btseye keep <x> <y> <z> <facing> [t1..t6]  |  /btseye gates  |  /btseye bec  |  "
+            + "[gen 1-9] [fill] [force] [survival] [legacy] [nobeam] [oldwindows] | [check]  |  /btseye keep <x> <y> <z> <facing> [t1..t6]  |  /btseye gates  |  /btseye bec  |  "
             + EyeStarBench.USAGE;
     }
 
@@ -235,6 +235,7 @@ public class CommandBTSEye extends CommandBase {
         boolean check = false;
         boolean legacy = false;
         boolean nobeam = false;
+        boolean oldWindows = false;
         for (int i = 0; i < args.length; i++) {
             if (at.used[i]) continue;
             final String arg = args[i].toLowerCase(java.util.Locale.ROOT);
@@ -248,6 +249,7 @@ public class CommandBTSEye extends CommandBase {
             if (arg.equals("check")) check = true;
             if (arg.equals("legacy")) legacy = true;
             if (arg.equals("nobeam")) nobeam = true;
+            if (arg.equals("oldwindows")) oldWindows = true;
         }
         final ExtendedFacing alignment = ExtendedFacing.of(at.facing);
         final String[] pieces = java.util.Arrays.copyOf(MTEEyeOfHarmonyBTS.PIECES, tiers);
@@ -329,6 +331,18 @@ public class CommandBTSEye extends CommandBase {
         }
         for (String line : EyeKit.diagnose(world, at.x, at.y, at.z, at.facing, tiers, true)) {
             SLConsoleTest.tell(sender, line);
+        }
+        if (oldWindows) {
+            // window-band bench: an Eye built before the windows has its old blocks in those cells; it must form
+            int n = 0;
+            for (String piece : pieces) {
+                n += SLConsoleTest
+                    .revertWindows(world, alignment, at.x, at.y, at.z, piece, MTEEyeOfHarmonyBTS.windowBefore());
+            }
+            SLConsoleTest.tell(sender, "oldwindows: put the pre-window blocks back into " + n + " cells; re-walk:");
+            for (String line : EyeKit.diagnose(world, at.x, at.y, at.z, at.facing, tiers, false)) {
+                SLConsoleTest.tell(sender, line);
+            }
         }
         if (nobeam && tiers >= 2) {
             final int cleared = EyeKit.stripPiece(world, at.x, at.y, at.z, MTEEyeOfHarmonyBTS.PIECE_BEAM);

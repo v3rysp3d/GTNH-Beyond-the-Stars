@@ -446,4 +446,31 @@ public final class SLConsoleTest {
         alignment.getWorldOffset(rel, xyz);
         return new int[] { x + xyz[0], y + xyz[1], z + xyz[2] };
     }
+
+    /**
+     * Window-band bench ({@code oldwindows} on the console builds of {@code /btskerr} and {@code /btseye}): puts the
+     * block every window cell of {@code piece} held BEFORE the window bands back into it, as a machine built earlier
+     * has it, for a controller at (x, y, z) aligned {@code alignment}. {@code before} maps a window char to its old
+     * {@code {Block, meta}}. Cells holding a tile entity are left alone. Returns how many cells changed.
+     */
+    public static int revertWindows(World world, ExtendedFacing alignment, int x, int y, int z, String piece,
+        Map<Character, Object[]> before) {
+        final String[][] shape = BTSShapes.load(piece);
+        final int[] off = BTSShapes.offset(piece);
+        int n = 0;
+        for (int c = 0; c < shape.length; c++) {
+            for (int b = 0; b < shape[c].length; b++) {
+                final String row = shape[c][b];
+                for (int a = 0; a < row.length(); a++) {
+                    final Object[] old = before.get(row.charAt(a));
+                    if (old == null || old[0] == null) continue;
+                    final int[] p = worldPos(alignment, x, y, z, new int[] { a - off[0], b - off[1], c - off[2] });
+                    if (world.getTileEntity(p[0], p[1], p[2]) != null) continue;
+                    world.setBlock(p[0], p[1], p[2], (Block) old[0], (Integer) old[1], 2);
+                    n++;
+                }
+            }
+        }
+        return n;
+    }
 }

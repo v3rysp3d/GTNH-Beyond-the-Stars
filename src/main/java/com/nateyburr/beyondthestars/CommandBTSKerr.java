@@ -66,7 +66,7 @@ public class CommandBTSKerr extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btskerr [t1|t2] [force]  |  /btskerr migrate [x y z]  |  /btskerr render x y z [open [m]|close|off|on|break]  |  /btskerr module x y z <c|x> [stock|status|tier|clear]  |  /btskerr damage|repair x y z  |  console: /btskerr [t1|t2] <x> <y> <z> [facing] [force] [survival] | [check]  |  /btskerr autorig x y z [s] [bolts/s] [empty]  |  /btskerr ocloop x y z  |  /btskerr ctrl x y z on|off|out  |  /btskerr ocprobe x y z";
+        return "/btskerr [t1|t2] [force]  |  /btskerr migrate [x y z]  |  /btskerr render x y z [open [m]|close|off|on|break]  |  /btskerr module x y z <c|x> [stock|status|tier|clear]  |  /btskerr damage|repair x y z  |  console: /btskerr [t1|t2] <x> <y> <z> [facing] [force] [survival] [oldwindows] | [check]  |  /btskerr autorig x y z [s] [bolts/s] [empty]  |  /btskerr ocloop x y z  |  /btskerr ctrl x y z on|off|out  |  /btskerr ocprobe x y z";
     }
 
     @Override
@@ -223,6 +223,7 @@ public class CommandBTSKerr extends CommandBase {
         boolean force = false;
         boolean survival = false;
         boolean check = false;
+        boolean oldWindows = false;
         for (int i = 0; i < args.length; i++) {
             if (at.used[i]) continue;
             final String arg = args[i];
@@ -230,6 +231,7 @@ public class CommandBTSKerr extends CommandBase {
             if (arg.equalsIgnoreCase("force") || arg.equalsIgnoreCase("-f")) force = true;
             if (arg.equalsIgnoreCase("survival")) survival = true;
             if (arg.equalsIgnoreCase("check")) check = true;
+            if (arg.equalsIgnoreCase("oldwindows")) oldWindows = true;
         }
         final String core = tier2 ? MTEKerrEngine.PIECE_T2 : MTEKerrEngine.PIECE_T1;
         final ExtendedFacing alignment = ExtendedFacing.of(at.facing);
@@ -295,6 +297,15 @@ public class CommandBTSKerr extends CommandBase {
         }
         for (String line : KerrKit.diagnose(world, at.x, at.y, at.z, at.facing, tier2, true)) {
             SLConsoleTest.tell(sender, line);
+        }
+        if (oldWindows) {
+            // window-band bench: a Kerr built before the windows has its old blocks in those cells; it must form
+            final int n = SLConsoleTest
+                .revertWindows(world, alignment, at.x, at.y, at.z, core, MTEKerrEngine.windowBefore());
+            SLConsoleTest.tell(sender, "oldwindows: put the pre-window blocks back into " + n + " cells; re-walk:");
+            for (String line : KerrKit.diagnose(world, at.x, at.y, at.z, at.facing, tier2, false)) {
+                SLConsoleTest.tell(sender, line);
+            }
         }
     }
 
