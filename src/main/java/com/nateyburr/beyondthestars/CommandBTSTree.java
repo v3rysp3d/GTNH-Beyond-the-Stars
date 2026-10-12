@@ -157,10 +157,12 @@ public class CommandBTSTree extends CommandBase {
             final boolean done = "buy".equals(verb) ? station.buyUpgrade(node) : station.refundUpgrade(node);
             if (!done) {
                 // Tidy C9: the same verdict the tree panel's tooltip prints, so the refusal names
-                // the one requirement in the way instead of listing every possible reason.
-                final String why = "refund".equals(verb) && !BTSUpgrade.owns(progression.nodes(), node) ? "not bought"
-                    : EnumChatFormatting.getTextWithoutFormattingCodes(
-                        BTSUpgrade.verdict(node, progression.nodes(), progression.snapshot()));
+                // the one requirement in the way instead of listing every possible reason. The two
+                // "wrong verb" cases get their own words, and the panel's mouse hints are cut off.
+                final boolean owned = BTSUpgrade.owns(progression.nodes(), node);
+                final String why = "refund".equals(verb) && !owned ? "not bought"
+                    : "buy".equals(verb) && owned ? "already bought"
+                        : chatVerdict(BTSUpgrade.verdict(node, progression.nodes(), progression.snapshot()));
                 say(player, EnumChatFormatting.RED + "Refused: " + node.title() + " - " + why);
             }
             say(player, BTSUpgrade.nodeLine(progression.nodes(), progression.snapshot(), node));
@@ -168,6 +170,19 @@ public class CommandBTSTree extends CommandBase {
             return;
         }
         throw new WrongUsageException(getCommandUsage(sender));
+    }
+
+    /**
+     * The tree panel's verdict without its colour codes or its mouse instructions ("AVAILABLE:
+     * left-click to buy" becomes "AVAILABLE"), which mean nothing in a chat command.
+     */
+    private static String chatVerdict(String verdict) {
+        final String plain = EnumChatFormatting.getTextWithoutFormattingCodes(verdict);
+        for (final String hint : new String[] { ": left-click", ": right-click" }) {
+            final int at = plain.indexOf(hint);
+            if (at >= 0) return plain.substring(0, at);
+        }
+        return plain;
     }
 
     private static void report(EntityPlayerMP player, MTEReactorCoreMk1 station, BTSProgression progression) {
