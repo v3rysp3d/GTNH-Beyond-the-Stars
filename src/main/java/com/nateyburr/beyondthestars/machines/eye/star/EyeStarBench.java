@@ -15,16 +15,20 @@ import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.FluidStack;
 
 import com.nateyburr.beyondthestars.items.SLItems;
+import com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1;
 import com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS;
 import com.nateyburr.beyondthestars.machines.eye.MTEHatchStellarFieldSensor;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldReadout;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldRig;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldSim;
 
+import gregtech.api.enums.ItemList;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
+import gregtech.api.metatileentity.implementations.MTEHatchInput;
 import gregtech.api.metatileentity.implementations.MTEHatchInputBus;
 import gregtech.common.misc.WirelessNetworkManager;
 
@@ -47,7 +51,12 @@ import gregtech.common.misc.WirelessNetworkManager;
  * <li>{@code transition [abort]} - the running transition's phase, or abort it as a wrench would; {@code event} - the
  * tier's next event now (its warning this second);</li>
  * <li>{@code sensor <x> <y> <z> <channel> <gt|lt> <threshold> [analog]} and {@code probe} - the sensor hatches;</li>
- * <li>{@code wrench} - what picking the controller up and placing it back keeps (item NBT only).</li>
+ * <li>{@code wrench} - what picking the controller up and placing it back keeps (item NBT only); {@code fix} - then
+ * fix its maintenance and enable it, as the player does (GT keeps no maintenance in item NBT); {@code gt} - GT's view
+ * (allowed to work, formed, maintenance, last shutdown);</li>
+ * <li>{@code mefield} - swap a Field-socket hatch for an ME stocking input hatch and re-walk (R-15: walked, rejected,
+ * never drained); {@code field <fluid> <L>} - pour a trim fluid into the Field-socket hatches (a player's
+ * automation).</li>
  * </ul>
  */
 public final class EyeStarBench {
@@ -59,7 +68,7 @@ public final class EyeStarBench {
         + "milestones <n> done | transition [abort] | event | "
         + "fill | sensor <x> <y> <z> <channel> <gt|lt> <threshold> [analog] | sensors <channel> <gt|lt> <thr> "
         + "[analog] | probe | wrench | charge [n] | buffer <fluid> <L> | core <name> | escrow | "
-        + "legacy [galactic] [run <key> <n>]";
+        + "legacy [galactic] [run <key> <n>] | fix | gt | mefield | field <fluid> <L>";
 
     /** Runs {@code args} = {@code star x y z sub …}. Returns the lines to print. */
     public static List<String> run(ICommandSender sender, String[] args) {
@@ -180,6 +189,41 @@ public final class EyeStarBench {
                 eye.debugWrench();
                 out.add("Wrenched and placed back (item NBT only):");
                 break;
+            case "fix": {
+                // what the player does after placing a controller back: GT keeps no maintenance in item NBT, so
+                // a placed-back controller has every issue until fixed, and GT's NO_REPAIR stop disables it
+                eye.fixAllIssues();
+                final IGregTechTileEntity base = eye.getBaseMetaTileEntity();
+                if (base != null) base.enableWorking();
+                out.add("Maintenance fixed and the machine enabled (as a player would after placing it back)");
+                out.add(gtLine(eye));
+                break;
+            }
+            case "gt":
+                out.add(gtLine(eye));
+                return out;
+            case "mefield":
+                out.add(meField(eye));
+                break;
+            case "field": {
+                // field <fluid registry name> <L>: pour a trim fluid into the Field-socket hatches (what a player's
+                // automation does), so the sockets, not a debug rig, regulate the star
+                final Fluid fluid = args.length > 6 ? FluidRegistry.getFluid(args[5]) : null;
+                if (fluid == null) {
+                    out.add("field <fluid registry name> <litres>");
+                    return out;
+                }
+                int left = Integer.parseInt(args[6]);
+                for (MTEHatchInput h : eye.fieldHatches()) {
+                    if (left <= 0) break;
+                    if (h == null || !h.isValid()) continue;
+                    left -= h
+                        .fill(net.minecraftforge.common.util.ForgeDirection.UNKNOWN, new FluidStack(fluid, left), true);
+                }
+                out.add(
+                    "Field sockets: " + (Integer.parseInt(args[6]) - left) + " L of " + fluid.getName() + " poured");
+                return out;
+            }
             case "charge": {
                 final int n = a5.isEmpty() ? 1 : Integer.parseInt(a5);
                 out.add(putCharges(eye, n));
@@ -308,12 +352,13 @@ public final class EyeStarBench {
         c.ts = rt.host.stabilisationTier();
         c.r = 1;
         c.feed = rt.feedSet;
+        final double stAtBegin = c.stBuf; // runCase spends the bounce's SpaceTime from c.stBuf: print the begin value
         final Map<String, Object> res = FieldSim.runCase(l.startTier, c, l.steps);
         final long hash = ((Number) res.get("hash")).longValue();
         out.add(
             "offline FieldSim T" + l.startTier
                 + (c.collapse
-                    ? " (Core Collapse at " + c.beginAt + ", shock " + c.shock + ", SpaceTime " + c.stBuf + ")"
+                    ? " (Core Collapse at " + c.beginAt + ", shock " + c.shock + ", SpaceTime " + stAtBegin + ")"
                     : "")
                 + " seed "
                 + c.seed
@@ -340,6 +385,55 @@ public final class EyeStarBench {
         out.add(
             hash == (l.hash & 0xFFFFFFFFL) ? "COMPARE PASS: the Eye's field equals the prototype's, second for second"
                 : "COMPARE DIFFERS (needs p = 1, upkeep r = 1, no failure, and the rig or no trims since 'lit')");
+    }
+
+    /** GT's view of the controller: allowed to work, formed, maintenance, the last shutdown reason. */
+    private static String gtLine(MTEEyeOfHarmonyBTS eye) {
+        final IGregTechTileEntity base = eye.getBaseMetaTileEntity();
+        if (base == null) return "GT: no base tile";
+        return "GT: allowed to work " + base.isAllowedToWork()
+            + ", formed "
+            + eye.mMachine
+            + ", maintenance "
+            + eye.getRepairStatus()
+            + "/"
+            + eye.getIdealStatus()
+            + ", last shutdown "
+            + (base.getLastShutDownReason() == null ? "none"
+                : base.getLastShutDownReason()
+                    .getKey());
+    }
+
+    /** R-15 bench: swaps the first live Field-socket hatch for an ME stocking input hatch and re-walks. */
+    private static String meField(MTEEyeOfHarmonyBTS eye) {
+        MTEHatchInput field = null;
+        for (MTEHatchInput h : eye.fieldHatches()) {
+            if (h != null && h.isValid()) {
+                field = h;
+                break;
+            }
+        }
+        if (field == null) return "No live Field-socket hatch to swap.";
+        final IGregTechTileEntity hb = field.getBaseMetaTileEntity();
+        final int hx = hb.getXCoord(), hy = hb.getYCoord(), hz = hb.getZCoord();
+        final ItemStack me = ItemList.Hatch_Input_ME.get(1L);
+        if (me == null || !MTEReactorCoreMk1
+            .placeGtMachine(hb.getWorld(), hx, hy, hz, (short) me.getItemDamage(), hb.getFrontFacing())) {
+            return "Could not place an ME stocking input hatch at (" + hx + ", " + hy + ", " + hz + ").";
+        }
+        final IGregTechTileEntity base = eye.getBaseMetaTileEntity();
+        if (base != null) eye.checkStructure(true, base);
+        return "ME stocking input hatch placed in the Field socket at (" + hx
+            + ", "
+            + hy
+            + ", "
+            + hz
+            + "), re-walked: formed "
+            + eye.mMachine
+            + ", Field hatches "
+            + eye.fieldHatchCount()
+            + ", rejected "
+            + eye.rejectedFieldHatchCount();
     }
 
     private static void sensor(ICommandSender sender, World world, String[] args, List<String> out) {
