@@ -69,7 +69,7 @@ public enum BTSUpgrade {
     // -------------------------------------------------------------------------- depth 3
     PIPEWORK_LAGGING("Lagging", "Pipework Lagging", 0, 3, 3, BTSChannel.OUTPUT.by(30)),
     RECLADDING_LINE("Recladding", "Recladding Line", 1, 3, 3, BTSChannel.OUTPUT.by(30)),
-    EXTRA_CENTRIFUGE("Centrifuge", "Extra Centrifuge Stage", 2, 3, 3, BTSChannel.ANNEX_BATCH.by(250)),
+    EXTRA_CENTRIFUGE("Leach Tank", "Extra Leach Tank", 2, 3, 3, BTSChannel.ANNEX_BATCH.by(250)),
     NOZZLE_REGRIND("Nozzles", "Nozzle Regrind", 3, 3, 4, BTSChannel.OUTPUT.by(30)),
 
     // -------------------------------------------------------------------------- depth 4

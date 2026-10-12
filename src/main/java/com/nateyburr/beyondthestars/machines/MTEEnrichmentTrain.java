@@ -213,7 +213,7 @@ public class MTEEnrichmentTrain extends MTEExtendedPowerMultiBlockBase<MTEEnrich
             .addInfo("Same 4 Uraninite per Yellowcake as the full ore line:")
             .addInfo("it saves machines, not ore.")
             .addInfo("Next step: Chemical Plant, Yellowcake -> Uranium Tetrafluoride.")
-            .addInfo("Despite the name it does not enrich; enrichment is the Cascade Hall.")
+            .addInfo("Enrichment itself is the Cascade Hall.")
             .addInfo("The Nuclear Plant Foundation has this built in as its Enrichment Annex.")
             .beginStructureBlock(3, 3, 9, false)
             .addController("Front face, centre")

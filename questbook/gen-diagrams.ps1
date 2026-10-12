@@ -328,7 +328,7 @@ $chamberRows = @(
 )
 $after2 = Face $chamberRows ($after + 48) $C.tt '#2C4560' 43
 $g.DrawString('The 8 Precision Injectors climb all four walls above this, y3 to y10.', $fTiny, (Brush $C.dim), 12, $after2)
-$g.DrawString('The Spine Sensor is in the ROOF, front-centre, facing up.', $fTiny, (Brush $C.dim), 12, ($after2 + 11))
+$g.DrawString('The Spiral Cycle Sensor is in the ROOF, front-centre, facing up.', $fTiny, (Brush $C.dim), 12, ($after2 + 11))
 
 # ---- legend
 $ly = $after2 + 28

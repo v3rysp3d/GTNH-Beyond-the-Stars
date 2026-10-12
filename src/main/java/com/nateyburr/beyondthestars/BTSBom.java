@@ -53,7 +53,7 @@ public final class BTSBom {
     public static final String ROD_LOADING_PORT = "Rod Loading Port";
     public static final String SILO_CONTROL_BLOCK = "Silo Control Block";
     public static final String SOLID_STEEL_MACHINE_CASING = "Solid Steel Machine Casing";
-    public static final String SPINE_SENSOR = "Spine Sensor";
+    public static final String SPIRAL_CYCLE_SENSOR = "Spiral Cycle Sensor";
     public static final String STEEL_FRAME_BOX = "Steel Frame Box";
     public static final String STEEL_PIPE_CASING = "Steel Pipe Casing";
     public static final String TUNGSTENSTEEL_REINFORCED_BLOCK = "Tungstensteel Reinforced Block";
@@ -125,7 +125,7 @@ public final class BTSBom {
     public static final Bill SPIRAL = new Bill(
         "Spiral chamber",
         new String[] { TUNGSTENSTEEL_TURBINE_CASING, LIGHT_CONCRETE, PRECISION_INJECTOR, INPUT_HATCH_IV,
-            MAINTENANCE_HATCH, SPINE_SENSOR },
+            MAINTENANCE_HATCH, SPIRAL_CYCLE_SENSOR },
         new int[] { 326, 50, 8, 2, 1, 1 });
 
     public static final Bill GALLERY = new Bill(
@@ -225,7 +225,7 @@ public final class BTSBom {
                 REACTOR_FUEL_PILLAR_FRAME, STEEL_FRAME_BOX, FILTER_MACHINE_CASING, ROD_LOADING_PORT, STEEL_PIPE_CASING,
                 TURBINE_HOUSING, PRECISION_INJECTOR, DYNAMO_HATCH_IV, ENERGY_HATCH_IV, INPUT_HATCH_IV,
                 LASER_SOURCE_HATCH, MAINTENANCE_HATCH, OUTPUT_BUS_IV, INPUT_BUS_IV, OUTPUT_HATCH_IV, SILO_CONTROL_BLOCK,
-                SPINE_SENSOR, TURBINE_CONTROL_BLOCK },
+                SPIRAL_CYCLE_SENSOR, TURBINE_CONTROL_BLOCK },
             new int[] { 3773, 830, 520, 509, 452, 362, 360, 170, 152, 45, 32, 12, 8, 4, 4, 4, 4, 3, 3, 2, 1, 1, 1, 1 }),
         new Bill(
             "Whole plant tier 2",
@@ -234,7 +234,7 @@ public final class BTSBom {
                 TUNGSTENSTEEL_REINFORCED_BLOCK, STEEL_FRAME_BOX, FILTER_MACHINE_CASING, ROD_LOADING_PORT,
                 STEEL_PIPE_CASING, TURBINE_HOUSING, PRECISION_INJECTOR, DYNAMO_HATCH_IV, ENERGY_HATCH_IV,
                 INPUT_HATCH_IV, LASER_SOURCE_HATCH, MAINTENANCE_HATCH, OUTPUT_BUS_IV, INPUT_BUS_IV, OUTPUT_HATCH_IV,
-                SILO_CONTROL_BLOCK, SPINE_SENSOR, TURBINE_CONTROL_BLOCK },
+                SILO_CONTROL_BLOCK, SPIRAL_CYCLE_SENSOR, TURBINE_CONTROL_BLOCK },
             new int[] { 3773, 822, 812, 616, 509, 452, 442, 170, 152, 77, 32, 12, 8, 4, 4, 4, 4, 3, 3, 2, 1, 1, 1, 1 }),
         new Bill(
             "Whole plant tier 3",
@@ -244,7 +244,7 @@ public final class BTSBom {
                 STEEL_FRAME_BOX, FILTER_MACHINE_CASING, ROD_LOADING_PORT, RADIATION_PROOF_MACHINE_CASING,
                 STEEL_PIPE_CASING, TURBINE_HOUSING, PRECISION_INJECTOR, DYNAMO_HATCH_IV, ENERGY_HATCH_IV,
                 INPUT_HATCH_IV, LASER_SOURCE_HATCH, MAINTENANCE_HATCH, OUTPUT_BUS_IV, INPUT_BUS_IV, OUTPUT_HATCH_IV,
-                SILO_CONTROL_BLOCK, SPINE_SENSOR, TURBINE_CONTROL_BLOCK },
+                SILO_CONTROL_BLOCK, SPIRAL_CYCLE_SENSOR, TURBINE_CONTROL_BLOCK },
             new int[] { 3773, 963, 872, 814, 509, 452, 257, 249, 170, 152, 109, 105, 32, 12, 8, 4, 4, 4, 4, 3, 3, 2, 1,
                 1, 1, 1 }),
         new Bill(
@@ -255,7 +255,7 @@ public final class BTSBom {
                 STEEL_FRAME_BOX, ROD_LOADING_PORT, FILTER_MACHINE_CASING, RADIATION_PROOF_MACHINE_CASING,
                 STEEL_PIPE_CASING, TURBINE_HOUSING, PRECISION_INJECTOR, DYNAMO_HATCH_IV, ENERGY_HATCH_IV,
                 INPUT_HATCH_IV, LASER_SOURCE_HATCH, MAINTENANCE_HATCH, OUTPUT_BUS_IV, INPUT_BUS_IV, OUTPUT_HATCH_IV,
-                SILO_CONTROL_BLOCK, SPINE_SENSOR, TURBINE_CONTROL_BLOCK },
+                SILO_CONTROL_BLOCK, SPIRAL_CYCLE_SENSOR, TURBINE_CONTROL_BLOCK },
             new int[] { 3773, 1343, 1256, 806, 509, 452, 381, 249, 170, 157, 152, 129, 32, 12, 8, 4, 4, 4, 4, 3, 3, 2,
                 1, 1, 1, 1 }),
         new Bill(
@@ -265,8 +265,8 @@ public final class BTSBom {
                 CLEAN_STAINLESS_STEEL_MACHINE_CASING, TUNGSTENSTEEL_REINFORCED_BLOCK, ROD_LOADING_PORT, STEEL_FRAME_BOX,
                 FILTER_MACHINE_CASING, RADIATION_PROOF_MACHINE_CASING, STEEL_PIPE_CASING, TURBINE_HOUSING,
                 PRECISION_INJECTOR, DYNAMO_HATCH_IV, ENERGY_HATCH_IV, INPUT_HATCH_IV, LASER_SOURCE_HATCH,
-                MAINTENANCE_HATCH, OUTPUT_BUS_IV, INPUT_BUS_IV, OUTPUT_HATCH_IV, SILO_CONTROL_BLOCK, SPINE_SENSOR,
-                TURBINE_CONTROL_BLOCK },
+                MAINTENANCE_HATCH, OUTPUT_BUS_IV, INPUT_BUS_IV, OUTPUT_HATCH_IV, SILO_CONTROL_BLOCK,
+                SPIRAL_CYCLE_SENSOR, TURBINE_CONTROL_BLOCK },
             new int[] { 3773, 1667, 1608, 798, 509, 497, 452, 249, 201, 170, 152, 141, 32, 12, 8, 4, 4, 4, 4, 3, 3, 2,
                 1, 1, 1, 1 }) };
 }

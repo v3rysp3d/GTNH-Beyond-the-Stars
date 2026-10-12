@@ -74,7 +74,7 @@ public enum BTSMilestone {
      * Annex every {@code ANNEX_CYCLE_TICKS}(600) = 120/h, so a plant running both scores 480/h
      * and T7 is 100,000 / 480 = ~208 h. Correct as written.
      */
-    REPROCESSING("REPROCESSING", "Derrick loads + Annex batches", "btsProgReproc",
+    REPROCESSING("ORE PROCESSING", "Derrick loads + Annex batches", "btsProgReproc",
         new long[] { 250L, 700L, 1_900L, 5_200L, 14_000L, 38_000L, 100_000L },
         new int[] { 1000, 1020, 1045, 1070, 1100, 1100, 1100, 1100 },
         new String[] { "+2.0% output", "+4.5% output", "+7.0% output", "+10.0% output",

@@ -192,7 +192,7 @@ public class CommandBTSKit extends CommandBase {
         BTSChat.header(player, "== Beyond the Stars test kit (Reactor Silo tier " + tier + ") ==");
         BTSChat.send(
             player,
-            "Kit given: Nuclear Plant Foundation (+ the standalone Extraction Platform and Enrichment Train, optional), the four production hall controllers, "
+            "Kit given: Nuclear Plant Foundation (+ the standalone Extraction Platform and Yellowcake Mill, optional), the four production hall controllers, "
                 + qty(columns)
                 + " Reactor Fuel Pillar Frames, "
                 + qty(ports)

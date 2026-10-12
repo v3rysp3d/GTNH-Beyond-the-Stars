@@ -52,7 +52,7 @@ public final class BTSMachines {
         enrichmentTrain = new MTEEnrichmentTrain(
             base + 3,
             "multimachine.beyondthestars.enrichmenttrain",
-            "Enrichment Train").getStackForm(1);
+            "Yellowcake Mill").getStackForm(1);
         moduleTurbineHall = new MTEModuleTurbineHall(
             base + 4,
             "multimachine.beyondthestars.module.turbinehall",
@@ -65,7 +65,7 @@ public final class BTSMachines {
             base + 6,
             "hatch.beyondthestars.precisioninjector",
             "Precision Injector").getStackForm(1);
-        spineSensor = new MTEHatchSpineSensor(base + 7, "hatch.beyondthestars.spinesensor", "Spine Sensor")
+        spineSensor = new MTEHatchSpineSensor(base + 7, "hatch.beyondthestars.spinesensor", "Spiral Cycle Sensor")
             .getStackForm(1);
         siloControlBlock = new MTESiloControlBlock(
             base + 8,

@@ -168,7 +168,7 @@ public class MTEExtractionPlatform extends MTEExtendedPowerMultiBlockBase<MTEExt
                     + " ("
                     + TooltipHelper.voltageTierText(VoltageIndex.EV, false)
                     + ")")
-            .addInfo("Feed the Uraninite to an Enrichment Train to make Yellowcake.")
+            .addInfo("Feed the Uraninite to a Yellowcake Mill to make Yellowcake.")
             .addInfo("Output Bus required: output is lost without one.")
             .addInfo("The Nuclear Plant Foundation has this drill built in as its Extraction Derrick.")
             .beginStructureBlock(5, 8, 5, false)

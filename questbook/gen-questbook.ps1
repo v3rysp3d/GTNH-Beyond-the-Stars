@@ -346,7 +346,7 @@ $quests = @(
                 '     {8}the bottom FUEL course - the exact segment the cascade burns{r}'
                 '  {b}y1{r}  {b}H2O{r} Input Hatch . {b}SILO CONTROL BLOCK{r} . {b}OUT{r} Output Hatch'
                 '     {8}the drum course - feedwater in, waste water and exported steam out{r}'
-                '  {b}y0{r}  {b}MAINT{r} Maintenance Hatch, in the cell beside the main station'
+                '  {b}y0{r}  {b}MAINT{r} Maintenance Hatch, in the cell beside the controller'
                 ''
                 '{e}{l}THE SPIRAL CHAMBER FRONT WALL - one course above the floor{r}'
                 '  {b}COOL{r} Input Hatch - coolant, for the thing that actually overheats'
@@ -387,7 +387,7 @@ $quests = @(
                 'Same rod, same slot, nine times the steam at the top of the ladder.'
                 ''
                 '{e}{l}DO THIS{r}'
-                'Feed fuel rods into the {b}Rod Input Bus in the silo face{r} - bottom fuel course, one cell to the LEFT of the main station {8}as you stand outside and look at the silo{r} - and keep it stocked. One rod is one segment, about 90 minutes, and a full pillar is roughly 12 hours.'
+                'Feed fuel rods into the {b}Rod Input Bus in the silo face{r} - bottom fuel course, one cell to the LEFT of the controller {8}as you stand outside and look at the silo{r} - and keep it stocked. One rod is one segment, about 90 minutes, and a full pillar is roughly 12 hours.'
                 ''
                 "{8}You also need the pillars themselves: stacks of Reactor Fuel Pillar Frame blocks, {b}$SEGMENTS_PER_PILLAR blocks to a pillar{r}, standing inside the silo. The projector treats them as optional interior and leaves those cells empty, so a silo with no pillars makes no steam at all.{r}"
                 ''
@@ -397,7 +397,7 @@ $quests = @(
                 '{e}{l}CHECK YOUR WORK{r}'
                 "{6}Do the arithmetic before you read the panel, so the number does not surprise you.{r} Step 4 paid you {b}$STEP4_COLUMN_BLOCKS fuel-column BLOCKS{r} and $SEGMENTS_PER_PILLAR blocks make one pillar, so what you are holding is {b}$STEP4_COLUMN_PILLARS pillars{r} - not $STEP4_COLUMN_BLOCKS. Stand them up as $STEP4_COLUMN_PILLARS stacks of $SEGMENTS_PER_PILLAR, in $STEP4_COLUMN_PILLARS separate cells of the silo floor."
                 "$STEP4_COLUMN_PILLARS empty pillars are {b}$STEP4_COLUMN_BLOCKS empty segments{r}, so the Supply line reads {2}0 rods queued -> $STEP4_COLUMN_BLOCKS pillar gaps{r} the moment they are up. Drop this step's $STEP5_RODS rods into the bus and it reads {2}$STEP5_RODS rods queued -> $STEP4_COLUMN_BLOCKS pillar gaps{r} until the next decay cycle hands them out, then {2}0 rods queued -> $($STEP4_COLUMN_BLOCKS - $STEP5_RODS) pillar gaps{r}."
-                "{c}Gaps with an EMPTY queue{r} is the starving cascade, and that is the reading to act on; {2}0 gaps{r} is a full silo. {8}A tier-1 silo has room for $($BTS_BOM.Pillars[1]) pillars - $(Bom $BTS_BOM.Silo[1] 'Reactor Fuel Pillar Frame') blocks - so $STEP4_COLUMN_PILLARS is a start, not a finish. Blueprint: Steam Generator has the count for every tier.{r}"
+                "{c}Gaps with an EMPTY queue{r} is the starving cascade, and that is the reading to act on; {2}0 gaps{r} is a full silo. {8}A tier-1 silo has room for $($BTS_BOM.Pillars[1]) pillars - $(Bom $BTS_BOM.Silo[1] 'Reactor Fuel Pillar Frame') blocks - so $STEP4_COLUMN_PILLARS is a start, not a finish. Blueprint: Reactor Silo has the count for every tier.{r}"
                 ''
                 '[warn]Classic fuel ASSEMBLIES in the bus still work, but at HALF output - the panel calls it "Assembly fallback (output halved)". The cascade is where the other half lives.[/warn]'
                 ''
@@ -418,7 +418,7 @@ $quests = @(
                 'With no turbine chain behind it the plant simply {b}exports Reactor Steam{r} through the silo face''s OUT hatch - or Hot Coolant, if you feed it IC2 Coolant instead of water. That is honest power, and it is a fraction of what this plant can do.'
                 ''
                 '{c}{l}THE REACTOR NEVER DRAWS EU{r}'
-                'Nothing on the ten-step path needs to be powered. Unit One generates; it does not consume - the reactor, the spine, the chamber and the gallery draw nothing at all, not idling, not starting, not running - and the four Energy Hatches in step 9 are {b}not a structure requirement{r}: this plant forms and runs perfectly well without a single one of them.'
+                'Nothing on the ten-step path needs to be powered. The plant generates; it does not consume - the reactor, the spine, the chamber and the gallery draw nothing at all, not idling, not starting, not running - and the four Energy Hatches in step 9 are {b}not a structure requirement{r}: this plant forms and runs perfectly well without a single one of them.'
                 ''
                 '{6}{l}TWO THINGS ON THIS CAMPUS DO DRAW EU. BOTH ARE OPTIONAL MODULES.{r}'
                 "The {b}Extraction Derrick{r} ({2}$DERRICK_EUT{r}) and the {b}Enrichment Annex{r} ({2}$ANNEX_EUT{r}) take their power {b}through those same four Energy Hatches{r} and from nowhere else. Build either one and the hatches stop being furniture: fit at least one and {b}wire it to a live grid{r}, or that module silently never turns over. Their blueprints are on the bottom row and both say so at the top."
@@ -511,12 +511,12 @@ $quests = @(
                 '{c}So a clock wired to a dry chamber leaves the whole plant at 0 EU/t for ever.{r} It does not blow up and it does not break; it simply never spins, and the panel prints the reason on a {b}HOLD:{r} line. Both fluids go into the chamber''s FRONT WALL, one course above the floor - {b}COOL{r} at one end, {b}PROP{r} at the other. Step 4 put those two hatches in. {6}This step is where you fill them.{r}'
                 ''
                 '{a}{l}CLAIM THIS QUEST BEFORE YOU FIT ANY OF IT{r}'
-                'Every machine named below goes INTO the plant, and this quest only reads what you are CARRYING. Hold the {b}Turbine Control Block{r}, the {b}Spine Sensor{r} and all {b}eight{r} Precision Injectors at once, claim it, and only then start breaking casings. {8}Already fitted some? Wrench them back out for a moment - the check is on your inventory, not on the building.{r}'
+                'Every machine named below goes INTO the plant, and this quest only reads what you are CARRYING. Hold the {b}Turbine Control Block{r}, the {b}Spiral Cycle Sensor{r} and all {b}eight{r} Precision Injectors at once, claim it, and only then start breaking casings. {8}Already fitted some? Wrench them back out for a moment - the check is on your inventory, not on the building.{r}'
                 ''
                 '{c}{l}FIT THE EIGHT INJECTORS FIRST{r}'
                 'The spiral chamber has eight {b}Precision Injector{r} sockets, one per interior level - world y 3 up to y 10 - each in the middle of one wall, walking round all four walls as the helix descends. The projector leaves every one of them as plain Tungstensteel Turbine Casing: break the casing and put the injector in its place.'
                 '{8}Two of them stand 7 and 8 blocks above the platform. Bring scaffolding or fly.{r}'
-                'The {b}Spine Sensor{r} goes in the chamber ROOF, front-centre, facing UP.'
+                'The {b}Spiral Cycle Sensor{r} goes in the chamber ROOF, front-centre, facing UP.'
                 ''
                 '{e}{l}THEN DO THIS, IN THIS ORDER{r}'
                 '{b}1.{r} Set the Turbine Control Block into the {b}output manifold back face{r} - centre column - and put the manifold''s own {b}Maintenance Hatch{r} into the socket directly below it. Step 9 has the map.'
@@ -527,12 +527,12 @@ $quests = @(
                 '{8}How many injectors count as TIMED is simply how many the line kept stocked when the edge arrived - a line that only keeps 5 of 8 runs at 5/8 gain. Hand injection still works, and still has to hit the window.{r}'
                 ''
                 '{a}{l}DONE WHEN{r}'
-                'The Turbine Control Block, the Spine Sensor and all {b}EIGHT{r} Precision Injectors are in your inventory together. {8}Steps 4 and 7 paid you four injectors each - that is the eight, and they are the eight this step installs. All of it has to be on you AT ONCE: four now and four later counts as zero.{r}'
+                'The Turbine Control Block, the Spiral Cycle Sensor and all {b}EIGHT{r} Precision Injectors are in your inventory together. {8}Steps 4 and 7 paid you four injectors each - that is the eight, and they are the eight this step installs. All of it has to be on you AT ONCE: four now and four later counts as zero.{r}'
                 $HOLD_FIRST
                 '{8}The four Water Buckets step 7 paid you are deliberately NOT part of this gate. You pour them away into the COOL hatch here and an emptied bucket is a different item, so a gate that asked for them could never be met by anyone who followed the instructions. Fill the hatch whenever you like; the quest cannot see it either way.{r}'
                 ''
                 '{e}{l}CHECK YOUR WORK{r}'
-                'The STEAM CHAIN group reads {2}Spiral 8/8 injectors{r} and its coolant line has stopped saying {c}Coolant NOT SUPPLIED{r} - it now names the fluid with a live L/t figure. The TURBINE group shows a rising {2}RPM{r} and a {2}cyc/min{r} figure, and the {b}Spine Sensor{r} pulses once per ACCEPTED cycle. Use that pulse as your confirmation.'
+                'The STEAM CHAIN group reads {2}Spiral 8/8 injectors{r} and its coolant line has stopped saying {c}Coolant NOT SUPPLIED{r} - it now names the fluid with a live L/t figure. The TURBINE group shows a rising {2}RPM{r} and a {2}cyc/min{r} figure, and the {b}Spiral Cycle Sensor{r} pulses once per ACCEPTED cycle. Use that pulse as your confirmation.'
                 '{8}Nothing in this step stops the plant either - the reactor runs straight through it.{r}'
                 ''
                 '[note]Pulsing faster than steam is produced misses cycles - and a missed cycle still burns the eight litres the line had stocked. If the panel prints a {b}HOLD:{r} line, read it: it names the exact hatch or the exact reason. The two that stop a NEW plant dead are {c}injectors are dry{r} and {c}coolant cannot cover{r}, and each of them names the hatch to fill and says the cycle was refused rather than run badly.[/note]'
@@ -692,25 +692,25 @@ $quests = @(
                 '  Benzene                  {8}P x1.25{r}   holds ~2,300'
                 '  High Octane Gasoline     {8}P x1.50{r}   holds ~2,800'
                 '  H8N4C2O4 Rocket Fuel     {8}P x2.00{r}   holds ~3,700'
-                '  Naquadah Propellant Lv 1 {8}P x3.00{r}   holds ~5,500'
-                '  Naquadah Propellant Lv 2 {8}P x4.00{r}   holds ~7,400'
-                '  {2}Naquadah Propellant Lv 3 P x5.00   holds ~9,200  - the knee{r}'
-                '  Naquadah Propellant Lv 4 {8}P x5.50{r}'
-                '  Naquadah Propellant Lv 5 {8}P x6.00{r}'
-                '  Naquadah Propellant Lv 6 {8}P x6.50{r}   holds ~11,996 = redline'
+                '  Naquadah Propellant Grade 1 {8}P x3.00{r}   holds ~5,500'
+                '  Naquadah Propellant Grade 2 {8}P x4.00{r}   holds ~7,400'
+                '  {2}Naquadah Propellant Grade 3 P x5.00   holds ~9,200  - the knee{r}'
+                '  Naquadah Propellant Grade 4 {8}P x5.50{r}'
+                '  Naquadah Propellant Grade 5 {8}P x6.00{r}'
+                '  Naquadah Propellant Grade 6 {8}P x6.50{r}   holds ~11,996 = redline'
                 ''
                 '{c}{l}"NAQUADAH PROPELLANT" IS NOT "NAQUADAH FUEL"{r}'
                 'They are two different fluids and this ladder means the first one exactly.'
-                '  {2}Naquadah Propellant Lv 1-6{r} - {b}ours{r}. What the injectors want.'
+                '  {2}Naquadah Propellant Grade 1-6{r} - {b}ours{r}. What the injectors want.'
                 '  {c}Light Naquadah Fuel{r} and {c}Naquadah Based Liquid Fuel MkI-MkVI{r} - GoodGenerator''s reactor fuels. They are the {b}INPUT{r} our Mixer recipes turn INTO the propellant.'
                 'Feed the fuel to an injector and nothing breaks - the plant simply scores it at the {c}P x1.00{r} floor, which is worse than Benzene. Read the tooltip: if it does not say {b}PROPELLANT{r}, it is the wrong fluid.'
                 ''
                 '{e}{l}MAKING IT{r}'
                 'Mixer, programmed circuit 5, 1,000 L of the GoodGenerator fuel plus a dust, yielding 250 L of propellant:'
-                '  Lv 1  Light Naquadah Fuel + 2x Enriched Naquadah Dust             {8}(LuV){r}'
-                '  Lv 2  Naquadah Based Liquid Fuel MkI + 8x Enriched Naquadah Dust  {8}(ZPM){r}'
-                '  Lv 3  Naquadah Based Liquid Fuel MkIII + 4x Adamantium Dust       {8}(UV){r}'
-                '{8}Lv 4-6 continue up the same family - look "Naquadah Propellant" up in NEI for the exact rung you want.{r}'
+                '  Grade 1  Light Naquadah Fuel + 2x Enriched Naquadah Dust             {8}(LuV){r}'
+                '  Grade 2  Naquadah Based Liquid Fuel MkI + 8x Enriched Naquadah Dust  {8}(ZPM){r}'
+                '  Grade 3  Naquadah Based Liquid Fuel MkIII + 4x Adamantium Dust       {8}(UV){r}'
+                '{8}Grades 4-6 continue up the same family - look "Naquadah Propellant" up in NEI for the exact rung you want.{r}'
                 ''
                 '{e}{l}OR MAKE IT PROPERLY - the P-01 to P-04 chain{r}'
                 '0.24.0 added a second, longer route to the {6}same six fluids{r}, at {b}half the naquadah fuel per rung{r}. Every Mixer recipe above is untouched and always will be; this is what to build when the fuel starts to hurt.'
@@ -718,8 +718,8 @@ $quests = @(
                 '     {8}Red fuming nitric acid. EITHER N2O4 works - GT core''s gas or GT++''s fluid - so a standing rocket-fuel line already feeds it.{r}'
                 '  {b}P-02a{r} {8}IsaMill{r}          {2}8x Aluminium / Adamantium / Infinity Dust + 1x Alumina Milling Ball  ->  1x Ultrafine Powder{r}'
                 '  {b}P-02b{r} {8}Chemical Plant t2{r} {2}1x Ultrafine Powder + 1,000 L Kerosene  ->  2,000 L Metal Slurry{r}'
-                '  {b}P-03{r} {8}Chemical Plant t3, circuit 5, Lv 1-3{r}'
-                '  {b}P-03h{r} {8}Quantum Force Transformer, circuit 1, Simple Naquadah Catalyst, Lv 4-6{r}'
+                '  {b}P-03{r} {8}Chemical Plant t3, circuit 5, Grades 1-3{r}'
+                '  {b}P-03h{r} {8}Quantum Force Transformer, circuit 1, Simple Naquadah Catalyst, Grades 4-6{r}'
                 '     {2}500 L naquadah fuel + 1,000 L Oxidiser Blend + slurry  ->  250 L of the rung{r} {8}(30s){r}'
                 '     {c}Circuit 1 on the QFT half, not 5.{r} {8}On that machine the circuit picks WHICH OUTPUT the focus lands on, and these recipes have exactly one. Circuit 5 would name an output that does not exist and pay you nothing.{r}'
                 '  {b}P-04{r} {8}Fluid Solidifier / Fluid Extractor, LuV{r}  {2}1,000 L of a rung + a Ball Mould  ->  a Propellant Cartridge, and 1,000 L straight back out again{r}'
@@ -734,7 +734,7 @@ $quests = @(
                 ''
                 '{8}This one is a TICK BOX on purpose. From step 8 onward your eight injectors are bolted into the chamber wall, and a gate that wanted eight in your POCKET would have made you wrench every one of them back out to satisfy a reading quest.{r}'
                 ''
-                '[note]Past Lv 3 the gains go deliberately LINEAR, +0.5 a level. The plant will happily drink Lv 6, but the sane stop is Lv 3 unless you are chasing a number rather than a ratio.[/note]'
+                '[note]Past Grade 3 the gains go deliberately LINEAR, +0.5 a grade. The plant will happily drink Grade 6, but the sane stop is Grade 3 unless you are chasing a number rather than a ratio.[/note]'
                 ''
                 '{8}Hand injection still works and still has to hit the +/-2 tick window. An injector carrying your own timing stamp is never auto-fed, so the two styles can never double-stamp one window - and two litres in one window is still a miss, still +50 heat. A MISSED cycle now burns the eight stocked litres for nothing and says so on the HOLD line, so over-clocking costs propellant exactly as it should.{r}'
             ) -join "`n")
@@ -838,7 +838,7 @@ $quests = @(
                 "  {b}$(Bom $BTS_BOM.Platform 'Light Concrete')x{r} Light Concrete"
                 "  {b}$(Bom $BTS_BOM.Platform 'Tungstensteel Reinforced Block')x{r} Tungstensteel Reinforced Block {8}(the shield-pad octagon under the silo, sized for tier 5){r}"
                 ''
-                'The main station stands on the pad''s front line, embedded in the silo face at walking level - it is already there before the silo is, and it never moves.'
+                'The controller (the Nuclear Plant Foundation) stands on the pad''s front line, embedded in the silo face at walking level - it is already there before the silo is, and it never moves.'
                 ''
                 '{6}There is no automation bay any more.{r} Every insert and extract point moved onto the building it serves; see the individual blueprints below and step 4.'
                 ''
@@ -846,11 +846,11 @@ $quests = @(
             ) -join "`n")
     }
 
-    @{ Key = 'bpsilo'; Name = '{3}{l}Blueprint: Steam Generator'; X = 48; Y = 164
+    @{ Key = 'bpsilo'; Name = '{3}{l}Blueprint: Reactor Silo'; X = 48; Y = 164
         Icon = (BTSItem 'reactorFuelColumn' 1); Task = 'checkbox'; Prereqs = @(); CountAs = 0
         Desc = (@(
                 '{3}{l}Optional piece - but this one is the reactor.{r}'
-                'An octagon of diameter 7 + 2 x tier, walls twice the diameter tall, on a hemispherical shield dome. Its FRONT face carries the main station and the six sockets the silo itself uses.'
+                'An octagon of diameter 7 + 2 x tier, walls twice the diameter tall, on a hemispherical shield dome. Its FRONT face carries the controller and the six sockets the silo itself uses.'
                 ''
                 '{e}WALLS + DOME BY TIER{r}'
                 "  {b}T1{r} ($($BTS_BOM.Edge[1]) wide)   $(Bom $BTS_BOM.Silo[1] 'Radiation Proof Machine Casing')x Radiation Proof + $(Bom $BTS_BOM.Silo[1] 'Tungstensteel Reinforced Block')x Tungstensteel Reinforced"
@@ -870,13 +870,13 @@ $quests = @(
                 '  {b}1x{r} Input Hatch (IV) {8}- feedwater, drum course{r}'
                 '  {b}1x{r} Output Hatch (IV) {8}- waste water / exported steam, drum course{r}'
                 '  {b}1x{r} Silo Control Block {8}- between them{r}'
-                '  {b}1x{r} Maintenance Hatch {8}- beside the main station, pad level{r}'
+                '  {b}1x{r} Maintenance Hatch {8}- beside the controller, pad level{r}'
                 ''
                 "{8}Rod Loading Ports above the pillars are OPTIONAL - the rod bus feeds every pillar internally. A full set is $($BTS_BOM.Pillars[5]) at tier 5 if you want them for hand-feeding.{r}"
                 ''
-                '[warn]MIGRATION - a plant raised by {b}0.19.0 or earlier{r}. Its silo FACE is the retired plumbing frontage: four Energy Hatches across the drum course and the buses out at the corners. That layout conflicts with the six sockets above {b}cell for cell{r} - each one puts a hatch where the other wants wall - so it fails at EVERY tier, and no projection can repair it: the projector MEASURES the shell that is standing and will not re-tier or overwrite it. The main station says so in as many words - {c}Tier N Steam Generator IS STANDING and does NOT pass its check{r} - and the STRUCTURE ERRORS panel above that line carries the first wrong cell with its coordinates.[/warn]'
+                '[warn]MIGRATION - a plant raised by {b}0.19.0 or earlier{r}. Its silo FACE is the retired plumbing frontage: four Energy Hatches across the drum course and the buses out at the corners. That layout conflicts with the six sockets above {b}cell for cell{r} - each one puts a hatch where the other wants wall - so it fails at EVERY tier, and no projection can repair it: the projector MEASURES the shell that is standing and will not re-tier or overwrite it. The controller says so in as many words - {c}Tier N Reactor Silo is standing but not formed{r} - and the STRUCTURE ERRORS panel above that line carries the first wrong cell with its coordinates.[/warn]'
                 ''
-                '[note]{6}THE FIX IS ONE COMMAND.{r} Stand beside the main station and run {b}/btsmigrate{r} {8}(operator){r}. It reads the tier off the standing walls, then rewrites the front row''s bottom three courses - the only cells the two layouts disagree about. Cells that are already right are left alone; wrong ones drop their contents at the wall as items before the correct casing or socket goes in, so every hatch you owned comes back with what was inside it. {b}The shell, the ribs, the dome, the pillars and the rods standing in them are never read and never written.{r} Then it re-forms the plant and reports the tier, the cells rewritten and the machines handed back. Pick those up: the four Energy Hatches belong on the output manifold''s back face now. They are not a structure demand there - but they are where the Extraction Derrick and the Enrichment Annex draw their EU, so refit at least one and wire it if you ever build either module.[/note]'
+                '[note]{6}THE FIX IS ONE COMMAND.{r} Stand beside the controller and run {b}/btsmigrate{r} {8}(operator){r}. It reads the tier off the standing walls, then rewrites the front row''s bottom three courses - the only cells the two layouts disagree about. Cells that are already right are left alone; wrong ones drop their contents at the wall as items before the correct casing or socket goes in, so every hatch you owned comes back with what was inside it. {b}The shell, the ribs, the dome, the pillars and the rods standing in them are never read and never written.{r} Then it re-forms the plant and reports the tier, the cells rewritten and the machines handed back. Pick those up: the four Energy Hatches belong on the output manifold''s back face now. They are not a structure demand there - but they are where the Extraction Derrick and the Enrichment Annex draw their EU, so refit at least one and wire it if you ever build either module.[/note]'
             ) -join "`n")
     }
 
@@ -894,7 +894,7 @@ $quests = @(
                 "  {b}$(Bom $BTS_BOM.Spiral 'Tungstensteel Turbine Casing')x{r} Tungstensteel Turbine Casing"
                 "  {b}$(Bom $BTS_BOM.Spiral 'Light Concrete')x{r} Light Concrete {8}(the internal helix arcs){r}"
                 "  {b}$(Bom $BTS_BOM.Spiral 'Precision Injector')x{r} Precision Injector, one per interior level, following the helix down"
-                "  {b}$(Bom $BTS_BOM.Spiral 'Spine Sensor')x{r} Spine Sensor, in the roof's front-centre cell, facing up"
+                "  {b}$(Bom $BTS_BOM.Spiral 'Spiral Cycle Sensor')x{r} Spiral Cycle Sensor, in the roof's front-centre cell, facing up"
                 "  {b}$(Bom $BTS_BOM.Spiral 'Maintenance Hatch')x{r} Maintenance Hatch, in the floor's front-right corner"
                 "  {b}$(Bom $BTS_BOM.Spiral 'Input Hatch (IV)')x{r} Input Hatch (IV) in the FRONT WALL, one course above the floor -"
                 '     {b}COOLANT{r} and {b}bulk PROPELLANT{r}, one near each end of that wall'
@@ -1061,7 +1061,7 @@ $quests = @(
                 '{e}WHAT IT PRODUCES{r}'
                 'Every {b}600 powered ticks{r} (30 seconds):'
                 '  {2}8x Uraninite Dust + 2,000 L Hydrofluoric Acid  ->  2x Yellowcake + 2x Thorium Dust{r}'
-                "Draws {b}$ANNEX_EUT{r} while it runs - the standalone Enrichment Train's rate, unchanged."
+                "Draws {b}$ANNEX_EUT{r} while it runs - the standalone Yellowcake Mill's rate, unchanged."
                 ''
                 '{c}{l}IT NEEDS POWER TOO, THROUGH THE SAME FOUR SOCKETS{r}'
                 "{b}Powered{r} ticks again: the Annex takes its $ANNEX_EUT out of the {b}output manifold's ENERGY HATCHES{r} - the four {b}E{r} sockets one course above the dynamos, from step 9 - and not out of the reactor. Fit at least one {b}Energy Hatch (IV){r} there and run a live cable into it, or this shed forms perfectly and then never starts a batch."
@@ -1134,7 +1134,7 @@ $quests = @(
                 ''
                 '  {b}UPTIME{r}        generating ticks'
                 '  {b}BURNUP{r}        fuel segments, weighted by rod grade'
-                '  {b}REPROCESSING{r}  Extraction Derrick loads + Enrichment Annex batches'
+                '  {b}ORE PROCESSING{r}  Extraction Derrick loads + Enrichment Annex batches'
                 '  {b}TURBINE{r}       perfectly timed cycles'
                 ''
                 'A fresh plant reads {8}UPTIME T0/7{r} and {8}0 generating ticks{r}. Leave it lit and it starts climbing within the hour.'
@@ -1156,7 +1156,7 @@ $quests = @(
                 ''
                 '{8}A TICK BOX on purpose: a milestone tier is not an item, and there is nothing to carry into a quest window.{r}'
                 ''
-                '[note]{l}Where the progress lives.{r} On {b}THIS CONTROLLER{r}, in its own NBT - not on you, and not on the world. It survives a world reload, a chunk unloading and coming back, the structure un-forming and re-forming, and a {b}wrench{r}: pick the main station up and the campaign rides along in the item, then loads straight back when you place it. A controller that has never earned anything still stacks like an ordinary machine.[/note]'
+                '[note]{l}Where the progress lives.{r} On {b}THIS CONTROLLER{r}, in its own NBT - not on you, and not on the world. It survives a world reload, a chunk unloading and coming back, the structure un-forming and re-forming, and a {b}wrench{r}: pick the controller up and the campaign rides along in the item, then loads straight back when you place it. A controller that has never earned anything still stacks like an ordinary machine.[/note]'
                 ''
                 '[warn]There is no back-fill. However long this plant has been running, the four counters start at ZERO the first time you load 0.22.0. That is deliberate - the alternative was inventing a history the plant never recorded.[/warn]'
             ) -join "`n")
@@ -1183,7 +1183,7 @@ $quests = @(
                 '{e}{l}HOW EACH ONE IS FED - AND HOW IT CANNOT BE CHEATED{r}'
                 '{b}UPTIME{r} counts only ticks on which the plant actually put EU on the grid. An idle plant sitting in a loaded chunk earns nothing, and no amount of engineering makes it count faster: 72,000 ticks is one hour, every hour. It is the shallowest ladder on purpose - the line that just wants you to keep the lights on.'
                 '{b}BURNUP{r} scores one segment per live pillar per cascade cycle, {6}weighted by rod grade{r}. 201 uranium pillars score 201. The same 201 pillars on Naquadah-Bonded rods score {b}1,809{r}. A bus-fallback slice runs at half output and scores at half rate. This is the line that says {8}your fuel chain is not finished{r} - and it is why this quest asks for the top rod.'
-                '{b}REPROCESSING{r} scores on the DEPOSIT, never on the tick: one per Extraction Derrick load, one per Enrichment Annex batch. A load parked waiting on a full bus scores once, when it lands. It is the only line that needs a BUILDING, so its rewards go straight back into those two modules - and the only line that speeds ITSELF up.'
+                '{b}ORE PROCESSING{r} scores on the DEPOSIT, never on the tick: one per Extraction Derrick load, one per Enrichment Annex batch. A load parked waiting on a full bus scores once, when it lands. It is the only line that needs a BUILDING, so its rewards go straight back into those two modules - and the only line that speeds ITSELF up.'
                 '{b}TURBINE{r} needs the steam slug {6}AND{r} all eight injectors landed inside their window. A fast clock with no fuel scores nothing - no slug, no credit. Seven of eight timed scores nothing at all. The chain refills one slug every 20 ticks, so {6}3,600 perfect cycles an hour is the ceiling and nothing raises it{r} - the buffer unlocks raise the burst, never the fill rate. Its ladder is sized against exactly that number: tier 7 is about 333 hours of cycling, which seats it between REPROCESSING (~208 h) and BURNUP (~497 h).'
                 ''
                 '{e}{l}TIERS 1-4 - THE MULTIPLIER{r}'
@@ -1203,7 +1203,7 @@ $quests = @(
                 '  {2}5{r} {8}CONTROL ROD WITHDRAWAL I - throttle cap 26/24{r}'
                 '  {2}6{r} {8}CONTROL ROD WITHDRAWAL II - throttle cap 28/24{r}'
                 '  {2}7{r} {8}CONTROL ROD WITHDRAWAL III - throttle cap 30/24{r}'
-                '{b}REPROCESSING{r}'
+                '{b}ORE PROCESSING{r}'
                 '  {2}5{r} {8}DEEP CUT - Derrick tantalum every 3rd load{r}'
                 '  {2}6{r} {8}PROCESS INTENSIFICATION - Derrick and Annex cycles -20%{r}'
                 '  {2}7{r} {8}YIELD UPLIFT - Annex batch 24 pellets{r}'
@@ -1213,7 +1213,7 @@ $quests = @(
                 '  {2}6{r} {8}OVERSPEED TRIM II - redline MAY BE SET to 15,000 (RPM LIMIT field); gain follows it{r}'
                 '  {2}7{r} {8}BLADE METALLURGY - rotor wear rolled half as often{r}'
                 ''
-                '{6}The redline and the cycle gain always move TOGETHER.{r} RPM settles where the gain per cycle balances the 0.5%/tick decay - about 11,993 on a Lv 6 plant, which is why a stock plant parks itself on the 12,000 redline. A redline raised on its own would be a ceiling you could never reach, so OVERSPEED TRIM raises both.'
+                '{6}The redline and the cycle gain always move TOGETHER.{r} RPM settles where the gain per cycle balances the 0.5%/tick decay - about 11,993 on a Grade 6 plant, which is why a stock plant parks itself on the 12,000 redline. A redline raised on its own would be a ceiling you could never reach, so OVERSPEED TRIM raises both.'
                 ''
                 '{6}And OVERSPEED TRIM is YOURS TO SWITCH ON.{r} The tier raises the CEILING; it never moves the fan by itself. Chamber coolant draw goes with the SQUARE of RPM, so a chamber plumbed for exactly 12,000 would start refusing cycles the moment a tier pushed it to 13,500. Type the redline you want into the {b}RPM LIMIT{r} field beside the rods field - it defaults to 12,000 and clamps to whatever you have actually unlocked, exactly like the rods cap. Every panel prints the redline in use and names the headroom you have not claimed.'
                 ''
@@ -1247,15 +1247,15 @@ $quests = @(
                 'The milestone lines pay progression points. This is the only thing that spends them.'
                 ''
                 '{e}{l}WHERE IT IS{r}'
-                'Open the {b}main station controller{r} - the Nuclear Plant Foundation itself, not a control block - and look at the bottom right of its GUI. Left of the three small number fields there is a small {b}chart button{r}. Click it and the tree opens on its own panel, centred on the screen over the GUI; click it again, or its X, to close. Hovering it says {8}Upgrade Tree{r}.'
+                'Open the {b}controller{r} - the Nuclear Plant Foundation itself, not a control block - and look at the bottom right of its GUI. Left of the three small number fields there is a small {b}chart button{r}. Click it and the tree opens on its own panel, centred on the screen over the GUI; click it again, or its X, to close. Hovering it says {8}Upgrade Tree{r}.'
                 '{8}The number fields have not moved. Build Tier is still the narrow one, then RPM Limit, then control rods on the far right.{r}'
                 ''
                 '{e}{l}THE SHAPE OF IT{r}'
-                'One free root - {b}Unit One Commissioning{r}, 0 points - and four branches hanging off it, {6}one per milestone line{r}, six nodes deep:'
+                'One free root - {b}Plant Commissioning{r}, 0 points - and four branches hanging off it, {6}one per milestone line{r}, six nodes deep:'
                 ''
                 '  {b}UPTIME{r} branch        water, steam buffer, baseload output'
                 '  {b}BURNUP{r} branch        rod seals, recladding, deeper burns, more rods withdrawn'
-                '  {b}REPROCESSING{r} branch  solvent recovery, an extra centrifuge stage, module automation'
+                '  {b}ORE PROCESSING{r} branch  solvent recovery, an extra leach tank, module automation'
                 '  {b}TURBINE{r} branch       rotor balancing, bearings, nozzles, overspeed certification'
                 ''
                 'A node needs the node above it on the same branch, and {6}a node at depth N on a branch needs THAT branch''s milestone line at tier N{r}. One rule, no table: the branch that rewards your turbine is the branch the TURBINE line opens.'
@@ -1278,7 +1278,7 @@ $quests = @(
                 ''
                 '{e}{l}DO THIS{r}'
                 '{b}1.{r} Earn a milestone tier on any line. That is 1 point.'
-                '{b}2.{r} Open the tree and buy {b}Unit One Commissioning{r}. It is free and it has no effect - it is the certificate that opens everything else.'
+                '{b}2.{r} Open the tree and buy {b}Plant Commissioning{r}. It is free and it has no effect - it is the certificate that opens everything else.'
                 '{b}3.{r} Buy the depth-1 node on whichever branch you just opened.'
                 ''
                 '{a}{l}DONE WHEN{r}'
@@ -1633,13 +1633,13 @@ WriteJson (Join-Path $out "QuestLines\$lineDir\QuestLine.json") ([ordered]@{
                 'bg_image:8'   = ''
                 'bg_size:3'    = 256
                 'desc:8'       = (Fmt (@(
-                            '{6}{l}GTNH: Beyond the Stars - the Unit One nuclear campus.{r}'
+                            '{6}{l}GTNH: Beyond the Stars - the nuclear campus.{r}'
                             ''
                             'One controller, one projection, and every inlet cut into the building it feeds. The top two rows are a {b}ten-step beginner path{r}: craft the controller, break ground, project the plant, plumb the points of use, load the rods, first steam, seat the rotors, wire the clock, first EU, read the panel.'
                             ''
                             'The third row is the deep end - laser output, spin doctrine, the propellant and coolant ladders, and the safety sheet. The two fluid ladders open at step 7, one step before the clock, because a chamber with no propellant and no coolant refuses every cycle and the plant never spins. The two middle rows are bills of materials; those do not count toward completion.'
                             ''
-                            '{6}{l}The bottom row is THE CAMPAIGN{r} - and it is where the ten-step path leads. Finishing the build is the beginning, not the end: four milestone lines climb just by running the plant, and the points they pay buy a twenty-five node upgrade tree on the main station controller.'
+                            '{6}{l}The bottom row is THE CAMPAIGN{r} - and it is where the ten-step path leads. Finishing the build is the beginning, not the end: four milestone lines climb just by running the plant, and the points they pay buy a twenty-five node upgrade tree on the Nuclear Plant Foundation.'
                         ) -join "`n"))
                 'icon:10'      = $ICON_CTRL
                 'name:8'       = (Fmt '{6}{l}Beyond the Stars')
@@ -1768,7 +1768,7 @@ foreach ($q in $quests) {
 # nuclear cluster (uranium fuel sits at 504,216).
 $packLineDir = 'HowtoGeneratePow-AAAAAAAAAAAAAAAAAAAACQ=='
 $packQuest = @{
-    Key      = 'packentry'; Name = '{5}{l}Unit One - Beyond the Stars'; X = 540; Y = 324; Size = 24
+    Key      = 'packentry'; Name = '{5}{l}Beyond the Stars - The Nuclear Plant'; X = 540; Y = 324; Size = 24
     Icon     = $ICON_CTRL; Task = (Machine $MTE_CONTROLLER 1); Prereqs = @()
     Reward   = @((BTSItem 'fuelRodUranium' 4))
     RawPrereqs = @(@{ High = 0; Low = 191 })  # Standard Nuclear Fuel: Uranium
@@ -1798,7 +1798,7 @@ WriteJson (Join-Path $out "Quests\$packLineDir\$packPrefix-$($packQuest.B64).jso
 WriteText (Join-Path $out 'OrderLine.txt') "${lineB64}: Beyond the Stars`n"
 
 Write-Host "Generated quest line $lineDir with $($quests.Count) quests (IDs $HIGH/$($quests[0].Low)..$($quests[-1].Low))"
-Write-Host "Plus pack-line entry quest 'Unit One' ($HIGH/$($packQuest.Low)) in $packLineDir"
+Write-Host "Plus pack-line entry quest 'Beyond the Stars - The Nuclear Plant' ($HIGH/$($packQuest.Low)) in $packLineDir"
 Write-Host "Bills of materials derived by gen-bom.ps1 from the live shape code."
 Write-Host "Diagrams: run gen-diagrams.ps1 and merge .\resources\ into config\betterquesting\resources\"
 

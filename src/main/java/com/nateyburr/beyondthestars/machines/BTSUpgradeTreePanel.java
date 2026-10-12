@@ -102,7 +102,7 @@ public final class BTSUpgradeTreePanel {
         GTGuiTextures.PICTURE_UPGRADE_CONNECTOR_RED, GTGuiTextures.PICTURE_UPGRADE_CONNECTOR_GREEN,
         GTGuiTextures.PICTURE_UPGRADE_CONNECTOR_ORANGE };
     /** Tidy B6: the branch captions, in the same colours as the branch's connector lines. */
-    private static final String[] BRANCH_CAPTION = { "UPTIME", "BURNUP", "REPROC.", "TURBINE" };
+    private static final String[] BRANCH_CAPTION = { "UPTIME", "BURNUP", "ORE PROC.", "TURBINE" };
     private static final EnumChatFormatting[] BRANCH_COLOR = { EnumChatFormatting.BLUE, EnumChatFormatting.RED,
         EnumChatFormatting.GREEN, EnumChatFormatting.GOLD };
     private static final UITexture[] CONNECTOR_LIT = { GTGuiTextures.PICTURE_UPGRADE_CONNECTOR_BLUE_OPAQUE,

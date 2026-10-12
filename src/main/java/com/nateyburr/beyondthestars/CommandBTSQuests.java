@@ -135,7 +135,7 @@ public class CommandBTSQuests extends CommandBase {
         tell(
             sender,
             (s.entryQuestPresent ? OK + "[ok] " : BAD + "[missing] ") + EnumChatFormatting.RESET
-                + "Unit One (190/48020) in How to Generate Power");
+                + "Beyond the Stars - The Nuclear Plant (190/48020) in How to Generate Power");
 
         tell(
             sender,

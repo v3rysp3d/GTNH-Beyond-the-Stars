@@ -253,7 +253,8 @@ public class CommandBTSMilestone extends CommandBase {
         // The four counters are also known by what they measure, which is what the panel prints.
         if ("uptime".startsWith(key) || "ticks".equals(key)) return BTSMilestone.UPTIME;
         if ("fuel".equals(key)) return BTSMilestone.BURNUP;
-        if ("reproc".startsWith(key) || "modules".equals(key)) return BTSMilestone.REPROCESSING;
+        if ("reproc".startsWith(key) || "ore".startsWith(key) || "modules".equals(key))
+            return BTSMilestone.REPROCESSING;
         if ("perfect".startsWith(key) || "cycles".equals(key)) return BTSMilestone.TURBINE;
         return null;
     }

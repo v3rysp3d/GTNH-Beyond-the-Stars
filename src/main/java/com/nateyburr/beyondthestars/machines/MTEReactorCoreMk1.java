@@ -8648,7 +8648,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             .addOtherStructurePart("Silo Control Block", "Silo face, directly above the controller", 1)
             .addOtherStructurePart("Turbine Control Block", "Manifold back face, above its Maintenance Hatch", 4)
             .addOtherStructurePart("Precision Injector", "8: Spiral chamber walls, along the helix", 3)
-            .addOtherStructurePart("Spine Sensor", "Optional: Spiral chamber roof, front centre", 3)
+            .addOtherStructurePart("Spiral Cycle Sensor", "Optional: Spiral chamber roof, front centre", 3)
             .addOtherStructurePart(
                 "Module sockets",
                 "Derrick: Output Bus; Annex: Input Bus, Acid Input Hatch, Output Bus",
