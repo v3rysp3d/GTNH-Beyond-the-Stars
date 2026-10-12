@@ -246,6 +246,29 @@ public final class EyeStarBench {
             case "begin":
                 out.add(rt.requestBegin());
                 break;
+            case "inject": {
+                // inject <qx> <qy> <qz> <hi> <lo> <halo> | inject off: real streams through the receptor hatches
+                if ("off".equals(a5) || args.length < 11) {
+                    eye.debugInject(null, 0, 0, 0);
+                    out.add(
+                        "Injection off" + (args.length < 11 && !"off".equals(a5)
+                            ? " (inject <qx> <qy> <qz> <hi> <lo> <halo> | inject off)"
+                            : ""));
+                    break;
+                }
+                final com.nateyburr.beyondthestars.machines.quasar.burst.BurstSource src = new com.nateyburr.beyondthestars.machines.quasar.burst.BurstSource(
+                    world.provider.dimensionId,
+                    coord(sender, args[5], 0),
+                    coord(sender, args[6], 1),
+                    coord(sender, args[7], 2));
+                eye.debugInject(
+                    src,
+                    Double.parseDouble(args[8]),
+                    Double.parseDouble(args[9]),
+                    Double.parseDouble(args[10]));
+                out.add("Injecting from " + src + " (status " + src.status() + ") into the Receptor Ports each second");
+                break;
+            }
             case "mode": {
                 final EyeGalaxy.Mode m = EyeGalaxy.Mode.parse(a5);
                 if (m == null) {

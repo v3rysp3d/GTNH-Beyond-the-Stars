@@ -78,6 +78,15 @@ public interface Overlay {
     default void addDrift(FieldState s, StepInputs in, double[] dp) {}
 
     /**
+     * T6: the shield charge per second the paid Agent upkeep adds (× r; ruling 12, B-60). The Magnetar Merger's imprint
+     * returns 0: at the plain rate the upkeep's shield ate the dynamo's Π every second and the imprint could never
+     * reach its band (B-71).
+     */
+    default double shieldPerUpkeep(TierParams t) {
+        return StellarField.SHIELD_PER_UPKEEP;
+    }
+
+    /**
      * Runs after the Integrity update, before the cycle accounting (prototype order). May set {@code out.fail},
      * {@code out.supernova}, {@code out.relit}, {@code out.transitionSuccess}, and may change {@code s.tier}.
      */

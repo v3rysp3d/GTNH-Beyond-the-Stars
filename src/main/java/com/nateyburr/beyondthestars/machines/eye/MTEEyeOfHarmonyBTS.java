@@ -1132,6 +1132,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             }
             // D-49: one field second, straight after the drain (plan §4). Runs unformed too, so a broken
             // structure puts the star out (R-8); a chunk that is not ticking freezes it.
+            com.nateyburr.beyondthestars.machines.eye.star.EyeGalaxyBench.liveSecond(this); // P4 bench only
             runtime.second();
             publishDirectives();
         }
@@ -1211,6 +1212,14 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         }
         if (!centre.note()
             .isEmpty()) out.add(centre.note());
+        final com.nateyburr.beyondthestars.machines.eye.render.EyeStarLook want = com.nateyburr.beyondthestars.machines.eye.render.EyeStarLook
+            .of(runtime);
+        out.add(
+            "Wanted: " + (want == null ? "none" : want.label() + " (kind " + want.kind + ")")
+                + ", formed "
+                + mMachine
+                + ", start-up check "
+                + (mStartUpCheck < 0 ? "done" : "pending"));
         return out;
     }
 
@@ -1950,6 +1959,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
          */
         @Override
         public EyeBursts bursts(double demandBuPerTick, double streak01) {
+            injectBench();
             final EyeBursts b = new EyeBursts();
             final BurstReading hi = BurstHost.read(receptors[GROUP_HIGH], "Eye of Harmony (rail-high)");
             final BurstReading lo = BurstHost.read(receptors[GROUP_LOW], "Eye of Harmony (rail-low)");
@@ -2019,6 +2029,49 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         @Override
         public double planetSeconds(EyeRecipe recipe) {
             return runTicks(recipe) / 20.0;
+        }
+    }
+
+    // ------------------------------------------------------------------ P4 bench: the real receptor path
+
+    /** Bench {@code inject}: a source quasar and the Bu/t per group pushed into the ports each second (not saved). */
+    private com.nateyburr.beyondthestars.machines.quasar.burst.BurstSource injectFrom;
+    private final double[] injectBu = new double[3];
+
+    /**
+     * Bench {@code inject <qx> <qy> <qz> <hi> <lo> <halo>}: from now on, every field second, streams from that quasar
+     * (its real {@code BurstSource}: Q-8 follows its status) are pushed into this Eye's Receptor Ports, split evenly
+     * across each group's ports, before the Eye reads them. {@code null} source stops it.
+     */
+    public void debugInject(com.nateyburr.beyondthestars.machines.quasar.burst.BurstSource from, double hi, double lo,
+        double halo) {
+        injectFrom = from;
+        injectBu[GROUP_HIGH] = hi;
+        injectBu[GROUP_LOW] = lo;
+        injectBu[GROUP_HALO] = halo;
+    }
+
+    private void injectBench() {
+        if (injectFrom == null) return;
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base == null || base.getWorld() == null) return;
+        // a quasar that is frozen or not loaded sends nothing: its ports then remember it and pause the Eye (Q-8)
+        if (injectFrom.status() != com.nateyburr.beyondthestars.machines.quasar.burst.BurstSource.Status.RUNNING)
+            return;
+        final long now = base.getWorld()
+            .getTotalWorldTime();
+        for (int g = 0; g < 3; g++) {
+            final int n = receptorCount(g);
+            if (n == 0 || injectBu[g] <= 0) continue;
+            final com.nateyburr.beyondthestars.machines.quasar.burst.BurstStream s = com.nateyburr.beyondthestars.machines.quasar.burst.BurstStream
+                .of(
+                    new com.nateyburr.beyondthestars.machines.quasar.burst.JetPacket(
+                        injectFrom,
+                        com.nateyburr.beyondthestars.machines.quasar.burst.JetPort.TOP,
+                        injectBu[g] / n,
+                        true,
+                        now));
+            for (MTEHatchGRBReceptor port : receptors[g]) if (live(port)) port.receive(s);
         }
     }
 

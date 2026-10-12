@@ -100,11 +100,29 @@ public final class EyeGalaxyBench {
 
     private static Rig rig;
     private static int rigFor;
+    /** The rig keeps stepping in real time after a run (until {@code galaxy off}), so the galaxy is not starved. */
+    private static boolean live;
+
+    /**
+     * Called by the Eye every real field second before its own: steps the live bench rig for this Eye (if any), so its
+     * scripted bursts keep coming between bench commands.
+     */
+    public static void liveSecond(MTEEyeOfHarmonyBTS eye) {
+        if (!live || rig == null || rigFor != key(eye)) return;
+        second(eye, eye.starRuntime(), rig);
+    }
 
     /** {@code galaxy <seconds> [analog] [mass M]}: runs the rig and the Eye for that many field seconds. */
     public static List<String> galaxy(MTEEyeOfHarmonyBTS eye, String[] args, int at) {
         final List<String> out = new ArrayList<>();
         final EyeStarRuntime rt = eye.starRuntime();
+        if (args.length > at && "off".equalsIgnoreCase(args[at])) {
+            live = false;
+            rt.benchBursts = null;
+            rt.benchFlux = null;
+            out.add("galaxy rig off: the Eye reads its GRB Receptor Ports again");
+            return out;
+        }
         final long secs = args.length > at ? Long.parseLong(args[at]) : 600;
         boolean analog = false;
         double mass = 64;
@@ -114,7 +132,7 @@ public final class EyeGalaxyBench {
             if ("fresh".equalsIgnoreCase(args[i])) fresh = true;
             if ("mass".equalsIgnoreCase(args[i]) && i + 1 < args.length) mass = Double.parseDouble(args[++i]);
         }
-        final int id = System.identityHashCode(eye);
+        final int id = key(eye);
         if (rig == null || rigFor != id || fresh) {
             rig = new Rig(mass, 1, analog);
             rigFor = id;
@@ -131,7 +149,7 @@ public final class EyeGalaxyBench {
             if (!rt.lastFailure()
                 .equals(before)) fails++;
         }
-        rt.benchBursts = null;
+        live = true; // keep the rig stepping in real time (galaxy off stops it)
         final long ms = (System.nanoTime() - t0) / 1_000_000L;
         out.add(
             String.format(
@@ -232,6 +250,13 @@ public final class EyeGalaxyBench {
             : BurstRouting.twoLevel(bit(field, 3), bit(field, 4));
         final double hi = rail * BurstRouting.share(0.5, 2, s2);
         rt.benchBursts = feed(eye, hi, rail - hi, halo, linked);
+        rt.benchFlux = new double[] { r.q.Phi, r.q.b };
+    }
+
+    /** The Eye's position as the rig's key (a chunk reload makes a new controller object, not a new Eye). */
+    private static int key(MTEEyeOfHarmonyBTS eye) {
+        final gregtech.api.interfaces.tileentity.IGregTechTileEntity b = eye.getBaseMetaTileEntity();
+        return b == null ? 0 : (b.getXCoord() * 31 + b.getYCoord()) * 31 + b.getZCoord();
     }
 
     private static boolean bit(int code, int n) {

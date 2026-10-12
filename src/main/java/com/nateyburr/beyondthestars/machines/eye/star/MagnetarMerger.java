@@ -19,7 +19,9 @@ import com.nateyburr.beyondthestars.machines.eye.field.TierParams;
  * runtime takes the merger charge (White Dwarf Matter 18,432 + Black Dwarf Matter 4,608 + Antipolarization Agent
  * 100,000, × p) and lights the magnetar at x = 0, I = 100, A = 0 under T6 rules, with the Agent upkeep cycles running.
  * The one inverted challenge: the dynamo winds the polarity up (Π drift +0.5/s on top of T6's runaway gain) and the
- * giant flares are held back.
+ * giant flares are held back. During the imprint the Agent upkeep does not charge the flare shield (ruling 12's +2r/s):
+ * only Agent trims do, so a dose above the band's middle trims Π back into it instead of the shield pinning Π at 0
+ * (B-71).
  * <ol>
  * <li><b>Imprint:</b> hold Π inside +60..+90 for 120 consecutive seconds, within 600 s.</li>
  * <li><b>Release:</b> then bring Π back inside ±40 within 60 s. The magnetar is LIT under full T6 rules (its flares
@@ -55,6 +57,12 @@ public final class MagnetarMerger extends EyeTransition {
     @Override
     public void addDrift(FieldState s, StepInputs in, double[] dp) {
         dp[PI] += IMPRINT_DRIFT;
+    }
+
+    /** The imprint: the upkeep's shield charge is off (B-71); the release: T6's own rate. */
+    @Override
+    public double shieldPerUpkeep(TierParams t) {
+        return phase == 1 ? 0 : StellarField.SHIELD_PER_UPKEEP;
     }
 
     @Override

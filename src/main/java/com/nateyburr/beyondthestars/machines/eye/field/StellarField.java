@@ -250,7 +250,7 @@ public final class StellarField {
         // ---- T6 agent shield, after the update
         if (T.shield) {
             s.A = Math
-                .min(100, 0.95 * s.A + SHIELD_PER_UNIT * in.units(TrimDef.Kind.AGENT) / p + SHIELD_PER_UPKEEP * r);
+                .min(100, 0.95 * s.A + SHIELD_PER_UNIT * in.units(TrimDef.Kind.AGENT) / p + ov.shieldPerUpkeep(T) * r);
             final double c = Math.min(Math.min(s.A, Math.abs(s.x[PI])), 25);
             s.x[PI] -= Math.signum(s.x[PI]) * c;
             s.A -= c;

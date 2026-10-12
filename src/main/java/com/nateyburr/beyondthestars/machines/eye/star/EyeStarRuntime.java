@@ -234,6 +234,8 @@ public final class EyeStarRuntime {
     final EyeGalaxy galaxy = new EyeGalaxy();
     /** P4 bench: a scripted burst feed replacing the receptor reading (null in play; never saved). */
     EyeBursts benchBursts;
+    /** P4 bench: the bench quasar's {Φ, b} for the collapse assist (its source is not a machine); null in play. */
+    double[] benchFlux;
 
     // ---------------------------------------------------------------- transient (scanner)
     private FieldReadout last = FieldReadout.DARK;
@@ -894,6 +896,8 @@ public final class EyeStarRuntime {
             }
             if (trans != null) trans.adjustRig(raw, fs, rig);
             FieldRig.toUnits(table, raw, in.u);
+            // the prototype's rig is per parallel (p = 1 there); a socket's cap is cap × p, and the field divides by p
+            if (p > 1) in.u.replaceAll((trim, units) -> units * p);
         } else {
             for (TrimDef trim : table.trims()) {
                 final Fluid fluid = trimFluid(trim.kind);
@@ -1568,10 +1572,11 @@ public final class EyeStarRuntime {
 
     /** P4 Galaxy Transition bits: the linked quasar's Φ and b (the collapse assist), or {0, 0}. */
     private double[] linkedQuasarFlux() {
+        if (benchBursts != null && benchFlux != null) return benchFlux.clone();
         final BurstSource s = galaxy.bursts.sourceId;
         final MTEQuasarEngine q = s == null ? null : s.resolve();
         if (q == null || !q.isFormed()) return new double[2];
-        return new double[] { q.state().lagPhi, q.state().b };
+        return new double[] { q.state().Phi, q.state().b }; // the prototype reads the flux as it stands (transBits)
     }
 
     private void emit(double litres) {
@@ -2122,13 +2127,18 @@ public final class EyeStarRuntime {
         final EyeTransition tr = trans;
         if (tr == null) return;
         final int to = tr.type.from + 1;
+        final boolean newly = unlockedTier < to;
         unlockedTier = Math.max(unlockedTier, to);
         String coreNote = "";
         if (tr.coreUsed && escrow != null) {
             coreNote = "; the " + escrow.getDisplayName() + " was consumed";
             escrow = null;
         }
-        lastEvent = tr.type.title + " COMPLETE in " + tr.t + " s: T" + to + " unlocked" + coreNote;
+        lastEvent = tr.type.title + " COMPLETE in "
+            + tr.t
+            + " s: "
+            + (newly ? "T" + to + " unlocked" : "re-run (T" + to + " was unlocked)")
+            + coreNote;
         com.nateyburr.beyondthestars.BeyondTheStars.LOG.info("[BTS] Eye {}", lastEvent);
         trans = null;
         host.markDirty();
