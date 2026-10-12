@@ -35,8 +35,11 @@ import gregtech.api.util.recipe.Scanning;
  *
  * <h2>Deviations from the §2.3 table, and why</h2>
  * <ul>
- * <li><b>SL-K01</b> takes 32 Extreme Density Space-Bending Casing in place of 32 Containment Deck
- * Plating: the deck block is retired (FC-1; the BHC's casing plays every Kerr deck-like role).</li>
+ * <li><b>SL-K01</b> is re-priced at Black Hole Compressor controller parity for GTNH 2.9.0-RC-2 (B-30):
+ * the Kerr controller now stands in for the BHC controller in every recipe that consumes one
+ * ({@link BTSBlackHoleSwap}), so the card's price (2,048 SpaceTime ingots, 8 seeds) would have been paid
+ * once per Spacetime Compression Field Generator. Its Containment Deck Plating was already 32 (now 8)
+ * Extreme Density Space-Bending Casing (FC-1).</li>
  * <li><b>Dense plates</b> go through {@link BTSRecipesSingularity#dense}: a missing
  * {@code plateDense} (likely SpaceTime) becomes 9 plates each, logged once (Q-18). Every AL here
  * stays at or under 16 item slots even with the fallback.</li>
@@ -71,6 +74,15 @@ public final class BTSRecipesKerr {
 
     private static void controllerAndModules() {
         // SL-K01 Kerr Ergosphere Engine (controller). Research: Black Hole Seed.
+        // GTNH 2.9.0-RC-2: the BHC controller became an ingredient (every Spacetime Compression Field
+        // Generator, the coremod's 64-controller Compressed Circuit Array), and BTSBlackHoleSwap moves all
+        // of those onto this controller. So it is priced at BHC parity (B-30, costs doc §9): the BHC
+        // controller's own compression lineage (HIP + Neutronium Compressor, 16 Advanced Implosion, 8
+        // Compressor UIV, 4 Electric Implosion), its circuits, field generators, superdense plates and
+        // fluids, with the Kerr's identity (a Black Hole Seed, a Superradiant Mirror Segment, Field Coils,
+        // BHC casings, TM screws, Super Coolant) in place of the BHC's lenses, ProtoHalkonite parts,
+        // Kevlar and Oganesson. The old card price (2,048 SpaceTime ingots molten, 8 seeds, 15 min) made
+        // one Eye T1 gate (236 generators) cost 480k SpaceTime ingots.
         BTSRecipeGuard.recipe(
             "SL-K01",
             () -> GTValues.RA.stdBuilder()
@@ -78,24 +90,30 @@ public final class BTSRecipesKerr {
                 .metadata(SCANNING, new Scanning(4 * MINUTES, TierEU.RECIPE_UIV))
                 .itemInputs(
                     items(
-                        BTSRecipesSingularity.dense(Materials.SpaceTime, 32),
-                        BTSRecipeGuard.req(OrePrefixes.frameGt, Materials.SpaceTime, 32L),
-                        nn(ItemList.Field_Generator_UIV.get(16L), "ItemList.Field_Generator_UIV"),
-                        nn(ItemList.Emitter_UIV.get(16L), "ItemList.Emitter_UIV"),
-                        nn(ItemList.Sensor_UIV.get(16L), "ItemList.Sensor_UIV"),
-                        BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UIV, 32L),
-                        BTSRecipeGuard.stack(SLItems.superradiantMirrorSegment, 8),
-                        SLBlocks.casing(BlockSLCasing.INJECTOR_MK1, 16),
-                        nn(ItemList.Black_Hole_Opener.get(8L), "ItemList.Black_Hole_Opener"),
-                        BTSRecipeGuard.req(OrePrefixes.screw, Materials.TranscendentMetal, 64L),
-                        SLBlocks.casing(BlockSLCasing.FIELD_COIL, 16),
-                        casingStack(Casings.ExtremeDensitySpaceBendingCasing, 32)))
+                        nn(ItemList.Machine_Multi_HIPCompressor.get(1L), "ItemList.Machine_Multi_HIPCompressor"),
+                        nn(
+                            ItemList.Machine_Multi_NeutroniumCompressor.get(1L),
+                            "ItemList.Machine_Multi_NeutroniumCompressor"),
+                        nn(ItemList.AdvancedImplosionCompressor.get(16L), "ItemList.AdvancedImplosionCompressor"),
+                        nn(ItemList.CompressorUIV.get(8L), "ItemList.CompressorUIV"),
+                        nn(ItemList.ElectricImplosionCompressor.get(4L), "ItemList.ElectricImplosionCompressor"),
+                        nn(ItemList.Field_Generator_UEV.get(4L), "ItemList.Field_Generator_UEV"),
+                        BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UIV, 4L),
+                        nn(ItemList.Black_Hole_Opener.get(1L), "ItemList.Black_Hole_Opener"),
+                        BTSRecipeGuard.stack(SLItems.superradiantMirrorSegment, 1),
+                        SLBlocks.casing(BlockSLCasing.FIELD_COIL, 4),
+                        casingStack(Casings.ExtremeDensitySpaceBendingCasing, 8),
+                        BTSRecipeGuard.req(OrePrefixes.plateSuperdense, Materials.Neutronium, 16L),
+                        BTSRecipeGuard.req(OrePrefixes.plateSuperdense, Materials.Naquadria, 16L),
+                        BTSRecipeGuard.req(OrePrefixes.plateSuperdense, Materials.CosmicNeutronium, 8L),
+                        BTSRecipeGuard.req(OrePrefixes.screw, Materials.TranscendentMetal, 16L)))
                 .fluidInputs(
-                    molten(Materials.SpaceTime, 294_912),
-                    molten(Materials.TranscendentMetal, 147_456),
-                    superCoolant(1_000_000))
+                    molten(Materials.SpaceTime, 2_304),
+                    molten(Materials.SuperconductorUIVBase, 43_200),
+                    molten(Materials.Infinity, 14_400),
+                    superCoolant(64_000))
                 .itemOutputs(nn(BTSMachines.kerrEngine, "BTSMachines.kerrEngine").copy())
-                .duration(18_000)
+                .duration(3_600)
                 .eut(TierEU.RECIPE_UIV)
                 .addTo(AssemblyLine));
 
