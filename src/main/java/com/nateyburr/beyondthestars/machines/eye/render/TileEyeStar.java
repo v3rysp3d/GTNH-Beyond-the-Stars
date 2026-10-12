@@ -1,11 +1,13 @@
 package com.nateyburr.beyondthestars.machines.eye.render;
 
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.world.WorldServer;
 
 import com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS;
 
@@ -40,6 +42,17 @@ public class TileEyeStar extends TileEntity {
     private float gamma = 3f;
     private float spin = 1f;
     private float pulse = 0.02f;
+    private float aux;
+
+    /**
+     * Dev-only render QA ({@code -Dbts.rendertest=true}, client): when 0 or more, {@link #kindAge} and
+     * {@link #flareAge} return this instead of the real ages, so a still shot catches the bounce's shock shell or a
+     * magnetar flare at a fixed point of its run. Negative (off) in play; only the render QA harness sets it.
+     */
+    public static volatile double debugEventAge = -1;
+
+    /** Client: magnetar flares, every {@link #FLARE_MIN}..{@link #FLARE_MIN}x2 ticks. */
+    static final int FLARE_MIN = 80;
 
     /** The owning Eye controller, or null (an ownerless render block removes itself). */
     private int[] owner;
@@ -52,6 +65,10 @@ public class TileEyeStar extends TileEntity {
     /** World time when {@link #kind} last changed on this client (the bounce and nova shells run from it). */
     private double kindSince = -1;
     private byte seenKind = -1;
+    /** World time the current magnetar flare started, and when the next one starts (negative: not scheduled). */
+    private double flareSince = -1e9;
+    private double nextFlare = -1;
+    private int flares;
     private AxisAlignedBB box;
     private float boxRadius = -1f;
 
@@ -65,7 +82,12 @@ public class TileEyeStar extends TileEntity {
         markDirty();
     }
 
-    /** Server: the new look, in one packet to the clients watching this chunk. */
+    /**
+     * Server: the new look, in one description packet straight to the players watching this chunk. Not through
+     * {@code markBlockForUpdate}: that also sends a block change, and every client then rebuilds the whole chunk
+     * section (render QA E10: the cooling dwarf changes colour every field second). A player who starts watching the
+     * chunk later gets the look with the chunk's tile data.
+     */
     public void setLook(EyeStarLook look) {
         if (worldObj == null || worldObj.isRemote || look == null) return;
         kind = look.kind;
@@ -74,8 +96,19 @@ public class TileEyeStar extends TileEntity {
         gamma = look.gamma;
         spin = look.spin;
         pulse = look.pulse;
+        aux = look.aux;
         markDirty();
-        worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+        if (!(worldObj instanceof WorldServer)) return;
+        final WorldServer world = (WorldServer) worldObj;
+        final Packet packet = getDescriptionPacket();
+        final int cx = xCoord >> 4;
+        final int cz = zCoord >> 4;
+        for (Object o : world.playerEntities) {
+            if (o instanceof EntityPlayerMP && world.getPlayerManager()
+                .isPlayerWatchingChunk((EntityPlayerMP) o, cx, cz)) {
+                ((EntityPlayerMP) o).playerNetServerHandler.sendPacket(packet);
+            }
+        }
     }
 
     @Override
@@ -128,6 +161,11 @@ public class TileEyeStar extends TileEntity {
         return pulse;
     }
 
+    /** Kind-specific 0..1 ({@link EyeStarLook#aux}): the dwarf's cooling fraction, the magnetar's warning. */
+    public float getAux() {
+        return aux;
+    }
+
     /**
      * Client, once per frame: the radius to draw, eased toward the synced one with a 10-tick time constant (the server
      * sends at most once a second, so a cooling or collapsing object moves smoothly).
@@ -151,7 +189,28 @@ public class TileEyeStar extends TileEntity {
             kindSince = now;
             seenKind = kind;
         }
-        return now - kindSince;
+        final double frozen = debugEventAge;
+        return frozen >= 0 ? frozen : now - kindSince;
+    }
+
+    /**
+     * Client: ticks since the magnetar's current flare started. Flares come every {@link #FLARE_MIN} to twice that
+     * many ticks (a fixed pseudo-random sequence per block), the first one a second after the object appears.
+     */
+    @SideOnly(Side.CLIENT)
+    public double flareAge(double now) {
+        if (nextFlare < 0 || now < flareSince) {
+            nextFlare = now + 20;
+            flareSince = -1e9;
+        }
+        if (now >= nextFlare) {
+            flareSince = nextFlare;
+            flares++;
+            final int h = (xCoord * 73_856_093) ^ (yCoord * 19_349_663) ^ (zCoord * 83_492_791) ^ (flares * 2_654_435);
+            nextFlare = Math.max(now, flareSince) + FLARE_MIN + Math.floorMod(h, FLARE_MIN + 1);
+        }
+        final double frozen = debugEventAge;
+        return frozen >= 0 ? frozen : now - flareSince;
     }
 
     /** The object and the nova / bounce shells (up to 3x the radius), plus a block. */
@@ -199,6 +258,7 @@ public class TileEyeStar extends TileEntity {
         look.setFloat("gamma", gamma);
         look.setFloat("spin", spin);
         look.setFloat("pulse", pulse);
+        look.setFloat("aux", aux);
         return look;
     }
 
@@ -210,6 +270,7 @@ public class TileEyeStar extends TileEntity {
         gamma = look.getFloat("gamma");
         spin = look.getFloat("spin");
         pulse = look.getFloat("pulse");
+        aux = look.getFloat("aux");
     }
 
     /** Only the look goes to clients (the owner is server business). */
@@ -220,6 +281,7 @@ public class TileEyeStar extends TileEntity {
         return new S35PacketUpdateTileEntity(xCoord, yCoord, zCoord, 1, nbt);
     }
 
+    /** Only the look changes: no chunk re-render (render QA E10). */
     @Override
     public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
         readLook(
