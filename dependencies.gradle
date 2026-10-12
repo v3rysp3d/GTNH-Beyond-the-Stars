@@ -46,4 +46,12 @@ dependencies {
     // BQ and BR6343 POMs ask for classifier-less GT/NEI jars, which would sit next to the dev jars: transitive = false.
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:BetterQuesting:3.8.89-GTNH:dev") { transitive = false }
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:BlockRenderer6343:1.4.24:dev") { transitive = false }
+    // Pack mods that switch on the recipes the RC-2 port touches, so runServer exercises them: Avaritia (+ AE2FC,
+    // via GT) gates GT's Eye of Harmony Condensate Assembler recipes (the BHC->Kerr swap); Universal Singularities
+    // (+ WanionLib) gates the coremod's BHC controller recipe; Avaritiaddons / Eternal Singularity supply recipe inputs.
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:Avaritia:1.99:dev") { transitive = false }
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:Universal-Singularities:8.15.4:dev") { transitive = false }
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:WanionLib:1.10.1:dev") { transitive = false }
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:Avaritiaddons:1.9.6-GTNH:dev") { transitive = false }
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:Eternal-Singularity:1.4.3:dev") { transitive = false }
 }
