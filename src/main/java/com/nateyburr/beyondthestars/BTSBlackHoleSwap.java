@@ -7,13 +7,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.ShapedRecipes;
 import net.minecraft.item.crafting.ShapelessRecipes;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 import net.minecraftforge.oredict.ShapelessOreRecipe;
 
@@ -120,8 +120,8 @@ public final class BTSBlackHoleSwap {
         for (Map.Entry<String, RecipeMap<?>> entry : maps.entrySet()) {
             final String place = entry.getKey();
             final RecipeMap<?> map = entry.getValue();
+            boolean changed = false;
             try {
-                boolean changed = false;
                 for (GTRecipe recipe : map.getAllRecipes()) {
                     if (recipe == null) continue;
                     boolean hit = replace(recipe.mInputs, from, to);
@@ -133,15 +133,25 @@ public final class BTSBlackHoleSwap {
                         note(result, phase, place, firstOutput(recipe.mOutputs));
                     }
                 }
-                if (changed) {
-                    map.getBackend()
-                        .reInit();
-                }
             } catch (RuntimeException | LinkageError failed) {
                 result.failures++;
                 BeyondTheStars.LOG
                     .error("[BTS] BHC->Kerr ({}): recipe map {} could not be rewritten.", phase, place, failed);
+            } finally {
+                // Whatever was already swapped in place must reach the lookup, even after a throw.
+                if (changed) rebuild(map, phase, place, result);
             }
+        }
+    }
+
+    private static void rebuild(RecipeMap<?> map, String phase, String place, Result result) {
+        try {
+            map.getBackend()
+                .reInit();
+        } catch (RuntimeException | LinkageError failed) {
+            result.failures++;
+            BeyondTheStars.LOG
+                .error("[BTS] BHC->Kerr ({}): recipe map {} could not rebuild its lookup.", phase, place, failed);
         }
     }
 
@@ -335,15 +345,28 @@ public final class BTSBlackHoleSwap {
         return null;
     }
 
+    /**
+     * Log text for an output. Server-safe: the formatting codes are stripped by hand, because
+     * {@code EnumChatFormatting.getTextWithoutFormattingCodes} is client-only in 1.7.10. Never throws:
+     * a log line must not abort a rewrite half-way.
+     */
     private static String describe(ItemStack stack) {
-        if (stack == null || stack.getItem() == null) return "(no item output)";
-        String name;
         try {
-            name = stack.getDisplayName();
-        } catch (RuntimeException unnamed) {
-            name = stack.getUnlocalizedName();
+            if (stack == null || stack.getItem() == null) return "(no item output)";
+            String name;
+            try {
+                name = stack.getDisplayName();
+            } catch (RuntimeException unnamed) {
+                name = stack.getUnlocalizedName();
+            }
+            return stack.stackSize + " x "
+                + (name == null ? "?"
+                    : FORMATTING.matcher(name)
+                        .replaceAll(""));
+        } catch (RuntimeException | LinkageError unnamed) {
+            return "(unnamed output)";
         }
-        final String plain = EnumChatFormatting.getTextWithoutFormattingCodes(name);
-        return stack.stackSize + " x " + (plain != null ? plain : name);
     }
+
+    private static final Pattern FORMATTING = Pattern.compile("§.");
 }
