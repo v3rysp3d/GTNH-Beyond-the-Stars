@@ -35,7 +35,10 @@ public final class BTSDriver implements SidedBlock {
             || mte instanceof MTEKerrModuleBase
             || mte instanceof MTEHatchStellarFieldSensor
             || mte instanceof MTEHatchDirective
-            || mte instanceof com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
+            || mte instanceof com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine
+            || mte instanceof com.nateyburr.beyondthestars.machines.conduit.MTEConduitElement
+            || mte instanceof com.nateyburr.beyondthestars.machines.quasar.MTEBurstThermaliserCrown
+            || mte instanceof com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor;
     }
 
     @Override
@@ -48,6 +51,21 @@ public final class BTSDriver implements SidedBlock {
         if (mte instanceof MTEHatchDirective) return new BTSEnvironments.Directive(world, x, y, z);
         if (mte instanceof com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine) {
             return new BTSEnvironments.Quasar(world, x, y, z);
+        }
+        if (mte instanceof com.nateyburr.beyondthestars.machines.conduit.MTEConduitJunction) {
+            return new BTSEnvironments.Junction(world, x, y, z);
+        }
+        if (mte instanceof com.nateyburr.beyondthestars.machines.conduit.MTEWormholeMouth) {
+            return new BTSEnvironments.Conduit(world, x, y, z, "bts_mouth");
+        }
+        if (mte instanceof com.nateyburr.beyondthestars.machines.conduit.MTEConduitElement) {
+            return new BTSEnvironments.Conduit(world, x, y, z, "bts_mirror");
+        }
+        if (mte instanceof com.nateyburr.beyondthestars.machines.quasar.MTEBurstThermaliserCrown) {
+            return new BTSEnvironments.Crown(world, x, y, z);
+        }
+        if (mte instanceof com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor) {
+            return new BTSEnvironments.Receptor(world, x, y, z);
         }
         return null;
     }

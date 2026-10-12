@@ -46,7 +46,7 @@ public class CommandBTSKit extends CommandBase {
     @Override
     public String getCommandUsage(ICommandSender sender) {
         return "/btskit [siloTier 1-" + BTSBom.MAX_TIER
-            + "] | /btskit kerr | /btskit eye | /btskit quasar [coil 1-4] | /btskit homogeny | /btskit diffraction"
+            + "] | /btskit kerr | /btskit eye | /btskit quasar [coil 1-4] | /btskit conduit | /btskit homogeny | /btskit diffraction"
             + " | /btskit refab";
     }
 
@@ -113,6 +113,12 @@ public class CommandBTSKit extends CommandBase {
         if (args.length > 0 && args[0].equalsIgnoreCase("quasar")) {
             com.nateyburr.beyondthestars.machines.quasar.QuasarKit
                 .giveKit(player, args.length > 1 ? parseIntBounded(sender, args[1], 1, 4) : 3);
+            return;
+        }
+        // P4 conduit unit: /btskit conduit - the Wormhole Mouths, Mirror, Junction, crowns and ports, from
+        // manifest.json.
+        if (args.length > 0 && args[0].equalsIgnoreCase("conduit")) {
+            com.nateyburr.beyondthestars.machines.conduit.ConduitKit.giveKit(player);
             return;
         }
         // H/R unit 2: /btskit homogeny | diffraction | refab - read from manifest.json.

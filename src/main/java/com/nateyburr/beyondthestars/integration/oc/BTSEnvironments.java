@@ -3,12 +3,17 @@ package com.nateyburr.beyondthestars.integration.oc;
 import net.minecraft.world.World;
 
 import com.nateyburr.beyondthestars.integration.BTSComputerApi;
+import com.nateyburr.beyondthestars.integration.ConduitComputerApi;
 import com.nateyburr.beyondthestars.integration.QuasarComputerApi;
+import com.nateyburr.beyondthestars.machines.conduit.MTEConduitElement;
+import com.nateyburr.beyondthestars.machines.conduit.MTEConduitJunction;
+import com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor;
 import com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective;
 import com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS;
 import com.nateyburr.beyondthestars.machines.eye.MTEHatchStellarFieldSensor;
 import com.nateyburr.beyondthestars.machines.kerr.MTEKerrEngine;
 import com.nateyburr.beyondthestars.machines.kerr.MTEKerrModuleBase;
+import com.nateyburr.beyondthestars.machines.quasar.MTEBurstThermaliserCrown;
 
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import li.cil.oc.api.Network;
@@ -306,6 +311,149 @@ public final class BTSEnvironments {
         public Object[] getDirective(Context c, Arguments a) {
             final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
             return q == null ? GONE : new Object[] { QuasarComputerApi.directive(q, a.optInteger(0, 5)) };
+        }
+    }
+
+    /**
+     * {@code bts_mouth} / {@code bts_mirror} / {@code bts_junction}: a Conduit element (P4, quasar-p4.md section 8.2).
+     */
+    public static class Conduit extends Base {
+
+        Conduit(World world, int x, int y, int z, String name) {
+            super(world, x, y, z, name);
+        }
+
+        MTEConduitElement<?> element() {
+            final IMetaTileEntity m = mte();
+            return m instanceof MTEConduitElement ? (MTEConduitElement<?>) m : null;
+        }
+
+        @Callback(doc = "function():table -- formed, open, through / clipped / lost Bu/t, the partner (mouth), routes")
+        public Object[] getLink(Context c, Arguments a) {
+            final MTEConduitElement<?> e = element();
+            return e == null ? GONE : new Object[] { ConduitComputerApi.link(e) };
+        }
+
+        @Callback(doc = "function():table -- the Conduit Throat: mk (0 = none) and cap Bu/t")
+        public Object[] getThroat(Context c, Arguments a) {
+            final MTEConduitElement<?> e = element();
+            return e == null ? GONE : new Object[] { ConduitComputerApi.throat(e) };
+        }
+
+        @Callback(doc = "function():table -- fuel mode, L/s on each fuel, open, reopen seconds, litres used")
+        public Object[] getUpkeep(Context c, Arguments a) {
+            final MTEConduitElement<?> e = element();
+            return e == null ? GONE : new Object[] { ConduitComputerApi.upkeep(e) };
+        }
+
+        @Callback(doc = "function(mode:string):string -- throat fuel: auto, spacetime or ergomatter; returns it")
+        public Object[] setFuel(Context c, Arguments a) {
+            final MTEConduitElement<?> e = element();
+            return e == null ? GONE : new Object[] { ConduitComputerApi.setFuel(e, a.checkString(0)) };
+        }
+
+        @Callback(doc = "function():boolean -- open (upkeep paid, a throat fitted)")
+        public Object[] isOpen(Context c, Arguments a) {
+            final MTEConduitElement<?> e = element();
+            return e == null ? GONE : new Object[] { e.isOpen() };
+        }
+    }
+
+    /** {@code bts_junction}: a Conduit Junction (split / combine). */
+    public static final class Junction extends Conduit {
+
+        Junction(World world, int x, int y, int z) {
+            super(world, x, y, z, "bts_junction");
+        }
+
+        private MTEConduitJunction junction() {
+            final IMetaTileEntity m = mte();
+            return m instanceof MTEConduitJunction ? (MTEConduitJunction) m : null;
+        }
+
+        @Callback(doc = "function():table -- mode, in, out1, out2, out3 (or out), clipped, c, k, p3, s, share")
+        public Object[] getFlow(Context c, Arguments a) {
+            final MTEConduitJunction j = junction();
+            return j == null ? GONE : new Object[] { ConduitComputerApi.flow(j) };
+        }
+
+        @Callback(doc = "function(c:number):number -- the split ratio c (0-1); returns it")
+        public Object[] setRatio(Context c, Arguments a) {
+            final MTEConduitJunction j = junction();
+            if (j == null) return GONE;
+            j.setRatio(a.checkDouble(0));
+            return new Object[] { j.getRatio() };
+        }
+
+        @Callback(doc = "function(k:number):number -- the redstone gain k (0, 1, 2 or 4; snaps); returns it")
+        public Object[] setGain(Context c, Arguments a) {
+            final MTEConduitJunction j = junction();
+            return j == null ? GONE : new Object[] { j.setGain(a.checkDouble(0)) };
+        }
+
+        @Callback(doc = "function(p:number):number -- out 3's fixed share (0-1) taken off the top; returns it")
+        public Object[] setOut3(Context c, Arguments a) {
+            final MTEConduitJunction j = junction();
+            if (j == null) return GONE;
+            j.setOut3Share(a.checkDouble(0));
+            return new Object[] { j.getOut3Share() };
+        }
+
+        @Callback(doc = "function(mode:string):string -- split or combine; returns it")
+        public Object[] setMode(Context c, Arguments a) {
+            final MTEConduitJunction j = junction();
+            if (j == null) return GONE;
+            j.setMode(
+                "combine".equalsIgnoreCase(a.checkString(0)) ? MTEConduitJunction.Mode.COMBINE
+                    : MTEConduitJunction.Mode.SPLIT);
+            return new Object[] { j.getMode() == MTEConduitJunction.Mode.SPLIT ? "split" : "combine" };
+        }
+    }
+
+    /** {@code bts_crown}: a Burst Thermaliser Crown. */
+    public static final class Crown extends Base {
+
+        Crown(World world, int x, int y, int z) {
+            super(world, x, y, z, "bts_crown");
+        }
+
+        private MTEBurstThermaliserCrown crown() {
+            final IMetaTileEntity m = mte();
+            return m instanceof MTEBurstThermaliserCrown ? (MTEBurstThermaliserCrown) m : null;
+        }
+
+        @Callback(doc = "function():number -- EU/t pushed to the wireless network last second")
+        public Object[] getPower(Context c, Arguments a) {
+            final MTEBurstThermaliserCrown k = crown();
+            return k == null ? GONE : new Object[] { k.getEUt() };
+        }
+
+        @Callback(doc = "function():table -- Mk, stream, used, EU/t, clipped, stacked, lifetime EU")
+        public Object[] getStream(Context c, Arguments a) {
+            final MTEBurstThermaliserCrown k = crown();
+            return k == null ? GONE : new Object[] { ConduitComputerApi.crown(k) };
+        }
+
+        @Callback(doc = "function():number -- the Mk that stands (0 = not formed)")
+        public Object[] getMk(Context c, Arguments a) {
+            final MTEBurstThermaliserCrown k = crown();
+            return k == null ? GONE : new Object[] { k.getMk() };
+        }
+    }
+
+    /** {@code bts_receptor}: a GRB Receptor Port. */
+    public static final class Receptor extends Base {
+
+        Receptor(World world, int x, int y, int z) {
+            super(world, x, y, z, "bts_receptor");
+        }
+
+        @Callback(doc = "function():table -- total Bu/t last second, bySource, linked, source, paused, host")
+        public Object[] getDelivery(Context c, Arguments a) {
+            final IMetaTileEntity m = mte();
+            return m instanceof MTEHatchGRBReceptor
+                ? new Object[] { ConduitComputerApi.delivery((MTEHatchGRBReceptor) m) }
+                : GONE;
         }
     }
 

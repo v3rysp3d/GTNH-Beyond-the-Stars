@@ -338,3 +338,5 @@ gt.beyondthestars.quasarHole.name=Quasar Black Hole
 beyondthestars.structure.quasar.gas=The quasar needs at least one Input Hatch in a Rim Gas Injector socket (the 24 rim sockets)
 beyondthestars.structure.quasar.coil=Every Disc Field Coil must be the same tier
 beyondthestars.structure.quasar.energy=The quasar needs at least one Energy or Laser Hatch in the control box (coil power: 2 A UXV x b squared)
+# ---- P4: the Einstein-Rosen Conduit (28121-28123), the Burst Thermaliser Crown (28124), the GRB Receptor Port (28125)
+beyondthestars.structure.conduit.fuel=A Conduit element needs at least one Input Hatch in a throat-fuel socket (Molten SpaceTime, or Ergomatter after Eye T7)
