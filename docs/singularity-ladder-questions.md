@@ -1028,7 +1028,8 @@ survival reach), or move the controller above the band (y +4).
   nothing on a machine that runs no recipes, so the KEE has no power-panel button. The modules keep it.
 - **Stability** counts as 100 % while the mass is at or above the setpoint (the governor is holding, or the hole is
   being let down to a lower setpoint). Below the setpoint it is mass fed ÷ mass bled over the last second.
-- **The setpoint field** accepts 2-512 on the client; the server clamps to 64 at T1.
+- **The setpoint field** accepts 2-512 on the client; the server clamps to 64 at T1. (Superseded by B-41: the
+  field, slider and - / + now follow the synced tier range; the server still clamps.)
 
 **Suggestion.** As built.
 
@@ -1067,6 +1068,40 @@ mode); items that do not fit drop at the module controller, and fluids that do n
   carries on.
 
 **Suggestion.** As built.
+
+### B-41 Kerr redesign: KEE GUI details the spec and mockup left open [Kerr redesign, built]
+
+**Context.** The KEE console (`MTEKerrEngineGui`) was redone to match the mockup (`kerr-gui.html`) and spec §4.1;
+the module screen gained status lines (§4.2). A few details were judgement calls.
+
+**What is built.**
+
+- **Setpoint range follows the tier live.** The gap-row field, the panel's field, the slider and the − / + buttons
+  are all bounded by the synced maximum (64 at T1, 512 at T2). The slider runs 0..1 over the *current* range and
+  snaps to whole SM, so it follows a Density Upgrade going in while the panel is open (MUI2's slider bounds are
+  fixed at build time). Every write still goes through `MTEKerrEngine.setSetpoint`, which clamps on the server.
+  Field scroll steps: 1, shift 8, alt 64 (GT's compressed-bus idiom); right-click on − / + steps by 8.
+- **Collapse confirmation** is client-side: the first click arms it for 4 s (label "Confirm", and the line under the
+  buttons turns red with "N linked modules will pause"); a second click inside that window sends the server action,
+  which re-checks the open hole and the Collapser in a bolt bus.
+- **Auto** is a check box (GT's checkmark / cross overlays) rather than a text button, as in the mockup.
+- **Mass bar colour** is the BHC lavender, not a stability colour; stability has its own coloured line.
+- **One side panel at a time.** Hole control and Modules open in the same spot to the right of the main panel, so
+  opening one closes the other.
+- **Modules panel rows** show the module controller's item icon, its state, then either the hole bonus (linked) or a
+  short reason (paused: why; not built: "place its controller at marker N"; not formed / not loaded / not linked).
+  The mockup's "IDLE: no input" reason is not shown: the KEE does not read a module's last recipe result.
+- **Module screen:** besides the link and bonus lines, a live recipe-gate line (`gateLine()`; the compressor shows
+  "Densification: needs Kerr T2 / needs 128 SM / available", also on the scanner) and a constant maps line
+  (`mapsLine()`).
+- **Text is English in code**, like the rest of the Kerr GUIs and the scanner lines. Only GT-looked-up ids (recipe
+  results, structure errors) have lang keys.
+- **Not verified in a client.** It compiles against RC-2; nobody has opened it in a game client yet (R5).
+
+**Suggestion.** As built; move the GUI strings to `en_US.lang` when the Kerr text settles.
+
+**Alternatives.** Rebuild the slider when the tier changes (more code, same result); a server-side Collapse
+confirmation (needs per-player state for no gain, because the server re-checks anyway).
 
 ---
 
