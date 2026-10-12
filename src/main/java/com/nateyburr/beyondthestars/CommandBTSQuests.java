@@ -214,7 +214,9 @@ public class CommandBTSQuests extends CommandBase {
         if (!r.changed) {
             tell(
                 sender,
-                OK + "This world already matches the jar (" + r.summary() + "). /btsquests install force re-runs it.");
+                OK + "This world already matches the jar (bundle "
+                    + QuestbookInstaller.shortVersion(r.bundleVersion)
+                    + "). /btsquests install force re-runs it.");
             return;
         }
         tell(sender, HEAD + "== Beyond the Stars questbook installed ==");
