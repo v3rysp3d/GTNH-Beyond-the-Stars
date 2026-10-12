@@ -269,6 +269,11 @@ public final class BTSRecipesReality {
     }
 
     // ====================================================================== Homogeny T1 (UMV, stage S1)
+    // Per-craft counts are the doc's (§5.2-§5.5) except where the exported BOM (manifest.json, B-60) made a
+    // component balloon: H02 pistons 8 -> 2, H03 field coils 8 -> 4 / SC UMV wire 16 -> 8 / motors 4 -> 2, R11
+    // emitters 4 -> 2, R12 dense Infinity 16 -> 8 and SpaceTime 64 -> 32 ingots, R13 field generators 2 -> 1, R14
+    // dense Infinity 32 -> 16 and SpaceTime 64 -> 32 ingots, R15 Casimir Plates 8 -> 4, R16 output x8 -> x32
+    // (costs doc §12, question B-65).
 
     private static void homogenyT1() {
         // SL-H01 The Homogeny (controller). The card was an assembly line; its 2M L Super Coolant is dropped (not a
@@ -306,7 +311,7 @@ public final class BTSRecipesReality {
                 s(tectech(CustomItemList.EOH_Reinforced_Spatial_Casing, 2), N4),
                 s(dense(Materials.Infinity, 8), N1),
                 s(BTSRecipeGuard.req(OrePrefixes.frameGt, Materials.SpaceTime, 8L), N1),
-                s(item(ItemList.Electric_Piston_UMV, 8), N3),
+                s(item(ItemList.Electric_Piston_UMV, 2), N3),
                 s(item(ItemList.MetaMaterial_Waveguide1, 2), N3)));
 
         // SL-H03 Shear Helix Coil x32: the Kerr's Ergosphere Field Coil, rewound.
@@ -317,10 +322,10 @@ public final class BTSRecipesReality {
                 1_200 * SECONDS,
                 TierEU.RECIPE_UMV,
                 cond(gt(CondensateType.SpaceTime, 16 * INGOTS), gt(CondensateType.Space, 8 * INGOTS)),
-                s(SLBlocks.casing(BlockSLCasing.FIELD_COIL, 8), N2),
-                s(BTSRecipeGuard.req(OrePrefixes.wireGt04, Materials.SuperconductorUMV, 16L), N2),
+                s(SLBlocks.casing(BlockSLCasing.FIELD_COIL, 4), N2),
+                s(BTSRecipeGuard.req(OrePrefixes.wireGt04, Materials.SuperconductorUMV, 8L), N2),
                 s(BTSRecipeGuard.req(OrePrefixes.foil, Materials.Infinity, 32L), N1),
-                s(item(ItemList.Electric_Motor_UMV, 4), N3),
+                s(item(ItemList.Electric_Motor_UMV, 2), N3),
                 s(item(ItemList.MetaMaterial_FieldManipulator1, 1), N4)));
 
         // SL-H04 Feed Vessel Casing x32.
@@ -411,9 +416,9 @@ public final class BTSRecipesReality {
                 c3(BlockSLCasing3.ETERNITY_SHELL, 32),
                 3_600 * SECONDS,
                 TierEU.RECIPE_UXV,
-                cond(cond(degenerate, 500), gt(CondensateType.SpaceTime, 64 * INGOTS)),
+                cond(cond(degenerate, 500), gt(CondensateType.SpaceTime, 32 * INGOTS)),
                 s(tectech(CustomItemList.EOH_Reinforced_Temporal_Casing, 2), N4),
-                s(dense(Materials.Infinity, 16), N1),
+                s(dense(Materials.Infinity, 8), N1),
                 s(BTSRecipeGuard.req(OrePrefixes.plate, Materials.MagMatter, 1L), N5),
                 s(BTSRecipeGuard.req(OrePrefixes.frameGt, Materials.SpaceTime, 8L), N2),
                 s(item(ItemList.MetaMaterial_Shielding2, 2), N6)));
@@ -450,7 +455,7 @@ public final class BTSRecipesReality {
                     gt(CondensateType.MagMatter, 1 * INGOTS)),
                 s(block(BlockGodforgeGlass.INSTANCE, 0, 2, "Spatially Transcendent Gravitational Lens Block"), N6),
                 s(BTSRecipeGuard.req(OrePrefixes.block, Materials.Hexanite, 2L), N4),
-                s(item(ItemList.Emitter_UXV, 4), N5),
+                s(item(ItemList.Emitter_UXV, 2), N5),
                 s(item(ItemList.MetaMaterial_WaveFocus2, 2), N6)));
 
         // SL-R13 Phase Ring Casing x32 (Diffraction). Ergomatter: P4.
@@ -463,7 +468,7 @@ public final class BTSRecipesReality {
                 cond(cond(degenerate, 500), cond(ergomatter, 1_000), gt(CondensateType.SpaceTime, 32 * INGOTS)),
                 s(tectech(CustomItemList.EOH_Reinforced_Temporal_Casing, 2), N4),
                 s(dense(Materials.CosmicNeutronium, 16), N2),
-                s(item(ItemList.Field_Generator_UXV, 2), N6),
+                s(item(ItemList.Field_Generator_UXV, 1), N6),
                 s(item(ItemList.CondensateTransformativeCoil, 1), N5),
                 s(item(ItemList.MetaMaterial_Waveguide2, 1), N6)));
 
@@ -474,9 +479,9 @@ public final class BTSRecipesReality {
                 c3(BlockSLCasing3.REASSEMBLY_HULL, 64),
                 3_600 * SECONDS,
                 TierEU.RECIPE_UXV,
-                cond(cond(degenerate, 500), gt(CondensateType.SpaceTime, 64 * INGOTS)),
+                cond(cond(degenerate, 500), gt(CondensateType.SpaceTime, 32 * INGOTS)),
                 s(tectech(CustomItemList.EOH_Reinforced_Spatial_Casing, 2), N4),
-                s(dense(Materials.Infinity, 32), N1),
+                s(dense(Materials.Infinity, 16), N1),
                 s(dense(Materials.CosmicNeutronium, 16), N2),
                 s(BTSRecipeGuard.req(OrePrefixes.frameGt, Materials.TranscendentMetal, 16L), N2),
                 s(item(ItemList.MetaMaterial_Shielding2, 2), N6)));
@@ -491,7 +496,7 @@ public final class BTSRecipesReality {
                 cond(cond(degenerate, 500), gt(CondensateType.SpaceTime, 32 * INGOTS)),
                 s(tectech(CustomItemList.EOH_Reinforced_Temporal_Casing, 1), N4),
                 s(dense(Materials.TranscendentMetal, 16), N2),
-                s(SLBlocks.casing(BlockSLCasing.CASIMIR, 8), N3),
+                s(SLBlocks.casing(BlockSLCasing.CASIMIR, 4), N3),
                 s(BTSRecipeGuard.req(OrePrefixes.frameGt, Materials.Infinity, 8L), N1),
                 s(item(ItemList.MetaMaterial_FieldManipulator2, 1), N6)));
 
