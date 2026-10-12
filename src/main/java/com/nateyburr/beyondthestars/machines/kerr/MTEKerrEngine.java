@@ -305,16 +305,12 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             .addElement('M', block(sl, BlockSLCasing.BEAM_DUMP))
             .addElement('O', block(sl, BlockSLCasing.BASTION))
             .addElement('P', block(sl, BlockSLCasing.CASIMIR))
-            // ---- the window bands (my answer 2026-10-13, render K2): Quantum Glass at the hole's height, through
-            // the whole drum and in front of the hole. Each char also takes the block that cell held before the
-            // windows, so a Kerr built earlier still forms; glass comes first, so holograms and builds place glass
-            .addElement('Q', window(block(sl, BlockSLCasing.MIRROR)))
-            .addElement('R', window(block(sl, BlockSLCasing.MIRROR_BACKING)))
+            // ---- the window band (my answer 2026-10-13, render K2; B-86): at the hole's height, one Quantum
+            // Glass pane (S: the outer mirror ring's skin all round the drum; T: the governor arc's outer shell in
+            // front of the hole) with the cells behind it open (' ' in the shape). A pane also takes the block it
+            // replaced, so a Kerr built earlier still forms; glass comes first, so holograms and builds place glass
             .addElement('S', window(casing(Casings.ExtremeDensitySpaceBendingCasing)))
             .addElement('T', window(casing(Casings.ExtremeDensitySpaceBendingCasing)))
-            .addElement('U', window(block(sl2, BlockSLCasing2.LINING)))
-            .addElement('V', window(block(sl, BlockSLCasing.BASTION)))
-            .addElement('W', window(block(sl, BlockSLCasing.CASIMIR)))
             // ---- cage sockets
             .addElement(
                 'e',
@@ -363,21 +359,16 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         return ofChain(casing(Casings.QuantumGlass), before);
     }
 
-    /** The window chars of a piece (export-structures.js WINDOW.kerr): glass, or the old block. */
-    private static final char[] WINDOW_CHARS = { 'Q', 'R', 'S', 'T', 'U', 'V', 'W' };
+    /** The window pane chars (export-structures.js WINDOW.kerr): glass, or the old block. */
+    private static final char[] WINDOW_CHARS = { 'S', 'T' };
 
     /** Bench ({@code /btskerr ... oldwindows}): the block each window char replaced, {@code {Block, meta}}. */
     public static Map<Character, Object[]> windowBefore() {
         final Map<Character, Object[]> m = new LinkedHashMap<>();
         final Object[] shell = { Casings.ExtremeDensitySpaceBendingCasing.getBlock(),
             Casings.ExtremeDensitySpaceBendingCasing.getBlockMeta() };
-        m.put('Q', new Object[] { SLBlocks.slCasing, BlockSLCasing.MIRROR });
-        m.put('R', new Object[] { SLBlocks.slCasing, BlockSLCasing.MIRROR_BACKING });
         m.put('S', shell);
         m.put('T', shell);
-        m.put('U', new Object[] { SLBlocks.slCasing2, BlockSLCasing2.LINING });
-        m.put('V', new Object[] { SLBlocks.slCasing, BlockSLCasing.BASTION });
-        m.put('W', new Object[] { SLBlocks.slCasing, BlockSLCasing.CASIMIR });
         return m;
     }
 
@@ -1583,11 +1574,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             .addCasingInfoExactly("Quantum Glass (window band)", windowCount(PIECE_T1), false)
             .addOtherStructurePart(
                 "Kerr T2 adds",
-                bom(PIECE_T2, 'O') + " Bastion Plate, "
-                    + bom(PIECE_T2, 'P')
-                    + " Casimir Plate, "
-                    + (windowCount(PIECE_T2) - windowCount(PIECE_T1))
-                    + " Quantum Glass, more lining and glass")
+                bom(PIECE_T2, 'O') + " Bastion Plate, " + bom(PIECE_T2, 'P') + " Casimir Plate, more lining and glass")
             .addEnergyHatch("Governor arc (2 sockets; 1 laser or up to 2 energy): containment power", 1)
             .addOtherStructurePart("Bolt bus (input bus, private)", "8 sockets on the cage, at least 1", 3)
             .addOtherStructurePart(
@@ -1600,8 +1587,10 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             .addStructureInfo("  each module controller goes; build a module with its own controller's hologram.")
             .addStructureInfo("Rails go in as Mk I; builds never overwrite hatches or downgrade rails.")
             .addStructureInfo("No maintenance hatch (an old one in the governor arc may stay).")
-            .addStructureInfo("Window band: Quantum Glass through the drum and in front of the hole, at its height,")
-            .addStructureInfo("  so the hole shows from the front. A Kerr built before it keeps its old blocks there.")
+            .addStructureInfo(
+                "Window band at the hole's height: one Quantum Glass pane (the drum's outer skin, and the")
+            .addStructureInfo(
+                "  governor arc in front) with the cells behind it left open. Old Kerrs keep their blocks.")
             .toolTipFinisher();
         return tt;
     }

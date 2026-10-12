@@ -327,13 +327,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addElement('R', block(sl, BlockSLCasing.BEAM_BAND))
             .addElement('S', block(sl, BlockSLCasing.JET_CRESCENT))
             .addElement('T', block(sl, BlockSLCasing.GALACTIC_SHELL))
-            // ---- the window bands (my answer 2026-10-13, render E-9): Quantum Glass in front of the star at its
-            // height (the core band's front ring segments, and the arm / rim cells a later tier puts there). Each
-            // char also takes the block that cell held before the windows, so an Eye built earlier still forms;
-            // glass comes first, so holograms and builds place glass
+            // ---- the window band (my answer 2026-10-13, render E-9; B-86): at the star's height, one Quantum
+            // Glass pane (A: the core band's outer shell in its front ring segments) with the cells behind it, and
+            // the arm / rim cells in front of it, open (' ' in the shapes). The pane also takes the block it
+            // replaced, so an Eye built earlier still forms; glass comes first, so holograms and builds place glass
             .addElement('A', window(casing(Casings.ReinforcedSpatialStructureCasing)))
-            .addElement('B', window(casing(Casings.InfiniteSpacetimeEnergyBoundaryCasing)))
-            .addElement('C', window(block(sl, BlockSLCasing.GALACTIC_SHELL)))
             // ---- plinth sockets (D-49 R-1: the gas sockets also take input buses for the ignition charges)
             .addElement(
                 'h',
@@ -2019,17 +2017,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             'A',
             new Object[] { Casings.ReinforcedSpatialStructureCasing.getBlock(),
                 Casings.ReinforcedSpatialStructureCasing.getBlockMeta() });
-        m.put(
-            'B',
-            new Object[] { Casings.InfiniteSpacetimeEnergyBoundaryCasing.getBlock(),
-                Casings.InfiniteSpacetimeEnergyBoundaryCasing.getBlockMeta() });
-        m.put('C', new Object[] { SLBlocks.slCasing, BlockSLCasing.GALACTIC_SHELL });
         return m;
-    }
-
-    /** The window-band glass of one piece (export-structures.js WINDOW.eye: A over U, B over J, C over T). */
-    private static int windowGlass(String piece) {
-        return bom(piece, 'A') + bom(piece, 'B') + bom(piece, 'C');
     }
 
     /** {@link #bom} summed over every piece. */
@@ -2123,7 +2111,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addCasingInfoExactly("Reinforced Spatial Structure Casing", bom(PIECE_CORE, 'U'), false)
             .addCasingInfoExactly("Reinforced Temporal Structure Casing", bom(PIECE_CORE, 'Q'), false)
             .addCasingInfoExactly("Infinite SpaceTime Energy Boundary Casing", bomAll('J'), false)
-            .addCasingInfoExactly("Quantum Glass", bomAll('Z') + bom(PIECE_CORE, 'A') + bom(PIECE_CORE, 'B'), false)
+            .addCasingInfoExactly("Quantum Glass", bomAll('Z') + bom(PIECE_CORE, 'A'), false)
             .addCasingInfoExactly(
                 "Spacetime Compression Field Generator (tier = Eye tier or higher)",
                 bom(PIECE_CORE, 'W'),
@@ -2132,17 +2120,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addCasingInfoExactly("Stabilisation Field Generator (any tier)", bom(PIECE_CORE, 'Y'), true)
             .addOtherStructurePart("T2 beam band", bom(PIECE_BEAM, 'R') + " Beam Band Casing")
             .addOtherStructurePart("T3 jet crescent", bom(PIECE_JET, 'S') + " Jet Crescent Casing")
-            .addOtherStructurePart(
-                "T4 spiral arms",
-                bom(PIECE_ARMS, 'T') + " Galactic Shell Plating, " + windowGlass(PIECE_ARMS) + " window glass")
-            .addOtherStructurePart(
-                "T5 second arms",
-                bom(PIECE_ARMS2, 'T') + " Galactic Shell Plating, " + windowGlass(PIECE_ARMS2) + " window glass")
+            .addOtherStructurePart("T4 spiral arms", bom(PIECE_ARMS, 'T') + " Galactic Shell Plating")
+            .addOtherStructurePart("T5 second arms", bom(PIECE_ARMS2, 'T') + " Galactic Shell Plating")
             .addOtherStructurePart(
                 "T6 galactic rim",
-                (bom(PIECE_RIM, 'T') + bom(PIECE_RIM, 'g')) + " Galactic Shell Plating (4 may be sockets), "
-                    + windowGlass(PIECE_RIM)
-                    + " window glass")
+                (bom(PIECE_RIM, 'T') + bom(PIECE_RIM, 'g')) + " Galactic Shell Plating (4 may be sockets)")
             .addOtherStructurePart("Gas input hatch (H, He), or input bus (ignition charges)", "plinth, 1+ hatch", 1)
             .addOtherStructurePart("ME Output Bus + ME Output Hatch", "plinth, at least 1 of each", 2)
             .addMaintenanceHatch("Plinth", 3)
@@ -2161,8 +2143,9 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addStructureInfo("  Dilation and Stabilisation at tier 1. The projector's EOH channels")
             .addStructureInfo("  (spacetime_compression, time_dilation, stabilisation) raise them.")
             .addStructureInfo("Builds never overwrite hatches, nor downgrade a field generator already placed.")
-            .addStructureInfo("Window band: Quantum Glass in front of the star at its height (core band, arms, rim),")
-            .addStructureInfo("  so the star shows from the front. An Eye built before it keeps its old blocks there.")
+            .addStructureInfo("Window band at the star's height: a Quantum Glass pane in the core band's front, the")
+            .addStructureInfo(
+                "  cells behind it and the arm / rim cells in front of it open. Old Eyes keep their blocks.")
             .toolTipFinisher();
         return tt;
     }
