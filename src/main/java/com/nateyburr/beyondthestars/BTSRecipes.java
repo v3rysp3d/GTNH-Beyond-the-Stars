@@ -16,7 +16,7 @@ package com.nateyburr.beyondthestars;
  *   BTSRecipesMachines    Agent D   controllers, hatches, control blocks, rotor
  *   BTSRecipesStellar     D-49      the Antipolarization Agent chain (SL-S01..S02)
  *   BTSRecipesBEC         BEC       condensates + Condensate Assembler recipes (SL-B01..B81)
- *   BTSRecipesGeneratorUpgrade  B-83 field generators tier t-1 -> t, Retrofit Kits (SL-U00..U48)
+ *   (BTSRecipesGeneratorUpgrade, B-83, and SL-G01 run at load-complete: CommonProxy.loadComplete)
  *   BTSRecipesAutomation  automation the Directive Hatch (SL-A01)
  *   BTSRecipesReality     H/R       the Homogeny / Reality BEC recipes (SL-C01..C04, SL-H01..H20, SL-R01..R17)
  * </pre>
@@ -54,8 +54,6 @@ public final class BTSRecipes {
         BTSRecipeGuard.line("eye", BTSRecipesEye::register);
         BTSRecipeGuard.line("stellar", BTSRecipesStellar::register);
         BTSRecipeGuard.line("bec", BTSRecipesBEC::register);
-        // B-83: compression / time / stabilisation generators upgrade tier t-1 -> t in the Condensate Assembler.
-        BTSRecipeGuard.line("generator-upgrade", BTSRecipesGeneratorUpgrade::register);
         BTSRecipeGuard.line("automation", BTSRecipesAutomation::register);
         // H/R unit 2: the Homogeny / Reality machines' own process recipes (their maps; the BEC recipes are the
         // recipe unit's).

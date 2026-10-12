@@ -67,6 +67,10 @@ public class CommonProxy {
     public void loadComplete(FMLLoadCompleteEvent event) {
         com.nateyburr.beyondthestars.machines.eye.EyeRecipeRegistry.onLoadComplete();
         BTSRecipeRemovals.guard("TecTech Eye casings x32 (SL-B01/B02)", BTSRecipesBEC::onLoadComplete);
+        // B-29 / B-83: GT's Resonance Chamber II rewritten in place, then the generator upgrade path derived from GT's
+        // generator recipes (both need GT's Condensate Assembler recipes, which exist only from load-complete).
+        BTSRecipeRemovals.guard("Resonance Chamber II in place (SL-G01)", BTSRecipesSingularity::onLoadComplete);
+        BTSRecipeRemovals.guard("Field-generator upgrade path (SL-U00..U48)", BTSRecipesGeneratorUpgrade::register);
         BTSRecipeRemovals.run();
         BTSRecipeGuard.checkResearchCollisions();
     }

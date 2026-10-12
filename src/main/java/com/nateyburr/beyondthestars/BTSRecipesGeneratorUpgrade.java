@@ -34,7 +34,9 @@ import tectech.thing.CustomItemList;
 
 /**
  * THE FIELD-GENERATOR UPGRADE PATH (user, 2026-10-13, B-30: "Add an upgrade path"; question B-83). One owner.
- * Called from one line in {@link BTSRecipes} ("generator-upgrade", after "bec").
+ * Called from {@code CommonProxy.loadComplete}, after SL-G01 and before the BHC swap: GT's Condensate Assembler
+ * recipes are not in the map yet when our postInit runs (RC-2 dev server), so the derivation waits for load-complete,
+ * like SL-B01/B02. Its recipe ids are counted in the boot log's own summary line, not in the postInit one.
  *
  * <h2>Why</h2>
  *
@@ -114,10 +116,19 @@ public final class BTSRecipesGeneratorUpgrade {
             BTSRecipeGuard.recipe(id(4, t), () -> kit(gt, TIME, tier));
             BTSRecipeGuard.recipe(id(2, t), () -> stabilisation(gt, tier));
         }
-        BeyondTheStars.LOG.info(
-            "[BTS] Field-generator upgrade path: {} Condensate Assembler recipes (tier t-1 -> t, the controller stays "
-                + "inside).",
-            OURS.size());
+        final int expected = 1 + 5 * ItemFieldRetrofitKit.TIERS;
+        final int made = OURS.size() + 1;
+        if (made == expected) {
+            BeyondTheStars.LOG.info(
+                "[BTS] Field-generator upgrade path: {} Condensate Assembler recipes + the Retrofit Frame (tier t-1 -> t, "
+                    + "the controller stays inside), 0 skipped.",
+                OURS.size());
+        } else {
+            BeyondTheStars.LOG.error(
+                "[BTS] Field-generator upgrade path: only {} of {} recipes registered (see the SKIPPED lines above).",
+                made,
+                expected);
+        }
     }
 
     private static String id(int series, int t) {

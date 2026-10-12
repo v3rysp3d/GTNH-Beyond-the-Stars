@@ -353,7 +353,10 @@ public final class BTSRecipesSingularity {
      * <p>
      * <b>How.</b> The stack is swapped at the same array index, so the nanite-tier metadata (indexed by input) and
      * the condensates (moved into metadata when GT compiled the recipe) are untouched; then the map rebuilds its
-     * item-keyed lookup ({@code reInit()}), as {@link BTSBlackHoleSwap} does. Idempotent. Only with
+     * item-keyed lookup ({@code reInit()}), as {@link BTSBlackHoleSwap} does. Idempotent. It runs at load-complete
+     * (from {@code CommonProxy.loadComplete}), because GT's Condensate Assembler recipes are not in the map yet when
+     * our postInit runs (seen on the RC-2 dev server: nothing to rewrite at postInit, the BHC swap finds all ten at
+     * load-complete). Only with
      * {@code replaceTecTechEyeOfHarmony=true}: with TecTech's Eye kept, WDM has its stock source and GT's recipe stays
      * as shipped.
      * <p>
@@ -362,7 +365,8 @@ public final class BTSRecipesSingularity {
      * moved it), so the Eye T2-T4 gates can never lose their chamber. Also retired: SL-P30..P32 (the old
      * research-station "upgrade the generator" recipes); the RC-2 upgrade path is {@link BTSRecipesGeneratorUpgrade}.
      */
-    private static void compressionGateParts() {
+    public static void onLoadComplete() {
+        if (!Config.replaceTecTechEyeOfHarmony) return;
         final int before = BTSRecipeGuard.skippedCount();
         BTSRecipeGuard.recipe("SL-G01", () -> {
             if (rewriteResonanceChamberII() == 0) {
@@ -376,7 +380,10 @@ public final class BTSRecipesSingularity {
                     + "SpaceTime foils, a separate Condensate Assembler recipe) is registered instead.");
             BTSRecipeGuard.recipe("SL-P39", BTSRecipesSingularity::legacyP39);
         }
+    }
 
+    /** The gate parts registered at postInit with the flag on: SL-P33 (SL-G01 runs at load-complete). */
+    private static void compressionGateParts() {
         // SL-P33 (D-49): MetaMaterial Resonance Chamber III with 2 White Dwarf Matter foils in place of GT's 1
         // Black Dwarf Matter foil. GT's tier-3 chamber (BECMetaMaterialRecipes.registerResonanceChamber, t = 2)
         // otherwise unchanged: 2 Emitter UIV, 2 Shirabon rods, 1 Hexanite plate; nanites White Dwarf / Gold /
