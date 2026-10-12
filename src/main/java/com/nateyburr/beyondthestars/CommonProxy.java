@@ -42,6 +42,7 @@ public class CommonProxy {
      * conversion snapshot goes ABOVE the removals, which clear what it snapshots.
      */
     public void loadComplete(FMLLoadCompleteEvent event) {
+        com.nateyburr.beyondthestars.machines.eye.EyeRecipeRegistry.onLoadComplete();
         BTSRecipeRemovals.run();
     }
 
@@ -56,5 +57,6 @@ public class CommonProxy {
         event.registerServerCommand(new CommandBTSMilestone());
         event.registerServerCommand(new CommandBTSTree());
         event.registerServerCommand(new CommandBTSKerr());
+        event.registerServerCommand(new CommandBTSEye());
     }
 }

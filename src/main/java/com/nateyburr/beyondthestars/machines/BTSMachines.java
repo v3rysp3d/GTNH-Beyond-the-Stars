@@ -23,6 +23,8 @@ public final class BTSMachines {
     public static ItemStack siteBatchingPlant;
     // SINGULARITY LADDER P2 (Kerr unit): the Kerr Ergosphere Engine, base+14.
     public static ItemStack kerrEngine;
+    // SINGULARITY LADDER P3 (Eye unit): the Eye of Harmony, base+15.
+    public static ItemStack eyeOfHarmony;
 
     private BTSMachines() {}
 
@@ -110,5 +112,9 @@ public final class BTSMachines {
             base + 14,
             "multimachine.beyondthestars.kerrengine",
             "Kerr Ergosphere Engine").getStackForm(1);
+        eyeOfHarmony = new com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS(
+            base + 15,
+            "multimachine.beyondthestars.eyeofharmony",
+            "Eye of Harmony").getStackForm(1);
     }
 }

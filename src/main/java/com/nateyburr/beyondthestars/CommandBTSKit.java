@@ -45,7 +45,7 @@ public class CommandBTSKit extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btskit [siloTier 1-" + BTSBom.MAX_TIER + "] | /btskit kerr";
+        return "/btskit [siloTier 1-" + BTSBom.MAX_TIER + "] | /btskit kerr | /btskit eye";
     }
 
     @Override
@@ -100,6 +100,11 @@ public class CommandBTSKit extends CommandBase {
         // SINGULARITY LADDER P2 (Kerr unit): /btskit kerr - the Kerr's own kit, read from manifest.json.
         if (args.length > 0 && args[0].equalsIgnoreCase("kerr")) {
             com.nateyburr.beyondthestars.machines.kerr.KerrKit.giveKit(player);
+            return;
+        }
+        // SINGULARITY LADDER P3 (Eye unit): /btskit eye - the Eye's own kit, read from manifest.json.
+        if (args.length > 0 && args[0].equalsIgnoreCase("eye")) {
+            com.nateyburr.beyondthestars.machines.eye.EyeKit.giveKit(player);
             return;
         }
         final int tier = args.length > 0 ? Math.min(BTSBom.MAX_TIER, Math.max(1, parseInt(sender, args[0]))) : 1;

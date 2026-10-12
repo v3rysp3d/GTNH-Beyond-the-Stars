@@ -145,3 +145,16 @@ beyondthestars.structure.kerr.boltbus=The governor needs at least one input bus 
 beyondthestars.structure.kerr.modulecore=The module's core block is missing
 beyondthestars.structure.kerr.moduleinput=The module needs at least one input bus or input hatch
 beyondthestars.structure.kerr.moduleoutput=The module needs at least one output bus or output hatch
+
+# ---- SINGULARITY LADDER P3: Eye of Harmony (Eye unit; singularity-ladder-build.md §3.3) ----
+beyondthestars.recipe.eye=Eye of Harmony (Beyond the Stars)
+GT5U.gui.text.beyondthestars.eye.notarget=No target: put a Star Chart or a dimension display block in the controller slot
+GT5U.gui.text.beyondthestars.eye.tier1=The Eye is not formed
+GT5U.gui.text.beyondthestars.eye.tier2=This target is Eye T2: build the beam band
+GT5U.gui.text.beyondthestars.eye.tier3=This target is Eye T3: build the jet crescent
+GT5U.gui.text.beyondthestars.eye.tier4=This target is Eye T4: build the jet crescent and the spiral arms, and install a Galactic Upgrade Core
+GT5U.gui.text.beyondthestars.eye.inputs=Not enough fluid in the Eye's buffers for one run
+GT5U.gui.text.beyondthestars.eye.noowner=This Eye has no owner, so it has no wireless network to draw from
+GT5U.gui.text.beyondthestars.eye.noeu=Not enough EU in the owner's wireless network for this run
+beyondthestars.structure.eye.gas=The plinth needs at least one input hatch in a gas socket
+beyondthestars.structure.eye.output=The plinth needs an ME Output Bus and an ME Output Hatch
