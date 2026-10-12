@@ -20,7 +20,7 @@ import com.nateyburr.beyondthestars.machines.eye.EyeKit;
 import com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS;
 
 /**
- * /btseye [t1|t2|t3|t4] [gen 1-9] [fill] [force] - SINGULARITY LADDER P3 creative build: raises a
+ * /btseye [t1..t6] [gen 1-9] [fill] [force] - SINGULARITY LADDER P3 creative build: raises a
  * complete, formed Eye of Harmony (the core plus the bands for the asked tier, every hatch, the
  * Galactic core at T4, the tier's star chart in the controller slot) in front of the player, its
  * controller facing them. Owned by the Eye unit.
@@ -31,13 +31,15 @@ import com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS;
  * front of the controller, so the stand-off grows with the pieces built. The footprint is surveyed
  * first; more than 15% solid refuses to build without {@code force}.
  * <p>
- * <b>Console / command-block form:</b> {@code /btseye [t1..t4] <x> <y> <z> [north|south|east|west]
+ * <b>Console / command-block form:</b> {@code /btseye [t1..t6] <x> <y> <z> [north|south|east|west]
  * [gen 1-9] [fill] [force] [survival]} puts the controller at x y z ("~" is relative to a command
  * block) with its front facing the given way (default north), owned by a fixed test UUID; it loads
  * the footprint's chunks first and prints FORMED or NOT FORMED with the first wrong cells, the mirror
  * check and a re-projection check. {@code survival} builds through the hologram projector's survival
  * path instead of the creative one; {@code check} builds nothing and re-walks the Eye already standing
- * there (e.g. after a restart).
+ * there (e.g. after a restart). D-49 test bench: {@code legacy} leaves the Field/Sensor/rim sockets and
+ * the plinth input bus without hatches (a pre-D-49 Eye must still form); {@code nobeam} clears the beam
+ * band after the build (bands are cumulative: the Eye must drop to structural T1).
  * <p>
  * {@code /btseye gates} dumps the Spacetime Compression Field Generator recipes the server has and
  * checks the compression-gate rule against them ({@link SLGateDump}).
@@ -55,8 +57,8 @@ public class CommandBTSEye extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btseye [t1|t2|t3|t4] [gen 1-9] [fill] [force]  |  console: /btseye [t1..t4] <x> <y> <z> [facing] "
-            + "[gen 1-9] [fill] [force] [survival] | [check]  |  /btseye gates";
+        return "/btseye [t1..t6] [gen 1-9] [fill] [force]  |  console: /btseye [t1..t6] <x> <y> <z> [facing] "
+            + "[gen 1-9] [fill] [force] [survival] [legacy] [nobeam] | [check]  |  /btseye gates";
     }
 
     @Override
@@ -67,7 +69,7 @@ public class CommandBTSEye extends CommandBase {
     @SuppressWarnings("rawtypes")
     @Override
     public List addTabCompletionOptions(ICommandSender sender, String[] args) {
-        return getListOfStringsMatchingLastWord(args, "t1", "t2", "t3", "t4", "gen", "fill", "force");
+        return getListOfStringsMatchingLastWord(args, "t1", "t2", "t3", "t4", "t5", "t6", "gen", "fill", "force");
     }
 
     private static void tell(EntityPlayerMP player, String message) {
@@ -95,7 +97,7 @@ public class CommandBTSEye extends CommandBase {
         boolean force = false;
         for (int i = 0; i < args.length; i++) {
             final String arg = args[i].toLowerCase(java.util.Locale.ROOT);
-            if (arg.matches("t[1-4]")) tiers = arg.charAt(1) - '0';
+            if (arg.matches("t[1-6]")) tiers = arg.charAt(1) - '0';
             if (arg.equals("gen") && i + 1 < args.length) genMeta = parseIntBounded(sender, args[++i], 1, 9) - 1;
             if (arg.equals("fill")) fill = true;
             if (arg.equals("force") || arg.equals("-f")) force = true;
@@ -187,10 +189,12 @@ public class CommandBTSEye extends CommandBase {
         boolean force = false;
         boolean survival = false;
         boolean check = false;
+        boolean legacy = false;
+        boolean nobeam = false;
         for (int i = 0; i < args.length; i++) {
             if (at.used[i]) continue;
             final String arg = args[i].toLowerCase(java.util.Locale.ROOT);
-            if (arg.matches("t[1-4]")) tiers = arg.charAt(1) - '0';
+            if (arg.matches("t[1-6]")) tiers = arg.charAt(1) - '0';
             if (arg.equals("gen") && i + 1 < args.length && !at.used[i + 1]) {
                 genMeta = parseIntBounded(sender, args[++i], 1, 9) - 1;
             }
@@ -198,6 +202,8 @@ public class CommandBTSEye extends CommandBase {
             if (arg.equals("force") || arg.equals("-f")) force = true;
             if (arg.equals("survival")) survival = true;
             if (arg.equals("check")) check = true;
+            if (arg.equals("legacy")) legacy = true;
+            if (arg.equals("nobeam")) nobeam = true;
         }
         final ExtendedFacing alignment = ExtendedFacing.of(at.facing);
         final String[] pieces = java.util.Arrays.copyOf(MTEEyeOfHarmonyBTS.PIECES, tiers);
@@ -229,8 +235,19 @@ public class CommandBTSEye extends CommandBase {
             }
         }
         final long start = System.nanoTime();
-        final EyeKit.Result result = EyeKit
-            .build(world, at.x, at.y, at.z, at.facing, tiers, genMeta, fill, CONSOLE_OWNER, "BTS console", survival);
+        final EyeKit.Result result = EyeKit.build(
+            world,
+            at.x,
+            at.y,
+            at.z,
+            at.facing,
+            tiers,
+            genMeta,
+            fill,
+            CONSOLE_OWNER,
+            "BTS console",
+            survival,
+            legacy);
         if (result.failure != null) {
             SLConsoleTest.tell(sender, label + ": BUILD FAILED - " + result.failure);
             return;
@@ -264,6 +281,13 @@ public class CommandBTSEye extends CommandBase {
         }
         for (String line : EyeKit.diagnose(world, at.x, at.y, at.z, at.facing, tiers, true)) {
             SLConsoleTest.tell(sender, line);
+        }
+        if (nobeam && tiers >= 2) {
+            final int cleared = EyeKit.stripPiece(world, at.x, at.y, at.z, MTEEyeOfHarmonyBTS.PIECE_BEAM);
+            SLConsoleTest.tell(sender, "nobeam: cleared " + cleared + " beam band cells; re-walk:");
+            for (String line : EyeKit.diagnose(world, at.x, at.y, at.z, at.facing, tiers, false)) {
+                SLConsoleTest.tell(sender, line);
+            }
         }
     }
 

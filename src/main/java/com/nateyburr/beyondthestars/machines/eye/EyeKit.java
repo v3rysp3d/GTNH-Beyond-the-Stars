@@ -86,7 +86,8 @@ public final class EyeKit {
         giveMany(
             player,
             ItemList.Hatch_Input_MAX.get(1L),
-            sockets(MTEEyeOfHarmonyBTS.PIECE_BEAM, 's') + sockets(MTEEyeOfHarmonyBTS.PIECE_JET, 't'));
+            sockets(MTEEyeOfHarmonyBTS.PIECE_BEAM, 's') + sockets(MTEEyeOfHarmonyBTS.PIECE_JET, 't')
+                + sockets(MTEEyeOfHarmonyBTS.PIECE_RIM, 'g'));
         give(player, ItemList.Hatch_Output_Bus_ME.get(1L));
         give(player, ItemList.Hatch_Output_ME.get(1L));
         give(player, ItemList.Hatch_AutoMaintenance.get(1L));
@@ -117,8 +118,9 @@ public final class EyeKit {
         }
         tell(
             player,
-            EnumChatFormatting.GREEN + "Fastest look: /btseye t1..t4 [gen 1-9] [fill] raises a complete, formed Eye "
-                + "in front of you. Or a hologram projector on the controller: stack 1..4 = T1..T4.");
+            EnumChatFormatting.GREEN + "Fastest look: /btseye t1..t6 [gen 1-9] [fill] raises a complete, formed Eye "
+                + "in front of you. Or a hologram projector on the controller: stack 1..6 = T1..T6 (bands are "
+                + "cumulative).");
     }
 
     /** A Neutronium Large Fluid Cell filled to capacity with {@code fluid}, or null. */
@@ -220,8 +222,10 @@ public final class EyeKit {
 
     /**
      * Raises a complete Eye with its controller at (x, y, z) facing {@code facing}: the core and the
-     * first {@code tiers - 1} bands, the field generators at {@code genMeta} (0-8), a hatch in every
-     * socket, the Galactic core at T4, the top tier's star chart in the controller slot, the player as
+     * first {@code tiers - 1} bands (1..6), the field generators at {@code genMeta} (0-8), a hatch in every
+     * socket (D-49: the last plinth gas socket takes an input bus for the ignition charges, every Field
+     * socket a plain input hatch, every Sensor socket a Stellar Field Sensor Hatch, the T6 rim's sockets
+     * input hatches), the Galactic core at T4+, the top tier's star chart in the controller slot, the player as
      * owner; with {@code fill}, full input buffers and 10^18 wireless EU. Then forms it. Server only.
      */
     public static Result build(World world, int x, int y, int z, ForgeDirection facing, int tiers, int genMeta,
@@ -248,6 +252,16 @@ public final class EyeKit {
      */
     public static Result build(World world, int x, int y, int z, ForgeDirection facing, int tiers, int genMeta,
         boolean fill, UUID owner, String ownerName, boolean survival) {
+        return build(world, x, y, z, facing, tiers, genMeta, fill, owner, ownerName, survival, false);
+    }
+
+    /**
+     * As above; with {@code legacy} the D-49 sockets get no hatch (no Field, Sensor or rim hatch, and
+     * no input bus on the plinth), so their cells keep the casing a pre-D-49 Eye had there: the
+     * migration check that an Eye built before the Field/Sensor sockets still forms.
+     */
+    public static Result build(World world, int x, int y, int z, ForgeDirection facing, int tiers, int genMeta,
+        boolean fill, UUID owner, String ownerName, boolean survival, boolean legacy) {
         final Result result = new Result();
         final ItemStack controller = BTSMachines.eyeOfHarmony;
         if (controller == null) {
@@ -269,7 +283,7 @@ public final class EyeKit {
         base.setOwnerUuid(owner);
         base.setOwnerName(ownerName);
 
-        // 1. Every block: the stack size picks how many bands (1 = core .. 4 = + arms).
+        // 1. Every block: the stack size picks how many bands (1 = core .. 6 = + galactic rim).
         final ItemStack trigger = new ItemStack(controller.getItem(), tiers, controller.getItemDamage());
         if (survival) {
             final SLConsoleTest.SurvivalRun run = SLConsoleTest
@@ -292,8 +306,20 @@ public final class EyeKit {
 
         // 3. A hatch in every socket.
         int fitted = 0;
-        for (int[] rel : socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'h')) {
-            if (fit(world, alignment, x, y, z, rel, ItemList.Hatch_Input_MAX)) fitted++;
+        final int[][] gas = socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'h');
+        for (int i = 0; i < gas.length; i++) {
+            // D-49 R-1: the last gas socket takes an input bus (the ignition charges); the rest gas hatches
+            final ItemList hatch = !legacy && i == gas.length - 1 && gas.length > 1 ? ItemList.Hatch_Input_Bus_MAX
+                : ItemList.Hatch_Input_MAX;
+            if (fit(world, alignment, x, y, z, gas[i], hatch)) fitted++;
+        }
+        if (!legacy) {
+            for (int[] rel : socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'f')) {
+                if (fit(world, alignment, x, y, z, rel, ItemList.Hatch_Input_MAX)) fitted++;
+            }
+            for (int[] rel : socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'n')) {
+                if (fitStack(world, alignment, x, y, z, rel, BTSMachines.stellarFieldSensor)) fitted++;
+            }
         }
         final ItemList[] outputs = { ItemList.Hatch_Output_Bus_ME, ItemList.Hatch_Output_ME };
         final int[][] o = socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'o');
@@ -313,11 +339,18 @@ public final class EyeKit {
                 if (fit(world, alignment, x, y, z, rel, ItemList.Hatch_Input_MAX)) fitted++;
             }
         }
+        if (tiers >= 6 && !legacy) {
+            for (int[] rel : socketRels(MTEEyeOfHarmonyBTS.PIECE_RIM, 'g')) {
+                if (fit(world, alignment, x, y, z, rel, ItemList.Hatch_Input_MAX)) fitted++;
+            }
+        }
 
         // 4. Upgrade, target, owner's power, then form.
         if (tiers >= 4) eye.completeGalacticUpgrade();
+        // TODO(D-49 unit 4): T4 becomes Star Chart: Neutron Star once the star runtime lands; until then Sirius B
+        // is still the T4 white-dwarf run, and T5/T6 have no star of their own yet.
         final Item[] charts = { SLItems.starChartSol, SLItems.starChartSiriusA, SLItems.starChartArcturus,
-            SLItems.starChartSiriusB };
+            SLItems.starChartSiriusB, SLItems.starChartSiriusB, SLItems.starChartMagnetar };
         final Item chart = charts[Math.max(0, Math.min(charts.length, tiers) - 1)];
         if (chart != null) base.setInventorySlotContents(eye.getControllerSlotIndex(), new ItemStack(chart, 1, 0));
         if (fill) {
@@ -423,6 +456,38 @@ public final class EyeKit {
         return out;
     }
 
+    /**
+     * Test bench: clears every block of one band of the Eye at (x, y, z) to air, hatches included, then
+     * re-walks it; returns the number of cells cleared. Used to show the D-49 cumulative rule (an Eye
+     * whose beam band is gone runs as T1 even with its jet crescent standing).
+     */
+    public static int stripPiece(World world, int x, int y, int z, String piece) {
+        final TileEntity te = world.getTileEntity(x, y, z);
+        if (!(te instanceof IGregTechTileEntity)
+            || !(((IGregTechTileEntity) te).getMetaTileEntity() instanceof MTEEyeOfHarmonyBTS)) {
+            return 0;
+        }
+        final IGregTechTileEntity base = (IGregTechTileEntity) te;
+        final MTEEyeOfHarmonyBTS eye = (MTEEyeOfHarmonyBTS) base.getMetaTileEntity();
+        final ExtendedFacing alignment = eye.getExtendedFacing();
+        final String[][] shape = BTSShapes.load(piece);
+        final int[] off = BTSShapes.offset(piece);
+        int n = 0;
+        for (int c = 0; c < shape.length; c++) {
+            for (int b = 0; b < shape[c].length; b++) {
+                final String row = shape[c][b];
+                for (int a = 0; a < row.length(); a++) {
+                    if (row.charAt(a) == ' ') continue;
+                    final int[] p = worldPos(alignment, x, y, z, new int[] { a - off[0], b - off[1], c - off[2] });
+                    world.setBlockToAir(p[0], p[1], p[2]);
+                    n++;
+                }
+            }
+        }
+        eye.checkStructure(true, base);
+        return n;
+    }
+
     /** The socket of {@code ch} with the largest a (the mockup's +x side): what stands there, which side. */
     private static String probe(World world, ExtendedFacing alignment, ForgeDirection facing, int x, int y, int z,
         String label, String piece, char ch) {
@@ -509,7 +574,12 @@ public final class EyeKit {
     /** Places the hatch {@code item} at the socket, facing away from the Eye's centre. */
     private static boolean fit(World world, ExtendedFacing alignment, int x, int y, int z, int[] rel, ItemList item) {
         if (item == null || !item.hasBeenSet()) return false;
-        final ItemStack stack = item.get(1L);
+        return fitStack(world, alignment, x, y, z, rel, item.get(1L));
+    }
+
+    /** Places the GT machine {@code stack} (a hatch's item) at the socket, facing away from the Eye's centre. */
+    private static boolean fitStack(World world, ExtendedFacing alignment, int x, int y, int z, int[] rel,
+        ItemStack stack) {
         if (stack == null) return false;
         final int[] p = worldPos(alignment, x, y, z, rel);
         return MTEReactorCoreMk1.placeGtMachine(
