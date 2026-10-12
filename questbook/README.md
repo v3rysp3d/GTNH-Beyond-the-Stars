@@ -277,6 +277,75 @@ of in the mod jar keeps the whole questbook self-contained, so a diagram change 
 rebuild — but a **resource reload (F3+T) or a restart** is needed after adding the folder for
 the first time, because the domain list is rebuilt on reload.
 
+## The Singularity Ladder chapters (`tools/gen-singularity.js`)
+
+The ladder's part of the book (design: `docs/questbook-integration.md`) is data, not code:
+
+| | |
+| --- | --- |
+| **Source** | `questbook/singularity.json`: every chapter, quest, text and pack edit. ASCII-only: `{6}{l}{r}` are section-sign codes, `{times}` `{theta}` `{u+XXXX}` are glyphs, `{bom:eye_beam:R}` / `{bomdims:kerr_t1}` are read from `structures/manifest.json`, a text line `@name` pastes `texts.name`. |
+| **Ids** | Explicit `low`s, never positional. `questbook/id-ledger.txt` is append-only: the generator appends new ids and throws if a shipped id disappears or changes meaning (its `key`). |
+| **Registry** | Our items, fluids and MTEs are checked against the Java of the source tree. Anything the RC-2 pack itself uses is accepted. Everything else must be in `questbook/registry.json` with where it was read (`status: verify` = derived, to confirm with `/btsquests verify`). |
+| **Generator** | `tools/gen-singularity.js` (node). It runs as the LAST step of `gen-questbook.ps1`, so `gen-bom.ps1` is still the one build command. |
+
+**Outputs** (all generated; never hand-edit):
+
+1. `questbook/DefaultQuests/`: our chapters `Tier13UXV-*`, `Tier14MAX-*`, `TheEndgame-*`; our quests
+   ADDED to the pack's `Tier11UIV-*` and `Tier12UMV-*` folders (pinned file stems, file-merged); and
+   `OrderLines.txt` (replaces `OrderLine.txt`). This is an **edits-off world**: the pack exactly as
+   the pack ships it, plus our content, plus the two fallback quests (48103 KEE, 48109 Eye). Our
+   UMV quests sit `offShift` lower here so they clear the pack's unedited right half.
+2. `src/main/resources/assets/beyondthestars/questbook/overlay.json`: the bundle the jar carries.
+   Every chapter and quest of ours (the plant chapter too, read back from the files
+   `gen-questbook.ps1` just wrote) in BetterQuesting's typed-key JSON, the grafts with both
+   positions (`on` = pack edits applied, `off`), and the 62 compiled pack edits (variants resolved
+   against `features`; ops: `setName setDesc setIcon replaceText appendText setTasks setRewards
+   swapItem setPrereqs addPrereq removePrereq replacePrereq move`, ids as base64). `bundleVersion`
+   is the SHA-1 of the content. `BQBridge` (unit Q3) applies it to a live world.
+3. `src/main/java/com/nateyburr/beyondthestars/BTSQuestIds.java`: every line and quest id we own,
+   per chapter, plus fallbacks, placeholders and edit ids. Run `gradlew spotlessApply` after.
+4. `questbook/id-ledger.txt` (appended), and `questbook/pack-drift.txt` only when the pack drifted.
+
+**Source tree.** Until `kerr-redesign` is merged into this branch, its Kerr module controllers
+(28117/28118) exist only in the integration tree, so run the build with
+
+    $env:BTS_QB_SRC = '../GTNH-Addons/addon'; powershell -NoProfile -ExecutionPolicy Bypass -File gen-bom.ps1
+
+(`BTS_QB_PACK` points at another pack's `DefaultQuests`; default: the RC-2 instance). Without it
+the run fails and says so. On its own: `node tools/gen-singularity.js [--src DIR] [--pack DIR]
+[--check] [--selftest] [--svg DIR] [--feature name=true] [--verbose]`.
+
+**What fails the build** (all errors are collected and printed together, naming the offender):
+
+- an id outside its chapter's range, a duplicate id, a ledger change, a quest without tasks or icon;
+- an item, fluid or ore that is neither ours (in the Java), nor used by the pack, nor in `registry.json`;
+  a stack count below 1; an unknown `{token}` or `@text`;
+- a `bomItems` row whose manifest block no longer matches (`expect`), or a role with no row;
+- a placeholder whose features are now built but still has a `tbd` task;
+- **pack drift**: an edited quest missing, renamed (`expectName`), out of its `expectChapter`, a
+  `replaceText` whose text is gone, a prerequisite or swapped item that is not there;
+- **a prerequisite cycle** through our content or edits (only AND quests are followed). The spec's
+  layout had one: T8: Tipler kept its pack prerequisites MHDCSM and Resplendent, which now sit
+  behind Eye T10, which sits behind Eye T8, which needs T8: Tipler. E24 now gates Tipler on
+  T7: Perfect, like T5 to T7;
+- **tidiness**, checked on three layouts (pack edits on with today's features, the same once every
+  planned feature ships, and edits off): two icons overlapping, a quest of ours or a moved pack
+  quest off the 12-unit grid, and a normal prerequisite line passing within 3 units of a third
+  icon (BetterQuesting draws lines 4 to 8 wide). In the pack's chapters a crossing the pack already
+  draws is never ours; we may never ADD one. Hover-only (implicit, type 1) lines and the edits-off
+  layout only warn (`--verbose` lists them).
+
+`--selftest` breaks the data on purpose (overlap, crossing, drifted name, unknown item and fluid,
+duplicate id, range, grid, missing prerequisite, stale replaceText, ledger change and loss, cycle,
+`tbd` shipping, a manifest role change) and fails unless every assertion fires and the real data
+builds clean. `--svg DIR` draws every chapter in every layout (ours blue, moved pack quests gold,
+crossings red) for eyeballing before a client screenshot.
+
+**Placeholders.** A quest whose `needs` features are not all `true` ships as one checkbox,
+`countAsQuest 0`, no rewards, a grey name ending `(planned)`, and the standard planned note; its
+real `tasks` stay in the data. The unit that ships a feature flips its flag; the next build
+emits the real tasks under the same id (and the bridge clears a ticked box, spec §4.6).
+
 ## The IDs (verified against the merged instance)
 
 | what | id (high/low) | base64 file suffix |
@@ -343,6 +412,10 @@ pack's folder is file-MERGED and never emptied, so a stem that drifted would lea
 Our own line (`BeyondTheStars-*`) may be clean-replaced — delete the instance folder
 first, then copy, so renamed quests leave no stale files behind.
 
+The same holds for the ladder's three chapters of ours (`Tier13UXV-*`, `Tier14MAX-*`,
+`TheEndgame-*`): clean-replace. The pack lines we graft into (`HowtoGeneratePow-*`,
+`Tier11UIV-*`, `Tier12UMV-*`) are file-merged only.
+
 The pack line (`HowtoGeneratePow-*`) must be **file-merged only**: copy our
 `UnitOne-*.json` into the existing folders and touch nothing else. Deleting that folder
 destroys the pack's own power chapter in `DefaultQuests` (worlds keep their own copy in
@@ -354,21 +427,23 @@ For reference, a healthy 2.9.0-beta-1 `HowtoGeneratePow-…` holds **169** place
 
 ## Merge into an instance
 
-1. DELETE any existing `BeyondTheStars-*` folders under the instance's
-   `DefaultQuests/QuestLines/` and `DefaultQuests/Quests/` first — renamed quests
-   leave stale files behind.
-2. Copy `DefaultQuests/QuestLines/BeyondTheStars-*` into
+1. DELETE any existing `BeyondTheStars-*`, `Tier13UXV-*`, `Tier14MAX-*` and `TheEndgame-*`
+   folders under the instance's `DefaultQuests/QuestLines/` and `DefaultQuests/Quests/`
+   first — renamed quests leave stale files behind.
+2. Copy those four chapter folders from `DefaultQuests/QuestLines/` into
    `<instance>/.minecraft/config/betterquesting/DefaultQuests/QuestLines/`
-3. Copy `DefaultQuests/Quests/BeyondTheStars-*` into
+3. Copy the same four from `DefaultQuests/Quests/` into
    `<instance>/.minecraft/config/betterquesting/DefaultQuests/Quests/`
-4. Copy the files from `DefaultQuests/QuestLines/HowtoGeneratePow-*/` and
-   `DefaultQuests/Quests/HowtoGeneratePow-*/` INTO the instance's matching pack
-   folders (they only add `UnitOne-*.json`; nothing is overwritten).
+4. Copy the FILES from `DefaultQuests/QuestLines/HowtoGeneratePow-*/`, `Tier11UIV-*/` and
+   `Tier12UMV-*/` (and the same three under `Quests/`) INTO the instance's matching pack
+   folders. They only add our `190/…` files; nothing is overwritten. Never delete those
+   pack folders.
 5. Copy `resources/btsquests/` into
    `<instance>/.minecraft/config/betterquesting/resources/` — this is the quest diagrams.
-6. Append the line from `DefaultQuests/OrderLine.txt` to
-   `<instance>/.minecraft/config/betterquesting/DefaultQuests/QuestLinesOrder.txt`
-   (skip if already present).
+6. Edit `<instance>/.minecraft/config/betterquesting/DefaultQuests/QuestLinesOrder.txt` as
+   `DefaultQuests/OrderLines.txt` says: the three ladder lines go directly after the pack's
+   `Tier 12 - UMV` line, the plant line at the very end (skip any already present). It
+   replaced `OrderLine.txt`.
 7. New worlds pick it up automatically. For an EXISTING world, load it and run
    `/btsquests install` (op) — see the top of this file. `/bq_admin default load` is the
    heavier vanilla fallback.

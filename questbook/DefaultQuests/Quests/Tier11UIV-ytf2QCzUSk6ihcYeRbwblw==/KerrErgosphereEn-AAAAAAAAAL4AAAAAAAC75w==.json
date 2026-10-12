@@ -1,0 +1,191 @@
+{
+  "preRequisites:9": {
+    "0:10": {
+      "questIDHigh:4": -1663909569982545142,
+      "questIDLow:4": -4646567102207181371
+    }
+  },
+  "properties:10": {
+    "betterquesting:10": {
+      "autoClaim:1": 0,
+      "completion_animation:8": "default",
+      "completion_particle:8": "default",
+      "confetti_icon:10": {
+        "Count:3": 0,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "minecraft:stick"
+      },
+      "countAsQuest:1": 1,
+      "desc:8": "As the materials around you achieve transcendental properties, pistons and gases stop being enough. The answer is gravity: a black hole, held in a cage of mirrors and coils, spinning fast enough that its ergosphere can be put to work.\n\nThe §bKerr Ergosphere Engine§r (KEE) holds the hole and nothing else. It runs no recipes. The machines that use the hole are the §bKerr modules§r: separate machines standing in the cage's arcs (next quests).\n\n§e§lBUILD§r\nHologram Projector stack 1 projects Kerr T1, 76 × 65 × 71. Chunk-load all of it. It is the Black Hole Compressor's own casings (Extreme Density Space-Bending Casing, Background Radiation Absorbent Casing, Hawking Radiation Realignment Focus, Naquadah Alloy frames) plus Superradiant Mirrors, Mirror Backing, Ergosphere Field Coils, Beam Focusing Quadrupoles, Beam Dumps, Harmonic Lining and Bolt Injector Rails. The optional task is the full bill.\nHatches: 1 laser or up to 2 energy hatches in the governor arc, and up to 8 §bbolt buses§r (plain input buses) on the cage. No maintenance hatch. Markers 7 and 8 in the hologram show where the module controllers go.\n\n§e§lRUN§r Open the GUI.\n1. A §bBlack Hole Seed§r (in a bolt bus, or the Open button) opens the hole at §b8 SM§r.\n2. The hole bleeds mass as Hawking radiation: §b3.2 / M² SM a tick§r. Small holes die fast.\n3. The §bgovernor§r fires bolts from the bolt buses to hold your §bsetpoint (2-64 SM at T1)§r:\n- Neutronium 1/64 SM, Cosmic Neutronium 1/32, Infinity 1/16, Transcendent Metal 1/8, SpaceTime 1/4 SM per bolt;\n- at most 4 / 8 / 16 bolts a tick, set by the §blowest§r rail (Mk I / II / III).\n4. While open, the hole draws §b8,388,608 EU/t (1 A UEV)§r of containment. Without power or bolts it bleeds, and below 2 SM it evaporates.\n5. A §bBlack Hole Collapser§r closes it safely (the Collapse button, or in a bolt bus with Auto on).\n\n[note]A bigger hole gives the modules more parallels; a smaller one makes them faster. The GUI shows mass, setpoint, bolt stock, stability and every linked module. NEI's Multiblock tab and the controller tooltip have the rest.[/note]\n\n§a§lDONE WHEN§r you hold the controller (HOLD → CLAIM → INSTALL: claim before you place it).\n\n[note]The Black Hole Compressor quest is left as the pack wrote it, because pack edits are turned off (questbookPackEdits in config/beyondthestars.cfg).[/note]",
+      "globalShare:1": 0,
+      "icon:10": {
+        "Count:3": 1,
+        "Damage:2": 28114,
+        "OreDict:8": "",
+        "id:8": "gregtech:gt.blockmachines"
+      },
+      "isMain:1": 0,
+      "isSilent:1": 0,
+      "lockedProgress:1": 0,
+      "name:8": "§9§l§nKerr Ergosphere Engine",
+      "notification_duration:5": -1.0,
+      "notification_effect:3": -1,
+      "notification_fade_in:5": -1.0,
+      "notification_fade_out:5": -1.0,
+      "notification_icon_offset_y:3": -2147483648,
+      "notification_icon_scale:5": -1.0,
+      "notification_pos_x:3": -2147483648,
+      "notification_pos_y:3": -2147483648,
+      "notification_show_icon:8": "default",
+      "notification_style:8": "default",
+      "notification_subtitle:8": "",
+      "notification_subtitle_scale:5": -1.0,
+      "notification_title:8": "",
+      "notification_title_scale:5": -1.0,
+      "particle_count:3": -1,
+      "questLogic:8": "AND",
+      "repeatTime:3": -1,
+      "repeat_relative:1": 1,
+      "simultaneous:1": 0,
+      "snd_complete:8": "random.levelup",
+      "snd_update:8": "random.levelup",
+      "taskLogic:8": "AND",
+      "visibility:8": "NORMAL"
+    }
+  },
+  "questIDHigh:4": 190,
+  "questIDLow:4": 48103,
+  "rewards:9": {
+    "0:10": {
+      "ignoreDisabled:1": 0,
+      "index:3": 0,
+      "rewardID:8": "bq_standard:item",
+      "rewards:9": {
+        "0:10": {
+          "Count:3": 1,
+          "Damage:2": 32418,
+          "OreDict:8": "",
+          "id:8": "gregtech:gt.metaitem.01"
+        }
+      }
+    },
+    "1:10": {
+      "ignoreDisabled:1": 0,
+      "index:3": 1,
+      "rewardID:8": "bq_standard:item",
+      "rewards:9": {
+        "0:10": {
+          "Count:3": 1,
+          "Damage:2": 32419,
+          "OreDict:8": "",
+          "id:8": "gregtech:gt.metaitem.01"
+        }
+      }
+    }
+  },
+  "tasks:9": {
+    "0:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
+      "index:3": 0,
+      "partialMatch:1": 1,
+      "requireOnlyOneItem:1": 0,
+      "requiredItems:9": {
+        "0:10": {
+          "Count:3": 1,
+          "Damage:2": 28114,
+          "OreDict:8": "",
+          "id:8": "gregtech:gt.blockmachines"
+        }
+      },
+      "taskID:8": "bq_standard:retrieval"
+    },
+    "1:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
+      "index:3": 1,
+      "partialMatch:1": 1,
+      "requireOnlyOneItem:1": 0,
+      "requiredItems:9": {
+        "0:10": {
+          "Count:3": 3551,
+          "Damage:2": 2,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:slCasing"
+        },
+        "1:10": {
+          "Count:3": 3186,
+          "Damage:2": 325,
+          "OreDict:8": "",
+          "id:8": "gregtech:gt.blockframes"
+        },
+        "2:10": {
+          "Count:3": 2852,
+          "Damage:2": 1,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:slCasing"
+        },
+        "3:10": {
+          "Count:3": 2603,
+          "Damage:2": 11,
+          "OreDict:8": "",
+          "id:8": "gregtech:gt.blockcasings10"
+        },
+        "4:10": {
+          "Count:3": 842,
+          "Damage:2": 6,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:slCasing"
+        },
+        "5:10": {
+          "Count:3": 232,
+          "Damage:2": 3,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:slCasing"
+        },
+        "6:10": {
+          "Count:3": 208,
+          "Damage:2": 7,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:slCasing"
+        },
+        "7:10": {
+          "Count:3": 160,
+          "Damage:2": 8,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:slCasing"
+        },
+        "8:10": {
+          "Count:3": 131,
+          "Damage:2": 2,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:slCasing2"
+        },
+        "9:10": {
+          "Count:3": 95,
+          "Damage:2": 4,
+          "OreDict:8": "",
+          "id:8": "gregtech:gt.blockglass1"
+        },
+        "10:10": {
+          "Count:3": 20,
+          "Damage:2": 14,
+          "OreDict:8": "",
+          "id:8": "gregtech:gt.blockcasings9"
+        },
+        "11:10": {
+          "Count:3": 1,
+          "Damage:2": 32418,
+          "OreDict:8": "",
+          "id:8": "gregtech:gt.metaitem.01"
+        }
+      },
+      "taskID:8": "bq_standard:optional_retrieval"
+    }
+  }
+}

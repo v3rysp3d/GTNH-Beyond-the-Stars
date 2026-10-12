@@ -1,0 +1,134 @@
+{
+  "preRequisites:9": {
+    "0:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48114
+    },
+    "1:10": {
+      "questIDHigh:4": 2164252746895999296,
+      "questIDLow:4": -6582154093958034319
+    }
+  },
+  "properties:10": {
+    "betterquesting:10": {
+      "autoClaim:1": 0,
+      "completion_animation:8": "default",
+      "completion_particle:8": "default",
+      "confetti_icon:10": {
+        "Count:3": 0,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "minecraft:stick"
+      },
+      "countAsQuest:1": 1,
+      "desc:8": "A red giant: a helium core inside a hydrogen shell. It brings a second gauge, §bΘ (core heat)§r, which runs away on its own.\n\n§e§lUNLOCK§r The milestones are §b1,000,000 L ESPM§r and §b3 h Resonant§r on Sirius A. Then:\n- put the §bShell-Burning Core§r in escrow;\n- build the §bjet crescent§r (stack 3: 2,750 Jet Crescent Casing; the beam band must stand too);\n- bring compression to 3 and buffer §b250,000 L ESPM§r;\n- swap in §bStar Chart: Arcturus§r.\n§bShell Ignition§r (10 min): Θ appears and ramps up, and the event ends in one forced helium flash.\n\n§e§lRUN§r Arcturus takes §b12,500,000 L H + 12,500,000 L He + 1,250 L ESPM§r a cycle and makes §b625 L Raw Hyperdense Stellar Plasma§r.\n\n§e§lTRIMS§r\n- Helium: P −1, Θ +3.\n- Hydrogen: P +3, Θ +0.5.\n- Super Coolant (100 L): P −1, Θ −3.\nTo pull P down without heating the core, dose Helium §land§r coolant together.\n\n§e§lHELIUM FLASHES§r Every 20-40 minutes a flash adds §bΘ +30 a second for 3 s§r. The sensor's event channel warns §b15 s ahead§r. Pre-cool on the warning and you stay Stable.\n\n[note]The T4 milestones: §l400,000 L RHSP§r, §l4 h Resonant§r, and §l3 flashes ridden§r without leaving Stable.[/note]\n\n§a§lDONE WHEN§r you hold the core and the chart (HOLD → CLAIM → INSTALL: claim before the core goes into escrow).",
+      "globalShare:1": 0,
+      "icon:10": {
+        "Count:3": 1,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "beyondthestars:starChartArcturus"
+      },
+      "isMain:1": 1,
+      "isSilent:1": 0,
+      "lockedProgress:1": 0,
+      "name:8": "§c§l§nEye T3: Arcturus",
+      "notification_duration:5": -1.0,
+      "notification_effect:3": -1,
+      "notification_fade_in:5": -1.0,
+      "notification_fade_out:5": -1.0,
+      "notification_icon_offset_y:3": -2147483648,
+      "notification_icon_scale:5": -1.0,
+      "notification_pos_x:3": -2147483648,
+      "notification_pos_y:3": -2147483648,
+      "notification_show_icon:8": "default",
+      "notification_style:8": "default",
+      "notification_subtitle:8": "",
+      "notification_subtitle_scale:5": -1.0,
+      "notification_title:8": "",
+      "notification_title_scale:5": -1.0,
+      "particle_count:3": -1,
+      "questLogic:8": "AND",
+      "repeatTime:3": -1,
+      "repeat_relative:1": 1,
+      "simultaneous:1": 0,
+      "snd_complete:8": "random.levelup",
+      "snd_update:8": "random.levelup",
+      "taskLogic:8": "AND",
+      "visibility:8": "NORMAL"
+    }
+  },
+  "questIDHigh:4": 190,
+  "questIDLow:4": 48115,
+  "rewards:9": {},
+  "tasks:9": {
+    "0:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
+      "index:3": 0,
+      "partialMatch:1": 1,
+      "requireOnlyOneItem:1": 0,
+      "requiredItems:9": {
+        "0:10": {
+          "Count:3": 1,
+          "Damage:2": 0,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:shellBurningCore"
+        },
+        "1:10": {
+          "Count:3": 1,
+          "Damage:2": 0,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:starChartArcturus"
+        }
+      },
+      "taskID:8": "bq_standard:retrieval"
+    },
+    "1:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
+      "index:3": 1,
+      "requiredFluids:9": {
+        "0:10": {
+          "Amount:3": 1000,
+          "FluidName:8": "btsrawhyperdenseplasma"
+        }
+      },
+      "taskID:8": "bq_standard:fluid"
+    },
+    "2:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
+      "index:3": 2,
+      "partialMatch:1": 1,
+      "requireOnlyOneItem:1": 0,
+      "requiredItems:9": {
+        "0:10": {
+          "Count:3": 2750,
+          "Damage:2": 11,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:slCasing"
+        },
+        "1:10": {
+          "Count:3": 908,
+          "Damage:2": 12,
+          "OreDict:8": "",
+          "id:8": "tectech:gt.blockcasingsBA0"
+        },
+        "2:10": {
+          "Count:3": 321,
+          "Damage:2": 0,
+          "OreDict:8": "",
+          "id:8": "tectech:tile.quantumGlass"
+        }
+      },
+      "taskID:8": "bq_standard:optional_retrieval"
+    }
+  }
+}

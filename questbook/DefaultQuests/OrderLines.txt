@@ -1,0 +1,8 @@
+# Beyond the Stars: where our chapters go in QuestLinesOrder.txt (README merge step 6).
+# Insert these three lines directly AFTER the pack's "Tier 12 - UMV" line (l37V2WvbSHGZQ5oMgAfBuw==),
+# in this order; if that line is missing, append them at the end.
+AAAAAAAAAL4AAAAAAAC7dw==: Tier 13 - UXV
+AAAAAAAAAL4AAAAAAAC7eA==: Tier 14 - MAX
+AAAAAAAAAL4AAAAAAAC7eQ==: The Endgame
+# Append this line at the very END of the file (the plant chapter stays parked last).
+AAAAAAAAAL4AAAAAAAC7dg==: Beyond the Stars
