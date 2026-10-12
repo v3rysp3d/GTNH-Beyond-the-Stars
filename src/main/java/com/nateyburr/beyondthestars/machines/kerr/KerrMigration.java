@@ -96,6 +96,23 @@ public final class KerrMigration {
         return summary;
     }
 
+    /** True once every slot's legacy core cell and controller cell is in a loaded chunk. */
+    static boolean cellsLoaded(MTEKerrEngine kee) {
+        final IGregTechTileEntity base = kee.getBaseMetaTileEntity();
+        if (base == null || base.getWorld() == null) return false;
+        final World world = base.getWorld();
+        final ExtendedFacing facing = kee.getExtendedFacing();
+        for (KerrSlot slot : KerrSlot.VALUES) {
+            final int[] core = KerrSlot
+                .worldPos(facing, base.getXCoord(), base.getYCoord(), base.getZCoord(), slot.legacyCoreRel());
+            final int[] ctrl = slot.modulePos(facing, base.getXCoord(), base.getYCoord(), base.getZCoord());
+            if (!world.blockExists(core[0], core[1], core[2]) || !world.blockExists(ctrl[0], ctrl[1], ctrl[2])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /** The old KEE's in-flight outputs go to the module they were made on (else drop at the KEE). */
     private static String handOffLegacyRecipe(MTEKerrEngine kee, World world, ExtendedFacing facing, int x, int y,
         int z) {

@@ -511,7 +511,12 @@ public final class KerrKit {
                 module.setOwnerName("BTS console");
                 module.setOwnerUuid(UUID.nameUUIDFromBytes("BTS console test".getBytes()));
             }
-            world.setBlockToAir(ctrl[0], ctrl[1], ctrl[2]);
+            try {
+                world.setBlockToAir(ctrl[0], ctrl[1], ctrl[2]);
+            } catch (RuntimeException ownerless) {
+                // GT's power-fail tracker can still throw for a console-placed machine; the cell is air by then.
+                out.add(slot.label + ": GT threw while removing the controller (" + ownerless + "); continuing");
+            }
             slot.placeLegacyCellCasing(world, ctrl[0], ctrl[1], ctrl[2]);
             world.setBlockToAir(core[0], core[1], core[2]);
             world.setBlock(core[0], core[1], core[2], SLBlocks.slCasing2, slot.legacyCoreMeta, 3);

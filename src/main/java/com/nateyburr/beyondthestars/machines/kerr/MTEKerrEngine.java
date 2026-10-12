@@ -537,7 +537,8 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         if (aTick > 0 && aTick % RECHECK == 0 && chunksLoaded) {
             checkStructure(true, aBaseMetaTileEntity);
         }
-        if (migrationPending && aTick >= 40 && chunksLoaded) {
+        // Migration needs only its own cells loaded (not the whole 96-block recheck radius); it waits for them.
+        if (migrationPending && aTick >= 40 && aTick % 20 == 0 && KerrMigration.cellsLoaded(this)) {
             migrationPending = false;
             final String note = KerrMigration.convert(this);
             if (note != null) migrationNote = note;
