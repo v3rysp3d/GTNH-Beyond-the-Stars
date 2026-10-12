@@ -42,6 +42,9 @@ import gregtech.api.util.recipe.Scanning;
  * stays at or under 16 item slots even with the fallback.</li>
  * <li><b>SL-K03</b>'s Huge Neutronium Fluid Pipe falls back to a Large one, then to Neutronium
  * plates x6 each, if this pack never generated it, so the recipe never silently disappears.</li>
+ * <li><b>SL-K04</b> takes 32 Black Hole Seeds in place of the card's Superstable Black Hole Seed, which
+ * no recipe in the pack makes (cost audit #1, B-21).</li>
+ * <li><b>SL-K03</b> takes Electric Pistons UIV in place of Pumps: the module runs item recipes (#14).</li>
  * <li><b>SL-K06 is retired</b> (the ID stays reserved). It was a Kerr-only "Ergosphere Extraction"
  * map that melted exotic metals; I ruled (Q-9/Q-22) that the extractor module runs GT's item
  * extractor recipes only, so the map and its recipes are gone.</li>
@@ -51,6 +54,12 @@ import gregtech.api.util.recipe.Scanning;
 public final class BTSRecipesKerr {
 
     private BTSRecipesKerr() {}
+
+    /**
+     * Black Hole Seeds in the Kerr Density Upgrade (SL-K04), in place of the uncraftable Superstable
+     * Black Hole Seed (cost audit #1, B-21). Each is one UHV Space Assembler craft.
+     */
+    static final long DENSITY_UPGRADE_SEEDS = 32L;
 
     public static void register() {
         controllerAndModules();
@@ -119,7 +128,9 @@ public final class BTSRecipesKerr {
                 .metadata(SCANNING, new Scanning(2 * MINUTES, TierEU.RECIPE_UIV))
                 .itemInputs(
                     items(
-                        nn(ItemList.Electric_Pump_UIV.get(32L), "ItemList.Electric_Pump_UIV"),
+                        // Pistons, not pumps: the module runs GT's ITEM extractor recipes (Q-9/Q-22, B-17;
+                        // cost audit #14).
+                        nn(ItemList.Electric_Piston_UIV.get(32L), "ItemList.Electric_Piston_UIV"),
                         nn(ItemList.Field_Generator_UIV.get(8L), "ItemList.Field_Generator_UIV"),
                         BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UIV, 16L),
                         BTSRecipesSingularity.dense(Materials.Neutronium, 32),
@@ -150,7 +161,10 @@ public final class BTSRecipesKerr {
                         nn(ItemList.Field_Generator_UMV.get(32L), "ItemList.Field_Generator_UMV"),
                         BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UMV, 32L),
                         SLBlocks.casing(BlockSLCasing.FIELD_COIL, 32),
-                        nn(ItemList.Black_Hole_Stabilizer.get(1L), "ItemList.Black_Hole_Stabilizer"),
+                        // 32 Black Hole Seeds, not GT's Superstable Black Hole Seed: nothing in the pack
+                        // crafts that one, and giving it a recipe would switch on the BHC's superstable mode
+                        // pack-wide (cost audit #1, B-21).
+                        nn(ItemList.Black_Hole_Opener.get(DENSITY_UPGRADE_SEEDS), "ItemList.Black_Hole_Opener"),
                         SLBlocks.casing(BlockSLCasing.INJECTOR_MK3, 16)))
                 .fluidInputs(
                     nn(Materials.RawStarMatter.getFluid(4_000_000L), "Materials.RawStarMatter fluid"),
