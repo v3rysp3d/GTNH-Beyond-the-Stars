@@ -116,10 +116,14 @@ public class MTETurbineControlBlock extends MTEHatch {
         prevPowered = aNBT.getBoolean("btsPrevPowered");
     }
 
+    /** Both control blocks' reply while the structure walk has not linked them to a formed plant. */
+    static final String NOT_LINKED = EnumChatFormatting.YELLOW
+        + "Not linked: the Nuclear Plant Foundation is not formed - fix its structure, then right-click again.";
+
     /**
-     * The FULL plant panel, identical to the Silo Control Block's: RPM and cycles are what
-     * this block controls, but a player standing at the manifold must also be able to see why
-     * the turbine is not accelerating - which is usually a reactor or coolant fact.
+     * Tidy C6: the turbine's own section of the plant panel (the TURBINE and OUTPUT groups and
+     * the weakest term), not the whole panel. The hold line in the TURBINE group already names
+     * the reactor or coolant fact that stops the fan, and the weakest term names the rest.
      */
     @Override
     public boolean onRightclick(IGregTechTileEntity aBaseMetaTileEntity, EntityPlayer aPlayer) {
@@ -128,10 +132,10 @@ public class MTETurbineControlBlock extends MTEHatch {
         final String reset = EnumChatFormatting.RESET.toString();
         aPlayer.addChatMessage(new ChatComponentText(aqua + "== Turbine Control Block ==" + reset));
         if (!parentValid()) {
-            aPlayer.addChatMessage(new ChatComponentText("Not linked - reform the main station's structure"));
+            aPlayer.addChatMessage(new ChatComponentText(NOT_LINKED));
             return true;
         }
-        for (final String line : parent.statusReport()) {
+        for (final String line : parent.controlBlockReport(true)) {
             aPlayer.addChatMessage(new ChatComponentText(line));
         }
         return true;

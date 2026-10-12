@@ -82,9 +82,9 @@ public class MTESiloControlBlock extends MTEHatch {
     }
 
     /**
-     * The FULL plant panel, not a reactor-only excerpt: both control blocks print the
-     * controller's one grouped, colour-coded report (reactor, steam chain, turbine, output and
-     * the debug flags), so whichever block a player walks up to answers every question.
+     * Tidy C6: the reactor's own section of the plant panel (the REACTOR group and the weakest
+     * term), not the whole 35-45 line panel - that is the controller GUI's job. Same formatters,
+     * so the two cannot disagree.
      */
     @Override
     public boolean onRightclick(IGregTechTileEntity aBaseMetaTileEntity, EntityPlayer aPlayer) {
@@ -93,10 +93,10 @@ public class MTESiloControlBlock extends MTEHatch {
         final String reset = EnumChatFormatting.RESET.toString();
         aPlayer.addChatMessage(new ChatComponentText(aqua + "== Silo Control Block ==" + reset));
         if (!parentValid()) {
-            aPlayer.addChatMessage(new ChatComponentText("Not linked - reform the main station's structure"));
+            aPlayer.addChatMessage(new ChatComponentText(MTETurbineControlBlock.NOT_LINKED));
             return true;
         }
-        for (final String line : parent.statusReport()) {
+        for (final String line : parent.controlBlockReport(false)) {
             aPlayer.addChatMessage(new ChatComponentText(line));
         }
         return true;

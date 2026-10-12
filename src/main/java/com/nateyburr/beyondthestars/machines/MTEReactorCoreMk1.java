@@ -2743,13 +2743,13 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         if (player == null) return;
         player.addChatMessage(
             new ChatComponentText(
-                EnumChatFormatting.RED + "Projection REFUSED"
+                EnumChatFormatting.RED + "Projection refused"
                     + EnumChatFormatting.RESET
-                    + " - this silo's FACE still carries the retired 0.19.0 plumbing frontage. Its hatches stand in cells this layout needs as plain wall, and building over them would DESTROY them. Stand beside the main station and run "
+                    + " - this silo's face still has the 0.19.0 hatch layout, and building over it would destroy those hatches. Run "
                     + EnumChatFormatting.WHITE
                     + "/btsmigrate"
                     + EnumChatFormatting.RESET
-                    + " first: the face is rewritten in place and your old hatches drop at the wall. Nothing was placed or broken."));
+                    + " beside the controller first: it rewrites the face and drops the old hatches at the wall. Nothing was placed or broken."));
     }
 
     /**
@@ -8223,37 +8223,96 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     }
 
     /**
-     * The whole instrument panel, grouped and colour-coded. Both control blocks print this
-     * verbatim and the scanner appends it, so "what does the plant think it is doing" has
-     * exactly one answer everywhere.
+     * Tidy C6: the panel's named groups. The controller GUI and {@link #statusReport()} print
+     * all of them; a control block prints only its own, so a right-click fits on one chat
+     * screen. Every group is built from the same static formatters as before.
+     */
+    public enum ReportSection {
+        REACTOR,
+        STEAM_CHAIN,
+        TURBINE,
+        OUTPUT,
+        MATH,
+        PROGRESSION
+    }
+
+    /**
+     * The whole instrument panel, grouped and colour-coded: every {@link ReportSection} in
+     * order, then the bench flags. The groups between REACTOR and PROGRESSION exist only once a
+     * silo stands.
      */
     public List<String> statusReport() {
         final List<String> out = new ArrayList<>();
+        for (final ReportSection section : ReportSection.values()) {
+            appendSection(out, section);
+        }
+        if (debugAutoCycle || debugInfiniteSupplies) {
+            out.add(debugLine(debugAutoCycle, debugInfiniteSupplies));
+        }
+        return out;
+    }
+
+    /** One or more groups of the panel, in the order asked for. */
+    public List<String> statusReportSection(ReportSection... sections) {
+        final List<String> out = new ArrayList<>();
+        for (final ReportSection section : sections) {
+            appendSection(out, section);
+        }
+        return out;
+    }
+
+    private void appendSection(List<String> out, ReportSection section) {
+        if (section == ReportSection.REACTOR) {
+            appendReactor(out);
+            return;
+        }
+        if (section == ReportSection.PROGRESSION) {
+            // F6: the progression block belongs to EVERY readout in EVERY state - a bare
+            // platform's Derrick accrues REPROCESSING before there is a silo to gate on.
+            appendProgression(out);
+            return;
+        }
+        // The steam chain, turbine, output and math groups describe a silo that stands.
+        if (!isSiloBuilt()) return;
+        switch (section) {
+            case STEAM_CHAIN:
+                appendSteamChain(out);
+                return;
+            case TURBINE:
+                appendTurbine(out);
+                return;
+            case OUTPUT:
+                appendOutput(out);
+                return;
+            case MATH:
+                appendMath(out);
+                return;
+            default:
+                return;
+        }
+    }
+
+    private String selfFuelNow() {
+        return selfFuelLine(
+            derrickBuilt,
+            annexBuilt,
+            derrickCycles,
+            annexCycles,
+            getModuleStall(),
+            progression.snapshot(),
+            progression.nodes());
+    }
+
+    private void appendReactor(List<String> out) {
         out.add(header("REACTOR"));
         if (!isSiloBuilt()) {
             out.add(siloAbsentLine(legacySiloTier()));
             out.add(supplyLine(false, 0, 0, 0, 0));
             out.add(towerLine(getModulesSummary()));
             out.add(moduleLine(getPlantModulesSummary()));
-            final String bareStall = selfFuelLine(
-                derrickBuilt,
-                annexBuilt,
-                derrickCycles,
-                annexCycles,
-                getModuleStall(),
-                progression.snapshot(),
-                progression.nodes());
+            final String bareStall = selfFuelNow();
             if (!bareStall.isEmpty()) out.add(bareStall);
-            // F6: the progression block belongs to EVERY readout in EVERY state. It used to sit
-            // below this early return, so a platform with no silo yet showed milestone progress
-            // in the controller GUI (whose rows are ungated) while both control blocks and the
-            // scanner showed none - and REPROCESSING is exactly the line that accrues on a bare
-            // platform's Derrick, before there is a silo to gate on.
-            appendProgression(out);
-            if (debugAutoCycle || debugInfiniteSupplies) {
-                out.add(debugLine(debugAutoCycle, debugInfiniteSupplies));
-            }
-            return out;
+            return;
         }
         out.add(tierLine(getReactorTier(), getEdge(), getThrottleN(), isThrottleOverridden()));
         out.add(supplyLine(true, getRodsQueued(), pillarGaps(), getPropellantLitres(), getChamberCoolantLitres()));
@@ -8269,15 +8328,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 fuelName(activeFuelMult),
                 steamPerTick));
         out.add(heatLine(heat, getDecaySeconds(), getRadiationSeconds(), ventStackBuilt));
-        final String selfFuel = selfFuelLine(
-            derrickBuilt,
-            annexBuilt,
-            derrickCycles,
-            annexCycles,
-            getModuleStall(),
-            progression.snapshot(),
-            progression.nodes());
+        final String selfFuel = selfFuelNow();
         if (!selfFuel.isEmpty()) out.add(selfFuel);
+    }
+
+    private void appendSteamChain(List<String> out) {
         out.add(header("STEAM CHAIN"));
         out.add(spineLine(spineBuilt, spinePattern, spineHousings, spineSpeedMilli, spineEffMilli, spineSwirl));
         out.add(spiralLine(spiralBuilt, spiralInjectors.size(), lastGoodInjectors, propellantName, propellantMilli));
@@ -8288,28 +8343,40 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         // it showed yesterday - the water ladder adds a line when you opt into it and not before.
         final String feedwater = feedwaterLine(feedwaterGrade, isGalleryActive());
         if (!feedwater.isEmpty()) out.add(feedwater);
+    }
+
+    private String rpmNow() {
+        return rpmLine(
+            getRpm(),
+            getRedlineRpm(),
+            getUnlockedRedlineRpm(),
+            cyclesPerMinute,
+            getSteamBufferSlugsTenths(),
+            debugAutoCycle);
+    }
+
+    private void appendTurbine(List<String> out) {
         out.add(header("TURBINE"));
-        out.add(
-            rpmLine(
-                getRpm(),
-                getRedlineRpm(),
-                getUnlockedRedlineRpm(),
-                cyclesPerMinute,
-                getSteamBufferSlugsTenths(),
-                debugAutoCycle));
+        out.add(rpmNow());
         out.add(rotorLine(galleryBuilt, galleryStages, avgRotorFactorMilli, rotorWear));
         final String hold = getTurbineHoldReason();
         if (!hold.isEmpty()) out.add(holdLine(hold));
+    }
+
+    private String outputNow() {
+        return outputLine(
+            isGalleryActive(),
+            isTurbineInstalled(),
+            lastEUOutput,
+            lastEUDemand,
+            isOutputClamped(),
+            isGridCapped(),
+            getBoostedSteamOutput());
+    }
+
+    private void appendOutput(List<String> out) {
         out.add(header("OUTPUT"));
-        out.add(
-            outputLine(
-                isGalleryActive(),
-                isTurbineInstalled(),
-                lastEUOutput,
-                lastEUDemand,
-                isOutputClamped(),
-                isGridCapped(),
-                getBoostedSteamOutput()));
+        out.add(outputNow());
         if (galleryBuilt) {
             out.add(ceilingLine(outputCeiling(), getDynamoCapacity(), getLaserCapacity()));
             // D-25: which mode the over-injection guard is in, ALWAYS, in both modes - and the
@@ -8330,6 +8397,9 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             final String eNote = energyHatchNote(true, getEnergyHatchCount(), derrickBuilt || annexBuilt);
             if (!eNote.isEmpty()) out.add(eNote);
         }
+    }
+
+    private void appendMath(List<String> out) {
         // B2: the derivation, in the Water Line's spirit - every factor with its current value,
         // so "why is my number small" is answerable without opening the source.
         // R1-B (B1): gated on isGalleryActive(), the OUTPUT group's own condition, so the two
@@ -8367,7 +8437,16 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         } else {
             out.add(mathExportLine(spineSpeedMilli, getBoostedSteamOutput()));
         }
-        final String weakest = mathLimiterLine(
+        out.add(weakestTermLine());
+    }
+
+    /**
+     * The MATH group's last line - the term costing the most and its fix - on its own, so the
+     * control blocks and the scanner summary can print it without the derivation above it.
+     */
+    private String weakestTermLine() {
+        final int live = getFuelColumns();
+        return mathLimiterLine(
             spineBuilt,
             spineHousings,
             spiralBuilt,
@@ -8387,14 +8466,57 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             isInjectorsDry(),
             isChamberCoolantReady(),
             avgRotorFactorMilli,
-            demandNow,
-            ceilingNow,
+            getLiveEUDemand(),
+            outputCeiling(),
             gridCeiling());
-        out.add(weakest);
-        appendProgression(out);
+    }
+
+    /**
+     * Tidy C6: a control block's right-click. The Silo Control Block prints the REACTOR group,
+     * the Turbine Control Block the TURBINE and OUTPUT groups; both add the weakest term and
+     * point at the controller GUI for the rest.
+     */
+    public List<String> controlBlockReport(boolean turbinePanel) {
+        final List<String> out;
+        if (!turbinePanel) {
+            out = statusReportSection(ReportSection.REACTOR);
+        } else if (isSiloBuilt()) {
+            out = statusReportSection(ReportSection.TURBINE, ReportSection.OUTPUT);
+        } else {
+            out = new ArrayList<>();
+            out.add(siloAbsentLine(legacySiloTier()));
+        }
+        if (isSiloBuilt()) out.add(weakestTermLine());
+        out.add(EnumChatFormatting.GRAY + "Open the Nuclear Plant Foundation for the full panel");
+        return out;
+    }
+
+    /**
+     * Tidy C7: the Portable Scanner's summary - about eight lines instead of the whole panel:
+     * tier and rods, heat, supply, RPM, EU/t, the hold reason if any, the weakest term and the
+     * milestone roll-up. Same formatters as the full panel.
+     */
+    public List<String> scannerSummary() {
+        final List<String> out = new ArrayList<>();
+        if (!isSiloBuilt()) {
+            out.add(siloAbsentLine(legacySiloTier()));
+            out.add(towerLine(getModulesSummary()));
+            out.add(moduleLine(getPlantModulesSummary()));
+        } else {
+            out.add(tierLine(getReactorTier(), getEdge(), getThrottleN(), isThrottleOverridden()));
+            out.add(heatLine(heat, getDecaySeconds(), getRadiationSeconds(), ventStackBuilt));
+            out.add(supplyLine(true, getRodsQueued(), pillarGaps(), getPropellantLitres(), getChamberCoolantLitres()));
+            out.add(rpmNow());
+            out.add(outputNow());
+            final String hold = getTurbineHoldReason();
+            if (!hold.isEmpty()) out.add(holdLine(hold));
+            out.add(weakestTermLine());
+        }
+        out.add(BTSMilestone.milestoneSummaryLine(progression.snapshot()));
         if (debugAutoCycle || debugInfiniteSupplies) {
             out.add(debugLine(debugAutoCycle, debugInfiniteSupplies));
         }
+        out.add(EnumChatFormatting.GRAY + "Open the controller GUI for the full panel");
         return out;
     }
 
@@ -8439,10 +8561,10 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
     @Override
     public String[] getInfoData() {
-        // One panel, everywhere: the scanner prints exactly what the GUI and both control
-        // blocks show, so a number can never be right in one readout and stale in another.
+        // Tidy C7: a summary, not the whole 35-45 line panel. Every line comes from the same
+        // formatters the GUI uses, so the two cannot disagree; the GUI has the rest.
         final List<String> info = new ArrayList<>(Arrays.asList(super.getInfoData()));
-        info.addAll(statusReport());
+        info.addAll(scannerSummary());
         return info.toArray(new String[0]);
     }
 
