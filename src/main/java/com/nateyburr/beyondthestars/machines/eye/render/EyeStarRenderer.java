@@ -1,5 +1,9 @@
 package com.nateyburr.beyondthestars.machines.eye.render;
 
+import java.nio.FloatBuffer;
+import java.util.Map;
+import java.util.WeakHashMap;
+
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.tileentity.TileEntity;
@@ -8,6 +12,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.client.MinecraftForgeClient;
 
 import org.joml.Matrix4f;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
@@ -19,8 +24,12 @@ import com.nateyburr.beyondthestars.client.render.BTSShaders;
 import com.nateyburr.beyondthestars.client.render.Billboard;
 import com.nateyburr.beyondthestars.client.render.FixedShapes;
 import com.nateyburr.beyondthestars.client.render.GlSave;
+import com.nateyburr.beyondthestars.client.render.GlowSprite;
 import com.nateyburr.beyondthestars.client.render.GpuTimer;
 import com.nateyburr.beyondthestars.client.render.Layers;
+import com.nateyburr.beyondthestars.client.render.Lod;
+import com.nateyburr.beyondthestars.client.render.NoiseTex;
+import com.nateyburr.beyondthestars.client.render.RenderClock;
 import com.nateyburr.beyondthestars.client.render.RenderQuality;
 
 import cpw.mods.fml.relauncher.Side;
@@ -180,6 +189,8 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
         }
         final int rgb = star.getRgb();
         final float r = ((rgb >> 16) & 255) / 255f, g = ((rgb >> 8) & 255) / 255f, b = (rgb & 255) / 255f;
+        // renders v2: the radius the v2 look draws (breathing, before the fixed nova's shrink)
+        final float v2Radius = radius;
         float coreAlpha = 1f;
         if (kind == EyeStarLook.NOVA) {
             final float f = (float) Math.min(1, age / NOVA_TICKS);
@@ -191,15 +202,41 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
         final double cx = x + 0.5, cy = y + 0.5, cz = z + 0.5;
 
         base.translation((float) cx, (float) cy, (float) cz);
-        // renders v2: the detail tier (LOD bookkeeping and the HIGH ranking; every tier draws this look for now)
-        if (pass != 1) {
+        // renders v2: the detail tier. The stars T1-T6 draw the v2 look (EyeStarFx) at L0-L3; the galaxies keep
+        // today's look (WP-5); FIXED (renderQuality=low, no shaders, a program that does not bake) draws today's look
+        final boolean galaxy = isGalaxy(kind);
+        final double dist = Math.sqrt(cx * cx + cy * cy + cz * cz);
+        final Lod.Tier tier;
+        if (pass != 1 || !tiers.containsKey(star)) {
             final double reach = Math.max(radius * GLOW_RADII, EyeStarLook.galaxyReach(kind));
-            RenderQuality
-                .tier(star, Math.min(CLEARANCE, Math.max(reach, GLOW_MIN)), Math.sqrt(cx * cx + cy * cy + cz * cz));
+            final double bound = Math.min(CLEARANCE, Math.max(reach, GLOW_MIN));
+            tier = galaxy ? RenderQuality.tier(star, bound, dist)
+                : RenderQuality.tier(
+                    star,
+                    bound,
+                    dist,
+                    EyeStarFx.STAR_PROGRAM,
+                    EyeStarFx.HALO_PROGRAM,
+                    EyeStarFx.LINES_PROGRAM,
+                    GlowSprite.PROGRAM);
+            tiers.put(star, tier);
+        } else {
+            tier = tiers.get(star);
         }
 
         GpuTimer.begin("eye");
         final boolean glCheck = RenderQuality.glCheckBegin(star);
+        if (!galaxy && tier.shaded()) {
+            try {
+                for (int i = 0; i < REPEAT; i++) {
+                    drawV2(star, kind, pass, now, partialTicks, cx, cy, cz, dist, v2Radius, tier);
+                }
+            } finally {
+                RenderQuality.glCheckEnd(star, glCheck, "the Eye's centre");
+                GpuTimer.end();
+            }
+            return;
+        }
         final GlSave save = GlSave.capture();
         try {
             GL13.glActiveTexture(GL13.GL_TEXTURE0);
@@ -212,6 +249,128 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
             save.restore();
             RenderQuality.glCheckEnd(star, glCheck, "the Eye's centre");
             GpuTimer.end();
+        }
+    }
+
+    // ================================================================================ renders v2
+
+    /** Dev switch {@code -Dbts.render.eyeRepeat=n}: the v2 draw runs n times (marginal GPU cost; picture wrong). */
+    private static final int REPEAT = Math.max(1, Integer.getInteger("bts.render.eyeRepeat", 1));
+    /** Dev switch {@code -Dbts.render.starDebug=n} (bits): 1 no halo, 2 no loops, 4 no photosphere, 8 cull front. */
+    private static final int DEBUG = Integer.getInteger("bts.render.starDebug", 0);
+
+    /** Each star's tier from its pass-0 frame, for pass 1. */
+    private final Map<TileEyeStar, Lod.Tier> tiers = new WeakHashMap<>();
+    private final EyeStarFx.Look look = new EyeStarFx.Look();
+    private final float[] qc = new float[3], qu = new float[3], qv = new float[3];
+    private static final FloatBuffer M16 = BufferUtils.createFloatBuffer(16);
+
+    /** P4: the galaxy kinds keep today's look until WP-5. */
+    private static boolean isGalaxy(byte kind) {
+        return kind == EyeStarLook.TRIANGULUM || kind == EyeStarLook.MILKY_WAY || kind == EyeStarLook.PLANETS;
+    }
+
+    /**
+     * Renders v2 WP-3 / WP-4: pass 0 the photosphere (opaque, writing depth); pass 1 the halo quad (premultiplied),
+     * then the loops (additive), or at L3 a glow sprite instead. Detail: L0 three noise scales, L1 two, L2 one (no
+     * loops), L3 the plain photosphere and the glow, and never finer than the photosphere's size on screen asks.
+     */
+    private void drawV2(TileEyeStar star, byte kind, int pass, double now, float partialTicks, double cx, double cy,
+        double cz, double dist, float radius, Lod.Tier tier) {
+        final float time = RenderClock.seconds(star.getWorldObj(), partialTicks);
+        final double px = Lod.projectedRadius(radius, dist);
+        int detail = tier == Lod.Tier.L0 ? 3 : tier == Lod.Tier.L1 ? 2 : tier == Lod.Tier.L2 ? 1 : 0;
+        detail = Math.min(detail, px < 12 ? 0 : px < 40 ? 1 : px < 110 ? 2 : 3);
+        EyeStarFx.compute(look, star, kind, radius, now, time, detail);
+        eye(look.eye);
+        final int[] was = NoiseTex.bind();
+        try {
+            if (pass != 1 && look.surface && (DEBUG & 4) == 0) {
+                final GlSave s = GlSave.capture();
+                try {
+                    GL11.glDisable(GL11.GL_BLEND);
+                    GL11.glDisable(GL11.GL_ALPHA_TEST);
+                    GL11.glEnable(GL11.GL_DEPTH_TEST);
+                    GL11.glDepthMask(true);
+                    GL11.glEnable(GL11.GL_CULL_FACE);
+                    GL11.glFrontFace(GL11.GL_CCW);
+                    GL11.glCullFace((DEBUG & 8) != 0 ? GL11.GL_FRONT : GL11.GL_BACK);
+                    EyeStarFx.drawSurface(cx, cy, cz, look);
+                } finally {
+                    s.restore();
+                }
+            }
+            if (pass == 0) return;
+            final GlSave e = Layers.emissive();
+            try {
+                if (tier == Lod.Tier.L3) {
+                    final int rgb = star.getRgb();
+                    GlowSprite.draw(
+                        cx,
+                        cy,
+                        cz,
+                        Math.min(CLEARANCE, Math.max(GLOW_MIN, radius * GLOW_RADII)),
+                        ((rgb >> 16) & 255) / 255f,
+                        ((rgb >> 8) & 255) / 255f,
+                        (rgb & 255) / 255f,
+                        kind == EyeStarLook.DWARF ? 0.9f * (1f - 0.9f * star.getAux()) : 0.9f,
+                        0.12f,
+                        0.4f);
+                    return;
+                }
+                placeHalo(cx, cy, cz, dist, look.star[0], look.reach);
+                GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_ALPHA);
+                if ((DEBUG & 1) == 0) EyeStarFx.drawHalo(cx, cy, cz, look, qc, qu, qv);
+                if (look.loops && (DEBUG & 2) == 0 && (tier == Lod.Tier.L0 || tier == Lod.Tier.L1)) {
+                    GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
+                    EyeStarFx.drawLoops(cx, cy, cz, look, (float) (1.0 / Math.max(1e-3, Lod.pixelsPerBlockAtUnit())));
+                }
+            } finally {
+                e.restore();
+            }
+        } finally {
+            NoiseTex.unbind(was);
+        }
+    }
+
+    /**
+     * The eye in the render frame: Minecraft's first-person camera sits 0.1 blocks behind the origin a TESR draws
+     * round ({@code EntityRenderer.orientCamera}), which bends rays traced from a quad 0.3 blocks out by a third. The
+     * modelview is {@code [R | t]}; the eye is {@code -R^T t}.
+     */
+    private static void eye(float[] out) {
+        M16.clear();
+        GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, M16);
+        final float t0 = M16.get(12), t1 = M16.get(13), t2 = M16.get(14);
+        for (int c = 0; c < 3; c++) {
+            out[c] = -(M16.get(c * 4) * t0 + M16.get(c * 4 + 1) * t1 + M16.get(c * 4 + 2) * t2);
+        }
+    }
+
+    /**
+     * Where the halo quad goes: from outside the cavity a quad facing the camera just in front of the star, sized to
+     * the effects' reach; from inside (or inside the effects) a quad just in front of the camera covering the view.
+     */
+    private void placeHalo(double cx, double cy, double cz, double dist, float radius, float reach) {
+        if (dist > CLEARANCE - 0.5 && dist > reach * 1.02) {
+            final Billboard bb = Billboard.at(cx, cy, cz);
+            final double p = Math.max(0.3, dist - radius * 1.08);
+            final double half = p * Math.tan(Math.asin(Math.min(0.999, reach / dist))) * 1.06;
+            for (int i = 0; i < 3; i++) {
+                qc[i] = (float) (bb.w[i] * p);
+                qu[i] = (float) (bb.u[i] * half);
+                qv[i] = (float) (bb.v[i] * half);
+            }
+            return;
+        }
+        M16.clear();
+        GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, M16);
+        final double near = 0.3, half = near * 3.0;
+        for (int i = 0; i < 3; i++) {
+            final float right = M16.get(i * 4), up = M16.get(i * 4 + 1), fwd = -M16.get(i * 4 + 2);
+            qc[i] = (float) (fwd * near);
+            qu[i] = (float) (right * half);
+            qv[i] = (float) (up * half);
         }
     }
 
