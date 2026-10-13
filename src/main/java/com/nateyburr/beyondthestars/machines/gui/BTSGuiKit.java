@@ -255,6 +255,8 @@ public final class BTSGuiKit {
     public static class KitWidget extends Widget<KitWidget> {
 
         private final Painter painter;
+        /** The mouse x relative to this widget at its last draw (the context is transformed to it there). */
+        private int mouseX = -1;
 
         public KitWidget(Painter painter) {
             this.painter = painter;
@@ -263,7 +265,13 @@ public final class BTSGuiKit {
         @Override
         public void draw(ModularGuiContext context, WidgetThemeEntry<?> widgetTheme) {
             super.draw(context, widgetTheme);
+            mouseX = context.getMouseX();
             painter.paint(this, getArea().width, getArea().height);
+        }
+
+        /** The mouse x in this widget's coordinates at its last draw (a chip row picks the hovered chip). */
+        public int mouseX() {
+            return mouseX;
         }
     }
 
@@ -567,15 +575,37 @@ public final class BTSGuiKit {
 
     public static KitWidget chips(Supplier<List<String[]>> items) {
         final KitWidget w = row((self, width, h) -> paintChips(items.get()));
-        return w.tooltipDynamic(t -> {
-            for (String[] it : items.get()) {
-                if (it.length > 2 && !it[2].isEmpty()) for (String l : it[2].split(String.valueOf(BTSRows.LINE))) {
-                    t.addLine(BTSText.resolve(l));
-                }
-            }
-        })
+        return w.tooltipDynamic(t -> chipTooltip(t, items.get(), w.mouseX()))
             .tooltipAutoUpdate(true)
             .tooltipShowUpTimer(TOOLTIP_DELAY);
+    }
+
+    /**
+     * The index of the chip under {@code x} (row coordinates, as {@link #paintChips} lays them out; the 5 px gap
+     * after a chip counts as that chip's), or −1 when {@code x} is past the last chip or unknown.
+     */
+    public static int chipAt(List<String[]> items, int x) {
+        if (x < 0) return -1;
+        int left = 0;
+        for (int i = 0; i < items.size(); i++) {
+            final String[] it = items.get(i);
+            final int right = left + 7 + KitDraw.width(BTSText.resolve(it.length > 1 ? it[1] : "")) + 5;
+            if (x < right) return i;
+            left = right;
+        }
+        return -1;
+    }
+
+    /** A chip row's tooltip: the hovered chip's lines (§4.3 "hover detail"), or every chip's when none is hit. */
+    private static void chipTooltip(RichTooltip t, List<String[]> items, int mouseX) {
+        final int hit = chipAt(items, mouseX);
+        for (int i = 0; i < items.size(); i++) {
+            if (hit >= 0 && i != hit) continue;
+            final String[] it = items.get(i);
+            if (it.length > 2 && !it[2].isEmpty()) {
+                for (String l : it[2].split(String.valueOf(BTSRows.LINE))) t.addLine(BTSText.resolve(l));
+            }
+        }
     }
 
     public static KitWidget lamps(Supplier<String> label, Supplier<List<String[]>> items) {
@@ -643,12 +673,7 @@ public final class BTSGuiKit {
                     final BTSRows.Row r = cache.row(i);
                     if (r == null) return;
                     if (r.kind == BTSRows.Kind.CHIPS) {
-                        for (String[] it : r.items(0)) {
-                            if (it.length > 2 && !it[2].isEmpty()) {
-                                for (String l : it[2].split(String.valueOf(BTSRows.LINE)))
-                                    t.addLine(BTSText.resolve(l));
-                            }
-                        }
+                        chipTooltip(t, r.items(0), painted.mouseX());
                         return;
                     }
                     for (String l : r.lines(tipField(r.kind))) t.addLine(BTSText.resolve(l));
