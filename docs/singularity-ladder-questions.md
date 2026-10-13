@@ -6160,6 +6160,111 @@ no compensation anywhere.
    (SL-G01's `reInit` swaps an item, so it needed one).
 5. The questbook paragraphs that warn about the raise (E63 / E64 / E38 variant, §6.1) belong to phase C6.
 
+### B-133 Circuits v2, phase C5: the NAC patch, SL-N01..N23 [circuits branch, built]
+
+**Context.** Spec `designs/docs/circuits-v2.md` revision 3, §4 and §7.2 row C5; brief items 31-33 (NAC: "Patch now,
+PR later", no new module; open questions 4 and 5 decided: calibration NONE, the same EU as the Assembly Line route).
+
+**What was built (C5).**
+- Mixins switched on (`usesMixins = true`, `mixinsPackage = mixins`). `mixins.beyondthestars.json` has no package and
+  no mixins (GT's layout). `mixins.beyondthestars.late.json` is `required: false`, and `mixins/BTSLateMixins`
+  (`@LateMixin`) loads three mixins whenever GT is present, with no config switch:
+  - `nac.CircuitComponentInvoker`: static `@Invoker("<init>")` for GT's CC, PC and circuit constructors, using the
+    javap descriptors.
+  - `nac.MixinCircuitComponent`: `@Inject` into `<clinit>` right after `PUTSTATIC $VALUES`, with `require = 0`.
+  - `nac.MixinCircuitComponentPacket`: `@Redirect` of `NBTTagCompound.func_150296_c()` in
+    `CircuitComponentPacket(NBTTagCompound)`. That is the SRG name in both the dev and the production run, so nothing
+    is remapped.
+- `nac/BTSNacComponents` builds the 34 constants from one table (§4.3) through the invoker:
+  - 11 CCs at 10000-10010, 11 PCs at 10100-10110, 12 circuits at 10200-10211.
+  - Names start `BTS_`. Name keys and processed icons come from C1.
+  - The real-item suppliers are lazy.
+  - It builds the set in a local array and catches every `Throwable`. On failure it returns the stock array.
+  - `isActive()` initialises the enum before answering. In practice nothing else touches `CircuitComponent` before
+    our postInit.
+  - "NAC patch inactive" is logged once per run, whichever side finds the failure first.
+- `nac/BTSNacPacketGuard` drops names the enum does not know from a saved conveyor's tag. Each name is logged once, with
+  its amount.
+- `BTSRecipesNac` (the "nac" line, right after "circuits") registers SL-N01..N23 as §4.5 describes:
+  - Part Processor (N01-N05: 20 t, UIV) and Cutting Chamber (N06-N08: Dimensionally Shifted Superfluid 10 L, 200 t, UMV).
+  - Board Processor (N09-N11): a hidden recipe with fluid key 4 / 5 / 5, plus a `.fake()` NEI twin.
+  - Assembly Matrix (N12-N23): matrix tier 9 / 10 / 11 / 12 by circuit tier, calibration NONE.
+- The load-complete pass `BTSRecipesNac.onLoadComplete` checks the 23 real <-> fake conversions and adds any that are
+  missing. With the route off, it removes the coremod's real -> fake conversions for our items (ledger rows "removed")
+  and keeps fake -> real.
+- Checks: `/btsrecipes circuits` has a new "nac" section, judged against the current mode (patch active or not, route on
+  or off). `/btsrecipes nac build|run|status x y z` (`nac/NacBench`) builds a real Nanochip Assembly Complex in the world
+  through the projector's survival path, with an Assembly Matrix in a module slot (UMV casings) and its sockets, and
+  runs one recipe through GT's own module code.
+
+**Checks** (headless `runServer`, port 25631, world `circuits-c1`; the NAC test rig is at 200 60 200).
+- **All flags on:**
+  - Boot log: "NAC patch active: 34 circuit components appended ... (248 stock, 282 total; ids 10000-10211)" and
+    "Recipe registration complete: 366 registered, 0 skipped" (343 + 23).
+  - "NAC conversions: 23 of 23 of our parts and circuits have the coremod's real -> fake and fake -> real recipes; 0
+    missing one(s) added".
+  - `/btsrecipes circuits`: PASS in every section. The nac section shows:
+    - `VALUES.length` 282 = stock 248 + 34.
+    - `tryGetFromMetaId(10211)` = `valueOf("BTS_OmegaMainframe")`, and its real item is the Omega Mainframe. All 34
+      resolve by meta id.
+    - Conversions are 23 / 23 both ways.
+    - 23 SL-N ids, with 0 wrong tier or calibration. GT's `findRecipeQuery` finds all 12 matrix recipes from their own
+      inputs.
+    - A packet holding `BTS_SiderealChip` (5 unnamed + 3 named) survives an NBT round trip (8 back, equal).
+    - A packet NBT with an unknown name (7) beside 2 PicoCircuit loads with 1 kind and one log line.
+  - On the real rig:
+    - Complex FORMED, 1 module linked, Assembly Matrix FORMED.
+    - `nac run SL-N12` takes in 2 Optical RAM, 8 Optical SMD transistors and capacitors, 8 holmium bolts and
+      1 `BTS_ProcessedSiderealChip`, plus Mutated Living Solder. A few seconds later the module's output conveyor holds
+      **1 x BTS_SiderealProcessor**.
+    - `nac run piko` on the same rig gave 1 x PicoCircuit.
+- **`nacCircuitComponents=false`** (then set back):
+  - Boot log: "NAC patch active" (the 34 constants are present either way), "no SL-N recipe registered", "343
+    registered", and "23 real -> fake conversion(s) of our items removed, fake -> real kept".
+  - nac section PASS: real -> fake 0 / 23, fake -> real 23 / 23, 0 SL-N.
+  - The saved rig, whose conveyors hold `BTS_SiderealProcessor`, reloaded normally.
+- **Degrade test** (a throwaway build, not committed): `bts$cc` was given an extra `long` parameter, so its descriptor
+  is wrong.
+  - Mixin reported `InvalidAccessorException: No candidates were found matching <init>(...Supplier;J)V`. Because the
+    config is not required, the invoker was skipped and the injector still ran.
+  - `extend` caught the `NoSuchMethodError` and logged "[BTS] NAC patch inactive: the enum extension failed (...)"
+    **once** (1 line in the whole log).
+  - The server booted with "343 registered, 0 skipped" and no SL-N recipe.
+  - nac section PASS: `VALUES.length = 248 (stock 248 + ours 0)`, no `BTS_` constant by meta or by name, and a packet
+    with `BTS_SiderealChip` loads with one log line.
+  - The world saved by the active build loaded too. Its conveyors held `BTS_SiderealProcessor` and
+    `BTS_ProcessedSiderealChip`, which were voided with one line each instead of crashing the hatch.
+  - **The stock NAC stayed formed and ran a Piko** (`nac run piko`: output conveyor 1 -> 2 x PicoCircuit).
+  - The two edited files were restored byte for byte (`git status` clean), and `spotlessApply compileJava` was re-run.
+
+**Judgement calls (no decision needed unless you disagree).**
+1. **The conversion check runs at load-complete, not postInit** (the spec said postInit). In RC-2 the coremod's
+   `ScriptNanochipRecipes` runs in its own load-complete pass (after our postInit; `after:dreamcraft` orders our
+   load-complete after it), so a postInit check would find nothing and add duplicates. The SL-N recipes themselves
+   still register in postInit.
+2. **SL-N also needs `stellarCircuits`.** Otherwise the NAC would be a back door to items that are switched off. With
+   the flag off, the route behaves as if `nacCircuitComponents=false`.
+3. **The matrix recipes are derived from the live SL-X21..X32**, item by item:
+   - our parts become our processed components;
+   - our circuits become their circuit component;
+   - a stock part becomes GT's processed component whose real item matches it.
+
+   Fluids, duration and EU/t are copied, so the NAC route and the Circuit Assembler / Assembly Line route cannot
+   drift apart. A recipe with an input that has no component would be skipped with a log line; none was.
+4. **No fallback technique needed.** The constructor invoker on an enum works on the pack's Mixin (0.8.7, UniMixins
+   0.3.1), so the `Unsafe.allocateInstance` fallback from §4.2 was not built.
+5. **Two log lines on the degrade path.** Mixin itself logs its own WARN with a stack trace when the invoker fails, and
+   that line is outside our control. "NAC patch inactive" appears exactly once.
+6. **Test rig details** (op tooling only):
+   - The complex's energy cells want an exotic hatch, which the projector does not hand a debug hatch for, so the
+     bench places the debug energy hatch (MAX, 64 A) by hand in a free hatch cell.
+   - That much power makes the module overclock, so the 10,000 t Piko finished in seconds.
+   - The rig uses the module slot at shape cell (23, 46, 5), with the same alignment as the complex.
+7. **Fake-item display names.** Unprocessed components show as GT's "Packaged <real item>" (for example "Packaged
+   Sidereal Processor"), as GT's own do. Only the 11 processed components show our own names.
+8. Not done here: `docs/migration.md` (empty the conveyors of `BTS_` components before removing the addon) is phase C6.
+   NEI's NAC module pages for SL-N have not been looked at in a client.
+
 ## Where the old question numbers went
 
 | Old | Now | Old | Now | Old | Now |
