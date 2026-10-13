@@ -47,6 +47,8 @@ Most important first. "Recommended" is what we would build if you say nothing. N
 | 22 | The intake cap at T7 / T8 buffers tens to hundreds of G L of hydrogen and helium (companions, planets mode) | Keep B-108's 20 cycles / 2 runs rule; shorten the companions' window if a shared network still starves | B-110 |
 | 23 | Eye T7 / T8 from the front at eye level: the window shows the galaxy's core and inner arms (\|x\| ≤ 10), but its outer arms (to r 16 / 19) stand behind the T6 rim and the arm blades | Keep the opening at \|x\| ≤ 10: wider would cut the arms and the rim out of the T4-T6 Eye too, and the near-flat disc (8° tilt) reads best from above anyway | B-114 |
 | 24 | The time warp `/btswarp` (op only, cheats): ship it in release jars? | Yes, op only like the other benches: it changes nothing for a player who does not type it and is a real aid for testing a rig | B-117 |
+| 25 | The two-fluid wafer engravings (SL-X05 Empyrean, SL-X06 Omega) cannot run in a single-block Laser Engraver (one fluid slot) | Keep; a UMV player uses GT's Hyper-Intensity Laser Engraver (or any multi with two input hatches); say "multiblock engraver" in the Empyrean / Omega quests | B-136, seen 1 |
+| 26 | `stellarCircuits=false` leaves the Piko / Quantum / Planck raise on (two independent switches) | Keep them independent; add one sentence to the `stellarCircuits` config comment | B-136, seen 2 |
 
 ## 2. Settled
 
@@ -6411,6 +6413,105 @@ only with `replaceTecTechEyeOfHarmony=true`:
 3. Not done: nobody has looked at the row in a client (the film / playtest units will). No
    `replaceTecTechEyeOfHarmony=false` boot was run (C7 does the flag-off boots). With the flag off, nothing here
    registers or rewrites, as before.
+
+### B-136 Circuits v2, phase C7: the test (full build, flag-off boots, the whole chain in real GT machines, NEI, the NAC) [circuits branch, test + fix]
+
+**What was run.** The circuits branch at `787e40c` (C1-C6 and the answers, B-130..B-135), then the fixes below. Spec
+`designs/docs/circuits-v2.md` revision 3, §7.2 row C7. Headless `runServer` on port 25631 (world `c7`, the RC-2 pack's
+`DefaultQuests` copied read-only into `run/server/config/betterquesting/`), then a silent dev client (master volume 0)
+driving the GUI shot harness in the world `bts-guishots`. Afterwards `server.properties` (level-name `circuits-c1`),
+`cmds.txt` and `beyondthestars.cfg` were put back byte for byte. Logs, dumps and the shots are in the session
+local work folder (`c7/`).
+
+**Static checks.**
+- Full `build` (spotless + checkstyle): green, before and after the fixes; spotless changed nothing.
+- Goldens: `fieldsim-golden --check --java` 78 / 78, `quasar-golden --check --java` 38 / 38.
+- `export-structures --check`: matches voxel.js `fa6fec2a751c`. `gen-sl-textures --check`: 165 / 165.
+- `gen-singularity --check`: 151 files up to date (bundle `d8d5e4a4e993`); `--selftest` passes.
+- Lang lint (B-113's script, 1,390 keys, against RC-2 GT's lang): the same ten known dynamic lines as B-119, 0 real
+  misses, 0 duplicates, 0 empty values. GUI lang check: 0 missing. All 34 `gt.circuitcomponent.bts.*` names and the 28
+  item names and tooltips are present.
+
+**Boots** (each `Recipe registration complete: N registered, 0 skipped`; no beyondthestars WARN or ERROR apart from
+FML's note about the test bench's chunk tickets; 823 "Exception" lines, GT's dev noise as in B-135).
+
+| Boot | Registered | `/btsrecipes status` | What changes |
+|---|---|---|---|
+| all flags on | 364 | 499: 433 new, 64 changed-GT, 2 removed; Circuits 74 | 4 SL-G10..G13 raise lines, 3 SL-G01..G03 chambers, NAC patch active (248 + 34), 23 / 23 conversions, 3 rack parts, 21 research items unique |
+| `stellarCircuits=false` | 309 | 452: 363 new, 64 changed-GT, 25 removed; Circuits 27 | no ore names, no SL-X, no SL-N, no rack parts; the 23 real -> fake conversions removed; the raise still runs (it is its own switch) |
+| `nacCircuitComponents=false` | 341 | 484: 395 new, 64 changed-GT, 25 removed | no SL-N; the 34 components still exist; conversions removed, fake -> real kept |
+| `raiseStockSpecialCircuits=false` | 364 | 495: 60 changed-GT | "SL-G10..G13: 0 recipes changed"; Piko 4,000, Quantum 8,000, Bud 4,000, Planck 12,000 t |
+| `replaceTecTechEyeOfHarmony=false` (left by B-135) | 364 | 493: 16 changed-GT, 1 removed | no SL-G01..G03: Resonance Chambers II-IV keep their stock foils, one recipe each |
+
+- `/btsrecipes circuits`: PASS in every section on every boot (judged against the boot's own flags).
+- `/btseye gates`: compression T1-T9 CLEAN, 0 P4 parts break the rule, circuits audit 0 problems, no SL card names one
+  of our circuit items (with `stellarCircuits=false`: "nothing to check").
+- `/btsquests`: 105 quests added, 66 / 66 pack edits applied, every chapter `[ok]`; `/btsquests verify` 153 / 155, the
+  two known `eternalsingularity` metas (B-92 item 7). Every flag flip re-installed the book ("config changed") with
+  progress restored. With `replaceTecTechEyeOfHarmony=false`, 22 Eye edits switched off; because BetterQuesting loads
+  the pack's default book on every start here, most of their quests were already stock and were left as they were
+  (B-95's drift handling).
+- The world kept everything across the flag flips: the three Mainframes in the bench chest, and a `BTS_SiderealMainframe`
+  sitting in a NAC output conveyor (the patch stays active with either flag off).
+
+**The whole chain in real GT machines** (new bench `/btsrecipes chain`, see the build doc). One Mainframe of each family,
+under `/btswarp 20`, headless and again in the client:
+- **Sidereal Mainframe:** 21 recipe runs (EBF 1, cutter 2, engraver 1, Circuit Assembler 8, Assembler 2, Assembly Line
+  7), 4,206 game ticks, 10 s real. Store afterwards: 15 Stellar Wafers, nothing else.
+- **Empyrean Mainframe** (it eats a Sidereal Mainframe made on the way): 62 runs, 17,412 game ticks, 43 s real.
+- **Omega Mainframe** (eats an Empyrean, which eats a Sidereal): 109 runs, 50,722 game ticks, 126 s real.
+- Matter consumed for the three matches the spec's §2.5: Raw Star Matter 5,500 L, ESPM 9,102 L, White Dwarf Matter
+  108 L, Hyperdense Stellar Mixture 100 L, Black Dwarf Matter 18 L. The costs doc §15.5 has the table.
+- Data sticks were written with GT's own `AssemblyLineUtils` (what the Research Station writes); the Research Station
+  itself was not run (it needs a Quantum Computer). Its nine pages are in NEI with the §2.4 numbers.
+- **Our Mainframe in a stock recipe's tier slot:** GT's "Mega Ultimate Buck Converter" (2x any UMV circuit) ran in the
+  UMV Assembling Machine with 2 Sidereal Mainframes, and "Extended Mega Ultimate Buck Converter" (2x any UXV) with 2
+  Empyrean Mainframes; both made their output. No stock Assembler recipe within UMV takes a MAX circuit (the lookup check
+  covers Omega in the Field Generator UXV and the MAX wrap).
+- **The NAC:** `/btsrecipes nac build` + `run SL-N15`: the Assembly Matrix made 1 x `BTS_SiderealMainframe` from our
+  processed components (headless and in the client).
+
+**In the client** (scale 2-3, 1920 x 1080; every shot looked at):
+- The rig (AL, chest, the three UMV single blocks, HILE, EBF) idle and running; the Assembly Line's GUI.
+- The chest with the three Mainframes, each tooltip: tier line, "counts as a ... circuit in every recipe that takes any
+  ... circuit", the matter it is printed on, the rack numbers (280 / 11 / 10,000; 380 / 7 / 10,500), where it is made.
+- The Assembling Machine after the stock recipe: the Mega Ultimate Buck Converter in its output.
+- NEI: the Stellar Boule on the EBF (12,600 K, Hypogen) and the Helioflux Melting Core; the Sidereal and Empyrean wafer
+  engravings (two fluids, 36 L WDM + 250 L ESPM, cleanroom); the Sidereal Processor on the Circuit Assembler; the Sidereal
+  and Omega Mainframes on the Assembly Line (Omega: 250 s at UMV, 629 G EU); the Research Station page (1,536,000
+  computation, 2,048 /s); the QC Components page (280 / 11 / 10,000); the Sidereal Mainframe's NAC Assembly Matrix page
+  (100 s, UMV, casing UEV); its usage (41 shaped crafts, 5 Assembler, 20 Condensate, 23 Assembly Line recipes); **the
+  raised Piko** (500 s, two casings, four boards, two Pico CPUs, 64-128 of every part, 4,608 / 16,000 / 2,304 L) and
+  **the raised Planck** (1,500 s, one Planck CPU and one Calabi-Yau Manifold, the rest doubled).
+- The NAC complex and its Assembly Matrix GUI ("Connected to Main Complex").
+
+**Fixes (committed).**
+1. **The NAC route sat in group "Other"** in `/btsrecipes` (its registration line "nac" was not mapped). Now group
+   Circuits: 74 rows (32 SL-X, 4 SL-G, 38 SL-N objects: each matrix and board recipe has a lookup recipe and an NEI
+   page), Other 0. The dump's config block now also shows `nacCircuitComponents` (`3de0ad2`).
+2. **The circuit tooltips repeated the item name** on their tier line ("MAX circuit · Omega Mainframe" right under
+   "Omega Mainframe"). The line now names the family: "MAX circuit · Omega family" (`11a6621`, all twelve).
+
+**Seen, not changed.**
+1. **The two-fluid engravings need a multiblock.** SL-X05 (WDM + ESPM) and SL-X06 (BDM + HSM) cannot run in a
+   single-block Laser Engraver (one fluid slot); GT's Hyper-Intensity Laser Engraver (or any multi with two input
+   hatches) runs them. At UMV that is normal play. Alternative if you want single blocks to work: fold the second fluid
+   into the wafer (an extra step). My suggestion: leave it, and say "multiblock engraver" in the Empyrean / Omega quests.
+2. **The raise runs with `stellarCircuits=false`.** The two switches are independent (spec §7.1), so a server that turns
+   our circuits off still pays 2.5x for Piko / Quantum / Planck unless it also turns the raise off. Suggestion: keep
+   them independent (a server may want the raise alone), and add one sentence to the `stellarCircuits` config comment.
+3. **The NEI recipe page of any of our circuits also lists a Forming Press recipe.** That is the pack's generic "Any UHV
+   / UMV ... Circuit" alias of the ore name, shown for every circuit in it, stock ones included. Not ours.
+4. **GT's rain hazard.** The first warped run set the uncovered rig on fire; a Circuit Assembler and the debug energy
+   hatches exploded (GT's `explosions.log`: "set to fire due to rain"). Normal GT behaviour; the bench now keeps the
+   weather clear. One early headless run also ended with one Sidereal Assembly too many in the bench's store; that run
+   had fires mid-recipe, and no later run (four, two of them in the client) repeated it.
+5. Bench-built machines have no owner, so opening their GUI logs GT's power-fail tracker NPE (as in B-116 / B-119); the
+   GUI opens.
+
+**Not covered.** A real Research Station run (data sticks were scripted); the questbook pages in the client (B-134 checked
+the saved database); `stellarCircuits=false` in a client (the NEI hiding and "Disabled by config" tooltip are
+client-side).
 
 ## Where the old question numbers went
 
