@@ -26,7 +26,7 @@ Most important first. "Recommended" is what we would build if you say nothing. N
 | 1 | The window bands made the Kerr T1 about a third cheaper in Infinity. Win it back? | Yes: the mirror-backing and mirror recipes (SL-P02 / SL-P03) make 1 block per craft instead of 2, which puts the drum at about 113 % of its old price | B-86, open 1 |
 | 2 | The Kerr Density Upgrade still installs on a plain right-click. Your ruling was milestones + an install run (Q-10); D-49 replaced that for the Eye only | Build it the Homogeny's way (core in escrow, an Install button, a run that pauses on low power) with B-1's Kerr numbers: hold 64 SM for 30 minutes in total, then a 10-minute offline run costing the upgrade and 9,216 L molten SpaceTime | A-2, B-1 |
 | 3 | Kerr "Auto": a Collapser dropped in a bolt bus collapses the hole within a second, so the GUI's two-click Collapse means little while Auto is on | Auto acts on Seeds only (evaporation recovery keeps working); collapsing is the button, OpenComputers or the Directive Hatch | B-57 |
-| 4 | Resonance Chamber III (the Eye T5 gate) still has two recipes in NEI: GT's (Black Dwarf Matter foil) and our SL-P33 (White Dwarf Matter foils) | Rewrite GT's in place, as you chose for chamber II (SL-G01) | B-83, item 1 |
+| 4 | ~~Resonance Chamber III (the Eye T5 gate) still has two recipes in NEI~~ | **Settled** (rewrite in place): SL-G02 | B-135 |
 | 5 | Magnetar Merger: the imprint band is +60..+90, but above +70 the field is Critical, so only +60..+70 survives the 120 s hold | Keep as built (the Directive's Agent bit at Π > +66, a 1 unit/s Agent valve during the merger) and re-check after playing T6. The alternatives change the merger's maths: narrow the band to +60..+70, or no Integrity drain inside the band | B-71 fix 1; B-62 "Not changed" |
 | 6 | Starting the Magnetar Merger (the Magnetar chart in while Sirius B batches) is recorded as the "Last failure" | Record it as an event, not a failure, when the next tier's transition begins | B-71 "Seen, not changed" |
 | 7 | A silo socket holding the wrong hatch (e.g. a Crafting Input Buffer in the feedwater socket) drops the silo with no error naming the cell | A status line that names the socket: "Feedwater socket holds a Crafting Input Buffer: use a plain Input Hatch" | B-32 |
@@ -43,7 +43,7 @@ Most important first. "Recommended" is what we would build if you say nothing. N
 | 18 | Everything else that ends "Suggestion: as built" and has no ruling | Accept as built unless you object: B-5, B-7, B-8, B-9, B-11, B-14..B-17, B-19, B-20, B-26, B-27, B-31, B-35..B-37, B-45..B-54, B-62, B-64, B-66..B-68 (judgement calls), B-70, B-74..B-78, B-87, B-108 | each entry |
 | 19 | Reality Diffraction, Reality Refab and the Homogeny T3 are built machines but their quests are still "(planned)" checkboxes, because the `realityRefab` flag is off (since P4 only White Hole Matter, Eye T9, is missing; "Riding the Rift", 48194, waits with them) | Keep the checkboxes until P4/P5 make the inputs; until then, give their quests a variant of the placeholder note: "Built, but its inputs come from Eye T8/T9 (a later update)" | B-93, question 3 |
 | 20 | A plus-signed decimal ("+0.5", "+0.15") can still break after its point at a line end: Java's line breaker splits it, 6 places in the Eye T4-T6 trims | Accept (rare, width-dependent); or write the trims without the plus sign | B-93, question 2 |
-| 21 | Resonance Chamber IV (the Eye T8 gate) has two recipes in NEI: GT's (MHDCSM foil) and our SL-P40 | Rewrite GT's in place under the same flag, with chamber III (question 4) | B-110 |
+| 21 | ~~Resonance Chamber IV (the Eye T8 gate) has two recipes in NEI~~ | **Settled** (rewrite in place): SL-G03 | B-135 |
 | 22 | The intake cap at T7 / T8 buffers tens to hundreds of G L of hydrogen and helium (companions, planets mode) | Keep B-108's 20 cycles / 2 runs rule; shorten the companions' window if a shared network still starves | B-110 |
 | 23 | Eye T7 / T8 from the front at eye level: the window shows the galaxy's core and inner arms (\|x\| ≤ 10), but its outer arms (to r 16 / 19) stand behind the T6 rim and the arm blades | Keep the opening at \|x\| ≤ 10: wider would cut the arms and the rim out of the T4-T6 Eye too, and the near-flat disc (8° tilt) reads best from above anyway | B-114 |
 | 24 | The time warp `/btswarp` (op only, cheats): ship it in release jars? | Yes, op only like the other benches: it changes nothing for a player who does not type it and is a real aid for testing a rig | B-117 |
@@ -54,6 +54,8 @@ Your answers, newest first. Quotes are your words.
 
 | Topic | Your answer | What was built |
 |---|---|---|
+| Resonance Chambers III and IV [open questions 4 and 21; B-83, B-110] | Rewrite GT's recipes in place under the same flag, like chamber II (B-29) | SL-G02 / SL-G03 rewrite GT's recipes at load-complete; SL-P33 / SL-P40 retired to fallbacks; one recipe per chamber in NEI (B-135) |
+| A Magnetar Collapse begun with a quasar too weak to cancel the shock [B-118] | "Warn, allow" | The countdown line stays; a red row above Begin and in the Galaxy panel when the linked quasar's peak is under 13.5 Bu/t; Begin still works (B-135) |
 | UXV parts and circuits (D-45; B-72 item 1, B-84; brief item 22a superseded item 20) | First "Brainstorm page first" and, for the playtest jar, "Ship UMV stopgap". Then, on `designs/docs/uxv-circuits.md`: Q-U1 "Both", Q-U2 "Empyrean", the above-MAX tier "Omega" (not Apotheosis), Q-U9 "The Eye's live star"; the other Q-U items as recommended | In the jar: the UMV stopgap (B-72 for SL-B70 / B80, B-84 for SL-H10). Next: the Empyrean circuit tier before MAX (Phase U1, Grades I-II, which unblocks T5 / T6 and retires the stopgap), then U2 (Grade III, the Godforge re-key), on master after the playtest run and before P4 merges |
 | Generator upgrade path [B-30; B-29's alternative] | "Add an upgrade path" | SL-U00..U48 and the Retrofit Kits (B-83) |
 | Resonance Chamber II [B-29] | "Rewrite GT's in place" | SL-G01 rewrites GT's recipe at load-complete; SL-P39 retired (B-83) |
@@ -6338,6 +6340,77 @@ casing: the quests say our circuits fill any slot of their tier and are far chea
    matching every other quest of ours in those chapters.
 6. Not done here: the quests have not been looked at in a client (the playtest / film units do that); flag-off boots
    for `stellarCircuits` are C7's.
+
+### B-135 Answers: the weak-quasar row (B-118) and Resonance Chambers III / IV in place (Q4 / Q21) [circuits branch, built + test]
+
+**What you said.** B-118, a Magnetar Collapse begun with a quasar whose stream cannot cancel the shock: "Warn, allow".
+Open questions 4 and 21: rewrite GT's Resonance Chamber III and IV recipes in place under the same flag as chamber II
+(B-29).
+
+**Built: the weak-quasar row.**
+- On a lit magnetar waiting for the Magnetar Collapse (PENDING, no transition yet), the Eye works out the linked
+  quasar's **peak**: a purge at full flux, `QuasarParams.peakStream` = 3.5 x G0 x Y_q at the quasar's current G0 and
+  Y_q. (After a purge the disc's sawtooth restarts at 0.5 x G0 x Y_q, and the eruption adds 3 x G0 x Y_q x flux / 100
+  for 3 s.) The collapse assist sends J1 all to the Eye on the cue, so this is the most the Eye can get on the collapse
+  second, before any throat cap. With no link the peak is 0.
+- The need is the countdown line's number, `MagnetarCollapseOverlay.fullCancelBu` = D7 + shock / 10 = **13.5 Bu/t** at
+  the adopted +120. The scanner line "13.5 Bu/t on the collapse second cancels it all" now reads the same helper.
+- When the peak is under the need:
+  - the READY view gets a red checklist row above Begin: "Quasar peak for the collapse = 4.4 / 13.5 Bu/t";
+  - its tooltip gives the shock that would land at that peak ("P +91 of +120"), says that above +100 the collapse
+    fails (the magnetar and its charge are lost, the core stays in escrow), and says Begin still works;
+  - the Galaxy panel gets a red line: "Quasar too weak: peak 4.4 of 13.5 Bu/t for the collapse".
+- Begin is not blocked, and the countdown line is unchanged. The Magnetar Collapse quest says this in one line.
+- Bench: `/btseye star <x y z> burst <Bu/t> [high] [halo] quasar <mean>` scripts the linked quasar (its purging mean
+  stream, the same reading `galaxy` gives). `gui galaxy` also prints the Galaxy panel's text.
+
+**Built: chambers III and IV in place.** `BTSRecipesSingularity.onLoadComplete` runs one shared rewrite per chamber,
+only with `replaceTecTechEyeOfHarmony=true`:
+- SL-G01, Resonance Chamber II: 1 White Dwarf Matter foil becomes 2 SpaceTime foils. Same result as before; it now
+  uses the shared rewrite.
+- **SL-G02**, Resonance Chamber III: 1 Black Dwarf Matter foil becomes 2 White Dwarf Matter foils (SL-P33's inputs).
+- **SL-G03**, Resonance Chamber IV: 1 MHDCSM foil becomes 2 SpaceTime foils, and 1,500 L Entangled Ergomatter joins as
+  the fourth condensate (SL-P40's inputs). GT's map keeps condensates in the recipe's `CONDENSATE_INPUT` metadata, which
+  NEI and the BEC I/O nodes read, so a new, longer array is stored there. The ledger's snapshot keeps the original.
+- Each swap happens at the foil's own input index, so its nanite tier stays. The map's lookup is rebuilt. Each step
+  adds a changed-GT row to `/btsrecipes` (group Eye) and one boot log line.
+- SL-P33 and SL-P40 keep their bodies only as fallbacks for when no GT recipe is found (the SL-P39 pattern).
+- `/btseye bec` now lists every chamber recipe with a lookup check.
+
+**Checks.**
+- `spotlessApply compileJava` green.
+- Headless `runServer` (port 25631, fresh flat world `circuits-ans`; level-name set back to `circuits-c1` afterwards):
+  - `Recipe registration complete: 364 registered, 0 skipped`. C6 had 366: SL-P33 and SL-P40 no longer register.
+  - The three SL-G01..G03 log lines appear.
+  - `/btsrecipes status`: total 499, changed-GT 64.
+  - 823 exceptions in the log, the same stock GT noise as the C6 boot.
+- `/btseye bec` (what NEI lists, by output): Resonance Chambers 1, 2, 3 and 4 each have **1** Condensate Assembler
+  recipe, and the map's lookup finds each one.
+  - III: 2x Emitter (UIV), 2x Shirabon Rod, 2x White Dwarf Matter Foil, 1x Hexanite Plate; 2,304 / 1,152 / 3,000 L
+    condensates.
+  - IV: 2x Emitter (UMV), 2x SpaceTime Rod, 2x SpaceTime Foil, 1x Eternity Plate; 3,456 / 1,728 / 4,000 L condensates
+    plus 1,500 L Entangled Ergomatter.
+- `/btseye gates`: compression T1-T9 all CLEAN (T5 / T6 through the Refined chamber, T8 / T9 through the Resplendent
+  chamber). P4 audit: "Resonance Chamber IV (gate Eye T8): CLEAN".
+- Weak-quasar row on a real Eye:
+  - Setup: a T7-band Eye built by `/btseye t7 23000 100 0`; unlocked T6; magnetar lit; milestones done; Intergalactic
+    Upgrade Core in escrow; charge in; Triangulum in the slot; `burst 3 0.5 0 quasar 1.0` (peak 4.38).
+  - `gui galaxy` printed `[READY]`, then `CHECK: [X] Quasar peak for the collapse = 4.4 / 13.5 Bu/t` above
+    `NOTE: Begin: Magnetar Collapse`, and the Galaxy panel line.
+  - With `quasar 8` (peak 35), neither the row nor the line appeared.
+  - Back at 1.0, `begin` started the collapse ("Magnetar Collapse begun"). The scanner's countdown line still read
+    "... 13.5 Bu/t on the collapse second cancels it all".
+
+**Judgement calls (no decision needed unless you disagree).**
+1. **The peak is an upper bound**: a perfectly timed purge at full flux, all of it to the Eye, no throat cap. On the
+   live rig a 136 SM quasar delivered 7.8 Bu/t against a peak near 11 (B-118). So the row fires only when even a
+   perfect purge cannot cancel the shock, and it never warns wrongly. A quasar just above the line can still leave some
+   shock.
+2. **The row shows only on the READY view** (and in the Galaxy panel while the magnetar is PENDING), not in the PENDING
+   checklist, so the "n of m" count stays the transition's own conditions.
+3. Not done: nobody has looked at the row in a client (the film / playtest units will). No
+   `replaceTecTechEyeOfHarmony=false` boot was run (C7 does the flag-off boots). With the flag off, nothing here
+   registers or rewrites, as before.
 
 ## Where the old question numbers went
 

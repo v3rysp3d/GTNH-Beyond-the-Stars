@@ -72,9 +72,11 @@ MTE ids 28100-28139 are still free in RC-2 (enum and bytecode scan).
 - **Gate audit** (WDM ruling, costs doc §9, B-29). RC-2's tier 1-3 compression generators (Eye T2-T4 gates) still
   need White Dwarf Matter, through the Resonance Chamber II they take (1 / 4 / 16, one WDM foil each). New
   **SL-G01** (B-29 settled 2026-10-13, "Rewrite GT's in place"): GT's own Condensate Assembler recipe for that chamber
-  is rewritten at postInit to take 2 SpaceTime foils in place of the WDM foil (only with
+  is rewritten at load-complete to take 2 SpaceTime foils in place of the WDM foil (only with
   `replaceTecTechEyeOfHarmony=true`), so NEI shows one recipe; **SL-P39** (the separate recipe it replaces) is retired
-  and registers only if no GT chamber recipe is found to rewrite. **SL-P30..P32 are retired**: RC-2 prices the
+  and registers only if no GT chamber recipe is found to rewrite. **SL-G02 / SL-G03** (B-135, Q4 / Q21) do the same
+  for Resonance Chamber III (2 White Dwarf Matter foils for the Black Dwarf Matter foil; retired SL-P33) and IV (2
+  SpaceTime foils for the MHDCSM foil plus 1,500 L Entangled Ergomatter; retired SL-P40). **SL-P30..P32 are retired**: RC-2 prices the
   generators itself and the ruling keeps those costs. The tier upgrade path is back on RC-2's terms (B-30 settled
   2026-10-13, "Add an upgrade path"; B-83): **SL-U00..U48** in `BTSRecipesGeneratorUpgrade` turn a tier t-1
   compression / Time Dilation / Stabilisation generator into tier t in the Condensate Assembler, keeping its Kerr
@@ -526,21 +528,23 @@ Eye reaches it): Q-3.
 | SL-P28 | *retired by ruling 11a* (was Reinforced Temporal Structure Casing ×4): RC-2's Condensate Assembler recipe outputs ×32 instead (SL-B02) | | | | | |
 | SL-P29 | TecTech Infinite SpaceTime Energy Boundary Casing ×8 (gated) | ASM | wireGt16 SuperconductorUMV ×1, plateDense Neutronium ×8, plateDense CosmicNeutronium ×8, Emitter_UIV ×1 | SpaceTime molten 1,152 | RECIPE_UMV | 1,200 |
 | SL-P30..P32 | *retired in the RC-2 port* (were research-station "upgrade the compression generator" recipes, B-28) | | | | | |
-| SL-P33..P38 | *reserved* by the D-49 build plan (P33/P34: conditional Eye T5/T6 gate recipes, whose §14 post-port audit is answered by costs doc §9.4; P35..P38: Star Chart: Sirius B, its reclaim, Star Chart: Magnetar, Stellar Ignition Charge) | | | | | |
+| SL-P33..P38 | *reserved* by the D-49 build plan (P33/P34: conditional Eye T5/T6 gate recipes, whose §14 post-port audit is answered by costs doc §9.4; P35..P38: Star Chart: Sirius B, its reclaim, Star Chart: Magnetar, Stellar Ignition Charge). *SL-P33 (the Resonance Chamber III with 2 WDM foils) retired 2026-10-14 (B-135): now only the fallback of SL-G02, GT's own recipe rewritten in place with the same inputs* | | | | | |
 | SL-P39 | *retired 2026-10-13 (B-29 settled): now only the fallback of SL-G01, GT's own recipe rewritten in place with the same inputs* MetaMaterial Resonance Chamber II (gated; RC-2 gate audit, B-29) | Condensate Assembler (`TecTechRecipeMaps.condensateAssemblingRecipes`), nanite tiers SixPhasedCopper / Silver / Gold / Silver | Emitter_UEV ×2, rod Hypogen ×2, **foil SpaceTime ×2** (GT's recipe: foil WhiteDwarfMatter ×1), plate ProtoHalkonite ×1 | entangled Chromatic Glass ×12, Infinity ×6, Boundless Cosmic Solder ×2 (condensate units, as GT's) | RECIPE_UIV | 6,000 |
 
 SL-P20 is reserved and unused. Keep the ID gap; do not renumber. Each star chart's fluid is the previous tier's
 product, so a chart cannot be crafted before its tier is reachable. SL-P26 registers only when
 `Config.interimBlackDwarfAtEyeT4` is true. SL-P29 (and the retired SL-P27/P28) come from the cost audit
 ([`singularity-ladder-costs.md`](singularity-ladder-costs.md) §6, #3-#4) and always register, because our Eye needs
-them either way (B-26). TecTech's own recipes for those blocks (Condensate Assembler in RC-2) stay. SL-G01 (the
-in-place chamber rewrite that retired SL-P39) and SL-U00..U48 (the generator upgrade path, B-83) run only when
+them either way (B-26). TecTech's own recipes for those blocks (Condensate Assembler in RC-2) stay. SL-G01..G03 (the
+in-place chamber rewrites that retired SL-P39, SL-P33 and SL-P40) and SL-U00..U48 (the generator upgrade path, B-83) run only when
 `Config.replaceTecTechEyeOfHarmony` is true: with TecTech's Eye kept, WDM has its stock source and the 1:1 gate is not
 ours.
 
 | ID | What | Where |
 |---|---|---|
-| SL-G01 | GT's Resonance Chamber II: 1 White Dwarf Matter foil -> 2 SpaceTime foils, same index (nanites and condensates untouched) | `BTSRecipesSingularity.compressionGateParts`, postInit |
+| SL-G01 | GT's Resonance Chamber II: 1 White Dwarf Matter foil -> 2 SpaceTime foils, same index (nanites and condensates untouched); fallback SL-P39 | `BTSRecipesSingularity.onLoadComplete`, load-complete |
+| SL-G02 | GT's Resonance Chamber III (compression tiers 4-5, Eye T5 / T6 gates): 1 Black Dwarf Matter foil -> 2 White Dwarf Matter foils, same index (Q4 / Q21 settled 2026-10-13, "rewrite in place", B-135); fallback SL-P33 | same |
+| SL-G03 | GT's Resonance Chamber IV (compression tier 8, Eye T8 gate): 1 MHDCSM foil -> 2 SpaceTime foils, same index, plus 1,500 L Entangled Ergomatter as the fourth condensate (the recipe's `CONDENSATE_INPUT` metadata) (B-135); fallback SL-P40 | same |
 | SL-U00 | Field Generator Retrofit Frame x2: 1 Hexanite frame, 4 SpaceTime plates, 1 UMV circuit, 144 L molten Infinity; 20 s UIV (Assembler) | `BTSRecipesGeneratorUpgrade` |
 | SL-U01..U08 / SL-U11..U18 | Spacetime Compression / Time Dilation generator tier t-1 -> t: the old generator + what GT's tier-t recipe takes more of than tier t-1 (items and condensates; a changed item in full); GT's tier-t EU/t and duration | derived from GT's recipes at postInit |
 | SL-U21..U28 | Stabilisation generator tier t-1 -> t: the old one + a Compression and a Time Dilation Retrofit Kit of tier t + the stabiliser's own difference | same |
@@ -2283,9 +2287,9 @@ pre-P4 builds stay formed.
 | SL-Q24 / Q25 | Star Chart: Triangulum / Milky Way | Condensate Assembler | |
 | SL-Q26 | Eternity on Ergomatter | load-complete rewrite | catalyst 9,216 L, Timepiece 4,608 L Ergomatter |
 | SL-Q27 / Q28 | NEI pages | `QuasarRecipeMaps.QUASAR` / `THERMALISER` | fake recipes |
-| SL-P40 | Resonance Chamber IV | Condensate Assembler | SpaceTime foils + 1,500 L Entangled Ergomatter |
+| SL-P40 | *retired 2026-10-14 (B-135): now only the fallback of SL-G03, GT's own recipe rewritten in place* Resonance Chamber IV | Condensate Assembler | SpaceTime foils + 1,500 L Entangled Ergomatter |
 
-SL-P40 and SL-Q26 run only with `replaceTecTechEyeOfHarmony`. `BTSRecipesReality.ETERNITY_BEFORE_T10` =
+SL-G03 (which retired SL-P40) and SL-Q26 run only with `replaceTecTechEyeOfHarmony`. `BTSRecipesReality.ETERNITY_BEFORE_T10` =
 `BTSRecipesQuasar.eternityBeforeT10()`; `eternitySwapped()` reports SL-Q26's outcome after load-complete.
 
 **Dev-server check** (this worktree, `runServer` on port 25581, `/btseye gates`): `Recipe registration complete: 308

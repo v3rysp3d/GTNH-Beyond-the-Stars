@@ -481,7 +481,7 @@ Neutronium; nanite tiers up to Transcendent (t0), Six-Phased Copper (t1-3), Whit
 | T2 | Primitive (t1) | Boundless Cosmic Solder (RSM, T1) ✔; **Resonance Chamber II: 1 White Dwarf Matter foil (T4)** ✘ | **loop**, fixed by SL-P39 |
 | T3 | Stable (t2) | as T2, 4 chambers ✘ | **loop**, fixed by SL-P39 |
 | T4 | Advanced (t3) | as T2, 16 chambers: WDM is T4's own product ✘ | **loop**, fixed by SL-P39 |
-| T5 | Superb (t4) | White Dwarf nanites (T4) ✔; **Resonance Chamber III: Black Dwarf Matter foil (T5)** ✘ | **loop**, fixed by SL-P33 (BDM-free Resonance Chamber III; `/btseye gates` CLEAN, B-59) |
+| T5 | Superb (t4) | White Dwarf nanites (T4) ✔; **Resonance Chamber III: Black Dwarf Matter foil (T5)** ✘ | **loop**, fixed by SL-G02 (GT's Resonance Chamber III rewritten in place with 2 WDM foils, B-135; was SL-P33; `/btseye gates` CLEAN, B-59) |
 | T6 (P4) | Exotic (t5) | BDM (T5) ✔, Creon ✔ | clean |
 | T7 (P4) | Perfect (t6) | BDM ✔, SpaceTime ✔ | clean |
 | T8 (P4) | Tipler (t7) | Black Dwarf nanites (T5) ✔; **Resonance Chamber IV: MHDCSM foil (T10), Eternity plate** | **loop**; P4/P5 (D-48 moves Eternity onto Ergomatter, T7; MHDCSM still needs Universium) |
@@ -543,17 +543,17 @@ figures in §3.2 (the audit's model script is not kept); the arithmetic is in th
 |---|---|---|---|---|
 | T5 | Galactic Shell Plating (`T`) | 5,065 | SL-P17 ASM ×16 (250 L HSM) | ✔ |
 | T5 | Infinite Spacetime Energy Boundary (`J`) / Quantum Glass (`Z`) | 762 / 404 | SL-P29 ×8 / TecTech | ✔ |
-| T5 | Compression generators, TecTech tier 5 (Superb, meta 4), all 188 `W` cells | 188 | RC-2 BEC: Resonance Chamber **III** ×1, White Dwarf nanites, UXV ×5, a Kerr controller | ✔ with **SL-P33** (the chamber with 2 WDM foils for GT's BDM foil: BDM is T5's own product, B-35) |
+| T5 | Compression generators, TecTech tier 5 (Superb, meta 4), all 188 `W` cells | 188 | RC-2 BEC: Resonance Chamber **III** ×1, White Dwarf nanites, UXV ×5, a Kerr controller | ✔ with **SL-G02** (GT's chamber rewritten in place with 2 WDM foils for its BDM foil; was SL-P33 until B-135: BDM is T5's own product, B-35) |
 | T5 | Subspace Cooling Core (the First Cooling's core) | 1 | SL-E05 AL (WDM 147,456 L, DSSF 256,000 L) | ✔ (WDM: Eye T4) |
 | T5 | Star Chart: Sirius B | 1 | SL-P35 (WDM 1,000 L) | ✔ |
 | T6 | Galactic Shell Plating (`T` + the 4 `g` rim sockets) | 7,290 | SL-P17 | ✔ |
 | T6 | Boundary / Quantum Glass | 3,159 / 753 | SL-P29 / TecTech | ✔ |
-| T6 | Compression generators tier 6 (Exotic, meta 5) | 188 | RC-2 BEC: Resonance Chamber III ×4, Creon, UXV ×6, a Kerr controller | ✔ (SL-P33 again; nothing T6 or later in it) |
+| T6 | Compression generators tier 6 (Exotic, meta 5) | 188 | RC-2 BEC: Resonance Chamber III ×4, Creon, UXV ×6, a Kerr controller | ✔ (SL-G02 again; nothing T6 or later in it) |
 | T6 | Magnetar Seed Core (the Magnetar Merger's core) | 1 | SL-E06 AL (BDM 36,864 L, Agent 64,000 L) | ✔ (BDM: Eye T5) |
 | T6 | Star Chart: SGR 1806-20 | 1 | SL-P37 (BDM 1,000 L) | ✔ |
 | T6 | Antipolarization Agent (upkeep) | per cycle | `BTSRecipesStellar` chain | ✔ |
 
-Gate audit (§9.4's rule): the tier-5 generator needs nothing first made at Eye T5 or later once SL-P33 replaces the
+Gate audit (§9.4's rule): the tier-5 generator needs nothing first made at Eye T5 or later once SL-G02 rewrites the
 BDM foil; the tier-6 generator needs BDM (T5) and nothing from T6. Both clean.
 
 ### 10.2 Totals per tier step (increments on the tier below)
@@ -885,7 +885,7 @@ divides it by its nanite count). Every number is PROPOSED (P4-26).
 | Quasar Seed, Superdense Ergomatter | Kerr T2 Compressor module | SL-Q09, Q23 | Kerr Densification |
 | Conduit Throat Mk I / II / III | conduit controllers' slot | SL-Q13, Q14 (BEC), Q15 (assembly line) | |
 | Intergalactic Upgrade Core, Supermassive Seed Core, Star Charts Triangulum / Milky Way | Eye T6 → T8 | SL-Q21, Q22, Q24, Q25 | Condensate Assembler |
-| Resonance Chamber IV (compression tier 8) | Eye T8 gate | SL-P40 | Condensate Assembler |
+| Resonance Chamber IV (compression tier 8) | Eye T8 gate | SL-G03 (GT's recipe rewritten in place; was SL-P40 until B-135) | Condensate Assembler |
 
 ### 14.2 Totals per machine (blocks only; controllers below)
 
@@ -917,4 +917,4 @@ T7 Eye) + Magnetar 2,304 L. Conduit Throat Mk III: Ergomatter 256k L.
   none) and serves the split T7/T8 rigs.
 - **No Eye product past its tier**: the dev-server gate dump (P4-34) passes every block, throat, core, chart and
   Resonance Chamber IV; Ergomatter appears only in T7 → T8 parts (Throat Mk III, the Supermassive core, the Milky Way
-  chart, SL-P40, the Superdense refinery and the Eternity catalyst).
+  chart, SL-G03 (was SL-P40), the Superdense refinery and the Eternity catalyst).

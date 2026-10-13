@@ -968,10 +968,10 @@ Heliocast Reinforcement, Hypercooler and T2 Exo-Foundry keep the BHC id as a pre
 | E | Pack id | Name (expected) | From | Ops | Progress |
 |---|---|---|---|---|---|
 | E20 | `7wI7VuLKRe6lqAJpuYKKJg==` | Tier 13 (UXV) | Endgame Goals | `move` UXV 24,144 (72); `replacePrereq` Magnetic Monopole Matter `U7Ta5d7PSii76sbIPbltlw==` → **48117**; `setDesc` §2.3 | keep |
-| E21 | `va9yzhTSSUWxgareXVIaXQ==` | T5: Superb | UMV | `move` UXV 180,72; `setPrereqs` [48117, E20]; `setDesc` (gates Eye T5; its RC-2 Black Dwarf chamber is replaced by SL-P33, so no BDM loop) | keep |
+| E21 | `va9yzhTSSUWxgareXVIaXQ==` | T5: Superb | UMV | `move` UXV 180,72; `setPrereqs` [48117, E20]; `setDesc` (gates Eye T5; its RC-2 Black Dwarf chamber is rewritten in place by SL-G02 (2 WDM foils; was SL-P33), so no BDM loop) | keep |
 | E22 | `HFpuUdRKS--dsQzGEvjW2w==` | T6: Exotic | UMV | `move` UXV 324,72; `setDesc` (gates Eye T6) | keep |
 | E23 | `bKW2YJfES6yvbes8JQRb0g==` | T7: Perfect | UMV | `move` UXV 756,72; `setDesc` (gates Eye T7) | keep |
-| E24 | `lU1caedNR6G6fdJqbivacw==` | T8: Tipler | UMV | `move` UXV 960,72; `setPrereqs` [E23]; `setDesc` (gates Eye T8; a note on SL-P40, the MHDCSM-free Resonance Chamber IV, QB-13) | keep |
+| E24 | `lU1caedNR6G6fdJqbivacw==` | T8: Tipler | UMV | `move` UXV 960,72; `setPrereqs` [E23]; `setDesc` (gates Eye T8; a note on SL-G03, GT's Resonance Chamber IV rewritten without MHDCSM (was SL-P40), QB-13) | keep |
 | E25 | `bPYTUdlkSCiRi0eDHHw7tw==` | Black Dwarf Matter | UMV | `move` UXV 168,252 (48); `setPrereqs` [48140]; `setDesc` §2.3 | keep |
 | E26 | `teFEMExsSEWHYV79M8gpHw==` | Refined Components | UMV | `move` UXV 156,336 | keep |
 | E27 | `AAAAAAAAAAAAAAAAAAAM4A==` | You Made It! | Endgame Goals | `move` UXV 24,420 | keep |
@@ -1408,7 +1408,7 @@ writes the filter against it.
 | QB-10 | Eye T1 gains Godforge T2 ("A Second Ring has Hit the Godforge") as a prerequisite (D-41) | E10 `addPrereq` | — |
 | QB-11 | Magnetic Monopole Matter dropping MHDCSM (D-48 proposal) is staged behind `eternityOnErgomatter`; the RC-2 Magmatter route (Godforge exotic module and upgrade costs) was not fully audited | — | Audit with the UXV swap. |
 | QB-12 | Pack edits are runtime-only; `DefaultQuests` pack files are never written | §4 | — |
-| QB-13 | T8: Tipler keeps its pack prerequisites (MHDCSM, Resplendent), so the Eye T8 gate sits behind Universium | **Done:** E24 sets its prerequisite to T7: Perfect; P4's SL-P40 makes Resonance Chamber IV without MHDCSM, and P4's gate audit finds compression T1-T9 clean (B-111 says so in E24's text) | GT's own chamber IV recipe still shows in NEI (B-110 question 1) |
+| QB-13 | T8: Tipler keeps its pack prerequisites (MHDCSM, Resplendent), so the Eye T8 gate sits behind Universium | **Done:** E24 sets its prerequisite to T7: Perfect; SL-G03 rewrites GT's Resonance Chamber IV without MHDCSM (was P4's separate SL-P40), and P4's gate audit finds compression T1-T9 clean (B-111 says so in E24's text) | settled by B-135: one chamber IV recipe in NEI, GT's, rewritten in place |
 
 ---
 
