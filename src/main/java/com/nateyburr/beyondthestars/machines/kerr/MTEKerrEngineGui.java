@@ -16,6 +16,7 @@ import com.cleanroommc.modularui.api.IPanelHandler;
 import com.cleanroommc.modularui.api.drawable.IDrawable;
 import com.cleanroommc.modularui.api.drawable.IKey;
 import com.cleanroommc.modularui.api.widget.IWidget;
+import com.cleanroommc.modularui.drawable.GuiDraw;
 import com.cleanroommc.modularui.drawable.ItemDrawable;
 import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.screen.RichTooltip;
@@ -653,6 +654,11 @@ public class MTEKerrEngineGui extends BTSControllerGui<MTEKerrEngine> {
                         final int i = fromSlider(v, max);
                         if (i != setpoint.getIntValue()) setpoint.setIntValue(i);
                     }))
+                    // GT's theme gives a slider no track (dev client round 1: only the handle showed)
+                    .background((IDrawable) (context, x, y, width, height, theme) -> {
+                        GuiDraw.drawRect(x, y, width, height, 0xFF373737);
+                        GuiDraw.drawRect(x + 1, y + 1, width - 2, height - 2, 0xFF8B8B8B);
+                    })
                     .size(w, 10))
             .child(
                 Flow.row()
