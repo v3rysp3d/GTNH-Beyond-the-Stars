@@ -1,5 +1,8 @@
 package com.nateyburr.beyondthestars;
 
+import com.nateyburr.beyondthestars.client.render.BTSShaders;
+import com.nateyburr.beyondthestars.client.render.KitSelfTest;
+import com.nateyburr.beyondthestars.client.render.RenderFrame;
 import com.nateyburr.beyondthestars.machines.eye.render.EyeStarRenderer;
 import com.nateyburr.beyondthestars.machines.eye.render.TileEyeStar;
 import com.nateyburr.beyondthestars.machines.kerr.KerrHoleRenderer;
@@ -21,10 +24,16 @@ public class ClientProxy extends CommonProxy {
     @Override
     public void init(FMLInitializationEvent event) {
         super.init(event);
-        // D-49: the Eye of Harmony's centre object, drawn with TecTech's star shader and textures. GT's resource-reload
-        // hook tells it to rebuild its shader and mesh (they are also built lazily on the first frame).
+        // Renders v2 render kit: every program (ours and TecTech's star shader for the Eye) is baked lazily and
+        // released
+        // on GT's resource-reload hook; the frame clock drives the LOD ranking and the dev GPU timer.
+        RenderInit.onResourceReload(BTSShaders::markReload);
+        RenderFrame.register();
+        // Dev-only render kit self test (-Dbts.render.selftest=true): a test panel in front of the camera.
+        KitSelfTest.register();
+
+        // D-49: the Eye of Harmony's centre object, drawn with TecTech's star shader and textures.
         ClientRegistry.bindTileEntitySpecialRenderer(TileEyeStar.class, new EyeStarRenderer());
-        RenderInit.onResourceReload(EyeStarRenderer::markReload);
 
         // KERR REDESIGN R4: the KEE's black hole, drawn by GT's BlackholeRenderer (docs/kerr-redesign.md §5).
         ClientRegistry.bindTileEntitySpecialRenderer(TileKerrHole.class, new KerrHoleRenderer());

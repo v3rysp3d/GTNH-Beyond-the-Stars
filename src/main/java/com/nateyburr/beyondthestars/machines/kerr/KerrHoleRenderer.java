@@ -7,6 +7,8 @@ import net.minecraft.tileentity.TileEntity;
 import org.lwjgl.opengl.GL11;
 
 import com.nateyburr.beyondthestars.Config;
+import com.nateyburr.beyondthestars.client.render.GpuTimer;
+import com.nateyburr.beyondthestars.client.render.RenderQuality;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -22,6 +24,10 @@ import gregtech.common.render.BlackholeRenderer;
  * passes is only used as a direction, which a uniform scale about the centre leaves unchanged. GT's
  * static shader state and resource-reload hook are shared; if its shader failed to compile, nothing is
  * drawn, exactly as for the Black Hole Compressor.
+ * <p>
+ * Render kit (renders v2 WP-0): the draw is timed by {@code GpuTimer} and asks {@code RenderQuality} for its detail
+ * tier; every tier draws GT's hole for now (the lensed v2 hole replaces it at L0-L3 in WP-1, and GT's render stays the
+ * fixed-function / low-quality path).
  */
 @SideOnly(Side.CLIENT)
 public class KerrHoleRenderer extends TileEntitySpecialRenderer {
@@ -42,11 +48,20 @@ public class KerrHoleRenderer extends TileEntitySpecialRenderer {
         final double cx = x + 0.5;
         final double cy = y + 0.5;
         final double cz = z + 0.5;
+        // the hole and its disc reach about 2.1 x the scale (TileKerrHole's render box)
+        RenderQuality.tier(tile, s * 2.1, Math.sqrt(cx * cx + cy * cy + cz * cz));
+        GpuTimer.begin("kerr");
+        final boolean glCheck = RenderQuality.glCheckBegin(tile);
         GL11.glPushMatrix();
-        GL11.glTranslated(cx, cy, cz);
-        GL11.glScalef(s, s, s);
-        GL11.glTranslated(-cx, -cy, -cz);
-        delegate.renderTileEntityAt(tile, x, y, z, partialTicks);
-        GL11.glPopMatrix();
+        try {
+            GL11.glTranslated(cx, cy, cz);
+            GL11.glScalef(s, s, s);
+            GL11.glTranslated(-cx, -cy, -cz);
+            delegate.renderTileEntityAt(tile, x, y, z, partialTicks);
+        } finally {
+            GL11.glPopMatrix();
+            RenderQuality.glCheckEnd(tile, glCheck, "the Kerr hole");
+            GpuTimer.end();
+        }
     }
 }

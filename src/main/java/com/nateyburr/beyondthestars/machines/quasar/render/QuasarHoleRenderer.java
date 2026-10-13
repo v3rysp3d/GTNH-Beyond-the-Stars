@@ -9,6 +9,9 @@ import net.minecraft.tileentity.TileEntity;
 import org.lwjgl.opengl.GL11;
 
 import com.nateyburr.beyondthestars.Config;
+import com.nateyburr.beyondthestars.client.render.GlSave;
+import com.nateyburr.beyondthestars.client.render.GpuTimer;
+import com.nateyburr.beyondthestars.client.render.RenderQuality;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -30,6 +33,10 @@ import gregtech.common.render.BlackholeRenderer;
  * </ul>
  * Everything is depth-tested with no depth writes, so the structure hides what is behind it and the bands never cut
  * each other. {@link Config#renderQuasar} off (or the machine's GUI switch, which removes the block) draws nothing.
+ * <p>
+ * Render kit (renders v2 WP-0): the draw is timed by {@link GpuTimer}, asks {@link RenderQuality} for its detail tier
+ * and saves / restores the GL state with {@link GlSave}; every tier draws this look for now (the v2 hole, ring and jets
+ * replace it at L0-L3 in WP-2, and this code stays the fixed-function / low-quality path).
  */
 @SideOnly(Side.CLIENT)
 public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
@@ -66,6 +73,20 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
         final double cx = x + 0.5;
         final double cy = y + 0.5;
         final double cz = z + 0.5;
+        // the whole quasar: the ring reaches r 62 (TileQuasarHole's render box)
+        RenderQuality.tier(tile, DISC_R0 + DISC_W, Math.sqrt(cx * cx + cy * cy + cz * cz));
+        GpuTimer.begin("quasar");
+        final boolean glCheck = RenderQuality.glCheckBegin(tile);
+        try {
+            draw(q, tile, x, y, z, cx, cy, cz, s, partialTicks);
+        } finally {
+            RenderQuality.glCheckEnd(tile, glCheck, "the quasar");
+            GpuTimer.end();
+        }
+    }
+
+    private void draw(TileQuasarHole q, TileEntity tile, double x, double y, double z, double cx, double cy, double cz,
+        float s, float partialTicks) {
         GL11.glPushMatrix();
         GL11.glTranslated(cx, cy, cz);
         GL11.glScalef(s, s, s);
@@ -78,7 +99,7 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
                 .getTotalWorldTime();
         final float t = now + partialTicks;
         GL11.glPushMatrix();
-        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+        final GlSave save = GlSave.capture();
         GL11.glTranslated(cx, cy, cz);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glDisable(GL11.GL_LIGHTING);
@@ -93,9 +114,7 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
             drawJet(q.getJetTop(), 1, t);
             drawJet(q.getJetBottom(), -1, t);
         } finally {
-            GL11.glShadeModel(GL11.GL_FLAT);
-            GL11.glDepthMask(true);
-            GL11.glPopAttrib();
+            save.restore();
             GL11.glPopMatrix();
         }
     }
