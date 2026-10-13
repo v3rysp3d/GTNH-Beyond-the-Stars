@@ -457,6 +457,18 @@ end
   10 units a second each, into plain trim hatches. ME stocking hatches in the gas sockets. f 1.0.
 - **Purge:** (Disc [4] AND NOT Galaxy Transition [8]) OR Galaxy Transition [4] → the quasar's Burst Control Hatch
   (Purge). That is one AND-NOT gate and one OR gate.
+- **The collapse cue's timing (P4-95, B-118).** Galaxy Transition [4] comes on 2 s before the collapse (overfeed
+  seconds 298 and 299, one rising edge); the hold [8] runs from T−80 s to T−3 s. Real wiring has hops: the Directive
+  Hatch emits a tick after the Eye's second, a cover or a wire carries it, the Burst Control Hatch latches the edge,
+  and the quasar purges on its own next second, whatever its phase against the Eye's. An eruption lasts 3 quasar
+  seconds, so any wiring that answers within about a second and a half lands it on the collapse second. Wireless is
+  fine: a GT Advanced Redstone Transmitter (Internal) on the Galaxy Transition hatch (output Bit 3) and a Receiver
+  (Internal) on the Burst Control Hatch, same frequency, is what the live rig fits.
+- **How much it cancels is the quasar's.** The collapse second needs D₇ + 12 = 13.5 Bu/t on the Eye to cancel the
+  whole +120 shock; an eruption gives about 3 × G0·Yq × Φ/100 on top of the stream. A fresh 64 SM hole with no spin
+  gives 1-2 Bu/t and cannot hold the collapse; the Stability Link milestone (normally hours of test fire) is what grows
+  the quasar first. A hole whose disc has not settled (just seeded, or its mass just set by a bench) gives far less
+  than its size suggests.
 - **Eye:** Trims, Status and Transition hatches as in §4 (stock-up on Status [1], charges on [2], the core on
   Transition [4], the chart on [1]); from T7 the one Space valve on Field [1].
 - **Junctions, all binary:** J1 = Field [2] / [1] (15 / 8 / 0), OR Galaxy Transition [4] → 15, OR Slots [8] → 15;
@@ -478,6 +490,7 @@ empty, the Eye's debug rig off. Nothing else was touched; the quasar grew by its
 | **T7 → T8** | The rig pushed the Milky Way chart; Begin; the first pass bound the nuclei; Galactic Merger COMPLETE in 1,920 s: **T8**, core consumed, 0 failures. |
 | **T8, the quasar growing 142 → 222 SM** | About 41,600 s with 0 failures; 76-85 % Resonant per stretch; 14 of 14 satellite crossings caught. The Mk I throats cap what reaches J1 at 24 Bu/t, so the growth does not flood the Eye. |
 | **Real redstone** | After a run the rig keeps acting in real time with redstone blocks against the two Burst Control Hatches; the Eye's bursts followed the bang-bang J1 (24 → 8.4 → 8.8 Bu/t a second apart) with the field Resonant. |
+| **The live collapse (B-118)** | The rig live under `/btswarp 60` on a real quasar, the cue on a GT wireless pair (above), 13 Eye / quasar sites in three fresh worlds, the quasar's second 3 to 19 ticks after the Eye's. In every collapse the purge landed on overfeed second 298 and the eruption was on the Eye on the collapse second. With the disc settled under the rig first (600 s): 136 SM 6.9 and 6.5 Bu/t (54 and 50 of 120 cancelled), 200 SM 14.9 Bu/t (all 120), 96 SM 3.2 then 5.9 Bu/t: every first collapse held, T7 unlocked at all four. Seeded and set to 96-256 SM just before: the first collapses failed on the unsettled disc's weak stream (0.8-3.2 Bu/t, the purge on time), a re-run held once it settled (4.7-16.6 Bu/t), T7 at all eight. A fresh 64 SM hole: 1.3 Bu/t, never. |
 
 What failed first, and was fixed (each is a question):
 

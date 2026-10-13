@@ -193,26 +193,33 @@ Refab (x 7150) by `/btshr`; the whole conduit rig (`/btsconduit rig 8000 100 400
 x 10000) and an unseeded quasar behind it (x 10000, y 100, z 4400). Chapters:
 
 1. **The Eye and its automation:** Rig C's walk-through, its supply opening and the star lighting itself under the
-   warp, the burn, the GUI with the scanner panel, the tier Eye grown band by band.
+   warp, the burn, the controller GUI (the kit, B-96; no scanner panels anywhere since B-118), the tier Eye grown band
+   by band.
 2. **Extraction:** Rig C's ME terminal with the Raw Star Matter rising cycle by cycle (warp x40), a card of what each
    tier makes.
 3. **The harder stars:** the climbing Eye under the live gate rig (`/btseye star ... liverig on`) and the warp, one
    transition per scene as the script sets each tier's milestones done: Mass Infusion, Shell Ignition, Core Collapse,
-   the neutron star (GUI and scanner: gauges, feed, trims), the First Cooling (the 7,200 s batch, warp x60 and a x10
+   the neutron star (GUI: gauges, feed, trims), the First Cooling (the 7,200 s batch, warp x60 and a x10
    time-lapse), the Magnetar Merger, the magnetar's Status hatch (Agent wanted) and flares, its ME network.
 4. **The Kerr:** Rig B's walk-through, seeded and climbing (warp x30), GUI, the Extractor Module running off the open
-   hole (input stocked by `/btskerr module ... x stock`), the tiers.
+   hole: its GUI opens first with the warp off, then `/btskerr module ... x stock 0 longest 16` (1,024 Stemcells, three
+   448-parallel runs). In the draft the stock went in before the camera arrived and, under the previous scene's x10
+   warp, the module had finished the whole batch by the time its GUI opened, so it read IDLE (B-118). Then the tiers.
 5. **The Homogeny and the Reality machines:** T1 mixing, the stirring ring by the projector's survival auto-place, the
-   milestone and core set by script and Install (600 s, warp x40), then Reality Diffraction and Refab idling with their
-   reasons (no BEC network in this world).
-6. **The Quasar and the Conduit:** seeding the galaxy Eye's quasar (`/btsquasar seed`), the conduit rig's quasar GUI,
-   inside its shell (hole, disc, a purge), the Wormhole Mouth and Junction GUIs, the crown's EU/t, the remote crown fed
-   through its receptor port.
-7. **Eye T7 and T8:** the Magnetar Collapse on the `galaxy` bench's lock-stepped quasar model (P4-95: on real redstone
-   the purge lands late), Triangulum, then the Galactic Merger on the real quasar with the live quasar rig
-   (`/btsquasar autorig <quasar> 0 eye <Eye>`), the Milky Way.
+   milestone and core set by script and Install (600 s, warp x40), then Reality Diffraction and Refab not running, with
+   their GUIs' checklists naming why (no BEC network with a Containment Field in this world; captions say so).
+6. **The Quasar and the Conduit:** seeding the galaxy Eye's quasar (`/btsquasar seed`; grown to 136 SM by script and
+   handed to the live quasar rig at once, so its disc has settled by chapter 7), the conduit rig's quasar GUI, inside
+   its shell (the camera stands in the open chamber around the hole, 24 blocks from it, then from under the disc plane
+   with the top jet rising: no Quantum Glass between it and the hole, which washed the draft's shot out), the Wormhole Mouth and Junction GUIs, the
+   crown's EU/t, the remote crown fed through its receptor port.
+7. **Eye T7 and T8:** the Magnetar Collapse on the real quasar under the live quasar rig (`/btsquasar autorig
+   <quasar> 0 eye <Eye>`; the collapse cue on a GT wireless redstone pair, 2 s ahead: P4-95, B-118), Triangulum, the
+   front window at eye level (a dolly from 132 to 98 blocks in front of the centre: the core and inner arms through the
+   rim's opening, B-114), then the Galactic Merger on the same quasar and rig, the Milky Way.
 8. **How to build one:** hints, survival auto-place, forming, NEI preview and recipe.
-9. **The quest book:** master's Tier 13 UXV, Tier 14 MAX and The Endgame chapters (`-Dbts.rec.questsdir`). UIV and
+9. **The quest book:** master's Tier 13 UXV, Tier 14 MAX and The Endgame chapters (on master the worktree's own
+   book; `-Dbts.rec.questsdir` still overrides it). UIV and
    UMV are the pack's own chapters (ours only adds quests to them), so a dev world without the pack's book cannot show
    them.
 

@@ -6,7 +6,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 1. **Open questions**: each open decision once, with the answer we recommend and where the detail is.
 2. **Settled**: everything you have answered, in your words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision from you.
-4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101 and B-105..B-116, the tidy pass's
+4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101 and B-105..B-118, the tidy pass's
    TQ-1..TQ-8, and P4's P4-01..P4-94 in Part E).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
@@ -157,6 +157,12 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
 - Controller GUI cleanup round 1 (branch `gui-clean`): every master GUI checked in a dev client against the mockups;
   12 fixes, among them the empty kit terminal (row clock overflow), the Refab lamp overlap and the Directive readout. [B-100]
 
+- ~~Merge the `showcase` branch (recorder v2, the time warp, the live rigs)~~: done; its B-108 is B-117. [B-117, B-118]
+- ~~P4-95: the live collapse purge lands late~~: fixed; the cue leads by 2 s and the live rig wires it with GT
+  wireless covers; every collapse on a real quasar under the live rig got its eruption on the collapse second. [B-118]
+- A BEC network in the showcase world (a TecTech BEC Storage, BEC Hatches, Diffraction's regions to the Refab) so
+  Reality Diffraction and Refab can run on camera; suggested as a `/btshr bench ... becnet` helper. [B-118]
+
 **To see in a client** (the headless dev server cannot): the hologram hints, a survival build from a real AE system,
 the NEI multiblock tab and its frame rate (a T6 Eye is 51,935 blocks), every GUI (Eye, KEE, modules, Directive Hatch,
 Homogeny, Reality), the round-4 and round-5 render verdicts, a real Condensate Assembler craft (the BEC parts, the
@@ -231,7 +237,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-101, B-105..B-116
+## Part B. Entries B-1..B-101, B-105..B-118
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -5588,6 +5594,118 @@ a real testing aid for anyone building a rig, and on a server only ops can use i
 
 ---
 
+### B-118 Merging showcase into master, the live collapse purge (P4-95), and the showcase scenes on the new GUIs [final showcase, built + test]
+
+**What was asked.** Merge the `showcase` branch (recorder v2, `/btswarp`, the live gate rig, `showcase2.shots`) into
+master; fix P4-95 (on a real quasar driven by real redstone the collapse-assist purge landed 1-2 s late, so the T6 ->
+T7 Magnetar Collapse failed) and film the collapse on the real quasar; find why the Kerr Extractor sat idle in the
+showcase world; give Reality Diffraction / Refab what they need or caption them honestly; re-frame the washed-out
+shot inside the quasar; use the new GUIs in the scenes; frame the Eye T7 / T8 front window (B-114).
+
+**The merge** (`git merge --no-ff showcase`, 4aa480d). Nine files conflicted, all resolved by keeping both sides
+(the merge commit lists them): master's `serverStarted` and the branch's `serverStopping` handlers, master's GUI-shot
+and questbook-shot harness lines after the recorder line, the bench usage strings with both sides' verbs, the
+recorder's settings hold plus the branch's master volume 0, and code both sides had moved (EyeNbt, the sensor hatch,
+the KEE). One semantic fix: `AutoRigEyeAE` called `EyeKit.socketRels`, which master moved to `BTSShapes`. The branch's
+B-108 ("ship /btswarp?") collided with master's B-108 (the intake cap) and is B-117 now (open question 24); P4-95
+keeps its number and cites B-117. `spotlessApply compileJava` passes.
+
+**P4-95: the cause.** Galaxy Transition [4] ("purge now") was on for the single overfeed second 299, for a collapse
+at 300. That lands the eruption on the collapse second only when the rig's action, the quasar's disc second, the
+conduit and the Eye's second all run inside one second, as the lock-stepped bench does. Live, each hop is its own
+tick and the quasar's second runs at its own phase against the Eye's. On top of that, the live rig acted at the start
+of the Eye's NEXT second on the code published the second before, so its redstone block reached the Burst Control
+Hatch a whole second late by construction, and the quasar purged after the Eye had already read the collapse second.
+
+**The fix (machines).**
+1. `GalaxyDirective`: the cue leads by 2 s. [4] is on for overfeed seconds 298 and 299 (`ASSIST_CUE` .. `ASSIST_LAST`,
+   one rising edge); the hold [8] runs 219-297; the early purge looks ahead to 298. An eruption lasts 3 quasar
+   seconds, so the collapse second sits inside it for any wiring that answers within about 1.5 s, and in the
+   lock-stepped bench it is the eruption's second second. The prototype (design repo `designs/quasar-p4-prototype.html`)
+   changed the same way; the fixture was refreshed and the golden regenerated: only the three "chain T6->T7 auto" cases
+   move (still T7 UNLOCKED, 0 failures) and one directive hash. `quasar-golden --check --java` 38/38, fieldsim 78/78.
+2. The Directive Hatch tooltip, the collapse countdown event line and the Magnetar Collapse quest (skill move) say
+   when [4] comes on and why (`gen-singularity`, bundle `32326838526c`); `automation.md` §7.4 explains the timing and
+   that how much a purge cancels is the quasar's stream.
+
+**The live rig wires the cue as a player would** (`QuasarRigBench`). When `/btsquasar autorig ... eye ...` goes live it
+sets the Eye's Galaxy Transition hatch to Bit 3 out, fits it a GT Advanced Redstone Transmitter (Internal) and fits
+the quasar's PURGE Burst Control Hatch an Advanced Redstone Receiver (Internal) on the same frequency
+(`bts-collapse-cue-x-y-z`, OR, tick rate 1). The rig's own redstone block keeps only the regulator term (Disc [4] AND
+NOT Transition [8]) and skips covered sides. `autorig status` counts the collapses it saw, each with its Bu/t on the
+collapse second, the shock cancelled, P after and the Eye / quasar second phase, and for the last (and every failed)
+one the quasar's flux and stream at each second 290-299.
+
+**Proof** (headless `runServer`, port 25565, fresh flat worlds `p495b` / `p495c` / `p495d`, `/btswarp 60`, achieved
+x59-60). Each case: a kit Eye T8 set to a lit T6 magnetar with its milestones done (by command), a fresh Quasar
+Engine T3 (coils 3, f 1.0) with its mass set, the live rig; the Eye's own Directive codes do the rest (core, chart,
+Begin, the overfeed, the cue, the halo capture).
+
+| Quasar | Phase (ticks) | Collapses (Bu/t on the collapse second, shock cancelled of 120, P after) | T7 |
+|---|---|---|---|
+| 64 SM fresh | 16 | 3 failed: 1.3 Bu/t, 0 (the purge on second 298 every time; the stream of a spinless 64 SM hole is 0.8 Bu/t) | no |
+| 96 SM | 16 | 3 failed as the disc settled, then held: 7.2, 57, +67 | yes |
+| 136 SM | 15 | 2 failed, then held: 7.8, 63, +57 | yes |
+| 200 SM | 16 | 1 failed, then held: 10.2, 87, +35 | yes |
+| 136 SM | 15 / 3 | #1 failed 0.8; #2 held 4.7, 32 / #1 failed 0.9; held 3.9, 24 and 7.9, 64 | yes / yes |
+| 200 SM | 11 / 4 | #1 failed 2.1; #2 held 10.2, 87 / #1 failed 1.9; #2 held 10.4, 89 | yes / yes |
+| 256 SM | 19 | #1 failed 3.2; #2 held 16.6, all 120, P +12 | yes |
+| **Settled first** (the rig ran the quasar 600 s before the Eye was lit): 136 SM | 14 / 3 | #1 held 6.9, 54 / #1 held 6.5, 50 | yes / yes |
+| 200 SM settled | 9 | #1 held 14.9, all 120, P +2 | yes |
+| 96 SM settled | 17 | #1 held 3.2, 17, P +97; #2 held 5.9, 44 | yes |
+
+In every collapse the trace shows the PURGE on overfeed second 298 and the eruption's stream on the Eye on the collapse
+second (e.g. 136 SM: G 3.0-3.7 Bu/t through 290-297, 7.5 at the purge, 7.8 on the collapse second), whatever the
+phase (3-19 ticks). What fails now is the stream, not the timing: a first collapse straight after a bench set the
+hole's mass (the disc not settled yet, Yq low) gives 0.8-3.2 Bu/t; once the disc has run under the rig, every first
+collapse held. A fresh 64 SM hole never holds it (the Stability Link milestone, skipped here by command, is what
+grows the quasar first). Before the fix P4-95 recorded 29-47 of 120 cancelled at 136 SM; the same size cancels 50-64
+now, and 200-256 SM cancel 87-120.
+
+**The showcase scenes** (`tools/recording/showcase2.shots`, checked in a dev client at 1280x720 with
+`-Dbts.rec.only`):
+- **Chapter 7 on the real quasar.** The galaxy Eye's quasar is seeded in `q-seed`, grown to 136 SM and handed to the
+  live rig at once (the Eye still dark), so its disc has settled by chapter 7. `gal-collapse` lights the T6 magnetar,
+  sets the milestones and lets the rig run: in the probe T7 unlocked after 23 s of real time (x35 warp, 6.7 s of
+  time-lapse), the GUI showing "the magnetar COLLAPSED". The `galaxy` bench model is no longer used; `gal-merger`
+  only sets the T7 milestones and hands in the Supermassive core and chart.
+- **The Kerr Extractor (not a machine bug).** On a headless server the module took a stocked bus at once in both
+  orders (stocked before and after the hole opened). In the draft the stock command ran before the camera moved and
+  the previous scene's x10 warp was still on: the module ran its whole batch (1,024 Stemcells go in one 448-parallel,
+  x4 run of 1.7 s) before its GUI opened, so the shot showed IDLE. The scene now turns the warp off, opens the GUI,
+  then stocks: RUNNING, "Processing recipe", Plasma Membrane x1.0k, then IDLE with the outputs out.
+- **Reality Diffraction / Refab: captioned honestly.** A real run needs a TecTech BEC network with a Containment
+  Field (a 1,236-block BEC Storage multiblock, BEC Hatches, conduit and its power) and, for Refab, Diffraction's
+  regions through it. Building that in the showcase world was not done (see below). The captions say they are not
+  running and why; the new GUIs show it themselves: "WAITING  BEC network", "BEC network 0, 0 storages", "Regions
+  anchored 6 of 6".
+- **Inside the quasar.** The camera stands in the open chamber around the hole (24 blocks out, 6 up; the chamber is
+  air to r 31 at the hole's height, the first Quantum Glass at r 32), then a second angle from under the disc plane.
+  The draft's camera looked through two Quantum Glass layers from outside the inner wall.
+- **New GUIs.** Every `readout` (the scanner side panel) is gone: the kit GUIs show the star, gauges, batch, shield,
+  transition and checklists. The Eye GUI scene's caption describes the new screen.
+- **The T7 / T8 window (B-114).** `gal-window` dollies from 132 to 98 blocks in front of the galaxy's centre at its
+  height: the rim's opening with the galaxy's core in it, the rail's clamp clear of it. (From 80 blocks the camera
+  stands inside the rim and the opening fills the frame; the window reads best from outside.)
+
+**Judgement calls (please confirm or change).**
+- The cue's lead is 2 s (298-299). With 1 s, wiring slower than the gap between the Eye's and the quasar's seconds
+  misses (P4-95); with 3 s, the collapse second falls on the eruption's last second only for some phases. 2 s puts it
+  on the eruption's first or second second for any delay from a tick to about 1.5 s.
+- The live rig fits GT wireless covers to the machines it drives (they stay after `autorig off`, like the kit's
+  hatches). A player can wire the same with redstone dust and gates; wireless is the shortest real wire across the
+  400 blocks between the showcase's Eye and quasar.
+- A Magnetar Collapse can begin with a quasar whose stream cannot hold it (any size the link milestone allows). Not
+  changed: the GUI's countdown already says "The shock would land at P +x with y Bu/t now; 13.5 Bu/t on the collapse
+  second cancels it all".
+
+**Not done.** A BEC network in the showcase world (a TecTech BEC Storage built by its projector, a BEC Hatch on it and
+on the Diffraction, a powered field, Diffraction's six regions through it to the Refab): suggested as a `/btshr bench
+<x y z> becnet` helper with its own dev-server test before it goes on camera. The full showcase was not re-recorded
+here (the final recording is the next step); only the changed scenes were probed.
+
+---
+
 ## Where the old question numbers went
 
 | Old | Now | Old | Now | Old | Now |
@@ -7152,3 +7270,12 @@ conduit) has the same hops.
 **Question for P4.** Raise the assist's lead (purge on second 297-298, or a window the 3 s eruption covers), make the
 collapse read the eruption over a short window, or document that the purge needs a lead timer? The showcase films the
 collapse on the lock-stepped bench model and says so in the caption; the merger is filmed on the real quasar.
+
+**Fixed (B-118).** The cue leads: Galaxy Transition [4] is on for overfeed seconds 298 and 299 (one rising edge), the
+hold [8] ends at 297, and the eruption's 3 s cover the collapse second for any wiring that answers within about 1.5 s
+(prototype, fixture and golden changed with it; 38/38). The live rig no longer carries the cue on its own block (which
+acted a whole second late by construction): it fits the wire a player would, a GT Advanced Redstone Transmitter
+(Internal) on the Galaxy Transition hatch and a Receiver (Internal) on the quasar's Burst Control Hatch. On a headless
+dev server, 13 sites with the quasar's second 3-19 ticks behind the Eye's: the purge landed on second 298 every time
+and the eruption was on the Eye on the collapse second. What it then cancels is the quasar's stream: the 34 failures
+at 64 SM were the weak stream of a fresh, spinless hole (1.3 Bu/t), not the timing.
