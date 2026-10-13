@@ -8,8 +8,6 @@ import java.util.Map;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidStack;
 
 import com.cleanroommc.modularui.api.IPanelHandler;
 import com.cleanroommc.modularui.api.drawable.IDrawable;
@@ -673,23 +671,10 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
         lastRow(rows);
     }
 
+    /** The T5 batch conditions, from the runtime's own test ({@link EyeStarRuntime#batchChecklist}). */
     private void nextBatchRows(BTSRows.Builder rows) {
-        final EyeStarRuntime rt = rt();
-        final Fluid wdm = EyeStarRuntime.wdmFluid();
         rows.section(BTSText.lang("beyondthestars.gui.eye.nextbatch"), "");
-        if (wdm == null) {
-            rows.check(BTSChecklist.State.BAD, BTSText.lang("beyondthestars.gui.eye.chk.nofluid"), "", -1);
-            return;
-        }
-        final long need = EyeStarRuntime.BATCH_WDM * Math.max(1, rt.parallel(5));
-        final long have = multiblock.buffer(wdm);
-        final String name = wdm.getLocalizedName(new FluidStack(wdm, 1));
-        rows.check(
-            have >= need ? BTSChecklist.State.OK : BTSChecklist.State.BAD,
-            BTSText.lit(name),
-            BTSText.lit(BTSFormat.haveNeed(have, need) + " L"),
-            BTSChecklist.frac(have, need),
-            BTSText.lang("beyondthestars.gui.eye.batch.charge.tip", BTSFormat.exact(have), BTSFormat.exact(need)));
+        rows.checks(rt().batchChecklist());
     }
 
     // ------------------------------------------------------------------------------- DARK

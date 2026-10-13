@@ -2019,6 +2019,41 @@ public final class EyeStarRuntime {
     }
 
     /**
+     * GUI (controller-gui-spec.md §5.1.4, "Next batch"): every condition {@link #tryStartCooling} checks before a T5
+     * cooling batch once T5 is unlocked, met or not: the Eye reaching T5 (a live {@link #parallel} of at least 1, the
+     * same test the runtime makes) and one White Dwarf Matter charge × p in the buffers. Reads only.
+     */
+    public BTSChecklist batchChecklist() {
+        final BTSChecklist c = new BTSChecklist();
+        final int inst = host.installedTier();
+        final int p = parallel(5);
+        String why = "";
+        if (host.structureTier() < 5) why = "tier5";
+        else if (unlockedTier < 5) why = "locked5";
+        else if (host.compressionTier() < 5) why = "compression5";
+        c.add(
+            p >= 1,
+            BTSText.lang("beyondthestars.gui.eye.chk.reach", 5),
+            BTSText.lit("T" + inst + " / T5"),
+            -1,
+            why.isEmpty() ? "" : BTSText.lang(RESULT_KEY + why));
+        final Fluid wdm = wdmFluid();
+        if (wdm == null) {
+            c.add(false, BTSText.lang("beyondthestars.gui.eye.chk.nofluid"), "", -1);
+            return c;
+        }
+        final long need = BATCH_WDM * Math.max(1, p);
+        final long have = host.buffer(wdm);
+        c.add(
+            have >= need,
+            BTSText.lit(fluidName(wdm)),
+            BTSText.lit(BTSFormat.haveNeed(have, need) + " L"),
+            BTSChecklist.frac(have, need),
+            BTSText.lang("beyondthestars.gui.eye.batch.charge.tip", BTSFormat.exact(have), BTSFormat.exact(need)));
+        return c;
+    }
+
+    /**
      * GUI (controller-gui-spec.md §5.1.4): {@link #missing(int)} turned inside out, the met lines kept: every
      * precondition of the transition that leaves tier {@code from}. Empty when there is none. Reads only.
      */
