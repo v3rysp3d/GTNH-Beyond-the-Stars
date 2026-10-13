@@ -21,6 +21,7 @@ import javax.annotation.Nonnull;
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.Fluid;
@@ -28,6 +29,7 @@ import net.minecraftforge.fluids.FluidStack;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.google.common.io.ByteArrayDataInput;
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
@@ -59,8 +61,10 @@ import gregtech.api.structure.error.StructureError;
 import gregtech.api.structure.error.StructureErrors;
 import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
+import gregtech.common.render.IMTERenderer;
 import gregtech.common.tileentities.machines.IRecipeProcessingAwareHatch;
 import gregtech.common.tileentities.machines.MTEHatchInputME;
+import io.netty.buffer.ByteBuf;
 
 /**
  * P4: THE EINSTEIN-ROSEN CONDUIT ELEMENT, the shared base of the Wormhole Mouth (28121), the Conduit Mirror (28122)
@@ -88,7 +92,7 @@ import gregtech.common.tileentities.machines.MTEHatchInputME;
  * </ol>
  */
 public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends MTEExtendedPowerMultiBlockBase<T>
-    implements ISurvivalConstructable, IConduitElement {
+    implements ISurvivalConstructable, IConduitElement, IMTERenderer {
 
     /** The upkeep fuel choice (GUI, OpenComputers). NBT keeps the name. */
     public enum FuelMode {
@@ -131,6 +135,11 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
     // ------------------------------------------------- RUN (server)
     protected final FlowBook book = new FlowBook();
     private ConduitNet.Route[] routes;
+    // ------------------------------------- renders v2 (§10, §13): GT's render-data channel only, never saved
+    /** Client: open and linked as last sent; per throat the Bu/t out and in, the route's length and kind. */
+    private boolean renderOpen, renderLinked;
+    private float[] renderOut = new float[0], renderIn = new float[0], renderDist = new float[0];
+    private byte[] renderKind = new byte[0];
     private long[] routeTick;
     private String fuelLine = "";
     private String note = "";
@@ -485,6 +494,7 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
         if (!mMachine) {
             ConduitNet.unregister(world, this);
             aBaseMetaTileEntity.setActive(false);
+            if (aTick % 100 == 0) sendRenderDataToClient(this);
             return;
         }
         upkeep();
@@ -493,6 +503,102 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
         extraSecond(aBaseMetaTileEntity, now);
         book.prune(now);
         aBaseMetaTileEntity.setActive(open && book.sum("pass|", now, FlowBook.SHOW) > 1e-9);
+        sendRenderDataToClient(this);
+    }
+
+    // ============================================================================ renders v2
+
+    /** Renders v2 (§10): the streams out of this element, a mouth's portal (client; ConduitRender). */
+    @Override
+    public void renderTESR(double x, double y, double z, float partialTicks) {
+        ConduitRender.renderElement(this, x, y, z, partialTicks);
+    }
+
+    /** Streams reach up to 72 blocks from a throat; the elements are up to 92 blocks across. */
+    @Override
+    public AxisAlignedBB getRenderBoundingBox(int x, int y, int z) {
+        return AxisAlignedBB.getBoundingBox(x - 130, y - 130, z - 130, x + 131, y + 131, z + 131);
+    }
+
+    @Override
+    public double getMaxRenderDistanceSquared() {
+        return 256.0 * 256.0;
+    }
+
+    /** Whether the element passes streams on (a mouth: paired with a live partner); server. */
+    protected boolean renderLinkedNow() {
+        return true;
+    }
+
+    /** Server, once a second: open, linked, and per throat Bu/t out and in, the route's length and kind. */
+    @Override
+    public void encodeRenderData(ByteBuf buf) {
+        buf.writeBoolean(mMachine && open);
+        buf.writeBoolean(mMachine && renderLinkedNow());
+        final int n = mMachine ? throats().length : 0;
+        buf.writeByte(n);
+        for (int i = 0; i < n; i++) {
+            final ConduitNet.Route r = lastRoute(i);
+            buf.writeFloat((float) outBu(i));
+            buf.writeFloat((float) inBu(i));
+            buf.writeFloat(r == null ? 0f : (float) r.distance);
+            buf.writeByte(r == null ? -1 : r.kind.ordinal());
+        }
+    }
+
+    /** Client. */
+    @Override
+    public void decodeRenderData(ByteArrayDataInput in) {
+        renderOpen = in.readBoolean();
+        renderLinked = in.readBoolean();
+        final int n = in.readByte();
+        if (renderOut.length != n) {
+            renderOut = new float[n];
+            renderIn = new float[n];
+            renderDist = new float[n];
+            renderKind = new byte[n];
+        }
+        for (int i = 0; i < n; i++) {
+            renderOut[i] = in.readFloat();
+            renderIn[i] = in.readFloat();
+            renderDist[i] = in.readFloat();
+            renderKind[i] = in.readByte();
+        }
+    }
+
+    /** Client: open as last sent. */
+    public boolean renderOpen() {
+        return renderOpen;
+    }
+
+    /** Client: linked (a mouth paired with a live partner) as last sent. */
+    public boolean renderLinked() {
+        return renderLinked;
+    }
+
+    /** Client: the throats as last sent (0 while not formed). */
+    public int renderThroats() {
+        return renderOut.length;
+    }
+
+    /** Client: Bu/t out of throat {@code i} last second. */
+    public float renderOut(int i) {
+        return renderOut[i];
+    }
+
+    /** Client: Bu/t into throat {@code i} last second. */
+    public float renderIn(int i) {
+        return renderIn[i];
+    }
+
+    /** Client: the length of throat {@code i}'s route, blocks (0 none). */
+    public float renderDist(int i) {
+        return renderDist[i];
+    }
+
+    /** Client: the kind of throat {@code i}'s route (a ConduitNet.Kind ordinal), -1 none. */
+    public int renderKind(int i) {
+        return renderKind[i];
     }
 
     private void register(World world) {

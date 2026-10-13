@@ -118,6 +118,12 @@ public class MTEWormholeMouth extends MTEConduitElement<MTEWormholeMouth> implem
         return true;
     }
 
+    /** Renders v2: the portal shows the far side only while paired with a live partner. */
+    @Override
+    protected boolean renderLinkedNow() {
+        return partnerMouth() != null;
+    }
+
     /** The dock cell: the ring's centre on the front face (layer 0), where a quasar's port cell must be. */
     public int[] dockCell() {
         final IGregTechTileEntity base = getBaseMetaTileEntity();
