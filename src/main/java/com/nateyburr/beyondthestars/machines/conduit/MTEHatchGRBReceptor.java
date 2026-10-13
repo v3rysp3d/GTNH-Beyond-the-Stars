@@ -265,6 +265,7 @@ public class MTEHatchGRBReceptor extends MTEHatch {
             final long now = now();
             for (Rec r : recs.values()) lit |= now - r.tick <= FRESH_TICKS && r.bu > 1e-9;
             aBaseMetaTileEntity.setActive(lit);
+            if (lit) aBaseMetaTileEntity.markDirty(); // the remembered sources and lifetime are saved (P4-85)
         }
     }
 

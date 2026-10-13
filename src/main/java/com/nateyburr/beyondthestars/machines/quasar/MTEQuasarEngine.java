@@ -540,7 +540,12 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             if (eut > 0 && !drainEnergyInput(eut)) secondPowerOk = false;
         }
         if (aTick % 20 == 0) {
-            if (!frozen) second(aBaseMetaTileEntity);
+            if (!frozen) {
+                second(aBaseMetaTileEntity);
+                // the disc state changes every second but GT marks a chunk modified only on inventory changes: without
+                // this a quasar whose chunk sees no inventory change reloads an old save after a restart (P4-85)
+                aBaseMetaTileEntity.markDirty();
+            }
             publishDirectives();
             if (!frozen) publishSensors();
             if (aTick % 600 == 0) BurstDocks.prune(aBaseMetaTileEntity.getWorld());

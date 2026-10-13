@@ -353,6 +353,7 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         final int[] intake = intakeCell();
         BurstDocks.register(world, intake[0], intake[1], intake[2], this);
         second(now);
+        aBaseMetaTileEntity.markDirty(); // the lifetime EU changes every second (P4-85)
         book.prune(now);
         aBaseMetaTileEntity.setActive(lastUsed > 1e-9);
     }

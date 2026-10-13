@@ -483,6 +483,7 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
             return;
         }
         upkeep();
+        aBaseMetaTileEntity.markDirty(); // open / reopen / owed / litres change every second (P4-85)
         register(world);
         extraSecond(aBaseMetaTileEntity, now);
         book.prune(now);
