@@ -44,17 +44,8 @@
 # Controller GUI cleanup: the Kerr Ergosphere Engine (controller-gui-spec.md §5.2)
 # Controller GUI cleanup: the Kerr modules (controller-gui-spec.md §5.3)
 # Controller GUI cleanup unit 3 (controller-gui-spec.md 5.6-5.9): the Homogeny, Reality Diffraction / Refab, the Reactor Silo, the production halls
-beyondthestars.gui.silo.subject=Silo T%s
-beyondthestars.gui.silo.right=Rods %s/%s
-beyondthestars.gui.silo.right.tip=Control rods committed, against the %s the campaign has unlocked. A Programmed Circuit in the controller slot overrides the Rods field.
-beyondthestars.gui.silo.output=Output
-beyondthestars.gui.silo.output.tip=Output %s / %s EU/t (the dynamo + laser ceiling)
-beyondthestars.gui.silo.rpm=RPM
-beyondthestars.gui.silo.rpm.tip=RPM %s / %s operating redline (design redline %s)
-beyondthestars.gui.silo.heat=Heat
-beyondthestars.gui.silo.heat.tip=Heat %s / %s meltdown (SCRAM at %s)
-beyondthestars.gui.silo.info.math=§eMATH §7At the foot of the status page (and of both control blocks, and the scanner) the MATH group walks your CURRENT output in four numbered steps, every factor carrying the value it has right now: pillars x fuel, spine speed x efficiency, RPM/500 x rotors, the output ceiling. With no rotor turning it says how the steam figure is derived instead.
-beyondthestars.gui.silo.info.weakest=§eWEAKEST TERM §7The fifth line ranks pillars filled, fuel grade, throttle, spine and, where a generator exists, RPM, rotor condition and the output clamp; it names the one costing you the most and tells you the fix.
-beyondthestars.gui.silo.info.do=§eDO THIS §7Read the Weakest term line. Fix that one thing. Read it again. Repeat until it says Every term is at its ceiling.
-beyondthestars.gui.silo.info.nei=§eNEI §7Look the Nuclear Plant Foundation up in NEI: three tables (fuel rods, propellant, coolant) carry every multiplier and which socket each one enters by.
-beyondthestars.gui.silo.info.campaign=§eCAMPAIGN §7The four MILESTONES lines climb just by running, seven tiers each, paying multipliers into that derivation and unlocking control rods past 24/24 and a redline above 12,000. Their points buy the Upgrade Tree (the button on the left of the gap row).
+beyondthestars.gui.hall.source=(%s)
+beyondthestars.gui.hall.parallel.tip=Recipes run this many in parallel; the Power Panel's limit applies when its max box is unticked
+beyondthestars.gui.hall.info.parallel=§ePARALLEL §7The hall runs its recipes in parallel. What sets the number is under it: the shell's tier, or the Cascade Hall's stage banks. The Power Panel can cap it lower.
+beyondthestars.gui.hall.info.run=§eRUN §7GT's own rules: the progress, the outputs and the recipe check sit at the top of the screen; void protection, input separation and batch mode are on the buttons below.
+beyondthestars.gui.hall.info.auto=§eAUTOMATE §7Standard GT buses and hatches; ME input and output buses and hatches work.
