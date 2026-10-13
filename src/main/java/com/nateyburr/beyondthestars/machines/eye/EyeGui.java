@@ -126,6 +126,9 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
         syncManager.syncValue("eyeGalaxyText", new StringSyncValue(this::galaxyPanelText));
     }
 
+    /** The Bursts bar's full scale, Bu/t (the T8 demand D8 = 6: spec §5.1.3 "frac G/6"). */
+    private static final double BURST_SCALE = 6;
+
     /** The last Begin click's answer (server side; synced to the Galaxy panel). */
     private String beginMsg = "";
 
@@ -161,7 +164,11 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                 .isActive() ? Badge.RUNNING : Badge.WAITING;
         }
         if (want == null && !rt.live()) return Badge.NO_STAR;
+        // P4 (spec §5.1.1 rows 5 and 7, B-116): the galaxy's quasar frozen or unloaded; the galaxy transition waiting
+        // only for Begin
+        if (galaxyPaused()) return Badge.PAUSED_RED;
         if (rt.transition() != null) return Badge.TRANSITION;
+        if (rt.galaxyReady()) return Badge.READY;
         switch (rt.state()) {
             case IGNITING:
                 return Badge.IGNITING;
@@ -236,6 +243,16 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
         return out;
     }
 
+    /** P4: a burning T6-T8 star whose bursts are paused (Q-8: the quasar feeding its ports is frozen or unloaded). */
+    private boolean galaxyPaused() {
+        final EyeStarRuntime rt = rt();
+        final StarDef star = rt.star();
+        return rt.burning() && star != null
+            && star.n() >= 6
+            && rt.galaxy()
+                .bursts().paused;
+    }
+
     // ============================================================================= status rows
 
     @Override
@@ -276,6 +293,9 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                 return;
             case PENDING:
                 pendingRows(rows);
+                return;
+            case READY:
+                readyRows(rows);
                 return;
             case DARK:
                 darkRows(rows);
@@ -556,21 +576,32 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
             final boolean driven = star.tier.burstDriven() || rt.galaxyTransition();
             final double beta = rt.galaxy()
                 .beta();
-            rows.stat2(
+            final double demand = rt.galaxy()
+                .demand();
+            // spec §5.1.3 P4 (B-116): a bar over 0-6 Bu/t; the yellow tick is the link milestone's floor while it is to
+            // come (T6 Stability Link 1.5, T7 Heavy Link 6), else a burst-driven galaxy's demand; the value's colour is
+            // beta (green 1 and up, yellow 0.8 and up, red under)
+            final boolean linkToCome = (n == 6 || n == 7) && !star.tier.planets() && !rt.milestones().linkDone[n];
+            final double tickAt = linkToCome ? (n == 6 ? GalaxyField.D7 : GalaxyField.demandT(8))
+                : driven ? demand : Double.NaN;
+            rows.bar(
                 BTSText.lang("beyondthestars.gui.eye.bursts"),
-                BTSText.lit(BTSFormat.f2(b.total()) + " Bu/t"),
-                BTSText.lit("β"),
-                driven ? BTSText.lit((beta >= 1 ? "§a" : beta >= 0.8 ? "§e" : "§c") + BTSFormat.f2(beta)) : "-",
+                b.total() / BURST_SCALE,
+                BTSText.lit(
+                    (driven ? beta >= 1 ? "§a" : beta >= 0.8 ? "§e" : "§c" : "") + BTSFormat.f2(b.total()) + " Bu/t"),
+                Grad.MAGENTA,
+                Double.isNaN(tickAt) ? null : BTSGuiKit.tick(tickAt / BURST_SCALE, BTSGuiKit.TICK),
+                driven ? BTSText.lang("beyondthestars.gui.eye.bursts.beta", BTSFormat.f2(beta)) : "",
                 BTSText.lang(
                     "beyondthestars.gui.eye.bursts.tip",
                     BTSFormat.f2(b.hi),
                     BTSFormat.f2(b.lo),
                     BTSFormat.f2(b.halo)),
-                driven ? BTSText.lang(
-                    "beyondthestars.gui.eye.bursts.demand",
-                    BTSFormat.f2(
-                        rt.galaxy()
-                            .demand()))
+                driven ? BTSText.lang("beyondthestars.gui.eye.bursts.demand", BTSFormat.f2(demand)) : "",
+                linkToCome ? BTSText.cat(
+                    BTSText.lit("§e"),
+                    BTSText
+                        .lang("beyondthestars.gui.eye.bursts.floor", EyeMilestones.LINK_NAME[n], BTSFormat.f2(tickAt)))
                     : "",
                 b.source.isEmpty() ? BTSText.lang("beyondthestars.gui.eye.bursts.notlinked")
                     : BTSText.lang("beyondthestars.gui.eye.bursts.linked", b.source));
@@ -578,11 +609,13 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
         if ((n == 6 || n == 7) && !star.tier.planets()) {
             final String name = EyeMilestones.LINK_NAME[n];
             if (rt.milestones().linkDone[n]) {
-                rows.check(
-                    BTSChecklist.State.OK,
-                    BTSText.lit(name),
-                    BTSText.lang("beyondthestars.gui.eye.link.held"),
-                    -1,
+                rows.bar(
+                    BTSText.lang("beyondthestars.gui.eye.link"),
+                    1,
+                    BTSText.cat(BTSText.lit("§a"), BTSText.lang("beyondthestars.gui.badge.held")),
+                    Grad.LAVENDER,
+                    null,
+                    BTSText.cat(BTSText.lit("§a" + name + " "), BTSText.lang("beyondthestars.gui.eye.link.held")),
                     BTSText.lang("beyondthestars.gui.eye.link.tip"));
             } else {
                 final BurstLink l = rt.activeLink();
@@ -590,9 +623,14 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                     rows.bar(
                         BTSText.lang("beyondthestars.gui.eye.link"),
                         l.streak / (double) EyeMilestones.LINK_NEED,
-                        BTSText.lit(EyeMilestones.clock(l.streak) + "/" + EyeMilestones.clock(EyeMilestones.LINK_NEED)),
-                        l.streak > 0 ? Grad.CYAN : Grad.BLUE,
+                        BTSText.lit(EyeMilestones.clock(l.streak)),
+                        Grad.LAVENDER,
                         null,
+                        BTSText.lang(
+                            "beyondthestars.gui.eye.link.streak",
+                            name,
+                            EyeMilestones.clock(l.streak),
+                            EyeMilestones.clock(EyeMilestones.LINK_NEED)),
                         BTSText.lang(
                             "beyondthestars.gui.eye.link.bar.tip",
                             name,
@@ -694,6 +732,31 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
         final BTSChecklist c = rt.transitionChecklist(from);
         rows.section(BTSText.lit(EyeStarRuntime.eventFor(from)), c.countText());
         rows.checks(c);
+        lastRow(rows);
+    }
+
+    /**
+     * READY (P4, B-116): a lit magnetar or Triangulum with every condition of its galaxy transition met; Begin starts
+     * it. The gauges, the bursts and the link, the countdown, then the Begin line (the conditions in its tooltip).
+     */
+    private void readyRows(BTSRows.Builder rows) {
+        final EyeStarRuntime rt = rt();
+        final StarDef star = rt.star();
+        gaugeRows(rows, Double.NaN);
+        if (star != null) galaxyRows(rows, star);
+        final int from = star == null ? rt.unlockedTier() : star.n();
+        final EyeTransition.Type type = EyeTransition.Type.leaving(from);
+        final BTSChecklist c = rt.transitionChecklist(from);
+        final List<String> tip = new ArrayList<>();
+        tip.add(BTSText.lang("beyondthestars.gui.eye.begin.tip"));
+        for (BTSChecklist.CheckLine l : c.lines()) {
+            tip.add(BTSText.cat(BTSText.lit(l.met() ? "§a+ §7" : "§c- §7"), l.label, BTSText.lit(": "), l.value));
+        }
+        rows.note(
+            BTSRows.ICON_OK,
+            BTSGuiKit.NOTE_BLUE,
+            BTSText.lang("beyondthestars.gui.eye.begin", type == null ? "?" : type.title),
+            tip.toArray(new String[0]));
         lastRow(rows);
     }
 
