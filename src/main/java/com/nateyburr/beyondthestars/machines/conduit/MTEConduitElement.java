@@ -785,6 +785,7 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
         open = t.getBoolean("open");
         reopen = t.getInteger("reopen");
         owed = t.getDouble("owed");
+        if (!Double.isFinite(owed)) owed = 0; // a save from before the setters refused NaN heals (P4-91)
         owedFuel = t.getString("owedFuel");
         litresSpaceTime = t.getLong("litresST");
         litresErgomatter = t.getLong("litresErgo");

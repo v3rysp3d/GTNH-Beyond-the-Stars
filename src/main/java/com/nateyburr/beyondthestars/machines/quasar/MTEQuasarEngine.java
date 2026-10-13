@@ -1100,7 +1100,9 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         return feed;
     }
 
+    /** The GUI's / OpenComputers' feed f, clamped; a non-finite value (Lua's 0/0) is ignored. */
     public void setFeed(double f) {
+        if (!Double.isFinite(f)) return;
         feed = Math.max(QuasarParams.F_MIN, Math.min(QuasarParams.F_MAX, f));
     }
 
@@ -1129,6 +1131,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
      * walk). The coils cap it in use anyway; clamping here keeps what the GUI and OpenComputers' setField report true.
      */
     public void setBSetting(double b) {
+        if (!Double.isFinite(b)) return;
         final double cap = coilTier >= 1 ? coilTier : 4;
         bSetting = Math.max(QuasarParams.B_MIN, Math.min(cap, b));
     }
@@ -1146,6 +1149,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     }
 
     public void setPurgeAt(double v) {
+        if (!Double.isFinite(v)) return;
         purgeAt = Math.max(0, Math.min(100, v));
     }
 
@@ -1555,6 +1559,11 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         nbt.setTag("btsQuasar", t);
     }
 
+    /** A saved double, or {@code def} if it is NaN or infinite (a save corrupted before setters checked heals). */
+    private static double finite(double v, double def) {
+        return Double.isFinite(v) ? v : def;
+    }
+
     private void readQuasarState(NBTTagCompound nbt) {
         if (!nbt.hasKey("btsQuasar")) return;
         final NBTTagCompound t = nbt.getCompoundTag("btsQuasar");
@@ -1564,26 +1573,26 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         } catch (IllegalArgumentException bad) {
             s.hole = QuasarState.Hole.NONE;
         }
-        s.M = t.hasKey("M") ? t.getDouble("M") : QuasarParams.SEED_MASS;
-        s.a = t.getDouble("a");
-        s.E = t.getDouble("E");
-        s.Phi = t.getDouble("Phi");
-        s.I = t.hasKey("I") ? t.getDouble("I") : 100;
+        s.M = t.hasKey("M") ? finite(t.getDouble("M"), QuasarParams.SEED_MASS) : QuasarParams.SEED_MASS;
+        s.a = finite(t.getDouble("a"), 0);
+        s.E = finite(t.getDouble("E"), 0);
+        s.Phi = finite(t.getDouble("Phi"), 0);
+        s.I = t.hasKey("I") ? finite(t.getDouble("I"), 100) : 100;
         s.lock = t.getInteger("lock");
         s.zone = t.getInteger("zone");
-        s.Yq = t.getDouble("Yq");
+        s.Yq = finite(t.getDouble("Yq"), 0);
         s.erupt = t.getInteger("erupt");
-        s.eruptG = t.getDouble("eruptG");
+        s.eruptG = finite(t.getDouble("eruptG"), 0);
         s.reform = t.getInteger("reform");
-        s.lagE = t.getDouble("lagE");
-        s.lagPhi = t.getDouble("lagPhi");
-        s.G0 = t.getDouble("G0");
-        s.G = t.getDouble("G");
-        s.lam = t.getDouble("lam");
-        s.lc = t.getDouble("lc");
-        s.fEff = t.getDouble("fEff");
-        s.b = t.getDouble("b");
-        s.Medd = t.getDouble("Medd");
+        s.lagE = finite(t.getDouble("lagE"), 0);
+        s.lagPhi = finite(t.getDouble("lagPhi"), 0);
+        s.G0 = finite(t.getDouble("G0"), 0);
+        s.G = finite(t.getDouble("G"), 0);
+        s.lam = finite(t.getDouble("lam"), 0);
+        s.lc = finite(t.getDouble("lc"), 0);
+        s.fEff = finite(t.getDouble("fEff"), 0);
+        s.b = finite(t.getDouble("b"), 0);
+        s.Medd = finite(t.getDouble("Medd"), 0);
         s.purgeLatch = t.getBoolean("purgeLatch");
         s.flash = t.getInteger("flash");
         s.lastWasEruption = t.getBoolean("lastWasEruption");

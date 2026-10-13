@@ -187,7 +187,9 @@ public class MTEConduitJunction extends MTEConduitElement<MTEConduitJunction> {
         return ratio;
     }
 
+    /** c (0..1); a non-finite value (Lua's 0/0, a bad client packet) is ignored. */
     public void setRatio(double c) {
+        if (!Double.isFinite(c)) return;
         ratio = Math.max(0, Math.min(1, c));
     }
 
@@ -217,7 +219,9 @@ public class MTEConduitJunction extends MTEConduitElement<MTEConduitJunction> {
         return out3Share;
     }
 
+    /** p3 (0..1); a non-finite value is ignored. */
     public void setOut3Share(double p) {
+        if (!Double.isFinite(p)) return;
         out3Share = Math.max(0, Math.min(1, p));
     }
 
@@ -272,8 +276,10 @@ public class MTEConduitJunction extends MTEConduitElement<MTEConduitJunction> {
         } catch (IllegalArgumentException bad) {
             mode = Mode.SPLIT;
         }
-        ratio = t.hasKey("ratio") ? Math.max(0, Math.min(1, t.getDouble("ratio"))) : 0.5;
+        ratio = 0.5;
+        if (t.hasKey("ratio")) setRatio(t.getDouble("ratio"));
         setGainIndex(t.getInteger("gain"));
+        out3Share = 0;
         setOut3Share(t.getDouble("out3"));
     }
 
