@@ -82,6 +82,9 @@ public class CommonProxy {
         // Circuits v2 §5: the NAC's Piko / Quantum / Raw Manifold Bud / Planck steps raised in place (the coremod's
         // matrix recipes exist by now; nothing has matched them yet).
         BTSRecipeRemovals.guard("Piko / Quantum / Planck raise (SL-G10..G13)", BTSStockCircuitRaise::onLoadComplete);
+        // Circuits v2 §4.3: the coremod builds the NAC's real <-> fake conversions in its own load-complete pass; ours
+        // are checked (missing ones added) or, with the NAC route off, the real -> fake ones removed.
+        BTSRecipeRemovals.guard("NAC conversions of our parts and circuits", BTSRecipesNac::onLoadComplete);
         BTSRecipeRemovals.guard("Field-generator upgrade path (SL-U00..U48)", BTSRecipesGeneratorUpgrade::register);
         BTSRecipeRemovals.guard("Eternity on Ergomatter (SL-Q26, D-48)", BTSRecipesQuasar::onLoadComplete);
         BTSRecipeRemovals.run();

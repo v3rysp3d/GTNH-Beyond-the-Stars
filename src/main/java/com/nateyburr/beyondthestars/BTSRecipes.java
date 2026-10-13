@@ -72,6 +72,9 @@ public final class BTSRecipes {
         // Circuits v2 (circuits-v2.md §2): the wafer / SMD / board / circuit chain in stock GT machines and the
         // research Assembly Line (BTSRecipesCircuits, one owner).
         BTSRecipeGuard.line("circuits", BTSRecipesCircuits::register);
+        // Circuits v2 §4.5: the NAC route SL-N01..N23 (BTSRecipesNac, one owner). After "circuits": the matrix recipes
+        // are derived from the live SL-X21..X32.
+        BTSRecipeGuard.line("nac", BTSRecipesNac::register);
         BTSRecipeGuard.line("display", BTSDisplayRecipes::register);
 
         BTSRecipeGuard.summary();
