@@ -51,6 +51,8 @@ public final class BTSCircuitChecks {
         fails += section(out, "ore names", SLCircuitItems.oreReport());
         // C4: the Piko raise does not depend on stellarCircuits.
         fails += section(out, "raise", BTSStockCircuitRaise.report());
+        // C5: the NAC patch (judged against the mode: patch active or not, routes on or off).
+        fails += section(out, "nac", BTSRecipesNac.report());
         if (!Config.stellarCircuits) {
             out.add("stellarCircuits=false: no recipe, slot, research or rack check applies.");
             out.add(
@@ -63,7 +65,7 @@ public final class BTSCircuitChecks {
         fails += section(out, "lookup", lookups());
         fails += section(out, "research", research());
         fails += section(out, "rack", BTSRackComponents.report());
-        out.add((fails == 0 ? "PASS" : "FAIL") + " circuits C1+C2+C4: " + fails + " section(s) failed");
+        out.add((fails == 0 ? "PASS" : "FAIL") + " circuits C1+C2+C4+C5: " + fails + " section(s) failed");
         return out;
     }
 

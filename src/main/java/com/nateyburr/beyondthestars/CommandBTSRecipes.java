@@ -81,7 +81,7 @@ public class CommandBTSRecipes extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btsrecipes [status | dump [file] | circuits]";
+        return "/btsrecipes [status | dump [file] | circuits | nac <build|run <piko|SL-Nxx>|status> x y z [facing]]";
     }
 
     @Override
@@ -92,7 +92,7 @@ public class CommandBTSRecipes extends CommandBase {
     @SuppressWarnings("rawtypes")
     @Override
     public List addTabCompletionOptions(ICommandSender sender, String[] args) {
-        if (args.length == 1) return getListOfStringsMatchingLastWord(args, "status", "dump", "circuits");
+        if (args.length == 1) return getListOfStringsMatchingLastWord(args, "status", "dump", "circuits", "nac");
         return null;
     }
 
@@ -109,6 +109,17 @@ public class CommandBTSRecipes extends CommandBase {
             for (String line : BTSCircuitChecks.run()) {
                 sender.addChatMessage(new ChatComponentText(line));
                 BeyondTheStars.LOG.info("[BTS] circuits: " + line);
+            }
+            return;
+        }
+        if ("nac".equals(sub)) {
+            // Circuits v2 C5 bench: a real Nanochip Assembly Complex + Assembly Matrix in the world (NacBench).
+            final com.nateyburr.beyondthestars.machines.SLConsoleTest.Placement at = com.nateyburr.beyondthestars.machines.SLConsoleTest
+                .parsePlacement(sender, args);
+            if (at == null) throw new WrongUsageException(com.nateyburr.beyondthestars.nac.NacBench.USAGE);
+            for (String line : com.nateyburr.beyondthestars.nac.NacBench.run(sender.getEntityWorld(), at, args)) {
+                sender.addChatMessage(new ChatComponentText(line));
+                BeyondTheStars.LOG.info("[BTS] nac: " + line);
             }
             return;
         }
