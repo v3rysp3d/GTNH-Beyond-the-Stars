@@ -1,0 +1,165 @@
+# B-116: photographs the P4 machines' kit GUIs (Quasar Engine, conduit elements, crowns, receptor, Burst Control Hatch)
+# and the Eye's T7 READY / T8 lit rows, at GUI scale 3. Build first with p4-build.shots, quit, re-join, then run this.
+# Gap-row buttons (GUI units from the main panel's top left): the right group ends at x 192, 18 wide + 2 apart:
+# i 174-192, the next 154-172, the next 134-152; row y 122-144.
+scale 3
+cmd /btsconduit keep 19900 60 -20 20320 200
+cmd /btsquasar keep 20000 100 0
+cmd /btsquasar keep 21000 100 0
+cmd /btsquasar keep 21500 100 0
+cmd /btseye keep 23000 100 0 north t8
+
+# ---- Quasar Engine, no hole yet (the Open checklist), then its Info page
+tp 21000.5 101 -3 0
+wait 40
+gui 21000 100 0
+wait 30
+shot quasar-nohole_s3
+click 183 133
+wait 10
+shot quasar-nohole-info_s3
+close
+
+# ---- Quasar Engine, hole open (the rig's), its Disc control and Jets & links panels
+tp 20000.5 101 -3 0
+wait 60
+cmd /btsquasar status 20000 100 0
+gui 20000 100 0
+wait 40
+shot quasar-open_s3
+mouse 20 30
+wait 20
+shot quasar-open-etip_s3
+mouse off
+click 143 133
+wait 10
+shot quasar-disc_s3
+click 143 133
+wait 5
+click 163 133
+wait 10
+shot quasar-jets_s3
+click 163 133
+close
+
+# ---- Quasar Engine, disc blown out and re-forming
+cmd /btsquasar seed 21500 100 0 64 0.5
+cmd /btsquasar feed 21500 100 0 1.5
+cmd /btsquasar run 21500 100 0 240 fill
+cmd /btsquasar feed 21500 100 0 0.85
+tp 21500.5 101 -3 0
+wait 40
+gui 21500 100 0
+wait 30
+shot quasar-reform_s3
+close
+
+# ---- Wormhole Mouth A (on the bottom jet port), open
+tp 20000.5 37 86.5 0
+wait 40
+gui 20000 34 89
+wait 30
+shot mouth-open_s3
+close
+
+# ---- Conduit Mirror 1, open
+tp 20102.5 56 120 0
+wait 40
+gui 20102 55 123
+wait 30
+shot mirror-open_s3
+close
+
+# ---- Conduit Junction, open; then fuel off: closed, and its split panel
+tp 20191.5 77 132 180
+wait 40
+gui 20191 75 128
+wait 30
+shot junction-open_s3
+close
+cmd /btsconduit fuel 20191 75 128 off
+wait 60
+gui 20191 75 128
+wait 30
+shot junction-closed_s3
+click 143 133
+wait 10
+shot junction-panel_s3
+click 143 133
+close
+cmd /btsconduit fuel 20191 75 128 on
+
+# ---- Burst Control Hatch on the Junction (split mode), and its mode tooltip
+gui 20191 75 130
+wait 30
+shot burst-junction_s3
+mouse 15 56
+wait 20
+shot burst-tip_s3
+mouse off
+close
+
+# ---- Burst Thermaliser Crown on the top port, running
+tp 19985.5 197 72.5 270
+wait 40
+gui 19988 196 72
+wait 30
+shot crown-running_s3
+close
+
+# ---- the quasar's own Burst Control Hatch (top cap rim, purge mode)
+tp 20000.5 197 58.5 0
+wait 40
+gui 20000 195 60
+wait 30
+shot burst-quasar_s3
+close
+
+# ---- GRB Receptor Port under the remote crown
+tp 20270.5 93 128.5 0
+wait 40
+gui 20270 96 128
+wait 30
+shot receptor_s3
+close
+
+# ---- Eye T7 Triangulum, READY for the Galactic Merger
+tp 23000.5 101 -3 0
+wait 40
+cmd /btseye star 23000 100 0 unlock 7
+cmd /btseye star 23000 100 0 rig fine
+cmd /btseye star 23000 100 0 lit triangulum
+cmd /btseye star 23000 100 0 burst 3 0.5 0.5
+cmd /btseye star 23000 100 0 milestones 7 done
+cmd /btseye star 23000 100 0 core supermassive
+cmd /btseye star 23000 100 0 charge
+cmd /btseye star 23000 100 0 target milkyway
+wait 160
+cmd /btseye star 23000 100 0 event
+wait 40
+cmd /btseye star 23000 100 0 gui
+gui 23000 100 0
+wait 40
+shot eye-t7-ready_s3
+scroll 90 70 5
+mouse off
+wait 10
+shot eye-t7-ready-scrolled_s3
+close
+
+# ---- Eye T8 Milky Way, lit
+cmd /btseye star 23000 100 0 unlock 8
+cmd /btseye star 23000 100 0 lit milkyway
+cmd /btseye star 23000 100 0 burst 6 0.5 0.5
+wait 160
+cmd /btseye star 23000 100 0 event
+wait 40
+cmd /btseye star 23000 100 0 gui
+gui 23000 100 0
+wait 40
+shot eye-t8-lit_s3
+scroll 90 70 5
+mouse off
+wait 10
+shot eye-t8-lit-scrolled_s3
+close

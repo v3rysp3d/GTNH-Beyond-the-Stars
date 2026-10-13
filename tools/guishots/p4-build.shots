@@ -1,0 +1,31 @@
+# B-116: builds the P4 machines p4.shots photographs, in the harness's superflat world (bts-guishots). As with
+# build-sites.shots, the client only learns a structure built under it after a re-join: run this once, quit, start
+# the client again, then run p4.shots.
+# The standard conduit rig: quasar (coils T3, seeded 64 SM, spin 0.5) at 20000 100 0, a Mk I crown on its top port,
+# mouth A on the bottom port paired to mouth B, mirror 1, a split Junction, mirror 2 into a remote crown's receptor,
+# receptors on the Junction's out 2 / out 3 (positions in the log).
+tp 20000.5 140 -40
+wait 40
+cmd /btsconduit rig 20000 100 0
+wait 40
+# a quasar with no hole (Open checklist) and one to blow out (RE-FORMING)
+tp 21000.5 140 -40
+cmd /btsquasar t1 21000 100 0 north force
+cmd /btsquasar keep 21000 100 0
+tp 21500.5 140 -40
+cmd /btsquasar t1 21500 100 0 north force
+cmd /btsquasar keep 21500 100 0
+# an Eye of Harmony T8 (T7 READY, then T8 lit)
+tp 23000.5 101 -6
+wait 40
+cmd /btseye t8 23000 100 0 north gen 9 fill force
+cmd /btseye keep 23000 100 0 north t8
+wait 40
+find MTEQuasarEngine 20000 100 0 400
+find MTEWormholeMouth 20000 100 0 400
+find MTEConduitMirror 20000 100 0 400
+find MTEConduitJunction 20000 100 0 400
+find MTEBurstThermaliserCrown 20000 100 0 400
+find MTEHatchGRBReceptor 20000 100 0 400
+find MTEHatchBurstControl 20000 100 0 400
+find MTEEyeOfHarmonyBTS 23000 100 0 20
