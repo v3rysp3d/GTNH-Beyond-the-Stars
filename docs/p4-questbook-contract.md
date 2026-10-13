@@ -383,6 +383,11 @@ every P4 quest in `questbook/singularity.json`'s input format, for the merge.
   coils 3 (P4-79). The halo test fire leaves the rail only a quarter of the stream, so on a smaller quasar it would
   starve Triangulum. The Galaxy panel says "Heavy Link test fire waits: the quasar's mean stream x Bu/t is under 6
   (grow it)".
+- **"Heavy Link", the ceiling (P4-88).** Slots [8] also stops above a mean stream of 32 Bu/t (about 260 SM at coils
+  3, reachable with Mk II throats): J1 at 15 would put a quarter of it on the rail, and above about 8 Bu/t there the P
+  drift outruns the Space valve and Triangulum breaches. The Galaxy panel then says "Heavy Link test fire held ...
+  Test-fire with J1's Eye share at x" (16 Bu/t ÷ the stream); OpenComputers `getUnlock()` gives `testFireShare`. Take
+  the link with J1 set to that share (a Burst Control Hatch level or `junction.setRatio`) and J3 at 75 % halo.
 - **"Feeding the hole", the links.** For the Stability Link, run the disc at **f 1.0**, riding Eddington with the
   Disc [1] / [2] valves. At the GUI default (f 0.85) a 64 SM quasar's stream is too thin for the link (P4-81). A fresh
   hole spins up over about an hour before its stream is full.
@@ -394,7 +399,10 @@ every P4 quest in `questbook/singularity.json`'s input format, for the merge.
 - The Hawking bleed is × (1 − 0.75·min(σ, 1)): at σ ≥ 1 the hole needs 75 % fewer bolts.
 - On T2 at σ ≥ 1 the setpoint cap rises from 512 to 768 SM, so the modules get 27 parallels instead of 22.
 - A lost link drops the cap back to 512. The hole bleeds down to it slowly; your setpoint is kept and climbs back when
-  the link returns.
+  the link returns. The modules count the mass only up to the cap in force, so the +23 % parallel goes with the link
+  at once (P4-90).
+- A quasar that is frozen (unformed) or not loaded pauses the link (Q-8): the bleed relief, the 768 SM cap and the
+  Superdense refining stop until it runs again (P4-89).
 - The Compressor Module's Superdense refining (SL-Q23) needs σ ≥ 1 and at least 256 SM. A run that loses the link
   pauses; it is never voided.
 - One Junction's out 3 at 10 % feeds a KEE T2 from any quasar of 2.5 Bu/t or more.
@@ -673,6 +681,7 @@ The `expect` strings must match the manifest's block text the way the existing r
  "desc":["The T7 {to} T8 machine milestone: a 60 s mean of at least {b}6 Bu/t{r} on the Eye's ports, at least half of it on the halo, for {b}30 min unbroken{r}.",
   "{e}{l}THE ORDER{r} The item milestones (216,000 L Ergomatter from all-Stable cycles, 2 h Resonant, 4 minor mergers ridden), then {b}Transition [4]{r}: the Supermassive Seed Core into escrow, then {b}Slots [8]{r}: the test fire, J1 all to the Eye and J3 to its 75 % halo preset.",
   "Slots [8] {b}waits until the quasar's mean stream reaches 6 Bu/t{r}, about 130 SM at coils 3: below that the rail's quarter would starve Triangulum. The Galaxy panel says how far you are. Keep the quasar growing (f 1.0).",
+  "Above {b}32 Bu/t{r} (about 260 SM) Slots [8] stops again: the rail's quarter would flood the field. The Galaxy panel gives the J1 Eye share to test-fire with instead (16 Bu/t to the Eye); set J1 to it by hand, a Burst Control Hatch level or OpenComputers.",
   "{a}{l}DONE WHEN{r} the Eye's GUI says the Heavy Link is HELD (tick the box)."]},
 {"low":48165,"key":"galactic_merger","chapter":"uxv","x":744,"y":156,"size":24,
  "name":"{4}{l}{n}Galactic Merger","icon":"beyondthestars:supermassiveSeedCore","needs":["eyeT7T8"],"prereqs":[48164],
@@ -706,7 +715,7 @@ The `expect` strings must match the manifest's block text the way the existing r
  "tasks":[{"type":"checkbox"}],
  "desc":["A GRB Receptor Port in any KEE utility socket. Demand 0.1 Bu/t (T1) / 0.25 (T2); {u+03c3} on the 60 s mean.",
   "- Hawking bleed {times} (1 - 0.75 {times} min({u+03c3}, 1)): 75 % fewer bolts at {u+03c3} {ge} 1.",
-  "- T2 at {u+03c3} {ge} 1: the setpoint cap rises 512 {to} 768 SM, so the modules get 27 parallels instead of 22. A lost link drops the cap back; the hole bleeds down slowly, your setpoint is kept.",
+  "- T2 at {u+03c3} {ge} 1: the setpoint cap rises 512 {to} 768 SM, so the modules get 27 parallels instead of 22. A lost link drops the cap back and the modules count the mass only up to it; the hole bleeds down slowly, your setpoint is kept.",
   "- A Junction's out 3 at 10 % feeds a KEE T2 from any quasar of 2.5 Bu/t or more.",
   "The KEE's GUI and scanner show the link; OpenComputers bts_kerr.getState().link."]},
 {"low":48168,"key":"homogeny_link","chapter":"uxv","x":228,"y":360,"size":24,

@@ -4185,3 +4185,171 @@ put it back.
 **Built.** No change. The test world `p4test` is a bench world.
 
 **Suggestion.** Keep. Never run `ocloop` on a Kerr you want to keep.
+
+### P4-88 The T7 Heavy Link test fire has a ceiling too [Eye T7, automation, review fix]
+
+**Context.** P4-79 sets a floor on Slots [8] (6 Bu/t), but there was no ceiling. The test fire sends J1 all to the Eye
+and J3 75 % to the halo, so the rail keeps a quarter of the stream. With Mk II throats (384 Bu/t), a grown quasar puts
+far more on the rail than the binary Space valve can cool.
+
+The prototype's T7 rig, with Mk II throats and the test fire on (harness, 1 h, 3 seeds):
+
+| Quasar mass | Mean stream | Result |
+|---|---|---|
+| 250 SM | 29.9 Bu/t | 0 failures |
+| 265 SM | 33.6 Bu/t | 0 failures |
+| 280 SM | 37.5 Bu/t | 0 failures, but 3 % of the time in zone 3 |
+| 300 SM | 43 Bu/t | 35 failures |
+| 415 SM | 82 Bu/t | 370 failures; Triangulum lost |
+
+**Built.**
+
+- Slots [8] at T7 needs the linked quasar's mean stream to be from 6 to 32 Bu/t
+  (`EyeStarRuntime.HEAVY_TEST_FIRE_MAX_STREAM`).
+- Above 32 Bu/t, the Galaxy panel says "Heavy Link test fire held ... Test-fire with J1's Eye share at x". x is 16 Bu/t
+  ÷ the stream, which puts 4 Bu/t on the rail and 12 on the halo.
+- OpenComputers `getUnlock()` gives `quasarStream` and `testFireShare`.
+- The Directive Hatch tooltip and the questbook contract state the 6-32 Bu/t window.
+- `GalaxyDirective`, QuasarSim and the golden are unchanged (38/38, 78/78).
+
+**Not fixed (outside this finding).** The same harness shows the standard T7 rig failing at 300 SM with Mk II throats
+even without the test fire: 83 failures in 30 min, and 645 at 415 SM. J1's P loop cannot hold a stream that big
+either. The design's simulations stop at Mk I's 24 Bu/t clip.
+
+**Suggestion.** Keep the ceiling. For P5 or the next design pass:
+
+- a Directive "test fire preset": an analog level for J1, so a redstone rig follows the quasar's growth;
+- a look at the T7 rig above 300 SM, for example a J1 out-3 tap to crowns.
+
+### P4-89 Q-8 now pauses a non-Eye host's link work instead of holding σ [hosts, review fix]
+
+**Context.** Q-8 (§3.1, R.6) says "a source that is not loaded pauses its hosts". The hosts kept σ at its last value
+while paused, and only the Eye really froze (P4-68). So after one link, unforming or un-chunkloading the quasar kept
+these going for free until the host's chunk reloaded:
+
+- the KEE's bleed relief, its 768 SM cap and the Superdense refinery;
+- the Homogeny's speed bonus and Entanglement Medium;
+- Reality Diffraction's burst-driven speed.
+
+**Built.**
+
+- `BurstHost.sigmaInForce()` is the 60 s mean σ, or 0 while paused. The KEE (`burstSigma`), the Homogeny and Reality
+  Diffraction (`quasarSigma`) use it.
+- While paused:
+  - the bleed is ×1 and the cap is 512 SM;
+  - a link-gated run pauses and is kept (SL-Q23, Entanglement Medium, Reality's burst-driven runs);
+  - no link-gated run starts;
+  - a new Homogeny mix runs at ×1.
+- Work that needs no link carries on (Degenerate Stellar Mixture, ordinary module recipes): no host needs a link
+  (P4-74).
+- The 60 s mean is still held, so the link resumes where it was when the quasar runs again.
+
+**Dev server** (port 25581). Before the test, a KEE T2 at 700 SM had σ 2.00 with SL-Q23 running. One quasar casing was
+then removed (FROZEN):
+
+- the KEE said PAUSED: bleed ×1.00, cap 512, held at 512;
+- SL-Q23 stopped at 10,525 / 12,000;
+- the module's parallel fell from 3,328 to 2,816.
+
+Within 13 s of putting the casing back: σ 2.00, cap 768, held at 700, and SL-Q23 ACTIVE again (10,799).
+
+**Suggestion.** Keep. **Alternative:** hold σ for a short grace period (about 60 s), then let it decay to 0.
+
+### P4-90 Kerr modules count the mass only up to the cap in force [Kerr, review fix]
+
+**Context.** Losing the link dropped the setpoint cap, but the module parallel read `kee.mass()`. At 768 SM the
+Hawking bleed is tiny: 768 → 729 SM takes about 95 h of loaded time, and 768 → 512 SM about 460 h. So one link gave a
+near-permanent +23 % parallel, not the reversible bonus §3.1 describes.
+
+**Built.** `MTEKerrModuleBase.bonusParallel()` uses min(M, `kee.maxSetpoint()`). These are unchanged:
+
+- the setpoint, the mass and the slow bleed (P4-80);
+- speed, which is ×1 at both 512 and 768 SM.
+
+On the dev server the bonus went from 3,328 to 2,816 when the link paused, and back when it returned.
+
+**Suggestion.** Keep. **Alternative:** bleed the hole toward 512 SM at a set rate while it is unlinked.
+
+### P4-91 The quasar's and the Junction's setters refuse NaN [OpenComputers, GUI, review fix]
+
+**Context.** These setters clamped with `Math.max` / `min`, which lets NaN through:
+
+- the quasar's `setFeed`, `setBSetting` and `setPurgeAt`;
+- the Junction's `setRatio` and `setOut3Share`.
+
+One `quasar.setFeed(0/0)` turned E, Φ and M into NaN and saved them. One `junction.setRatio(0/0)` turned every stream
+through it into NaN, and that spread to the receptors and the Eye's field. A modified client could do the same through
+the C2S sync values.
+
+**Built.**
+
+- These setters ignore any value that is not finite.
+- When the quasar loads its NBT, any saved double that is not finite is reset: M to the seed mass, Integrity to 100,
+  everything else to 0.
+- The Junction loads its ratio and out 3 through the setters.
+- A non-finite owed upkeep on an element resets to 0.
+
+**Dev server.**
+
+- `btsquasar feed … NaN` kept f 0.85, and `b … Infinity` kept b 3.0. The disc carried on (E −24).
+- `junction … NaN 2 NaN` on a Junction kept c 0.70 and out 3 at 20 %.
+
+**Not changed.** The Stellar Field Sensor's `setThreshold` is master code. A NaN threshold only makes its comparisons
+false. A master follow-up could add the same one-line check.
+
+**Suggestion.** Keep.
+
+### P4-92 A receptor warms up its remembered sources after a load [conduit, Q-8, review fix]
+
+**Context.** The sources a port remembers for Q-8 were loaded with tick 0. On the first second after a restart, a
+running quasar whose conduit elements had not registered again yet was dropped, and the host read zero. That reset the
+Eye's saved Stability or Heavy Link streak.
+
+**Built.**
+
+- For 200 ticks from the port's first reading after a load (`RESTORE_WARMUP_TICKS`: the startup check plus two element
+  seconds), a remembered source that has not arrived pauses the host (Q-8). It is no longer dropped.
+- After the warm-up the usual rules apply.
+- The restored entries keep tick 0, so a load does not restart P4-83's 10-minute forget clock. A first version set them
+  to the current tick, and on the dev server a KEE then stayed PAUSED after a restart because of an old unloaded
+  quasar. That was fixed before the test.
+
+**Dev server.** After a restart, both remembered quasars were already FORMED and running, but not feeding. The KEE's
+port read PAUSED for about 10 s, then "not linked". With the injection on again, it read 0.50 Bu/t LINKED at the first
+check.
+
+**Not run.** An Eye link streak across a real restart: the test Eye's links are already done.
+
+**Suggestion.** Keep.
+
+### P4-93 The conduit tables no longer pin unloaded worlds [conduit, review fix]
+
+**Context.** `ConduitNet.TABLE` and `BurstDocks.TABLE` are `WeakHashMap<World, …>`, but each entry reached its world
+(Entry → MTE → tile → `worldObj`). So the key was never collected, and every unloaded dimension leaked its WorldServer.
+
+**Built.** Each entry holds its element or dock in a `WeakReference`. The MTEs register themselves, so a loaded element
+stays reachable through its tile. No world-unload event handler is needed.
+
+**Dev server.** A dock was still found (the P4-94 test). The full ConduitNet rig was not raised again.
+
+**Suggestion.** Keep.
+
+### P4-94 A misaligned dock vents [quasar, review fix]
+
+**Context.** A crown docked upright under the bottom cap, or a mouth laid the wrong way round, returned 0 from
+`acceptJet`. So the whole jet was lost, but `vented`, Disc [8] and the readouts all stayed clear. The tooltip says "an
+unfit mouth vents".
+
+**Built.** A misaligned dock returns `IBurstDock.REFUSED`, and the quasar counts the jet as vented. The readouts say:
+
+- GUI: "-> venting: <dock> misaligned";
+- scanner: "venting (<dock> misaligned)";
+- OpenComputers docks: "venting".
+
+A throat or crown cap that clips is still not venting.
+
+**Dev server.** A Crown Mk I was built upright (facing east) under the bottom cap of quasar 20800: "Bottom jet:
+15.2 Bu/t -> venting (Crown Mk I misaligned)". The crown is left standing at 20812, 34, 19928 in `p4test`, a bench
+world.
+
+**Suggestion.** Keep.

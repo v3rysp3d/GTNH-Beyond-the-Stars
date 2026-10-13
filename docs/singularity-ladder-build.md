@@ -2033,6 +2033,7 @@ accepted, and §10.2's questions take their recommendations. Branch `p4-quasar`;
 | Eye T7 Triangulum + T8 Milky Way: rail / halo bands, receptor groups, the two galaxy transitions, links, planets mode, companions, Directive sets, sensor channels, GUI, render, NEI, OC, kit, bench | built | 57ff9a9, 4d7f61c, 6ff4868, 60a569f |
 | Other hosts (KEE, Homogeny T2/T3, Reality Diffraction), OpenComputers (rate limit, trim, the P4 components), automation bench and the unattended T6 → T7 → T8 proof on a real quasar and Eye, automation doc §7, questbook contract | built | ef77c88, 93e992f, cabab76, 0a02809, d6652e0, 9c58843, bbcac79, 4bf6030, 8bdb47d, f9e5c2f, 9d0360f, aadf752 |
 | Full RC-2 dev-server test of the branch (load, lang lint, golden, gates, every structure both ways in several facings, quasar, conduit, Eye T6 → T8, hosts, Superdense refinery, OC, rigs, restart, a pre-P4 world, regression); fixes P4-83..P4-87 | tested, 4 fixes | eb8e7fa, d2250a8, d1132d0, 05bc373, a6dedd2, ad235eb |
+| Review fixes P4-88..P4-94: T7 test-fire ceiling, Q-8 pauses non-Eye link work, module parallel capped, NaN-proof setters, receptor warm-up after a load, weak conduit tables, misaligned docks vent | fixed, dev-server tested | 00b5c89, 670ba74, a166922, c518fc9, b4f24cb, bd5e283, e3f0e70, ba90b9a |
 
 ### MTE ledger (P4 block 28120-28129)
 
@@ -2366,7 +2367,8 @@ complete: 310 registered, 0 skipped` (SL-Q01 and SL-Q20 register now).
   with 0 Bu/t is felt in full.
 - `JetPacket(source, port, buPerTick, linkable, tick)`: one port's second. `linkable` = formed, hole OPEN, b > 0 (the
   source end of a link). Stale after 40 ticks (`stale(now)`).
-- `IBurstDock`: `dockReady()`, `acceptJet(JetPacket)` returns the Bu/t taken (the rest shows as clipped),
+- `IBurstDock`: `dockReady()`, `acceptJet(JetPacket)` returns the Bu/t taken (the rest shows as clipped), or
+  `IBurstDock.REFUSED` when the dock faces the wrong way (the quasar counts the whole jet as vented, P4-94),
   `dockLabel()`. A crown or mouth calls `BurstDocks.register(world, x, y, z, this)` every second with its intake cell
   (crown: its base centre, `machines.crown.intake[piece].rel`; mouth: its throat centre) while formed and facing the
   axis; `unregister` on unform is optional.
@@ -2422,8 +2424,9 @@ A misaligned dock takes 0 and says so. `/btsconduit dock <quasar>` prints both p
   `BurstReading r = host.second(ports, hostKey, hostLabel, demand, streak01)` — it polls the ports (they learn the
   host's name), rolls the 60 s mean unless paused, computes σ against `demand` (`BurstLink.KERR_T1/T2`, `HOMOGENY_T2/T3`,
   `REALITY`, or `GalaxyField.demand(...)`), and reports the host to every feeding quasar (`reportHost`).
-- Read: `r.total`, `r.bySource`, `host.delivered()`, `host.sigma()` (last second), **`host.sigmaMean()`** (60 s mean:
-  use it for recipe conditions and bonuses, P4-50), `host.mean()`, `host.meanFull()`, `host.linked()`,
+- Read: `r.total`, `r.bySource`, `host.delivered()`, `host.sigma()` (last second), `host.sigmaMean()` (60 s mean,
+  P4-50; held while paused), **`host.sigmaInForce()`** (the 60 s mean, or 0 while paused: use it for recipe conditions
+  and bonuses, P4-89), `host.mean()`, `host.meanFull()`, `host.linked()`,
   `host.linkSource()`, `host.linkLine()` (GUI / scanner text).
 - **Q-8:** if `r.paused` (`host.paused()`), freeze the field, cycle, streaks and recipe progress for that second; do
   not read 0. `r.pausedBy` names the source.
@@ -2611,7 +2614,7 @@ standard rig was proved unattended on a dev server: T6 → T7 → T8 on a real q
 **Contracts.**
 
 - **Host-side API** (unchanged from the conduit unit): one `BurstHost` per host, `second(ports, key, label, demand,
-  streak01)` once a host second; conditions use `sigmaMean()`.
+  streak01)` once a host second; conditions and bonuses use `sigmaInForce()` (P4-89; was `sigmaMean()`).
 - **OpenComputers:** every setter and action goes through `BTSComputerApi.rateOk(mte, method)`. A refused call returns
   `nil, "rate limited: one call per 20 ticks (1 s, the field's step)"`.
 - **The Eye's link rules** (P4-76, P4-79) live in `EyeStarRuntime`. `GalaxyDirective` keeps the prototype's rule, so
@@ -2789,3 +2792,42 @@ and fluids.
 - OpenComputers through a real Adapter (the components were exercised through the same API);
 - re-opening a dormant quasar with a real Black Hole Seed item;
 - a cross-dimension mouth pair, and a data-stick pairing by hand.
+
+### Review fixes (questions P4-88..P4-94)
+
+Seven review findings, all confirmed against the code and all fixed. Each fix is its own commit.
+
+| # | Finding | Fix | Where |
+|---|---|---|---|
+| P4-88 | The T7 Heavy Link test fire had no ceiling. With Mk II throats, a quasar above about 300 SM breached Triangulum. | Slots [8] needs a mean stream of 6-32 Bu/t. Above that, the Galaxy panel and OC `testFireShare` give J1's Eye share (16 Bu/t ÷ stream). | `EyeStarRuntime`, `EyeGui`, OC, Directive tooltip |
+| P4-89 | Q-8 held σ on the non-Eye hosts, so a frozen or unloaded quasar kept every bonus for free. | `BurstHost.sigmaInForce()` is 0 while paused, so link work pauses on the KEE, Homogeny and Reality. | `BurstHost`, `MTEKerrEngine`, `MTEHomogeny`, `MTERealityDiffraction` |
+| P4-90 | After a lost link, the modules kept a 768 SM parallel for hundreds of hours. | Module parallel uses min(M, the cap in force). | `MTEKerrModuleBase` |
+| P4-91 | NaN passed the quasar and Junction setters and corrupted the disc and the streams. | Setters ignore non-finite values; NBT loads heal them. | `MTEQuasarEngine`, `MTEConduitJunction`, `MTEConduitElement` |
+| P4-92 | After a restart, a host read one empty second and lost its link streak. | A 200-tick warm-up after a load: a remembered source that has not arrived pauses the host. | `MTEHatchGRBReceptor` |
+| P4-93 | `ConduitNet` / `BurstDocks` pinned unloaded worlds. | The entries hold weak references. | `ConduitNet`, `BurstDocks` |
+| P4-94 | A misaligned dock lost the jet silently. | `IBurstDock.REFUSED`: the jet is counted as vented. | `IBurstDock`, mouth, crown, quasar, GUI, OC |
+
+**Checks.**
+
+- `spotlessApply compileJava` passes.
+- `quasar-golden --check --java` passes 38 / 38, and `fieldsim-golden --check --java` passes 78 / 78.
+- The P4-88 evidence is the prototype harness, the T7 rig with Mk II throats: 0 failures up to 265 SM, and breaches
+  from 300 SM.
+
+**Dev server** (port 25581, three boots). 315 recipes registered, and no `com.nateyburr` stack trace.
+
+- **KEE T2 at 700 SM, quasar link σ 2.00:**
+  - with the link: cap 768, SL-Q23 running, bonus parallel 3,328;
+  - quasar frozen: PAUSED, bleed ×1, cap 512, SL-Q23 held at 10,525 / 12,000, bonus 2,816;
+  - quasar repaired: everything resumed within 13 s.
+- **Setters:** `feed NaN` and `b Infinity` were ignored, and the disc was unharmed. On a Junction, NaN c and p3 were
+  ignored.
+- **Restart:** the port read PAUSED about 10 s, then "not linked". With an injection running, the link was there from
+  the first check.
+- **Misaligned dock:** an upright Crown Mk I under a bottom cap reads "venting (Crown Mk I misaligned)".
+
+**Not run.**
+
+- An Eye link streak across a real restart.
+- The ConduitNet rig after the weak-reference change. Only a BurstDocks lookup was exercised.
+- The T7 test fire in game. The ceiling rests on the harness.
