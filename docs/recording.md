@@ -218,10 +218,14 @@ x 10000) and an unseeded quasar behind it (x 10000, y 100, z 4400). Chapters:
    front window at eye level (a dolly from 132 to 98 blocks in front of the centre: the core and inner arms through the
    rim's opening, B-114), then the Galactic Merger on the same quasar and rig, the Milky Way.
 8. **How to build one:** hints, survival auto-place, forming, NEI preview and recipe.
-9. **The quest book:** master's Tier 13 UXV, Tier 14 MAX and The Endgame chapters (on master the worktree's own
-   book; `-Dbts.rec.questsdir` still overrides it). UIV and
-   UMV are the pack's own chapters (ours only adds quests to them), so a dev world without the pack's book cannot show
-   them.
+9. **The quest book:** the pack's Tier 11 UIV and Tier 12 UMV with our quests added, then our Tier 13 UXV, Tier 14
+   MAX and The Endgame. UIV and UMV are the pack's own chapters (ours only adds quests to them), so they need the
+   pack's book: copy a pack instance's `config/betterquesting/DefaultQuests` (read-only, never edit the instance) to
+   `<dir>/questbook/DefaultQuests`, put the same files in `run/client/config/betterquesting/DefaultQuests` (replace
+   the folder), and run with `-Dbts.rec.questsdir=<dir>`; the setup's `/btsquests install` puts our chapters and
+   pack-chapter quests on top. Without the pack's book the `qb-uiv` / `qb-umv` scenes show only our quests.
+   Turn on BetterQuesting's `"View mode"` in `run/client/config/betterquesting.cfg` (the pack ships it on): with it
+   off, the pack chapters draw empty, since their quests are locked in a fresh world.
 
 Re-take scenes with `-Dbts.rec.only=<scene prefixes>` (the setup always runs). Chapter 3 is self-contained from the
 setup; chapter 7's merger needs the quasar seeded in chapter 6 (`q-seed`), so re-take them together.

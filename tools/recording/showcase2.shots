@@ -14,8 +14,10 @@
 # - Long stretches run under the time warp (/btswarp, a cheat: the whole server runs N ticks per real tick through the
 #   normal code). Its tag shows the measured multiplier and the game time; a time-lapse tag shows frame sampling.
 #
-# On master the questbook carries the UXV / MAX / Endgame chapters; -Dbts.rec.questsdir=<a DefaultQuests tree> still
-# points the client at another one.
+# On master the questbook carries the UXV / MAX / Endgame chapters. The UIV / UMV scenes need the pack's own book:
+# -Dbts.rec.questsdir=<a folder holding questbook/DefaultQuests> pointing at a COPY of a pack instance's
+# config/betterquesting (copied into run/client/config/betterquesting/ before the run too, docs/recording.md); the
+# mod's install puts our chapters and pack-chapter quests on top of it.
 #
 # Sites (z 4000, all facing north): Rig B, the Kerr on AE2 (x 1700); Rig C, the AE2 Eye (x 2400); the climbing Eye
 # (x 3000, kit T6 set back to a dark T1); the build-logic Eye (x 3300); the tier Eye (x 3600); the Kerr tiers
@@ -115,7 +117,7 @@ scene ae-burn
   orbit aeeye+0,-8,0 radius 80 height 20 from 30 to -30 seconds 8
 
 scene eye-gui
-  caption The controller screen: the star and its zone, each gauge against its band, the upkeep and buffers, and the trim the field wants next. The side panels hold the field's detail and the Info page.
+  caption The controller screen: the star and its zone, the pressure gauge against its band, stability, integrity, the lock and the 60 s cycle, the yield Y and the milestones to the next tier. Its buttons open the Field panel (zones, sockets, sensors, trims), the Galaxy panel and the Info page.
   goto aeeyectrl+0,0.2,-3.5 look aeeyectrl
   gui aeeyectrl
   warp 20
@@ -334,7 +336,7 @@ scene reality
   close
 
 scene refab
-  caption Reality Refab is not running either: its regions come only from a running Diffraction, through the same BEC network. Both are the ladder's next part (MAX); its screen lists what it waits for.
+  caption Reality Refab is not running either: it borrows the nanites of a running Condensate Assembler nearby (none here) and draws its six regions from a running Diffraction through the BEC network. Both are the ladder's next part (MAX); its screen lists what it waits for.
   goto ref+0,10,-40 look ref+0,40,30
   hold 3
   goto ref+0,0.2,-3.5 look ref
@@ -490,7 +492,19 @@ scene build-nei
 
 # ================================================================ 9. The quest book
 scene c9
-  card 3 9. The quest book | the post-UEV chapters (UIV and UMV are the pack's own chapters: not in this dev world)
+  card 3 9. The quest book | the post-UEV chapters: the pack's UIV and UMV with our quests added, then our own UXV, MAX and Endgame
+
+scene qb-uiv
+  caption Tier 11, UIV, the pack's own chapter: our Kerr quests join it - the Kerr Ergosphere Engine (in place of the Black Hole Compressor), its Compressor and Extractor Modules, feeding its governor.
+  questbook chapter -3830322202564867506:-6735759834341434473
+  hold 3
+  close
+
+scene qb-umv
+  caption Tier 12, UMV, also the pack's: the Eye of Harmony from Sol to the neutron star, its stability field and time dial, planets on the Eye, the Homogeny and Kerr tier 2.
+  questbook chapter -7530346397122738063:-7402903983988686405
+  hold 3
+  close
 
 scene qb-uxv
   caption Tier 13, UXV: the Eye's second half - Sirius B cooling white dwarfs into black ones, the magnetar on Antipolarization Agent - beside the pack's own UXV parts.

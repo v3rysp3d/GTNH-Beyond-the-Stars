@@ -1834,7 +1834,9 @@ public final class RecClient {
                 f = null;
             }
             waited++;
-            if (mc.currentScreen != null) up++;
+            // park the mouse once the screen is up: opening a screen ungrabs the cursor to the window's centre,
+            // where it hovered a quest in the book and drew its tooltip over the shot
+            if (mc.currentScreen != null && up++ == 0) parkMouse();
             if (up >= 20) {
                 say(
                     "    screen " + mc.currentScreen.getClass()
@@ -1912,7 +1914,9 @@ public final class RecClient {
         @Override
         void tick() {
             waited++;
-            if (mc.currentScreen != null) up++;
+            // park the mouse once the screen is up: opening a screen ungrabs the cursor to the window's centre,
+            // where it hovered a quest in the book and drew its tooltip over the shot
+            if (mc.currentScreen != null && up++ == 0) parkMouse();
             if (up >= 20 || waited >= 200) done = true;
         }
     }
@@ -1982,7 +1986,9 @@ public final class RecClient {
         @Override
         void tick() {
             waited++;
-            if (mc.currentScreen != null) up++;
+            // park the mouse once the screen is up: opening a screen ungrabs the cursor to the window's centre,
+            // where it hovered a quest in the book and drew its tooltip over the shot
+            if (mc.currentScreen != null && up++ == 0) parkMouse();
             if (!tabbed && !tab.isEmpty() && up >= 2) {
                 tabbed = true;
                 selectTab();
