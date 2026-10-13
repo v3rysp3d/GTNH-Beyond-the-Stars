@@ -987,6 +987,17 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             .getTotalWorldTime() - conduitClosedTick > 40;
     }
 
+    /** Where a stream last met a closed Conduit element ("" while the conduit is open): the GUI's warning. */
+    public String conduitClosedWhere() {
+        return conduitOpen() ? "" : conduitClosedAt;
+    }
+
+    /** The coil power sockets the walk found, as the GUI's checklist names them: "Energy", "Laser", both, or "". */
+    public String coilPowerKinds() {
+        final boolean energy = liveCount(mEnergyHatches) > 0, laser = liveCount(mExoticEnergyHatches) > 0;
+        return energy && laser ? "Energy + Laser" : energy ? "Energy" : laser ? "Laser" : "";
+    }
+
     private void pruneHosts(long now) {
         for (Iterator<HostReport> it = hosts.values()
             .iterator(); it.hasNext();) {

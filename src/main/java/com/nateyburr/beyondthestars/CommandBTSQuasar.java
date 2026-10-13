@@ -54,7 +54,7 @@ public class CommandBTSQuasar extends CommandBase {
     @Override
     public String getCommandUsage(ICommandSender sender) {
         return "/btsquasar [t1..t4] [seed] [force]  |  console: /btsquasar [t1..t4] <x> <y> <z> [facing] [force] [survival] [seed] | [check]"
-            + "  |  /btsquasar <status|seed [M] [a]|open|collapse|purge|mass M|feed f|gas H|He|RSM|b v|run s [fill]|trim g s|refill|redstone on|off|keep> x y z  |  /btsquasar release"
+            + "  |  /btsquasar <status|seed [M] [a]|open|collapse|purge|mass M|feed f|gas H|He|RSM|b v|run s [fill]|trim g s|refill|redstone on|off|keep|gui [info]> x y z  |  /btsquasar release"
             + "  |  /btsquasar autorig x y z <s> [eye ex ey ez] [analog] [cut k] [mass M] | autorig off|status  |  /btsquasar ocloop x y z";
     }
 
@@ -87,6 +87,7 @@ public class CommandBTSQuasar extends CommandBase {
                 "refill",
                 "redstone",
                 "keep",
+                "gui",
                 "release");
         }
         return null;
@@ -106,7 +107,8 @@ public class CommandBTSQuasar extends CommandBase {
         "trim",
         "refill",
         "redstone",
-        "keep");
+        "keep",
+        "gui");
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
@@ -279,6 +281,12 @@ public class CommandBTSQuasar extends CommandBase {
             return;
         }
         final String arg = args.length > 4 ? args[4] : "";
+        if (verb.equals("gui")) {
+            // B-116: the header and rows (or the Info page) the kit console shows, built as the GUI syncs them
+            for (String line : new com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngineGui(q)
+                .benchDump(arg.equalsIgnoreCase("info"))) SLConsoleTest.tell(sender, line);
+            return;
+        }
         switch (verb) {
             case "seed":
                 if (arg.isEmpty()) {

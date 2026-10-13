@@ -2,12 +2,15 @@ package com.nateyburr.beyondthestars.machines.quasar;
 
 import static gregtech.api.metatileentity.BaseTileEntity.TOOLTIP_DELAY;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.StatCollector;
 
 import com.cleanroommc.modularui.api.IPanelHandler;
 import com.cleanroommc.modularui.api.drawable.IDrawable;
@@ -15,6 +18,7 @@ import com.cleanroommc.modularui.api.drawable.IKey;
 import com.cleanroommc.modularui.api.widget.IWidget;
 import com.cleanroommc.modularui.drawable.GuiDraw;
 import com.cleanroommc.modularui.screen.ModularPanel;
+import com.cleanroommc.modularui.screen.RichTooltip;
 import com.cleanroommc.modularui.utils.Alignment;
 import com.cleanroommc.modularui.value.DoubleValue;
 import com.cleanroommc.modularui.value.sync.BooleanSyncValue;
@@ -23,63 +27,61 @@ import com.cleanroommc.modularui.value.sync.IntSyncValue;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 import com.cleanroommc.modularui.value.sync.StringSyncValue;
 import com.cleanroommc.modularui.widgets.ButtonWidget;
-import com.cleanroommc.modularui.widgets.ListWidget;
+import com.cleanroommc.modularui.widgets.ScrollingTextWidget;
 import com.cleanroommc.modularui.widgets.SliderWidget;
 import com.cleanroommc.modularui.widgets.TextWidget;
-import com.cleanroommc.modularui.widgets.ToggleButton;
 import com.cleanroommc.modularui.widgets.layout.Flow;
 import com.cleanroommc.modularui.widgets.textfield.TextFieldWidget;
+import com.nateyburr.beyondthestars.items.SLQuasarItems;
+import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
+import com.nateyburr.beyondthestars.machines.gui.BTSControllerGui;
+import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
+import com.nateyburr.beyondthestars.machines.gui.BTSGuiKit;
+import com.nateyburr.beyondthestars.machines.gui.BTSGuiKit.Badge;
+import com.nateyburr.beyondthestars.machines.gui.BTSGuiKit.Grad;
+import com.nateyburr.beyondthestars.machines.gui.BTSRows;
+import com.nateyburr.beyondthestars.machines.gui.BTSText;
 import com.nateyburr.beyondthestars.machines.quasar.burst.JetPort;
 import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarGas;
 import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarParams;
 import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarState;
 
+import gregtech.api.enums.ItemList;
 import gregtech.api.modularui2.GTGuiTextures;
-import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
+import gregtech.api.util.GTUtility;
 
 /**
- * P4: the Quasar Engine's console (quasar-p4.md §1.5), GT's standard MUI2 multiblock layout in the Kerr console's
- * style.
- * Nothing a player needs takes a screwdriver.
+ * P4: the Quasar Engine's console on the controller GUI kit (controller-gui-spec.md §5.4, B-116). The header says the
+ * hole's state (NOT FORMED, FROZEN, NO HOLE, DORMANT, RE-FORMING, or the zone of E while it is open), its mass and the
+ * coil tier. An open hole shows the E gauge (the Eye's zone bands, ±10 / 40 / 70 / 100: the old dial drew ±30 / ±60),
+ * the flux bar (the purge setpoint and the 90 warning as ticks), mass against the coil cap, Integrity, spin and the
+ * burst stream, each jet's dock, the feed and the coils, the hosts fed and the last event; a hole that is not open
+ * shows the checklist of what Open needs; a re-forming disc its 300 s and the feed it needs. Long text moved to the
+ * row tooltips and the <b>i</b> page (the questbook's "Opening the quasar", "Reading the disc" and "Burst Control").
+ * Nothing a player needs takes a screwdriver:
  * <ul>
- * <li><b>Terminal:</b> the hole (state, coil tier); a mass bar (M over the coil cap); spin and λ; the E dial (a bar
- * centred on 0, zone-coloured, with the Resonant / Stable / Strained bands); the flux bar (the purge setpoint and the
- * 90 eruption warning as ticks); Integrity, Y_q and Stability; each jet (Bu/t and its dock, or "venting"); the feed
- * and the gas buffer; the coils (b, EU/t, power); links; the last event.</li>
- * <li><b>Gap row:</b> the feed f (a number field with - / +) on the left; the Disc control and Jets &amp; links side
- * panels and the render toggle on the right.</li>
- * <li><b>Disc control panel:</b> the gas, the feed f, the field b, the Directive purge setpoint, Purge now, Open
- * (the Quasar Seed, or a Black Hole Seed for a dormant hole, in the controller slot) and Collapse (two clicks).</li>
- * <li><b>Jets &amp; links panel:</b> each port, the hosts fed (as the conduit reports them), counters and
- * milestones.</li>
+ * <li><b>Gap row:</b> the feed f (a number field with − / +) on the left; the Disc control and Jets &amp; links side
+ * panels and <b>i</b> on the right. The render toggle is at the top of the button column; the power switch shows the
+ * kit's disabled icon (it does not stop the hole: Collapse does).</li>
+ * <li><b>Disc control panel:</b> the gas, the feed f, the field b, the Directive purge setpoint, Purge now, Open (the
+ * Quasar Seed, or a Black Hole Seed for a dormant hole, in the controller slot) and Collapse (two clicks).</li>
+ * <li><b>Jets &amp; links panel:</b> each port and what it feeds, the hosts fed (as the conduit reports them),
+ * counters and milestones.</li>
  * </ul>
- * Every value is server state and comes across as a sync value; every setter is clamped on the server.
+ * The rows are decided on the server ({@link BTSRows}); every setter is clamped on the server.
  */
-public class MTEQuasarEngineGui extends MTEMultiBlockBaseGui<MTEQuasarEngine> {
+public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
 
-    private static final int BAR_TRACK = 0xFF2A2D33;
-    private static final int BAR_EDGE = 0xFF4A4D55;
-    /** Mass: the disc's orange. */
-    private static final int MASS_FROM = 0xFF7A3A10;
-    private static final int MASS_TO = 0xFFFFA040;
-    /** Flux: the jets' cyan. */
-    private static final int FLUX_FROM = 0xFF1F4A7A;
-    private static final int FLUX_TO = 0xFF7FE0FF;
-    private static final int TICK = 0xFFFFFF55;
-    private static final int TICK_WARN = 0xFFFF5555;
-    /** Zone colours, 0 Resonant .. 4 Breach (the D-49 palette). */
-    private static final int[] ZONE_ARGB = { 0xFF7FE0FF, 0xFF55DD55, 0xFFFFC040, 0xFFFF6A30, 0xFFFF2020 };
-    private static final EnumChatFormatting[] ZONE_TEXT = { EnumChatFormatting.AQUA, EnumChatFormatting.GREEN,
-        EnumChatFormatting.GOLD, EnumChatFormatting.RED, EnumChatFormatting.DARK_RED };
+    private static final String K = "beyondthestars.gui.quasar.";
 
     private static final long COLLAPSE_ARM_MS = 4000L;
     private static final int DISC_PANEL_W = 160;
-    private static final int DISC_PANEL_H = 214;
+    private static final int DISC_PANEL_H = 244;
     private static final int JETS_PANEL_W = 190;
-    private static final int JETS_PANEL_H = 190;
+    private static final int JETS_PANEL_H = 214;
 
     public MTEQuasarEngineGui(MTEQuasarEngine multiblock) {
-        super(multiblock);
+        super(multiblock, false, "qRender");
     }
 
     // ============================================================================= sync values
@@ -89,31 +91,15 @@ public class MTEQuasarEngineGui extends MTEMultiBlockBaseGui<MTEQuasarEngine> {
         super.registerSyncValues(syncManager);
         final MTEQuasarEngine m = multiblock;
         syncManager.syncValue("qFormed", new BooleanSyncValue(m::isFormed));
-        syncManager.syncValue("qFrozen", new BooleanSyncValue(m::isFrozen));
         syncManager.syncValue("qHole", new IntSyncValue(m::holeOrdinal));
         syncManager.syncValue("qCoil", new IntSyncValue(m::getCoilTier));
-        syncManager.syncValue("qMass", new DoubleSyncValue(m::getMass));
-        syncManager.syncValue("qCap", new DoubleSyncValue(m::getMassCap));
-        syncManager.syncValue("qSpin", new DoubleSyncValue(() -> m.state().a));
-        syncManager.syncValue("qSpinUp", new BooleanSyncValue(m::spinningUp));
-        syncManager.syncValue("qLambda", new DoubleSyncValue(() -> m.state().lam));
-        syncManager.syncValue("qE", new DoubleSyncValue(() -> m.state().E));
-        syncManager.syncValue("qZone", new IntSyncValue(() -> m.state().zone));
         syncManager.syncValue("qPhi", new DoubleSyncValue(() -> m.state().Phi));
-        syncManager.syncValue("qI", new DoubleSyncValue(() -> m.state().I));
-        syncManager.syncValue("qYq", new DoubleSyncValue(() -> m.state().Yq));
-        syncManager.syncValue("qReform", new IntSyncValue(() -> m.state().reform));
-        syncManager.syncValue("qG", new DoubleSyncValue(() -> m.state().G));
         for (JetPort port : JetPort.VALUES) {
             syncManager.syncValue("qJet." + port.key, new StringSyncValue(() -> jetLine(m, port)));
         }
-        syncManager.syncValue("qFeedLine", new StringSyncValue(() -> feedLine(m)));
-        syncManager.syncValue("qCoilLine", new StringSyncValue(() -> coilLine(m)));
         syncManager.syncValue("qLinks", new StringSyncValue(() -> linksText(m)));
-        syncManager.syncValue("qEvent", new StringSyncValue(m::getLastEvent));
         syncManager.syncValue("qCounters", new StringSyncValue(() -> countersLine(m)));
         syncManager.syncValue("qMilestones", new StringSyncValue(() -> milestonesLine(m)));
-        syncManager.syncValue("qRenderNote", new StringSyncValue(m::getRenderNote));
         syncManager.syncValue("qSlot", new StringSyncValue(() -> slotLine(m)));
         // settable from the client; every setter clamps on the server
         syncManager.syncValue("qFeed", new DoubleSyncValue(m::getFeed, m::setFeed).allowC2S());
@@ -130,61 +116,15 @@ public class MTEQuasarEngineGui extends MTEMultiBlockBaseGui<MTEQuasarEngine> {
 
     // ===================================================================== server-side lines
 
+    /** One port's line for the Jets &amp; links panel and the jet rows' tooltip (plain text). */
     static String jetLine(MTEQuasarEngine m, JetPort port) {
         final String dock = m.jetDock(port);
         final double bu = m.jetBu(port);
-        final String head = EnumChatFormatting.GRAY + port.label
-            + " jet "
-            + EnumChatFormatting.WHITE
-            + MTEQuasarEngine.bu(bu)
-            + " Bu/t"
-            + EnumChatFormatting.GRAY;
-        if (dock == null) return head + (bu > 0 ? EnumChatFormatting.GOLD + " -> venting" : " -> nothing docked");
-        if (m.jetRefused(port)) return head + EnumChatFormatting.GOLD + " -> venting: " + dock + " misaligned";
+        final String head = tr(K + "jet." + port.key) + " " + MTEQuasarEngine.bu(bu) + " Bu/t -> ";
+        if (dock == null) return head + tr(bu > 0 ? K + "jet.venting" : K + "jet.nothing");
+        if (m.jetRefused(port)) return head + tr(K + "jet.misaligned", dock);
         final double clipped = bu - m.jetTaken(port);
-        return head + " -> "
-            + EnumChatFormatting.AQUA
-            + dock
-            + (clipped > 0.005 ? EnumChatFormatting.GOLD + " (clipped " + MTEQuasarEngine.bu(clipped) + ")" : "");
-    }
-
-    static String feedLine(MTEQuasarEngine m) {
-        final QuasarState q = m.state();
-        if (q.hole == QuasarState.Hole.NONE) return EnumChatFormatting.DARK_GRAY + "Feed: no hole yet";
-        final double medd = QuasarParams.eddingtonFeed(q.M, m.getGas());
-        return EnumChatFormatting.GRAY + m.getGas().displayName
-            + " f "
-            + EnumChatFormatting.WHITE
-            + String.format(Locale.ROOT, "%.2f", m.getFeed())
-            + EnumChatFormatting.GRAY
-            + ": "
-            + MTEQuasarEngine.fmt(m.getGasDrawn())
-            + " / "
-            + MTEQuasarEngine.fmt(medd)
-            + " L/s, buffer "
-            + compact(m.buffer(MTEQuasarEngine.gasFluid(m.getGas())))
-            + " L"
-            + (m.getTrimGasUnits() + m.getTrimSpaceUnits() > 0
-                ? String.format(Locale.ROOT, ", trims +%.0f / -%.0f", m.getTrimGasUnits(), m.getTrimSpaceUnits())
-                : "");
-    }
-
-    static String coilLine(MTEQuasarEngine m) {
-        final QuasarState q = m.state();
-        if (q.hole != QuasarState.Hole.OPEN && q.hole != QuasarState.Hole.REFORM) {
-            return EnumChatFormatting.DARK_GRAY + "Coils idle (T" + m.getCoilTier() + ")";
-        }
-        if (!m.isPowerOk()) return EnumChatFormatting.RED + "Coil power SHORT: b = 0, jets stopped, flux frozen";
-        return EnumChatFormatting.GRAY + "Coils T"
-            + m.getCoilTier()
-            + ": b "
-            + EnumChatFormatting.WHITE
-            + String.format(Locale.ROOT, "%.2f", m.getBInUse())
-            + EnumChatFormatting.GRAY
-            + (m.bFromHatch() ? " (Burst Control Hatch)" : "")
-            + ", "
-            + compact(m.getCoilEUt())
-            + " EU/t";
+        return head + dock + (clipped > 0.005 ? " " + tr(K + "jet.clipped", MTEQuasarEngine.bu(clipped)) : "");
     }
 
     static String linksText(MTEQuasarEngine m) {
@@ -193,18 +133,21 @@ public class MTEQuasarEngineGui extends MTEMultiBlockBaseGui<MTEQuasarEngine> {
         final StringBuilder sb = new StringBuilder();
         for (MTEQuasarEngine.HostReport h : hosts) {
             if (sb.length() > 0) sb.append('\n');
-            sb.append(h.label)
-                .append(": ")
-                .append(MTEQuasarEngine.bu(h.bu))
-                .append(" Bu/t, σ ")
-                .append(String.format(Locale.ROOT, "%.2f", h.sigma));
-            if (h.streak > 0) sb.append(String.format(Locale.ROOT, ", streak %.0f%%", 100 * h.streak));
+            sb.append(hostLine(h));
         }
         return sb.toString();
     }
 
+    static String hostLine(MTEQuasarEngine.HostReport h) {
+        return h.label + ": "
+            + MTEQuasarEngine.bu(h.bu)
+            + " Bu/t, σ "
+            + String.format(Locale.ROOT, "%.2f", h.sigma)
+            + (h.streak > 0 ? String.format(Locale.ROOT, ", streak %.0f%%", 100 * h.streak) : "");
+    }
+
     static String countersLine(MTEQuasarEngine m) {
-        return "Eruptions " + m.getEruptions() + ", purges " + m.getPurges() + ", blow-outs " + m.getBlowOuts();
+        return tr(K + "counters", m.getEruptions(), m.getPurges(), m.getBlowOuts());
     }
 
     static String milestonesLine(MTEQuasarEngine m) {
@@ -223,279 +166,350 @@ public class MTEQuasarEngineGui extends MTEMultiBlockBaseGui<MTEQuasarEngine> {
         return sb.toString();
     }
 
-    /** What the controller slot needs now (the Open button's hint). */
+    /** What the controller slot needs now (the Open button's hint), "" when the hole runs. */
     static String slotLine(MTEQuasarEngine m) {
         switch (m.state().hole) {
             case NONE:
-                return "Open: a Quasar Seed in the controller slot";
+                return tr(K + "slot.seed");
             case DORMANT:
-                return "Open: a Black Hole Seed in the controller slot";
+                return tr(K + "slot.bhseed");
             default:
                 return "";
         }
     }
 
-    // ================================================================================ terminal
-
-    private static IWidget row(Supplier<String> text) {
-        return IKey.dynamic(text::get)
-            .asWidget()
-            .fullWidth()
-            .marginBottom(2);
+    private static String tr(String key, Object... args) {
+        return args.length == 0 ? StatCollector.translateToLocal(key)
+            : StatCollector.translateToLocalFormatted(key, args);
     }
 
-    /** A terminal line shown only while {@code shown} holds. */
-    private static IWidget rowIf(Supplier<String> text, BooleanSupplier shown) {
-        return IKey.dynamic(text::get)
-            .asWidget()
-            .fullWidth()
-            .marginBottom(2)
-            .setEnabledIf(w -> shown.getAsBoolean());
+    // =============================================================================== the header
+
+    private QuasarState.Hole hole() {
+        return multiblock.state().hole;
+    }
+
+    /** §5.4 badge table, first match wins. */
+    @Override
+    protected Badge badgeCode() {
+        if (!multiblock.isFormed()) return Badge.NOT_FORMED;
+        if (multiblock.isFrozen()) return Badge.FROZEN;
+        switch (hole()) {
+            case NONE:
+                return Badge.NO_HOLE;
+            case DORMANT:
+                return Badge.DORMANT;
+            case REFORM:
+                return Badge.REFORMING;
+            default:
+                return Badge.ofZone(multiblock.state().zone < 0 ? 1 : multiblock.state().zone);
+        }
     }
 
     @Override
-    protected ListWidget<IWidget, ?> createTerminalTextWidget(PanelSyncManager syncManager, ModularPanel parent) {
-        final BooleanSyncValue formed = syncManager.findSyncHandler("qFormed", BooleanSyncValue.class);
-        final BooleanSyncValue frozen = syncManager.findSyncHandler("qFrozen", BooleanSyncValue.class);
-        final IntSyncValue hole = syncManager.findSyncHandler("qHole", IntSyncValue.class);
-        final IntSyncValue coil = syncManager.findSyncHandler("qCoil", IntSyncValue.class);
-        final DoubleSyncValue mass = syncManager.findSyncHandler("qMass", DoubleSyncValue.class);
-        final DoubleSyncValue cap = syncManager.findSyncHandler("qCap", DoubleSyncValue.class);
-        final DoubleSyncValue spin = syncManager.findSyncHandler("qSpin", DoubleSyncValue.class);
-        final BooleanSyncValue spinUp = syncManager.findSyncHandler("qSpinUp", BooleanSyncValue.class);
-        final DoubleSyncValue lambda = syncManager.findSyncHandler("qLambda", DoubleSyncValue.class);
-        final DoubleSyncValue e = syncManager.findSyncHandler("qE", DoubleSyncValue.class);
-        final IntSyncValue zone = syncManager.findSyncHandler("qZone", IntSyncValue.class);
-        final DoubleSyncValue phi = syncManager.findSyncHandler("qPhi", DoubleSyncValue.class);
-        final DoubleSyncValue integrity = syncManager.findSyncHandler("qI", DoubleSyncValue.class);
-        final DoubleSyncValue yq = syncManager.findSyncHandler("qYq", DoubleSyncValue.class);
-        final IntSyncValue reform = syncManager.findSyncHandler("qReform", IntSyncValue.class);
-        final DoubleSyncValue g = syncManager.findSyncHandler("qG", DoubleSyncValue.class);
-        final DoubleSyncValue purgeAt = syncManager.findSyncHandler("qPurgeAt", DoubleSyncValue.class);
-        final StringSyncValue top = syncManager.findSyncHandler("qJet.top", StringSyncValue.class);
-        final StringSyncValue bottom = syncManager.findSyncHandler("qJet.bottom", StringSyncValue.class);
-        final StringSyncValue feedLine = syncManager.findSyncHandler("qFeedLine", StringSyncValue.class);
-        final StringSyncValue coilLine = syncManager.findSyncHandler("qCoilLine", StringSyncValue.class);
-        final StringSyncValue links = syncManager.findSyncHandler("qLinks", StringSyncValue.class);
-        final StringSyncValue event = syncManager.findSyncHandler("qEvent", StringSyncValue.class);
-        final StringSyncValue renderNote = syncManager.findSyncHandler("qRenderNote", StringSyncValue.class);
-        final BooleanSupplier hasHole = () -> hole.getIntValue() != QuasarState.Hole.NONE.ordinal();
-        final BooleanSupplier discOn = () -> hole.getIntValue() == QuasarState.Hole.OPEN.ordinal();
-
-        return super.createTerminalTextWidget(syncManager, parent)
-            .child(
-                row(
-                    () -> holeLine(
-                        formed.getBoolValue(),
-                        frozen.getBoolValue(),
-                        hole.getIntValue(),
-                        coil.getIntValue(),
-                        reform.getIntValue())))
-            .child(
-                IKey.dynamic(
-                    () -> EnumChatFormatting.WHITE + fmt1(mass.getDoubleValue())
-                        + " / "
-                        + MTEQuasarEngine.fmt(cap.getDoubleValue())
-                        + " SM ")
-                    .asWidget()
-                    .textAlign(Alignment.CenterRight)
-                    .scale(0.8f)
-                    .widthRel(0.94f)
-                    .height(9)
-                    .background(
-                        fillBar(
-                            () -> mass.getDoubleValue() / Math.max(1, cap.getDoubleValue()),
-                            MASS_FROM,
-                            MASS_TO,
-                            -1,
-                            -1))
-                    .marginBottom(3)
-                    .setEnabledIf(w -> hasHole.getAsBoolean()))
-            .child(
-                rowIf(
-                    () -> EnumChatFormatting.GRAY + "Spin a "
-                        + EnumChatFormatting.WHITE
-                        + String.format(Locale.ROOT, "%.3f", spin.getDoubleValue())
-                        + EnumChatFormatting.GRAY
-                        + (spinUp.getBoolValue() ? " (spinning up)" : "")
-                        + ", lambda "
-                        + EnumChatFormatting.WHITE
-                        + String.format(Locale.ROOT, "%.2f", lambda.getDoubleValue())
-                        + EnumChatFormatting.GRAY
-                        + ", bursts "
-                        + EnumChatFormatting.WHITE
-                        + MTEQuasarEngine.bu(g.getDoubleValue())
-                        + " Bu/t",
-                    hasHole))
-            .child(
-                IKey.dynamic(() -> eLine(e.getDoubleValue(), zone.getIntValue()))
-                    .asWidget()
-                    .textAlign(Alignment.Center)
-                    .scale(0.8f)
-                    .widthRel(0.94f)
-                    .height(9)
-                    .background(eBar(e, zone))
-                    .marginBottom(3)
-                    .setEnabledIf(w -> discOn.getAsBoolean()))
-            .child(
-                IKey.dynamic(
-                    () -> EnumChatFormatting.WHITE + "Flux "
-                        + Math.round(phi.getDoubleValue())
-                        + (phi.getDoubleValue() >= QuasarParams.ERUPT_WARN ? EnumChatFormatting.RED + " ERUPTING SOON"
-                            : "")
-                        + " ")
-                    .asWidget()
-                    .textAlign(Alignment.CenterRight)
-                    .scale(0.8f)
-                    .widthRel(0.94f)
-                    .height(9)
-                    .background(
-                        fillBar(
-                            () -> phi.getDoubleValue() / 100.0,
-                            FLUX_FROM,
-                            FLUX_TO,
-                            purgeAt.getDoubleValue() > 0 ? purgeAt.getDoubleValue() / 100.0 : -1,
-                            QuasarParams.ERUPT_WARN / 100.0))
-                    .marginBottom(3)
-                    .setEnabledIf(w -> discOn.getAsBoolean()))
-            .child(
-                rowIf(
-                    () -> EnumChatFormatting.GRAY + "Integrity "
-                        + colourFor(integrity.getDoubleValue())
-                        + Math.round(integrity.getDoubleValue())
-                        + EnumChatFormatting.GRAY
-                        + ", yield "
-                        + EnumChatFormatting.WHITE
-                        + String.format(Locale.ROOT, "%.2f", yq.getDoubleValue())
-                        + EnumChatFormatting.GRAY
-                        + ", Stability "
-                        + EnumChatFormatting.WHITE
-                        + Math.round(QuasarParams.stability(e.getDoubleValue())),
-                    discOn))
-            .child(rowIf(top::getStringValue, hasHole))
-            .child(rowIf(bottom::getStringValue, hasHole))
-            .child(row(feedLine::getStringValue))
-            .child(row(coilLine::getStringValue))
-            .child(
-                rowIf(
-                    () -> EnumChatFormatting.GRAY + "Links: "
-                        + EnumChatFormatting.WHITE
-                        + links.getStringValue()
-                            .replace("\n", EnumChatFormatting.GRAY + "; " + EnumChatFormatting.WHITE),
-                    () -> !links.getStringValue()
-                        .isEmpty()))
-            .child(
-                IKey.dynamic(() -> EnumChatFormatting.AQUA + event.getStringValue())
-                    .asWidget()
-                    .fullWidth()
-                    .marginBottom(2)
-                    .setEnabledIf(
-                        w -> !event.getStringValue()
-                            .isEmpty()))
-            .child(
-                IKey.dynamic(() -> EnumChatFormatting.GOLD + renderNote.getStringValue())
-                    .asWidget()
-                    .fullWidth()
-                    .marginBottom(2)
-                    .setEnabledIf(
-                        w -> !renderNote.getStringValue()
-                            .isEmpty()));
+    protected String subject() {
+        if (hole() == QuasarState.Hole.NONE) return "";
+        return BTSText.lang(K + "hole", BTSFormat.fmt1(multiblock.getMass()));
     }
 
-    static String holeLine(boolean formed, boolean frozen, int hole, int coil, int reform) {
-        final String coils = "coils T" + coil;
-        if (!formed) return EnumChatFormatting.RED + "Not formed: the disc is frozen";
-        if (frozen) return EnumChatFormatting.RED + "FROZEN: a chunk of the structure is unloaded (hosts pause)";
-        if (hole == QuasarState.Hole.OPEN.ordinal()) {
-            return EnumChatFormatting.GREEN + "Hole OPEN" + EnumChatFormatting.GRAY + " - " + coils;
+    @Override
+    protected String rightChip() {
+        return BTSText.lang(K + "right", multiblock.getCoilTier());
+    }
+
+    @Override
+    protected List<String> rightChipTooltip() {
+        final List<String> out = new ArrayList<>();
+        out.add(BTSText.lang(K + "right.tip", multiblock.getCoilTier(), MTEQuasarEngine.fmt(multiblock.getMassCap())));
+        out.add(BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "right.tip2")));
+        return out;
+    }
+
+    // ============================================================================= status rows
+
+    @Override
+    protected void addStatusRows(BTSRows.Builder rows) {
+        switch (badgeCode()) {
+            case NOT_FORMED:
+                rows.note(BTSRows.ICON_BAD, BTSGuiKit.BAD, BTSText.lang(K + "notformed"));
+                if (hole() != QuasarState.Hole.NONE) massRow(rows);
+                break;
+            case FROZEN:
+                rows.note(BTSRows.ICON_BAD, BTSGuiKit.BAD, BTSText.lang(K + "frozen"), BTSText.lang(K + "frozen.tip"));
+                if (hole() != QuasarState.Hole.NONE) massRow(rows);
+                break;
+            case NO_HOLE:
+            case DORMANT:
+                closedRows(rows);
+                break;
+            case REFORMING:
+                reformRows(rows);
+                break;
+            default:
+                openRows(rows);
         }
-        if (hole == QuasarState.Hole.REFORM.ordinal()) {
-            return EnumChatFormatting.GOLD + "Disc RE-FORMING "
-                + reform
-                + " / "
-                + QuasarParams.REFORM_SECONDS
-                + " s"
-                + EnumChatFormatting.GRAY
-                + " (feed f 0.3 or more)";
-        }
-        if (hole == QuasarState.Hole.DORMANT.ordinal()) {
-            return EnumChatFormatting.GRAY + "Hole DORMANT (mass kept): a Black Hole Seed, then Open";
-        }
-        return EnumChatFormatting.GRAY + "No hole: a Quasar Seed in the controller slot, then Open";
+        notesRows(rows);
     }
 
-    static String eLine(double e, int zone) {
-        final EnumChatFormatting c = zone >= 0 && zone < ZONE_TEXT.length ? ZONE_TEXT[zone] : EnumChatFormatting.GRAY;
-        return EnumChatFormatting.WHITE + "E "
-            + String.format(Locale.ROOT, "%+.1f", e)
-            + "  "
-            + c
-            + MTEQuasarEngine.zoneName(zone);
+    /** §5.4 Open. */
+    private void openRows(BTSRows.Builder rows) {
+        final MTEQuasarEngine m = multiblock;
+        final QuasarState q = m.state();
+        final int zone = Math.max(0, Math.min(4, q.zone));
+        final double e = Math.round(q.E * 10) / 10.0;
+        rows.gauge(
+            "E",
+            e,
+            Double.NaN,
+            Double.NaN,
+            BTSText.lang(
+                K + "e.tip",
+                BTSFormat.signed(e),
+                BTSText.key("beyondthestars.gui.zone." + zone),
+                Math.round(QuasarParams.stability(q.E))),
+            BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "e.tip2")));
+        // flux: the purge setpoint (yellow, when set) and the 90 warning (red) as ticks
+        final double phi = q.Phi;
+        final boolean erupting = phi >= QuasarParams.ERUPT_WARN;
+        final double purgeAt = m.getPurgeAt();
+        final String ticks = purgeAt > 0
+            ? BTSGuiKit.ticks(
+                BTSGuiKit.tick(purgeAt / QuasarParams.PHI_MAX, BTSGuiKit.TICK),
+                BTSGuiKit.tick(QuasarParams.ERUPT_WARN / QuasarParams.PHI_MAX, BTSGuiKit.TICK_RED))
+            : BTSGuiKit.tick(QuasarParams.ERUPT_WARN / QuasarParams.PHI_MAX, BTSGuiKit.TICK_RED);
+        rows.bar(
+            BTSText.lang(K + "flux"),
+            phi / QuasarParams.PHI_MAX,
+            BTSText.lit((erupting ? "§c" : "") + Math.round(phi)),
+            Grad.CYAN,
+            ticks,
+            BTSText.lang(K + "flux.tip", Math.round(phi), String.format(Locale.ROOT, "%.2f", q.lam)),
+            purgeAt > 0 ? BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "flux.purge", Math.round(purgeAt)))
+                : BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "flux.nopurge")));
+        if (erupting) rows.note(BTSRows.ICON_BAD, BTSGuiKit.BAD, BTSText.lang(K + "erupting"));
+        massRow(rows);
+        rows.bar(
+            BTSText.lang("beyondthestars.gui.kit.integrity"),
+            q.I / 100,
+            BTSText.lit(BTSGuiKit.healthText(q.I) + Math.round(q.I)),
+            BTSGuiKit.healthGrad(q.I),
+            null,
+            BTSText.lang(
+                K + "integrity.tip",
+                String.format(Locale.ROOT, "%.2f", q.Yq),
+                Math.round(QuasarParams.stability(q.E))));
+        final boolean spinUp = m.spinningUp();
+        rows.stat2(
+            BTSText.lang(K + "spin"),
+            BTSText.lit((spinUp ? "§b" : "") + String.format(Locale.ROOT, "%.3f", q.a)),
+            BTSText.lang(K + "bursts"),
+            BTSText.lit(MTEQuasarEngine.bu(q.G)),
+            BTSText.lang(K + "spin.tip", String.format(Locale.ROOT, "%.2f", q.lam), MTEQuasarEngine.bu(q.G)),
+            spinUp ? BTSText.cat(BTSText.lit("§b"), BTSText.lang(K + "spinup")) : "");
+        jetRows(rows);
+        feedRow(rows);
+        coilRow(rows);
+        linksRow(rows);
     }
 
-    private static EnumChatFormatting colourFor(double integrity) {
-        if (integrity >= 75) return EnumChatFormatting.GREEN;
-        if (integrity >= 40) return EnumChatFormatting.GOLD;
-        return EnumChatFormatting.RED;
+    private void massRow(BTSRows.Builder rows) {
+        final double mass = multiblock.getMass(), cap = Math.max(1, multiblock.getMassCap());
+        rows.bar(
+            BTSText.lang(K + "mass"),
+            mass / cap,
+            BTSText.lit((mass >= cap - 1e-6 ? "§6" : "") + BTSFormat.fmt1(mass) + " SM"),
+            Grad.GOLD,
+            null,
+            BTSText.lang(
+                K + "mass.tip",
+                BTSFormat.fmt1(mass),
+                MTEQuasarEngine.fmt(cap),
+                multiblock.getCoilTier(),
+                String.format(Locale.ROOT, "%.3f", multiblock.state().a)));
     }
 
-    /** A 0..1 fill bar with up to two ticks (fraction, or -1 for none). */
-    private static IDrawable fillBar(Supplier<Double> frac, int from, int to, double tick, double warnTick) {
-        return (context, x, y, width, height, theme) -> {
-            final double f = Math.max(0, Math.min(1, frac.get()));
-            GuiDraw.drawRect(x, y, width, height, BAR_EDGE);
-            GuiDraw.drawRect(x + 1, y + 1, width - 2, height - 2, BAR_TRACK);
-            final float fillW = (float) ((width - 2) * f);
-            if (fillW > 0) GuiDraw.drawHorizontalGradientRect(x + 1, y + 1, fillW, height - 2, from, to);
-            if (warnTick >= 0) {
-                GuiDraw.drawRect(x + 1 + (float) ((width - 2) * warnTick) - 0.5f, y, 1, height, TICK_WARN);
+    private void jetRows(BTSRows.Builder rows) {
+        for (JetPort port : JetPort.VALUES) {
+            final String dock = multiblock.jetDock(port);
+            final double bu = multiblock.jetBu(port);
+            final String value;
+            if (dock == null || multiblock.jetRefused(port)) {
+                value = bu > 0 ? "§6" + tr(K + "venting") + " §f" + MTEQuasarEngine.bu(bu) : "§8" + tr(K + "nodock");
+            } else {
+                final boolean clipped = bu - multiblock.jetTaken(port) > 0.005;
+                value = "§b" + dock + " " + (clipped ? "§6" : "§f") + MTEQuasarEngine.bu(bu);
             }
-            if (tick >= 0) GuiDraw.drawRect(x + 1 + (float) ((width - 2) * tick) - 0.5f, y, 1, height, TICK);
-        };
+            rows.stat(
+                BTSText.lang(K + "jet." + port.key),
+                BTSText.lit(value),
+                BTSText.lit(jetLine(multiblock, port)),
+                BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "jet.tip")));
+        }
     }
 
-    /**
-     * The E dial: a bar from −120 to +120 with the zone bands faint behind it (Resonant |E| under 10, Stable under 30,
-     * Strained under 60), and a fill from 0 to E in the zone's colour.
-     */
-    private static IDrawable eBar(DoubleSyncValue e, IntSyncValue zone) {
-        return (context, x, y, width, height, theme) -> {
-            GuiDraw.drawRect(x, y, width, height, BAR_EDGE);
-            GuiDraw.drawRect(x + 1, y + 1, width - 2, height - 2, BAR_TRACK);
-            final float inner = width - 2;
-            final float mid = x + 1 + inner / 2;
-            final float[] bands = { 60, 30, 10 };
-            final int[] bandCol = { 0x30FF6A30, 0x30FFC040, 0x3055DD55 };
-            for (int i = 0; i < bands.length; i++) {
-                final float half = inner / 2 * bands[i] / 120f;
-                GuiDraw.drawRect(mid - half, y + 1, 2 * half, height - 2, bandCol[i]);
-            }
-            final double v = Math.max(-120, Math.min(120, e.getDoubleValue()));
-            final float w = (float) (inner / 2 * Math.abs(v) / 120);
-            final int z = zone.getIntValue();
-            final int col = z >= 0 && z < ZONE_ARGB.length ? ZONE_ARGB[z] : 0xFF888888;
-            if (w > 0) GuiDraw.drawRect(v >= 0 ? mid : mid - w, y + 2, w, height - 4, col);
-            GuiDraw.drawRect(mid - 0.5f, y, 1, height, TICK);
-        };
+    private void feedRow(BTSRows.Builder rows) {
+        final MTEQuasarEngine m = multiblock;
+        final QuasarGas gas = m.getGas();
+        final double medd = QuasarParams.eddingtonFeed(m.state().M, gas);
+        final long buffer = m.buffer(MTEQuasarEngine.gasFluid(gas));
+        rows.stat(
+            BTSText.lit(gas.displayName + " f " + String.format(Locale.ROOT, "%.2f", m.getFeed())),
+            BTSText.lit(BTSFormat.litres(m.getGasDrawn()) + " / " + BTSFormat.litres(medd) + " L/s"),
+            BTSText.lang(K + "feed.tip", MTEQuasarEngine.fmt(m.getGasDrawn()), MTEQuasarEngine.fmt(medd)),
+            BTSText.lang(K + "feed.buffer", BTSFormat.exact(buffer), BTSFormat.exact(m.bufferCap())),
+            BTSText.lang(
+                K + "feed.trims",
+                String.format(Locale.ROOT, "%.0f", m.getTrimGasUnits()),
+                String.format(Locale.ROOT, "%.0f", m.getTrimSpaceUnits())));
     }
 
-    static String fmt1(double v) {
-        return v >= 100 ? String.format(Locale.ROOT, "%,.0f", v) : String.format(Locale.ROOT, "%.1f", v);
+    private void coilRow(BTSRows.Builder rows) {
+        final MTEQuasarEngine m = multiblock;
+        if (!m.isPowerOk()) {
+            rows.check(
+                BTSChecklist.State.BAD,
+                BTSText.lang(K + "coil.short"),
+                BTSText.lit("b = 0"),
+                -1,
+                BTSText.lang(K + "coil.short.tip"));
+            return;
+        }
+        rows.stat(
+            BTSText.lang(K + "coils", String.format(Locale.ROOT, "%.2f", m.getBInUse())),
+            BTSText.lit(BTSFormat.euT(m.getCoilEUt()) + " EU/t"),
+            BTSText.lang(K + "coils.tip", m.getCoilTier()),
+            m.bFromHatch() ? BTSText.cat(BTSText.lit("§b"), BTSText.lang(K + "coils.hatch")) : "");
     }
 
-    /** "8.39M", "1.25G", "512k". */
-    static String compact(double v) {
-        if (v >= 1e12) return String.format(Locale.ROOT, "%.2fT", v / 1e12);
-        if (v >= 1e9) return String.format(Locale.ROOT, "%.2fG", v / 1e9);
-        if (v >= 1e6) return String.format(Locale.ROOT, "%.2fM", v / 1e6);
-        if (v >= 1e4) return String.format(Locale.ROOT, "%.0fk", v / 1e3);
-        return String.format(Locale.ROOT, "%,.0f", v);
+    /** The machines this quasar feeds (as the conduit reports them): a count, each host in the tooltip. */
+    private void linksRow(BTSRows.Builder rows) {
+        final List<MTEQuasarEngine.HostReport> hosts = multiblock.hostReports();
+        if (hosts.isEmpty()) return;
+        final List<String> tip = new ArrayList<>();
+        for (MTEQuasarEngine.HostReport h : hosts) tip.add(BTSText.lit(hostLine(h)));
+        tip.add(BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "links.tip")));
+        rows.stat(
+            BTSText.lang(K + "links"),
+            BTSText.lit("§a" + (hosts.size() == 1 ? hosts.get(0).label : tr(K + "links.n", hosts.size()))),
+            tip.toArray(new String[0]));
     }
 
-    /** The power switch does not stop the hole (Collapse does): shown greyed out. */
+    /** §5.4 No hole / Dormant: what Open needs, every line met or not. Consumes nothing. */
+    private void closedRows(BTSRows.Builder rows) {
+        final MTEQuasarEngine m = multiblock;
+        final boolean dormant = hole() == QuasarState.Hole.DORMANT;
+        rows.section(BTSText.lang(dormant ? K + "sec.reopen" : K + "sec.open"), "");
+        final BTSChecklist c = new BTSChecklist();
+        final ItemStack slot = m.getControllerSlot();
+        final boolean seedIn;
+        if (dormant) {
+            final ItemStack opener = ItemList.Black_Hole_Opener.get(1L);
+            seedIn = slot != null && opener != null && GTUtility.areStacksEqual(slot, opener, true);
+        } else {
+            seedIn = slot != null && SLQuasarItems.quasarSeed != null && slot.getItem() == SLQuasarItems.quasarSeed;
+        }
+        c.add(
+            seedIn,
+            BTSText.lang(dormant ? K + "chk.bhseed" : K + "chk.seed"),
+            BTSText.lang(seedIn ? K + "chk.inslot" : K + "chk.slot"),
+            -1,
+            BTSText.lang(dormant ? K + "chk.bhseed.tip" : K + "chk.seed.tip"));
+        final int gas = m.gasHatchCount();
+        c.add(
+            gas > 0,
+            BTSText.lang(K + "chk.gas"),
+            BTSText.lit(String.valueOf(gas)),
+            -1,
+            BTSText.lang(K + "chk.gas.tip"));
+        final String power = m.coilPowerKinds();
+        c.add(
+            !power.isEmpty(),
+            BTSText.lang(K + "chk.power"),
+            power.isEmpty() ? BTSText.lang(K + "chk.none") : BTSText.lit(power),
+            -1,
+            BTSText.lang(K + "chk.power.tip"));
+        final int coil = m.getCoilTier();
+        c.add(
+            coil > 0,
+            BTSText.lang(K + "chk.coils"),
+            coil > 0 ? BTSText.lang(K + "chk.coils.v", coil) : BTSText.lang(K + "chk.coils.mixed"),
+            -1,
+            BTSText.lang(K + "chk.coils.tip"));
+        rows.checks(c);
+        if (dormant) massRow(rows);
+        rows.para(BTSText.lang(K + "open.hint"), BTSGuiKit.DIM);
+    }
+
+    /** §5.4 Re-forming: the 300 s, the feed it needs, the mass; the jets stopped; the blow-out. */
+    private void reformRows(BTSRows.Builder rows) {
+        final MTEQuasarEngine m = multiblock;
+        final int r = m.state().reform;
+        rows.bar(
+            BTSText.lang(K + "disc"),
+            r / (double) QuasarParams.REFORM_SECONDS,
+            BTSText.lit(r + "/" + QuasarParams.REFORM_SECONDS + " s"),
+            Grad.GOLD,
+            null,
+            BTSText.lang(K + "disc.tip", QuasarParams.REFORM_SECONDS));
+        final double f = m.getFeed();
+        final boolean fed = f >= QuasarParams.REFORM_MIN_FEED - 1e-9;
+        rows.check(
+            fed ? BTSChecklist.State.OK : BTSChecklist.State.BAD,
+            BTSText.lang(K + "chk.feed"),
+            BTSText.lit(String.format(Locale.ROOT, "%.2f", f)),
+            -1,
+            BTSText.lang(K + "chk.feed.tip"));
+        massRow(rows);
+        rows.stat(BTSText.lang(K + "jets"), BTSText.cat(BTSText.lit("§8"), BTSText.lang(K + "stopped")));
+        final String ev = m.getLastEvent();
+        if (ev != null && !ev.isEmpty()) rows.note(BTSRows.ICON_BAD, BTSGuiKit.BAD, BTSText.lit(ev));
+    }
+
+    private void notesRows(BTSRows.Builder rows) {
+        final MTEQuasarEngine m = multiblock;
+        final String conduit = m.conduitClosedWhere();
+        if (!conduit.isEmpty()) {
+            rows.note(
+                BTSRows.ICON_WARN,
+                BTSGuiKit.WARN,
+                BTSText.lang(K + "conduit", conduit),
+                BTSText.lang(K + "conduit.tip"));
+        }
+        final String ev = m.getLastEvent();
+        if (hole() != QuasarState.Hole.REFORM && ev != null && !ev.isEmpty()) {
+            rows.note(BTSRows.ICON_NONE, BTSGuiKit.DIM, BTSText.lang("beyondthestars.gui.kit.last", ev));
+        }
+        final String render = m.getRenderNote();
+        if (render != null && !render.isEmpty()) rows.note(BTSRows.ICON_WARN, BTSGuiKit.WARN, BTSText.lit(render));
+    }
+
+    // ================================================================================= Info page
+
+    /** §5.4 Info: the questbook's "Opening the quasar", "Reading the disc" and "Burst Control". */
+    @Override
+    protected void addInfoRows(BTSRows.Builder rows) {
+        for (String k : new String[] { "open", "feed", "disc", "trims", "flux", "coils", "jets", "burst", "auto" }) {
+            rows.para(BTSText.lang(K + "info." + k), BTSGuiKit.VALUE);
+        }
+    }
+
+    // ============================================================================ button column
+
+    /** The power switch does not stop the hole (Collapse does): the kit's disabled icon, with this tooltip. */
     @Override
     protected boolean isPowerSwitchDisabled() {
         return true;
+    }
+
+    @Override
+    protected String powerSwitchDisabledKey() {
+        return K + "switch";
+    }
+
+    @Override
+    protected void renderTooltip(RichTooltip t) {
+        t.addLine(tr(K + "render.tip1"));
+        t.addLine(EnumChatFormatting.GRAY + tr(K + "render.tip2"));
     }
 
     @Override
@@ -520,28 +534,33 @@ public class MTEQuasarEngineGui extends MTEMultiBlockBaseGui<MTEQuasarEngine> {
 
     // ================================================================================ gap row
 
+    private static double clampFeed(double v) {
+        return Math.max(QuasarParams.F_MIN, Math.min(QuasarParams.F_MAX, v));
+    }
+
     private static TextFieldWidget feedField(DoubleSyncValue feed) {
-        return new TextFieldWidget().numbersDouble(v -> Math.max(QuasarParams.F_MIN, Math.min(QuasarParams.F_MAX, v)))
+        return new TextFieldWidget().numbersDouble(MTEQuasarEngineGui::clampFeed)
             .value(new DoubleValue.Dynamic(feed::getDoubleValue, v -> {
-                final double c = Math.max(QuasarParams.F_MIN, Math.min(QuasarParams.F_MAX, v));
+                final double c = clampFeed(v);
                 if (c != feed.getDoubleValue()) feed.setDoubleValue(c);
             }))
             .setTextAlignment(Alignment.Center)
             .tooltip(
-                t -> t.addLine("Feed setpoint f: the share of the Eddington feed the injectors draw")
-                    .addLine(EnumChatFormatting.GRAY + "0 to 1.5. 0.85 holds the disc Stable on its own;")
-                    .addLine(
-                        EnumChatFormatting.GRAY + "1.0 rides the Eddington limit (needs trims); above it E runs away."))
+                t -> t.addLine(tr(K + "feed.field.tip1"))
+                    .addLine(EnumChatFormatting.GRAY + tr(K + "feed.field.tip2"))
+                    .addLine(EnumChatFormatting.GRAY + tr(K + "feed.field.tip3")))
             .tooltipShowUpTimer(TOOLTIP_DELAY);
     }
 
+    /** Left: the Feed f stepper (§5.4): − field + ; right-click steps 0.25. */
     @Override
     protected Flow createLeftPanelGapRow(ModularPanel parent, PanelSyncManager syncManager) {
         final DoubleSyncValue feed = syncManager.findSyncHandler("qFeed", DoubleSyncValue.class);
         return super.createLeftPanelGapRow(parent, syncManager).childPadding(1)
             .crossAxisAlignment(Alignment.CrossAxis.CENTER)
             .child(
-                IKey.str("Feed f")
+                IKey.lang(K + "feedf")
+                    .color(BTSGuiKit.PANEL_TEXT)
                     .asWidget()
                     .marginRight(2)
                     .heightRel(1f))
@@ -553,51 +572,30 @@ public class MTEQuasarEngineGui extends MTEMultiBlockBaseGui<MTEQuasarEngine> {
     }
 
     private static IWidget stepButton(DoubleSyncValue feed, double step) {
-        return new ButtonWidget<>().size(10, 14)
+        return new ButtonWidget<>().size(9, 14)
             .overlay(IKey.str(step < 0 ? "-" : "+"))
             .onMousePressed(button -> {
                 final double d = button == 1 ? step * 5 : step;
-                final double next = Math.max(
-                    QuasarParams.F_MIN,
-                    Math.min(QuasarParams.F_MAX, Math.round((feed.getDoubleValue() + d) * 100) / 100.0));
+                final double next = clampFeed(Math.round((feed.getDoubleValue() + d) * 100) / 100.0);
                 if (next != feed.getDoubleValue()) feed.setDoubleValue(next);
                 return true;
             })
-            .tooltip(t -> t.addLine((step < 0 ? "Lower" : "Raise") + " f by 0.05 (right-click: 0.25)"))
+            .tooltip(t -> t.addLine(tr(step < 0 ? K + "feed.minus" : K + "feed.plus")))
             .tooltipShowUpTimer(TOOLTIP_DELAY);
     }
 
+    /** Right, on screen left to right: [Disc control] [Jets &amp; links] [i] (the row is reversed). */
     @Override
-    protected Flow createRightPanelGapRow(ModularPanel parent, PanelSyncManager syncManager) {
+    protected void addRightButtons(Flow row, ModularPanel parent, PanelSyncManager syncManager) {
         final IPanelHandler[] panels = new IPanelHandler[2];
         panels[0] = syncManager.syncedPanel("qDiscPanel", true, (sub, handler) -> buildDiscPanel(syncManager, parent));
         panels[1] = syncManager.syncedPanel("qJetsPanel", true, (sub, handler) -> buildJetsPanel(syncManager, parent));
-        final BooleanSyncValue render = syncManager.findSyncHandler("qRender", BooleanSyncValue.class);
-        return super.createRightPanelGapRow(parent, syncManager).child(
-            new ToggleButton().size(18, 18)
-                .marginLeft(2)
-                .value(render)
-                .overlay(true, GTGuiTextures.OVERLAY_BUTTON_SHOW_WORK_AREA)
-                .overlay(false, GTGuiTextures.OVERLAY_BUTTON_WORK_AREA)
-                .tooltipBuilder(
-                    t -> t.addLine("Hole, disc and jet render on / off (this machine)")
-                        .addLine(EnumChatFormatting.GRAY + "The config can turn it off everywhere."))
-                .tooltipShowUpTimer(TOOLTIP_DELAY))
-            .child(
-                panelButton(
-                    panels,
-                    1,
-                    GTGuiTextures.TT_OVERLAY_BUTTON_STATISTICS,
-                    "Jets & links: each port's dock, the hosts fed, counters"))
-            .child(
-                panelButton(
-                    panels,
-                    0,
-                    GTGuiTextures.OVERLAY_BUTTON_EDIT_PARAMETERS_ENABLED,
-                    "Disc control: gas, feed, field b, purge, Open, Collapse"));
+        row.child(panelButton(panels, 1, GTGuiTextures.TT_OVERLAY_BUTTON_STATISTICS, K + "button.jets"))
+            .child(panelButton(panels, 0, GTGuiTextures.OVERLAY_BUTTON_EDIT_PARAMETERS_ENABLED, K + "button.disc"));
     }
 
-    private static IWidget panelButton(IPanelHandler[] panels, int which, IDrawable icon, String tooltip) {
+    /** Toggles side panel {@code which}; opening it closes the other (they share one spot). */
+    private static IWidget panelButton(IPanelHandler[] panels, int which, IDrawable icon, String tooltipKey) {
         return new ButtonWidget<>().size(18, 18)
             .marginLeft(2)
             .overlay(icon)
@@ -613,31 +611,68 @@ public class MTEQuasarEngineGui extends MTEMultiBlockBaseGui<MTEQuasarEngine> {
                 }
                 return true;
             })
-            .tooltip(t -> t.addLine(tooltip))
+            .tooltip(t -> t.addLine(IKey.lang(tooltipKey)))
             .tooltipShowUpTimer(TOOLTIP_DELAY);
     }
 
-    // ======================================================================= disc control panel
+    // ============================================================================ panel parts
 
-    private static TextWidget<?> panelText(Supplier<String> text, int width, float scale) {
-        return IKey.dynamic(text::get)
-            .asWidget()
-            .scale(scale)
-            .maxWidth(width);
+    /** One line of panel text at scale 1.0 that scrolls on hover instead of wrapping. */
+    private static ScrollingTextWidget panelLine(Supplier<String> text, int width) {
+        return new ScrollingTextWidget(IKey.dynamic(text::get)).width(width)
+            .height(9)
+            .color(BTSGuiKit.PANEL_TEXT)
+            .shadow(false);
     }
 
-    private static IWidget keyValue(String label, Supplier<String> value, int width) {
+    /** Wrapped panel text at scale 1.0, {@code lines} lines high. */
+    private static TextWidget<?> panelPara(Supplier<String> text, int width, int lines) {
+        return IKey.dynamic(text::get)
+            .color(BTSGuiKit.PANEL_TEXT)
+            .asWidget()
+            .textAlign(Alignment.TopLeft)
+            .size(width, 9 * lines);
+    }
+
+    private static IWidget title(String key, int width) {
+        return IKey.lang(key)
+            .color(BTSGuiKit.PANEL_TEXT)
+            .asWidget()
+            .style(EnumChatFormatting.BOLD)
+            .width(width)
+            .textAlign(Alignment.Center);
+    }
+
+    private static IWidget heading(String key) {
+        return IKey.lang(key)
+            .color(BTSGuiKit.PANEL_TEXT)
+            .asWidget()
+            .style(EnumChatFormatting.BOLD);
+    }
+
+    /** "label ......... value" across the panel, both at 1.0. */
+    private static IWidget keyValue(Supplier<String> label, Supplier<String> value, int width) {
         return Flow.row()
             .width(width)
             .height(9)
             .mainAxisAlignment(Alignment.MainAxis.SPACE_BETWEEN)
             .child(
-                IKey.str(label)
+                IKey.dynamic(label::get)
+                    .color(BTSGuiKit.PANEL_TEXT)
                     .asWidget())
             .child(
                 IKey.dynamic(value::get)
+                    .color(BTSGuiKit.PANEL_TEXT)
                     .asWidget());
     }
+
+    /** GT's theme gives a slider no track (dev client round 1, the Kerr panel): a sunken one. */
+    private static final IDrawable SLIDER_TRACK = (context, x, y, width, height, theme) -> {
+        GuiDraw.drawRect(x, y, width, height, 0xFF373737);
+        GuiDraw.drawRect(x + 1, y + 1, width - 2, height - 2, 0xFF8B8B8B);
+    };
+
+    // ======================================================================= disc control panel
 
     private ModularPanel buildDiscPanel(PanelSyncManager main, ModularPanel parent) {
         final BooleanSyncValue formed = main.findSyncHandler("qFormed", BooleanSyncValue.class);
@@ -666,11 +701,7 @@ public class MTEQuasarEngineGui extends MTEMultiBlockBaseGui<MTEQuasarEngine> {
             .padding(4)
             .childPadding(3)
             .crossAxisAlignment(Alignment.CrossAxis.START)
-            .child(
-                IKey.str(EnumChatFormatting.BOLD + "Disc control")
-                    .asWidget()
-                    .width(w)
-                    .textAlign(Alignment.Center))
+            .child(title(K + "panel.disc.title", w))
             .child(
                 Flow.row()
                     .width(w)
@@ -685,31 +716,34 @@ public class MTEQuasarEngineGui extends MTEMultiBlockBaseGui<MTEQuasarEngine> {
                                 return true;
                             })
                             .tooltip(
-                                t -> t.addLine("Feed gas (the injectors draw only this one):")
-                                    .addLine(
-                                        EnumChatFormatting.GRAY + "Hydrogen (k 0.4), Helium (0.2, twice the feed),")
-                                    .addLine(
-                                        EnumChatFormatting.GRAY + "Raw Star Matter (0.1, the hole grows 2x faster).")
-                                    .addLine(EnumChatFormatting.GRAY + "The same gas is the +E trim.")))
+                                t -> t.addLine(tr(K + "panel.gas.tip1"))
+                                    .addLine(EnumChatFormatting.GRAY + tr(K + "panel.gas.tip2"))
+                                    .addLine(EnumChatFormatting.GRAY + tr(K + "panel.gas.tip3"))
+                                    .addLine(EnumChatFormatting.GRAY + tr(K + "panel.gas.tip4"))))
                     .child(
-                        panelText(
-                            () -> "Gas: " + QuasarGas.values()[Math
-                                .floorMod(gas.getIntValue(), QuasarGas.values().length)].displayName,
-                            w - 18,
-                            1f).heightRel(1f)))
-            .child(keyValue("Feed f", () -> String.format(Locale.ROOT, "%.2f", feed.getDoubleValue()), w))
+                        panelLine(
+                            () -> tr(
+                                K + "panel.gas",
+                                QuasarGas.values()[Math
+                                    .floorMod(gas.getIntValue(), QuasarGas.values().length)].displayName),
+                            w - 17)))
+            .child(keyValue(() -> tr(K + "feedf"), () -> String.format(Locale.ROOT, "%.2f", feed.getDoubleValue()), w))
             .child(
                 new SliderWidget().bounds(QuasarParams.F_MIN, QuasarParams.F_MAX)
                     .value(new DoubleValue.Dynamic(feed::getDoubleValue, v -> {
                         final double c = Math.round(v * 100) / 100.0;
                         if (c != feed.getDoubleValue()) feed.setDoubleValue(c);
                     }))
+                    .background(SLIDER_TRACK)
                     .size(w, 10))
             .child(
                 keyValue(
-                    "Field b",
-                    () -> bHatch.getBoolValue() ? "from a Burst Control Hatch"
-                        : String.format(Locale.ROOT, "%.2f (coils cap %d)", b.getDoubleValue(), coil.getIntValue()),
+                    () -> tr(K + "panel.b"),
+                    () -> bHatch.getBoolValue() ? tr(K + "panel.b.hatch")
+                        : tr(
+                            K + "panel.b.v",
+                            String.format(Locale.ROOT, "%.2f", b.getDoubleValue()),
+                            coil.getIntValue()),
                     w))
             .child(
                 new SliderWidget().bounds(QuasarParams.B_MIN, 4)
@@ -717,11 +751,17 @@ public class MTEQuasarEngineGui extends MTEMultiBlockBaseGui<MTEQuasarEngine> {
                         final double c = Math.round(v * 20) / 20.0;
                         if (c != b.getDoubleValue()) b.setDoubleValue(c);
                     }))
-                    .size(w, 10))
+                    .background(SLIDER_TRACK)
+                    .size(w, 10)
+                    .tooltip(
+                        t -> t.addLine(tr(K + "panel.b.tip1"))
+                            .addLine(EnumChatFormatting.GRAY + tr(K + "panel.b.tip2")))
+                    .tooltipShowUpTimer(TOOLTIP_DELAY))
             .child(
                 keyValue(
-                    "Purge setpoint",
-                    () -> purgeAt.getDoubleValue() <= 0 ? "off" : "flux " + Math.round(purgeAt.getDoubleValue()),
+                    () -> tr(K + "panel.purge"),
+                    () -> purgeAt.getDoubleValue() <= 0 ? tr(K + "panel.purge.off")
+                        : tr(K + "panel.purge.v", Math.round(purgeAt.getDoubleValue())),
                     w))
             .child(
                 new SliderWidget().bounds(0, 100)
@@ -729,10 +769,12 @@ public class MTEQuasarEngineGui extends MTEMultiBlockBaseGui<MTEQuasarEngine> {
                         final double c = Math.round(v);
                         if (c != purgeAt.getDoubleValue()) purgeAt.setDoubleValue(c);
                     }))
+                    .background(SLIDER_TRACK)
                     .size(w, 10)
                     .tooltip(
-                        t -> t.addLine("Directive Disc bit 3 turns on at this flux (0: never).")
-                            .addLine(EnumChatFormatting.GRAY + "Wire it to a Burst Control Hatch to purge there.")))
+                        t -> t.addLine(tr(K + "panel.purge.tip1"))
+                            .addLine(EnumChatFormatting.GRAY + tr(K + "panel.purge.tip2")))
+                    .tooltipShowUpTimer(TOOLTIP_DELAY))
             .child(
                 Flow.row()
                     .width(w)
@@ -743,36 +785,36 @@ public class MTEQuasarEngineGui extends MTEMultiBlockBaseGui<MTEQuasarEngine> {
                             .overlay(
                                 IKey.dynamic(
                                     () -> (canOpen.getAsBoolean() ? EnumChatFormatting.WHITE
-                                        : EnumChatFormatting.DARK_GRAY) + "Open"))
+                                        : EnumChatFormatting.DARK_GRAY) + tr(K + "panel.open")))
                             .onMousePressed(btn -> {
                                 if (canOpen.getAsBoolean()) main.callSyncedAction("qOpen", packet -> {});
                                 return true;
                             })
                             .tooltip(
-                                t -> t.addLine("Opens the hole from the controller slot:")
-                                    .addLine(EnumChatFormatting.GRAY + "a Quasar Seed (first time: 64 SM, spin 0),")
-                                    .addLine(EnumChatFormatting.GRAY + "or a Black Hole Seed (a dormant hole).")))
+                                t -> t.addLine(tr(K + "panel.open.tip1"))
+                                    .addLine(EnumChatFormatting.GRAY + tr(K + "panel.open.tip2"))
+                                    .addLine(EnumChatFormatting.GRAY + tr(K + "panel.open.tip3")))
+                            .tooltipShowUpTimer(TOOLTIP_DELAY))
                     .child(
                         new ButtonWidget<>().size(third, 16)
                             .overlay(
                                 IKey.dynamic(
                                     () -> (canPurge.getAsBoolean() ? EnumChatFormatting.WHITE
-                                        : EnumChatFormatting.DARK_GRAY) + "Purge"))
+                                        : EnumChatFormatting.DARK_GRAY) + tr(K + "panel.purgenow")))
                             .onMousePressed(btn -> {
                                 if (canPurge.getAsBoolean()) main.callSyncedAction("qPurge", packet -> {});
                                 return true;
                             })
                             .tooltip(
-                                t -> t.addLine("Dumps the flux now (from 20): a smaller burst spike, E -30 x flux/100.")
-                                    .addLine(
-                                        EnumChatFormatting.GRAY
-                                            + "Purging small and often: a smoother, lower stream.")))
+                                t -> t.addLine(tr(K + "panel.purgenow.tip1"))
+                                    .addLine(EnumChatFormatting.GRAY + tr(K + "panel.purgenow.tip2")))
+                            .tooltipShowUpTimer(TOOLTIP_DELAY))
                     .child(
                         new ButtonWidget<>().size(third, 16)
                             .overlay(IKey.dynamic(() -> {
-                                if (armed.getAsBoolean()) return EnumChatFormatting.RED + "Confirm";
+                                if (armed.getAsBoolean()) return EnumChatFormatting.RED + tr(K + "panel.confirm");
                                 return (running.getAsBoolean() ? EnumChatFormatting.WHITE
-                                    : EnumChatFormatting.DARK_GRAY) + "Collapse";
+                                    : EnumChatFormatting.DARK_GRAY) + tr(K + "panel.collapse");
                             }))
                             .onMousePressed(btn -> {
                                 if (!running.getAsBoolean()) {
@@ -786,22 +828,17 @@ public class MTEQuasarEngineGui extends MTEMultiBlockBaseGui<MTEQuasarEngine> {
                                 return true;
                             })
                             .tooltip(
-                                t -> t.addLine("Makes the hole dormant: the mass and spin are kept,")
-                                    .addLine(EnumChatFormatting.GRAY + "the jets stop. Re-open with a Black Hole Seed.")
-                                    .addLine(EnumChatFormatting.GRAY + "Click twice."))))
-            .child(panelText(() -> {
-                if (armed.getAsBoolean()) return EnumChatFormatting.DARK_RED + "Click Collapse again: the jets stop.";
+                                t -> t.addLine(tr(K + "panel.collapse.tip1"))
+                                    .addLine(EnumChatFormatting.GRAY + tr(K + "panel.collapse.tip2"))
+                                    .addLine(EnumChatFormatting.GRAY + tr(K + "panel.collapse.tip3")))
+                            .tooltipShowUpTimer(TOOLTIP_DELAY)))
+            .child(panelPara(() -> {
+                if (armed.getAsBoolean()) return EnumChatFormatting.DARK_RED + tr(K + "panel.hint.armed");
                 final String s = slot.getStringValue();
                 if (!s.isEmpty()) return s;
-                return EnumChatFormatting.DARK_GRAY + "Purge needs flux 20 or more.";
-            }, w, 0.75f))
-            .child(
-                panelText(
-                    () -> EnumChatFormatting.DARK_GRAY
-                        + "Hold E near 0: trims in the tank hatches (+ gas, - Space), or f. Riding f 1.0 with trims"
-                        + " gives about 1.5x the output of f 0.85.",
-                    w,
-                    0.75f));
+                return EnumChatFormatting.DARK_GRAY + tr(K + "panel.hint.purge");
+            }, w, 2))
+            .child(panelPara(() -> EnumChatFormatting.DARK_GRAY + tr(K + "panel.hint.trims"), w, 4));
 
         return new ModularPanel("qDiscPanel").relative(parent)
             .leftRel(1)
@@ -811,6 +848,11 @@ public class MTEQuasarEngineGui extends MTEMultiBlockBaseGui<MTEQuasarEngine> {
     }
 
     // =========================================================================== jets panel
+
+    /** The terminal's colours do not read on GT's grey panels. */
+    private static String strip(String s) {
+        return EnumChatFormatting.getTextWithoutFormattingCodes(s);
+    }
 
     private ModularPanel buildJetsPanel(PanelSyncManager main, ModularPanel parent) {
         final StringSyncValue top = main.findSyncHandler("qJet.top", StringSyncValue.class);
@@ -824,40 +866,22 @@ public class MTEQuasarEngineGui extends MTEMultiBlockBaseGui<MTEQuasarEngine> {
             .padding(4)
             .childPadding(3)
             .crossAxisAlignment(Alignment.CrossAxis.START)
-            .child(
-                IKey.str(EnumChatFormatting.BOLD + "Jets & links")
-                    .asWidget()
-                    .width(w)
-                    .textAlign(Alignment.Center))
-            .child(panelText(() -> strip(top.getStringValue()), w, 0.8f))
-            .child(panelText(() -> strip(bottom.getStringValue()), w, 0.8f))
-            .child(
-                panelText(
-                    () -> EnumChatFormatting.DARK_GRAY
-                        + "Dock a Burst Thermaliser Crown or a Wormhole Mouth on each cap's port. An empty port vents.",
-                    w,
-                    0.75f))
-            .child(
-                IKey.str(EnumChatFormatting.BOLD + "Hosts fed")
-                    .asWidget())
-            .child(panelText(() -> {
+            .child(title(K + "panel.jets.title", w))
+            .child(panelLine(() -> strip(top.getStringValue()), w))
+            .child(panelLine(() -> strip(bottom.getStringValue()), w))
+            .child(panelPara(() -> EnumChatFormatting.DARK_GRAY + tr(K + "panel.jets.hint"), w, 3))
+            .child(heading(K + "panel.hosts"))
+            .child(panelPara(() -> {
                 final String l = links.getStringValue();
-                return l.isEmpty() ? EnumChatFormatting.DARK_GRAY + "none reported (the conduit reports hosts)" : l;
-            }, w, 0.75f))
-            .child(
-                IKey.str(EnumChatFormatting.BOLD + "Record")
-                    .asWidget())
-            .child(panelText(counters::getStringValue, w, 0.75f))
-            .child(panelText(() -> "Milestones: " + milestones.getStringValue(), w, 0.75f));
+                return l.isEmpty() ? EnumChatFormatting.DARK_GRAY + tr(K + "panel.hosts.none") : l;
+            }, w, 4))
+            .child(heading(K + "panel.record"))
+            .child(panelLine(counters::getStringValue, w))
+            .child(panelPara(() -> tr(K + "panel.milestones", milestones.getStringValue()), w, 2));
         return new ModularPanel("qJetsPanel").relative(parent)
             .leftRel(1)
             .topRel(0)
             .size(JETS_PANEL_W, JETS_PANEL_H)
             .child(column);
-    }
-
-    /** The terminal's colours do not read on GT's grey panels. */
-    private static String strip(String s) {
-        return EnumChatFormatting.getTextWithoutFormattingCodes(s);
     }
 }
