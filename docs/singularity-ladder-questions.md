@@ -6,7 +6,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 1. **Open questions**: each open decision once, with the answer we recommend and where the detail is.
 2. **Settled**: everything you have answered, in your words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision from you.
-4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101 and B-105..B-115, the tidy pass's
+4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101 and B-105..B-116, the tidy pass's
    TQ-1..TQ-8, and P4's P4-01..P4-94 in Part E).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
@@ -131,10 +131,11 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
 - ~~The Eye GUI shows each buffer as held / cap~~: the Field panel's Buffers section. [B-108, B-115]
 - ~~A missing texture in the KEE GUI's right-hand button column (seen in the photo run)~~: the kit's KEE GUI no
   longer draws it (B-97), merged. [B-106, B-115]
-- ~~Merge `gui-clean` into master~~: done, with P4's GUI additions carried into the kit. Still to do: the P4
-  machines' GUIs (Quasar Engine, the conduit elements, the crowns, the Burst Control Hatch) are on GT's plain
-  layout, not the kit yet; and the merged GUIs need a look in a dev client (the T7 / T8 rows and the Galaxy panel
-  were checked only as text on the dev server). [B-115]
+- ~~Merge `gui-clean` into master~~: done, with P4's GUI additions carried into the kit. [B-115]
+- ~~The P4 machines' GUIs on the kit, and the Eye's T7 / T8 rows seen in a dev client~~: done; the Quasar Engine,
+  the conduit elements, the crowns, the Burst Control Hatch and the GRB Receptor Port are on the kit (the E dial's
+  bands and the missing power-switch texture fixed), shot at GUI scale 3 against the mockups. Still to see in a
+  client: the Galaxy panel and the Field panel's Buffers section. [B-115, B-116]
 - The photo harnesses (`RenderTestClient`, `AutoRigClient`) may film at the dev client's saved render distance. Give
   them the recorder's per-tick settings hold if they are used again. [B-109]
 - ~~Restart persistence on master's machines (P4-85) and tooltips for the older casings (P4-86)~~: done; the
@@ -229,7 +230,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-101, B-105..B-115
+## Part B. Entries B-1..B-101, B-105..B-116
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -5435,6 +5436,128 @@ GT's plain layout.
 **Question.** *Where the buffers show:* in the Field panel, not the main rows. The main pool is already 26 rows at
 T5-T6, and a T7 Eye can hold a dozen fluids. *Suggestion:* keep it there. The DARK and PENDING checklists already
 show have / need for every fluid that blocks a start.
+
+
+### B-116 The P4 machines on the GUI kit, and the Eye's T7 / T8 rows, checked in a dev client [final showcase, built + client check]
+
+**What was built.** The P4 machines' GUIs now use the controller GUI kit (spec §5.4, §5.5, §5.10). Their old GUIs
+were GT's plain layout with 0.75 / 0.8-scale text, or one block of status lines. Every piece of information they
+showed is still there: as a row, in a row's tooltip, on the **i** page, or in a side panel.
+
+- **Quasar Engine** (`MTEQuasarEngineGui`):
+  - **Badge:** NOT FORMED, FROZEN (a chunk unloaded), NO HOLE, DORMANT, RE-FORMING, or the zone of E while the hole
+    is open. The header shows "Hole M SM" and "coils T n".
+  - **Open:**
+    - the E gauge. It uses the kit's zone bands at ±10 / 40 / 70 / 100; the old dial drew ±30 / ±60, which was the
+      spec's bug;
+    - the Flux bar, with the purge setpoint (yellow) and the 90 warning (red) as ticks, and an "Erupting soon" note
+      at 90;
+    - Mass against the coil cap;
+    - Integrity (yield and Stability in its tooltip);
+    - Spin a | Bursts;
+    - each jet's dock, or venting;
+    - the feed (drawn / Eddington L/s; the buffer and trims in the tooltip);
+    - Coils b and EU/t, or a "Coil power SHORT" check;
+    - the machines fed;
+    - a conduit-closed warning, the last event, the render note.
+  - **No hole / dormant:** the Open checklist. The rows are the seed in the slot (a Black Hole Seed when dormant),
+    the rim gas hatches, the coil power hatch (Energy / Laser) and the coils (all T n).
+  - **Re-forming:** Disc r / 300 s, the "Feed f 0.3 or more" check, the mass, "Jets stopped" and the blow-out.
+  - **Info page:** text from the quests "Opening the quasar", "Reading the disc" and "Burst Control".
+  - **Gap row:** the Feed f stepper; [Disc control] [Jets & links] [i]. The render toggle is at the top of the button
+    column. The power switch shows the kit's disabled icon, so GT's missing texture is gone from the P4 controllers
+    (Quasar, conduit elements, crowns). The side panels' text is at scale 1.0, and the Disc panel is 160 x 244.
+- **Conduit elements** (`ConduitElementGui`: Wormhole Mouth, Mirror, Junction):
+  - **Badge:** NOT FORMED, CLOSED, OPENING (with "paying r / 10 s"), OPEN. A mouth's header says Paired or Not
+    paired; the right chip says Mk n.
+  - **Open:** the Through bar against the throat cap (clipped and lost as notes), and Upkeep. Then per element:
+    - Mouth: the partner and the ring;
+    - Mirror: the two faces;
+    - Junction: the mode and its three legs.
+
+    Each out-throat names what its ray reaches (aqua), or where it is blocked (red).
+  - **Closed:** the opening checklist: the throat, the fuel hatches, and upkeep paid r / 10 with a fill line.
+  - The fuel cycle stays in the gap row (a right-click now steps back), and the Junction panel is at scale 1.0.
+- **Burst Thermaliser Crown** (`CrownGui`): RUNNING / IDLE / NOT FORMED, with the Mk and cap. The rows:
+  - the Stream bar (its parts in the tooltip: jets, receptor, from below);
+  - Power in EU/t, with a no-owner check;
+  - overflow and clipped notes;
+  - the stack;
+  - the jet port it is docked on;
+  - the receptor's reading;
+  - the lifetime EU.
+- **Burst Control Hatch** (hatch layout, 196 high):
+  - **Readout:** the mode and the machine reading it, a 0-15 redstone bar, and what the host drives.
+  - **Controls:** the Mode cycle, whose tooltip now lists the four modes and what each does (the spec's missing
+    tooltip), then the mode's help and the rising-edge count.
+- **GRB Receptor Port** (hatch layout, 140 high):
+  - the machine it feeds;
+  - a lamp, LINKED (green) or PAUSED (Q-8, amber), with last second's Bu/t;
+  - the reading by source;
+  - the lifetime in the tooltip.
+- **Eye, T6-T8** (spec §5.1):
+  - **Badges:** a READY badge (the galaxy transition waits only for Begin) and a red PAUSED badge (the quasar feeding
+    the ports is frozen or unloaded).
+  - **READY rows:** the gauges, the bursts, the link, the countdown, and a blue "Begin: Galactic Merger" line whose
+    tooltip lists the conditions.
+  - **Gauges:** at T7 and T8 they go in two columns (P | W, then Λ).
+  - **Bursts:** a bar over 0-6 Bu/t, with a yellow tick at the link floor (1.5 or 6) or at the demand. The value's
+    colour is β.
+  - **Link:** the bar's value is the streak alone; "12:30/30:00" overflowed the value column. HELD is a full bar.
+  - **Events:** a lit galaxy's event shows once. The countdown row names it, and the old "Event warning" row is kept
+    for T1-T5.
+- **Kit:**
+  - a bar row ends its bar 3 px before a value wider than the value column ("184/300 s");
+  - a stat row cuts a long value, so its label keeps up to 64 px whole.
+- **Engine getters for the GUI:** `MTEQuasarEngine.conduitClosedWhere()` and `coilPowerKinds()`;
+  `MTEConduitElement.lastNote()`; the crown's stream parts, stack line and dock note;
+  `MTEHatchBurstControl.getHostLine()`.
+- **Bench:** `/btsquasar gui x y z [info]` prints the console's rows.
+- **Shot scripts:** `tools/guishots/p4-build.shots` and `p4.shots`.
+
+**The client check.** The `-Dbts.guishots=true` dev client in the `bts-guishots` world. `p4-build.shots` built:
+
+- the standard conduit rig at 20000 100 0: a quasar at coils T3, a crown, two mouths, two mirrors, a split Junction,
+  a remote crown and the receptors. Every element was FORMED;
+- two T1 quasars;
+- an Eye T8. It was FORMED, with re-projection and damage / repair.
+
+After a re-join, `p4.shots` photographed 21 GUIs at GUI scale 3. I looked at each against the mockup
+(`gui/work/shots/quasar.png`, `hatch.png`, `eye.png`) and fixed what did not match, then re-shot everything twice.
+
+- Fixed after the first shots:
+  - labels were cut ("Bottom .", "Out (sid.");
+  - route and dock names ran past the row;
+  - the Burst Control help overlapped "Rising edges";
+  - the receptor's machine name was cut;
+  - the T7 / T8 gauges were full width;
+  - a galaxy event showed twice.
+- The final shots match the mockups' layout:
+  - Quasar NO HOLE: the checklist;
+  - Quasar STABLE / RESONANT: E, Flux with both ticks, Mass, Integrity, Spin | Bursts, the jets, Helium f, Coils;
+  - Quasar RE-FORMING: Disc 205/300 s;
+  - Mouth OPEN Paired;
+  - Junction OPEN, then CLOSED with "Upkeep paid 0 / 10 s";
+  - the Eye T7 READY Triangulum: P | W, Bursts with the tick, Link HELD, the minor-merger countdown, "Begin:
+    Galactic Merger".
+
+  The rows were also checked as text with `/btseye star … gui`. `spotlessApply build` (checkstyle) passes, and a
+  lang check over the six GUI classes finds no missing key.
+
+Shots: `work/gui/round2/shots/` (cropped to the panels) and `round2/raw/` (full window).
+
+**Not covered.**
+
+- **PAUSED badge.** It was not photographed: no bench pauses the galaxy's quasar. It shows the existing PAUSED line.
+- **Owner NPE.** Opening a bench-built machine's GUI from the harness logs GT's `GTPowerfailTracker.getMachineOwner`
+  NPE. The machine has no owner, and the GUI opens normally. This is GT's own behaviour for an ownerless machine.
+- **Long lines.** A few rows still cut a long line: the quasar's "Feeds" host name, the Burst Control status, a
+  last-event note. Each scrolls on hover or carries the full line in its tooltip.
+
+**Question.** *READY rows:* READY shows the galaxy rows and the Begin line, as the mockup does. The field bars
+(Stability, Integrity, Lock, Cycle) are not shown there, and come back once Begin is pressed. *Suggestion:* keep it,
+since the bars are all in their final state while the Eye waits. The alternative is to add them under the Begin line
+(the list scrolls).
 
 ---
 
