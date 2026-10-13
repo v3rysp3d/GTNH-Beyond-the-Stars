@@ -249,6 +249,7 @@ public final class RecClient {
         }
         rec = new FrameRecorder(ffmpeg, FrameRecorder.codecArgs(encoder, crf), width, height, fps);
         mc.gameSettings.pauseOnLostFocus = false;
+        mc.gameSettings.setSoundLevel(net.minecraft.client.audio.SoundCategory.MASTER, 0f);
         mc.gameSettings.renderDistanceChunks = Integer.getInteger("bts.rec.distance", 16);
         mc.gameSettings.fovSetting = Float.parseFloat(System.getProperty("bts.rec.fov", "70"));
         mc.gameSettings.limitFramerate = 260;
@@ -396,6 +397,9 @@ public final class RecClient {
             go(Phase.FINISH);
         }
         mc.gameSettings.showDebugInfo = false;
+        // the video has no audio track: the recorder client is silent (re-applied every tick, like the settings above)
+        if (mc.gameSettings.getSoundLevel(net.minecraft.client.audio.SoundCategory.MASTER) > 0f)
+            mc.gameSettings.setSoundLevel(net.minecraft.client.audio.SoundCategory.MASTER, 0f);
         if (phase.ordinal() >= Phase.WAIT.ordinal()) {
             mc.gameSettings.hideGUI = true;
             if (!guiOpen) keepScreenClear();

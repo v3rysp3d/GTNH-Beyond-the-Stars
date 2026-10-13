@@ -240,7 +240,7 @@ scene hs-agent
   hold 3
 
 scene hs-products
-  caption Its ME network after the climb: what each tier made on the way up, pulled out by the ME output hatch and bus with no hand on it.
+  caption Its ME network after the climb, filled by the ME output hatch and bus with no hand on it: Raw Star Matter, Excited Stellar Plasma and the Purified Tengam the magnetar gives back. (On this scripted climb the higher stars burned only minutes each.)
   goto climb.termcam look climb.term
   use climb.term side north
   warp 20
