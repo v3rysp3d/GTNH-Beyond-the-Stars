@@ -8050,3 +8050,111 @@ with a real giant flare, the events driven by the Eye bench's `event`).
 **Suggestion.** Accept the looks, the deviations and the adjusted R-04 fields. Shots: local work folder
 `renders/stars/after-*.png`, `renders/compact/after-*.png`, `after-low-*`; `renders/compare.html` (the Eye section,
 with the GPU numbers); clip `video/renders/stars-v2.mp4`.
+
+### R-14 The Eye's galaxies, renders v2 (WP-5): 20,000 moving stars, density-wave arms, dust lanes and the galaxy events [renders v2, judgement + finding]
+
+**What was built.** The Eye's centre render draws T7 Triangulum, T8 the Milky Way and planets mode with their own
+programs (`machines/eye/render/GalaxyFx`, GLSL `shaders/galaxy/`; notes in `docs/render-kit.md`). What a player sees:
+
+- **Triangulum (T7)**: a flocculent spiral seen on its 8 degree tilt: a small bright nucleus, patchy short arm segments
+  of young blue-white stars that shear as the disc turns, pink H II knots, clusters that are born, sheared into arcs and
+  fade every three minutes, patchy dust, a sparse halo with globular clusters.
+- **The Milky Way (T8)**: a barred spiral: a peanut bulge and a bar turning with two major and two minor arms that start
+  at the bar's ends, young blue light and H II knots just downstream of each arm, dark dust lanes along their inner
+  edges, an older warm disc, the two Magellanic Clouds and their stream below the disc.
+- **Both**: about 20,000 point stars on a flat rotation curve (the inner disc turns faster, the arms never wind up:
+  they are a density wave the stars stream through), colours by population (blue-white young, golden old, red giants),
+  a power-law spread of sizes with faint diffraction spikes on the largest, the stars behind the dust dimmed by it.
+- **The dark backdrop** (spec §9.1, TecTech's trick): the far side of a sphere just inside the clearance shows deep
+  space (near black, a faint nebula, sparse stars), so the galaxy reads as light against the dark by day too; it fades
+  out above and below the core band, so it never shows as a dark cap over the open bowl.
+- **Through the front window (B-114)**: almost edge-on, a thin bright disc whose dust lane runs under the bulge; by
+  day as well (the backdrop darkens behind it).
+- **The Magnetar Collapse into T7**: at the collapse a violet-white core flash and a shell running out to the bands,
+  the stars bursting out into a round halo; through the halo capture (600 s) they settle into the disc, and the arms,
+  the young stars and the dust come in last; the forced minor merger at 450 s shows as below.
+- **A minor merger (T7 / T8)**: over its 15 s warning a dwarf galaxy falls in from above or below the disc (the
+  event's sign), stretched by the tide; the hit flashes and the dwarf is torn apart and swallowed, with an afterglow of
+  about 20 s after the event has ended.
+- **The Galactic Merger (T7 to T8)**: a companion spiral on an inclined orbit with three pericentre passes (600 /
+  1,200 / 1,800 s, apocentres 18 / 13 / 8.5 blocks); tidal tails grow after the first pass; at each pass a bridge of
+  stars between the two and a starburst (a pink-blue flash of both cores and the young stars, 2 s, then a glow for half
+  a minute); the main galaxy morphs from Triangulum toward the Milky Way through the merger; after the last pass the
+  companion dissolves into the disc and the tails fade in the settle.
+- **The satellite crossing (T8)**: over its 120 s countdown a dwarf falls from high above toward the disc, stretched
+  more as it nears; it punches through 4 blocks off-centre with a flash, falls away below, and a pink-blue ring wave of
+  star formation runs out to the edge over the 300 s (the Cartwheel look), lighting the young stars it passes.
+- **Planets mode**: a calm Sol (the star programs) and 3 / 6 / 9 shaded planets on Keplerian orbits (lit hemisphere,
+  soft terminator; a cratered rock, a veiled world, an ocean world with land and clouds, a desert, a banded giant with
+  a storm, a ringed giant whose shadow falls on its rings, two ice giants, a dwarf), atmosphere rims, faint orbit lines.
+
+LOW quality, a program that does not bake or a GL error: today's dots, unchanged (the LOW shots match BEFORE).
+
+**Technique.** `galaxy/lib.glsl` holds the model both the stars and the disc use, so stars crowd where the disc glows
+and dim where its dust lies. Stars: static `GL_POINTS` buffers (galaxy 20,000; companion 3,000; dwarf 1,500; tails
+2,000), every motion in the vertex shader (rotation quantised to whole turns per hour, so the hour-long shader clock
+wraps without a jump; the arms as a phase compression of the orbits; clusters reborn per generation from a hash), the
+buffers shuffled so a LOD draws a prefix. Disc: one quad, each ray followed through the star slab in sub-segments whose
+stellar and dust height profiles are integrated exactly (erf), the bulge and bar as ellipsoidal Gaussians split by the
+dust; four noise fields from one RGBA lookup per octave. Backdrop: a sphere, front faces culled. Planets: one quad,
+analytic spheres and rings. Up to six draw calls (backdrop, disc, the galaxy's stars or both galaxies' in the merger,
+companion, dwarf, tails). Detail: L0 12 sub-segments, 3 octaves, every star; L1 7, 2, half; L2 3, 1, 15 %; L3 a glow
+sprite.
+
+**Sync (R-04, extended; render tile only, no machine NBT).** The event channel gains codes 4 / 5 (a minor merger from
+above / below: the runtime's `renderEvent` now maps the T7 / T8 "Minor merger" with its sign) and 6-8 (the Galactic
+Merger's pericentre passes 1-3: the next pass, or the last one for a minute after it, from the merger's own clock; the
+merger holds the field's events back, so the channel is free). The look gains `xAt`, the satellite crossing's hit as a
+world tick (it runs 420 s and can overlap a minor merger, so it has its own clock), read by a new read-only
+`EyeStarRuntime.renderCrossing()`. The client remembers the event that just ended, for the minor merger's afterglow.
+Harness: 16 new cases (the collapse flash, the capture at 25 / 70 %, a minor merger before and after its hit at T7
+and T8, the merger at 400 / 601 / 900 / 1,215 / 1,830 / 2,000 s, the crossing 60 and 3 s before its hit and 60 / 200 s
+after) with their clocks frozen (`TileEyeStar.debugCrossingIn` added); their poses are appended to
+`tools/rendertest/poses.tsv`.
+
+**Judgement calls (spec §9 deviations).**
+
+1. *Arms as a density wave, not stars placed on spirals.* Stars on fixed spirals with differential rotation wind up
+   within a few turns; the arms here are a rigidly turning pattern that old stars crowd toward and young stars light
+   up in, so the look holds for ever and the inner disc still visibly turns faster.
+2. *Everything stays inside the clearance.* The companion, the tails and the dwarf are clamped to 19.6 blocks from the
+   centre (nothing may reach the Eye's blocks), so the merger's apocentres are 18 / 13 / 8.5 blocks and the tails curl
+   round inside the cavity rather than running far out.
+3. *The merger shows Triangulum morphing.* The runtime keeps the kind TRIANGULUM until the Milky Way lights; the
+   render blends its shape toward the Milky Way from 600 s (the tier becomes T8 at the first pass) to the end.
+4. *The satellite hits 4 blocks off-centre* (an off-centre hit is what makes a Cartwheel); the ring wave is drawn round
+   the centre.
+5. *The backdrop is cut above and below the band* (a full sphere showed as a dark dome over the open bowl and a dark
+   bubble under the band).
+6. *Planets mode* is built too (spec §9.1), with the star programs' Sol at its centre.
+
+**GPU (dev rig, RTX 4090, 1280 x 720, fixed poses, `GL_TIME_ELAPSED`, single draw).** Budget 0.13 ms (dev).
+
+| View | Single draw |
+|---|---|
+| front, 34 (L2) | 0.011-0.022 ms |
+| level (the window, L1-L2) | 0.011-0.031 ms |
+| close (L1) | 0.027-0.043 ms |
+| hero (L1) | 0.021-0.097 ms (worst: the Galactic Merger, with both galaxies, the companion and the tails) |
+| hero, forced L0 (`renderLodScale` 0.4) | 0.064-0.110 ms (close at L0: 0.035-0.053; planets mode 0.021-0.043) |
+
+Split (`-Dbts.render.galSplit=true`, hero, L1): backdrop 0.007, disc 0.043-0.069, stars 0.002-0.008 ms. The disc was
+0.058-0.093 ms before its noise was packed into one RGBA lookup per octave and sub-segments clear of the plane were
+skipped. CPU 0.042 ms a frame median, 0.059 max (the timer included; budget 0.05).
+
+**Checked.** Every program compiles and links in the legacy profile in the client (the self test's list now holds the
+star and galaxy programs); 240 AFTER shots (24 cases x 5 views x day / night) and 36 LOW shots at the fixed poses,
+each looked at; checkstyle and spotless clean. Clip `tools/recording/renders-galaxies.shots` (Triangulum, a real
+minor merger, the Milky Way, a real satellite crossing as a time-lapse, the window; 76 s).
+
+**Finding (recorder).** Under `/btswarp 10` the satellite crossing in the first clip showed minutes late (the dwarf
+appeared about 4 game-minutes after `crossing`), while at real speed (the final clip uses a time-lapse) the 120 s
+countdown and the 300 s ring wave land on time. The render only reads the runtime's clock, so the warp's field
+seconds seem to lag the world clock; not investigated further (bench and recorder only).
+
+**Not verified.** Angelica's core profile in Angelica itself, and a shaderpack (as R-10 to R-13). The Galactic Merger
+and the Magnetar Collapse were not driven for real in the clip (they need a linked quasar and their charges); their
+looks are checked by the frozen harness cases.
+
+**Suggestion.** Accept the looks, the deviations and the extended R-04 fields. Shots: local work folder
+`renders/galaxies/after-*.png`, `after-low-*`; clip `video/renders/galaxies-v2.mp4`.
