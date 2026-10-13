@@ -12,8 +12,8 @@ package com.nateyburr.beyondthestars.machines.directive;
  * Events (T7+):           [1] Λ &gt; +w: more to the halo   [2] Λ &lt; −w: less to the halo
  *                         [4] a countdown is running    [8] that event's sign is −
  * Galaxy Transition (T6-T8): [1] ready to begin   [2] a transition is running
- *                         [4] purge now (the collapse assist: T−80 s if Φ would erupt before the collapse, and the
- *                             collapse second)       [8] hold the regulator's purges (T−80 s to T−1 s)
+ *                         [4] purge now (the collapse assist: T−80 s if Φ would erupt before the cue, and the last
+ *                             two overfeed seconds)  [8] hold the regulator's purges (T−80 s to T−3 s)
  * Slots:                  [1] a planet / companion slot is idle   [2] a companion's upkeep is short (r &lt; 1)
  *                         [4] the last planet run lost parallels  [8] link test fire wanted: T6 Stability Link
  *                             (J1 all to the Eye) or T7 Heavy Link (J1 all to the Eye, J3 75 % to the halo)
@@ -54,8 +54,19 @@ public final class GalaxyDirective {
         return c;
     }
 
-    /** The collapse assist's window: the hold runs from overfeed second 219 to 298; the collapse lands at 300. */
-    public static final int ASSIST_FROM = 219, ASSIST_LAST = 299;
+    /**
+     * The collapse assist's window: the hold [8] runs from overfeed second 219 to 297; the purge cue [4] is on for
+     * overfeed seconds 298 and 299 ({@link #ASSIST_CUE} .. {@link #ASSIST_LAST}); the collapse lands at 300.
+     * <p>
+     * P4-95: the cue used to be the single second 299, which lands the eruption on the collapse second only when the
+     * purge, the quasar's disc second, the conduit and the Eye's second all run inside one second (the lock-stepped
+     * bench). Real wiring has hops: the Directive Hatch emits a tick after the Eye's second, a cover or a wire carries
+     * it, the Burst Control Hatch latches the edge, and the quasar purges on ITS next second (any phase against the
+     * Eye's). The eruption lasts {@code ERUPT_SECONDS} = 3 quasar seconds, so a cue two seconds ahead puts the
+     * collapse second inside the eruption for any delay from one tick up to about a second and a half, and still in
+     * the lock-stepped bench (the eruption's second second). One rising edge: [4] stays on through 298-299.
+     */
+    public static final int ASSIST_FROM = 219, ASSIST_CUE = 298, ASSIST_LAST = 299;
 
     /**
      * The Galaxy Transition set. {@code overfeed}: the Magnetar Collapse is in its overfeed phase at second
@@ -66,11 +77,11 @@ public final class GalaxyDirective {
         if (running) c |= 2;
         else if (ready) c |= 1;
         if (running && overfeed) {
-            if (st >= ASSIST_FROM && st < ASSIST_LAST) {
+            if (st >= ASSIST_FROM && st < ASSIST_CUE) {
                 c |= 8;
-                if (phi >= 20 && phi + b / 2.4 * (ASSIST_LAST - st) >= 100) c |= 4;
+                if (phi >= 20 && phi + b / 2.4 * (ASSIST_CUE - st) >= 100) c |= 4;
             }
-            if (st == ASSIST_LAST) c |= 4;
+            if (st >= ASSIST_CUE && st <= ASSIST_LAST) c |= 4;
         }
         return c;
     }

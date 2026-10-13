@@ -3,9 +3,9 @@
 // The P4 block of the quasar play prototype, verbatim (the reference for the Java quasar / conduit / Eye T7-T8
 // maths). It runs on top of the shared ENGINE block in tools/fixtures/star-lifecycle-engine.js.
 // source: designs/quasar-p4-prototype.html (design repo GTNH-Addons)
-// source-sha1: b03e302d3f0a318e2d24338b386699b12f2c8e05
+// source-sha1: 69e8ccad960938ba72cd7173ab1a8792d00eef38
 // engine-sha1: c28c22097debf085fd21226aed3f656c7706d04b
-// p4-sha1: fe1dff025f9bb324f31248da0c76dc85ad33b91c
+// p4-sha1: 8bc2943b9f93db5da721d4469b63bddb3da7b1f2
 /*P4-START*/
 /* P4 extension: Eye T7/T8 tiers, the Magnetar Collapse and Galactic Merger, the Quasar Engine disc, and the
    Einstein-Rosen Conduit. Uses the D-49 engine above through its additive hooks only (T.d, T.bx, T.sigK, T.perSec,
@@ -355,8 +355,8 @@ function transBits(W){
   const S=W.S, Q=W.Q, tr=S.trans; let b=0;
   if(tr) b|=2; else if(readyToBegin(W)) b|=1;
   if(tr && tr.kind==='mc' && tr.phase===1){
-    if(tr.st>=219 && tr.st<299){ b|=8; if(Q.Phi>=20 && Q.Phi+(Q.b||0)/2.4*(299-tr.st)>=100) b|=4; }
-    if(tr.st===299) b|=4;
+    if(tr.st>=219 && tr.st<298){ b|=8; if(Q.Phi>=20 && Q.Phi+(Q.b||0)/2.4*(298-tr.st)>=100) b|=4; }
+    if(tr.st>=298 && tr.st<=299) b|=4;   // P4-95: the cue leads the collapse by 2 s; the 3 s eruption covers it
   }
   return b;
 }
