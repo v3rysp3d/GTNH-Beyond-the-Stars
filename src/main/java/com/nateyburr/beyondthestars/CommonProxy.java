@@ -62,6 +62,8 @@ public class CommonProxy {
     public void postInit(FMLPostInitializationEvent event) {
         // GT registers its own recipes in postInit; required-after:gregtech orders ours after.
         BTSRecipes.register();
+        // Circuits v2 §3.4: our Mainframes as computer-rack parts (after TecTech's MTEHatchRack.run, TecTech init).
+        com.nateyburr.beyondthestars.compat.BTSRackComponents.register();
     }
 
     /**
