@@ -276,12 +276,12 @@ scene kerr-gui
   close
 
 scene kerr-extract
-  caption The Kerr Extractor Module runs GT's extractor recipes off the open hole: parallel and speed from the hole's mass (input stocked by script).
+  caption The Kerr Extractor Module runs GT's extractor recipes off the open hole: linked to it, the hole's mass gives it 448 parallels and almost x4 speed. (Idle here: no input fed in this shot.)
   goto keectrl.modx+0,0.2,-3.5 look keectrl.modx
-  command /btskerr module {keectrl} x stock
   gui keectrl.modx
   hold 5
   close
+  command /btskerr module {keectrl} x status
 
 scene kerr-tiers
   caption Kerr tiers side by side. Tier 2, with the Kerr Density Upgrade: setpoint up to 512 solar masses, and Kerr Densification in the Compressor Module.
@@ -320,7 +320,7 @@ scene hom-install
   goto hom+0,4,-6 look hom
   gui hom
   warp 40
-  timelapse 12 speed 2 until game:660 tail 1 clock
+  timelapse 22 speed 2 until game:1000 tail 1 clock
   hold 2
   close
   command /btshr bench {hom} on
@@ -424,11 +424,13 @@ scene gal-collapse
   goto gal+0,0.2,-3.5 look gal
   gui gal
   warp 60
-  timelapse 12 speed 4 until unlocked:gal:7 tail 1 clock
+  timelapse 30 speed 4 until unlocked:gal:7 tail 1 clock
   close
 
 scene gal-t7
   caption T7, Triangulum: a galaxy of three arms, held on Ergomatter and bursts.
+  warp 40
+  wait unlocked:gal:7 timeout 600
   goto gal.c+0,55,-35 look gal.c
   warp 20
   hold 5
@@ -443,7 +445,7 @@ scene gal-merger
   goto gal+0,0.2,-3.5 look gal
   gui gal
   warp 60
-  timelapse 20 speed 4 until unlocked:gal:8 tail 1 clock
+  timelapse 25 speed 4 until unlocked:gal:8 tail 1 clock
   close
 
 scene gal-t8
