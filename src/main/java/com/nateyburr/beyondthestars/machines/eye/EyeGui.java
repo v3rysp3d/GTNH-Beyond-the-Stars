@@ -1325,8 +1325,8 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                 final String[] f = part(intake.getStringValue(), i, 2);
                 if (f == null) return "";
                 final long held = parseLong(f[1]), cap = parseLong(f[2]);
-                return BTSFormat.litres(held) + " / "
-                    + (cap < 0 ? tr("beyondthestars.gui.eye.field.notpulled") : BTSFormat.litres(cap));
+                return cap < 0 ? BTSFormat.litres(held) + " L / " + tr("beyondthestars.gui.eye.field.notpulled")
+                    : BTSFormat.haveNeed(held, cap) + " L";
             })
                 .tooltipDynamic(t -> {
                     final String[] f = part(intake.getStringValue(), i, 2);
