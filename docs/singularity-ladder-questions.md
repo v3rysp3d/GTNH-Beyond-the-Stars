@@ -6,7 +6,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 1. **Open questions**: each open decision once, with the answer we recommend and where the detail is.
 2. **Settled**: everything you have answered, in your words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision from you.
-4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-95 and B-105..B-110, the tidy pass's
+4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-95 and B-105..B-112, the tidy pass's
    TQ-1..TQ-8, and P4's P4-01..P4-94 in Part E).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
@@ -131,6 +131,9 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
 - A missing texture in the KEE GUI's right-hand button column (seen in the photo run). [B-106]
 - The photo harnesses (`RenderTestClient`, `AutoRigClient`) may film at the dev client's saved render distance. Give
   them the recorder's per-tick settings hold if they are used again. [B-109]
+- ~~Restart persistence on master's machines (P4-85) and tooltips for the older casings (P4-86)~~: done; the
+  Eye, Homogeny, Reality machines and Kerr modules mark their chunk once a second, the Burst Control Hatch on a mode
+  change; tested with a clean stop and a killed server. [B-112]
 
 **To see in a client** (the headless dev server cannot): the hologram hints, a survival build from a real AE system,
 the NEI multiblock tab and its frame rate (a T6 Eye is 51,935 blocks), every GUI (Eye, KEE, modules, Directive Hatch,
@@ -206,7 +209,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-95, B-105..B-111
+## Part B. Entries B-1..B-95, B-105..B-112
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -4629,6 +4632,70 @@ So this does not affect restoring the pack: the database is identical.
   them.
 - The P4 machines were not run against the quest tasks in a world.
 
+### B-112 Restart persistence on master's machines (P4-85) and the older casings' tooltips (P4-86) [merge-p4, built + test]
+
+**Context.** GT marks a chunk for saving only when an inventory changes, and Minecraft saves only marked chunks. P4
+found that its machines could come back from an old save after a restart (P4-85), and left the same check for
+master's machines. P4's lang lint also found casings with a name but no tooltip (P4-86, rule 14).
+
+**Built (persistence, `a7d1e83`).** The P4 helper: one `IGregTechTileEntity.markDirty()`, which only sets the chunk's
+modified flag (no block update).
+
+| Machine | What changes with no inventory change | Now |
+|---|---|---|
+| KEE | hole mass, setpoint, open state, bolt governor, Auto, module list | already once a second since B-71; re-tested |
+| Kerr modules | the run's progress and the refinery's link need (a module keeps nothing else) | once a second while a run is in progress |
+| Eye of Harmony | buffers filled from the sockets (also while dark), field, milestones, setpoints, transitions | once a second after the field second; the runtime already marked most of its own changes, not a dark Eye's buffer fill |
+| Homogeny | install progress, milestones, pending mix totals, burst counters | once a second (the install run also marked every `SAVE_EVERY_TICKS`) |
+| Reality Diffraction / Refab | pending litres and run count; steps, sub-ticks and link | once a second, in `MTERealityBase` |
+| Burst Control Hatch | its mode (GUI, setter, a host adopting its default) | marks on a change |
+| Directive Hatch, Stellar Field Sensor Hatch | settings | already mark on a change since B-71 |
+
+**Built (tooltips, `2442c5c`).** slCasing 1-8, 10-13 and 15 and slCasing2 0-2 each get a
+`tile.beyondthestars.<registry>.<meta>.tooltip` in the slCasing3 style: which machine uses the block, where in it, and
+where it is made (machine and how many a craft). The injector rails also say that the lowest rail caps the bolt feed
+(Mk I 4, Mk II 8, Mk III 16 a tick). The two legacy module cores say no structure uses them and that they craft into
+the module controller. **Also fixed:** P4's Casimir Plate tooltip (slCasing:14) was written over three physical lines.
+A `.lang` entry is one line, so the tooltip stopped after its first sentence and the other two lines were junk. They
+are now joined with `\n`. Lang lint after: every listed meta has exactly one tooltip, no line without `=`, no
+duplicate keys.
+
+**Bench (`b5357f4`).** `/btsconduit nbt x y z [key ...]` prints what the GT machine at x y z would save now. It loads
+the chunk from disk first, so straight after a restart it shows what the save held. `/btsconduit burstmode x y z
+[place|<mode>]` places a lone Burst Control Hatch and sets its mode the way the GUI does.
+
+**Test.** Headless `runServer` on port 25565, fresh flat world `b112-final`, four boots. The scripts are in the
+local work folder (`b112f/`). One Eye T1 (intake setup), one KEE T1 with a 64 SM hole and its compressor module
+running an 8,250-tick recipe, a Homogeny T1 mixing, a Reality Diffraction and a lone Burst Control Hatch, each in its own
+chunks. Before each probe, the changes were made with no inventory change in the controllers' chunks.
+
+| Step | Change made | Read back |
+|---|---|---|
+| Boot 2, S0 | Homogeny milestones 1,234 / 567, Diffraction pending 777 L x6, setpoint 64, Eye buffers set to 0, then `save-all` | the Eye's buffers refill from the sockets to 1 G L each within a second |
+| Boot 2, the next 60 s | Burst mode PURGE -> FIELD, KEE setpoint 64 -> 48 (OpenComputers `setSetpoint`) | P1 before `stop`: buffers 1 G L each, setpoint 48, mass 63.09 SM, module 4,295 / 8,250 |
+| **Boot 3, from disk (clean stop)** | none | buffers 1 G L each, setpoint 48, mass 63.01, module 4,376, milestones 1,234 / 567, pending 777 x6, mode FIELD: **all kept** |
+| Boot 3, the next 75 s | mode -> SPLIT, setpoint -> 40, buffers zeroed and refilled; at least one autosave | P3 before the kill: setpoint 40, mass 60.84 SM, module 6,974, mode SPLIT |
+| Boot 3 | **the server JVM killed** (`taskkill /F` on our own runServer process, found by its port and command line) | |
+| **Boot 4, from disk (after the kill)** | none | setpoint 40, mode SPLIT, buffers 1 G L each, milestones and pending kept, module 6,802, mass 60.97: **the last autosave**, about 170 ticks before the kill, as Minecraft does after a crash |
+
+Every boot: 311 registered / 0 skipped, no `[BTS]` / beyondthestars WARN or ERROR beyond the dev server's usual
+questbook "pack quest is not in this world's quest database" lines and P4-87's FML chunk-ticket note, no
+`com.nateyburr` frame.
+
+**Without the fix.** The run cut off before this one used the same harness on master without the fix (world
+`b112-base`). After the clean stop, the Burst Control Hatch came back in PURGE (it was set to FIELD 60 s before the
+stop), and the Eye's buffers came back empty (they had refilled to 1 G L each after the save). The Homogeny, the
+Diffraction and the module kept their state in that run, because something else in their chunks happened to change.
+Without the fix that was luck.
+
+**Judgement calls.**
+1. The controllers mark once a second whether formed or not, as P4's machines do; the cost is one flag on a chunk
+   that is already loaded. The modules mark only while a run is in progress (an idle module has nothing to save).
+2. The hatches mark on a change, as asked; they have no state that moves by itself.
+
+**Not covered.** No client run. The Refab's own state was not driven: it needs P4's fluids and a Condensate Assembler
+link. It goes through the same `MTERealityBase` second as the Diffraction, which was tested.
+
 ---
 
 ## Where the old question numbers went
@@ -5960,6 +6027,9 @@ Directive / Sensor / Burst Control hatch settings rely on the same luck. The KEE
 buses change every tick. A master follow-up could add the same one-line `markDirty()` to the KEE's and the H/R
 machines' second.
 
+**Done on master (B-112).** The KEE already did it (B-71); the Eye, the Homogeny, both Reality machines and the Kerr
+modules now do too, and the Burst Control Hatch marks on a mode change. Tested with a clean stop and a killed server.
+
 ### P4-86 Casimir Plate tooltip; older casings still without one [rule 14, lang lint]
 
 **Context.** The full test's lang lint found the following:
@@ -5978,6 +6048,9 @@ pre-P4 casings are left to master: they are not P4 blocks, and the tidy pass own
 
 **Suggestion.** Master's tidy pass gives slCasing 1-8, 10-13 and 15 and slCasing2 0-2 one tooltip line each, in the
 slCasing3 style.
+
+**Done on master (B-112).** Each has its tooltip now, and the Casimir Plate's was joined onto one `.lang` line (it
+was split over three, so only its first sentence showed).
 
 ### P4-87 Full dev-server test: what the benches do to a world [test bench, observation]
 

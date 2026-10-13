@@ -1755,7 +1755,8 @@ build (checked).
 
 - **Blocks:** `SLBlocks.slCasing3` (`BlockSLCasing3`, constants `STIRRING_BAND` .. `REGION_ANCHOR`), stacks via
   `SLBlocks.casing3(meta, n)`. Region Crystal emits light 9. Block tooltips come from
-  `tile.beyondthestars.slCasing3.<meta>.tooltip` (`ItemBlockSL`).
+  `tile.beyondthestars.slCasing3.<meta>.tooltip` (`ItemBlockSL`; slCasing and slCasing2 work the same way, every
+  meta in use has one since B-112).
 - **Items:** `SLMaxItems.homogenyTier2Core`, `homogenyTier3Core`, `universalUpgradeCore`, `starChartUniverse`
   (stack 1), with lang tooltips.
 - **Fluids** (`SLRealityFluids`): `degenerateStellarMixture` (`btsdegeneratestellarmixture`), `entanglementMedium`
