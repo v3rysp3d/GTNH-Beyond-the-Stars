@@ -132,15 +132,7 @@ public final class EyeStarLook {
         switch (rt.state()) {
             case IGNITING: {
                 // P climbs from -80 to -20 (lights): the protostar swells and heats toward the star's look
-                final float f = (float) Math.max(0, Math.min(1, (rt.ignitionP() + 80) / 60));
-                final EyeStarLook lit = lit(star.n(), 0, 0);
-                return new EyeStarLook(
-                    PROTOSTAR,
-                    lit.radius * (0.35f + 0.45f * f),
-                    lerp(PROTO_RGB, lit.rgb, f),
-                    0.8f + (lit.gamma - 0.8f) * f,
-                    0.5f,
-                    0.05f);
+                return protostar(star.n(), (float) Math.max(0, Math.min(1, (rt.ignitionP() + 80) / 60)));
             }
             case LIT:
             case PENDING:
@@ -160,15 +152,7 @@ public final class EyeStarLook {
             final MagnetarCollapse mc = (MagnetarCollapse) tr;
             if (mc.overfeed()) {
                 // the overfed magnetar: it shrinks, spins up and throbs harder toward the collapse
-                final float f = (float) Math.max(0, Math.min(1, mc.mc.st / 300.0));
-                return new EyeStarLook(
-                    MAGNETAR,
-                    2.6f * (1f - 0.3f * f),
-                    MAGNETAR_RGB,
-                    MAGNETAR_GAMMA,
-                    8f + 16f * f,
-                    0.05f + 0.25f * f + 0.25f * warn,
-                    Math.max(warn, f));
+                return overfedMagnetar((float) Math.max(0, Math.min(1, mc.mc.st / 300.0)), warn);
             }
             return galaxy(7, Math.max(unrest, 0.3f), warn);
         }
@@ -180,6 +164,39 @@ public final class EyeStarLook {
             return dwarf(rt.batchFraction());
         }
         return lit(star.n(), unrest, warn);
+    }
+
+    /**
+     * T1-T3 igniting at {@code f} (0..1, P from -80 to -20): the protostar swells and heats from a dim red toward tier
+     * {@code n}'s lit look.
+     */
+    public static EyeStarLook protostar(int n, float f) {
+        final float c = Math.max(0, Math.min(1, f));
+        final EyeStarLook lit = lit(n, 0, 0);
+        return new EyeStarLook(
+            PROTOSTAR,
+            lit.radius * (0.35f + 0.45f * c),
+            lerp(PROTO_RGB, lit.rgb, c),
+            0.8f + (lit.gamma - 0.8f) * c,
+            0.5f,
+            0.05f);
+    }
+
+    /**
+     * The overfed magnetar of the T6 to T7 Magnetar Collapse at {@code f} (0..1 of the way to the collapse): it
+     * shrinks,
+     * spins up and throbs harder; {@code warn} an event warning (0/1).
+     */
+    public static EyeStarLook overfedMagnetar(float f, float warn) {
+        final float c = Math.max(0, Math.min(1, f));
+        return new EyeStarLook(
+            MAGNETAR,
+            2.6f * (1f - 0.3f * c),
+            MAGNETAR_RGB,
+            MAGNETAR_GAMMA,
+            8f + 16f * c,
+            0.05f + 0.25f * c + 0.25f * warn,
+            Math.max(warn, c));
     }
 
     /**

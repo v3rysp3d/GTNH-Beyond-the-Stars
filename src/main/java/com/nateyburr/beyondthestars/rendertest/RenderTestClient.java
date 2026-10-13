@@ -29,6 +29,8 @@ import org.lwjgl.opengl.DisplayMode;
 
 import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.machines.eye.render.TileEyeStar;
+import com.nateyburr.beyondthestars.machines.kerr.TileKerrHole;
+import com.nateyburr.beyondthestars.machines.quasar.render.TileQuasarHole;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -55,8 +57,8 @@ public final class RenderTestClient {
     /** Window size the shots are taken at. */
     private static final int WIDTH = 1280;
     private static final int HEIGHT = 720;
-    /** Give up and close after this many client ticks (90 minutes). */
-    private static final int MAX_TICKS = 90 * 60 * 20;
+    /** Give up and close after this many client ticks (150 minutes: renders v2 has about 45 cases). */
+    private static final int MAX_TICKS = 150 * 60 * 20;
     /** Settling at a newly built site: at least / at most (ticks). */
     private static final int SITE_MIN = 120;
     private static final int SITE_MAX = 1600;
@@ -85,6 +87,8 @@ public final class RenderTestClient {
     private final File dir;
     private PrintWriter log;
     private PrintWriter fps;
+    /** Renders v2 (R-01): the computed day poses of this run, in the committed poses-file format. */
+    private PrintWriter poses;
 
     private Phase phase = Phase.WAIT_MENU;
     private int ticks;
@@ -140,6 +144,10 @@ public final class RenderTestClient {
                 new OutputStreamWriter(new FileOutputStream(new File(dir, "fps.tsv")), StandardCharsets.UTF_8),
                 true);
             fps.println("case\tview\tfps\tchunk_updates\tfile");
+            poses = new PrintWriter(
+                new OutputStreamWriter(new FileOutputStream(new File(dir, "poses.tsv")), StandardCharsets.UTF_8),
+                true);
+            poses.println("# case\tview\tdx\tdy\tdz\tyaw\tpitch  (eye relative to the case's render centre)");
         } catch (IOException bad) {
             BeyondTheStars.LOG.error("[BTS render test] cannot open the log", bad);
         }
@@ -217,6 +225,10 @@ public final class RenderTestClient {
         caseFps.add(counter[0]);
         files.add(file);
         if (fps != null) fps.println(c.name + "\t" + view + "\t" + counter[0] + "\t" + counter[1] + "\t" + file);
+        String pose;
+        while ((pose = RenderTest.POSE_LOG.poll()) != null) {
+            if (poses != null) poses.println(pose);
+        }
         say("SHOT " + file + "  fps " + counter[0] + ", " + counter[1] + " chunk updates; " + clientView());
         if (dirt != null) {
             say("  re-render causes over the last " + stillTicks + " still ticks: " + dirt.top(6));
@@ -376,6 +388,12 @@ public final class RenderTestClient {
 
     private void applyCase(RenderTest.Case c) {
         TileEyeStar.debugEventAge = c.eventAge;
+        // renders v2: the client-side look overrides (null / -1: the live synced look)
+        final boolean kerr = c.site == RenderTest.Site.KERR_T1 || c.site == RenderTest.Site.KERR_T2;
+        TileKerrHole.debugStability = kerr && c.clientLook != null ? c.clientLook[0] : -1f;
+        TileQuasarHole.debugLook = !kerr && c.clientLook != null && c.clientLook.length == TileQuasarHole.DBG_LENGTH
+            ? c.clientLook.clone()
+            : null;
         await(() -> RenderTest.applyCase(c), r -> {
             say("  " + r);
             move();
@@ -475,6 +493,10 @@ public final class RenderTestClient {
         say("all done: closing the client");
         if (log != null) log.close();
         if (fps != null) fps.close();
+        if (poses != null) poses.close();
+        TileKerrHole.debugStability = -1f;
+        TileQuasarHole.debugLook = null;
+        TileEyeStar.debugEventAge = -1;
         phase = Phase.DONE;
         skipExitConfirmation();
         mc.shutdown();

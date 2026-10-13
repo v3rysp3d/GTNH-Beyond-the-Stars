@@ -46,6 +46,19 @@ public class TileKerrHole extends RenderingTileEntityBlackhole {
         return kerrScale;
     }
 
+    /**
+     * Dev-only render QA ({@code -Dbts.rendertest=true}, client): GT's stability input (0.5 and up calm, 0 spinning)
+     * shown instead of the synced one when 0 or more, so a still shot can catch a strained or failing hole. Negative
+     * (off) in play; only the render QA harness sets it.
+     */
+    public static volatile float debugStability = -1f;
+
+    @Override
+    public float getStability() {
+        final float d = debugStability;
+        return d >= 0 ? d : super.getStability();
+    }
+
     /** Server: sets the owner (no packet; the next scale/stability push carries it). */
     void setOwner(int x, int y, int z) {
         owner = new int[] { x, y, z };

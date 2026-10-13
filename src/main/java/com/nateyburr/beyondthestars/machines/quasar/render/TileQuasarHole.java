@@ -64,6 +64,18 @@ public class TileQuasarHole extends RenderingTileEntityBlackhole {
 
     public TileQuasarHole() {}
 
+    /**
+     * Dev-only render QA ({@code -Dbts.rendertest=true}, client): when set, the disc and jet readers return these
+     * instead of the synced look, so one still shot catches a zone, a re-forming disc or an eruption / purge flash at a
+     * fixed age: {zone, lambda_c, E, jet top Bu/t, jet bottom Bu/t, flash age (ticks, negative: no flash), flash size}.
+     * Null in play; only the render QA harness sets it. The hole's scale and GT's stability stay the synced ones.
+     */
+    public static volatile float[] debugLook;
+
+    /** Indices into {@link #debugLook}. */
+    public static final int DBG_ZONE = 0, DBG_LC = 1, DBG_E = 2, DBG_JET_TOP = 3, DBG_JET_BOTTOM = 4, DBG_FLASH_AGE = 5,
+        DBG_FLASH_SIZE = 6, DBG_LENGTH = 7;
+
     // ------------------------------------------------------------------ readers (client renderer)
 
     public float getHoleScale() {
@@ -71,31 +83,44 @@ public class TileQuasarHole extends RenderingTileEntityBlackhole {
     }
 
     public float getLambdaC() {
-        return lc;
+        final float[] d = debugLook;
+        return d != null ? d[DBG_LC] : lc;
     }
 
     public int getZone() {
-        return zone;
+        final float[] d = debugLook;
+        return d != null ? Math.round(d[DBG_ZONE]) : zone;
     }
 
     public float getE() {
-        return e;
+        final float[] d = debugLook;
+        return d != null ? d[DBG_E] : e;
     }
 
     public long getFlashTick() {
         return flashTick;
     }
 
+    /** Client: ticks since the last eruption / purge flash at world time {@code t} (render QA may freeze it). */
+    public float flashAge(float t) {
+        final float[] d = debugLook;
+        if (d != null) return d[DBG_FLASH_AGE] < 0 ? 1e9f : d[DBG_FLASH_AGE];
+        return t - flashTick;
+    }
+
     public float getFlashSize() {
-        return flashSize;
+        final float[] d = debugLook;
+        return d != null ? d[DBG_FLASH_SIZE] : flashSize;
     }
 
     public float getJetTop() {
-        return jetTop;
+        final float[] d = debugLook;
+        return d != null ? d[DBG_JET_TOP] : jetTop;
     }
 
     public float getJetBottom() {
-        return jetBottom;
+        final float[] d = debugLook;
+        return d != null ? d[DBG_JET_BOTTOM] : jetBottom;
     }
 
     // ------------------------------------------------------------------ server

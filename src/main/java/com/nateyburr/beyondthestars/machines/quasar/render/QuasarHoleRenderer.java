@@ -110,7 +110,7 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
         // E above 0 puffs the disc up: the two faces part by up to 4 blocks
         final float puff = 0.3f + Math.max(0, Math.min(4f, q.getE() / 25f));
         // the eruption flash: brighter for 3 s, fading
-        final float since = t - q.getFlashTick();
+        final float since = q.flashAge(t);
         final float flash = since >= 0 && since < 60 ? (1f - since / 60f) * (0.6f + q.getFlashSize()) : 0f;
         final float base = (zone < 0 ? 0.12f : 0.35f) * (1f + 1.5f * flash);
         final float spin = t * 0.004f;
