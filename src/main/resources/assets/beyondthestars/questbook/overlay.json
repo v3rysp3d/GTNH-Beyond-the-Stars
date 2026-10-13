@@ -1,12 +1,12 @@
 {
-  "bundleVersion": "32326838526cd883ba9f2c070c68b1b06bc15440",
+  "bundleVersion": "35e28945d16421646fcbb183084a74d101bf0ee2",
   "format": 1,
   "idHigh": 190,
   "packVersion": 2171,
   "source": {
     "data": "questbook/singularity.json",
     "src": ".",
-    "srcHead": "4aa480d master",
+    "srcHead": "493a61a circuits",
     "manifestSha": "fa6fec2a751c20eef04cc449df70c3e0c428e9e1"
   },
   "features": {
@@ -26,7 +26,8 @@
     "eternityOnErgomatter": true,
     "uxvSwap": false,
     "astralArrayOnEye": false,
-    "bec": false
+    "bec": false,
+    "circuits": true
   },
   "orderAfter": "l37V2WvbSHGZQ5oMgAfBuw==",
   "chapters": [
@@ -55,6 +56,14 @@
         "questLineIDLow:4": 47991
       },
       "entries": [
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48175,
+          "sizeX:3": 48,
+          "sizeY:3": 48,
+          "x:3": 228,
+          "y:3": 12
+        },
         {
           "questIDHigh:4": 190,
           "questIDLow:4": 48140,
@@ -1026,6 +1035,76 @@
       "off": {
         "x": 792,
         "y": 396,
+        "size": 24
+      }
+    },
+    {
+      "quest": 48120,
+      "line": "l37V2WvbSHGZQ5oMgAfBuw==",
+      "on": {
+        "x": 612,
+        "y": 420,
+        "size": 24
+      },
+      "off": {
+        "x": 612,
+        "y": 804,
+        "size": 24
+      }
+    },
+    {
+      "quest": 48121,
+      "line": "l37V2WvbSHGZQ5oMgAfBuw==",
+      "on": {
+        "x": 708,
+        "y": 408,
+        "size": 48
+      },
+      "off": {
+        "x": 708,
+        "y": 792,
+        "size": 48
+      }
+    },
+    {
+      "quest": 48122,
+      "line": "l37V2WvbSHGZQ5oMgAfBuw==",
+      "on": {
+        "x": 948,
+        "y": 456,
+        "size": 24
+      },
+      "off": {
+        "x": 948,
+        "y": 840,
+        "size": 24
+      }
+    },
+    {
+      "quest": 48123,
+      "line": "l37V2WvbSHGZQ5oMgAfBuw==",
+      "on": {
+        "x": 1140,
+        "y": 408,
+        "size": 48
+      },
+      "off": {
+        "x": 1140,
+        "y": 792,
+        "size": 48
+      }
+    },
+    {
+      "quest": 48124,
+      "line": "l37V2WvbSHGZQ5oMgAfBuw==",
+      "on": {
+        "x": 708,
+        "y": 492,
+        "size": 24
+      },
+      "off": {
+        "x": 708,
+        "y": 876,
         "size": 24
       }
     },
@@ -5516,6 +5595,471 @@
       }
     },
     {
+      "low": 48120,
+      "key": "stellar_silicon",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": -5082536925275926677,
+            "questIDLow:4": -7995813544306558907
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "Your Sol's Raw Stellar Plasma grows the first wafer that is not GregTech's: the §9Stellar Boule§r. Every wafer of Beyond the Stars' three circuit families starts here, and so does every Stellar SMD.\n\n§5§lMAKE §lIT§r\n- Electric Blast Furnace at§9 12,600 K§r (Hypogen coils), 60 s at UIV: an Optically Enriched Crystalline Boule, 4 Shirabon dust, 1 SpaceTime dust and§9 1,000 L Raw Stellar Plasma§r (Raw Star Matter) → 1 Stellar Boule.\n- Cut it in a Cutting Machine in a cleanroom, 50 s at UEV:§9 16 Stellar Wafers§r with Grade-7 purified water,§9 24§r with Grade-8.\n\nPlain GregTech machines, so a normal AE2 pattern runs each step.\n\n§2§lDONE §lWHEN§r you hold a Stellar Boule and 16 Stellar Wafers.",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:stellarBoule"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§c§l§nStellar Silicon",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48120,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 0,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:stellarBoule"
+              },
+              "1:10": {
+                "Count:3": 16,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:stellarWafer"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
+          }
+        }
+      }
+    },
+    {
+      "low": 48121,
+      "key": "sidereal_circuits",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48120
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "§c§lUMV, §lFAR §lCHEAPER§r The §9Sidereal§r circuits are Beyond the Stars' own UHV to UMV line, printed on your star's matter. They fill §lany§r circuit slot of their tier in every recipe, and they are §9far cheaper§r: a Sidereal Mainframe costs about 14× less EU than a Piko circuit (over 30× less while Beyond the Stars raises the Piko's price, as it does by default). No step runs above UMV power.\n\n§5§lTHE §lCHAIN§r\n- Stellar Wafer → Laser Engraver (Mysterious Crystal lens, it stays in the bus;§9 250 L Raw Stellar Plasma§r; 30 s at UIV) → §9Sidereal Wafer§r → Cutting Machine →§9 8 Sidereal Chips§r (12 with Grade-8 water).\n- Boards: 4 Optical Circuit Boards, Shirabon foil, Hypogen fine wire and Mutated Living Solder → 4 Sidereal Circuit Boards (Assembler). No star matter, so you can stock them early.\n- §9Processor§r: a chip, 2 Optically Compatible Memory and Optical SMDs in a Circuit Assembler (cleanroom), or a Circuit Assembly Line in assembler mode.\n- §9Assembly, Supercomputer, Mainframe§r: Assembly Line recipes. Research the member below in a §9Research Station§r for the data stick.\n\n§5§lTHEY §lCOUNT §lAS§r Processor = UHV, Assembly = UEV, Supercomputer = UIV, §9Mainframe = UMV§r.\n\n§5§lWHERE §lTHEY §lGO§r Anywhere a recipe asks for any UMV circuit: GregTech's UMV parts, hulls and hatches, the Space Elevator parts, and the ladder's own cores, pylons and charts. NEI cycles them with the stock ones. Nothing asks for Sidereal by name, so a Piko still fits everywhere. In a §9computer rack§r the Mainframe gives 280 computation, slightly better than a Piko.\n\n[note]Eye T1 itself is still built from Piko circuits: Sidereal needs your star first.[/note]\n\n§2§lDONE §lWHEN§r you hold a Sidereal Processor and a Sidereal Mainframe.",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:siderealMainframe"
+            },
+            "isMain:1": 1,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§c§l§nSidereal Circuits",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48121,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 0,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:siderealProcessor"
+              },
+              "1:10": {
+                "Count:3": 1,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:siderealMainframe"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
+          }
+        }
+      }
+    },
+    {
+      "low": 48122,
+      "key": "stellar_smds",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48114
+          },
+          "1:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48118
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "SMD tier 4, above Optical SMDs: the parts that let circuits go past UMV.\n\n§5§lMAKE §lTHEM§r Assembler, cleanroom, 20 s at UIV: one Stellar Wafer, the kind's foils or fine wire and§9 144 L Excited Stellar Plasma Mixture§r make§9 64§r. NEI shows each kind.\n\nExcited Stellar Plasma Mixture comes from Eye T2 (Sirius A) or from the Homogeny, so this quest opens with either one.\n\n§5§lUSED §lBY§r the Empyrean and Omega circuits. Sidereal circuits use Optical SMDs.\n\n§2§lDONE §lWHEN§r you hold one of each kind.",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:stellarSmdCapacitor"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§c§l§nStellar SMDs",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "OR",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48122,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 0,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:stellarSmdTransistor"
+              },
+              "1:10": {
+                "Count:3": 1,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:stellarSmdResistor"
+              },
+              "2:10": {
+                "Count:3": 1,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:stellarSmdCapacitor"
+              },
+              "3:10": {
+                "Count:3": 1,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:stellarSmdDiode"
+              },
+              "4:10": {
+                "Count:3": 1,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:stellarSmdInductor"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
+          }
+        }
+      }
+    },
+    {
+      "low": 48123,
+      "key": "empyrean_circuits",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48117
+          },
+          "1:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48121
+          },
+          "2:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48122
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "§c§lUXV §lAT §lUMV §lPOWER§r The §9Empyrean§r circuits, UEV to UXV, printed on White Dwarf Matter from your neutron star. They fill any circuit slot of their tier and are §9far cheaper§r: an Empyrean Mainframe costs about 14× less EU than a Quantum circuit (over 30× less with the raised Quantum price), and no step runs above UMV power.\n\n§5§lTHE §lCHAIN§r\n- Engrave a §9Sidereal Wafer§r again: Gravitational Lens,§9 36 L molten White Dwarf Matter§r and 250 L Excited Stellar Plasma Mixture, 30 s at UMV → §9Empyrean Wafer§r → 8 Empyrean Chips.\n- Boards from Sidereal Circuit Boards (Assembler: SpaceTime and Radox Polymer).\n- Processors in the Circuit Assembler; Assembly, Supercomputer and Mainframe on the Assembly Line (Research Station research), with Stellar SMDs.\n- Every §9Empyrean Mainframe§r is built around one Sidereal Mainframe.\n\n§5§lTHEY §lCOUNT §lAS§r Processor = UEV, Assembly = UIV, Supercomputer = UMV, §9Mainframe = UXV§r.\n\n§5§lWHERE §lTHEY §lGO§r Anywhere a recipe asks for any UXV circuit: every field generator the Eye is built from and upgraded with, the Field Generator UMV (4 each) and the ladder's cores from Eye T5 on. A Quantum circuit still fits too. In a §9computer rack§r the Mainframe gives 340 computation, slightly better than a Quantum circuit.\n\n§2§lDONE §lWHEN§r you hold an Empyrean Processor and an Empyrean Mainframe.",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:empyreanMainframe"
+            },
+            "isMain:1": 1,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§c§l§nEmpyrean Circuits",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48123,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 0,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:empyreanProcessor"
+              },
+              "1:10": {
+                "Count:3": 1,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:empyreanMainframe"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
+          }
+        }
+      }
+    },
+    {
+      "low": 48124,
+      "key": "circuits_in_the_nac",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48121
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "The Nanochip Assembly Complex can build all three families. It gains §lno §lnew §lmodule§r: our parts go through the modules you already have.\n- Chips: the §9Cutting Chamber§r.\n- Stellar SMDs: the §9Part Processor§r.\n- Boards: the §9Board Processor§r.\n- Circuits: the §9Assembly Matrix§r. Its Component Assembly Line casing must match the circuit's tier as for GregTech's own: UHV casing for every UHV to UIV member, UEV for the UMV ones, UIV for the UXV ones and UMV for the Omega Mainframe.\n\nFeed it as you feed GregTech's circuits; NEI's Nanochip pages show every recipe. It uses the same EU as the Assembly Line route: the gain is throughput. Our circuits count toward no calibration.\n\n[note]Before removing Beyond the Stars from a world, empty your Vacuum Conveyors of its components: unknown components in a saved conveyor are deleted, and the log names each one.[/note]\n\n§2§lDONE §lWHEN§r you have read this: tick the box.",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:siderealProcessor"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§c§l§nCircuits in the Nanochip Complex",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48124,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
       "low": 48140,
       "key": "eye_t5",
       "placeholder": false,
@@ -5819,7 +6363,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "The Homogeny's second tier: a middle stirring ring, three more feed vessels and the outer spokes around the same controller. It mixes at§9 4 parallels§r and adds §9Degenerate Stellar Mixture§r: 72 L molten White Dwarf Matter + 72 L molten Black Dwarf Matter + 1,000 L Excited Stellar Plasma Mixture → 1,000 L in 60 s.\n\n§5§lUPGRADE§r (permanent)\n- Build the stirring ring: hologram stack 2. Each new vessel takes a fluid Input Hatch on top.\n- Mix§9 100,000 L§r of Excited Stellar Plasma Mixture in this Homogeny.\n- Right-click the §9Homogeny Tier II Core§r (Condensate Assembling) onto the controller. Sneak-punch with an empty hand returns it.\n- Press Install in the GUI, or use a screwdriver:§9 10 minutes offline§r at UXV power. A mix already running finishes first. Progress shows in the GUI and the scanner, and survives a wrench.\n\nDegenerate Stellar Mixture feeds the Homogeny T3, the Eternity Shell Casing and the Reality machines (Tier 14 - MAX).\n\nThree cells on the stirring ring's outer face take GRB Receptor Ports: a quasar link makes it up to 1.5 × faster, 6 × the T1 rate (see §cA Quasar-Held Vortex§r).\n\n[note]The Tier II Core is built from §9twice as many UMV parts§r (32 Field Generators, 64 Electric Pumps) for now: the pack's UXV Field Generator and Pump still need Universium, which only Eye T10 makes. UXV circuits are fine (the Polychrome or Dimensional Quantum Circuit).[/note]\n\n§2§lDONE §lWHEN§r you hold a Homogeny Tier II Core and 1,000 L of Degenerate Stellar Mixture (claim before you install the core).",
+            "desc:8": "The Homogeny's second tier: a middle stirring ring, three more feed vessels and the outer spokes around the same controller. It mixes at§9 4 parallels§r and adds §9Degenerate Stellar Mixture§r: 72 L molten White Dwarf Matter + 72 L molten Black Dwarf Matter + 1,000 L Excited Stellar Plasma Mixture → 1,000 L in 60 s.\n\n§5§lUPGRADE§r (permanent)\n- Build the stirring ring: hologram stack 2. Each new vessel takes a fluid Input Hatch on top.\n- Mix§9 100,000 L§r of Excited Stellar Plasma Mixture in this Homogeny.\n- Right-click the §9Homogeny Tier II Core§r (Condensate Assembling) onto the controller. Sneak-punch with an empty hand returns it.\n- Press Install in the GUI, or use a screwdriver:§9 10 minutes offline§r at UXV power. A mix already running finishes first. Progress shows in the GUI and the scanner, and survives a wrench.\n\nDegenerate Stellar Mixture feeds the Homogeny T3, the Eternity Shell Casing and the Reality machines (Tier 14 - MAX).\n\nThree cells on the stirring ring's outer face take GRB Receptor Ports: a quasar link makes it up to 1.5 × faster, 6 × the T1 rate (see §cA Quasar-Held Vortex§r).\n\n[note]The Tier II Core is built from §9twice as many UMV parts§r (32 Field Generators, 64 Electric Pumps) for now: the pack's UXV Field Generator and Pump still need Universium, which only Eye T10 makes. UXV circuits are fine: any UXV circuit fits, and from Eye T4 the §9Empyrean Mainframe§r is the far cheaper one.[/note]\n\n§2§lDONE §lWHEN§r you hold a Homogeny Tier II Core and 1,000 L of Degenerate Stellar Mixture (claim before you install the core).",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -8783,6 +9327,101 @@
       }
     },
     {
+      "low": 48175,
+      "key": "omega_circuits",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48140
+          },
+          "1:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48123
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "§4§lMAX §lAT §lEYE §lT5§r The §9Omega§r circuits, UIV to MAX, printed on Black Dwarf Matter from Sirius B. They fill any circuit slot of their tier and are §9far cheaper§r: an Omega Mainframe costs about 14× less EU than a Planck circuit (over 30× less with the raised Planck price), with no Universium, Eternity or MagMatter in it.\n\n§5§lTHE §lCHAIN§r\n- Engrave an §9Empyrean Wafer§r once more: Forcicium lens,§9 18 L molten Black Dwarf Matter§r and 100 L Hyperdense Stellar Mixture, 60 s at UMV → §9Omega Wafer§r → 8 Omega Chips.\n- Boards from Empyrean Circuit Boards (Assembler: Hexanite, Shirabon, Dimensionally Transcendent Residue).\n- Processors in the Circuit Assembler; the rest on the Assembly Line (Research Station research), with Stellar SMDs.\n- Every §9Omega Mainframe§r is built around one Empyrean Mainframe.\n\n§5§lTHEY §lCOUNT §lAS§r Processor = UIV, Assembly = UMV, Supercomputer = UXV, §9Mainframe = MAX§r. In a §9computer rack§r the Mainframe gives 380 computation, slightly better than a Planck circuit.\n\n[note]The pack's MAX machines and parts still need their own late materials (Universium, MHDCSM, Eternity, MagMatter); Omega only removes the circuit wall.[/note]\n\n§2§lDONE §lWHEN§r you hold an Omega Processor and an Omega Mainframe.",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:omegaMainframe"
+            },
+            "isMain:1": 1,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nOmega Circuits",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48175,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 0,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:omegaProcessor"
+              },
+              "1:10": {
+                "Count:3": 1,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:omegaMainframe"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
+          }
+        }
+      }
+    },
+    {
       "low": 48180,
       "key": "tier14_max",
       "placeholder": false,
@@ -10471,7 +11110,7 @@
       "ops": [
         {
           "op": "setDesc",
-          "desc": "The §5Primitive§r field generators, tier 2.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §9Spacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §9Time Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §9Stabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§5§lTIER §lSTEP§r You do not re-craft. In the §9Condensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §9Stabilisation§r generator takes one §9Spacetime Compression§r and one §9Time Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\nPrimitive lets your Eye reach §9T2 (Sirius A).§r"
+          "desc": "The §5Primitive§r field generators, tier 2.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §9Spacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §9Time Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §9Stabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§5§lTIER §lSTEP§r You do not re-craft. In the §9Condensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §9Stabilisation§r generator takes one §9Spacetime Compression§r and one §9Time Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\n§5§lCIRCUITS§r Every generator takes UXV circuits, more at each tier. Any UXV circuit fits; from Eye T4 the §9Empyrean Mainframe§r is the far cheaper one (see §cEmpyrean Circuits§r).\n\nPrimitive lets your Eye reach §9T2 (Sirius A).§r"
         },
         {
           "op": "move",
@@ -10496,7 +11135,7 @@
       "ops": [
         {
           "op": "setDesc",
-          "desc": "The §5Stable§r field generators, tier 3.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §9Spacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §9Time Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §9Stabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§5§lTIER §lSTEP§r You do not re-craft. In the §9Condensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §9Stabilisation§r generator takes one §9Spacetime Compression§r and one §9Time Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\nStable gates §9T3 (Arcturus).§r"
+          "desc": "The §5Stable§r field generators, tier 3.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §9Spacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §9Time Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §9Stabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§5§lTIER §lSTEP§r You do not re-craft. In the §9Condensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §9Stabilisation§r generator takes one §9Spacetime Compression§r and one §9Time Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\n§5§lCIRCUITS§r Every generator takes UXV circuits, more at each tier. Any UXV circuit fits; from Eye T4 the §9Empyrean Mainframe§r is the far cheaper one (see §cEmpyrean Circuits§r).\n\nStable gates §9T3 (Arcturus).§r"
         },
         {
           "op": "move",
@@ -10521,7 +11160,7 @@
       "ops": [
         {
           "op": "setDesc",
-          "desc": "The §5Advanced§r field generators, tier 4.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §9Spacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §9Time Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §9Stabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§5§lTIER §lSTEP§r You do not re-craft. In the §9Condensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §9Stabilisation§r generator takes one §9Spacetime Compression§r and one §9Time Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\nAdvanced gates §9T4 (the neutron star):§r the Core Collapse will not start without it."
+          "desc": "The §5Advanced§r field generators, tier 4.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §9Spacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §9Time Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §9Stabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§5§lTIER §lSTEP§r You do not re-craft. In the §9Condensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §9Stabilisation§r generator takes one §9Spacetime Compression§r and one §9Time Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\n§5§lCIRCUITS§r Every generator takes UXV circuits, more at each tier. Any UXV circuit fits; from Eye T4 the §9Empyrean Mainframe§r is the far cheaper one (see §cEmpyrean Circuits§r).\n\nAdvanced gates §9T4 (the neutron star):§r the Core Collapse will not start without it."
         },
         {
           "op": "move",
@@ -10672,7 +11311,7 @@
         },
         {
           "op": "setDesc",
-          "desc": "Welcome to UXV. In Beyond the Stars it is not the last tier: §1Tier 14 - MAX§r and §1The Endgame§r follow.\n\nWe hope you enjoy your stay, though be prepared for a lot of waiting.\n\nIn Beyond the Stars this is the Eye's second half: §9Sirius B (T5)§r cools white dwarfs into black, and §9the magnetar (T6)§r runs on Antipolarization Agent. Then the §9Quasar Engine§r: its bursts hold the first galaxies, §9Triangulum (T7)§r and §9the Milky Way (T8),§r and power your base. The crafted Stargate has moved to §1The Endgame§r, after MAX.\n\n[warn]§lUniversium:§r it now comes only from Eye T10 (MAX), which is not built yet. The Eye's T5 and T6 cores do not need it: for now they are built from twice as many UMV parts, so Sirius B and the magnetar are craftable. The Homogeny Tier II Core and every Quasar and Conduit part are built the same way. The pack's own UXV parts (UXV components, the UXV CoAL, the UXV Field Generator) still need MHDCSM and Universium; nothing of Beyond the Stars up to Eye T8 needs them. That stays so until the new UXV parts and circuits are designed and built. UXV circuits are craftable: the Polychrome and Dimensional Quantum Circuits need no Universium.[/warn]\n\n[warn]This tier is far from complete. Expect changes.[/warn]"
+          "desc": "Welcome to UXV. In Beyond the Stars it is not the last tier: §1Tier 14 - MAX§r and §1The Endgame§r follow.\n\nWe hope you enjoy your stay, though be prepared for a lot of waiting.\n\nIn Beyond the Stars this is the Eye's second half: §9Sirius B (T5)§r cools white dwarfs into black, and §9the magnetar (T6)§r runs on Antipolarization Agent. Then the §9Quasar Engine§r: its bursts hold the first galaxies, §9Triangulum (T7)§r and §9the Milky Way (T8),§r and power your base. The crafted Stargate has moved to §1The Endgame§r, after MAX.\n\n[warn]§lUniversium:§r it now comes only from Eye T10 (MAX), which is not built yet. The Eye's T5 and T6 cores do not need it: for now they are built from twice as many UMV parts, so Sirius B and the magnetar are craftable. The Homogeny Tier II Core and every Quasar and Conduit part are built the same way. The pack's own UXV parts (UXV components, the UXV CoAL, the UXV Field Generator) still need MHDCSM and Universium; nothing of Beyond the Stars up to Eye T8 needs them. That stays so until the new UXV parts are designed and built. UXV circuits are craftable: the Quantum circuit needs no Universium, and from Eye T4 the far cheaper §9Empyrean Mainframe§r fills any UXV circuit slot.[/warn]\n\n[warn]This tier is far from complete. Expect changes.[/warn]"
         }
       ]
     },
@@ -10710,7 +11349,7 @@
         },
         {
           "op": "setDesc",
-          "desc": "The §2Superb§r field generators, tier 5.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §9Spacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §9Time Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §9Stabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§5§lTIER §lSTEP§r You do not re-craft. In the §9Condensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §9Stabilisation§r generator takes one §9Spacetime Compression§r and one §9Time Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\nSuperb gates §9T5 (Sirius B).§r Its Black Dwarf Matter part is replaced in Beyond the Stars, because Black Dwarf Matter first comes from Eye T5 itself."
+          "desc": "The §2Superb§r field generators, tier 5.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §9Spacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §9Time Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §9Stabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§5§lTIER §lSTEP§r You do not re-craft. In the §9Condensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §9Stabilisation§r generator takes one §9Spacetime Compression§r and one §9Time Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\n§5§lCIRCUITS§r Every generator takes UXV circuits, more at each tier. Any UXV circuit fits; from Eye T4 the §9Empyrean Mainframe§r is the far cheaper one (see §cEmpyrean Circuits§r).\n\nSuperb gates §9T5 (Sirius B).§r Its Black Dwarf Matter part is replaced in Beyond the Stars, because Black Dwarf Matter first comes from Eye T5 itself."
         }
       ]
     },
@@ -10735,7 +11374,7 @@
         },
         {
           "op": "setDesc",
-          "desc": "The §5Exotic§r field generators, tier 6.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §9Spacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §9Time Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §9Stabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§5§lTIER §lSTEP§r You do not re-craft. In the §9Condensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §9Stabilisation§r generator takes one §9Spacetime Compression§r and one §9Time Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\nExotic gates §9T6 (SGR 1806-20).§r"
+          "desc": "The §5Exotic§r field generators, tier 6.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §9Spacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §9Time Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §9Stabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§5§lTIER §lSTEP§r You do not re-craft. In the §9Condensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §9Stabilisation§r generator takes one §9Spacetime Compression§r and one §9Time Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\n§5§lCIRCUITS§r Every generator takes UXV circuits, more at each tier. Any UXV circuit fits; from Eye T4 the §9Empyrean Mainframe§r is the far cheaper one (see §cEmpyrean Circuits§r).\n\nExotic gates §9T6 (SGR 1806-20).§r"
         }
       ]
     },
@@ -10760,7 +11399,7 @@
         },
         {
           "op": "setDesc",
-          "desc": "The §9Perfect§r field generators, tier 7.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §9Spacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §9Time Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §9Stabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§5§lTIER §lSTEP§r You do not re-craft. In the §9Condensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §9Stabilisation§r generator takes one §9Spacetime Compression§r and one §9Time Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\nPerfect gates §9T7 (Triangulum).§r"
+          "desc": "The §9Perfect§r field generators, tier 7.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §9Spacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §9Time Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §9Stabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§5§lTIER §lSTEP§r You do not re-craft. In the §9Condensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §9Stabilisation§r generator takes one §9Spacetime Compression§r and one §9Time Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\n§5§lCIRCUITS§r Every generator takes UXV circuits, more at each tier. Any UXV circuit fits; from Eye T4 the §9Empyrean Mainframe§r is the far cheaper one (see §cEmpyrean Circuits§r).\n\nPerfect gates §9T7 (Triangulum).§r"
         }
       ]
     },
@@ -10794,7 +11433,7 @@
         },
         {
           "op": "setDesc",
-          "desc": "The §9Tipler§r field generators, tier 8.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §9Spacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §9Time Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §9Stabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§5§lTIER §lSTEP§r You do not re-craft. In the §9Condensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §9Stabilisation§r generator takes one §9Spacetime Compression§r and one §9Time Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\nTipler gates §9T8 (the Milky Way).§r\n\n[note]With Beyond the Stars' Eye its Resonance Chamber IV has a second Condensate Assembler recipe: 2 SpaceTime foils and 1,500 L Entangled Ergomatter in place of the MHDCSM foil, which waits behind Universium. Its Eternity plate comes from Eternity on Ergomatter (Eye T7).[/note]"
+          "desc": "The §9Tipler§r field generators, tier 8.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §9Spacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §9Time Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §9Stabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§5§lTIER §lSTEP§r You do not re-craft. In the §9Condensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §9Stabilisation§r generator takes one §9Spacetime Compression§r and one §9Time Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\n§5§lCIRCUITS§r Every generator takes UXV circuits, more at each tier. Any UXV circuit fits; from Eye T4 the §9Empyrean Mainframe§r is the far cheaper one (see §cEmpyrean Circuits§r).\n\nTipler gates §9T8 (the Milky Way).§r\n\n[note]With Beyond the Stars' Eye its Resonance Chamber IV has a second Condensate Assembler recipe: 2 SpaceTime foils and 1,500 L Entangled Ergomatter in place of the MHDCSM foil, which waits behind Universium. Its Eternity plate comes from Eternity on Ergomatter (Eye T7).[/note]"
         }
       ]
     },
@@ -11076,7 +11715,7 @@
         },
         {
           "op": "setDesc",
-          "desc": "The §cG§4a§5l§2l§9i§1f§5r§ce§4y§5a§2n§r field generators, tier 9: TecTech's last.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §9Spacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §9Time Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §9Stabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§5§lTIER §lSTEP§r You do not re-craft. In the §9Condensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §9Stabilisation§r generator takes one §9Spacetime Compression§r and one §9Time Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\nGallifreyan gates §9T9§r. Eye T10 will need a new, tenth tier. Both come in a later update."
+          "desc": "The §cG§4a§5l§2l§9i§1f§5r§ce§4y§5a§2n§r field generators, tier 9: TecTech's last.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §9Spacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §9Time Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §9Stabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§5§lTIER §lSTEP§r You do not re-craft. In the §9Condensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §9Stabilisation§r generator takes one §9Spacetime Compression§r and one §9Time Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\n§5§lCIRCUITS§r Every generator takes UXV circuits, more at each tier. Any UXV circuit fits; from Eye T4 the §9Empyrean Mainframe§r is the far cheaper one (see §cEmpyrean Circuits§r).\n\nGallifreyan gates §9T9§r. Eye T10 will need a new, tenth tier. Both come in a later update."
         }
       ]
     },
@@ -11096,6 +11735,20 @@
           "y": 348,
           "sizeX": 24,
           "sizeY": 24
+        },
+        {
+          "op": "appendText",
+          "text": "[note]Beyond the Stars: any MAX circuit fits every MAX slot, and from Eye T5 the §9Omega Mainframe§r is the far cheaper one (§cOmega Circuits§r, Tier 13 - UXV).[/note]",
+          "config": [
+            "stellarCircuits"
+          ]
+        },
+        {
+          "op": "appendText",
+          "text": "[warn]Beyond the Stars: Planck circuits cost about 2.5× as much here (time and materials).[/warn]",
+          "config": [
+            "raiseStockSpecialCircuits"
+          ]
         }
       ]
     },
@@ -11736,6 +12389,54 @@
           "op": "replaceText",
           "find": "(see the Endgame Goals tab when you're ready)",
           "with": "(see The Endgame tab when you're ready)"
+        }
+      ]
+    },
+    {
+      "id": "E67",
+      "quest": "AAAAAAAAAAAAAAAAAAAMqg==",
+      "expectName": "UMV Circuits",
+      "expectChapter": "ytf2QCzUSk6ihcYeRbwblw==",
+      "config": [],
+      "progress": "keep",
+      "ops": [
+        {
+          "op": "appendText",
+          "text": "[note]Beyond the Stars: any UMV circuit fits every UMV slot, and from Eye T1 the §9Sidereal Mainframe§r is the far cheaper one (§cSidereal Circuits§r, Tier 12 - UMV).[/note]",
+          "config": [
+            "stellarCircuits"
+          ]
+        },
+        {
+          "op": "appendText",
+          "text": "[warn]Beyond the Stars: Piko circuits cost about 2.5× as much here (time and materials).[/warn]",
+          "config": [
+            "raiseStockSpecialCircuits"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "E68",
+      "quest": "AAAAAAAAAAAAAAAAAAAMrA==",
+      "expectName": "UXV Circuits",
+      "expectChapter": "l37V2WvbSHGZQ5oMgAfBuw==",
+      "config": [],
+      "progress": "keep",
+      "ops": [
+        {
+          "op": "appendText",
+          "text": "[note]Beyond the Stars: any UXV circuit fits every UXV slot, and from Eye T4 the §9Empyrean Mainframe§r is the far cheaper one (§cEmpyrean Circuits§r, this tab).[/note]",
+          "config": [
+            "stellarCircuits"
+          ]
+        },
+        {
+          "op": "appendText",
+          "text": "[warn]Beyond the Stars: Quantum circuits cost about 2.5× as much here (time and materials).[/warn]",
+          "config": [
+            "raiseStockSpecialCircuits"
+          ]
         }
       ]
     }

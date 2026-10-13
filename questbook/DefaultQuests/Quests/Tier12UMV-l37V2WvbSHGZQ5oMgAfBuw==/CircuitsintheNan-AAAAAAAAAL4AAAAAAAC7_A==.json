@@ -1,0 +1,66 @@
+{
+  "preRequisites:9": {
+    "0:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48121
+    }
+  },
+  "properties:10": {
+    "betterquesting:10": {
+      "autoClaim:1": 0,
+      "completion_animation:8": "default",
+      "completion_particle:8": "default",
+      "confetti_icon:10": {
+        "Count:3": 0,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "minecraft:stick"
+      },
+      "countAsQuest:1": 1,
+      "desc:8": "The Nanochip Assembly Complex can build all three families. It gains §lno §lnew §lmodule§r: our parts go through the modules you already have.\n- Chips: the §9Cutting Chamber§r.\n- Stellar SMDs: the §9Part Processor§r.\n- Boards: the §9Board Processor§r.\n- Circuits: the §9Assembly Matrix§r. Its Component Assembly Line casing must match the circuit's tier as for GregTech's own: UHV casing for every UHV to UIV member, UEV for the UMV ones, UIV for the UXV ones and UMV for the Omega Mainframe.\n\nFeed it as you feed GregTech's circuits; NEI's Nanochip pages show every recipe. It uses the same EU as the Assembly Line route: the gain is throughput. Our circuits count toward no calibration.\n\n[note]Before removing Beyond the Stars from a world, empty your Vacuum Conveyors of its components: unknown components in a saved conveyor are deleted, and the log names each one.[/note]\n\n§2§lDONE §lWHEN§r you have read this: tick the box.",
+      "globalShare:1": 0,
+      "icon:10": {
+        "Count:3": 1,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "beyondthestars:siderealProcessor"
+      },
+      "isMain:1": 0,
+      "isSilent:1": 0,
+      "lockedProgress:1": 0,
+      "name:8": "§c§l§nCircuits in the Nanochip Complex",
+      "notification_duration:5": -1.0,
+      "notification_effect:3": -1,
+      "notification_fade_in:5": -1.0,
+      "notification_fade_out:5": -1.0,
+      "notification_icon_offset_y:3": -2147483648,
+      "notification_icon_scale:5": -1.0,
+      "notification_pos_x:3": -2147483648,
+      "notification_pos_y:3": -2147483648,
+      "notification_show_icon:8": "default",
+      "notification_style:8": "default",
+      "notification_subtitle:8": "",
+      "notification_subtitle_scale:5": -1.0,
+      "notification_title:8": "",
+      "notification_title_scale:5": -1.0,
+      "particle_count:3": -1,
+      "questLogic:8": "AND",
+      "repeatTime:3": -1,
+      "repeat_relative:1": 1,
+      "simultaneous:1": 0,
+      "snd_complete:8": "random.levelup",
+      "snd_update:8": "random.levelup",
+      "taskLogic:8": "AND",
+      "visibility:8": "NORMAL"
+    }
+  },
+  "questIDHigh:4": 190,
+  "questIDLow:4": 48124,
+  "rewards:9": {},
+  "tasks:9": {
+    "0:10": {
+      "index:3": 0,
+      "taskID:8": "bq_standard:checkbox"
+    }
+  }
+}

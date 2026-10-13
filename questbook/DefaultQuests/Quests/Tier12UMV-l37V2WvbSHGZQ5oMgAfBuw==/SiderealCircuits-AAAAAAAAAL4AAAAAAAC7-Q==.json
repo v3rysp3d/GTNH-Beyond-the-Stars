@@ -1,0 +1,86 @@
+{
+  "preRequisites:9": {
+    "0:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48120
+    }
+  },
+  "properties:10": {
+    "betterquesting:10": {
+      "autoClaim:1": 0,
+      "completion_animation:8": "default",
+      "completion_particle:8": "default",
+      "confetti_icon:10": {
+        "Count:3": 0,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "minecraft:stick"
+      },
+      "countAsQuest:1": 1,
+      "desc:8": "§c§lUMV, §lFAR §lCHEAPER§r The §9Sidereal§r circuits are Beyond the Stars' own UHV to UMV line, printed on your star's matter. They fill §lany§r circuit slot of their tier in every recipe, and they are §9far cheaper§r: a Sidereal Mainframe costs about 14× less EU than a Piko circuit (over 30× less while Beyond the Stars raises the Piko's price, as it does by default). No step runs above UMV power.\n\n§5§lTHE §lCHAIN§r\n- Stellar Wafer → Laser Engraver (Mysterious Crystal lens, it stays in the bus;§9 250 L Raw Stellar Plasma§r; 30 s at UIV) → §9Sidereal Wafer§r → Cutting Machine →§9 8 Sidereal Chips§r (12 with Grade-8 water).\n- Boards: 4 Optical Circuit Boards, Shirabon foil, Hypogen fine wire and Mutated Living Solder → 4 Sidereal Circuit Boards (Assembler). No star matter, so you can stock them early.\n- §9Processor§r: a chip, 2 Optically Compatible Memory and Optical SMDs in a Circuit Assembler (cleanroom), or a Circuit Assembly Line in assembler mode.\n- §9Assembly, Supercomputer, Mainframe§r: Assembly Line recipes. Research the member below in a §9Research Station§r for the data stick.\n\n§5§lTHEY §lCOUNT §lAS§r Processor = UHV, Assembly = UEV, Supercomputer = UIV, §9Mainframe = UMV§r.\n\n§5§lWHERE §lTHEY §lGO§r Anywhere a recipe asks for any UMV circuit: GregTech's UMV parts, hulls and hatches, the Space Elevator parts, and the ladder's own cores, pylons and charts. NEI cycles them with the stock ones. Nothing asks for Sidereal by name, so a Piko still fits everywhere. In a §9computer rack§r the Mainframe gives 280 computation, slightly better than a Piko.\n\n[note]Eye T1 itself is still built from Piko circuits: Sidereal needs your star first.[/note]\n\n§2§lDONE §lWHEN§r you hold a Sidereal Processor and a Sidereal Mainframe.",
+      "globalShare:1": 0,
+      "icon:10": {
+        "Count:3": 1,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "beyondthestars:siderealMainframe"
+      },
+      "isMain:1": 1,
+      "isSilent:1": 0,
+      "lockedProgress:1": 0,
+      "name:8": "§c§l§nSidereal Circuits",
+      "notification_duration:5": -1.0,
+      "notification_effect:3": -1,
+      "notification_fade_in:5": -1.0,
+      "notification_fade_out:5": -1.0,
+      "notification_icon_offset_y:3": -2147483648,
+      "notification_icon_scale:5": -1.0,
+      "notification_pos_x:3": -2147483648,
+      "notification_pos_y:3": -2147483648,
+      "notification_show_icon:8": "default",
+      "notification_style:8": "default",
+      "notification_subtitle:8": "",
+      "notification_subtitle_scale:5": -1.0,
+      "notification_title:8": "",
+      "notification_title_scale:5": -1.0,
+      "particle_count:3": -1,
+      "questLogic:8": "AND",
+      "repeatTime:3": -1,
+      "repeat_relative:1": 1,
+      "simultaneous:1": 0,
+      "snd_complete:8": "random.levelup",
+      "snd_update:8": "random.levelup",
+      "taskLogic:8": "AND",
+      "visibility:8": "NORMAL"
+    }
+  },
+  "questIDHigh:4": 190,
+  "questIDLow:4": 48121,
+  "rewards:9": {},
+  "tasks:9": {
+    "0:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
+      "index:3": 0,
+      "partialMatch:1": 1,
+      "requireOnlyOneItem:1": 0,
+      "requiredItems:9": {
+        "0:10": {
+          "Count:3": 1,
+          "Damage:2": 0,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:siderealProcessor"
+        },
+        "1:10": {
+          "Count:3": 1,
+          "Damage:2": 0,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:siderealMainframe"
+        }
+      },
+      "taskID:8": "bq_standard:retrieval"
+    }
+  }
+}

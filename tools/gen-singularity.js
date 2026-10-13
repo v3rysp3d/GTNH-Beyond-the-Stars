@@ -1343,7 +1343,7 @@ function selftest(inp) {
         ['a shipped id disappearing', d => { d.quests = d.quests.filter(x => x.low !== 48193); return d; }, /is gone/],
         ['a prerequisite cycle', d => { q(d, 48114).prereqs.push(48117); return d; }, /prerequisite cycle/],
         ['an op gated on a flag Config does not have', d => {
-            d.packEdits.find(e => e.id === 'E67').ops[0].config = ['noSuchConfigFlag']; return d;
+            d.packEdits.find(e => e.id === 'E38').ops[0].config = ['noSuchConfigFlag']; return d;
         }, /not a boolean in Config/],
         ['a placeholder shipping with a tbd task', d => { d.features.maxParts = true; return d; }, /still 'tbd'/],
         ['a bill role reassigned in the manifest', d => { d.bomItems.eye.band_shell.expect = 'NotThisBlock'; return d; }, /bomItems expects/],

@@ -20,7 +20,8 @@
     "eternityOnErgomatter": true,
     "uxvSwap": false,
     "astralArrayOnEye": false,
-    "bec": false
+    "bec": false,
+    "circuits": true
   },
   "packChapters": {
     "uiv": { "id": "ytf2QCzUSk6ihcYeRbwblw==", "name": "Tier 11 - UIV", "range": [48100, 48139] },
@@ -195,7 +196,9 @@
       "",
       "The families mix freely, and the {l}lowest{r} of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.",
       "",
-      "{5}{l}TIER STEP{r} You do not re-craft. In the {9}Condensate Assembler{r} a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A {9}Stabilisation{r} generator takes one {9}Spacetime Compression{r} and one {9}Time Dilation Retrofit Kit{r} of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper."
+      "{5}{l}TIER STEP{r} You do not re-craft. In the {9}Condensate Assembler{r} a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A {9}Stabilisation{r} generator takes one {9}Spacetime Compression{r} and one {9}Time Dilation Retrofit Kit{r} of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.",
+      "",
+      "{5}{l}CIRCUITS{r} Every generator takes UXV circuits, more at each tier. Any UXV circuit fits; from Eye T4 the {9}Empyrean Mainframe{r} is the far cheaper one (see {c}Empyrean Circuits{r})."
     ],
     "hold_core": "{2}{l}DONE WHEN{r} you hold the core and the chart (HOLD {to} CLAIM {to} INSTALL: claim before the core goes into escrow)."
   },
@@ -568,6 +571,124 @@
       ]
     },
     {
+      "low": 48120, "key": "stellar_silicon", "chapter": "umv", "stem": "StellarSilicon", "x": 612, "y": 420, "size": 24,
+      "name": "{c}{l}{n}Stellar Silicon", "icon": "beyondthestars:stellarBoule", "needs": ["circuits"],
+      "prereqs": ["E11"],
+      "tasks": [ { "type": "retrieval", "items": ["1x beyondthestars:stellarBoule", "16x beyondthestars:stellarWafer"] } ],
+      "desc": [
+        "Your Sol's Raw Stellar Plasma grows the first wafer that is not GregTech's: the {9}Stellar Boule{r}. Every wafer of Beyond the Stars' three circuit families starts here, and so does every Stellar SMD.",
+        "",
+        "{5}{l}MAKE IT{r}",
+        "- Electric Blast Furnace at {9}12,600 K{r} (Hypogen coils), 60 s at UIV: an Optically Enriched Crystalline Boule, 4 Shirabon dust, 1 SpaceTime dust and {9}1,000 L Raw Stellar Plasma{r} (Raw Star Matter) {to} 1 Stellar Boule.",
+        "- Cut it in a Cutting Machine in a cleanroom, 50 s at UEV: {9}16 Stellar Wafers{r} with Grade-7 purified water, {9}24{r} with Grade-8.",
+        "",
+        "Plain GregTech machines, so a normal AE2 pattern runs each step.",
+        "",
+        "{2}{l}DONE WHEN{r} you hold a Stellar Boule and 16 Stellar Wafers."
+      ]
+    },
+    {
+      "low": 48121, "key": "sidereal_circuits", "chapter": "umv", "stem": "SiderealCircuits", "x": 708, "y": 408, "size": 48, "main": true,
+      "name": "{c}{l}{n}Sidereal Circuits", "icon": "beyondthestars:siderealMainframe", "needs": ["circuits"],
+      "prereqs": [48120],
+      "tasks": [ { "type": "retrieval", "items": ["1x beyondthestars:siderealProcessor", "1x beyondthestars:siderealMainframe"] } ],
+      "desc": [
+        "{c}{l}UMV, FAR CHEAPER{r} The {9}Sidereal{r} circuits are Beyond the Stars' own UHV to UMV line, printed on your star's matter. They fill {l}any{r} circuit slot of their tier in every recipe, and they are {9}far cheaper{r}: a Sidereal Mainframe costs about 14{times} less EU than a Piko circuit (over 30{times} less while Beyond the Stars raises the Piko's price, as it does by default). No step runs above UMV power.",
+        "",
+        "{5}{l}THE CHAIN{r}",
+        "- Stellar Wafer {to} Laser Engraver (Mysterious Crystal lens, it stays in the bus; {9}250 L Raw Stellar Plasma{r}; 30 s at UIV) {to} {9}Sidereal Wafer{r} {to} Cutting Machine {to} {9}8 Sidereal Chips{r} (12 with Grade-8 water).",
+        "- Boards: 4 Optical Circuit Boards, Shirabon foil, Hypogen fine wire and Mutated Living Solder {to} 4 Sidereal Circuit Boards (Assembler). No star matter, so you can stock them early.",
+        "- {9}Processor{r}: a chip, 2 Optically Compatible Memory and Optical SMDs in a Circuit Assembler (cleanroom), or a Circuit Assembly Line in assembler mode.",
+        "- {9}Assembly, Supercomputer, Mainframe{r}: Assembly Line recipes. Research the member below in a {9}Research Station{r} for the data stick.",
+        "",
+        "{5}{l}THEY COUNT AS{r} Processor = UHV, Assembly = UEV, Supercomputer = UIV, {9}Mainframe = UMV{r}.",
+        "",
+        "{5}{l}WHERE THEY GO{r} Anywhere a recipe asks for any UMV circuit: GregTech's UMV parts, hulls and hatches, the Space Elevator parts, and the ladder's own cores, pylons and charts. NEI cycles them with the stock ones. Nothing asks for Sidereal by name, so a Piko still fits everywhere. In a {9}computer rack{r} the Mainframe gives 280 computation, slightly better than a Piko.",
+        "",
+        "[note]Eye T1 itself is still built from Piko circuits: Sidereal needs your star first.[/note]",
+        "",
+        "{2}{l}DONE WHEN{r} you hold a Sidereal Processor and a Sidereal Mainframe."
+      ]
+    },
+    {
+      "low": 48122, "key": "stellar_smds", "chapter": "umv", "stem": "StellarSMDs", "x": 948, "y": 456, "size": 24,
+      "name": "{c}{l}{n}Stellar SMDs", "icon": "beyondthestars:stellarSmdCapacitor", "needs": ["circuits"],
+      "prereqs": [48114, 48118], "questLogic": "OR",
+      "tasks": [ { "type": "retrieval", "items": ["1x beyondthestars:stellarSmdTransistor", "1x beyondthestars:stellarSmdResistor", "1x beyondthestars:stellarSmdCapacitor", "1x beyondthestars:stellarSmdDiode", "1x beyondthestars:stellarSmdInductor"] } ],
+      "desc": [
+        "SMD tier 4, above Optical SMDs: the parts that let circuits go past UMV.",
+        "",
+        "{5}{l}MAKE THEM{r} Assembler, cleanroom, 20 s at UIV: one Stellar Wafer, the kind's foils or fine wire and {9}144 L Excited Stellar Plasma Mixture{r} make {9}64{r}. NEI shows each kind.",
+        "",
+        "Excited Stellar Plasma Mixture comes from Eye T2 (Sirius A) or from the Homogeny, so this quest opens with either one.",
+        "",
+        "{5}{l}USED BY{r} the Empyrean and Omega circuits. Sidereal circuits use Optical SMDs.",
+        "",
+        "{2}{l}DONE WHEN{r} you hold one of each kind."
+      ]
+    },
+    {
+      "low": 48123, "key": "empyrean_circuits", "chapter": "umv", "stem": "EmpyreanCircuits", "x": 1140, "y": 408, "size": 48, "main": true,
+      "name": "{c}{l}{n}Empyrean Circuits", "icon": "beyondthestars:empyreanMainframe", "needs": ["circuits"],
+      "prereqs": [48117, 48121, 48122],
+      "tasks": [ { "type": "retrieval", "items": ["1x beyondthestars:empyreanProcessor", "1x beyondthestars:empyreanMainframe"] } ],
+      "desc": [
+        "{c}{l}UXV AT UMV POWER{r} The {9}Empyrean{r} circuits, UEV to UXV, printed on White Dwarf Matter from your neutron star. They fill any circuit slot of their tier and are {9}far cheaper{r}: an Empyrean Mainframe costs about 14{times} less EU than a Quantum circuit (over 30{times} less with the raised Quantum price), and no step runs above UMV power.",
+        "",
+        "{5}{l}THE CHAIN{r}",
+        "- Engrave a {9}Sidereal Wafer{r} again: Gravitational Lens, {9}36 L molten White Dwarf Matter{r} and 250 L Excited Stellar Plasma Mixture, 30 s at UMV {to} {9}Empyrean Wafer{r} {to} 8 Empyrean Chips.",
+        "- Boards from Sidereal Circuit Boards (Assembler: SpaceTime and Radox Polymer).",
+        "- Processors in the Circuit Assembler; Assembly, Supercomputer and Mainframe on the Assembly Line (Research Station research), with Stellar SMDs.",
+        "- Every {9}Empyrean Mainframe{r} is built around one Sidereal Mainframe.",
+        "",
+        "{5}{l}THEY COUNT AS{r} Processor = UEV, Assembly = UIV, Supercomputer = UMV, {9}Mainframe = UXV{r}.",
+        "",
+        "{5}{l}WHERE THEY GO{r} Anywhere a recipe asks for any UXV circuit: every field generator the Eye is built from and upgraded with, the Field Generator UMV (4 each) and the ladder's cores from Eye T5 on. A Quantum circuit still fits too. In a {9}computer rack{r} the Mainframe gives 340 computation, slightly better than a Quantum circuit.",
+        "",
+        "{2}{l}DONE WHEN{r} you hold an Empyrean Processor and an Empyrean Mainframe."
+      ]
+    },
+    {
+      "low": 48124, "key": "circuits_in_the_nac", "chapter": "umv", "stem": "CircuitsintheNan", "x": 708, "y": 492, "size": 24,
+      "name": "{c}{l}{n}Circuits in the Nanochip Complex", "icon": "beyondthestars:siderealProcessor", "needs": ["circuits"],
+      "prereqs": [48121],
+      "tasks": [ { "type": "checkbox" } ],
+      "desc": [
+        "The Nanochip Assembly Complex can build all three families. It gains {l}no new module{r}: our parts go through the modules you already have.",
+        "- Chips: the {9}Cutting Chamber{r}.",
+        "- Stellar SMDs: the {9}Part Processor{r}.",
+        "- Boards: the {9}Board Processor{r}.",
+        "- Circuits: the {9}Assembly Matrix{r}. Its Component Assembly Line casing must match the circuit's tier as for GregTech's own: UHV casing for every UHV to UIV member, UEV for the UMV ones, UIV for the UXV ones and UMV for the Omega Mainframe.",
+        "",
+        "Feed it as you feed GregTech's circuits; NEI's Nanochip pages show every recipe. It uses the same EU as the Assembly Line route: the gain is throughput. Our circuits count toward no calibration.",
+        "",
+        "[note]Before removing Beyond the Stars from a world, empty your Vacuum Conveyors of its components: unknown components in a saved conveyor are deleted, and the log names each one.[/note]",
+        "",
+        "{2}{l}DONE WHEN{r} you have read this: tick the box."
+      ]
+    },
+    {
+      "low": 48175, "key": "omega_circuits", "chapter": "uxv", "x": 228, "y": 12, "size": 48, "main": true,
+      "name": "{4}{l}{n}Omega Circuits", "icon": "beyondthestars:omegaMainframe", "needs": ["circuits"],
+      "prereqs": [48140, 48123],
+      "tasks": [ { "type": "retrieval", "items": ["1x beyondthestars:omegaProcessor", "1x beyondthestars:omegaMainframe"] } ],
+      "desc": [
+        "{4}{l}MAX AT EYE T5{r} The {9}Omega{r} circuits, UIV to MAX, printed on Black Dwarf Matter from Sirius B. They fill any circuit slot of their tier and are {9}far cheaper{r}: an Omega Mainframe costs about 14{times} less EU than a Planck circuit (over 30{times} less with the raised Planck price), with no Universium, Eternity or MagMatter in it.",
+        "",
+        "{5}{l}THE CHAIN{r}",
+        "- Engrave an {9}Empyrean Wafer{r} once more: Forcicium lens, {9}18 L molten Black Dwarf Matter{r} and 100 L Hyperdense Stellar Mixture, 60 s at UMV {to} {9}Omega Wafer{r} {to} 8 Omega Chips.",
+        "- Boards from Empyrean Circuit Boards (Assembler: Hexanite, Shirabon, Dimensionally Transcendent Residue).",
+        "- Processors in the Circuit Assembler; the rest on the Assembly Line (Research Station research), with Stellar SMDs.",
+        "- Every {9}Omega Mainframe{r} is built around one Empyrean Mainframe.",
+        "",
+        "{5}{l}THEY COUNT AS{r} Processor = UIV, Assembly = UMV, Supercomputer = UXV, {9}Mainframe = MAX{r}. In a {9}computer rack{r} the Mainframe gives 380 computation, slightly better than a Planck circuit.",
+        "",
+        "[note]The pack's MAX machines and parts still need their own late materials (Universium, MHDCSM, Eternity, MagMatter); Omega only removes the circuit wall.[/note]",
+        "",
+        "{2}{l}DONE WHEN{r} you hold an Omega Processor and an Omega Mainframe."
+      ]
+    },
+    {
       "low": 48140, "key": "eye_t5", "chapter": "uxv", "x": 168, "y": 156, "size": 48, "main": true,
       "name": "{4}{l}{n}Eye T5: Sirius B", "icon": "beyondthestars:starChartSiriusB", "needs": ["eyeD49"],
       "prereqs": ["E20", "E21", 48117],
@@ -663,7 +784,7 @@
         "",
         "Three cells on the stirring ring's outer face take GRB Receptor Ports: a quasar link makes it up to 1.5 {times} faster, 6 {times} the T1 rate (see {c}A Quasar-Held Vortex{r}).",
         "",
-        "[note]The Tier II Core is built from {9}twice as many UMV parts{r} (32 Field Generators, 64 Electric Pumps) for now: the pack's UXV Field Generator and Pump still need Universium, which only Eye T10 makes. UXV circuits are fine (the Polychrome or Dimensional Quantum Circuit).[/note]",
+        "[note]The Tier II Core is built from {9}twice as many UMV parts{r} (32 Field Generators, 64 Electric Pumps) for now: the pack's UXV Field Generator and Pump still need Universium, which only Eye T10 makes. UXV circuits are fine: any UXV circuit fits, and from Eye T4 the {9}Empyrean Mainframe{r} is the far cheaper one.[/note]",
         "",
         "{2}{l}DONE WHEN{r} you hold a Homogeny Tier II Core and 1,000 L of Degenerate Stellar Mixture (claim before you install the core)."
       ]
@@ -1573,7 +1694,7 @@
           "",
           "In Beyond the Stars this is the Eye's second half: {9}Sirius B (T5){r} cools white dwarfs into black, and {9}the magnetar (T6){r} runs on Antipolarization Agent. Then the {9}Quasar Engine{r}: its bursts hold the first galaxies, {9}Triangulum (T7){r} and {9}the Milky Way (T8){r}, and power your base. The crafted Stargate has moved to {1}The Endgame{r}, after MAX.",
           "",
-          "[warn]{l}Universium:{r} it now comes only from Eye T10 (MAX), which is not built yet. The Eye's T5 and T6 cores do not need it: for now they are built from twice as many UMV parts, so Sirius B and the magnetar are craftable. The Homogeny Tier II Core and every Quasar and Conduit part are built the same way. The pack's own UXV parts (UXV components, the UXV CoAL, the UXV Field Generator) still need MHDCSM and Universium; nothing of Beyond the Stars up to Eye T8 needs them. That stays so until the new UXV parts and circuits are designed and built. UXV circuits are craftable: the Polychrome and Dimensional Quantum Circuits need no Universium.[/warn]",
+          "[warn]{l}Universium:{r} it now comes only from Eye T10 (MAX), which is not built yet. The Eye's T5 and T6 cores do not need it: for now they are built from twice as many UMV parts, so Sirius B and the magnetar are craftable. The Homogeny Tier II Core and every Quasar and Conduit part are built the same way. The pack's own UXV parts (UXV components, the UXV CoAL, the UXV Field Generator) still need MHDCSM and Universium; nothing of Beyond the Stars up to Eye T8 needs them. That stays so until the new UXV parts are designed and built. UXV circuits are craftable: the Quantum circuit needs no Universium, and from Eye T4 the far cheaper {9}Empyrean Mainframe{r} fills any UXV circuit slot.[/warn]",
           "",
           "[warn]This tier is far from complete. Expect changes.[/warn]"
         ] }
@@ -1659,7 +1780,10 @@
         { "op": "setDesc", "desc": ["The {c}G{4}a{5}l{2}l{9}i{1}f{5}r{c}e{4}y{5}a{2}n{r} field generators, tier 9: TecTech's last.", "", "@gate_pattern", "", "Gallifreyan gates {9}T9{r}. Eye T10 will need a new, tenth tier. Both come in a later update."] }
       ]
     },
-    { "id": "E38", "quest": "2rrP1wt_Qt2LlOqDppdjLQ==", "expectName": "MAX Circuits", "expectChapter": "egoals", "ops": [ { "op": "move", "to": "max", "x": 24, "y": 348, "size": 24 } ] },
+    { "id": "E38", "quest": "2rrP1wt_Qt2LlOqDppdjLQ==", "expectName": "MAX Circuits", "expectChapter": "egoals", "ops": [
+      { "op": "move", "to": "max", "x": 24, "y": 348, "size": 24 },
+      { "op": "appendText", "config": ["stellarCircuits"], "text": "[note]Beyond the Stars: any MAX circuit fits every MAX slot, and from Eye T5 the {9}Omega Mainframe{r} is the far cheaper one ({c}Omega Circuits{r}, Tier 13 - UXV).[/note]" },
+      { "op": "appendText", "config": ["raiseStockSpecialCircuits"], "text": "[warn]Beyond the Stars: Planck circuits cost about 2.5{times} as much here (time and materials).[/warn]" } ] },
     { "id": "E39", "quest": "itcSYyc3Tdq9Q1qrP5RoEg==", "expectName": "A Minor Roadblock", "expectChapter": "egoals", "ops": [ { "op": "move", "to": "max", "x": 84, "y": 348, "size": 24 } ] },
     {
       "id": "E40", "quest": "21tDEYptRuOgSJym30Watg==", "expectName": "Finally, Universium!", "expectChapter": "umv",
@@ -1769,6 +1893,22 @@
       "id": "E66", "quest": "AAAAAAAAAAAAAAAAAAAJbA==", "expectName": "Gen XXXXXXXXXX...", "expectChapter": "thaum2",
       "about": "C01 hides Endgame Goals; the Stargate quests it pointed at are in The Endgame (E48-E55, moved with no flag).",
       "ops": [ { "op": "replaceText", "find": "(see the Endgame Goals tab when you're ready)", "with": "(see The Endgame tab when you're ready)" } ]
+    },
+    {
+      "id": "E67", "quest": "AAAAAAAAAAAAAAAAAAAMqg==", "expectName": "UMV Circuits", "expectChapter": "uiv",
+      "about": "Circuits v2 (circuits-v2.md 6.1): the Sidereal hint while our circuits exist (op config stellarCircuits), the price warning while the raise runs (op config raiseStockSpecialCircuits). Text only.",
+      "ops": [
+        { "op": "appendText", "config": ["stellarCircuits"], "text": "[note]Beyond the Stars: any UMV circuit fits every UMV slot, and from Eye T1 the {9}Sidereal Mainframe{r} is the far cheaper one ({c}Sidereal Circuits{r}, Tier 12 - UMV).[/note]" },
+        { "op": "appendText", "config": ["raiseStockSpecialCircuits"], "text": "[warn]Beyond the Stars: Piko circuits cost about 2.5{times} as much here (time and materials).[/warn]" }
+      ]
+    },
+    {
+      "id": "E68", "quest": "AAAAAAAAAAAAAAAAAAAMrA==", "expectName": "UXV Circuits", "expectChapter": "umv",
+      "about": "Circuits v2 (circuits-v2.md 6.1): as E67, for Quantum and the Empyrean Mainframe.",
+      "ops": [
+        { "op": "appendText", "config": ["stellarCircuits"], "text": "[note]Beyond the Stars: any UXV circuit fits every UXV slot, and from Eye T4 the {9}Empyrean Mainframe{r} is the far cheaper one ({c}Empyrean Circuits{r}, this tab).[/note]" },
+        { "op": "appendText", "config": ["raiseStockSpecialCircuits"], "text": "[warn]Beyond the Stars: Quantum circuits cost about 2.5{times} as much here (time and materials).[/warn]" }
+      ]
     }
   ]
 }
