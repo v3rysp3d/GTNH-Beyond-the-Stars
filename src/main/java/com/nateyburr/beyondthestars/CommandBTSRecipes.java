@@ -81,7 +81,8 @@ public class CommandBTSRecipes extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btsrecipes [status | dump [file] | circuits | nac <build|run <piko|SL-Nxx>|status> x y z [facing]]";
+        return "/btsrecipes [status | dump [file] | circuits | nac <build|run <piko|SL-Nxx>|status> x y z [facing]"
+            + " | chain <build|plan <family>|make <family>|gt <umv|uxv|max>|status|stop> x y z]";
     }
 
     @Override
@@ -92,7 +93,8 @@ public class CommandBTSRecipes extends CommandBase {
     @SuppressWarnings("rawtypes")
     @Override
     public List addTabCompletionOptions(ICommandSender sender, String[] args) {
-        if (args.length == 1) return getListOfStringsMatchingLastWord(args, "status", "dump", "circuits", "nac");
+        if (args.length == 1)
+            return getListOfStringsMatchingLastWord(args, "status", "dump", "circuits", "nac", "chain");
         return null;
     }
 
@@ -120,6 +122,17 @@ public class CommandBTSRecipes extends CommandBase {
             for (String line : com.nateyburr.beyondthestars.nac.NacBench.run(sender.getEntityWorld(), at, args)) {
                 sender.addChatMessage(new ChatComponentText(line));
                 BeyondTheStars.LOG.info("[BTS] nac: " + line);
+            }
+            return;
+        }
+        if ("chain".equals(sub)) {
+            // Circuits v2 C7 bench: the SL-X chain run end to end in real stock GT machines (CircuitChainBench).
+            final com.nateyburr.beyondthestars.machines.SLConsoleTest.Placement at = com.nateyburr.beyondthestars.machines.SLConsoleTest
+                .parsePlacement(sender, args);
+            if (at == null) throw new WrongUsageException(CircuitChainBench.USAGE);
+            for (String line : CircuitChainBench.run(sender.getEntityWorld(), at, args)) {
+                sender.addChatMessage(new ChatComponentText(line));
+                BeyondTheStars.LOG.info("[BTS] chain: " + line);
             }
             return;
         }
