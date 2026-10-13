@@ -2,84 +2,89 @@ package com.nateyburr.beyondthestars.machines.kerr;
 
 import static gregtech.api.metatileentity.BaseTileEntity.TOOLTIP_DELAY;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.StatCollector;
 
 import com.cleanroommc.modularui.api.IPanelHandler;
 import com.cleanroommc.modularui.api.drawable.IDrawable;
 import com.cleanroommc.modularui.api.drawable.IKey;
 import com.cleanroommc.modularui.api.widget.IWidget;
-import com.cleanroommc.modularui.drawable.GuiDraw;
 import com.cleanroommc.modularui.drawable.ItemDrawable;
 import com.cleanroommc.modularui.screen.ModularPanel;
+import com.cleanroommc.modularui.screen.RichTooltip;
 import com.cleanroommc.modularui.utils.Alignment;
 import com.cleanroommc.modularui.value.BoolValue;
 import com.cleanroommc.modularui.value.DoubleValue;
 import com.cleanroommc.modularui.value.IntValue;
 import com.cleanroommc.modularui.value.sync.BooleanSyncValue;
-import com.cleanroommc.modularui.value.sync.DoubleSyncValue;
 import com.cleanroommc.modularui.value.sync.IntSyncValue;
-import com.cleanroommc.modularui.value.sync.LongSyncValue;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 import com.cleanroommc.modularui.value.sync.StringSyncValue;
 import com.cleanroommc.modularui.widgets.ButtonWidget;
-import com.cleanroommc.modularui.widgets.ListWidget;
+import com.cleanroommc.modularui.widgets.ScrollingTextWidget;
 import com.cleanroommc.modularui.widgets.SliderWidget;
 import com.cleanroommc.modularui.widgets.TextWidget;
 import com.cleanroommc.modularui.widgets.ToggleButton;
 import com.cleanroommc.modularui.widgets.layout.Flow;
 import com.cleanroommc.modularui.widgets.textfield.TextFieldWidget;
+import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
+import com.nateyburr.beyondthestars.machines.gui.BTSControllerGui;
+import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
+import com.nateyburr.beyondthestars.machines.gui.BTSGuiKit;
+import com.nateyburr.beyondthestars.machines.gui.BTSGuiKit.Badge;
+import com.nateyburr.beyondthestars.machines.gui.BTSGuiKit.Grad;
+import com.nateyburr.beyondthestars.machines.gui.BTSRows;
+import com.nateyburr.beyondthestars.machines.gui.BTSText;
 
 import gregtech.api.modularui2.GTGuiTextures;
-import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
 
 /**
- * KERR REDESIGN: the Kerr Ergosphere Engine's console (docs/kerr-redesign.md §4.1 and the GUI
- * mockup), GT's standard MUI2 multiblock layout. Nothing a player needs takes a screwdriver.
+ * The Kerr Ergosphere Engine's console on the controller GUI kit (controller-gui-spec.md §5.2). The header says the
+ * hole's state (FROZEN, NOT FORMED, CLOSED, NO POWER, DRIFTING, GROWING, OPEN), its mass and the Kerr tier. An open
+ * hole shows the Mass bar (the setpoint is its yellow tick), Stability (and the time to evaporation while it drifts),
+ * the Governor, the bolt stock and how long it lasts, containment power, the Hawking bleed and the two module chips
+ * (hover one for its state and bonus); a closed hole shows a checklist of what Open needs. The <b>i</b> page has the
+ * questbook's words. Nothing a player needs takes a screwdriver:
  * <ul>
- * <li><b>Terminal:</b> hole state; a mass bar (mass over the tier's ceiling, the setpoint as a
- * yellow tick, "16.0 / 64 SM" on it); setpoint and bleed; governor (bolts per tick against the rail
- * cap); bolt stock; stability (and time to evaporation); containment power; the modules.</li>
- * <li><b>Gap row:</b> the setpoint (a number field with - / +) on the left; the Hole control and
- * Modules side panels and the render toggle on the right (no power panel, B-52).</li>
- * <li><b>Hole control panel:</b> a setpoint slider over the tier's range with its scale, the number
- * field mirrored, the tier, the Seed and Collapser counts, Open (needs a Seed in a bolt bus) and
- * Collapse (needs a Collapser; two clicks within a few seconds, the first warns how many modules
- * will pause) and the Auto check box (a Seed or Collapser dropped into a bolt bus acts on its own,
- * so automation keeps working).</li>
- * <li><b>Modules panel:</b> one row per slot: the module's icon, name, state, bonus or reason, and
- * coordinates. Read-only: modules are run from their own GUIs.</li>
+ * <li><b>Gap row:</b> the setpoint (a number field with − / +) on the left; the Hole control and Modules side panels
+ * and <b>i</b> on the right. The render toggle is at the top of the button column; the power switch shows TecTech's
+ * disabled icon (it does not stop the hole, B-52).</li>
+ * <li><b>Hole control panel:</b> a setpoint slider over the tier's range with its scale, the number field mirrored,
+ * the tier, the Seed and Collapser counts, Open (needs a Seed in a bolt bus) and Collapse (two clicks within a few
+ * seconds, the first warns how many modules will pause) and the Auto check box (a Seed or Collapser dropped into a
+ * bolt bus acts on its own, so automation keeps working).</li>
+ * <li><b>Modules panel:</b> one row per slot: the module's icon, name, state, bonus or reason, and coordinates.
+ * Read-only: modules are run from their own GUIs.</li>
  * </ul>
- * Every value is server state and comes across as a sync value; every setter is validated on the
- * server ({@link MTEKerrEngine#setSetpoint} clamps to the tier, the hole actions re-check the hole
- * and the bolt buses). The client-side clamps and checks here only keep the display honest. The two
- * hole actions are server-only synced actions registered on the MAIN panel's manager (the side
- * panels call them; the BTSUpgradeTreePanel pattern). Only one side panel is open at a time: they
- * share the spot to the right of the main panel.
+ * The rows are decided on the server ({@link BTSRows}); every setter is validated there
+ * ({@link MTEKerrEngine#setSetpoint} clamps to the tier, the hole actions re-check the hole and the bolt buses). The
+ * two hole actions are server-only synced actions registered on the MAIN panel's manager (the side panels call them).
+ * Only one side panel is open at a time: they share the spot to the right of the main panel.
  */
-public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
-
-    /** The mass bar: track, border, the BHC-lavender fill gradient, the setpoint tick. */
-    private static final int BAR_TRACK = 0xFF2A2D33;
-    private static final int BAR_EDGE = 0xFF4A4D55;
-    private static final int BAR_FILL_FROM = 0xFF4B2F8F;
-    private static final int BAR_FILL_TO = 0xFF9A7CFF;
-    private static final int BAR_TICK = 0xFFFFFF55;
+public class MTEKerrEngineGui extends BTSControllerGui<MTEKerrEngine> {
 
     /** Collapse stays armed this long after its first click. */
     private static final long COLLAPSE_ARM_MS = 4000L;
 
     private static final int HOLE_PANEL_W = 150;
-    private static final int HOLE_PANEL_H = 176;
+    private static final int HOLE_PANEL_H = 196;
     private static final int MODULES_PANEL_W = 172;
-    private static final int MODULE_ROW_H = 28;
+    private static final int MODULE_ROW_H = 32;
+
+    /** Module chip dot colours (§5.2 row 8): RUNNING §a, IDLE §b, PAUSED §6, NOT BUILT §8, else §c. */
+    private static final int DOT_DARK_GREY = 0xFF555555;
+
+    private static final String K = "beyondthestars.gui.kerr.";
 
     public MTEKerrEngineGui(MTEKerrEngine multiblock) {
-        super(multiblock);
+        super(multiblock, false, "kerrRender");
     }
 
     // ============================================================================= sync values
@@ -89,21 +94,10 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
         super.registerSyncValues(syncManager);
         syncManager.syncValue("kerrFormed", new BooleanSyncValue(multiblock::isFormed));
         syncManager.syncValue("kerrOpen", new BooleanSyncValue(multiblock::isHoleOpen));
-        syncManager.syncValue("kerrMass", new DoubleSyncValue(multiblock::getMass));
         // Settable from the client; MTEKerrEngine.setSetpoint clamps to the tier's range on the server.
         syncManager
             .syncValue("kerrSetpoint", new IntSyncValue(multiblock::getSetpoint, multiblock::setSetpoint).allowC2S());
         syncManager.syncValue("kerrMaxSetpoint", new IntSyncValue(multiblock::maxSetpoint));
-        syncManager.syncValue("kerrBleed", new DoubleSyncValue(multiblock::getBleed));
-        syncManager.syncValue("kerrBoltsPerTick", new DoubleSyncValue(multiblock::getBoltsPerTick));
-        syncManager.syncValue("kerrBoltCap", new IntSyncValue(multiblock::boltCap));
-        syncManager.syncValue("kerrRailMk", new IntSyncValue(multiblock::railTier));
-        syncManager.syncValue("kerrStockSm", new DoubleSyncValue(multiblock::getBoltStockSm));
-        syncManager.syncValue("kerrStockSeconds", new LongSyncValue(multiblock::getBoltStockSeconds));
-        syncManager.syncValue("kerrStability", new DoubleSyncValue(multiblock::getStability));
-        syncManager.syncValue("kerrEvapSeconds", new LongSyncValue(multiblock::getEvapSeconds));
-        syncManager.syncValue("kerrContainment", new LongSyncValue(multiblock::getContainmentEut));
-        syncManager.syncValue("kerrPowerOk", new BooleanSyncValue(multiblock::isPowerOk));
         syncManager.syncValue("kerrDensity", new BooleanSyncValue(multiblock::isDensityInstalled));
         syncManager.syncValue("kerrSeeds", new IntSyncValue(multiblock::getSeeds));
         syncManager.syncValue("kerrCollapsers", new IntSyncValue(multiblock::getCollapsers));
@@ -113,8 +107,6 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
             "kerrRender",
             new BooleanSyncValue(multiblock::isRenderEnabled, multiblock::setRenderEnabled).allowC2S());
         syncManager.syncValue("kerrLinked", new IntSyncValue(multiblock::getLinkedModules));
-        syncManager.syncValue("kerrMigration", new StringSyncValue(multiblock::getMigrationNote));
-        syncManager.syncValue("kerrRenderNote", new StringSyncValue(multiblock::getRenderNote));
         for (KerrSlot slot : KerrSlot.VALUES) {
             syncManager.syncValue("kerrSlot." + slot.key, new StringSyncValue(() -> multiblock.slotStatus(slot)));
         }
@@ -123,177 +115,245 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
         syncManager.registerServerSyncedAction("kerrCollapseHole", packet -> multiblock.collapseHoleFromGui());
     }
 
-    /** A terminal line; wraps inside the terminal instead of running off its edge. */
-    private static IWidget row(Supplier<String> text) {
-        return IKey.dynamic(text::get)
-            .asWidget()
-            .fullWidth()
-            .marginBottom(2);
+    // =============================================================================== the header
+
+    private int kerrTier() {
+        return multiblock.isDensityInstalled() ? 2 : 1;
     }
 
-    // ================================================================================ terminal
+    /** §5.2 badge table, first match wins. */
+    @Override
+    protected Badge badgeCode() {
+        final boolean formed = multiblock.isFormed();
+        final boolean open = multiblock.isHoleOpen();
+        if (!formed && open) return Badge.FROZEN;
+        if (!formed) return Badge.NOT_FORMED;
+        if (!open) return Badge.CLOSED;
+        if (!multiblock.isPowerOk()) return Badge.NO_POWER;
+        if (multiblock.getStability() < 0.999) return Badge.DRIFTING;
+        if (multiblock.getMass() < multiblock.getSetpoint() - 0.5) return Badge.GROWING;
+        return Badge.OPEN;
+    }
 
     @Override
-    protected ListWidget<IWidget, ?> createTerminalTextWidget(PanelSyncManager syncManager, ModularPanel parent) {
-        final BooleanSyncValue formed = syncManager.findSyncHandler("kerrFormed", BooleanSyncValue.class);
-        final BooleanSyncValue open = syncManager.findSyncHandler("kerrOpen", BooleanSyncValue.class);
-        final DoubleSyncValue mass = syncManager.findSyncHandler("kerrMass", DoubleSyncValue.class);
-        final IntSyncValue setpoint = syncManager.findSyncHandler("kerrSetpoint", IntSyncValue.class);
-        final IntSyncValue maxSetpoint = syncManager.findSyncHandler("kerrMaxSetpoint", IntSyncValue.class);
-        final DoubleSyncValue bleed = syncManager.findSyncHandler("kerrBleed", DoubleSyncValue.class);
-        final DoubleSyncValue bpt = syncManager.findSyncHandler("kerrBoltsPerTick", DoubleSyncValue.class);
-        final IntSyncValue cap = syncManager.findSyncHandler("kerrBoltCap", IntSyncValue.class);
-        final IntSyncValue rail = syncManager.findSyncHandler("kerrRailMk", IntSyncValue.class);
-        final DoubleSyncValue stockSm = syncManager.findSyncHandler("kerrStockSm", DoubleSyncValue.class);
-        final LongSyncValue stockSec = syncManager.findSyncHandler("kerrStockSeconds", LongSyncValue.class);
-        final DoubleSyncValue stability = syncManager.findSyncHandler("kerrStability", DoubleSyncValue.class);
-        final LongSyncValue evap = syncManager.findSyncHandler("kerrEvapSeconds", LongSyncValue.class);
-        final LongSyncValue containment = syncManager.findSyncHandler("kerrContainment", LongSyncValue.class);
-        final BooleanSyncValue powerOk = syncManager.findSyncHandler("kerrPowerOk", BooleanSyncValue.class);
-        final BooleanSyncValue density = syncManager.findSyncHandler("kerrDensity", BooleanSyncValue.class);
-        final StringSyncValue migration = syncManager.findSyncHandler("kerrMigration", StringSyncValue.class);
-        final StringSyncValue renderNote = syncManager.findSyncHandler("kerrRenderNote", StringSyncValue.class);
-        final StringSyncValue[] slots = slotValues(syncManager);
-
-        return super.createTerminalTextWidget(syncManager, parent)
-            .child(row(() -> holeLine(formed.getBoolValue(), open.getBoolValue(), density.getBoolValue())))
-            .child(
-                IKey.dynamic(
-                    () -> EnumChatFormatting.WHITE + fmt1(mass.getDoubleValue())
-                        + " / "
-                        + maxSetpoint.getIntValue()
-                        + " SM ")
-                    .asWidget()
-                    .textAlign(Alignment.CenterRight)
-                    .scale(0.8f)
-                    .widthRel(0.94f)
-                    .height(9)
-                    .background(massBar(mass, setpoint, maxSetpoint))
-                    .marginBottom(3)
-                    .setEnabledIf(w -> open.getBoolValue()))
-            .child(
-                row(
-                    () -> EnumChatFormatting.WHITE + "Setpoint "
-                        + setpoint.getIntValue()
-                        + " SM"
-                        + EnumChatFormatting.GRAY
-                        + (open.getBoolValue()
-                            ? ", bleed " + String.format(Locale.ROOT, "%.4f", bleed.getDoubleValue()) + " SM/t"
-                            : " (a new hole opens at 8 SM)")))
-            .child(
-                row(
-                    () -> EnumChatFormatting.GRAY + "Governor "
-                        + EnumChatFormatting.WHITE
-                        + String.format(Locale.ROOT, "%.2f", bpt.getDoubleValue())
-                        + EnumChatFormatting.GRAY
-                        + " / "
-                        + cap.getIntValue()
-                        + " bolts/t, Mk "
-                        + roman(rail.getIntValue())
-                        + " rails"))
-            .child(
-                row(
-                    () -> EnumChatFormatting.GRAY + "Bolt stock "
-                        + EnumChatFormatting.WHITE
-                        + MTEKerrEngine.fmt(stockSm.getDoubleValue())
-                        + " SM"
-                        + EnumChatFormatting.GRAY
-                        + (stockSec.getLongValue() >= 0 ? ", " + duration(stockSec.getLongValue()) : "")))
-            .child(row(() -> stabilityLine(open.getBoolValue(), stability.getDoubleValue(), evap.getLongValue())))
-            .child(row(() -> containmentLine(open.getBoolValue(), powerOk.getBoolValue(), containment.getLongValue())))
-            .child(row(() -> modulesLine(slots)))
-            .child(
-                IKey.dynamic(() -> EnumChatFormatting.AQUA + migration.getStringValue())
-                    .asWidget()
-                    .fullWidth()
-                    .marginBottom(2)
-                    .setEnabledIf(
-                        w -> !migration.getStringValue()
-                            .isEmpty()))
-            .child(
-                IKey.dynamic(() -> EnumChatFormatting.GOLD + renderNote.getStringValue())
-                    .asWidget()
-                    .fullWidth()
-                    .marginBottom(2)
-                    .setEnabledIf(
-                        w -> !renderNote.getStringValue()
-                            .isEmpty()));
+    protected String subject() {
+        if (multiblock.isHoleOpen()) return BTSText.lang(K + "hole", BTSFormat.fmt1(multiblock.getMass()));
+        return multiblock.isFormed() ? BTSText.lang(K + "nohole") : "";
     }
 
-    private static StringSyncValue[] slotValues(PanelSyncManager syncManager) {
-        final StringSyncValue[] out = new StringSyncValue[KerrSlot.VALUES.length];
-        for (KerrSlot slot : KerrSlot.VALUES) {
-            out[slot.ordinal()] = syncManager.findSyncHandler("kerrSlot." + slot.key, StringSyncValue.class);
+    @Override
+    protected String rightChip() {
+        return BTSText.lang(K + "right", kerrTier());
+    }
+
+    @Override
+    protected List<String> rightChipTooltip() {
+        final List<String> out = new ArrayList<>();
+        out.add(
+            BTSText.lang(
+                K + "right.tip",
+                kerrTier(),
+                multiblock.maxSetpoint(),
+                roman(multiblock.railTier()),
+                multiblock.boltCap()));
+        if (!multiblock.isDensityInstalled()) {
+            out.add(BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "right.tip2")));
         }
         return out;
     }
 
-    /** The mass bar: a lavender fill to M / ceiling, a yellow tick at the setpoint. */
-    private static IDrawable massBar(DoubleSyncValue mass, IntSyncValue setpoint, IntSyncValue max) {
-        return (context, x, y, width, height, theme) -> {
-            final double top = Math.max(1, max.getIntValue());
-            final double fill = Math.max(0, Math.min(1, mass.getDoubleValue() / top));
-            final double tick = Math.max(0, Math.min(1, setpoint.getIntValue() / top));
-            GuiDraw.drawRect(x, y, width, height, BAR_EDGE);
-            GuiDraw.drawRect(x + 1, y + 1, width - 2, height - 2, BAR_TRACK);
-            final float fillW = (float) ((width - 2) * fill);
-            if (fillW > 0)
-                GuiDraw.drawHorizontalGradientRect(x + 1, y + 1, fillW, height - 2, BAR_FILL_FROM, BAR_FILL_TO);
-            GuiDraw.drawRect(x + 1 + (float) ((width - 2) * tick) - 0.5f, y, 1, height, BAR_TICK);
-        };
-    }
+    // ============================================================================= status rows
 
-    static String holeLine(boolean formed, boolean open, boolean density) {
-        final String tier = density ? "Kerr T2" : "Kerr T1";
-        if (!formed) return EnumChatFormatting.RED + "Not formed: the hole is frozen (" + tier + ")";
-        if (open) return EnumChatFormatting.GREEN + "Hole OPEN" + EnumChatFormatting.GRAY + " - " + tier;
-        return EnumChatFormatting.GRAY + "Hole closed - " + tier + ": a Seed in a bolt bus, or Open";
-    }
-
-    static String stabilityLine(boolean open, double stability, long evapSeconds) {
-        if (!open) return EnumChatFormatting.DARK_GRAY + "Stability: no hole";
-        final int pct = (int) Math.round(stability * 100);
-        if (stability >= 0.999) {
-            return EnumChatFormatting.GRAY + "Stability "
-                + EnumChatFormatting.GREEN
-                + "100%"
-                + EnumChatFormatting.GRAY
-                + " (holding)";
+    @Override
+    protected void addStatusRows(BTSRows.Builder rows) {
+        switch (badgeCode()) {
+            case NOT_FORMED:
+                rows.note(BTSRows.ICON_BAD, BTSGuiKit.BAD, BTSText.lang(K + "notformed", kerrTier(), kerrTier()));
+                chipsRow(rows);
+                break;
+            case FROZEN:
+                rows.note(BTSRows.ICON_BAD, BTSGuiKit.BAD, BTSText.lang(K + "frozen"));
+                massRow(rows);
+                stabilityRow(rows);
+                chipsRow(rows);
+                break;
+            case CLOSED:
+                closedRows(rows);
+                break;
+            default:
+                openRows(rows);
         }
-        return (stability >= 0.5 ? EnumChatFormatting.GOLD : EnumChatFormatting.RED) + "Stability "
-            + pct
-            + "% (drifting, evaporates in "
-            + duration(evapSeconds)
-            + " without bolts)";
+        notesRows(rows);
     }
 
-    static String containmentLine(boolean open, boolean powerOk, long eut) {
-        if (!open) return EnumChatFormatting.DARK_GRAY + "Containment: idle (no hole)";
-        if (!powerOk) return EnumChatFormatting.RED + "Containment power LOW: governor stopped";
-        return EnumChatFormatting.GRAY + "Containment " + EnumChatFormatting.WHITE + compactEu(eut) + " EU/t";
+    private void openRows(BTSRows.Builder rows) {
+        massRow(rows);
+        stabilityRow(rows);
+        if (multiblock.getStability() < 0.999) {
+            rows.note(
+                BTSRows.ICON_BAD,
+                BTSGuiKit.BAD,
+                BTSText.lang(K + "evap", BTSFormat.duration(multiblock.getEvapSeconds())),
+                BTSText.lang(K + "evap.tip"));
+        }
+        governorRow(rows);
+        stockRow(rows);
+        final long eut = multiblock.getContainmentEut();
+        rows.stat(
+            BTSText.lang(K + "containment"),
+            multiblock.isPowerOk() ? BTSText.lit("§a" + BTSFormat.euT(eut) + " EU/t")
+                : BTSText.cat(BTSText.lit("§c"), BTSText.lang(K + "containment.low")),
+            BTSText.lang(K + "containment.tip"),
+            BTSText.cat(
+                BTSText.lit("§7"),
+                BTSText.lang(K + "containment.supply", BTSFormat.euT(multiblock.getMaxInputEu()))));
+        rows.stat(
+            BTSText.lang(K + "bleed"),
+            BTSText.lit(String.format(Locale.ROOT, "%.4f SM/t", multiblock.getBleed())),
+            BTSText.lang(K + "bleed.tip"));
+        chipsRow(rows);
     }
 
-    static String modulesLine(StringSyncValue[] slots) {
-        final StringBuilder sb = new StringBuilder(EnumChatFormatting.GRAY + "Modules:");
+    /** Mass, frac m / ceiling, the setpoint as the yellow tick; §f on the setpoint, §6 below it, §b above. */
+    private void massRow(BTSRows.Builder rows) {
+        final double m = multiblock.getMass();
+        final int sp = multiblock.getSetpoint();
+        final int max = Math.max(1, multiblock.maxSetpoint());
+        final String colour = Math.abs(m - sp) <= 0.5 ? "§f" : m < sp ? "§6" : "§b";
+        rows.bar(
+            BTSText.lang(K + "mass"),
+            m / max,
+            BTSText.lit(colour + BTSFormat.fmt1(m) + " SM"),
+            Grad.LAVENDER,
+            BTSGuiKit.tick(sp / (double) max, BTSGuiKit.TICK),
+            BTSText.lang(K + "mass.tip", BTSFormat.fmt1(m), max, sp));
+    }
+
+    private void stabilityRow(BTSRows.Builder rows) {
+        final double s = multiblock.getStability();
+        final long pct = Math.round(s * 100);
+        rows.bar(
+            BTSText.lang("beyondthestars.gui.kit.stability"),
+            s,
+            BTSText.lit(BTSGuiKit.healthText(pct) + pct + "%"),
+            BTSGuiKit.healthGrad(pct),
+            null,
+            BTSText.lang(K + "stability.tip"));
+    }
+
+    private void governorRow(BTSRows.Builder rows) {
+        final double bpt = multiblock.getBoltsPerTick();
+        final int cap = multiblock.boltCap();
+        final boolean below = multiblock.getMass() < multiblock.getSetpoint() - 1e-3;
+        final String colour = bpt <= 0 && below ? "§c" : "§f";
+        rows.bar(
+            BTSText.lang(K + "governor"),
+            cap > 0 ? bpt / cap : 0,
+            BTSText.lit(colour + String.format(Locale.ROOT, "%.2f/%d", bpt, cap)),
+            Grad.BLUE,
+            null,
+            BTSText.lang(K + "governor.tip", roman(multiblock.railTier()), cap));
+    }
+
+    /** Bolt stock and how long it lasts: §a 10 min or more, §6 1-10 min, §c under a minute or empty. */
+    private void stockRow(BTSRows.Builder rows) {
+        final double sm = multiblock.getBoltStockSm();
+        final long sec = multiblock.getBoltStockSeconds();
+        final String colour = sm <= 0 || sec >= 0 && sec < 60 ? "§c" : sec < 0 || sec >= 600 ? "§a" : "§6";
+        rows.stat(
+            BTSText.lang(K + "stock"),
+            BTSText.lit(colour + MTEKerrEngine.fmt(sm) + " SM" + (sec >= 0 ? "  " + BTSFormat.duration(sec) : "")),
+            BTSText.lang(K + "stock.tip"));
+    }
+
+    /** §5.2 Closed: what Open needs, every line met or not. Consumes nothing. */
+    private void closedRows(BTSRows.Builder rows) {
+        rows.section(BTSText.lang(K + "sec.open"), "");
+        final BTSChecklist c = new BTSChecklist();
+        c.add(
+            multiblock.isFormed(),
+            BTSText.lang(K + "chk.cage"),
+            BTSText.lang(K + "right", kerrTier()),
+            -1,
+            BTSText.lang(K + "chk.cage.tip"));
+        final int seeds = multiblock.getSeeds();
+        c.add(
+            seeds > 0,
+            BTSText.lang(K + "chk.seed"),
+            BTSText.lang(K + "chk.seed.v", seeds),
+            -1,
+            BTSText.lang(K + "chk.seed.tip"));
+        final long supply = multiblock.getMaxInputEu();
+        final boolean power = supply >= MTEKerrEngine.CONTAINMENT_EUT;
+        c.add(
+            power,
+            BTSText.lang(K + "chk.power"),
+            BTSText.lit(
+                power ? BTSFormat.euT(MTEKerrEngine.CONTAINMENT_EUT) + " EU/t"
+                    : BTSFormat.euT(supply) + " / " + BTSFormat.euT(MTEKerrEngine.CONTAINMENT_EUT)),
+            -1,
+            BTSText.lang(K + "containment.tip"),
+            BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "containment.supply", BTSFormat.euT(supply))));
+        if (multiblock.getBoltStockSm() <= 0) {
+            c.add(
+                BTSChecklist.State.WARN,
+                BTSText.lang(K + "chk.bolts"),
+                BTSText.lit("0 SM"),
+                -1,
+                BTSText.lang(K + "chk.bolts.tip"));
+        }
+        rows.checks(c);
+        rows.stat(
+            BTSText.lang(K + "auto"),
+            multiblock.isAutoSeeds() ? BTSText.cat(BTSText.lit("§a"), BTSText.lang(K + "auto.on"))
+                : BTSText.cat(BTSText.lit("§8"), BTSText.lang(K + "auto.off")),
+            BTSText.lang(K + "auto.tip"));
+        chipsRow(rows);
+    }
+
+    /** The two module chips; hover one for its state, bonus or reason, and position. */
+    private void chipsRow(BTSRows.Builder rows) {
+        final List<String[]> chips = new ArrayList<>();
         for (KerrSlot slot : KerrSlot.VALUES) {
-            final String state = field(slots[slot.ordinal()], 0);
-            sb.append(slot.ordinal() == 0 ? " " : EnumChatFormatting.GRAY + ", ")
-                .append(EnumChatFormatting.WHITE)
-                .append(slot.label)
-                .append(' ')
-                .append(stateColour(state))
-                .append(shortState(state));
+            final String[] f = multiblock.slotStatus(slot)
+                .split("\\|", -1);
+            final String state = f[0];
+            final String name = BTSText.lang(K + "slot." + slot.key);
+            final List<String> tip = new ArrayList<>();
+            tip.add(BTSText.cat(BTSText.lit("§f"), name, BTSText.lit(" " + stateText(state)), stateLang(state)));
+            tip.add(BTSText.cat(BTSText.lit("§7"), moduleDetail(slot, f)));
+            final String pos = f.length > 3 ? f[3] : "";
+            if (!pos.isEmpty()) tip.add(BTSText.cat(BTSText.lit("§8"), BTSText.lang(K + "mod.at", pos)));
+            chips.add(new String[] { String.valueOf(dotColour(state)), name, BTSRows.Builder.tooltip(tip) });
         }
-        return sb.toString();
+        rows.chips(chips);
     }
 
-    /** Terminal (dark background) colours. */
-    static EnumChatFormatting stateColour(String state) {
-        if (state.startsWith("RUNNING")) return EnumChatFormatting.GREEN;
-        if (state.startsWith("IDLE")) return EnumChatFormatting.AQUA;
-        if (state.startsWith("PAUSED")) return EnumChatFormatting.GOLD;
-        if (state.startsWith("NOT BUILT")) return EnumChatFormatting.DARK_GRAY;
-        return EnumChatFormatting.RED;
+    private void notesRows(BTSRows.Builder rows) {
+        final String migration = multiblock.getMigrationNote();
+        if (!migration.isEmpty()) rows.note(BTSRows.ICON_NONE, BTSGuiKit.AQUA, BTSText.lit(migration));
+        final String render = multiblock.getRenderNote();
+        if (!render.isEmpty()) rows.note(BTSRows.ICON_WARN, BTSGuiKit.WARN, BTSText.lit(render));
+    }
+
+    // ---------------------------------------------------------------------------- module state
+
+    /** A slot state's chip colour (§5.2 row 8). */
+    static int dotColour(String state) {
+        if (state.startsWith("RUNNING")) return BTSGuiKit.OK;
+        if (state.startsWith("IDLE")) return BTSGuiKit.AQUA;
+        if (state.startsWith("PAUSED")) return BTSGuiKit.WARN;
+        if (state.startsWith("NOT BUILT")) return DOT_DARK_GREY;
+        return BTSGuiKit.BAD;
+    }
+
+    /** A slot state's text colour code on the terminal. */
+    private static String stateText(String state) {
+        if (state.startsWith("RUNNING")) return "§a";
+        if (state.startsWith("IDLE")) return "§b";
+        if (state.startsWith("PAUSED")) return "§6";
+        if (state.startsWith("NOT BUILT")) return "§8";
+        return "§c";
     }
 
     /** Side-panel (grey background) colours: the bright terminal ones do not read on GT's grey. */
@@ -305,29 +365,30 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
         return EnumChatFormatting.DARK_RED;
     }
 
-    private static String shortState(String state) {
-        final int colon = state.indexOf(':');
-        return colon > 0 ? state.substring(0, colon) : state;
+    /** The state's word as a lang reference (the family badges' words). */
+    static String stateLang(String state) {
+        if (state.startsWith("RUNNING")) return BTSText.lang("beyondthestars.gui.badge.running");
+        if (state.startsWith("IDLE")) return BTSText.lang("beyondthestars.gui.badge.idle");
+        if (state.startsWith("PAUSED")) return BTSText.lang("beyondthestars.gui.badge.paused");
+        if (state.startsWith("NOT BUILT")) return BTSText.lang("beyondthestars.gui.badge.notbuilt");
+        if (state.startsWith("NOT FORMED")) return BTSText.lang("beyondthestars.gui.badge.notformed");
+        if (state.startsWith("NOT LOADED")) return BTSText.lang(K + "state.notloaded");
+        return BTSText.lang("beyondthestars.gui.badge.notlinked");
     }
 
-    static String duration(long seconds) {
-        if (seconds < 0) return "-";
-        if (seconds < 60) return seconds + " s";
-        if (seconds < 3600) return seconds / 60 + "m " + seconds % 60 + "s";
-        return seconds / 3600 + "h " + seconds / 60 % 60 + "m";
-    }
-
-    /** "16.0" below 100, "140" above (the mass bar label). */
-    static String fmt1(double v) {
-        return v >= 100 ? String.format(Locale.ROOT, "%,.0f", v) : String.format(Locale.ROOT, "%.1f", v);
-    }
-
-    /** "8.39M", "1.25G", "512k". */
-    static String compactEu(long eu) {
-        if (eu >= 1_000_000_000L) return String.format(Locale.ROOT, "%.2fG", eu / 1e9);
-        if (eu >= 1_000_000L) return String.format(Locale.ROOT, "%.2fM", eu / 1e6);
-        if (eu >= 10_000L) return String.format(Locale.ROOT, "%.0fk", eu / 1e3);
-        return String.format(Locale.ROOT, "%,d", eu);
+    /** The detail line of a module: its bonus when linked, else why it is not running (a lang reference). */
+    static String moduleDetail(KerrSlot slot, String[] f) {
+        final String state = f[0];
+        if (state.startsWith("RUNNING") || state.startsWith("IDLE")) {
+            return BTSText.lang(K + "mod.bonus", f.length > 1 ? f[1] : "0", f.length > 2 ? f[2] : "1");
+        }
+        if (state.startsWith("PAUSED")) {
+            return BTSText.lang(state.contains("hole closed") ? K + "mod.paused.hole" : K + "mod.paused.kee");
+        }
+        if (state.startsWith("NOT BUILT")) return BTSText.lang(K + "mod.notbuilt", slot.hintDots);
+        if (state.startsWith("NOT FORMED")) return BTSText.lang(K + "mod.notformed");
+        if (state.startsWith("NOT LOADED")) return BTSText.lang(K + "mod.notloaded");
+        return BTSText.lang(K + "mod.notlinked");
     }
 
     private static String roman(int tier) {
@@ -343,10 +404,35 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
         }
     }
 
-    /** The power switch does not stop the hole (B-52): shown greyed out. */
+    // ================================================================================= Info page
+
+    /** §5.2 Info: the questbook's RUN steps, the bolt table, T2, Auto. */
+    @Override
+    protected void addInfoRows(BTSRows.Builder rows) {
+        rows.para(BTSText.lang(K + "info.run"), BTSGuiKit.VALUE);
+        for (int i = 1; i <= 5; i++) rows.para(BTSText.lang(K + "info.run" + i), BTSGuiKit.VALUE);
+        rows.para(BTSText.lang(K + "info.bolts"), BTSGuiKit.VALUE);
+        rows.para(BTSText.lang(K + "info.t2"), BTSGuiKit.VALUE);
+        rows.para(BTSText.lang(K + "info.auto"), BTSGuiKit.VALUE);
+    }
+
+    // ============================================================================ button column
+
+    /** The power switch does not stop the hole (B-52): TecTech's disabled icon (the kit), with this tooltip. */
     @Override
     protected boolean isPowerSwitchDisabled() {
         return true;
+    }
+
+    @Override
+    protected String powerSwitchDisabledKey() {
+        return K + "switch";
+    }
+
+    @Override
+    protected void renderTooltip(RichTooltip t) {
+        t.addLine(tr(K + "render.tip1"));
+        t.addLine(EnumChatFormatting.GRAY + tr(K + "render.tip2"));
     }
 
     // ================================================================================ gap row
@@ -371,14 +457,19 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
         return false;
     }
 
+    private static String tr(String key, Object... args) {
+        return args.length == 0 ? StatCollector.translateToLocal(key)
+            : StatCollector.translateToLocalFormatted(key, args);
+    }
+
     private static int clampSetpoint(int v, IntSyncValue max) {
         return Math
             .max(MTEKerrEngine.SETPOINT_MIN, Math.min(Math.max(MTEKerrEngine.SETPOINT_MIN, max.getIntValue()), v));
     }
 
     /**
-     * The setpoint as a whole number of SM: a number field bounded by the tier's synced range (scroll:
-     * 1, shift 8, ctrl 1, alt 64), flanked by - / +. The server clamps again.
+     * The setpoint as a whole number of SM: a number field bounded by the tier's synced range (scroll: 1, shift 8,
+     * ctrl 1, alt 64), flanked by − / +. The server clamps again.
      */
     private static TextFieldWidget setpointField(IntSyncValue setpoint, IntSyncValue max) {
         return new TextFieldWidget().formatAsInteger(true)
@@ -390,12 +481,13 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
             .setTextAlignment(Alignment.Center)
             .scrollValues(1, 8, 1, 64)
             .tooltip(
-                t -> t.addLine("Hole mass setpoint, SM (whole numbers)")
-                    .addLine(EnumChatFormatting.GRAY + "Kerr T1: 2-64 SM. Kerr T2: 2-512 SM.")
-                    .addLine(EnumChatFormatting.GRAY + "Scroll: 1, shift: 8, alt: 64."))
+                t -> t.addLine(tr(K + "setpoint.tip1"))
+                    .addLine(EnumChatFormatting.GRAY + tr(K + "setpoint.tip2"))
+                    .addLine(EnumChatFormatting.GRAY + tr(K + "setpoint.tip3")))
             .tooltipShowUpTimer(TOOLTIP_DELAY);
     }
 
+    /** Left: today's Setpoint stepper (§5.2 gap row): − field + SM; right-click steps 8. */
     @Override
     protected Flow createLeftPanelGapRow(ModularPanel parent, PanelSyncManager syncManager) {
         final IntSyncValue setpoint = syncManager.findSyncHandler("kerrSetpoint", IntSyncValue.class);
@@ -403,7 +495,8 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
         return super.createLeftPanelGapRow(parent, syncManager).childPadding(1)
             .crossAxisAlignment(Alignment.CrossAxis.CENTER)
             .child(
-                IKey.str("Setpoint")
+                IKey.lang(K + "setpoint")
+                    .color(BTSGuiKit.PANEL_TEXT)
                     .asWidget()
                     .marginRight(2)
                     .heightRel(1f))
@@ -414,58 +507,38 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
             .child(stepButton(setpoint, max, 1))
             .child(
                 IKey.str("SM")
+                    .color(BTSGuiKit.PANEL_TEXT)
                     .asWidget()
                     .marginLeft(1)
                     .heightRel(1f));
     }
 
     private static IWidget stepButton(IntSyncValue setpoint, IntSyncValue max, int step) {
-        return new ButtonWidget<>().size(10, 14)
+        return new ButtonWidget<>().size(9, 14)
             .overlay(IKey.str(step < 0 ? "-" : "+"))
             .onMousePressed(button -> {
                 final int next = clampSetpoint(setpoint.getIntValue() + (button == 1 ? step * 8 : step), max);
                 if (next != setpoint.getIntValue()) setpoint.setIntValue(next);
                 return true;
             })
-            .tooltip(t -> t.addLine((step < 0 ? "Lower" : "Raise") + " the setpoint by 1 SM (right-click: 8)"))
+            .tooltip(t -> t.addLine(tr(step < 0 ? K + "setpoint.minus" : K + "setpoint.plus")))
             .tooltipShowUpTimer(TOOLTIP_DELAY);
     }
 
-    /** Right (GT lays this row out reversed: the last child is leftmost). */
+    /** Right, on screen left to right: [Hole control] [Modules] [i] (the row is reversed: first added is right). */
     @Override
-    protected Flow createRightPanelGapRow(ModularPanel parent, PanelSyncManager syncManager) {
+    protected void addRightButtons(Flow row, ModularPanel parent, PanelSyncManager syncManager) {
         final IPanelHandler[] panels = new IPanelHandler[2];
         panels[0] = syncManager
             .syncedPanel("kerrHolePanel", true, (sub, handler) -> buildHolePanel(syncManager, parent));
         panels[1] = syncManager
             .syncedPanel("kerrModulesPanel", true, (sub, handler) -> buildModulesPanel(syncManager, parent));
-        final BooleanSyncValue render = syncManager.findSyncHandler("kerrRender", BooleanSyncValue.class);
-        return super.createRightPanelGapRow(parent, syncManager).child(
-            new ToggleButton().size(18, 18)
-                .marginLeft(2)
-                .value(render)
-                .overlay(true, GTGuiTextures.OVERLAY_BUTTON_SHOW_WORK_AREA)
-                .overlay(false, GTGuiTextures.OVERLAY_BUTTON_WORK_AREA)
-                .tooltipBuilder(
-                    t -> t.addLine("Black hole render on / off (this machine)")
-                        .addLine(EnumChatFormatting.GRAY + "The config can turn it off everywhere."))
-                .tooltipShowUpTimer(TOOLTIP_DELAY))
-            .child(
-                panelButton(
-                    panels,
-                    1,
-                    GTGuiTextures.TT_OVERLAY_BUTTON_STATISTICS,
-                    "Modules: each arc's machine, its state and bonus"))
-            .child(
-                panelButton(
-                    panels,
-                    0,
-                    GTGuiTextures.OVERLAY_BUTTON_EDIT_PARAMETERS_ENABLED,
-                    "Hole control: setpoint slider, Open, Collapse, Auto"));
+        row.child(panelButton(panels, 1, GTGuiTextures.TT_OVERLAY_BUTTON_STATISTICS, K + "button.modules"))
+            .child(panelButton(panels, 0, GTGuiTextures.OVERLAY_BUTTON_EDIT_PARAMETERS_ENABLED, K + "button.hole"));
     }
 
     /** Toggles side panel {@code which}; opening it closes the other (they share one spot). */
-    private static IWidget panelButton(IPanelHandler[] panels, int which, IDrawable icon, String tooltip) {
+    private static IWidget panelButton(IPanelHandler[] panels, int which, IDrawable icon, String tooltipKey) {
         return new ButtonWidget<>().size(18, 18)
             .marginLeft(2)
             .overlay(icon)
@@ -481,33 +554,53 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
                 }
                 return true;
             })
-            .tooltip(t -> t.addLine(tooltip))
+            .tooltip(t -> t.addLine(IKey.lang(tooltipKey)))
             .tooltipShowUpTimer(TOOLTIP_DELAY);
     }
 
     // ======================================================================= hole control panel
 
-    private static TextWidget<?> panelText(Supplier<String> text, int width, float scale) {
-        return IKey.dynamic(text::get)
-            .asWidget()
-            .scale(scale)
-            .maxWidth(width);
+    /** One line of panel text at scale 1.0 that scrolls on hover instead of wrapping. */
+    private static ScrollingTextWidget panelLine(Supplier<String> text, int width) {
+        return new ScrollingTextWidget(IKey.dynamic(text::get)).width(width)
+            .height(9)
+            .color(BTSGuiKit.PANEL_TEXT)
+            .shadow(false);
     }
 
-    /** "label ......... value" across the panel. */
-    private static IWidget keyValue(String label, Supplier<String> value, int width) {
+    /** Wrapped panel text at scale 1.0, {@code lines} lines high. */
+    private static TextWidget<?> panelPara(Supplier<String> text, int width, int lines) {
+        return IKey.dynamic(text::get)
+            .color(BTSGuiKit.PANEL_TEXT)
+            .asWidget()
+            .textAlign(Alignment.TopLeft)
+            .size(width, 9 * lines);
+    }
+
+    /** "label ......... value" across the panel, both at 1.0. */
+    private static IWidget keyValue(Supplier<String> label, Supplier<String> value, int width) {
         return Flow.row()
             .width(width)
             .height(9)
             .mainAxisAlignment(Alignment.MainAxis.SPACE_BETWEEN)
             .child(
-                IKey.str(label)
+                IKey.dynamic(label::get)
+                    .color(BTSGuiKit.PANEL_TEXT)
                     .asWidget())
             .child(
                 IKey.dynamic(value::get)
+                    .color(BTSGuiKit.PANEL_TEXT)
                     .asWidget());
     }
 
+    private static IWidget scaleLabel(Supplier<String> text) {
+        return IKey.dynamic(text::get)
+            .color(BTSGuiKit.PANEL_TEXT)
+            .asWidget()
+            .height(9);
+    }
+
+    /** The Hole control panel (§5.2): today's controls, every text at 1.0, 150 x 196, the hint wrapped at 140. */
     private ModularPanel buildHolePanel(PanelSyncManager main, ModularPanel parent) {
         final BooleanSyncValue formed = main.findSyncHandler("kerrFormed", BooleanSyncValue.class);
         final BooleanSyncValue open = main.findSyncHandler("kerrOpen", BooleanSyncValue.class);
@@ -529,6 +622,10 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
         // The server refuses a collapse while the cage is unformed (the hole is frozen), so the button does too.
         final BooleanSupplier canCollapse = () -> formed.getBoolValue() && open.getBoolValue()
             && collapsers.getIntValue() > 0;
+        final Supplier<String> modules = () -> {
+            final int n = linked.getIntValue();
+            return n == 1 ? tr(K + "panel.modules.one") : tr(K + "panel.modules.many", n);
+        };
 
         final Flow column = Flow.column()
             .full()
@@ -536,14 +633,16 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
             .childPadding(3)
             .crossAxisAlignment(Alignment.CrossAxis.START)
             .child(
-                IKey.str(EnumChatFormatting.BOLD + "Hole control")
+                IKey.lang(K + "panel.hole.title")
+                    .color(BTSGuiKit.PANEL_TEXT)
                     .asWidget()
+                    .style(EnumChatFormatting.BOLD)
                     .width(w)
                     .textAlign(Alignment.Center))
             .child(
                 keyValue(
-                    "Setpoint",
-                    () -> MTEKerrEngine.SETPOINT_MIN + " - " + clampSetpoint(Integer.MAX_VALUE, max) + " SM",
+                    () -> tr(K + "setpoint"),
+                    () -> tr(K + "panel.range", MTEKerrEngine.SETPOINT_MIN, clampSetpoint(Integer.MAX_VALUE, max)),
                     w))
             // The slider runs 0..1 over the tier's CURRENT range (it follows a Density Upgrade going in
             // while the panel is open); it snaps to whole SM and sends only actual changes.
@@ -557,12 +656,12 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
             .child(
                 Flow.row()
                     .width(w)
-                    .height(7)
+                    .height(9)
                     .mainAxisAlignment(Alignment.MainAxis.SPACE_BETWEEN)
-                    .child(panelText(() -> String.valueOf(MTEKerrEngine.SETPOINT_MIN), w, 0.75f))
-                    .child(panelText(() -> String.valueOf(clampSetpoint(Integer.MAX_VALUE, max) / 4), w, 0.75f))
-                    .child(panelText(() -> String.valueOf(clampSetpoint(Integer.MAX_VALUE, max) / 2), w, 0.75f))
-                    .child(panelText(() -> String.valueOf(clampSetpoint(Integer.MAX_VALUE, max)), w, 0.75f)))
+                    .child(scaleLabel(() -> String.valueOf(MTEKerrEngine.SETPOINT_MIN)))
+                    .child(scaleLabel(() -> String.valueOf(clampSetpoint(Integer.MAX_VALUE, max) / 4)))
+                    .child(scaleLabel(() -> String.valueOf(clampSetpoint(Integer.MAX_VALUE, max) / 2)))
+                    .child(scaleLabel(() -> String.valueOf(clampSetpoint(Integer.MAX_VALUE, max)))))
             .child(
                 Flow.row()
                     .width(w)
@@ -574,17 +673,29 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
                             .height(14))
                     .child(
                         IKey.str("SM")
+                            .color(BTSGuiKit.PANEL_TEXT)
                             .asWidget()
                             .heightRel(1f)))
             .child(
-                panelText(
-                    () -> density.getBoolValue()
-                        ? EnumChatFormatting.DARK_AQUA + "Kerr T2: Density Upgrade installed, 2-512 SM."
-                        : "Kerr T1. Right-click the controller with a Kerr Density Upgrade for 2-512 SM.",
-                    w,
-                    0.75f))
-            .child(keyValue("Seeds in bolt buses", () -> String.valueOf(seeds.getIntValue()), w))
-            .child(keyValue("Collapsers", () -> String.valueOf(collapsers.getIntValue()), w))
+                Flow.row()
+                    .width(w)
+                    .height(9)
+                    .mainAxisAlignment(Alignment.MainAxis.SPACE_BETWEEN)
+                    .child(
+                        IKey.dynamic(() -> tr(K + "right", density.getBoolValue() ? 2 : 1))
+                            .color(BTSGuiKit.PANEL_TEXT)
+                            .asWidget())
+                    .child(
+                        IKey.dynamic(() -> tr(density.getBoolValue() ? K + "panel.density.t2" : K + "panel.density.t1"))
+                            .color(BTSGuiKit.PANEL_TEXT)
+                            .asWidget())
+                    .tooltipDynamic(
+                        t -> t.addLine(
+                            tr(density.getBoolValue() ? K + "panel.density.tip.t2" : K + "panel.density.tip.t1")))
+                    .tooltipAutoUpdate(true)
+                    .tooltipShowUpTimer(TOOLTIP_DELAY))
+            .child(keyValue(() -> tr(K + "panel.seeds"), () -> String.valueOf(seeds.getIntValue()), w))
+            .child(keyValue(() -> tr(K + "panel.collapsers"), () -> String.valueOf(collapsers.getIntValue()), w))
             .child(
                 Flow.row()
                     .width(w)
@@ -595,20 +706,20 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
                             .overlay(
                                 IKey.dynamic(
                                     () -> (canOpen.getAsBoolean() ? EnumChatFormatting.WHITE
-                                        : EnumChatFormatting.DARK_GRAY) + "Open hole"))
+                                        : EnumChatFormatting.DARK_GRAY) + tr(K + "panel.open")))
                             .onMousePressed(button -> {
                                 if (canOpen.getAsBoolean()) main.callSyncedAction("kerrOpenHole", packet -> {});
                                 return true;
                             })
                             .tooltip(
-                                t -> t.addLine("Consumes one Black Hole Seed from a bolt bus")
-                                    .addLine(EnumChatFormatting.GRAY + "The hole opens at 8 SM. Needs a formed cage.")))
+                                t -> t.addLine(tr(K + "panel.open.tip1"))
+                                    .addLine(EnumChatFormatting.GRAY + tr(K + "panel.open.tip2"))))
                     .child(
                         new ButtonWidget<>().size(half, 16)
                             .overlay(IKey.dynamic(() -> {
-                                if (armed.getAsBoolean()) return EnumChatFormatting.RED + "Confirm";
+                                if (armed.getAsBoolean()) return EnumChatFormatting.RED + tr(K + "panel.confirm");
                                 return (canCollapse.getAsBoolean() ? EnumChatFormatting.WHITE
-                                    : EnumChatFormatting.DARK_GRAY) + "Collapse";
+                                    : EnumChatFormatting.DARK_GRAY) + tr(K + "panel.collapse");
                             }))
                             .onMousePressed(button -> {
                                 if (!canCollapse.getAsBoolean()) {
@@ -622,26 +733,22 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
                                 return true;
                             })
                             .tooltip(
-                                t -> t.addLine("Consumes one Black Hole Collapser from a bolt bus")
-                                    .addLine(EnumChatFormatting.GRAY + "Click twice. Linked modules pause and keep")
-                                    .addLine(EnumChatFormatting.GRAY + "their recipes until the hole reopens."))))
-            .child(panelText(() -> {
-                final int n = linked.getIntValue();
-                final String modules = n + " linked module" + (n == 1 ? "" : "s");
+                                t -> t.addLine(tr(K + "panel.collapse.tip1"))
+                                    .addLine(EnumChatFormatting.GRAY + tr(K + "panel.collapse.tip2"))
+                                    .addLine(EnumChatFormatting.GRAY + tr(K + "panel.collapse.tip3")))))
+            .child(panelPara(() -> {
                 if (armed.getAsBoolean()) {
-                    return EnumChatFormatting.DARK_RED + "Click Collapse again: " + modules + " will pause.";
+                    return EnumChatFormatting.DARK_RED + tr(K + "panel.hint.armed", modules.get());
                 }
-                if (!open.getBoolValue()) return EnumChatFormatting.DARK_GRAY + "Open needs a Seed in a bolt bus.";
-                if (!formed.getBoolValue()) return EnumChatFormatting.YELLOW + "Collapse needs a formed cage.";
-                if (auto.getBoolValue()) {
-                    return EnumChatFormatting.YELLOW + "Auto on: a Collapser in a bolt bus collapses at once.";
-                }
-                return "Collapse asks twice: " + modules + " will pause.";
-            }, w, 0.75f))
+                if (!open.getBoolValue()) return EnumChatFormatting.DARK_GRAY + tr(K + "panel.hint.closed");
+                if (!formed.getBoolValue()) return EnumChatFormatting.GOLD + tr(K + "panel.hint.frozen");
+                if (auto.getBoolValue()) return EnumChatFormatting.GOLD + tr(K + "panel.hint.auto");
+                return tr(K + "panel.hint.twice", modules.get());
+            }, w - 2, 2))
             .child(
                 Flow.row()
                     .width(w)
-                    .height(12)
+                    .height(18)
                     .childPadding(3)
                     .child(
                         new ToggleButton().size(12, 12)
@@ -649,12 +756,12 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
                             .overlay(true, GTGuiTextures.OVERLAY_BUTTON_CHECKMARK)
                             .overlay(false, GTGuiTextures.OVERLAY_BUTTON_CROSS)
                             .tooltip(
-                                t -> t.addLine("Auto ON: a Seed or Collapser placed in a bolt bus")
-                                    .addLine("acts on its own (automation keeps working): a Collapser")
-                                    .addLine("collapses the hole within a second, without asking.")
-                                    .addLine(EnumChatFormatting.GRAY + "OFF: only these buttons open and close."))
+                                t -> t.addLine(tr(K + "panel.auto.tip1"))
+                                    .addLine(tr(K + "panel.auto.tip2"))
+                                    .addLine(tr(K + "panel.auto.tip3"))
+                                    .addLine(EnumChatFormatting.GRAY + tr(K + "panel.auto.tip4")))
                             .tooltipShowUpTimer(TOOLTIP_DELAY))
-                    .child(panelText(() -> "Auto: act on Seeds / Collapsers", w - 15, 0.75f).heightRel(1f)));
+                    .child(panelPara(() -> tr(K + "panel.auto"), w - 15, 2)));
 
         return new ModularPanel("kerrHolePanel").relative(parent)
             .leftRel(1)
@@ -682,8 +789,13 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
 
     // =========================================================================== modules panel
 
+    private static String[] fields(StringSyncValue v) {
+        return v.getStringValue()
+            .split("\\|", -1);
+    }
+
+    /** The Modules panel (§5.2): one 32 px row per slot, text at 1.0 (long lines scroll on hover). */
     private ModularPanel buildModulesPanel(PanelSyncManager main, ModularPanel parent) {
-        final StringSyncValue[] slots = slotValues(main);
         final int w = MODULES_PANEL_W - 8;
         final int textW = w - 21;
         final Flow column = Flow.column()
@@ -692,12 +804,14 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
             .childPadding(2)
             .crossAxisAlignment(Alignment.CrossAxis.START)
             .child(
-                IKey.str(EnumChatFormatting.BOLD + "Modules")
+                IKey.lang(K + "panel.modules.title")
+                    .color(BTSGuiKit.PANEL_TEXT)
                     .asWidget()
+                    .style(EnumChatFormatting.BOLD)
                     .width(w)
                     .textAlign(Alignment.Center));
         for (KerrSlot slot : KerrSlot.VALUES) {
-            final StringSyncValue v = slots[slot.ordinal()];
+            final StringSyncValue v = main.findSyncHandler("kerrSlot." + slot.key, StringSyncValue.class);
             final ItemStack icon = slot.controllerStack();
             column.child(
                 Flow.row()
@@ -715,45 +829,24 @@ public class MTEKerrEngineGui extends MTEMultiBlockBaseGui<MTEKerrEngine> {
                             .crossAxisAlignment(Alignment.CrossAxis.START)
                             .mainAxisAlignment(Alignment.MainAxis.CENTER)
                             .childPadding(1)
-                            .child(panelText(() -> {
-                                final String state = field(v, 0);
-                                return slot.label + " " + panelColour(state) + shortState(state);
-                            }, textW, 1f))
-                            .child(panelText(() -> moduleDetail(slot, v), textW, 0.75f))
-                            .child(panelText(() -> {
-                                final String pos = field(v, 3);
-                                return EnumChatFormatting.DARK_GRAY + (pos.isEmpty() ? "" : "at " + pos);
-                            }, textW, 0.75f))));
+                            .child(panelLine(() -> {
+                                final String state = fields(v)[0];
+                                return tr(K + "slot." + slot.key) + " "
+                                    + panelColour(state)
+                                    + BTSText.resolve(stateLang(state));
+                            }, textW))
+                            .child(panelLine(() -> BTSText.resolve(moduleDetail(slot, fields(v))), textW))
+                            .child(panelLine(() -> {
+                                final String[] f = fields(v);
+                                final String pos = f.length > 3 ? f[3] : "";
+                                return EnumChatFormatting.DARK_GRAY + (pos.isEmpty() ? "" : tr(K + "mod.at", pos));
+                            }, textW))));
         }
-        column.child(
-            panelText(() -> EnumChatFormatting.DARK_GRAY + "Run each module from its own controller.", w, 0.75f));
+        column.child(panelPara(() -> EnumChatFormatting.DARK_GRAY + tr(K + "panel.modules.footer"), w, 2));
         return new ModularPanel("kerrModulesPanel").relative(parent)
             .leftRel(1)
             .topRel(0)
-            .size(MODULES_PANEL_W, 34 + (MODULE_ROW_H + 2) * KerrSlot.VALUES.length)
+            .size(MODULES_PANEL_W, 8 + 11 + (MODULE_ROW_H + 2) * KerrSlot.VALUES.length + 18 + 2)
             .child(column);
-    }
-
-    /** The second line of a module row: its bonus when linked, else why it is not running. */
-    static String moduleDetail(KerrSlot slot, StringSyncValue v) {
-        final String state = field(v, 0);
-        if (state.startsWith("RUNNING") || state.startsWith("IDLE")) {
-            return "parallel " + field(v, 1) + ", speed x" + field(v, 2);
-        }
-        if (state.startsWith("PAUSED")) {
-            final int colon = state.indexOf(':');
-            return colon > 0 ? state.substring(colon + 1)
-                .trim() : "paused";
-        }
-        if (state.startsWith("NOT BUILT")) return "place its controller at marker " + slot.hintDots;
-        if (state.startsWith("NOT FORMED")) return "see its own controller's GUI";
-        if (state.startsWith("NOT LOADED")) return "its chunk is not loaded";
-        return "not linked: see its own GUI";
-    }
-
-    private static String field(StringSyncValue v, int i) {
-        final String[] f = v.getStringValue()
-            .split("\\|", -1);
-        return i < f.length ? f[i] : "";
     }
 }

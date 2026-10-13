@@ -1658,4 +1658,16 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     public boolean showRecipeTextInGUI() {
         return false;
     }
+
+    /** GUI cleanup (controller-gui-spec.md §4.4): the kit's badge says it; GT's "Running perfectly." is not added. */
+    @Override
+    public boolean hasRunningText() {
+        return false;
+    }
+
+    /** GUI cleanup: the KEE runs no recipes; its state is the badge and the closed-hole checklist. */
+    @Override
+    public boolean shouldDisplayCheckRecipeResult() {
+        return false;
+    }
 }

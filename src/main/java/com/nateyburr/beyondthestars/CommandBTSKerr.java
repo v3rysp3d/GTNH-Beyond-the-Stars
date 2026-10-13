@@ -66,7 +66,7 @@ public class CommandBTSKerr extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btskerr [t1|t2] [force]  |  /btskerr migrate [x y z]  |  /btskerr render x y z [open [m]|close|off|on|break]  |  /btskerr module x y z <c|x> [stock|status|tier|clear]  |  /btskerr damage|repair x y z  |  console: /btskerr [t1|t2] <x> <y> <z> [facing] [force] [survival] [oldwindows] | [check]  |  /btskerr autorig x y z [s] [bolts/s] [empty]  |  /btskerr ocloop x y z  |  /btskerr ctrl x y z on|off|out  |  /btskerr ocprobe x y z";
+        return "/btskerr [t1|t2] [force]  |  /btskerr migrate [x y z]  |  /btskerr render x y z [open [m]|close|off|on|break]  |  /btskerr module x y z <c|x> [stock|status|tier|clear|gui [info]]  |  /btskerr damage|repair x y z  |  /btskerr gui x y z [info]  |  console: /btskerr [t1|t2] <x> <y> <z> [facing] [force] [survival] [oldwindows] | [check]  |  /btskerr autorig x y z [s] [bolts/s] [empty]  |  /btskerr ocloop x y z  |  /btskerr ctrl x y z on|off|out  |  /btskerr ocprobe x y z";
     }
 
     @Override
@@ -108,7 +108,8 @@ public class CommandBTSKerr extends CommandBase {
             return;
         }
         if (args.length >= 4 && (args[0].equalsIgnoreCase("damage") || args[0].equalsIgnoreCase("repair")
-            || args[0].equalsIgnoreCase("keep"))) {
+            || args[0].equalsIgnoreCase("keep")
+            || args[0].equalsIgnoreCase("gui"))) {
             testBench(sender, args);
             return;
         }
@@ -548,6 +549,15 @@ public class CommandBTSKerr extends CommandBase {
         }
         if (verb.equals("repair")) {
             SLConsoleTest.tell(sender, "Kerr test bench: " + KerrTestBench.repair(world, kee));
+            return;
+        }
+        if (verb.equals("gui")) {
+            // controller GUI cleanup: the header and rows the KEE's GUI would show now (spec §5.2), as text
+            KerrTestBench.ensureChecked(kee);
+            for (String line : new com.nateyburr.beyondthestars.machines.kerr.MTEKerrEngineGui(kee)
+                .benchDump(args.length > 4 && args[4].equalsIgnoreCase("info"))) {
+                SLConsoleTest.tell(sender, "Kerr GUI: " + line);
+            }
             return;
         }
         final String which = args[4].toLowerCase();
