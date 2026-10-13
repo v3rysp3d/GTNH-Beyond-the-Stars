@@ -1,0 +1,132 @@
+# The Quasar Engine at its maximum: 4,096 solar masses on MagMatter (tier-4) Disc Field Coils, two Mk III Burst
+# Thermaliser Crowns stacked on each jet port. About 80 s at 1920x1080 (docs/recording.md).
+#
+# Honesty: the quasar, its hatches (creative energy, Helium) and the four crowns are raised by script; the hole is
+# opened with a Quasar Seed (64 SM) and its MASS is set to 4,096 SM by script (/btsquasar mass). Spin, flux and
+# stream then settle on their own under the time warp (/btswarp, a cheat; the tag shows the measured rate). No disc
+# rig: feed f 1.0, no trims, no purges (the quasar erupts on its own at flux 100). The gas hatches are topped up
+# between warped spans (cut out): four MAX hatches and the buffer hold about 640 s of Helium at 4,096 SM.
+#
+# Quasar 2000,113,2000 facing north: the top crown stack reaches y 255, the bottom one y 1.
+
+# ---------------------------------------------------------------- setup (never recorded)
+time day
+command /btsquasar t4 2000 113 2000 north
+command /btsquasar keep 2000 113 2000
+name mq 2000,113,2000
+name mq.c 2000,128,2072
+command /btsconduit crowns 2000 113 2000 3 stack
+command /btsconduit dock 2000 113 2000
+name ctop 1988,209,2072
+name ctop2 1988,227,2072
+name cbot 1988,47,2072
+name cbot2 1988,29,2072
+command /btsconduit status 1988 209 2072
+command /btsconduit status 1988 227 2072
+command /btsconduit status 1988 47 2072
+command /btsconduit status 1988 29 2072
+command /btsquasar feed {mq} 1.0
+command /btsquasar b {mq} 2.75
+
+# ================================================================ title
+scene title
+  card 4 The Quasar Engine at its limit | 4,096 solar masses: the MagMatter coils' mass cap | GTNH: Beyond the Stars - recorded in game
+
+scene overview
+  caption A Quasar Engine with MagMatter Disc Field Coils (tier 4: field b up to 4, mass cap 4,096 SM). On each jet port two Mk III Burst Thermaliser Crowns are stacked: 8,192 + 8,192 Bu/t per port. Built by script.
+  orbit mq.c radius 230 height 10 from -35 to 25 seconds 10 ease inout
+
+scene seed
+  caption The hole is opened with a Quasar Seed (64 solar masses, spin 0), then its mass is SET TO 4,096 SM BY SCRIPT (/btsquasar mass). Field b 2.75, feed 1.0.
+  goto mq+0,0.2,-3.5 look mq
+  command /btsquasar seed {mq}
+  gui mq
+  hold 3
+  close
+  command /btsquasar mass {mq} 4096
+  command /btsquasar status {mq}
+  gui mq
+  hold 4
+  close
+
+scene settle
+  caption The spin climbs to its equilibrium (about 0.5 at b 2.75) over game-hours: here under the time warp (a cheat). The disc flares at flux 100 on its own; the jets run into the crowns above and below.
+  goto mq.c+0,6,-24 look mq.c
+  warp 50
+  timelapse 2 speed 10 until game:500 clock
+  command /btsquasar refill {mq}
+  timelapse 2 speed 10 until game:500 clock
+  command /btsquasar refill {mq}
+  timelapse 2 speed 10 until game:500 clock
+  command /btsquasar refill {mq}
+  timelapse 2 speed 10 until game:500 clock
+  command /btsquasar refill {mq}
+  timelapse 2 speed 10 until game:500 clock
+  command /btsquasar refill {mq}
+  timelapse 2 speed 10 until game:500 clock
+  command /btsquasar refill {mq}
+  timelapse 2 speed 10 until game:500 clock
+  command /btsquasar refill {mq}
+  timelapse 2 speed 10 until game:500 clock
+  command /btsquasar refill {mq}
+  timelapse 2 speed 10 until game:500 clock
+  command /btsquasar refill {mq}
+  timelapse 2 speed 10 until game:500 clock
+  command /btsquasar refill {mq}
+  timelapse 2 speed 10 until game:500 clock
+  command /btsquasar refill {mq}
+  timelapse 2 speed 10 until game:500 clock
+  command /btsquasar refill {mq}
+  timelapse 2 speed 10 until game:500 clock
+  command /btsquasar refill {mq}
+  timelapse 2 speed 10 until game:500 clock
+  command /btsquasar refill {mq}
+  timelapse 2 speed 10 until game:500 clock
+  command /btsquasar refill {mq}
+  timelapse 2 speed 10 until game:500 clock
+  command /btsquasar refill {mq}
+  timelapse 2 speed 10 until game:500 clock
+  command /btsquasar refill {mq}
+  timelapse 2 speed 10 until game:500 clock
+  command /btsquasar refill {mq}
+  command /btsquasar status {mq}
+
+scene jets
+  caption After 2.5 game-hours: 4,096 SM, spin about 0.48, near its equilibrium (about 0.50 with the eruptions). Half the stream leaves by each jet; the top jet runs into its crown stack.
+  goto mq.c+-30,40,-60 look mq.c+0,90,0
+  warp 10
+  hold 5
+
+scene gui
+  caption The controller: mass at the 4,096 SM cap (coils T4), spin a, Bursts = the whole stream in Bu/t (1 Bu/t = 10^13 EU/t in a crown), and the coils at b 2.75 drawing 8.12 G EU/t. The stream rises with flux and spikes at each eruption.
+  goto mq+0,0.2,-3.5 look mq
+  command /btsquasar refill {mq}
+  gui mq
+  warp 10
+  hold 8
+  close
+  command /btsquasar status {mq}
+
+scene crowns
+  caption The top crown (Mk III, 8,192 Bu/t): EU/t straight into the wireless network. Its stacked partner only takes the overflow, at eruption peaks.
+  goto ctop+0,0.2,-3.5 look ctop
+  command /btsquasar refill {mq}
+  gui ctop
+  warp 10
+  hold 5
+  close
+  caption The bottom crown, under the bottom cap, takes the other half of the stream.
+  goto cbot+0,0.2,-3.5 look cbot
+  gui cbot
+  hold 5
+  close
+  command /btsconduit status 1988 209 2072
+  command /btsconduit status 1988 227 2072
+  command /btsconduit status 1988 47 2072
+  command /btsconduit status 1988 29 2072
+
+scene end
+  card 7 Peak at 4,096 SM: about 9.8 x 10^16 EU/t net | best field b 2.75 (2.7-2.8) in a running disc; never purge | (the engine's own code, 12 runs x 5 game-hours; coils cost only 8.1 x 10^9 EU/t) | ideal ceiling 1.56 x 10^17 EU/t (b 3.03, steady flux, Resonant lock) | 4,096 SM is the hard cap: power goes as mass squared up to it
+  # dev check (not filmed): the debug mass command is not clamped to the coil cap
+  command /btsquasar mass {mq} 5000
+  command /btsquasar status {mq}
