@@ -6,7 +6,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 1. **Open questions**: each open decision once, with the answer we recommend and where the detail is.
 2. **Settled**: everything you have answered, in your words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision from you.
-4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-95 and B-105..B-114, the tidy pass's
+4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101 and B-105..B-115, the tidy pass's
    TQ-1..TQ-8, and P4's P4-01..P4-94 in Part E).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
@@ -122,14 +122,19 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
 - The playtest jar `master.235` is packaged with a local-install INSTALL.md and a playtest guide (B-90). [B-90]
 - ~~Re-package the playtest jar~~: done, `master.250` carries `/btsrecipes`, the B-92 / B-93 text pass and the B-95
   fixes; `master.235` is in `dist-rc2/superseded/`. [B-105]
-- When the GUI branch merges: Harmonic Lock's "The GUI's field line counts it as Lock n/600" becomes "Lock bar". [B-93]
-- When the GUI branch merges: keep the Eye's status-line push (`refreshStatusLine`) and check the Directive Hatch's
-  height in the new layout. [B-107]
+- ~~Harmonic Lock's "The GUI's field line counts it as Lock n/600" becomes "Lock bar"~~: done in the questbook
+  source, bundle `622edc863402`. [B-93, B-96, B-115]
+- ~~Keep the Eye's status-line push (`refreshStatusLine`) and check the Directive Hatch's height in the new
+  layout~~: the push is kept; the kit's Directive panel (234) replaces the +64 fix. [B-107, B-115]
 - ~~Cap the Eye buffers' intake~~: done, each buffer fills only to its intake cap (Sol: 1 G L of each gas), tested
   with a stocking hatch on a 10 G L network and a second consumer on it. [B-107 open work (a), B-108]
-- When the GUI branch merges: the new Eye GUI may show each buffer as held / cap (`MTEEyeOfHarmonyBTS.intakeCaps`,
-  as the scanner does). [B-108]
-- A missing texture in the KEE GUI's right-hand button column (seen in the photo run). [B-106]
+- ~~The Eye GUI shows each buffer as held / cap~~: the Field panel's Buffers section. [B-108, B-115]
+- ~~A missing texture in the KEE GUI's right-hand button column (seen in the photo run)~~: the kit's KEE GUI no
+  longer draws it (B-97), merged. [B-106, B-115]
+- ~~Merge `gui-clean` into master~~: done, with P4's GUI additions carried into the kit. Still to do: the P4
+  machines' GUIs (Quasar Engine, the conduit elements, the crowns, the Burst Control Hatch) are on GT's plain
+  layout, not the kit yet; and the merged GUIs need a look in a dev client (the T7 / T8 rows and the Galaxy panel
+  were checked only as text on the dev server). [B-115]
 - The photo harnesses (`RenderTestClient`, `AutoRigClient`) may film at the dev client's saved render distance. Give
   them the recorder's per-tick settings hold if they are used again. [B-109]
 - ~~Restart persistence on master's machines (P4-85) and tooltips for the older casings (P4-86)~~: done; the
@@ -224,7 +229,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-95, B-105..B-114
+## Part B. Entries B-1..B-101, B-105..B-115
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -5371,6 +5376,65 @@ name, and its full name is in the tooltip. The spec draws "White Dwarf Matter". 
 "T5 idle" card and the two charge shots on the Dark card.
 
 **Suggestion.** Accept.
+
+### B-115 Merging gui-clean into master: P4 in the kit GUIs, the buffers against their caps, the Lock bar [merge, built + test]
+
+**What was done.** `git merge --no-ff gui-clean` into master `82630b4` (merge `3c0daf0`), then three follow-ups.
+`gui-clean` branched from `ba08813`, before the autoshots merge, B-108 and P4, so 17 files conflicted. The merge
+commit's message lists each one and how it was resolved. The kit GUIs are the new GUIs. Master's GUI-side additions
+were rebuilt in the kit's form, so nothing was lost:
+
+- **Eye.** P4's Eye T7 / T8 information is now kit rows:
+  - the W and Λ gauges;
+  - a Bursts row: Bu/t and β, with high / low / halo, the demand and the linked quasar in the tooltip;
+  - the Stability / Heavy Link streak as a bar, or HELD;
+  - the countdowns as a warning row: collapse, pericentre pass, satellite crossing, minor merger;
+  - the planet slots, or the companions.
+
+  The milestones show up to T7 (T6 / T7 parts: product, Resonant time, flares or mergers, the link). The DARK and
+  PENDING checklists carry P4's conditions: the magnetar or Triangulum lit and Stable, the rail and halo ports, no
+  companions. The Info page has a GALAXY paragraph and NEXT for T7 / T8. P4's Galaxy panel is a kit side panel
+  behind a [Galaxy] button: mode, the f8 stepper, Begin with its answer, the slots, and what the transition waits for.
+- **Stellar Field Sensor Hatch.** The kit hatch layout now follows the machine that publishes to it: 20 Eye
+  channels, or the quasar's 16. The channel button steps through the synced count. Unbounded channels draw a bar
+  against the window w. P4's Invert and Window w are control rows (panel 244).
+- **Directive Hatch.** P4's sets (Disc, Field, Events, Galaxy Transition, Slots), the Quasar host and its window
+  label have lang keys. Master's +64 height fix (`a98e2f9`) is dropped: the kit panel is 234 and nothing sits under
+  the inventory.
+- **KEE, Homogeny, Reality Diffraction.** P4's quasar-link line is a kit note row, with the whole line as its
+  tooltip.
+- **Kept from master.** The Eye's status-line push (`cfb2001`), the B-108 cap, B-112's markDirty.
+
+**Follow-ups.**
+1. **Buffers held / cap** (`302d28c`, `fefa148`; the B-108 open item). The Eye's Field panel has a "Buffers (held
+   / intake cap)" section, one row per buffer: the name, a small bar (blue filling, green at the cap, gold above it
+   or not pulled), and "1.00T / 600M L". Each row's tooltip gives the exact litres; the title's tooltip gives the
+   rule. `MTEEyeOfHarmonyBTS.intakeRows()` feeds both this panel and the scanner line.
+2. **Questbook** (`90d3ccf`). Harmonic Lock now says "The GUI's Lock bar counts it, n/600" (B-96 / B-93).
+   Regenerated to bundle `622edc863402`; `--check` and `--selftest` pass.
+
+**Checks.**
+- `spotlessApply compileJava` passes.
+- A GUI lang check (literal keys, the `K +` lookups, every sensor channel, Directive set and host, the six gauges)
+  finds no missing keys and no duplicates.
+- Headless `runServer` (port 25565, fresh flat world `b115`; the level name and `cmds.txt` were put back):
+  - 311 registered, 0 skipped. The 8 known H/R gate lines, and no `com.nateyburr` stack trace.
+  - Eye T1 kit with `fill`: FORMED, with re-projection and damage / repair. The scanner's buffer line reads from
+    `intakeRows` (Helium 1.00T / 1G cap; the fluids Sol does not use show "not pulled").
+  - `/btseye star ... gui`: DARK, with the five-row ignition checklist. `gui info`: the Info page.
+  - `hatchgui`: three Directive and five sensor readouts, including the new Invert and Window rows.
+  - Eye T7 kit: FORMED. Its DARK checklist is the Magnetar Collapse, 6 of 7: the new "magnetar lit and Stable" row
+    (X) and "Rail ports 4 / 4" (OK), plus the WDM / BDM / Magnetar Matter needs. Its Info page has GALAXY and NEXT T8.
+  - Kerr T1 kit: FORMED; `/btskerr gui` and `gui ... hatches` print the rows.
+
+**Not covered.** No client was run, so the merged GUIs were not seen drawn. That covers the Galaxy panel, the Field
+panel's Buffers section, and a lit T6-T8 Eye's burst / link / countdown rows; those rows need a lit galaxy, which the
+headless benches did not run. The P4 machines' own GUIs (Quasar, conduit, crowns, Burst Control Hatch) are still
+GT's plain layout.
+
+**Question.** *Where the buffers show:* in the Field panel, not the main rows. The main pool is already 26 rows at
+T5-T6, and a T7 Eye can hold a dozen fluids. *Suggestion:* keep it there. The DARK and PENDING checklists already
+show have / need for every fluid that blocks a start.
 
 ---
 
