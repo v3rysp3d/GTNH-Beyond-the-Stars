@@ -2,6 +2,7 @@ package com.nateyburr.beyondthestars.machines.eye.render;
 
 import com.nateyburr.beyondthestars.machines.eye.field.CollapseOverlay;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldReadout;
+import com.nateyburr.beyondthestars.machines.eye.field.GalacticMergerOverlay;
 import com.nateyburr.beyondthestars.machines.eye.star.CoreCollapse;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeTransition;
@@ -84,6 +85,17 @@ public final class EyeStarLook {
     public static final byte EV_GLITCH = 2;
     /** T6: a giant flare. */
     public static final byte EV_GIANT_FLARE = 3;
+    /** T7 / T8 (renders v2 WP-5): a minor merger whose sign is +1 (the dwarf comes from above the disc). */
+    public static final byte EV_MINOR_MERGER_UP = 4;
+    /** T7 / T8: a minor merger whose sign is -1 (from below). */
+    public static final byte EV_MINOR_MERGER_DOWN = 5;
+    /**
+     * The Galactic Merger's pericentre passes 1..3 (6..8): the next pass, or the last one for a minute after it; the
+     * event's hit is the pass (the merger holds the event channel's own events back).
+     */
+    public static final byte EV_PERICENTRE_1 = 6;
+    public static final byte EV_PERICENTRE_2 = 7;
+    public static final byte EV_PERICENTRE_3 = 8;
 
     /** The star's tier (1..8); 0 when unknown (an old look). */
     public final byte n;
@@ -100,17 +112,24 @@ public final class EyeStarLook {
     public final byte trans;
     /** How far it is, 0..1. */
     public final float transP;
+    /**
+     * Renders v2 WP-5, server only: seconds to the T8 satellite crossing's hit (its 120 s countdown), negative during
+     * its 300 s after the hit; NaN when none. {@link EyeCentreRender} turns it into {@link #xAt}.
+     */
+    public final float xIn;
+    /** World tick of the satellite crossing's hit (0: none): the client counts it down and runs the ring wave. */
+    public final long xAt;
 
     public EyeStarLook(byte kind, float radius, int rgb, float gamma, float spin, float pulse) {
         this(kind, radius, rgb, gamma, spin, pulse, 0f);
     }
 
     public EyeStarLook(byte kind, float radius, int rgb, float gamma, float spin, float pulse, float aux) {
-        this(kind, radius, rgb, gamma, spin, pulse, aux, (byte) 0, EV_NONE, 0f, 0L, (byte) 0, 0f);
+        this(kind, radius, rgb, gamma, spin, pulse, aux, (byte) 0, EV_NONE, 0f, 0L, (byte) 0, 0f, Float.NaN, 0L);
     }
 
     private EyeStarLook(byte kind, float radius, int rgb, float gamma, float spin, float pulse, float aux, byte n,
-        byte ev, float evIn, long evAt, byte trans, float transP) {
+        byte ev, float evIn, long evAt, byte trans, float transP, float xIn, long xAt) {
         this.kind = kind;
         this.radius = radius;
         this.rgb = rgb;
@@ -124,27 +143,83 @@ public final class EyeStarLook {
         this.evAt = evAt;
         this.trans = trans;
         this.transP = transP;
+        this.xIn = xIn;
+        this.xAt = xAt;
     }
 
     /** This look as tier {@code n}'s star. */
     public EyeStarLook tier(int n) {
-        return new EyeStarLook(kind, radius, rgb, gamma, spin, pulse, aux, (byte) n, ev, evIn, evAt, trans, transP);
+        return new EyeStarLook(
+            kind,
+            radius,
+            rgb,
+            gamma,
+            spin,
+            pulse,
+            aux,
+            (byte) n,
+            ev,
+            evIn,
+            evAt,
+            trans,
+            transP,
+            xIn,
+            xAt);
     }
 
     /** This look with an event {@code ev} hitting {@code in} seconds from now (negative: it hit that long ago). */
     public EyeStarLook event(int ev, float in) {
-        return new EyeStarLook(kind, radius, rgb, gamma, spin, pulse, aux, n, (byte) ev, in, evAt, trans, transP);
+        return new EyeStarLook(
+            kind,
+            radius,
+            rgb,
+            gamma,
+            spin,
+            pulse,
+            aux,
+            n,
+            (byte) ev,
+            in,
+            evAt,
+            trans,
+            transP,
+            xIn,
+            xAt);
     }
 
     /** This look during transition {@code trans} (1..7) at {@code p} (0..1). */
     public EyeStarLook transition(int trans, float p) {
-        return new EyeStarLook(kind, radius, rgb, gamma, spin, pulse, aux, n, ev, evIn, evAt, (byte) trans, p);
+        return new EyeStarLook(
+            kind,
+            radius,
+            rgb,
+            gamma,
+            spin,
+            pulse,
+            aux,
+            n,
+            ev,
+            evIn,
+            evAt,
+            (byte) trans,
+            p,
+            xIn,
+            xAt);
     }
 
-    /** Server: the look to send at world tick {@code now} (the event's hit as a world tick). */
+    /**
+     * Renders v2 WP-5: this look with a T8 satellite crossing's hit {@code in} seconds from now (negative: it hit that
+     * long ago).
+     */
+    public EyeStarLook crossing(float in) {
+        return new EyeStarLook(kind, radius, rgb, gamma, spin, pulse, aux, n, ev, evIn, evAt, trans, transP, in, xAt);
+    }
+
+    /** Server: the look to send at world tick {@code now} (the event's and the crossing's hits as world ticks). */
     public EyeStarLook at(long now) {
         final long at = ev == EV_NONE ? 0L : now + Math.round(evIn * 20.0);
-        return new EyeStarLook(kind, radius, rgb, gamma, spin, pulse, aux, n, ev, evIn, at, trans, transP);
+        final long xat = Float.isNaN(xIn) ? 0L : now + Math.round(xIn * 20.0);
+        return new EyeStarLook(kind, radius, rgb, gamma, spin, pulse, aux, n, ev, evIn, at, trans, transP, xIn, xat);
     }
 
     /**
@@ -162,7 +237,7 @@ public final class EyeStarLook {
 
     /** A copy with another radius, colour and gamma (a transition's blend). */
     private EyeStarLook reshaped(float radius, int rgb, float gamma) {
-        return new EyeStarLook(kind, radius, rgb, gamma, spin, pulse, aux, n, ev, evIn, evAt, trans, transP);
+        return new EyeStarLook(kind, radius, rgb, gamma, spin, pulse, aux, n, ev, evIn, evAt, trans, transP, xIn, xAt);
     }
 
     /**
@@ -211,7 +286,15 @@ public final class EyeStarLook {
         EyeStarLook look = base.n == 0 && star != null ? base.tier(star.n()) : base;
         final double[] ev = rt.renderEvent();
         if (ev != null) look = look.event((int) ev[0], (float) ev[1]);
+        // renders v2 WP-5: the T8 satellite crossing has its own clock (it runs 420 s and may overlap a minor merger)
+        final double xIn = rt.renderCrossing();
+        if (!Double.isNaN(xIn)) look = look.crossing((float) xIn);
         final EyeTransition tr = rt.transition();
+        // renders v2 WP-5: the Galactic Merger's pericentre passes on the event channel (its own events are held)
+        if (tr instanceof GalacticMerger && look.ev == EV_NONE) {
+            final GalacticMergerOverlay gm = ((GalacticMerger) tr).overlay();
+            if (gm != null) look = pericentre(look, gm.st);
+        }
         if (tr != null) {
             final float p = (float) Math.max(0, rt.transitionProgress());
             look = look.transition(tr.type.from, p);
@@ -220,6 +303,21 @@ public final class EyeStarLook {
                 final EyeStarLook g = growing(tr instanceof MassInfusion ? 1 : 2, p);
                 look = look.reshaped(g.radius, g.rgb, g.gamma);
             }
+        }
+        return look;
+    }
+
+    /**
+     * The Galactic Merger at {@code st} seconds: the last pericentre pass for a minute after it (the starburst and the
+     * bridge), else the next pass; after the last pass's minute, nothing (the client reads the progress).
+     */
+    public static EyeStarLook pericentre(EyeStarLook look, int st) {
+        final int[] passes = GalacticMergerOverlay.PASSES;
+        for (int i = passes.length - 1; i >= 0; i--) {
+            if (st >= passes[i] && st - passes[i] < 60) return look.event(EV_PERICENTRE_1 + i, -(st - passes[i]));
+        }
+        for (int i = 0; i < passes.length; i++) {
+            if (st < passes[i]) return look.event(EV_PERICENTRE_1 + i, passes[i] - st);
         }
         return look;
     }
@@ -483,6 +581,7 @@ public final class EyeStarLook {
         }
         // renders v2: the extras; the event's hit may drift two seconds before it is sent again
         if (o.n != n || o.ev != ev || o.trans != trans || Math.abs(o.evAt - evAt) > 40) return true;
+        if ((o.xAt == 0) != (xAt == 0) || Math.abs(o.xAt - xAt) > 40) return true;
         if (Math.abs(o.transP - transP) > 0.01f) return true;
         return Math.abs(o.radius - radius) > 0.02f * Math.max(1f, radius) || Math.abs(o.gamma - gamma) > 0.05f
             || Math.abs(o.spin - spin) > 0.05f

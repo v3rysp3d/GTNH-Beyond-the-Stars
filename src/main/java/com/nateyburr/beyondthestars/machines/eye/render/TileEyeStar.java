@@ -49,6 +49,11 @@ public class TileEyeStar extends TileEntity {
     private long evAt;
     private byte trans;
     private float transP;
+    // renders v2 WP-5: the T8 satellite crossing's hit as a world tick (0 none)
+    private long xAt;
+    /** Client: the event the channel showed before the current one, and its hit (an afterglow outlives the event). */
+    private byte pastEv;
+    private long pastEvAt;
 
     /**
      * Dev-only render QA ({@code -Dbts.rendertest=true}, client): when 0 or more, {@link #kindAge} and
@@ -63,6 +68,11 @@ public class TileEyeStar extends TileEntity {
     public static volatile double debugEventIn = Double.NaN;
     /** Dev-only render QA: when 0 or more, {@link #previousKind} returns this (the ignition flash's protostar). */
     public static volatile int debugPrevKind = -1;
+    /**
+     * Dev-only render QA (renders v2 WP-5): when not NaN, {@link #crossingIn} returns this (seconds to the satellite
+     * crossing's hit, negative after it). NaN in play.
+     */
+    public static volatile double debugCrossingIn = Double.NaN;
 
     /** Client: magnetar flares, every {@link #FLARE_MIN}..{@link #FLARE_MIN}x2 ticks. */
     static final int FLARE_MIN = 80;
@@ -119,6 +129,7 @@ public class TileEyeStar extends TileEntity {
         evAt = look.evAt;
         trans = look.trans;
         transP = look.transP;
+        xAt = look.xAt;
         markDirty();
         if (!(worldObj instanceof WorldServer)) return;
         final WorldServer world = (WorldServer) worldObj;
@@ -217,6 +228,45 @@ public class TileEyeStar extends TileEntity {
         final double frozen = debugEventIn;
         if (!Double.isNaN(frozen)) return ev == 0 ? Double.NaN : frozen;
         return ev == 0 ? Double.NaN : (evAt - now) / 20.0;
+    }
+
+    /**
+     * Client, renders v2 WP-5: seconds from {@code now} to the satellite crossing's hit, negative after it; NaN with
+     * none.
+     */
+    @SideOnly(Side.CLIENT)
+    public double crossingIn(double now) {
+        final double frozen = debugCrossingIn;
+        if (!Double.isNaN(frozen)) return frozen;
+        return xAt == 0 ? Double.NaN : (xAt - now) / 20.0;
+    }
+
+    /**
+     * Client, renders v2 WP-5: seconds from {@code now} to the hit of the event the channel showed before the current
+     * one (negative: it hit that long ago), so a minor merger's afterglow outlives its event; NaN when there was none
+     * or ({@code minorOnly}) it was not a minor merger.
+     */
+    @SideOnly(Side.CLIENT)
+    public double pastEventIn(double now, boolean minorOnly) {
+        if (pastEv == 0 || pastEvAt == 0) return Double.NaN;
+        if (minorOnly && pastEv != EyeStarLook.EV_MINOR_MERGER_UP && pastEv != EyeStarLook.EV_MINOR_MERGER_DOWN) {
+            return Double.NaN;
+        }
+        return (pastEvAt - now) / 20.0;
+    }
+
+    /** Client, renders v2 WP-5: the past minor merger's sign (+1 from above, -1 from below). */
+    @SideOnly(Side.CLIENT)
+    public int pastEventSign() {
+        return pastEv == EyeStarLook.EV_MINOR_MERGER_DOWN ? -1 : 1;
+    }
+
+    /** Client, renders v2 WP-5: a number fixed per event (its hit tick), for the event's look (a dwarf's path). */
+    @SideOnly(Side.CLIENT)
+    public int eventSeed() {
+        final long at = ev != 0 ? evAt : pastEvAt;
+        final long h = (at * 0x9E3779B97F4A7C15L) ^ (xCoord * 73_856_093L) ^ (zCoord * 83_492_791L);
+        return (int) (h ^ (h >>> 29));
     }
 
     /** Client, renders v2: ticks since the transition last changed (debug-frozen like {@link #kindAge}). */
@@ -351,6 +401,8 @@ public class TileEyeStar extends TileEntity {
             look.setByte("tr", trans);
             look.setFloat("trP", transP);
         }
+        // renders v2 WP-5: the satellite crossing's hit
+        if (xAt != 0) look.setLong("xAt", xAt);
         return look;
     }
 
@@ -364,8 +416,16 @@ public class TileEyeStar extends TileEntity {
         pulse = look.getFloat("pulse");
         aux = look.getFloat("aux");
         tierN = look.getByte("n");
-        ev = look.getByte("ev");
-        evAt = look.getLong("evAt");
+        final byte newEv = look.getByte("ev");
+        final long newEvAt = look.getLong("evAt");
+        // the client keeps the event that just ended, for its afterglow
+        if (ev != 0 && (newEv != ev || newEvAt != evAt)) {
+            pastEv = ev;
+            pastEvAt = evAt;
+        }
+        ev = newEv;
+        evAt = newEvAt;
+        xAt = look.getLong("xAt");
         trans = look.getByte("tr");
         transP = look.getFloat("trP");
     }

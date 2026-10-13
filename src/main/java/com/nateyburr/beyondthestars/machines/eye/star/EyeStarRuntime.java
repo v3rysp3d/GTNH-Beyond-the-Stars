@@ -534,8 +534,9 @@ public final class EyeStarRuntime {
 
     /**
      * Renders v2 (R-04), read only: the event channel for the centre render while an event is warned or hitting:
-     * {@code {EyeStarLook.EV_* code, seconds from now to the hit (negative once it hit)}}, or null. Only the star
-     * tiers' events (the helium flash, the glitch, the giant flare); the galaxy events are left to the galaxy render.
+     * {@code {EyeStarLook.EV_* code, seconds from now to the hit (negative once it hit)}}, or null: the helium flash,
+     * the glitch, the giant flare and (renders v2 WP-5) the galaxies' minor merger with its sign. The satellite
+     * crossing has its own clock ({@link #renderCrossing}); the Galactic Merger's passes are added by the look.
      */
     public double[] renderEvent() {
         final FieldState s = fs;
@@ -553,10 +554,26 @@ public final class EyeStarRuntime {
             case "Giant flare":
                 code = EyeStarLook.EV_GIANT_FLARE;
                 break;
+            case "Minor merger":
+                // renders v2 WP-5: the dwarf falls in from the side of the disc the event's sign names
+                code = s.ev.sign < 0 ? EyeStarLook.EV_MINOR_MERGER_DOWN : EyeStarLook.EV_MINOR_MERGER_UP;
+                break;
             default:
                 return null;
         }
         return new double[] { code, s.ev.next - s.t };
+    }
+
+    /**
+     * Renders v2 WP-5, read only: the T8 satellite crossing for the centre render: seconds to its hit while its 120 s
+     * countdown runs, minus the seconds since the hit during its 300 s; NaN when none.
+     */
+    public double renderCrossing() {
+        final FieldState s = fs;
+        if (s == null || s.tde == null || !burning()) return Double.NaN;
+        if (s.tde.warned) return s.tde.next - s.t;
+        if (s.tde.left > 0) return -(GalaxyField.CROSSING_DUR - s.tde.left);
+        return Double.NaN;
     }
 
     /** P4: the link milestone the Eye is working on now (6 or 7), or 0. */
