@@ -63,6 +63,10 @@ import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
 import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
 import com.nateyburr.beyondthestars.machines.gui.BTSText;
 
+import appeng.api.storage.data.IAEItemStack;
+import appeng.api.storage.data.IItemList;
+import appeng.me.GridAccessException;
+import appeng.util.item.AEItemStack;
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.Textures;
 import gregtech.api.interfaces.IIconContainer;
@@ -1896,24 +1900,52 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             return false;
         }
 
-        /** GUI: the charges across the live plinth input buses (ME buses through their shadow stacks). */
+        /**
+         * GUI: the charges across the live plinth input buses. READ ONLY: no recipe-processing window is opened,
+         * because GT's {@code MTEHatchInputBusME.endRecipeProcessing(controller)} stops the controller (a critical
+         * shutdown) when the bus cannot reach its grid, and a GUI must never do that. Outside the window a stocking
+         * bus shows only its circuit and manual slots through {@code getStackInSlot}, so its network stock is read
+         * here from the grid's item list for each slot configured to the charge (once per distinct config; nothing
+         * when the bus is disabled or its network is down, which is what a recipe check would see too).
+         */
         @Override
         public int countIgnitionCharges() {
             final Item charge = SLItems.stellarIgnitionCharge;
             if (charge == null) return 0;
-            int count = 0;
+            long count = 0;
             for (MTEHatchInputBus bus : itemBuses) {
                 if (!live(bus)) continue;
-                final boolean aware = bus instanceof IRecipeProcessingAwareHatch;
-                if (aware) ((IRecipeProcessingAwareHatch) bus).startRecipeProcessing();
-                try {
-                    for (int i = 0; i < bus.getSizeInventory(); i++) {
-                        final ItemStack stack = bus.getStackInSlot(i);
-                        if (stack != null && stack.getItem() == charge && stack.stackSize > 0) count += stack.stackSize;
-                    }
-                } finally {
-                    if (aware) ((IRecipeProcessingAwareHatch) bus).endRecipeProcessing(MTEEyeOfHarmonyBTS.this);
+                for (int i = 0; i < bus.getSizeInventory(); i++) {
+                    final ItemStack stack = bus.getStackInSlot(i);
+                    if (stack != null && stack.getItem() == charge && stack.stackSize > 0) count += stack.stackSize;
                 }
+                if (bus instanceof MTEHatchInputBusME) count += stockedCharges((MTEHatchInputBusME) bus, charge);
+            }
+            return (int) Math.min(Integer.MAX_VALUE, count);
+        }
+
+        /** A stocking bus's network stock of the charge, read from the grid's item list (no extraction, no window). */
+        private long stockedCharges(MTEHatchInputBusME bus, Item charge) {
+            if (!bus.isAllowedToWork()) return 0;
+            final List<ItemStack> seen = new ArrayList<>();
+            long count = 0;
+            try {
+                final IItemList<IAEItemStack> list = bus.getProxy()
+                    .getStorage()
+                    .getItemInventory()
+                    .getStorageList();
+                for (int i = 0; i < MTEHatchInputBusME.SLOT_COUNT; i++) {
+                    final ItemStack config = bus.getSlotConfig(i);
+                    if (config == null || config.getItem() != charge) continue;
+                    boolean dup = false;
+                    for (ItemStack s : seen) dup |= GTUtility.areStacksEqual(s, config);
+                    if (dup) continue;
+                    seen.add(config);
+                    final IAEItemStack stored = list.findPrecise(AEItemStack.create(config));
+                    if (stored != null && stored.getStackSize() > 0) count += stored.getStackSize();
+                }
+            } catch (GridAccessException e) {
+                return 0;
             }
             return count;
         }
