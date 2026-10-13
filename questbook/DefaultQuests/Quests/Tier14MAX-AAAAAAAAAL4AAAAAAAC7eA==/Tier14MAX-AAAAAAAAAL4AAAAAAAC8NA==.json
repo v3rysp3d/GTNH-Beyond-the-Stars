@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "The last voltage tier. In Beyond the Stars, MAX is built from what the Eye makes at T9 and T10, and that part of the mod is §9coming in a later update§r: our quests in this chapter are checkboxes until then. The pack's own MAX quests here work as before.\n\n§5§lTHE PLAN§r\n- Eye T9 makes §9White Hole Matter§r, and every MAX part is built from it, so MAX parts arrive before T10.\n- The Homogeny T3 and the two Reality machines make the §9Universal Upgrade Core§r.\n- §9Eye T10§r makes Universium, the only source in the game, and Universium opens §6The Endgame§r.\n\n§2§lDONE WHEN§r you tick the box: this one is the chapter's introduction.",
+      "desc:8": "The last voltage tier. In Beyond the Stars, MAX is built from what the Eye makes at T9 and T10, and that part of the mod is §9coming in a later update§r: our quests in this chapter are checkboxes until then. The pack's own MAX quests here work as before.\n\n§5§lTHE §lPLAN§r\n- Eye T9 makes §9White Hole Matter§r, and every MAX part is built from it, so MAX parts arrive before T10.\n- The Homogeny T3 and the two Reality machines make the §9Universal Upgrade Core§r.\n- §9Eye T10§r makes Universium, the only source in the game, and Universium opens §1The Endgame§r.\n\n§2§lDONE §lWHEN§r you tick the box: this one is the chapter's introduction.",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,

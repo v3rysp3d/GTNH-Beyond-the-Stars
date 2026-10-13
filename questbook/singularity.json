@@ -34,14 +34,14 @@
       "desc": [
         "The Eye's second half. {9}Sirius B{r} (T5) cools white dwarfs into black ones, and {9}the magnetar{r} (T6) runs on Antipolarization Agent. The {9}Quasar Engine{r} and the first galaxies (T7, T8) follow in a later update.",
         "",
-        "The bottom rows hold the pack's own UXV parts and machines. The crafted Stargate now waits in {6}The Endgame{r}, after MAX."
+        "The bottom rows hold the pack's own UXV parts and machines. The crafted Stargate now waits in {1}The Endgame{r}, after MAX."
       ]
     },
     {
       "key": "max", "low": 47992, "name": "Tier 14 - MAX", "dirStem": "Tier14MAX", "range": [48180, 48219],
       "icon": "mte:11234", "orderAfter": "l37V2WvbSHGZQ5oMgAfBuw==",
       "desc": [
-        "The last voltage tier. Beyond the Stars' part of it comes in a later update: MAX parts built from Eye T9's {9}White Hole Matter{r}, and Eye T10, which makes {9}Universium{r} and opens {6}The Endgame{r}."
+        "The last voltage tier. Beyond the Stars' part of it comes in a later update: MAX parts built from Eye T9's {9}White Hole Matter{r}, and Eye T10, which makes {9}Universium{r} and opens {1}The Endgame{r}."
       ]
     },
     {
@@ -788,7 +788,7 @@
         "{5}{l}THE PLAN{r}",
         "- Eye T9 makes {9}White Hole Matter{r}, and every MAX part is built from it, so MAX parts arrive before T10.",
         "- The Homogeny T3 and the two Reality machines make the {9}Universal Upgrade Core{r}.",
-        "- {9}Eye T10{r} makes Universium, the only source in the game, and Universium opens {6}The Endgame{r}.",
+        "- {9}Eye T10{r} makes Universium, the only source in the game, and Universium opens {1}The Endgame{r}.",
         "",
         "{2}{l}DONE WHEN{r} you tick the box: this one is the chapter's introduction."
       ]
@@ -867,7 +867,7 @@
         { "type": "fluid", "fluids": ["144x fluid:molten.universium"] }
       ],
       "desc": [
-        "The Universe. A jump as big as the Nano Forge's T4. Output: {9}Universium{r}, and only here. It opens {6}The Endgame{r}."
+        "The Universe. A jump as big as the Nano Forge's T4. Output: {9}Universium{r}, and only here. It opens {1}The Endgame{r}."
       ]
     },
     {
@@ -923,7 +923,7 @@
       "desc": [
         "{9}Universium is not the end of the game.{r} It is where the pack's MHDCSM line begins: MHDCSM coats Eternity parts, builds Resplendent Components, and stands between you and the Stargate.",
         "",
-        "In Beyond the Stars the crafted Stargate waits here, past MAX. The pack's own Stargate quests follow in their own order, and {6}What, How?{r} is the end of the book.",
+        "In Beyond the Stars the crafted Stargate waits here, past MAX. The pack's own Stargate quests follow in their own order, and {1}What, How?{r} is the end of the book.",
         "",
         "[note]Eye T10, the only Universium source, comes in a later update. Until then this chapter opens through the MAX checkboxes.[/note]",
         "",
@@ -973,7 +973,8 @@
     {
       "id": "E05", "quest": "UIg8uIZxS8K_JVlg7eZR9g==", "expectName": "T2 Exo-Foundry", "expectChapter": "uiv",
       "config": ["removeBlackHoleCompressorRecipe"],
-      "ops": [ { "op": "replaceText", "find": "unlocked the BHC", "with": "opened the Kerr's hole" } ]
+      "ops": [ { "op": "replaceText", "find": "unlocked the BHC", "with": "opened the Kerr's hole" },
+               { "op": "replaceText", "find": "Eternal Magnetic Chassis", "with": "Eternal {l}Magnetic {l}Chassis" } ]
     },
     {
       "id": "E06", "quest": "u-1Y-eQ-TLyw-WGi5EEnVA==", "expectName": "Tier 11 (UIV)", "expectChapter": "uiv",
@@ -1024,7 +1025,7 @@
       "id": "E12", "quest": "cO67NYK2QsyDlcvFGkk43A==", "expectName": "T2: Primitive", "expectChapter": "umv",
       "config": ["replaceTecTechEyeOfHarmony"],
       "ops": [
-        { "op": "setDesc", "desc": ["The {d}Primitive{r} field generators, tier 2.", "", "@gate_pattern", "", "Primitive lets your Eye reach {9}T2 (Sirius A){r}."] },
+        { "op": "setDesc", "desc": ["The {5}Primitive{r} field generators, tier 2.", "", "@gate_pattern", "", "Primitive lets your Eye reach {9}T2 (Sirius A){r}."] },
         { "op": "move", "to": "umv", "x": 792, "y": 72, "size": 24 }
       ]
     },
@@ -1032,7 +1033,7 @@
       "id": "E13", "quest": "Hgj4aBbmQUCkp325rL-McQ==", "expectName": "T3: Stable", "expectChapter": "umv",
       "config": ["replaceTecTechEyeOfHarmony"],
       "ops": [
-        { "op": "setDesc", "desc": ["The {d}Stable{r} field generators, tier 3.", "", "@gate_pattern", "", "Stable gates {9}T3 (Arcturus){r}."] },
+        { "op": "setDesc", "desc": ["The {5}Stable{r} field generators, tier 3.", "", "@gate_pattern", "", "Stable gates {9}T3 (Arcturus){r}."] },
         { "op": "move", "to": "umv", "x": 912, "y": 72, "size": 24 }
       ]
     },
@@ -1040,7 +1041,7 @@
       "id": "E14", "quest": "-fvTafFJRo67bYWh46USSw==", "expectName": "T4: Advanced", "expectChapter": "umv",
       "config": ["replaceTecTechEyeOfHarmony"],
       "ops": [
-        { "op": "setDesc", "desc": ["The {d}Advanced{r} field generators, tier 4.", "", "@gate_pattern", "", "Advanced gates {9}T4 (the neutron star){r}: the Core Collapse will not start without it."] },
+        { "op": "setDesc", "desc": ["The {5}Advanced{r} field generators, tier 4.", "", "@gate_pattern", "", "Advanced gates {9}T4 (the neutron star){r}: the Core Collapse will not start without it."] },
         { "op": "move", "to": "umv", "x": 1068, "y": 72, "size": 24 }
       ]
     },
@@ -1083,11 +1084,11 @@
         { "op": "move", "to": "uxv", "x": 24, "y": 144, "size": 72 },
         { "op": "replacePrereq", "from": "pack:U7Ta5d7PSii76sbIPbltlw==", "to": 48117 },
         { "op": "setDesc", "desc": [
-          "Welcome to UXV. In Beyond the Stars it is not the last tier: {6}Tier 14 - MAX{r} and {6}The Endgame{r} follow.",
+          "Welcome to UXV. In Beyond the Stars it is not the last tier: {1}Tier 14 - MAX{r} and {1}The Endgame{r} follow.",
           "",
           "We hope you enjoy your stay, though be prepared for a lot of waiting.",
           "",
-          "In Beyond the Stars this is the Eye's second half: {9}Sirius B (T5){r} cools white dwarfs into black, and {9}the magnetar (T6){r} runs on Antipolarization Agent. The {9}Quasar Engine{r} and the first galaxies (T7, T8) come in a later update. The crafted Stargate has moved to {6}The Endgame{r}, after MAX.",
+          "In Beyond the Stars this is the Eye's second half: {9}Sirius B (T5){r} cools white dwarfs into black, and {9}the magnetar (T6){r} runs on Antipolarization Agent. The {9}Quasar Engine{r} and the first galaxies (T7, T8) come in a later update. The crafted Stargate has moved to {1}The Endgame{r}, after MAX.",
           "",
           "[warn]{l}Universium:{r} it now comes only from Eye T10 (MAX), which is not built yet. The Eye's T5 and T6 cores do not need it: for now they are built from twice as many UMV parts, so Sirius B and the magnetar are craftable. The Homogeny Tier II Core is built the same way. The pack's own UXV parts (UXV components, the UXV CoAL, the UXV Field Generator) still need MHDCSM and Universium; nothing of Beyond the Stars before Eye T7 needs them. That stays so until the new UXV parts and circuits are designed and built. UXV circuits are craftable: the Polychrome and Dimensional Quantum Circuits need no Universium.[/warn]",
           "",
@@ -1172,7 +1173,7 @@
       "config": ["replaceTecTechEyeOfHarmony"],
       "ops": [
         { "op": "move", "to": "max", "x": 180, "y": 72, "size": 24 },
-        { "op": "setDesc", "desc": ["The {c}G{6}a{5}l{2}l{9}i{9}f{d}r{c}e{6}y{5}a{2}n{r} field generators, tier 9: TecTech's last.", "", "@gate_pattern", "", "Gallifreyan gates {9}T9{r}. Eye T10 will need a new, tenth tier. Both come in a later update."] }
+        { "op": "setDesc", "desc": ["The {c}G{4}a{5}l{2}l{9}i{1}f{5}r{c}e{4}y{5}a{2}n{r} field generators, tier 9: TecTech's last.", "", "@gate_pattern", "", "Gallifreyan gates {9}T9{r}. Eye T10 will need a new, tenth tier. Both come in a later update."] }
       ]
     },
     { "id": "E38", "quest": "2rrP1wt_Qt2LlOqDppdjLQ==", "expectName": "MAX Circuits", "expectChapter": "egoals", "ops": [ { "op": "move", "to": "max", "x": 24, "y": 348, "size": 24 } ] },

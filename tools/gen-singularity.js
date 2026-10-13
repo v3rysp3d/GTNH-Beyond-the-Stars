@@ -115,26 +115,75 @@ const GLYPHS = {
 // Every string a player reads in the book (our quests, our chapters, the plant chapter read back
 // from gen-questbook.ps1, and every text a pack edit writes) is checked against how BetterQuesting
 // actually draws it on its parchment page (background #FBF3DF, measured from a client screenshot):
-//  - colour codes with too little contrast there: yellow 0.96:1, aqua 1.11:1, green 1.20:1.
-//    Use {5} dark purple (5.8:1) for headings, {9} blue (4.6:1) for highlights, {2} dark green
-//    (2.8:1) for "done", and {3} dark aqua / {6} gold in quest names (also drawn on dark tooltips);
-//  - BOLD runs longer than BOLD_MAX visible characters: BetterQuesting wraps a line by its plain
-//    width, but every bold glyph is one unit wider, so a long bold run pushes the line's end past
-//    the text box and the last letters are cut off. Keep bold to a few words; a long heading is
-//    colour + capitals, not bold;
+//  - colour codes with too little contrast there: yellow 0.96:1, aqua 1.11:1, green 1.20:1
+//    anywhere; in descriptions also gold 1.73:1, grey 2.0:1 and light purple 2.37:1 (the round-2
+//    screenshots: the plant chapter's gold key lines were the hardest text in the book to read).
+//    Use {5} dark purple (5.8:1) for headings, {9} blue (4.6:1) for highlights, {1} dark blue
+//    (12:1) for key lines and chapter names in the text, {8} dark grey (6.7:1) for asides, {2} dark
+//    green (2.8:1) for "done", and {3} dark aqua / {6} gold only in quest names (a title is drawn
+//    bold, and on the map's dark tooltips too);
+//  - BOLD runs longer than BOLD_MAX visible characters (style: a long heading is colour + capitals,
+//    not bold). The cut-off letters the first screenshots showed are wrapSafe()'s job below;
+//  - text that wrapSafe() would still change (only gen-questbook.ps1's text can arrive that way:
+//    its Fmt applies the same two steps);
 //  - glyphs Minecraft's font draws oddly (sqrt, Phi, floor brackets, the sun sign).
 const BOLD_MAX = 16;
 const LOW_CONTRAST = { e: 'yellow', b: 'aqua', a: 'green' };
+const LOW_CONTRAST_BODY = { 6: 'gold', 7: 'grey', d: 'light purple' };
 const ODD_GLYPHS = /[\u03a6\u221a\u230a\u230b\u2609]/;
+
+// ----------------------------------------------------------------------------- wrap-safe text
+// BetterQuesting 3.8.89-GTNH wraps a description with java.text.BreakIterator and measures each
+// break segment ON ITS OWN (RenderUtils.splitString: width of the line so far + width of the next
+// segment). Two consequences, both seen in the round-2 screenshots (2026-10-13):
+//  - a bold run over several words is measured bold only in its first segment, so "DONE WHEN",
+//    "MASS INFUSION" or "The tier gate:" pushed their line one pixel per later bold glyph past the
+//    box and its last letter was cut ("escrou", "anc", "ever"). Step 2 re-opens bold after every
+//    space inside a bold run, so each segment carries its own code; it draws exactly the same;
+//  - a colour code glued to a number ("{9}1.51", "{9}50,000,000") makes BreakIterator break the
+//    number after its first '.' or ',' ("1." at a line end, "51 x 10..." on the next). Step 1 moves
+//    a code group that follows a space and precedes a digit in front of that space ("and{9} 1.51"),
+//    or in front of an opening bracket ("{2}(1,920"): the number is one segment again. Likewise a
+//    code between a closing bracket and punctuation ("(operator){r}.") lets the '.' start the next
+//    line on its own; the code moves after the punctuation ("(operator).{r}").
+// Both steps are idempotent (step 1 never moves a bare bold code, step 2 never doubles one), so
+// gen-questbook.ps1's WrapSafe (the same two steps) and this one agree on the plant chapter.
+const SEC = '\u00a7';
+function wrapSafe(text) {
+    const s = String(text)
+        .replace(/ ((?:\u00a7[0-9a-fk-or])*\u00a7[0-9a-fr](?:\u00a7[0-9a-fk-or])*)(?=[0-9])/g, '$1 ')
+        .replace(/\(((?:\u00a7[0-9a-fk-or])*\u00a7[0-9a-fr](?:\u00a7[0-9a-fk-or])*)(?=[0-9])/g, '$1(')
+        .replace(/([)\]])((?:\u00a7[0-9a-fk-or])+)([.,;:!?]+)/g, '$1$3$2');
+    let out = '', bold = false;
+    for (let i = 0; i < s.length; i++) {
+        const ch = s[i];
+        if (ch === SEC && i + 1 < s.length) {
+            const c = s[i + 1].toLowerCase();
+            if (c === 'l') bold = true; else if (/[0-9a-fr]/.test(c)) bold = false;
+            out += ch + s[i + 1];
+            i++;
+            continue;
+        }
+        out += ch;
+        if (ch !== ' ' || !bold || i + 1 >= s.length) continue;
+        const n = s[i + 1];
+        if (n === ' ' || n === '\n') continue;
+        if (n === SEC && i + 2 < s.length && /[0-9a-flr]/.test(s[i + 2].toLowerCase())) continue;
+        out += SEC + 'l';
+    }
+    return out;
+}
+
 function playerTextProblems(text, isName) {
     const out = [];
     const s = String(text || '');
     const bad = new Set();
-    for (const m of s.matchAll(/\u00a7([0-9a-fk-or])/g)) if (LOW_CONTRAST[m[1]]) bad.add(m[1]);
-    for (const c of bad) out.push(`colour code ${c} (${LOW_CONTRAST[c]}) is unreadable on the book's parchment page (use {5} headings, {9} highlights, {2} done; {3} or {6} in names)`);
+    for (const m of s.matchAll(/\u00a7([0-9a-fk-or])/g)) if (LOW_CONTRAST[m[1]] || (!isName && LOW_CONTRAST_BODY[m[1]])) bad.add(m[1]);
+    for (const c of bad) out.push(`colour code ${c} (${LOW_CONTRAST[c] || LOW_CONTRAST_BODY[c]}) is unreadable on the book's parchment page (use {5} headings, {9} highlights, {1} key lines, {8} asides, {2} done; {3} or {6} only in names)`);
     const g = ODD_GLYPHS.exec(s);
     if (g) out.push(`'${g[0]}' (U+${g[0].charCodeAt(0).toString(16).toUpperCase().padStart(4, '0')}) renders as an odd glyph in Minecraft's font; write it in words`);
     if (isName) return out; // a title is one line: never wrapped, so bold cannot be cut
+    if (wrapSafe(s) !== s) out.push('text is not wrap-safe (a multi-word bold run or a colour code glued to a number would be cut or split where BetterQuesting wraps); run it through wrapSafe / gen-questbook.ps1 WrapSafe');
     // bold opens at {l} and closes at {r} or any colour code (Minecraft's rule); BetterQuesting
     // carries an open format onto the next line, so a run is measured per line it covers
     let bold = false, run = '';
@@ -166,7 +215,11 @@ function makeFormatter(ctx) {
         }
         return out;
     };
-    return function fmt(text, where) {
+    // fmt: a description (wrap-safe); fmt.title: a title, which is never wrapped and stays as typed
+    const fmt = (text, where) => wrapSafe(raw(text, where));
+    fmt.title = raw;
+    return fmt;
+    function raw(text, where) {
         const s = expand(text, where).join('\n');
         return s.replace(/\{([^{}\s]+)\}/g, (m, tok) => {
             if (/^[0-9a-fk-or]$/.test(tok)) return '\u00a7' + tok;
@@ -178,7 +231,7 @@ function makeFormatter(ctx) {
             ctx.error(`${where}: unknown text token ${m}`);
             return m;
         });
-    };
+    }
 }
 
 // ------------------------------------------------------------------------------- source tree
@@ -485,7 +538,7 @@ function build(data, opts) {
         const placeholder = !!(q.needs && q.needs.length && !built(q.needs));
         const rec = { q, where, b64, chapter: q.chapter, placeholder, size: q.size || 24 };
         // name: a placeholder is grey and says so, so the book shows at a glance what is not built
-        const baseName = fmt(q.name, where);
+        const baseName = fmt.title(q.name, where);
         rec.name = placeholder ? '\u00a77\u00a7l\u00a7n' + strip(baseName) + '\u00a7r \u00a78(planned)' : baseName;
         rec.stem = q.stem || strip(baseName).replace(/[^A-Za-z0-9]/g, '').slice(0, 16);
         const descParts = [fmt(q.desc, where)];
@@ -575,7 +628,7 @@ function build(data, opts) {
         for (const op of ops || []) {
             const w = `${where} op ${op.op}`;
             switch (op.op) {
-            case 'setName': out.push({ op: 'setName', name: fmt(op.name, w) }); break;
+            case 'setName': out.push({ op: 'setName', name: fmt.title(op.name, w) }); break;
             case 'setDesc': desc = fmt(op.desc, w); out.push({ op: 'setDesc', desc }); break;
             case 'setIcon': {
                 const st = parseStack(op.item, w); checkExists(st, w);
@@ -908,7 +961,7 @@ function build(data, opts) {
             'properties:10': {
                 'betterquesting:10': {
                     'bg_image:8': '', 'bg_size:3': 256, 'desc:8': fmt(def.desc, `chapter ${c.key}`),
-                    'icon:10': itemNbt(Object.assign({}, icon, { count: 1 })), 'name:8': fmt(def.nameStyled || def.name, `chapter ${c.key}`),
+                    'icon:10': itemNbt(Object.assign({}, icon, { count: 1 })), 'name:8': fmt.title(def.nameStyled || def.name, `chapter ${c.key}`),
                     'visibility:8': 'UNLOCKED',
                 },
             },
@@ -1263,6 +1316,7 @@ function selftest(inp) {
         ['a bill role reassigned in the manifest', d => { d.bomItems.eye.band_shell.expect = 'NotThisBlock'; return d; }, /bomItems expects/],
         ['a long bold run', d => { q(d, 48100).desc = ['{5}{l}This whole sentence is bold and will be cut off.{r}']; return d; }, /bold run of/],
         ['a low-contrast colour', d => { q(d, 48100).desc = ['A {b}light aqua{r} word.']; return d; }, /unreadable on the book/],
+        ['gold in a description', d => { q(d, 48100).desc = ['A {6}gold{r} key line.']; return d; }, /code 6 \(gold\) is unreadable/],
         ['an odd glyph', d => { q(d, 48100).desc = ['{u+221a}M']; return d; }, /odd glyph/],
         ['a hidden pack chapter that still holds a quest', d => { const e = d.packEdits.find(x => x.id === 'E64'); e.ops = e.ops.filter(o => o.op !== 'move'); return d; }, /still holds/],
     ];
@@ -1273,6 +1327,23 @@ function selftest(inp) {
         const hit = expect ? res.errors.some(e => expect.test(e)) : res.errors.length === 0;
         console.log(`${hit ? 'ok  ' : 'FAIL'}  ${name}${expect ? ` -> ${(res.errors.find(e => expect.test(e)) || res.errors[0] || 'no error').slice(0, 150)}` : res.errors.length ? ' -> ' + res.errors[0] : ''}`);
         if (!hit) failed++;
+    }
+    // wrapSafe: what it turns the two round-2 failures into, that it is idempotent, and that the
+    // lint rejects text that skipped it (the way a hand-edited plant chapter would arrive)
+    const S = SEC;
+    const ws = [
+        [`${S}2${S}lDONE WHEN${S}r you hold it`, `${S}2${S}lDONE ${S}lWHEN${S}r you hold it`],
+        [`and ${S}91.51 ${GLYPHS.times} 10${GLYPHS.sup11} EU${S}r (about`, `and${S}9 1.51 ${GLYPHS.times} 10${GLYPHS.sup11} EU${S}r (about`],
+        [`a ${S}9${S}l4 h Resonant${S}r, a`, `a${S}9${S}l ${S}l4 ${S}lh ${S}lResonant${S}r, a`],
+        [`${S}5${S}lBUILD${S}r\n- plain ${S}9words${S}r here`, `${S}5${S}lBUILD${S}r\n- plain ${S}9words${S}r here`],
+        [`Derrick${S}r (${S}21,920 blocks)`, `Derrick${S}r ${S}2(1,920 blocks)`],
+        [`run /btsmigrate ${S}8(operator)${S}r. It reads`, `run /btsmigrate ${S}8(operator).${S}r It reads`],
+    ];
+    for (const [input, want] of ws) {
+        const got = wrapSafe(input), again = wrapSafe(got);
+        const ok = got === want && again === got && playerTextProblems(input, false).some(p => /wrap-safe/.test(p)) === (input !== want);
+        console.log(`${ok ? 'ok  ' : 'FAIL'}  wrapSafe ${JSON.stringify(input.replace(/§/g, '&'))} -> ${JSON.stringify(got.replace(/§/g, '&'))}`);
+        if (!ok) failed++;
     }
     if (failed) { console.error(`selftest: ${failed} case(s) failed`); process.exit(1); }
     console.log('selftest: every assertion fires on its broken input, and the real data builds clean.');

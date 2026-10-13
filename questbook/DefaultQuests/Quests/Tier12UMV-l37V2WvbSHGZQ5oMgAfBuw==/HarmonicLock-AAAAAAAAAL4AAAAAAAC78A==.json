@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "Hold §9Resonant for 600 seconds in a row§r and the Eye locks in: §9yield ×1.5§r until the streak breaks. The GUI's field line counts it as §lLock n/600§r.\n\nEvery milestone's Resonant time counts §lreal§r seconds, so the time dial cannot shortcut it. A tidy rig is how you climb: tighter sensor thresholds (around ±5) keep a star inside ±10 more of the time.\n\n§2§lDONE WHEN§r your Eye's GUI shows Lock at 600/600 or more and Y 1.50; then tick the box (a state is not an item).",
+      "desc:8": "Hold §9Resonant for 600 seconds in a row§r and the Eye locks in: §9yield ×1.5§r until the streak breaks. The GUI's field line counts it as §lLock §ln/600§r.\n\nEvery milestone's Resonant time counts §lreal§r seconds, so the time dial cannot shortcut it. A tidy rig is how you climb: tighter sensor thresholds (around ±5) keep a star inside ±10 more of the time.\n\n§2§lDONE §lWHEN§r your Eye's GUI shows Lock at 600/600 or more and Y 1.50; then tick the box (a state is not an item).",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
