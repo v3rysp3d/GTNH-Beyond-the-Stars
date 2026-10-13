@@ -456,13 +456,24 @@ public final class ConduitKit {
 
     /**
      * The hologram's survival path on one element or crown ({@code /btsconduit survival}): a bare controller facing
-     * north at (x, y, z), StructureLib's survival auto-place from an endless source until it reports done, a hatch in
-     * the first fuel socket (survival places hatches only with the projector's hatch channel), a creative
-     * re-projection over it (nothing may break) and the damage-and-repair check.
+     * {@code dir} at (x, y, z), StructureLib's survival auto-place from an endless source until it reports done (or,
+     * with {@code creative}, the projector's creative {@code construct}), a hatch in the first fuel socket (survival
+     * places hatches only with the projector's hatch channel), a creative re-projection over it (nothing may break)
+     * and the damage-and-repair check.
      */
     public static List<String> survivalTest(World world, int x, int y, int z, String kind) {
+        return survivalTest(world, x, y, z, kind, ForgeDirection.NORTH, false);
+    }
+
+    public static List<String> survivalTest(World world, int x, int y, int z, String kind, ForgeDirection dir,
+        boolean creative) {
         final List<String> out = new ArrayList<>();
-        final ExtendedFacing f = ExtendedFacing.of(ForgeDirection.NORTH);
+        final ExtendedFacing f = ExtendedFacing.of(dir);
+        out.add(
+            kind + " facing "
+                + dir.name()
+                    .toLowerCase(Locale.ROOT)
+                + (creative ? " (creative path)" : " (survival path)"));
         final String k = kind.toLowerCase(Locale.ROOT);
         final MTEEnhancedMultiBlockBase<?> m;
         final ItemStack stack;
@@ -483,19 +494,24 @@ public final class ConduitKit {
         }
         final ItemStack trigger = stack.copy();
         trigger.stackSize = tier;
-        final SLConsoleTest.SurvivalRun run = SLConsoleTest.survivalBuild(
-            (com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable) m,
-            world,
-            trigger,
-            25,
-            4000);
-        out.add(
-            kind + " survival auto-place: "
-                + run.placed
-                + " blocks in "
-                + run.rounds
-                + " rounds, "
-                + (run.finished ? "finished (-1)" : run.stalled ? "STALLED" : "round cap hit"));
+        if (creative) {
+            ((com.gtnewhorizon.structurelib.alignment.constructable.IConstructable) m).construct(trigger, false);
+            out.add(kind + " creative construct: done");
+        } else {
+            final SLConsoleTest.SurvivalRun run = SLConsoleTest.survivalBuild(
+                (com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable) m,
+                world,
+                trigger,
+                25,
+                4000);
+            out.add(
+                kind + " survival auto-place: "
+                    + run.placed
+                    + " blocks in "
+                    + run.rounds
+                    + " rounds, "
+                    + (run.finished ? "finished (-1)" : run.stalled ? "STALLED" : "round cap hit"));
+        }
         if (m instanceof MTEConduitElement) {
             final MTEConduitElement<?> e = (MTEConduitElement<?>) m;
             final int[][] u = socketRels(e.piece(), 'u');

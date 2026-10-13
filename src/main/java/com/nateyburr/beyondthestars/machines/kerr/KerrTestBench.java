@@ -126,7 +126,8 @@ public final class KerrTestBench {
             if (!r.mEnabled || r.mFakeRecipe || r.mEUt > maxEu || r.mInputs == null) continue;
             boolean ok = r.mInputs.length > 0;
             for (ItemStack in : r.mInputs) {
-                if (in == null || in.getItem() == null || in.stackSize <= 0) ok = false;
+                // stack size 0 = not consumed (a programmed circuit, e.g. SL-Q23's circuit 8): still stockable
+                if (in == null || in.getItem() == null || in.stackSize < 0) ok = false;
             }
             if (r.mFluidInputs != null) {
                 for (FluidStack f : r.mFluidInputs) {
@@ -160,7 +161,8 @@ public final class KerrTestBench {
                 for (ItemStack in : recipe.mInputs) {
                     final ItemStack s = in.copy();
                     if (s.getItemDamage() == Short.MAX_VALUE) s.setItemDamage(0);
-                    s.stackSize = Math.min(s.getMaxStackSize(), Math.max(s.stackSize, s.getMaxStackSize()));
+                    s.stackSize = in.stackSize == 0 ? 1
+                        : Math.min(s.getMaxStackSize(), Math.max(s.stackSize, s.getMaxStackSize()));
                     while (slot < inv.getSizeInventory() && inv.getStackInSlot(slot) != null) slot++;
                     if (slot >= inv.getSizeInventory()) break;
                     inv.setInventorySlotContents(slot, s);

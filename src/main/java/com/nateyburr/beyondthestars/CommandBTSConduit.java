@@ -10,6 +10,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.nateyburr.beyondthestars.items.SLQuasarItems;
@@ -47,7 +48,7 @@ public class CommandBTSConduit extends CommandBase {
     public String getCommandUsage(ICommandSender sender) {
         return "/btsconduit status x y z | dock x y z | rig x y z | rig status | pair x1 y1 z1 x2 y2 z2 | throat x y z mk"
             + " | fuel x y z on|off | junction x y z c k p3 [split|combine] | rebuild x y z [tier] | keep x1 y z1 x2 z2"
-            + " | survival x y z mouth|mirror|junction|crown1|crown2|crown3"
+            + " | survival x y z mouth|mirror|junction|crown1|crown2|crown3 [facing|up|down] [creative]"
             + " | inject rx ry rz qx qy qz bu | inject rx ry rz off";
     }
 
@@ -216,9 +217,22 @@ public class CommandBTSConduit extends CommandBase {
                 return;
             }
             case "survival": {
-                // survival x y z <mouth|mirror|junction|crown1|crown2|crown3>: the projector's survival path
+                // survival x y z <mouth|mirror|junction|crown1|crown2|crown3> [facing|up|down] [creative]: the
+                // projector's survival path (or its creative construct) on a bare controller with that facing
                 if (args.length < 5) break;
-                for (String line : ConduitKit.survivalTest(world, x, y, z, args[4])) SLConsoleTest.tell(sender, line);
+                ForgeDirection dir = ForgeDirection.NORTH;
+                boolean creative = false;
+                for (int i = 5; i < args.length; i++) {
+                    final String a = args[i].toLowerCase(Locale.ROOT);
+                    final ForgeDirection h = SLConsoleTest.parseFacing(a);
+                    if (h != null) dir = h;
+                    else if (a.equals("up")) dir = ForgeDirection.UP;
+                    else if (a.equals("down")) dir = ForgeDirection.DOWN;
+                    else if (a.equals("creative")) creative = true;
+                }
+                for (String line : ConduitKit.survivalTest(world, x, y, z, args[4], dir, creative)) {
+                    SLConsoleTest.tell(sender, line);
+                }
                 return;
             }
             case "keep": {
