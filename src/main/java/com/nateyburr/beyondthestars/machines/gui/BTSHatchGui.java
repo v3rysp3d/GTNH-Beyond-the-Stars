@@ -162,7 +162,10 @@ public abstract class BTSHatchGui<T extends MTEHatch> extends MTEHatchBaseGui<T>
         if (keepRight) {
             final int rw = KitDraw.width(right);
             KitDraw.textRight(right, width, 1, rightColour);
-            KitDraw.textCut(left, 0, 1, width - rw - 6, leftColour);
+            // a long channel name ("Zone (0 Resonant .. 4 Breach)") loses its parenthetical before it is cut
+            String l = left;
+            if (l != null && KitDraw.width(l) > width - rw - 6) l = l.replaceAll(" \\([^)]*\\)", "");
+            KitDraw.textCut(l, 0, 1, width - rw - 6, leftColour);
             return;
         }
         final int lw = Math.min(KitDraw.width(left), width);
@@ -176,6 +179,15 @@ public abstract class BTSHatchGui<T extends MTEHatch> extends MTEHatchBaseGui<T>
     }
 
     /**
+     * A lamp text that does not fit keeps only the first word of a parenthetical ("4 (unused on T1)" reads "4
+     * (unused)") before it is cut (dev client round 1: "4 (unused o." in the Directive Hatch's readout).
+     */
+    static String fit(String s, int width) {
+        if (s == null || KitDraw.width(s) <= width) return s;
+        return s.replaceAll("\\(([^ )]+)[^)]*\\)", "($1)");
+    }
+
+    /**
      * A lamp at (x, y) in the box: a 7x7 (edge + 5x5 fill), lit {@code §a} green while {@code on}, then its text (white
      * while on, grey while off). {@code width} bounds the text.
      */
@@ -183,7 +195,7 @@ public abstract class BTSHatchGui<T extends MTEHatch> extends MTEHatchBaseGui<T>
         return new BTSGuiKit.KitWidget((w, ww, hh) -> {
             final boolean lit = on.getAsBoolean();
             KitDraw.box(0, 1, 7, 7, BTSGuiKit.EDGE, lit ? BTSGuiKit.OK : BTSGuiKit.LAMP_OFF);
-            KitDraw.textCut(text.get(), 10, 1, ww - 10, lit ? BTSGuiKit.VALUE : BTSGuiKit.DIM);
+            KitDraw.textCut(fit(text.get(), ww - 10), 10, 1, ww - 10, lit ? BTSGuiKit.VALUE : BTSGuiKit.DIM);
         }).pos(x, y - 1)
             .size(width, 10);
     }

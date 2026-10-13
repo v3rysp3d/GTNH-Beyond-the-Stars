@@ -19,9 +19,9 @@ import gregtech.api.modularui2.GTGuiTextures;
 
 /**
  * Controller GUI cleanup (controller-gui-spec.md §5.10): the Directive Hatch's GUI on the hatch layout. The readout
- * box (46 high) says which set the hatch reports and for which machine, the four bits as lamps (lit while on) with
+ * box (66 high) says which set the hatch reports and for which machine, the four bits as lamps (lit while on) with
  * their names, and the code with the redstone it drives; on a control set, the input it reads and the setpoint that
- * drives. Under it the Set and Output cycles, Invert and the window field. The panel is 214 high so nothing overlaps
+ * drives. Under it the Set and Output cycles, Invert and the window field. The panel is 234 high so nothing overlaps
  * the inventory.
  * <p>
  * Every word is a lang key ({@code beyondthestars.gui.directive.*}); the bit names and the control line come from
@@ -30,10 +30,12 @@ import gregtech.api.modularui2.GTGuiTextures;
 public class DirectiveHatchGui extends BTSHatchGui<MTEHatchDirective> {
 
     private static final String K = "beyondthestars.gui.directive.";
-    /** Readout lines (box-relative y): the set, two lamp rows, the code. */
-    private static final int Y_SET = 5, Y_BITS1 = 17, Y_BITS2 = 27, Y_CODE = 37;
-    /** The second lamp column (box-relative x). */
-    private static final int LAMP_X2 = 85;
+    /**
+     * Readout lines (box-relative y): the set, the four bits one per row, the code. One bit per row (it was two per
+     * row): the Status and Transition names ("Buffers short", "Ready: load the next core") were cut to 70 px stubs
+     * in the dev client, round 1.
+     */
+    private static final int Y_SET = 5, Y_BITS1 = 16, Y_BITS2 = 26, Y_CODE = 56;
 
     private IntSyncValue set, output, code, out, host, controlIn;
     private BooleanSyncValue invert;
@@ -47,7 +49,13 @@ public class DirectiveHatchGui extends BTSHatchGui<MTEHatchDirective> {
 
     @Override
     protected int readoutHeight() {
-        return 46;
+        return 66;
+    }
+
+    /** 20 more than the hatch layout's 214: the box grew by two lamp rows and the controls still clear the slots. */
+    @Override
+    protected int panelHeight() {
+        return PANEL_H + 20;
     }
 
     // ================================================================================ text (client and bench)
@@ -195,9 +203,9 @@ public class DirectiveHatchGui extends BTSHatchGui<MTEHatchDirective> {
             final int bit = i;
             box.child(
                 lamp(
-                    i % 2 == 0 ? TEXT_X : LAMP_X2,
-                    i < 2 ? Y_BITS1 : Y_BITS2,
-                    i % 2 == 0 ? LAMP_X2 - TEXT_X - 4 : TEXT_X + TEXT_W - LAMP_X2,
+                    TEXT_X,
+                    Y_BITS1 + 10 * i,
+                    TEXT_W,
                     () -> (code.getIntValue() & (1 << bit)) != 0,
                     () -> bitText(bit, labels[bit].getStringValue())).setEnabledIf(w -> !set().control));
         }
@@ -218,7 +226,8 @@ public class DirectiveHatchGui extends BTSHatchGui<MTEHatchDirective> {
                 BTSGuiKit.VALUE).setEnabledIf(w -> set().control));
         box.child(
             line(Y_BITS2, () -> tr(K + "control.hint1"), BTSGuiKit.DIM, null, 0).setEnabledIf(w -> set().control));
-        box.child(line(Y_CODE, () -> tr(K + "control.hint2"), BTSGuiKit.DIM, null, 0).setEnabledIf(w -> set().control));
+        box.child(
+            line(Y_BITS2 + 10, () -> tr(K + "control.hint2"), BTSGuiKit.DIM, null, 0).setEnabledIf(w -> set().control));
     }
 
     private void setTooltip(RichTooltip t) {
