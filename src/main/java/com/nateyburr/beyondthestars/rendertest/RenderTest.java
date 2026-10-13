@@ -202,10 +202,47 @@ public final class RenderTest {
         return new float[] { stability };
     }
 
-    /** A quasar case's client look ({@code TileQuasarHole.debugLook}); flash age negative: no flash. */
+    /**
+     * A quasar case's client look ({@code TileQuasarHole.debugLook}); flash age negative: no flash. Renders v2: a flash
+     * is an eruption, the spin 0.5 (the T3 coils' equilibrium), the flux 30, no lock.
+     */
     private static float[] quasarLook(int zone, float lc, float e, float jetTop, float jetBottom, float flashAge,
         float flashSize) {
-        return new float[] { zone, lc, e, jetTop, jetBottom, flashAge, flashSize };
+        return quasarLook(
+            zone,
+            lc,
+            e,
+            jetTop,
+            jetBottom,
+            flashAge,
+            flashSize,
+            flashAge >= 0 ? 1 : 0,
+            0.5f,
+            30f,
+            false,
+            0f);
+    }
+
+    /**
+     * Renders v2 (R-03): the full quasar look: event kind (1 eruption, 2 purge, 3 blow-out, 4 re-formed, 5 First
+     * Light), spin, flux, Harmonic Lock, re-forming fraction.
+     */
+    private static float[] quasarLook(int zone, float lc, float e, float jetTop, float jetBottom, float flashAge,
+        float flashSize, int event, float spin, float phi, boolean lock, float reform) {
+        return new float[] { zone, lc, e, jetTop, jetBottom, flashAge, flashSize, event, spin, phi, lock ? 1 : 0,
+            reform };
+    }
+
+    /** Renders v2: one frame of an event sequence on the 1,024 SM quasar (Stable, jets 600 Bu/t). */
+    private static Case quasarEvent(String name, int event, float ageTicks, float size, float phi, String what) {
+        return new Case(
+            name,
+            Site.QUASAR,
+            1024,
+            null,
+            what,
+            -1,
+            quasarLook(1, 0.85f, 10f, 600f, 600f, ageTicks, size, event, 0.6f, phi, false, 0f));
     }
 
     /**
@@ -376,7 +413,93 @@ public final class RenderTest {
                 null,
                 "Quasar 1,024 SM, a purge flash (size 0.3) frozen at 30 of its 60 ticks, jets 300 Bu/t",
                 -1,
-                quasarLook(1, 0.85f, 0f, 300f, 300f, 30f, 0.3f)),
+                quasarLook(1, 0.85f, 0f, 300f, 300f, 30f, 0.3f, 2, 0.5f, 20f, false, 0f)),
+            // ---- renders v2 (WP-2): the quasar's other looks and the event sequences
+            new Case(
+                "quasar_256sm_lock",
+                Site.QUASAR,
+                256,
+                null,
+                "Quasar 256 SM, Resonant under the Harmonic Lock (600 s Resonant): the standing ripples, spin 0.9",
+                -1,
+                quasarLook(0, 0.9f, -5f, 60f, 60f, -1f, 0f, 0, 0.9f, 40f, true, 0f)),
+            new Case(
+                "quasar_256sm_flux95",
+                Site.QUASAR,
+                256,
+                null,
+                "Quasar 256 SM, Stable, flux 95 (past the eruption warning: the field lines crackle), spin 0.9",
+                -1,
+                quasarLook(1, 0.85f, 5f, 120f, 120f, -1f, 0f, 0, 0.9f, 95f, false, 0f)),
+            new Case(
+                "quasar_256sm_slowspin",
+                Site.QUASAR,
+                256,
+                null,
+                "Quasar 256 SM, Stable, spin 0.05 (the inner disc's edge at 6 r_g: a dark gap round the shadow)",
+                -1,
+                quasarLook(1, 0.85f, 0f, 60f, 60f, -1f, 0f, 0, 0.05f, 10f, false, 0f)),
+            new Case(
+                "quasar_256sm_strained",
+                Site.QUASAR,
+                256,
+                null,
+                "Quasar 256 SM, Strained (orange, thicker turbulence), E +40 (puffed), jets 200 Bu/t",
+                -1,
+                quasarLook(2, 0.95f, 40f, 200f, 200f, -1f, 0f, 0, 0.6f, 50f, false, 0f)),
+            new Case(
+                "quasar_256sm_reforming_half",
+                Site.QUASAR,
+                256,
+                null,
+                "Quasar 256 SM re-forming, half way (150 of 300 s): violet-red embers filling in from the inner wall",
+                -1,
+                quasarLook(-1, 0f, 0f, 0f, 0f, -1f, 0f, 0, 0.6f, 0f, false, 0.5f)),
+            quasarEvent("quasar_1024sm_erupt_t03", 1, 3f, 1f, 2f, "Eruption, 3 ticks in: the field lines snap"),
+            quasarEvent("quasar_1024sm_erupt_t10", 1, 10f, 1f, 2f, "Eruption, 10 ticks: the shell crosses the ring"),
+            quasarEvent(
+                "quasar_1024sm_erupt_t25",
+                1,
+                25f,
+                1f,
+                2f,
+                "Eruption, 25 ticks: the ring flares, the giant knots"),
+            quasarEvent("quasar_1024sm_erupt_t45", 1, 45f, 1f, 2f, "Eruption, 45 ticks: debris, the shell fading"),
+            quasarEvent("quasar_1024sm_erupt_t70", 1, 70f, 1f, 2f, "Eruption, 70 ticks: settling"),
+            quasarEvent(
+                "quasar_1024sm_purge_t04",
+                2,
+                4f,
+                0.3f,
+                15f,
+                "Purge, 4 ticks: the field lines unwind, jets pulse"),
+            quasarEvent("quasar_1024sm_purge_t15", 2, 15f, 0.3f, 15f, "Purge, 15 ticks: the spiral flash up the jets"),
+            quasarEvent("quasar_1024sm_purge_t40", 2, 40f, 0.3f, 15f, "Purge, 40 ticks: the ring dimmed"),
+            quasarEvent("quasar_1024sm_purge_t65", 2, 65f, 0.3f, 15f, "Purge, 65 ticks: recovering"),
+            new Case(
+                "quasar_256sm_blowout_t08",
+                Site.QUASAR,
+                256,
+                null,
+                "Blow-out, 8 ticks: the ring breaks up (zone already dark, jets off)",
+                -1,
+                quasarLook(-1, 0f, 0f, 0f, 0f, 8f, 0.5f, 3, 0.6f, 0f, false, 0f)),
+            new Case(
+                "quasar_256sm_blowout_t40",
+                Site.QUASAR,
+                256,
+                null,
+                "Blow-out, 40 ticks: chunks flying outward, fading",
+                -1,
+                quasarLook(-1, 0f, 0f, 0f, 0f, 40f, 0.5f, 3, 0.6f, 0f, false, 0f)),
+            new Case(
+                "quasar_256sm_reformed_t20",
+                Site.QUASAR,
+                256,
+                null,
+                "Re-formed, 20 ticks: the inner wall kindles, the gas fills outward (Stable)",
+                -1,
+                quasarLook(1, 0.85f, 0f, 30f, 30f, 20f, 0.5f, 4, 0.6f, 0f, false, 0f)),
             // ---- P4 Eye T7 / T8 (the centre render's galaxies)
             new Case(
                 "eye_t7_triangulum",
@@ -1338,6 +1461,26 @@ public final class RenderTest {
                 target = mid;
                 final double[] dir = norm(new double[] { F[0] + L[0], 0.9, F[2] + L[2] });
                 eye = add(mid, dir, Math.min(MAX_VIEW_DISTANCE, far * 1.15));
+                break;
+            }
+            case "ring":
+            case "cap": {
+                // renders v2 (WP-2): the quasar's ring from inside the shell, high over its near side looking in at
+                // the hole and the far side ("ring"), and its top cap from outside ("cap"); other sites use the
+                // close view
+                if (b.site == Site.QUASAR || b.site == Site.CONDUIT) {
+                    final double[] up = { 0, 1, 0 };
+                    if (view.equals("ring")) {
+                        eye = add(add(b.centre, F, 52), up, 46);
+                        target = add(b.centre, F, -12);
+                    } else {
+                        eye = add(add(add(b.centre, F, 70), L, 30), up, 112);
+                        target = add(b.centre, up, 78);
+                    }
+                    break;
+                }
+                target = b.centre;
+                eye = add(b.centre, norm(new double[] { F[0], 0.35, F[2] }), objectRadius(b) * 1.9 + 1.5);
                 break;
             }
             case "hero": {
