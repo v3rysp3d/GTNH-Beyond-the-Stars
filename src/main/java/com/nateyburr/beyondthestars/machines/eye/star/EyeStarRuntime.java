@@ -1798,7 +1798,10 @@ public final class EyeStarRuntime {
      * the new star's first cycle ({@link #transitionNeeds}), and for the Core Collapse the 90,000 L of SpaceTime the
      * bounce can absorb.</li>
      * <li>P4, T7 / T8 (the slot's chart a galaxy, or a galaxy lit): the planets-mode variant of the galaxy as a star in
-     * play; in galaxy mode the companions (running, and the slot bus's star charts that would latch at the next
+     * play; in galaxy mode the chain's steps still ahead of the live object (the Magnetar Merger a dark Eye starts
+     * from, the Magnetar Collapse, the Galactic Merger) as transitions that may begin, and the magnetar / Triangulum on
+     * the way as stars in play; in galaxy mode the companions (running, and the slot bus's star charts that would latch
+     * at the next
      * relight) for INTAKE_CYCLES cycles each at their own parallel, added to the galaxy's share (they are fed at the
      * same time); in planets mode the slot bus's planets, {@link #PLANET_INTAKE_RUNS} runs each at full parallel,
      * added up (the slots run at once).</li>
@@ -1833,6 +1836,19 @@ public final class EyeStarRuntime {
             if (t != null) types.add(t);
         }
         if (trans != null) types.add(trans.type);
+        // P4: a galaxy chart in galaxy mode walks the chain from the magnetar (a dark Eye re-merges one, then the
+        // Magnetar Collapse, then for the Milky Way the Galactic Merger): every step still ahead of the live object
+        // may begin, and each object on the way is a star in play.
+        if (want != null && want.galaxyTier() && galaxy.mode == EyeGalaxy.Mode.GALAXY) {
+            final int liveN = liveStar ? star.n() : 0;
+            for (int from = 5; from < want.n(); from++) {
+                if (liveN > from) continue;
+                final EyeTransition.Type t = EyeTransition.Type.leaving(from);
+                if (t != null) types.add(t);
+                final StarDef via = StarDef.ofTier(from + 1);
+                if (via != null && via != want) starIntake(cap, via);
+            }
+        }
         final Item core = coreFor(unlockedTier);
         if (core != null && escrow != null && escrow.getItem() == core) {
             final EyeTransition.Type t = EyeTransition.Type.leaving(unlockedTier);
