@@ -7905,8 +7905,10 @@ second's events wins.
 5. *Two new harness views*: `ring` (inside the shell, 46 blocks above the near side of the ring, looking in at the hole
    and the far side) and `cap` (the top cap from outside). The fixed BEFORE poses see the ring only at the `close`
    view's edges (through the lattice) and the `34` view through the roof.
-6. *The shock shell* is depth-tested against the world but its rim bulges out past the walls in the outside views,
-   which reads as the eruption from outside. Alternative: clip it at the outer wall.
+6. *The shock shell* races out to about 85 blocks over two seconds and fades by four; it is depth-tested against the
+   world but its rim bulges out past the walls in the outside views, which reads as the eruption from outside.
+   Alternative: clip it at the outer wall. (A first build reached the ring in half a second: in the clip it was gone
+   before it read.)
 
 **GPU (dev rig, RTX 4090, 1280 x 720, fixed poses, `GL_TIME_ELAPSED`; marginal = (5 draws - 1) / 4 with
 `-Dbts.render.qRepeat=5`).** Budget 0.20 ms (dev).
@@ -7928,10 +7930,13 @@ glows).
 **Checked.** Both profiles of `bts_qring`, `bts_qjet`, `bts_qfx` compile and link (`-Dbts.render.selftest=true`);
 322 AFTER shots (23 cases x 7 views x day / night) including the eruption (3, 10, 15, 25, 45, 70 ticks), purge (4, 15,
 30, 40, 65 ticks) and blow-out (8, 40 ticks) sequences; 60 LOW shots at the BEFORE poses (they match BEFORE);
-checkstyle and spotless clean.
+checkstyle and spotless clean. A 47 s clip (`tools/recording/renders-quasar.shots`: the ring from inside the shell, an
+orbit of the hole at 1,024 SM, a real eruption and a real purge driven by the quasar bench, the cap from outside), in
+which the eruption's shell, the snapping field lines and the purge's unwinding read in motion.
 
 **Not verified.** Angelica's core profile in Angelica itself, and a shaderpack (as R-10 / R-11).
 
 **Suggestion.** Accept the look, the deviations above and the extra `rf` field. R-09 (a window band in the disc wall)
 would let the ring be seen from outside; the render is ready for it. Shots: local work folder
-`renders/quasar/after-*.png`, `after-low-*`, GPU `after-fps*.tsv`; `renders/compare.html`.
+`renders/quasar/after-*.png`, `after-low-*`, GPU `after-fps*.tsv`; `renders/compare.html`; clip
+`video/renders/quasar-v2.mp4`.
