@@ -50,7 +50,8 @@ import gregtech.api.render.TextureFactory;
  * remembered source stops arriving and is FROZEN or not loaded, {@link #reading} says {@code paused}: the host holds
  * its
  * field still instead of reading zero. A source that is running but no longer reaches the port (a broken path), or is
- * gone, is forgotten and felt in full.
+ * gone, is forgotten and felt in full; so is a paused one silent for {@link #FORGET_PAUSED_TICKS} while another running
+ * source feeds the port (P4-83).
  */
 public class MTEHatchGRBReceptor extends MTEHatch {
 
@@ -60,6 +61,13 @@ public class MTEHatchGRBReceptor extends MTEHatch {
     public static final long HOST_STALE_TICKS = 60;
     /** Sources remembered for Q-8 (a port fed by more than this many quasars forgets the oldest). */
     private static final int MAX_KNOWN = 8;
+    /**
+     * A remembered source that pauses (frozen or not loaded) is forgotten once it has been silent this long while
+     * another
+     * running source feeds the port (10 min; P4-83): the port was re-aimed at another quasar, so the old one must not
+     * pause the host for ever. With no other source arriving it is kept, and Q-8 holds the host still.
+     */
+    static final long FORGET_PAUSED_TICKS = 12_000;
 
     private static final IIconContainer OVERLAY = Textures.BlockIcons
         .custom("beyondthestars:iconsets/OVERLAY_HATCH_GRB_RECEPTOR");
@@ -172,6 +180,10 @@ public class MTEHatchGRBReceptor extends MTEHatch {
             if (out.bySource.containsKey(e.getKey())) continue;
             if (e.getKey()
                 .pauses()) {
+                if (!out.bySource.isEmpty() && now - e.getValue() > FORGET_PAUSED_TICKS) {
+                    it.remove();
+                    continue;
+                }
                 if (!out.paused) {
                     out.paused = true;
                     out.pausedBy = e.getKey();
