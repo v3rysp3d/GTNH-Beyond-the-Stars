@@ -49,7 +49,7 @@ public final class HomogenyRender {
     private static final double VESSEL_R = 38;
     private static final int[] VESSELS_T1 = { 30, 150, 270 }, VESSELS_T2 = { 90, 210, 330 };
     /** March steps and noise octaves per tier L0..L2. */
-    private static final int[][] STEPS = { { 14, 3 }, { 10, 2 }, { 7, 1 } };
+    private static final int[][] STEPS = { { 10, 2 }, { 8, 2 }, { 6, 1 } };
 
     private static final class State {
 

@@ -69,7 +69,7 @@ vec3 mvVortex(vec3 p, float dt, float t, int oct) {
     float speed = mix(0.22, 1.0, act);
     float tier = u_VA.x;
     float Rf = mvFunnel(f);
-    float mixT = btsSmooth01((f - 0.30) / 0.55);
+    float mixT = btsSmooth01((f - 0.45) / 0.5);
     vec3 product = u_VE.rgb;
 
     // the swirl: angular speed falls with radius (inner gas laps the outer), gas rises
@@ -84,7 +84,7 @@ vec3 mvVortex(vec3 p, float dt, float t, int oct) {
     int nb = int(clamp(tier, 1.0, 3.0));
     float tilt = 1.0 / sqrt(1.0 + (Rf * 0.26) * (Rf * 0.26));
     float wq = 1.35 + 0.25 * sin(p.y * 0.4 + t * speed);
-    float weff = max(wq, dt * 0.55);
+    float weff = max(wq, dt * 0.9);
     float keep = wq / weff;
     float fil = mvN3(vec3(q.x * 0.55, q.y * 0.7, q.z * 0.55));
     for (int k = 0; k < 3; k++) {
@@ -94,7 +94,7 @@ vec3 mvVortex(vec3 p, float dt, float t, int oct) {
         float dh = length(p.xz - cen) * tilt;
         float dens = exp(-(dh * dh) / (weff * weff)) * keep * (0.55 + 0.9 * fil);
         vec3 col = mix(mvBraidColour(k), product, mixT);
-        c += col * dens * 1.6;
+        c += col * dens * 2.3;
     }
 
     // the sheath: a turbulent swirling shell round the funnel, the feeds' colours mixed by angle
@@ -107,7 +107,7 @@ vec3 mvVortex(vec3 p, float dt, float t, int oct) {
     vec3 feeds = (u_VB.rgb + (nb > 1 ? u_VC.rgb : u_VB.rgb) + (nb > 2 ? u_VD.rgb : u_VB.rgb)) / 3.0;
     float ang = 0.5 + 0.5 * cos(th - 0.26 * p.y - speed * t);
     vec3 sheathCol = mix(mix(u_VB.rgb, nb > 1 ? u_VC.rgb : u_VB.rgb, ang), product, mixT * 0.8 + 0.2);
-    c += mix(sheathCol, feeds, 0.3) * sheath * 0.3;
+    c += mix(sheathCol, feeds, 0.3) * sheath * 0.14;
 
     // sparks riding the flow
     if (oct >= 3) {
@@ -239,7 +239,7 @@ vec3 mvFloor(vec3 p, float slant, float t) {
     float outer = 1.0 - btsSmooth01((edge - 0.86) / 0.14);
     float speed = mix(0.25, 1.0, u_VA.y);
     float fringe = 0.5 + 0.5 * cos(r * 1.6 - t * 2.4 * speed);
-    return vec3(0.55, 0.75, 1.0) * pow(fringe, 4.0) * inner * outer * (0.10 + 0.30 * u_VA.y) * min(slant, 5.0) * 0.6;
+    return vec3(0.45, 0.65, 1.0) * pow(fringe, 6.0) * inner * outer * (0.05 + 0.12 * u_VA.y) * min(slant, 3.0) * 0.6;
 }
 
 // ----------------------------------------------------------------------------------- mode 2: the spine
@@ -314,8 +314,8 @@ vec4 mvShade(vec3 local) {
     float tw1 = t1;
     if (mode < 0.5) {
         // the vortex: the coil's glow where the ray crosses the wall, the march only through the funnel (r < 10.8)
-        acc += mvCoil(ro + rd * t1) * 1.4;
-        if (C > 0.0 && tw0 > 0.06) acc += mvCoil(ro + rd * tw0) * 1.4;
+        acc += mvCoil(ro + rd * t1) * 4.0;
+        if (C > 0.0 && tw0 > 0.06) acc += mvCoil(ro + rd * tw0) * 4.0;
         float ri = 10.8 / u_Box.x;
         float Ci = dot(o, o) - ri * ri;
         float di = B * B - A * Ci;
@@ -334,7 +334,8 @@ vec4 mvShade(vec3 local) {
         if (tf > t0 - 0.2 && tf < t1 + 0.2) sheets += mvFloor(ro + rd * tf, slant, t);
     }
     float dt = (t1 - t0) / float(steps);
-    float jit = btsHash12(gl_FragCoord.xy);
+    // interleaved gradient noise: a fine, even dither instead of white-noise grain
+    float jit = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
     for (int i = 0; i < 48; i++) {
         if (i >= steps) break;
         float tt = t0 + (float(i) + jit) * dt;
@@ -345,6 +346,6 @@ vec4 mvShade(vec3 local) {
         else e = mvSpine(p, dt, t);
         acc += e * dt;
     }
-    acc = acc * (mode < 0.5 ? 0.1 : mode < 1.5 ? 0.065 : 0.12) + sheets * u_VE.w;
+    acc = acc * (mode < 0.5 ? 0.1 : mode < 1.5 ? 0.085 : 0.12) + sheets * u_VE.w;
     return vec4(btsShoulder(acc, 1.5), 0.0);
 }
