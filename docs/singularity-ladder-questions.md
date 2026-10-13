@@ -6,7 +6,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 1. **Open questions**: each open decision once, with the answer we recommend and where the detail is.
 2. **Settled**: everything you have answered, in your words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision from you.
-4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101 and B-105..B-120, the tidy pass's
+4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101 and B-105..B-121, the tidy pass's
    TQ-1..TQ-8, and P4's P4-01..P4-94 in Part E).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
@@ -169,6 +169,8 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
   non-op client. [B-119]
 - ~~Review of the merged Eye GUI: a T8 merger warning hidden by a satellite crossing, the Buffers list cutting the
   fluid the star needs~~: both fixed; the overflow row is not yet seen in a client. [B-120]
+- ~~Record the final showcase~~: done, 7:05 at 1080p from master, with the pack's UIV / UMV quest chapters; the
+  recorder parks the mouse after a screen opens (a quest tooltip had covered the book). [B-121]
 
 **To see in a client** (the headless dev server cannot): the hologram hints, a survival build from a real AE system,
 the NEI multiblock tab and its frame rate (a T6 Eye is 51,935 blocks), every GUI (Eye, KEE, modules, Directive Hatch,
@@ -244,7 +246,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-101, B-105..B-120
+## Part B. Entries B-1..B-101, B-105..B-121
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -5884,6 +5886,39 @@ Two review findings on merged master (`63f53c5`), both checked against the code 
 
 **Suggestion.** Keep both. A possible later step is a sensor channel or `getEvent()` field for a second running
 countdown, so a rig can see a merger during a crossing without the GUI. That was not built.
+
+---
+
+### B-121 The final showcase recording [final showcase, recorded]
+
+**What was asked.** Record the final showcase from master's dev client with `tools/recording/showcase2.shots`, with
+the UIV / UMV quest chapters if a pack instance's quest files can be read, check a still of every scene, re-take bad
+scenes, and cut a 720p copy into parts under 14 MB.
+
+**What was done.**
+- The RC-2 pack instance's `config/betterquesting/DefaultQuests` was copied read-only (the instance was not touched)
+  to a scratch folder and into `run/client/config/betterquesting/`, and the run used `-Dbts.rec.questsdir`. The
+  setup's `/btsquests install` put our chapters and pack-chapter quests on top. Two scenes were added, `qb-uiv` and
+  `qb-umv` (the pack's Tier 11 and 12 chapters, by their UUIDs), and the chapter 9 card says what they are.
+- The dev client's BetterQuesting "View mode" was turned on, as in the pack's own config. With it off, the pack
+  chapters drew empty (their quests are locked in a fresh world).
+- **Recorder fix (`RecClient`).** Opening a screen ungrabs the cursor to the window's centre after the recorder had
+  parked it, so in the book a quest under the centre drew its tooltip over the shot (UMV, MAX), and so did NEI's
+  "Recipes" label. `gui`, `questbook` and `nei` now park the mouse again once the screen is up.
+- **Captions made true to the screen.** `eye-gui` now names what the T1 screen shows (pressure gauge, stability,
+  integrity, lock, cycle, Y, milestones, the Field / Galaxy / Info buttons). `refab` says what its checklist says:
+  it waits for a running Condensate Assembler nearby (and Diffraction's regions through the BEC network).
+- One full run (about 31 minutes real time, 62 scenes, 7:04.8 of video), then two re-takes with `-Dbts.rec.only`
+  (`ae-light,ae-burn,eye-gui,c9,qb` and `refab,build-nei,qb-`). Every scene's still was looked at: none black or
+  flipped, no HUD, hand or debug screen, captions readable, the time warp and time-lapse tags on every warped scene.
+- The live runs held: Rig C lit itself 7 s after its supply opened (x6 warp); the climbing Eye went T1 -> T6 under
+  the live gate rig; the Kerr Extractor took its 1,024 Stemcells in one 448-parallel run on camera; the Homogeny
+  installed T2; the Magnetar Collapse on the real quasar held ("10.72 Bu/t on the ports cancelled 92 of 120") and T7,
+  then T8, unlocked.
+
+**Known, not changed.** Opening the GUI of a machine raised by command logs GT's power-fail-tracker NPE (`FAILED:
+ExecutionException: NullPointerException` in `rec.log` for the quasar, mouth and crowns); the GUI opens normally
+(B-116). Reality Diffraction and Refab still do not run on camera (no BEC network in the world; B-118).
 
 ---
 
