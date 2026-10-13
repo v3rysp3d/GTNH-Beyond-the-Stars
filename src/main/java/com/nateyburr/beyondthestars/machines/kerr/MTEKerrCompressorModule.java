@@ -151,11 +151,6 @@ public class MTEKerrCompressorModule extends MTEKerrModuleBase<MTEKerrCompressor
             && kee.mass() >= MTEKerrEngine.DENSIFY_MIN_MASS;
     }
 
-    @Override
-    public String mapsLine() {
-        return "§7Maps: compressor + neutronium compressor + Kerr density (the inputs pick)";
-    }
-
     /** The DENSITY gate, live: what is missing, or that it is open. */
     @Override
     public String gateLine() {
