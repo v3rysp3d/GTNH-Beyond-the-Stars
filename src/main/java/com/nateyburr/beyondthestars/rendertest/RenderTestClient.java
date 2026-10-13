@@ -30,9 +30,12 @@ import org.lwjgl.opengl.DisplayMode;
 import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.client.render.GpuTimer;
 import com.nateyburr.beyondthestars.client.render.RenderQuality;
+import com.nateyburr.beyondthestars.machines.conduit.ConduitRender;
 import com.nateyburr.beyondthestars.machines.eye.render.TileEyeStar;
+import com.nateyburr.beyondthestars.machines.homogeny.HomogenyRender;
 import com.nateyburr.beyondthestars.machines.kerr.TileKerrHole;
 import com.nateyburr.beyondthestars.machines.quasar.render.TileQuasarHole;
+import com.nateyburr.beyondthestars.machines.reality.RealityRender;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -445,6 +448,14 @@ public final class RenderTestClient {
         TileQuasarHole.debugLook = !kerr && c.clientLook != null && c.clientLook.length == TileQuasarHole.DBG_LENGTH
             ? c.clientLook.clone()
             : null;
+        // renders v2 WP-6..WP-8: the machine renders' overrides (4-entry looks, last entry -2)
+        final boolean machine = c.clientLook != null && c.clientLook.length == 4 && c.clientLook[3] == -2f;
+        HomogenyRender.debugLook = machine && c.site == RenderTest.Site.HOMOGENY ? c.clientLook.clone() : null;
+        ConduitRender.debugLook = machine && c.site == RenderTest.Site.CONDUIT ? c.clientLook.clone() : null;
+        RealityRender.debugLook = machine
+            && (c.site == RenderTest.Site.REALITY_DIFFRACTION || c.site == RenderTest.Site.REALITY_REFAB)
+                ? c.clientLook.clone()
+                : null;
         await(() -> RenderTest.applyCase(c), r -> {
             say("  " + r);
             move();
@@ -549,6 +560,9 @@ public final class RenderTestClient {
         if (poses != null) poses.close();
         TileKerrHole.debugStability = -1f;
         TileQuasarHole.debugLook = null;
+        HomogenyRender.debugLook = null;
+        RealityRender.debugLook = null;
+        ConduitRender.debugLook = null;
         TileEyeStar.debugEventAge = -1;
         TileEyeStar.debugEventIn = Double.NaN;
         TileEyeStar.debugPrevKind = -1;

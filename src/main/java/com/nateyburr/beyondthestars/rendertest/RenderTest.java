@@ -878,26 +878,71 @@ public final class RenderTest {
                 -1,
                 Double.NaN),
             // ---- renders v2: machines with no visual yet (the poses for their future renders)
+            // renders v2 WP-7 / WP-8: clientLook {activity (-1 live), tier / held mask (-1 or 0 live), ...}
             new Case(
                 "homogeny_top",
                 Site.HOMOGENY,
                 0,
                 null,
-                "The Homogeny at its top tier, formed, idle: where the vortex would turn (no render yet)"),
+                "The Homogeny at its top tier, formed, idle: the vortex's dim slow swirl"),
+            machineCase(
+                "homogeny_top_run",
+                Site.HOMOGENY,
+                "The Homogeny T3 mixing: three braids and the core thread",
+                1,
+                0),
+            machineCase(
+                "homogeny_t1_run",
+                Site.HOMOGENY,
+                "The Homogeny shown at T1, mixing: one braid, three feed streams",
+                1,
+                1),
             new Case(
                 "reality_diffraction",
                 Site.REALITY_DIFFRACTION,
                 0,
                 null,
-                "Reality Diffraction, formed, idle (no render yet)"),
-            new Case("reality_refab", Site.REALITY_REFAB, 0, null, "Reality Refab, formed, idle (no render yet)"),
+                "Reality Diffraction, formed, idle: calm clouds, no beam"),
+            machineCase(
+                "reality_diffraction_run",
+                Site.REALITY_DIFFRACTION,
+                "Reality Diffraction running, all six regions anchored",
+                1,
+                63),
+            machineCase(
+                "reality_diffraction_unheld",
+                Site.REALITY_DIFFRACTION,
+                "Reality Diffraction running with regions 2 and 5 unanchored (their clouds flicker dim)",
+                1,
+                0b101101),
+            new Case(
+                "reality_refab",
+                Site.REALITY_REFAB,
+                0,
+                null,
+                "Reality Refab, formed, idle: dim glyphs, slow stream"),
+            machineCase("reality_refab_run", Site.REALITY_REFAB, "Reality Refab reassembling", 1, -1),
             new Case(
                 "conduit_crown",
                 Site.CONDUIT,
                 64,
                 null,
                 "The conduit rig: a 64 SM quasar with a Mk I Burst Thermaliser Crown docked on its top jet port"
-                    + " (the crown and the burst stream have no render yet)")));
+                    + " (renders v2 WP-6: the crown's heat)"),
+            new Case(
+                "conduit_stream",
+                Site.CONDUIT,
+                64,
+                null,
+                "The conduit rig's streams: mouth B emitting south to mirror 1, on east to the junction (WP-6;"
+                    + " 200 Bu/t forced on the client: mouth A does not form at the harness height)",
+                -1,
+                new float[] { 200f, 0f, -1f, -2f })));
+
+    /** Renders v2 WP-6..WP-8: a machine case with a client look {activity, tier or held mask}. */
+    private static Case machineCase(String name, Site site, String what, float activity, float second) {
+        return new Case(name, site, 0, null, what, -1, new float[] { activity, second, -1f, -2f });
+    }
 
     private static List<Case> only(List<Case> all) {
         final String filter = System.getProperty("bts.rendertest.only", "")
@@ -925,8 +970,14 @@ public final class RenderTest {
         ForgeDirection facing = FACING;
         /** {minX, minY, minZ, maxX, maxY, maxZ}. */
         int[] box;
-        /** The render object's centre (block centre). */
+        /** The render object's centre (block centre); the poses file's anchor. */
         double[] centre;
+        /**
+         * Renders v2 WP-6..WP-8: where the close and hero views look (the machine's render centre: the Homogeny's
+         * column
+         * axis, a Reality machine's axis at its belt / middle deck band), when it is not {@link #centre}; null: centre.
+         */
+        double[] focus;
         final List<String> lines = new ArrayList<>();
     }
 
@@ -1226,6 +1277,10 @@ public final class RenderTest {
         if (!r.formed) b.lines.add("WARNING: " + m.title() + " NOT FORMED");
         b.centre = new double[] { (b.box[0] + b.box[3] + 1) / 2.0, (b.box[1] + b.box[4] + 1) / 2.0,
             (b.box[2] + b.box[5] + 1) / 2.0 };
+        // renders v2 WP-7 / WP-8: the render centre (the manifest's centre.rel); the poses keep the box centre as
+        // anchor
+        final int[] f = SLConsoleTest.worldPos(ExtendedFacing.of(FACING), x, y, z, HRKit.centreRel(m));
+        b.focus = new double[] { f[0] + 0.5, f[1] + 0.5, f[2] + 0.5 };
     }
 
     /**
@@ -1249,6 +1304,9 @@ public final class RenderTest {
         final int[] c = rig.crownTop != null ? rig.crownTop
             : QuasarGeometry.world(ExtendedFacing.of(FACING), x, y, z, QuasarGeometry.centreRel());
         b.centre = new double[] { c[0] + 0.5, c[1] + 0.5, c[2] + 0.5 };
+        // renders v2 WP-6: the stream from mouth B (100 east, 40 down, 72 south of the quasar, emitting south) to
+        // mirror 1 (40 blocks south of it): its mid-point is where the conduit_stream views look
+        b.focus = new double[] { x + 100.5, y - 39.5, z + 92.5 };
     }
 
     /**
@@ -1544,7 +1602,7 @@ public final class RenderTest {
             case HOMOGENY:
             case REALITY_DIFFRACTION:
             case REALITY_REFAB:
-                return "no render yet (renders v2 target)";
+                return "renders v2 machine render (WP-7 / WP-8)";
             case CONDUIT:
             case QUASAR:
                 return applyQuasar(world, b, c);
@@ -1697,7 +1755,8 @@ public final class RenderTest {
             return renderBlockAt(world, b.centre);
         }
         if (c.site == Site.HOMOGENY || c.site == Site.REALITY_DIFFRACTION || c.site == Site.REALITY_REFAB) {
-            return "no render yet";
+            return "machine render, focus " + (b.focus == null ? "-"
+                : String.format(Locale.ROOT, "(%.1f, %.1f, %.1f)", b.focus[0], b.focus[1], b.focus[2]));
         }
         if (c.site == Site.QUASAR || c.site == Site.CONDUIT) {
             final MTEQuasarEngine q = QuasarKit.quasarAt(world, p[0], p[1], p[2]);
@@ -1771,87 +1830,135 @@ public final class RenderTest {
             depth + 1.1 * Math.max(hy / Math.tan(Math.toRadians(35)), lateral / Math.tan(Math.toRadians(50))) + 3);
         double[] target;
         double[] eye;
-        switch (view) {
-            case "front":
-                target = mid;
-                eye = add(mid, F, far);
-                break;
-            case "level": {
-                target = b.centre;
-                final double ext = F[0] != 0
-                    ? Math.max((box[0] - b.centre[0]) * F[0], (box[3] + 1 - b.centre[0]) * F[0])
-                    : Math.max((box[2] - b.centre[2]) * F[2], (box[5] + 1 - b.centre[2]) * F[2]);
-                eye = add(b.centre, F, Math.min(MAX_VIEW_DISTANCE, ext + 24));
-                break;
-            }
-            case "34": {
-                target = mid;
-                final double[] dir = norm(new double[] { F[0] + L[0], 0.9, F[2] + L[2] });
-                eye = add(mid, dir, Math.min(MAX_VIEW_DISTANCE, far * 1.15));
-                break;
-            }
-            case "ring":
-            case "cap": {
-                // renders v2 (WP-2): the quasar's ring from inside the shell, high over its near side looking in at
-                // the hole and the far side ("ring"), and its top cap from outside ("cap"); other sites use the
-                // close view
-                if (b.site == Site.QUASAR || b.site == Site.CONDUIT) {
-                    final double[] up = { 0, 1, 0 };
-                    if (view.equals("ring")) {
-                        eye = add(add(b.centre, F, 52), up, 46);
-                        target = add(b.centre, F, -12);
-                    } else {
-                        eye = add(add(add(b.centre, F, 70), L, 30), up, 112);
-                        target = add(b.centre, up, 78);
-                    }
+        final boolean hr = b.site == Site.HOMOGENY || b.site == Site.REALITY_DIFFRACTION
+            || b.site == Site.REALITY_REFAB;
+        final Case vc = currentCase;
+        if (b.site == Site.CONDUIT && b.focus != null && vc != null && vc.name.startsWith("conduit_stream")) {
+            // renders v2 WP-6: mouth B -> mirror 1 -> the junction, seen from the east
+            final double[] fo = b.focus;
+            switch (view) {
+                case "front":
+                    target = new double[] { fo[0] + 18, fo[1], fo[2] + 14 };
+                    eye = new double[] { target[0] + 95, target[1] + 30, target[2] - 55 };
                     break;
-                }
-                target = b.centre;
-                eye = add(b.centre, norm(new double[] { F[0], 0.35, F[2] }), objectRadius(b) * 1.9 + 1.5);
-                break;
+                case "34":
+                    target = new double[] { fo[0] + 18, fo[1], fo[2] + 14 };
+                    eye = new double[] { target[0] + 60, target[1] + 75, target[2] + 60 };
+                    break;
+                case "close":
+                    target = fo;
+                    eye = new double[] { fo[0] + 26, fo[1] + 9, fo[2] - 8 };
+                    break;
+                case "hero":
+                    target = new double[] { fo[0], fo[1], fo[2] - 10 };
+                    eye = new double[] { target[0] + 11, target[1] + 4, target[2] - 9 };
+                    break;
+                default:
+                    target = fo;
+                    eye = new double[] { fo[0] + 42, fo[1], fo[2] };
+                    break;
             }
-            case "hero": {
-                // renders v2 (R-01): the detail close-up, 3 object radii out, 30 degrees to the right of the front and
-                // 12 degrees above the disc plane (so a disc shows its lensed far side), never past a block
-                target = b.centre;
-                final double radius = heroRadius(b);
+        } else if (hr && b.focus != null && (view.equals("close") || view.equals("hero"))) {
+            // renders v2 WP-7 / WP-8: outside the glass, looking in at the render (the column, the drums, the trays)
+            final double[] up = { 0, 1, 0 };
+            final double ty = b.site == Site.HOMOGENY ? 1 : b.site == Site.REALITY_DIFFRACTION ? 7 : 12;
+            target = add(b.focus, up, ty);
+            if (view.equals("close")) {
+                final double out = b.site == Site.HOMOGENY ? 30 : b.site == Site.REALITY_DIFFRACTION ? 47 : 68;
+                final double rise = b.site == Site.HOMOGENY ? 16 : b.site == Site.REALITY_DIFFRACTION ? 10 : 18;
+                eye = add(add(b.focus, F, out), up, rise);
+            } else {
+                final double dist = b.site == Site.HOMOGENY ? 22 : b.site == Site.REALITY_DIFFRACTION ? 44 : 42;
                 final double[] dir = norm(
                     new double[] { F[0] * Math.cos(Math.toRadians(30)) + L[0] * Math.sin(Math.toRadians(30)),
                         Math.tan(Math.toRadians(12)),
                         F[2] * Math.cos(Math.toRadians(30)) + L[2] * Math.sin(Math.toRadians(30)) });
-                final double free = freeDistance(world, b.centre, dir, 120);
-                eye = add(b.centre, dir, Math.max(2.5, Math.min(free - 2, 3 * radius)));
-                break;
+                eye = add(target, dir, dist);
             }
-            default: {
-                target = b.centre;
-                final double radius = objectRadius(b);
-                double[] dir = norm(new double[] { F[0], 0.35, F[2] });
-                double free = freeDistance(world, b.centre, dir, 80);
-                double want = Math.max(free * 0.55, radius * 1.9 + 1.5);
-                if (radius >= 9) {
-                    // render QA E5: a big object needs the camera at 2.2 radii + 4 or the frame is one blurred
-                    // texture; that is outside the Eye's inner space from the front, so climb until a clear line
-                    // (over the crown) is found, else take the clearest. Round 3 (H-1): from radius 9, not over 12,
-                    // so Sol (23.8 blocks) and Sirius A (28.2) no longer fill the frame
-                    want = 2.2 * radius + 4;
-                    double[] best = dir;
-                    double bestFree = free;
-                    for (double up : new double[] { 0.35, 0.6, 0.9, 1.3, 2, 3.5, 8 }) {
-                        final double[] d = norm(new double[] { F[0], up, F[2] });
-                        final double fr = freeDistance(world, b.centre, d, 80);
-                        if (fr > bestFree) {
-                            best = d;
-                            bestFree = fr;
-                        }
-                        if (fr >= want + 2) break;
-                    }
-                    dir = best;
-                    free = bestFree;
+        } else {
+            switch (view) {
+                case "front":
+                    target = mid;
+                    eye = add(mid, F, far);
+                    break;
+                case "level": {
+                    target = b.centre;
+                    final double ext = F[0] != 0
+                        ? Math.max((box[0] - b.centre[0]) * F[0], (box[3] + 1 - b.centre[0]) * F[0])
+                        : Math.max((box[2] - b.centre[2]) * F[2], (box[5] + 1 - b.centre[2]) * F[2]);
+                    eye = add(b.centre, F, Math.min(MAX_VIEW_DISTANCE, ext + 24));
+                    break;
                 }
-                final double d = Math.max(2.5, Math.min(free - 2, want));
-                eye = add(b.centre, dir, d);
-                break;
+                case "34": {
+                    target = mid;
+                    final double[] dir = norm(new double[] { F[0] + L[0], 0.9, F[2] + L[2] });
+                    eye = add(mid, dir, Math.min(MAX_VIEW_DISTANCE, far * 1.15));
+                    break;
+                }
+                case "ring":
+                case "cap": {
+                    // renders v2 (WP-2): the quasar's ring from inside the shell, high over its near side looking in at
+                    // the hole and the far side ("ring"), and its top cap from outside ("cap"); other sites use the
+                    // close view
+                    if (b.site == Site.QUASAR || b.site == Site.CONDUIT) {
+                        final double[] up = { 0, 1, 0 };
+                        if (view.equals("ring")) {
+                            eye = add(add(b.centre, F, 52), up, 46);
+                            target = add(b.centre, F, -12);
+                        } else {
+                            eye = add(add(add(b.centre, F, 70), L, 30), up, 112);
+                            target = add(b.centre, up, 78);
+                        }
+                        break;
+                    }
+                    target = b.centre;
+                    eye = add(b.centre, norm(new double[] { F[0], 0.35, F[2] }), objectRadius(b) * 1.9 + 1.5);
+                    break;
+                }
+                case "hero": {
+                    // renders v2 (R-01): the detail close-up, 3 object radii out, 30 degrees to the right of the front
+                    // and
+                    // 12 degrees above the disc plane (so a disc shows its lensed far side), never past a block
+                    target = b.centre;
+                    final double radius = heroRadius(b);
+                    final double[] dir = norm(
+                        new double[] { F[0] * Math.cos(Math.toRadians(30)) + L[0] * Math.sin(Math.toRadians(30)),
+                            Math.tan(Math.toRadians(12)),
+                            F[2] * Math.cos(Math.toRadians(30)) + L[2] * Math.sin(Math.toRadians(30)) });
+                    final double free = freeDistance(world, b.centre, dir, 120);
+                    eye = add(b.centre, dir, Math.max(2.5, Math.min(free - 2, 3 * radius)));
+                    break;
+                }
+                default: {
+                    target = b.centre;
+                    final double radius = objectRadius(b);
+                    double[] dir = norm(new double[] { F[0], 0.35, F[2] });
+                    double free = freeDistance(world, b.centre, dir, 80);
+                    double want = Math.max(free * 0.55, radius * 1.9 + 1.5);
+                    if (radius >= 9) {
+                        // render QA E5: a big object needs the camera at 2.2 radii + 4 or the frame is one blurred
+                        // texture; that is outside the Eye's inner space from the front, so climb until a clear line
+                        // (over the crown) is found, else take the clearest. Round 3 (H-1): from radius 9, not over 12,
+                        // so Sol (23.8 blocks) and Sirius A (28.2) no longer fill the frame
+                        want = 2.2 * radius + 4;
+                        double[] best = dir;
+                        double bestFree = free;
+                        for (double up : new double[] { 0.35, 0.6, 0.9, 1.3, 2, 3.5, 8 }) {
+                            final double[] d = norm(new double[] { F[0], up, F[2] });
+                            final double fr = freeDistance(world, b.centre, d, 80);
+                            if (fr > bestFree) {
+                                best = d;
+                                bestFree = fr;
+                            }
+                            if (fr >= want + 2) break;
+                        }
+                        dir = best;
+                        free = bestFree;
+                    }
+                    final double d = Math.max(2.5, Math.min(free - 2, want));
+                    eye = add(b.centre, dir, d);
+                    break;
+                }
             }
         }
         // never inside a block: walk back along the view ray until the player's cells are air
