@@ -1797,9 +1797,18 @@ public final class EyeStarRuntime {
      * running one, and the next one once its core is in escrow ({@link #buffersShort}'s rule): its event fluids and
      * the new star's first cycle ({@link #transitionNeeds}), and for the Core Collapse the 90,000 L of SpaceTime the
      * bounce can absorb.</li>
+     * <li>P4, T7 / T8 (the slot's chart a galaxy, or a galaxy lit): the planets-mode variant of the galaxy as a star in
+     * play; in galaxy mode the companions (running, and the slot bus's star charts that would latch at the next
+     * relight) for INTAKE_CYCLES cycles each at their own parallel, added to the galaxy's share (they are fed at the
+     * same time); in planets mode the slot bus's planets, {@link #PLANET_INTAKE_RUNS} runs each at full parallel,
+     * added up (the slots run at once).</li>
      * </ul>
-     * Fluids not listed are not pulled at all (they stay in the hatch or the network). The controller adds the planet
-     * in the slot. Buffers already above their cap (worlds from before B-108) keep what they hold and are only drawn
+     * A star's share includes its fractional upkeep (T7's Molten Magnetar Matter, {@link StarDef#exactUpkeep}) and, for
+     * the T8 Ergomatter feed, INTAKE_CYCLES cycles at {@link GalaxyField#F8_MAX}. The galaxy transitions' charges
+     * (the Magnetar Collapse's WDM + BDM overfeed, the Galactic Merger's Ergomatter) come in through
+     * {@link #transitionNeeds}. Fluids not listed are not pulled at all (they stay in the hatch or the network). The
+     * controller adds the planet in the slot. Buffers already above their cap (worlds from before B-108) keep what they
+     * hold and are only drawn
      * down. Server state.
      */
     public Map<Fluid, Long> intakeCaps() {
@@ -1811,7 +1820,13 @@ public final class EyeStarRuntime {
             starIntake(cap, want);
             final StarDef lights = ignitable(want);
             if (lights != null && lights != want) starIntake(cap, lights);
+            // P4: a galaxy chart lights its planets-mode variant in planets mode
+            if (want.galaxyTier()) {
+                final StarDef planets = StarDef.planetsOf(want.n());
+                if (planets != null && planets != want) starIntake(cap, planets);
+            }
         }
+        galaxyIntake(cap, want, liveStar);
         final EnumSet<EyeTransition.Type> types = EnumSet.noneOf(EyeTransition.Type.class);
         if (want != null && want.n() >= 2 && (want.n() >= 4 || liveStar && star.n() == want.n() - 1)) {
             final EyeTransition.Type t = EyeTransition.Type.leaving(want.n() - 1);
@@ -1838,11 +1853,72 @@ public final class EyeStarRuntime {
         return cap;
     }
 
+    /** B-108 / P4: the runs a planet in a planets-mode slot buffers ahead (the controller's slot uses the same). */
+    public static final int PLANET_INTAKE_RUNS = 2;
+
+    /**
+     * P4's share of {@link #intakeCaps} on top of the stars in play: the galaxy's companions (galaxy mode) or the slot
+     * bus's planets (planets mode). Both are fed at the same time as the galaxy itself, so they add up.
+     */
+    private void galaxyIntake(Map<Fluid, Long> cap, StarDef want, boolean liveStar) {
+        final StarDef galaxyDef = liveStar && star.galaxyTier() ? star
+            : want != null && want.galaxyTier() ? want : null;
+        if (galaxyDef == null) return;
+        final int n = galaxyDef.n();
+        final int p = Math.max(1, parallel(n));
+        if (galaxy.mode == EyeGalaxy.Mode.PLANETS || liveStar && star.tier.planets()) {
+            final int inst = host.installedTier();
+            int slots = GalaxyField.planetSlots(n);
+            for (ItemStack stack : host.slotBusItems()) {
+                if (slots <= 0) break;
+                final EyeRecipe r = EyeRecipeRegistry.lookup(stack);
+                if (r == null || !r.isPlanet()) continue;
+                slots--;
+                final long par = r.tier <= inst ? 1L << (inst - r.tier) : 0;
+                for (EyeRecipe.FluidAmount in : r.inputs) {
+                    if (in.fluid != null && in.amount > 0) {
+                        cap.merge(in.fluid, sat((double) in.amount * par * PLANET_INTAKE_RUNS), EyeStarRuntime::satSum);
+                    }
+                }
+            }
+            return;
+        }
+        final java.util.Set<Integer> comps = new java.util.LinkedHashSet<>();
+        for (int k : galaxy.companions) comps.add(k);
+        final TierParams t = galaxyDef.tier;
+        for (int k : wantedCompanions(t)) comps.add(k);
+        for (int k : comps) {
+            final GalaxyField.Companion cp = GalaxyField.Companion.of(k);
+            final double par = GalaxyField.companionParallel(n, k) * p;
+            for (int u = 0; u < cp.upkeepCount(); u++) {
+                final Fluid fluid = companionFluid(cp.upkeepName(u));
+                if (fluid == null) continue;
+                cap.merge(fluid, sat(Math.ceil(cp.upkeepAmount(u) * par) * INTAKE_CYCLES), EyeStarRuntime::satSum);
+            }
+        }
+    }
+
+    /** Litres as a long, saturated (a T8 companion's hydrogen runs to 10^10 L and more). */
+    private static long sat(double litres) {
+        return litres >= Long.MAX_VALUE / 4 ? Long.MAX_VALUE / 4 : (long) Math.ceil(Math.max(0, litres));
+    }
+
+    private static Long satSum(Long a, Long b) {
+        final long s = a + b;
+        return s < 0 || s > Long.MAX_VALUE / 4 ? Long.MAX_VALUE / 4 : s;
+    }
+
     /** One star's share of {@link #intakeCaps} (max-merged: the stars in play are never fed at once). */
     private void starIntake(Map<Fluid, Long> cap, StarDef def) {
         final int p = Math.max(1, parallel(def.n()));
         for (EyeRecipe.FluidAmount up : def.upkeep) {
             cap.merge(up.fluid, up.amount * p * INTAKE_CYCLES, Math::max);
+        }
+        // P4: fractional upkeep (T7's Molten Magnetar Matter 7.5 L a cycle × p)
+        for (Map.Entry<Fluid, Double> up : def.exactUpkeep.entrySet()) {
+            if (up.getKey() != null) {
+                cap.merge(up.getKey(), sat(Math.ceil(up.getValue() * p) * INTAKE_CYCLES), Math::max);
+            }
         }
         if (def.tier.ignite) {
             for (Map.Entry<Fluid, Long> need : ignitionNeeds(def, p).entrySet()) {
@@ -1850,7 +1926,9 @@ public final class EyeStarRuntime {
             }
         }
         if (def.feed != null) {
-            cap.merge(def.feed, (long) Math.ceil(FEED_MAX * StellarField.CYCLE_SECONDS * p) * INTAKE_CYCLES, Math::max);
+            // T4's HSM feed at FEED_MAX; P4's T8 Ergomatter feed at F8_MAX (f8 · p litres a second, cycles at the dial)
+            final double rate = def.tier.ergoFeed ? GalaxyField.F8_MAX : FEED_MAX;
+            cap.merge(def.feed, (long) Math.ceil(rate * StellarField.CYCLE_SECONDS * p) * INTAKE_CYCLES, Math::max);
         }
         for (EyeRecipe.FluidAmount ch : def.charge) {
             cap.merge(ch.fluid, ch.amount * p * INTAKE_CHARGES, Math::max);

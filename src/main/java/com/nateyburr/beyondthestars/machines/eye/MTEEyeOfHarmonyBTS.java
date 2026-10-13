@@ -212,7 +212,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     /** Buffers cap at 2^62 L each (spec §3.3); what the sockets fill them to is {@link #intakeCaps} (B-108). */
     public static final long BUFFER_CAP = 1L << 62;
     /** B-108: the planet runs at full parallel the buffers fill to ahead (the next run is ready when one ends). */
-    public static final int PLANET_INTAKE_RUNS = 2;
+    public static final int PLANET_INTAKE_RUNS = EyeStarRuntime.PLANET_INTAKE_RUNS;
     private static final int DRAIN_INTERVAL = 20;
 
     /** Touch the NEI page at class init (preInit), before NEI builds its handlers. */
@@ -2557,7 +2557,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addInfo("A short wireless network runs fewer parallels rather than none.")
             .addInfo("Inputs drain every second into internal buffers, only up to the target's intake cap:")
             .addInfo("  stars max(ignition, 20 cycles of upkeep) plus a transition the Eye could begin; planets")
-            .addInfo("  2 runs at full parallel. The rest stays in the hatch or ME network (scanner: held / cap),")
+            .addInfo("  2 runs at full parallel (T7/T8: each slot-bus planet; companions add 20 of their cycles).")
+            .addInfo("  The rest stays in the hatch or ME network (scanner: held / cap),")
             .addInfo("  so one ME stocking hatch never drains the network. Outputs go to ME only.")
             .addSeparator()
             .addInfo("Chunk-load the full footprint: the structure check fails across unloaded chunks.")
