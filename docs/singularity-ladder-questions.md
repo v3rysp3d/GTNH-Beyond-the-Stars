@@ -6042,6 +6042,74 @@ registered, 12 circuits checked, 0 problem(s)`.
 3. **Disabled tooltip** keeps the item names (only the tooltip changes), so a world that turns the flag off still
    shows what the items were.
 
+### B-131 Circuits v2, phase C2: the chain recipes, Research Station research, rack components [circuits branch, built]
+
+**Context.** Spec `designs/docs/circuits-v2.md` revision 3, §2 (recipes), §2.4 (research), §3.1 (gate audit) and §3.4
+(computer rack); brief items 31-33 ("Any of the tier such as the (any uxv) forming oress recipe"; research in TecTech's
+Research Station; rack "Yes, slightly better").
+
+**What was built (C2).**
+- `BTSRecipesCircuits.java` (one owner, line "circuits" in `BTSRecipes`): SL-X01..X32 exactly as §2.1-§2.4, all in
+  stock GT machines. X01 Stellar Boule (EBF 12,600 K, 1,000 L Raw Star Matter), X02/X03 Stellar Wafers (16 / 24),
+  X04..X06 the three engravings (Raw Star Matter T1; White Dwarf Matter + ESPM T4; Black Dwarf Matter + HSM T5),
+  X07..X12 chips (8 / 12), X13..X17 Stellar SMDs (x64, ESPM), X18..X20 boards, X21 / X25 / X29 Processors in the
+  Circuit Assembler, and the nine Assembly / Supercomputer / Mainframe recipes as **research Assembly Line** recipes
+  through `TTRecipeAdder` (the Research Station writes the stick from the member below; §2.4's computation, per
+  second, EU/t and amperage). No step runs above RECIPE_UMV. The whole line is gated on `stellarCircuits` and
+  shows the flag in `/btsrecipes dump`.
+- `/btsrecipes` gains the group "Circuits" (SL-X / SL-N); the dump shows a research Assembly Line's real research
+  data (Research Station, research item, computation, per second, voltage, amperage) instead of TecTech's
+  placeholder item.
+- `BTSRecipeGuard.checkResearchCollisions` now also checks TecTech's Research Station list (it writes the stick of
+  the first recipe whose research item matches) and no longer treats TecTech's placeholder research item in GT's list
+  as a collision.
+- `compat/BTSRackComponents.java` (postInit, after TecTech's `MTEHatchRack.run`): the three Mainframes as computer-rack
+  parts through the package-private `RackComponent` constructor (reflection, no mixin; one warning and nothing else
+  if it fails): Sidereal 280 / 11 / -1 / 10,000, Empyrean 340 / 9 / -1 / 10,500, Omega 380 / 7 / -1 / 10,500
+  (computation / heat / cool / max heat, sub-zero), beside Piko 260 / 12 / 9,500, Quantum 320 / 10 / 10,000, Planck
+  360 / 8 / 10,000.
+- `/btseye gates` (`SLGateDump`): FIRST_MADE gains `stellarboule`, `stellarwafer`, `sidereal` -> T1, `stellarsmd` ->
+  T2, `empyrean` -> T4 and `omega{wafer,chip,processor,assembly,supercomputer,mainframe}` -> T5, and a "circuits"
+  section re-proves the unlock table at boot (each of the 28 items against its unlock tier, one level down; the
+  gate items must carry their tier's matter) and confirms no SL card outside the chain names one of our items. In
+  the gate audit an ore-dict slot is judged by a stock alternative when it has one (TecTech sorts alternatives by mod
+  id, so `beyondthestars` comes first, but a slot that takes stock circuits never needs ours).
+- `/btsrecipes circuits` (`BTSCircuitChecks`) now runs the C1 ore check plus: the unification target of each circuit
+  ore name (must stay stock), the 32 SL-X ids registered and live, the three slot fills, a real recipe-map lookup per
+  tier, the nine Research Station entries, and the rack lookup.
+
+**Checks** (headless `runServer`, port 25631, world `circuits-c1`). Boot: "Recipe registration complete: 343
+registered, 0 skipped" (311 before: +32), "3 Mainframes registered as computer-rack components", "Research items:
+all 21 of our assembly-line recipes (12 scanner, 9 Research Station) have a unique research item". `/btsrecipes
+circuits`: PASS in every section:
+- unification: `circuitExotic` / `circuitCosmic` / `circuitTranscendent` (and the three lower names) still unify to
+  the coremod's "Any UMV / UXV / MAX Circuit", so no stock recipe names ours;
+- slots: **4x Sidereal Mainframe accepted in the Emitter UMV's `circuitExotic` slot**, **4x Empyrean Mainframe in
+  the Field Generator UMV's `circuitCosmic` slot**, **4x Omega Mainframe in the Field Generator UXV's
+  `circuitTranscendent` slot**, each beside the stock circuit at the same count (GT's research assembly lines);
+- lookup: GT's own `findRecipeQuery` finds the same Assembler recipe with ours in place of the stock circuit (Mega
+  Ultimate Buck Converter with 2 Sidereal Mainframes, Extended Mega Ultimate Buck Converter with 2 Empyrean
+  Mainframes, Wrap of MAX Circuits with 16 Omega Mainframes);
+- research: the nine entries with §2.4's numbers, each on NEI's Research Station page and with the assembly-line twin
+  the data stick points at;
+- rack: the three binds found by unique id with the numbers above, in `validRackItems` and on NEI's Quantum Computer
+  page.
+`/btseye gates`: 0 generator and 0 P4 loops (unchanged), circuits section 0 problems (every gate item carries its
+tier's matter: boule T1, SMDs T2, wafers T1 / T4 / T5), 0 SL cards naming our items. `/btsrecipes status`: Circuits
+= 32, nothing registered without a live recipe.
+
+**Judgement calls (no decision needed unless you disagree).**
+1. **The Mysterious Crystal lens** of X04 is the coremod's "Quite Certain Crystal Lens" (`dreamcraft:MysteriousCrystalLens`),
+   the lens of GT's Optically Enriched Boule engraving; GT generates no Mysterious Crystal lens of its own. The
+   Forcicium lens (X06) is GT's. Both stay in the bus.
+2. **Silicone Rubber foil** in the assembly lines is Silicone Rubber exactly (as the spec and the NAC's
+   `FoilSiliconeRubber` component), not GT's "any synthetic rubber" ore slot that the Optical line uses. Alternative:
+   the any-rubber slot (cheaper rubber accepted); the NAC route would still need silicone.
+3. **Research-station collisions** are now checked too (a second recipe on the same research item could never be
+   put on a data stick); none exist.
+4. **Check verb placement**: the C2 checks extend `/btsrecipes circuits` (as C1), the gate audit lives in
+   `/btseye gates` beside the existing generator and P4 audits.
+
 ## Where the old question numbers went
 
 | Old | Now | Old | Now | Old | Now |
