@@ -6,7 +6,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 1. **Open questions**: each open decision once, with the answer we recommend and where the detail is.
 2. **Settled**: everything you have answered, in your words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision from you.
-4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-95 and B-105..B-113, the tidy pass's
+4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-95 and B-105..B-114, the tidy pass's
    TQ-1..TQ-8, and P4's P4-01..P4-94 in Part E).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
@@ -45,6 +45,7 @@ Most important first. "Recommended" is what we would build if you say nothing. N
 | 20 | A plus-signed decimal ("+0.5", "+0.15") can still break after its point at a line end: Java's line breaker splits it, 6 places in the Eye T4-T6 trims | Accept (rare, width-dependent); or write the trims without the plus sign | B-93, question 2 |
 | 21 | Resonance Chamber IV (the Eye T8 gate) has two recipes in NEI: GT's (MHDCSM foil) and our SL-P40 | Rewrite GT's in place under the same flag, with chamber III (question 4) | B-110 |
 | 22 | The intake cap at T7 / T8 buffers tens to hundreds of G L of hydrogen and helium (companions, planets mode) | Keep B-108's 20 cycles / 2 runs rule; shorten the companions' window if a shared network still starves | B-110 |
+| 23 | Eye T7 / T8 from the front at eye level: the window shows the galaxy's core and inner arms (\|x\| ≤ 10), but its outer arms (to r 16 / 19) stand behind the T6 rim and the arm blades | Keep the opening at \|x\| ≤ 10: wider would cut the arms and the rim out of the T4-T6 Eye too, and the near-flat disc (8° tilt) reads best from above anyway | B-114 |
 
 ## 2. Settled
 
@@ -136,6 +137,8 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
   change; tested with a clean stop and a killed server. [B-112]
 - ~~A full RC-2 dev-server test of master after the P4 merge~~: done; every check passed, the T6 -> T7 -> T8 chain
   ran unattended with 0 failures, and nothing needed fixing. [B-113]
+- ~~The Eye T7 / T8 front window (review finding)~~: done; the stability rail's front clamp no longer stands in
+  front of the galaxy's core, and the window check covers T1-T8. [B-114]
 
 **To see in a client** (the headless dev server cannot): the hologram hints, a survival build from a real AE system,
 the NEI multiblock tab and its frame rate (a T6 Eye is 51,935 blocks), every GUI (Eye, KEE, modules, Directive Hatch,
@@ -211,7 +214,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-95, B-105..B-113
+## Part B. Entries B-1..B-95, B-105..B-114
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -4858,6 +4861,53 @@ second, and a second call in the same tick refused.
 - The JVM-kill test was not repeated for P4's machines. B-112 ran it for master's machines.
 - The Reality Refab's runtime state.
 - An OpenComputers Adapter in a world.
+
+### B-114 The Eye T7 / T8 front window: the stability rail's clamp in front of the galaxy [merge-p4, review fix]
+
+**The finding (confirmed).** The merge (B-110) kept the Eye's window sightline check at T1-T6. At T7 and T8, P4's
+stability rail hangs on four clamps from the rim, and the one at 90° (Bastion Plate, piece `eye_rail`) roots in the
+rim's window opening, dead centre in front of the object: at \|x\| ≤ 1, z 71-77 from the Eye's centre it filled the
+whole 5-row band. A player in front of a formed T7 / T8 Eye saw a strut exactly over Triangulum's small core and the
+Milky Way's bulge (ruling 22d: "Glass window bands", the object reads from the front). Running the check to T8 on the
+merged exporter reported `FAIL Eye T7/T8 ... blocked: B@-1,-1,71 B@0,-1,71 B@1,-1,71 B@-1,1,75 B@0,1,76 B@1,1,75`.
+
+**Fix** (`tools/export-structures.js`, `windowEye`). The rail's clamp cells (kind bastion, no tag: voxel.js's
+`clamp()` clears it) are treated like the T4-T6 arm and rim cells in front of the core's pane: open (`' '`, anything)
+at \|y\| ≤ 2, z > 0, \|x\| ≤ 10. The strut now leaves the rim's lower lip and resumes above the band, the same cut the
+rim itself already has there. voxel.js is not edited.
+- 42 cells opened. `eye_rail`: Bastion 9,996 → 9,954, the piece 15,432 → 15,390 blocks. Its box, offset and sockets
+  (the 8 GRB Receptor Ports, 4 high / 4 low) are unchanged; the other pieces are byte-identical.
+- The sightline check runs T1-T8 (`eye_rail` / `eye_halo` included): Eye T7 and T8 are clear at y ±1, \|x\| ≤ 8.
+  Two new checks: `eye_rail` opens cells and has no pane; `eye_halo` has no window cells (its shards stand clear of
+  the band). The manifest's `windows.open` lists `eye_rail` 42 and `eye_halo` 0.
+- The questbook was rebuilt with `questbook/gen-bom.ps1`: The Stability Rail (48160) bills and names 9,954 Bastion
+  Plates. Bundle `534881cb57c8`.
+- The build spec's window paragraph and the Eye's `A` legend row say so.
+
+**Not changed, and asked (open question 23).** The later-tier opening stays \|x\| ≤ 10. The T7 / T8 galaxies reach
+r 16 / 19, so from the front at eye level their outer arms stand behind the T6 rim and the arm blades (\|x\| 11-22).
+Widening the opening at T7 / T8 alone is not possible: those cells belong to `eye_arms` / `eye_arms2` / `eye_rim`,
+which a T4-T6 Eye has too, so a wider opening would cut the arms and the rim at every tier. The galaxy disc is nearly
+flat (8°), so from eye level it is a thin streak anyway; from above, or from the side, the whole disc reads.
+
+**Checks.**
+- `export-structures --check`: matches voxel.js `fa6fec2a751c`, every sanity check ok.
+- `gen-singularity --check` (139 files, bundle `534881cb57c8`) and `--selftest` pass.
+- `spotlessApply compileJava` passes. No Java changed, so the goldens were not re-run.
+
+**Dev server** (headless `runServer`, port 25565, fresh flat world `b114`, two boots).
+- Boot 1, the shapes from before the fix (`e8e1240~1`'s `eye_rail.txt` and `manifest.json` put in place for the
+  boot): an Eye T8 creative at 0 100 0 facing north and an Eye T7 survival at 3000 100 0 facing east (65,989 blocks
+  placed, as B-113) were both FORMED. These are Eyes with the clamp in the window.
+- Boot 2, the fixed shapes: both old Eyes `check` FORMED (all bands, the rail and the halo). New builds: Eye T8
+  survival facing south, 69,656 blocks placed (B-113: 69,698), and Eye T7 survival facing east, 65,947 (65,989): 42
+  fewer each. Both FORMED, with the kit's creative re-projection and the damage-and-repair test passing. Eye T8
+  creative facing west with `oldwindows` (339 pre-window panes put back): FORMED.
+- 311 registered, 0 skipped; no BTS warning or error, no `com.nateyburr` stack trace. The dev server's level name and
+  `cmds.txt` were put back afterwards.
+
+**Not covered.** No client was run, so the window was not looked at in game; the showcase camera should check it at
+Eye T7 / T8.
 
 ---
 
