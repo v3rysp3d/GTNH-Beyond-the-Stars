@@ -611,6 +611,18 @@ public final class CircuitChainBench {
     private static Job job;
     private static boolean ticker;
 
+    /** True while a {@code make} runs (the recorder's {@code chainbusy} / {@code chainidle} conditions). */
+    public static boolean busy() {
+        return job != null;
+    }
+
+    /** The recipe id of the step a running {@code make} is on ("SL-X24"), or "" (the recorder's {@code chainstep}). */
+    public static String currentStep() {
+        final Job j = job;
+        final Step s = j == null ? null : j.step();
+        return s == null ? "" : s.id;
+    }
+
     /** Our items between machines; only machine outputs fill it. */
     private static final Map<Item, Long> STORE = new LinkedHashMap<>();
     /** Everything the bench supplied (not our items), for the report. */

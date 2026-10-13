@@ -177,7 +177,9 @@ final class RecServer {
      * {@code state:<name>:<STATE>} (the Eye runtime's state), {@code trans:<name>} / {@code notrans:<name>} (a
      * transition runs / none), {@code unlocked:<name>:<n>}, {@code game:<s>} (s seconds of game time since the wait
      * began: under the time warp that is less real time), {@code me:<place>:<fluid or item name>:<amount>} (the ME
-     * network behind the cable at the place holds that much).
+     * network behind the cable at the place holds that much); the circuit chain bench ({@code /btsrecipes chain}):
+     * {@code chainbusy} / {@code chainidle} (a {@code make} runs / none), {@code chainstep:<SL-Xnn>} (it is on that
+     * step).
      */
     static boolean cond(String spec) {
         final String[] a = spec.split(":");
@@ -207,6 +209,13 @@ final class RecServer {
             }
             case "me":
                 return meAmount(a[1], a[2]) >= Long.parseLong(a[3]);
+            case "chainidle":
+                return !com.nateyburr.beyondthestars.CircuitChainBench.busy();
+            case "chainbusy":
+                return com.nateyburr.beyondthestars.CircuitChainBench.busy();
+            case "chainstep":
+                return com.nateyburr.beyondthestars.CircuitChainBench.currentStep()
+                    .equalsIgnoreCase(a[1]);
             default:
                 break;
         }

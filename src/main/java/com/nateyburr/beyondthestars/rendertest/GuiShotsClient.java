@@ -931,7 +931,8 @@ public final class GuiShotsClient {
         }
     }
 
-    private static net.minecraft.item.ItemStack neiStack(String spec) {
+    /** Shared with the recorder's {@code nei}: ItemList.<name>, sl.<field>, cc.<component>, mod:item[:meta]. */
+    static net.minecraft.item.ItemStack neiStack(String spec) {
         try {
             if (spec.startsWith("ItemList.")) {
                 return gregtech.api.enums.ItemList.valueOf(spec.substring(9))

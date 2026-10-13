@@ -88,6 +88,7 @@ final class RecScript {
             "budget",
             "every",
             "tab",
+            "page",
             "name",
             "gen",
             "side",
