@@ -20,9 +20,11 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 
 /**
  * The standard gate rig ({@link DirectiveBench.EyeRig}) LIVE: once every game second, for each Eye it is on, one
- * {@code act} on the codes its Trims, Status and Transition Directive Hatches put out (what plain redstone, export buses
+ * {@code act} on the codes its Trims, Status and Transition Directive Hatches put out (what plain redstone, export
+ * buses
  * with redstone cards and an AE2 level maintainer do with those bits). {@code /btseye star x y z autorig <s>} runs the
- * same rig for s seconds inside one command; this one runs alongside the game, so the star is seen being held, and under
+ * same rig for s seconds inside one command; this one runs alongside the game, so the star is seen being held, and
+ * under
  * the time warp ({@code /btswarp}) it runs as fast as everything else. Bench only: {@code /btseye star x y z liverig
  * on|off|status}. It keeps no state in the world and stops when the server stops.
  */

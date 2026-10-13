@@ -162,9 +162,8 @@ final class MeParts {
      * {@code speedCards} acceleration cards. With {@code facade} a quartz facade goes on the top face, so redstone
      * dust can stand on the cable block and power it.
      */
-    static PartSharedItemBus<?> exportBus(World world, int[] p, ForgeDirection side, IAEStack<?> filter,
-        int speedCards, boolean fluid, boolean facade, Kind kind, AEColor color, EntityPlayer player,
-        List<String> log, String tag) {
+    static PartSharedItemBus<?> exportBus(World world, int[] p, ForgeDirection side, IAEStack<?> filter, int speedCards,
+        boolean fluid, boolean facade, Kind kind, AEColor color, EntityPlayer player, List<String> log, String tag) {
         cable(world, p, kind, color, player);
         final IPartHost h = host(world, p);
         if (h == null) {
@@ -196,7 +195,9 @@ final class MeParts {
             .putSetting(Settings.REDSTONE_CONTROLLED, RedstoneMode.HIGH_SIGNAL);
         h.markForUpdate();
         log.add(
-            tag + (fluid ? "fluid " : "") + "export bus at " + RenderTest.pos(p)
+            tag + (fluid ? "fluid " : "")
+                + "export bus at "
+                + RenderTest.pos(p)
                 + " facing "
                 + side
                 + ": "
@@ -206,7 +207,9 @@ final class MeParts {
         return bus;
     }
 
-    /** AE2FC's fluid storage bus on the cable at {@code p}, facing {@code side}, read only (the network takes from it). */
+    /**
+     * AE2FC's fluid storage bus on the cable at {@code p}, facing {@code side}, read only (the network takes from it).
+     */
     static boolean storageBus(World world, int[] p, ForgeDirection side, EntityPlayer player, List<String> log,
         String tag) {
         final IPartHost h = host(world, p);

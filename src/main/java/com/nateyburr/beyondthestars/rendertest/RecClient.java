@@ -129,7 +129,9 @@ public final class RecClient {
     private String tag;
     private boolean guiOpen;
     private long sceneRecStart = -1;
-    /** The caption now on screen (a scene can change it as it goes), when it came up, and whether it waits for frames. */
+    /**
+     * The caption now on screen (a scene can change it as it goes), when it came up, and whether it waits for frames.
+     */
     private String caption = "";
     private long captionStart = -1;
     private boolean captionPending;
@@ -843,7 +845,9 @@ public final class RecClient {
             }
             case "aecells":
                 acts.add(
-                    new Server("AE2 Eye rig: the cells into the drive", () -> AutoRigEyeAE.insertCells(RenderTest.world())));
+                    new Server(
+                        "AE2 Eye rig: the cells into the drive",
+                        () -> AutoRigEyeAE.insertCells(RenderTest.world())));
                 break;
             case "kit": {
                 final String what = c.arg(0)
@@ -964,8 +968,7 @@ public final class RecClient {
                 final int[] p = block(resolve(c.arg(1)));
                 final String facing = c.kv.getOrDefault("facing", "north");
                 final String name = c.kv.get("name");
-                acts.add(
-                    new Server("place " + spec, () -> RecServer.place(spec, p, RecServer.facing(facing), name)));
+                acts.add(new Server("place " + spec, () -> RecServer.place(spec, p, RecServer.facing(facing), name)));
                 break;
             }
             case "hologram": {
@@ -1234,7 +1237,10 @@ public final class RecClient {
         }
 
         Hold(double seconds, double speed, boolean clock) {
-            this("hold " + seconds + " s" + (speed > 1 ? " at " + FrameRecorder.fmt(speed) + "x" : ""), seconds, speed,
+            this(
+                "hold " + seconds + " s" + (speed > 1 ? " at " + FrameRecorder.fmt(speed) + "x" : ""),
+                seconds,
+                speed,
                 clock);
         }
 
@@ -1336,7 +1342,8 @@ public final class RecClient {
         final double[] at = resolve(head.get(0));
         String side = "";
         for (int i = 1; i + 1 < head.size(); i++) if (head.get(i)
-            .equalsIgnoreCase("side")) side = head.get(i + 1)
+            .equalsIgnoreCase("side"))
+            side = head.get(i + 1)
                 .toLowerCase(Locale.ROOT);
         final String s = side;
         return new Instant("label at " + Arrays.toString(at) + ": " + text, () -> labels.add(new Label(at, text, s)));
@@ -1429,8 +1436,11 @@ public final class RecClient {
         float yaw, pitch;
 
         Dolly(double[] from, double[] to, double[] look, double seconds, String ease, double speed, boolean clock) {
-            super("dolly in " + seconds + " s" + (speed > 1 ? " at " + FrameRecorder.fmt(speed) + "x" : ""), seconds,
-                speed, clock);
+            super(
+                "dolly in " + seconds + " s" + (speed > 1 ? " at " + FrameRecorder.fmt(speed) + "x" : ""),
+                seconds,
+                speed,
+                clock);
             this.from = from;
             this.to = to;
             this.look = look;
@@ -1470,7 +1480,10 @@ public final class RecClient {
         }
 
         Pan(double[] target, double seconds, double speed) {
-            super((seconds > 0 ? "pan " + seconds + " s" : "look") + " at " + Arrays.toString(target), seconds, speed,
+            super(
+                (seconds > 0 ? "pan " + seconds + " s" : "look") + " at " + Arrays.toString(target),
+                seconds,
+                speed,
                 false);
             this.target = target;
         }
@@ -1648,7 +1661,8 @@ public final class RecClient {
                     return;
                 }
             }
-            if (f == null && ticks % every == 0) f = RenderTest.onServer(() -> RecServer.survivalRound(p, tier, budget));
+            if (f == null && ticks % every == 0)
+                f = RenderTest.onServer(() -> RecServer.survivalRound(p, tier, budget));
         }
 
         @Override

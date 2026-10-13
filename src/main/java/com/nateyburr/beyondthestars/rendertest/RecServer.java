@@ -8,9 +8,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.WorldServer;
-import net.minecraftforge.common.util.ForgeDirection;
-
 import net.minecraftforge.common.util.FakePlayerFactory;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import com.gtnewhorizon.structurelib.StructureLibAPI;
 import com.gtnewhorizon.structurelib.alignment.constructable.IConstructable;
@@ -358,9 +357,10 @@ final class RecServer {
             for (com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective h : eye.directiveHatches()) {
                 final IGregTechTileEntity t = h.getBaseMetaTileEntity();
                 if (t == null) continue;
-                final String k = n + ".dir." + h.getSet()
-                    .name()
-                    .toLowerCase(Locale.ROOT);
+                final String k = n + ".dir."
+                    + h.getSet()
+                        .name()
+                        .toLowerCase(Locale.ROOT);
                 AutoRig.POINTS.put(k, new double[] { t.getXCoord() + 0.5, t.getYCoord() + 0.5, t.getZCoord() + 0.5 });
                 b.append(k)
                     .append(' ');
@@ -379,11 +379,13 @@ final class RecServer {
                     n + ".bus" + i++,
                     new double[] { t.getXCoord() + 0.5, t.getYCoord() + 0.5, t.getZCoord() + 0.5 });
             }
-            b.append(eye.fieldHatches()
-                .size())
-                .append(" field hatches, ")
-                .append(eye.itemBuses()
+            b.append(
+                eye.fieldHatches()
                     .size())
+                .append(" field hatches, ")
+                .append(
+                    eye.itemBuses()
+                        .size())
                 .append(" plinth buses");
             return b.toString();
         }
@@ -404,7 +406,8 @@ final class RecServer {
     }
 
     /**
-     * Every energy hatch of the multiblock at a named place swapped for GT's creative Debug Energy Hatch (tier 13, 64 A,
+     * Every energy hatch of the multiblock at a named place swapped for GT's creative Debug Energy Hatch (tier 13, 64
+     * A,
      * the same face), then the structure re-checked: a machine whose bench kit fits charge-once hatches keeps running
      * through a long warped scene. Set up by script (the caption says so).
      */
@@ -426,10 +429,18 @@ final class RecServer {
             final int x = t.getXCoord(), y = t.getYCoord(), z = t.getZCoord();
             final ForgeDirection f = t.getFrontFacing();
             world.setBlockToAir(x, y, z);
-            if (!MTEReactorCoreMk1
-                .placeGtMachine(world, x, y, z, (short) ItemList.DebugEnergyHatch.get(1L).getItemDamage(), f)) continue;
-            final gregtech.api.metatileentity.implementations.MTEHatchEnergyDebug d = AutoRig
-                .mteAt(world, new int[] { x, y, z }, gregtech.api.metatileentity.implementations.MTEHatchEnergyDebug.class);
+            if (!MTEReactorCoreMk1.placeGtMachine(
+                world,
+                x,
+                y,
+                z,
+                (short) ItemList.DebugEnergyHatch.get(1L)
+                    .getItemDamage(),
+                f)) continue;
+            final gregtech.api.metatileentity.implementations.MTEHatchEnergyDebug d = AutoRig.mteAt(
+                world,
+                new int[] { x, y, z },
+                gregtech.api.metatileentity.implementations.MTEHatchEnergyDebug.class);
             if (d != null) {
                 d.setVoltageTier(13);
                 d.setAmperage(64);
@@ -439,7 +450,9 @@ final class RecServer {
         m.checkStructure(true, m.getBaseMetaTileEntity());
         if (m.getBaseMetaTileEntity() != null) m.getBaseMetaTileEntity()
             .enableWorking();
-        return n + " energy hatches of " + name + " swapped for creative Debug Energy Hatches (set up by script); formed "
+        return n + " energy hatches of "
+            + name
+            + " swapped for creative Debug Energy Hatches (set up by script); formed "
             + m.mMachine;
     }
 

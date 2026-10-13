@@ -268,8 +268,7 @@ final class RecOverlay {
         final float scale = Math.max(1.5f, mc.displayHeight / 360f);
         final int pad = Math.round(6 * scale);
         final int tw = Math.round(f.getStringWidth(tag) * scale);
-        final int x1 = mc.displayWidth - pad * 2,
-            y0 = pad * 2 + row * (Math.round(9 * scale) + pad * 3);
+        final int x1 = mc.displayWidth - pad * 2, y0 = pad * 2 + row * (Math.round(9 * scale) + pad * 3);
         rect(x1 - tw - pad * 2, y0, x1, y0 + Math.round(9 * scale) + pad * 2, 0xB0000000);
         text(f, tag, x1 - tw - pad, y0 + pad + scale, scale, 0xFFD54A, 1f);
     }

@@ -59,7 +59,8 @@ import gregtech.common.tileentities.machines.MTEHatchInputME;
  * Hydrogen. The Eye drains it into its buffers every second (docs/automation.md §2.3).</li>
  * <li><b>Ignition charge:</b> an ME stocking input bus in the front-left gas socket, set to the Stellar Ignition
  * Charge. A dark Eye with full buffers takes one from it and lights itself.</li>
- * <li><b>Trims:</b> two Directive Hatches (Trims, Bit 1 and Bit 2) on the band, each over a small (LV) Field input hatch;
+ * <li><b>Trims:</b> two Directive Hatches (Trims, Bit 1 and Bit 2) on the band, each over a small (LV) Field input
+ * hatch;
  * in front of each Field hatch an AE2FC fluid export bus (Helium / Hydrogen) with a redstone card ("active with
  * signal"). One redstone dust on the bus block's facade carries the hatch's bit onto the bus.</li>
  * <li><b>Products:</b> the kit's ME output bus and ME output hatch beside the controller, cabled in, so the star's
@@ -201,7 +202,8 @@ final class AutoRigEyeAE {
         outBus = SLConsoleTest.worldPos(al, X, ctrl[1], Z, o[0]);
         outHatch = SLConsoleTest.worldPos(al, X, ctrl[1], Z, o[1]);
 
-        // 2. the trim stations on the band: Directive Hatch (Trims, bit) over the Field hatch, fluid export bus in front
+        // 2. the trim stations on the band: Directive Hatch (Trims, bit) over the Field hatch, fluid export bus in
+        // front
         AutoRig.buildingFor = ctrl;
         try {
             fHe = AutoRig.frame(world, al, f[1], 0, 1, 2, 3);
@@ -249,13 +251,7 @@ final class AutoRigEyeAE {
             player,
             log,
             "C: ");
-        world.setBlock(
-            emitterLamp[0],
-            emitterLamp[1],
-            emitterLamp[2],
-            net.minecraft.init.Blocks.redstone_lamp,
-            0,
-            3);
+        world.setBlock(emitterLamp[0], emitterLamp[1], emitterLamp[2], net.minecraft.init.Blocks.redstone_lamp, 0, 3);
         // the gas supply: a Debug Fluid Tank behind a read-only fluid storage bus on a stub off the trunk, each
         for (int i = 0; i < 2; i++) {
             final int x = X - 18 - 3 * i;
@@ -289,7 +285,8 @@ final class AutoRigEyeAE {
         // station. On the main network the Eye's stocking hatch would pull every litre into the Eye's buffers (it shows
         // the Eye up to 2.1 G L a second and the buffers cap at 2^62 L), and the trim buses would find nothing.
         final int zT2 = zT - 3;
-        final int[] w2 = { Math.min(trimBusHe[0], trimBusH[0]), y, zT2 }, e2 = { Math.max(trimBusHe[0], trimBusH[0]), y, zT2 };
+        final int[] w2 = { Math.min(trimBusHe[0], trimBusH[0]), y, zT2 },
+            e2 = { Math.max(trimBusHe[0], trimBusH[0]), y, zT2 };
         layC(world, MeParts.line(w2, e2), MeParts.Kind.DENSE_COVERED, TRIM_COLOR, player, "trim trunk");
         trimCtrl = new int[] { X + 12, y, zT2 - 1 };
         MeParts.block(world, trimCtrl, MeParts.controllerBlock());
@@ -312,11 +309,8 @@ final class AutoRigEyeAE {
         }
         for (int[] bus : new int[][] { trimBusHe, trimBusH }) riser(world, bus, zT2, player);
         log.add(
-            "C: trim network: controller " + RenderTest.pos(trimCtrl)
-                + ", supply tanks "
-                + RenderTest.pos(trimTankHe)
-                + " / "
-                + RenderTest.pos(trimTankH));
+            "C: trim network: controller " + RenderTest
+                .pos(trimCtrl) + ", supply tanks " + RenderTest.pos(trimTankHe) + " / " + RenderTest.pos(trimTankH));
 
         log.add(
             "C: ME core: creative-energy controller " + RenderTest.pos(meCtrl)
@@ -422,15 +416,22 @@ final class AutoRigEyeAE {
         final Set<Long> avoid = new HashSet<>();
         // keep the cable off the station's redstone cells
         for (AutoRig.Frame F : new AutoRig.Frame[] { fHe, fH }) {
-            for (int dO = 0; dO <= 2; dO++) for (int dY = 1; dY <= 2; dY++) for (int dS = -1; dS <= 3; dS++)
-                avoid.add(MeParts.key(F.at(dO, dY, dS)));
+            for (int dO = 0; dO <= 2; dO++) for (int dY = 1; dY <= 2; dY++)
+                for (int dS = -1; dS <= 3; dS++) avoid.add(MeParts.key(F.at(dO, dY, dS)));
             for (int dS = 1; dS <= 3; dS++) avoid.add(MeParts.key(F.at(1, 0, dS)));
         }
         final List<int[]> up = MeParts.line(foot, top);
         final List<int[]> along = MeParts.line(top, bus);
-        if (MeParts.clear(world, up, avoid) && along != null && MeParts.clear(world, along.subList(0, along.size() - 1), avoid)) {
+        if (MeParts.clear(world, up, avoid) && along != null
+            && MeParts.clear(world, along.subList(0, along.size() - 1), avoid)) {
             layC(world, up, MeParts.Kind.DENSE_COVERED, TRIM_COLOR, player, "riser");
-            layC(world, along.subList(0, along.size() - 1), MeParts.Kind.DENSE_COVERED, TRIM_COLOR, player, "riser top");
+            layC(
+                world,
+                along.subList(0, along.size() - 1),
+                MeParts.Kind.DENSE_COVERED,
+                TRIM_COLOR,
+                player,
+                "riser top");
             return;
         }
         final List<int[]> path = MeParts.route(world, foot, bus, avoid, 14, AutoRig.GROUND);
@@ -495,7 +496,8 @@ final class AutoRigEyeAE {
      * ME output bus and an ME output hatch in the core's 'o' sockets): a smart-cable trunk three blocks in front of the
      * controller with a stub to each, a creative-energy ME controller and a drive at its west end holding an empty item
      * cell and an empty fluid cell, and an ME terminal on the trunk facing north (the side a camera stands on).
-     * Registers {@code <name>.term} (the terminal's cable cell), {@code <name>.termcam} (a camera spot 3 blocks north of
+     * Registers {@code <name>.term} (the terminal's cable cell), {@code <name>.termcam} (a camera spot 3 blocks north
+     * of
      * it) and {@code <name>.mecore}. Set up by script: the player's own network would do the same.
      */
     static List<String> outputNet(WorldServer world, int[] eyeCtrl, String name, AEColor color) {
@@ -681,7 +683,8 @@ final class AutoRigEyeAE {
         final Map<String, Long> trims = rt.lastTrimsByName();
         if (rt.burning() && litAt < 0 && cellsIn) {
             litAt = seconds();
-            BeyondTheStars.LOG.info("[BTS autorig] Rig C: the AE2 Eye lit itself " + litAt + " s after the cells went in");
+            BeyondTheStars.LOG
+                .info("[BTS autorig] Rig C: the AE2 Eye lit itself " + litAt + " s after the cells went in");
         }
         final String line = String.join(
             "\t",
@@ -725,15 +728,30 @@ final class AutoRigEyeAE {
             final TileEntity te = world.getTileEntity(p[0], p[1], p[2]);
             if (!(te instanceof appeng.api.parts.IPartHost)) return "no part host";
             final appeng.api.parts.IPart part = ((appeng.api.parts.IPartHost) te).getPart(F.o.getOpposite());
-            b.append(part == null ? "no part on " + F.o.getOpposite() : part.getClass().getSimpleName());
+            b.append(
+                part == null ? "no part on " + F.o.getOpposite()
+                    : part.getClass()
+                        .getSimpleName());
             if (part instanceof appeng.parts.automation.PartSharedItemBus) {
                 final appeng.parts.automation.PartSharedItemBus<?> bus = (appeng.parts.automation.PartSharedItemBus<?>) part;
-                b.append(", config ").append(bus.getAEInventoryByName(appeng.api.storage.StorageName.CONFIG).getAEStackInSlot(0));
-                b.append(", speed cards ").append(bus.getInstalledUpgrades(appeng.api.config.Upgrades.SPEED));
-                b.append(", redstone cards ").append(bus.getInstalledUpgrades(appeng.api.config.Upgrades.REDSTONE));
-                b.append(", mode ").append(bus.getConfigManager().getSetting(appeng.api.config.Settings.REDSTONE_CONTROLLED));
-                b.append(", host redstone ").append(((appeng.api.parts.IPartHost) te).hasRedstone(F.o.getOpposite()));
-                b.append(", active ").append(bus.getProxy().isActive());
+                b.append(", config ")
+                    .append(
+                        bus.getAEInventoryByName(appeng.api.storage.StorageName.CONFIG)
+                            .getAEStackInSlot(0));
+                b.append(", speed cards ")
+                    .append(bus.getInstalledUpgrades(appeng.api.config.Upgrades.SPEED));
+                b.append(", redstone cards ")
+                    .append(bus.getInstalledUpgrades(appeng.api.config.Upgrades.REDSTONE));
+                b.append(", mode ")
+                    .append(
+                        bus.getConfigManager()
+                            .getSetting(appeng.api.config.Settings.REDSTONE_CONTROLLED));
+                b.append(", host redstone ")
+                    .append(((appeng.api.parts.IPartHost) te).hasRedstone(F.o.getOpposite()));
+                b.append(", active ")
+                    .append(
+                        bus.getProxy()
+                            .isActive());
                 for (String m : new String[] { "canDoBusWork", "getTarget", "isSleeping" }) {
                     try {
                         java.lang.reflect.Method mm = null;
@@ -746,27 +764,46 @@ final class AutoRigEyeAE {
                         }
                         if (mm != null) {
                             mm.setAccessible(true);
-                            b.append(", ").append(m).append(" ").append(mm.invoke(bus));
+                            b.append(", ")
+                                .append(m)
+                                .append(" ")
+                                .append(mm.invoke(bus));
                         }
                     } catch (ReflectiveOperationException | RuntimeException bad) {
-                        b.append(", ").append(m).append(" ! ").append(bad);
+                        b.append(", ")
+                            .append(m)
+                            .append(" ! ")
+                            .append(bad);
                     }
                 }
             }
             final gregtech.api.metatileentity.implementations.MTEHatchInput h = AutoRig
                 .mteAt(world, F.p, gregtech.api.metatileentity.implementations.MTEHatchInput.class);
-            b.append(", field hatch ").append(h == null ? "none" : h.getFluid() == null ? "empty" : h.getFluid().getFluid().getName() + " " + h.getFluid().amount);
-            if (h != null) b.append(", hatch recipe map ").append(h.mRecipeMap);
+            b.append(", field hatch ")
+                .append(
+                    h == null ? "none"
+                        : h.getFluid() == null ? "empty"
+                            : h.getFluid()
+                                .getFluid()
+                                .getName() + " "
+                                + h.getFluid().amount);
+            if (h != null) b.append(", hatch recipe map ")
+                .append(h.mRecipeMap);
             final TileEntity ht = world.getTileEntity(F.p[0], F.p[1], F.p[2]);
             final Fluid fl = F == fHe ? AutoRig.helium : AutoRig.hydrogen;
             if (ht instanceof net.minecraftforge.fluids.IFluidHandler) {
-                b.append(", fill(").append(F.o).append(") sim ")
+                b.append(", fill(")
+                    .append(F.o)
+                    .append(") sim ")
                     .append(((net.minecraftforge.fluids.IFluidHandler) ht).fill(F.o, new FluidStack(fl, 1000), false));
-                b.append(", canFill ").append(((net.minecraftforge.fluids.IFluidHandler) ht).canFill(F.o, fl));
+                b.append(", canFill ")
+                    .append(((net.minecraftforge.fluids.IFluidHandler) ht).canFill(F.o, fl));
             }
-            b.append(", ME at the bus ").append(MeParts.litres(world, p, fl));
+            b.append(", ME at the bus ")
+                .append(MeParts.litres(world, p, fl));
         } catch (RuntimeException bad) {
-            b.append(" ! ").append(bad);
+            b.append(" ! ")
+                .append(bad);
         }
         return b.toString();
     }

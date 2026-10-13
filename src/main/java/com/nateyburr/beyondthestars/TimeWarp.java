@@ -106,7 +106,9 @@ public final class TimeWarp {
                 + " ticks per real tick, within "
                 + TICK_BUDGET_NS / 1_000_000L
                 + " ms of each 50 ms tick)");
-        return "Time warp ON: x" + capped + " requested" + (capped != n ? " (capped at " + MAX + ")" : "")
+        return "Time warp ON: x" + capped
+            + " requested"
+            + (capped != n ? " (capped at " + MAX + ")" : "")
             + ". The achieved rate depends on what the server can hold: /btswarp status";
     }
 
@@ -249,8 +251,8 @@ public final class TimeWarp {
 
     private static void bumpTickCounter(MinecraftServer srv) {
         try {
-            if (tickCounter == null) tickCounter = ReflectionHelper
-                .findField(MinecraftServer.class, "tickCounter", "field_71315_w");
+            if (tickCounter == null)
+                tickCounter = ReflectionHelper.findField(MinecraftServer.class, "tickCounter", "field_71315_w");
             tickCounter.setInt(srv, tickCounter.getInt(srv) + 1);
         } catch (ReflectiveOperationException | RuntimeException absent) {
             // the counter only paces saves and pings; the world's own time still advances
