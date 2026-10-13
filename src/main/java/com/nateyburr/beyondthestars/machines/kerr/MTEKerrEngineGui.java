@@ -262,7 +262,8 @@ public class MTEKerrEngineGui extends BTSControllerGui<MTEKerrEngine> {
         final String colour = sm <= 0 || sec >= 0 && sec < 60 ? "§c" : sec < 0 || sec >= 600 ? "§a" : "§6";
         rows.stat(
             BTSText.lang(K + "stock"),
-            BTSText.lit(colour + MTEKerrEngine.fmt(sm) + " SM" + (sec >= 0 ? "  " + BTSFormat.duration(sec) : "")),
+            BTSText.lit(
+                colour + MTEKerrEngine.fmt(sm) + " SM" + (sm > 0 && sec >= 0 ? "  " + BTSFormat.duration(sec) : "")),
             BTSText.lang(K + "stock.tip"));
     }
 
