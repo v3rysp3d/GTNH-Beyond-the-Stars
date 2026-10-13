@@ -1119,9 +1119,13 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         return bSetting;
     }
 
-    /** The GUI's b, 0.5 up to the coil tier (the coils cap it in use anyway). */
+    /**
+     * The GUI's b, 0.5 up to the coil tier (4 while the coils are unknown: unformed, or the NBT load before the first
+     * walk). The coils cap it in use anyway; clamping here keeps what the GUI and OpenComputers' setField report true.
+     */
     public void setBSetting(double b) {
-        bSetting = Math.max(QuasarParams.B_MIN, Math.min(4, b));
+        final double cap = coilTier >= 1 ? coilTier : 4;
+        bSetting = Math.max(QuasarParams.B_MIN, Math.min(cap, b));
     }
 
     /** True while a Burst Control Hatch in FIELD mode sets b. */
