@@ -389,7 +389,11 @@ final class QuestbookInstaller {
         if (Config.questbookPackEdits) {
             for (final QuestbookBundle.ChapterEdit c : bundle.chapterEdits) {
                 final Object line = lineMap.get(c.line);
+                // Only stale when hideEmpty would hide it now: an unknown op or a renamed chapter is
+                // left in the book on purpose (and reported as skipped), so it must not re-install
+                // on every boot.
                 if (!state.hidden.containsKey(c.id) && line != null
+                    && chapterEditSkip(c, line) == null
                     && BQBridge.entries(line)
                         .isEmpty())
                     return "pack chapter " + BQBridge.label(c.line) + " is empty and still shown";
@@ -752,6 +756,21 @@ final class QuestbookInstaller {
     }
 
     /**
+     * Why {@link #hideEmpty} leaves a chapter edit alone whatever the chapter holds: an op this jar
+     * does not know, or a chapter whose name is not the one the edit was written for (matched by id
+     * AND name, like a quest edit). Null when the edit applies (or the chapter is not in the world).
+     * {@link #staleReason} asks the same question, so a skipped edit is not "stale" on every boot.
+     */
+    static String chapterEditSkip(QuestbookBundle.ChapterEdit c, Object line) throws Exception {
+        if (!"hideWhenEmpty".equals(c.op)) return "unknown chapter op '" + c.op + "' (a newer bundle?)";
+        if (line == null) return null;
+        final String name = strip(props(BQBridge.lineNbt(line)).getString("name"));
+        if (!name.equals(c.expectName))
+            return "chapter name drift: expected '" + c.expectName + "', the pack has '" + name + "'";
+        return null;
+    }
+
+    /**
      * {@code hideWhenEmpty}: a pack chapter whose every quest our applied edits moved out is
      * taken out of the book, and its definition and order slot go into the state file. Matched by
      * id AND name, like a quest edit; a chapter that still holds a quest (an edit switched off or
@@ -760,23 +779,18 @@ final class QuestbookInstaller {
     private static void hideEmpty(QuestbookBundle bundle, QuestbookState state, Map<UUID, Object> lineMap,
         Report report) throws Exception {
         for (final QuestbookBundle.ChapterEdit c : bundle.chapterEdits) {
-            if (!"hideWhenEmpty".equals(c.op)) {
-                report.skipped.put(c.id, "unknown chapter op '" + c.op + "' (a newer bundle?)");
+            final Object line = lineMap.get(c.line);
+            final String skip = chapterEditSkip(c, line);
+            if (skip != null) {
+                report.skipped.put(c.id, skip);
                 continue;
             }
-            final Object line = lineMap.get(c.line);
             if (line == null) {
                 report.notes
                     .add("pack chapter edit " + c.id + ": chapter " + BQBridge.label(c.line) + " is not in this world");
                 continue;
             }
             final NBTTagCompound nbt = BQBridge.lineNbt(line);
-            final String name = strip(props(nbt).getString("name"));
-            if (!name.equals(c.expectName)) {
-                report.skipped
-                    .put(c.id, "chapter name drift: expected '" + c.expectName + "', the pack has '" + name + "'");
-                continue;
-            }
             final int left = BQBridge.entries(line)
                 .size();
             if (left > 0) {
