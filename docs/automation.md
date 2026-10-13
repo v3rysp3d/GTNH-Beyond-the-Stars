@@ -221,6 +221,38 @@ the numbers). What the build taught, for players:
   evaporated), Hole Bit 1 (closed) → an export bus with a redstone card holding a Black Hole Seed. The export bus's
   cable block takes a **facade** on top so the dust in front of the Directive Hatch can stand on it and power it.
 
+### 4.2 Testing aid: the time warp (`/btswarp`, a cheat)
+
+A rig that holds a star for hours is slow to test. `/btswarp <N>` makes the whole server run up to N ticks for every
+real one, through the same code as normal play: AE2's grids and buses, GT machines and covers, redstone, the Eye, the
+Kerr, the quasar, the conduit and the bench rigs all run N times faster. Nothing is skipped or shortcut per machine,
+so a rig that works under the warp works in real time (measured below). Op only (permission level 2: in single
+player, cheats on), off by default, off again when the server stops.
+
+| Command | What it does |
+|---|---|
+| `/btswarp <2-1000>` | On: up to N - 1 extra server ticks after every real tick. |
+| `/btswarp status` | Requested and achieved multiplier (game ticks per real second / 20, over the last 3 s and overall), game time against real time, how often a tick hit the budget, the cost of one extra tick. |
+| `/btswarp off` | Off (also `0` or `1`). |
+
+- **It never makes the server fall behind.** The extra ticks stop for a tick once that tick has used 45 ms of its
+  50 (`-Dbts.warp.tickms`), so the server keeps its 20 real ticks a second. An N the machine cannot hold gives the
+  most it can, and `status` says what it got.
+- **Not in the extra ticks:** the network tick, autosaves and the time-sync packet run once per real tick, so with
+  the daylight cycle on the client's sky jumps once a second.
+- **Measured** (dev client, RTX 4090 machine): an extra tick of a world with Rig C costs about 0.4 ms. x20 and x40
+  held with 0 budget hits. With the whole conduit rig (a quasar, two mouths, two mirrors, a junction, two crowns),
+  the three H/R machines, an Eye T8 and a second quasar loaded, an extra tick cost 0.6 ms and x40 held (2 % of ticks
+  at the budget).
+- **Same outcome as real time.** Rig C (the AE2 Eye T1 of §4.1), 444 s of game time from the supply opening, once in
+  real time and once at x20 (22 s): both lit at t = 40 s, both 77.2 % Resonant / 22.8 % Stable / 0 worse, Integrity
+  100 throughout, mean Y 1.193, and the same 357,708 L of Raw Star Matter in the network.
+- **The live rigs.** `/btseye star x y z liverig on` runs the standard gate rig of §4 once a game second on the Eye's
+  own Directive codes (the `autorig <s>` bench runs the same rig for s seconds inside one command, so nothing moves on
+  screen). Under the warp a kit Eye set back to a dark T1, with its milestones set done, climbed T1 → T6 by itself:
+  9,442 s of game time (Mass Infusion, Shell Ignition, the Core Collapse with Tachyon for 940 s, the 7,200 s First
+  Cooling, the Magnetar Merger) in 236 s of real time at x40, 1 charge, 5 cores and 5 charts pushed.
+
 ---
 
 ## 5. Where it is learnable in game (rule 14)
