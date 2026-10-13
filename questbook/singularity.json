@@ -362,7 +362,7 @@
       "prereqs": [48110],
       "tasks": [ { "type": "checkbox" } ],
       "desc": [
-        "Hold {9}Resonant for 600 seconds in a row{r} and the Eye locks in: {9}yield {times}1.5{r} until the streak breaks. The GUI's field line counts it as {l}Lock n/600{r}.",
+        "Hold {9}Resonant for 600 seconds in a row{r} and the Eye locks in: {9}yield {times}1.5{r} until the streak breaks. The GUI's {l}Lock{r} bar counts it, n/600.",
         "",
         "Every milestone's Resonant time counts {l}real{r} seconds, so the time dial cannot shortcut it. A tidy rig is how you climb: tighter sensor thresholds (around {pm}5) keep a star inside {pm}10 more of the time.",
         "",
