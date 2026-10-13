@@ -3,6 +3,8 @@ package com.nateyburr.beyondthestars.machines;
 import static net.minecraft.util.StatCollector.translateToLocal;
 import static net.minecraft.util.StatCollector.translateToLocalFormatted;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
@@ -20,11 +22,15 @@ import com.cleanroommc.modularui.widgets.ListWidget;
 import com.cleanroommc.modularui.widgets.layout.Flow;
 import com.cleanroommc.modularui.widgets.textfield.TextFieldWidget;
 import com.nateyburr.beyondthestars.fluids.BTSWaterGrade;
+import com.nateyburr.beyondthestars.machines.gui.BTSControllerGui;
+import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
+import com.nateyburr.beyondthestars.machines.gui.BTSGuiKit;
+import com.nateyburr.beyondthestars.machines.gui.BTSGuiKit.Badge;
+import com.nateyburr.beyondthestars.machines.gui.BTSRows;
+import com.nateyburr.beyondthestars.machines.gui.BTSText;
 import com.nateyburr.beyondthestars.progression.BTSMilestone;
 import com.nateyburr.beyondthestars.progression.BTSProgression;
 import com.nateyburr.beyondthestars.progression.BTSUpgrade;
-
-import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
 
 /**
  * Controller screen for the Reactor Silo: the plant's full instrument panel, grouped and
@@ -41,10 +47,109 @@ import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
  * Build
  * Tier stay editable fields (a programmed circuit still overrides the throttle).
  */
-public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
+public class MTEReactorSiloGui extends BTSControllerGui<MTEReactorCoreMk1> {
+
+    private static final String S = "beyondthestars.gui.silo.";
 
     public MTEReactorSiloGui(MTEReactorCoreMk1 multiblock) {
-        super(multiblock);
+        super(multiblock, false, null);
+    }
+
+    // =========================================================== the family header (spec 5.8)
+
+    /** NOT BUILT, HELD, CLAMPED, RUNNING, OFFLINE: first match wins. */
+    @Override
+    protected Badge badgeCode() {
+        if (!multiblock.isSiloBuilt()) return Badge.NOT_BUILT;
+        if (!multiblock.getTurbineHoldReason()
+            .isEmpty()) return Badge.HELD;
+        if (multiblock.isOutputClamped() || multiblock.isGridCapped()) return Badge.CLAMPED;
+        if (baseMetaTileEntity != null && baseMetaTileEntity.isActive()) return Badge.RUNNING;
+        return Badge.OFFLINE;
+    }
+
+    @Override
+    protected String subject() {
+        return multiblock.isSiloBuilt() ? BTSText.lang(S + "subject", multiblock.getReactorTier()) : "";
+    }
+
+    /** "Rods 24/24": the committed rod count against the cap the campaign has unlocked (24 by design). */
+    @Override
+    protected String rightChip() {
+        return BTSText.lang(S + "right", multiblock.getThrottleN(), multiblock.maxThrottle());
+    }
+
+    @Override
+    protected List<String> rightChipTooltip() {
+        return Collections.singletonList(BTSText.lang(S + "right.tip", multiblock.maxThrottle()));
+    }
+
+    /** The Silo's gap row is full of fields and it has no render: the i button takes the column's top slot. */
+    @Override
+    protected boolean infoInButtonColumn() {
+        return true;
+    }
+
+    @Override
+    protected int statusPoolSize() {
+        return 6;
+    }
+
+    /**
+     * The three vitals over the unchanged instrument panel: Output against the hatch ceiling (yellow tick at the
+     * ceiling), RPM against the operating redline (red tick at the 12,000 design redline), Heat against meltdown (red
+     * tick at SCRAM), then the turbine hold as an amber note. Server side, from the same getters the panel's sync
+     * values read.
+     */
+    @Override
+    protected void addStatusRows(BTSRows.Builder rows) {
+        final long out = multiblock.getLastEUOutput();
+        final long ceiling = multiblock.outputCeiling();
+        rows.bar(
+            BTSText.lang(S + "output"),
+            ceiling > 0 ? out / (double) ceiling : 0,
+            BTSText.lit(BTSFormat.euT(out)),
+            BTSGuiKit.Grad.GREEN,
+            BTSGuiKit.tick(1.0, BTSGuiKit.TICK),
+            BTSText.lang(S + "output.tip", BTSFormat.exact(out), BTSFormat.exact(ceiling)));
+        final int rpm = multiblock.getRpm();
+        final int limit = Math.max(1, multiblock.getRedlineRpm());
+        rows.bar(
+            BTSText.lang(S + "rpm"),
+            rpm / (double) limit,
+            BTSText.lit(BTSFormat.exact(rpm)),
+            BTSGuiKit.Grad.BLUE,
+            BTSGuiKit.tick(MTEReactorCoreMk1.RPM_REDLINE / (double) limit, BTSGuiKit.TICK_RED),
+            BTSText.lang(
+                S + "rpm.tip",
+                BTSFormat.exact(rpm),
+                BTSFormat.exact(limit),
+                BTSFormat.exact(MTEReactorCoreMk1.RPM_REDLINE)));
+        final int heat = multiblock.getHeat();
+        final double heatFrac = heat / (double) MTEReactorCoreMk1.MELTDOWN_HEAT;
+        rows.bar(
+            BTSText.lang(S + "heat"),
+            heatFrac,
+            BTSText.lit(BTSFormat.pct(heatFrac)),
+            BTSGuiKit.Grad.GOLD,
+            BTSGuiKit.tick(MTEReactorCoreMk1.SCRAM_HEAT / (double) MTEReactorCoreMk1.MELTDOWN_HEAT, BTSGuiKit.TICK_RED),
+            BTSText.lang(
+                S + "heat.tip",
+                BTSFormat.exact(heat),
+                BTSFormat.exact(MTEReactorCoreMk1.MELTDOWN_HEAT),
+                BTSFormat.exact(MTEReactorCoreMk1.SCRAM_HEAT)));
+        final String hold = multiblock.getTurbineHoldReason();
+        if (!hold.isEmpty()) {
+            rows.note(BTSRows.ICON_WARN, BTSGuiKit.WARN, BTSText.lit(hold.replaceAll("\u00a7.", "")));
+        }
+    }
+
+    /** The questbook's "Step 10 - Read the Panel", the panel's own manual. */
+    @Override
+    protected void addInfoRows(BTSRows.Builder rows) {
+        for (String k : new String[] { "info.math", "info.weakest", "info.do", "info.nei", "info.campaign" }) {
+            rows.para(BTSText.lang(S + k), BTSGuiKit.VALUE);
+        }
     }
 
     @Override
@@ -228,6 +333,22 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
             new IntSyncValue(multiblock::getRpmLimitSetting, multiblock::setRpmLimitSetting).allowC2S());
     }
 
+    /** A group header (REACTOR, STEAM CHAIN, ...) as a kit section row: the header's own colour, a rule after it. */
+    private static IWidget section(String group, BooleanSupplier shown) {
+        return BTSGuiKit.section(() -> MTEReactorCoreMk1.header(group), () -> "")
+            .setEnabledIf(w -> shown.getAsBoolean());
+    }
+
+    /** The MATH header's subtitle, the words after "MATH \u00b7 ". */
+    private static String mathSubtitle(boolean galleryActive) {
+        final String h = MTEReactorCoreMk1.mathHeader(galleryActive)
+            .replaceAll("\u00a7.", "");
+        final int dot = h.indexOf('\u00b7');
+        return dot < 0 ? h
+            : h.substring(dot + 1)
+                .trim();
+    }
+
     /** One terminal line. */
     private static IWidget row(Supplier<String> text) {
         return IKey.dynamic(() -> text.get())
@@ -342,7 +463,7 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
 
         return super.createTerminalTextWidget(syncManager, parent)
             // --- REACTOR
-            .child(row(() -> MTEReactorCoreMk1.header("REACTOR")))
+            .child(section("REACTOR", () -> true))
             .child(
                 row(
                     () -> MTEReactorCoreMk1.siloAbsentLine(standingTier.getIntValue()),
@@ -412,7 +533,7 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                         || !moduleStall.getStringValue()
                             .isEmpty()))
             // --- STEAM CHAIN
-            .child(row(() -> MTEReactorCoreMk1.header("STEAM CHAIN"), siloBuilt::getBoolValue))
+            .child(section("STEAM CHAIN", siloBuilt::getBoolValue))
             .child(
                 row(
                     () -> MTEReactorCoreMk1.spineLine(
@@ -449,7 +570,7 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                     () -> MTEReactorCoreMk1.feedwaterLine(feedwaterGrade.getIntValue(), galleryActive.getBoolValue()),
                     () -> siloBuilt.getBoolValue() && feedwaterGrade.getIntValue() >= 1))
             // --- TURBINE
-            .child(row(() -> MTEReactorCoreMk1.header("TURBINE"), siloBuilt::getBoolValue))
+            .child(section("TURBINE", siloBuilt::getBoolValue))
             .child(
                 row(
                     () -> MTEReactorCoreMk1.rpmLine(
@@ -480,7 +601,7 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                     () -> !holdReason.getStringValue()
                         .isEmpty()))
             // --- OUTPUT
-            .child(row(() -> MTEReactorCoreMk1.header("OUTPUT"), siloBuilt::getBoolValue))
+            .child(section("OUTPUT", siloBuilt::getBoolValue))
             .child(
                 row(
                     () -> MTEReactorCoreMk1.outputLine(
@@ -545,7 +666,13 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
             // OUTPUT group's own line uses. Gating on galleryBuilt alone made the two groups
             // disagree on a formable plant: OUTPUT said "Steam export ... (no generator)" while
             // MATH printed the EU derivation right underneath it.
-            .child(row(() -> MTEReactorCoreMk1.mathHeader(galleryActive.getBoolValue()), siloBuilt::getBoolValue))
+            // The group's title is too wide for one kit row: the SEC row says MATH, a grey line under it says
+            // what the group derives ("how that EU/t is derived" / "how that steam figure is derived").
+            .child(section("MATH", siloBuilt::getBoolValue))
+            .child(
+                row(
+                    () -> EnumChatFormatting.GRAY + mathSubtitle(galleryActive.getBoolValue()),
+                    siloBuilt::getBoolValue))
             .child(
                 row(
                     () -> MTEReactorCoreMk1.mathSteamLine(
@@ -629,7 +756,7 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
             // scanner cannot print three different tiers for the same line. UNGATED on the
             // silo - REPROCESSING accumulates on a bare platform's Derrick, and this is the
             // only panel that exists while a player is still building the silo.
-            .child(row(() -> MTEReactorCoreMk1.header("MILESTONES")))
+            .child(section("MILESTONES", () -> true))
             .child(row(() -> BTSMilestone.milestoneLine(BTSMilestone.UPTIME, progUptime.getLongValue())))
             .child(row(() -> BTSMilestone.milestoneLine(BTSMilestone.BURNUP, progBurnup.getLongValue())))
             .child(row(() -> BTSMilestone.milestoneLine(BTSMilestone.REPROCESSING, progReproc.getLongValue())))
@@ -674,10 +801,9 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
         return false;
     }
 
-    /** A short caption for the field drawn to its right (tidy B1). */
+    /** A short caption for the field drawn to its right (tidy B1), at 1.0 (controller-gui-spec.md 5.8). */
     private static IWidget fieldLabel(String langKey) {
         return IKey.lang(langKey)
-            .scale(0.8f)
             .asWidget()
             .marginLeft(4)
             .marginRight(2);
@@ -715,7 +841,7 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                 .defaultNumber(24)
                 .numbersInt(1, 36)
                 .syncHandler("throttleSetting")
-                .width(30)
+                .width(26)
                 // Tidy B2: the tooltip is rebuilt while it is open, so a circuit dropped into
                 // the controller slot shows up here at once.
                 .tooltipDynamic(t -> {
@@ -742,7 +868,7 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                     .defaultNumber(MTEReactorCoreMk1.RPM_REDLINE)
                     .numbersInt(MTEReactorCoreMk1.RPM_REDLINE, MTEReactorCoreMk1.RPM_LIMIT_MAX)
                     .syncHandler("rpmLimitSetting")
-                    .width(36)
+                    .width(34)
                     .tooltip(
                         t -> t.addLine(EnumChatFormatting.GOLD + translateToLocal("beyondthestars.gui.rpmlimit.title"))
                             .addLine(EnumChatFormatting.GRAY + translateToLocal("beyondthestars.gui.rpmlimit.tooltip"))
@@ -754,7 +880,7 @@ public class MTEReactorSiloGui extends MTEMultiBlockBaseGui<MTEReactorCoreMk1> {
                     .defaultNumber(1)
                     .numbersInt(1, 5)
                     .syncHandler("buildTierSetting")
-                    .width(20)
+                    .width(18)
                     .tooltip(
                         t -> t.addLine(EnumChatFormatting.GOLD + translateToLocal("beyondthestars.gui.buildtier.title"))
                             .addLine(

@@ -143,8 +143,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
 
     /** L/t of steam per full fuel column at 100% throttle. */
     private static final long STEAM_PER_COLUMN = 16_384L;
-    private static final int SCRAM_HEAT = 8_000;
-    private static final int MELTDOWN_HEAT = 10_000;
+    public static final int SCRAM_HEAT = 8_000;
+    public static final int MELTDOWN_HEAT = 10_000;
     private static final int HEAT_PER_STARVED_TICK = 4;
     private static final int HEAT_DECAY_PER_TICK = 2;
     private static final int DECAY_HEAT_TICKS = 24_000;
@@ -6605,6 +6605,12 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
     @Override
     protected @NotNull MTEMultiBlockBaseGui<?> getGui() {
         return new MTEReactorSiloGui(this);
+    }
+
+    /** GUI cleanup (controller-gui-spec.md 5.8): the kit's badge says it; GT's "Running perfectly." is not added. */
+    @Override
+    public boolean hasRunningText() {
+        return false;
     }
 
     public boolean isSiloBuilt() {
