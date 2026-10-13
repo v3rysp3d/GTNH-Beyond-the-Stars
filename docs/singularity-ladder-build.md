@@ -1872,6 +1872,17 @@ The Homogeny's one install path is `beginInstall()` then `completeInstall()` (co
 - `/btshr bench <x> <y> <z> <status|check|fill|wrench|milestone e d|escrow|install|itick n|relink|pending [L]|scan|on|off|project n>` (`wrench` also on the Diffraction; `pending <L>` seeds its buffer, B-80).
 - `/btshr gui <x> <y> <z> [info]` prints the kit GUI's header and rows (or its Info page) as text, built on the server
   as the GUI syncs them, for the Homogeny, both Reality machines, the Reactor Silo and the production halls (B-98).
+  `fill` on a Refab puts the Star Chart's (SL-R05) item inputs in its input bus (B-137).
+- `/btshr becnet ...` (B-137, `BECNetBench`): the smallest TecTech BEC network the two Reality machines need, raised
+  by script. `field x y z [strength n]` builds a BEC Containment Field (controller facing north) by its own creative
+  construct, a GT Debug Energy Hatch (MAX, 64 A) in one of its casing cells, field strength 1,000,000 (its capacity in
+  L and its EU/t), on. `assembler x y z [nanites n] [tier t]` builds a Condensate Assembler the same way with a Nanite
+  Containment Bus of 64 Black Dwarf nanites (the Refab links the nearest within 64 blocks by itself). `link fx fy fz
+  mx my mz` fits the field's BEC Hatch on the side nearest the Reality machine and lays BEC conduit through air from
+  the machine's own BEC Hatch to it (or to a conduit already there), and keeps every chunk the conduit crosses loaded
+  (an unloaded conduit leaves the grid and splits the network). `power x y z` swaps a multiblock's energy hatches for
+  Debug Energy Hatches; `status x y z` prints the field's condensate, the Assembler's nanites, or a Reality machine's
+  network, the regions it can reach and its route count. `tools/recording/reality.shots` films the two running on it.
 - `/btskit homogeny | diffraction | refab`.
 
 ## Contract additions (Homogeny / Reality recipes)

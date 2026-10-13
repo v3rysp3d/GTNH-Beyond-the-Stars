@@ -6513,6 +6513,60 @@ under `/btswarp 20`, headless and again in the client:
 the saved database); `stellarCircuits=false` in a client (the NEI hiding and "Disabled by config" tooltip are
 client-side).
 
+### B-137 Two clips: Circuits v2, and Reality Diffraction / Refab running on a real BEC network [circuits branch, built + fix]
+
+**What was asked.** Film the circuits (wafers, Stellar SMDs, one Mainframe of each family out of its Assembly Line, ours
+in a stock any-of-tier slot next to the raised Piko, a NAC run, a closing cost table) and re-shoot showcase v2's Reality
+scenes with both machines RUNNING (brief item 32(f): "build a BEC test helper (/btshr bench becnet)").
+
+**What was built.**
+1. **`/btshr becnet`** (`BECNetBench`, dev bench, no gameplay change). `field` / `assembler` raise TecTech's own BEC
+   Containment Field and Condensate Assembler by their own creative construct, with a GT Debug Energy Hatch (MAX, 64 A)
+   in a casing cell that takes one, and (assembler) a Nanite Containment Bus of 64 Black Dwarf nanites; `link` fits the
+   field's BEC Hatch on the side nearest a Reality machine and lays BEC conduit through air (a cheapest-route search
+   that prefers straight runs) from the machine's own BEC Hatch to it, or to a conduit already there; `power` swaps a
+   multiblock's energy hatches for Debug Energy Hatches; `status` prints the field's condensate, the Assembler's
+   nanites, a Reality machine's network, the regions it can reach and its route count. `/btshr bench ... fill` on a
+   Refab now stocks the Star Chart's (SL-R05) items. Build doc, "Test bench (`/btshr`)".
+2. **Recorder.** `nei ... page <n>`, and `nei` takes `sl.<field>`, `cc.<component>` and `mod:item[:meta]` like the GUI
+   shot harness; wait conditions `chainbusy`, `chainidle`, `chainstep:<SL-Xnn>` for the circuit chain bench.
+   `docs/recording.md`.
+3. **Shot scripts** `tools/recording/circuits.shots` (1:42) and `tools/recording/reality.shots` (0:45). Both say "set up
+   by script" for everything placed, filled or powered; long stretches run under `/btswarp` with its tag on screen.
+
+**Fix (found by the bench).** **Reality Refab froze its first craft on a real network**: every run stopped at 54 / 2400
+ticks with all six regions in stock ("waiting for regions (the reassembly lock)"). The lock turned the asked progress
+into a fraction and back (`next / max * max`), which came back as 54.999... and floored to the progress already paid,
+so it never advanced. Now, with no region short, the asked progress is paid as is, and both fraction-to-ticks steps get
+a 1e-9 slack (`MTERealityRefab.lockstep`, commit b4fe668). After the fix the same craft finished (Star Chart: The
+Observable Universe) on the headless server and on camera.
+
+**Seen while testing.**
+1. **An unloaded conduit splits the network.** On a headless server with no player, chunks a conduit crossed unloaded,
+   each conduit left the grid on unload, and the Diffraction ended on a network of its own with no storage (it idles
+   with "No BEC network"). TecTech's conduits re-register when their chunk loads again, so in play this heals once the
+   player is near; the bench now keeps every chunk a conduit crosses. Worth a line in the Reality quests? My suggestion:
+   no; it is TecTech's own behaviour and its conduits work the same for its own machines.
+2. **The bench kit's charged energy hatch runs dry in seconds** at MAX: a Diffraction linked before `power` starts a run,
+   loses power and switches itself off (GT's power-loss stop). The clip's setup swaps to Debug Energy Hatches first.
+3. Both Reality BEC Hatches face down (the kit picks the air side farthest from the machine's axis), so the conduit
+   leaves from under the base. Works; looks tidy enough on camera.
+4. Opening a bench-built machine's GUI logs GT's power-fail tracker NPE (no owner), as in B-136; the screen opens.
+
+**Results on camera** (1920 x 1080, silent client, fresh world each run; stills of every scene looked at):
+- *Circuits*: the rig of stock machines; NEI pages for the boule (Blast Furnace, 12,600 K), the Sidereal / Empyrean /
+  Omega engravings and a Stellar SMD (Assembler); the Assembly Line GUI assembling each Mainframe ("Sidereal Mainframe
+  x1, 25 s", "Empyrean ... 30 s", "Omega ... 62.5 s"), the chest with all three; the stock Mega Ultimate Buck Converter
+  made in the UMV Assembling Machine with two Sidereal Mainframes, and its NEI page with ours in the slot; the raised
+  Piko (500 s, 2x parts); the NAC Assembly Matrix running "Packaged Sidereal Mainframe"; the cost card (costs §15.2).
+- *Reality*: the site (field, Assembler, conduit, both machines); the Diffraction RUNNING ("BEC network 0: 1 storage",
+  "Regions anchored 6 of 6", run 1 done); the field's own GUI listing the six regions at 1,000 mB; the Refab RUNNING
+  (Star Chart, Assembler 64 nanites, regions drawn in lockstep) to "Reassembled Star Chart"; the chart in its output
+  bus; an orbit with the conduits lit.
+
+**Files.** Session local work folder `video/circuits/`: `circuits-1080p.mp4` (22 MB), `circuits-720p.mp4` (4.4 MB),
+`reality-1080p.mp4` (32 MB), `reality-720p.mp4` (4.4 MB), `stills/`.
+
 ## Where the old question numbers went
 
 | Old | Now | Old | Now | Old | Now |
