@@ -358,8 +358,8 @@ final class AutoRigEyeAE {
         point("ae.lamphe", ctr(fHe.at(1, 1, 2)));
         point("ae.lamph", ctr(fH.at(1, 1, 2)));
         point("ae.trunk", ctr(new int[] { X, y, zT }));
-        point("ae.riserhe", new double[] { trimBusHe[0] + 0.5, (y + trimBusHe[1]) / 2.0, zT + 0.5 });
-        point("ae.riserh", new double[] { trimBusH[0] + 0.5, (y + trimBusH[1]) / 2.0, zT + 0.5 });
+        point("ae.riserhe", new double[] { trimBusHe[0] + 0.5, (y + trimBusHe[1]) / 2.0, zT2 + 0.5 });
+        point("ae.riserh", new double[] { trimBusH[0] + 0.5, (y + trimBusH[1]) / 2.0, zT2 + 0.5 });
     }
 
     /**

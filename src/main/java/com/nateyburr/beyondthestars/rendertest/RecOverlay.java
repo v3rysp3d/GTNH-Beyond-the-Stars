@@ -143,6 +143,11 @@ final class RecOverlay {
      * towards {@code side} (up, down, left, right; up-right by default). Off-screen targets are skipped.
      */
     static void label(Minecraft mc, double tx, double ty, String text, String side, float a) {
+        label(mc, tx, ty, text, side, a, null);
+    }
+
+    /** As above; {@code taken} holds the boxes already drawn this frame, and this box moves clear of them. */
+    static void label(Minecraft mc, double tx, double ty, String text, String side, float a, List<int[]> taken) {
         if (a <= 0.02f || text == null || text.isEmpty()) return;
         final FontRenderer f = mc.fontRenderer;
         final int w = mc.displayWidth, h = mc.displayHeight;
@@ -180,6 +185,14 @@ final class RecOverlay {
         // keep the box on screen and clear of the caption bar
         bx = Math.max(8, Math.min(w - bw - 8, bx));
         by = Math.max(8, Math.min(h - bh - Math.round(48 * h / 1080f) - 8, by));
+        // clear of the boxes already drawn: step away (up, or down near the top) until nothing overlaps
+        if (taken != null) {
+            final double step = bh + 6;
+            final boolean up = by > h / 3.0;
+            for (int i = 0; i < 12 && overlaps(taken, bx, by, bw, bh); i++) by += up ? -step : step;
+            by = Math.max(8, Math.min(h - bh - Math.round(48 * h / 1080f) - 8, by));
+            taken.add(new int[] { (int) bx, (int) by, bw, bh });
+        }
         // the box edge point nearest the target, for the leader line
         final double ex = Math.max(bx, Math.min(bx + bw, tx)), ey = Math.max(by, Math.min(by + bh, ty));
         GL11.glDisable(GL11.GL_TEXTURE_2D);
@@ -208,6 +221,13 @@ final class RecOverlay {
             text(f, l, x0 + pad + scale, y, scale, 0xFFFFFF, a);
             y += 10 * scale;
         }
+    }
+
+    private static boolean overlaps(List<int[]> taken, double x, double y, int w, int h) {
+        for (int[] r : taken) {
+            if (x < r[0] + r[2] + 4 && x + w + 4 > r[0] && y < r[1] + r[3] + 4 && y + h + 4 > r[1]) return true;
+        }
+        return false;
     }
 
     /** A tag in the top-right corner (e.g. "TIME-LAPSE x20"). */

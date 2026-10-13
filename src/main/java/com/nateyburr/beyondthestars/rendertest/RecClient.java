@@ -468,11 +468,12 @@ public final class RecClient {
             if (card != null) {
                 RecOverlay.card(mc, card, cardAlpha);
             } else {
+                final List<int[]> taken = new ArrayList<>();
                 if (!guiOpen) for (Label l : labels) {
                     if (Double.isNaN(l.sx)) continue;
                     if (l.since < 0) l.since = now;
                     final float a = (float) Math.min(1.0, (now - l.since) / 0.35e9);
-                    RecOverlay.label(mc, l.sx, l.sy, l.text, l.side, Math.max(0.05f, a));
+                    RecOverlay.label(mc, l.sx, l.sy, l.text, l.side, Math.max(0.05f, a), taken);
                 }
                 if (!caption.isEmpty()) {
                     final float a = captionStart < 0 ? 1f : (float) Math.min(1.0, (now - captionStart) / 0.4e9);
