@@ -1,6 +1,7 @@
 package com.nateyburr.beyondthestars;
 
 import com.nateyburr.beyondthestars.client.render.BTSShaders;
+import com.nateyburr.beyondthestars.client.render.DeferredDraws;
 import com.nateyburr.beyondthestars.client.render.KitSelfTest;
 import com.nateyburr.beyondthestars.client.render.RenderFrame;
 import com.nateyburr.beyondthestars.machines.eye.render.EyeStarRenderer;
@@ -29,6 +30,7 @@ public class ClientProxy extends CommonProxy {
         // on GT's resource-reload hook; the frame clock drives the LOD ranking and the dev GPU timer.
         RenderInit.onResourceReload(BTSShaders::markReload);
         RenderFrame.register();
+        DeferredDraws.register();
         // Dev-only render kit self test (-Dbts.render.selftest=true): a test panel in front of the camera.
         KitSelfTest.register();
 

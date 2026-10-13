@@ -107,6 +107,12 @@ public class Config {
     public static boolean renderBackgroundLensing = true;
     /** Renders v2: the few particle effects (eruption debris, supernova ejecta, blow-out fragments). */
     public static boolean renderParticles = true;
+    /** Renders v2 (§11): the Homogeny's vortex, coil glow and feed streams. Client only. */
+    public static boolean renderHomogeny = true;
+    /** Renders v2 (§12): the Reality Diffraction's and Reality Refab's renders. Client only. */
+    public static boolean renderReality = true;
+    /** Renders v2 (§10): the conduit's burst streams, the Wormhole Mouths and the crowns' heat. Client only. */
+    public static boolean renderConduit = true;
 
     public static void synchronizeConfiguration(File configFile) {
         Configuration configuration = new Configuration(configFile);
@@ -258,6 +264,24 @@ public class Config {
             true,
             "Client only. The few particle effects of the big renders (eruption debris, supernova ejecta, blow-out"
                 + " fragments). Off: their shells and flashes alone.");
+        renderHomogeny = configuration.getBoolean(
+            "renderHomogeny",
+            CATEGORY_CLIENT_RENDER,
+            true,
+            "Client only. Draw the Homogeny's plasma vortex in its glass column, the glow of its shear helix and the"
+                + " feed streams from its vessels. Cosmetic.");
+        renderReality = configuration.getBoolean(
+            "renderReality",
+            CATEGORY_CLIENT_RENDER,
+            true,
+            "Client only. Draw Reality Diffraction's beam, lenses, spectral fans, region clouds and field, and Reality"
+                + " Refab's stream, glyph rings and reassembling voxels. Cosmetic.");
+        renderConduit = configuration.getBoolean(
+            "renderConduit",
+            CATEGORY_CLIENT_RENDER,
+            true,
+            "Client only. Draw the burst streams between conduit elements, the Wormhole Mouths' portals and the heat"
+                + " glow of the Burst Thermaliser Crowns. Cosmetic.");
 
         // Always written back: Forge does not read comments from the file and does not count a changed comment as a
         // change, so an old file would keep saying eyeRenderCentre is "not implemented" (D-49 unit 6). Saving
