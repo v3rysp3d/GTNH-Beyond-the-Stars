@@ -142,6 +142,8 @@ The rigs face north (-z), so their fronts are on the -z side. Anchors exist once
 | `points <name>` | | Names the parts of the machine at a named place (above), so their screens can be filmed. |
 | `name <name> <place>` | | Names a place. |
 | `creativepower <name>` | | Swaps every energy hatch of the multiblock at a named place for GT's Debug Energy Hatch (tier 13, 64 A, same face), re-checks it and turns it on: a machine whose bench kit charges its hatches once keeps running through a long warped scene. Set up by script (say so in the caption). |
+| `readout <place> [match <regex>]` \| `readout off` | | A side panel (top left) with the machine's scanner lines: what a GT Portable Scanner prints (`getInfoData`), read twice a second and kept if they match the regex (case-insensitive, colour codes stripped; anchor with `^(...)` to keep whole status lines). Stays up while a GUI is open, until `readout off` or the scene's end. The old Eye GUI shows only its first few lines, so the gauges, batch and transition lines go here. |
+| `melist <place>` | | Logs what the ME network behind the cable at the place holds (items and fluids) into `rec.log`. |
 
 ### Example
 
@@ -178,19 +180,47 @@ scene end
 
 ## The showcase script
 
-`tools/recording/showcase.shots` is the draft showcase (about 4 minutes of video; the run takes about 22 minutes of
-real time, most of it the fast-forwarded burn and Kerr climb). Its setup builds every site in the fresh world: Rig C
-(the AE2 Eye, x 2400), Rig B (the Kerr on AE2, x 1700), an Eye for the tier scenes (x 3600, `kit eye 1 ... gen 5`),
-both Kerr tiers (x 5000 / 5130), the plant foundation's silo tiers 1-5 (x 6000-6240, `/btsbuild t<n> x y z`), and runs
-`/btsquests install`. Then, in order: title; the AE2 Eye walk-through (main network, trim network, ground trunk,
-risers, a trim station), its supply opening and the star lighting itself (`timelapse ... until aelit`), the burn
-(an orbit at 20x); the Eye GUI; the Eye's tiers 1-6 grown band by band by the projector; the Kerr on AE2 (walk-through,
-seeded and climbing at 30x, GUI, tiers 1 and 2 side by side); how a player builds one (hints, survival auto-place,
-forming, NEI preview and recipe); the plant tiers; a TODO card for content that is on master only; the quest book;
-end card. Re-take single scenes with `-Dbts.rec.only=<scene prefixes>` (the setup always runs).
+`tools/recording/showcase2.shots` is showcase v2, the post-UEV showcase (about 7 minutes of video in nine chapters; a
+full run takes about 50 minutes of real time on the dev machine, most of it camera moves while 1,000+ chunks are
+loaded). Its setup builds every site in one fresh world, all facing north at z 4000: Rig B, the Kerr on AE2 (x 1700);
+Rig C, the AE2 Eye with an ME terminal on its main network (x 2400); the climbing Eye (x 3000: `kit eye 6`, set back to
+a dark T1 with `/btseye star ... unlock 1 / buses clear / target sol / fill`, its products on `menet`); the tier Eye
+(x 3600); the Kerr tiers (x 5000 / 5130); the Homogeny on creative power (x 6600), Reality Diffraction (x 6900) and
+Refab (x 7150) by `/btshr`; the whole conduit rig (`/btsconduit rig 8000 100 4000`); the galaxy Eye (`kit eye 8`,
+x 10000) and an unseeded quasar behind it (x 10000, y 100, z 4400). Chapters:
 
-The dev tests that go with it: `aetest.shots` (every new command once), `aedebug.shots` (Rig C lit and burning for 6
-minutes; read `eye-ae.tsv`), `tiertest.shots` (an Eye grown from tier 1 to 2).
+1. **The Eye and its automation:** Rig C's walk-through, its supply opening and the star lighting itself under the
+   warp, the burn, the GUI with the scanner panel, the tier Eye grown band by band.
+2. **Extraction:** Rig C's ME terminal with the Raw Star Matter rising cycle by cycle (warp x40), a card of what each
+   tier makes.
+3. **The harder stars:** the climbing Eye under the live gate rig (`/btseye star ... liverig on`) and the warp, one
+   transition per scene as the script sets each tier's milestones done: Mass Infusion, Shell Ignition, Core Collapse,
+   the neutron star (GUI and scanner: gauges, feed, trims), the First Cooling (the 7,200 s batch, warp x60 and a x10
+   time-lapse), the Magnetar Merger, the magnetar's Status hatch (Agent wanted) and flares, its ME network.
+4. **The Kerr:** Rig B's walk-through, seeded and climbing (warp x30), GUI, the Extractor Module running off the open
+   hole (input stocked by `/btskerr module ... x stock`), the tiers.
+5. **The Homogeny and the Reality machines:** T1 mixing, the stirring ring by the projector's survival auto-place, the
+   milestone and core set by script and Install (600 s, warp x40), then Reality Diffraction and Refab idling with their
+   reasons (no BEC network in this world).
+6. **The Quasar and the Conduit:** seeding the galaxy Eye's quasar (`/btsquasar seed`), the conduit rig's quasar GUI,
+   inside its shell (hole, disc, a purge), the Wormhole Mouth and Junction GUIs, the crown's EU/t, the remote crown fed
+   through its receptor port.
+7. **Eye T7 and T8:** the Magnetar Collapse on the `galaxy` bench's lock-stepped quasar model (P4-95: on real redstone
+   the purge lands late), Triangulum, then the Galactic Merger on the real quasar with the live quasar rig
+   (`/btsquasar autorig <quasar> 0 eye <Eye>`), the Milky Way.
+8. **How to build one:** hints, survival auto-place, forming, NEI preview and recipe.
+9. **The quest book:** master's Tier 13 UXV, Tier 14 MAX and The Endgame chapters (`-Dbts.rec.questsdir`). UIV and
+   UMV are the pack's own chapters (ours only adds quests to them), so a dev world without the pack's book cannot show
+   them.
+
+Re-take scenes with `-Dbts.rec.only=<scene prefixes>` (the setup always runs). Chapter 3 is self-contained from the
+setup; chapter 7's merger needs the quasar seeded in chapter 6 (`q-seed`), so re-take them together.
+
+The earlier `showcase.shots` (v1, 4 minutes, with the plant scenes) stays as it was. The dev tests that go with them:
+`aetest.shots` (every v1 command once), `aedebug.shots` (Rig C lit and burning for 6 minutes; read `eye-ae.tsv`),
+`tiertest.shots` (an Eye grown from tier 1 to 2), `warpproof-real.shots` / `warpproof-warp.shots` (the time-warp
+proof: compare the two `eye-ae.tsv`), `probe-climb.shots`, `probe-p4.shots`, `probe2.shots`, `probe3.shots` (the probes
+behind showcase v2's scenes).
 
 ## Limits
 
@@ -207,6 +237,10 @@ minutes; read `eye-ae.tsv`), `tiertest.shots` (an Eye grown from tier 1 to 2).
   timeout, logged).
 - `hologram ... hints` shows StructureLib's hint blocks; they fade after StructureLib's hint lifetime, so
   record them soon after the command.
+- **The time warp's ceiling depends on what is loaded.** Every site the recorder keeps loaded ticks in every extra
+  tick: with Rig C alone an extra tick costs about 0.4 ms (x40 holds); with the whole showcase v2 world (1,000+ chunks,
+  nine Eyes and Kerrs, a quasar, the conduit rig) 1.2-1.5 ms, so x40-x60 gives about x35. Set a scene's caps
+  (`timelapse ... until`) for the rate the tag shows, not the one asked for.
 - A time-lapse speeds up the video, not the game: the game always runs at its real rate, so a process that takes
   15 minutes in game still takes 15 minutes to record (`timelapse 30 speed 30` films it as 30 s of video).
 - **Rig C, what the build taught.** (1) An ME stocking hatch in an Eye gas socket shows the Eye up to 2.1 G L of
