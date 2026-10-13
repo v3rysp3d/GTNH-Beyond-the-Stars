@@ -177,9 +177,9 @@ public class MTEHatchGRBReceptor extends MTEHatch {
     public BurstReading reading() {
         final long now = now();
         if (restored) {
+            // the entries keep tick 0, so P4-83's forget clock is not restarted by a load
             restored = false;
             warmUntil = now + RESTORE_WARMUP_TICKS;
-            for (Map.Entry<BurstSource, Long> e : known.entrySet()) e.setValue(now);
         }
         final boolean warming = now < warmUntil;
         final BurstReading out = new BurstReading();
@@ -334,7 +334,7 @@ public class MTEHatchGRBReceptor extends MTEHatch {
             final BurstSource s = BurstSource.fromArray(list.func_150306_c(i));
             if (s != null) known.put(s, 0L);
         }
-        restored = !known.isEmpty(); // stamped and warmed up at the first reading (P4-92)
+        restored = !known.isEmpty(); // the warm-up starts at the first reading (P4-92)
     }
 
     @Override
