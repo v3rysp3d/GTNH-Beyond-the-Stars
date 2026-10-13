@@ -81,6 +81,14 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
     /** B-115: buffer rows on the Field panel (a T8 Eye in galaxy mode with companions can hold a dozen fluids). */
     private static final int INTAKE_ROWS = 14;
     private static final int GALAXY_PANEL_W = 176, GALAXY_PANEL_H = 196, GALAXY_TEXT_ROWS = 9;
+    /**
+     * B-119: the width of a row inside the Field / Galaxy panel's list. The list is FIELD_PANEL_W - 8 wide; once its
+     * content outgrows it (the Field panel always does since B-115 added the Buffers section) MUI2 draws the scrollbar
+     * over the list's right edge, so rows keep 6 px clear of it (as the Silo terminal does) and right-aligned values
+     * are
+     * no longer cut.
+     */
+    private static final int ROW_W = FIELD_PANEL_W - 8 - 6;
     private static final String RESULT = EyeStarRuntime.RESULT_KEY;
 
     public EyeGui(MTEEyeOfHarmonyBTS multiblock) {
@@ -1192,7 +1200,7 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
     private static final int PANEL_DIM = 0xFF555555;
 
     private static ScrollingTextWidget panelText(java.util.function.Supplier<String> text, int colour) {
-        return new ScrollingTextWidget(IKey.dynamic(text::get)).width(FIELD_PANEL_W - 8)
+        return new ScrollingTextWidget(IKey.dynamic(text::get)).width(ROW_W)
             .height(9)
             .color(colour)
             .shadow(false)
@@ -1201,7 +1209,7 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
 
     private static IWidget panelStat(String labelKey, java.util.function.Supplier<String> value) {
         return Flow.row()
-            .size(FIELD_PANEL_W - 8, 9)
+            .size(ROW_W, 9)
             .marginBottom(1)
             .child(
                 IKey.lang(labelKey)
@@ -1213,14 +1221,14 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                 IKey.dynamic(value::get)
                     .color(BTSGuiKit.PANEL_TEXT)
                     .asWidget()
-                    .size(FIELD_PANEL_W - 8 - 100, 9)
+                    .size(ROW_W - 100, 9)
                     .textAlign(Alignment.CenterRight));
     }
 
     /** A Field panel row: text on the left (scrolls on hover when long), a value right-aligned in panel text. */
     private static Flow panelPair(java.util.function.Supplier<String> left, int leftColour,
         java.util.function.Supplier<String> right) {
-        final int w = FIELD_PANEL_W - 8, rw = 44;
+        final int w = ROW_W, rw = 44;
         return Flow.row()
             .size(w, 9)
             .marginBottom(1)
@@ -1253,7 +1261,7 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
     private static IWidget divider() {
         return ((IDrawable) (context, x, y, width, height, theme) -> GuiDraw.drawRect(x, y, width, height, 0xFF8B8B8B))
             .asWidget()
-            .size(FIELD_PANEL_W - 8, 1)
+            .size(ROW_W, 1)
             .margin(0, 2);
     }
 
@@ -1266,8 +1274,8 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
         final StringSyncValue sensors = main.findSyncHandler("eyeSensors", StringSyncValue.class);
         final StringSyncValue trims = main.findSyncHandler("eyeTrims", StringSyncValue.class);
         final StringSyncValue intake = main.findSyncHandler("eyeIntake", StringSyncValue.class);
-        final int w = FIELD_PANEL_W - 8;
-        final ListWidget<IWidget, ?> list = new ListWidget<>().size(w, FIELD_PANEL_H - 8)
+        final int w = ROW_W;
+        final ListWidget<IWidget, ?> list = new ListWidget<>().size(FIELD_PANEL_W - 8, FIELD_PANEL_H - 8)
             .pos(4, 4)
             .crossAxisAlignment(Alignment.CrossAxis.START)
             .collapseDisabledChild();
@@ -1294,8 +1302,8 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                                 .size(12, 8)
                                 .marginRight(3))
                     .child(legendCell(key, 0, 58, Alignment.CenterLeft))
-                    .child(legendCell(key, 1, 40, Alignment.CenterLeft))
-                    .child(legendCell(key, 2, w - 15 - 58 - 40, Alignment.CenterRight)));
+                    .child(legendCell(key, 1, 34, Alignment.CenterLeft))
+                    .child(legendCell(key, 2, w - 15 - 58 - 34, Alignment.CenterRight)));
         }
         list.child(divider());
         list.child(panelStat("beyondthestars.gui.eye.field.sockets", () -> {
@@ -1442,8 +1450,8 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
         final BooleanSyncValue ready = main.findSyncHandler("eyeReady", BooleanSyncValue.class);
         final StringSyncValue msg = main.findSyncHandler("eyeBeginMsg", StringSyncValue.class);
         final StringSyncValue text = main.findSyncHandler("eyeGalaxyText", StringSyncValue.class);
-        final int w = GALAXY_PANEL_W - 8;
-        final ListWidget<IWidget, ?> list = new ListWidget<>().size(w, GALAXY_PANEL_H - 8)
+        final int w = ROW_W;
+        final ListWidget<IWidget, ?> list = new ListWidget<>().size(GALAXY_PANEL_W - 8, GALAXY_PANEL_H - 8)
             .pos(4, 4)
             .crossAxisAlignment(Alignment.CrossAxis.START)
             .collapseDisabledChild();
