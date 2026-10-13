@@ -335,7 +335,8 @@ public class MTEReactorSiloGui extends BTSControllerGui<MTEReactorCoreMk1> {
 
     /** A group header (REACTOR, STEAM CHAIN, ...) as a kit section row: the header's own colour, a rule after it. */
     private static IWidget section(String group, BooleanSupplier shown) {
-        return BTSGuiKit.section(() -> MTEReactorCoreMk1.header(group), () -> "")
+        // gold, as the approved mockup draws them (the scanner's bold aqua header() read as a second badge)
+        return BTSGuiKit.section(() -> EnumChatFormatting.GOLD + group, () -> "")
             .setEnabledIf(w -> shown.getAsBoolean());
     }
 
@@ -349,10 +350,11 @@ public class MTEReactorSiloGui extends BTSControllerGui<MTEReactorCoreMk1> {
                 .trim();
     }
 
-    /** One terminal line. */
+    /** One terminal line, wrapped at the kit's 180 px row (it wrapped under the scrollbar at the list's 186). */
     private static IWidget row(Supplier<String> text) {
         return IKey.dynamic(() -> text.get())
             .asWidget()
+            .width(180)
             .marginBottom(2);
     }
 
@@ -360,6 +362,7 @@ public class MTEReactorSiloGui extends BTSControllerGui<MTEReactorCoreMk1> {
     private static IWidget row(Supplier<String> text, BooleanSupplier shown) {
         return IKey.dynamic(() -> text.get())
             .asWidget()
+            .width(180)
             .marginBottom(2)
             .setEnabledIf(w -> shown.getAsBoolean());
     }
@@ -841,7 +844,8 @@ public class MTEReactorSiloGui extends BTSControllerGui<MTEReactorCoreMk1> {
                 .defaultNumber(24)
                 .numbersInt(1, 36)
                 .syncHandler("throttleSetting")
-                .width(26)
+                // 22 (was 26): its 4 px went to the RPM field, whose "12,000" was cut at 34 (dev client round 1)
+                .width(22)
                 // Tidy B2: the tooltip is rebuilt while it is open, so a circuit dropped into
                 // the controller slot shows up here at once.
                 .tooltipDynamic(t -> {
@@ -868,7 +872,7 @@ public class MTEReactorSiloGui extends BTSControllerGui<MTEReactorCoreMk1> {
                     .defaultNumber(MTEReactorCoreMk1.RPM_REDLINE)
                     .numbersInt(MTEReactorCoreMk1.RPM_REDLINE, MTEReactorCoreMk1.RPM_LIMIT_MAX)
                     .syncHandler("rpmLimitSetting")
-                    .width(34)
+                    .width(38)
                     .tooltip(
                         t -> t.addLine(EnumChatFormatting.GOLD + translateToLocal("beyondthestars.gui.rpmlimit.title"))
                             .addLine(EnumChatFormatting.GRAY + translateToLocal("beyondthestars.gui.rpmlimit.tooltip"))
