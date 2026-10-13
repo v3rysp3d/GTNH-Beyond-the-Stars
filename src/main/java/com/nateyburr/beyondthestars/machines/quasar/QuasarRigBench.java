@@ -15,14 +15,23 @@ import com.nateyburr.beyondthestars.machines.directive.DirectiveBench;
 import com.nateyburr.beyondthestars.machines.directive.DirectiveSet;
 import com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective;
 import com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS;
+import com.nateyburr.beyondthestars.machines.eye.field.MagnetarCollapseOverlay;
 import com.nateyburr.beyondthestars.machines.eye.field.TierParams;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeGalaxyBench;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeMilestones;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime;
+import com.nateyburr.beyondthestars.machines.eye.star.EyeTransition;
+import com.nateyburr.beyondthestars.machines.eye.star.MagnetarCollapse;
 import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarResult;
 import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarState;
 
+import gregtech.api.covers.CoverRegistry;
+import gregtech.api.enums.ItemList;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
+import gregtech.common.covers.Cover;
+import gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase;
+import gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverInternal;
+import gregtech.common.covers.redstone.CoverAdvancedRedstoneTransmitterInternal;
 
 /**
  * P4 hosts unit, quasar-p4.md §8.3 / §8.4 on a dev server: the gate rig on a REAL Quasar Engine (MTE 28120) and,
@@ -76,6 +85,21 @@ public final class QuasarRigBench {
         long eruptions, purges, blowOuts;
         /** Live: the redstone block placed against each hatch (to take away again). */
         final Map<MTEHatchBurstControl, int[]> blocks = new IdentityHashMap<>();
+        /**
+         * Live (P4-95): the collapse cue, Galaxy Transition [4], runs over a real wire: a GT Advanced Redstone
+         * Transmitter (Internal) on the Eye's Galaxy Transition hatch (output Bit 3) and a Receiver (Internal) on the
+         * quasar's PURGE Burst Control Hatch, on this frequency. Null until wired.
+         */
+        String cueFreq;
+        /** Live: the Magnetar Collapses seen (each one's collapse second), for {@code autorig status}. */
+        long collapses, collapsesHeld;
+        String lastCollapse = "";
+        /** Live: the quasar at each hook through the cue (for the collapse line). */
+        final StringBuilder trace = new StringBuilder();
+        /** Live: every collapse in short (Bu/t on the collapse second, shock cancelled, P after, phase). */
+        final List<String> collapseLog = new ArrayList<>();
+        /** Live: the collapse in its overfeed at the last hook (to catch the collapse second's result). */
+        MagnetarCollapse watched;
 
         Rig(MTEQuasarEngine q, MTEEyeOfHarmonyBTS eye, boolean analog) {
             final IGregTechTileEntity b = q.getBaseMetaTileEntity();
@@ -267,7 +291,9 @@ public final class QuasarRigBench {
                     r.eyeRig.charts));
             out.add("  " + m.progressLine(6));
             out.add("  " + m.progressLine(7));
-            // keep acting in real time: the Eye's field seconds call the hook (real redstone from now on)
+            // keep acting in real time: the Eye's field seconds call the hook (real redstone from now on); the
+            // collapse cue gets its own wire, as a player wires it (P4-95)
+            out.add(wireCue(r, transH, purgeH));
             live = r;
             EyeGalaxyBench.liveHook = QuasarRigBench::liveSecond;
             out.add("The rig keeps acting in real time (autorig off stops it).");
@@ -300,8 +326,10 @@ public final class QuasarRigBench {
         if (gas + space > 0) QuasarKit.fillTrims(q, world, gas, space);
         if (gas > 0) r.gasValveS++;
         if (space > 0) r.spaceValveS++;
-        // the purge wire: (Disc [4] AND NOT Transition [8]) OR Transition [4]
-        final boolean purge = (bit(d, 3) && !bit(trans, 4)) || bit(trans, 3);
+        // the purge wire: (Disc [4] AND NOT Transition [8]) OR Transition [4]; live, once the cue runs over its own
+        // wireless wire (P4-95), the rig's block carries only the regulator term
+        final boolean regulator = bit(d, 3) && !bit(trans, 4);
+        final boolean purge = realRedstone && r.cueFreq != null ? regulator : regulator || bit(trans, 3);
         if (purge && !r.purgeWire) r.purgeEdges++;
         r.purgeWire = purge;
         wire(world, r, purgeH, purge, realRedstone);
@@ -344,6 +372,63 @@ public final class QuasarRigBench {
             com.nateyburr.beyondthestars.machines.quasar.engine.QuasarParams.meanStream(s.G0, s.Yq, true));
     }
 
+    /**
+     * P4-95: the collapse cue as a player wires it. Galaxy Transition [4] leaves the Eye's hatch (output Bit 3) through
+     * a GT Advanced Redstone Transmitter (Internal) and reaches the quasar's PURGE Burst Control Hatch through an
+     * Advanced Redstone Receiver (Internal) on the same frequency, so the edge reaches the quasar a few ticks after
+     * the Eye's second, not at the rig's next one. The covers stay (they are real covers); {@code off} leaves them.
+     */
+    private static String wireCue(Rig r, MTEHatchDirective transH, MTEHatchBurstControl purgeH) {
+        final IGregTechTileEntity tb = transH.getBaseMetaTileEntity(), pb = purgeH.getBaseMetaTileEntity();
+        final String freq = "bts-collapse-cue-" + r.qx + "-" + r.qy + "-" + r.qz;
+        transH.setOutput(DirectiveSet.Output.BIT3);
+        final ForgeDirection ts = coverSide(tb, CoverAdvancedRedstoneTransmitterInternal.class);
+        final ForgeDirection rs = coverSide(pb, CoverAdvancedRedstoneReceiverInternal.class);
+        if (ts == null || rs == null) {
+            return "Collapse cue: no free side for the wireless covers (the rig's block wire carries it, a second late)";
+        }
+        if (!(tb.getCoverAtSide(ts) instanceof CoverAdvancedRedstoneTransmitterInternal)) {
+            tb.attachCover(
+                CoverRegistry.buildCover(ItemList.Cover_AdvancedRedstoneTransmitterInternal.get(1L), ts, tb));
+        }
+        if (!(pb.getCoverAtSide(rs) instanceof CoverAdvancedRedstoneReceiverInternal)) {
+            pb.attachCover(CoverRegistry.buildCover(ItemList.Cover_AdvancedRedstoneReceiverInternal.get(1L), rs, pb));
+        }
+        final Cover tc = tb.getCoverAtSide(ts), rc = pb.getCoverAtSide(rs);
+        if (!(tc instanceof CoverAdvancedRedstoneTransmitterInternal)
+            || !(rc instanceof CoverAdvancedRedstoneReceiverInternal)) {
+            return "Collapse cue: the wireless covers would not attach (the rig's block wire carries it, a second late)";
+        }
+        ((CoverAdvancedRedstoneTransmitterInternal) tc).setFrequency(freq);
+        ((CoverAdvancedRedstoneTransmitterInternal) tc).setInverted(false);
+        ((CoverAdvancedRedstoneReceiverInternal) rc).setFrequency(freq);
+        ((CoverAdvancedRedstoneReceiverInternal) rc).setMode(CoverAdvancedRedstoneReceiverBase.GateMode.OR);
+        tc.setTickRateAddition(1 - tc.getDefaultTickRate());
+        rc.setTickRateAddition(1 - rc.getDefaultTickRate());
+        tb.issueCoverUpdate(ts);
+        pb.issueCoverUpdate(rs);
+        r.cueFreq = freq;
+        return "Collapse cue wired: the Eye's Galaxy Transition hatch (Bit 3 out) -> Advanced Redstone Transmitter"
+            + " (Internal, "
+            + ts.name()
+                .toLowerCase(Locale.ROOT)
+            + ") -> "
+            + freq
+            + " -> Receiver (Internal, "
+            + rs.name()
+                .toLowerCase(Locale.ROOT)
+            + ") on the quasar's PURGE Burst Control Hatch";
+    }
+
+    /** The side that holds a cover of {@code kind} already, else the first side with no cover; null if none. */
+    private static ForgeDirection coverSide(IGregTechTileEntity b, Class<? extends Cover> kind) {
+        for (ForgeDirection f : ForgeDirection.VALID_DIRECTIONS) if (kind.isInstance(b.getCoverAtSide(f))) return f;
+        for (ForgeDirection f : ForgeDirection.VALID_DIRECTIONS) {
+            if (f != b.getFrontFacing() && !b.hasCoverAtSide(f)) return f;
+        }
+        return null;
+    }
+
     /** A wire into a Burst Control Hatch: its bench input (fast-forward) or a real redstone block (live). */
     private static void wire(World world, Rig r, MTEHatchBurstControl h, boolean on, boolean realRedstone) {
         if (h == null) return;
@@ -356,7 +441,8 @@ public final class QuasarRigBench {
             final IGregTechTileEntity b = h.getBaseMetaTileEntity();
             for (ForgeDirection f : ForgeDirection.VALID_DIRECTIONS) {
                 final int x = b.getXCoord() + f.offsetX, y = b.getYCoord() + f.offsetY, z = b.getZCoord() + f.offsetZ;
-                if (!world.isAirBlock(x, y, z)) continue;
+                // a covered side reads its cover, not the block (the cue's receiver, P4-95)
+                if (!world.isAirBlock(x, y, z) || b.hasCoverAtSide(f)) continue;
                 world.setBlock(x, y, z, Blocks.redstone_block);
                 r.blocks.put(h, new int[] { x, y, z });
                 return;
@@ -404,9 +490,77 @@ public final class QuasarRigBench {
         }
         r.eyeRig = DirectiveBench.EyeRig.of(eye);
         if (r.eyeRig == null) return;
+        watchCollapse(r, eye, q);
         act(world, r, q, eye, disc, purgeH, transH, fieldH, eventsH, slotsH, beginH, false, true);
         QuasarKit.refillGas(q, world); // the ME stocking hatches
         feedEye(r, q, eye, transH, fieldH, eventsH, slotsH);
+    }
+
+    /**
+     * Live, before the Eye's second: a Magnetar Collapse seen in its overfeed at the last hook has collapsed by now
+     * (or failed): note how much of the shock the bursts on the collapse second cancelled (P4-95's measure).
+     */
+    private static void watchCollapse(Rig r, MTEEyeOfHarmonyBTS eye, MTEQuasarEngine q) {
+        final EyeTransition t = eye.starRuntime()
+            .transition();
+        final MagnetarCollapse mc = t instanceof MagnetarCollapse ? (MagnetarCollapse) t : null;
+        final MagnetarCollapse was = r.watched;
+        if (was != null && (mc != was || !was.overfeed())) {
+            final MagnetarCollapseOverlay o = was.mc;
+            if (o.collapsedOnce) {
+                r.collapses++;
+                final boolean held = o.shockP <= 100;
+                if (held) r.collapsesHeld++;
+                r.lastCollapse = String.format(
+                    Locale.ROOT,
+                    "collapse %d: %s, %.1f Bu/t on the collapse second cancelled %.0f of %.0f (P %+.1f -> %+.1f); the"
+                        + " quasar's second runs %d ticks after the Eye's; the quasar's last seconds: %s",
+                    r.collapses,
+                    held ? "HELD" : "FAILED",
+                    o.shockG,
+                    o.shockCancel,
+                    o.shock,
+                    o.shockP0,
+                    o.shockP,
+                    phase(eye, q),
+                    r.trace.toString()
+                        .trim());
+                r.collapseLog.add(
+                    String.format(
+                        Locale.ROOT,
+                        "#%d %s %.1f Bu/t, -%.0f, P %+.0f, phase %d",
+                        r.collapses,
+                        held ? "held" : "FAILED",
+                        o.shockG,
+                        o.shockCancel,
+                        o.shockP,
+                        phase(eye, q)));
+            }
+        }
+        r.watched = mc != null && mc.overfeed() ? mc : null;
+        // the quasar seen at each hook through the cue (overfeed 290-299): flux, stream and what its second did
+        if (r.watched == null) return;
+        if (mc.mc.st < 290) {
+            r.trace.setLength(0);
+            return;
+        }
+        final QuasarResult res = q.lastResult();
+        r.trace.append(
+            String.format(
+                Locale.ROOT,
+                "%d: flux %.0f G %.1f%s; ",
+                mc.mc.st,
+                q.state().Phi,
+                res == null ? 0 : res.G,
+                res == null ? ""
+                    : res.purge ? " PURGE" : res.purgeRefused ? " purge refused" : res.eruption ? " ERUPTION" : ""));
+    }
+
+    /** Ticks from the Eye's field second to the quasar's disc second (both run on their own 20-tick timers). */
+    private static int phase(MTEEyeOfHarmonyBTS eye, MTEQuasarEngine q) {
+        final IGregTechTileEntity e = eye.getBaseMetaTileEntity(), b = q.getBaseMetaTileEntity();
+        if (e == null || b == null) return -1;
+        return (int) Math.floorMod(e.getTimer() - b.getTimer(), 20L);
     }
 
     /** {@code autorig status}: the live rig, if any. */
@@ -416,7 +570,7 @@ public final class QuasarRigBench {
         return String.format(
             Locale.ROOT,
             "Live quasar rig: quasar %d %d %d -> Eye %d %d %d; purge edges %d, begin edges %d, eruptions %d,"
-                + " purges %d, blow-outs %d",
+                + " purges %d, blow-outs %d; collapse cue %s; Magnetar Collapses %d (held %d)%s",
             r.qx,
             r.qy,
             r.qz,
@@ -427,6 +581,10 @@ public final class QuasarRigBench {
             r.beginEdges,
             r.eruptions,
             r.purges,
-            r.blowOuts);
+            r.blowOuts,
+            r.cueFreq == null ? "on the rig's block wire" : "wired (" + r.cueFreq + ")",
+            r.collapses,
+            r.collapsesHeld,
+            r.lastCollapse.isEmpty() ? "" : "; all: " + String.join(" | ", r.collapseLog) + "; last " + r.lastCollapse);
     }
 }
