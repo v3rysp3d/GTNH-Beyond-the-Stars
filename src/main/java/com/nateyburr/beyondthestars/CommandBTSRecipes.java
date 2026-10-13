@@ -284,6 +284,7 @@ public class CommandBTSRecipes extends CommandBase {
         config.put("replaceTecTechEyeOfHarmony", Config.replaceTecTechEyeOfHarmony);
         config.put("removeBlackHoleCompressorRecipe", Config.removeBlackHoleCompressorRecipe);
         config.put("stellarCircuits", Config.stellarCircuits);
+        config.put("nacCircuitComponents", Config.nacCircuitComponents);
         config.put("raiseStockSpecialCircuits", Config.raiseStockSpecialCircuits);
         if (Config.raiseStockSpecialCircuits) {
             config.put("stockSpecialCircuitEnergyFactor", Config.stockSpecialCircuitEnergyFactor);
@@ -360,6 +361,8 @@ public class CommandBTSRecipes extends CommandBase {
                 case "singularity":
                     return i.startsWith("SL-P") && number(i.substring(4)) <= 14 ? KERR : EYE;
                 case "circuits":
+                case "nac":
+                    // the circuit chain SL-X and its NAC route SL-N (BTSRecipes lines "circuits" and "nac")
                     return CIRCUITS;
                 default:
                     return OTHER;
