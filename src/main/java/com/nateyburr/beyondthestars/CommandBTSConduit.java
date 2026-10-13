@@ -33,6 +33,8 @@ import gregtech.api.metatileentity.implementations.MTEHatchInput;
  * <li>{@code status x y z}: the scanner lines of a Mouth, Mirror, Junction, crown, GRB Receptor Port or quasar.</li>
  * <li>{@code dock x y z}: a quasar's two port cells and how a crown or a mouth docks on each.</li>
  * <li>{@code rig x y z}: raises the standard test rig around a quasar at x y z; {@code rig status} reads it all.</li>
+ * <li>{@code crowns x y z mk [stack]}: a Mk {@code mk} crown docked on each jet port of the quasar at x y z, and with
+ * {@code stack} a second one stacked on each (the max-rate rig: Mk III + Mk III per port).</li>
  * <li>Bench: {@code pair x1 y1 z1 x2 y2 z2}, {@code throat x y z mk}, {@code fuel x y z on|off} (fills or empties an
  * element's fuel hatches), {@code junction x y z c k p3 [split|combine]}, {@code rebuild x y z} (re-projects any
  * of our multis at x y z).</li>
@@ -51,7 +53,8 @@ public class CommandBTSConduit extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btsconduit status x y z | dock x y z | rig x y z | rig status | pair x1 y1 z1 x2 y2 z2 | throat x y z mk"
+        return "/btsconduit status x y z | dock x y z | rig x y z | rig status | crowns x y z mk [stack]"
+            + " | pair x1 y1 z1 x2 y2 z2 | throat x y z mk"
             + " | fuel x y z on|off | junction x y z c k p3 [split|combine] | rebuild x y z [tier] | keep x1 y z1 x2 z2"
             + " | survival x y z mouth|mirror|junction|crown1|crown2|crown3 [facing|up|down] [creative]"
             + " | inject rx ry rz qx qy qz bu | inject rx ry rz off | nbt x y z [key ...] | burstmode x y z [place|mode]";
@@ -135,6 +138,19 @@ public class CommandBTSConduit extends CommandBase {
                 }
                 MTEWormholeMouth.pair(a, b);
                 SLConsoleTest.tell(sender, "Paired");
+                return;
+            }
+            case "crowns": {
+                // crowns x y z <mk 1-3> [stack]: a crown of that Mk docked on each of the quasar's jet ports, and
+                // with stack a second one stacked on each (the overflow); bench owner, formed
+                final MTEQuasarEngine q = mte(world, x, y, z, MTEQuasarEngine.class);
+                if (q == null) {
+                    SLConsoleTest.tell(sender, "No Quasar Engine controller at " + x + ", " + y + ", " + z);
+                    return;
+                }
+                final int mk = args.length > 4 ? Integer.parseInt(args[4]) : 1;
+                final boolean stack = args.length > 5 && args[5].equalsIgnoreCase("stack");
+                for (String line : ConduitKit.crowns(world, q, mk, stack)) SLConsoleTest.tell(sender, line);
                 return;
             }
             case "throat": {

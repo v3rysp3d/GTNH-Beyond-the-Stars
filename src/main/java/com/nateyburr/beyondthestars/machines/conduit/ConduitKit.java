@@ -175,6 +175,32 @@ public final class ConduitKit {
 
     // ================================================================================== bench
 
+    /**
+     * {@code /btsconduit crowns}: a Mk {@code mk} crown docked on each of the quasar's two jet ports (bench owner,
+     * formed), and with {@code stack} a second crown of the same Mk stacked on each (it takes the first one's
+     * overflow). Returns what it did.
+     */
+    public static List<String> crowns(World world, MTEQuasarEngine q, int mk, boolean stack) {
+        final List<String> out = new ArrayList<>();
+        final IGregTechTileEntity base = q.getBaseMetaTileEntity();
+        final ExtendedFacing qf = q.getExtendedFacing();
+        final int m = Math.max(1, Math.min(3, mk));
+        for (JetPort port : JetPort.VALUES) {
+            final ExtendedFacing f = MTEBurstThermaliserCrown.dockFacing(qf, port);
+            final int[] c = QuasarGeometry.world(
+                qf,
+                base.getXCoord(),
+                base.getYCoord(),
+                base.getZCoord(),
+                QuasarGeometry.crownControllerRel(port));
+            final MTEBurstThermaliserCrown crown = placeCrown(world, c, f, m, out, port.label + " crown");
+            if (crown == null || !stack) continue;
+            final int[] s = QuasarGeometry.world(f, c[0], c[1], c[2], MTEBurstThermaliserCrown.stackRel(m));
+            placeCrown(world, s, f, m, out, port.label + " crown, stacked");
+        }
+        return out;
+    }
+
     /** The last rig raised (positions), for {@code /btsconduit rig status}. */
     public static final class Rig {
 
