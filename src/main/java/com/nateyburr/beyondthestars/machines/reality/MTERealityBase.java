@@ -11,10 +11,12 @@ import java.util.Locale;
 import java.util.Set;
 
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
+import com.google.common.io.ByteArrayDataInput;
 import com.gtnewhorizon.structurelib.alignment.IAlignmentLimits;
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
 import com.gtnewhorizon.structurelib.alignment.enumerable.Flip;
@@ -38,9 +40,11 @@ import gregtech.api.metatileentity.implementations.MTEHatchInput;
 import gregtech.api.metatileentity.implementations.MTEHatchMultiInput;
 import gregtech.api.render.TextureFactory;
 import gregtech.api.util.GTUtility;
+import gregtech.common.render.IMTERenderer;
 import gregtech.common.tileentities.machines.IRecipeProcessingAwareHatch;
 import gregtech.common.tileentities.machines.MTEHatchInputME;
 import gregtech.common.tileentities.machines.RecipeCheckReason;
+import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import tectech.mechanics.boseEinsteinCondensate.BECFactoryElement;
 import tectech.mechanics.boseEinsteinCondensate.BECFactoryGrid;
@@ -74,7 +78,7 @@ import tectech.thing.metaTileEntity.hatch.bec.MTEHatchBEC;
  * apply as they do to every BEC machine.
  */
 public abstract class MTERealityBase<T extends MTERealityBase<T>> extends MTEExtendedPowerMultiBlockBase<T>
-    implements ISurvivalConstructable, BECFactoryElement, NotableBECFactoryElement {
+    implements ISurvivalConstructable, BECFactoryElement, NotableBECFactoryElement, IMTERenderer {
 
     /** How often the BEC edge to our hatches is re-asserted. */
     public static final int REASSERT_TICKS = 20;
@@ -84,6 +88,12 @@ public abstract class MTERealityBase<T extends MTERealityBase<T>> extends MTEExt
     protected BECFactoryNetwork network;
     protected int mCasing;
     protected String lastNote = "";
+
+    // ------------------------------------- renders v2 (§12, §13): GT's render-data channel only, never saved
+    /** Client: formed as last sent (draw nothing while not), the render mask, the run's progress 0..1. */
+    private boolean renderFormed;
+    private int renderMask;
+    private float renderProgress;
 
     protected MTERealityBase(int aID, String aName, String aNameRegional) {
         super(aID, aName, aNameRegional);
@@ -231,6 +241,7 @@ public abstract class MTERealityBase<T extends MTERealityBase<T>> extends MTEExt
         if (aBaseMetaTileEntity.isServerSide() && aTick % REASSERT_TICKS == 0) {
             BECFactoryGrid.INSTANCE.updateElement(this);
             onSecond();
+            if (aTick % 40 == 0) sendRenderDataToClient(this);
             // Diffraction's pending litres and run count, Refab's steps, sub-ticks and link change without an
             // inventory change, and GT marks a chunk for saving only on those: once a second, as the KEE and the P4
             // machines do (B-112, P4-85).
@@ -242,6 +253,61 @@ public abstract class MTERealityBase<T extends MTERealityBase<T>> extends MTEExt
                 scheduleRecipeCheck(RecipeCheckReason.THROTTLED);
             }
         }
+    }
+
+    // ============================================================================ renders v2
+
+    /** Renders v2 (§12): the machine's render (client; RealityRender). */
+    @Override
+    public void renderTESR(double x, double y, double z, float partialTicks) {
+        RealityRender.render(this, x, y, z, partialTicks);
+    }
+
+    /** The whole machine (its axis stands up to 65 blocks above the controller, 72 blocks tall above the belt). */
+    @Override
+    public AxisAlignedBB getRenderBoundingBox(int x, int y, int z) {
+        return AxisAlignedBB.getBoundingBox(x - 110, y - 20, z - 110, x + 111, y + 160, z + 111);
+    }
+
+    @Override
+    public double getMaxRenderDistanceSquared() {
+        return 256.0 * 256.0;
+    }
+
+    /** What the render shows per machine (Diffraction: the anchored regions, bits 0-5); server. */
+    protected int renderMaskNow() {
+        return 0;
+    }
+
+    /** Server: formed, the render mask and the run's progress, every 2 s (render-only, never saved). */
+    @Override
+    public void encodeRenderData(ByteBuf buf) {
+        buf.writeBoolean(mMachine);
+        buf.writeInt(mMachine ? renderMaskNow() : 0);
+        buf.writeFloat(mMaxProgresstime > 0 ? Math.min(1f, (float) mProgresstime / mMaxProgresstime) : 0f);
+    }
+
+    /** Client. */
+    @Override
+    public void decodeRenderData(ByteArrayDataInput in) {
+        renderFormed = in.readBoolean();
+        renderMask = in.readInt();
+        renderProgress = in.readFloat();
+    }
+
+    /** Client: formed as last sent. */
+    public boolean renderFormed() {
+        return renderFormed;
+    }
+
+    /** Client: the render mask as last sent. */
+    public int renderMask() {
+        return renderMask;
+    }
+
+    /** Client: the run's progress 0..1 as last sent. */
+    public float renderProgress() {
+        return renderProgress;
     }
 
     /** Once a second on the server (after the BEC re-assert, before the idle recipe-check push). */
