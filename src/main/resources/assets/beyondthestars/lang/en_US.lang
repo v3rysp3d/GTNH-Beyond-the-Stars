@@ -884,12 +884,12 @@ beyondthestars.gui.sensor.rule.analog=Analog 0-15
 beyondthestars.gui.sensor.channelrow=Channel: %s
 beyondthestars.gui.sensor.channel.tip=Click: next channel; right-click: previous
 beyondthestars.gui.sensor.channel.tip2=Gauges read -120..+120; Shield, Integrity, Stability 0-100; the zone 0-4; flags 0 or 1.
-beyondthestars.gui.sensor.above=On when ABOVE the threshold
-beyondthestars.gui.sensor.below=On when BELOW the threshold
+beyondthestars.gui.sensor.above=On ABOVE the threshold
+beyondthestars.gui.sensor.below=On BELOW the threshold
 beyondthestars.gui.sensor.comparator.tip=Digital: 15 while the reading is past the threshold, else 0
 beyondthestars.gui.sensor.digital=Digital 15 / 0
-beyondthestars.gui.sensor.analog=Analog 0-15 (threshold ignored)
-beyondthestars.gui.sensor.mode.tip=Analog: 0-15 across the channel's range
+beyondthestars.gui.sensor.analog=Analog 0-15
+beyondthestars.gui.sensor.mode.tip=Analog: 0-15 across the channel's range (the threshold is ignored)
 beyondthestars.gui.sensor.mode.tip2=Gauges -120..+120, 0-100 values, zone 0-4 = 0/4/8/11/15; flags give 15 when set.
 beyondthestars.gui.sensor.threshold=Threshold
 beyondthestars.gui.sensor.threshold.tip=-120 to +120, in the channel's own units (0-100, the zone 0-4, a flag 0 or 1)
