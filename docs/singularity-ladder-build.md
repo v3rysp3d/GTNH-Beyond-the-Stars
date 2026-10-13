@@ -180,7 +180,7 @@ calls: questions B-34..B-38, B-45, B-62 (review fixes) and B-63 (unit 5).
   only).
 - **Bench (op, console):** `/btseye t1..t6 <x> <y> <z> [facing] [gen n] [fill]` builds an Eye;
   `/btseye star <x> <y> <z> ...` drives the star (status, target, lit, sim, rig, unlock, milestones, core, escrow,
-  sensor, probe, wrench, legacy, field, **render [on|off]**: the centre cell and its look).
+  sensor, probe, wrench, legacy, field, **render [on|off]**: the centre cell and its look, **gui [info]**: the controller GUI's header and rows as text, B-96).
 - **Cost:** Eye T5 and T6 are in [`singularity-ladder-costs.md`](singularity-ladder-costs.md) §10: each step is
   about 2.4e15 / 3.0e15 EU, almost all of it the 188 compression generators of the next tier.
 - **Verified headless** (dev server): the field equals the prototype (78 golden cases, COMPARE PASS in game), every
@@ -231,7 +231,23 @@ errors and no crash. The boot log also confirms:
   empties its buses. `/btskerr damage|repair x y z` unforms the KEE by one cage block, then puts the block back.
   `/btskerr legacy x y z [inflight]` turns a built Kerr back into the pre-redesign layout; `inflight` also strips the
   module energy hatches and puts an old recipe in the KEE. `/btskerr module x y z <c|x> energy` fits a module a
-  creative energy hatch again (B-57).
+  creative energy hatch again (B-57). `/btskerr gui x y z [info]` and `/btskerr module x y z <c|x> gui [info]` print
+  the header and the rows (or the Info page) the KEE's and a module's GUI would show, as text (B-97).
+  `/btskerr gui x y z hatches` and `/btseye star x y z hatchgui` print what each of the machine's Directive (and
+  Stellar Field Sensor) Hatch GUIs shows: the readout box, then the control labels (B-99).
+- **GUI screenshot harness** (dev client only, B-100): `JAVA_TOOL_OPTIONS="-Dbts.guishots=true" ./gradlew.bat
+  runClient` makes the client enter (or create) the creative superflat world `saves/bts-guishots` and then run the
+  lines appended to `run/client/guishots/queue.txt` (the file is emptied at start): `cmd <command>` (as the player),
+  `tp x y z [yaw]`, `wait <ticks>`, `gui x y z` (waits until the client holds the tile, then the server opens the GT
+  GUI), `scale <n>`, `mouse x y` / `mouse off` (a fake mouse in GUI units from the main panel's top left, set on
+  LWJGL's position every frame, so hover tooltips show and the real cursor never moves), `click x y [button]` (MUI2's
+  hovered widget gets the press), `scroll x y <n>`, `shot <name>` (`run/client/screenshots/guishots/<name>.png`, and
+  the open panels' areas in the log for cropping), `dump [syncKey]` (a sync value and the widget tree), `find <MTE
+  class> x y z r`, `probe`, `close`, `say <text>`, `quit`. Log: `run/client/guishots/guishots.log`, with the chat the
+  bench commands print. `tools/guishots/drive.sh -f <file>` feeds a file and waits for it; `build-sites.shots` builds
+  every machine, then (after a re-join: the client only learns a structure built under it on re-entry) the other
+  `.shots` files photograph each GUI state. Window 1920x1080 (`-Dbts.guishots.width/height`); the player is held
+  flying where `tp` put it, so it stays in GUI range. Inert without the property.
 - **Overnight test bench** (B-71): `/btseye bec` lists our Condensate Assembler and Generator recipes as the server holds them (and whether GT's lookup finds each); `/btseye star x y z compression <1-9> [all]` swaps a Spacetime Compression Field Generator to test the 1:1 gate, and `/btseye star x y z check` prints the reason GT's run check would show.
 - **Recipe ledger** (B-91): `/btsrecipes dump [file]` writes JSON of every recipe the mod adds (`new`), rewrites in place (`changed-GT`, with the pack's recipe before) or removes (`removed`, with its replacement), read from the live recipe maps after load; `/btsrecipes status` prints the counts by line and badge.
 - **More console tools** (test bench): `/btseye gates` dumps the compression generator recipes the server actually
@@ -1842,6 +1858,8 @@ The Homogeny's one install path is `beginInstall()` then `completeInstall()` (co
   form: FORMED / NOT FORMED, first wrong cells, a creative re-projection check, survival damage-and-repair.
 - `/btshr keep <machine> <x> <y> <z> <facing> [tN]` force-loads (`/btskerr release` frees).
 - `/btshr bench <x> <y> <z> <status|check|fill|wrench|milestone e d|escrow|install|itick n|relink|pending [L]|scan|on|off|project n>` (`wrench` also on the Diffraction; `pending <L>` seeds its buffer, B-80).
+- `/btshr gui <x> <y> <z> [info]` prints the kit GUI's header and rows (or its Info page) as text, built on the server
+  as the GUI syncs them, for the Homogeny, both Reality machines, the Reactor Silo and the production halls (B-98).
 - `/btskit homogeny | diffraction | refab`.
 
 ## Contract additions (Homogeny / Reality recipes)

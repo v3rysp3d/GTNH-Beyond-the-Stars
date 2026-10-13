@@ -1,0 +1,37 @@
+gui 5500 100 0
+wait 20
+mouse 112 62
+wait 40
+shot homogeny-lamp-tip_s3
+mouse off
+close
+tp 8000.5 101 -4
+wait 80
+gui 8000 100 0
+wait 30
+shot silo_s3
+scale 2
+wait 5
+shot silo_s2
+scale 3
+scroll 90 80 6
+mouse off
+wait 10
+shot silo-scrolled_s3
+click 182 152
+mouse off
+wait 20
+shot silo-info_s3
+close
+tp 8500.5 101 -4
+wait 80
+cmd /btsbuild hall purex 8500 100 0 north stock
+wait 60
+gui 8500 100 0
+wait 30
+shot hall_s3
+scale 2
+wait 5
+shot hall_s2
+scale 3
+close

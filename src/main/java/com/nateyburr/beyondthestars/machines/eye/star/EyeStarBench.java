@@ -77,7 +77,7 @@ public final class EyeStarBench {
         + "bus <chart> [n] | legacy [galactic] [run <key> <n>] | fix | gt | mefield | intake [setup [G]] | eu | "
         + "field <fluid> <L> | "
         + "render [on|off] | "
-        + "directive | autorig <s> [cut <k>] | ocloop | compression <1-9> [all] | check | "
+        + "directive | autorig <s> [cut <k>] | ocloop | compression <1-9> [all] | check | gui [info] | "
         + "P4: burst <Bu/t> [high] [halo] | burst off | galaxy <s> [analog] [mass M] [fresh] | begin | "
         + "mode galaxy|planets | set mcshock|f8 <v> | slots <planet keys and chart names...> | slots clear | buses clear";
 
@@ -245,6 +245,16 @@ public final class EyeStarBench {
                 out.add("checkRecipe: " + eye.benchCheckRecipe());
                 break;
             }
+            case "gui":
+                // controller GUI cleanup: the header and rows the GUI would show now (spec §5.1), as text
+                out.addAll(new com.nateyburr.beyondthestars.machines.eye.EyeGui(eye).benchDump("info".equals(a5)));
+                return out;
+            case "hatchgui":
+                // controller GUI cleanup: what each Directive / Stellar Field Sensor Hatch's GUI shows (spec §5.10)
+                out.addAll(
+                    com.nateyburr.beyondthestars.machines.directive.DirectiveBench
+                        .hatchGui(eye.directiveHatches(), eye.sensorHatches()));
+                return out;
             case "mefield":
                 out.add(meField(eye));
                 break;

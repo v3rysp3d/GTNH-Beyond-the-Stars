@@ -59,6 +59,17 @@ public final class CoreCollapse extends EyeTransition {
             Math.max(-120, Math.min(120, s.x[TH] + shock)) };
     }
 
+    /** GUI: fast-forward (1), the bounce (2), settle (3). */
+    @Override
+    public int phase() {
+        return Math.max(1, Math.min(3, co.phase));
+    }
+
+    @Override
+    public int phases() {
+        return 3;
+    }
+
     @Override
     public String phaseLine() {
         if (co.phase == 1) {

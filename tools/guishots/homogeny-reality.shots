@@ -1,0 +1,54 @@
+tp 5500.5 101 -4
+wait 80
+cmd /btshr bench 5500 100 0 on
+cmd /btshr bench 5500 100 0 fill
+cmd /btshr bench 5500 100 0 milestone 0 60000
+wait 60
+cmd /btshr bench 5500 100 0 scan
+gui 5500 100 0
+wait 30
+shot homogeny-run_s3
+scale 2
+wait 5
+shot homogeny-run_s2
+scale 3
+mouse 60 57
+wait 40
+shot homogeny-lamp-tip_s3
+mouse off
+close
+tp 6000.5 101 -4
+wait 80
+cmd /btshr bench 6000 100 0 fill
+gui 6000 100 0
+wait 30
+shot homogeny-install_s3
+scale 2
+wait 5
+shot homogeny-install_s2
+scale 3
+close
+tp 7000.5 101 -4
+wait 80
+gui 7000 100 0
+wait 30
+shot reality-diff_s3
+scale 2
+wait 5
+shot reality-diff_s2
+scale 3
+close
+tp 7500.5 101 -4
+wait 80
+gui 7500 100 0
+wait 30
+shot reality-refab_s3
+scale 2
+wait 5
+shot reality-refab_s2
+scale 3
+mouse 120 133
+wait 40
+shot reality-refab-lamp-tip_s3
+mouse off
+close

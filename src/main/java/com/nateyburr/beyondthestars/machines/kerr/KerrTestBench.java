@@ -87,7 +87,9 @@ public final class KerrTestBench {
      * {@code module ... <c|x> <action> [args]}. Actions: {@code stock [map#] [longest|first|n] [copies]}
      * picks a recipe of one of the module's maps that fits its energy and fills its input bus (and input
      * hatch for fluids) with {@code copies} times its inputs; {@code status}; {@code tier <t> [amps]} sets
-     * the module's creative energy hatches; {@code clear} empties its output buses and input bus.
+     * the module's creative energy hatches; {@code clear} empties its output buses and input bus; {@code gui [info]}
+     * prints the header and the kit
+     * rows (or the Info page) its GUI would show now.
      */
     public static List<String> module(World world, MTEKerrEngine kee, KerrSlot slot, String[] args, int from) {
         final List<String> out = new ArrayList<>();
@@ -109,6 +111,14 @@ public final class KerrTestBench {
             case "clear":
                 out.add(clear(m));
                 break;
+            case "gui":
+                // controller GUI cleanup: the header and kit rows the module's GUI would show now (spec §5.3);
+                // the link is re-read first (the module's own 20-tick check does the same)
+                m.refreshLink();
+                out.addAll(
+                    new MTEKerrModuleGui(m)
+                        .benchDump(from + 1 < args.length && "info".equalsIgnoreCase(args[from + 1])));
+                return out;
             case "energy":
                 out.add(
                     KerrKit.refitModuleEnergy(world, kee, m) ? "energy: creative hatch fitted, structure re-checked"

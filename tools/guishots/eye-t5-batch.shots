@@ -1,0 +1,43 @@
+# Review fix (B-101): the T5 "Next batch" checklist on the T5 Eye from build-sites.shots (3000 100 0).
+# 1) IDLE, the Eye reaches T5, no White Dwarf Matter; 2) one compression generator at tier 4 with a full charge
+# buffered: "Eye reaches T5" fails while the charge row is green (the review's case); then restored.
+tp 3000.5 101 -5
+# force-load the footprint again (the ticket does not survive a client restart) and re-walk, or the walk can see
+# the spiral arms "not chunk loaded"
+cmd /btseye keep 3000 100 0 north t5
+wait 200
+cmd /btseye star 3000 100 0 compression 5 all
+cmd /btseye star 3000 100 0 target none
+wait 40
+cmd /btseye star 3000 100 0 buffer molten.whitedwarfmatter 0
+cmd /btseye star 3000 100 0 target siriusb
+wait 60
+cmd /btseye star 3000 100 0 status
+gui 3000 100 0
+wait 30
+shot eye-t5-idle_s3
+scale 2
+wait 5
+shot eye-t5-idle_s2
+scale 3
+close
+cmd /btseye star 3000 100 0 compression 4
+cmd /btseye star 3000 100 0 buffer molten.whitedwarfmatter 18432
+wait 60
+cmd /btseye star 3000 100 0 status
+gui 3000 100 0
+wait 30
+shot eye-t5-noreach_s3
+scale 2
+wait 5
+shot eye-t5-noreach_s2
+scale 3
+mouse 40 38
+wait 40
+shot eye-t5-noreach-tip_s3
+mouse off
+close
+cmd /btseye star 3000 100 0 compression 5 all
+cmd /btseye star 3000 100 0 fill
+wait 60
+cmd /btseye star 3000 100 0 status

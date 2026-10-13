@@ -1,0 +1,77 @@
+tp 300.5 99 0.5
+wait 80
+cmd /btseye star 300 98 4 target none
+gui 300 98 4
+wait 30
+shot eye-nostar_s3
+scale 2
+wait 5
+shot eye-nostar_s2
+scale 3
+close
+cmd /btseye star 300 98 4 target sol
+cmd /btseye star 300 98 4 seed 7
+cmd /btseye star 300 98 4 status
+wait 40
+gui 300 98 4
+wait 30
+shot eye-dark_s3
+scale 2
+wait 5
+shot eye-dark_s2
+scale 3
+mouse 160 13
+wait 40
+shot eye-dark-chip-tip_s3
+mouse off
+close
+cmd /btseye star 300 98 4 charge 1
+wait 300
+gui 300 98 4
+wait 30
+shot eye-igniting_s3
+scale 2
+wait 5
+shot eye-igniting_s2
+scale 3
+close
+cmd /btseye star 300 98 4 rig fine
+wait 500
+cmd /btseye star 300 98 4 sim 120
+gui 300 98 4
+wait 30
+shot eye-lit_s3
+scale 2
+wait 5
+shot eye-lit_s2
+scale 3
+click 182 132
+mouse off
+wait 20
+shot eye-info_s3
+scale 2
+wait 5
+shot eye-info_s2
+scale 3
+click 182 132
+mouse off
+click 163 133
+mouse off
+wait 30
+shot eye-field_s3
+close
+cmd /btseye star 300 98 4 target siriusa
+wait 60
+gui 300 98 4
+wait 30
+shot eye-pending_s3
+scale 2
+wait 5
+shot eye-pending_s2
+scale 3
+scroll 90 80 3
+mouse off
+wait 10
+shot eye-pending-scrolled_s3
+close
+cmd /btseye star 300 98 4 target sol

@@ -371,6 +371,29 @@ public abstract class MTEKerrModuleBase<T extends MTEKerrModuleBase<T>> extends 
         return false;
     }
 
+    /** GUI cleanup (controller-gui-spec.md §4.4): the kit's badge says it; GT's "Running perfectly." is not added. */
+    @Override
+    public boolean hasRunningText() {
+        return false;
+    }
+
+    /**
+     * GUI cleanup (spec §5.3): GT's recipe-result line stays for real recipe results (no recipe, outputs full, the
+     * DENSITY gate), but not for the link results: while unlinked or paused the badge and the "Runs again when"
+     * checklist say it. Read on the client, from the synced result.
+     */
+    @Override
+    public boolean shouldDisplayCheckRecipeResult() {
+        final CheckRecipeResult r = getCheckRecipeResult();
+        if (r == null) return true;
+        // getID() is the result TYPE ("simple_result" for every SimpleCheckRecipeResult); equals compares the key.
+        for (Link l : Link.VALUES) {
+            if (l != Link.LINKED && SimpleCheckRecipeResult.ofFailure("beyondthestars.kerr.module." + l.key)
+                .equals(r)) return false;
+        }
+        return true;
+    }
+
     // ============================================================================ structure
 
     /** Horizontal facings only, as the cage. */
@@ -480,14 +503,6 @@ public abstract class MTEKerrModuleBase<T extends MTEKerrModuleBase<T>> extends 
     public static String bonusLine(Link link, int parallel, double speed) {
         if (link != Link.LINKED) return "§7Hole bonus: none while the hole is closed or unlinked";
         return String.format(Locale.ROOT, "§bHole bonus: parallel %,d, speed x%.2f", parallel, speed);
-    }
-
-    /**
-     * What this module runs, one terminal line ("Maps: ..."). A constant per class, so the GUI reads
-     * it on the client without syncing it.
-     */
-    public String mapsLine() {
-        return "";
     }
 
     /**

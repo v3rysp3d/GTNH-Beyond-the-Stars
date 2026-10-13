@@ -62,9 +62,16 @@ import com.nateyburr.beyondthestars.machines.eye.star.EyeBursts;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeNbt;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime;
 import com.nateyburr.beyondthestars.machines.eye.star.StarDef;
+import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
+import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
+import com.nateyburr.beyondthestars.machines.gui.BTSText;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstHost;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstReading;
 
+import appeng.api.storage.data.IAEItemStack;
+import appeng.api.storage.data.IItemList;
+import appeng.me.GridAccessException;
+import appeng.util.item.AEItemStack;
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.Textures;
 import gregtech.api.interfaces.IIconContainer;
@@ -1129,6 +1136,98 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         return mMachine;
     }
 
+    /** GUI cleanup: the kit's badge says it (spec §0.6); GT's "Running perfectly." line is not added. */
+    @Override
+    public boolean hasRunningText() {
+        return false;
+    }
+
+    /** GUI cleanup: GT's recipe-result line only for a planet run; a star's state is the badge and checklist. */
+    @Override
+    public boolean shouldDisplayCheckRecipeResult() {
+        return targetIsPlanet();
+    }
+
+    /** GUI cleanup (spec Q2): wireless-only, it computes its own parallel; frees the gap row. */
+    @Override
+    public boolean supportsPowerPanel() {
+        return false;
+    }
+
+    /** The controller slot holds a planet (a dimension display block with an Eye recipe), not a Star Chart. */
+    public boolean targetIsPlanet() {
+        return planetTarget() != null;
+    }
+
+    /** The planet recipe the controller slot selects, or null (empty, a Star Chart, anything else). */
+    public EyeRecipe planetTarget() {
+        final ItemStack target = getControllerSlot();
+        if (target == null || StarDef.byChart(target) != null) return null;
+        return EyeRecipeRegistry.lookup(target);
+    }
+
+    /** GUI: the planet run's parallel (0 when none runs). */
+    public long runningParallelForGui() {
+        return runningKey == null ? 0 : runningParallel;
+    }
+
+    /** GUI: the last planet run's result line, or "". */
+    public String lastRunForGui() {
+        return lastRun == null ? "" : lastRun;
+    }
+
+    /**
+     * GUI (controller-gui-spec.md §5.1.3, planet target): what one planet run needs, every row met or not, read
+     * from the same state {@link #checkProcessing()} reads: the tier gate, one run of each input in the buffers, an
+     * owner and one run's EU in the wireless network. Consumes nothing.
+     */
+    public BTSChecklist planetChecklist() {
+        final BTSChecklist c = new BTSChecklist();
+        final EyeRecipe recipe = planetTarget();
+        if (recipe == null) return c;
+        final CheckRecipeResult gate = tierGate(recipe.tier);
+        c.add(
+            gate == null,
+            BTSText.lang("beyondthestars.gui.eye.chk.reach", recipe.tier),
+            BTSText.lit("T" + installedTier() + " / T" + recipe.tier),
+            -1,
+            // getID() is the result TYPE ("simple_result"), not its lang key: send the server's display string.
+            gate == null ? "" : BTSText.lit(gate.getDisplayString()));
+        for (EyeRecipe.FluidAmount in : recipe.inputs) {
+            if (in.fluid == null || in.amount <= 0) continue;
+            final long have = buffer(in.fluid);
+            final String name = in.fluid.getLocalizedName(new FluidStack(in.fluid, 1));
+            c.add(
+                have >= in.amount,
+                BTSText.lit(name),
+                BTSText.lit(BTSFormat.haveNeed(have, in.amount) + " L"),
+                BTSChecklist.frac(have, in.amount),
+                BTSText.lang("beyondthestars.gui.eye.planet.input.tip", name, fmt(have), fmt(in.amount)));
+        }
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        final UUID uuid = base == null ? null : base.getOwnerUuid();
+        if (uuid == null) {
+            c.add(
+                false,
+                BTSText.lang("beyondthestars.gui.eye.chk.eu"),
+                BTSText.lang("beyondthestars.gui.eye.chk.noowner"),
+                -1,
+                BTSText.lang(EyeStarRuntime.RESULT_KEY + "noowner"));
+        } else {
+            final BigInteger have = WirelessNetworkManager.getUserEU(uuid);
+            final boolean ok = affordable(uuid, recipe) >= 1;
+            c.add(
+                ok,
+                BTSText.lang("beyondthestars.gui.eye.chk.eu"),
+                BTSText.lit(
+                    ok ? BTSFormat.eu((double) recipe.euPerRun)
+                        : BTSFormat.eu(have) + " / " + BTSFormat.eu((double) recipe.euPerRun)),
+                -1,
+                BTSText.lang(EyeStarRuntime.RESULT_KEY + "noeu"));
+        }
+        return c;
+    }
+
     /** The D-49 star runtime (bench commands, kit). Server state. */
     public EyeStarRuntime starRuntime() {
         return runtime;
@@ -2090,6 +2189,56 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 }
             }
             return false;
+        }
+
+        /**
+         * GUI: the charges across the live plinth input buses. READ ONLY: no recipe-processing window is opened,
+         * because GT's {@code MTEHatchInputBusME.endRecipeProcessing(controller)} stops the controller (a critical
+         * shutdown) when the bus cannot reach its grid, and a GUI must never do that. Outside the window a stocking
+         * bus shows only its circuit and manual slots through {@code getStackInSlot}, so its network stock is read
+         * here from the grid's item list for each slot configured to the charge (once per distinct config; nothing
+         * when the bus is disabled or its network is down, which is what a recipe check would see too).
+         */
+        @Override
+        public int countIgnitionCharges() {
+            final Item charge = SLItems.stellarIgnitionCharge;
+            if (charge == null) return 0;
+            long count = 0;
+            for (MTEHatchInputBus bus : itemBuses) {
+                if (!live(bus)) continue;
+                for (int i = 0; i < bus.getSizeInventory(); i++) {
+                    final ItemStack stack = bus.getStackInSlot(i);
+                    if (stack != null && stack.getItem() == charge && stack.stackSize > 0) count += stack.stackSize;
+                }
+                if (bus instanceof MTEHatchInputBusME) count += stockedCharges((MTEHatchInputBusME) bus, charge);
+            }
+            return (int) Math.min(Integer.MAX_VALUE, count);
+        }
+
+        /** A stocking bus's network stock of the charge, read from the grid's item list (no extraction, no window). */
+        private long stockedCharges(MTEHatchInputBusME bus, Item charge) {
+            if (!bus.isAllowedToWork()) return 0;
+            final List<ItemStack> seen = new ArrayList<>();
+            long count = 0;
+            try {
+                final IItemList<IAEItemStack> list = bus.getProxy()
+                    .getStorage()
+                    .getItemInventory()
+                    .getStorageList();
+                for (int i = 0; i < MTEHatchInputBusME.SLOT_COUNT; i++) {
+                    final ItemStack config = bus.getSlotConfig(i);
+                    if (config == null || config.getItem() != charge) continue;
+                    boolean dup = false;
+                    for (ItemStack s : seen) dup |= GTUtility.areStacksEqual(s, config);
+                    if (dup) continue;
+                    seen.add(config);
+                    final IAEItemStack stored = list.findPrecise(AEItemStack.create(config));
+                    if (stored != null && stored.getStackSize() > 0) count += stored.getStackSize();
+                }
+            } catch (GridAccessException e) {
+                return 0;
+            }
+            return count;
         }
 
         @Override

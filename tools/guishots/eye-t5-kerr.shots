@@ -1,0 +1,63 @@
+tp 3000.5 101 -5
+wait 80
+cmd /btseye star 3000 100 0 sim 600
+gui 3000 100 0
+wait 30
+shot eye-t5_s3
+scale 2
+wait 5
+shot eye-t5_s2
+scale 3
+close
+tp 4500.5 101 -4
+wait 80
+cmd /btskerr render 4500 100 0 close
+cmd /btskerr autorig 4500 100 0 0 64 empty
+wait 20
+gui 4500 100 0
+wait 30
+shot kee-closed_s3
+scale 2
+wait 5
+shot kee-closed_s2
+scale 3
+mouse 20 78
+wait 40
+shot kee-closed-chip-tip_s3
+mouse off
+close
+cmd /btskerr render 4500 100 0 open 16
+wait 40
+gui 4500 100 0
+wait 30
+shot kee-drifting_s3
+scale 2
+wait 5
+shot kee-drifting_s2
+scale 3
+close
+cmd /btskerr autorig 4500 100 0 400 64
+wait 40
+cmd /btskerr gui 4500 100 0
+gui 4500 100 0
+wait 30
+shot kee-open_s3
+scale 2
+wait 5
+shot kee-open_s2
+scale 3
+mouse 20 88
+wait 40
+shot kee-open-chip-tip_s3
+mouse off
+click 143 133
+mouse off
+wait 20
+shot kee-hole_s3
+click 143 133
+mouse off
+click 163 133
+mouse off
+wait 20
+shot kee-modules_s3
+close

@@ -107,6 +107,60 @@ public final class EyeMilestones {
         }
     }
 
+    /**
+     * GUI: each part's progress toward leaving tier {@code n} (0..1 each): T1/T2 product and Resonant time; T3 also
+     * the helium flashes; T4 also the Deep Dark runs; T5 the good batches; T6 / T7 (P4) product, Resonant time, the
+     * giant flares / minor mergers and the link. Empty outside 1..7.
+     */
+    public double[] partProgress(int n) {
+        switch (n) {
+            case 1:
+            case 2:
+                return new double[] { ratio(prod[n], PROD_NEED[n]), ratio(res[n], RES_NEED[n]) };
+            case 3:
+                return new double[] { ratio(prod[3], PROD_NEED[3]), ratio(res[3], RES_NEED[3]),
+                    ratio(flashes, FLASHES_NEED) };
+            case 4:
+                return new double[] { ratio(prod[4], PROD_NEED[4]), ratio(res[4], RES_NEED[4]),
+                    ratio(deepDark, DEEP_DARK_NEED) };
+            case 5:
+                return new double[] { ratio(goodBatches, GOOD_BATCHES_NEED) };
+            case 6:
+            case 7:
+                // P4: product, Resonant time, the tier's events (giant flares / minor mergers), the link held
+                return new double[] { ratio(prod[n], PROD_NEED[n]), ratio(res[n], RES_NEED[n]),
+                    n == 6 ? ratio(flares, FLARES_NEED) : ratio(mergers, MERGERS_NEED),
+                    linkDone[n] ? 1 : ratio(linkStreak[n], LINK_NEED) };
+            default:
+                return new double[0];
+        }
+    }
+
+    private static double ratio(double have, double need) {
+        return need <= 0 ? 1 : Math.max(0, Math.min(1, have / need));
+    }
+
+    /** GUI: how many parts the milestones for leaving tier {@code n} have. */
+    public int parts(int n) {
+        return partProgress(n).length;
+    }
+
+    /** GUI: how many of those parts are met. */
+    public int done(int n) {
+        int d = 0;
+        for (double p : partProgress(n)) if (p >= 1) d++;
+        return d;
+    }
+
+    /** GUI: the mean of the parts' progress (each capped at 1), 0..1. */
+    public double fraction(int n) {
+        final double[] p = partProgress(n);
+        if (p.length == 0) return 0;
+        double sum = 0;
+        for (double v : p) sum += v;
+        return sum / p.length;
+    }
+
     /** Debug ({@code /btseye star … milestones n done}): marks tier n's milestones met. */
     public void complete(int n) {
         if (n < 1 || n > 7) return;

@@ -1,0 +1,25 @@
+# Review fix (B-101): the DARK ignition checklist's "Stellar Ignition Charge" row reads the plinth bus without a
+# recipe-processing window. T1 Eye from build-sites.shots (300 98 4): an Arcturus chart it cannot reach keeps it DARK
+# with the full checklist, two charges go into the bus, then a Sol chart lights it (one charge used) and the chart is
+# taken out again, so eye-t1.shots starts from the same DARK Eye (one charge stays in the bus).
+tp 300.5 99 0.5
+wait 80
+cmd /btseye star 300 98 4 target arcturus
+wait 40
+gui 300 98 4
+wait 30
+shot eye-dark-nocharge_s3
+close
+cmd /btseye star 300 98 4 charge 2
+wait 40
+gui 300 98 4
+wait 30
+shot eye-dark-charges_s3
+close
+cmd /btseye star 300 98 4 gt
+cmd /btseye star 300 98 4 target sol
+wait 300
+cmd /btseye star 300 98 4 status
+cmd /btseye star 300 98 4 target none
+wait 40
+cmd /btseye star 300 98 4 gt

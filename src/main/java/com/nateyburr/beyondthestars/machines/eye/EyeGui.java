@@ -6,9 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.function.Supplier;
 
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.StatCollector;
 
 import com.cleanroommc.modularui.api.IPanelHandler;
 import com.cleanroommc.modularui.api.drawable.IDrawable;
@@ -16,71 +17,71 @@ import com.cleanroommc.modularui.api.drawable.IKey;
 import com.cleanroommc.modularui.api.widget.IWidget;
 import com.cleanroommc.modularui.drawable.GuiDraw;
 import com.cleanroommc.modularui.screen.ModularPanel;
+import com.cleanroommc.modularui.screen.RichTooltip;
 import com.cleanroommc.modularui.utils.Alignment;
 import com.cleanroommc.modularui.value.sync.BooleanSyncValue;
 import com.cleanroommc.modularui.value.sync.DoubleSyncValue;
-import com.cleanroommc.modularui.value.sync.IntSyncValue;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 import com.cleanroommc.modularui.value.sync.StringSyncValue;
 import com.cleanroommc.modularui.widgets.ButtonWidget;
 import com.cleanroommc.modularui.widgets.ListWidget;
-import com.cleanroommc.modularui.widgets.ToggleButton;
+import com.cleanroommc.modularui.widgets.ScrollingTextWidget;
 import com.cleanroommc.modularui.widgets.layout.Flow;
 import com.nateyburr.beyondthestars.Config;
+import com.nateyburr.beyondthestars.machines.eye.field.CollapseOverlay;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldReadout;
 import com.nateyburr.beyondthestars.machines.eye.field.GalaxyField;
 import com.nateyburr.beyondthestars.machines.eye.field.StellarField;
 import com.nateyburr.beyondthestars.machines.eye.field.TierParams;
+import com.nateyburr.beyondthestars.machines.eye.star.CoreCollapse;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeBursts;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeGalaxy;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeMilestones;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeTransition;
+import com.nateyburr.beyondthestars.machines.eye.star.FirstCooling;
 import com.nateyburr.beyondthestars.machines.eye.star.GalacticMerger;
 import com.nateyburr.beyondthestars.machines.eye.star.MagnetarCollapse;
+import com.nateyburr.beyondthestars.machines.eye.star.ShellIgnition;
 import com.nateyburr.beyondthestars.machines.eye.star.StarDef;
+import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
+import com.nateyburr.beyondthestars.machines.gui.BTSControllerGui;
+import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
+import com.nateyburr.beyondthestars.machines.gui.BTSGuiKit;
+import com.nateyburr.beyondthestars.machines.gui.BTSGuiKit.Badge;
+import com.nateyburr.beyondthestars.machines.gui.BTSGuiKit.Grad;
+import com.nateyburr.beyondthestars.machines.gui.BTSRows;
+import com.nateyburr.beyondthestars.machines.gui.BTSText;
 import com.nateyburr.beyondthestars.machines.quasar.engine.BurstLink;
 
 import gregtech.api.modularui2.GTGuiTextures;
-import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
 
 /**
- * D-49 unit 6: the Eye of Harmony's console (d49-build-plan.md §12, GT's standard MUI2 multiblock layout). Nothing a
- * player needs takes a screwdriver any more (the screwdriver still steps the dial and the feed).
- * <ul>
- * <li><b>Terminal:</b> the Eye's tier (installed, unlocked, structure, compression); the star (state, tier, parallel)
- * or why it waits; one bar per active gauge (−120..+120, the zone bands drawn around the setpoint: Resonant ±10,
- * Stable ±40, Strained ±70, Critical ±100, Breach beyond; T5 draws them around the cooling setpoint); Stability, Y,
- * Harmonic Lock and Integrity; the event warning; upkeep r, the next cycle and its EU; the dial (set, paid, cap) and
- * the T4 HSM feed; the transition with a progress bar; the milestones and the escrow; the last failure; the render
- * note.</li>
- * <li><b>Gap row:</b> the time dial and the HSM feed setpoints, each with − / + (right-click: four steps); the centre
- * render switch and the Field panel on the right.</li>
- * <li><b>Field panel:</b> the zone legend, the Field and Sensor sockets (with every sensor's channel and output), the
- * trims drained this second, and the standard automation rig in one line.</li>
- * </ul>
- * Every value is server state and comes across as a sync value; the two setpoints are written back through the
- * runtime's clamping setters ({@link EyeStarRuntime#setDial}, {@link EyeStarRuntime#setFeed}).
+ * The Eye of Harmony's console on the controller GUI kit (controller-gui-spec.md §5.1). The header says the state
+ * (a badge per §5.1.1: NOT FORMED, NO STAR, RUNNING / WAITING for a planet, TRANSITION, IGNITING, COOLING, IDLE,
+ * PENDING, the lit zone, DARK), the star and the Eye's tier; the rows under it are the state's (§5.1.3): gauges, the
+ * Stability / Integrity / Shield / Lock / Cycle bars, the dial and feed, milestones, warnings and the last event when
+ * lit; a checklist of EVERY ignition or transition condition when it waits ({@link EyeStarRuntime#ignitionChecklist},
+ * {@link EyeStarRuntime#transitionChecklist}); the phase and the bounce prediction during a transition; the batch on
+ * T5. The <b>i</b> page has the questbook's words (§5.1.5). The gap row keeps the Dial and (T4 only) the Feed
+ * steppers and the Field panel; the centre render switch is in the button column. Every row is decided on the
+ * server and sent as one string ({@link BTSRows}); the two setpoints are written back through the runtime's clamping
+ * setters ({@link EyeStarRuntime#setDial}, {@link EyeStarRuntime#setFeed}).
+ * <p>
+ * P4 (merged from master): the galaxy tiers' rows on T6-T8 (the bursts on the GRB Receptor Ports and beta
+ * against the demand, the Stability / Heavy Link streak, the event countdowns, the planet slots or companions), the T6
+ * / T7 milestones and transition conditions, and a Galaxy panel (mode, the T8 Ergomatter feed f8, Begin).
  */
-public class EyeGui extends MTEMultiBlockBaseGui<MTEEyeOfHarmonyBTS> {
-
-    private static final int BAR_TRACK = 0xFF1E2026;
-    private static final int BAR_EDGE = 0xFF4A4D55;
-    /** Zone colours, Resonant .. Breach (dim, so the white marker and the label read on them). */
-    private static final int[] ZONE_COLOUR = { 0xFF1F6B3A, 0xFF2E5A6B, 0xFF6B6020, 0xFF7A3A14, 0xFF6E1A1A };
-    private static final int[] ZONE_EDGE = { 10, 40, 70, 100 };
-    private static final int MARKER = 0xFFFFFFFF;
-    private static final int SETPOINT_TICK = 0xFFFFFF55;
-    private static final int PROGRESS_FROM = 0xFF2F6B8F;
-    private static final int PROGRESS_TO = 0xFF7CD8FF;
-    /** "No setpoint" (a sentinel, not NaN, so the sync value only sends real changes). */
-    private static final double NO_SP = -999;
+public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
 
     private static final int FIELD_PANEL_W = 176;
-    private static final int FIELD_PANEL_H = 188;
+    private static final int FIELD_PANEL_H = 196;
+    private static final int SENSOR_ROWS = 8, TRIM_ROWS = 6;
+    private static final int GALAXY_PANEL_W = 176, GALAXY_PANEL_H = 196, GALAXY_TEXT_ROWS = 9;
+    private static final String RESULT = EyeStarRuntime.RESULT_KEY;
 
     public EyeGui(MTEEyeOfHarmonyBTS multiblock) {
-        super(multiblock);
+        super(multiblock, true, "eyeRender");
     }
 
     private EyeStarRuntime rt() {
@@ -92,28 +93,22 @@ public class EyeGui extends MTEMultiBlockBaseGui<MTEEyeOfHarmonyBTS> {
     @Override
     protected void registerSyncValues(PanelSyncManager syncManager) {
         super.registerSyncValues(syncManager);
-        syncManager.syncValue("eyeHead", new StringSyncValue(this::headLine));
-        syncManager.syncValue("eyeStar", new StringSyncValue(this::starLine));
-        syncManager.syncValue("eyeField", new StringSyncValue(this::fieldLine));
-        syncManager.syncValue("eyeWarn", new StringSyncValue(this::warnLine));
-        syncManager.syncValue("eyeUpkeep", new StringSyncValue(this::upkeepLine));
-        syncManager.syncValue("eyeDialLine", new StringSyncValue(this::dialLine));
-        syncManager.syncValue("eyeTrans", new StringSyncValue(() -> rt().transitionLine()));
-        syncManager.syncValue("eyeTransP", new DoubleSyncValue(() -> rt().transitionProgress()));
-        syncManager.syncValue("eyeMilestone", new StringSyncValue(this::milestoneLine));
-        syncManager.syncValue("eyeFail", new StringSyncValue(() -> rt().lastFailure()));
-        syncManager.syncValue("eyeRenderNote", new StringSyncValue(multiblock::getRenderNote));
-        syncManager.syncValue("eyeGaugeMask", new IntSyncValue(this::gaugeMask));
-        for (int k = 0; k < StellarField.GAUGES; k++) {
-            final int gauge = k;
-            syncManager.syncValue("eyeGauge" + k, new DoubleSyncValue(() -> gaugeValue(gauge)));
-        }
-        // ---- P4: the galaxy tiers (T6's link, T7 / T8, planets mode, companions)
-        syncManager.syncValue("eyeGalaxy", new StringSyncValue(this::galaxyLine));
-        syncManager.syncValue("eyeLink", new StringSyncValue(this::linkLine));
-        syncManager.syncValue("eyeEvent", new StringSyncValue(this::eventLine));
-        syncManager.syncValue("eyeSlotLine", new StringSyncValue(this::slotLine));
-        syncManager.syncValue("eyeGalaxyText", new StringSyncValue(this::galaxyPanelText));
+        syncManager
+            .syncValue("eyeDial", new DoubleSyncValue(() -> rt().dialSetpoint(), v -> rt().setDial(v)).allowC2S());
+        syncManager
+            .syncValue("eyeFeed", new DoubleSyncValue(() -> rt().feedSetpoint(), v -> rt().setFeed(v)).allowC2S());
+        syncManager.syncValue("eyeDialPaid", new DoubleSyncValue(() -> round2(rt().dialPaid())));
+        syncManager.syncValue("eyeDialMax", new DoubleSyncValue(() -> round2(rt().dialMax())));
+        syncManager
+            .syncValue("eyeFeedActual", new DoubleSyncValue(() -> Math.round(rt().feedActual() * 1000) / 1000.0));
+        syncManager.syncValue("eyeFeedOn", new BooleanSyncValue(this::feedShown));
+        syncManager.syncValue(
+            "eyeRender",
+            new BooleanSyncValue(multiblock::isRenderEnabled, multiblock::setRenderEnabled).allowC2S());
+        syncManager.syncValue("eyeSockets", new StringSyncValue(this::socketLine));
+        syncManager.syncValue("eyeSensors", new StringSyncValue(this::sensorLines));
+        syncManager.syncValue("eyeTrims", new StringSyncValue(this::trimLines));
+        // ---- P4: the Galaxy panel (T7 / T8: mode, the Ergomatter feed f8, Begin)
         syncManager.syncValue(
             "eyePlanets",
             new BooleanSyncValue(
@@ -123,503 +118,792 @@ public class EyeGui extends MTEMultiBlockBaseGui<MTEEyeOfHarmonyBTS> {
         syncManager.syncValue("eyeReady", new BooleanSyncValue(() -> rt().galaxyReady()));
         syncManager.syncValue("eyeBeginMsg", new StringSyncValue(() -> beginMsg));
         syncManager.registerServerSyncedAction("eyeBegin", packet -> beginMsg = rt().requestBegin());
-        syncManager.syncValue("eyeSp", new DoubleSyncValue(this::setpoint));
-        syncManager
-            .syncValue("eyeDial", new DoubleSyncValue(() -> rt().dialSetpoint(), v -> rt().setDial(v)).allowC2S());
-        syncManager
-            .syncValue("eyeFeed", new DoubleSyncValue(() -> rt().feedSetpoint(), v -> rt().setFeed(v)).allowC2S());
-        syncManager.syncValue(
-            "eyeRender",
-            new BooleanSyncValue(multiblock::isRenderEnabled, multiblock::setRenderEnabled).allowC2S());
-        syncManager.syncValue("eyeSockets", new StringSyncValue(this::socketLines));
-        syncManager.syncValue("eyeTrims", new StringSyncValue(this::trimLine));
+        syncManager.syncValue("eyeGalaxyText", new StringSyncValue(this::galaxyPanelText));
     }
 
-    // ============================================================================== server text
-
-    private String headLine() {
-        if (!multiblock.isFormedForGui()) {
-            return EnumChatFormatting.RED + "Not formed"
-                + EnumChatFormatting.GRAY
-                + " (unlocked T"
-                + rt().unlockedTier()
-                + ")";
-        }
-        return EnumChatFormatting.AQUA + "Eye of Harmony T"
-            + multiblock.installedTier()
-            + EnumChatFormatting.GRAY
-            + " (unlocked T"
-            + rt().unlockedTier()
-            + ", structure T"
-            + multiblock.structureTier()
-            + ", compression T"
-            + multiblock.compressionTier()
-            + ")";
-    }
-
-    private String starLine() {
-        final EyeStarRuntime rt = rt();
-        final StarDef star = rt.star();
-        final StarDef target = StarDef.byChart(multiblock.getControllerSlot());
-        if (star == null && rt.state() != EyeStarRuntime.StarState.DARK) {
-            return EnumChatFormatting.GRAY + rt.state()
-                .toString();
-        }
-        switch (rt.state()) {
-            case IGNITING:
-                return EnumChatFormatting.GOLD + star.name
-                    + " IGNITING"
-                    + EnumChatFormatting.GRAY
-                    + ", P "
-                    + StellarField.fmtSigned(rt.ignitionP())
-                    + " (lights at "
-                    + StellarField.fmtSigned(StellarField.IGNITION_LIT)
-                    + ")";
-            case LIT:
-            case PENDING:
-            case BATCH: {
-                final String state = rt.transition() != null ? "TRANSITION"
-                    : rt.state() == EyeStarRuntime.StarState.BATCH
-                        ? String.format(Locale.ROOT, "COOLING %.0f%%", rt.batchFraction() * 100)
-                        : rt.state()
-                            .toString();
-                return EnumChatFormatting.GREEN + star.name
-                    + " (T"
-                    + star.n()
-                    + ") "
-                    + state
-                    + EnumChatFormatting.GRAY
-                    + ", parallel "
-                    + rt.lastParallel();
-            }
-            case IDLE:
-                return EnumChatFormatting.YELLOW + (star == null ? "Star" : star.name)
-                    + " IDLE"
-                    + EnumChatFormatting.GRAY
-                    + (rt.waitReason()
-                        .isEmpty() ? "" : ": " + rt.waitReason());
-            default:
-                if (target == null) {
-                    return EnumChatFormatting.GRAY + "No star: put a Star Chart (or a planet) in the controller slot";
-                }
-                return EnumChatFormatting.GRAY + "DARK"
-                    + (rt.waitReason()
-                        .isEmpty() ? " (" + target.name + " selected)" : ": " + rt.waitReason());
-        }
-    }
-
-    private String fieldLine() {
-        final FieldReadout r = rt().lastReadout();
-        if (r == null || !r.lit) return "";
-        final int zone = Math.max(0, Math.min(4, r.zone));
-        return zoneColour(zone) + "Stability "
-            + Math.round(r.stability)
-            + " "
-            + StellarField.ZONE_NAME[zone]
-            + EnumChatFormatting.GRAY
-            + String.format(Locale.ROOT, ", Y %.2f, Lock %d/%d, Integrity %.0f", r.Y, r.lock, 600, r.I)
-            + (r.tier == 6 ? String.format(Locale.ROOT, ", shield %.0f", r.A) : "");
-    }
-
-    // ------------------------------------------------------------------------ P4 server text
-
-    /** The last Begin click's answer (server side; synced to the panel). */
+    /** The last Begin click's answer (server side; synced to the Galaxy panel). */
     private String beginMsg = "";
 
-    /** "Bursts 2.31 Bu/t: β 1.12 (demand 1.50 Bu/t); rail high 0.45 / low 0.41, halo 0; linked to x, y, z". */
-    private String galaxyLine() {
+    private static double round2(double v) {
+        return Math.round(v * 100) / 100.0;
+    }
+
+    /** The Feed stepper shows only while the star burning, or the chart selected, is the T4 neutron star (Q9). */
+    private boolean feedShown() {
+        final EyeStarRuntime rt = rt();
+        if (rt.live() && rt.star() != null
+            && rt.star()
+                .n() == 4)
+            return true;
+        final StarDef want = StarDef.byChart(multiblock.getControllerSlot());
+        return want != null && want.n() == 4;
+    }
+
+    // =============================================================================== the header
+
+    private StarDef want() {
+        return StarDef.byChart(multiblock.getControllerSlot());
+    }
+
+    @Override
+    protected Badge badgeCode() {
+        if (!multiblock.isFormedForGui()) return Badge.NOT_FORMED;
+        final EyeRecipe planet = multiblock.planetTarget();
+        final StarDef want = want();
+        final EyeStarRuntime rt = rt();
+        if (planet != null) {
+            return multiblock.getBaseMetaTileEntity()
+                .isActive() ? Badge.RUNNING : Badge.WAITING;
+        }
+        if (want == null && !rt.live()) return Badge.NO_STAR;
+        if (rt.transition() != null) return Badge.TRANSITION;
+        switch (rt.state()) {
+            case IGNITING:
+                return Badge.IGNITING;
+            case BATCH:
+                return Badge.COOLING;
+            case IDLE:
+                return Badge.IDLE_T5;
+            case PENDING:
+                return Badge.PENDING;
+            case LIT:
+                return rt.lastZone() < 0 ? Badge.STABLE : Badge.ofZone(rt.lastZone());
+            default:
+                return want == null ? Badge.NO_STAR : Badge.DARK;
+        }
+    }
+
+    @Override
+    protected String subject() {
+        final Badge b = badgeCode();
         final EyeStarRuntime rt = rt();
         final StarDef star = rt.star();
-        if (!rt.burning() || star == null || star.n() < 6) return "";
+        final StarDef want = want();
+        switch (b) {
+            case NOT_FORMED:
+            case NO_STAR:
+                return "";
+            case RUNNING:
+            case WAITING: {
+                final EyeRecipe planet = multiblock.planetTarget();
+                return planet == null ? "" : BTSText.lit(planet.name);
+            }
+            case TRANSITION:
+                return BTSText.lit(rt.transition().type.title);
+            case PENDING:
+                return BTSText.lit(shortName(star) + " > " + shortName(want));
+            case DARK:
+                return want == null ? "" : BTSText.lit(shortName(want));
+            default:
+                return star != null ? BTSText.lit(shortName(star)) : want != null ? BTSText.lit(shortName(want)) : "";
+        }
+    }
+
+    /**
+     * A star's name for the header: without its parenthetical ("Neutron Star (Arcturus Remnant)" reads "Neutron
+     * Star"), so the subject never runs into the right chip (dev client round 1). The full name stays in the rows.
+     */
+    private static String shortName(StarDef star) {
+        if (star == null) return "?";
+        final int cut = star.name.indexOf(" (");
+        return cut > 0 ? star.name.substring(0, cut) : star.name;
+    }
+
+    @Override
+    protected String rightChip() {
+        final int u = rt().unlockedTier();
+        if (!multiblock.isFormedForGui()) return BTSText.lang("beyondthestars.gui.eye.right.unlocked", u);
+        final int inst = multiblock.installedTier();
+        return BTSText.cat(BTSText.lit(inst < u ? "§e" : ""), BTSText.lang("beyondthestars.gui.eye.right", inst));
+    }
+
+    @Override
+    protected List<String> rightChipTooltip() {
+        final List<String> out = new ArrayList<>();
+        out.add(
+            BTSText.lang(
+                "beyondthestars.gui.eye.right.tip",
+                multiblock.installedTier(),
+                rt().unlockedTier(),
+                multiblock.structureTier(),
+                multiblock.compressionTier()));
+        out.add(BTSText.cat(BTSText.lit("§7"), BTSText.lang("beyondthestars.gui.eye.right.tip2")));
+        return out;
+    }
+
+    // ============================================================================= status rows
+
+    @Override
+    protected int statusPoolSize() {
+        return 26;
+    }
+
+    @Override
+    protected void addStatusRows(BTSRows.Builder rows) {
+        final Badge b = badgeCode();
+        switch (b) {
+            case NOT_FORMED:
+                rows.note(
+                    BTSRows.ICON_BAD,
+                    BTSGuiKit.BAD,
+                    BTSText.lang("beyondthestars.gui.eye.notformed", rt().unlockedTier()));
+                rows.stat(BTSText.lang("beyondthestars.gui.eye.unlocked"), BTSText.lit("T" + rt().unlockedTier()));
+                return;
+            case NO_STAR:
+                noStarRows(rows);
+                return;
+            case RUNNING:
+            case WAITING:
+                planetRows(rows);
+                return;
+            case TRANSITION:
+                transitionRows(rows);
+                return;
+            case IGNITING:
+                ignitingRows(rows);
+                return;
+            case COOLING:
+                batchRows(rows, false);
+                lastRow(rows);
+                return;
+            case IDLE_T5:
+                idleRows(rows);
+                return;
+            case PENDING:
+                pendingRows(rows);
+                return;
+            case DARK:
+                darkRows(rows);
+                return;
+            default:
+                litRows(rows);
+        }
+    }
+
+    private void noStarRows(BTSRows.Builder rows) {
+        final ItemStack target = multiblock.getControllerSlot();
+        rows.section(BTSText.lang("beyondthestars.gui.eye.sec.run"), "");
+        rows.check(
+            BTSChecklist.State.BAD,
+            BTSText.lang("beyondthestars.gui.eye.chk.chart"),
+            BTSText.lang(target == null ? "beyondthestars.gui.eye.chk.empty" : "beyondthestars.gui.eye.chk.notachart"),
+            -1,
+            BTSText.lang(RESULT + "notarget"));
+        rows.para(BTSText.lang("beyondthestars.gui.eye.nostar.hint"), BTSGuiKit.DIM);
+    }
+
+    private void planetRows(BTSRows.Builder rows) {
+        final long p = multiblock.runningParallelForGui();
+        rows.stat(BTSText.lang("beyondthestars.gui.kit.parallel"), BTSText.lit(p > 0 ? String.valueOf(p) : "-"));
+        rows.checks(multiblock.planetChecklist());
+        final String last = multiblock.lastRunForGui();
+        if (!last.isEmpty()) {
+            rows.note(BTSRows.ICON_NONE, BTSGuiKit.DIM, BTSText.lang("beyondthestars.gui.kit.last", last));
+        }
+    }
+
+    // ---------------------------------------------------------------------------- the gauges
+
+    /** The active gauges: one row each, or pairs (index order) with four or more (spec §5.1.3 LIT 1). */
+    private void gaugeRows(BTSRows.Builder rows, double tick) {
+        final EyeStarRuntime rt = rt();
+        final FieldReadout r = rt.lastReadout();
+        final int[] active = rt.activeGauges();
+        if (r == null || !r.lit || active.length == 0) return;
+        final double sp = Double.isNaN(r.sp) ? Double.NaN : round1(r.sp);
+        if (active.length >= 4) {
+            for (int i = 0; i < active.length; i += 2) {
+                final int k1 = active[i];
+                final int k2 = i + 1 < active.length ? active[i + 1] : -1;
+                rows.gaugePair(
+                    StellarField.GAUGE_SYM[k1],
+                    round1(r.x(k1)),
+                    k1 == StellarField.TH ? sp : Double.NaN,
+                    k2 < 0 ? "" : StellarField.GAUGE_SYM[k2],
+                    k2 < 0 ? 0 : round1(r.x(k2)),
+                    k2 == StellarField.TH ? sp : Double.NaN,
+                    gaugeTip(k1, r.x(k1), k1 == StellarField.TH ? sp : Double.NaN),
+                    k2 < 0 ? "" : gaugeTip(k2, r.x(k2), k2 == StellarField.TH ? sp : Double.NaN));
+            }
+            return;
+        }
+        for (int k : active) {
+            final double c = k == StellarField.TH ? sp : Double.NaN;
+            rows.gauge(StellarField.GAUGE_SYM[k], round1(r.x(k)), c, tick, gaugeTip(k, r.x(k), c));
+        }
+    }
+
+    private static String gaugeTip(int k, double v, double centre) {
+        final double c = Double.isNaN(centre) ? 0 : centre;
+        final int zone = BTSGuiKit.zoneOf(v - c);
+        final String base = BTSText.lang(
+            "beyondthestars.gui.eye.gauge.tip",
+            BTSText.key("beyondthestars.gui.eye.gauge." + k),
+            BTSFormat.signed(v),
+            BTSText.key("beyondthestars.gui.zone." + zone));
+        if (Double.isNaN(centre)) return base;
+        return BTSText.cat(base, BTSText.lang("beyondthestars.gui.eye.gauge.centre", BTSFormat.signed(centre)));
+    }
+
+    private static double round1(double v) {
+        return Math.round(v * 10) / 10.0;
+    }
+
+    // ------------------------------------------------------------------------------ the bars
+
+    private void stabilityRow(BTSRows.Builder rows, FieldReadout r) {
+        final int zone = Math.max(0, Math.min(4, r.zone));
+        rows.bar(
+            BTSText.lang("beyondthestars.gui.kit.stability"),
+            r.stability / 100,
+            BTSText.lit(BTSGuiKit.ZONE_TEXT[zone] + Math.round(r.stability)),
+            BTSGuiKit.zoneGrad(zone),
+            null,
+            BTSText.lang(
+                "beyondthestars.gui.eye.stability.tip",
+                Math.round(r.stability),
+                BTSText.key("beyondthestars.gui.zone." + zone)));
+    }
+
+    private void integrityRow(BTSRows.Builder rows, double integrity) {
+        rows.bar(
+            BTSText.lang("beyondthestars.gui.kit.integrity"),
+            integrity / 100,
+            BTSText.lit(BTSGuiKit.healthText(integrity) + Math.round(integrity)),
+            BTSGuiKit.healthGrad(integrity),
+            null,
+            BTSText.lang("beyondthestars.gui.eye.integrity.tip"));
+    }
+
+    private void yParallelRow(BTSRows.Builder rows, FieldReadout r) {
+        final int zone = Math.max(0, Math.min(4, r.zone));
+        rows.stat2(
+            BTSText.lit("Y"),
+            BTSText.lit(BTSGuiKit.ZONE_TEXT[zone] + BTSFormat.f2(r.Y)),
+            BTSText.lang("beyondthestars.gui.kit.parallel"),
+            BTSText.lit(String.valueOf(rt().lastParallel())),
+            BTSText.lang("beyondthestars.gui.eye.y.tip"));
+    }
+
+    private void lastRow(BTSRows.Builder rows) {
+        final String last = rt().lastEvent();
+        if (last != null && !last.isEmpty()) {
+            rows.note(BTSRows.ICON_NONE, BTSGuiKit.DIM, BTSText.lang("beyondthestars.gui.kit.last", last));
+        }
+    }
+
+    /** The event name of a warning, as the scanner words it. */
+    private String warnName(FieldReadout r) {
+        final TierParams t = TierParams.of(Math.max(1, Math.min(8, r.tier)), r.planets);
+        final EyeTransition tr = rt().transition();
+        final String name = t.batch ? "crystallisation plateau"
+            : tr instanceof ShellIgnition ? "forced helium flash" : t.event != null ? t.event.name : "event";
+        final boolean signed = t.event != null && t.event.signed && !t.batch;
+        return name + (signed ? " (" + (r.warn > 0 ? "+" : "-") + ")" : "");
+    }
+
+    private void warnRow(BTSRows.Builder rows, FieldReadout r) {
+        if (r.warn == 0) return;
+        rows.note(
+            BTSRows.ICON_WARN,
+            BTSGuiKit.WARN,
+            BTSText.lang("beyondthestars.gui.eye.warn", warnName(r)),
+            BTSText.lang("beyondthestars.gui.eye.warn.tip"));
+    }
+
+    // ------------------------------------------------------------------------------ LIT
+
+    private void litRows(BTSRows.Builder rows) {
+        final EyeStarRuntime rt = rt();
+        final FieldReadout r = rt.lastReadout();
+        final StarDef star = rt.star();
+        gaugeRows(rows, Double.NaN);
+        if (r == null || !r.lit || star == null) {
+            lastRow(rows);
+            return;
+        }
+        rows.gap(2);
+        stabilityRow(rows, r);
+        integrityRow(rows, r.I);
+        if (r.tier == 6) {
+            rows.bar(
+                BTSText.lang("beyondthestars.gui.eye.shield"),
+                r.A / 100,
+                BTSText.lit(BTSGuiKit.healthText(r.A) + Math.round(r.A)),
+                BTSGuiKit.healthGrad(r.A),
+                null,
+                BTSText.lang("beyondthestars.gui.eye.shield.tip"));
+        }
+        final boolean held = r.lock >= StellarField.LOCK_SECONDS;
+        rows.bar(
+            BTSText.lang("beyondthestars.gui.eye.lock"),
+            Math.min(1, r.lock / (double) StellarField.LOCK_SECONDS),
+            BTSText.lit((held ? "§6" : "") + r.lock + "/" + StellarField.LOCK_SECONDS),
+            Grad.LAVENDER,
+            null,
+            held ? BTSText.cat(BTSText.lit("§6"), BTSText.lang("beyondthestars.gui.eye.lock.held")) : "",
+            BTSText.lang("beyondthestars.gui.eye.lock.tip"));
+        final double m = Math.max(1e-9, rt.dialPaid());
+        final double next = rt.nextCycleSeconds();
+        final double upR = rt.upkeepR();
+        final double euCycle = (double) star.euPerCycle * Math.max(1, rt.lastParallel());
+        rows.bar(
+            BTSText.lang("beyondthestars.gui.eye.cycle"),
+            1 - next / (StellarField.CYCLE_SECONDS / m),
+            BTSText.lit(upR < 1 ? "§cr " + BTSFormat.f2(upR) : Math.round(next) + " s"),
+            upR < 1 ? Grad.RED : Grad.BLUE,
+            null,
+            BTSText
+                .lang("beyondthestars.gui.eye.cycle.tip", BTSFormat.f2(upR), Math.round(next), BTSFormat.eu(euCycle)),
+            upR < 1 ? BTSText.cat(BTSText.lit("§c"), BTSText.lang("beyondthestars.gui.eye.cycle.short")) : "");
+        yParallelRow(rows, r);
+        galaxyRows(rows, star);
+        if (star.n() == 4) {
+            rows.stat(
+                BTSText.lang("beyondthestars.gui.eye.hsm"),
+                BTSText.lit(String.format(Locale.ROOT, "%.3f / %.3f L/s", rt.feedActual(), rt.feedSetpoint())),
+                BTSText.lang("beyondthestars.gui.eye.hsm.tip"));
+        }
+        dialRows(rows);
+        warnRow(rows, r);
+        final int u = rt.unlockedTier();
+        final EyeMilestones ms = rt.milestones();
+        if (u <= 7 && !ms.met(u)) {
+            final ItemStack esc = rt.escrow();
+            rows.bar(
+                BTSText.lang("beyondthestars.gui.eye.milestones"),
+                ms.fraction(u),
+                BTSText.lang("beyondthestars.gui.kit.of", ms.done(u), ms.parts(u)),
+                Grad.MAGENTA,
+                null,
+                BTSText.lit(ms.progressLine(u)),
+                BTSText.lang(
+                    "beyondthestars.gui.eye.escrow",
+                    esc == null ? BTSText.key("beyondthestars.gui.eye.escrow.empty") : esc.getDisplayName()));
+        }
+        renderAndOwedRows(rows);
+        lastRow(rows);
+    }
+
+    /**
+     * The dial runs short of its setpoint: either the Field sockets could not pay the Tachyon Rich Temporal Fluid
+     * (spec §5.1.3 LIT 10), or the Time Dilation generators cap it below the setpoint (B-96: told apart, so a capped
+     * dial is not reported as a fluid shortage).
+     */
+    private void dialRows(BTSRows.Builder rows) {
+        final EyeStarRuntime rt = rt();
+        if (rt.transition() != null) return;
+        final double set = rt.dialSetpoint(), paid = rt.dialPaid(), cap = rt.dialMax();
+        final double want = Math.min(set, cap);
+        if (paid < want - 0.01) {
+            rows.note(
+                BTSRows.ICON_WARN,
+                BTSGuiKit.WARN,
+                BTSText.lang("beyondthestars.gui.eye.dialshort", BTSFormat.f2(paid), BTSFormat.f2(set)),
+                BTSText.lang("beyondthestars.gui.eye.dialshort.tip"));
+        } else if (set > cap + 0.01) {
+            rows.note(
+                BTSRows.ICON_WARN,
+                BTSGuiKit.WARN,
+                BTSText.lang("beyondthestars.gui.eye.dialcap", BTSFormat.f2(cap), BTSFormat.f2(set)),
+                BTSText.lang("beyondthestars.gui.eye.dialcap.tip"));
+        }
+    }
+
+    private void renderAndOwedRows(BTSRows.Builder rows) {
+        final String note = multiblock.getRenderNote();
+        if (note != null && !note.isEmpty()) rows.note(BTSRows.ICON_WARN, BTSGuiKit.WARN, BTSText.lit(note));
+        if (rt().hasOwed()) {
+            rows.note(
+                BTSRows.ICON_WARN,
+                BTSGuiKit.WARN,
+                BTSText.lang("beyondthestars.gui.eye.owed", rt().owedLine()),
+                BTSText.lang("beyondthestars.gui.eye.owed.tip"));
+        }
+    }
+
+    // ----------------------------------------------------------------------- P4: T6-T8
+
+    /**
+     * P4 (T6-T8): the bursts on the GRB Receptor Ports with beta against the demand, the link milestone's streak (T6
+     * Stability Link, T7 Heavy Link), the running countdown, and the planet slots or companions. The slot sentences
+     * are the runtime's (shared with the scanner, spec Q6).
+     */
+    private void galaxyRows(BTSRows.Builder rows, StarDef star) {
+        final int n = star.n();
+        if (n < 6) return;
+        final EyeStarRuntime rt = rt();
         final EyeBursts b = rt.galaxy()
             .bursts();
-        if (b.paused) return EnumChatFormatting.RED + b.line();
-        if (b.ports() == 0) {
-            return star.n() == 6 ? EnumChatFormatting.DARK_GRAY + "No GRB Receptor Ports yet (the T7 stability rail)"
-                : EnumChatFormatting.RED + "No GRB Receptor Ports: the galaxy has no bursts";
-        }
-        final StringBuilder sb = new StringBuilder(EnumChatFormatting.LIGHT_PURPLE.toString()).append(
-            String.format(
-                Locale.ROOT,
-                "Bursts %.2f Bu/t: high %.2f / low %.2f, halo %.2f",
-                b.total(),
-                b.hi,
-                b.lo,
-                b.halo));
-        if (star.tier.burstDriven() || rt.galaxyTransition()) {
-            sb.append(EnumChatFormatting.GRAY)
-                .append(
-                    String.format(
-                        Locale.ROOT,
-                        "; β %.2f of %.2f Bu/t",
+        if (b.paused) {
+            rows.note(
+                BTSRows.ICON_BAD,
+                BTSGuiKit.BAD,
+                BTSText.lit(b.line()),
+                BTSText.lang("beyondthestars.gui.eye.bursts.paused.tip"));
+        } else if (b.ports() == 0) {
+            if (n == 6) {
+                rows.note(BTSRows.ICON_NONE, BTSGuiKit.DIM, BTSText.lang("beyondthestars.gui.eye.bursts.noports6"));
+            } else {
+                rows.note(BTSRows.ICON_BAD, BTSGuiKit.BAD, BTSText.lang("beyondthestars.gui.eye.bursts.noports"));
+            }
+        } else {
+            final boolean driven = star.tier.burstDriven() || rt.galaxyTransition();
+            final double beta = rt.galaxy()
+                .beta();
+            rows.stat2(
+                BTSText.lang("beyondthestars.gui.eye.bursts"),
+                BTSText.lit(BTSFormat.f2(b.total()) + " Bu/t"),
+                BTSText.lit("β"),
+                driven ? BTSText.lit((beta >= 1 ? "§a" : beta >= 0.8 ? "§e" : "§c") + BTSFormat.f2(beta)) : "-",
+                BTSText.lang(
+                    "beyondthestars.gui.eye.bursts.tip",
+                    BTSFormat.f2(b.hi),
+                    BTSFormat.f2(b.lo),
+                    BTSFormat.f2(b.halo)),
+                driven ? BTSText.lang(
+                    "beyondthestars.gui.eye.bursts.demand",
+                    BTSFormat.f2(
                         rt.galaxy()
-                            .beta(),
-                        rt.galaxy()
-                            .demand()));
+                            .demand()))
+                    : "",
+                b.source.isEmpty() ? BTSText.lang("beyondthestars.gui.eye.bursts.notlinked")
+                    : BTSText.lang("beyondthestars.gui.eye.bursts.linked", b.source));
         }
-        sb.append(EnumChatFormatting.GRAY)
-            .append(b.source.isEmpty() ? ", not linked" : ", linked " + b.source);
-        return sb.toString();
+        if ((n == 6 || n == 7) && !star.tier.planets()) {
+            final String name = EyeMilestones.LINK_NAME[n];
+            if (rt.milestones().linkDone[n]) {
+                rows.check(
+                    BTSChecklist.State.OK,
+                    BTSText.lit(name),
+                    BTSText.lang("beyondthestars.gui.eye.link.held"),
+                    -1,
+                    BTSText.lang("beyondthestars.gui.eye.link.tip"));
+            } else {
+                final BurstLink l = rt.activeLink();
+                if (l != null) {
+                    rows.bar(
+                        BTSText.lang("beyondthestars.gui.eye.link"),
+                        l.streak / (double) EyeMilestones.LINK_NEED,
+                        BTSText.lit(EyeMilestones.clock(l.streak) + "/" + EyeMilestones.clock(EyeMilestones.LINK_NEED)),
+                        l.streak > 0 ? Grad.CYAN : Grad.BLUE,
+                        null,
+                        BTSText.lang(
+                            "beyondthestars.gui.eye.link.bar.tip",
+                            name,
+                            EyeMilestones.clock(Math.max(l.best, rt.milestones().linkBest[n])),
+                            BTSFormat.f2(l.mean),
+                            BTSText
+                                .key(n == 6 ? "beyondthestars.gui.eye.link.high" : "beyondthestars.gui.eye.link.halo"),
+                            BTSFormat.pct(l.frac)),
+                        BTSText.lang("beyondthestars.gui.eye.link.tip"));
+                }
+            }
+        }
+        final String ev = eventText();
+        if (!ev.isEmpty()) rows.note(BTSRows.ICON_WARN, BTSGuiKit.WARN, ev);
+        slotRows(rows, star);
     }
 
-    /** The link milestone in progress (or held) on T6 / T7. */
-    private String linkLine() {
-        final EyeStarRuntime rt = rt();
-        final StarDef star = rt.star();
-        if (star == null || !rt.burning() || (star.n() != 6 && star.n() != 7) || star.tier.planets()) return "";
-        final int n = star.n();
-        if (rt.milestones().linkDone[n]) {
-            return EnumChatFormatting.GREEN + EyeMilestones.LINK_NAME[n] + " HELD (milestone)";
-        }
-        final BurstLink l = rt.activeLink();
-        if (l == null) return "";
-        return (l.streak > 0 ? EnumChatFormatting.AQUA : EnumChatFormatting.GRAY) + String.format(
-            Locale.ROOT,
-            "%s %s / 30:00 (best %s), mean %.2f Bu/t, %s %.0f%%",
-            EyeMilestones.LINK_NAME[n],
-            EyeMilestones.clock(l.streak),
-            EyeMilestones.clock(Math.max(l.best, rt.milestones().linkBest[n])),
-            l.mean,
-            n == 6 ? "high bank" : "halo",
-            100 * l.frac);
-    }
-
-    /** The running countdown: the collapse, a pericentre pass, the satellite crossing, a minor merger. */
-    private String eventLine() {
+    /** The running countdown: the collapse, a pericentre pass, the satellite crossing, a minor merger; "" none. */
+    private String eventText() {
         final EyeStarRuntime rt = rt();
         if (!rt.burning()) return "";
         final int c = rt.countdownSeconds();
         final EyeTransition tr = rt.transition();
-        if (tr instanceof MagnetarCollapse && c >= 0) {
-            return EnumChatFormatting.GOLD + "The magnetar collapses in " + c + " s: time a purge onto it";
-        }
+        if (tr instanceof MagnetarCollapse && c >= 0) return BTSText.lang("beyondthestars.gui.eye.ev.collapse", c);
         if (tr instanceof GalacticMerger && c >= 0) {
-            return EnumChatFormatting.GOLD + "Pericentre pass in "
-                + c
-                + " s ("
-                + (((GalacticMerger) tr).nextPassSign() < 0 ? "-" : "+")
-                + "): W ±12, P +5 for 5 s";
+            return BTSText
+                .lang("beyondthestars.gui.eye.ev.pass", c, ((GalacticMerger) tr).nextPassSign() < 0 ? "-" : "+");
         }
         if (rt.crossingCountdown() >= 0) {
-            return EnumChatFormatting.GOLD + "Satellite crossing in " + rt.crossingCountdown() + " s: hold Stable";
+            return BTSText.lang("beyondthestars.gui.eye.ev.crossing", rt.crossingCountdown());
         }
-        if (rt.crossingLeft() > 0) {
-            return EnumChatFormatting.GOLD + "Satellite crossing: " + rt.crossingLeft() + " s left";
-        }
+        if (rt.crossingLeft() > 0) return BTSText.lang("beyondthestars.gui.eye.ev.crossingleft", rt.crossingLeft());
         if (rt.mergerWarning() != 0) {
-            return EnumChatFormatting.GOLD + "Minor merger in "
-                + Math.max(0, c)
-                + " s ("
-                + (rt.mergerWarning() < 0 ? "-" : "+")
-                + "): W pushed, then the precession flips";
+            return BTSText.lang("beyondthestars.gui.eye.ev.merger", Math.max(0, c), rt.mergerWarning() < 0 ? "-" : "+");
         }
         return "";
     }
 
-    /** Planets mode's slots, or the companions. */
-    private String slotLine() {
+    /** Planets mode's slots (one row, each slot in the tooltip), or the companions (T7+). */
+    private void slotRows(BTSRows.Builder rows, StarDef star) {
         final EyeStarRuntime rt = rt();
-        final StarDef star = rt.star();
-        if (star == null || !rt.burning() || star.n() < 7) return "";
+        if (star.n() < 7) return;
         if (star.tier.planets()) {
             final List<String> lines = rt.slotLines();
             int running = 0;
             for (String l : lines) if (l.contains("%")) running++;
-            return EnumChatFormatting.GRAY + String.format(
-                Locale.ROOT,
-                "Planets: %d / %d running, %.0f%% done%s",
-                running,
-                lines.size(),
-                100 * rt.slotProgress(),
-                rt.galaxy()
-                    .lastRunLost() ? ", last run lost parallels" : "");
+            final List<String> tip = new ArrayList<>();
+            for (String l : lines) tip.add(BTSText.lit(l));
+            if (rt.galaxy()
+                .lastRunLost()) tip.add(BTSText.lang("beyondthestars.gui.eye.slots.lost"));
+            rows.stat(
+                BTSText.lang("beyondthestars.gui.eye.slots"),
+                BTSText.lit(running + "/" + lines.size() + "  " + BTSFormat.pct(rt.slotProgress())),
+                tip.toArray(new String[0]));
+            return;
         }
-        return EnumChatFormatting.GRAY + "Companions: " + rt.companionNames();
+        rows.note(
+            BTSRows.ICON_NONE,
+            BTSGuiKit.DIM,
+            BTSText.lang("beyondthestars.gui.eye.companions", rt.companionNames()),
+            BTSText.lang("beyondthestars.gui.eye.companions.tip"));
     }
 
-    /** The Galaxy panel's body: mode, the slots or companions, the transition's state, the rig in brief. */
-    private String galaxyPanelText() {
+    // --------------------------------------------------------------------------- IGNITING
+
+    private void ignitingRows(BTSRows.Builder rows) {
+        final double p = round1(rt().ignitionP());
+        rows.gauge(
+            "P",
+            p,
+            Double.NaN,
+            StellarField.IGNITION_LIT,
+            BTSText.lang("beyondthestars.gui.eye.ignition.tip", BTSFormat.signed(p)));
+        final double frac = (p - StellarField.IGNITION_START)
+            / (StellarField.IGNITION_LIT - StellarField.IGNITION_START);
+        rows.bar(
+            BTSText.lang("beyondthestars.gui.eye.ignition"),
+            frac,
+            BTSText.lit(BTSFormat.pct(frac)),
+            Grad.GOLD,
+            null);
+        rows.stat(
+            BTSText.lang("beyondthestars.gui.eye.lightsat"),
+            BTSText.lang(
+                "beyondthestars.gui.eye.lightsin",
+                Math.max(0, Math.round((StellarField.IGNITION_LIT - p) / StellarField.IGNITION_RATE))));
+        rows.note(BTSRows.ICON_NONE, BTSGuiKit.DIM, BTSText.lang("beyondthestars.gui.eye.nooutput"));
+        lastRow(rows);
+    }
+
+    // ---------------------------------------------------------------------------- PENDING
+
+    private void pendingRows(BTSRows.Builder rows) {
         final EyeStarRuntime rt = rt();
-        final StringBuilder sb = new StringBuilder();
-        sb.append("Mode: ")
-            .append(
-                rt.mode()
-                    .name()
-                    .toLowerCase(Locale.ROOT))
-            .append(
-                rt.mode() == EyeGalaxy.Mode.PLANETS ? " (3 / 6 planets from the slot bus)"
-                    : " (the galaxy, 1 / 2 companions)");
-        for (String l : rt.slotLines()) sb.append('\n')
-            .append(l);
-        if (rt.mode() == EyeGalaxy.Mode.GALAXY) sb.append("\nCompanions: ")
-            .append(rt.companionNames());
-        final StarDef star = rt.star();
-        if (star != null && (star.n() == 6 || star.n() == 7) && rt.state() == EyeStarRuntime.StarState.PENDING) {
-            final List<String> miss = rt.missing(star.n());
-            sb.append('\n')
-                .append(
-                    miss.isEmpty() ? "READY: Begin starts the " + EyeTransition.Type.leaving(star.n()).title
-                        : "Waits for: " + miss.get(0));
-        }
-        if (rt.testFireWanted()) sb.append("\nLink test fire wanted: J1 all to the Eye")
-            .append(star != null && star.n() == 7 ? ", J3 75 % to the halo" : "");
-        else {
-            final String note = rt.heavyTestFireNote();
-            if (!note.isEmpty()) sb.append('\n')
-                .append(note);
-        }
-        return sb.toString();
+        gaugeRows(rows, Double.NaN);
+        final int from = rt.star() == null ? rt.unlockedTier()
+            : rt.star()
+                .n();
+        final BTSChecklist c = rt.transitionChecklist(from);
+        rows.section(BTSText.lit(EyeStarRuntime.eventFor(from)), c.countText());
+        rows.checks(c);
+        lastRow(rows);
     }
 
-    private String warnLine() {
-        final FieldReadout r = rt().lastReadout();
-        if (r == null || !r.lit || r.warn == 0) return "";
-        final TierParams t = TierParams.of(Math.max(1, Math.min(8, r.tier)), r.planets);
-        final boolean signed = t.event != null && t.event.signed && !t.batch;
-        return EnumChatFormatting.GOLD + "Event warning: "
-            + (t.batch ? "crystallisation plateau" : t.event != null ? t.event.name : "event")
-            + (signed ? " (" + (r.warn > 0 ? "+" : "-") + ")" : "")
-            + ", trim ahead of it";
-    }
+    // ------------------------------------------------------------------------- TRANSITION
 
-    private String upkeepLine() {
+    private void transitionRows(BTSRows.Builder rows) {
         final EyeStarRuntime rt = rt();
-        if (!rt.burning() || rt.star() == null) return "";
-        final double r = rt.upkeepR();
-        return (r < 1 ? EnumChatFormatting.RED : EnumChatFormatting.GRAY) + String.format(
-            Locale.ROOT,
-            "Upkeep r %.2f%s, next cycle in %.0f s, %.2e EU/cycle",
-            r,
-            r < 1 ? " (SHORT)" : "",
-            rt.nextCycleSeconds(),
-            (double) rt.star().euPerCycle * Math.max(1, rt.lastParallel()));
+        final EyeTransition tr = rt.transition();
+        final double progress = Math.max(0, rt.transitionProgress());
+        rows.bar(
+            BTSText.lang("beyondthestars.gui.eye.phase"),
+            progress,
+            BTSText.lit(tr.phase() + "/" + tr.phases() + "  " + BTSFormat.pct(progress)),
+            Grad.MAGENTA,
+            null,
+            BTSText.lit(rt.transitionLine()),
+            BTSText.cat(BTSText.lit("§7"), BTSText.lang("beyondthestars.gui.eye.phase.tip")));
+        if (tr instanceof FirstCooling) {
+            batchRows(rows, true);
+            lastRow(rows);
+            return;
+        }
+        final FieldReadout r = rt.lastReadout();
+        if (tr instanceof CoreCollapse) {
+            final CoreCollapse cc = (CoreCollapse) tr;
+            rows.stat(
+                BTSText.lang("beyondthestars.gui.eye.coremass"),
+                BTSText.lit(BTSFormat.f2(cc.co.Mc) + " / " + BTSFormat.f2(CollapseOverlay.MC_BOUNCE)));
+        }
+        gaugeRows(rows, Double.NaN);
+        if (tr instanceof CoreCollapse && ((CoreCollapse) tr).co.phase == 1) bounceRows(rows);
+        if (r != null && r.lit) {
+            stabilityRow(rows, r);
+            integrityRow(rows, r.I);
+            yParallelRow(rows, r);
+        }
+        lastRow(rows);
     }
 
-    private String dialLine() {
+    /** Core Collapse, fast-forward: the bounce's prediction as checks (today only in the scanner). */
+    private void bounceRows(BTSRows.Builder rows) {
+        final double[] pred = rt().collapsePrediction();
+        if (pred == null) return;
+        final double st = pred[0], pAfter = pred[1], thAfter = pred[2];
+        final boolean seed = pred[3] > 0;
+        final double full = CollapseOverlay.MAX_ABSORB_POINTS * CollapseOverlay.SPACETIME_PER_POINT;
+        rows.section(BTSText.lang("beyondthestars.gui.eye.bounce"), "");
+        rows.check(
+            st >= full ? BTSChecklist.State.OK : BTSChecklist.State.WARN,
+            BTSText.lang("beyondthestars.gui.eye.chk.stbuf"),
+            BTSText.lit(BTSFormat.litres(st) + " L"),
+            BTSChecklist.frac(st, full),
+            BTSText.lang(
+                "beyondthestars.gui.eye.chk.stbuf.tip",
+                BTSFormat.exact((long) st),
+                BTSFormat.exact((long) full)));
+        final boolean safe = pAfter <= 100 && thAfter <= 100;
+        rows.check(
+            safe ? BTSChecklist.State.OK : BTSChecklist.State.BAD,
+            BTSText.lang("beyondthestars.gui.eye.chk.after"),
+            safe ? BTSText.lit(BTSFormat.signed(pAfter) + " / " + BTSFormat.signed(thAfter))
+                : BTSText.lang("beyondthestars.gui.eye.supernova"),
+            -1,
+            BTSText.lang("beyondthestars.gui.eye.chk.after.tip", BTSFormat.signed(pAfter), BTSFormat.signed(thAfter)));
+        rows.check(
+            seed ? BTSChecklist.State.OK : BTSChecklist.State.BAD,
+            BTSText.lang("beyondthestars.gui.eye.chk.hsmseed"),
+            BTSText.lit(BTSFormat.exact((long) CollapseOverlay.HSM_SEED) + " L"),
+            -1,
+            BTSText.lang("beyondthestars.gui.eye.chk.hsmseed.tip"));
+    }
+
+    // ------------------------------------------------------------------------- COOLING / IDLE
+
+    private void batchRows(BTSRows.Builder rows, boolean firstCooling) {
         final EyeStarRuntime rt = rt();
-        final StringBuilder sb = new StringBuilder(EnumChatFormatting.GRAY.toString());
-        sb.append(String.format(Locale.ROOT, "Dial set %.2f", rt.dialSetpoint()));
-        if (rt.burning()) {
-            sb.append(String.format(Locale.ROOT, ", running %.2f (cap %.2f)", rt.dialPaid(), rt.dialMax()));
+        final FieldReadout r = rt.lastReadout();
+        final double eyeT = rt.batchEyeSeconds();
+        final double frac = eyeT / StellarField.BATCH_SECONDS;
+        rows.bar(
+            BTSText.lang("beyondthestars.gui.eye.batch"),
+            frac,
+            BTSText.lit(BTSFormat.pct(frac)),
+            Grad.CYAN,
+            null,
+            BTSText.lang("beyondthestars.gui.eye.batch.tip", BTSFormat.exact(Math.round(eyeT))));
+        final double sp = rt.batchSetpoint();
+        if (!Double.isNaN(sp)) {
+            rows.stat(
+                BTSText.lang("beyondthestars.gui.eye.setpoint"),
+                Math.abs(sp) <= BTSGuiKit.ZONE_EDGE[0]
+                    ? BTSText
+                        .cat(BTSText.lit(BTSFormat.signed(sp) + "  §e"), BTSText.lang("beyondthestars.gui.eye.plateau"))
+                    : BTSText.lit(BTSFormat.signed(sp)),
+                BTSText.lang("beyondthestars.gui.eye.setpoint.tip"));
         }
-        final StarDef star = rt.star();
-        if (star != null && star.n() == 4 && rt.burning()) {
-            sb.append(String.format(Locale.ROOT, "; HSM feed %.3f / %.3f L/s", rt.feedActual(), rt.feedSetpoint()));
+        if (r != null && r.lit) {
+            final double c = Double.isNaN(sp) ? Double.NaN : round1(sp);
+            rows.gauge(
+                StellarField.GAUGE_SYM[StellarField.TH],
+                round1(r.x(StellarField.TH)),
+                c,
+                Double.NaN,
+                gaugeTip(StellarField.TH, r.x(StellarField.TH), c));
+            rows.gauge(
+                StellarField.GAUGE_SYM[StellarField.P],
+                round1(r.x(StellarField.P)),
+                Double.NaN,
+                Double.NaN,
+                gaugeTip(StellarField.P, r.x(StellarField.P), Double.NaN));
+            integrityRow(rows, r.I);
         }
-        return sb.toString();
+        final double meanY = rt.batchMeanY();
+        final String mean = Double.isNaN(meanY) ? "-" : BTSFormat.f2(meanY);
+        if (firstCooling) {
+            final boolean good = !Double.isNaN(meanY) && meanY >= FirstCooling.MEAN_Y;
+            rows.stat2(
+                BTSText.lang("beyondthestars.gui.eye.meany"),
+                BTSText.lit((good ? "§a" : "§c") + mean),
+                BTSText.lang("beyondthestars.gui.eye.need"),
+                BTSText.lit(BTSFormat.f2(FirstCooling.MEAN_Y)),
+                BTSText.lang("beyondthestars.gui.eye.meany.tip"));
+        } else {
+            rows.stat(BTSText.lang("beyondthestars.gui.eye.meany"), BTSText.lit(mean));
+        }
+        if (r != null && r.lit) warnRow(rows, r);
     }
 
-    private String milestoneLine() {
+    private void idleRows(BTSRows.Builder rows) {
         final EyeStarRuntime rt = rt();
-        final StringBuilder sb = new StringBuilder();
-        if (rt.unlockedTier() <= 7) sb.append(
-            rt.milestones()
-                .progressLine(rt.unlockedTier()));
-        if (rt.escrow() != null) {
-            if (sb.length() > 0) sb.append("; ");
-            sb.append("escrow: ")
-                .append(
-                    rt.escrow()
-                        .getDisplayName());
+        if (rt.unlockedTier() >= 5) {
+            nextBatchRows(rows);
+        } else {
+            final BTSChecklist c = rt.transitionChecklist(4);
+            rows.section(BTSText.lit(EyeStarRuntime.eventFor(4)), c.countText());
+            rows.checks(c);
         }
-        return sb.toString();
+        lastRow(rows);
     }
 
-    private int gaugeMask() {
-        int mask = 0;
-        for (int k : rt().activeGauges()) mask |= 1 << k;
-        return mask;
+    /** The T5 batch conditions, from the runtime's own test ({@link EyeStarRuntime#batchChecklist}). */
+    private void nextBatchRows(BTSRows.Builder rows) {
+        rows.section(BTSText.lang("beyondthestars.gui.eye.nextbatch"), "");
+        rows.checks(rt().batchChecklist());
     }
 
-    private double gaugeValue(int k) {
-        final FieldReadout r = rt().lastReadout();
-        return r == null || !r.lit ? 0 : Math.round(r.x(k) * 10) / 10.0;
-    }
+    // ------------------------------------------------------------------------------- DARK
 
-    private double setpoint() {
-        final FieldReadout r = rt().lastReadout();
-        return r == null || !r.lit || Double.isNaN(r.sp) ? NO_SP : Math.round(r.sp * 10) / 10.0;
-    }
-
-    private String socketLines() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("Field sockets: ")
-            .append(multiblock.fieldHatchCount())
-            .append(" live");
-        if (multiblock.rejectedFieldHatchCount() > 0) sb.append(", ")
-            .append(multiblock.rejectedFieldHatchCount())
-            .append(" ME stocking REJECTED");
-        sb.append("\nSensors: ")
-            .append(multiblock.sensorHatchCount());
-        for (MTEHatchStellarFieldSensor s : multiblock.sensorHatches()) {
-            if (s != null && s.isValid()) sb.append("\n  ")
-                .append(s.statusLine());
+    private void darkRows(BTSRows.Builder rows) {
+        final EyeStarRuntime rt = rt();
+        final String lost = rt.lastFailure();
+        if (lost != null && !lost.isEmpty()) {
+            rows.note(BTSRows.ICON_BAD, BTSGuiKit.BAD, BTSText.lang("beyondthestars.gui.kit.lost", lost));
         }
-        return sb.toString();
-    }
-
-    private String trimLine() {
-        final Map<String, Long> trims = rt().lastTrimsByName();
-        if (trims.isEmpty()) return "none this second";
-        final List<String> parts = new ArrayList<>();
-        for (Map.Entry<String, Long> e : trims.entrySet()) parts.add(e.getKey() + " " + e.getValue() + " L");
-        return String.join(", ", parts);
-    }
-
-    private static EnumChatFormatting zoneColour(int zone) {
-        switch (zone) {
-            case 0:
-                return EnumChatFormatting.GREEN;
-            case 1:
-                return EnumChatFormatting.AQUA;
-            case 2:
-                return EnumChatFormatting.YELLOW;
-            case 3:
-                return EnumChatFormatting.GOLD;
-            default:
-                return EnumChatFormatting.RED;
+        final StarDef want = want();
+        final int n = want == null ? 0 : want.n();
+        if (n >= 1 && n <= 3) {
+            rows.section(BTSText.lang("beyondthestars.gui.eye.sec.light", want.name), "");
+            rows.checks(rt.ignitionChecklist(want));
+        } else if (n == 4) {
+            final StarDef progenitor = rt.ignitableFor(want);
+            if (progenitor != null) {
+                rows.section(BTSText.lang("beyondthestars.gui.eye.sec.relight", progenitor.name), "");
+                rows.checks(rt.ignitionChecklist(progenitor));
+            } else {
+                final StarDef arcturus = StarDef.ofTier(3);
+                rows.section(BTSText.lang("beyondthestars.gui.eye.sec.remnant"), "");
+                rows.check(
+                    BTSChecklist.State.BAD,
+                    BTSText.lang("beyondthestars.gui.eye.chk.progenitor", arcturus == null ? "T3" : arcturus.name),
+                    BTSText.lang("beyondthestars.gui.eye.dark"),
+                    -1);
+                rows.para(BTSText.lang(RESULT + "star_remnant"), BTSGuiKit.DIM);
+            }
+        } else if (n == 5) {
+            if (rt.unlockedTier() >= 5) {
+                nextBatchRows(rows);
+            } else {
+                final BTSChecklist c = rt.transitionChecklist(4);
+                rows.section(BTSText.lit(EyeStarRuntime.eventFor(4)), c.countText());
+                rows.checks(c);
+            }
+        } else if (n >= 6) {
+            // T6: the Magnetar Merger from Sirius B; T7 / T8 (P4): the Magnetar Collapse / Galactic Merger
+            final BTSChecklist c = rt.transitionChecklist(n - 1);
+            rows.section(BTSText.lit(EyeStarRuntime.eventFor(n - 1)), c.countText());
+            rows.checks(c);
         }
+        lastRow(rows);
     }
 
-    // ================================================================================ terminal
-
-    private static IWidget row(StringSyncValue v) {
-        return IKey.dynamic(v::getStringValue)
-            .asWidget()
-            .fullWidth()
-            .marginBottom(2)
-            .setEnabledIf(
-                w -> !v.getStringValue()
-                    .isEmpty());
-    }
-
-    private static IWidget row(Supplier<String> text, Supplier<Boolean> shown) {
-        return IKey.dynamic(text::get)
-            .asWidget()
-            .fullWidth()
-            .marginBottom(2)
-            .setEnabledIf(w -> shown.get());
-    }
+    // ================================================================================= Info page
 
     @Override
-    protected ListWidget<IWidget, ?> createTerminalTextWidget(PanelSyncManager syncManager, ModularPanel parent) {
-        final StringSyncValue head = syncManager.findSyncHandler("eyeHead", StringSyncValue.class);
-        final StringSyncValue star = syncManager.findSyncHandler("eyeStar", StringSyncValue.class);
-        final StringSyncValue field = syncManager.findSyncHandler("eyeField", StringSyncValue.class);
-        final StringSyncValue warn = syncManager.findSyncHandler("eyeWarn", StringSyncValue.class);
-        final StringSyncValue upkeep = syncManager.findSyncHandler("eyeUpkeep", StringSyncValue.class);
-        final StringSyncValue dial = syncManager.findSyncHandler("eyeDialLine", StringSyncValue.class);
-        final StringSyncValue trans = syncManager.findSyncHandler("eyeTrans", StringSyncValue.class);
-        final DoubleSyncValue transP = syncManager.findSyncHandler("eyeTransP", DoubleSyncValue.class);
-        final StringSyncValue milestone = syncManager.findSyncHandler("eyeMilestone", StringSyncValue.class);
-        final StringSyncValue fail = syncManager.findSyncHandler("eyeFail", StringSyncValue.class);
-        final StringSyncValue renderNote = syncManager.findSyncHandler("eyeRenderNote", StringSyncValue.class);
-        final IntSyncValue mask = syncManager.findSyncHandler("eyeGaugeMask", IntSyncValue.class);
-        final DoubleSyncValue sp = syncManager.findSyncHandler("eyeSp", DoubleSyncValue.class);
-
-        final StringSyncValue galaxy = syncManager.findSyncHandler("eyeGalaxy", StringSyncValue.class);
-        final StringSyncValue link = syncManager.findSyncHandler("eyeLink", StringSyncValue.class);
-        final StringSyncValue event = syncManager.findSyncHandler("eyeEvent", StringSyncValue.class);
-        final StringSyncValue slots = syncManager.findSyncHandler("eyeSlotLine", StringSyncValue.class);
-
-        final ListWidget<IWidget, ?> list = super.createTerminalTextWidget(syncManager, parent).child(row(head))
-            .child(row(star));
-        for (int k = 0; k < StellarField.GAUGES; k++) {
-            final int gauge = k;
-            final DoubleSyncValue v = syncManager.findSyncHandler("eyeGauge" + k, DoubleSyncValue.class);
-            list.child(
-                IKey.dynamic(
-                    () -> EnumChatFormatting.WHITE + " "
-                        + StellarField.GAUGE_SYM[gauge]
-                        + " "
-                        + StellarField.GAUGE_NAME[gauge]
-                        + " "
-                        + StellarField.fmtSigned(v.getDoubleValue())
-                        + (gauge == StellarField.TH && sp.getDoubleValue() > NO_SP + 1
-                            ? " (setpoint " + StellarField.fmtSigned(sp.getDoubleValue()) + ")"
-                            : ""))
-                    .asWidget()
-                    .textAlign(Alignment.CenterLeft)
-                    .scale(0.8f)
-                    .widthRel(0.94f)
-                    .height(9)
-                    .background(gaugeBar(v, gauge == StellarField.TH ? sp : null))
-                    .marginBottom(2)
-                    .setEnabledIf(w -> (mask.getIntValue() & (1 << gauge)) != 0));
+    protected void addInfoRows(BTSRows.Builder rows) {
+        final int u = rt().unlockedTier();
+        rows.para(
+            BTSText.lang(
+                "beyondthestars.gui.eye.info.tier",
+                multiblock.installedTier(),
+                u,
+                multiblock.structureTier(),
+                multiblock.compressionTier()),
+            BTSGuiKit.VALUE);
+        for (String k : new String[] { "light", "run", "zones", "lock", "dial", "feed", "rig" }) {
+            rows.para(BTSText.lang("beyondthestars.gui.eye.info." + k), BTSGuiKit.VALUE);
         }
-        return list.child(row(field))
-            .child(row(warn))
-            .child(row(galaxy))
-            .child(row(link))
-            .child(row(event))
-            .child(row(slots))
-            .child(row(upkeep))
-            .child(row(dial))
-            .child(
-                row(() -> EnumChatFormatting.LIGHT_PURPLE + trans.getStringValue(), () -> transP.getDoubleValue() >= 0))
-            .child(
-                IKey.dynamic(() -> String.format(Locale.ROOT, "%.0f%%", Math.max(0, transP.getDoubleValue()) * 100))
-                    .asWidget()
-                    .textAlign(Alignment.Center)
-                    .scale(0.8f)
-                    .widthRel(0.94f)
-                    .height(9)
-                    .background(progressBar(transP))
-                    .marginBottom(3)
-                    .setEnabledIf(w -> transP.getDoubleValue() >= 0))
-            .child(
-                row(
-                    () -> EnumChatFormatting.GRAY + "Milestones: " + milestone.getStringValue(),
-                    () -> !milestone.getStringValue()
-                        .isEmpty()))
-            .child(
-                row(
-                    () -> EnumChatFormatting.RED + "Last failure: " + fail.getStringValue(),
-                    () -> !fail.getStringValue()
-                        .isEmpty()))
-            .child(
-                row(
-                    () -> EnumChatFormatting.GOLD + renderNote.getStringValue(),
-                    () -> !renderNote.getStringValue()
-                        .isEmpty()));
-    }
-
-    /**
-     * A gauge: −120..+120 across the bar, the zone bands drawn around the setpoint (0, or the T5 cooling setpoint),
-     * a white marker at the value, a yellow tick at a moving setpoint.
-     */
-    private static IDrawable gaugeBar(DoubleSyncValue value, DoubleSyncValue setpoint) {
-        return (context, x, y, width, height, theme) -> {
-            final float inner = width - 2;
-            GuiDraw.drawRect(x, y, width, height, BAR_EDGE);
-            GuiDraw.drawRect(x + 1, y + 1, inner, height - 2, ZONE_COLOUR[4]);
-            final double centre = setpoint != null && setpoint.getDoubleValue() > NO_SP + 1 ? setpoint.getDoubleValue()
-                : 0;
-            for (int z = 3; z >= 0; z--) {
-                final double lo = Math.max(-120, centre - ZONE_EDGE[z]);
-                final double hi = Math.min(120, centre + ZONE_EDGE[z]);
-                if (hi <= lo) continue;
-                final float x0 = (float) (x + 1 + (lo + 120) / 240 * inner);
-                final float x1 = (float) (x + 1 + (hi + 120) / 240 * inner);
-                GuiDraw.drawRect(x0, y + 1, x1 - x0, height - 2, ZONE_COLOUR[z]);
-            }
-            if (setpoint != null && setpoint.getDoubleValue() > NO_SP + 1) {
-                GuiDraw.drawRect((float) (x + 1 + (centre + 120) / 240 * inner) - 0.5f, y, 1, height, SETPOINT_TICK);
-            }
-            final double v = Math.max(-120, Math.min(120, value.getDoubleValue()));
-            GuiDraw.drawRect((float) (x + 1 + (v + 120) / 240 * inner) - 1f, y, 2, height, MARKER);
-        };
-    }
-
-    private static IDrawable progressBar(DoubleSyncValue progress) {
-        return (context, x, y, width, height, theme) -> {
-            final double f = Math.max(0, Math.min(1, progress.getDoubleValue()));
-            GuiDraw.drawRect(x, y, width, height, BAR_EDGE);
-            GuiDraw.drawRect(x + 1, y + 1, width - 2, height - 2, BAR_TRACK);
-            final float fill = (float) ((width - 2) * f);
-            if (fill > 0)
-                GuiDraw.drawHorizontalGradientRect(x + 1, y + 1, fill, height - 2, PROGRESS_FROM, PROGRESS_TO);
-        };
+        if (u >= 6) rows.para(BTSText.lang("beyondthestars.gui.eye.info.galaxy"), BTSGuiKit.VALUE);
+        if (u < 8) {
+            rows.para(
+                BTSText.lang(
+                    "beyondthestars.gui.eye.info.next",
+                    BTSText.key("beyondthestars.gui.eye.info.next." + (u + 1))),
+                BTSGuiKit.VALUE);
+        }
     }
 
     // ================================================================================ gap row
@@ -644,160 +928,361 @@ public class EyeGui extends MTEMultiBlockBaseGui<MTEEyeOfHarmonyBTS> {
         return false;
     }
 
+    /** Dial and (T4 only) Feed: − / + (right-click: four steps), the setpoint in a dark box (spec §5.1.2). */
     @Override
     protected Flow createLeftPanelGapRow(ModularPanel parent, PanelSyncManager syncManager) {
         final DoubleSyncValue dial = syncManager.findSyncHandler("eyeDial", DoubleSyncValue.class);
         final DoubleSyncValue feed = syncManager.findSyncHandler("eyeFeed", DoubleSyncValue.class);
-        return super.createLeftPanelGapRow(parent, syncManager).childPadding(1)
+        final DoubleSyncValue paid = syncManager.findSyncHandler("eyeDialPaid", DoubleSyncValue.class);
+        final DoubleSyncValue cap = syncManager.findSyncHandler("eyeDialMax", DoubleSyncValue.class);
+        final DoubleSyncValue fed = syncManager.findSyncHandler("eyeFeedActual", DoubleSyncValue.class);
+        final BooleanSyncValue feedOn = syncManager.findSyncHandler("eyeFeedOn", BooleanSyncValue.class);
+        final Flow dialStepper = BTSGuiKit.stepper(
+            "beyondthestars.gui.eye.dial",
+            dial,
+            EyeStarRuntime.DIAL_STEP,
+            1,
+            EyeStarRuntime.DIAL_MAX,
+            4,
+            "%.2f",
+            24,
+            t -> {
+                for (int i = 1; i <= 5; i++) t.addLine(tr("beyondthestars.gui.eye.dial.tip" + i));
+                t.addLine(
+                    EnumChatFormatting.GRAY + tr(
+                        "beyondthestars.gui.eye.dialtip",
+                        BTSFormat.f2(dial.getDoubleValue()),
+                        BTSFormat.f2(paid.getDoubleValue()),
+                        BTSFormat.f2(cap.getDoubleValue())));
+            },
+            tr("beyondthestars.gui.eye.dial.minus"),
+            tr("beyondthestars.gui.eye.dial.plus"),
+            tr("beyondthestars.gui.eye.dial.screwdriver"));
+        final Flow feedStepper = BTSGuiKit.stepper(
+            "beyondthestars.gui.eye.feed",
+            feed,
+            EyeStarRuntime.FEED_STEP,
+            0,
+            EyeStarRuntime.FEED_MAX,
+            4,
+            "%.2f",
+            24,
+            t -> {
+                for (int i = 1; i <= 4; i++) t.addLine(tr("beyondthestars.gui.eye.feed.tip" + i));
+                t.addLine(
+                    EnumChatFormatting.GRAY + tr(
+                        "beyondthestars.gui.eye.feedtip",
+                        String.format(Locale.ROOT, "%.3f", fed.getDoubleValue()),
+                        String.format(Locale.ROOT, "%.3f", feed.getDoubleValue())));
+            },
+            tr("beyondthestars.gui.eye.feed.minus"),
+            tr("beyondthestars.gui.eye.feed.plus"),
+            tr("beyondthestars.gui.eye.feed.screwdriver"));
+        feedStepper.marginLeft(4)
+            .setEnabledIf(w -> feedOn.getBoolValue());
+        return super.createLeftPanelGapRow(parent, syncManager).collapseDisabledChild()
             .crossAxisAlignment(Alignment.CrossAxis.CENTER)
-            .child(
-                IKey.str("Dial")
-                    .asWidget()
-                    .marginRight(1)
-                    .heightRel(1f))
-            .child(
-                stepButton(
-                    dial,
-                    -EyeStarRuntime.DIAL_STEP,
-                    1,
-                    EyeStarRuntime.DIAL_MAX,
-                    "Time dial -0.25 (right-click: -1.00)",
-                    true))
-            .child(
-                IKey.dynamic(() -> String.format(Locale.ROOT, "%.2f", dial.getDoubleValue()))
-                    .asWidget()
-                    .width(22)
-                    .textAlign(Alignment.Center)
-                    .heightRel(1f)
-                    .tooltip(
-                        t -> t.addLine("Time dial setpoint, 1.00 - 3.00")
-                            .addLine(EnumChatFormatting.GRAY + "Each +0.25 runs the star faster and costs")
-                            .addLine(EnumChatFormatting.GRAY + "10 x 2^(N-1) L/s of Tachyon Rich Temporal Fluid")
-                            .addLine(EnumChatFormatting.GRAY + "from the Field sockets. Capped by the Time")
-                            .addLine(EnumChatFormatting.GRAY + "Dilation generators: 1 + 0.25 x (tier - N)."))
-                    .tooltipShowUpTimer(TOOLTIP_DELAY))
-            .child(
-                stepButton(
-                    dial,
-                    EyeStarRuntime.DIAL_STEP,
-                    1,
-                    EyeStarRuntime.DIAL_MAX,
-                    "Time dial +0.25 (right-click: +1.00)",
-                    true))
-            .child(
-                IKey.str("Feed")
-                    .asWidget()
-                    .marginLeft(3)
-                    .marginRight(1)
-                    .heightRel(1f))
-            .child(
-                stepButton(
-                    feed,
-                    -EyeStarRuntime.FEED_STEP,
-                    0,
-                    EyeStarRuntime.FEED_MAX,
-                    "HSM feed -0.1 L/s (right-click: -0.4)",
-                    false))
-            .child(
-                IKey.dynamic(() -> String.format(Locale.ROOT, "%.2f", feed.getDoubleValue()))
-                    .asWidget()
-                    .width(22)
-                    .textAlign(Alignment.Center)
-                    .heightRel(1f)
-                    .tooltip(
-                        t -> t.addLine("T4 neutron star: HSM feed setpoint, L/s per parallel (0 - 1.5)")
-                            .addLine(EnumChatFormatting.GRAY + "Each litre of Hyperdense Stellar Mixture fed makes")
-                            .addLine(EnumChatFormatting.GRAY + "3.6864 L of White Dwarf Matter x mean Y x r.")
-                            .addLine(EnumChatFormatting.GRAY + "Other stars ignore it."))
-                    .tooltipShowUpTimer(TOOLTIP_DELAY))
-            .child(
-                stepButton(
-                    feed,
-                    EyeStarRuntime.FEED_STEP,
-                    0,
-                    EyeStarRuntime.FEED_MAX,
-                    "HSM feed +0.1 L/s (right-click: +0.4)",
-                    false));
+            .child(dialStepper)
+            .child(feedStepper);
     }
 
-    /** − / + for a setpoint: one step, four on right-click, clamped here and again on the server. */
-    private static IWidget stepButton(DoubleSyncValue value, double step, double min, double max, String tooltip,
-        boolean wraps) {
-        return new ButtonWidget<>().size(9, 14)
-            .overlay(IKey.str(step < 0 ? "-" : "+"))
-            .onMousePressed(button -> {
-                final double raw = value.getDoubleValue() + (button == 1 ? 4 * step : step);
-                final double next = Math.round(Math.max(min, Math.min(max, raw)) * 1000) / 1000.0;
-                if (Math.abs(next - value.getDoubleValue()) > 1e-9) value.setDoubleValue(next);
-                return true;
-            })
-            .tooltip(
-                t -> t.addLine(tooltip)
-                    .addLine(
-                        EnumChatFormatting.GRAY
-                            + (wraps ? "The screwdriver steps it too." : "Sneak-screwdriver steps it too.")))
-            .tooltipShowUpTimer(TOOLTIP_DELAY);
+    private static String tr(String key, Object... args) {
+        return BTSText.resolve(BTSText.lang(key, args));
     }
 
-    /** Right (GT lays this row out reversed: the last child is leftmost). */
+    /**
+     * Right of the gap row, on screen left to right: [Galaxy] [Field] [i] (no power panel on the Eye, Q2). The Galaxy
+     * panel (P4) is for T7 / T8; on a lower Eye it says what it is for.
+     */
     @Override
-    protected Flow createRightPanelGapRow(ModularPanel parent, PanelSyncManager syncManager) {
+    protected void addRightButtons(Flow row, ModularPanel parent, PanelSyncManager syncManager) {
         final IPanelHandler fieldPanel = syncManager
             .syncedPanel("eyeFieldPanel", true, (sub, handler) -> buildFieldPanel(syncManager, parent));
         final IPanelHandler galaxyPanel = syncManager
             .syncedPanel("eyeGalaxyPanel", true, (sub, handler) -> buildGalaxyPanel(syncManager, parent));
-        final BooleanSyncValue render = syncManager.findSyncHandler("eyeRender", BooleanSyncValue.class);
-        return super.createRightPanelGapRow(parent, syncManager).child(
-            new ButtonWidget<>().size(18, 18)
-                .marginLeft(2)
-                .overlay(GTGuiTextures.OVERLAY_BUTTON_MACHINEMODE_SINGULARITY)
-                .onMousePressed(button -> {
-                    if (galaxyPanel.isPanelOpen()) galaxyPanel.closePanel();
-                    else galaxyPanel.openPanel();
-                    return true;
-                })
-                .tooltip(
-                    t -> t.addLine("Galaxy (T7 / T8): mode, the T8 feed, Begin, slots")
-                        .addLine(EnumChatFormatting.GRAY + "Galaxy or planets mode, the Ergomatter feed f8,")
-                        .addLine(EnumChatFormatting.GRAY + "and Begin for a ready Magnetar Collapse or")
-                        .addLine(EnumChatFormatting.GRAY + "Galactic Merger."))
-                .tooltipShowUpTimer(TOOLTIP_DELAY))
+        row.child(
+            BTSGuiKit.panelButton(
+                GTGuiTextures.OVERLAY_BUTTON_MACHINEMODE_SINGULARITY,
+                galaxyPanel,
+                "beyondthestars.gui.eye.galaxy.button"));
+        row.child(
+            BTSGuiKit.panelButton(
+                GTGuiTextures.TT_OVERLAY_BUTTON_STATISTICS,
+                fieldPanel,
+                "beyondthestars.gui.eye.field.button"));
+    }
+
+    @Override
+    protected void renderTooltip(RichTooltip t) {
+        t.addLine(tr("beyondthestars.gui.eye.render.tip1"));
+        t.addLine(EnumChatFormatting.GRAY + tr("beyondthestars.gui.eye.render.tip2"));
+        t.addLine(
+            EnumChatFormatting.GRAY + tr(
+                Config.eyeRenderCentre ? "beyondthestars.gui.eye.render.tip3"
+                    : "beyondthestars.gui.eye.render.tip3off"));
+    }
+
+    // ============================================================================== field panel
+
+    /** "live\u0002refused\u0002sensors" (server). */
+    private String socketLine() {
+        return multiblock.fieldHatchCount() + "\u0002"
+            + multiblock.rejectedFieldHatchCount()
+            + "\u0002"
+            + multiblock.sensorHatchCount();
+    }
+
+    /** One line per live sensor: "condition\u0002output" (server). */
+    private String sensorLines() {
+        final StringBuilder sb = new StringBuilder();
+        for (MTEHatchStellarFieldSensor s : multiblock.sensorHatches()) {
+            if (s == null || !s.isValid()) continue;
+            String line = s.statusLine();
+            final int cut = line.lastIndexOf(", out ");
+            if (cut >= 0) line = line.substring(0, cut);
+            if (sb.length() > 0) sb.append('\n');
+            sb.append(BTSText.lit(line))
+                .append('\u0002')
+                .append(s.currentOutput());
+        }
+        return sb.toString();
+    }
+
+    /** One line per trim drained this second: "name\u0002litres" (server). */
+    private String trimLines() {
+        final StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, Long> e : rt().lastTrimsByName()
+            .entrySet()) {
+            if (sb.length() > 0) sb.append('\n');
+            sb.append(BTSText.lit(e.getKey()))
+                .append('\u0002')
+                .append(e.getValue());
+        }
+        return sb.toString();
+    }
+
+    /** The Galaxy panel's body: the slots or companions, the next transition's state, the test fire (server). */
+    private String galaxyPanelText() {
+        final EyeStarRuntime rt = rt();
+        final StringBuilder sb = new StringBuilder();
+        for (String l : rt.slotLines()) sb.append(BTSText.lit(l))
+            .append('\n');
+        if (rt.mode() == EyeGalaxy.Mode.GALAXY) {
+            sb.append(BTSText.lang("beyondthestars.gui.eye.companions", rt.companionNames()))
+                .append('\n');
+        }
+        final StarDef star = rt.star();
+        if (star != null && (star.n() == 6 || star.n() == 7) && rt.state() == EyeStarRuntime.StarState.PENDING) {
+            final List<String> miss = rt.missing(star.n());
+            sb.append(
+                miss.isEmpty()
+                    ? BTSText.lang("beyondthestars.gui.eye.galaxy.ready", EyeTransition.Type.leaving(star.n()).title)
+                    : BTSText.lang("beyondthestars.gui.eye.galaxy.waits", miss.get(0)))
+                .append('\n');
+        }
+        if (rt.testFireWanted()) {
+            sb.append(
+                BTSText.lang(
+                    star != null && star.n() == 7 ? "beyondthestars.gui.eye.galaxy.testfire7"
+                        : "beyondthestars.gui.eye.galaxy.testfire"))
+                .append('\n');
+        } else {
+            final String note = rt.heavyTestFireNote();
+            if (!note.isEmpty()) sb.append(BTSText.lit(note))
+                .append('\n');
+        }
+        return sb.toString();
+    }
+
+    private static String[] part(String s, int line, int field) {
+        if (s == null || s.isEmpty()) return null;
+        final String[] lines = s.split("\n", -1);
+        if (line >= lines.length) return null;
+        final String[] f = lines[line].split("\u0002", -1);
+        return field < f.length ? f : null;
+    }
+
+    private static final int PANEL_DIM = 0xFF555555;
+
+    private static ScrollingTextWidget panelText(java.util.function.Supplier<String> text, int colour) {
+        return new ScrollingTextWidget(IKey.dynamic(text::get)).width(FIELD_PANEL_W - 8)
+            .height(9)
+            .color(colour)
+            .shadow(false)
+            .marginBottom(1);
+    }
+
+    private static IWidget panelStat(String labelKey, java.util.function.Supplier<String> value) {
+        return Flow.row()
+            .size(FIELD_PANEL_W - 8, 9)
+            .marginBottom(1)
             .child(
-                new ToggleButton().size(18, 18)
-                    .marginLeft(2)
-                    .value(render)
-                    .overlay(true, GTGuiTextures.OVERLAY_BUTTON_SHOW_WORK_AREA)
-                    .overlay(false, GTGuiTextures.OVERLAY_BUTTON_WORK_AREA)
-                    .tooltipBuilder(
-                        t -> t.addLine("Centre render on / off (this Eye)")
-                            .addLine(EnumChatFormatting.GRAY + "The star, neutron star, dwarf or magnetar at the")
-                            .addLine(EnumChatFormatting.GRAY + "Eye's centre. The config (eyeRenderCentre) can")
-                            .addLine(
-                                EnumChatFormatting.GRAY + "turn it off everywhere"
-                                    + (Config.eyeRenderCentre ? "." : ": it is OFF in your config.")))
-                    .tooltipShowUpTimer(TOOLTIP_DELAY))
+                IKey.lang(labelKey)
+                    .color(BTSGuiKit.PANEL_TEXT)
+                    .asWidget()
+                    .size(100, 9)
+                    .textAlign(Alignment.CenterLeft))
             .child(
-                new ButtonWidget<>().size(18, 18)
-                    .marginLeft(2)
-                    .overlay(GTGuiTextures.TT_OVERLAY_BUTTON_STATISTICS)
-                    .onMousePressed(button -> {
-                        if (fieldPanel.isPanelOpen()) fieldPanel.closePanel();
-                        else fieldPanel.openPanel();
-                        return true;
-                    })
-                    .tooltip(t -> t.addLine("Field: zones, sockets, sensors, trims, the standard rig"))
-                    .tooltipShowUpTimer(TOOLTIP_DELAY));
+                IKey.dynamic(value::get)
+                    .color(BTSGuiKit.PANEL_TEXT)
+                    .asWidget()
+                    .size(FIELD_PANEL_W - 8 - 100, 9)
+                    .textAlign(Alignment.CenterRight));
+    }
+
+    /** A Field panel row: text on the left (scrolls on hover when long), a value right-aligned in panel text. */
+    private static Flow panelPair(java.util.function.Supplier<String> left, int leftColour,
+        java.util.function.Supplier<String> right) {
+        final int w = FIELD_PANEL_W - 8, rw = 44;
+        return Flow.row()
+            .size(w, 9)
+            .marginBottom(1)
+            .child(
+                new ScrollingTextWidget(IKey.dynamic(left::get)).size(w - rw, 9)
+                    .color(leftColour)
+                    .shadow(false))
+            .child(
+                IKey.dynamic(right::get)
+                    .color(BTSGuiKit.PANEL_TEXT)
+                    .asWidget()
+                    .size(rw, 9)
+                    .textAlign(Alignment.CenterRight));
+    }
+
+    /** One column of a zone legend line ("name range yield", split on double spaces). */
+    private static IWidget legendCell(String key, int col, int width, Alignment align) {
+        return IKey.dynamic(() -> {
+            final String[] cells = StatCollector.translateToLocal(key)
+                .split(" {2,}");
+            if (cells.length < 3) return col == 0 ? StatCollector.translateToLocal(key) : "";
+            return cells[col];
+        })
+            .color(BTSGuiKit.PANEL_TEXT)
+            .asWidget()
+            .size(width, 9)
+            .textAlign(align);
+    }
+
+    private static IWidget divider() {
+        return ((IDrawable) (context, x, y, width, height, theme) -> GuiDraw.drawRect(x, y, width, height, 0xFF8B8B8B))
+            .asWidget()
+            .size(FIELD_PANEL_W - 8, 1)
+            .margin(0, 2);
+    }
+
+    /**
+     * The Field panel (spec §5.1.6, 176 x 196, text at 1.0): the zone legend, the sockets and sensors (each sensor's
+     * condition and output), the trims drained this second, and a pointer to the standard rig on the Info page.
+     */
+    private ModularPanel buildFieldPanel(PanelSyncManager main, ModularPanel parent) {
+        final StringSyncValue sockets = main.findSyncHandler("eyeSockets", StringSyncValue.class);
+        final StringSyncValue sensors = main.findSyncHandler("eyeSensors", StringSyncValue.class);
+        final StringSyncValue trims = main.findSyncHandler("eyeTrims", StringSyncValue.class);
+        final int w = FIELD_PANEL_W - 8;
+        final ListWidget<IWidget, ?> list = new ListWidget<>().size(w, FIELD_PANEL_H - 8)
+            .pos(4, 4)
+            .crossAxisAlignment(Alignment.CrossAxis.START)
+            .collapseDisabledChild();
+        list.child(
+            IKey.lang("beyondthestars.gui.eye.field.title")
+                .color(BTSGuiKit.PANEL_TEXT)
+                .asWidget()
+                .style(EnumChatFormatting.BOLD)
+                .size(w, 10)
+                .textAlign(Alignment.Center)
+                .marginBottom(2));
+        for (int z = 0; z < 5; z++) {
+            final int colour = BTSGuiKit.ZONE_BAND[z];
+            // "Resonant ±10 x1.25": name, range and yield in three columns (the mockup's table); a translation
+            // without the double spaces shows whole in the first column
+            final String key = "beyondthestars.gui.eye.field.zone." + z;
+            list.child(
+                Flow.row()
+                    .size(w, 9)
+                    .marginBottom(1)
+                    .child(
+                        ((IDrawable) (context, x, y, width, height, theme) -> GuiDraw
+                            .drawRect(x, y, width, height, colour)).asWidget()
+                                .size(12, 8)
+                                .marginRight(3))
+                    .child(legendCell(key, 0, 58, Alignment.CenterLeft))
+                    .child(legendCell(key, 1, 40, Alignment.CenterLeft))
+                    .child(legendCell(key, 2, w - 15 - 58 - 40, Alignment.CenterRight)));
+        }
+        list.child(divider());
+        list.child(panelStat("beyondthestars.gui.eye.field.sockets", () -> {
+            final String[] f = part(sockets.getStringValue(), 0, 0);
+            return f == null ? "" : tr("beyondthestars.gui.eye.field.live", "§2" + f[0]);
+        }));
+        list.child(panelStat("beyondthestars.gui.eye.field.mestock", () -> {
+            final String[] f = part(sockets.getStringValue(), 0, 1);
+            final String n = f == null ? "0" : f[1];
+            return tr("beyondthestars.gui.eye.field.refused", ("0".equals(n) ? "" : "§4") + n);
+        }));
+        list.child(panelStat("beyondthestars.gui.eye.field.sensors", () -> {
+            final String[] f = part(sockets.getStringValue(), 0, 2);
+            return f == null ? "0" : f[2];
+        }));
+        for (int k = 0; k < SENSOR_ROWS; k++) {
+            final int i = k;
+            list.child(panelPair(() -> {
+                final String[] f = part(sensors.getStringValue(), i, 1);
+                return f == null ? "" : " " + f[0];
+            }, PANEL_DIM, () -> {
+                final String[] f = part(sensors.getStringValue(), i, 1);
+                if (f == null) return "";
+                return (!"0".equals(f[1]) ? "§2" : "§8") + tr("beyondthestars.gui.eye.field.out", f[1]);
+            }).setEnabledIf(x -> part(sensors.getStringValue(), i, 1) != null));
+        }
+        list.child(divider());
+        list.child(
+            IKey.lang("beyondthestars.gui.eye.field.trims")
+                .color(BTSGuiKit.PANEL_TEXT)
+                .asWidget()
+                .size(w, 9)
+                .textAlign(Alignment.CenterLeft)
+                .marginBottom(1));
+        list.child(
+            IKey.lang("beyondthestars.gui.eye.field.notrims")
+                .color(PANEL_DIM)
+                .asWidget()
+                .size(w, 9)
+                .textAlign(Alignment.CenterLeft)
+                .marginBottom(1)
+                .setEnabledIf(
+                    x -> trims.getStringValue() == null || trims.getStringValue()
+                        .isEmpty()));
+        for (int k = 0; k < TRIM_ROWS; k++) {
+            final int i = k;
+            list.child(panelPair(() -> {
+                final String[] f = part(trims.getStringValue(), i, 1);
+                return f == null ? "" : " " + f[0];
+            }, PANEL_DIM, () -> {
+                final String[] f = part(trims.getStringValue(), i, 1);
+                return f == null ? "" : BTSFormat.exact(parseLong(f[1])) + " L";
+            }).setEnabledIf(x -> part(trims.getStringValue(), i, 1) != null));
+        }
+        list.child(
+            IKey.lang("beyondthestars.gui.eye.field.footer")
+                .color(PANEL_DIM)
+                .asWidget()
+                .size(w, 9)
+                .textAlign(Alignment.CenterLeft)
+                .marginTop(2));
+        return new ModularPanel("eyeFieldPanel").relative(parent)
+            .leftRel(1)
+            .topRel(0)
+            .size(FIELD_PANEL_W, FIELD_PANEL_H)
+            .child(list);
     }
 
     // ============================================================================= galaxy panel
 
-    private static final int GALAXY_PANEL_W = 184;
-    private static final int GALAXY_PANEL_H = 176;
-
     /**
-     * P4: the Galaxy panel: the mode (galaxy / planets; switching puts a lit T7 / T8 field out and lights the other),
-     * the T8 Ergomatter feed f₈ with − / +, Begin (enabled while Galaxy Transition bit 1 is on), and the slots or
-     * companions with what the next transition waits for.
+     * P4: the Galaxy panel (176 x 196, text at 1.0): the mode (galaxy / planets; switching puts a lit T7 / T8 field
+     * out and lights the other), the T8 Ergomatter feed f8 (the kit stepper), Begin (enabled while Galaxy Transition
+     * bit 1 is on, the answer beside it), then the slots or companions with what the next transition waits for, and
+     * the standard rig in brief.
      */
     private ModularPanel buildGalaxyPanel(PanelSyncManager main, ModularPanel parent) {
         final BooleanSyncValue planets = main.findSyncHandler("eyePlanets", BooleanSyncValue.class);
@@ -806,195 +1291,129 @@ public class EyeGui extends MTEMultiBlockBaseGui<MTEEyeOfHarmonyBTS> {
         final StringSyncValue msg = main.findSyncHandler("eyeBeginMsg", StringSyncValue.class);
         final StringSyncValue text = main.findSyncHandler("eyeGalaxyText", StringSyncValue.class);
         final int w = GALAXY_PANEL_W - 8;
-        final Flow column = Flow.column()
-            .full()
-            .padding(4)
-            .childPadding(3)
+        final ListWidget<IWidget, ?> list = new ListWidget<>().size(w, GALAXY_PANEL_H - 8)
+            .pos(4, 4)
             .crossAxisAlignment(Alignment.CrossAxis.START)
-            .child(
-                IKey.str(EnumChatFormatting.BOLD + "Galaxy (T7 / T8)")
-                    .asWidget()
-                    .width(w)
-                    .textAlign(Alignment.Center))
-            .child(
-                Flow.row()
-                    .width(w)
-                    .height(14)
-                    .childPadding(3)
-                    .crossAxisAlignment(Alignment.CrossAxis.CENTER)
-                    .child(
-                        new ButtonWidget<>().size(14, 14)
-                            .overlay(GTGuiTextures.OVERLAY_BUTTON_CYCLIC)
-                            .onMousePressed(btn -> {
-                                planets.setBoolValue(!planets.getBoolValue());
-                                return true;
-                            })
-                            .tooltip(
-                                t -> t.addLine("Galaxy or planets mode")
-                                    .addLine(EnumChatFormatting.GRAY + "Planets: 3 (T7) / 6 (T8) planet slots from the")
-                                    .addLine(EnumChatFormatting.GRAY + "slot bus, a calm one-gauge field at a quarter")
-                                    .addLine(
-                                        EnumChatFormatting.GRAY + "of the demand. Switching puts a lit galaxy out:")
-                                    .addLine(EnumChatFormatting.GRAY + "it comes back by the Magnetar Collapse."))
-                            .tooltipShowUpTimer(TOOLTIP_DELAY))
-                    .child(
-                        IKey.dynamic(() -> "Mode: " + (planets.getBoolValue() ? "planets" : "galaxy"))
-                            .asWidget()
-                            .heightRel(1f)))
-            .child(
-                Flow.row()
-                    .width(w)
-                    .height(14)
-                    .childPadding(1)
-                    .crossAxisAlignment(Alignment.CrossAxis.CENTER)
-                    .child(
-                        IKey.str("T8 feed f8")
-                            .asWidget()
-                            .marginRight(2)
-                            .heightRel(1f))
-                    .child(
-                        stepButton(
-                            f8,
-                            -EyeGalaxy.F8_STEP,
-                            GalaxyField.F8_MIN,
-                            GalaxyField.F8_MAX,
-                            "Ergomatter feed -0.5 L/s (right-click: -2)",
-                            false))
-                    .child(
-                        IKey.dynamic(() -> String.format(Locale.ROOT, "%.1f L/s", f8.getDoubleValue()))
-                            .asWidget()
-                            .width(34)
-                            .textAlign(Alignment.Center)
-                            .heightRel(1f)
-                            .tooltip(
-                                t -> t.addLine("The Milky Way's Ergomatter feed, L/s per parallel (0-10)")
-                                    .addLine(EnumChatFormatting.GRAY + "Superdense Ergomatter = 1.0 x fed x Y x r.")
-                                    .addLine(EnumChatFormatting.GRAY + "It drives Λ by 0.4 x f8: halo bursts hold it.")
-                                    .addLine(
-                                        EnumChatFormatting.GRAY + "Lower it for a satellite crossing at high feed."))
-                            .tooltipShowUpTimer(TOOLTIP_DELAY))
-                    .child(
-                        stepButton(
-                            f8,
-                            EyeGalaxy.F8_STEP,
-                            GalaxyField.F8_MIN,
-                            GalaxyField.F8_MAX,
-                            "Ergomatter feed +0.5 L/s (right-click: +2)",
-                            false)))
-            .child(
-                Flow.row()
-                    .width(w)
-                    .height(16)
-                    .childPadding(3)
-                    .crossAxisAlignment(Alignment.CrossAxis.CENTER)
-                    .child(
-                        new ButtonWidget<>().size(16, 16)
-                            .overlay(GTGuiTextures.OVERLAY_BUTTON_CHECKMARK)
-                            .onMousePressed(btn -> {
-                                main.callSyncedAction("eyeBegin", packet -> {});
-                                return true;
-                            })
-                            .tooltip(
-                                t -> t.addLine("Begin the galaxy transition")
-                                    .addLine(EnumChatFormatting.GRAY + "Only while it is READY (Galaxy Transition")
-                                    .addLine(EnumChatFormatting.GRAY + "bit 1): the Magnetar Collapse from a lit")
-                                    .addLine(EnumChatFormatting.GRAY + "magnetar, the Galactic Merger from Triangulum.")
-                                    .addLine(
-                                        EnumChatFormatting.GRAY + "A Burst Control Hatch in Begin mode does it too."))
-                            .tooltipShowUpTimer(TOOLTIP_DELAY))
-                    .child(
+            .collapseDisabledChild();
+        list.child(
+            IKey.lang("beyondthestars.gui.eye.galaxy.title")
+                .color(BTSGuiKit.PANEL_TEXT)
+                .asWidget()
+                .style(EnumChatFormatting.BOLD)
+                .size(w, 10)
+                .textAlign(Alignment.Center)
+                .marginBottom(2));
+        list.child(
+            Flow.row()
+                .size(w, 16)
+                .childPadding(4)
+                .crossAxisAlignment(Alignment.CrossAxis.CENTER)
+                .marginBottom(2)
+                .child(
+                    new ButtonWidget<>().size(16, 16)
+                        .overlay(GTGuiTextures.OVERLAY_BUTTON_CYCLIC)
+                        .onMousePressed(btn -> {
+                            planets.setBoolValue(!planets.getBoolValue());
+                            return true;
+                        })
+                        .tooltip(t -> {
+                            t.addLine(tr("beyondthestars.gui.eye.galaxy.mode.tip1"));
+                            for (int i = 2; i <= 4; i++) {
+                                t.addLine(EnumChatFormatting.GRAY + tr("beyondthestars.gui.eye.galaxy.mode.tip" + i));
+                            }
+                        })
+                        .tooltipShowUpTimer(TOOLTIP_DELAY))
+                .child(
+                    IKey.dynamic(
+                        () -> tr(
+                            "beyondthestars.gui.eye.galaxy.mode",
+                            tr(
+                                planets.getBoolValue() ? "beyondthestars.gui.eye.galaxy.planets"
+                                    : "beyondthestars.gui.eye.galaxy.galaxy")))
+                        .color(BTSGuiKit.PANEL_TEXT)
+                        .asWidget()
+                        .size(w - 20, 9)));
+        list.child(
+            Flow.row()
+                .size(w, 16)
+                .marginBottom(2)
+                .child(
+                    BTSGuiKit.stepper(
+                        "beyondthestars.gui.eye.galaxy.f8",
+                        f8,
+                        EyeGalaxy.F8_STEP,
+                        GalaxyField.F8_MIN,
+                        GalaxyField.F8_MAX,
+                        4,
+                        "%.1f",
+                        28,
+                        t -> {
+                            for (int i = 1; i <= 4; i++) t.addLine(
+                                (i == 1 ? "" : EnumChatFormatting.GRAY.toString())
+                                    + tr("beyondthestars.gui.eye.galaxy.f8.tip" + i));
+                        },
+                        tr("beyondthestars.gui.eye.galaxy.f8.minus"),
+                        tr("beyondthestars.gui.eye.galaxy.f8.plus"),
+                        "")));
+        list.child(
+            Flow.row()
+                .size(w, 16)
+                .childPadding(4)
+                .crossAxisAlignment(Alignment.CrossAxis.CENTER)
+                .marginBottom(2)
+                .child(
+                    new ButtonWidget<>().size(16, 16)
+                        .overlay(GTGuiTextures.OVERLAY_BUTTON_CHECKMARK)
+                        .onMousePressed(btn -> {
+                            main.callSyncedAction("eyeBegin", packet -> {});
+                            return true;
+                        })
+                        .tooltip(t -> {
+                            t.addLine(tr("beyondthestars.gui.eye.galaxy.begin.tip1"));
+                            for (int i = 2; i <= 4; i++) {
+                                t.addLine(EnumChatFormatting.GRAY + tr("beyondthestars.gui.eye.galaxy.begin.tip" + i));
+                            }
+                        })
+                        .tooltipShowUpTimer(TOOLTIP_DELAY))
+                .child(
+                    new ScrollingTextWidget(
                         IKey.dynamic(
-                            () -> (ready.getBoolValue() ? EnumChatFormatting.GREEN + "READY"
-                                : EnumChatFormatting.GRAY + "not ready")
-                                + EnumChatFormatting.GRAY
+                            () -> (ready.getBoolValue() ? "§2" + tr("beyondthestars.gui.eye.galaxy.isready")
+                                : tr("beyondthestars.gui.eye.galaxy.notready"))
                                 + (msg.getStringValue()
-                                    .isEmpty() ? "" : ": " + msg.getStringValue()))
-                            .asWidget()
-                            .scale(0.75f)
-                            .maxWidth(w - 20)))
-            .child(
-                IKey.dynamic(text::getStringValue)
-                    .asWidget()
-                    .scale(0.75f)
-                    .maxWidth(w))
-            .child(
-                IKey.str(
-                    EnumChatFormatting.DARK_GRAY
-                        + "Rig: Field [1] -> the Space valve; J1 on Field [2]/[1], J2 on Field [4]/[8], J3 on Events"
-                        + " [1]/[2] (15 / 8 / 0); Galaxy Transition [1] -> a Begin hatch, [4] / [8] the purge assist;"
-                        + " Slots [8] -> the test fire.")
-                    .asWidget()
-                    .scale(0.75f)
-                    .maxWidth(w));
+                                    .isEmpty() ? "" : "§8: " + msg.getStringValue()))).size(w - 20, 9)
+                                        .color(BTSGuiKit.PANEL_TEXT)
+                                        .shadow(false)));
+        list.child(divider());
+        for (int k = 0; k < GALAXY_TEXT_ROWS; k++) {
+            final int i = k;
+            list.child(panelText(() -> {
+                final String[] lines = text.getStringValue()
+                    .split("\n");
+                return i < lines.length ? BTSText.resolve(lines[i]) : "";
+            }, BTSGuiKit.PANEL_TEXT).setEnabledIf(x -> {
+                final String[] lines = text.getStringValue()
+                    .split("\n");
+                return i < lines.length && !lines[i].isEmpty();
+            }));
+        }
+        list.child(divider());
+        for (int i = 1; i <= 3; i++) {
+            final String key = "beyondthestars.gui.eye.galaxy.rig" + i;
+            list.child(panelText(() -> tr(key), PANEL_DIM));
+        }
         return new ModularPanel("eyeGalaxyPanel").relative(parent)
             .leftRel(1)
             .topRel(0)
             .size(GALAXY_PANEL_W, GALAXY_PANEL_H)
-            .child(column);
+            .child(list);
     }
 
-    // ============================================================================== field panel
-
-    private ModularPanel buildFieldPanel(PanelSyncManager main, ModularPanel parent) {
-        final StringSyncValue sockets = main.findSyncHandler("eyeSockets", StringSyncValue.class);
-        final StringSyncValue trims = main.findSyncHandler("eyeTrims", StringSyncValue.class);
-        final int w = FIELD_PANEL_W - 8;
-        final Flow legend = Flow.column()
-            .width(w)
-            .coverChildrenHeight()
-            .crossAxisAlignment(Alignment.CrossAxis.START)
-            .childPadding(1);
-        final String[] ranges = { "|error| <= 10", "<= 40", "<= 70", "<= 100", "> 100" };
-        for (int z = 0; z < 5; z++) {
-            final int colour = ZONE_COLOUR[z];
-            legend.child(
-                Flow.row()
-                    .width(w)
-                    .height(8)
-                    .childPadding(3)
-                    .child(
-                        ((IDrawable) (context, x, y, width, height, theme) -> GuiDraw
-                            .drawRect(x, y, width, height, colour)).asWidget()
-                                .size(14, 7))
-                    .child(
-                        IKey.str(StellarField.ZONE_NAME[z] + "  " + ranges[z])
-                            .asWidget()
-                            .scale(0.75f)));
+    private static long parseLong(String s) {
+        try {
+            return Long.parseLong(s);
+        } catch (NumberFormatException e) {
+            return 0;
         }
-        final Flow column = Flow.column()
-            .full()
-            .padding(4)
-            .childPadding(3)
-            .crossAxisAlignment(Alignment.CrossAxis.START)
-            .child(
-                IKey.str(EnumChatFormatting.BOLD + "Stability field")
-                    .asWidget()
-                    .width(w)
-                    .textAlign(Alignment.Center))
-            .child(legend)
-            .child(
-                IKey.dynamic(sockets::getStringValue)
-                    .asWidget()
-                    .scale(0.75f)
-                    .maxWidth(w))
-            .child(
-                IKey.dynamic(() -> "Trims: " + trims.getStringValue())
-                    .asWidget()
-                    .scale(0.75f)
-                    .maxWidth(w))
-            .child(
-                IKey.str(
-                    EnumChatFormatting.DARK_GRAY
-                        + "Rig: a Sensor past its threshold -> redstone -> a Fluid Regulator cover or an export bus"
-                        + " with a redstone card -> a plain input hatch in a Field socket. Two sensors per two-sided"
-                        + " gauge; the warning channels open a bigger valve.")
-                    .asWidget()
-                    .scale(0.75f)
-                    .maxWidth(w));
-        return new ModularPanel("eyeFieldPanel").relative(parent)
-            .leftRel(1)
-            .topRel(0)
-            .size(FIELD_PANEL_W, FIELD_PANEL_H)
-            .child(column);
     }
 }

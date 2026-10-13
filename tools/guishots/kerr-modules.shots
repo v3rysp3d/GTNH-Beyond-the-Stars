@@ -1,0 +1,30 @@
+cmd /btskerr module 4500 100 0 x stock
+cmd /btskerr module 4500 100 0 x status
+tp 4461 101 51.5
+wait 80
+cmd /btskerr module 4500 100 0 x status
+gui 4464 100 51
+wait 30
+shot kerr-module_s3
+scale 2
+wait 5
+shot kerr-module_s2
+scale 3
+close
+tp 4500.5 97 81
+wait 60
+gui 4500 96 77
+wait 30
+shot kerr-module-c_s3
+close
+cmd /btskerr render 4500 100 0 close
+wait 40
+gui 4500 96 77
+wait 30
+shot kerr-module-paused_s3
+scale 2
+wait 5
+shot kerr-module-paused_s2
+scale 3
+close
+cmd /btskerr autorig 4500 100 0 60 64

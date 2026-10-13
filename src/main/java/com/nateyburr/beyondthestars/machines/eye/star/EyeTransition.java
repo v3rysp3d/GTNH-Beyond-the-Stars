@@ -106,6 +106,16 @@ public abstract class EyeTransition implements Overlay {
     /** Debug rigs only: adjusts the prototype rig's request (the merger's imprint holds Π high). */
     public void adjustRig(LinkedHashMap<String, Double> raw, FieldState s, FieldRig.Mode mode) {}
 
+    /** GUI: the phase running now, 1-based (the Phase bar's "1/3"). */
+    public int phase() {
+        return 1;
+    }
+
+    /** GUI: how many phases the transition has. */
+    public int phases() {
+        return 1;
+    }
+
     /** One scanner line: the phase and its progress. */
     public abstract String phaseLine();
 

@@ -139,6 +139,16 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
   ran unattended with 0 failures, and nothing needed fixing. [B-113]
 - ~~The Eye T7 / T8 front window (review finding)~~: done; the stability rail's front clamp no longer stands in
   front of the galaxy's core, and the window check covers T1-T8. [B-114]
+- Controller GUI cleanup unit 1 (branch `gui-clean`): the GUI kit, the family frame and the Eye of Harmony GUI;
+  the questbook's "field line" sentence becomes "Lock bar" when the questbook owner applies it. [B-96]
+- Controller GUI cleanup unit 2 (branch `gui-clean`): the Kerr Ergosphere Engine and the two Kerr module GUIs on the
+  kit; the disabled power switch no longer draws GT's missing texture. [B-97]
+- Controller GUI cleanup unit 3 (branch `gui-clean`): the Homogeny, Reality Diffraction / Refab, the Reactor Silo and
+  the production halls on the kit; recipe results are compared by key (fixes the Kerr module and Eye planet rows). [B-98]
+- Controller GUI cleanup unit 4 (branch `gui-clean`): the hatch layout, the Directive Hatch (panel 214, nothing over
+  the inventory) and the Stellar Field Sensor Hatch GUIs; spec §6 lang keys complete, GUI lang check 0 missing. [B-99]
+- Controller GUI cleanup round 1 (branch `gui-clean`): every master GUI checked in a dev client against the mockups;
+  12 fixes, among them the empty kit terminal (row clock overflow), the Refab lamp overlap and the Directive readout. [B-100]
 
 **To see in a client** (the headless dev server cannot): the hologram hints, a survival build from a real AE system,
 the NEI multiblock tab and its frame rate (a T6 Eye is 51,935 blocks), every GUI (Eye, KEE, modules, Directive Hatch,
@@ -4908,6 +4918,459 @@ flat (8°), so from eye level it is a thin streak anyway; from above, or from th
 
 **Not covered.** No client was run, so the window was not looked at in game; the showcase camera should check it at
 Eye T7 / T8.
+
+---
+
+### B-96 Controller GUI cleanup, unit 1: the kit, the family frame and the Eye of Harmony [user approval 2026-10-13, built on branch gui-clean]
+
+**Context.** I watched the smoke clip of the Eye GUI: "Based on the video we need more clean details in the
+controller", then approved the design ("All are good to go"): `controller-gui-spec.md` + `controller-gui-mockups.html`
+(local work folder `gui/`). This unit builds spec §2-§4 (the kit and the base class) and §5.1 (the Eye). The Kerr,
+modules, Homogeny, Reality, Silo, halls and hatches (§5.2-§5.10) are later units; the P4 machines (Quasar, Conduit,
+Crown, Receptor, Burst Control, the Eye's T7/T8 rows) come after the P4 merge. The spec's recommended answers to its
+own Q1-Q12 are taken as built (terminal 118 / panel 227, no power panel on the Eye, the zone as the lit badge, no G
+logo and no always-on maintenance icon, Info as a terminal page, lang keys, render toggle in the button column, Feed
+only for the T4 star, TecTech's disabled power-switch icon, M/G litres and 1.51e12 EU).
+
+**What was built.**
+
+- `machines/gui/`: `BTSFormat` (§4.2), `BTSText` (server-built text the client translates: lang references with
+  arguments, nested keys, literals), `BTSRows` (the terminal's rows as one synced string, decoded once per change),
+  `BTSChecklist` (§4.5 `CheckLine` with state, label, have/need value, fill fraction, tooltip), `BTSGuiKit` (palette,
+  badges, gradients, every §4.3 component, the row pool, stepper, info toggle, header), `KitDraw` (client-only text
+  and pixel icons) and `BTSControllerGui` (§4.4).
+- `EyeStarRuntime.ignitionChecklist(want)` and `transitionChecklist(from)`: every condition, met or not, read only
+  (the spec's "checks ALL conditions"). `Host.countIgnitionCharges()` counts the charges across the live plinth buses.
+- `EyeGui` rewritten on the kit; `MTEEyeOfHarmonyBTS`: `hasRunningText` false, the recipe-result line only for a
+  planet target, no power panel, `planetChecklist()`.
+- Bench: `/btseye star x y z gui [info]` prints the header and the rows the GUI would show, as text, so a headless
+  server can check every state.
+
+**Judgement calls.**
+
+1. **One row string per machine instead of one sync value per number.** The server decides which rows a state shows
+   and sends them as one `StringSyncValue` (rebuilt every 5 ticks, values rounded to what is shown); the client's
+   fixed pool of rows draws row i with its kind's component. The spec's per-component factories exist too
+   (`BTSGuiKit.gauge/bar/check/...` with suppliers) for panels that want them. Why: the Eye has 13 states with
+   different rows; keeping the choice on the server keeps it in one method per machine and makes the kit work
+   unchanged for the Kerr, Quasar and the rest. *Alternative:* a sync value per field with `setEnabledIf` per row.
+2. **Long labels are cut, not scrolled, on bar / check / stat rows** (a "." marks the cut and the tooltip holds the
+   full row); notes are `ScrollingTextWidget`s as specified. MUI2's text scrolling needs a whole widget per label;
+   the labels we send are short enough that the cut only shows with a long translation.
+3. **The dial note tells "short" from "capped".** The spec's "Dial running {paid} of {set}: Tachyon short" would also
+   fire when the Time Dilation generators cap the dial below its setpoint, which is not a fluid shortage. Built: the
+   Tachyon note when the paid dial is below min(setpoint, cap), and a separate "Dial capped at {cap} (set {set})" note
+   when the setpoint is above the cap.
+4. **The transition checklist adds "T{from} unlocked"** when the Eye is not yet at that tier (the one line of
+   `missing()` the spec's table leaves out), so the checklist is all-met exactly when `missing()` is empty.
+5. **States the spec does not tabulate**: a dark Eye holding the Sirius B chart shows the First Cooling checklist
+   (before T5) or the next batch's White Dwarf Matter check (after); a dark Eye holding the Magnetar chart shows the
+   Magnetar Merger checklist. A LIT badge before the first solved second shows STABLE.
+6. **First Cooling during TRANSITION** shows the phase bar and then the COOLING rows (batch, setpoint, Θ about it, P,
+   Integrity, mean Y against 0.90); the other transitions show the phase bar, their stat, the gauges, the bounce
+   checks (Core Collapse fast-forward), Stability, Integrity, Y | Parallel and Last.
+7. **"plateau now"** shows while the cooling setpoint is within ±10; the batch warning row names the plateau ("Event
+   warning: crystallisation plateau") rather than a countdown, because the runtime does not know the seconds to it.
+8. **Info NEXT** uses five short new keys ("T2: Sol's milestones, the Stellar Mass Core, the Mass Infusion", ...)
+   rather than the longer `recipe_result ... locked{n}` sentences.
+9. **Planet target**: GT's recipe rows, Parallel, the planet checklist (tier gate, one run of each input, owner and
+   one run's EU), plus the last run's result as the Last line (it was only in the scanner).
+10. **NO STAR with a non-chart item** in the slot shows "not a target" instead of "empty".
+11. **Two IDLE / PAUSED badges.** T5's IDLE is yellow and an idle machine's IDLE is dark (spec §4.1 lists both); P4's
+    galaxy PAUSED is red and a module's PAUSED gold. They are separate badge entries sharing one lang key.
+12. **The Field panel** keeps a scrolling list (8 sensor rows, 6 trim rows) so a rig with many sensors does not run
+    off the 196 px panel.
+13. **Litres from 10^12 up print with a T suffix** (`1.00T`); the spec's table stops at G and a filled bench buffer
+    printed `1000.00G`. A lit star whose first second has not been solved yet shows "lit" (not "dark") in "{star} lit
+    and Stable".
+
+**Verified headless** (dev server on port 25611, `/btseye t1` and `t4` with `fill`, `/btseye keep`, then `/btseye
+star x y z gui`): NO STAR, the Info page, DARK with the full Sol checklist (only the charge missing, as the runtime's
+wait reason said), IGNITING (P with the -20 tick, 10 %, "in ~36 s"), RESONANT (gauge, Stability, Integrity, Lock
+5/600, Cycle 55 s, Y | Parallel, Milestones 0 of 2 with the escrow), PENDING Sol > Sirius A (8 rows, 4 then 7 of 8
+met after `milestones 1 done` and the core), TRANSITION Core Collapse (phase 1/3, core mass, P and Θ, the three bounce
+checks), the T4 neutron star lit (three gauges, HSM feed 0.694 / 0.694), the remnant case, the Arcturus relight
+checklist, Sirius B IDLE with the First Cooling checklist and the Magnetar Merger checklist. 278 recipes / 0 skipped,
+no exception.
+
+**Not done here (logged for its owner).** The questbook sentence in "Harmonic Lock": "The GUI's field line counts it
+as Lock n/600" should read "The GUI's Lock bar counts it as Lock n/600" (spec §6); applied later on master by the
+questbook owner. Every other quest reference to the Eye GUI still holds (Dial − / + with four steps on right-click,
+the HSM feed, the Field panel).
+
+**To see in a client.** The layout against the mockups at GUI scale 2 and 3: the Feed + visible at T4, the header
+alert only on an issue, the render toggle in the column top, the Info page, the Field panel at 1.0 text.
+
+**Suggestion.** Accept; the next units (Kerr, modules, Homogeny, Reality, Silo, halls, hatches) reuse the kit as is.
+
+### B-97 Controller GUI cleanup, unit 2: the Kerr Ergosphere Engine and the Kerr modules [user approval 2026-10-13, built on branch gui-clean]
+
+**Context.** Spec §5.2 (the KEE) and §5.3 (the Compressor and Extractor modules) of `controller-gui-spec.md`, on the
+kit from B-96. The spec's recommended answers stand (Q1 terminal 118, Q4 no G logo, Q5 Info page, Q6 lang keys, Q8
+render toggle in the button column, Q10 TecTech's disabled power-switch icon).
+
+**What was built.**
+
+- `MTEKerrEngineGui` on `BTSControllerGui`: the §5.2 badge table (FROZEN, NOT FORMED, CLOSED, NO POWER, DRIFTING,
+  GROWING, OPEN), subject "Hole {m} SM" / "No hole", right chip Kerr T1/T2 (tooltip: setpoint range, rail Mk and cap).
+  Open: Mass bar (setpoint tick, value white / gold / aqua against the setpoint), Stability bar, the red evaporation
+  note while drifting, Governor bar, Bolt stock with its duration, Containment, Bleed, module chips. Closed: the "To
+  open a hole (8 SM)" checklist (cage, Seed, containment power, bolts), Auto, chips. Info: the questbook's RUN steps,
+  BOLTS, T2, AUTO. Gap row: Setpoint stepper; [Hole control] [Modules] [i]. Render toggle in the button column. The
+  disabled power switch shows TecTech's icon with "The power switch does not stop the hole." Both side panels draw at
+  1.0 (Hole control 150 x 196, Modules rows 32 px).
+- `MTEKerrModuleGui` on the base as a recipe machine (GT's rows and buttons stay): RUNNING / IDLE / PAUSED / NOT
+  LINKED badges, the right chip x{parallel}, the "Hole bonus" stat pair, KEE cell and hole while linked, the "Runs
+  again when" checklist otherwise, the DENSITY gate as a note, an Info page.
+- Kit: a chip row's tooltip shows the hovered chip only (`KitWidget.mouseX`, `BTSGuiKit.chipAt`).
+- `hasRunningText` false on the KEE and the modules; `shouldDisplayCheckRecipeResult` false on the KEE.
+- Bench: `/btskerr gui x y z [info]`, `/btskerr module x y z <c|x> gui [info]`.
+
+**Judgement calls.**
+
+1. **NOT FORMED rows for the KEE** (the spec lists none): GT's structure-error rows (with the highlight button), then
+   "Not formed: hologram stack {1|2} shows the Kerr T{t} cage" and the module chips.
+2. **Modules get a NOT FORMED badge first** (the spec's table starts at LINKED). A module whose own arc is broken but
+   whose KEE is open would otherwise read IDLE. Its rows add a red note naming the KEE marker, then the link rows.
+3. **The module's GT recipe-result line hides only for the link results** (`kerr.module.holeclosed`, `nokee`, ...),
+   which the checklist already says; real results (no recipe, outputs full, the DENSITY gate) still show. This
+   matches the paused mockup, which shows no result sentence. It is decided on the client from the synced result id.
+4. **"KEE found" values are short** ("none here", "faces away") with the full link reason in the tooltip; the spec's
+   "the Link text" does not fit beside the label at 1.0.
+5. **"The recipe in progress is kept"** (in the mockup, not the spec's list) shows under the paused note only while a
+   recipe is held.
+6. **The containment-power check** compares the energy hatches' maximum input (`getMaxInputEu`, lasers included) with
+   8,388,608 EU/t; it does not check the stored charge.
+7. **The DENSITY gate note** is aqua when the gate is open and amber when shut (the spec says amber); its text is the
+   scanner's line with its colour codes stripped, and the tooltip is the recipe-result text.
+8. **`mapsLine()` is deleted.** "What the module runs" is now a lang key per slot (`beyondthestars.gui.module.info.
+   maps.<slot>`), so a new module adds one key, not a method.
+9. **Every Kerr GUI string is a lang key**, including the side panels' strings that were English in Java. The units
+   (SM, EU/t, SM/t) stay literal, as on the Eye. The module-state words reuse the badge keys.
+10. **The Hole control panel's tier line** reads "Kerr T1 ... Density: 2-512" (T2: "Density: in"), as in the mockup,
+    with the full sentence in its tooltip; the old 0.75-scale sentence did not fit at 1.0.
+11. **An empty bolt stock** shows "0.00 SM" in red without a duration.
+
+**Verified headless** (dev server on port 25611, `/btskerr t1 200 100 600 north force`, `/btskerr keep`, then the gui
+dumps): CLOSED with every check met (Seed 1, containment 8.39M against 4.29G of hatches, Auto ON); OPEN at 16.1 SM
+(mass 0.25 of 64 with the tick, stability 100 %, governor 0.05/4, bolt stock 12,773 SM 14h 27m, bleed 0.0123 SM/t);
+both modules IDLE / Linked x448 with Parallel 448 | Speed x3.97, the compressor's DENSITY note, the extractor without
+it; CLOSED after `render close` (Seed 0 BAD) and with the buses emptied (Bolts to grow it, amber); the compressor
+PAUSED with KEE found / formed and loaded OK and Hole open CLOSED; DRIFTING at 14.9 SM with no bolts (stability 0 %,
+"Evaporates in 17 s without bolts", governor 0.00/4); FROZEN after `damage` with the hole open (the extractor NOT
+LINKED, "KEE formed and loaded: NOT FORMED"); NOT FORMED after `damage` with it closed; both Info pages. 278 recipes /
+0 skipped, no exception from our code (GT's own "null detected in fluidInputs" dev-env lines are unchanged).
+
+**Not seen.** RUNNING on a module (the stocked compressor recipe had not started when the hole was closed) and NO
+POWER / GROWING (the bench has no unpowered or under-setpoint-with-bolts case); these are one-line badge branches.
+
+**To see in a client.** Both GUIs against `pair-kee.png` / `kee.png` at GUI scale 2 and 3: the power switch with
+TecTech's icon (no magenta), the render toggle at the top of the button column, the chip hover picking one chip, the
+Hole control panel at 1.0 (the two-line hint and Auto label), the Modules panel's scrolling lines.
+
+**Questbook.** No change needed: "The GUI shows how long the stock lasts", the Hole control panel's Auto, Open and
+Collapse twice all still hold.
+
+**Suggestion.** Accept.
+
+### B-98 Controller GUI cleanup, unit 3: the Homogeny, Reality Diffraction / Refab, the Reactor Silo and the production halls [user approval 2026-10-13, built on branch gui-clean]
+
+**Context.** Spec §5.6-§5.9 of `controller-gui-spec.md`, on the kit from B-96. The spec's recommended answers stand
+(Q1 terminal 118, Q4 no G logo, Q5 Info page, Q6 lang keys, Q7 keep the Silo's instrument panel). All four are recipe
+machines except the Silo, so GT's progress / output / recipe-result rows stay above the kit rows.
+
+**What was built.**
+
+- Kit: a lamp row's lamps carry their own hover tooltip (the hovered lamp's, as the chips do); `recipeBadge()` gives
+  every recipe machine one rule (NOT FORMED, RUNNING while active, WAITING while the last check failed for a reason
+  to fix, IDLE for no recipe / nothing checked); `infoInButtonColumn()` puts the **i** button in the column's top slot.
+- `HomogenyGui`: badge NOT FORMED / INSTALLING / RUNNING / WAITING / IDLE; subject "Mixing" or "T2 > T3"; right chip
+  "T{tier}  {n} par" (tooltip: installed, structure). Rows: the Core / Stir / Outer lamps (tooltip: the ring, its tier,
+  formed / missing / not needed, and its first structure error), then either "Upgrade to T{n+1}" with `{met} of 3` and
+  the three checks (`MTEHomogeny.upgradeChecklist()`: Mixed have/need with a fill line, the core in escrow, the ring
+  built with its fault) or, while installing, the Install bar, Time left, "Paused: {why}" and the cancel hint; Last.
+  The Install button draws `BUTTON_STANDARD_DISABLED` with grey text until `installBlocker()` is empty (or while an
+  install runs); pressing it still goes through `beginInstall()`, the one install path.
+- `RealityDiffractionGui`: badge RUNNING / WAITING (no network or storage, regions waiting to enter, nothing
+  anchored) / IDLE; subject "Diffracting" or what it waits on (BEC network, Network full, Anchors). Rows: the BEC
+  network check, one red check per unanchored region (have / need L with a fill line, or "no hatch";
+  `anchorChecklist()`), "Other regions {k} of 6" (or "Regions anchored 6 of 6"), the amber "Waiting to enter" check
+  and its hint, Last.
+- `RealityRefabGui`: badge as above, WAITING also while the craft waits; subject "Step s/n". Rows: the network and
+  Condensate Assembler checks (`linkChecklist()`: "{n} nanites", "none within 64", "OFF", "no nanites"), the step stat
+  (nanite tier, contaminants), the Regions bar, the wait reason as a red check, Last.
+- Both Reality machines keep their gap-row region lamps (`HRGui.regionLamps`; caption and tooltips now lang keys).
+- `MTEReactorSiloGui`: badge NOT BUILT / HELD / CLAMPED / RUNNING / OFFLINE; subject "Silo T{n}"; right "Rods n/cap".
+  Rows: Output (against the dynamo + laser ceiling, yellow tick at it), RPM (against the operating redline, red tick
+  at 12,000), Heat (against meltdown, red tick at SCRAM), the hold reason, then today's instrument panel unchanged;
+  its group headers are kit section rows. The **i** button is in the column; the Tier / RPM / Rods captions are at
+  1.0 with fields 18 / 34 / 26 wide. Info = the questbook's "Step 10 - Read the Panel" in five paragraphs.
+- `MTEProductionHallGui`: badge, subject "x{parallel}", the Parallel stat and what sets it, Info page.
+- `hasRunningText()` false on the Homogeny, the Reality base, the Reactor Silo and the halls. 109 new lang keys.
+- Bench: `/btshr gui <x> <y> <z> [info]` prints the header and rows of any of these GUIs (plus the last recipe check).
+
+**Judgement calls.**
+
+1. **Ring lamps:** green when the piece stands, red when the INSTALLED tier needs it and it does not stand, grey
+   otherwise. The spec's "red when absent with a fault" would make every ring above the tier red (an absent ring
+   always has a structure error); the mockup shows the T3 ring grey on a T2 Homogeny, and the upgrade checklist says
+   what the next tier needs. The fault is in the lamp's tooltip either way.
+2. **WAITING vs IDLE on recipe machines:** "no recipe" (empty inputs) and "nothing checked yet" are IDLE; every
+   other failed check (outputs full, power, a machine condition) is WAITING. Without this an empty hall read WAITING.
+3. **Silo subject stays "Silo T{n}" when HELD** (the spec's table also says subject "Held"): the badge already says
+   HELD, and the hold reason is the first row under the bars. **Silo right chip "Rods n/cap"** uses the unlocked
+   rod cap (`maxThrottle()`, 24 by design, up to 36), not a fixed 24, so it never reads 30/24.
+4. **The MATH header is split:** a kit section row "MATH" and a grey line under it with the subtitle ("how that EU/t
+   is derived" / "how that steam figure is derived"), because the whole title does not fit 180 px in bold. The
+   questbook's words stay on screen.
+5. **Heat bar** has a red SCRAM tick (the spec gives only "Heat %"); the bar is heat / meltdown.
+6. **Region names and the halls' "(fixed)" / "(shell: ..., tier 2/3)" source** go through lang keys
+   (`beyondthestars.gui.reality.region.0..5`, `beyondthestars.gui.hall.source`); the parallel source text itself and
+   the Refab's wait reasons stay runtime English (spec Q6).
+7. **Refab subject** is empty while no craft runs (the spec gives none); Diffraction's subject names what it waits on,
+   as the mockup's "WAITING Anchors".
+8. **Found and fixed in units 1-2:** `CheckRecipeResult.getID()` is the result TYPE ("simple_result" for every
+   `SimpleCheckRecipeResult`), not its key. The Kerr module's `shouldDisplayCheckRecipeResult` compared it with the
+   link keys, so the link results were never hidden; it now compares with `equals` (the key). The Eye's planet
+   checklist built the lang key `recipe_result.simple_result`; it now shows the gate's display string.
+
+**Commit note.** Commits fb1a95c, b7aab46, 84755f4 and 3c95056 each hold an en_US.lang with only that machine's new
+keys: the staging helper compared the CRLF working tree with the LF blob. Their Java is right; 588ae66 restores the
+whole file (baf745f plus the 109 new lines). Anything that reads the lang file should use 588ae66 or later.
+
+**Verified headless** (dev server on port 25611, 278 recipes / 0 skipped, no stack frame from our code in three
+boots; `/btshr gui`): Homogeny T2 RUNNING with the T3 checklist 0, 1 and 3 of 3 (after `project 3`, `milestone`,
+`escrow`), INSTALLING T2 > T3 with the stall notes (running mix, controller disabled, power) and NOT FORMED after a
+restart; T3 (lamps only) and T1 (Stir and Outer grey, the Stirring ring check with its fault); both Info pages.
+Diffraction WAITING "BEC network" with all six regions red then "Regions anchored 6 of 6" and the amber 24,000 L
+waiting row. Refab WAITING with "none within 64". Silo T1 RUNNING with Output / RPM / Heat and the Info page. PUREX
+and Cascade Hall IDLE "x8" / "x1" with "(fixed)" / "(stage banks 0/4)". Full `gradlew build` passes; jar
+`beyondthestars-0.24.1-gui-clean.254+97e5fe8590.jar`.
+
+**Not seen.** A Diffraction or Refab run (they need P4's fluids and a Containment Field), the Install button's grey
+face, the Silo's NOT BUILT / HELD / CLAMPED badges, the Kerr module fix in a client.
+
+**To see in a client.** The four GUIs against `hr.png` / `plant.png` at GUI scale 2 and 3: the lamp tooltips, Install
+greyed then live, the Silo's **i** in the button column and the 1.0 field captions fitting the gap row, the section
+rows over the instrument panel.
+
+**Questbook.** No change needed: "Install in the GUI", MATH and MILESTONES "at the foot of the GUI" (they still are,
+below the new vitals), the Build Tier / Rods / RPM fields and the Upgrade Tree button all still hold.
+
+**Suggestion.** Accept.
+
+### B-99 Controller GUI cleanup, unit 4: the hatch layout, the Directive Hatch and the Stellar Field Sensor Hatch; the lang completeness pass [user approval 2026-10-13, built on branch gui-clean]
+
+**Context.** Spec §5.10 and §6 of `controller-gui-spec.md`, on the kit from B-96. The P4 hatches (Burst Control,
+GRB Receptor) are not on this branch; `BTSHatchGui` is general enough for them (any box height, any panel height,
+cycle / toggle / field rows, line / lamp / gauge / bar readout parts).
+
+**What was built.**
+
+- `machines/gui/BTSHatchGui`: the hatch family layout. A 166-wide `BACKGROUND_TERMINAL` readout box at (5, 5); the
+  controls 5 px under it, 16x16 buttons at an 18 px pitch, labels in panel text (scroll on hover); no G logo and no
+  corner flows. Readout parts drawn at scale 1.0 with the kit's painters: a text line (left / right), a bit lamp, a
+  coloured lamp line, the ±120 zone gauge with a threshold tick, a plain bar with a tick.
+- `DirectiveHatchGui`: panel **214** (the controls end at y 126, the inventory starts at 130; today's rows ran into
+  it). Box 46: the set and the machine it reports for; the four bits as lamps "1 Helium", "2 Hydrogen", "4 ...",
+  "8 ..." (lit green and white while on, grey while off); "Code {c}" with "redstone {o}" (green, dark grey at 0). A
+  control set shows "Input {n}" with the setpoint it drives, then "Redstone 1-15 sets it" / "0 leaves the GUI's
+  value". With no machine pushing, the host reads "no machine" in gold and the code line "No machine reporting" (its
+  tooltip says where the hatch goes). Controls: Set (tooltip "Click: next set for this machine; right-click:
+  previous"), Output (tooltip lists the six modes and that a comparator reads the code), Invert ("15 - output"),
+  Window field 26 wide with "Window w: gauge band, ±w" / "bolt reserve, minutes".
+- `StellarFieldSensorGui`: panel 214. Box 40: the channel and "out {n}"; the reading as the ±120 zone gauge (P, Θ,
+  Ω, Π, T5 setpoint error; value in the zone colour), a bar (shield, Integrity, Stability; the health colour rule) or
+  a lamp (the zone in its colour, a warning red, upkeep green / red), the threshold as a yellow tick in digital mode;
+  then "ON above +10.0" / "ON below ..." or "Analog 0-15". "No reading (star dark or Eye silent)" when dark.
+  Controls: Channel (cycle), Above / Below, Digital / Analog, Threshold field 40 wide, each with a tooltip.
+- `MTEHatchDirective.guiLine()` (only the GUI used it) is replaced by `getControlLine()`; new GUI sync keys only
+  (`btsDirOut`, `btsDirHostId`, `btsDirControlIn`, `btsDirControlLine`, `btsSensorThreshold`). No NBT change, no
+  behaviour change.
+- 80 new lang keys (`beyondthestars.gui.directive.*`, `beyondthestars.gui.sensor.*`); the sensor's zone names reuse
+  `beyondthestars.gui.zone.0..4`.
+- Bench: `/btseye star x y z hatchgui` and `/btskerr gui x y z hatches` print each hatch GUI's readout and control
+  labels from the same text functions the GUIs draw with.
+
+**Judgement calls.**
+
+1. **The readout's first line names the set without its host prefix** ("Trims", "Setpoint (control)") because the
+   machine is on the right of the same line; the mockup's "Eye: Trims ... Eye of Harmony" does not fit 156 px for
+   "Eye: Transition" or any Kerr set. The Set row below keeps today's full names ("Set: Eye: Trims", "Kerr: control
+   the mass setpoint"). The Kerr host reads "Kerr Engine" for the same reason.
+2. **When the two halves of a line do not fit, the less important half is cut**: the host on the Directive line, the
+   channel name on the sensor line ("out {n}" always stays whole; the long "Zone (0 Resonant .. 4 Breach)" gets the
+   full name in its tooltip).
+3. **Invert, Above / Below and Digital / Analog keep GT's redstone on / off overlays** (today's buttons, and GT's own
+   `createInvertButtonRow`), not the mockup's work-area icon: they show the toggle's state.
+4. **Lamp channels**: the zone lamp takes the zone's text colour (Resonant green .. Breach red); a warning lamp is red
+   while warned and grey otherwise; upkeep is green when met and red when short. The spec only says "a lamp".
+5. **The threshold tick is hidden in analog mode** (the threshold is ignored there). The 0-100 bar puts it at
+   threshold / 100.
+6. **The bit names and the control line stay runtime text from the host** (the Eye's trim names follow the star's
+   tier, and OpenComputers and the scanner share them, spec Q6); every other word is a lang key.
+
+**Lang completeness pass.** All 139 keys listed in spec §6 exist. A GUI key check (local work folder
+`hatchgui/guilint.py`) expands every `beyondthestars.gui.*` literal, the one-letter prefix constants (`K + "x"`,
+ternaries, `String[]` loops) and the enum-built families (badges, Directive sets / modes / hosts, sensor channels,
+zones, Eye gauges and Info keys): 390 literal and 104 dynamic lookups, **0 missing**, 0 duplicates, 0 empty values.
+The repo's lang lint (as in B-88 / B-90): 235 lookups, the one known false positive
+(`item.beyondthestars.fieldRetrofitKit.name`, named per meta), 0 duplicates. A scan of the branch's GUI diff for
+hard-coded words found only today's runtime strings (the Silo's instrument-panel headers, the Eye's star names).
+
+**Verified headless** (dev server on port 25611, world `guitest`, 278 registered / 0 skipped, no stack frame from
+our code): the Kerr's two Directive Hatches before the first push ("no machine", "No machine reporting", redstone 0),
+reporting (Hole: bits 1 and 4 on, "Code 5", redstone 5; Status: "Code 2"), and a control set with a redstone block
+("Setpoint (control) ... Kerr Engine", "Input 15 | mass setpoint 64 SM"). An Eye T1 built at -1500 100 -1500: three
+Directive Hatches with T1's trim names ("1 Helium", "2 Hydrogen", "4 (unused on T1)"), Trims "Code 1 / redstone 1"
+on a lit Sol; five sensors dark ("No reading") then P (gauge +5.0 and +11.2 against the +10.0 tick, above and below),
+Stability (bar 87.1, out 15), Zone analog (Stable lamp, out 4, "Analog 0-15"), Upkeep OK (met, out 15), Event
+warning (none), T5 setpoint error on T1 (gauge 0) and Integrity. Full `gradlew build` passes.
+
+**Not seen.** Both GUIs in a client (the headless server cannot draw them).
+
+**To see in a client.** Both panels against `hatch.png` at GUI scale 2 and 3: nothing over the inventory, the lamps
+and the gauge tick, the Set cycle's right-click going back, the tooltips.
+
+**Questbook.** No change needed for the hatches. The "field line" -> "Lock bar" sentence (B-96) is still for the
+questbook owner on master.
+
+**Suggestion.** Accept. The P4 Burst Control Hatch (196 high, a 0-15 bar) and GRB Receptor (166, a lamp) fit this
+layout as they are specified.
+
+### B-100 Controller GUI cleanup, round 1: the GUIs in a real dev client against the mockups [user approval 2026-10-13, built on branch gui-clean]
+
+**Context.** Units 1-4 (B-96..B-99) were checked only on a headless server. This round opened every master-side GUI
+in a dev client and put each state next to the approved mockup (`controller-gui-mockups.html`). The comparison page
+is in my local work folder: `gui/round1/gui-compare.html` (mockup vs in-game per state, a one-line note each).
+
+**What was built.**
+
+- `rendertest/GuiShotsClient`: a dev-only screenshot harness behind `-Dbts.guishots=true` (inert otherwise),
+  documented in the build doc; scripts in `tools/guishots/` (`build-sites.shots` builds every machine, the other
+  files shoot each state). It drives the client from a queue file, opens GUIs through the server, sets the GUI scale,
+  fakes the mouse without moving the real cursor (hover tooltips, clicks on MUI2's hovered widget, wheel scrolling),
+  and logs each panel's area for cropping.
+
+**Found and fixed (each its own commit).**
+
+1. **Every kit terminal was empty** apart from its header. `BTSControllerGui` started its rebuild clock at
+   `Long.MIN_VALUE`; `now - MIN_VALUE` overflows to a negative number, so the row and Info strings were never built.
+   The bench dumps call `addStatusRows` directly, which is why B-96..B-98 did not see it. Starts at -1,000,000 now.
+2. Info paragraphs used a `TextWidget`, which wraps at the font's 9 px; a kit `ParaWidget` draws them at the 10 px
+   pitch the spec gives.
+3. A bar label wider than the 50 px column ("Milestones") was cut to "Milestone."; it now pushes the bar right (the
+   bar keeps its right end at 132).
+4. Litres just under 10^12 printed "1000.00G"; every unit now ends where its rounded text would reach the next
+   ("1.00T"). EU/t the same.
+5. Eye header: "Neutron Star (Arcturus Remnant)" ran into the "Eye T4" chip; the subject drops a parenthetical.
+6. Eye Field panel: the zone legend in three columns; sensor and trim rows keep their value right-aligned; the trims
+   title, "none" and the footer left-aligned, as drawn.
+7. Kerr Hole control: GT's theme gives a `SliderWidget` no track; the slider draws one.
+8. Reality Refab: with GT's void / separation / batch buttons in the gap row, region lamps IV-VI ran under the
+   **i** button. The "Regions" caption is dropped when GT's buttons are present; each lamp's tooltip names its region.
+9. Reactor Silo: the instrument-panel lines wrapped at the list's 186 px, under the scrollbar; they wrap at 180. The
+   RPM field cut "12,000" at 34 px: it is 38, the Rods field 22. Group headers are gold, as the mockup draws them
+   (the scanner's bold aqua `header()` is unchanged).
+10. Directive Hatch: the Status and Transition bit names were cut to stubs ("1 Buffers s.") in two 78 px columns. The
+    readout lists the four bits one per row (box 66, panel 234; the controls still clear the inventory). A lamp text
+    that still does not fit keeps the first word of its parenthetical ("4 (unused)").
+11. Stellar Field Sensor Hatch: a long channel name drops its parenthetical before the readout line cuts it
+    ("Zone"); control labels use the mockup's words ("On ABOVE the threshold", "Analog 0-15"; the threshold note moves
+    to the mode tooltip).
+12. Refab check value "none within 64" cut its label to "Condensate Assem."; it reads "none" (the range stays in the
+    tooltip and in the recipe-result line).
+
+**Judgement calls.**
+
+1. **Directive panel 234 instead of 214** (spec §5.10). One bit per row was the only way to show the real bit names
+   whole; two columns of 78 px cannot hold "Ignition charge wanted". *Alternative:* keep 214 and two columns with cut
+   names (the tooltips do not cover the readout).
+2. **Silo group headers gold** rather than the kit's grey section colour: the mockup draws them gold and they
+   separate eight groups in a long scrolling panel.
+3. **Left as they are (by spec, logged on the page as "differs by spec"):** recipe machines keep GT's own recipe
+   rows (progress, output item) and GT's void / separation / lock buttons, which the mockups drew as kit rows or left
+   out (Kerr modules, Homogeny, halls). A paused Kerr module still shows GT's last recipe result above the link
+   checklist (B-97 #3).
+4. One remaining cut: the Directive Hatch's Status bit "Event warned / Agent warning" is cut by a few pixels in one
+   full-width row. It is runtime text the scanner and OpenComputers share (B-99 #6); shortening it is for the owner of
+   the Directive sets.
+
+**Seen in the client** (GUI scale 3 and 2, window 1920x1080): Eye NO STAR, DARK (full checklist), IGNITING, lit
+RESONANT, T4 neutron star STRAINED with the Feed stepper (+ visible), PENDING Sol > Sirius A (wheel scrolling),
+TRANSITION Core Collapse, T5 COOLING, the Info page, the Field panel, the right-chip tooltip; Kerr OPEN, CLOSED,
+DRIFTING, the Hole control and Modules panels, the per-chip tooltip, the TecTech power-switch icon (no magenta); the
+extractor module RUNNING and the compressor PAUSED; Homogeny RUNNING (Install grey) and INSTALLING (Install live);
+Diffraction WAITING with 144,000 L to enter; Refab WAITING; the Reactor Silo (scrolled, Info, **i** in the column);
+PUREX Canyon RUNNING; the Directive Hatch (Trims, Status, Transition sets) and the sensor's gauge, bar and lamp
+channels. The alert icon showed only on a shut-down Homogeny. Full `gradlew build` passes; jar
+`beyondthestars-0.24.1-gui-clean.271+996e07a526.jar`.
+
+**Not seen.** The P4 machines (not on this branch); a NOT FORMED controller; a Diffraction or Refab run (P4 fluids);
+the Silo's NOT BUILT / HELD / CLAMPED; GUI scale 4.
+
+**Dev-client notes for the next round.** A structure built under the player is only known to the client after a
+re-join (the harness's `gui` waits, then reports "the client never got the machine"); build first, re-join, then
+shoot. The player must stay within 8 blocks of the controller or the server closes the GUI; the harness holds it
+flying in place.
+
+**Questbook.** No change from this round. The "field line" -> "Lock bar" sentence (B-96) is still for the questbook
+owner on master.
+
+**Suggestion.** Accept.
+
+### B-101 Controller GUI cleanup, review fixes: the T5 Next batch reach row and a read-only charge count [user approval 2026-10-13, built on branch gui-clean]
+
+**Context.** A code review of the gui-clean branch raised two findings on the Eye GUI. Both were checked against the
+code (and the RC-2 GT and AE2 sources) before they were fixed.
+
+**1. T5 "Next batch" hid the only reason a batch did not start (confirmed, fixed in d1cbe55).** With T5 unlocked and
+a Sirius B chart, `tryStartCooling` first checks `parallel(5) >= 1` ("the Eye does not reach T5 (bands,
+compression)") and only then the White Dwarf Matter charge. The DARK and IDLE rows showed only the charge row, so an
+Eye with a band or a compression generator below T5 and 18,432 L buffered showed an all-green list and never started.
+The only hint was the yellow right chip. `EyeStarRuntime.batchChecklist()` now sits next to `ignitionChecklist()` and
+makes the same test as the runtime: "Eye reaches T5" (OK when `parallel(5) >= 1`; value `T{installed} / T5`; tooltip
+the `tier5` / `locked5` / `compression5` recipe-result line, so no new lang keys), then the charge row as before.
+`EyeGui.nextBatchRows` draws that list.
+Seen in the dev client (`tools/guishots/eye-t5-batch.shots`). With one compression generator at tier 4 and a full
+charge buffered, the list shows "Eye reaches T5  T4 / T5" in red and the charge row in green, and the tooltip names
+the compression gate. At T5 with no charge, the reach row is green and the charge row red. When a chunk of the spiral
+arms was not loaded, the tooltip named the band gate instead.
+
+**2. The DARK checklist's charge count opened a recipe-processing window (fixed in 4317207; the trigger is narrower
+than the review said).** `countIgnitionCharges()` is GUI-only and runs every 5 ticks while the GUI is open. It
+called `startRecipeProcessing` / `endRecipeProcessing(this)` on each plinth bus. RC-2's
+`MTEHatchInputBusME.endRecipeProcessing(controller)` calls `controller.stopMachine(CRITICAL_NONE)` if
+`getProxy().getStorage()` throws `GridAccessException`. So a GUI read could reach a critical shutdown.
+The review named an unpowered, channel-starved or disconnected network as the trigger. In AE2 that is not enough:
+`AENetworkProxy.getGrid()` throws only when the node or its grid is null, and a disconnected node is still a
+one-node grid. The trigger is a stocking bus whose node is gone or not yet created (a rare, transient state), and the
+extraction branch cannot fire from a read, because a read takes nothing. Either way, a GUI must not be able to reach
+`stopMachine`, and the window also cost a 16-slot simulated extraction per bus, per viewer, every 5 ticks.
+The count now opens no window. Plain buses are read as before. An ME stocking bus shows only its circuit and manual
+slots outside the window, so its network stock is read from the grid's item list (`findPrecise`) for each slot
+configured to the charge, once per distinct config. The bus counts 0 when it is disabled or its network is inactive,
+which is also what a recipe check would see. No extraction is made and no shutdown path is reached.
+Seen in the dev client (`tools/guishots/eye-charge.shots`): an Arcturus chart on the T1 Eye shows "0 in bus", then
+"2 in bus" after two charges go into the plain plinth bus, and GT reports "last shutdown none".
+
+**Judgement calls.**
+
+1. **The reach row is always shown** in the Next batch list, met or not, as the ignition checklist does; the spec's
+   §5.1 IDLE list names only the White Dwarf Matter row. *Alternative:* show it only when it fails (one row shorter
+   in the normal case).
+2. **The ME path was not exercised in game.** The bench has no AE network, so the stocking-bus branch is checked
+   only by compiling against RC-2 GT and AE2, and by the boot.
+
+**Seen but not changed.** The charge row's label "Molten White Dwarf M." is cut with a dot. It is the fluid's GT
+name, and its full name is in the tooltip. The spec draws "White Dwarf Matter". This was the same before the fix.
+
+**Build.** `spotlessApply compileJava` passed before each commit, and the full `gradlew build` passed. Jar:
+`beyondthestars-0.24.1-gui-clean.275+d1cbe55c84.jar`. The headless dev server (port 25611) loaded 278 recipes with
+0 skipped, and no `com.nateyburr` frame appeared. The comparison page `gui/round1/gui-compare.html` has a new
+"T5 idle" card and the two charge shots on the Dark card.
+
+**Suggestion.** Accept.
 
 ---
 

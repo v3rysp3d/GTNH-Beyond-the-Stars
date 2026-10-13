@@ -47,6 +47,9 @@ import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
 import com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor;
 import com.nateyburr.beyondthestars.machines.conduit.ReceptorHatchElement;
+import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
+import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
+import com.nateyburr.beyondthestars.machines.gui.BTSText;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstHost;
 import com.nateyburr.beyondthestars.machines.quasar.engine.BurstLink;
 import com.nateyburr.beyondthestars.machines.reality.RealityRecipeMaps;
@@ -377,6 +380,65 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
 
     public int maxParallel() {
         return PARALLELS[Math.max(0, Math.min(MAX_TIER, tier()))];
+    }
+
+    /** Why ring {@code index} failed its last walk (its first structure error, one line), or "". Server state. */
+    public String pieceFault(int index) {
+        return index >= 0 && index < PIECES.length ? pieceFault[index] : "";
+    }
+
+    /** True while the escrow holds the core of the next tier. Server state. */
+    public boolean nextCoreInEscrow() {
+        return escrow != null && installedTier < MAX_TIER && escrow.getItem() == coreFor(installedTier + 1);
+    }
+
+    /** Why a started install run is not advancing ("" while it advances). Server state. */
+    public String installStall() {
+        return installStall;
+    }
+
+    /** Ticks left in the install run (0 when none runs). Server state. */
+    public int installTicksLeft() {
+        return installing ? Math.max(0, INSTALL_TICKS - installTicks) : 0;
+    }
+
+    /**
+     * GUI cleanup (controller-gui-spec.md §5.6): the next tier's three conditions, each met or not, from the same
+     * fields {@link #upgradeLine()} and {@link #installBlocker()} read: the milestone mixed, the core in escrow, the
+     * next ring built. Reads only. Empty at T3.
+     */
+    public BTSChecklist upgradeChecklist() {
+        final BTSChecklist c = new BTSChecklist();
+        if (installedTier >= MAX_TIER) return c;
+        final int next = installedTier + 1;
+        final String g = "beyondthestars.gui.homogeny.";
+        final long have = milestoneProgress();
+        final Fluid productFluid = installedTier == 1 ? SLFluids.excitedStellarPlasma
+            : SLRealityFluids.degenerateStellarMixture;
+        final String product = productFluid == null ? (installedTier == 1 ? "ESPM" : "Degenerate")
+            : new FluidStack(productFluid, 1).getLocalizedName();
+        c.add(
+            milestoneMet(),
+            BTSText.lang(g + "chk.mixed"),
+            BTSText.lit(BTSFormat.haveNeed(Math.min(have, MILESTONE_LITRES), MILESTONE_LITRES) + " L"),
+            BTSChecklist.frac(have, MILESTONE_LITRES),
+            BTSText.lang(g + "chk.mixed.tip", product, fmt(Math.min(have, MILESTONE_LITRES)), fmt(MILESTONE_LITRES)));
+        final boolean core = nextCoreInEscrow();
+        c.add(
+            core,
+            BTSText.lang(g + "chk.core", next == 2 ? "II" : "III"),
+            BTSText.lang(core ? "beyondthestars.gui.eye.chk.escrow.in" : "beyondthestars.gui.eye.chk.escrow.out"),
+            -1,
+            BTSText.lang(g + "chk.core.tip"));
+        final boolean ring = structureTier() >= next;
+        c.add(
+            ring,
+            BTSText.lang(g + "chk.ring", BTSText.key(g + (next == 2 ? "ring.stir" : "ring.outer"))),
+            BTSText.lang(g + (ring ? "chk.ring.built" : "chk.ring.absent")),
+            -1,
+            pieceFault[next - 1].isEmpty() ? BTSText.lang(g + "chk.ring.tip", next)
+                : BTSText.lit(pieceFault[next - 1]));
+        return c;
     }
 
     /** True if piece {@code index} passed its own walk (whether or not it counts). Server state. */
@@ -836,6 +898,12 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
 
     public boolean isFormedForGui() {
         return mMachine;
+    }
+
+    /** GUI cleanup (controller-gui-spec.md §4.4): the kit's badge says it; GT's "Running perfectly." is not added. */
+    @Override
+    public boolean hasRunningText() {
+        return false;
     }
 
     // ===================================================================================== NBT

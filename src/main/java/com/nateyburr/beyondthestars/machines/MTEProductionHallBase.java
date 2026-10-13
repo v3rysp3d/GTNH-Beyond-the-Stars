@@ -123,6 +123,12 @@ public abstract class MTEProductionHallBase<T extends MTEProductionHallBase<T>>
         return new MTEProductionHallGui(this);
     }
 
+    /** GUI cleanup (controller-gui-spec.md §4.4): the kit's badge says it; GT's "Running perfectly." is not added. */
+    @Override
+    public boolean hasRunningText() {
+        return false;
+    }
+
     @Override
     public boolean supportsVoidProtection() {
         return true;

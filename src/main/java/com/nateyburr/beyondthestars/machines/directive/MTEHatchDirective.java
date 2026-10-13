@@ -315,11 +315,9 @@ public class MTEHatchDirective extends MTEHatch {
             currentOutput());
     }
 
-    /** The GUI's short last line: what the hatch drives (or reads) now. */
-    public String guiLine() {
-        if (!fresh()) return "No machine reporting";
-        if (set.control) return "Input " + controlIn + (controlLine.isEmpty() ? "" : ": " + controlLine);
-        return "Code " + currentCode() + ", drives redstone " + currentOutput();
+    /** What a control set drives now, as the host words it ("" on an output set or when stale; GUI, bench). */
+    public String getControlLine() {
+        return fresh() && set.control ? controlLine : "";
     }
 
     // ------------------------------------------------------------------ GT plumbing (as the sensor hatch)

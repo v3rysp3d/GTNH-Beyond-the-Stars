@@ -34,6 +34,8 @@ import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing3;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
+import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
+import com.nateyburr.beyondthestars.machines.gui.BTSText;
 
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.NaniteTier;
@@ -528,12 +530,91 @@ public class MTERealityRefab extends MTERealityBase<MTERealityRefab> {
 
     /** The regions drawn so far, as the slowest fraction: "Regions 42.0% drawn". Server state. */
     public String regionLine() {
-        if (reqFluids == null || reqFluids.length == 0) return "";
+        final double got = regionFraction();
+        if (got < 0) return "";
+        return String.format(Locale.ROOT, "Regions drawn: %.1f%% (lockstep)", got * 100);
+    }
+
+    /** The regions drawn so far, as the slowest fraction (0..1), or −1 when no craft is set up. Server state. */
+    public double regionFraction() {
+        if (reqFluids == null || reqFluids.length == 0) return -1;
         double got = 1.0;
         for (int i = 0; i < reqFluids.length; i++) {
             if (reqAmounts[i] > 0) got = Math.min(got, consumed[i] / (double) reqAmounts[i]);
         }
-        return String.format(Locale.ROOT, "Regions drawn: %.1f%% (lockstep)", got * 100);
+        return got;
+    }
+
+    /** The step being worked (0-based), or −1 while no craft runs. Server state. */
+    public int stepIndex() {
+        return steps == null || mMaxProgresstime <= 0 ? -1 : stepAt(mProgresstime);
+    }
+
+    /** Steps of the running craft (0 while none runs). Server state. */
+    public int stepCount() {
+        return steps == null || mMaxProgresstime <= 0 ? 0 : steps.length;
+    }
+
+    /** The running step's nanite tier, "Neutronium (Tier 3)", or "". Server state. */
+    public String stepTier() {
+        final int s = stepIndex();
+        return s < 0 ? "" : steps[s].describe();
+    }
+
+    /** Foreign condensates in the network slowing the craft. Server state. */
+    public int contaminants() {
+        return slowdowns;
+    }
+
+    /**
+     * GUI cleanup (controller-gui-spec.md §5.7): the BEC network and the Condensate Assembler link as check rows, from
+     * the state {@link #networkLine()} and {@link #linkLine()} read. Reads only.
+     */
+    public BTSChecklist linkChecklist() {
+        final BTSChecklist c = new BTSChecklist();
+        addNetworkCheck(c, false);
+        final String g = "beyondthestars.gui.reality.";
+        final String label = BTSText.lang(g + "chk.assembler");
+        final MTEBECAssembler a = assembler();
+        if (a == null) {
+            c.add(
+                false,
+                label,
+                BTSText.lang(g + "chk.assembler.none", LINK_RANGE),
+                -1,
+                BTSText.lang("GT5U.gui.text.recipe_result.beyondthestars.reality.noassembler"));
+            return c;
+        }
+        final String at = linkX + ", " + linkY + ", " + linkZ;
+        if (!(a.mMachine && a.mMaxProgresstime > 0)) {
+            c.add(
+                false,
+                label,
+                BTSText.lang(g + "chk.assembler.off"),
+                -1,
+                BTSText.lang(g + "chk.assembler.at", at),
+                BTSText.lang("GT5U.gui.text.recipe_result.beyondthestars.reality.noassembler"));
+            return c;
+        }
+        final NaniteTier t = a.getCurrentNaniteTier();
+        if (t == null) {
+            c.add(
+                false,
+                label,
+                BTSText.lang(g + "chk.assembler.nonanites"),
+                -1,
+                BTSText.lang(g + "chk.assembler.at", at),
+                BTSText.lang("GT5U.gui.text.recipe_result.beyondthestars.reality.nanites"));
+            return c;
+        }
+        c.add(
+            true,
+            label,
+            BTSText.lang(g + "chk.assembler.nanites", fmt(a.getAvailableNanites())),
+            -1,
+            BTSText.lang(g + "chk.assembler.at", at),
+            BTSText.lit(fmt(a.getAvailableNanites()) + " " + t.describe()));
+        return c;
     }
 
     public String waitLine() {

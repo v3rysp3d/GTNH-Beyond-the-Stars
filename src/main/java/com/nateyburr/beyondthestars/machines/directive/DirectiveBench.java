@@ -103,6 +103,30 @@ public final class DirectiveBench {
         return out;
     }
 
+    /**
+     * Controller GUI cleanup (spec §5.10): what each hatch's GUI shows now (readout box, then the control labels), as
+     * text, from the same text functions the GUIs draw with.
+     */
+    public static List<String> hatchGui(List<MTEHatchDirective> directives, List<MTEHatchStellarFieldSensor> sensors) {
+        final List<String> out = new ArrayList<>();
+        int n = 0;
+        for (MTEHatchDirective h : directives) {
+            if (h == null || !h.isValid()) continue;
+            out.add("Directive Hatch " + ++n + ":");
+            for (String l : DirectiveHatchGui.benchLines(h)) out.add("  " + l);
+        }
+        n = 0;
+        if (sensors != null) for (MTEHatchStellarFieldSensor h : sensors) {
+            if (h == null || !h.isValid()) continue;
+            out.add("Stellar Field Sensor Hatch " + ++n + ":");
+            for (String l : com.nateyburr.beyondthestars.machines.eye.StellarFieldSensorGui.benchLines(h)) {
+                out.add("  " + l);
+            }
+        }
+        if (out.isEmpty()) out.add("No Directive or Stellar Field Sensor Hatch in this machine.");
+        return out;
+    }
+
     /** The trim valve rates (units/s at p = 1) by trim-table position: the prototype's bang-bang rig. */
     private static double rate(int tier, int i) {
         return EyeTrimRule.rigRate(tier, i);
