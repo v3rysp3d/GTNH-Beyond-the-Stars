@@ -123,7 +123,9 @@ public final class EyeCentreRender {
         final long now = world.getTotalWorldTime();
         if (runtime.takeNova()) novaUntil = now + NOVA_TICKS;
         final EyeStarLook look = !formed ? null : forced != null ? forced : EyeStarLook.of(runtime);
-        final EyeStarLook want = look != null ? look : now < novaUntil && formed ? EyeStarLook.NOVA_FLASH : null;
+        final EyeStarLook raw = look != null ? look : now < novaUntil && formed ? EyeStarLook.NOVA_FLASH : null;
+        // renders v2 (R-04): the event's hit as a world tick, so the client counts down without a packet a second
+        final EyeStarLook want = raw == null ? null : raw.at(now);
         final boolean show = want != null && enabled && Config.eyeRenderCentre;
         final boolean changed = show != (pos != null);
         if (!changed && aTick % 10 != 0) return;

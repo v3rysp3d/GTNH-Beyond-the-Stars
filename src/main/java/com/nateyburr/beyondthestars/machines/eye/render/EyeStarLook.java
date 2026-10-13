@@ -7,6 +7,8 @@ import com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeTransition;
 import com.nateyburr.beyondthestars.machines.eye.star.GalacticMerger;
 import com.nateyburr.beyondthestars.machines.eye.star.MagnetarCollapse;
+import com.nateyburr.beyondthestars.machines.eye.star.MassInfusion;
+import com.nateyburr.beyondthestars.machines.eye.star.ShellIgnition;
 import com.nateyburr.beyondthestars.machines.eye.star.StarDef;
 
 /**
@@ -70,11 +72,45 @@ public final class EyeStarLook {
      */
     public final float aux;
 
+    // ------------------------------------------------------------------ renders v2 (R-04): render-only extras
+    // The v2 star renders (EyeStarFx) read these; the fixed-function look ignores them. They ride in the render
+    // tile's look compound only, never in the Eye's saved state.
+
+    /** No event on the channel. */
+    public static final byte EV_NONE = 0;
+    /** T3 (and the end of the Shell Ignition): the helium flash. */
+    public static final byte EV_HELIUM_FLASH = 1;
+    /** T4: a starquake glitch (no warning). */
+    public static final byte EV_GLITCH = 2;
+    /** T6: a giant flare. */
+    public static final byte EV_GIANT_FLARE = 3;
+
+    /** The star's tier (1..8); 0 when unknown (an old look). */
+    public final byte n;
+    /** The event channel's event ({@code EV_*}) while it is warned or hitting, else {@link #EV_NONE}. */
+    public final byte ev;
+    /**
+     * Server only: seconds from now to the event's hit (negative once it hit). {@link EyeCentreRender} turns it into
+     * {@link #evAt} before the look is sent.
+     */
+    public final float evIn;
+    /** World tick of the event's hit (0: none): what the tile syncs, so the client counts down without packets. */
+    public final long evAt;
+    /** The running transition, {@code EyeTransition.Type.from} (1 Mass Infusion .. 7 Galactic Merger), 0 none. */
+    public final byte trans;
+    /** How far it is, 0..1. */
+    public final float transP;
+
     public EyeStarLook(byte kind, float radius, int rgb, float gamma, float spin, float pulse) {
         this(kind, radius, rgb, gamma, spin, pulse, 0f);
     }
 
     public EyeStarLook(byte kind, float radius, int rgb, float gamma, float spin, float pulse, float aux) {
+        this(kind, radius, rgb, gamma, spin, pulse, aux, (byte) 0, EV_NONE, 0f, 0L, (byte) 0, 0f);
+    }
+
+    private EyeStarLook(byte kind, float radius, int rgb, float gamma, float spin, float pulse, float aux, byte n,
+        byte ev, float evIn, long evAt, byte trans, float transP) {
         this.kind = kind;
         this.radius = radius;
         this.rgb = rgb;
@@ -82,6 +118,51 @@ public final class EyeStarLook {
         this.spin = spin;
         this.pulse = pulse;
         this.aux = aux;
+        this.n = n;
+        this.ev = ev;
+        this.evIn = evIn;
+        this.evAt = evAt;
+        this.trans = trans;
+        this.transP = transP;
+    }
+
+    /** This look as tier {@code n}'s star. */
+    public EyeStarLook tier(int n) {
+        return new EyeStarLook(kind, radius, rgb, gamma, spin, pulse, aux, (byte) n, ev, evIn, evAt, trans, transP);
+    }
+
+    /** This look with an event {@code ev} hitting {@code in} seconds from now (negative: it hit that long ago). */
+    public EyeStarLook event(int ev, float in) {
+        return new EyeStarLook(kind, radius, rgb, gamma, spin, pulse, aux, n, (byte) ev, in, evAt, trans, transP);
+    }
+
+    /** This look during transition {@code trans} (1..7) at {@code p} (0..1). */
+    public EyeStarLook transition(int trans, float p) {
+        return new EyeStarLook(kind, radius, rgb, gamma, spin, pulse, aux, n, ev, evIn, evAt, (byte) trans, p);
+    }
+
+    /** Server: the look to send at world tick {@code now} (the event's hit as a world tick). */
+    public EyeStarLook at(long now) {
+        final long at = ev == EV_NONE ? 0L : now + Math.round(evIn * 20.0);
+        return new EyeStarLook(kind, radius, rgb, gamma, spin, pulse, aux, n, ev, evIn, at, trans, transP);
+    }
+
+    /**
+     * Renders v2: the star of tier {@code from} (1 Sol in the Mass Infusion, 2 Sirius A in the Shell Ignition) at
+     * {@code p} (0..1) of the way to the next one: radius, colour and gamma blended, the transition set.
+     */
+    public static EyeStarLook growing(int from, float p) {
+        final EyeStarLook a = lit(from, 0, 0), b = lit(from + 1, 0, 0);
+        final float c = Math.max(0, Math.min(1, p));
+        final float e = c * c * (3 - 2 * c);
+        return a
+            .reshaped(a.radius + (b.radius - a.radius) * e, lerp(a.rgb, b.rgb, e), a.gamma + (b.gamma - a.gamma) * e)
+            .transition(from, c);
+    }
+
+    /** A copy with another radius, colour and gamma (a transition's blend). */
+    private EyeStarLook reshaped(float radius, int rgb, float gamma) {
+        return new EyeStarLook(kind, radius, rgb, gamma, spin, pulse, aux, n, ev, evIn, evAt, trans, transP);
     }
 
     /**
@@ -123,6 +204,27 @@ public final class EyeStarLook {
 
     /** What the centre shows now, or null for nothing (dark, IDLE, no star). Server state. */
     public static EyeStarLook of(EyeStarRuntime rt) {
+        final EyeStarLook base = baseOf(rt);
+        if (base == null) return null;
+        // renders v2 (R-04): the tier, the event channel and the running transition, for the v2 render
+        final StarDef star = rt.star();
+        EyeStarLook look = base.n == 0 && star != null ? base.tier(star.n()) : base;
+        final double[] ev = rt.renderEvent();
+        if (ev != null) look = look.event((int) ev[0], (float) ev[1]);
+        final EyeTransition tr = rt.transition();
+        if (tr != null) {
+            final float p = (float) Math.max(0, rt.transitionProgress());
+            look = look.transition(tr.type.from, p);
+            // the Mass Infusion and the Shell Ignition blend the star toward the next one (both render paths)
+            if (tr instanceof MassInfusion || tr instanceof ShellIgnition) {
+                final EyeStarLook g = growing(tr instanceof MassInfusion ? 1 : 2, p);
+                look = look.reshaped(g.radius, g.rgb, g.gamma);
+            }
+        }
+        return look;
+    }
+
+    private static EyeStarLook baseOf(EyeStarRuntime rt) {
         final StarDef star = rt.star();
         if (star == null) return null;
         final FieldReadout r = rt.lastReadout();
@@ -179,7 +281,7 @@ public final class EyeStarLook {
             lerp(PROTO_RGB, lit.rgb, c),
             0.8f + (lit.gamma - 0.8f) * c,
             0.5f,
-            0.05f);
+            0.05f).tier(n);
     }
 
     /**
@@ -196,7 +298,7 @@ public final class EyeStarLook {
             MAGNETAR_GAMMA,
             8f + 16f * c,
             0.05f + 0.25f * c + 0.25f * warn,
-            Math.max(warn, c));
+            Math.max(warn, c)).tier(6);
     }
 
     /**
@@ -216,7 +318,7 @@ public final class EyeStarLook {
             lerp(ARCTURUS_RGB, SWELL_RGB, early),
             ARCTURUS_GAMMA - (ARCTURUS_GAMMA - SWELL_GAMMA) * early,
             0.7f * (1f + 4f * c),
-            0.05f + 0.2f * c);
+            0.05f + 0.2f * c).tier(3);
     }
 
     /**
@@ -229,11 +331,16 @@ public final class EyeStarLook {
 
     /** Core Collapse phase 3: the proto-neutron star and the bounce's shell, with the field's unrest (0..1). */
     public static EyeStarLook bounce(float unrest) {
-        return new EyeStarLook(BOUNCE, 2.6f, BOUNCE_RGB, BOUNCE_GAMMA, 10f, 0.03f + 0.1f * unrest);
+        return new EyeStarLook(BOUNCE, 2.6f, BOUNCE_RGB, BOUNCE_GAMMA, 10f, 0.03f + 0.1f * unrest).tier(4);
     }
 
     /** The lit look of a tier's star, with the field's unrest (0..1) and an event warning (0/1) as wobble. */
     public static EyeStarLook lit(int n, float unrest, float warn) {
+        final EyeStarLook look = litRaw(n, unrest, warn);
+        return look.n == 0 ? look.tier(n) : look;
+    }
+
+    private static EyeStarLook litRaw(int n, float unrest, float warn) {
         switch (n) {
             case 1:
                 return new EyeStarLook(STAR, 9f, SOL_RGB, SOL_GAMMA, 1f, 0.02f + 0.1f * unrest + 0.06f * warn);
@@ -318,7 +425,8 @@ public final class EyeStarLook {
 
     /** Planets mode with {@code slots} planet slots (3 or 6). */
     public static EyeStarLook planets(int slots) {
-        return new EyeStarLook(PLANETS, 1.6f, PLANETS_RGB, 1.4f, 0.6f, 0.01f, Math.max(0, Math.min(9, slots)) / 9f);
+        return new EyeStarLook(PLANETS, 1.6f, PLANETS_RGB, 1.4f, 0.6f, 0.01f, Math.max(0, Math.min(9, slots)) / 9f)
+            .tier(8);
     }
 
     /**
@@ -349,7 +457,7 @@ public final class EyeStarLook {
         final float t = Math.max(0, Math.min(1, (c - DWARF_AT[i]) / (DWARF_AT[i + 1] - DWARF_AT[i])));
         final int rgb = lerp(DWARF_RGB[i], DWARF_RGB[i + 1], t);
         final float gamma = DWARF_GAMMA[i] + (DWARF_GAMMA[i + 1] - DWARF_GAMMA[i]) * t;
-        return new EyeStarLook(DWARF, 3f, rgb, gamma, 0.6f, 0.01f, c);
+        return new EyeStarLook(DWARF, 3f, rgb, gamma, 0.6f, 0.01f, c).tier(5);
     }
 
     /** Linear blend of two 0xRRGGBB colours. */
@@ -373,6 +481,9 @@ public final class EyeStarLook {
         for (int shift = 0; shift <= 16; shift += 8) {
             if (Math.abs(((o.rgb >> shift) & 255) - ((rgb >> shift) & 255)) > RGB_TOLERANCE) return true;
         }
+        // renders v2: the extras; the event's hit may drift two seconds before it is sent again
+        if (o.n != n || o.ev != ev || o.trans != trans || Math.abs(o.evAt - evAt) > 40) return true;
+        if (Math.abs(o.transP - transP) > 0.01f) return true;
         return Math.abs(o.radius - radius) > 0.02f * Math.max(1f, radius) || Math.abs(o.gamma - gamma) > 0.05f
             || Math.abs(o.spin - spin) > 0.05f
             || Math.abs(o.pulse - pulse) > 0.02f

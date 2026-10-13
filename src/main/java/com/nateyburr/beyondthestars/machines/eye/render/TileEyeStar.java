@@ -43,6 +43,12 @@ public class TileEyeStar extends TileEntity {
     private float spin = 1f;
     private float pulse = 0.02f;
     private float aux;
+    // renders v2 (R-04): render-only extras of the look (EyeStarLook.n, ev, evAt, trans, transP)
+    private byte tierN;
+    private byte ev;
+    private long evAt;
+    private byte trans;
+    private float transP;
 
     /**
      * Dev-only render QA ({@code -Dbts.rendertest=true}, client): when 0 or more, {@link #kindAge} and
@@ -50,6 +56,13 @@ public class TileEyeStar extends TileEntity {
      * magnetar flare at a fixed point of its run. Negative (off) in play; only the render QA harness sets it.
      */
     public static volatile double debugEventAge = -1;
+    /**
+     * Dev-only render QA (renders v2): when not NaN, {@link #eventIn} returns this (seconds to the event's hit,
+     * negative after it), so a still catches a warning or a hit at a fixed point. NaN in play.
+     */
+    public static volatile double debugEventIn = Double.NaN;
+    /** Dev-only render QA: when 0 or more, {@link #previousKind} returns this (the ignition flash's protostar). */
+    public static volatile int debugPrevKind = -1;
 
     /** Client: magnetar flares, every {@link #FLARE_MIN}..{@link #FLARE_MIN}x2 ticks. */
     static final int FLARE_MIN = 80;
@@ -65,6 +78,10 @@ public class TileEyeStar extends TileEntity {
     /** World time when {@link #kind} last changed on this client (the bounce and nova shells run from it). */
     private double kindSince = -1;
     private byte seenKind = -1;
+    private byte prevKind = -1;
+    /** World time when {@link #trans} last changed on this client (a transition's opening flash runs from it). */
+    private double transSince = -1;
+    private byte seenTrans = -1;
     /** World time the current magnetar flare started, and when the next one starts (negative: not scheduled). */
     private double flareSince = -1e9;
     private double nextFlare = -1;
@@ -97,6 +114,11 @@ public class TileEyeStar extends TileEntity {
         spin = look.spin;
         pulse = look.pulse;
         aux = look.aux;
+        tierN = look.n;
+        ev = look.ev;
+        evAt = look.evAt;
+        trans = look.trans;
+        transP = look.transP;
         markDirty();
         if (!(worldObj instanceof WorldServer)) return;
         final WorldServer world = (WorldServer) worldObj;
@@ -166,6 +188,55 @@ public class TileEyeStar extends TileEntity {
         return aux;
     }
 
+    /** Renders v2: the star's tier (1..8), 0 unknown. */
+    public int getTierN() {
+        return tierN;
+    }
+
+    /** Renders v2: the event on the channel ({@code EyeStarLook.EV_*}), 0 none. */
+    public int getEvent() {
+        return ev;
+    }
+
+    /** Renders v2: the running transition (1..7), 0 none. */
+    public int getTransition() {
+        return trans;
+    }
+
+    /** Renders v2: how far the running transition is, 0..1. */
+    public float getTransitionProgress() {
+        return transP;
+    }
+
+    /**
+     * Client, renders v2: seconds from {@code now} (world ticks) to the event's hit, negative after it; NaN with no
+     * event.
+     */
+    @SideOnly(Side.CLIENT)
+    public double eventIn(double now) {
+        final double frozen = debugEventIn;
+        if (!Double.isNaN(frozen)) return ev == 0 ? Double.NaN : frozen;
+        return ev == 0 ? Double.NaN : (evAt - now) / 20.0;
+    }
+
+    /** Client, renders v2: ticks since the transition last changed (debug-frozen like {@link #kindAge}). */
+    @SideOnly(Side.CLIENT)
+    public double transitionAge(double now) {
+        if (transSince < 0 || seenTrans != trans) {
+            transSince = now;
+            seenTrans = trans;
+        }
+        final double frozen = debugEventAge;
+        return frozen >= 0 ? frozen : now - transSince;
+    }
+
+    /** Client, renders v2: the kind shown before the current one (-1: none seen). */
+    @SideOnly(Side.CLIENT)
+    public int previousKind() {
+        final int forced = debugPrevKind;
+        return forced >= 0 ? forced : prevKind;
+    }
+
     /**
      * Client, once per frame: the radius to draw, eased toward the synced one with a 10-tick time constant (the server
      * sends at most once a second, so a cooling or collapsing object moves smoothly).
@@ -186,6 +257,7 @@ public class TileEyeStar extends TileEntity {
     @SideOnly(Side.CLIENT)
     public double kindAge(double now) {
         if (kindSince < 0 || seenKind != kind) {
+            if (seenKind >= 0 && seenKind != kind) prevKind = seenKind;
             kindSince = now;
             seenKind = kind;
         }
@@ -269,6 +341,16 @@ public class TileEyeStar extends TileEntity {
         look.setFloat("spin", spin);
         look.setFloat("pulse", pulse);
         look.setFloat("aux", aux);
+        // renders v2 (R-04): render-only extras, written only when set
+        if (tierN != 0) look.setByte("n", tierN);
+        if (ev != 0) {
+            look.setByte("ev", ev);
+            look.setLong("evAt", evAt);
+        }
+        if (trans != 0) {
+            look.setByte("tr", trans);
+            look.setFloat("trP", transP);
+        }
         return look;
     }
 
@@ -281,6 +363,11 @@ public class TileEyeStar extends TileEntity {
         spin = look.getFloat("spin");
         pulse = look.getFloat("pulse");
         aux = look.getFloat("aux");
+        tierN = look.getByte("n");
+        ev = look.getByte("ev");
+        evAt = look.getLong("evAt");
+        trans = look.getByte("tr");
+        transP = look.getFloat("trP");
     }
 
     /** Only the look goes to clients (the owner is server business). */

@@ -24,6 +24,7 @@ import com.nateyburr.beyondthestars.machines.directive.GalaxyDirective;
 import com.nateyburr.beyondthestars.machines.eye.EyeRecipe;
 import com.nateyburr.beyondthestars.machines.eye.EyeRecipeRegistry;
 import com.nateyburr.beyondthestars.machines.eye.field.CollapseOverlay;
+import com.nateyburr.beyondthestars.machines.eye.field.EventDef;
 import com.nateyburr.beyondthestars.machines.eye.field.EyeTrimRule;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldReadout;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldRig;
@@ -38,6 +39,7 @@ import com.nateyburr.beyondthestars.machines.eye.field.StepInputs;
 import com.nateyburr.beyondthestars.machines.eye.field.StepResult;
 import com.nateyburr.beyondthestars.machines.eye.field.TierParams;
 import com.nateyburr.beyondthestars.machines.eye.field.TrimDef;
+import com.nateyburr.beyondthestars.machines.eye.render.EyeStarLook;
 import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
 import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
 import com.nateyburr.beyondthestars.machines.gui.BTSText;
@@ -528,6 +530,33 @@ public final class EyeStarRuntime {
             return (int) Math.max(0, Math.ceil(fs.ev.next - fs.t));
         }
         return -1;
+    }
+
+    /**
+     * Renders v2 (R-04), read only: the event channel for the centre render while an event is warned or hitting:
+     * {@code {EyeStarLook.EV_* code, seconds from now to the hit (negative once it hit)}}, or null. Only the star
+     * tiers' events (the helium flash, the glitch, the giant flare); the galaxy events are left to the galaxy render.
+     */
+    public double[] renderEvent() {
+        final FieldState s = fs;
+        if (s == null || s.ev == null || !s.ev.warned || !burning()) return null;
+        final EventDef def = (trans != null ? trans : Overlay.NONE).event(s.tier, s);
+        if (def == null) return null;
+        final int code;
+        switch (def.name) {
+            case "Helium flash":
+                code = EyeStarLook.EV_HELIUM_FLASH;
+                break;
+            case "Glitch":
+                code = EyeStarLook.EV_GLITCH;
+                break;
+            case "Giant flare":
+                code = EyeStarLook.EV_GIANT_FLARE;
+                break;
+            default:
+                return null;
+        }
+        return new double[] { code, s.ev.next - s.t };
     }
 
     /** P4: the link milestone the Eye is working on now (6 or 7), or 0. */
