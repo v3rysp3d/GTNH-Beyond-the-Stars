@@ -56,7 +56,9 @@ import gregtech.common.misc.WirelessNetworkManager;
  * (allowed to work, formed, maintenance, last shutdown);</li>
  * <li>{@code mefield} - swap a Field-socket hatch for an ME stocking input hatch and re-walk (R-15: walked, rejected,
  * never drained); {@code field <fluid> <L>} - pour a trim fluid into the Field-socket hatches (a player's
- * automation);</li>
+ * automation); {@code intake [setup [G]]} - the B-108 intake-cap rig (an ME stocking hatch in a gas socket on a network
+ * of G gigalitres of each gas plus a second consumer) and its readout; {@code eu} - 10^18 wireless EU, buffers
+ * untouched;</li>
  * <li>{@code render [on|off]} - the centre render: the cell, the block and the look the world holds (and the
  * per-Eye switch).</li>
  * <li>{@code bus <chart> [n]} - n copies of a star chart into a free plinth input bus slot (the automation
@@ -72,7 +74,8 @@ public final class EyeStarBench {
         + "milestones <n> done | transition [abort] | event | "
         + "fill | sensor <x> <y> <z> <channel> <gt|lt> <threshold> [analog] | sensors <channel> <gt|lt> <thr> "
         + "[analog] | probe | wrench | charge [n] | buffer <fluid> <L> | core <name> | escrow | "
-        + "bus <chart> [n] | legacy [galactic] [run <key> <n>] | fix | gt | mefield | field <fluid> <L> | "
+        + "bus <chart> [n] | legacy [galactic] [run <key> <n>] | fix | gt | mefield | intake [setup [G]] | eu | "
+        + "field <fluid> <L> | "
         + "render [on|off] | "
         + "directive | autorig <s> [cut <k>] | ocloop | compression <1-9> [all] | check";
 
@@ -232,6 +235,21 @@ public final class EyeStarBench {
             case "mefield":
                 out.add(meField(eye));
                 break;
+            case "intake":
+                // B-108: intake setup [G L] | status - an ME stocking hatch on a network of far more gas than the cap,
+                // with a second consumer (fluid export bus) on the same network (dev-only, rendertest.IntakeBench)
+                out.addAll(com.nateyburr.beyondthestars.rendertest.IntakeBench.run(eye, args));
+                return out;
+            case "eu": {
+                // eu: 10^18 wireless EU to the owner, buffers untouched (fill also fills the buffers)
+                final UUID owner = rt.host.owner();
+                if (owner != null) {
+                    WirelessNetworkManager.strongCheckOrAddUser(owner);
+                    WirelessNetworkManager.addEUToGlobalEnergyMap(owner, BigInteger.TEN.pow(18));
+                }
+                out.add(owner != null ? "10^18 EU granted" : "no owner: no EU");
+                return out;
+            }
             case "directive":
                 // AUTOMATION PASS: Trims / Status / Transition Directive Hatches in three Sensor sockets
                 out.addAll(com.nateyburr.beyondthestars.machines.directive.DirectiveBench.eyeSetup(eye));
