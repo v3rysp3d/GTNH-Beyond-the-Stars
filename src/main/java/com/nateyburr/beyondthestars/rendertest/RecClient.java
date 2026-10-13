@@ -32,6 +32,7 @@ import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.client.settings.GameSettings;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.WorldSettings;
@@ -96,6 +97,8 @@ public final class RecClient {
     private int guiScaleDefault = 4;
     /** The world view's GUI scale (cards and captions are drawn in window pixels, so this only matters for GUIs). */
     private int guiScaleWorld = 3;
+    private int renderDistance = 16;
+    private boolean settingsHeld, settingsResetLogged;
     private double fps = 30;
     private File outRoot, runDir, scriptFile;
     private String runName;
@@ -245,7 +248,8 @@ public final class RecClient {
         }
         rec = new FrameRecorder(ffmpeg, FrameRecorder.codecArgs(encoder, crf), width, height, fps);
         mc.gameSettings.pauseOnLostFocus = false;
-        mc.gameSettings.renderDistanceChunks = Integer.getInteger("bts.rec.distance", 16);
+        renderDistance = Integer.getInteger("bts.rec.distance", 16);
+        mc.gameSettings.renderDistanceChunks = renderDistance;
         mc.gameSettings.fovSetting = Float.parseFloat(System.getProperty("bts.rec.fov", "70"));
         mc.gameSettings.limitFramerate = 260;
         mc.gameSettings.enableVsync = false;
@@ -254,6 +258,7 @@ public final class RecClient {
         mc.gameSettings.showDebugInfo = false;
         mc.gameSettings.guiScale = guiScaleWorld;
         lockWindow();
+        settingsHeld = true;
         say(
             "window " + mc.displayWidth
                 + "x"
@@ -354,6 +359,36 @@ public final class RecClient {
         }
     }
 
+    /**
+     * Keeps the recorder's render distance, frame-rate limit and vsync. A dev client whose {@code options.txt} exists
+     * (the questbook harness saves one with render distance 4) gets those values back after {@link #setUp()} ran, so
+     * the world was filmed at 4 chunks (fog over anything past about 50 blocks) and 120 fps. Set again every tick, and
+     * logged once with the values found.
+     */
+    private void holdSettings() {
+        if (!settingsHeld) return;
+        final GameSettings s = mc.gameSettings;
+        if (s.renderDistanceChunks == renderDistance && s.limitFramerate == 260 && !s.enableVsync) return;
+        if (!settingsResetLogged) {
+            say(
+                "game settings came back from options.txt (render distance " + s.renderDistanceChunks
+                    + ", fps limit "
+                    + s.limitFramerate
+                    + ", vsync "
+                    + s.enableVsync
+                    + "): set to "
+                    + renderDistance
+                    + " / unlimited / off again");
+            settingsResetLogged = true;
+        }
+        s.renderDistanceChunks = renderDistance;
+        s.limitFramerate = 260;
+        s.enableVsync = false;
+        try {
+            Display.setVSyncEnabled(false);
+        } catch (Exception ignored) {}
+    }
+
     private void lockWindow() {
         try {
             Display.setVSyncEnabled(false);
@@ -388,6 +423,7 @@ public final class RecClient {
             go(Phase.FINISH);
         }
         mc.gameSettings.showDebugInfo = false;
+        holdSettings();
         if (phase.ordinal() >= Phase.WAIT.ordinal()) {
             mc.gameSettings.hideGUI = true;
             if (!guiOpen) keepScreenClear();

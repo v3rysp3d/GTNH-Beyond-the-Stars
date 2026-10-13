@@ -8,7 +8,10 @@ Code: `src/main/java/com/nateyburr/beyondthestars/rendertest/Rec*.java` and `Fra
 ## What it does
 
 1. It locks the window to the video size (1920x1080 by default), hides the HUD, the hand and the debug screen, and
-   turns off view bobbing and vsync.
+   turns off view bobbing and vsync. It holds the render distance (`bts.rec.distance`), the unlimited frame rate and
+   vsync off for the whole run: a dev client with an `options.txt` (the questbook harness saves one with render
+   distance 4) gets the file's values back a second after start-up, which filmed the world at 4 chunks (B-109).
+   `rec.log` says so once if it happens.
 2. From the main menu it creates a fresh creative superflat world (`run/client/saves/bts-rec-<time>`) on the
    integrated server, the same way the autoshots photo harness does. No server port is used.
 3. It runs the script's setup lines, then the scenes in order.
