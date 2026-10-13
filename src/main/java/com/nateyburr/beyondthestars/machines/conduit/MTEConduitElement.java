@@ -464,6 +464,11 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
         noteTick = now;
     }
 
+    /** The last event, while it is under a minute old ("" otherwise): the GUI's Last row (B-116). */
+    public String lastNote() {
+        return !note.isEmpty() && now() - noteTick < 1200 ? note : "";
+    }
+
     // ============================================================================ the tick
 
     @Override
