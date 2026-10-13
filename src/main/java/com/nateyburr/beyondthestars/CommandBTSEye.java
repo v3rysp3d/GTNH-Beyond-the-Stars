@@ -21,7 +21,7 @@ import com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeStarBench;
 
 /**
- * /btseye [t1..t6] [gen 1-9] [fill] [force] - SINGULARITY LADDER P3 creative build: raises a
+ * /btseye [t1..t8] [gen 1-9] [fill] [force] - SINGULARITY LADDER P3 creative build: raises a
  * complete, formed Eye of Harmony (the core plus the bands for the asked tier, every hatch, the
  * Galactic core at T4, the tier's star chart in the controller slot) in front of the player, its
  * controller facing them. Owned by the Eye unit.
@@ -32,7 +32,7 @@ import com.nateyburr.beyondthestars.machines.eye.star.EyeStarBench;
  * front of the controller, so the stand-off grows with the pieces built. The footprint is surveyed
  * first; more than 15% solid refuses to build without {@code force}.
  * <p>
- * <b>Console / command-block form:</b> {@code /btseye [t1..t6] <x> <y> <z> [north|south|east|west]
+ * <b>Console / command-block form:</b> {@code /btseye [t1..t8] <x> <y> <z> [north|south|east|west]
  * [gen 1-9] [fill] [force] [survival]} puts the controller at x y z ("~" is relative to a command
  * block) with its front facing the given way (default north), owned by a fixed test UUID; it loads
  * the footprint's chunks first and prints FORMED or NOT FORMED with the first wrong cells, the mirror
@@ -60,8 +60,8 @@ public class CommandBTSEye extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btseye [t1..t6] [gen 1-9] [fill] [force]  |  console: /btseye [t1..t6] <x> <y> <z> [facing] "
-            + "[gen 1-9] [fill] [force] [survival] [legacy] [nobeam] [oldwindows] | [check]  |  /btseye keep <x> <y> <z> <facing> [t1..t6]  |  /btseye gates  |  /btseye bec  |  "
+        return "/btseye [t1..t8] [gen 1-9] [fill] [force]  |  console: /btseye [t1..t8] <x> <y> <z> [facing] "
+            + "[gen 1-9] [fill] [force] [survival] [legacy] [nobeam] [oldwindows] | [check]  |  /btseye keep <x> <y> <z> <facing> [t1..t8]  |  /btseye gates  |  /btseye bec  |  "
             + EyeStarBench.USAGE;
     }
 
@@ -73,7 +73,19 @@ public class CommandBTSEye extends CommandBase {
     @SuppressWarnings("rawtypes")
     @Override
     public List addTabCompletionOptions(ICommandSender sender, String[] args) {
-        return getListOfStringsMatchingLastWord(args, "t1", "t2", "t3", "t4", "t5", "t6", "gen", "fill", "force");
+        return getListOfStringsMatchingLastWord(
+            args,
+            "t1",
+            "t2",
+            "t3",
+            "t4",
+            "t5",
+            "t6",
+            "t7",
+            "t8",
+            "gen",
+            "fill",
+            "force");
     }
 
     private static void tell(EntityPlayerMP player, String message) {
@@ -111,7 +123,7 @@ public class CommandBTSEye extends CommandBase {
             int tiers = 6;
             for (String arg : args) {
                 if (arg.toLowerCase(java.util.Locale.ROOT)
-                    .matches("t[1-6]")) tiers = arg.charAt(1) - '0';
+                    .matches("t[1-8]")) tiers = arg.charAt(1) - '0';
             }
             final int[] box = SLConsoleTest.bounds(
                 ExtendedFacing.of(at.facing),
@@ -139,7 +151,7 @@ public class CommandBTSEye extends CommandBase {
         boolean force = false;
         for (int i = 0; i < args.length; i++) {
             final String arg = args[i].toLowerCase(java.util.Locale.ROOT);
-            if (arg.matches("t[1-6]")) tiers = arg.charAt(1) - '0';
+            if (arg.matches("t[1-8]")) tiers = arg.charAt(1) - '0';
             if (arg.equals("gen") && i + 1 < args.length) genMeta = parseIntBounded(sender, args[++i], 1, 9) - 1;
             if (arg.equals("fill")) fill = true;
             if (arg.equals("force") || arg.equals("-f")) force = true;
@@ -239,7 +251,7 @@ public class CommandBTSEye extends CommandBase {
         for (int i = 0; i < args.length; i++) {
             if (at.used[i]) continue;
             final String arg = args[i].toLowerCase(java.util.Locale.ROOT);
-            if (arg.matches("t[1-6]")) tiers = arg.charAt(1) - '0';
+            if (arg.matches("t[1-8]")) tiers = arg.charAt(1) - '0';
             if (arg.equals("gen") && i + 1 < args.length && !at.used[i + 1]) {
                 genMeta = parseIntBounded(sender, args[++i], 1, 9) - 1;
             }

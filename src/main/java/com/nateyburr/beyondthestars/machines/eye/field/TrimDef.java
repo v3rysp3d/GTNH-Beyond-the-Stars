@@ -52,7 +52,7 @@ public final class TrimDef {
     public final Kind kind;
     /** Units per second per parallel. */
     public final double cap;
-    /** Effect per unit on P, Θ, Ω, Π (index {@link StellarField#P} ..). */
+    /** Effect per unit on P, Θ, Ω, Π, W, Λ (index {@link StellarField#P} ..; no trim moves W or Λ). */
     private final double[] fx;
     /** A side note for tooltips and NEI (may be empty). */
     public final String note;
@@ -60,7 +60,7 @@ public final class TrimDef {
     TrimDef(Kind kind, double cap, double p, double th, double om, double pi, String note) {
         this.kind = kind;
         this.cap = cap;
-        this.fx = new double[] { p, th, om, pi };
+        this.fx = new double[] { p, th, om, pi, 0, 0 };
         this.note = note == null ? "" : note;
     }
 

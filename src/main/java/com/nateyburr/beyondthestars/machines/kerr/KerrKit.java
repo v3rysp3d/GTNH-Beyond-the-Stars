@@ -688,6 +688,40 @@ public final class KerrKit {
         return placed;
     }
 
+    /**
+     * Test bench ({@code /btskerr receptor x y z}, P4): a GRB Receptor Port into the first free utility socket of a
+     * built KEE (one still holding its casing), facing out, then a re-walk. Returns the port's cell, or null.
+     */
+    public static int[] fitReceptor(World world, MTEKerrEngine kee) {
+        final ItemStack stack = BTSMachines.grbReceptorPort;
+        if (stack == null) return null;
+        final IGregTechTileEntity base = kee.getBaseMetaTileEntity();
+        final ExtendedFacing alignment = kee.getExtendedFacing();
+        final int x = base.getXCoord(), y = base.getYCoord(), z = base.getZCoord();
+        if (kee.receptorCount() > 0) {
+            final IGregTechTileEntity rb = kee.receptors()
+                .get(0)
+                .getBaseMetaTileEntity();
+            return new int[] { rb.getXCoord(), rb.getYCoord(), rb.getZCoord() };
+        }
+        final int[] centre = KerrSlot.worldPos(alignment, x, y, z, KerrSlot.centreRel());
+        for (int[] rel : BTSShapes.socketRels(kee.corePiece(), 'u')) {
+            final int[] p = KerrSlot.worldPos(alignment, x, y, z, rel);
+            if (world.getTileEntity(p[0], p[1], p[2]) != null) continue; // a hatch is there already
+            if (MTEReactorCoreMk1.placeGtMachine(
+                world,
+                p[0],
+                p[1],
+                p[2],
+                (short) stack.getItemDamage(),
+                outward(world, alignment, p, centre))) {
+                kee.checkStructure(true, base);
+                return p;
+            }
+        }
+        return null;
+    }
+
     private static <T> T mteAt(World world, int[] p, Class<T> type) {
         final TileEntity te = world.getTileEntity(p[0], p[1], p[2]);
         if (!(te instanceof IGregTechTileEntity)) return null;

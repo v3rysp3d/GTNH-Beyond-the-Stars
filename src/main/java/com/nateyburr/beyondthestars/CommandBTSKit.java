@@ -45,7 +45,7 @@ public class CommandBTSKit extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btskit [1-" + BTSBom.MAX_TIER + "|kerr|eye|homogeny|diffraction|refab]";
+        return "/btskit [1-" + BTSBom.MAX_TIER + "|kerr|eye|quasar [coil 1-4]|conduit|homogeny|diffraction|refab]";
     }
 
     @Override
@@ -111,6 +111,18 @@ public class CommandBTSKit extends CommandBase {
         // SINGULARITY LADDER P3 (Eye unit): /btskit eye - the Eye's own kit, read from manifest.json.
         if (args.length > 0 && args[0].equalsIgnoreCase("eye")) {
             com.nateyburr.beyondthestars.machines.eye.EyeKit.giveKit(player);
+            return;
+        }
+        // P4: /btskit quasar [coil tier 1-4] - the Quasar Engine's kit, read from manifest.json.
+        if (args.length > 0 && args[0].equalsIgnoreCase("quasar")) {
+            com.nateyburr.beyondthestars.machines.quasar.QuasarKit
+                .giveKit(player, args.length > 1 ? parseIntBounded(sender, args[1], 1, 4) : 3);
+            return;
+        }
+        // P4 conduit unit: /btskit conduit - the Wormhole Mouths, Mirror, Junction, crowns and ports, from
+        // manifest.json.
+        if (args.length > 0 && args[0].equalsIgnoreCase("conduit")) {
+            com.nateyburr.beyondthestars.machines.conduit.ConduitKit.giveKit(player);
             return;
         }
         // H/R unit 2: /btskit homogeny | diffraction | refab - read from manifest.json.

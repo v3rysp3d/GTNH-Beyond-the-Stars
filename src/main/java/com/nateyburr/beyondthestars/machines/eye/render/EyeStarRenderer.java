@@ -445,8 +445,102 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
             if ((kind == EyeStarLook.NEUTRON || kind == EyeStarLook.MAGNETAR) && coreAlpha > 0.003f) {
                 beams(t, cx, cy, cz, radius, r, g, b, BEAM_ALPHA * coreAlpha, spin);
             }
+            // P4: the galaxies' arms and planets mode's orbits (billboard dots, additive)
+            if (kind == EyeStarLook.TRIANGULUM || kind == EyeStarLook.MILKY_WAY) {
+                galaxyArms(t, kind, now, cx, cy, cz, u, v, star.getAux());
+            } else if (kind == EyeStarLook.PLANETS) {
+                planetOrbits(t, now, cx, cy, cz, u, v, star.getAux());
+            }
         }
         flat.end();
+    }
+
+    // ======================================================================== P4: galaxies
+
+    /** The galaxy disc's tilt (the stability rail's 8°) and its turn rate, radians per tick (one turn in ~2.6 min). */
+    private static final double DISC_TILT = Math.toRadians(8), DISC_RATE = 2 * Math.PI / (20 * 160);
+    private static final double SIN_TILT = Math.sin(DISC_TILT), COS_TILT = Math.cos(DISC_TILT);
+
+    /** A deterministic 0..1 per index and salt (the dots' scatter must not flicker). */
+    private static double hash(int i, int salt) {
+        int h = i * 374761393 + salt * 668265263;
+        h = (h ^ (h >>> 13)) * 1274126177;
+        h ^= h >>> 16;
+        return (h & 0xFFFFFF) / (double) 0x1000000;
+    }
+
+    /**
+     * The arms of a galaxy: logarithmic-ish spirals of camera-facing dots in the tilted disc plane, turning slowly.
+     * Triangulum: three loose arms of blue-white dots with a few pink H II knots; the Milky Way: a central bar and four
+     * arms, a warm inner glow. A warning ({@code aux}) brightens them. Every dot stays inside the arms' reach
+     * ({@link EyeStarLook#galaxyReach}), clear of the core band.
+     */
+    private static void galaxyArms(Tessellator t, byte kind, double now, double cx, double cy, double cz, double[] u,
+        double[] v, float aux) {
+        final boolean mw = kind == EyeStarLook.MILKY_WAY;
+        final int arms = mw ? 4 : 3, perArm = mw ? 56 : 44;
+        final double reach = EyeStarLook.galaxyReach(kind), inner = mw ? 4.5 : 3;
+        final double turn = now * DISC_RATE;
+        final float bright = 1f + 0.6f * aux;
+        // a broad faint disc glow first
+        ring(t, cx, cy, cz, u, v, 0, reach * 0.85, mw ? 1f : 0.7f, mw ? 0.85f : 0.8f, mw ? 0.6f : 1f, 0.10f * bright);
+        t.startDrawingQuads();
+        for (int a = 0; a < arms; a++) {
+            final double off = 2 * Math.PI * a / arms;
+            for (int i = 0; i < perArm; i++) {
+                final int id = a * 1000 + i;
+                final double f = (i + hash(id, 1)) / perArm;
+                final double rad = inner + (reach - inner) * f;
+                final double ang = off + turn + (mw ? 3.4 : 2.6) * Math.log(rad / inner) + 0.35 * (hash(id, 2) - 0.5);
+                final double jitter = 0.9 * (hash(id, 3) - 0.5);
+                final boolean knot = !mw && hash(id, 4) < 0.08;
+                final float cr = knot ? 1f : mw ? 0.75f : 0.62f, cg = knot ? 0.5f : mw ? 0.82f : 0.74f,
+                    cb = knot ? 0.75f : 1f;
+                final float alpha = (float) Math.min(1, (0.55 - 0.35 * f) * bright);
+                dot(t, cx, cy, cz, rad + jitter, ang, u, v, (0.55 - 0.25 * f) * (knot ? 1.4 : 1), cr, cg, cb, alpha);
+            }
+        }
+        if (mw) {
+            // the bar: warm dots along a line through the centre, turning with the disc
+            for (int i = 0; i < 30; i++) {
+                final double s = (i / 29.0 - 0.5) * 2 * inner * 1.1;
+                final double ang = turn + (s < 0 ? Math.PI : 0);
+                dot(t, cx, cy, cz, Math.abs(s), ang, u, v, 0.6, 1f, 0.82f, 0.55f, 0.5f * bright);
+            }
+        }
+        t.draw();
+    }
+
+    /** Planets mode: up to nine planets on their orbits in the tilted plane, each a small dot. */
+    private static void planetOrbits(Tessellator t, double now, double cx, double cy, double cz, double[] u, double[] v,
+        float aux) {
+        final int n = Math.max(0, Math.min(9, Math.round(aux * 9)));
+        if (n == 0) return;
+        final float[][] palette = { { 0.85f, 0.6f, 0.4f }, { 0.5f, 0.7f, 1f }, { 0.9f, 0.85f, 0.6f },
+            { 0.6f, 0.9f, 0.7f }, { 1f, 0.5f, 0.4f }, { 0.75f, 0.75f, 0.9f }, { 0.95f, 0.75f, 0.5f },
+            { 0.6f, 0.6f, 0.65f }, { 0.4f, 0.55f, 0.9f } };
+        t.startDrawingQuads();
+        for (int i = 0; i < n; i++) {
+            final double rad = 5 + 1.6 * i;
+            final double ang = 2 * Math.PI * hash(i, 7) + now * DISC_RATE * 6 / Math.sqrt(1 + i);
+            final float[] c = palette[i];
+            dot(t, cx, cy, cz, rad, ang, u, v, 0.45, c[0], c[1], c[2], 0.9f);
+        }
+        t.draw();
+    }
+
+    /** One billboard dot of half-size {@code s} at polar (rad, ang) in the tilted disc plane. */
+    private static void dot(Tessellator t, double cx, double cy, double cz, double rad, double ang, double[] u,
+        double[] v, double s, float r, float g, float b, float alpha) {
+        if (alpha <= 0.003f) return;
+        final double x = cx + rad * Math.cos(ang);
+        final double y = cy + rad * Math.sin(ang) * SIN_TILT;
+        final double z = cz + rad * Math.sin(ang) * COS_TILT;
+        t.setColorRGBA_F(r, g, b, alpha);
+        t.addVertex(x - (u[0] + v[0]) * s, y - (u[1] + v[1]) * s, z - (u[2] + v[2]) * s);
+        t.addVertex(x + (u[0] - v[0]) * s, y + (u[1] - v[1]) * s, z + (u[2] - v[2]) * s);
+        t.addVertex(x + (u[0] + v[0]) * s, y + (u[1] + v[1]) * s, z + (u[2] + v[2]) * s);
+        t.addVertex(x - (u[0] - v[0]) * s, y - (u[1] - v[1]) * s, z - (u[2] - v[2]) * s);
     }
 
     /** The corona's alpha at the limb for {@code kind} (0: none). */

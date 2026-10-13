@@ -390,6 +390,28 @@ public final class HRKit {
         return fitted;
     }
 
+    /**
+     * Bench {@code receptors} (P4): a GRB Receptor Port in every {@code g} cell (the Homogeny's stirring ring, Reality
+     * Diffraction's portal) that still holds its casing, then a re-walk. Not part of the standard build: a fitted port
+     * makes Reality Diffraction burst-driven (it pauses below σ 0.5). Returns the ports placed. Server only.
+     */
+    public static int fitReceptors(World world, MTEExtendedPowerMultiBlockBase<?> mte, Machine m) {
+        final ItemStack port = BTSMachines.grbReceptorPort;
+        if (port == null || m == Machine.REFAB) return 0;
+        final ExtendedFacing alignment = mte.getExtendedFacing();
+        final int[] centre = centreRel(m);
+        final IGregTechTileEntity base = mte.getBaseMetaTileEntity();
+        final String piece = m == Machine.HOMOGENY ? m.pieces[1] : m.pieces[0];
+        int fitted = 0;
+        for (int[] rel : BTSShapes.socketRels(piece, 'g')) {
+            if (fit(world, alignment, base.getXCoord(), base.getYCoord(), base.getZCoord(), rel, centre, port)) {
+                fitted++;
+            }
+        }
+        mte.checkStructure(true, base);
+        return fitted;
+    }
+
     /** The machine's status lines (Homogeny or Reality). */
     public static List<String> statusLines(IMetaTileEntity mte) {
         if (mte instanceof MTEHomogeny) return ((MTEHomogeny) mte).statusLines();

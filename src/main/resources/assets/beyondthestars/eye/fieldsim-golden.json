@@ -1,7 +1,7 @@
 {
  "about": "D-49 stability field golden results from the prototype engine (tools/fieldsim-golden.js). FieldSim golden must match every number exactly. Regenerate; do not edit.",
- "engineSha1": "bbf7e878a420735e230f80f2b01d823fc1d81ec2",
- "sourceSha1": "55ffde82b28086e25e4c728506cb23cb97209fca",
+ "engineSha1": "c28c22097debf085fd21226aed3f656c7706d04b",
+ "sourceSha1": "a9abfe52b06818da775a4673310745de59660dda",
  "cases": [
   {
    "name": "T1 off 1806",

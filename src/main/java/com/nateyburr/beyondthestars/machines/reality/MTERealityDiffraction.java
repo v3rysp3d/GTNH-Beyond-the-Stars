@@ -30,6 +30,10 @@ import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing3;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.fluids.SLRealityFluids;
+import com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor;
+import com.nateyburr.beyondthestars.machines.conduit.ReceptorHatchElement;
+import com.nateyburr.beyondthestars.machines.quasar.burst.BurstHost;
+import com.nateyburr.beyondthestars.machines.quasar.engine.BurstLink;
 
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.Textures;
@@ -86,6 +90,11 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
     @SuppressWarnings("unchecked")
     private final List<MTEHatchInput>[] anchorHatches = new List[] { new ArrayList<>(), new ArrayList<>(),
         new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>() };
+
+    /** P4: GRB Receptor Ports in the six portal {@code g} cells (walk state). */
+    private final List<MTEHatchGRBReceptor> receptors = new ArrayList<>();
+    /** P4: the quasar link (never saved: nothing about a link is). */
+    private final BurstHost burstHost = new BurstHost();
 
     // ---- run state (tile NBT)
     /** Bit k: region k+1 was anchored at the start of the running run. */
@@ -150,9 +159,18 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
             .addElement('L', casing(Casings.SpatiallyTranscendentGravitationalLens))
             .addElement('N', casing(Casings.CoherencePreservingPlasmaConduit))
             .addElement('Q', casing(Casings.ElectromagneticallyIsolatedCasing))
-            // RESERVED (quasar-p4.md section 3.1): P4 chains its GRB Receptor Port in front of this band, so the six
-            // ports slot into builds that stand now without un-forming them. Top deck band, outer face, one per region.
-            .addElement('g', block(c3, BlockSLCasing3.REGION_DECK_BAND))
+            // P4 (quasar-p4.md section 3.1): a GRB Receptor Port, or the deck band these six portal cells held before
+            // P4, so builds that stand keep forming. Top deck band, outer face, one per region. Hologram hint 10.
+            .addElement(
+                'g',
+                buildHatchAdder(MTERealityDiffraction.class)
+                    .atLeast(
+                        ReceptorHatchElement.<MTERealityDiffraction>of(
+                            MTERealityDiffraction::addReceptor,
+                            MTERealityDiffraction::receptorCount))
+                    .casingIndex(index)
+                    .hint(10)
+                    .buildAndChain(block(c3, BlockSLCasing3.REGION_DECK_BAND)))
             .addElement(
                 'b',
                 buildHatchAdder(MTERealityDiffraction.class).atLeast(RealityHatchElement.Bec)
@@ -193,6 +211,7 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
     @Override
     public void checkMachine(IGregTechTileEntity aBaseMetaTileEntity, ItemStack aStack, List<StructureError> errors) {
         for (List<MTEHatchInput> l : anchorHatches) l.clear();
+        receptors.clear();
         final boolean ok = walk(errors);
         afterWalk();
         if (!ok) return;
@@ -215,6 +234,29 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
             return true;
         }
         return false;
+    }
+
+    /** P4: a GRB Receptor Port in a portal {@code g} cell. */
+    public boolean addReceptor(IGregTechTileEntity te, int casingIndex) {
+        if (te == null) return false;
+        final IMetaTileEntity mte = te.getMetaTileEntity();
+        if (mte instanceof MTEHatchGRBReceptor) {
+            ((MTEHatchGRBReceptor) mte).updateTexture(casingIndex);
+            receptors.add((MTEHatchGRBReceptor) mte);
+            return true;
+        }
+        return false;
+    }
+
+    public int receptorCount() {
+        int n = 0;
+        for (MTEHatchGRBReceptor r : receptors) if (live(r)) n++;
+        return n;
+    }
+
+    /** The portal's receptor ports (server state, read-only). */
+    public List<MTEHatchGRBReceptor> receptors() {
+        return java.util.Collections.unmodifiableList(receptors);
     }
 
     public int anchorHatchCount(int region) {
@@ -266,14 +308,61 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
     }
 
     /**
-     * P4 HOOK (quasar-p4.md section 3.1, the design of record): the sigma a run needs (P4: 0.5, below which runs
-     * pause; speed x min(sigma, 1.5)). 0 (no condition) until P4.
+     * P4 (quasar-p4.md section 3.1): with GRB Receptor Ports fitted the regions ride the burst stream: a run needs
+     * σ ≥ 0.5 (60 s mean, demand D₉ = 24 Bu/t), pauses below it (kept, never voided) and runs at speed x min(σ, 1.5).
+     * With no port fitted the regions are anchored by their fluids alone and run at x1: no host needs a link (P4-74).
      */
-    static final double MIN_SIGMA = 0;
+    public static final double MIN_SIGMA = 0.5;
+    /** P4: the speed cap σ can give. */
+    public static final double MAX_SPEED = 1.5;
 
-    /** P4 HOOK: the Quasar link's sigma, read from GRB Receptor Ports in the six reserved {@code g} cells. 0 now. */
+    /**
+     * The Quasar link's σ at this host on the 60 s mean; 0 while its quasar is frozen or unloaded (Q-8: the
+     * burst-driven regions pause; the mean is held for when it returns).
+     */
     public double quasarSigma() {
-        return 0;
+        return receptorCount() == 0 ? 0 : burstHost.sigmaInForce();
+    }
+
+    /** True when the regions ride the burst stream (at least one receptor port fitted). */
+    public boolean burstDriven() {
+        return receptorCount() > 0;
+    }
+
+    /** The run speed: x1 with no port; else x min(σ, 1.5), 0 below σ 0.5 (paused). */
+    public double speedFactor() {
+        if (!burstDriven()) return 1.0;
+        final double s = quasarSigma();
+        return s < MIN_SIGMA ? 0 : Math.min(MAX_SPEED, s);
+    }
+
+    public BurstHost burstHost() {
+        return burstHost;
+    }
+
+    /** "Quasar link σ 1.02: speed x1.02" / "PAUSED ..."; "" with no port. Server state. */
+    public String burstLine() {
+        if (!burstDriven()) return "";
+        if (burstHost.paused()) return burstHost.linkLine() + " (runs paused)";
+        final double s = quasarSigma();
+        return String.format(
+            java.util.Locale.ROOT,
+            "Quasar link σ %.2f (demand %.0f Bu/t): %s; %s",
+            s,
+            BurstLink.REALITY,
+            s < MIN_SIGMA ? "regions UNSTABLE, runs pause below σ 0.5"
+                : String.format(java.util.Locale.ROOT, "speed x%.2f", speedFactor()),
+            burstHost.linkLine());
+    }
+
+    /** Pauses a running run while the burst-driven regions are below σ 0.5 (kept, never voided). */
+    @Override
+    protected void runMachine(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
+        if (mMaxProgresstime > 0 && burstDriven() && quasarSigma() < MIN_SIGMA) {
+            aBaseMetaTileEntity.setActive(false);
+            return;
+        }
+        super.runMachine(aBaseMetaTileEntity, aTick);
     }
 
     private long mediumAvailable(Fluid medium) {
@@ -293,7 +382,9 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
         }
         final GTRecipe r = recipe();
         if (r == null) return CheckRecipeResultRegistry.NO_RECIPE;
-        if (quasarSigma() < MIN_SIGMA) return SimpleCheckRecipeResult.ofFailure("beyondthestars.reality.stability");
+        if (burstDriven() && quasarSigma() < MIN_SIGMA) {
+            return SimpleCheckRecipeResult.ofFailure("beyondthestars.reality.stability");
+        }
         if (network == null || !hasStorage()) {
             return SimpleCheckRecipeResult.ofFailure("beyondthestars.reality.nonetwork");
         }
@@ -315,7 +406,7 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
         lEUt = -r.mEUt;
         mEfficiency = 10_000;
         mEfficiencyIncrease = 10_000;
-        mMaxProgresstime = Math.max(1, r.mDuration);
+        mMaxProgresstime = Math.max(1, (int) Math.ceil(r.mDuration / Math.max(0.01, speedFactor())));
         return CheckRecipeResultRegistry.SUCCESSFUL;
     }
 
@@ -366,6 +457,17 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
     @Override
     protected void onSecond() {
         if (pendingTotal() > 0) flushPending();
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (mMachine && !receptors.isEmpty() && base != null && base.getWorld() != null) {
+            final String key = "reality@" + base.getWorld().provider.dimensionId
+                + ":"
+                + base.getXCoord()
+                + ","
+                + base.getYCoord()
+                + ","
+                + base.getZCoord();
+            burstHost.second(receptors, key, "Reality Diffraction", BurstLink.REALITY, 0);
+        }
     }
 
     @Override
@@ -426,6 +528,8 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
         out.add(lamps.toString());
         final String p = pendingLine();
         if (!p.isEmpty()) out.add(p);
+        final String burst = burstLine();
+        out.add(burst.isEmpty() ? "No GRB Receptor Port: regions anchored by fluid alone, speed x1" : burst);
         out.add("Runs: " + fmt(runs));
         if (!lastNote.isEmpty()) out.add("Last: " + lastNote);
         return out;
@@ -536,8 +640,13 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
             .addInfo("  What the network cannot take waits in the controller (never voided).")
             .addInfo("  Give the regions their own network, or fence them with a Condensate Diode")
             .addInfo("  (manual filters): more than three foreign condensates clog Condensate Assembler crafts.")
-            .addInfo("Later, a Quasar link through the six reserved port cells on the top deck band")
-            .addInfo("  will stabilise the regions (faster runs; too little stability pauses them).")
+            .addInfo(
+                EnumChatFormatting.GOLD + "Quasar link"
+                    + EnumChatFormatting.GRAY
+                    + " (optional): GRB Receptor Ports in the six")
+            .addInfo("  portal cells (hint 10). With any port fitted the regions ride the stream:")
+            .addInfo("  σ = bursts ÷ 24 Bu/t (60 s mean), speed x min(σ, 1.5); below σ 0.5 runs pause")
+            .addInfo("  (kept, never voided). With no port: fluid anchors alone, speed x1.")
             .addInfo("Automation: anchors take ME input hatches; a level emitter on each keeps them stocked.")
             .addInfo("Entanglement Medium is 0 K: pipe it with cryo-proof pipes.")
             .beginStructureBlock(s[0], s[1], s[2], false)
@@ -556,7 +665,7 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
             .addOtherStructurePart("Region Anchor I..VI (any Input Hatch)", "under each blade, one each", 3)
             .addOtherStructurePart("Energy or Laser Hatch", "base ring", 9)
             .addStructureInfo("Anchor hints 3..8 = Regions I..VI (" + anchorName(0) + " .. " + anchorName(5) + ").")
-            .addStructureInfo("6 Region Deck Band cells on the top band's outer face are reserved for Quasar ports.")
+            .addOtherStructurePart("GRB Receptor Port (optional)", "6 portal cells, top deck band's outer face", 10)
             .addStructureInfo("Builds never overwrite hatches or other tiles.")
             .toolTipFinisher();
         return tt;

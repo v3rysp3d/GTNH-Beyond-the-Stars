@@ -37,6 +37,7 @@ public class RealityDiffractionGui extends MTEMultiBlockBaseGui<MTERealityDiffra
         syncManager.syncValue("diffAnchors", new StringSyncValue(multiblock::anchorLine));
         syncManager.syncValue("diffNote", new StringSyncValue(multiblock::lastNote));
         syncManager.syncValue("diffMask", new IntSyncValue(multiblock::anchorMask));
+        syncManager.syncValue("diffBurst", new StringSyncValue(multiblock::burstLine));
     }
 
     @Override
@@ -45,8 +46,14 @@ public class RealityDiffractionGui extends MTEMultiBlockBaseGui<MTERealityDiffra
         final StringSyncValue pending = syncManager.findSyncHandler("diffPending", StringSyncValue.class);
         final StringSyncValue anchors = syncManager.findSyncHandler("diffAnchors", StringSyncValue.class);
         final StringSyncValue note = syncManager.findSyncHandler("diffNote", StringSyncValue.class);
+        final StringSyncValue burst = syncManager.findSyncHandler("diffBurst", StringSyncValue.class);
         return super.createTerminalTextWidget(syncManager, parent)
             .child(HRGui.row(() -> EnumChatFormatting.AQUA + net.getStringValue(), () -> true))
+            .child(
+                HRGui.row(
+                    () -> EnumChatFormatting.LIGHT_PURPLE + burst.getStringValue(),
+                    () -> !burst.getStringValue()
+                        .isEmpty()))
             .child(
                 HRGui.row(
                     () -> EnumChatFormatting.GOLD + pending.getStringValue(),

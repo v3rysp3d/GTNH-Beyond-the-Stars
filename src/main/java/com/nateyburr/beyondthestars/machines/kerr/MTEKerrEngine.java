@@ -47,10 +47,13 @@ import com.nateyburr.beyondthestars.items.SLItems;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
 import com.nateyburr.beyondthestars.machines.QuietTileUpdate;
+import com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor;
 import com.nateyburr.beyondthestars.machines.directive.DirectiveHost;
 import com.nateyburr.beyondthestars.machines.directive.DirectiveSet;
 import com.nateyburr.beyondthestars.machines.directive.KerrDirective;
 import com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective;
+import com.nateyburr.beyondthestars.machines.quasar.burst.BurstHost;
+import com.nateyburr.beyondthestars.machines.quasar.engine.BurstLink;
 
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.ItemList;
@@ -141,6 +144,14 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     public static final int SETPOINT_MIN = 2;
     public static final int SETPOINT_MAX_T1 = 64;
     public static final int SETPOINT_MAX_T2 = 512;
+    /**
+     * P4 (quasar-p4.md §3.1): on Kerr T2 a quasar link at σ ≥ 1 (60 s mean) raises the setpoint cap to 768 SM. Losing
+     * the link drops the cap back; the stored setpoint stays, the governor stops feeding above 512 SM and the hole
+     * bleeds down to it, so nothing is lost suddenly.
+     */
+    public static final int SETPOINT_MAX_T2_LINKED = 768;
+    /** P4: the share of the Hawking bleed a quasar link at σ ≥ 1 removes: bleed × (1 − 0.75·min(σ, 1)). */
+    public static final double BLEED_RELIEF = 0.75;
     /** Bolts per tick by the LOWEST injector-rail tier found in the walk (index = tier, Mk I = 1). */
     public static final int[] RAIL_CAP = { 0, 4, 8, 16 };
     /** Base parallel per voltage tier, the Black Hole Compressor's figure. */
@@ -216,10 +227,14 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
      * them, and a removed hatch drops out by {@code live}.
      */
     private final ArrayList<MTEHatchDirective> formedDirectiveHatches = new ArrayList<>();
+    /** P4: GRB Receptor Ports (MTE 28125) in the utility sockets. */
+    private final ArrayList<MTEHatchGRBReceptor> receptors = new ArrayList<>();
 
     // -------------------------------------------------------------------- RUN state (server)
     private int lastBoltsFired;
     private double lastBleed;
+    /** P4: the quasar link through the receptor ports (never saved: nothing about a link is). */
+    private final BurstHost burstHost = new BurstHost();
     private boolean powerOk = true;
     /** 20-tick window: mass fed, mass bled, bolts fired. */
     private double windowFed;
@@ -336,7 +351,8 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
                     .buildAndChain(casing(Casings.ExtremeDensitySpaceBendingCasing)))
             .addElement(
                 'u',
-                buildHatchAdder(MTEKerrEngine.class).atLeast(KerrHatchElement.Utility, KerrHatchElement.Directive)
+                buildHatchAdder(MTEKerrEngine.class)
+                    .atLeast(KerrHatchElement.Utility, KerrHatchElement.Directive, KerrHatchElement.Receptor)
                     .casingIndex(shellIndex)
                     .hint(6)
                     .buildAndChain(casing(Casings.ExtremeDensitySpaceBendingCasing)))
@@ -419,6 +435,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         boltBuses.clear();
         utilityHatches.clear();
         directiveHatches.clear();
+        receptors.clear();
     }
 
     /**
@@ -484,6 +501,27 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
 
     public int directiveHatchCount() {
         return liveCount(directiveHatches);
+    }
+
+    /** P4: a GRB Receptor Port in a utility socket (quasar-p4.md §3.1). */
+    public boolean addReceptor(IGregTechTileEntity te, int casingIndex) {
+        if (te == null) return false;
+        final IMetaTileEntity mte = te.getMetaTileEntity();
+        if (mte instanceof MTEHatchGRBReceptor) {
+            ((MTEHatchGRBReceptor) mte).updateTexture(casingIndex);
+            receptors.add((MTEHatchGRBReceptor) mte);
+            return true;
+        }
+        return false;
+    }
+
+    public int receptorCount() {
+        return liveCount(receptors);
+    }
+
+    /** The utility-socket GRB Receptor Ports. Server state, read-only. */
+    public List<MTEHatchGRBReceptor> receptors() {
+        return java.util.Collections.unmodifiableList(receptors);
     }
 
     /** The utility-socket Directive Hatches. Server state, read-only. */
@@ -616,6 +654,70 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         return densityInstalled;
     }
 
+    // ======================================================================= P4: the quasar link
+
+    /** This KEE's burst demand D_h: 0.1 Bu/t at T1, 0.25 at T2 (quasar-p4.md §3.1). */
+    public double burstDemand() {
+        return densityInstalled ? BurstLink.KERR_T2 : BurstLink.KERR_T1;
+    }
+
+    /**
+     * σ on the 60 s mean; 0 with no receptor port, and 0 while its quasar is frozen or unloaded (Q-8: the link's bleed
+     * relief, cap and the Superdense refinery pause; the mean is held for when it returns).
+     */
+    @Override
+    public double burstSigma() {
+        return receptorCount() == 0 ? 0 : burstHost.sigmaInForce();
+    }
+
+    /** The bleed factor the link gives: 1 − 0.75·min(σ, 1) (0.25 at σ ≥ 1). */
+    public double bleedFactor() {
+        return 1.0 - BLEED_RELIEF * Math.min(1.0, Math.max(0, burstSigma()));
+    }
+
+    /** The host-side reading (GUI, scanner, OpenComputers). Server state. */
+    public BurstHost burstHost() {
+        return burstHost;
+    }
+
+    /** "Quasar link: ... · σ 1.54" / "No quasar link" / "PAUSED: ...", or "" with no receptor port. Server state. */
+    public String burstLine() {
+        if (receptorCount() == 0) return "";
+        return burstHost.linkLine();
+    }
+
+    /**
+     * The GUI's link row: "Quasar link σ 1.02: bleed x0.25, cap 768 SM" in aqua, "No quasar link" in grey, a pause in
+     * yellow; "" with no receptor port (the row hides). Server state, synced as a string.
+     */
+    public String burstGuiLine() {
+        if (receptorCount() == 0) return "";
+        if (burstHost.paused()) return EnumChatFormatting.YELLOW + burstHost.linkLine() + " (link paused)";
+        final double sigma = burstSigma();
+        if (!burstHost.linked() && sigma <= 0) return EnumChatFormatting.DARK_GRAY + "No quasar link (receptor fitted)";
+        return (sigma >= 1 ? EnumChatFormatting.AQUA : EnumChatFormatting.GRAY) + String.format(
+            Locale.ROOT,
+            "Quasar link σ %.2f: bleed x%.2f%s",
+            sigma,
+            bleedFactor(),
+            densityInstalled ? ", cap " + maxSetpoint() + " SM" : "");
+    }
+
+    /** Once a second: read the receptor ports (they learn their host) and report to the feeding quasars. */
+    private void burstSecond() {
+        if (receptors.isEmpty()) return;
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base == null || base.getWorld() == null) return;
+        final String key = "kerr@" + base.getWorld().provider.dimensionId
+            + ":"
+            + base.getXCoord()
+            + ","
+            + base.getYCoord()
+            + ","
+            + base.getZCoord();
+        burstHost.second(receptors, key, "Kerr Ergosphere Engine", burstDemand(), 0);
+    }
+
     /** The hole's parallel for a module: {@code 8 x tier(module energy) x floor(sqrt(M))}. */
     public static int parallelFor(long moduleMaxInputEu, double m) {
         final int base = PARALLEL_PER_TIER * Math.max(1, GTUtility.getTierExtended(moduleMaxInputEu));
@@ -658,6 +760,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         }
         tickRender(aBaseMetaTileEntity, aTick);
         if (aTick % 20 == 0) {
+            if (mMachine) burstSecond();
             refreshReadouts();
             publishDirectives();
             // The hole's mass, setpoint and open state change without an inventory change, and GT marks the chunk
@@ -726,17 +829,17 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             windowBolts = windowTicks = 0;
             return;
         }
-        lastBleed = BLEED_K / (mass * mass);
+        lastBleed = BLEED_K / (mass * mass) * bleedFactor();
         mass -= lastBleed;
         windowBled += lastBleed;
         powerOk = drainEnergyInput(CONTAINMENT_EUT);
-        final double deficit = setpoint - mass;
+        final double deficit = effectiveSetpoint() - mass;
         final double before = mass;
         lastBoltsFired = powerOk && deficit > 0 ? fireBolts(deficit, boltCap()) : 0;
         windowFed += mass - before;
         windowBolts += lastBoltsFired;
         if (++windowTicks >= 20) {
-            final boolean holding = mass >= setpoint - 1e-3;
+            final boolean holding = mass >= effectiveSetpoint() - 1e-3;
             stability = windowBled <= 0 || holding ? 1.0 : Math.min(1.0, windowFed / windowBled);
             boltsPerTick = windowBolts / (double) windowTicks;
             windowFed = windowBled = 0;
@@ -865,12 +968,27 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         setpoint = clampSetpoint((int) Math.round(wanted));
     }
 
+    /**
+     * The setpoint cap now: T1 64; T2 512, or 768 SM while a quasar link holds σ ≥ 1 on the 60 s mean (P4). The GUI,
+     * OpenComputers and the control set clamp to this.
+     */
     public int maxSetpoint() {
-        return densityInstalled ? SETPOINT_MAX_T2 : SETPOINT_MAX_T1;
+        if (!densityInstalled) return SETPOINT_MAX_T1;
+        return burstSigma() >= 1.0 ? SETPOINT_MAX_T2_LINKED : SETPOINT_MAX_T2;
+    }
+
+    /** The highest setpoint this tier can ever store (a linked T2's 768 SM survives a lost link and a restart). */
+    private int storedSetpointCap() {
+        return densityInstalled ? SETPOINT_MAX_T2_LINKED : SETPOINT_MAX_T1;
     }
 
     private int clampSetpoint(int wanted) {
         return Math.max(SETPOINT_MIN, Math.min(maxSetpoint(), wanted));
+    }
+
+    /** The setpoint the governor holds: the stored one, capped at {@link #maxSetpoint()}. */
+    public int effectiveSetpoint() {
+        return Math.min(setpoint, maxSetpoint());
     }
 
     public int getSetpoint() {
@@ -1138,7 +1256,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         s.open = holeOpen;
         s.powerOk = powerOk;
         s.mass = holeOpen ? mass : 0;
-        s.setpoint = setpoint;
+        s.setpoint = effectiveSetpoint();
         s.boltStockSm = boltStockSm;
         s.bleedPerTick = holeOpen ? lastBleed : 0;
         s.stability = holeOpen ? stability : 1;
@@ -1164,6 +1282,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
      * the governor), then the readouts and the Directive push, without waiting for the world to tick the controller.
      */
     public void benchSecond() {
+        if (mMachine) burstSecond();
         if (mMachine && autoSeeds) useSeedOrCollapser();
         for (int i = 0; i < 20; i++) {
             if (mMachine) tickHole();
@@ -1434,7 +1553,9 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         densityInstalled = aNBT.getBoolean("btsKerrDensity");
         holeOpen = aNBT.getBoolean("btsKerrHoleOpen");
         mass = holeOpen ? Math.max(MASS_FLOOR, aNBT.getDouble("btsKerrMass")) : 0;
-        setpoint = aNBT.hasKey("btsKerrSetpoint") ? clampSetpoint((int) Math.round(aNBT.getDouble("btsKerrSetpoint")))
+        // the tier's storable cap, not the live one: the link is not known yet at load (a linked 768 SM stays)
+        setpoint = aNBT.hasKey("btsKerrSetpoint")
+            ? Math.max(SETPOINT_MIN, Math.min(storedSetpointCap(), (int) Math.round(aNBT.getDouble("btsKerrSetpoint"))))
             : (int) OPEN_MASS;
         autoSeeds = !aNBT.hasKey("btsKerrAutoSeeds") || aNBT.getBoolean("btsKerrAutoSeeds");
         renderOn = !aNBT.hasKey("btsKerrRender") || aNBT.getBoolean("btsKerrRender");
@@ -1491,6 +1612,21 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
                     + (powerOk ? "" : ", CONTAINMENT POWER LOW"));
         } else {
             out.add("Hole closed: a Black Hole Seed in a bolt bus, or Open in the GUI (setpoint " + setpoint + " SM)");
+        }
+        if (setpoint > maxSetpoint()) {
+            out.add(
+                "Setpoint " + setpoint + " SM is held at " + maxSetpoint() + " SM: it needs a quasar link at σ ≥ 1");
+        }
+        final String burst = burstLine();
+        if (!burst.isEmpty()) {
+            out.add(
+                burst + String.format(
+                    Locale.ROOT,
+                    "; bleed x%.2f, cap %d SM (receptor ports %d, demand %.2f Bu/t)",
+                    bleedFactor(),
+                    maxSetpoint(),
+                    receptorCount(),
+                    burstDemand()));
         }
         out.add(
             "Rails Mk " + railTierMin
@@ -1549,6 +1685,10 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             .addInfo("  the hole bleeds; below 2 SM it evaporates. The power switch does not stop the hole.")
             .addInfo("Modules get parallel 8 x tier x floor(sqrt(M)) and speed x(3200/M)/50 (1 to 4).")
             .addInfo("Optional BHC Utility Hatches on the cage emit redstone while the hole is open.")
+            .addInfo("Quasar link (optional): a GRB Receptor Port in a utility socket. σ = bursts ÷ 0.1 Bu/t")
+            .addInfo("  (T1) or 0.25 (T2), on a 60 s mean. Bleed x(1 - 0.75 min(σ, 1)); on T2 at σ ≥ 1 the setpoint")
+            .addInfo("  cap rises 512 -> 768 SM (modules count M up to the cap in force), and the Superdense")
+            .addInfo("  refinery (compressor module) needs σ ≥ 1. A frozen or unloaded quasar pauses all of it.")
             .addInfo("Automation: bolts, Seeds and Collapsers into the bolt buses (AE2, Factory Manager).")
             .addInfo("  Directive Hatches (utility sockets): Hole [1] closed [2] below [4] bolts short [8] above;")
             .addInfo("  Status [1] power [2] no Seed [4] unstable [8] not formed; or redstone 1-15 sets the")
@@ -1578,7 +1718,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             .addEnergyHatch("Governor arc (2 sockets; 1 laser or up to 2 energy): containment power", 1)
             .addOtherStructurePart("Bolt bus (input bus, private)", "8 sockets on the cage, at least 1", 3)
             .addOtherStructurePart(
-                "Black Hole Compressor Utility Hatch or Directive Hatch",
+                "Black Hole Compressor Utility Hatch, Directive Hatch or GRB Receptor Port",
                 "optional, beside the bolt buses",
                 6)
             .addOtherStructurePart("Kerr Compressor Module controller", "a separate machine (marker)", 7)

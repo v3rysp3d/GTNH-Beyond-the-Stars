@@ -2,9 +2,12 @@
 // regenerate with `node tools/fieldsim-golden.js --refresh-fixture`, then regenerate the golden JSON.
 // The ENGINE block of the D-49 play prototype, verbatim (the reference for the Java field maths).
 // source: designs/star-lifecycle-prototype.html (design repo GTNH-Addons)
-// source-sha1: 55ffde82b28086e25e4c728506cb23cb97209fca
-// engine-sha1: bbf7e878a420735e230f80f2b01d823fc1d81ec2
+// source-sha1: a9abfe52b06818da775a4673310745de59660dda
+// engine-sha1: c28c22097debf085fd21226aed3f656c7706d04b
 /*ENGINE-START*/
+// One engine for both prototypes (star-lifecycle-prototype.html and quasar-p4-prototype.html carry this block verbatim).
+// The T7/T8 hooks (T.sigK, T.bx, T.perSec, T.cycOut, T.tde, T.slots, transDrift, transTick, tdeTick, tdePost,
+// nucleusFailText, transFailText) are only reached by tiers defined in quasar-p4-prototype.html's P4 block.
 const RECIPE_UMV = 125829120;
 const HN = 7200;
 const ZONES = [
@@ -20,7 +23,7 @@ const TRIM = {
   Space:{name:'Spatially Enlarged Fluid',unit:100}, ST:{name:'Molten SpaceTime',unit:100},
   Tg:{name:'Molten Purified Tengam',unit:36}, DSSF:{name:'Dimensionally Shifted Superfluid',unit:100},
   RSPM:{name:'Raw Star Matter',unit:1000}, Agent:{name:'Antipolarization Agent',unit:100}};
-const GAUGE = {P:{sym:'P',name:'Pressure'}, Th:{sym:'Θ',name:'Core heat'}, Om:{sym:'Ω',name:'Spin'}, Pi:{sym:'Π',name:'Polarity'}};
+const GAUGE = {P:{sym:'P',name:'Pressure'}, Th:{sym:'Θ',name:'Core heat'}, Om:{sym:'Ω',name:'Spin'}, Pi:{sym:'Π',name:'Polarity'}, W:{sym:'W',name:'Rail warp'}, L:{sym:'Λ',name:'Tidal shear'}};
 const ctl4 = (E,w,f)=>{ const u={}, t=f?5:10, r=f?0.5:1;
   if(E.P>t) u.Space=10*r; if(E.P<-t) u.ST=10*r; if(E.Th>t) u.Cool=10*r; if(E.Om>t) u.Tg=5*r; return u; };
 const TIERS = {
@@ -76,22 +79,24 @@ function uni(S,[a,b]){ return a+(b-a)*S.rng(); }
 function spAt(eyeT){ return 90-180*Math.min(eyeT,7200)/7200; }
 function mMax(S){ return 1+0.25*Math.max(0,S.cfg.tt-S.tier); }
 function newLedger(){ return {up:{}, eu:0, prod:{}, trims:{}, tach:0, charges:0, fails:0, zoneT:[0,0,0,0,0], ySum:0, yN:0, cycles:0, batches:0}; }
-function newHist(){ return {tier:new Uint8Array(HN), P:new Float32Array(HN).fill(NaN), Th:new Float32Array(HN).fill(NaN), Om:new Float32Array(HN).fill(NaN), Pi:new Float32Array(HN).fill(NaN), sp:new Float32Array(HN).fill(NaN), mk:new Uint8Array(HN)}; }
+function newHist(){ return {tier:new Uint8Array(HN), P:new Float32Array(HN).fill(NaN), Th:new Float32Array(HN).fill(NaN), Om:new Float32Array(HN).fill(NaN), Pi:new Float32Array(HN).fill(NaN), W:new Float32Array(HN).fill(NaN), L:new Float32Array(HN).fill(NaN), sp:new Float32Array(HN).fill(NaN), mk:new Uint8Array(HN)}; }
 function add(o,k,v){ o[k]=(o[k]||0)+v; }
 function log(S,msg,kind){ S.log.unshift({t:S.t,msg,kind:kind||''}); if(S.log.length>120) S.log.length=120; S.logRev++; }
 function newState(tier,cfg){
-  const S={tier, cfg, rng:mulberry(cfg.seed*2654435761>>>0), t:0, eyeT:0, state:'LIT', x:{P:0,Th:0,Om:0,Pi:0}, A:0, I:100, lock:0,
-    prevE:{P:0,Th:0,Om:0,Pi:0}, prevWarn:0, warn:0, zone:0, worst:0, stab:100, Y:1.25, sp:NaN, u:{}, m:1,
+  const S={tier, cfg, rng:mulberry(cfg.seed*2654435761>>>0), t:0, eyeT:0, state:'LIT', x:{P:0,Th:0,Om:0,Pi:0,W:0,L:0}, A:0, I:100, lock:0, prec:1, g:{beta:0,gHi:0,gLo:0,gHalo:0,Geye:0,D:0}, tde:null,
+    prevE:{P:0,Th:0,Om:0,Pi:0,W:0,L:0}, prevWarn:0, warn:0, zone:0, worst:0, stab:100, Y:1.25, sp:NaN, u:{}, m:1,
     ev:null, cyc:null, batch:null, L:newLedger(), log:[], logRev:0, H:newHist(), trans:null, pulse:{}, banner:null, pauseReq:false, mark:0};
-  log(S, `${TIERS[tier].star} selected, seed ${cfg.seed}. ${tier<=3?'Star lit.':tier===5?'White dwarf assembled at Θ +90.':'Remnant lit.'}`,'gold');
+  log(S, `${TIERS[tier].star} selected, seed ${cfg.seed}. ${tier<=3?'Star lit.':tier===5?'White dwarf assembled at Θ +90.':tier>=7?'Nucleus lit.':'Remnant lit.'}`,'gold');
   light(S);
   return S;
 }
 function light(S){
   const T=TIERS[S.tier];
   S.state='LIT'; S.I=100; S.lock=0; S.A=0;
-  S.cyc={eyeT:0, ySum:0, n:0, rMin:1, hsm:0};
+  S.cyc={eyeT:0, ySum:0, n:0, rMin:1, hsm:0, bSum:0, f8:0};
   S.ev = T.ev ? {next:S.t+uni(S,T.ev.every)/Math.min(S.cfg.m,mMax(S)), left:0, warned:false, sign:1} : null;
+  if(T.tde) S.tde={next:S.t+uni(S,T.tde.every), left:0, warned:false, ok:true, tau:0, n:0, caught:0};
+  if(S.tier>=7) S.prec=1;
   if(T.batch) startBatch(S);
   chargeCycle(S);
 }
@@ -115,14 +120,16 @@ function fail(S,reason){
     S.I=100; S.lock=0; startBatch(S); return;
   }
   let text, act;
-  if(tr && tr.phase===3){ text=`Collapse: the proto-neutron star was lost (${reason}). The Galactic Upgrade Core stays in escrow; relight Arcturus and run the Core Collapse again.`; act='T3'; }
+  if(tr && tr.kind){ text=transFailText(S,reason); act=tr.kind==='mc'?'T6':'T7'; }
+  else if(tr && tr.phase===3){ text=`Collapse: the proto-neutron star was lost (${reason}). The Galactic Upgrade Core stays in escrow; relight Arcturus and run the Core Collapse again.`; act='T3'; }
   else if(tr){ text=`Arcturus lost during the fast-forward (${reason}). The Time fluid is spent; the core stays in escrow.`; act='relight'; }
   else if(S.tier<=3){ text=`${T.star} went out: ${reason}. In-flight output is lost. Relighting takes a new Stellar Ignition Charge and a seed cloud.`; act='relight'; }
   else if(S.tier===4){ text=`The neutron star collapsed to a black hole: ${reason}. In the mod you rerun the Core Collapse (no core needed); here Relight skips to its settle phase.`; act='relight'; }
+  else if(S.tier>=7){ text=nucleusFailText(S,reason); act='relight'; }
   else { text=`Field decoherence: ${reason}. The magnetar is lost. Respawning needs the merger charge (WDM 18,432 L + BDM 4,608 L + Agent 100,000 L), no core.`; act='relight'; }
   log(S,text,'bad');
   S.banner={kind:'bad', text, act};
-  S.trans=null; S.state='DARK'; S.x={P:0,Th:0,Om:0,Pi:0}; S.A=0; S.lock=0;
+  S.trans=null; S.state='DARK'; S.x={P:0,Th:0,Om:0,Pi:0,W:0,L:0}; S.A=0; S.lock=0;
 }
 function relight(S){
   const T=TIERS[S.tier]; S.banner=null;
@@ -133,6 +140,8 @@ function relight(S){
     log(S,`Ignition: Stellar Ignition Charge used, seed cloud H + He ${fmtL(seed)} each. Protostar at P −80, contracting +1.5/s.`,'gold');
   } else if(S.tier===4){
     S.x={P:0,Th:60,Om:30,Pi:0}; light(S); log(S,'Proto-neutron star at P 0, Θ +60, Ω +30 (Core Collapse rerun skipped in the prototype).','gold');
+  } else if(S.tier>=7){
+    S.x={P:0,Th:0,Om:0,Pi:0,W:0,L:0}; light(S); log(S,TIERS[S.tier].slots?'Planets-mode field re-formed at P 0. The slots restart their runs.':`${TIERS[S.tier].star} relit at P 0, W 0 (in the mod you rerun the ${S.tier===7?'Magnetar Collapse from a lit magnetar':'Galactic Merger from a lit Triangulum'}, no core).`,'gold');
   } else if(S.tier===6){
     S.x={P:0,Th:0,Om:0,Pi:0}; light(S); add(S.L.up,'White Dwarf Matter',18432); add(S.L.up,'Black Dwarf Matter',4608); add(S.L.up,'Antipolarization Agent',100000);
     log(S,'Magnetar re-merged (merger imprint skipped in the prototype). Merger charge spent.','gold');
@@ -145,7 +154,9 @@ function manualU(S,T){
 }
 function rec(S,dark){
   const i=S.t%HN, H=S.H;
-  H.P[i]=dark?NaN:S.x.P; H.Th[i]=dark?NaN:S.x.Th; H.Om[i]=dark?NaN:S.x.Om; H.Pi[i]=dark?NaN:S.x.Pi;
+  const gs=TIERS[S.tier].gauges, ret=S.tier>=7;
+  H.P[i]=dark?NaN:S.x.P; H.Th[i]=(dark||ret)?NaN:S.x.Th; H.Om[i]=(dark||ret)?NaN:S.x.Om; H.Pi[i]=(dark||ret)?NaN:S.x.Pi;
+  H.W[i]=(dark||!gs.includes('W'))?NaN:S.x.W; H.L[i]=(dark||!gs.includes('L'))?NaN:S.x.L;
   H.sp[i]=(!dark && TIERS[S.tier].batch)?S.sp:NaN; H.mk[i]=S.mark;
   H.tier[i]=S.tier;
 }
@@ -178,26 +189,29 @@ function step(S){
     if(st.left>0){
       for(const k in ev.fx) E[k]=(E[k]||0)+ev.fx[k]*st.sign*q;
       st.left--;
-      if(st.left===0){ st.warned=false; st.next=S.t+1+uni(S,ev.every)/m; }
+      if(st.left===0){ st.warned=false; st.next=S.t+1+uni(S,ev.every)/m; if(ev.flip) S.prec=st.sign; }
     }
     if(st.warned && ev.warn) warn=st.sign;
   }
-  const dp={P:-5*(1-r), Th:0, Om:0, Pi:0};
+  const dp={P:-5*(1-r), Th:0, Om:0, Pi:0, W:0, L:0};
   let sp=0;
   if(T.batch){
     sp=spAt(S.batch.eyeT);
     if(sp>=-10 && sp<=10) dp.Th+=0.15;
     if(sp>10 && spAt(S.batch.eyeT+15*m)<=10){ warn=1; if(!S.batch.warned){ S.batch.warned=true; S.mark|=1; log(S,'Event channel: crystallisation plateau in 15 s (latent heat Θ +0.15/s while the setpoint is within ±10).','warn'); } }
   }
-  if(tr && tr.phase===1){ const sw=2*(tr.Mc-0.5)/0.94; dp.P+=sw; dp.Th+=sw; }
+  if(tr && !tr.kind && tr.phase===1){ const sw=2*(tr.Mc-0.5)/0.94; dp.P+=sw; dp.Th+=sw; }
+  if(tr && tr.kind){ const w2=transDrift(S,dp,E,q); if(w2) warn=w2; }
+  if(T.tde){ const w3=tdeTick(S,E,q); if(w3 && !warn) warn=w3; }
   const d=T.d(S);
   for(const k of T.gauges){
     const e=S.x[k]-(k==='Th'&&T.batch?sp:0);
     const c=T.cpl?T.cpl(S.x,k):0;
-    const xi=(S.rng()*2-1)*T.sig;
+    const xi=(S.rng()*2-1)*(T.sigK?T.sigK[k]:T.sig);
     let dv=m*((d[k]||0)+dp[k]+T.g[k]*e+c+q*xi);
     for(const i in u){ const f=T.trims[i].fx[k]; if(f) dv+=f*u[i]; }
     dv+=E[k]||0;
+    if(T.bx) dv+=T.bx(S,k);
     S.x[k]=clamp(S.x[k]+dv,-120,120);
   }
   if(T.shield){
@@ -219,7 +233,8 @@ function step(S){
   S.I=clamp(S.I+ZONES[z].dI,0,100);
   if(S.I<=0){ fail(S,'Integrity reached 0'); rec(S,false); S.t++; return; }
   // transition
-  if(tr){
+  if(tr && tr.kind) transTick(S);
+  else if(tr){
     if(tr.phase===1){
       const dose=C.tachRate; tr.tach+=dose; L.tach+=dose; tr.Mc=0.5+tr.tach/100000;
       if(tr.tach>=94000){ tr.Mc=1.44; bounce(S); }
@@ -238,16 +253,17 @@ function step(S){
   // cycles
   const Tn=TIERS[S.tier];
   if(Tn.feed){ const h=C.feed*m; add(L.up,'Hyperdense Stellar Mixture',h); S.cyc.hsm+=h; }
+  if(Tn.perSec) Tn.perSec(S,m);
   const cy=S.cyc; cy.ySum+=Y; cy.n++; cy.rMin=Math.min(cy.rMin,r); cy.eyeT+=m; S.eyeT+=m;
   if(cy.eyeT>=60-1e-9){
     const mY=cy.ySum/cy.n;
-    if(!Tn.batch){
-      const base=Tn.feed?3.6864*cy.hsm:Tn.prod.base, out=base*mY*cy.rMin;
+    if(!Tn.batch && !Tn.slots){
+      const base=Tn.feed?3.6864*cy.hsm:Tn.prod.base, out=Tn.cycOut?Tn.cycOut(S,cy,mY):base*mY*cy.rMin;
       add(L.prod,Tn.prod.name,out); S.mark|=8;
       log(S,`Cycle ${L.cycles+1}: +${fmtL(out)} ${Tn.prod.name} (mean Y ${mY.toFixed(2)}, r ${cy.rMin.toFixed(2)}).`,'ok');
     }
     L.cycles++;
-    S.cyc={eyeT:cy.eyeT-60, ySum:0, n:0, rMin:1, hsm:0};
+    S.cyc={eyeT:cy.eyeT-60, ySum:0, n:0, rMin:1, hsm:0, bSum:0, f8:0};
     chargeCycle(S);
   }
   if(Tn.batch){

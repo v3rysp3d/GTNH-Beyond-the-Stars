@@ -18,4 +18,10 @@ public interface KerrHole {
 
     /** The Kerr Density Upgrade (Kerr T2) is installed: DENSITY recipes are possible. */
     boolean densityInstalled();
+
+    /**
+     * P4 (quasar-p4.md §3.1): the quasar link's σ at this KEE on the 60 s mean (delivered ÷ 0.1 Bu/t at T1, 0.25 at
+     * T2), 0 with no GRB Receptor Port or no bursts. 0 while its quasar is frozen or unloaded (Q-8 pauses the link).
+     */
+    double burstSigma();
 }

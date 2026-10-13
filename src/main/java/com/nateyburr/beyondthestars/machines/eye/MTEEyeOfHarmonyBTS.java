@@ -50,15 +50,20 @@ import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.items.SLItems;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
+import com.nateyburr.beyondthestars.machines.conduit.MTEHatchBurstControl;
+import com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor;
 import com.nateyburr.beyondthestars.machines.directive.DirectiveHost;
 import com.nateyburr.beyondthestars.machines.directive.DirectiveSet;
 import com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldReadout;
 import com.nateyburr.beyondthestars.machines.eye.render.EyeCentreRender;
 import com.nateyburr.beyondthestars.machines.eye.render.TileEyeStar;
+import com.nateyburr.beyondthestars.machines.eye.star.EyeBursts;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeNbt;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime;
 import com.nateyburr.beyondthestars.machines.eye.star.StarDef;
+import com.nateyburr.beyondthestars.machines.quasar.burst.BurstHost;
+import com.nateyburr.beyondthestars.machines.quasar.burst.BurstReading;
 
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.Textures;
@@ -170,14 +175,22 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     public static final String PIECE_ARMS2 = "eye_arms2";
     /** D-49: the T6 band, the galactic rim with its four rim stellar sockets. */
     public static final String PIECE_RIM = "eye_rim";
+    /** P4: the T7 band, the stability rail (tilted 8°) with 8 GRB Receptor Ports, rail-high and rail-low. */
+    public static final String PIECE_RAIL = "eye_rail";
+    /** P4: the T8 band, the shard halo with 8 GRB Receptor Ports at the shard roots. */
+    public static final String PIECE_HALO = "eye_halo";
     /**
-     * Pieces in hologram and tier order; the trigger stack size (1..6) projects the first N. D-49: the
+     * Pieces in hologram and tier order; the trigger stack size (1..8) projects the first N. D-49: the
      * bands are CUMULATIVE, so piece i (tier i+1) counts only while every piece before it stands.
      */
-    public static final String[] PIECES = { PIECE_CORE, PIECE_BEAM, PIECE_JET, PIECE_ARMS, PIECE_ARMS2, PIECE_RIM };
+    public static final String[] PIECES = { PIECE_CORE, PIECE_BEAM, PIECE_JET, PIECE_ARMS, PIECE_ARMS2, PIECE_RIM,
+        PIECE_RAIL, PIECE_HALO };
     /** What the scanner calls each piece (index = piece index). */
     private static final String[] BAND_NAMES = { "core", "beam band", "jet crescent", "spiral arms", "second arms",
-        "galactic rim" };
+        "galactic rim", "stability rail", "shard halo" };
+    /** P4: the Receptor Port groups (manifest {@code sockets.r[i].group}). */
+    public static final int GROUP_HIGH = 0, GROUP_LOW = 1, GROUP_HALO = 2;
+    public static final String[] GROUP_NAMES = { "rail-high", "rail-low", "halo" };
     /** The highest tier the structure can carry. */
     public static final int MAX_TIER = PIECES.length;
 
@@ -191,9 +204,10 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     /**
      * Q-20 THE COMPRESSION GATE, the one table: the lowest generator META (TecTech tier - 1) that
      * Eye tier N needs in every compression cell. 1:1 (user ruling): T1 Crude (meta 0) .. T6 meta 5
-     * (D-49 extends the gate to T6). Index 0 is unused. Change the mapping here and nowhere else.
+     * (D-49 extends the gate to T6; P4 to T7 meta 6 and T8 meta 7). Index 0 is unused. Change the mapping here and
+     * nowhere else.
      */
-    public static final int[] COMPRESSION_META_FOR_TIER = { -1, 0, 1, 2, 3, 4, 5 };
+    public static final int[] COMPRESSION_META_FOR_TIER = { -1, 0, 1, 2, 3, 4, 5, 6, 7 };
 
     /** Buffers cap at 2^62 L each (spec §3.3); what the sockets fill them to is {@link #intakeCaps} (B-108). */
     public static final long BUFFER_CAP = 1L << 62;
@@ -262,6 +276,16 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     private final ArrayList<MTEHatchDirective> formedDirectiveHatches = new ArrayList<>();
     /** D-49 R-1: input buses on the plinth gas sockets (the Stellar Ignition Charges). */
     private final ArrayList<MTEHatchInputBus> itemBuses = new ArrayList<>();
+    /** P4: GRB Receptor Ports by group (rail-high, rail-low on the T7 rail; halo on the T8 shards). */
+    @SuppressWarnings("unchecked")
+    private final ArrayList<MTEHatchGRBReceptor>[] receptors = new ArrayList[] { new ArrayList<>(), new ArrayList<>(),
+        new ArrayList<>() };
+    /** P4: Burst Control Hatches in the 'd' sockets (Begin mode: a rising edge begins a galaxy transition). */
+    private final ArrayList<MTEHatchBurstControl> burstControls = new ArrayList<>();
+    /** P4: the slot bus ('p'): planet items and companion star charts, read every second, never consumed. */
+    private final ArrayList<MTEHatchInputBus> slotBuses = new ArrayList<>();
+    /** P4: the host-side burst API (not saved: nothing about a link is). */
+    private final BurstHost burstHost = new BurstHost();
 
     public MTEEyeOfHarmonyBTS(int aID, String aName, String aNameRegional) {
         super(aID, aName, aNameRegional);
@@ -308,6 +332,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addShape(PIECE_ARMS, BTSShapes.load(PIECE_ARMS))
             .addShape(PIECE_ARMS2, BTSShapes.load(PIECE_ARMS2))
             .addShape(PIECE_RIM, BTSShapes.load(PIECE_RIM))
+            .addShape(PIECE_RAIL, BTSShapes.load(PIECE_RAIL))
+            .addShape(PIECE_HALO, BTSShapes.load(PIECE_HALO))
             // ---- TecTech's own EOH blocks (the mid-run ruling)
             .addElement('U', casing(Casings.ReinforcedSpatialStructureCasing))
             .addElement('Q', casing(Casings.ReinforcedTemporalStructureCasing))
@@ -387,6 +413,34 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                     .casingIndex(shellIndex)
                     .hint(6)
                     .buildAndChain(casing(Casings.ReinforcedSpatialStructureCasing)))
+            // ---- P4 (quasar-p4.md §7): plinth face cells of eye_core. Both fall back to the plinth casing, so an
+            // Eye built before P4 (deck in every one of these cells) still forms. 'd' = 4 sockets above the
+            // controller row for Directive Hatches (Field, Events, Galaxy Transition, Slots) or a Burst Control Hatch
+            // (Begin mode); 'p' = the slot bus below it (a private input bus: planet items, companion charts).
+            .addElement(
+                'd',
+                buildHatchAdder(MTEEyeOfHarmonyBTS.class)
+                    .atLeast(EyeHatchElement.Directive, EyeHatchElement.BurstControl)
+                    .casingIndex(plinthIndex)
+                    .hint(7)
+                    .buildAndChain(casing(Casings.ReinforcedTemporalStructureCasing)))
+            .addElement(
+                'p',
+                buildHatchAdder(MTEEyeOfHarmonyBTS.class).atLeast(EyeHatchElement.SlotBus)
+                    .casingIndex(plinthIndex)
+                    .hint(8)
+                    .buildAndChain(casing(Casings.ReinforcedTemporalStructureCasing)))
+            // ---- P4: the T7 stability rail and the T8 shard halo (Bastion Plate shell, Casimir Plate trim) and their
+            // 16 GRB Receptor Ports ('r', falling back to the shell); each port's group (rail-high / rail-low /
+            // halo) comes from the manifest by its offset (P4-03)
+            .addElement('B', block(sl, BlockSLCasing.BASTION))
+            .addElement('P', block(sl, BlockSLCasing.CASIMIR))
+            .addElement(
+                'r',
+                buildHatchAdder(MTEEyeOfHarmonyBTS.class).atLeast(EyeHatchElement.Receptor)
+                    .casingIndex(shellIndex)
+                    .hint(9)
+                    .buildAndChain(block(sl, BlockSLCasing.BASTION)))
             .build();
     }
 
@@ -479,6 +533,9 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         sensorHatches.clear();
         directiveHatches.clear();
         itemBuses.clear();
+        for (List<MTEHatchGRBReceptor> group : receptors) group.clear();
+        burstControls.clear();
+        slotBuses.clear();
         mOutputBusses.clear();
         mOutputHatches.clear();
     }
@@ -508,6 +565,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         for (int i = 1; i < PIECES.length; i++) {
             pieceErrors.clear();
             final int mark = stellarHatches.size();
+            final int[] rMark = { receptors[0].size(), receptors[1].size(), receptors[2].size() };
             final int[] at = off(PIECES[i]);
             bandBuilt[i] = checkPiece(PIECES[i], at[0], at[1], at[2], pieceErrors);
             bandFault[i] = fault(bandBuilt[i], pieceErrors);
@@ -515,6 +573,10 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             if (!below) {
                 while (stellarHatches.size() > mark) {
                     stellarHatches.remove(stellarHatches.size() - 1);
+                }
+                // P4: a rail or halo that does not count drops its Receptor Ports too
+                for (int g = 0; g < 3; g++) {
+                    while (receptors[g].size() > rMark[g]) receptors[g].remove(receptors[g].size() - 1);
                 }
             }
         }
@@ -703,6 +765,136 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             return true;
         }
         return false;
+    }
+
+    /**
+     * P4: a GRB Receptor Port in an 'r' socket of the rail or the halo. Its group is the manifest's for the socket at
+     * its offset from the controller (P4-03); StructureLib only calls this at 'r' cells, so one always matches.
+     */
+    public boolean addReceptor(IGregTechTileEntity te, int casingIndex) {
+        if (te == null) return false;
+        final IMetaTileEntity mte = te.getMetaTileEntity();
+        if (!(mte instanceof MTEHatchGRBReceptor)) return false;
+        ((MTEHatchGRBReceptor) mte).updateTexture(casingIndex);
+        receptors[receptorGroup(te.getXCoord(), te.getYCoord(), te.getZCoord())].add((MTEHatchGRBReceptor) mte);
+        return true;
+    }
+
+    /** The group of the 'r' socket at world (x, y, z) for this controller (rail-low if none matches). */
+    private int receptorGroup(int x, int y, int z) {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base == null) return GROUP_LOW;
+        final int[] xyz = new int[3];
+        for (ReceptorSocket s : receptorSockets()) {
+            getExtendedFacing().getWorldOffset(s.rel, xyz);
+            if (base.getXCoord() + xyz[0] == x && base.getYCoord() + xyz[1] == y && base.getZCoord() + xyz[2] == z) {
+                return s.group;
+            }
+        }
+        return GROUP_LOW;
+    }
+
+    /** One 'r' socket of the manifest: its offset from the controller and its group. */
+    public static final class ReceptorSocket {
+
+        public final int[] rel;
+        public final int group;
+
+        ReceptorSocket(int[] rel, int group) {
+            this.rel = rel;
+            this.group = group;
+        }
+    }
+
+    private static volatile List<ReceptorSocket> RECEPTOR_SOCKETS;
+
+    /** The 16 'r' sockets of eye_rail and eye_halo with their groups (manifest, read once). */
+    public static List<ReceptorSocket> receptorSockets() {
+        List<ReceptorSocket> out = RECEPTOR_SOCKETS;
+        if (out != null) return out;
+        out = new ArrayList<>();
+        for (String piece : new String[] { PIECE_RAIL, PIECE_HALO }) {
+            try {
+                final com.google.gson.JsonObject entry = BTSShapes.manifestPiece(piece);
+                if (entry == null || !entry.has("sockets")) continue;
+                final com.google.gson.JsonObject sockets = entry.getAsJsonObject("sockets");
+                if (!sockets.has("r")) continue;
+                for (com.google.gson.JsonElement e : sockets.getAsJsonArray("r")) {
+                    final com.google.gson.JsonObject o = e.getAsJsonObject();
+                    final com.google.gson.JsonArray rel = o.getAsJsonArray("rel");
+                    final String g = o.has("group") ? o.get("group")
+                        .getAsString() : "";
+                    final int group = "rail-high".equals(g) ? GROUP_HIGH : "halo".equals(g) ? GROUP_HALO : GROUP_LOW;
+                    out.add(
+                        new ReceptorSocket(
+                            new int[] { rel.get(0)
+                                .getAsInt(),
+                                rel.get(1)
+                                    .getAsInt(),
+                                rel.get(2)
+                                    .getAsInt() },
+                            group));
+                }
+            } catch (RuntimeException bad) {
+                BeyondTheStars.LOG.warn("[BTS] Eye: the manifest's {} receptor sockets are unreadable: {}", piece, bad);
+            }
+        }
+        RECEPTOR_SOCKETS = out;
+        return out;
+    }
+
+    /** P4: a Burst Control Hatch in a 'd' socket (Begin mode). */
+    public boolean addBurstControl(IGregTechTileEntity te, int casingIndex) {
+        if (te == null) return false;
+        final IMetaTileEntity mte = te.getMetaTileEntity();
+        if (!(mte instanceof MTEHatchBurstControl)) return false;
+        ((MTEHatchBurstControl) mte).updateTexture(casingIndex);
+        burstControls.add((MTEHatchBurstControl) mte);
+        return true;
+    }
+
+    /** P4: the slot bus ('p'): an input bus, ME input bus included; crafting input buffers refused. */
+    public boolean addSlotBus(IGregTechTileEntity te, int casingIndex) {
+        if (te == null) return false;
+        final IMetaTileEntity mte = te.getMetaTileEntity();
+        if (mte instanceof MTEHatchInputBus && !(mte instanceof MTEHatchCraftingInputME)) {
+            ((MTEHatchInputBus) mte).updateTexture(casingIndex);
+            slotBuses.add((MTEHatchInputBus) mte);
+            return true;
+        }
+        return false;
+    }
+
+    public int receptorCount(int group) {
+        return liveCount(receptors[group]);
+    }
+
+    public int receptorCount() {
+        return receptorCount(GROUP_HIGH) + receptorCount(GROUP_LOW) + receptorCount(GROUP_HALO);
+    }
+
+    public int burstControlCount() {
+        return liveCount(burstControls);
+    }
+
+    public int slotBusCount() {
+        return liveCount(slotBuses);
+    }
+
+    /** P4: the Receptor Ports of one group. Server state, read-only. */
+    public List<MTEHatchGRBReceptor> receptors(int group) {
+        return Collections.unmodifiableList(receptors[group]);
+    }
+
+    /** P4 bench: the first live slot bus, or null. */
+    public MTEHatchInputBus firstSlotBus() {
+        for (MTEHatchInputBus bus : slotBuses) if (live(bus)) return bus;
+        return null;
+    }
+
+    /** P4: the Burst Control Hatches. Server state, read-only. */
+    public List<MTEHatchBurstControl> burstControlHatches() {
+        return Collections.unmodifiableList(burstControls);
     }
 
     private static boolean addInput(IGregTechTileEntity te, int casingIndex, List<MTEHatchInput> list) {
@@ -960,6 +1152,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             }
             // D-49: one field second, straight after the drain (plan §4). Runs unformed too, so a broken
             // structure puts the star out (R-8); a chunk that is not ticking freezes it.
+            com.nateyburr.beyondthestars.machines.eye.star.EyeGalaxyBench.liveSecond(this); // P4 bench only
             runtime.second();
             publishDirectives();
             refreshStatusLine();
@@ -1058,6 +1251,14 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         }
         if (!centre.note()
             .isEmpty()) out.add(centre.note());
+        final com.nateyburr.beyondthestars.machines.eye.render.EyeStarLook want = com.nateyburr.beyondthestars.machines.eye.render.EyeStarLook
+            .of(runtime);
+        out.add(
+            "Wanted: " + (want == null ? "none" : want.label() + " (kind " + want.kind + ")")
+                + ", formed "
+                + mMachine
+                + ", start-up check "
+                + (mStartUpCheck < 0 ? "done" : "pending"));
         return out;
     }
 
@@ -1547,6 +1748,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             case IDLE:
                 return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_idle");
             default:
+                if (star.n() >= 7) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_galaxy");
                 if (star.n() == 6) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_merger");
                 if (star.n() == 5) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_idle");
                 if (!star.tier.ignite) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_remnant");
@@ -1826,6 +2028,34 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             return got;
         }
 
+        /** P4-77: an OpenComputers trim pulse's fluid, from the gas and stellar sockets (ME stocking included). */
+        @Override
+        public long drainStock(Fluid fluid, long max) {
+            if (fluid == null || max <= 0) return 0;
+            long got = 0;
+            for (List<MTEHatchInput> list : java.util.Arrays.asList(gasHatches, stellarHatches)) {
+                for (MTEHatchInput hatch : list) {
+                    if (got >= max) return got;
+                    if (!live(hatch)) continue;
+                    final boolean aware = hatch instanceof IRecipeProcessingAwareHatch;
+                    if (aware) ((IRecipeProcessingAwareHatch) hatch).startRecipeProcessing();
+                    try {
+                        for (FluidStack stored : storedFluids(hatch)) {
+                            if (got >= max) break;
+                            if (stored == null || stored.amount <= 0 || stored.getFluid() != fluid) continue;
+                            final int want = (int) Math.min(stored.amount, max - got);
+                            final FluidStack drained = hatch
+                                .drain(ForgeDirection.UNKNOWN, new FluidStack(fluid, want), true);
+                            if (drained != null && drained.amount > 0) got += drained.amount;
+                        }
+                    } finally {
+                        if (aware) ((IRecipeProcessingAwareHatch) hatch).endRecipeProcessing(MTEEyeOfHarmonyBTS.this);
+                    }
+                }
+            }
+            return got;
+        }
+
         /** R-1: a Stellar Ignition Charge from a plinth input bus (ME input buses through their shadow stacks). */
         @Override
         public boolean takeIgnitionCharge(boolean simulate) {
@@ -1888,6 +2118,141 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             final IGregTechTileEntity base = getBaseMetaTileEntity();
             if (base != null) base.markDirty();
         }
+
+        /**
+         * P4: the receptor groups through the host-side burst API (quasar-p4.md §3.1): each group read on its own
+         * (rail-high, rail-low, halo), then every port through the Eye's {@link BurstHost} once, which rolls the 60 s
+         * mean, works out σ against the demand and reports the Eye to every feeding quasar.
+         */
+        @Override
+        public EyeBursts bursts(double demandBuPerTick, double streak01) {
+            injectBench();
+            final EyeBursts b = new EyeBursts();
+            final BurstReading hi = BurstHost.read(receptors[GROUP_HIGH], "Eye of Harmony (rail-high)");
+            final BurstReading lo = BurstHost.read(receptors[GROUP_LOW], "Eye of Harmony (rail-low)");
+            final BurstReading halo = BurstHost.read(receptors[GROUP_HALO], "Eye of Harmony (halo)");
+            final List<MTEHatchGRBReceptor> all = new ArrayList<>(receptors[GROUP_HIGH]);
+            all.addAll(receptors[GROUP_LOW]);
+            all.addAll(receptors[GROUP_HALO]);
+            final BurstReading r = burstHost.second(all, eyeKey(), "Eye of Harmony", demandBuPerTick, streak01);
+            b.hi = hi.total;
+            b.lo = lo.total;
+            b.halo = halo.total;
+            b.linkedRail = hi.linked() || lo.linked();
+            b.linkedAll = r.linked();
+            b.paused = r.paused;
+            b.pausedBy = r.pausedBy == null ? "" : r.pausedBy.label();
+            b.sourceId = r.linkSource();
+            b.source = b.sourceId == null ? "" : b.sourceId.label();
+            b.hiPorts = receptorCount(GROUP_HIGH);
+            b.loPorts = receptorCount(GROUP_LOW);
+            b.haloPorts = receptorCount(GROUP_HALO);
+            b.mean60 = burstHost.mean();
+            b.sigmaMean = burstHost.sigmaMean();
+            return b;
+        }
+
+        @Override
+        public int receptorPorts(int group) {
+            return group >= 0 && group < 3 ? receptorCount(group) : 0;
+        }
+
+        /** Polls every Burst Control Hatch (Begin mode); true if any saw a rising edge since the last second. */
+        @Override
+        public boolean takeBeginEdge() {
+            boolean edge = false;
+            final String line = runtime.galaxyReady() ? "ready: an edge begins the transition"
+                : runtime.galaxyTransition() ? "a transition is running" : "not ready (edges ignored)";
+            for (MTEHatchBurstControl h : burstControls) {
+                if (!live(h)) continue;
+                h.poll("Eye of Harmony", line, MTEHatchBurstControl.Mode.BEGIN);
+                if (h.consumeRisingEdge()) edge = true;
+            }
+            return edge;
+        }
+
+        /** The slot bus's items in slot order (ME input buses: what they hold for the Eye now). Never consumed. */
+        @Override
+        public List<ItemStack> slotBusItems() {
+            final List<ItemStack> out = new ArrayList<>();
+            for (MTEHatchInputBus bus : slotBuses) {
+                if (!live(bus)) continue;
+                final boolean aware = bus instanceof IRecipeProcessingAwareHatch;
+                if (aware) ((IRecipeProcessingAwareHatch) bus).startRecipeProcessing();
+                try {
+                    final int n = bus instanceof MTEHatchInputBusME ? MTEHatchInputBusME.SLOT_COUNT
+                        : bus.getSizeInventory();
+                    for (int i = 0; i < n; i++) {
+                        final ItemStack s = bus.getStackInSlot(i);
+                        if (s != null && s.getItem() != null && s.stackSize > 0) out.add(s);
+                    }
+                } finally {
+                    if (aware) ((IRecipeProcessingAwareHatch) bus).endRecipeProcessing(MTEEyeOfHarmonyBTS.this);
+                }
+            }
+            return out;
+        }
+
+        @Override
+        public double planetSeconds(EyeRecipe recipe) {
+            return runTicks(recipe) / 20.0;
+        }
+    }
+
+    // ------------------------------------------------------------------ P4 bench: the real receptor path
+
+    /** Bench {@code inject}: a source quasar and the Bu/t per group pushed into the ports each second (not saved). */
+    private com.nateyburr.beyondthestars.machines.quasar.burst.BurstSource injectFrom;
+    private final double[] injectBu = new double[3];
+
+    /**
+     * Bench {@code inject <qx> <qy> <qz> <hi> <lo> <halo>}: from now on, every field second, streams from that quasar
+     * (its real {@code BurstSource}: Q-8 follows its status) are pushed into this Eye's Receptor Ports, split evenly
+     * across each group's ports, before the Eye reads them. {@code null} source stops it.
+     */
+    public void debugInject(com.nateyburr.beyondthestars.machines.quasar.burst.BurstSource from, double hi, double lo,
+        double halo) {
+        injectFrom = from;
+        injectBu[GROUP_HIGH] = hi;
+        injectBu[GROUP_LOW] = lo;
+        injectBu[GROUP_HALO] = halo;
+    }
+
+    private void injectBench() {
+        if (injectFrom == null) return;
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base == null || base.getWorld() == null) return;
+        // a quasar that is frozen or not loaded sends nothing: its ports then remember it and pause the Eye (Q-8)
+        if (injectFrom.status() != com.nateyburr.beyondthestars.machines.quasar.burst.BurstSource.Status.RUNNING)
+            return;
+        final long now = base.getWorld()
+            .getTotalWorldTime();
+        for (int g = 0; g < 3; g++) {
+            final int n = receptorCount(g);
+            if (n == 0 || injectBu[g] <= 0) continue;
+            final com.nateyburr.beyondthestars.machines.quasar.burst.BurstStream s = com.nateyburr.beyondthestars.machines.quasar.burst.BurstStream
+                .of(
+                    new com.nateyburr.beyondthestars.machines.quasar.burst.JetPacket(
+                        injectFrom,
+                        com.nateyburr.beyondthestars.machines.quasar.burst.JetPort.TOP,
+                        injectBu[g] / n,
+                        true,
+                        now));
+            for (MTEHatchGRBReceptor port : receptors[g]) if (live(port)) port.receive(s);
+        }
+    }
+
+    /** "eye@dim:x,y,z": this Eye's key in its quasars' host lists. */
+    private String eyeKey() {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base == null || base.getWorld() == null) return "eye";
+        return "eye@" + base.getWorld().provider.dimensionId
+            + ":"
+            + base.getXCoord()
+            + ","
+            + base.getYCoord()
+            + ","
+            + base.getZCoord();
     }
 
     // ============================================================================ panel/tooltip
@@ -1946,6 +2311,17 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 + sensorHatchCount()
                 + ", Directive "
                 + directiveHatchCount()
+                + ", Burst Control "
+                + burstControlCount()
+                + ", slot bus "
+                + slotBusCount()
+                + ", GRB Receptor "
+                + receptorCount(GROUP_HIGH)
+                + " high / "
+                + receptorCount(GROUP_LOW)
+                + " low / "
+                + receptorCount(GROUP_HALO)
+                + " halo"
                 + ", ME out "
                 + outputBusCount()
                 + " bus / "
@@ -2010,6 +2386,9 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         out.addAll(runtime.statusLines());
         for (MTEHatchDirective hatch : publishedDirectives()) {
             if (live(hatch)) out.add("Directive: " + hatch.statusLine());
+        }
+        for (MTEHatchBurstControl hatch : burstControls) {
+            if (live(hatch)) out.add("Burst Control: " + hatch.statusLine());
         }
         if (!runtime.lastFailure()
             .isEmpty()) out.add("Last failure: " + runtime.lastFailure());
@@ -2137,6 +2516,12 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addInfo("T5 + second arms: Sirius B (Black Dwarf Matter); T6 + galactic rim: the magnetar.")
             .addInfo("  The magnetar's Antipolarization Agent upkeep (3,000 L/cycle) also charges its flare shield;")
             .addInfo("  dose extra Agent into a Field socket on a flare warning.")
+            .addInfo("T7 + stability rail: Triangulum (Ergomatter); T8 + shard halo: the Milky Way (Superdense")
+            .addInfo("  Ergomatter from an Ergomatter feed). Galaxies live on a Quasar Engine's gamma-ray bursts on")
+            .addInfo("  the GRB Receptor Ports: bring 1.5x the demand (1.5 / 6 Bu/t), Space trims cool P, aim the")
+            .addInfo("  rail's high / low banks for W, the halo holds Λ. Unlocks: the Stability Link (T6) and the")
+            .addInfo("  Heavy Link (T7), 30 min of linked bursts; then the Magnetar Collapse and the Galactic Merger")
+            .addInfo("  begin on a signal. Planets mode: 3 / 6 planets from the slot bus; companions: 1 / 2 charts.")
             .addInfo("Stars are LIVE: a Stellar Ignition Charge in a plinth input bus lights T1-T3; every")
             .addInfo("  60 s cycle takes EU and upkeep; hold the stability field or the star is lost.")
             .addInfo("  Once T4 is unlocked, a dark Eye with the Neutron Star chart relights Arcturus from a")
@@ -2152,6 +2537,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addInfo("Automation: every action has an AE2, redstone, OpenComputers and Factory Manager route.")
             .addInfo("  Directive Hatches (Sensor sockets) put out what the Eye needs as a 4-bit code: Trims,")
             .addInfo("  Status, Transition (tables on the hatch); a control-set hatch takes redstone for the dial.")
+            .addInfo("  T7+: the 'd' sockets take Directive Hatches (Field, Events, Galaxy Transition, Slots) or a")
+            .addInfo("  Burst Control Hatch (Begin: a rising edge begins a ready galaxy transition).")
             .addInfo("  A plinth input bus takes the next core into escrow and a star chart into the controller")
             .addInfo("  slot; the old target and spare copies leave through the ME output bus (export-bus card")
             .addInfo("  on Signal pulse; no swap during a transition). OpenComputers: Adapter -> bts_eye.")
@@ -2161,7 +2548,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addInfo("Power: wireless EU (planets: per run at start; stars: per cycle); none returned.")
             .addInfo("Parallel x2 for every installed tier above the recipe's tier (stars: from the next charge).")
             .addInfo("Field generators (any tier, mixable; the lowest tier of each type counts):")
-            .addInfo("  Spacetime Compression GATES the tier: Eye TN (T1-T6) needs every one at tier N+.")
+            .addInfo("  Spacetime Compression GATES the tier: Eye TN (T1-T8) needs every one at tier N+.")
             .addInfo("  It alone decides the planets: a TN Eye runs every planet of T1..TN.")
             .addInfo("  Planets: -3% time per compression tier above the planet's TecTech tier.")
             .addInfo("  Time Dilation above the star's tier opens the time dial; Stabilisation calms the field.")
@@ -2193,6 +2580,20 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addOtherStructurePart(
                 "T6 galactic rim",
                 (bom(PIECE_RIM, 'T') + bom(PIECE_RIM, 'g')) + " Galactic Shell Plating (4 may be sockets)")
+            .addOtherStructurePart(
+                "T7 stability rail",
+                (bom(PIECE_RAIL, 'B') + bom(PIECE_RAIL, 'r')) + " Bastion Plate, "
+                    + bom(PIECE_RAIL, 'P')
+                    + " Casimir Plate, lining and glass")
+            .addOtherStructurePart(
+                "T8 shard halo",
+                (bom(PIECE_HALO, 'B') + bom(PIECE_HALO, 'r')) + " Bastion Plate and glass")
+            .addOtherStructurePart(
+                "GRB Receptor Port",
+                "rail (4 high, 4 low) and halo (8); T7 needs 1+ per bank, T8 all 8 halo",
+                9)
+            .addOtherStructurePart("Directive Hatch or Burst Control Hatch", "plinth, 4 'd' sockets, optional", 7)
+            .addOtherStructurePart("Input bus (the slot bus: planets, companion charts)", "plinth, optional", 8)
             .addOtherStructurePart("Gas input hatch (H, He), or input bus (ignition charges)", "plinth, 1+ hatch", 1)
             .addOtherStructurePart("ME Output Bus + ME Output Hatch", "plinth, at least 1 of each", 2)
             .addMaintenanceHatch("Plinth", 3)
@@ -2206,7 +2607,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 "core band, " + bom(PIECE_CORE, 'n') + " sockets, optional",
                 6)
             .addStructureInfo("Hologram: trigger stack 1 = T1 core, 2 = + beam band, 3 = + jet crescent, 4 = + arms,")
-            .addStructureInfo("  5 = + second arms, 6 = + galactic rim.")
+            .addStructureInfo("  5 = + second arms, 6 = + galactic rim, 7 = + stability rail, 8 = + shard halo.")
             .addStructureInfo("Compression generators are placed at the stack's tier (its 1:1 gate); Time")
             .addStructureInfo("  Dilation and Stabilisation at tier 1. The projector's EOH channels")
             .addStructureInfo("  (spacetime_compression, time_dilation, stabilisation) raise them.")

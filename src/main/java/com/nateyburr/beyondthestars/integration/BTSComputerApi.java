@@ -14,12 +14,22 @@ import com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS;
 import com.nateyburr.beyondthestars.machines.eye.MTEHatchStellarFieldSensor;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldReadout;
 import com.nateyburr.beyondthestars.machines.eye.field.StellarField;
+import com.nateyburr.beyondthestars.machines.eye.star.EyeBursts;
+import com.nateyburr.beyondthestars.machines.eye.star.EyeGalaxy;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeTransition;
+import com.nateyburr.beyondthestars.machines.eye.star.GalacticMerger;
+import com.nateyburr.beyondthestars.machines.eye.star.MagnetarCollapse;
 import com.nateyburr.beyondthestars.machines.eye.star.StarDef;
+import com.nateyburr.beyondthestars.machines.homogeny.MTEHomogeny;
 import com.nateyburr.beyondthestars.machines.kerr.MTEKerrEngine;
 import com.nateyburr.beyondthestars.machines.kerr.MTEKerrModuleBase;
+import com.nateyburr.beyondthestars.machines.quasar.burst.BurstHost;
+import com.nateyburr.beyondthestars.machines.quasar.burst.BurstSource;
+import com.nateyburr.beyondthestars.machines.quasar.engine.BurstLink;
+import com.nateyburr.beyondthestars.machines.reality.MTERealityDiffraction;
 
+import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 
 /**
@@ -36,6 +46,92 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 public final class BTSComputerApi {
 
     private BTSComputerApi() {}
+
+    // ============================================================================ rate limit
+
+    /** Setters take one call per this many ticks per machine and method: the field's own step (quasar-p4.md §8.2). */
+    public static final long RATE_TICKS = 20;
+    /** What a refused setter returns to the computer: nil and the reason. */
+    public static final String RATE_MESSAGE = "rate limited: one call per 20 ticks (1 s, the field's step)";
+    /** "dim:x,y,z#method" -> world tick of the last accepted call; the oldest entries go first past 4,096. */
+    private static final Map<String, Long> LAST_SET = new LinkedHashMap<String, Long>(64, 0.75f, false) {
+
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, Long> eldest) {
+            return size() > 4096;
+        }
+    };
+
+    /**
+     * True if {@code method} may run on {@code mte} now (and records the call); false within {@link #RATE_TICKS} of
+     * the last accepted call, so a script cannot beat the 1 s lag. Server thread.
+     */
+    public static boolean rateOk(IMetaTileEntity mte, String method) {
+        final IGregTechTileEntity base = mte == null ? null : mte.getBaseMetaTileEntity();
+        if (base == null || base.getWorld() == null) return true;
+        final long now = base.getWorld()
+            .getTotalWorldTime();
+        final String key = base.getWorld().provider.dimensionId + ":"
+            + base.getXCoord()
+            + ","
+            + base.getYCoord()
+            + ","
+            + base.getZCoord()
+            + "#"
+            + method;
+        final Long last = LAST_SET.get(key);
+        if (last != null && now - last < RATE_TICKS && now >= last) return false;
+        LAST_SET.put(key, now);
+        return true;
+    }
+
+    // ============================================================================ burst hosts
+
+    /** The quasar link as a host sees it: sigma (60 s mean and last second), delivered, linked, source, paused. */
+    public static Map<String, Object> burstLink(BurstHost h, double sigmaUsed, int ports) {
+        final Map<String, Object> m = new LinkedHashMap<>();
+        m.put("ports", ports);
+        m.put("sigma", sigmaUsed);
+        m.put("sigmaLast", h.sigma());
+        m.put("delivered", h.delivered());
+        m.put("mean", h.mean());
+        m.put("linked", h.linked());
+        final BurstSource s = h.linkSource();
+        m.put("source", s == null ? "" : s.label());
+        m.put("paused", h.paused());
+        m.put("line", h.linkLine());
+        return m;
+    }
+
+    /** {@code bts_homogeny.getState()}: tier, parallels, the quasar link and what it does (P4, §3.1). */
+    public static Map<String, Object> homogenyState(MTEHomogeny h) {
+        final Map<String, Object> m = new LinkedHashMap<>();
+        m.put("formed", h.isFormedForGui());
+        m.put("tier", h.tier());
+        m.put("installedTier", h.installedTier());
+        m.put("parallels", h.maxParallel());
+        m.put("speed", h.speedFactor());
+        m.put("demand", h.burstDemand());
+        m.put("entanglementOpen", h.quasarSigma() >= 1.0);
+        m.put("running", h.mMaxProgresstime > 0);
+        m.put("progress", h.mMaxProgresstime > 0 ? (double) h.mProgresstime / h.mMaxProgresstime : 0.0);
+        m.put("link", burstLink(h.burstHost(), h.quasarSigma(), h.receptorCount()));
+        return m;
+    }
+
+    /** {@code bts_reality.getState()}: runs, the burst-driven regions and their speed (P4, §3.1). */
+    public static Map<String, Object> realityState(MTERealityDiffraction r) {
+        final Map<String, Object> m = new LinkedHashMap<>();
+        m.put("formed", r.mMachine);
+        m.put("burstDriven", r.burstDriven());
+        m.put("speed", r.speedFactor());
+        m.put("demand", BurstLink.REALITY);
+        m.put("running", r.mMaxProgresstime > 0);
+        m.put("progress", r.mMaxProgresstime > 0 ? (double) r.mProgresstime / r.mMaxProgresstime : 0.0);
+        m.put("anchorMask", r.anchorMask() & 63);
+        m.put("link", burstLink(r.burstHost(), r.quasarSigma(), r.receptorCount()));
+        return m;
+    }
 
     // ===================================================================================== Eye
 
@@ -98,6 +194,116 @@ public final class BTSComputerApi {
         m.put("r", r.r);
         m.put("m", r.m);
         m.put("p", r.p);
+        // P4 (T7+): the galaxy gauges and the bursts as the field saw them
+        final EyeGalaxy g = eye.starRuntime()
+            .galaxy();
+        m.put("W", r.value(FieldReadout.Channel.W));
+        m.put("L", r.value(FieldReadout.Channel.LAMBDA));
+        m.put("beta", g.beta());
+        m.put("gammaHi", g.gammaHi());
+        m.put("gammaLo", g.gammaLo());
+        m.put("gammaHalo", g.gammaHalo());
+        m.put("D", g.demand());
+        m.put("planets", r.planets);
+        return m;
+    }
+
+    /**
+     * P4 {@code bts_eye.getEvent()}: the running countdown: kind ("collapse", "pass", "crossing", "merger" or ""),
+     * secondsLeft (−1 none) and sign (+1 / −1, 0 unsigned).
+     */
+    public static Map<String, Object> eyeEvent(MTEEyeOfHarmonyBTS eye) {
+        final EyeStarRuntime rt = eye.starRuntime();
+        final Map<String, Object> m = new LinkedHashMap<>();
+        final EyeTransition tr = rt.transition();
+        final int left = rt.countdownSeconds();
+        String kind = "";
+        int sign = 0;
+        if (tr instanceof MagnetarCollapse && left >= 0) kind = "collapse";
+        else if (tr instanceof GalacticMerger && left >= 0) {
+            kind = "pass";
+            sign = ((GalacticMerger) tr).nextPassSign();
+        } else if (rt.crossingCountdown() >= 0 || rt.crossingLeft() > 0) kind = "crossing";
+        else if (rt.mergerWarning() != 0) {
+            kind = "merger";
+            sign = rt.mergerWarning();
+        }
+        m.put("kind", kind);
+        m.put("secondsLeft", kind.isEmpty() ? -1 : left);
+        m.put("sign", sign);
+        m.put("crossingLeft", rt.crossingLeft());
+        m.put("precession", rt.precession());
+        return m;
+    }
+
+    /**
+     * P4 {@code bts_eye.getUnlock()}: the link milestone in progress: kind ("stability", "heavy" or ""), streak,
+     * best, mean (Bu/t, 60 s), frac (the high bank's or the halo's share), linked, source, done, and the transition's
+     * readiness.
+     */
+    public static Map<String, Object> eyeUnlock(MTEEyeOfHarmonyBTS eye) {
+        final EyeStarRuntime rt = eye.starRuntime();
+        final Map<String, Object> m = new LinkedHashMap<>();
+        final int n = rt.linkTier();
+        final BurstLink l = rt.activeLink();
+        final EyeBursts b = rt.galaxy()
+            .bursts();
+        m.put("kind", n == 6 ? "stability" : n == 7 ? "heavy" : "");
+        m.put("streak", l == null ? 0 : l.streak);
+        m.put("best", l == null ? 0 : Math.max(l.best, rt.milestones().linkBest[n]));
+        m.put("mean", l == null ? b.mean60 : l.mean);
+        m.put("frac", l == null ? 0 : l.frac);
+        m.put("linked", n == 6 ? b.linkedRail : b.linkedAll);
+        m.put("source", b.source);
+        m.put("stabilityLinkHeld", rt.milestones().linkDone[6]);
+        m.put("heavyLinkHeld", rt.milestones().linkDone[7]);
+        m.put("ready", rt.galaxyReady());
+        m.put("testFireWanted", rt.testFireWanted());
+        m.put("quasarStream", rt.linkedQuasarStream());
+        m.put("testFireShare", rt.heavyTestFireShare());
+        return m;
+    }
+
+    /** P4 {@code bts_eye.beginTransition()}: begins a ready galaxy transition; returns what happened. */
+    public static String eyeBegin(MTEEyeOfHarmonyBTS eye) {
+        return eye.starRuntime()
+            .requestBegin();
+    }
+
+    /** P4 {@code bts_eye.setFeed8(v)}: the T8 Ergomatter feed (0-10 L/s per parallel); returns it. */
+    public static double eyeSetFeed8(MTEEyeOfHarmonyBTS eye, double v) {
+        eye.starRuntime()
+            .setF8(v);
+        return eye.starRuntime()
+            .f8Setpoint();
+    }
+
+    /** P4 {@code bts_eye.setMode("galaxy" | "planets")}: returns the mode now (the GUI's switch). */
+    public static String eyeSetMode(MTEEyeOfHarmonyBTS eye, String name) {
+        final EyeGalaxy.Mode mode = EyeGalaxy.Mode.parse(name);
+        if (mode != null) eye.starRuntime()
+            .setMode(mode);
+        return eye.starRuntime()
+            .mode().key;
+    }
+
+    /** P4 {@code bts_eye.getSlots()}: the mode, the planet slots (one line each), the companions, idle / short. */
+    public static Map<String, Object> eyeSlots(MTEEyeOfHarmonyBTS eye) {
+        final EyeStarRuntime rt = eye.starRuntime();
+        final Map<String, Object> m = new LinkedHashMap<>();
+        m.put("mode", rt.mode().key);
+        final Map<Integer, String> slots = new LinkedHashMap<>();
+        final List<String> lines = rt.slotLines();
+        for (int i = 0; i < lines.size(); i++) slots.put(i + 1, lines.get(i));
+        m.put("slots", slots);
+        m.put("progress", rt.slotProgress());
+        m.put("companions", rt.companionNames());
+        m.put("idle", rt.slotIdle());
+        m.put("companionShort", rt.companionShort());
+        m.put(
+            "lastRunLostParallels",
+            rt.galaxy()
+                .lastRunLost());
         return m;
     }
 
@@ -228,6 +434,10 @@ public final class BTSComputerApi {
         m.put("collapsers", kee.getCollapsers());
         m.put("linkedModules", kee.getLinkedModules());
         m.put("auto", kee.isAutoSeeds());
+        // P4: the quasar link (a GRB Receptor Port in a utility socket)
+        m.put("setpointHeld", kee.effectiveSetpoint());
+        m.put("bleedFactor", kee.bleedFactor());
+        m.put("link", burstLink(kee.burstHost(), kee.burstSigma(), kee.receptorCount()));
         return m;
     }
 
@@ -282,10 +492,10 @@ public final class BTSComputerApi {
     /** {@code bts_sensor.getState()}: the Stellar Field Sensor Hatch's channel, comparator, reading and output. */
     public static Map<String, Object> sensorState(MTEHatchStellarFieldSensor s) {
         final Map<String, Object> m = new LinkedHashMap<>();
-        m.put(
-            "channel",
-            s.channel()
-                .name());
+        m.put("host", s.getHost().label);
+        m.put("channel", s.currentChannelName());
+        m.put("window", s.getWindow());
+        m.put("invert", s.isInvert());
         m.put("threshold", s.getThreshold());
         m.put("comparator", s.isLessThan() ? "lt" : "gt");
         m.put("analog", s.isAnalog());
@@ -297,6 +507,12 @@ public final class BTSComputerApi {
 
     /** {@code bts_sensor.setChannel(name)}: P, THETA, OMEGA, PI, SHIELD, INTEGRITY, ... Returns the channel set. */
     public static String sensorSetChannel(MTEHatchStellarFieldSensor s, String name) {
+        if (s.getHost() == MTEHatchStellarFieldSensor.Host.QUASAR) {
+            final com.nateyburr.beyondthestars.machines.quasar.QuasarSensorChannel q = com.nateyburr.beyondthestars.machines.quasar.QuasarSensorChannel
+                .parse(name);
+            if (q != null) s.setChannelOrdinal(q.ordinal());
+            return s.currentChannelName();
+        }
         for (FieldReadout.Channel c : FieldReadout.Channel.values()) {
             if (c.name()
                 .equalsIgnoreCase(name)) {
@@ -304,8 +520,7 @@ public final class BTSComputerApi {
                 break;
             }
         }
-        return s.channel()
-            .name();
+        return s.currentChannelName();
     }
 
     /** {@code bts_directive.getState()}: the hatch's set, output mode, window, code, bits and output. */
@@ -328,6 +543,25 @@ public final class BTSComputerApi {
         final Map<String, Object> bits = new LinkedHashMap<>();
         for (int i = 0; i < 4; i++) bits.put(h.label(i), (h.currentCode() & (1 << i)) != 0);
         m.put("bits", bits);
+        return m;
+    }
+
+    /**
+     * {@code bts_directive.getBits()}: the current code as four booleans, [1] [2] [4] [8] (Lua indices 1-4), with
+     * their labels.
+     */
+    public static Map<String, Object> directiveBits(MTEHatchDirective h) {
+        final Map<String, Object> m = new LinkedHashMap<>();
+        final int code = h.currentCode();
+        final Map<Integer, Object> on = new LinkedHashMap<>();
+        final Map<Integer, Object> names = new LinkedHashMap<>();
+        for (int i = 0; i < 4; i++) {
+            on.put(i + 1, (code & (1 << i)) != 0);
+            names.put(i + 1, h.label(i));
+        }
+        m.put("code", code);
+        m.put("on", on);
+        m.put("names", names);
         return m;
     }
 

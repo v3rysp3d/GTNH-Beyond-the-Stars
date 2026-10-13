@@ -71,13 +71,15 @@ public final class EyeStarBench {
 
     public static final String USAGE = "/btseye star <x> <y> <z> status | target <name> | lit [name] | seed <n> | "
         + "rig <off|bang|fine|none> | sim <s> [compare] | set dial|feed|shock <v> | unlock <1-6> | "
-        + "milestones <n> done | transition [abort] | event | "
+        + "milestones <n> done|reset | transition [abort] | event | "
         + "fill | sensor <x> <y> <z> <channel> <gt|lt> <threshold> [analog] | sensors <channel> <gt|lt> <thr> "
         + "[analog] | probe | wrench | charge [n] | buffer <fluid> <L> | core <name> | escrow | "
         + "bus <chart> [n] | legacy [galactic] [run <key> <n>] | fix | gt | mefield | intake [setup [G]] | eu | "
         + "field <fluid> <L> | "
         + "render [on|off] | "
-        + "directive | autorig <s> [cut <k>] | ocloop | compression <1-9> [all] | check";
+        + "directive | autorig <s> [cut <k>] | ocloop | compression <1-9> [all] | check | "
+        + "P4: burst <Bu/t> [high] [halo] | burst off | galaxy <s> [analog] [mass M] [fresh] | begin | "
+        + "mode galaxy|planets | set mcshock|f8 <v> | slots <planet keys and chart names...> | slots clear | buses clear";
 
     /** Runs {@code args} = {@code star x y z sub …}. Returns the lines to print. */
     public static List<String> run(ICommandSender sender, String[] args) {
@@ -102,7 +104,9 @@ public final class EyeStarBench {
                 break;
             case "target": {
                 if (!a5.isEmpty() && !"none".equals(a5) && chart(a5) == null) {
-                    out.add("Unknown chart " + a5 + " (sol, siriusa, arcturus, neutron, siriusb, magnetar, none).");
+                    out.add(
+                        "Unknown chart " + a5
+                            + " (sol, siriusa, arcturus, neutron, siriusb, magnetar, triangulum, milkyway, none).");
                     return out;
                 }
                 eye.debugSetTarget(chart(a5) == null ? null : new ItemStack(chart(a5), 1, 0));
@@ -117,7 +121,7 @@ public final class EyeStarBench {
                     }
                     eye.debugSetTarget(new ItemStack(chart(a5), 1, 0));
                 }
-                final String err = rt.debugLight(StarDef.byChart(rt.host.target()));
+                final String err = rt.debugLight(rt.wanted());
                 out.add(err == null ? "LIT (bench ledger started, seed " + rt.seed + ")" : "lit refused: " + err);
                 break;
             }
@@ -138,8 +142,10 @@ public final class EyeStarBench {
                 if ("dial".equals(a5)) rt.setDial(Double.parseDouble(args[6]));
                 else if ("feed".equals(a5)) rt.setFeed(Double.parseDouble(args[6]));
                 else if ("shock".equals(a5)) rt.setBounceShock(Double.parseDouble(args[6]));
+                else if ("mcshock".equals(a5)) rt.setCollapseShock(Double.parseDouble(args[6]));
+                else if ("f8".equals(a5)) rt.setF8(Double.parseDouble(args[6]));
                 else {
-                    out.add("set dial|feed|shock <v>");
+                    out.add("set dial|feed|shock|mcshock|f8 <v>");
                     return out;
                 }
                 out.add(
@@ -150,11 +156,18 @@ public final class EyeStarBench {
                         + Math.round(rt.bounceShock()));
                 break;
             case "unlock":
-                rt.setUnlocked(Integer.parseInt(a5));
+                rt.setUnlocked(Integer.parseInt(a5)); // 1..8
                 out.add("Unlocked T" + rt.unlockedTier());
                 break;
             case "milestones":
-                rt.milestones.complete(Integer.parseInt(a5));
+                if (args.length > 6 && "reset".equalsIgnoreCase(args[6])) {
+                    rt.milestones.reset(Integer.parseInt(a5));
+                    rt.galaxy.resetLive(); // the link windows and streaks too
+                    if (eye.getBaseMetaTileEntity() != null) eye.getBaseMetaTileEntity()
+                        .markDirty();
+                } else {
+                    rt.milestones.complete(Integer.parseInt(a5));
+                }
                 out.add(rt.milestones.progressLine(Integer.parseInt(a5)));
                 break;
             case "fill": {
@@ -266,6 +279,67 @@ public final class EyeStarBench {
                 // AUTOMATION PASS: the OpenComputers calls (BTSComputerApi), as a script makes them
                 out.addAll(com.nateyburr.beyondthestars.machines.directive.DirectiveBench.eyeOcLoop(eye));
                 return out;
+            // ---- P4: the galaxy tiers
+            case "burst":
+                out.add(EyeGalaxyBench.burst(eye, args, 5));
+                break;
+            case "galaxy":
+                out.addAll(EyeGalaxyBench.galaxy(eye, args, 5));
+                break;
+            case "begin":
+                out.add(rt.requestBegin());
+                break;
+            case "inject": {
+                // inject <qx> <qy> <qz> <hi> <lo> <halo> | inject off: real streams through the receptor hatches
+                if ("off".equals(a5) || args.length < 11) {
+                    eye.debugInject(null, 0, 0, 0);
+                    out.add(
+                        "Injection off" + (args.length < 11 && !"off".equals(a5)
+                            ? " (inject <qx> <qy> <qz> <hi> <lo> <halo> | inject off)"
+                            : ""));
+                    break;
+                }
+                final com.nateyburr.beyondthestars.machines.quasar.burst.BurstSource src = new com.nateyburr.beyondthestars.machines.quasar.burst.BurstSource(
+                    world.provider.dimensionId,
+                    coord(sender, args[5], 0),
+                    coord(sender, args[6], 1),
+                    coord(sender, args[7], 2));
+                eye.debugInject(
+                    src,
+                    Double.parseDouble(args[8]),
+                    Double.parseDouble(args[9]),
+                    Double.parseDouble(args[10]));
+                out.add("Injecting from " + src + " (status " + src.status() + ") into the Receptor Ports each second");
+                break;
+            }
+            case "mode": {
+                final EyeGalaxy.Mode m = EyeGalaxy.Mode.parse(a5);
+                if (m == null) {
+                    out.add("mode galaxy|planets");
+                    return out;
+                }
+                rt.setMode(m);
+                out.add("Mode: " + m.key);
+                break;
+            }
+            case "slots":
+                out.add(fillSlotBus(eye, args));
+                break;
+            case "buses": {
+                // P4 hosts unit: empty the plinth input buses (the rig's item path) for a clean proof run
+                int n = 0;
+                for (gregtech.api.metatileentity.implementations.MTEHatchInputBus bus : eye.itemBuses()) {
+                    if (bus == null || !bus.isValid()) continue;
+                    for (int i = 0; i < bus.getSizeInventory(); i++) {
+                        if (bus.getStackInSlot(i) == null) continue;
+                        bus.getBaseMetaTileEntity()
+                            .setInventorySlotContents(i, null);
+                        n++;
+                    }
+                }
+                out.add("Plinth input buses emptied: " + n + " stack(s) removed.");
+                break;
+            }
             case "field": {
                 // field <fluid registry name> <L>: pour a trim fluid into the Field-socket hatches (what a player's
                 // automation does), so the sockets, not a debug rig, regulate the star
@@ -334,7 +408,7 @@ public final class EyeStarBench {
             case "core": {
                 final Item core = core(a5);
                 if (core == null) {
-                    out.add("core <stellarmass|shellburning|galactic|subspace|magnetar>");
+                    out.add("core <stellarmass|shellburning|galactic|subspace|magnetar|intergalactic|supermassive>");
                     return out;
                 }
                 out.add(rt.offerCore(new ItemStack(core), new boolean[1]));
@@ -565,9 +639,51 @@ public final class EyeStarBench {
                 return SLItems.subspaceCoolingCore;
             case "magnetar":
                 return SLItems.magnetarSeedCore;
+            case "intergalactic":
+                return com.nateyburr.beyondthestars.items.SLQuasarItems.intergalacticUpgradeCore;
+            case "supermassive":
+                return com.nateyburr.beyondthestars.items.SLQuasarItems.supermassiveSeedCore;
             default:
                 return null;
         }
+    }
+
+    /**
+     * P4 {@code slots <names...>}: puts planet items (an EyeRecipe key or its suffix, e.g. {@code planet:Ma} or
+     * {@code Ma}) and star charts (sol .. magnetar) into the slot bus, one per slot in order; {@code slots clear}
+     * empties it.
+     */
+    private static String fillSlotBus(MTEEyeOfHarmonyBTS eye, String[] args) {
+        final MTEHatchInputBus bus = eye.firstSlotBus();
+        if (bus == null) return "No slot bus (an input bus in the plinth's 'p' socket).";
+        for (int i = 0; i < bus.getSizeInventory(); i++) bus.getBaseMetaTileEntity()
+            .setInventorySlotContents(i, null);
+        if (args.length > 5 && "clear".equalsIgnoreCase(args[5])) return "Slot bus cleared.";
+        final StringBuilder sb = new StringBuilder("Slot bus:");
+        int slot = 0;
+        for (int i = 5; i < args.length && slot < bus.getSizeInventory(); i++) {
+            ItemStack stack = null;
+            final Item chart = chart(args[i].toLowerCase(Locale.ROOT));
+            if (chart != null) stack = new ItemStack(chart, 1, 0);
+            else {
+                final String key = args[i].startsWith("planet:") ? args[i] : "planet:" + args[i];
+                final com.nateyburr.beyondthestars.machines.eye.EyeRecipe r = com.nateyburr.beyondthestars.machines.eye.EyeRecipeRegistry
+                    .byKey(key);
+                if (r != null) stack = r.trigger.copy();
+            }
+            if (stack == null) {
+                sb.append(" [")
+                    .append(args[i])
+                    .append(": unknown]");
+                continue;
+            }
+            bus.getBaseMetaTileEntity()
+                .setInventorySlotContents(slot++, stack);
+            sb.append(' ')
+                .append(stack.getDisplayName())
+                .append(';');
+        }
+        return sb.toString();
     }
 
     /** Puts {@code n} Stellar Ignition Charges into the first live plinth input bus. */
@@ -603,6 +719,10 @@ public final class EyeStarBench {
                 return SLItems.starChartSiriusB;
             case "magnetar":
                 return SLItems.starChartMagnetar;
+            case "triangulum":
+                return com.nateyburr.beyondthestars.items.SLQuasarItems.starChartTriangulum;
+            case "milkyway":
+                return com.nateyburr.beyondthestars.items.SLQuasarItems.starChartMilkyWay;
             default:
                 return null;
         }

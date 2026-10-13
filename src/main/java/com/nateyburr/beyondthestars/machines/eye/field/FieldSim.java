@@ -33,7 +33,7 @@ public final class FieldSim {
     // ================================================================== the prototype harness
 
     /** Prototype {@code RECIPE_UMV}. */
-    static final double RECIPE_UMV = 125829120;
+    public static final double RECIPE_UMV = 125829120;
 
     /** One case's configuration (prototype {@code CFG}). */
     public static final class Cfg {
@@ -66,7 +66,7 @@ public final class FieldSim {
         public final long[] zoneT = new long[5];
     }
 
-    static void add(Map<String, Double> o, String k, double v) {
+    public static void add(Map<String, Double> o, String k, double v) {
         final Double old = o.get(k);
         o.put(k, (old == null ? 0 : old) + v);
     }
@@ -288,9 +288,9 @@ public final class FieldSim {
 
     // ================================================================== one golden case
 
-    static final int FNV_OFFSET = 0x811c9dc5, FNV_PRIME = 16777619;
+    public static final int FNV_OFFSET = 0x811c9dc5, FNV_PRIME = 16777619;
 
-    static int fnv(int h, int v) {
+    public static int fnv(int h, int v) {
         for (int i = 0; i < 4; i++) {
             h ^= (v >>> (8 * i)) & 255;
             h *= FNV_PRIME;
@@ -298,7 +298,7 @@ public final class FieldSim {
         return h;
     }
 
-    static int q6(double v) {
+    public static int q6(double v) {
         return (int) Math.round(v * 1e6);
     }
 
@@ -347,7 +347,7 @@ public final class FieldSim {
         res.put("prod", new LinkedHashMap<String, Object>(L.prod));
         res.put("trims", new LinkedHashMap<String, Object>(L.trims));
         final List<Object> xs = new ArrayList<>();
-        for (double v : S.s.x) xs.add(v);
+        for (int k = 0; k < 4; k++) xs.add(S.s.x[k]); // the D-49 golden lists P, Θ, Ω, Π
         res.put("x", xs);
         res.put("A", S.s.A);
         res.put("I", S.s.I);
@@ -411,14 +411,15 @@ public final class FieldSim {
         return c;
     }
 
-    static double num(Map<String, Object> o, String k, double dflt) {
+    public static double num(Map<String, Object> o, String k, double dflt) {
         final Object v = o.get(k);
         return v instanceof Number ? ((Number) v).doubleValue() : dflt;
     }
 
     // ================================================================== comparison
 
-    static void compare(Object exp, Object act, String path, List<String> diffs) {
+    /** Deep-compares a golden expectation with a result tree (numbers exactly, maps by key set). */
+    public static void compare(Object exp, Object act, String path, List<String> diffs) {
         if (diffs.size() > 12) return;
         if (exp == null || act == null) {
             if (exp != act) diffs.add(path + ": expected " + exp + ", got " + act);
@@ -518,16 +519,16 @@ public final class FieldSim {
     // ================================================================== a minimal JSON reader / writer (no deps)
 
     /** Just enough JSON for the golden file: objects (ordered), arrays, strings, doubles, booleans, null. */
-    static final class Json {
+    public static final class Json {
 
         private final String s;
         private int i;
 
-        Json(String s) {
+        public Json(String s) {
             this.s = s;
         }
 
-        Object value() {
+        public Object value() {
             ws();
             final char ch = s.charAt(i);
             if (ch == '{') return object();
@@ -641,7 +642,7 @@ public final class FieldSim {
             while (i < s.length() && Character.isWhitespace(s.charAt(i))) i++;
         }
 
-        static String write(Object v) {
+        public static String write(Object v) {
             final StringBuilder b = new StringBuilder();
             write(v, b);
             return b.toString();

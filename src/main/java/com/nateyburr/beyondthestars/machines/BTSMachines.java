@@ -32,6 +32,22 @@ public final class BTSMachines {
     public static ItemStack stellarFieldSensor;
     // AUTOMATION PASS (brief item 18): the Directive Hatch, base+27 (P4's reserved id, one MTE for every host).
     public static ItemStack directiveHatch;
+    // P4 (quasar-p4.md §6.1): the stacks the recipes make (BTSRecipesQuasar). Each MTE unit assigns its own in
+    // register() below; until it does the field is null and its recipe waits (one "[BTS] P4 recipe ... waits" line).
+    /** base+20, Quasar Engine (MTE 28120). */
+    public static ItemStack quasarEngine;
+    /** base+21, Wormhole Mouth (28121). */
+    public static ItemStack wormholeMouth;
+    /** base+22, Conduit Mirror (28122). */
+    public static ItemStack conduitMirror;
+    /** base+23, Conduit Junction (28123). */
+    public static ItemStack conduitJunction;
+    /** base+24, Burst Thermaliser Crown, Mk by structure (28124). */
+    public static ItemStack burstThermaliserCrown;
+    /** base+25, GRB Receptor Port hatch (28125). */
+    public static ItemStack grbReceptorPort;
+    /** base+26, Burst Control Hatch (28126). */
+    public static ItemStack burstControlHatch;
     // H/R unit 2 (homogeny-reality.md): the Homogeny base+30, Reality Diffraction base+31, Reality Refab base+32.
     public static ItemStack homogeny;
     public static ItemStack realityDiffraction;
@@ -116,12 +132,12 @@ public final class BTSMachines {
         // base+16 (28116) Stellar Field Sensor Hatch hatch.beyondthestars.stellarfieldsensor (D-49)
         // base+17 (28117) Kerr Compressor Module, base+18 (28118) Kerr Extractor Module (Kerr redesign)
         // base+19 spare (the next Kerr module)
-        // base+20..29 P4: Quasar Engine 20, Wormhole Mouth 21, Conduit Mirror 22,
-        // Conduit Junction 23, Burst Thermaliser Crown Mk I/II/III 24-26, Directive Hatch 27 (claimed by the
-        // automation pass: ONE hatch for the Eye, the Kerr and later the Quasar), spare 28-29
+        // base+20..29 P4 (quasar-p4.md §6.1): Quasar Engine 20, Wormhole Mouth 21, Conduit Mirror 22,
+        // Conduit Junction 23, Burst Thermaliser Crown 24 (one controller, Mk by structure), GRB Receptor Port 25,
+        // Burst Control Hatch 26, Directive Hatch 27 (claimed by the automation pass: ONE hatch for the Eye, the Kerr
+        // and the Quasar), spare 28-29
         // base+30..34 Homogeny 30, Reality Diffraction 31, Reality Refab 32 (H/R unit 2, ruling 16), spare 33-34
         // base+35..39 spare
-        // The Kerr and Eye units each append their own single registration line below.
         kerrEngine = new com.nateyburr.beyondthestars.machines.kerr.MTEKerrEngine(
             base + 14,
             "multimachine.beyondthestars.kerrengine",
@@ -151,6 +167,38 @@ public final class BTSMachines {
             base + 27,
             "hatch.beyondthestars.directive",
             "Directive Hatch").getStackForm(1);
+        // P4 (quasar-p4.md §6.1): base+20 (28120) the Quasar Engine, base+26 (28126) the Burst Control Hatch. Each
+        // assignment also lets its BTSRecipesQuasar recipe (SL-Q01, SL-Q20) register.
+        quasarEngine = new com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine(
+            base + 20,
+            "multimachine.beyondthestars.quasarengine",
+            "Quasar Engine").getStackForm(1);
+        burstControlHatch = new com.nateyburr.beyondthestars.machines.conduit.MTEHatchBurstControl(
+            base + 26,
+            "hatch.beyondthestars.burstcontrol",
+            "Burst Control Hatch").getStackForm(1);
+        // P4 conduit + crowns unit (quasar-p4.md §2, §3): base+21..25. Each assignment lets its recipe (SL-Q10,
+        // Q11, Q12, Q16, Q19) register.
+        wormholeMouth = new com.nateyburr.beyondthestars.machines.conduit.MTEWormholeMouth(
+            base + 21,
+            "multimachine.beyondthestars.wormholemouth",
+            "Wormhole Mouth").getStackForm(1);
+        conduitMirror = new com.nateyburr.beyondthestars.machines.conduit.MTEConduitMirror(
+            base + 22,
+            "multimachine.beyondthestars.conduitmirror",
+            "Conduit Mirror").getStackForm(1);
+        conduitJunction = new com.nateyburr.beyondthestars.machines.conduit.MTEConduitJunction(
+            base + 23,
+            "multimachine.beyondthestars.conduitjunction",
+            "Conduit Junction").getStackForm(1);
+        burstThermaliserCrown = new com.nateyburr.beyondthestars.machines.quasar.MTEBurstThermaliserCrown(
+            base + 24,
+            "multimachine.beyondthestars.burstcrown",
+            "Burst Thermaliser Crown").getStackForm(1);
+        grbReceptorPort = new com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor(
+            base + 25,
+            "hatch.beyondthestars.grbreceptor",
+            "GRB Receptor Port").getStackForm(1);
         // H/R unit 2 (ruling 16, homogeny-reality.md §4.1): the three machines unheld from the 28130..28134 block.
         homogeny = new com.nateyburr.beyondthestars.machines.homogeny.MTEHomogeny(
             base + 30,

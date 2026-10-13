@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor;
 import com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective;
 
 import gregtech.api.interfaces.IHatchElement;
@@ -41,6 +42,17 @@ public enum KerrHatchElement implements IHatchElement<MTEKerrEngine> {
         @Override
         public long count(MTEKerrEngine t) {
             return t.directiveHatchCount();
+        }
+    },
+    /**
+     * Cage, optional (P4, quasar-p4.md §3.1): a GRB Receptor Port (MTE 28125) in a utility socket, through which a
+     * quasar stabilises the hole (bleed, the T2 setpoint cap, the Superdense refinery).
+     */
+    Receptor(MTEKerrEngine::addReceptor, MTEHatchGRBReceptor.class) {
+
+        @Override
+        public long count(MTEKerrEngine t) {
+            return t.receptorCount();
         }
     },
     /** Cage, optional: the Black Hole Compressor's utility hatch, redstone on while the hole is open. */

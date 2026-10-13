@@ -68,10 +68,34 @@ public final class EyeRecipe {
      * Stars: -1 (ignore the generators).
      */
     public final int compressionRequired;
+    /**
+     * P4 (quasar-p4.md §4.8): the planet's rocket tier R (TecTech's; the Deep Dark 9). Planets mode rolls each
+     * parallel at {@code (1 − 0.05·R)} × the field factor. 0 for stars.
+     */
+    public final int rocketTier;
 
     public EyeRecipe(String key, String name, int tier, ItemStack trigger, List<FluidAmount> inputs,
         List<ItemAmount> itemOutputs, List<FluidAmount> fluidOutputs, long baseTicks, long euPerRun, double baseSuccess,
         int compressionRequired) {
+        this(
+            key,
+            name,
+            tier,
+            trigger,
+            inputs,
+            itemOutputs,
+            fluidOutputs,
+            baseTicks,
+            euPerRun,
+            baseSuccess,
+            compressionRequired,
+            0);
+    }
+
+    public EyeRecipe(String key, String name, int tier, ItemStack trigger, List<FluidAmount> inputs,
+        List<ItemAmount> itemOutputs, List<FluidAmount> fluidOutputs, long baseTicks, long euPerRun, double baseSuccess,
+        int compressionRequired, int rocketTier) {
+        this.rocketTier = rocketTier;
         this.key = key;
         this.name = name;
         this.tier = tier;

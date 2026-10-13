@@ -58,7 +58,8 @@ import tectech.thing.block.BlockQuantumGlass;
  * <li><b>SL-C01..C04</b>: Entangled Degenerate Stellar Mixture, Ergomatter, Superdense Ergomatter, White Hole
  * Matter. <b>SL-B16</b> (Entangled Magnetar Matter) gets no generator recipe: ruling 19a moved the Homogeny Tier II
  * Core, its only consumer, from Magnetar Matter to Black Dwarf Matter, and an orphan condensate in NEI suggests a use
- * that does not exist (BEC Q-B6). Its fluid stays registered as a reserved name.</li>
+ * that does not exist (BEC Q-B6). P4 owns it now: {@link BTSRecipesQuasar} adds the generator for its T7 cores and
+ * chart.</li>
  * <li><b>The BEC expansion's condensates</b> this unit needs (SL-B10 Raw Star Matter, SL-B13 White Dwarf Matter,
  * SL-B14 Black Dwarf Matter) have one owner: {@code SLCondensates} registers the fluids and {@code BTSRecipesBEC}
  * their generator recipes. {@link #becCondensate} only resolves which fluid to ask for.</li>
@@ -105,13 +106,13 @@ public final class BTSRecipesReality {
 
     /**
      * D-48 proposal 1 (accepted 2026-10-12): the pack's Eternity QFT loop takes Ergomatter (Eye T7) instead of
-     * Universium (Eye T10), so Eternity exists before T10. It is NOT built on any branch yet. Until it is, every recipe
-     * here that needs Eternity is a loop on the way to T10 (Eternity needs Universium, Universium needs Eye T10, Eye
-     * T10
-     * needs the Universal Upgrade Core, which needs Region IV's Eternity anchor). Set true in the commit that builds
-     * the swap (behind replaceTecTechEyeOfHarmony, with P4); {@link #gateLog} reports the loop until then.
+     * Universium (Eye T10), so Eternity exists before T10. P4 builds it ({@link BTSRecipesQuasar#onLoadComplete},
+     * SL-Q26, behind replaceTecTechEyeOfHarmony; with the flag off TecTech's Eye still makes Universium), so this
+     * follows {@link BTSRecipesQuasar#eternityBeforeT10()} and {@link #gateLog} no longer reports the Eternity loop.
+     * Without it every recipe here that needs Eternity would be a loop on the way to T10 (Eternity needs Universium,
+     * Universium needs Eye T10, Eye T10 needs the Universal Upgrade Core, which needs Region IV's Eternity anchor).
      */
-    static final boolean ETERNITY_BEFORE_T10 = false;
+    static final boolean ETERNITY_BEFORE_T10 = BTSRecipesQuasar.eternityBeforeT10();
 
     private BTSRecipesReality() {}
 
@@ -175,9 +176,8 @@ public final class BTSRecipesReality {
                 BTSRecipeGuard.fluid(SLRealityFluids.whiteHoleMatter, 144),
                 180 * SECONDS,
                 TierEU.RECIPE_MAX));
-        BeyondTheStars.LOG.info(
-            "[BTS] SL-B16 Entangled Magnetar Matter: no Condensate Generator recipe (ruling 19a took Magnetar Matter "
-                + "out of the Homogeny Tier II Core, its only consumer); the fluid stays a reserved name.");
+        // SL-B16 Entangled Magnetar Matter: no generator here (ruling 19a took Magnetar Matter out of the Homogeny
+        // Tier II Core); P4 owns it (BTSRecipesQuasar, line "quasar"), for its T7 cores and chart.
     }
 
     /**

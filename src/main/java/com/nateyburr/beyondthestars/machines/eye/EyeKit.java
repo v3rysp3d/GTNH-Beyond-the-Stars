@@ -24,10 +24,12 @@ import com.google.gson.JsonObject;
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.nateyburr.beyondthestars.fluids.SLFluids;
 import com.nateyburr.beyondthestars.items.SLItems;
+import com.nateyburr.beyondthestars.items.SLQuasarItems;
 import com.nateyburr.beyondthestars.machines.BTSMachines;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1;
 import com.nateyburr.beyondthestars.machines.SLConsoleTest;
+import com.nateyburr.beyondthestars.machines.conduit.MTEHatchBurstControl;
 import com.nateyburr.beyondthestars.machines.directive.DirectiveSet;
 import com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective;
 
@@ -76,6 +78,14 @@ public final class EyeKit {
         SLConsoleTest.give(player, item(SLItems.starChartNeutronStar));
         SLConsoleTest.give(player, item(SLItems.starChartSiriusB));
         SLConsoleTest.give(player, item(SLItems.starChartMagnetar));
+        // P4: the T6 -> T7 and T7 -> T8 cores, the galaxy charts, 16 GRB Receptor Ports and a Begin hatch
+        SLConsoleTest.give(player, item(SLQuasarItems.intergalacticUpgradeCore));
+        SLConsoleTest.give(player, item(SLQuasarItems.supermassiveSeedCore));
+        SLConsoleTest.give(player, item(SLQuasarItems.starChartTriangulum));
+        SLConsoleTest.give(player, item(SLQuasarItems.starChartMilkyWay));
+        SLConsoleTest
+            .giveMany(player, BTSMachines.grbReceptorPort == null ? null : BTSMachines.grbReceptorPort.copy(), 16);
+        SLConsoleTest.give(player, BTSMachines.burstControlHatch == null ? null : BTSMachines.burstControlHatch.copy());
         SLConsoleTest.giveMany(player, item(SLItems.stellarIgnitionCharge), 16);
         SLConsoleTest
             .giveMany(player, BTSMachines.stellarFieldSensor == null ? null : BTSMachines.stellarFieldSensor.copy(), 8);
@@ -122,8 +132,8 @@ public final class EyeKit {
         }
         tell(
             player,
-            EnumChatFormatting.GREEN + "Fastest look: /btseye t1..t6 [gen 1-9] [fill] raises a complete, formed Eye "
-                + "in front of you. Or a hologram projector on the controller: stack 1..6 = T1..T6 (bands are "
+            EnumChatFormatting.GREEN + "Fastest look: /btseye t1..t8 [gen 1-9] [fill] raises a complete, formed Eye "
+                + "in front of you. Or a hologram projector on the controller: stack 1..8 = T1..T8 (bands are "
                 + "cumulative).");
     }
 
@@ -300,6 +310,9 @@ public final class EyeKit {
             for (int i = 0; i < n.length; i++) {
                 if (i < DIRECTIVE_SETS.length) {
                     if (fitDirective(world, alignment, x, y, z, n[i], DIRECTIVE_SETS[i])) fitted++;
+                } else if (i == DIRECTIVE_SETS.length && tiers >= 6) {
+                    // P4: the Slots set (planets, companions, the link test fire) on the next Sensor socket
+                    if (fitDirective(world, alignment, x, y, z, n[i], DirectiveSet.EYE_SLOTS)) fitted++;
                 } else if (fitStack(world, alignment, x, y, z, n[i], BTSMachines.stellarFieldSensor)) {
                     fitted++;
                 }
@@ -328,12 +341,37 @@ public final class EyeKit {
                 if (fit(world, alignment, x, y, z, rel, ItemList.Hatch_Input_MAX)) fitted++;
             }
         }
+        // P4: the 'd' sockets (Directive Hatches on Field, Events and Galaxy Transition, then a Burst Control Hatch
+        // in Begin mode), the slot bus, and at T7 / T8 a GRB Receptor Port in every rail / halo socket
+        if (tiers >= 6 && !legacy) {
+            final int[][] d = BTSShapes.socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'd');
+            for (int i = 0; i < d.length; i++) {
+                if (i < GALAXY_SETS.length) {
+                    if (fitDirective(world, alignment, x, y, z, d[i], GALAXY_SETS[i])) fitted++;
+                } else if (fitBurstControl(world, alignment, x, y, z, d[i])) {
+                    fitted++;
+                }
+            }
+            for (int[] rel : BTSShapes.socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'p')) {
+                if (fit(world, alignment, x, y, z, rel, ItemList.Hatch_Input_Bus_MAX)) fitted++;
+            }
+        }
+        if (tiers >= 7 && !legacy) {
+            for (String piece : tiers >= 8
+                ? new String[] { MTEEyeOfHarmonyBTS.PIECE_RAIL, MTEEyeOfHarmonyBTS.PIECE_HALO }
+                : new String[] { MTEEyeOfHarmonyBTS.PIECE_RAIL }) {
+                for (int[] rel : BTSShapes.socketRels(piece, 'r')) {
+                    if (fitStack(world, alignment, x, y, z, rel, BTSMachines.grbReceptorPort)) fitted++;
+                }
+            }
+        }
 
         // 4. Upgrade, target, owner's power, then form.
         // D-49: a creative test build is unlocked to its tier (the milestones, cores and transitions are skipped).
         eye.debugUnlock(tiers);
         final Item[] charts = { SLItems.starChartSol, SLItems.starChartSiriusA, SLItems.starChartArcturus,
-            SLItems.starChartNeutronStar, SLItems.starChartSiriusB, SLItems.starChartMagnetar };
+            SLItems.starChartNeutronStar, SLItems.starChartSiriusB, SLItems.starChartMagnetar,
+            SLQuasarItems.starChartTriangulum, SLQuasarItems.starChartMilkyWay };
         final Item chart = charts[Math.max(0, Math.min(charts.length, tiers) - 1)];
         if (chart != null) base.setInventorySlotContents(eye.getControllerSlotIndex(), new ItemStack(chart, 1, 0));
         if (fill) {
@@ -604,6 +642,22 @@ public final class EyeKit {
     /** The kit's Directive Hatches, in Sensor-socket order (code output). */
     private static final DirectiveSet[] DIRECTIVE_SETS = { DirectiveSet.EYE_TRIMS, DirectiveSet.EYE_STATUS,
         DirectiveSet.EYE_TRANSITION };
+    /** P4: the 'd' sockets' sets in socket order; the fourth 'd' gets a Burst Control Hatch in Begin mode. */
+    private static final DirectiveSet[] GALAXY_SETS = { DirectiveSet.EYE_FIELD, DirectiveSet.EYE_EVENTS,
+        DirectiveSet.EYE_GALAXY_TRANSITION };
+
+    /** A Burst Control Hatch in the socket, in Begin mode. */
+    private static boolean fitBurstControl(World world, ExtendedFacing alignment, int x, int y, int z, int[] rel) {
+        if (!fitStack(world, alignment, x, y, z, rel, BTSMachines.burstControlHatch)) return false;
+        final int[] p = SLConsoleTest.worldPos(alignment, x, y, z, rel);
+        final TileEntity te = world.getTileEntity(p[0], p[1], p[2]);
+        if (te instanceof IGregTechTileEntity
+            && ((IGregTechTileEntity) te).getMetaTileEntity() instanceof MTEHatchBurstControl) {
+            ((MTEHatchBurstControl) ((IGregTechTileEntity) te).getMetaTileEntity())
+                .setMode(MTEHatchBurstControl.Mode.BEGIN);
+        }
+        return true;
+    }
 
     /** A Directive Hatch in the socket, set to {@code set} with code output. */
     private static boolean fitDirective(World world, ExtendedFacing alignment, int x, int y, int z, int[] rel,

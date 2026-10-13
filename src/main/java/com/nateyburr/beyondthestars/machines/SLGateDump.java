@@ -1,17 +1,24 @@
 package com.nateyburr.beyondthestars.machines;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import net.minecraft.command.ICommandSender;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.nateyburr.beyondthestars.BTSBlackHoleSwap;
 import com.nateyburr.beyondthestars.Config;
+import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
+import com.nateyburr.beyondthestars.blocks.SLBlocks;
+import com.nateyburr.beyondthestars.fluids.SLQuasarFluids;
+import com.nateyburr.beyondthestars.items.SLQuasarItems;
 
 import gregtech.api.enums.ItemList;
 import gregtech.api.enums.NaniteTier;
@@ -20,6 +27,7 @@ import gregtech.api.recipe.RecipeMap;
 import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.GTRecipe;
 import gregtech.api.util.GTRecipeConstants;
+import gtPlusPlus.xmod.gregtech.api.enums.GregtechItemList;
 import tectech.recipe.TecTechRecipeMaps;
 import tectech.thing.CustomItemList;
 
@@ -31,7 +39,8 @@ import tectech.thing.CustomItemList;
  * t+1 or later (costs doc §9.4). Direct inputs, their nanite tiers and condensates are checked; an
  * input the Condensate Assembler itself makes (Resonance Chambers and the like) passes if at least
  * one of its recipes passes, one level deep. Also counts what still consumes or makes a Black Hole
- * Compressor controller. Read-only; op tooling, never reached in normal play.
+ * Compressor controller. Then the P4 gate audit ({@link #p4}): every P4 part and the Eye tier it gates. Read-only; op
+ * tooling, never reached in normal play.
  */
 public final class SLGateDump {
 
@@ -125,12 +134,15 @@ public final class SLGateDump {
                 }
             }
         }
+        final int p4Loops = p4(sender);
         final ItemStack bhc = ItemList.Machine_Multi_BlackHoleCompressor.get(1);
         final ItemStack kerr = BTSMachines.kerrEngine;
         SLConsoleTest.tell(
             sender,
             "== Gate dump done: " + loops
-                + " generator recipe(s) break the gate rule. BHC controller consumers left: "
+                + " generator recipe(s) and "
+                + p4Loops
+                + " P4 part(s) break the gate rule. BHC controller consumers left: "
                 + BTSBlackHoleSwap.countConsumers(bhc)
                 + "; recipes making a BHC controller: "
                 + makersOf(bhc)
@@ -288,5 +300,269 @@ public final class SLGateDump {
                 : fluid.getFluid()
                     .getName();
         }
+    }
+
+    // ================================================================================== P4 (quasar-p4.md §6.4)
+
+    /** One P4 part to check: what it is, the Eye tier it gates (it may not need anything first made there or later). */
+    private static final class Gate {
+
+        final String label;
+        final ItemStack item;
+        final FluidStack fluid;
+        final int gate;
+
+        Gate(String label, ItemStack item, FluidStack fluid, int gate) {
+            this.label = label;
+            this.item = item;
+            this.fluid = fluid;
+            this.gate = gate;
+        }
+    }
+
+    /** A recipe from any map or the assembly lines, flattened: items (first ore-dict alternative), nanites, fluids. */
+    private static final class Rec {
+
+        final String where;
+        final List<ItemStack> items = new ArrayList<>();
+        NaniteTier[] nanites;
+        FluidStack[] fluids;
+
+        Rec(String where) {
+            this.where = where;
+        }
+    }
+
+    /**
+     * The P4 gate audit (quasar-p4.md §6.4-§6.5): every P4 part, the tier it gates, and whether any recipe that makes
+     * it is clean - its direct inputs, nanite tiers and fluids, and one level down (an input passes if at least one of
+     * its own recipes is clean). The tier is the Eye tier whose unlock (or first build) needs the part: the quasar, the
+     * conduit, the crowns and the T6 -> T7 core are needed before T7 (gate 7); the T7 -> T8 core, the T8 chart, Throat
+     * Mk III, Resonance Chamber IV and the Eternity catalyst before T8 (gate 8); Superdense Ergomatter before T9. The
+     * optional Disc Field Coil T4 (gate 0) is reported, not judged. Returns how many parts break the rule.
+     */
+    private static int p4(ICommandSender sender) {
+        final List<Gate> gates = new ArrayList<>();
+        gates.add(new Gate("Quasar Engine (28120)", BTSMachines.quasarEngine, null, 7));
+        gates.add(new Gate("Wormhole Mouth (28121)", BTSMachines.wormholeMouth, null, 7));
+        gates.add(new Gate("Conduit Mirror (28122)", BTSMachines.conduitMirror, null, 7));
+        gates.add(new Gate("Conduit Junction (28123)", BTSMachines.conduitJunction, null, 7));
+        gates.add(new Gate("Burst Thermaliser Crown (28124)", BTSMachines.burstThermaliserCrown, null, 7));
+        gates.add(new Gate("GRB Receptor Port (28125)", BTSMachines.grbReceptorPort, null, 7));
+        gates.add(new Gate("Burst Control Hatch (28126)", BTSMachines.burstControlHatch, null, 7));
+        for (int t = 1; t <= 4; t++) {
+            gates.add(
+                new Gate(
+                    "Disc Field Coil T" + t,
+                    SLBlocks.casing2(BlockSLCasing2.discCoil(t), 1),
+                    null,
+                    t == 4 ? 0 : 7));
+        }
+        gates.add(new Gate("Eddington Wall Casing", SLBlocks.casing2(BlockSLCasing2.EDDINGTON_WALL, 1), null, 7));
+        gates.add(new Gate("Rim Gas Injector", SLBlocks.casing2(BlockSLCasing2.RIM_GAS_INJECTOR, 1), null, 7));
+        gates.add(new Gate("Jet Collimator Ring", SLBlocks.casing2(BlockSLCasing2.JET_COLLIMATOR, 1), null, 7));
+        gates.add(new Gate("Burst Thermaliser Casing", SLBlocks.casing2(BlockSLCasing2.BURST_THERMALISER, 1), null, 7));
+        gates.add(new Gate("Radiator Petal", SLBlocks.casing2(BlockSLCasing2.RADIATOR_PETAL, 1), null, 7));
+        gates.add(item("Quasar Seed", SLQuasarItems.quasarSeed, 7));
+        gates.add(item("Conduit Throat Mk I", SLQuasarItems.conduitThroatMk1, 7));
+        gates.add(item("Conduit Throat Mk II", SLQuasarItems.conduitThroatMk2, 7));
+        gates.add(item("Intergalactic Upgrade Core (T6 -> T7)", SLQuasarItems.intergalacticUpgradeCore, 7));
+        gates.add(item("Star Chart: Triangulum (T7)", SLQuasarItems.starChartTriangulum, 7));
+        gates.add(item("Conduit Throat Mk III", SLQuasarItems.conduitThroatMk3, 8));
+        gates.add(item("Supermassive Seed Core (T7 -> T8)", SLQuasarItems.supermassiveSeedCore, 8));
+        gates.add(item("Star Chart: Milky Way (T8)", SLQuasarItems.starChartMilkyWay, 8));
+        gates.add(
+            new Gate("MetaMaterial Resonance Chamber IV", ItemList.MetaMaterial_ResonanceChamber4.get(1), null, 8));
+        gates.add(
+            new Gate(
+                "Temporal Harmony Catalyst (Eternity's QFT)",
+                GregtechItemList.TemporalHarmonyCatalyst.get(1),
+                null,
+                8));
+        gates.add(
+            new Gate(
+                "Superdense Ergomatter (refined)",
+                null,
+                SLQuasarFluids.superdenseErgomatter == null ? null
+                    : new FluidStack(SLQuasarFluids.superdenseErgomatter, 1),
+                9));
+        SLConsoleTest.tell(sender, "== P4 gate audit: " + gates.size() + " parts ==");
+        int loops = 0;
+        for (Gate gate : gates) {
+            if (gate.item == null && gate.fluid == null) {
+                SLConsoleTest.tell(sender, "P4 " + gate.label + ": not registered in this build (its MTE unit)");
+                continue;
+            }
+            final List<Rec> recs = gate.item != null ? makers(gate.item) : makers(gate.fluid);
+            if (recs.isEmpty()) {
+                SLConsoleTest.tell(sender, "P4 " + gate.label + ": NO RECIPE");
+                loops++;
+                continue;
+            }
+            String verdict = null;
+            final List<String> notes = new ArrayList<>();
+            for (Rec rec : recs) {
+                final List<String> bad = gate.gate == 0 ? new ArrayList<>() : violations(rec, gate.gate);
+                if (gate.gate > 0) {
+                    for (ItemStack input : rec.items) {
+                        if (input == null || (gate.item != null && matches(input, gate.item))) continue;
+                        final List<Rec> sub = makers(input);
+                        if (sub.isEmpty()) continue;
+                        String firstBad = null;
+                        boolean anyClean = false;
+                        for (Rec s : sub) {
+                            final List<String> subBad = violations(s, gate.gate);
+                            if (subBad.isEmpty()) {
+                                anyClean = true;
+                                break;
+                            }
+                            if (firstBad == null) firstBad = String.join(", ", subBad);
+                        }
+                        if (!anyClean) bad.add(name(input) + " [" + firstBad + "]");
+                    }
+                }
+                notes.add(rec.where + (bad.isEmpty() ? " clean" : " needs " + String.join("; ", bad)));
+                if (bad.isEmpty() && verdict == null) verdict = rec.where;
+            }
+            final String head = "P4 " + gate.label
+                + (gate.gate == 0 ? " (optional, reported only)" : " (gate Eye T" + gate.gate + ")");
+            if (gate.gate == 0) {
+                SLConsoleTest.tell(sender, head + ": " + recs.size() + " recipe(s)");
+                for (Rec rec : recs) SLConsoleTest.tell(sender, "  in (" + rec.where + "): " + describe(rec));
+            } else if (verdict != null) {
+                SLConsoleTest.tell(sender, head + ": CLEAN via " + verdict);
+            } else {
+                loops++;
+                SLConsoleTest.tell(sender, head + ": LOOP - " + String.join(" | ", notes));
+                for (Rec rec : recs) SLConsoleTest.tell(sender, "  in (" + rec.where + "): " + describe(rec));
+            }
+        }
+        SLConsoleTest.tell(sender, "== P4 gate audit done: " + loops + " part(s) break the gate rule ==");
+        return loops;
+    }
+
+    private static Gate item(String label, Item item, int gate) {
+        return new Gate(label, item == null ? null : new ItemStack(item, 1), null, gate);
+    }
+
+    /** Every recipe (any map, any assembly line) whose outputs include {@code stack}; NEI-only maps skipped. */
+    private static List<Rec> makers(ItemStack stack) {
+        final List<Rec> out = new ArrayList<>();
+        for (Map.Entry<String, RecipeMap<?>> entry : RecipeMap.ALL_RECIPE_MAPS.entrySet()) {
+            if (skipMap(entry.getKey())) continue;
+            for (GTRecipe recipe : entry.getValue()
+                .getAllRecipes()) {
+                if (recipe == null || recipe.mFakeRecipe || recipe.mOutputs == null) continue;
+                for (ItemStack o : recipe.mOutputs) {
+                    if (matches(o, stack)) {
+                        out.add(rec(entry.getKey(), recipe));
+                        break;
+                    }
+                }
+            }
+        }
+        for (GTRecipe.RecipeAssemblyLine line : GTRecipe.RecipeAssemblyLine.sAssemblylineRecipes) {
+            if (line == null || !matches(line.mOutput, stack)) continue;
+            final Rec rec = new Rec("assembly line");
+            for (int i = 0; i < line.mInputs.length; i++) {
+                ItemStack in = line.mInputs[i];
+                if (line.mOreDictAlt != null && i < line.mOreDictAlt.length
+                    && line.mOreDictAlt[i] != null
+                    && line.mOreDictAlt[i].length > 0) in = line.mOreDictAlt[i][0];
+                rec.items.add(in);
+            }
+            rec.fluids = line.mFluidInputs;
+            out.add(rec);
+        }
+        return out;
+    }
+
+    /** Every recipe whose fluid outputs include {@code fluid}'s fluid; NEI-only maps skipped. */
+    private static List<Rec> makers(FluidStack fluid) {
+        final List<Rec> out = new ArrayList<>();
+        for (Map.Entry<String, RecipeMap<?>> entry : RecipeMap.ALL_RECIPE_MAPS.entrySet()) {
+            if (skipMap(entry.getKey())) continue;
+            for (GTRecipe recipe : entry.getValue()
+                .getAllRecipes()) {
+                if (recipe == null || recipe.mFakeRecipe || recipe.mFluidOutputs == null) continue;
+                for (FluidStack o : recipe.mFluidOutputs) {
+                    if (o != null && o.getFluid() == fluid.getFluid()) {
+                        out.add(rec(entry.getKey(), recipe));
+                        break;
+                    }
+                }
+            }
+        }
+        return out;
+    }
+
+    /** NEI-only and recycling maps say nothing about how a part is first made. */
+    private static boolean skipMap(String name) {
+        final String n = name.toLowerCase(Locale.ROOT);
+        return n.contains("fake") || n.contains("visual")
+            || n.contains("scanner")
+            || n.contains("research")
+            || n.contains("disassembl")
+            || n.contains("recycl")
+            || n.contains("macerator")
+            || n.contains("arcfurnace")
+            || n.contains("extractor");
+    }
+
+    private static Rec rec(String where, GTRecipe recipe) {
+        final Rec rec = new Rec(where);
+        if (recipe.mInputs != null) Collections.addAll(rec.items, recipe.mInputs);
+        rec.nanites = recipe.getMetadata(GTRecipeConstants.NANITE_TIERS);
+        rec.fluids = fluids(recipe);
+        return rec;
+    }
+
+    private static List<String> violations(Rec rec, int gate) {
+        final Set<String> bad = new LinkedHashSet<>();
+        for (int i = 0; i < rec.items.size(); i++) {
+            final ItemStack input = rec.items.get(i);
+            if (input != null) check(bad, gate, name(input), keys(input));
+            if (rec.nanites != null && i < rec.nanites.length && rec.nanites[i] != null) {
+                final NaniteTier n = rec.nanites[i];
+                check(bad, gate, n.name() + " nanites", n.getMaterial() == null ? n.name() : n.getMaterial().mName);
+            }
+        }
+        if (rec.fluids != null) {
+            for (FluidStack fluid : rec.fluids) {
+                if (fluid == null || fluid.getFluid() == null) continue;
+                check(
+                    bad,
+                    gate,
+                    fluidName(fluid),
+                    fluid.getFluid()
+                        .getName() + " "
+                        + fluidName(fluid));
+            }
+        }
+        return new ArrayList<>(bad);
+    }
+
+    private static String describe(Rec rec) {
+        final StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < rec.items.size(); i++) {
+            final ItemStack input = rec.items.get(i);
+            if (sb.length() > 0) sb.append(", ");
+            sb.append(input == null ? "-" : input.stackSize + "x " + name(input));
+            if (rec.nanites != null && i < rec.nanites.length && rec.nanites[i] != null) {
+                sb.append(" [")
+                    .append(rec.nanites[i].name())
+                    .append(']');
+            }
+        }
+        if (rec.fluids != null) {
+            for (FluidStack fluid : rec.fluids) {
+                if (fluid == null) continue;
+                sb.append("; ")
+                    .append(fluid.amount)
+                    .append(" L ")
+                    .append(fluidName(fluid));
+            }
+        }
+        return sb.toString();
     }
 }

@@ -12,6 +12,7 @@ import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.screen.UISettings;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldReadout;
+import com.nateyburr.beyondthestars.machines.quasar.QuasarSensorChannel;
 
 import gregtech.api.enums.Textures;
 import gregtech.api.interfaces.IIconContainer;
@@ -41,6 +42,14 @@ import gregtech.common.covers.redstone.CoverAdvancedRedstoneTransmitterInternal;
  * six sides, like the addon's Spine Sensor, so it can be picked up from any face that is exposed; covers keep working
  * ({@link #emit}: GT's internal transmitter covers carry it, other redstone covers keep their own side).
  * The GUI is cloned from GT's pH sensor ({@code MTEHatchPHSensorGui}, MUI2).
+ * <p>
+ * <b>P4 (quasar-p4.md §1.5, §8.1).</b> The same hatch also sits in a Quasar Engine's {@code n} sockets: while a quasar
+ * publishes to it ({@link #publishQuasar}) its channel list is {@link QuasarSensorChannel} (E, Φ, λ, a, M, M/cap,
+ * Bu/t per jet and total, zone, Integrity, Stability, the eruption warning, seconds to the next eruption, the best
+ * host's σ and the link streak). Every host gains the <b>analog window w</b> (signed gauges map ±w onto 0..15; the
+ * quasar's unbounded channels read w as full scale; default 120, the D-49 mapping, so a pre-P4 Eye hatch reads the
+ * same) and <b>invert</b> (15 − output, digital and analog). The digital mode is the threshold mode: 15 above (or
+ * below) a set value, else 0.
  */
 public class MTEHatchStellarFieldSensor extends MTEHatch {
 
@@ -59,6 +68,30 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
     private boolean lessThan = false;
     /** {@code true}: analog 0-15 from the value; the threshold and comparator are ignored. */
     private boolean analog = false;
+    /** P4: the analog window w (signed channels ±w; the quasar's unbounded channels: full scale). */
+    private int window = WINDOW_DEFAULT;
+    /** P4: output 15 − v. */
+    private boolean invert = false;
+
+    /** The window's range and default (120: D-49's as-built gauge mapping, so old hatches read the same). */
+    public static final int WINDOW_MIN = 1, WINDOW_MAX = 100_000, WINDOW_DEFAULT = 120;
+    /** The threshold's range (the quasar's mass reaches 4,096 SM). */
+    public static final double THRESHOLD_LIMIT = 100_000;
+
+    /** Which machine last published to this hatch (live, not saved). */
+    public enum Host {
+
+        EYE("Eye of Harmony"),
+        QUASAR("Quasar Engine");
+
+        public final String label;
+
+        Host(String label) {
+            this.label = label;
+        }
+    }
+
+    private Host host = Host.EYE;
 
     // ------------------------------------------------------------------ live (not saved: the Eye re-pushes every
     // second)
@@ -82,12 +115,17 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
 
     @Override
     public String[] getDescription() {
-        return new String[] { "Goes in a Sensor socket (n) of the Eye of Harmony (Beyond the Stars).",
-            "Outputs redstone from one stability-field channel: P, Θ, Ω, Π, shield, Integrity, Stability,",
-            "zone, event warning (+ / - / any), upkeep OK or the T5 setpoint error.",
-            "Digital: 15 when the value is above (or below) the threshold. Analog: 0-15 across the range",
-            "(gauges -120..+120, 0-100 values, zone 0..4 = 0/4/8/11/15; warnings and upkeep OK give 15 when set).",
-            "Emits on all sides. Right-click to configure. Falls to 0 when the Eye stops reporting." };
+        return new String[] {
+            "Goes in a Sensor socket (n) of the Eye of Harmony or the Quasar Engine (Beyond the Stars).",
+            "Outputs redstone from one channel. Eye: P, Θ, Ω, Π, shield, Integrity, Stability, zone,",
+            "  event warning (+ / - / any), upkeep OK or the T5 setpoint error; T7+: W, Λ, β, the link",
+            "  streak %, its 60 s mean (Bu/t), planet slot progress %, the event countdown (s).",
+            "Quasar: E, Φ, λ, a, M, M/cap, Bu/t (total, top, bottom), zone, Integrity, Stability,",
+            "  eruption warning (Φ >= 90), seconds to the next eruption, best host σ, link streak %.",
+            "Threshold (digital): 15 when the value is above (or below) the threshold, else 0.",
+            "Analog: 0-15 across the range. Window w (default 120): signed values map -w..+w; masses, Bu/t,",
+            "  seconds and σ map 0..w; 0-100 values, λ 0..2, a 0..1 and the zone 0..4 have fixed scales.",
+            "Invert: 15 - output. Emits on all sides. Falls to 0 when its machine stops reporting." };
     }
 
     // ------------------------------------------------------------------ the Eye's side
@@ -100,6 +138,7 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
         final IGregTechTileEntity base = getBaseMetaTileEntity();
         if (base == null || !base.isServerSide() || readout == null) return;
         lastPublish = base.getTimer();
+        host = Host.EYE;
         lastLit = readout.lit;
         final FieldReadout.Channel c = channel();
         if (!readout.lit) {
@@ -108,11 +147,37 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
             return;
         }
         lastValue = readout.value(c);
-        if (analog) {
-            output = (byte) readout.analog(c);
-        } else {
-            output = (lessThan ? lastValue < threshold : lastValue > threshold) ? (byte) 15 : 0;
+        // gauges through the window (w 120 = D-49's round(15(v+120)/240)); the rest on their fixed scales
+        // P4: the unbounded channels (the link's Bu/t mean, the countdown's seconds) read 0..w
+        final int a = c.gauge ? (int) Math.round(15 * Math.max(0, Math.min(1, (lastValue + window) / (2.0 * window))))
+            : c.unbounded() ? (int) Math.round(15 * Math.max(0, Math.min(1, lastValue / window))) : readout.analog(c);
+        output = shape(a);
+    }
+
+    /**
+     * P4: called by a Quasar Engine once a second (server side) with one value per {@link QuasarSensorChannel}
+     * ({@code values[channel.ordinal()]}); {@code lit} false while there is no hole (output 0).
+     */
+    public void publishQuasar(double[] values, boolean lit) {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base == null || !base.isServerSide() || values == null) return;
+        lastPublish = base.getTimer();
+        host = Host.QUASAR;
+        lastLit = lit;
+        final QuasarSensorChannel c = quasarChannel();
+        if (!lit || c.ordinal() >= values.length) {
+            lastValue = Double.NaN;
+            output = 0;
+            return;
         }
+        lastValue = values[c.ordinal()];
+        output = shape(c.analog(lastValue, window));
+    }
+
+    /** Analog {@code a}, or the threshold's 15 / 0; then invert. */
+    private byte shape(int a) {
+        final int v = analog ? a : (lessThan ? lastValue < threshold : lastValue > threshold) ? 15 : 0;
+        return (byte) (invert ? 15 - v : v);
     }
 
     /** The output this hatch drives now: 0 once the last readout is stale. */
@@ -167,12 +232,60 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
         if (base != null) base.markDirty();
     }
 
+    /** P4: the channel as a quasar channel (meaningful while a quasar publishes). */
+    public QuasarSensorChannel quasarChannel() {
+        return QuasarSensorChannel.of(channel);
+    }
+
+    /** How many channels the current host offers. */
+    public int channelCount() {
+        return host == Host.QUASAR ? QuasarSensorChannel.VALUES.length : FieldReadout.Channel.values().length;
+    }
+
     public int getChannelOrdinal() {
-        return Math.floorMod(channel, FieldReadout.Channel.values().length);
+        return Math.floorMod(channel, channelCount());
     }
 
     public void setChannelOrdinal(int ordinal) {
-        channel = Math.floorMod(ordinal, FieldReadout.Channel.values().length);
+        channel = Math.floorMod(ordinal, channelCount());
+        settingsChanged();
+    }
+
+    /** The GUI's cycle: the next channel of the current host. */
+    public void cycleChannel() {
+        setChannelOrdinal(getChannelOrdinal() + 1);
+    }
+
+    /** The current channel's label for the current host. */
+    public String currentChannelLabel() {
+        return host == Host.QUASAR ? quasarChannel().label : channelLabel(channel());
+    }
+
+    /** The current channel's enum name for the current host (OpenComputers). */
+    public String currentChannelName() {
+        return host == Host.QUASAR ? quasarChannel().name() : channel().name();
+    }
+
+    /** The machine last publishing (the Eye until a quasar publishes). */
+    public Host getHost() {
+        return host;
+    }
+
+    public int getWindow() {
+        return window;
+    }
+
+    public void setWindow(int w) {
+        window = Math.max(WINDOW_MIN, Math.min(WINDOW_MAX, w));
+        settingsChanged();
+    }
+
+    public boolean isInvert() {
+        return invert;
+    }
+
+    public void setInvert(boolean invert) {
+        this.invert = invert;
         settingsChanged();
     }
 
@@ -183,7 +296,7 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
     public void setThreshold(double threshold) {
         // NaN passes the clamp and would stick the output at 0 forever (an OpenComputers 0/0): keep the old value
         if (Double.isNaN(threshold)) return;
-        this.threshold = Math.max(-120, Math.min(120, threshold));
+        this.threshold = Math.max(-THRESHOLD_LIMIT, Math.min(THRESHOLD_LIMIT, threshold));
         settingsChanged();
     }
 
@@ -220,9 +333,10 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
         final double v = getLastValue();
         return String.format(
             Locale.ROOT,
-            "%s %s → %s, out %d",
-            channelLabel(channel()),
-            analog ? "analog" : (lessThan ? "< " : "> ") + fmt(threshold),
+            "%s %s%s → %s, out %d",
+            currentChannelLabel(),
+            analog ? "analog w " + window : (lessThan ? "< " : "> ") + fmt(threshold),
+            invert ? ", inverted" : "",
             Double.isNaN(v) ? "no reading" : fmt(v),
             currentOutput());
     }
@@ -254,6 +368,20 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
                 return "Event warning (any)";
             case UPKEEP_OK:
                 return "Upkeep OK";
+            case W:
+                return "W (rail warp, T7+)";
+            case LAMBDA:
+                return "Λ (tidal shear, T8)";
+            case BETA:
+                return "β (bursts / demand)";
+            case LINK_STREAK:
+                return "Link streak % (of 30 min)";
+            case LINK_MEAN:
+                return "Link 60 s mean, Bu/t";
+            case SLOT_PROGRESS:
+                return "Planet slots progress %";
+            case COUNTDOWN:
+                return "Countdown, s (-1 none)";
             default:
                 return "T5 setpoint error";
         }
@@ -306,15 +434,20 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
         aNBT.setDouble("btsThreshold", threshold);
         aNBT.setBoolean("btsLessThan", lessThan);
         aNBT.setBoolean("btsAnalog", analog);
+        aNBT.setInteger("btsWindow", window);
+        aNBT.setBoolean("btsInvert", invert);
     }
 
     @Override
     public void loadNBTData(NBTTagCompound aNBT) {
         super.loadNBTData(aNBT);
-        setChannelOrdinal(aNBT.getInteger("btsChannel"));
+        // the raw ordinal: the host (so the channel count) is known only once a machine publishes
+        channel = Math.max(0, aNBT.getInteger("btsChannel"));
         setThreshold(aNBT.getDouble("btsThreshold"));
         lessThan = aNBT.getBoolean("btsLessThan");
         analog = aNBT.getBoolean("btsAnalog");
+        setWindow(aNBT.hasKey("btsWindow") ? aNBT.getInteger("btsWindow") : WINDOW_DEFAULT);
+        invert = aNBT.getBoolean("btsInvert");
     }
 
     @Override

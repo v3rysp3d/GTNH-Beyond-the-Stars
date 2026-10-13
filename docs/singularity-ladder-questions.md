@@ -4585,3 +4585,1394 @@ same time make the terminal "Parallel:" line and the scanner print the effective
 **Alternatives.** Keep ignoring the limit and hide the Power Panel's parallel field on the halls.
 
 **Settled 2026-10-13 (your answer: "You have full free reign on this").** Built (B-85): **`getTrueParallel()`**, and the GUI's Parallel line and the scanner print that value.
+
+---
+
+## Part E. P4: the Quasar Engine, the Conduit and Eye T7-T8 (branch p4-quasar, P4-01..P4-94)
+
+P4 is the Quasar Engine, the Conduit and Eye T7-T8, built from `designs/docs/quasar-p4.md` (rev 7f91607, D-50). Every
+PROPOSED line there is accepted. These are the judgement calls the P4 units made while building it, numbered P4-01 up.
+Each gives the context, what was built, a suggestion and the alternatives.
+
+### P4-01 The quasar's Burst Control sockets sit on the cap rims, not where the mockup drew the old hatches [structures]
+
+**Context.** §7 says the two `ergohatch` cells at y 81, (0, 81, ±8), become `c` Burst Control sockets. §2 also puts
+a docked crown's base on the slot layer from y 81, and that base disc is radius 6-11, so it covers (0, 81, ±8).
+
+**Built.** The `c` sockets are at (0, ±80, ±12), on each cap's rim, where two of the four old GRB cells were. The other
+two GRB cells, (±12, ±80, 0), are casing. There are 2 sockets per cap and 4 in all. The exporter checks that the 4 rim
+sockets keep an open face with a Mk III crown docked on both ports.
+
+**Suggestion.** Keep this.
+
+**Alternatives.** Keep the sockets at y ±81 and dock crowns 2 blocks higher (y 83). That moves the slot cell away from
+the doc's y ±81.
+
+### P4-02 The jet-port slot contract [structures]
+
+**Built** (`manifest.json` `machines.quasar.slots.{top,bottom}`):
+
+- The **port** cell is the jet axis just past the cap: voxel (0, ±81, 0).
+- A **crown** docks with its base centre on the port cell. Its controller stands at voxel (12, ±81, 0) and faces +x,
+  away from the axis. On the bottom port the crown hangs upside down: the same shape, flipped vertically.
+- A **Wormhole Mouth** docks with its throat centre on the jet axis and its throat normal along the port's axis.
+- The manifest gives every value as an offset from the quasar controller, in its (a, b, c) frame. For the crown it
+  also gives `machines.crown.intake` (its base centre, from the crown controller) and `stack` (where a second crown's
+  controller stands).
+
+**Suggestion.** The Java link check: a dock is linked when its intake (for a crown) or its throat centre (for a mouth)
+is on the port cell, and it faces the right way. The doc's "controller on the slot cell" holds for crowns.
+
+**Also.** The crown's drawn energy hatch is dropped. EU goes to wireless (D-32) and the crown draws no power. The crown
+keeps its maintenance socket.
+
+### P4-03 The Eye's receptor groups: one char `r`, with the group in the manifest [structures]
+
+**Context.** §7 says one `r` char, with each cell's group tagged in `manifest.json`. One char per group would have
+avoided a position lookup (the Reality Diffraction anchors use one char per region).
+
+**Built.** The doc's wording is kept: `r` in `eye_rail` and in `eye_halo`. Each socket entry under
+`pieces.<piece>.sockets.r[i]` carries a `group`:
+
+- `rail-high`: the rail's +z half, which the 8° tilt raises; 4 cells.
+- `rail-low`: 4 cells.
+- `halo`: the 8 shard roots.
+
+The Java side turns each `rel` into a world position with `ExtendedFacing.getWorldOffset` and matches a found hatch by
+its position.
+
+**Alternative.** Use three chars, for example `r` (high), `l` (low) and `a` (halo). That is a one-line exporter change
+plus three private elements.
+
+### P4-04 The Eye's Directive and slot-bus sockets reuse plinth deck cells [structures + Eye definition]
+
+**Built.**
+
+- Four `d` cells sit in the plinth's outer face in the row above the controller: voxel (−2 / 0 / 2 / 4, −39, 39). They
+  are for Field, Events, Transition and one spare.
+- One `p` cell (the slot bus) sits below it: (0, −41, 39).
+- These five cells were deck before P4, and both elements fall back to the plinth casing, so every Eye built before P4
+  still forms.
+
+StructureLib rejects a shape char that has no element, so `MTEEyeOfHarmonyBTS.buildDefinition` gained two minimal
+elements:
+
+- `d`: `EyeHatchElement.Directive`, else the temporal casing.
+- `p`: `EyeHatchElement.Items` (an input bus), else the temporal casing. This is a `TODO(P4 Eye unit)`: `p` becomes a
+  private Slot Bus element for the planet items and companion charts.
+
+The Eye's `n` sockets still take Directive Hatches too, as the automation pass built them.
+
+### P4-05 Which coils are tiered [structures]
+
+**Built.**
+
+- The quasar's tiered coils, channel `coil` (char `H`, 3,354 blocks, every coil one tier): the cage coil stacks, the
+  dome rings and the hanging disc rings.
+- Jet Collimator Rings (char `C`, untiered): the 16 rings round the jet towers (596 blocks), and the coil cells on the
+  crowns and the conduit elements.
+
+**Cost flag for the recipe unit.** The quasar takes 27,815 Eddington Wall Casings (both walls and the collars), 10,730
+BHC casings and 6,392 frames. The Junction takes 7,145 Casimir Plates (its chamber lining). Cost the per-block cards so
+these totals stay sane (rule 6). The design card (Eddington Wall Casing ×2 for 4 dense BDM plates) costs about 55,000
+dense BDM plates for one quasar.
+
+### P4-06 Junction sockets moved [structures]
+
+**Built.**
+
+- The two `c` sockets are at (0, 15, ±2), beside the controller. §7 put them at (±2, 15, 0), but those two cells are
+  the maintenance and energy hatches.
+- Two of the six fuel hatches were sealed inside the big throat's wall, at 150° and 210°. They moved to 130° and 230°.
+- All six now sit on the chamber shell at r 15. They floated at r 16 before.
+
+### P4-07 The conduit elements' energy sockets are optional [structures]
+
+**Context.** The Mouth and the Junction are drawn with an energy hatch, but §3 gives the conduit no EU upkeep.
+
+**Built.** The `e` socket is exported with min 0.
+
+**Suggestion.** The MTE units ignore EU; drop the socket in a later mockup pass if nobody needs it.
+
+### P4-08 Intended blocks [structures]
+
+| Machine | Cells | Block |
+|---|---|---|
+| Conduit | shells (the mockup's Eddington cells) | TecTech Reinforced Spatial Structure Casing (§6.2) |
+| Conduit | outer rings | Reinforced Temporal Structure Casing |
+| Quasar | cage casing | the BHC's Extreme Density Space-Bending Casing |
+| Quasar | frame | Naquadah Alloy frame (the Kerr family) |
+| Quasar | tank walls | the BHC's Background Radiation Absorbent Casing |
+| Quasar | glass | Quantum Glass |
+| Mirror | mirror | the Kerr's Superradiant Mirror Casing |
+
+- §6.2's "Casimir-lined conduit casing" is not needed: the existing Casimir Plate (slCasing:14) plays it.
+- New blocks: Eddington Wall Casing, Disc Field Coil T1-T4, Rim Gas Injector, Jet Collimator Ring, Burst Thermaliser
+  Casing and Radiator Petal.
+
+### P4-09 The Directive Hatch keeps its built UIV recipe [design]
+
+**Context.** §6.3 cards the Directive Hatch at UXV. The automation pass already built it at UIV (SL-A01), because the
+Kerr and every Eye tier use it.
+
+**Built.** The design card shows SL-A01 as built.
+
+**Suggestion.** Keep UIV.
+
+### P4-10 Conduit export frames [structures]
+
+**Built.**
+
+- The Mouth is exported from the left mouth of the pair (centre x −44, throat normal +x). A pair is two copies of
+  the same shape.
+- Every element is exported in its controller's frame, with its throats in `machines.conduit_*.throats`: centre, radius
+  and outward normal, in (a, b, c).
+- Junction throats: the big throat is in for split and out for combine; out1 / out2 / out3 are at 0° / +60° / −60°,
+  and out3 is the fixed share taken off the top.
+- The Junction's controller is on top of the chamber, and its piece front is voxel +z.
+
+### P4-11 Stacked crowns use the same shape [structures]
+
+**Built.** The exporter checked a second crown stacked at its core top − 2. It shares no cell with the first at
+Mk I, II or III, in the same rotation. The mockup draws it rotated half a petal, but that rotation is not needed, so
+one shape serves both. The offsets of the second crown's controller are in `manifest.json` `machines.crown.stack`:
+9, 14 and 18 up.
+
+### P4-12 Two stale design cards [design]
+
+- The design card for the Galactic Upgrade Core listed 4 GRB Receptor Ports. A port is now a UXV part, a loop at
+  T3 → T4, so the card swaps them for Casimir Plates. Check the addon's SL-E04 for the same thing (it was built from the
+  BEC cards, so it should be clean).
+- The design card SL-H10 now matches the built recipe, gated on Black Dwarf Matter (ruling 19a).
+
+### P4-13 Sizes as exported [structures]
+
+| Machine | Size | Blocks |
+|---|---|---|
+| Quasar | 143 × 161 × 144 | 51,984 |
+| Crown Mk I | 33 × 17 × 33 | 1,835 |
+| Crown Mk II | 49 × 23 × 49 | 2,811 |
+| Crown Mk III | 65 × 29 × 65 | 4,422 |
+| Wormhole Mouth | 39 × 42 × 10 | 1,404 |
+| Conduit Mirror | 23 × 13 × 24 | 1,703 |
+| Conduit Junction | 89 × 30 × 83 | 17,233 |
+| Eye T7 | 183 × 59 × 175 | 67,367 |
+| Eye T8 | 196 × 73 × 218 | 71,076 |
+
+- The quasar is 161 tall, not the mockup title's 162, because the y 81 hatches are gone.
+- The Eye's T7 rail adds 15,432 blocks and the T8 halo adds 3,709.
+- All fit BlockRenderer6343's y 0-255.
+
+### P4-14 One engine definition for both prototypes [engine]
+
+**Context.** The P4 prototype carried its own copy of the D-49 ENGINE block, taken before the T6 Agent ruling (the
+upkeep charges the shield, +2r per s). The star-lifecycle prototype had the ruling but not the P4 hooks.
+
+**Built.** One ENGINE block, the same text in both pages (design repo 330e4df): the P4 hooks (W and Λ, per-gauge σ,
+burst terms, per-second and cycle hooks, the satellite crossing, the galaxy transitions) plus the +2r shield. The T7/T8
+tier tables, the quasar and the conduit stay in the P4 page's P4 block, cut to `tools/fixtures/quasar-engine.js`. The
+golden tools check the engine sha on both pages. The 78 T1-T6 expectations are unchanged byte for byte.
+
+**Consequence.** The P4 page's T6 numbers now include the +2r charge. The T6 → T7 chain still reaches T7 on every
+seed (3 of 3 in the golden, 5 of 5 in the rig proof).
+
+**Suggestion.** Keep this.
+
+**Alternatives.** Copy the P4 block into the star-lifecycle page too. That gives two copies to keep in step.
+
+### P4-15 The golden relights with the engine's relight() [engine]
+
+**Context.** The local work folder harness that produced the doc's tables relit a lost Eye inline: no `light()`, so no new
+event draw and no new cycle charge. The T1-T6 golden tool calls the engine's `relight(S)`.
+
+**Built.** `tools/quasar-golden.js` calls `relight(S)`, as the T1-T6 tool does and as the page's button does. Runs
+with no failures match the doc's tables exactly: T7 standard 84 / 16 % Resonant / Stable with Y 1.21; T8 at 120 SM
+has 1, 0 and 0 failures with Y 1.13. Runs with failures differ slightly from the doc's counts.
+
+**Suggestion.** Keep this. The doc's failure counts are illustrations, and the golden pins the engine.
+
+### P4-16 A seeded hole starts at a = 0 [engine]
+
+**Context.** §1.1 seeds the hole at 64 SM with a = 0. The prototype and every simulated table start at a_eq (about
+0.5 at coil 3). With a = 0, G0 = λc·a²·b²·(M/64)² is 0 at first, and a relaxes over 1,800 s.
+
+**Built.** `QuasarState.seed(M0, a0)` takes the spin. The MTE should pass `QuasarParams.SEED_SPIN` (0), per the doc.
+The golden passes a_eq, as the prototype does. First Light comes in the first seconds because G > 0 as soon as a > 0.
+Full output takes about an hour of spin-up.
+
+**Suggestion.** Keep a = 0, and show "spinning up" in the GUI while a < 0.9·a_eq.
+
+**Alternatives.** Seed at a_eq, which matches the simulated tables from the first second.
+
+### P4-17 The Eye's galaxy transitions get their own Directive set [engine + automation]
+
+**Context.** §8.1's Transition set gives bits 3 and 4 as "purge now" and "hold" (the collapse assist). The built Eye
+Transition set (automation pass, B-70) already uses bits 3 and 4 for "next core wanted" and "Tachyon wanted" on
+T1-T6. The Magnetar Collapse starts from T6, so the two tables would collide on the same tier.
+
+**Built.** A new set, **Eye: Galaxy Transition** (`EYE_GALAXY_TRANSITION`): [1] ready to begin, [2] running, [4] purge
+now, [8] hold the regulator's purges. The built Eye Transition set is unchanged. The other P4 sets are also new:
+Quasar: Disc (with a new host, QUASAR), Eye: Field, Eye: Events and Eye: Slots. They are appended to `DirectiveSet`,
+whose NBT keeps names. The bit rules are `QuasarDirective.disc` and the `GalaxyDirective` functions.
+
+**Suggestion.** Keep this. A rig picks the set it needs, and nothing that is built changes.
+
+**Alternatives.** Make the Transition set's bits 3 and 4 depend on the tier, as the Trims set does. Labels would change
+under a running rig.
+
+### P4-18 Slots bit 4 is "link test fire wanted" for both links [engine + automation]
+
+**Context.** F-6 says the Stability Link at T6 needs J1 at centre 1.0, "everything to the Eye". §8.1's Slots [8] is
+"Heavy Link wanted" at T7 only. An unattended chain from T6 would leave J1 at centre 1.0 after the collapse. That
+over-delivers at T7: on the all-binary wiring the galaxy runs Stable instead of Resonant.
+
+**Built.** `GalaxyDirective.testFireWanted` sets Slots [8] while the next link is not held and its core and charge are
+in place:
+
+- At T6 it asks for the Stability Link. The rig forces J1 to 15.
+- At T7 it asks for the Heavy Link. J1 goes to 15 and J3 to its 75 % preset, as in F-7.
+
+J1 keeps the standard centre 0.5 through the whole chain. The rig proof runs 5 of 5 on both chains.
+
+**Suggestion.** Keep this. Questbook: "wire Slots [8] to J1's Burst Control Hatch (OR) and to J3's 75 % preset".
+
+**Alternatives.** Keep the bit T7-only. The player then sets J1's centre to 1.0 at T6 and back to 0.5 after the
+collapse.
+
+### P4-19 The Events set stays 0 below T7 [engine]
+
+**Context.** §8.1 lists the collapse among the Events countdowns. The prototype computes Events only at T7+, so the
+T6 collapse countdown does not show there.
+
+**Built.** As the prototype. During the overfeed the collapse countdown shows on the Galaxy Transition set as the hold
+window ([8] from T−80 s) and on the field's warning (the T6 Status set's "event warned" bit).
+
+**Suggestion.** Keep this. Nothing in the standard rig reads it.
+
+**Alternatives.** Raise Events [4] at T6 during the countdown. That needs a prototype change and a new golden.
+
+### P4-20 Purges are edges and latches in the mod [engine]
+
+**Context.** The prototype's regulator purges in any second where the condition holds (Φ at the setpoint and not held),
+and the collapse assist sets a force flag. In the mod a purge is a rising redstone edge on the Burst Control Hatch, or
+an OpenComputers call.
+
+**Built.** `QuasarState.requestPurge()` latches a request. The next disc second that is not re-forming consumes it,
+and a purge below Φ 20 is refused (`purgeRefused`). The golden passes the regulator as `QuasarInputs.regulatorPurge`
+(level), exactly like the prototype. The rig proof wires the hatch's rising edge. The results are the same, because a
+purge resets Φ, so the condition drops the next second.
+
+**Suggestion.** Keep this.
+
+### P4-21 The collapse shock: 80 in the golden, 120 in the rig proof [engine]
+
+**Context.** The prototype's default shock is +80. F-2 recommends +120, the value the doc's assist proof used.
+
+**Built.** `MagnetarCollapseOverlay.DEFAULT_SHOCK` is the adopted +120, and `PROTOTYPE_SHOCK` is 80, the same
+pattern as the Core Collapse's adopted 150 against the prototype's 90. The golden uses 80, and `QuasarRigSim` uses 120.
+The plain-rig golden case (assist off, +120) loses the magnetar, as F-2 says.
+
+**Suggestion.** Keep +120. The Eye unit constructs the overlay with `DEFAULT_SHOCK`.
+
+### P4-22 Additions that are not in the prototype [engine]
+
+**Built.** None of these draw from the RNG or touch the golden numbers:
+
+- The hole states NONE and DORMANT (§1.1's Collapse and re-open). A dormant hole is frozen and draws no coil power.
+- The mass milestones 128 / 415 / 1,024 / 4,096 SM (§5.1).
+- `purgeRefused`, `massCapped` and the readouts in `QuasarResult`.
+- `BurstLink.sigma` and the host demands for the Kerr, the Homogeny and Reality Diffraction (R.2). Their effects (bleed
+  ×(1 − 0.75·min(σ, 1)), the speed bonuses) belong to the host units.
+- The parallel p in the T7/T8 feed, product and bonus. It is 1 in the prototype, where the forms are identical.
+
+**Suggestion.** Keep this.
+
+### P4-23 Ergomatter and Superdense Ergomatter now belong to P4 [content]
+
+**Context.** The Homogeny / Reality branch registered `btsergomatter` and `btssuperdenseergomatter` as placeholders
+(`SLRealityFluids.ifAbsent`, H-24) so its recipes showed in NEI.
+
+**Built.** `fluids/SLQuasarFluids` registers both under the same frozen names and colours, before `SLRealityFluids`.
+`SLRealityFluids.ergomatter` / `superdenseErgomatter` are now aliases of P4's fields, so the H/R code reads the same and
+neither is a placeholder any more. The H/R gate log no longer names them. White Hole Matter stays a placeholder (P5).
+
+**Suggestion.** Keep this. The P5 unit does the same for White Hole Matter.
+
+### P4-24 Q-22 failed: MagMatter is not attainable before T7 in RC-2 [recipes, design]
+
+**Context.** Q-22 asked to check that MagMatter is attainable before the tier that needs it, and §6.5 named the check.
+
+**Found (RC-2 sources).** The only MagMatter source is the Godforge's Heliofusion Exoticizer in magmatter mode
+(`MTEExoticModule.generateMagmatterRecipe`: molten Time + molten Space). That mode needs the Godforge upgrade **EE**
+(`GodforgeMath`: `setMagmatterCapable(data.isUpgradeActive(EE))`). EE's extra cost (`tectech/loader/recipe/Godforge`)
+is 64 White Dwarf + 64 Black Dwarf Matter frames, **16 Eternity frames** (Eye T7 with SL-Q26) and **2 Universium frame
+boxes** (Eye T10), plus 48 Stabilisation Field Generators tier 6 and other parts. So MagMatter waits for Eye T10.
+
+**Built.**
+
+- The Intergalactic Upgrade Core (SL-Q21) takes §6.5's fallback: no MagMatter Condensate; SpaceTime Condensate rises to
+  1,120 ingots (161,280 L, the card's 128,000 L + 32,000 L, rounded to whole ingots).
+- The optional Disc Field Coil T4 (SL-Q05) keeps MagMatter (§6.3, "tier 4 is optional"). It is reachable only after
+  T10 until EE is rewritten. Its tooltip says "optional".
+- The gate dump reports T4 coils without judging them.
+
+**Suggestion.** Under `replaceTecTechEyeOfHarmony`, rewrite the EE upgrade's 2 Universium frame boxes to 2 frames of a
+pre-T7 product (Magnetar Matter has no frame; e.g. 8 Black Dwarf Matter frames), the same D-48 item 2 spirit that keeps
+MagMatter in UXV. Then MagMatter (and T4 coils) arrive at T7 with Eternity. **Alternative:** give the T4 coil a
+different metal (Superdense Ergomatter would make it a T8 part).
+
+### P4-25 UXV parts on pre-T7 cards: the B-72 UMV stopgap [recipes]
+
+**Context.** RC-2's Field Generator / Sensor / Emitter UXV each need 576 L molten Universium + 576 L MHDCSM, and the UXV
+Machine Casing needs 4 MHDCSM + 4 MagMatter plates. You chose "Ship UMV stopgap" (ruling 22a) until the UXV-part
+brainstorm.
+
+**Built.** Every P4 card needed before T7 takes **twice as many UMV parts** for the card's UXV parts (Quasar Engine FG /
+Emitter / Sensor 32 → UMV 64 each; Throat Mk I FG 2 → 4; Mk II 8 → 16; Intergalactic Core FG 32 → 64; Triangulum and
+Milky Way charts Sensor 2 → 4). The GRB Receptor Port and the Burst Control Hatch use a **Machine Hull UMV**, are
+Assembler recipes at UMV, and take Sensor UMV ×4 / Sensor + Emitter UMV ×2. UXV circuits stay (RC-2's own Eye T5/T6
+compression generators take them; the gate dump passes them).
+
+§6.5's "UXV Superconductor Wire takes the Agent" (ruling 19b) has nothing to change in the build: the pack stops at
+UMV superconductors and no recipe makes a UXV wire. The P4 cards that named it (Disc Field Coil T4) take UMV wire
+(×16 per 32 coils, twice the other tiers).
+
+**Suggestion.** When the UXV-part design lands, move these cards back to UXV parts in one pass (they are all in
+`BTSRecipesQuasar`, marked "B-72 stopgap").
+
+### P4-26 The block recipes are Condensate Assembler batches, priced per block [recipes, costs]
+
+**Context.** P4-05: one quasar takes 27,815 Eddington Wall Casings and 3,354 coils; a Junction takes 7,145 Casimir
+Plates. The cards were single-block assembler / assembly-line recipes (the Eddington card alone was about 55,000 dense
+Black Dwarf Matter plates per quasar; the Jet Collimator card 8 Field Generators per ring).
+
+**Built** (ruling 11b, the SL-B32 Bastion pattern, about RC-2's BEC casing time per block):
+
+| Id | Block | Per craft | Time | Per block |
+|---|---|---|---|---|
+| SL-Q02..Q05 | Disc Field Coil T1-T4 | ×32 | 2,400 / 3,000 / 3,600 / 4,200 s | 75-131 s |
+| SL-Q06 | Eddington Wall Casing | ×64 | 2,400 s | 37.5 s |
+| SL-Q07 | Rim Gas Injector | ×8 | 3,600 s | 450 s |
+| SL-Q08 | Jet Collimator Ring | ×32 | 2,400 s | 75 s |
+| SL-Q17 | Burst Thermaliser Casing | ×64 | 2,400 s | 37.5 s |
+| SL-Q18 | Radiator Petal | ×64 | 1,800 s | 28 s |
+
+Each keeps the card's identity in batch form (the Eddington wall's Black Dwarf Matter as 72 L of condensate per 64;
+the coil's tier metal as frames + condensate; the collimator's Disc Field Coil T3 and White Dwarf Matter). Totals per
+machine are in `singularity-ladder-costs.md` §14: a quasar is about 70k neutronium, 35k Infinity and 3.3k SpaceTime
+ingots (T1 coils), 392 h nanite-time, in line with one Eye T5/T6 step.
+
+**Suggestion.** Keep. *Alternative:* raise the Eddington batch if the quasar should cost more than an Eye step.
+
+### P4-27 The Quasar Engine card's Magnetar Matter items and condensate [recipes]
+
+**Built (SL-Q01).**
+
+- "Dense Magnetar Matter Plate ×8" and "Magnetar Matter Frame Box ×8" do not exist: Magnetar Matter is our fluid, not a
+  GT material. They are folded into the molten feed: 9,216 + 8 × 1,296 + 8 × 288 = **21,888 L**, §6.3's "about 20,000 L".
+- "Black Dwarf Matter Condensate 64,000 L" is **molten Black Dwarf Matter 448 ingots (64,512 L)**: an assembly line
+  cannot draw from a BEC network.
+- Research item: the Quasar Seed. Ergomatter → Antipolarization Agent 256,000 L, as §6.3.
+
+### P4-28 The two transition cores and the charts [recipes]
+
+**Built.**
+
+- **SL-Q21 Intergalactic Upgrade Core** (Condensate Assembler, 3,000 s, UXV): Entangled Magnetar Matter 4,608 L,
+  Entangled Agent 32,000 L, SpaceTime Condensate 1,120 ingots (P4-24), Entangled Black Dwarf Matter 448 ingots. The
+  Assembler takes at most 4 condensates, so the card's White Dwarf Matter Condensate (64,000 L) is 48 dense White Dwarf
+  Matter plates. The card's "Metamaterial 64 ×2" is Field Manipulator II ×16 + Shielding II ×16 (tier-II metamaterials,
+  White Dwarf nanites, T4-legal). Throat Mk I ×2, FG UMV ×64, UXV circuits 32, Bastion 64.
+- **SL-Q22 Supermassive Seed Core** (3,600 s, UXV): Entangled Ergomatter 128,000 L + Entangled Magnetar 2,304 L;
+  Bastion 64, Resonance Chamber III ×32, Field Manipulator II ×32 (the card's "Metamaterial 64").
+- **SL-Q24 / SL-Q25 Star Charts**: Data Orb + Sensor UMV ×4 + Entangled Magnetar 2,304 L (Triangulum) or Entangled
+  Ergomatter 4,000 L (Milky Way), SpaceTime 28 ingots. A Casimir Plate / Bastion Plate keeps the two item sets apart
+  (the Assembler finds recipes by items only).
+- **SL-B16** (the BEC proposal's reserved Entangled Magnetar Matter): its generator is added here (144 L → 144 L,
+  180 s, 2 A UXV), because P4 is its first consumer.
+- SpaceTime Condensate "4,000 L" on the throats and charts is 28 ingots (4,032 L): GT's half-unit rule.
+
+### P4-29 Conduit Mirror: "BEC Metamaterial Film" was never built [recipes]
+
+**Built.** SL-Q11 takes 4 MetaMaterial Wave Focus II (GT's focusing metamaterial) where the card has 4 BEC
+Metamaterial Film. Everything else as carded, with the Agent for Ergomatter. **Alternative:** build the film item.
+
+### P4-30 Machine recipes wait for their MTE unit [recipes]
+
+**Built.** `BTSMachines` holds the seven P4 stacks (`quasarEngine`, `wormholeMouth`, `conduitMirror`,
+`conduitJunction`, `burstThermaliserCrown`, `grbReceptorPort`, `burstControlHatch`), null until each MTE unit
+registers its machine. A recipe whose output is null is not registered and not counted as a skip; the boot log names
+the waiting ones in one line ("P4 recipes: 7 wait for their machine's MTE unit"). The Junction also consumes a
+Wormhole Mouth. Research items are unique (the Quasar Seed, the Rim Gas Injector, the Superradiant Mirror Segment, the
+Jet Collimator Ring, the Burst Thermaliser Casing, Throat Mk II).
+
+### P4-31 The DENSITY gates are the Hosts unit's [recipes, contract]
+
+**Built.** SL-Q09 (Quasar Seed) and SL-Q23 (Superdense refined) are on `KerrRecipeMaps.DENSITY`. Today the Compressor
+module's own gate applies (Kerr T2, 128 SM). `BTSRecipesQuasar.densityMinMass(recipe)` (256 SM for both) and
+`densityNeedsLink(recipe)` (SL-Q23: the KEE's quasar link at σ ≥ 1) are the hooks for the Hosts unit's
+`validateRecipe`. SL-Q23 takes a programmed circuit 8 (not consumed): the DENSITY map needs one item input.
+
+### P4-32 SL-P40 and the Eternity swap (SL-Q26) [recipes]
+
+**Built.**
+
+- **SL-P40**, the SL-P39 pattern (a separate Condensate Assembler recipe behind `replaceTecTechEyeOfHarmony`): RC-2's
+  Resonance Chamber IV with the MHDCSM foil replaced by 2 SpaceTime foils + 1,500 L Entangled Ergomatter (the card's
+  1,440 L on the 500 L half-unit rule). Ruling 22c moves SL-P39 to an in-place rewrite of GT's recipe; SL-P40 can
+  follow it in the same commit when that lands.
+- **SL-Q26** (D-48 proposal 1, Q-10), at load-complete, behind `replaceTecTechEyeOfHarmony`, rewritten in place:
+  - GT++'s Temporal Harmony Catalyst (Assembler, the QFT catalyst of the coremod's Eternity recipe): the Universium
+    Nanite goes; Ergomatter 9,216 L takes the one fluid slot; its Dark Iron (10 stacks of molten) moves into the items
+    as 64 + 7 blocks.
+  - The gate dump then found a second Universium Nanite: the only other **Timepiece** recipe (coremod DTPF, 3
+    Timepieces) eats one, and the catalyst consumes a Timepiece. Its nanite becomes Ergomatter 4,608 L (a ninth fluid
+    slot is free). The Eternity QFT recipe hands a Timepiece back, so the loop feeds itself after the first catalyst.
+  - `BTSRecipesReality.ETERNITY_BEFORE_T10` follows `BTSRecipesQuasar.eternityBeforeT10()` (true: with the flag on SL-Q26
+    runs; with it off TecTech's Eye still makes Universium). The H/R "Eternity" gate lines are gone from the boot log;
+    SL-Q26 logs an error if it finds nothing to rewrite.
+- **Suggestion.** Flip the questbook's `eternityOnErgomatter` feature flag at the questbook merge (the questbook branch
+  is not in this base).
+
+### P4-33 NEI pages for the quasar and the crowns [content]
+
+**Built.** `machines/quasar/QuasarRecipeMaps`: two display-only maps with fake recipes (the `BTSDisplayRecipes`
+pattern, numbers read from the engine). `beyondthestars.recipe.quasar`: one page per feed gas (Hydrogen, Helium, Raw
+Star Matter → the Gamma-Ray Burst display item) with κ, the Eddington feed at 64 and 1,024 SM, the coil power and the
+jet split. `beyondthestars.recipe.thermaliser`: one page per crown Mk (cap, EU/t at cap, petals). **Contract:** the
+Quasar and crown MTEs return these maps from `getAvailableRecipeMaps()` so NEI lists them as catalysts.
+
+### P4-34 The P4 gate audit on the dev server [recipes, test]
+
+**Run.** `/btseye gates` on a headless `runServer` (this worktree, port 25581). `SLGateDump` now also checks every P4
+part (27) against the Eye tier it gates (7: everything built before T7 and the T6 → T7 core and chart; 8: Throat Mk III,
+the T7 → T8 core, the Milky Way chart, Resonance Chamber IV and the Eternity catalyst; 9: Superdense Ergomatter), its
+direct inputs, nanites and fluids, and one level down. Results in the build spec's P4 section. The seven machine
+recipes are not checked until their MTE units land; their inputs are the blocks and parts above.
+
+### P4-35 Casimir-lined conduit casing: not a block [content]
+
+§6.2 lists it; P4-08 found the existing Casimir Plate (`slCasing:14`) plays the role in every conduit shape, so no new
+meta was added (a block nothing uses would only be a recipe and a texture to keep). **Alternative:** add it as
+`slCasing2:12` if the conduit shapes are redrawn with a distinct lining.
+
+### P4-36 The quasar's energy sockets take any mix of energy and laser hatches [quasar MTE]
+
+**Context.** §7 draws three energy cells for coil power, 2 A UXV × b²: 2 A at b = 1, 18 A at b = 3, 32 A at b = 4. GT's
+`checkExoticAndNormalEnergyHatches` allows "1 exotic or 2 normal" hatches, which refused the creative build's three
+hatches.
+
+**Built.** The quasar's own check: at least one Energy or Laser Hatch in the `e` sockets, any mix, all drained by
+`drainEnergyInput` (lang `beyondthestars.structure.quasar.energy`).
+
+**Suggestion.** Keep. **Alternative:** GT's rule, which forces one laser hatch at b ≥ 2.
+
+### P4-37 How a jet finds its dock: a registry keyed on the port cell [quasar MTE, contract]
+
+**Context.** P4-02 says a dock is linked when its intake (crown) or throat centre (mouth) sits on the port cell. The
+quasar knows the port cell but not where a Wormhole Mouth's controller stands.
+
+**Built.** `machines/quasar/burst`: a dock (`IBurstDock`) registers its intake cell every second while formed and
+facing the right way (`BurstDocks.register`, entries stale after 40 ticks, weak per-world table). The quasar looks up
+each port cell once a second and calls `acceptJet(JetPacket)`; with no ready dock the port vents. The facing check is
+the dock's (it simply does not register when it faces wrong).
+
+**Suggestion.** Keep: one mechanism for crowns and mouths, no geometry duplicated. **Alternative:** the quasar probes
+`crownControllerRel` directly for crowns and only mouths register.
+
+### P4-38 The gas buffer [quasar MTE]
+
+**Built.** The 24 rim hatches (any input hatch, ME stocking included) refill a buffer of the selected gas only, up to
+10 s of the maximum feed (10 × 1.5 × Ṁ_Edd: 192,000 L at 64 SM on Helium, 3.07 ML at 1,024 SM). The disc draws f·Ṁ_Edd
+from it every second; a short buffer gives a lower f_eff (the engine's own reaction). Switching gas leaves the old
+buffer in place (unused). The buffer is tile NBT only: a wrenched controller keeps its hole but not its gas.
+
+**Suggestion.** Keep. **Alternative:** no buffer (drain the hatches directly each second); a big ME network then sees a
+200 kL/s pull per second instead of a 10 s refill.
+
+### P4-39 Trims drain on their own; no OpenComputers trim() call [quasar MTE, automation]
+
+**Context.** §8.2 lists `trim("gas" | "space", units)` for `bts_quasar`.
+
+**Built.** As on the Eye (D-49), the 4 plain trim hatches are drained every second: whole units of the feed gas
+(1,000·M/64 L, E +2) and Spatially Enlarged Fluid (100·M/64 L, E −2), at most 10 each. The automation is the valve
+that fills the hatch (AE2 export bus on Disc bit 1 / 2, a regulator cover, SFM, an OC transposer). A `trim()` call
+would need fluid from nowhere, so it is not built.
+
+**Suggestion.** Keep; the questbook names the valve routes. **Alternative:** a `trim()` that only drains what the trim
+hatches already hold (it would duplicate the automatic drain).
+
+### P4-40 Open, Collapse and the controller slot [quasar MTE]
+
+**Built.** The controller slot is shown (GT's MUI2 slot beside the power button). Open (GUI, OpenComputers has no open
+call, `/btsquasar open`) consumes a Quasar Seed for a hole that never existed (64 SM, a = 0, P4-16) or one of GT's
+Black Hole Seeds for a dormant one. Collapse needs no item (§1.1) and asks twice. Nothing opens on its own when an item
+is inserted, because opening the hole is one of §8.3's three manual steps. A new hole gets its own disc noise sequence
+(position and world time), saved with the state.
+
+**Suggestion.** Keep.
+
+### P4-41 Burst Control Hatch details [quasar MTE + 28126]
+
+**Built.**
+
+- The level is the strongest redstone on any side (covers included), read every tick; a rising edge is 0 → 1 or more
+  and is latched until the host's next second, so a one-tick pulse counts.
+- Modes PURGE, FIELD, SPLIT, BEGIN; a hatch adopts its host's first mode when its own is not used there (the
+  Directive Hatch pattern). The quasar uses PURGE and FIELD; FIELD with s = 0 gives b = 0.5; several FIELD hatches →
+  the highest s. A PURGE edge while the hole is dormant is dropped.
+- The Junction (SPLIT) and the Eye (BEGIN) read `level()` / `consumeRisingEdge()` and call `poll()` themselves.
+
+**Suggestion.** Keep.
+
+### P4-42 The sensor window applies to the Eye too [quasar MTE + 28116]
+
+**Built.** The window w (default 120) maps the Eye's signed gauges as ±w; at 120 this is exactly D-49's
+`round(15(v + 120)/240)`, so every placed Eye hatch reads the same. Invert and the wider threshold range (±100,000, for
+masses) apply to both hosts. The hatch's host (and so its channel list) is whichever machine last published; the
+channel ordinal is kept across hosts (append-only lists).
+
+### P4-43 NEI preview: the bottom row falls below the scratch world [quasar MTE, NEI]
+
+**Found.** BlockRenderer6343 1.4.24 places every controller at (0, 64, 0) (`GuiMultiblockHandler.MB_PLACE_POS`). The
+quasar's controller sits 65 rows above its bottom (voxel y −15 against the bottom cap at −80), so the bottom cap's
+outer layer (voxel y −80, with two `c` sockets) lands at y −1 and is not drawn. Everything else (y 0..159) fits. The
+preview's frame rate with 51,984 blocks is not measured (no client run in this unit); `INEIPreviewModifier` only
+offers hooks, it cannot move or thin the build.
+
+**Suggestion.** Accept the missing row (the hologram projector builds it). **Alternatives:** move the controller one
+row down in the mockup (a voxel.js + manifest change); or ask BlockRenderer6343 to lift tall structures.
+
+### P4-44 What the Disc set's alarm bit sees [quasar MTE, automation]
+
+**Built.** Disc bit 4 is on while the hole is not OPEN (re-forming, dormant), b = 0 (no coil power), or any Bu/t vented
+last second. "A Conduit element closed" needs the Conduit unit: `conduitOpen` is true until it reports.
+
+**Contract.** The Conduit unit sets a closed-element flag (a `reportHost`-style call) that the quasar folds into
+`QuasarDirective.State.conduitOpen`.
+
+### P4-45 The render [quasar MTE, render]
+
+**Built.** `TileQuasarHole` (a GT `RenderingTileEntityBlackhole`) at the manifest's centre cell while the quasar is
+formed and has a hole (open, re-forming or dormant; a dormant or re-forming disc is drawn dark and thin). GT's model is
+scaled (4 + 4·log₂(M/64)/6)/1.3; its shader stability is the disc's Stability/100. Our TESR adds the disc (r 40 to
+40 + 22·λc, additive, zone colours, three turning arms, puffing above E 0, a 3 s outward flash on an eruption or a
+purge) and the jet cones (±78 blocks, brightness log₁₀ of each port's Bu/t). Look packets go straight to the chunk's
+watchers. A render-harness site (QUASAR) with `quasar_64sm` and `quasar_1024sm_eruption` is added; not run in this
+unit (the desktop is in use).
+
+**Open.** Colours, widths and brightness are first guesses for the render QA pass.
+
+### P4-46 A quasar that is gone is not a pause; receptors remember who fed them [conduit, Q-8]
+
+**Context.** Q-8: a source that is not loaded pauses its hosts. `BurstSource.status()` said UNLOADED whenever no quasar
+stood at the position, so a broken quasar would have paused its hosts for ever. And a host learns its sources only from
+streams, so after a restart with the quasar's chunk unloaded it would read zero, not pause.
+
+**Built.** `BurstSource.Status.GONE` (chunk loaded, no quasar there) and `pauses()` (FROZEN or UNLOADED). Each GRB
+Receptor Port keeps the quasars that fed it (positions only, at most 8, saved in its NBT; never a link). In
+`reading()` a remembered source that no longer arrives pauses the host if it pauses, and is forgotten if it is RUNNING
+(the path broke: felt in full) or GONE.
+
+**Suggestion.** Keep. **Alternative:** no memory (a restart with the quasar unloaded reads 0 for one session).
+
+### P4-47 Rays: range, aim tolerance and what blocks them [conduit solver]
+
+**Context.** §3: "within 64 blocks", "air or one of our render cells". The throat centres are inside the elements (a
+mouth's ring centre is 5 deep) and the Junction's out 2 / out 3 leave at ±60°.
+
+**Built.** A ray leaves an out-throat's centre along its outward normal. It enters an in-throat when it crosses the
+opening's plane within radius + 0.5, travelling into it at most 60° off its axis (cos ≥ 0.5; a mouth's ring takes
+either side), at most 72 blocks centre to centre (64 of air + 8 for the two throats' depth). The cells on the way
+(Amanatides-Woo walk) must be air or `BlockQuasarHole`; the first GRB Receptor Port takes the stream; any other block
+blocks it ("blocked at x, y, z (block)"); an unloaded chunk on the way stops it ("an unloaded chunk at ..."). Routes are
+cached 5 s per out-throat and dropped on every structure check; a stale target is re-traced at once.
+
+**Suggestion.** Keep. **Alternatives:** exact 64 measured face to face; no angle tolerance (out 2 / out 3 could then
+only feed receptors, never another element).
+
+### P4-48 Throat upkeep: one unit per element, always while a throat is fitted [conduit]
+
+**Context.** §3 says "a Junction counts one per leg in use", against the doc's own rig sums (7 elements → 28 L/s); F-5
+recommends one unit per element. The design does not say whether an idle element pays.
+
+**Built.** F-5: every element (each mouth of a pair, mirror, junction) pays one unit a second for its throat Mk while
+formed with a throat in the slot, idle or not (the throat is held open). Fuel per GUI / OpenComputers: Auto (Ergomatter
+when the hatches hold the second's need, else Molten SpaceTime), SpaceTime only, Ergomatter only. Fractional rates carry
+(0.25 L/s drains 1 L every 4 s). A new or newly fuelled element is closed until 10 s of full upkeep; no throat = closed.
+A stream that reaches a closed element is lost and raises the source quasar's Disc bit 4 for 2 s (closes P4-44).
+
+**Suggestion.** Keep. **Alternatives:** pay only in seconds with traffic; one unit per leg (a 52 L/s rig).
+
+### P4-49 The Mirror is reversible [conduit]
+
+**Built.** A stream into either throat leaves by the other (the drawn in/out is only the default). One mirror then
+turns a stream both ways along the same corner; a stream that loops back is dropped by the cycle check.
+
+**Suggestion.** Keep. **Alternative:** in → out only, as drawn.
+
+### P4-50 σ: last second and the 60 s mean; conditions use the mean [host API]
+
+**Context.** R.2 defines σ = delivered ÷ D_h; F-3 says per-second floors cannot survive the Φ sawtooth; §3.1 checks a
+recipe condition "at start and every 20 ticks".
+
+**Built.** `BurstHost` gives `sigma()` (last second) and `sigmaMean()` (60 s rolling mean ÷ D_h). The contract tells the
+Hosts unit to use `sigmaMean()` for recipe conditions (Superdense refinery, Entanglement Medium, Reality pausing) and
+for bonuses (Kerr bleed and setpoint cap, Homogeny speed), so a purge dip does not pause a recipe.
+
+**Suggestion.** Keep. **Alternative:** last-second σ (bonuses flicker with the sawtooth).
+
+### P4-51 A link needs bursts, not just a path [host API]
+
+**Context.** §3.1: linked while "at least one of its ports received bursts" from a linkable quasar over an open path.
+The prototype's `linked` is the path alone (a 0 Bu/t share still links).
+
+**Built.** A source is linked when a port received more than 0 Bu/t from it last second on a linkable stream. A 0 share
+still delivers a 0 packet (the receptor knows its source for Q-8), but it is not a link. Both milestones need 1.5 / 6
+Bu/t means anyway, so this only matters for the σ hosts at a 0 share.
+
+**Suggestion.** Keep.
+
+### P4-52 How a Wormhole Mouth docks and which way a stream crosses it [conduit, contract]
+
+**Context.** P4-02 / P4-37 put a mouth's dock cell at its throat centre. The ring is 10 deep with the centre 5 in, so a
+mouth centred on the port cell would sit 5 blocks inside the quasar's cap.
+
+**Built.** The dock cell is the ring's centre on the **front face** (layer 0, the controller's side): the mouth lies on
+the cap, front toward the quasar, and the jet must run into the front along the ring's axis (else "misaligned", taken
+0). A stream crosses a pair front → back: it leaves the partner out of its back, along +c. A ray may also enter a ring
+from either side. Pairing: a Data Stick remembers the first mouth (NBT on the stick) and pairs it with the second; one
+partner each, re-pairing breaks the old pair; the pair is tile NBT (a wrench breaks it).
+
+**Suggestion.** Keep. **Alternative:** a dock offset in the manifest so the ring sits elsewhere.
+
+### P4-53 Junction details [conduit]
+
+**Built.** One throat item caps the whole stream through it (each arrival counted against this second's total). Split:
+out 3 = p3 × in off the top, then `BurstRouting.split`; the first live Burst Control Hatch (walk order) gives s, the
+second socket is spare; with no hatch or k = 0, share₁ = c. Every leg is emitted even at 0 Bu/t (Q-8 bookkeeping).
+Combine: any of the three small throats in, the sum out of the big one. Switching mode clears its books.
+
+**Suggestion.** Keep. **Alternative:** the second hatch sets p3 (the design's "future out-3 control").
+
+### P4-54 Crown details [crown]
+
+**Built.**
+
+- Mk is the biggest of `crown_mk3/2/1` that checks; a failed try reports only the errors of the Mk last formed (so an
+  upgrade in progress shows its own missing blocks).
+- Under the bottom cap the crown is **upside down** (rotation UPSIDE_DOWN), not "flipped vertically" as the manifest
+  words it: GT's wrench never sets a vertical flip, and the intake geometry is the same.
+- `acceptJet` takes up to its cap plus a stacked crown's, less what it already took this second; the crown's own second
+  adds the receptor's delivery and overflow from below, uses min(S, cap) and hands the rest to the crown stacked on it
+  (only from the base crown: two, not a tower). EU goes to the owner's wireless network once a second (20 × EU/t); no
+  owner (a console-placed crown) = no push, shown.
+- The crown reports remote feeds to their quasar (its Links list) with σ 0.
+
+**Suggestion.** Keep.
+
+### P4-55 SL-Q16 used a wireless dynamo RC-2 never registers [recipes]
+
+**Found.** First dev boot with the crown registered: SL-Q16 skipped, "Wireless_Dynamo_Energy_UMV has not been set".
+RC-2 leaves GT's `Wireless_Dynamo_Energy_*` ItemList entries unset; the pack's wireless output part is TecTech's
+Energized Wireless Dynamo Hatch (`CustomItemList.eM_dynamoWirelessMulti`, tier 12 = UMV).
+
+**Built.** SL-Q16 takes 2 Energized Wireless Dynamo Hatches instead. Everything else on the card is unchanged.
+
+**Suggestion.** Keep.
+
+### P4-56 An unloaded element breaks the path; it does not pause [conduit, Q-8]
+
+**Built.** Q-8 pauses hosts only for their source quasar. A mouth's partner, a mirror or a junction in an unloaded chunk
+simply stops the stream (the scanner says "partner ... is not loaded" or "an unloaded chunk at ..."), and the host feels
+the loss. Tooltips and the questbook say to chunk-load every element.
+
+**Suggestion.** Keep for v1. **Alternative:** a mouth whose partner is unloaded forwards a "paused" marker so hosts
+downstream pause too.
+
+### P4-57 No stream render between elements [conduit, render]
+
+**Built.** Nothing draws the beam between conduit elements (the quasar draws its own jets). The scanner and GUIs show
+every route. No render-harness case was added: there is nothing new to draw.
+
+**Suggestion.** A thin additive beam TESR along cached routes in the render QA pass (needs a client run).
+
+### P4-58 A galaxy transition begins on a signal, with the next chart in the slot [Eye T7/T8]
+
+**Context.** D-49's T1-T3 transitions begin by themselves once the next chart is in and every precondition holds.
+§8.1 makes Galaxy Transition bit 1 "Ready: begin", and the Burst Control Hatch's begin mode "a rising edge begins the
+transition when bit 1 is on". The collapse assist times the quasar's purge against the overfeed, so the begin is a
+timed act.
+
+**Built.**
+
+- The next galaxy chart in the controller slot makes the Eye PENDING, as on T1-T3: Triangulum on a lit magnetar, or
+  the Milky Way on a lit Triangulum. The object keeps burning.
+- The transition begins only on a request while every precondition holds: the milestones (link included), the core in
+  escrow, the receptor ports, Stable, and the charge plus the new object's first cycle buffered.
+- A request is one of: the GUI Galaxy panel's **Begin**, the rising edge of a **Burst Control Hatch in Begin mode** in
+  a plinth `d` socket, or OpenComputers `beginTransition()`.
+- A request while not ready is ignored, and the answer names what is missing. Bit 1 is on only while PENDING and
+  ready.
+
+**Suggestion.** Keep. **Alternative:** an "auto-begin" toggle that begins the moment it is ready, as T1-T3 do.
+
+### P4-59 The galaxy chain: a dark Eye with a galaxy chart is re-born from the magnetar [Eye T7/T8]
+
+**Context.** §4.6 / §4.7: a lost galaxy re-runs "from a lit magnetar (charge again, no core)" or "from a lit
+Triangulum". D-49's T4 relights Arcturus by itself to re-run the Core Collapse.
+
+**Built.**
+
+- In galaxy mode, a dark Eye with the Triangulum or Milky Way chart and T6 unlocked spawns the magnetar (the Magnetar
+  Merger re-spawn and its charge).
+- The magnetar is then PENDING toward the chart. The Magnetar Collapse re-runs (no core, no link), then the Galactic
+  Merger (for the Milky Way, once T7 is unlocked).
+- A chart more than one tier past the unlocked tier does not chain: the first Milky Way needs T7 unlocked.
+- Each galaxy transition still begins on a signal (P4-58), so a re-run needs the Begin wire. The standard rig has it.
+
+**Suggestion.** Keep.
+
+### P4-60 A companion change relights the galaxy in place [Eye T7/T8]
+
+**Context.** §4.8: "Changing a companion extinguishes and relights the galaxy, as a target change does today." Read
+literally, the galaxy goes out and must be re-born by the Magnetar Collapse (and the Galactic Merger): an hour or more.
+
+**Built.**
+
+- The companions are the slot bus's star charts of earlier objects: T1-T6, unlocked, one per tier, in slot order. T7
+  runs 1, T8 runs 2.
+- When the set changes, the galaxy **re-forms in place**: the gauges go to 0, Integrity to 100, a fresh cycle starts
+  (the cycle in flight is lost), and the new set's upkeep is charged. No transition re-runs.
+- Each companion pays its own upkeep per cycle in full: `GalaxyField.Companion`'s table × 2^(N−1−k) × p, with
+  fractional litres carried. It keeps its own r.
+- Its product is × the galaxy's mean Y × min(the galaxy's r, its own r).
+- Companions are ignored during a transition. The Galactic Merger needs none loaded.
+
+**Suggestion.** Keep. **Alternative:** the literal reading (the galaxy goes out).
+
+### P4-61 Planets mode: the Eye's mode switch; the galaxy chart picks the slots [Eye T7/T8]
+
+**Context.** §4.8 says planets mode is chosen like a planet target (it extinguishes the galaxy). §6.3 says "planets
+mode needs no chart". §8.2 has `setMode("galaxy" | "planets")`.
+
+**Built.**
+
+- **The switch:** a mode on the Eye, set in the GUI Galaxy panel, by OpenComputers `setMode` or by the bench `mode`;
+  item NBT.
+- **Slots:** in planets mode the Triangulum chart means 3 slots (PLANETS7) and the Milky Way 6 (PLANETS8). There is no
+  new chart: the galaxy's own picks the tier.
+- **Lighting:** the planets field lights at once on an Eye with T7 / T8 unlocked: no collapse, just its EU per cycle.
+  Switching the mode puts the other field out.
+- **The slot bus** (`p`, any input bus, ME included; read, never consumed) fills the slots with converted TecTech
+  planet items in slot order.
+- **A slot's run:**
+  - it pays at the start: the planet's H/He × parallel from the buffers and its EU from the network, and waits until
+    it can;
+  - it runs the planet's base time with the compression reward;
+  - at the end it rolls each parallel at (1 − 0.05·R) × the field factor averaged over the run;
+  - its parallel is 2^(installed − k).
+- **A Breach** (or Integrity 0) fails the runs in flight and re-forms the field.
+- A Deep Dark run still counts toward the T4 → T5 milestone. Planets-mode seconds do not count toward Triangulum's
+  Resonant milestone.
+
+**Suggestion.** Keep. **Alternative:** a separate planets chart.
+
+### P4-62 The halo test fire is automatic; the "setting" is the Junctions' [Eye T7]
+
+**Context.** R.1: "The test fire setting forces J1 to the Eye and J3 to 75 % halo". The Eye cannot set Junctions. The
+rig proof drives them from Slots [8].
+
+**Built.**
+
+- At T7 (galaxy mode) and through the Magnetar Collapse, bursts on the halo ports are always a test fire. They count
+  for the Heavy Link (the Eye's total, the halo's share) and are dumped from the field (β, γ_halo).
+- From the Galactic Merger on, and at T8, they are the field's halo input.
+- Slots [8] ("link test fire wanted") is the setting: the player wires it to J1's and J3's Burst Control Hatches. The
+  questbook, the Directive tooltip and the GUI's rig line say so.
+- `heavyOk` gets testFire = "the halo has ports".
+
+**Suggestion.** Keep. **Alternative:** an Eye toggle that refuses halo bursts at T7 unless it is on.
+
+### P4-63 Parallel in the galaxy maths [Eye T7/T8]
+
+**Built.**
+
+- β and the γs divide by D · m · p, per StepInputs' contract.
+- `gEye` (the collapse shock's cancel) is the Eye's Bu/t ÷ p.
+- The Magnetar Collapse's overfeed charge is × the magnetar's parallel; the Galactic Merger's Ergomatter is × the
+  Triangulum's. The transitions' buffer checks match (`transitionNeeds(type, ps, pd, feed, f8)`).
+- Companions are × p.
+- At p = 1 (the first time through, on an Eye unlocked to the tier it runs) every form equals the prototype's.
+
+**Suggestion.** Keep.
+
+### P4-64 The galaxies' render [Eye render]
+
+**Built.**
+
+- **New looks:** EyeStarLook kinds TRIANGULUM (9), MILKY_WAY (10) and PLANETS (11).
+- **The bulge** is the shader's textured core: 2.4 blocks, A8C4FF, γ 1.4 (Triangulum); 3 blocks, FFD49A, γ 1.6 (the
+  Milky Way).
+- **The arms** are additive, camera-facing dots on log spirals in the rail's 8° plane:
+  - Triangulum: 3 arms × 44 dots to r 16, with a few pink knots;
+  - the Milky Way: 4 arms × 56 dots to r 19, plus a 30-dot bar.
+
+  They turn once in about 2.6 min, brighten on a warning, and sit on a faint disc glow.
+- **Planets mode:** a dim core with up to nine coloured planets on orbits at r 5-18.
+- **The overfed magnetar** shrinks by 30 %, spins up and throbs before the collapse.
+- **Render-harness cases:** `eye_t7_triangulum`, `eye_t7_merger_warn`, `eye_t8_milky_way` and `eye_t8_planets`, on
+  two new sites. The sites are appended, so the layout suffix stays. None was run: the desktop is in use.
+
+**Suggestion.** Review in the render QA pass: sizes, colours, dot counts and frame rate.
+
+### P4-65 Where the Eye's Burst Control Hatch goes, and the kit's socket layout [Eye T7/T8]
+
+**Context.** §7 gives the Eye no `c` socket, and the Begin wire needs one.
+
+**Built.**
+
+- The four plinth `d` sockets take a Directive Hatch or a Burst Control Hatch. The Burst Control Hatch is in Begin
+  mode; a hatch in another mode adopts Begin.
+- `/btseye t6+` fits:
+  - Field, Events and Galaxy Transition Directive Hatches on `d` 1-3;
+  - a Begin Burst Control Hatch on `d` 4;
+  - a Slots Directive Hatch on the fourth Sensor socket `n`;
+  - an input bus on the slot bus `p`;
+  - at T7 / T8, a GRB Receptor Port in every rail / halo socket.
+
+**Suggestion.** Keep.
+
+### P4-66 Receptor-port preconditions [Eye T7/T8]
+
+**Built.**
+
+- The Stability Link counts only with at least one rail-high and one rail-low port, and the Magnetar Collapse needs
+  them (§5.2).
+- The Galactic Merger needs all 8 halo ports (§5.3, "the 8 halo ports are built").
+- A rail or halo band that does not count (a band below it is missing) drops its ports (mark-and-truncate, as for the
+  stellar sockets).
+
+**Suggestion.** Keep. **Alternative:** allow the merger with one halo port or more.
+
+### P4-67 What a link saves [Eye T7/T8]
+
+**Built.** R.1 saves the milestone, and the task asks for the streaks in NBT.
+
+- The two `BurstLink`s' 60 s windows, counts, streaks and best streaks are saved with the live star (tile NBT), so a
+  restart continues a 30 min streak.
+- `done` and the best streak are milestones (item NBT): they survive a wrench.
+- A wrench restarts the window and the streak, as it aborts a transition.
+- Nothing about the link itself (the source) is saved.
+
+**Suggestion.** Keep.
+
+### P4-68 Q-8 on the Eye [Eye T7/T8]
+
+**Built.**
+
+- When a quasar that fed the receptor ports is frozen or not loaded (`BurstReading.paused`), a burst-driven field
+  holds still that second: no field step, no clock, no cycle, no link roll. That covers T7, T8, planets mode, and
+  either galaxy transition. The scanner names the quasar.
+- At T6 (where bursts have no effect) only the Stability Link's roll pauses.
+- A quasar that is running but dark, or one that is gone, is felt in full (P4-46).
+
+**Suggestion.** Keep.
+
+### P4-69 Milestone details [Eye T7/T8]
+
+**Built.** The item milestones are the doc's halved numbers:
+
+- **T6 → T7:** Magnetar Matter 2,700 L from cycles with no second worse than Stable, 2 h Resonant, and 50 giant flares
+  ridden (the helium-flash watch: never worse than Stable from the warning to 30 s after).
+- **T7 → T8:** Ergomatter 216,000 L from all-Stable cycles, 2 h Resonant, and 4 minor mergers ridden.
+
+They count once the tier is unlocked, and never during a transition, so the forced merger in the halo capture does not
+count.
+
+**Suggestion.** Keep.
+
+### P4-70 Triangulum's upkeep and the NEI pages [Eye T7/T8]
+
+**Built.**
+
+- Molten Magnetar Matter 7.5 L a cycle × p is a fractional upkeep, drawn with a carry (8 L, then 7 L, and so on).
+- The T7 star page shows it rounded up (8 L) and says 7.5.
+- The T8 page shows the default feed (300 L a cycle) in and 300 L of Superdense Ergomatter out.
+- The planets pages carry the slot rules.
+- The two transition pages list the link, the milestones, the phases, and the charge plus the new object's first cycle.
+
+**Suggestion.** Keep.
+
+### P4-71 The dev-server bench's scripted link [test]
+
+**Built.**
+
+- `/btseye star <x y z> galaxy <s> [analog] [mass M] [fresh]` runs the §8.4 rig on the real Eye:
+  - a virtual quasar: the engine's disc on helium, coils 3, b 3, f 1;
+  - the standard conduit: two Mk I mouth pairs, a combine, J1, J3 and J2;
+  - the gate rig, which reads only the Eye's Directive codes and the disc's.
+
+  Its streams reach the Eye as a scripted reading each second (the bench quasar is not a machine), and its Φ and b go
+  to the collapse assist. After a run the rig keeps stepping in real time until `galaxy off`.
+- `inject <qx qy qz> <hi> <lo> <halo>` pushes real streams from a real quasar through the receptor hatches every
+  second. This exercises the BurstHost path, σ reported back, and Q-8.
+- `burst <Bu/t> [high] [halo]` is a constant feed.
+
+**Suggestion.** Keep as the bench. The full in-world rig (a quasar, mouths, mirrors and junctions aimed at the Eye's
+ports) is the questbook's build.
+
+### P4-72 The Magnetar Merger's imprint could never complete on this branch [D-49 fix, ported]
+
+**Context.** Since ruling 12 (B-60), the paid Agent upkeep charges the flare shield at 2r a second. The shield eats
+the dynamo's Π during the merger's imprint, so Π never reached its band. The dev-server chain showed it: every magnetar
+re-spawn timed out. Master fixed this in B-71 (c97a35e), but that commit is not in this base.
+
+**Built.** The core of B-71, with the same text as master:
+
+- the `Overlay.shieldPerUpkeep(T)` hook (default `SHIELD_PER_UPKEEP`, so the 78 golden cases are unchanged);
+- `StellarField` charges `ov.shieldPerUpkeep(T) * r`;
+- `MagnetarMerger` returns 0 during the imprint.
+
+Master's Directive changes for the merger (`AGENT_IMPRINT`, the merger valve) arrive with the merge.
+
+**Suggestion.** Keep. The merge takes master's version.
+
+### P4-73 The collapse assist reads the linked quasar's flux as it stands [Eye T7]
+
+**Context.** The Galaxy Transition set's purge-now bit needs the linked quasar's Φ and b (`GalaxyDirective.transition`).
+The prototype reads `Q.Phi`, the flux after the quasar's last second.
+
+**Built.** The Eye resolves its strongest linked source (`BurstSource.resolve()`) and reads that quasar's `Phi` and
+`b`. It does not read `lagPhi`, the sensor's one-second lag. With no linked quasar both are 0: only the collapse
+second's purge bit fires.
+
+**Suggestion.** Keep.
+
+### P4-74 No host needs a link; Reality Diffraction with ports fitted rides the stream [hosts]
+
+**Context.** R.2 and §3.1 say "No host needs a link to work". But Reality Diffraction's row says "below σ 0.5 the run
+pauses".
+
+**Built.**
+
+- **Kerr (KEE):**
+  - A GRB Receptor Port fits any utility socket (`u`), beside the BHC utility and Directive hatches. It is a private
+    list.
+  - Demand is 0.1 Bu/t at T1 and 0.25 at T2.
+  - `KerrHole.burstSigma()` is the 60 s mean σ (0 with no port).
+  - The Hawking bleed is × (1 − 0.75·min(σ, 1)).
+  - On T2 at σ ≥ 1 the setpoint cap is 768 SM instead of 512 (P4-80).
+- **Homogeny T2 / T3:**
+  - 3 ports go on the reserved `g` cells of the T2 stirring ring. The cells fall back to the old casing, so builds from
+    before P4 still form.
+  - Demand is 1.5 Bu/t at T2 and 6 at T3.
+  - Speed is × (1 + 0.5·min(σ, 1)). With the 4 / 16 parallels that is up to 6× (T2) and 24× (T3) the T1 rate.
+  - Entanglement Medium (SL-H21) needs σ ≥ 1 to start, and pauses below it.
+  - Degenerate Stellar Mixture never needs bursts.
+- **Reality Diffraction:** 6 ports on the portal `g` cells, demand 24 Bu/t.
+  - With **no port fitted** it runs at ×1 on its fluid anchors. It needs no link.
+  - With **a port fitted** the regions ride the stream: speed is × min(σ, 1.5). Below σ 0.5 no run starts, and a
+    running one pauses (it is kept, never voided).
+- **Every host:**
+  - uses `BurstHost`: σ is the 60 s mean, and is reported to the feeding quasars;
+  - follows Q-8: a frozen or unloaded quasar holds σ where it was, and the work σ gates pauses.
+
+**Dev server** (2026-10-13, port 25581). A real quasar's bursts went through real receptor ports
+(`/btsconduit inject`, `/btshr bench … inject`):
+
+- **KEE T2:**
+  - 0.5 Bu/t gave σ 2.00 (60 s mean), bleed × 0.25 and cap 768. `setSetpoint(700)` kept 700.
+  - With the injection off, the mean fell to 0 within the minute, and the hole was held at 512. The setpoint stayed
+    700.
+- **Homogeny T3:**
+  - 9 Bu/t over 3 ports gave σ 1.50, speed × 1.50 and "Entanglement Medium open".
+  - With the injection off, the mean fell below 1 and the Entanglement Medium line closed.
+- **Reality Diffraction:**
+  - 12 Bu/t over 6 ports gave σ 0.50 and speed × 0.50.
+  - 6 Bu/t gave σ 0.25: "regions UNSTABLE, runs pause below σ 0.5".
+  - With a quasar block removed, the quasar froze and the machine said "PAUSED: its quasar … is not running (σ held)".
+    When the block was rebuilt, it resumed.
+
+**Suggestion.** Keep. Fitting ports on Reality Diffraction is a choice: it runs faster with a strong link and pauses
+with a weak one. The tooltip and the questbook say so.
+
+### P4-75 The automation bench models the conduit; the real elements are proven separately [test]
+
+**Built.** `/btsquasar autorig x y z <s> [eye ex ey ez] [analog] [cut k] [mass M]` drives a **real** Quasar Engine
+and a **real** Eye.
+
+- It sees only their Directive Hatches' codes (window 5).
+- It acts only through their own hatches: trim valves, Burst Control Hatches, plinth and slot buses.
+- Between the two machines, the conduit is the standard rig's maths (`EyeGalaxyBench.conduit`): two Mk I mouth pairs,
+  a combine, J1, J3 and J2. It is fed by the real quasar's jets.
+- The real Mouth, Mirror and Junction elements are proven by `/btsconduit rig` (the conduit unit). They are not aimed
+  at the Eye's 16 ports here.
+
+**Suggestion.** Keep. A 16-port in-world conduit build is the questbook's job, and the video's.
+
+### P4-76 The next core is wanted before the link milestone [Eye T6 / T7, automation]
+
+**Context.** The Directive rule for Transition [4] ("next core wanted") was "this tier's milestones are met". On T6
+and T7 the link is one of those milestones. But the link's test fire (Slots [8]: J1 all to the Eye) is wanted only
+when the core is already in escrow. So an unattended rig never pushed the core and never got the test fire. J1 stayed
+at its 57 % centre, and the Stability Link's best streak was 14 s in a 16,000 s run.
+
+**Built.** On T6 and T7, Transition [4] comes when every milestone **but the link** is met
+(`EyeMilestones.metButLink`). The link is still a precondition of the transition (`met()`), so nothing begins early.
+Other tiers are unchanged.
+
+**Suggestion.** Keep. On T6 and T7 the order is now:
+
+1. the item milestones;
+2. the core;
+3. the test fire and the link;
+4. the chart and Begin.
+
+### P4-77 OpenComputers `trim(kind, units)` [automation]
+
+**Context.** §8.2 lists `trim("gas" | "space", units)` on `bts_quasar` and `trim("space", units)` on `bts_eye`, as "one
+second's pulse, capped". The trim sockets are plain hatches that drain whatever they hold, so a script has no reserve
+there.
+
+**Built.** `trim` queues units for the machine's next second. They are added to what its trim or Field hatches hold,
+under the same cap.
+
+- **Quasar:**
+  - "gas" is paid from the quasar's own feed buffer;
+  - "space" is paid from Spatially Enlarged Fluid in its gas sockets (an ME stocking hatch can hold it there);
+  - the cap is 10 units.
+- **Eye:**
+  - any trim of the burning star, by key or name ("space" from T7);
+  - paid from its gas and stellar sockets (ME stocking included);
+  - the cap is the trim's own cap × p.
+- Both are rate-limited like every setter.
+- `/btsquasar ocloop` showed `trim(gas, 12)` clamped to 10 and taken the next second.
+- `/btseye star … ocloop` showed `trim("space", 99)` → 10 (cap 10), and an unknown trim refused.
+
+**Suggestion.** Keep. A script needs no transposer for trims.
+
+### P4-78 Master's Magnetar Merger Directive fix, ported [D-49 fix, ported]
+
+**Context.** P4-72 ported the core of master's B-71 fix but not its Directive half. With the inline thresholds (the
+Agent above Π +75), the gate rig let Π sit in Critical during the imprint. On the dev server, the galaxy chain's
+magnetar re-spawn failed on Integrity 344 times in a row.
+
+**Built.** Master's hunks, word for word:
+
+- `MagnetarMerger.agentWanted` (imprint above +66, release above +30);
+- `EyeTrimRule.MERGER_AGENT_RATE` (1 unit a second) with `rigExtraRate(tier, transitionRunning)`;
+- the call in `EyeStarRuntime.extraWanted`;
+- the bench's Status [4] valve.
+
+Golden 78/78 is unchanged.
+
+**Suggestion.** Keep. The merge takes master's version (the hunks are identical).
+
+### P4-79 The T7 halo test fire waits for a quasar big enough [Eye T7, automation]
+
+**Context.** At T7, Slots [8] asks for the Heavy Link test fire: J1 all to the Eye, and J3 75 % to the halo. The rail
+then keeps a quarter of the stream. If the stream is under the 6 Bu/t the link needs, that quarter is below the
+1.5 Bu/t demand.
+
+On the dev server an 88 SM quasar left the rail 0.9 Bu/t, and Triangulum was lost on Integrity, twice. The link could
+not have been held anyway.
+
+**Built.**
+
+- In game, Slots [8] at T7 also needs the linked quasar's mean stream to be at least 6 Bu/t
+  (`QuasarParams.meanStream` at its G0 and Y_q, purging). That is about 130 SM at coils 3.
+- The Galaxy panel says "Heavy Link test fire waits: the quasar's mean stream x Bu/t is under 6 (grow it)".
+- `GalaxyDirective`'s rule is unchanged, so QuasarSim and the 38 golden cases keep the prototype's behaviour. (The
+  prototype starts at 120 SM.)
+
+**Suggestion.** Keep. The alternative is a lower halo preset for small quasars, but the link would still not be held.
+
+### P4-80 The 768 SM cap: what a lost link does [Kerr]
+
+**Built.**
+
+- The stored setpoint accepts up to 768 SM.
+- The governor holds min(setpoint, cap). The cap is 768 only while the 60 s mean σ ≥ 1 on T2.
+- A lost link drops the cap to 512. The hole bleeds down to it, and nothing is lost suddenly.
+- A regained link climbs back to the stored setpoint.
+- On the control-set hatch, 15 maps to the cap in force.
+
+**Suggestion.** Keep (as §3.1 says).
+
+### P4-81 The proof needs the quasar riding Eddington (f 1.0) [automation, teaching]
+
+**Context.** The GUI's default feed is f 0.85, "unattended, Stable". At f 0.85 the disc's λ is about 0.85, and the
+64 SM quasar's stream was too thin for the Stability Link: the best streak was 0:01 in 16,000 s. The prototype's
+standard rig runs f 1.0 with the disc trims, and so does the real proof.
+
+A fresh hole also starts with no spin. It settles at a ≈ 0.45 (b 3, purging at Φ 40) over about an hour, so the first
+link comes after the spin-up.
+
+**Built.** No code change.
+
+- The proof sets f 1.0 once, as a player does in the GUI.
+- The questbook text ("Riding Eddington") and the automation doc say to use f 1.0 with the Disc [1] / [2] valves for
+  the links.
+
+**Suggestion.** Keep f 0.85 as the default, because it is safe without trims. Teach f 1.0 for the link.
+
+### P4-82 Disc [8] stays on while a jet vents [quasar, observation]
+
+**Context.** The Disc set's alarm bit includes "a jet port venting". On the bench nothing is docked on the real
+quasar's ports (the conduit is modelled), so Disc [8] was on for 99.7 % of the run.
+
+**Built.** No change. In a real rig the mouths dock and the bit clears. The standard rig wires nothing but a lamp to
+Disc [8].
+
+**Suggestion.** Keep.
+
+### P4-83 A paused source that never comes back no longer pauses a re-aimed host for ever [conduit, Q-8, full test]
+
+**Context.** P4-46: a GRB Receptor Port remembers the quasars that fed it, and a remembered source that is frozen or not
+loaded pauses its host (Q-8). In the full dev-server test, the Homogeny T3 was fed through its ports by a new, running
+quasar, while the quasar that fed it in an earlier session stood in an unloaded chunk. The Homogeny stayed "PAUSED: its
+quasar at 12000, 100, 12600 is not running (σ held)" while it took 9 Bu/t from the new one. A player who re-aims a
+conduit at another quasar, and leaves the old one unloaded, would see the host paused until the old chunk loads.
+
+**Built.** A remembered source that pauses is forgotten when two things are both true: it has been silent for 10 min
+(`MTEHatchGRBReceptor.FORGET_PAUSED_TICKS` = 12,000 ticks), and another running source is feeding the port this second.
+With no other source arriving, nothing changes: the port keeps the old source and Q-8 holds the host still. On the dev
+server the re-aimed Homogeny then read σ 1.50, speed × 1.5, and Entanglement Medium open.
+
+**Suggestion.** Keep. **Alternatives:** forget at once when any running source arrives (a quasar unloading for a
+moment would then drop σ on a two-quasar host), or never forget (the old behaviour).
+
+### P4-84 The quasar's b setting clamps to the coil tier [quasar, OpenComputers, full test]
+
+**Context.** `bts_quasar.setField(99)` on a quasar with T3 coils returned 4.0. The coils capped the b in use at 3, but
+the GUI and OpenComputers reported a b the machine cannot carry. The automation doc says setField 99 gives the coil tier.
+
+**Built.** `MTEQuasarEngine.setBSetting` clamps to the coil tier. The clamp is 4 while the coils are unknown (unformed,
+or the NBT load before the first walk). On the dev server, setField(99) now returns 3.0 on T3 coils. A Burst Control
+Hatch in FIELD mode still maps 0-15 onto 0.5..the coil tier.
+
+**Suggestion.** Keep. After a coil upgrade, the player raises b once.
+
+### P4-85 P4 machines mark their chunk modified every second [persistence, full test]
+
+**Context.** GT marks a chunk modified only when an inventory changes, and Minecraft saves only modified chunks (or ones
+with entities). On the dev server, a Wormhole Mouth reloaded a 20-minute-old save after a restart: its SpaceTime used
+went 4,864 L → 228 L. A rig crown's lifetime EU went 61.1e15 → 10.2e15 the same way. Nothing in the mouth's chunk had
+an inventory change. A quasar in that position would lose its growth (mass, spin, counters) after a restart.
+
+**Built.** These mark their chunk modified once a second while they run: the quasar (`second`), every conduit element
+(after `upkeep`), the crowns (after `second`), and a lit GRB Receptor Port. This is one `IGregTechTileEntity.markDirty()`
+each, which only sets the chunk's flag. After the fix, a restart kept the mouth at 328 L (it had 260 L, plus 17 s more)
+and the crown at 11.8e15 EU.
+
+**Suggestion.** Keep. **For master** (not P4 code): the KEE's hole mass, the Homogeny / Reality runtime state and the
+Directive / Sensor / Burst Control hatch settings rely on the same luck. The KEE was fine in the test because its bolt
+buses change every tick. A master follow-up could add the same one-line `markDirty()` to the KEE's and the H/R
+machines' second.
+
+### P4-86 Casimir Plate tooltip; older casings still without one [rule 14, lang lint]
+
+**Context.** The full test's lang lint found the following:
+
+- Every recipe-result id has its RC-2 `GT5U.gui.text.recipe_result.<id>` key. The lint's one miss is the Kerr module's
+  `linked` state, which is never a failure.
+- Every item has `.name` and its `.tooltip`.
+- Every recipe map's name key exists. `gg.recipe.precise_assembler` is GoodGenerator's own map.
+- Every literal GT5U key exists in the RC-2 GT lang.
+- Rule 14 is not met everywhere: slCasing metas 1-8, 10-15 and slCasing2 metas 0-2 have names but no tooltip. The
+  Casimir Plate (slCasing:14) is one of them, and P4 made it a main block: 7,145 in a Junction, every throat lining,
+  and the quasar's port rings.
+
+**Built.** A tooltip for the Casimir Plate. It names every machine that uses it and where it is made. The other
+pre-P4 casings are left to master: they are not P4 blocks, and the tidy pass owns them.
+
+**Suggestion.** Master's tidy pass gives slCasing 1-8, 10-13 and 15 and slCasing2 0-2 one tooltip line each, in the
+slCasing3 style.
+
+### P4-87 Full dev-server test: what the benches do to a world [test bench, observation]
+
+**Context.** Some bench verbs used by the full test change a world on purpose.
+
+- `/btskerr ocloop` collapses the hole and re-opens it at 8 SM, to prove the OC `collapse()` / `open()` calls.
+- `/btseye star … fill` tops every buffer to 10^12 L.
+- `/btsconduit rig` force-loads 520 chunks.
+
+Bench chunk tickets are dropped at a restart. FML's warning "registered persistent chunkloading data but doesn't seem
+to want to be called back" is that drop: the bench registers its callback only when it is first used.
+
+The pre-P4 base (c8f8ca7) has no `receptor` or `occall` verbs in `/btskerr`. On that jar they fall through to the
+build form and rebuild the Kerr at T1. The full test saw this while making the legacy world, and a forced T2 rebuild
+put it back.
+
+**Built.** No change. The test world `p4test` is a bench world.
+
+**Suggestion.** Keep. Never run `ocloop` on a Kerr you want to keep.
+
+### P4-88 The T7 Heavy Link test fire has a ceiling too [Eye T7, automation, review fix]
+
+**Context.** P4-79 sets a floor on Slots [8] (6 Bu/t), but there was no ceiling. The test fire sends J1 all to the Eye
+and J3 75 % to the halo, so the rail keeps a quarter of the stream. With Mk II throats (384 Bu/t), a grown quasar puts
+far more on the rail than the binary Space valve can cool.
+
+The prototype's T7 rig, with Mk II throats and the test fire on (harness, 1 h, 3 seeds):
+
+| Quasar mass | Mean stream | Result |
+|---|---|---|
+| 250 SM | 29.9 Bu/t | 0 failures |
+| 265 SM | 33.6 Bu/t | 0 failures |
+| 280 SM | 37.5 Bu/t | 0 failures, but 3 % of the time in zone 3 |
+| 300 SM | 43 Bu/t | 35 failures |
+| 415 SM | 82 Bu/t | 370 failures; Triangulum lost |
+
+**Built.**
+
+- Slots [8] at T7 needs the linked quasar's mean stream to be from 6 to 32 Bu/t
+  (`EyeStarRuntime.HEAVY_TEST_FIRE_MAX_STREAM`).
+- Above 32 Bu/t, the Galaxy panel says "Heavy Link test fire held ... Test-fire with J1's Eye share at x". x is 16 Bu/t
+  ÷ the stream, which puts 4 Bu/t on the rail and 12 on the halo.
+- OpenComputers `getUnlock()` gives `quasarStream` and `testFireShare`.
+- The Directive Hatch tooltip and the questbook contract state the 6-32 Bu/t window.
+- `GalaxyDirective`, QuasarSim and the golden are unchanged (38/38, 78/78).
+
+**Not fixed (outside this finding).** The same harness shows the standard T7 rig failing at 300 SM with Mk II throats
+even without the test fire: 83 failures in 30 min, and 645 at 415 SM. J1's P loop cannot hold a stream that big
+either. The design's simulations stop at Mk I's 24 Bu/t clip.
+
+**Suggestion.** Keep the ceiling. For P5 or the next design pass:
+
+- a Directive "test fire preset": an analog level for J1, so a redstone rig follows the quasar's growth;
+- a look at the T7 rig above 300 SM, for example a J1 out-3 tap to crowns.
+
+### P4-89 Q-8 now pauses a non-Eye host's link work instead of holding σ [hosts, review fix]
+
+**Context.** Q-8 (§3.1, R.6) says "a source that is not loaded pauses its hosts". The hosts kept σ at its last value
+while paused, and only the Eye really froze (P4-68). So after one link, unforming or un-chunkloading the quasar kept
+these going for free until the host's chunk reloaded:
+
+- the KEE's bleed relief, its 768 SM cap and the Superdense refinery;
+- the Homogeny's speed bonus and Entanglement Medium;
+- Reality Diffraction's burst-driven speed.
+
+**Built.**
+
+- `BurstHost.sigmaInForce()` is the 60 s mean σ, or 0 while paused. The KEE (`burstSigma`), the Homogeny and Reality
+  Diffraction (`quasarSigma`) use it.
+- While paused:
+  - the bleed is ×1 and the cap is 512 SM;
+  - a link-gated run pauses and is kept (SL-Q23, Entanglement Medium, Reality's burst-driven runs);
+  - no link-gated run starts;
+  - a new Homogeny mix runs at ×1.
+- Work that needs no link carries on (Degenerate Stellar Mixture, ordinary module recipes): no host needs a link
+  (P4-74).
+- The 60 s mean is still held, so the link resumes where it was when the quasar runs again.
+
+**Dev server** (port 25581). Before the test, a KEE T2 at 700 SM had σ 2.00 with SL-Q23 running. One quasar casing was
+then removed (FROZEN):
+
+- the KEE said PAUSED: bleed ×1.00, cap 512, held at 512;
+- SL-Q23 stopped at 10,525 / 12,000;
+- the module's parallel fell from 3,328 to 2,816.
+
+Within 13 s of putting the casing back: σ 2.00, cap 768, held at 700, and SL-Q23 ACTIVE again (10,799).
+
+**Suggestion.** Keep. **Alternative:** hold σ for a short grace period (about 60 s), then let it decay to 0.
+
+### P4-90 Kerr modules count the mass only up to the cap in force [Kerr, review fix]
+
+**Context.** Losing the link dropped the setpoint cap, but the module parallel read `kee.mass()`. At 768 SM the
+Hawking bleed is tiny: 768 → 729 SM takes about 95 h of loaded time, and 768 → 512 SM about 460 h. So one link gave a
+near-permanent +23 % parallel, not the reversible bonus §3.1 describes.
+
+**Built.** `MTEKerrModuleBase.bonusParallel()` uses min(M, `kee.maxSetpoint()`). These are unchanged:
+
+- the setpoint, the mass and the slow bleed (P4-80);
+- speed, which is ×1 at both 512 and 768 SM.
+
+On the dev server the bonus went from 3,328 to 2,816 when the link paused, and back when it returned.
+
+**Suggestion.** Keep. **Alternative:** bleed the hole toward 512 SM at a set rate while it is unlinked.
+
+### P4-91 The quasar's and the Junction's setters refuse NaN [OpenComputers, GUI, review fix]
+
+**Context.** These setters clamped with `Math.max` / `min`, which lets NaN through:
+
+- the quasar's `setFeed`, `setBSetting` and `setPurgeAt`;
+- the Junction's `setRatio` and `setOut3Share`.
+
+One `quasar.setFeed(0/0)` turned E, Φ and M into NaN and saved them. One `junction.setRatio(0/0)` turned every stream
+through it into NaN, and that spread to the receptors and the Eye's field. A modified client could do the same through
+the C2S sync values.
+
+**Built.**
+
+- These setters ignore any value that is not finite.
+- When the quasar loads its NBT, any saved double that is not finite is reset: M to the seed mass, Integrity to 100,
+  everything else to 0.
+- The Junction loads its ratio and out 3 through the setters.
+- A non-finite owed upkeep on an element resets to 0.
+
+**Dev server.**
+
+- `btsquasar feed … NaN` kept f 0.85, and `b … Infinity` kept b 3.0. The disc carried on (E −24).
+- `junction … NaN 2 NaN` on a Junction kept c 0.70 and out 3 at 20 %.
+
+**Not changed.** The Stellar Field Sensor's `setThreshold` is master code. A NaN threshold only makes its comparisons
+false. A master follow-up could add the same one-line check.
+
+**Suggestion.** Keep.
+
+### P4-92 A receptor warms up its remembered sources after a load [conduit, Q-8, review fix]
+
+**Context.** The sources a port remembers for Q-8 were loaded with tick 0. On the first second after a restart, a
+running quasar whose conduit elements had not registered again yet was dropped, and the host read zero. That reset the
+Eye's saved Stability or Heavy Link streak.
+
+**Built.**
+
+- For 200 ticks from the port's first reading after a load (`RESTORE_WARMUP_TICKS`: the startup check plus two element
+  seconds), a remembered source that has not arrived pauses the host (Q-8). It is no longer dropped.
+- After the warm-up the usual rules apply.
+- The restored entries keep tick 0, so a load does not restart P4-83's 10-minute forget clock. A first version set them
+  to the current tick, and on the dev server a KEE then stayed PAUSED after a restart because of an old unloaded
+  quasar. That was fixed before the test.
+
+**Dev server.** After a restart, both remembered quasars were already FORMED and running, but not feeding. The KEE's
+port read PAUSED for about 10 s, then "not linked". With the injection on again, it read 0.50 Bu/t LINKED at the first
+check.
+
+**Not run.** An Eye link streak across a real restart: the test Eye's links are already done.
+
+**Suggestion.** Keep.
+
+### P4-93 The conduit tables no longer pin unloaded worlds [conduit, review fix]
+
+**Context.** `ConduitNet.TABLE` and `BurstDocks.TABLE` are `WeakHashMap<World, …>`, but each entry reached its world
+(Entry → MTE → tile → `worldObj`). So the key was never collected, and every unloaded dimension leaked its WorldServer.
+
+**Built.** Each entry holds its element or dock in a `WeakReference`. The MTEs register themselves, so a loaded element
+stays reachable through its tile. No world-unload event handler is needed.
+
+**Dev server.** A dock was still found (the P4-94 test). The full ConduitNet rig was not raised again.
+
+**Suggestion.** Keep.
+
+### P4-94 A misaligned dock vents [quasar, review fix]
+
+**Context.** A crown docked upright under the bottom cap, or a mouth laid the wrong way round, returned 0 from
+`acceptJet`. So the whole jet was lost, but `vented`, Disc [8] and the readouts all stayed clear. The tooltip says "an
+unfit mouth vents".
+
+**Built.** A misaligned dock returns `IBurstDock.REFUSED`, and the quasar counts the jet as vented. The readouts say:
+
+- GUI: "-> venting: <dock> misaligned";
+- scanner: "venting (<dock> misaligned)";
+- OpenComputers docks: "venting".
+
+A throat or crown cap that clips is still not venting.
+
+**Dev server.** A Crown Mk I was built upright (facing east) under the bottom cap of quasar 20800: "Bottom jet:
+15.2 Bu/t -> venting (Crown Mk I misaligned)". The crown is left standing at 20812, 34, 19928 in `p4test`, a bench
+world.
+
+**Suggestion.** Keep.

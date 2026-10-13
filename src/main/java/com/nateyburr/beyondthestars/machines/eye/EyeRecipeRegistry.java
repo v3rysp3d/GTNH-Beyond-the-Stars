@@ -23,8 +23,13 @@ import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.CommandBTSRecipes;
 import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.fluids.SLFluids;
+import com.nateyburr.beyondthestars.fluids.SLQuasarFluids;
 import com.nateyburr.beyondthestars.items.SLItems;
+import com.nateyburr.beyondthestars.items.SLQuasarItems;
 import com.nateyburr.beyondthestars.machines.eye.field.CollapseOverlay;
+import com.nateyburr.beyondthestars.machines.eye.field.GalacticMergerOverlay;
+import com.nateyburr.beyondthestars.machines.eye.field.GalaxyField;
+import com.nateyburr.beyondthestars.machines.eye.field.MagnetarCollapseOverlay;
 import com.nateyburr.beyondthestars.machines.eye.field.StellarField;
 import com.nateyburr.beyondthestars.machines.eye.field.TierParams;
 import com.nateyburr.beyondthestars.machines.eye.field.TrimDef;
@@ -260,6 +265,92 @@ public final class EyeRecipeRegistry {
             null,
             none,
             list(in(wdm, 18_432L), in(bdm, 4_608L), in(SLFluids.antipolarizationAgent, 100_000L)));
+        registerGalaxies(wdm, bdm);
+    }
+
+    /**
+     * P4 (quasar-p4.md §4.6-§4.8): Eye T7 Triangulum (upkeep Molten Magnetar Matter 7.5 L a cycle, the T6 "touch",
+     * plus bursts; product Ergomatter 600 L × Y × r × min(β̄, 1.5); born by the Magnetar Collapse, whose charge is
+     * shown
+     * as its charge) and T8 Milky Way (the Ergomatter feed f₈ 0-10 L/s, default 5, as its feed; product Superdense
+     * Ergomatter 1.0 × the feed × Y × r; born by the Galactic Merger). Planets mode at T7 / T8 is a variant of each,
+     * registered by key only: the galaxy's chart picks the tier, the Eye's mode the field.
+     */
+    private static void registerGalaxies(Fluid wdm, Fluid bdm) {
+        final List<EyeRecipe.FluidAmount> none = Collections.emptyList();
+        final Fluid magnetar = SLFluids.magnetarMatter;
+        final Fluid ergo = SLQuasarFluids.ergomatter;
+        final Fluid superdense = SLQuasarFluids.superdenseErgomatter;
+        if (magnetar == null || ergo == null || superdense == null || wdm == null || bdm == null) {
+            BeyondTheStars.LOG.error(
+                "[BTS] Eye T7/T8 skipped: Magnetar Matter, Ergomatter or Superdense Ergomatter is"
+                    + " not registered.");
+            return;
+        }
+        final Map<Fluid, Double> t7Upkeep = new LinkedHashMap<>();
+        t7Upkeep.put(magnetar, GalaxyField.T7_MAGNETAR_UPKEEP);
+        galaxyDef(
+            "star:triangulum",
+            "Triangulum (M33)",
+            TierParams.T7,
+            SLQuasarItems.starChartTriangulum,
+            t7Upkeep,
+            ergo,
+            null,
+            list(in(wdm, EyeStarRuntime.MC_WDM), in(bdm, EyeStarRuntime.MC_BDM)),
+            false);
+        galaxyDef(
+            "star:milkyway",
+            "Milky Way",
+            TierParams.T8,
+            SLQuasarItems.starChartMilkyWay,
+            Collections.emptyMap(),
+            superdense,
+            ergo,
+            list(in(ergo, EyeStarRuntime.GM_ERGO)),
+            false);
+        galaxyDef(
+            "star:planets7",
+            "Triangulum: 3 planets",
+            TierParams.PLANETS7,
+            SLQuasarItems.starChartTriangulum,
+            Collections.emptyMap(),
+            null,
+            null,
+            none,
+            true);
+        galaxyDef(
+            "star:planets8",
+            "Milky Way: 6 planets",
+            TierParams.PLANETS8,
+            SLQuasarItems.starChartMilkyWay,
+            Collections.emptyMap(),
+            null,
+            null,
+            none,
+            true);
+    }
+
+    private static void galaxyDef(String key, String name, TierParams tier, Item chart, Map<Fluid, Double> exact,
+        Fluid product, Fluid feed, List<EyeRecipe.FluidAmount> charge, boolean variant) {
+        if (chart == null) {
+            BeyondTheStars.LOG.error("[BTS] Eye star {} skipped: its star chart item is not registered.", key);
+            return;
+        }
+        final StarDef def = new StarDef(
+            key,
+            name,
+            tier,
+            new ItemStack(chart, 1, 0),
+            Collections.emptyList(),
+            exact,
+            product,
+            feed,
+            Collections.emptyList(),
+            charge);
+        if (variant) StarDef.registerVariant(def);
+        else StarDef.register(def);
+        INPUT_FLUIDS.addAll(def.bufferedFluids());
     }
 
     /**
@@ -376,7 +467,8 @@ public final class EyeRecipeRegistry {
                     ticks,
                     euPerRun(tier, ticks),
                     source.getBaseRecipeSuccessChance(),
-                    (int) Math.max(0, Math.min(8, source.getSpacetimeCasingTierRequired()))));
+                    (int) Math.max(0, Math.min(8, source.getSpacetimeCasingTierRequired())),
+                    deepDark ? 9 : (int) Math.max(0, Math.min(9, rocket))));
             converted++;
         }
     }
@@ -516,6 +608,46 @@ public final class EyeRecipeRegistry {
                 desc.add("Fail: BDM salvaged, the");
                 desc.add(" next charge tries again");
                 break;
+            case MAGNETAR_COLLAPSE:
+                desc.add(" Stability Link 30 min (1.5");
+                desc.add(" Bu/t on the rail, high 25-75%)");
+                desc.add(
+                    " " + compact((long) EyeMilestones.PROD_NEED[6])
+                        + " L Stable, "
+                        + fmt(EyeMilestones.RES_NEED[6])
+                        + " s, "
+                        + EyeMilestones.FLARES_NEED
+                        + " flares");
+                desc.add("Rail ports: 1+ high, 1+ low");
+                desc.add("Begin: GUI, Begin hatch, OC");
+                desc.add("1: overfeed 300 s (charge)");
+                desc.add("2: shock P +" + Math.round(MagnetarCollapseOverlay.DEFAULT_SHOCK) + ", -10 per");
+                desc.add(" Bu/t above 1.5 that second");
+                desc.add(" (time a purge onto it)");
+                desc.add("3: capture: Stable 60 s");
+                desc.add(" within 420-600 s");
+                desc.add("Re-runs: no core, no link");
+                break;
+            case GALACTIC_MERGER:
+                desc.add(" Heavy Link 30 min (6 Bu/t,");
+                desc.add(" >= 50% on the halo ports)");
+                desc.add(
+                    " " + compact((long) EyeMilestones.PROD_NEED[7])
+                        + " L Stable, "
+                        + fmt(EyeMilestones.RES_NEED[7])
+                        + " s, "
+                        + EyeMilestones.MERGERS_NEED
+                        + " mergers");
+                desc.add("All 8 halo ports; galaxy");
+                desc.add(" mode, no companions");
+                desc.add("Begin: GUI, Begin hatch, OC");
+                desc.add(GalacticMergerOverlay.DURATION + " s: demand 1.5 -> 6 Bu/t");
+                desc.add("3 passes (600/1200/1800 s):");
+                desc.add(" W +-12, P +5 for 5 s");
+                desc.add("Then Stable 120 s in 300 s");
+                desc.add("Re-runs: no core, no link");
+                break;
+            case MAGNETAR_MERGER:
             default:
                 desc.add(" " + EyeMilestones.GOOD_BATCHES_NEED + " batches, mean Y >= 0.9");
                 desc.add("No star lit. Imprint: hold");
@@ -540,7 +672,8 @@ public final class EyeRecipeRegistry {
         desc.add(" star's first cycle (x p)");
         for (FluidStack f : fluids) if (f.getFluid() == null) return;
         final double product = to.tier.feed ? StellarField.WDM_PER_HSM * 0.694 * StellarField.CYCLE_SECONDS
-            : to.productBase();
+            : to.tier.ergoFeed ? GalaxyField.T8_RATIO * GalaxyField.F8_DEFAULT * StellarField.CYCLE_SECONDS
+                : to.productBase();
         GTValues.RA.stdBuilder()
             .itemInputs(to.chart.copy(), new ItemStack(core, 1, 0))
             .fluidInputs(fluids.toArray(new FluidStack[0]))
@@ -578,6 +711,16 @@ public final class EyeRecipeRegistry {
         }
         if (t.batch) desc.add("Θ follows +90 -> -90 / 7,200 s");
         if (t.shield) desc.add("Agent upkeep + trim charge A");
+        if (t.burstDriven()) {
+            // P4: bursts drive the galaxy field (quasar-p4.md §4.2)
+            desc.add(t.planets() ? "P: +1 x (β - 1), bursts heat" : "P: +3 x (β - 1), bursts heat");
+            if (t.galaxy) {
+                desc.add("W: 1.5 x s, +6 (γlo - γhi)");
+                desc.add(" aim the rail's two banks");
+            }
+            if (t.ergoFeed) desc.add("Λ: 0.4 x f8, -10 γhalo");
+            desc.add("β = bursts / (D x m x p)");
+        }
         desc.add("Trims, Field sockets only:");
         for (TrimDef trim : t.trims()) {
             final Fluid fluid = EyeStarRuntime.trimFluid(trim.kind);
@@ -617,6 +760,10 @@ public final class EyeRecipeRegistry {
      * setpoint, shown here at the default (0.694 L/s = 41.64 L per cycle); T5 is per batch.
      */
     private static void displayStar(StarDef def) {
+        if (def.galaxyTier()) {
+            displayGalaxy(def);
+            return;
+        }
         final TierParams t = def.tier;
         final List<FluidStack> fluidsIn = new ArrayList<>();
         for (EyeRecipe.FluidAmount up : def.upkeep) {
@@ -661,6 +808,76 @@ public final class EyeRecipeRegistry {
             .itemInputs(def.chart.copy())
             .fluidInputs(fluidsIn.toArray(new FluidStack[0]))
             .fluidOutputs(new FluidStack(def.product, (int) Math.max(1, Math.round(product))))
+            .duration((int) StarDef.CYCLE_TICKS)
+            .eut(0)
+            .fake()
+            .ignoreCollision()
+            .setNEIDesc(desc.toArray(new String[0]))
+            .addTo(EyeRecipeMaps.EYE);
+    }
+
+    /**
+     * P4 star page per 60 s cycle at p = 1 (quasar-p4.md §4.6-§4.8): T7 Triangulum (Magnetar Matter 7.5 L in, shown
+     * rounded up; Ergomatter 600 L out before × Y × r × min(β̄, 1.5)), T8 Milky Way (the Ergomatter feed at its default
+     * 5 L/s = 300 L a cycle in, Superdense Ergomatter 300 L out before × Y × r), and planets mode (the chart; the
+     * slots'
+     * rules). Bursts are not an item: the description gives the demand.
+     */
+    private static void displayGalaxy(StarDef def) {
+        final TierParams t = def.tier;
+        final List<String> desc = new ArrayList<>();
+        final List<FluidStack> in = new ArrayList<>();
+        final List<FluidStack> out = new ArrayList<>();
+        desc.add("T" + t.n + " " + clip(def.name, 25));
+        if (t.planets()) {
+            desc.add("Planets mode: " + t.slots + " slots");
+            desc.add("The galaxy's chart + mode");
+            desc.add(" planets (GUI, OC setMode)");
+            desc.add("Slot bus: 1 planet item each");
+            desc.add("Each: parallel 2^(N-k),");
+            desc.add(" its H/He and EU at start");
+            desc.add("Success/parallel: (1-0.05R)");
+            desc.add(" x field (Res/Stable 1,");
+            desc.add(" Strained 0.5, Critical 0)");
+            desc.add("Field: P only, d = (β-1)");
+            desc.add("Bursts: D " + String.format(Locale.ROOT, "%.3f", GalaxyField.demand(t.n, true, 0)) + " Bu/t x p");
+            desc.add("Breach: runs fail, field");
+            desc.add(" re-forms (nothing else)");
+            desc.add(sci(def.euPerCycle) + " EU/cycle, wireless");
+        } else {
+            final boolean t8 = t.ergoFeed;
+            desc.add("Per 60 s cycle (live galaxy):");
+            if (!t8) {
+                desc.add("Upkeep 7.5 L Magnetar Matter");
+                for (Map.Entry<Fluid, Double> up : def.exactUpkeep.entrySet()) {
+                    in.add(new FluidStack(up.getKey(), (int) Math.ceil(up.getValue())));
+                }
+                out.add(new FluidStack(def.product, (int) Math.round(GalaxyField.T7_ERGOMATTER)));
+                desc.add("Out 600 L x Y x r x min(β̄,1.5)");
+                desc.add("Born: the Magnetar Collapse");
+            } else {
+                final int perCycle = (int) Math.round(GalaxyField.F8_DEFAULT * StellarField.CYCLE_SECONDS);
+                in.add(new FluidStack(def.feed, perCycle));
+                out.add(new FluidStack(def.product, (int) Math.round(GalaxyField.T8_RATIO * perCycle)));
+                desc.add("Feed f8 0-10 L/s (shown 5)");
+                desc.add("Out 1.0 x fed x Y x r");
+                desc.add("Satellite crossing caught:");
+                desc.add(" +1 cycle (stay Stable)");
+                desc.add("Born: the Galactic Merger");
+            }
+            desc.add(
+                "Bursts: D " + String.format(Locale.ROOT, "%.1f", GalaxyField.demandT(t.n)) + " Bu/t x p (GRB ports)");
+            desc.add("Bring 1.5x D; surplus: crown");
+            desc.add("Field: " + gaugeList(t) + ", minor mergers");
+            desc.add("Space trims P-; aim the rail");
+            desc.add(sci(def.euPerCycle) + " EU/cycle, wireless");
+            desc.add("Companions: " + GalaxyField.maxCompanions(t.n) + " (slot bus)");
+        }
+        desc.add("x2 parallel per tier > T" + t.n);
+        GTValues.RA.stdBuilder()
+            .itemInputs(def.chart.copy())
+            .fluidInputs(in.toArray(new FluidStack[0]))
+            .fluidOutputs(out.toArray(new FluidStack[0]))
             .duration((int) StarDef.CYCLE_TICKS)
             .eut(0)
             .fake()

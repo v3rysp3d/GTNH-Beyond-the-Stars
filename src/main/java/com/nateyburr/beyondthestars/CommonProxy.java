@@ -7,6 +7,7 @@ import com.nateyburr.beyondthestars.fluids.BTSFluids;
 import com.nateyburr.beyondthestars.items.BTSItems;
 import com.nateyburr.beyondthestars.items.SLItems;
 import com.nateyburr.beyondthestars.items.SLMaxItems;
+import com.nateyburr.beyondthestars.items.SLQuasarItems;
 import com.nateyburr.beyondthestars.items.SLUpgradeItems;
 import com.nateyburr.beyondthestars.machines.BTSMachines;
 
@@ -29,6 +30,7 @@ public class CommonProxy {
         SLMaxItems.register();
         // B-83: the field-generator upgrade path's Retrofit Frame and Kits.
         SLUpgradeItems.register();
+        SLQuasarItems.register();
         BTSBlocks.register();
         BTSFluids.register();
         // GT5U registers its own machines in its preInit; required-after:gregtech guarantees ours runs later.
@@ -71,6 +73,7 @@ public class CommonProxy {
         // generator recipes (both need GT's Condensate Assembler recipes, which exist only from load-complete).
         BTSRecipeRemovals.guard("Resonance Chamber II in place (SL-G01)", BTSRecipesSingularity::onLoadComplete);
         BTSRecipeRemovals.guard("Field-generator upgrade path (SL-U00..U48)", BTSRecipesGeneratorUpgrade::register);
+        BTSRecipeRemovals.guard("Eternity on Ergomatter (SL-Q26, D-48)", BTSRecipesQuasar::onLoadComplete);
         BTSRecipeRemovals.run();
         BTSRecipeGuard.checkResearchCollisions();
     }
@@ -90,6 +93,8 @@ public class CommonProxy {
         event.registerServerCommand(new CommandBTSKerr());
         event.registerServerCommand(new CommandBTSEye());
         event.registerServerCommand(new CommandBTSRecipes());
+        event.registerServerCommand(new CommandBTSQuasar());
+        event.registerServerCommand(new CommandBTSConduit());
     }
 
     /**

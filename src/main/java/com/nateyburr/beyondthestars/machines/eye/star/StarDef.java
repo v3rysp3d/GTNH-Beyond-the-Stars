@@ -56,9 +56,21 @@ public final class StarDef {
     public final List<EyeRecipe.FluidAmount> charge;
     /** Wireless EU per cycle, per parallel. */
     public final long euPerCycle;
+    /**
+     * P4: upkeep per cycle and parallel in fractional litres (T7's Molten Magnetar Matter 7.5 L), paid with a carry so
+     * the long-run mean is exact. Empty for T1-T6.
+     */
+    public final Map<Fluid, Double> exactUpkeep;
 
     public StarDef(String key, String name, TierParams tier, ItemStack chart, List<EyeRecipe.FluidAmount> upkeep,
         Fluid product, Fluid feed, List<EyeRecipe.FluidAmount> seed, List<EyeRecipe.FluidAmount> charge) {
+        this(key, name, tier, chart, upkeep, Collections.emptyMap(), product, feed, seed, charge);
+    }
+
+    public StarDef(String key, String name, TierParams tier, ItemStack chart, List<EyeRecipe.FluidAmount> upkeep,
+        Map<Fluid, Double> exactUpkeep, Fluid product, Fluid feed, List<EyeRecipe.FluidAmount> seed,
+        List<EyeRecipe.FluidAmount> charge) {
+        this.exactUpkeep = Collections.unmodifiableMap(new LinkedHashMap<>(exactUpkeep));
         this.key = key;
         this.name = name;
         this.tier = tier;
@@ -92,8 +104,14 @@ public final class StarDef {
         for (EyeRecipe.FluidAmount fa : upkeep) out.add(fa.fluid);
         for (EyeRecipe.FluidAmount fa : seed) out.add(fa.fluid);
         for (EyeRecipe.FluidAmount fa : charge) out.add(fa.fluid);
+        out.addAll(exactUpkeep.keySet());
         if (feed != null) out.add(feed);
         return out;
+    }
+
+    /** P4: a galaxy-tier star (T7 Triangulum, T8 Milky Way, and their planets-mode fields). */
+    public boolean galaxyTier() {
+        return tier.burstDriven();
     }
 
     // ================================================================================== registry
@@ -118,9 +136,23 @@ public final class StarDef {
         return def != null && def.chart.getItemDamage() == stack.getItemDamage() ? def : null;
     }
 
-    /** The registered star of tier {@code n}, or null. */
+    /**
+     * P4: registers a variant of a star by key only (planets mode at T7 / T8 shares its galaxy's chart; the chart
+     * still selects the galaxy, the Eye's mode picks the variant).
+     */
+    public static void registerVariant(StarDef def) {
+        BY_KEY.put(def.key, def);
+    }
+
+    /** The registered star of tier {@code n}, or null (never a planets-mode variant). */
     public static StarDef ofTier(int n) {
-        for (StarDef d : BY_KEY.values()) if (d.tier.n == n) return d;
+        for (StarDef d : BY_KEY.values()) if (d.tier.n == n && !d.tier.planets()) return d;
+        return null;
+    }
+
+    /** P4: the planets-mode variant of tier {@code n} (7 or 8), or null. */
+    public static StarDef planetsOf(int n) {
+        for (StarDef d : BY_KEY.values()) if (d.tier.n == n && d.tier.planets()) return d;
         return null;
     }
 

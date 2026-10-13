@@ -4,8 +4,10 @@ import java.util.Locale;
 
 /**
  * AUTOMATION PASS (brief item 18): what a Directive Hatch ({@link MTEHatchDirective}, MTE 28127) reports, or which
- * setpoint it drives. One hatch class serves every host (the Eye of Harmony and the Kerr Ergosphere Engine now; the
- * P4 Quasar adds its sets here). A hatch placed in a host adopts that host's first set if its own set belongs to
+ * setpoint it drives. One hatch class serves every host: the Eye of Harmony, the Kerr Ergosphere Engine and (P4) the
+ * Quasar Engine. P4's sets (Disc, Field, Events, Galaxy Transition, Slots; quasar-p4.md §8.1) compute their bits in
+ * {@link QuasarDirective} and {@link GalaxyDirective}. A hatch placed in a host adopts that host's first set if its own
+ * set belongs to
  * another host.
  * <p>
  * An output set is a 4-bit code in GT's Grade-7 water Degasser Control Hatch style: bit n has the value 2^(n-1),
@@ -29,7 +31,23 @@ public enum DirectiveSet {
         "Mass above setpoint"),
     KERR_STATUS(Host.KERR, false, "Kerr: Status", "Containment power short", "No Black Hole Seed", "Unstable",
         "Not formed"),
-    KERR_SETPOINT(Host.KERR, true, "Kerr: control the mass setpoint");
+    KERR_SETPOINT(Host.KERR, true, "Kerr: control the mass setpoint"),
+    // ---- P4 (quasar-p4.md §8.1; the bit rules are QuasarDirective / GalaxyDirective). Appended: NBT keeps names.
+    /** The Quasar Engine's disc. */
+    QUASAR_DISC(Host.QUASAR, false, "Quasar: Disc", "E low: pulse feed gas", "E high: Space trim",
+        "Purge now (flux at setpoint)", "Alarm: blow-out, no coil power, venting, conduit closed"),
+    /** The Eye's galaxy field (T7+): P and W. */
+    EYE_FIELD(Host.EYE, false, "Eye: Field (T7+)", "P high: Space trim", "P low: more bursts to the Eye",
+        "W high: aim high", "W low: aim low"),
+    /** The Eye's galaxy events (T7+): Λ and the countdowns. */
+    EYE_EVENTS(Host.EYE, false, "Eye: Events (T7+)", "Λ high: more to the halo", "Λ low: less to the halo",
+        "Countdown running", "Event sign is −"),
+    /** The Eye's galaxy transitions (T6 → T7 Magnetar Collapse, T7 → T8 Galactic Merger). */
+    EYE_GALAXY_TRANSITION(Host.EYE, false, "Eye: Galaxy Transition", "Ready: begin", "Transition running",
+        "Purge now (collapse assist)", "Hold the regulator's purges"),
+    /** The Eye's planet and companion slots (T7+), and the link test fire (T6 / T7). */
+    EYE_SLOTS(Host.EYE, false, "Eye: Slots", "A slot is idle", "Companion upkeep short", "Planet run lost parallels",
+        "Link test fire wanted");
 
     /** The machines a Directive Hatch can sit in. */
     public enum Host {
@@ -37,7 +55,8 @@ public enum DirectiveSet {
         /** Not placed in a host yet (or the host stopped reporting). */
         NONE("no machine"),
         EYE("Eye of Harmony"),
-        KERR("Kerr Ergosphere Engine");
+        KERR("Kerr Ergosphere Engine"),
+        QUASAR("Quasar Engine");
 
         public final String label;
 
