@@ -513,6 +513,38 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         return remote;
     }
 
+    /** B-116 GUI: last second's parts of the stream (the jets, the receptor, a lower crown's overflow). */
+    public double getJets() {
+        return lastJets;
+    }
+
+    public double getRemote() {
+        return lastRemote;
+    }
+
+    public double getOverIn() {
+        return lastOverIn;
+    }
+
+    /** Bu/t handed up to the crown stacked above last second. */
+    public double getOver() {
+        return lastOver;
+    }
+
+    /** "stacked: Mk II above", or "". */
+    public String getStackLine() {
+        return stackLine;
+    }
+
+    /** The dock note while it is fresh (3 s), or "" (no jet port docked). */
+    public String getDockNote() {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        final long now = base == null || base.getWorld() == null ? 0
+            : base.getWorld()
+                .getTotalWorldTime();
+        return now - dockTick < 60 ? dockNote : "";
+    }
+
     static String roman(int mk) {
         return mk == 1 ? "I" : mk == 2 ? "II" : mk == 3 ? "III" : "-";
     }
