@@ -217,6 +217,11 @@ public class MTEHatchBurstControl extends MTEHatch {
         return fresh() ? host : "";
     }
 
+    /** What the host says the hatch drives now ("b = 1.83", "purge armed"), or "" when no host reads it (B-116). */
+    public String getHostLine() {
+        return fresh() ? hostLine : "";
+    }
+
     public int getEdges() {
         return edges;
     }
