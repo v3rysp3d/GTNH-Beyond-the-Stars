@@ -7844,3 +7844,94 @@ edge-on disc as a thin gold line either side, by night clearly, by day faintly.
 standing inside the cage next to the hole), or drop L1 to 26 steps above 250 px (a small loss at the shadow's edge).
 Shots: local work folder `renders/kerr/after-*.png`, `after-low-*`, `after-l0-*`; `renders/compare.html`; clip
 `video/renders/kerr-v2.mp4`.
+
+### R-12 The quasar, renders v2 (WP-2): a turbulent ring volume, a lensed hole, helical jets and four distinct events [renders v2, judgement + finding]
+
+**What was built.** The Quasar Engine's render (`machines/quasar/render/QuasarHoleRenderer`, programs in `QuasarFx`,
+GLSL `shaders/quasar/`; notes in `docs/render-kit.md`) draws the v2 look at every shader tier. What a player sees:
+
+- **the hole**: the shared lensed black hole (as the Kerr, R-11) at GT's old size, with its own hot inner disc whose
+  inner edge sits at the spin's ISCO (Bardeen): a spun-up quasar (a 0.9) hugs its shadow with a white-blue edge, a slow
+  one (a 0.05) shows a dark gap round the shadow;
+- **the accretion ring** (r 40 to 40 + 2 + 22 lambda_c): a ray-marched volume, not a flat sheet: sheared Keplerian
+  streaks (the inner gas laps the outer), m = 2 and m = 3 trailing spiral density waves turning slower than the gas,
+  hot clumps, a bright inner wall fading to a dusty, ragged, redder outer edge with dark lanes, Doppler beaming (the
+  side turning toward the camera brighter). The zone reads at a glance: Resonant ice-white and laminar, Stable gold,
+  Strained orange, Critical orange-red and violent with a flickering inner wall, Breach and re-forming dark with
+  violet-red embers that fill in from the inner wall as the 300 s go by; the Harmonic Lock lays standing concentric
+  ripples over the ring; E above 0 puffs it up;
+- **the jets**: a white-blue core, two helical strands twisting round the axis (pitch from the spin, tighter as the
+  flux builds), knots running outward at 8 blocks/s, launched more often at higher Bu/t, a widening violet sheath, a
+  terminal bow where the jet ends, a glare at each pole; never thinner than about a pixel and a half, so they read
+  through the tower lattice from 200 blocks out;
+- **the field lines**: 12 dipole arcs round the hole's poles, faint at low flux, brighter and tighter as it builds,
+  crackling (flicker and sparks) above 90;
+- **the events**, each its own look: an **eruption** snaps the field lines outward, sends a rim-bright, noise-broken
+  shock shell across the ring (it bursts out of the machine's silhouette in the outside views), flares the ring from
+  its inner wall outward, fires a giant knot up both jets and throws debris off the ring; a **purge** is blue-white and
+  calmer: no shell, the field lines unwind with a twist, a spiral flash runs up both jets, the jets pulse once and the
+  ring dims for two seconds; a **blow-out** breaks the ring into orange chunks flying outward and fading, the jets go
+  out; a **re-formed** disc and **First Light** kindle the inner wall and fill the ring outward;
+- **outside**: the walls still hide the ring (R-09); the jets glow through the tower lattice and each cap carries a
+  zone-coloured glow (orange when Critical, blue-white when Resonant).
+
+LOW quality, a shader that does not bake or a GL error: today's look, unchanged (GT's model, the Tessellator disc and
+cones; the new render-only flashes do not flash it). The LOW shots match BEFORE.
+
+**Sync (R-03 as recommended, plus one).** The render tile's look compound gains `ev` (the flash's event kind), `a`
+(spin), `phi` (flux), `lock` (Harmonic Lock: 600 s Resonant) and **`rf`**, how far a re-forming disc has come (0..1),
+which the spec's re-forming look needs and §13 did not list. All are render-only: the description packet to the
+players watching the chunk (spin moved 0.01, flux 2, re-forming 2 %), never the machine's saved state. The server marks
+the blow-out, re-formed and First Light events for the render too (they had no flash before); the strongest of a
+second's events wins.
+
+**Judgement calls (spec §6 deviations).**
+
+1. *The ring is one ray-marched volume, not 9 stacked slices.* Slices show gaps and layering at grazing views (the
+   inside-the-shell view looks across the ring at 30-45 degrees). The proxy is the slab's own faces (top, bottom,
+   inner and outer walls; a quad at the camera when it stands inside the slab); each fragment marches its ray through
+   the slab in at most 16 / 12 / 8 / 6 sub-segments (L0-L3), samples the gas where each comes nearest the plane and
+   integrates the Gaussian height profile through it exactly (erf). On the way: a step count that followed the ray's
+   length drew contour lines; fine noise octaves sparkled at grazing angles, so they now fade by the sample's
+   footprint (a pixel stretched by the grazing angle).
+2. *Thickness.* Half-thickness 1.2 + 0.4 x clamp(E / 25, 0, 4) blocks (Gaussian, flared outward); the spec's "0.3 +
+   clamp(E / 25, 0, 4)" is today's face separation and reads as a flat sheet in a volume render.
+3. *Display temperatures* (inner wall / body): Resonant 30,000 / 15,000 K, Stable 6,200 / 3,900 K, Strained 3,600 /
+   2,500 K, Critical 1,900 / 1,150 K, Breach 1,500 / 1,000 K, re-forming embers with a violet cast. Hotter settings
+   washed Critical to gold through the tonemap shoulder; the zone has to read from 200 blocks.
+4. *Inner disc* to 8 r_s with r_s from GT's old halo (1.8 x the hole scale / 8), so the hero pose frames it as before;
+   its inner edge r_isco / 2 r_s clamped 1.12-3 r_s (the lens is Schwarzschild with a weak drag term 0.42 a, so a
+   prograde ISCO below the horizon is drawn just outside it).
+5. *Two new harness views*: `ring` (inside the shell, 46 blocks above the near side of the ring, looking in at the hole
+   and the far side) and `cap` (the top cap from outside). The fixed BEFORE poses see the ring only at the `close`
+   view's edges (through the lattice) and the `34` view through the roof.
+6. *The shock shell* is depth-tested against the world but its rim bulges out past the walls in the outside views,
+   which reads as the eruption from outside. Alternative: clip it at the outer wall.
+
+**GPU (dev rig, RTX 4090, 1280 x 720, fixed poses, `GL_TIME_ELAPSED`; marginal = (5 draws - 1) / 4 with
+`-Dbts.render.qRepeat=5`).** Budget 0.20 ms (dev).
+
+| View | Single draw | Marginal |
+|---|---|---|
+| front, 34, level (outside, L1) | 0.002-0.13 ms | 0.002-0.13 ms |
+| hero (inside, next to the hole) | 0.084-0.13 ms | 0.09-0.13 ms |
+| close (inside, over the hole) | 0.10-0.13 ms | 0.10-0.14 ms |
+| ring (inside, over the ring) | 0.11-0.165 ms | 0.11-0.18 ms (eruption) |
+
+Every view is within budget; the worst is an eruption's ring view (0.179 ms marginal: the ring flare, shell and
+debris over a near-full-frame ring). The first build cost 0.22-0.42 ms (single draw); the analytic column (fewer,
+longer sub-segments, no noise lookups away from the plane) and one lookup for the clumps and lanes halved it. CPU
+0.04-0.088 ms a frame with the GPU timer on (budget 0.08; the busiest event shots are 5-10 % over, timer included); up
+to 14 draw calls (ring and the inside quad, two jets, field lines and shell in two halves each, debris, the hole, four
+glows).
+
+**Checked.** Both profiles of `bts_qring`, `bts_qjet`, `bts_qfx` compile and link (`-Dbts.render.selftest=true`);
+322 AFTER shots (23 cases x 7 views x day / night) including the eruption (3, 10, 15, 25, 45, 70 ticks), purge (4, 15,
+30, 40, 65 ticks) and blow-out (8, 40 ticks) sequences; 60 LOW shots at the BEFORE poses (they match BEFORE);
+checkstyle and spotless clean.
+
+**Not verified.** Angelica's core profile in Angelica itself, and a shaderpack (as R-10 / R-11).
+
+**Suggestion.** Accept the look, the deviations above and the extra `rf` field. R-09 (a window band in the disc wall)
+would let the ring be seen from outside; the render is ready for it. Shots: local work folder
+`renders/quasar/after-*.png`, `after-low-*`, GPU `after-fps*.tsv`; `renders/compare.html`.
