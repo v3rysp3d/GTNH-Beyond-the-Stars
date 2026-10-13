@@ -91,8 +91,11 @@
       "jet_crescent": { "item": "beyondthestars:slCasing:11", "expect": "slCasing:11" },
       "galactic_shell": { "item": "beyondthestars:slCasing:12", "expect": "slCasing:12" },
       "window_band_shell": { "item": "tectech:tile.quantumGlass:0", "expect": "QuantumGlass" },
+      "rail_halo_shell": { "item": "beyondthestars:slCasing:13", "expect": "slCasing:13" },
+      "rail_trim": { "item": "beyondthestars:slCasing:14", "expect": "slCasing:14" },
       "field_socket": null, "sensor_socket": null, "gas_socket": null, "me_output_socket": null, "controller": null,
-      "maintenance_socket": null, "stellar_socket_beam": null, "stellar_socket_jet": null, "stellar_socket_rim": null
+      "maintenance_socket": null, "stellar_socket_beam": null, "stellar_socket_jet": null, "stellar_socket_rim": null,
+      "directive_socket": null, "slot_bus": null, "grb_receptor": null
     }
   },
   "texts": {
