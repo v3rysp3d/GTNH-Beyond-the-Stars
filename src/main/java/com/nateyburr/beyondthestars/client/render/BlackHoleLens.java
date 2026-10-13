@@ -38,11 +38,14 @@ import gregtech.common.render.shader.VertexAttribute;
 @SideOnly(Side.CLIENT)
 public final class BlackHoleLens {
 
-    /** The bounding radius of the effect over the disc's outer radius (§5.2: R_q = R_disc_out x 1.15). */
-    public static final float BOUND_PER_OUTER = 1.15f;
+    /**
+     * The bounding radius of the effect over the disc's outer radius (§5.2 says 1.15; 1.08 holds the disc's lensed
+     * image and its glow and saves an eighth of the pixels).
+     */
+    public static final float BOUND_PER_OUTER = 1.08f;
 
     /** Per LOD tier L0..L3: march steps, step size / r, noise octaves. */
-    static final float[][] STEPS = { { 64, 0.10f, 4 }, { 36, 0.18f, 3 }, { 24, 0.28f, 2 }, { 14, 0.40f, 1 } };
+    static final float[][] STEPS = { { 72, 0.11f, 4 }, { 32, 0.20f, 3 }, { 24, 0.28f, 2 }, { 14, 0.40f, 1 } };
 
     private static final ShaderRecipe RECIPE = BTSShaders.recipe("bts_blackhole")
         .required(
@@ -82,6 +85,13 @@ public final class BlackHoleLens {
     /** The program (pass it to {@link RenderQuality#tier}). */
     public static final BTSShaders.Program PROGRAM = BTSShaders.program("bts_blackhole", RECIPE);
     private static final BTSShaders.Mesh QUAD = PROGRAM.mesh(Meshes::quad);
+
+    /**
+     * Dev only ({@code -Dbts.render.bhRepeat=n}, GPU measurement): draws the hole n times inside its timer section, so
+     * {@code (t(n) - t(1)) / (n - 1)} is a draw's marginal (throughput) cost without the latency a timer query
+     * serialises. The picture is wrong in such a run (the layers add up).
+     */
+    private static final int REPEAT = Math.max(1, Integer.getInteger("bts.render.bhRepeat", 1));
 
     private static final Matrix4f MODEL = new Matrix4f();
     private static final Matrix4f PROJ = new Matrix4f();
@@ -209,7 +219,7 @@ public final class BlackHoleLens {
             PROJ.get(M16);
             GL20.glUniformMatrix4(h.loc(U_VIEW_PROJ), false, M16);
             quad.bind();
-            quad.draw();
+            for (int i = 0; i < REPEAT; i++) quad.draw();
             quad.unbind();
             ShaderProgram.clear();
         } finally {

@@ -86,11 +86,10 @@ vec2 bhGas(vec2 q, float r, float yn, float t, float octaves) {
     return vec2(fil, clump);
 }
 
-// One march step a -> b (hole frame) through the disc slab; dir = the ray's direction on this step.
-void bhDiscStep(vec3 a, vec3 b, vec3 dir, float t, inout vec3 col, inout float trans, inout float budget,
+// One march step through the disc slab: da -> db already in the disc's frame (the caller carries db to the next step),
+// L the step's length, dir the ray's direction on it (hole frame).
+void bhDiscStep(vec3 da, vec3 db, float L, vec3 dir, float t, inout vec3 col, inout float trans, inout float budget,
     inout vec2 gasMemo) {
-    vec3 da = u_DiscFrame * a;
-    vec3 db = u_DiscFrame * b;
     float ya = da.y;
     float yb = db.y;
     // the point of the step nearest the plane
@@ -108,7 +107,6 @@ void bhDiscStep(vec3 a, vec3 b, vec3 dir, float t, inout vec3 col, inout float t
     if (ya * yb > 0.0 && min(abs(ya), abs(yb)) > 2.6 * H) return;
 
     // column through a Gaussian slab rho = exp(-(y / H)^2) along the step
-    float L = length(b - a);
     float dy = yb - ya;
     float column = abs(dy) < 0.05 * H ? L * exp(-(q.y * q.y) / (H * H))
         : 0.8862 * H * abs(bhErf(yb / H) - bhErf(ya / H)) * L / abs(dy);
@@ -132,7 +130,8 @@ void bhDiscStep(vec3 a, vec3 b, vec3 dir, float t, inout vec3 col, inout float t
 
     // temperature: T(r) ~ x^-3/4 (1 - x^-1/2)^1/4, normalised to 1 at its peak (x = 49/36)
     float x = max(r / rIn, 1.0);
-    float prof = pow(x, -0.75) * pow(max(1.0 - inversesqrt(x), 0.0), 0.25) * 2.0498;
+    float ix = inversesqrt(x);
+    float prof = ix * sqrt(ix) * sqrt(sqrt(max(1.0 - ix, 0.0))) * 2.0498;
     // filaments: fine bright streaks over darker lanes (more contrast as the turbulence rises)
     float streak = mix(0.35 + 1.3 * fil * fil, 0.12 + 2.0 * fil * fil, ta);
     // two trailing spiral density waves (pitch about 16 degrees) turning slower than the gas: 2 phi - 7 ln r, at a
@@ -142,7 +141,8 @@ void bhDiscStep(vec3 a, vec3 b, vec3 dir, float t, inout vec3 col, inout float t
     float s2 = 2.0 * d2.x * d2.y;
     float pa = 0.20944 * t - 7.0 * log(r);
     float arm = 0.5 + 0.5 * (c2 * cos(pa) - s2 * sin(pa));
-    float bright = pow(prof, 1.5) * streak * (1.0 + 5.0 * pow(gas.y, 4.0)) * (0.8 + 0.45 * arm);
+    float g2 = gas.y * gas.y;
+    float bright = prof * sqrt(prof) * streak * (1.0 + 5.0 * g2 * g2) * (0.8 + 0.45 * arm);
     float temp = prof;
 
     // infall streamers: trailing spiral filaments from the inner edge down to the horizon
@@ -167,7 +167,7 @@ void bhDiscStep(vec3 a, vec3 b, vec3 dir, float t, inout vec3 col, inout float t
     float grav = sqrt(max(1.0 - 1.0 / r, 0.03));
     float shift = delta * grav;
 
-    vec3 bb = btsBlackbody(u_Blackbody, u_Look.x * temp * pow(shift, 0.85));
+    vec3 bb = btsBlackbody(u_Blackbody, u_Look.x * temp * shift);
     vec3 src = bb * bright * pow(shift, u_Look2.y) * u_Look.w;
     float al = 1.0 - exp(-7.0 * dens * column);
     col += trans * al * src;
@@ -225,31 +225,42 @@ vec4 bhShade(vec3 rd) {
     vec3 col = vec3(0.0);
     float trans = 1.0;
     bool captured = false;
-    float budget = 5.0;
+    float budget = 4.0;
     float rMinSeen = 1e4;
     vec2 gasMemo = vec2(0.5, 0.0);
     float steps = u_Ray.x;
     float k = u_Ray.y;
+    // the slab's reach above the plane, a bound for any radius r: 2.6 H(r) (see bhDiscStep)
+    float slabK = 2.6 * u_Disc.z;
+    float slabC = 2.6 * (max(0.02, 0.6 * u_Lens.z) + u_Look2.x * 0.18);
+    vec3 pPrev = p;
+    float yPrev = dot(spin, p);
     for (int i = 0; i < 96; i++) {
         if (float(i) >= steps) break;
         float r = length(p);
         float dt = clamp(k * r, 0.025, 2.5);
-        vec3 a = p;
         // drift - kick - drift (leapfrog)
         p += v * (0.5 * dt);
-        float r2 = dot(p, p);
+        float ir = inversesqrt(dot(p, p));
+        float ir3 = ir * ir * ir;
         vec3 hv = cross(p, v);
-        vec3 acc = -1.5 * dot(hv, hv) * p / (r2 * r2 * sqrt(r2));
+        vec3 acc = -1.5 * dot(hv, hv) * p * (ir3 * ir * ir);
         // frame dragging: a gravitomagnetic dipole about the spin axis (pushes co-rotating light out, pulls
         // counter-rotating light in: the shadow flattens on the approaching side, the D-shape)
-        vec3 ph = p * inversesqrt(r2);
-        vec3 bg = (3.0 * ph * dot(spin, ph) - spin) / (r2 * sqrt(r2));
+        vec3 ph = p * ir;
+        vec3 bg = (3.0 * ph * dot(spin, ph) - spin) * ir3;
         // (traced backwards: the force flips sign with the direction of travel)
         acc += u_Ray.w * cross(v, bg);
         v = normalize(v + acc * dt);
         p += v * (0.5 * dt);
-        bhDiscStep(a, p, v, t, col, trans, budget, gasMemo);
         float rn = length(p);
+        float yNow = dot(spin, p);
+        // the disc only where this step comes near its plane (heights first, the full frame only then)
+        if (yPrev * yNow <= 0.0 || min(abs(yPrev), abs(yNow)) < slabK * max(r, rn) + slabC) {
+            bhDiscStep(u_DiscFrame * pPrev, u_DiscFrame * p, dt, v, t, col, trans, budget, gasMemo);
+        }
+        pPrev = p;
+        yPrev = yNow;
         rMinSeen = min(rMinSeen, rn);
         if (rn < 1.0) {
             captured = true;
@@ -257,11 +268,17 @@ vec4 bhShade(vec3 rd) {
         }
         if (rn > Rb && dot(p, v) > 0.0) break;
         if (trans < 0.004) break;
-        // leaving: once past r 3 r_s, moving outward and away from the disc plane, well clear of the slab, the ray
-        // meets nothing more (its remaining bend is small); not with the screen copy, which wants the final direction
+        // leaving (past r 3 r_s and moving outward, its remaining bend small; not with the screen copy, which wants
+        // the final direction): the ray meets nothing more if it moves away from the disc plane clear of the slab,
+        // or will cross the plane well outside the disc
         if (u_Lens.x < 0.5 && rn > 3.0 && dot(p, v) > 0.0) {
-            float yd = dot(spin, p);
-            if (yd * dot(spin, v) > 0.0 && abs(yd) > 3.0 * (u_Disc.z * rn + 0.05) + 0.6 * u_Lens.z + u_Look2.x * 0.5) break;
+            float vy = dot(spin, v);
+            if (yNow * vy > 0.0) {
+                if (abs(yNow) > slabK * rn + slabC + 0.05) break;
+            } else if (abs(vy) > 1e-3) {
+                float tc = -yNow / vy;
+                if (length(p + v * tc) > u_Disc.y * 1.1 + 0.15 * tc + 0.5) break;
+            }
         }
     }
 
@@ -298,7 +315,7 @@ vec4 bhShade(vec3 rd) {
             alpha = 1.0;
         } else {
             // a bent starfield inside the lensing ring (shows at night; invisible against a day sky)
-            emit += trans * u_Lens.y * bhStars(v) * lensZone * (1.0 - smoothstep(1.4, 2.6, b / 2.6));
+            emit += trans * u_Lens.y * bhStars(v) * lensZone * (1.0 - smoothstep(1.2, 1.8, b / 2.6));
             alpha = 1.0 - trans;
         }
     }
