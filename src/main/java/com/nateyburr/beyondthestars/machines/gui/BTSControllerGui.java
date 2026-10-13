@@ -25,6 +25,7 @@ import com.cleanroommc.modularui.widgets.layout.Flow;
 import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
 import gregtech.api.modularui2.GTGuiTextures;
 import gregtech.api.modularui2.GTWidgetThemes;
+import gregtech.api.recipe.check.CheckRecipeResult;
 import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
 
 /**
@@ -96,6 +97,29 @@ public abstract class BTSControllerGui<T extends MTEMultiBlockBase> extends MTEM
     /** The lang key of the disabled power switch's tooltip. */
     protected String powerSwitchDisabledKey() {
         return "GT5U.gui.button.power_switch";
+    }
+
+    /**
+     * True to put the <b>i</b> button in the top slot of the button column instead of the gap row (spec §5.8: the
+     * Reactor Silo, whose gap row is full of fields and which has no render toggle). Ignored with a render toggle.
+     */
+    protected boolean infoInButtonColumn() {
+        return false;
+    }
+
+    /**
+     * Server: the badge of a plain recipe machine (spec §5.6, §5.7, §5.9): NOT FORMED, RUNNING while GT runs a recipe,
+     * WAITING while the last recipe check failed for a reason the player must fix (output full, power, a machine
+     * condition), IDLE otherwise (no recipe in the inputs, or nothing checked yet).
+     */
+    protected BTSGuiKit.Badge recipeBadge() {
+        if (!multiblock.mMachine) return BTSGuiKit.Badge.NOT_FORMED;
+        if (baseMetaTileEntity != null && baseMetaTileEntity.isActive()) return BTSGuiKit.Badge.RUNNING;
+        final CheckRecipeResult r = multiblock.getCheckRecipeResult();
+        if (r == null || r.wasSuccessful()) return BTSGuiKit.Badge.IDLE;
+        final String id = r.getID();
+        if ("none".equals(id) || "no_recipe".equals(id)) return BTSGuiKit.Badge.IDLE;
+        return BTSGuiKit.Badge.WAITING;
     }
 
     /** Rows in the status pool (the most a state shows). */
@@ -290,17 +314,27 @@ public abstract class BTSControllerGui<T extends MTEMultiBlockBase> extends MTEM
     @Override
     protected Flow createRightPanelGapRow(ModularPanel parent, PanelSyncManager syncManager) {
         final Flow row = super.createRightPanelGapRow(parent, syncManager);
-        row.child(BTSGuiKit.infoToggle(info));
+        if (!infoInColumn()) row.child(BTSGuiKit.infoToggle(info));
         addRightButtons(row, parent, syncManager);
         return row;
     }
 
     // ============================================================================ button column
 
-    /** GT's column (bottom-up: controller slot, power, structure update), then the render toggle in the top slot. */
+    private boolean infoInColumn() {
+        return renderSyncKey == null && infoInButtonColumn();
+    }
+
+    /**
+     * GT's column (bottom-up: controller slot, power, structure update), then the render toggle in the top slot (or
+     * the <b>i</b> button, for a machine that asks for it there).
+     */
     @Override
     protected Flow createButtonColumn(ModularPanel panel, PanelSyncManager syncManager) {
         final Flow column = super.createButtonColumn(panel, syncManager);
+        if (infoInColumn()) column.child(
+            BTSGuiKit.infoToggle(info)
+                .marginLeft(0));
         if (renderSyncKey != null) {
             final BooleanSyncValue render = syncManager.findSyncHandler(renderSyncKey, BooleanSyncValue.class);
             if (render != null) column.child(

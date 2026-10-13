@@ -44,7 +44,7 @@ public final class BTSRows {
         NOTE,
         /** items: dot colour, name, tooltip. */
         CHIPS,
-        /** label, items: state (0 off/grey, 1 green, 2 red), name. */
+        /** label, items: state (0 off/grey, 1 green, 2 red), name, tooltip (optional; the hovered lamp's). */
         LAMPS,
         /** text, colour (wrapped, pitch 10). */
         PARA,
@@ -203,10 +203,24 @@ public final class BTSRows {
                     .append(BTSText.resolve(r.s(0)));
                 break;
             case CHIPS:
-            case LAMPS:
-                for (String[] it : r.items(r.kind == Kind.CHIPS ? 0 : 1)) {
+                for (String[] it : r.items(0)) {
                     sb.append(' ')
                         .append(BTSText.resolve(it.length > 1 ? it[1] : ""));
+                }
+                break;
+            case LAMPS:
+                sb.append(' ')
+                    .append(BTSText.resolve(r.s(0)));
+                for (String[] it : r.items(1)) {
+                    final String st = it.length > 0 ? it[0] : "0";
+                    sb.append(' ')
+                        .append(BTSText.resolve(it.length > 1 ? it[1] : ""))
+                        .append("1".equals(st) ? "[on]" : "2".equals(st) ? "[fault]" : "[off]");
+                    if (it.length > 2 && !it[2].isEmpty()) {
+                        for (String l : it[2].split(String.valueOf(LINE))) sb.append(" {")
+                            .append(BTSText.resolve(l))
+                            .append('}');
+                    }
                 }
                 break;
             default:
@@ -323,7 +337,7 @@ public final class BTSRows {
             return row(Kind.CHIPS, items(items));
         }
 
-        /** Lamps: {@code items} of {state, name}. */
+        /** Lamps: {@code items} of {state, name} or {state, name, tooltip ({@link #tooltip} lines)}. */
         public Builder lamps(String label, List<String[]> items) {
             return row(Kind.LAMPS, label, items(items));
         }

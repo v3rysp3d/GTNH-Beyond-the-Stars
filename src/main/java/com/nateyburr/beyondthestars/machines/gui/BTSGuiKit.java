@@ -439,6 +439,33 @@ public final class BTSGuiKit {
         }
     }
 
+    /**
+     * The index of the lamp under {@code x} (row coordinates, as {@link #paintLamps} lays them out; the 4 px gap after
+     * a lamp counts as that lamp's), or −1 over the label, past the last lamp or unknown.
+     */
+    public static int lampAt(String label, List<String[]> items, int x) {
+        if (x < 0) return -1;
+        int left = label == null || label.isEmpty() ? 0 : KitDraw.width(label) + 4;
+        if (x < left) return -1;
+        for (int i = 0; i < items.size(); i++) {
+            final String[] it = items.get(i);
+            final int right = left + 9 + KitDraw.width(BTSText.resolve(it.length > 1 ? it[1] : "")) + 4;
+            if (x < right) return i;
+            left = right;
+        }
+        return -1;
+    }
+
+    /** A lamp row's tooltip: the hovered lamp's lines (a lamp's third part), nothing over the label. */
+    private static void lampTooltip(RichTooltip t, String label, List<String[]> items, int mouseX) {
+        final int hit = lampAt(label, items, mouseX);
+        if (hit < 0) return;
+        final String[] it = items.get(hit);
+        if (it.length > 2 && !it[2].isEmpty()) {
+            for (String l : it[2].split(String.valueOf(BTSRows.LINE))) t.addLine(BTSText.resolve(l));
+        }
+    }
+
     private static long parseLong(String s, long fallback) {
         try {
             return Long.parseLong(s);
@@ -674,6 +701,10 @@ public final class BTSGuiKit {
                     if (r == null) return;
                     if (r.kind == BTSRows.Kind.CHIPS) {
                         chipTooltip(t, r.items(0), painted.mouseX());
+                        return;
+                    }
+                    if (r.kind == BTSRows.Kind.LAMPS) {
+                        lampTooltip(t, BTSText.resolve(r.s(0)), r.items(1), painted.mouseX());
                         return;
                     }
                     for (String l : r.lines(tipField(r.kind))) t.addLine(BTSText.resolve(l));
