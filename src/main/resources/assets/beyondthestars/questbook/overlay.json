@@ -1,12 +1,12 @@
 {
-  "bundleVersion": "cf6158303e87d5f099c7be97e7f5e92365dba0f6",
+  "bundleVersion": "4e3fbb04c8d20df4b2fa045a13872dadf2237a3d",
   "format": 1,
   "idHigh": 190,
   "packVersion": 2171,
   "source": {
     "data": "questbook/singularity.json",
     "src": ".",
-    "srcHead": "0bf0c2c master",
+    "srcHead": "6a79e0f master",
     "manifestSha": "2742379a5cf9527c7f0dc913e2052f0167289195"
   },
   "features": {
@@ -9400,6 +9400,36 @@
           "y": 276,
           "sizeX": 24,
           "sizeY": 24
+        }
+      ]
+    },
+    {
+      "id": "E65",
+      "quest": "AAAAAAAAAAAAAAAAAAAKcw==",
+      "expectName": "One Ingot, Infinite Power",
+      "expectChapter": "AAAAAAAAAAAAAAAAAAAALg==",
+      "config": [],
+      "progress": "keep",
+      "ops": [
+        {
+          "op": "replaceText",
+          "find": "Check the Endgame Goals tab or NEI recipes",
+          "with": "Check the Tier 13 - UXV, Tier 14 - MAX and The Endgame tabs, or NEI recipes"
+        }
+      ]
+    },
+    {
+      "id": "E66",
+      "quest": "AAAAAAAAAAAAAAAAAAAJbA==",
+      "expectName": "Gen XXXXXXXXXX...",
+      "expectChapter": "AAAAAAAAAAAAAAAAAAAAFw==",
+      "config": [],
+      "progress": "keep",
+      "ops": [
+        {
+          "op": "replaceText",
+          "find": "(see the Endgame Goals tab when you're ready)",
+          "with": "(see The Endgame tab when you're ready)"
         }
       ]
     }

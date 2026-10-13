@@ -25,7 +25,8 @@
 //   --check            write nothing; exit 1 if any generated file differs from what is on disk.
 //   --selftest         break the data on purpose (overlap, line crossing, drifted name, unknown
 //                      item, duplicate id, off-grid, ledger change, long bold run, low-contrast
-//                      colour, odd glyph, non-empty hidden chapter) and prove each assertion fires.
+//                      colour, odd glyph, non-empty hidden chapter, a pack quest still naming a
+//                      hidden chapter) and prove each assertion fires.
 //
 // Every failure is collected and printed together, naming the offender; nothing is written
 // unless the whole run is clean.
@@ -889,6 +890,14 @@ function build(data, opts) {
         if (ch.name !== ce.expectName) drift.push(`${ce.id}: chapter ${ch.b64} is named '${ch.name}', expected '${ce.expectName}'`);
         const left = layoutOn.get(ce.chapter) || [];
         if (left.length) error(`${where}: ${ch.name} still holds ${left.length} quest(s) with the edits applied (${left.slice(0, 4).map(e => e.label).join(', ')}): move them, or drop the edit`);
+        // a hidden chapter must not be named in any pack quest the player still reads (the pack
+        // sends players to "the Endgame Goals tab"): point the text at the new home with a replaceText
+        const named = new RegExp('\\b' + ch.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+        for (const [qid, pq] of pack.quests) {
+            const ap = applied.get(qid);
+            const text = strip(ap ? ap.desc : (pq.json['properties:10']['betterquesting:10']['desc:8'] || ''));
+            if (named.test(text)) error(`${where}: pack quest '${pq.name}' (${qid}) still names the hidden chapter '${ch.name}': add a replaceText edit`);
+        }
         if (compiledChapterEdits.some(x => x.id === ce.id)) error(`${where}: duplicate id`);
         compiledChapterEdits.push({ id: ce.id, line: ch.b64, expectName: ce.expectName, op: ce.op });
     }
@@ -1321,6 +1330,7 @@ function selftest(inp) {
         ['a low-contrast colour', d => { q(d, 48100).desc = ['A {b}light aqua{r} word.']; return d; }, /unreadable on the book/],
         ['gold in a description', d => { q(d, 48100).desc = ['A {6}gold{r} key line.']; return d; }, /code 6 \(gold\) is unreadable/],
         ['an odd glyph', d => { q(d, 48100).desc = ['{u+221a}M']; return d; }, /odd glyph/],
+        ['a pack quest naming a hidden chapter', d => { d.packEdits = d.packEdits.filter(x => x.id !== 'E66'); return d; }, /names the hidden chapter/],
         ['a hidden pack chapter that still holds a quest', d => { const e = d.packEdits.find(x => x.id === 'E64'); e.ops = e.ops.filter(o => o.op !== 'move'); return d; }, /still holds/],
     ];
     let failed = 0;

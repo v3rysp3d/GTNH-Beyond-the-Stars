@@ -25,7 +25,9 @@
   "packChapters": {
     "uiv": { "id": "ytf2QCzUSk6ihcYeRbwblw==", "name": "Tier 11 - UIV", "range": [48100, 48139] },
     "umv": { "id": "l37V2WvbSHGZQ5oMgAfBuw==", "name": "Tier 12 - UMV", "range": [48100, 48139], "offShift": [0, 384] },
-    "egoals": { "id": "AAAAAAAAAAAAAAAAAAAAHQ==", "name": "Endgame Goals", "range": null }
+    "egoals": { "id": "AAAAAAAAAAAAAAAAAAAAHQ==", "name": "Endgame Goals", "range": null },
+    "uhv": { "id": "AAAAAAAAAAAAAAAAAAAALg==", "name": "Tier 9 - UHV", "range": null },
+    "thaum2": { "id": "AAAAAAAAAAAAAAAAAAAAFw==", "name": "Adept Thaumaturgy", "range": null }
   },
   "chapters": [
     {
@@ -1271,6 +1273,16 @@
       "id": "E64", "quest": "ztV-j35XSXaQ0OQ1TSyKew==", "expectName": "An Offering To The Gods", "expectChapter": "egoals",
       "config": ["replaceTecTechEyeOfHarmony"], "progress": "completionOnly",
       "ops": [ { "op": "swapItem", "from": "mte:15410", "to": "mte:28115" }, { "op": "move", "to": "end", "x": 1068, "y": 276, "size": 24 } ]
+    },
+    {
+      "id": "E65", "quest": "AAAAAAAAAAAAAAAAAAAKcw==", "expectName": "One Ingot, Infinite Power", "expectChapter": "uhv",
+      "about": "C01 hides Endgame Goals; its Dire Crafting Table goals now sit in Tier 13 - UXV, Tier 14 - MAX and The Endgame (E20-E62, moved with no flag), so the note points there. Not flag-gated, like the moves it describes.",
+      "ops": [ { "op": "replaceText", "find": "Check the Endgame Goals tab or NEI recipes", "with": "Check the Tier 13 - UXV, Tier 14 - MAX and The Endgame tabs, or NEI recipes" } ]
+    },
+    {
+      "id": "E66", "quest": "AAAAAAAAAAAAAAAAAAAJbA==", "expectName": "Gen XXXXXXXXXX...", "expectChapter": "thaum2",
+      "about": "C01 hides Endgame Goals; the Stargate quests it pointed at are in The Endgame (E48-E55, moved with no flag).",
+      "ops": [ { "op": "replaceText", "find": "(see the Endgame Goals tab when you're ready)", "with": "(see The Endgame tab when you're ready)" } ]
     }
   ]
 }

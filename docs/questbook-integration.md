@@ -1030,6 +1030,18 @@ order slot in the world's state file and puts it back, exactly where it was, on 
 whenever one of its quests stays (E63 / E64 follow `replaceTecTechEyeOfHarmony`, so with that flag off the trophies
 stay in Endgame Goals and the chapter stays). Quest ids and progress are untouched by the move.
 
+**Pointers to the hidden chapter (B-95):** three pack quests send the player to "the Endgame Goals tab". E40 already
+rewrote Finally, Universium!; two more `replaceText` edits cover the rest, with no config flag, like the moves they
+describe (E20-E62: the Dire Crafting Table goals and the Stargate leave Endgame Goals whatever the flags):
+
+| E | Pack id | Name (expected) | Chapter | New text |
+|---|---|---|---|---|
+| E65 | `AAAAAAAAAAAAAAAAAAAKcw==` | One Ingot, Infinite Power | Tier 9 - UHV | "Check the Tier 13 - UXV, Tier 14 - MAX and The Endgame tabs, or NEI recipes for the Table" |
+| E66 | `AAAAAAAAAAAAAAAAAAAJbA==` | Gen XXXXXXXXXX... | Adept Thaumaturgy | "(see The Endgame tab when you're ready)" |
+
+The generator now fails if any pack quest the player still reads (after the edits) names a chapter a `hideWhenEmpty`
+edit hides (selftest: "a pack quest naming a hidden chapter").
+
 ### 3.7 Config gating of edits
 
 | Edits | Also need |
@@ -1182,7 +1194,9 @@ The ops act on the pack quest's NBT, as `QuestInstance.writeToNBT` gives it, and
 name) that has no entry left once the quest edits are applied. Its `QuestLine.writeToNBT` and its order index go into
 the state file (`hiddenLines`); every install first puts it back (so edits are planned and reverted against the
 pack's real chapters) and hides it again only if it is still empty. The generator fails if the edits-on layout
-leaves the chapter non-empty.
+leaves the chapter non-empty, or if any pack quest text still names the chapter. A chapter edit with an op the jar does
+not know, or whose chapter's name drifted, is skipped (reported once) and the chapter stays; the up-to-date check asks
+the same question (`chapterEditSkip`), so such a chapter left empty and shown does not count as stale (B-95).
 
 An edit is **atomic on its preconditions**. Name mismatch, expected source chapter missing, or quest missing: the
 whole edit is skipped, the quest is left as the pack has it, and the edit is reported.
