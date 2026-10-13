@@ -71,7 +71,7 @@ public final class EyeStarBench {
         + "fill | sensor <x> <y> <z> <channel> <gt|lt> <threshold> [analog] | sensors <channel> <gt|lt> <thr> "
         + "[analog] | probe | wrench | charge [n] | buffer <fluid> <L> | core <name> | escrow | "
         + "legacy [galactic] [run <key> <n>] | fix | gt | mefield | field <fluid> <L> | render [on|off] | "
-        + "directive | autorig <s> [cut <k>] | ocloop | compression <1-9> [all] | check | "
+        + "directive | autorig <s> [cut <k>] | liverig on|off|status | ocloop | compression <1-9> [all] | check | "
         + "P4: burst <Bu/t> [high] [halo] | burst off | galaxy <s> [analog] [mass M] [fresh] | begin | "
         + "mode galaxy|planets | set mcshock|f8 <v> | slots <planet keys and chart names...> | slots clear | buses clear";
 
@@ -254,6 +254,12 @@ public final class EyeStarBench {
                         a5.isEmpty() ? 600 : Long.parseLong(a5),
                         args.length > 7 && "cut".equalsIgnoreCase(args[6]) ? Long.parseLong(args[7]) : 0));
                 break;
+            case "liverig":
+                // the same gate rig, live: one act a game second (the time warp included)
+                out.addAll(
+                    com.nateyburr.beyondthestars.machines.directive.EyeLiveRig
+                        .set(world, x, y, z, a5.isEmpty() ? "on" : a5));
+                return out;
             case "ocloop":
                 // AUTOMATION PASS: the OpenComputers calls (BTSComputerApi), as a script makes them
                 out.addAll(com.nateyburr.beyondthestars.machines.directive.DirectiveBench.eyeOcLoop(eye));
