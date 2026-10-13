@@ -4,6 +4,7 @@ import com.nateyburr.beyondthestars.machines.eye.render.EyeStarRenderer;
 import com.nateyburr.beyondthestars.machines.eye.render.TileEyeStar;
 import com.nateyburr.beyondthestars.machines.kerr.KerrHoleRenderer;
 import com.nateyburr.beyondthestars.machines.kerr.TileKerrHole;
+import com.nateyburr.beyondthestars.rendertest.GuiShotsClient;
 import com.nateyburr.beyondthestars.rendertest.RenderTest;
 import com.nateyburr.beyondthestars.rendertest.RenderTestClient;
 
@@ -29,5 +30,7 @@ public class ClientProxy extends CommonProxy {
 
         // Dev-only render QA harness: only with -Dbts.rendertest=true (never in normal play).
         if (RenderTest.ENABLED) RenderTestClient.register();
+        // Dev-only GUI screenshot harness: only with -Dbts.guishots=true (never in normal play).
+        if (GuiShotsClient.ENABLED) GuiShotsClient.register();
     }
 }
