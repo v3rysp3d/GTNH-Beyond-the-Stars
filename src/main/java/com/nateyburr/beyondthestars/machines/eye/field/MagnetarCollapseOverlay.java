@@ -68,7 +68,24 @@ public final class MagnetarCollapseOverlay implements Overlay {
 
     /** The shock that would land with {@code gEye} Bu/t delivered on the collapse second (readout, GUI). */
     public double predictedShock(double gEye) {
-        return shock - Math.min(shock, CANCEL_PER_BU * Math.max(0, gEye - GalaxyField.D7));
+        return predictedShock(shock, gEye);
+    }
+
+    /**
+     * The shock that would land with {@code gEye} Bu/t on the collapse second, for a collapse of {@code shock} (0 or
+     * less: {@link #DEFAULT_SHOCK}). Readout only; {@code collapse} keeps its own inline maths (golden cases).
+     */
+    public static double predictedShock(double shock, double gEye) {
+        final double s = shock > 0 ? shock : DEFAULT_SHOCK;
+        return s - Math.min(s, CANCEL_PER_BU * Math.max(0, gEye - GalaxyField.D7));
+    }
+
+    /**
+     * The Bu/t on the collapse second that cancels the whole of a {@code shock} collapse (0 or less:
+     * {@link #DEFAULT_SHOCK}): D7 + shock / 10, 13.5 at the adopted +120. The countdown line's number.
+     */
+    public static double fullCancelBu(double shock) {
+        return GalaxyField.D7 + (shock > 0 ? shock : DEFAULT_SHOCK) / CANCEL_PER_BU;
     }
 
     @Override

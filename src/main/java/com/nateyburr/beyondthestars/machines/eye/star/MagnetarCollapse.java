@@ -6,7 +6,6 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import com.nateyburr.beyondthestars.machines.eye.field.EventDef;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldState;
-import com.nateyburr.beyondthestars.machines.eye.field.GalaxyField;
 import com.nateyburr.beyondthestars.machines.eye.field.MagnetarCollapseOverlay;
 import com.nateyburr.beyondthestars.machines.eye.field.StellarField;
 import com.nateyburr.beyondthestars.machines.eye.field.StepInputs;
@@ -139,7 +138,7 @@ public final class MagnetarCollapse extends EyeTransition {
 
     /** The burst surplus over D₇ that cancels the whole shock, Bu/t. */
     public double fullCancelBu() {
-        return GalaxyField.D7 + mc.shock / MagnetarCollapseOverlay.CANCEL_PER_BU;
+        return MagnetarCollapseOverlay.fullCancelBu(mc.shock);
     }
 
     @Override
