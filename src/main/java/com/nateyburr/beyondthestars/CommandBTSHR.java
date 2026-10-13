@@ -20,12 +20,20 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
+import com.nateyburr.beyondthestars.machines.MTEProductionHallBase;
+import com.nateyburr.beyondthestars.machines.MTEProductionHallGui;
+import com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1;
+import com.nateyburr.beyondthestars.machines.MTEReactorSiloGui;
 import com.nateyburr.beyondthestars.machines.SLConsoleTest;
+import com.nateyburr.beyondthestars.machines.gui.BTSControllerGui;
+import com.nateyburr.beyondthestars.machines.homogeny.HomogenyGui;
 import com.nateyburr.beyondthestars.machines.homogeny.MTEHomogeny;
 import com.nateyburr.beyondthestars.machines.kerr.KerrTestBench;
 import com.nateyburr.beyondthestars.machines.reality.HRKit;
 import com.nateyburr.beyondthestars.machines.reality.MTERealityDiffraction;
 import com.nateyburr.beyondthestars.machines.reality.MTERealityRefab;
+import com.nateyburr.beyondthestars.machines.reality.RealityDiffractionGui;
+import com.nateyburr.beyondthestars.machines.reality.RealityRefabGui;
 
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
@@ -52,6 +60,8 @@ import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBas
  * projector's creative build of rings 1..n over the standing machine, hatches in the new sockets, controller kept);
  * Refab {@code relink}; Diffraction {@code pending}.</li>
  * <li>{@code /btshr recipes}: the three machines' recipe maps and our Condensate Assembler / Generator recipes.</li>
+ * <li>{@code /btshr gui <x> <y> <z> [info]}: the kit GUI's header and rows (or its Info page) as text, for the three
+ * machines, the Reactor Silo and the production halls.</li>
  * </ul>
  */
 public class CommandBTSHR extends CommandBase {
@@ -72,7 +82,7 @@ public class CommandBTSHR extends CommandBase {
         return "/btshr <homogeny|diffraction|refab> [t1..t3] [fill] [force]  |  console: /btshr <machine> [t1..t3] "
             + "<x> <y> <z> [facing] [fill] [force] [survival] [check]  |  /btshr keep <machine> <x> <y> <z> <facing> "
             + "[t1..t3]  |  /btshr bench <x> <y> <z> <status|check|fill|wrench|scan|on|off|milestone e d|escrow|install|itick n|"
-            + "project n|relink|pending>  |  /btshr recipes";
+            + "project n|relink|pending>  |  /btshr gui <x> <y> <z> [info]  |  /btshr recipes";
     }
 
     @Override
@@ -90,6 +100,7 @@ public class CommandBTSHR extends CommandBase {
             "refab",
             "keep",
             "bench",
+            "gui",
             "recipes");
         return getListOfStringsMatchingLastWord(args, "t1", "t2", "t3", "fill", "force", "survival", "check");
     }
@@ -103,6 +114,10 @@ public class CommandBTSHR extends CommandBase {
         if (args[0].equalsIgnoreCase("bench")) {
             for (String line : bench(sender, Arrays.copyOfRange(args, 1, args.length)))
                 SLConsoleTest.tell(sender, line);
+            return;
+        }
+        if (args[0].equalsIgnoreCase("gui")) {
+            for (String line : gui(sender, Arrays.copyOfRange(args, 1, args.length))) SLConsoleTest.tell(sender, line);
             return;
         }
         if (args[0].equalsIgnoreCase("recipes")) {
@@ -303,6 +318,47 @@ public class CommandBTSHR extends CommandBase {
         SLConsoleTest.tell(
             sender,
             m.title() + " test bench: forced " + KerrTestBench.keep(sender.getEntityWorld(), box) + " chunk(s).");
+    }
+
+    // =================================================================================== gui
+
+    /**
+     * GUI cleanup (controller-gui-spec.md 5.6-5.9): {@code /btshr gui <x> <y> <z> [info]} prints the header and the
+     * status (or Info) rows the kit GUI of the controller there would show, built on the server exactly as the GUI
+     * syncs them: the Homogeny, Reality Diffraction / Refab, the Reactor Silo (Nuclear Plant Foundation) and the four
+     * production halls.
+     */
+    private static List<String> gui(ICommandSender sender, String[] args) {
+        final List<String> out = new ArrayList<>();
+        final SLConsoleTest.Placement at = SLConsoleTest.parsePlacement(sender, args);
+        if (at == null) {
+            out.add("Usage: /btshr gui <x> <y> <z> [info]");
+            return out;
+        }
+        boolean info = false;
+        for (int i = 0; i < args.length; i++) if (!at.used[i] && args[i].equalsIgnoreCase("info")) info = true;
+        final TileEntity te = sender.getEntityWorld()
+            .getTileEntity(at.x, at.y, at.z);
+        final IMetaTileEntity mte = te instanceof IGregTechTileEntity ? ((IGregTechTileEntity) te).getMetaTileEntity()
+            : null;
+        final BTSControllerGui<?> g;
+        if (mte instanceof MTEHomogeny) g = new HomogenyGui((MTEHomogeny) mte);
+        else if (mte instanceof MTERealityDiffraction) g = new RealityDiffractionGui((MTERealityDiffraction) mte);
+        else if (mte instanceof MTERealityRefab) g = new RealityRefabGui((MTERealityRefab) mte);
+        else if (mte instanceof MTEReactorCoreMk1) g = new MTEReactorSiloGui((MTEReactorCoreMk1) mte);
+        else if (mte instanceof MTEProductionHallBase) g = new MTEProductionHallGui((MTEProductionHallBase<?>) mte);
+        else {
+            out.add(
+                "No Homogeny, Reality, Reactor Silo or production hall controller at " + at.x
+                    + ", "
+                    + at.y
+                    + ", "
+                    + at.z
+                    + ".");
+            return out;
+        }
+        out.addAll(g.benchDump(info));
+        return out;
     }
 
     // ================================================================================= bench

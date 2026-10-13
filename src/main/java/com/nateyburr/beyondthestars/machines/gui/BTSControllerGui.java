@@ -26,6 +26,7 @@ import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
 import gregtech.api.modularui2.GTGuiTextures;
 import gregtech.api.modularui2.GTWidgetThemes;
 import gregtech.api.recipe.check.CheckRecipeResult;
+import gregtech.api.recipe.check.CheckRecipeResultRegistry;
 import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
 
 /**
@@ -117,8 +118,10 @@ public abstract class BTSControllerGui<T extends MTEMultiBlockBase> extends MTEM
         if (baseMetaTileEntity != null && baseMetaTileEntity.isActive()) return BTSGuiKit.Badge.RUNNING;
         final CheckRecipeResult r = multiblock.getCheckRecipeResult();
         if (r == null || r.wasSuccessful()) return BTSGuiKit.Badge.IDLE;
-        final String id = r.getID();
-        if ("none".equals(id) || "no_recipe".equals(id)) return BTSGuiKit.Badge.IDLE;
+        // getID() is the result TYPE ("simple_result" for all of these); equals compares the key.
+        if (CheckRecipeResultRegistry.NONE.equals(r) || CheckRecipeResultRegistry.NO_RECIPE.equals(r)) {
+            return BTSGuiKit.Badge.IDLE;
+        }
         return BTSGuiKit.Badge.WAITING;
     }
 
@@ -148,6 +151,12 @@ public abstract class BTSControllerGui<T extends MTEMultiBlockBase> extends MTEM
             ("[" + BTSText.resolve(
                 BTSText.lang(b.langKey())) + "] " + BTSText.resolve(subject()) + " | " + BTSText.resolve(rightChip()))
                     .replaceAll("\u00a7.", ""));
+        final CheckRecipeResult result = multiblock.getCheckRecipeResult();
+        if (!infoPage && result != null) {
+            out.add(
+                "  (last recipe check: " + result.getDisplayString()
+                    .replaceAll("§.", "") + ")");
+        }
         final BTSRows.Builder rows = new BTSRows.Builder();
         if (infoPage) addInfoRows(rows);
         else addStatusRows(rows);
