@@ -1,100 +1,123 @@
 package com.nateyburr.beyondthestars.machines.reality;
 
-import net.minecraft.util.EnumChatFormatting;
-
-import com.cleanroommc.modularui.api.drawable.IKey;
-import com.cleanroommc.modularui.api.widget.IWidget;
 import com.cleanroommc.modularui.screen.ModularPanel;
-import com.cleanroommc.modularui.utils.Alignment;
 import com.cleanroommc.modularui.value.sync.IntSyncValue;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
-import com.cleanroommc.modularui.value.sync.StringSyncValue;
-import com.cleanroommc.modularui.widgets.ListWidget;
 import com.cleanroommc.modularui.widgets.layout.Flow;
-
-import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
+import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
+import com.nateyburr.beyondthestars.machines.gui.BTSControllerGui;
+import com.nateyburr.beyondthestars.machines.gui.BTSGuiKit;
+import com.nateyburr.beyondthestars.machines.gui.BTSGuiKit.Badge;
+import com.nateyburr.beyondthestars.machines.gui.BTSRows;
+import com.nateyburr.beyondthestars.machines.gui.BTSText;
 
 /**
- * HOMOGENY + REALITY MACHINES (H/R unit 2): Reality Diffraction's screen. GT's standard MUI2 layout plus:
- * <ul>
- * <li><b>Terminal:</b> the BEC network (and its storages), what waits to enter it, the missing anchors by name, the
- * last run.</li>
- * <li><b>Gap row:</b> six region lamps, I..VI: green = anchored for the next run, red = a hatch but not enough anchor,
- * grey = no hatch in that socket. Hover a lamp for the region and its anchor.</li>
- * </ul>
+ * Reality Diffraction's screen on the controller GUI kit (controller-gui-spec.md §5.7). A recipe machine: GT's rows
+ * stay. The header says RUNNING, WAITING (no BEC network or storage, no region anchored, or the last regions still
+ * waiting to enter the network) or IDLE, with what it waits on. Under GT's rows: the BEC network as a check, one red
+ * check per region that is not anchored (have / need, or "no hatch"), a green count of the anchored ones, the litres
+ * waiting to enter the network, the last run. The gap row keeps the six region lamps. Every row is decided on the
+ * server ({@link BTSRows}).
  */
-public class RealityDiffractionGui extends MTEMultiBlockBaseGui<MTERealityDiffraction> {
+public class RealityDiffractionGui extends BTSControllerGui<MTERealityDiffraction> {
+
+    private static final String R = "beyondthestars.gui.reality.";
 
     public RealityDiffractionGui(MTERealityDiffraction multiblock) {
-        super(multiblock);
+        super(multiblock, true, null);
     }
+
+    // =============================================================================== the header
+
+    /** What the machine waits on (a lang key under {@link #R}), or null when it waits on nothing of its own. */
+    private String waitKey() {
+        if (!multiblock.hasNetwork() || !multiblock.hasStorage()) return "wait.network";
+        if (multiblock.pendingLitres() > 0) return "wait.full";
+        if ((multiblock.anchorMask() & 0x3F) == 0) return "wait.anchors";
+        return null;
+    }
+
+    /** NOT FORMED, RUNNING, WAITING (no network, no anchor, or full), IDLE. */
+    @Override
+    protected Badge badgeCode() {
+        final Badge b = recipeBadge();
+        if (b == Badge.NOT_FORMED || b == Badge.RUNNING) return b;
+        return waitKey() != null ? Badge.WAITING : b;
+    }
+
+    @Override
+    protected String subject() {
+        if (!multiblock.mMachine) return "";
+        if (multiblock.getBaseMetaTileEntity() != null && multiblock.getBaseMetaTileEntity()
+            .isActive()) return BTSText.lang(R + "diffracting");
+        final String w = waitKey();
+        return w == null ? "" : BTSText.lang(R + w);
+    }
+
+    @Override
+    protected String rightChip() {
+        return "";
+    }
+
+    // ============================================================================= status rows
+
+    @Override
+    protected int statusPoolSize() {
+        return 12;
+    }
+
+    @Override
+    protected void addStatusRows(BTSRows.Builder rows) {
+        final BTSChecklist net = new BTSChecklist();
+        multiblock.addNetworkCheck(net, true);
+        rows.checks(net);
+        rows.checks(multiblock.anchorChecklist());
+        final long pending = multiblock.pendingLitres();
+        if (pending > 0) {
+            rows.check(
+                BTSChecklist.State.WARN,
+                BTSText.lang(R + "chk.waiting"),
+                BTSText.lit(String.format(java.util.Locale.ROOT, "%,d L", pending)),
+                -1,
+                BTSText.lang("GT5U.gui.text.recipe_result.beyondthestars.reality.full"));
+            rows.note(BTSRows.ICON_NONE, BTSGuiKit.DIM, BTSText.lang(R + "startfield"));
+        }
+        final String note = multiblock.lastNote();
+        if (!note.isEmpty()) {
+            rows.note(BTSRows.ICON_NONE, BTSGuiKit.DIM, BTSText.lang("beyondthestars.gui.kit.last", note));
+        }
+    }
+
+    // ================================================================================= Info page
+
+    @Override
+    protected void addInfoRows(BTSRows.Builder rows) {
+        rows.para(BTSText.lang(R + "info.diffraction"), BTSGuiKit.VALUE);
+        rows.para(BTSText.lang(R + "info.anchors"), BTSGuiKit.VALUE);
+        rows.para(BTSText.lang(R + "info.network"), BTSGuiKit.VALUE);
+        rows.para(BTSText.lang(R + "info.diffraction.auto"), BTSGuiKit.VALUE);
+    }
+
+    // ================================================================================== gap row
 
     @Override
     protected void registerSyncValues(PanelSyncManager syncManager) {
         super.registerSyncValues(syncManager);
-        syncManager.syncValue("diffNet", new StringSyncValue(multiblock::networkLine));
-        syncManager.syncValue("diffPending", new StringSyncValue(multiblock::pendingLine));
-        syncManager.syncValue("diffAnchors", new StringSyncValue(multiblock::anchorLine));
-        syncManager.syncValue("diffNote", new StringSyncValue(multiblock::lastNote));
         syncManager.syncValue("diffMask", new IntSyncValue(multiblock::anchorMask));
     }
 
-    @Override
-    protected ListWidget<IWidget, ?> createTerminalTextWidget(PanelSyncManager syncManager, ModularPanel parent) {
-        final StringSyncValue net = syncManager.findSyncHandler("diffNet", StringSyncValue.class);
-        final StringSyncValue pending = syncManager.findSyncHandler("diffPending", StringSyncValue.class);
-        final StringSyncValue anchors = syncManager.findSyncHandler("diffAnchors", StringSyncValue.class);
-        final StringSyncValue note = syncManager.findSyncHandler("diffNote", StringSyncValue.class);
-        return super.createTerminalTextWidget(syncManager, parent)
-            .child(HRGui.row(() -> EnumChatFormatting.AQUA + net.getStringValue(), () -> true))
-            .child(
-                HRGui.row(
-                    () -> EnumChatFormatting.GOLD + pending.getStringValue(),
-                    () -> !pending.getStringValue()
-                        .isEmpty()))
-            .child(
-                HRGui.row(
-                    () -> EnumChatFormatting.RED + anchors.getStringValue(),
-                    () -> !anchors.getStringValue()
-                        .isEmpty()))
-            .child(
-                HRGui.row(
-                    () -> EnumChatFormatting.DARK_GRAY + "Last: " + note.getStringValue(),
-                    () -> !note.getStringValue()
-                        .isEmpty()));
-    }
-
+    /**
+     * The six region lamps, I..VI: green = anchored for the next run, red = a hatch but not enough anchor, grey = no
+     * hatch in that socket. Hover a lamp for its region.
+     */
     @Override
     protected Flow createLeftPanelGapRow(ModularPanel parent, PanelSyncManager syncManager) {
         final IntSyncValue mask = syncManager.findSyncHandler("diffMask", IntSyncValue.class);
-        final Flow row = super.createLeftPanelGapRow(parent, syncManager).childPadding(2)
-            .crossAxisAlignment(Alignment.CrossAxis.CENTER);
-        row.child(
-            IKey.str("Regions")
-                .asWidget()
-                .marginRight(1)
-                .heightRel(1f));
-        for (int k = 0; k < 6; k++) {
-            final int region = k;
-            row.child(
-                IKey.str(MTERealityDiffraction.REGION_NAMES[k].split(" ")[0])
-                    .asWidget()
-                    .size(12, 12)
-                    .textAlign(Alignment.Center)
-                    .scale(0.7f)
-                    .background(HRGui.lamp(() -> {
-                        final int m = mask.getIntValue();
-                        if ((m & (1 << region)) != 0) return HRGui.LAMP_ON;
-                        return (m & (1 << (8 + region))) != 0 ? HRGui.LAMP_OFF : HRGui.LAMP_IDLE;
-                    }))
-                    .tooltip(
-                        t -> t.addLine("Region " + MTERealityDiffraction.REGION_NAMES[region])
-                            .addLine(HRGui.grey("Green: anchored for the next run."))
-                            .addLine(HRGui.grey("Red: its socket's hatch lacks the anchor."))
-                            .addLine(HRGui.grey("Grey: no hatch in its socket.")))
-                    .tooltipShowUpTimer(HRGui.TOOLTIP));
-        }
-        return row;
+        return HRGui.regionLamps(super.createLeftPanelGapRow(parent, syncManager), region -> {
+            final int m = mask.getIntValue();
+            if ((m & (1 << region)) != 0) return HRGui.LAMP_ON;
+            return (m & (1 << (8 + region))) != 0 ? HRGui.LAMP_OFF : HRGui.LAMP_IDLE;
+        }, "lamp.diffraction");
     }
 
     @Override

@@ -21,6 +21,8 @@ import com.gtnewhorizon.structurelib.alignment.enumerable.Flip;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
+import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
+import com.nateyburr.beyondthestars.machines.gui.BTSText;
 
 import appeng.api.storage.data.IAEFluidStack;
 import appeng.util.item.AEFluidStack;
@@ -359,6 +361,43 @@ public abstract class MTERealityBase<T extends MTERealityBase<T>> extends MTEExt
 
     public boolean isFormedForGui() {
         return mMachine;
+    }
+
+    /** GUI cleanup (controller-gui-spec.md §4.4): the kit's badge says it; GT's "Running perfectly." is not added. */
+    @Override
+    public boolean hasRunningText() {
+        return false;
+    }
+
+    /** True while a BEC network reaches this machine. Server state. */
+    public boolean hasNetwork() {
+        return network != null;
+    }
+
+    /**
+     * GUI cleanup (spec §5.7): the "BEC network {id}" check row, from the same state {@link #networkLine()} reads. OK
+     * when the network is there (and, if {@code needsStorage}, has a condensate storage). Reads only.
+     */
+    public void addNetworkCheck(BTSChecklist c, boolean needsStorage) {
+        final String g = "beyondthestars.gui.reality.";
+        if (network == null) {
+            c.add(
+                false,
+                BTSText.lang(g + "chk.network", "-"),
+                BTSText.lang(g + "chk.network.none"),
+                -1,
+                BTSText.lang("GT5U.gui.text.recipe_result.beyondthestars.reality.nonetwork"));
+            return;
+        }
+        final int storages = network.getComponents(BECInventory.class)
+            .size();
+        final boolean ok = !needsStorage || storages > 0;
+        c.add(
+            ok,
+            BTSText.lang(g + "chk.network", network.id),
+            BTSText.lang(g + (storages == 1 ? "chk.storage" : "chk.storages"), storages),
+            -1,
+            ok ? BTSText.lang(g + "chk.network.tip") : BTSText.lang(g + "chk.network.nostorage"));
     }
 
     public String lastNote() {

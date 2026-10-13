@@ -2,91 +2,77 @@ package com.nateyburr.beyondthestars.machines.reality;
 
 import static gregtech.api.metatileentity.BaseTileEntity.TOOLTIP_DELAY;
 
+import java.util.function.IntUnaryOperator;
 import java.util.function.Supplier;
 
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.StatCollector;
 
 import com.cleanroommc.modularui.api.drawable.IDrawable;
 import com.cleanroommc.modularui.api.drawable.IKey;
-import com.cleanroommc.modularui.api.widget.IWidget;
 import com.cleanroommc.modularui.drawable.GuiDraw;
 import com.cleanroommc.modularui.utils.Alignment;
-import com.cleanroommc.modularui.value.sync.DoubleSyncValue;
-import com.cleanroommc.modularui.value.sync.StringSyncValue;
+import com.cleanroommc.modularui.widgets.layout.Flow;
+import com.nateyburr.beyondthestars.machines.gui.BTSGuiKit;
 
 /**
- * HOMOGENY + REALITY MACHINES (H/R unit 2): the small MUI2 parts the three controllers' GUIs share (the Eye's look:
- * one coloured line per fact, a slim gradient progress bar, lamps drawn as filled squares).
+ * HOMOGENY + REALITY MACHINES: the gap-row region lamps the two Reality machines share. Their terminals are on the
+ * controller GUI kit (controller-gui-spec.md §5.7); the lamps stay in the gap row as before, 12 px squares with the
+ * region's numeral at 0.7 (it has to fit inside the lamp), the "Regions" caption and the tooltips from lang keys.
  */
 public final class HRGui {
 
     private HRGui() {}
 
-    private static final int BAR_TRACK = 0xFF1E2026;
-    private static final int BAR_EDGE = 0xFF4A4D55;
-    private static final int PROGRESS_FROM = 0xFF2F6B8F;
-    private static final int PROGRESS_TO = 0xFF7CD8FF;
-    public static final int LAMP_ON = 0xFF2EBF4F;
-    public static final int LAMP_OFF = 0xFFB0302A;
+    public static final int LAMP_ON = BTSGuiKit.LAMP_ON;
+    public static final int LAMP_OFF = BTSGuiKit.LAMP_FAULT;
     public static final int LAMP_IDLE = 0xFF4A4D55;
 
-    /** One terminal line, hidden while its text is empty. */
-    public static IWidget row(StringSyncValue v) {
-        return IKey.dynamic(v::getStringValue)
-            .asWidget()
-            .fullWidth()
-            .marginBottom(2)
-            .setEnabledIf(
-                w -> !v.getStringValue()
-                    .isEmpty());
-    }
-
-    /** One terminal line with a colour, hidden while {@code shown} is false. */
-    public static IWidget row(Supplier<String> text, Supplier<Boolean> shown) {
-        return IKey.dynamic(text::get)
-            .asWidget()
-            .fullWidth()
-            .marginBottom(2)
-            .setEnabledIf(w -> shown.get());
-    }
-
-    /** A percentage bar (0..1), hidden while the value is negative. */
-    public static IWidget progress(DoubleSyncValue fraction) {
-        return IKey.dynamic(() -> String.format("%.1f%%", Math.max(0, fraction.getDoubleValue()) * 100))
-            .asWidget()
-            .textAlign(Alignment.Center)
-            .scale(0.8f)
-            .widthRel(0.94f)
-            .height(9)
-            .background(bar(fraction))
-            .marginBottom(3)
-            .setEnabledIf(w -> fraction.getDoubleValue() >= 0);
-    }
-
-    private static IDrawable bar(DoubleSyncValue progress) {
-        return (context, x, y, width, height, theme) -> {
-            final double f = Math.max(0, Math.min(1, progress.getDoubleValue()));
-            GuiDraw.drawRect(x, y, width, height, BAR_EDGE);
-            GuiDraw.drawRect(x + 1, y + 1, width - 2, height - 2, BAR_TRACK);
-            final float fill = (float) ((width - 2) * f);
-            if (fill > 0) {
-                GuiDraw.drawHorizontalGradientRect(x + 1, y + 1, fill, height - 2, PROGRESS_FROM, PROGRESS_TO);
-            }
-        };
-    }
+    private static final String[] NUMERALS = { "I", "II", "III", "IV", "V", "VI" };
 
     /** A square lamp in {@code colour.get()} with a dark rim. */
     public static IDrawable lamp(Supplier<Integer> colour) {
         return (context, x, y, width, height, theme) -> {
-            GuiDraw.drawRect(x, y, width, height, BAR_EDGE);
+            GuiDraw.drawRect(x, y, width, height, BTSGuiKit.EDGE);
             GuiDraw.drawRect(x + 1, y + 1, width - 2, height - 2, colour.get());
         };
     }
 
-    /** The grey hint line style. */
-    public static String grey(String s) {
-        return EnumChatFormatting.GRAY + s;
+    /**
+     * Appends "Regions" and the six lamps I..VI to a gap-row flow. {@code colour} gives region k's lamp colour;
+     * {@code legendKey} names the lang key (under {@code beyondthestars.gui.reality.}) of the lamp tooltip's legend
+     * lines ({@code .1}, {@code .2}, {@code .3}; a missing line is skipped).
+     */
+    public static Flow regionLamps(Flow row, IntUnaryOperator colour, String legendKey) {
+        final String r = "beyondthestars.gui.reality.";
+        row.childPadding(2)
+            .crossAxisAlignment(Alignment.CrossAxis.CENTER)
+            .child(
+                IKey.lang(r + "regions")
+                    .color(BTSGuiKit.PANEL_TEXT)
+                    .asWidget()
+                    .marginRight(1)
+                    .heightRel(1f));
+        for (int k = 0; k < NUMERALS.length; k++) {
+            final int region = k;
+            row.child(
+                IKey.str(NUMERALS[k])
+                    .asWidget()
+                    .size(12, 12)
+                    .textAlign(Alignment.Center)
+                    .scale(0.7f)
+                    .background(lamp(() -> colour.applyAsInt(region)))
+                    .tooltip(t -> {
+                        t.addLine(IKey.lang(r + "lamp.title", StatCollector.translateToLocal(r + "region." + region)));
+                        for (int i = 1; i <= 3; i++) {
+                            final String key = r + legendKey + "." + i;
+                            if (StatCollector.canTranslate(key)) {
+                                t.addLine(EnumChatFormatting.GRAY + StatCollector.translateToLocal(key));
+                            }
+                        }
+                    })
+                    .tooltipShowUpTimer(TOOLTIP_DELAY));
+        }
+        return row;
     }
-
-    public static final int TOOLTIP = TOOLTIP_DELAY;
 }

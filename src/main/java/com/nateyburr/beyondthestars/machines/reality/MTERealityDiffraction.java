@@ -30,6 +30,9 @@ import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing3;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.fluids.SLRealityFluids;
+import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
+import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
+import com.nateyburr.beyondthestars.machines.gui.BTSText;
 
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.Textures;
@@ -385,6 +388,55 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
         final long p = pendingTotal();
         if (p <= 0) return "";
         return "Waiting to enter the BEC network: " + fmt(p) + " L (start a Containment Field)";
+    }
+
+    /** Litres of the last runs' regions still waiting to enter the BEC network. Server state. */
+    public long pendingLitres() {
+        return pendingTotal();
+    }
+
+    /**
+     * GUI cleanup (controller-gui-spec.md §5.7): the anchors as check rows, from {@link #anchorLine()}'s loop. One
+     * red row per region that is not anchored for the next run ({@code have / need L}, or "no hatch" for an empty
+     * socket), then one green row counting the anchored regions. Reads only.
+     */
+    public BTSChecklist anchorChecklist() {
+        final BTSChecklist c = new BTSChecklist();
+        final String g = "beyondthestars.gui.reality.";
+        final GTRecipe r = recipe();
+        if (r == null) {
+            c.add(false, BTSText.lang(g + "chk.norecipe"), "", -1, BTSText.lit(anchorLine()));
+            return c;
+        }
+        int anchored = 0;
+        for (int k = 0; k < 6; k++) {
+            if (anchored(k)) {
+                anchored++;
+                continue;
+            }
+            final FluidStack a = r.mFluidInputs[k + 1];
+            final boolean hatch = anchorHatchCount(k) > 0;
+            final long have = hatch && a != null ? available(anchorHatches[k], a.getFluid()) : 0;
+            final long need = a == null ? 0 : a.amount;
+            c.add(
+                false,
+                BTSText.lang(g + "region." + k),
+                hatch ? BTSText.lit(BTSFormat.haveNeed(have, need) + " L") : BTSText.lang(g + "chk.nohatch"),
+                hatch ? BTSChecklist.frac(have, need) : -1,
+                BTSText.lang(
+                    g + "chk.anchor.tip",
+                    BTSText.key(g + "region." + k),
+                    fmt(need),
+                    a == null ? "?" : a.getLocalizedName()));
+        }
+        // The count of anchored regions (the missing ones each have a red row above); none when nothing is anchored.
+        if (anchored > 0) c.add(
+            true,
+            BTSText.lang(g + (anchored == 6 ? "chk.allregions" : "chk.others")),
+            BTSText.lang("beyondthestars.gui.kit.of", anchored, 6),
+            -1,
+            BTSText.lang(g + "chk.others.tip"));
+        return c;
     }
 
     /** One line naming every missing anchor, or "". Server state. */
