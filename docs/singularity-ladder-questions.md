@@ -119,6 +119,8 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
   kit; the disabled power switch no longer draws GT's missing texture. [B-97]
 - Controller GUI cleanup unit 3 (branch `gui-clean`): the Homogeny, Reality Diffraction / Refab, the Reactor Silo and
   the production halls on the kit; recipe results are compared by key (fixes the Kerr module and Eye planet rows). [B-98]
+- Controller GUI cleanup unit 4 (branch `gui-clean`): the hatch layout, the Directive Hatch (panel 214, nothing over
+  the inventory) and the Stellar Field Sensor Hatch GUIs; spec §6 lang keys complete, GUI lang check 0 missing. [B-99]
 
 **To see in a client** (the headless dev server cannot): the hologram hints, a survival build from a real AE system,
 the NEI multiblock tab and its frame rate (a T6 Eye is 51,935 blocks), every GUI (Eye, KEE, modules, Directive Hatch,
@@ -3973,6 +3975,85 @@ rows over the instrument panel.
 below the new vitals), the Build Tier / Rods / RPM fields and the Upgrade Tree button all still hold.
 
 **Suggestion.** Accept.
+
+### B-99 Controller GUI cleanup, unit 4: the hatch layout, the Directive Hatch and the Stellar Field Sensor Hatch; the lang completeness pass [user approval 2026-10-13, built on branch gui-clean]
+
+**Context.** Spec §5.10 and §6 of `controller-gui-spec.md`, on the kit from B-96. The P4 hatches (Burst Control,
+GRB Receptor) are not on this branch; `BTSHatchGui` is general enough for them (any box height, any panel height,
+cycle / toggle / field rows, line / lamp / gauge / bar readout parts).
+
+**What was built.**
+
+- `machines/gui/BTSHatchGui`: the hatch family layout. A 166-wide `BACKGROUND_TERMINAL` readout box at (5, 5); the
+  controls 5 px under it, 16x16 buttons at an 18 px pitch, labels in panel text (scroll on hover); no G logo and no
+  corner flows. Readout parts drawn at scale 1.0 with the kit's painters: a text line (left / right), a bit lamp, a
+  coloured lamp line, the ±120 zone gauge with a threshold tick, a plain bar with a tick.
+- `DirectiveHatchGui`: panel **214** (the controls end at y 126, the inventory starts at 130; today's rows ran into
+  it). Box 46: the set and the machine it reports for; the four bits as lamps "1 Helium", "2 Hydrogen", "4 ...",
+  "8 ..." (lit green and white while on, grey while off); "Code {c}" with "redstone {o}" (green, dark grey at 0). A
+  control set shows "Input {n}" with the setpoint it drives, then "Redstone 1-15 sets it" / "0 leaves the GUI's
+  value". With no machine pushing, the host reads "no machine" in gold and the code line "No machine reporting" (its
+  tooltip says where the hatch goes). Controls: Set (tooltip "Click: next set for this machine; right-click:
+  previous"), Output (tooltip lists the six modes and that a comparator reads the code), Invert ("15 - output"),
+  Window field 26 wide with "Window w: gauge band, ±w" / "bolt reserve, minutes".
+- `StellarFieldSensorGui`: panel 214. Box 40: the channel and "out {n}"; the reading as the ±120 zone gauge (P, Θ,
+  Ω, Π, T5 setpoint error; value in the zone colour), a bar (shield, Integrity, Stability; the health colour rule) or
+  a lamp (the zone in its colour, a warning red, upkeep green / red), the threshold as a yellow tick in digital mode;
+  then "ON above +10.0" / "ON below ..." or "Analog 0-15". "No reading (star dark or Eye silent)" when dark.
+  Controls: Channel (cycle), Above / Below, Digital / Analog, Threshold field 40 wide, each with a tooltip.
+- `MTEHatchDirective.guiLine()` (only the GUI used it) is replaced by `getControlLine()`; new GUI sync keys only
+  (`btsDirOut`, `btsDirHostId`, `btsDirControlIn`, `btsDirControlLine`, `btsSensorThreshold`). No NBT change, no
+  behaviour change.
+- 80 new lang keys (`beyondthestars.gui.directive.*`, `beyondthestars.gui.sensor.*`); the sensor's zone names reuse
+  `beyondthestars.gui.zone.0..4`.
+- Bench: `/btseye star x y z hatchgui` and `/btskerr gui x y z hatches` print each hatch GUI's readout and control
+  labels from the same text functions the GUIs draw with.
+
+**Judgement calls.**
+
+1. **The readout's first line names the set without its host prefix** ("Trims", "Setpoint (control)") because the
+   machine is on the right of the same line; the mockup's "Eye: Trims ... Eye of Harmony" does not fit 156 px for
+   "Eye: Transition" or any Kerr set. The Set row below keeps today's full names ("Set: Eye: Trims", "Kerr: control
+   the mass setpoint"). The Kerr host reads "Kerr Engine" for the same reason.
+2. **When the two halves of a line do not fit, the less important half is cut**: the host on the Directive line, the
+   channel name on the sensor line ("out {n}" always stays whole; the long "Zone (0 Resonant .. 4 Breach)" gets the
+   full name in its tooltip).
+3. **Invert, Above / Below and Digital / Analog keep GT's redstone on / off overlays** (today's buttons, and GT's own
+   `createInvertButtonRow`), not the mockup's work-area icon: they show the toggle's state.
+4. **Lamp channels**: the zone lamp takes the zone's text colour (Resonant green .. Breach red); a warning lamp is red
+   while warned and grey otherwise; upkeep is green when met and red when short. The spec only says "a lamp".
+5. **The threshold tick is hidden in analog mode** (the threshold is ignored there). The 0-100 bar puts it at
+   threshold / 100.
+6. **The bit names and the control line stay runtime text from the host** (the Eye's trim names follow the star's
+   tier, and OpenComputers and the scanner share them, spec Q6); every other word is a lang key.
+
+**Lang completeness pass.** All 139 keys listed in spec §6 exist. A GUI key check (local work folder
+`hatchgui/guilint.py`) expands every `beyondthestars.gui.*` literal, the one-letter prefix constants (`K + "x"`,
+ternaries, `String[]` loops) and the enum-built families (badges, Directive sets / modes / hosts, sensor channels,
+zones, Eye gauges and Info keys): 390 literal and 104 dynamic lookups, **0 missing**, 0 duplicates, 0 empty values.
+The repo's lang lint (as in B-88 / B-90): 235 lookups, the one known false positive
+(`item.beyondthestars.fieldRetrofitKit.name`, named per meta), 0 duplicates. A scan of the branch's GUI diff for
+hard-coded words found only today's runtime strings (the Silo's instrument-panel headers, the Eye's star names).
+
+**Verified headless** (dev server on port 25611, world `guitest`, 278 registered / 0 skipped, no stack frame from
+our code): the Kerr's two Directive Hatches before the first push ("no machine", "No machine reporting", redstone 0),
+reporting (Hole: bits 1 and 4 on, "Code 5", redstone 5; Status: "Code 2"), and a control set with a redstone block
+("Setpoint (control) ... Kerr Engine", "Input 15 | mass setpoint 64 SM"). An Eye T1 built at -1500 100 -1500: three
+Directive Hatches with T1's trim names ("1 Helium", "2 Hydrogen", "4 (unused on T1)"), Trims "Code 1 / redstone 1"
+on a lit Sol; five sensors dark ("No reading") then P (gauge +5.0 and +11.2 against the +10.0 tick, above and below),
+Stability (bar 87.1, out 15), Zone analog (Stable lamp, out 4, "Analog 0-15"), Upkeep OK (met, out 15), Event
+warning (none), T5 setpoint error on T1 (gauge 0) and Integrity. Full `gradlew build` passes.
+
+**Not seen.** Both GUIs in a client (the headless server cannot draw them).
+
+**To see in a client.** Both panels against `hatch.png` at GUI scale 2 and 3: nothing over the inventory, the lamps
+and the gauge tick, the Set cycle's right-click going back, the tooltips.
+
+**Questbook.** No change needed for the hatches. The "field line" -> "Lock bar" sentence (B-96) is still for the
+questbook owner on master.
+
+**Suggestion.** Accept. The P4 Burst Control Hatch (196 high, a 0-15 bar) and GRB Receptor (166, a lamp) fit this
+layout as they are specified.
 
 ---
 

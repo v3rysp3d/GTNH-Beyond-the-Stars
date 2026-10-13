@@ -206,8 +206,10 @@ end
 
 - The Directive Hatch tooltip carries every bit table above, the output modes, the window and the control sets.
 - The Eye and the KEE tooltips name the hatch, their sets, the plinth-bus pickups and the OpenComputers component.
-- Their scanners list each Directive Hatch with its set, code and bits by name; the hatch GUI shows the four bits by
-  name with the ones on now.
+- Their scanners list each Directive Hatch with its set, code and bits by name; the hatch GUI (B-99) shows, in a
+  readout box, the set and its machine, the four bits as lamps by name (lit while on), the code and the redstone it
+  drives (on a control set: the input and the setpoint it drives), with the Set / Output / Invert / Window controls
+  under it, each with a tooltip.
 - The questbook section below.
 
 ### 5.1 For the questbook branch (copy into `designs/questbook.js` / BetterQuesting)
