@@ -2032,6 +2032,7 @@ accepted, and §10.2's questions take their recommendations. Branch `p4-quasar`;
 | Conduit (Mouth 28121, Mirror 28122, Junction 28123), Crown 28124, GRB Receptor Port 28125, solver, host API, OC, kit, bench | built | 0f99c6b, 92c10ca, 6d6e8db |
 | Eye T7 Triangulum + T8 Milky Way: rail / halo bands, receptor groups, the two galaxy transitions, links, planets mode, companions, Directive sets, sensor channels, GUI, render, NEI, OC, kit, bench | built | 57ff9a9, 4d7f61c, 6ff4868, 60a569f |
 | Other hosts (KEE, Homogeny T2/T3, Reality Diffraction), OpenComputers (rate limit, trim, the P4 components), automation bench and the unattended T6 → T7 → T8 proof on a real quasar and Eye, automation doc §7, questbook contract | built | ef77c88, 93e992f, cabab76, 0a02809, d6652e0, 9c58843, bbcac79, 4bf6030, 8bdb47d, f9e5c2f, 9d0360f, aadf752 |
+| Full RC-2 dev-server test of the branch (load, lang lint, golden, gates, every structure both ways in several facings, quasar, conduit, Eye T6 → T8, hosts, Superdense refinery, OC, rigs, restart, a pre-P4 world, regression); fixes P4-83..P4-87 | tested, 4 fixes | eb8e7fa, d2250a8, d1132d0, 05bc373, a6dedd2, ad235eb |
 
 ### MTE ledger (P4 block 28120-28129)
 
@@ -2661,3 +2662,130 @@ at 12000 100 12000; boot 315 recipes, 0 skipped).
 
 **Commits:** ef77c88, 93e992f, cabab76, 0a02809, d6652e0 (the first attempt, cut off at 11:39), then 9c58843,
 bbcac79, 4bf6030, 8bdb47d, f9e5c2f, 9d0360f, aadf752.
+
+### Full RC-2 dev-server test (questions P4-83..P4-87)
+
+**How.** `runServer` on port 25581, five boots (world `p4test`, plus one boot on a world made by the pre-P4 base
+c8f8ca7). The console was fed through `run/server/cmds.txt`. No client was run.
+
+**Load (every boot).**
+
+- "Recipe registration complete: 315 registered, 0 skipped".
+- No `com.nateyburr` stack trace in any log.
+- The only placeholder is `btswhiteholematter`.
+- No H/R gate line names Eternity any more; the eight left all wait for White Hole Matter (Eye T9, P5).
+- SL-B01 / B02 (×32), SL-Q26 and BHC → Kerr all logged as before.
+- The 329 GregTech `NullPointerException` lines and the coremod's `ArrayIndexOutOfBoundsException` are the dev
+  environment's: the pre-P4 jar logs the same counts.
+
+**Static checks.**
+
+- `quasar-golden --check --java`: 38 / 38.
+- `fieldsim-golden --check --java`: 78 / 78.
+- `export-structures --check`: matches voxel.js fa6fec2a751c.
+- `gen-sl-textures --check`: 123 / 123.
+- `DirectiveRigSim`: ALL PASS.
+- `QuasarRigSim`: PASS. T6 → T7 and T7 → T8 were each reached 5 of 5 times, with 0 Eye failures and 0 blow-outs.
+- Lang lint: every recipe-result id has its RC-2 key, and every item, block, recipe map and GT5U key resolves (P4-86).
+- `/btseye gates`: compression generators T1-T9 CLEAN. P4 audit: 0 of 27 parts break the rule. BHC consumers left: 0.
+
+**Structures** (hologram creative and survival; every one FORMED, then a creative re-projection over it that broke
+nothing, then a damage-and-repair check that restored the cells):
+
+| Machine | Creative | Survival (blocks placed) |
+|---|---|---|
+| Quasar (coils T1-T4) | N, E, S, W | N, E, S (51,983 each) |
+| Wormhole Mouth | E, W, down | N, S, up (1,403) |
+| Conduit Mirror | E, W, down | N, S, up (1,702) |
+| Conduit Junction | E, W, up | N, S (17,232) |
+| Crown Mk I / II / III | E, W each | N, S each (1,834 / 2,810 / 4,421) |
+| Eye T7 | W | E (67,366) |
+| Eye T8 | N, N with gen 7 | S (71,075) |
+| Eye T6 | E (legacy: no D-49/P4 hatches) | S |
+
+**Quasar.**
+
+- Open refused without a seed. A seed in the slot opened a 64 SM hole, with first light about 20 s later.
+- 1 h fast-forward: 34 eruptions.
+- Purge was refused under Φ 20 and requested at Φ 48. A redstone block on the Burst Control Hatch purged on the rising
+  edge.
+- f 1.5 gave an over-Eddington blow-out; back at f 0.85 it re-formed.
+- Collapse → DORMANT. Re-opening without a Black Hole Seed was refused.
+- Restart: mass, spin, feed, counters and the dormant state all kept.
+
+**Conduit and crowns** (`/btsconduit rig`):
+
+- The top jet went to a Crown Mk I, which put 1.18e13 EU/t onto wireless.
+- The bottom jet went to Mouth A → Mouth B → Mirror → Junction split (0.53 / 0.53 / 0.12) → Mirror → the remote crown's
+  receptor, which was linked.
+- All elements opened after 10 s of SpaceTime upkeep.
+- After a restart the rig re-formed and carried on.
+
+**Eye T6 → T7 → T8 unattended** (`/btsquasar autorig … eye …`, a fresh 64 SM quasar at f 1.0, an Eye built by the
+survival path):
+
+- The Stability Link was held, and T7 came at t+2,727 s.
+- The test fire waited for the quasar to grow. The Heavy Link was held at about 136 SM, and the Galactic Merger was
+  COMPLETE in 1,920 s: T8.
+- 0 Eye failures and 0 blow-outs.
+- Companions: Sol and the magnetar re-formed the galaxy, with 0 failures.
+- Planets mode: 6 slots; Mars and the Moon ran ×128, and the rest waited for H/He and EU, as built.
+- The whole state (mode, slots, progress, milestones) survived a restart.
+
+**Hosts.**
+
+- KEE: σ 2.0 gave bleed × 0.25, cap 768 and the setpoint 700 kept. With no link it was held at 512.
+- Homogeny T3: σ 1.5 gave speed × 1.5 and Entanglement Medium open (after P4-83).
+- Reality Diffraction: σ 0.5 gave × 0.5, and σ 0.25 paused it.
+- SL-Q23 Superdense refinery in the Compressor Module (M 700, σ 2): it ran, paused at 1,703 / 12,000 when the link was
+  cut, and resumed when it came back.
+
+**Directive codes seen per state:**
+
+- Disc: 1, 8, 9, 10, 13, covering E low, E high, purge now, the alarm with no hole, a vent or a blow-out, and their
+  combinations.
+- Eye T8 sets: Field, Events, Galaxy Transition, Trims, Status, Transition and Slots. Slots read 1 (a slot idle) in
+  planets mode. Galaxy Transition's Ready / Running edges were taken by the rig.
+- Kerr: Hole 0 / 8 and Status 0.
+- Eye T1-T6: the Trims / Status / Transition bit-seconds.
+
+**OpenComputers.** OC was loaded, with 13 components. These were exercised:
+
+- `bts_quasar` ocloop: the getters, the clamps, setField after P4-84, trim, the rate limit and purge refused.
+- `bts_eye` ocloop: the getters, setDial and setFeed clamps, trim, and EYE_DIAL 1-15.
+- `bts_kerr` ocloop / occall: setSetpoint clamps to the cap in force, and collapse / open with and without items.
+
+**Unattended rigs.**
+
+- Quasar autorig, binary and analog (FIELD-mode b).
+- Eye autorig T1, T3, T4, T5 and T6, 7,200 s each: 0 stars lost.
+- Kerr autorig 3,600 s: never closed.
+
+**A pre-P4 world.** The base jar (c8f8ca7, 282 recipes) built a Kerr T2 with both modules running, an Eye T6 with a lit
+magnetar mid-transition (its own Sensor 5 / Directive 3 layout), a Homogeny T3 and a Reality Diffraction. On the P4 jar
+all of them re-formed with their state:
+
+- the Eye kept unlocked T6 and the magnetar's TRANSITION; it was grandfathered with no receptor ports;
+- the Kerr kept its hole at 128 SM;
+- the module's recipe carried on at 1,248 / 2,000;
+- the H/R machines re-walked FORMED; Reality reads × 1 with no port (P4-74);
+- a GRB Receptor Port fitted into the old Kerr's utility socket.
+
+**Fixed (each committed):**
+
+- P4-83: a paused remembered source no longer pauses a re-aimed host for ever.
+- P4-84: the b setting clamps to the coil tier.
+- P4-85: the P4 machines mark their chunk modified once a second. Before this, a mouth and a crown reloaded a 20-minute
+  old save.
+- P4-86: the Casimir Plate tooltip.
+
+Bench: `/btsconduit survival … [facing|up|down] [creative]`, and `/btskerr module … stock` / `clear` for circuit inputs
+and fluids.
+
+**Not run** (no client, by the brief):
+
+- the GUIs, the TESRs and the render-harness cases;
+- the NEI pages and the NEI multiblock preview;
+- OpenComputers through a real Adapter (the components were exercised through the same API);
+- re-opening a dormant quasar with a real Black Hole Seed item;
+- a cross-dimension mouth pair, and a data-stick pairing by hand.
