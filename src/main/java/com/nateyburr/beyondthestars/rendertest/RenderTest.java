@@ -197,6 +197,16 @@ public final class RenderTest {
         }
     }
 
+    /**
+     * Renders v2: an Eye case with its frozen clocks: {@code eventAge} the kind / flare / transition age (ticks, -1
+     * live), {@code eventIn} seconds to the event's hit (negative after it, NaN live), {@code prevKind} the kind shown
+     * before (-1 live).
+     */
+    private static Case eyeCase(String name, Site site, EyeStarLook look, String what, double eventAge, double eventIn,
+        int prevKind) {
+        return new Case(name, site, 0, look, what, eventAge, new float[] { (float) eventIn, prevKind });
+    }
+
     /** A Kerr case's client look: GT's stability input (0.5 and up calm, 0 spinning). */
     private static float[] kerrLook(float stability) {
         return new float[] { stability };
@@ -292,7 +302,32 @@ public final class RenderTest {
                 0,
                 EyeStarLook.lit(1, 0.8f, 1),
                 "Eye T1, Sol at stability 20 on an event warning (the wobble)"),
+            // renders v2: the ignition flash (the protostar lit, frozen at 15 of its 60 ticks) and the Mass Infusion
+            eyeCase(
+                "eye_t1_ignition",
+                Site.EYE_T1,
+                EyeStarLook.lit(1, 0, 0),
+                "Eye T1, the protostar just lit: the ignition flash, its cocoon blown away (15 of 60 ticks)",
+                15,
+                Double.NaN,
+                EyeStarLook.PROTOSTAR),
+            eyeCase(
+                "eye_t1_mass_infusion",
+                Site.EYE_T1,
+                EyeStarLook.growing(1, 0.5f),
+                "Eye T1 -> T2, the Mass Infusion half way: Sol heating toward Sirius A, matter raining in",
+                -1,
+                Double.NaN,
+                -1),
             new Case("eye_t2_sirius_a", Site.EYE_T2, 0, EyeStarLook.lit(2, 0, 0), "Eye T2, Sirius A (live star)"),
+            eyeCase(
+                "eye_t2_shell_ignition",
+                Site.EYE_T2,
+                EyeStarLook.growing(2, 0.5f),
+                "Eye T2 -> T3, the Shell Ignition half way: Sirius A swelling and cooling toward Arcturus",
+                -1,
+                Double.NaN,
+                -1),
             new Case("eye_t3_arcturus", Site.EYE_T3, 0, EyeStarLook.lit(3, 0, 0), "Eye T3, Arcturus (red giant)"),
             new Case(
                 "eye_t3_helium_flash_warn",
@@ -300,7 +335,34 @@ public final class RenderTest {
                 0,
                 EyeStarLook.lit(3, 0.3f, 1),
                 "Eye T3, Arcturus on a helium-flash warning (stability 70)"),
+            eyeCase(
+                "eye_t3_helium_flash_t05",
+                Site.EYE_T3,
+                EyeStarLook.lit(3, 0.3f, 1)
+                    .event(EyeStarLook.EV_HELIUM_FLASH, 5f),
+                "Eye T3, a helium flash 5 s away: the cells boil, the star throbs",
+                -1,
+                5,
+                -1),
+            eyeCase(
+                "eye_t3_helium_flash_hit",
+                Site.EYE_T3,
+                EyeStarLook.lit(3, 0.3f, 1)
+                    .event(EyeStarLook.EV_HELIUM_FLASH, -1f),
+                "Eye T3, a helium flash 1 s after its hit: the bright front across the surface, the puff",
+                -1,
+                -1,
+                -1),
             new Case("eye_t4_neutron", Site.EYE_T4, 0, EyeStarLook.lit(4, 0, 0), "Eye T4, neutron star"),
+            eyeCase(
+                "eye_t4_glitch",
+                Site.EYE_T4,
+                EyeStarLook.lit(4, 0, 0)
+                    .event(EyeStarLook.EV_GLITCH, -0.4f),
+                "Eye T4, a starquake glitch 0.4 s after it hit: the crust flash, the beams stutter",
+                -1,
+                -0.4,
+                -1),
             new Case(
                 "eye_t4_collapse_swell",
                 Site.EYE_T4,
@@ -315,6 +377,34 @@ public final class RenderTest {
                 "Eye T4 structure, Core Collapse phase 3, the bounce shell (proto-neutron star), shell frozen at"
                     + " 30 ticks (about 7.4 blocks, rim alpha 0.04 -> 0.64 x 0.7)",
                 30),
+            new Case(
+                "eye_t4_collapse_bounce_t08",
+                Site.EYE_T4,
+                0,
+                EyeStarLook.bounce(0f),
+                "Eye T4 structure, the bounce 8 ticks in: the shock leaving the proto-neutron star, the flash",
+                8),
+            new Case(
+                "eye_t4_collapse_bounce_t70",
+                Site.EYE_T4,
+                0,
+                EyeStarLook.bounce(0f),
+                "Eye T4 structure, the bounce 70 ticks in: the shock near the bands, fading",
+                70),
+            new Case(
+                "eye_t4_supernova_t05",
+                Site.EYE_T4,
+                0,
+                EyeStarLook.NOVA_FLASH,
+                "Eye T4 structure, a failed Core Collapse: the supernova 5 ticks in (the blinding flash)",
+                5),
+            new Case(
+                "eye_t4_supernova_t45",
+                Site.EYE_T4,
+                0,
+                EyeStarLook.NOVA_FLASH,
+                "Eye T4 structure, the supernova 45 ticks in: the remnant's filaments fading",
+                45),
             new Case(
                 "eye_t4_supernova",
                 Site.EYE_T4,
@@ -340,7 +430,58 @@ public final class RenderTest {
                 0,
                 EyeStarLook.dwarf(0.9),
                 "Eye T5, Sirius B cooling batch at 90 % (near black)"),
+            eyeCase(
+                "eye_t5_first_cooling",
+                Site.EYE_T5,
+                EyeStarLook.dwarf(0.01)
+                    .transition(4, 0.01f),
+                "Eye T4 -> T5, the First Cooling's start: the white dwarf assembling (40 of 80 ticks)",
+                40,
+                Double.NaN,
+                -1),
+            new Case(
+                "eye_t5_black_dwarf",
+                Site.EYE_T5,
+                0,
+                EyeStarLook.dwarf(1.0),
+                "Eye T5, Sirius B at the end of a batch: the black dwarf (its crystal sheen)"),
             new Case("eye_t6_magnetar", Site.EYE_T6, 0, EyeStarLook.lit(6, 0, 0), "Eye T6, SGR 1806-20 magnetar"),
+            eyeCase(
+                "eye_t6_giant_flare_t06",
+                Site.EYE_T6,
+                EyeStarLook.lit(6, 0, 1)
+                    .event(EyeStarLook.EV_GIANT_FLARE, 6f),
+                "Eye T6, a giant flare 6 s away: the field winding up and crackling, the crust faults glowing",
+                200,
+                6,
+                -1),
+            eyeCase(
+                "eye_t6_giant_flare_hit",
+                Site.EYE_T6,
+                EyeStarLook.lit(6, 0, 1)
+                    .event(EyeStarLook.EV_GIANT_FLARE, -0.8f),
+                "Eye T6, a giant flare 0.8 s after its hit: the flash, the field torn open into a fan",
+                200,
+                -0.8,
+                -1),
+            eyeCase(
+                "eye_t6_merger_start",
+                Site.EYE_T6,
+                EyeStarLook.lit(6, 0, 0)
+                    .transition(5, 0.02f),
+                "Eye T5 -> T6, the Magnetar Merger's start: the merger flash (20 of 60 ticks)",
+                20,
+                Double.NaN,
+                -1),
+            eyeCase(
+                "eye_t6_merger_imprint",
+                Site.EYE_T6,
+                EyeStarLook.lit(6, 0, 0)
+                    .transition(5, 0.6f),
+                "Eye T5 -> T6, the Magnetar Merger's imprint (60 %): the dynamo winding the field up",
+                200,
+                Double.NaN,
+                -1),
             new Case(
                 "eye_t6_magnetar_warn",
                 Site.EYE_T6,

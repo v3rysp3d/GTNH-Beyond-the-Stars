@@ -433,6 +433,10 @@ public final class RenderTestClient {
 
     private void applyCase(RenderTest.Case c) {
         TileEyeStar.debugEventAge = c.eventAge;
+        // renders v2: the Eye's event clock and previous kind ({eventIn, prevKind}; NaN / -1 live)
+        final boolean eye = c.site.eyeTier() > 0 && c.clientLook != null && c.clientLook.length == 2;
+        TileEyeStar.debugEventIn = eye ? c.clientLook[0] : Double.NaN;
+        TileEyeStar.debugPrevKind = eye ? (int) c.clientLook[1] : -1;
         // renders v2: the client-side look overrides (null / -1: the live synced look)
         final boolean kerr = c.site == RenderTest.Site.KERR_T1 || c.site == RenderTest.Site.KERR_T2;
         TileKerrHole.debugStability = kerr && c.clientLook != null ? c.clientLook[0] : -1f;
@@ -544,6 +548,8 @@ public final class RenderTestClient {
         TileKerrHole.debugStability = -1f;
         TileQuasarHole.debugLook = null;
         TileEyeStar.debugEventAge = -1;
+        TileEyeStar.debugEventIn = Double.NaN;
+        TileEyeStar.debugPrevKind = -1;
         phase = Phase.DONE;
         skipExitConfirmation();
         mc.shutdown();
