@@ -117,6 +117,8 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
   the questbook's "field line" sentence becomes "Lock bar" when the questbook owner applies it. [B-96]
 - Controller GUI cleanup unit 2 (branch `gui-clean`): the Kerr Ergosphere Engine and the two Kerr module GUIs on the
   kit; the disabled power switch no longer draws GT's missing texture. [B-97]
+- Controller GUI cleanup unit 3 (branch `gui-clean`): the Homogeny, Reality Diffraction / Refab, the Reactor Silo and
+  the production halls on the kit; recipe results are compared by key (fixes the Kerr module and Eye planet rows). [B-98]
 
 **To see in a client** (the headless dev server cannot): the hologram hints, a survival build from a real AE system,
 the NEI multiblock tab and its frame rate (a T6 Eye is 51,935 blocks), every GUI (Eye, KEE, modules, Directive Hatch,
@@ -3883,6 +3885,92 @@ Hole control panel at 1.0 (the two-line hint and Auto label), the Modules panel'
 
 **Questbook.** No change needed: "The GUI shows how long the stock lasts", the Hole control panel's Auto, Open and
 Collapse twice all still hold.
+
+**Suggestion.** Accept.
+
+### B-98 Controller GUI cleanup, unit 3: the Homogeny, Reality Diffraction / Refab, the Reactor Silo and the production halls [user approval 2026-10-13, built on branch gui-clean]
+
+**Context.** Spec §5.6-§5.9 of `controller-gui-spec.md`, on the kit from B-96. The spec's recommended answers stand
+(Q1 terminal 118, Q4 no G logo, Q5 Info page, Q6 lang keys, Q7 keep the Silo's instrument panel). All four are recipe
+machines except the Silo, so GT's progress / output / recipe-result rows stay above the kit rows.
+
+**What was built.**
+
+- Kit: a lamp row's lamps carry their own hover tooltip (the hovered lamp's, as the chips do); `recipeBadge()` gives
+  every recipe machine one rule (NOT FORMED, RUNNING while active, WAITING while the last check failed for a reason
+  to fix, IDLE for no recipe / nothing checked); `infoInButtonColumn()` puts the **i** button in the column's top slot.
+- `HomogenyGui`: badge NOT FORMED / INSTALLING / RUNNING / WAITING / IDLE; subject "Mixing" or "T2 > T3"; right chip
+  "T{tier}  {n} par" (tooltip: installed, structure). Rows: the Core / Stir / Outer lamps (tooltip: the ring, its tier,
+  formed / missing / not needed, and its first structure error), then either "Upgrade to T{n+1}" with `{met} of 3` and
+  the three checks (`MTEHomogeny.upgradeChecklist()`: Mixed have/need with a fill line, the core in escrow, the ring
+  built with its fault) or, while installing, the Install bar, Time left, "Paused: {why}" and the cancel hint; Last.
+  The Install button draws `BUTTON_STANDARD_DISABLED` with grey text until `installBlocker()` is empty (or while an
+  install runs); pressing it still goes through `beginInstall()`, the one install path.
+- `RealityDiffractionGui`: badge RUNNING / WAITING (no network or storage, regions waiting to enter, nothing
+  anchored) / IDLE; subject "Diffracting" or what it waits on (BEC network, Network full, Anchors). Rows: the BEC
+  network check, one red check per unanchored region (have / need L with a fill line, or "no hatch";
+  `anchorChecklist()`), "Other regions {k} of 6" (or "Regions anchored 6 of 6"), the amber "Waiting to enter" check
+  and its hint, Last.
+- `RealityRefabGui`: badge as above, WAITING also while the craft waits; subject "Step s/n". Rows: the network and
+  Condensate Assembler checks (`linkChecklist()`: "{n} nanites", "none within 64", "OFF", "no nanites"), the step stat
+  (nanite tier, contaminants), the Regions bar, the wait reason as a red check, Last.
+- Both Reality machines keep their gap-row region lamps (`HRGui.regionLamps`; caption and tooltips now lang keys).
+- `MTEReactorSiloGui`: badge NOT BUILT / HELD / CLAMPED / RUNNING / OFFLINE; subject "Silo T{n}"; right "Rods n/cap".
+  Rows: Output (against the dynamo + laser ceiling, yellow tick at it), RPM (against the operating redline, red tick
+  at 12,000), Heat (against meltdown, red tick at SCRAM), the hold reason, then today's instrument panel unchanged;
+  its group headers are kit section rows. The **i** button is in the column; the Tier / RPM / Rods captions are at
+  1.0 with fields 18 / 34 / 26 wide. Info = the questbook's "Step 10 - Read the Panel" in five paragraphs.
+- `MTEProductionHallGui`: badge, subject "x{parallel}", the Parallel stat and what sets it, Info page.
+- `hasRunningText()` false on the Homogeny, the Reality base, the Reactor Silo and the halls. 109 new lang keys.
+- Bench: `/btshr gui <x> <y> <z> [info]` prints the header and rows of any of these GUIs (plus the last recipe check).
+
+**Judgement calls.**
+
+1. **Ring lamps:** green when the piece stands, red when the INSTALLED tier needs it and it does not stand, grey
+   otherwise. The spec's "red when absent with a fault" would make every ring above the tier red (an absent ring
+   always has a structure error); the mockup shows the T3 ring grey on a T2 Homogeny, and the upgrade checklist says
+   what the next tier needs. The fault is in the lamp's tooltip either way.
+2. **WAITING vs IDLE on recipe machines:** "no recipe" (empty inputs) and "nothing checked yet" are IDLE; every
+   other failed check (outputs full, power, a machine condition) is WAITING. Without this an empty hall read WAITING.
+3. **Silo subject stays "Silo T{n}" when HELD** (the spec's table also says subject "Held"): the badge already says
+   HELD, and the hold reason is the first row under the bars. **Silo right chip "Rods n/cap"** uses the unlocked
+   rod cap (`maxThrottle()`, 24 by design, up to 36), not a fixed 24, so it never reads 30/24.
+4. **The MATH header is split:** a kit section row "MATH" and a grey line under it with the subtitle ("how that EU/t
+   is derived" / "how that steam figure is derived"), because the whole title does not fit 180 px in bold. The
+   questbook's words stay on screen.
+5. **Heat bar** has a red SCRAM tick (the spec gives only "Heat %"); the bar is heat / meltdown.
+6. **Region names and the halls' "(fixed)" / "(shell: ..., tier 2/3)" source** go through lang keys
+   (`beyondthestars.gui.reality.region.0..5`, `beyondthestars.gui.hall.source`); the parallel source text itself and
+   the Refab's wait reasons stay runtime English (spec Q6).
+7. **Refab subject** is empty while no craft runs (the spec gives none); Diffraction's subject names what it waits on,
+   as the mockup's "WAITING Anchors".
+8. **Found and fixed in units 1-2:** `CheckRecipeResult.getID()` is the result TYPE ("simple_result" for every
+   `SimpleCheckRecipeResult`), not its key. The Kerr module's `shouldDisplayCheckRecipeResult` compared it with the
+   link keys, so the link results were never hidden; it now compares with `equals` (the key). The Eye's planet
+   checklist built the lang key `recipe_result.simple_result`; it now shows the gate's display string.
+
+**Commit note.** Commits fb1a95c, b7aab46, 84755f4 and 3c95056 each hold an en_US.lang with only that machine's new
+keys: the staging helper compared the CRLF working tree with the LF blob. Their Java is right; 588ae66 restores the
+whole file (baf745f plus the 109 new lines). Anything that reads the lang file should use 588ae66 or later.
+
+**Verified headless** (dev server on port 25611, 278 recipes / 0 skipped, no stack frame from our code in three
+boots; `/btshr gui`): Homogeny T2 RUNNING with the T3 checklist 0, 1 and 3 of 3 (after `project 3`, `milestone`,
+`escrow`), INSTALLING T2 > T3 with the stall notes (running mix, controller disabled, power) and NOT FORMED after a
+restart; T3 (lamps only) and T1 (Stir and Outer grey, the Stirring ring check with its fault); both Info pages.
+Diffraction WAITING "BEC network" with all six regions red then "Regions anchored 6 of 6" and the amber 24,000 L
+waiting row. Refab WAITING with "none within 64". Silo T1 RUNNING with Output / RPM / Heat and the Info page. PUREX
+and Cascade Hall IDLE "x8" / "x1" with "(fixed)" / "(stage banks 0/4)". Full `gradlew build` passes; jar
+`beyondthestars-0.24.1-gui-clean.254+97e5fe8590.jar`.
+
+**Not seen.** A Diffraction or Refab run (they need P4's fluids and a Containment Field), the Install button's grey
+face, the Silo's NOT BUILT / HELD / CLAMPED badges, the Kerr module fix in a client.
+
+**To see in a client.** The four GUIs against `hr.png` / `plant.png` at GUI scale 2 and 3: the lamp tooltips, Install
+greyed then live, the Silo's **i** in the button column and the 1.0 field captions fitting the gap row, the section
+rows over the instrument panel.
+
+**Questbook.** No change needed: "Install in the GUI", MATH and MILESTONES "at the foot of the GUI" (they still are,
+below the new vitals), the Build Tier / Rods / RPM fields and the Upgrade Tree button all still hold.
 
 **Suggestion.** Accept.
 

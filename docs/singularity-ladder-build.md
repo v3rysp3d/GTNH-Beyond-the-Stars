@@ -1838,6 +1838,8 @@ The Homogeny's one install path is `beginInstall()` then `completeInstall()` (co
   form: FORMED / NOT FORMED, first wrong cells, a creative re-projection check, survival damage-and-repair.
 - `/btshr keep <machine> <x> <y> <z> <facing> [tN]` force-loads (`/btskerr release` frees).
 - `/btshr bench <x> <y> <z> <status|check|fill|wrench|milestone e d|escrow|install|itick n|relink|pending [L]|scan|on|off|project n>` (`wrench` also on the Diffraction; `pending <L>` seeds its buffer, B-80).
+- `/btshr gui <x> <y> <z> [info]` prints the kit GUI's header and rows (or its Info page) as text, built on the server
+  as the GUI syncs them, for the Homogeny, both Reality machines, the Reactor Silo and the production halls (B-98).
 - `/btskit homogeny | diffraction | refab`.
 
 ## Contract additions (Homogeny / Reality recipes)
