@@ -4,6 +4,13 @@ The questbook branch is not in `p4-quasar`'s base, so P4 units write their quest
 turns each section into quests (rules 14 and 15: every mechanic must be learnable in the questbook or the tooltip).
 Numbers come from the engine (`machines/quasar/engine`, `eye/field`). If a number changes there, change it here too.
 
+> **Merged (B-111, 2026-10-13).** Every quest below is now in `questbook/singularity.json` (ids 48144-48150 real,
+> 48154-48174 and 48194 new; features `quasar`, `conduit`, `crown`, `eyeT7T8`, `eternityOnErgomatter` on). From now
+> on that file is the source; this contract is kept as the record of what the P4 units asked for. The merge rewrote the
+> text in master's player-text rules (no `{e}` / `{b}` / `{a}` / `{Phi}`), moved the positions to fit master's map, and
+> gated the Eternity edits on `replaceTecTechEyeOfHarmony`. Differences are listed in `docs/questbook-integration.md`
+> §2.3 ("The P4 quests") and in B-111.
+
 ## Engine maths unit
 
 ### Quest: "Feeding the hole" (the Quasar Engine's disc)

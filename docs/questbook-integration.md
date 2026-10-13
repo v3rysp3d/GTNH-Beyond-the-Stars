@@ -120,7 +120,12 @@ Endgame too and the installer hides the emptied chapter (§3.6). The plant chapt
   - TecTech's EOH `gregtech:gt.blockmachines:15410` and the BHC `:3008`.
   - Our items `beyondthestars:<SLItems field>` (`BTSItems.define` registers the field name).
   - Our fluids: `btsexcitedstellarplasma`, `btsrawhyperdenseplasma`, `btshyperdensestellarmixture`,
-    `btsantipolarizationagent`, `btsmagnetarmatter`.
+    `btsantipolarizationagent`, `btsmagnetarmatter`, and P4's `btsergomatter`, `btssuperdenseergomatter`.
+  - P4 (B-111): Quasar Engine `:28120`, Wormhole Mouth `:28121`, Conduit Mirror `:28122`, Conduit Junction
+    `:28123`, Burst Thermaliser Crown `:28124`, GRB Receptor Port `:28125`, Burst Control Hatch `:28126`,
+    Directive Hatch `:28127`; items `quasarSeed`, `conduitThroatMk1..3`, `intergalacticUpgradeCore`,
+    `supermassiveSeedCore`, `starChartTriangulum`, `starChartMilkyWay`; blocks `slCasing2:3..11`. The generator reads
+    them all from the Java, so none needs a `registry.json` row.
   - Pack fluids `rawstarmatter`, `molten.whitedwarfmatter`, `molten.blackdwarfmatter`, `molten.universium`.
 - **To be verified by `/btsquests verify` (§6, unit Q4):** `temporalfluid` (Tachyon Rich Temporal Fluid), the ore
   names `boltNeutronium` and `dustTengamAttuned`, and the TecTech UXV laser hatch ids.
@@ -561,8 +566,9 @@ replaced. Here is T2's; T3 and T4 change the tier and the star.
 ### 2.3 Tier 13 - UXV (new chapter of ours, line 47991)
 
 - **Chapter:** "Tier 13 - UXV", icon `gregtech:gt.blockmachines:11233` (the pack's UXV hull).
-- **Chapter description:** "The Eye's UXV half: Sirius B, the magnetar, then the Quasar Engine and the first
-  galaxies. The Stargate waits in The Endgame, after MAX."
+- **Chapter description:** "The Eye's second half. Sirius B (T5) cools white dwarfs into black ones, and the magnetar
+  (T6) runs on Antipolarization Agent. The Quasar Engine and the first galaxies (T7, T8) are here: the quasar's bursts
+  hold the Eye together and power your base." (B-111; it said "follow in a later update" before P4.)
 
 **Three bands.**
 
@@ -577,21 +583,23 @@ replaced. Here is T2's; T3 and T4 change the tier and the star.
 | pack `7wI7…` (E20) | **Tier 13 (UXV)** | 24,144 (72) | **48117** (was Magnetic Monopole Matter) | unchanged (R UXV hull) |
 | pack `va9y…` (E21) | T5: Superb | 180,72 (24) | **48117, E20** (was Refined Components t1, Black Dwarf Matter) | unchanged |
 | pack `HFpu…` (E22) | T6: Exotic | 324,72 (24) | unchanged (T5) | unchanged |
-| pack `bKW2…` (E23) | T7: Perfect | 660,72 (24) | unchanged (T6) | unchanged |
-| pack `lU1c…` (E24) | T8: Tipler | 852,72 (24) | unchanged (MHDCSM, Resplendent: QB-13) | unchanged |
+| pack `bKW2…` (E23) | T7: Perfect | 756,72 (24) | unchanged (T6) | unchanged |
+| pack `lU1c…` (E24) | T8: Tipler | 960,72 (24) | **E23** (was MHDCSM, Resplendent: QB-13) | unchanged |
 | 48140 | **Eye T5: Sirius B** | 168,156 (48) | E20, E21, 48117 | R 1× `subspaceCoolingCore`, 1× `starChartSiriusB`; OR `bom:eye_arms2` |
 | 48141 | **Eye T6: SGR 1806-20** | 312,156 (48) | 48140, E22, 48143, E25 | R 1× `magnetarSeedCore`, 1× `starChartMagnetar`; F 1,000 L `btsmagnetarmatter`; OR `bom:eye_rim` |
-| 48144 ⧗ | **Quasar Engine** | 456,156 (48) | 48141, 48113 (Kerr T2) | real: R 1× `28120` |
-| 48145 ⧗ | **Einstein-Rosen Conduit** | 564,168 (24) | 48144 | real: R 2× `28121`, 1× `28122`, 1× `28123` |
-| 48146 ⧗ | **Eye T7: Triangulum** | 648,156 (48) | 48145, E23 | real: R 1× Intergalactic Upgrade Core; F Ergomatter |
-| 48148 ⧗ | **Eye T8: Milky Way** | 828,144 (72) | 48146, E24 | real: R 1× Supermassive Seed Core |
+| 48144 | **Quasar Engine** | 456,156 (48) | 48141, 48113 (Kerr T2), 48154 | R 1× `28120`; OR `bom:quasar` |
+| 48145 | **Einstein-Rosen Conduit** | 564,168 (24) | 48144, 48158 | R 2× `28121`, 1× `28122`, 1× `28123`; OR `bom:conduit_mouth` |
+| 48162 | **Magnetar Collapse** | 660,168 (24) | 48161 | R 1× `intergalacticUpgradeCore`, 1× `starChartTriangulum` |
+| 48146 | **Eye T7: Triangulum** | 744,156 (48) | 48162, E23 (48145 before B-111; still reached through the chain) | F 1,000 L `btsergomatter` |
+| 48165 | **Galactic Merger** | 852,168 (24) | 48164 | R 1× `supermassiveSeedCore`, 1× `starChartMilkyWay` |
+| 48148 | **Eye T8: Milky Way** | 936,144 (72) | 48165, E24 (48146 before B-111) | F 1,000 L `btssuperdenseergomatter` |
 | pack `bPYT…` (E25) | Black Dwarf Matter | 168,252 (48) | **48140** (was WDM, T4: Advanced, RSP) | unchanged (F 144 `molten.blackdwarfmatter`) |
 | pack `teFE…` (E26) | Refined Components | 156,336 (24) | unchanged (BDM) | unchanged |
 | 48143 | **Antipolarization Agent** | 312,252 (48) | E20 | F 1,000 L `btsantipolarizationagent`; OR 16× ore `dustTengamAttuned` |
-| 48142 ⧗ | **The Homogeny T2** | 324,336 (24) | 48140 | real: R tbd |
-| 48150 ⧗ | **Burst Thermaliser Crown** | 468,264 (24) | 48144 | real: R 1× `28124` |
-| 48147 ⧗ | **Ergomatter** | 648,252 (48) | 48146 | real: F Ergomatter |
-| 48149 ⧗ | **Superdense Ergomatter** | 840,252 (48) | 48148 | real: F Superdense Ergomatter |
+| 48142 | **The Homogeny T2** | 228,312 (24) | 48118, E25 | R 1× `homogenyTier2Core`; F 1,000 L `btsdegeneratestellarmixture` |
+| 48150 | **Burst Thermaliser Crown** | 468,264 (24) | 48144 | R 1× `28124`; OR `bom:crown_mk1` |
+| 48147 | **Ergomatter** | 744,336 (48) | 48146 | F 16,000 L `btsergomatter` |
+| 48149 | **Superdense Ergomatter** | 948,336 (48) | 48148 | F 16,000 L `btssuperdenseergomatter` |
 | pack `M4A=` (E27) | You Made It! | 24,420 (24) | unchanged (Tier 13) | unchanged |
 | pack `smCK…` (E28) | Your Lord and Saviour, UXV CoAL | 84,408 (48) | unchanged | unchanged |
 | pack `DGfr…` (E29) | UXV Energy Hatch | 156,420 (24) | unchanged | unchanged |
@@ -605,10 +613,44 @@ replaced. Here is T2's; T3 and T4 change the tier and the star.
 | pack `iLn_…` (E34) | T3 Exo-Foundry | 84,504 (24) | unchanged | unchanged |
 | pack `UVG2…` (E35) | Assembling on Space Steroids | 144,504 (24) | unchanged | unchanged |
 | pack `bHFE…` (E36) | Rule of Threes | 204,504 (24) | unchanged | unchanged |
-| *(stage `eternityOnErgomatter`)* `wGq5` / `U7Ta` / `VYn4` / `k0ry` | Eternity / Magnetic Monopole Matter / Perfected Components / The SUCC | 300,492 (48) / 372,492 (48) / 444,504 / 504,504 | Eternity ← **48147** + Stellar Catalyst (t1); MMM ← Eternity + Heliofusion Exoticizer (no MHDCSM); the others as the pack | unchanged |
+| pack (E43-E46, `eternityOnErgomatter` on since B-111; `replaceTecTechEyeOfHarmony`) `wGq5` / `U7Ta` / `VYn4` / `k0ry` | Eternity / Magnetic Monopole Matter / Perfected Components / The SUCC | 744,432 (48) / 744,528 (48) / 756,612 / 840,444 | Eternity ← **48147** + Stellar Catalyst (t1); MMM ← Eternity + Heliofusion Exoticizer (no MHDCSM); the others as the pack | unchanged |
 
 Eye T7 does not list Eye T6 directly. The Quasar does, and a direct line would run through the Quasar and Conduit
 icons.
+
+**The P4 quests (B-111).** The placeholders 48144-48150 became real quests under the same ids, and 21 new ones were
+added from the P4 contract (`docs/p4-questbook-contract.md`, "Generator entries"), in the text rules of B-92 / B-93.
+Their text lives only in `singularity.json`. Rows: the quasar's own quests above the main row, the links and
+milestones below it, the products and hosts under those.
+
+| Id | Name | Pos | Prereqs | Tasks |
+|---|---|---|---|---|
+| 48154 | A Seed for a Quasar | 384,96 | 48113 | R 1× `quasarSeed` |
+| 48155 | Disc Field Coils | 432,48 | 48144 | R 32× `slCasing2:3`; OR Tier II, III |
+| 48156 | Reading the Disc | 480,48 | 48144 | R 1× `28127`; OR 1× `28116` |
+| 48157 | Burst Control | 528,48 | 48144 | R 1× `28126` |
+| 48158 | Throats | 564,96 | 48144 | R 1× `conduitThroatMk1`; OR Mk II |
+| 48159 | A Quasar Link | 564,252 | 48145 | R 1× `28125` |
+| 48160 | The Stability Rail | 612,252 | 48159 | R 8× `28125`; OR `bom:eye_rail` |
+| 48161 | Stability Link | 660,252 | 48160 | checkbox |
+| 48163 | The Shard Halo | 804,252 | 48146 | R 8× `28125`; OR `bom:eye_halo` |
+| 48164 | Heavy Link | 852,252 | 48163 | checkbox |
+| 48166 | Superdense Ergomatter, the Slow Way | 660,348 | 48147, 48167 | F 500 L `btssuperdenseergomatter` |
+| 48167 | A Quasar-Linked Kerr | 564,336 | 48113, 48159 | checkbox |
+| 48168 | A Quasar-Held Vortex | 228,360 | 48142, 48159 (hover-only line) | checkbox |
+| 48169 | Planets Mode | 708,96 | 48146 | checkbox |
+| 48170 | Companions | 804,96 | 48146 | checkbox |
+| 48171 | Automating the Quasar | 504,12 | 48156, 48157 | checkbox |
+| 48172 | A Galaxy That Runs Itself | 612,12 | 48171, 48160 | checkbox |
+| 48173 | Scripting a Quasar | 456,12 | 48171 | checkbox |
+| 48174 | Bursts into Power | 468,336 | 48150 | checkbox |
+| 48194 (MAX) | Riding the Rift | 336,96 | 48185, 48159 | checkbox; planned while `realityRefab` is off |
+
+Differences from the contract: the positions (the contract's rows clashed with E23 / E24 and the Eternity stage, which
+it did not see); "The Stability Rail" needs only 48159 and "A Galaxy That Runs Itself" the rail rather than the link
+(each implies the other prerequisites, and the direct lines crossed icons); Eye T7 / T8 keep E23 / E24; the
+Intergalactic Upgrade Core and Supermassive Seed Core quests of the content unit are notes in the two transition
+quests; and every gate got a DONE WHEN line.
 
 **E20, Tier 13 (UXV)** (`setDesc`; the first, second and last paragraphs are the pack's own):
 
@@ -616,19 +658,22 @@ icons.
 >
 > We hope you enjoy your stay, though be prepared for a lot of waiting.
 >
-> In Beyond the Stars this is the Eye's UXV half: **Sirius B (T5)** cools white dwarfs into black, **the magnetar
-> (T6)** runs on Antipolarization Agent, and then the **Quasar Engine** and the first galaxies (T7, T8). The Stargate
-> has moved to **The Endgame**, after MAX.
+> In Beyond the Stars this is the Eye's second half: **Sirius B (T5)** cools white dwarfs into black, and **the
+> magnetar (T6)** runs on Antipolarization Agent. Then the **Quasar Engine**: its bursts hold the first galaxies,
+> **Triangulum (T7)** and **the Milky Way (T8)**, and power your base. The crafted Stargate has moved to **The
+> Endgame**, after MAX.
 >
 > [warn]**Universium now comes only from Eye T10 (MAX), which is not built yet.** The Eye's T5 and T6 cores do not
-> need it: for now they are built from twice as many UMV parts, so Sirius B and the magnetar are craftable. The pack's
-> own UXV parts (UXV components, the UXV CoAL, the UXV Field Generator) still need MHDCSM and Universium; nothing of
-> Beyond the Stars before Eye T7 needs them. That stays so until the new UXV parts and circuits are designed and built.
+> need it: for now they are built from twice as many UMV parts, so Sirius B and the magnetar are craftable. The
+> Homogeny Tier II Core and every Quasar and Conduit part are built the same way. The pack's own UXV parts (UXV
+> components, the UXV CoAL, the UXV Field Generator) still need MHDCSM and Universium; nothing of Beyond the Stars up to
+> Eye T8 needs them. That stays so until the new UXV parts and circuits are designed and built.
 > UXV circuits are craftable: the Polychrome and Dimensional Quantum Circuits need no Universium.[/warn]
 >
 > *(Rewritten 2026-10-13 after the merges: the T5/T6 cores take the B-72 UMV stopgap; the UXV parts and circuits
 > design is a brainstorm, brief item 22a, so D-45's part override is not built. B-84: the Homogeny Tier II Core takes
-> the same stopgap, so the warning no longer names it.)*
+> the same stopgap, so the warning no longer names it. B-111: P4 is in, so the paragraph names the quasar and the
+> galaxies, and the warning reaches to Eye T8: P4 takes no pack UXV part.)*
 >
 > [warn]This tier is far from complete. Expect changes.[/warn]
 
@@ -719,48 +764,10 @@ icons.
 **Placeholders.** The text is from `quasar-p4.md` and the D-42/D-43 design, written in present tense. The standard
 planned note follows each one.
 
-- **48144 Quasar Engine:**
+- **48144-48150** (the Quasar, the crown, the Conduit, Eye T7 / T8, Ergomatter, Superdense Ergomatter): real
+  quests since B-111; the text is in `singularity.json` (see "The P4 quests" above).
 
-  > Its own machine with its own black hole, seeded once from a Kerr T2 (a **Quasar Seed** made on the Compressor
-  > Module with a hole of at least 256 SM). Feed it gas to build an **accretion disc**. Hold its Eddington balance E,
-  > and let its flux Φ charge and **erupt**. The disc spins and grows the hole and drives **two jets**. Each jet goes
-  > to the Eye (stabilisation) or to a crown (power).
-
-- **48150 Burst Thermaliser Crown:**
-
-  > Sits on a jet. 1 burst unit a tick → 10¹³ EU/t to wireless (1 %). Mk I / II / III caps are 32 / 512 / 8,192
-  > Bu/t.
-
-- **48145 Einstein-Rosen Conduit:**
-
-  > Carries bursts with no loss. A **Wormhole Mouth** pair (linked by data stick, any distance), **Mirrors** to turn
-  > them, and **Junctions** to split or combine them. Upkeep is molten SpaceTime, or Ergomatter after T7. **GRB
-  > Receptor Ports** on the Eye's rail take the stream.
-
-- **48146 Eye T7: Triangulum:**
-
-  > The first galaxy, and the first tier the quasar holds together. The **Magnetar Collapse** overfeeds the magnetar
-  > past its mass limit, and bursts cancel the shock. The new verb is **aim**: split the bursts between the high and
-  > low banks of the tilted rail. Upkeep is 7.5 L Magnetar Matter a cycle plus 1.5 Bu/t; output is 600 L Ergomatter a
-  > cycle.
-
-- **48147 Ergomatter:**
-
-  > T7's harvest: the Conduit's fuel after T7, Eye T8's feed and the Eternity loop's new input.
-
-- **48148 Eye T8: Milky Way:**
-
-  > Sgr A*. The **Galactic Merger** brings three pericentre passes while the burst demand climbs to 6 Bu/t. Aim a
-  > third stream into the shard halo and catch tidal disruption events. It is fed 0-10 L/s Ergomatter and makes
-  > Superdense Ergomatter. **Required**: the ladder is strict.
-
-- **48149 Superdense Ergomatter:**
-
-  > Galaxy residue, the T9 pellets' input.
-
-- **48142 The Homogeny T2:**
-
-  > Four times the T1 mixer, and a new mix: Degenerate Stellar Mixture (white + black dwarf matter).
+- **48142 The Homogeny T2:** a real quest since the Homogeny was built (B-81); B-111 adds its quasar line.
 
 - **48151 Magnetar-Reinforced Borosilicate Glass:**
 
@@ -963,8 +970,8 @@ Heliocast Reinforcement, Hypercooler and T2 Exo-Foundry keep the BHC id as a pre
 | E20 | `7wI7VuLKRe6lqAJpuYKKJg==` | Tier 13 (UXV) | Endgame Goals | `move` UXV 24,144 (72); `replacePrereq` Magnetic Monopole Matter `U7Ta5d7PSii76sbIPbltlw==` → **48117**; `setDesc` §2.3 | keep |
 | E21 | `va9yzhTSSUWxgareXVIaXQ==` | T5: Superb | UMV | `move` UXV 180,72; `setPrereqs` [48117, E20]; `setDesc` (gates Eye T5; its RC-2 Black Dwarf chamber is replaced by SL-P33, so no BDM loop) | keep |
 | E22 | `HFpuUdRKS--dsQzGEvjW2w==` | T6: Exotic | UMV | `move` UXV 324,72; `setDesc` (gates Eye T6) | keep |
-| E23 | `bKW2YJfES6yvbes8JQRb0g==` | T7: Perfect | UMV | `move` UXV 660,72; `setDesc` (gates Eye T7, planned) | keep |
-| E24 | `lU1caedNR6G6fdJqbivacw==` | T8: Tipler | UMV | `move` UXV 852,72; `setDesc` (gates Eye T8, planned; its recipe still needs MHDCSM-coated parts, QB-13) | keep |
+| E23 | `bKW2YJfES6yvbes8JQRb0g==` | T7: Perfect | UMV | `move` UXV 756,72; `setDesc` (gates Eye T7) | keep |
+| E24 | `lU1caedNR6G6fdJqbivacw==` | T8: Tipler | UMV | `move` UXV 960,72; `setPrereqs` [E23]; `setDesc` (gates Eye T8; a note on SL-P40, the MHDCSM-free Resonance Chamber IV, QB-13) | keep |
 | E25 | `bPYTUdlkSCiRi0eDHHw7tw==` | Black Dwarf Matter | UMV | `move` UXV 168,252 (48); `setPrereqs` [48140]; `setDesc` §2.3 | keep |
 | E26 | `teFEMExsSEWHYV79M8gpHw==` | Refined Components | UMV | `move` UXV 156,336 | keep |
 | E27 | `AAAAAAAAAAAAAAAAAAAM4A==` | You Made It! | Endgame Goals | `move` UXV 24,420 | keep |
@@ -993,10 +1000,10 @@ Heliocast Reinforcement, Hypercooler and T2 Exo-Foundry keep the BHC id as a pre
 | E40 | `21tDEYptRuOgSJym30Watg==` | Finally, Universium! | UMV | `move` END 168,156 (48); `setPrereqs` [48220]; 2× `replaceText` (§2.5) | keep |
 | E41 | `52Yelo6KSLGumzXo-_F5DQ==` | Magnetohydrodynamically Constrained Star Matter | UMV | `move` END 288,156 (48); `appendText` (§2.5) | keep |
 | E42 | `LxgRRQ25SE2IQOCMxZa8ug==` | Resplendent Components | UMV | `move` END 300,264 | keep |
-| E43 | `wGq5FvuuROyyMPbT_SkMYg==` | Eternity | UMV | **unless `eternityOnErgomatter`**: `move` END 288,48 (48). **needs it**: `move` UXV 300,492; `setPrereqs` [48147, `fj2V…` (type 1)] | keep |
-| E44 | `U7Ta5d7PSii76sbIPbltlw==` | Magnetic Monopole Matter | UMV | unless: `move` END 168,48 (48). needs: `move` UXV 372,492; `removePrereq` MHDCSM | keep |
-| E45 | `VYn4yi1TSiqJRhtK8YOjjQ==` | Perfected Components | UMV | unless: `move` END 108,60. needs: `move` UXV 444,504 | keep |
-| E46 | `k0ryGOkkSBOgYUcVY-J4rw==` | The SUCC | UMV | unless: `move` END 372,60. needs: `move` UXV 504,504 | keep |
+| E43 | `wGq5FvuuROyyMPbT_SkMYg==` | Eternity | UMV | config `replaceTecTechEyeOfHarmony` (B-111). **unless `eternityOnErgomatter`**: `move` END 168,48 (48). **needs it** (on since B-111): `move` UXV 744,432 (48); `setPrereqs` [48147, `fj2V…` (type 1)]; `replaceText` "You need 20,736 L of Universium for the first 5 attempts and a catalyst." → the Ergomatter catalyst and Timepiece (SL-Q26) | keep |
+| E44 | `U7Ta5d7PSii76sbIPbltlw==` | Magnetic Monopole Matter | UMV | config as E43. unless: `move` END 288,48 (48). needs: `move` UXV 744,528 (48); `removePrereq` MHDCSM | keep |
+| E45 | `VYn4yi1TSiqJRhtK8YOjjQ==` | Perfected Components | UMV | config as E43. unless: `move` END 372,60. needs: `move` UXV 756,612 | keep |
+| E46 | `k0ryGOkkSBOgYUcVY-J4rw==` | The SUCC | UMV | config as E43. unless: `move` END 108,60. needs: `move` UXV 840,444 | keep |
 | E47 | `IGVryoMbRu28q08v4uwSuw==` | Fabricating Solar Systems... in Parallel | Endgame Goals | `move` END 180,264; `setPrereqs` [E40]; `appendText` (§2.5) | keep |
 | E48 | `AAAAAAAAAAAAAAAAAAAKDA==` | The Door to Heaven? | Endgame Goals | `move` END 432,156; `addPrereq` E41, E42; `appendText` (§2.5) | keep |
 | E49 | `fTEQD_w8TTerm_ETSVcBmA==` | Stargate Frame Part | Endgame Goals | `move` END 540,60 | keep |
@@ -1047,8 +1054,8 @@ edit hides (selftest: "a pack quest naming a hidden chapter").
 | Edits | Also need |
 |---|---|
 | E01-E06, and the `bom` / text facts that name the KEE | `removeBlackHoleCompressorRecipe = true` (with it false, the BHC is still the pack's compressor) |
-| E10-E19, E20-E25, E37, E40, E63, E64 | `replaceTecTechEyeOfHarmony = true` |
-| E26-E36, E38, E39, E41-E62 | nothing beyond `questbookPackEdits` (layout moves) |
+| E10-E19, E20-E25, E37, E40, E43-E46, E63, E64 | `replaceTecTechEyeOfHarmony = true` (E43-E46 since B-111: the Eternity swap, SL-Q26, only runs with it; with it off the four stay in UMV as the pack has them) |
+| E26-E36, E38, E39, E41, E42, E47-E62 | nothing beyond `questbookPackEdits` (layout moves) |
 
 With either removal flag off, its edits are skipped, the fallback quest (48103 or 48109) is emitted, and our quests
 that named the edited quest as a prerequisite keep naming the pack id. The pack quest still exists, unedited.
@@ -1393,7 +1400,7 @@ writes the filter against it.
 | QB-2 | T8 optional (D-42) or required? | Required (D-49 strict ladder, P4 §5.4) | Keep required. |
 | QB-3 | MAX parts: 13 placeholders in the mockup | 1 hub + 4 groups + MAX Circuits | Expand in P5. |
 | QB-4 | Recipe moves (Hexanite on the T4 Eye, the Reinforced Resonance Chamber on the T4 Eye, the BEC condensates) | No placeholder quests | Add quests when built. |
-| QB-5 | Eternity, MMM, Perfected and The SUCC stage in The Endgame until `eternityOnErgomatter` | As in §3.5 | — |
+| QB-5 | Eternity, MMM, Perfected and The SUCC stage in The Endgame until `eternityOnErgomatter` | **Done (B-111):** the flag is on; the four sit in UXV under Ergomatter, gated on `replaceTecTechEyeOfHarmony` | — |
 | QB-6 | "Constrained Eternity Parts" (the mockup's new quest) | Dropped. The Door to Heaven? gains MHDCSM + Resplendent instead. | — |
 | QB-7 | The trophy quests now consume 12 / 8 of **our** Eye controllers | E63 / E64 | **Settled 2026-10-13: "Keep as trophies"** (the trophy quests keep consuming our Eye controllers). Built as is. |
 | QB-8 | Homogeny placeholders shown although the Homogeny is on HOLD | 48118, 48142, 48184 | Keep; they say "planned". |
@@ -1401,7 +1408,7 @@ writes the filter against it.
 | QB-10 | Eye T1 gains Godforge T2 ("A Second Ring has Hit the Godforge") as a prerequisite (D-41) | E10 `addPrereq` | — |
 | QB-11 | Magnetic Monopole Matter dropping MHDCSM (D-48 proposal) is staged behind `eternityOnErgomatter`; the RC-2 Magmatter route (Godforge exotic module and upgrade costs) was not fully audited | — | Audit with the UXV swap. |
 | QB-12 | Pack edits are runtime-only; `DefaultQuests` pack files are never written | §4 | — |
-| QB-13 | T8: Tipler keeps its pack prerequisites (MHDCSM, Resplendent), so the Eye T8 gate sits behind Universium | — | P4's gate audit must clear it, as SL-P33 did for T5. |
+| QB-13 | T8: Tipler keeps its pack prerequisites (MHDCSM, Resplendent), so the Eye T8 gate sits behind Universium | **Done:** E24 sets its prerequisite to T7: Perfect; P4's SL-P40 makes Resonance Chamber IV without MHDCSM, and P4's gate audit finds compression T1-T9 clean (B-111 says so in E24's text) | GT's own chamber IV recipe still shows in NEI (B-110 question 1) |
 
 ---
 
