@@ -5997,6 +5997,51 @@ post-UEV gameplay you asked to see.
 
 ---
 
+### B-130 Circuits v2, phase C1: the items, their ore names, the config keys [circuits branch, built]
+
+**Context.** Brief items 31-33: the Sidereal (UMV), Empyrean (UXV) and Omega (MAX) circuit families. The design repo's
+`designs/docs/circuits-v2.md` is now revision 3 (design repo `89542a5`): your answers to its ten open questions,
+in your words ("No offset, build until finished please"; "Any of the tier such as the (any uxv) forming oress
+recipe"; "Yes, slightly better"; "just a normal amoutn yo uthink is fair"). So: no `bootstrapCompensation` and no
+SL-G14..G16, no special casing (every card keeps GT's any-of-tier ore-dict circuit slot and ours fill it), and our
+Mainframes go in the computer rack slightly better than stock.
+
+**What was built (C1).**
+- `items/SLCircuitItems.java`: 28 plain meta-0 items (Stellar Boule and Wafer, 5 Stellar SMDs, and per family a
+  wafer, a chip, a board and Processor / Assembly / Supercomputer / Mainframe), registered after `SLQuasarItems`.
+  In preInit the twelve circuits join GT's circuit ore names (`circuitInfinite`, `circuitBio`, `circuitOptical`,
+  `circuitExotic`, `circuitCosmic`, `circuitTranscendent`, by tier as spec §1.3) and are unification-blacklisted,
+  the coremod's Piko / Quantum / Planck pattern. No other item has an ore name.
+- `Config`: `stellarCircuits`, `nacCircuitComponents`, `raiseStockSpecialCircuits` (on by default, your ruling),
+  `stockSpecialCircuitEnergyFactor` 2.5, `stockSpecialCircuitMaterialFactor` 2.0. No compensation key.
+- `stellarCircuits=false`: the items still register (stable world registry), get no ore name, are hidden from NEI
+  (`NEIBTSConfig`) and their tooltip reads "Disabled by config".
+- Lang: 28 names, 28 tooltips (GT layout: tier and family, "counts as a <tier> circuit in every recipe that takes any
+  <tier> circuit", the star matter it is printed on, where it is made; Mainframes also show their rack numbers), and
+  the 34 NAC component keys that phase C5 will use (`gt.circuitcomponent.bts.<name>`,
+  `gt.circuitcomponent.bts.processed.<name>`).
+- Textures: `tools/gen-sl-textures.js` paints all 28 (the 12 circuits as 8-frame shimmer strips) and the 11 NAC
+  processed icons, which go into the `gregtech` asset domain (`gt.circuitcomponent/processed/bts_processed*.png`,
+  where GT looks them up). Palettes: Stellar orange, Sidereal gold, Empyrean white-blue, Omega violet-black, in our
+  own shapes (not GT's reserved Exotic / Cosmic / Transcendent art).
+
+**Checks.** `spotlessApply compileJava` clean; `node tools/gen-sl-textures.js --check`: all 165 textures match (the
+126 existing ones unchanged). Headless `runServer` on this worktree (port 25631, fresh flat world `circuits-c1`):
+boot log "Circuits v2: 12 circuits in GT's circuit ore names", "Recipe registration complete: 311 registered, 0
+skipped" (unchanged: C1 adds no recipe), the config file holds the five keys and no `bootstrapCompensation`.
+`/btsrecipes circuits` (the C1 check verb): every circuit has exactly its §1.3 ore name, `PASS ... 28 items
+registered, 12 circuits checked, 0 problem(s)`.
+
+**Judgement calls (no decision needed unless you disagree).**
+1. **Rack numbers** (spec §3.4): Sidereal 280 computation / 11 heat / max heat 10,000; Empyrean 340 / 9 / 10,500;
+   Omega 380 / 7 / 10,500 (cool -1, sub-zero, as stock), against Piko 260 / 12 / 9,500, Quantum 320 / 10 / 10,000,
+   Planck 360 / 8 / 10,000. "Slightly better" read as +20 computation, one less heat and +500 heat headroom; each
+   stays under the next stock tier. Registered in phase C2.
+2. **The check verb** lives on `/btsrecipes circuits` (the spec named an `SLConsoleTest` verb, but SLConsoleTest is a
+   helper class, not a command). Phase C2 extends the same verb with recipe lookups.
+3. **Disabled tooltip** keeps the item names (only the tooltip changes), so a world that turns the flag off still
+   shows what the items were.
+
 ## Where the old question numbers went
 
 | Old | Now | Old | Now | Old | Now |
