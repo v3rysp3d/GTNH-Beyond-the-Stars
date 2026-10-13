@@ -7829,13 +7829,16 @@ bound, 32 steps at L1.
 
 **Checked.** Both profiles of `bts_blackhole` compile and link (`-Dbts.render.selftest=true`); 60 AFTER shots at the
 BEFORE poses (6 cases x 5 views x day / night), 60 LOW shots (match BEFORE), 16 L0 shots; a one-minute clip
-(`tools/recording/renders-kerr.shots`: night orbit, L0 close-up with the bent cage, the window, day). The window view
+(`tools/recording/renders-kerr.shots`: night orbit, L0 close-up with the bent cage, the window, day, then the hole
+switched off and on: it shrinks to a point in a blue-white Hawking flash and grows back behind the white opening ring,
+both seen in game). Finding from the clip: a KEE whose hole is closed by `/btskerr render ... close` re-opens at once
+when it auto-seeds, so GT's collapse is cut short and the hole snaps to a point and regrows (GT's behaviour, not the
+render's). The window view
 (R-02): through the glass the shadow sits behind the controller, the photon ring and the arcs show round it and the
 edge-on disc as a thin gold line either side, by night clearly, by day faintly.
 
 **Not verified.** Angelica's core profile in Angelica itself (as R-10); a shaderpack (the screen copy switches off by
-`ShaderpackProbe`, untested with a real pack); the opening / Hawking flashes in game (drawn in the prototype at fixed
-ages; the harness holds open holes).
+`ShaderpackProbe`, untested with a real pack).
 
 **Suggestion.** Accept the look and the deviations above. For the T2 hero over budget: accept (the view only occurs
 standing inside the cage next to the hole), or drop L1 to 26 steps above 250 px (a small loss at the shadow's edge).
