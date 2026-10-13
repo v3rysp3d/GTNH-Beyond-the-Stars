@@ -82,8 +82,8 @@ public final class GuiShotsClient {
     public static final boolean ENABLED = Boolean.getBoolean("bts.guishots");
 
     private static final String WORLD = "bts-guishots";
-    private static final int WIDTH = Integer.getInteger("bts.guishots.width", 1600);
-    private static final int HEIGHT = Integer.getInteger("bts.guishots.height", 900);
+    private static final int WIDTH = Integer.getInteger("bts.guishots.width", 1920);
+    private static final int HEIGHT = Integer.getInteger("bts.guishots.height", 1080);
 
     private final Minecraft mc = Minecraft.getMinecraft();
     private final File dir;
@@ -395,6 +395,15 @@ public final class GuiShotsClient {
                     finish();
                     return;
                 }
+                case "find": {
+                    // find <MTE class simple name> <x> <y> <z> <r>: where those machines stand (server)
+                    final String cls = a[1];
+                    final int x = Integer.parseInt(a[2]), y = Integer.parseInt(a[3]), z = Integer.parseInt(a[4]),
+                        r = Integer.parseInt(a[5]);
+                    pending = RenderTest.onServer(() -> find(cls, x, y, z, r));
+                    waitLeft = 1;
+                    break;
+                }
                 case "probe":
                     pending = RenderTest.onServer(GuiShotsClient::probe);
                     waitLeft = 1;
@@ -516,7 +525,17 @@ public final class GuiShotsClient {
                 waitLeft = -1;
                 currentTicks = 0;
             } else if (currentTicks > 1200) {
-                say("  the client never got the machine at " + guiAt[0] + " " + guiAt[1] + " " + guiAt[2]);
+                say(
+                    "  the client never got the machine at " + guiAt[0]
+                        + " "
+                        + guiAt[1]
+                        + " "
+                        + guiAt[2]
+                        + " (client tile: "
+                        + (te == null ? "none"
+                            : te.getClass()
+                                .getSimpleName())
+                        + ")");
                 finish();
             }
             return;
@@ -534,34 +553,49 @@ public final class GuiShotsClient {
             if (ms == null) {
                 say("  not a ModularUI screen");
             } else if (clickButton >= 0) {
-                // through the screen's own mouseClicked / mouseMovedOrUp, as a real click arrives
-                final com.cleanroommc.modularui.widget.sizer.Area a = ms.getMainPanel()
-                    .getArea();
-                final int gx = a.x + fakeX, gy = a.y + fakeY;
-                try {
-                    final java.lang.reflect.Method down = cpw.mods.fml.relauncher.ReflectionHelper.findMethod(
-                        GuiScreen.class,
-                        mc.currentScreen,
-                        new String[] { "mouseClicked", "func_73864_a" },
-                        int.class,
-                        int.class,
-                        int.class);
-                    final java.lang.reflect.Method up = cpw.mods.fml.relauncher.ReflectionHelper.findMethod(
-                        GuiScreen.class,
-                        mc.currentScreen,
-                        new String[] { "mouseMovedOrUp", "func_146286_b" },
-                        int.class,
-                        int.class,
-                        int.class);
-                    down.invoke(mc.currentScreen, gx, gy, clickButton);
-                    up.invoke(mc.currentScreen, gx, gy, clickButton);
-                    say("  clicked button " + clickButton + " at " + fakeX + ", " + fakeY);
-                } catch (ReflectiveOperationException | RuntimeException bad) {
-                    say("  click failed: " + bad);
+                // the widget under the fake mouse (MUI2's own hover, computed in the last frame) gets the press
+                final com.cleanroommc.modularui.api.widget.IWidget hovered = ms.getContext()
+                    .getHovered();
+                say(
+                    "  mouse " + ms.getContext()
+                        .getMouseX()
+                        + ","
+                        + ms.getContext()
+                            .getMouseY()
+                        + " hovers "
+                        + (hovered == null ? "nothing"
+                            : hovered.getClass()
+                                .getSimpleName()));
+                if (hovered instanceof com.cleanroommc.modularui.api.widget.Interactable) {
+                    final com.cleanroommc.modularui.api.widget.Interactable w = (com.cleanroommc.modularui.api.widget.Interactable) hovered;
+                    final Object r = w.onMousePressed(clickButton);
+                    w.onMouseRelease(clickButton);
+                    say("  pressed: " + r);
                 }
             } else {
                 final UpOrDown dir = scrollNotches > 0 ? UpOrDown.DOWN : UpOrDown.UP;
-                for (int i = 0; i < Math.abs(scrollNotches); i++) ms.onMouseScroll(dir, 1);
+                // every widget under the fake mouse, top first, until one takes the wheel (a list's scroll area)
+                int taken = 0;
+                try {
+                    // a scroll area reads the wheel amount from the context (normally the input event's)
+                    final Field wheel = com.cleanroommc.modularui.screen.viewport.GuiContext.class
+                        .getDeclaredField("mouseWheel");
+                    wheel.setAccessible(true);
+                    wheel.setInt(ms.getContext(), dir.isDown() ? -120 : 120);
+                } catch (ReflectiveOperationException | RuntimeException bad) {
+                    say("  wheel amount not set: " + bad);
+                }
+                for (int n = 0; n < Math.abs(scrollNotches); n++) {
+                    for (com.cleanroommc.modularui.api.widget.IWidget w : ms.getContext()
+                        .getAllBelowMouse()) {
+                        if (w instanceof com.cleanroommc.modularui.api.widget.Interactable
+                            && ((com.cleanroommc.modularui.api.widget.Interactable) w).onMouseScroll(dir, 1)) {
+                            taken++;
+                            break;
+                        }
+                    }
+                }
+                say("  wheel taken " + taken + " of " + Math.abs(scrollNotches));
                 say("  scrolled " + scrollNotches);
             }
             clickButton = -1;
@@ -585,6 +619,30 @@ public final class GuiShotsClient {
             .getCommandManager()
             .executeCommand(p, command);
         return "command returned " + r;
+    }
+
+    private static String find(String cls, int x, int y, int z, int r) {
+        final StringBuilder sb = new StringBuilder("found:");
+        for (Object o : RenderTest.world().loadedTileEntityList) {
+            if (!(o instanceof IGregTechTileEntity)) continue;
+            final IGregTechTileEntity te = (IGregTechTileEntity) o;
+            final IMetaTileEntity mte = te.getMetaTileEntity();
+            if (mte == null || !mte.getClass()
+                .getSimpleName()
+                .equals(cls)) continue;
+            if (Math.abs(te.getXCoord() - x) > r || Math.abs(te.getYCoord() - y) > r
+                || Math.abs(te.getZCoord() - z) > r) continue;
+            sb.append(" [")
+                .append(te.getXCoord())
+                .append(' ')
+                .append(te.getYCoord())
+                .append(' ')
+                .append(te.getZCoord())
+                .append(" facing ")
+                .append(te.getFrontFacing())
+                .append(']');
+        }
+        return sb.toString();
     }
 
     /** The server's view of the open container (diagnostics). */
