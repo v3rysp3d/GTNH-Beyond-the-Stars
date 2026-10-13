@@ -7,6 +7,7 @@ import java.util.Locale;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -35,6 +36,10 @@ import gregtech.api.metatileentity.implementations.MTEHatchInput;
  * <li>Bench: {@code pair x1 y1 z1 x2 y2 z2}, {@code throat x y z mk}, {@code fuel x y z on|off} (fills or empties an
  * element's fuel hatches), {@code junction x y z c k p3 [split|combine]}, {@code rebuild x y z} (re-projects any
  * of our multis at x y z).</li>
+ * <li>Persistence bench (B-112): {@code nbt x y z [key ...]} prints what any GT machine at x y z would save now (by
+ * default our {@code bts*} keys and GT's run progress; read straight after a restart it is what the chunk held on
+ * disk); {@code burstmode x y z [place|mode]} places a lone Burst Control Hatch (chunk force-loaded) and sets its mode
+ * as the GUI does.</li>
  * </ul>
  */
 public class CommandBTSConduit extends CommandBase {
@@ -49,7 +54,7 @@ public class CommandBTSConduit extends CommandBase {
         return "/btsconduit status x y z | dock x y z | rig x y z | rig status | pair x1 y1 z1 x2 y2 z2 | throat x y z mk"
             + " | fuel x y z on|off | junction x y z c k p3 [split|combine] | rebuild x y z [tier] | keep x1 y z1 x2 z2"
             + " | survival x y z mouth|mirror|junction|crown1|crown2|crown3 [facing|up|down] [creative]"
-            + " | inject rx ry rz qx qy qz bu | inject rx ry rz off";
+            + " | inject rx ry rz qx qy qz bu | inject rx ry rz off | nbt x y z [key ...] | burstmode x y z [place|mode]";
     }
 
     @Override
@@ -233,6 +238,92 @@ public class CommandBTSConduit extends CommandBase {
                 for (String line : ConduitKit.survivalTest(world, x, y, z, args[4], dir, creative)) {
                     SLConsoleTest.tell(sender, line);
                 }
+                return;
+            }
+            case "nbt": {
+                // nbt x y z [key ...]: what the machine at x y z would save now (B-112 persistence bench). Read right
+                // after a restart, before anything ticks it, it is what the chunk held on disk. Default keys: ours
+                // (bts*) and GT's run progress.
+                SLConsoleTest.loadChunks(world, new int[] { x, 0, z, x, 255, z }); // from disk if not loaded
+                final TileEntity te = world.getTileEntity(x, y, z);
+                if (!(te instanceof IGregTechTileEntity) || ((IGregTechTileEntity) te).getMetaTileEntity() == null) {
+                    SLConsoleTest.tell(sender, "nbt: no GT machine at " + x + "," + y + "," + z);
+                    return;
+                }
+                final IMetaTileEntity m = ((IGregTechTileEntity) te).getMetaTileEntity();
+                final NBTTagCompound tag = new NBTTagCompound();
+                m.saveNBTData(tag);
+                final List<String> wanted = Arrays.asList(args)
+                    .subList(4, args.length);
+                final StringBuilder sb = new StringBuilder(
+                    "nbt " + x
+                        + ","
+                        + y
+                        + ","
+                        + z
+                        + " "
+                        + m.getClass()
+                            .getSimpleName()
+                        + " t="
+                        + world.getTotalWorldTime()
+                        + ":");
+                final java.util.TreeSet<String> keys = new java.util.TreeSet<>();
+                for (Object k : tag.func_150296_c()) keys.add((String) k);
+                for (String k : keys) {
+                    final boolean pick = wanted.isEmpty()
+                        ? k.startsWith("bts") || k.equals("mProgresstime") || k.equals("mMaxProgresstime")
+                        : wanted.contains(k);
+                    if (!pick) continue;
+                    String v = tag.getTag(k)
+                        .toString();
+                    if (v.length() > 160) v = v.substring(0, 160) + "...";
+                    sb.append(' ')
+                        .append(k)
+                        .append('=')
+                        .append(v);
+                }
+                SLConsoleTest.tell(sender, sb.toString());
+                return;
+            }
+            case "burstmode": {
+                // burstmode x y z [place|<mode>]: a lone Burst Control Hatch (its chunk force-loaded) and its mode, set
+                // the way the GUI sets it (B-112 persistence bench)
+                if (args.length > 4 && args[4].equalsIgnoreCase("place")) {
+                    com.nateyburr.beyondthestars.machines.kerr.KerrTestBench
+                        .keep(world, new int[] { x, 0, z, x, 255, z });
+                    SLConsoleTest.loadChunks(world, new int[] { x, 0, z, x, 255, z }); // setBlock needs it loaded
+                    final boolean placed = com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1.placeGtMachine(
+                        world,
+                        x,
+                        y,
+                        z,
+                        (short) com.nateyburr.beyondthestars.machines.BTSMachines.burstControlHatch.getItemDamage(),
+                        ForgeDirection.NORTH);
+                    SLConsoleTest.tell(
+                        sender,
+                        "burstmode: placed " + placed
+                            + ", block "
+                            + world.getBlock(x, y, z)
+                                .getUnlocalizedName()
+                            + ", id "
+                            + com.nateyburr.beyondthestars.machines.BTSMachines.burstControlHatch.getItemDamage());
+                }
+                final com.nateyburr.beyondthestars.machines.conduit.MTEHatchBurstControl h = mte(
+                    world,
+                    x,
+                    y,
+                    z,
+                    com.nateyburr.beyondthestars.machines.conduit.MTEHatchBurstControl.class);
+                if (h == null) {
+                    SLConsoleTest.tell(sender, "burstmode: no Burst Control Hatch at " + x + "," + y + "," + z);
+                    return;
+                }
+                if (args.length > 4 && !args[4].equalsIgnoreCase("place")) {
+                    final com.nateyburr.beyondthestars.machines.conduit.MTEHatchBurstControl.Mode mode = com.nateyburr.beyondthestars.machines.conduit.MTEHatchBurstControl.Mode
+                        .parse(args[4]);
+                    if (mode != null) h.setModeOrdinal(mode.ordinal());
+                }
+                SLConsoleTest.tell(sender, "burstmode " + x + "," + y + "," + z + ": " + h.getMode());
                 return;
             }
             case "keep": {
