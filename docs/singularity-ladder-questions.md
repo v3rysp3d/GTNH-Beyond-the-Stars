@@ -8158,3 +8158,108 @@ looks are checked by the frozen harness cases.
 
 **Suggestion.** Accept the looks, the deviations and the extended R-04 fields. Shots: local work folder
 `renders/galaxies/after-*.png`, `after-low-*`; clip `video/renders/galaxies-v2.mp4`.
+
+### R-15 The machines without a render tile, renders v2 (WP-6..WP-8): the Homogeny's vortex, both Reality machines, the conduit's streams, portals and crowns [renders v2, judgement + finding]
+
+**What was built.** The four machine families that drew nothing now render through GT's `IMTERenderer` hook in their
+controllers (R-05 as recommended), with their inputs on GT's render-data channel (spec §13: sent every 1-2 s to the
+players in range, never in the machine's saved NBT or an item). Code: `client/render/MachineFx`, `MachineFrame`,
+`DeferredDraws`, GLSL `shaders/fx/`; `machines/homogeny/HomogenyRender`, `machines/reality/RealityRender`,
+`machines/conduit/ConduitRender`; notes in `docs/render-kit.md`. What a player sees:
+
+- **The Homogeny** (spec §11, my "Mixer" sketch): a swirling column of plasma inside the glass mixing column:
+  one braid per tier (T1 one, T2 two, T3 three) spiralling up a funnel that is fat in the middle and narrow at the
+  caps, each braid in its feed's colour at the bottom (taken from the fluids in the input hatches, else a palette per
+  tier: orange, magenta, violet) turning into the product's colour toward the top, so the mix visibly homogenises as it
+  rises; a turbulent swirling sheath; at T3 a bright core thread up the axis; the green shear helix glows on the inside
+  of the glass with pulses running up it; an arcing feed stream from every vessel (three at T1, six from T2) over the
+  volute into the column, in that vessel's colour; a glow over the top cap. Running: bright and fast; idle: a dim,
+  slow swirl (eased over 1-2 s from GT's active flag).
+- **Reality Diffraction** (§12, the sketch): the beam rises up the spine through three faceted lenses that glow amber
+  and disperse a rainbow round their facets; in each upper drum the lens fans the light into two thin rainbow sheets
+  toward that drum's region blades, with interference fringes running outward; the two region clouds of each drum
+  billow in their regions' colours (Hyperspace blue, Subspace violet, Forward Time gold, Reverse Time green, Positive
+  Mass red-orange, Negative Mass pink), an unanchored region's cloud flickering dim; the Entanglement Medium swirls in
+  the bottom drum toward the spine; faint fringes ripple over every deck band; the phase rings' field is a rim-lit
+  sphere of shimmering hexagonal cells round the whole machine; each red anchor pulses while its region is held, and
+  the blades and the apex crystal glow.
+- **Reality Refab**: a twisted, knotted stream of matter up the hourglass spindle; over each red tray two holographic
+  glyph rings (angular glyphs on a 4 x 5 grid, re-writing now and then, with edge lines, flicker and scanlines) turn
+  against each other while small glowing voxels fly in from outside and lock into their cells; the Reality Focus and
+  the Ground Anchor crystal glow, the Focus sends a slow beam up, the six Region Receivers glow in their regions'
+  colours.
+- **The conduit** (§10): every out-throat that sent a stream last second draws it along its normal to where its route
+  ends (the jet look: white core, violet sheath, a helical strand, knots at the stream's rate, wider and brighter with
+  its Bu/t, glows where it leaves and enters; a stream that reaches nothing fades out over the ray's range). A
+  **Wormhole Mouth** shows a portal in its ring: a bent starfield and nebula of somewhere else inside a bright blue
+  rim, full while paired with a live partner, faint while open and unpaired, a dim rim while closed. A docked **crown**
+  glows with the burst it takes: white at the intake to deep orange, a heat column up its cup and a shimmer over it,
+  by its Bu/t against its Mk's cap.
+
+LOW quality, a shader that does not bake or a GL error: nothing, as before v2 (these machines had no render). The LOW
+shots match BEFORE.
+
+**Sync (render data, never saved).** Homogeny: tier (0 unformed), three feed colours and the product colour. Reality:
+formed, the anchored regions (or those of the running run), the run's progress. Conduit element: open, linked (a
+mouth: paired with a live partner), and per throat Bu/t out and in, the route's length and kind. Crown: Mk, stream and
+thermalised Bu/t. Each MTE's server tick sends it (`sendRenderDataToClient`, players within 256 blocks).
+
+**Judgement calls and findings.**
+
+1. *The draws run after the translucent pass.* GT calls `renderTESR` in render pass 0 only, before TecTech's Quantum
+   Glass, a pass-1 blended block: drawn first, the vortex and the drums' clouds were swallowed by the glass (the first
+   AFTER pass showed plain glass while the vortex cost 0.5 ms). Each hook now queues its draw (`DeferredDraws`) and
+   runs it from `RenderWorldLastEvent`, after the translucent pass, as the Eye's see-through layers draw in pass 1.
+   Under a shaderpack, `RenderWorldLastEvent` may land in a different pipeline stage: not checked (as R-10..R-14 for
+   Angelica).
+2. *Geometry from the mockup.* `MachineFrame` places `designs/voxel.js` coordinates from the controller (the
+   manifest's `turns` and `centre.rel`), so the volumes fill exactly the air the mockup left for the render (the
+   Homogeny's column r < 12 between y -26 and 26, the Diffraction's drums between the deck bands, its spine r < 3.9).
+3. *Volumes, not sprites.* The vortex and the drums are ray-marched inside an elliptic cylinder whose back faces alone
+   shade, so blocks in front (helix, rails, ribs, bands) hide them correctly. Thin features that a few steps would
+   miss are analytic: the shear helix's glow once per wall crossing, the rainbow fans and the floor fringes where the
+   ray crosses their planes; the march dithers its start with interleaved gradient noise (white-noise jitter read as
+   grain on the glass).
+4. *Spec deviations.* The vortex has one braid per tier as the spec says, but the swirling sheath and the colour mix
+   along the height carry most of the look; the machines' GUI render switches are not built (the client keys
+   `renderHomogeny`, `renderReality`, `renderConduit` are); Refab's glyphs are procedural in the shader instead of a
+   16 x 16 glyph atlas texture; the Diffraction's field sphere is the phase rings' superellipse rounded to a sphere of
+   radius 47.
+5. *Harness.* New cases `homogeny_top_run`, `homogeny_t1_run`, `reality_diffraction_run`, `reality_diffraction_unheld`,
+   `reality_refab_run` (client overrides: activity, tier or the held mask) and `conduit_stream` (mouth B -> mirror 1 ->
+   the junction -> mirror 2, seen from the east). The harness's conduit rig cannot form mouth A at its site height, so
+   no stream reaches the conduit there by itself: `conduit_stream` forces 200 Bu/t on the client and traces each
+   stream's length through the client world (`ConduitRender.debugLook`). The close / hero views of the Homogeny and
+   the Reality machines now look at their real render centres from outside the glass (`Built.focus`; the poses file
+   keeps the box centre as its anchor); the poses are appended to `tools/rendertest/poses.tsv` and the BEFORE close /
+   hero shots re-taken there (the LOW run; still no render).
+
+**GPU (dev rig, RTX 4090, 1280 x 720, fixed poses, `GL_TIME_ELAPSED`, single draw; CPU with the timer on, budget in
+brackets).**
+
+| Object | Budget (dev) | Far views (front, 34) | Close views (close, hero; level for Diffraction) | CPU |
+|---|---|---|---|---|
+| Homogeny vortex | 0.07 ms | 0.03-0.04 ms | 0.14-0.18 ms (12 steps; L0 is 10 since) | 0.04-0.056 ms (0.03) |
+| Reality Diffraction | 0.07 ms | 0.026-0.036 ms | 0.087-0.124 ms | 0.056-0.069 ms (0.03) |
+| Reality Refab | 0.07 ms | 0.003 ms | 0.001-0.005 ms | 0.06-0.07 ms (0.03) |
+| Conduit (all elements in view) | 0.05 ms | 0.001-0.007 ms | 0.002-0.0095 ms | 0.026-0.07 ms (0.05) |
+
+Over budget: the Homogeny's and the Diffraction's close views (a column or the drums filling most of the frame) at
+2-2.5x and 1.7x, and the CPU and draw calls of the Reality machines (up to 19-20 draws against 8, mostly glow sprites,
+each its own program bind). The first builds cost 0.5 ms (vortex) and 0.2-0.44 ms (drums); the analytic wall and
+sheet terms, the march limited to the funnel and fewer steps brought them here.
+
+**Checked.** Both profiles of `bts_mvol`, `bts_beam` and `bts_mfx` compile and link (`-Dbts.render.selftest=true`,
+0 failures); AFTER shots at the fixed poses for 12 cases x 5 views x day / night (Homogeny and Reality from the second
+tuning pass, the conduit from the first), 90 LOW shots; spotless and compile clean.
+
+**Not verified.** Angelica and a shaderpack (as R-10..R-14); a clip (WP-9: the Reality machines need the `becnet`
+bench to run for real, the Homogeny `/btshr ... fill`); the conduit with a real stream from a quasar (the harness rig's
+mouth A does not form, see 5); the vortex at 10 steps (the shots are at 12).
+
+**Suggestion.** Accept the looks and the deviations. For the budget, either accept the close views (they are the
+"standing at the glass" views; every far view is well inside) or, recommended for WP-10: a batched glow-sprite program
+(one draw for all of a machine's glows: Reality to about 8 draws and inside the CPU budget) and drawing the two
+volumes at half resolution into an off-screen target when they fill more than a third of the screen. Shots: session
+local work folder `renders/homogeny|reality|conduit/after-*.png`, `after-low-*`, `before-*` (re-taken close / hero),
+`after-fps.tsv`; `renders/compare.html#machines`.
