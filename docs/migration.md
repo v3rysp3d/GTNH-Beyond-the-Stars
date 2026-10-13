@@ -191,3 +191,30 @@ Compressor / Extractor Module assembly-line recipes keep their inputs and now ma
 **Settings that changed meaning.** The setpoint is now any whole number of SM (2-64, or 2-512 with the Density
 Upgrade); an old setpoint carries over. "Auto" (on by default) keeps the old behaviour: a Black Hole Seed or
 Collapser placed in a bolt bus acts on its own.
+
+## Beyond the Stars: Circuits v2 (Sidereal, Empyrean, Omega)
+
+Three new circuit families, made in stock GT machines and in the Nanochip Assembly Complex (NAC). The config switches
+are in `config/beyondthestars.cfg`, category `general`.
+
+**Empty the NAC's Vacuum Conveyors of Beyond the Stars components before you remove the mod** (or before you run a
+build whose NAC patch is inactive; the log says "NAC patch inactive" once). Our 34 NAC components (`BTS_...`, ids
+10000-10211) exist only while the mod's patch is loaded. When a saved conveyor or module holds a component the game no
+longer knows, it is **deleted** on load, not crashed: the log names each one once, with its amount. Get them back
+out as items first, the way you would GregTech's own components, then remove the mod.
+`nacCircuitComponents=false` does not delete anything: the components stay known and can still leave the NAC, only our
+NAC recipes and the item -> component conversions stop.
+
+**Piko, Quantum and Planck cost more** (`raiseStockSpecialCircuits`, default `true`; factors
+`stockSpecialCircuitEnergyFactor` 2.5 and `stockSpecialCircuitMaterialFactor` 2.0). The NAC Assembly Matrix recipes
+for Piko, Quantum, the Raw Manifold Bud and Planck take 2.5x the time and twice the items and fluids. A run already in
+the matrix when you update finishes at the old price. With the switch off, the stock recipes are untouched.
+
+**`stellarCircuits=false`** keeps the 28 items registered (so nothing in a world disappears) but hides them from NEI,
+gives them no recipe and no circuit ore name, and their tooltip says "Disabled by config". Circuits already crafted
+then fit no recipe until the switch is back on. The quests stay in the book; the pack-quest notes that point at our
+circuits (UMV / UXV / MAX Circuits) are taken out on the next server start, and put back when the switch is on.
+
+**Questbook.** Six quests are added to the existing chapters (Stellar Silicon, Sidereal Circuits, Stellar SMDs,
+Empyrean Circuits and Circuits in the Nanochip Complex in Tier 12 - UMV; Omega Circuits in Tier 13 - UXV), and the
+pack's UMV / UXV / MAX Circuits quests gain a note. The mod installs them on the next server start; progress is kept.
