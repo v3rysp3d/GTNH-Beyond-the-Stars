@@ -36,7 +36,7 @@ public class GRBReceptorGui extends BTSHatchGui<MTEHatchGRBReceptor> {
 
     @Override
     protected int panelHeight() {
-        return 166;
+        return 140;
     }
 
     @Override
@@ -59,10 +59,11 @@ public class GRBReceptorGui extends BTSHatchGui<MTEHatchGRBReceptor> {
         syncManager.syncValue("btsRcpReading", reading);
         syncManager.syncValue("btsRcpLife", lifetime);
 
-        box.child(line(Y_HOST, () -> tr(K + "port"), BTSGuiKit.VALUE, () -> {
+        // the panel's title names the port: the first line names the machine it feeds (B-116: it was cut)
+        box.child(line(Y_HOST, () -> {
             final String h = host.getStringValue();
             return h.isEmpty() ? "§6" + tr(K + "nohost") : h;
-        }, BTSGuiKit.LABEL).tooltip(t -> t.addLine(tr(K + "host.tip"))));
+        }, BTSGuiKit.VALUE, null, 0).tooltip(t -> t.addLine(tr(K + "host.tip"))));
         box.child(
             lampLine(
                 Y_LAST,

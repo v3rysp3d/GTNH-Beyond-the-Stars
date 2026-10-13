@@ -337,7 +337,7 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
                 value = bu > 0 ? "§6" + tr(K + "venting") + " §f" + MTEQuasarEngine.bu(bu) : "§8" + tr(K + "nodock");
             } else {
                 final boolean clipped = bu - multiblock.jetTaken(port) > 0.005;
-                value = "§b" + dock + " " + (clipped ? "§6" : "§f") + MTEQuasarEngine.bu(bu);
+                value = "§b" + shortDock(dock) + " " + (clipped ? "§6" : "§f") + MTEQuasarEngine.bu(bu);
             }
             rows.stat(
                 BTSText.lang(K + "jet." + port.key),
@@ -345,6 +345,12 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
                 BTSText.lit(jetLine(multiblock, port)),
                 BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "jet.tip")));
         }
+    }
+
+    /** A dock's name without where it leads ("Wormhole Mouth to 1, 2, 3 (dim 0)" reads "Wormhole Mouth"). */
+    static String shortDock(String dock) {
+        final int to = dock.indexOf(" to ");
+        return to > 0 ? dock.substring(0, to) : dock;
     }
 
     private void feedRow(BTSRows.Builder rows) {

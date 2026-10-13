@@ -242,7 +242,9 @@ public class ConduitElementGui<T extends MTEConduitElement<?>> extends BTSContro
             where = "§8" + tr(K + "route.none");
             tip = tr(K + "route.none.tip");
         } else if (r.kind == ConduitNet.Kind.ELEMENT || r.kind == ConduitNet.Kind.RECEPTOR) {
-            where = "§b" + r.label;
+            // "Conduit Mirror at 20265, 62, 133 (dim 0)" reads "Conduit Mirror": the place is in the tooltip
+            final int at = r.label.indexOf(" at ");
+            where = "§b" + (at > 0 ? r.label.substring(0, at) : r.label);
             tip = r.describe();
         } else {
             where = "§c" + tr(r.kind == ConduitNet.Kind.BLOCKED ? K + "route.blocked" : K + "route.lost");

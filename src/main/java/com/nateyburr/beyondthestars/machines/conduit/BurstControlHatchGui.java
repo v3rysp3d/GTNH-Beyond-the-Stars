@@ -87,8 +87,16 @@ public class BurstControlHatchGui extends BTSHatchGui<MTEHatchBurstControl> {
             final String h = hostLine.getStringValue();
             if (host.getStringValue()
                 .isEmpty()) return "§8" + tr(K + "status.none");
-            return tr(K + "status", level.getIntValue()) + (h.isEmpty() ? "" : " > §b" + h);
-        }, BTSGuiKit.LABEL, null, 0));
+            if (h.isEmpty()) return tr(K + "status", level.getIntValue());
+            // "Redstone 12 > b = 1.80" as the mockup when it fits; a long host line alone (the bar shows the level)
+            final String full = tr(K + "status", level.getIntValue()) + " > §b" + h;
+            return com.cleanroommc.modularui.drawable.text.TextRenderer.getFontRenderer()
+                .getStringWidth(full) <= TEXT_W ? full : "§b" + h;
+        }, BTSGuiKit.LABEL, null, 0).tooltipDynamic(t -> {
+            final String h = hostLine.getStringValue();
+            t.addLine(h.isEmpty() ? tr(K + "status.none") : tr(K + "status", level.getIntValue()) + " > " + h);
+        })
+            .tooltipAutoUpdate(true));
     }
 
     private void hostTooltip(RichTooltip t) {
@@ -115,7 +123,7 @@ public class BurstControlHatchGui extends BTSHatchGui<MTEHatchBurstControl> {
                 .color(0xFF555555)
                 .asWidget()
                 .textAlign(Alignment.TopLeft)
-                .size(176 - CONTROL_X - 7, 18));
+                .size(176 - CONTROL_X - 7, 27));
         column.child(
             IKey.dynamic(() -> tr(K + "edges", edges.getIntValue()))
                 .color(BTSGuiKit.PANEL_TEXT)

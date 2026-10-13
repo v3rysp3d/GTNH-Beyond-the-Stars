@@ -386,8 +386,9 @@ public final class BTSGuiKit {
 
     /** Stat (§4.3): label x 0 (§7), value right-aligned. */
     public static void paintStat(int width, String label, String value) {
-        // a long value (a route, a dock) is cut so the label keeps at least its first 40 px (B-116)
-        final int room = width - Math.min(KitDraw.width(label), 40) - 4;
+        // a long value (a route, a dock) is cut so the label keeps up to its first 64 px whole (B-116: "Out (side)",
+        // "Bottom jet" were cut to "Out (sid." / "Bottom ." in the dev client)
+        final int room = width - Math.min(KitDraw.width(label), 64) - 4;
         final int vx = KitDraw.textRightCut(value, width, 1, room, VALUE);
         KitDraw.textCut(label, 0, 1, vx - 4, LABEL);
     }

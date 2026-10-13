@@ -48,7 +48,7 @@ public class CrownGui extends BTSControllerGui<MTEBurstThermaliserCrown> {
     @Override
     protected String rightChip() {
         final int mk = multiblock.getMk();
-        return mk == 0 ? "" : BTSText.lang(K + "cap", bu(BurstRouting.crownCap(mk)));
+        return mk == 0 ? "" : BTSText.lang(K + "cap", String.format(Locale.ROOT, "%,.0f", BurstRouting.crownCap(mk)));
     }
 
     @Override
@@ -104,7 +104,7 @@ public class CrownGui extends BTSControllerGui<MTEBurstThermaliserCrown> {
         rows.stat(
             BTSText.lang(K + "port"),
             dock.isEmpty() ? BTSText.cat(BTSText.lit("§8"), BTSText.lang(K + "port.none"))
-                : BTSText.lit((dock.startsWith("misaligned") ? "§6" : "§b") + dock),
+                : BTSText.lit(portText(dock)),
             dock.isEmpty() ? BTSText.lang(K + "port.none.tip") : BTSText.lit(dock));
         if (c.receptorCount() > 0) {
             final String line = c.remoteHost()
@@ -116,6 +116,18 @@ public class CrownGui extends BTSControllerGui<MTEBurstThermaliserCrown> {
             BTSText.lang(K + "lifetime"),
             BTSText.lit(BTSFormat.eu(c.getLifetimeEU()) + " EU"),
             BTSText.lit(String.format(Locale.ROOT, "%,d EU", c.getLifetimeEU())));
+    }
+
+    /** The dock note in a few words: "§btop port" / "§bbottom port", "§6misaligned" (the full note in the tooltip). */
+    static String portText(String dock) {
+        if (dock.startsWith("misaligned")) return "§6" + tr(K + "port.misaligned");
+        if (dock.contains(" top ")) return "§b" + tr(K + "port.top");
+        if (dock.contains(" bottom ")) return "§b" + tr(K + "port.bottom");
+        return "§b" + dock;
+    }
+
+    private static String tr(String key) {
+        return net.minecraft.util.StatCollector.translateToLocal(key);
     }
 
     @Override
