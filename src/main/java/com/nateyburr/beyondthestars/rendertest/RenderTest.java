@@ -398,7 +398,7 @@ public final class RenderTest {
             + ")";
     }
 
-    private static void fly(EntityPlayerMP p) {
+    static void fly(EntityPlayerMP p) {
         p.capabilities.allowFlying = true;
         p.capabilities.isFlying = true;
         p.capabilities.disableDamage = true;
@@ -443,7 +443,7 @@ public final class RenderTest {
         return b;
     }
 
-    private static int[] loadAndKeep(World world, int[] box) {
+    static int[] loadAndKeep(World world, int[] box) {
         SLConsoleTest.loadChunks(world, box);
         hold(world, box);
         return box;

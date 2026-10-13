@@ -35,7 +35,7 @@ Most important first. "Recommended" is what we would build if you say nothing. N
 | 11 | The Homogeny turns 100 L Raw Star Matter into 1 L ESPM, so it cannot keep a T3 Eye fed (2.5 Sols' worth per Arcturus) | Keep 100 : 1 (D-46 / D-47 as ruled): the Homogeny banks a Sol surplus; Eye T2 stays required | B-80, item 4 |
 | 12 | Eye band and tier names: the code says Planetary / Galactic; mine.md proposed Stellar · Systems · Galactic · Universal | Decide them together with the per-tier Eye names you left for later (Q-13) | B-6 |
 | 13 | Numbers to tune after a playtest: the T6 shield per upkeep (K = 2), the T6 dwarf-matter reserve and top-up, the First Cooling's automatic retry, the KEE's containment draw (1 A UEV) | Keep; re-check each after playing T5 / T6 and a Kerr | B-48, B-60, B-63 |
-| 14 | The jar carries the op-only bench commands and the dev-only render-QA harness (inert without `-Dbts.rendertest=true`) | Keep both in test jars; exclude `rendertest/**` from a numbered release | B-27, B-73 item 2 |
+| 14 | The jar carries the op-only bench commands and the dev-only harnesses: render QA and the automation photo rigs (inert without `-Dbts.rendertest=true`), the questbook screenshots (`-Dbts.qbshots=true`) and the video recorder (`-Dbts.rec=true`) | Keep them in test jars; exclude `rendertest/**` and `devshots/**` from a numbered release | B-27, B-73 item 2, B-105, B-107 |
 | 15 | A numbered release name | Tag one (e.g. `0.25.0-rc2`) when you want the Mods list to show a clean version | B-33 |
 | 16 | Hand-drawn textures | Hand-polish only what players stare at: the two controller faces and the mirror and bastion walls | B-13 |
 | 17 | The Eye T10 gate part (TecTech's generators stop at tier 9) | Design it with P5 | B-3, need 3 |
@@ -118,6 +118,11 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
 - ~~Re-package the playtest jar~~: done, `master.250` carries `/btsrecipes`, the B-92 / B-93 text pass and the B-95
   fixes; `master.235` is in `dist-rc2/superseded/`. [B-105]
 - When the GUI branch merges: Harmonic Lock's "The GUI's field line counts it as Lock n/600" becomes "Lock bar". [B-93]
+- When the GUI branch merges: keep the Eye's status-line push (`refreshStatusLine`) and check the Directive Hatch's
+  height in the new layout. [B-107]
+- Cap the Eye buffers' intake (about 20 cycles of upkeep): an ME stocking input hatch empties the whole network into
+  them and starves trim buses on the same network; document it in the Eye's AE2 docs. [B-107 open work (a)]
+- A missing texture in the KEE GUI's right-hand button column (seen in the photo run). [B-106]
 
 **To see in a client** (the headless dev server cannot): the hologram hints, a survival build from a real AE system,
 the NEI multiblock tab and its frame rate (a T6 Eye is 51,935 blocks), every GUI (Eye, KEE, modules, Directive Hatch,
@@ -192,7 +197,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-95, B-105
+## Part B. Entries B-1..B-95, B-105..B-107
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -4165,6 +4170,142 @@ all new recipes too please"; the questbook re-shoot).
 
 **Suggestion.** Install `master.250` instead of `master.235` and run the guide from A1.
 
+---
+
+### B-106 Automation built for real: two photo rigs in a dev client, and what they taught [automation photos, built]
+
+*Numbered B-72 on the `autoshots` branch (master's review fixes already had B-72); B-106 since the merge (see B-107).*
+
+**What was asked.** "Since you have an automation proven, can you make me an artifact with photos of it so I can see
+an example?" The earlier proof (B-70) was scripted. This one is real blocks in a real client
+(`-Dbts.rendertest=true -Dbts.rendertest.cases=automation`, dev-only harness `rendertest/AutoRig*`), and the only
+actor on the machines is the wiring: the harness builds, reads the state once a second into `eye.tsv` / `kerr.tsv`,
+and moves the camera. Page: local work folder `autoshots/automation-example.html` (not published).
+
+**Rig A, Eye T1 (Sol), redstone and GT covers.** Kit-built Eye, Crude field generators (the offline proof's ts = tt =
+1), empty buffers. Directive Hatches in five Sensor sockets: Trims Bit 1 (Helium valve), Trims Bit 2 (Hydrogen valve),
+Status Bit 1 (both upkeep valves, through a 48-cell redstone staircase with 3 repeater landings and two ground lines
+with 5 and 6 repeaters), Trims Any (a torch NOT gate lights an "in band" lamp), Transition Code (a comparator and a
+lamp). Each valve is a GT Debug Fluid Tank (the endless supply) with a Machine Controller cover (enable with redstone)
+and a Fluid Regulator cover set to Conditional: HV 500 L/t on the trims (Sol's rig rate, 10 units/s), UV 150,000 L/t on
+the upkeep. Four Stellar Ignition Charges in the plinth bus. **Result (run 4):** the upkeep valves stocked the
+ignition in 202 s, the Eye lit itself (Sol lit at 243 s) and burned 866 s (14 cycles): 837 s Resonant (96.7 %), 29 s
+Stable, 0 worse, Integrity 100 throughout, mean Y 1.242 (the offline proof: 96.6 %, 1.242). Helium valve open 28 s
+(280,000 L), Hydrogen 1 s (the first lit second). Status bit 1 re-opened the upkeep valves 6 times as the buffers ran
+down. Star runtime test rig: off the whole time.
+
+**Rig B, Kerr T1, AE2.** Kit-built Kerr, every bolt bus emptied, hole closed. Directive Hatches in the two upper front
+utility sockets: Hole Bit 3 (bolts short, window 1 minute) and Hole Bit 1 (closed). In front of each bolt bus an AE2
+cable block with an export bus (redstone card, active with signal; the bolt bus one with 3 acceleration cards) and a
+quartz facade on top; dust on the facade in front of the hatch powers it. ME: creative-energy controller, drive (64k
+cell, 4,096 SpaceTime bolts, 4 Seeds, inserted once the camera was ready), interface, glass cable, a level emitter
+(bolts >= 512) with a lamp. **Result:** Seed out, hole open 2 s after the cell went in, 16.1 SM a second later; open
+1,002 s, 0 evaporations, mass 16.00-16.25 SM, bolt stock 57-121, bit 3 on 41 s, 1,088 bolts exported.
+
+**What failed on the way, and what changed.**
+1. *My wiring:* the 1.7.10 diode direction bits were reversed in the harness (direction 2 outputs south), so every
+   repeater faced backwards; the wire dump showed the first landing stuck. Fixed in the harness.
+2. *My wiring:* a step-up dust beside the export bus's cable block lit its lamp but not the cable block (dust powers
+   only the way it flows). Redesign: the hatch above the bus, a facade on the cable block, dust on the facade.
+3. *My rig:* one acceleration card (8 bolts a move) could not feed the hole's climb from 8 to 16 SM (bleed 1 SM/s at
+   8 SM); it evaporated twice. Three cards (64 a move) hold it. The cell also got only 64 bolts at first: GT's stack
+   helper caps an ItemStack at 64; the AE stack now carries the count.
+4. *Real bug, fixed:* the Eye's GUI head line stayed "The star is dark" while Sol burned. On GT 5.09.54 recipe checks
+   are event-driven, and a star changes state with no hatch event. The Eye now schedules a check when the star state,
+   a transition or the unlocked tier changes (`refreshStatusLine`).
+5. *Real bug, fixed:* the Directive Hatch GUI drew its four bit lines and its drive line under the player inventory
+   (ten lines in a standard hatch panel). `DirectiveHatchGui.getBasePanelHeight` adds 64 px.
+6. *Docs, fixed:* automation.md said the regulator is "enable with signal". RC-2's Fluid Regulator has no redstone
+   mode; Conditional follows the block's work flag, so a GT valve is two covers. automation.md (§2.1, §4, new §4.1,
+   the questbook text) and the Directive Hatch tooltip (two lines) now say so.
+
+**Seen, not fixed.** The KEE GUI shows a missing texture (magenta and black) in one slot of its right-hand button
+column (runs 3 and 4).
+
+**Judgement calls (please confirm or change).**
+- Trims window left at the default 10: P peaks just over +10 for one second each cycle (Stable), as the offline proof
+  does. A window of 9 would keep every second Resonant; I left the documented default.
+- Kerr bolt window 1 minute (default 10): at 16 SM the hole burns a SpaceTime bolt every 4 s, so w = 10 would keep
+  about 600-660 bolts in the bus and w = 1 keeps 60-120 (the log: 57-121). Either way the bit fires about once a
+  minute, because each export moves 64 bolts. I used 1 so the bus starts near empty and the refills show; both work.
+- The upkeep valve rate (3 M L/s) is a choice: fast enough to stock the 600 M L ignition in about 3 minutes and to
+  refill a cycle (50 M L) in about 17 s.
+- The ME cell went into the drive when the camera was ready (a harness action, logged); everything after it was the
+  wiring.
+- Not built: the OpenComputers computer (optional in the brief).
+
+**Not covered.** Tiers above T1, events (T3 flash, T6 Agent), transitions, Kerr T2, real supply chains (endless tanks,
+creative ME power), OpenComputers in a world.
+
+---
+
+### B-107 Merging autoshots into master: the photo-rig fixes and the video recorder [merge]
+
+**What was done.** The `autoshots` branch (worktree `addon-autoshots`, branched at `b4b1ad1`, the B-71 commit) is merged
+into master as one merge commit. It brings:
+
+- **Three fixes found by the automation photo run.** The Directive Hatch GUI is 64 px taller so its bit and drive lines
+  sit above the player inventory (`a98e2f9`); the Eye GUI's head line no longer says "The star is dark" while a star
+  burns: `MTEEyeOfHarmonyBTS.refreshStatusLine` pushes a recipe check whenever the star state, a transition or the
+  unlocked tier changes (`cfb2001`); a GT valve on a Directive bit is a Machine Controller cover plus a Conditional
+  Fluid Regulator cover, in `automation.md` (§2.1, §4, new §4.1), the questbook text and the Directive Hatch tooltip
+  (`9899edd`).
+- **The photo-rig harness** (`rendertest/AutoRig*`, `-Dbts.rendertest=true -Dbts.rendertest.cases=automation`) and
+  its write-up, B-106.
+- **The dev-only video recorder** (`rendertest/RecClient`, `RecScript`, `RecOverlay`, `RecServer`, `FrameRecorder`,
+  `-Dbts.rec=true`), the AE2 Eye rig (`AutoRigEyeAE`, Rig C) and the shared ME placement helpers (`MeParts`), the shot
+  scripts in `tools/recording/` and `docs/recording.md`.
+
+**Conflicts (two files, both resolved by keeping both sides).**
+
+- `ClientProxy`: master had added the questbook screenshot harness (`-Dbts.qbshots`) after the render harness; the
+  branch replaced the render-harness line with "recorder, else render harness". Kept the branch's two lines and
+  master's questbook-harness line after them, so each dev harness keeps its own switch.
+- `singularity-ladder-questions.md`: both sides added an entry numbered B-72 at the same place. Master's B-72 (review
+  fixes after the dev-server test) and B-73 stay as they are; the branch's "Automation built for real" entry is now
+  **B-106**, moved to the end of Part B with a renumbering note. The one citation of it (`automation.md` §4.1) now
+  says B-106. Master's other B-72 citations (the UMV stopgap, the chart pickup in `automation.md` §2) are master's
+  entry and were left alone. Branch commit messages keep the old number.
+
+**Auto-merged, checked by hand.** `MTEEyeOfHarmonyBTS` (the status-line fix on top of master's Eye: the hook sits
+after `publishDirectives()` in the once-a-second block), `DirectiveHatchGui` (the taller panel beside master's
+backwards Set button), `MTEHatchDirective` (two tooltip lines), `RenderTest` (`fly` and `loadAndKeep` package-private),
+`RenderTestClient` (hands over to the photo tour), `automation.md`. The `gui-clean` branch rewrites the Eye and
+Directive Hatch GUIs later; when it merges, keep the status-line push (`refreshStatusLine`) whatever the GUI's head
+line becomes, and check the Directive Hatch's height in the new layout (the old one needed the 64 px).
+
+**Doc touch-ups.** `docs/recording.md` runs from the addon root instead of the `addon-autoshots` worktree, and its
+questbook limit now says the overlay on master is the whole book (the branch's was one chapter).
+
+**Judgement calls (please confirm or change).**
+
+1. **Numbered B-106 / B-107, not B-100.** The task said "B-100 onward", but master's B-105 (written after that
+   instruction) leaves B-100..B-104 for the `gui-clean` branch's review and fix units, so this merge takes the next
+   number after B-105 and the GUI merge still needs no renumbering.
+2. **The recorder ships in the jar, inert.** Like the render and questbook harnesses, the recorder's classes are in
+   `rendertest/` and load only with `-Dbts.rec=true` (the client proxy's check); open question 14 now names it. ffmpeg
+   is not in the repo: the recorder takes its path from `-Dbts.rec.ffmpeg`. `run/` (and so `run/recordings/`) is
+   git-ignored; no video or binary was committed.
+3. **The autoshots worktree's two "modified" docs were not committed.** `git status` there lists
+   `docs/automation.md` and `docs/singularity-ladder-questions.md` as modified, but both files are byte-identical to
+   the branch head (`git diff` is empty, the blob hashes match `9899edd` / `7a2ff13`'s content): a stale index stat,
+   nothing to commit.
+
+**Open work from the branch.** (a) Rig C showed that an ME stocking input hatch in an Eye gas socket drains the whole
+network into the Eye's buffers (cap 2^62 L), which starves trim buses on the same network: cap the buffers' intake
+(recommended: about 20 cycles of upkeep) and say so in the Eye's AE2 docs; until then the rig uses a separate trim
+network and LV Field hatches (`docs/recording.md`, Limits). (b) B-106's "Seen, not fixed": a missing texture in the
+KEE GUI's right-hand button column (check after the GUI merge). (c) The final showcase recording needs the new GUIs
+and the H/R and BEC scenes on master (`tools/recording/showcase.shots` has a TODO card for them).
+
+**Merge fix (no textual conflict).** Master's tidy (`03e7d0d`, B-87) moved the kits' identical `socketRels` into
+`BTSShapes.socketRels`; the branch's `AutoRig` and `AutoRigEyeAE` still called `EyeKit.socketRels` /
+`KerrKit.socketRels` (seven calls), so they now call `BTSShapes.socketRels`. `spotlessApply` also reformatted the
+branch's later files (`AutoRigEyeAE`, `MeParts`, `RecClient`, `RecServer`; formatting only).
+
+**Checks.** `spotlessApply compileJava` passes on the merged tree. No in-game run was part of the merge; the
+recorder and photo rigs are next exercised by the showcase recording on master.
+
 ## Where the old question numbers went
 
 | Old | Now | Old | Now | Old | Now |
@@ -4196,6 +4337,10 @@ B-65..B-67, which master had already used for the D-49 review fixes, the BEC exp
 automation pass. They are now B-74..B-80: old B-60 -> B-74, B-61 -> B-75, B-62 -> B-76, B-63 -> B-77, B-65 -> B-78,
 B-66 -> B-79, B-67 -> B-80. Commit messages on the branch (and the p4-quasar branch's copy of these entries) keep the
 old numbers; master's docs and code comments use the new ones.
+
+**Automation photo rigs (merge of `autoshots`, B-107).** The branch numbered its one entry B-72, which master had
+already used for the review fixes after the dev-server test. It is now B-106 (B-100..B-104 are left for the
+`gui-clean` branch, B-105). Commit messages on the branch keep the old number; docs use the new one.
 
 ---
 

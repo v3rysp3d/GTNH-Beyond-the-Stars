@@ -89,6 +89,8 @@ public class MTEHatchDirective extends MTEHatch {
             "Goes in an Eye of Harmony Sensor socket (n) or a Kerr Ergosphere Engine utility socket (u).",
             "GUI: the set; the output (the code, one bit, any bit; invert); the window w. Comparators read the code.",
             "Codes add up: [1] [2] [4] [8] are bits 1-4, several at once. Updates every second; 0 when silent.",
+            "A GT valve on a bit: a Machine Controller cover (enable with redstone) plus a Fluid Regulator",
+            "  cover set to Conditional, both on the tank that feeds the hatch. AE2: an export bus + redstone card.",
             "§bEye Trims§7 (the star's trims, wanted when the gauge is past ±w):",
             "  T1, T2: [1] Helium (P > +w) [2] Hydrogen (P < -w)",
             "  T3: [1] Helium (P > +w or Θ < -w) [2] Hydrogen (P < -w) [4] Super Coolant (P or Θ > +w, a flash)",

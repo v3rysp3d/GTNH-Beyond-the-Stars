@@ -27,6 +27,19 @@ public class DirectiveHatchGui extends MTEHatchBaseGui<MTEHatchDirective> {
         super(hatch);
     }
 
+    /**
+     * Ten lines (machine, set, output, invert, window, the four bits, the drive line) are taller than a hatch's
+     * standard content area: without this the four bit lines and the drive line were drawn under the player inventory
+     * (seen in the automation photo run).
+     */
+    @Override
+    protected int getBasePanelHeight() {
+        return super.getBasePanelHeight() + EXTRA_HEIGHT;
+    }
+
+    /** Pixels added for the lines below the window field (five text lines and their padding). */
+    private static final int EXTRA_HEIGHT = 64;
+
     @Override
     protected ParentWidget<?> createContentSection(ModularPanel panel, PanelSyncManager syncManager) {
         // the server setter skips on to the host's next set in the direction the button moved (left click +1, right

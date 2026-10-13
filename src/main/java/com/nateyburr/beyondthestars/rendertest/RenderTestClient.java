@@ -113,6 +113,11 @@ public final class RenderTestClient {
 
     /** Called by the client proxy when {@link RenderTest#ENABLED}. */
     public static void register() {
+        if (AutoRig.ENABLED) {
+            // -Dbts.rendertest.cases=automation: the automation photo tour drives this client instead
+            AutoRigClient.register();
+            return;
+        }
         FMLCommonHandler.instance()
             .bus()
             .register(new RenderTestClient());

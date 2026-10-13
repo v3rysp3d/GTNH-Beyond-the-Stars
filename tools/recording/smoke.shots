@@ -1,0 +1,23 @@
+# Recorder smoke test (docs/recording.md): a title card, an orbit around the Eye T1 rig,
+# the Eye's GUI, an end card. About 25 s of video.
+
+# setup (never recorded)
+build eye
+time day
+
+scene title
+  card 3 Beyond the Stars | Recorder smoke test | recorded in a GTNH 2.9 dev client
+
+scene eye-orbit
+  caption Eye of Harmony, tier 1: built by its kit in a fresh creative world and wired with redstone and GT covers
+  orbit eye+0,-6,-10 radius 75 height 28 from -40 to 40 seconds 14
+
+scene eye-gui
+  caption The Eye's controller screen: what the star is doing, the field gauges and the last event
+  goto eyectrl+0,0.2,-3.5 look eyectrl
+  gui eyectrl
+  hold 4
+  close
+
+scene end
+  card 3 End of the smoke test | Full showcase to follow

@@ -88,6 +88,7 @@ import gregtech.common.tileentities.machines.IRecipeProcessingAwareHatch;
 import gregtech.common.tileentities.machines.MTEHatchCraftingInputME;
 import gregtech.common.tileentities.machines.MTEHatchInputBusME;
 import gregtech.common.tileentities.machines.MTEHatchInputME;
+import gregtech.common.tileentities.machines.RecipeCheckReason;
 import gregtech.common.tileentities.machines.outputme.MTEHatchOutputBusME;
 import gregtech.common.tileentities.machines.outputme.MTEHatchOutputME;
 import tectech.thing.casing.TTCasingsContainer;
@@ -959,11 +960,30 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             // structure puts the star out (R-8); a chunk that is not ticking freezes it.
             runtime.second();
             publishDirectives();
+            refreshStatusLine();
         }
         // GT sets the active flag from its run progress; a burning star is active too (Activity Detector).
         if (runtime.burning()) aBaseMetaTileEntity.setActive(true);
         // D-49: the centre render follows the star (not before the first walk after a load: the star is frozen).
         if (mStartUpCheck < 0) centre.tick(aBaseMetaTileEntity, getExtendedFacing(), mMachine, runtime, aTick);
+    }
+
+    /** The star state the GUI's status line last showed (GT's recipe-check result), see {@link #refreshStatusLine}. */
+    private String statusKey = "";
+
+    /**
+     * The controller GUI's head line is GT's last recipe-check result ({@link #starStatus}), and on GT 5.09.54 recipe
+     * checks are event-driven (hatches push them; no periodic poll once the machine has idled). A star lights, burns
+     * out or starts a transition with no hatch event, so the line stayed on "The star is dark" for a burning star
+     * (seen in the automation photo run). Push a check whenever the star's state, a transition or the unlocked tier
+     * changes.
+     */
+    private void refreshStatusLine() {
+        if (!mMachine) return;
+        final String key = runtime.state() + "/" + (runtime.transition() != null) + "/" + runtime.unlockedTier();
+        if (key.equals(statusKey)) return;
+        statusKey = key;
+        scheduleRecipeCheck(RecipeCheckReason.IMMEDIATE);
     }
 
     // ============================================================================ centre render

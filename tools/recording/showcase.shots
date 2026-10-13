@@ -1,0 +1,214 @@
+# Beyond the Stars - DRAFT showcase script (docs/recording.md). About 4 minutes at 1920x1080, 30 fps.
+#
+# Every rig is built by script in a fresh creative superflat world; the captions say so. What runs on its own after
+# that runs on its own: nothing is staged with commands. Time-lapses keep the game at its real rate and only thin out
+# the frames (the tag says by how much, and the clock how much real time has passed).
+#
+# Sites: Rig C, the AE2 Eye (x 2400); Rig B, the Kerr on AE2 (x 1700); the Eye tier build (x 3600); the Kerr tiers
+# (x 5000 / 5130); the build-logic Eye (x 3200); the plant tiers (x 6000 ...).
+# TODO scenes are marked; they wait for content that is not on this branch.
+
+# ---------------------------------------------------------------- setup (never recorded)
+build eyeae
+build kerr
+time day
+command /btsquests install
+# the Eye whose bands grow tier by tier: tier 1 by the dev kit with its field generators at tier 6 (gen 5), so the
+# projector can add each band in the tier scenes (a band starts only once the core below it is complete for that tier)
+kit eye 1 3600,5,4000 gen 5 name tiers
+# the two Kerr tiers side by side (tier 1 on the left as the camera sees them from the front)
+kit kerr t1 5130,36,4000 name kt1
+kit kerr t2 5000,36,4000 name kt2
+# the plant foundation at silo tiers 1-5 (/btsbuild console form), 60 blocks apart, tier 1 on the left from the front
+command /btsbuild t1 6240 5 4000 north
+command /btsbuild t2 6180 5 4000 north
+command /btsbuild t3 6120 5 4000 north
+command /btsbuild t4 6060 5 4000 north
+command /btsbuild t5 6000 5 4000 north
+
+# ================================================================ 1. title
+scene title
+  card 4 Beyond the Stars | Stars, black holes and the machines that run them | a GregTech: New Horizons 2.9 addon - recorded in game
+
+# ================================================================ 2. the AE2 Eye rig
+scene ae-intro
+  caption An Eye of Harmony, tier 1, fed and held by AE2 alone: no hand on it, no GT covers, no redstone wiring beyond one dust per bus. Built by script in a fresh creative world.
+  orbit aeeye+0,-10,0 radius 100 height 32 from -55 to 35 seconds 10
+
+scene ae-core
+  caption The main ME network (orange) in front of the Eye: it stocks the Eye's gas and ignition charges and takes its products.
+  goto ae.core+-4,4,-8 look ae.core+-4,0,1
+  label ae.tankhe side left | Gas supply: endless test tanks behind read-only fluid storage buses, standing in for your Helium and Hydrogen production (set up by script)
+  label ae.drive side up | ME drive: the ignition charges, and room for the star's products
+  hold 4
+  label clear
+  label ae.core side left | ME controller (creative energy)
+  label ae.emitter side right | Level emitter: its lamp is lit while a Stellar Ignition Charge is in stock
+  hold 3
+
+scene ae-trimnet
+  caption The trims get their own small network (light blue; cables of different colours never join). On the main one, the Eye's stocking hatch would pull every litre into the Eye's buffers and leave the trim buses dry.
+  goto ae.trimcore+4,4,-8 look ae.trimcore+4,0,1
+  label ae.trimcore side left | Trim network: its own ME controller
+  label ae.trimtank side right | and its own gas supply (test tanks, set up by script)
+  hold 6
+
+scene ae-trunk
+  caption Along the ground trunk: what the network shows the Eye, and where the Eye's products go.
+  label ae.stockbus side up | ME stocking input bus: shows the Eye an ignition charge
+  label ae.outhatch side up | ME output hatch and bus: the star's products go straight into the network
+  label ae.stockhatch side up | ME stocking input hatch: Helium and Hydrogen, drained into the Eye's buffers every second
+  goto 2366,11,3982 look 2366,4,4003
+  dolly 2366,11,3982 2434,11,3982 seconds 9 ease inout
+
+scene ae-riser
+  caption Two dense-cable risers carry the trim network 40 blocks up to the trim stations on the Eye's band.
+  label ae.riserhe side right | Riser to the Helium trim station
+  label ae.riserh side left | Riser to the Hydrogen trim station
+  dolly aeeye+0,-26,-86 aeeye+0,-12,-80 look aeeye+0,-20,-36 seconds 7
+
+scene ae-trim
+  caption A trim station. The Directive Hatch reads the star's field every second; while it wants Helium its bit is on, one redstone dust carries it onto the bus block, and the bus pushes Helium into the Field hatch.
+  goto ae.trimhe.cam look ae.trimhe+0,0.5,0
+  label ae.dirhe side up | Directive Hatch, Trims, Bit 1: on while the pressure is too high
+  label ae.trimhe side left | AE2 fluid export bus (Helium) with a redstone card: runs only while the bit is on
+  label ae.lamphe side right | Lamp on the same line: lit = Helium trim open
+  label ae.fieldhe side down | A small (LV) Field hatch, so the bus cannot stockpile trim
+  hold 7
+  caption The Hydrogen station on the far side does the same on Bit 2, when the pressure is too low.
+  hold 2
+
+scene ae-light
+  caption Now the gas supply opens and the charge cell goes into the drive (set up by script). From here nothing touches the Eye: it fills its buffers, takes a charge and lights its star by itself.
+  goto aeeye+0,-14,-88 look aeeye+0,-6,0
+  aecells
+  timelapse 30 speed 10 until aelit tail 5 clock
+
+scene ae-burn
+  caption Sol is burning. The trim buses switch on and off to hold the field; the products flow into the ME network.
+  orbit aeeye+0,-8,0 radius 80 height 20 from 30 to -30 seconds 12 speed 20 clock
+
+# ================================================================ 3. the Eye's controller screen
+scene eye-gui
+  caption The Eye's controller screen: the star's state, the field gauges, stability and yield, the last event.
+  goto aeeyectrl+0,0.2,-3.5 look aeeyectrl
+  gui aeeyectrl
+  hold 6
+  close
+
+# ================================================================ 4. Eye tiers
+scene eye-t1
+  caption Eye tiers. Tier 1, the core (19,616 blocks): plinth, band and field generators. It burns Sol, which makes Raw Star Matter. (Built by the dev kit, its generators already at tier 6, so each band can go straight on.)
+  goto tiers.c+-80,30,-80 look tiers.c+0,-8,0
+  hold 5
+
+scene eye-t2
+  caption Tier 2 adds the beam band. Its star is Sirius A (Excited Stellar Plasma). To get there: a Stellar Mass Core and the Mass Infusion transition.
+  hologram tiers survival tier 2 budget 3 every 1 tail 1.5 max 25
+
+scene eye-t3
+  caption Tier 3 adds the jet crescent. Its star is Arcturus (Raw Hyperdense Stellar Plasma). To get there: a Shell-Burning Core and the Shell Ignition.
+  hologram tiers survival tier 3 budget 3 every 1 tail 1.5 max 25
+
+scene eye-t4
+  caption Tier 4 adds the spiral arms. Its star is a neutron star (White Dwarf Matter). To get there: a Galactic Upgrade Core and the Core Collapse.
+  goto tiers.c+-112,44,-112 look tiers.c+0,-8,0
+  hologram tiers survival tier 4 budget 5 every 1 tail 1.5 max 25
+
+scene eye-t5
+  caption Tier 5 adds the second arms. Its star is Sirius B (Black Dwarf Matter). To get there: a Subspace Cooling Core and the First Cooling.
+  hologram tiers survival tier 5 budget 5 every 1 tail 1.5 max 25
+
+scene eye-t6
+  caption Tier 6 adds the galactic rim and four more stellar sockets. Its star is the magnetar (Magnetar Matter): a Magnetar Seed Core and the Magnetar Merger.
+  hologram tiers survival tier 6 budget 8 every 1 tail 1 max 30
+  caption Every tier also needs its Spacetime Compression generators, and each tier above a recipe's own doubles that recipe's parallel.
+  orbit tiers.c+0,-8,0 radius 165 height 50 from -45 to 45 seconds 9
+
+# ================================================================ 5. the Kerr
+scene kerr-rig
+  caption The Kerr Ergosphere Engine, tier 1, on AE2: one Directive Hatch per job, each switching an export bus on demand.
+  goto k.core+0,7,-22 look k.core+0,-2,8
+  label k.boltdir side up | Directive Hatch, Hole Bit 3: the bolt stock runs short
+  label k.boltbus side right | Export bus (redstone card): SpaceTime bolts into the bolt bus
+  label k.seedbus side left | Export bus: a Black Hole Seed while the hole is closed (Bit 1)
+  label k.core side down | ME controller, drive and interface
+  hold 7
+
+scene kerr-run
+  caption The cell of bolts and seeds goes into the drive (set up by script). The network seeds the hole, then feeds it bolts as it climbs to its setpoint.
+  goto kerr+60,18,-70 look kerr
+  cell
+  orbit kerr radius 90 height 22 from -40 to 40 seconds 14 speed 30 clock
+
+scene kerr-gui
+  caption The Kerr's controller screen: the hole's mass against its setpoint, the bolt stock and the modules.
+  goto keectrl+0,0.2,-3.5 look keectrl
+  gui keectrl
+  hold 6
+  close
+
+scene kerr-tiers
+  caption Kerr tiers side by side (built by the dev kit). Tier 1: setpoint 2 to 64 solar masses. Tier 2, with the Kerr Density Upgrade, a heavier shell: setpoint up to 512, and the Compressor Module gains Kerr Densification (a hole of 128 or more).
+  label kt1.c side up | Tier 1
+  label kt2.c side up | Tier 2
+  goto 5150,58,3895 look 5150,30,4040
+  dolly 5150,58,3895 4980,58,3895 seconds 10
+
+# ================================================================ 6. how a player builds one
+scene build-hints
+  caption How a player builds one. Place the controller and use a Hologram Projector on it: the whole structure appears as hints.
+  place bts.eyeOfHarmony 3200,5,4000 facing north name build1
+  goto build1+-70,45,-60 look build1+0,10,40
+  hologram build1 hints
+  hold 4
+
+scene build-survival
+  caption Sneak-use it in survival and it places the blocks from your inventory, in this order, a batch per use (items supplied by script).
+  hologram build1 survival tier 1 budget 8 every 1 tail 1 max 40
+
+scene build-form
+  caption With the hatches fitted (here by the dev kit), the controller checks the structure and forms: Eye of Harmony T1.
+  kit eye 1 build1
+  goto build1+0,0.2,-3.5 look build1
+  gui build1
+  hold 5
+  close
+
+scene build-nei
+  caption NEI shows every multiblock: the structure preview, with its tier and layer sliders, and the blocks it takes.
+  nei usage bts.eyeOfHarmony tab multiblock
+  hold 6
+  close
+
+scene build-recipe
+  caption And how the controller itself is made.
+  nei recipe bts.eyeOfHarmony
+  hold 5
+  close
+
+# ================================================================ 7. other multis of ours on this branch
+scene plant-tiers
+  caption The Nuclear Plant Foundation's silo tiers 1 to 5, raised by its dev command: bigger silo, more fuel pillars, heavier walls, a taller plant.
+  goto 6255,70,3920 look 6255,20,4040
+  dolly 6255,70,3920 5985,70,3920 seconds 12
+
+scene todo-later
+  # TODO: master content. The Bose-Einstein condensate chain is recipes only on this branch, and the Homogeny and
+  # Reality machines do not exist here; film them on master once merged.
+  card 4 Coming next | the Bose-Einstein Condensate chain, the Homogeny and the Reality machines | (not on this build yet)
+
+# ================================================================ 8. the quest book
+scene questbook
+  caption The quest book: the addon's chapter leads a player from the first plant to the endgame, one step at a time.
+  questbook chapter
+  hold 5
+  close
+  caption Each quest says what to build, what done looks like, and pays the next step's tool.
+  questbook quest 48000
+  hold 5
+  close
+
+# ================================================================ 9. end
+scene end
+  card 4 Beyond the Stars | Draft showcase - recorded in a GTNH 2.9 dev client | more soon

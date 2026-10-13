@@ -105,7 +105,7 @@ fluid buses (AE2FC), Steve's Factory Manager item and fluid nodes, conveyor and 
 
 | Action | AE2 | Redstone + logic gates | OpenComputers | Steve's Factory Manager |
 |---|---|---|---|---|
-| **Trims** (hold the field) | A fluid export bus with a redstone card per trim, into a Field hatch, driven by a Trims hatch in Bit n mode | Trims hatch in Bit n mode (one hatch per trim) or Code mode decoded with comparators; each bit opens a GT Fluid Regulator cover ("enable with signal") on the Field hatch's feed | `eye.getDirective("EYE_TRIMS")` or `eye.getField()`, then a transposer moves the trim | A fluid node into the Field hatch with a redstone condition on the hatch (SFM conditions read analog ranges, so one Code-mode hatch is enough) |
+| **Trims** (hold the field) | A fluid export bus with a redstone card per trim, into a Field hatch, driven by a Trims hatch in Bit n mode | Trims hatch in Bit n mode (one hatch per trim) or Code mode decoded with comparators; each bit drives a GT Machine Controller cover ("enable with redstone") on the tank that feeds the Field hatch; that tank's Fluid Regulator cover, set to "Conditional", runs only while the tank is enabled (§4.1) | `eye.getDirective("EYE_TRIMS")` or `eye.getField()`, then a transposer moves the trim | A fluid node into the Field hatch with a redstone condition on the hatch (SFM conditions read analog ranges, so one Code-mode hatch is enough) |
 | **Event valve** (T3 flash, T6 Agent) | Export bus on Status bit 3 | Status hatch, Bit 3 mode, a second regulator | `getDirective("EYE_STATUS").bits` | Fluid node on bit 3 |
 | **Upkeep** (H, He, RSPM, ESPM, SpaceTime, HSM feed, WDM/BDM, Agent) | ME stocking input hatches in the gas / stellar sockets (they drain into the buffers), or level maintainers | Status bit 1 → an export bus or pump | `getBuffers()`, `getDirective("EYE_STATUS")` | Fluid node into the gas hatches on bit 1 |
 | **Ignition** (Stellar Ignition Charge) | ME input bus in a plinth socket holding charges, or an interface pushing one on Status bit 2 | Status bit 2 → a conveyor cover or export bus | `getState().waitReason`, transposer into the bus | Item node into the bus on bit 2 |
@@ -190,7 +190,8 @@ end
 
 ## 4. The minimal rigs
 
-- **Eye T1 / T2:** two Trims hatches (Bit 1, Bit 2) → two regulator covers (Helium, Hydrogen). ME stocking hatches in
+- **Eye T1 / T2:** two Trims hatches (Bit 1, Bit 2) → two valves (Helium, Hydrogen), each a tank with a Machine
+  Controller cover and a Conditional Fluid Regulator cover (§4.1). ME stocking hatches in
   the gas sockets, an ME input bus with charges. That is all: the star relights itself after a loss.
 - **Eye T3:** add a third Trims hatch (Bit 3, Super Coolant) and a Status hatch (Bit 3) on a second Super Coolant
   regulator for the flash.
@@ -199,6 +200,29 @@ end
   conditions): bit 3 pushes the core, bit 1 pushes the next chart, bit 4 holds the Tachyon valve (the Core Collapse,
   and the time dial if you set it above 1).
 - **Kerr:** one Hole hatch in Code mode: bit 3 (bolts short) and bit 1 (closed) each switch an export bus.
+
+### 4.1 Built for real: the automation photo rigs
+
+Two of these rigs were built with real blocks in a dev client and run with nothing else touching the machines
+(dev-only harness `rendertest/AutoRig`, `-Dbts.rendertest=true -Dbts.rendertest.cases=automation`; question B-106 has
+the numbers). What the build taught, for players:
+
+- **A GT valve on redstone is two covers.** On GT 5.09.54 the Fluid Regulator cover has no "enable with redstone"
+  mode: its "Conditional" mode runs only while the block it sits on is allowed to work. So the valve is a tank (or
+  any GT block between the supply and the hatch) with a **Fluid Regulator** cover facing the hatch (Conditional, the
+  trim's rate: Sol's 10 units/s of Helium is 500 L/t) and a **Machine Controller** cover ("enable with redstone")
+  on another face, where the redstone arrives.
+- **Dust and GT blocks.** Dust sits on a GT machine and powers the cover on that top face; a GT machine is not a
+  solid redstone block, so dust cannot climb or step down its side (use a quartz or stone block there), and dust
+  only points into a GT face that carries a cover.
+- **Eye T1 (Rig A):** Trims Bit 1 → Helium valve, Trims Bit 2 → Hydrogen valve, Status Bit 1 → both upkeep valves
+  at the gas hatches (a 40-block redstone staircase with repeater landings from the band to the plinth), four
+  Stellar Ignition Charges in the plinth bus. From empty buffers the upkeep valves stocked the ignition (600 M L of
+  each gas at 3 M L/s), the Eye lit itself, and the trims held the field.
+- **Kerr T1 (Rig B):** Hole Bit 3 (bolts short, window 1 minute) → an AE2 export bus with a redstone card and three
+  acceleration cards (64 bolts an operation; one card, 8, could not feed the hole's climb from 8 to 16 SM and it
+  evaporated), Hole Bit 1 (closed) → an export bus with a redstone card holding a Black Hole Seed. The export bus's
+  cable block takes a **facade** on top so the dust in front of the Directive Hatch can stand on it and power it.
 
 ---
 
@@ -219,7 +243,7 @@ E("kdir","Tell me what you need","Directive Hatch",780,60,24,["kerr1"],
   { ours:true, label:"Automation", tasks:[{type:"retrieve",item:"Directive Hatch",count:1}] }),
 // Eye chapter, after eoh1. A checkbox quest (the routes are a choice).
 E("edir","An Eye that runs itself","Directive Hatch",700,200,24,["eoh1","kdir"],
-  "Directive Hatches fit the Eye's Sensor sockets. <b>Trims</b>: the star's trims, by value (T1/T2: 1 Helium, 2 Hydrogen; T4: 1 Space, 2 SpaceTime, 4 Super Coolant, 8 Tengam) - one hatch per bit in Bit mode, each on a Fluid Regulator cover or an export bus into a Field hatch. <b>Status</b>: 1 buffers short, 2 ignition charge wanted, 4 event (T3 flash: more Coolant; T6: the Agent), 8 alarm. <b>Transition</b>: 1 ready (push the next chart into a plinth bus), 2 running, 4 core wanted (push it into a plinth bus), 8 Tachyon wanted (open the Tachyon Rich Temporal Fluid valve). The plinth bus now takes cores into escrow and charts into the controller slot.",
+  "Directive Hatches fit the Eye's Sensor sockets. <b>Trims</b>: the star's trims, by value (T1/T2: 1 Helium, 2 Hydrogen; T4: 1 Space, 2 SpaceTime, 4 Super Coolant, 8 Tengam) - one hatch per bit in Bit mode, each on a GT valve (a Machine Controller cover, enable with redstone, plus a Fluid Regulator cover set to Conditional, on the tank feeding a Field hatch) or an export bus with a redstone card. <b>Status</b>: 1 buffers short, 2 ignition charge wanted, 4 event (T3 flash: more Coolant; T6: the Agent), 8 alarm. <b>Transition</b>: 1 ready (push the next chart into a plinth bus), 2 running, 4 core wanted (push it into a plinth bus), 8 Tachyon wanted (open the Tachyon Rich Temporal Fluid valve). The plinth bus now takes cores into escrow and charts into the controller slot.",
   { ours:true, label:"Automation", tasks:[{type:"check"}] }),
 // Optional, after edir: OpenComputers.
 E("eoc","Scripting a star","Adapter",820,200,24,["edir"],
