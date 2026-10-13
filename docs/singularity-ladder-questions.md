@@ -4138,6 +4138,59 @@ owner on master.
 
 **Suggestion.** Accept.
 
+### B-101 Controller GUI cleanup, review fixes: the T5 Next batch reach row and a read-only charge count [user approval 2026-10-13, built on branch gui-clean]
+
+**Context.** A code review of the gui-clean branch raised two findings on the Eye GUI. Both were checked against the
+code (and the RC-2 GT and AE2 sources) before they were fixed.
+
+**1. T5 "Next batch" hid the only reason a batch did not start (confirmed, fixed in d1cbe55).** With T5 unlocked and
+a Sirius B chart, `tryStartCooling` first checks `parallel(5) >= 1` ("the Eye does not reach T5 (bands,
+compression)") and only then the White Dwarf Matter charge. The DARK and IDLE rows showed only the charge row, so an
+Eye with a band or a compression generator below T5 and 18,432 L buffered showed an all-green list and never started.
+The only hint was the yellow right chip. `EyeStarRuntime.batchChecklist()` now sits next to `ignitionChecklist()` and
+makes the same test as the runtime: "Eye reaches T5" (OK when `parallel(5) >= 1`; value `T{installed} / T5`; tooltip
+the `tier5` / `locked5` / `compression5` recipe-result line, so no new lang keys), then the charge row as before.
+`EyeGui.nextBatchRows` draws that list.
+Seen in the dev client (`tools/guishots/eye-t5-batch.shots`). With one compression generator at tier 4 and a full
+charge buffered, the list shows "Eye reaches T5  T4 / T5" in red and the charge row in green, and the tooltip names
+the compression gate. At T5 with no charge, the reach row is green and the charge row red. When a chunk of the spiral
+arms was not loaded, the tooltip named the band gate instead.
+
+**2. The DARK checklist's charge count opened a recipe-processing window (fixed in 4317207; the trigger is narrower
+than the review said).** `countIgnitionCharges()` is GUI-only and runs every 5 ticks while the GUI is open. It
+called `startRecipeProcessing` / `endRecipeProcessing(this)` on each plinth bus. RC-2's
+`MTEHatchInputBusME.endRecipeProcessing(controller)` calls `controller.stopMachine(CRITICAL_NONE)` if
+`getProxy().getStorage()` throws `GridAccessException`. So a GUI read could reach a critical shutdown.
+The review named an unpowered, channel-starved or disconnected network as the trigger. In AE2 that is not enough:
+`AENetworkProxy.getGrid()` throws only when the node or its grid is null, and a disconnected node is still a
+one-node grid. The trigger is a stocking bus whose node is gone or not yet created (a rare, transient state), and the
+extraction branch cannot fire from a read, because a read takes nothing. Either way, a GUI must not be able to reach
+`stopMachine`, and the window also cost a 16-slot simulated extraction per bus, per viewer, every 5 ticks.
+The count now opens no window. Plain buses are read as before. An ME stocking bus shows only its circuit and manual
+slots outside the window, so its network stock is read from the grid's item list (`findPrecise`) for each slot
+configured to the charge, once per distinct config. The bus counts 0 when it is disabled or its network is inactive,
+which is also what a recipe check would see. No extraction is made and no shutdown path is reached.
+Seen in the dev client (`tools/guishots/eye-charge.shots`): an Arcturus chart on the T1 Eye shows "0 in bus", then
+"2 in bus" after two charges go into the plain plinth bus, and GT reports "last shutdown none".
+
+**Judgement calls.**
+
+1. **The reach row is always shown** in the Next batch list, met or not, as the ignition checklist does; the spec's
+   §5.1 IDLE list names only the White Dwarf Matter row. *Alternative:* show it only when it fails (one row shorter
+   in the normal case).
+2. **The ME path was not exercised in game.** The bench has no AE network, so the stocking-bus branch is checked
+   only by compiling against RC-2 GT and AE2, and by the boot.
+
+**Seen but not changed.** The charge row's label "Molten White Dwarf M." is cut with a dot. It is the fluid's GT
+name, and its full name is in the tooltip. The spec draws "White Dwarf Matter". This was the same before the fix.
+
+**Build.** `spotlessApply compileJava` passed before each commit, and the full `gradlew build` passed. Jar:
+`beyondthestars-0.24.1-gui-clean.275+d1cbe55c84.jar`. The headless dev server (port 25611) loaded 278 recipes with
+0 skipped, and no `com.nateyburr` frame appeared. The comparison page `gui/round1/gui-compare.html` has a new
+"T5 idle" card and the two charge shots on the Dark card.
+
+**Suggestion.** Accept.
+
 ---
 
 ## Where the old question numbers went
