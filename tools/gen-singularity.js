@@ -1271,7 +1271,10 @@ function main() {
         for (const [rel, content] of res.files) {
             const f = path.join(REPO, rel);
             const cur = fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : null;
-            const norm = s => (rel.endsWith('.java') ? s.replace(/\s+/g, '') : s);
+            // The overlay records the commit it was generated from (srcHead); every later commit moves
+            // HEAD, so that one field is not drift. Anything else in the file still is.
+            const norm = s => (rel.endsWith('.java') ? s.replace(/\s+/g, '')
+                : rel === OVERLAY_REL ? s.replace(/("srcHead":\s*)"[^"]*"/, '$1""') : s);
             if (cur === null || norm(cur) !== norm(content)) { console.error('stale: ' + rel); stale++; }
         }
         if (stale) process.exit(1);
