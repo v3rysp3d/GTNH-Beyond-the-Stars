@@ -40,6 +40,7 @@ import net.minecraft.world.WorldType;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.Display;
@@ -142,6 +143,11 @@ public final class RecClient {
     private final FloatBuffer mvBuf = BufferUtils.createFloatBuffer(16), prBuf = BufferUtils.createFloatBuffer(16),
         winBuf = BufferUtils.createFloatBuffer(3);
     private final IntBuffer vpBuf = BufferUtils.createIntBuffer(16);
+    /** The scanner panel ({@code readout}): the machine, the line filter, the lines, the pending read. */
+    private int[] readoutAt;
+    private java.util.regex.Pattern readoutKeep;
+    private volatile List<String> readoutLines;
+    private CompletableFuture<List<String>> readoutF;
     /** Lines from server tasks fired and forgotten (written on the client thread). */
     private final ConcurrentLinkedQueue<String> asyncLog = new ConcurrentLinkedQueue<>();
 
@@ -248,6 +254,7 @@ public final class RecClient {
         }
         rec = new FrameRecorder(ffmpeg, FrameRecorder.codecArgs(encoder, crf), width, height, fps);
         mc.gameSettings.pauseOnLostFocus = false;
+        mc.gameSettings.setSoundLevel(net.minecraft.client.audio.SoundCategory.MASTER, 0f);
         renderDistance = Integer.getInteger("bts.rec.distance", 16);
         mc.gameSettings.renderDistanceChunks = renderDistance;
         mc.gameSettings.fovSetting = Float.parseFloat(System.getProperty("bts.rec.fov", "70"));
@@ -281,7 +288,11 @@ public final class RecClient {
      */
     private void installQuests() {
         File root = null;
-        for (File base : new File[] { new File(mc.mcDataDir, "../.."), new File(".") }) {
+        // -Dbts.rec.questsdir: another checkout's questbook (a folder holding questbook/DefaultQuests), e.g. master's
+        // exported with git archive, to film chapters this branch does not have
+        final String other = System.getProperty("bts.rec.questsdir", "");
+        for (File base : other.isEmpty() ? new File[] { new File(mc.mcDataDir, "../.."), new File(".") }
+            : new File[] { new File(other) }) {
             if (new File(base, "questbook/DefaultQuests/QuestLines").isDirectory()) {
                 root = canonical(base);
                 break;
@@ -424,6 +435,9 @@ public final class RecClient {
         }
         mc.gameSettings.showDebugInfo = false;
         holdSettings();
+        // the video has no audio track: the recorder client is silent (re-applied every tick, like the settings above)
+        if (mc.gameSettings.getSoundLevel(net.minecraft.client.audio.SoundCategory.MASTER) > 0f)
+            mc.gameSettings.setSoundLevel(net.minecraft.client.audio.SoundCategory.MASTER, 0f);
         if (phase.ordinal() >= Phase.WAIT.ordinal()) {
             mc.gameSettings.hideGUI = true;
             if (!guiOpen) keepScreenClear();
@@ -455,6 +469,7 @@ public final class RecClient {
                 waitWorld();
                 break;
             case RUN:
+                pollReadout();
                 if (act != null) act.tick();
                 advance(System.nanoTime());
                 applyPose();
@@ -499,8 +514,24 @@ public final class RecClient {
         }
     }
 
+    /** The time-warp tag while the warp is on: the measured multiplier and the game time since it went on. */
+    private static String warpTag() {
+        if (!com.nateyburr.beyondthestars.TimeWarp.on()) return null;
+        final long s = com.nateyburr.beyondthestars.TimeWarp.gameTicksSinceOn() / 20;
+        return String.format(
+            Locale.ROOT,
+            "TIME WARP  ×%.0f (cheat)   game +%d:%02d:%02d",
+            com.nateyburr.beyondthestars.TimeWarp.measured(),
+            s / 3600,
+            s / 60 % 60,
+            s % 60);
+    }
+
     private void drawOverlay(long now) {
-        if (card == null && tag == null && caption.isEmpty() && labels.isEmpty()) return;
+        final String warp = warpTag();
+        final List<String> panel = readoutAt == null ? null : readoutLines;
+        if (card == null && tag == null && warp == null && caption.isEmpty() && labels.isEmpty() && panel == null)
+            return;
         RecOverlay.begin(mc);
         try {
             if (card != null) {
@@ -517,7 +548,10 @@ public final class RecClient {
                     final float a = captionStart < 0 ? 1f : (float) Math.min(1.0, (now - captionStart) / 0.4e9);
                     RecOverlay.caption(mc, caption, Math.max(0.05f, a));
                 }
-                if (tag != null) RecOverlay.tag(mc, tag);
+                if (panel != null) RecOverlay.panel(mc, "Scanner", panel);
+                int row = 0;
+                if (warp != null) RecOverlay.tag(mc, warp, row++);
+                if (tag != null) RecOverlay.tag(mc, tag, row);
             }
         } finally {
             RecOverlay.end();
@@ -671,6 +705,8 @@ public final class RecClient {
         caption = "";
         captionStart = -1;
         labels.clear();
+        readoutAt = null;
+        readoutLines = null;
     }
 
     private void endScene() {
@@ -697,6 +733,10 @@ public final class RecClient {
             summary.add(line);
             if (exit == 0 && frames > 0) segments.add(f);
         }
+        if (mc.getIntegratedServer() != null && com.nateyburr.beyondthestars.TimeWarp.on()) RenderTest.onServer(() -> {
+            asyncLog.add("  warp at the scene's end: " + com.nateyburr.beyondthestars.TimeWarp.status());
+            return com.nateyburr.beyondthestars.TimeWarp.off("the recorder (scene end)");
+        });
         if (mc.getIntegratedServer() != null) RenderTest.onServer(() -> {
             final String s = RecServer.status();
             if (!s.isEmpty()) asyncLog.add("  rigs: " + s);
@@ -707,6 +747,8 @@ public final class RecClient {
         tag = null;
         caption = "";
         labels.clear();
+        readoutAt = null;
+        readoutLines = null;
         scene = null;
     }
 
@@ -778,6 +820,63 @@ public final class RecClient {
                 }
                 final boolean eye = !which.equals("kerr"), kerr = !which.equals("eye");
                 acts.add(new Server("build " + which, () -> AutoRig.build(eye, kerr)));
+                break;
+            }
+            case "menet": {
+                // an ME network with a terminal on a kit Eye's ME output bus and hatch (set up by script)
+                final String name = c.arg(0);
+                acts.add(
+                    new Server(
+                        "ME network on the Eye " + name,
+                        () -> AutoRigEyeAE.outputNet(
+                            RenderTest.world(),
+                            RecServer.at(name),
+                            name,
+                            appeng.api.util.AEColor.valueOf(c.opt(1, "Purple")))));
+                break;
+            }
+            case "melist": {
+                final String place = c.arg(0);
+                acts.add(new Server("ME contents at " + place, () -> RecServer.meList(place)));
+                break;
+            }
+            case "readout": {
+                // readout <place> [match <regex>] | readout off: the machine's scanner lines in a side panel
+                if (c.opt(0, "")
+                    .equalsIgnoreCase("off")) {
+                    acts.add(new Instant("readout off", () -> {
+                        readoutAt = null;
+                        readoutLines = null;
+                    }));
+                    break;
+                }
+                final int[] p = block(resolve(c.arg(0)));
+                final String m = c.kv.get("match");
+                final java.util.regex.Pattern keep = m == null ? null
+                    : java.util.regex.Pattern.compile(m, java.util.regex.Pattern.CASE_INSENSITIVE);
+                acts.add(new Instant("readout of " + RenderTest.pos(p) + (m == null ? "" : " matching " + m), () -> {
+                    readoutAt = p;
+                    readoutKeep = keep;
+                    readoutLines = null;
+                }));
+                break;
+            }
+            case "creativepower": {
+                final String name = c.arg(0);
+                acts.add(new Server("creative power for " + name, () -> RecServer.creativePower(name)));
+                break;
+            }
+            case "name": {
+                // name <name> <place>: a named point (a place for later commands and {name} in command lines)
+                final String name = c.arg(0)
+                    .toLowerCase(Locale.ROOT);
+                final double[] at = resolve(c.arg(1));
+                acts.add(new Instant("name " + name, () -> AutoRig.POINTS.put(name, at)));
+                break;
+            }
+            case "points": {
+                final String name = c.arg(0);
+                acts.add(new Server("name the parts of " + name, () -> RecServer.points(name)));
                 break;
             }
             case "aecells":
@@ -874,6 +973,26 @@ public final class RecClient {
             case "gui":
                 acts.add(new Gui(block(resolve(c.arg(0))), (int) c.num("scale", guiScaleDefault)));
                 break;
+            case "use": {
+                // right-click a block as the player (an AE2 terminal on the given face): its screen opens like "gui"
+                final int[] p = block(resolve(c.arg(0)));
+                final ForgeDirection side = RecServer.facing(c.kv.getOrDefault("side", "north"));
+                acts.add(
+                    new Gui(
+                        p,
+                        (int) c.num("scale", guiScaleDefault),
+                        () -> RecServer.use(p, side),
+                        "use the block at " + RenderTest.pos(p) + " (" + side + " face)"));
+                break;
+            }
+            case "terminal": {
+                // an ME terminal on the AE2 cable at a place (set up by script), facing the given side
+                final int[] p = block(resolve(c.arg(0)));
+                final ForgeDirection side = RecServer.facing(c.kv.getOrDefault("side", "north"));
+                final String name = c.kv.get("name");
+                acts.add(new Server("ME terminal at " + RenderTest.pos(p), () -> RecServer.terminal(p, side, name)));
+                break;
+            }
             case "questbook":
                 acts.add(new Questbook(c.opt(0, ""), c.opt(1, ""), (int) c.num("scale", guiScaleWorld)));
                 break;
@@ -921,14 +1040,61 @@ public final class RecClient {
             case "cell":
                 acts.add(new Server("ME cell into the drive", () -> AutoRigAE2.insertCell(RenderTest.world())));
                 break;
+            case "warp": {
+                // the time warp cheat (TimeWarp, /btswarp) for the rest of the scene: "warp <N>" or "warp off"
+                final String n = c.arg(0)
+                    .toLowerCase(Locale.ROOT)
+                    .replace("x", "");
+                final int x = n.equals("off") ? 1 : Integer.parseInt(n);
+                acts.add(
+                    new Server(
+                        "time warp " + (x > 1 ? "x" + x : "off"),
+                        () -> x > 1 ? com.nateyburr.beyondthestars.TimeWarp.set(x, "the recorder")
+                            : com.nateyburr.beyondthestars.TimeWarp.off("the recorder")));
+                break;
+            }
             case "command": {
-                final String cmd = c.rest;
-                acts.add(new Server("command " + cmd, () -> RecServer.command(cmd)));
+                // {place} in the command becomes that place's block coordinates "x y z" (resolved when it runs, so a
+                // rig built earlier in the script can be named)
+                final String raw = c.rest;
+                acts.add(new Server("command " + raw, () -> RecServer.command(expand(raw))));
                 break;
             }
             default:
                 throw new IllegalArgumentException("not a command here: " + c.verb);
         }
+    }
+
+    /** Twice a second while a readout is on: the machine's scanner lines from the server. */
+    private void pollReadout() {
+        if (readoutAt == null) return;
+        if (readoutF != null) {
+            if (!readoutF.isDone()) return;
+            try {
+                readoutLines = readoutF.get();
+            } catch (Exception bad) {
+                say("readout FAILED: " + bad);
+            }
+            readoutF = null;
+        }
+        if (ticks % 10 == 0) {
+            final int[] p = readoutAt;
+            final java.util.regex.Pattern keep = readoutKeep;
+            readoutF = RenderTest.onServer(() -> RecServer.scan(p, keep));
+        }
+    }
+
+    /** {@code {place}} tokens in a command line replaced with the place's block coordinates ({@code x y z}). */
+    private String expand(String cmd) {
+        final java.util.regex.Matcher m = java.util.regex.Pattern.compile("[{]([^}]+)[}]")
+            .matcher(cmd);
+        final StringBuffer b = new StringBuffer();
+        while (m.find()) {
+            final int[] p = block(resolve(m.group(1)));
+            m.appendReplacement(b, p[0] + " " + p[1] + " " + p[2]);
+        }
+        m.appendTail(b);
+        return b.toString();
     }
 
     /** Before a move that starts at {@code start}: a goto there first if the camera is not already close to it. */
@@ -1151,7 +1317,7 @@ public final class RecClient {
 
         @Override
         void frame(long now) {
-            if (speed() > 1 && clock) tag = tagText(now);
+            if (speed() > 1.01 && clock) tag = tagText(now);
         }
 
         @Override
@@ -1424,7 +1590,9 @@ public final class RecClient {
         @Override
         void start(long now) {
             super.start(now);
-            tag = tagText(now);
+            // speed 1 is a real-time recording that ends on a condition: no time-lapse tag (a warp shows its own)
+            tag = speed() > 1.01 ? tagText(now) : null;
+            if (untilCond != null) RenderTest.onServer(RecServer::markGame);
             if (sky) RenderTest.onServer(() -> RecServer.daylight(true));
         }
 
@@ -1632,10 +1800,17 @@ public final class RecClient {
         CompletableFuture<?> f;
         int up, waited;
 
+        final Supplier<?> opener;
+
         Gui(int[] p, int scale) {
-            super("open the GUI at " + RenderTest.pos(p) + " (gui scale " + scale + ")");
+            this(p, scale, () -> AutoRig.openGui(p), "open the GUI at " + RenderTest.pos(p));
+        }
+
+        Gui(int[] p, int scale, Supplier<?> opener, String what) {
+            super(what + " (gui scale " + scale + ")");
             this.p = p;
             this.scale = scale;
+            this.opener = opener;
         }
 
         @Override
@@ -1644,7 +1819,7 @@ public final class RecClient {
             hideNei(true);
             mc.gameSettings.guiScale = scale;
             parkMouse();
-            f = RenderTest.onServer(() -> AutoRig.openGui(p));
+            f = RenderTest.onServer(opener);
         }
 
         @Override
@@ -1908,6 +2083,11 @@ public final class RecClient {
 
         private boolean cond() {
             return RecServer.cond(what2);
+        }
+
+        @Override
+        void start(long now) {
+            if (!what2.equals("seconds")) RenderTest.onServer(RecServer::markGame);
         }
 
         @Override

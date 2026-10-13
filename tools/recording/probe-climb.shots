@@ -1,0 +1,47 @@
+# DEV PROBE (not a showcase): an Eye raised to T6 by its kit, put back to T1 and dark, its milestones set done (by
+# script), then the live gate rig and the time warp: does it climb T1 -> T6 by itself, and what do the products do?
+time day
+kit eye 6 3000,5,4000 gen 5 name climb
+menet climb
+command /btseye star 3000 5 4000 rig none
+command /btseye star 3000 5 4000 unlock 1
+command /btseye star 3000 5 4000 buses clear
+command /btseye star 3000 5 4000 target sol
+command /btseye star 3000 5 4000 milestones 1 done
+command /btseye star 3000 5 4000 milestones 2 done
+command /btseye star 3000 5 4000 milestones 3 done
+command /btseye star 3000 5 4000 milestones 4 done
+command /btseye star 3000 5 4000 milestones 5 done
+command /btseye star 3000 5 4000 fill
+command /btseye star 3000 5 4000 liverig on
+command /btseye star 3000 5 4000 status
+
+scene climb
+  caption probe: the climb
+  goto climb.c+0,20,-170 look climb.c
+  warp 40
+  timelapse 20 speed 10 until tier:climb:1 clock
+  command /btswarp status
+  command /btseye star 3000 5 4000 status
+  timelapse 20 speed 10 until tier:climb:2 clock
+  command /btswarp status
+  command /btseye star 3000 5 4000 status
+  timelapse 20 speed 10 until tier:climb:3 clock
+  command /btseye star 3000 5 4000 status
+  timelapse 20 speed 10 until tier:climb:4 clock
+  command /btswarp status
+  command /btseye star 3000 5 4000 status
+  timelapse 20 speed 10 until tier:climb:5 clock
+  command /btseye star 3000 5 4000 status
+  timelapse 30 speed 10 until tier:climb:6 clock
+  command /btswarp status
+  command /btseye star 3000 5 4000 status
+  command /btseye star 3000 5 4000 liverig status
+  timelapse 6 speed 10 clock
+
+scene term
+  caption probe: the terminal
+  goto climb.termcam look climb.term
+  use climb.term side north
+  hold 4
+  close

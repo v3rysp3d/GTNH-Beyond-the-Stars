@@ -1,0 +1,67 @@
+# DEV PROBE (not a showcase): the P4 sites stood up by the benches, then the Homogeny upgrade and the Eye T6 -> T7 -> T8
+# on a real quasar under the live quasar rig and the time warp. Reads the bench status lines into the client log.
+time day
+command /btsconduit rig 8000 100 4000
+command /btsconduit rig status
+command /btshr homogeny t1 6600 40 4000 north fill
+command /btshr bench 6600 40 4000 status
+command /btshr diffraction 6900 8 4000 north fill
+command /btshr bench 6900 8 4000 status
+command /btshr refab 7150 6 4000 north fill
+command /btshr bench 7150 6 4000 status
+kit eye 8 10000,5,4000 gen 8 name gal
+command /btsquasar t3 10000 100 4400 north seed
+command /btsquasar keep 10000 100 4400
+command /btsquasar feed 10000 100 4400 1.0
+command /btseye star 10000 5 4000 unlock 6
+command /btseye star 10000 5 4000 fill
+command /btseye star 10000 5 4000 target magnetar
+command /btseye star 10000 5 4000 lit magnetar
+command /btseye star 10000 5 4000 milestones 6 done
+command /btseye star 10000 5 4000 milestones 7 done
+command /btseye star 10000 5 4000 buses clear
+command /btseye star 10000 5 4000 rig none
+command /btsquasar autorig 10000 100 4400 0 eye 10000 5 4000
+command /btsquasar status 10000 100 4400
+command /btseye star 10000 5 4000 status
+
+scene hr
+  caption probe: homogeny
+  goto 6600,48,3990 look 6600,40,4000
+  warp 20
+  hold 3
+  command /btshr bench 6600 40 4000 status
+  command /btshr bench 6600 40 4000 project 2
+  command /btshr bench 6600 40 4000 milestone 100000 0
+  command /btshr bench 6600 40 4000 escrow
+  command /btshr bench 6600 40 4000 install
+  command /btshr bench 6600 40 4000 status
+  timelapse 20 speed 5 clock
+  command /btshr bench 6600 40 4000 status
+  command /btshr bench 6600 40 4000 fill
+  timelapse 20 speed 5 clock
+  command /btshr bench 6600 40 4000 status
+
+scene conduit
+  caption probe: conduit
+  goto 8000,140,3900 look 8000,100,4060
+  hold 3
+  command /btsconduit rig status
+  command /btsquasar status 8000 100 4000
+
+scene gal
+  caption probe: galaxy
+  goto gal.c+0,40,-200 look gal.c
+  warp 40
+  command /btswarp status
+  timelapse 30 speed 10 until tier:gal:7 clock
+  command /btswarp status
+  command /btseye star 10000 5 4000 status
+  command /btsquasar autorig status
+  command /btsquasar mass 10000 100 4400 136
+  timelapse 30 speed 10 until tier:gal:8 clock
+  command /btswarp status
+  command /btseye star 10000 5 4000 status
+  command /btsquasar autorig status
+  command /btsquasar status 10000 100 4400
+  hold 3

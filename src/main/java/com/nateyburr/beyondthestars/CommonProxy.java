@@ -78,6 +78,10 @@ public class CommonProxy {
         BTSRecipeGuard.checkResearchCollisions();
     }
 
+    public void serverStopping(cpw.mods.fml.common.event.FMLServerStoppingEvent event) {
+        TimeWarp.serverStopping();
+    }
+
     public void serverStarting(FMLServerStartingEvent event) {
         BTSRecipeRemovals.lateBlackHoleCheck();
         event.registerServerCommand(new CommandBTSKit());
@@ -95,6 +99,9 @@ public class CommonProxy {
         event.registerServerCommand(new CommandBTSRecipes());
         event.registerServerCommand(new CommandBTSQuasar());
         event.registerServerCommand(new CommandBTSConduit());
+        // the time warp cheat (op only; docs/automation.md 4.2): off at every server start and stop
+        TimeWarp.serverStarting();
+        event.registerServerCommand(new CommandBTSWarp());
     }
 
     /**

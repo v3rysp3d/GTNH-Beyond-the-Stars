@@ -46,6 +46,7 @@ Most important first. "Recommended" is what we would build if you say nothing. N
 | 21 | Resonance Chamber IV (the Eye T8 gate) has two recipes in NEI: GT's (MHDCSM foil) and our SL-P40 | Rewrite GT's in place under the same flag, with chamber III (question 4) | B-110 |
 | 22 | The intake cap at T7 / T8 buffers tens to hundreds of G L of hydrogen and helium (companions, planets mode) | Keep B-108's 20 cycles / 2 runs rule; shorten the companions' window if a shared network still starves | B-110 |
 | 23 | Eye T7 / T8 from the front at eye level: the window shows the galaxy's core and inner arms (\|x\| ≤ 10), but its outer arms (to r 16 / 19) stand behind the T6 rim and the arm blades | Keep the opening at \|x\| ≤ 10: wider would cut the arms and the rim out of the T4-T6 Eye too, and the near-flat disc (8° tilt) reads best from above anyway | B-114 |
+| 24 | The time warp `/btswarp` (op only, cheats): ship it in release jars? | Yes, op only like the other benches: it changes nothing for a player who does not type it and is a real aid for testing a rig | B-117 |
 
 ## 2. Settled
 
@@ -5561,6 +5562,32 @@ since the bars are all in their final state while the Eye waits. The alternative
 
 ---
 
+### B-117 The time warp (`/btswarp`): ship it in release jars? [showcase v2, built]
+
+*Numbered B-108 on the `showcase` branch; master had already given B-108 to the Eye's intake cap, so it is B-117
+since the merge (B-118). P4-95 keeps its number.*
+
+**What was asked.** "Why use real run time, add a way to speed it up with commands (cheat mode) so it isn't a waste
+of both 80 minutes of time and credits." The showcase's long stretches (a star lighting, the First Cooling's 7,200 s
+batch, a merger, the Homogeny install, the T6 -> T8 chain) were filmed in real time with frame sampling.
+
+**Built.** `TimeWarp` + `/btswarp <N> | off | status` (docs/automation.md §4.2): up to N - 1 extra whole-server
+ticks after every real tick, through the same calls `MinecraftServer.tick()` makes (FML server and world tick events,
+`WorldServer.tick`, `updateEntities`, the entity tracker), within 45 ms of each 50 ms tick; re-entry guarded; the
+achieved rate measured; off at server start and stop; op only (permission level 2). The recorder's `warp <N>` turns
+it on for a scene and shows "TIME WARP xN (cheat)" with the measured rate and the game time.
+
+**Proof.** Rig C, 444 s of game time, real time against x20: lit at 40 s in both, 77.2 % Resonant / 22.8 % Stable,
+Integrity 100, the same 357,708 L of Raw Star Matter. The live gate rig took a kit Eye T1 -> T6 in 9,442 game s in
+236 s real (x40, 0 budget hits).
+
+**Question.** Should `/btswarp` ship enabled in release jars? **Recommended: yes, op only with cheats required, like
+the other benches** (`/btseye`, `/btskerr`, `/btsquasar`): it changes nothing for a player who does not type it, it is
+a real testing aid for anyone building a rig, and on a server only ops can use it. Alternatives: a config switch
+(default off), or dev builds only.
+
+---
+
 ## Where the old question numbers went
 
 | Old | Now | Old | Now | Old | Now |
@@ -7101,3 +7128,27 @@ A throat or crown cap that clips is still not venting.
 world.
 
 **Suggestion.** Keep.
+
+### P4-95 Live, the quasar rig's collapse purge lands late: the Magnetar Collapse mostly fails on real redstone [automation, showcase v2 finding]
+
+**What happened.** With the time warp (B-117) the showcase ran the standard quasar rig live for the first time on the
+T6 -> T7 Magnetar Collapse (`/btsquasar autorig <quasar> 0 eye <Eye>`: no fast-forward, the rig then acts every
+Eye field second with real redstone blocks against the Burst Control Hatches, the conduit is P4-75's maths).
+
+- Fresh 64 SM quasar, milestones done: the collapse began and FAILED 34 times in 11,900 game s (Breach, P +103.5;
+  "the shock would land at P +120 with 1.47 Bu/t now; 13.5 Bu/t on the collapse second cancels it all").
+- 136 SM quasar: 5 failures, then COMPLETE on the 6th re-run (845 s). The failed collapses cancelled 29-47 of the
+  120 shock; the fast-forward bench (and the virtual-quasar `galaxy` bench, lock-stepped) cancels 120 of 120.
+- The Galactic Merger T7 -> T8 on the same live rig: COMPLETE in 1,920 s, first try.
+
+**Why.** Galaxy Transition [4] ("purge now") goes on at overfeed second 299 for a collapse at 300 (GalaxyDirective
+`ASSIST_LAST`). The fast-forward bench runs, inside one second: the rig's action on last second's code, the quasar's
+disc second (the purge erupts), the conduit, the Eye's second, so the eruption lands on the collapse second. Live,
+each hop is its own tick: the Directive Hatch shows the code, the redstone reaches the Burst Control Hatch, the quasar
+acts on its own second (a different phase), and the conduit hands the Eye the quasar's last result at the Eye's next
+second. The eruption arrives one to two seconds late and most of the shock lands. A player's real wiring (and a real
+conduit) has the same hops.
+
+**Question for P4.** Raise the assist's lead (purge on second 297-298, or a window the 3 s eruption covers), make the
+collapse read the eruption over a short window, or document that the purge needs a lead timer? The showcase films the
+collapse on the lock-stepped bench model and says so in the caption; the merger is filmed on the real quasar.

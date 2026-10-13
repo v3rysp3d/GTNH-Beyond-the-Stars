@@ -1,0 +1,513 @@
+# Beyond the Stars - SHOWCASE v2 (docs/recording.md). The post-UEV game: the Eye and its automation, extraction, the
+# harder stars, the Kerr, the Homogeny and Reality machines, the quasar and the conduit, the Eye's galaxy tiers, how a
+# player builds one, the quest book. About 7 minutes at 1920x1080, 30 fps.
+#
+# Honesty rules this script keeps:
+# - Every site is raised by script in a fresh creative superflat world; captions say "set up by script" for anything
+#   placed, filled or set by a command (milestones, cores handed in, creative power, supply tanks).
+# - What runs after that runs on its own: the AE2 rigs, the standard gate rig (it reads only the Eye's Directive
+#   Hatches; /btseye star ... liverig), the quasar rig (it reads only the Directive Hatches and drives the Burst Control
+#   Hatches with redstone; /btsquasar autorig ... 0 eye ...), the machines themselves.
+# - Long stretches run under the time warp (/btswarp, a cheat: the whole server runs N ticks per real tick through the
+#   normal code). Its tag shows the measured multiplier and the game time; a time-lapse tag shows frame sampling.
+#
+# Run with -Dbts.rec.questsdir=<a checkout or git archive of master holding questbook/DefaultQuests> to film master's
+# UIV / UMV / UXV / MAX / Endgame chapters (this branch's questbook has only the plant chapter).
+#
+# Sites (z 4000, all facing north): Rig B, the Kerr on AE2 (x 1700); Rig C, the AE2 Eye (x 2400); the climbing Eye
+# (x 3000, kit T6 set back to a dark T1); the build-logic Eye (x 3300); the tier Eye (x 3600); the Kerr tiers
+# (x 5000 / 5130); the Homogeny (x 6600), Reality Diffraction (x 6900), Reality Refab (x 7150); the conduit rig and its
+# quasar (x 8000-8270, y 100); the galaxy Eye (x 10000) and its quasar (x 10000, y 100, z 4400).
+
+# ---------------------------------------------------------------- setup (never recorded)
+time day
+command /btsquests install
+build eyeae
+build kerr
+points keectrl
+terminal 2394,5,3996 side north name ae.term
+# the climbing Eye: kit to T6 (every band and generator), then back to a dark T1 with empty buses
+kit eye 6 3000,5,4000 gen 5 name climb
+menet climb
+points climb
+command /btseye star {climb} rig none
+command /btseye star {climb} unlock 1
+command /btseye star {climb} buses clear
+command /btseye star {climb} target sol
+command /btseye star {climb} fill
+# the tier Eye (tier 1 with tier-6 generators, so the projector can add each band) and the Kerr tiers
+kit eye 1 3600,5,4000 gen 5 name tiers
+kit kerr t1 5130,36,4000 name kt1
+kit kerr t2 5000,36,4000 name kt2
+# the Homogeny (T1) on creative power, Reality Diffraction and Refab
+command /btshr homogeny t1 6600 40 4000 north fill
+command /btshr keep homogeny 6600 40 4000 north t2
+name hom 6600,40,4000
+creativepower hom
+command /btshr diffraction 6900 8 4000 north fill
+command /btshr keep diffraction 6900 8 4000 north
+name dif 6900,8,4000
+command /btshr refab 7150 6 4000 north fill
+command /btshr keep refab 7150 6 4000 north
+name ref 7150,6,4000
+# the conduit rig: a quasar with a crown on its top port, a Wormhole Mouth pair from its bottom port, two Mirrors, a
+# Junction, a remote crown and two receptor ports
+command /btsconduit rig 8000 100 4000
+name cq 8000,100,4000
+name cq.c 8000,115,4072
+name crown 7988,196,4072
+name moutha 8000,34,4089
+name mouthb 8100,43,4067
+name mirror1 8102,55,4123
+name junction 8191,75,4128
+name mirror2 8265,62,4133
+name rcrown 8258,96,4116
+# the galaxy Eye (kit T8, dark) and its quasar (unseeded: the seeding is filmed)
+kit eye 8 10000,5,4000 gen 8 name gal
+command /btsquasar t3 10000 100 4400 north
+command /btsquasar keep 10000 100 4400
+name gq 10000,100,4400
+name gq.c 10000,115,4472
+
+# ================================================================ title
+scene title
+  card 4 Beyond the Stars | Post-UEV: stars, black holes, quasars and the machines that run them | a GregTech: New Horizons 2.9 addon - recorded in game
+
+# ================================================================ 1. The Eye and its automation
+scene c1
+  card 3 1. The Eye and its automation | an Eye of Harmony that feeds and holds its own star
+
+scene ae-intro
+  caption An Eye of Harmony, tier 1, fed and held by AE2 alone: no hand on it, no GT covers, one redstone dust per bus. Built by script in a fresh creative world.
+  orbit aeeye+0,-10,0 radius 100 height 32 from -55 to 35 seconds 8
+
+scene ae-core
+  caption The main ME network (orange) stocks the Eye's gas and ignition charges and takes its products.
+  goto ae.core+-4,4,-8 look ae.core+-4,0,1
+  label ae.tankhe side left | Gas supply: endless test tanks behind read-only storage buses, standing in for your production (set up by script)
+  label ae.drive side up | ME drive: ignition charges, room for the products
+  label ae.emitter side right | Level emitter: lamp lit while a charge is in stock
+  hold 5
+
+scene ae-trim
+  caption The trims have their own network. A Directive Hatch reads the star's field every second; while it wants Helium its bit is on, one dust carries it to an export bus, and the bus pushes Helium into the Field hatch.
+  goto ae.trimhe.cam look ae.trimhe+0,0.5,0
+  label ae.dirhe side up | Directive Hatch, Trims, Bit 1: pressure too high
+  label ae.trimhe side left | AE2 fluid export bus with a redstone card
+  label ae.fieldhe side down | Field hatch (LV, so the bus cannot stockpile)
+  hold 6
+
+scene ae-light
+  caption The supply opens and the charge cell goes into the drive (set up by script). From here nothing touches the Eye: it fills its buffers, takes a charge and lights its star itself.
+  goto aeeye+0,-14,-88 look aeeye+0,-6,0
+  aecells
+  warp 6
+  timelapse 20 speed 1 until aelit tail 3
+  command /btseye star {aeeyectrl} status
+  melist ae.term
+
+scene ae-burn
+  caption Sol is burning. The trim buses switch on and off to hold the field; Raw Star Matter flows into the network every 60 s cycle.
+  warp 20
+  orbit aeeye+0,-8,0 radius 80 height 20 from 30 to -30 seconds 8
+
+scene eye-gui
+  caption The controller screen (the old one; the redesign is on master) and, on the left, what a Portable Scanner reads off the controller: the star, the field, the upkeep, the last event.
+  goto aeeyectrl+0,0.2,-3.5 look aeeyectrl
+  gui aeeyectrl
+  readout aeeyectrl match "^(Star:|Field:|Upkeep|Event warning|COUNTDOWN|Batch:|HSM feed|Trims this|Last event|Mass Infusion|Shell Ignition|Core Collapse|First Cooling|Magnetar Merger|Magnetar Collapse|Galactic Merger|Dwarf-matter|Bursts|SUPERNOVA|PENDING|READY|Not ready)"
+  warp 20
+  hold 6
+  close
+
+scene eye-t1
+  caption Eye tiers. Tier 1 is the core: plinth, band and field generators (19,616 blocks). Each tier adds a band and a harder star. (Raised by the dev kit, its generators already at tier 6.)
+  goto tiers.c+-80,30,-80 look tiers.c+0,-8,0
+  hold 4
+
+scene eye-t2
+  caption Tier 2 adds the beam band: Sirius A. Then the jet crescent (tier 3, Arcturus)...
+  hologram tiers survival tier 2 budget 9 every 1 tail 0.5 max 10
+  hologram tiers survival tier 3 budget 9 every 1 tail 0.5 max 10
+
+scene eye-t4
+  caption ...the spiral arms (tier 4, the neutron star), the second arms (tier 5, Sirius B)...
+  goto tiers.c+-112,44,-112 look tiers.c+0,-8,0
+  hologram tiers survival tier 4 budget 14 every 1 tail 0.5 max 10
+  hologram tiers survival tier 5 budget 14 every 1 tail 0.5 max 10
+
+scene eye-t6
+  caption ...and the galactic rim (tier 6, the magnetar). Each tier also needs its compression generators and a core; a tier above a recipe's own doubles its parallel.
+  hologram tiers survival tier 6 budget 22 every 1 tail 1 max 12
+  orbit tiers.c+0,-8,0 radius 165 height 50 from -45 to 20 seconds 5
+
+# ================================================================ 2. Extraction
+scene c2
+  card 3 2. Extraction | what the star makes, and how it leaves the Eye
+
+scene ext-me
+  caption The Eye's products come out of an ME output hatch and bus straight into the network: here Sol's Raw Star Matter, about 62,500 L every cycle, counted by the ME terminal.
+  goto ae.term+0,0.6,-2.6 look ae.term
+  use ae.term side north
+  warp 40
+  hold 9
+  close
+
+scene ext-tiers
+  card 5 What each tier makes | T1 Sol: Raw Star Matter  -  T2 Sirius A: Excited Stellar Plasma  -  T3 Arcturus: Hyperdense Plasma | T4 neutron star: White Dwarf Matter  -  T5 Sirius B: Black Dwarf Matter  -  T6 magnetar: Magnetar Matter | T7 Triangulum: Ergomatter  -  T8 Milky Way: Superdense Ergomatter | (the next chapter's Eye sends each into its own ME network)
+
+# ================================================================ 3. The harder stars
+scene c3
+  card 3 3. The harder stars | one Eye climbs from Sol to a magnetar, run by its Directive Hatches
+
+scene hs-intro
+  caption This Eye was raised to tier 6 by the dev kit and set back to a dark tier 1. Each tier's milestones (hours of play) are set done by script, one at a time. Everything else is the standard rig: once a second it reads only the Eye's Directive Hatches and opens the matching valve.
+  command /btseye star {climb} liverig on
+  goto climb.c+0,25,-45 look climb.c
+  warp 40
+  timelapse 6 speed 1 until lit:climb tail 3
+
+scene hs-t2
+  caption T1 -> T2, the Mass Infusion (milestones set by script). The rig hands in the Stellar Mass Core and the Sirius A chart when the Transition hatch asks; the infusion takes 600 s.
+  command /btseye star {climb} milestones 1 done
+  goto climb+0,0.2,-3.5 look climb
+  gui climb
+  readout climb match "^(Star:|Field:|Upkeep|Event warning|COUNTDOWN|Batch:|HSM feed|Trims this|Last event|Mass Infusion|Shell Ignition|Core Collapse|First Cooling|Magnetar Merger|Magnetar Collapse|Galactic Merger|Dwarf-matter|Bursts|SUPERNOVA|PENDING|READY|Not ready)"
+  warp 40
+  timelapse 14 speed 2 until unlocked:climb:2 tail 1 clock
+  close
+
+scene hs-t3
+  caption T2 -> T3, the Shell Ignition (milestones set by script): its forced helium flash is ridden on the Status hatch's event bit. Arcturus burns.
+  command /btseye star {climb} milestones 2 done
+  goto climb.c+0,25,-45 look climb.c
+  warp 40
+  timelapse 14 speed 2 until unlocked:climb:3 tail 1 clock
+
+scene hs-t4
+  caption T3 -> T4, the Core Collapse (milestones set by script): the Transition hatch asks for Tachyon for its 940 s, the rig opens the valve, and Arcturus collapses into a neutron star.
+  command /btseye star {climb} milestones 3 done
+  goto climb+0,0.2,-3.5 look climb
+  gui climb
+  readout climb match "^(Star:|Field:|Upkeep|Event warning|COUNTDOWN|Batch:|HSM feed|Trims this|Last event|Mass Infusion|Shell Ignition|Core Collapse|First Cooling|Magnetar Merger|Magnetar Collapse|Galactic Merger|Dwarf-matter|Bursts|SUPERNOVA|PENDING|READY|Not ready)"
+  warp 40
+  timelapse 14 speed 3 until unlocked:climb:4 tail 1 clock
+  close
+
+scene hs-neutron
+  caption T4, the neutron star: three gauges now (pressure P, temperature, spin), polar beams, and a Feed - the HSM you feed it sets its White Dwarf Matter. Four trims, one per Trims bit: Space, SpaceTime, Super Coolant, Tengam.
+  goto climb.c+0,25,-45 look climb.c
+  warp 20
+  hold 5
+  goto climb+0,0.2,-3.5 look climb
+  gui climb
+  readout climb match "^(Star:|Field:|Upkeep|Event warning|COUNTDOWN|Batch:|HSM feed|Trims this|Last event|Mass Infusion|Shell Ignition|Core Collapse|First Cooling|Magnetar Merger|Magnetar Collapse|Galactic Merger|Dwarf-matter|Bursts|SUPERNOVA|PENDING|READY|Not ready)"
+  hold 6
+  close
+
+scene hs-cooling
+  caption T4 -> T5, the First Cooling (milestones set by script): Sirius B cools in 7,200 s batches. The setpoint runs from +90 to -90; at the crystallisation plateau the screen warns ahead, and the batch must keep a mean Y of 0.9 to count.
+  command /btseye star {climb} milestones 4 done
+  goto climb+0,0.2,-3.5 look climb
+  gui climb
+  readout climb match "^(Star:|Field:|Upkeep|Event warning|COUNTDOWN|Batch:|HSM feed|Trims this|Last event|Mass Infusion|Shell Ignition|Core Collapse|First Cooling|Magnetar Merger|Magnetar Collapse|Galactic Merger|Dwarf-matter|Bursts|SUPERNOVA|PENDING|READY|Not ready)"
+  warp 60
+  timelapse 30 speed 10 until unlocked:climb:5 tail 1 clock
+  close
+
+scene hs-merger
+  caption T5 -> T6, the Magnetar Merger (milestones set by script): the dynamo winds the field up; held +60 to +90 for 120 s, then released. Antipolarization Agent flows on the Status hatch's event bit.
+  command /btseye star {climb} milestones 5 done
+  goto climb+0,0.2,-3.5 look climb
+  gui climb
+  readout climb match "^(Star:|Field:|Upkeep|Event warning|COUNTDOWN|Batch:|HSM feed|Trims this|Last event|Mass Infusion|Shell Ignition|Core Collapse|First Cooling|Magnetar Merger|Magnetar Collapse|Galactic Merger|Dwarf-matter|Bursts|SUPERNOVA|PENDING|READY|Not ready)"
+  warp 20
+  timelapse 12 speed 2 until unlocked:climb:6 tail 2 clock
+  close
+
+scene hs-agent
+  caption T6, the magnetar: giant flares every 60-120 s, warned 15 s ahead. Status bit 3 says "Agent wanted"; the rig's Agent valve answers it, and the shield holds.
+  goto climb.dir.eye_status+0,1,-3 look climb.dir.eye_status
+  gui climb.dir.eye_status
+  readout climb match "^(Star:|Field:|Event warning|Trims this|Last event|Dwarf-matter)"
+  warp 10
+  hold 6
+  close
+  goto climb.c+50,35,-70 look climb.c
+  warp 20
+  hold 3
+  goto climb.c+0,25,-45 look climb.c
+  hold 3
+
+scene hs-products
+  caption Its ME network after the climb, filled by the ME output hatch and bus with no hand on it: Raw Star Matter, Excited Stellar Plasma and the Purified Tengam the magnetar gives back. (On this scripted climb the higher stars burned only minutes each.)
+  goto climb.termcam look climb.term
+  use climb.term side north
+  warp 20
+  hold 5
+  close
+  melist climb.term
+
+# ================================================================ 4. The Kerr
+scene c4
+  card 3 4. The Kerr | a black hole fed by AE2
+
+scene kerr-rig
+  caption The Kerr Ergosphere Engine, tier 1, on AE2: one Directive Hatch per job, each switching an export bus on demand.
+  goto k.core+0,7,-22 look k.core+0,-2,8
+  label k.boltdir side up | Directive Hatch, Hole Bit 3: the bolt stock runs short
+  label k.boltbus side right | Export bus: SpaceTime bolts into the bolt bus
+  label k.seedbus side left | Export bus: a Black Hole Seed while the hole is closed
+  hold 6
+
+scene kerr-run
+  caption The cell of bolts and seeds goes into the drive (set up by script). The network seeds the hole, then feeds it bolts as it climbs to its setpoint.
+  goto kerr+60,18,-70 look kerr
+  cell
+  warp 30
+  orbit kerr radius 90 height 22 from -40 to 40 seconds 10
+
+scene kerr-gui
+  caption The Kerr's screen: the hole's mass against its setpoint, the bolt stock, the modules.
+  goto keectrl+0,0.2,-3.5 look keectrl
+  gui keectrl
+  warp 10
+  hold 5
+  close
+
+scene kerr-extract
+  caption The Kerr Extractor Module runs GT's extractor recipes off the open hole: linked to it, the hole's mass gives it 448 parallels and almost x4 speed. (Idle here: no input fed in this shot.)
+  goto keectrl.modx+0,0.2,-3.5 look keectrl.modx
+  gui keectrl.modx
+  hold 5
+  close
+  command /btskerr module {keectrl} x status
+
+scene kerr-tiers
+  caption Kerr tiers side by side. Tier 2, with the Kerr Density Upgrade: setpoint up to 512 solar masses, and Kerr Densification in the Compressor Module.
+  label kt1.c side up | Tier 1
+  label kt2.c side up | Tier 2
+  goto 5150,58,3895 look 5150,30,4040
+  dolly 5150,58,3895 4980,58,3895 seconds 7
+
+# ================================================================ 5. Homogeny and Reality
+scene c5
+  card 3 5. The Homogeny and the Reality machines | mixing star matter, and what comes after
+
+scene hom-t1
+  caption The Homogeny, tier 1, mixing Raw Star Matter into Excited Stellar Plasma Mixture (built by its bench, on creative power: set up by script).
+  goto hom+-40,40,-60 look hom+0,0,30
+  hold 3
+  goto hom+0,4,-6 look hom
+  gui hom
+  warp 20
+  hold 4
+  close
+
+scene hom-ring
+  caption Tier 2 needs the stirring ring, built here by the projector's survival auto-place...
+  goto hom+-40,40,-60 look hom+0,0,30
+  hologram hom survival tier 2 budget 6 every 1 tail 1 max 15
+
+scene hom-install
+  caption ...the 100,000 L milestone (set by script) and the Tier II core handed in (by script). Install runs 600 s offline; then T2: four parallels and Degenerate Stellar Mixture.
+  command /btshr bench {hom} project 2
+  creativepower hom
+  command /btshr bench {hom} milestone 100000 0
+  command /btshr bench {hom} escrow
+  command /btshr bench {hom} on
+  command /btshr bench {hom} install
+  goto hom+0,4,-6 look hom
+  gui hom
+  warp 40
+  timelapse 22 speed 2 until game:1000 tail 1 clock
+  hold 2
+  close
+  command /btshr bench {hom} on
+  command /btshr bench {hom} status
+
+scene reality
+  caption Reality Diffraction (formed by its bench, inputs filled by script) idles honestly: it needs a BEC network with a Containment Field, which this test world does not have.
+  goto dif+0,6,-30 look dif+0,20,30
+  hold 3
+  goto dif+0,0.2,-3.5 look dif
+  gui dif
+  hold 4
+  close
+
+scene refab
+  caption Reality Refab idles too: its regions come only from a running Diffraction through BEC. Both wait on the next part of the ladder.
+  goto ref+0,10,-40 look ref+0,40,30
+  hold 3
+  goto ref+0,0.2,-3.5 look ref
+  gui ref
+  hold 4
+  close
+
+# ================================================================ 6. The Quasar and the Conduit
+scene c6
+  card 3 6. The Quasar and the Conduit | a quasar's jets carried across the world
+
+scene q-seed
+  caption Seeding a Quasar Engine: a Quasar Seed in the slot and Open (done by script, as the GUI's button). A 64 solar-mass hole lights its disc. (This one is then grown to 136 solar masses by script for chapter 7.)
+  goto gq+0,0.2,-3.5 look gq
+  command /btsquasar seed {gq}
+  gui gq
+  warp 4
+  timelapse 8 speed 1 until game:30 tail 1
+  close
+  command /btsquasar feed {gq} 1.0
+  command /btsquasar mass {gq} 136
+
+scene q-disc
+  caption The disc: its energy E, flux and the hole's mass and spin. Flux builds until it erupts on its own; a purge (the Burst Control Hatch, a redstone edge) vents it early.
+  goto cq+0,0.2,-3.5 look cq
+  gui cq
+  warp 20
+  hold 6
+  close
+
+scene q-jets
+  caption Inside the shell: the hole, the disc and the two jets, which leave through the caps (top: a Burst Thermaliser Crown; bottom: a Wormhole Mouth). A purge (set off by script, as the Purge button) flashes the disc.
+  goto cq.c+0,15,-52 look cq.c
+  warp 10
+  hold 3
+  command /btsquasar purge {cq}
+  hold 3
+  goto cq.c+-60,3,0 look cq.c
+  hold 3
+
+scene conduit
+  caption The Conduit: the mouth under the quasar is paired with one 100 blocks away; the stream comes out of its back into a Mirror, which turns it into a Junction that splits it three ways.
+  goto mouthb+-40,50,-90 look mirror1
+  hold 3
+  goto moutha+0,0.2,-3.5 look moutha
+  gui moutha
+  hold 3
+  close
+  goto junction+0,0.2,-3.5 look junction
+  gui junction
+  hold 4
+  close
+
+scene crown
+  caption Burst Thermaliser Crown: every Bu/t of the stream becomes 10^13 EU/t, straight into the owner's wireless network.
+  goto crown+0,0.2,-3.5 look crown
+  gui crown
+  warp 10
+  hold 5
+  close
+
+scene receptor
+  caption GRB Receptor Ports feed a host: this crown is fed by Mirror 2 through its port, 150 blocks from the quasar.
+  goto rcrown+0,0.2,-3.5 look rcrown
+  gui rcrown
+  hold 5
+  close
+
+# ================================================================ 7. Eye T7-T8
+scene c7
+  card 3 7. Eye T7 and T8 | a magnetar becomes a galaxy
+
+scene gal-collapse
+  caption An Eye at T6, its milestones set done and the Intergalactic core and Triangulum chart handed in (by script). The quasar here is the bench's model of the same engine, run in lock-step with the Eye; the rig times a purge so the eruption lands on the collapse second.
+  command /btseye star {gal} unlock 6
+  command /btseye star {gal} fill
+  command /btseye star {gal} target magnetar
+  command /btseye star {gal} lit magnetar
+  command /btseye star {gal} galaxy 0 mass 136
+  command /btseye star {gal} milestones 6 done
+  command /btseye star {gal} milestones 7 done
+  command /btseye star {gal} buses clear
+  command /btseye star {gal} core intergalactic
+  command /btseye star {gal} target triangulum
+  goto gal+0,0.2,-3.5 look gal
+  gui gal
+  warp 60
+  timelapse 30 speed 4 until unlocked:gal:7 tail 1 clock
+  close
+
+scene gal-t7
+  caption T7, Triangulum: a galaxy of three arms, held on Ergomatter and bursts.
+  warp 40
+  wait unlocked:gal:7 timeout 600
+  goto gal.c+0,55,-35 look gal.c
+  warp 20
+  hold 5
+
+scene gal-merger
+  caption T7 -> T8, the Galactic Merger, now on the real quasar from chapter 6 and the quasar rig (Directive codes in, redstone on the Burst Control Hatches out): Begin on the Galaxy Transition hatch, then 1,800 s of pericentre passes. Supermassive core and Milky Way chart handed in by script.
+  command /btseye star {gal} core supermassive
+  command /btseye star {gal} target milkyway
+  command /btsquasar autorig {gq} 0 eye {gal}
+  command /btseye star {gal} galaxy off
+  command /btseye star {gal} rig none
+  goto gal+0,0.2,-3.5 look gal
+  gui gal
+  warp 60
+  timelapse 25 speed 4 until unlocked:gal:8 tail 1 clock
+  close
+
+scene gal-t8
+  caption T8, the Milky Way: four arms and a bar, satellites crossing its disc, Superdense Ergomatter out.
+  goto gal.c+0,55,-35 look gal.c
+  warp 20
+  hold 6
+
+# ================================================================ 8. How to build it
+scene c8
+  card 3 8. How to build one | hints, auto-place, forming, NEI
+
+scene build-hints
+  caption Place the controller and use a Hologram Projector on it: the whole structure appears as hints.
+  place bts.eyeOfHarmony 3300,5,4000 facing north name build1
+  goto build1+-70,45,-60 look build1+0,10,40
+  hologram build1 hints
+  hold 3
+
+scene build-survival
+  caption Sneak-use it in survival and it places the blocks from your inventory, a batch per use (items supplied by script).
+  hologram build1 survival tier 1 budget 10 every 1 tail 1 max 25
+
+scene build-form
+  caption With the hatches fitted (here by the dev kit) the controller checks the structure and forms.
+  kit eye 1 build1
+  goto build1+0,0.2,-3.5 look build1
+  gui build1
+  hold 4
+  close
+
+scene build-nei
+  caption NEI shows every multiblock (the structure preview, with tier and layer sliders) and how the controller is made.
+  nei usage bts.eyeOfHarmony tab multiblock
+  hold 4
+  close
+  nei recipe bts.eyeOfHarmony
+  hold 3
+  close
+
+# ================================================================ 9. The quest book
+scene c9
+  card 3 9. The quest book | the post-UEV chapters (UIV and UMV are the pack's own chapters: not in this dev world)
+
+scene qb-uxv
+  caption Tier 13, UXV: the Eye's second half - Sirius B cooling white dwarfs into black ones, the magnetar on Antipolarization Agent - beside the pack's own UXV parts.
+  questbook chapter 190:47991
+  hold 3
+  close
+
+scene qb-max
+  caption Tier 14, MAX: the last voltage tier. Our part of it is still to come.
+  questbook chapter 190:47992
+  hold 3
+  close
+
+scene qb-end
+  caption The Endgame: what Universium is for, the MHDCSM line, the crafted Stargate.
+  questbook chapter 190:47993
+  hold 3
+  close
+
+# ================================================================ end
+scene end
+  card 4 Beyond the Stars | Draft showcase v2 - recorded in a GTNH 2.9 dev client | time warp and bench rigs are dev tools; every run shown is the machines' own

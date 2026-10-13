@@ -1,0 +1,12 @@
+# Time-warp proof, part 2 of 2: the same rig and the same 440 s of game time under /btswarp 20 (the recorder's warp).
+build eyeae
+time day
+
+scene warped
+  caption Time warp x20 (cheat): the same 440 s of game time.
+  goto aeeye+0,-14,-88 look aeeye+0,-6,0
+  aecells
+  warp 20
+  wait game:440 timeout 900
+  command /btswarp status
+  hold 3

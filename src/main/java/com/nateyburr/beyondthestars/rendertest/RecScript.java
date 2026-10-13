@@ -52,7 +52,16 @@ final class RecScript {
             "kit",
             "nei",
             "aecells",
-            "fov"));
+            "fov",
+            "warp",
+            "use",
+            "terminal",
+            "menet",
+            "points",
+            "creativepower",
+            "name",
+            "readout",
+            "melist"));
 
     /** The verbs whose time is recorded. */
     static final Set<String> RECORDING = new HashSet<>(
@@ -80,7 +89,9 @@ final class RecScript {
             "every",
             "tab",
             "name",
-            "gen"));
+            "gen",
+            "side",
+            "match"));
 
     /** One command line. */
     static final class Cmd {

@@ -493,6 +493,74 @@ final class AutoRigEyeAE {
         AutoRig.POINTS.put(name, p);
     }
 
+    // ------------------------------------------------------------------------------------- any kit Eye's outputs
+
+    /**
+     * An ME network on the products of the Eye whose controller is at {@code ctrl} (built by its dev kit, which fits an
+     * ME output bus and an ME output hatch in the core's 'o' sockets): a smart-cable trunk three blocks in front of the
+     * controller with a stub to each, a creative-energy ME controller and a drive at its west end holding an empty item
+     * cell and an empty fluid cell, and an ME terminal on the trunk facing north (the side a camera stands on).
+     * Registers {@code <name>.term} (the terminal's cable cell), {@code <name>.termcam} (a camera spot 3 blocks north
+     * of
+     * it) and {@code <name>.mecore}. Set up by script: the player's own network would do the same.
+     */
+    static List<String> outputNet(WorldServer world, int[] eyeCtrl, String name, AEColor color) {
+        final List<String> out = new ArrayList<>();
+        final MTEEyeOfHarmonyBTS eye = AutoRig.mteAt(world, eyeCtrl, MTEEyeOfHarmonyBTS.class);
+        if (eye == null) {
+            out.add("no Eye at " + RenderTest.pos(eyeCtrl));
+            return out;
+        }
+        final EntityPlayer player = RenderTest.player();
+        final ExtendedFacing al = eye.getExtendedFacing();
+        final int[][] o = BTSShapes.socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'o');
+        final int[] ob = SLConsoleTest.worldPos(al, eyeCtrl[0], eyeCtrl[1], eyeCtrl[2], o[0]);
+        final int[] oh = SLConsoleTest.worldPos(al, eyeCtrl[0], eyeCtrl[1], eyeCtrl[2], o[1]);
+        final int y = eyeCtrl[1], zT = eyeCtrl[2] - 3;
+        final int west = Math.min(ob[0], oh[0]) - 6, east = Math.max(ob[0], oh[0]) + 1;
+        final List<int[]> trunk = MeParts.line(new int[] { west, y, zT }, new int[] { east, y, zT });
+        MeParts.run(world, trunk, MeParts.Kind.SMART, color, player);
+        for (int[] h : new int[][] { ob, oh }) {
+            final int[] fr = front(h, facing(world, h));
+            final List<int[]> l = MeParts.line(new int[] { h[0], y, zT }, fr);
+            if (l != null && MeParts.clear(world, l, null)) MeParts.run(world, l, MeParts.Kind.SMART, color, player);
+            else {
+                final List<int[]> path = MeParts.route(world, new int[] { h[0], y, zT }, fr, null, 14, AutoRig.GROUND);
+                if (path == null) out.add("NO CABLE ROUTE to the ME hatch at " + RenderTest.pos(h));
+                else MeParts.run(world, path, MeParts.Kind.SMART, color, player);
+            }
+        }
+        final int[] core = { west - 1, y, zT }, drv = { west - 1, y + 1, zT };
+        MeParts.block(world, core, MeParts.controllerBlock());
+        MeParts.block(world, drv, MeParts.driveBlock());
+        int slot = 0;
+        for (ItemStack cell : new ItemStack[] { AEApi.instance()
+            .definitions()
+            .items()
+            .cell64k()
+            .maybeStack(1)
+            .orNull(), cellOf("CELL16384K"), cellOf("CELL16384K") }) {
+            if (cell != null && MeParts.intoDrive(world, drv, slot, cell)) slot++;
+        }
+        final int[] term = { west + 2, y, zT };
+        MeParts.terminal(world, term, ForgeDirection.NORTH, MeParts.Kind.SMART, color, player, out, "");
+        final String n = name.toLowerCase(Locale.ROOT);
+        point(n + ".term", ctr(term));
+        point(n + ".termcam", new double[] { term[0] + 0.5, y + 1.1, term[2] - 2.6 });
+        point(n + ".mecore", ctr(core));
+        out.add(
+            "ME network on the Eye's products (set up by script): ME output bus " + RenderTest.pos(ob)
+                + ", ME output hatch "
+                + RenderTest.pos(oh)
+                + ", controller "
+                + RenderTest.pos(core)
+                + ", drive with "
+                + slot
+                + " empty cells, terminal "
+                + RenderTest.pos(term));
+        return out;
+    }
+
     // ------------------------------------------------------------------------------------- the cells
 
     /**
@@ -516,6 +584,10 @@ final class AutoRigEyeAE {
                 continue;
             }
             tank.setFillableStack(new FluidStack(fl, 1000));
+            // the read-only storage bus in front re-scans on a neighbour change: without one it sometimes kept the
+            // first 1,000 L it saw and the Eye's stocking hatch never filled the buffers (showcase v2 draft 1)
+            world.notifyBlocksOfNeighborChange(t[0], t[1], t[2], world.getBlock(t[0], t[1], t[2]));
+            world.markBlockForUpdate(t[0], t[1], t[2]);
             out.add("supply tank " + RenderTest.pos(t) + ": endless " + fl.getName() + " (set up by script)");
         }
         final ItemStack items = MeParts.filledCell(

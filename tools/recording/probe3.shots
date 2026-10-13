@@ -1,0 +1,108 @@
+# DEV PROBE 3 (not a showcase): camera and screen checks for the showcase2 scenes.
+time day
+build eyeae
+build kerr
+terminal 2394,5,3996 side north name ae.term
+kit eye 6 3000,5,4000 gen 5 name climb
+command /btseye star 3000 5 4000 fill
+command /btseye star 3000 5 4000 target neutron
+command /btseye star 3000 5 4000 lit neutron
+command /btseye star 3000 5 4000 rig fine
+command /btsquasar t3 8600 100 4000 north seed
+command /btsquasar keep 8600 100 4000
+points keectrl
+
+scene term
+  caption probe: Rig C terminal
+  aecells
+  goto ae.term+0,0.6,-2.6 look ae.term
+  warp 30
+  use ae.term side north
+  hold 6
+  close
+
+scene kmod
+  caption probe: kerr module
+  cell
+  warp 30
+  wait holeopen timeout 300
+  command /btskerr module {keectrl} x stock
+  command /btskerr module {keectrl} x status
+  goto keectrl.modx+0,0.2,-3.5 look keectrl.modx
+  gui keectrl.modx
+  hold 4
+  close
+  goto keectrl.modx+0,6,-14 look keectrl.modx
+  hold 2
+  command /btskerr module {keectrl} x status
+
+scene star
+  caption probe: climber views
+  warp 5
+  goto climb.c+0,25,-45 look climb.c
+  hold 2
+  goto climb.c+0,2,-60 look climb.c
+  hold 2
+  goto climb.c+50,35,-70 look climb.c
+  hold 2
+  goto climb.c+0,10,-25 look climb.c
+  hold 2
+  goto climb+0,0.2,-3.5 look climb
+  gui climb
+  hold 3
+  close
+
+scene quasar
+  caption probe: quasar views
+  warp 10
+  goto 8600,115,3850 look 8600,115,4072
+  hold 2
+  goto 8600,200,3900 look 8600,115,4072
+  hold 2
+  goto 8600,130,4020 look 8600,115,4072
+  hold 2
+  goto 8540,118,4072 look 8600,115,4072
+  hold 2
+  goto 8600,105,4000 look 8600,100,4002
+  command /btsquasar purge 8600 100 4000
+  goto 8600,130,4020 look 8600,115,4072
+  hold 3
+  goto 8600,100.2,3996.5 look 8600,100,4000
+  gui 8600,100,4000
+  hold 3
+  close
+
+scene chain
+  caption probe: T6 -> T7 (bench quasar model) -> T8 (real quasar, live rig)
+  kit eye 8 10000,5,4000 gen 8 name g1
+  command /btsquasar t3 10000 100 4400 north seed
+  command /btsquasar keep 10000 100 4400
+  command /btsquasar feed 10000 100 4400 1.0
+  command /btsquasar mass 10000 100 4400 136
+  command /btseye star 10000 5 4000 unlock 6
+  command /btseye star 10000 5 4000 fill
+  command /btseye star 10000 5 4000 target magnetar
+  command /btseye star 10000 5 4000 lit magnetar
+  command /btseye star 10000 5 4000 galaxy 0 mass 136
+  command /btseye star 10000 5 4000 milestones 6 done
+  command /btseye star 10000 5 4000 milestones 7 done
+  command /btseye star 10000 5 4000 buses clear
+  command /btseye star 10000 5 4000 core intergalactic
+  command /btseye star 10000 5 4000 target triangulum
+  command /btseye star 10000 5 4000 status
+  goto g1.c+0,40,-200 look g1.c
+  warp 60
+  timelapse 20 speed 10 until unlocked:g1:7 clock
+  command /btswarp status
+  command /btseye star 10000 5 4000 status
+  command /btseye star 10000 5 4000 galaxy off
+  command /btseye star 10000 5 4000 rig none
+  command /btseye star 10000 5 4000 core supermassive
+  command /btseye star 10000 5 4000 target milkyway
+  command /btsquasar autorig 10000 100 4400 0 eye 10000 5 4000
+  timelapse 20 speed 10 until unlocked:g1:8 clock
+  command /btswarp status
+  command /btseye star 10000 5 4000 status
+  command /btsquasar autorig status
+  goto g1.c+0,30,-90 look g1.c
+  hold 3
