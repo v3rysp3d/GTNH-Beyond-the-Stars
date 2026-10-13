@@ -6,7 +6,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 1. **Open questions**: each open decision once, with the answer we recommend and where the detail is.
 2. **Settled**: everything you have answered, in your words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision from you.
-4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101 and B-105..B-121, the tidy pass's
+4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101 and B-105..B-122, the tidy pass's
    TQ-1..TQ-8, and P4's P4-01..P4-94 in Part E).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
@@ -171,6 +171,9 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
   fluid the star needs~~: both fixed; the overflow row is not yet seen in a client. [B-120]
 - ~~Record the final showcase~~: done, 7:05 at 1080p from master, with the pack's UIV / UMV quest chapters; the
   recorder parks the mouse after a screen opens (a quest tooltip had covered the book). [B-121]
+- ~~Package the playtest jar from master after P4, the GUI merge and the showcase~~: done, `master.302`
+  (`362b228`) in `dist-rc2`, INSTALL.md and the playtest guide refreshed (phases Q, T, W; 425 recipes from a fresh
+  dump); `master.250` is in `dist-rc2/superseded/`. [B-122]
 
 **To see in a client** (the headless dev server cannot): the hologram hints, a survival build from a real AE system,
 the NEI multiblock tab and its frame rate (a T6 Eye is 51,935 blocks), every GUI (Eye, KEE, modules, Directive Hatch,
@@ -246,7 +249,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-101, B-105..B-121
+## Part B. Entries B-1..B-101, B-105..B-122
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -5919,6 +5922,78 @@ scenes, and cut a 720p copy into parts under 14 MB.
 **Known, not changed.** Opening the GUI of a machine raised by command logs GT's power-fail-tracker NPE (`FAILED:
 ExecutionException: NullPointerException` in `rec.log` for the quasar, mouth and crowns); the GUI opens normally
 (B-116). Reality Diffraction and Refab still do not run on camera (no BEC network in the world; B-118).
+
+---
+
+### B-122 Package: the playtest jar `0.24.1-master.302+362b228973` [final showcase, playtest package]
+
+**Context.** Since `master.250` (B-105) master took P4 (B-110..B-114), the GUI kit (B-115, B-116, B-119, B-120), the
+showcase merge with `/btswarp` and the P4-95 fix (B-117, B-118) and the final recording (B-121). This unit packages
+that for the local playtest.
+
+**What was done.**
+- `gradlew build --no-daemon` on master `362b228`, clean tree (spotless and checkstyle ran and passed; nothing
+  changed). The jar is `dist-rc2/beyondthestars-0.24.1-master.302+362b228973.jar`, 2,502,474 bytes, SHA-256
+  `f29395dab058d6af1bee9b3cdb954965d79b22e32212ba1475e560061b63cb26`; `mcmod.info` says
+  `0.24.1-master.302+362b228973`. It holds `TimeWarp` / `CommandBTSWarp`, the P4 machines and the dev-only recorder
+  (`rendertest/RecClient`, `FrameRecorder`; loaded only with `-Dbts.rec=true`). `master.250` moved to
+  `dist-rc2/superseded/`.
+- **A fresh recipe dump and the load lines.** Two headless `runServer` boots (port 25565, fresh flat world `b122-rx`;
+  the config, level name and `cmds.txt` were put back afterwards; script `work/b122/run-dumps.sh`), both on the
+  dev classes of this same commit (the dump's `mod` field is `0.24.1-master.302+362b228973`):
+  - shipped flags: `311 registered, 0 skipped`, "P4 recipes: every machine recipe is registered", SL-Q26 (two lines),
+    "Eye of Harmony: 10 live stars, 43 planet recipes", the 13 OpenComputers components, the 8 White Hole Matter gate
+    lines (SL-C04, SL-H20, SL-H21, SL-R01..R05) plus the summary, and no `[beyondthestars]` WARN / ERROR except the 64
+    "pack edit skipped" lines of a world with no pack book. No `com.nateyburr` frame. `/btsrecipes status`: `Total 425
+    | by status {new=365, changed-GT=58, removed=2}` (Kerr 28, Eye 64, Quasar / Conduit 34, BEC 28, H/R 27,
+    Automation 1, upgrade path 41, old plant 202), as B-113;
+  - both flags off: 309 registered, `Total 408 | {new=406, changed-GT=2, removed=0}`; gone are the 10 BHC swaps,
+    SL-E01 / SL-K01 removals, SL-G01, SL-P33, SL-P40 and SL-Q26.
+- **`dist-rc2/INSTALL.md`** (CRLF kept): the new jar name, size and hash everywhere (header, the local install block,
+  the dedicated-server command); a new 0.1 "Since `master.250`" (the Quasar Engine; the Conduit and crowns; Eye T7 / T8; SL-Q26;
+  the P4 quests; the new controller GUIs; the Eye intake cap; restart persistence; the casing tooltips; `/btswarp`; the
+  P4-95 fix; the dev-only recorder); the old 0.1 / 0.2-0.3 folded into 0.2 / 0.3. Section 3: 311 registered, the
+  P4 and SL-Q26 lines, 10 live stars, 13 OC components, the 8 White Hole Matter gate lines by id, 425. Section 4:
+  SL-P40 / SL-Q26 under the Eye flag, 408 with both flags off. Section 5: the UXV chapter's P4 quests, Riding the Rift
+  in MAX. Section 6: every GUI on the kit, the Eye table to T8 with the two galaxy transitions, the intake cap and the
+  GUI rows, a new 6.7 for the Quasar / Conduit / crowns with their MTE ids and the bench chunk-loading note. Section
+  7: P4 out of "not in this build", P5 and the Empyrean redesign in. Section 8: SL-Q01..Q28, SL-P40, SL-Q26, SL-B16.
+  Section 9: the GT owner NPE on bench machines, the cut GUI lines, the one-event sensor channel / `getEvent()`, the
+  large T7 / T8 caps, a collapse begun on a weak quasar, the harness switches; the "seen in a client" list updated.
+  Section 10: `/btsquasar`, `/btsconduit`, `/btswarp`, `/btskit quasar|conduit`, `/btseye t1..t8`, the projector
+  stacks. Section 11: "from `master.250`".
+- **Playtest guide** (local work folder `playtest/playtest-guide.html`, script `playtest/refresh302.py`, backup
+  `playtest-guide.master250.bak.html`):
+  - the header's jar, hash and commit; a "New since `master.250`" note naming the steps whose expectations changed;
+  - A1 / A2 (the new jar; 311, the 8 White Hole Matter gate lines, SL-Q26, 13 components), B1 / B2 (the P4 quests),
+    C1 and D1 (the new GUI layout), D3 (the Buffers section, the sensor's 20 channels), a new **D7** (the intake cap),
+    H1 (the hatch GUIs), R1 (425);
+  - three new phases: **Q** Quasar Engine, Conduit and crowns (Q1-Q4: build and GUI, seed and the disc, the conduit
+    rig and crowns, the disc's hatches), **T** Eye T7 and T8 (T1-T4: build and the dark checklist, the Magnetar
+    Collapse on a real quasar under the live rig and `/btswarp`, the Galactic Merger and the Milky Way, planets mode
+    and companions; the commands are the ones the showcase scenes ran), **W** time warp, restarts and tooltips;
+  - the chapters table (UXV's P4 quests, Riding the Rift), the command card (Eye T8, Quasar, Conduit and crowns, Time
+    warp), open questions 21-24, row 14 naming the recorder, and the footer.
+  - "All new recipes" rebuilt with `recipedump/build_section.py` from the fresh dumps (its `GROUPS` gained "Quasar /
+    Conduit", or that line would have had no chip): 425 entries.
+
+  Headless Edge (Playwright, `msedge` channel) in light, dark, 1280 px and 390 px: 39 steps (Q 0 / 4, T 0 / 4, W 0 /
+  3), no duplicate step ids, "425 of 425 recipes shown", the Quasar / Conduit chip filters to 34, ticking Q1 counts,
+  no console or page errors, no broken images, no horizontal overflow.
+
+**Judgement calls.**
+1. **The tick storage key stays `bts-playtest-master235`**, as in B-105, so ticks already made survive; the new note
+   names the steps to re-check (A1, A2, B1, B2, C1, D1, D3, H1, R1).
+2. **The guide's T2 is a bench recipe, not a survival one.** It sets the T6 milestones done and uses the live rig, as
+   the showcase did, because the Stability Link takes hours of a real link; the steps say so. A Magnetar Collapse
+   wired by hand stays on the "not seen" list.
+3. **No dev-client or Prism run for this unit.** The code is the one B-119 / B-120 tested and B-121 recorded; only
+   docs changed after it. The Prism instance was not touched (its `mods` still holds `master.93`, read only), so
+   INSTALL.md keeps the `master.93` path first.
+4. `dist-rc2/` is not in a git repo (the design repo leaves it untracked), as before.
+
+**Suggestion.** Install `master.302` instead of `master.250` and run the guide from A1; phases Q and T are the
+post-UEV gameplay you asked to see.
 
 ---
 
