@@ -121,6 +121,8 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
   the production halls on the kit; recipe results are compared by key (fixes the Kerr module and Eye planet rows). [B-98]
 - Controller GUI cleanup unit 4 (branch `gui-clean`): the hatch layout, the Directive Hatch (panel 214, nothing over
   the inventory) and the Stellar Field Sensor Hatch GUIs; spec §6 lang keys complete, GUI lang check 0 missing. [B-99]
+- Controller GUI cleanup round 1 (branch `gui-clean`): every master GUI checked in a dev client against the mockups;
+  12 fixes, among them the empty kit terminal (row clock overflow), the Refab lamp overlap and the Directive readout. [B-100]
 
 **To see in a client** (the headless dev server cannot): the hologram hints, a survival build from a real AE system,
 the NEI multiblock tab and its frame rate (a T6 Eye is 51,935 blocks), every GUI (Eye, KEE, modules, Directive Hatch,
@@ -4054,6 +4056,87 @@ questbook owner on master.
 
 **Suggestion.** Accept. The P4 Burst Control Hatch (196 high, a 0-15 bar) and GRB Receptor (166, a lamp) fit this
 layout as they are specified.
+
+### B-100 Controller GUI cleanup, round 1: the GUIs in a real dev client against the mockups [user approval 2026-10-13, built on branch gui-clean]
+
+**Context.** Units 1-4 (B-96..B-99) were checked only on a headless server. This round opened every master-side GUI
+in a dev client and put each state next to the approved mockup (`controller-gui-mockups.html`). The comparison page
+is in my local work folder: `gui/round1/gui-compare.html` (mockup vs in-game per state, a one-line note each).
+
+**What was built.**
+
+- `rendertest/GuiShotsClient`: a dev-only screenshot harness behind `-Dbts.guishots=true` (inert otherwise),
+  documented in the build doc; scripts in `tools/guishots/` (`build-sites.shots` builds every machine, the other
+  files shoot each state). It drives the client from a queue file, opens GUIs through the server, sets the GUI scale,
+  fakes the mouse without moving the real cursor (hover tooltips, clicks on MUI2's hovered widget, wheel scrolling),
+  and logs each panel's area for cropping.
+
+**Found and fixed (each its own commit).**
+
+1. **Every kit terminal was empty** apart from its header. `BTSControllerGui` started its rebuild clock at
+   `Long.MIN_VALUE`; `now - MIN_VALUE` overflows to a negative number, so the row and Info strings were never built.
+   The bench dumps call `addStatusRows` directly, which is why B-96..B-98 did not see it. Starts at -1,000,000 now.
+2. Info paragraphs used a `TextWidget`, which wraps at the font's 9 px; a kit `ParaWidget` draws them at the 10 px
+   pitch the spec gives.
+3. A bar label wider than the 50 px column ("Milestones") was cut to "Milestone."; it now pushes the bar right (the
+   bar keeps its right end at 132).
+4. Litres just under 10^12 printed "1000.00G"; every unit now ends where its rounded text would reach the next
+   ("1.00T"). EU/t the same.
+5. Eye header: "Neutron Star (Arcturus Remnant)" ran into the "Eye T4" chip; the subject drops a parenthetical.
+6. Eye Field panel: the zone legend in three columns; sensor and trim rows keep their value right-aligned; the trims
+   title, "none" and the footer left-aligned, as drawn.
+7. Kerr Hole control: GT's theme gives a `SliderWidget` no track; the slider draws one.
+8. Reality Refab: with GT's void / separation / batch buttons in the gap row, region lamps IV-VI ran under the
+   **i** button. The "Regions" caption is dropped when GT's buttons are present; each lamp's tooltip names its region.
+9. Reactor Silo: the instrument-panel lines wrapped at the list's 186 px, under the scrollbar; they wrap at 180. The
+   RPM field cut "12,000" at 34 px: it is 38, the Rods field 22. Group headers are gold, as the mockup draws them
+   (the scanner's bold aqua `header()` is unchanged).
+10. Directive Hatch: the Status and Transition bit names were cut to stubs ("1 Buffers s.") in two 78 px columns. The
+    readout lists the four bits one per row (box 66, panel 234; the controls still clear the inventory). A lamp text
+    that still does not fit keeps the first word of its parenthetical ("4 (unused)").
+11. Stellar Field Sensor Hatch: a long channel name drops its parenthetical before the readout line cuts it
+    ("Zone"); control labels use the mockup's words ("On ABOVE the threshold", "Analog 0-15"; the threshold note moves
+    to the mode tooltip).
+12. Refab check value "none within 64" cut its label to "Condensate Assem."; it reads "none" (the range stays in the
+    tooltip and in the recipe-result line).
+
+**Judgement calls.**
+
+1. **Directive panel 234 instead of 214** (spec §5.10). One bit per row was the only way to show the real bit names
+   whole; two columns of 78 px cannot hold "Ignition charge wanted". *Alternative:* keep 214 and two columns with cut
+   names (the tooltips do not cover the readout).
+2. **Silo group headers gold** rather than the kit's grey section colour: the mockup draws them gold and they
+   separate eight groups in a long scrolling panel.
+3. **Left as they are (by spec, logged on the page as "differs by spec"):** recipe machines keep GT's own recipe
+   rows (progress, output item) and GT's void / separation / lock buttons, which the mockups drew as kit rows or left
+   out (Kerr modules, Homogeny, halls). A paused Kerr module still shows GT's last recipe result above the link
+   checklist (B-97 #3).
+4. One remaining cut: the Directive Hatch's Status bit "Event warned / Agent warning" is cut by a few pixels in one
+   full-width row. It is runtime text the scanner and OpenComputers share (B-99 #6); shortening it is for the owner of
+   the Directive sets.
+
+**Seen in the client** (GUI scale 3 and 2, window 1920x1080): Eye NO STAR, DARK (full checklist), IGNITING, lit
+RESONANT, T4 neutron star STRAINED with the Feed stepper (+ visible), PENDING Sol > Sirius A (wheel scrolling),
+TRANSITION Core Collapse, T5 COOLING, the Info page, the Field panel, the right-chip tooltip; Kerr OPEN, CLOSED,
+DRIFTING, the Hole control and Modules panels, the per-chip tooltip, the TecTech power-switch icon (no magenta); the
+extractor module RUNNING and the compressor PAUSED; Homogeny RUNNING (Install grey) and INSTALLING (Install live);
+Diffraction WAITING with 144,000 L to enter; Refab WAITING; the Reactor Silo (scrolled, Info, **i** in the column);
+PUREX Canyon RUNNING; the Directive Hatch (Trims, Status, Transition sets) and the sensor's gauge, bar and lamp
+channels. The alert icon showed only on a shut-down Homogeny. Full `gradlew build` passes; jar
+`beyondthestars-0.24.1-gui-clean.271+996e07a526.jar`.
+
+**Not seen.** The P4 machines (not on this branch); a NOT FORMED controller; a Diffraction or Refab run (P4 fluids);
+the Silo's NOT BUILT / HELD / CLAMPED; GUI scale 4.
+
+**Dev-client notes for the next round.** A structure built under the player is only known to the client after a
+re-join (the harness's `gui` waits, then reports "the client never got the machine"); build first, re-join, then
+shoot. The player must stay within 8 blocks of the controller or the server closes the GUI; the harness holds it
+flying in place.
+
+**Questbook.** No change from this round. The "field line" -> "Lock bar" sentence (B-96) is still for the questbook
+owner on master.
+
+**Suggestion.** Accept.
 
 ---
 

@@ -235,6 +235,19 @@ errors and no crash. The boot log also confirms:
   the header and the rows (or the Info page) the KEE's and a module's GUI would show, as text (B-97).
   `/btskerr gui x y z hatches` and `/btseye star x y z hatchgui` print what each of the machine's Directive (and
   Stellar Field Sensor) Hatch GUIs shows: the readout box, then the control labels (B-99).
+- **GUI screenshot harness** (dev client only, B-100): `JAVA_TOOL_OPTIONS="-Dbts.guishots=true" ./gradlew.bat
+  runClient` makes the client enter (or create) the creative superflat world `saves/bts-guishots` and then run the
+  lines appended to `run/client/guishots/queue.txt` (the file is emptied at start): `cmd <command>` (as the player),
+  `tp x y z [yaw]`, `wait <ticks>`, `gui x y z` (waits until the client holds the tile, then the server opens the GT
+  GUI), `scale <n>`, `mouse x y` / `mouse off` (a fake mouse in GUI units from the main panel's top left, set on
+  LWJGL's position every frame, so hover tooltips show and the real cursor never moves), `click x y [button]` (MUI2's
+  hovered widget gets the press), `scroll x y <n>`, `shot <name>` (`run/client/screenshots/guishots/<name>.png`, and
+  the open panels' areas in the log for cropping), `dump [syncKey]` (a sync value and the widget tree), `find <MTE
+  class> x y z r`, `probe`, `close`, `say <text>`, `quit`. Log: `run/client/guishots/guishots.log`, with the chat the
+  bench commands print. `tools/guishots/drive.sh -f <file>` feeds a file and waits for it; `build-sites.shots` builds
+  every machine, then (after a re-join: the client only learns a structure built under it on re-entry) the other
+  `.shots` files photograph each GUI state. Window 1920x1080 (`-Dbts.guishots.width/height`); the player is held
+  flying where `tp` put it, so it stays in GUI range. Inert without the property.
 - **Overnight test bench** (B-71): `/btseye bec` lists our Condensate Assembler and Generator recipes as the server holds them (and whether GT's lookup finds each); `/btseye star x y z compression <1-9> [all]` swaps a Spacetime Compression Field Generator to test the 1:1 gate, and `/btseye star x y z check` prints the reason GT's run check would show.
 - **More console tools** (test bench): `/btseye gates` dumps the compression generator recipes the server actually
   has and checks the gate rule against them, and counts BHC consumers left. `/btsbuild t<1-5> <x> <y> <z> [facing]
