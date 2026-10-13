@@ -236,7 +236,16 @@ public final class KerrTestBench {
                 inv.setInventorySlotContents(i, null);
             }
         }
-        return "clear: " + n + " stack(s) removed from the input and output buses";
+        int f = 0;
+        for (MTEHatchInput hatch : m.mInputHatches) {
+            if (hatch.getFluidAmount() > 0) f++;
+            hatch.setFillableStack(null);
+        }
+        for (gregtech.api.metatileentity.implementations.MTEHatchOutput hatch : m.mOutputHatches) {
+            if (hatch.getFluidAmount() > 0) f++;
+            hatch.setDrainableStack(null);
+        }
+        return "clear: " + n + " stack(s) removed from the input and output buses, " + f + " fluid hatch(es) emptied";
     }
 
     /** One line: formed, link, activity, progress, the running recipe's outputs, buses. */
