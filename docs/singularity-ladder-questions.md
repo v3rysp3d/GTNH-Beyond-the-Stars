@@ -6265,6 +6265,80 @@ PR later", no new module; open questions 4 and 5 decided: calibration NONE, the 
 8. Not done here: `docs/migration.md` (empty the conveyors of `BTS_` components before removing the addon) is phase C6.
    NEI's NAC module pages for SL-N have not been looked at in a client.
 
+### B-134 Circuits v2, phase C6: the circuits quests, the pack-quest notes, tooltips, migration [circuits branch, built]
+
+**Context.** Spec `designs/docs/circuits-v2.md` revision 3, §6.1 / §6.2 and §7.2 row C6; brief item 33 (no special
+casing: the quests say our circuits fill any slot of their tier and are far cheaper; nothing says they are required).
+
+**What was built (C6).**
+- `questbook/singularity.json`: feature `circuits` (true) and six quests, all `needs: ["circuits"]`:
+  - Tier 12 - UMV (grafted, pinned stems): **48120 Stellar Silicon** (24; boule + 16 wafers), **48121 Sidereal
+    Circuits** (48, main; Processor + Mainframe), **48122 Stellar SMDs** (24; one of each kind; prerequisites Eye T2
+    48114 **or** the Homogeny 48118, `questLogic OR`), **48123 Empyrean Circuits** (48, main; prerequisites Eye T4,
+    48121, 48122), **48124 Circuits in the Nanochip Complex** (24, checkbox reading quest: the four modules, the
+    Assembly Matrix casing tiers, same EU, no calibration, and the "empty your Vacuum Conveyors before removing the mod"
+    note).
+  - Tier 13 - UXV: **48175 Omega Circuits** (48, main; prerequisites Eye T5 48140 and 48123), at 228,12 above Eye T5.
+  - The texts use the built numbers (X01-X06, X13-X17, X21, the rack numbers 280 / 340 / 380) and say "any circuit of
+    the tier fits", "far cheaper: about 14x less EU than a Piko / Quantum / Planck (over 30x with the raise)". The
+    circuits row sits under the Homogeny at y 408-516; the tidiness check passes with no new crossing.
+- Pack edits: **E67** ("UMV Circuits", Tier 11 - UIV) and **E68** ("UXV Circuits", Tier 12 - UMV) are new; **E38**
+  ("MAX Circuits", already moved to Tier 14 - MAX) gains two ops. Each appends two notes: the cheap route (Sidereal
+  from Eye T1 / Empyrean from T4 / Omega from T5, gated on `stellarCircuits`) and the price warning ("cost about 2.5x
+  as much here", gated on `raiseStockSpecialCircuits`). Text only, progress kept.
+- Text pass (no requirement changes): the Homogeny T2 note and the UXV chapter's Universium warning now say any UXV
+  circuit fits and the Empyrean Mainframe is the cheap one (the warning no longer says the circuits are still to be
+  designed); the generators' gate text (`texts.gate_pattern`, used by E12-E14, E20-E24, E37) gains a CIRCUITS line.
+  No other ladder quest names a UMV / UXV circuit in its text, so nothing else needed a hint.
+- **Per-op config** (new, small): an `appendText` op may carry its own `config` flags. `QuestbookInstaller` applies it
+  only while every flag is on, and those flags join the config key, so flipping one re-runs the install on the next
+  start with the edit's other ops kept. The generator checks every `config` flag (edit or op) against the booleans in
+  `Config.java` (new selftest case) and now reads `SLCircuitItems`' registry names (its private `define`).
+- Tooltips (§6.2): already in place from C1; the twelve circuits gained "Also in the Nanochip Complex (Assembly
+  Matrix)".
+- `docs/migration.md`: a Circuits v2 section (empty the NAC's Vacuum Conveyors of `BTS_` components before removing
+  the mod or running a build whose patch is inactive; the raise; `stellarCircuits=false`; the new quests).
+- `questbook/README.md`: per-op config, 66 edits.
+
+**Checks.**
+- `gen-bom.ps1` (the one command) regenerated everything: 72 quests of ours, 66 pack edits, bundle `35e28945d164`.
+  `node tools/gen-singularity.js --check`: 151 files up to date. `--selftest`: every assertion fires, real data clean.
+- Bundle diff against the C5 bundle: quests added 48120-48124, 48175; changed 48142 (text) and chapter uxv (warning
+  text + the new quest); grafts added 48120-48124; edits added E67, E68; changed E38 (ops) and E12-E14, E20-E24, E37
+  (the shared gate text). Nothing else.
+- `spotlessApply compileJava` green.
+- Headless `runServer` (port 25631) on a fresh world `circuits-c6` with the RC-2 `DefaultQuests` copied into
+  `run/server/config/betterquesting/` (read-only copy; level-name set back to `circuits-c1` afterwards):
+  - auto-install "quests 105 added; pack edits 66 applied, 0 skipped; 1 emptied pack chapter hidden";
+  - `/btsquests`: every chapter of ours `[ok]` (UMV 15/15, UXV 36/36), 66/66 edits;
+  - `/btsquests verify`: 153 / 155, the two misses being the known `eternalsingularity` metas the dev server lacks
+    (B-92 item 7); all 28 of our circuit items resolve;
+  - the saved `QuestDatabase.json` holds the six quests with their prerequisites (48122 logic OR on 48114 / 48118),
+    and the UMV / UXV / MAX Circuits quests end with both notes.
+- Second boot with `raiseStockSpecialCircuits=false` (then set back): "this world differs from the jar: config
+  changed", re-install, 66 applied, progress restored from the backup; the three pack quests keep the cheap-route note
+  and lose the 2.5x warning. (Two earlier attempts at this boot died in a JVM access violation inside the C2 compiler /
+  VM code of the Zulu 8 runtime, before our questbook code ran; the third attempt, unchanged, was clean. The hs_err
+  files are in the local work folder, not in the tree.)
+
+**Judgement calls (no decision needed unless you disagree).**
+1. **Stellar Silicon's prerequisite is the pack's Raw Stellar Plasma quest (E11), not Eye T1 (E10)** as the spec
+   listed: the boule is made from that fluid, and the line from E10 would have crossed Raw Stellar Plasma's icon.
+2. **Positions differ from the spec**: the circuits row is at y 408-516 (spec 432-528), Stellar SMDs at 948,456 (the
+   spec's 804,444 put the Eye T2 line through Kerr T2), Omega Circuits at 228,12 above Eye T5 (the only free cell
+   beside it). All pass the generator's overlap and crossing checks in the edits-on layout; the edits-off layout keeps
+   the warnings it already had, plus one of the same kind (Raw Stellar Plasma to 48120 passes T3: Stable).
+3. **E63 / E64 were already taken** (the trophy swaps), so the UMV / UXV Circuits edits are E67 / E68. E38 cannot be
+   split into a second edit (one edit per quest), which is why per-op config exists: the raise warning must go when
+   the raise is off, while the move and the cheap-route note stay.
+4. **Our quests are not switched by `stellarCircuits`.** Quests follow build-time features, not runtime config; with
+   the flag off the six quests remain and the items say "Disabled by config". Only the pack-quest notes follow the
+   flag. Hiding our quests per config would need a new installer feature; say if you want it.
+5. **Quest names use the chapter's colour** ({c} in UMV, {4} in UXV) rather than the spec's `{9}` for side quests,
+   matching every other quest of ours in those chapters.
+6. Not done here: the quests have not been looked at in a client (the playtest / film units do that); flag-off boots
+   for `stellarCircuits` are C7's.
+
 ## Where the old question numbers went
 
 | Old | Now | Old | Now | Old | Now |
