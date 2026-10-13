@@ -685,10 +685,11 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
 
     /**
      * The Quasar link's σ at this host on the 60 s mean, read from GRB Receptor Ports in the stirring ring's {@code g}
-     * cells; 0 with none. Q-8: held still while its quasar is frozen or unloaded (the host keeps its last σ).
+     * cells; 0 with none. Q-8: 0 while its quasar is frozen or unloaded (the speed bonus and Entanglement Medium pause;
+     * the mean is held for when it returns).
      */
     public double quasarSigma() {
-        return receptorCount() == 0 || burstDemand() <= 0 ? 0 : burstHost.sigmaMean();
+        return receptorCount() == 0 || burstDemand() <= 0 ? 0 : burstHost.sigmaInForce();
     }
 
     /**
@@ -736,7 +737,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
     /** "Quasar link σ 1.02: speed x1.50" for the GUI / scanner; "" with no receptor port. Server state. */
     public String burstLine() {
         if (receptorCount() == 0) return "";
-        if (burstHost.paused()) return burstHost.linkLine() + " (σ held)";
+        if (burstHost.paused()) return burstHost.linkLine() + " (link paused: speed x1, Entanglement Medium paused)";
         return String.format(
             Locale.ROOT,
             "Quasar link σ %.2f (demand %.1f Bu/t): speed x%.2f%s; %s",

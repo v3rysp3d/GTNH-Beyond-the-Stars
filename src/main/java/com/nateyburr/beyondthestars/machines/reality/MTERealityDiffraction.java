@@ -316,9 +316,12 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
     /** P4: the speed cap σ can give. */
     public static final double MAX_SPEED = 1.5;
 
-    /** The Quasar link's σ at this host on the 60 s mean (Q-8: held while its quasar is frozen or unloaded). */
+    /**
+     * The Quasar link's σ at this host on the 60 s mean; 0 while its quasar is frozen or unloaded (Q-8: the
+     * burst-driven regions pause; the mean is held for when it returns).
+     */
     public double quasarSigma() {
-        return receptorCount() == 0 ? 0 : burstHost.sigmaMean();
+        return receptorCount() == 0 ? 0 : burstHost.sigmaInForce();
     }
 
     /** True when the regions ride the burst stream (at least one receptor port fitted). */
@@ -340,7 +343,7 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
     /** "Quasar link σ 1.02: speed x1.02" / "PAUSED ..."; "" with no port. Server state. */
     public String burstLine() {
         if (!burstDriven()) return "";
-        if (burstHost.paused()) return burstHost.linkLine() + " (σ held)";
+        if (burstHost.paused()) return burstHost.linkLine() + " (runs paused)";
         final double s = quasarSigma();
         return String.format(
             java.util.Locale.ROOT,

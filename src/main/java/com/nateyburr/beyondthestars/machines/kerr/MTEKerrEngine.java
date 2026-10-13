@@ -622,10 +622,13 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         return densityInstalled ? BurstLink.KERR_T2 : BurstLink.KERR_T1;
     }
 
-    /** σ on the 60 s mean; 0 with no receptor port (Q-8: held still while its quasar is frozen or unloaded). */
+    /**
+     * σ on the 60 s mean; 0 with no receptor port, and 0 while its quasar is frozen or unloaded (Q-8: the link's bleed
+     * relief, cap and the Superdense refinery pause; the mean is held for when it returns).
+     */
     @Override
     public double burstSigma() {
-        return receptorCount() == 0 ? 0 : burstHost.sigmaMean();
+        return receptorCount() == 0 ? 0 : burstHost.sigmaInForce();
     }
 
     /** The bleed factor the link gives: 1 − 0.75·min(σ, 1) (0.25 at σ ≥ 1). */
@@ -650,7 +653,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
      */
     public String burstGuiLine() {
         if (receptorCount() == 0) return "";
-        if (burstHost.paused()) return EnumChatFormatting.YELLOW + burstHost.linkLine() + " (σ held)";
+        if (burstHost.paused()) return EnumChatFormatting.YELLOW + burstHost.linkLine() + " (link paused)";
         final double sigma = burstSigma();
         if (!burstHost.linked() && sigma <= 0) return EnumChatFormatting.DARK_GRAY + "No quasar link (receptor fitted)";
         return (sigma >= 1 ? EnumChatFormatting.AQUA : EnumChatFormatting.GRAY) + String.format(
@@ -1623,7 +1626,8 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             .addInfo("Optional BHC Utility Hatches on the cage emit redstone while the hole is open.")
             .addInfo("Quasar link (optional): a GRB Receptor Port in a utility socket. σ = bursts ÷ 0.1 Bu/t")
             .addInfo("  (T1) or 0.25 (T2), on a 60 s mean. Bleed x(1 - 0.75 min(σ, 1)); on T2 at σ ≥ 1 the setpoint")
-            .addInfo("  cap rises 512 -> 768 SM, and the Superdense refinery (compressor module) needs σ ≥ 1.")
+            .addInfo("  cap rises 512 -> 768 SM (modules count M up to the cap in force), and the Superdense")
+            .addInfo("  refinery (compressor module) needs σ ≥ 1. A frozen or unloaded quasar pauses all of it.")
             .addInfo("Automation: bolts, Seeds and Collapsers into the bolt buses (AE2, Factory Manager).")
             .addInfo("  Directive Hatches (utility sockets): Hole [1] closed [2] below [4] bolts short [8] above;")
             .addInfo("  Status [1] power [2] no Seed [4] unstable [8] not formed; or redstone 1-15 sets the")

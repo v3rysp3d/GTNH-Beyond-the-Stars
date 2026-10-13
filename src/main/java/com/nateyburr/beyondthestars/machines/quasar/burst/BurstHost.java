@@ -19,7 +19,9 @@ import com.nateyburr.beyondthestars.machines.quasar.engine.BurstLink;
  * <li>{@link #mean()}: the 60 s rolling mean of the total, Bu/t ({@link BurstLink#roll}).</li>
  * <li>{@link #linked()} / {@link #linkSource()}: the link (§3.1), re-derived every second.</li>
  * <li>{@link #paused()} (Q-8): a source that fed these ports is frozen or not loaded. The host must freeze its field,
- * cycle, streaks and means for that second (this object already holds its mean and σ still).</li>
+ * cycle, streaks and means for that second (this object already holds its mean and σ still, so the link resumes where
+ * it was). Hosts that use σ for a bonus or a recipe condition read {@link #sigmaInForce()}, which is 0 while paused:
+ * Q-8 pauses the link's work, it does not keep it running on a held σ.</li>
  * </ul>
  * It reports itself to every quasar that fed it ({@link MTEQuasarEngine#reportHost}), so the quasar's Links list, its
  * σ / streak sensor channels and OpenComputers' {@code getLinks()} show the host. Milestone streaks (the Eye's
@@ -82,6 +84,15 @@ public final class BurstHost {
     /** σ on the 60 s mean (recipe conditions and bonuses use this one). */
     public double sigmaMean() {
         return BurstLink.sigma(window.mean, demand);
+    }
+
+    /**
+     * The σ a host may USE now (bonuses and recipe conditions): {@link #sigmaMean()}, or 0 while {@link #paused()}.
+     * Q-8 pauses a host's link work while its quasar is frozen or unloaded (quasar-p4.md §3.1, R.6): the held mean is
+     * only remembered so the link resumes where it was, never a free bonus while the quasar is down.
+     */
+    public double sigmaInForce() {
+        return last.paused ? 0 : sigmaMean();
     }
 
     /** The 60 s rolling mean, Bu/t. */
