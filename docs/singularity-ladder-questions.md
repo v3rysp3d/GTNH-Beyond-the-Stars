@@ -6110,6 +6110,56 @@ tier's matter: boule T1, SMDs T2, wafers T1 / T4 / T5), 0 SL cards naming our it
 4. **Check verb placement**: the C2 checks extend `/btsrecipes circuits` (as C1), the gate audit lives in
    `/btseye gates` beside the existing generator and P4 audits.
 
+### B-132 Circuits v2, phase C4: the Piko raise SL-G10..G13 [circuits branch, built]
+
+**Context.** Spec `designs/docs/circuits-v2.md` revision 3, §5 (the raise) and §7.2 row C4; brief item 33 Q6: "2.5x
+EU / 2x materials" (about 2.45x per circuit), on by default (item 32(b)); Q2 "No offset, build until finished please":
+no compensation anywhere.
+
+**What was built (C4).**
+- `BTSStockCircuitRaise.java` (single owner), hooked in `CommonProxy.loadComplete` through
+  `BTSRecipeRemovals.guard("Piko / Quantum / Planck raise (SL-G10..G13)", ...)` right after SL-G01. Config (already
+  added in C1): `raiseStockSpecialCircuits=true`, `stockSpecialCircuitEnergyFactor=2.5` (1.0-5.0),
+  `stockSpecialCircuitMaterialFactor=2.0` (1.0-4.0). Independent of `stellarCircuits`.
+- Each step is found by OUTPUT in `RecipeMaps.nanochipAssemblyMatrixRecipes` (first output = the component's fake
+  stack, item and meta). The map's emitter makes a hidden lookup recipe plus an NEI recipe for each coremod recipe, so
+  each step has 2 recipe objects and both are raised: duration x E (EU/t unchanged, so EU x E), every item and fluid
+  x M rounded up, except the Quantum CPU (G11) and the Planck CPU and Calabi-Yau Manifold (G13). Fresh `mInputs`,
+  `mFluidInputs` and `mOreDictAlt` arrays with copied stacks; a recipe whose merged-input cache is already built would
+  be left stock with a warning (none was); idempotent (identity set).
+- Ledger: one `changed` row per step, group Circuits, flag `raiseStockSpecialCircuits=true`, with the recipe as it was
+  before. `/btsrecipes dump` now also shows `stellarCircuits`, `raiseStockSpecialCircuits` and (when on) the factors.
+- `/btsrecipes circuits` gains a "raise" section (it runs whatever `stellarCircuits` says).
+
+**Checks** (headless `runServer`, port 25631, world `circuits-c1`).
+- Raise on (default), boot log:
+  `SL-G10: Piko (NAC Assembly Matrix) raised: 4000 -> 10000 t (200 -> 500 s, EU/t unchanged, EU x2.5), items and fluids x2`;
+  `SL-G11: Quantum ... 8000 -> 20000 t ... (except the Quantum CPU)`;
+  `SL-G12: Raw Manifold Bud ... 4000 -> 10000 t`;
+  `SL-G13: Planck ... 12000 -> 30000 t ... (except the Planck CPU and the Calabi-Yau Manifold)`;
+  each "2 recipe object(s) (lookup + NEI page)", then "4 of 4 NAC Assembly Matrix steps raised". The dump's before /
+  after matches §5.1 exactly (for example, Quantum: casing 1 -> 2, boards 2 -> 4, Quantum CPU stays 1, Optical SMDs
+  64 -> 128 each, MLS 4,608 -> 9,216 L, UU 16,000 -> 32,000 L; Planck: Planck CPU and Calabi-Yau Manifold stay 1,
+  WDM bolt 32 -> 64, Space 4,000 -> 8,000 L). `/btsrecipes circuits`: PASS raise (each step: 2 of 2 raised, one
+  duration, and GT's own `findRecipeQuery` finds the recipe at the raised amounts and rejects the stock amounts;
+  4 changed-GT rows; no recipe outside the NAC makes Piko / Quantum / Bud / Planck), PASS in every C1/C2 section.
+  `/btsrecipes status`: changed-GT 58 -> **62**, Circuits 32 -> 36; registration still "343 registered, 0 skipped".
+- Raise off (`raiseStockSpecialCircuits=false`, then set back to true): "SL-G10..G13: 0 recipes changed", the four
+  steps at stock 4,000 / 8,000 / 4,000 / 12,000 t, 0 SL-G1x rows, changed-GT 58, PASS raise.
+- GT's field-generator recipes are untouched by construction: only the NAC Assembly Matrix map is read or written.
+
+**Judgement calls (no decision needed unless you disagree).**
+1. **Zero matches** log a warning and change nothing. The spec also asked for a `BTSRecipeLedger.fallback` note, but
+   that mark only shows on a recipe with the same id, and a step that found nothing has no recipe, so it would never
+   show up. Left out.
+2. **Not counted as registrations**: the rewrites do not go through `BTSRecipeGuard.recipe`, so the "N registered"
+   boot count stays 343. They show as changed-GT rows instead (as SL-G01's would, apart from its guard id).
+3. **The ledger row is the lookup recipe** (the one the module runs); the NEI recipe gets the same rewrite and is
+   named in the boot line ("2 recipe object(s)").
+4. **No lookup-index rebuild**: only amounts change, never the items, so the map's item index stays valid
+   (SL-G01's `reInit` swaps an item, so it needed one).
+5. The questbook paragraphs that warn about the raise (E63 / E64 / E38 variant, §6.1) belong to phase C6.
+
 ## Where the old question numbers went
 
 | Old | Now | Old | Now | Old | Now |
