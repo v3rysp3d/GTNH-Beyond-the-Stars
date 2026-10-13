@@ -40,6 +40,8 @@ Most important first. "Recommended" is what we would build if you say nothing. N
 | 16 | Hand-drawn textures | Hand-polish only what players stare at: the two controller faces and the mirror and bastion walls | B-13 |
 | 17 | The Eye T10 gate part (TecTech's generators stop at tier 9) | Design it with P5 | B-3, need 3 |
 | 18 | Everything else that ends "Suggestion: as built" and has no ruling | Accept as built unless you object: B-5, B-7, B-8, B-9, B-11, B-14..B-17, B-19, B-20, B-26, B-27, B-31, B-35..B-37, B-45..B-54, B-62, B-64, B-66..B-68 (judgement calls), B-70, B-74..B-78, B-87 | each entry |
+| 19 | Reality Diffraction, Reality Refab and the Homogeny T3 are built machines but their quests are still "(planned)" checkboxes, because the `realityRefab` flag is off (their inputs come only from P4/P5) | Keep the checkboxes until P4/P5 make the inputs; until then, give their quests a variant of the placeholder note: "Built, but its inputs come from Eye T8/T9 (a later update)" | B-93, question 3 |
+| 20 | A plus-signed decimal ("+0.5", "+0.15") can still break after its point at a line end: Java's line breaker splits it, 6 places in the Eye T4-T6 trims | Accept (rare, width-dependent); or write the trims without the plus sign | B-93, question 2 |
 
 ## 2. Settled
 
@@ -113,6 +115,8 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
 - The merge + playtest run (B-88) passed headless; the Cascade Hall tooltip fix is in, and the walk now requires two
   output hatches unless one is ME (B-89). [B-88 fix 1, B-89]
 - The playtest jar `master.235` is packaged with a local-install INSTALL.md and a playtest guide (B-90). [B-90]
+- Re-package the playtest jar: master.235 has neither the B-92 text pass nor B-93 (wrap-safe text, the plant diagrams in the jar). [B-93]
+- When the GUI branch merges: Harmonic Lock's "The GUI's field line counts it as Lock n/600" becomes "Lock bar". [B-93]
 
 **To see in a client** (the headless dev server cannot): the hologram hints, a survival build from a real AE system,
 the NEI multiblock tab and its frame rate (a T6 Eye is 51,935 blocks), every GUI (Eye, KEE, modules, Directive Hatch,
@@ -187,7 +191,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-92
+## Part B. Entries B-1..B-93
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -3906,6 +3910,81 @@ The tidy pass's questbook handoff was also still open.
   start): "config changed", then 62 applied and the chapter hidden. The database is identical to the first install,
   and the progress of our quests came back from the backup.
 - **Not re-shot.** The client screenshots are the next unit (questbook-shot client, port 25601).
+
+---
+
+### B-93 Questbook re-shoot (round 2): what the shots showed, wrap-safe text, the plant diagrams in the jar [follow-up, built]
+
+**Context.** You asked to see the questbook with our changes; round 1 (B-83 on the questbook branch) found cut bold
+text, unreadable colours, odd glyphs, the pack Eye name and a near-empty Endgame Goals, and B-92 fixed them in the
+sources. This round shoots the book again from master and checks the fixes. Page: local work folder
+`qbshots/round2/questbook-shots.html` (one file, 6.7 MB, lossless WebP; round-1 sliders where the same shot exists).
+
+**How.** The `QuestbookShots` harness was not on master (the questbook merge took the branch before its last two
+commits), so it is cherry-picked (0bf0c2c; dev-only, `-Dbts.qbshots=true`). Dev client from master, RC-2
+DefaultQuests copied into `run/client/config/betterquesting`, a fresh creative world each pass: auto-install "77
+quests added, 62 edits applied, 1 emptied pack chapter hidden"; `/btsquests verify` 113 / 115. 181 shots per pass: the
+chapter list (top and end, pack-only and reinstalled), the UXV / MAX / Endgame / UIV / UMV / plant / How to Generate
+Power maps with hovers, every quest of ours (44), every pack quest we edit with text or a moved trophy (33), the whole
+plant chapter (35 quests, scrolled pages included), and the RC-2 "before" side after `uninstall edits` / `uninstall
+all`. Three passes; every shot of the last pass was read (pixel diffs against the second pass picked out what the
+last fixes changed).
+
+**What the shots showed, and what was done.**
+
+1. **Bold text was still cut** ("needs ever[y]" in Eye T1, "an[d]" after MASS INFUSION and "escro[w]" in Eye T2/T3,
+   the pack's own "a maximum of thr[ee]" in T2 Exo-Foundry). B-92's 16-character limit could not fix it: BetterQuesting
+   3.8.89-GTNH wraps with `java.text.BreakIterator` and measures each segment on its own (`RenderUtils.splitString`:
+   width of the line so far + width of the next word), so only the first word of a bold run is measured bold. Every
+   later bold glyph overflows by one pixel. **Fix:** `wrapSafe()` in `tools/gen-singularity.js` (every description;
+   titles stay as typed, they never wrap) and the same steps as `WrapSafe` in `gen-questbook.ps1` (the plant chapter)
+   re-open bold after each space inside a bold run. The text draws the same. E05 also re-bolds "Eternal Magnetic
+   Chassis" word by word with a second replaceText, so the pack's own cut line is whole in our edited quest.
+2. **Numbers broke at a line end** ("1." / "51 x 10^11 EU" in Eye T1). A colour code glued to a number ("{9}1.51")
+   makes BreakIterator break after the number's first '.' or ','; "(1,920" did the same, and ")§r." let a full stop
+   start the next line (Blueprint: Reactor Silo). **Fix:** wrapSafe moves a code group that sits between a space or
+   '(' and a digit in front of it, and one between ')' and punctuation after the punctuation.
+3. **Low-contrast colours.** B-92's yellow / aqua / green were gone, but the plant chapter still had 76 gold key lines
+   (1.73 : 1 on the parchment) and one light-grey line (2.0 : 1), our text used gold for chapter names, and the
+   Primitive / Stable / Advanced tier names were light purple (2.37 : 1). **Fix:** gold body text is dark blue `{1}`
+   (12 : 1), grey is dark grey `{8}`, the tier names dark purple; the Gallifreyan rainbow swaps its gold and light
+   purple letters. Titles keep gold / dark aqua / light red.
+4. **The plant chapter's diagrams were missing-texture squares** (Step 3, Step 4, Step 9, Blueprint: Rotor
+   Assembly). Since D2 the jar installs the whole book, but the `btsquests` image domain only existed in
+   `questbook/resources` for the manual merge into `config/betterquesting/resources`. **Fix:** the three PNGs ship in
+   the jar (`assets/btsquests/textures/gui`; a mod jar serves every `assets/` domain it holds), and `gen-diagrams.ps1`
+   writes that copy too.
+5. **Confirmed fixed (B-92 and the merges):** "Eye T1: Sol" on map, tooltip and page; the trophies in The Endgame and
+   Endgame Goals hidden (back on uninstall); no odd glyphs ("floor(sqrt M)", "flux charge"; Θ Ω π ± × ² → ≥ and the
+   superscript exponents draw); the rewritten Tier 13 (UXV) warning; the Kerr module quests' icons and task items
+   (master registers MTE 28117/28118); the Homogeny and Homogeny T2 are real quests.
+6. **Dev client only (not bugs):** Ergomatter / Superdense Ergomatter icons (`eternalsingularity:combined_singularity:15
+   / :10`, which the RC-2 pack registers, B-92), and every red question mark / "Item Placeholder" on a pack quest or
+   chapter icon (mods the dev client does not load).
+
+**The generator now rejects** (lint over every player text, the plant chapter read back included): text that wrapSafe
+would still change, and gold / grey / light purple in a description, next to B-92's rules. Selftest: "gold in a
+description" plus six wrapSafe cases (each output exact, idempotent, and the lint fires on the raw input). `--check`
+and `--selftest` pass; the plant text from PowerShell passes the JS lint, so the two implementations agree.
+
+**Judgement calls.**
+
+1. Kept at 2.6-2.8 : 1 and readable in every shot: dark green DONE WHEN (B-92's choice), light red quest references and
+   warnings, and BetterQuesting's own `[note]` style (dark aqua, used across the whole pack). The threshold is 2.5 : 1.
+2. **Open: "+0.5" can still break after the point.** Java's line breaker splits a plus-signed decimal ("+0." / "5")
+   with no code involved; 6 places (Eye T4-T6 trims). Rare and width-dependent; I left the text as it is. Suggestion:
+   accept, or write those trims without the plus sign. Open question 20.
+3. **Open: Reality Diffraction, Reality Refab and the Homogeny T3 still show "(planned)"** although the Reality machines
+   are built: `realityRefab` is off because their inputs (White Hole Matter, Superdense Ergomatter) come only from
+   P4/P5. Suggestion: keep the checkboxes, and give those three a placeholder note that says the machine is built but
+   its inputs come later. Open question 19.
+4. The harness is cherry-picked rather than re-written; the round-1 B-83 doc entry of the questbook branch is not
+   copied (B-83 on master is the upgrade path), this entry replaces it.
+5. The "field line" -> "Lock bar" sentence (GUI branch, B-96 there) is not applied: master's Eye GUI still has the field
+   line. It belongs with the GUI merge.
+
+**Not done.** The playtest jar is not re-packaged (dist-rc2 untouched), so master.235 has neither B-92 nor this.
+Trophy progress across the move was not re-tested with players (B-92 note).
 
 ## Where the old question numbers went
 
