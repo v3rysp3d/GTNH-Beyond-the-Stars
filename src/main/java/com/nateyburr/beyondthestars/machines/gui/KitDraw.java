@@ -49,6 +49,18 @@ final class KitDraw {
         return x;
     }
 
+    /**
+     * Draws {@code s} right-aligned to {@code right}, cut to {@code maxW} pixels first (a "." marks the cut; the §
+     * codes
+     * at its start are kept). Returns its left x.
+     */
+    static int textRightCut(String s, int right, int y, int maxW, int colour) {
+        if (s == null || s.isEmpty()) return right;
+        String out = s;
+        if (maxW > 0 && width(s) > maxW) out = font().trimStringToWidth(s, Math.max(0, maxW - width("."))) + ".";
+        return textRight(out, right, y, colour);
+    }
+
     /** Draws {@code s} cut to {@code maxW} pixels (a "." marks the cut); returns the drawn width. */
     static int textCut(String s, int x, int y, int maxW, int colour) {
         if (s == null || s.isEmpty() || maxW <= 0) return 0;

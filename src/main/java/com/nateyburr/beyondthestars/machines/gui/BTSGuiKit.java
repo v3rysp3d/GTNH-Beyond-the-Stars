@@ -350,7 +350,9 @@ public final class BTSGuiKit {
         // its right end at 132 and at least 56 px (dev client round 1: "Milestone." read like a typo)
         final int lw = Math.min(KitDraw.width(label), 74);
         KitDraw.textCut(label, 0, 1, Math.max(50, lw), LABEL);
-        final int bx = Math.max(52, lw + 3), bw = 132 - bx, by = 1, bh = 7;
+        // a value wider than the 46 px column ("184/300 s", "12:30/30:00") ends the bar 3 px before it (B-116)
+        final int bx = Math.max(52, lw + 3), by = 1, bh = 7;
+        final int bw = Math.max(24, Math.min(132, width - KitDraw.width(value) - 3) - bx);
         KitDraw.box(bx, by, bw, bh, EDGE, TRACK);
         final double f = Double.isNaN(frac) ? 0 : Math.max(0, Math.min(1, frac));
         final float fill = (float) ((bw - 2) * f);
@@ -384,9 +386,10 @@ public final class BTSGuiKit {
 
     /** Stat (§4.3): label x 0 (§7), value right-aligned. */
     public static void paintStat(int width, String label, String value) {
-        final int vw = KitDraw.width(value);
-        KitDraw.textRight(value, width, 1, VALUE);
-        KitDraw.textCut(label, 0, 1, width - vw - 4, LABEL);
+        // a long value (a route, a dock) is cut so the label keeps at least its first 40 px (B-116)
+        final int room = width - Math.min(KitDraw.width(label), 40) - 4;
+        final int vx = KitDraw.textRightCut(value, width, 1, room, VALUE);
+        KitDraw.textCut(label, 0, 1, vx - 4, LABEL);
     }
 
     /** Stat pair (§4.3): halves of 87 with a 1 px divider at x 90. */
