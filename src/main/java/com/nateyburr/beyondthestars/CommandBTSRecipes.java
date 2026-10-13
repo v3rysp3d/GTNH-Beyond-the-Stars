@@ -35,7 +35,6 @@ import net.minecraftforge.oredict.ShapelessOreRecipe;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.nateyburr.beyondthestars.fluids.SLRealityFluids;
-import com.nateyburr.beyondthestars.items.SLCircuitItems;
 import com.nateyburr.beyondthestars.machines.eye.EyeRecipe;
 import com.nateyburr.beyondthestars.machines.eye.EyeRecipeRegistry;
 import com.nateyburr.beyondthestars.machines.eye.star.StarDef;
@@ -69,7 +68,7 @@ public class CommandBTSRecipes extends CommandBase {
     /** The lines ("group" in the JSON). Public so the code that changes or removes a pack recipe can name its line. */
     public static final String KERR = "Kerr", EYE = "Eye", BEC = "BEC / Condensate", HR = "Homogeny / Reality",
         QUASAR = "Quasar / Conduit", AUTOMATION = "Automation", OLD_PLANT = "Old plant", UPGRADE = "Upgrade path",
-        OTHER = "Other";
+        CIRCUITS = "Circuits", OTHER = "Other";
 
     static final String NEW = "new", CHANGED = "changed-GT", REMOVED = "removed";
 
@@ -105,8 +104,8 @@ public class CommandBTSRecipes extends CommandBase {
             return;
         }
         if ("circuits".equals(sub)) {
-            // Circuits v2 C1 check (circuits-v2.md §7.2): each circuit's ore names against §1.3's table.
-            for (String line : SLCircuitItems.oreReport()) {
+            // Circuits v2 checks (circuits-v2.md §7.2): C1 ore names; C2 chain, slot fills, lookups, research, rack.
+            for (String line : BTSCircuitChecks.run()) {
                 sender.addChatMessage(new ChatComponentText(line));
                 BeyondTheStars.LOG.info("[BTS] circuits: " + line);
             }
@@ -287,7 +286,9 @@ public class CommandBTSRecipes extends CommandBase {
     private static Map<String, Object> counts(List<Map<String, Object>> recipes) {
         final Map<String, Integer> byStatus = new LinkedHashMap<>(), byGroup = new LinkedHashMap<>();
         for (String s : new String[] { NEW, CHANGED, REMOVED }) byStatus.put(s, 0);
-        for (String g : new String[] { KERR, EYE, BEC, HR, AUTOMATION, OLD_PLANT, UPGRADE, OTHER }) byGroup.put(g, 0);
+        for (String g : new String[] { KERR, EYE, BEC, HR, QUASAR, CIRCUITS, AUTOMATION, OLD_PLANT, UPGRADE, OTHER }) {
+            byGroup.put(g, 0);
+        }
         int display = 0, fallback = 0, placeholder = 0;
         for (Map<String, Object> r : recipes) {
             byStatus.merge((String) r.get("status"), 1, Integer::sum);
@@ -339,6 +340,8 @@ public class CommandBTSRecipes extends CommandBase {
                     return i.startsWith("SL-P") ? EYE : QUASAR;
                 case "singularity":
                     return i.startsWith("SL-P") && number(i.substring(4)) <= 14 ? KERR : EYE;
+                case "circuits":
+                    return CIRCUITS;
                 default:
                     return OTHER;
             }
@@ -346,6 +349,7 @@ public class CommandBTSRecipes extends CommandBase {
         if (i.startsWith("SL-B") || i.startsWith("SL-P27") || i.startsWith("SL-P28")) return BEC;
         if (i.startsWith("SL-G") || i.startsWith("SL-P39")) return EYE;
         if (i.startsWith("SL-Q")) return QUASAR;
+        if (i.startsWith("SL-X") || i.startsWith("SL-N")) return CIRCUITS;
         return OTHER;
     }
 
@@ -563,10 +567,35 @@ public class CommandBTSRecipes extends CommandBase {
 
     private static Map<String, Object> research(GTRecipe.RecipeAssemblyLine line) {
         final Map<String, Object> r = new LinkedHashMap<>();
+        // A research Assembly Line (TecTech's Research Station, Circuits v2 §2.4): GT's list holds a placeholder
+        // research item; the real one and the computation live in TecTech's twin of the recipe.
+        final TecTechRecipeMaps.TTResearchStationALRecipe station = stationTwin(line);
+        if (station != null) {
+            r.put("machine", "Research Station");
+            r.put("item", station.mResearchItem == null ? null : name(station.mResearchItem));
+            r.put("computation", station.mComputation);
+            r.put("computationPerSecond", station.mComputationRequiredPerSec);
+            // TecTech keeps the research EU/t in the twin's mEUt (the assembly line's own EU/t is GT's recipe's).
+            if (station.mEUt > 0) r.put("voltage", tierName(station.mEUt));
+            r.put("amperage", station.mAmperage);
+            return r;
+        }
         r.put("item", line.mResearchItem == null ? null : name(line.mResearchItem));
         r.put("time", line.mResearchTime);
         if (line.mResearchVoltage > 0) r.put("voltage", tierName(line.mResearchVoltage));
         return r;
+    }
+
+    /** TecTech's Research Station twin of an assembly-line recipe (same persistent hash and output), or null. */
+    static TecTechRecipeMaps.TTResearchStationALRecipe stationTwin(GTRecipe.RecipeAssemblyLine line) {
+        if (line == null || line instanceof TecTechRecipeMaps.TTResearchStationALRecipe) return null;
+        for (TecTechRecipeMaps.TTResearchStationALRecipe tt : TecTechRecipeMaps.researchableALRecipeList) {
+            if (tt != null && tt.getPersistentHash() == line.getPersistentHash()
+                && tt.mOutput != null
+                && line.mOutput != null
+                && tt.mOutput.isItemEqual(line.mOutput)) return tt;
+        }
+        return null;
     }
 
     private static boolean sameOutput(ItemStack out, ItemStack[] outputs) {

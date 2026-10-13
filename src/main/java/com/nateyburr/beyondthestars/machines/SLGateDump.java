@@ -14,10 +14,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.nateyburr.beyondthestars.BTSBlackHoleSwap;
+import com.nateyburr.beyondthestars.BTSCircuitChecks;
 import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.fluids.SLQuasarFluids;
+import com.nateyburr.beyondthestars.items.SLCircuitItems;
 import com.nateyburr.beyondthestars.items.SLQuasarItems;
 
 import gregtech.api.enums.ItemList;
@@ -59,7 +61,11 @@ public final class SLGateDump {
         { "primordialmatter", 1 }, { "excitedstellarplasma", 2 }, { "rawhyperdense", 3 },
         { "hyperdensestellarmixture", 3 }, { "whitedwarf", 4 }, { "blackdwarf", 5 }, { "magnetar", 6 },
         { "ergomatter", 7 }, { "eternity", 7 }, { "whitehole", 9 }, { "universium", 10 }, { "mhdcsm", 10 },
-        { "magnetohydrodynamically", 10 } };
+        { "magnetohydrodynamically", 10 },
+        // Circuits v2 (circuits-v2.md §3.1): our circuit items carry the Eye tier of the newest matter inside them.
+        { "stellarboule", 1 }, { "stellarwafer", 1 }, { "sidereal", 1 }, { "stellarsmd", 2 }, { "empyrean", 4 },
+        { "omegawafer", 5 }, { "omegachip", 5 }, { "omegaprocessor", 5 }, { "omegaassembly", 5 },
+        { "omegasupercomputer", 5 }, { "omegamainframe", 5 } };
 
     public static void run(ICommandSender sender) {
         final RecipeMap<?> map = TecTechRecipeMaps.condensateAssemblingRecipes;
@@ -135,6 +141,7 @@ public final class SLGateDump {
             }
         }
         final int p4Loops = p4(sender);
+        final int circuitProblems = circuits(sender);
         final ItemStack bhc = ItemList.Machine_Multi_BlackHoleCompressor.get(1);
         final ItemStack kerr = BTSMachines.kerrEngine;
         SLConsoleTest.tell(
@@ -142,7 +149,9 @@ public final class SLGateDump {
             "== Gate dump done: " + loops
                 + " generator recipe(s) and "
                 + p4Loops
-                + " P4 part(s) break the gate rule. BHC controller consumers left: "
+                + " P4 part(s) break the gate rule; circuits: "
+                + circuitProblems
+                + " problem(s). BHC controller consumers left: "
                 + BTSBlackHoleSwap.countConsumers(bhc)
                 + "; recipes making a BHC controller: "
                 + makersOf(bhc)
@@ -468,13 +477,25 @@ public final class SLGateDump {
                 ItemStack in = line.mInputs[i];
                 if (line.mOreDictAlt != null && i < line.mOreDictAlt.length
                     && line.mOreDictAlt[i] != null
-                    && line.mOreDictAlt[i].length > 0) in = line.mOreDictAlt[i][0];
+                    && line.mOreDictAlt[i].length > 0) in = stockFirst(line.mOreDictAlt[i]);
                 rec.items.add(in);
             }
             rec.fluids = line.mFluidInputs;
             out.add(rec);
         }
         return out;
+    }
+
+    /**
+     * The alternative of an ore-dict slot to judge: a stock one when the slot has any. TecTech sorts alternatives by
+     * mod id, so our circuits (circuits-v2.md §1.3, "beyondthestars") come first, but a slot that also takes stock
+     * circuits never needs ours: the gate rule is about whether a clean route exists.
+     */
+    private static ItemStack stockFirst(ItemStack[] alts) {
+        for (ItemStack alt : alts) {
+            if (alt != null && !BTSCircuitChecks.isOurs(alt.getItem())) return alt;
+        }
+        return alts[0];
     }
 
     /** Every recipe whose fluid outputs include {@code fluid}'s fluid; NEI-only maps skipped. */
@@ -564,5 +585,146 @@ public final class SLGateDump {
             }
         }
         return sb.toString();
+    }
+
+    // ======================================================================== circuits (circuits-v2.md §3.1)
+
+    /**
+     * Circuits v2 gate section (circuits-v2.md §3.1, revision 3): re-proves the unlock table at boot. For each of our
+     * items, every recipe that makes it is judged against its unlock tier (it may not need anything the Eye first makes
+     * after that tier; one level down as above), and the gate items must really carry their tier's matter: the Stellar
+     * Boule Raw Star Matter (T1), the Stellar SMDs ESPM (T2), the Sidereal / Empyrean / Omega Wafers RSM (T1) / WDM
+     * (T4) / BDM (T5). Then, with no special casing, no SL card outside the chain may name one of our items. Returns
+     * the number of problems.
+     */
+    private static int circuits(ICommandSender sender) {
+        if (!Config.stellarCircuits) {
+            SLConsoleTest.tell(sender, "== Circuits gate audit: stellarCircuits=false, nothing to check ==");
+            return 0;
+        }
+        final Object[][] items = { { "Stellar Boule", SLCircuitItems.stellarBoule, 1, true },
+            { "Stellar Wafer", SLCircuitItems.stellarWafer, 1, false },
+            { "Stellar SMD Transistor", SLCircuitItems.stellarSmdTransistor, 2, true },
+            { "Stellar SMD Resistor", SLCircuitItems.stellarSmdResistor, 2, true },
+            { "Stellar SMD Capacitor", SLCircuitItems.stellarSmdCapacitor, 2, true },
+            { "Stellar SMD Diode", SLCircuitItems.stellarSmdDiode, 2, true },
+            { "Stellar SMD Inductor", SLCircuitItems.stellarSmdInductor, 2, true },
+            { "Sidereal Wafer", SLCircuitItems.siderealWafer, 1, true },
+            { "Sidereal Chip", SLCircuitItems.siderealChip, 1, false },
+            { "Sidereal Circuit Board", SLCircuitItems.siderealCircuitBoard, 1, false },
+            { "Sidereal Processor", SLCircuitItems.siderealProcessor, 1, false },
+            { "Sidereal Assembly", SLCircuitItems.siderealAssembly, 1, false },
+            { "Sidereal Supercomputer", SLCircuitItems.siderealSupercomputer, 1, false },
+            { "Sidereal Mainframe", SLCircuitItems.siderealMainframe, 1, false },
+            { "Empyrean Wafer", SLCircuitItems.empyreanWafer, 4, true },
+            { "Empyrean Chip", SLCircuitItems.empyreanChip, 4, false },
+            { "Empyrean Circuit Board", SLCircuitItems.empyreanCircuitBoard, 4, false },
+            { "Empyrean Processor", SLCircuitItems.empyreanProcessor, 4, false },
+            { "Empyrean Assembly", SLCircuitItems.empyreanAssembly, 4, false },
+            { "Empyrean Supercomputer", SLCircuitItems.empyreanSupercomputer, 4, false },
+            { "Empyrean Mainframe", SLCircuitItems.empyreanMainframe, 4, false },
+            { "Omega Wafer", SLCircuitItems.omegaWafer, 5, true }, { "Omega Chip", SLCircuitItems.omegaChip, 5, false },
+            { "Omega Circuit Board", SLCircuitItems.omegaCircuitBoard, 5, false },
+            { "Omega Processor", SLCircuitItems.omegaProcessor, 5, false },
+            { "Omega Assembly", SLCircuitItems.omegaAssembly, 5, false },
+            { "Omega Supercomputer", SLCircuitItems.omegaSupercomputer, 5, false },
+            { "Omega Mainframe", SLCircuitItems.omegaMainframe, 5, false } };
+        SLConsoleTest.tell(sender, "== Circuits gate audit: " + items.length + " items ==");
+        int problems = 0;
+        for (Object[] row : items) {
+            final String label = (String) row[0];
+            final Item item = (Item) row[1];
+            final int unlock = (Integer) row[2];
+            final boolean carries = (Boolean) row[3];
+            if (item == null) {
+                SLConsoleTest.tell(sender, "Circuits " + label + ": NOT REGISTERED");
+                problems++;
+                continue;
+            }
+            final ItemStack stack = new ItemStack(item, 1);
+            final List<Rec> recs = makers(stack);
+            if (recs.isEmpty()) {
+                SLConsoleTest.tell(sender, "Circuits " + label + ": NO RECIPE");
+                problems++;
+                continue;
+            }
+            String clean = null;
+            int newest = 0;
+            final List<String> notes = new ArrayList<>();
+            for (Rec rec : recs) {
+                final List<String> bad = violations(rec, unlock + 1);
+                for (ItemStack input : rec.items) {
+                    if (input == null || matches(input, stack)) continue;
+                    final List<Rec> sub = makers(input);
+                    if (sub.isEmpty()) continue;
+                    String firstBad = null;
+                    boolean anyClean = false;
+                    for (Rec s : sub) {
+                        final List<String> subBad = violations(s, unlock + 1);
+                        if (subBad.isEmpty()) {
+                            anyClean = true;
+                            break;
+                        }
+                        if (firstBad == null) firstBad = String.join(", ", subBad);
+                    }
+                    if (!anyClean) bad.add(name(input) + " [" + firstBad + "]");
+                }
+                newest = Math.max(newest, newest(rec));
+                notes.add(rec.where + (bad.isEmpty() ? " clean" : " needs " + String.join("; ", bad)));
+                if (bad.isEmpty() && clean == null) clean = rec.where;
+            }
+            final boolean tierOk = !carries || newest == unlock;
+            if (clean == null || !tierOk) problems++;
+            SLConsoleTest.tell(
+                sender,
+                "Circuits " + label
+                    + " (unlock Eye T"
+                    + unlock
+                    + "): "
+                    + (clean == null ? "LOOP - " + String.join(" | ", notes) : "CLEAN via " + clean)
+                    + "; newest Eye matter inside T"
+                    + newest
+                    + (carries ? (tierOk ? " (the gate holds)" : " (WRONG: should be T" + unlock + ")") : ""));
+        }
+        final List<String> naming = BTSCircuitChecks.cardsNamingOurs();
+        for (String line : naming) SLConsoleTest.tell(sender, "Circuits: SL card NAMES ours: " + line);
+        problems += naming.size();
+        SLConsoleTest.tell(
+            sender,
+            "== Circuits gate audit done: " + problems
+                + " problem(s); SL cards naming our circuit items outside the chain: "
+                + naming.size()
+                + " ==");
+        return problems;
+    }
+
+    /** The newest Eye tier among a recipe's direct inputs (items, nanites, fluids), by {@link #FIRST_MADE}. */
+    private static int newest(Rec rec) {
+        int max = 0;
+        final List<String> keys = new ArrayList<>();
+        for (int i = 0; i < rec.items.size(); i++) {
+            final ItemStack input = rec.items.get(i);
+            if (input != null) keys.add(keys(input));
+            if (rec.nanites != null && i < rec.nanites.length && rec.nanites[i] != null) {
+                final NaniteTier n = rec.nanites[i];
+                keys.add(n.getMaterial() == null ? n.name() : n.getMaterial().mName);
+            }
+        }
+        if (rec.fluids != null) {
+            for (FluidStack fluid : rec.fluids) {
+                if (fluid == null || fluid.getFluid() == null) continue;
+                keys.add(
+                    fluid.getFluid()
+                        .getName() + " "
+                        + fluidName(fluid));
+            }
+        }
+        for (String k : keys) {
+            final String norm = normalise(k);
+            for (Object[] entry : FIRST_MADE) {
+                if (norm.contains((String) entry[0])) max = Math.max(max, (Integer) entry[1]);
+            }
+        }
+        return max;
     }
 }
