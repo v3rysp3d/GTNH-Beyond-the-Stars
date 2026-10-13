@@ -186,27 +186,41 @@ GT5U.gui.text.recipe_result.beyondthestars.train.acid=§7Needs 2,000 L Hydrofluo
 # ---- SINGULARITY LADDER (Foundation; singularity-ladder-build.md §1, Contract additions FC-1/FC-2) ----
 # slCasing metas 0 and 9 are retired holes (existing EOH/BHC blocks play those roles).
 tile.beyondthestars.slCasing.1.name=Superradiant Mirror Casing
+tile.beyondthestars.slCasing.1.tooltip=The Kerr Ergosphere Engine's inner and outer mirror walls, and the Conduit Mirror's face.\nMade in the Assembler (2 a craft).
 tile.beyondthestars.slCasing.2.name=Mirror Backing Casing
+tile.beyondthestars.slCasing.2.tooltip=The Kerr Ergosphere Engine: behind every mirror wall.\nMade in the Assembler (2 a craft); the Superradiant Mirror Casing is made from it.
 tile.beyondthestars.slCasing.3.name=Bolt Injector Rail (Mk I)
+tile.beyondthestars.slCasing.3.tooltip=The Kerr Ergosphere Engine's 8 angled bolt injector rails.\nThe lowest rail in the cage caps the bolt feed: Mk I 4, Mk II 8, Mk III 16 bolts a tick.\nMade in the Assembler.
 tile.beyondthestars.slCasing.4.name=Bolt Injector Rail (Mk II)
+tile.beyondthestars.slCasing.4.tooltip=The Kerr Ergosphere Engine's 8 angled bolt injector rails.\nThe lowest rail in the cage caps the bolt feed: Mk I 4, Mk II 8, Mk III 16 bolts a tick.\nMade in the Assembler from a Mk I rail.
 tile.beyondthestars.slCasing.5.name=Bolt Injector Rail (Mk III)
+tile.beyondthestars.slCasing.5.tooltip=The Kerr Ergosphere Engine's 8 angled bolt injector rails.\nThe lowest rail in the cage caps the bolt feed: Mk I 4, Mk II 8, Mk III 16 bolts a tick.\nMade in the Assembler from a Mk II rail.
 tile.beyondthestars.slCasing.6.name=Ergosphere Field Coil
+tile.beyondthestars.slCasing.6.tooltip=The Kerr Ergosphere Engine's dome coils.\nAlso a part of the Beam Focusing Quadrupole and the Jet Crescent Casing.\nMade in the Assembler.
 tile.beyondthestars.slCasing.7.name=Beam Focusing Quadrupole
+tile.beyondthestars.slCasing.7.tooltip=The Kerr Ergosphere Engine: the rings round the injector rails and the beamline.\nMade in the Assembler (4 a craft).
 tile.beyondthestars.slCasing.8.name=Beam Dump
+tile.beyondthestars.slCasing.8.tooltip=The Kerr Ergosphere Engine's dump arc, where the spent beam ends.\nMade in the Assembler.
 tile.beyondthestars.slCasing.10.name=Beam Band Casing
+tile.beyondthestars.slCasing.10.tooltip=The Eye of Harmony's T2 beam band (hologram stack 2).\nMade in the Condensate Assembler (32 a craft).
 tile.beyondthestars.slCasing.11.name=Jet Crescent Casing
+tile.beyondthestars.slCasing.11.tooltip=The Eye of Harmony's T3 jet crescent (hologram stack 3).\nMade in the Condensate Assembler (32 a craft).
 tile.beyondthestars.slCasing.12.name=Galactic Shell Plating
+tile.beyondthestars.slCasing.12.tooltip=The Eye of Harmony's T4 spiral arms, T5 second arms and T6 galactic rim; the Homogeny T2 stirring ring.\nMade in the Assembler (16 a craft, with Hyperdense Stellar Mixture),\nor 64 a craft in the Condensate Assembler once you have White Dwarf Matter.
 tile.beyondthestars.slCasing.13.name=Bastion Plate
+tile.beyondthestars.slCasing.13.tooltip=The Kerr T2 reinforcement (hoops, band and struts), the Eye of Harmony's T7 stability rail\nand T8 shard halo, and the Homogeny's body at every tier.\nMade in the Condensate Assembler (64 a craft).
 tile.beyondthestars.slCasing.14.name=Casimir Plate
-tile.beyondthestars.slCasing.14.tooltip=Spacetime-flat plating that lines every burst path.
-Used by the Kerr T2 reinforcement, the Eye's T7 rail trim, the Homogeny T3 outer ring, the Quasar Engine's jet-port rings and every conduit element's throat lining.
-Made in the Condensate Assembler (16 a craft).
+tile.beyondthestars.slCasing.14.tooltip=Spacetime-flat plating that lines every burst path.\nUsed by the Kerr T2 reinforcement, the Eye's T7 rail trim, the Homogeny T3 outer ring, the Quasar Engine's jet-port rings and every conduit element's throat lining.\nMade in the Condensate Assembler (16 a craft).
 tile.beyondthestars.slCasing.15.name=Ergosphere Extraction Casing
+tile.beyondthestars.slCasing.15.tooltip=The Kerr Extractor Module's shell; its item bus sockets fall back to it.\nMade in the Assembler (2 a craft).
 tile.beyondthestars.slCasing2.0.name=Kerr Compressor Module Core (legacy: craft into the module controller)
+tile.beyondthestars.slCasing2.0.tooltip=Retired: since the Kerr redesign the compressor module is its own machine; no structure uses this block.\nCraft it (shapeless) into a Kerr Compressor Module controller.
 tile.beyondthestars.slCasing2.1.name=Kerr Extractor Module Core (legacy: craft into the module controller)
+tile.beyondthestars.slCasing2.1.tooltip=Retired: since the Kerr redesign the extractor module is its own machine; no structure uses this block.\nCraft it (shapeless) into a Kerr Extractor Module controller.
 # KERR REDESIGN R4: the KEE's black-hole render block (GT BlockRenderer: its name has no "tile." prefix)
 gt.beyondthestars.kerrHole.name=Kerr Black Hole
 tile.beyondthestars.slCasing2.2.name=Harmonic Lining
+tile.beyondthestars.slCasing2.2.tooltip=The white inner face of the Kerr Ergosphere Engine (every arc and band; most of it in the T2 reinforcement),\nboth Kerr modules, the Homogeny and both Reality machines.\nMade in the Assembler (4 a craft), or 64 a craft in the Condensate Assembler.
 gt.beyondthestars.eyeStar.name=Eye of Harmony Star (render)
 item.beyondthestars.superradiantMirrorSegment.name=Superradiant Mirror Segment
 item.beyondthestars.stabiliserPylon.name=Stabiliser Pylon
