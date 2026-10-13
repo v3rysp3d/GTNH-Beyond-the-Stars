@@ -4103,3 +4103,85 @@ quasar's ports (the conduit is modelled), so Disc [8] was on for 99.7 % of the r
 Disc [8].
 
 **Suggestion.** Keep.
+
+### P4-83 A paused source that never comes back no longer pauses a re-aimed host for ever [conduit, Q-8, full test]
+
+**Context.** P4-46: a GRB Receptor Port remembers the quasars that fed it, and a remembered source that is frozen or not
+loaded pauses its host (Q-8). In the full dev-server test, the Homogeny T3 was fed through its ports by a new, running
+quasar, while the quasar that fed it in an earlier session stood in an unloaded chunk. The Homogeny stayed "PAUSED: its
+quasar at 12000, 100, 12600 is not running (σ held)" while it took 9 Bu/t from the new one. A player who re-aims a
+conduit at another quasar, and leaves the old one unloaded, would see the host paused until the old chunk loads.
+
+**Built.** A remembered source that pauses is forgotten when two things are both true: it has been silent for 10 min
+(`MTEHatchGRBReceptor.FORGET_PAUSED_TICKS` = 12,000 ticks), and another running source is feeding the port this second.
+With no other source arriving, nothing changes: the port keeps the old source and Q-8 holds the host still. On the dev
+server the re-aimed Homogeny then read σ 1.50, speed × 1.5, and Entanglement Medium open.
+
+**Suggestion.** Keep. **Alternatives:** forget at once when any running source arrives (a quasar unloading for a
+moment would then drop σ on a two-quasar host), or never forget (the old behaviour).
+
+### P4-84 The quasar's b setting clamps to the coil tier [quasar, OpenComputers, full test]
+
+**Context.** `bts_quasar.setField(99)` on a quasar with T3 coils returned 4.0. The coils capped the b in use at 3, but
+the GUI and OpenComputers reported a b the machine cannot carry. The automation doc says setField 99 gives the coil tier.
+
+**Built.** `MTEQuasarEngine.setBSetting` clamps to the coil tier. The clamp is 4 while the coils are unknown (unformed,
+or the NBT load before the first walk). On the dev server, setField(99) now returns 3.0 on T3 coils. A Burst Control
+Hatch in FIELD mode still maps 0-15 onto 0.5..the coil tier.
+
+**Suggestion.** Keep. After a coil upgrade, the player raises b once.
+
+### P4-85 P4 machines mark their chunk modified every second [persistence, full test]
+
+**Context.** GT marks a chunk modified only when an inventory changes, and Minecraft saves only modified chunks (or ones
+with entities). On the dev server, a Wormhole Mouth reloaded a 20-minute-old save after a restart: its SpaceTime used
+went 4,864 L → 228 L. A rig crown's lifetime EU went 61.1e15 → 10.2e15 the same way. Nothing in the mouth's chunk had
+an inventory change. A quasar in that position would lose its growth (mass, spin, counters) after a restart.
+
+**Built.** These mark their chunk modified once a second while they run: the quasar (`second`), every conduit element
+(after `upkeep`), the crowns (after `second`), and a lit GRB Receptor Port. This is one `IGregTechTileEntity.markDirty()`
+each, which only sets the chunk's flag. After the fix, a restart kept the mouth at 328 L (it had 260 L, plus 17 s more)
+and the crown at 11.8e15 EU.
+
+**Suggestion.** Keep. **For master** (not P4 code): the KEE's hole mass, the Homogeny / Reality runtime state and the
+Directive / Sensor / Burst Control hatch settings rely on the same luck. The KEE was fine in the test because its bolt
+buses change every tick. A master follow-up could add the same one-line `markDirty()` to the KEE's and the H/R
+machines' second.
+
+### P4-86 Casimir Plate tooltip; older casings still without one [rule 14, lang lint]
+
+**Context.** The full test's lang lint found the following:
+
+- Every recipe-result id has its RC-2 `GT5U.gui.text.recipe_result.<id>` key. The lint's one miss is the Kerr module's
+  `linked` state, which is never a failure.
+- Every item has `.name` and its `.tooltip`.
+- Every recipe map's name key exists. `gg.recipe.precise_assembler` is GoodGenerator's own map.
+- Every literal GT5U key exists in the RC-2 GT lang.
+- Rule 14 is not met everywhere: slCasing metas 1-8, 10-15 and slCasing2 metas 0-2 have names but no tooltip. The
+  Casimir Plate (slCasing:14) is one of them, and P4 made it a main block: 7,145 in a Junction, every throat lining,
+  and the quasar's port rings.
+
+**Built.** A tooltip for the Casimir Plate. It names every machine that uses it and where it is made. The other
+pre-P4 casings are left to master: they are not P4 blocks, and the tidy pass owns them.
+
+**Suggestion.** Master's tidy pass gives slCasing 1-8, 10-13 and 15 and slCasing2 0-2 one tooltip line each, in the
+slCasing3 style.
+
+### P4-87 Full dev-server test: what the benches do to a world [test bench, observation]
+
+**Context.** Some bench verbs used by the full test change a world on purpose.
+
+- `/btskerr ocloop` collapses the hole and re-opens it at 8 SM, to prove the OC `collapse()` / `open()` calls.
+- `/btseye star … fill` tops every buffer to 10^12 L.
+- `/btsconduit rig` force-loads 520 chunks.
+
+Bench chunk tickets are dropped at a restart. FML's warning "registered persistent chunkloading data but doesn't seem
+to want to be called back" is that drop: the bench registers its callback only when it is first used.
+
+The pre-P4 base (c8f8ca7) has no `receptor` or `occall` verbs in `/btskerr`. On that jar they fall through to the
+build form and rebuild the Kerr at T1. The full test saw this while making the legacy world, and a forced T2 rebuild
+put it back.
+
+**Built.** No change. The test world `p4test` is a bench world.
+
+**Suggestion.** Keep. Never run `ocloop` on a Kerr you want to keep.
