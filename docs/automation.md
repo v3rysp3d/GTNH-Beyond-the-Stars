@@ -1,8 +1,8 @@
-# Automation: every action, four ways (the Eye and the Kerr)
+# Automation: every action, four ways (the Eye, the Kerr, and P4's quasar, conduit and hosts)
 
 Status: **built** on master, 2026-10-13 (automation pass, build brief item 18). Question B-70 lists the judgement
-calls. The Quasar, the Homogeny and the Reality machines get their own sets on the same hatch when they are built
-(P4 design `designs/docs/quasar-p4.md` §8).
+calls. P4 (branch `p4-quasar`) adds the Quasar, the Conduit, Eye T7-T8 and the other burst hosts on the same hatch:
+§7 below (design `designs/docs/quasar-p4.md` §8).
 
 Your ruling: "make sure this is fully automatable with and/or items in game incluiding ae2, redstone, logic gates,
 opencomputer or Steves Factory Manager ... hatches that provide detection may help e.g. the binary output from t7
@@ -278,3 +278,172 @@ Bench commands:
 
 - `/btseye star x y z directive | autorig <s> [cut <k>] | ocloop`
 - `/btskerr autorig x y z [s] [bolts/s] [empty] | ocloop x y z | ctrl x y z on|off|out | ocprobe x y z`
+
+---
+
+## 7. P4: the Quasar, the Conduit, Eye T7-T8 and the other hosts
+
+Status: **built** on `p4-quasar`, 2026-10-13. Design: `designs/docs/quasar-p4.md` §8 and R.5. Judgement calls:
+P4-74 to P4-82 in `singularity-ladder-questions.md`.
+
+### 7.1 Detection and control hatches
+
+**Directive Hatch sets** (the same hatch, MTE 28127). Each code adds its bits: [1] [2] [4] [8]. The window w is set in
+the hatch GUI; the standard rig uses w 5.
+
+| Set (where) | [1] | [2] | [4] | [8] |
+|---|---|---|---|---|
+| **Quasar: Disc** (quasar `d` socket) | E < −w: pulse the feed gas | E > +w: Space trim | Φ at the purge setpoint: purge | Alarm: blow-out or re-forming, no coil power, a jet venting, a conduit element closed |
+| **Eye: Field** (T7+, `d` or `n`) | P > +w: Space trim | P < −w: more bursts to the Eye | W > +w: aim high | W < −w: aim low |
+| **Eye: Events** (T7+) | Λ > +w: more to the halo | Λ < −w: less to the halo | A countdown is running (collapse, pass, crossing, merger) | That event's sign is − |
+| **Eye: Galaxy Transition** | Ready: begin (milestones, core, charge, chart in, Stable) | A galaxy transition is running | Purge now (the collapse assist) | Hold the regulator's purges |
+| **Eye: Slots** | A planet or companion slot is idle | A companion's upkeep is short | The last planet run lost parallels | Link test fire wanted |
+
+Rules that matter for an unattended rig:
+
+- **Transition [4]** (next core wanted) on T6 and T7 comes when every milestone **but the link** is met (P4-76). The
+  link's test fire needs the core in escrow.
+- **Slots [8]** at T6 means "J1 all to the Eye" (the Stability Link). At T7 it means "J1 all to the Eye, J3 to its 75 %
+  halo preset" (the Heavy Link). At T7 it waits until the linked quasar's mean stream reaches 6 Bu/t, about 130 SM at
+  coils 3 (P4-79); the Galaxy panel says so.
+- In planets mode, Field [4] / [8] and the Events set stay 0.
+
+**Burst Control Hatch** (MTE 28126), a redstone input:
+
+| Mode | Where | What the signal does |
+|---|---|---|
+| Purge | quasar `c` (cap rims) | A rising edge purges the flux (refused below Φ 20) |
+| Field b | quasar `c` | b = 0.5 + (coil tier − 0.5) × s/15 |
+| Junction split | a Junction | s in out 1's share: c + k(s/15 − 0.5) |
+| Begin | Eye `d` | A rising edge begins the galaxy transition while Galaxy Transition [1] is on; ignored otherwise |
+
+**Stellar Field Sensor Hatch** (28116): the quasar channels (E, Φ, λ, a, M, Bu/t, the eruption warning, the seconds to
+the next eruption, the best host's σ, the link streak %) and the Eye's W, Λ, β, link streak %, link 60 s mean, slot progress and countdown.
+Analog with the window w, or a threshold (15 above / below), with invert.
+
+### 7.2 Every action, four routes (checked against the code)
+
+"Checked" names the code that does it.
+
+| Action | AE2 | Redstone + logic gates | OpenComputers | Steve's Factory Manager | Checked |
+|---|---|---|---|---|---|
+| **Feed gas** (the disc's E) | ME stocking hatches in the 24 Rim Gas Injector sockets (the quasar buffers 10 s); f is a GUI setpoint | — | `quasar.setFeed(f)`, `setGas(name)` | Fluid node into a gas hatch | `MTEQuasarEngine.refillBuffer`, gas element takes any input hatch |
+| **Gas trim** (E low) | Fluid export bus with a redstone card on Disc [1] into a **plain** trim hatch | Disc [1] (Bit 1 mode) → a Fluid Regulator cover, "enable with signal" | `quasar.trim("gas", 10)` while `getDisc().E < −5` | Fluid node into the trim hatch on bit 1 | trim element plain hatches only; `requestTrim` (P4-77) |
+| **Space trim** (E high) | Export bus on Disc [2] | Disc [2] → regulator | `quasar.trim("space", 10)` while E > 5 | Fluid node on bit 2 | as above |
+| **Purge** (Φ) | — (Disc [4] goes straight to the hatch) | (Disc [4] AND NOT Galaxy Transition [8]) OR Galaxy Transition [4] → the quasar's Burst Control Hatch (Purge) | `quasar.purge()` (false below Φ 20) | Redstone emitter pulsed on bit 3 | `MTEHatchBurstControl` rising edge; `requestPurge` |
+| **Coil field b** | Level emitter → Burst Control Hatch in b mode (two presets) | Lever or analog source → b mode | `quasar.setField(b)` | Analog emitter | b mode in `pollBurstHatches` |
+| **J1** (Eye : crown) | Two-level: Field [2] / [1] → 15 / 8 / 0 into J1's Burst Control Hatch; OR Galaxy Transition [4] → 15; OR Slots [8] → 15 | Sensor P (analog, inverted, ±30) straight to J1 | `junction.setRatio(c)` from `eye.getField().P` | Analog emitter, or the two-level rule | `ConduitNet` split, `BurstRouting.share` |
+| **J2** (aim W) | Two-level: Field [4] / [8] | Sensor W straight to J2 | `setRatio` from `getField().W` | as J1 | as J1 |
+| **J3** (halo Λ, T8) | Two-level: Events [1] / [2]; Slots [8] → its 75 % preset at T7 | Sensor Λ straight to J3 | `setRatio` from `getField().L` | as J1 | as J1 |
+| **Eye Space trim** (P, T7+) | Export bus on Field [1] into a Field hatch (one valve, 10 units) | Field [1] → regulator | `eye.trim("space", 10)` while P > 5 | Fluid node on bit 1 | `EyeStarRuntime` trims; `requestTrim` |
+| **Ergomatter feed f₈** (T8) | ME stocking hatch in a gas socket; f₈ is a GUI setpoint | — | `eye.setFeed8(f)` (lower it on `getEvent().kind == "crossing"`) | — | `setF8` |
+| **Throat fuel** | ME stocking hatches in each element's fuel hatches; a level emitter on SpaceTime / Ergomatter orders crafting | Disc [8] → a lamp or a backup | `mouth.getUpkeep()`, `setFuel(mode)` | Fluid node on a level condition | `MTEConduitElement` upkeep |
+| **The core** | ME interface / export bus pushes it into a plinth input bus on Transition [4] | Transition [4] → export bus | `eye.getTransition().coreWanted`, transposer | Item node on bit 3 | `takeFromPlinthBuses` → escrow |
+| **The charge** (WDM + BDM, or Ergomatter 9,000 L) | Level maintainers; Status [1] says short | Status [1] → export bus | `getBuffers()` | Fluid node on bit 1 | `transitionFluidsShort` |
+| **The galaxy chart** | Export bus pushes ONE chart into a plain plinth bus on Transition [1] | Transition [1] → conveyor | transposer on `getTransition().ready` | Item node on bit 1 | plinth-bus chart pickup |
+| **Begin** | — | Galaxy Transition [1] → the Eye's Burst Control Hatch (Begin) | `eye.beginTransition()` | Redstone emitter on bit 1 | `requestBegin` |
+| **Link test fire** | Slots [8] → a toggle bus feeding J1 15 and J3's 75 % preset | Slots [8] → both Burst Control Hatches | `junction.setRatio` on both | Redstone on bit 4 | `testFireWanted` |
+| **Planets and companions** | ME interface keeps planet items / charts in the slot bus | Slots [1] → a conveyor cover | `eye.setMode()`, `getSlots()`, transposer | Item node on bit 1 | slot bus `p` |
+| **Crown power** | Nothing: the EU goes to the owner's wireless network | Disc [8] → backup generator | `crown.getPower()` | Redstone on bit 4 | `MTEBurstThermaliserCrown` |
+| **Other hosts** (Kerr, Homogeny, Reality Diffraction) | J1's out 3 at a fixed share (no signal) | A Junction at a fixed ratio | `quasar.getLinks()`; `kerr.getState().link`, `homogeny.getState()`, `reality.getState()` | — | `BurstHost` per host |
+
+**The only manual steps:** making the Quasar Seed and opening the hole (the controller slot and Open), pairing each
+Mouth pair with a data stick, placing the hatches, and setting f 1.0 once if you want the links (P4-81).
+
+### 7.3 OpenComputers (P4 components)
+
+Soft dependency, as in §3. Every setter and action takes **one call per 20 ticks** per machine and method; a refused
+call returns nil and "rate limited: one call per 20 ticks (1 s, the field's step)".
+
+| Component | Methods |
+|---|---|
+| `bts_quasar` | `getDisc()` (state, E, phi, lambda, a, M, cap, integrity, zone, Yq, stability, b, power), `getBurst()` (total, top, bottom, docks, vented), `getFeed()`, `setFeed(f)`, `setGas(name)`, `setField(b)`, `trim(kind, units)`, `purge()`, `getLinks()` (host, Bu/t, σ, streak), `getMilestones()`, `getDirective(w)` |
+| `bts_eye` (T7+ additions) | `getField()` adds W, L, beta, the gammas and D; `getEvent()`, `getUnlock()` (kind, streak, best, mean, frac, linked, source, ready, testFireWanted), `beginTransition()`, `setFeed8(f)`, `setMode(mode)`, `trim(kind, units)`, `getSlots()` |
+| `bts_mouth`, `bts_mirror` | `getLink()`, `getThroat()`, `getUpkeep()`, `setFuel(mode)`, `isOpen()` |
+| `bts_junction` | as a mouth, plus `getFlow()`, `setRatio(c)`, `setGain(k)`, `setOut3(p)`, `setMode(mode)` |
+| `bts_crown` | `getPower()`, `getStream()`, `getMk()` |
+| `bts_receptor` | `getDelivery()` (total, bySource) |
+| `bts_kerr` | `getState()` adds setpointHeld, bleedFactor and link {ports, sigma, sigmaLast, delivered, mean, linked, source, paused, line} |
+| `bts_homogeny` | `getState()`: tier, parallels, speed, demand, Entanglement open, link |
+| `bts_reality` | `getState()`: burst-driven, speed, anchors, link |
+| `bts_directive` | `getBits()` (code, on[1..4], names[1..4]); `setSet` lists the P4 sets |
+
+A quasar disc loop (what the Disc valves do, by script):
+
+```lua
+local q = require("component").bts_quasar
+while true do
+  local d = q.getDisc()
+  if d.E < -5 then q.trim("gas", 10) elseif d.E > 5 then q.trim("space", 10) end
+  if d.phi >= 40 then q.purge() end
+  os.sleep(1)
+end
+```
+
+### 7.4 The standard rig (what the proof wires)
+
+- **Quasar:** a Disc Directive Hatch (Code mode, w 5). Disc [1] → the feed-gas valve and Disc [2] → the Space valve,
+  10 units a second each, into plain trim hatches. ME stocking hatches in the gas sockets. f 1.0.
+- **Purge:** (Disc [4] AND NOT Galaxy Transition [8]) OR Galaxy Transition [4] → the quasar's Burst Control Hatch
+  (Purge). That is one AND-NOT gate and one OR gate.
+- **Eye:** Trims, Status and Transition hatches as in §4 (stock-up on Status [1], charges on [2], the core on
+  Transition [4], the chart on [1]); from T7 the one Space valve on Field [1].
+- **Junctions, all binary:** J1 = Field [2] / [1] (15 / 8 / 0), OR Galaxy Transition [4] → 15, OR Slots [8] → 15;
+  J2 = Field [4] / [8]; J3 = Events [1] / [2], with Slots [8] → 75 % halo at T7.
+- **Begin:** Galaxy Transition [1] → the Eye's Burst Control Hatch in Begin mode.
+
+### 7.5 The proof on a dev server (2026-10-13)
+
+`/btsquasar autorig x y z <s> eye ex ey ez` runs the standard rig on a **real** Quasar Engine (coils 3, b 3) and a
+**real** Eye (T8 structure). The rig sees only the Directive codes, a second late, and acts only through the machines'
+hatches. The conduit between them is the rig's maths, fed by the real quasar's jets (P4-75). Before the run the quasar
+was a fresh 64 SM hole (no spin), the Eye a lit magnetar with T6 unlocked, milestones reset, escrow and plinth buses
+empty, the Eye's debug rig off. Nothing else was touched; the quasar grew by itself.
+
+| Stretch | Result |
+|---|---|
+| **T6 → T7** (from a fresh 64 SM, 0-spin hole) | The rig pushed the Intergalactic core on Transition [4] (P4-76), the test fire (Slots [8], 1,818 s) held the Stability Link, the rig pushed the Triangulum chart and its Galaxy Transition [1] edge began the Magnetar Collapse. The assist's eruption landed 9.97 Bu/t on the collapse second and cancelled 85 of 120. COMPLETE in 779 s: **T7 at t+14,555 s**. 0 Eye failures, 0 disc blow-outs, 579 purges. |
+| **T7, the quasar growing 80 → 135 SM** | About 52,600 s from the unlock to T8 with 0 Eye failures; about 807,000 L of Ergomatter counted toward the milestone; 36 minor mergers ridden. The halo test fire began once the quasar's mean stream reached 6 Bu/t (about 118 SM, P4-79); the Heavy Link was held at about 135 SM. |
+| **T7 → T8** | The rig pushed the Milky Way chart; Begin; the first pass bound the nuclei; Galactic Merger COMPLETE in 1,920 s: **T8**, core consumed, 0 failures. |
+| **T8, the quasar growing 142 → 222 SM** | About 41,600 s with 0 failures; 76-85 % Resonant per stretch; 14 of 14 satellite crossings caught. The Mk I throats cap what reaches J1 at 24 Bu/t, so the growth does not flood the Eye. |
+| **Real redstone** | After a run the rig keeps acting in real time with redstone blocks against the two Burst Control Hatches; the Eye's bursts followed the bang-bang J1 (24 → 8.4 → 8.8 Bu/t a second apart) with the field Resonant. |
+
+What failed first, and was fixed (each is a question):
+
+- With the core wanted only after the link, the unattended rig deadlocked: no core, no test fire, J1 at 57 %, the link
+  never held (P4-76).
+- The T7 halo test fire on an 88 SM quasar starved the rail and lost Triangulum (P4-79).
+- The galaxy chain's magnetar re-spawn failed on Integrity 344 times in a row until master's merger Directive fix was
+  ported (P4-78); with it the chain re-ran cleanly.
+- `autorig off` left the last second's bursts applied for ever (fixed: the rig clears them).
+- At the GUI default f 0.85 a 64 SM quasar never held the Stability Link; the proof rides Eddington at f 1.0 (P4-81).
+
+**The other hosts**, through real receptor ports and a real quasar (P4-74): the KEE (σ 2.0, bleed × 0.25, cap 768;
+the link lost → held at 512 with the setpoint kept), the Homogeny T3 (σ 1.5 → speed × 1.5, Entanglement Medium open;
+closed when the mean fell under 1) and Reality Diffraction (σ 0.5 → × 0.5; σ 0.25 → paused; quasar frozen → "PAUSED …
+(σ held)", resumed when rebuilt).
+
+**OpenComputers** (`/btsquasar ocloop`, `/btseye star … ocloop`, `/btskerr occall`): every getter returns, the setters
+clamp (setFeed 9 → 1.5, setField 99 → the coil tier), `trim` clamps and is taken the next second, two calls in one tick
+→ the second is refused.
+
+Bench commands (P4):
+
+- `/btsquasar autorig x y z <s> [eye ex ey ez] [analog] [cut k] [mass M] | autorig off | autorig status | ocloop x y z`
+- `/btseye star x y z milestones <n> reset | buses clear | rig none | unlock <n> | lit <chart>`
+- `/btsconduit inject rx ry rz qx qy qz <Bu/t> | inject rx ry rz off`
+- `/btshr bench x y z receptors | inject qx qy qz <Bu/t> | inject off`
+- `/btskerr receptor x y z | occall x y z method[x2] [args]`
+
+Not run: a client (the GUI lines, the hatch GUIs), OpenComputers through a real Adapter and computer in game (the
+calls go through the same API the components wrap), the Superdense refinery (SL-Q23) recipe in the Compressor Module
+(the gate is code-checked), and a 16-port in-world conduit aimed at the Eye.
+
+### 7.6 Where it is learnable in game (rule 14)
+
+- The Directive Hatch tooltip carries the Disc, Field, Events, Galaxy Transition and Slots tables.
+- The Burst Control Hatch tooltip carries its four modes; the Junction tooltip its split formula.
+- The quasar, Eye, KEE, Homogeny and Reality Diffraction tooltips and scanners carry their link lines and the
+  OpenComputers component name.
+- The Eye's Galaxy panel shows what the next transition waits for and why the T7 test fire waits.
+- The questbook: `docs/p4-questbook-contract.md`, quests "Automating the quasar" and "A galaxy that runs itself".
