@@ -66,7 +66,8 @@ public class CommandBTSRecipes extends CommandBase {
 
     /** The lines ("group" in the JSON). Public so the code that changes or removes a pack recipe can name its line. */
     public static final String KERR = "Kerr", EYE = "Eye", BEC = "BEC / Condensate", HR = "Homogeny / Reality",
-        AUTOMATION = "Automation", OLD_PLANT = "Old plant", UPGRADE = "Upgrade path", OTHER = "Other";
+        QUASAR = "Quasar / Conduit", AUTOMATION = "Automation", OLD_PLANT = "Old plant", UPGRADE = "Upgrade path",
+        OTHER = "Other";
 
     static final String NEW = "new", CHANGED = "changed-GT", REMOVED = "removed";
 
@@ -323,6 +324,9 @@ public class CommandBTSRecipes extends CommandBase {
                 case "reality":
                 case "reality-process":
                     return HR;
+                case "quasar":
+                    // P4: SL-P40 (Resonance Chamber IV, the Eye T8 gate) sits with the other compression gate parts
+                    return i.startsWith("SL-P") ? EYE : QUASAR;
                 case "singularity":
                     return i.startsWith("SL-P") && number(i.substring(4)) <= 14 ? KERR : EYE;
                 default:
@@ -331,6 +335,7 @@ public class CommandBTSRecipes extends CommandBase {
         }
         if (i.startsWith("SL-B") || i.startsWith("SL-P27") || i.startsWith("SL-P28")) return BEC;
         if (i.startsWith("SL-G") || i.startsWith("SL-P39")) return EYE;
+        if (i.startsWith("SL-Q")) return QUASAR;
         return OTHER;
     }
 

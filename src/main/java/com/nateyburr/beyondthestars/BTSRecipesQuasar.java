@@ -147,7 +147,7 @@ public final class BTSRecipesQuasar {
         // SL-Q27 / SL-Q28: the NEI display pages (feed gas -> bursts; bursts -> EU), fake recipes.
         QuasarRecipeMaps.register();
         if (Config.replaceTecTechEyeOfHarmony) {
-            resonanceChamberIV();
+            BTSRecipeLedger.gated("replaceTecTechEyeOfHarmony=true", BTSRecipesQuasar::resonanceChamberIV);
         } else {
             BeyondTheStars.LOG.info(
                 "[BTS] replaceTecTechEyeOfHarmony=false: SL-P40 (MHDCSM-free Resonance Chamber IV) is not registered "
@@ -219,6 +219,9 @@ public final class BTSRecipesQuasar {
             Materials.UMV,
             3_600,
             TierEU.RECIPE_UMV * 4);
+        BTSRecipeLedger.placeholder(
+            "SL-Q05",
+            "unreachable until MagMatter: the Godforge's EE upgrade needs Universium (Eye T10); optional coil (P4-24)");
         coil(
             4,
             Materials.MagMatter,
@@ -730,6 +733,7 @@ public final class BTSRecipesQuasar {
             for (int i = 0; i < recipe.mInputs.length; i++) {
                 if (i != at) inputs.add(recipe.mInputs[i]);
             }
+            final java.util.Map<String, Object> before = CommandBTSRecipes.snapshot(recipe);
             if (darkIron != null && recipe.mFluidInputs != null
                 && recipe.mFluidInputs.length > 0
                 && inputs.size() + 2 <= 9) {
@@ -738,6 +742,16 @@ public final class BTSRecipesQuasar {
             }
             recipe.mInputs = inputs.toArray(new ItemStack[0]);
             recipe.mFluidInputs = new FluidStack[] { new FluidStack(ergo, CATALYST_ERGOMATTER) };
+            BTSRecipeLedger.changed(
+                "SL-Q26",
+                CommandBTSRecipes.QUASAR,
+                "replaceTecTechEyeOfHarmony=true",
+                "GT++'s Temporal Harmony Catalyst (Eternity's QFT catalyst): " + CATALYST_ERGOMATTER
+                    + " L Ergomatter (Eye T7) in place of the Universium Nanite (Eye T10); its Dark Iron fluid moves"
+                    + " into the items as 71 blocks (D-48)",
+                assemblerRecipes,
+                recipe,
+                before);
             rewritten++;
         }
         if (rewritten > 0) {
@@ -781,11 +795,22 @@ public final class BTSRecipesQuasar {
             for (int i = 0; i < recipe.mInputs.length; i++) {
                 if (i != at) inputs.add(recipe.mInputs[i]);
             }
+            final java.util.Map<String, Object> before = CommandBTSRecipes.snapshot(recipe);
             final List<FluidStack> fluids = new ArrayList<>();
             if (recipe.mFluidInputs != null) Collections.addAll(fluids, recipe.mFluidInputs);
             fluids.add(new FluidStack(ergo, TIMEPIECE_ERGOMATTER));
             recipe.mInputs = inputs.toArray(new ItemStack[0]);
             recipe.mFluidInputs = fluids.toArray(new FluidStack[0]);
+            BTSRecipeLedger.changed(
+                "SL-Q26",
+                CommandBTSRecipes.QUASAR,
+                "replaceTecTechEyeOfHarmony=true",
+                "The coremod's Timepiece (Dimensionally Transcendent Plasma Forge): " + TIMEPIECE_ERGOMATTER
+                    + " L Ergomatter (Eye T7) in place of the Universium Nanite (Eye T10), so the first Temporal"
+                    + " Harmony Catalyst is reachable before T10 (D-48)",
+                RecipeMaps.plasmaForgeRecipes,
+                recipe,
+                before);
             rewritten++;
         }
         if (rewritten > 0) {
