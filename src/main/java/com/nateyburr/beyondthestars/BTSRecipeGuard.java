@@ -12,6 +12,8 @@ import gregtech.api.enums.OrePrefixes;
 import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.GTRecipe;
 import gregtech.api.util.GTUtility;
+import tectech.recipe.TecTechRecipeMaps;
+import tectech.thing.CustomItemList;
 
 /**
  * THE REGISTRATION GUARD. <b>A missing component costs ONE SKIPPED RECIPE, never the game.</b>
@@ -114,6 +116,12 @@ public final class BTSRecipeGuard {
     /** The assembly-line recipes this mod added on the last pass, for {@link #checkResearchCollisions()}. */
     private static final List<GTRecipe.RecipeAssemblyLine> ownAssemblyLines = new ArrayList<>();
 
+    /** Index into TecTech's research-station list where this pass started adding (Circuits v2 RSAL recipes). */
+    private static int stationStart;
+
+    /** The research-station recipes this mod added on the last pass, for {@link #checkResearchCollisions()}. */
+    private static final List<TecTechRecipeMaps.TTResearchStationALRecipe> ownStationLines = new ArrayList<>();
+
     /** Clears the tally. Called once at the top of {@link BTSRecipes#register()}. */
     public static void begin() {
         registered = 0;
@@ -122,6 +130,8 @@ public final class BTSRecipeGuard {
         current = "?";
         assemblyLineStart = GTRecipe.RecipeAssemblyLine.sAssemblylineRecipes.size();
         ownAssemblyLines.clear();
+        stationStart = TecTechRecipeMaps.researchableALRecipeList.size();
+        ownStationLines.clear();
     }
 
     // ------------------------------------------------------------------------------------------
@@ -240,6 +250,8 @@ public final class BTSRecipeGuard {
         // Registration is one single-threaded postInit pass, so everything appended since begin() is ours.
         final List<GTRecipe.RecipeAssemblyLine> all = GTRecipe.RecipeAssemblyLine.sAssemblylineRecipes;
         for (int i = assemblyLineStart; i < all.size(); i++) ownAssemblyLines.add(all.get(i));
+        final List<TecTechRecipeMaps.TTResearchStationALRecipe> station = TecTechRecipeMaps.researchableALRecipeList;
+        for (int i = stationStart; i < station.size(); i++) ownStationLines.add(station.get(i));
 
         if (skipped == 0) {
             BeyondTheStars.LOG.info("[BTS] Recipe registration complete: {} registered, 0 skipped.", registered);
@@ -269,9 +281,14 @@ public final class BTSRecipeGuard {
      */
     public static void checkResearchCollisions() {
         final List<GTRecipe.RecipeAssemblyLine> all = GTRecipe.RecipeAssemblyLine.sAssemblylineRecipes;
+        // TecTech's research assembly lines put a placeholder research item into GT's list (the real one is in
+        // TecTech's own list, checked below), so the placeholder is not a research item that can collide.
+        final ItemStack placeholder = CustomItemList.UnusedStuff.get(1);
         int collisions = 0;
+        int scanner = 0;
         for (GTRecipe.RecipeAssemblyLine own : ownAssemblyLines) {
-            if (own.mResearchItem == null) continue;
+            if (own.mResearchItem == null || GTUtility.areStacksEqual(own.mResearchItem, placeholder, true)) continue;
+            scanner++;
             for (GTRecipe.RecipeAssemblyLine other : all) {
                 if (other == own) continue;
                 if (other.mResearchItem == null
@@ -289,11 +306,49 @@ public final class BTSRecipeGuard {
                     otherFirst ? describe(other.mOutput) : describe(own.mOutput));
             }
         }
+        collisions += checkStationCollisions();
         if (collisions == 0) {
             BeyondTheStars.LOG.info(
-                "[BTS] Research items: all {} of our assembly-line recipes have a unique research item.",
-                ownAssemblyLines.size());
+                "[BTS] Research items: all {} of our assembly-line recipes ({} scanner, {} Research Station) have a "
+                    + "unique research item.",
+                scanner + ownStationLines.size(),
+                scanner,
+                ownStationLines.size());
         }
+    }
+
+    /**
+     * The same rule for TecTech's Research Station (Circuits v2 §2.4): it writes the data stick of the FIRST recipe in
+     * {@code researchableALRecipeList} whose research item matches the held stack, so a second one sharing it is
+     * uncraftable.
+     */
+    private static int checkStationCollisions() {
+        final List<TecTechRecipeMaps.TTResearchStationALRecipe> all = TecTechRecipeMaps.researchableALRecipeList;
+        int collisions = 0;
+        for (TecTechRecipeMaps.TTResearchStationALRecipe own : ownStationLines) {
+            if (own.mResearchItem == null) continue;
+            for (TecTechRecipeMaps.TTResearchStationALRecipe other : all) {
+                if (other == own || other.mResearchItem == null
+                    || !GTUtility.areStacksEqual(own.mResearchItem, other.mResearchItem, true)) continue;
+                final boolean otherFirst = all.indexOf(other) < all.indexOf(own);
+                if (!otherFirst && ownStationLines.contains(other)) continue;
+                collisions++;
+                BeyondTheStars.LOG.error(
+                    "[BTS] RESEARCH COLLISION (Research Station): {} and {} are both researched from {}. Only the "
+                        + "earlier one ({}) can ever be written to a data stick; the other is uncraftable. Please "
+                        + "report this.",
+                    describe(own.mOutput),
+                    describe(other.mOutput),
+                    describe(own.mResearchItem),
+                    otherFirst ? describe(other.mOutput) : describe(own.mOutput));
+            }
+        }
+        return collisions;
+    }
+
+    /** The research-station recipes this mod added on the last pass (read-only view, for checks). */
+    public static List<TecTechRecipeMaps.TTResearchStationALRecipe> ownStationRecipes() {
+        return java.util.Collections.unmodifiableList(ownStationLines);
     }
 
     /** Display name and meta of a stack, for log lines that must tell metas apart. */
