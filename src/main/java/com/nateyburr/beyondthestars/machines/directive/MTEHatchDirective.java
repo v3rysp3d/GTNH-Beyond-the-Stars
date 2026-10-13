@@ -88,6 +88,8 @@ public class MTEHatchDirective extends MTEHatch {
             "  or a Quasar Engine control-box socket (d).",
             "GUI: the set; the output (the code, one bit, any bit; invert); the window w. Comparators read the code.",
             "Codes add up: [1] [2] [4] [8] are bits 1-4, several at once. Updates every second; 0 when silent.",
+            "A GT valve on a bit: a Machine Controller cover (enable with redstone) plus a Fluid Regulator",
+            "  cover set to Conditional, both on the tank that feeds the hatch. AE2: an export bus + redstone card.",
             "§bEye Trims§7 (the star's trims, wanted when the gauge is past ±w):",
             "  T1, T2: [1] Helium (P > +w) [2] Hydrogen (P < -w)",
             "  T3: [1] Helium (P > +w or Θ < -w) [2] Hydrogen (P < -w) [4] Super Coolant (P or Θ > +w, a flash)",
@@ -95,6 +97,7 @@ public class MTEHatchDirective extends MTEHatch {
             "  T5: [1] DSSF (P or Θ > +w) [2] Raw Star Matter (Θ < -w) [4] Helium (P < -w)",
             "§bEye Status§7: [1] buffers short [2] ignition charge wanted [4] event warned (T3 more Coolant,",
             "  T6 Agent wanted) [8] alarm (Critical, Breach, Integrity < 50, or not formed)",
+            "  Magnetar Merger: [4] asks above Π +66; feed 1 unit/s (100 L/s) while Transition [2] is on.",
             "§bEye Transition§7: [1] ready: load the next chart [2] running [4] next core wanted [8] Tachyon wanted",
             "§bEye Field§7 (T7+): [1] P > +w: Space trim [2] P < -w: more bursts [4] W > +w: aim high [8] W < -w: low",
             "§bEye Events§7 (T7+): [1] Λ > +w: more to the halo [2] Λ < -w: less [4] a countdown runs [8] its sign -",
@@ -181,12 +184,22 @@ public class MTEHatchDirective extends MTEHatch {
 
     // ------------------------------------------------------------------ settings (GUI, OpenComputers, bench)
 
+    /**
+     * A setting changed (GUI, OpenComputers, bench): mark the chunk for saving. GT does that only for inventory
+     * changes, so a setting changed with nothing else happening in the chunk was lost on a restart (B-71).
+     */
+    private void settingsChanged() {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base != null) base.markDirty();
+    }
+
     public DirectiveSet getSet() {
         return set;
     }
 
     public void setSet(DirectiveSet s) {
         if (s != null) set = s;
+        settingsChanged();
     }
 
     public int getSetOrdinal() {
@@ -195,12 +208,14 @@ public class MTEHatchDirective extends MTEHatch {
 
     public void setSetOrdinal(int ordinal) {
         set = DirectiveSet.VALUES[Math.floorMod(ordinal, DirectiveSet.VALUES.length)];
+        settingsChanged();
     }
 
     /** The GUI's cycle: the next set of the host the hatch sits in (any set while it has none). */
     public void cycleSet() {
         if (host == DirectiveSet.Host.NONE) setSetOrdinal(set.ordinal() + 1);
         else set = (set.host == host ? set : DirectiveSet.first(host)).next();
+        settingsChanged();
     }
 
     public DirectiveSet.Output getOutput() {
@@ -209,6 +224,7 @@ public class MTEHatchDirective extends MTEHatch {
 
     public void setOutput(DirectiveSet.Output o) {
         if (o != null) output = o;
+        settingsChanged();
     }
 
     public int getOutputOrdinal() {
@@ -217,6 +233,7 @@ public class MTEHatchDirective extends MTEHatch {
 
     public void setOutputOrdinal(int ordinal) {
         output = DirectiveSet.Output.of(ordinal);
+        settingsChanged();
     }
 
     public boolean isInvert() {
@@ -225,6 +242,7 @@ public class MTEHatchDirective extends MTEHatch {
 
     public void setInvert(boolean invert) {
         this.invert = invert;
+        settingsChanged();
     }
 
     public int getWindow() {
@@ -233,6 +251,7 @@ public class MTEHatchDirective extends MTEHatch {
 
     public void setWindow(int w) {
         window = Math.max(WINDOW_MIN, Math.min(WINDOW_MAX, w));
+        settingsChanged();
     }
 
     public DirectiveSet.Host getHost() {

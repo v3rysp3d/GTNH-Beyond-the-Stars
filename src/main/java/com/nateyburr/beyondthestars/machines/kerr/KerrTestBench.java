@@ -71,6 +71,19 @@ public final class KerrTestBench {
     }
 
     /**
+     * A chunk the bench just (re)loaded: GT's first structure check has not run yet, so the hatch lists are empty and
+     * the machine reads NOT FORMED. Walk it now (as the Eye bench's {@code benchEnsureChecked}) so a command does not
+     * act on that transient state (B-71: an autorig right after {@code keep} fitted a second pair of Directive
+     * Hatches; a module stock found no energy hatch).
+     */
+    public static void ensureChecked(gregtech.api.metatileentity.implementations.MTEMultiBlockBase multi) {
+        final gregtech.api.interfaces.tileentity.IGregTechTileEntity base = multi.getBaseMetaTileEntity();
+        if (multi.mStartUpCheck < 0 || base == null) return;
+        multi.checkStructure(true, base);
+        multi.mStartUpCheck = -1;
+    }
+
+    /**
      * {@code module ... <c|x> <action> [args]}. Actions: {@code stock [map#] [longest|first|n] [copies]}
      * picks a recipe of one of the module's maps that fits its energy and fills its input bus (and input
      * hatch for fluids) with {@code copies} times its inputs; {@code status}; {@code tier <t> [amps]} sets
@@ -83,6 +96,8 @@ public final class KerrTestBench {
             out.add(slot.label + " module: none in its slot");
             return out;
         }
+        ensureChecked(kee);
+        ensureChecked(m);
         final String action = from < args.length ? args[from].toLowerCase(Locale.ROOT) : "status";
         switch (action) {
             case "stock":

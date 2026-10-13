@@ -1,0 +1,19 @@
+# Dev test: growing an Eye tier by tier with the projector's survival auto-place (docs/recording.md). Not a showcase.
+kit eye 1 3600,5,4000 gen 5 name ta
+place bts.eyeOfHarmony 3900,5,4000 facing north name tb
+hologram tb build tier 1
+
+scene a
+  caption kit gen 5, then survival tier 2
+  goto ta.c+-80,30,-80 look ta.c+0,-8,0
+  hologram ta survival tier 2 budget 6 every 1 tail 1 max 20
+
+scene b
+  caption creative build tier 1, then survival tier 2
+  goto tb.c+-80,30,-80 look tb.c+0,-8,0
+  hologram tb survival tier 2 budget 6 every 1 tail 1 max 20
+
+scene c
+  caption creative build tier 3 over b
+  hologram tb build tier 3
+  hold 1

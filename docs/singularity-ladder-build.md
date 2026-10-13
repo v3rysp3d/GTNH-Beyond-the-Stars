@@ -227,6 +227,7 @@ errors and no crash. The boot log also confirms:
   `/btskerr legacy x y z [inflight]` turns a built Kerr back into the pre-redesign layout; `inflight` also strips the
   module energy hatches and puts an old recipe in the KEE. `/btskerr module x y z <c|x> energy` fits a module a
   creative energy hatch again (B-57).
+- **Overnight test bench** (B-71): `/btseye bec` lists our Condensate Assembler and Generator recipes as the server holds them (and whether GT's lookup finds each); `/btseye star x y z compression <1-9> [all]` swaps a Spacetime Compression Field Generator to test the 1:1 gate, and `/btseye star x y z check` prints the reason GT's run check would show.
 - **More console tools** (test bench): `/btseye gates` dumps the compression generator recipes the server actually
   has and checks the gate rule against them, and counts BHC consumers left. `/btsbuild t<1-5> <x> <y> <z> [facing]
   [rod] [force] [crib] | [check]` builds a reactor plant from the console; `crib` checks that a feedwater socket

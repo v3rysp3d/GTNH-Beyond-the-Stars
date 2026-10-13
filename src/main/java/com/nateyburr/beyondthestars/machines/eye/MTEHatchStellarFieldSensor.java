@@ -233,12 +233,22 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
         return host == Host.QUASAR ? QuasarSensorChannel.VALUES.length : FieldReadout.Channel.values().length;
     }
 
+    /**
+     * A setting changed (GUI, OpenComputers, bench): mark the chunk for saving. GT does that only for inventory
+     * changes, so a setting changed with nothing else happening in the chunk was lost on a restart (B-71).
+     */
+    private void settingsChanged() {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base != null) base.markDirty();
+    }
+
     public int getChannelOrdinal() {
         return Math.floorMod(channel, channelCount());
     }
 
     public void setChannelOrdinal(int ordinal) {
         channel = Math.floorMod(ordinal, channelCount());
+        settingsChanged();
     }
 
     /** The GUI's cycle: the next channel of the current host. */
@@ -267,6 +277,7 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
 
     public void setWindow(int w) {
         window = Math.max(WINDOW_MIN, Math.min(WINDOW_MAX, w));
+        settingsChanged();
     }
 
     public boolean isInvert() {
@@ -275,6 +286,7 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
 
     public void setInvert(boolean invert) {
         this.invert = invert;
+        settingsChanged();
     }
 
     public double getThreshold() {
@@ -283,6 +295,7 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
 
     public void setThreshold(double threshold) {
         this.threshold = Math.max(-THRESHOLD_LIMIT, Math.min(THRESHOLD_LIMIT, threshold));
+        settingsChanged();
     }
 
     public boolean isLessThan() {
@@ -291,6 +304,7 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
 
     public void setLessThan(boolean lessThan) {
         this.lessThan = lessThan;
+        settingsChanged();
     }
 
     public boolean isAnalog() {
@@ -299,6 +313,7 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
 
     public void setAnalog(boolean analog) {
         this.analog = analog;
+        settingsChanged();
     }
 
     /** The last value read on the channel (NaN when dark or never published). */

@@ -134,6 +134,105 @@ public final class BTSRecipesBEC {
         }
     }
 
+    // =================================================================================== test bench
+
+    /**
+     * {@code /btseye bec} (test bench, B-71): what the server's Condensate Assembler and Condensate Generator maps
+     * really hold for us - every recipe that makes one of our items or machines, whether GT's own lookup with that
+     * recipe's inputs finds that recipe (no shadowing), and the generator recipes behind our condensates.
+     */
+    public static List<String> benchLines() {
+        final List<String> out = new ArrayList<>();
+        int ours = 0, unique = 0;
+        for (GTRecipe r : TecTechRecipeMaps.condensateAssemblingRecipes.getAllRecipes()) {
+            final ItemStack o = r.mOutputs != null && r.mOutputs.length > 0 ? r.mOutputs[0] : null;
+            if (!isOurs(o)) continue;
+            ours++;
+            final GTRecipe found = TecTechRecipeMaps.condensateAssemblingRecipes.findRecipeQuery()
+                .items(r.mInputs)
+                .fluids(r.mFluidInputs)
+                .find();
+            if (found == r) unique++;
+            final StringBuilder fl = new StringBuilder();
+            // the map moves the condensates into the recipe's metadata at compile (RC-2 TecTechRecipeMaps)
+            final FluidStack[] cond = r.getMetadata(gregtech.api.util.GTRecipeConstants.CONDENSATE_INPUT);
+            if (cond != null) {
+                for (FluidStack f : cond) {
+                    if (f == null) continue;
+                    if (fl.length() > 0) fl.append(", ");
+                    fl.append(f.amount)
+                        .append(" L ")
+                        .append(
+                            f.getFluid()
+                                .getName());
+                }
+            }
+            out.add(
+                "  " + o.stackSize
+                    + "x "
+                    + o.getDisplayName()
+                    + " <- "
+                    + (r.mInputs == null ? 0 : r.mInputs.length)
+                    + " item stacks; "
+                    + fl
+                    + "; "
+                    + r.mDuration / 20
+                    + " s"
+                    + (found == r ? ""
+                        : "; LOOKUP finds "
+                            + (found == null || found.mOutputs == null || found.mOutputs.length == 0 ? "nothing"
+                                : found.mOutputs[0].getDisplayName())));
+        }
+        final Set<Fluid> condensates = new HashSet<>();
+        for (Fluid f : new Fluid[] { SLCondensates.entangledStarMatter, SLCondensates.entangledExcitedPlasma,
+            SLCondensates.entangledHyperdense, SLCondensates.entangledWhiteDwarf, SLCondensates.entangledBlackDwarf,
+            SLCondensates.entangledAgent }) {
+            if (f != null) condensates.add(RESOLVED.getOrDefault(f, f));
+        }
+        int generators = 0;
+        for (GTRecipe r : TecTechRecipeMaps.condensateGeneratorRecipes.getAllRecipes()) {
+            if (r.mFluidOutputs == null || r.mFluidOutputs.length == 0 || r.mFluidOutputs[0] == null) continue;
+            if (!condensates.contains(r.mFluidOutputs[0].getFluid())) continue;
+            generators++;
+            out.add(
+                "  generator: "
+                    + (r.mFluidInputs != null && r.mFluidInputs.length > 0 && r.mFluidInputs[0] != null
+                        ? r.mFluidInputs[0].amount + " L "
+                            + r.mFluidInputs[0].getFluid()
+                                .getName()
+                        : "?")
+                    + " -> "
+                    + r.mFluidOutputs[0].amount
+                    + " L "
+                    + r.mFluidOutputs[0].getFluid()
+                        .getName());
+        }
+        out.add(
+            0,
+            "Condensate Assembler: " + ours
+                + " recipe(s) make Beyond the Stars parts (20 SL-B2x..B8x expected), "
+                + unique
+                + " found by GT's own lookup with their inputs; Condensate Generator: "
+                + generators
+                + " recipe(s) for our "
+                + condensates.size()
+                + " condensate(s) (6 makeable at load: "
+                + MAKEABLE.size()
+                + "); legacy fallbacks fired at load: "
+                + fallbacks);
+        return out;
+    }
+
+    private static boolean isOurs(ItemStack o) {
+        if (o == null || o.getItem() == null) return false;
+        final cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier id = cpw.mods.fml.common.registry.GameRegistry
+            .findUniqueIdentifierFor(o.getItem());
+        if (id != null && "beyondthestars".equals(id.modId)) return true;
+        return o.getItem() == net.minecraft.item.Item.getItemFromBlock(gregtech.api.GregTechAPI.sBlockMachines)
+            && o.getItemDamage() >= 28100
+            && o.getItemDamage() < 28140;
+    }
+
     // ------------------------------------------------------------------------- SL-B10..B15 condensates
 
     /**

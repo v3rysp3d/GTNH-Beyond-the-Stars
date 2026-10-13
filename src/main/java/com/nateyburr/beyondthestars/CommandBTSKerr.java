@@ -185,7 +185,8 @@ public class CommandBTSKerr extends CommandBase {
             }
         }
 
-        final KerrKit.Result result = KerrKit.build(world, x, y, z, facing, tier2);
+        final KerrKit.Result result = KerrKit
+            .build(world, x, y, z, facing, tier2, false, player.getUniqueID(), player.getCommandSenderName());
         if (result.failure != null) {
             tell(player, EnumChatFormatting.RED + "Kerr build FAILED: " + result.failure + ".");
             return;
@@ -338,6 +339,7 @@ public class CommandBTSKerr extends CommandBase {
             SLConsoleTest.tell(sender, "No Kerr Ergosphere Engine controller at " + x + ", " + y + ", " + z);
             return;
         }
+        com.nateyburr.beyondthestars.machines.kerr.KerrTestBench.ensureChecked(kee);
         if (args[0].equalsIgnoreCase("receptor")) {
             // P4: a GRB Receptor Port into a free utility socket (once), then the link as the KEE sees it
             final int[] p = com.nateyburr.beyondthestars.machines.kerr.KerrKit.fitReceptor(world, kee);

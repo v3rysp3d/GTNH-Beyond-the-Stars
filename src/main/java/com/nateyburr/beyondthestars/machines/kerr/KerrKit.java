@@ -182,6 +182,34 @@ public final class KerrKit {
         public final List<String> lines = new ArrayList<>();
     }
 
+    /** The owner a kit build gives its controllers: the player who ran the command, else the console stand-in. */
+    private static UUID buildOwner;
+    private static String buildOwnerName;
+
+    /**
+     * {@link #build} with the KEE and both module controllers owned by {@code owner} (the player who ran the
+     * command). GT's power-fail tracker throws when an ownerless multiblock is removed (a NullPointerException in
+     * GTNHLib's team lookup that aborts the break), so a kit build never leaves a controller without an owner (B-71).
+     */
+    public static Result build(World world, int x, int y, int z, ForgeDirection facing, boolean tier2, boolean survival,
+        UUID owner, String ownerName) {
+        buildOwner = owner;
+        buildOwnerName = ownerName;
+        try {
+            return build(world, x, y, z, facing, tier2, survival);
+        } finally {
+            buildOwner = null;
+            buildOwnerName = null;
+        }
+    }
+
+    /** Gives a freshly placed controller the build's owner, or the console stand-in, if it has none. */
+    private static void claimOwner(IGregTechTileEntity base) {
+        if (base == null || base.getOwnerUuid() != null) return;
+        base.setOwnerUuid(buildOwner != null ? buildOwner : UUID.nameUUIDFromBytes("BTS console test".getBytes()));
+        base.setOwnerName(buildOwner != null && buildOwnerName != null ? buildOwnerName : "BTS console");
+    }
+
     public static Result build(World world, int x, int y, int z, ForgeDirection facing, boolean tier2) {
         return build(world, x, y, z, facing, tier2, false);
     }
@@ -213,6 +241,7 @@ public final class KerrKit {
             return result;
         }
         final IGregTechTileEntity base = kee.getBaseMetaTileEntity();
+        claimOwner(base);
 
         // 1. The cage (stack size picks T1/T2).
         final ItemStack trigger = new ItemStack(controller.getItem(), tier2 ? 2 : 1, controller.getItemDamage());
@@ -323,6 +352,7 @@ public final class KerrKit {
             if (ok) fitted++;
         }
         final IGregTechTileEntity base = module.getBaseMetaTileEntity();
+        claimOwner(base);
         module.checkStructure(true, base);
         module.refreshLink();
         base.enableWorking();

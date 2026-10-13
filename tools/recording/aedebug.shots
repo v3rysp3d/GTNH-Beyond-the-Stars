@@ -1,0 +1,10 @@
+# Dev debug of the AE2 Eye rig's trims: light it, then let it burn 8 minutes (docs/recording.md). Not a showcase.
+build eyeae
+time day
+aecells
+wait aelit timeout 200
+
+scene burn
+  caption trims
+  goto ae.trimhe.cam look ae.trimhe
+  timelapse 12 speed 30 clock

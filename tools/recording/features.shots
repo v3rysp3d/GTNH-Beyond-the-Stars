@@ -1,0 +1,40 @@
+# Recorder feature test (docs/recording.md): every command once. Not a showcase.
+
+# setup (never recorded)
+build both
+time day
+command /btsquests install
+
+scene dolly
+  caption Dolly in towards the Eye of Harmony, then a pan to its controller
+  dolly eye+0,10,-130 eye+0,2,-75 look eye seconds 4
+  pan eyectrl seconds 2
+
+scene timelapse
+  caption Time-lapse: the sky runs with the game sped up 40 times
+  goto eye+60,40,-90 look eye
+  timelapse 4 speed 40 sky
+
+scene hologram
+  caption A Hologram Projector on an Electric Blast Furnace controller: first the hints, then the build
+  place ItemList.Machine_Multi_BlastFurnace 1080,4,3940 facing north
+  goto placed+4,3,-7 look placed+0,1,1
+  hologram placed hints
+  hold 3
+  hologram placed build
+  hold 2
+
+scene questbook
+  caption The quest book
+  questbook
+  hold 2
+  close
+  questbook 48000
+  hold 2
+  close
+
+scene kerr
+  caption The Kerr engine, tier 1: the ME cell goes into the drive and the network starts feeding it
+  goto kerr+36,16,-58 look kerr+0,-6,-4
+  cell
+  hold 3

@@ -93,6 +93,7 @@ import gregtech.common.tileentities.machines.IRecipeProcessingAwareHatch;
 import gregtech.common.tileentities.machines.MTEHatchCraftingInputME;
 import gregtech.common.tileentities.machines.MTEHatchInputBusME;
 import gregtech.common.tileentities.machines.MTEHatchInputME;
+import gregtech.common.tileentities.machines.RecipeCheckReason;
 import gregtech.common.tileentities.machines.outputme.MTEHatchOutputBusME;
 import gregtech.common.tileentities.machines.outputme.MTEHatchOutputME;
 import tectech.thing.casing.TTCasingsContainer;
@@ -264,6 +265,13 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     private final ArrayList<MTEHatchStellarFieldSensor> sensorHatches = new ArrayList<>();
     /** AUTOMATION PASS: Directive Hatches (MTE 28127) in the Sensor sockets. */
     private final ArrayList<MTEHatchDirective> directiveHatches = new ArrayList<>();
+    /**
+     * The Directive Hatches the last formed walk found. Most breaks stop the walk before it reaches the sockets, which
+     * left {@link #directiveHatches} empty and the hatches silent, so the Status set's "not formed" bit never reached
+     * the redstone (B-71). An unformed walk that found none publishes to these; every formed walk replaces them, and a
+     * removed hatch drops out by {@code live}.
+     */
+    private final ArrayList<MTEHatchDirective> formedDirectiveHatches = new ArrayList<>();
     /** D-49 R-1: input buses on the plinth gas sockets (the Stellar Ignition Charges). */
     private final ArrayList<MTEHatchInputBus> itemBuses = new ArrayList<>();
     /** P4: GRB Receptor Ports by group (rail-high, rail-low on the T7 rail; halo on the T8 shards). */
@@ -1135,11 +1143,30 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             com.nateyburr.beyondthestars.machines.eye.star.EyeGalaxyBench.liveSecond(this); // P4 bench only
             runtime.second();
             publishDirectives();
+            refreshStatusLine();
         }
         // GT sets the active flag from its run progress; a burning star is active too (Activity Detector).
         if (runtime.burning()) aBaseMetaTileEntity.setActive(true);
         // D-49: the centre render follows the star (not before the first walk after a load: the star is frozen).
         if (mStartUpCheck < 0) centre.tick(aBaseMetaTileEntity, getExtendedFacing(), mMachine, runtime, aTick);
+    }
+
+    /** The star state the GUI's status line last showed (GT's recipe-check result), see {@link #refreshStatusLine}. */
+    private String statusKey = "";
+
+    /**
+     * The controller GUI's head line is GT's last recipe-check result ({@link #starStatus}), and on GT 5.09.54 recipe
+     * checks are event-driven (hatches push them; no periodic poll once the machine has idled). A star lights, burns
+     * out or starts a transition with no hatch event, so the line stayed on "The star is dark" for a burning star
+     * (seen in the automation photo run). Push a check whenever the star's state, a transition or the unlocked tier
+     * changes.
+     */
+    private void refreshStatusLine() {
+        if (!mMachine) return;
+        final String key = runtime.state() + "/" + (runtime.transition() != null) + "/" + runtime.unlockedTier();
+        if (key.equals(statusKey)) return;
+        statusKey = key;
+        scheduleRecipeCheck(RecipeCheckReason.IMMEDIATE);
     }
 
     // ============================================================================ centre render
@@ -1352,9 +1379,18 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
 
     /** Once a second (server): every live Directive Hatch gets this Eye's codes. */
     private void publishDirectives() {
-        for (MTEHatchDirective hatch : directiveHatches) {
+        if (mMachine) {
+            formedDirectiveHatches.clear();
+            formedDirectiveHatches.addAll(directiveHatches);
+        }
+        for (MTEHatchDirective hatch : publishedDirectives()) {
             if (live(hatch)) hatch.publish(this);
         }
+    }
+
+    /** The hatches that get the codes now: the walk's, else (unformed, none walked) the last formed walk's. */
+    private List<MTEHatchDirective> publishedDirectives() {
+        return mMachine || !directiveHatches.isEmpty() ? directiveHatches : formedDirectiveHatches;
     }
 
     @Override
@@ -1576,6 +1612,25 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         return CheckRecipeResultRegistry.SUCCESSFUL;
     }
 
+    /**
+     * Bench {@code check}: the result id and text GT's run check would show now, with no side effect (a planet that
+     * would run is not started).
+     */
+    public String benchCheckRecipe() {
+        final ItemStack target = getControllerSlot();
+        if (target == null) return "beyondthestars.eye.notarget";
+        final StarDef star = StarDef.byChart(target);
+        CheckRecipeResult r;
+        if (star != null) {
+            r = starStatus(star);
+        } else {
+            final EyeRecipe recipe = EyeRecipeRegistry.lookup(target);
+            r = recipe == null ? CheckRecipeResultRegistry.NO_RECIPE : tierGate(recipe.tier);
+            if (r == null) return "the planet would run";
+        }
+        return r.getID() + " -> " + r.getDisplayString();
+    }
+
     /** Null when Eye tier {@code tier} may run; else why not (bands, unlock, compression). */
     private CheckRecipeResult tierGate(int tier) {
         if (tier > structureTier()) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.tier" + tier);
@@ -1747,6 +1802,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     public void setItemNBT(NBTTagCompound aNBT) {
         super.setItemNBT(aNBT);
         writeEyeState(aNBT);
+        final String fail = runtime.pickupFailureLine();
+        if (!fail.isEmpty()) aNBT.setString(EyeNbt.PICKUP_FAIL_KEY, fail);
     }
 
     @Override
@@ -2236,7 +2293,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         }
         if (!lastRun.isEmpty()) out.add("Last run: " + lastRun);
         out.addAll(runtime.statusLines());
-        for (MTEHatchDirective hatch : directiveHatches) {
+        for (MTEHatchDirective hatch : publishedDirectives()) {
             if (live(hatch)) out.add("Directive: " + hatch.statusLine());
         }
         for (MTEHatchBurstControl hatch : burstControls) {
