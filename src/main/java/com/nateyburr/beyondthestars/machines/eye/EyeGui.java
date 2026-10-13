@@ -336,7 +336,9 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
         final int[] active = rt.activeGauges();
         if (r == null || !r.lit || active.length == 0) return;
         final double sp = Double.isNaN(r.sp) ? Double.NaN : round1(r.sp);
-        if (active.length >= 4) {
+        // two columns with four or more gauges, and on a galaxy (T7 / T8: spec §5.1, B-116)
+        final StarDef star = rt.star();
+        if (active.length >= 4 || active.length >= 2 && star != null && star.n() >= 7) {
             for (int i = 0; i < active.length; i += 2) {
                 final int k1 = active[i];
                 final int k2 = i + 1 < active.length ? active[i + 1] : -1;
@@ -490,7 +492,8 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                 BTSText.lang("beyondthestars.gui.eye.hsm.tip"));
         }
         dialRows(rows);
-        warnRow(rows, r);
+        // a galaxy's countdown row already names the event (B-116: the minor merger showed twice)
+        if (star.n() < 6 || eventText().isEmpty()) warnRow(rows, r);
         final int u = rt.unlockedTier();
         final EyeMilestones ms = rt.milestones();
         if (u <= 7 && !ms.met(u)) {
@@ -644,7 +647,9 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
             }
         }
         final String ev = eventText();
-        if (!ev.isEmpty()) rows.note(BTSRows.ICON_WARN, BTSGuiKit.WARN, ev);
+        if (!ev.isEmpty()) {
+            rows.note(BTSRows.ICON_WARN, BTSGuiKit.WARN, ev, BTSText.lang("beyondthestars.gui.eye.warn.tip"));
+        }
         slotRows(rows, star);
     }
 
