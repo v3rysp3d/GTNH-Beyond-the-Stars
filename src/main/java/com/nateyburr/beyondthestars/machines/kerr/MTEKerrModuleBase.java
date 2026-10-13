@@ -196,10 +196,16 @@ public abstract class MTEKerrModuleBase<T extends MTEKerrModuleBase<T>> extends 
 
     // ============================================================================== the bonus
 
-    /** Parallel this module would start a recipe with now (the hole's mass, this module's energy). */
+    /**
+     * Parallel this module would start a recipe with now (the hole's mass, this module's energy). The mass counts up to
+     * the KEE's setpoint cap in force (P4-80): a T2 hole grown to 768 SM on a quasar link gives its +23 % parallel only
+     * while the link holds, not for the ~460 h it takes the Hawking bleed to bring it back to 512 SM.
+     */
     public int bonusParallel() {
         final MTEKerrEngine kee = kee();
-        return MTEKerrEngine.parallelFor(getMaxInputEu(), kee == null || !kee.isHoleOpen() ? 0 : kee.mass());
+        return MTEKerrEngine.parallelFor(
+            getMaxInputEu(),
+            kee == null || !kee.isHoleOpen() ? 0 : Math.min(kee.mass(), kee.maxSetpoint()));
     }
 
     /** Speed factor this module would start a recipe with now. */
