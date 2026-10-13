@@ -103,7 +103,7 @@ final class RecServer {
                 p[1],
                 p[2],
                 facing,
-                Math.max(1, Math.min(6, tier)),
+                Math.max(1, Math.min(8, tier)),
                 gen,
                 false,
                 AutoRig.OWNER,
@@ -159,12 +159,31 @@ final class RecServer {
             env);
     }
 
+    /** The overworld's game time when the current wait or time-lapse began ({@code game:<s>} counts from it). */
+    static volatile long markTick;
+
+    /** Marks the game time now (server thread): the {@code game:<s>} condition counts from here. */
+    static String markGame() {
+        markTick = RenderTest.world()
+            .getTotalWorldTime();
+        return "game time mark " + markTick;
+    }
+
     /**
-     * A condition the recorder can wait for: {@code eyelit}, {@code holeopen}, {@code aelit}, {@code aedark},
-     * {@code formed} (the {@code placed} machine).
+     * A condition the recorder can wait for ({@code wait <cond>}, {@code timelapse ... until <cond>}). Plain:
+     * {@code eyelit}, {@code holeopen}, {@code aelit}, {@code aedark}, {@code formed} (the {@code placed} machine).
+     * With arguments after colons, on a named place (a {@code kit} / {@code place} name or a rig point):
+     * {@code formed:<name>}, {@code active:<name>} (the GT machine's active flag), {@code lit:<name>} (the Eye's star
+     * burns), {@code dark:<name>}, {@code tier:<name>:<n>} (the Eye's star is tier n or more),
+     * {@code state:<name>:<STATE>} (the Eye runtime's state), {@code trans:<name>} / {@code notrans:<name>} (a
+     * transition runs / none), {@code unlocked:<name>:<n>}, {@code game:<s>} (s seconds of game time since the wait
+     * began: under the time warp that is less real time), {@code me:<place>:<fluid or item name>:<amount>} (the ME
+     * network behind the cable at the place holds that much).
      */
-    static boolean cond(String name) {
-        switch (name.toLowerCase(Locale.ROOT)) {
+    static boolean cond(String spec) {
+        final String[] a = spec.split(":");
+        final String name = a[0].toLowerCase(Locale.ROOT);
+        switch (name) {
             case "eyelit":
                 return AutoRig.eyeLit();
             case "holeopen":
@@ -174,17 +193,81 @@ final class RecServer {
                 return AutoRigEyeAE.lit();
             case "aedark":
                 return !AutoRigEyeAE.lit();
+            case "game":
+                return RenderTest.world()
+                    .getTotalWorldTime() - markTick >= (long) (Double.parseDouble(a[1]) * 20);
             case "formed": {
-                if (placed == null) return false;
-                final TileEntity te = RenderTest.world()
-                    .getTileEntity(placed[0], placed[1], placed[2]);
-                return te instanceof IGregTechTileEntity
-                    && ((IGregTechTileEntity) te).getMetaTileEntity() instanceof MTEMultiBlockBase
-                    && ((MTEMultiBlockBase) ((IGregTechTileEntity) te).getMetaTileEntity()).mMachine;
+                final int[] p = a.length > 1 ? at(a[1]) : placed;
+                if (p == null) return false;
+                final MTEMultiBlockBase m = AutoRig.mteAt(RenderTest.world(), p, MTEMultiBlockBase.class);
+                return m != null && m.mMachine;
             }
+            case "active": {
+                final TileEntity te = tile(a[1]);
+                return te instanceof IGregTechTileEntity && ((IGregTechTileEntity) te).isActive();
+            }
+            case "me":
+                return meAmount(a[1], a[2]) >= Long.parseLong(a[3]);
             default:
-                throw new IllegalArgumentException("unknown condition " + name);
+                break;
         }
+        final MTEEyeOfHarmonyBTS eye = AutoRig.mteAt(RenderTest.world(), at(a[1]), MTEEyeOfHarmonyBTS.class);
+        if (eye == null) return false;
+        final com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime rt = eye.starRuntime();
+        switch (name) {
+            case "lit":
+                return rt.burning();
+            case "dark":
+                return !rt.live();
+            case "tier":
+                return rt.star() != null && rt.live() && rt.star().tier.n >= Integer.parseInt(a[2]);
+            case "unlocked":
+                return rt.unlockedTier() >= Integer.parseInt(a[2]);
+            case "state":
+                return rt.state()
+                    .name()
+                    .equalsIgnoreCase(a[2]);
+            case "trans":
+                return rt.transition() != null;
+            case "notrans":
+                return rt.transition() == null;
+            default:
+                throw new IllegalArgumentException("unknown condition " + spec);
+        }
+    }
+
+    /** A named place as a block position (throws if unknown). */
+    static int[] at(String place) {
+        final double[] d = AutoRig.POINTS.get(place.toLowerCase(Locale.ROOT));
+        if (d == null) throw new IllegalArgumentException("no place " + place);
+        return new int[] { (int) Math.floor(d[0]), (int) Math.floor(d[1]), (int) Math.floor(d[2]) };
+    }
+
+    private static TileEntity tile(String place) {
+        final int[] p = at(place);
+        return RenderTest.world()
+            .getTileEntity(p[0], p[1], p[2]);
+    }
+
+    /** Litres (a fluid's registry name) or items (an item's display or registry name) in the ME network at a place. */
+    static long meAmount(String place, String what) {
+        final appeng.api.networking.storage.IStorageGrid g = MeParts.storage(RenderTest.world(), at(place));
+        if (g == null) return -1;
+        final net.minecraftforge.fluids.Fluid fl = net.minecraftforge.fluids.FluidRegistry.getFluid(what);
+        if (fl != null && g.getFluidInventory() != null) {
+            for (appeng.api.storage.data.IAEFluidStack st : g.getFluidInventory()
+                .getStorageList()) if (st.getFluid() == fl) return st.getStackSize();
+            return 0;
+        }
+        long n = 0;
+        for (appeng.api.storage.data.IAEItemStack st : g.getItemInventory()
+            .getStorageList()) {
+            final ItemStack is = st.getItemStack();
+            final String reg = String.valueOf(net.minecraft.item.Item.itemRegistry.getNameForObject(is.getItem()));
+            if (is.getDisplayName()
+                .equalsIgnoreCase(what.replace('_', ' ')) || reg.equalsIgnoreCase(what)) n += st.getStackSize();
+        }
+        return n;
     }
 
     /** One status line for the rigs built (the recorder logs it at the end of each scene). */
@@ -221,6 +304,39 @@ final class RecServer {
         if (c == null) return "nothing constructable at " + RenderTest.pos(p);
         c.construct(new ItemStack(StructureLibAPI.getDefaultHologramItem(), Math.max(1, tier)), false);
         return "built the multiblock at " + RenderTest.pos(p) + " (projector tier " + tier + ")";
+    }
+
+    /**
+     * Uses (right-clicks) the block at {@code p} as the player, on the face {@code side}, with an empty hand: what a
+     * player does to open an AE2 terminal or any block's screen. The hit point is the middle of that face, just
+     * inside it, so on an AE2 cable the part on that face is the one used.
+     */
+    static String use(int[] p, ForgeDirection side) {
+        final EntityPlayerMP player = RenderTest.player();
+        if (player == null) return "no player";
+        final WorldServer world = RenderTest.world();
+        final net.minecraft.block.Block block = world.getBlock(p[0], p[1], p[2]);
+        final ItemStack held = player.getCurrentEquippedItem();
+        player.inventory.setInventorySlotContents(player.inventory.currentItem, null);
+        player.setSneaking(false);
+        final float hx = 0.5f + side.offsetX * 0.45f, hy = 0.5f + side.offsetY * 0.45f,
+            hz = 0.5f + side.offsetZ * 0.45f;
+        final boolean ok = block.onBlockActivated(world, p[0], p[1], p[2], player, side.ordinal(), hx, hy, hz);
+        if (held != null) player.inventory.setInventorySlotContents(player.inventory.currentItem, held);
+        return "used " + block.getLocalizedName() + " at " + RenderTest.pos(p) + " on its " + side + " face: " + ok;
+    }
+
+    /** An ME terminal on the AE2 cable at {@code p} (cable added if the cell has none), named if asked. */
+    static String terminal(int[] p, ForgeDirection side, String name) {
+        final java.util.List<String> log = new java.util.ArrayList<>();
+        final WorldServer world = RenderTest.world();
+        final appeng.api.parts.IPartHost h = MeParts.host(world, p);
+        final appeng.api.parts.IPart cable = h == null ? null : h.getPart(ForgeDirection.UNKNOWN);
+        final appeng.api.util.AEColor color = h == null ? appeng.api.util.AEColor.Transparent : h.getColor();
+        if (cable == null) MeParts.cable(world, p, MeParts.Kind.SMART, color, RenderTest.player());
+        MeParts.terminal(world, p, side, MeParts.Kind.SMART, color, RenderTest.player(), log, "");
+        if (name != null) name(name, p, null);
+        return String.join("; ", log);
     }
 
     /** Runs a server command as the player (op in the integrated world). */

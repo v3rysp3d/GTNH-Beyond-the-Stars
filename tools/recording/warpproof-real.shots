@@ -1,0 +1,12 @@
+# Time-warp proof, part 1 of 2: Rig C (the AE2 Eye T1) in REAL time. Its sampler writes one line a game second to
+# run/client/screenshots/autorig/eye-ae.tsv; copy it away before part 2 overwrites it. Compare with warpproof-warp.shots.
+build eyeae
+time day
+
+scene real
+  caption Real time: the supply opens, the Eye lights itself and the trims hold the field (440 s of game time).
+  goto aeeye+0,-14,-88 look aeeye+0,-6,0
+  aecells
+  wait game:440 timeout 900
+  command /btswarp status
+  hold 3

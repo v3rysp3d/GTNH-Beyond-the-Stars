@@ -310,6 +310,29 @@ final class MeParts {
         }
     }
 
+    /**
+     * An ME Terminal (AE2's own: it lists items and, on GTNH's AE2, fluids too) on the cable at {@code p}, facing
+     * {@code side}, so a player (or the recorder's {@code use}) can open it.
+     */
+    static boolean terminal(World world, int[] p, ForgeDirection side, Kind kind, AEColor color, EntityPlayer player,
+        List<String> log, String tag) {
+        cable(world, p, kind, color, player);
+        final IPartHost h = host(world, p);
+        final ItemStack item = AEApi.instance()
+            .definitions()
+            .parts()
+            .terminal()
+            .maybeStack(1)
+            .orNull();
+        if (h == null || item == null || h.addPart(item, side, player) == null) {
+            log.add(tag + "could not add an ME terminal at " + RenderTest.pos(p));
+            return false;
+        }
+        h.markForUpdate();
+        log.add(tag + "ME terminal at " + RenderTest.pos(p) + " facing " + side);
+        return true;
+    }
+
     /** A level emitter on the cable at {@code p}, facing {@code side}: on while the network holds {@code level}+. */
     static boolean levelEmitter(World world, int[] p, ForgeDirection side, ItemStack watch, long level, Kind kind,
         AEColor color, EntityPlayer player, List<String> log, String tag) {
