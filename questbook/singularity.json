@@ -1030,7 +1030,7 @@
         "2. {9}Collapse{r}: a shock of P +120, minus 10 for every Bu/t above 1.5 that lands that second.",
         "3. {9}Halo capture{r}, 10 min: Stable for 60 s in a row between 7:00 and 10:00. A minor merger comes at 7:30.",
         "",
-        "{5}{l}THE SKILL MOVE{r} Land an eruption on the collapse second. Galaxy Transition [8] holds your regulator's purges from T-80 s, and [4] purges at T-80 s and on the collapse second: wire (Disc [4] AND NOT [8]) OR [4] to the quasar's Burst Control Hatch and the eruption lands on the collapse.",
+        "{5}{l}THE SKILL MOVE{r} Land an eruption on the collapse second. Galaxy Transition [8] holds your regulator's purges from T-80 s, and [4] says purge now (at T-80 s if the flux would erupt early, then from T-2 s: an eruption lasts 3 s, so wiring that answers within a second still lands it): wire (Disc [4] AND NOT [8]) OR [4] to the quasar's Burst Control Hatch and the eruption lands on the collapse.",
         "",
         "A failure loses the magnetar and keeps the core in escrow. Leave the chart in: the Eye re-spawns the magnetar (the Magnetar Merger's charge) and the collapse can run again, with no core and no link.",
         "",

@@ -1199,7 +1199,7 @@ public final class EyeStarRuntime {
         if (out.crossingMissed) lastEvent = "satellite crossing missed (the field left Stable): no bonus";
         if (out.countdown) {
             lastEvent = trans instanceof MagnetarCollapse
-                ? "COUNTDOWN: the magnetar collapses in 30 s (time a purge"
+                ? "COUNTDOWN: the magnetar collapses in 30 s (Galaxy Transition [4] cues a purge 2 s ahead"
                     + " so the eruption lands on the collapse second)"
                 : trans instanceof GalacticMerger
                     ? "COUNTDOWN: a pericentre pass in 60 s ("

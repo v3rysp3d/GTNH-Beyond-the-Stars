@@ -317,8 +317,9 @@ Its 8 sockets take **GRB Receptor Ports**: 4 on the high bank and 4 on the low b
   OpenComputers `beginTransition()`.
 - Before you begin, the buffers must hold the charge: White Dwarf Matter 18,432 L + Black Dwarf Matter 4,608 L (× p),
   plus Triangulum's first cycle (8 L of Magnetar Matter).
-- The collapse assist: Galaxy Transition [8] holds your regulator's purges from T−80 s, and [4] purges at T−80 s and on
-  the collapse second. Wire them as the standard rig does, and the eruption lands on the collapse.
+- The collapse assist: Galaxy Transition [8] holds your regulator's purges from T−80 s, and [4] purges at T−80 s (if
+  the flux would erupt early) and from T−2 s (P4-95: the 3 s eruption then covers the collapse second through real
+  wiring's delays). Wire them as the standard rig does, and the eruption lands on the collapse.
 - If it fails, the magnetar is lost and the core stays in escrow. Leave the Triangulum chart in: the Eye re-spawns the
   magnetar (the Magnetar Merger's charge) and the collapse can run again, with no core and no link.
 
