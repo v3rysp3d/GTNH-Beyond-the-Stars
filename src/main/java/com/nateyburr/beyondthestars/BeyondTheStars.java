@@ -51,4 +51,9 @@ public class BeyondTheStars {
     public void serverStarting(FMLServerStartingEvent event) {
         proxy.serverStarting(event);
     }
+
+    @Mod.EventHandler
+    public void serverStopping(cpw.mods.fml.common.event.FMLServerStoppingEvent event) {
+        proxy.serverStopping(event);
+    }
 }
