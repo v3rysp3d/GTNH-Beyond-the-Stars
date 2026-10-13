@@ -1152,6 +1152,7 @@
         "3. {9}Halo capture{r}, 10 min: Stable for 60 s in a row between 7:00 and 10:00. A minor merger comes at 7:30.",
         "",
         "{5}{l}THE SKILL MOVE{r} Land an eruption on the collapse second. Galaxy Transition [8] holds your regulator's purges from T-80 s, and [4] says purge now (at T-80 s if the flux would erupt early, then from T-2 s: an eruption lasts 3 s, so wiring that answers within a second still lands it): wire (Disc [4] AND NOT [8]) OR [4] to the quasar's Burst Control Hatch and the eruption lands on the collapse.",
+        "- What it cancels is the quasar's stream: the whole shock needs {9}13.5 Bu/t{r} on the Eye that second. A quasar whose best (a purge at full flux, 3.5 {times} G0 {times} Y_q) falls short gets a {c}red row{r} above Begin and in the Galaxy panel, with the shock it would leave. Begin still works; grow the quasar first.",
         "",
         "A failure loses the magnetar and keeps the core in escrow. Leave the chart in: the Eye re-spawns the magnetar (the Magnetar Merger's charge) and the collapse can run again, with no core and no link.",
         "",
@@ -1706,7 +1707,7 @@
       "ops": [
         { "op": "move", "to": "uxv", "x": 180, "y": 72, "size": 24 },
         { "op": "setPrereqs", "prereqs": [48117, "E20"] },
-        { "op": "setDesc", "desc": ["The {2}Superb{r} field generators, tier 5.", "", "@gate_pattern", "", "Superb gates {9}T5 (Sirius B){r}. Its Black Dwarf Matter part is replaced in Beyond the Stars, because Black Dwarf Matter first comes from Eye T5 itself."] }
+        { "op": "setDesc", "desc": ["The {2}Superb{r} field generators, tier 5.", "", "@gate_pattern", "", "Superb gates {9}T5 (Sirius B){r}. With Beyond the Stars' Eye its Resonance Chamber III takes 2 White Dwarf Matter foils in place of the Black Dwarf Matter foil, because Black Dwarf Matter first comes from Eye T5 itself."] }
       ]
     },
     {
@@ -1731,7 +1732,7 @@
       "ops": [
         { "op": "move", "to": "uxv", "x": 960, "y": 72, "size": 24 },
         { "op": "setPrereqs", "prereqs": ["E23"] },
-        { "op": "setDesc", "desc": ["The {9}Tipler{r} field generators, tier 8.", "", "@gate_pattern", "", "Tipler gates {9}T8 (the Milky Way){r}.", "", "[note]With Beyond the Stars' Eye its Resonance Chamber IV has a second Condensate Assembler recipe: 2 SpaceTime foils and 1,500 L Entangled Ergomatter in place of the MHDCSM foil, which waits behind Universium. Its Eternity plate comes from Eternity on Ergomatter (Eye T7).[/note]"] }
+        { "op": "setDesc", "desc": ["The {9}Tipler{r} field generators, tier 8.", "", "@gate_pattern", "", "Tipler gates {9}T8 (the Milky Way){r}.", "", "[note]With Beyond the Stars' Eye its Resonance Chamber IV recipe takes 2 SpaceTime foils and 1,500 L Entangled Ergomatter in place of the MHDCSM foil, which waits behind Universium. Its Eternity plate comes from Eternity on Ergomatter (Eye T7).[/note]"] }
       ]
     },
     {
