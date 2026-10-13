@@ -115,7 +115,8 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
 - The merge + playtest run (B-88) passed headless; the Cascade Hall tooltip fix is in, and the walk now requires two
   output hatches unless one is ME (B-89). [B-88 fix 1, B-89]
 - The playtest jar `master.235` is packaged with a local-install INSTALL.md and a playtest guide (B-90). [B-90]
-- Re-package the playtest jar: master.235 has neither the B-92 text pass nor B-93 (wrap-safe text, the plant diagrams in the jar). [B-93]
+- ~~Re-package the playtest jar~~: done, `master.250` carries `/btsrecipes`, the B-92 / B-93 text pass and the B-95
+  fixes; `master.235` is in `dist-rc2/superseded/`. [B-105]
 - When the GUI branch merges: Harmonic Lock's "The GUI's field line counts it as Lock n/600" becomes "Lock bar". [B-93]
 
 **To see in a client** (the headless dev server cannot): the hologram hints, a survival build from a real AE system,
@@ -191,7 +192,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-94
+## Part B. Entries B-1..B-95, B-105
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -4110,6 +4111,59 @@ the two re-pointed quests.
 
 **Not covered.** No client screenshots of the two quests. The text is plain and short, and B-93's wrap rules lint
 it. The playtest jar is still master.235 (the package unit follows).
+
+### B-105 Package: the playtest jar `0.24.1-master.250+be66c178aa` [follow-up, playtest package]
+
+*Number:* B-96..B-99 are already taken on the `gui-clean` branch (the controller GUI cleanup), and its review and fix
+units may add more. This entry takes B-105 so that the GUI merge needs no renumbering; B-100..B-104 are left for that
+branch.
+
+**Context.** The follow-up on master (B-91..B-95) added `/btsrecipes`, the questbook text pass and the review fixes,
+but the shipped jar was still `master.235` (B-90). This unit packages them for the playtest ("in the artifact give me
+all new recipes too please"; the questbook re-shoot).
+
+**What was built.**
+- `gradlew build --no-daemon` on master `be66c17`, clean tree (spotless and checkstyle pass, nothing changed). The jar
+  is `dist-rc2/beyondthestars-0.24.1-master.250+be66c178aa.jar`, 1,567,006 bytes, SHA-256
+  `a2d2d1200f5f85e0e90110ae831855d1328e9799cc6f7784b169760458abd55a`. `master.235` moved to `dist-rc2/superseded/`.
+- Jar contents checked: `CommandBTSRecipes` and `BTSRecipeLedger`, the questbook `overlay.json`, the three plant
+  diagrams under `assets/btsquests/textures/gui`, and `mcmod.info` version `0.24.1-master.250+be66c178aa`.
+- `dist-rc2/INSTALL.md`: new jar name, size and hash everywhere (header, the local install block, the dedicated-server
+  command); a new section 0.1 "Since `master.235`" (recipe list, questbook text pass, Endgame Goals folded with E65 /
+  E66 and 64 edits, the installer fix, tools); the old 0.1 / 0.2 become 0.2 / 0.3. Section 3 expects 64 edits plus "1
+  emptied pack chapter(s) hidden" and the `/btsrecipes status` line. Section 5 names Eye T1: Sol, adds the hidden
+  Endgame Goals row, and describes the text style. Section 9 adds open questions 19 and 20 and the screenshot harness,
+  and drops "the questbook screens" from the never-seen-in-a-client list (B-93 shot them in a dev client). Section 10
+  adds `/btsrecipes`, and section 11 adds "from `master.235`". The file keeps its CRLF line ends.
+- Playtest guide (local work folder `playtest/playtest-guide.html`):
+  - the header shows the new jar, hash and commit;
+  - a "New since `master.235`" note;
+  - A1 names the new jar and the Mods-list version;
+  - B1 expects 64 / 64 edits and `C01 Endgame Goals` hidden;
+  - B2 says the Endgame Goals chapter is folded into ours, says where its quests went, and asks to check that both
+    trophies are in The Endgame;
+  - a new phase **R** with step **R1**: run `/btsrecipes status` and `dump`, expect 386, and check five or six entries
+    of the "All new recipes" list against NEI (one per line, one changed-GT, one removed);
+  - open questions 19 and 20 are added to the table.
+
+  R1 sits outside the generated `RECIPES:BEGIN` / `END` block, so re-running `recipedump/build_section.py` keeps it.
+  Headless Edge (Playwright, `msedge` channel) in light, dark, 1280 px and 390 px: 27 steps (R 0 / 1), "386 of 386
+  recipes shown", no console or page errors, no broken images, no horizontal overflow, and ticking R1 counts.
+
+**Judgement calls.**
+
+1. **No new dev-server boot or recipe re-dump.** Between the dump the guide was built from (`master.236`, B-91) and
+   `be66c17`, the only Java changes are the questbook installer, the screenshot harness (dev only) and one display
+   name in `BTSBom`; no recipe code changed. B-94 re-dumped on master and got the same 386. B-95 booted the questbook
+   changes. The guide's recipe note says so.
+2. **The guide keeps its tick storage key** (`bts-playtest-master235`), so ticks you already made survive. The "New
+   since" note asks you to re-check A1, A2, B1 and B2.
+3. **The Prism instance was not touched.** Its `mods` folder still holds `master.93` (read only), so INSTALL.md keeps
+   the `master.93` path first and says that a `master.235` jar is moved out the same way.
+4. **The dev-only questbook screenshot harness ships**, inert without `-Dbts.qbshots=true`, next to the render
+   harness. It is listed with open question 14.
+
+**Suggestion.** Install `master.250` instead of `master.235` and run the guide from A1.
 
 ## Where the old question numbers went
 
