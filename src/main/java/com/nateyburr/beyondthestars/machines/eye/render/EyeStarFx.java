@@ -323,15 +323,15 @@ final class EyeStarFx {
                     // a glitch: the crust slips, a flash, the beams stutter
                     if (ev == EyeStarLook.EV_GLITCH && hitAge >= 0 && hitAge < 1.5f) {
                         final float g = hitAge / 1.5f;
-                        L.fx[2] = 0.5f * (1 - g) * (1 - g);
+                        L.fx[2] = 0.35f * (1 - g) * (1 - g);
                         L.beam[0] *= 0.35f + 0.65f * g;
-                        set(L.shell, R * (1.2f + 3 * g), 0.6f, 0.1f * (1 - g), 4);
+                        set(L.shell, R * (1.2f + 3 * g), 0.6f, 0.04f * (1 - g), 4);
                         set3(L.shellCol, 0.7f, 0.85f, 1f);
                     }
                 } else if (age >= 0 && age < 100) {
                     final float f = (float) (age / 100);
                     final float sr = 2.6f + 16 * f;
-                    set(L.shell, sr, 0.8f + 0.12f * sr, 0.12f * pow(1 - f, 0.8f), 1);
+                    set(L.shell, sr, 0.8f + 0.12f * sr, 0.16f * pow(1 - f, 0.8f), 1);
                     set3(L.shellCol, 1f, 0.8f, 0.55f);
                     set(L.shell2, sr * 0.82f, 0.3f * sr, 0.025f * (1 - f), 5);
                     set3(L.shell2Col, 0.45f, 0.6f, 1f);
@@ -441,7 +441,7 @@ final class EyeStarFx {
             final float p = transP;
             t = (float) Math.exp(lerp((float) Math.log(9940), (float) Math.log(4286), p));
             L.surf[1] = (float) Math.exp(lerp((float) Math.log(34), (float) Math.log(5), p));
-            L.surf[0] = lerp(0.22f, 0.7f, p * p);
+            L.surf[0] = lerp(0.22f, 0.7f, p * p * p);
             L.surf2[2] = lerp(0.82f, 1.2f, p);
             L.fx2[2] = lerp(2.1f, 1.3f, p);
             L.corona[2] = 0.3f * p;
@@ -487,9 +487,9 @@ final class EyeStarFx {
             set3(L.shellCol, 0.75f, 0.5f, 1f);
         }
         if (warn) {
-            final float p = 0.35f + 0.25f * (0.5f + 0.5f * (float) Math.sin(time * 2 * Math.PI * (2 + 2 * warnF)));
-            set(L.shell2, 7, 1.6f, p * 0.015f, 5);
-            set3(L.shell2Col, 0.48f, 0.3f, 1f);
+            // a warning pulses the magnetosphere at 2 Hz, faster as the flare nears (a shell here cost a quarter of
+            // the budget at the hero view for almost nothing seen)
+            L.flash[1] *= 1.2f + 0.6f * (float) Math.sin(time * 2 * Math.PI * (2 + 2 * warnF));
         }
         // the field: twisted by the unrest of a warning or an overfed star, crackling
         float twist = 0.6f + 2.2f * Math.max(warnLevel, overfed);
@@ -515,7 +515,7 @@ final class EyeStarFx {
                 // the merger itself: two white dwarfs become one star
                 final float g = (float) (ta / 60);
                 L.flash[0] = Math.max(L.flash[0], 0.4f * (1 - g) * (1 - g));
-                set(L.shell, R * (1.2f + 5 * (float) Math.sqrt(g)), 1.2f, 0.12f * (1 - g), 4);
+                set(L.shell, R * (1.2f + 5 * (float) Math.sqrt(g)), 1.2f, 0.045f * (1 - g), 4);
                 set3(L.shellCol, 0.85f, 0.75f, 1f);
             }
         }
