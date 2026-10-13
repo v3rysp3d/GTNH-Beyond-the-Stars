@@ -41,7 +41,7 @@ Most important first. "Recommended" is what we would build if you say nothing. N
 | 16 | Hand-drawn textures | Hand-polish only what players stare at: the two controller faces and the mirror and bastion walls | B-13 |
 | 17 | The Eye T10 gate part (TecTech's generators stop at tier 9) | Design it with P5 | B-3, need 3 |
 | 18 | Everything else that ends "Suggestion: as built" and has no ruling | Accept as built unless you object: B-5, B-7, B-8, B-9, B-11, B-14..B-17, B-19, B-20, B-26, B-27, B-31, B-35..B-37, B-45..B-54, B-62, B-64, B-66..B-68 (judgement calls), B-70, B-74..B-78, B-87, B-108 | each entry |
-| 19 | Reality Diffraction, Reality Refab and the Homogeny T3 are built machines but their quests are still "(planned)" checkboxes, because the `realityRefab` flag is off (their inputs come only from P4/P5) | Keep the checkboxes until P4/P5 make the inputs; until then, give their quests a variant of the placeholder note: "Built, but its inputs come from Eye T8/T9 (a later update)" | B-93, question 3 |
+| 19 | Reality Diffraction, Reality Refab and the Homogeny T3 are built machines but their quests are still "(planned)" checkboxes, because the `realityRefab` flag is off (since P4 only White Hole Matter, Eye T9, is missing; "Riding the Rift", 48194, waits with them) | Keep the checkboxes until P4/P5 make the inputs; until then, give their quests a variant of the placeholder note: "Built, but its inputs come from Eye T8/T9 (a later update)" | B-93, question 3 |
 | 20 | A plus-signed decimal ("+0.5", "+0.15") can still break after its point at a line end: Java's line breaker splits it, 6 places in the Eye T4-T6 trims | Accept (rare, width-dependent); or write the trims without the plus sign | B-93, question 2 |
 | 21 | Resonance Chamber IV (the Eye T8 gate) has two recipes in NEI: GT's (MHDCSM foil) and our SL-P40 | Rewrite GT's in place under the same flag, with chamber III (question 4) | B-110 |
 | 22 | The intake cap at T7 / T8 buffers tens to hundreds of G L of hydrogen and helium (companions, planets mode) | Keep B-108's 20 cycles / 2 runs rule; shorten the companions' window if a shared network still starves | B-110 |
@@ -111,6 +111,8 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
 - ~~Eternity-on-Ergomatter~~: SL-Q26 at load-complete, `ETERNITY_BEFORE_T10` follows it; the H/R gate lines drop from
   14 to 8 (only White Hole Matter, P5, is left). [B-80 item 3, B-110]
 - ~~The MTE ledger comments in `BTSMachines`~~: tidied. [B-87, B-110]
+- ~~P4's questbook content (the contract)~~: in `singularity.json`, the five P4 features on, 22 new quests, the
+  Eternity stage live and gated on `replaceTecTechEyeOfHarmony`; tested on a world with progress and a fresh one. [B-111]
 - Eye T8's gate: SL-P40 makes Resonance Chamber IV without MHDCSM as a separate recipe; GT's own chamber IV recipe is
   still in NEI beside it (question 1 of B-110). T9 is P5. [B-29 "For P4/P5"]
 
@@ -134,8 +136,9 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
 the NEI multiblock tab and its frame rate (a T6 Eye is 51,935 blocks), every GUI (Eye, KEE, modules, Directive Hatch,
 Homogeny, Reality), the round-4 and round-5 render verdicts, a real Condensate Assembler craft (the BEC parts, the
 upgrade path and the Retrofit Kits), the renamed machines over an existing `GregTech.lang`, an OpenComputers computer
-running Lua, AE2 and Steve's Factory Manager in a world, and Reality Diffraction / Refab runs (they need P4's fluids).
-[A-3, B-19, B-36, B-45, B-54, B-69, B-70, B-79, B-83, B-85]
+running Lua, AE2 and Steve's Factory Manager in a world, Reality Diffraction / Refab runs (they need P4's fluids), and
+the P4 quests in the book (the UXV map, the new quest pages and their wrapping). [A-3, B-19, B-36, B-45, B-54, B-69,
+B-70, B-79, B-83, B-85, B-111]
 
 ---
 
@@ -203,7 +206,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-95, B-105..B-110
+## Part B. Entries B-1..B-95, B-105..B-111
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -4511,6 +4514,120 @@ link was run: P4's own test (P4-83..P4-94) covered that on the branch.
    slot-bus planets in planets mode can reach about 336 G L. That is what B-108's "20 cycles / 2 runs" rule gives at
    those parallels. *Suggestion:* keep the rule. Shorten the window for companions if one Eye still starves a shared
    network in a playtest.
+
+### B-111 The P4 quests: the contract turned into the book [merge-p4, built + test]
+
+**What was built** (`04f121a`, docs `b9a53c2`). Every quest in `docs/p4-questbook-contract.md` ("Generator entries",
+plus the Conduit, Eye T7 / T8 and Hosts sections that correct them) is now in `questbook/singularity.json`:
+
+- **Features on:** `quasar`, `conduit`, `crown`, `eyeT7T8` and `eternityOnErgomatter`. `uxvParts`, `eyeT9T10`,
+  `realityRefab` and `maxParts` stay off.
+- **The placeholders became real under the same ids**, with the contract's tasks and text:
+  - 48144 Quasar Engine: the controller and the quasar bill;
+  - 48145 Einstein-Rosen Conduit: 2 mouths, a mirror, a junction and the mouth bill;
+  - 48146 Eye T7: Triangulum: 1,000 L Ergomatter;
+  - 48147 Ergomatter: 16,000 L;
+  - 48148 Eye T8: Milky Way: 1,000 L Superdense Ergomatter;
+  - 48149 Superdense Ergomatter: 16,000 L;
+  - 48150 Burst Thermaliser Crown: the controller and the Mk I bill.
+- **21 new UXV quests, 48154-48174:** A Seed for a Quasar, Disc Field Coils, Reading the Disc, Burst Control,
+  Throats, A Quasar Link, The Stability Rail, Stability Link, Magnetar Collapse, The Shard Halo, Heavy Link, Galactic
+  Merger, Superdense Ergomatter the Slow Way, A Quasar-Linked Kerr, A Quasar-Held Vortex, Planets Mode, Companions,
+  Automating the Quasar, A Galaxy That Runs Itself, Scripting a Quasar, Bursts into Power.
+- **48194 Riding the Rift** (MAX) is in too. It stays a planned checkbox while `realityRefab` is off.
+- All the new ids are appended to the id ledger.
+- **Bill tables** `quasar`, `crown` and `conduit`: the contract's rows. The Eye's rail and halo rows came with B-110.
+- **Text rules (B-92 / B-93).** The contract was written before those rules reached its branch, so every text was
+  rewritten:
+  - `{5}` headings, `{9}` highlights, `{c}` quest names, `{2}` DONE WHEN;
+  - "the flux" for Φ;
+  - σ, λ, Λ, β and κ stay (`{u+03c3}` ...). The GUI names its gauges that way, and they are not on the odd-glyph
+    list.
+
+  Every gate quest has a DONE WHEN line. Where its item gets installed, the line says HOLD → CLAIM → INSTALL.
+- **Two contract details corrected against the code:**
+  - upkeep is paid while a throat is fitted (`MTEConduitElement.upkeep`: "no throat, no upkeep");
+  - the rail needs at least one port on each bank at T7 (the Eye tooltip).
+- **Other quests touched:**
+  - Eye T6's note now points at the Stability Link. It said "both coming in a later update".
+  - The Homogeny T2 / T3 and Reality Diffraction quests get the contract's appended lines.
+  - Stability Field said "a binary Directive Hatch and OpenComputers support are coming in a later update". That has
+    been stale since the automation pass; it now says the Directive Hatch and `bts_eye` exist.
+- **Pack edits.**
+  - E20 (Tier 13): the Quasar paragraph replaces "come in a later update". The Universium warning now says the
+    Homogeny Tier II Core and every Quasar and Conduit part take the UMV stopgap. It also says nothing of ours up to
+    Eye T8 needs the pack's UXV parts, since P4 uses none.
+  - E23 / E24: "which comes in a later update" goes. E24's MHDCSM warning becomes a note on SL-P40.
+  - E43 Eternity: a `replaceText` swaps the pack's "You need 20,736 L of Universium for the first 5 attempts and a
+    catalyst." for SL-Q26's Ergomatter catalyst (9,216 L) and Timepiece (4,608 L).
+- **Layout.** The contract's positions clashed with master's map: it did not have E23 / E24 or the Eternity stage.
+  - The quasar's own quests sit above the main row, and the links and milestones below it.
+  - The products and hosts sit under those.
+  - Eye T7 moves to 744 and Eye T8 to 936, with E23 / E24 above them.
+  - The Eternity stage goes under Ergomatter.
+
+  The tidiness check passes on all three layouts. One hover-only line (48159 → 48168) crosses two icons. That is a
+  warning, as several pack lines are.
+
+**Judgement calls.**
+
+1. **Eye T7 / T8 prerequisites.** "Keep the prerequisites" and the contract's chain conflict: the contract makes T7
+   need the Magnetar Collapse, and T8 the Galactic Merger.
+   - Built: T7 = [48162, E23] and T8 = [48165, E24].
+   - The old direct prerequisites 48145 / 48146 are still required, through the chain (48162 ← 48161 ← 48160 ← 48159 ←
+     48145). A direct line would cross the collapse icon.
+   - Both quests were placeholders, so no completion depended on them.
+   - Likewise, "The Stability Rail" lists only 48159 (48141 comes through the quasar).
+   - "A Galaxy That Runs Itself" needs the rail, not the link. The contract's text says the rail, but its JSON said
+     the link, and that line crossed the collapse.
+
+   *Alternative:* keep the direct prerequisites as hover-only lines.
+2. **E43-E46 now need `replaceTecTechEyeOfHarmony`.**
+   - SL-Q26 (Eternity on Ergomatter) runs only with that flag.
+   - With the flag off, the old edits would still have put Eternity behind our Ergomatter quest, while the pack's
+     recipe wants Universium from TecTech's Eye.
+   - Now, with the flag off, the four stay in UMV as the pack has them (tested, below).
+3. **The core quests are notes.** The content unit's "Intergalactic Upgrade Core" and "Supermassive Seed Core" quests
+   are not in the generator entries. Their facts became notes in Magnetar Collapse and Galactic Merger, which already
+   ask for the cores.
+4. **"Scripting a Quasar"** is a normal checkbox: the contract's `opt` field is not a generator field. Its text says it
+   is optional.
+
+**Checks.**
+
+- `questbook/gen-bom.ps1` (the one build command): 66 quests of ours (16 planned checkboxes, 2 fallbacks), 64 pack
+  edits, bundle `6876d7837407`.
+- `gen-singularity --check`: 139 files up to date. `--selftest` passes.
+- `spotlessApply compileJava` passes.
+
+**Dev server.** Headless `runServer` on port 25565, four boots.
+
+- The book is the RC-2 pack's DefaultQuests, with BetterQuesting's default load off, as the pack ships it.
+- Afterwards, the server's config, level name and `cmds.txt` were put back and the DefaultQuests copy was removed.
+
+| Boot / world | Result |
+|---|---|
+| 1, `p4qb-up`, **the old bundle**, auto-install off | The old bundle is `c596d51`'s overlay and `BTSQuestIds`, written over the tree's copies for this boot and restored from HEAD after it. The pristine pack DB was snapshotted (3,813 quests). Seeded: player a1 completed Eternity, T7: Perfect, Tier 13 (UXV) and the BHC quest; a2 completed Magnetic Monopole Matter and T8: Tipler. `install` kept all of it. Then a1 completed our 48141 / 48143 (real) and 48144 / 48146 (planned boxes); a2 completed 48113 (real) and 48145 / 48150 (planned boxes). |
+| 2, `p4qb-up`, **this bundle**, auto-install on | "differs from the jar: bundle d01088fe8d76 -> 6876d7837407": 22 added, 77 refreshed, 64 / 64 edits, Endgame Goals hidden. "is built now: its planned checkbox was cleared" for 48144-48150. a1 kept Eternity, T7: Perfect, Tier 13, the KEE quest, 48141 and 48143; 48144 / 48146 were cleared. a2 kept MMM, Tipler and 48113; 48145 / 48150 were cleared. Eternity sits in UXV at 744,432 after Stellar Catalyst and 48147, with the Ergomatter text. T7 is at 744,156 after E23 + 48162, and T8 at 936,144 after E24 + 48165. `verify`: 140 / 142 ids resolve; the misses are the two eternalsingularity icons, missing only on the dev server, as before. |
+| 2, continued | a1 then completed 48154 and 48161. `install` again: "already matches the jar", byte-identical DB. `uninstall edits`: all 3,813 pack quests identical to the pristine snapshot; the pack chapters identical apart from their order numbers and our grafted entries, in the same relative order; Endgame Goals back. `install`: identical to before (semantic compare). `uninstall all`: the whole DB (quests, chapters, entries, order) identical to the pristine snapshot. `install`: "progress on 99 re-created quest(s) of ours came back from the progress backup", byte-identical to the first install. |
+| 3, `p4qb-fresh`, auto-install on | "no install state in this world yet": 99 added, 64 applied, chapter hidden; `verify` 140 / 142. The DB is identical to boot 2's install. |
+| 4, `p4qb-off`, `replaceTecTechEyeOfHarmony=false` | 42 applied, 22 switched off ("replaceTecTechEyeOfHarmony is off"), E43-E46 among them: Eternity, MMM, Perfected Components and The SUCC stay in UMV with the pack's text and prerequisites. Endgame Goals stays ("still holds 4 quest(s)"). |
+
+Every boot: 311 registered / 0 skipped (309 with the flag off), no `[BTS]` / beyondthestars WARN or ERROR, and no
+`com.nateyburr` frame.
+
+**Seen, not changed.** After `uninstall all`, a2's progress file still listed 48113 as complete, although the quest was
+gone.
+- BetterQuesting only rewrites a player's progress file when that player is marked dirty.
+- It ignores an entry for a missing quest on load.
+- Our install puts the same completion back from the progress backup anyway.
+
+So this does not affect restoring the pack: the database is identical.
+
+**Not covered.**
+- No client was run, so the map and the new pages were not seen. The round-2 harness (`-Dbts.qbshots=true`) can shoot
+  them.
+- The P4 machines were not run against the quest tasks in a world.
 
 ---
 
