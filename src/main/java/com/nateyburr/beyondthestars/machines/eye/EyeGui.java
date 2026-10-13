@@ -31,6 +31,7 @@ import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.machines.eye.field.CollapseOverlay;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldReadout;
 import com.nateyburr.beyondthestars.machines.eye.field.GalaxyField;
+import com.nateyburr.beyondthestars.machines.eye.field.MagnetarCollapseOverlay;
 import com.nateyburr.beyondthestars.machines.eye.field.StellarField;
 import com.nateyburr.beyondthestars.machines.eye.field.TierParams;
 import com.nateyburr.beyondthestars.machines.eye.star.CoreCollapse;
@@ -787,12 +788,34 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
         for (BTSChecklist.CheckLine l : c.lines()) {
             tip.add(BTSText.cat(BTSText.lit(l.met() ? "§a+ §7" : "§c- §7"), l.label, BTSText.lit(": "), l.value));
         }
+        weakQuasarRow(rows);
         rows.note(
             BTSRows.ICON_OK,
             BTSGuiKit.NOTE_BLUE,
             BTSText.lang("beyondthestars.gui.eye.begin", type == null ? "?" : type.title),
             tip.toArray(new String[0]));
         lastRow(rows);
+    }
+
+    /**
+     * B-118 "Warn, allow" (user, 2026-10-13): a red row above Begin on a magnetar whose linked quasar cannot cancel the
+     * collapse shock even with a purge at full flux (its peak under the countdown line's number). Begin stays enabled.
+     */
+    private void weakQuasarRow(BTSRows.Builder rows) {
+        final EyeStarRuntime rt = rt();
+        if (!rt.collapseQuasarWeak()) return;
+        final double peak = rt.linkedQuasarPeak(), need = rt.collapseFullCancelBu();
+        rows.check(
+            BTSChecklist.State.BAD,
+            BTSText.lang("beyondthestars.gui.eye.chk.weakquasar"),
+            BTSText.lit(BTSFormat.fmt1(peak) + " / " + BTSFormat.fmt1(need) + " Bu/t"),
+            BTSChecklist.frac(peak, need),
+            BTSText.lang("beyondthestars.gui.eye.chk.weakquasar.tip1", BTSFormat.fmt1(need)),
+            BTSText.lang(
+                "beyondthestars.gui.eye.chk.weakquasar.tip2",
+                Math.round(rt.collapseShockAtPeak()),
+                Math.round(rt.collapseShock() > 0 ? rt.collapseShock() : MagnetarCollapseOverlay.DEFAULT_SHOCK)),
+            BTSText.lang("beyondthestars.gui.eye.chk.weakquasar.tip3"));
     }
 
     // ------------------------------------------------------------------------- TRANSITION
@@ -1178,6 +1201,17 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
         return sb.toString();
     }
 
+    /** Bench: the Galaxy panel's text lines as the client would draw them (server side, colour codes stripped). */
+    public List<String> benchGalaxyPanel() {
+        final List<String> out = new ArrayList<>();
+        for (String l : galaxyPanelText().split("\n")) {
+            if (!l.isEmpty()) out.add(
+                "  " + BTSText.resolve(l)
+                    .replaceAll("§.", ""));
+        }
+        return out;
+    }
+
     /** The Galaxy panel's body: the slots or companions, the next transition's state, the test fire (server). */
     private String galaxyPanelText() {
         final EyeStarRuntime rt = rt();
@@ -1196,6 +1230,17 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                     ? BTSText.lang("beyondthestars.gui.eye.galaxy.ready", EyeTransition.Type.leaving(star.n()).title)
                     : BTSText.lang("beyondthestars.gui.eye.galaxy.waits", miss.get(0)))
                 .append('\n');
+            // B-118 "Warn, allow": the linked quasar's peak is under what cancels the collapse shock (red, Begin works)
+            if (rt.collapseQuasarWeak()) {
+                sb.append(
+                    BTSText.cat(
+                        BTSText.lit("§c"),
+                        BTSText.lang(
+                            "beyondthestars.gui.eye.galaxy.weakquasar",
+                            BTSFormat.fmt1(rt.linkedQuasarPeak()),
+                            BTSFormat.fmt1(rt.collapseFullCancelBu()))))
+                    .append('\n');
+            }
         }
         if (rt.testFireWanted()) {
             sb.append(

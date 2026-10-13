@@ -1,0 +1,179 @@
+# Beyond the Stars - CIRCUITS v2 clip (docs/recording.md; designs/docs/circuits-v2.md). About 100 s at 1920x1080, 30 fps.
+# Sidereal (UMV), Empyrean (UXV) and Omega (MAX): wafers printed on star matter, Stellar SMDs, one Mainframe of each
+# family out of a stock Assembly Line, ours in a stock recipe's any-of-tier slot, the raised Piko, a NAC run, the cost.
+#
+# Honesty rules (as showcase2.shots):
+# - Everything is raised by script in a fresh creative superflat world, and the captions say so: the circuit chain
+#   bench (/btsrecipes chain, B-136) builds stock GT machines on creative power and loads each machine in turn with
+#   what the previous one made; stock parts and Eye fluids are supplied by script. The NAC bench (/btsrecipes nac,
+#   B-133) builds a Nanochip Assembly Complex and loads one run. The machines do their own processing.
+# - Long stretches run under the time warp (/btswarp, a cheat: the whole server runs N ticks per real tick through the
+#   normal code); its tag shows the measured multiplier. A time-lapse tag shows frame sampling.
+#
+# Sites: the chain rig at (1000, 4, 1000) facing north (EBF 1000, Hyper-Intensity Laser Engraver 1008, Cutting
+# Machine 1014, Assembling Machine 1016, Circuit Assembler 1018, chest 1020; the Assembly Line's controller at
+# (1030, 6, 1014), its slices running west to x 1015); the NAC complex at (1300, 60, 1300), its Assembly Matrix at
+# (1308, 54, 1275).
+
+# ---------------------------------------------------------------- setup (never recorded)
+time day
+command /gt cleanroom_bypass on cleanroom
+command /btsrecipes chain build 1000 4 1000
+name ebf 1000,4,1000
+name hile 1008,4,1000
+name cutter 1014,4,1000
+name asm 1016,4,1000
+name ca 1018,4,1000
+name chest 1020,4,1000
+name al 1030,6,1014
+name alout 1015,4,1014
+command /btsrecipes nac build 1300 60 1300
+name nac 1300,60,1300
+name matrix 1308,54,1275
+
+# ================================================================ title
+scene title
+  card 4 Circuits v2 | Sidereal, Empyrean and Omega: three circuit families for UMV, UXV and MAX | printed on star matter from the Eye of Harmony
+
+# ================================================================ the rig
+scene rig
+  caption Our circuits are made in stock GregTech machines. Here they stand side by side, built by script on creative power.
+  label ebf side up | Electric Blast Furnace
+  label hile side up | Laser Engraver (Hyper-Intensity)
+  label ca side right | Cutting Machine, Assembling Machine, Circuit Assembler (UMV)
+  label al side up | Assembly Line
+  label chest side down | chest for the finished Mainframes
+  dolly 1031,9,989 1023,9,988 seconds 7 look 1013,4,1007
+
+# ================================================================ the steps, in NEI
+scene nei-boule
+  caption Step 1: a Stellar Boule, grown in the Blast Furnace from Raw Star Matter, the Eye of Harmony's first product.
+  nei recipe sl.stellarBoule tab blast
+  hold 3.5
+  close
+
+scene nei-wafer
+  caption The boule is cut into Stellar Wafers; each family prints its own wafer with the matter of its Eye tier (Sidereal: Raw Star Matter).
+  nei recipe sl.siderealWafer
+  hold 3
+  close
+
+scene nei-ewafer
+  caption Empyrean (UXV) wafers take White Dwarf Matter (Eye tier 4) with Excited Stellar Plasma Mixture...
+  nei recipe sl.empyreanWafer
+  hold 3
+  close
+
+scene nei-owafer
+  caption ...and Omega (MAX) wafers take Black Dwarf Matter (Eye tier 5) with Hyperdense Stellar Mixture.
+  nei recipe sl.omegaWafer
+  hold 3
+  close
+
+scene nei-smd
+  caption A new tier of SMD parts: Stellar SMDs, made from a Stellar Wafer and Excited Stellar Plasma Mixture (Eye tier 2 or the Homogeny).
+  nei recipe sl.stellarSmdTransistor tab assembler
+  hold 3
+  close
+
+# ================================================================ the chain, run for real
+scene make-sid
+  caption The whole chain runs here in those machines: each one loaded by script with what the last one made (stock parts supplied).
+  goto 1028,9,989 look 1013,4,1007
+  command /btsrecipes chain make sidereal 1000 4 1000
+  warp 20
+  timelapse 14 speed 1 until chainstep:SL-X24 tail 0
+  warp off
+  caption The Sidereal Mainframe (UMV) is assembled in the Assembly Line...
+  goto 1030.5,7,1009.5 look 1030.5,6.5,1014.5
+  gui al
+  warp 6
+  timelapse 8 speed 1 until chainidle tail 0.5
+  close
+  caption ...and goes into the chest. One Mainframe: 21 machine runs, about 660 billion EU.
+  goto 1020.5,5.8,997.4 look 1020.5,4.5,1000.5
+  use chest side north
+  hold 2.5
+  close
+
+scene make-emp
+  caption Empyrean (UXV): its Mainframe takes a Sidereal Mainframe and an Empyrean wafer printed on White Dwarf Matter.
+  goto 1028,9,989 look 1013,4,1007
+  command /btsrecipes chain make empyrean 1000 4 1000
+  warp 20
+  timelapse 9 speed 6 until chainstep:SL-X28 tail 0
+  warp off
+  goto 1030.5,7,1009.5 look 1030.5,6.5,1014.5
+  gui al
+  warp 7
+  timelapse 8 speed 1 until chainidle tail 0.5
+  close
+  goto 1020.5,5.8,997.4 look 1020.5,4.5,1000.5
+  use chest side north
+  hold 2
+  close
+
+scene make-omega
+  caption Omega (MAX): an Empyrean Mainframe inside, an Omega wafer printed on Black Dwarf Matter. No Eye tier 10 matter at all.
+  goto 1028,9,989 look 1013,4,1007
+  command /btsrecipes chain make omega 1000 4 1000
+  warp 20
+  timelapse 10 speed 14 until chainstep:SL-X32 tail 0
+  warp off
+  goto 1030.5,7,1009.5 look 1030.5,6.5,1014.5
+  gui al
+  warp 14
+  timelapse 8 speed 1 until chainidle tail 0.5
+  close
+  caption One Mainframe of each family: Sidereal, Empyrean, Omega.
+  goto 1020.5,5.8,997.4 look 1020.5,4.5,1000.5
+  use chest side north
+  hold 3
+  close
+
+# ================================================================ any circuit of the tier
+scene any-umv
+  caption Every recipe that asks for "any UMV circuit" takes ours: a stock GT recipe, the Mega Ultimate Buck Converter, made with two Sidereal Mainframes.
+  goto 1016.5,5.6,997.4 look 1016.5,4.5,1000.5
+  command /btsrecipes chain gt umv 1000 4 1000
+  gui asm
+  warp 2
+  hold 5
+  close
+
+scene nei-any
+  caption In NEI the same stock recipe, with our Mainframe in its "any UMV circuit" slot (top right, x2).
+  nei usage sl.siderealMainframe tab assembler page 1
+  hold 3.5
+  close
+
+scene nei-piko
+  caption The pack's own UMV circuit, the Piko, now costs 2.5x the time and 2x the parts (Quantum and Planck too; a config option, on by default).
+  nei recipe cc.PicoCircuit tab matrix
+  hold 4
+  close
+
+# ================================================================ the NAC
+scene nac
+  caption Our circuits also run in GT's Nanochip Assembly Complex (built by script). Its Assembly Matrix, loaded by script with our parts...
+  label matrix side up | Assembly Matrix
+  goto 1308.5,57,1268 look 1308.5,55,1275.5
+  hold 2.5
+  label clear
+  caption ...makes a Sidereal Mainframe (the NAC's own overclocks make it quick).
+  goto 1308.5,55.6,1271.4 look 1308.5,54.5,1275.5
+  gui matrix
+  command /btsrecipes nac run SL-N15 1300 60 1300
+  hold 4
+  close
+  command /btsrecipes nac status 1300 60 1300
+
+scene nei-nac
+  caption The Sidereal Mainframe's page in the Nanochip Assembly Matrix.
+  nei recipe sl.siderealMainframe tab matrix
+  hold 3
+  close
+
+# ================================================================ the cost
+scene cost
+  card 10 What one top circuit costs, in EU | UMV:  Sidereal Mainframe 0.66 trillion   vs   Piko 9.1 trillion today, 22 trillion raised | UXV:  Empyrean Mainframe 2.5 trillion   vs   Quantum 35 trillion today, 85 trillion raised | MAX:  Omega Mainframe 7.1 trillion   vs   Planck 100 trillion today, 250 trillion raised | Ours: about 14x cheaper than today's circuits, about 34x cheaper than the raised ones

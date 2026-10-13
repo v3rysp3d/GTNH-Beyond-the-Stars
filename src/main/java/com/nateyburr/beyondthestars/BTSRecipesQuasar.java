@@ -74,9 +74,10 @@ import tectech.recipe.TecTechRecipeMaps;
  * <li><b>Items</b>: SL-Q09 Quasar Seed and SL-Q23 Superdense Ergomatter (refined), both on the Kerr's
  * {@link KerrRecipeMaps#DENSITY} map; SL-Q13..Q15 Conduit Throat Mk I-III; SL-Q21 Intergalactic Upgrade Core; SL-Q22
  * Supermassive Seed Core; SL-Q24/Q25 Star Charts Triangulum / Milky Way.</li>
- * <li><b>Gate fixes</b> (behind {@code replaceTecTechEyeOfHarmony}, like SL-P39): SL-P40, the Resonance Chamber IV
- * with 2 SpaceTime foils + Entangled Ergomatter for GT's MHDCSM foil (the compression tier 8 gate); and SL-Q26, D-48's
- * Eternity-on-Ergomatter swap at load-complete ({@link #onLoadComplete}).</li>
+ * <li><b>Gate fixes</b> (behind {@code replaceTecTechEyeOfHarmony}): SL-Q26, D-48's Eternity-on-Ergomatter swap at
+ * load-complete ({@link #onLoadComplete}). The Resonance Chamber IV with 2 SpaceTime foils + Entangled Ergomatter for
+ * GT's MHDCSM foil (the compression tier 8 gate) is GT's own recipe rewritten in place now (SL-G03 in
+ * {@link BTSRecipesSingularity#onLoadComplete}); SL-P40, its old separate recipe, is only SL-G03's fallback.</li>
  * <li><b>NEI</b>: SL-Q27 / SL-Q28, the display pages {@link QuasarRecipeMaps#QUASAR} and
  * {@link QuasarRecipeMaps#THERMALISER} (fake recipes).</li>
  * </ul>
@@ -146,12 +147,12 @@ public final class BTSRecipesQuasar {
         coresAndCharts();
         // SL-Q27 / SL-Q28: the NEI display pages (feed gas -> bursts; bursts -> EU), fake recipes.
         QuasarRecipeMaps.register();
-        if (Config.replaceTecTechEyeOfHarmony) {
-            BTSRecipeLedger.gated("replaceTecTechEyeOfHarmony=true", BTSRecipesQuasar::resonanceChamberIV);
-        } else {
+        // The compression tier 8 gate (Resonance Chamber IV) is GT's own recipe rewritten in place at load-complete
+        // (SL-G03 in BTSRecipesSingularity, which retired SL-P40; its body below is only SL-G03's fallback).
+        if (!Config.replaceTecTechEyeOfHarmony) {
             BeyondTheStars.LOG.info(
-                "[BTS] replaceTecTechEyeOfHarmony=false: SL-P40 (MHDCSM-free Resonance Chamber IV) is not registered "
-                    + "and SL-Q26 (Eternity on Ergomatter) will not run; TecTech's Eye still makes Universium.");
+                "[BTS] replaceTecTechEyeOfHarmony=false: SL-Q26 (Eternity on Ergomatter) will not run; TecTech's Eye "
+                    + "still makes Universium.");
         }
         if (WAITING.isEmpty()) {
             BeyondTheStars.LOG.info("[BTS] P4 recipes: every machine recipe is registered.");
@@ -664,36 +665,39 @@ public final class BTSRecipesQuasar {
     // =============================================== the compression tier 8 gate (with TecTech's Eye replaced)
 
     /**
-     * SL-P40: MetaMaterial Resonance Chamber IV with 2 SpaceTime foils + Entangled Ergomatter in place of GT's MHDCSM
-     * foil (MHDCSM is Endgame, D-48; Universium-made). Everything else is RC-2's own Condensate Assembler recipe
+     * SL-G03's extra condensate (BTSRecipesSingularity): the card's Ergomatter 1,440 L as 1,500 L of Entangled
+     * Ergomatter (GT's half-unit rule for a 1,000 L condensate), whatever fluid the Condensate Generator makes it as.
+     */
+    static FluidStack chamberIVErgomatter() {
+        return ours(SLRealityFluids.entangledErgomatter, 1_500);
+    }
+
+    /**
+     * SL-P40 (P4; retired 2026-10-14 for SL-G03, GT's own recipe rewritten in place; fallback only): MetaMaterial
+     * Resonance Chamber IV with 2 SpaceTime foils + Entangled Ergomatter in place of GT's MHDCSM foil (MHDCSM is
+     * Endgame, D-48; Universium-made), registered apart. Everything else is RC-2's own Condensate Assembler recipe
      * ({@code BECMetaMaterialRecipes.registerResonanceChamber}, t = 3): 2 Emitter UMV, 2 SpaceTime rods, 1 Eternity
      * plate; nanites Black Dwarf / Transcendent / Six-Phased Copper / Transcendent; Chromatic Glass 24, Infinity 12,
-     * Boundless Cosmic Solder 4; 300 s at UXV. The SL-P39 pattern. Its Eternity plate is reachable before T8 only with
-     * SL-Q26 (Eternity on Ergomatter). The card's Ergomatter 1,440 L is 1,500 L of Entangled Ergomatter (GT's
-     * half-unit rule for a 1,000 L condensate).
+     * Boundless Cosmic Solder 4; 300 s at UXV.
      */
-    private static void resonanceChamberIV() {
-        BTSRecipeGuard.recipe(
-            "SL-P40",
-            () -> added(
-                GTValues.RA.stdBuilder()
-                    .itemInputs(
-                        item(ItemList.Emitter_UMV, 2),
-                        req(OrePrefixes.stick, Materials.SpaceTime, 2),
-                        req(OrePrefixes.foil, Materials.SpaceTime, 2),
-                        req(OrePrefixes.plate, Materials.Eternity, 1))
-                    .fluidInputs(
-                        entangled(CondensateType.ChromaticGlass, 24 * CondensateType.ChromaticGlass.getUnit()),
-                        entangled(CondensateType.Infinity, 12 * CondensateType.Infinity.getUnit()),
-                        entangled(
-                            CondensateType.BoundlessCosmicSolder,
-                            4 * CondensateType.BoundlessCosmicSolder.getUnit()),
-                        ours(SLRealityFluids.entangledErgomatter, 1_500))
-                    .itemOutputs(item(ItemList.MetaMaterial_ResonanceChamber4, 1))
-                    .metadata(NANITE_TIERS, new NaniteTier[] { N7, N4, N5, N4 })
-                    .duration(300 * SECONDS)
-                    .eut(TierEU.RECIPE_UXV),
-                TecTechRecipeMaps.condensateAssemblingRecipes));
+    static void legacyP40() {
+        added(
+            GTValues.RA.stdBuilder()
+                .itemInputs(
+                    item(ItemList.Emitter_UMV, 2),
+                    req(OrePrefixes.stick, Materials.SpaceTime, 2),
+                    req(OrePrefixes.foil, Materials.SpaceTime, 2),
+                    req(OrePrefixes.plate, Materials.Eternity, 1))
+                .fluidInputs(
+                    entangled(CondensateType.ChromaticGlass, 24 * CondensateType.ChromaticGlass.getUnit()),
+                    entangled(CondensateType.Infinity, 12 * CondensateType.Infinity.getUnit()),
+                    entangled(CondensateType.BoundlessCosmicSolder, 4 * CondensateType.BoundlessCosmicSolder.getUnit()),
+                    chamberIVErgomatter())
+                .itemOutputs(item(ItemList.MetaMaterial_ResonanceChamber4, 1))
+                .metadata(NANITE_TIERS, new NaniteTier[] { N7, N4, N5, N4 })
+                .duration(300 * SECONDS)
+                .eut(TierEU.RECIPE_UXV),
+            TecTechRecipeMaps.condensateAssemblingRecipes);
     }
 
     // =================================================================== SL-Q26: Eternity on Ergomatter (D-48)

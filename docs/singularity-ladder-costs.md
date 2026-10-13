@@ -1,4 +1,4 @@
-# Singularity Ladder: recipe completeness and cost audit (Kerr T1/T2, Eye T1-T4; Eye T5/T6 in §10; the BEC expansion in §11; Homogeny and Reality machines in §12; the window bands in §13; the Quasar Engine, its crowns and the conduit in §14)
+# Singularity Ladder: recipe completeness and cost audit (Kerr T1/T2, Eye T1-T4; Eye T5/T6 in §10; the BEC expansion in §11; Homogeny and Reality machines in §12; the window bands in §13; the Quasar Engine, its crowns and the conduit in §14; Circuits v2 and the Piko raise in §15)
 
 Status: audit, 2026-10-12, addon `7a47289`. **GTNH 2.9.0-RC-2 port: see §9 for the BHC→Kerr swap, the Kerr controller price and the RC-2 gate audit.** It reads the code and the jars and changes no code. **The recipe audit
 pass has since applied it: see §8 for what was applied, changed or skipped.** It answers the
@@ -481,7 +481,7 @@ Neutronium; nanite tiers up to Transcendent (t0), Six-Phased Copper (t1-3), Whit
 | T2 | Primitive (t1) | Boundless Cosmic Solder (RSM, T1) ✔; **Resonance Chamber II: 1 White Dwarf Matter foil (T4)** ✘ | **loop**, fixed by SL-P39 |
 | T3 | Stable (t2) | as T2, 4 chambers ✘ | **loop**, fixed by SL-P39 |
 | T4 | Advanced (t3) | as T2, 16 chambers: WDM is T4's own product ✘ | **loop**, fixed by SL-P39 |
-| T5 | Superb (t4) | White Dwarf nanites (T4) ✔; **Resonance Chamber III: Black Dwarf Matter foil (T5)** ✘ | **loop**, fixed by SL-P33 (BDM-free Resonance Chamber III; `/btseye gates` CLEAN, B-59) |
+| T5 | Superb (t4) | White Dwarf nanites (T4) ✔; **Resonance Chamber III: Black Dwarf Matter foil (T5)** ✘ | **loop**, fixed by SL-G02 (GT's Resonance Chamber III rewritten in place with 2 WDM foils, B-135; was SL-P33; `/btseye gates` CLEAN, B-59) |
 | T6 (P4) | Exotic (t5) | BDM (T5) ✔, Creon ✔ | clean |
 | T7 (P4) | Perfect (t6) | BDM ✔, SpaceTime ✔ | clean |
 | T8 (P4) | Tipler (t7) | Black Dwarf nanites (T5) ✔; **Resonance Chamber IV: MHDCSM foil (T10), Eternity plate** | **loop**; P4/P5 (D-48 moves Eternity onto Ergomatter, T7; MHDCSM still needs Universium) |
@@ -543,17 +543,17 @@ figures in §3.2 (the audit's model script is not kept); the arithmetic is in th
 |---|---|---|---|---|
 | T5 | Galactic Shell Plating (`T`) | 5,065 | SL-P17 ASM ×16 (250 L HSM) | ✔ |
 | T5 | Infinite Spacetime Energy Boundary (`J`) / Quantum Glass (`Z`) | 762 / 404 | SL-P29 ×8 / TecTech | ✔ |
-| T5 | Compression generators, TecTech tier 5 (Superb, meta 4), all 188 `W` cells | 188 | RC-2 BEC: Resonance Chamber **III** ×1, White Dwarf nanites, UXV ×5, a Kerr controller | ✔ with **SL-P33** (the chamber with 2 WDM foils for GT's BDM foil: BDM is T5's own product, B-35) |
+| T5 | Compression generators, TecTech tier 5 (Superb, meta 4), all 188 `W` cells | 188 | RC-2 BEC: Resonance Chamber **III** ×1, White Dwarf nanites, UXV ×5, a Kerr controller | ✔ with **SL-G02** (GT's chamber rewritten in place with 2 WDM foils for its BDM foil; was SL-P33 until B-135: BDM is T5's own product, B-35) |
 | T5 | Subspace Cooling Core (the First Cooling's core) | 1 | SL-E05 AL (WDM 147,456 L, DSSF 256,000 L) | ✔ (WDM: Eye T4) |
 | T5 | Star Chart: Sirius B | 1 | SL-P35 (WDM 1,000 L) | ✔ |
 | T6 | Galactic Shell Plating (`T` + the 4 `g` rim sockets) | 7,290 | SL-P17 | ✔ |
 | T6 | Boundary / Quantum Glass | 3,159 / 753 | SL-P29 / TecTech | ✔ |
-| T6 | Compression generators tier 6 (Exotic, meta 5) | 188 | RC-2 BEC: Resonance Chamber III ×4, Creon, UXV ×6, a Kerr controller | ✔ (SL-P33 again; nothing T6 or later in it) |
+| T6 | Compression generators tier 6 (Exotic, meta 5) | 188 | RC-2 BEC: Resonance Chamber III ×4, Creon, UXV ×6, a Kerr controller | ✔ (SL-G02 again; nothing T6 or later in it) |
 | T6 | Magnetar Seed Core (the Magnetar Merger's core) | 1 | SL-E06 AL (BDM 36,864 L, Agent 64,000 L) | ✔ (BDM: Eye T5) |
 | T6 | Star Chart: SGR 1806-20 | 1 | SL-P37 (BDM 1,000 L) | ✔ |
 | T6 | Antipolarization Agent (upkeep) | per cycle | `BTSRecipesStellar` chain | ✔ |
 
-Gate audit (§9.4's rule): the tier-5 generator needs nothing first made at Eye T5 or later once SL-P33 replaces the
+Gate audit (§9.4's rule): the tier-5 generator needs nothing first made at Eye T5 or later once SL-G02 rewrites the
 BDM foil; the tier-6 generator needs BDM (T5) and nothing from T6. Both clean.
 
 ### 10.2 Totals per tier step (increments on the tier below)
@@ -885,7 +885,7 @@ divides it by its nanite count). Every number is PROPOSED (P4-26).
 | Quasar Seed, Superdense Ergomatter | Kerr T2 Compressor module | SL-Q09, Q23 | Kerr Densification |
 | Conduit Throat Mk I / II / III | conduit controllers' slot | SL-Q13, Q14 (BEC), Q15 (assembly line) | |
 | Intergalactic Upgrade Core, Supermassive Seed Core, Star Charts Triangulum / Milky Way | Eye T6 → T8 | SL-Q21, Q22, Q24, Q25 | Condensate Assembler |
-| Resonance Chamber IV (compression tier 8) | Eye T8 gate | SL-P40 | Condensate Assembler |
+| Resonance Chamber IV (compression tier 8) | Eye T8 gate | SL-G03 (GT's recipe rewritten in place; was SL-P40 until B-135) | Condensate Assembler |
 
 ### 14.2 Totals per machine (blocks only; controllers below)
 
@@ -917,4 +917,110 @@ T7 Eye) + Magnetar 2,304 L. Conduit Throat Mk III: Ergomatter 256k L.
   none) and serves the split T7/T8 rigs.
 - **No Eye product past its tier**: the dev-server gate dump (P4-34) passes every block, throat, core, chart and
   Resonance Chamber IV; Ergomatter appears only in T7 → T8 parts (Throat Mk III, the Supermassive core, the Milky Way
-  chart, SL-P40, the Superdense refinery and the Eternity catalyst).
+  chart, SL-G03 (was SL-P40), the Superdense refinery and the Eternity catalyst).
+
+---
+
+## 15. Circuits v2: our circuits against stock, and what the Piko raise costs (circuits branch, C7, 2026-10-14)
+
+Source: the design repo's `designs/docs/circuits-v2.md` revision 3 (§2.6 and §3.3), checked against the recipes as built
+(`BTSRecipesCircuits` SL-X01..X32, `BTSStockCircuitRaise` SL-G10..G13, `BTSRecipesNac` SL-N01..N23) and against a run of
+the whole chain in real GT machines (questions B-136). Nominal EU = recipe EU/t × ticks over the whole sub-tree (wafer,
+chip, SMD and board shares included; GT's Optical SMDs and chips counted as about 0). Stock figures are RC-2's NAC
+recipes (Piko step 4,000 t, Quantum 8,000 t, Planck 12,000 t, Raw Manifold Bud 4,000 t, all at RECIPE_MAX). There is no
+compensation anywhere (your ruling: "No offset, build until finished please"): no `bootstrapCompensation` key, no
+SL-G14..G16, no halved cards.
+
+### 15.1 Per member (sub-tree EU)
+
+| Member | Sidereal | Empyrean | Omega | Floor (stock RSAL Optical) |
+|---|---|---|---|---|
+| Processor | 9.0×10⁹ (UHV) | 5.9×10¹⁰ (UEV) | 2.0×10¹¹ (UIV) | UHV 4.7×10⁹, UEV 3.5×10¹⁰, UIV 1.9×10¹¹: all met |
+| Assembly | 4.9×10¹⁰ (UEV) | 2.4×10¹¹ (UIV) | 6.9×10¹¹ (UMV) | met |
+| Supercomputer | 2.1×10¹¹ (UIV) | 7.3×10¹¹ (UMV) | 2.0×10¹² (UXV) | met |
+| Mainframe | **6.6×10¹¹ (UMV)** | **2.5×10¹² (UXV)** | **7.1×10¹² (MAX)** | — |
+
+Same-tier items agree across families (every UMV item 6.6-7.3×10¹¹, every UXV item 2.0-2.5×10¹²), so no family
+undercuts another.
+
+### 15.2 The three tops against stock, before and after the raise
+
+| Tier | Stock (RC-2) | Stock EU | Raised stock (SL-G10..G13, built) | Ours | Our EU | Ours vs stock | Ours vs raised | Peak EU/t |
+|---|---|---|---|---|---|---|---|---|
+| UMV | Piko (NAC) | 9.1×10¹² | 2.2×10¹³ (×2.44) | Sidereal Mainframe | 6.6×10¹¹ | **13.7x less** | 33x less | UMV vs MAX |
+| UXV | Quantum (NAC) | 3.5×10¹³ | 8.5×10¹³ (×2.47) | Empyrean Mainframe | 2.5×10¹² | **13.9x less** | 34x less | UMV vs MAX |
+| MAX | Planck (NAC) | 1.0×10¹⁴ | 2.5×10¹⁴ (×2.47) | Omega Mainframe | 7.1×10¹² | **14.3x less** | 35x less | UMV vs MAX |
+
+The raise as built: duration ×2.5 at the same EU/t (so EU ×2.5) and every item and fluid ×2, except the circuit
+already inside (the Quantum CPU in Quantum; the Planck CPU and the Calabi-Yau Manifold in Planck), so each circuit
+pays the raise once. Piko 4,000 → 10,000 t, Quantum 8,000 → 20,000 t, Raw Manifold Bud 4,000 → 10,000 t, Planck
+12,000 → 30,000 t. `raiseStockSpecialCircuits=false` puts them back.
+
+**"Pricier materials and more processing"** (per Mainframe):
+
+| | Piko (stock) | Sidereal Mainframe | Empyrean Mainframe | Omega Mainframe |
+|---|---|---|---|---|
+| Distinct machine steps | 6 NAC modules + the Optical sub-tree | 8 (EBF, cutter, engraver, cutter, CA, AL ×3) | 11 (+ engraver, SMD assembler, 2 board steps) | 13 |
+| Eye matter | none | Raw Star Matter | + ESPM, **White Dwarf Matter** | + HSM, **Black Dwarf Matter** |
+| Late metals | Transcendent Metal bolts, Infinity wire, Proto-Halkonite | Shirabon, SpaceTime, Hypogen, Celestial Tungsten | + Radox, SpaceTime wire, UMV superconductor | + Hexanite, WDM / BDM fine wire, DTR |
+| T10 matter | none | none | none | **none** (Planck needs Universium, Eternity, MagMatter) |
+
+### 15.3 The bill of the raise before Empyrean exists (stock and raised; no compensation)
+
+Every one of our cards keeps GT's any-of-tier circuit slot, so stock circuits and ours both fit (your ruling: "Any of
+the tier such as the (any uxv) forming oress recipe"). Before Eye T4 the only UXV circuit is the Quantum, which the raise
+makes about 2.45x dearer. Two UXV consumers gate T1-T4: the Field Generator UMV (4 UXV each) inside our T1-T4 cards, and
+the Eye's own field generators (470 UXV at T1, 564 more for the T2-T4 compression upgrades). EU at nominal cost
+(Quantum 3.5×10¹³ stock / 8.5×10¹³ raised; raised Piko 2.2×10¹³; from T1 the cards' direct UMV slots take the
+Sidereal Mainframe at 6.6×10¹¹):
+
+| Bill (before Empyrean exists) | Stock | Raised (built) |
+|---|---|---|
+| Our cards that gate T1 (E01, B20, B22, P38) | 2.5×10¹⁶ | 6.1×10¹⁶ |
+| Our cards that gate T2-T4 (about 480 UXV in FG UMV; direct UMV slots filled with Sidereal) | 1.7×10¹⁶ | 4.1×10¹⁶ |
+| Eye T1 generators (470 UXV) | 1.6×10¹⁶ | 4.0×10¹⁶ |
+| Compression upgrades T2-T4 (564 UXV) | 2.0×10¹⁶ | 4.8×10¹⁶ |
+| **Total** | **7.8×10¹⁶** | **1.9×10¹⁷ (2.4x)** |
+
+With TecTech's Eye left on (`replaceTecTechEyeOfHarmony=false`) its generators pay the same raised price. From T4 the
+UXV slots take the Empyrean Mainframe (about 34x under the raised Quantum) and from T5 the MAX slots take the Omega
+Mainframe. Every stock consumer outside the ladder feels the full raise or takes our route.
+
+### 15.4 Matter inside one top circuit
+
+| Mainframe | Wafers inside | Raw Star Matter | ESPM | HSM | WDM | BDM |
+|---|---|---|---|---|---|---|
+| Sidereal | 1 Sidereal Wafer (8 chips) | 312 L | — | — | — | — |
+| Empyrean | 1 Empyrean Wafer + the Sidereal Mainframe's | 625 L | 2,590 L | — | **36 L** | — |
+| Omega | 1 Omega Wafer + the Empyrean Mainframe's | 937 L | 6,440 L | 100 L | **72 L** | **18 L** |
+
+(1,000 L Raw Star Matter per boule / 16 wafers + 250 L per engraving = 312 L per Sidereal wafer; Grade-8 water lowers
+it by a third.)
+
+### 15.5 The chain as run (B-136)
+
+`/btsrecipes chain` (B-136) ran the whole chain in real stock GT machines: an Electric Blast Furnace (Hypogen coils), a
+Hyper-Intensity Laser Engraver, the UMV single-block Cutting Machine, Assembling Machine and Circuit Assembler, and a
+16-slice Assembly Line, one recipe run per step. Our items moved only from machine outputs to the next machine; stock
+parts and Eye fluids were supplied. Grade-7 water routes (SL-X02 / X07, the 312 L-per-wafer column of §15.4).
+
+| Mainframe | Recipe runs from an empty store | By machine | Game time (warp x20) |
+|---|---|---|---|
+| Sidereal | 21 (9 recipes) | Circuit Assembler 8, Assembly Line 7, Assembler 2, Cutter 2, EBF 1, Engraver 1 | 4,206 t (10 s real) |
+| Empyrean | 64 (21 recipes); 62 as run, with 15 Stellar Wafers left from the Sidereal run | Assembler 25, Circuit Assembler 16, Assembly Line 14, Cutter 4, Engraver 3, EBF 2 | 17,412 t (43 s real) |
+| Omega | 116 (28 recipes); 109 as run | Assembler 56, Circuit Assembler 24, Assembly Line 21, Cutter 6, Engraver 6, EBF 3 | 50,722 t (126 s real) |
+
+The Assembler count is mostly Stellar SMDs: each run makes 64 of one kind, and an Omega Mainframe eats about 2,640 of
+them (§15.4). Matter actually consumed for the three (one Sidereal, one Empyrean holding a Sidereal, one Omega holding an
+Empyrean holding a Sidereal): Raw Star Matter 5,500 L (4 boules, 6 engravings), ESPM 9,102 L, White Dwarf Matter 108 L
+(three Empyrean wafers), Hyperdense Stellar Mixture 100 L, Black Dwarf Matter 18 L, as §15.4 predicts (the ESPM is a
+little over 2,590 + 6,440 because SMDs come in 64s). The two-fluid engravings (SL-X05 / X06) need a multiblock engraver:
+a single-block Laser Engraver has one fluid slot.
+
+### 15.6 Computer rack (no cost change; why it matters for the raise)
+
+The raise also prices late computation, because the computer rack takes Piko / Quantum / Planck by exact item. Our
+Mainframes are rack parts with slightly better numbers (your ruling "Yes, slightly better"): Sidereal 280 computation /
+11 heat / 10,000 max heat (Piko 260 / 12 / 9,500), Empyrean 340 / 9 / 10,500 (Quantum 320 / 10 / 10,000), Omega 380 /
+7 / 10,500 (Planck 360 / 8 / 10,000), all cool -1 and sub-zero. So a rack filled from our route costs about a
+fourteenth of a stock one and computes a little more.

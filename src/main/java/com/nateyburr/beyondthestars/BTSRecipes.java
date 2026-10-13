@@ -16,10 +16,12 @@ package com.nateyburr.beyondthestars;
  *   BTSRecipesMachines    Agent D   controllers, hatches, control blocks, rotor
  *   BTSRecipesStellar     D-49      the Antipolarization Agent chain (SL-S01..S02)
  *   BTSRecipesBEC         BEC       condensates + Condensate Assembler recipes (SL-B01..B81)
- *   (BTSRecipesGeneratorUpgrade, B-83, and SL-G01 run at load-complete: CommonProxy.loadComplete)
+ *   (BTSRecipesGeneratorUpgrade, B-83, SL-G01..G03 and BTSStockCircuitRaise SL-G10..G13 run at load-complete:
+ *   CommonProxy.loadComplete)
  *   BTSRecipesAutomation  automation the Directive Hatch (SL-A01)
  *   BTSRecipesReality     H/R       the Homogeny / Reality BEC recipes (SL-C01..C04, SL-H01..H20, SL-R01..R17)
- *   BTSRecipesQuasar      P4        the quasar / conduit / Eye T7-T8 recipes (SL-B16, SL-Q01..Q26, SL-P40)
+ *   BTSRecipesQuasar      P4        the quasar / conduit / Eye T7-T8 recipes (SL-B16, SL-Q01..Q26)
+ *   BTSRecipesCircuits    circuits  Circuits v2: wafers, Stellar SMDs, boards, Sidereal / Empyrean / Omega (SL-X01..X32)
  * </pre>
  *
  * <b>Nothing may be added to THIS file.</b> A recipe here would be a recipe with no owner, and
@@ -64,9 +66,15 @@ public final class BTSRecipes {
         // condensates (BTSRecipesReality, one owner). Runs after "bec", whose
         // condensates it reuses (registered here only if absent).
         BTSRecipeGuard.line("reality", BTSRecipesReality::register);
-        // P4: the quasar, conduit, crowns, their blocks, the T7/T8 cores and charts, SL-P40 (BTSRecipesQuasar, one
+        // P4: the quasar, conduit, crowns, their blocks, the T7/T8 cores and charts (BTSRecipesQuasar, one
         // owner). After "reality": it uses that line's Entangled Ergomatter (SL-C02).
         BTSRecipeGuard.line("quasar", BTSRecipesQuasar::register);
+        // Circuits v2 (circuits-v2.md §2): the wafer / SMD / board / circuit chain in stock GT machines and the
+        // research Assembly Line (BTSRecipesCircuits, one owner).
+        BTSRecipeGuard.line("circuits", BTSRecipesCircuits::register);
+        // Circuits v2 §4.5: the NAC route SL-N01..N23 (BTSRecipesNac, one owner). After "circuits": the matrix recipes
+        // are derived from the live SL-X21..X32.
+        BTSRecipeGuard.line("nac", BTSRecipesNac::register);
         BTSRecipeGuard.line("display", BTSDisplayRecipes::register);
 
         BTSRecipeGuard.summary();

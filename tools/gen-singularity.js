@@ -247,14 +247,20 @@ function scanSource(src) {
         for (const m of t.matchAll(/GameRegistry\.registerItem\(\s*\w+\s*,\s*"([A-Za-z0-9_]+)"/g)) items.add(m[1]);
         for (const m of t.matchAll(/GameRegistry\.registerBlock\(\s*\w+\s*,\s*[\w.]+\s*,\s*"([A-Za-z0-9_]+)"/g)) items.add(m[1]);
         for (const m of t.matchAll(/"(bts[a-z0-9]+)"/g)) fluids.add(m[1]);
+        // SLCircuitItems registers through its own private define("name") (circuits v2, items/SLCircuitItems.java)
+        if (f.endsWith(path.sep + 'SLCircuitItems.java')) for (const m of t.matchAll(/\bdefine\(\s*"([A-Za-z0-9_]+)"/g)) items.add(m[1]);
     }
+    // Config's boolean flags: the names a pack edit (or one of its ops) may be gated on with "config".
+    const configFlags = new Set();
     // MTE ids: BTSMachines registers base + n with the unlocalised name next to it.
     const bm = java.find(f => f.endsWith(path.join('machines', 'BTSMachines.java')));
     const cfg = java.find(f => f.endsWith(path.sep + 'Config.java'));
     let base = 28100;
     if (cfg) {
-        const m = /mteBaseId\s*=\s*(\d+)/.exec(fs.readFileSync(cfg, 'utf8'));
+        const ct = fs.readFileSync(cfg, 'utf8');
+        const m = /mteBaseId\s*=\s*(\d+)/.exec(ct);
         if (m) base = +m[1];
+        for (const b of ct.matchAll(/public static boolean (\w+)/g)) configFlags.add(b[1]);
     }
     if (bm) {
         const t = fs.readFileSync(bm, 'utf8');
@@ -286,7 +292,7 @@ function scanSource(src) {
     } catch (e) { head = '?'; }
     const manifestFile = path.join(src, 'src/main/resources/assets/beyondthestars/structures/manifest.json');
     const manifest = fs.existsSync(manifestFile) ? JSON.parse(fs.readFileSync(manifestFile, 'utf8')) : null;
-    return { items, fluids, mtes, blocks, manifest, head };
+    return { items, fluids, mtes, blocks, manifest, head, configFlags };
 }
 
 // ------------------------------------------------------------------------------------ the pack
@@ -626,7 +632,18 @@ function build(data, opts) {
         for (const t of Object.values(orig['tasks:9'] || {})) for (const it of Object.values(t['requiredItems:9'] || {})) taskItems.add(`${it['id:8']}:${it['Damage:2']}`);
         const out = [];
         const moves = [];
+        // "config" gates the whole edit; an op's own "config" gates only that op (text that is true only under a
+        // flag, e.g. the circuit raise's warning). Both must name boolean fields of Config.java.
+        const checkFlags = (list, w) => {
+            if (list === undefined) return;
+            if (!Array.isArray(list) || !list.every(f => typeof f === 'string')) { error(`${w}: config must be a list of flag names`); return; }
+            for (const f of list) if (src.configFlags && !src.configFlags.has(f)) error(`${w}: config flag '${f}' is not a boolean in Config.java`);
+        };
+        checkFlags(e.config, where);
         for (const op of ops || []) {
+            checkFlags(op.config, `${where} op ${op.op}`);
+            if (op.config && op.op !== 'appendText') error(`${where} op ${op.op}: only appendText may carry its own config`);
+            const before = out.length;
             const w = `${where} op ${op.op}`;
             switch (op.op) {
             case 'setName': out.push({ op: 'setName', name: fmt.title(op.name, w) }); break;
@@ -684,6 +701,7 @@ function build(data, opts) {
             }
             default: error(`${w}: unknown op`);
             }
+            if (op.config && out.length > before) out[out.length - 1].config = op.config.slice();
         }
         const rec = {
             id: e.id, quest: e.quest, expectName: e.expectName, expectChapter: exCh.b64, config: e.config || [],
@@ -1324,6 +1342,9 @@ function selftest(inp) {
         ['an id changing meaning in the ledger', d => { q(d, 48100).key = 'renamed_key'; return d; }, /change meaning/],
         ['a shipped id disappearing', d => { d.quests = d.quests.filter(x => x.low !== 48193); return d; }, /is gone/],
         ['a prerequisite cycle', d => { q(d, 48114).prereqs.push(48117); return d; }, /prerequisite cycle/],
+        ['an op gated on a flag Config does not have', d => {
+            d.packEdits.find(e => e.id === 'E38').ops[0].config = ['noSuchConfigFlag']; return d;
+        }, /not a boolean in Config/],
         ['a placeholder shipping with a tbd task', d => { d.features.maxParts = true; return d; }, /still 'tbd'/],
         ['a bill role reassigned in the manifest', d => { d.bomItems.eye.band_shell.expect = 'NotThisBlock'; return d; }, /bomItems expects/],
         ['a long bold run', d => { q(d, 48100).desc = ['{5}{l}This whole sentence is bold and will be cut off.{r}']; return d; }, /bold run of/],

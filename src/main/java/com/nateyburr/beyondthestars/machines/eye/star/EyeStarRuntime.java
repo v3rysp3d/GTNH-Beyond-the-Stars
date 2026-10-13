@@ -2811,6 +2811,48 @@ public final class EyeStarRuntime {
             .meanStream(q.state().G0, q.state().Yq, true);
     }
 
+    /**
+     * B-118 "Warn, allow" (user, 2026-10-13): the most the linked quasar can put on the Eye on the Magnetar Collapse's
+     * second, Bu/t: a purge at full flux, {@code QuasarParams.peakStream} at its current G0 and Y_q (3.5 × G0·Y_q;
+     * the assist sends J1 all to the Eye on the cue), before any throat cap. 0 with no link. The bench's scripted
+     * quasar reports its purging mean (0.8 × G0·Y_q), scaled back to the same peak.
+     */
+    public double linkedQuasarPeak() {
+        if (benchBursts != null && benchFlux != null) {
+            return benchFlux.length > 2
+                ? benchFlux[2] / com.nateyburr.beyondthestars.machines.quasar.engine.QuasarParams.MEAN_PURGE_40
+                    * com.nateyburr.beyondthestars.machines.quasar.engine.QuasarParams.PEAK_PURGE
+                : 0;
+        }
+        final BurstSource s = galaxy.bursts.sourceId;
+        final MTEQuasarEngine q = s == null ? null : s.resolve();
+        if (q == null || !q.isFormed()) return 0;
+        return com.nateyburr.beyondthestars.machines.quasar.engine.QuasarParams.peakStream(q.state().G0, q.state().Yq);
+    }
+
+    /**
+     * The Bu/t on the collapse second that cancels the next Magnetar Collapse's whole shock: the number the countdown
+     * line states (13.5 at the adopted +120).
+     */
+    public double collapseFullCancelBu() {
+        return MagnetarCollapseOverlay.fullCancelBu(collapseShock);
+    }
+
+    /**
+     * B-118: a lit magnetar waiting for the Magnetar Collapse (no transition yet) whose linked quasar's peak
+     * ({@link #linkedQuasarPeak}) is under {@link #collapseFullCancelBu}: even a purge at full flux timed onto the
+     * collapse second leaves part of the shock. A warning only: Begin still works (my "Warn, allow").
+     */
+    public boolean collapseQuasarWeak() {
+        if (trans != null || state != StarState.PENDING || star == null || star.n() != 6) return false;
+        return linkedQuasarPeak() < collapseFullCancelBu();
+    }
+
+    /** The shock the next Magnetar Collapse would land with if the linked quasar delivered its peak (readout). */
+    public double collapseShockAtPeak() {
+        return MagnetarCollapseOverlay.predictedShock(collapseShock, linkedQuasarPeak());
+    }
+
     /** The Trims set's bit names on the star burning now (its trim table), else the set's defaults. */
     public String directiveBitLabel(DirectiveSet set, int i) {
         if (set == DirectiveSet.EYE_TRIMS && fs != null && star != null) {

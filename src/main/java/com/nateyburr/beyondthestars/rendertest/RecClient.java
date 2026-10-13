@@ -909,6 +909,7 @@ public final class RecClient {
                             .toLowerCase(Locale.ROOT),
                         c.arg(1),
                         c.kv.getOrDefault("tab", ""),
+                        (int) c.num("page", 0),
                         (int) c.num("scale", guiScaleDefault)));
                 break;
             case "goto": {
@@ -1946,15 +1947,22 @@ public final class RecClient {
     private final class Nei extends Act {
 
         final String kind, spec, tab;
-        final int scale;
+        final int scale, page;
         int up, waited;
-        boolean tabbed;
+        boolean tabbed, paged;
 
-        Nei(String kind, String spec, String tab, int scale) {
-            super("NEI " + kind + " " + spec + (tab.isEmpty() ? "" : " (tab " + tab + ")"));
+        Nei(String kind, String spec, String tab, int page, int scale) {
+            super(
+                "NEI " + kind
+                    + " "
+                    + spec
+                    + (tab.isEmpty() ? "" : " (tab " + tab + ")")
+                    + (page > 0 ? " page +" + page : ""));
             this.kind = kind;
             this.spec = spec;
-            this.tab = tab.toLowerCase(Locale.ROOT);
+            this.tab = tab.replace('_', ' ')
+                .toLowerCase(Locale.ROOT);
+            this.page = page;
             this.scale = scale;
         }
 
@@ -1965,7 +1973,10 @@ public final class RecClient {
             mc.gameSettings.guiScale = scale;
             parkMouse();
             try {
-                final ItemStack stack = RecServer.machine(spec);
+                // ItemList.<name>, sl.<SLCircuitItems field>, cc.<CircuitComponent>, mod:item[:meta]; bts.<BTSMachines>
+                final ItemStack stack = spec.startsWith("bts.") ? RecServer.machine(spec)
+                    : GuiShotsClient.neiStack(spec);
+                if (stack == null) throw new IllegalArgumentException("no item for " + spec);
                 final String cls = kind.equals("usage") ? "codechicken.nei.recipe.GuiUsageRecipe"
                     : "codechicken.nei.recipe.GuiCraftingRecipe";
                 final Object ok = Class.forName(cls)
@@ -1992,6 +2003,10 @@ public final class RecClient {
             if (!tabbed && !tab.isEmpty() && up >= 2) {
                 tabbed = true;
                 selectTab();
+            }
+            if (!paged && page > 0 && up >= 4) {
+                paged = true;
+                turnPages();
             }
             if (up >= 20 || waited >= 200) done = true;
         }
@@ -2042,6 +2057,22 @@ public final class RecClient {
                 say("    NEI tab " + found + " selected");
             } catch (ReflectiveOperationException | LinkageError | RuntimeException bad) {
                 say("    NEI tab FAILED: " + bad);
+            }
+        }
+
+        /** The recipe page within the tab: {@code page} presses of NEI's next-page button. */
+        private void turnPages() {
+            try {
+                final Class<?> gr = Class.forName("codechicken.nei.recipe.GuiRecipe");
+                if (!gr.isInstance(mc.currentScreen)) return;
+                final java.lang.reflect.Method next = gr.getDeclaredMethod("nextPage");
+                next.setAccessible(true);
+                for (int i = 0; i < page; i++) next.invoke(mc.currentScreen);
+                say(
+                    "    NEI page now " + gr.getField("page")
+                        .getInt(mc.currentScreen));
+            } catch (ReflectiveOperationException | LinkageError | RuntimeException bad) {
+                say("    NEI page FAILED: " + bad);
             }
         }
     }

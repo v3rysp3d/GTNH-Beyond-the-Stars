@@ -71,6 +71,13 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
  * <li>{@code scroll <x> <y> <n>}: the fake mouse there, then n wheel notches down (negative: up).</li>
  * <li>{@code shot <name>}: saves the next frame to {@code screenshots/guishots/<name>.png} and logs the open panels'
  * areas in window pixels (for cropping).</li>
+ * <li>{@code nei <usage|recipe> <item> [tab <text>] [page <n>]}: NEI's recipe screen for an item
+ * ({@code ItemList.<name>},
+ * {@code sl.<SLCircuitItems field>}, {@code cc.<CircuitComponent name>} (the NAC's packaged component) or
+ * {@code modid:name[:meta]}); {@code tab} selects the first tab whose name or handler class contains the text
+ * ({@code _} for a space), {@code page} turns that many pages on (circuits v2 C7).</li>
+ * <li>{@code shotw <name>}: like {@code shot}, but of the world with no screen open (HUD hidden for the frame).</li>
+ * <li>{@code tp <x> <y> <z> [yaw] [pitch]}: the pitch defaults to 30 (looking down a little).</li>
  * <li>{@code close}: closes the screen. {@code say <text>}: logs {@code MARK <text>} (a driver waits for it).</li>
  * <li>{@code quit}: closes the client.</li>
  * </ul>
@@ -103,6 +110,9 @@ public final class GuiShotsClient {
     private CompletableFuture<?> pending;
     private int waitLeft;
     private String shotName;
+    /** shotw: the next frame is saved even with no screen open. */
+    private boolean shotWorld;
+    private boolean hudWas;
     private int clickButton = -1;
     private int scrollNotches;
     /** gui: the controller waited for on the client, then opened by the server. */
@@ -242,9 +252,13 @@ public final class GuiShotsClient {
             applyMouse();
             return;
         }
-        if (shotName != null && mc.currentScreen != null) {
+        if (shotName != null && (mc.currentScreen != null || shotWorld)) {
             final String name = shotName;
             shotName = null;
+            if (shotWorld && currentTicks < 5) {
+                shotName = name; // let a HUD-less frame render first
+                return;
+            }
             ScreenShotHelper.saveScreenshot(
                 mc.mcDataDir,
                 "guishots/" + name + ".png",
@@ -252,6 +266,10 @@ public final class GuiShotsClient {
                 mc.displayHeight,
                 mc.getFramebuffer());
             say("SHOT " + name + " " + panels());
+            if (shotWorld) {
+                shotWorld = false;
+                mc.gameSettings.hideGUI = hudWas;
+            }
             finish();
         }
     }
@@ -348,10 +366,11 @@ public final class GuiShotsClient {
                     final double x = Double.parseDouble(a[1]), y = Double.parseDouble(a[2]),
                         z = Double.parseDouble(a[3]);
                     final float yaw = a.length > 4 ? Float.parseFloat(a[4]) : 0f;
+                    final float pitch = a.length > 5 ? Float.parseFloat(a[5]) : 30f;
                     pending = RenderTest.onServer(() -> {
                         final EntityPlayerMP p = RenderTest.player();
                         if (p == null) return "no player";
-                        p.playerNetServerHandler.setPlayerLocation(x, y, z, yaw, 30f);
+                        p.playerNetServerHandler.setPlayerLocation(x, y, z, yaw, pitch);
                         return "teleported";
                     });
                     waitLeft = 40;
@@ -457,6 +476,18 @@ public final class GuiShotsClient {
                     fakeY = Integer.parseInt(a[2]);
                     scrollNotches = Integer.parseInt(a[3]);
                     waitLeft = 12;
+                    break;
+                case "nei":
+                    openNei(a);
+                    waitLeft = 30;
+                    break;
+                case "shotw":
+                    if (mc.currentScreen != null) mc.displayGuiScreen(null);
+                    hudWas = mc.gameSettings.hideGUI;
+                    mc.gameSettings.hideGUI = true;
+                    shotWorld = true;
+                    shotName = a[1];
+                    waitLeft = -2;
                     break;
                 case "shot":
                     if (mc.currentScreen == null) {
@@ -769,6 +800,12 @@ public final class GuiShotsClient {
                     .getArea();
                 gx = a.x + fakeX;
                 gy = a.y + fakeY;
+            } else if (fakeX >= 0 && mc.currentScreen instanceof net.minecraft.client.gui.inventory.GuiContainer) {
+                // a plain container screen (a chest, NEI's recipe screen): relative to its top left
+                final int[] origin = containerOrigin(
+                    (net.minecraft.client.gui.inventory.GuiContainer) mc.currentScreen);
+                gx = origin[0] + fakeX;
+                gy = origin[1] + fakeY;
             }
             mouseX.setInt(null, gx * f + f / 2);
             mouseY.setInt(null, (sr.getScaledHeight() - 1 - gy) * f + f / 2);
@@ -786,6 +823,137 @@ public final class GuiShotsClient {
             flag.setBoolean(null, false);
         } catch (ReflectiveOperationException | LinkageError | RuntimeException absent) {
             // no coremod in this runtime
+        }
+    }
+
+    private static int[] containerOrigin(net.minecraft.client.gui.inventory.GuiContainer gc) {
+        try {
+            final Field left = net.minecraft.client.gui.inventory.GuiContainer.class.getDeclaredField("guiLeft");
+            final Field top = net.minecraft.client.gui.inventory.GuiContainer.class.getDeclaredField("guiTop");
+            left.setAccessible(true);
+            top.setAccessible(true);
+            return new int[] { left.getInt(gc), top.getInt(gc) };
+        } catch (ReflectiveOperationException | RuntimeException bad) {
+            return new int[] { 0, 0 };
+        }
+    }
+
+    /** nei usage|recipe <item> [tab <text>] [page <n>] (circuits v2 C7: the chain and the raised Piko in NEI). */
+    private void openNei(String[] a) {
+        if (a.length < 3) {
+            say("  usage: nei <usage|recipe> <item> [tab <text>] [page <n>]");
+            return;
+        }
+        String tab = "";
+        int pages = 0;
+        for (int i = 3; i + 1 < a.length; i++) {
+            if (a[i].equalsIgnoreCase("tab")) tab = a[i + 1].replace('_', ' ')
+                .toLowerCase(Locale.ROOT);
+            if (a[i].equalsIgnoreCase("page")) pages = Integer.parseInt(a[i + 1]);
+        }
+        final net.minecraft.item.ItemStack stack = neiStack(a[2]);
+        if (stack == null) {
+            say("  no item for '" + a[2] + "'");
+            return;
+        }
+        try {
+            final String cls = a[1].equalsIgnoreCase("usage") ? "codechicken.nei.recipe.GuiUsageRecipe"
+                : "codechicken.nei.recipe.GuiCraftingRecipe";
+            final Object ok = Class.forName(cls)
+                .getMethod("openRecipeGui", String.class, Object[].class)
+                .invoke(null, "item", new Object[] { stack });
+            say("  NEI " + a[1] + " for " + stack.getDisplayName() + ": " + ok);
+            if (!Boolean.TRUE.equals(ok)) return;
+            final Class<?> gr = Class.forName("codechicken.nei.recipe.GuiRecipe");
+            if (!gr.isInstance(mc.currentScreen)) {
+                say("  NEI screen not up: " + mc.currentScreen);
+                return;
+            }
+            final List<?> handlers = (List<?>) gr.getField("currenthandlers")
+                .get(mc.currentScreen);
+            final StringBuilder names = new StringBuilder();
+            int found = -1;
+            for (int i = 0; i < handlers.size(); i++) {
+                final Object h = handlers.get(i);
+                String name;
+                try {
+                    name = String.valueOf(
+                        h.getClass()
+                            .getMethod("getRecipeName")
+                            .invoke(h));
+                } catch (ReflectiveOperationException none) {
+                    name = "?";
+                }
+                int n = -1;
+                try {
+                    n = (Integer) h.getClass()
+                        .getMethod("numRecipes")
+                        .invoke(h);
+                } catch (ReflectiveOperationException | RuntimeException none) {
+                    // not counted
+                }
+                names.append(i)
+                    .append('=')
+                    .append(name)
+                    .append(" [")
+                    .append(n)
+                    .append("] ");
+                if (found < 0 && !tab.isEmpty()
+                    && (name.toLowerCase(Locale.ROOT)
+                        .contains(tab)
+                        || h.getClass()
+                            .getName()
+                            .toLowerCase(Locale.ROOT)
+                            .contains(tab)))
+                    found = i;
+            }
+            say("  NEI tabs: " + names);
+            if (!tab.isEmpty()) {
+                if (found < 0) {
+                    say("  no tab matching '" + tab + "'");
+                } else {
+                    final java.lang.reflect.Method set = gr.getDeclaredMethod("setRecipePage", int.class);
+                    set.setAccessible(true);
+                    set.invoke(mc.currentScreen, found);
+                    say("  NEI tab " + found + " selected");
+                }
+            }
+            if (pages > 0) {
+                final java.lang.reflect.Method next = gr.getDeclaredMethod("nextPage");
+                next.setAccessible(true);
+                for (int i = 0; i < pages; i++) next.invoke(mc.currentScreen);
+                say(
+                    "  NEI page now " + gr.getField("page")
+                        .getInt(mc.currentScreen));
+            }
+        } catch (ReflectiveOperationException | LinkageError | RuntimeException bad) {
+            say("  NEI FAILED: " + bad);
+        }
+    }
+
+    /** Shared with the recorder's {@code nei}: ItemList.<name>, sl.<field>, cc.<component>, mod:item[:meta]. */
+    static net.minecraft.item.ItemStack neiStack(String spec) {
+        try {
+            if (spec.startsWith("ItemList.")) {
+                return gregtech.api.enums.ItemList.valueOf(spec.substring(9))
+                    .get(1);
+            }
+            if (spec.startsWith("sl.")) {
+                final Object item = com.nateyburr.beyondthestars.items.SLCircuitItems.class.getField(spec.substring(3))
+                    .get(null);
+                return item == null ? null : new net.minecraft.item.ItemStack((net.minecraft.item.Item) item, 1, 0);
+            }
+            if (spec.startsWith("cc.")) {
+                return gregtech.common.tileentities.machines.multi.nanochip.util.CircuitComponent
+                    .valueOf(spec.substring(3))
+                    .getFakeStack(1);
+            }
+            final String[] p = spec.split(":");
+            final net.minecraft.item.Item item = cpw.mods.fml.common.registry.GameRegistry.findItem(p[0], p[1]);
+            return item == null ? null
+                : new net.minecraft.item.ItemStack(item, 1, p.length > 2 ? Integer.parseInt(p[2]) : 0);
+        } catch (ReflectiveOperationException | RuntimeException bad) {
+            return null;
         }
     }
 

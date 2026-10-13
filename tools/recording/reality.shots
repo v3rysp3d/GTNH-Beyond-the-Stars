@@ -1,0 +1,90 @@
+# Beyond the Stars - REALITY RUNNING clip (docs/recording.md). Reality Diffraction and Reality Refab running on a real
+# TecTech Bose-Einstein Condensate network: the re-shoot of showcase v2's chapter-5 scenes (brief item 32(f)), where
+# the two stood idle for want of a BEC network. About 45 s at 1920x1080, 30 fps.
+#
+# Honesty rules (as showcase2.shots): everything is raised by script in a fresh creative superflat world and the
+# captions say so. /btshr builds the two machines and fills their inputs (/btshr bench ... fill: the Diffraction's
+# medium and six anchors, the Refab's Star Chart items); /btshr becnet (BECNetBench) builds TecTech's own BEC
+# Containment Field and Condensate Assembler by their own creative construct, on GT Debug Energy Hatches, with a Nanite
+# Containment Bus of 64 Black Dwarf nanites, and lays BEC conduit from each machine's BEC Hatch to the field. After
+# that nothing is scripted: the Diffraction's regions go into the field through the network, the Refab draws them out
+# and borrows the Assembler's nanites. Long stretches run under the time warp (/btswarp, a cheat; its tag shows the
+# measured multiplier).
+#
+# Sites (all facing north): Reality Diffraction (6900, 8, 4000), Reality Refab (7020, 6, 4000), the Containment Field
+# (controller 6960, 6, 3890; its front face at z 3874), the Condensate Assembler (7040, 20, 3945).
+
+# ---------------------------------------------------------------- setup (never recorded)
+time day
+command /btshr diffraction 6900 8 4000 north fill
+command /btshr keep diffraction 6900 8 4000 north
+command /btshr refab 7020 6 4000 north fill
+command /btshr keep refab 7020 6 4000 north
+command /btshr becnet power 6900 8 4000
+command /btshr becnet power 7020 6 4000
+command /btshr bench 6900 8 4000 off
+command /btshr bench 7020 6 4000 off
+command /btshr becnet field 6960 6 3890
+command /btshr becnet assembler 7040 20 3945
+command /btshr becnet link 6960 6 3890 6900 8 4000
+command /btshr becnet link 6960 6 3890 7020 6 4000
+name dif 6900,8,4000
+name ref 7020,6,4000
+name refout 7020,119,4009
+name field 6960,16,3896
+name asm 7040,22,3930
+name conduit 6960,12,3940
+
+# ================================================================ title
+scene title
+  card 4 Reality Diffraction and Reality Refab, running | on a TecTech Bose-Einstein Condensate network (GTNH 2.9) | set up by script; then the machines run on their own
+
+# ================================================================ the site
+scene site
+  caption Set up by script: TecTech's BEC Containment Field and Condensate Assembler (creative power), BEC conduit to each machine, inputs filled.
+  label dif side up | Reality Diffraction
+  label ref side up | Reality Refab
+  label field side up | BEC Containment Field: holds the condensate
+  label asm side right | Condensate Assembler: lends the Refab its Black Dwarf nanites
+  label conduit side down | BEC conduit
+  dolly 6888,66,3846 6938,66,3840 seconds 8 look 6965,40,3985
+
+# ================================================================ Diffraction
+scene diffraction
+  caption Reality Diffraction splits Entanglement Medium into six regions of reality and sends them into the BEC network (time warp x20).
+  goto dif+0,0.2,-3.5 look dif
+  command /btshr bench 6900 8 4000 on
+  gui dif
+  warp 20
+  hold 8
+  close
+
+scene field
+  caption The Containment Field (TecTech) holds the six regions as condensate until something draws them.
+  goto 6960.5,7.6,3893.5 look 6960.5,6.5,3890.5
+  gui 6960,6,3890
+  hold 3
+  close
+
+# ================================================================ Refab
+scene refab
+  caption Reality Refab draws the six regions back out in step with its progress and reassembles them: a Star Chart, The Observable Universe.
+  goto ref+0,0.2,-3.5 look ref
+  command /btshr bench 7020 6 4000 on
+  gui ref
+  warp 4
+  hold 11
+  close
+
+scene refab-out
+  caption The finished Star Chart in the Refab's output bus, at the top of the machine.
+  goto refout+0,1.5,-3.5 look refout
+  gui refout scale 3
+  hold 3
+  close
+
+# ================================================================ the network running
+scene running
+  caption Both machines keep running on the network: the conduits light up while it holds condensate (time warp x20).
+  warp 20
+  orbit 6965,40,3975 radius 135 height 50 from -55 to -15 seconds 8 look 6965,40,3975

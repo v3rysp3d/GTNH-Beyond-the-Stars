@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
@@ -35,6 +36,7 @@ import gregtech.api.enums.TierEU;
 import gregtech.api.objects.ItemData;
 import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.GTRecipe;
+import gregtech.api.util.GTRecipeConstants;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.recipe.Scanning;
 import gtPlusPlus.core.material.MaterialsElements;
@@ -44,10 +46,10 @@ import tectech.thing.CustomItemList;
 /**
  * SINGULARITY LADDER PARTS, SL-P01..SL-P39 (singularity-ladder-build.md §2.2; SL-P29 comes
  * from the cost audit (SL-P27/P28 are retired for RC-2's x32 BEC recipes, SL-B01/B02),
- * docs/singularity-ladder-costs.md; SL-G01 (GT's Resonance Chamber II rewritten in place; it retired SL-P39, now
- * only its fallback) from the 2.9.0-RC-2 gate audit;
- * SL-P30..P32 are retired; SL-P33 and SL-P35..P38 are the D-49 build's, d49-build-plan.md §10.3:
- * the Eye T5 gate's Resonance Chamber III, the T4-T6 star charts, the Sirius B, Cooled reclaim and the
+ * docs/singularity-ladder-costs.md; SL-G01..G03 (GT's Resonance Chambers II, III and IV rewritten in place; they
+ * retired SL-P39, SL-P33 and P4's SL-P40, now only their fallbacks) from the 2.9.0-RC-2 gate audit;
+ * SL-P30..P32 are retired; SL-P35..P38 are the D-49 build's, d49-build-plan.md §10.3:
+ * the T4-T6 star charts, the Sirius B, Cooled reclaim and the
  * Stellar Ignition Charge; SL-P26 is retired with the interim Black Dwarf Matter star; SL-P34 stays
  * reserved and unused, because the Eye T6 gate is clean on RC-2). <b>Owned by the
  * Foundation unit.</b> The Kerr's and the Eye's own recipes live in {@code BTSRecipesKerr} and
@@ -56,7 +58,7 @@ import tectech.thing.CustomItemList;
  * <b>BEC expansion (ruling 11b, bec-expansion-proposal.md):</b> SL-P15, P16, P18, P19, P21, P22-P25, P35 and P37
  * moved to the Condensate Assembler ({@link BTSRecipesBEC}, SL-B20..B81); their old bodies live there only as
  * fallbacks for a skipped BEC recipe. What stays here: Kerr T1 (pre-BEC), SL-P17 (the HSM T4 gate; SL-B62 is a
- * batch alternative), SL-P29, SL-P33 and SL-G01 (already BEC), SL-P36 and SL-P38.
+ * batch alternative), SL-P29 and SL-G01..G03 (already BEC), SL-P36 and SL-P38.
  *
  * <h2>Deviations from the §2.2 table, and why</h2>
  *
@@ -92,14 +94,13 @@ public final class BTSRecipesSingularity {
         // Our Eye needs SL-P29's casings whatever the flag says (B-26). Only the gate recipes exist
         // because TecTech's Eye (WDM's other source) is gone, so only they follow the flag.
         tecTechEyeBlocks();
-        if (Config.replaceTecTechEyeOfHarmony) {
-            BTSRecipeLedger.gated("replaceTecTechEyeOfHarmony=true", BTSRecipesSingularity::compressionGateParts);
-        } else {
+        // The compression gate chambers (SL-G01..G03) are GT's own recipes rewritten at load-complete
+        // (onLoadComplete); nothing is registered for them here.
+        if (!Config.replaceTecTechEyeOfHarmony) {
             BeyondTheStars.LOG.info(
-                "[BTS] replaceTecTechEyeOfHarmony=false: GT's Resonance Chamber II keeps its White Dwarf Matter foil "
-                    + "(no SL-G01 rewrite), and SL-P33 "
-                    + "(BDM-free Resonance Chamber III) is not registered; TecTech's Eye still makes White and "
-                    + "Black Dwarf Matter.");
+                "[BTS] replaceTecTechEyeOfHarmony=false: GT's Resonance Chambers II, III and IV keep their White Dwarf "
+                    + "Matter, Black Dwarf Matter and MHDCSM foils (no SL-G01..G03 rewrites); TecTech's Eye still "
+                    + "makes them.");
         }
     }
 
@@ -335,100 +336,124 @@ public final class BTSRecipesSingularity {
                 .addTo(assemblerRecipes));
     }
 
-    // ============================== Compression gate: the WDM-free Resonance Chamber II (only with TecTech's Eye
-    // replaced)
+    // ============================== Compression gates: GT's Resonance Chambers II-IV rewritten in place (only with
+    // TecTech's Eye replaced)
 
     /**
-     * SL-G01: GT's own Resonance Chamber II recipe is rewritten IN PLACE to take 2 SpaceTime foils where it took 1
-     * White Dwarf Matter foil (user, 2026-10-13, B-29: "Rewrite GT's in place"), so NEI shows one recipe for the
-     * chamber, not GT's plus ours. Everything else stays GT 2.9.0-RC-2's
-     * ({@code BECMetaMaterialRecipes.registerResonanceChamber}, tier 2): the other inputs, the nanite tiers (one per
-     * input index, so the foil keeps its Gold nanite), the condensates, 300 s at UIV.
+     * SL-G01..G03: GT's own Resonance Chamber II, III and IV recipes are rewritten IN PLACE (user, 2026-10-13: B-29
+     * "Rewrite GT's in place" for chamber II; Q4/Q21 the same for III and IV), so NEI shows one recipe per chamber,
+     * not GT's plus ours. Each swaps the one foil that waits on a later Eye tier for the tier below's product, at the
+     * same input index:
+     * <ul>
+     * <li><b>SL-G01</b> Resonance Chamber II (compression tiers 1-3, the Eye T2-T4 gates): 1 White Dwarf Matter foil
+     * (Eye T4) becomes 2 SpaceTime foils. Retired SL-P39.</li>
+     * <li><b>SL-G02</b> Resonance Chamber III (compression tiers 4-5, the Eye T5 / T6 gates): 1 Black Dwarf Matter
+     * foil (Eye T5) becomes 2 White Dwarf Matter foils (Eye T4). Retired SL-P33 (D-49).</li>
+     * <li><b>SL-G03</b> Resonance Chamber IV (compression tier 8, the Eye T8 gate): 1 MHDCSM foil (Endgame, D-48;
+     * Universium-made) becomes 2 SpaceTime foils, and 1,500 L of Entangled Ergomatter (Eye T7; the card's 1,440 L on
+     * GT's half-unit rule) joins the condensates as the fourth. Retired SL-P40 (P4). Its Eternity plate is reachable
+     * before T8 only through SL-Q26 (Eternity on Ergomatter).</li>
+     * </ul>
+     * Everything else stays GT 2.9.0-RC-2's ({@code BECMetaMaterialRecipes.registerResonanceChamber}): the other
+     * inputs, the nanite tiers (one per input index, so each new foil keeps the old foil's nanite), the condensates,
+     * 300 s at the chamber's voltage.
      * <p>
-     * <b>Why (gate audit, 2.9.0-RC-2 port, B-29).</b> In RC-2 every Spacetime Compression Field Generator is a
-     * Condensate Assembler recipe. Tiers 1-3 (TecTech metas 1-3: the 1:1 gates of Eye T2/T3/T4) take 1 / 4 / 16
-     * Resonance Chamber II, and each chamber takes a White Dwarf Matter foil. With TecTech's Eye replaced, WDM's only
-     * source is our Eye T4, so Eye T2 would need Eye T4 first. The chamber still takes Boundless Cosmic Solder, which
-     * is made from Raw Star Matter (our Eye T1), so the generators still need the tier below, never a tier above.
+     * <b>Why (gate audit, 2.9.0-RC-2 port, B-29, B-35, P4 §6.4).</b> In RC-2 every Spacetime Compression Field
+     * Generator is a Condensate Assembler recipe built on these chambers. With TecTech's Eye replaced, WDM, BDM and
+     * MHDCSM first exist at or after the Eye tier the chamber gates, so a generator would need its own tier first.
      * <p>
-     * <b>How.</b> The stack is swapped at the same array index, so the nanite-tier metadata (indexed by input) and
-     * the condensates (moved into metadata when GT compiled the recipe) are untouched; then the map rebuilds its
-     * item-keyed lookup ({@code reInit()}), as {@link BTSBlackHoleSwap} does. Idempotent. It runs at load-complete
+     * <b>How.</b> The foil is swapped at the same array index, so the nanite-tier metadata (indexed by input) is
+     * untouched; GT's map moved the condensates into the recipe's {@code CONDENSATE_INPUT} metadata when it compiled
+     * the
+     * recipe, so SL-G03 stores a new, longer array there (NEI and the BEC I/O nodes both read it). Then the map
+     * rebuilds
+     * its item-keyed lookup ({@code reInit()}), as {@link BTSBlackHoleSwap} does. Idempotent. It runs at load-complete
      * (from {@code CommonProxy.loadComplete}), because GT's Condensate Assembler recipes are not in the map yet when
-     * our postInit runs (seen on the RC-2 dev server: nothing to rewrite at postInit, the BHC swap finds all ten at
-     * load-complete). Only with
-     * {@code replaceTecTechEyeOfHarmony=true}: with TecTech's Eye kept, WDM has its stock source and GT's recipe stays
-     * as shipped.
+     * our
+     * postInit runs. Only with {@code replaceTecTechEyeOfHarmony=true}: with TecTech's Eye kept, the matter has its
+     * stock source and GT's recipes stay as shipped.
      * <p>
-     * <b>Retired: SL-P39</b> (the separate Condensate Assembler recipe with the same inputs). Its ID stays reserved and
-     * its body is kept below ONLY as the fallback when no GT recipe for the chamber is found to rewrite (a pack that
-     * moved it), so the Eye T2-T4 gates can never lose their chamber. Also retired: SL-P30..P32 (the old
-     * research-station "upgrade the generator" recipes); the RC-2 upgrade path is {@link BTSRecipesGeneratorUpgrade}.
+     * <b>Fallbacks.</b> The retired ids keep their bodies ONLY for a pack that moved GT's recipe (none found to
+     * rewrite): SL-P39, SL-P33 and SL-P40 (the same chamber with the same inputs, a separate Condensate Assembler
+     * recipe), so the gates can never lose their chamber. Also retired: SL-P30..P32 (the old research-station "upgrade
+     * the generator" recipes); the RC-2 upgrade path is {@link BTSRecipesGeneratorUpgrade}.
      */
     public static void onLoadComplete() {
         if (!Config.replaceTecTechEyeOfHarmony) return;
+        chamber(
+            "SL-G01",
+            "SL-P39",
+            "II",
+            ItemList.MetaMaterial_ResonanceChamber2,
+            Materials.WhiteDwarfMatter,
+            Materials.SpaceTime,
+            2,
+            null,
+            BTSRecipesSingularity::legacyP39);
+        chamber(
+            "SL-G02",
+            "SL-P33",
+            "III",
+            ItemList.MetaMaterial_ResonanceChamber3,
+            Materials.BlackDwarfMatter,
+            Materials.WhiteDwarfMatter,
+            2,
+            null,
+            BTSRecipesSingularity::legacyP33);
+        chamber(
+            "SL-G03",
+            "SL-P40",
+            "IV",
+            ItemList.MetaMaterial_ResonanceChamber4,
+            Materials.MHDCSM,
+            Materials.SpaceTime,
+            2,
+            BTSRecipesQuasar::chamberIVErgomatter,
+            BTSRecipesQuasar::legacyP40);
+    }
+
+    /**
+     * One in-place chamber rewrite under {@code id}; if no GT recipe makes the chamber with the {@code from} foil (or
+     * already with the new foil), the retired {@code fallbackId} registers its separate recipe instead.
+     */
+    private static void chamber(String id, String fallbackId, String numeral, ItemList chamberItem, Materials from,
+        Materials to, int toCount, Supplier<FluidStack> extraCondensate, Runnable fallback) {
         final int before = BTSRecipeGuard.skippedCount();
-        BTSRecipeGuard.recipe("SL-G01", () -> {
-            if (rewriteResonanceChamberII() == 0) {
+        BTSRecipeGuard.recipe(id, () -> {
+            if (rewriteChamber(id, numeral, chamberItem, from, to, toCount, extraCondensate) == 0) {
                 throw new IllegalStateException(
-                    "no Condensate Assembler recipe makes Resonance Chamber II with a White Dwarf Matter foil");
+                    "no Condensate Assembler recipe makes Resonance Chamber " + numeral
+                        + " with a "
+                        + from.mDefaultLocalName
+                        + " foil");
             }
         });
         if (BTSRecipeGuard.skippedCount() != before) {
             BeyondTheStars.LOG.warn(
-                "[BTS] SL-G01 found no GT Resonance Chamber II recipe to rewrite; SL-P39 (the same chamber with 2 "
-                    + "SpaceTime foils, a separate Condensate Assembler recipe) is registered instead.");
-            BTSRecipeLedger.fallback("SL-P39", "SL-G01 found no GT Resonance Chamber II recipe to rewrite");
-            BTSRecipeLedger.gated(
-                "replaceTecTechEyeOfHarmony=true",
-                () -> BTSRecipeGuard.recipe("SL-P39", BTSRecipesSingularity::legacyP39));
+                "[BTS] {} found no GT Resonance Chamber {} recipe to rewrite; {} (the same chamber with {} {} foils, a "
+                    + "separate Condensate Assembler recipe) is registered instead.",
+                id,
+                numeral,
+                fallbackId,
+                toCount,
+                to.mDefaultLocalName);
+            BTSRecipeLedger
+                .fallback(fallbackId, id + " found no GT Resonance Chamber " + numeral + " recipe to rewrite");
+            BTSRecipeLedger.gated("replaceTecTechEyeOfHarmony=true", () -> BTSRecipeGuard.recipe(fallbackId, fallback));
         }
     }
 
-    /** The gate parts registered at postInit with the flag on: SL-P33 (SL-G01 runs at load-complete). */
-    private static void compressionGateParts() {
-        // SL-P33 (D-49): MetaMaterial Resonance Chamber III with 2 White Dwarf Matter foils in place of GT's 1
-        // Black Dwarf Matter foil. GT's tier-3 chamber (BECMetaMaterialRecipes.registerResonanceChamber, t = 2)
-        // otherwise unchanged: 2 Emitter UIV, 2 Shirabon rods, 1 Hexanite plate; nanites White Dwarf / Gold /
-        // Transcendent / Gold; Chromatic Glass 16, Infinity 8, Boundless Cosmic Solder 3; 300 s at UMV.
-        // Why: compression generator tier index 4 (the Eye T5 gate) takes 1 Resonance Chamber III, and with the
-        // interim Eye T4 BDM star gone (D-49) Black Dwarf Matter first exists at Eye T5 itself. White Dwarf
-        // Matter is the tier below's product (Eye T4), the same "previous tier" step as SL-P39's SpaceTime for
-        // WDM. Tier index 5 (the Eye T6 gate) takes 4 chambers but may use BDM, so it needs no substitute and
-        // SL-P34 stays unused.
-        BTSRecipeGuard.recipe(
-            "SL-P33",
-            () -> GTValues.RA.stdBuilder()
-                .itemInputs(
-                    nn(ItemList.Emitter_UIV.get(2L), "ItemList.Emitter_UIV"),
-                    nn(GGMaterial.shirabon.get(OrePrefixes.stick, 2), "Shirabon rod"),
-                    BTSRecipeGuard.req(OrePrefixes.foil, Materials.WhiteDwarfMatter, 2L),
-                    BTSRecipeGuard.req(OrePrefixes.plate, Materials.Hexanite, 1L))
-                .fluidInputs(
-                    entangled(CondensateType.ChromaticGlass, 16),
-                    entangled(CondensateType.Infinity, 8),
-                    entangled(CondensateType.BoundlessCosmicSolder, 3))
-                .itemOutputs(
-                    nn(ItemList.MetaMaterial_ResonanceChamber3.get(1L), "ItemList.MetaMaterial_ResonanceChamber3"))
-                .metadata(
-                    NANITE_TIERS,
-                    new NaniteTier[] { NaniteTier.WhiteDwarf, NaniteTier.Gold, NaniteTier.Transcendent,
-                        NaniteTier.Gold })
-                .duration(300 * SECONDS)
-                .eut(TierEU.RECIPE_UMV)
-                .addTo(TecTechRecipeMaps.condensateAssemblingRecipes));
-    }
-
     /**
-     * SL-G01's body: in every Condensate Assembler recipe making Resonance Chamber II, the White Dwarf Matter foil
-     * input becomes 2 SpaceTime foils, at the same index. Returns how many recipes make the chamber with the
-     * SpaceTime foils afterwards (rewritten now or already); 0 means nothing was found.
+     * The body of SL-G01..G03: in every Condensate Assembler recipe making the chamber, the {@code from} foil input
+     * becomes {@code toCount} {@code to} foils at the same index (and {@code extraCondensate}, if any, joins the
+     * condensates). Returns how many recipes make the chamber with the new foils afterwards (rewritten now or
+     * already); 0 means nothing was found.
      */
-    private static int rewriteResonanceChamberII() {
-        final ItemStack chamber = nn(
-            ItemList.MetaMaterial_ResonanceChamber2.get(1L),
-            "ItemList.MetaMaterial_ResonanceChamber2");
-        final ItemStack spaceTime = BTSRecipeGuard.req(OrePrefixes.foil, Materials.SpaceTime, 2L);
+    private static int rewriteChamber(String id, String numeral, ItemList chamberItem, Materials from, Materials to,
+        int toCount, Supplier<FluidStack> extraCondensate) {
+        final ItemStack chamber = nn(chamberItem.get(1L), "ItemList." + chamberItem.name());
+        final ItemStack newFoil = BTSRecipeGuard.req(OrePrefixes.foil, to, toCount);
+        final FluidStack extra = extraCondensate == null ? null : extraCondensate.get();
         int done = 0, rewritten = 0;
         for (GTRecipe recipe : TecTechRecipeMaps.condensateAssemblingRecipes.getAllRecipes()) {
             if (recipe == null || recipe.mOutputs == null || recipe.mInputs == null) continue;
@@ -440,29 +465,42 @@ public final class BTSRecipesSingularity {
             for (int i = 0; i < recipe.mInputs.length; i++) {
                 final ItemStack in = recipe.mInputs[i];
                 if (in == null) continue;
-                if (in.isItemEqual(spaceTime) && in.stackSize == 2) {
+                if (isFoilOf(in, to) && in.stackSize == toCount) {
                     done++;
                     break;
                 }
-                if (isFoilOf(in, Materials.WhiteDwarfMatter)) {
+                if (isFoilOf(in, from)) {
                     final int was = in.stackSize;
-                    final java.util.Map<String, Object> before = CommandBTSRecipes.snapshot(recipe);
-                    recipe.mInputs[i] = spaceTime.copy();
+                    final java.util.Map<String, Object> snapshot = CommandBTSRecipes.snapshot(recipe);
+                    recipe.mInputs[i] = newFoil.copy();
+                    if (extra != null) addCondensate(recipe, extra);
+                    final String what = toCount + " "
+                        + to.mDefaultLocalName
+                        + " foils in place of "
+                        + was
+                        + " "
+                        + from.mDefaultLocalName
+                        + " foil"
+                        + (extra != null ? ", plus " + extra.amount + " L " + extra.getLocalizedName() : "");
                     BTSRecipeLedger.changed(
-                        "SL-G01",
+                        id,
                         CommandBTSRecipes.EYE,
                         "replaceTecTechEyeOfHarmony=true",
-                        "GT's Resonance Chamber II: 2 SpaceTime foils in place of " + was
-                            + " White Dwarf Matter foil (nanites and condensates unchanged)",
+                        "GT's Resonance Chamber " + numeral
+                            + ": "
+                            + what
+                            + " (nanites and the other condensates unchanged)",
                         TecTechRecipeMaps.condensateAssemblingRecipes,
                         recipe,
-                        before);
+                        snapshot);
                     done++;
                     rewritten++;
                     BeyondTheStars.LOG.info(
-                        "[BTS] SL-G01: GT's Resonance Chamber II (Condensate Assembler) takes 2 SpaceTime foils "
-                            + "in place of {} White Dwarf Matter foil (input {}; nanites and condensates unchanged).",
-                        was,
+                        "[BTS] {}: GT's Resonance Chamber {} (Condensate Assembler) takes {} (input {}; nanites and the "
+                            + "other condensates unchanged).",
+                        id,
+                        numeral,
+                        what,
                         i + 1);
                     break;
                 }
@@ -473,9 +511,90 @@ public final class BTSRecipesSingularity {
                 .reInit();
         }
         if (done > 1) {
-            BeyondTheStars.LOG.warn("[BTS] SL-G01: {} Condensate Assembler recipes make Resonance Chamber II.", done);
+            BeyondTheStars.LOG
+                .warn("[BTS] {}: {} Condensate Assembler recipes make Resonance Chamber {}.", id, done, numeral);
         }
         return done;
+    }
+
+    /**
+     * Bench ({@code /btseye bec}): every Condensate Assembler recipe that makes a Resonance Chamber I-IV, as NEI lists
+     * them by output (the map's recipes), each with its items, condensates and whether the map's own lookup on its
+     * inputs finds it. With {@code replaceTecTechEyeOfHarmony} on, chambers II-IV should show ONE recipe each, GT's,
+     * with SL-G01..G03's foils.
+     */
+    public static List<String> chamberLines() {
+        final List<String> out = new ArrayList<>();
+        final ItemList[] chambers = { ItemList.MetaMaterial_ResonanceChamber1, ItemList.MetaMaterial_ResonanceChamber2,
+            ItemList.MetaMaterial_ResonanceChamber3, ItemList.MetaMaterial_ResonanceChamber4 };
+        for (int c = 0; c < chambers.length; c++) {
+            final ItemStack chamber = chambers[c].get(1L);
+            if (chamber == null) continue;
+            final List<GTRecipe> makers = new ArrayList<>();
+            for (GTRecipe r : TecTechRecipeMaps.condensateAssemblingRecipes.getAllRecipes()) {
+                if (r == null || r.mOutputs == null) continue;
+                for (ItemStack o : r.mOutputs) {
+                    if (o != null && o.isItemEqual(chamber)) {
+                        makers.add(r);
+                        break;
+                    }
+                }
+            }
+            out.add("Resonance Chamber " + (c + 1) + ": " + makers.size() + " Condensate Assembler recipe(s)");
+            for (GTRecipe r : makers) {
+                final StringBuilder sb = new StringBuilder("  ");
+                for (ItemStack in : r.mInputs) {
+                    if (in == null) continue;
+                    sb.append(in.stackSize)
+                        .append("x ")
+                        .append(in.getDisplayName())
+                        .append(", ");
+                }
+                final FluidStack[] cond = r.getMetadata(GTRecipeConstants.CONDENSATE_INPUT);
+                if (cond != null) {
+                    for (FluidStack f : cond) {
+                        if (f != null) sb.append(f.amount)
+                            .append(" L ")
+                            .append(f.getLocalizedName())
+                            .append(", ");
+                    }
+                }
+                final GTRecipe found = TecTechRecipeMaps.condensateAssemblingRecipes.findRecipeQuery()
+                    .items(r.mInputs)
+                    .find();
+                sb.append(r.mDuration / 20)
+                    .append(" s; lookup ")
+                    .append(found == r ? "finds it" : "finds " + (found == null ? "nothing" : "another recipe"));
+                out.add(sb.toString());
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Appends {@code extra} to the recipe's condensates. GT's Condensate Assembler map moved the recipe's fluid inputs
+     * into {@code CONDENSATE_INPUT} when it compiled the recipe (and left {@code mFluidInputs} empty); a new array is
+     * stored, so the snapshot taken before keeps the pack's original.
+     */
+    private static void addCondensate(GTRecipe recipe, FluidStack extra) {
+        final FluidStack[] had = recipe.getMetadata(GTRecipeConstants.CONDENSATE_INPUT);
+        final FluidStack[] base = had != null ? had
+            : recipe.mFluidInputs == null ? new FluidStack[0] : recipe.mFluidInputs;
+        for (FluidStack f : base) {
+            if (f != null && f.isFluidEqual(extra)) return;
+        }
+        if (base.length >= 4) {
+            throw new IllegalStateException("the recipe already has 4 condensates (the Condensate Assembler's limit)");
+        }
+        final FluidStack[] now = new FluidStack[base.length + 1];
+        for (int k = 0; k < base.length; k++) now[k] = base[k] == null ? null : base[k].copy();
+        now[base.length] = extra.copy();
+        if (had != null || recipe.mFluidInputs == null || recipe.mFluidInputs.length == 0) {
+            recipe.getMetadataStorage()
+                .store(GTRecipeConstants.CONDENSATE_INPUT, now);
+        } else {
+            recipe.mFluidInputs = now;
+        }
     }
 
     private static boolean isFoilOf(ItemStack stack, Materials material) {
@@ -503,6 +622,33 @@ public final class BTSRecipesSingularity {
                 new NaniteTier[] { NaniteTier.SixPhasedCopper, NaniteTier.Silver, NaniteTier.Gold, NaniteTier.Silver })
             .duration(300 * SECONDS)
             .eut(TierEU.RECIPE_UIV)
+            .addTo(TecTechRecipeMaps.condensateAssemblingRecipes);
+    }
+
+    /**
+     * SL-P33 (D-49; retired, fallback only): GT's Resonance Chamber III recipe with 2 White Dwarf Matter foils for its
+     * Black Dwarf Matter foil, registered apart. GT's tier-3 chamber otherwise: 2 Emitter UIV, 2 Shirabon rods, 1
+     * Hexanite plate; nanites White Dwarf / Gold / Transcendent / Gold; Chromatic Glass 16, Infinity 8, Boundless
+     * Cosmic
+     * Solder 3; 300 s at UMV.
+     */
+    private static void legacyP33() {
+        GTValues.RA.stdBuilder()
+            .itemInputs(
+                nn(ItemList.Emitter_UIV.get(2L), "ItemList.Emitter_UIV"),
+                nn(GGMaterial.shirabon.get(OrePrefixes.stick, 2), "Shirabon rod"),
+                BTSRecipeGuard.req(OrePrefixes.foil, Materials.WhiteDwarfMatter, 2L),
+                BTSRecipeGuard.req(OrePrefixes.plate, Materials.Hexanite, 1L))
+            .fluidInputs(
+                entangled(CondensateType.ChromaticGlass, 16),
+                entangled(CondensateType.Infinity, 8),
+                entangled(CondensateType.BoundlessCosmicSolder, 3))
+            .itemOutputs(nn(ItemList.MetaMaterial_ResonanceChamber3.get(1L), "ItemList.MetaMaterial_ResonanceChamber3"))
+            .metadata(
+                NANITE_TIERS,
+                new NaniteTier[] { NaniteTier.WhiteDwarf, NaniteTier.Gold, NaniteTier.Transcendent, NaniteTier.Gold })
+            .duration(300 * SECONDS)
+            .eut(TierEU.RECIPE_UMV)
             .addTo(TecTechRecipeMaps.condensateAssemblingRecipes);
     }
 

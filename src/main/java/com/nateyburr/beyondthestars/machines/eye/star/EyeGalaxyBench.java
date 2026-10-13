@@ -21,9 +21,10 @@ import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarState;
  * P4 test bench for the Eye's galaxy tiers ({@code /btseye star <x> <y> <z> burst | galaxy …}): the scripted link the
  * dev-server test runs a real Eye on.
  * <ul>
- * <li>{@code burst <Bu/t> [high share] [halo share] | burst off}: a constant, linked feed in place of the receptor
- * reading (rail split high / low by the share, the halo's share taken first). Every field second until {@code off}.
- * </li>
+ * <li>{@code burst <Bu/t> [high share] [halo share] [quasar <mean Bu/t>] | burst off}: a constant, linked feed in
+ * place of the receptor reading (rail split high / low by the share, the halo's share taken first). Every field
+ * second until {@code off}. {@code quasar}: the linked quasar the Eye reads is scripted too, with that purging mean
+ * stream (B-118's weak-quasar row).</li>
  * <li>{@code galaxy <seconds> [analog] [mass M]}: the §8.4 rig as {@code QuasarRigSim} runs it, but on this Eye: a
  * virtual quasar (the engine's {@link QuasarDisc}: helium, coils 3, b 3, f 1, M SM spun up to its equilibrium), both
  * jets into the standard conduit rig (two Mk I mouth pairs, a combine, J1 Eye : crown, J3 halo : rail, J2 high : low)
@@ -46,24 +47,39 @@ public final class EyeGalaxyBench {
         final EyeStarRuntime rt = eye.starRuntime();
         if (args.length <= at || "off".equalsIgnoreCase(args[at])) {
             rt.benchBursts = null;
+            rt.benchFlux = null;
             return "Scripted bursts off: the Eye reads its GRB Receptor Ports again.";
         }
-        final double total = Double.parseDouble(args[at]);
-        final double hiShare = args.length > at + 1 ? Double.parseDouble(args[at + 1]) : 0.5;
-        final double haloShare = args.length > at + 2 ? Double.parseDouble(args[at + 2]) : 0;
+        // B-118: "quasar <mean Bu/t>" anywhere after the total scripts the linked quasar the Eye reads (its purging
+        // mean stream; Φ 0, b 3), for the collapse's weak-quasar row and the T7 test-fire size check
+        double quasarMean = -1;
+        final List<String> rest = new ArrayList<>();
+        for (int i = at; i < args.length; i++) {
+            if ("quasar".equalsIgnoreCase(args[i]) && i + 1 < args.length) quasarMean = Double.parseDouble(args[++i]);
+            else rest.add(args[i]);
+        }
+        final double total = Double.parseDouble(rest.get(0));
+        final double hiShare = rest.size() > 1 ? Double.parseDouble(rest.get(1)) : 0.5;
+        final double haloShare = rest.size() > 2 ? Double.parseDouble(rest.get(2)) : 0;
         rt.benchBursts = feed(
             eye,
             total * (1 - haloShare) * hiShare,
             total * (1 - haloShare) * (1 - hiShare),
             total * haloShare,
             total > 0);
+        rt.benchFlux = quasarMean >= 0 ? new double[] { 0, 3, quasarMean } : null;
         return String.format(
             Locale.ROOT,
-            "Scripted bursts: %.2f Bu/t (rail high %.2f, low %.2f, halo %.2f), linked, every field second",
+            "Scripted bursts: %.2f Bu/t (rail high %.2f, low %.2f, halo %.2f), linked, every field second%s",
             total,
             rt.benchBursts.hi,
             rt.benchBursts.lo,
-            rt.benchBursts.halo);
+            rt.benchBursts.halo,
+            quasarMean >= 0 ? String.format(
+                Locale.ROOT,
+                "; the scripted quasar's mean stream %.2f Bu/t (peak %.2f)",
+                quasarMean,
+                rt.linkedQuasarPeak()) : "");
     }
 
     /** A scripted reading: these Bu/t on each group, the Eye's own port counts, linked when {@code linked}. */

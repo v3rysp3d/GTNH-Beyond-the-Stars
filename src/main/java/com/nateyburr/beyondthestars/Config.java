@@ -93,6 +93,34 @@ public class Config {
      */
     public static boolean renderQuasar = true;
 
+    /**
+     * CIRCUITS v2 (design repo designs/docs/circuits-v2.md §1.1, §7.1, revision 3): the Sidereal / Empyrean / Omega
+     * circuit families. On: their recipes (SL-X), their entries in GT's circuit ore names (preInit, so a change needs a
+     * restart) and the computer-rack components. Off: the items still register (stable world registry) but are hidden
+     * from NEI, have no ore name and no recipe.
+     */
+    public static boolean stellarCircuits = true;
+
+    /**
+     * CIRCUITS v2 §4, §7.1: the SL-N Nanochip Assembly Complex recipes and our real -> fake conversion recipes
+     * (server-side recipe data only). It does NOT switch the CircuitComponent enum extension, which always applies when
+     * GT is present, so client and server always agree on the constants.
+     */
+    public static boolean nacCircuitComponents = true;
+
+    /**
+     * CIRCUITS v2 §5 (user: "On by default"): raise the NAC Piko, Quantum, Raw Manifold Bud and Planck steps
+     * (SL-G10..G13,
+     * in place at load-complete). Off: stock RC-2 costs. There is no compensation key (revision 3: "No offset").
+     */
+    public static boolean raiseStockSpecialCircuits = true;
+
+    /** CIRCUITS v2 §5.3: duration factor E of the raise (EU/t unchanged, so EU x E). */
+    public static float stockSpecialCircuitEnergyFactor = 2.5f;
+
+    /** CIRCUITS v2 §5.3: item and fluid factor M of the raise (rounded up). */
+    public static float stockSpecialCircuitMaterialFactor = 2.0f;
+
     public static void synchronizeConfiguration(File configFile) {
         Configuration configuration = new Configuration(configFile);
 
@@ -204,6 +232,46 @@ public class Config {
             "Draw the Quasar Engine's black hole, accretion disc (its width shows the gas in it, its colour the disc's"
                 + " zone) and two burst jets (as bright as their Bu/t). Cosmetic. On a server, false places no render"
                 + " block; on a client, false draws nothing. Each quasar also has its own render switch in its GUI.");
+
+        stellarCircuits = configuration.getBoolean(
+            "stellarCircuits",
+            Configuration.CATEGORY_GENERAL,
+            true,
+            "The Sidereal (UMV), Empyrean (UXV) and Omega (MAX) circuit families: their recipes, their place in GT's"
+                + " circuit ore names (so they fit every 'any circuit of the tier' slot) and their computer-rack"
+                + " entries. Set false to keep the items registered but hidden, with no ore name and no recipe."
+                + " Restart needed.");
+
+        nacCircuitComponents = configuration.getBoolean(
+            "nacCircuitComponents",
+            Configuration.CATEGORY_GENERAL,
+            true,
+            "Let the Nanochip Assembly Complex take and build our circuit parts (its existing modules only; no new"
+                + " module). Set false to register none of those NAC recipes; the NAC then never pulls our items in."
+                + " The NAC component list itself is the same either way, so client and server always agree.");
+
+        raiseStockSpecialCircuits = configuration.getBoolean(
+            "raiseStockSpecialCircuits",
+            Configuration.CATEGORY_GENERAL,
+            true,
+            "Make the NAC's Piko, Quantum and Planck circuits (and the Raw Manifold Bud) dearer: each step's time x the"
+                + " energy factor, its items and fluids x the material factor. Set false for stock costs.");
+
+        stockSpecialCircuitEnergyFactor = configuration.getFloat(
+            "stockSpecialCircuitEnergyFactor",
+            Configuration.CATEGORY_GENERAL,
+            2.5f,
+            1.0f,
+            5.0f,
+            "Duration (so EU) factor of raiseStockSpecialCircuits.");
+
+        stockSpecialCircuitMaterialFactor = configuration.getFloat(
+            "stockSpecialCircuitMaterialFactor",
+            Configuration.CATEGORY_GENERAL,
+            2.0f,
+            1.0f,
+            4.0f,
+            "Item and fluid factor of raiseStockSpecialCircuits (amounts rounded up).");
 
         // Always written back: Forge does not read comments from the file and does not count a changed comment as a
         // change, so an old file would keep saying eyeRenderCentre is "not implemented" (D-49 unit 6). Saving

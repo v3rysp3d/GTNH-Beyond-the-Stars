@@ -104,3 +104,9 @@
 48173 scripting_quasar
 48174 quasar_power
 48194 reality_link
+48120 stellar_silicon
+48121 sidereal_circuits
+48122 stellar_smds
+48123 empyrean_circuits
+48124 circuits_in_the_nac
+48175 omega_circuits

@@ -25,6 +25,7 @@ import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.oredict.OreDictionary;
 
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import cpw.mods.fml.common.registry.GameData;
@@ -44,7 +45,9 @@ import cpw.mods.fml.common.registry.GameRegistry;
  * <li>replace our quests and chapters wholesale from the bundle, order our chapters after
  * UMV, graft ours into pack chapters;</li>
  * <li>apply each wanted edit to a COPY OF THE ORIGINAL (so a second run is exactly the same
- * database, and append-style ops never stack);</li>
+ * database, and append-style ops never stack); an op with its own {@code config} is applied only
+ * while each of its flags is on, and those flags are part of the config key, so flipping one
+ * re-runs the install;</li>
  * <li>restore progress, filtered by §4.6, on every path;</li>
  * <li>write the state file, mark BetterQuesting dirty and resync every client.</li>
  * </ol>
@@ -338,13 +341,32 @@ final class QuestbookInstaller {
     /** The config the edits were applied under, so flipping a flag re-runs the install. */
     static String configKey(QuestbookBundle bundle) {
         final TreeSet<String> flags = new TreeSet<>();
-        for (final QuestbookBundle.Edit e : bundle.edits) flags.addAll(e.config);
+        for (final QuestbookBundle.Edit e : bundle.edits) {
+            flags.addAll(e.config);
+            for (final JsonObject op : e.ops) flags.addAll(opConfig(op));
+        }
         final StringBuilder out = new StringBuilder("questbookPackEdits=").append(Config.questbookPackEdits);
         for (final String flag : flags) out.append(';')
             .append(flag)
             .append('=')
             .append(configFlag(flag));
         return out.toString();
+    }
+
+    /**
+     * The flags one op is gated on (its own {@code config}, e.g. the circuit raise's warning line in E38 / E67 / E68);
+     * empty for an op that always applies with its edit.
+     */
+    static List<String> opConfig(JsonObject op) {
+        final List<String> out = new ArrayList<>();
+        if (op.has("config")) for (final JsonElement c : op.getAsJsonArray("config")) out.add(c.getAsString());
+        return out;
+    }
+
+    /** True when every flag an op is gated on is on (an unknown flag counts as off). */
+    static boolean opWanted(JsonObject op) {
+        for (final String flag : opConfig(op)) if (!Boolean.TRUE.equals(configFlag(flag))) return false;
+        return true;
     }
 
     /** A boolean field of {@link Config} by name; null if there is none. */
@@ -840,7 +862,7 @@ final class QuestbookInstaller {
             (NBTTagCompound) en.getValue()
                 .copy());
         final List<String> misses = new ArrayList<>();
-        for (final JsonObject op : e.ops) applyOp(op, edited, entries, questMap, lineMap, misses);
+        for (final JsonObject op : e.ops) if (opWanted(op)) applyOp(op, edited, entries, questMap, lineMap, misses);
 
         BQBridge.readQuest(live, edited);
         final NBTTagCompound after = BQBridge.questNbt(live);

@@ -5,6 +5,7 @@ import net.minecraftforge.common.MinecraftForge;
 import com.nateyburr.beyondthestars.blocks.BTSBlocks;
 import com.nateyburr.beyondthestars.fluids.BTSFluids;
 import com.nateyburr.beyondthestars.items.BTSItems;
+import com.nateyburr.beyondthestars.items.SLCircuitItems;
 import com.nateyburr.beyondthestars.items.SLItems;
 import com.nateyburr.beyondthestars.items.SLMaxItems;
 import com.nateyburr.beyondthestars.items.SLQuasarItems;
@@ -31,6 +32,10 @@ public class CommonProxy {
         // B-83: the field-generator upgrade path's Retrofit Frame and Kits.
         SLUpgradeItems.register();
         SLQuasarItems.register();
+        // Circuits v2 (circuits-v2.md §1): the 28 items, then their GT circuit ore names (preInit, before GT and
+        // TecTech register the recipes that snapshot ore members).
+        SLCircuitItems.register();
+        SLCircuitItems.registerOreDict();
         BTSBlocks.register();
         BTSFluids.register();
         // GT5U registers its own machines in its preInit; required-after:gregtech guarantees ours runs later.
@@ -57,6 +62,8 @@ public class CommonProxy {
     public void postInit(FMLPostInitializationEvent event) {
         // GT registers its own recipes in postInit; required-after:gregtech orders ours after.
         BTSRecipes.register();
+        // Circuits v2 §3.4: our Mainframes as computer-rack parts (after TecTech's MTEHatchRack.run, TecTech init).
+        com.nateyburr.beyondthestars.compat.BTSRackComponents.register();
     }
 
     /**
@@ -69,9 +76,17 @@ public class CommonProxy {
     public void loadComplete(FMLLoadCompleteEvent event) {
         com.nateyburr.beyondthestars.machines.eye.EyeRecipeRegistry.onLoadComplete();
         BTSRecipeRemovals.guard("TecTech Eye casings x32 (SL-B01/B02)", BTSRecipesBEC::onLoadComplete);
-        // B-29 / B-83: GT's Resonance Chamber II rewritten in place, then the generator upgrade path derived from GT's
-        // generator recipes (both need GT's Condensate Assembler recipes, which exist only from load-complete).
-        BTSRecipeRemovals.guard("Resonance Chamber II in place (SL-G01)", BTSRecipesSingularity::onLoadComplete);
+        // B-29 / Q4 / Q21 / B-83: GT's Resonance Chambers II-IV rewritten in place, then the generator upgrade path
+        // derived from GT's generator recipes (both need GT's Condensate Assembler recipes, which exist only from
+        // load-complete).
+        BTSRecipeRemovals
+            .guard("Resonance Chambers II-IV in place (SL-G01..G03)", BTSRecipesSingularity::onLoadComplete);
+        // Circuits v2 §5: the NAC's Piko / Quantum / Raw Manifold Bud / Planck steps raised in place (the coremod's
+        // matrix recipes exist by now; nothing has matched them yet).
+        BTSRecipeRemovals.guard("Piko / Quantum / Planck raise (SL-G10..G13)", BTSStockCircuitRaise::onLoadComplete);
+        // Circuits v2 §4.3: the coremod builds the NAC's real <-> fake conversions in its own load-complete pass; ours
+        // are checked (missing ones added) or, with the NAC route off, the real -> fake ones removed.
+        BTSRecipeRemovals.guard("NAC conversions of our parts and circuits", BTSRecipesNac::onLoadComplete);
         BTSRecipeRemovals.guard("Field-generator upgrade path (SL-U00..U48)", BTSRecipesGeneratorUpgrade::register);
         BTSRecipeRemovals.guard("Eternity on Ergomatter (SL-Q26, D-48)", BTSRecipesQuasar::onLoadComplete);
         BTSRecipeRemovals.run();

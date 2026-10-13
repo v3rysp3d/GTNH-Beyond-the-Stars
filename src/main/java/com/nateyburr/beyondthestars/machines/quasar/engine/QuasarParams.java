@@ -134,6 +134,17 @@ public final class QuasarParams {
         return g0 * yq * (purging ? MEAN_PURGE_40 : MEAN_NO_PURGE);
     }
 
+    /**
+     * The most a disc second can carry: a purge (or eruption) at full flux, Φ 100, adds 3·G0·Y_q for its 3 s on top
+     * of the reset sawtooth's 0.5·G0·Y_q, so 3.5·G0·Y_q (QuasarDisc.step).
+     */
+    public static final double PEAK_PURGE = 3.5;
+
+    /** The peak stream, Bu/t: a purge at full flux, G0·Y_q × 3.5, before any throat cap or Junction split. */
+    public static double peakStream(double g0, double yq) {
+        return g0 * yq * PEAK_PURGE;
+    }
+
     /** The disc's Stability readout: clamp(100 − |E|, 0, 100). */
     public static double stability(double E) {
         final double v = 100 - Math.abs(E);

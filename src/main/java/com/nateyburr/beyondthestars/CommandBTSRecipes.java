@@ -25,6 +25,7 @@ import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.ShapedRecipes;
 import net.minecraft.item.crafting.ShapelessRecipes;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
@@ -67,7 +68,7 @@ public class CommandBTSRecipes extends CommandBase {
     /** The lines ("group" in the JSON). Public so the code that changes or removes a pack recipe can name its line. */
     public static final String KERR = "Kerr", EYE = "Eye", BEC = "BEC / Condensate", HR = "Homogeny / Reality",
         QUASAR = "Quasar / Conduit", AUTOMATION = "Automation", OLD_PLANT = "Old plant", UPGRADE = "Upgrade path",
-        OTHER = "Other";
+        CIRCUITS = "Circuits", OTHER = "Other";
 
     static final String NEW = "new", CHANGED = "changed-GT", REMOVED = "removed";
 
@@ -80,7 +81,8 @@ public class CommandBTSRecipes extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btsrecipes [status | dump [file]]";
+        return "/btsrecipes [status | dump [file] | circuits | nac <build|run <piko|SL-Nxx>|status> x y z [facing]"
+            + " | chain <build|plan <family>|make <family>|gt <umv|uxv|max>|status|stop> x y z]";
     }
 
     @Override
@@ -91,7 +93,8 @@ public class CommandBTSRecipes extends CommandBase {
     @SuppressWarnings("rawtypes")
     @Override
     public List addTabCompletionOptions(ICommandSender sender, String[] args) {
-        if (args.length == 1) return getListOfStringsMatchingLastWord(args, "status", "dump");
+        if (args.length == 1)
+            return getListOfStringsMatchingLastWord(args, "status", "dump", "circuits", "nac", "chain");
         return null;
     }
 
@@ -100,6 +103,37 @@ public class CommandBTSRecipes extends CommandBase {
         final String sub = args.length > 0 ? args[0].toLowerCase() : "status";
         if ("status".equals(sub)) {
             status(sender, collect());
+            return;
+        }
+        if ("circuits".equals(sub)) {
+            // Circuits v2 checks (circuits-v2.md §7.2): C1 ore names; C2 chain, slot fills, lookups, research, rack;
+            // C4 the Piko raise.
+            for (String line : BTSCircuitChecks.run()) {
+                sender.addChatMessage(new ChatComponentText(line));
+                BeyondTheStars.LOG.info("[BTS] circuits: " + line);
+            }
+            return;
+        }
+        if ("nac".equals(sub)) {
+            // Circuits v2 C5 bench: a real Nanochip Assembly Complex + Assembly Matrix in the world (NacBench).
+            final com.nateyburr.beyondthestars.machines.SLConsoleTest.Placement at = com.nateyburr.beyondthestars.machines.SLConsoleTest
+                .parsePlacement(sender, args);
+            if (at == null) throw new WrongUsageException(com.nateyburr.beyondthestars.nac.NacBench.USAGE);
+            for (String line : com.nateyburr.beyondthestars.nac.NacBench.run(sender.getEntityWorld(), at, args)) {
+                sender.addChatMessage(new ChatComponentText(line));
+                BeyondTheStars.LOG.info("[BTS] nac: " + line);
+            }
+            return;
+        }
+        if ("chain".equals(sub)) {
+            // Circuits v2 C7 bench: the SL-X chain run end to end in real stock GT machines (CircuitChainBench).
+            final com.nateyburr.beyondthestars.machines.SLConsoleTest.Placement at = com.nateyburr.beyondthestars.machines.SLConsoleTest
+                .parsePlacement(sender, args);
+            if (at == null) throw new WrongUsageException(CircuitChainBench.USAGE);
+            for (String line : CircuitChainBench.run(sender.getEntityWorld(), at, args)) {
+                sender.addChatMessage(new ChatComponentText(line));
+                BeyondTheStars.LOG.info("[BTS] chain: " + line);
+            }
             return;
         }
         if (!"dump".equals(sub) || args.length > 2) throw new WrongUsageException(getCommandUsage(sender));
@@ -262,6 +296,13 @@ public class CommandBTSRecipes extends CommandBase {
         final Map<String, Object> config = new LinkedHashMap<>();
         config.put("replaceTecTechEyeOfHarmony", Config.replaceTecTechEyeOfHarmony);
         config.put("removeBlackHoleCompressorRecipe", Config.removeBlackHoleCompressorRecipe);
+        config.put("stellarCircuits", Config.stellarCircuits);
+        config.put("nacCircuitComponents", Config.nacCircuitComponents);
+        config.put("raiseStockSpecialCircuits", Config.raiseStockSpecialCircuits);
+        if (Config.raiseStockSpecialCircuits) {
+            config.put("stockSpecialCircuitEnergyFactor", Config.stockSpecialCircuitEnergyFactor);
+            config.put("stockSpecialCircuitMaterialFactor", Config.stockSpecialCircuitMaterialFactor);
+        }
         dump.put("config", config);
         final Map<String, Object> guard = new LinkedHashMap<>();
         guard.put("registered", BTSRecipeGuard.registeredCount());
@@ -277,7 +318,9 @@ public class CommandBTSRecipes extends CommandBase {
     private static Map<String, Object> counts(List<Map<String, Object>> recipes) {
         final Map<String, Integer> byStatus = new LinkedHashMap<>(), byGroup = new LinkedHashMap<>();
         for (String s : new String[] { NEW, CHANGED, REMOVED }) byStatus.put(s, 0);
-        for (String g : new String[] { KERR, EYE, BEC, HR, AUTOMATION, OLD_PLANT, UPGRADE, OTHER }) byGroup.put(g, 0);
+        for (String g : new String[] { KERR, EYE, BEC, HR, QUASAR, CIRCUITS, AUTOMATION, OLD_PLANT, UPGRADE, OTHER }) {
+            byGroup.put(g, 0);
+        }
         int display = 0, fallback = 0, placeholder = 0;
         for (Map<String, Object> r : recipes) {
             byStatus.merge((String) r.get("status"), 1, Integer::sum);
@@ -325,17 +368,27 @@ public class CommandBTSRecipes extends CommandBase {
                 case "reality-process":
                     return HR;
                 case "quasar":
-                    // P4: SL-P40 (Resonance Chamber IV, the Eye T8 gate) sits with the other compression gate parts
+                    // P4: an SL-P id here (SL-P40 was the Resonance Chamber IV, now SL-G03) sits with the compression
+                    // gate parts
                     return i.startsWith("SL-P") ? EYE : QUASAR;
                 case "singularity":
                     return i.startsWith("SL-P") && number(i.substring(4)) <= 14 ? KERR : EYE;
+                case "circuits":
+                case "nac":
+                    // the circuit chain SL-X and its NAC route SL-N (BTSRecipes lines "circuits" and "nac")
+                    return CIRCUITS;
                 default:
                     return OTHER;
             }
         }
         if (i.startsWith("SL-B") || i.startsWith("SL-P27") || i.startsWith("SL-P28")) return BEC;
-        if (i.startsWith("SL-G") || i.startsWith("SL-P39")) return EYE;
+        if (i.startsWith("SL-G1")) return CIRCUITS;
+        // SL-G01..G03 (the chambers in place) and their load-complete fallbacks SL-P39 / SL-P33 / SL-P40
+        if (i.startsWith("SL-G") || i.startsWith("SL-P39") || i.startsWith("SL-P33") || i.startsWith("SL-P40")) {
+            return EYE;
+        }
         if (i.startsWith("SL-Q")) return QUASAR;
+        if (i.startsWith("SL-X") || i.startsWith("SL-N")) return CIRCUITS;
         return OTHER;
     }
 
@@ -553,10 +606,35 @@ public class CommandBTSRecipes extends CommandBase {
 
     private static Map<String, Object> research(GTRecipe.RecipeAssemblyLine line) {
         final Map<String, Object> r = new LinkedHashMap<>();
+        // A research Assembly Line (TecTech's Research Station, Circuits v2 §2.4): GT's list holds a placeholder
+        // research item; the real one and the computation live in TecTech's twin of the recipe.
+        final TecTechRecipeMaps.TTResearchStationALRecipe station = stationTwin(line);
+        if (station != null) {
+            r.put("machine", "Research Station");
+            r.put("item", station.mResearchItem == null ? null : name(station.mResearchItem));
+            r.put("computation", station.mComputation);
+            r.put("computationPerSecond", station.mComputationRequiredPerSec);
+            // TecTech keeps the research EU/t in the twin's mEUt (the assembly line's own EU/t is GT's recipe's).
+            if (station.mEUt > 0) r.put("voltage", tierName(station.mEUt));
+            r.put("amperage", station.mAmperage);
+            return r;
+        }
         r.put("item", line.mResearchItem == null ? null : name(line.mResearchItem));
         r.put("time", line.mResearchTime);
         if (line.mResearchVoltage > 0) r.put("voltage", tierName(line.mResearchVoltage));
         return r;
+    }
+
+    /** TecTech's Research Station twin of an assembly-line recipe (same persistent hash and output), or null. */
+    static TecTechRecipeMaps.TTResearchStationALRecipe stationTwin(GTRecipe.RecipeAssemblyLine line) {
+        if (line == null || line instanceof TecTechRecipeMaps.TTResearchStationALRecipe) return null;
+        for (TecTechRecipeMaps.TTResearchStationALRecipe tt : TecTechRecipeMaps.researchableALRecipeList) {
+            if (tt != null && tt.getPersistentHash() == line.getPersistentHash()
+                && tt.mOutput != null
+                && line.mOutput != null
+                && tt.mOutput.isItemEqual(line.mOutput)) return tt;
+        }
+        return null;
     }
 
     private static boolean sameOutput(ItemStack out, ItemStack[] outputs) {

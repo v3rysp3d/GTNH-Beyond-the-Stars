@@ -24,7 +24,10 @@ endgame quests move into our chapters). An unchanged world pays one file read. C
 
 The edits also follow `removeBlackHoleCompressorRecipe` (E01-E06) and
 `replaceTecTechEyeOfHarmony` (E10-E25, E37, E40, E47, E63, E64); with a flag off, its edits are
-reverted on the next install and the matching fallback quest appears.
+reverted on the next install and the matching fallback quest appears. Single `appendText` ops can
+carry a flag of their own: the circuit notes on the pack's UMV / UXV / MAX Circuits quests (E67, E68,
+E38) show the Sidereal / Empyrean / Omega hint while `stellarCircuits` is on and the price warning
+while `raiseStockSpecialCircuits` is on; flipping either re-runs the install with the other ops kept.
 
 **Op commands** (`/btsquests`, permission 2):
 
@@ -338,9 +341,10 @@ The ladder's part of the book (design: `docs/questbook-integration.md`) is data,
 2. `src/main/resources/assets/beyondthestars/questbook/overlay.json`: the bundle the jar carries.
    Every chapter and quest of ours (the plant chapter too, read back from the files
    `gen-questbook.ps1` just wrote) in BetterQuesting's typed-key JSON, the grafts with both
-   positions (`on` = pack edits applied, `off`), and the 62 compiled pack edits (variants resolved
+   positions (`on` = pack edits applied, `off`), and the 66 compiled pack edits (variants resolved
    against `features`; ops: `setName setDesc setIcon replaceText appendText setTasks setRewards
-   swapItem setPrereqs addPrereq removePrereq replacePrereq move`, ids as base64). `bundleVersion`
+   swapItem setPrereqs addPrereq removePrereq replacePrereq move`, an `appendText` optionally gated
+   by its own `config` flags, ids as base64). `bundleVersion`
    is the SHA-1 of the content. `QuestbookInstaller` (on top of `BQBridge`) applies it to a live
    world: see the top of this file.
 3. `src/main/java/com/nateyburr/beyondthestars/BTSQuestIds.java`: every line and quest id we own,

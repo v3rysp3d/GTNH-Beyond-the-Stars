@@ -78,8 +78,8 @@ public final class EyeStarBench {
         + "field <fluid> <L> | "
         + "render [on|off] | "
         + "directive | autorig <s> [cut <k>] | liverig on|off|status | ocloop | compression <1-9> [all] | check | "
-        + "gui [info] | "
-        + "P4: burst <Bu/t> [high] [halo] | burst off | galaxy <s> [analog] [mass M] [fresh] | begin | "
+        + "gui [info|galaxy] | "
+        + "P4: burst <Bu/t> [high] [halo] [quasar <mean>] | burst off | galaxy <s> [analog] [mass M] [fresh] | begin | "
         + "mode galaxy|planets | set mcshock|f8 <v> | slots <planet keys and chart names...> | slots clear | buses clear";
 
     /** Runs {@code args} = {@code star x y z sub …}. Returns the lines to print. */
@@ -254,7 +254,14 @@ public final class EyeStarBench {
             }
             case "gui":
                 // controller GUI cleanup: the header and rows the GUI would show now (spec §5.1), as text
-                out.addAll(new com.nateyburr.beyondthestars.machines.eye.EyeGui(eye).benchDump("info".equals(a5)));
+                // gui galaxy: the status rows, then the Galaxy panel's text (B-118's weak-quasar row and line)
+                final com.nateyburr.beyondthestars.machines.eye.EyeGui gui = new com.nateyburr.beyondthestars.machines.eye.EyeGui(
+                    eye);
+                out.addAll(gui.benchDump("info".equals(a5)));
+                if ("galaxy".equals(a5)) {
+                    out.add("Galaxy panel:");
+                    out.addAll(gui.benchGalaxyPanel());
+                }
                 return out;
             case "hatchgui":
                 // controller GUI cleanup: what each Directive / Stellar Field Sensor Hatch's GUI shows (spec §5.10)
