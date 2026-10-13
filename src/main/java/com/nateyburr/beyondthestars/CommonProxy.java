@@ -76,9 +76,11 @@ public class CommonProxy {
     public void loadComplete(FMLLoadCompleteEvent event) {
         com.nateyburr.beyondthestars.machines.eye.EyeRecipeRegistry.onLoadComplete();
         BTSRecipeRemovals.guard("TecTech Eye casings x32 (SL-B01/B02)", BTSRecipesBEC::onLoadComplete);
-        // B-29 / B-83: GT's Resonance Chamber II rewritten in place, then the generator upgrade path derived from GT's
-        // generator recipes (both need GT's Condensate Assembler recipes, which exist only from load-complete).
-        BTSRecipeRemovals.guard("Resonance Chamber II in place (SL-G01)", BTSRecipesSingularity::onLoadComplete);
+        // B-29 / Q4 / Q21 / B-83: GT's Resonance Chambers II-IV rewritten in place, then the generator upgrade path
+        // derived from GT's generator recipes (both need GT's Condensate Assembler recipes, which exist only from
+        // load-complete).
+        BTSRecipeRemovals
+            .guard("Resonance Chambers II-IV in place (SL-G01..G03)", BTSRecipesSingularity::onLoadComplete);
         // Circuits v2 §5: the NAC's Piko / Quantum / Raw Manifold Bud / Planck steps raised in place (the coremod's
         // matrix recipes exist by now; nothing has matched them yet).
         BTSRecipeRemovals.guard("Piko / Quantum / Planck raise (SL-G10..G13)", BTSStockCircuitRaise::onLoadComplete);

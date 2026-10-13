@@ -354,7 +354,8 @@ public class CommandBTSRecipes extends CommandBase {
                 case "reality-process":
                     return HR;
                 case "quasar":
-                    // P4: SL-P40 (Resonance Chamber IV, the Eye T8 gate) sits with the other compression gate parts
+                    // P4: an SL-P id here (SL-P40 was the Resonance Chamber IV, now SL-G03) sits with the compression
+                    // gate parts
                     return i.startsWith("SL-P") ? EYE : QUASAR;
                 case "singularity":
                     return i.startsWith("SL-P") && number(i.substring(4)) <= 14 ? KERR : EYE;
@@ -366,7 +367,10 @@ public class CommandBTSRecipes extends CommandBase {
         }
         if (i.startsWith("SL-B") || i.startsWith("SL-P27") || i.startsWith("SL-P28")) return BEC;
         if (i.startsWith("SL-G1")) return CIRCUITS;
-        if (i.startsWith("SL-G") || i.startsWith("SL-P39")) return EYE;
+        // SL-G01..G03 (the chambers in place) and their load-complete fallbacks SL-P39 / SL-P33 / SL-P40
+        if (i.startsWith("SL-G") || i.startsWith("SL-P39") || i.startsWith("SL-P33") || i.startsWith("SL-P40")) {
+            return EYE;
+        }
         if (i.startsWith("SL-Q")) return QUASAR;
         if (i.startsWith("SL-X") || i.startsWith("SL-N")) return CIRCUITS;
         return OTHER;

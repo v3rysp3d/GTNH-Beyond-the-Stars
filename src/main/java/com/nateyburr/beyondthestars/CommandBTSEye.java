@@ -109,6 +109,10 @@ public class CommandBTSEye extends CommandBase {
             for (String line : com.nateyburr.beyondthestars.BTSRecipesGeneratorUpgrade.benchLines()) {
                 SLConsoleTest.tell(sender, line);
             }
+            // the compression gate chambers as NEI lists them (SL-G01..G03 rewrite GT's own recipes in place)
+            for (String line : com.nateyburr.beyondthestars.BTSRecipesSingularity.chamberLines()) {
+                SLConsoleTest.tell(sender, line);
+            }
             return;
         }
         if (args.length == 1 && args[0].equalsIgnoreCase("gates")) {
