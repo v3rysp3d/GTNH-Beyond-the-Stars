@@ -6,7 +6,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 1. **Open questions**: each open decision once, with the answer we recommend and where the detail is.
 2. **Settled**: everything you have answered, in your words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision from you.
-4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-95 and B-105..B-112, the tidy pass's
+4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-95 and B-105..B-113, the tidy pass's
    TQ-1..TQ-8, and P4's P4-01..P4-94 in Part E).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
@@ -134,6 +134,8 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
 - ~~Restart persistence on master's machines (P4-85) and tooltips for the older casings (P4-86)~~: done; the
   Eye, Homogeny, Reality machines and Kerr modules mark their chunk once a second, the Burst Control Hatch on a mode
   change; tested with a clean stop and a killed server. [B-112]
+- ~~A full RC-2 dev-server test of master after the P4 merge~~: done; every check passed, the T6 -> T7 -> T8 chain
+  ran unattended with 0 failures, and nothing needed fixing. [B-113]
 
 **To see in a client** (the headless dev server cannot): the hologram hints, a survival build from a real AE system,
 the NEI multiblock tab and its frame rate (a T6 Eye is 51,935 blocks), every GUI (Eye, KEE, modules, Directive Hatch,
@@ -209,7 +211,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-95, B-105..B-112
+## Part B. Entries B-1..B-95, B-105..B-113
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -4695,6 +4697,167 @@ Without the fix that was luck.
 
 **Not covered.** No client run. The Refab's own state was not driven: it needs P4's fluids and a Condensate Assembler
 link. It goes through the same `MTERealityBase` second as the Diffraction, which was tested.
+
+### B-113 Full RC-2 dev-server test of master after the P4 merge [merge-p4, test]
+
+**What was run.** Master `d233074`: the P4 merge (B-110), the P4 quests (B-111) and the restart fix (B-112). Headless
+`runServer` on port 25565, fresh flat world `b113`, two boots (the second after a clean stop). The shipped config was
+used: `replaceTecTechEyeOfHarmony` and `removeBlackHoleCompressorRecipe` both true, pack edits and auto-install on. The
+book was the RC-2 pack's DefaultQuests, copied read-only from the `rc - 2 TO THE STARS` instance, with
+BetterQuesting's "Load the default quest DB on world startup" set to false, as the pack ships it. Afterwards the dev
+server's level name, BetterQuesting setting and `cmds.txt` were put back and the DefaultQuests copy was removed. The
+scripts are in my local work folder (`b113/`). No code needed changing; nothing failed except the harness slip below.
+
+**Static checks.**
+- `spotlessApply compileJava`: passes, and spotless changed nothing.
+- Golden tests: `fieldsim-golden --check --java` 78 / 78, `quasar-golden --check --java` 38 / 38.
+- `export-structures --check`: matches voxel.js `fa6fec2a751c`. `gen-sl-textures --check`: 126 / 126.
+- `gen-singularity --check`: 139 files up to date (bundle `6876d7837407`). `--selftest` passes.
+- Lang lint (master's, 241 lookups, against our `en_US.lang` and RC-2 GT's): 0 real misses and 0 duplicate keys.
+  - The one reported miss is the known false positive `item.beyondthestars.fieldRetrofitKit.name`: the kit names
+    itself per meta, from `beyondthestars.eohTier.1..8`, which all exist.
+  - The seven `recipe_result` keys with no static producer are dynamic: `star_unit5` as before, and the Eye's
+    `tier7` / `tier8`, `compression7` / `8` and `locked7` / `8`, which are built as `eye.tier` + n and so on.
+  - P4's own lint also lists `kerr.module.linked` (`Link.LINKED` is never returned as a failure) and
+    `gg.recipe.precise_assembler` (GoodGenerator's map, not ours).
+
+**Load (both boots).**
+- `311 registered, 0 skipped`. That is master's 278 plus P4's 33.
+- "P4 recipes: every machine recipe is registered".
+- 8 H/R gate lines plus the summary. All of them wait for White Hole Matter (Eye T9, P5). None waits for Eternity:
+  SL-Q26's swap is on, so the Eternity gate lines are gone.
+- Logged as expected: SL-Q26 (the Temporal Harmony Catalyst and the Timepiece, one recipe each), SL-G01, SL-B01 /
+  B02 (4 -> 32), 10 BHC -> Kerr swaps, TecTech's Eye removed (43 planets converted), the upgrade path (40 + the frame),
+  the BEC line, and the 12 research items.
+- OpenComputers lists the P4 components.
+- No `[BTS]` / beyondthestars WARN or ERROR, and no `com.nateyburr` frame. The only exception is boot 2's FML note
+  that our persistent chunk tickets are dropped (P4-87). The 823 "Exception" lines are GT's dev environment: the same
+  count as B-109.
+
+**Recipes and gates.**
+- `/btsrecipes status`: 425 entries: 365 new, 58 changed-GT, 2 removed. By line: Kerr 28, Eye 64, BEC 28, H/R 27,
+  Automation 1, old plant 202, upgrade path 41, Quasar / Conduit 34. Unchanged from B-110.
+- `/btsrecipes dump`: 353 recipes registered (the display pages included), and `registeredWithoutLiveRecipe` is
+  empty: every one of them is found in its map. The P4 recipes are all there: SL-B16, SL-Q01..Q26, the display pages
+  SL-Q27 / Q28, and SL-P40 under Eye with its `replaceTecTechEyeOfHarmony=true` badge. SL-Q05 is the one P4
+  placeholder (P4-24).
+- `/btseye gates`: all 17 compression-generator recipes, T1..T9, are CLEAN. P4 audit: 0 of 27 parts break the rule.
+  BHC controller consumers left: 0; Kerr controller consumers: 12. **0 loops.**
+
+**Questbook.**
+- First start (fresh world): "no install state in this world yet". The install added 99 quests and applied 64 of 64
+  pack edits, and hid one emptied chapter (Endgame Goals).
+- `/btsquests status`: all ok. The plant 34 / 34, UIV 3 / 3, UMV 10 / 10, Tier 13 (UXV) 35 / 35, MAX 15 / 15, The
+  Endgame 1 / 1. 16 planned checkboxes.
+- `verify`: 140 / 142 ids resolve. The two misses are the `eternalsingularity` icons, which are missing only on the dev
+  server, as in B-111.
+- `install` again: "already matches the jar". After the restart, `status` was still all ok.
+
+**Structures.** Every one FORMED. Each kit then ran a creative re-projection over the machine (still FORMED, nothing
+overwritten) and a damage-and-repair check (NOT FORMED with the cell named, then the survival path put the cells back
+and the machine FORMED again).
+
+| Machine | Creative | Survival (blocks placed) |
+|---|---|---|
+| Quasar, coils T1 / T2 / T3 / T4 | N (T1), E (T2), N (T3) | S (T3), W (T4): 51,983 each |
+| Wormhole Mouth, Conduit Mirror, Conduit Junction | E, W | N, S (mirror 1,702) |
+| Crown Mk I / II / III | E, W each | N, S each |
+| Eye T7 | W | E (65,989) |
+| Eye T8 | N | S (69,698) |
+| Eye T6 | E, with `legacy oldwindows` (no D-49 / P4 hatches, pre-window blocks) | S (50,557) |
+| Eye T1 | N with `oldwindows`: 339 pre-window cells put back, still FORMED | |
+| KEE T1 + both modules | N with `oldwindows`: 700 cells put back, still FORMED | |
+| KEE T2 + both modules | W with `oldwindows`: still FORMED | S (KEE 25,051, compressor 964, extractor 498) |
+| Homogeny T3 / T2 | N (T3) | E (T3, 41,599), W (T2, 28,597) |
+| Reality Diffraction | S | W (53,004) |
+| Reality Refab | | N (65,186) |
+
+The Eye T7 / T8 survival counts are lower than P4-87's (67,366 / 71,075). That is master's window bands: the cells
+behind each pane are open. `export-structures --check` is clean.
+
+**Eye T6 -> T7 -> T8 unattended** (`/btsquasar autorig … eye …`). The rig sees only the Directive codes and acts only
+through the hatches.
+- **Set-up.** A fresh coils-T3 quasar at 10000 100 4000, seeded at 64 SM with no spin, at f 1.0. The Eye T8 kit at
+  20000 100 2000 with the Magnetar lit, T6 unlocked, milestones 6 / 7 reset, buses empty and the debug rig off. Both
+  were kept chunk-loaded. The Eye got 40 × 10^18 EU (see the slip below).
+- **T6 -> T7.** The Stability Link was held. The Magnetar Collapse was COMPLETE in 779 s (P4's run: 779 s), and the
+  Intergalactic Upgrade Core was consumed. T7 at t+12,831 s, 0 failures.
+- **T7 -> T8.** The quasar grew by itself from 80 to about 160 SM, and the Heavy Link was held. The Galactic Merger
+  was COMPLETE in 1,920 s (P4's run: 1,920 s), and the Supermassive Seed Core was consumed. T8 at t+70,882 s, 0
+  failures.
+- **T8 held for 40,000 s.** The quasar grew from 160 to 252 SM. 0 failures, 0 blow-outs, Resonant 74 % of the time,
+  and satellite crossings were caught. At the end: Milky Way LIT, Stability 94 (Resonant), Integrity 100, upkeep
+  r 1.00, 24 Bu/t on the rail (the Mk I throats' cap).
+
+*The harness slip (first attempt, not counted).* The first chain run used the bench's `fill`, which grants 10^18 EU
+once. The Milky Way costs 2.47 × 10^15 EU a 60 s cycle, so that lasts about 405 cycles (6.75 h of game time). The EU
+ran out at T8. The upkeep went to r 0 ("SHORT: P sags"), P fell to −100, and the Milky Way was lost; the re-merge that
+followed failed too. After `eu`, the next cycle read r 1.00. This is the machine working as designed, with an
+unpowered network. The run above was made from scratch with enough EU.
+
+**The intake cap at T7 / T8** (each buffer's held / intake cap, as the scanner shows it):
+
+| Eye | Caps |
+|---|---|
+| T6 unlocked, dark, Triangulum chart, galaxy mode | Agent 303,000, WDM 73,728, BDM 18,432, Magnetar Matter 168 L |
+| … with Sol and the magnetar on the slot bus | H and He 32,000,000,000 L each are added |
+| … planets mode, slots Ma / Ow / DD | H and He 336,000,000,000 L each; WDM 55,296 L |
+| T7 unlocked, dark, Milky Way chart | Ergomatter 27,300, Agent 606,000, WDM 147,456, BDM 36,864 L |
+| T7, Triangulum LIT | Magnetar Matter 168, WDM 73,728, BDM 18,432 L; Ergomatter and Agent not pulled |
+| T8 unlocked, magnetar re-merge on the way to the Milky Way | Ergomatter 36,300, Agent 1,212,000, WDM 294,912, BDM 73,728, Magnetar Matter 315 L |
+
+The numbers match B-110's where both list them.
+
+**Conduit and crowns** (`/btsconduit rig 32000 100 0`). All elements opened after 10 s of SpaceTime upkeep.
+- The top jet goes to Crown Mk I: 1.21 Bu/t, 1.211 × 10^13 EU/t onto wireless.
+- The bottom jet goes Mouth A -> Mouth B -> Mirror 1 -> Junction. The Junction splits it 0.54 / 0.54 / 0.12. The
+  first share goes through Mirror 2 to the remote crown's receptor (linked): 5.45 × 10^12 EU/t.
+- The bench owner's wireless network held 8.29 × 10^15 EU after about 30 s.
+
+**Hosts** (`/btsconduit inject` and `/btshr bench … inject`, from the real coils-T3 quasar):
+
+| Host | σ | Effect |
+|---|---|---|
+| KEE T2 | 2.00 | bleed × 0.25, cap 768; `setSetpoint 700` returns 700. Before the link it returned 512 |
+| KEE T2, injection off | 0 | "Setpoint 700 SM is held at 512 SM: it needs a quasar link at σ ≥ 1", bleed × 1 |
+| Homogeny T3 (3 ports) | 1.50 | speed × 1.50, Entanglement Medium open |
+| Homogeny T3 | 0.50 | speed × 1.25, the Medium closed |
+| Reality Diffraction (6 ports) | 0.50 | speed × 0.50 |
+| Reality Diffraction | 0.25 | "regions UNSTABLE, runs pause below σ 0.5" |
+
+`/btsquasar ocloop`: setFeed 9 -> 1.5, setField 99 -> 3 (the coil tier), trim clamped to 10 units and taken the next
+second, and a second call in the same tick refused.
+
+**Restart.**
+- The state was changed after a `save-all`, with no inventory change:
+  - Homogeny milestones 2,222 / 333;
+  - Diffraction pending 1,665 L × 6;
+  - the Junction's c 0.6 and out-3 share 0.15;
+  - the KEE setpoint 500 (through OpenComputers);
+  - the quasar's feed 1.2.
+- The quasar, the mouths and the crowns kept moving by themselves.
+- Then a clean `stop`, boot 2, and `/btsconduit nbt` straight after the start.
+- **All of it was kept.** Those values above; the KEE at 700.2 SM; the quasar at 254 SM with its eruption count; the
+  mouth's SpaceTime used counter; and the crown's lifetime EU, which went on from where it stopped.
+- The Eye kept T8 unlocked. The dormant quasar stayed dormant.
+- After its chunks were force-loaded again, the conduit rig carried on: the remote crown was linked and making
+  5.7 × 10^12 EU/t.
+
+**Seen, not changed.**
+1. **Bench chunk tickets.** A structure's chunks are not force-loaded once the kit is done. The first `seed` on a new
+   quasar said "No Quasar Engine controller" until `/btsquasar keep`. Without the rig, the lit Eye drifted to a breach
+   within about 30 s (Θ +102). After a restart every forced chunk is released (P4-87), so the quasar reads FROZEN until
+   it is kept again. These are bench facts; a player's chunk loader does the same job.
+2. **The EU limit.** `fill` / `eu` grant 10^18 EU each, which a T8 Eye burns in about 6.75 h of game time. A long
+   unattended bench run at T8 needs several `eu` grants. The Eye's own readout names the cause ("Upkeep r 0.00
+   (SHORT …)").
+
+**Not covered.**
+- No client was run, so these were not seen: the P4 GUIs (they wait for the gui-clean merge and its GUI kit), the
+  renders, NEI, the holograms and the new quest pages.
+- The JVM-kill test was not repeated for P4's machines. B-112 ran it for master's machines.
+- The Reality Refab's runtime state.
+- An OpenComputers Adapter in a world.
 
 ---
 
