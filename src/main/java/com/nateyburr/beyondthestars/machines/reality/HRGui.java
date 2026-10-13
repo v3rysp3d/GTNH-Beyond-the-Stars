@@ -30,6 +30,14 @@ public final class HRGui {
 
     private static final String[] NUMERALS = { "I", "II", "III", "IV", "V", "VI" };
 
+    /** True when {@code w} holds any widget other than empty layout flows (GT's gap row nests its buttons). */
+    private static boolean hasLeaf(com.cleanroommc.modularui.api.widget.IWidget w) {
+        for (com.cleanroommc.modularui.api.widget.IWidget c : w.getChildren()) {
+            if (!(c instanceof Flow) || hasLeaf(c)) return true;
+        }
+        return false;
+    }
+
     /** A square lamp in {@code colour.get()} with a dark rim. */
     public static IDrawable lamp(Supplier<Integer> colour) {
         return (context, x, y, width, height, theme) -> {
@@ -45,14 +53,18 @@ public final class HRGui {
      */
     public static Flow regionLamps(Flow row, IntUnaryOperator colour, String legendKey) {
         final String r = "beyondthestars.gui.reality.";
+        // With GT's buttons already in the row (the Refab: void excess, input separation, batch) the caption does
+        // not fit beside the six lamps and they ran under the i button (dev client round 1); the lamps then stand
+        // alone and each lamp's tooltip names its region.
+        final boolean crowded = hasLeaf(row);
         row.childPadding(2)
-            .crossAxisAlignment(Alignment.CrossAxis.CENTER)
-            .child(
-                IKey.lang(r + "regions")
-                    .color(BTSGuiKit.PANEL_TEXT)
-                    .asWidget()
-                    .marginRight(1)
-                    .heightRel(1f));
+            .crossAxisAlignment(Alignment.CrossAxis.CENTER);
+        if (!crowded) row.child(
+            IKey.lang(r + "regions")
+                .color(BTSGuiKit.PANEL_TEXT)
+                .asWidget()
+                .marginRight(1)
+                .heightRel(1f));
         for (int k = 0; k < NUMERALS.length; k++) {
             final int region = k;
             row.child(
