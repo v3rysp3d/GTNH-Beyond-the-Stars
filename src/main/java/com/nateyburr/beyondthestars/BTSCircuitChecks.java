@@ -36,6 +36,8 @@ import tectech.recipe.TecTechRecipeMaps;
  * <li>The nine Research Station entries (research item, computation, per second, EU/t, amperage; NEI page; the
  * assembly-line twin that the data stick points at).</li>
  * <li>The computer rack ({@link BTSRackComponents#report()}).</li>
+ * <li>C4, whatever {@code stellarCircuits} says: the Piko raise SL-G10..G13
+ * ({@link BTSStockCircuitRaise#report()}).</li>
  * </ol>
  * Ends with one {@code PASS}/{@code FAIL} summary line.
  */
@@ -47,6 +49,8 @@ public final class BTSCircuitChecks {
         final List<String> out = new ArrayList<>();
         int fails = 0;
         fails += section(out, "ore names", SLCircuitItems.oreReport());
+        // C4: the Piko raise does not depend on stellarCircuits.
+        fails += section(out, "raise", BTSStockCircuitRaise.report());
         if (!Config.stellarCircuits) {
             out.add("stellarCircuits=false: no recipe, slot, research or rack check applies.");
             out.add(
@@ -59,7 +63,7 @@ public final class BTSCircuitChecks {
         fails += section(out, "lookup", lookups());
         fails += section(out, "research", research());
         fails += section(out, "rack", BTSRackComponents.report());
-        out.add((fails == 0 ? "PASS" : "FAIL") + " circuits C1+C2: " + fails + " section(s) failed");
+        out.add((fails == 0 ? "PASS" : "FAIL") + " circuits C1+C2+C4: " + fails + " section(s) failed");
         return out;
     }
 
