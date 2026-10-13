@@ -104,7 +104,8 @@ public class CommandBTSRecipes extends CommandBase {
             return;
         }
         if ("circuits".equals(sub)) {
-            // Circuits v2 checks (circuits-v2.md §7.2): C1 ore names; C2 chain, slot fills, lookups, research, rack.
+            // Circuits v2 checks (circuits-v2.md §7.2): C1 ore names; C2 chain, slot fills, lookups, research, rack;
+            // C4 the Piko raise.
             for (String line : BTSCircuitChecks.run()) {
                 sender.addChatMessage(new ChatComponentText(line));
                 BeyondTheStars.LOG.info("[BTS] circuits: " + line);
@@ -271,6 +272,12 @@ public class CommandBTSRecipes extends CommandBase {
         final Map<String, Object> config = new LinkedHashMap<>();
         config.put("replaceTecTechEyeOfHarmony", Config.replaceTecTechEyeOfHarmony);
         config.put("removeBlackHoleCompressorRecipe", Config.removeBlackHoleCompressorRecipe);
+        config.put("stellarCircuits", Config.stellarCircuits);
+        config.put("raiseStockSpecialCircuits", Config.raiseStockSpecialCircuits);
+        if (Config.raiseStockSpecialCircuits) {
+            config.put("stockSpecialCircuitEnergyFactor", Config.stockSpecialCircuitEnergyFactor);
+            config.put("stockSpecialCircuitMaterialFactor", Config.stockSpecialCircuitMaterialFactor);
+        }
         dump.put("config", config);
         final Map<String, Object> guard = new LinkedHashMap<>();
         guard.put("registered", BTSRecipeGuard.registeredCount());
@@ -347,6 +354,7 @@ public class CommandBTSRecipes extends CommandBase {
             }
         }
         if (i.startsWith("SL-B") || i.startsWith("SL-P27") || i.startsWith("SL-P28")) return BEC;
+        if (i.startsWith("SL-G1")) return CIRCUITS;
         if (i.startsWith("SL-G") || i.startsWith("SL-P39")) return EYE;
         if (i.startsWith("SL-Q")) return QUASAR;
         if (i.startsWith("SL-X") || i.startsWith("SL-N")) return CIRCUITS;

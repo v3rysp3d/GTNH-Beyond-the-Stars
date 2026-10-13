@@ -79,6 +79,9 @@ public class CommonProxy {
         // B-29 / B-83: GT's Resonance Chamber II rewritten in place, then the generator upgrade path derived from GT's
         // generator recipes (both need GT's Condensate Assembler recipes, which exist only from load-complete).
         BTSRecipeRemovals.guard("Resonance Chamber II in place (SL-G01)", BTSRecipesSingularity::onLoadComplete);
+        // Circuits v2 §5: the NAC's Piko / Quantum / Raw Manifold Bud / Planck steps raised in place (the coremod's
+        // matrix recipes exist by now; nothing has matched them yet).
+        BTSRecipeRemovals.guard("Piko / Quantum / Planck raise (SL-G10..G13)", BTSStockCircuitRaise::onLoadComplete);
         BTSRecipeRemovals.guard("Field-generator upgrade path (SL-U00..U48)", BTSRecipesGeneratorUpgrade::register);
         BTSRecipeRemovals.guard("Eternity on Ergomatter (SL-Q26, D-48)", BTSRecipesQuasar::onLoadComplete);
         BTSRecipeRemovals.run();
