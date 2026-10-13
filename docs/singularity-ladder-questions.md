@@ -6,7 +6,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 1. **Open questions**: each open decision once, with the answer we recommend and where the detail is.
 2. **Settled**: everything you have answered, in your words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision from you.
-4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101 and B-105..B-119, the tidy pass's
+4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101 and B-105..B-120, the tidy pass's
    TQ-1..TQ-8, and P4's P4-01..P4-94 in Part E).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
@@ -167,6 +167,8 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
   scrollbar; fixed. [B-119]
 - `/btswarp` for a player who is not an op: refused in code (permission level 2), not yet tried with a real
   non-op client. [B-119]
+- ~~Review of the merged Eye GUI: a T8 merger warning hidden by a satellite crossing, the Buffers list cutting the
+  fluid the star needs~~: both fixed; the overflow row is not yet seen in a client. [B-120]
 
 **To see in a client** (the headless dev server cannot): the hologram hints, a survival build from a real AE system,
 the NEI multiblock tab and its frame rate (a T6 Eye is 51,935 blocks), every GUI (Eye, KEE, modules, Directive Hatch,
@@ -242,7 +244,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-101, B-105..B-119
+## Part B. Entries B-1..B-101, B-105..B-120
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -5819,6 +5821,69 @@ checked in the client again. The scripts and the shots are in my local work fold
 - The P4 crowns, mouths, mirror and Burst Control Hatch (photographed in B-116).
 - The sensor hatch GUI.
 - `/btswarp` from a non-op player.
+
+### B-120 Review fixes to the Eye GUI: a merger warned during a satellite crossing, the Buffers list's order and overflow [final showcase, review fix]
+
+Two review findings on merged master (`63f53c5`), both checked against the code and both real. Code commit
+`8061701`.
+
+**1. A T8 galaxy hid the minor merger's warning during a satellite crossing.**
+- **What was wrong.** B-116 (`9bdb162`) hid the old "Event warning" row on a T6+ star whenever the countdown row had
+  text, because the countdown named the same event. But the countdown picked one event only, in the order collapse,
+  pericentre pass, crossing, merger. So while a crossing was warned or running (up to 420 s: 120 s warning + 300 s),
+  a minor merger warned in that window showed nowhere: the countdown row named the crossing, and the warning row (the
+  merger's sign) was hidden. A crossing never sets the readout's warning, so nothing else stood for the merger.
+- **The fix** (`EyeGui`).
+  - `eventLines()` replaces `eventText()`: one row per running countdown. The collapse or pass (a transition), the
+    crossing (its countdown or the seconds left), and the minor merger can all show together.
+  - The merger row counts on its own clock: the new `EyeStarRuntime.mergerCountdown()`. The old line took
+    `countdownSeconds()`, which gives the crossing's seconds first, so it would have shown the crossing's time.
+  - `warnNamedByEvents()`: the Event warning row is hidden on a T6+ star only when a countdown row names the event the
+    warning is for. That is a collapse or pass countdown (the transition's warning wins the readout), or the merger.
+    With only a crossing showing, the warning row stays.
+  - `countdownSeconds()` itself is unchanged. The sensor's countdown channel and `bts_eye.getEvent()` still report one
+    event (crossing first), as their single-value design has it.
+- **Checked on the dev server** (headless `runServer`, port 25565, fresh flat world `b120`). An Eye T8 was built by
+  `/btseye t8 0 100 0 north fill` (FORMED). Then the bench ran `eu`, `lit milkyway`, `crossing` (new, below), and
+  `event` 10 s later. `gui` printed:
+  - `NOTE: Satellite crossing in 108 s: hold Stable`
+  - `NOTE: Minor merger in 13 s (-): W pushed, then the precession flips`
+  - no separate Event warning row (the merger row names it), so nothing shows twice.
+  The old code was not run; read from it, the same state would have printed only the crossing row.
+- **New bench verb.** `/btseye star <x y z> crossing` warns the next satellite crossing now (its 120 s countdown), like
+  `event` does for the tier event. It is refused when no star burns or the tier has no crossing.
+
+**2. The Field panel's Buffers section could cut the fluid the star needs.**
+- **What was wrong.** The section draws at most 14 rows (`INTAKE_ROWS`) and said nothing about the rest.
+  `intakeRows()` listed the held buffers first, in stored order, and only then the fluids the sockets pull but do not
+  hold yet. An Eye that has climbed the tiers keeps leftover buffers (a buffer that is not pulled is never drawn down,
+  B-108). With 14 or more of them, a fluid the star now needs and has run out of was row 15 or later, so it was never
+  drawn.
+- **The fix.**
+  - `MTEEyeOfHarmonyBTS.intakeRows()` lists the fluids the sockets pull now first (held ones in stored order, then the
+    ones not held yet), then the held leftovers that are not pulled. The scanner's "Buffers (held / intake cap)" line
+    uses the same list, so it has the same order.
+  - `EyeGui` adds a last row to the section, "+n more (see the scanner)" (new key
+    `beyondthestars.gui.eye.field.buffers.more`), shown only when the list has more than 14 rows.
+- **Checked on the dev server.** On the lit Milky Way above (`fill` puts 10^12 L in every buffer), the scanner's list
+  went from Agent, Magnetar Matter, Black Dwarf Matter, White Dwarf Matter, Ergomatter, ... (stored order, while dark)
+  to Ergomatter 36,300 L cap first, then the ten leftovers marked "not pulled".
+- **Not seen in a client.** The "+n more" row is client-only. That Eye listed 11 buffers, under the 14-row limit, and
+  no client was run. The row's count is the list's line count less 14.
+
+**Checks re-run.**
+- `spotlessApply compileJava`: passes.
+- GUI lang check (`b119/guilint.py`): 460 prefix lookups, 33 dynamic, 0 missing. Every literal `beyondthestars.gui.eye.*`
+  key in `EyeGui` exists, apart from the six known dynamic-suffix prefixes (B-119), and the lang file has no duplicate
+  keys.
+- Boot: `311 registered, 0 skipped`, no `com.nateyburr` frame. The only beyondthestars warnings were the questbook's
+  "pack edit skipped" lines, expected in a world with no pack quest book (as B-119's boot 1).
+- Not re-run: the goldens (no field or quasar maths changed), the structure and texture checks (no structure or
+  texture changed).
+- The dev server's level name and `cmds.txt` were put back afterwards.
+
+**Suggestion.** Keep both. A possible later step is a sensor channel or `getEvent()` field for a second running
+countdown, so a rig can see a merger during a crossing without the GUI. That was not built.
 
 ---
 
