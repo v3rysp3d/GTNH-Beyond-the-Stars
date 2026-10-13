@@ -2031,6 +2031,7 @@ accepted, and §10.2's questions take their recommendations. Branch `p4-quasar`;
 | Quasar Engine MTE 28120, Burst Control Hatch 28126, burst API, sensor quasar channels, render, kit, bench, OC | built | ee919a7, c44f995, 89ac19e, c47fc63 |
 | Conduit (Mouth 28121, Mirror 28122, Junction 28123), Crown 28124, GRB Receptor Port 28125, solver, host API, OC, kit, bench | built | 0f99c6b, 92c10ca, 6d6e8db |
 | Eye T7 Triangulum + T8 Milky Way: rail / halo bands, receptor groups, the two galaxy transitions, links, planets mode, companions, Directive sets, sensor channels, GUI, render, NEI, OC, kit, bench | built | 57ff9a9, 4d7f61c, 6ff4868, 60a569f |
+| Other hosts (KEE, Homogeny T2/T3, Reality Diffraction), OpenComputers (rate limit, trim, the P4 components), automation bench and the unattended T6 → T7 → T8 proof on a real quasar and Eye, automation doc §7, questbook contract | built | ef77c88, 93e992f, cabab76, 0a02809, d6652e0, 9c58843, bbcac79, 4bf6030, 8bdb47d, f9e5c2f, 9d0360f, aadf752 |
 
 ### MTE ledger (P4 block 28120-28129)
 
@@ -2582,3 +2583,81 @@ Boot: 315 recipes, 0 skipped. 10 live stars: T1-T8 plus the two planets variants
 
 The rig keeps stepping in real time after a run (`galaxy off` stops it); after a restart run `/btseye keep` again,
 because the chunk tickets do not persist.
+
+### Other hosts, OpenComputers and automation (questions P4-74..P4-82)
+
+**What's built.** The KEE, the Homogeny T2 / T3 and Reality Diffraction are burst hosts (R.2, §3.1). Every P4 machine
+is an OpenComputers component with rate-limited setters (§8.2). Every §8.3 action has a working route, and the
+standard rig was proved unattended on a dev server: T6 → T7 → T8 on a real quasar and a real Eye (§8.4).
+
+**Files.**
+
+| Class | What it is |
+|---|---|
+| `kerr/MTEKerrEngine`, `KerrHatchElement.Receptor`, `KerrHole` | A GRB Receptor Port in a utility socket; `BurstHost` key `kerr@dim:x,y,z`, demand 0.1 / 0.25 Bu/t; `burstSigma()` (60 s mean), `bleedFactor()`, `maxSetpoint()` (768 at T2 with σ ≥ 1), `effectiveSetpoint()`; GUI link row, scanner, tooltip |
+| `kerr/MTEKerrCompressorModule`, `MTEKerrModuleBase` | The DENSITY gate: `BTSRecipesQuasar.densityMinMass` (256 SM for SL-Q09 / SL-Q23) and `densityNeedsLink` (SL-Q23 needs the KEE's σ ≥ 1); a Superdense run that loses the link pauses (`btsKerrRunLink`) |
+| `conduit/ReceptorHatchElement` | The shared private socket for the H/R units' reserved `g` cells (port first, old casing second) |
+| `homogeny/MTEHomogeny`, `HomogenyGui` | 3 ports on the T2 stirring ring; demand 1.5 / 6; speed × (1 + 0.5·min(σ, 1)); Entanglement Medium (SL-H21) gated at σ ≥ 1 and paused below |
+| `reality/MTERealityDiffraction`, `RealityDiffractionGui` | 6 portal ports; demand 24; with a port fitted, speed × min(σ, 1.5) and pause below 0.5; with none, × 1 (P4-74) |
+| `integration/BTSComputerApi`, `oc/BTSEnvironments`, `oc/BTSDriver`, `oc/BTSOpenComputers` | `rateOk` (one call per 20 ticks per machine and method); `bts_homogeny`, `bts_reality`; `bts_kerr` link fields; `bts_directive.getBits`; `trim` on `bts_quasar` and `bts_eye` (P4-77) |
+| `quasar/MTEQuasarEngine` | `requestTrim` (OC pulses from the feed buffer / gas sockets); `linkable()`; `benchRun` |
+| `eye/star/EyeStarRuntime`, `EyeMilestones` | `coreWanted` on T6 / T7 = all but the link (`metButLink`, P4-76); `testFireWanted` at T7 also needs `linkedQuasarStream() ≥ 6` (P4-79); `requestTrim` and `StarHost.drainStock` (P4-77) |
+| `eye/star/MagnetarMerger`, `eye/field/EyeTrimRule` | Master's merger Directive fix, ported word for word (P4-78) |
+| `eye/EyeGui` | The Galaxy panel's "Heavy Link test fire waits" line |
+| `quasar/QuasarRigBench`, `directive/DirectiveBench.EyeRig`, `eye/star/EyeGalaxyBench.conduit` | The automation bench: `/btsquasar autorig` and `ocloop` |
+| `CommandBTSKerr`, `CommandBTSHR`, `CommandBTSConduit`, `eye/star/EyeStarBench` | Bench: `/btskerr receptor | occall`, `/btshr bench … receptors | inject`, `/btsconduit inject`, `/btseye star … milestones n reset | buses clear` |
+
+**Contracts.**
+
+- **Host-side API** (unchanged from the conduit unit): one `BurstHost` per host, `second(ports, key, label, demand,
+  streak01)` once a host second; conditions use `sigmaMean()`.
+- **OpenComputers:** every setter and action goes through `BTSComputerApi.rateOk(mte, method)`. A refused call returns
+  `nil, "rate limited: one call per 20 ticks (1 s, the field's step)"`.
+- **The Eye's link rules** (P4-76, P4-79) live in `EyeStarRuntime`. `GalaxyDirective` keeps the prototype's rule, so
+  QuasarSim and the 38 golden cases are unchanged.
+- **Master merge:** P4-78's hunks are master's (`c97a35e` / `e054e9c`); take master's version.
+- **Questbook merge:** `docs/p4-questbook-contract.md`, "Hosts + automation unit" and "Generator entries".
+- **Automation doc:** `docs/automation.md` §7.
+
+**Dev-server results** (2026-10-13, port 25581, world `p4test`; quasar at 12000 100 12600, coils 3; Eye T8 structure
+at 12000 100 12000; boot 315 recipes, 0 skipped).
+
+1. **T6 → T7 → T8 unattended.** The gate rig saw only Directive codes and acted only through the machines' hatches
+   (`/btsquasar autorig … eye …`). The conduit was the rig's maths (P4-75).
+   - Start: a fresh 64 SM hole with no spin at f 1.0, and a lit magnetar with T6 unlocked. Milestones were reset, and
+     the escrow, plinth buses and debug rig were empty or off.
+   - **T7 at t+14,555 s.** The core went in on Transition [4], the test fire held the Stability Link, and the chart went
+     in on Transition [1]. The Begin edge started the collapse, and its eruption landed 9.97 Bu/t (85 of 120). The
+     collapse was COMPLETE in 779 s.
+   - **T8 after about 52,600 s at T7.** The quasar grew by itself from 80 to about 135 SM. The test fire waited for
+     6 Bu/t. The Heavy Link was held at about 135 SM, and the Galactic Merger was COMPLETE in 1,920 s.
+   - Then about 41,600 s at T8 with the quasar growing to 222 SM: 14 of 14 crossings caught.
+   - 0 Eye failures and 0 disc blow-outs end to end.
+2. **Found and fixed on the way:**
+   - the core / link deadlock (P4-76);
+   - the T7 test fire starving the rail at 88 SM (P4-79);
+   - the merger re-spawn failing 344 times (P4-78);
+   - `autorig off` leaving stale bursts;
+   - the Stability Link needing f 1.0 (P4-81).
+3. **Real redstone.** After a run the rig acts in real time with redstone blocks on the Burst Control Hatches. The
+   Eye's bursts followed J1 second by second, with the field Resonant.
+4. **Hosts through real ports** (P4-74):
+   - **KEE:** σ 2.0, bleed × 0.25, cap 768, setpoint 700 kept. With the link off it was held at 512.
+   - **Homogeny T3:** σ 1.5, speed × 1.5, Entanglement Medium open. It closed when the mean fell.
+   - **Reality Diffraction:** σ 0.5 gave × 0.5, and σ 0.25 paused it. With the quasar frozen it said "PAUSED (σ held)",
+     and it resumed when the quasar was rebuilt.
+5. **OpenComputers.**
+   - `ocloop`: getters, clamps, `trim` (clamped and taken the next second), and the rate limit (the second call in a
+     tick is refused).
+   - `/btskerr occall … setSetpoint 700`.
+6. **Golden.** 38/38 and 78/78 still pass.
+
+**Not run:**
+
+- no client: the GUIs, including the Galaxy panel's new line;
+- no OpenComputers Adapter in game;
+- the SL-Q23 recipe in the Compressor Module (the gate is code-checked);
+- a 16-port in-world conduit aimed at the Eye.
+
+**Commits:** ef77c88, 93e992f, cabab76, 0a02809, d6652e0 (the first attempt, cut off at 11:39), then 9c58843,
+bbcac79, 4bf6030, 8bdb47d, f9e5c2f, 9d0360f, aadf752.
