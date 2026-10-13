@@ -138,6 +138,11 @@ public final class RecClient {
     private final FloatBuffer mvBuf = BufferUtils.createFloatBuffer(16), prBuf = BufferUtils.createFloatBuffer(16),
         winBuf = BufferUtils.createFloatBuffer(3);
     private final IntBuffer vpBuf = BufferUtils.createIntBuffer(16);
+    /** The scanner panel ({@code readout}): the machine, the line filter, the lines, the pending read. */
+    private int[] readoutAt;
+    private java.util.regex.Pattern readoutKeep;
+    private volatile List<String> readoutLines;
+    private CompletableFuture<List<String>> readoutF;
     /** Lines from server tasks fired and forgotten (written on the client thread). */
     private final ConcurrentLinkedQueue<String> asyncLog = new ConcurrentLinkedQueue<>();
 
@@ -422,6 +427,7 @@ public final class RecClient {
                 waitWorld();
                 break;
             case RUN:
+                pollReadout();
                 if (act != null) act.tick();
                 advance(System.nanoTime());
                 applyPose();
@@ -481,7 +487,9 @@ public final class RecClient {
 
     private void drawOverlay(long now) {
         final String warp = warpTag();
-        if (card == null && tag == null && warp == null && caption.isEmpty() && labels.isEmpty()) return;
+        final List<String> panel = readoutAt == null ? null : readoutLines;
+        if (card == null && tag == null && warp == null && caption.isEmpty() && labels.isEmpty() && panel == null)
+            return;
         RecOverlay.begin(mc);
         try {
             if (card != null) {
@@ -498,6 +506,7 @@ public final class RecClient {
                     final float a = captionStart < 0 ? 1f : (float) Math.min(1.0, (now - captionStart) / 0.4e9);
                     RecOverlay.caption(mc, caption, Math.max(0.05f, a));
                 }
+                if (panel != null) RecOverlay.panel(mc, "Scanner", panel);
                 int row = 0;
                 if (warp != null) RecOverlay.tag(mc, warp, row++);
                 if (tag != null) RecOverlay.tag(mc, tag, row);
@@ -654,6 +663,8 @@ public final class RecClient {
         caption = "";
         captionStart = -1;
         labels.clear();
+        readoutAt = null;
+        readoutLines = null;
     }
 
     private void endScene() {
@@ -694,6 +705,8 @@ public final class RecClient {
         tag = null;
         caption = "";
         labels.clear();
+        readoutAt = null;
+        readoutLines = null;
         scene = null;
     }
 
@@ -778,6 +791,32 @@ public final class RecClient {
                             RecServer.at(name),
                             name,
                             appeng.api.util.AEColor.valueOf(c.opt(1, "Purple")))));
+                break;
+            }
+            case "melist": {
+                final String place = c.arg(0);
+                acts.add(new Server("ME contents at " + place, () -> RecServer.meList(place)));
+                break;
+            }
+            case "readout": {
+                // readout <place> [match <regex>] | readout off: the machine's scanner lines in a side panel
+                if (c.opt(0, "")
+                    .equalsIgnoreCase("off")) {
+                    acts.add(new Instant("readout off", () -> {
+                        readoutAt = null;
+                        readoutLines = null;
+                    }));
+                    break;
+                }
+                final int[] p = block(resolve(c.arg(0)));
+                final String m = c.kv.get("match");
+                final java.util.regex.Pattern keep = m == null ? null
+                    : java.util.regex.Pattern.compile(m, java.util.regex.Pattern.CASE_INSENSITIVE);
+                acts.add(new Instant("readout of " + RenderTest.pos(p) + (m == null ? "" : " matching " + m), () -> {
+                    readoutAt = p;
+                    readoutKeep = keep;
+                    readoutLines = null;
+                }));
                 break;
             }
             case "creativepower": {
@@ -980,6 +1019,25 @@ public final class RecClient {
             }
             default:
                 throw new IllegalArgumentException("not a command here: " + c.verb);
+        }
+    }
+
+    /** Twice a second while a readout is on: the machine's scanner lines from the server. */
+    private void pollReadout() {
+        if (readoutAt == null) return;
+        if (readoutF != null) {
+            if (!readoutF.isDone()) return;
+            try {
+                readoutLines = readoutF.get();
+            } catch (Exception bad) {
+                say("readout FAILED: " + bad);
+            }
+            readoutF = null;
+        }
+        if (ticks % 10 == 0) {
+            final int[] p = readoutAt;
+            final java.util.regex.Pattern keep = readoutKeep;
+            readoutF = RenderTest.onServer(() -> RecServer.scan(p, keep));
         }
     }
 

@@ -578,6 +578,10 @@ final class AutoRigEyeAE {
                 continue;
             }
             tank.setFillableStack(new FluidStack(fl, 1000));
+            // the read-only storage bus in front re-scans on a neighbour change: without one it sometimes kept the
+            // first 1,000 L it saw and the Eye's stocking hatch never filled the buffers (showcase v2 draft 1)
+            world.notifyBlocksOfNeighborChange(t[0], t[1], t[2], world.getBlock(t[0], t[1], t[2]));
+            world.markBlockForUpdate(t[0], t[1], t[2]);
             out.add("supply tank " + RenderTest.pos(t) + ": endless " + fl.getName() + " (set up by script)");
         }
         final ItemStack items = MeParts.filledCell(

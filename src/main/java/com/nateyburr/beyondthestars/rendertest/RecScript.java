@@ -59,7 +59,9 @@ final class RecScript {
             "menet",
             "points",
             "creativepower",
-            "name"));
+            "name",
+            "readout",
+            "melist"));
 
     /** The verbs whose time is recorded. */
     static final Set<String> RECORDING = new HashSet<>(
@@ -88,7 +90,8 @@ final class RecScript {
             "tab",
             "name",
             "gen",
-            "side"));
+            "side",
+            "match"));
 
     /** One command line. */
     static final class Cmd {

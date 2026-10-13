@@ -443,6 +443,54 @@ final class RecServer {
             + m.mMachine;
     }
 
+    /**
+     * The scanner lines of the GT machine at {@code p} (what a Portable Scanner prints: {@code getInfoData}), kept if
+     * they match {@code keep} (a regex on the line without colour codes, or null for all).
+     */
+    static java.util.List<String> scan(int[] p, java.util.regex.Pattern keep) {
+        final java.util.List<String> out = new java.util.ArrayList<>();
+        final TileEntity te = RenderTest.world()
+            .getTileEntity(p[0], p[1], p[2]);
+        if (!(te instanceof IGregTechTileEntity)) return out;
+        final gregtech.api.interfaces.metatileentity.IMetaTileEntity m = ((IGregTechTileEntity) te).getMetaTileEntity();
+        if (m == null) return out;
+        final String[] info = m.getInfoData();
+        if (info == null) return out;
+        for (String l : info) {
+            if (l == null || l.trim()
+                .isEmpty()) continue;
+            if (keep == null || keep.matcher(l.replaceAll("\u00a7.", ""))
+                .find()) out.add(l);
+        }
+        return out;
+    }
+
+    /** What the ME network behind the cable at a named place holds (items and fluids), for the log. */
+    static String meList(String place) {
+        final appeng.api.networking.storage.IStorageGrid g = MeParts.storage(RenderTest.world(), at(place));
+        if (g == null) return "no ME network at " + place;
+        final StringBuilder b = new StringBuilder("ME at " + place + ":");
+        if (g.getItemInventory() != null) for (appeng.api.storage.data.IAEItemStack st : g.getItemInventory()
+            .getStorageList())
+            b.append(' ')
+                .append(st.getStackSize())
+                .append("x ")
+                .append(
+                    st.getItemStack()
+                        .getDisplayName())
+                .append(';');
+        if (g.getFluidInventory() != null) for (appeng.api.storage.data.IAEFluidStack st : g.getFluidInventory()
+            .getStorageList())
+            b.append(' ')
+                .append(st.getStackSize())
+                .append(" L ")
+                .append(
+                    st.getFluidStack()
+                        .getLocalizedName())
+                .append(';');
+        return b.toString();
+    }
+
     /** Runs a server command as the player (op in the integrated world). */
     static String command(String cmd) {
         final EntityPlayerMP player = RenderTest.player();

@@ -106,6 +106,33 @@ final class RecOverlay {
         }
     }
 
+    /**
+     * A side panel of a machine's scanner lines (what a GT Portable Scanner prints), on the left: a title, then the
+     * lines wrapped to the panel, as many as fit above the caption bar. Colour codes in the lines are kept.
+     */
+    static void panel(Minecraft mc, String title, List<String> lines) {
+        if (lines == null || lines.isEmpty()) return;
+        final FontRenderer f = mc.fontRenderer;
+        final int h = mc.displayHeight;
+        final float scale = Math.max(1.25f, h / 480f);
+        final int pad = Math.round(6 * scale);
+        final int width = Math.round(mc.displayWidth * 0.27f);
+        final List<String> rows = new ArrayList<>();
+        for (String l : lines) rows.addAll(wrap(f, l, width - pad * 2, scale));
+        final double lineH = 10 * scale;
+        final int maxRows = (int) ((h * 0.72 - pad * 3 - lineH * 1.3) / lineH);
+        final List<String> shown = rows.size() > maxRows ? rows.subList(0, maxRows) : rows;
+        final int x0 = pad * 2, y0 = pad * 2;
+        final int y1 = (int) Math.round(y0 + pad * 2 + lineH * 1.3 + shown.size() * lineH);
+        rect(x0, y0, x0 + width, y1, 0xC0000000);
+        text(f, title, x0 + pad, y0 + pad, scale, 0xFFD54A, 1f);
+        double y = y0 + pad + lineH * 1.3;
+        for (String r : shown) {
+            text(f, r, x0 + pad, y, scale, 0xFFFFFF, 1f);
+            y += lineH;
+        }
+    }
+
     /** A title / end card: plain dark background, the first line large, the rest smaller, centred. */
     static void card(Minecraft mc, List<String> lines, float textAlpha) {
         final FontRenderer f = mc.fontRenderer;

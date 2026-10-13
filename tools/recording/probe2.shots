@@ -1,0 +1,70 @@
+# DEV PROBE 2 (not a showcase): the Homogeny T1 -> T2 on creative power; Eye T6 -> T7 -> T8 on the bench quasar model
+# (galaxy bench, lock-stepped); Eye T7 -> T8 on a real quasar with the live quasar rig.
+time day
+command /btshr homogeny t1 6600 40 4000 north fill
+command /btshr keep homogeny 6600 40 4000 north t2
+name hom 6600,40,4000
+creativepower hom
+# G1: the galaxy bench
+kit eye 8 10000,5,4000 gen 8 name g1
+command /btseye star 10000 5 4000 unlock 6
+command /btseye star 10000 5 4000 fill
+command /btseye star 10000 5 4000 target magnetar
+command /btseye star 10000 5 4000 lit magnetar
+command /btseye star 10000 5 4000 milestones 6 done
+command /btseye star 10000 5 4000 milestones 7 done
+command /btseye star 10000 5 4000 buses clear
+# G2: a real quasar, the Eye lit at T7
+kit eye 8 11000,5,4000 gen 8 name g2
+command /btsquasar t3 11000 100 4400 north seed
+command /btsquasar keep 11000 100 4400
+command /btsquasar feed 11000 100 4400 1.0
+command /btsquasar mass 11000 100 4400 136
+command /btseye star 11000 5 4000 unlock 7
+command /btseye star 11000 5 4000 fill
+command /btseye star 11000 5 4000 target triangulum
+command /btseye star 11000 5 4000 lit triangulum
+command /btseye star 11000 5 4000 milestones 7 done
+command /btseye star 11000 5 4000 buses clear
+command /btseye star 11000 5 4000 rig none
+
+scene hom
+  caption probe: homogeny
+  goto hom+0,4,-6 look hom
+  gui hom
+  warp 20
+  hold 4
+  close
+  command /btshr bench 6600 40 4000 status
+  goto hom+-40,40,-60 look hom+0,0,30
+  hologram hom survival tier 2 budget 20 every 1 tail 1 max 20
+  command /btshr bench 6600 40 4000 project 2
+  creativepower hom
+  command /btshr bench 6600 40 4000 milestone 100000 0
+  command /btshr bench 6600 40 4000 escrow
+  command /btshr bench 6600 40 4000 install
+  command /btshr bench 6600 40 4000 status
+  goto hom+0,4,-6 look hom
+  gui hom
+  timelapse 20 speed 3 until game:700 clock
+  close
+  command /btshr bench 6600 40 4000 status
+
+scene gal
+  caption probe: galaxy bench and live quasar
+  goto g1.c+0,40,-200 look g1.c
+  command /btseye star 10000 5 4000 galaxy 0 mass 136
+  command /btsquasar autorig 11000 100 4400 0 eye 11000 5 4000
+  warp 60
+  command /btswarp status
+  timelapse 30 speed 10 until unlocked:g1:7 clock
+  command /btswarp status
+  command /btseye star 10000 5 4000 status
+  timelapse 30 speed 10 until unlocked:g2:8 clock
+  command /btswarp status
+  command /btseye star 11000 5 4000 status
+  command /btsquasar autorig status
+  timelapse 30 speed 10 until unlocked:g1:8 clock
+  command /btswarp status
+  command /btseye star 10000 5 4000 status
+  hold 2
