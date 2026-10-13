@@ -4055,6 +4055,62 @@ Headless `runServer` (RC-2 deps, port 25565), five boots:
 **Not covered.** A client (the round-2 shots in B-93 cover the book's look); the playtest jar is still master.235 (the
 package unit follows).
 
+### B-95 Review fixes: no pointer to the hidden Endgame Goals tab, a skipped chapter edit is not stale [follow-up, built]
+
+Two review findings on the B-92 / B-94 questbook work. Both were checked before fixing and both were real.
+
+**1. Two pack quests still sent the player to "the Endgame Goals tab"** (`9d5affc`).
+- C01 hides the emptied chapter. E40 already rewrote Finally, Universium!, but two more pack quests named the tab and
+  had no edit: One Ingot, Infinite Power (`AAAAAAAAAAAAAAAAAAAKcw==`, Tier 9 - UHV: "Check the Endgame Goals tab or NEI
+  recipes for the Table") and Gen XXXXXXXXXX... (`AAAAAAAAAAAAAAAAAAAJbA==`, Adept Thaumaturgy: "(see the Endgame
+  Goals tab when you're ready)"). Confirmed in the RC-2 pack mirror (identical to the Prism instance's).
+- New `replaceText` edits: **E65** "Check the Tier 13 - UXV, Tier 14 - MAX and The Endgame tabs, or NEI recipes for
+  the Table"; **E66** "(see The Endgame tab when you're ready)". Plain text, like the pack's own note and E40. Two
+  pack chapter keys (`uhv`, `thaum2`) were added for `expectChapter`.
+- **The generator now fails** if any pack quest text a player still reads (after our edits) names a chapter that a
+  `hideWhenEmpty` edit hides. New selftest case "a pack quest naming a hidden chapter" (drop E66) fires.
+- Dev server, fresh world, shipped flags, the pack's DefaultQuests: 77 added, **64 / 64** edits applied, Endgame Goals
+  hidden, both texts replaced. The only "Endgame Goals" left anywhere in the database is the UHV quest name "Misc
+  Endgame Goals", which names a quest, not the tab. Restart: "already up to date", database identical (ignoring key
+  order).
+
+*Judgement call (differs from the review's suggestion):* E65 / E66 are **not** gated on `replaceTecTechEyeOfHarmony`
+like E63 / E64. The text points at where the Dire Crafting Table goals and the Stargate now live, and those quests
+(E20-E62, apart from E20 / E47) move with no flag. With that flag off, Endgame Goals stays (holding only E20, E47 and
+the two trophies), but the Stargate and DCT quests are still in UXV / MAX / The Endgame, so the new text is the right
+one in both cases. Gating it would leave the old "see the Endgame Goals tab" pointing at a chapter that no longer
+holds the Stargate. *Alternative:* a variant per flag state; not needed while the moves are unconditional.
+
+**2. A skipped chapter edit made the world "stale" on every boot** (`d516361`).
+- `staleReason` said "pack chapter ... is empty and still shown" whenever a chapter edit was not in `state.hidden` and
+  its chapter was empty. It ignored that `hideEmpty` had skipped it on purpose (the chapter's name drifted, or an op
+  this jar does not know). Such a world was never up to date: every start re-ran the whole install (progress snapshot
+  and restore) and re-set the "pack edit(s) were skipped" login notice.
+- Both now ask one helper, `chapterEditSkip` (unknown op, chapter name drift). `staleReason` calls an empty, shown
+  chapter stale only when `hideEmpty` would actually hide it now. This is the review's second option (check name and
+  op the same way). It was chosen over "skip edits in `state.skipped`" because it also reacts if the name comes back.
+- Dev server, with Endgame Goals renamed "Endgame Goals (renamed)" in the server's copy of the pack's DefaultQuests
+  (the quest edits only check the chapter by id, so E63 / E64 still empty it):
+
+| Boot | Jar | Result |
+|---|---|---|
+| 1 (fresh world) | fixed | 77 added, 64 applied, **C01 skipped: chapter name drift**, chapter left in the book, empty |
+| 2 | fixed | "already up to date"; database identical |
+| 3 | **pre-fix** installer | "this world differs from the jar: pack chapter AAAAAAAAAAAAAAAAAAAAHQ is empty and still shown", 77 refreshed: the bug |
+| 4 | fixed again | "already up to date" |
+
+Every boot: `278 registered, 0 skipped`, the H/R gate summary, and no beyondthestars WARN or ERROR apart from the
+expected C01 drift warning in the drift test. The dev server's `server.properties`, BetterQuesting setting
+("Load the default quest DB on world startup" back to true) and `cmds.txt` were put back. The DefaultQuests copy was
+removed. Test worlds `b95-fresh` and `b95-drift` were left in `run/server`.
+
+**Checks:** `spotlessApply compileJava` and `spotlessCheck` pass; `gen-singularity --selftest` passes (the new case
+included); `--check`: 95 files up to date (bundle `4e3fbb04c8d2`). The playtest guide now says 64 edits and names
+the two re-pointed quests.
+
+**Not covered.** No client screenshots of the two quests. The text is plain and short, and B-93's wrap rules lint
+it. The playtest jar is still master.235 (the package unit follows).
+
 ## Where the old question numbers went
 
 | Old | Now | Old | Now | Old | Now |
