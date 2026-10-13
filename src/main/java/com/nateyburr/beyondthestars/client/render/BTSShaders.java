@@ -57,6 +57,7 @@ public final class BTSShaders {
             for (Program p : PROGRAMS) p.markReload();
         }
         NoiseTex.markReload();
+        FrameCopy.markReload();
     }
 
     /** Every registered program (the self test walks them). */

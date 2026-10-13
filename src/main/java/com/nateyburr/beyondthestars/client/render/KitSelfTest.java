@@ -66,7 +66,7 @@ public final class KitSelfTest {
     private static final BTSShaders.Mesh QUAD = PROGRAM.mesh(Meshes::quad);
 
     /** The kit programs whose two profiles the self test compiles. */
-    private static final String[] PROGRAMS = { "bts_selftest", "bts_glow", "bts_points" };
+    private static final String[] PROGRAMS = { "bts_selftest", "bts_glow", "bts_points", "bts_blackhole" };
 
     private static PointBatch stars;
     private static boolean checked;
