@@ -6,7 +6,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 1. **Open questions**: each open decision once, with the answer we recommend and where the detail is.
 2. **Settled**: everything you have answered, in your words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision from you.
-4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101 and B-105..B-122, the tidy pass's
+4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122 and B-130..B-138, the tidy pass's
    TQ-1..TQ-8, and P4's P4-01..P4-94 in Part E).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
@@ -46,7 +46,7 @@ Most important first. "Recommended" is what we would build if you say nothing. N
 | 21 | ~~Resonance Chamber IV (the Eye T8 gate) has two recipes in NEI~~ | **Settled** (rewrite in place): SL-G03 | B-135 |
 | 22 | The intake cap at T7 / T8 buffers tens to hundreds of G L of hydrogen and helium (companions, planets mode) | Keep B-108's 20 cycles / 2 runs rule; shorten the companions' window if a shared network still starves | B-110 |
 | 23 | Eye T7 / T8 from the front at eye level: the window shows the galaxy's core and inner arms (\|x\| ≤ 10), but its outer arms (to r 16 / 19) stand behind the T6 rim and the arm blades | Keep the opening at \|x\| ≤ 10: wider would cut the arms and the rim out of the T4-T6 Eye too, and the near-flat disc (8° tilt) reads best from above anyway | B-114 |
-| 24 | The time warp `/btswarp` (op only, cheats): ship it in release jars? | Yes, op only like the other benches: it changes nothing for a player who does not type it and is a real aid for testing a rig | B-117 |
+| 24 | ~~The time warp `/btswarp` (op only, cheats): ship it in release jars?~~ | **Settled**: ship it, op and cheats only (as built) | B-117 |
 | 25 | The two-fluid wafer engravings (SL-X05 Empyrean, SL-X06 Omega) cannot run in a single-block Laser Engraver (one fluid slot) | Keep; a UMV player uses GT's Hyper-Intensity Laser Engraver (or any multi with two input hatches); say "multiblock engraver" in the Empyrean / Omega quests | B-136, seen 1 |
 | 26 | `stellarCircuits=false` leaves the Piko / Quantum / Planck raise on (two independent switches) | Keep them independent; add one sentence to the `stellarCircuits` config comment | B-136, seen 2 |
 
@@ -56,9 +56,11 @@ Your answers, newest first. Quotes are your words.
 
 | Topic | Your answer | What was built |
 |---|---|---|
+| Circuits v2 (brief items 31-33; `designs/docs/circuits-v2.md` revision 3) | "they can make umv and uxv but we make cheaper"; "Any of the tier such as the (any uxv) forming oress recipe"; "No offset, build until finished please"; rack "Yes, slightly better"; the raise on by default; NAC "Patch now, PR later" | Sidereal / Empyrean / Omega (B-130..B-134), in GT's any-of-tier ore names, no compensation, the Piko raise (2.5x / 2x), the NAC patch, the rack parts; tested B-136, filmed B-137, merged and packaged in `master.304` (B-138). The UMV stopgap for the UXV parts stays |
+| The time warp in release jars [open question 24; B-117] | Ship it, op + cheats | `/btswarp` stays in every jar, op only (B-138 marks it settled) |
 | Resonance Chambers III and IV [open questions 4 and 21; B-83, B-110] | Rewrite GT's recipes in place under the same flag, like chamber II (B-29) | SL-G02 / SL-G03 rewrite GT's recipes at load-complete; SL-P33 / SL-P40 retired to fallbacks; one recipe per chamber in NEI (B-135) |
 | A Magnetar Collapse begun with a quasar too weak to cancel the shock [B-118] | "Warn, allow" | The countdown line stays; a red row above Begin and in the Galaxy panel when the linked quasar's peak is under 13.5 Bu/t; Begin still works (B-135) |
-| UXV parts and circuits (D-45; B-72 item 1, B-84; brief item 22a superseded item 20) | First "Brainstorm page first" and, for the playtest jar, "Ship UMV stopgap". Then, on `designs/docs/uxv-circuits.md`: Q-U1 "Both", Q-U2 "Empyrean", the above-MAX tier "Omega" (not Apotheosis), Q-U9 "The Eye's live star"; the other Q-U items as recommended | In the jar: the UMV stopgap (B-72 for SL-B70 / B80, B-84 for SL-H10). Next: the Empyrean circuit tier before MAX (Phase U1, Grades I-II, which unblocks T5 / T6 and retires the stopgap), then U2 (Grade III, the Godforge re-key), on master after the playtest run and before P4 merges |
+| UXV parts and circuits (D-45; B-72 item 1, B-84; brief item 22a superseded item 20) | First "Brainstorm page first" and, for the playtest jar, "Ship UMV stopgap". Then, on `designs/docs/uxv-circuits.md`: Q-U1 "Both", Q-U2 "Empyrean", the above-MAX tier "Omega" (not Apotheosis), Q-U9 "The Eye's live star"; the other Q-U items as recommended | In the jar: the UMV stopgap (B-72 for SL-B70 / B80, B-84 for SL-H10). Next: the Empyrean circuit tier before MAX (Phase U1, Grades I-II, which unblocks T5 / T6 and retires the stopgap), then U2 (Grade III, the Godforge re-key), on master after the playtest run and before P4 merges. **The U1 / U2 circuit plan was superseded by Circuits v2** (the first row); the stopgap stays |
 | Generator upgrade path [B-30; B-29's alternative] | "Add an upgrade path" | SL-U00..U48 and the Retrofit Kits (B-83) |
 | Resonance Chamber II [B-29] | "Rewrite GT's in place" | SL-G01 rewrites GT's recipe at load-complete; SL-P39 retired (B-83) |
 | The hole and the star hidden from the front [render K2, E1 / E-9; B-66..B-68] | "Glass window bands" | One Quantum Glass pane per window, the cells behind it open (B-86) |
@@ -178,6 +180,13 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
 - ~~Package the playtest jar from master after P4, the GUI merge and the showcase~~: done, `master.302`
   (`362b228`) in `dist-rc2`, INSTALL.md and the playtest guide refreshed (phases Q, T, W; 425 recipes from a fresh
   dump); `master.250` is in `dist-rc2/superseded/`. [B-122]
+- ~~Merge the circuits branch and package the playtest jar~~: done, master `956c5c0` (merge of `circuits`, B-130..B-137),
+  `master.304` in `dist-rc2` (364 registered, 499 recipes), INSTALL.md and the playtest guide refreshed (phase X);
+  `master.302` is in `dist-rc2/superseded/`. [B-138]
+- **Circuits, to see in a client or the pack:** the six circuit quests and the pack-quest notes, the weak-quasar row,
+  the circuits' tier-line tooltip fix, `stellarCircuits=false` (NEI hiding, "Disabled by config"), a real Research
+  Station run for the nine researches, and the mixin in the obfuscated jar in a real pack (playtest phase X, A2).
+  [B-134..B-136, B-138]
 
 **To see in a client** (the headless dev server cannot): the hologram hints, a survival build from a real AE system,
 the NEI multiblock tab and its frame rate (a T6 Eye is 51,935 blocks), every GUI (Eye, KEE, modules, Directive Hatch,
@@ -253,7 +262,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-101, B-105..B-122
+## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-138
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -6566,6 +6575,89 @@ Observable Universe) on the headless server and on camera.
 
 **Files.** Session local work folder `video/circuits/`: `circuits-1080p.mp4` (22 MB), `circuits-720p.mp4` (4.4 MB),
 `reality-1080p.mp4` (32 MB), `reality-720p.mp4` (4.4 MB), `stills/`.
+
+### B-138 Ship: circuits merged into master, the playtest jar `0.24.1-master.304+956c5c0d0b` [master, merge + package]
+
+**Context.** The circuits branch (B-130..B-137: Circuits v2, the Piko raise, the NAC patch, the weak-quasar row,
+Resonance Chambers III / IV in place, the becnet bench, the Refab fix) is done; this unit merges it into master and
+packages the playtest jar, as B-122 did for `master.302`.
+
+**What was done.**
+- **Merge.** `git merge --no-ff circuits` on master `c2b016d` gave `956c5c0`. Master had no commit since the branch was
+  cut, so there was no conflict and no B number to renumber (the max-quasar unit logged no B-123 / B-124 on master).
+  Its uncommitted bench verb (`/btsconduit crowns`, `CommandBTSConduit.java`, `ConduitKit.java`, `maxquasar.shots`)
+  sat in master's working tree; the merge does not touch those files, and they were left as they were, uncommitted.
+- **Headless boots on master** (`runServer`, port 25565, fresh flat world `b138-rx`; `beyondthestars.cfg`, the level
+  name and `cmds.txt` were put back byte for byte afterwards; script `work/b138/run-dumps.sh`):
+  - shipped flags: `Recipe registration complete: 364 registered, 0 skipped`; "Circuits v2: 12 circuits in GT's
+    circuit ore names"; "NAC patch active: 34 circuit components appended (248 stock, 282 total)"; "3 Mainframes
+    registered as computer-rack components"; SL-G01..G03; SL-G10..G13 and "4 of 4 NAC Assembly Matrix steps raised";
+    "NAC conversions: 23 of 23"; "Research items: all 21 ... unique"; GTNHMixins loads `BTSLateMixins`.
+    `/btsrecipes status`: `Total 499 | by status {new=433, changed-GT=64, removed=2}` (Kerr 28, Eye 64, Quasar /
+    Conduit 34, BEC 28, H/R 27, Circuits 74, Automation 1, upgrade path 41, old plant 202). `/btsrecipes circuits`:
+    PASS in every section (ore-dict, raise, nac, unification, chain, slots, lookup, research, rack). The only
+    `[beyondthestars]` WARN lines are the 66 "pack edit skipped" of a world with no pack book and the check's own
+    made-up `BTS_NoSuchComponent` conveyor; no `com.nateyburr` stack frame;
+  - all five recipe flags off (`replaceTecTechEyeOfHarmony`, `removeBlackHoleCompressorRecipe`, `stellarCircuits`,
+    `nacCircuitComponents`, `raiseStockSpecialCircuits`): 309 registered, 0 skipped; `Total 431 | {new=406,
+    changed-GT=2, removed=23}` (the 23 are the coremod's NAC conversions of our items); `/btsrecipes circuits` PASS
+    with `stellarCircuits=false`.
+  The dev classes carried the uncommitted bench verb, so the dump's `mod` field read `...-dirty`; it changes no
+  recipe, and the guide's copy of the dump names the jar's version.
+- **Jar.** Built from a clean `git archive` export of `956c5c0` (so the other unit's uncommitted files are not in it)
+  with `VERSION=0.24.1-master.304+956c5c0d0b gradlew build --no-daemon` (the GTNH plugin's version override; the
+  string is what a clean master checkout gives: first-parent distance 304, hash `956c5c0d0b`). Spotless and
+  checkstyle ran and passed. `dist-rc2/beyondthestars-0.24.1-master.304+956c5c0d0b.jar`, 2,674,514 bytes, SHA-256
+  `2a4f82c6d695536b4849b496a8aa16d70c4345c2fbd07a459eaa63d946ae6ecd`; `mcmod.info` says `0.24.1-master.304+956c5c0d0b`;
+  it holds the three mixin classes, `mixins.beyondthestars.json`, `mixins.beyondthestars.late.json` and the refmap.
+  `master.302` moved to `dist-rc2/superseded/`.
+- **`dist-rc2/INSTALL.md`** (CRLF kept; script `work/playtest/install304.py`, backup
+  `INSTALL.master302.bak.md`): the new jar name, size, hash and commit everywhere (header, the local install block,
+  the dedicated-server command); "the first jar with a mixin"; a new 0.1 "Since `master.302`" (the three families, any slot
+  of the tier, the Piko raise and its keys, the NAC patch and its migration note, the rack, the circuit quests, the
+  weak-quasar row, chambers III / IV, the Refab fix, `/btshr becnet`, the circuit benches); the old 0.1 became 0.2
+  and the older tables were folded into 0.3. Section 3: 364, the new load lines, 499 by line. Section 4: the five
+  new keys, 431 / 309 with every recipe flag off. Section 5: the circuit quests and notes, 66 edits. 6.2: the red
+  row, chamber IV in place. 6.4: the Refab fix, becnet. A new 6.8 for Circuits v2. Section 7: the UXV parts redesign
+  (stopgap stays) and the deferred GT PR. Sections 8-11: the new recipes, the dropped two-recipes issue, open
+  questions 25 / 26, the Forming Press alias, the untried Research Station run, the seen / not-seen lists, the circuit
+  and becnet commands, and the migration notes (from `master.302`; empty the Vacuum Conveyors of `BTS_` components
+  before removing the mod).
+- **Playtest guide** (local work folder `playtest/playtest-guide.html`, script `playtest/refresh304.py`, backup
+  `playtest-guide.master302.bak.html`):
+  - the header's jar, hash and commit, and a "New since `master.302`" note naming the steps to re-check (A1, A2, B1,
+    B2, T2, R1);
+  - A1 / A2 (the new jar; 364 and the new load lines; "NAC patch inactive" to report), B1 / B2 (66 edits, the circuit
+    quests and notes), T2 (the red row; with the 136 SM bench quasar it may show, Begin still works), R1 (499);
+  - a new phase **X · Circuits v2** before H: X1 one Mainframe of each family through `/btsrecipes chain` under
+    `/btswarp`, X2 ours in a stock any-of-tier slot, X3 a NAC run (`/btsrecipes nac`), X4 the raise in NEI, X5 the
+    computer rack and a Research Station, X6 `stellarCircuits=false` (optional);
+  - the chapters table, a Circuits card and the becnet verbs in the command card, open questions 4 / 21 / 24 marked
+    settled and 25 / 26 added, the footer;
+  - "All new recipes" rebuilt with `recipedump/build_section.py` from the fresh dumps: `GROUPS` gained "Circuits", the
+    flags note names all five keys, the flag-off "only with the flags off" line explains grouped rows (SL-N00, 23
+    removed conversions), and a Research Station recipe now shows its computation, per second, voltage and amperage
+    (it showed "None"). 499 entries.
+
+  Headless Edge (Playwright, `msedge` channel) in light, dark, 1280 px and 390 px: 45 steps (X 0 / 6), no duplicate
+  step ids, "499 of 499 recipes shown", the Circuits chip filters to 74, ticking X1 counts, no console or page errors,
+  no broken images, no horizontal overflow (the GTNHMixins class name in A2 overflowed at 390 px; it now breaks at
+  its dots).
+
+**Judgement calls.**
+1. **The jar is built from a clean export, not master's working tree**, because the max-quasar unit's uncommitted
+   files sat there; a build of the tree would have been named `-dirty` and carried code no commit holds. The version
+   string is set to what a clean checkout of `956c5c0` produces.
+2. **The tick storage key stays `bts-playtest-master235`**, as in B-105 and B-122, so ticks already made survive.
+3. **Open question 24 (`/btswarp` in release jars) is marked settled** from your answer (brief item 32(d): ship it,
+   op + cheats); nothing in the code changes.
+4. **No dev-client or Prism run for this unit.** The code is the one B-136 tested in a client and B-137 filmed; the
+   merge changed no file. The mixin has run in the dev environment only; the obfuscated jar's mixin in the real pack
+   is the first thing A2 checks. The Prism instance was not touched.
+5. `dist-rc2/` is not in a git repo (the design repo leaves it untracked), as before.
+
+**Suggestion.** Install `master.304` instead of `master.302` and run A1-A2, then phase X; phases Q and T stay the
+post-UEV gameplay to try.
 
 ## Where the old question numbers went
 
