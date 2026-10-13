@@ -634,7 +634,13 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
     @Override
     public void onPostTick(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
         super.onPostTick(aBaseMetaTileEntity, aTick);
-        if (aBaseMetaTileEntity.isServerSide() && aTick % 20 == 0 && mMachine) burstSecond(aBaseMetaTileEntity);
+        if (aBaseMetaTileEntity.isServerSide() && aTick % 20 == 0) {
+            if (mMachine) burstSecond(aBaseMetaTileEntity);
+            // Install progress, milestones, the pending mix totals and the burst counters change without an
+            // inventory change, and GT marks a chunk for saving only on those: once a second, as the KEE and the
+            // P4 machines do (B-112, P4-85).
+            aBaseMetaTileEntity.markDirty();
+        }
         if (aBaseMetaTileEntity.isServerSide() && !installing && mMaxProgresstime > 0 && !runConditionHolds())
             aBaseMetaTileEntity.setActive(false);
         if (!aBaseMetaTileEntity.isServerSide() || !installing) return;

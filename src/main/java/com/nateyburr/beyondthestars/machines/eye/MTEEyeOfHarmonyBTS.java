@@ -1156,6 +1156,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             runtime.second();
             publishDirectives();
             refreshStatusLine();
+            // The buffers fill from the sockets and the field, milestones and setpoints move without an inventory
+            // change of this tile, and GT marks a chunk for saving only on those. The runtime marks on most changes;
+            // this once-a-second mark covers every path (a dark Eye filling its buffers too), as the KEE and P4's
+            // machines do (B-112, P4-85).
+            aBaseMetaTileEntity.markDirty();
         }
         // GT sets the active flag from its run progress; a burning star is active too (Activity Detector).
         if (runtime.burning()) aBaseMetaTileEntity.setActive(true);

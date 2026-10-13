@@ -229,6 +229,10 @@ public abstract class MTERealityBase<T extends MTERealityBase<T>> extends MTEExt
         if (aBaseMetaTileEntity.isServerSide() && aTick % REASSERT_TICKS == 0) {
             BECFactoryGrid.INSTANCE.updateElement(this);
             onSecond();
+            // Diffraction's pending litres and run count, Refab's steps, sub-ticks and link change without an
+            // inventory change, and GT marks a chunk for saving only on those: once a second, as the KEE and the P4
+            // machines do (B-112, P4-85).
+            aBaseMetaTileEntity.markDirty();
             // RC-2 recipe checks are event-driven, but our idle reasons (no running Containment Field, buffer full,
             // Assembler between crafts, no network) clear through changes no hatch of ours reports. An idle, formed,
             // enabled machine therefore asks for one check a second (throttled: GT's post-failure cooldown applies).

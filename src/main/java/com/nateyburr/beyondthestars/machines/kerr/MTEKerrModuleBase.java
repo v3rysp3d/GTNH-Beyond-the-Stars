@@ -230,6 +230,9 @@ public abstract class MTEKerrModuleBase<T extends MTEKerrModuleBase<T>> extends 
             final int gate = gateState();
             if ((gate & ~gateWas) != 0) scheduleRecipeCheck(RecipeCheckReason.IMMEDIATE);
             gateWas = gate;
+            // A module's only state is its run (progress, the run's link need), and a long run (the Superdense
+            // refinery) advances with no inventory change; GT marks a chunk for saving only on those (B-112, P4-85).
+            if (mMaxProgresstime > 0) aBaseMetaTileEntity.markDirty();
         }
         super.onPostTick(aBaseMetaTileEntity, aTick);
         if (aBaseMetaTileEntity.isServerSide() && (link != Link.LINKED || !runConditionHolds())

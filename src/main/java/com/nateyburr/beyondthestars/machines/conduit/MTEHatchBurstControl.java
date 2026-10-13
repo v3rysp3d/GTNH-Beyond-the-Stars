@@ -170,7 +170,10 @@ public class MTEHatchBurstControl extends MTEHatch {
         if (accepted.length > 0) {
             boolean ok = false;
             for (Mode m : accepted) ok |= m == mode;
-            if (!ok) mode = accepted[0];
+            if (!ok) {
+                mode = accepted[0];
+                settingsChanged();
+            }
         }
         return mode;
     }
@@ -185,7 +188,10 @@ public class MTEHatchBurstControl extends MTEHatch {
     }
 
     public void setMode(Mode m) {
-        if (m != null) mode = m;
+        if (m != null) {
+            mode = m;
+            settingsChanged();
+        }
     }
 
     public int getModeOrdinal() {
@@ -194,6 +200,17 @@ public class MTEHatchBurstControl extends MTEHatch {
 
     public void setModeOrdinal(int o) {
         mode = Mode.of(o);
+        settingsChanged();
+    }
+
+    /**
+     * The mode changed (GUI, right-click, a host's adoption, bench): mark the chunk for saving. GT does that only for
+     * inventory changes, so a mode set with nothing else happening in the chunk was lost on a restart (B-112, as the
+     * Directive and sensor hatches since B-71).
+     */
+    private void settingsChanged() {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base != null) base.markDirty();
     }
 
     public String getHost() {
