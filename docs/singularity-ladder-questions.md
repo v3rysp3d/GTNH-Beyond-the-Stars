@@ -6,7 +6,8 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 1. **Open questions**: each open decision once, with the answer we recommend and where the detail is.
 2. **Settled**: everything you have answered, in your words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision from you.
-4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-87, and the tidy pass's TQ-1..TQ-8).
+4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-95 and B-105..B-110, the tidy pass's
+   TQ-1..TQ-8, and P4's P4-01..P4-94 in Part E).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
 on); the old Q-1..Q-38 and the merged branches' numbers are mapped under "Where the old question numbers went".
@@ -42,6 +43,8 @@ Most important first. "Recommended" is what we would build if you say nothing. N
 | 18 | Everything else that ends "Suggestion: as built" and has no ruling | Accept as built unless you object: B-5, B-7, B-8, B-9, B-11, B-14..B-17, B-19, B-20, B-26, B-27, B-31, B-35..B-37, B-45..B-54, B-62, B-64, B-66..B-68 (judgement calls), B-70, B-74..B-78, B-87, B-108 | each entry |
 | 19 | Reality Diffraction, Reality Refab and the Homogeny T3 are built machines but their quests are still "(planned)" checkboxes, because the `realityRefab` flag is off (their inputs come only from P4/P5) | Keep the checkboxes until P4/P5 make the inputs; until then, give their quests a variant of the placeholder note: "Built, but its inputs come from Eye T8/T9 (a later update)" | B-93, question 3 |
 | 20 | A plus-signed decimal ("+0.5", "+0.15") can still break after its point at a line end: Java's line breaker splits it, 6 places in the Eye T4-T6 trims | Accept (rare, width-dependent); or write the trims without the plus sign | B-93, question 2 |
+| 21 | Resonance Chamber IV (the Eye T8 gate) has two recipes in NEI: GT's (MHDCSM foil) and our SL-P40 | Rewrite GT's in place under the same flag, with chamber III (question 4) | B-110 |
+| 22 | The intake cap at T7 / T8 buffers tens to hundreds of G L of hydrogen and helium (companions, planets mode) | Keep B-108's 20 cycles / 2 runs rule; shorten the companions' window if a shared network still starves | B-110 |
 
 ## 2. Settled
 
@@ -99,18 +102,17 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
 - Move the KEE GUI strings to `en_US.lang` when the Kerr text settles. [B-54]
 - `FieldSim.main` still calls `System.exit`, so FML warns once when the bench loads it. Harmless. [B-37 item 10]
 
-**For the P4 merge.**
+**For the P4 merge** (done, B-110).
 
-- P4's copy of this doc has the H/R entries as B-60..B-67; take master's B-74..B-80 for them. [B-81]
-- One owner for `btsergomatter`, `btssuperdenseergomatter` and `btswhiteholematter`: P4 registers them, and
-  `SLRealityFluids.ifAbsent` then only reads them (or goes). [B-75 item 5]
-- P4's exporter takes over the window code (`WINDOW`, `windowKerr`, `windowEye`, `frontPane`, the open cells) and
-  re-exports. [B-86 open 3]
-- D-48's Eternity-on-Ergomatter swap ships with P4; flip `BTSRecipesReality.ETERNITY_BEFORE_T10` in the same commit.
-  [B-80 item 3]
-- The MTE ledger comment lines in `BTSMachines` that P4 also edits (including "The Kerr and Eye units each append
-  ...") are left for that merge. [B-87]
-- Eye T8 / T9's gates loop through Resonance Chamber IV's MHDCSM foil. [B-29 "For P4/P5"]
+- ~~P4's H/R entries as B-60..B-67~~: master's B-74..B-80 kept; P4's own entries are Part E. [B-81, B-110]
+- ~~One owner for Ergomatter and Superdense Ergomatter~~: `SLQuasarFluids`; `SLRealityFluids` aliases them. White
+  Hole Matter stays `SLRealityFluids.ifAbsent` until P5. [B-75 item 5, B-110]
+- ~~The exporter takes over the window code~~: merged, re-exported, `--check` clean. [B-86 open 3, B-110]
+- ~~Eternity-on-Ergomatter~~: SL-Q26 at load-complete, `ETERNITY_BEFORE_T10` follows it; the H/R gate lines drop from
+  14 to 8 (only White Hole Matter, P5, is left). [B-80 item 3, B-110]
+- ~~The MTE ledger comments in `BTSMachines`~~: tidied. [B-87, B-110]
+- Eye T8's gate: SL-P40 makes Resonance Chamber IV without MHDCSM as a separate recipe; GT's own chamber IV recipe is
+  still in NEI beside it (question 1 of B-110). T9 is P5. [B-29 "For P4/P5"]
 
 - The merge + playtest run (B-88) passed headless; the Cascade Hall tooltip fix is in, and the walk now requires two
   output hatches unless one is ME (B-89). [B-88 fix 1, B-89]
@@ -201,7 +203,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-95, B-105..B-109
+## Part B. Entries B-1..B-95, B-105..B-110
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -4441,6 +4443,76 @@ not run here. If they are used again, give them the same per-tick hold (section 
 
 **Not covered.** The AE2 Eye rig (`build eyeae`, Rig C) and the Kerr rig (`build kerr`) in a client, and the full
 `showcase.shots`; the final recording on master runs both.
+
+---
+
+### B-110 Merging p4-quasar into master: conflicts, the recipe ledger, the intake cap at T7 / T8 [merge, built]
+
+**What was done.** `git merge --no-ff p4-quasar` into master `af88fdf` (merge `dd38989`), then four fix commits. The
+merge commit's message lists every conflict and how it was resolved. In short:
+
+- **Structures.** Master's window bands live only in the exporter, and the design repo's `voxel.js` (`1b407b3`)
+  already has P4's geometry, so the merged `tools/export-structures.js` (master's `WINDOW` code plus P4's legends,
+  pieces and manifest section) re-exported everything. `eye_core` is master's windowed core plus P4's 4 Directive
+  ('d') and 1 slot-bus ('p') plinth sockets; the Kerr shapes are master's. `--check` is clean against voxel sha
+  `fa6fec2a751c`.
+- **Code.** Everything else was additive and both sides were kept: proxies, config, fluids (P4 owns Ergomatter and
+  Superdense Ergomatter), the MTE ledger, the commands, the kits, the Sensor Hatch (master's chunk-save on every
+  setter plus P4's quasar channels), the Eye NBT and the KEE. One compile fix: P4's kits called `socketRels` and
+  `worldPos` helpers that master had moved to `BTSShapes` / `SLConsoleTest`.
+- **Docs.** In the costs audit, master's window section stays §13 and P4's quasar section is §14. In this file, P4's
+  entries are Part E. P4's text cites only master's numbers, so nothing needed renumbering.
+
+**Fixes after the merge.**
+
+1. **`/btsrecipes`** (`3325bbc`). The `quasar` line is its own group, "Quasar / Conduit" (34 entries). SL-P40
+   (Resonance Chamber IV, the Eye T8 gate) is filed under "Eye" with the other chamber recipes and carries the
+   `replaceTecTechEyeOfHarmony=true` badge. SL-Q26 records its two rewrites of pack recipes as changed-GT, with the
+   recipe as it was before: GT++'s Temporal Harmony Catalyst and the coremod's Timepiece. SL-Q05 (the optional
+   MagMatter coil) is marked as a placeholder (P4-24).
+2. **The intake cap at T7 / T8** (`cf375ec`, `1a2c080`). B-108's cap pulls only the fluids it lists, so after the
+   merge several of P4's needs would never have been pulled. Added to the cap:
+   - Triangulum's Magnetar Matter upkeep (7.5 L a cycle);
+   - the T8 Ergomatter feed (at its 10 L/s maximum);
+   - the planets-mode variant of a galaxy chart;
+   - the companions (20 of their cycles each, added on top of the galaxy's own share);
+   - the slot-bus planets in planets mode (2 runs each);
+   - every step of the galaxy chain still ahead: the Magnetar Merger that a dark Eye starts from, the Magnetar
+     Collapse, and the Galactic Merger. Without this the Agent for the re-merge was never pulled.
+
+   The tooltip says so.
+3. **Questbook data** (`50f44fd`). `gen-singularity --check` failed because the bill table had no rows for the
+   Eye's new socket roles. Rows added; bundle `d01088fe8d76`.
+
+**Checks.**
+- Static: `spotlessApply compileJava` passes. Golden tests: fieldsim 78 / 78, quasar 38 / 38. `export-structures
+  --check`, `gen-sl-textures --check` (126) and `gen-singularity --check` / `--selftest` all pass. Lang: no duplicate
+  keys, and every `recipe_result` id has its key.
+- Headless `runServer` (port 25571, fresh flat world `p4m-b110`; the dev server's level name and port were put back
+  afterwards):
+
+| Area | Result |
+|---|---|
+| Load | 311 registered, 0 skipped (master: 278). "P4 recipes: every machine recipe is registered". SL-G01, the upgrade path (40 + frame), and SL-Q26 (the catalyst and the Timepiece, 1 recipe each). 8 H/R gate lines, all White Hole Matter (14 before: the Ergomatter, Superdense and Eternity gates are gone). No `[BTS]` warnings or errors apart from the known "pack edit skipped" lines (no pack book in a dev world), and no `com.nateyburr` frame. |
+| `/btsrecipes status` | 425 entries: 365 new, 58 changed-GT, 2 removed. By line: Kerr 28, Eye 64, BEC 28, H/R 27, Automation 1, old plant 202, upgrade path 41, Quasar / Conduit 34. The dump has SL-B16, SL-Q01..Q28, and SL-P40 under Eye with its flag. |
+| Eye T1 kit with `oldwindows` | FORMED, re-projection, damage and repair pass. With the 339 pre-window blocks put back it still forms. The kit puts deck in the 'd' / 'p' cells, so this is also an Eye from before P4. |
+| Kerr T1 kit with `oldwindows` | KEE and both modules FORMED. 700 cells reverted, still FORMED. |
+| Eye T7 kit | FORMED (52 hatches, 8 Receptor Ports, slot bus). Re-projection, damage and repair pass. Caps as in item 2 above, for galaxy mode with and without companions, planets mode, and the dark chain to Triangulum and to the Milky Way. |
+| Quasar T1 kit | FORMED. Re-projection, damage and repair pass. |
+
+**Not covered.** No client was run, so the new GUIs, renders, NEI pages and holograms were not seen. No real burst
+link was run: P4's own test (P4-83..P4-94) covered that on the branch.
+
+**Questions.**
+1. **Resonance Chamber IV has two recipes in NEI.** For chamber II you chose to rewrite GT's recipe in place (B-29).
+   SL-P40 is still a separate recipe beside GT's MHDCSM one. *Suggestion:* rewrite GT's chamber IV in place under the
+   same flag, as SL-G01 does, and decide it together with chamber III (open question 4).
+2. **The T7 / T8 caps are large.** A T7 galaxy with a Sol companion buffers 32 G L of hydrogen and helium, and three
+   slot-bus planets in planets mode can reach about 336 G L. That is what B-108's "20 cycles / 2 runs" rule gives at
+   those parallels. *Suggestion:* keep the rule. Shorten the window for companions if one Eye still starves a shared
+   network in a playtest.
+
+---
 
 ## Where the old question numbers went
 
