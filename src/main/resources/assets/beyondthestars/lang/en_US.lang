@@ -122,6 +122,9 @@ tile.beyondthestars.slCasing.11.name=Jet Crescent Casing
 tile.beyondthestars.slCasing.12.name=Galactic Shell Plating
 tile.beyondthestars.slCasing.13.name=Bastion Plate
 tile.beyondthestars.slCasing.14.name=Casimir Plate
+tile.beyondthestars.slCasing.14.tooltip=Spacetime-flat plating that lines every burst path.
+Used by the Kerr T2 reinforcement, the Eye's T7 rail trim, the Homogeny T3 outer ring, the Quasar Engine's jet-port rings and every conduit element's throat lining.
+Made in the Condensate Assembler (16 a craft).
 tile.beyondthestars.slCasing.15.name=Ergosphere Extraction Casing
 tile.beyondthestars.slCasing2.0.name=Kerr Compressor Module Core (legacy: craft into the module controller)
 tile.beyondthestars.slCasing2.1.name=Kerr Extractor Module Core (legacy: craft into the module controller)
