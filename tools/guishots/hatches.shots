@@ -1,0 +1,52 @@
+tp 300.5 99 0.5
+wait 80
+cmd /btseye star 300 98 4 target sol
+cmd /btseye star 300 98 4 rig fine
+cmd /btseye star 300 98 4 sensors p gt 10
+cmd /btseye star 300 98 4 sensor 326 138 64 stability gt 80
+cmd /btseye star 300 98 4 sensor 265 138 51 zone gt 0 analog
+wait 60
+tp 291.5 138.5 14.5
+wait 60
+gui 291 138 17
+wait 30
+shot directive_s3
+scale 2
+wait 5
+shot directive_s2
+scale 3
+close
+tp 326.5 138.5 21.5
+wait 40
+gui 326 138 24
+wait 30
+shot directive-b_s3
+close
+tp 274.5 138.5 21.5
+wait 40
+gui 274 138 24
+wait 30
+shot directive-c_s3
+close
+tp 309.5 138.5 73.5
+wait 60
+gui 309 138 71
+wait 30
+shot sensor_s3
+scale 2
+wait 5
+shot sensor_s2
+scale 3
+close
+tp 326.5 138.5 61.5
+wait 40
+gui 326 138 64
+wait 30
+shot sensor-bar_s3
+close
+tp 265.5 138.5 48.5
+wait 40
+gui 265 138 51
+wait 30
+shot sensor-lamp_s3
+close

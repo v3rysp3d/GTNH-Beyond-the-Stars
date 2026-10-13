@@ -1,0 +1,36 @@
+# Builds every machine the other .shots files photograph, in the harness's superflat world (bts-guishots).
+# The client only learns the tile entities of a structure built under it after a re-join: run this once, quit the
+# client (append "quit"), start it again, then run the other files.
+tp 300.5 101 0.5 0
+cmd /btseye t1 fill force
+tp 1500.5 101 -6
+cmd /btseye t4 1500 100 0 north fill force
+cmd /btseye keep 1500 100 0 north t4
+tp 3000.5 101 -6
+cmd /btseye t5 3000 100 0 north fill force
+cmd /btseye keep 3000 100 0 north t5
+tp 4500.5 101 -6
+cmd /btskerr t1 4500 100 0 north force
+cmd /btskerr keep 4500 100 0
+tp 5500.5 101 -6
+cmd /btshr homogeny t2 5500 100 0 north fill force
+cmd /btshr keep homogeny 5500 100 0 north t2
+tp 6000.5 101 -6
+cmd /btshr homogeny t2 6000 100 0 north fill force
+cmd /btshr keep homogeny 6000 100 0 north t3
+cmd /btshr bench 6000 100 0 project 3
+cmd /btshr bench 6000 100 0 milestone 100000 100000
+cmd /btshr bench 6000 100 0 escrow
+cmd /btshr bench 6000 100 0 on
+cmd /btshr bench 6000 100 0 install
+tp 7000.5 101 -6
+cmd /btshr diffraction 7000 100 0 north fill force
+cmd /btshr keep diffraction 7000 100 0 north
+cmd /btshr bench 7000 100 0 pending 24000
+tp 7500.5 101 -6
+cmd /btshr refab 7500 100 0 north fill force
+cmd /btshr keep refab 7500 100 0 north
+tp 8000.5 101 -6
+cmd /btsbuild t1 8000 100 0 north force
+tp 8500.5 101 -6
+cmd /btsbuild hall purex 8500 100 0 north build

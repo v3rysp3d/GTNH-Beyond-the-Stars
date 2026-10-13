@@ -1,0 +1,32 @@
+gui 1500 100 0
+wait 30
+shot eye-collapse_s3
+scale 2
+wait 5
+shot eye-collapse_s2
+scale 3
+scroll 90 80 5
+mouse off
+wait 10
+shot eye-collapse-scrolled_s3
+close
+cmd /btseye star 1500 100 0 transition abort
+cmd /btseye star 1500 100 0 unlock 4
+cmd /btseye star 1500 100 0 target neutron
+cmd /btseye star 1500 100 0 lit neutron
+cmd /btseye star 1500 100 0 set feed 0.69
+cmd /btseye star 1500 100 0 rig fine
+cmd /btseye star 1500 100 0 sim 60
+cmd /btseye star 1500 100 0 rig off
+cmd /btseye star 1500 100 0 sim 22
+cmd /btseye star 1500 100 0 status
+gui 1500 100 0
+wait 3
+shot eye-t4_s3
+scale 2
+wait 3
+shot eye-t4_s2
+scale 3
+close
+cmd /btseye star 1500 100 0 rig fine
+cmd /btseye star 1500 100 0 status
