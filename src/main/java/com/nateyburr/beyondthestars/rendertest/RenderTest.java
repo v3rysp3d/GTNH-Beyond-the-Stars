@@ -207,6 +207,36 @@ public final class RenderTest {
         return new Case(name, site, 0, look, what, eventAge, new float[] { (float) eventIn, prevKind });
     }
 
+    /**
+     * Renders v2 WP-5: a galaxy case with its frozen clocks, as {@link #eyeCase}, plus {@code crossingIn} seconds to
+     * the satellite crossing's hit (negative after it, NaN live).
+     */
+    private static Case galaxyCase(String name, Site site, EyeStarLook look, String what, double eventAge,
+        double eventIn, int prevKind, double crossingIn) {
+        return new Case(
+            name,
+            site,
+            0,
+            look,
+            what,
+            eventAge,
+            new float[] { (float) eventIn, prevKind, (float) crossingIn });
+    }
+
+    /** Renders v2 WP-5: the Galactic Merger at {@code st} seconds, as the runtime shows it (Triangulum + the pass). */
+    private static EyeStarLook mergerAt(int st) {
+        return EyeStarLook.pericentre(
+            EyeStarLook.galaxy(7, 0.3f, 0.5f)
+                .transition(7, st / 2100f),
+            st);
+    }
+
+    /** The event clock {@link #mergerAt} puts on the channel (NaN after the last pass's minute). */
+    private static double mergerIn(int st) {
+        final EyeStarLook l = mergerAt(st);
+        return l.ev == 0 ? Double.NaN : l.evIn;
+    }
+
     /** A Kerr case's client look: GT's stability input (0.5 and up calm, 0 spinning). */
     private static float[] kerrLook(float stability) {
         return new float[] { stability };
@@ -691,6 +721,162 @@ public final class RenderTest {
                 0,
                 EyeStarLook.planets(3),
                 "Eye T8 in planets mode with three slots"),
+            // ---- renders v2 WP-5: the galaxies' transitions and events
+            galaxyCase(
+                "eye_t7_collapse_flash",
+                Site.EYE_T7,
+                EyeStarLook.galaxy(7, 0.3f, 0)
+                    .transition(6, 0.334f),
+                "Eye T6 -> T7 Magnetar Collapse, 1.5 s after the collapse: the core flash, the stars bursting out, the"
+                    + " shell running to the bands",
+                30,
+                Double.NaN,
+                EyeStarLook.MAGNETAR,
+                Double.NaN),
+            galaxyCase(
+                "eye_t7_capture_25",
+                Site.EYE_T7,
+                EyeStarLook.galaxy(7, 0.3f, 0)
+                    .transition(6, 1 / 3f + 2 / 3f * 0.25f),
+                "Eye T6 -> T7, the halo capture at 25 %: a round halo of stars beginning to settle into a disc",
+                -1,
+                Double.NaN,
+                -1,
+                Double.NaN),
+            galaxyCase(
+                "eye_t7_capture_70",
+                Site.EYE_T7,
+                EyeStarLook.galaxy(7, 0.3f, 0)
+                    .transition(6, 1 / 3f + 2 / 3f * 0.7f),
+                "Eye T6 -> T7, the halo capture at 70 %: the disc formed, arms and dust coming in",
+                -1,
+                Double.NaN,
+                -1,
+                Double.NaN),
+            galaxyCase(
+                "eye_t7_minor_warn",
+                Site.EYE_T7,
+                EyeStarLook.galaxy(7, 0, 1)
+                    .event(EyeStarLook.EV_MINOR_MERGER_UP, 5f),
+                "Eye T7, a minor merger 5 s away (sign +): the dwarf falling in from above the disc",
+                -1,
+                5,
+                -1,
+                Double.NaN),
+            galaxyCase(
+                "eye_t7_minor_hit",
+                Site.EYE_T7,
+                EyeStarLook.galaxy(7, 0, 1)
+                    .event(EyeStarLook.EV_MINOR_MERGER_DOWN, -1f),
+                "Eye T7, a minor merger 1 s after its hit (sign -): the impact flash, the dwarf torn apart",
+                -1,
+                -1,
+                -1,
+                Double.NaN),
+            galaxyCase(
+                "eye_t8_gm_approach",
+                Site.EYE_T8,
+                mergerAt(400),
+                "Eye T7 -> T8 Galactic Merger at 400 s: the companion falling toward the first pericentre",
+                -1,
+                mergerIn(400),
+                -1,
+                Double.NaN),
+            galaxyCase(
+                "eye_t8_gm_pass1",
+                Site.EYE_T8,
+                mergerAt(601),
+                "Eye T7 -> T8, 1 s after the first pericentre pass: the starburst, the bridge",
+                -1,
+                mergerIn(601),
+                -1,
+                Double.NaN),
+            galaxyCase(
+                "eye_t8_gm_apo",
+                Site.EYE_T8,
+                mergerAt(900),
+                "Eye T7 -> T8 at 900 s: the companion at its apocentre, the tidal tails growing",
+                -1,
+                mergerIn(900),
+                -1,
+                Double.NaN),
+            galaxyCase(
+                "eye_t8_gm_pass2",
+                Site.EYE_T8,
+                mergerAt(1215),
+                "Eye T7 -> T8, 15 s after the second pass: long tails, the bridge, the core glowing",
+                -1,
+                mergerIn(1215),
+                -1,
+                Double.NaN),
+            galaxyCase(
+                "eye_t8_gm_pass3",
+                Site.EYE_T8,
+                mergerAt(1830),
+                "Eye T7 -> T8, 30 s after the last pass: the companion swallowed, the Milky Way taking shape",
+                -1,
+                mergerIn(1830),
+                -1,
+                Double.NaN),
+            galaxyCase(
+                "eye_t8_gm_settle",
+                Site.EYE_T8,
+                mergerAt(2000),
+                "Eye T7 -> T8, the settle at 2,000 s: the tails fading, a barred spiral",
+                -1,
+                mergerIn(2000),
+                -1,
+                Double.NaN),
+            galaxyCase(
+                "eye_t8_crossing_t60",
+                Site.EYE_T8,
+                EyeStarLook.galaxy(8, 0, 1)
+                    .crossing(60f),
+                "Eye T8, a satellite crossing 60 s away: the dwarf falling toward the disc",
+                -1,
+                Double.NaN,
+                -1,
+                60),
+            galaxyCase(
+                "eye_t8_crossing_t03",
+                Site.EYE_T8,
+                EyeStarLook.galaxy(8, 0, 1)
+                    .crossing(3f),
+                "Eye T8, a satellite crossing 3 s away: the dwarf at the disc, stretched by the tide",
+                -1,
+                Double.NaN,
+                -1,
+                3),
+            galaxyCase(
+                "eye_t8_crossing_wave60",
+                Site.EYE_T8,
+                EyeStarLook.galaxy(8, 0, 0)
+                    .crossing(-60f),
+                "Eye T8, 60 s after a satellite crossing: the ring wave of star formation running out",
+                -1,
+                Double.NaN,
+                -1,
+                -60),
+            galaxyCase(
+                "eye_t8_crossing_wave200",
+                Site.EYE_T8,
+                EyeStarLook.galaxy(8, 0, 0)
+                    .crossing(-200f),
+                "Eye T8, 200 s after a satellite crossing: the ring wave near the edge",
+                -1,
+                Double.NaN,
+                -1,
+                -200),
+            galaxyCase(
+                "eye_t8_minor_warn",
+                Site.EYE_T8,
+                EyeStarLook.galaxy(8, 0, 1)
+                    .event(EyeStarLook.EV_MINOR_MERGER_DOWN, 4f),
+                "Eye T8, a minor merger 4 s away (sign -): the dwarf rising toward the disc from below",
+                -1,
+                4,
+                -1,
+                Double.NaN),
             // ---- renders v2: machines with no visual yet (the poses for their future renders)
             new Case(
                 "homogeny_top",
