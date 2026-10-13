@@ -125,6 +125,8 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
 - When the GUI branch merges: the new Eye GUI may show each buffer as held / cap (`MTEEyeOfHarmonyBTS.intakeCaps`,
   as the scanner does). [B-108]
 - A missing texture in the KEE GUI's right-hand button column (seen in the photo run). [B-106]
+- The photo harnesses (`RenderTestClient`, `AutoRigClient`) may film at the dev client's saved render distance. Give
+  them the recorder's per-tick settings hold if they are used again. [B-109]
 
 **To see in a client** (the headless dev server cannot): the hologram hints, a survival build from a real AE system,
 the NEI multiblock tab and its frame rate (a T6 Eye is 51,935 blocks), every GUI (Eye, KEE, modules, Directive Hatch,
@@ -199,7 +201,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-95, B-105..B-108
+## Part B. Entries B-1..B-95, B-105..B-109
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -4379,6 +4381,66 @@ field package is untouched).
    `intakeCaps()` (section 3).
 
 **Suggestion:** as built.
+
+### B-109 Test of master after the autoshots merge and the intake cap: checks, boot, benches, recorder smoke [integration, test]
+
+**What was run.** Master `bee683f` (the autoshots merge B-107 and the intake cap B-108), then `adcc4f1` (the one fix
+below) for the second recorder run.
+
+Static checks:
+- `spotlessApply compileJava`: passes, and spotless changed nothing.
+- The lang lint (215 lookups, against our `en_US.lang` and RC-2 GT's): 0 missing and 0 duplicate keys. The one false
+  positive (`fieldRetrofitKit`) and the one key with no producer (`star_unit5`) are the same as in B-88 and B-94.
+- `node tools/fieldsim-golden.js --check --java`: 78 / 78 PASS.
+- `gen-singularity --check`: "95 generated files are up to date (bundle 4e3fbb04c8d2)". `--selftest`: passes.
+
+**Headless `runServer`** (RC-2 deps, port 25565, fresh flat world `irt-b109`, the shipped config with both flags true;
+the dev server's level name was put back afterwards):
+
+| Area | Result |
+|---|---|
+| Load | `278 registered, 0 skipped`. The 14 H/R gate lines (SL-C02, C03, C04, R11, R13, R16, R17, H20, R01, R02, H21, R03, R04, R05) and the "14 Homogeny/Reality recipe(s) ... unreachable" summary. BEC line: 6 condensates, no legacy fallbacks. SL-B01 / B02 4 -> 32, SL-G01, 10 BHC -> Kerr swaps, TecTech's Eye removed (43 planets converted), upgrade path 40 + the frame. No `[beyondthestars]` / `[BTS]` WARN or ERROR and no `com.nateyburr` frame. GT's own dev-environment errors are at the same count as the B-94 and B-108 boots (823 "Exception" lines in each log). |
+| `/btsrecipes status` | 386 entries: 328 new, 56 changed-GT, 2 removed; by line Kerr 28, Eye 59, BEC 28, H/R 27, Automation 1, old plant 202, upgrade path 41. Unchanged from B-94: neither the merge nor the cap changed a recipe. |
+| `/btsquests status` | Our 6 chapters ok (79 quests), auto-install on. The 64 pack edits say "skipped" because this fresh world has no pack book: unlike B-94, the dev server's BetterQuesting was not given the pack's DefaultQuests this time. Not a change. |
+| Eye T1 kit (`/btseye t1`) | FORMED, 24 hatches, 374 generators. A creative re-projection keeps it formed; the one-block damage test and the survival repair pass. Scanner buffer line: "Hydrogen 0 / 1,000,000,000 L; Helium 0 / 1,000,000,000 L" (B-108's held / cap). |
+| Intake bench (`/btseye star ... intake setup 10`, B-108's server-side rig) | After 8 s: each buffer 1,000,000,000 / cap 1,000,000,000, network H 8,999,616,000 / He 9,000,000,000, and the second consumer's Super Tank filling (384,000 L). After `eu`, `rig fine` and one charge: Sol LIT (Stability 97, Resonant), buffers back at the cap, network 8.85 G L of each, Super Tank full (4,000,000 L). Same as B-108. |
+| Kerr T1 kit (`/btskerr`) | KEE, Compressor and Extractor modules FORMED; the re-projection and damage / repair tests pass. |
+| Kerr automation bench (`/btskerr autorig ... 30`) | Open 30 s, closed by itself 0 times, mass 16.02 SM against setpoint 16, max deviation 0.25 SM. |
+
+The photo rigs (`AutoRig`, `AutoRigEyeAE`) have no server-side command: the recorder's `build` drives them from the
+client. Rig A (`build eye`) was exercised by the smoke test below.
+
+**Recorder smoke test** (master's dev client, `tools/recording/smoke.shots`, the local work folder ffmpeg, nvenc). The
+`addon-show` client was running at the same time; no wait was needed.
+- Run 1 made the video (24.0 s, 1920x1080, 30 fps, h264), but filmed the Eye orbit at **render distance 4**: the Eye
+  was a pale shape in fog with no ground, and the game rendered at 120 fps. The title card and the GUI shot were fine.
+  Fixed below.
+- Run 2 (`adcc4f1`): `rec.log` says once "game settings came back from options.txt (render distance 4, fps limit 120,
+  vsync true): set to 16 / unlimited / off again". `ffmpeg -i`: 24.00 s, 1920x1080, 30 fps, h264 (Main), yuv420p.
+  Scenes of 3.00 / 14.00 / 4.00 / 3.00 s, 0 repeated frames, 458-660 fps. Three stills were looked at:
+  - the title card at 1.5 s;
+  - the Eye T1 orbit at 10 s: sharp, with grass and sky, the right way up, only the caption bar;
+  - the Eye GUI at 19.5 s: no hotbar, no crosshair, no NEI panels.
+
+  None is black, none is flipped, and none shows the HUD.
+
+**Fixed here** (its own commit).
+1. **The recorder filmed at the client's saved render distance** (`adcc4f1`).
+   - `RecClient.setUp` sets render distance 16, an unlimited frame rate and vsync off on the first client tick. Master's
+     dev client has an `options.txt`, saved by the questbook harness with render distance 4, maxFps 120 and vsync on.
+     Its values came back about 20 ticks later, before the world was made. `autoshots` had no `options.txt`, so the
+     defaults (12 chunks) hid the problem there.
+   - `RecClient.holdSettings` now sets the three again every client tick and logs once what it found. Run 2 above is
+     the check. `docs/recording.md` item 1 says so.
+   - *Alternative:* delete or rewrite `run/client/options.txt` before a run. The questbook harness would write it
+     again on its next run, so the recorder holds the values itself.
+
+**Not changed (noted).** The photo harnesses `RenderTestClient` and `AutoRigClient` set render distance 16 the same
+way, so on master's dev client they probably get the saved 4 back too. They are not part of the video path and were
+not run here. If they are used again, give them the same per-tick hold (section 3).
+
+**Not covered.** The AE2 Eye rig (`build eyeae`, Rig C) and the Kerr rig (`build kerr`) in a client, and the full
+`showcase.shots`; the final recording on master runs both.
 
 ## Where the old question numbers went
 
