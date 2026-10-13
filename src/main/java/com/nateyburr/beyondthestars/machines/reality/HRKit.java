@@ -422,7 +422,7 @@ public final class HRKit {
     /**
      * Bench {@code fill}: charges every energy hatch to full and fills the input hatches (the Homogeny's feeds with
      * Raw Star Matter, ESPM and the two dwarf matters; the Diffraction's medium and its six anchors, each in its own
-     * socket). Returns what it did.
+     * socket; the Refab's input bus with the Star Chart's items, SL-R05). Returns what it did.
      */
     public static List<String> fill(MTEExtendedPowerMultiBlockBase<?> mte) {
         final List<String> out = new ArrayList<>();
@@ -448,6 +448,23 @@ public final class HRKit {
                 if (h.fill(new FluidStack(SLRealityFluids.entanglementMedium, Integer.MAX_VALUE), true) > 0) filled++;
             }
             filled += d.debugFillAnchors();
+        } else if (mte instanceof MTERealityRefab && !mte.mInputBusses.isEmpty()) {
+            // the Star Chart: The Observable Universe (SL-R05), its item inputs as the recipe map holds them; the six
+            // regions it also needs come through the BEC network (a running Diffraction), never from here
+            for (gregtech.api.util.GTRecipe r : RealityRecipeMaps.REFAB.getAllRecipes()) {
+                if (r.mOutputs == null || r.mOutputs.length == 0
+                    || r.mOutputs[0] == null
+                    || r.mOutputs[0].getItem() != SLMaxItems.starChartUniverse) continue;
+                final gregtech.api.metatileentity.implementations.MTEHatchInputBus bus = mte.mInputBusses.get(0);
+                int slot = 0;
+                for (ItemStack in : r.mInputs) {
+                    if (in == null || slot >= bus.getSizeInventory()) continue;
+                    bus.setInventorySlotContents(slot++, in.copy());
+                }
+                filled++;
+                out.add("fill: the Refab's input bus holds the Star Chart's " + slot + " item inputs (SL-R05).");
+                break;
+            }
         }
         out.add("fill: " + charged + " energy hatches charged, " + filled + " input hatches filled.");
         return out;

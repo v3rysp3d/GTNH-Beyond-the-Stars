@@ -32,6 +32,7 @@ import com.nateyburr.beyondthestars.machines.homogeny.MTEHomogeny;
 import com.nateyburr.beyondthestars.machines.kerr.KerrTestBench;
 import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
 import com.nateyburr.beyondthestars.machines.quasar.QuasarKit;
+import com.nateyburr.beyondthestars.machines.reality.BECNetBench;
 import com.nateyburr.beyondthestars.machines.reality.HRKit;
 import com.nateyburr.beyondthestars.machines.reality.MTERealityDiffraction;
 import com.nateyburr.beyondthestars.machines.reality.MTERealityRefab;
@@ -65,6 +66,8 @@ import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBas
  * in
  * the {@code g} cells).</li>
  * <li>{@code /btshr recipes}: the three machines' recipe maps and our Condensate Assembler / Generator recipes.</li>
+ * <li>{@code /btshr becnet ...}: the dev BEC network bench ({@link BECNetBench}): a Containment Field, a Condensate
+ * Assembler and the conduits Reality Diffraction / Refab need to run.</li>
  * <li>{@code /btshr gui <x> <y> <z> [info]}: the kit GUI's header and rows (or its Info page) as text, for the three
  * machines, the Reactor Silo and the production halls.</li>
  * </ul>
@@ -87,7 +90,9 @@ public class CommandBTSHR extends CommandBase {
         return "/btshr <homogeny|diffraction|refab> [t1..t3] [fill] [force]  |  console: /btshr <machine> [t1..t3] "
             + "<x> <y> <z> [facing] [fill] [force] [survival] [check]  |  /btshr keep <machine> <x> <y> <z> <facing> "
             + "[t1..t3]  |  /btshr bench <x> <y> <z> <status|check|fill|wrench|scan|on|off|milestone e d|escrow|install|itick n|"
-            + "project n|relink|pending|receptors|inject qx qy qz bu|inject off>  |  /btshr gui <x> <y> <z> [info]  |  /btshr recipes";
+            + "project n|relink|pending|receptors|inject qx qy qz bu|inject off>  |  /btshr gui <x> <y> <z> [info]  |  /btshr recipes"
+            + "  |  "
+            + BECNetBench.USAGE;
     }
 
     @Override
@@ -106,7 +111,8 @@ public class CommandBTSHR extends CommandBase {
             "keep",
             "bench",
             "gui",
-            "recipes");
+            "recipes",
+            "becnet");
         return getListOfStringsMatchingLastWord(args, "t1", "t2", "t3", "fill", "force", "survival", "check");
     }
 
@@ -123,6 +129,12 @@ public class CommandBTSHR extends CommandBase {
         }
         if (args[0].equalsIgnoreCase("gui")) {
             for (String line : gui(sender, Arrays.copyOfRange(args, 1, args.length))) SLConsoleTest.tell(sender, line);
+            return;
+        }
+        if (args[0].equalsIgnoreCase("becnet")) {
+            for (String line : BECNetBench.run(sender.getEntityWorld(), Arrays.copyOfRange(args, 1, args.length))) {
+                SLConsoleTest.tell(sender, line);
+            }
             return;
         }
         if (args[0].equalsIgnoreCase("recipes")) {
