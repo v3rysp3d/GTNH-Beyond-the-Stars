@@ -451,9 +451,9 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
     private static void drawShell(double cx, double cy, double cz, double rs, int event, float evAge, float evSize,
         float time, int cullFace) {
         final float radius, intensity, r, g, b;
-        if (event == TileQuasarHole.EV_ERUPTION && evAge < 3.2f) {
-            radius = (float) (rs * 3 + 82 * (1 - Math.exp(-evAge / 0.9)));
-            intensity = (0.35f + 0.6f * evSize) * (1f - smooth((evAge - 0.3f) / 2.8f))
+        if (event == TileQuasarHole.EV_ERUPTION && evAge < 4f) {
+            radius = (float) (rs * 3 + 85 * (1 - Math.exp(-evAge / 1.5)));
+            intensity = (0.35f + 0.6f * evSize) * (1f - smooth((evAge - 0.5f) / 3.5f))
                 * (1f - 0.7f * smooth((radius - 50f) / 35f));
             r = 1.0f;
             g = 0.80f;

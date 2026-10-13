@@ -172,7 +172,7 @@ vec3 qrEvent(float r) {
     if (ev < 0.5) return e;
     if (ev < 1.5) {
         // eruption: a flare front races out from the inner wall, the ring brightens behind it
-        float rf = r0 - 2.0 + 28.0 * age;
+        float rf = r0 - 2.0 + 17.0 * age;
         float d = (r - rf) / 3.0;
         float front = exp(-d * d) * exp(-age / 2.0);
         float behind = (1.0 - smoothstep(rf - 2.0, rf + 2.0, r)) * exp(-age / 1.6);
