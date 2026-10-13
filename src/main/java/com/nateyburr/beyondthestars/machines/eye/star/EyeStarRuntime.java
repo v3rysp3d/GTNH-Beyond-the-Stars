@@ -2519,7 +2519,58 @@ public final class EyeStarRuntime {
         }
         return GalaxyDirective
             .testFireWanted(n, fs.tier.planets(), burning(), false, milestones.linkDone[n], coreIn, buffered)
-            && (n != 7 || linkedQuasarStream() >= GalaxyField.demandT(8));
+            && (n != 7 || heavyTestFireFits(linkedQuasarStream()));
+    }
+
+    /**
+     * P4-88: the most mean stream the T7 halo test fire may take at J1 15 (Bu/t). The rail keeps a quarter, and above
+     * about 8 Bu/t on the rail (β ≈ 5) the field's P drift outruns the binary Space valve: the prototype's T7 rig with
+     * Mk II throats holds at 265 SM (33.6 Bu/t, 0 failures on 3 seeds) and starts to breach at 300 SM (43 Bu/t).
+     */
+    public static final double HEAVY_TEST_FIRE_MAX_STREAM = 32.0;
+    /** P4-88: the Eye leg a hand-set test fire aims for on a quasar above the ceiling (rail 4, halo 12 Bu/t). */
+    public static final double HEAVY_TEST_FIRE_EYE_LEG = 16.0;
+
+    /** P4-79 / P4-88: the T7 test fire at J1 15 suits a mean stream from 6 to 32 Bu/t. */
+    public static boolean heavyTestFireFits(double stream) {
+        return stream >= GalaxyField.demandT(8) && stream <= HEAVY_TEST_FIRE_MAX_STREAM;
+    }
+
+    /**
+     * P4-88: the J1 share to the Eye a test fire should use on this quasar: 1 up to the ceiling, else
+     * {@link #HEAVY_TEST_FIRE_EYE_LEG} ÷ the mean stream (0 with no link).
+     */
+    public double heavyTestFireShare() {
+        final double s = linkedQuasarStream();
+        if (s <= 0) return 0;
+        return s <= HEAVY_TEST_FIRE_MAX_STREAM ? 1.0 : HEAVY_TEST_FIRE_EYE_LEG / s;
+    }
+
+    /**
+     * The Galaxy panel's line while the T7 Heavy Link test fire is held back by the quasar's size (P4-79 / P4-88), or
+     * "" when it is not. Server state.
+     */
+    public String heavyTestFireNote() {
+        if (fs == null || star == null || trans != null || star.n() != 7 || escrow == null || milestones.linkDone[7]) {
+            return "";
+        }
+        final double s = linkedQuasarStream();
+        if (s < GalaxyField.demandT(8)) {
+            return String.format(
+                Locale.ROOT,
+                "Heavy Link test fire waits: the quasar's mean stream %.1f Bu/t is under 6 (grow it)",
+                s);
+        }
+        if (s > HEAVY_TEST_FIRE_MAX_STREAM) {
+            return String.format(
+                Locale.ROOT,
+                "Heavy Link test fire held: the quasar's mean stream %.1f Bu/t is over %.0f, and J1 at 15 would flood"
+                    + " the rail. Test-fire with J1's Eye share at %.2f (J3 75 %% halo)",
+                s,
+                HEAVY_TEST_FIRE_MAX_STREAM,
+                heavyTestFireShare());
+        }
+        return "";
     }
 
     /**

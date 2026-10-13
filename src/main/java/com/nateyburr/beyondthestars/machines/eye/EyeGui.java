@@ -363,16 +363,11 @@ public class EyeGui extends MTEMultiBlockBaseGui<MTEEyeOfHarmonyBTS> {
         }
         if (rt.testFireWanted()) sb.append("\nLink test fire wanted: J1 all to the Eye")
             .append(star != null && star.n() == 7 ? ", J3 75 % to the halo" : "");
-        else if (star != null && star.n() == 7
-            && rt.escrow() != null
-            && !rt.milestones().linkDone[7]
-            && rt.linkedQuasarStream() < com.nateyburr.beyondthestars.machines.eye.field.GalaxyField.demandT(8)) {
-                sb.append(
-                    String.format(
-                        java.util.Locale.ROOT,
-                        "\nHeavy Link test fire waits: the quasar's mean stream %.1f Bu/t is under 6 (grow it)",
-                        rt.linkedQuasarStream()));
-            }
+        else {
+            final String note = rt.heavyTestFireNote();
+            if (!note.isEmpty()) sb.append('\n')
+                .append(note);
+        }
         return sb.toString();
     }
 

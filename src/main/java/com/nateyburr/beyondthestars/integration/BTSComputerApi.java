@@ -258,6 +258,8 @@ public final class BTSComputerApi {
         m.put("heavyLinkHeld", rt.milestones().linkDone[7]);
         m.put("ready", rt.galaxyReady());
         m.put("testFireWanted", rt.testFireWanted());
+        m.put("quasarStream", rt.linkedQuasarStream());
+        m.put("testFireShare", rt.heavyTestFireShare());
         return m;
     }
 
