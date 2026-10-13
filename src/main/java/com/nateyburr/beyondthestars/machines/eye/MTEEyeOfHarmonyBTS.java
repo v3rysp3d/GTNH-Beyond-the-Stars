@@ -1637,7 +1637,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
 
     /**
      * B-115: every buffer that holds something or that the sockets pull now, with what it holds and its intake cap
-     * (B-108): the buffers in their stored order, then the capped fluids not held yet.
+     * (B-108): the fluids the sockets pull now first (held ones in their stored order, then the ones not held yet),
+     * then the held leftovers that are not pulled (B-120: so a short list never cuts the fluid the star needs).
      */
     public List<IntakeRow> intakeRows() {
         final Map<Fluid, Long> caps = intakeCaps();
@@ -1645,16 +1646,18 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         for (String name : buffers.keySet()) shown.put(name, FluidRegistry.getFluid(name));
         for (Fluid fluid : caps.keySet()) if (fluid != null) shown.putIfAbsent(fluid.getName(), fluid);
         final List<IntakeRow> out = new ArrayList<>();
+        final List<IntakeRow> leftovers = new ArrayList<>();
         for (Map.Entry<String, Fluid> e : shown.entrySet()) {
             final Fluid fluid = e.getValue();
             final Long cap = fluid == null ? null : caps.get(fluid);
             final Long held = buffers.get(e.getKey());
-            out.add(
+            (cap == null ? leftovers : out).add(
                 new IntakeRow(
                     fluid == null ? e.getKey() : fluid.getLocalizedName(new FluidStack(fluid, 1)),
                     held == null ? 0 : held,
                     cap == null ? -1 : Math.min(BUFFER_CAP, cap)));
         }
+        out.addAll(leftovers);
         return out;
     }
 

@@ -502,6 +502,11 @@ public final class EyeStarRuntime {
         return fs != null && fs.tier.galaxy && fs.ev != null && fs.ev.warned && trans == null ? fs.ev.sign : 0;
     }
 
+    /** B-120: seconds to the minor merger while it is warned (its own clock, not the crossing's), or -1. */
+    public int mergerCountdown() {
+        return mergerWarning() == 0 ? -1 : (int) Math.max(0, Math.ceil(fs.ev.next - fs.t));
+    }
+
     public int precession() {
         return fs == null ? 1 : fs.prec;
     }
@@ -2621,6 +2626,20 @@ public final class EyeStarRuntime {
         fs.ev.next = (double) fs.t + fs.tier.event.warn;
         fs.ev.warned = false;
         fs.ev.left = 0;
+        host.markDirty();
+        return null;
+    }
+
+    /**
+     * Debug {@code crossing} (B-120): the next satellite crossing is due in its warning time, so its 120 s countdown
+     * starts this second (a lit T8 galaxy only).
+     */
+    public String debugCrossing() {
+        if (fs == null || !burning()) return "no star burns";
+        if (fs.tde == null) return "T" + fs.tier.n + " has no satellite crossing";
+        fs.tde.next = (double) fs.t + com.nateyburr.beyondthestars.machines.eye.field.GalaxyField.CROSSING_WARN;
+        fs.tde.warned = false;
+        fs.tde.left = 0;
         host.markDirty();
         return null;
     }

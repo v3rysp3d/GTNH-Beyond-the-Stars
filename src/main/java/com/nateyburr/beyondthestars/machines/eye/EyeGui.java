@@ -500,8 +500,9 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                 BTSText.lang("beyondthestars.gui.eye.hsm.tip"));
         }
         dialRows(rows);
-        // a galaxy's countdown row already names the event (B-116: the minor merger showed twice)
-        if (star.n() < 6 || eventText().isEmpty()) warnRow(rows, r);
+        // a galaxy's countdown row already names the event (B-116: the minor merger showed twice); kept when the
+        // countdown rows name other events only (B-120: a merger warned during a satellite crossing)
+        if (star.n() < 6 || !warnNamedByEvents()) warnRow(rows, r);
         final int u = rt.unlockedTier();
         final EyeMilestones ms = rt.milestones();
         if (u <= 7 && !ms.met(u)) {
@@ -654,32 +655,53 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                 }
             }
         }
-        final String ev = eventText();
-        if (!ev.isEmpty()) {
+        for (String ev : eventLines()) {
             rows.note(BTSRows.ICON_WARN, BTSGuiKit.WARN, ev, BTSText.lang("beyondthestars.gui.eye.warn.tip"));
         }
         slotRows(rows, star);
     }
 
-    /** The running countdown: the collapse, a pericentre pass, the satellite crossing, a minor merger; "" none. */
-    private String eventText() {
+    /**
+     * The running countdowns, one line each: the collapse or a pericentre pass, the satellite crossing, a minor merger
+     * (B-120: a merger can be warned while a crossing counts down or runs, and both are shown).
+     */
+    private List<String> eventLines() {
+        final List<String> out = new ArrayList<>();
         final EyeStarRuntime rt = rt();
-        if (!rt.burning()) return "";
+        if (!rt.burning()) return out;
         final int c = rt.countdownSeconds();
         final EyeTransition tr = rt.transition();
-        if (tr instanceof MagnetarCollapse && c >= 0) return BTSText.lang("beyondthestars.gui.eye.ev.collapse", c);
+        if (tr instanceof MagnetarCollapse && c >= 0) out.add(BTSText.lang("beyondthestars.gui.eye.ev.collapse", c));
         if (tr instanceof GalacticMerger && c >= 0) {
-            return BTSText
-                .lang("beyondthestars.gui.eye.ev.pass", c, ((GalacticMerger) tr).nextPassSign() < 0 ? "-" : "+");
+            out.add(
+                BTSText
+                    .lang("beyondthestars.gui.eye.ev.pass", c, ((GalacticMerger) tr).nextPassSign() < 0 ? "-" : "+"));
         }
         if (rt.crossingCountdown() >= 0) {
-            return BTSText.lang("beyondthestars.gui.eye.ev.crossing", rt.crossingCountdown());
+            out.add(BTSText.lang("beyondthestars.gui.eye.ev.crossing", rt.crossingCountdown()));
+        } else if (rt.crossingLeft() > 0) {
+            out.add(BTSText.lang("beyondthestars.gui.eye.ev.crossingleft", rt.crossingLeft()));
         }
-        if (rt.crossingLeft() > 0) return BTSText.lang("beyondthestars.gui.eye.ev.crossingleft", rt.crossingLeft());
         if (rt.mergerWarning() != 0) {
-            return BTSText.lang("beyondthestars.gui.eye.ev.merger", Math.max(0, c), rt.mergerWarning() < 0 ? "-" : "+");
+            out.add(
+                BTSText.lang(
+                    "beyondthestars.gui.eye.ev.merger",
+                    rt.mergerCountdown(),
+                    rt.mergerWarning() < 0 ? "-" : "+"));
         }
-        return "";
+        return out;
+    }
+
+    /**
+     * True when a countdown row names the event the readout's warning is for: the collapse or pass countdown (the
+     * transition's warning wins the readout) or the minor merger. A crossing alone never sets the warning.
+     */
+    private boolean warnNamedByEvents() {
+        final EyeStarRuntime rt = rt();
+        if (!rt.burning()) return false;
+        final EyeTransition tr = rt.transition();
+        if ((tr instanceof MagnetarCollapse || tr instanceof GalacticMerger) && rt.countdownSeconds() >= 0) return true;
+        return rt.mergerWarning() != 0;
     }
 
     /** Planets mode's slots (one row, each slot in the tooltip), or the companions (T7+). */
@@ -1189,6 +1211,12 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
         return sb.toString();
     }
 
+    /** B-120: the buffer rows the Field panel has no room for (0: all shown). */
+    private static int intakeOverflow(String s) {
+        if (s == null || s.isEmpty()) return 0;
+        return Math.max(0, s.split("\n", -1).length - INTAKE_ROWS);
+    }
+
     private static String[] part(String s, int line, int field) {
         if (s == null || s.isEmpty()) return null;
         final String[] lines = s.split("\n", -1);
@@ -1422,6 +1450,15 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                 .marginBottom(1)
                 .setEnabledIf(x -> part(intake.getStringValue(), i, 2) != null));
         }
+        // B-120: the rows past INTAKE_ROWS are counted, not dropped silently (the scanner lists them all)
+        list.child(
+            IKey.dynamic(() -> tr("beyondthestars.gui.eye.field.buffers.more", intakeOverflow(intake.getStringValue())))
+                .color(PANEL_DIM)
+                .asWidget()
+                .size(w, 9)
+                .textAlign(Alignment.CenterLeft)
+                .marginBottom(1)
+                .setEnabledIf(x -> intakeOverflow(intake.getStringValue()) > 0));
         list.child(
             IKey.lang("beyondthestars.gui.eye.field.footer")
                 .color(PANEL_DIM)

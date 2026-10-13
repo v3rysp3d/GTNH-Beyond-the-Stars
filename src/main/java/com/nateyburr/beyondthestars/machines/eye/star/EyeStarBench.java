@@ -71,7 +71,7 @@ public final class EyeStarBench {
 
     public static final String USAGE = "/btseye star <x> <y> <z> status | target <name> | lit [name] | seed <n> | "
         + "rig <off|bang|fine|none> | sim <s> [compare] | set dial|feed|shock <v> | unlock <1-6> | "
-        + "milestones <n> done|reset | transition [abort] | event | "
+        + "milestones <n> done|reset | transition [abort] | event | crossing | "
         + "fill | sensor <x> <y> <z> <channel> <gt|lt> <threshold> [analog] | sensors <channel> <gt|lt> <thr> "
         + "[analog] | probe | wrench | charge [n] | buffer <fluid> <L> | core <name> | escrow | "
         + "bus <chart> [n] | legacy [galactic] [run <key> <n>] | fix | gt | mefield | intake [setup [G]] | eu | "
@@ -206,6 +206,12 @@ public final class EyeStarBench {
             case "event": {
                 final String err = rt.debugEvent();
                 out.add(err == null ? "The next event is due now (warning this second)." : "event refused: " + err);
+                break;
+            }
+            case "crossing": {
+                final String err = rt.debugCrossing();
+                out.add(
+                    err == null ? "The next satellite crossing is warned now (120 s)." : "crossing refused: " + err);
                 break;
             }
             case "wrench":

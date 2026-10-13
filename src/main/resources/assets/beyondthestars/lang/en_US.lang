@@ -1089,6 +1089,7 @@ beyondthestars.gui.eye.field.buffers.tip2=Per star in play: max(ignition need, 2
 beyondthestars.gui.eye.field.buffers.tip3=each transition that may begin, and 2 runs for a planet. The rest stays in your network.
 beyondthestars.gui.eye.field.nobuffers=none (set a target)
 beyondthestars.gui.eye.field.notpulled=not pulled
+beyondthestars.gui.eye.field.buffers.more=+%s more (see the scanner)
 beyondthestars.gui.eye.field.buffer.tip=%s L held, filled to %s L
 beyondthestars.gui.eye.field.buffer.tipover=%s L held, above its cap of %s L: only drawn down
 beyondthestars.gui.eye.field.buffer.tipnp=%s L held; the current target does not pull it (not topped up)
