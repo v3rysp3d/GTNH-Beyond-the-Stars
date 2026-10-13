@@ -93,6 +93,21 @@ public class Config {
      */
     public static boolean renderQuasar = true;
 
+    /** Renders v2 (renders-v2.md §4.1): the client render settings' config category. */
+    public static final String CATEGORY_CLIENT_RENDER = "client_render";
+    /** Renders v2: {@code high}, {@code medium} or {@code low} (today's fixed-function renders). Client only. */
+    public static String renderQuality = "high";
+    /**
+     * Renders v2: multiplies the level-of-detail pixel thresholds (0.5 keeps detail further out, 2 drops it sooner).
+     */
+    public static float renderLodScale = 1f;
+    /** Renders v2: how many objects may draw at the highest detail at once (the largest on screen win). */
+    public static int renderMaxHighObjects = 2;
+    /** Renders v2: bend the world behind a black hole (a framebuffer copy); off by itself under a shaderpack. */
+    public static boolean renderBackgroundLensing = true;
+    /** Renders v2: the few particle effects (eruption debris, supernova ejecta, blow-out fragments). */
+    public static boolean renderParticles = true;
+
     public static void synchronizeConfiguration(File configFile) {
         Configuration configuration = new Configuration(configFile);
 
@@ -204,6 +219,45 @@ public class Config {
             "Draw the Quasar Engine's black hole, accretion disc (its width shows the gas in it, its colour the disc's"
                 + " zone) and two burst jets (as bright as their Bu/t). Cosmetic. On a server, false places no render"
                 + " block; on a client, false draws nothing. Each quasar also has its own render switch in its GUI.");
+
+        renderQuality = configuration.getString(
+            "renderQuality",
+            CATEGORY_CLIENT_RENDER,
+            "high",
+            "Client only. How the black holes, the quasar, the Eye's stars and galaxies and the other big renders are"
+                + " drawn: high (everything, full detail when close), medium (no background lensing, half the steps"
+                + " and points) or low (the simple fixed-function renders, no shaders). Objects drop detail with"
+                + " their size on screen by themselves; a shader that fails to compile falls back to low for that"
+                + " object.",
+            new String[] { "high", "medium", "low" });
+        renderLodScale = configuration.getFloat(
+            "renderLodScale",
+            CATEGORY_CLIENT_RENDER,
+            1f,
+            0.25f,
+            4f,
+            "Client only. Multiplies the on-screen sizes at which the big renders drop detail: 0.5 keeps full detail"
+                + " further out, 2 drops it sooner (faster).");
+        renderMaxHighObjects = configuration.getInt(
+            "renderMaxHighObjects",
+            CATEGORY_CLIENT_RENDER,
+            2,
+            0,
+            16,
+            "Client only. How many big renders may draw at full detail at once (the largest on screen win; the rest"
+                + " draw one step lower).");
+        renderBackgroundLensing = configuration.getBoolean(
+            "renderBackgroundLensing",
+            CATEGORY_CLIENT_RENDER,
+            true,
+            "Client only. Bend the world seen behind a black hole (copies part of the screen). Off by itself while a"
+                + " shaderpack is in use; the hole then bends a drawn starfield.");
+        renderParticles = configuration.getBoolean(
+            "renderParticles",
+            CATEGORY_CLIENT_RENDER,
+            true,
+            "Client only. The few particle effects of the big renders (eruption debris, supernova ejecta, blow-out"
+                + " fragments). Off: their shells and flashes alone.");
 
         // Always written back: Forge does not read comments from the file and does not count a changed comment as a
         // change, so an old file would keep saying eyeRenderCentre is "not implemented" (D-49 unit 6). Saving
