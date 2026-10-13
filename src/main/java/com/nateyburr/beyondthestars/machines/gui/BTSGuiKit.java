@@ -912,6 +912,28 @@ public final class BTSGuiKit {
             .tooltipShowUpTimer(TOOLTIP_DELAY);
     }
 
+    /**
+     * A row on a grey side panel (B-115, the Eye's buffers against their intake caps): the name in panel text (cut to
+     * fit), a 28 px bar filled to {@code frac} in {@code grad}, and the value right-aligned. 9 high.
+     */
+    public static KitWidget panelBar(int width, Supplier<String> name, DoubleSupplier frac, Supplier<Grad> grad,
+        Supplier<String> value) {
+        return new KitWidget((w, ww, hh) -> {
+            final int bw = 28;
+            final String v = value.get();
+            final int vw = Math.max(48, KitDraw.width(v));
+            KitDraw.textRight(v, ww, 1, PANEL_TEXT);
+            final int bx = ww - vw - bw - 4;
+            KitDraw.box(bx, 1, bw, 7, EDGE, TRACK);
+            final double f = frac.getAsDouble();
+            if (!Double.isNaN(f) && f > 0) {
+                final Grad g = grad.get();
+                KitDraw.gradient(bx + 1, 2, (float) ((bw - 2) * Math.min(1, f)), 5, g.from, g.to);
+            }
+            KitDraw.textCut(name.get(), 0, 1, bx - 3, PANEL_TEXT);
+        }).size(width, 9);
+    }
+
     /** A plain 18x18 gap-row button that opens / closes a side panel. */
     public static ButtonWidget<?> panelButton(com.cleanroommc.modularui.api.drawable.IDrawable overlay,
         com.cleanroommc.modularui.api.IPanelHandler panel, String tooltipKey) {

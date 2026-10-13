@@ -1619,6 +1619,45 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         return caps;
     }
 
+    /** B-115: one buffer against its intake cap, for the GUI and the scanner. */
+    public static final class IntakeRow {
+
+        /** The fluid's localised name (its registry name when the fluid is gone). */
+        public final String name;
+        public final long held;
+        /** The litres the sockets fill it to now; -1: not pulled. */
+        public final long cap;
+
+        IntakeRow(String name, long held, long cap) {
+            this.name = name;
+            this.held = held;
+            this.cap = cap;
+        }
+    }
+
+    /**
+     * B-115: every buffer that holds something or that the sockets pull now, with what it holds and its intake cap
+     * (B-108): the buffers in their stored order, then the capped fluids not held yet.
+     */
+    public List<IntakeRow> intakeRows() {
+        final Map<Fluid, Long> caps = intakeCaps();
+        final Map<String, Fluid> shown = new LinkedHashMap<>();
+        for (String name : buffers.keySet()) shown.put(name, FluidRegistry.getFluid(name));
+        for (Fluid fluid : caps.keySet()) if (fluid != null) shown.putIfAbsent(fluid.getName(), fluid);
+        final List<IntakeRow> out = new ArrayList<>();
+        for (Map.Entry<String, Fluid> e : shown.entrySet()) {
+            final Fluid fluid = e.getValue();
+            final Long cap = fluid == null ? null : caps.get(fluid);
+            final Long held = buffers.get(e.getKey());
+            out.add(
+                new IntakeRow(
+                    fluid == null ? e.getKey() : fluid.getLocalizedName(new FluidStack(fluid, 1)),
+                    held == null ? 0 : held,
+                    cap == null ? -1 : Math.min(BUFFER_CAP, cap)));
+        }
+        return out;
+    }
+
     /** B-108: the litres the buffer of {@code fluid} fills to now (0: not pulled). */
     public long intakeCap(Fluid fluid) {
         if (fluid == null) return 0;
@@ -2482,24 +2521,18 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 + outputHatchCount()
                 + " hatch");
         // B-108: each buffer with the intake cap the sockets fill it to now (a fluid with no cap is not pulled)
-        final Map<Fluid, Long> caps = intakeCaps();
-        final Map<String, Fluid> shown = new LinkedHashMap<>();
-        for (String name : buffers.keySet()) shown.put(name, FluidRegistry.getFluid(name));
-        for (Fluid fluid : caps.keySet()) if (fluid != null) shown.putIfAbsent(fluid.getName(), fluid);
-        if (shown.isEmpty()) {
+        final List<IntakeRow> intake = intakeRows();
+        if (intake.isEmpty()) {
             out.add("Buffers: empty (intake: nothing; set a target)");
         } else {
             final StringBuilder sb = new StringBuilder("Buffers (held / intake cap):");
-            for (Map.Entry<String, Fluid> e : shown.entrySet()) {
-                final Fluid fluid = e.getValue();
-                final Long cap = fluid == null ? null : caps.get(fluid);
-                final Long held = buffers.get(e.getKey());
+            for (IntakeRow r : intake) {
                 sb.append(' ')
-                    .append(fluid == null ? e.getKey() : fluid.getLocalizedName(new FluidStack(fluid, 1)))
+                    .append(r.name)
                     .append(' ')
-                    .append(fmt(held == null ? 0 : held))
+                    .append(fmt(r.held))
                     .append(" / ")
-                    .append(cap == null ? "not pulled" : fmt(Math.min(BUFFER_CAP, cap)))
+                    .append(r.cap < 0 ? "not pulled" : fmt(r.cap))
                     .append(" L;");
             }
             out.add(sb.toString());

@@ -970,7 +970,7 @@ beyondthestars.gui.sensor.threshold=Threshold
 beyondthestars.gui.sensor.threshold.tip=In the channel's own units (a gauge -120..+120, 0-100, the zone 0-4, a flag 0 or 1, SM, Bu/t, seconds)
 
 # ---- B-115: the gui-clean merge: P4's hosts, channels and sets in the hatch GUIs, P4's Eye rows and Galaxy panel,
-# the quasar link row on the Kerr / Homogeny / Reality Diffraction
+# the Eye buffers against their intake caps (B-108), the quasar link row on the Kerr / Homogeny / Reality Diffraction
 beyondthestars.gui.kit.quasarlink.tip=The quasar link through the GRB Receptor Ports (σ = bursts received / demand)
 beyondthestars.gui.sensor.host=Machine: %s
 beyondthestars.gui.sensor.host.eye=Eye of Harmony
@@ -1083,3 +1083,12 @@ beyondthestars.gui.eye.galaxy.testfire7=Link test fire wanted: J1 all to the Eye
 beyondthestars.gui.eye.galaxy.rig1=Rig: Field [1] -> the Space valve; J1 on Field [2] / [1],
 beyondthestars.gui.eye.galaxy.rig2=J2 on Field [4] / [8], J3 on Events [1] / [2] (15 / 8 / 0);
 beyondthestars.gui.eye.galaxy.rig3=Galaxy Transition [1] -> a Begin hatch; Slots [8] -> the test fire.
+beyondthestars.gui.eye.field.buffers=Buffers (held / intake cap)
+beyondthestars.gui.eye.field.buffers.tip1=The sockets fill each buffer only to its intake cap
+beyondthestars.gui.eye.field.buffers.tip2=Per star in play: max(ignition need, 20 cycles of upkeep) x parallel, plus the feed and charges,
+beyondthestars.gui.eye.field.buffers.tip3=each transition that may begin, and 2 runs for a planet. The rest stays in your network.
+beyondthestars.gui.eye.field.nobuffers=none (set a target)
+beyondthestars.gui.eye.field.notpulled=not pulled
+beyondthestars.gui.eye.field.buffer.tip=%s L held, filled to %s L
+beyondthestars.gui.eye.field.buffer.tipover=%s L held, above its cap of %s L: only drawn down
+beyondthestars.gui.eye.field.buffer.tipnp=%s L held; the current target does not pull it (not topped up)

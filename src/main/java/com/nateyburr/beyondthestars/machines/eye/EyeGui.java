@@ -68,15 +68,18 @@ import gregtech.api.modularui2.GTGuiTextures;
  * server and sent as one string ({@link BTSRows}); the two setpoints are written back through the runtime's clamping
  * setters ({@link EyeStarRuntime#setDial}, {@link EyeStarRuntime#setFeed}).
  * <p>
- * P4 (merged from master): the galaxy tiers' rows on T6-T8 (the bursts on the GRB Receptor Ports and beta
+ * P4 (merged from master, B-115): the galaxy tiers' rows on T6-T8 (the bursts on the GRB Receptor Ports and beta
  * against the demand, the Stability / Heavy Link streak, the event countdowns, the planet slots or companions), the T6
- * / T7 milestones and transition conditions, and a Galaxy panel (mode, the T8 Ergomatter feed f8, Begin).
+ * / T7 milestones and transition conditions, and a Galaxy panel (mode, the T8 Ergomatter feed f8, Begin). B-115 also
+ * puts each buffer against its intake cap (B-108) on the Field panel.
  */
 public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
 
     private static final int FIELD_PANEL_W = 176;
     private static final int FIELD_PANEL_H = 196;
     private static final int SENSOR_ROWS = 8, TRIM_ROWS = 6;
+    /** B-115: buffer rows on the Field panel (a T8 Eye in galaxy mode with companions can hold a dozen fluids). */
+    private static final int INTAKE_ROWS = 14;
     private static final int GALAXY_PANEL_W = 176, GALAXY_PANEL_H = 196, GALAXY_TEXT_ROWS = 9;
     private static final String RESULT = EyeStarRuntime.RESULT_KEY;
 
@@ -108,6 +111,8 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
         syncManager.syncValue("eyeSockets", new StringSyncValue(this::socketLine));
         syncManager.syncValue("eyeSensors", new StringSyncValue(this::sensorLines));
         syncManager.syncValue("eyeTrims", new StringSyncValue(this::trimLines));
+        // B-115: each buffer against its intake cap (B-108), for the Field panel
+        syncManager.syncValue("eyeIntake", new StringSyncValue(this::intakeLines));
         // ---- P4: the Galaxy panel (T7 / T8: mode, the Ergomatter feed f8, Begin)
         syncManager.syncValue(
             "eyePlanets",
@@ -1061,6 +1066,20 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
         return sb.toString();
     }
 
+    /** B-115: one line per buffer held or pulled: name, held, cap (-1: not pulled), 0x02-separated (server). */
+    private String intakeLines() {
+        final StringBuilder sb = new StringBuilder();
+        for (MTEEyeOfHarmonyBTS.IntakeRow r : multiblock.intakeRows()) {
+            if (sb.length() > 0) sb.append('\n');
+            sb.append(BTSText.lit(r.name))
+                .append((char) 2)
+                .append(r.held)
+                .append((char) 2)
+                .append(r.cap);
+        }
+        return sb.toString();
+    }
+
     /** The Galaxy panel's body: the slots or companions, the next transition's state, the test fire (server). */
     private String galaxyPanelText() {
         final EyeStarRuntime rt = rt();
@@ -1178,6 +1197,7 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
         final StringSyncValue sockets = main.findSyncHandler("eyeSockets", StringSyncValue.class);
         final StringSyncValue sensors = main.findSyncHandler("eyeSensors", StringSyncValue.class);
         final StringSyncValue trims = main.findSyncHandler("eyeTrims", StringSyncValue.class);
+        final StringSyncValue intake = main.findSyncHandler("eyeIntake", StringSyncValue.class);
         final int w = FIELD_PANEL_W - 8;
         final ListWidget<IWidget, ?> list = new ListWidget<>().size(w, FIELD_PANEL_H - 8)
             .pos(4, 4)
@@ -1261,6 +1281,70 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                 final String[] f = part(trims.getStringValue(), i, 1);
                 return f == null ? "" : BTSFormat.exact(parseLong(f[1])) + " L";
             }).setEnabledIf(x -> part(trims.getStringValue(), i, 1) != null));
+        }
+        // B-115 (B-108): each buffer against the intake cap the sockets fill it to
+        list.child(divider());
+        list.child(
+            IKey.lang("beyondthestars.gui.eye.field.buffers")
+                .color(BTSGuiKit.PANEL_TEXT)
+                .asWidget()
+                .size(w, 9)
+                .textAlign(Alignment.CenterLeft)
+                .marginBottom(1)
+                .tooltip(
+                    t -> t.addLine(tr("beyondthestars.gui.eye.field.buffers.tip1"))
+                        .addLine(EnumChatFormatting.GRAY + tr("beyondthestars.gui.eye.field.buffers.tip2"))
+                        .addLine(EnumChatFormatting.GRAY + tr("beyondthestars.gui.eye.field.buffers.tip3")))
+                .tooltipShowUpTimer(TOOLTIP_DELAY));
+        list.child(
+            IKey.lang("beyondthestars.gui.eye.field.nobuffers")
+                .color(PANEL_DIM)
+                .asWidget()
+                .size(w, 9)
+                .textAlign(Alignment.CenterLeft)
+                .marginBottom(1)
+                .setEnabledIf(
+                    x -> intake.getStringValue() == null || intake.getStringValue()
+                        .isEmpty()));
+        for (int k = 0; k < INTAKE_ROWS; k++) {
+            final int i = k;
+            list.child(BTSGuiKit.panelBar(w, () -> {
+                final String[] f = part(intake.getStringValue(), i, 2);
+                return f == null ? "" : f[0];
+            }, () -> {
+                final String[] f = part(intake.getStringValue(), i, 2);
+                if (f == null) return 0;
+                final long held = parseLong(f[1]), cap = parseLong(f[2]);
+                return cap <= 0 ? (held > 0 ? 1 : 0) : held / (double) cap;
+            }, () -> {
+                final String[] f = part(intake.getStringValue(), i, 2);
+                if (f == null) return Grad.BLUE;
+                final long held = parseLong(f[1]), cap = parseLong(f[2]);
+                return cap < 0 || held > cap ? Grad.GOLD : held >= cap ? Grad.GREEN : Grad.BLUE;
+            }, () -> {
+                final String[] f = part(intake.getStringValue(), i, 2);
+                if (f == null) return "";
+                final long held = parseLong(f[1]), cap = parseLong(f[2]);
+                return BTSFormat.litres(held) + " / "
+                    + (cap < 0 ? tr("beyondthestars.gui.eye.field.notpulled") : BTSFormat.litres(cap));
+            })
+                .tooltipDynamic(t -> {
+                    final String[] f = part(intake.getStringValue(), i, 2);
+                    if (f == null) return;
+                    final long held = parseLong(f[1]), cap = parseLong(f[2]);
+                    t.addLine(f[0]);
+                    t.addLine(
+                        EnumChatFormatting.GRAY + tr(
+                            cap < 0 ? "beyondthestars.gui.eye.field.buffer.tipnp"
+                                : held > cap ? "beyondthestars.gui.eye.field.buffer.tipover"
+                                    : "beyondthestars.gui.eye.field.buffer.tip",
+                            BTSFormat.exact(held),
+                            BTSFormat.exact(Math.max(0, cap))));
+                })
+                .tooltipAutoUpdate(true)
+                .tooltipShowUpTimer(TOOLTIP_DELAY)
+                .marginBottom(1)
+                .setEnabledIf(x -> part(intake.getStringValue(), i, 2) != null));
         }
         list.child(
             IKey.lang("beyondthestars.gui.eye.field.footer")
