@@ -6,7 +6,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 1. **Open questions**: each open decision once, with the answer we recommend and where the detail is.
 2. **Settled**: everything you have answered, in your words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision from you.
-4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101 and B-105..B-118, the tidy pass's
+4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101 and B-105..B-119, the tidy pass's
    TQ-1..TQ-8, and P4's P4-01..P4-94 in Part E).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
@@ -162,6 +162,11 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
   wireless covers; every collapse on a real quasar under the live rig got its eruption on the collapse second. [B-118]
 - A BEC network in the showcase world (a TecTech BEC Storage, BEC Hatches, Diffraction's regions to the Refab) so
   Reality Diffraction and Refab can run on camera; suggested as a `/btshr bench ... becnet` helper. [B-118]
+- ~~Test merged master before the final recording~~: done: the static checks, a clean boot (311 / 0, no
+  warnings), `/btswarp`, and the merged GUIs in a client. The Eye's Field panel values were cut by its
+  scrollbar; fixed. [B-119]
+- `/btswarp` for a player who is not an op: refused in code (permission level 2), not yet tried with a real
+  non-op client. [B-119]
 
 **To see in a client** (the headless dev server cannot): the hologram hints, a survival build from a real AE system,
 the NEI multiblock tab and its frame rate (a T6 Eye is 51,935 blocks), every GUI (Eye, KEE, modules, Directive Hatch,
@@ -237,7 +242,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-101, B-105..B-118
+## Part B. Entries B-1..B-101, B-105..B-119
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -5703,6 +5708,117 @@ now, and 200-256 SM cancel 87-120.
 on the Diffraction, a powered field, Diffraction's six regions through it to the Refab): suggested as a `/btshr bench
 <x y z> becnet` helper with its own dev-server test before it goes on camera. The full showcase was not re-recorded
 here (the final recording is the next step); only the changed scenes were probed.
+
+### B-119 Test of merged master before the final recording: static checks, a clean boot, `/btswarp`, the merged GUIs in a client [final showcase, test + fix]
+
+**What was run.** Master `ba6f52b`: the gui-clean merge (B-115), the P4 GUIs (B-116), and the showcase merge with
+P4-95 (B-118). The run had three parts: static checks, two headless `runServer` boots on port 25565, and the GUI shot
+harness (`-Dbts.guishots=true`) in the `bts-guishots` world. One fix came out of it (below); it was compiled and
+checked in the client again. The scripts and the shots are in my local work folder (`b119/`, `b119/shots/`).
+
+**Static checks.**
+- `spotlessApply compileJava`: passes; spotless changed nothing.
+- Golden tests: `fieldsim-golden --check --java` 78 / 78, `quasar-golden --check --java` 38 / 38.
+- `export-structures --check`: matches voxel.js `fa6fec2a751c`. `gen-sl-textures --check`: 126 / 126.
+- `gen-singularity --check`: 139 files up to date (bundle `32326838526c`). `--selftest` passes.
+- Lang lint (B-113's script, against our `en_US.lang` with 1,294 keys, and RC-2 GT's): 0 real misses, 0 duplicate
+  keys, 0 empty values. Its ten reported lines are all known and dynamic:
+  - `fieldRetrofitKit` and `eohTier.`, which are named per meta;
+  - `kerr.module.linked` and `gg.recipe.precise_assembler`, as in B-113;
+  - six Eye GUI keys that the lint sees without their suffix: `dial.tip1..5`, `feed.tip1..4`, `galaxy.mode.tip1..4`,
+    `galaxy.f8.tip1..4`, `galaxy.begin.tip1..4` and `galaxy.rig1..3`. All of them exist.
+- GUI lang check (new, `b119/guilint.py`): 0 missing. It covers every `K + "..."` lookup that goes through a GUI
+  class's prefix constant (460), and every literal with a dynamic suffix (33).
+
+**Boots.**
+- **Boot 1** (fresh world `b119`, no pack quest database):
+  - `311 registered, 0 skipped`, and "P4 recipes: every machine recipe is registered".
+  - The 8 White Hole Matter H/R gate lines plus their summary. No `com.nateyburr` frame.
+  - The only beyondthestars WARN lines were the questbook's "pack edit Exx skipped: pack quest ... is not in this
+    world's quest database". That world had no pack book, so boot 2 was set up the way B-113 did it.
+- **Boot 2** (fresh world `b119b`, the RC-2 pack's DefaultQuests copied read-only from the `rc - 2 TO THE STARS`
+  instance, BetterQuesting's "Load the default quest DB on world startup" set to false):
+  - `311 registered, 0 skipped`, and the same 9 gate lines.
+  - **No beyondthestars WARN or ERROR line**, and no `com.nateyburr` frame.
+  - 823 "Exception" lines. These come from GT's dev environment; B-109 and B-113 had the same count.
+  - Questbook: 99 quests added, 64 of 64 pack edits applied, one emptied chapter hidden. `/btsquests status` is all
+    ok: the plant 34 / 34, UIV 3 / 3, UMV 10 / 10, UXV 35 / 35, MAX 15 / 15, The Endgame 1 / 1.
+- Afterwards the server's level name, `cmds.txt` and `betterquesting.cfg` were put back byte for byte, and the
+  DefaultQuests copy was removed.
+
+**Recipes.** `/btsrecipes status` gave the same result on both boots, and the same as B-113:
+- 425 entries: 365 new, 58 changed-GT, 2 removed.
+- By line: Kerr 28, Eye 64, BEC 28, H/R 27, Automation 1, old plant 202, upgrade path 41, Quasar / Conduit 34.
+- Both config switches on.
+
+**`/btswarp`.**
+- `status` with no warp: "Time warp is off."
+- From the console:
+  - `5`: x5.0 achieved (30 s of game time in 6 s). `off` reports the run.
+  - `999`: x998.2 overall on the empty world.
+  - `1001` is refused ("must be at most 1000").
+  - Each on and each off writes one `[BTS warp]` WARN line. That is by design: a cheat leaves a trace in the log.
+- As the player in the shot client:
+  - `20` held x20.0 (213 s of game time in 11 s) while an Eye burned.
+  - The bench's `status` and `off` answered in chat.
+  - The Eye's Lock bar showed the extra 200 s.
+- Op only:
+  - `CommandBTSWarp.getRequiredPermissionLevel()` returns 2, and the command keeps CommandBase's permission check.
+    A player who is not an op (in single player: cheats off) should get vanilla's "You do not have permission".
+  - **Not tested with a real non-op player.** The shot client is single player with cheats on, where the owner is
+    always an op. A client that joins the dev server would need a second gradle run alongside the server's.
+
+**The merged GUIs in a client** (scale 3, 1920 x 1080, sound off). Each shot was looked at.
+
+| GUI | State | Result |
+|---|---|---|
+| Eye T1 | dark, Sol targeted, no charge | DARK badge, the "Sol lights when all are met" checklist (charge missing in red) |
+| Eye T1 | lit (bench `lit`, the fine rig, 213 s under the warp) | RESONANT, P gauge, Stability / Integrity / Lock / Cycle bars, Y, parallel, milestones, last event |
+| Eye T1 | Field panel | **values cut on the right: fixed, see below** |
+| Eye T1 | Galaxy panel | renders; on a T1 Eye it shows the T7 / T8 controls, with Begin "not ready" |
+| Eye T8 | a Magnetar Merger running | TRANSITION badge, the phase bar, P / Θ / Ω / Π gauges in two columns |
+| Kerr T1 | open, autorig 400 s at 16 SM | OPEN, Mass / Stability / Governor bars, stock, containment, bleed, module chips |
+| Quasar, coils T3 | hole open (the conduit rig) | STABLE, the E dial on the real bands, flux with the purge and 90 ticks, jets, feed, coils |
+| Conduit Junction | open, nothing reaching it | OPEN, Through, upkeep, mode, In and the three outs ("no stream yet") |
+| Directive Hatch | on the Eye T1, set Trims | the readout (bits 1-8, Code, redstone), and the set / output / invert / window rows |
+
+**The finding (fixed, commit `83ecaeb`).**
+- **What was wrong.** B-115 added the Buffers section, so the Eye's Field panel is now always taller than its list.
+  MUI2 then shows the list's scrollbar and draws it over the list's right edge. Every right-aligned value lost about
+  one character:
+  - the zone legend read "x1.2 / x1.0 / no yiel / star los";
+  - "8 liv", "0 refuse" and "out 1";
+  - the sensor count was hidden.
+- **The fix.** The rows of both side panels (Field and Galaxy) are now `ROW_W` wide: the list's width less 6 px, the
+  clearance the Silo terminal uses. The legend's range column gives up the 6 px.
+- **Checked in the client.** Every value is whole, and the Buffers rows and the footer are whole when scrolled.
+
+**Seen, not changed.**
+1. **The first shot session got no chunks.**
+   - What happened: after every harness `tp`, the client never held a single machine tile. That included the Quasar,
+     the Junction and the Eye T8, which were all on the server, and the server had put the player in the right
+     place.
+   - A `guinow` then opened the GUI server-side. The client could not build it and dropped out. The harness's
+     automatic re-entry then failed in AE2's `serverAboutToStart` (a second integrated server in one JVM), so that
+     client was stopped.
+   - In the next two sessions the same `tp` / `gui` lines worked every time, including teleports of thousands of
+     blocks. A structure built during the session also opened without a re-join.
+   - It did not happen again. It is a harness / integrated-server issue, not the mod.
+   - The world was missing the Eye T1 and the Kerr, because B-116 had created it fresh for P4; both were built again.
+     In this world `/btseye t1 fill force` puts the T1 controller at 300 102 4, not at 300 98 4 as `eye-t1.shots`
+     has it.
+2. **GT's power-fail tracker NPE**, logged when the GUI of a machine built by a bench command (no owner) is opened, as
+   in B-116. The GUI opens.
+3. **Buffer names on the Field panel** are cut to one word ("Ergo.", "Molte."), with the full name in the tooltip.
+   The bench's `fill` puts 10^12 L in every buffer, so a T1 Eye lists eleven of them.
+4. **The Galaxy button on a T1-T6 Eye** opens the T7 / T8 panel with its controls (mode, f8, Begin "not ready"). It
+   does no harm, since Begin is refused below T6, and the panel's title says T7 / T8.
+
+**Not covered.**
+- The Eye T7 / T8 Galaxy and Field panels with a real galaxy. B-116 photographed T7 READY and T8 LIT.
+- The P4 crowns, mouths, mirror and Burst Control Hatch (photographed in B-116).
+- The sensor hatch GUI.
+- `/btswarp` from a non-op player.
 
 ---
 
