@@ -7940,3 +7940,113 @@ which the eruption's shell, the snapping field lines and the purge's unwinding r
 would let the ring be seen from outside; the render is ready for it. Shots: local work folder
 `renders/quasar/after-*.png`, `after-low-*`, GPU `after-fps*.tsv`; `renders/compare.html`; clip
 `video/renders/quasar-v2.mp4`.
+
+### R-13 The Eye's stars T1-T6, renders v2 (WP-3 / WP-4): ray-traced photospheres, analytic coronae, beams, field lines and the events [renders v2, judgement + finding]
+
+**What was built.** The Eye's centre render (`machines/eye/render/EyeStarRenderer`, programs in `EyeStarFx`, GLSL
+`shaders/star/`; notes in `docs/render-kit.md`) draws the v2 look for every star and compact object at every shader
+tier. What a player sees:
+
+- **Sol (T1)**: a golden photosphere of boiling granules (3D cellular noise whose cells wander and flicker), fainter
+  mesogranulation, a few sunspots with dark umbrae and streaky penumbrae that grow and fade over one to two minutes,
+  faculae brightening toward the limb, quadratic limb darkening with a redder limb, pearly coronal streamers densest
+  round the equator and two to five prominences (glowing pink loops standing on the limb, rising and draining). An
+  unstable Sol boils faster, shows more spots, prominences and corona, and the corona flickers: it can be told from
+  the calm one in a still.
+- **Sirius A (T2)**: blue-white, finer and fainter granulation, no spots, a tight bright corona.
+- **Arcturus (T3)**: an orange giant of five to eight huge convection cells, strong limb darkening, a reddish haze to
+  1.3 radii and drifting mass-loss wisps. A **helium-flash warning** makes the cells boil up to seven times faster and
+  the star throb, faster as the hit nears; the **hit** sends a bright front across the surface and a puff off the limb.
+- **The protostar**: a dim red, blotchy ball deep inside a dark dusty cocoon (an absorbing layer lit from inside,
+  with holes the glow shows through), a thin dusty disc across its equator with a hot inner rim, and two faint pink
+  outflows; as ignition climbs the cocoon clears from the poles, the disc thins and the ball heats toward its star.
+  **Ignition**: a flash, a bright shell running out and the cocoon blown away as a dusty shell.
+- **Mass Infusion** (T1 to T2): Sol heats and whitens toward Sirius A as the 600 s go by, matter raining in along
+  tall loops, the corona growing. **Shell Ignition** (T2 to T3): Sirius A swells, cools and grows its cells toward
+  Arcturus; it ends in the helium flash. (Both also blend the fixed-function look's size and colour.)
+- **The neutron star (T4)**: a small blue-white ball with a violet limb and two white-hot polar caps; light bending
+  (Beloborodov's approximation, r_s / R 0.4) shows about three quarters of its surface, so the far cap peeks over the
+  limb; eight faint dipole field lines turning with it; two lighthouse beams sweeping round the spin axis, brightest
+  when one points at the camera. A **glitch** (T4's event) flashes the crust and makes the beams stutter.
+- **Core Collapse**: the **swell** (Arcturus to deep orange-red, violent cells, the 0.7 Hz throb, a thickening haze);
+  the **bounce** (the proto-neutron star and a shock front running out to the bands, its edge pushed into
+  Rayleigh-Taylor fingers, bright where it is thin); the **supernova** (a blinding flash, then an expanding remnant:
+  red-orange filaments over a blue-white synchrotron haze, fading over 3 s).
+- **The white dwarf (T5)**: a hard, small, white-blue ball with a thin glare; through the batch it cools from 25,000 K
+  to 2,800 K (white, yellow, orange, dull red) and grows a faint convective mottling, then becomes the **black dwarf**:
+  a near-black ball with a dull ember glow and a faint hexagonal crystal sheen at the limb. **First Cooling**: the
+  first dwarf assembles (a faint shell contracting onto it).
+- **The magnetar (T6)**: a violet ball whose crust is cut by faults that glow violet-white, white-hot polar caps,
+  twelve dipole field lines (camera-facing ribbons, never thinner than about a pixel and a half) and a violet
+  magnetosphere, two violet beams; a **starquake flare** every 4-8 s (crust flash and a torn flare shell). A
+  **giant-flare warning** twists the field lines and makes them crackle, the faults brighten and the magnetosphere
+  pulses faster as the hit nears; the **hit** flashes white and tears the loops open into a fan of rays. The
+  **overfed** magnetar: smaller, faster, the field wound tight, the faults always glowing. The **Magnetar Merger**:
+  a merger flash, then the dynamo winding the field up through the imprint and relaxing it at the release.
+- **Window (E-9)**: through the front window band Sol reads golden and Arcturus orange with their glow; the compact
+  objects are small bright points with their glow and beams (L2 / L3 at 90-150 blocks).
+
+LOW quality, a program that does not bake or a GL error: today's look, unchanged (the LOW shots match BEFORE). The
+galaxies (T7, T8, planets) keep today's look until WP-5.
+
+**Technique.** Three programs: the photosphere on a sphere mesh 1.2 % larger than the star, each fragment tracing its
+ray onto the true sphere (a perfect silhouette, the surface in 3D object space: no seams or pinched poles), opaque
+with depth writes in pass 0; a halo quad whose fragments integrate their rays analytically (glow, corona, haze, wind,
+cocoon, disc, outflows, beams, magnetosphere, two thin shells) with the star cut by a ray / sphere test, premultiplied
+in pass 1; ribbon loops placed in the vertex shader (field lines or prominences), additive. Detail by tier and by the
+photosphere's own size on screen; finer noise fades by the pixel's footprint. Up to three draw calls (the glow sprite
+replaces the halo at L3).
+
+**Sync (R-04, built as recommended, adjusted).** The render tile's look compound gains `n` (the star's tier), `ev` +
+`evAt` (the event channel's event while warned or hitting, and its hit as a **world tick**, so the client counts the
+warning down without a packet a second; the spec's `evClock` float would have needed one) and `tr` + `trP` (the
+running transition and its progress, sent at 1 % steps). Read from the runtime by a new read-only accessor
+(`EyeStarRuntime.renderEvent`); render tile only, no machine NBT. The galaxy events (merger passes, the crossing) are
+left for WP-5 to add on the same channel.
+
+**Judgement calls (spec §7 / §8 deviations).**
+
+1. *Display temperatures.* A true blackbody at 5,772 K is near white on screen; below 6,000 K the display temperature
+   is pulled down by up to 38 % (Sol reads golden, Arcturus orange, the cooling dwarf passes through orange and red)
+   and the colour is saturated a little. The spec's dwarf curve 25,000 x (1 - 0.88 f) stays blue-white past half way;
+   the dwarf cools on a log curve instead (white at 10 %, orange at 50-75 %, red at 90 %).
+2. *One halo quad, not a corona quad plus sphere shells.* Shells, beams and the cocoon are analytic on the same quad,
+   so they are perfectly round (the BEFORE shots' 32-segment shells showed facets) and cost one draw.
+3. *The giant flare and the helium flash need the event's hit time*, so the extras carry the hit as a world tick
+   (above).
+4. *The magnetar's warning shell (the old 7-block bubble) is gone*: it read as lilac fog at the close views and was
+   the largest term at the hero view; the warning is the twisting, crackling field and the pulsing magnetosphere.
+
+**Finding (applies to R-11 / R-12 too).** Minecraft's first-person camera sits 0.1 blocks behind the origin a TESR
+draws round (`EntityRenderer.orientCamera` translates by -0.1). Rays traced from a camera-relative vertex position are
+off by that much: negligible for geometry far away, but a quad placed 0.3 blocks in front of the camera (the halo's
+quad when the camera is inside the Eye's cavity) bent every ray by a third (the halo drew a third smaller than the
+star, a bright ring inside the limb). The star programs now take the true eye (`-R^T t` of the modelview) as `u_Eye`.
+The quasar's inside-the-slab quad (0.2 blocks out) should get the same correction: suggested for WP-10.
+
+**GPU (dev rig, RTX 4090, 1280 x 720, fixed poses, `GL_TIME_ELAPSED` round both passes; marginal = (5 draws - 1) / 4
+with `-Dbts.render.eyeRepeat=5`).** Budget 0.10 ms (dev).
+
+| View | Single draw | Marginal |
+|---|---|---|
+| front, 34, level (outside, L1-L3) | 0.004-0.022 ms | - |
+| close (inside the cavity) | 0.03-0.092 ms | up to 0.0995 (ignition, giant flare) |
+| hero (next to the star) | 0.03-0.092 ms | up to 0.11 (magnetar warning with a flare shell running past the camera) |
+
+Every view is within budget but one: the magnetar's warning at the hero view, 5 blocks from the star while a starquake
+flare's shell runs past the camera (the shell then covers the whole frame), 0.11-0.113 ms marginal, 11-13 % over
+(0.125 before judgement call 4; the single draw is 0.092). Options: accept it (it is a 2 s moment at the closest
+pose), or draw the flare shell with one noise lookup when the camera is inside the cavity. CPU 0.039 ms a frame on
+average (budget 0.05; 10 of 330 shots 0.050-0.068, the GPU timer included).
+
+**Checked.** All three programs compile and link in both profiles (`-Dbts.render.selftest=true`, no shader errors in
+the log); 330 AFTER shots (33 cases x 5 views x day / night, including 16 new cases for the events and transitions);
+126 LOW shots at the BEFORE poses (they match BEFORE); checkstyle and spotless clean. A clip
+(`tools/recording/renders-stars.shots`: Sol orbit, Arcturus with a real helium flash, the neutron star, the magnetar
+with a real giant flare, the events driven by the Eye bench's `event`).
+
+**Not verified.** Angelica's core profile in Angelica itself, and a shaderpack (as R-10 to R-12).
+
+**Suggestion.** Accept the looks, the deviations and the adjusted R-04 fields. Shots: local work folder
+`renders/stars/after-*.png`, `renders/compact/after-*.png`, `after-low-*`; `renders/compare.html` (the Eye section,
+with the GPU numbers); clip `video/renders/stars-v2.mp4`.

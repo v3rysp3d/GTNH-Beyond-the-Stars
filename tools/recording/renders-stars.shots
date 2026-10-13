@@ -1,0 +1,59 @@
+# Renders v2 WP-3 / WP-4: the Eye's stars (docs/render-kit.md, EyeStarFx). Dev only: -Dbts.rec=true
+# -Dbts.rec.script=tools/recording/renders-stars.shots. About a minute of video: Sol, Arcturus with a real helium
+# flash, the neutron star, the magnetar with a real giant flare (the events driven by the Eye bench's `event`).
+kit eye 6 3000,5,4000 gen 5 name st
+command /btseye star {st} unlock 6
+command /btseye star {st} fill
+command /btseye star {st} rig none
+time night
+wait game:3
+
+scene title
+  card 3 Renders v2: the Eye's stars | granulation, sunspots, prominences, coronae, beams, field lines and flares
+
+scene sol
+  caption T1, Sol: boiling granulation, a sunspot, prominences rising off the limb, coronal streamers.
+  command /btseye star {st} target sol
+  command /btseye star {st} lit sol
+  wait game:4
+  orbit st.c radius 17 height 4 from 320 to 40 seconds 9 ease inout
+
+scene arcturus
+  caption T3, Arcturus: a red giant of a few huge convection cells, an extended haze and a mass-loss wind.
+  command /btseye star {st} target arcturus
+  command /btseye star {st} lit arcturus
+  wait game:4
+  fov 85
+  goto st.c+5,6,-18 look st.c
+  hold 4
+  caption A helium flash is warned: the cells boil faster, the star throbs...
+  command /btseye star {st} event
+  hold 4
+  wait game:9
+  caption ...and the flash runs across the surface.
+  hold 5
+  fov 70
+
+scene neutron
+  caption T4, the neutron star: hot polar caps (light bending shows most of its surface), field lines, sweeping beams.
+  command /btseye star {st} target neutron
+  command /btseye star {st} lit neutron
+  wait game:4
+  orbit st.c radius 9 height 2.5 from 330 to 60 seconds 9 ease inout
+
+scene magnetar
+  caption T6, the magnetar: a cracked violet crust, twisted field lines, a magnetosphere and starquake flares.
+  command /btseye star {st} target magnetar
+  command /btseye star {st} lit magnetar
+  wait game:4
+  goto st.c+4.5,1.8,-7.8 look st.c
+  hold 5
+  caption A giant flare is warned: the field winds up and crackles...
+  command /btseye star {st} event
+  hold 4
+  wait game:10
+  caption ...and tears open in a flash.
+  hold 5
+
+scene end
+  card 2 Beyond the Stars | renders v2
