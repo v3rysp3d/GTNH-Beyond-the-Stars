@@ -461,14 +461,20 @@ public class MTERealityRefab extends MTERealityBase<MTERealityRefab> {
     private int lockstep(int next) {
         final int max = mMaxProgresstime;
         double fraction = next / (double) max;
+        boolean isShort = false;
         for (int i = 0; i < reqFluids.length; i++) {
             final long target = target(i, fraction);
             final long want = target - consumed[i];
             if (want <= 0) continue;
             final long have = stored(reqFluids[i]);
-            if (have < want) fraction = Math.min(fraction, (consumed[i] + have) / (double) reqAmounts[i]);
+            if (have < want) {
+                fraction = Math.min(fraction, (consumed[i] + have) / (double) reqAmounts[i]);
+                isShort = true;
+            }
         }
-        final int paid = Math.min(next, (int) Math.floor(fraction * max));
+        // B-137: next / max * max can come back as 54.999... and floor to the progress already paid, which froze a
+        // craft for good at 54 / 2400 with every region in stock; with no region short the asked progress is paid
+        final int paid = isShort ? Math.min(next, (int) Math.floor(fraction * max + EPS)) : next;
         fraction = paid / (double) max;
         for (int i = 0; i < reqFluids.length; i++) {
             final long want = target(i, fraction) - consumed[i];
@@ -479,9 +485,12 @@ public class MTERealityRefab extends MTERealityBase<MTERealityRefab> {
         for (int i = 0; i < reqFluids.length; i++) {
             if (reqAmounts[i] > 0) got = Math.min(got, consumed[i] / (double) reqAmounts[i]);
         }
-        final int byGot = got >= 1.0 ? max : (int) Math.floor(got * max);
+        final int byGot = got >= 1.0 ? max : (int) Math.floor(got * max + EPS);
         return Math.min(paid, byGot);
     }
+
+    /** Rounding slack for the lockstep's fraction-to-ticks conversions (B-137). */
+    private static final double EPS = 1e-9;
 
     private long target(int i, double fraction) {
         return fraction >= 1.0 ? reqAmounts[i] : Math.min(reqAmounts[i], (long) Math.ceil(reqAmounts[i] * fraction));
