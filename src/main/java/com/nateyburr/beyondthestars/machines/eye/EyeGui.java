@@ -7,6 +7,7 @@ import java.util.Map;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.StatCollector;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
@@ -164,12 +165,22 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
             case TRANSITION:
                 return BTSText.lit(rt.transition().type.title);
             case PENDING:
-                return BTSText.lit((star == null ? "?" : star.name) + " > " + (want == null ? "?" : want.name));
+                return BTSText.lit(shortName(star) + " > " + shortName(want));
             case DARK:
-                return want == null ? "" : BTSText.lit(want.name);
+                return want == null ? "" : BTSText.lit(shortName(want));
             default:
-                return star != null ? BTSText.lit(star.name) : want != null ? BTSText.lit(want.name) : "";
+                return star != null ? BTSText.lit(shortName(star)) : want != null ? BTSText.lit(shortName(want)) : "";
         }
+    }
+
+    /**
+     * A star's name for the header: without its parenthetical ("Neutron Star (Arcturus Remnant)" reads "Neutron
+     * Star"), so the subject never runs into the right chip (dev client round 1). The full name stays in the rows.
+     */
+    private static String shortName(StarDef star) {
+        if (star == null) return "?";
+        final int cut = star.name.indexOf(" (");
+        return cut > 0 ? star.name.substring(0, cut) : star.name;
     }
 
     @Override
@@ -931,6 +942,39 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                     .textAlign(Alignment.CenterRight));
     }
 
+    /** A Field panel row: text on the left (scrolls on hover when long), a value right-aligned in panel text. */
+    private static Flow panelPair(java.util.function.Supplier<String> left, int leftColour,
+        java.util.function.Supplier<String> right) {
+        final int w = FIELD_PANEL_W - 8, rw = 44;
+        return Flow.row()
+            .size(w, 9)
+            .marginBottom(1)
+            .child(
+                new ScrollingTextWidget(IKey.dynamic(left::get)).size(w - rw, 9)
+                    .color(leftColour)
+                    .shadow(false))
+            .child(
+                IKey.dynamic(right::get)
+                    .color(BTSGuiKit.PANEL_TEXT)
+                    .asWidget()
+                    .size(rw, 9)
+                    .textAlign(Alignment.CenterRight));
+    }
+
+    /** One column of a zone legend line ("name range yield", split on double spaces). */
+    private static IWidget legendCell(String key, int col, int width, Alignment align) {
+        return IKey.dynamic(() -> {
+            final String[] cells = StatCollector.translateToLocal(key)
+                .split(" {2,}");
+            if (cells.length < 3) return col == 0 ? StatCollector.translateToLocal(key) : "";
+            return cells[col];
+        })
+            .color(BTSGuiKit.PANEL_TEXT)
+            .asWidget()
+            .size(width, 9)
+            .textAlign(align);
+    }
+
     private static IWidget divider() {
         return ((IDrawable) (context, x, y, width, height, theme) -> GuiDraw.drawRect(x, y, width, height, 0xFF8B8B8B))
             .asWidget()
@@ -961,21 +1005,21 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                 .marginBottom(2));
         for (int z = 0; z < 5; z++) {
             final int colour = BTSGuiKit.ZONE_BAND[z];
+            // "Resonant ±10 x1.25": name, range and yield in three columns (the mockup's table); a translation
+            // without the double spaces shows whole in the first column
+            final String key = "beyondthestars.gui.eye.field.zone." + z;
             list.child(
                 Flow.row()
                     .size(w, 9)
                     .marginBottom(1)
-                    .childPadding(3)
                     .child(
                         ((IDrawable) (context, x, y, width, height, theme) -> GuiDraw
                             .drawRect(x, y, width, height, colour)).asWidget()
-                                .size(12, 8))
-                    .child(
-                        IKey.lang("beyondthestars.gui.eye.field.zone." + z)
-                            .color(BTSGuiKit.PANEL_TEXT)
-                            .asWidget()
-                            .height(9)
-                            .textAlign(Alignment.CenterLeft)));
+                                .size(12, 8)
+                                .marginRight(3))
+                    .child(legendCell(key, 0, 58, Alignment.CenterLeft))
+                    .child(legendCell(key, 1, 40, Alignment.CenterLeft))
+                    .child(legendCell(key, 2, w - 15 - 58 - 40, Alignment.CenterRight)));
         }
         list.child(divider());
         list.child(panelStat("beyondthestars.gui.eye.field.sockets", () -> {
@@ -993,12 +1037,14 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
         }));
         for (int k = 0; k < SENSOR_ROWS; k++) {
             final int i = k;
-            list.child(panelText(() -> {
+            list.child(panelPair(() -> {
+                final String[] f = part(sensors.getStringValue(), i, 1);
+                return f == null ? "" : " " + f[0];
+            }, PANEL_DIM, () -> {
                 final String[] f = part(sensors.getStringValue(), i, 1);
                 if (f == null) return "";
-                final boolean on = !"0".equals(f[1]);
-                return f[0] + "  " + (on ? "§2" : "§8") + tr("beyondthestars.gui.eye.field.out", f[1]);
-            }, PANEL_DIM).setEnabledIf(x -> part(sensors.getStringValue(), i, 1) != null));
+                return (!"0".equals(f[1]) ? "§2" : "§8") + tr("beyondthestars.gui.eye.field.out", f[1]);
+            }).setEnabledIf(x -> part(sensors.getStringValue(), i, 1) != null));
         }
         list.child(divider());
         list.child(
@@ -1006,28 +1052,34 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                 .color(BTSGuiKit.PANEL_TEXT)
                 .asWidget()
                 .size(w, 9)
+                .textAlign(Alignment.CenterLeft)
                 .marginBottom(1));
         list.child(
             IKey.lang("beyondthestars.gui.eye.field.notrims")
                 .color(PANEL_DIM)
                 .asWidget()
                 .size(w, 9)
+                .textAlign(Alignment.CenterLeft)
                 .marginBottom(1)
                 .setEnabledIf(
                     x -> trims.getStringValue() == null || trims.getStringValue()
                         .isEmpty()));
         for (int k = 0; k < TRIM_ROWS; k++) {
             final int i = k;
-            list.child(panelText(() -> {
+            list.child(panelPair(() -> {
                 final String[] f = part(trims.getStringValue(), i, 1);
-                return f == null ? "" : "§8" + f[0] + "  §0" + BTSFormat.exact(parseLong(f[1])) + " L";
-            }, BTSGuiKit.PANEL_TEXT).setEnabledIf(x -> part(trims.getStringValue(), i, 1) != null));
+                return f == null ? "" : " " + f[0];
+            }, PANEL_DIM, () -> {
+                final String[] f = part(trims.getStringValue(), i, 1);
+                return f == null ? "" : BTSFormat.exact(parseLong(f[1])) + " L";
+            }).setEnabledIf(x -> part(trims.getStringValue(), i, 1) != null));
         }
         list.child(
             IKey.lang("beyondthestars.gui.eye.field.footer")
                 .color(PANEL_DIM)
                 .asWidget()
                 .size(w, 9)
+                .textAlign(Alignment.CenterLeft)
                 .marginTop(2));
         return new ModularPanel("eyeFieldPanel").relative(parent)
             .leftRel(1)
