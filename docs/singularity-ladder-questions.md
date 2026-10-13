@@ -7716,3 +7716,48 @@ a zone-coloured glow, so the quasar's state reads from outside without a structu
 **Suggestion.** A Quantum Glass window band in the disc wall at the ring's height (as the Kerr and Eye got), as its own
 structure change (voxel.js, re-export, hologram, NEI, BOM), outside renders v2. Alternative: keep the box closed and
 rely on the jets and the cap glow.
+
+### R-10 The render kit (WP-0): shared shaders, quality setting, LOD, GPU probe [renders v2, tooling + finding]
+
+**What was built.** The shared render kit of spec §2-§4 in `client.render` (developer notes: `docs/render-kit.md`):
+a program registry over GT's `ShaderRecipe` with a once-logged compile-failure fallback (`BTSShaders`); our GLSL
+served with `#include`s expanded and a per-profile `BTS_TEX` / `BTS_CORE` define (`GlslSourcePack`, domain
+`beyondthestars_glsl`); shared includes for hashes, texture and ALU noise, fbm, cells, the blackbody LUT, the tonemap
+shoulder and glow falloffs; the 256 x 256 noise texture and the 256 x 1 blackbody LUT (Planck x CIE 1964 10-degree);
+VBO meshes (quad, sphere, annulus, ribbon); a glow sprite and a `GL_POINTS` point batch, each with its
+fixed-function twin; GL state save / restore and layer presets; the client quality setting (`client_render`:
+`renderQuality` high / medium / low, `renderLodScale`, `renderMaxHighObjects`, `renderBackgroundLensing`,
+`renderParticles`); LOD by projected radius with 10 % hysteresis and the two-largest-objects HIGH budget; a reflective
+shaderpack probe; a dev GPU-time probe (`GL_TIME_ELAPSED`, read back without stalls) whose numbers the harness writes
+to `fps.tsv`; the harness switch `-Dbts.rendertest.quality`. The Kerr, quasar and Eye renderers now run through it
+(state, timing, tier, the Eye's program and sphere and its fixed shapes) and draw exactly what they drew before at
+every tier: the v2 looks come in WP-1..WP-5.
+
+**One behaviour change, on failure only.** If TecTech's star shader does not bake, the Eye used to draw nothing; it
+now draws its object as a plain coloured sphere with today's limb darkening and veil (`-Dbts.render.failShaders=true`
+shows it).
+
+**How it was checked (dev rig, RTX 4090, legacy profile).**
+
+- Self test (`-Dbts.render.selftest=true`): both profiles of every kit program compile and link from the served
+  sources (0 failures); the self-test program draws as GT baked it and as a hand-linked `#version 330 core` variant
+  side by side, identically; glow and points draw by shader and by fixed function; with `-Dbts.render.failShaders=true`
+  every program reports off once and each object draws its fallback. The self test caught one real bug on its first
+  run: `packed` is a reserved word in GLSL 3.30 (the point shader's core variant did not compile); renamed.
+- Full harness pass at the fixed BEFORE poses, all 44 cases x 5 views x day / night (440 shots), compared pixel by
+  pixel with the BEFORE set: the `front`, `34`, `level` and `hero` views (shot at render distance 16 in both sets)
+  differ by 0.12 % of pixels on average for the Kerr (max 0.76 %), 0.41 % for the quasar, 0.56 % for the galaxies,
+  1.2 % / 1.9 % for the stars and compact objects; the larger ones are all `hero` close-ups of animated layers (texture
+  spin, beam sweep, magnetar flare phase, jet pulse) and the untouched reference TecTech Forge of the Gods differs most
+  (up to 42 %), so the gap is time, not code. The `close` views differ by 15-55 % because BEFORE pass 1 shot them at
+  render distance 4 (R-01): fog and missing terrain; looked at one by one, the objects match. A LOW-quality subset
+  (`-Dbts.rendertest.quality=low`) matches BEFORE too.
+- GPU per frame at HIGH (today's looks, mean / worst view): Kerr 0.002 / 0.006 ms, quasar 0.005 / 0.010 ms, Eye stars
+  T1-T5 under 0.034 ms, magnetar 0.055 ms, galaxies 0.009 ms. **Finding:** the CPU side is what costs today: the
+  quasar's Tessellator ring and jets take up to 0.62 ms of CPU a frame and the Eye's fixed-function spheres
+  0.10-0.24 ms, over the spec's 0.05-0.08 ms CPU budgets; the v2 VBO renders fix that (the fixed paths stay as LOW).
+
+**Not verified here.** The Angelica core profile itself: the dev client has no Angelica / lwjgl3ify, so the core
+variants are proven by compiling, linking and drawing them on a compatibility context, not under Angelica's GLSM.
+
+**Suggestion.** None needed (tooling). Shots and diffs: local work folder `rkit/runs/` and `renders/wp0/`.
