@@ -5,6 +5,7 @@ import net.minecraftforge.common.MinecraftForge;
 import com.nateyburr.beyondthestars.blocks.BTSBlocks;
 import com.nateyburr.beyondthestars.fluids.BTSFluids;
 import com.nateyburr.beyondthestars.items.BTSItems;
+import com.nateyburr.beyondthestars.items.SLCircuitItems;
 import com.nateyburr.beyondthestars.items.SLItems;
 import com.nateyburr.beyondthestars.items.SLMaxItems;
 import com.nateyburr.beyondthestars.items.SLQuasarItems;
@@ -31,6 +32,10 @@ public class CommonProxy {
         // B-83: the field-generator upgrade path's Retrofit Frame and Kits.
         SLUpgradeItems.register();
         SLQuasarItems.register();
+        // Circuits v2 (circuits-v2.md §1): the 28 items, then their GT circuit ore names (preInit, before GT and
+        // TecTech register the recipes that snapshot ore members).
+        SLCircuitItems.register();
+        SLCircuitItems.registerOreDict();
         BTSBlocks.register();
         BTSFluids.register();
         // GT5U registers its own machines in its preInit; required-after:gregtech guarantees ours runs later.

@@ -25,6 +25,7 @@ import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.ShapedRecipes;
 import net.minecraft.item.crafting.ShapelessRecipes;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
@@ -34,6 +35,7 @@ import net.minecraftforge.oredict.ShapelessOreRecipe;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.nateyburr.beyondthestars.fluids.SLRealityFluids;
+import com.nateyburr.beyondthestars.items.SLCircuitItems;
 import com.nateyburr.beyondthestars.machines.eye.EyeRecipe;
 import com.nateyburr.beyondthestars.machines.eye.EyeRecipeRegistry;
 import com.nateyburr.beyondthestars.machines.eye.star.StarDef;
@@ -80,7 +82,7 @@ public class CommandBTSRecipes extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btsrecipes [status | dump [file]]";
+        return "/btsrecipes [status | dump [file] | circuits]";
     }
 
     @Override
@@ -91,7 +93,7 @@ public class CommandBTSRecipes extends CommandBase {
     @SuppressWarnings("rawtypes")
     @Override
     public List addTabCompletionOptions(ICommandSender sender, String[] args) {
-        if (args.length == 1) return getListOfStringsMatchingLastWord(args, "status", "dump");
+        if (args.length == 1) return getListOfStringsMatchingLastWord(args, "status", "dump", "circuits");
         return null;
     }
 
@@ -100,6 +102,14 @@ public class CommandBTSRecipes extends CommandBase {
         final String sub = args.length > 0 ? args[0].toLowerCase() : "status";
         if ("status".equals(sub)) {
             status(sender, collect());
+            return;
+        }
+        if ("circuits".equals(sub)) {
+            // Circuits v2 C1 check (circuits-v2.md §7.2): each circuit's ore names against §1.3's table.
+            for (String line : SLCircuitItems.oreReport()) {
+                sender.addChatMessage(new ChatComponentText(line));
+                BeyondTheStars.LOG.info("[BTS] circuits: " + line);
+            }
             return;
         }
         if (!"dump".equals(sub) || args.length > 2) throw new WrongUsageException(getCommandUsage(sender));

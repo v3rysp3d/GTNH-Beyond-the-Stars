@@ -1,7 +1,9 @@
 package com.nateyburr.beyondthestars;
 
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
+import com.nateyburr.beyondthestars.items.SLCircuitItems;
 import com.nateyburr.beyondthestars.machines.BTSMachines;
 
 import codechicken.nei.api.API;
@@ -21,6 +23,10 @@ public class NEIBTSConfig implements IConfigureNEI {
     public void loadConfig() {
         hide(BTSMachines.moduleTurbineHall);
         hide(BTSMachines.moduleCoolingTower);
+        // Circuits v2 §1.1: with stellarCircuits=false the 28 items stay registered but are not offered.
+        if (!Config.stellarCircuits) {
+            for (Item item : SLCircuitItems.all()) hide(new ItemStack(item, 1, 0));
+        }
     }
 
     private static void hide(ItemStack stack) {
