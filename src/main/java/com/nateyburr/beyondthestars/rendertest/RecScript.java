@@ -56,7 +56,10 @@ final class RecScript {
             "warp",
             "use",
             "terminal",
-            "menet"));
+            "menet",
+            "points",
+            "creativepower",
+            "name"));
 
     /** The verbs whose time is recorded. */
     static final Set<String> RECORDING = new HashSet<>(

@@ -780,6 +780,24 @@ public final class RecClient {
                             appeng.api.util.AEColor.valueOf(c.opt(1, "Purple")))));
                 break;
             }
+            case "creativepower": {
+                final String name = c.arg(0);
+                acts.add(new Server("creative power for " + name, () -> RecServer.creativePower(name)));
+                break;
+            }
+            case "name": {
+                // name <name> <place>: a named point (a place for later commands and {name} in command lines)
+                final String name = c.arg(0)
+                    .toLowerCase(Locale.ROOT);
+                final double[] at = resolve(c.arg(1));
+                acts.add(new Instant("name " + name, () -> AutoRig.POINTS.put(name, at)));
+                break;
+            }
+            case "points": {
+                final String name = c.arg(0);
+                acts.add(new Server("name the parts of " + name, () -> RecServer.points(name)));
+                break;
+            }
             case "aecells":
                 acts.add(
                     new Server("AE2 Eye rig: the cells into the drive", () -> AutoRigEyeAE.insertCells(RenderTest.world())));
@@ -1195,7 +1213,7 @@ public final class RecClient {
 
         @Override
         void frame(long now) {
-            if (speed() > 1 && clock) tag = tagText(now);
+            if (speed() > 1.01 && clock) tag = tagText(now);
         }
 
         @Override
@@ -1461,7 +1479,8 @@ public final class RecClient {
         @Override
         void start(long now) {
             super.start(now);
-            tag = tagText(now);
+            // speed 1 is a real-time recording that ends on a condition: no time-lapse tag (a warp shows its own)
+            tag = speed() > 1.01 ? tagText(now) : null;
             if (untilCond != null) RenderTest.onServer(RecServer::markGame);
             if (sky) RenderTest.onServer(() -> RecServer.daylight(true));
         }

@@ -238,7 +238,10 @@ final class RecServer {
 
     /** A named place as a block position (throws if unknown). */
     static int[] at(String place) {
-        final double[] d = AutoRig.POINTS.get(place.toLowerCase(Locale.ROOT));
+        final String k = place.toLowerCase(Locale.ROOT);
+        if (k.equals("keectrl") && AutoRig.keeCtrl != null) return AutoRig.keeCtrl.clone();
+        if (k.equals("eyectrl") && AutoRig.eyeCtrl != null) return AutoRig.eyeCtrl.clone();
+        final double[] d = AutoRig.POINTS.get(k);
         if (d == null) throw new IllegalArgumentException("no place " + place);
         return new int[] { (int) Math.floor(d[0]), (int) Math.floor(d[1]), (int) Math.floor(d[2]) };
     }
@@ -337,6 +340,107 @@ final class RecServer {
         MeParts.terminal(world, p, side, MeParts.Kind.SMART, color, RenderTest.player(), log, "");
         if (name != null) name(name, p, null);
         return String.join("; ", log);
+    }
+
+    /**
+     * Named points for the parts of the machine at a named place, so a script can film their screens: an Eye's
+     * Directive Hatches ({@code <name>.dir.<set>}, e.g. {@code climb.dir.eye_status}), its Field hatches
+     * ({@code <name>.field<i>}) and plinth buses ({@code <name>.bus<i>}); a KEE's module controllers
+     * ({@code <name>.modx}, {@code <name>.modc}). Returns what was named.
+     */
+    static String points(String name) {
+        final WorldServer world = RenderTest.world();
+        final int[] p = at(name);
+        final String n = name.toLowerCase(Locale.ROOT);
+        final StringBuilder b = new StringBuilder();
+        final MTEEyeOfHarmonyBTS eye = AutoRig.mteAt(world, p, MTEEyeOfHarmonyBTS.class);
+        if (eye != null) {
+            for (com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective h : eye.directiveHatches()) {
+                final IGregTechTileEntity t = h.getBaseMetaTileEntity();
+                if (t == null) continue;
+                final String k = n + ".dir." + h.getSet()
+                    .name()
+                    .toLowerCase(Locale.ROOT);
+                AutoRig.POINTS.put(k, new double[] { t.getXCoord() + 0.5, t.getYCoord() + 0.5, t.getZCoord() + 0.5 });
+                b.append(k)
+                    .append(' ');
+            }
+            int i = 0;
+            for (gregtech.api.metatileentity.implementations.MTEHatchInput h : eye.fieldHatches()) {
+                final IGregTechTileEntity t = h.getBaseMetaTileEntity();
+                if (t != null) AutoRig.POINTS.put(
+                    n + ".field" + i++,
+                    new double[] { t.getXCoord() + 0.5, t.getYCoord() + 0.5, t.getZCoord() + 0.5 });
+            }
+            i = 0;
+            for (gregtech.api.metatileentity.implementations.MTEHatchInputBus h : eye.itemBuses()) {
+                final IGregTechTileEntity t = h.getBaseMetaTileEntity();
+                if (t != null) AutoRig.POINTS.put(
+                    n + ".bus" + i++,
+                    new double[] { t.getXCoord() + 0.5, t.getYCoord() + 0.5, t.getZCoord() + 0.5 });
+            }
+            b.append(eye.fieldHatches()
+                .size())
+                .append(" field hatches, ")
+                .append(eye.itemBuses()
+                    .size())
+                .append(" plinth buses");
+            return b.toString();
+        }
+        final MTEKerrEngine kee = AutoRig.mteAt(world, p, MTEKerrEngine.class);
+        if (kee != null) {
+            for (KerrSlot slot : new KerrSlot[] { KerrSlot.EXTRACTOR, KerrSlot.COMPRESSOR }) {
+                final int[] m = slot.modulePos(kee.getExtendedFacing(), p[0], p[1], p[2]);
+                final String k = n + (slot == KerrSlot.EXTRACTOR ? ".modx" : ".modc");
+                AutoRig.POINTS.put(k, AutoRigEyeAE.ctr(m));
+                b.append(k)
+                    .append(' ')
+                    .append(RenderTest.pos(m))
+                    .append(' ');
+            }
+            return b.toString();
+        }
+        return "no Eye or KEE at " + name;
+    }
+
+    /**
+     * Every energy hatch of the multiblock at a named place swapped for GT's creative Debug Energy Hatch (tier 13, 64 A,
+     * the same face), then the structure re-checked: a machine whose bench kit fits charge-once hatches keeps running
+     * through a long warped scene. Set up by script (the caption says so).
+     */
+    static String creativePower(String name) {
+        final WorldServer world = RenderTest.world();
+        final int[] p = at(name);
+        final MTEMultiBlockBase m = AutoRig.mteAt(world, p, MTEMultiBlockBase.class);
+        if (m == null) return "no GT multiblock at " + name;
+        final java.util.List<gregtech.api.metatileentity.implementations.MTEHatch> hatches = new java.util.ArrayList<>(
+            m.mEnergyHatches);
+        if (m instanceof gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBase) {
+            for (gregtech.api.metatileentity.implementations.MTEHatch h : ((gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBase<?>) m)
+                .getExoticAndNormalEnergyHatchList()) if (!hatches.contains(h)) hatches.add(h);
+        }
+        int n = 0;
+        for (gregtech.api.metatileentity.implementations.MTEHatch h : hatches) {
+            final IGregTechTileEntity t = h.getBaseMetaTileEntity();
+            if (t == null) continue;
+            final int x = t.getXCoord(), y = t.getYCoord(), z = t.getZCoord();
+            final ForgeDirection f = t.getFrontFacing();
+            world.setBlockToAir(x, y, z);
+            if (!MTEReactorCoreMk1
+                .placeGtMachine(world, x, y, z, (short) ItemList.DebugEnergyHatch.get(1L).getItemDamage(), f)) continue;
+            final gregtech.api.metatileentity.implementations.MTEHatchEnergyDebug d = AutoRig
+                .mteAt(world, new int[] { x, y, z }, gregtech.api.metatileentity.implementations.MTEHatchEnergyDebug.class);
+            if (d != null) {
+                d.setVoltageTier(13);
+                d.setAmperage(64);
+            }
+            n++;
+        }
+        m.checkStructure(true, m.getBaseMetaTileEntity());
+        if (m.getBaseMetaTileEntity() != null) m.getBaseMetaTileEntity()
+            .enableWorking();
+        return n + " energy hatches of " + name + " swapped for creative Debug Energy Hatches (set up by script); formed "
+            + m.mMachine;
     }
 
     /** Runs a server command as the player (op in the integrated world). */
