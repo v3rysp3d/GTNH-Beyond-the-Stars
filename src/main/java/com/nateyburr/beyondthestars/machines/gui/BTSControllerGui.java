@@ -56,7 +56,11 @@ public abstract class BTSControllerGui<T extends MTEMultiBlockBase> extends MTEM
     /** Client only: true while the Info page shows. */
     protected final BoolValue info = new BoolValue(false);
 
-    private long rowsAt = Long.MIN_VALUE, infoAt = Long.MIN_VALUE;
+    /**
+     * Timer of the last rebuild. Not Long.MIN_VALUE: {@code now - MIN_VALUE} overflows to a negative number, so the
+     * first rebuild never came and every terminal stayed empty (seen in the dev client, round 1).
+     */
+    private long rowsAt = -1_000_000L, infoAt = -1_000_000L;
     private String rowsCache = "", infoCache = "";
 
     protected BTSControllerGui(T multiblock, boolean recipeMachine, String renderSyncKey) {
