@@ -528,13 +528,16 @@ public final class QuasarRigBench {
                 r.collapseLog.add(
                     String.format(
                         Locale.ROOT,
-                        "#%d %s %.1f Bu/t, -%.0f, P %+.0f, phase %d",
+                        "#%d %s %.1f Bu/t, -%.0f, P %+.0f, phase %d%s",
                         r.collapses,
                         held ? "held" : "FAILED",
                         o.shockG,
                         o.shockCancel,
                         o.shockP,
-                        phase(eye, q)));
+                        phase(eye, q),
+                        held ? ""
+                            : " [" + r.trace.toString()
+                                .trim() + "]"));
             }
         }
         r.watched = mc != null && mc.overfeed() ? mc : null;
