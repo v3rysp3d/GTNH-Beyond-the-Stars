@@ -202,23 +202,45 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
         final double cx = x + 0.5, cy = y + 0.5, cz = z + 0.5;
 
         base.translation((float) cx, (float) cy, (float) cz);
-        // renders v2: the detail tier. The stars T1-T6 draw the v2 look (EyeStarFx) at L0-L3; the galaxies keep
-        // today's look (WP-5); FIXED (renderQuality=low, no shaders, a program that does not bake) draws today's look
+        // renders v2: the detail tier. The stars T1-T6 draw the v2 look (EyeStarFx) at L0-L3, the galaxies T7 / T8
+        // theirs (GalaxyFx, WP-5); planets mode keeps today's look; FIXED (renderQuality=low, no shaders, a program
+        // that does not bake) draws today's look
         final boolean galaxy = isGalaxy(kind);
+        final boolean spiral = kind == EyeStarLook.TRIANGULUM || kind == EyeStarLook.MILKY_WAY;
+        final boolean planets = kind == EyeStarLook.PLANETS;
         final double dist = Math.sqrt(cx * cx + cy * cy + cz * cz);
         final Lod.Tier tier;
         if (pass != 1 || !tiers.containsKey(star)) {
             final double reach = Math.max(radius * GLOW_RADII, EyeStarLook.galaxyReach(kind));
             final double bound = Math.min(CLEARANCE, Math.max(reach, GLOW_MIN));
-            tier = galaxy ? RenderQuality.tier(star, bound, dist)
-                : RenderQuality.tier(
+            tier = spiral
+                ? RenderQuality.tier(
                     star,
-                    bound,
+                    CLEARANCE,
                     dist,
-                    EyeStarFx.STAR_PROGRAM,
-                    EyeStarFx.HALO_PROGRAM,
-                    EyeStarFx.LINES_PROGRAM,
-                    GlowSprite.PROGRAM);
+                    GalaxyFx.POINTS_PROGRAM,
+                    GalaxyFx.DISC_PROGRAM,
+                    GalaxyFx.SKY_PROGRAM,
+                    GlowSprite.PROGRAM)
+                : planets
+                    ? RenderQuality.tier(
+                        star,
+                        CLEARANCE,
+                        dist,
+                        GalaxyFx.PLANETS_PROGRAM,
+                        GalaxyFx.SKY_PROGRAM,
+                        EyeStarFx.STAR_PROGRAM,
+                        EyeStarFx.HALO_PROGRAM,
+                        GlowSprite.PROGRAM)
+                    : galaxy ? RenderQuality.tier(star, bound, dist)
+                        : RenderQuality.tier(
+                            star,
+                            bound,
+                            dist,
+                            EyeStarFx.STAR_PROGRAM,
+                            EyeStarFx.HALO_PROGRAM,
+                            EyeStarFx.LINES_PROGRAM,
+                            GlowSprite.PROGRAM);
             tiers.put(star, tier);
         } else {
             tier = tiers.get(star);
@@ -226,6 +248,18 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
 
         GpuTimer.begin("eye");
         final boolean glCheck = RenderQuality.glCheckBegin(star);
+        if ((spiral || planets) && tier.shaded()) {
+            try {
+                for (int i = 0; i < REPEAT; i++) {
+                    if (planets) drawPlanets(star, pass, partialTicks, cx, cy, cz, dist, v2Radius, tier);
+                    else drawGalaxy(star, kind, pass, now, partialTicks, cx, cy, cz, dist, tier);
+                }
+            } finally {
+                RenderQuality.glCheckEnd(star, glCheck, "the Eye's centre");
+                GpuTimer.end();
+            }
+            return;
+        }
         if (!galaxy && tier.shaded()) {
             try {
                 for (int i = 0; i < REPEAT; i++) {
@@ -265,7 +299,7 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
     private final float[] qc = new float[3], qu = new float[3], qv = new float[3];
     private static final FloatBuffer M16 = BufferUtils.createFloatBuffer(16);
 
-    /** P4: the galaxy kinds keep today's look until WP-5. */
+    /** The galaxy kinds (T7, T8 and planets mode): the star programs do not draw them. */
     private static boolean isGalaxy(byte kind) {
         return kind == EyeStarLook.TRIANGULUM || kind == EyeStarLook.MILKY_WAY || kind == EyeStarLook.PLANETS;
     }
@@ -325,6 +359,106 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
                     GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
                     EyeStarFx.drawLoops(cx, cy, cz, look, (float) (1.0 / Math.max(1e-3, Lod.pixelsPerBlockAtUnit())));
                 }
+            } finally {
+                e.restore();
+            }
+        } finally {
+            NoiseTex.unbind(was);
+        }
+    }
+
+    private final GalaxyFx.Look galaxyLook = new GalaxyFx.Look();
+    /** Dev switch {@code -Dbts.render.galSplit=true}: the galaxy's backdrop, disc and stars timed apart. */
+    private static final boolean GAL_SPLIT = Boolean.getBoolean("bts.render.galSplit");
+
+    /**
+     * Renders v2 WP-5 (spec §9): a galaxy in pass 1 (it has no opaque part): the dark backdrop, the diffuse disc on a
+     * quad in front of it, then the stars; at L3 one glow sprite. Detail: L0 18 disc sub-segments, 3 noise octaves and
+     * every star; L1 10, 2 and half the stars; L2 4, 1 and 15 %.
+     */
+    private void drawGalaxy(TileEyeStar star, byte kind, int pass, double now, float partialTicks, double cx, double cy,
+        double cz, double dist, Lod.Tier tier) {
+        if (pass == 0) return;
+        final World world = star.getWorldObj();
+        final float time = RenderClock.seconds(world, partialTicks);
+        final int detail = tier == Lod.Tier.L0 ? 3 : tier == Lod.Tier.L1 ? 2 : 1;
+        final GalaxyFx.Look l = galaxyLook;
+        eye(l.eye);
+        final float day = Math.max(0f, Math.min(1f, (world.getSunBrightness(partialTicks) - 0.25f) / 0.7f));
+        GalaxyFx.compute(l, star, kind, now, time, detail, day, (float) cx, (float) cy, (float) cz);
+        final int[] was = NoiseTex.bind();
+        final GlSave e = Layers.emissive();
+        try {
+            if (tier == Lod.Tier.L3) {
+                GlowSprite.draw(cx, cy, cz, CLEARANCE * 0.8, l.glow[0], l.glow[1], l.glow[2], 0.8f, 0.12f, 0.45f);
+                return;
+            }
+            // dev (-Dbts.render.galSplit=true with the GPU timer): each part in its own timer section
+            if (GAL_SPLIT) GpuTimer.end();
+            if (GAL_SPLIT) GpuTimer.begin("gal.sky");
+            GalaxyFx.drawSky(cx, cy, cz, l);
+            if (GAL_SPLIT) GpuTimer.end();
+            placeHalo(cx, cy, cz, dist, CLEARANCE, CLEARANCE);
+            if (GAL_SPLIT) GpuTimer.begin("gal.disc");
+            GalaxyFx.drawDisc(cx, cy, cz, l, qc, qu, qv);
+            if (GAL_SPLIT) GpuTimer.end();
+            if (GAL_SPLIT) GpuTimer.begin("gal.stars");
+            GalaxyFx.drawStars(cx, cy, cz, l);
+            if (GAL_SPLIT) GpuTimer.end();
+            if (GAL_SPLIT) GpuTimer.begin("eye");
+        } finally {
+            e.restore();
+            NoiseTex.unbind(was);
+        }
+    }
+
+    /**
+     * Renders v2 WP-5 (spec §9.1), planets mode: pass 0 the sun's photosphere (the star program, a calm Sol); pass 1
+     * the backdrop, the sun's corona and glow, then the planets and their orbits on one quad; at L3 a glow sprite.
+     */
+    private void drawPlanets(TileEyeStar star, int pass, float partialTicks, double cx, double cy, double cz,
+        double dist, float radius, Lod.Tier tier) {
+        final World world = star.getWorldObj();
+        final float time = RenderClock.seconds(world, partialTicks);
+        final double px = Lod.projectedRadius(radius, dist);
+        int detail = tier == Lod.Tier.L0 ? 3 : tier == Lod.Tier.L1 ? 2 : tier == Lod.Tier.L2 ? 1 : 0;
+        detail = Math.min(detail, px < 12 ? 0 : px < 40 ? 1 : px < 110 ? 2 : 3);
+        EyeStarFx.sunLook(look, radius, time, detail);
+        eye(look.eye);
+        final GalaxyFx.Look g = galaxyLook;
+        System.arraycopy(look.eye, 0, g.eye, 0, 3);
+        final float day = Math.max(0f, Math.min(1f, (world.getSunBrightness(partialTicks) - 0.25f) / 0.7f));
+        GalaxyFx.computePlanets(g, star, time, day, (float) cx, (float) cy, (float) cz, radius);
+        final int[] was = NoiseTex.bind();
+        try {
+            if (pass != 1) {
+                final GlSave s = GlSave.capture();
+                try {
+                    GL11.glDisable(GL11.GL_BLEND);
+                    GL11.glDisable(GL11.GL_ALPHA_TEST);
+                    GL11.glEnable(GL11.GL_DEPTH_TEST);
+                    GL11.glDepthMask(true);
+                    GL11.glEnable(GL11.GL_CULL_FACE);
+                    GL11.glFrontFace(GL11.GL_CCW);
+                    GL11.glCullFace(GL11.GL_BACK);
+                    EyeStarFx.drawSurface(cx, cy, cz, look);
+                } finally {
+                    s.restore();
+                }
+            }
+            if (pass == 0) return;
+            final GlSave e = Layers.emissive();
+            try {
+                if (tier == Lod.Tier.L3) {
+                    GlowSprite.draw(cx, cy, cz, 10, 1f, 0.85f, 0.6f, 0.8f, 0.12f, 0.4f);
+                    return;
+                }
+                GalaxyFx.drawSky(cx, cy, cz, g);
+                placeHalo(cx, cy, cz, dist, radius, look.reach);
+                GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_ALPHA);
+                EyeStarFx.drawHalo(cx, cy, cz, look, qc, qu, qv);
+                placeHalo(cx, cy, cz, dist, CLEARANCE, CLEARANCE);
+                GalaxyFx.drawPlanets(cx, cy, cz, g, qc, qu, qv);
             } finally {
                 e.restore();
             }

@@ -392,6 +392,20 @@ final class EyeStarFx {
         }
     }
 
+    /**
+     * Renders v2 WP-5, planets mode: a calm Sol of radius {@code R} (the planets' sun), at {@code detail}, with no
+     * prominence loops (they would be finer than a pixel on so small a star).
+     */
+    static void sunLook(Look L, float R, float time, int detail) {
+        L.reset();
+        L.star[0] = R;
+        L.star[2] = time;
+        L.surf2[3] = detail;
+        starLook(L, 1, R, 0, 0, -1, 0, 0, 0, time, detail);
+        L.loops = false;
+        L.reach = Math.min(CLEARANCE, R * 4f);
+    }
+
     private static void starLook(Look L, int n, float R, float unrest, float warnF, float hitAge, int ev, int trans,
         float transP, float time, int detail) {
         final int k = n >= 1 && n <= 3 ? n : R < 10 ? 1 : R < 13 ? 2 : 3;

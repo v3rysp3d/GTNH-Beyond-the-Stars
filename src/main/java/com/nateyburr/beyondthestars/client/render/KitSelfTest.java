@@ -67,7 +67,8 @@ public final class KitSelfTest {
 
     /** The kit programs whose two profiles the self test compiles. */
     private static final String[] PROGRAMS = { "bts_selftest", "bts_glow", "bts_points", "bts_blackhole", "bts_qring",
-        "bts_qjet", "bts_qfx" };
+        "bts_qjet", "bts_qfx", "bts_star", "bts_starhalo", "bts_starlines", "bts_galpts", "bts_galdisc", "bts_galsky",
+        "bts_galplan" };
 
     private static PointBatch stars;
     private static boolean checked;
