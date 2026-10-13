@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.fluids.Fluid;
 
 import com.nateyburr.beyondthestars.machines.directive.DirectiveHost;
 import com.nateyburr.beyondthestars.machines.directive.DirectiveSet;
@@ -103,6 +104,22 @@ public final class BTSComputerApi {
     /** {@code bts_eye.getBuffers()}: fluid registry name → litres held. */
     public static Map<String, Object> eyeBuffers(MTEEyeOfHarmonyBTS eye) {
         return new LinkedHashMap<>(eye.bufferSnapshot());
+    }
+
+    /**
+     * {@code bts_eye.getIntakeCaps()} (B-108): fluid registry name → the litres the sockets fill that buffer to now
+     * (a fluid not listed is not pulled).
+     */
+    public static Map<String, Object> eyeIntakeCaps(MTEEyeOfHarmonyBTS eye) {
+        final Map<String, Object> m = new LinkedHashMap<>();
+        for (Map.Entry<Fluid, Long> e : eye.intakeCaps()
+            .entrySet()) {
+            if (e.getKey() != null) m.put(
+                e.getKey()
+                    .getName(),
+                Math.min(MTEEyeOfHarmonyBTS.BUFFER_CAP, e.getValue()));
+        }
+        return m;
     }
 
     /** {@code bts_eye.getTransition()}: unlocking: milestones, the wanted core, escrow, ready, what is missing. */

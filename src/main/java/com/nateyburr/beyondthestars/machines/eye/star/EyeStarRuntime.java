@@ -3,6 +3,7 @@ package com.nateyburr.beyondthestars.machines.eye.star;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -936,6 +937,92 @@ public final class EyeStarRuntime {
         }
         for (EyeRecipe.FluidAmount s : def.seed) out.merge(s.fluid, s.amount * p, Long::sum);
         return out;
+    }
+
+    // ============================================================================ intake cap (B-108)
+
+    /** B-108: the cycles of upkeep (and of the T4 feed at its maximum) a star's buffers fill to. */
+    public static final int INTAKE_CYCLES = 20;
+    /** B-108: the T5 batch / T6 merger charges and T6 dwarf-matter top-ups the buffers hold ahead. */
+    public static final int INTAKE_CHARGES = 2;
+
+    /**
+     * B-108 THE INTAKE CAP: per fluid, the most the buffers fill to from the gas and stellar sockets now. An ME
+     * stocking input hatch shows the Eye up to 2.1 G L a second, so with no cap one hatch emptied the whole network
+     * into the buffers and starved everything else on it (trim export buses). The cap covers every amount the star
+     * side checks the buffers against, so nothing that could start now waits on it:
+     * <ul>
+     * <li>each star in play (the live one, the slot's chart, and the star a dark Eye lights for it: T4 relights
+     * Arcturus): {@code max(ignition need, INTAKE_CYCLES cycles of upkeep)} × p, the T4 feed for INTAKE_CYCLES cycles
+     * at
+     * {@link #FEED_MAX}, and INTAKE_CHARGES T5 / T6 charges and T6 top-ups;</li>
+     * <li>plus each transition that may begin: the live star's toward the chart (T4-T6 from the chart alone), the
+     * running one, and the next one once its core is in escrow ({@link #buffersShort}'s rule): its event fluids and
+     * the new star's first cycle ({@link #transitionNeeds}), and for the Core Collapse the 90,000 L of SpaceTime the
+     * bounce can absorb.</li>
+     * </ul>
+     * Fluids not listed are not pulled at all (they stay in the hatch or the network). The controller adds the planet
+     * in the slot. Buffers already above their cap (worlds from before B-108) keep what they hold and are only drawn
+     * down. Server state.
+     */
+    public Map<Fluid, Long> intakeCaps() {
+        final Map<Fluid, Long> cap = new LinkedHashMap<>();
+        final StarDef want = StarDef.byChart(host.target());
+        final boolean liveStar = live() && star != null;
+        if (liveStar) starIntake(cap, star);
+        if (want != null) {
+            starIntake(cap, want);
+            final StarDef lights = ignitable(want);
+            if (lights != null && lights != want) starIntake(cap, lights);
+        }
+        final EnumSet<EyeTransition.Type> types = EnumSet.noneOf(EyeTransition.Type.class);
+        if (want != null && want.n() >= 2 && (want.n() >= 4 || liveStar && star.n() == want.n() - 1)) {
+            final EyeTransition.Type t = EyeTransition.Type.leaving(want.n() - 1);
+            if (t != null) types.add(t);
+        }
+        if (trans != null) types.add(trans.type);
+        final Item core = coreFor(unlockedTier);
+        if (core != null && escrow != null && escrow.getItem() == core) {
+            final EyeTransition.Type t = EyeTransition.Type.leaving(unlockedTier);
+            if (t != null) types.add(t);
+        }
+        for (EyeTransition.Type t : types) {
+            for (Map.Entry<Fluid, Long> need : transitionNeeds(t).entrySet()) {
+                if (need.getKey() != null) cap.merge(need.getKey(), need.getValue(), Long::sum);
+            }
+            final Fluid st = spaceTimeFluid();
+            if (t == EyeTransition.Type.CORE_COLLAPSE && st != null) {
+                cap.merge(
+                    st,
+                    (long) (CollapseOverlay.MAX_ABSORB_POINTS * CollapseOverlay.SPACETIME_PER_POINT),
+                    Long::sum);
+            }
+        }
+        return cap;
+    }
+
+    /** One star's share of {@link #intakeCaps} (max-merged: the stars in play are never fed at once). */
+    private void starIntake(Map<Fluid, Long> cap, StarDef def) {
+        final int p = Math.max(1, parallel(def.n()));
+        for (EyeRecipe.FluidAmount up : def.upkeep) {
+            cap.merge(up.fluid, up.amount * p * INTAKE_CYCLES, Math::max);
+        }
+        if (def.tier.ignite) {
+            for (Map.Entry<Fluid, Long> need : ignitionNeeds(def, p).entrySet()) {
+                cap.merge(need.getKey(), need.getValue(), Math::max);
+            }
+        }
+        if (def.feed != null) {
+            cap.merge(def.feed, (long) Math.ceil(FEED_MAX * StellarField.CYCLE_SECONDS * p) * INTAKE_CYCLES, Math::max);
+        }
+        for (EyeRecipe.FluidAmount ch : def.charge) {
+            cap.merge(ch.fluid, ch.amount * p * INTAKE_CHARGES, Math::max);
+        }
+        if (def.tier.shield) {
+            final Fluid wdm = wdmFluid(), bdm = bdmFluid();
+            if (wdm != null) cap.merge(wdm, TOPUP_WDM * p * INTAKE_CHARGES, Math::max);
+            if (bdm != null) cap.merge(bdm, TOPUP_BDM * p * INTAKE_CHARGES, Math::max);
+        }
     }
 
     private void ignite(StarDef def) {

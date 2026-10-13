@@ -195,8 +195,10 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
      */
     public static final int[] COMPRESSION_META_FOR_TIER = { -1, 0, 1, 2, 3, 4, 5 };
 
-    /** Buffers cap at 2^62 L each (spec §3.3). */
+    /** Buffers cap at 2^62 L each (spec §3.3); what the sockets fill them to is {@link #intakeCaps} (B-108). */
     public static final long BUFFER_CAP = 1L << 62;
+    /** B-108: the planet runs at full parallel the buffers fill to ahead (the next run is ready when one ends). */
+    public static final int PLANET_INTAKE_RUNS = 2;
     private static final int DRAIN_INTERVAL = 20;
 
     /** Touch the NEI page at class init (preInit), before NEI builds its handlers. */
@@ -1277,17 +1279,49 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         return "";
     }
 
-    /** Moves every Eye input fluid out of the sockets into the long buffers, as TecTech's EOH does. */
+    /**
+     * Moves the Eye's input fluids out of the sockets into the long buffers, as TecTech's EOH does, but only up to
+     * {@link #intakeCaps} (B-108): an ME stocking input hatch shows the Eye up to 2.1 G L a second, and with no cap one
+     * hatch emptied the whole network into the buffers.
+     */
     private void drainSockets() {
+        final Map<Fluid, Long> caps = intakeCaps();
+        if (caps.isEmpty()) return;
         for (MTEHatchInput hatch : gasHatches) {
-            drain(hatch);
+            drain(hatch, caps);
         }
         for (MTEHatchInput hatch : stellarHatches) {
-            drain(hatch);
+            drain(hatch, caps);
         }
     }
 
-    private void drain(MTEHatchInput hatch) {
+    /**
+     * B-108 the intake cap per fluid: the star side's ({@link EyeStarRuntime#intakeCaps}) plus, for a planet in the
+     * slot, {@link #PLANET_INTAKE_RUNS} runs of its inputs at full parallel. A fluid not listed is not pulled.
+     */
+    public Map<Fluid, Long> intakeCaps() {
+        final Map<Fluid, Long> caps = runtime.intakeCaps();
+        final EyeRecipe planet = EyeRecipeRegistry.lookup(getControllerSlot());
+        if (planet != null) {
+            final int inst = installedTier();
+            final long p = inst >= planet.tier ? 1L << (inst - planet.tier) : 1L;
+            for (EyeRecipe.FluidAmount in : planet.inputs) {
+                if (in.fluid == null || in.amount <= 0) continue;
+                final double litres = (double) in.amount * p * PLANET_INTAKE_RUNS;
+                caps.merge(in.fluid, litres >= BUFFER_CAP ? BUFFER_CAP : (long) litres, Math::max);
+            }
+        }
+        return caps;
+    }
+
+    /** B-108: the litres the buffer of {@code fluid} fills to now (0: not pulled). */
+    public long intakeCap(Fluid fluid) {
+        if (fluid == null) return 0;
+        final Long cap = intakeCaps().get(fluid);
+        return cap == null ? 0 : Math.min(BUFFER_CAP, cap);
+    }
+
+    private void drain(MTEHatchInput hatch, Map<Fluid, Long> caps) {
         if (!live(hatch)) return;
         final boolean aware = hatch instanceof IRecipeProcessingAwareHatch;
         if (aware) ((IRecipeProcessingAwareHatch) hatch).startRecipeProcessing();
@@ -1296,7 +1330,9 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 if (stored == null || stored.amount <= 0 || !EyeRecipeRegistry.isInputFluid(stored.getFluid())) {
                     continue;
                 }
-                final long room = BUFFER_CAP - buffer(stored.getFluid());
+                final Long cap = caps.get(stored.getFluid());
+                // never more than the cap minus what is buffered (a buffer above its cap is only drawn down)
+                final long room = cap == null ? 0 : Math.min(BUFFER_CAP, cap) - buffer(stored.getFluid());
                 if (room <= 0) continue;
                 final FluidStack want = stored.copy();
                 want.amount = (int) Math.min(stored.amount, room);
@@ -1915,16 +1951,25 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 + " bus / "
                 + outputHatchCount()
                 + " hatch");
-        if (buffers.isEmpty()) {
-            out.add("Buffers: empty");
+        // B-108: each buffer with the intake cap the sockets fill it to now (a fluid with no cap is not pulled)
+        final Map<Fluid, Long> caps = intakeCaps();
+        final Map<String, Fluid> shown = new LinkedHashMap<>();
+        for (String name : buffers.keySet()) shown.put(name, FluidRegistry.getFluid(name));
+        for (Fluid fluid : caps.keySet()) if (fluid != null) shown.putIfAbsent(fluid.getName(), fluid);
+        if (shown.isEmpty()) {
+            out.add("Buffers: empty (intake: nothing; set a target)");
         } else {
-            final StringBuilder sb = new StringBuilder("Buffers:");
-            for (Map.Entry<String, Long> e : buffers.entrySet()) {
-                final Fluid fluid = FluidRegistry.getFluid(e.getKey());
+            final StringBuilder sb = new StringBuilder("Buffers (held / intake cap):");
+            for (Map.Entry<String, Fluid> e : shown.entrySet()) {
+                final Fluid fluid = e.getValue();
+                final Long cap = fluid == null ? null : caps.get(fluid);
+                final Long held = buffers.get(e.getKey());
                 sb.append(' ')
                     .append(fluid == null ? e.getKey() : fluid.getLocalizedName(new FluidStack(fluid, 1)))
                     .append(' ')
-                    .append(fmt(e.getValue()))
+                    .append(fmt(held == null ? 0 : held))
+                    .append(" / ")
+                    .append(cap == null ? "not pulled" : fmt(Math.min(BUFFER_CAP, cap)))
                     .append(" L;");
             }
             out.add(sb.toString());
@@ -2123,7 +2168,10 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addInfo("  Tier step: upgrade each generator in place in the Condensate Assembler (the old one plus")
             .addInfo("  what the new tier adds; its Kerr controller stays inside). Stabilisation: + Retrofit Kits.")
             .addInfo("A short wireless network runs fewer parallels rather than none.")
-            .addInfo("Inputs drain every second into internal buffers; outputs go to ME only.")
+            .addInfo("Inputs drain every second into internal buffers, only up to the target's intake cap:")
+            .addInfo("  stars max(ignition, 20 cycles of upkeep) plus a transition the Eye could begin; planets")
+            .addInfo("  2 runs at full parallel. The rest stays in the hatch or ME network (scanner: held / cap),")
+            .addInfo("  so one ME stocking hatch never drains the network. Outputs go to ME only.")
             .addSeparator()
             .addInfo("Chunk-load the full footprint: the structure check fails across unloaded chunks.")
             .beginVariableStructureBlock(core[0], full[0], core[1], full[1], core[2], full[2], false)

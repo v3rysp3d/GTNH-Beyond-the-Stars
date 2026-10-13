@@ -96,6 +96,12 @@ public final class BTSEnvironments {
             return e == null ? GONE : new Object[] { BTSComputerApi.eyeBuffers(e) };
         }
 
+        @Callback(doc = "function():table -- the intake caps, fluid name -> litres the sockets fill that buffer to")
+        public Object[] getIntakeCaps(Context c, Arguments a) {
+            final MTEEyeOfHarmonyBTS e = eye();
+            return e == null ? GONE : new Object[] { BTSComputerApi.eyeIntakeCaps(e) };
+        }
+
         @Callback(doc = "function():table -- milestones, the wanted core, escrow, ready, what is missing")
         public Object[] getTransition(Context c, Arguments a) {
             final MTEEyeOfHarmonyBTS e = eye();
