@@ -7,7 +7,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 2. **Settled**: everything you have answered, in your words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision from you.
 4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101 and B-105..B-122, the tidy pass's
-   TQ-1..TQ-8, and P4's P4-01..P4-94 in Part E).
+   TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
 on); the old Q-1..Q-38 and the merged branches' numbers are mapped under "Where the old question numbers went".
@@ -7570,3 +7570,149 @@ acted a whole second late by construction): it fits the wire a player would, a G
 dev server, 13 sites with the quasar's second 3-19 ticks behind the Eye's: the purge landed on second 298 every time
 and the eruption was on the Eye on the collapse second. What it then cancels is the quasar's stream: the 34 failures
 at 64 SM were the weak stream of a fresh, spinless hole (1.3 Bu/t), not the timing.
+
+## Part R. Renders v2 (branch renders, R-01..)
+
+The renders v2 overhaul ("We also want to miake our black hole, quasar ring and all of the renders super detailed and
+cool looking"). Its spec is the design repo's `designs/docs/renders-v2.md`; these entries are the branch's judgement
+calls and findings. Numbers here never collide with B- or P4- entries.
+
+### R-01 The render QA harness covers every state; fixed camera poses [renders v2, harness]
+
+**What was built.** The render QA harness (`-Dbts.rendertest=true`) shoots every render the addon draws, in every state
+the spec covers, from fixed poses:
+
+- 44 cases (was 22): the Kerr at 16 / 64 / 256 / 512 SM plus a strained (coverage 0.3) and a failing (coverage 0) hole;
+  the Eye's protostar early and late, Sol, Sol unstable, Sirius A, Arcturus and its helium-flash warning, the neutron
+  star, the Core Collapse swell and bounce, the supernova flash, the dwarf at 10 / 50 / 90 %, the magnetar, its warning
+  and the overfed magnetar; the quasar live, Resonant, Critical, re-forming, an eruption and a purge; Triangulum, the
+  forming galaxy, its merger warning, the Milky Way, the merger, the crossing warning, planets with 6 and 3 slots; the
+  three pack references; and four sites with no render yet (the Homogeny, both Reality machines, the conduit rig with a
+  crown on the top jet port).
+- New sites are appended (world layout L4: `bts-rendertest-L4`), so every older site keeps its place.
+- States that will not hold still are frozen on the client only, as `TileEyeStar.debugEventAge` already did:
+  `TileKerrHole.debugStability` (GT's stability input) and `TileQuasarHole.debugLook` (zone, lambda_c, E, both jets,
+  the flash age and size). Null / negative in play.
+- `EyeStarLook.protostar(n, f)` and `overfedMagnetar(f, warn)` are the runtime's own looks, moved out of `of()`
+  unchanged, so the harness shows exactly what a player sees.
+- **Fixed poses.** Every run writes the computed day pose of each case and view (the eye relative to the case's render
+  centre, yaw, pitch) to `screenshots/rendertest/poses.tsv`. The BEFORE run's file is committed as
+  `tools/rendertest/poses.tsv`; `-Dbts.rendertest.poses=tools/rendertest/poses.tsv` makes a run stand exactly there, so
+  the AFTER shots match even when an object's size (and so the computed close view) changes.
+- `-Dbts.rendertest.views=a,b` picks the views; `hero` (opt-in) is the detail close-up: 3 object radii out, 30 degrees right of the front,
+  12 degrees above the disc plane.
+
+**Findings.**
+
+1. **Render distance 4.** The first BEFORE pass ran at render distance 4 although the harness sets 16: a dev client
+   reads its `options.txt` back a second after start-up (the dev run dirs carry `renderDistance:4`; the server log says
+   "Changing view distance to 16, from 10" then "to 4, from 16"), the trap the recorder already handles (B-109). Every
+   far view stood beyond the terrain: the quasar's `front` (201 blocks) and `34` (230) were empty sky, the Eye's `34`
+   views lost most of the structure. Fixed: the harness holds 16 every tick and logs it if something changed it. The
+   BEFORE set is two passes at the same poses: pass 1's `close` views, pass 2's `front`, `34`, `level` and `hero`.
+2. The harness's FPS counter reads 119-120 on every shot (the dev client's frame cap): it does not measure render cost.
+   The spec adds GPU timer queries (`-Dbts.rendertest.gputime=true`, WP-0) for the budget.
+3. The `34` view of the Eye sites stands 200-230 blocks out; the distance fog hides most of the structure by day (the
+   star still draws). It stays as it is so BEFORE and AFTER match; the `hero` and `close` views carry the detail.
+4. Provisional render centres lie inside blocks: the bounding box's centre for the Homogeny and the Refab (their
+   `close` / `hero` shots look at casing interiors) and the crown controller's cell for the conduit rig (its `hero`
+   stands against the crown's casing). Their `close` / `hero` poses are re-recorded when the conduit, vortex and
+   Reality renders fix the real centres (spec §14).
+5. Verdicts per object are in the spec, §1.2.
+
+**Suggestion.** None needed (tooling). Shots: local work folder `renders/<object>/before-*.png`, contact sheet
+`renders/before.html`.
+
+### R-02 The KEE controller stands in the middle of the window band, in front of the hole [render K2, observation]
+
+**What the shots show.** From the `level` view (24 blocks in front, at the hole's height) the KEE controller sits at
+the centre of the Quantum Glass window, right in front of the hole; through the blue glass the hole today reads as a
+faint dark disc behind the controller face, by day and by night.
+
+**What the spec does.** The v2 hole's edge-on disc and its lensed arcs reach past the controller (halo 4.3-8.6 blocks
+against a 1-block controller), and the disc is bright enough to read through the glass.
+
+**Suggestion.** Keep the controller where it is. Alternative: move it one cell down (a structure change and a
+re-export of the Kerr shapes, out of scope for renders v2).
+
+### R-03 The quasar's look gains four render-only fields [renders v2, sync]
+
+**Context.** The quasar render reads `holeScale`, GT stability, `lc`, `zone`, `E`, both jets and the flash. The v2 look
+needs four more things: which event flashed (an eruption and a purge must look different), the spin `a` (the inner
+disc's edge at r_isco), the flux Phi (the field lines tighten as it builds, crackle above 90) and the Harmonic Lock.
+
+**What the spec does.** Adds `ev`, `a`, `phi`, `lock` to `TileQuasarHole`'s look compound only (the render tile's
+description packet, sent to the players watching the chunk without a block update, as now). Nothing in the quasar's
+saved state or an item changes.
+
+**Suggestion.** Add them.
+
+### R-04 The Eye's look gains an event code and clock [renders v2, sync]
+
+**Context.** Today the merger's pericentre passes, the T8 crossing and the helium flash all show only as "warn" (aux
+0.5-1). The v2 galaxies show the companion's orbit, the tidal tails, the satellite falling over the 120 s countdown and
+the ring wave after the hit; Arcturus builds a ripple toward its flash.
+
+**What the spec does.** `TileEyeStar`'s look gains `ev` (a byte) and `evClock` (a float, sent when it moves by 2 %).
+`EyeStarLook.differs` counts them. No machine NBT changes.
+
+**Suggestion.** Add them.
+
+### R-05 New renders for machines without a render tile go through GT's IMTERenderer [renders v2, sync]
+
+**Context.** The conduit streams, the crown, the Wormhole Mouth, the Homogeny and the Reality machines draw nothing
+today. GT RC-2 has `gregtech.common.render.IMTERenderer` (a TESR for an MTE with its own render bounding box, max
+distance and a render-data channel `encodeRenderData` / `decodeRenderData` / `sendRenderDataToClient`; GT's own
+`WormholeRenderer` and `NanoForgeRenderer` use it).
+
+**What the spec does.** Those controllers implement `IMTERenderer`; their render data (stream end points, Bu/t,
+colours, progress) goes over GT's render channel, not into saved NBT. No new render blocks in their structures.
+
+**Suggestion.** Use it. Alternative: a server-placed render block per machine as the Eye / Kerr / quasar do (more
+moving parts: placement, self-policing, orphan cleanup).
+
+### R-06 Budget, quality defaults and the target rig [renders v2, judgement]
+
+**What the spec sets.** `renderQuality=high` by default; at most 2 objects at HIGH at once (`renderMaxHighObjects`);
+the target rig is a GTX 1060 / RX 580 class GPU at 1080p, where the addon may take about 2 ms of GPU in its busiest
+scene; the dev rig (RTX 4090) accepts at the target budget / 6. LOD by projected radius (300 / 80 / 20 px), LOW =
+today's fixed-function renders.
+
+**Suggestion.** Accept. Alternative: default `medium` for players on integrated graphics (the config says how).
+
+### R-07 The Kerr's visual spin and disc direction [renders v2, judgement]
+
+**Context.** The Kerr has no spin mechanic (mass, setpoint, coverage, bleed). A "Kerr" hole should still look like a
+spinning one: a D-shaped shadow and a Doppler-bright side.
+
+**What the spec does.** A constant visual spin a = 0.9, the disc turning anticlockwise seen from above, so the
+approaching (bright, blue-white) side is on the left seen from the controller.
+
+**Suggestion.** Accept. Alternative: tie the visual spin to how full the hole is against its cap (a fuller hole spins
+faster).
+
+### R-08 The background lensing copies the framebuffer only without a shaderpack [renders v2, Angelica]
+
+**Context.** Bending the real world behind a hole needs a copy of the screen under the lens quad. Under an Angelica /
+Iris shaderpack the pack owns the framebuffers.
+
+**What the spec does.** HIGH, L0, no shaderpack: copy the rectangle (at most 1024 x 1024, about 0.05 ms on the target
+rig) and bend it. With a shaderpack, at MEDIUM or with `renderBackgroundLensing=false`: bend a procedural starfield
+inside the lensing ring instead.
+
+**Suggestion.** Accept.
+
+### R-09 The quasar's ring cannot be seen from outside [render readability, structure]
+
+**What the shots show.** From the `level` view (24 blocks in front, at the disc's height) the Quasar Engine is a
+closed box: the disc wall is opaque all round and only the top jet's tip clears the roof. From above (`34`, at night)
+the ring shows only as a faint gold crescent through the roof lattice. The ring (r 40-62) is properly visible only from
+inside the structure. The Kerr and the Eye had the same problem and got window bands (render K2 / E-9,
+"Glass window bands").
+
+**What renders v2 does.** The jets carry the outside look (bright, helical, visible above the roof) and each cap leaks
+a zone-coloured glow, so the quasar's state reads from outside without a structure change.
+
+**Suggestion.** A Quantum Glass window band in the disc wall at the ring's height (as the Kerr and Eye got), as its own
+structure change (voxel.js, re-export, hologram, NEI, BOM), outside renders v2. Alternative: keep the box closed and
+rely on the jets and the cap glow.
