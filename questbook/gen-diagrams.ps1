@@ -3,8 +3,12 @@
 #
 #   powershell -NoProfile -ExecutionPolicy Bypass -File gen-diagrams.ps1
 #
-# Output: .\resources\btsquests\textures\gui\*.png
-# Those files merge into <instance>/.minecraft/config/betterquesting/resources/, which
+# Output: .\resources\btsquests\textures\gui\*.png, and the same files in the jar's own resources
+# (src\main\resources\assets\btsquests\textures\gui\): a mod jar serves every assets\ domain it
+# holds, so the book the jar installs (overlay.json, the plant chapter included) finds its
+# diagrams with no manual merge (round-2 screenshots: without that copy the three [img] tags drew
+# as missing-texture squares). The questbook\resources copy is for the manual merge only: those
+# files merge into <instance>/.minecraft/config/betterquesting/resources/, which
 # BetterQuesting registers as a folder resource pack (betterquesting.misc.QuestResourcesFolder,
 # added to Minecraft's defaultResourcePacks): a resource location "btsquests:textures/gui/x.png"
 # resolves to <root>/btsquests/textures/gui/x.png. The domain folder name MUST be lowercase.
@@ -23,11 +27,15 @@ Add-Type -AssemblyName System.Drawing
 
 $outDir = Join-Path $PSScriptRoot 'resources\btsquests\textures\gui'
 if (-not (Test-Path $outDir)) { New-Item -ItemType Directory -Force $outDir | Out-Null }
+$jarDir = Join-Path $PSScriptRoot '..\src\main\resources\assets\btsquests\textures\gui'
+if (-not (Test-Path $jarDir)) { New-Item -ItemType Directory -Force $jarDir | Out-Null }
 
 # The bay diagram is retired. Leaving it in the folder would ship a texture that contradicts
 # the book, so it is removed rather than merely unreferenced.
 $stale = Join-Path $outDir 'bay-sockets.png'
 if (Test-Path $stale) { Remove-Item -Force $stale; Write-Host "removed stale $stale" }
+$staleJar = Join-Path $jarDir 'bay-sockets.png'
+if (Test-Path $staleJar) { Remove-Item -Force $staleJar; Write-Host "removed stale $staleJar" }
 
 # ------------------------------------------------- D5: the Energy Hatch caption, DERIVED
 # The manifold legend used to caption the E row 'OPTIONAL - the plant never draws EU'. That
@@ -128,7 +136,8 @@ function Save($cv, [string]$name) {
     $cv.G.Dispose()
     $cv.Bmp.Save($path, [System.Drawing.Imaging.ImageFormat]::Png)
     $cv.Bmp.Dispose()
-    Write-Host "wrote $path"
+    Copy-Item -Force $path (Join-Path $jarDir $name)
+    Write-Host "wrote $path (and the jar's copy)"
 }
 
 function CenterText($g, [string]$s, $font, $brush, [single]$cx, [single]$cy) {
