@@ -15,11 +15,12 @@ public final class BTSFormat {
 
     /** Litres, compact: {@code 5,000}, {@code 40.0M}, {@code 212M}, {@code 1.20G}, {@code 1.00T} (no unit). */
     public static String litres(double l) {
+        // each unit ends where its rounded text would reach the next one ("1000.00G" is "1.00T")
         final double a = Math.abs(l);
-        if (a < 1e6) return String.format(Locale.ROOT, "%,d", Math.round(l));
-        if (a < 1e9) return a >= 1e8 ? String.format(Locale.ROOT, "%.0fM", l / 1e6)
-            : String.format(Locale.ROOT, "%.1fM", l / 1e6);
-        if (a < 1e12) return String.format(Locale.ROOT, "%.2fG", l / 1e9);
+        if (a < 999_999.5) return String.format(Locale.ROOT, "%,d", Math.round(l));
+        if (a < 99.95e6) return String.format(Locale.ROOT, "%.1fM", l / 1e6);
+        if (a < 999.5e6) return String.format(Locale.ROOT, "%.0fM", l / 1e6);
+        if (a < 999.995e9) return String.format(Locale.ROOT, "%.2fG", l / 1e9);
         return String.format(Locale.ROOT, "%.2fT", l / 1e12);
     }
 
@@ -44,8 +45,8 @@ public final class BTSFormat {
 
     /** EU/t, compact: {@code 512k}, {@code 8.39M}, {@code 1.25G} (as the Kerr GUI's compactEu). */
     public static String euT(long eu) {
-        if (eu >= 1_000_000_000L) return String.format(Locale.ROOT, "%.2fG", eu / 1e9);
-        if (eu >= 1_000_000L) return String.format(Locale.ROOT, "%.2fM", eu / 1e6);
+        if (eu >= 999_995_000L) return String.format(Locale.ROOT, "%.2fG", eu / 1e9);
+        if (eu >= 999_500L) return String.format(Locale.ROOT, "%.2fM", eu / 1e6);
         if (eu >= 10_000L) return String.format(Locale.ROOT, "%.0fk", eu / 1e3);
         return String.format(Locale.ROOT, "%,d", eu);
     }

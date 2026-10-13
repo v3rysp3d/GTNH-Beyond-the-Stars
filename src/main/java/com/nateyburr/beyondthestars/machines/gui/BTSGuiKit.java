@@ -27,7 +27,6 @@ import com.cleanroommc.modularui.widget.Widget;
 import com.cleanroommc.modularui.widgets.ButtonWidget;
 import com.cleanroommc.modularui.widgets.ListWidget;
 import com.cleanroommc.modularui.widgets.ScrollingTextWidget;
-import com.cleanroommc.modularui.widgets.TextWidget;
 import com.cleanroommc.modularui.widgets.ToggleButton;
 import com.cleanroommc.modularui.widgets.layout.Flow;
 
@@ -347,8 +346,11 @@ public final class BTSGuiKit {
 
     /** Bar (§4.3): label in a 50 px column, bar x 52 w 80 h 7 at y 1, value right-aligned to the row's end. */
     public static void paintBar(int width, String label, double frac, String value, Grad grad, String ticks) {
-        KitDraw.textCut(label, 0, 1, 50, LABEL);
-        final int bx = 52, bw = 80, by = 1, bh = 7;
+        // a label wider than the 50 px column ("Milestones") pushes the bar right instead of being cut; the bar keeps
+        // its right end at 132 and at least 56 px (dev client round 1: "Milestone." read like a typo)
+        final int lw = Math.min(KitDraw.width(label), 74);
+        KitDraw.textCut(label, 0, 1, Math.max(50, lw), LABEL);
+        final int bx = Math.max(52, lw + 3), bw = 132 - bx, by = 1, bh = 7;
         KitDraw.box(bx, by, bw, bh, EDGE, TRACK);
         final double f = Double.isNaN(frac) ? 0 : Math.max(0, Math.min(1, frac));
         final float fill = (float) ((bw - 2) * f);
@@ -639,13 +641,56 @@ public final class BTSGuiKit {
         return row((w, width, h) -> paintLamps(label.get(), items.get()));
     }
 
-    /** Para (§4.3): wrapped text, 176 wide. */
-    public static TextWidget<?> para(Supplier<String> text, IntSupplier colour) {
-        return new TextWidget<>(IKey.dynamic(text::get)).width(176)
-            .textAlign(Alignment.TopLeft)
-            .color(colour)
-            .shadow(false)
+    /** Para (§4.3): wrapped text, 176 wide, at the kit's 10 px pitch (a TextWidget wraps at the font's 9). */
+    public static ParaWidget para(Supplier<String> text, IntSupplier colour) {
+        return new ParaWidget(text, colour).width(PARA_WIDTH)
             .marginBottom(1);
+    }
+
+    /** Wrap width of a para. */
+    public static final int PARA_WIDTH = 176;
+
+    /** A wrapped paragraph drawn line by line at a 10 px pitch; it re-lays its list out when its text changes. */
+    public static final class ParaWidget extends Widget<ParaWidget> {
+
+        private final Supplier<String> text;
+        private final IntSupplier colour;
+        private String shown;
+        private List<String> lines = Collections.emptyList();
+
+        ParaWidget(Supplier<String> text, IntSupplier colour) {
+            this.text = text;
+            this.colour = colour;
+        }
+
+        private boolean refresh() {
+            final String t = text.get() == null ? "" : text.get();
+            if (t.equals(shown)) return false;
+            shown = t;
+            lines = t.isEmpty() ? Collections.<String>emptyList()
+                : KitDraw.font()
+                    .listFormattedStringToWidth(t, PARA_WIDTH);
+            return true;
+        }
+
+        @Override
+        public void onUpdate() {
+            super.onUpdate();
+            if (refresh()) scheduleResize();
+        }
+
+        @Override
+        public int getDefaultHeight() {
+            refresh();
+            return Math.max(1, lines.size()) * 10 - 1;
+        }
+
+        @Override
+        public void draw(ModularGuiContext context, WidgetThemeEntry<?> widgetTheme) {
+            super.draw(context, widgetTheme);
+            refresh();
+            for (int i = 0; i < lines.size(); i++) KitDraw.text(lines.get(i), 0, i * 10, colour.getAsInt());
+        }
     }
 
     // ================================================================================ row pool
