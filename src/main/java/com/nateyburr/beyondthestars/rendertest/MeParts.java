@@ -206,6 +206,28 @@ final class MeParts {
         return bus;
     }
 
+    /** AE2FC's fluid storage bus on the cable at {@code p}, facing {@code side}, read only (the network takes from it). */
+    static boolean storageBus(World world, int[] p, ForgeDirection side, EntityPlayer player, List<String> log,
+        String tag) {
+        final IPartHost h = host(world, p);
+        final Item item = ae2fc("FLUID_STORAGE_BUS");
+        if (h == null || item == null || h.addPart(new ItemStack(item), side, player) == null) {
+            log.add(tag + "could not add a fluid storage bus at " + RenderTest.pos(p));
+            return false;
+        }
+        final IPart part = h.getPart(side);
+        if (part instanceof PartUpgradeable) {
+            try {
+                ((PartUpgradeable) part).getConfigManager()
+                    .putSetting(Settings.ACCESS, appeng.api.config.AccessRestriction.READ);
+            } catch (RuntimeException unsupported) {
+                log.add(tag + "the fluid storage bus has no access setting: " + unsupported);
+            }
+        }
+        h.markForUpdate();
+        return true;
+    }
+
     /** AE2FC's fluid export bus item, or null (AE2FC absent). */
     static ItemStack fluidExportBusItem() {
         final Item item = ae2fc("FLUID_EXPORT_BUS");

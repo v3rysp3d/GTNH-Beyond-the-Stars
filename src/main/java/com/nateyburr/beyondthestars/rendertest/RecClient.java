@@ -834,7 +834,7 @@ public final class RecClient {
                 acts.add(new Gui(block(resolve(c.arg(0))), (int) c.num("scale", guiScaleDefault)));
                 break;
             case "questbook":
-                acts.add(new Questbook(c.opt(0, ""), c.opt(1, ""), (int) c.num("scale", guiScaleDefault)));
+                acts.add(new Questbook(c.opt(0, ""), c.opt(1, ""), (int) c.num("scale", guiScaleWorld)));
                 break;
             case "close":
                 acts.add(new Close());
@@ -1592,6 +1592,7 @@ public final class RecClient {
             guiOpen = true;
             hideNei(true);
             mc.gameSettings.guiScale = scale;
+            parkMouse();
             f = RenderTest.onServer(() -> AutoRig.openGui(p));
         }
 
@@ -1657,6 +1658,7 @@ public final class RecClient {
             guiOpen = true;
             hideNei(true);
             mc.gameSettings.guiScale = scale;
+            parkMouse();
             try {
                 final GuiScreen screen;
                 if (mode.equals("quest")) {
@@ -1731,6 +1733,7 @@ public final class RecClient {
             guiOpen = true;
             hideNei(true);
             mc.gameSettings.guiScale = scale;
+            parkMouse();
             try {
                 final ItemStack stack = RecServer.machine(spec);
                 final String cls = kind.equals("usage") ? "codechicken.nei.recipe.GuiUsageRecipe"
@@ -1979,6 +1982,15 @@ public final class RecClient {
                 .invoke(tag, hide);
         } catch (ReflectiveOperationException | LinkageError | RuntimeException absent) {
             say("  NEI panels: " + absent);
+        }
+    }
+
+    /** The mouse to the window's bottom-left corner (under the caption bar), so no tooltip or hover shows. */
+    private static void parkMouse() {
+        try {
+            org.lwjgl.input.Mouse.setCursorPosition(0, 0);
+        } catch (RuntimeException | LinkageError ignored) {
+            // no mouse: nothing to park
         }
     }
 

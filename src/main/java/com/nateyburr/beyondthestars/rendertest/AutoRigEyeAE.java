@@ -59,7 +59,7 @@ import gregtech.common.tileentities.machines.MTEHatchInputME;
  * Hydrogen. The Eye drains it into its buffers every second (docs/automation.md §2.3).</li>
  * <li><b>Ignition charge:</b> an ME stocking input bus in the front-left gas socket, set to the Stellar Ignition
  * Charge. A dark Eye with full buffers takes one from it and lights itself.</li>
- * <li><b>Trims:</b> two Directive Hatches (Trims, Bit 1 and Bit 2) on the band, each over a plain Field input hatch;
+ * <li><b>Trims:</b> two Directive Hatches (Trims, Bit 1 and Bit 2) on the band, each over a small (LV) Field input hatch;
  * in front of each Field hatch an AE2FC fluid export bus (Helium / Hydrogen) with a redstone card ("active with
  * signal"). One redstone dust on the bus block's facade carries the hatch's bit onto the bus.</li>
  * <li><b>Products:</b> the kit's ME output bus and ME output hatch beside the controller, cabled in, so the star's
@@ -68,9 +68,14 @@ import gregtech.common.tileentities.machines.MTEHatchInputME;
  * network holds an ignition charge). Orange dense cable: a ground trunk in front of the Eye, two risers to the
  * band.</li>
  * </ul>
- * The drive is empty until {@link #insertCells} (the recorder's {@code aecells}): the cells are filled by script
- * (Helium, Hydrogen, charges), standing in for the player's factory. The Eye's power is the owner's wireless EU,
- * also set by script. From then on nothing touches the machine: a sampler only reads ({@code eye-ae.tsv}).
+ * <b>The gas supply</b> stands in for the player's factory: two GT Debug Fluid Tanks (endless) behind AE2FC fluid
+ * storage buses set to read only. They are empty, and the drive holds no cell, until {@link #insertCells} (the
+ * recorder's {@code aecells}): the tanks get Helium and Hydrogen and the drive a cell of Stellar Ignition Charges,
+ * all set up by script. A finite gas cell does not work here: the ME stocking hatch shows the Eye up to 2.1 G L a
+ * second and the Eye's buffers take everything (they cap at 2^62 L), so a network of cells is emptied into the
+ * buffers within seconds and the trim buses, which draw on the same network, run dry (seen in the first test). The
+ * Eye's power is the owner's wireless EU, also set by script. From then on nothing touches the machine: a sampler
+ * only reads ({@code eye-ae.tsv}).
  */
 final class AutoRigEyeAE {
 
@@ -78,11 +83,9 @@ final class AutoRigEyeAE {
 
     static final int X = 2400, Z = 4000;
     static final AEColor COLOR = AEColor.Orange;
-    /** Fluid in each gas cell (filled by script). Sol's ignition needs 600 M L of each. */
-    static final long GAS_LITRES = 40_000_000_000L;
     static final int CHARGES = 8;
-    /** Acceleration cards on each trim bus: 2 = 2,000 L an operation. */
-    static final int TRIM_CARDS = 2;
+    /** Acceleration cards on each trim bus (3 = 4,000 L an operation); -Dbts.autorig.trimcards to try others. */
+    static final int TRIM_CARDS = Integer.getInteger("bts.autorig.trimcards", 3);
 
     static int[] ctrl, box;
     static double[] centre;
@@ -90,6 +93,11 @@ final class AutoRigEyeAE {
     static int[] stockHatch, stockBus, outBus, outHatch;
     static int[] meCtrl, drive, emitterHost, emitterLamp, trunkWest, trunkEast;
     static int[] trimBusHe, trimBusH;
+    /** The two supply tanks (Helium, Hydrogen) and their storage-bus cable cells. */
+    static int[] tankHe, tankH, sbusHe, sbusH;
+    /** The trims' own network: its controller and supply tanks. */
+    static int[] trimCtrl, trimTankHe, trimTankH;
+    static final AEColor TRIM_COLOR = AEColor.LightBlue;
     static volatile boolean cellsIn;
     static volatile long litAt = -1, cellsAt = -1;
     private static long tick, t0;
@@ -207,8 +215,8 @@ final class AutoRigEyeAE {
         // 3. the ground trunk in front of the Eye (the controller's level, three blocks out) and the core on it
         final int y = ctrl[1];
         final int zT = Z - 3;
-        final int west = Math.min(Math.min(stockHatch[0], stockBus[0]), Math.min(trimBusHe[0], trimBusH[0]));
-        final int east = Math.max(Math.max(stockHatch[0], stockBus[0]), Math.max(trimBusHe[0], trimBusH[0]));
+        final int west = Math.min(stockHatch[0], stockBus[0]) - 1;
+        final int east = Math.max(stockHatch[0], stockBus[0]) + 1;
         trunkWest = new int[] { west, y, zT };
         trunkEast = new int[] { east, y, zT };
         lay(world, MeParts.line(trunkWest, trunkEast), MeParts.Kind.DENSE_COVERED, player, "ground trunk");
@@ -248,8 +256,67 @@ final class AutoRigEyeAE {
             net.minecraft.init.Blocks.redstone_lamp,
             0,
             3);
-        // 4. a riser from the trunk up to each trim station
-        for (int[] bus : new int[][] { trimBusHe, trimBusH }) riser(world, bus, zT, player);
+        // the gas supply: a Debug Fluid Tank behind a read-only fluid storage bus on a stub off the trunk, each
+        for (int i = 0; i < 2; i++) {
+            final int x = X - 18 - 3 * i;
+            final int[] sbc = { x, y, zT - 1 }, tank = { x, y, zT - 2 };
+            MeParts.cable(world, sbc, MeParts.Kind.SMART, COLOR, player);
+            cables.add(sbc);
+            MeParts.storageBus(world, sbc, ForgeDirection.NORTH, player, log, "C: ");
+            MTEReactorCoreMk1.placeGtMachine(
+                world,
+                tank[0],
+                tank[1],
+                tank[2],
+                (short) ItemList.Debug_Fluid_Tank.get(1L)
+                    .getItemDamage(),
+                ForgeDirection.SOUTH);
+            if (i == 0) {
+                sbusHe = sbc;
+                tankHe = tank;
+            } else {
+                sbusH = sbc;
+                tankH = tank;
+            }
+        }
+        log.add(
+            "C: gas supply: Debug Fluid Tanks (Helium " + RenderTest.pos(tankHe)
+                + ", Hydrogen "
+                + RenderTest.pos(tankH)
+                + ") behind read-only fluid storage buses; empty until aecells");
+        // 4. the trims' own network (light blue: cables of different colours do not join): a second trunk three
+        // blocks further out, its own creative-energy controller and its own supply, and a riser up to each trim
+        // station. On the main network the Eye's stocking hatch would pull every litre into the Eye's buffers (it shows
+        // the Eye up to 2.1 G L a second and the buffers cap at 2^62 L), and the trim buses would find nothing.
+        final int zT2 = zT - 3;
+        final int[] w2 = { Math.min(trimBusHe[0], trimBusH[0]), y, zT2 }, e2 = { Math.max(trimBusHe[0], trimBusH[0]), y, zT2 };
+        layC(world, MeParts.line(w2, e2), MeParts.Kind.DENSE_COVERED, TRIM_COLOR, player, "trim trunk");
+        trimCtrl = new int[] { X + 12, y, zT2 - 1 };
+        MeParts.block(world, trimCtrl, MeParts.controllerBlock());
+        for (int i = 0; i < 2; i++) {
+            final int x = X + 16 + 3 * i;
+            final int[] sbc = { x, y, zT2 - 1 }, tank = { x, y, zT2 - 2 };
+            MeParts.cable(world, sbc, MeParts.Kind.SMART, TRIM_COLOR, player);
+            cables.add(sbc);
+            MeParts.storageBus(world, sbc, ForgeDirection.NORTH, player, log, "C: ");
+            MTEReactorCoreMk1.placeGtMachine(
+                world,
+                tank[0],
+                tank[1],
+                tank[2],
+                (short) ItemList.Debug_Fluid_Tank.get(1L)
+                    .getItemDamage(),
+                ForgeDirection.SOUTH);
+            if (i == 0) trimTankHe = tank;
+            else trimTankH = tank;
+        }
+        for (int[] bus : new int[][] { trimBusHe, trimBusH }) riser(world, bus, zT2, player);
+        log.add(
+            "C: trim network: controller " + RenderTest.pos(trimCtrl)
+                + ", supply tanks "
+                + RenderTest.pos(trimTankHe)
+                + " / "
+                + RenderTest.pos(trimTankH));
 
         log.add(
             "C: ME core: creative-energy controller " + RenderTest.pos(meCtrl)
@@ -270,6 +337,11 @@ final class AutoRigEyeAE {
                     .size());
 
         point("ae.core", ctr(meCtrl));
+        point("ae.trimcore", ctr(trimCtrl));
+        point("ae.trimtank", ctr(trimTankHe));
+        point("ae.trimtrunk", ctr(new int[] { X, y, zT2 }));
+        point("ae.tankhe", ctr(tankHe));
+        point("ae.tankh", ctr(tankH));
         point("ae.drive", ctr(drive));
         point("ae.emitter", ctr(emitterLamp));
         point("ae.stockhatch", ctr(stockHatch));
@@ -278,6 +350,8 @@ final class AutoRigEyeAE {
         point("ae.outhatch", ctr(outHatch));
         point("ae.trimhe", ctr(trimBusHe));
         point("ae.trimh", ctr(trimBusH));
+        point("ae.trimhe.cam", fHe.atD(9, 3, 4));
+        point("ae.trimh.cam", fH.atD(9, 3, 4));
         point("ae.dirhe", ctr(fHe.at(0, 1, 0)));
         point("ae.dirh", ctr(fH.at(0, 1, 0)));
         point("ae.fieldhe", ctr(fHe.p));
@@ -296,6 +370,17 @@ final class AutoRigEyeAE {
     private static int[] trimStation(World world, AutoRig.Frame F, Fluid fluid, DirectiveSet.Output bit,
         EntityPlayer player) {
         AutoRig.directive(world, F.at(0, 1, 0), F.o, DirectiveSet.EYE_TRIMS, bit, 10);
+        // a SMALL Field hatch (LV, 16,000 L): the Eye drains up to 10,000 L of a trim a second, and a bus faster than
+        // that would stockpile trim in a big hatch that the Eye keeps draining after the bit goes off (seen with the
+        // kit's MAX hatch: both trims ran at once and the pressure stuck near +35)
+        MTEReactorCoreMk1.placeGtMachine(
+            world,
+            F.p[0],
+            F.p[1],
+            F.p[2],
+            (short) ItemList.Hatch_Input_LV.get(1L)
+                .getItemDamage(),
+            F.o);
         final int[] bus = F.at(1, 0, 0);
         MeParts.exportBus(
             world,
@@ -306,7 +391,7 @@ final class AutoRigEyeAE {
             true,
             true,
             MeParts.Kind.SMART,
-            COLOR,
+            TRIM_COLOR,
             player,
             log,
             "C: ");
@@ -321,7 +406,7 @@ final class AutoRigEyeAE {
                 + bit
                 + ") "
                 + RenderTest.pos(F.at(0, 1, 0))
-                + " over the Field hatch "
+                + " over the Field hatch (LV, 16,000 L) "
                 + RenderTest.pos(F.p)
                 + ", o "
                 + F.o
@@ -344,8 +429,8 @@ final class AutoRigEyeAE {
         final List<int[]> up = MeParts.line(foot, top);
         final List<int[]> along = MeParts.line(top, bus);
         if (MeParts.clear(world, up, avoid) && along != null && MeParts.clear(world, along.subList(0, along.size() - 1), avoid)) {
-            lay(world, up, MeParts.Kind.DENSE_COVERED, player, "riser");
-            lay(world, along.subList(0, along.size() - 1), MeParts.Kind.DENSE_COVERED, player, "riser top");
+            layC(world, up, MeParts.Kind.DENSE_COVERED, TRIM_COLOR, player, "riser");
+            layC(world, along.subList(0, along.size() - 1), MeParts.Kind.DENSE_COVERED, TRIM_COLOR, player, "riser top");
             return;
         }
         final List<int[]> path = MeParts.route(world, foot, bus, avoid, 14, AutoRig.GROUND);
@@ -353,7 +438,7 @@ final class AutoRigEyeAE {
             log.add("C: NO RISER ROUTE to " + RenderTest.pos(bus));
             return;
         }
-        lay(world, path.subList(0, path.size() - 1), MeParts.Kind.DENSE_COVERED, player, "riser (routed)");
+        layC(world, path.subList(0, path.size() - 1), MeParts.Kind.DENSE_COVERED, TRIM_COLOR, player, "riser (routed)");
     }
 
     private static void stub(World world, int[] from, int[] to, EntityPlayer player, String what) {
@@ -368,8 +453,13 @@ final class AutoRigEyeAE {
     }
 
     private static void lay(World world, List<int[]> path, MeParts.Kind kind, EntityPlayer player, String what) {
+        layC(world, path, kind, COLOR, player, what);
+    }
+
+    private static void layC(World world, List<int[]> path, MeParts.Kind kind, AEColor color, EntityPlayer player,
+        String what) {
         if (path == null) return;
-        MeParts.run(world, path, kind, COLOR, player);
+        MeParts.run(world, path, kind, color, player);
         cables.addAll(path);
         log.add(
             "C: " + what
@@ -401,9 +491,9 @@ final class AutoRigEyeAE {
     // ------------------------------------------------------------------------------------- the cells
 
     /**
-     * The drive's cells go in (set up by script): one fluid cell of Helium and one of Hydrogen ({@link #GAS_LITRES}
-     * each), an item cell with {@link #CHARGES} Stellar Ignition Charges, and an empty fluid cell and item cell for the
-     * star's products.
+     * Set up by script, on cue: the two supply tanks get endless Helium and Hydrogen (the storage buses then show the
+     * network 2.1 G L of each), and the drive gets an item cell with {@link #CHARGES} Stellar Ignition Charges plus an
+     * empty fluid cell and item cell for the star's products.
      */
     static List<String> insertCells(World world) {
         final List<String> out = new ArrayList<>();
@@ -411,10 +501,18 @@ final class AutoRigEyeAE {
             out.add("no AE2 Eye rig (build eyeae first)");
             return out;
         }
-        final ItemStack heCell = MeParts
-            .filledCell(bigFluidCell(), StorageChannel.FLUIDS, out, "", MeParts.fluid(AutoRig.helium, GAS_LITRES));
-        final ItemStack hCell = MeParts
-            .filledCell(bigFluidCell(), StorageChannel.FLUIDS, out, "", MeParts.fluid(AutoRig.hydrogen, GAS_LITRES));
+        for (int i = 0; i < 4; i++) {
+            final int[] t = i == 0 ? tankHe : i == 1 ? tankH : i == 2 ? trimTankHe : trimTankH;
+            final Fluid fl = i % 2 == 0 ? AutoRig.helium : AutoRig.hydrogen;
+            final gregtech.api.metatileentity.implementations.MTEBasicTank tank = AutoRig
+                .mteAt(world, t, gregtech.api.metatileentity.implementations.MTEBasicTank.class);
+            if (tank == null) {
+                out.add("no supply tank at " + RenderTest.pos(t));
+                continue;
+            }
+            tank.setFillableStack(new FluidStack(fl, 1000));
+            out.add("supply tank " + RenderTest.pos(t) + ": endless " + fl.getName() + " (set up by script)");
+        }
         final ItemStack items = MeParts.filledCell(
             AEApi.instance()
                 .definitions()
@@ -427,7 +525,7 @@ final class AutoRigEyeAE {
             "",
             MeParts.item(new ItemStack(SLItems.stellarIgnitionCharge, 1, 0), CHARGES));
         int slot = 0;
-        for (ItemStack cell : new ItemStack[] { heCell, hCell, items, cellOf("CELL16384K"), AEApi.instance()
+        for (ItemStack cell : new ItemStack[] { items, cellOf("CELL16384K"), AEApi.instance()
             .definitions()
             .items()
             .cell64k()
@@ -440,15 +538,6 @@ final class AutoRigEyeAE {
         t0 = tick;
         out.add(slot + " cells in the ME drive at " + RenderTest.pos(drive) + " (filled by script)");
         return out;
-    }
-
-    /** The largest AE2FC fluid cell there is (Singularity, else Quantum, else 16384k). */
-    private static ItemStack bigFluidCell() {
-        for (String f : new String[] { "SINGULARITY_CELL", "QUANTUM_CELL", "CELL16384K" }) {
-            final ItemStack c = cellOf(f);
-            if (c != null) return c;
-        }
-        return null;
     }
 
     private static ItemStack cellOf(String field) {
@@ -551,6 +640,64 @@ final class AutoRigEyeAE {
                 .replace('\t', ' '));
         tsv.println(line);
         last = line;
+        if (tick % 1200 == 0) {
+            BeyondTheStars.LOG.info("[BTS autorig] Rig C bus He: " + busState(world, trimBusHe, fHe));
+            BeyondTheStars.LOG.info("[BTS autorig] Rig C bus H: " + busState(world, trimBusH, fH));
+            BeyondTheStars.LOG.info("[BTS autorig] Rig C trims: " + trims);
+        }
+    }
+
+    /** Diagnostics: what the trim bus itself sees (config, cards, redstone, target, the Field hatch's contents). */
+    static String busState(World world, int[] p, AutoRig.Frame F) {
+        final StringBuilder b = new StringBuilder();
+        try {
+            final TileEntity te = world.getTileEntity(p[0], p[1], p[2]);
+            if (!(te instanceof appeng.api.parts.IPartHost)) return "no part host";
+            final appeng.api.parts.IPart part = ((appeng.api.parts.IPartHost) te).getPart(F.o.getOpposite());
+            b.append(part == null ? "no part on " + F.o.getOpposite() : part.getClass().getSimpleName());
+            if (part instanceof appeng.parts.automation.PartSharedItemBus) {
+                final appeng.parts.automation.PartSharedItemBus<?> bus = (appeng.parts.automation.PartSharedItemBus<?>) part;
+                b.append(", config ").append(bus.getAEInventoryByName(appeng.api.storage.StorageName.CONFIG).getAEStackInSlot(0));
+                b.append(", speed cards ").append(bus.getInstalledUpgrades(appeng.api.config.Upgrades.SPEED));
+                b.append(", redstone cards ").append(bus.getInstalledUpgrades(appeng.api.config.Upgrades.REDSTONE));
+                b.append(", mode ").append(bus.getConfigManager().getSetting(appeng.api.config.Settings.REDSTONE_CONTROLLED));
+                b.append(", host redstone ").append(((appeng.api.parts.IPartHost) te).hasRedstone(F.o.getOpposite()));
+                b.append(", active ").append(bus.getProxy().isActive());
+                for (String m : new String[] { "canDoBusWork", "getTarget", "isSleeping" }) {
+                    try {
+                        java.lang.reflect.Method mm = null;
+                        for (Class<?> c = bus.getClass(); c != null && mm == null; c = c.getSuperclass()) {
+                            try {
+                                mm = c.getDeclaredMethod(m);
+                            } catch (NoSuchMethodException next) {
+                                // up
+                            }
+                        }
+                        if (mm != null) {
+                            mm.setAccessible(true);
+                            b.append(", ").append(m).append(" ").append(mm.invoke(bus));
+                        }
+                    } catch (ReflectiveOperationException | RuntimeException bad) {
+                        b.append(", ").append(m).append(" ! ").append(bad);
+                    }
+                }
+            }
+            final gregtech.api.metatileentity.implementations.MTEHatchInput h = AutoRig
+                .mteAt(world, F.p, gregtech.api.metatileentity.implementations.MTEHatchInput.class);
+            b.append(", field hatch ").append(h == null ? "none" : h.getFluid() == null ? "empty" : h.getFluid().getFluid().getName() + " " + h.getFluid().amount);
+            if (h != null) b.append(", hatch recipe map ").append(h.mRecipeMap);
+            final TileEntity ht = world.getTileEntity(F.p[0], F.p[1], F.p[2]);
+            final Fluid fl = F == fHe ? AutoRig.helium : AutoRig.hydrogen;
+            if (ht instanceof net.minecraftforge.fluids.IFluidHandler) {
+                b.append(", fill(").append(F.o).append(") sim ")
+                    .append(((net.minecraftforge.fluids.IFluidHandler) ht).fill(F.o, new FluidStack(fl, 1000), false));
+                b.append(", canFill ").append(((net.minecraftforge.fluids.IFluidHandler) ht).canFill(F.o, fl));
+            }
+            b.append(", ME at the bus ").append(MeParts.litres(world, p, fl));
+        } catch (RuntimeException bad) {
+            b.append(" ! ").append(bad);
+        }
+        return b.toString();
     }
 
     private static String products(World world) {
@@ -573,7 +720,8 @@ final class AutoRigEyeAE {
         if (trims == null) return 0;
         for (Map.Entry<String, Long> e : trims.entrySet()) {
             if (e.getKey() != null && e.getKey()
-                .contains(name)) return e.getValue();
+                .toLowerCase(Locale.ROOT)
+                .contains(name.toLowerCase(Locale.ROOT))) return e.getValue();
         }
         return 0;
     }
