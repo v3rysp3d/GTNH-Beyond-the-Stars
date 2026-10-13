@@ -456,7 +456,7 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         if (jetAxisDot(jetAxis, mine) < 0.999) {
             dockNote = "misaligned on the " + jet.port.label.toLowerCase(Locale.ROOT)
                 + " jet port: stand on the cap (upside down under the bottom cap)";
-            return 0;
+            return REFUSED;
         }
         dockNote = "docked on the " + jet.port.label.toLowerCase(Locale.ROOT)
             + " jet port of the quasar at "

@@ -140,6 +140,7 @@ public class MTEQuasarEngineGui extends MTEMultiBlockBaseGui<MTEQuasarEngine> {
             + " Bu/t"
             + EnumChatFormatting.GRAY;
         if (dock == null) return head + (bu > 0 ? EnumChatFormatting.GOLD + " -> venting" : " -> nothing docked");
+        if (m.jetRefused(port)) return head + EnumChatFormatting.GOLD + " -> venting: " + dock + " misaligned";
         final double clipped = bu - m.jetTaken(port);
         return head + " -> "
             + EnumChatFormatting.AQUA

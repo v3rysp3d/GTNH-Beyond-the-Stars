@@ -195,6 +195,8 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     private final double[] jetBu = new double[JetPort.VALUES.length];
     private final double[] jetTaken = new double[JetPort.VALUES.length];
     private final String[] jetDock = new String[JetPort.VALUES.length];
+    /** A dock stood on the port but refused the jet (misaligned): the jet vented (P4-94). */
+    private final boolean[] jetRefused = new boolean[JetPort.VALUES.length];
     private double gasDrawn;
     private double trimGasUnits, trimSpaceUnits;
     private double bInUse;
@@ -643,14 +645,16 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             final IBurstDock dock = BurstDocks.find(world, cell[0], cell[1], cell[2]);
             if (dock == null) {
                 jetDock[i] = null;
+                jetRefused[i] = false;
                 jetTaken[i] = 0;
                 vented += bu;
                 continue;
             }
             jetDock[i] = dock.dockLabel();
-            final double taken = Math
-                .max(0, Math.min(bu, dock.acceptJet(new JetPacket(source, port, bu, linkable, now))));
-            jetTaken[i] = taken;
+            final double got = dock.acceptJet(new JetPacket(source, port, bu, linkable, now));
+            jetRefused[i] = got < 0; // misaligned: the whole jet vents (P4-94); a cap's clip does not
+            if (jetRefused[i]) vented += bu;
+            jetTaken[i] = Math.max(0, Math.min(bu, got));
         }
         lastVented = vented;
         pruneHosts(now);
@@ -1014,7 +1018,12 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         return jetDock[port.ordinal()];
     }
 
-    /** Bu/t vented last second (ports with nothing docked). */
+    /** True when the port's dock refused the jet last second (misaligned), so it vented (P4-94). */
+    public boolean jetRefused(JetPort port) {
+        return jetRefused[port.ordinal()];
+    }
+
+    /** Bu/t vented last second (ports with nothing docked, or a misaligned dock). */
     public double getVented() {
         return lastVented;
     }
@@ -1334,7 +1343,9 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
                 port.label + " jet: "
                     + bu(jetBu[i])
                     + " Bu/t -> "
-                    + (jetDock[i] == null ? "venting (nothing docked)" : jetDock[i] + " took " + bu(jetTaken[i])));
+                    + (jetDock[i] == null ? "venting (nothing docked)"
+                        : jetRefused[i] ? "venting (" + jetDock[i] + " misaligned)"
+                            : jetDock[i] + " took " + bu(jetTaken[i])));
         }
         out.add(
             "Eruptions " + eruptions

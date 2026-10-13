@@ -20,10 +20,14 @@ public interface IBurstDock {
      */
     boolean dockReady();
 
+    /** {@link #acceptJet}'s answer when the dock refuses the jet (misaligned): the whole jet vents (P4-94). */
+    double REFUSED = -1;
+
     /**
      * One second of the jet on this dock's port (server thread, once per quasar second). Returns the Bu/t the dock
      * took: a crown up to its cap (and a stacked crown's), a mouth up to its throat cap. What it did not take the
-     * quasar reports as clipped (no damage).
+     * quasar reports as clipped (no damage). A dock that faces the wrong way returns {@link #REFUSED}: the quasar
+     * counts the jet as venting (Disc [8], {@code getBurst().vented}).
      */
     double acceptJet(JetPacket jet);
 

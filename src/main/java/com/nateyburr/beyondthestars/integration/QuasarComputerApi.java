@@ -53,7 +53,7 @@ public final class QuasarComputerApi {
         for (JetPort port : JetPort.VALUES) {
             out.put(port.key, m.jetBu(port));
             final String d = m.jetDock(port);
-            docks.put(port.key, d == null ? "venting" : d);
+            docks.put(port.key, d == null || m.jetRefused(port) ? "venting" : d);
         }
         out.put("docks", docks);
         out.put("vented", m.getVented());

@@ -298,7 +298,7 @@ public class MTEWormholeMouth extends MTEConduitElement<MTEWormholeMouth> implem
             dockTick = now;
             dockNote = "misaligned on the " + jet.port.label.toLowerCase(java.util.Locale.ROOT)
                 + " jet port: face the quasar (the jet must run into the front face)";
-            return 0;
+            return REFUSED;
         }
         dockTick = now;
         dockNote = "docked on the " + jet.port.label.toLowerCase(java.util.Locale.ROOT)
