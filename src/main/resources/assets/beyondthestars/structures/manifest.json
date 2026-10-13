@@ -1566,7 +1566,7 @@
  "windows": {
   "half": 2,
   "kerr": "|y| <= 2 from the hole. Pane (Quantum Glass): the governor arc's outer shell in front of the hole (z > 0, |x| <= 12) and, elsewhere round the drum, the outer mirror ring's casing skin. Open: the arc's lining, both mirror rings' other layers and the T2 mid band in front of the arc",
-  "eye": "|y| <= 2 from the star, in front of it (z > 0, |x| <= 26). Pane: the core band's outer shell in its front ring segments. Open: the band's lining behind it and the T4/T5 arm and T6 rim cells in front of it",
+  "eye": "|y| <= 2 from the star, in front of it (z > 0, |x| <= 26). Pane: the core band's outer shell in its front ring segments. Open: the band's lining behind it and the T4/T5 arm, T6 rim and T7 rail clamp cells in front of it (|x| <= 10)",
   "accepts": "a pane char takes Quantum Glass OR the block it replaced (legend: window = that old char); an open cell is ' ' (anything), so builds from before the windows still form",
   "pane": {
    "kerr_t1": 700,
@@ -1581,7 +1581,9 @@
    "eye_jet": 0,
    "eye_arms": 422,
    "eye_arms2": 371,
-   "eye_rim": 213
+   "eye_rim": 213,
+   "eye_rail": 42,
+   "eye_halo": 0
   }
  },
  "assembled": {
@@ -1709,7 +1711,7 @@
     "eye_rail"
    ],
    "size": "183x59x175",
-   "blocks": 65990
+   "blocks": 65948
   },
   "Eye T8": {
    "pieces": [
@@ -1723,7 +1725,7 @@
     "eye_halo"
    ],
    "size": "196x73x218",
-   "blocks": 69699
+   "blocks": 69657
   },
   "Quasar Engine": {
    "pieces": [
@@ -4275,11 +4277,11 @@
     57,
     47
    ],
-   "blocks": 15432,
+   "blocks": 15390,
    "bom": [
     {
      "ch": "B",
-     "count": 9996,
+     "count": 9954,
      "role": "rail_halo_shell",
      "block": "slCasing:13 Bastion Plate (existing)"
     },
@@ -4459,7 +4461,7 @@
      }
     ]
    },
-   "cellsKeptByEarlierPiece": 49
+   "cellsKeptByEarlierPiece": 36
   },
   "eye_halo": {
    "machine": "eye",
@@ -7878,6 +7880,8 @@
   "ok   eye_arms: no pane, 422 cells opened in front of the core's pane",
   "ok   eye_arms2: no pane, 371 cells opened in front of the core's pane",
   "ok   eye_rim: no pane, 213 cells opened in front of the core's pane",
+  "ok   eye_rail: no pane, 42 cells opened in front of the core's pane",
+  "ok   eye_halo: no window cells (the shards stand clear of the band; 0 opened)",
   "ok   Kerr T1: the front window is clear at y +-1, |x| <= 8",
   "ok   Kerr T2: the front window is clear at y +-1, |x| <= 8",
   "ok   Eye T1: the front window is clear at y +-1, |x| <= 20",
@@ -7885,7 +7889,9 @@
   "ok   Eye T3: the front window is clear at y +-1, |x| <= 20",
   "ok   Eye T4: the front window is clear at y +-1, |x| <= 8",
   "ok   Eye T5: the front window is clear at y +-1, |x| <= 8",
-  "ok   Eye T6: the front window is clear at y +-1, |x| <= 8"
+  "ok   Eye T6: the front window is clear at y +-1, |x| <= 8",
+  "ok   Eye T7: the front window is clear at y +-1, |x| <= 8",
+  "ok   Eye T8: the front window is clear at y +-1, |x| <= 8"
  ],
  "notes": [
   "kerr: 40 cells drawn by kerr_core then by kerr_compressor; the later piece owns them",
@@ -7895,7 +7901,7 @@
   "eye_arms: 84 cells written over an earlier piece in the mockup ({\"arm1\":40,\"arm0\":44}); the earlier piece keeps them",
   "eye_arms2: 73 cells written over an earlier piece in the mockup ({\"arm3\":36,\"arm2\":37}); the earlier piece keeps them",
   "eye_rim: 112 cells written over an earlier piece in the mockup ({\"rim\":104,\"clamp\":8}); the earlier piece keeps them",
-  "eye_rail: 49 cells written over an earlier piece in the mockup ({\"clamp\":49}); the earlier piece keeps them",
+  "eye_rail: 36 cells written over an earlier piece in the mockup ({\"clamp\":36}); the earlier piece keeps them",
   "homog_t2: 30 cells written over an earlier tier in the mockup; the earlier piece keeps them",
   "homog_t3: 45 cells written over an earlier tier in the mockup; the earlier piece keeps them"
  ]

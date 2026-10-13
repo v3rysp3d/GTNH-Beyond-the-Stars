@@ -1,12 +1,12 @@
 {
-  "bundleVersion": "6876d7837407a7a1d0a0cb5b4fc4c7f98781b9ee",
+  "bundleVersion": "534881cb57c8959a99b0e46542ebc7d40a46a4fb",
   "format": 1,
   "idHigh": 190,
   "packVersion": 2171,
   "source": {
     "data": "questbook/singularity.json",
     "src": ".",
-    "srcHead": "c596d51 master",
+    "srcHead": "b94299a master",
     "manifestSha": "fa6fec2a751c20eef04cc449df70c3e0c428e9e1"
   },
   "features": {
@@ -7581,7 +7581,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "Eye band 7, the §9stability rail§r, round the galactic rim: hologram stack 7, 9,996 Bastion Plate with 669 Casimir trim, tilted 8°. Its 8 sockets take §9GRB Receptor Ports§r: 4 on the high bank, 4 on the low (T7 needs at least one on each bank).\n\nAt T6 the rail's bursts do nothing to the magnetar. They count only for the §cStability Link§r.\n\n§2§lDONE §lWHEN§r you hold 8 GRB Receptor Ports (HOLD → CLAIM → INSTALL).",
+            "desc:8": "Eye band 7, the §9stability rail§r, round the galactic rim: hologram stack 7, 9,954 Bastion Plate with 669 Casimir trim, tilted 8°. Its 8 sockets take §9GRB Receptor Ports§r: 4 on the high bank, 4 on the low (T7 needs at least one on each bank).\n\nAt T6 the rail's bursts do nothing to the magnetar. They count only for the §cStability Link§r.\n\n§2§lDONE §lWHEN§r you hold 8 GRB Receptor Ports (HOLD → CLAIM → INSTALL).",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -7650,7 +7650,7 @@
             "requireOnlyOneItem:1": 0,
             "requiredItems:9": {
               "0:10": {
-                "Count:3": 9996,
+                "Count:3": 9954,
                 "Damage:2": 13,
                 "OreDict:8": "",
                 "id:8": "beyondthestars:slCasing"

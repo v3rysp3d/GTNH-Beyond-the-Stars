@@ -427,8 +427,10 @@ const WINDOW = {
   // Eye. The pane is the core band's shell in its front ring segments (z > 0, |x| <= 26: the band from its 40 to its
   // 140 deg, between the clamp struts at 30 and 150); its lining behind it is open, and so are the T4/T5 arm and T6
   // rim cells in front of it, so one pane is all the sightline crosses at every tier. Struts (W/X), sockets and the
-  // glass channel (Z) stay.
-  eye: { half: 26, laterHalf: 10, kinds: new Set(["eyeshell", "lining", "galactic"]), pane: { U: "A" } },
+  // glass channel (Z) stay. T7 (B-114): the stability rail's front clamp (rim to rail at 90 deg, Bastion) roots in the
+  // rim's opening, dead centre in front of the galaxy; its cells there are open too (|x| <= laterHalf), so the strut
+  // leaves the rim's lower lip and resumes above the band. The T8 halo's shards stand clear of the band.
+  eye: { half: 26, laterHalf: 10, kinds: new Set(["eyeshell", "lining", "galactic"]), pane: { U: "A" }, clamp: { kind: "bastion", tag: "" } }, // voxel.js clamp() drops the tag
 };
 // c.was = the char the cell had before; c.open = no block wanted (exported as ' ').
 // In front of the object only the FIRST contiguous run of pane-kind cells seen from the viewer (+z) in each (x, y)
@@ -465,9 +467,11 @@ function windowEye(b, cells) {
   const w = WINDOW.eye, front = [];
   for (const c of cells.values()) {
     const x = c.x - b.CX, y = c.y - b.CY, z = c.z - b.CZ;
-    if (Math.abs(y) > WINDOW_HALF || /[a-z~]/.test(c.ch) || !w.kinds.has(c.kind) || z <= 0) continue;
-    // the core band (its shell and lining) over the full front segments; a later tier's arm or rim cell only where
-    // it hides the T4-T6 objects (|x| <= laterHalf), so the arms and the rim keep their shape
+    if (Math.abs(y) > WINDOW_HALF || /[a-z~]/.test(c.ch) || z <= 0) continue;
+    const railClamp = c.kind === w.clamp.kind && c.tag === w.clamp.tag;
+    if (!w.kinds.has(c.kind) && !railClamp) continue;
+    // the core band (its shell and lining) over the full front segments; a later tier's arm, rim or rail clamp cell
+    // only where it hides the T4-T8 objects (|x| <= laterHalf), so the arms and the rim keep their shape
     if (Math.abs(x) > (c.tag === "core" ? w.half : w.laterHalf)) continue;
     front.push(c);
   }
@@ -1080,10 +1084,11 @@ const OPENED = {
   kerr_t2: [...K2.cells.values()].filter((c) => c.open && (c.piece === "kerr_core" || c.piece === "kerr_density")).length,
   eye_core: [...E[0].cells.values()].filter((c) => c.open).length,
 };
-["eye_beam", "eye_jet", "eye_arms", "eye_arms2", "eye_rim"].forEach((n, i) => {
+["eye_beam", "eye_jet", "eye_arms", "eye_arms2", "eye_rim", "eye_rail", "eye_halo"].forEach((n, i) => {
   const prev = E[i].cells; OPENED[n] = [...E[i + 1].cells].filter(([k, c]) => c.open && !prev.has(k)).length; });
 for (const n of ["kerr_t1", "kerr_t2", "eye_core"]) ok(windowCount(n) > 0, `${n}: ${windowCount(n)} window pane cells, ${OPENED[n]} opened`);
-for (const n of ["eye_arms", "eye_arms2", "eye_rim"]) ok(windowCount(n) === 0 && OPENED[n] > 0, `${n}: no pane, ${OPENED[n]} cells opened in front of the core's pane`);
+for (const n of ["eye_arms", "eye_arms2", "eye_rim", "eye_rail"]) ok(windowCount(n) === 0 && OPENED[n] > 0, `${n}: no pane, ${OPENED[n]} cells opened in front of the core's pane`);
+ok(windowCount("eye_halo") === 0 && OPENED.eye_halo === 0, `eye_halo: no window cells (the shards stand clear of the band; ${OPENED.eye_halo} opened)`);
 function sightline(names, label, b, half, clear) {
   const cells = new Map(names.flatMap((n) => pieceCells(n)).map((c) => [keyOf(c.x, c.y, c.z), c]));
   const bad = [];
@@ -1095,9 +1100,10 @@ function sightline(names, label, b, half, clear) {
 }
 sightline(["kerr_t1"], "Kerr T1", K1.b, 8, new Set(["B", "K"]));
 sightline(["kerr_t2"], "Kerr T2", K2.b, 8, new Set(["B", "K"]));
-for (let t = 1; t <= 6; t++) {
-  const names = ["eye_core", "eye_beam", "eye_jet", "eye_arms", "eye_arms2", "eye_rim"].slice(0, t);
-  // T1-T3 stars are big (Sol 9, Arcturus 16): the core pane's width; T4-T6 objects are small: the arm / rim openings
+for (let t = 1; t <= 8; t++) {
+  const names = ["eye_core", "eye_beam", "eye_jet", "eye_arms", "eye_arms2", "eye_rim", "eye_rail", "eye_halo"].slice(0, t);
+  // T1-T3 stars are big (Sol 9, Arcturus 16): the core pane's width; T4-T8 objects read through the arm / rim
+  // openings (T7 / T8: the galaxy's core and inner arms; its outer arms, r 16-19, stand behind the rim, B-114)
   sightline(names, `Eye T${t}`, E[0].b, t <= 3 ? 20 : WINDOW.eye.laterHalf - 2, new Set(["Z"]));
 }
 
@@ -1152,7 +1158,7 @@ const manifest = {
   // the window bands (my answer 2026-10-13, render K2 + E-9): which cells, and how many per piece
   windows: { half: WINDOW_HALF,
     kerr: "|y| <= 2 from the hole. Pane (Quantum Glass): the governor arc's outer shell in front of the hole (z > 0, |x| <= 12) and, elsewhere round the drum, the outer mirror ring's casing skin. Open: the arc's lining, both mirror rings' other layers and the T2 mid band in front of the arc",
-    eye: "|y| <= 2 from the star, in front of it (z > 0, |x| <= 26). Pane: the core band's outer shell in its front ring segments. Open: the band's lining behind it and the T4/T5 arm and T6 rim cells in front of it",
+    eye: "|y| <= 2 from the star, in front of it (z > 0, |x| <= 26). Pane: the core band's outer shell in its front ring segments. Open: the band's lining behind it and the T4/T5 arm, T6 rim and T7 rail clamp cells in front of it (|x| <= 10)",
     accepts: "a pane char takes Quantum Glass OR the block it replaced (legend: window = that old char); an open cell is ' ' (anything), so builds from before the windows still form",
     pane: Object.fromEntries(["kerr_t1", "kerr_t2", "eye_core"].map((n) => [n, windowCount(n)])),
     open: OPENED },

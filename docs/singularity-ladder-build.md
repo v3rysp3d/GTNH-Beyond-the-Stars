@@ -875,9 +875,9 @@ the same block-count class as GTNH's Forge of the Gods. Conditions:
   pane per sightline (a char per replaced block, whose Java element is Quantum Glass or the old block) with the cells
   behind it open (`' '`). Kerr: the governor arc's outer shell is the pane in front of the hole, the outer mirror
   ring's skin is the drum band's pane elsewhere. Eye: the core band's outer shell in its front ring segments; the
-  T4-T6 arm and rim cells in front of it open within |x| ≤ 10. The pane in front is the first contiguous run of
-  shell cells seen from +z in each column. voxel.js is not edited. Checks: the pane counts, the openings, and a clear
-  front sightline at y ±1 (Kerr |x| ≤ 8, Eye T1-T3 |x| ≤ 20, T4-T6 |x| ≤ 8). The manifest carries a `windows`
+  T4-T6 arm and rim cells and the T7 rail's front clamp (B-114) in front of it open within |x| ≤ 10. The pane in
+  front is the first contiguous run of shell cells seen from +z in each column. voxel.js is not edited. Checks: the
+  pane counts, the openings, and a clear front sightline at y ±1 (Kerr |x| ≤ 8, Eye T1-T3 |x| ≤ 20, T4-T8 |x| ≤ 8). The manifest carries a `windows`
   section. Run it on the voxel.js revision the shapes' `sha=` names (a01c6b6, 2742379a) until P4's exporter takes
   the window pass over.
 - **Output:** one file per piece, `src/main/resources/assets/beyondthestars/structures/<piece>.txt`. Format:
@@ -1594,7 +1594,7 @@ Shared edits, each append-only:
 | `o` | `EyeHatchElement.Output` (`MTEHatchOutputBusME`, `MTEHatchOutputME`), hint 2, else `Q`. At least 1 of each. |
 | `m` | Maintenance, hint 3, else `Q` |
 | `s` / `t` | `EyeHatchElement.Stellar`, hint 4, else `R` / `S`. Optional. |
-| `A` | **Window band pane** (my answer 2026-10-13, render E-9; B-86): `ofChain(Casings.QuantumGlass, Casings.ReinforcedSpatialStructureCasing)` over `U`: the core band's outer shell in its front ring segments (z > 0, \|x\| ≤ 26), at \|y\| ≤ 2 from the star. Open (`' '`): the band's lining behind the pane (371 cells) and, in front of it, the T4 / T5 arm and T6 rim cells within \|x\| ≤ 10 (422 / 371 / 213). Glass first; an Eye built before the window still forms. 339 pane cells. |
+| `A` | **Window band pane** (my answer 2026-10-13, render E-9; B-86): `ofChain(Casings.QuantumGlass, Casings.ReinforcedSpatialStructureCasing)` over `U`: the core band's outer shell in its front ring segments (z > 0, \|x\| ≤ 26), at \|y\| ≤ 2 from the star. Open (`' '`): the band's lining behind the pane (371 cells) and, in front of it, the T4 / T5 arm and T6 rim cells within \|x\| ≤ 10 (422 / 371 / 213) and, since B-114, the 42 cells of the T7 rail's front clamp (Bastion, rim to rail at 90°) in the band. Glass first; an Eye built before the window still forms. 339 pane cells. |
 
 Every plain element is wrapped in `noOverwrite`.
 
