@@ -554,6 +554,14 @@ public class CommandBTSKerr extends CommandBase {
         if (verb.equals("gui")) {
             // controller GUI cleanup: the header and rows the KEE's GUI would show now (spec §5.2), as text
             KerrTestBench.ensureChecked(kee);
+            if (args.length > 4 && args[4].equalsIgnoreCase("hatches")) {
+                // spec §5.10: what each of the KEE's Directive Hatches' GUIs shows now
+                for (String line : com.nateyburr.beyondthestars.machines.directive.DirectiveBench
+                    .hatchGui(kee.directiveHatches(), null)) {
+                    SLConsoleTest.tell(sender, "Kerr hatch GUI: " + line);
+                }
+                return;
+            }
             for (String line : new com.nateyburr.beyondthestars.machines.kerr.MTEKerrEngineGui(kee)
                 .benchDump(args.length > 4 && args[4].equalsIgnoreCase("info"))) {
                 SLConsoleTest.tell(sender, "Kerr GUI: " + line);

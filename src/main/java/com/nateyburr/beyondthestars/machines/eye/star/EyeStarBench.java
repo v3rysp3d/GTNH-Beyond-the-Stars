@@ -233,6 +233,12 @@ public final class EyeStarBench {
                 // controller GUI cleanup: the header and rows the GUI would show now (spec §5.1), as text
                 out.addAll(new com.nateyburr.beyondthestars.machines.eye.EyeGui(eye).benchDump("info".equals(a5)));
                 return out;
+            case "hatchgui":
+                // controller GUI cleanup: what each Directive / Stellar Field Sensor Hatch's GUI shows (spec §5.10)
+                out.addAll(
+                    com.nateyburr.beyondthestars.machines.directive.DirectiveBench
+                        .hatchGui(eye.directiveHatches(), eye.sensorHatches()));
+                return out;
             case "mefield":
                 out.add(meField(eye));
                 break;
