@@ -199,7 +199,8 @@ minutes; read `eye-ae.tsv`), `tiertest.shots` (an Eye grown from tier 1 to 2).
 - **Rig C, what the build taught.** (1) An ME stocking hatch in an Eye gas socket shows the Eye up to 2.1 G L of
   each fluid a second, and the Eye's buffers (cap 2^62 L) take all of it: a network of filled fluid cells was emptied
   into the Eye within seconds, and trim buses on the same network then found nothing (the pressure sat at +35). So the
-  trims have their own network. (2) A trim bus faster than the Eye's trim draw (10,000 L/s for Sol) stockpiles trim in
+  trims have their own network. Fixed on master by B-108: each buffer now fills only to its intake cap (1 G L of each
+  gas for a T1 Sol), so the network keeps the rest; the rig keeps its separate trim network. (2) A trim bus faster than the Eye's trim draw (10,000 L/s for Sol) stockpiles trim in
   a big Field hatch, and the Eye keeps draining it after the bit goes off (both trims ran at once); a small LV hatch
   (16,000 L) caps that at about a second. Both are worth a line in the Eye's AE2 docs on master.
 - `nei` opens the screen and selects a tab; it does not move BlockRenderer6343's Tier slider (the preview shows the

@@ -107,7 +107,7 @@ fluid buses (AE2FC), Steve's Factory Manager item and fluid nodes, conveyor and 
 |---|---|---|---|---|
 | **Trims** (hold the field) | A fluid export bus with a redstone card per trim, into a Field hatch, driven by a Trims hatch in Bit n mode | Trims hatch in Bit n mode (one hatch per trim) or Code mode decoded with comparators; each bit drives a GT Machine Controller cover ("enable with redstone") on the tank that feeds the Field hatch; that tank's Fluid Regulator cover, set to "Conditional", runs only while the tank is enabled (§4.1) | `eye.getDirective("EYE_TRIMS")` or `eye.getField()`, then a transposer moves the trim | A fluid node into the Field hatch with a redstone condition on the hatch (SFM conditions read analog ranges, so one Code-mode hatch is enough) |
 | **Event valve** (T3 flash, T6 Agent) | Export bus on Status bit 3 | Status hatch, Bit 3 mode, a second regulator | `getDirective("EYE_STATUS").bits` | Fluid node on bit 3 |
-| **Upkeep** (H, He, RSPM, ESPM, SpaceTime, HSM feed, WDM/BDM, Agent) | ME stocking input hatches in the gas / stellar sockets (they drain into the buffers), or level maintainers | Status bit 1 → an export bus or pump | `getBuffers()`, `getDirective("EYE_STATUS")` | Fluid node into the gas hatches on bit 1 |
+| **Upkeep** (H, He, RSPM, ESPM, SpaceTime, HSM feed, WDM/BDM, Agent) | ME stocking input hatches in the gas / stellar sockets (they drain into the buffers, up to each buffer's intake cap, §2.3), or level maintainers | Status bit 1 → an export bus or pump | `getBuffers()`, `getIntakeCaps()`, `getDirective("EYE_STATUS")` | Fluid node into the gas hatches on bit 1 |
 | **Ignition** (Stellar Ignition Charge) | ME input bus in a plinth socket holding charges, or an interface pushing one on Status bit 2 | Status bit 2 → a conveyor cover or export bus | `getState().waitReason`, transposer into the bus | Item node into the bus on bit 2 |
 | **Transition core into escrow** | Interface / export bus pushes the core into a plinth bus (new: the Eye takes it) | Transition bit 3 → export bus | `getTransition().coreWanted`, transposer | Item node on bit 3 |
 | **Load the next star chart** (starts the transition; also switching stars) | Export bus pushes ONE chart into a plain plinth bus on Transition bit 1 (redstone card on **Signal pulse**, so one rising edge pushes one chart); the old one comes back through the ME output bus. A copy of the chart already loaded is sent to the ME output bus too, and no chart is swapped while a transition runs or waits (B-72) | Transition bit 1 → export bus / conveyor | `getTransition().ready`, transposer | Item node on bit 1 |
@@ -131,6 +131,14 @@ fluid buses (AE2FC), Steve's Factory Manager item and fluid nodes, conveyor and 
 ### 2.3 Hatches with AE2 and Steve's Factory Manager (what was checked)
 
 - The Eye's gas and stellar sockets take ME stocking input hatches (they drain into the buffers every second).
+  Each buffer fills only to its **intake cap** (B-108; the scanner shows held / cap, OpenComputers
+  `getIntakeCaps()`): for a star, max(ignition need, 20 cycles of upkeep) plus any transition the Eye could begin; for
+  a planet, 2 runs at full parallel. A fluid with no cap is not pulled. Before B-108 one stocking hatch emptied the
+  whole network into the buffers within a second.
+- One stocking hatch per gas is enough, and it still takes up to the cap (1 G L of each gas for a T1 Sol) in its
+  first second. Keep the network's stock above the cap, or put the trim buses on their own network or behind a small
+  Field hatch: a trim bus faster than the Eye's trim draw stockpiles trim in a big Field hatch, which the Eye keeps
+  draining after the bit goes off (an LV hatch, 16,000 L, holds about a second of it).
 - The Field sockets take plain input hatches only in practice: an ME stocking hatch there is walked but never drained
   (R-15), so trims go in through an export bus, a pump, a regulator cover or an SFM fluid node.
 - Plinth buses: ME input buses work for charges and cores; star charts are picked up from **plain** buses only (an ME
@@ -304,4 +312,6 @@ B-70.
 Bench commands:
 
 - `/btseye star x y z directive | autorig <s> [cut <k>] | ocloop`
+- `/btseye star x y z intake setup [G] | intake | eu`: the intake-cap rig (B-108), an ME stocking hatch in a gas socket on
+  a network of G gigalitres per gas with a second consumer (fluid export bus into a Super Tank), and its readout
 - `/btskerr autorig x y z [s] [bolts/s] [empty] | ocloop x y z | ctrl x y z on|off|out | ocprobe x y z`

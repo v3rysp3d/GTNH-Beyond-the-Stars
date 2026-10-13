@@ -1610,7 +1610,10 @@ Every plain element is wrapped in `noOverwrite`.
   - The installed tier is the highest available one.
 - **Target:** the controller slot holds a star chart or a TecTech dimension display block. The registry looks it up
   by item, and it is never consumed.
-- **Buffers:** one `long` per fluid, capped at 2⁶² L. Every live socket is drained every 20 ticks (Q-30).
+- **Buffers:** one `long` per fluid, capped at 2⁶² L. Every live socket is drained every 20 ticks (Q-30), but only
+  up to the fluid's **intake cap** (B-108, `MTEEyeOfHarmonyBTS.intakeCaps`): per star in play max(ignition need,
+  20 cycles of upkeep) × p, plus each transition that may begin, plus a planet target's 2 runs at full parallel. A
+  fluid with no cap is not pulled; a buffer above its cap is only drawn down.
 - **A run** (Q-31), in order:
   1. Parallel is 2^(installed − recipe tier), limited by the buffers.
   2. The EU is debited from the owner's wireless network in one lump at the start.

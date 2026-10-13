@@ -39,7 +39,7 @@ Most important first. "Recommended" is what we would build if you say nothing. N
 | 15 | A numbered release name | Tag one (e.g. `0.25.0-rc2`) when you want the Mods list to show a clean version | B-33 |
 | 16 | Hand-drawn textures | Hand-polish only what players stare at: the two controller faces and the mirror and bastion walls | B-13 |
 | 17 | The Eye T10 gate part (TecTech's generators stop at tier 9) | Design it with P5 | B-3, need 3 |
-| 18 | Everything else that ends "Suggestion: as built" and has no ruling | Accept as built unless you object: B-5, B-7, B-8, B-9, B-11, B-14..B-17, B-19, B-20, B-26, B-27, B-31, B-35..B-37, B-45..B-54, B-62, B-64, B-66..B-68 (judgement calls), B-70, B-74..B-78, B-87 | each entry |
+| 18 | Everything else that ends "Suggestion: as built" and has no ruling | Accept as built unless you object: B-5, B-7, B-8, B-9, B-11, B-14..B-17, B-19, B-20, B-26, B-27, B-31, B-35..B-37, B-45..B-54, B-62, B-64, B-66..B-68 (judgement calls), B-70, B-74..B-78, B-87, B-108 | each entry |
 | 19 | Reality Diffraction, Reality Refab and the Homogeny T3 are built machines but their quests are still "(planned)" checkboxes, because the `realityRefab` flag is off (their inputs come only from P4/P5) | Keep the checkboxes until P4/P5 make the inputs; until then, give their quests a variant of the placeholder note: "Built, but its inputs come from Eye T8/T9 (a later update)" | B-93, question 3 |
 | 20 | A plus-signed decimal ("+0.5", "+0.15") can still break after its point at a line end: Java's line breaker splits it, 6 places in the Eye T4-T6 trims | Accept (rare, width-dependent); or write the trims without the plus sign | B-93, question 2 |
 
@@ -120,8 +120,10 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
 - When the GUI branch merges: Harmonic Lock's "The GUI's field line counts it as Lock n/600" becomes "Lock bar". [B-93]
 - When the GUI branch merges: keep the Eye's status-line push (`refreshStatusLine`) and check the Directive Hatch's
   height in the new layout. [B-107]
-- Cap the Eye buffers' intake (about 20 cycles of upkeep): an ME stocking input hatch empties the whole network into
-  them and starves trim buses on the same network; document it in the Eye's AE2 docs. [B-107 open work (a)]
+- ~~Cap the Eye buffers' intake~~: done, each buffer fills only to its intake cap (Sol: 1 G L of each gas), tested
+  with a stocking hatch on a 10 G L network and a second consumer on it. [B-107 open work (a), B-108]
+- When the GUI branch merges: the new Eye GUI may show each buffer as held / cap (`MTEEyeOfHarmonyBTS.intakeCaps`,
+  as the scanner does). [B-108]
 - A missing texture in the KEE GUI's right-hand button column (seen in the photo run). [B-106]
 
 **To see in a client** (the headless dev server cannot): the hologram hints, a survival build from a real AE system,
@@ -197,7 +199,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-95, B-105..B-107
+## Part B. Entries B-1..B-95, B-105..B-108
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -4305,6 +4307,78 @@ branch's later files (`AutoRigEyeAE`, `MeParts`, `RecClient`, `RecServer`; forma
 
 **Checks.** `spotlessApply compileJava` passes on the merged tree. No in-game run was part of the merge; the
 recorder and photo rigs are next exercised by the showcase recording on master.
+
+### B-108 The Eye's buffer intake cap: one ME stocking hatch no longer drains the network [B-107 open work (a), built]
+
+**The problem.** An ME stocking input hatch in an Eye gas socket shows the Eye up to 2.1 G L of each fluid a second,
+and the buffers took everything (their only cap was 2^62 L). One hatch emptied a network of fluid cells into the Eye
+within seconds, and anything else on that network (the AE2 video rig's trim export buses) found nothing (B-107).
+
+**What was built.** The sockets now fill each buffer only to its **intake cap**, and each pull takes at most the cap
+minus what is buffered (`MTEEyeOfHarmonyBTS.intakeCaps`, star side `EyeStarRuntime.intakeCaps`). Per fluid:
+
+- **Each star in play** (the live star, the slot's chart, and the star a dark Eye lights for it: Arcturus for the
+  neutron-star relight): max(ignition need, 20 cycles of upkeep) × p. The ignition need is 10 cycles of upkeep plus
+  the seed cloud, the same number the dark-state message names. Also the T4 HSM feed for 20 cycles at its maximum
+  (1.5 L/s), 2 T5 batch / T6 merger charges and 2 T6 dwarf-matter top-ups. Stars are max-merged, because only one
+  burns at a time.
+- **Plus each transition the Eye could begin**: the live star's toward the chart (T4-T6 from the chart alone), the
+  one running, and the next one once its core is in escrow (Status bit 1's rule). Each adds its event fluids and the
+  new star's first cycle (`transitionNeeds`). The Core Collapse also adds the 90,000 L of SpaceTime the bounce can
+  absorb.
+- **Plus a planet in the slot**: 2 runs of its inputs at full parallel.
+
+A fluid with no cap is not pulled at all; it stays in the hatch or the network. The cap covers every amount the
+Eye checks its buffers against: the dark-state checklist, Status bit 1 (`buffersShort`), the transition's `missing`
+list and a planet's parallel. So nothing that could start waits on the cap, and those messages are unchanged. The
+Field sockets and trims are untouched. **Old worlds:** a buffer above its cap keeps what it holds and is only drawn
+down; the sockets pull again once it is below the cap.
+
+**Where the player sees it.** The tooltip says the buffers fill only to the target's intake cap and names the rule.
+The scanner's buffer line is now "held / intake cap" per fluid ("not pulled" for a fluid with no cap). OpenComputers
+has a new `bts_eye.getIntakeCaps()`. `docs/automation.md` §2.1 / §2.3 explain it and add a short network note.
+Even with the cap, a stocking hatch takes up to the cap in its first second (1 G L of each gas for Sol), so keep the
+network's stock above the cap, or put the trims on their own network or behind a small Field hatch. The questbook is
+unchanged: no quest says the buffers take everything ("Inputs drain into internal buffers every second, so ME stocking
+input hatches on the gas sockets work" is still true).
+
+**Dev-server test** (headless `runServer`, fresh flat worlds `intake-b108b` / `intake-b108c`, console; T1 Eye built by
+`/btseye t1 3000 100 0 north gen 1`, `/btseye keep`, then the new bench `/btseye star 3000 100 0 intake setup 10`: an
+ME stocking hatch (He, H) in the first gas socket, a creative ME controller, a drive with one 10 G L fluid cell per gas,
+and a second consumer on the same network, an always-on fluid export bus (H, 3 cards) into a Super Tank):
+
+| Step | Hydrogen buffer / cap | Helium buffer / cap | Network H / He | Super Tank (2nd consumer) | Star |
+|---|---|---|---|---|---|
+| 8 s after setup (target Sol) | 1,000,000,000 / 1,000,000,000 | 1,000,000,000 / 1,000,000,000 | 8,999,616,000 / 9,000,000,000 | 384,000 L, filling | DARK, no charge |
+| charge + 10^18 EU + `rig fine`, 48 s later | 950,000,000 / 1 G | 950,000,000 / 1 G | 8,896,000,000 / 8,900,000,000 | 4,000,000 L (full) | LIT (seed 100 M burned and refilled) |
+| one cycle later | 1 G / 1 G | 1 G / 1 G | 8,796,000,000 / 8,800,000,000 | full | LIT (50 M upkeep a cycle, topped back up) |
+| one more cycle | 1 G / 1 G | 1 G / 1 G | 8,746,000,000 / 8,750,000,000 | full | LIT |
+| `buffer hydrogen 5e12` (an old world) | 5,000,000,000,000 / 1 G, network H unchanged over 12 s | 1 G / 1 G | 8,750,000,000 / 7,750,000,000 | - | LIT |
+| `target none` | cap 0 ("not pulled") | cap 0 | unchanged over 6 s | - | put out (target changed) |
+
+So the buffer stops at the cap and the network keeps the rest (8.75 G L of the 10 G L). The Eye still ignites and
+burns, refilling to the cap after the seed and each cycle. The second consumer on the same network filled its tank.
+Before the cap, the same rig emptied the cells in its first second (B-107). The table's runs are run 2 (old-world and
+`target none` rows) and run 3 (the rest; run 2's Super Tank faced the bus with its output side and took nothing, fixed
+in the bench). Static: `spotlessApply compileJava`, `node tools/fieldsim-golden.js --check --java` 78 / 78 PASS (the
+field package is untouched).
+
+**Judgement calls (please confirm or change).**
+
+1. **The margins: 20 cycles, 2 charges, 2 planet runs.** 20 cycles is the task's recommended number. For Sol at p = 1
+   that is 1 G L per gas, against an ignition need of 600 M L. Alternatives: 10 cycles (just the ignition need, so a
+   relight right after a loss could wait a few seconds for the refill), or a config value.
+2. **The cap follows the target, not the tier.** A fluid the current target (and a core in escrow) does not use is
+   not pulled. So Raw Stellar Plasma for the Mass Infusion is pulled once the Stellar Mass Core is in escrow or the
+   Sirius A chart is in, which is the order the questbook already gives. An empty slot pulls nothing. The alternative
+   is a cap over every star and planet the Eye's tier reaches: simpler to explain, but a T3 Eye would then hold
+   planet-sized H / He stocks it may never use.
+3. **The stellar sockets are capped too**, by the same rule (RSPM, ESPM, HSM, SpaceTime, WDM / BDM, Agent). The
+   task named the gas buffers; the same drain could empty a network of any of these.
+4. **No GUI change on master.** The `gui-clean` branch rewrites the Eye GUI. Its merge can show held / cap from
+   `intakeCaps()` (section 3).
+
+**Suggestion:** as built.
 
 ## Where the old question numbers went
 

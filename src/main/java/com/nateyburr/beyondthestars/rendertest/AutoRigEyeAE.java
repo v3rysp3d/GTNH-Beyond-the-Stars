@@ -73,9 +73,11 @@ import gregtech.common.tileentities.machines.MTEHatchInputME;
  * <b>The gas supply</b> stands in for the player's factory: two GT Debug Fluid Tanks (endless) behind AE2FC fluid
  * storage buses set to read only. They are empty, and the drive holds no cell, until {@link #insertCells} (the
  * recorder's {@code aecells}): the tanks get Helium and Hydrogen and the drive a cell of Stellar Ignition Charges,
- * all set up by script. A finite gas cell does not work here: the ME stocking hatch shows the Eye up to 2.1 G L a
- * second and the Eye's buffers take everything (they cap at 2^62 L), so a network of cells is emptied into the
- * buffers within seconds and the trim buses, which draw on the same network, run dry (seen in the first test). The
+ * all set up by script. Endless tanks, because before B-108 a finite gas cell did not work here: the ME stocking hatch
+ * shows the Eye up to 2.1 G L a second and the Eye's buffers took everything (2^62 L), so a network of cells was
+ * emptied
+ * into the buffers within seconds and the trim buses on it ran dry (seen in the first test). B-108 caps the intake
+ * (1 G L of each gas for Sol); the rig keeps its endless tanks and separate trim network. The
  * Eye's power is the owner's wireless EU, also set by script. From then on nothing touches the machine: a sampler
  * only reads ({@code eye-ae.tsv}).
  */
@@ -283,8 +285,9 @@ final class AutoRigEyeAE {
                 + ") behind read-only fluid storage buses; empty until aecells");
         // 4. the trims' own network (light blue: cables of different colours do not join): a second trunk three
         // blocks further out, its own creative-energy controller and its own supply, and a riser up to each trim
-        // station. On the main network the Eye's stocking hatch would pull every litre into the Eye's buffers (it shows
-        // the Eye up to 2.1 G L a second and the buffers cap at 2^62 L), and the trim buses would find nothing.
+        // station. Before B-108 the Eye's stocking hatch pulled every litre on the main network into the Eye's buffers
+        // (it shows the Eye up to 2.1 G L a second), and the trim buses found nothing; the intake cap fixed that, the
+        // separate network stays (the recorded rig).
         final int zT2 = zT - 3;
         final int[] w2 = { Math.min(trimBusHe[0], trimBusH[0]), y, zT2 },
             e2 = { Math.max(trimBusHe[0], trimBusH[0]), y, zT2 };
