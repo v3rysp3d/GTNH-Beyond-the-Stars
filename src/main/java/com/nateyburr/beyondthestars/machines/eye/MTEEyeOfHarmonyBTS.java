@@ -992,7 +992,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             BTSText.lang("beyondthestars.gui.eye.chk.reach", recipe.tier),
             BTSText.lit("T" + installedTier() + " / T" + recipe.tier),
             -1,
-            gate == null ? "" : BTSText.lang("GT5U.gui.text.recipe_result." + gate.getID()));
+            // getID() is the result TYPE ("simple_result"), not its lang key: send the server's display string.
+            gate == null ? "" : BTSText.lit(gate.getDisplayString()));
         for (EyeRecipe.FluidAmount in : recipe.inputs) {
             if (in.fluid == null || in.amount <= 0) continue;
             final long have = buffer(in.fluid);

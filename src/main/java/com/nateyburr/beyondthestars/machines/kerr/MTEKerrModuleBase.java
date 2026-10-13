@@ -354,9 +354,10 @@ public abstract class MTEKerrModuleBase<T extends MTEKerrModuleBase<T>> extends 
     public boolean shouldDisplayCheckRecipeResult() {
         final CheckRecipeResult r = getCheckRecipeResult();
         if (r == null) return true;
-        final String id = r.getID();
+        // getID() is the result TYPE ("simple_result" for every SimpleCheckRecipeResult); equals compares the key.
         for (Link l : Link.VALUES) {
-            if (l != Link.LINKED && ("beyondthestars.kerr.module." + l.key).equals(id)) return false;
+            if (l != Link.LINKED && SimpleCheckRecipeResult.ofFailure("beyondthestars.kerr.module." + l.key)
+                .equals(r)) return false;
         }
         return true;
     }
