@@ -28,6 +28,8 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 
 import com.nateyburr.beyondthestars.BeyondTheStars;
+import com.nateyburr.beyondthestars.client.render.GpuTimer;
+import com.nateyburr.beyondthestars.client.render.RenderQuality;
 import com.nateyburr.beyondthestars.machines.eye.render.TileEyeStar;
 import com.nateyburr.beyondthestars.machines.kerr.TileKerrHole;
 import com.nateyburr.beyondthestars.machines.quasar.render.TileQuasarHole;
@@ -50,6 +52,11 @@ import cpw.mods.fml.relauncher.SideOnly;
  * until the chunks have arrived and rendered, and saves {@code screenshots/rendertest/<case>_<view>_<day|night>.png}
  * with vanilla's {@link ScreenShotHelper}. The FPS of the debug counter at each shot is logged per case in
  * {@code screenshots/rendertest/rendertest.log} and {@code fps.tsv}. When every case is done it closes the game.
+ * <p>
+ * Renders v2 (WP-0): {@code -Dbts.rendertest.quality=low|medium|high} shoots a quality other than the config's, and
+ * {@code -Dbts.rendertest.gputime=true} adds each shot's GPU and CPU milliseconds per frame of our renderers, averaged
+ * over the view's still window ({@link GpuTimer}), to {@code fps.tsv} ({@code gpu_ms}, {@code cpu_ms},
+ * {@code gpu_detail}) and the log, with every object's detail tier.
  */
 @SideOnly(Side.CLIENT)
 public final class RenderTestClient {
@@ -143,7 +150,7 @@ public final class RenderTestClient {
             fps = new PrintWriter(
                 new OutputStreamWriter(new FileOutputStream(new File(dir, "fps.tsv")), StandardCharsets.UTF_8),
                 true);
-            fps.println("case\tview\tfps\tchunk_updates\tfile");
+            fps.println("case\tview\tfps\tchunk_updates\tfile\tgpu_ms\tcpu_ms\tgpu_detail");
             poses = new PrintWriter(
                 new OutputStreamWriter(new FileOutputStream(new File(dir, "poses.tsv")), StandardCharsets.UTF_8),
                 true);
@@ -231,12 +238,41 @@ public final class RenderTestClient {
         final int[] counter = debugCounter();
         caseFps.add(counter[0]);
         files.add(file);
-        if (fps != null) fps.println(c.name + "\t" + view + "\t" + counter[0] + "\t" + counter[1] + "\t" + file);
+        final GpuTimer.Report gpu = GpuTimer.ENABLED ? GpuTimer.report() : null;
+        if (fps != null) {
+            fps.println(
+                c.name + "\t"
+                    + view
+                    + "\t"
+                    + counter[0]
+                    + "\t"
+                    + counter[1]
+                    + "\t"
+                    + file
+                    + "\t"
+                    + (gpu == null ? "" : String.format(Locale.ROOT, "%.4f", gpu.gpuMs))
+                    + "\t"
+                    + (gpu == null ? "" : String.format(Locale.ROOT, "%.4f", gpu.cpuMs))
+                    + "\t"
+                    + (gpu == null ? "" : gpu.detail));
+        }
         String pose;
         while ((pose = RenderTest.POSE_LOG.poll()) != null) {
             if (poses != null) poses.println(pose);
         }
         say("SHOT " + file + "  fps " + counter[0] + ", " + counter[1] + " chunk updates; " + clientView());
+        say("  render: " + RenderQuality.describe());
+        if (gpu != null) {
+            say(
+                String.format(
+                    Locale.ROOT,
+                    "  gpu %.4f ms, cpu %.4f ms per frame over %d frames%s: %s",
+                    gpu.gpuMs,
+                    gpu.cpuMs,
+                    gpu.frames,
+                    gpu.gpuSupported ? "" : " (no timer queries: cpu only)",
+                    gpu.detail));
+        }
         if (dirt != null) {
             say("  re-render causes over the last " + stillTicks + " still ticks: " + dirt.top(6));
             final String paths = dirt.stacks();
@@ -294,7 +330,9 @@ public final class RenderTestClient {
                 + RenderTest.CASES.size()
                 + " cases x "
                 + RenderTest.VIEWS.length * 2
-                + " shots");
+                + " shots; render quality "
+                + RenderQuality.quality()
+                + (GpuTimer.ENABLED ? ", GPU timer on" : ""));
     }
 
     private void waitMenu() {
@@ -447,6 +485,8 @@ public final class RenderTestClient {
         } else {
             stillTicks = 0;
             if (dirt != null) dirt.reset();
+            // the GPU numbers cover the still window only
+            GpuTimer.reset();
         }
         lastChunks = chunks;
         if (phaseTicks >= settleMax) {
