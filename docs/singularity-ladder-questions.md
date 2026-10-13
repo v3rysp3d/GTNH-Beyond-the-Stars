@@ -115,6 +115,8 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
 - The playtest jar `master.235` is packaged with a local-install INSTALL.md and a playtest guide (B-90). [B-90]
 - Controller GUI cleanup unit 1 (branch `gui-clean`): the GUI kit, the family frame and the Eye of Harmony GUI;
   the questbook's "field line" sentence becomes "Lock bar" when the questbook owner applies it. [B-96]
+- Controller GUI cleanup unit 2 (branch `gui-clean`): the Kerr Ergosphere Engine and the two Kerr module GUIs on the
+  kit; the disabled power switch no longer draws GT's missing texture. [B-97]
 
 **To see in a client** (the headless dev server cannot): the hologram hints, a survival build from a real AE system,
 the NEI multiblock tab and its frame rate (a T6 Eye is 51,935 blocks), every GUI (Eye, KEE, modules, Directive Hatch,
@@ -3813,6 +3815,76 @@ the HSM feed, the Field panel).
 alert only on an issue, the render toggle in the column top, the Info page, the Field panel at 1.0 text.
 
 **Suggestion.** Accept; the next units (Kerr, modules, Homogeny, Reality, Silo, halls, hatches) reuse the kit as is.
+
+### B-97 Controller GUI cleanup, unit 2: the Kerr Ergosphere Engine and the Kerr modules [user approval 2026-10-13, built on branch gui-clean]
+
+**Context.** Spec §5.2 (the KEE) and §5.3 (the Compressor and Extractor modules) of `controller-gui-spec.md`, on the
+kit from B-96. The spec's recommended answers stand (Q1 terminal 118, Q4 no G logo, Q5 Info page, Q6 lang keys, Q8
+render toggle in the button column, Q10 TecTech's disabled power-switch icon).
+
+**What was built.**
+
+- `MTEKerrEngineGui` on `BTSControllerGui`: the §5.2 badge table (FROZEN, NOT FORMED, CLOSED, NO POWER, DRIFTING,
+  GROWING, OPEN), subject "Hole {m} SM" / "No hole", right chip Kerr T1/T2 (tooltip: setpoint range, rail Mk and cap).
+  Open: Mass bar (setpoint tick, value white / gold / aqua against the setpoint), Stability bar, the red evaporation
+  note while drifting, Governor bar, Bolt stock with its duration, Containment, Bleed, module chips. Closed: the "To
+  open a hole (8 SM)" checklist (cage, Seed, containment power, bolts), Auto, chips. Info: the questbook's RUN steps,
+  BOLTS, T2, AUTO. Gap row: Setpoint stepper; [Hole control] [Modules] [i]. Render toggle in the button column. The
+  disabled power switch shows TecTech's icon with "The power switch does not stop the hole." Both side panels draw at
+  1.0 (Hole control 150 x 196, Modules rows 32 px).
+- `MTEKerrModuleGui` on the base as a recipe machine (GT's rows and buttons stay): RUNNING / IDLE / PAUSED / NOT
+  LINKED badges, the right chip x{parallel}, the "Hole bonus" stat pair, KEE cell and hole while linked, the "Runs
+  again when" checklist otherwise, the DENSITY gate as a note, an Info page.
+- Kit: a chip row's tooltip shows the hovered chip only (`KitWidget.mouseX`, `BTSGuiKit.chipAt`).
+- `hasRunningText` false on the KEE and the modules; `shouldDisplayCheckRecipeResult` false on the KEE.
+- Bench: `/btskerr gui x y z [info]`, `/btskerr module x y z <c|x> gui [info]`.
+
+**Judgement calls.**
+
+1. **NOT FORMED rows for the KEE** (the spec lists none): GT's structure-error rows (with the highlight button), then
+   "Not formed: hologram stack {1|2} shows the Kerr T{t} cage" and the module chips.
+2. **Modules get a NOT FORMED badge first** (the spec's table starts at LINKED). A module whose own arc is broken but
+   whose KEE is open would otherwise read IDLE. Its rows add a red note naming the KEE marker, then the link rows.
+3. **The module's GT recipe-result line hides only for the link results** (`kerr.module.holeclosed`, `nokee`, ...),
+   which the checklist already says; real results (no recipe, outputs full, the DENSITY gate) still show. This
+   matches the paused mockup, which shows no result sentence. It is decided on the client from the synced result id.
+4. **"KEE found" values are short** ("none here", "faces away") with the full link reason in the tooltip; the spec's
+   "the Link text" does not fit beside the label at 1.0.
+5. **"The recipe in progress is kept"** (in the mockup, not the spec's list) shows under the paused note only while a
+   recipe is held.
+6. **The containment-power check** compares the energy hatches' maximum input (`getMaxInputEu`, lasers included) with
+   8,388,608 EU/t; it does not check the stored charge.
+7. **The DENSITY gate note** is aqua when the gate is open and amber when shut (the spec says amber); its text is the
+   scanner's line with its colour codes stripped, and the tooltip is the recipe-result text.
+8. **`mapsLine()` is deleted.** "What the module runs" is now a lang key per slot (`beyondthestars.gui.module.info.
+   maps.<slot>`), so a new module adds one key, not a method.
+9. **Every Kerr GUI string is a lang key**, including the side panels' strings that were English in Java. The units
+   (SM, EU/t, SM/t) stay literal, as on the Eye. The module-state words reuse the badge keys.
+10. **The Hole control panel's tier line** reads "Kerr T1 ... Density: 2-512" (T2: "Density: in"), as in the mockup,
+    with the full sentence in its tooltip; the old 0.75-scale sentence did not fit at 1.0.
+11. **An empty bolt stock** shows "0.00 SM" in red without a duration.
+
+**Verified headless** (dev server on port 25611, `/btskerr t1 200 100 600 north force`, `/btskerr keep`, then the gui
+dumps): CLOSED with every check met (Seed 1, containment 8.39M against 4.29G of hatches, Auto ON); OPEN at 16.1 SM
+(mass 0.25 of 64 with the tick, stability 100 %, governor 0.05/4, bolt stock 12,773 SM 14h 27m, bleed 0.0123 SM/t);
+both modules IDLE / Linked x448 with Parallel 448 | Speed x3.97, the compressor's DENSITY note, the extractor without
+it; CLOSED after `render close` (Seed 0 BAD) and with the buses emptied (Bolts to grow it, amber); the compressor
+PAUSED with KEE found / formed and loaded OK and Hole open CLOSED; DRIFTING at 14.9 SM with no bolts (stability 0 %,
+"Evaporates in 17 s without bolts", governor 0.00/4); FROZEN after `damage` with the hole open (the extractor NOT
+LINKED, "KEE formed and loaded: NOT FORMED"); NOT FORMED after `damage` with it closed; both Info pages. 278 recipes /
+0 skipped, no exception from our code (GT's own "null detected in fluidInputs" dev-env lines are unchanged).
+
+**Not seen.** RUNNING on a module (the stocked compressor recipe had not started when the hole was closed) and NO
+POWER / GROWING (the bench has no unpowered or under-setpoint-with-bolts case); these are one-line badge branches.
+
+**To see in a client.** Both GUIs against `pair-kee.png` / `kee.png` at GUI scale 2 and 3: the power switch with
+TecTech's icon (no magenta), the render toggle at the top of the button column, the chip hover picking one chip, the
+Hole control panel at 1.0 (the two-line hint and Auto label), the Modules panel's scrolling lines.
+
+**Questbook.** No change needed: "The GUI shows how long the stock lasts", the Hole control panel's Auto, Open and
+Collapse twice all still hold.
+
+**Suggestion.** Accept.
 
 ---
 

@@ -231,7 +231,8 @@ errors and no crash. The boot log also confirms:
   empties its buses. `/btskerr damage|repair x y z` unforms the KEE by one cage block, then puts the block back.
   `/btskerr legacy x y z [inflight]` turns a built Kerr back into the pre-redesign layout; `inflight` also strips the
   module energy hatches and puts an old recipe in the KEE. `/btskerr module x y z <c|x> energy` fits a module a
-  creative energy hatch again (B-57).
+  creative energy hatch again (B-57). `/btskerr gui x y z [info]` and `/btskerr module x y z <c|x> gui [info]` print
+  the header and the rows (or the Info page) the KEE's and a module's GUI would show, as text (B-97).
 - **Overnight test bench** (B-71): `/btseye bec` lists our Condensate Assembler and Generator recipes as the server holds them (and whether GT's lookup finds each); `/btseye star x y z compression <1-9> [all]` swaps a Spacetime Compression Field Generator to test the 1:1 gate, and `/btseye star x y z check` prints the reason GT's run check would show.
 - **More console tools** (test bench): `/btseye gates` dumps the compression generator recipes the server actually
   has and checks the gate rule against them, and counts BHC consumers left. `/btsbuild t<1-5> <x> <y> <z> [facing]
