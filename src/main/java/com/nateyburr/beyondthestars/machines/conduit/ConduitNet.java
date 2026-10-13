@@ -1,5 +1,6 @@
 package com.nateyburr.beyondthestars.machines.conduit;
 
+import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
@@ -36,8 +37,9 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
  * structure check.
  * <p>
  * <b>The registry.</b> Every formed element registers its in-throats here once a second ({@link #register}); entries
- * older than {@link #FRESH_TICKS} are ignored, so nothing here outlives a machine. Keyed per world (weakly). Server
- * thread only.
+ * older than {@link #FRESH_TICKS} are ignored, so nothing here outlives a machine. Keyed per world (weakly), and an
+ * entry holds its element weakly too (P4-93): the element's tile reaches its world, so a strong value would pin the key
+ * and leak every unloaded world. Server thread only.
  */
 public final class ConduitNet {
 
@@ -52,19 +54,30 @@ public final class ConduitNet {
     /** A stream enters an opening at most this far off its axis: cos 60°. */
     public static final double MIN_ENTRY_COS = 0.5;
 
-    /** One element's in-throats, as last registered. */
+    /** One element's in-throats, as last registered. The element is held weakly (P4-93). */
     private static final class Entry {
 
-        final IConduitElement element;
+        private final WeakReference<IConduitElement> element;
         final ConduitThroats.WorldThroat[] in;
         final boolean[] twoSided;
         final long tick;
 
         Entry(IConduitElement element, ConduitThroats.WorldThroat[] in, boolean[] twoSided, long tick) {
-            this.element = element;
+            this.element = new WeakReference<>(element);
             this.in = in;
             this.twoSided = twoSided;
             this.tick = tick;
+        }
+
+        /** The element, or null once it is collected. */
+        IConduitElement element() {
+            return element.get();
+        }
+
+        /** Fresh at {@code now} and still a valid element. */
+        boolean live(long now) {
+            final IConduitElement el = element();
+            return now - tick <= FRESH_TICKS && el != null && el.conduitValid();
         }
     }
 
@@ -91,11 +104,11 @@ public final class ConduitNet {
         final Map<String, Entry> m = world == null ? null : TABLE.get(world);
         final Entry e = m == null ? null : m.get(key);
         if (e == null) return null;
-        if (world.getTotalWorldTime() - e.tick > FRESH_TICKS || !e.element.conduitValid()) {
+        if (!e.live(world.getTotalWorldTime())) {
             m.remove(key);
             return null;
         }
-        return e.element;
+        return e.element();
     }
 
     // ===================================================================================== routes
@@ -158,7 +171,7 @@ public final class ConduitNet {
     public static Route trace(World world, IConduitElement from, ConduitThroats.WorldThroat out) {
         final double[] o = out.centre;
         final double[] d = out.normal;
-        Entry bestEntry = null;
+        IConduitElement bestElement = null;
         int bestThroat = -1;
         double tBest = MAX_RAY;
         final Map<String, Entry> m = TABLE.get(world);
@@ -167,11 +180,12 @@ public final class ConduitNet {
             for (Iterator<Entry> it = m.values()
                 .iterator(); it.hasNext();) {
                 final Entry e = it.next();
-                if (now - e.tick > FRESH_TICKS || !e.element.conduitValid()) {
+                final IConduitElement el = e.element();
+                if (!e.live(now)) {
                     it.remove();
                     continue;
                 }
-                if (e.element == from) continue;
+                if (el == from) continue;
                 for (int i = 0; i < e.in.length; i++) {
                     final ConduitThroats.WorldThroat th = e.in[i];
                     final double dn = dot(d, th.normal);
@@ -184,7 +198,7 @@ public final class ConduitNet {
                     final double pz = o[2] + t * d[2] - th.centre[2];
                     if (Math.sqrt(px * px + py * py + pz * pz) > th.radius + 0.5) continue;
                     tBest = t;
-                    bestEntry = e;
+                    bestElement = el;
                     bestThroat = th.index;
                 }
             }
@@ -192,14 +206,8 @@ public final class ConduitNet {
         // walk the cells up to the opening (or the range): air and render blocks pass, a receptor takes it
         final Route hit = walk(world, o, d, tBest);
         if (hit != null) return hit;
-        if (bestEntry == null) return new Route(Kind.NOTHING, null, -1, null, MAX_RAY, "");
-        return new Route(
-            Kind.ELEMENT,
-            bestEntry.element.conduitKey(),
-            bestThroat,
-            null,
-            tBest,
-            bestEntry.element.conduitLabel());
+        if (bestElement == null) return new Route(Kind.NOTHING, null, -1, null, MAX_RAY, "");
+        return new Route(Kind.ELEMENT, bestElement.conduitKey(), bestThroat, null, tBest, bestElement.conduitLabel());
     }
 
     /**
