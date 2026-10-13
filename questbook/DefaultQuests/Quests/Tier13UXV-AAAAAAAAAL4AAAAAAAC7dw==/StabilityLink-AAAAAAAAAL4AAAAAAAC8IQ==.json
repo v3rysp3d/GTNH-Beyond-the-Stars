@@ -1,0 +1,66 @@
+{
+  "preRequisites:9": {
+    "0:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48160
+    }
+  },
+  "properties:10": {
+    "betterquesting:10": {
+      "autoClaim:1": 0,
+      "completion_animation:8": "default",
+      "completion_particle:8": "default",
+      "confetti_icon:10": {
+        "Count:3": 0,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "minecraft:stick"
+      },
+      "countAsQuest:1": 1,
+      "desc:8": "The T6 → T7 machine milestone: a linked quasar delivers a 60 s mean of at least§9 1.5 Bu/t§r to the rail, the high bank taking 25-75 %, for§9 30 min unbroken§r. The streak resets the second it fails.\n\n§5§lTHE §lORDER§r\n1. The item milestones: 2,700 L Magnetar Matter from all-Stable cycles, 2 h Resonant, 50 giant flares ridden.\n2. §9Transition [4]§r asks for the §9Intergalactic Upgrade Core§r: put it in escrow.\n3. §9Slots [8]§r asks for the test fire: J1 all to the Eye. At T6 the bursts are a test fire with no field effect.\n4. The link, then the Triangulum chart, then Begin (see §cMagnetar Collapse§r).\n\nRun the quasar at §9f 1.0§r with its trim valves: a 64 SM quasar at the default f 0.85 is too thin, and a fresh hole spins up for about an hour first. The GUI, the scanner, the sensor's link streak and link mean channels, and OpenComputers getUnlock() show the streak.\n\n§2§lDONE §lWHEN§r the Eye's GUI says the Stability Link is held (tick the box).",
+      "globalShare:1": 0,
+      "icon:10": {
+        "Count:3": 1,
+        "Damage:2": 28125,
+        "OreDict:8": "",
+        "id:8": "gregtech:gt.blockmachines"
+      },
+      "isMain:1": 0,
+      "isSilent:1": 0,
+      "lockedProgress:1": 0,
+      "name:8": "§4§l§nStability Link",
+      "notification_duration:5": -1.0,
+      "notification_effect:3": -1,
+      "notification_fade_in:5": -1.0,
+      "notification_fade_out:5": -1.0,
+      "notification_icon_offset_y:3": -2147483648,
+      "notification_icon_scale:5": -1.0,
+      "notification_pos_x:3": -2147483648,
+      "notification_pos_y:3": -2147483648,
+      "notification_show_icon:8": "default",
+      "notification_style:8": "default",
+      "notification_subtitle:8": "",
+      "notification_subtitle_scale:5": -1.0,
+      "notification_title:8": "",
+      "notification_title_scale:5": -1.0,
+      "particle_count:3": -1,
+      "questLogic:8": "AND",
+      "repeatTime:3": -1,
+      "repeat_relative:1": 1,
+      "simultaneous:1": 0,
+      "snd_complete:8": "random.levelup",
+      "snd_update:8": "random.levelup",
+      "taskLogic:8": "AND",
+      "visibility:8": "NORMAL"
+    }
+  },
+  "questIDHigh:4": 190,
+  "questIDLow:4": 48161,
+  "rewards:9": {},
+  "tasks:9": {
+    "0:10": {
+      "index:3": 0,
+      "taskID:8": "bq_standard:checkbox"
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "preRequisites:9": {
+    "0:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48113
+    },
+    "1:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48159
+    }
+  },
+  "properties:10": {
+    "betterquesting:10": {
+      "autoClaim:1": 0,
+      "completion_animation:8": "default",
+      "completion_particle:8": "default",
+      "confetti_icon:10": {
+        "Count:3": 0,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "minecraft:stick"
+      },
+      "countAsQuest:1": 1,
+      "desc:8": "A §9GRB Receptor Port§r fits any KEE utility socket. Demand: 0.1 Bu/t at T1, 0.25 at T2; σ on the 60 s mean.\n- The Hawking bleed is × (1 - 0.75 × min(σ, 1)): at σ ≥ 1 the hole needs 75 % fewer bolts.\n- On T2 at σ ≥ 1 the setpoint cap rises from 512 to§9 768 SM§r, so the modules get 27 parallels instead of 22.\n- A lost link drops the cap back to 512. The hole bleeds down to it slowly and your setpoint is kept; the modules count the mass only up to the cap in force, so the extra parallels go with the link at once.\n- A quasar that is unformed or not loaded pauses the link: the bleed relief, the 768 SM cap and the Superdense refining stop until it runs again.\n- One Junction's out 3 at 10 % feeds a KEE T2 from any quasar of 2.5 Bu/t or more.\n\nThe KEE's GUI and scanner show the link line; OpenComputers bts_kerr.getState().link.\n\n§2§lDONE §lWHEN§r your KEE shows a quasar link (tick the box).",
+      "globalShare:1": 0,
+      "icon:10": {
+        "Count:3": 1,
+        "Damage:2": 28114,
+        "OreDict:8": "",
+        "id:8": "gregtech:gt.blockmachines"
+      },
+      "isMain:1": 0,
+      "isSilent:1": 0,
+      "lockedProgress:1": 0,
+      "name:8": "§4§l§nA Quasar-Linked Kerr",
+      "notification_duration:5": -1.0,
+      "notification_effect:3": -1,
+      "notification_fade_in:5": -1.0,
+      "notification_fade_out:5": -1.0,
+      "notification_icon_offset_y:3": -2147483648,
+      "notification_icon_scale:5": -1.0,
+      "notification_pos_x:3": -2147483648,
+      "notification_pos_y:3": -2147483648,
+      "notification_show_icon:8": "default",
+      "notification_style:8": "default",
+      "notification_subtitle:8": "",
+      "notification_subtitle_scale:5": -1.0,
+      "notification_title:8": "",
+      "notification_title_scale:5": -1.0,
+      "particle_count:3": -1,
+      "questLogic:8": "AND",
+      "repeatTime:3": -1,
+      "repeat_relative:1": 1,
+      "simultaneous:1": 0,
+      "snd_complete:8": "random.levelup",
+      "snd_update:8": "random.levelup",
+      "taskLogic:8": "AND",
+      "visibility:8": "NORMAL"
+    }
+  },
+  "questIDHigh:4": 190,
+  "questIDLow:4": 48167,
+  "rewards:9": {},
+  "tasks:9": {
+    "0:10": {
+      "index:3": 0,
+      "taskID:8": "bq_standard:checkbox"
+    }
+  }
+}

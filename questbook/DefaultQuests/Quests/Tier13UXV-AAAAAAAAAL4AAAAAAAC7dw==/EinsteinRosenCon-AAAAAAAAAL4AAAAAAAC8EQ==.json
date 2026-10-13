@@ -3,6 +3,10 @@
     "0:10": {
       "questIDHigh:4": 190,
       "questIDLow:4": 48144
+    },
+    "1:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48158
     }
   },
   "properties:10": {
@@ -16,19 +20,19 @@
         "OreDict:8": "",
         "id:8": "minecraft:stick"
       },
-      "countAsQuest:1": 0,
-      "desc:8": "The Conduit will carry the quasar's bursts anywhere, with no loss:\n- a §9Wormhole Mouth§r pair, linked with a data stick, at any distance, other dimensions included;\n- §9Mirrors§r to turn a stream;\n- §9Junctions§r to split a stream (steerable by redstone) or combine up to three.\nUpkeep is molten SpaceTime before T7 and Ergomatter after. §9GRB Receptor Ports§r take the stream: on the Eye's rail, and on the Kerr, the Homogeny and Reality Diffraction, which a quasar can stabilise too.\n\n[note]§lComing §llater.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
+      "countAsQuest:1": 1,
+      "desc:8": "The Conduit carries bursts anywhere, with no loss.\n- §9Wormhole Mouths§r: right-click one with a Data Stick, then the other: they are paired, at any distance, even in another dimension. A stream enters a ring through its front face (the controller's side) and leaves the partner out of its back. To take a jet, lay a mouth on a quasar cap with its front-face centre on the port cell, facing the quasar.\n- §9Mirrors§r turn a stream 90° (any facing; either throat in).\n- §9Junctions§r split (the big throat in; out 3 takes its fixed % first; out 1 and out 2 share the rest by c + k × (s/15 - 0.5), s from its Burst Control Hatch) or combine (three in, one out).\n- A stream flies straight through up to 64 blocks of air to the next throat or a GRB Receptor Port. The scanner names the target, or where it is blocked.\n\nPut a throat in each controller and fuel in its input hatches. A new element opens after 10 s of paid upkeep. One throat caps the whole element; the excess is clipped, never damage. Keep every element chunk-loaded: an unloaded one breaks the path.\n\n§2§lDONE §lWHEN§r you hold two Wormhole Mouths, a Conduit Mirror and a Conduit Junction (HOLD → CLAIM → INSTALL).",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
-        "Damage:2": 15465,
+        "Damage:2": 28121,
         "OreDict:8": "",
         "id:8": "gregtech:gt.blockmachines"
       },
       "isMain:1": 0,
       "isSilent:1": 0,
       "lockedProgress:1": 0,
-      "name:8": "§7§l§nEinstein-Rosen Conduit§r §8(planned)",
+      "name:8": "§4§l§nEinstein-Rosen Conduit",
       "notification_duration:5": -1.0,
       "notification_effect:3": -1,
       "notification_fade_in:5": -1.0,
@@ -59,8 +63,76 @@
   "rewards:9": {},
   "tasks:9": {
     "0:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
       "index:3": 0,
-      "taskID:8": "bq_standard:checkbox"
+      "partialMatch:1": 1,
+      "requireOnlyOneItem:1": 0,
+      "requiredItems:9": {
+        "0:10": {
+          "Count:3": 2,
+          "Damage:2": 28121,
+          "OreDict:8": "",
+          "id:8": "gregtech:gt.blockmachines"
+        },
+        "1:10": {
+          "Count:3": 1,
+          "Damage:2": 28122,
+          "OreDict:8": "",
+          "id:8": "gregtech:gt.blockmachines"
+        },
+        "2:10": {
+          "Count:3": 1,
+          "Damage:2": 28123,
+          "OreDict:8": "",
+          "id:8": "gregtech:gt.blockmachines"
+        }
+      },
+      "taskID:8": "bq_standard:retrieval"
+    },
+    "1:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
+      "index:3": 1,
+      "partialMatch:1": 1,
+      "requireOnlyOneItem:1": 0,
+      "requiredItems:9": {
+        "0:10": {
+          "Count:3": 413,
+          "Damage:2": 10,
+          "OreDict:8": "",
+          "id:8": "tectech:gt.blockcasingsBA0"
+        },
+        "1:10": {
+          "Count:3": 412,
+          "Damage:2": 11,
+          "OreDict:8": "",
+          "id:8": "tectech:gt.blockcasingsBA0"
+        },
+        "2:10": {
+          "Count:3": 392,
+          "Damage:2": 9,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:slCasing2"
+        },
+        "3:10": {
+          "Count:3": 144,
+          "Damage:2": 14,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:slCasing"
+        },
+        "4:10": {
+          "Count:3": 32,
+          "Damage:2": 8,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:slCasing2"
+        }
+      },
+      "taskID:8": "bq_standard:optional_retrieval"
     }
   }
 }

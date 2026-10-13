@@ -1,0 +1,66 @@
+{
+  "preRequisites:9": {
+    "0:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48163
+    }
+  },
+  "properties:10": {
+    "betterquesting:10": {
+      "autoClaim:1": 0,
+      "completion_animation:8": "default",
+      "completion_particle:8": "default",
+      "confetti_icon:10": {
+        "Count:3": 0,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "minecraft:stick"
+      },
+      "countAsQuest:1": 1,
+      "desc:8": "The T7 → T8 machine milestone: a 60 s mean of at least§9 6 Bu/t§r on the Eye's ports, at least half of it on the halo, for§9 30 min unbroken§r.\n\n§5§lTHE §lORDER§r\n1. The item milestones: 216,000 L Ergomatter from all-Stable cycles, 2 h Resonant, 4 minor mergers ridden.\n2. §9Transition [4]:§r the §9Supermassive Seed Core§r into escrow.\n3. §9Slots [8]:§r the test fire. J1 all to the Eye, and J3 to its 75 % halo preset.\n\nSlots [8] waits until the quasar's mean stream reaches§9 6 Bu/t§r (about 130 SM at coils 3): below that the rail's quarter would starve Triangulum. Keep the quasar growing (f 1.0); the Galaxy panel says how far you are.\n\nAbove§9 32 Bu/t§r (about 260 SM) Slots [8] stops again: the rail's quarter would flood the field. The Galaxy panel then gives the J1 Eye share to test-fire with instead (16 Bu/t to the Eye; testFireShare in OpenComputers getUnlock()). Set J1 to it with a Burst Control Hatch level or junction.setRatio, and J3 to 75 % halo.\n\n§2§lDONE §lWHEN§r the Eye's GUI says the Heavy Link is held (tick the box).",
+      "globalShare:1": 0,
+      "icon:10": {
+        "Count:3": 1,
+        "Damage:2": 28125,
+        "OreDict:8": "",
+        "id:8": "gregtech:gt.blockmachines"
+      },
+      "isMain:1": 0,
+      "isSilent:1": 0,
+      "lockedProgress:1": 0,
+      "name:8": "§4§l§nHeavy Link",
+      "notification_duration:5": -1.0,
+      "notification_effect:3": -1,
+      "notification_fade_in:5": -1.0,
+      "notification_fade_out:5": -1.0,
+      "notification_icon_offset_y:3": -2147483648,
+      "notification_icon_scale:5": -1.0,
+      "notification_pos_x:3": -2147483648,
+      "notification_pos_y:3": -2147483648,
+      "notification_show_icon:8": "default",
+      "notification_style:8": "default",
+      "notification_subtitle:8": "",
+      "notification_subtitle_scale:5": -1.0,
+      "notification_title:8": "",
+      "notification_title_scale:5": -1.0,
+      "particle_count:3": -1,
+      "questLogic:8": "AND",
+      "repeatTime:3": -1,
+      "repeat_relative:1": 1,
+      "simultaneous:1": 0,
+      "snd_complete:8": "random.levelup",
+      "snd_update:8": "random.levelup",
+      "taskLogic:8": "AND",
+      "visibility:8": "NORMAL"
+    }
+  },
+  "questIDHigh:4": 190,
+  "questIDLow:4": 48164,
+  "rewards:9": {},
+  "tasks:9": {
+    "0:10": {
+      "index:3": 0,
+      "taskID:8": "bq_standard:checkbox"
+    }
+  }
+}

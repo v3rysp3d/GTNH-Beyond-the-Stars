@@ -1,0 +1,86 @@
+{
+  "preRequisites:9": {
+    "0:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48161
+    }
+  },
+  "properties:10": {
+    "betterquesting:10": {
+      "autoClaim:1": 0,
+      "completion_animation:8": "default",
+      "completion_particle:8": "default",
+      "confetti_icon:10": {
+        "Count:3": 0,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "minecraft:stick"
+      },
+      "countAsQuest:1": 1,
+      "desc:8": "The T6 → T7 transition. With the §9Intergalactic Upgrade Core§r in escrow (right-click the controller) and §9Star Chart: Triangulum§r in the slot, the Eye is PENDING and the magnetar keeps burning.\n\n§5§lBEGIN§r\n- Buffer the charge first:§9 18,432 L White Dwarf Matter§r and§9 4,608 L Black Dwarf Matter§r (× p), plus Triangulum's first cycle (8 L Magnetar Matter).\n- When Galaxy Transition [1] (ready) is on, §9Begin§r: the GUI's Galaxy panel, a rising edge on a Burst Control Hatch in Begin mode in a plinth d socket, or OpenComputers beginTransition().\n\n§5§lPHASES§r\n1. §9Overfeed§r, 5 min: White Dwarf Matter 61.44 and Black Dwarf Matter 15.36 L/s on top of the upkeep; Ω and Π wind up.\n2. §9Collapse§r: a shock of P +120, minus 10 for every Bu/t above 1.5 that lands that second.\n3. §9Halo capture§r, 10 min: Stable for 60 s in a row between 7:00 and 10:00. A minor merger comes at 7:30.\n\n§5§lTHE §lSKILL §lMOVE§r Land an eruption on the collapse second. Galaxy Transition [8] holds your regulator's purges from T-80 s, and [4] purges at T-80 s and on the collapse second: wire (Disc [4] AND NOT [8]) OR [4] to the quasar's Burst Control Hatch and the eruption lands on the collapse.\n\nA failure loses the magnetar and keeps the core in escrow. Leave the chart in: the Eye re-spawns the magnetar (the Magnetar Merger's charge) and the collapse can run again, with no core and no link.\n\n[note]The core is a Condensate Assembler recipe: Entangled Magnetar Matter, Antipolarization Agent, SpaceTime and Black Dwarf condensates, two Mk I throats and White Dwarf nanites. It is consumed only when the collapse succeeds.[/note]\n\n§2§lDONE §lWHEN§r you hold the core and the chart (HOLD → CLAIM → INSTALL: claim before the core goes into escrow).",
+      "globalShare:1": 0,
+      "icon:10": {
+        "Count:3": 1,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "beyondthestars:intergalacticUpgradeCore"
+      },
+      "isMain:1": 0,
+      "isSilent:1": 0,
+      "lockedProgress:1": 0,
+      "name:8": "§4§l§nMagnetar Collapse",
+      "notification_duration:5": -1.0,
+      "notification_effect:3": -1,
+      "notification_fade_in:5": -1.0,
+      "notification_fade_out:5": -1.0,
+      "notification_icon_offset_y:3": -2147483648,
+      "notification_icon_scale:5": -1.0,
+      "notification_pos_x:3": -2147483648,
+      "notification_pos_y:3": -2147483648,
+      "notification_show_icon:8": "default",
+      "notification_style:8": "default",
+      "notification_subtitle:8": "",
+      "notification_subtitle_scale:5": -1.0,
+      "notification_title:8": "",
+      "notification_title_scale:5": -1.0,
+      "particle_count:3": -1,
+      "questLogic:8": "AND",
+      "repeatTime:3": -1,
+      "repeat_relative:1": 1,
+      "simultaneous:1": 0,
+      "snd_complete:8": "random.levelup",
+      "snd_update:8": "random.levelup",
+      "taskLogic:8": "AND",
+      "visibility:8": "NORMAL"
+    }
+  },
+  "questIDHigh:4": 190,
+  "questIDLow:4": 48162,
+  "rewards:9": {},
+  "tasks:9": {
+    "0:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
+      "index:3": 0,
+      "partialMatch:1": 1,
+      "requireOnlyOneItem:1": 0,
+      "requiredItems:9": {
+        "0:10": {
+          "Count:3": 1,
+          "Damage:2": 0,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:intergalacticUpgradeCore"
+        },
+        "1:10": {
+          "Count:3": 1,
+          "Damage:2": 0,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:starChartTriangulum"
+        }
+      },
+      "taskID:8": "bq_standard:retrieval"
+    }
+  }
+}

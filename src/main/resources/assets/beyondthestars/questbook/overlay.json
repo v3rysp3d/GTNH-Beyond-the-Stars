@@ -1,12 +1,12 @@
 {
-  "bundleVersion": "d01088fe8d760cb18ab1a59787301c51675a9f26",
+  "bundleVersion": "6876d7837407a7a1d0a0cb5b4fc4c7f98781b9ee",
   "format": 1,
   "idHigh": 190,
   "packVersion": 2171,
   "source": {
     "data": "questbook/singularity.json",
     "src": ".",
-    "srcHead": "af88fdf master",
+    "srcHead": "c596d51 master",
     "manifestSha": "fa6fec2a751c20eef04cc449df70c3e0c428e9e1"
   },
   "features": {
@@ -15,15 +15,15 @@
     "agentChain": true,
     "uxvLaserIds": true,
     "homogeny": true,
-    "quasar": false,
-    "conduit": false,
-    "crown": false,
-    "eyeT7T8": false,
+    "quasar": true,
+    "conduit": true,
+    "crown": true,
+    "eyeT7T8": true,
     "uxvParts": false,
     "eyeT9T10": false,
     "realityRefab": false,
     "maxParts": false,
-    "eternityOnErgomatter": false,
+    "eternityOnErgomatter": true,
     "uxvSwap": false,
     "astralArrayOnEye": false,
     "bec": false
@@ -40,7 +40,7 @@
           "betterquesting:10": {
             "bg_image:8": "",
             "bg_size:3": 256,
-            "desc:8": "The Eye's second half. §9Sirius B§r (T5) cools white dwarfs into black ones, and §9the magnetar§r (T6) runs on Antipolarization Agent. The §9Quasar Engine§r and the first galaxies (T7, T8) follow in a later update.\n\nThe bottom rows hold the pack's own UXV parts and machines. The crafted Stargate now waits in §1The Endgame§r, after MAX.",
+            "desc:8": "The Eye's second half. §9Sirius B§r (T5) cools white dwarfs into black ones, and §9the magnetar§r (T6) runs on Antipolarization Agent. The §9Quasar Engine§r and the first galaxies (T7, T8) are here: the quasar's bursts hold the Eye together and power your base.\n\nThe bottom rows hold the pack's own UXV parts and machines. The crafted Stargate now waits in §1The Endgame§r, after MAX.",
             "icon:10": {
               "Count:3": 1,
               "Damage:2": 11233,
@@ -108,7 +108,7 @@
           "questIDLow:4": 48146,
           "sizeX:3": 48,
           "sizeY:3": 48,
-          "x:3": 648,
+          "x:3": 744,
           "y:3": 156
         },
         {
@@ -116,15 +116,15 @@
           "questIDLow:4": 48147,
           "sizeX:3": 48,
           "sizeY:3": 48,
-          "x:3": 648,
-          "y:3": 252
+          "x:3": 744,
+          "y:3": 336
         },
         {
           "questIDHigh:4": 190,
           "questIDLow:4": 48148,
           "sizeX:3": 72,
           "sizeY:3": 72,
-          "x:3": 828,
+          "x:3": 936,
           "y:3": 144
         },
         {
@@ -132,8 +132,8 @@
           "questIDLow:4": 48149,
           "sizeX:3": 48,
           "sizeY:3": 48,
-          "x:3": 840,
-          "y:3": 252
+          "x:3": 948,
+          "y:3": 336
         },
         {
           "questIDHigh:4": 190,
@@ -166,6 +166,174 @@
           "sizeY:3": 24,
           "x:3": 300,
           "y:3": 504
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48154,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 384,
+          "y:3": 96
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48155,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 432,
+          "y:3": 48
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48156,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 480,
+          "y:3": 48
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48157,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 528,
+          "y:3": 48
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48158,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 564,
+          "y:3": 96
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48159,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 564,
+          "y:3": 252
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48160,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 612,
+          "y:3": 252
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48161,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 660,
+          "y:3": 252
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48162,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 660,
+          "y:3": 168
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48163,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 804,
+          "y:3": 252
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48164,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 852,
+          "y:3": 252
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48165,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 852,
+          "y:3": 168
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48166,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 660,
+          "y:3": 348
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48167,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 564,
+          "y:3": 336
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48168,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 228,
+          "y:3": 360
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48169,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 708,
+          "y:3": 96
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48170,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 804,
+          "y:3": 96
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48171,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 504,
+          "y:3": 12
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48172,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 612,
+          "y:3": 12
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48173,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 456,
+          "y:3": 12
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48174,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 468,
+          "y:3": 336
         }
       ]
     },
@@ -305,6 +473,14 @@
           "sizeY:3": 24,
           "x:3": 264,
           "y:3": 444
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48194,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 336,
+          "y:3": 96
         }
       ]
     },
@@ -4296,7 +4472,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "A live star is not a recipe. Every second the Eye updates a §9stability field§r. At T1 it has one gauge, §9P§r (pressure balance): minus is collapse, plus is expansion, and§9 0 is the target§r. Each higher star adds a gauge.\n\n§5§lZONES§r The worst gauge sets the zone, the yield and Integrity:\n- §9Resonant§r within ±10: yield ×1.25, Integrity +1 a second\n- §2Stable§r within ±40: ×1.00, +0.2\n- §5Strained§r within ±70: ×0.50, −0.5\n- §cCritical§r within ±100: no yield, −2\n- §4Breach§r beyond ±100: the star is lost at once\n§9Integrity§r (0-100) at 0 also loses the star. A lost star costs the star and its unfinished cycle, §lnever§r blocks, cores or unlocked tiers. Relight it with a new charge.\n\n§5§lTRIM§r Pour trim fluids into the §9Field sockets§r: 8 plain input hatches on the core band. They are never buffered, and ME stocking hatches there are refused. At T1, 1,000 L Helium is §9P −2§r and 1,000 L Hydrogen is §9P +2§r, up to 10 units a second.\n\n§5§lSENSE§r A §9Stellar Field Sensor Hatch§r (8 sockets on the core band) reads one channel against a threshold and emits redstone on all sides: digital (15 above or below the threshold) or analog (0-15 across the range). Channels: P, Θ, Ω, Π, the Agent shield, Integrity, Stability, zone, event warning (+, − or any) and upkeep OK. Right-click it to set it up.\n\n§5§lAUTOMATE§r The standard rig:\n- a sensor on §9P > +10§r → a Fluid Regulator cover, or an ME fluid export bus with a redstone card → Helium into a Field hatch;\n- a second sensor on §9P < −10§r → Hydrogen.\nCovers on the sensor's own side work, wireless redstone transmitters included, so one sensor can drive a valve anywhere.\n\n[note]Sol settles at about P +35 (Stable) by itself, so T1 runs unattended; the rig earns the ×1.25. Higher stars do §lnot§r settle. A binary Directive Hatch and OpenComputers support are coming in a later update.[/note]\n\n§2§lDONE §lWHEN§r you hold a sensor hatch. Here is a second one for the rig.",
+            "desc:8": "A live star is not a recipe. Every second the Eye updates a §9stability field§r. At T1 it has one gauge, §9P§r (pressure balance): minus is collapse, plus is expansion, and§9 0 is the target§r. Each higher star adds a gauge.\n\n§5§lZONES§r The worst gauge sets the zone, the yield and Integrity:\n- §9Resonant§r within ±10: yield ×1.25, Integrity +1 a second\n- §2Stable§r within ±40: ×1.00, +0.2\n- §5Strained§r within ±70: ×0.50, −0.5\n- §cCritical§r within ±100: no yield, −2\n- §4Breach§r beyond ±100: the star is lost at once\n§9Integrity§r (0-100) at 0 also loses the star. A lost star costs the star and its unfinished cycle, §lnever§r blocks, cores or unlocked tiers. Relight it with a new charge.\n\n§5§lTRIM§r Pour trim fluids into the §9Field sockets§r: 8 plain input hatches on the core band. They are never buffered, and ME stocking hatches there are refused. At T1, 1,000 L Helium is §9P −2§r and 1,000 L Hydrogen is §9P +2§r, up to 10 units a second.\n\n§5§lSENSE§r A §9Stellar Field Sensor Hatch§r (8 sockets on the core band) reads one channel against a threshold and emits redstone on all sides: digital (15 above or below the threshold) or analog (0-15 across the range). Channels: P, Θ, Ω, Π, the Agent shield, Integrity, Stability, zone, event warning (+, − or any) and upkeep OK. Right-click it to set it up.\n\n§5§lAUTOMATE§r The standard rig:\n- a sensor on §9P > +10§r → a Fluid Regulator cover, or an ME fluid export bus with a redstone card → Helium into a Field hatch;\n- a second sensor on §9P < −10§r → Hydrogen.\nCovers on the sensor's own side work, wireless redstone transmitters included, so one sensor can drive a valve anywhere.\n\n[note]Sol settles at about P +35 (Stable) by itself, so T1 runs unattended; the rig earns the ×1.25. Higher stars do §lnot§r settle. A §9Directive Hatch§r in a sensor socket gives the whole rig as one binary code instead, and OpenComputers (bts_eye) can drive it too.[/note]\n\n§2§lDONE §lWHEN§r you hold a sensor hatch. Here is a second one for the rig.",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -5504,7 +5680,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "SGR 1806-20 is a §9magnetar§r, the most magnetic object known. White and black dwarf matter merge into it, and its field has to be untwisted for as long as it lives.\n\n§5§lUNLOCK§r The T5 milestone:§9 6 batches§r at mean yield 0.9 or better with no fracture. Then:\n- put the §9Magnetar Seed Core§r in escrow;\n- build the §9galactic rim§r (stack 6: 7,154 Galactic Shell Plating) and bring compression to tier 6, with §9no star lit§r;\n- buffer the merger charge:§9 18,432 L White Dwarf Matter + 4,608 L Black Dwarf Matter + 100,000 L Antipolarization Agent§r;\n- put §9Star Chart: SGR 1806-20§r in the slot.\n\n§5§lMAGNETAR §lMERGER§r The dynamo winds the polarity §9Π§r up by itself (+0.5 a second); no flares yet. Agent doses pull Π back toward 0.\n1. §9Imprint:§r hold Π inside +60..+90 for 120 s in a row, within 600 s.\n2. §9Release:§r bring Π back inside ±40 within 60 s.\nA failure spends the charge and keeps the core.\n\n§5§lRUN§r Each cycle:§9 3,000 L Antipolarization Agent§r (the constant feed) and 1.55 × 10¹⁴ EU (about 64 A MAX), for§9 15 L Magnetar Matter§r.\n- The merger charge also fills a 60-cycle §9dwarf-matter reserve§r. At 10 cycles left the Eye tops it up from the buffers with§9 1,800 L White Dwarf + 450 L Black Dwarf Matter§r; an empty reserve starves the magnetar. Keep both stocked.\n- The Eye gives back§9 12 Purified Tengam dust per 1,000 L§r of Agent burned, through the ME output bus.\n\n§5§lTHE §lFIELD§r Four gauges: P, Θ, Ω and Π, and Π runs away by itself.\n- The Agent feed charges the §9flare shield A§r (it settles near 40 with no trim). The shield soaks up to 25 Π a second.\n- §9Giant flares§r come every 60-120 s, warned§9 15 s ahead with their sign§r, and push Π ±25 a second for 4 s.\n- Pre-charge the shield on the warning: Agent in a Field socket, 100 L = A +4 (Θ +0.5), up to 5 a second.\n- The other trims are the neutron star's: Spatially Enlarged Fluid, molten SpaceTime, Super Coolant and molten Purified Tengam.\nLose the magnetar and a re-merge needs the charge again, but not the core.\n\n[note]Magnetar Matter is the planned upkeep of Eye T7 and a base of the T9 pellets, both coming in a later update.[/note]\n\n§2§lDONE §lWHEN§r you have held the core and the chart before the core goes into escrow (that task latches), and then 1,000 L of Magnetar Matter.",
+            "desc:8": "SGR 1806-20 is a §9magnetar§r, the most magnetic object known. White and black dwarf matter merge into it, and its field has to be untwisted for as long as it lives.\n\n§5§lUNLOCK§r The T5 milestone:§9 6 batches§r at mean yield 0.9 or better with no fracture. Then:\n- put the §9Magnetar Seed Core§r in escrow;\n- build the §9galactic rim§r (stack 6: 7,154 Galactic Shell Plating) and bring compression to tier 6, with §9no star lit§r;\n- buffer the merger charge:§9 18,432 L White Dwarf Matter + 4,608 L Black Dwarf Matter + 100,000 L Antipolarization Agent§r;\n- put §9Star Chart: SGR 1806-20§r in the slot.\n\n§5§lMAGNETAR §lMERGER§r The dynamo winds the polarity §9Π§r up by itself (+0.5 a second); no flares yet. Agent doses pull Π back toward 0.\n1. §9Imprint:§r hold Π inside +60..+90 for 120 s in a row, within 600 s.\n2. §9Release:§r bring Π back inside ±40 within 60 s.\nA failure spends the charge and keeps the core.\n\n§5§lRUN§r Each cycle:§9 3,000 L Antipolarization Agent§r (the constant feed) and 1.55 × 10¹⁴ EU (about 64 A MAX), for§9 15 L Magnetar Matter§r.\n- The merger charge also fills a 60-cycle §9dwarf-matter reserve§r. At 10 cycles left the Eye tops it up from the buffers with§9 1,800 L White Dwarf + 450 L Black Dwarf Matter§r; an empty reserve starves the magnetar. Keep both stocked.\n- The Eye gives back§9 12 Purified Tengam dust per 1,000 L§r of Agent burned, through the ME output bus.\n\n§5§lTHE §lFIELD§r Four gauges: P, Θ, Ω and Π, and Π runs away by itself.\n- The Agent feed charges the §9flare shield A§r (it settles near 40 with no trim). The shield soaks up to 25 Π a second.\n- §9Giant flares§r come every 60-120 s, warned§9 15 s ahead with their sign§r, and push Π ±25 a second for 4 s.\n- Pre-charge the shield on the warning: Agent in a Field socket, 100 L = A +4 (Θ +0.5), up to 5 a second.\n- The other trims are the neutron star's: Spatially Enlarged Fluid, molten SpaceTime, Super Coolant and molten Purified Tengam.\nLose the magnetar and a re-merge needs the charge again, but not the core.\n\n[note]Magnetar Matter is Eye T7's upkeep (7.5 L a cycle) and, later, a base of the T9 pellets. The road on is the §9Quasar Engine§r: T7 needs a linked quasar (the §cStability Link§r).[/note]\n\n§2§lDONE §lWHEN§r you have held the core and the chart before the core goes into escrow (that task latches), and then 1,000 L of Magnetar Matter.",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -5643,7 +5819,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "The Homogeny's second tier: a middle stirring ring, three more feed vessels and the outer spokes around the same controller. It mixes at§9 4 parallels§r and adds §9Degenerate Stellar Mixture§r: 72 L molten White Dwarf Matter + 72 L molten Black Dwarf Matter + 1,000 L Excited Stellar Plasma Mixture → 1,000 L in 60 s.\n\n§5§lUPGRADE§r (permanent)\n- Build the stirring ring: hologram stack 2. Each new vessel takes a fluid Input Hatch on top.\n- Mix§9 100,000 L§r of Excited Stellar Plasma Mixture in this Homogeny.\n- Right-click the §9Homogeny Tier II Core§r (Condensate Assembling) onto the controller. Sneak-punch with an empty hand returns it.\n- Press Install in the GUI, or use a screwdriver:§9 10 minutes offline§r at UXV power. A mix already running finishes first. Progress shows in the GUI and the scanner, and survives a wrench.\n\nDegenerate Stellar Mixture feeds the Homogeny T3, the Eternity Shell Casing and the Reality machines (Tier 14 - MAX). Three Galactic Shell cells on the stirring ring's outer face are reserved for Quasar ports, later.\n\n[note]The Tier II Core is built from §9twice as many UMV parts§r (32 Field Generators, 64 Electric Pumps) for now: the pack's UXV Field Generator and Pump still need Universium, which only Eye T10 makes. UXV circuits are fine (the Polychrome or Dimensional Quantum Circuit).[/note]\n\n§2§lDONE §lWHEN§r you hold a Homogeny Tier II Core and 1,000 L of Degenerate Stellar Mixture (claim before you install the core).",
+            "desc:8": "The Homogeny's second tier: a middle stirring ring, three more feed vessels and the outer spokes around the same controller. It mixes at§9 4 parallels§r and adds §9Degenerate Stellar Mixture§r: 72 L molten White Dwarf Matter + 72 L molten Black Dwarf Matter + 1,000 L Excited Stellar Plasma Mixture → 1,000 L in 60 s.\n\n§5§lUPGRADE§r (permanent)\n- Build the stirring ring: hologram stack 2. Each new vessel takes a fluid Input Hatch on top.\n- Mix§9 100,000 L§r of Excited Stellar Plasma Mixture in this Homogeny.\n- Right-click the §9Homogeny Tier II Core§r (Condensate Assembling) onto the controller. Sneak-punch with an empty hand returns it.\n- Press Install in the GUI, or use a screwdriver:§9 10 minutes offline§r at UXV power. A mix already running finishes first. Progress shows in the GUI and the scanner, and survives a wrench.\n\nDegenerate Stellar Mixture feeds the Homogeny T3, the Eternity Shell Casing and the Reality machines (Tier 14 - MAX).\n\nThree cells on the stirring ring's outer face take GRB Receptor Ports: a quasar link makes it up to 1.5 × faster, 6 × the T1 rate (see §cA Quasar-Held Vortex§r).\n\n[note]The Tier II Core is built from §9twice as many UMV parts§r (32 Field Generators, 64 Electric Pumps) for now: the pack's UXV Field Generator and Pump still need Universium, which only Eye T10 makes. UXV circuits are fine (the Polychrome or Dimensional Quantum Circuit).[/note]\n\n§2§lDONE §lWHEN§r you hold a Homogeny Tier II Core and 1,000 L of Degenerate Stellar Mixture (claim before you install the core).",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -5821,10 +5997,7 @@
     {
       "low": 48144,
       "key": "quasar_engine",
-      "placeholder": true,
-      "needs": [
-        "quasar"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
@@ -5834,6 +6007,10 @@
           "1:10": {
             "questIDHigh:4": 190,
             "questIDLow:4": 48113
+          },
+          "2:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48154
           }
         },
         "properties:10": {
@@ -5847,19 +6024,19 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "The Quasar Engine will be its own machine with its own black hole, seeded once from a Kerr T2 (a §9Quasar Seed§r made on the Compressor Module with a hole of at least 256 SM). It runs no recipes.\n- Feed it gas to build an §9accretion disc§r. Hold its Eddington balance §9E§r in the zones you know from the Eye, and let its flux charge and §9erupt§r.\n- The disc spins and grows the hole and drives §9two jets§r. Each jet goes to the Eye (stabilisation, from T7) or to a Burst Thermaliser Crown (power).\n- A linked quasar holding your Eye steady will be the heart of the T6 → T7 milestone: the §9Stability Link§r, 30 minutes unbroken.\n\n[note]§lComing §llater.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "The Quasar Engine is its own black hole with an §9accretion disc§r. It runs no recipes: it makes §9bursts§r (Bu/t) on two jets, for power (the crowns) and for stability (the Eye, the Kerr, the Homogeny, Reality Diffraction).\n\n§5§lBUILD§r Hologram stack 1, 143 × 161 × 144. Chunk-load all of it: an unloaded chunk freezes the disc and pauses every machine it feeds.\n- 27,815 Eddington Wall Casings, 3,354 Disc Field Coils (one tier everywhere), 596 Jet Collimator Rings and 112 Rim Gas Injectors, each a batch recipe in the Condensate Assembler (64, 32, 32 and 8 a craft), plus the Black Hole Compressor's own casings for the cage. The optional task is the full bill.\n- Nothing in the quasar needs Ergomatter: the Antipolarization Agent takes its place in every recipe you need before Eye T7.\n- Hatches: 24 gas sockets on the rim, 4 trim sockets (plain Input Hatches) in the wall tanks, 4 Burst Control sockets on the cap rims, and a control box with up to 3 Energy or Laser Hatches, 2 Directive Hatches, 2 Stellar Field Sensor Hatches and a maintenance hatch.\n\n§5§lOPEN§r Put the §9Quasar Seed§r in the controller's slot and press Open in the GUI's Disc panel: a§9 64 SM§r hole with no spin. Its jets are faint for about an hour while it spins up (the GUI says spinning up). Collapse makes it dormant with its mass kept; a plain Black Hole Seed reopens it. Nothing ever destroys the hole or a block.\n\n§5§lTHE §lDISC§r Helium (or Hydrogen, or Raw Star Matter) into the gas sockets; ME stocking hatches are fine, and the quasar keeps 10 s of feed in its own buffer. The feed §9f§r (GUI, 0-1.5, default 0.85) is a share of the Eddington feed 40 × M / κ L/s. κ is 0.4 for Hydrogen, 0.2 for Helium and 0.1 for Raw Star Matter: at 64 SM on Helium the Eddington feed is 12,800 L/s.\n- §9E§r, the Eddington balance (aim for 0; starved is negative): Resonant within ±10, Stable ±40, Strained ±70, Critical ±100, then a §9blow-out§r: no jets for 5 min while the disc re-forms (once f is 0.3 or more). The hole is kept.\n- The jets' yield Y_q follows the zone: 1.25 Resonant (1.5 after 10 min), 1 Stable, 0.5 Strained, 0 Critical.\n- Trims into the 4 §9plain§r trim hatches: the feed gas (1,000 × M/64 L a unit) raises E by 2, Spatially Enlarged Fluid (100 × M/64 L) lowers it by 2, at most 10 units a second each.\n- The §9flux§r (0-100) charges with the field b and erupts at 100: 3 s at 3 × the stream. A Burst Control Hatch purges it early (from 20).\n- The stream is G0 = λ × a² × b² × (M/64)² Bu/t; each jet carries half. Coil power is 2 A UXV × b² while the hole is open; without it b is 0, the jets stop and the flux freezes.\n- Unattended at §9f 0.85§r the disc sits Stable. §9f 1.0§r with the two trim valves (riding Eddington) gives about 1.5-1.8 × the output, and the links need it.\n\n[note]The NEI page Quasar Engine (accretion disc) shows the Eddington feed per gas. The controller tooltip and the GUI carry every number.[/note]\n\n§2§lDONE §lWHEN§r you hold the controller (HOLD → CLAIM → INSTALL: claim before you place it).",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
-              "Damage:2": 32418,
+              "Damage:2": 28120,
               "OreDict:8": "",
-              "id:8": "gregtech:gt.metaitem.01"
+              "id:8": "gregtech:gt.blockmachines"
             },
             "isMain:1": 1,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§7§l§nQuasar Engine§r §8(planned)",
+            "name:8": "§4§l§nQuasar Engine",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -5890,8 +6067,88 @@
         "rewards:9": {},
         "tasks:9": {
           "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 28120,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.blockmachines"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
+          },
+          "1:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 1,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 27815,
+                "Damage:2": 7,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing2"
+              },
+              "1:10": {
+                "Count:3": 10730,
+                "Damage:2": 11,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.blockcasings10"
+              },
+              "2:10": {
+                "Count:3": 6392,
+                "Damage:2": 325,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.blockframes"
+              },
+              "3:10": {
+                "Count:3": 3354,
+                "Damage:2": 3,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing2"
+              },
+              "4:10": {
+                "Count:3": 1528,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "tectech:tile.quantumGlass"
+              },
+              "5:10": {
+                "Count:3": 1352,
+                "Damage:2": 12,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.blockcasings10"
+              },
+              "6:10": {
+                "Count:3": 596,
+                "Damage:2": 9,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing2"
+              },
+              "7:10": {
+                "Count:3": 112,
+                "Damage:2": 8,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing2"
+              },
+              "8:10": {
+                "Count:3": 64,
+                "Damage:2": 14,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing"
+              }
+            },
+            "taskID:8": "bq_standard:optional_retrieval"
           }
         }
       }
@@ -5899,15 +6156,16 @@
     {
       "low": 48145,
       "key": "einstein_rosen_conduit",
-      "placeholder": true,
-      "needs": [
-        "conduit"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
             "questIDHigh:4": 190,
             "questIDLow:4": 48144
+          },
+          "1:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48158
           }
         },
         "properties:10": {
@@ -5921,19 +6179,19 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "The Conduit will carry the quasar's bursts anywhere, with no loss:\n- a §9Wormhole Mouth§r pair, linked with a data stick, at any distance, other dimensions included;\n- §9Mirrors§r to turn a stream;\n- §9Junctions§r to split a stream (steerable by redstone) or combine up to three.\nUpkeep is molten SpaceTime before T7 and Ergomatter after. §9GRB Receptor Ports§r take the stream: on the Eye's rail, and on the Kerr, the Homogeny and Reality Diffraction, which a quasar can stabilise too.\n\n[note]§lComing §llater.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "The Conduit carries bursts anywhere, with no loss.\n- §9Wormhole Mouths§r: right-click one with a Data Stick, then the other: they are paired, at any distance, even in another dimension. A stream enters a ring through its front face (the controller's side) and leaves the partner out of its back. To take a jet, lay a mouth on a quasar cap with its front-face centre on the port cell, facing the quasar.\n- §9Mirrors§r turn a stream 90° (any facing; either throat in).\n- §9Junctions§r split (the big throat in; out 3 takes its fixed % first; out 1 and out 2 share the rest by c + k × (s/15 - 0.5), s from its Burst Control Hatch) or combine (three in, one out).\n- A stream flies straight through up to 64 blocks of air to the next throat or a GRB Receptor Port. The scanner names the target, or where it is blocked.\n\nPut a throat in each controller and fuel in its input hatches. A new element opens after 10 s of paid upkeep. One throat caps the whole element; the excess is clipped, never damage. Keep every element chunk-loaded: an unloaded one breaks the path.\n\n§2§lDONE §lWHEN§r you hold two Wormhole Mouths, a Conduit Mirror and a Conduit Junction (HOLD → CLAIM → INSTALL).",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
-              "Damage:2": 15465,
+              "Damage:2": 28121,
               "OreDict:8": "",
               "id:8": "gregtech:gt.blockmachines"
             },
             "isMain:1": 0,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§7§l§nEinstein-Rosen Conduit§r §8(planned)",
+            "name:8": "§4§l§nEinstein-Rosen Conduit",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -5964,8 +6222,76 @@
         "rewards:9": {},
         "tasks:9": {
           "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 2,
+                "Damage:2": 28121,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.blockmachines"
+              },
+              "1:10": {
+                "Count:3": 1,
+                "Damage:2": 28122,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.blockmachines"
+              },
+              "2:10": {
+                "Count:3": 1,
+                "Damage:2": 28123,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.blockmachines"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
+          },
+          "1:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 1,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 413,
+                "Damage:2": 10,
+                "OreDict:8": "",
+                "id:8": "tectech:gt.blockcasingsBA0"
+              },
+              "1:10": {
+                "Count:3": 412,
+                "Damage:2": 11,
+                "OreDict:8": "",
+                "id:8": "tectech:gt.blockcasingsBA0"
+              },
+              "2:10": {
+                "Count:3": 392,
+                "Damage:2": 9,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing2"
+              },
+              "3:10": {
+                "Count:3": 144,
+                "Damage:2": 14,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing"
+              },
+              "4:10": {
+                "Count:3": 32,
+                "Damage:2": 8,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing2"
+              }
+            },
+            "taskID:8": "bq_standard:optional_retrieval"
           }
         }
       }
@@ -5973,15 +6299,12 @@
     {
       "low": 48146,
       "key": "eye_t7",
-      "placeholder": true,
-      "needs": [
-        "eyeT7T8"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
             "questIDHigh:4": 190,
-            "questIDLow:4": 48145
+            "questIDLow:4": 48162
           },
           "1:10": {
             "questIDHigh:4": 7828864053232815020,
@@ -5999,19 +6322,19 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "Triangulum: the first galaxy, and the first tier the quasar holds together. The new verb is §9aim§r: split the bursts between the high and low banks of the Eye's tilted rail.\n\n§5§lTHE §lPLAN§r\n- Unlock: the §9Stability Link§r (a linked quasar delivering at least 1.5 Bu/t to the rail for 30 minutes unbroken) and item milestones on the magnetar, then the §9Intergalactic Upgrade Core§r, then the §9Magnetar Collapse§r: the magnetar is overfed past its mass limit, and bursts cancel the shock as SpaceTime did at T4.\n- Run: 7.5 L Magnetar Matter a cycle plus 1.5 Bu/t of bursts, for§9 600 L Ergomatter§r a cycle.\n- A planets mode will run 3 planets at once.\n\n[note]§lComing §llater.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "Triangulum: the first galaxy, and the first tier the quasar holds together. The new verb is §9aim§r.\n\n§5§lRUN§r Each cycle:§9 7.5 L Molten Magnetar Matter§r plus bursts on the rail, for§9 600 L Ergomatter × Y × r × min(β, 1.5).§r β is the bursts delivered ÷ the 1.5 Bu/t demand.\n\n§5§lTHE §lGAUGES§r\n- §9P§r, pressure: bursts heat it at 3 × (β - 1) a second; Space trims cool it (-2 a unit, up to 10 a second). Bring§9 1.5 × the demand§r into J1 and send the surplus to a crown.\n- §9W§r, the warp of the tilted rail: it drifts 1.5 a second in the precession sense. Aim the bursts between the high and low banks: W moves by 6 × (low - high).\n- §9Minor mergers§r (every 15-30 min, a 15 s warning with the sign) push W ±12 a second for 5 s, then flip the precession.\n\n§5§lDIRECTIVES§r The 4 plinth d sockets take Directive Hatches (Field, Events, Galaxy Transition) and a Burst Control Hatch in Begin mode; a Slots hatch can go in a Sensor socket. Each code adds its bits:\n- Field: [1] P > +w Space trim, [2] P < -w more bursts, [4] W > +w aim high, [8] W < -w aim low.\n- Events: [1] Λ > +w more to the halo, [2] Λ < -w less to the halo, [4] a countdown is running, [8] its sign is minus.\n- Slots: [1] a slot is idle, [2] a companion's upkeep is short, [4] a planet run lost parallels, [8] link test fire wanted.\n\nThe Galaxy panel (the GUI's galaxy button) sets the mode, the T8 feed and Begin. The terminal shows the bursts, β against the demand, W and the event countdown.\n\n§2§lDONE §lWHEN§r you have 1,000 L of Ergomatter.",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
-              "Damage:2": 28115,
+              "Damage:2": 0,
               "OreDict:8": "",
-              "id:8": "gregtech:gt.blockmachines"
+              "id:8": "beyondthestars:starChartTriangulum"
             },
             "isMain:1": 1,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§7§l§nEye T7: Triangulum§r §8(planned)",
+            "name:8": "§4§l§nEye T7: Triangulum",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -6042,8 +6365,18 @@
         "rewards:9": {},
         "tasks:9": {
           "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "requiredFluids:9": {
+              "0:10": {
+                "Amount:3": 1000,
+                "FluidName:8": "btsergomatter"
+              }
+            },
+            "taskID:8": "bq_standard:fluid"
           }
         }
       }
@@ -6051,10 +6384,7 @@
     {
       "low": 48147,
       "key": "ergomatter",
-      "placeholder": true,
-      "needs": [
-        "eyeT7T8"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
@@ -6073,8 +6403,8 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "Eye T7's harvest. It will be the Conduit's fuel after T7, Eye T8's feed, and the new input of the Eternity loop. A quasar-linked Kerr T2 will also refine it into Superdense Ergomatter, slowly, at 8 : 1.\n\n[note]§lComing §llater.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "Eye T7's harvest. Its uses:\n- the Conduit's throat fuel after T7 (0.25 / 1 / 4 L/s per element);\n- Eye T8's feed (0-10 L/s);\n- the Mk III throat;\n- with Beyond the Stars' Eye, the input of the §9Eternity§r loop: the Temporal Harmony Catalyst takes 9,216 L of Ergomatter and the Plasma Forge's Timepiece 4,608 L, instead of Universium.\n\nA quasar-linked Kerr T2 refines it into Superdense Ergomatter at 8 : 1 (see §cSuperdense Ergomatter, the Slow Way§r).\n\n§2§lDONE §lWHEN§r you have 16,000 L of Ergomatter.",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -6085,7 +6415,7 @@
             "isMain:1": 1,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§7§l§nErgomatter§r §8(planned)",
+            "name:8": "§4§l§nErgomatter",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -6116,8 +6446,18 @@
         "rewards:9": {},
         "tasks:9": {
           "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "requiredFluids:9": {
+              "0:10": {
+                "Amount:3": 16000,
+                "FluidName:8": "btsergomatter"
+              }
+            },
+            "taskID:8": "bq_standard:fluid"
           }
         }
       }
@@ -6125,15 +6465,12 @@
     {
       "low": 48148,
       "key": "eye_t8",
-      "placeholder": true,
-      "needs": [
-        "eyeT7T8"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
             "questIDHigh:4": 190,
-            "questIDLow:4": 48146
+            "questIDLow:4": 48165
           },
           "1:10": {
             "questIDHigh:4": -7688387378929645663,
@@ -6151,19 +6488,19 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "The Milky Way. Triangulum merges into a larger galaxy, and you aim a third burst stream into the shard halo and catch the satellite crossings.\n\n§5§lTHE §lPLAN§r\n- Unlock: the §9Heavy Link§r (6 Bu/t into the Eye for 30 minutes, at least half of it on the halo) and item milestones on Triangulum, then the §9Supermassive Seed Core§r, then the §9Galactic Merger§r: three pericentre passes while the burst demand climbs from 1.5 to 6 Bu/t.\n- Run: an Ergomatter feed of 0-10 L/s, for §9Superdense Ergomatter§r at 1 : 1.\n- A planets mode will run 6 planets at once.\nT8 is §9required§r: the ladder is strict.\n\n[note]§lComing §llater.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "The Milky Way. You aim a third stream into the shard halo and catch the satellite crossings.\n\n§5§lRUN§r An Ergomatter feed §9f8 of 0-10 L/s§r (the Galaxy panel, default 5) makes §9Superdense Ergomatter = 1.0 × the feed × Y × r§r.\n- §9Λ§r, the tidal shear: the feed drives it at 0.4 × f8, and halo bursts hold it at -10 × the halo share. Wire J3 to Events [1] / [2].\n- §9Satellite crossings§r (every 30-60 min, an exact 2 min countdown) push P for 5 min. Stay Stable throughout to §9catch§r one, for a bonus cycle of Superdense Ergomatter. Run the Space rig, and lower f8 during the countdown at high feed.\n\nT8 is §9required§r: the ladder is strict.\n\n§2§lDONE §lWHEN§r you have 1,000 L of Superdense Ergomatter.",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
-              "Damage:2": 28115,
+              "Damage:2": 0,
               "OreDict:8": "",
-              "id:8": "gregtech:gt.blockmachines"
+              "id:8": "beyondthestars:starChartMilkyWay"
             },
             "isMain:1": 1,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§7§l§nEye T8: Milky Way§r §8(planned)",
+            "name:8": "§4§l§nEye T8: Milky Way",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -6194,8 +6531,18 @@
         "rewards:9": {},
         "tasks:9": {
           "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "requiredFluids:9": {
+              "0:10": {
+                "Amount:3": 1000,
+                "FluidName:8": "btssuperdenseergomatter"
+              }
+            },
+            "taskID:8": "bq_standard:fluid"
           }
         }
       }
@@ -6203,10 +6550,7 @@
     {
       "low": 48149,
       "key": "supermassive_ergomatter",
-      "placeholder": true,
-      "needs": [
-        "eyeT7T8"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
@@ -6225,8 +6569,8 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "Ergomatter, compacted. Eye T8 will make it from its Ergomatter feed at 1 : 1, about nine times better than refining it on the Kerr.\n\nIt is planned for the T9 pellets, the Homogeny's Entanglement Medium and Reality Diffraction's Positive Mass anchor.\n\n[note]§lComing §llater.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "Ergomatter, compacted. Two routes, one fluid:\n- §9Eye T8§r: 1 : 1 from its feed, about nine times better;\n- §9the Kerr§r, before T8: the Compressor Module refines 4,000 L Ergomatter + 1,440 L Molten SpaceTime → 500 L in 10 min at UXV (see §cSuperdense Ergomatter, the Slow Way§r).\n\nIt feeds the T9 pellets, the Homogeny's Entanglement Medium and Reality Diffraction's Positive Mass anchor (Tier 14 - MAX).\n\n§2§lDONE §lWHEN§r you have 16,000 L of Superdense Ergomatter.",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -6237,7 +6581,7 @@
             "isMain:1": 1,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§7§l§nSuperdense Ergomatter§r §8(planned)",
+            "name:8": "§4§l§nSuperdense Ergomatter",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -6268,8 +6612,18 @@
         "rewards:9": {},
         "tasks:9": {
           "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "requiredFluids:9": {
+              "0:10": {
+                "Amount:3": 16000,
+                "FluidName:8": "btssuperdenseergomatter"
+              }
+            },
+            "taskID:8": "bq_standard:fluid"
           }
         }
       }
@@ -6277,10 +6631,7 @@
     {
       "low": 48150,
       "key": "burst_thermaliser_crown",
-      "placeholder": true,
-      "needs": [
-        "crown"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
@@ -6299,19 +6650,19 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "The quasar's power plant. It sits on a jet and turns bursts into EU:§9 1 burst unit a tick → 10¹³ EU/t§r, into your wireless network.\n- One controller; build the bigger crown around it for Mk I / II / III, capped at 32 / 512 / 8,192 Bu/t.\n- A second crown stacked on the first takes the overflow.\n- A good 1,024 SM quasar is worth about 5 to 10 × 10¹⁵ EU/t, depending on how well its disc is held.\n\n[note]§lComing §llater.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "The quasar's power plant:§9 1 Bu/t → 10¹³ EU/t§r into your wireless network, no dynamo.\n\n§5§lDOCK §lIT§r A crown takes a jet when its base centre sits on the quasar's §9port cell§r: the cell just past each cap, on the jet axis. Stand it on the top cap; hang it upside down under the bottom cap (wrench the controller's front to turn it). /btsconduit dock <quasar x y z> prints both cells and where the controller goes.\n\n§5§lMK §lI, §lII, §lIII§r The crown you build around the same controller (33 × 17 × 33 for Mk I): caps of§9 32 / 512 / 8,192 Bu/t§r. Build the bigger one around it to upgrade. A second crown stacked on the first takes the overflow. A port with nothing docked vents (Disc [8] lights).\n\nA GRB Receptor Port in its base lets a conduit feed a crown anywhere.\n\n§2§lDONE §lWHEN§r you hold the controller (HOLD → CLAIM → INSTALL).",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
-              "Damage:2": 15238,
+              "Damage:2": 28124,
               "OreDict:8": "",
               "id:8": "gregtech:gt.blockmachines"
             },
             "isMain:1": 0,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§7§l§nBurst Thermaliser Crown§r §8(planned)",
+            "name:8": "§4§l§nBurst Thermaliser Crown",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -6342,8 +6693,58 @@
         "rewards:9": {},
         "tasks:9": {
           "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 28124,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.blockmachines"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
+          },
+          "1:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 1,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 643,
+                "Damage:2": 11,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing2"
+              },
+              "1:10": {
+                "Count:3": 488,
+                "Damage:2": 11,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.blockcasings10"
+              },
+              "2:10": {
+                "Count:3": 404,
+                "Damage:2": 10,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing2"
+              },
+              "3:10": {
+                "Count:3": 297,
+                "Damage:2": 9,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing2"
+              }
+            },
+            "taskID:8": "bq_standard:optional_retrieval"
           }
         }
       }
@@ -6583,6 +6984,1800 @@
               }
             },
             "taskID:8": "bq_standard:retrieval"
+          }
+        }
+      }
+    },
+    {
+      "low": 48154,
+      "key": "quasar_seed",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48113
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "The Quasar Engine needs its own black hole. A Kerr T2 makes the seed without spending its own hole:§9 4 Black Hole Seeds§r,§9 64,000 L Hyperdense Stellar Mixture§r and§9 1,440 L Magnetar Matter§r in its Compressor Module, with the KEE holding at least§9 256 SM§r.\n\nThe seed opens a 64 SM hole once. A collapsed hole goes dormant and reopens with a plain Black Hole Seed, so you only ever need one.\n\n§2§lDONE §lWHEN§r you hold a Quasar Seed (claim before it goes into the controller).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:quasarSeed"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nA Seed for a Quasar",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48154,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 0,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:quasarSeed"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
+          }
+        }
+      }
+    },
+    {
+      "low": 48155,
+      "key": "disc_field_coils",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48144
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "Tier I-IV: Infinity, Transcendent Metal, SpaceTime, MagMatter. Every coil in a quasar is the same tier; the Condensate Assembler makes 32 a craft.\n- The field b is at most the tier. A Burst Control Hatch in b mode sets it from redstone: b = 0.5 + (tier - 0.5) × s/15.\n- The hole grows to the tier's cap,§9 256 / 1,024 / 2,048 / 4,096 SM§r, then the GUI says coil cap.\n- Coil power is 2 A UXV × b². Without it b is 0: the jets stop and the flux freezes.\n\nRebuild with a higher tier at any time; the hole is kept. Tier IV's MagMatter needs the Godforge's EE upgrade, which needs Universium (Eye T10), so Tier IV waits for MAX.\n\n§2§lDONE §lWHEN§r you hold 32 Tier I coils (HOLD → CLAIM → INSTALL).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 3,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:slCasing2"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nDisc Field Coils",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48155,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 0,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 32,
+                "Damage:2": 3,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing2"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
+          },
+          "1:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 1,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 4,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing2"
+              },
+              "1:10": {
+                "Count:3": 1,
+                "Damage:2": 5,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing2"
+              }
+            },
+            "taskID:8": "bq_standard:optional_retrieval"
+          }
+        }
+      }
+    },
+    {
+      "low": 48156,
+      "key": "reading_the_disc",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48144
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "The control box takes 2 §9Directive Hatches§r and 2 §9Stellar Field Sensor Hatches§r. The console's E dial is the Eddington balance; the flux bar fills to an eruption at 100 (one tick marks your purge setpoint, another the 90 warning).\n\n§5§lQUASAR: §lDISC§r The Directive Hatch's set (window w in its GUI, default 5). Each code adds its bits:\n- [1] E < -w: pulse the feed gas;\n- [2] E > +w: a Space trim;\n- [4] the flux at your purge setpoint: purge;\n- [8] alarm: a blow-out or re-forming, no coil power, a jet venting, a conduit element closed.\n\n§5§lSENSOR§r E, the flux, λ, a, M, Bu/t, the eruption warning, seconds to the next eruption, the best host's σ and the link streak: analog with a window, or 15 above / below a threshold; invert flips it.\n\nA comparator reads the Directive code; Steve's Factory Manager reads it as an analog range.\n\n§2§lDONE §lWHEN§r you hold a Directive Hatch (HOLD → CLAIM → INSTALL).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 28116,
+              "OreDict:8": "",
+              "id:8": "gregtech:gt.blockmachines"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nReading the Disc",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48156,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 0,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 28127,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.blockmachines"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
+          },
+          "1:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 1,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 28116,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.blockmachines"
+              }
+            },
+            "taskID:8": "bq_standard:optional_retrieval"
+          }
+        }
+      }
+    },
+    {
+      "low": 48157,
+      "key": "burst_control",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48144
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "A §9Burst Control Hatch§r reads redstone. Its mode is set in its GUI:\n- §9Purge§r (a quasar cap rim): a rising edge dumps the flux early, from 20 (under 20 it is refused). Never purging averages 1.11 × G0 × Y_q; purging at flux 40 about 0.8, but a timed purge makes a spike (see §cMagnetar Collapse§r).\n- §9Field b§r (quasar): b = 0.5 + (coil tier - 0.5) × s/15.\n- §9Junction split§r (a Conduit Junction): out 1's share = c + k × (s/15 - 0.5), k 0, 1, 2 or 4.\n- §9Begin§r (an Eye plinth d socket): a rising edge begins the Magnetar Collapse or the Galactic Merger once Galaxy Transition [1] is on.\n\nThe standard rig: the quasar's Directive Hatch (Disc set) bit [4] AND NOT the Eye's Galaxy Transition bit [8], OR Galaxy Transition [4], into this hatch.\n\n§2§lDONE §lWHEN§r you hold a Burst Control Hatch (HOLD → CLAIM → INSTALL).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 28126,
+              "OreDict:8": "",
+              "id:8": "gregtech:gt.blockmachines"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nBurst Control",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48157,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 0,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 28126,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.blockmachines"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
+          }
+        }
+      }
+    },
+    {
+      "low": 48158,
+      "key": "conduit_throats",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48144
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "A §9throat§r sits in a Wormhole Mouth, Conduit Mirror or Conduit Junction controller like a turbine rotor. Mk I carries§9 24 Bu/t§r, Mk II 384 and Mk III 6,144 (Mk III takes Ergomatter: a T7 part). Anything above is clipped, never damage.\n\nEach element (each mouth of a pair, each mirror, each junction) pays one upkeep unit a second while a throat is fitted, whatever it carries: §9Molten SpaceTime 4 / 16 / 64 L/s§r by throat Mk before T7, §9Ergomatter 0.25 / 1 / 4 L/s§r after. The GUI's fuel button picks Auto, SpaceTime or Ergomatter. Short upkeep closes the element; it reopens after 10 s paid.\n\n§2§lDONE §lWHEN§r you hold a Mk I throat (HOLD → CLAIM → INSTALL).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:conduitThroatMk1"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nThroats",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48158,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 0,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:conduitThroatMk1"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
+          },
+          "1:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 1,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:conduitThroatMk2"
+              }
+            },
+            "taskID:8": "bq_standard:optional_retrieval"
+          }
+        }
+      }
+    },
+    {
+      "low": 48159,
+      "key": "quasar_link",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48145
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "A §9GRB Receptor Port§r takes a stream into a machine: the Eye's rail and halo, a crown's base, a Kerr utility socket, the Homogeny's stirring ring, Reality Diffraction's portal.\n\nA machine is §9linked§r while bursts arrived last second from a formed quasar with its hole open and its coils powered, through an open path. Break an element or starve its fuel and the link drops the next second. σ = delivered ÷ the machine's demand, on a 60 s mean; conditions and bonuses use the mean.\n\nIf the quasar's chunk unloads, linked machines §9pause§r instead of failing. The quasar's GUI lists every machine it feeds, with its σ. No machine needs a link to work, except a Reality Diffraction with ports fitted.\n\n§2§lDONE §lWHEN§r you hold a GRB Receptor Port (HOLD → CLAIM → INSTALL).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 28125,
+              "OreDict:8": "",
+              "id:8": "gregtech:gt.blockmachines"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nA Quasar Link",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48159,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 0,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 28125,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.blockmachines"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
+          }
+        }
+      }
+    },
+    {
+      "low": 48160,
+      "key": "stability_rail",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48159
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "Eye band 7, the §9stability rail§r, round the galactic rim: hologram stack 7, 9,996 Bastion Plate with 669 Casimir trim, tilted 8°. Its 8 sockets take §9GRB Receptor Ports§r: 4 on the high bank, 4 on the low (T7 needs at least one on each bank).\n\nAt T6 the rail's bursts do nothing to the magnetar. They count only for the §cStability Link§r.\n\n§2§lDONE §lWHEN§r you hold 8 GRB Receptor Ports (HOLD → CLAIM → INSTALL).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 13,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:slCasing"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nThe Stability Rail",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48160,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 0,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 8,
+                "Damage:2": 28125,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.blockmachines"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
+          },
+          "1:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 1,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 9996,
+                "Damage:2": 13,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing"
+              },
+              "1:10": {
+                "Count:3": 3846,
+                "Damage:2": 12,
+                "OreDict:8": "",
+                "id:8": "tectech:gt.blockcasingsBA0"
+              },
+              "2:10": {
+                "Count:3": 913,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "tectech:tile.quantumGlass"
+              },
+              "3:10": {
+                "Count:3": 669,
+                "Damage:2": 14,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing"
+              }
+            },
+            "taskID:8": "bq_standard:optional_retrieval"
+          }
+        }
+      }
+    },
+    {
+      "low": 48161,
+      "key": "stability_link",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48160
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "The T6 → T7 machine milestone: a linked quasar delivers a 60 s mean of at least§9 1.5 Bu/t§r to the rail, the high bank taking 25-75 %, for§9 30 min unbroken§r. The streak resets the second it fails.\n\n§5§lTHE §lORDER§r\n1. The item milestones: 2,700 L Magnetar Matter from all-Stable cycles, 2 h Resonant, 50 giant flares ridden.\n2. §9Transition [4]§r asks for the §9Intergalactic Upgrade Core§r: put it in escrow.\n3. §9Slots [8]§r asks for the test fire: J1 all to the Eye. At T6 the bursts are a test fire with no field effect.\n4. The link, then the Triangulum chart, then Begin (see §cMagnetar Collapse§r).\n\nRun the quasar at §9f 1.0§r with its trim valves: a 64 SM quasar at the default f 0.85 is too thin, and a fresh hole spins up for about an hour first. The GUI, the scanner, the sensor's link streak and link mean channels, and OpenComputers getUnlock() show the streak.\n\n§2§lDONE §lWHEN§r the Eye's GUI says the Stability Link is held (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 28125,
+              "OreDict:8": "",
+              "id:8": "gregtech:gt.blockmachines"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nStability Link",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48161,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48162,
+      "key": "magnetar_collapse",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48161
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "The T6 → T7 transition. With the §9Intergalactic Upgrade Core§r in escrow (right-click the controller) and §9Star Chart: Triangulum§r in the slot, the Eye is PENDING and the magnetar keeps burning.\n\n§5§lBEGIN§r\n- Buffer the charge first:§9 18,432 L White Dwarf Matter§r and§9 4,608 L Black Dwarf Matter§r (× p), plus Triangulum's first cycle (8 L Magnetar Matter).\n- When Galaxy Transition [1] (ready) is on, §9Begin§r: the GUI's Galaxy panel, a rising edge on a Burst Control Hatch in Begin mode in a plinth d socket, or OpenComputers beginTransition().\n\n§5§lPHASES§r\n1. §9Overfeed§r, 5 min: White Dwarf Matter 61.44 and Black Dwarf Matter 15.36 L/s on top of the upkeep; Ω and Π wind up.\n2. §9Collapse§r: a shock of P +120, minus 10 for every Bu/t above 1.5 that lands that second.\n3. §9Halo capture§r, 10 min: Stable for 60 s in a row between 7:00 and 10:00. A minor merger comes at 7:30.\n\n§5§lTHE §lSKILL §lMOVE§r Land an eruption on the collapse second. Galaxy Transition [8] holds your regulator's purges from T-80 s, and [4] purges at T-80 s and on the collapse second: wire (Disc [4] AND NOT [8]) OR [4] to the quasar's Burst Control Hatch and the eruption lands on the collapse.\n\nA failure loses the magnetar and keeps the core in escrow. Leave the chart in: the Eye re-spawns the magnetar (the Magnetar Merger's charge) and the collapse can run again, with no core and no link.\n\n[note]The core is a Condensate Assembler recipe: Entangled Magnetar Matter, Antipolarization Agent, SpaceTime and Black Dwarf condensates, two Mk I throats and White Dwarf nanites. It is consumed only when the collapse succeeds.[/note]\n\n§2§lDONE §lWHEN§r you hold the core and the chart (HOLD → CLAIM → INSTALL: claim before the core goes into escrow).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:intergalacticUpgradeCore"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nMagnetar Collapse",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48162,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 0,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:intergalacticUpgradeCore"
+              },
+              "1:10": {
+                "Count:3": 1,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:starChartTriangulum"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
+          }
+        }
+      }
+    },
+    {
+      "low": 48163,
+      "key": "shard_halo",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48146
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "Eye band 8, the §9shard halo§r: hologram stack 8, 3,355 Bastion Plate. Its 8 shard roots take §9GRB Receptor Ports§r, and the Galactic Merger needs all eight. For T8 the compression generators go to tier 8 (Tipler).\n\nAt T7 the halo's bursts are a §9test fire§r: they count for the §cHeavy Link§r and do nothing to the galaxy.\n\n§2§lDONE §lWHEN§r you hold 8 GRB Receptor Ports (HOLD → CLAIM → INSTALL).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 13,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:slCasing"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nThe Shard Halo",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48163,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 0,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 8,
+                "Damage:2": 28125,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.blockmachines"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
+          },
+          "1:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 1,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 3355,
+                "Damage:2": 13,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing"
+              },
+              "1:10": {
+                "Count:3": 346,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "tectech:tile.quantumGlass"
+              }
+            },
+            "taskID:8": "bq_standard:optional_retrieval"
+          }
+        }
+      }
+    },
+    {
+      "low": 48164,
+      "key": "heavy_link",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48163
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "The T7 → T8 machine milestone: a 60 s mean of at least§9 6 Bu/t§r on the Eye's ports, at least half of it on the halo, for§9 30 min unbroken§r.\n\n§5§lTHE §lORDER§r\n1. The item milestones: 216,000 L Ergomatter from all-Stable cycles, 2 h Resonant, 4 minor mergers ridden.\n2. §9Transition [4]:§r the §9Supermassive Seed Core§r into escrow.\n3. §9Slots [8]:§r the test fire. J1 all to the Eye, and J3 to its 75 % halo preset.\n\nSlots [8] waits until the quasar's mean stream reaches§9 6 Bu/t§r (about 130 SM at coils 3): below that the rail's quarter would starve Triangulum. Keep the quasar growing (f 1.0); the Galaxy panel says how far you are.\n\nAbove§9 32 Bu/t§r (about 260 SM) Slots [8] stops again: the rail's quarter would flood the field. The Galaxy panel then gives the J1 Eye share to test-fire with instead (16 Bu/t to the Eye; testFireShare in OpenComputers getUnlock()). Set J1 to it with a Burst Control Hatch level or junction.setRatio, and J3 to 75 % halo.\n\n§2§lDONE §lWHEN§r the Eye's GUI says the Heavy Link is held (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 28125,
+              "OreDict:8": "",
+              "id:8": "gregtech:gt.blockmachines"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nHeavy Link",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48164,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48165,
+      "key": "galactic_merger",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48164
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "The T7 → T8 transition. Put the §9Supermassive Seed Core§r in escrow and §9Star Chart: Milky Way§r in the slot while Triangulum burns, in galaxy mode with no companion charts in the slot bus. Buffer§9 9,000 L Ergomatter§r (× p) plus the Milky Way's first feed cycle, then §9Begin§r.\n\n§5§lTHE §lMERGER§r 30 min:\n- the demand ramps from 1.5 to 6 Bu/t, and the Ergomatter charge feeds at 5 L/s;\n- three warned pericentre passes at 10, 20 and 30 min give W ±12 and P +5 a second for 5 s;\n- then Stable for 2 min in a row within 5 min.\n\nA failure loses Triangulum and keeps the core; the Eye re-runs the chain from the magnetar.\n\n[note]The core is made from 128,000 L Entangled Ergomatter, 2,304 L Magnetar Matter and Black Dwarf nanites. Its name is the hole it seeds, not the fluid.[/note]\n\n§2§lDONE §lWHEN§r you hold the core and the chart (HOLD → CLAIM → INSTALL: claim before the core goes into escrow).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:supermassiveSeedCore"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nGalactic Merger",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48165,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 0,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:supermassiveSeedCore"
+              },
+              "1:10": {
+                "Count:3": 1,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:starChartMilkyWay"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
+          }
+        }
+      }
+    },
+    {
+      "low": 48166,
+      "key": "superdense_refinery",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48147
+          },
+          "1:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48167
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "Before T8, the Kerr Compressor Module refines Ergomatter§9 8 : 1§r: 4,000 L + 1,440 L Molten SpaceTime → 500 L Superdense Ergomatter, 10 min, UXV.\n\nIt needs the KEE at T2, holding at least§9 256 SM§r, with a quasar link at σ ≥ 1 (a GRB Receptor Port in a utility socket). A run that loses the link pauses; nothing is voided.\n\nEye T8 makes the same fluid 1 : 1 from its feed: this route is for before T8.\n\n§2§lDONE §lWHEN§r you have 500 L of Superdense Ergomatter.",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 28117,
+              "OreDict:8": "",
+              "id:8": "gregtech:gt.blockmachines"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nSuperdense Ergomatter, the Slow Way",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48166,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 0,
+            "requiredFluids:9": {
+              "0:10": {
+                "Amount:3": 500,
+                "FluidName:8": "btssuperdenseergomatter"
+              }
+            },
+            "taskID:8": "bq_standard:fluid"
+          }
+        }
+      }
+    },
+    {
+      "low": 48167,
+      "key": "kerr_link",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48113
+          },
+          "1:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48159
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "A §9GRB Receptor Port§r fits any KEE utility socket. Demand: 0.1 Bu/t at T1, 0.25 at T2; σ on the 60 s mean.\n- The Hawking bleed is × (1 - 0.75 × min(σ, 1)): at σ ≥ 1 the hole needs 75 % fewer bolts.\n- On T2 at σ ≥ 1 the setpoint cap rises from 512 to§9 768 SM§r, so the modules get 27 parallels instead of 22.\n- A lost link drops the cap back to 512. The hole bleeds down to it slowly and your setpoint is kept; the modules count the mass only up to the cap in force, so the extra parallels go with the link at once.\n- A quasar that is unformed or not loaded pauses the link: the bleed relief, the 768 SM cap and the Superdense refining stop until it runs again.\n- One Junction's out 3 at 10 % feeds a KEE T2 from any quasar of 2.5 Bu/t or more.\n\nThe KEE's GUI and scanner show the link line; OpenComputers bts_kerr.getState().link.\n\n§2§lDONE §lWHEN§r your KEE shows a quasar link (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 28114,
+              "OreDict:8": "",
+              "id:8": "gregtech:gt.blockmachines"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nA Quasar-Linked Kerr",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48167,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48168,
+      "key": "homogeny_link",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48142
+          },
+          "1:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48159,
+            "type:1": 1
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "3 §9GRB Receptor Ports§r fit the Homogeny's stirring ring (its reserved cells). Demand: 1.5 Bu/t at T2, 6 at T3.\n- Speed × (1 + 0.5 × min(σ, 1)): up to 6 × (T2) and 24 × (T3) the T1 rate.\n- §9Entanglement Medium§r (T3) needs σ ≥ 1 to start and pauses below it.\n- §9Degenerate Stellar Mixture§r never needs bursts: Eye T6 needs it before any quasar exists.\n\nThe GUI and the scanner show the link line; OpenComputers bts_homogeny.\n\n§2§lDONE §lWHEN§r your Homogeny shows a quasar link (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 28130,
+              "OreDict:8": "",
+              "id:8": "gregtech:gt.blockmachines"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nA Quasar-Held Vortex",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48168,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48169,
+      "key": "planets_mode",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48146
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "Planets mode is the Eye's §9mode switch§r: the Galaxy panel, or OpenComputers setMode(\"planets\"). The galaxy chart in the slot picks the tier: Triangulum gives§9 3 slots§r, the Milky Way 6. The planets field lights at once, with no collapse.\n- Planet items (the dimension display blocks) go in the §9slot bus§r, the plinth's p input bus. They are read, never consumed.\n- One gauge (P, drift 1 × (β - 1), calm), no events, a quarter of the demand.\n- Each planet runs at parallel 2^(N - k). Its success per parallel is (1 - 0.05 × rocket tier) × the field factor (Resonant and Stable 1, Strained 0.5, Critical 0).\n- Each slot pays its run at the start (Hydrogen and Helium × parallel from the buffers, and its EU) and waits while it cannot (Slots [1]). A Breach fails the runs in flight and re-forms the field.\n\n[warn]Switching the mode puts a lit galaxy out; it comes back only through the Magnetar Collapse.[/warn]\n\n§2§lDONE §lWHEN§r you have run planets mode (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 28115,
+              "OreDict:8": "",
+              "id:8": "gregtech:gt.blockmachines"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nPlanets Mode",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48169,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48170,
+      "key": "companions",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48146
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "§9Star charts§r of earlier objects (Sol to the magnetar) in the slot bus run beside the galaxy:§9 1 at T7, 2 at T8§r.\n- Each pays its own upkeep every cycle, in full, and makes its own product at the galaxy's yield.\n- Each runs at parallel 2^(N - 1 - k) and adds a quarter of the demand and more noise on P.\n- Slots [2]: a companion's upkeep is short.\n\n[warn]Changing the companions re-forms the galaxy in place: the gauges go to 0 and the cycle in flight is lost.[/warn]\n\n§2§lDONE §lWHEN§r a companion runs beside your galaxy (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:starChartSol"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nCompanions",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48170,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48171,
+      "key": "automating_quasar",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48156
+          },
+          "1:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48157
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "The disc runs itself on two valves and two logic gates:\n- A Directive Hatch on §9Quasar: Disc§r (Code mode, window 5). [1] → a valve of 10 units of the feed gas a second into a plain trim hatch (an AE2 fluid export bus with a redstone card, or a GT Fluid Regulator cover set to enable with signal). [2] → a valve of 10 units of Spatially Enlarged Fluid.\n- (Disc [4] AND NOT the Eye's Galaxy Transition [8]) OR Galaxy Transition [4] → the quasar's Burst Control Hatch in Purge mode: one AND-NOT gate and one OR gate.\n- ME stocking hatches in the 24 gas sockets, and f 1.0 in the GUI.\n\nOpenComputers instead: bts_quasar.trim(\"gas\" or \"space\", units), purge(), setFeed(f), setField(b), getDisc().\n\n§2§lDONE §lWHEN§r your quasar holds its disc on its own (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 28127,
+              "OreDict:8": "",
+              "id:8": "gregtech:gt.blockmachines"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nAutomating the Quasar",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48171,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48172,
+      "key": "galaxy_runs_itself",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48171
+          },
+          "1:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48160
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "The §9standard rig§r, proved on a dev server: a real quasar from a fresh 64 SM hole and a real Eye ran T6 → T7 → T8 with nothing touched and no Eye failures.\n- Eye Field [1] → the Eye's Space valve (10 units into a Field hatch).\n- §9J1§r: Field [2] / [1] as 15 / 8 / 0 (two emitter covers), OR Galaxy Transition [4] → 15, OR Slots [8] → 15.\n- §9J2§r: Field [4] / [8]. §9J3§r: Events [1] / [2]; Slots [8] → its 75 % preset at T7.\n- Transition [4] → push the next core into a plinth bus; Transition [1] → push the next chart; Status [1] → stock the charge; Galaxy Transition [1] → the Eye's Burst Control Hatch in Begin mode.\n- Keep Mk I throats on the Eye's branch: they cap what reaches J1 at 24 Bu/t, so a growing quasar cannot flood the Eye.\n\nAll binary like this (AE2-friendly), T8 runs about 90 % Resonant. Analog instead: the sensor's P (inverted, ±30), W and Λ straight to J1, J2 and J3.\n\n§2§lDONE §lWHEN§r your galaxy runs a full cycle untouched (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 28123,
+              "OreDict:8": "",
+              "id:8": "gregtech:gt.blockmachines"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nA Galaxy That Runs Itself",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48172,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48173,
+      "key": "scripting_quasar",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48171
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "With OpenComputers, an Adapter against a P4 machine gives a component. Setters take one call a second (the field's step); a refused call returns nil and the reason.\n- bts_quasar: getDisc, getBurst, setFeed, setGas, setField, trim, purge, getLinks, getMilestones, getDirective;\n- bts_eye: getEvent, getUnlock, beginTransition, setFeed8, setMode, trim, getSlots;\n- bts_mouth and bts_mirror: getLink, getThroat, getUpkeep, setFuel, isOpen;\n- bts_junction: getFlow, setRatio, setGain, setOut3, setMode;\n- bts_crown, bts_receptor, bts_homogeny, bts_reality, and bts_kerr (getState().link).\n\n[note]Optional: the logic-gate rig needs no computer.[/note]\n\n§2§lDONE §lWHEN§r you have read one of these from a computer (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "OpenComputers:adapter"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nScripting a Quasar",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48173,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48174,
+      "key": "quasar_power",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48150
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "§91 Bu/t = 10¹³ EU/t§r. A 64 SM quasar at coils 3 makes about 2 Bu/t; the stream grows as M², and the hole grows with its disc up to the coil cap.\n\nSizing: G0 = λ × a² × b² × (M/64)². Never purging averages 1.11 × G0 × Y_q, purging at flux 40 about 0.8. A good 1,024 SM quasar is worth about 5 to 10 × 10¹⁵ EU/t, depending on how well its disc is held.\n\nThe NEI page Burst Thermaliser Crown lists each Mk's cap and EU/t.\n\n§2§lDONE §lWHEN§r a crown feeds your network (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 28124,
+              "OreDict:8": "",
+              "id:8": "gregtech:gt.blockmachines"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nBursts into Power",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48174,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
           }
         }
       }
@@ -6927,7 +9122,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 0,
-            "desc:8": "The Homogeny's third tier: a tilted outer ring and its tail. It will mix at§9 16 parallels§r (about one MAX amp) and add the last mix, §9Entanglement Medium§r: White Hole Matter + Superdense Ergomatter + Degenerate Stellar Mixture. Reality Diffraction splits it.\n\n[note]§lComing §llater.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
+            "desc:8": "The Homogeny's third tier: a tilted outer ring and its tail. It will mix at§9 16 parallels§r (about one MAX amp) and add the last mix, §9Entanglement Medium§r: White Hole Matter + Superdense Ergomatter + Degenerate Stellar Mixture. Reality Diffraction splits it.\n\nEntanglement Medium needs a quasar link at σ ≥ 1; without it the run waits (see §cA Quasar-Held Vortex§r).\n\n[note]§lComing §llater.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -7005,7 +9200,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 0,
-            "desc:8": "A stack of glass drums with six Region Blades. Each run will split Entanglement Medium into six §9Entangled Region§r condensates (Hyperspace, Subspace, Forward Time, Reverse Time, Positive Mass, Negative Mass) and push them into a Bose-Einstein Condensate network: outside reality.\n- Each region needs its own anchor fluid in its own socket, or its sixth is lost.\n- Give the Reality machines their own BEC network: six extra condensates would clog every other Condensate Assembler.\n\n[note]§lComing §llater.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
+            "desc:8": "A stack of glass drums with six Region Blades. Each run will split Entanglement Medium into six §9Entangled Region§r condensates (Hyperspace, Subspace, Forward Time, Reverse Time, Positive Mass, Negative Mass) and push them into a Bose-Einstein Condensate network: outside reality.\n- Each region needs its own anchor fluid in its own socket, or its sixth is lost.\n- Give the Reality machines their own BEC network: six extra condensates would clog every other Condensate Assembler.\n- Its portal takes 6 GRB Receptor Ports: faster with a strong quasar link, paused with a weak one, × 1 with none (see §cRiding the Rift§r).\n\n[note]§lComing §llater.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -7640,6 +9835,85 @@
         },
         "questIDHigh:4": 190,
         "questIDLow:4": 48193,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48194,
+      "key": "reality_link",
+      "placeholder": true,
+      "needs": [
+        "realityRefab",
+        "conduit"
+      ],
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48185
+          },
+          "1:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48159
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 0,
+            "desc:8": "Reality Diffraction's portal has 6 reserved cells for §9GRB Receptor Ports§r. Demand: 24 Bu/t.\n- §9No port fitted§r: the regions run at × 1 on their anchor fluids. No link is needed.\n- §9Ports fitted§r: the regions ride the stream at × min(σ, 1.5); below σ 0.5 no run starts and a running one pauses (nothing is voided). Fit ports only when you can feed them: a second quasar with its own mouths is the clean way.\n\n§2§lDONE §lWHEN§r your Reality Diffraction runs on a quasar link (tick the box).\n\n[note]§lComing §llater.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 28131,
+              "OreDict:8": "",
+              "id:8": "gregtech:gt.blockmachines"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§7§l§nRiding the Rift§r §8(planned)",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48194,
         "rewards:9": {},
         "tasks:9": {
           "0:10": {
@@ -8398,7 +10672,7 @@
         },
         {
           "op": "setDesc",
-          "desc": "Welcome to UXV. In Beyond the Stars it is not the last tier: §1Tier 14 - MAX§r and §1The Endgame§r follow.\n\nWe hope you enjoy your stay, though be prepared for a lot of waiting.\n\nIn Beyond the Stars this is the Eye's second half: §9Sirius B (T5)§r cools white dwarfs into black, and §9the magnetar (T6)§r runs on Antipolarization Agent. The §9Quasar Engine§r and the first galaxies (T7, T8) come in a later update. The crafted Stargate has moved to §1The Endgame§r, after MAX.\n\n[warn]§lUniversium:§r it now comes only from Eye T10 (MAX), which is not built yet. The Eye's T5 and T6 cores do not need it: for now they are built from twice as many UMV parts, so Sirius B and the magnetar are craftable. The Homogeny Tier II Core is built the same way. The pack's own UXV parts (UXV components, the UXV CoAL, the UXV Field Generator) still need MHDCSM and Universium; nothing of Beyond the Stars before Eye T7 needs them. That stays so until the new UXV parts and circuits are designed and built. UXV circuits are craftable: the Polychrome and Dimensional Quantum Circuits need no Universium.[/warn]\n\n[warn]This tier is far from complete. Expect changes.[/warn]"
+          "desc": "Welcome to UXV. In Beyond the Stars it is not the last tier: §1Tier 14 - MAX§r and §1The Endgame§r follow.\n\nWe hope you enjoy your stay, though be prepared for a lot of waiting.\n\nIn Beyond the Stars this is the Eye's second half: §9Sirius B (T5)§r cools white dwarfs into black, and §9the magnetar (T6)§r runs on Antipolarization Agent. Then the §9Quasar Engine§r: its bursts hold the first galaxies, §9Triangulum (T7)§r and §9the Milky Way (T8),§r and power your base. The crafted Stargate has moved to §1The Endgame§r, after MAX.\n\n[warn]§lUniversium:§r it now comes only from Eye T10 (MAX), which is not built yet. The Eye's T5 and T6 cores do not need it: for now they are built from twice as many UMV parts, so Sirius B and the magnetar are craftable. The Homogeny Tier II Core and every Quasar and Conduit part are built the same way. The pack's own UXV parts (UXV components, the UXV CoAL, the UXV Field Generator) still need MHDCSM and Universium; nothing of Beyond the Stars up to Eye T8 needs them. That stays so until the new UXV parts and circuits are designed and built. UXV circuits are craftable: the Polychrome and Dimensional Quantum Circuits need no Universium.[/warn]\n\n[warn]This tier is far from complete. Expect changes.[/warn]"
         }
       ]
     },
@@ -8479,14 +10753,14 @@
           "op": "move",
           "from": "l37V2WvbSHGZQ5oMgAfBuw==",
           "to": "AAAAAAAAAL4AAAAAAAC7dw==",
-          "x": 660,
+          "x": 756,
           "y": 72,
           "sizeX": 24,
           "sizeY": 24
         },
         {
           "op": "setDesc",
-          "desc": "The §9Perfect§r field generators, tier 7.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §9Spacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §9Time Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §9Stabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§5§lTIER §lSTEP§r You do not re-craft. In the §9Condensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §9Stabilisation§r generator takes one §9Spacetime Compression§r and one §9Time Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\nPerfect gates §9T7 (Triangulum),§r which comes in a later update."
+          "desc": "The §9Perfect§r field generators, tier 7.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §9Spacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §9Time Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §9Stabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§5§lTIER §lSTEP§r You do not re-craft. In the §9Condensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §9Stabilisation§r generator takes one §9Spacetime Compression§r and one §9Time Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\nPerfect gates §9T7 (Triangulum).§r"
         }
       ]
     },
@@ -8504,7 +10778,7 @@
           "op": "move",
           "from": "l37V2WvbSHGZQ5oMgAfBuw==",
           "to": "AAAAAAAAAL4AAAAAAAC7dw==",
-          "x": 852,
+          "x": 960,
           "y": 72,
           "sizeX": 24,
           "sizeY": 24
@@ -8520,7 +10794,7 @@
         },
         {
           "op": "setDesc",
-          "desc": "The §9Tipler§r field generators, tier 8.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §9Spacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §9Time Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §9Stabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§5§lTIER §lSTEP§r You do not re-craft. In the §9Condensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §9Stabilisation§r generator takes one §9Spacetime Compression§r and one §9Time Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\nTipler gates §9T8 (the Milky Way),§r which comes in a later update.\n\n[warn]Its recipe still needs parts coated with Magnetohydrodynamically Constrained Star Matter, which waits behind Universium. Expect this to change.[/warn]"
+          "desc": "The §9Tipler§r field generators, tier 8.\n\nIn Beyond the Stars the three generator families do three jobs:\n- §9Spacetime Compression is the hard gate.§r An Eye of tier N needs every compression generator at tier N or higher. It also decides which planets run.\n- §9Time Dilation§r above the star's tier opens the time dial (see §cThe Time Dial§r).\n- §9Stabilisation§r calms the star: noise and events shrink 5 % per tier above the first.\n\nThe families mix freely, and the §llowest§r of each family counts. The hologram places compression at the trigger stack's tier and never downgrades a generator already placed.\n\n§5§lTIER §lSTEP§r You do not re-craft. In the §9Condensate Assembler§r a generator of the tier below plus only what the new tier adds (NEI shows it) becomes the next tier: its Kerr controller, casing and singularity cells stay inside. A §9Stabilisation§r generator takes one §9Spacetime Compression§r and one §9Time Dilation Retrofit Kit§r of the new tier (built on a Retrofit Frame from the same parts) for the two generators it holds. Same time as a fresh craft, only cheaper.\n\nTipler gates §9T8 (the Milky Way).§r\n\n[note]With Beyond the Stars' Eye its Resonance Chamber IV has a second Condensate Assembler recipe: 2 SpaceTime foils and 1,500 L Entangled Ergomatter in place of the MHDCSM foil, which waits behind Universium. Its Eternity plate comes from Eternity on Ergomatter (Eye T7).[/note]"
         }
       ]
     },
@@ -8931,17 +11205,37 @@
       "quest": "wGq5FvuuROyyMPbT_SkMYg==",
       "expectName": "Eternity",
       "expectChapter": "l37V2WvbSHGZQ5oMgAfBuw==",
-      "config": [],
+      "config": [
+        "replaceTecTechEyeOfHarmony"
+      ],
       "progress": "keep",
       "ops": [
         {
           "op": "move",
           "from": "l37V2WvbSHGZQ5oMgAfBuw==",
-          "to": "AAAAAAAAAL4AAAAAAAC7eQ==",
-          "x": 168,
-          "y": 48,
+          "to": "AAAAAAAAAL4AAAAAAAC7dw==",
+          "x": 744,
+          "y": 432,
           "sizeX": 48,
           "sizeY": 48
+        },
+        {
+          "op": "setPrereqs",
+          "prereqs": [
+            {
+              "b64": "AAAAAAAAAL4AAAAAAAC8Ew==",
+              "type": 0
+            },
+            {
+              "b64": "fj2VzJf2Rgev7uY-h3CkJQ==",
+              "type": 1
+            }
+          ]
+        },
+        {
+          "op": "replaceText",
+          "find": "You need 20,736 L of Universium for the first 5 attempts and a catalyst.",
+          "with": "With Beyond the Stars' Eye the first attempts need §9Ergomatter§r (Eye T7), not Universium: the Temporal Harmony Catalyst takes 9,216 L of it in place of a Universium Nanite, and the Plasma Forge's Timepiece 4,608 L in place of one."
         }
       ]
     },
@@ -8950,17 +11244,25 @@
       "quest": "U7Ta5d7PSii76sbIPbltlw==",
       "expectName": "Magnetic Monopole Matter",
       "expectChapter": "l37V2WvbSHGZQ5oMgAfBuw==",
-      "config": [],
+      "config": [
+        "replaceTecTechEyeOfHarmony"
+      ],
       "progress": "keep",
       "ops": [
         {
           "op": "move",
           "from": "l37V2WvbSHGZQ5oMgAfBuw==",
-          "to": "AAAAAAAAAL4AAAAAAAC7eQ==",
-          "x": 288,
-          "y": 48,
+          "to": "AAAAAAAAAL4AAAAAAAC7dw==",
+          "x": 744,
+          "y": 528,
           "sizeX": 48,
           "sizeY": 48
+        },
+        {
+          "op": "removePrereq",
+          "prereq": {
+            "b64": "52Yelo6KSLGumzXo-_F5DQ=="
+          }
         }
       ]
     },
@@ -8969,15 +11271,17 @@
       "quest": "VYn4yi1TSiqJRhtK8YOjjQ==",
       "expectName": "Perfected Components",
       "expectChapter": "l37V2WvbSHGZQ5oMgAfBuw==",
-      "config": [],
+      "config": [
+        "replaceTecTechEyeOfHarmony"
+      ],
       "progress": "keep",
       "ops": [
         {
           "op": "move",
           "from": "l37V2WvbSHGZQ5oMgAfBuw==",
-          "to": "AAAAAAAAAL4AAAAAAAC7eQ==",
-          "x": 372,
-          "y": 60,
+          "to": "AAAAAAAAAL4AAAAAAAC7dw==",
+          "x": 756,
+          "y": 612,
           "sizeX": 24,
           "sizeY": 24
         }
@@ -8988,15 +11292,17 @@
       "quest": "k0ryGOkkSBOgYUcVY-J4rw==",
       "expectName": "The SUCC",
       "expectChapter": "l37V2WvbSHGZQ5oMgAfBuw==",
-      "config": [],
+      "config": [
+        "replaceTecTechEyeOfHarmony"
+      ],
       "progress": "keep",
       "ops": [
         {
           "op": "move",
           "from": "l37V2WvbSHGZQ5oMgAfBuw==",
-          "to": "AAAAAAAAAL4AAAAAAAC7eQ==",
-          "x": 108,
-          "y": 60,
+          "to": "AAAAAAAAAL4AAAAAAAC7dw==",
+          "x": 840,
+          "y": 444,
           "sizeX": 24,
           "sizeY": 24
         }

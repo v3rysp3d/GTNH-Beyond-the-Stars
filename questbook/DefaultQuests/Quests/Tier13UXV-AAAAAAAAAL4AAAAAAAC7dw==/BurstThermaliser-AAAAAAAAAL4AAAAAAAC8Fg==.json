@@ -16,19 +16,19 @@
         "OreDict:8": "",
         "id:8": "minecraft:stick"
       },
-      "countAsQuest:1": 0,
-      "desc:8": "The quasar's power plant. It sits on a jet and turns bursts into EU:§9 1 burst unit a tick → 10¹³ EU/t§r, into your wireless network.\n- One controller; build the bigger crown around it for Mk I / II / III, capped at 32 / 512 / 8,192 Bu/t.\n- A second crown stacked on the first takes the overflow.\n- A good 1,024 SM quasar is worth about 5 to 10 × 10¹⁵ EU/t, depending on how well its disc is held.\n\n[note]§lComing §llater.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
+      "countAsQuest:1": 1,
+      "desc:8": "The quasar's power plant:§9 1 Bu/t → 10¹³ EU/t§r into your wireless network, no dynamo.\n\n§5§lDOCK §lIT§r A crown takes a jet when its base centre sits on the quasar's §9port cell§r: the cell just past each cap, on the jet axis. Stand it on the top cap; hang it upside down under the bottom cap (wrench the controller's front to turn it). /btsconduit dock <quasar x y z> prints both cells and where the controller goes.\n\n§5§lMK §lI, §lII, §lIII§r The crown you build around the same controller (33 × 17 × 33 for Mk I): caps of§9 32 / 512 / 8,192 Bu/t§r. Build the bigger one around it to upgrade. A second crown stacked on the first takes the overflow. A port with nothing docked vents (Disc [8] lights).\n\nA GRB Receptor Port in its base lets a conduit feed a crown anywhere.\n\n§2§lDONE §lWHEN§r you hold the controller (HOLD → CLAIM → INSTALL).",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
-        "Damage:2": 15238,
+        "Damage:2": 28124,
         "OreDict:8": "",
         "id:8": "gregtech:gt.blockmachines"
       },
       "isMain:1": 0,
       "isSilent:1": 0,
       "lockedProgress:1": 0,
-      "name:8": "§7§l§nBurst Thermaliser Crown§r §8(planned)",
+      "name:8": "§4§l§nBurst Thermaliser Crown",
       "notification_duration:5": -1.0,
       "notification_effect:3": -1,
       "notification_fade_in:5": -1.0,
@@ -59,8 +59,58 @@
   "rewards:9": {},
   "tasks:9": {
     "0:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
       "index:3": 0,
-      "taskID:8": "bq_standard:checkbox"
+      "partialMatch:1": 1,
+      "requireOnlyOneItem:1": 0,
+      "requiredItems:9": {
+        "0:10": {
+          "Count:3": 1,
+          "Damage:2": 28124,
+          "OreDict:8": "",
+          "id:8": "gregtech:gt.blockmachines"
+        }
+      },
+      "taskID:8": "bq_standard:retrieval"
+    },
+    "1:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
+      "index:3": 1,
+      "partialMatch:1": 1,
+      "requireOnlyOneItem:1": 0,
+      "requiredItems:9": {
+        "0:10": {
+          "Count:3": 643,
+          "Damage:2": 11,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:slCasing2"
+        },
+        "1:10": {
+          "Count:3": 488,
+          "Damage:2": 11,
+          "OreDict:8": "",
+          "id:8": "gregtech:gt.blockcasings10"
+        },
+        "2:10": {
+          "Count:3": 404,
+          "Damage:2": 10,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:slCasing2"
+        },
+        "3:10": {
+          "Count:3": 297,
+          "Damage:2": 9,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:slCasing2"
+        }
+      },
+      "taskID:8": "bq_standard:optional_retrieval"
     }
   }
 }

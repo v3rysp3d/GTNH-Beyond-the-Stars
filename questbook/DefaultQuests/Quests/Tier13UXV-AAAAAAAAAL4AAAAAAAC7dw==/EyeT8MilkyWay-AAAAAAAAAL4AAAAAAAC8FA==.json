@@ -2,7 +2,7 @@
   "preRequisites:9": {
     "0:10": {
       "questIDHigh:4": 190,
-      "questIDLow:4": 48146
+      "questIDLow:4": 48165
     },
     "1:10": {
       "questIDHigh:4": -7688387378929645663,
@@ -20,19 +20,19 @@
         "OreDict:8": "",
         "id:8": "minecraft:stick"
       },
-      "countAsQuest:1": 0,
-      "desc:8": "The Milky Way. Triangulum merges into a larger galaxy, and you aim a third burst stream into the shard halo and catch the satellite crossings.\n\n§5§lTHE §lPLAN§r\n- Unlock: the §9Heavy Link§r (6 Bu/t into the Eye for 30 minutes, at least half of it on the halo) and item milestones on Triangulum, then the §9Supermassive Seed Core§r, then the §9Galactic Merger§r: three pericentre passes while the burst demand climbs from 1.5 to 6 Bu/t.\n- Run: an Ergomatter feed of 0-10 L/s, for §9Superdense Ergomatter§r at 1 : 1.\n- A planets mode will run 6 planets at once.\nT8 is §9required§r: the ladder is strict.\n\n[note]§lComing §llater.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
+      "countAsQuest:1": 1,
+      "desc:8": "The Milky Way. You aim a third stream into the shard halo and catch the satellite crossings.\n\n§5§lRUN§r An Ergomatter feed §9f8 of 0-10 L/s§r (the Galaxy panel, default 5) makes §9Superdense Ergomatter = 1.0 × the feed × Y × r§r.\n- §9Λ§r, the tidal shear: the feed drives it at 0.4 × f8, and halo bursts hold it at -10 × the halo share. Wire J3 to Events [1] / [2].\n- §9Satellite crossings§r (every 30-60 min, an exact 2 min countdown) push P for 5 min. Stay Stable throughout to §9catch§r one, for a bonus cycle of Superdense Ergomatter. Run the Space rig, and lower f8 during the countdown at high feed.\n\nT8 is §9required§r: the ladder is strict.\n\n§2§lDONE §lWHEN§r you have 1,000 L of Superdense Ergomatter.",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
-        "Damage:2": 28115,
+        "Damage:2": 0,
         "OreDict:8": "",
-        "id:8": "gregtech:gt.blockmachines"
+        "id:8": "beyondthestars:starChartMilkyWay"
       },
       "isMain:1": 1,
       "isSilent:1": 0,
       "lockedProgress:1": 0,
-      "name:8": "§7§l§nEye T8: Milky Way§r §8(planned)",
+      "name:8": "§4§l§nEye T8: Milky Way",
       "notification_duration:5": -1.0,
       "notification_effect:3": -1,
       "notification_fade_in:5": -1.0,
@@ -63,8 +63,18 @@
   "rewards:9": {},
   "tasks:9": {
     "0:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
       "index:3": 0,
-      "taskID:8": "bq_standard:checkbox"
+      "requiredFluids:9": {
+        "0:10": {
+          "Amount:3": 1000,
+          "FluidName:8": "btssuperdenseergomatter"
+        }
+      },
+      "taskID:8": "bq_standard:fluid"
     }
   }
 }

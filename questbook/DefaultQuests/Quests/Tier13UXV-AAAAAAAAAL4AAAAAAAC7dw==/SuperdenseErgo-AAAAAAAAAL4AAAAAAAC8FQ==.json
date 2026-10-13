@@ -16,8 +16,8 @@
         "OreDict:8": "",
         "id:8": "minecraft:stick"
       },
-      "countAsQuest:1": 0,
-      "desc:8": "Ergomatter, compacted. Eye T8 will make it from its Ergomatter feed at 1 : 1, about nine times better than refining it on the Kerr.\n\nIt is planned for the T9 pellets, the Homogeny's Entanglement Medium and Reality Diffraction's Positive Mass anchor.\n\n[note]§lComing §llater.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
+      "countAsQuest:1": 1,
+      "desc:8": "Ergomatter, compacted. Two routes, one fluid:\n- §9Eye T8§r: 1 : 1 from its feed, about nine times better;\n- §9the Kerr§r, before T8: the Compressor Module refines 4,000 L Ergomatter + 1,440 L Molten SpaceTime → 500 L in 10 min at UXV (see §cSuperdense Ergomatter, the Slow Way§r).\n\nIt feeds the T9 pellets, the Homogeny's Entanglement Medium and Reality Diffraction's Positive Mass anchor (Tier 14 - MAX).\n\n§2§lDONE §lWHEN§r you have 16,000 L of Superdense Ergomatter.",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
@@ -28,7 +28,7 @@
       "isMain:1": 1,
       "isSilent:1": 0,
       "lockedProgress:1": 0,
-      "name:8": "§7§l§nSuperdense Ergomatter§r §8(planned)",
+      "name:8": "§4§l§nSuperdense Ergomatter",
       "notification_duration:5": -1.0,
       "notification_effect:3": -1,
       "notification_fade_in:5": -1.0,
@@ -59,8 +59,18 @@
   "rewards:9": {},
   "tasks:9": {
     "0:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
       "index:3": 0,
-      "taskID:8": "bq_standard:checkbox"
+      "requiredFluids:9": {
+        "0:10": {
+          "Amount:3": 16000,
+          "FluidName:8": "btssuperdenseergomatter"
+        }
+      },
+      "taskID:8": "bq_standard:fluid"
     }
   }
 }

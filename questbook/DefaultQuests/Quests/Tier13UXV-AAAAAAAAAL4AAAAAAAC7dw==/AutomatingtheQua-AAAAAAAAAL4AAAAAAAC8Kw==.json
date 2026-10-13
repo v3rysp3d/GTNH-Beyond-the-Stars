@@ -1,0 +1,70 @@
+{
+  "preRequisites:9": {
+    "0:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48156
+    },
+    "1:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48157
+    }
+  },
+  "properties:10": {
+    "betterquesting:10": {
+      "autoClaim:1": 0,
+      "completion_animation:8": "default",
+      "completion_particle:8": "default",
+      "confetti_icon:10": {
+        "Count:3": 0,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "minecraft:stick"
+      },
+      "countAsQuest:1": 1,
+      "desc:8": "The disc runs itself on two valves and two logic gates:\n- A Directive Hatch on §9Quasar: Disc§r (Code mode, window 5). [1] → a valve of 10 units of the feed gas a second into a plain trim hatch (an AE2 fluid export bus with a redstone card, or a GT Fluid Regulator cover set to enable with signal). [2] → a valve of 10 units of Spatially Enlarged Fluid.\n- (Disc [4] AND NOT the Eye's Galaxy Transition [8]) OR Galaxy Transition [4] → the quasar's Burst Control Hatch in Purge mode: one AND-NOT gate and one OR gate.\n- ME stocking hatches in the 24 gas sockets, and f 1.0 in the GUI.\n\nOpenComputers instead: bts_quasar.trim(\"gas\" or \"space\", units), purge(), setFeed(f), setField(b), getDisc().\n\n§2§lDONE §lWHEN§r your quasar holds its disc on its own (tick the box).",
+      "globalShare:1": 0,
+      "icon:10": {
+        "Count:3": 1,
+        "Damage:2": 28127,
+        "OreDict:8": "",
+        "id:8": "gregtech:gt.blockmachines"
+      },
+      "isMain:1": 0,
+      "isSilent:1": 0,
+      "lockedProgress:1": 0,
+      "name:8": "§4§l§nAutomating the Quasar",
+      "notification_duration:5": -1.0,
+      "notification_effect:3": -1,
+      "notification_fade_in:5": -1.0,
+      "notification_fade_out:5": -1.0,
+      "notification_icon_offset_y:3": -2147483648,
+      "notification_icon_scale:5": -1.0,
+      "notification_pos_x:3": -2147483648,
+      "notification_pos_y:3": -2147483648,
+      "notification_show_icon:8": "default",
+      "notification_style:8": "default",
+      "notification_subtitle:8": "",
+      "notification_subtitle_scale:5": -1.0,
+      "notification_title:8": "",
+      "notification_title_scale:5": -1.0,
+      "particle_count:3": -1,
+      "questLogic:8": "AND",
+      "repeatTime:3": -1,
+      "repeat_relative:1": 1,
+      "simultaneous:1": 0,
+      "snd_complete:8": "random.levelup",
+      "snd_update:8": "random.levelup",
+      "taskLogic:8": "AND",
+      "visibility:8": "NORMAL"
+    }
+  },
+  "questIDHigh:4": 190,
+  "questIDLow:4": 48171,
+  "rewards:9": {},
+  "tasks:9": {
+    "0:10": {
+      "index:3": 0,
+      "taskID:8": "bq_standard:checkbox"
+    }
+  }
+}
