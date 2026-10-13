@@ -206,6 +206,8 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     private boolean renderOpenSeen;
     private int collapseTimer = -1;
     private boolean flashPending;
+    /** Renders v2: the event the pending flash shows ({@link TileQuasarHole#EV_ERUPTION} ..); render only. */
+    private int flashEvent;
     /** The last time a Conduit element on one of this quasar's paths was closed (Disc bit 4, P4-44). */
     private long conduitClosedTick = Long.MIN_VALUE / 2;
     private String conduitClosedAt = "";
@@ -666,24 +668,39 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         if (r.eruption) {
             eruptions++;
             lastEvent = "Eruption (flux 100)";
-            flashPending = true;
+            flash(TileQuasarHole.EV_ERUPTION);
         }
         if (r.purge) {
             purges++;
             lastEvent = "Purge";
-            flashPending = true;
+            flash(TileQuasarHole.EV_PURGE);
         }
         if (r.purgeRefused) lastEvent = "Purge refused: flux under 20";
         if (r.blowOut) {
             blowOuts++;
             lastEvent = "Disc blow-out: " + r.blowOutReason;
+            flash(TileQuasarHole.EV_BLOWOUT);
         }
-        if (r.reformed) lastEvent = "Disc re-formed";
-        if (r.firstLight) lastEvent = "First Light";
+        if (r.reformed) {
+            lastEvent = "Disc re-formed";
+            flash(TileQuasarHole.EV_REFORMED);
+        }
+        if (r.firstLight) {
+            lastEvent = "First Light";
+            flash(TileQuasarHole.EV_FIRST_LIGHT);
+        }
         if (r.eddington) lastEvent = "Milestone: 1 h at the Eddington limit";
         if (r.massMilestone >= 0) {
             lastEvent = "Milestone: " + fmt(QuasarParams.MASS_MILESTONES[r.massMilestone]) + " SM";
         }
+    }
+
+    /** Renders v2: the next look carries a flash of this event (the strongest of a second's events wins). */
+    private void flash(int event) {
+        if (!flashPending || event == TileQuasarHole.EV_BLOWOUT || event == TileQuasarHole.EV_ERUPTION) {
+            flashEvent = event;
+        }
+        flashPending = true;
     }
 
     /** The world cell of a jet port (where a dock's intake must be). */
@@ -1495,7 +1512,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
 
     private void pushLook(TileQuasarHole tile) {
         final boolean lit = q.hole == QuasarState.Hole.OPEN;
-        final boolean flash = flashPending;
+        final int event = flashPending ? flashEvent : 0;
         flashPending = false;
         tile.setLook(
             renderScaleFor(q.M),
@@ -1505,8 +1522,13 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             lit ? (float) q.E : 0f,
             (float) jetBu[JetPort.TOP.ordinal()],
             (float) jetBu[JetPort.BOTTOM.ordinal()],
-            flash,
-            (float) Math.min(1, q.eruptG / Math.max(1e-9, q.G0 * 3)));
+            event,
+            (float) Math.min(1, q.eruptG / Math.max(1e-9, q.G0 * 3)),
+            (float) q.a,
+            (float) q.Phi,
+            lit && q.zone == 0 && q.lock >= QuasarDisc.LOCK_SECONDS,
+            q.hole == QuasarState.Hole.REFORM ? (float) Math.min(1, q.reform / (double) QuasarParams.REFORM_SECONDS)
+                : 0f);
     }
 
     private void removeRender() {

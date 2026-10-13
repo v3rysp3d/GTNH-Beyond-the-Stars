@@ -27,6 +27,9 @@ import gregtech.common.tileentities.render.RenderingTileEntityBlackhole;
  * <li>the disc: λc (its width, r 40 to 40 + 22·λc), the zone (its colour; −1 dark / re-forming), E (it puffs up above
  * 0) and the eruption flash;</li>
  * <li>each jet's Bu/t (its brightness).</li>
+ * <li>renders v2 (§6.3, §13, R-03), render-only: the last event's kind (eruption, purge, blow-out, re-formed, First
+ * Light), the spin a (the inner disc's edge, the jets' helix), the flux Φ (the field lines), the Harmonic Lock and how
+ * far a re-forming disc has come. They live in this render tile's look only, never in the machine's saved state.</li>
  * </ul>
  * <b>Sync without chunk re-renders</b> (the Eye's render QA E10 fix): a new look goes as a description packet straight
  * to the players watching this chunk ({@link #sendLook}), never through {@code markBlockForUpdate}; only GT's
@@ -56,6 +59,10 @@ public class TileQuasarHole extends RenderingTileEntityBlackhole {
     private long flashTick = -1000;
     private float flashSize;
     private float jetTop, jetBottom;
+    /** Renders v2: the last flash's event ({@link #EV_ERUPTION} ..), the spin, the flux, the lock, re-forming 0..1. */
+    private int event;
+    private float spin, phi, reform;
+    private boolean lock;
 
     private int[] owner;
     private int ticks;
@@ -64,17 +71,22 @@ public class TileQuasarHole extends RenderingTileEntityBlackhole {
 
     public TileQuasarHole() {}
 
+    /** Renders v2: the event kinds a flash can carry (0: none). */
+    public static final int EV_ERUPTION = 1, EV_PURGE = 2, EV_BLOWOUT = 3, EV_REFORMED = 4, EV_FIRST_LIGHT = 5;
+
     /**
      * Dev-only render QA ({@code -Dbts.rendertest=true}, client): when set, the disc and jet readers return these
      * instead of the synced look, so one still shot catches a zone, a re-forming disc or an eruption / purge flash at a
-     * fixed age: {zone, lambda_c, E, jet top Bu/t, jet bottom Bu/t, flash age (ticks, negative: no flash), flash size}.
-     * Null in play; only the render QA harness sets it. The hole's scale and GT's stability stay the synced ones.
+     * fixed age: {zone, lambda_c, E, jet top Bu/t, jet bottom Bu/t, flash age (ticks, negative: no flash), flash size,
+     * and (renders v2) the event kind, spin, flux, Harmonic Lock 0/1, re-forming fraction}. A 7-entry array (the
+     * pre-v2 form) leaves the last five synced. Null in play; only the render QA harness sets it. The hole's scale and
+     * GT's stability stay the synced ones.
      */
     public static volatile float[] debugLook;
 
     /** Indices into {@link #debugLook}. */
     public static final int DBG_ZONE = 0, DBG_LC = 1, DBG_E = 2, DBG_JET_TOP = 3, DBG_JET_BOTTOM = 4, DBG_FLASH_AGE = 5,
-        DBG_FLASH_SIZE = 6, DBG_LENGTH = 7;
+        DBG_FLASH_SIZE = 6, DBG_EVENT = 7, DBG_SPIN = 8, DBG_PHI = 9, DBG_LOCK = 10, DBG_REFORM = 11, DBG_LENGTH = 12;
 
     // ------------------------------------------------------------------ readers (client renderer)
 
@@ -108,6 +120,16 @@ public class TileQuasarHole extends RenderingTileEntityBlackhole {
         return t - flashTick;
     }
 
+    /**
+     * Client, renders v2: ticks since the last flash at world time {@code t} (double: no float rounding late in a
+     * world).
+     */
+    public double flashAge(double t) {
+        final float[] d = debugLook;
+        if (d != null) return d[DBG_FLASH_AGE] < 0 ? 1e9 : d[DBG_FLASH_AGE];
+        return t - flashTick;
+    }
+
     public float getFlashSize() {
         final float[] d = debugLook;
         return d != null ? d[DBG_FLASH_SIZE] : flashSize;
@@ -123,6 +145,36 @@ public class TileQuasarHole extends RenderingTileEntityBlackhole {
         return d != null ? d[DBG_JET_BOTTOM] : jetBottom;
     }
 
+    /** Renders v2: the last flash's event kind (0 none, {@link #EV_ERUPTION} .. {@link #EV_FIRST_LIGHT}). */
+    public int getEvent() {
+        final float[] d = debugLook;
+        return d != null && d.length > DBG_EVENT ? Math.round(d[DBG_EVENT]) : event;
+    }
+
+    /** Renders v2: the hole's spin a, 0..0.998. */
+    public float getSpin() {
+        final float[] d = debugLook;
+        return d != null && d.length > DBG_SPIN ? d[DBG_SPIN] : spin;
+    }
+
+    /** Renders v2: the horizon flux Φ, 0..100. */
+    public float getPhi() {
+        final float[] d = debugLook;
+        return d != null && d.length > DBG_PHI ? d[DBG_PHI] : phi;
+    }
+
+    /** Renders v2: the Harmonic Lock is on. */
+    public boolean getLock() {
+        final float[] d = debugLook;
+        return d != null && d.length > DBG_LOCK ? d[DBG_LOCK] > 0.5f : lock;
+    }
+
+    /** Renders v2: how far a re-forming disc has come, 0..1 (0 when not re-forming). */
+    public float getReform() {
+        final float[] d = debugLook;
+        return d != null && d.length > DBG_REFORM ? d[DBG_REFORM] : reform;
+    }
+
     // ------------------------------------------------------------------ server
 
     /** Server: the owning controller (no packet; the next look carries it). */
@@ -136,7 +188,31 @@ public class TileQuasarHole extends RenderingTileEntityBlackhole {
      */
     public boolean setLook(float scale, float stability, float lambdaC, int zoneNow, float eNow, float top,
         float bottom, boolean flash, float flashFrac) {
+        return setLook(
+            scale,
+            stability,
+            lambdaC,
+            zoneNow,
+            eNow,
+            top,
+            bottom,
+            flash ? EV_ERUPTION : 0,
+            flashFrac,
+            spin,
+            phi,
+            lock,
+            reform);
+    }
+
+    /**
+     * Server, renders v2: a new look with the render-only fields. {@code eventNow} &gt; 0 starts a flash of that kind
+     * ({@link #EV_ERUPTION} ..). Also sent when the spin moves by 0.01, the flux by 2, the lock or the re-forming
+     * progress by 2 %.
+     */
+    public boolean setLook(float scale, float stability, float lambdaC, int zoneNow, float eNow, float top,
+        float bottom, int eventNow, float flashFrac, float spinNow, float phiNow, boolean lockNow, float reformNow) {
         if (worldObj == null || worldObj.isRemote) return false;
+        final boolean flash = eventNow > 0;
         final boolean moved = Math.abs(scale - holeScale) > 0.02f * Math.max(0.1f, holeScale)
             || Math.abs(stability - shaderStability) > 0.02f
             || Math.abs(lambdaC - lc) > 0.02f
@@ -145,8 +221,16 @@ public class TileQuasarHole extends RenderingTileEntityBlackhole {
             || Math.abs(eNow - e) > 8
             || jetMoved(top, jetTop)
             || jetMoved(bottom, jetBottom)
-            || flash;
+            || flash
+            || Math.abs(spinNow - spin) > 0.01f
+            || Math.abs(phiNow - phi) > 2f
+            || lockNow != lock
+            || Math.abs(reformNow - reform) > 0.02f;
         holeScale = scale;
+        spin = spinNow;
+        phi = phiNow;
+        lock = lockNow;
+        reform = reformNow;
         shaderStability = stability;
         lc = lambdaC;
         zone = zoneNow;
@@ -156,6 +240,7 @@ public class TileQuasarHole extends RenderingTileEntityBlackhole {
         if (flash) {
             flashTick = worldObj.getTotalWorldTime();
             flashSize = flashFrac;
+            event = eventNow;
         }
         if (moved) sendLook();
         return moved;
@@ -234,6 +319,12 @@ public class TileQuasarHole extends RenderingTileEntityBlackhole {
         t.setFloat("fs", flashSize);
         t.setFloat("jt", jetTop);
         t.setFloat("jb", jetBottom);
+        // renders v2 (R-03): render-only
+        t.setByte("ev", (byte) event);
+        t.setFloat("a", spin);
+        t.setFloat("phi", phi);
+        t.setBoolean("lock", lock);
+        t.setFloat("rf", reform);
         return t;
     }
 
@@ -248,6 +339,12 @@ public class TileQuasarHole extends RenderingTileEntityBlackhole {
         flashSize = t.getFloat("fs");
         jetTop = t.getFloat("jt");
         jetBottom = t.getFloat("jb");
+        // renders v2: absent in an older look (an eruption flash then)
+        event = t.hasKey("ev") ? t.getByte("ev") : EV_ERUPTION;
+        spin = t.getFloat("a");
+        phi = t.getFloat("phi");
+        lock = t.getBoolean("lock");
+        reform = t.getFloat("rf");
     }
 
     @Override
