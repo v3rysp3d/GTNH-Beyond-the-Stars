@@ -169,6 +169,13 @@ public final class RenderTestClient {
             openLogs();
             setUpClient();
         }
+        // renders v2 (R-01): a dev client's options.txt is read back a second after start-up and put the render
+        // distance (and with it the integrated server's view distance) back to the file's value (4 in the dev run
+        // dirs), so every far view stood beyond the terrain; hold 16 for the whole run, as the recorder does (B-109)
+        if (mc.gameSettings.renderDistanceChunks != 16) {
+            say("render distance was " + mc.gameSettings.renderDistanceChunks + ": holding 16");
+            mc.gameSettings.renderDistanceChunks = 16;
+        }
         if (mc.theWorld != null && (dirt == null || dirt.world() != mc.theWorld)) {
             dirt = new RenderDirtTracker(mc.theWorld);
             mc.theWorld.addWorldAccess(dirt);

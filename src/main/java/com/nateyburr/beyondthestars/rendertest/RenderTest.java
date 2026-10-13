@@ -1283,8 +1283,13 @@ public final class RenderTest {
 
     // =============================================================================== views
 
-    /** The four viewpoints of every case, each shot by day and by night. */
-    static final String[] VIEWS = { "front", "34", "close", "level" };
+    /**
+     * The viewpoints of every case, each shot by day and by night: by default {@code front, 34, close, level};
+     * {@code -Dbts.rendertest.views=a,b} picks others, e.g. {@code hero} (renders v2, R-01: the detail close-up).
+     */
+    static final String[] VIEWS = System.getProperty("bts.rendertest.views", "front,34,close,level")
+        .trim()
+        .split("\\s*,\\s*");
 
     /**
      * Sets the time of day and moves the player to view {@code view} of the current site: {@code front} (level with
@@ -1333,6 +1338,19 @@ public final class RenderTest {
                 target = mid;
                 final double[] dir = norm(new double[] { F[0] + L[0], 0.9, F[2] + L[2] });
                 eye = add(mid, dir, Math.min(MAX_VIEW_DISTANCE, far * 1.15));
+                break;
+            }
+            case "hero": {
+                // renders v2 (R-01): the detail close-up, 3 object radii out, 30 degrees to the right of the front and
+                // 12 degrees above the disc plane (so a disc shows its lensed far side), never past a block
+                target = b.centre;
+                final double radius = heroRadius(b);
+                final double[] dir = norm(
+                    new double[] { F[0] * Math.cos(Math.toRadians(30)) + L[0] * Math.sin(Math.toRadians(30)),
+                        Math.tan(Math.toRadians(12)),
+                        F[2] * Math.cos(Math.toRadians(30)) + L[2] * Math.sin(Math.toRadians(30)) });
+                final double free = freeDistance(world, b.centre, dir, 120);
+                eye = add(b.centre, dir, Math.max(2.5, Math.min(free - 2, 3 * radius)));
                 break;
             }
             default: {
@@ -1475,6 +1493,22 @@ public final class RenderTest {
             BeyondTheStars.LOG.error("[BTS render test] cannot read the poses file " + file, bad);
         }
         return poses;
+    }
+
+    /**
+     * The radius the {@code hero} close-up frames: the object itself rather than its whole reach (the quasar's hole and
+     * inner disc, not its r 40-62 ring; a star's photosphere; a galaxy's inner arms).
+     */
+    private static double heroRadius(Built b) {
+        final Case c = currentCase;
+        if (c != null && (c.site == Site.QUASAR || c.site == Site.CONDUIT) && c.mass > 0) {
+            return 1.8 * MTEQuasarEngine.renderScaleFor(c.mass);
+        }
+        if (c != null && c.look != null
+            && (c.look.kind == EyeStarLook.TRIANGULUM || c.look.kind == EyeStarLook.MILKY_WAY)) {
+            return 0.6 * EyeStarLook.galaxyReach(c.look.kind);
+        }
+        return objectRadius(b);
     }
 
     /** About how far the render object reaches from its centre, in blocks. */
