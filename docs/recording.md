@@ -122,7 +122,7 @@ The rigs face north (-z), so their fronts are on the -z side. Anchors exist once
 | `place <machine> <place> [facing <dir>] [name <n>]` | | Places a GT machine's controller. `<machine>` is `ItemList.<name>` (GT, e.g. `ItemList.Machine_Multi_BlastFurnace`) or `bts.<field>` (this addon's `BTSMachines`, e.g. `bts.eyeOfHarmony`). Sets the `placed` anchor. |
 | `hologram <place> hints [tier <n>]` | | Uses a Hologram Projector on the controller as the player: the structure's hint blocks appear. |
 | `hologram <place> build [tier <n>]` | | Builds the multiblock the way a creative player's sneak-use of the projector does (all at once). |
-| `hologram <place> survival [tier <n>] [budget <b>] [every <ticks>] [tail <s>] [max <s>] [speed <x>] [clock]` | yes | **Step-by-step build.** The projector's survival auto-place, recorded: one `survivalConstruct(projector of stack size tier, b, ...)` round every `every` ticks from an endless item source (as a creative player's projector draws on), so the structure goes up in the order a player's projector places it. Our multis scale the budget (the Eye T1 places about 8 elements per budget unit: budget 25 is the whole 19,616-block core in about 100 rounds, 5 s; budget 6 about 20 s). Ends `tail` video seconds after the last block, or at `max`. It places blocks only: a `kit` at the same place then fits the hatches and forms it. |
+| `hologram <place> survival [tier <n>] [budget <b>] [every <ticks>] [tail <s>] [max <s>] [speed <x>] [clock]` | yes | **Step-by-step build.** The projector's survival auto-place, recorded: one `survivalConstruct(projector of stack size tier, b, ...)` round every `every` ticks from an endless item source (as a creative player's projector draws on), so the structure goes up in the order a player's projector places it. Our multis scale the budget (the Eye T1 places about 8 elements per budget unit: budget 25 is the whole 19,616-block core in about 100 rounds, 5 s; budget 6 about 20 s). Ends `tail` video seconds after the last block, or at `max`. It places blocks only: a `kit` at the same place then fits the hatches and forms it. To grow an Eye band by band (`tier 2` .. `tier 6` in turn), raise it with `kit eye 1 <place> gen 5` first: the Eye's projector adds a band only once everything below it is complete for that tier, the Spacetime Compression generators included, and it never overwrites a placed block, so with tier-1 generators nothing is placed (logged as "stalled"). |
 | `time day\|noon\|sunset\|night\|sunrise\|<ticks>` | | Sets the time of day. The daylight cycle is off, except during `timelapse ... sky`. |
 | `wait <condition> [timeout <s>]` | | Waits until a server condition holds (default timeout 600 s): `eyelit` (Rig A's star burns), `holeopen` (Rig B's hole is open), `aelit` / `aedark` (Rig C's star), `formed` (the `placed` machine is formed). |
 | `wait seconds <n>` | | Waits n real seconds. |
@@ -160,6 +160,22 @@ scene eye-gui
 scene end
   card 3 Thanks for watching
 ```
+
+## The showcase script
+
+`tools/recording/showcase.shots` is the draft showcase (about 4 minutes of video; the run takes about 22 minutes of
+real time, most of it the fast-forwarded burn and Kerr climb). Its setup builds every site in the fresh world: Rig C
+(the AE2 Eye, x 2400), Rig B (the Kerr on AE2, x 1700), an Eye for the tier scenes (x 3600, `kit eye 1 ... gen 5`),
+both Kerr tiers (x 5000 / 5130), the plant foundation's silo tiers 1-5 (x 6000-6240, `/btsbuild t<n> x y z`), and runs
+`/btsquests install`. Then, in order: title; the AE2 Eye walk-through (main network, trim network, ground trunk,
+risers, a trim station), its supply opening and the star lighting itself (`timelapse ... until aelit`), the burn
+(an orbit at 20x); the Eye GUI; the Eye's tiers 1-6 grown band by band by the projector; the Kerr on AE2 (walk-through,
+seeded and climbing at 30x, GUI, tiers 1 and 2 side by side); how a player builds one (hints, survival auto-place,
+forming, NEI preview and recipe); the plant tiers; a TODO card for content that is on master only; the quest book;
+end card. Re-take single scenes with `-Dbts.rec.only=<scene prefixes>` (the setup always runs).
+
+The dev tests that go with it: `aetest.shots` (every new command once), `aedebug.shots` (Rig C lit and burning for 6
+minutes; read `eye-ae.tsv`), `tiertest.shots` (an Eye grown from tier 1 to 2).
 
 ## Limits
 
