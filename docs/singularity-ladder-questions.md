@@ -7761,3 +7761,83 @@ shows it).
 variants are proven by compiling, linking and drawing them on a compatibility context, not under Angelica's GLSM.
 
 **Suggestion.** None needed (tooling). Shots and diffs: local work folder `rkit/runs/` and `renders/wp0/`.
+
+### R-11 The Kerr hole, renders v2 (WP-1): a lensed black hole instead of GT's model [renders v2, judgement + finding]
+
+**What was built.** The KEE's hole draws the shared black-hole program `bts_blackhole` (`client.render.BlackHoleLens`,
+GLSL `shaders/bh/lens.glsl`; notes in `docs/render-kit.md`) at every shader tier. One camera-facing quad; each pixel
+traces its view ray backwards through the hole's gravity (Schwarzschild bending plus a weak frame-dragging term) and
+through a thin turbulent accretion disc in the cage's plane. What a player sees:
+
+- a black shadow (slightly D-shaped: flatter on the approaching side) with a thin cream-gold photon ring, the ring
+  brightest on the approaching side (the cream ring of GT's model, now the photon ring);
+- the disc's near side crossing in front of the shadow, its far side bent into an arc over the shadow and a thinner
+  one under it (the "Interstellar" look);
+- Doppler beaming: the approaching side (left, seen from outside; the disc turns anticlockwise from above) brighter
+  and whiter, the receding side dim gold; the inner edge reddened and darkened by gravity;
+- turbulence: fine filaments sheared by Keplerian rotation (the inner gas laps the outer), hot clumps drifting in,
+  two slow spiral density waves, a ragged outer edge;
+- from very close (L0, no shaderpack) the cage behind the hole bends into an Einstein ring (screen copy); without
+  it, a faint lensed starfield at night.
+
+**Driven only by what the tile already syncs** (no new sync, no NBT): `kerrScale` gives the size (the disc ends where
+GT's halo ended, 1.8 x the scale: inside the cage at every mass, so growth with mass stays in the cage) and the
+temperature; GT's stability (= coverage) gives the coverage looks; GT's `scaling` / `startTime` the growth / collapse
+curve (GT's own 40-tick smootherstep) with a white opening ring and a blue-white Hawking flash. LOW quality, a shader
+that does not bake or a GL error: GT's `BlackholeRenderer` exactly as before (the LOW shots match BEFORE).
+
+**Judgement calls (spec §5 deviations).**
+
+1. *Display temperatures.* The spec's T_in = 18,000 K x (M / 16)^-0.25 maps every mass to blue-white through the
+   blackbody table, which does not give its own verbal look. Built: 9,000 K x (M / 16)^-0.3, clamped 3,800-13,000 K,
+   so 16 SM is white-hot (silver-white), 64 SM gold-white, 256-512 SM golden-orange; coverage slides it toward
+   2,000 K (the spec's 2,500 K still read yellow-orange after the tonemap shoulder).
+2. *Proportions.* Disc 1.45-7.5 r_s (spec: ISCO 1.16 r_s, outer edge open): with the disc's outer edge fixed at GT's
+   halo, 7.5 r_s makes the shadow about a third of the disc's radius, which reads as "a black hole" from the window
+   and the hero view (9 r_s made the shadow too small).
+3. *L2 keeps a short march* (24 steps) instead of the spec's "analytic look": the look stays the same across tiers
+   (no pop between L1 and L2) and a 20-80 px object costs about 0.001-0.002 ms of GPU throughput anyway. L3 adds a
+   warm glow sprite under a 14-step march.
+4. *Photon ring from the rays' closest approach* (r_min near 1.5 r_s) rather than "b within 2 % of b_crit": it follows
+   the D-shape the frame dragging gives, and it is widened to at least about a pixel so it reads from far away.
+5. *Bounding sphere 1.08 x the disc* (spec 1.15): the lensed image and its glow fit, an eighth fewer pixels.
+6. *Depth.* The hole draws in pass 0 like GT's model, with depth writes where it has content: the window's far-side
+   glass does not tint the hole a second time; the near glass tints it as the spec expects.
+7. *Frame drag 0.35* (a slight D, "slightly flattened" in the spec); the approaching side is always the left seen
+   from outside, whatever the KEE's facing (R-07).
+
+**GPU (dev rig, RTX 4090, 1280 x 720, the fixed poses; `GL_TIME_ELAPSED` round the draw).** Two numbers, because a
+timer query serialises the GPU round one small draw: the single-draw time includes that latency (about 0.05-0.07 ms
+for any shaded hole however small); the *marginal* cost, `(9 draws - 1 draw) / 8` (`-Dbts.render.bhRepeat=9`), is
+what the hole adds to a busy frame.
+
+| View (tier at 720p) | Single draw | Marginal | Budget (dev) |
+|---|---|---|---|
+| front, 34, level (L2, 20-75 px) | 0.052-0.080 ms | 0.001-0.002 ms | 0.08 |
+| close T1 (L2) | 0.060-0.073 ms | 0.002-0.006 ms | 0.08 |
+| close T2 (L1, 21 blocks) | 0.079-0.081 ms | 0.037-0.039 ms | 0.08 |
+| hero 16 / 64 SM calm (L1) | 0.082-0.084 ms | 0.031-0.047 ms | 0.08 |
+| hero 64 SM strained / failing (L1) | 0.119-0.123 ms | 0.059-0.063 ms | 0.08 |
+| hero T2 256 / 512 SM (L1, 290 px, near full frame) | 0.110-0.116 ms | 0.094-0.107 ms | 0.08 |
+| hero / close forced to L0 (`renderLodScale` 0.4) | 0.165-0.233 ms | about 0.02-0.11 ms (noisy) | 0.08 |
+
+CPU 0.024-0.047 ms per frame (budget 0.05); one draw call (two at L3). Within budget except the T2 hero close-up
+(near-full-frame, 1.2-1.3x) and L0 (screen copy + 72 steps), which the spec reserves for a hole larger than 300 px.
+On the way there the cost came down by half (first build: 0.27 ms single at the strained hero): at most 4 noise
+samples per ray, plane heights before the disc transform, early exit for rays leaving clear of the disc, a tighter
+bound, 32 steps at L1.
+
+**Checked.** Both profiles of `bts_blackhole` compile and link (`-Dbts.render.selftest=true`); 60 AFTER shots at the
+BEFORE poses (6 cases x 5 views x day / night), 60 LOW shots (match BEFORE), 16 L0 shots; a one-minute clip
+(`tools/recording/renders-kerr.shots`: night orbit, L0 close-up with the bent cage, the window, day). The window view
+(R-02): through the glass the shadow sits behind the controller, the photon ring and the arcs show round it and the
+edge-on disc as a thin gold line either side, by night clearly, by day faintly.
+
+**Not verified.** Angelica's core profile in Angelica itself (as R-10); a shaderpack (the screen copy switches off by
+`ShaderpackProbe`, untested with a real pack); the opening / Hawking flashes in game (drawn in the prototype at fixed
+ages; the harness holds open holes).
+
+**Suggestion.** Accept the look and the deviations above. For the T2 hero over budget: accept (the view only occurs
+standing inside the cage next to the hole), or drop L1 to 26 steps above 250 px (a small loss at the shadow's edge).
+Shots: local work folder `renders/kerr/after-*.png`, `after-low-*`, `after-l0-*`; `renders/compare.html`; clip
+`video/renders/kerr-v2.mp4`.
