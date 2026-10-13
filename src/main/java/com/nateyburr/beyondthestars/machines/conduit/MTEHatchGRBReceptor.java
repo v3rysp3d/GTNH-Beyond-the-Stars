@@ -51,7 +51,8 @@ import gregtech.api.render.TextureFactory;
  * its
  * field still instead of reading zero. A source that is running but no longer reaches the port (a broken path), or is
  * gone, is forgotten and felt in full; so is a paused one silent for {@link #FORGET_PAUSED_TICKS} while another running
- * source feeds the port (P4-83).
+ * source feeds the port (P4-83). After a load, every remembered source pauses the host for
+ * {@link #RESTORE_WARMUP_TICKS} until it arrives again, so a restart never reads one empty second (P4-92).
  */
 public class MTEHatchGRBReceptor extends MTEHatch {
 
@@ -68,6 +69,14 @@ public class MTEHatchGRBReceptor extends MTEHatch {
      * pause the host for ever. With no other source arriving it is kept, and Q-8 holds the host still.
      */
     static final long FORGET_PAUSED_TICKS = 12_000;
+    /**
+     * After a load, the remembered sources hold the host paused for this long (from the port's first reading) while
+     * they have not arrived yet, even if running (P4-92): at a restart the quasar forms before every Mouth, Mirror and
+     * Junction on its path has formed and re-registered, so the first second or two deliver nothing. Reading that as
+     * zero reset a saved link streak (the Eye's Stability / Heavy Link). 200 ticks = the startup check plus two
+     * element seconds.
+     */
+    static final long RESTORE_WARMUP_TICKS = 200;
 
     private static final IIconContainer OVERLAY = Textures.BlockIcons
         .custom("beyondthestars:iconsets/OVERLAY_HATCH_GRB_RECEPTOR");
@@ -95,6 +104,10 @@ public class MTEHatchGRBReceptor extends MTEHatch {
 
     // ---- saved (positions only, for Q-8 across a restart)
     private final Map<BurstSource, Long> known = new LinkedHashMap<>();
+    /** True from an NBT load with remembered sources until the first {@link #reading}, which starts the warm-up. */
+    private boolean restored;
+    /** The world tick the post-load warm-up ends (P4-92); 0 when none runs. Not saved. */
+    private long warmUntil;
 
     // ---- dev-server bench only ({@code /btsconduit inject}), never saved
     private BurstSource benchFrom;
@@ -163,6 +176,12 @@ public class MTEHatchGRBReceptor extends MTEHatch {
      */
     public BurstReading reading() {
         final long now = now();
+        if (restored) {
+            restored = false;
+            warmUntil = now + RESTORE_WARMUP_TICKS;
+            for (Map.Entry<BurstSource, Long> e : known.entrySet()) e.setValue(now);
+        }
+        final boolean warming = now < warmUntil;
         final BurstReading out = new BurstReading();
         out.ports = 1;
         for (Iterator<Rec> it = recs.values()
@@ -178,7 +197,7 @@ public class MTEHatchGRBReceptor extends MTEHatch {
             .iterator(); it.hasNext();) {
             final Map.Entry<BurstSource, Long> e = it.next();
             if (out.bySource.containsKey(e.getKey())) continue;
-            if (e.getKey()
+            if (warming || e.getKey()
                 .pauses()) {
                 if (!out.bySource.isEmpty() && now - e.getValue() > FORGET_PAUSED_TICKS) {
                     it.remove();
@@ -315,6 +334,7 @@ public class MTEHatchGRBReceptor extends MTEHatch {
             final BurstSource s = BurstSource.fromArray(list.func_150306_c(i));
             if (s != null) known.put(s, 0L);
         }
+        restored = !known.isEmpty(); // stamped and warmed up at the first reading (P4-92)
     }
 
     @Override
