@@ -191,7 +191,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-93
+## Part B. Entries B-1..B-94
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -3985,6 +3985,75 @@ and `--selftest` pass; the plant text from PowerShell passes the JS lint, so the
 
 **Not done.** The playtest jar is not re-packaged (dist-rc2 untouched), so master.235 has neither B-92 nor this.
 Trophy progress across the move was not re-tested with players (B-92 note).
+
+---
+
+### B-94 Follow-up test on master: static checks, boot, recipe dump, questbook install / uninstall [follow-up, test]
+
+**What was run.** Master `d82a7ea` (the `/btsrecipes` dump, the questbook text pass and the round-2 re-shoot fixes on
+top of the B-90 package), then `f4a119b` (the one fix below), which is what the dev server ran.
+
+Static checks:
+- `spotlessApply compileJava`: passes, and spotless changed nothing.
+- The lang lint (215 lookups, against our `en_US.lang` and RC-2 GT's): 0 missing and 0 duplicate keys. The one false
+  positive and the one key with no producer are the same as in B-88 (`fieldRetrofitKit`, `star_unit5`).
+- `node tools/fieldsim-golden.js --check --java`: 78 / 78 PASS.
+- `gen-singularity --selftest`: passes.
+- `gen-singularity --check`: **failed** ("stale: overlay.json"), see fix 1. Passes after it.
+
+Headless `runServer` (RC-2 deps, port 25565), five boots:
+- **Config:** the shipped defaults (`replaceTecTechEyeOfHarmony` and `removeBlackHoleCompressorRecipe` true, pack edits
+  on).
+- **Book:** the RC-2 pack's DefaultQuests (identical to the Prism instance's), with BetterQuesting's "Load the default
+  quest DB on world startup" false, as the pack ships it.
+- **Worlds:** `fu-qb` (auto-install off on its first boot, two fake players with progress) and `fu-fresh` (auto-install
+  on, the player's path).
+- The dev server's config, level name and BetterQuesting setting are put back afterwards. The two flags are left at
+  their shipped `true`; the recipe-dump run had left them `false`.
+
+| Area | Result |
+|---|---|
+| Load (all five boots) | `278 registered, 0 skipped`. The 14 H/R gate lines (SL-C02, C03, C04, R11, R13, R16, R17, H20, R01, R02, H21, R03, R04, R05) and the summary "14 Homogeny/Reality recipe(s) ... unreachable until P4/P5". BEC line: 6 condensates, no legacy fallbacks. SL-B01 / B02: 4 -> 32. SL-G01: the Resonance Chamber II rewrite. 10 BHC -> Kerr swaps. TecTech's Eye: recipes removed (storage 43, NEI 43) and the controller removed; 43 planets converted. Upgrade path: 40 + the Retrofit Frame, 0 skipped. No `[beyondthestars]` / `[BTS]` WARN or ERROR and no `com.nateyburr` frame in any log. All as in B-88. |
+| `/btsrecipes` | `status` and `dump fu-recipes.json` both report 386 entries: 328 new, 56 changed-GT, 2 removed. By line: Kerr 28, Eye 59, BEC 28, H/R 27, Automation 1, old plant 202, upgrade path 41. 28 display-only, 0 fallbacks, 14 placeholders, and `registeredWithoutLiveRecipe` is empty. These match B-91 and the boot log: the guard counts 320 registered = 278 at postInit + 42 at load-complete, 0 skipped. The 14 placeholders are exactly the 14 gate ids. Changed-GT 56 = 10 swaps + 43 planets + SL-G01 + SL-B01 + SL-B02. Removed 2 = the BHC and EOH controllers. Upgrade path 41 = 40 + the frame. |
+| Questbook, world with progress | Below. |
+| Questbook, fresh world | Below. |
+
+**Questbook, world with progress** (`fu-qb`, compared as whole databases ignoring JSON key order). Before the install,
+`status` showed "never installed" and every chapter missing. Then fake progress was added:
+- a1: the BHC, the EOH, Stargate Ring Block, T5: Superb and quest 191;
+- a2: Star Fuel, both trophies (Simulating a Solar System, An Offering To The Gods) and the BHC.
+
+| Step | Result |
+|---|---|
+| `install` | 77 quests added, 62 / 62 edits, "1 emptied pack chapter(s) hidden". Every completion is kept: the BHC and EOH show as Kerr Ergosphere Engine and Eye T1: Sol, and a2's two trophies stay complete after their move into The Endgame (the trophy check B-92 / B-93 left open). `status` is all ok. `verify` resolves 113 / 115; the 2 misses are the eternalsingularity icons, as before. Our 48000 / 48114 were then completed for a1. |
+| Structure check | 0 errors: the chapter order after UMV is UXV, MAX, The Endgame; the plant chapter is last; Endgame Goals is gone and The Endgame holds the trophies. |
+| `install` again | No-op ("already matches the jar"); the database is byte-identical. |
+| `install force` | 77 refreshed; the same database (only the key order differs). |
+| `uninstall edits` | All 3,813 pack quests are identical to the pre-install snapshot. The fallbacks 48103 / 48109 appear. **Endgame Goals is back** with its 31 entries, and the pack chapters' relative order is identical (only our own chapters sit in between). The trophies show as complete for a2. |
+| `install` again | Identical to the first install. |
+| `uninstall all` | The whole database (quests, chapters, entries, chapter order, Endgame Goals at its old slot 16) is identical to the pre-install snapshot. |
+| Restart, auto-install on | "an op ran /btsquests uninstall all ... leaves it alone" (sticky); the database is still identical to the pre-install snapshot. `install`: "progress on 77 re-created quest(s) of ours came back from the progress backup", identical to the first install, a1's 48000 / 48114 complete again. |
+| Restart | "already up to date"; identical. |
+
+**Questbook, fresh world** (`fu-fresh`, auto-install on):
+- First start: "no install state in this world yet", then 77 added, 62 applied and the chapter hidden. `status` is all
+  ok and `verify` resolves 113 / 115. The database is identical to the `fu-qb` install.
+- Restart with BetterQuesting's default load on world start = true (BetterQuesting's own default, which reloads the
+  pack's book on every start): "chapter ... missing", re-applied, our progress came back from the backup, and the
+  chapter was hidden again. The database is identical.
+
+**Fixed here** (its own commit).
+1. **`gen-singularity --check` could never pass on a committed tree** (`f4a119b`).
+   - The overlay records the commit it was generated from (`srcHead`). After any later commit, `--check` called the
+     overlay stale and exited 1, even when nothing else differed (B-82 item 5, B-90 call 1, B-92 and B-93 all noted
+     it). A real drift in the overlay would have hidden behind it.
+   - `--check` now blanks that one field of the overlay before comparing. Any other difference is still stale:
+     checked by changing `manifestSha`, which gives exit 1.
+   - Now: "95 generated files are up to date (bundle cf6158303e87)".
+   - *Alternative:* drop `srcHead` from the bundle. The status command shows it as the bundle's source, so it stays.
+
+**Not covered.** A client (the round-2 shots in B-93 cover the book's look); the playtest jar is still master.235 (the
+package unit follows).
 
 ## Where the old question numbers went
 
