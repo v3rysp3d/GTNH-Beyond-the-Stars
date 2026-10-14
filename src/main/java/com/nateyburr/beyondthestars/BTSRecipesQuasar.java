@@ -23,6 +23,7 @@ import net.minecraftforge.fluids.FluidStack;
 
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
+import com.nateyburr.beyondthestars.blocks.BlockSLCasing4;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.fluids.SLCondensates;
 import com.nateyburr.beyondthestars.fluids.SLFluids;
@@ -80,6 +81,8 @@ import tectech.recipe.TecTechRecipeMaps;
  * {@link BTSRecipesSingularity#onLoadComplete}); SL-P40, its old separate recipe, is only SL-G03's fallback.</li>
  * <li><b>NEI</b>: SL-Q27 / SL-Q28, the display pages {@link QuasarRecipeMaps#QUASAR} and
  * {@link QuasarRecipeMaps#THERMALISER} (fake recipes).</li>
+ * <li><b>SMBH v1</b> (design repo {@code designs/docs/smbh-v1.md} §8.2; {@link #smbh}): SL-Q29 Lattice Frame Casing,
+ * SL-Q30..Q33 Containment Node L1-L4, SL-Q34 Event Horizon Thermaliser Casing, SL-Q35 Conduit Throat Mk IV.</li>
  * </ul>
  *
  * <h2>Rules (gate audit, quasar-p4.md §6.4-§6.5; logged as P4 questions)</h2>
@@ -145,6 +148,7 @@ public final class BTSRecipesQuasar {
         controllers();
         hatches();
         coresAndCharts();
+        smbh();
         // SL-Q27 / SL-Q28: the NEI display pages (feed gas -> bursts; bursts -> EU), fake recipes.
         QuasarRecipeMaps.register();
         // The compression tier 8 gate (Resonance Chamber IV) is GT's own recipe rewritten in place at load-complete
@@ -848,6 +852,135 @@ public final class BTSRecipesQuasar {
         return eternitySwapped;
     }
 
+    // ======================================================================= SMBH v1 (smbh-v1.md §8.1-§8.2)
+
+    /**
+     * The Supermassive Lattice, the Mk IV crown's casing and the Mk IV throat. Every number is the spec's knob; the
+     * departures are logged (B-152): the B-72 stopgap (UMV Field Generators x2 for each UXV one: RC-2's UXV parts take
+     * Universium, Eye T10, and L1 must stand BEFORE T10, since the Supermassive Link gates T9 -> T10); the Lattice
+     * Frame's
+     * 72 L of Molten SpaceTime as 2 SpaceTime foils (the Assembler takes one fluid); the Throat's "4 Superdense
+     * Ergomatter cells" as 4,000 L of the fluid; L2's 4,000 L of White Hole Matter as 4,032 L of its condensate (the
+     * Condensate Assembler's half-unit rule, 72 L); L4's "Constrained Eternity Plates" (no such item in RC-2) as 4
+     * Eternity + 4 MHDCSM plates under the Universium coat, and its circuit as 16 any-MAX (no Endgame tier exists).
+     */
+    private static void smbh() {
+        // SL-Q29 Lattice Frame Casing x4 (8,436 a lattice: 2,109 crafts). Assembler, UXV.
+        BTSRecipeGuard.recipe(
+            "SL-Q29",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    req(OrePrefixes.frameGt, Materials.MagMatter, 1),
+                    req(OrePrefixes.plate, Materials.BlackDwarfMatter, 4),
+                    req(OrePrefixes.foil, Materials.SpaceTime, 2))
+                .fluidInputs(BTSRecipeGuard.fluid(SLQuasarFluids.superdenseErgomatter, 36))
+                .itemOutputs(c4(BlockSLCasing4.LATTICE_FRAME, 4))
+                .duration(20 * SECONDS)
+                .eut(TierEU.RECIPE_UXV)
+                .addTo(assemblerRecipes));
+
+        // SL-Q30 Containment Node L1 (48 a lattice: 384,000 L of Superdense Ergomatter, about 19 h of one Eye T8).
+        // Assembly line, UXV; research: the Lattice Frame Casing. The card's 2 UXV Field Generators -> 4 UMV (B-72).
+        BTSRecipeGuard.recipe(
+            "SL-Q30",
+            () -> GTValues.RA.stdBuilder()
+                .metadata(RESEARCH_ITEM, c4(BlockSLCasing4.LATTICE_FRAME, 1))
+                .metadata(SCANNING, new Scanning(8 * MINUTES, TierEU.RECIPE_UXV))
+                .itemInputs(
+                    items(
+                        c4(BlockSLCasing4.LATTICE_FRAME, 1),
+                        item(ItemList.Field_Generator_UMV, 4),
+                        circuit(Materials.UXV, 4)))
+                .fluidInputs(
+                    BTSRecipeGuard.fluid(SLQuasarFluids.superdenseErgomatter, 8_000),
+                    BTSRecipeGuard.fluid(SLFluids.magnetarMatter, 2_304))
+                .itemOutputs(c4(BlockSLCasing4.NODE_L1, 1))
+                .duration(300 * SECONDS)
+                .eut(TierEU.RECIPE_UXV)
+                .addTo(AssemblyLine));
+
+        // SL-Q31 Containment Node L2: an L1 node + White Hole Matter (Eye T9, P5). Hidden in NEI until P5 makes the
+        // matter (§1.3).
+        BTSRecipeLedger.placeholder("SL-Q31", "unreachable until White Hole Matter (Eye T9, P5); hidden in NEI");
+        BTSRecipeGuard.recipe(
+            "SL-Q31",
+            () -> added(
+                condensateAssembly(
+                    c4(BlockSLCasing4.NODE_L2, 1),
+                    600 * SECONDS,
+                    TierEU.RECIPE_MAX,
+                    cond(ours(SLRealityFluids.entangledWhiteHole, 4_032)),
+                    s(c4(BlockSLCasing4.NODE_L1, 1), N6),
+                    s(circuit(Materials.MAX, 4), N5)).hidden(),
+                TecTechRecipeMaps.condensateAssemblingRecipes));
+
+        // SL-Q32 Containment Node L3: an L2 node + 2,304 L Universium (48 a lattice: 110,592 L, about 12 stock EOH
+        // tier-9 runs). Condensate Assembler, MAX.
+        if (Config.replaceTecTechEyeOfHarmony) {
+            BTSRecipeLedger.placeholder(
+                "SL-Q32",
+                "unreachable until our Eye T10 (P5) makes Universium (replaceTecTechEyeOfHarmony)");
+            BTSRecipeLedger.placeholder("SL-Q33", "unreachable until our Eye T10 (P5) makes Universium");
+        }
+        BTSRecipeGuard.recipe(
+            "SL-Q32",
+            () -> assemble(
+                c4(BlockSLCasing4.NODE_L3, 1),
+                900 * SECONDS,
+                TierEU.RECIPE_MAX,
+                cond(entangled(CondensateType.Universium, 2_304)),
+                s(c4(BlockSLCasing4.NODE_L2, 1), N6),
+                s(circuit(Materials.MAX, 4), N6)));
+
+        // SL-Q33 Containment Node L4 (Constrained Eternity): an L3 node, 4 Eternity + 4 MHDCSM plates, MHDCSM and
+        // Universium 1,440 L each, 16 any-MAX circuits. Condensate Assembler, MAX x4.
+        BTSRecipeGuard.recipe(
+            "SL-Q33",
+            () -> assemble(
+                c4(BlockSLCasing4.NODE_L4, 1),
+                1_200 * SECONDS,
+                TierEU.RECIPE_MAX * 4,
+                cond(entangled(CondensateType.MHDCSM, 1_440), entangled(CondensateType.Universium, 1_440)),
+                s(c4(BlockSLCasing4.NODE_L3, 1), N7),
+                s(req(OrePrefixes.plate, Materials.Eternity, 4), N7),
+                s(req(OrePrefixes.plate, Materials.MHDCSM, 4), N7),
+                s(circuit(Materials.MAX, 16), N6)));
+
+        // SL-Q34 Event Horizon Thermaliser Casing x4 (852 a Mk IV crown). Assembler, UXV.
+        BTSRecipeGuard.recipe(
+            "SL-Q34",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    req(OrePrefixes.plate, Materials.MagMatter, 4),
+                    req(OrePrefixes.frameGt, Materials.Neutronium, 1))
+                .fluidInputs(BTSRecipeGuard.fluid(SLQuasarFluids.superdenseErgomatter, 144))
+                .itemOutputs(c4(BlockSLCasing4.HORIZON_THERMALISER, 4))
+                .duration(30 * SECONDS)
+                .eut(TierEU.RECIPE_UXV)
+                .addTo(assemblerRecipes));
+
+        // SL-Q35 Conduit Throat Mk IV (524,288 Bu/t). Assembly line, UXV; research: the Mk III throat. The card's UXV
+        // Field Generator -> 2 UMV (B-72); its 4 Superdense Ergomatter cells -> 4,000 L of the fluid.
+        BTSRecipeGuard.recipe(
+            "SL-Q35",
+            () -> GTValues.RA.stdBuilder()
+                .metadata(RESEARCH_ITEM, BTSRecipeGuard.stack(SLQuasarItems.conduitThroatMk3, 1))
+                .metadata(SCANNING, new Scanning(8 * MINUTES, TierEU.RECIPE_UXV))
+                .itemInputs(
+                    items(
+                        BTSRecipeGuard.stack(SLQuasarItems.conduitThroatMk3, 1),
+                        item(ItemList.Field_Generator_UMV, 2)))
+                .fluidInputs(BTSRecipeGuard.fluid(SLQuasarFluids.superdenseErgomatter, 4_000))
+                .itemOutputs(BTSRecipeGuard.stack(SLQuasarItems.conduitThroatMk4, 1))
+                .duration(900 * SECONDS)
+                .eut(TierEU.RECIPE_UXV)
+                .addTo(AssemblyLine));
+    }
+
+    private static ItemStack c4(int meta, int count) {
+        return SLBlocks.casing4(meta, count);
+    }
+
     // =========================================================================================== helpers
 
     /** A P4 machine recipe: registered if its MTE unit has registered the machine, else it waits (logged once). */
@@ -902,6 +1035,14 @@ public final class BTSRecipesQuasar {
      * must keep it (an empty addTo throws, so the guard counts a skip).
      */
     private static void assemble(ItemStack output, int ticks, long eut, FluidStack[] condensates, Slot... slots) {
+        added(
+            condensateAssembly(output, ticks, eut, condensates, slots),
+            TecTechRecipeMaps.condensateAssemblingRecipes);
+    }
+
+    /** {@link #assemble}'s builder, not yet added (SL-Q31 hides it in NEI first). */
+    private static GTRecipeBuilder condensateAssembly(ItemStack output, int ticks, long eut, FluidStack[] condensates,
+        Slot... slots) {
         final List<ItemStack> items = new ArrayList<>();
         final List<NaniteTier> tiers = new ArrayList<>();
         for (Slot slot : slots) {
@@ -917,15 +1058,13 @@ public final class BTSRecipesQuasar {
         if (condensates.length > 4) {
             throw new IllegalStateException("the Condensate Assembler takes at most 4 condensates");
         }
-        added(
-            GTValues.RA.stdBuilder()
-                .itemInputs(items.toArray(new ItemStack[0]))
-                .fluidInputs(condensates)
-                .itemOutputs(nn(output, "the output"))
-                .metadata(NANITE_TIERS, tiers.toArray(new NaniteTier[0]))
-                .duration(ticks)
-                .eut(eut),
-            TecTechRecipeMaps.condensateAssemblingRecipes);
+        return GTValues.RA.stdBuilder()
+            .itemInputs(items.toArray(new ItemStack[0]))
+            .fluidInputs(condensates)
+            .itemOutputs(nn(output, "the output"))
+            .metadata(NANITE_TIERS, tiers.toArray(new NaniteTier[0]))
+            .duration(ticks)
+            .eut(eut);
     }
 
     /** {@code builder.addTo(map)}, throwing if GT kept nothing (so the guard counts a skip). */
@@ -962,10 +1101,11 @@ public final class BTSRecipesQuasar {
         return new FluidStack(made, litres);
     }
 
-    /** 144 for the molten-matter condensates (White / Black Dwarf, Magnetar), 1,000 for the rest. */
+    /** 144 for the molten-matter condensates (White / Black Dwarf, Magnetar, White Hole), 1,000 for the rest. */
     private static int unitOf(Fluid condensate) {
         if (condensate == SLCondensates.entangledWhiteDwarf || condensate == SLCondensates.entangledBlackDwarf
-            || condensate == SLRealityFluids.entangledMagnetar) {
+            || condensate == SLRealityFluids.entangledMagnetar
+            || condensate == SLRealityFluids.entangledWhiteHole) {
             return 144;
         }
         return 1_000;

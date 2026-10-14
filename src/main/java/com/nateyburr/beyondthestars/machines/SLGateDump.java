@@ -17,6 +17,7 @@ import com.nateyburr.beyondthestars.BTSBlackHoleSwap;
 import com.nateyburr.beyondthestars.BTSCircuitChecks;
 import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
+import com.nateyburr.beyondthestars.blocks.BlockSLCasing4;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.fluids.SLQuasarFluids;
 import com.nateyburr.beyondthestars.items.SLCircuitItems;
@@ -395,6 +396,20 @@ public final class SLGateDump {
                 SLQuasarFluids.superdenseErgomatter == null ? null
                     : new FluidStack(SLQuasarFluids.superdenseErgomatter, 1),
                 9));
+        // SMBH v1 (smbh-v1.md §1.3): the L1 lattice is the Eye T9 -> T10 gate (the Supermassive Link), so its frame and
+        // node must not need anything first made at T10; L2-L4, the Mk IV crown casing and throat are reported only
+        gates.add(new Gate("Lattice Frame Casing", SLBlocks.casing4(BlockSLCasing4.LATTICE_FRAME, 1), null, 10));
+        gates.add(new Gate("Containment Node L1", SLBlocks.casing4(BlockSLCasing4.NODE_L1, 1), null, 10));
+        for (int t = 2; t <= 4; t++) {
+            gates.add(new Gate("Containment Node L" + t, SLBlocks.casing4(BlockSLCasing4.node(t), 1), null, 0));
+        }
+        gates.add(
+            new Gate(
+                "Event Horizon Thermaliser Casing",
+                SLBlocks.casing4(BlockSLCasing4.HORIZON_THERMALISER, 1),
+                null,
+                0));
+        gates.add(item("Conduit Throat Mk IV", SLQuasarItems.conduitThroatMk4, 0));
         SLConsoleTest.tell(sender, "== P4 gate audit: " + gates.size() + " parts ==");
         int loops = 0;
         for (Gate gate : gates) {
