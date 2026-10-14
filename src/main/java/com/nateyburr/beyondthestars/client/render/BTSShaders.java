@@ -67,6 +67,7 @@ public final class BTSShaders {
         }
         NoiseTex.markReload();
         FrameCopy.markReload();
+        OpaqueDepth.markReload();
     }
 
     /**

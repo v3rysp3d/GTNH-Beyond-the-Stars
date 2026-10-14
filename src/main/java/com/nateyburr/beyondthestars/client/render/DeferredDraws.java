@@ -22,6 +22,10 @@ import cpw.mods.fml.relauncher.SideOnly;
  * runs the queue after the translucent pass, as the Eye's see-through layers draw in pass 1 (render QA round 4, D1).
  * The modelview then holds the same camera rotation a TESR sees. The queue is cleared every frame, so a draw never
  * outlives the frame it was queued in.
+ * <p>
+ * Under Angelica (R-16) the translucent pass writes the glass into the depth buffer, which hid everything behind
+ * glass: {@link OpaqueDepth} puts the opaque world's depth back for these draws (or, where it cannot, they draw at
+ * once in pass 0).
  */
 @SideOnly(Side.CLIENT)
 public final class DeferredDraws {
@@ -31,6 +35,11 @@ public final class DeferredDraws {
     private static final List<Entry<?>> QUEUE = new ArrayList<>();
     private static int queued;
     private static boolean registered;
+    /**
+     * Dev switch {@code -Dbts.render.machineImmediate=true}: draw at GT's pass-0 hook, never after the translucent
+     * pass.
+     */
+    static final boolean IMMEDIATE = Boolean.getBoolean("bts.render.machineImmediate");
     private static long queuedFrame = -1;
 
     /**
@@ -66,6 +75,13 @@ public final class DeferredDraws {
     /** Queues {@code draw} of {@code machine} for after the translucent pass of this frame (render thread). */
     @SuppressWarnings("unchecked")
     public static <T> void add(Draw<T> draw, T machine, double x, double y, double z, float partialTicks) {
+        if (IMMEDIATE || OpaqueDepth.drawImmediately()) {
+            // R-16: under Angelica without the depth blits (a shaderpack, no GL 3.0): now, behind the glass
+            draw.draw(machine, x, y, z, partialTicks);
+            return;
+        }
+        // R-16: under Angelica, the opaque world's depth for the deferred draws (no-op elsewhere)
+        OpaqueDepth.captureOpaque();
         final long f = RenderFrame.frame();
         if (f != queuedFrame) {
             clear();
@@ -96,13 +112,18 @@ public final class DeferredDraws {
             clear();
             return;
         }
-        for (int i = 0; i < queued; i++) {
-            try {
-                QUEUE.get(i)
-                    .run();
-            } catch (RuntimeException bad) {
-                BeyondTheStars.LOG.warn("[BTS render] a deferred machine draw failed: {}", bad.toString());
+        final boolean opaque = OpaqueDepth.useOpaque();
+        try {
+            for (int i = 0; i < queued; i++) {
+                try {
+                    QUEUE.get(i)
+                        .run();
+                } catch (RuntimeException bad) {
+                    BeyondTheStars.LOG.warn("[BTS render] a deferred machine draw failed: {}", bad.toString());
+                }
             }
+        } finally {
+            if (opaque) OpaqueDepth.restore();
         }
         clear();
     }
