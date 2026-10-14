@@ -155,6 +155,13 @@ public final class BTSFormat {
         return buNum(bu) + " Bu/t (" + euSci(eu) + " EU/t, " + euWords(eu) + ")";
     }
 
+    /** The EU/t of {@code bu} Bu/t with its words, for a GUI value: {@code 9.8e16 EU/t (98 quadrillion)}. */
+    public static String euValue(double bu) {
+        final double eu = bu * EU_PER_BU;
+        if (Math.abs(eu) < 999.5) return "0 EU/t";
+        return euSci(eu) + " EU/t (" + euWords(eu) + ")";
+    }
+
     /** A Bu/t figure with its EU/t where space is tight (scanner lines, GUI rows): {@code 9,796 Bu/t (9.8e16 EU/t)}. */
     public static String buEuShort(double bu) {
         return buNum(bu) + " Bu/t (" + euOfBu(bu) + ")";

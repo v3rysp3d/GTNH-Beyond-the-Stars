@@ -3,7 +3,6 @@ package com.nateyburr.beyondthestars.machines.quasar.burst;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -88,7 +87,8 @@ public final class BurstReading {
         final StringBuilder sb = new StringBuilder();
         for (Map.Entry<BurstSource, Double> e : bySource.entrySet()) {
             if (sb.length() > 0) sb.append("; ");
-            sb.append(String.format(Locale.ROOT, "%.2f Bu/t from ", e.getValue()))
+            sb.append(com.nateyburr.beyondthestars.machines.gui.BTSFormat.buEuShort(e.getValue()))
+                .append(" from ")
                 .append(
                     e.getKey()
                         .label())

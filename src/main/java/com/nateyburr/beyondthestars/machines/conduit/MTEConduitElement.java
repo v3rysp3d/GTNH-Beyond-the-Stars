@@ -719,7 +719,7 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
             conduitLabel() + (mMachine ? "" : ", NOT FORMED")
                 + ": "
                 + (mk == 0 ? "no Conduit Throat (closed)"
-                    : "throat Mk " + roman(mk) + " (" + bu(BurstRouting.throatCap(mk)) + " Bu/t)")
+                    : "throat Mk " + roman(mk) + " (" + MTEQuasarEngine.buEu(BurstRouting.throatCap(mk)) + ")")
                 + (open ? ", OPEN"
                     : mk == 0 ? ""
                         : ", CLOSED (" + reopen + " / " + BurstRouting.REOPEN_SECONDS + " s of upkeep to open)"));
@@ -735,8 +735,7 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
                     litresSpaceTime,
                     litresErgomatter));
         out.add(
-            "Through: " + bu(throughBu())
-                + " Bu/t"
+            "Through: " + MTEQuasarEngine.buEu(throughBu())
                 + (clippedBu() > 0.005 ? ", clipped " + bu(clippedBu()) : "")
                 + (lostBu() > 0.005 ? ", lost " + bu(lostBu()) : ""));
         extraStatus(out, now);
@@ -754,8 +753,8 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
             final ConduitNet.Route r = lastRoute(outs[k]);
             out.add(
                 names[k] + ": "
-                    + bu(outBu(outs[k]))
-                    + " Bu/t -> "
+                    + MTEQuasarEngine.buEu(outBu(outs[k]))
+                    + " -> "
                     + (r == null ? "(not traced yet: no stream)" : r.describe()));
         }
     }
@@ -824,8 +823,9 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
 
     /** The lines every element's tooltip shares (throat, upkeep, rays). */
     protected static MultiblockTooltipBuilder commonInfo(MultiblockTooltipBuilder tt) {
-        return tt.addInfo("Throat: a Conduit Throat in the controller slot (swap to upgrade): Mk I 24, Mk II 384,")
-            .addInfo("  Mk III 6,144, Mk IV 524,288 Bu/t. Above the cap the stream is clipped (shown), never damaged.")
+        return tt.addInfo("Throat: a Conduit Throat in the controller slot (swap to upgrade): Mk I 24 Bu/t (2.4e14")
+            .addInfo("  EU/t), Mk II 384 (3.8e15), Mk III 6,144 (6.1e16), Mk IV 524,288 Bu/t (5.2e18 EU/t). Above")
+            .addInfo("  the cap the stream is clipped (shown), never damaged. 1 Bu/t = 10^13 EU/t in a crown.")
             .addInfo("Upkeep, one unit per element: Molten SpaceTime 4 / 16 / 64 / 256 L/s by throat Mk, or")
             .addInfo("  Ergomatter 0.25 / 1 / 4 / 16 L/s (after Eye T7); Mk IV prefers Superdense Ergomatter, 2 L/s.")
             .addInfo("  GUI: Auto / SpaceTime / Ergomatter. Short upkeep closes")

@@ -28,6 +28,7 @@ import com.cleanroommc.modularui.widgets.TextWidget;
 import com.cleanroommc.modularui.widgets.layout.Flow;
 import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
 import com.nateyburr.beyondthestars.machines.gui.BTSControllerGui;
+import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
 import com.nateyburr.beyondthestars.machines.gui.BTSGuiKit;
 import com.nateyburr.beyondthestars.machines.gui.BTSGuiKit.Badge;
 import com.nateyburr.beyondthestars.machines.gui.BTSGuiKit.Grad;
@@ -114,7 +115,7 @@ public class ConduitElementGui<T extends MTEConduitElement<?>> extends BTSContro
         final int mk = multiblock.throatMk();
         out.add(
             mk == 0 ? BTSText.lang(K + "mk.tip0")
-                : BTSText.lang(K + "mk.tip", MTEConduitElement.roman(mk), bu(BurstRouting.throatCap(mk))));
+                : BTSText.lang(K + "mk.tip", MTEConduitElement.roman(mk), BTSFormat.buEu(BurstRouting.throatCap(mk))));
         out.add(BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "mk.tip2")));
         return out;
     }
@@ -147,20 +148,26 @@ public class ConduitElementGui<T extends MTEConduitElement<?>> extends BTSContro
             BTSText.lit(bu(through) + " Bu/t"),
             Grad.MAGENTA,
             null,
-            BTSText.lang(K + "through.tip", bu(through), bu(cap)),
-            BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "through.tip2", bu(clipped), bu(lost))));
+            BTSText.lang(K + "through.tip", BTSFormat.buEu(through), BTSFormat.buEuShort(cap)),
+            BTSText.cat(
+                BTSText.lit("§7"),
+                BTSText.lang(K + "through.tip2", BTSFormat.buEuShort(clipped), BTSFormat.buEuShort(lost))));
+        rows.stat(
+            BTSText.lang("beyondthestars.gui.kit.eut"),
+            BTSText.lit(BTSFormat.euValue(through)),
+            BTSText.lang("beyondthestars.gui.kit.eut.tip"));
         if (clipped > 0.005) {
             rows.note(
                 BTSRows.ICON_WARN,
                 BTSGuiKit.WARN,
-                BTSText.lang(K + "clipped", bu(clipped)),
+                BTSText.lang(K + "clipped", BTSFormat.buEuShort(clipped)),
                 BTSText.lang(K + "clipped.tip"));
         }
         if (lost > 0.005) {
             rows.note(
                 BTSRows.ICON_WARN,
                 BTSGuiKit.WARN,
-                BTSText.lang(K + "lost", bu(lost)),
+                BTSText.lang(K + "lost", BTSFormat.buEuShort(lost)),
                 BTSText.lang(K + "lost.tip"));
         }
         upkeepRow(rows);
@@ -169,15 +176,17 @@ public class ConduitElementGui<T extends MTEConduitElement<?>> extends BTSContro
             partnerRow(rows, mouth);
             rows.stat(
                 BTSText.lang(K + "in.ring"),
-                BTSText.lit(bu(m.inBu(0)) + " Bu/t"),
+                BTSText.lit(bu(m.inBu(0)) + " Bu/t §7= §f" + BTSFormat.euOfBu(m.inBu(0))),
                 BTSText.lang(K + "in.ring.tip"));
             routeRow(rows, K + "out.back", 0);
         } else if (m instanceof MTEConduitMirror) {
-            rows.stat2(
+            rows.stat(
                 BTSText.lang(K + "in.front"),
-                BTSText.lit(bu(m.inBu(0))),
+                BTSText.lit(bu(m.inBu(0)) + " Bu/t §7= §f" + BTSFormat.euOfBu(m.inBu(0))),
+                BTSText.lang(K + "in.mirror.tip"));
+            rows.stat(
                 BTSText.lang(K + "in.side"),
-                BTSText.lit(bu(m.inBu(1))),
+                BTSText.lit(bu(m.inBu(1)) + " Bu/t §7= §f" + BTSFormat.euOfBu(m.inBu(1))),
                 BTSText.lang(K + "in.mirror.tip"));
             routeRow(rows, K + "out.side", 1);
             routeRow(rows, K + "out.front", 0);
@@ -216,7 +225,10 @@ public class ConduitElementGui<T extends MTEConduitElement<?>> extends BTSContro
                     s < 0 ? tr(K + "mode.nohatch") : String.valueOf(s),
                     String.format(Locale.ROOT, "%.2f", j.share()),
                     String.format(Locale.ROOT, "%.0f", 100 * j.getOut3Share())));
-            rows.stat(BTSText.lang(K + "in.big"), BTSText.lit(bu(j.inBu(0)) + " Bu/t"));
+            rows.stat(
+                BTSText.lang(K + "in.big"),
+                BTSText.lit(bu(j.inBu(0)) + " Bu/t §7= §f" + BTSFormat.euOfBu(j.inBu(0))),
+                BTSText.lit(BTSFormat.buEu(j.inBu(0))));
             routeRow(rows, K + "out.1", 1);
             routeRow(rows, K + "out.2", 2);
             routeRow(rows, K + "out.3", 3);
@@ -225,9 +237,15 @@ public class ConduitElementGui<T extends MTEConduitElement<?>> extends BTSContro
                 BTSText.lang(K + "mode"),
                 BTSText.lang(K + "mode.combine"),
                 BTSText.lang(K + "mode.combine.tip", bu(j.inBu(1)), bu(j.inBu(2)), bu(j.inBu(3))));
+            final double small = j.inBu(1) + j.inBu(2) + j.inBu(3);
             rows.stat(
                 BTSText.lang(K + "in.small"),
-                BTSText.lit(bu(j.inBu(1)) + " + " + bu(j.inBu(2)) + " + " + bu(j.inBu(3))));
+                BTSText.lit(bu(j.inBu(1)) + " + " + bu(j.inBu(2)) + " + " + bu(j.inBu(3))),
+                BTSText.lit(BTSFormat.buEu(small)));
+            rows.stat(
+                BTSText.lang("beyondthestars.gui.kit.eut"),
+                BTSText.lit(BTSFormat.euValue(small)),
+                BTSText.lang("beyondthestars.gui.kit.eut.tip"));
             routeRow(rows, K + "out.big", 0);
         }
     }
@@ -235,7 +253,8 @@ public class ConduitElementGui<T extends MTEConduitElement<?>> extends BTSContro
     /** An out-throat: its Bu/t and what the ray reaches (aqua), or where it is blocked (red). */
     private void routeRow(BTSRows.Builder rows, String labelKey, int out) {
         final ConduitNet.Route r = multiblock.lastRoute(out);
-        final String flow = bu(multiblock.outBu(out));
+        final double flowBu = multiblock.outBu(out);
+        final String flow = bu(flowBu) + " §7(" + BTSFormat.euOfBu(flowBu) + ")§f";
         final String where;
         final String tip;
         if (r == null) {
@@ -253,7 +272,7 @@ public class ConduitElementGui<T extends MTEConduitElement<?>> extends BTSContro
         rows.stat(
             BTSText.lang(labelKey),
             BTSText.lit("§f" + flow + " " + where),
-            BTSText.lit(flow + " Bu/t -> " + tip));
+            BTSText.lit(BTSFormat.buEu(flowBu) + " -> " + tip));
     }
 
     private void upkeepRow(BTSRows.Builder rows) {

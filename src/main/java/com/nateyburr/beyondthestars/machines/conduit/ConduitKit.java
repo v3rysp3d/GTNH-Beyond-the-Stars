@@ -613,8 +613,8 @@ public final class ConduitKit {
             out.add(
                 String.format(
                     Locale.ROOT,
-                    "GRB Receptor Port: %.3f Bu/t%s%s",
-                    reading.total,
+                    "GRB Receptor Port: %s%s%s",
+                    com.nateyburr.beyondthestars.machines.gui.BTSFormat.buEuShort(reading.total),
                     reading.linked() ? ", LINKED to " + reading.linkSource()
                         .label() : ", not linked",
                     reading.paused ? ", PAUSED" : ""));

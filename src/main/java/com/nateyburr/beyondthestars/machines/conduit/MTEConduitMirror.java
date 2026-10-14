@@ -10,6 +10,7 @@ import com.nateyburr.beyondthestars.blocks.BlockSLCasing;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
+import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstStream;
 
 import gregtech.api.casing.Casings;
@@ -91,7 +92,7 @@ public class MTEConduitMirror extends MTEConduitElement<MTEConduitMirror> {
 
     @Override
     protected void extraStatus(List<String> out, long now) {
-        out.add("In (front): " + bu(inBu(0)) + " Bu/t, in (side): " + bu(inBu(1)) + " Bu/t");
+        out.add("In (front): " + MTEQuasarEngine.buEu(inBu(0)) + ", in (side): " + MTEQuasarEngine.buEu(inBu(1)));
         routeLines(out, new int[] { 1, 0 }, new String[] { "Out (side)", "Out (front)" });
     }
 

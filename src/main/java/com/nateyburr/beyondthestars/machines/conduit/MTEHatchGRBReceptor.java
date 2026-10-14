@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -129,6 +128,7 @@ public class MTEHatchGRBReceptor extends MTEHatch {
     @Override
     public String[] getDescription() {
         return new String[] { "Takes a gamma-ray burst stream (Bu/t) into a machine. Any side: aim a conduit at it.",
+            "1 Bu/t is worth 10^13 EU/t in a crown (a maxed quasar's 9,796 Bu/t: 9.8e16 EU/t, 98 quadrillion).",
             "Records each second how much arrived from which Quasar Engine: that is the machine's §bquasar link§7.",
             "Linked: bursts arrived last second from a formed quasar with its hole open and coils powered,",
             "  through an open path (every element fuelled, every ray clear). Nothing is saved or paired by hand.",
@@ -235,7 +235,9 @@ public class MTEHatchGRBReceptor extends MTEHatch {
         final String h = getHost();
         out.add("GRB Receptor Port" + (h.isEmpty() ? " (in no machine: it only records)" : " in " + h));
         final BurstReading r = reading();
-        out.add(String.format(Locale.ROOT, "Last second: %.2f Bu/t%s", r.total, r.linked() ? ", LINKED" : ""));
+        out.add(
+            "Last second: " + com.nateyburr.beyondthestars.machines.gui.BTSFormat.buEuShort(r.total)
+                + (r.linked() ? ", LINKED" : ""));
         out.add(r.line());
         return out;
     }

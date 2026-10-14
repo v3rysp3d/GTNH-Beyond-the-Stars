@@ -12,6 +12,7 @@ import com.nateyburr.beyondthestars.blocks.BlockSLCasing;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
+import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstStream;
 import com.nateyburr.beyondthestars.machines.quasar.engine.BurstRouting;
 
@@ -241,8 +242,8 @@ public class MTEConduitJunction extends MTEConduitElement<MTEConduitJunction> {
             out.add(
                 String.format(
                     Locale.ROOT,
-                    "SPLIT: in %s Bu/t; c %.2f, k %s, s %s -> share 1 = %.2f; out 3 takes %.0f%% first",
-                    bu(inBu(0)),
+                    "SPLIT: in %s; c %.2f, k %s, s %s -> share 1 = %.2f; out 3 takes %.0f%% first",
+                    MTEQuasarEngine.buEu(inBu(0)),
                     ratio,
                     fmtGain(getGain()),
                     lastLevel < 0 ? "- (no Burst Control Hatch)" : String.valueOf(lastLevel),
@@ -252,7 +253,7 @@ public class MTEConduitJunction extends MTEConduitElement<MTEConduitJunction> {
         } else {
             out.add(
                 "COMBINE: in " + bu(
-                    inBu(1)) + " + " + bu(inBu(2)) + " + " + bu(inBu(3)) + " Bu/t, capped by the throat");
+                    inBu(1)) + " + " + bu(inBu(2)) + " + " + MTEQuasarEngine.buEu(inBu(3)) + ", capped by the throat");
             routeLines(out, new int[] { 0 }, new String[] { "Out (big throat)" });
         }
     }

@@ -44,6 +44,7 @@ import com.nateyburr.beyondthestars.machines.QuietTileUpdate;
 import com.nateyburr.beyondthestars.machines.conduit.ConduitThroats;
 import com.nateyburr.beyondthestars.machines.conduit.FlowBook;
 import com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor;
+import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstDocks;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstHost;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstReading;
@@ -566,22 +567,25 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
                 .getTotalWorldTime();
         out.add(
             "Burst Thermaliser Crown"
-                + (mMachine ? " Mk " + roman(mk) + " (cap " + MTEQuasarEngine.bu(BurstRouting.crownCap(mk)) + " Bu/t)"
+                + (mMachine ? " Mk " + roman(mk) + " (cap " + MTEQuasarEngine.buEu(BurstRouting.crownCap(mk)) + ")"
                     : ", NOT FORMED"));
         out.add(
             String.format(
                 Locale.ROOT,
-                "Stream %s Bu/t (jets %s, receptor %s, from below %s) -> %s Bu/t used",
+                "Stream %s Bu/t (jets %s, receptor %s, from below %s) -> %s used",
                 MTEQuasarEngine.bu(lastStream),
                 MTEQuasarEngine.bu(lastJets),
                 MTEQuasarEngine.bu(lastRemote),
                 MTEQuasarEngine.bu(lastOverIn),
-                MTEQuasarEngine.bu(lastUsed)));
+                MTEQuasarEngine.buEu(lastUsed)));
         out.add(
-            String.format(Locale.ROOT, "Power: %.3e EU/t to the wireless network", getEUt())
-                + (owner == null ? " - NO OWNER (place it yourself)" : ""));
-        if (lastOver > 1e-9) out.add("Overflow " + MTEQuasarEngine.bu(lastOver) + " Bu/t to the crown above");
-        if (lastClipped > 0.005) out.add("Clipped " + MTEQuasarEngine.bu(lastClipped) + " Bu/t (over the cap)");
+            String.format(
+                Locale.ROOT,
+                "Power: %.3e EU/t (%s) to the wireless network",
+                getEUt(),
+                BTSFormat.euWords(getEUt())) + (owner == null ? " - NO OWNER (place it yourself)" : ""));
+        if (lastOver > 1e-9) out.add("Overflow " + MTEQuasarEngine.buEu(lastOver) + " to the crown above");
+        if (lastClipped > 0.005) out.add("Clipped " + MTEQuasarEngine.buEu(lastClipped) + " (over the cap)");
         if (!stackLine.isEmpty()) out.add(stackLine);
         if (now - dockTick < 60 && !dockNote.isEmpty()) out.add(dockNote);
         else out.add("Jet port: none docked (the base centre must sit on a quasar's port cell)");
@@ -647,8 +651,10 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         tt.addMachineType("Gamma-Ray Burst Power Plant")
             .addInfo("Turns gamma-ray bursts into EU: 1 Bu/t = 10^13 EU/t, pushed to your wireless network.")
             .addInfo("  No dynamo hatch. Its Mk is the crown built around the controller:")
-            .addInfo("  Mk I 32, Mk II 512, Mk III 8,192 Bu/t. Upgrade by building the bigger crown around it.")
-            .addInfo("  Mk IV, the Event Horizon Crown: 524,288 Bu/t (5.2 x 10^18 EU/t), for a Supermassive")
+            .addInfo("  Mk I 32 Bu/t (3.2e14 EU/t), Mk II 512 (5.1e15), Mk III 8,192 (8.2e16 EU/t, 82 quadrillion).")
+            .addInfo("  Upgrade by building the bigger crown around it.")
+            .addInfo(
+                "  Mk IV, the Event Horizon Crown: 524,288 Bu/t (5.2e18 EU/t, 5.2 quintillion), for a Supermassive")
             .addInfo(
                 "  Lattice quasar. Its core is Event Horizon Thermaliser Casing (4 Mk IV are the most any hole needs).")
             .addInfo("On a Quasar Engine jet port: the base centre on the port cell (the cell just past the cap,")
