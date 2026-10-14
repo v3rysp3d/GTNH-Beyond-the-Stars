@@ -48,8 +48,8 @@ public final class EyeBursts {
         if (ports() == 0) return "no GRB Receptor Ports (the T7 rail and the T8 halo carry them)";
         return String.format(
             Locale.ROOT,
-            "Bursts %.2f Bu/t: rail high %.2f (%d ports), low %.2f (%d), halo %.2f (%d)%s",
-            total(),
+            "Bursts %s: rail high %.2f (%d ports), low %.2f (%d), halo %.2f (%d)%s",
+            com.nateyburr.beyondthestars.machines.gui.BTSFormat.buEuShort(total()),
             hi,
             hiPorts,
             lo,

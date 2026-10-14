@@ -346,9 +346,9 @@ public final class EyeGalaxy {
     String inputLine() {
         return String.format(
             Locale.ROOT,
-            "β %.2f (demand %.2f Bu/t): γ high %.2f, low %.2f, halo %.2f",
+            "β %.2f (demand %s): γ high %.2f, low %.2f, halo %.2f",
             beta,
-            demand,
+            com.nateyburr.beyondthestars.machines.gui.BTSFormat.buEuShort(demand),
             gHi,
             gLo,
             gHalo);

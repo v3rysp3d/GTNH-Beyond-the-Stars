@@ -1162,11 +1162,11 @@ public final class EyeStarRuntime {
             final MagnetarCollapseOverlay mc = ((MagnetarCollapse) trans).mc;
             lastEvent = String.format(
                 Locale.ROOT,
-                "the magnetar COLLAPSED into a black hole: shock P %s -> %s (%.2f Bu/t on the ports cancelled %.0f of"
+                "the magnetar COLLAPSED into a black hole: shock P %s -> %s (%s on the ports cancelled %.0f of"
                     + " %.0f); the halo capture begins (Stable for 60 s in a row within 420-600 s)",
                 StellarField.fmtSigned(mc.shockP0),
                 StellarField.fmtSigned(mc.shockP),
-                mc.shockG,
+                BTSFormat.buEuShort(mc.shockG),
                 mc.shockCancel,
                 mc.shock);
             logEvent(lastEvent);
@@ -2781,15 +2781,15 @@ public final class EyeStarRuntime {
         if (s < GalaxyField.demandT(8)) {
             return String.format(
                 Locale.ROOT,
-                "Heavy Link test fire waits: the quasar's mean stream %.1f Bu/t is under 6 (grow it)",
-                s);
+                "Heavy Link test fire waits: the quasar's mean stream %s is under 6 Bu/t (grow it)",
+                BTSFormat.buEuShort(s));
         }
         if (s > HEAVY_TEST_FIRE_MAX_STREAM) {
             return String.format(
                 Locale.ROOT,
-                "Heavy Link test fire held: the quasar's mean stream %.1f Bu/t is over %.0f, and J1 at 15 would flood"
+                "Heavy Link test fire held: the quasar's mean stream %s is over %.0f Bu/t, and J1 at 15 would flood"
                     + " the rail. Test-fire with J1's Eye share at %.2f (J3 75 %% halo)",
-                s,
+                BTSFormat.buEuShort(s),
                 HEAVY_TEST_FIRE_MAX_STREAM,
                 heavyTestFireShare());
         }
@@ -3696,14 +3696,15 @@ public final class EyeStarRuntime {
             out.add(
                 String.format(
                     Locale.ROOT,
-                    "%s: streak %s / 30:00 (best %s), 60 s mean %.2f Bu/t, %s %.0f%%%s",
+                    "%s: streak %s / 30:00 (best %s), 60 s mean %s, %s %.0f%%%s",
                     EyeMilestones.LINK_NAME[n],
                     EyeMilestones.clock(l.streak),
                     EyeMilestones.clock(Math.max(l.best, milestones.linkBest[n])),
-                    l.mean,
+                    BTSFormat.buEuShort(l.mean),
                     n == 6 ? "high bank" : "halo",
                     100 * l.frac,
-                    n == 6 ? " (needs >= 1.5 Bu/t, high bank 25-75 %)" : " (needs >= 6 Bu/t, halo >= 50 %)"));
+                    n == 6 ? " (needs >= 1.5 Bu/t = 1.5e13 EU/t, high bank 25-75 %)"
+                        : " (needs >= 6 Bu/t = 6.0e13 EU/t, halo >= 50 %)"));
         }
         if (T.ergoFeed) {
             final int[] c = crossings();
@@ -3732,11 +3733,10 @@ public final class EyeStarRuntime {
             out.add(
                 String.format(
                     Locale.ROOT,
-                    "  The shock would land at P +%.0f with %.2f Bu/t now; %.1f Bu/t on the collapse second cancels"
-                        + " it all",
+                    "  The shock would land at P +%.0f with %s now; %s on the collapse second cancels" + " it all",
                     mc.predictedShock(galaxy.gEye),
-                    galaxy.gEye,
-                    mc.fullCancelBu()));
+                    BTSFormat.buEuShort(galaxy.gEye),
+                    BTSFormat.buEuShort(mc.fullCancelBu())));
         }
     }
 
