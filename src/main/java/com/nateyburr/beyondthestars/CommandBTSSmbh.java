@@ -233,7 +233,14 @@ public class CommandBTSSmbh extends CommandBase {
                 break;
             }
             case "status":
-                break;
+                for (String line : q.statusLines()) SLConsoleTest.tell(sender, line);
+                // the bench crowns' owner: what they pushed to wireless, a BigInteger (the no-overflow check, §3.4)
+                SLConsoleTest.tell(
+                    sender,
+                    "Wireless network of the bench owner: " + String
+                        .format(Locale.ROOT, "%,d", com.nateyburr.beyondthestars.machines.conduit.ConduitKit.benchEU())
+                        + " EU");
+                return;
             default:
                 SLConsoleTest.tell(sender, getCommandUsage(sender));
                 return;
