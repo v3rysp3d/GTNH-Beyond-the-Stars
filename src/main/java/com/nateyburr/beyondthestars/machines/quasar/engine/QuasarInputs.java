@@ -30,4 +30,23 @@ public final class QuasarInputs {
      * {@link QuasarState#requestPurge}; the golden harness uses this field.
      */
     public boolean regulatorPurge;
+
+    // ---- SMBH (smbh-v1.md §2-§5; read by QuasarDisc's growth cap and by HorizonLattice). The defaults are "no
+    // lattice": the disc then runs exactly as before the SMBH.
+    /** The lattice tier on the structure's {@code lattice} channel, 0-4 (counts only on MagMatter coils). */
+    public int lattice;
+    /** The mass setpoint, SM (0 = the default: the lattice's safe limit). Ignored without a lattice. */
+    public double massSetpoint;
+    /** Unbind (§5.1): on L4 the setpoint may pass the L4 top. */
+    public boolean unbound;
+    /** The Overdrive level o, 0-1 (§3.2; needs L3+). */
+    public double overdrive;
+    /**
+     * Feed gas on hand this second beyond {@link #gasDrawn} (the disc segment), litres: the hold-up and growth
+     * segments take from it in that order ({@link QuasarResult#holdUpLitres} + {@link QuasarResult#growthLitres} is
+     * what to drain).
+     */
+    public double intakeAvailable;
+    /** Molten MHDCSM, Molten Universium and Primordial Matter on hand this second, litres (the trim sockets). */
+    public double mhdcsmAvailable, universiumAvailable, anchorAvailable;
 }

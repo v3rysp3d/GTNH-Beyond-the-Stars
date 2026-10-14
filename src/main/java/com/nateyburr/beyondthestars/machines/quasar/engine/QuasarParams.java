@@ -42,7 +42,7 @@ public final class QuasarParams {
     /** Mass milestones (display only; the questbook and BTSUpgradeTreePanel). */
     public static final double[] MASS_MILESTONES = { 128, 415, 1024, 4096 };
 
-    /** The coil mass cap, SM (tier clamped to 1..4). */
+    /** The coil mass cap, SM (tier clamped to 1..4). Without a lattice this is also the structure's top (§10.3). */
     public static double massCap(int coilTier) {
         return COIL_CAP[Math.max(1, Math.min(4, coilTier))];
     }
@@ -115,6 +115,193 @@ public final class QuasarParams {
     /** G0 = λc · a² · b² · (M/64)² Bu/t (bh-model at λ = 1, J0 = 1). */
     public static double g0(double lc, double a, double b, double M) {
         return lc * a * a * b * b * StrictMath.pow(M / 64, 2);
+    }
+
+    /**
+     * SMBH (smbh-v1.md §3.1): G0 = λc · a² · b² · 4,096 · X(M, o). At or under 4,096 SM with no Overdrive this IS
+     * {@link #g0(double, double, double, double)}, the same expression, so every pre-SMBH number (and the P4 golden
+     * file) is unchanged bit for bit; X = (M/4,096)² there, so the two forms are continuous at 4,096 SM.
+     */
+    public static double g0(double lc, double a, double b, double M, double oEff) {
+        if (!(oEff > 0) && M <= M_REF) return g0(lc, a, b, M);
+        return lc * a * a * b * b * M_REF * outputX(M, oEff);
+    }
+
+    // ------------------------------------------------------------------ SMBH: the Supermassive Lattice (smbh-v1.md)
+    // Every number here is a knob of the spec (§10.1); the SMBH golden (tools/smbh-golden.js) pins them to the
+    // reference block tools/fixtures/smbh-engine.js.
+
+    /** The reference mass: the MagMatter coil cap, where X = 1 (×1 = today's maxed quasar). */
+    public static final double M_REF = 4096;
+    /** Lattice tiers L1-L4 (index 0 = no lattice): the node material, the safe limit and the band top, SM (§2.1). */
+    public static final String[] LATTICE_NAME = { "", "Superdense Ergomatter", "White Hole Matter", "Universium",
+        "Constrained Eternity" };
+    public static final double[] LATTICE_SAFE = { 0, 16384, 65536, 262144, 4194304 };
+    public static final double[] LATTICE_TOP = { 0, 65536, 262144, 4194304, 67108864 };
+    public static final int LATTICE_MAX = 4;
+    /** Overdrive needs this lattice tier or higher (it burns Universium, §3.2). */
+    public static final int LATTICE_OVERDRIVE = 3;
+    /** A lattice counts only on MagMatter coils (the Saturation milestone is held on them, §1.2). */
+    public static final int LATTICE_COIL = 4;
+    /** Unbound mass is a double, clamped at 2⁵⁰ SM for numeric sanity only (§5.1). */
+    public static final double UNBOUND_MAX = 1125899906842624.0;
+    /** The intake cap, × Ṁ_Edd ("a max per SM", §2.3), and the hold-up, 3·x × Ṁ_Edd. */
+    public static final double INTAKE_CAP = 5, HOLDUP_K = 3;
+    /** Without hold-up the over-limit part halves on a log scale every this many seconds (§2.3 leak). */
+    public static final double LEAK_HALF_LIFE = 3600;
+    /** Overdrive upkeep per second, each of Molten MHDCSM and Molten Universium: 100,000 · o² · 2^(−n) L (§3.2). */
+    public static final double OVERDRIVE_UPKEEP = 1e5;
+    /** raw = Xm · (1 + 7·o); X = 1 + 99·tanh((raw − 1)/99) past 1, so X never passes ×100 (§3.1). */
+    public static final double OVERDRIVE_GAIN = 7, X_CEIL = 100, XM_CEIL = 32;
+    /** The GUI / hatch Overdrive step (5 %). */
+    public static final double OVERDRIVE_STEP = 0.05;
+    /** The Unbound anchor: U(n) = 1,024 · 4^(n²) L/s of Primordial Matter (§5.2). */
+    public static final double ANCHOR_BASE = 1024, ANCHOR_GROWTH = 4;
+    /** A shed takes 2 % of the mass a second (M × 0.98) down to its target (§2.5). */
+    public static final double SHED_RATE = 0.02;
+    /** ln 2, as a literal so the Java and the reference agree on it. */
+    public static final double LN2 = 0.6931471805599453;
+
+    /**
+     * b^y as exp(y·ln b). The SMBH maths uses this, never {@code pow}, for fractional powers: fdlibm's exp and log
+     * (StrictMath) equal V8's bit for bit, its pow does not (about 1 in 10 differ by an ulp), and the golden test
+     * compares exactly.
+     */
+    public static double powE(double b, double y) {
+        return StrictMath.exp(y * StrictMath.log(b));
+    }
+
+    /**
+     * The mass term Xm (§3.1): (M/4,096)² at or under 4,096 SM, then 1 + 31·tanh((√r − 1)/31), r = M/4,096 (about √r
+     * at first, flat toward ×32).
+     */
+    public static double massTerm(double M) {
+        final double r = M / M_REF;
+        if (r <= 1) return r * r;
+        return 1 + (XM_CEIL - 1) * StrictMath.tanh((Math.sqrt(r) - 1) / (XM_CEIL - 1));
+    }
+
+    /** The output multiplier X(M, o) (§3.1): raw = Xm·(1 + 7·o); raw itself at or under 1, else the ×100 soft cap. */
+    public static double outputX(double M, double o) {
+        final double raw = massTerm(M) * (1 + OVERDRIVE_GAIN * o);
+        if (raw <= 1) return raw;
+        return 1 + (X_CEIL - 1) * StrictMath.tanh((raw - 1) / (X_CEIL - 1));
+    }
+
+    /** The lattice tier that counts: {@code lattice} (0-4) on MagMatter coils, else 0. */
+    public static int latticeInForce(int coilTier, int lattice) {
+        return coilTier >= LATTICE_COIL ? Math.max(0, Math.min(LATTICE_MAX, lattice)) : 0;
+    }
+
+    /** The safe limit, SM: the lattice's (§2.1), or the coil cap without one. */
+    public static double safeLimit(int coilTier, int lattice) {
+        final int L = latticeInForce(coilTier, lattice);
+        return L > 0 ? LATTICE_SAFE[L] : massCap(coilTier);
+    }
+
+    /** The band top, SM: the lattice's (§2.1), or the coil cap without one. */
+    public static double bandTop(int coilTier, int lattice) {
+        final int L = latticeInForce(coilTier, lattice);
+        return L > 0 ? LATTICE_TOP[L] : massCap(coilTier);
+    }
+
+    /**
+     * The structure's top, SM: the most mass this structure holds (§10.3): the coil cap without a lattice, the
+     * lattice's band top with one, 2⁵⁰ on L4 when Unbound. Debug masses, seeds and saved masses clamp here; a hole
+     * above it sheds (open) or will not open (dormant).
+     */
+    public static double structureTop(int coilTier, int lattice, boolean unbound) {
+        final int L = latticeInForce(coilTier, lattice);
+        if (L == LATTICE_MAX && unbound) return UNBOUND_MAX;
+        return bandTop(coilTier, lattice);
+    }
+
+    /**
+     * The mass setpoint in force (§2.2): without a lattice, the coil cap (growth stops there, as before the SMBH);
+     * with one, {@code setpoint} (0 or less = the default, the safe limit) clamped to 4,096 .. the structure's top.
+     */
+    public static double massSetpoint(int coilTier, int lattice, boolean unbound, double setpoint) {
+        final int L = latticeInForce(coilTier, lattice);
+        if (L == 0) return massCap(coilTier);
+        final double top = structureTop(coilTier, lattice, unbound);
+        if (!(setpoint > 0)) return LATTICE_SAFE[L];
+        return Math.max(M_REF, Math.min(top, setpoint));
+    }
+
+    /**
+     * The band position x (§2.3): 0 at or under the safe limit, log(M/safe)/log(top/safe) inside the band, 1 at the
+     * top and above it (Unbound). 0 without a lattice.
+     */
+    public static double bandX(double M, int coilTier, int lattice) {
+        final int L = latticeInForce(coilTier, lattice);
+        if (L == 0) return 0;
+        final double safe = LATTICE_SAFE[L], top = LATTICE_TOP[L];
+        if (M <= safe) return 0;
+        if (M >= top) return 1;
+        return StrictMath.log(M / safe) / StrictMath.log(top / safe);
+    }
+
+    /** The intake cap I_max = 5·Ṁ_Edd, L/s (§2.3). */
+    public static double intakeCap(double M, QuasarGas gas) {
+        return INTAKE_CAP * eddingtonFeed(M, gas);
+    }
+
+    /** The hold-up the band needs, 3·x·Ṁ_Edd L/s (§2.3). */
+    public static double holdUpNeed(double x, double medd) {
+        return HOLDUP_K * x * medd;
+    }
+
+    /** Unbound doublings n = log₂(M / 67,108,864) past the L4 top, 0 at or under it (§5.1). */
+    public static double unboundN(double M) {
+        final double top = LATTICE_TOP[LATTICE_MAX];
+        return M > top ? StrictMath.log(M / top) / LN2 : 0;
+    }
+
+    /** Overdrive upkeep, L/s of EACH of Molten MHDCSM and Molten Universium: 100,000 · o² · 2^(−n) (§3.2). */
+    public static double overdriveUpkeep(double o, double n) {
+        return OVERDRIVE_UPKEEP * o * o * powE(2, -n);
+    }
+
+    /** The anchor U(n) = 1,024 · 4^(n²) L/s of Primordial Matter for n &gt; 0 doublings, 0 at n = 0 (§5.2). */
+    public static double anchorUpkeep(double n) {
+        return n > 0 ? ANCHOR_BASE * powE(ANCHOR_GROWTH, n * n) : 0;
+    }
+
+    /** The most doublings {@code litres} of Primordial Matter a second pay for: U(n) ≤ litres (0 under 1,024 L). */
+    public static double anchorDoublings(double litres) {
+        if (!(litres >= ANCHOR_BASE)) return 0;
+        return Math.sqrt(StrictMath.log(litres / ANCHOR_BASE) / StrictMath.log(ANCHOR_GROWTH));
+    }
+
+    /** "Anchor short" ignores a cover this close to 1 (the round trip n → U(n) → n is not exact in floating point). */
+    public static final double ANCHOR_SLACK = 1e-9;
+
+    /**
+     * The most mass {@code litres} of Primordial Matter a second hold Unbound: 67,108,864 · 2^n for the n they pay
+     * for (the L4 top under 1,024 L). Unbound growth stops here and a bigger hole sheds to it (§5.2).
+     */
+    public static double anchorCap(double litres) {
+        return LATTICE_TOP[LATTICE_MAX] * powE(2, anchorDoublings(litres));
+    }
+
+    /**
+     * The disc's growth cap this second: the mass setpoint in force, and when Unbound also the anchor's cap for the
+     * Primordial Matter on hand ({@link QuasarInputs#anchorAvailable}). Without a lattice: the coil cap, as always.
+     */
+    public static double growthCap(QuasarInputs in) {
+        final double sp = massSetpoint(in.coilTier, in.lattice, in.unbound, in.massSetpoint);
+        if (!(in.unbound && latticeInForce(in.coilTier, in.lattice) == LATTICE_MAX)) return sp;
+        return Math.min(sp, anchorCap(in.anchorAvailable));
+    }
+
+    /** A shed's time from M down to {@code target}: ln(M/target)/0.0202 s (§2.5). */
+    public static double shedSeconds(double M, double target) {
+        return M > target ? StrictMath.log(M / target) / -StrictMath.log(1 - SHED_RATE) : 0;
+    }
+
+    /** Bu/t → EU/t for a readout (10¹³ each). */
+    public static double euPerTick(double bu) {
+        return bu * EU_PER_BU;
     }
 
     /** The steady stream at Φ: G = G0·Y_q·(0.5 + Φ/100). */
