@@ -512,9 +512,11 @@ public final class RenderTestClient {
         // renders v2: the client-side look overrides (null / -1: the live synced look)
         final boolean kerr = c.site == RenderTest.Site.KERR_T1 || c.site == RenderTest.Site.KERR_T2;
         TileKerrHole.debugStability = kerr && c.clientLook != null ? c.clientLook[0] : -1f;
-        TileQuasarHole.debugLook = !kerr && c.clientLook != null && c.clientLook.length == TileQuasarHole.DBG_LENGTH
-            ? c.clientLook.clone()
-            : null;
+        // (the renders v2 look, or the SMBH one with the lattice fields, R-19)
+        TileQuasarHole.debugLook = !kerr && c.clientLook != null
+            && (c.clientLook.length == TileQuasarHole.DBG_LENGTH_V2 || c.clientLook.length == TileQuasarHole.DBG_LENGTH)
+                ? c.clientLook.clone()
+                : null;
         // renders v2 WP-6..WP-8: the machine renders' overrides (4-entry looks, last entry -2)
         final boolean machine = c.clientLook != null && c.clientLook.length == 4 && c.clientLook[3] == -2f;
         HomogenyRender.debugLook = machine && c.site == RenderTest.Site.HOMOGENY ? c.clientLook.clone() : null;

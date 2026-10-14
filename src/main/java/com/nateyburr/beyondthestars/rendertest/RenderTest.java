@@ -32,6 +32,9 @@ import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructa
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.gtnewhorizon.structurelib.alignment.enumerable.Rotation;
 import com.nateyburr.beyondthestars.BeyondTheStars;
+import com.nateyburr.beyondthestars.blocks.BlockSLCasing4;
+import com.nateyburr.beyondthestars.blocks.SLBlocks;
+import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1;
 import com.nateyburr.beyondthestars.machines.SLConsoleTest;
 import com.nateyburr.beyondthestars.machines.conduit.ConduitKit;
@@ -45,12 +48,14 @@ import com.nateyburr.beyondthestars.machines.kerr.KerrKit;
 import com.nateyburr.beyondthestars.machines.kerr.KerrSlot;
 import com.nateyburr.beyondthestars.machines.kerr.KerrTestBench;
 import com.nateyburr.beyondthestars.machines.kerr.MTEKerrEngine;
+import com.nateyburr.beyondthestars.machines.quasar.MTEBurstThermaliserCrown;
 import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
 import com.nateyburr.beyondthestars.machines.quasar.QuasarGeometry;
 import com.nateyburr.beyondthestars.machines.quasar.QuasarKit;
 import com.nateyburr.beyondthestars.machines.quasar.burst.JetPort;
 import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarParams;
 import com.nateyburr.beyondthestars.machines.quasar.render.BlockQuasarHole;
+import com.nateyburr.beyondthestars.machines.quasar.render.TileQuasarHole;
 import com.nateyburr.beyondthestars.machines.reality.HRKit;
 
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -151,7 +156,13 @@ public final class RenderTest {
          * Renders v2 (R-16): the performance scene ({@link RenderScene}): a Kerr T2, the Homogeny, an Eye T8 and a
          * 4,096 SM quasar close together, so one camera sees all four.
          */
-        SCENE;
+        SCENE,
+        /**
+         * SMBH (R-19): a Supermassive Lattice quasar (MagMatter coils, the lattice round it, Saturation set) with a
+         * Mk IV crown docked on each jet port, raised 40 blocks so the lower crown clears the ground. The cases set
+         * the nodes' tier, the mass and Unbind on the server and the lattice's look on the client.
+         */
+        SMBH;
 
         /** The Eye tier this site builds (1..8), or 0 for a non-Eye site. */
         int eyeTier() {
@@ -315,689 +326,795 @@ public final class RenderTest {
      * cases whose name starts with one of the comma-separated prefixes (e.g. {@code kerr,ref_gt_bhc}).
      */
     static final List<Case> CASES = only(
-        Arrays.asList(
-            // ---- the Kerr (GT's BlackholeRenderer, scaled by mass)
-            new Case("kerr_t1_16sm", Site.KERR_T1, 16, null, "Kerr T1, hole open at 16 SM"),
-            new Case("kerr_t1_64sm", Site.KERR_T1, 64, null, "Kerr T1, hole open at 64 SM (the T1 cap)"),
-            new Case(
-                "kerr_t1_64sm_strained",
-                Site.KERR_T1,
-                64,
-                null,
-                "Kerr T1 at 64 SM, governor coverage 0.3 (GT stability input 0.15: the disc shrinks and reddens)",
-                -1,
-                kerrLook(0.15f)),
-            new Case(
-                "kerr_t1_64sm_failing",
-                Site.KERR_T1,
-                64,
-                null,
-                "Kerr T1 at 64 SM, no coverage (GT stability 0: the disc spins, deep red)",
-                -1,
-                kerrLook(0f)),
-            new Case("kerr_t2_256sm", Site.KERR_T2, 256, null, "Kerr T2 (Density Upgrade), hole open at 256 SM"),
-            new Case("kerr_t2_512sm", Site.KERR_T2, 512, null, "Kerr T2 at 512 SM (the T2 cap)"),
-            // ---- the Eye T1-T6 stars
-            new Case(
-                "eye_t1_protostar_early",
-                Site.EYE_T1,
-                0,
-                EyeStarLook.protostar(1, 0.1f),
-                "Eye T1 igniting, 10 % of the way (P -74): a small dim red protostar"),
-            new Case(
-                "eye_t1_protostar_late",
-                Site.EYE_T1,
-                0,
-                EyeStarLook.protostar(1, 0.8f),
-                "Eye T1 igniting, 80 % of the way (P -32): swollen, heating toward Sol"),
-            new Case("eye_t1_sol", Site.EYE_T1, 0, EyeStarLook.lit(1, 0, 0), "Eye T1, Sol (live star)"),
-            new Case(
-                "eye_t1_sol_unstable",
-                Site.EYE_T1,
-                0,
-                EyeStarLook.lit(1, 0.8f, 1),
-                "Eye T1, Sol at stability 20 on an event warning (the wobble)"),
-            // renders v2: the ignition flash (the protostar lit, frozen at 15 of its 60 ticks) and the Mass Infusion
-            eyeCase(
-                "eye_t1_ignition",
-                Site.EYE_T1,
-                EyeStarLook.lit(1, 0, 0),
-                "Eye T1, the protostar just lit: the ignition flash, its cocoon blown away (15 of 60 ticks)",
-                15,
-                Double.NaN,
-                EyeStarLook.PROTOSTAR),
-            eyeCase(
-                "eye_t1_mass_infusion",
-                Site.EYE_T1,
-                EyeStarLook.growing(1, 0.5f),
-                "Eye T1 -> T2, the Mass Infusion half way: Sol heating toward Sirius A, matter raining in",
-                -1,
-                Double.NaN,
-                -1),
-            new Case("eye_t2_sirius_a", Site.EYE_T2, 0, EyeStarLook.lit(2, 0, 0), "Eye T2, Sirius A (live star)"),
-            eyeCase(
-                "eye_t2_shell_ignition",
-                Site.EYE_T2,
-                EyeStarLook.growing(2, 0.5f),
-                "Eye T2 -> T3, the Shell Ignition half way: Sirius A swelling and cooling toward Arcturus",
-                -1,
-                Double.NaN,
-                -1),
-            new Case("eye_t3_arcturus", Site.EYE_T3, 0, EyeStarLook.lit(3, 0, 0), "Eye T3, Arcturus (red giant)"),
-            new Case(
-                "eye_t3_helium_flash_warn",
-                Site.EYE_T3,
-                0,
-                EyeStarLook.lit(3, 0.3f, 1),
-                "Eye T3, Arcturus on a helium-flash warning (stability 70)"),
-            eyeCase(
-                "eye_t3_helium_flash_t05",
-                Site.EYE_T3,
-                EyeStarLook.lit(3, 0.3f, 1)
-                    .event(EyeStarLook.EV_HELIUM_FLASH, 5f),
-                "Eye T3, a helium flash 5 s away: the cells boil, the star throbs",
-                -1,
-                5,
-                -1),
-            eyeCase(
-                "eye_t3_helium_flash_hit",
-                Site.EYE_T3,
-                EyeStarLook.lit(3, 0.3f, 1)
-                    .event(EyeStarLook.EV_HELIUM_FLASH, -1f),
-                "Eye T3, a helium flash 1 s after its hit: the bright front across the surface, the puff",
-                -1,
-                -1,
-                -1),
-            new Case("eye_t4_neutron", Site.EYE_T4, 0, EyeStarLook.lit(4, 0, 0), "Eye T4, neutron star"),
-            eyeCase(
-                "eye_t4_glitch",
-                Site.EYE_T4,
-                EyeStarLook.lit(4, 0, 0)
-                    .event(EyeStarLook.EV_GLITCH, -0.4f),
-                "Eye T4, a starquake glitch 0.4 s after it hit: the crust flash, the beams stutter",
-                -1,
-                -0.4,
-                -1),
-            new Case(
-                "eye_t4_collapse_swell",
-                Site.EYE_T4,
-                0,
-                EyeStarLook.swell(0.5f),
-                "Eye T4 structure, Core Collapse phase 1 mid-swell (half way to the bounce)"),
-            new Case(
-                "eye_t4_collapse_bounce",
-                Site.EYE_T4,
-                0,
-                EyeStarLook.bounce(0f),
-                "Eye T4 structure, Core Collapse phase 3, the bounce shell (proto-neutron star), shell frozen at"
-                    + " 30 ticks (about 7.4 blocks, rim alpha 0.04 -> 0.64 x 0.7)",
-                30),
-            new Case(
-                "eye_t4_collapse_bounce_t08",
-                Site.EYE_T4,
-                0,
-                EyeStarLook.bounce(0f),
-                "Eye T4 structure, the bounce 8 ticks in: the shock leaving the proto-neutron star, the flash",
-                8),
-            new Case(
-                "eye_t4_collapse_bounce_t70",
-                Site.EYE_T4,
-                0,
-                EyeStarLook.bounce(0f),
-                "Eye T4 structure, the bounce 70 ticks in: the shock near the bands, fading",
-                70),
-            new Case(
-                "eye_t4_supernova_t05",
-                Site.EYE_T4,
-                0,
-                EyeStarLook.NOVA_FLASH,
-                "Eye T4 structure, a failed Core Collapse: the supernova 5 ticks in (the blinding flash)",
-                5),
-            new Case(
-                "eye_t4_supernova_t45",
-                Site.EYE_T4,
-                0,
-                EyeStarLook.NOVA_FLASH,
-                "Eye T4 structure, the supernova 45 ticks in: the remnant's filaments fading",
-                45),
-            new Case(
-                "eye_t4_supernova",
-                Site.EYE_T4,
-                0,
-                EyeStarLook.NOVA_FLASH,
-                "Eye T4 structure, a failed Core Collapse: the supernova flash frozen at 20 of its 60 ticks",
-                20),
-            new Case(
-                "eye_t5_dwarf_early",
-                Site.EYE_T5,
-                0,
-                EyeStarLook.dwarf(0.1),
-                "Eye T5, Sirius B cooling batch at 10 % (white)"),
-            new Case(
-                "eye_t5_dwarf_mid",
-                Site.EYE_T5,
-                0,
-                EyeStarLook.dwarf(0.5),
-                "Eye T5, Sirius B cooling batch at 50 % (orange)"),
-            new Case(
-                "eye_t5_dwarf_late",
-                Site.EYE_T5,
-                0,
-                EyeStarLook.dwarf(0.9),
-                "Eye T5, Sirius B cooling batch at 90 % (near black)"),
-            eyeCase(
-                "eye_t5_first_cooling",
-                Site.EYE_T5,
-                EyeStarLook.dwarf(0.01)
-                    .transition(4, 0.01f),
-                "Eye T4 -> T5, the First Cooling's start: the white dwarf assembling (40 of 80 ticks)",
-                40,
-                Double.NaN,
-                -1),
-            new Case(
-                "eye_t5_black_dwarf",
-                Site.EYE_T5,
-                0,
-                EyeStarLook.dwarf(1.0),
-                "Eye T5, Sirius B at the end of a batch: the black dwarf (its crystal sheen)"),
-            new Case("eye_t6_magnetar", Site.EYE_T6, 0, EyeStarLook.lit(6, 0, 0), "Eye T6, SGR 1806-20 magnetar"),
-            eyeCase(
-                "eye_t6_giant_flare_t06",
-                Site.EYE_T6,
-                EyeStarLook.lit(6, 0, 1)
-                    .event(EyeStarLook.EV_GIANT_FLARE, 6f),
-                "Eye T6, a giant flare 6 s away: the field winding up and crackling, the crust faults glowing",
-                200,
-                6,
-                -1),
-            eyeCase(
-                "eye_t6_giant_flare_hit",
-                Site.EYE_T6,
-                EyeStarLook.lit(6, 0, 1)
-                    .event(EyeStarLook.EV_GIANT_FLARE, -0.8f),
-                "Eye T6, a giant flare 0.8 s after its hit: the flash, the field torn open into a fan",
-                200,
-                -0.8,
-                -1),
-            eyeCase(
-                "eye_t6_merger_start",
-                Site.EYE_T6,
-                EyeStarLook.lit(6, 0, 0)
-                    .transition(5, 0.02f),
-                "Eye T5 -> T6, the Magnetar Merger's start: the merger flash (20 of 60 ticks)",
-                20,
-                Double.NaN,
-                -1),
-            eyeCase(
-                "eye_t6_merger_imprint",
-                Site.EYE_T6,
-                EyeStarLook.lit(6, 0, 0)
-                    .transition(5, 0.6f),
-                "Eye T5 -> T6, the Magnetar Merger's imprint (60 %): the dynamo winding the field up",
-                200,
-                Double.NaN,
-                -1),
-            new Case(
-                "eye_t6_magnetar_warn",
-                Site.EYE_T6,
-                0,
-                EyeStarLook.lit(6, 0, 1),
-                "Eye T6, magnetar on an event warning (flare shell bright), a flare frozen at 15 ticks",
-                15),
-            new Case(
-                "eye_t6_overfed",
-                Site.EYE_T6,
-                0,
-                EyeStarLook.overfedMagnetar(0.8f, 0),
-                "Eye T6 -> T7 Magnetar Collapse, the overfed magnetar at 80 % (shrunk, spun up, throbbing), a flare"
-                    + " frozen at 15 ticks",
-                15),
-            // ---- the reference renders of the pack
-            new Case("ref_gt_bhc", Site.GT_BHC, 0, null, "REFERENCE: GT Black Hole Compressor, hole open (stable)"),
-            new Case("ref_tt_eoh", Site.TT_EOH, 0, null, "REFERENCE: TecTech Eye of Harmony, star render"),
-            new Case(
-                "ref_gt_godforge",
-                Site.GT_GODFORGE,
-                0,
-                null,
-                "REFERENCE: TecTech Forge of the Gods star render (default: radius 20, one ring, default colour)"),
-            // ---- the quasar (GT's hole + our disc and jets)
-            new Case(
-                "quasar_64sm",
-                Site.QUASAR,
-                64,
-                null,
-                "Quasar Engine (coils T3), a fresh 64 SM hole at f 0.85: hole scale 3.1, the disc band r 40 to about"
-                    + " 59, Stable, both jets venting (no dock); live look"),
-            new Case(
-                "quasar_256sm_resonant",
-                Site.QUASAR,
-                256,
-                null,
-                "Quasar 256 SM, disc Resonant (ice-white), lambda_c 0.9, E -10, jets 40 Bu/t each",
-                -1,
-                quasarLook(0, 0.9f, -10f, 40f, 40f, -1f, 0f)),
-            new Case(
-                "quasar_256sm_critical",
-                Site.QUASAR,
-                256,
-                null,
-                "Quasar 256 SM, disc Critical (red), lambda_c 1, E +80 (puffed up), jets 120 Bu/t each",
-                -1,
-                quasarLook(3, 1f, 80f, 120f, 120f, -1f, 0f)),
-            new Case(
-                "quasar_256sm_reforming",
-                Site.QUASAR,
-                256,
-                null,
-                "Quasar 256 SM after a blow-out: the disc re-forming (dark), no jets",
-                -1,
-                quasarLook(-1, 0f, 0f, 0f, 0f, -1f, 0f)),
-            new Case(
-                "quasar_1024sm_eruption",
-                Site.QUASAR,
-                1024,
-                null,
-                "Quasar Engine, a 1,024 SM hole (D-32's good build): hole scale 5.1, Stable, jets 600 Bu/t; an"
-                    + " eruption flash (size 1) frozen at 15 of its 60 ticks",
-                -1,
-                quasarLook(1, 0.85f, 10f, 600f, 600f, 15f, 1f)),
-            new Case(
-                "quasar_1024sm_purge",
-                Site.QUASAR,
-                1024,
-                null,
-                "Quasar 1,024 SM, a purge flash (size 0.3) frozen at 30 of its 60 ticks, jets 300 Bu/t",
-                -1,
-                quasarLook(1, 0.85f, 0f, 300f, 300f, 30f, 0.3f, 2, 0.5f, 20f, false, 0f)),
-            // ---- renders v2 (WP-2): the quasar's other looks and the event sequences
-            new Case(
-                "quasar_256sm_lock",
-                Site.QUASAR,
-                256,
-                null,
-                "Quasar 256 SM, Resonant under the Harmonic Lock (600 s Resonant): the standing ripples, spin 0.9",
-                -1,
-                quasarLook(0, 0.9f, -5f, 60f, 60f, -1f, 0f, 0, 0.9f, 40f, true, 0f)),
-            new Case(
-                "quasar_256sm_flux95",
-                Site.QUASAR,
-                256,
-                null,
-                "Quasar 256 SM, Stable, flux 95 (past the eruption warning: the field lines crackle), spin 0.9",
-                -1,
-                quasarLook(1, 0.85f, 5f, 120f, 120f, -1f, 0f, 0, 0.9f, 95f, false, 0f)),
-            new Case(
-                "quasar_256sm_slowspin",
-                Site.QUASAR,
-                256,
-                null,
-                "Quasar 256 SM, Stable, spin 0.05 (the inner disc's edge at 6 r_g: a dark gap round the shadow)",
-                -1,
-                quasarLook(1, 0.85f, 0f, 60f, 60f, -1f, 0f, 0, 0.05f, 10f, false, 0f)),
-            new Case(
-                "quasar_256sm_strained",
-                Site.QUASAR,
-                256,
-                null,
-                "Quasar 256 SM, Strained (orange, thicker turbulence), E +40 (puffed), jets 200 Bu/t",
-                -1,
-                quasarLook(2, 0.95f, 40f, 200f, 200f, -1f, 0f, 0, 0.6f, 50f, false, 0f)),
-            new Case(
-                "quasar_256sm_reforming_half",
-                Site.QUASAR,
-                256,
-                null,
-                "Quasar 256 SM re-forming, half way (150 of 300 s): violet-red embers filling in from the inner wall",
-                -1,
-                quasarLook(-1, 0f, 0f, 0f, 0f, -1f, 0f, 0, 0.6f, 0f, false, 0.5f)),
-            quasarEvent("quasar_1024sm_erupt_t03", 1, 3f, 1f, 2f, "Eruption, 3 ticks in: the field lines snap"),
-            quasarEvent("quasar_1024sm_erupt_t10", 1, 10f, 1f, 2f, "Eruption, 10 ticks: the shell crosses the ring"),
-            quasarEvent(
-                "quasar_1024sm_erupt_t25",
-                1,
-                25f,
-                1f,
-                2f,
-                "Eruption, 25 ticks: the ring flares, the giant knots"),
-            quasarEvent("quasar_1024sm_erupt_t45", 1, 45f, 1f, 2f, "Eruption, 45 ticks: debris, the shell fading"),
-            quasarEvent("quasar_1024sm_erupt_t70", 1, 70f, 1f, 2f, "Eruption, 70 ticks: settling"),
-            quasarEvent(
-                "quasar_1024sm_purge_t04",
-                2,
-                4f,
-                0.3f,
-                15f,
-                "Purge, 4 ticks: the field lines unwind, jets pulse"),
-            quasarEvent("quasar_1024sm_purge_t15", 2, 15f, 0.3f, 15f, "Purge, 15 ticks: the spiral flash up the jets"),
-            quasarEvent("quasar_1024sm_purge_t40", 2, 40f, 0.3f, 15f, "Purge, 40 ticks: the ring dimmed"),
-            quasarEvent("quasar_1024sm_purge_t65", 2, 65f, 0.3f, 15f, "Purge, 65 ticks: recovering"),
-            new Case(
-                "quasar_256sm_blowout_t08",
-                Site.QUASAR,
-                256,
-                null,
-                "Blow-out, 8 ticks: the ring breaks up (zone already dark, jets off)",
-                -1,
-                quasarLook(-1, 0f, 0f, 0f, 0f, 8f, 0.5f, 3, 0.6f, 0f, false, 0f)),
-            new Case(
-                "quasar_256sm_blowout_t40",
-                Site.QUASAR,
-                256,
-                null,
-                "Blow-out, 40 ticks: chunks flying outward, fading",
-                -1,
-                quasarLook(-1, 0f, 0f, 0f, 0f, 40f, 0.5f, 3, 0.6f, 0f, false, 0f)),
-            new Case(
-                "quasar_256sm_reformed_t20",
-                Site.QUASAR,
-                256,
-                null,
-                "Re-formed, 20 ticks: the inner wall kindles, the gas fills outward (Stable)",
-                -1,
-                quasarLook(1, 0.85f, 0f, 30f, 30f, 20f, 0.5f, 4, 0.6f, 0f, false, 0f)),
-            // ---- P4 Eye T7 / T8 (the centre render's galaxies)
-            new Case(
-                "eye_t7_triangulum",
-                Site.EYE_T7,
-                0,
-                EyeStarLook.galaxy(7, 0, 0),
-                "Eye T7, Triangulum: three loose blue-white arms of dots to r 16 round a small bright core, tilted 8"
-                    + " deg, turning once in about 2.6 min"),
-            new Case(
-                "eye_t7_forming",
-                Site.EYE_T7,
-                0,
-                EyeStarLook.galaxy(7, 0.3f, 0),
-                "Eye T7, the Magnetar Collapse's galaxy look (unrest 0.3): what shows while T6 becomes T7"),
-            new Case(
-                "eye_t7_merger_warn",
-                Site.EYE_T7,
-                0,
-                EyeStarLook.galaxy(7, 0.3f, 1),
-                "Eye T7, Triangulum on a minor merger's warning (the arms 60 % brighter, the core throbbing)"),
-            new Case(
-                "eye_t8_milky_way",
-                Site.EYE_T8,
-                0,
-                EyeStarLook.galaxy(8, 0, 0),
-                "Eye T8, the Milky Way: a warm bar and four arms to r 19 round a 3-block bulge, under the shard halo"),
-            new Case(
-                "eye_t8_merger",
-                Site.EYE_T8,
-                0,
-                EyeStarLook.galaxy(8, 0.3f, 0.5f),
-                "Eye T8, the Galactic Merger in progress (pericentre passes; the runtime shows warn 0.5)"),
-            new Case(
-                "eye_t8_crossing_warn",
-                Site.EYE_T8,
-                0,
-                EyeStarLook.galaxy(8, 0, 1),
-                "Eye T8, the Milky Way on a satellite crossing's warning (warn 1)"),
-            new Case(
-                "eye_t8_planets",
-                Site.EYE_T8,
-                0,
-                EyeStarLook.planets(6),
-                "Eye T8 in planets mode: a calm glow with six planets on their orbits (r 5 to 13)"),
-            new Case(
-                "eye_t8_planets3",
-                Site.EYE_T8,
-                0,
-                EyeStarLook.planets(3),
-                "Eye T8 in planets mode with three slots"),
-            // ---- renders v2 WP-5: the galaxies' transitions and events
-            galaxyCase(
-                "eye_t7_collapse_flash",
-                Site.EYE_T7,
-                EyeStarLook.galaxy(7, 0.3f, 0)
-                    .transition(6, 0.334f),
-                "Eye T6 -> T7 Magnetar Collapse, 1.5 s after the collapse: the core flash, the stars bursting out, the"
-                    + " shell running to the bands",
-                30,
-                Double.NaN,
-                EyeStarLook.MAGNETAR,
-                Double.NaN),
-            galaxyCase(
-                "eye_t7_capture_25",
-                Site.EYE_T7,
-                EyeStarLook.galaxy(7, 0.3f, 0)
-                    .transition(6, 1 / 3f + 2 / 3f * 0.25f),
-                "Eye T6 -> T7, the halo capture at 25 %: a round halo of stars beginning to settle into a disc",
-                -1,
-                Double.NaN,
-                -1,
-                Double.NaN),
-            galaxyCase(
-                "eye_t7_capture_70",
-                Site.EYE_T7,
-                EyeStarLook.galaxy(7, 0.3f, 0)
-                    .transition(6, 1 / 3f + 2 / 3f * 0.7f),
-                "Eye T6 -> T7, the halo capture at 70 %: the disc formed, arms and dust coming in",
-                -1,
-                Double.NaN,
-                -1,
-                Double.NaN),
-            galaxyCase(
-                "eye_t7_minor_warn",
-                Site.EYE_T7,
-                EyeStarLook.galaxy(7, 0, 1)
-                    .event(EyeStarLook.EV_MINOR_MERGER_UP, 5f),
-                "Eye T7, a minor merger 5 s away (sign +): the dwarf falling in from above the disc",
-                -1,
-                5,
-                -1,
-                Double.NaN),
-            galaxyCase(
-                "eye_t7_minor_hit",
-                Site.EYE_T7,
-                EyeStarLook.galaxy(7, 0, 1)
-                    .event(EyeStarLook.EV_MINOR_MERGER_DOWN, -1f),
-                "Eye T7, a minor merger 1 s after its hit (sign -): the impact flash, the dwarf torn apart",
-                -1,
-                -1,
-                -1,
-                Double.NaN),
-            galaxyCase(
-                "eye_t8_gm_approach",
-                Site.EYE_T8,
-                mergerAt(400),
-                "Eye T7 -> T8 Galactic Merger at 400 s: the companion falling toward the first pericentre",
-                -1,
-                mergerIn(400),
-                -1,
-                Double.NaN),
-            galaxyCase(
-                "eye_t8_gm_pass1",
-                Site.EYE_T8,
-                mergerAt(601),
-                "Eye T7 -> T8, 1 s after the first pericentre pass: the starburst, the bridge",
-                -1,
-                mergerIn(601),
-                -1,
-                Double.NaN),
-            galaxyCase(
-                "eye_t8_gm_apo",
-                Site.EYE_T8,
-                mergerAt(900),
-                "Eye T7 -> T8 at 900 s: the companion at its apocentre, the tidal tails growing",
-                -1,
-                mergerIn(900),
-                -1,
-                Double.NaN),
-            galaxyCase(
-                "eye_t8_gm_pass2",
-                Site.EYE_T8,
-                mergerAt(1215),
-                "Eye T7 -> T8, 15 s after the second pass: long tails, the bridge, the core glowing",
-                -1,
-                mergerIn(1215),
-                -1,
-                Double.NaN),
-            galaxyCase(
-                "eye_t8_gm_pass3",
-                Site.EYE_T8,
-                mergerAt(1830),
-                "Eye T7 -> T8, 30 s after the last pass: the companion swallowed, the Milky Way taking shape",
-                -1,
-                mergerIn(1830),
-                -1,
-                Double.NaN),
-            galaxyCase(
-                "eye_t8_gm_settle",
-                Site.EYE_T8,
-                mergerAt(2000),
-                "Eye T7 -> T8, the settle at 2,000 s: the tails fading, a barred spiral",
-                -1,
-                mergerIn(2000),
-                -1,
-                Double.NaN),
-            galaxyCase(
-                "eye_t8_crossing_t60",
-                Site.EYE_T8,
-                EyeStarLook.galaxy(8, 0, 1)
-                    .crossing(60f),
-                "Eye T8, a satellite crossing 60 s away: the dwarf falling toward the disc",
-                -1,
-                Double.NaN,
-                -1,
-                60),
-            galaxyCase(
-                "eye_t8_crossing_t03",
-                Site.EYE_T8,
-                EyeStarLook.galaxy(8, 0, 1)
-                    .crossing(3f),
-                "Eye T8, a satellite crossing 3 s away: the dwarf at the disc, stretched by the tide",
-                -1,
-                Double.NaN,
-                -1,
-                3),
-            galaxyCase(
-                "eye_t8_crossing_wave60",
-                Site.EYE_T8,
-                EyeStarLook.galaxy(8, 0, 0)
-                    .crossing(-60f),
-                "Eye T8, 60 s after a satellite crossing: the ring wave of star formation running out",
-                -1,
-                Double.NaN,
-                -1,
-                -60),
-            galaxyCase(
-                "eye_t8_crossing_wave200",
-                Site.EYE_T8,
-                EyeStarLook.galaxy(8, 0, 0)
-                    .crossing(-200f),
-                "Eye T8, 200 s after a satellite crossing: the ring wave near the edge",
-                -1,
-                Double.NaN,
-                -1,
-                -200),
-            galaxyCase(
-                "eye_t8_minor_warn",
-                Site.EYE_T8,
-                EyeStarLook.galaxy(8, 0, 1)
-                    .event(EyeStarLook.EV_MINOR_MERGER_DOWN, 4f),
-                "Eye T8, a minor merger 4 s away (sign -): the dwarf rising toward the disc from below",
-                -1,
-                4,
-                -1,
-                Double.NaN),
-            // ---- renders v2: machines with no visual yet (the poses for their future renders)
-            // renders v2 WP-7 / WP-8: clientLook {activity (-1 live), tier / held mask (-1 or 0 live), ...}
-            new Case(
-                "homogeny_top",
-                Site.HOMOGENY,
-                0,
-                null,
-                "The Homogeny at its top tier, formed, idle: the vortex's dim slow swirl"),
-            machineCase(
-                "homogeny_top_run",
-                Site.HOMOGENY,
-                "The Homogeny T3 mixing: three braids and the core thread",
-                1,
-                0),
-            machineCase(
-                "homogeny_t1_run",
-                Site.HOMOGENY,
-                "The Homogeny shown at T1, mixing: one braid, three feed streams",
-                1,
-                1),
-            new Case(
-                "reality_diffraction",
-                Site.REALITY_DIFFRACTION,
-                0,
-                null,
-                "Reality Diffraction, formed, idle: calm clouds, no beam"),
-            machineCase(
-                "reality_diffraction_run",
-                Site.REALITY_DIFFRACTION,
-                "Reality Diffraction running, all six regions anchored",
-                1,
-                63),
-            machineCase(
-                "reality_diffraction_unheld",
-                Site.REALITY_DIFFRACTION,
-                "Reality Diffraction running with regions 2 and 5 unanchored (their clouds flicker dim)",
-                1,
-                0b101101),
-            new Case(
-                "reality_refab",
-                Site.REALITY_REFAB,
-                0,
-                null,
-                "Reality Refab, formed, idle: dim glyphs, slow stream"),
-            machineCase("reality_refab_run", Site.REALITY_REFAB, "Reality Refab reassembling", 1, -1),
-            new Case(
-                "conduit_crown",
-                Site.CONDUIT,
-                64,
-                null,
-                "The conduit rig: a 64 SM quasar with a Mk I Burst Thermaliser Crown docked on its top jet port"
-                    + " (renders v2 WP-6: the crown's heat)"),
-            new Case(
-                "conduit_stream",
-                Site.CONDUIT,
-                64,
-                null,
-                "The conduit rig's streams: mouth B emitting south to mirror 1, on east to the junction (WP-6;"
-                    + " 200 Bu/t forced on the client: mouth A does not form at the harness height)",
-                -1,
-                new float[] { 200f, 0f, -1f, -2f }),
-            // ---- renders v2 R-16: the performance and compatibility pass on the scene (every big render at once)
-            // three interleaved rounds of the four settings: the GPU clocks drift over a run, so each setting is
-            // measured early, in the middle and late
-            sceneCase("scene_off", "off", "baseline: the scene with every big render skipped"),
-            sceneCase("scene_low", "low", "quality low (the fixed-function renders of before renders v2)"),
-            sceneCase("scene_medium", "medium", "quality medium"),
-            sceneCase("scene_high", "high", "quality high (the default)"),
-            sceneCase("scene_high16", "high16", "quality high with 16 objects allowed at full detail (worst case)"),
-            sceneCase("scene_r2_high", "high", "quality high, round 2"),
-            sceneCase("scene_r2_medium", "medium", "quality medium, round 2"),
-            sceneCase("scene_r2_low", "low", "quality low, round 2"),
-            sceneCase("scene_r2_off", "off", "baseline, round 2"),
-            sceneCase("scene_r3_off", "off", "baseline, round 3"),
-            sceneCase("scene_r3_low", "low", "quality low, round 3"),
-            sceneCase("scene_r3_medium", "medium", "quality medium, round 3"),
-            sceneCase("scene_r3_high", "high", "quality high, round 3"),
-            new Case("scene_pack", Site.SCENE, 0, null, "quality high, the shaderpack probe answering yes")
-                .with("pack", "tilt", "qring", "klevel", "lodk:10"),
-            new Case("scene_fail", Site.SCENE, 0, null, "every program failing its bake (as after a bad driver update)")
-                .with("fail", "tilt", "qring", "klevel"),
-            new Case("scene_recover", Site.SCENE, 0, null, "the programs baking again after a resource reload")
-                .with("recover", "tilt", "qring", "klevel"),
-            new Case("scene_glerror", Site.SCENE, 0, null, "a GL error injected into each object's checked draw")
-                .with("glerror", "tilt", "qring"),
-            new Case("scene_gui_high", Site.SCENE, 0, null, "HUD, hand item and the inventory with NEI, quality high")
-                .with("high", "hud", "inv", "hud@night"),
-            new Case("scene_gui_off", Site.SCENE, 0, null, "HUD, hand item and the inventory with NEI, baseline")
-                .with("off", "hud", "inv", "hud@night"),
-            new Case("scene_lod", Site.SCENE, 0, null, "LOD walks out from and back to the Kerr, the Eye, the quasar")
-                .with(
-                    "high",
-                    lodWalk(
-                        lodWalk("lodk", 8, 12, 20, 30, 45, 70, 100, 140, 180, 230, 270),
-                        lodWalk("lode", 22, 28, 40, 60, 90, 130, 180, 240),
-                        lodWalk("lodq", 40, 70, 95, 120, 160, 230, 300)))));
+        withSmbh(
+            Arrays.asList(
+                // ---- the Kerr (GT's BlackholeRenderer, scaled by mass)
+                new Case("kerr_t1_16sm", Site.KERR_T1, 16, null, "Kerr T1, hole open at 16 SM"),
+                new Case("kerr_t1_64sm", Site.KERR_T1, 64, null, "Kerr T1, hole open at 64 SM (the T1 cap)"),
+                new Case(
+                    "kerr_t1_64sm_strained",
+                    Site.KERR_T1,
+                    64,
+                    null,
+                    "Kerr T1 at 64 SM, governor coverage 0.3 (GT stability input 0.15: the disc shrinks and reddens)",
+                    -1,
+                    kerrLook(0.15f)),
+                new Case(
+                    "kerr_t1_64sm_failing",
+                    Site.KERR_T1,
+                    64,
+                    null,
+                    "Kerr T1 at 64 SM, no coverage (GT stability 0: the disc spins, deep red)",
+                    -1,
+                    kerrLook(0f)),
+                new Case("kerr_t2_256sm", Site.KERR_T2, 256, null, "Kerr T2 (Density Upgrade), hole open at 256 SM"),
+                new Case("kerr_t2_512sm", Site.KERR_T2, 512, null, "Kerr T2 at 512 SM (the T2 cap)"),
+                // ---- the Eye T1-T6 stars
+                new Case(
+                    "eye_t1_protostar_early",
+                    Site.EYE_T1,
+                    0,
+                    EyeStarLook.protostar(1, 0.1f),
+                    "Eye T1 igniting, 10 % of the way (P -74): a small dim red protostar"),
+                new Case(
+                    "eye_t1_protostar_late",
+                    Site.EYE_T1,
+                    0,
+                    EyeStarLook.protostar(1, 0.8f),
+                    "Eye T1 igniting, 80 % of the way (P -32): swollen, heating toward Sol"),
+                new Case("eye_t1_sol", Site.EYE_T1, 0, EyeStarLook.lit(1, 0, 0), "Eye T1, Sol (live star)"),
+                new Case(
+                    "eye_t1_sol_unstable",
+                    Site.EYE_T1,
+                    0,
+                    EyeStarLook.lit(1, 0.8f, 1),
+                    "Eye T1, Sol at stability 20 on an event warning (the wobble)"),
+                // renders v2: the ignition flash (the protostar lit, frozen at 15 of its 60 ticks) and the Mass
+                // Infusion
+                eyeCase(
+                    "eye_t1_ignition",
+                    Site.EYE_T1,
+                    EyeStarLook.lit(1, 0, 0),
+                    "Eye T1, the protostar just lit: the ignition flash, its cocoon blown away (15 of 60 ticks)",
+                    15,
+                    Double.NaN,
+                    EyeStarLook.PROTOSTAR),
+                eyeCase(
+                    "eye_t1_mass_infusion",
+                    Site.EYE_T1,
+                    EyeStarLook.growing(1, 0.5f),
+                    "Eye T1 -> T2, the Mass Infusion half way: Sol heating toward Sirius A, matter raining in",
+                    -1,
+                    Double.NaN,
+                    -1),
+                new Case("eye_t2_sirius_a", Site.EYE_T2, 0, EyeStarLook.lit(2, 0, 0), "Eye T2, Sirius A (live star)"),
+                eyeCase(
+                    "eye_t2_shell_ignition",
+                    Site.EYE_T2,
+                    EyeStarLook.growing(2, 0.5f),
+                    "Eye T2 -> T3, the Shell Ignition half way: Sirius A swelling and cooling toward Arcturus",
+                    -1,
+                    Double.NaN,
+                    -1),
+                new Case("eye_t3_arcturus", Site.EYE_T3, 0, EyeStarLook.lit(3, 0, 0), "Eye T3, Arcturus (red giant)"),
+                new Case(
+                    "eye_t3_helium_flash_warn",
+                    Site.EYE_T3,
+                    0,
+                    EyeStarLook.lit(3, 0.3f, 1),
+                    "Eye T3, Arcturus on a helium-flash warning (stability 70)"),
+                eyeCase(
+                    "eye_t3_helium_flash_t05",
+                    Site.EYE_T3,
+                    EyeStarLook.lit(3, 0.3f, 1)
+                        .event(EyeStarLook.EV_HELIUM_FLASH, 5f),
+                    "Eye T3, a helium flash 5 s away: the cells boil, the star throbs",
+                    -1,
+                    5,
+                    -1),
+                eyeCase(
+                    "eye_t3_helium_flash_hit",
+                    Site.EYE_T3,
+                    EyeStarLook.lit(3, 0.3f, 1)
+                        .event(EyeStarLook.EV_HELIUM_FLASH, -1f),
+                    "Eye T3, a helium flash 1 s after its hit: the bright front across the surface, the puff",
+                    -1,
+                    -1,
+                    -1),
+                new Case("eye_t4_neutron", Site.EYE_T4, 0, EyeStarLook.lit(4, 0, 0), "Eye T4, neutron star"),
+                eyeCase(
+                    "eye_t4_glitch",
+                    Site.EYE_T4,
+                    EyeStarLook.lit(4, 0, 0)
+                        .event(EyeStarLook.EV_GLITCH, -0.4f),
+                    "Eye T4, a starquake glitch 0.4 s after it hit: the crust flash, the beams stutter",
+                    -1,
+                    -0.4,
+                    -1),
+                new Case(
+                    "eye_t4_collapse_swell",
+                    Site.EYE_T4,
+                    0,
+                    EyeStarLook.swell(0.5f),
+                    "Eye T4 structure, Core Collapse phase 1 mid-swell (half way to the bounce)"),
+                new Case(
+                    "eye_t4_collapse_bounce",
+                    Site.EYE_T4,
+                    0,
+                    EyeStarLook.bounce(0f),
+                    "Eye T4 structure, Core Collapse phase 3, the bounce shell (proto-neutron star), shell frozen at"
+                        + " 30 ticks (about 7.4 blocks, rim alpha 0.04 -> 0.64 x 0.7)",
+                    30),
+                new Case(
+                    "eye_t4_collapse_bounce_t08",
+                    Site.EYE_T4,
+                    0,
+                    EyeStarLook.bounce(0f),
+                    "Eye T4 structure, the bounce 8 ticks in: the shock leaving the proto-neutron star, the flash",
+                    8),
+                new Case(
+                    "eye_t4_collapse_bounce_t70",
+                    Site.EYE_T4,
+                    0,
+                    EyeStarLook.bounce(0f),
+                    "Eye T4 structure, the bounce 70 ticks in: the shock near the bands, fading",
+                    70),
+                new Case(
+                    "eye_t4_supernova_t05",
+                    Site.EYE_T4,
+                    0,
+                    EyeStarLook.NOVA_FLASH,
+                    "Eye T4 structure, a failed Core Collapse: the supernova 5 ticks in (the blinding flash)",
+                    5),
+                new Case(
+                    "eye_t4_supernova_t45",
+                    Site.EYE_T4,
+                    0,
+                    EyeStarLook.NOVA_FLASH,
+                    "Eye T4 structure, the supernova 45 ticks in: the remnant's filaments fading",
+                    45),
+                new Case(
+                    "eye_t4_supernova",
+                    Site.EYE_T4,
+                    0,
+                    EyeStarLook.NOVA_FLASH,
+                    "Eye T4 structure, a failed Core Collapse: the supernova flash frozen at 20 of its 60 ticks",
+                    20),
+                new Case(
+                    "eye_t5_dwarf_early",
+                    Site.EYE_T5,
+                    0,
+                    EyeStarLook.dwarf(0.1),
+                    "Eye T5, Sirius B cooling batch at 10 % (white)"),
+                new Case(
+                    "eye_t5_dwarf_mid",
+                    Site.EYE_T5,
+                    0,
+                    EyeStarLook.dwarf(0.5),
+                    "Eye T5, Sirius B cooling batch at 50 % (orange)"),
+                new Case(
+                    "eye_t5_dwarf_late",
+                    Site.EYE_T5,
+                    0,
+                    EyeStarLook.dwarf(0.9),
+                    "Eye T5, Sirius B cooling batch at 90 % (near black)"),
+                eyeCase(
+                    "eye_t5_first_cooling",
+                    Site.EYE_T5,
+                    EyeStarLook.dwarf(0.01)
+                        .transition(4, 0.01f),
+                    "Eye T4 -> T5, the First Cooling's start: the white dwarf assembling (40 of 80 ticks)",
+                    40,
+                    Double.NaN,
+                    -1),
+                new Case(
+                    "eye_t5_black_dwarf",
+                    Site.EYE_T5,
+                    0,
+                    EyeStarLook.dwarf(1.0),
+                    "Eye T5, Sirius B at the end of a batch: the black dwarf (its crystal sheen)"),
+                new Case("eye_t6_magnetar", Site.EYE_T6, 0, EyeStarLook.lit(6, 0, 0), "Eye T6, SGR 1806-20 magnetar"),
+                eyeCase(
+                    "eye_t6_giant_flare_t06",
+                    Site.EYE_T6,
+                    EyeStarLook.lit(6, 0, 1)
+                        .event(EyeStarLook.EV_GIANT_FLARE, 6f),
+                    "Eye T6, a giant flare 6 s away: the field winding up and crackling, the crust faults glowing",
+                    200,
+                    6,
+                    -1),
+                eyeCase(
+                    "eye_t6_giant_flare_hit",
+                    Site.EYE_T6,
+                    EyeStarLook.lit(6, 0, 1)
+                        .event(EyeStarLook.EV_GIANT_FLARE, -0.8f),
+                    "Eye T6, a giant flare 0.8 s after its hit: the flash, the field torn open into a fan",
+                    200,
+                    -0.8,
+                    -1),
+                eyeCase(
+                    "eye_t6_merger_start",
+                    Site.EYE_T6,
+                    EyeStarLook.lit(6, 0, 0)
+                        .transition(5, 0.02f),
+                    "Eye T5 -> T6, the Magnetar Merger's start: the merger flash (20 of 60 ticks)",
+                    20,
+                    Double.NaN,
+                    -1),
+                eyeCase(
+                    "eye_t6_merger_imprint",
+                    Site.EYE_T6,
+                    EyeStarLook.lit(6, 0, 0)
+                        .transition(5, 0.6f),
+                    "Eye T5 -> T6, the Magnetar Merger's imprint (60 %): the dynamo winding the field up",
+                    200,
+                    Double.NaN,
+                    -1),
+                new Case(
+                    "eye_t6_magnetar_warn",
+                    Site.EYE_T6,
+                    0,
+                    EyeStarLook.lit(6, 0, 1),
+                    "Eye T6, magnetar on an event warning (flare shell bright), a flare frozen at 15 ticks",
+                    15),
+                new Case(
+                    "eye_t6_overfed",
+                    Site.EYE_T6,
+                    0,
+                    EyeStarLook.overfedMagnetar(0.8f, 0),
+                    "Eye T6 -> T7 Magnetar Collapse, the overfed magnetar at 80 % (shrunk, spun up, throbbing), a flare"
+                        + " frozen at 15 ticks",
+                    15),
+                // ---- the reference renders of the pack
+                new Case("ref_gt_bhc", Site.GT_BHC, 0, null, "REFERENCE: GT Black Hole Compressor, hole open (stable)"),
+                new Case("ref_tt_eoh", Site.TT_EOH, 0, null, "REFERENCE: TecTech Eye of Harmony, star render"),
+                new Case(
+                    "ref_gt_godforge",
+                    Site.GT_GODFORGE,
+                    0,
+                    null,
+                    "REFERENCE: TecTech Forge of the Gods star render (default: radius 20, one ring, default colour)"),
+                // ---- the quasar (GT's hole + our disc and jets)
+                new Case(
+                    "quasar_64sm",
+                    Site.QUASAR,
+                    64,
+                    null,
+                    "Quasar Engine (coils T3), a fresh 64 SM hole at f 0.85: hole scale 3.1, the disc band r 40 to about"
+                        + " 59, Stable, both jets venting (no dock); live look"),
+                new Case(
+                    "quasar_256sm_resonant",
+                    Site.QUASAR,
+                    256,
+                    null,
+                    "Quasar 256 SM, disc Resonant (ice-white), lambda_c 0.9, E -10, jets 40 Bu/t each",
+                    -1,
+                    quasarLook(0, 0.9f, -10f, 40f, 40f, -1f, 0f)),
+                new Case(
+                    "quasar_256sm_critical",
+                    Site.QUASAR,
+                    256,
+                    null,
+                    "Quasar 256 SM, disc Critical (red), lambda_c 1, E +80 (puffed up), jets 120 Bu/t each",
+                    -1,
+                    quasarLook(3, 1f, 80f, 120f, 120f, -1f, 0f)),
+                new Case(
+                    "quasar_256sm_reforming",
+                    Site.QUASAR,
+                    256,
+                    null,
+                    "Quasar 256 SM after a blow-out: the disc re-forming (dark), no jets",
+                    -1,
+                    quasarLook(-1, 0f, 0f, 0f, 0f, -1f, 0f)),
+                new Case(
+                    "quasar_1024sm_eruption",
+                    Site.QUASAR,
+                    1024,
+                    null,
+                    "Quasar Engine, a 1,024 SM hole (D-32's good build): hole scale 5.1, Stable, jets 600 Bu/t; an"
+                        + " eruption flash (size 1) frozen at 15 of its 60 ticks",
+                    -1,
+                    quasarLook(1, 0.85f, 10f, 600f, 600f, 15f, 1f)),
+                new Case(
+                    "quasar_1024sm_purge",
+                    Site.QUASAR,
+                    1024,
+                    null,
+                    "Quasar 1,024 SM, a purge flash (size 0.3) frozen at 30 of its 60 ticks, jets 300 Bu/t",
+                    -1,
+                    quasarLook(1, 0.85f, 0f, 300f, 300f, 30f, 0.3f, 2, 0.5f, 20f, false, 0f)),
+                // ---- renders v2 (WP-2): the quasar's other looks and the event sequences
+                new Case(
+                    "quasar_256sm_lock",
+                    Site.QUASAR,
+                    256,
+                    null,
+                    "Quasar 256 SM, Resonant under the Harmonic Lock (600 s Resonant): the standing ripples, spin 0.9",
+                    -1,
+                    quasarLook(0, 0.9f, -5f, 60f, 60f, -1f, 0f, 0, 0.9f, 40f, true, 0f)),
+                new Case(
+                    "quasar_256sm_flux95",
+                    Site.QUASAR,
+                    256,
+                    null,
+                    "Quasar 256 SM, Stable, flux 95 (past the eruption warning: the field lines crackle), spin 0.9",
+                    -1,
+                    quasarLook(1, 0.85f, 5f, 120f, 120f, -1f, 0f, 0, 0.9f, 95f, false, 0f)),
+                new Case(
+                    "quasar_256sm_slowspin",
+                    Site.QUASAR,
+                    256,
+                    null,
+                    "Quasar 256 SM, Stable, spin 0.05 (the inner disc's edge at 6 r_g: a dark gap round the shadow)",
+                    -1,
+                    quasarLook(1, 0.85f, 0f, 60f, 60f, -1f, 0f, 0, 0.05f, 10f, false, 0f)),
+                new Case(
+                    "quasar_256sm_strained",
+                    Site.QUASAR,
+                    256,
+                    null,
+                    "Quasar 256 SM, Strained (orange, thicker turbulence), E +40 (puffed), jets 200 Bu/t",
+                    -1,
+                    quasarLook(2, 0.95f, 40f, 200f, 200f, -1f, 0f, 0, 0.6f, 50f, false, 0f)),
+                new Case(
+                    "quasar_256sm_reforming_half",
+                    Site.QUASAR,
+                    256,
+                    null,
+                    "Quasar 256 SM re-forming, half way (150 of 300 s): violet-red embers filling in from the inner wall",
+                    -1,
+                    quasarLook(-1, 0f, 0f, 0f, 0f, -1f, 0f, 0, 0.6f, 0f, false, 0.5f)),
+                quasarEvent("quasar_1024sm_erupt_t03", 1, 3f, 1f, 2f, "Eruption, 3 ticks in: the field lines snap"),
+                quasarEvent(
+                    "quasar_1024sm_erupt_t10",
+                    1,
+                    10f,
+                    1f,
+                    2f,
+                    "Eruption, 10 ticks: the shell crosses the ring"),
+                quasarEvent(
+                    "quasar_1024sm_erupt_t25",
+                    1,
+                    25f,
+                    1f,
+                    2f,
+                    "Eruption, 25 ticks: the ring flares, the giant knots"),
+                quasarEvent("quasar_1024sm_erupt_t45", 1, 45f, 1f, 2f, "Eruption, 45 ticks: debris, the shell fading"),
+                quasarEvent("quasar_1024sm_erupt_t70", 1, 70f, 1f, 2f, "Eruption, 70 ticks: settling"),
+                quasarEvent(
+                    "quasar_1024sm_purge_t04",
+                    2,
+                    4f,
+                    0.3f,
+                    15f,
+                    "Purge, 4 ticks: the field lines unwind, jets pulse"),
+                quasarEvent(
+                    "quasar_1024sm_purge_t15",
+                    2,
+                    15f,
+                    0.3f,
+                    15f,
+                    "Purge, 15 ticks: the spiral flash up the jets"),
+                quasarEvent("quasar_1024sm_purge_t40", 2, 40f, 0.3f, 15f, "Purge, 40 ticks: the ring dimmed"),
+                quasarEvent("quasar_1024sm_purge_t65", 2, 65f, 0.3f, 15f, "Purge, 65 ticks: recovering"),
+                new Case(
+                    "quasar_256sm_blowout_t08",
+                    Site.QUASAR,
+                    256,
+                    null,
+                    "Blow-out, 8 ticks: the ring breaks up (zone already dark, jets off)",
+                    -1,
+                    quasarLook(-1, 0f, 0f, 0f, 0f, 8f, 0.5f, 3, 0.6f, 0f, false, 0f)),
+                new Case(
+                    "quasar_256sm_blowout_t40",
+                    Site.QUASAR,
+                    256,
+                    null,
+                    "Blow-out, 40 ticks: chunks flying outward, fading",
+                    -1,
+                    quasarLook(-1, 0f, 0f, 0f, 0f, 40f, 0.5f, 3, 0.6f, 0f, false, 0f)),
+                new Case(
+                    "quasar_256sm_reformed_t20",
+                    Site.QUASAR,
+                    256,
+                    null,
+                    "Re-formed, 20 ticks: the inner wall kindles, the gas fills outward (Stable)",
+                    -1,
+                    quasarLook(1, 0.85f, 0f, 30f, 30f, 20f, 0.5f, 4, 0.6f, 0f, false, 0f)),
+                // ---- P4 Eye T7 / T8 (the centre render's galaxies)
+                new Case(
+                    "eye_t7_triangulum",
+                    Site.EYE_T7,
+                    0,
+                    EyeStarLook.galaxy(7, 0, 0),
+                    "Eye T7, Triangulum: three loose blue-white arms of dots to r 16 round a small bright core, tilted 8"
+                        + " deg, turning once in about 2.6 min"),
+                new Case(
+                    "eye_t7_forming",
+                    Site.EYE_T7,
+                    0,
+                    EyeStarLook.galaxy(7, 0.3f, 0),
+                    "Eye T7, the Magnetar Collapse's galaxy look (unrest 0.3): what shows while T6 becomes T7"),
+                new Case(
+                    "eye_t7_merger_warn",
+                    Site.EYE_T7,
+                    0,
+                    EyeStarLook.galaxy(7, 0.3f, 1),
+                    "Eye T7, Triangulum on a minor merger's warning (the arms 60 % brighter, the core throbbing)"),
+                new Case(
+                    "eye_t8_milky_way",
+                    Site.EYE_T8,
+                    0,
+                    EyeStarLook.galaxy(8, 0, 0),
+                    "Eye T8, the Milky Way: a warm bar and four arms to r 19 round a 3-block bulge, under the shard halo"),
+                new Case(
+                    "eye_t8_merger",
+                    Site.EYE_T8,
+                    0,
+                    EyeStarLook.galaxy(8, 0.3f, 0.5f),
+                    "Eye T8, the Galactic Merger in progress (pericentre passes; the runtime shows warn 0.5)"),
+                new Case(
+                    "eye_t8_crossing_warn",
+                    Site.EYE_T8,
+                    0,
+                    EyeStarLook.galaxy(8, 0, 1),
+                    "Eye T8, the Milky Way on a satellite crossing's warning (warn 1)"),
+                new Case(
+                    "eye_t8_planets",
+                    Site.EYE_T8,
+                    0,
+                    EyeStarLook.planets(6),
+                    "Eye T8 in planets mode: a calm glow with six planets on their orbits (r 5 to 13)"),
+                new Case(
+                    "eye_t8_planets3",
+                    Site.EYE_T8,
+                    0,
+                    EyeStarLook.planets(3),
+                    "Eye T8 in planets mode with three slots"),
+                // ---- renders v2 WP-5: the galaxies' transitions and events
+                galaxyCase(
+                    "eye_t7_collapse_flash",
+                    Site.EYE_T7,
+                    EyeStarLook.galaxy(7, 0.3f, 0)
+                        .transition(6, 0.334f),
+                    "Eye T6 -> T7 Magnetar Collapse, 1.5 s after the collapse: the core flash, the stars bursting out, the"
+                        + " shell running to the bands",
+                    30,
+                    Double.NaN,
+                    EyeStarLook.MAGNETAR,
+                    Double.NaN),
+                galaxyCase(
+                    "eye_t7_capture_25",
+                    Site.EYE_T7,
+                    EyeStarLook.galaxy(7, 0.3f, 0)
+                        .transition(6, 1 / 3f + 2 / 3f * 0.25f),
+                    "Eye T6 -> T7, the halo capture at 25 %: a round halo of stars beginning to settle into a disc",
+                    -1,
+                    Double.NaN,
+                    -1,
+                    Double.NaN),
+                galaxyCase(
+                    "eye_t7_capture_70",
+                    Site.EYE_T7,
+                    EyeStarLook.galaxy(7, 0.3f, 0)
+                        .transition(6, 1 / 3f + 2 / 3f * 0.7f),
+                    "Eye T6 -> T7, the halo capture at 70 %: the disc formed, arms and dust coming in",
+                    -1,
+                    Double.NaN,
+                    -1,
+                    Double.NaN),
+                galaxyCase(
+                    "eye_t7_minor_warn",
+                    Site.EYE_T7,
+                    EyeStarLook.galaxy(7, 0, 1)
+                        .event(EyeStarLook.EV_MINOR_MERGER_UP, 5f),
+                    "Eye T7, a minor merger 5 s away (sign +): the dwarf falling in from above the disc",
+                    -1,
+                    5,
+                    -1,
+                    Double.NaN),
+                galaxyCase(
+                    "eye_t7_minor_hit",
+                    Site.EYE_T7,
+                    EyeStarLook.galaxy(7, 0, 1)
+                        .event(EyeStarLook.EV_MINOR_MERGER_DOWN, -1f),
+                    "Eye T7, a minor merger 1 s after its hit (sign -): the impact flash, the dwarf torn apart",
+                    -1,
+                    -1,
+                    -1,
+                    Double.NaN),
+                galaxyCase(
+                    "eye_t8_gm_approach",
+                    Site.EYE_T8,
+                    mergerAt(400),
+                    "Eye T7 -> T8 Galactic Merger at 400 s: the companion falling toward the first pericentre",
+                    -1,
+                    mergerIn(400),
+                    -1,
+                    Double.NaN),
+                galaxyCase(
+                    "eye_t8_gm_pass1",
+                    Site.EYE_T8,
+                    mergerAt(601),
+                    "Eye T7 -> T8, 1 s after the first pericentre pass: the starburst, the bridge",
+                    -1,
+                    mergerIn(601),
+                    -1,
+                    Double.NaN),
+                galaxyCase(
+                    "eye_t8_gm_apo",
+                    Site.EYE_T8,
+                    mergerAt(900),
+                    "Eye T7 -> T8 at 900 s: the companion at its apocentre, the tidal tails growing",
+                    -1,
+                    mergerIn(900),
+                    -1,
+                    Double.NaN),
+                galaxyCase(
+                    "eye_t8_gm_pass2",
+                    Site.EYE_T8,
+                    mergerAt(1215),
+                    "Eye T7 -> T8, 15 s after the second pass: long tails, the bridge, the core glowing",
+                    -1,
+                    mergerIn(1215),
+                    -1,
+                    Double.NaN),
+                galaxyCase(
+                    "eye_t8_gm_pass3",
+                    Site.EYE_T8,
+                    mergerAt(1830),
+                    "Eye T7 -> T8, 30 s after the last pass: the companion swallowed, the Milky Way taking shape",
+                    -1,
+                    mergerIn(1830),
+                    -1,
+                    Double.NaN),
+                galaxyCase(
+                    "eye_t8_gm_settle",
+                    Site.EYE_T8,
+                    mergerAt(2000),
+                    "Eye T7 -> T8, the settle at 2,000 s: the tails fading, a barred spiral",
+                    -1,
+                    mergerIn(2000),
+                    -1,
+                    Double.NaN),
+                galaxyCase(
+                    "eye_t8_crossing_t60",
+                    Site.EYE_T8,
+                    EyeStarLook.galaxy(8, 0, 1)
+                        .crossing(60f),
+                    "Eye T8, a satellite crossing 60 s away: the dwarf falling toward the disc",
+                    -1,
+                    Double.NaN,
+                    -1,
+                    60),
+                galaxyCase(
+                    "eye_t8_crossing_t03",
+                    Site.EYE_T8,
+                    EyeStarLook.galaxy(8, 0, 1)
+                        .crossing(3f),
+                    "Eye T8, a satellite crossing 3 s away: the dwarf at the disc, stretched by the tide",
+                    -1,
+                    Double.NaN,
+                    -1,
+                    3),
+                galaxyCase(
+                    "eye_t8_crossing_wave60",
+                    Site.EYE_T8,
+                    EyeStarLook.galaxy(8, 0, 0)
+                        .crossing(-60f),
+                    "Eye T8, 60 s after a satellite crossing: the ring wave of star formation running out",
+                    -1,
+                    Double.NaN,
+                    -1,
+                    -60),
+                galaxyCase(
+                    "eye_t8_crossing_wave200",
+                    Site.EYE_T8,
+                    EyeStarLook.galaxy(8, 0, 0)
+                        .crossing(-200f),
+                    "Eye T8, 200 s after a satellite crossing: the ring wave near the edge",
+                    -1,
+                    Double.NaN,
+                    -1,
+                    -200),
+                galaxyCase(
+                    "eye_t8_minor_warn",
+                    Site.EYE_T8,
+                    EyeStarLook.galaxy(8, 0, 1)
+                        .event(EyeStarLook.EV_MINOR_MERGER_DOWN, 4f),
+                    "Eye T8, a minor merger 4 s away (sign -): the dwarf rising toward the disc from below",
+                    -1,
+                    4,
+                    -1,
+                    Double.NaN),
+                // ---- renders v2: machines with no visual yet (the poses for their future renders)
+                // renders v2 WP-7 / WP-8: clientLook {activity (-1 live), tier / held mask (-1 or 0 live), ...}
+                new Case(
+                    "homogeny_top",
+                    Site.HOMOGENY,
+                    0,
+                    null,
+                    "The Homogeny at its top tier, formed, idle: the vortex's dim slow swirl"),
+                machineCase(
+                    "homogeny_top_run",
+                    Site.HOMOGENY,
+                    "The Homogeny T3 mixing: three braids and the core thread",
+                    1,
+                    0),
+                machineCase(
+                    "homogeny_t1_run",
+                    Site.HOMOGENY,
+                    "The Homogeny shown at T1, mixing: one braid, three feed streams",
+                    1,
+                    1),
+                new Case(
+                    "reality_diffraction",
+                    Site.REALITY_DIFFRACTION,
+                    0,
+                    null,
+                    "Reality Diffraction, formed, idle: calm clouds, no beam"),
+                machineCase(
+                    "reality_diffraction_run",
+                    Site.REALITY_DIFFRACTION,
+                    "Reality Diffraction running, all six regions anchored",
+                    1,
+                    63),
+                machineCase(
+                    "reality_diffraction_unheld",
+                    Site.REALITY_DIFFRACTION,
+                    "Reality Diffraction running with regions 2 and 5 unanchored (their clouds flicker dim)",
+                    1,
+                    0b101101),
+                new Case(
+                    "reality_refab",
+                    Site.REALITY_REFAB,
+                    0,
+                    null,
+                    "Reality Refab, formed, idle: dim glyphs, slow stream"),
+                machineCase("reality_refab_run", Site.REALITY_REFAB, "Reality Refab reassembling", 1, -1),
+                new Case(
+                    "conduit_crown",
+                    Site.CONDUIT,
+                    64,
+                    null,
+                    "The conduit rig: a 64 SM quasar with a Mk I Burst Thermaliser Crown docked on its top jet port"
+                        + " (renders v2 WP-6: the crown's heat)"),
+                new Case(
+                    "conduit_stream",
+                    Site.CONDUIT,
+                    64,
+                    null,
+                    "The conduit rig's streams: mouth B emitting south to mirror 1, on east to the junction (WP-6;"
+                        + " 200 Bu/t forced on the client: mouth A does not form at the harness height)",
+                    -1,
+                    new float[] { 200f, 0f, -1f, -2f }),
+                // ---- renders v2 R-16: the performance and compatibility pass on the scene (every big render at once)
+                // three interleaved rounds of the four settings: the GPU clocks drift over a run, so each setting is
+                // measured early, in the middle and late
+                sceneCase("scene_off", "off", "baseline: the scene with every big render skipped"),
+                sceneCase("scene_low", "low", "quality low (the fixed-function renders of before renders v2)"),
+                sceneCase("scene_medium", "medium", "quality medium"),
+                sceneCase("scene_high", "high", "quality high (the default)"),
+                sceneCase("scene_high16", "high16", "quality high with 16 objects allowed at full detail (worst case)"),
+                sceneCase("scene_r2_high", "high", "quality high, round 2"),
+                sceneCase("scene_r2_medium", "medium", "quality medium, round 2"),
+                sceneCase("scene_r2_low", "low", "quality low, round 2"),
+                sceneCase("scene_r2_off", "off", "baseline, round 2"),
+                sceneCase("scene_r3_off", "off", "baseline, round 3"),
+                sceneCase("scene_r3_low", "low", "quality low, round 3"),
+                sceneCase("scene_r3_medium", "medium", "quality medium, round 3"),
+                sceneCase("scene_r3_high", "high", "quality high, round 3"),
+                new Case("scene_pack", Site.SCENE, 0, null, "quality high, the shaderpack probe answering yes")
+                    .with("pack", "tilt", "qring", "klevel", "lodk:10"),
+                new Case(
+                    "scene_fail",
+                    Site.SCENE,
+                    0,
+                    null,
+                    "every program failing its bake (as after a bad driver update)")
+                        .with("fail", "tilt", "qring", "klevel"),
+                new Case("scene_recover", Site.SCENE, 0, null, "the programs baking again after a resource reload")
+                    .with("recover", "tilt", "qring", "klevel"),
+                new Case("scene_glerror", Site.SCENE, 0, null, "a GL error injected into each object's checked draw")
+                    .with("glerror", "tilt", "qring"),
+                new Case(
+                    "scene_gui_high",
+                    Site.SCENE,
+                    0,
+                    null,
+                    "HUD, hand item and the inventory with NEI, quality high").with("high", "hud", "inv", "hud@night"),
+                new Case("scene_gui_off", Site.SCENE, 0, null, "HUD, hand item and the inventory with NEI, baseline")
+                    .with("off", "hud", "inv", "hud@night"),
+                new Case(
+                    "scene_lod",
+                    Site.SCENE,
+                    0,
+                    null,
+                    "LOD walks out from and back to the Kerr, the Eye, the quasar").with(
+                        "high",
+                        lodWalk(
+                            lodWalk("lodk", 8, 12, 20, 30, 45, 70, 100, 140, 180, 230, 270),
+                            lodWalk("lode", 22, 28, 40, 60, 90, 130, 180, 240),
+                            lodWalk("lodq", 40, 70, 95, 120, 160, 230, 300))))));
+
+    /** The case list with the SMBH cases appended (each AFTER at high, then its BEFORE at low, the same poses). */
+    private static List<Case> withSmbh(List<Case> all) {
+        final List<Case> out = new ArrayList<>(all);
+        smbh(
+            out,
+            "l1_16k",
+            1,
+            16_384,
+            1,
+            0f,
+            0f,
+            0f,
+            1f,
+            false,
+            "L1 lattice (Superdense Ergomatter), 16,384 SM, Stable");
+        smbh(
+            out,
+            "l2_leaking",
+            2,
+            131_072,
+            1,
+            0f,
+            0f,
+            0f,
+            0.7f,
+            false,
+            "L2 lattice (White Hole Matter), 131,072 SM, the hold-up 70 % covered (leaking)");
+        smbh(out, "l3_262k", 3, 262_144, 0, 0f, 0f, 0f, 1f, false, "L3 lattice (Universium), 262,144 SM, Resonant");
+        smbh(
+            out,
+            "l3_growing",
+            3,
+            1_048_576,
+            1,
+            0f,
+            0f,
+            0.6f,
+            1f,
+            false,
+            "L3 lattice, 1,048,576 SM, growing: the Growth segment 60 % of the intake cap");
+        smbh(
+            out,
+            "l3_od50",
+            3,
+            4_194_304,
+            1,
+            0.5f,
+            0f,
+            0f,
+            1f,
+            false,
+            "L3 lattice at its top, 4.19 M SM, Overdrive 50 %");
+        smbh(out, "l4_67m", 4, 67_108_864, 1, 0f, 0f, 0f, 1f, false, "L4 lattice (Constrained Eternity), 67.1 M SM");
+        smbh(out, "l4_od100", 4, 67_108_864, 1, 1f, 0f, 0f, 1f, false, "L4 lattice at its top, Overdrive 100 %");
+        smbh(out, "l4_shedding", 4, 33_554_432, 1, 0f, 0f, 0f, 1f, true, "L4 lattice, 33.6 M SM, shedding");
+        smbh(out, "unbound_n1", 4, 134_217_728, 1, 0f, 1f, 0f, 1f, false, "Unbound, n = 1 (134 M SM)");
+        return out;
+    }
+
+    /**
+     * SMBH (R-19): one lattice look as an AFTER case (quality high) and its BEFORE twin ({@code _low}: the
+     * fixed-function look): the lattice tier, the mass, the zone, Overdrive, the Unbound doublings, the Growth share,
+     * the hold-up coverage and shedding. Jets 2,500 Bu/t, spin 0.9, flux 35.
+     */
+    private static void smbh(List<Case> out, String name, int lattice, double mass, int zone, float od, float n,
+        float growth, float hold, boolean shed, String what) {
+        // each case's shots, by day and by night: outside the cage, over the ring, the hole close up, down into the
+        // top Mk IV crown's cup (a local: the case list is built in the static initialiser, before a later static
+        // field would be set)
+        final String[] views = { "orbit", "ring", "hero", "crown", "orbit@night", "ring@night", "hero@night",
+            "crown@night" };
+        final float[] look = { zone, 0.9f, 10f, 2500f, 2500f, -1f, 0f, 0, 0.9f, 35f, 0, 0f, lattice, od, n, growth,
+            hold, shed ? 1 : 0, (float) mass };
+        out.add(new Case("smbh_" + name, Site.SMBH, mass, null, what, -1, look).with("high", views));
+        out.add(
+            new Case("smbh_" + name + "_low", Site.SMBH, mass, null, what + " (quality low)", -1, look.clone())
+                .with("low", views.clone()));
+    }
 
     /** R-16: a scene case at one quality with the standard views. */
     private static Case sceneCase(String name, String quality, String what) {
@@ -1253,6 +1370,9 @@ public final class RenderTest {
                 case QUASAR:
                     buildQuasar(world, b);
                     break;
+                case SMBH:
+                    buildSmbh(world, b);
+                    break;
                 case HOMOGENY:
                     buildHR(world, b, HRKit.Machine.HOMOGENY);
                     break;
@@ -1338,6 +1458,106 @@ public final class RenderTest {
         if (!q.mMachine) b.lines.add("WARNING: Quasar NOT FORMED");
         final int[] c = QuasarGeometry.world(q.getExtendedFacing(), x, y, z, QuasarGeometry.centreRel());
         b.centre = new double[] { c[0] + 0.5, c[1] + 0.5, c[2] + 0.5 };
+    }
+
+    /**
+     * SMBH (R-19): the bench lattice quasar ({@link Site#SMBH}): MagMatter coils, an L4 lattice (the cases re-tier its
+     * nodes), Saturation set, a 4,096 SM hole and a Mk IV crown on each jet port; raised 40 blocks off the ground.
+     */
+    private static void buildSmbh(WorldServer world, Built b) {
+        final int x = b.site.originX();
+        final int z = SITE_Z;
+        final int[] probe = QuasarKit.bounds(FACING, x, 100, z, true);
+        final int y = 100 + GROUND + 40 - probe[1];
+        final int[] box = QuasarKit.bounds(FACING, x, y, z, true);
+        loadAndKeep(
+            world,
+            new int[] { box[0] - 8, Math.max(0, box[1] - 40), box[2] - 8, box[3] + 8, Math.min(255, box[4] + 40),
+                box[5] + 8 });
+        b.box = box;
+        b.controller = new int[] { x, y, z };
+        final QuasarKit.Result r = QuasarKit.build(world, x, y, z, FACING, 4, QuasarParams.LATTICE_MAX, false, false);
+        if (r.failure != null) {
+            b.error = "Lattice quasar build failed: " + r.failure;
+            return;
+        }
+        for (String line : r.lines) b.lines.add(strip(line));
+        final MTEQuasarEngine q = QuasarKit.quasarAt(world, x, y, z);
+        if (q == null) {
+            b.error = "no Quasar Engine after the build";
+            return;
+        }
+        q.getBaseMetaTileEntity()
+            .setOwnerUuid(ConduitKit.BENCH_OWNER);
+        b.lines.add("Saturation set: lattice in force L" + q.debugSaturate(true));
+        q.debugSeed(QuasarParams.M_REF, 0.9);
+        for (String line : ConduitKit.crowns(world, q, MTEBurstThermaliserCrown.MK_MAX, false)) {
+            b.lines.add(strip(line));
+        }
+        if (!q.mMachine) b.lines.add("WARNING: the lattice quasar is NOT FORMED");
+        final int[] c = QuasarGeometry.world(q.getExtendedFacing(), x, y, z, QuasarGeometry.centreRel());
+        b.centre = new double[] { c[0] + 0.5, c[1] + 0.5, c[2] + 0.5 };
+    }
+
+    /**
+     * SMBH (R-19): the case's lattice on the server: every Containment Node re-tiered, Unbind, the structure walked
+     * again (Saturation held), the mass seeded (clamped to what the structure holds) and 5 disc seconds run.
+     */
+    private static String applySmbh(WorldServer world, Built b, Case c) {
+        final int[] p = b.controller;
+        final MTEQuasarEngine q = QuasarKit.quasarAt(world, p[0], p[1], p[2]);
+        if (q == null) return "no Quasar Engine";
+        final float[] look = c.clientLook;
+        final int tier = look != null && look.length > TileQuasarHole.DBG_LATTICE
+            ? Math.max(1, Math.min(4, Math.round(look[TileQuasarHole.DBG_LATTICE])))
+            : 4;
+        final boolean unbound = look != null && look.length > TileQuasarHole.DBG_UNBOUND
+            && look[TileQuasarHole.DBG_UNBOUND] > 0;
+        final int nodes = setNodes(world, q, tier);
+        q.setUnbound(unbound);
+        final int inForce = q.debugSaturate(true);
+        // hold the case's mass: the setpoint at it (a hole over its setpoint sheds, and a shed makes no bursts); the
+        // shedding case sets it back to the safe limit, and the harness keeps topping the mass up, so it keeps shedding
+        final boolean shed = look != null && look.length > TileQuasarHole.DBG_SHED && look[TileQuasarHole.DBG_SHED] > 0;
+        q.setMassSetpoint(shed ? 0 : c.mass);
+        q.debugSeed(c.mass, 0.9);
+        q.benchRun(5, true);
+        if (Math.abs(q.getMass() - c.mass) > 1) q.debugMass(c.mass);
+        return String.format(
+            Locale.ROOT,
+            "Lattice quasar: %d nodes set to L%d, in force L%d, %s, M %.0f SM, hole scale %.2f%s",
+            nodes,
+            tier,
+            inForce,
+            unbound ? "Unbound" : "bound",
+            q.getMass(),
+            MTEQuasarEngine.renderScaleFor(q.getMass()),
+            q.mMachine ? "" : ", NOT FORMED");
+    }
+
+    /** SMBH: every Containment Node of the lattice piece set to {@code tier}; returns how many. */
+    private static int setNodes(World world, MTEQuasarEngine q, int tier) {
+        final String[][] shape = BTSShapes.load(MTEQuasarEngine.PIECE_LATTICE);
+        final int[] off = BTSShapes.offset(MTEQuasarEngine.PIECE_LATTICE);
+        final IGregTechTileEntity base = q.getBaseMetaTileEntity();
+        final int meta = BlockSLCasing4.node(tier);
+        int n = 0;
+        for (int c = 0; c < shape.length; c++) {
+            for (int r = 0; r < shape[c].length; r++) {
+                final String row = shape[c][r];
+                for (int a = row.indexOf('N'); a >= 0; a = row.indexOf('N', a + 1)) {
+                    final int[] w = QuasarGeometry.world(
+                        q.getExtendedFacing(),
+                        base.getXCoord(),
+                        base.getYCoord(),
+                        base.getZCoord(),
+                        new int[] { a - off[0], r - off[1], c - off[2] });
+                    world.setBlock(w[0], w[1], w[2], SLBlocks.slCasing4, meta, 2);
+                    n++;
+                }
+            }
+        }
+        return n;
     }
 
     /**
@@ -1702,6 +1922,8 @@ public final class RenderTest {
             case CONDUIT:
             case QUASAR:
                 return applyQuasar(world, b, c);
+            case SMBH:
+                return applySmbh(world, b, c);
             case SCENE:
                 return RenderScene.apply(world);
             default: {
@@ -1741,7 +1963,7 @@ public final class RenderTest {
                     // reported at the build
                 }
             }
-        } else if (c.site == Site.QUASAR || c.site == Site.CONDUIT) {
+        } else if (c.site == Site.QUASAR || c.site == Site.CONDUIT || c.site == Site.SMBH) {
             // the disc keeps running on its own: keep its gas stocked and its mass where the case wants it
             final MTEQuasarEngine q = QuasarKit.quasarAt(world, p[0], p[1], p[2]);
             if (q != null) {
@@ -1858,7 +2080,7 @@ public final class RenderTest {
             return "machine render, focus " + (b.focus == null ? "-"
                 : String.format(Locale.ROOT, "(%.1f, %.1f, %.1f)", b.focus[0], b.focus[1], b.focus[2]));
         }
-        if (c.site == Site.QUASAR || c.site == Site.CONDUIT) {
+        if (c.site == Site.QUASAR || c.site == Site.CONDUIT || c.site == Site.SMBH) {
             final MTEQuasarEngine q = QuasarKit.quasarAt(world, p[0], p[1], p[2]);
             return q == null ? "no Quasar Engine"
                 : String.join(
@@ -2021,7 +2243,7 @@ public final class RenderTest {
                     // renders v2 (WP-2): the quasar's ring from inside the shell, high over its near side looking in at
                     // the hole and the far side ("ring"), and its top cap from outside ("cap"); other sites use the
                     // close view
-                    if (b.site == Site.QUASAR || b.site == Site.CONDUIT) {
+                    if (b.site == Site.QUASAR || b.site == Site.CONDUIT || b.site == Site.SMBH) {
                         final double[] up = { 0, 1, 0 };
                         if (view.equals("ring")) {
                             eye = add(add(b.centre, F, 52), up, 46);
@@ -2036,7 +2258,32 @@ public final class RenderTest {
                     eye = add(b.centre, norm(new double[] { F[0], 0.35, F[2] }), objectRadius(b) * 1.9 + 1.5);
                     break;
                 }
+                case "crown": {
+                    // SMBH (R-19): above the top jet port's Mk IV crown, looking down into its cup
+                    final double[] up = { 0, 1, 0 };
+                    target = add(b.centre, up, 92);
+                    eye = add(add(add(b.centre, up, 150), F, 34), L, 18);
+                    break;
+                }
+                case "orbit": {
+                    // SMBH (R-19): outside the lattice, three-quarter from the front-right and raised, 150 blocks out:
+                    // the cage's nodes and arcs, the ring over the wall, the jets and both crowns
+                    target = b.centre;
+                    final double[] dir = norm(new double[] { F[0] * 0.8 + L[0] * 0.6, 0.42, F[2] * 0.8 + L[2] * 0.6 });
+                    eye = add(b.centre, dir, 150);
+                    break;
+                }
                 case "hero": {
+                    if (b.site == Site.SMBH) {
+                        // SMBH (R-19): inside the inner wall (r 34), 30 blocks out and 9 up, looking at the hole
+                        target = b.centre;
+                        final double[] up = { 0, 1, 0 };
+                        final double[] dir = norm(
+                            new double[] { F[0] * Math.cos(Math.toRadians(30)) + L[0] * Math.sin(Math.toRadians(30)), 0,
+                                F[2] * Math.cos(Math.toRadians(30)) + L[2] * Math.sin(Math.toRadians(30)) });
+                        eye = add(add(b.centre, dir, 30), up, 9);
+                        break;
+                    }
                     // renders v2 (R-01): the detail close-up, 3 object radii out, 30 degrees to the right of the front
                     // and
                     // 12 degrees above the disc plane (so a disc shows its lensed far side), never past a block
@@ -2202,6 +2449,13 @@ public final class RenderTest {
         if (c != null && (c.site == Site.QUASAR || c.site == Site.CONDUIT) && c.mass > 0) {
             return 1.8 * MTEQuasarEngine.renderScaleFor(c.mass);
         }
+        if (c != null && c.site == Site.SMBH && c.mass > 0) {
+            // the renderer's compressed law past 4,096 SM (QuasarHoleRenderer.drawScale)
+            final double s = MTEQuasarEngine.renderScaleFor(c.mass);
+            final double sRef = MTEQuasarEngine.renderScaleFor(QuasarParams.M_REF);
+            final double d = Math.max(0, (s - sRef) / (4.0 / 6.0 / 1.3));
+            return 1.8 * (s <= sRef ? s : sRef * (1 + 1.6 * Math.tanh(d / 16.0)));
+        }
         if (c != null && c.look != null
             && (c.look.kind == EyeStarLook.TRIANGULUM || c.look.kind == EyeStarLook.MILKY_WAY)) {
             return 0.6 * EyeStarLook.galaxyReach(c.look.kind);
@@ -2221,6 +2475,7 @@ public final class RenderTest {
         if (c.site == Site.GT_GODFORGE) return GODFORGE_STAR_RADIUS;
         // the disc band reaches r 40 + 22 lambda_c
         if (c.site == Site.QUASAR) return 62;
+        if (c.site == Site.SMBH) return 104;
         if (c.site == Site.CONDUIT) return 12;
         if (c.site == Site.HOMOGENY || c.site == Site.REALITY_DIFFRACTION || c.site == Site.REALITY_REFAB) return 6;
         if (c.mass > 0) return MTEKerrEngine.haloRadiusFor(c.mass);
