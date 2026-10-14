@@ -664,10 +664,42 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                 }
             }
         }
+        supermassiveRow(rows, star);
         for (String ev : eventLines()) {
             rows.note(BTSRows.ICON_WARN, BTSGuiKit.WARN, ev, BTSText.lang("beyondthestars.gui.eye.warn.tip"));
         }
         slotRows(rows, star);
+    }
+
+    /**
+     * SMBH (smbh-v1.md §1.3): the Supermassive Link, P5's Eye T9 -> T10 machine milestone, as a read-only checklist
+     * row marked P5 (yellow until held): the streak against 30 min, with the 60 s mean against 96 Bu/t and the link
+     * source's stream record in the tooltip. Shown from T8, or while a qualifying hole is linked, or once a streak
+     * was seen.
+     */
+    private void supermassiveRow(BTSRows.Builder rows, StarDef star) {
+        final EyeStarRuntime rt = rt();
+        final EyeBursts b = rt.galaxy()
+            .bursts();
+        final EyeMilestones ms = rt.milestones();
+        if (star.n() < 8 && !(b.linkedAll && b.supermassiveSource()) && ms.smLinkBest <= 0) return;
+        final BurstLink l = rt.galaxy()
+            .supermassiveLink();
+        final boolean held = ms.smLinkDone;
+        rows.check(
+            held ? BTSChecklist.State.OK : BTSChecklist.State.WARN,
+            BTSText.lang("beyondthestars.gui.eye.chk.smlink"),
+            held ? BTSText.lang("beyondthestars.gui.badge.held")
+                : BTSText.lit(EyeMilestones.clock(l.streak) + " / " + EyeMilestones.clock(EyeMilestones.LINK_NEED)),
+            held ? 1 : BTSChecklist.frac(l.streak, EyeMilestones.LINK_NEED),
+            BTSText.lang("beyondthestars.gui.eye.chk.smlink.tip0"),
+            BTSText.lang(
+                "beyondthestars.gui.eye.chk.smlink.tip1",
+                BTSFormat.buEuShort(l.mean),
+                BTSFormat.buEuShort(BurstLink.supermassiveMean())),
+            BTSText.lang("beyondthestars.gui.eye.chk.smlink.tip2", EyeStarRuntime.supermassiveSourceText(b)),
+            BTSText.lang("beyondthestars.gui.eye.chk.smlink.tip3", EyeMilestones.clock(ms.smLinkBest)),
+            BTSText.lang("beyondthestars.gui.eye.chk.smlink.tip4"));
     }
 
     /**

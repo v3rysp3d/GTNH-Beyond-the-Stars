@@ -56,6 +56,11 @@ public final class EyeGalaxy {
     final BurstLink link6 = new BurstLink();
     /** The Heavy Link (T7 → T8): the Eye's total, the halo as the part. */
     final BurstLink link7 = new BurstLink();
+    /**
+     * SMBH (smbh-v1.md §1.3): the Supermassive Link (T9 → T10, P5's milestone): the Eye's total, the part from a
+     * qualifying source (a lattice in force, at least 65,536 SM). Data only until Eye T9.
+     */
+    final BurstLink link9 = new BurstLink();
     /** Fractional litres owed per purpose and fluid ("up:fluid", "charge:fluid", "feed:fluid", "out:fluid"). */
     final Map<String, Double> carry = new LinkedHashMap<>();
     /** The companions running (earlier object tiers 1..6), latched at the last relight; empty in planets mode. */
@@ -115,6 +120,11 @@ public final class EyeGalaxy {
 
     public BurstLink heavyLink() {
         return link7;
+    }
+
+    /** SMBH: the Supermassive Link's live window and streak (P5's T9 → T10 milestone; read-only data). */
+    public BurstLink supermassiveLink() {
+        return link9;
     }
 
     public EyeBursts bursts() {
@@ -208,6 +218,9 @@ public final class EyeGalaxy {
         link7.restore(new double[2 * BurstLink.WINDOW], 0);
         link7.streak = link7.best = 0;
         link7.done = false;
+        link9.restore(new double[2 * BurstLink.WINDOW], 0);
+        link9.streak = link9.best = 0;
+        link9.done = false;
         carry.clear();
         companions = new int[0];
         companionR = new double[0];
@@ -244,6 +257,7 @@ public final class EyeGalaxy {
         final NBTTagCompound g = new NBTTagCompound();
         writeLink(g, "link6", link6);
         writeLink(g, "link7", link7);
+        writeLink(g, "link9", link9);
         if (!carry.isEmpty()) {
             final NBTTagCompound c = new NBTTagCompound();
             for (Map.Entry<String, Double> e : carry.entrySet()) c.setDouble(e.getKey(), e.getValue());
@@ -278,6 +292,7 @@ public final class EyeGalaxy {
     void readLive(NBTTagCompound g) {
         readLink(g, "link6", link6);
         readLink(g, "link7", link7);
+        readLink(g, "link9", link9);
         carry.clear();
         if (g.hasKey("carry")) {
             final NBTTagCompound c = g.getCompoundTag("carry");

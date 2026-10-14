@@ -24,6 +24,14 @@ public final class BurstLink {
     /** Heavy Link (T7 → T8): mean ≥ D₈ = 6 Bu/t on the Eye, at least 50 % on the halo (test fire). */
     public static final double HEAVY_FRAC_MIN = 0.5;
 
+    /**
+     * SMBH (smbh-v1.md §1.3), the Supermassive Link (T9 → T10, P5's milestone): mean ≥ D₁₀ = 96 Bu/t on the Eye's
+     * ports, from a source with a lattice in force and at least 65,536 SM, 1,800 s unbroken.
+     */
+    public static double supermassiveMean() {
+        return GalaxyField.demandT(10);
+    }
+
     private final double[] r = new double[WINDOW], h = new double[WINDOW];
     private double sum, p;
     /** Seconds rolled. */
@@ -103,6 +111,15 @@ public final class BurstLink {
     /** The Heavy Link condition (roll the Eye's total with the halo as the part; the halo test fire is on). */
     public boolean heavyOk(boolean linked, boolean testFire) {
         return linked && testFire && full() && mean >= GalaxyField.demandT(8) && frac >= HEAVY_FRAC_MIN;
+    }
+
+    /**
+     * SMBH: the Supermassive Link condition (roll the Eye's total): linked, the link source qualifies (a lattice in
+     * force and at least 65,536 SM, from its stream record), the window full and the mean at least D₁₀. A hole that
+     * leaks under 65,536 SM or a dropped link resets the streak.
+     */
+    public boolean supermassiveOk(boolean linked, boolean supermassiveSource) {
+        return linked && supermassiveSource && full() && mean >= supermassiveMean();
     }
 
     /**

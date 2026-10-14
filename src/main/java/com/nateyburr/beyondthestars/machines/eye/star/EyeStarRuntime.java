@@ -1219,6 +1219,7 @@ public final class EyeStarRuntime {
         // ---- the machine milestones: a linked quasar holding the Eye (quasar-p4.md R.1)
         final EyeBursts b = galaxy.bursts;
         if (b.paused) return;
+        supermassiveSecond(b);
         if (T.n == 6 && trans == null && !T.planets()) {
             final BurstLink l = galaxy.link6;
             l.roll(b.rail(), b.hi);
@@ -1238,6 +1239,62 @@ public final class EyeStarRuntime {
             milestones.linkStreak[7] = l.streak;
             milestones.linkBest[7] = Math.max(milestones.linkBest[7], l.best);
         }
+    }
+
+    /**
+     * SMBH (smbh-v1.md §1.3): one second of the Supermassive Link, P5's T9 → T10 machine milestone, as data only: a
+     * 60 s mean of everything on the Eye's ports, and a streak while the link source (its stream record: a lattice in
+     * force and at least 65,536 SM) qualifies and the mean is at least D₁₀ = 96 Bu/t. It resets when the link drops or
+     * the hole leaks under 65,536 SM. Held after 1,800 s, recorded in the milestones (item NBT) for P5; nothing gates
+     * on it until Eye T9 exists.
+     */
+    private void supermassiveSecond(EyeBursts b) {
+        final BurstLink l = galaxy.link9;
+        final boolean source = b.linkedAll && b.supermassiveSource();
+        l.roll(b.total(), source ? b.total() : 0);
+        if (l.update(l.supermassiveOk(b.linkedAll, b.supermassiveSource())) && !milestones.smLinkDone) {
+            milestones.smLinkDone = true;
+            lastEvent = "the " + EyeMilestones.SM_LINK_NAME
+                + " is HELD: 30 min unbroken from the hole at "
+                + b.source
+                + " (data for P5's T9 -> T10 milestone)";
+            logEvent(lastEvent);
+        }
+        if (l.done && !milestones.smLinkDone) milestones.smLinkDone = true;
+        milestones.smLinkStreak = l.streak;
+        milestones.smLinkBest = Math.max(milestones.smLinkBest, l.best);
+    }
+
+    /**
+     * SMBH: the Supermassive Link's line for the scanner, GUI and OpenComputers: the streak, the mean against 96 Bu/t
+     * and the link source's record.
+     */
+    public String supermassiveLinkLine() {
+        final BurstLink l = galaxy.link9;
+        final EyeBursts b = galaxy.bursts;
+        return String.format(
+            Locale.ROOT,
+            "%s (P5, T9 -> T10, data only): %s, 60 s mean %s / %s; source %s",
+            EyeMilestones.SM_LINK_NAME,
+            milestones.smLinkDone ? "HELD"
+                : "streak " + EyeMilestones.clock(l.streak)
+                    + " / 30:00 (best "
+                    + EyeMilestones.clock(milestones.smLinkBest)
+                    + ")",
+            BTSFormat.buEuShort(l.mean),
+            BTSFormat.buEuShort(BurstLink.supermassiveMean()),
+            supermassiveSourceText(b));
+    }
+
+    /** SMBH: "a 70,000 SM hole, lattice L1 (qualifies)", "not linked", ... from the link source's stream record. */
+    public static String supermassiveSourceText(EyeBursts b) {
+        if (!b.linkedAll) return "not linked";
+        return String.format(
+            Locale.ROOT,
+            "a %,.0f SM hole, %s (%s)",
+            b.smMass,
+            b.smLattice > 0 ? "lattice L" + b.smLattice : "no lattice",
+            b.supermassiveSource() ? "qualifies" : "needs a lattice and 65,536 SM");
     }
 
     private void linkHeld(int n) {
@@ -3731,6 +3788,9 @@ public final class EyeStarRuntime {
                     100 * l.frac,
                     n == 6 ? " (needs >= 1.5 Bu/t = 1.5e13 EU/t, high bank 25-75 %)"
                         : " (needs >= 6 Bu/t = 6.0e13 EU/t, halo >= 50 %)"));
+        }
+        if (T.n >= 8 || galaxy.bursts.supermassiveSource() || milestones.smLinkBest > 0) {
+            out.add(supermassiveLinkLine());
         }
         if (T.ergoFeed) {
             final int[] c = crossings();
