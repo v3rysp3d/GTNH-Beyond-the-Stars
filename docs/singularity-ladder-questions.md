@@ -8383,3 +8383,116 @@ fixes. For the Angelica first-view case, either accept it (it lasts until the co
 or add render tiles at the machines' render centres (a structure change, as R-05's alternative). Shots and numbers:
 local work folder `renders/scene/` (`before-*` LOW, `after-*` HIGH, `baseline-*` off, `after-angelica-*`,
 `perf-scene-aggregate.txt`, `perf-after.txt`, `perf-angelica.txt`); the runs in `perf/runs/`.
+
+### R-17 Code review of renders v2: six findings checked, all six fixed [renders v2, finding + fix]
+
+**What happened.** A review of the renders v2 branch raised six findings. Each one was checked against the code and,
+where it shows, in the dev client. All six hold; all six are fixed. Shots were re-taken for every render the fixes
+touch: `after-r17-*` in each object's folder under my local work folder's `renders/`, the runs in
+`renders/review/runs/`, side-by-side sheets in `renders/review/cmp*/`, and the cost tables `depth-l2-marginal.txt`
+and `depth-l3-marginal.txt`.
+
+1. **`pow()` with a negative base (bug, holds).** GLSL leaves `pow(x, y)` undefined for `x < 0`; drivers that compute
+   it as `exp2(y * log2(x))` return NaN. Places found:
+   - the black hole's photon ring, `exp(-pow((rMinSeen - 1.53) / ringW, 2.0))`: negative for every escaped ray that
+     came closer than 1.53 r_s (the quasar's inner disc at spin 0.9, and the short L2 / L3 marches);
+   - the helium-flash front, `exp(-pow((ang - front) / 0.22, 2.0))`: negative over half of the star;
+   - bases that rounding can push a hair below 0: the hex shell's Fresnel term `1 - |n.v|` (`fx/mfx.glsl`), the
+     planets' rim `1 - max(n.d, 0)` (`galaxy/planets.glsl`), the quasar shock shell's rim (`quasar/fx.glsl`), the
+     starspot and coronal-loop `sin()` profiles (`star/surface.glsl`, `star/lines_vert.glsl`) and the portal radius.
+
+   Fix: both squares are written out (`d * d`); the other bases are clamped at 0. On the dev rig (NVIDIA, which already
+   turns `pow(x, 2.0)` into `x * x`) the pictures are unchanged: the helium flash, Sol, the planets, the Diffraction's
+   shell, the conduit portal and the quasar shell were re-shot and match the earlier AFTER shots apart from
+   animation phase.
+2. **Under Angelica, three depth blits a frame even when nothing draws (perf, holds).** `DeferredDraws.add` started
+   the opaque-depth capture for any queued machine. Every formed conduit element, crown, Homogeny and Reality machine
+   in view queued, including at `renderQuality=low` and for a conduit with no stream, and only `renderNow` found out
+   afterwards that it had nothing to draw. Fix:
+   - `RenderQuality.mayShade(machine, programs)` is asked before queueing: not the harness baseline, quality above low,
+     a capable GL context, no GL-error fallback for the machine, every program baked;
+   - the callers queue only when there is something to show: a conduit element only with a stream out of a throat (or
+     a Wormhole Mouth's portal, or the harness's forced streams), a crown only with a stream.
+
+   At LOW, and for conduit elements and crowns with nothing flowing, the frame costs what it did before v2 (an idle
+   Homogeny or Reality machine still draws its dim look, so it still queues). In vanilla the machines still draw as
+   before (Homogeny, Diffraction, conduit stream and portal, crown re-shot).
+3. **The black hole's faint glow wrote depth (visual, holds; seen in game).** The hole quad was drawn in pass 0 with
+   depth writes, and the shader discarded only empty fragments. So the faint glow round the disc (alpha 0) and the
+   photon-ring halo wrote the quad's depth over most of the bounding disc. Everything drawn later behind that plane
+   failed the depth test: the KEE's far window glass vanished in a soft-edged circle round the hole. Seen in the
+   earlier AFTER shots: `kerr_t2_512sm_level_day` (the glass band breaks round the hole), `kerr_t2_512sm_close_day`
+   (the far glass cut away in a circle), and the quasar's window band broken round its hole
+   (`quasar_256sm_resonant_hero`). Water, rain, particles and later TESRs behind the hole were hit the same way.
+
+   *First attempt, rejected.* Depth only inside the shadow (as the review suggested for the opaque part): the far
+   glass then drew over the bright disc, as blue rectangles across the upper arc, because the depth writes were there
+   on purpose (R-11 point 6: the window's far glass must not tint the hole a second time).
+
+   *Fix.* The colour pass draws without depth writes. A second draw of the same quad, with colour writes off, writes
+   depth where the hole has a body:
+   - the shadow and the photon ring without a march (straight-line impact parameter below 3.1 r_s, seen from outside
+     the photon sphere: the ring and the side the frame dragging pushes out);
+   - elsewhere a coarse march (no screen copy, L3's 14 steps, one noise octave), which stops as soon as alpha reaches
+     0.05 and writes depth there;
+   - the glow and the photon-ring halo add light but never alpha, so they write no depth.
+
+   Checked:
+   - `-Dbts.render.bhDepthDebug=true` draws that pass in red. It covers the shadow, the disc and its lensed arcs (the
+     failing hole's tilted disc too) and stops at the disc's edge; the glow beyond it is not covered.
+   - In the shots the far glass now shows right up to the disc's edge, and nothing shows through the disc.
+   - The quasar's inner-arc gaps of the in-between versions are gone. Glass behind the disc's gaps showed through as
+     stripes at alpha 0.5, and as a sliver on the prograde side of the ring at 2.9 r_s.
+   - GL state leak check (`-Dbts.render.leakcheck=true`, which reads the colour mask too): no leaks in the 70 shots of
+     the Kerr and quasar cases (run before the switch from L2 to L3, which changes only a uniform).
+
+   *Cost* (marginal, `-Dbts.render.bhDepthRepeat=9` against 1, three pairings of interleaved runs, median; the
+   single-draw timer was too noisy for this, with other clients sharing the GPU):
+
+   | View | depth pass, L2 march | depth pass, L3 march (shipped) |
+   |---|---|---|
+   | Kerr T1 64 SM (and strained / failing), close | +0.0005 to +0.0015 ms | -0.002 to +0.002 ms (noise) |
+   | Kerr T1 64 SM (and strained / failing), hero | +0.005 to +0.008 ms | +0.001 to +0.006 ms |
+   | Kerr T2 512 SM, close | +0.006 ms | +0.002 to +0.003 ms |
+   | Kerr T2 512 SM, hero (near full frame) | +0.010 ms | +0.006 to +0.008 ms |
+   | Quasar 256 SM, close / hero | -0.001 to +0.002 ms | +0.002 to +0.006 ms |
+
+   The quasar's numbers sit inside the run-to-run noise (about 0.003 ms), so it cannot tell L2 from L3; on the Kerr L3
+   is clearly cheaper, and the red check shows the same coverage, so L3 is used. Rays that hit the disc stop at alpha
+   0.05; only the ones that miss it march on.
+
+   The Kerr's close-up was already over budget (R-11). The depth pass adds about 0.006-0.008 ms on top at the
+   T2 hero close-up (4090, 1280 x 720), 0.002-0.003 ms at the close view and next to nothing far away.
+   Unchanged: at L0 the screen copy is still taken in pass 0, before the translucent pass. Glass behind the hole now
+   draws over the bent image (unbent) instead of being cut away.
+4. **The quasar could draw both looks in one frame (minor, holds).** `drawV2` drew the ring, the far jet, the field
+   lines and the shell, and then returned false if `BlackHoleLens.draw` could not draw (its quad mesh failed to
+   build, which sticks until a resource reload). The caller then drew GT's fixed path on top, every frame. Fix:
+   `BlackHoleLens.usable()` (program and quad both there) is checked before anything is drawn.
+5. **`smoothstep(0.16, 0.0, d)` (minor, holds).** `edge0 > edge1` is undefined in GLSL. The backdrop's sparse stars
+   (`galaxy/sky.glsl`) now use `1 - smoothstep(0.0, 0.16, d)`; it was the only reversed `smoothstep` with literal
+   edges in our shaders. The picture is unchanged.
+6. **Unbounded `glGetError` drains (minor, holds).** The loops in `OpaqueDepth.ensure` (Angelica, production) and
+   `RenderQuality.glCheckBegin` (dev) never end on a lost context that keeps reporting an error. Both now stop after
+   64 errors.
+
+**Harness finding (not fixed, logged).** One harness run (`fix5-nd2`) ended by writing a `level.dat` whose FML item
+map held -1 for 10 items and was missing about a third of the entries (1,007 `miscutils:` names against 2,739). The
+next run refused the world ("The world state is utterly corrupted"). That run's `level.dat_old` was intact, and
+copying it over `level.dat` recovered the world (the bad file is kept in `renders/review/world-backup/`). The
+harness quits with `mc.shutdown()` while the world is still loaded, and the integrated server's last save appears to
+race FML's registry revert. A safer quit would leave the world first, as "Save and Quit to Title" does, and close the
+client a few ticks later. Left as is because it is shared tooling and happened once in about 30 runs. If it
+happens again, copy `level.dat_old` over `level.dat` in `run/client/saves/bts-rendertest-L4`.
+
+**Not verified.** Angelica's core profile with a shaderpack (as R-10 to R-16). Under Angelica 2.2.26 without a pack
+(added to the dev run for this check only and taken out again) the hole draws as in vanilla and the frame after it
+draws normally, so the colour mask is restored. At HIGH the machines still pay the depth copy (about 0.028 ms GPU and
+0.026 ms CPU) when they draw. At `renderQuality=low` no depth copy runs at all, where every formed machine paid for it
+before. An idle conduit element (no stream, not a mouth) has no harness case of its own; that path is checked by
+reading the code only. The Diffraction stayed invisible in that Angelica run: the known first-view case of R-16, not
+a new one. Shots: `after-r17-*` and `after-r17-angelica-*` in each object's folder, the depth check in
+`review/runs/*dbg*`.
+
+**Suggestion.** Accept the fixes. The open choices stay as before: R-11 / R-16 for the Kerr's close-up budget, R-16
+for the Angelica first view. Optionally, make the harness leave the world before it quits (see above).
