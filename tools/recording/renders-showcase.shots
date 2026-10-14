@@ -1,0 +1,388 @@
+# Renders v2 showcase: BEFORE / AFTER for every big render (docs/recording.md). Dev only: -Dbts.rec=true
+# -Dbts.rec.script=tools/recording/renders-showcase.shots. About 3 3/4 minutes of video at 1920x1080.
+#
+# BEFORE is the look of master c2b016d, drawn by this build at renderQuality=low ("quality low"), which keeps the old
+# fixed-function renders unchanged (R-10: the LOW shots match the BEFORE shots of c2b016d pixel for pixel). The
+# Homogeny, the Reality machines and the conduit drew nothing before renders v2, and draw nothing at low.
+# AFTER is renders v2 at the default renderQuality=high ("quality high").
+#
+# Honesty rules this script keeps:
+# - Every site is raised by script in a fresh creative superflat world (kits, /btshr, /btsquasar, /btsconduit).
+# - Real events where the bench can fire them: the Kerr's hole, the quasar's eruption and purge (flux and purge by
+#   /btsquasar), Arcturus' helium flash and the magnetar's giant flare (the Eye bench's `event`).
+# - The star transitions and the galaxy events take minutes to hours in play; here the Eye's look is set by the
+#   recorder (`eyelook` / `eyeramp`, the render QA's forced look: render tile only), and the captions say so. The
+#   Galactic Merger's 35 minutes are run fast. The Homogeny and the Reality machines are shown running by the render
+#   QA's client look (`clientlook`); the Reality machines cannot run in this world (no BEC network).
+
+# ---------------------------------------------------------------- setup (never recorded)
+kit kerr t1 1000,36,4000 name k1
+command /btskerr render {k1} open 64
+kit eye 6 3000,5,4000 gen 5 name st
+command /btseye star {st} unlock 6
+command /btseye star {st} fill
+command /btseye star {st} rig none
+kit eye 8 4500,5,4000 gen 8 name g
+command /btseye star {g} unlock 8
+command /btseye star {g} fill
+command /btseye star {g} rig none
+command /btshr homogeny t3 6600 40 4000 north fill
+command /btshr keep homogeny 6600 40 4000 north t3
+name hom 6600,40,4000
+points hom
+command /btshr diffraction 6900 8 4000 north fill
+command /btshr keep diffraction 6900 8 4000 north
+name dif 6900,8,4000
+points dif
+command /btshr refab 7150 6 4000 north fill
+command /btshr keep refab 7150 6 4000 north
+name ref 7150,6,4000
+points ref
+command /btsconduit rig 8000 100 4000
+name cq 8000,100,4000
+name crown 7988,196,4072
+name moutha 8000,34,4089
+name mouthb 8100,43,4067
+name mirror1 8102,55,4123
+name junction 8191,75,4128
+# the quasar: controller at 9000 70 4400 facing north, its hole (the render centre) 15 up and 72 behind it
+command /btsquasar t3 9000 70 4400 north seed
+command /btsquasar keep 9000 70 4400
+command /btsquasar feed 9000 70 4400 1.0
+command /btsquasar mass 9000 70 4400 1024
+command /btsquasar run 9000 70 4400 60 fill
+name q 9000.5,85.5,4472.5
+time night
+wait game:6
+
+# ================================================================ title
+scene title
+  card 4 Renders v2: before and after | Recorded in game, GregTech: New Horizons 2.9 with Beyond the Stars | BEFORE: the renders as they were (master c2b016d), drawn by this build at render quality low, which keeps them unchanged | AFTER: renders v2 at the default render quality, high
+
+# ================================================================ the Kerr black hole
+scene kerr-card
+  card 2 The Kerr black hole | the Kerr Ergosphere Engine's hole, 64 solar masses
+
+scene kerr-before
+  quality low
+  badge before | master c2b016d (render quality low)
+  caption The hole as it was: GT's Black Hole Compressor render, scaled up.
+  orbit k1.c radius 15.2 height 3.2 from 15 to 25 seconds 4 ease inout
+
+scene kerr-after
+  quality high
+  badge after | renders v2
+  caption Now: a lensed accretion disc. Its far side is bent over and under the black shadow, ringed by a thin photon ring.
+  orbit k1.c radius 15.2 height 3.2 from 15 to 46 seconds 8 ease inout
+  caption The approaching side is brighter and whiter (Doppler beaming); the inner gas laps the outer, with hot clumps.
+  goto k1.c+4,1.4,-9 look k1.c
+  hold 5
+
+# ================================================================ the quasar
+scene quasar-card
+  card 2 The quasar | a 1,024 solar-mass Quasar Engine: its hole, accretion ring and jets
+
+scene quasar-before
+  quality low
+  badge before | master c2b016d (render quality low)
+  caption The ring as it was: a flat textured band round GT's black hole.
+  goto q+-30,10,-30 look q
+  hold 4
+
+scene quasar-after
+  quality high
+  badge after | renders v2
+  caption Now: a thick, turbulent ring with sheared streaks, spiral density waves and a hot inner wall.
+  goto q+-30,10,-30 look q
+  hold 5
+  caption The hole: the inner disc's edge is set by the spin. Two helical jets with bright knots leave the poles.
+  orbit q radius 25 height 5.2 from 330 to 25 seconds 6 ease inout
+
+scene quasar-erupt
+  badge after | renders v2
+  caption The flux reaches 100 (set by the bench): an eruption. A shock shell races across the ring and the jets fire.
+  goto q+0,46,-52 look q+0,0,12
+  hold 1
+  command /btsquasar run 9000 70 4400 100 fill
+  hold 7
+
+scene quasar-purge
+  badge after | renders v2
+  caption A purge (a controlled release, fired by the bench): blue-white, no shell. The field unwinds, a spiral flash runs up the jets.
+  command /btsquasar run 9000 70 4400 40 fill
+  goto q+11.5,5,-20 look q
+  hold 1
+  command /btsquasar purge 9000 70 4400
+  hold 6
+
+# ================================================================ the Eye's stars, T1-T6
+scene stars-card
+  card 2 The Eye of Harmony's stars | tiers 1 to 6, each with its signature event
+  command /btseye star {st} target sol
+  command /btseye star {st} lit sol
+  wait game:4
+
+scene sol-before
+  quality low
+  badge before | master c2b016d (render quality low)
+  caption T1, Sol, as it was: TecTech's star texture on a sphere.
+  goto st.c+-5.9,4,-16 look st.c
+  hold 3
+
+scene sol-after
+  quality high
+  badge after | renders v2
+  caption T1 ignites: a protostar heats inside its dusty cocoon... (the ignition's look set by the recorder; in play it follows the field)
+  eyelook st protostar 0.15
+  goto st.c+-5.9,4,-16 look st.c
+  eyeramp st protostar from 0.15 to 1 seconds 4
+  hold 4
+  caption ...lights with a flash and blows the cocoon away: Sol, with boiling granulation, sunspots and prominences.
+  eyelook st lit 1
+  hold 4
+  eyelook st off
+  orbit st.c radius 17 height 4 from 340 to 10 seconds 3 ease inout
+
+scene siriusa-before
+  quality low
+  badge before | master c2b016d (render quality low)
+  caption T2, Sirius A, as it was.
+  eyelook st lit 2
+  goto st.c+-5.9,4,-16 look st.c
+  hold 3
+
+scene siriusa-after
+  quality high
+  badge after | renders v2
+  caption T1 to T2, the Mass Infusion (600 s in play, run fast here by the recorder): Sol heats and whitens into Sirius A as matter rains in.
+  eyelook st infusion 0
+  goto st.c+-5.9,4,-16 look st.c
+  eyeramp st infusion from 0 to 1 seconds 7
+  hold 7
+  caption T2, Sirius A: blue-white, fine granulation, a tight corona.
+  eyelook st lit 2
+  hold 2
+
+scene arcturus-before
+  quality low
+  badge before | master c2b016d (render quality low)
+  caption T3, Arcturus, as it was.
+  eyelook st off
+  command /btseye star {st} target arcturus
+  command /btseye star {st} lit arcturus
+  wait game:3
+  fov 85
+  goto st.c+5,6,-18 look st.c
+  hold 3
+
+scene arcturus-after
+  quality high
+  badge after | renders v2
+  caption T3, Arcturus: a red giant of a few huge convection cells, a haze and a mass-loss wind.
+  fov 85
+  goto st.c+5,6,-18 look st.c
+  hold 2
+  caption A helium flash is warned (a real event, fired by the bench): the cells boil faster and the star throbs...
+  command /btseye star {st} event
+  hold 4
+  wait game:9
+  caption ...and the flash runs across the surface.
+  hold 5
+  fov 70
+
+scene neutron-before
+  quality low
+  badge before | master c2b016d (render quality low)
+  caption T4, the neutron star, as it was.
+  eyelook st lit 4
+  goto st.c+-3.1,2.5,-8.5 look st.c
+  hold 3
+
+scene neutron-after
+  quality high
+  badge after | renders v2
+  caption T3 to T4, the Core Collapse (look set by the recorder): Arcturus swells deep orange-red...
+  eyelook st swell 0.2
+  goto st.c+0,30,-30 look st.c
+  eyeramp st swell from 0.2 to 1 seconds 4
+  hold 4
+  caption ...and bounces: a proto-neutron star, and a ragged shock front running out to the bands.
+  goto st.c+0,26,-20 look st.c
+  eyelook st bounce
+  hold 5
+  caption T4, the neutron star: hot polar caps (light bending shows the far one), field lines and two sweeping beams.
+  eyelook st lit 4
+  orbit st.c radius 9 height 2.5 from 340 to 25 seconds 4 ease inout
+
+scene dwarf-before
+  quality low
+  badge before | master c2b016d (render quality low)
+  caption T5, Sirius B, the cooling white dwarf, as it was.
+  eyelook st dwarf 0.1
+  goto st.c+4.5,1.8,-7.8 look st.c
+  hold 3
+
+scene dwarf-after
+  quality high
+  badge after | renders v2
+  caption T4 to T5, the First Cooling (look set by the recorder): the first white dwarf assembles...
+  eyelook st firstcooling 0.01
+  goto st.c+4.5,1.8,-7.8 look st.c
+  hold 2
+  caption ...then a cooling batch (7,200 s in play, run fast): white, yellow, orange, dull red, then a black dwarf with a crystal sheen.
+  eyelook st dwarf 0.02
+  eyeramp st dwarf from 0.02 to 1 seconds 9
+  hold 9
+  eyelook st dwarf 1
+  hold 2
+
+scene magnetar-before
+  quality low
+  badge before | master c2b016d (render quality low)
+  caption T6, the magnetar, as it was.
+  eyelook st off
+  command /btseye star {st} target magnetar
+  command /btseye star {st} lit magnetar
+  wait game:3
+  goto st.c+4.5,1.8,-7.8 look st.c
+  hold 3
+
+scene magnetar-after
+  quality high
+  badge after | renders v2
+  caption T6, the magnetar: a cracked violet crust, twisted field lines, a magnetosphere and starquake flares.
+  goto st.c+4.5,1.8,-7.8 look st.c
+  hold 2
+  caption A giant flare is warned (a real event, fired by the bench): the field winds up and crackles...
+  command /btseye star {st} event
+  hold 4
+  wait game:10
+  caption ...and tears open in a flash.
+  hold 5
+
+# ================================================================ the galaxies, T7 and T8
+scene gal-card
+  card 2 The galaxies | tiers 7 and 8: Triangulum and the Milky Way
+
+scene t7-before
+  quality low
+  badge before | master c2b016d (render quality low)
+  caption T7, Triangulum, as it was.
+  eyelook g galaxy 7
+  goto g.c+6,13,-11 look g.c
+  hold 3
+
+scene t7-after
+  quality high
+  badge after | renders v2
+  caption T6 to T7, the Magnetar Collapse (look set by the recorder): the overfed magnetar spins up...
+  eyelook g overfed 0.9
+  goto g.c+6,13,-11 look g.c
+  hold 2
+  caption ...and collapses: a core flash, a shell runs to the bands and the stars burst into a round halo...
+  eyelook g collapse 0.33
+  hold 5
+  wait seconds 5
+  caption ...which settles into a disc (time cut).
+  eyeramp g collapse from 0.33 to 1 seconds 5
+  hold 5
+  caption Triangulum: 20,000 point stars on a flat rotation curve, patchy arms of young blue stars, pink star-forming knots.
+  eyelook g galaxy 7
+  orbit g.c radius 11 height 14 from 330 to 20 seconds 6 ease inout
+
+scene t8-before
+  quality low
+  badge before | master c2b016d (render quality low)
+  caption T8, the Milky Way, as it was.
+  eyelook g galaxy 8
+  goto g.c+5,13,-10 look g.c
+  hold 3
+
+scene t8-after
+  quality high
+  badge after | renders v2
+  caption T7 to T8, the Galactic Merger (35 minutes in play, run fast by the recorder): a companion galaxy swings in...
+  eyelook g merger 300
+  goto g.c+6,17,-15 look g.c
+  eyeramp g merger from 300 to 595 seconds 3
+  hold 3
+  caption ...its first pass pulls out tidal tails and a bridge, and lights a starburst...
+  eyeramp g merger from 595 to 660 seconds 4
+  hold 4
+  caption ...two more passes, and the two merge.
+  eyeramp g merger from 660 to 1795 seconds 5
+  hold 5
+  eyeramp g merger from 1795 to 1860 seconds 3
+  hold 3
+  eyeramp g merger from 1860 to 2100 seconds 2
+  hold 2
+  caption The Milky Way: a barred spiral with a peanut bulge, dust lanes and the Magellanic Clouds.
+  eyelook g galaxy 8
+  orbit g.c radius 12 height 13 from 200 to 250 seconds 5 ease inout
+
+# ================================================================ the machines
+scene mach-card
+  card 2 The machines | they drew nothing inside their glass before renders v2
+
+scene hom-before
+  quality low
+  badge before | master c2b016d (render quality low)
+  caption The Homogeny, T3, as it was: nothing inside the glass column.
+  clientlook homogeny 1 0
+  goto hom.c+0,22,-36 look hom.c+0,10,0
+  hold 3
+
+scene hom-after
+  quality high
+  badge after | renders v2
+  caption Now: a swirling plasma column, one braid per tier turning from its feed's colour into the product's (shown running by the render QA).
+  hold 3
+  dolly hom.c+0,22,-36 hom.c+0,16,-30 seconds 4 look hom.c+0,6,0 ease inout
+
+scene dif-before
+  quality low
+  badge before | master c2b016d (render quality low)
+  caption Reality Diffraction, as it was.
+  clientlook reality 1 63
+  goto dif.c+0,6,-40 look dif.c
+  hold 3
+
+scene dif-after
+  quality high
+  badge after | renders v2
+  caption Now: a beam up the spine through faceted lenses, fanned into rainbow sheets toward the region blades (shown running by the render QA: it needs a BEC network this world has not got).
+  hold 4
+  orbit dif.c radius 40 height 6 from 0 to 25 seconds 4 ease inout
+
+scene ref-before
+  quality low
+  badge before | master c2b016d (render quality low)
+  caption Reality Refab, as it was.
+  clientlook reality 1 -1
+  goto ref.c+12,6,-24 look ref.c
+  hold 2
+
+scene ref-after
+  quality high
+  badge after | renders v2
+  caption Now: a twisted stream up the spindle, counter-turning holographic glyph rings and reassembling voxels (shown running by the render QA).
+  hold 3
+  goto ref.c+0,2,-20 look ref.c
+  hold 3
+
+scene conduit-before
+  quality low
+  badge before | master c2b016d (render quality low)
+  caption The conduit, as it was: the quasar's jet carried from mouth to mirror to junction, but nothing drawn.
+  goto mouthb+-30,8,-30 look mirror1
+  hold 3
+
+scene conduit-after
+  quality high
+  badge after | renders v2
+  caption Now: burst streams with a white core, a violet sheath and travelling knots, and the Wormhole Mouth's portal.
+  hold 4
+  dolly mouthb+-30,8,-30 mouthb+-10,4,-12 seconds 4 look mirror1 ease inout
+
+scene end
+  card 3 Beyond the Stars | renders v2 | quality high is the default; low keeps the old renders for weak machines

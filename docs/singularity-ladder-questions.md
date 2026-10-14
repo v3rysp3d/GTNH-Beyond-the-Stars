@@ -8496,3 +8496,74 @@ a new one. Shots: `after-r17-*` and `after-r17-angelica-*` in each object's fold
 
 **Suggestion.** Accept the fixes. The open choices stay as before: R-11 / R-16 for the Kerr's close-up budget, R-16
 for the Angelica first view. Optionally, make the harness leave the world before it quits (see above).
+
+### R-18 The renders v2 before / after showcase video and compare page [renders v2, video]
+
+**What was made.** A 3:56 video, recorded in game by the dev recorder from `tools/recording/renders-showcase.shots`
+(1920 x 1080, 30 fps, silent), and a compare page. For each big render a short BEFORE, then the AFTER in motion,
+with a BEFORE / AFTER badge in the top-left corner and a caption:
+
+- **The Kerr black hole** at 64 SM: an orbit and a close-up.
+- **The quasar** at 1,024 SM: the ring, an orbit of the hole and its jets, a real eruption (flux 100) and a real purge
+  (both fired by `/btsquasar`).
+- **The Eye's stars**, one per tier with its signature event:
+  - Sol's ignition out of the protostar's cocoon;
+  - the Mass Infusion into Sirius A;
+  - Arcturus' helium flash (a real event, fired by the Eye bench);
+  - the Core Collapse's swell and bounce, then the neutron star;
+  - the First Cooling and a cooling batch down to the black dwarf;
+  - the magnetar's giant flare (a real event).
+- **The galaxies:** the Magnetar Collapse into Triangulum, and the Galactic Merger into the Milky Way.
+- **The machines:** the Homogeny, Reality Diffraction, Reality Refab and the conduit's streams and portal.
+
+**How BEFORE is shown.** By this build at `renderQuality=low`, switched in the same take (the recorder's new
+`quality` command). The low path draws the renders of master c2b016d unchanged: R-10 matched the LOW shots to the
+c2b016d BEFORE shots pixel for pixel. The machines drew nothing before renders v2 and draw nothing at low, so their
+BEFORE is the empty glass. The title card says so. No separate build of master was made.
+
+**Honesty, as the captions say.**
+- *Real events:* the quasar's eruption and purge, the helium flash and the giant flare.
+- *Set by the recorder:* the star transitions and the galaxy events (ignition, Mass Infusion, Core Collapse, First
+  Cooling, cooling batch, Magnetar Collapse, Galactic Merger) take minutes to hours in play. The recorder sets the
+  Eye's look for these through the render QA's forced look (`eyelook`, `eyeramp`). Only the render tile changes, not
+  the machine. The cooling batch (7,200 s), the Mass Infusion (600 s) and the Galactic Merger (35 minutes) are run
+  fast. The Magnetar Collapse's settling has a time cut.
+- *Client look:* the Homogeny and both Reality machines are shown running by the render QA's client look
+  (`clientlook`). The Reality machines cannot run in this world: they need a BEC network.
+- *Real stream:* the conduit's stream comes from the conduit rig's own quasar.
+
+**Recorder additions (dev only, `rendertest/`, docs/recording.md):**
+- `quality` sets the render quality.
+- `badge` shows the BEFORE / AFTER badge.
+- `eyelook` / `eyeramp` set the Eye's look; a ramp is pushed to the render tile every tick, so a run-fast transition
+  moves smoothly.
+- `clientlook` sets a machine render's client look.
+- `points` now names a Homogeny or Reality machine's render centre as `<name>.c`.
+
+**Files** (local work folder):
+- `video/renders/renders-showcase-1080p.mp4` (151 MB, x264 CRF 20).
+- 720p copies split at the chapter cards, each under 25 MB:
+  - `renders-showcase-720p-part1.mp4`: title, Kerr, quasar; 0:55, 7.1 MB;
+  - `part2`: the stars; 1:28, 19.6 MB;
+  - `part3`: the galaxies and machines; 1:33, 20.7 MB.
+- A poster frame and a playlist.
+- `renders/compare.html` pairs all 458 BEFORE shots with their AFTER. The AFTER is the R-17 re-shot where one exists,
+  else the renders v2 shot. LOW is on a toggle, with a day / night filter and a light / dark / auto theme. The video
+  is at the top. The old page with the GPU columns is kept as `renders/compare-gpu-table.html`.
+- Still sheets of every scene: `renders/show/st3/`.
+
+**Checked.** Three takes. Every scene's stills were looked at, and poses and timings were changed between takes:
+- the quasar ring seen from a lower side angle, so the turbulence reads;
+- the protostar starting deeper in its cocoon;
+- the Core Collapse seen from over the open bowl, so the swell and the shock front are not cut by the bands;
+- the cooling batch held on the black dwarf;
+- the Magnetar Collapse's burst given time before a cut to its settling;
+- the Homogeny and Refab seen from outside the glass and inside the drum.
+
+No audio track in any file.
+
+**Not shown.** Angelica and shaderpacks (as R-10 to R-17). The blow-out, the satellite crossing, minor mergers and
+planets mode are in the earlier clips (`kerr-v2`, `quasar-v2`, `stars-v2`, `galaxies-v2`), not in this one.
+
+**Suggestion.** None needed. If the video goes out with the release, use the 720p parts and say in the post that
+the run-fast transitions were set by a dev tool.
