@@ -38,6 +38,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import com.gtnewhorizon.structurelib.alignment.IAlignmentLimits;
+import com.gtnewhorizon.structurelib.alignment.constructable.ChannelDataAccessor;
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.gtnewhorizon.structurelib.alignment.enumerable.Flip;
@@ -48,6 +49,7 @@ import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
+import com.nateyburr.beyondthestars.blocks.BlockSLCasing4;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.items.SLQuasarItems;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
@@ -142,6 +144,18 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     public static final String PIECE = "quasar";
     /** The hologram channel for the Disc Field Coil tier (1-4). */
     public static final String CHANNEL_COIL = "coil";
+    /**
+     * SMBH v1 (smbh-v1.md §1.1): the Supermassive Lattice, the quasar's optional second piece (an armillary cage round
+     * the same controller, hole and disc: an upgrade in place). Its Containment Nodes set the lattice tier.
+     */
+    public static final String PIECE_LATTICE = "quasar_lattice";
+    /** The hologram channel for the lattice tier (1-4; unset = no lattice). */
+    public static final String CHANNEL_LATTICE = "lattice";
+    /**
+     * Saturation (§1.2): 4,096 SM on MagMatter coils, |E| at most 40 (Stable or better), this many seconds unbroken.
+     */
+    public static final int SATURATION_SECONDS = 3600;
+    public static final double SATURATION_E = 40;
 
     /** Periodic structure re-check, ticks. */
     private static final int RECHECK = 200;
@@ -177,6 +191,12 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     private double massSetpoint;
     private boolean unbound;
     private double overdrive;
+    /**
+     * SMBH Saturation (smbh-v1.md §1.2): the lattice counts only once the quasar has held 4,096 SM Stable for an hour
+     * on MagMatter coils. Saved with the hole (tile and wrenched item); the streak is the seconds held so far.
+     */
+    private boolean saturated;
+    private int saturationStreak;
     /** Lifetime counters (GUI, scanner). */
     private long eruptions, purges, blowOuts;
     private String lastEvent = "";
@@ -190,10 +210,16 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     private int mCasing;
     private int coilTier = -1;
     /**
-     * SMBH: the Supermassive Lattice tier the walk found (0-4; smbh-v1.md §1.1, the {@code lattice} channel). The
-     * lattice structure is not built yet, so the walk leaves it 0; the lattice element sets it like the coils' tier.
+     * SMBH: the Supermassive Lattice tier in force (0-4; smbh-v1.md §1.1): the tier the walk found
+     * ({@link #latticeBuilt}) once the quasar is saturated, else 0. The engine reads it every second.
      */
     private int latticeTier;
+    /** The tier of the lattice that stands (0: none, or incomplete), saturated or not. */
+    private int latticeBuilt;
+    /** The Containment Nodes' tier, set by the tiered element during the lattice walk (-1: none seen yet). */
+    private int nodeTier = -1;
+    /** What the last walk found of the lattice, for the scanner ("" when there is none and none is needed). */
+    private String latticeNote = "";
     private final ArrayList<MTEHatchInput> gasHatches = new ArrayList<>();
     private final ArrayList<MTEHatchInput> trimHatches = new ArrayList<>();
     private final ArrayList<MTEHatchBurstControl> burstHatches = new ArrayList<>();
@@ -272,9 +298,14 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     private static IStructureDefinition<MTEQuasarEngine> buildDefinition() {
         final Block sl = SLBlocks.slCasing;
         final Block sl2 = SLBlocks.slCasing2;
+        final Block sl4 = SLBlocks.slCasing4;
         final int shell = Casings.ExtremeDensitySpaceBendingCasing.textureId;
         return StructureDefinition.<MTEQuasarEngine>builder()
             .addShape(PIECE, BTSShapes.load(PIECE))
+            .addShape(PIECE_LATTICE, BTSShapes.load(PIECE_LATTICE))
+            // SMBH: the lattice's frame and its Containment Nodes (smbh-v1.md §1.1)
+            .addElement('L', block(sl4, BlockSLCasing4.LATTICE_FRAME))
+            .addElement('N', nodes(sl4))
             .addElement('A', casing(Casings.ExtremeDensitySpaceBendingCasing))
             .addElement('B', noOverwrite(onElementPass(x -> ++x.mCasing, ofFrame(Materials.NaquadahAlloy))))
             .addElement('C', block(sl2, BlockSLCasing2.JET_COLLIMATOR))
@@ -363,6 +394,25 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
                     t -> t.coilTier)));
     }
 
+    /**
+     * The Containment Nodes L1-L4 on the {@code lattice} channel (smbh-v1.md §1.1): every node the same tier, as GT
+     * coils; the walk records it. Builds place the channel's tier and never write into a tile.
+     */
+    private static IStructureElement<MTEQuasarEngine> nodes(Block sl4) {
+        final List<Pair<Block, Integer>> tiers = new ArrayList<>();
+        for (int t = 1; t <= QuasarParams.LATTICE_MAX; t++) tiers.add(Pair.of(sl4, BlockSLCasing4.node(t)));
+        return withChannel(
+            CHANNEL_LATTICE,
+            noOverwrite(
+                ofBlocksTiered(
+                    (block, meta) -> block == sl4 && BlockSLCasing4.nodeTier(meta) > 0 ? BlockSLCasing4.nodeTier(meta)
+                        : null,
+                    tiers,
+                    -1,
+                    (MTEQuasarEngine t, Integer tier) -> t.nodeTier = tier,
+                    t -> t.nodeTier)));
+    }
+
     /** Horizontal facings only: the quasar is 161 blocks tall and its jets are vertical. */
     @Override
     protected IAlignmentLimits getInitialAlignmentLimits() {
@@ -375,6 +425,8 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         mCasing = 0;
         coilTier = -1;
         latticeTier = 0;
+        latticeBuilt = 0;
+        nodeTier = -1;
         gasHatches.clear();
         trimHatches.clear();
         burstHatches.clear();
@@ -393,6 +445,40 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         }
         if (gasHatchCount() == 0) errors.add(StructureErrors.of("beyondthestars.structure.quasar.gas"));
         if (coilTier < 1) errors.add(StructureErrors.of("beyondthestars.structure.quasar.coil"));
+        checkLattice(errors);
+    }
+
+    /**
+     * SMBH (smbh-v1.md §1.1-§1.2): the optional lattice piece. A whole lattice of one node tier sets
+     * {@link #latticeBuilt}; it is in force ({@link #latticeTier}) once the quasar is saturated. A lattice swapped to a
+     * lower tier is a whole lattice: the engine sheds the hole to that tier's top (§2.5). An INCOMPLETE lattice under
+     * a hole heavier than any coil holds (over 4,096 SM) unforms the quasar instead, so a broken frame block freezes
+     * the hole (nothing moves, nothing is lost) until it is repaired; to take a lattice down, shed to 4,096 SM first.
+     */
+    private void checkLattice(List<StructureError> errors) {
+        nodeTier = -1;
+        final int[] o = BTSShapes.offset(PIECE_LATTICE);
+        final List<StructureError> trial = new ArrayList<>();
+        final boolean whole = checkPiece(PIECE_LATTICE, o[0], o[1], o[2], trial) && nodeTier >= 1;
+        latticeBuilt = whole ? Math.min(QuasarParams.LATTICE_MAX, nodeTier) : 0;
+        latticeTier = saturated ? latticeBuilt : 0;
+        final boolean needed = q.hole != QuasarState.Hole.NONE && q.M > QuasarParams.M_REF * (1 + 1e-9);
+        if (whole) {
+            latticeNote = "Lattice L" + latticeBuilt
+                + " ("
+                + QuasarParams.LATTICE_NAME[latticeBuilt]
+                + ")"
+                + (!saturated ? ": NOT in force, reach Saturation first"
+                    : coilTier < QuasarParams.LATTICE_COIL ? ": NOT in force, it needs MagMatter (T4) coils"
+                        : ": in force");
+        } else if (needed) {
+            latticeNote = "Lattice INCOMPLETE under a " + fmt(q.M)
+                + " SM hole: the quasar is frozen until the lattice is whole again";
+            errors.add(StructureErrors.of("beyondthestars.structure.quasar.lattice"));
+            errors.addAll(trial); // the first wrong lattice cell (the walk stops there)
+        } else {
+            latticeNote = "";
+        }
     }
 
     private static boolean live(MetaTileEntity mte) {
@@ -492,39 +578,72 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         return trigger == null ? 1 : Math.max(1, Math.min(4, trigger.stackSize));
     }
 
-    /** The whole quasar, coils at the trigger's tier (the {@code coil} channel, else stack 1-4). */
+    /** The lattice tier the trigger asks for: the {@code lattice} channel (1-4), else 0 (no lattice). Trap 1. */
+    public static int triggerLatticeTier(ItemStack trigger) {
+        final int ch = BTSStructures.channelIndex(trigger, CHANNEL_LATTICE, -1) + 1;
+        return ch >= 1 ? Math.min(QuasarParams.LATTICE_MAX, ch) : 0;
+    }
+
+    /**
+     * A lattice counts only on MagMatter coils (smbh-v1.md §1.2): with the {@code lattice} channel set and no
+     * {@code coil} channel, a copy of the trigger that builds T4 coils. Otherwise the trigger itself.
+     */
+    static ItemStack latticeTrigger(ItemStack trigger) {
+        if (trigger == null || triggerLatticeTier(trigger) == 0
+            || ChannelDataAccessor.hasSubChannel(trigger, CHANNEL_COIL)) return trigger;
+        final ItemStack copy = trigger.copy();
+        ChannelDataAccessor.setChannelData(copy, CHANNEL_COIL, QuasarParams.LATTICE_COIL);
+        return copy;
+    }
+
+    /**
+     * The whole quasar, coils at the trigger's tier (the {@code coil} channel, else stack 1-4), and with the
+     * {@code lattice} channel set the Supermassive Lattice round it, its nodes at that tier (MagMatter coils unless the
+     * coil channel says otherwise).
+     */
     @Override
     public void construct(ItemStack stackSize, boolean hintsOnly) {
+        final ItemStack trigger = latticeTrigger(stackSize);
         final int[] o = BTSShapes.offset(PIECE);
-        buildPiece(PIECE, stackSize, hintsOnly, o[0], o[1], o[2]);
+        buildPiece(PIECE, trigger, hintsOnly, o[0], o[1], o[2]);
+        if (triggerLatticeTier(trigger) > 0) {
+            final int[] lo = BTSShapes.offset(PIECE_LATTICE);
+            buildPiece(PIECE_LATTICE, trigger, hintsOnly, lo[0], lo[1], lo[2]);
+        }
     }
 
-    /** Survival auto-place (projector, NEI preview); -1 once it stands. Tiles are never overwritten. */
+    /**
+     * Survival auto-place (projector, NEI preview): the quasar, then (with the {@code lattice} channel) the lattice;
+     * -1 once everything asked for stands. Tiles are never overwritten.
+     */
     @Override
     public int survivalConstruct(ItemStack stackSize, int elementBudget, ISurvivalBuildEnvironment env) {
-        if (mMachine) return -1;
+        final int lattice = triggerLatticeTier(stackSize);
+        if (mMachine && (lattice == 0 || latticeBuilt >= lattice)) return -1;
+        final ItemStack trigger = latticeTrigger(stackSize);
+        final int budget = BTSStructures.survivalBudget(elementBudget);
         final int[] o = BTSShapes.offset(PIECE);
-        return survivalBuildPiece(
-            PIECE,
-            stackSize,
-            o[0],
-            o[1],
-            o[2],
-            BTSStructures.survivalBudget(elementBudget),
-            env,
-            false,
-            true);
+        final int built = survivalBuildPiece(PIECE, trigger, o[0], o[1], o[2], budget, env, false, true);
+        if (built >= 0 || lattice == 0) return built;
+        final int[] lo = BTSShapes.offset(PIECE_LATTICE);
+        return survivalBuildPiece(PIECE_LATTICE, trigger, lo[0], lo[1], lo[2], budget, env, false, true);
     }
 
-    /** The world box of the whole structure for this controller's facing (cached per facing). */
+    /** The world box of the whole structure for this controller's facing (cached per facing and lattice). */
     private int[] structureBox;
     private ExtendedFacing structureBoxFacing;
+    private boolean structureBoxLattice;
 
     private int[] structureBox(IGregTechTileEntity base) {
         final ExtendedFacing f = getExtendedFacing();
-        if (structureBox == null || structureBoxFacing != f) {
-            structureBox = SLConsoleTest.bounds(f, base.getXCoord(), base.getYCoord(), base.getZCoord(), PIECE);
+        // SMBH: with a lattice (or a hole that needs one) every lattice chunk must be loaded too
+        final boolean lattice = latticeBuilt > 0 || q.hole != QuasarState.Hole.NONE && q.M > QuasarParams.M_REF;
+        if (structureBox == null || structureBoxFacing != f || structureBoxLattice != lattice) {
+            structureBox = lattice
+                ? SLConsoleTest.bounds(f, base.getXCoord(), base.getYCoord(), base.getZCoord(), PIECE, PIECE_LATTICE)
+                : SLConsoleTest.bounds(f, base.getXCoord(), base.getYCoord(), base.getZCoord(), PIECE);
             structureBoxFacing = f;
+            structureBoxLattice = lattice;
         }
         return structureBox;
     }
@@ -662,6 +781,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             bInUse = r.b;
             last = r;
             noteEvents(r);
+            trackSaturation();
         } else {
             last = new QuasarResult();
             gasDrawn = 0;
@@ -723,6 +843,45 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         if (r.massMilestone >= 0) {
             lastEvent = "Milestone: " + fmt(QuasarParams.MASS_MILESTONES[r.massMilestone]) + " SM";
         }
+    }
+
+    /**
+     * Saturation (smbh-v1.md §1.2), once a disc second: 4,096 SM on MagMatter coils, the hole open and |E| at most 40,
+     * for {@link #SATURATION_SECONDS} unbroken. Then the lattice that stands is in force at once.
+     */
+    private void trackSaturation() {
+        if (saturated) return;
+        final boolean holding = coilTier >= QuasarParams.LATTICE_COIL && q.hole == QuasarState.Hole.OPEN
+            && q.M >= QuasarParams.M_REF * (1 - 1e-9)
+            && Math.abs(q.E) <= SATURATION_E;
+        saturationStreak = holding ? saturationStreak + 1 : 0;
+        if (saturationStreak >= SATURATION_SECONDS) {
+            saturated = true;
+            latticeTier = latticeBuilt;
+            lastEvent = "Milestone: Saturation (4,096 SM held Stable for 1 h): the Supermassive Lattice unlocks";
+        }
+    }
+
+    /** True once the Saturation milestone is held (smbh-v1.md §1.2): the lattice counts. */
+    public boolean isSaturated() {
+        return saturated;
+    }
+
+    /** Seconds of the Saturation streak so far (the full hour once saturated; 0 when the streak broke). */
+    public int getSaturationSeconds() {
+        return saturated ? SATURATION_SECONDS : saturationStreak;
+    }
+
+    /**
+     * Bench / op only ({@code /btssmbh}, {@code /btsquasar ... saturate}): sets or clears the Saturation milestone and
+     * re-walks the structure so the lattice counts at once. Returns the lattice tier in force after it.
+     */
+    public int debugSaturate(boolean on) {
+        saturated = on;
+        saturationStreak = 0;
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base != null) checkStructure(true, base);
+        return latticeTier;
     }
 
     /** The world cell of a jet port (where a dock's intake must be). */
@@ -1336,9 +1495,19 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         return QuasarParams.structureTop(coilTier, latticeTier, unbound);
     }
 
-    /** The lattice tier the walk found (0-4). */
+    /** The lattice tier in force by the walk and Saturation (0-4); {@link #getLatticeBuilt} is what stands. */
     public int getLatticeTier() {
         return latticeTier;
+    }
+
+    /** The tier of the whole lattice that stands (0: none or incomplete), saturated or not. */
+    public int getLatticeBuilt() {
+        return latticeBuilt;
+    }
+
+    /** The scanner's lattice line ("" when there is no lattice and none is needed). */
+    public String getLatticeNote() {
+        return latticeNote;
     }
 
     /** The lattice tier in force: 0 on coils under MagMatter. */
@@ -1494,6 +1663,16 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
                     bFromHatch() ? " (Burst Control Hatch)" : "",
                     fmt(getCoilEUt()),
                     lastPowerOk ? "" : ", POWER SHORT: b = 0"));
+            // SMBH (smbh-v1.md §1.2): Saturation, then what stands of the lattice
+            if (!saturated && coilTier >= QuasarParams.LATTICE_COIL) {
+                out.add(
+                    String.format(
+                        Locale.ROOT,
+                        "Saturation: %,d / %,d s at 4,096 SM with |E| <= 40 (unlocks the Supermassive Lattice)",
+                        saturationStreak,
+                        SATURATION_SECONDS));
+            }
+            if (!latticeNote.isEmpty()) out.add(latticeNote);
             // SMBH (smbh-v1.md): shown once there is a lattice, a shed or a hole past the coils
             final QuasarResult r = last;
             if (getLatticeInForce() > 0 || q.shed || q.M > QuasarParams.M_REF) {
@@ -1759,6 +1938,8 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         t.setDouble("massSetpoint", massSetpoint);
         t.setBoolean("unbound", unbound);
         t.setDouble("overdrive", overdrive);
+        t.setBoolean("saturated", saturated);
+        t.setInteger("satStreak", saturationStreak);
         nbt.setTag("btsQuasar", t);
     }
 
@@ -1818,6 +1999,8 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         unbound = savedUnbound;
         setMassSetpoint(finite(t.getDouble("massSetpoint"), 0));
         setOverdrive(finite(t.getDouble("overdrive"), 0));
+        saturated = t.getBoolean("saturated");
+        saturationStreak = Math.max(0, Math.min(SATURATION_SECONDS, t.getInteger("satStreak")));
         setFeed(t.hasKey("feed") ? t.getDouble("feed") : QuasarParams.F_DEFAULT);
         final QuasarGas g = QuasarGas.parse(t.getString("gas"));
         gas = g == null ? QuasarGas.HE : g;
@@ -1865,16 +2048,31 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     // ============================================================================ tooltip
 
     private static int bom(char c) {
+        return bom(PIECE, c);
+    }
+
+    private static int bom(String piece, char c) {
         try {
-            return BTSShapes.count(PIECE, c);
+            return BTSShapes.count(piece, c);
         } catch (RuntimeException missing) {
             return 0;
+        }
+    }
+
+    /** The quasar and its lattice together: {w, h, d}. */
+    private static int[] latticeSize() {
+        try {
+            final int[] b = SLConsoleTest.bounds(ExtendedFacing.DEFAULT, 0, 0, 0, PIECE, PIECE_LATTICE);
+            return new int[] { b[3] - b[0] + 1, b[4] - b[1] + 1, b[5] - b[2] + 1 };
+        } catch (RuntimeException missing) {
+            return new int[] { 0, 0, 0 };
         }
     }
 
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
         final int[] size = BTSShapes.size(PIECE);
+        final int[] latticeSize = latticeSize();
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
         tt.addMachineType("Quasar, Gamma-Ray Burst Source")
             .addInfo("Holds its own black hole and feeds it gas. The gas builds an accretion disc that spins")
@@ -1900,6 +2098,14 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             .addInfo("  [4] flux at the purge setpoint: purge [8] alarm. Wire [4] to a Burst Control Hatch.")
             .addInfo("  Sensor Hatches read E, flux, lambda, a, M, Bu/t and more. OpenComputers: bts_quasar.")
             .addInfo("Chunk-load the whole footprint: an unloaded chunk freezes the disc and pauses its hosts.")
+            .addSeparator()
+            .addInfo("Supermassive Lattice (the last upgrade, in place): an armillary cage round this quasar. It")
+            .addInfo("  unlocks at Saturation: 4,096 SM on MagMatter coils, |E| <= 40, for 1 hour unbroken.")
+            .addInfo("  48 Containment Nodes, all one tier, set the safe limit / top: L1 Superdense Ergomatter")
+            .addInfo("  16,384 / 65,536 SM, L2 White Hole Matter 65,536 / 262,144, L3 Universium 262,144 /")
+            .addInfo("  4,194,304 (Overdrive), L4 Constrained Eternity 4,194,304 / 67,108,864 (Unbind).")
+            .addInfo("  Past 4,096 SM power grows as the square root of mass (x2 at 16,384, x31 at most).")
+            .addInfo("  A broken lattice under a hole over 4,096 SM freezes the quasar until it is repaired.")
             .beginStructureBlock(size[0], size[1], size[2], false)
             .addController("Control box, front face of the lower wall")
             .addCasingInfoExactly("Eddington Wall Casing", bom('E'), false)
@@ -1917,7 +2123,19 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             .addOtherStructurePart("Stellar Field Sensor Hatch", "2 control-box sockets, optional", 4)
             .addOtherStructurePart("Directive Hatch (Disc set)", "2 control-box sockets, optional", 5)
             .addEnergyHatch("Control box, 3 sockets (laser hatches for b 2+): coil power", 6)
-            .addStructureInfo("Hologram: the coil channel (or trigger stack 1-4) picks the coil tier.")
+            .addStructureInfo(
+                "Optional Supermassive Lattice (" + latticeSize[0]
+                    + " x "
+                    + latticeSize[1]
+                    + " x "
+                    + latticeSize[2]
+                    + " with the quasar): "
+                    + String.format(Locale.ROOT, "%,d", bom(PIECE_LATTICE, 'L'))
+                    + " Lattice Frame Casing, "
+                    + bom(PIECE_LATTICE, 'N')
+                    + " Containment Nodes (one tier)")
+            .addStructureInfo("Hologram: the coil channel (or trigger stack 1-4) picks the coil tier;")
+            .addStructureInfo("  the lattice channel (1-4) adds the lattice at that node tier, on MagMatter coils.")
             .addStructureInfo("No maintenance hatch needed. Builds never overwrite a hatch.")
             .toolTipFinisher();
         return tt;
