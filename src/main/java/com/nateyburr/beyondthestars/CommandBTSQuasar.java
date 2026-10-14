@@ -371,10 +371,10 @@ public class CommandBTSQuasar extends CommandBase {
                     sender,
                     String.format(
                         Locale.ROOT,
-                        "Quasar bench: ran %d s in %d ms; last second G %.3f Bu/t (jet %.3f), zone %s%s%s",
+                        "Quasar bench: ran %d s in %d ms; last second G %s (jet %.3f), zone %s%s%s",
                         seconds,
                         (System.nanoTime() - start) / 1_000_000L,
-                        r.G,
+                        com.nateyburr.beyondthestars.machines.gui.BTSFormat.buEuShort(r.G),
                         r.jet,
                         MTEQuasarEngine.zoneName(r.zone),
                         r.blowOut ? ", BLOW-OUT: " + r.blowOutReason : "",

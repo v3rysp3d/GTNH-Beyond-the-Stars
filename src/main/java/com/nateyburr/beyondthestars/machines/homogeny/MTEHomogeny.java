@@ -808,9 +808,9 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
         if (burstHost.paused()) return burstHost.linkLine() + " (link paused: speed x1, Entanglement Medium paused)";
         return String.format(
             Locale.ROOT,
-            "Quasar link σ %.2f (demand %.1f Bu/t): speed x%.2f%s; %s",
+            "Quasar link σ %.2f (demand %s): speed x%.2f%s; %s",
             quasarSigma(),
-            burstDemand(),
+            com.nateyburr.beyondthestars.machines.gui.BTSFormat.buEuShort(burstDemand()),
             speedFactor(),
             quasarSigma() >= 1 ? ", Entanglement Medium open" : "",
             burstHost.linkLine());
@@ -1125,7 +1125,8 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
             .addInfo("No overclock: each parallel draws the recipe's EU/t.")
             .addInfo("No hydrogen or helium, no ignition, no maintenance: it runs unattended.")
             .addInfo("Quasar link (optional): GRB Receptor Ports in the stirring ring's 3 port cells (hint 4).")
-            .addInfo("  σ = bursts ÷ 1.5 Bu/t (T2) or 6 (T3), 60 s mean. Speed x(1 + 0.5 min(σ, 1)): up to")
+            .addInfo("  σ = bursts ÷ 1.5 Bu/t (T2, 1.5e13 EU/t) or 6 (T3, 6.0e13 EU/t), 60 s mean. Speed")
+            .addInfo("  x(1 + 0.5 min(σ, 1)): up to")
             .addInfo("  6x the T1 rate at T2, 24x at T3. Entanglement Medium needs σ ≥ 1 (a mix that loses it")
             .addInfo("  pauses, never voids). Degenerate Stellar Mixture never needs bursts.")
             .addInfo("It costs 100 L of Raw Star Matter per 1 L: 10x what an Eye T2 (Sirius A) needs.")

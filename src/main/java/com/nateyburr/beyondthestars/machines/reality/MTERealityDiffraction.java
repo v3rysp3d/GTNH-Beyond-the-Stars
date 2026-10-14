@@ -350,9 +350,9 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
         final double s = quasarSigma();
         return String.format(
             java.util.Locale.ROOT,
-            "Quasar link σ %.2f (demand %.0f Bu/t): %s; %s",
+            "Quasar link σ %.2f (demand %s): %s; %s",
             s,
-            BurstLink.REALITY,
+            com.nateyburr.beyondthestars.machines.gui.BTSFormat.buEuShort(BurstLink.REALITY),
             s < MIN_SIGMA ? "regions UNSTABLE, runs pause below σ 0.5"
                 : String.format(java.util.Locale.ROOT, "speed x%.2f", speedFactor()),
             burstHost.linkLine());
@@ -697,7 +697,8 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
                     + EnumChatFormatting.GRAY
                     + " (optional): GRB Receptor Ports in the six")
             .addInfo("  portal cells (hint 10). With any port fitted the regions ride the stream:")
-            .addInfo("  σ = bursts ÷ 24 Bu/t (60 s mean), speed x min(σ, 1.5); below σ 0.5 runs pause")
+            .addInfo("  σ = bursts ÷ 24 Bu/t (2.4e14 EU/t; 60 s mean), speed x min(σ, 1.5); below σ 0.5 runs")
+            .addInfo("  pause")
             .addInfo("  (kept, never voided). With no port: fluid anchors alone, speed x1.")
             .addInfo("Automation: anchors take ME input hatches; a level emitter on each keeps them stocked.")
             .addInfo("Entanglement Medium is 0 K: pipe it with cryo-proof pipes.")

@@ -425,28 +425,28 @@ tile.beyondthestars.slCasing2.8.tooltip=The Quasar Engine's disc rim (gas in thr
 tile.beyondthestars.slCasing2.9.name=Jet Collimator Ring
 tile.beyondthestars.slCasing2.9.tooltip=Holds a gamma-ray burst stream on axis: the Quasar Engine's jet towers, the Burst Thermaliser Crowns\nand every conduit element (Wormhole Mouth, Conduit Mirror, Conduit Junction).\nMade in the Condensate Assembler (32 a craft).
 tile.beyondthestars.slCasing2.10.name=Burst Thermaliser Casing
-tile.beyondthestars.slCasing2.10.tooltip=The Burst Thermaliser Crown's core: turns bursts into heat, then EU to your wireless network (1 Bu/t = 10^13 EU/t).\nMade in the Condensate Assembler (64 a craft).
+tile.beyondthestars.slCasing2.10.tooltip=The Burst Thermaliser Crown's core: turns bursts into heat, then EU to your wireless network (1 Bu/t = 10^13 EU/t:\na maxed 4,096 SM quasar's 9,796 Bu/t is 9.8e16 EU/t, 98 quadrillion). Made in the Condensate Assembler (64 a craft).
 tile.beyondthestars.slCasing2.11.name=Radiator Petal
-tile.beyondthestars.slCasing2.11.tooltip=The Burst Thermaliser Crown's petals: 643 / 1,428 / 2,803 / 4,599 make a Mk I / II / III / IV crown\n(32 / 512 / 8,192 / 524,288 Bu/t; 1 Bu/t = 10^13 EU/t). Made in the Condensate Assembler (64 a craft).
+tile.beyondthestars.slCasing2.11.tooltip=The Burst Thermaliser Crown's petals: 643 / 1,428 / 2,803 / 4,599 make a Mk I / II / III / IV crown\n(32 / 512 / 8,192 / 524,288 Bu/t = 3.2e14 / 5.1e15 / 8.2e16 / 5.2e18 EU/t). Made in the Condensate Assembler (64 a craft).
 # items (SLQuasarItems)
 item.beyondthestars.quasarSeed.name=Quasar Seed
 item.beyondthestars.quasarSeed.tooltip=Opens the Quasar Engine's own black hole at 64 SM, once (put it in the controller).\nA hole is never lost: a collapsed one goes dormant and reopens.\nMade on a Kerr T2 Compressor Module (Kerr Densification) with the KEE holding at least 256 SM; it costs the Kerr's hole nothing.
 item.beyondthestars.conduitThroatMk1.name=Conduit Throat Mk I
-item.beyondthestars.conduitThroatMk1.tooltip=Sits in a Wormhole Mouth, Conduit Mirror or Conduit Junction controller like a turbine rotor: swap it to upgrade.\nCarries up to 24 Bu/t. Upkeep per element: 4 L/s Molten SpaceTime, or 0.25 L/s Ergomatter (after Eye T7).\nMade in the Condensate Assembler.
+item.beyondthestars.conduitThroatMk1.tooltip=Sits in a Wormhole Mouth, Conduit Mirror or Conduit Junction controller like a turbine rotor: swap it to upgrade.\nCarries up to 24 Bu/t (2.4e14 EU/t, 240 trillion). Upkeep per element: 4 L/s Molten SpaceTime, or 0.25 L/s Ergomatter (after Eye T7).\nMade in the Condensate Assembler.
 item.beyondthestars.conduitThroatMk2.name=Conduit Throat Mk II
-item.beyondthestars.conduitThroatMk2.tooltip=Sits in a conduit element's controller like a turbine rotor.\nCarries up to 384 Bu/t. Upkeep per element: 16 L/s Molten SpaceTime, or 1 L/s Ergomatter.\nMade in the Condensate Assembler with Entangled Antipolarization Agent.
+item.beyondthestars.conduitThroatMk2.tooltip=Sits in a conduit element's controller like a turbine rotor.\nCarries up to 384 Bu/t (3.8e15 EU/t, 3.8 quadrillion). Upkeep per element: 16 L/s Molten SpaceTime, or 1 L/s Ergomatter.\nMade in the Condensate Assembler with Entangled Antipolarization Agent.
 item.beyondthestars.conduitThroatMk3.name=Conduit Throat Mk III
-item.beyondthestars.conduitThroatMk3.tooltip=Sits in a conduit element's controller like a turbine rotor.\nCarries up to 6,144 Bu/t (for streams above 384). Upkeep per element: 64 L/s Molten SpaceTime, or 4 L/s Ergomatter.\nAssembly line, with 256,000 L of Ergomatter (Eye T7's product).
+item.beyondthestars.conduitThroatMk3.tooltip=Sits in a conduit element's controller like a turbine rotor.\nCarries up to 6,144 Bu/t (6.1e16 EU/t, 61 quadrillion; for streams above 384). Upkeep per element: 64 L/s Molten SpaceTime, or 4 L/s Ergomatter.\nAssembly line, with 256,000 L of Ergomatter (Eye T7's product).
 item.beyondthestars.intergalacticUpgradeCore.name=Intergalactic Upgrade Core
-item.beyondthestars.intergalacticUpgradeCore.tooltip=Eye of Harmony T6 -> T7 (the Magnetar Collapse): right-click the controller to put it in escrow.\nConsumed only when the collapse succeeds, after the Stability Link: a linked Quasar Engine holds\n1.5 Bu/t on the Eye's rail for 30 minutes unbroken.\nMade in the Condensate Assembler with Entangled Magnetar Matter and Antipolarization Agent; needs White Dwarf nanites.
+item.beyondthestars.intergalacticUpgradeCore.tooltip=Eye of Harmony T6 -> T7 (the Magnetar Collapse): right-click the controller to put it in escrow.\nConsumed only when the collapse succeeds, after the Stability Link: a linked Quasar Engine holds\n1.5 Bu/t (1.5e13 EU/t) on the Eye's rail for 30 minutes unbroken.\nMade in the Condensate Assembler with Entangled Magnetar Matter and Antipolarization Agent; needs White Dwarf nanites.
 item.beyondthestars.supermassiveSeedCore.name=Supermassive Seed Core
-item.beyondthestars.supermassiveSeedCore.tooltip=Eye of Harmony T7 -> T8 (the Galactic Merger): right-click the controller to put it in escrow.\nConsumed only when the merger succeeds, after the Heavy Link: 6 Bu/t into the Eye, at least half on the halo, 30 minutes.\nIt seeds a supermassive black hole (the name is the hole, not the fluid).\nMade in the Condensate Assembler with Entangled Ergomatter (Eye T7's product); needs Black Dwarf nanites.
+item.beyondthestars.supermassiveSeedCore.tooltip=Eye of Harmony T7 -> T8 (the Galactic Merger): right-click the controller to put it in escrow.\nConsumed only when the merger succeeds, after the Heavy Link: 6 Bu/t (6.0e13 EU/t) into the Eye, at least half on the halo, 30 minutes.\nIt seeds a supermassive black hole (the name is the hole, not the fluid).\nMade in the Condensate Assembler with Entangled Ergomatter (Eye T7's product); needs Black Dwarf nanites.
 item.beyondthestars.starChartTriangulum.name=Star Chart: Triangulum (M33)
 item.beyondthestars.starChartTriangulum.tooltip=Eye of Harmony T7 target: the magnetar collapses into Triangulum's first black hole.\nUpkeep Magnetar Matter 7.5 L a cycle plus bursts; makes Ergomatter. Gauges P and W: aim the bursts between the rail's high and low banks.\nPut it in the slot while the magnetar burns: once ready, Begin (GUI, a Burst Control Hatch, OpenComputers) runs the Magnetar Collapse.\nPlanets mode (the GUI's Galaxy panel): 3 planets from the slot bus instead.\nMade in the Condensate Assembler with Entangled Magnetar Matter.
 item.beyondthestars.starChartMilkyWay.name=Star Chart: Milky Way
 item.beyondthestars.starChartMilkyWay.tooltip=Eye of Harmony T8 target (required): the merged galaxy. Its central black hole, Sgr A*, is T9's.\nFeed Ergomatter 0-10 L/s; makes Superdense Ergomatter 1 : 1. Gauges P, W and Lambda: aim into the shard halo, catch the satellite crossing.\nPut it in the slot while Triangulum burns: once ready, Begin runs the Galactic Merger.\nPlanets mode: 6 planets from the slot bus instead.\nMade in the Condensate Assembler with Entangled Ergomatter.
 item.beyondthestars.gammaRayBurst.name=Gamma-Ray Burst (Bu/t)
-item.beyondthestars.gammaRayBurst.tooltip=Display only (NEI): a burst stream, in Bu/t. Never crafted or consumed.\nA Quasar Engine's two jets each carry half its stream; Wormhole Mouths, Mirrors and Junctions carry it losslessly;\na GRB Receptor Port takes it into a host (Eye T7/T8, Kerr, Homogeny, Reality Diffraction); a crown turns 1 Bu/t into 10^13 EU/t.
+item.beyondthestars.gammaRayBurst.tooltip=Display only (NEI): a burst stream, in Bu/t. Never crafted or consumed.\nA Quasar Engine's two jets each carry half its stream; Wormhole Mouths, Mirrors and Junctions carry it losslessly;\na GRB Receptor Port takes it into a host (Eye T7/T8, Kerr, Homogeny, Reality Diffraction); a crown turns 1 Bu/t into 10^13 EU/t\n(a maxed 4,096 SM quasar: 9,796 Bu/t = 9.8e16 EU/t, 98 quadrillion).
 # NEI display pages (QuasarRecipeMaps; these keys ARE the maps' unlocalized names)
 beyondthestars.recipe.quasar=Quasar Engine (accretion disc)
 beyondthestars.recipe.thermaliser=Burst Thermaliser Crown
@@ -469,9 +469,9 @@ tile.beyondthestars.slCasing4.3.tooltip=48 per Supermassive Lattice, all one tie
 tile.beyondthestars.slCasing4.4.name=Containment Node (L4, Constrained Eternity)
 tile.beyondthestars.slCasing4.4.tooltip=48 per Supermassive Lattice, all one tier. L4: safe limit 4,194,304 SM, top 67,108,864 SM, and Unbind:\npast the top, every doubling halves the Overdrive upkeep for a Primordial Matter anchor. Nothing is ever destroyed.\nMade from an L3 node in the Condensate Assembler: Eternity and MHDCSM plates, Universium coat.
 tile.beyondthestars.slCasing4.5.name=Event Horizon Thermaliser Casing
-tile.beyondthestars.slCasing4.5.tooltip=The Mk IV (Event Horizon) Burst Thermaliser Crown's core: 852 a crown, cap 524,288 Bu/t (5.2 x 10^18 EU/t).\nAssembler (UXV), 4 a craft.
+tile.beyondthestars.slCasing4.5.tooltip=The Mk IV (Event Horizon) Burst Thermaliser Crown's core: 852 a crown, cap 524,288 Bu/t (5.2e18 EU/t, 5.2 quintillion).\nAssembler (UXV), 4 a craft.
 item.beyondthestars.conduitThroatMk4.name=Conduit Throat Mk IV
-item.beyondthestars.conduitThroatMk4.tooltip=Sits in a conduit element's controller like a turbine rotor (the Supermassive Lattice's throat).\nCarries up to 524,288 Bu/t (5.2 x 10^18 EU/t). Upkeep per element: 2 L/s Superdense Ergomatter (preferred),\nor 16 L/s Ergomatter, or 256 L/s Molten SpaceTime. Assembly line, from a Mk III with Superdense Ergomatter.
+item.beyondthestars.conduitThroatMk4.tooltip=Sits in a conduit element's controller like a turbine rotor (the Supermassive Lattice's throat).\nCarries up to 524,288 Bu/t (5.2e18 EU/t, 5.2 quintillion). Upkeep per element: 2 L/s Superdense Ergomatter (preferred),\nor 16 L/s Ergomatter, or 256 L/s Molten SpaceTime. Assembly line, from a Mk III with Superdense Ergomatter.
 # ---- P4: the Einstein-Rosen Conduit (28121-28123), the Burst Thermaliser Crown (28124), the GRB Receptor Port (28125)
 beyondthestars.structure.conduit.fuel=A Conduit element needs at least one Input Hatch in a throat-fuel socket (Molten SpaceTime, or Ergomatter after Eye T7)
 
@@ -986,7 +986,7 @@ beyondthestars.gui.sensor.analog=Analog 0-15
 beyondthestars.gui.sensor.mode.tip=Analog: 0-15 across the channel's range (the threshold is ignored)
 beyondthestars.gui.sensor.mode.tip2=Gauges map -w..+w, unbounded values 0..w (the window); 0-100 values, zone 0-4 = 0/4/8/11/15; flags give 15 when set.
 beyondthestars.gui.sensor.threshold=Threshold
-beyondthestars.gui.sensor.threshold.tip=In the channel's own units (a gauge -120..+120, 0-100, the zone 0-4, a flag 0 or 1, SM, Bu/t, seconds)
+beyondthestars.gui.sensor.threshold.tip=In the channel's own units (a gauge -120..+120, 0-100, the zone 0-4, a flag 0 or 1, SM, Bu/t (x 10^13 = EU/t), L/s, seconds)
 
 # ---- B-115: the gui-clean merge: P4's hosts, channels and sets in the hatch GUIs, P4's Eye rows and Galaxy panel,
 # the Eye buffers against their intake caps (B-108), the quasar link row on the Kerr / Homogeny / Reality Diffraction
@@ -998,7 +998,7 @@ beyondthestars.gui.sensor.channel.w=W (rail warp, T7+)
 beyondthestars.gui.sensor.channel.lambda=Λ (tidal shear, T8)
 beyondthestars.gui.sensor.channel.beta=β (bursts / demand)
 beyondthestars.gui.sensor.channel.link_streak=Link streak % (of 30 min)
-beyondthestars.gui.sensor.channel.link_mean=Link 60 s mean, Bu/t
+beyondthestars.gui.sensor.channel.link_mean=Link 60 s mean, Bu/t (x 10^13 = EU/t)
 beyondthestars.gui.sensor.channel.slot_progress=Planet slots progress %
 beyondthestars.gui.sensor.channel.countdown=Countdown, s (-1 none)
 beyondthestars.gui.sensor.qchannel.e=E (Eddington balance)

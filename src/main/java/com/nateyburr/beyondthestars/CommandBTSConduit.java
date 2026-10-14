@@ -225,8 +225,9 @@ public class CommandBTSConduit extends CommandBase {
                 port.debugInject(q.source(), Double.parseDouble(args[7]));
                 SLConsoleTest.tell(
                     sender,
-                    "Injecting " + args[7]
-                        + " Bu/t from the quasar at "
+                    "Injecting "
+                        + com.nateyburr.beyondthestars.machines.gui.BTSFormat.buEuShort(Double.parseDouble(args[7]))
+                        + " from the quasar at "
                         + qx
                         + ", "
                         + qy

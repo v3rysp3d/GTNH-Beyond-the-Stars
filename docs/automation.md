@@ -398,7 +398,7 @@ Analog with the window w, or a threshold (15 above / below), with invert.
 
 | Action | AE2 | Redstone + logic gates | OpenComputers | Steve's Factory Manager | Checked |
 |---|---|---|---|---|---|
-| **Feed gas** (the disc's E) | ME stocking hatches in the 24 Rim Gas Injector sockets (the quasar buffers 10 s); f is a GUI setpoint | — | `quasar.setFeed(f)`, `setGas(name)` | Fluid node into a gas hatch | `MTEQuasarEngine.refillBuffer`, gas element takes any input hatch |
+| **Feed gas** (the disc's E) | ME stocking hatches in the 24 Rim Gas Injector sockets (the quasar keeps a 60 s Accretion Buffer, refilled every tick); f is a GUI setpoint | — | `quasar.setFeed(f)`, `setGas(name)` | Fluid node into a gas hatch | `MTEQuasarEngine.refillBuffer`, gas element takes any input hatch |
 | **Gas trim** (E low) | Fluid export bus with a redstone card on Disc [1] into a **plain** trim hatch | Disc [1] (Bit 1 mode) → a Fluid Regulator cover, "enable with signal" | `quasar.trim("gas", 10)` while `getDisc().E < −5` | Fluid node into the trim hatch on bit 1 | trim element plain hatches only; `requestTrim` (P4-77) |
 | **Space trim** (E high) | Export bus on Disc [2] | Disc [2] → regulator | `quasar.trim("space", 10)` while E > 5 | Fluid node on bit 2 | as above |
 | **Purge** (Φ) | — (Disc [4] goes straight to the hatch) | (Disc [4] AND NOT Galaxy Transition [8]) OR Galaxy Transition [4] → the quasar's Burst Control Hatch (Purge) | `quasar.purge()` (false below Φ 20) | Redstone emitter pulsed on bit 3 | `MTEHatchBurstControl` rising edge; `requestPurge` |
@@ -428,7 +428,7 @@ call returns nil and "rate limited: one call per 20 ticks (1 s, the field's step
 
 | Component | Methods |
 |---|---|
-| `bts_quasar` | `getDisc()` (state, E, phi, lambda, a, M, cap, integrity, zone, Yq, stability, b, power), `getBurst()` (total, top, bottom, docks, vented), `getFeed()`, `setFeed(f)`, `setGas(name)`, `setField(b)`, `trim(kind, units)`, `purge()`, `getLinks()` (host, Bu/t, σ, streak), `getMilestones()`, `getDirective(w)` |
+| `bts_quasar` | `getDisc()` (state, E, phi, lambda, a, M, cap, integrity, zone, Yq, stability, b, power), `getBurst()` (total Bu/t and totalEUt, top, bottom, docks, vented), `getFeed()`, `setFeed(f)`, `setGas(name)`, `setField(b)`, `trim(kind, units)`, `purge()`, `getLinks()` (host, Bu/t, σ, streak), `getMilestones()`, `getDirective(w)` |
 | `bts_eye` (T7+ additions) | `getField()` adds W, L, beta, the gammas and D; `getEvent()`, `getUnlock()` (kind, streak, best, mean, frac, linked, source, ready, testFireWanted), `beginTransition()`, `setFeed8(f)`, `setMode(mode)`, `trim(kind, units)`, `getSlots()` |
 | `bts_mouth`, `bts_mirror` | `getLink()`, `getThroat()`, `getUpkeep()`, `setFuel(mode)`, `isOpen()` |
 | `bts_junction` | as a mouth, plus `getFlow()`, `setRatio(c)`, `setGain(k)`, `setOut3(p)`, `setMode(mode)` |
@@ -531,3 +531,62 @@ calls go through the same API the components wrap), the Superdense refinery (SL-
   OpenComputers component name.
 - The Eye's Galaxy panel shows what the next transition waits for and why the T7 test fire waits.
 - The questbook: `docs/p4-questbook-contract.md`, quests "Automating the quasar" and "A galaxy that runs itself".
+
+## 8. SMBH: the Supermassive Lattice (smbh-v1.md §6, §10.2)
+
+Status: **built** on `smbh`, 2026-10-14. Every number below is a knob of the spec. **Units:** 1 Bu/t = 10^13 EU/t in a
+crown; the GUIs, scanners, tooltips, NEI pages and quests show the EU/t beside every Bu/t (one formatter,
+`BTSFormat.buEu`: "9,796 Bu/t (9.8e16 EU/t, 98 quadrillion)").
+
+**Directive Hatch, set Quasar: Horizon** (quasar `d` socket; window not used):
+
+| [1] | [2] | [4] | [8] |
+|---|---|---|---|
+| Hold-up short: the mass over the safe limit leaks | Feed short: the Accretion Buffer holds under 30 s of Disc + Hold-up | Anchor short: an Unbound hole sheds to the doubling the Primordial Matter pays for | Overdrive upkeep short (MHDCSM or Universium) |
+
+**Burst Control Hatch** modes on the quasar's `c` sockets (a hatch in a mode overrides the GUI's value while it is in it):
+
+| Mode | What the signal does |
+|---|---|
+| Hold | The mass setpoint from the safe limit (s 0) to the band top (s 15), log-linear. On an Unbound L4: 4,194,304 SM to 268,435,456 SM (two doublings past the L4 top). |
+| Overdrive | o = s / 15, snapped to 5 % (needs L3) |
+| Shed | A rising edge sets the mass setpoint to the safe limit (a 2 %/s shed, no power while it lasts) |
+
+**Stellar Field Sensor Hatch** channels (appended; 0 without a lattice in force): M / safe %, M / band top %, band x,
+the intake Disc / Hold-up / Growth (L/s) and % of the 5x cap, hold-up coverage %, mass change % per hour (signed), the
+Accretion Buffer's seconds, Overdrive level %, upkeep paid %, upkeep each (L/s), the output multiplier X (x1 = 9.8e16
+EU/t), Unbound n, anchor coverage %, shedding (15/0), Supermassive Link source ready (15/0: a lattice in force, M at
+least 65,536 SM, linkable). The window now reaches 2,000,000,000 and the threshold 10^15 (SMBH masses and streams).
+
+**OpenComputers** `bts_quasar` additions:
+
+| Method | Returns / does |
+|---|---|
+| `getBand()` | lattice (in force), latticeBuilt, saturated, saturationSeconds, M, safe, top, structureTop, setpoint, setpointFromHatch, x, unbound, n, shedding, shedTarget, shedReason, massPerHourPct, supermassiveLinkSource |
+| `getIntake()` | gas, disc, holdUp, growth, total, cap, capPct (L/s, last second), massPerHourPct |
+| `getHoldUp()` | need, paid, coverage, leaking, leakPerHourPct |
+| `getBuffer()` | litres, cap, seconds (-1: nothing needed), feedShort |
+| `getOverdrive()` | level, inUse, fromHatch, available, upkeepEach, coverage, mhdcsm, universium, oEff, outputX, bursts (Bu/t), burstsEUt, burstsText |
+| `getAnchor()` | allowed, unbound, n, need, paid, coverage, short, paysN |
+| `getHorizon()` | the Horizon set's code and named bits |
+| `setMassSetpoint(M)` | SM (0 = the safe limit); returns the setpoint in force |
+| `setOverdrive(o)` | 0-1 in 5 % steps; returns it |
+| `setUnbound(on)` | needs an L4 lattice in force and `smbhAllowUnbound`; returns Unbound and why not |
+| `shed()` | the setpoint to the safe limit; says what it does |
+
+`getBurst()` also returns `totalEUt` and `totalText`.
+
+**Every action, four routes:**
+
+| Action | AE2 | Redstone + logic gates | OpenComputers | Steve's Factory Manager |
+|---|---|---|---|---|
+| **Intake** (hold-up and growth gas) | ME stocking hatches in the 24 rim sockets; the controller draws every tick while they give (each drain at most 2^31 - 1 L) into its 60 s Accretion Buffer | Horizon [2] (buffer short) → an alarm or a backup supply | `getIntake()`, `getBuffer()` | Fluid node into the rim hatches |
+| **Mass setpoint** | Level emitter on a stock → a Burst Control Hatch in Hold (two presets) | Analog redstone → Hold | `setMassSetpoint(M)` | Redstone emitter (analog) on the Hold hatch |
+| **Shed** | — | A pulse into a hatch in Shed mode | `shed()` | Redstone pulse |
+| **Overdrive** | Level emitters on the MHDCSM / Universium stocks → the Overdrive hatch (cut it when a stock runs low) | Horizon [8] → cut the Overdrive hatch's signal | `setOverdrive(o)` | Analog emitter |
+| **Overdrive / anchor fluids** | ME stocking hatch in a rim socket, or export bus into a plain trim hatch | Horizon [8] / [4] → a Fluid Regulator on the supply tank | `getOverdrive()`, `getAnchor()` | Fluid node |
+| **Unbind** | — | — | `setUnbound(true)` | — (the GUI's two-click button) |
+
+**Where it is learnable in game:** the quasar's tooltip (the intake, the setpoint, Overdrive, Unbind, the units), its
+Info page (EU/t, Supermassive Lattice, Intake, Overdrive, Unbound, Automate the lattice), the Supermassive Lattice
+panel's tooltips, the Directive and Burst Control Hatch tooltips and the sensor's channel list.

@@ -8,6 +8,7 @@ import net.minecraftforge.fluids.FluidStack;
 import com.nateyburr.beyondthestars.BTSDisplayRecipes;
 import com.nateyburr.beyondthestars.BTSRecipeGuard;
 import com.nateyburr.beyondthestars.items.SLQuasarItems;
+import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
 import com.nateyburr.beyondthestars.machines.quasar.engine.BurstRouting;
 import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarGas;
 import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarParams;
@@ -44,7 +45,7 @@ public final class QuasarRecipeMaps {
         .neiHandlerInfo(builder -> builder.setHeight(200))
         .build();
 
-    /** Bursts -> EU to wireless (the Burst Thermaliser Crown, Mk I / II / III). */
+    /** Bursts -> EU to wireless (the Burst Thermaliser Crown, Mk I / II / III / IV). */
     public static final RecipeMap<RecipeMapBackend> THERMALISER = RecipeMapBuilder
         .of("beyondthestars.recipe.thermaliser")
         .maxIO(1, 0, 0, 0)
@@ -53,9 +54,9 @@ public final class QuasarRecipeMaps {
         .neiHandlerInfo(builder -> builder.setHeight(180))
         .build();
 
-    private static final String[] MK = { "", "I", "II", "III" };
-    /** Radiator Petals per crown Mk (manifest.json crown_mk1..3, char R). */
-    private static final int[] PETALS = { 0, 643, 1_428, 2_803 };
+    private static final String[] MK = { "", "I", "II", "III", "IV" };
+    /** Radiator Petals per crown Mk (manifest.json crown_mk1..4, char R). */
+    private static final int[] PETALS = { 0, 643, 1_428, 2_803, 4_599 };
 
     /** Registers both pages (each page under the recipe guard, so a missing fluid costs one page). */
     public static void register() {
@@ -79,11 +80,14 @@ public final class QuasarRecipeMaps {
                         "Coils: 2 A UXV x b squared",
                         "Two jets, half the stream each",
                         "Crown: 1 Bu/t = 10^13 EU/t",
+                        "Maxed 4,096 SM: about 9,796",
+                        "  Bu/t = 9.8e16 EU/t (98",
+                        "  quadrillion)",
                         "Display only - not a recipe")
                     .addTo(QUASAR);
             });
         }
-        for (int mk = 1; mk <= 3; mk++) {
+        for (int mk = 1; mk <= 4; mk++) {
             final int m = mk;
             BTSRecipeGuard.recipe(
                 "SL-Q28 Mk " + MK[m],
@@ -96,10 +100,12 @@ public final class QuasarRecipeMaps {
                     .setNEIDesc(
                         "Crown Mk " + MK[m] + ": " + fmt(BurstRouting.crownCap(m)) + " Bu/t cap",
                         "1 Bu/t = 10^13 EU/t (1 %)",
-                        "At cap: " + sci(BurstRouting.crownEUt(BurstRouting.crownCap(m))) + " EU/t",
+                        "At cap: " + BTSFormat.euSci(BurstRouting.crownEUt(BurstRouting.crownCap(m))) + " EU/t",
+                        "  (" + BTSFormat.euWords(BurstRouting.crownEUt(BurstRouting.crownCap(m))) + ")",
                         "EU goes to your wireless",
                         "  network: no dynamo hatch",
-                        PETALS[m] + " Radiator Petals",
+                        PETALS[m] + (m == 4 ? " Radiator Petals, Event" : " Radiator Petals"),
+                        m == 4 ? "  Horizon Thermaliser core" : "  (Thermaliser Core inside)",
                         "A second crown stacked on",
                         "  top takes the overflow",
                         "Display only - not a recipe")

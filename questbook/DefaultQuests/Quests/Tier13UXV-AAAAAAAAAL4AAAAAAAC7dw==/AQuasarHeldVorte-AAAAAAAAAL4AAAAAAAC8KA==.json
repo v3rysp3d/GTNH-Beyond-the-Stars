@@ -22,7 +22,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "3 §9GRB Receptor Ports§r fit the Homogeny's stirring ring (its reserved cells). Demand: 1.5 Bu/t at T2, 6 at T3.\n- Speed × (1 + 0.5 × min(σ, 1)): up to 6 × (T2) and 24 × (T3) the T1 rate.\n- §9Entanglement Medium§r (T3) needs σ ≥ 1 to start and pauses below it.\n- §9Degenerate Stellar Mixture§r never needs bursts: Eye T6 needs it before any quasar exists.\n\nThe GUI and the scanner show the link line; OpenComputers bts_homogeny.\n\n§2§lDONE §lWHEN§r your Homogeny shows a quasar link (tick the box).",
+      "desc:8": "3 §9GRB Receptor Ports§r fit the Homogeny's stirring ring (its reserved cells). Demand: 1.5 Bu/t (1.5e13 EU/t) at T2, 6 (6e13) at T3.\n- Speed × (1 + 0.5 × min(σ, 1)): up to 6 × (T2) and 24 × (T3) the T1 rate.\n- §9Entanglement Medium§r (T3) needs σ ≥ 1 to start and pauses below it.\n- §9Degenerate Stellar Mixture§r never needs bursts: Eye T6 needs it before any quasar exists.\n\nThe GUI and the scanner show the link line; OpenComputers bts_homogeny.\n\n§2§lDONE §lWHEN§r your Homogeny shows a quasar link (tick the box).",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
