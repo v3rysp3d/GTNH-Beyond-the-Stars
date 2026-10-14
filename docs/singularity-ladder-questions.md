@@ -6,7 +6,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 1. **Open questions**: each open decision once, with the answer we recommend and where the detail is.
 2. **Settled**: everything you have answered, in your words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision from you.
-4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-138 and the SMBH branch's B-150..B-159, the tidy pass's
+4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-138 and the SMBH branch's B-150..B-162, the tidy pass's
    TQ-1..TQ-8, and P4's P4-01..P4-94 in Part E).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
@@ -7027,6 +7027,119 @@ still opened. Shots: local work folder `p488/smbh-junction-*.png`.
 
 **Suggestion.** Keep. A P5 design pass may want the limit to follow the Eye's demand on its own (a Junction reading
 the downstream Eye's demand), which would make it zero-setup.
+
+### B-160 SMBH bench: `/btssmbh fill` blew a lit disc out (Space fluid in a trim hatch) [smbh branch, fixed + test]
+
+**Seen** in the e2e dev-client test: after `/btssmbh fill` on an L3 hole at 262,144 SM the disc fell from E -8 to -82
+in four seconds and blew out "starved", with the feed fully paid (52.4M of 52.4M L/s). Every re-form after it blew out
+again within seconds, and the bench path (`/btsquasar run ... fill`, power forced) did the same.
+
+**Cause.** `fill` stocked the fourth trim hatch with 131,072,000 L of Spatially Enlarged Fluid. A plain trim hatch
+holding Space fluid is a **Space trim every second** (up to 10 units, E -2 each; P4-77): at 262,144 SM one unit is
+409,600 L, so the hatch held 320 units, and the disc lost 20 E a second until it was gone. The feed term alone can move
+E by at most about 3 a second, which is why the fall was so fast. The controller and structure units' benches had the
+same trap; their checks read the numbers in the first seconds.
+
+**Fix** (640e682). `fill` stocks only the three upkeep fluids (Molten MHDCSM, Molten Universium, Primordial Matter) and
+drains any Spatially Enlarged Fluid it finds in a trim hatch, so re-running `fill` mends a bench filled before.
+Verified: the same L3 hole re-formed and stayed lit through Overdrive 50 % and 100 %.
+
+**Suggestion.** Keep. Nothing changes for players: Space in a trim hatch is a trim by design (P4-77).
+
+### B-161 SMBH: the quasar GUI's rows were cut at supermassive sizes [smbh branch, fixed + test]
+
+**Seen** in the e2e dev-client test (GUI scale 3, the GUI shot harness), each read off a screenshot:
+- "Bottom jet 13,726 Bu/t = 1.4e17 EU." at 4,096 SM already (a fresh disc), and in every SMBH state past it: the value
+  is cut to the room the 52 px "Bottom jet" label leaves, and a 5-6 digit Bu/t is 6-14 px too wide. (B-156 checked
+  "1.07M", which fits.)
+- The intake line "Disc 4.4M · Hold-up 2.8M (100%) …": the Growth segment and the mass change per hour, the line's
+  point (§2.3: "Growth 40 M → +2.2 % per hour"), never showed, and the row's tooltip does not carry them.
+- At an Unbound hole: "Disc 26.84G · Hold-up 80.53G (1…".
+- "Leaking: -19.8 % per hour (hold…", "Upkeep 100,000 L/s each, 100% pai.", "Shedding to 67,108,864 SM: no po…", and
+  the re-forming view's red last-event row (no tooltip, so the cut text could not be read anywhere).
+- A dark disc's Upkeep read "51,404 L/s each (0%)" in white, as if Overdrive were short; §3.2 says a dark disc burns and
+  makes nothing (B-156 already made a shed read "idle").
+
+**Fix** (ce6affe):
+- `BTSFormat.buCompact`: "13.7k" / "484k" from 10,000 Bu/t (never wider than "9,788"); the exact figure stays in the
+  tooltip.
+- Two rows under the intake bar: "Disc 26.8G · Hold-up 80.5G" (the hold-up's share only when it is short, in red:
+  "Hold-up 40.3G (50%)"), then "Growth 14.8M → +17.9 % per hour" (or "Growth 0: shedding, 2 % a second").
+- `BTSFormat.litres`: G and T to three figures ("26.8G", "134G"), as M already was.
+- "Leaking: -19.8 % per hour" (the share is on the row above); "Upkeep 100,000 L/s each (100%)" (the tooltip says the
+  bracket is what was paid); "idle while the disc is dark"; "Shedding to 16.8M SM, 57 s left" (no power: tooltip).
+- Both last-event rows carry the whole event as their tooltip.
+
+Verified on screenshots at 4,096, 21,931, 262,144 (Overdrive 100 %) and 134,217,728 SM (Unbound, Overdrive 100 %), a
+dark disc, a shed and the anchor cut. Shots: local work folder `smbh-e2e/crops/`.
+
+**Suggestion.** Keep.
+
+### B-162 SMBH v1 end-to-end test (build, boots, recipes, gates, quests, dev client) [smbh branch, test]
+
+**Build.** `gradlew build --no-daemon` (spotless, checkstyle) green before and after the fixes. Goldens: `smbh-golden
+--check --java` 30 / 30, `quasar-golden` 38 / 38, `fieldsim-golden` 78 / 78. `gen-singularity --check`: 185 files up to
+date; `--selftest` green. One Gradle daemon JVM (Temurin 25) died in its C2 compiler during a compile, as in B-136; the
+build itself passed, and the next full build was green.
+
+**Headless boots** (port 25651, fresh world `smbh-e2e`, the RC-2 pack's `DefaultQuests` copied read-only into
+`run/server/config/betterquesting/` for the test and removed afterwards; level-name set back to `smbh-test`):
+- **Defaults:** `Recipe registration complete: 372 registered, 0 skipped`; upgrade path 40 + the Retrofit Frame, 0
+  skipped; the SL-Q36 line. Auto-install: quests 122 added, 66 pack edits applied. No exception after boot.
+- `/btsrecipes status`: 507 rows (441 new, 64 changed-GT, 2 removed), Quasar / Conduit 42. `/btsrecipes dump` written
+  (`run/server/e2e-recipes.json`).
+- `/btsquests`: every chapter of ours `[ok]` (UXV 40/40, MAX 20/20, The Endgame 9/9), 66/66 edits.
+  `/btsquests verify`: 159 / 161, the two misses the known `eternalsingularity` metas the dev server lacks (B-92).
+- `/btseye gates`: 0 generator recipes and 0 of 34 P4 parts break the gate rule; MagMatter first made at Eye T7
+  (SL-Q36); Lattice Frame Casing and Containment Node L1 CLEAN for the T10 gate; circuits 0 problems.
+- **`smbhAllowUnbound=false` and `replaceTecTechEyeOfHarmony=false`** (one boot, config restored after): 372 / 0
+  skipped, no SL-Q36 line. On an L4 bench at 67,108,864 SM, `/btssmbh unbind on` (the GUI's checks) is refused ("Unbind
+  is turned off in the config"); a forced Unbind is turned back the next second and the hole sheds to 67,108,864 SM.
+  `/btseye gates` with the EOH flag off reports 12 generator recipes and 5 P4 parts as LOOP (the Resonance Chambers on
+  WDM / BDM / MHDCSM foils, the T4 Disc Field Coil, the Lattice Frame, Node L1, Resonance Chamber IV, the Temporal
+  Harmony Catalyst): the audit's premise, that our Eye is the only maker of WDM, BDM, Universium and MagMatter's
+  frames, does not hold with the flag off (TecTech's own Eye makes them), so these are not loops in that pack.
+  Suggestion: the audit prints "not applicable (replaceTecTechEyeOfHarmony=false)" instead.
+
+**Dev client** (silent: master volume 0, clouds off; the GUI shot harness in a fresh `bts-guishots` world, the
+controller unit's kept as `bts-guishots-ctl`; scripts and shots in local work folder `smbh-e2e/`):
+1. **A plain T4 quasar at 4,096 SM** (`/btsquasar t4`, seeded by command), two Mk IV crowns docked: the GUI's Lattice
+   section shows "Saturation 2m 42s / 1h 0m".
+2. **Saturation** through the engine's own seconds (`/btsquasar run ... fill`, gas by script): the first 934 s streak
+   broke on an eruption (as the structure unit found), then the milestone landed by itself.
+3. **L1 installed in place** over the running hole (`/btsquasar t4 l1`): in force at once; intake 4,096,725 of
+   4,096,725 L/s (the 5x cap), growth +21.23 % per hour (by hand: 6.4e-8 x 0.92 x 4.13e6 L/s = 21.4 %).
+4. **Growth on real ticks.** `/btswarp 10` (x10.0) with the gas hatches refilled by script: 4,102 -> 4,250 SM in
+   614 game-s (the rate predicts 4,252). `/btswarp 100` (x100.0, 0.08 ms an extra tick), gas topped up every 40
+   game-s: 4,250 -> **16,384 SM in about 23,300 game-s** (predicted about 23,100), stopping exactly at the default
+   setpoint (the L1 safe limit), output x2.00. Setpoint 65,536: 21,931 SM, x 0.21, hold-up 2.77M L/s 100 %, growth
+   14.78M L/s, output x2.31, each checked by hand.
+5. **Under-fed** (refills stopped, one shot every 4 s): Growth dropped out first (the buffer under its 59 s reserve);
+   the buffer then carried Disc + Hold-up from 56 s down to 1 s, Horizon bit 1 (feed short) from 30 s; then empty: the
+   intake bar's red gap, "Leaking: -19.8 % per hour" (= ln(M / safe) x ln 2 an hour), Horizon code 3; the disc starved
+   and re-formed 300 s after the feed came back. Lost: 21,970 -> 21,743 SM, nothing else. A steady part-paid hold-up
+   (between 0 and 100 %) was not set up: the buffer went from paid to empty within one second.
+6. **L3 in place, 262,144 SM by script:** x7.87; Overdrive 50 %: **x34.15, 25,000 L/s each, 100 % paid**; 100 %:
+   **x56.04, 100,000 L/s each** (§3.2: 34.1 and 56.0). Eruption peaks of 359,311 Bu/t a jet, under the Mk IV cap.
+7. **L4 in place, 67,108,864 SM by script, Overdrive 100 %:** x98.86, 100,000 L/s each. **Unbind** (the GUI's
+   checks): done. **134,217,728 SM (n 1): upkeep 50,000 L/s each (halved), anchor 4,096 L/s paid, x98.86** (§5.2, §9).
+8. **Mk IV crowns to wireless:** each took 524,288 Bu/t (5.2e18 EU/t, its cap; the rest of a 586k jet is clipped).
+   Over 11 s the bench owner's wireless rose by 2,306,867,200,000,000,000,000 EU, exactly both crowns' lifetime
+   counters' rise (1.1534e21 each = 524,288 x 1e13 x 20 x 11). Totals 8.2e22 EU a crown and 1.6e23 on the network:
+   BigInteger, positive, equal. (`/btssmbh status` now prints the wireless total.)
+9. **Restart** (client quit and relaunched, three times): the mass, Unbound and n, the setpoint, Overdrive 100 %, the
+   lattice tier, Saturation, the Accretion Buffer (6.26e12 L, 58 s), the crowns' lifetime and the wireless total all
+   came back. The chunk tickets of `/btsquasar keep` are not saved (bench), so the quasar reads FROZEN until `keep` is
+   run again. A hole left without feed over a restart starves as it would without one.
+10. **Anchor cut** (`/btssmbh drain anchor`): "Anchor short: shedding to n 0.00", 2 % a second to 67,108,864 SM,
+    Upkeep idle while it sheds; nothing else happens.
+
+**Bench notes.** Re-running `/btsquasar t4 lN` over a standing quasar adds hatches in more empty sockets each time
+(gas 4 -> 8 -> 12, trim 2 -> 4, Burst Control 2 -> 4); bench only and harmless. The disc alone draws 13.4G L/s of
+Helium at the L4 top, more than 12 MAX input hatches hold, so the L4 runs fed the buffer by `/btssmbh fill`.
+
+**Not run here.** The Directive / sensor / Burst Control hatches on real redstone and OpenComputers through a real
+computer (the controller unit's API checks stand); NEI's lattice preview; the video (a later step).
 
 ## Where the old question numbers went
 

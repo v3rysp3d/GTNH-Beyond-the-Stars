@@ -2981,9 +2981,11 @@ quasar's BHC family with each tier's colour. No new MTE id, fluid or recipe-resu
 - `/btsquasar [t1..t4] [l1..l4] [saturate] ...`: the quasar with the lattice (creative or `survival`), and Saturation
   set by command.
 - `/btssmbh` (op only): `bench [x y z [facing]]` (L4 lattice, Saturation, a 4,096 SM hole, every upkeep hatch filled,
-  Mk IV crowns on both ports, chunks kept), `mass <M>` (clamped; the setpoint follows), `fill`, `drain anchor`,
-  `saturate on|off`, `unbind on|off [force]`, `damage`, `status`, and (controller unit) `overdrive <o>`,
-  `setpoint <M>`, `shed`, `gui [info]`, `oc`.
+  Mk IV crowns on both ports, chunks kept), `mass <M>` (clamped; the setpoint follows), `fill` (the trims get Molten
+  MHDCSM, Molten Universium and Primordial Matter, never Spatially Enlarged Fluid, which would be a Space trim every
+  second: B-160), `drain anchor`, `saturate on|off`, `unbind on|off [force]`, `damage`, `status` (ends with the
+  bench owner's wireless total, a BigInteger: B-162), and (controller unit) `overdrive <o>`, `setpoint <M>`, `shed`,
+  `gui [info]`, `oc`.
 
 ### Dev-server test (port 25651, world `smbh-test`, five boots)
 
@@ -3088,3 +3090,17 @@ quests name the multiblock engraver (question 25); the circuit config comments (
   2,458 game-s live on real redstone under `/btswarp 20` with no failure. Real elements: a Junction at limit 0.05 split
   0.80 Bu/t into out 3 0.08 / out 1 0.03 / out 2 0.70. `/btseye gates`: everything clean, MagMatter at T7. The
   Supermassive Link row read an injected L1 hole at 65,536 SM as qualifying. Dev client: the Junction panel's field.
+
+## SMBH v1: end-to-end test (questions B-160..B-162)
+
+- **Build and checks:** `gradlew build` green; goldens 30 / 38 / 78; questbook `--check` / `--selftest` green.
+- **Headless** (port 25651, the RC-2 pack's DefaultQuests copied read-only for the run): 372 registered / 0 skipped with
+  defaults and with `smbhAllowUnbound` + `replaceTecTechEyeOfHarmony` off; `/btsrecipes status` 507 rows;
+  `/btsquests verify` 159 / 161 (the known `eternalsingularity` misses); `/btseye gates` clean (with the EOH flag off
+  the audit's own premise does not hold: B-162). Unbind refused with `smbhAllowUnbound=false`, a forced one sheds back.
+- **Dev client** (silent, GUI shot harness): a 4,096 SM quasar, Saturation by the engine, L1 in place, growth to 16,384 SM
+  on real ticks under `/btswarp 100` matching the growth law, the band and the intake bar, the under-fed sequence
+  (Growth first, the buffer, then the leak and Horizon bits 1 / 0), L3 Overdrive (x34.15 / x56.04 at 25,000 / 100,000 L/s
+  each), L4 Unbound n 1 (upkeep halved to 50,000, anchor 4,096 L/s), both Mk IV crowns at their cap with the wireless
+  total equal to their lifetime counters, the state through three restarts, the anchor cut.
+- **Fixed:** B-160 (`/btssmbh fill` and Space fluid), B-161 (GUI rows cut at supermassive sizes).
