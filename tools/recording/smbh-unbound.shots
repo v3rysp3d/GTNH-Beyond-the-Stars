@@ -1,0 +1,207 @@
+# SMBH v1 film (smbh-v1.md §10.4, "id like to see a video of it"): a Quasar Engine at 4,096 SM reaches Saturation,
+# the Supermassive Lattice goes in round it, the hole grows on the intake, Overdrive is turned up, the hole goes
+# Unbound and Overdrive's upkeep halves with every doubling, the Mk IV crowns' EU/t, a safe shed when the anchor is
+# cut, and the EU/t labels beside every Bu/t. About 3 minutes at 1920x1080 (docs/recording.md).
+#
+# Honesty: the quasar, its hatches (creative energy) and both Mk IV crowns are raised by script; the hole is seeded at
+# 4,096 SM by script. Saturation, the L1 growth and the shed then run on real game ticks under the time warp
+# (/btswarp, a cheat; the tag shows the measured rate). The lattice is placed by the projector's survival auto-place
+# from an endless item source. The jumps to L3 / L4 and every mass past 16,384 SM are set by script (growing there
+# takes days of game time), and so are the Overdrive level and Unbind (through the GUI's own setters and checks).
+# The gas supply is a stand-in: "feed" refills the gas hatches once a game second ("all": also the MHDCSM,
+# Universium and Primordial Matter trims and the feed buffer, as /btssmbh fill). Every caption says what is scripted.
+#
+# Quasar controller 2000,113,2000 facing north: the hole is 15 up and 72 behind it; the Mk IV crowns' controllers
+# stand 12 west of the jet axis, the top one at y 209, the bottom one at y 47.
+#
+# Quasar GUI, GUI scale 3 (GUI units from the main panel's top left): "scroll 90 70 20" runs the rows down to the
+# Lattice section; the gap row's buttons are i 183, Jets & links 163, Disc control 143, Supermassive Lattice 123
+# (y 133).
+
+# ---------------------------------------------------------------- setup (never recorded)
+time night
+quality high
+command /btsquasar t4 2000 113 2000 north
+command /btsquasar keep 2000 113 2000
+name sq 2000,113,2000
+name sq.c 2000.5,128.5,2072.5
+name ctop 1988,209,2072
+name cbot 1988,47,2072
+command /btsconduit crowns 2000 113 2000 4
+command /btsquasar seed 2000 113 2000 4096 0.9
+command /btsquasar gas 2000 113 2000 He
+command /btsquasar feed 2000 113 2000 1.0
+command /btsquasar refill 2000 113 2000
+feed sq gas
+command /btsquasar status 2000 113 2000
+command /btsconduit status 1988 209 2072
+
+# ================================================================ title
+scene title
+  card 5 The Supermassive Lattice | the Quasar Engine's last upgrade: a hole past 4,096 solar masses | GTNH: Beyond the Stars - recorded in game
+
+scene quasar
+  caption A Quasar Engine on MagMatter Disc Field Coils, its hole at 4,096 SM: the coils' mass cap. A Mk IV Event Horizon Crown sits on each jet port. Set up by script: the build, the seed and the gas supply.
+  orbit sq.c radius 150 height 60 from -40 to 10 seconds 9 ease inout
+
+# ================================================================ Saturation (real ticks, warped)
+scene saturation
+  caption Saturation: the hole must hold 4,096 SM, Stable (|E| at most 40), for one unbroken hour. Real game ticks under the time warp. The Lattice rows (bottom of the controller's list) count the hour.
+  goto sq+0,0.2,-3.5 look sq
+  gui sq scale 3
+  scroll 90 70 20
+  hold 3
+  warp 100
+  timelapse 40 speed 10 until saturated:sq clock
+  warp off
+  caption Saturation held: the Supermassive Lattice unlocks (the Lattice rows give way to the milestone). A lattice built round this quasar now counts at once.
+  hold 4
+  close
+
+# ================================================================ the lattice goes in
+scene lattice
+  caption The Supermassive Lattice goes in round the running quasar: 8,436 Lattice Frame Casings and 48 Containment Nodes, tier L1 (Superdense Ergomatter). Placed by the projector's survival auto-place (endless items: set up by script).
+  goto sq.c+0,63,-150 look sq.c
+  hold 1
+  hologram sq survival tier 4 lattice 1 budget 10 every 2 tail 3 max 30
+  wait lattice:sq:1 timeout 60
+  caption L1 is in force: safe limit 16,384 SM, top 65,536 SM. The nodes glow teal, each with a field arc into the ring.
+  orbit sq.c radius 150 height 60 from 0 to 35 seconds 7 ease inout
+
+scene l1-gui
+  caption The intake bar: Disc (white) feeds the disc, Hold-up (amber) holds mass over the safe limit, Growth (green) makes the hole bigger. The red tick is the cap, 5x the Eddington feed per SM.
+  goto sq+0,0.2,-3.5 look sq
+  gui sq scale 3
+  scroll 90 70 20
+  hold 6
+  close
+
+# ================================================================ growth on real ticks (warped)
+scene growth
+  caption Growth on real ticks under the time warp: the hole drinks at the 5x cap on Helium and grows about 21 % an hour at first, stopping at the setpoint (the L1 safe limit, 16,384 SM).
+  goto sq+0,0.2,-3.5 look sq
+  gui sq scale 3
+  scroll 90 70 20
+  warp 100
+  timelapse 12 speed 10 until mass:sq:9000 clock
+  close
+  caption From over the ring: the horizon, its photon ring and the lensing grow with the mass (top left: the controller's scanner lines).
+  goto sq.c+0,46,-52 look sq.c+0,0,12
+  readout sq match ^(Hole|Bursts|Intake)
+  timelapse 12 speed 10 until mass:sq:16300 tail 2 clock
+
+# ================================================================ L3 and Overdrive
+scene l3
+  caption Set up by script: the nodes swapped to L3 (Universium) and the mass set to 262,144 SM, the L3 safe limit. Growing that far takes days of game time. Upkeep fluids now supplied by script too.
+  command /btsquasar t4 l3 2000 113 2000
+  command /btssmbh mass 262144 2000 113 2000
+  feed sq all
+  wait lattice:sq:3 timeout 60
+  wait game:5
+  command /btssmbh status 2000 113 2000
+  readout sq match ^(Hole|Bursts)
+  orbit sq.c radius 150 height 60 from 35 to 70 seconds 7 ease inout
+
+scene overdrive
+  caption The controller at 262,144 SM: output x7.9 of a maxed 4,096 SM quasar, on gas alone. Every Bu/t shows its EU/t beside it (1 Bu/t = 10^13 EU/t).
+  goto sq+0,0.2,-3.5 look sq
+  gui sq scale 3
+  hold 4
+  scroll 90 70 20
+  click 123 133
+  caption Overdrive (needs L3) burns Molten MHDCSM and Molten Universium: 100,000 x o^2 L/s of each at level o. Set by script through the GUI's setter: 25 %, 6,250 L/s each.
+  command /btssmbh overdrive 0.25 2000 113 2000
+  hold 5
+  caption Overdrive 50 %: 25,000 L/s each. Half Overdrive gives most of the gain.
+  command /btssmbh overdrive 0.5 2000 113 2000
+  hold 5
+  caption Overdrive 100 %: 100,000 L/s each, for output x56. Only for a bit: that is 6 million litres of each a minute.
+  command /btssmbh overdrive 1.0 2000 113 2000
+  hold 6
+  close
+  command /btssmbh status 2000 113 2000
+
+scene overdrive-look
+  caption Overdrive on the render: the ring and jets run white-violet, MHDCSM field lines wrap the jets, the nodes flare.
+  readout sq match ^(Hole|Bursts)
+  orbit sq.c radius 30 height 9 from -50 to 20 seconds 9 ease inout
+
+# ================================================================ L4, Unbind and the doublings
+scene unbind
+  caption Set up by script: L4 nodes (Constrained Eternity) and the mass set to 67,108,864 SM, the L4 top. Overdrive 100 %: 100,000 L/s each.
+  command /btsquasar t4 l4 2000 113 2000
+  command /btssmbh mass 67108864 2000 113 2000
+  wait lattice:sq:4 timeout 60
+  wait game:5
+  goto sq+0,0.2,-3.5 look sq
+  gui sq scale 3
+  scroll 90 70 20
+  click 123 133
+  hold 5
+  caption Unbind (the GUI's button, pressed by script): the setpoint opens past the L4 top. Each doubling n past it halves Overdrive's upkeep, and costs Primordial Matter: 1,024 x 4^(n^2) L/s.
+  command /btssmbh unbind on 2000 113 2000
+  hold 4
+  caption Mass set by script to 94,906,266 SM: n 0.5. Upkeep 70,711 L/s each, anchor 1,448 L/s. Output stays x98.9.
+  command /btssmbh mass 94906266 2000 113 2000
+  hold 5
+  caption Mass set by script to 134,217,728 SM: n 1. Upkeep halved to 50,000 L/s each, for 4,096 L/s of Primordial Matter.
+  command /btssmbh mass 134217728 2000 113 2000
+  hold 5
+  caption Mass set by script to 189,812,531 SM: n 1.5, the sweet spot. Upkeep 35,355 L/s each, anchor 23,170 L/s.
+  command /btssmbh mass 189812531 2000 113 2000
+  hold 5
+  caption Mass set by script to 268,435,456 SM: n 2. Upkeep 25,000 L/s each, but the anchor is 262,144 L/s: past here it is not worth it.
+  command /btssmbh mass 268435456 2000 113 2000
+  hold 6
+  close
+  command /btssmbh status 2000 113 2000
+
+scene unbound-look
+  caption Unbound on the render: a darker, wider lensing halo with a violet rim, a breathing horizon and violet anchor threads between the nodes.
+  readout sq match ^(Hole|Bursts)
+  orbit sq.c radius 150 height 60 from 70 to 110 seconds 8 ease inout
+  caption Close in: the hole at 268 million solar masses, still inside the inner wall.
+  orbit sq.c radius 30 height 9 from 20 to 70 seconds 7 ease inout
+
+# ================================================================ the crowns
+scene crowns
+  caption The top Mk IV crown: up to 524,288 Bu/t (5.2 x 10^18 EU/t) per crown, straight into the wireless network, never past Java's long limit.
+  goto ctop+0,0.2,-3.5 look ctop
+  gui ctop scale 3
+  hold 6
+  close
+  command /btsconduit status 1988 209 2072
+  command /btsconduit status 1988 47 2072
+  caption Over the top crown's cup: the Mk IV's heat glows violet, with a glare at the throat where the jet comes in.
+  goto sq.c+18,150,-34 look sq.c+0,92,0
+  hold 5
+
+# ================================================================ the anchor cut: a safe shed
+scene shed
+  caption Set up by script: the Primordial Matter is drained and no longer supplied. Missing anchor upkeep only sheds mass, 2 % a second, back to the L4 top. Nothing is damaged.
+  feed sq noanchor
+  command /btssmbh drain anchor 2000 113 2000
+  goto sq+0,0.2,-3.5 look sq
+  gui sq scale 3
+  scroll 90 70 20
+  hold 3
+  warp 10
+  timelapse 10 speed 2 until massbelow:sq:67200000 tail 2 clock
+  close
+  command /btssmbh status 2000 113 2000
+
+# ================================================================ EU/t labels
+scene labels
+  caption EU/t beside every Bu/t: the quasar's Bursts and each jet ...
+  goto sq+0,0.2,-3.5 look sq
+  gui sq scale 3
+  hold 4
+  close
+  caption ... and each crown's stream as EU/t (Power).
+  goto cbot+0,0.2,-3.5 look cbot
+  gui cbot scale 3
+  hold 4
+  close
+
+scene end
+  card 9 The Supermassive Lattice, in numbers | sustained x2 (2.0 x 10^17 EU/t) at 16,384 SM, x7.9 at 262,144, x31 (3.0 x 10^18) at the L4 top | Overdrive: up to x100 (9.8 x 10^18 EU/t), 100,000 x o^2 L/s each of MHDCSM and Universium | Unbound n 0.5 / 1 / 1.5 / 2: upkeep 70,711 / 50,000 / 35,355 / 25,000 L/s each | anchor 1,448 / 4,096 / 23,170 / 262,144 L/s of Primordial Matter | Missing upkeep only sheds mass. No crater, no damage.

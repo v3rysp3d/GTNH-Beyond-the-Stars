@@ -7,7 +7,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 2. **Settled**: everything you have answered, in your words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision from you.
 4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-139 and the SMBH branch's
-   B-150..B-163, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
+   B-150..B-164, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
 on); the old Q-1..Q-38 and the merged branches' numbers are mapped under "Where the old question numbers went".
@@ -7263,6 +7263,39 @@ both changed the quasar, the crown, the conduit and this file. Merge commit `f53
 
 **Suggestion.** Nothing to decide. The supermassive render (smbh-v1.md §7) and the Overdrive / Unbound film are the
 next units of the final ship.
+
+### B-164 The Supermassive Lattice film (smbh-v1.md §10.4, "id like to see a video of it") [master, film]
+
+**What.** `tools/recording/smbh-unbound.shots`, 3:12 at 1920x1080 (recorder: docs/recording.md, "The Supermassive
+Lattice film"). One fresh world, one quasar at 2000,113,2000 with a Mk IV crown on each jet port; the render at quality
+high throughout, at night. Scenes: the quasar at 4,096 SM; Saturation on real ticks under `/btswarp 100`; the L1
+lattice placed by the projector's survival auto-place (8,484 elements in 108 rounds); the intake bar; growth on real
+ticks to the L1 safe limit (warp x100, 25,854 game-s in 259 s real); L3 at 262,144 SM by script; Overdrive 25 / 50 /
+100 % on the GUI and its panel; L4 at the top by script, Unbind (the GUI's checks), n 0.5 / 1 / 1.5 / 2 by script; the
+Unbound render; the crowns; the anchor cut and a safe shed (warp x10); the EU/t labels; a closing card. Every scripted
+step is captioned "set up by script" or "set by script"; the warp and time-lapse tags are on screen.
+
+**Recorder additions** (dev only, `bfb152c`): `scroll` and `click` in a ModularUI screen, `feed <place>
+gas|all|noanchor|off` (refills once a game second by world time, so it keeps up under the warp), the hologram survival
+auto-place's `lattice <n>` channel, and the wait conditions `saturated`, `lattice`, `mass`, `massbelow`.
+
+**Read off the GUI and the status lines** (each matches §3.2, §5.2 and §9): L1 growth +20.6 % an hour at 4,102 SM,
++21.25 % at 15,940 SM; L3 262,144 SM output x7.9, Overdrive 25 % 6,250 L/s each x21.4, 50 % 25,000 L/s x34.1, 100 %
+100,000 L/s x56.0; L4 67,108,864 SM x98.9; n 0.5 70,711 L/s each + anchor 1,448 L/s, n 1 50,000 + 4,096, n 1.5
+35,355 + 23,170, n 2 25,000 + 262,144, output x98.86 at every step; the top Mk IV crown at its 524,288 Bu/t cap
+(5.2e18 EU/t); the anchor cut sheds to 67,108,864 SM in about 70 game-s, "Upkeep idle while the hole sheds", nothing
+else changes. Saturation landed after about 5,200 game-s of the warped span in the final take and 18,383 in the first (eruptions broke the streak, as
+B-162 saw).
+
+**Findings (no decision needed, small display points).**
+1. At the L4 top with the setpoint at the top, the Lattice rows read "Growth 13.4G -> +7.0 % per hour" although the
+   hole cannot pass the setpoint: the line shows the Growth segment's rate, not what happens. Suggestion: "Growth 0:
+   at the setpoint" when M is at the setpoint.
+2. The crown GUI's header "cap 524,288 Bu/t" has no EU/t beside it (§10.3 lists crown caps); the Power row gives the
+   stream's EU/t. Suggestion: the cap's EU/t in the header tooltip or as "cap 5.2e18 EU/t".
+3. After the anchor shed the setpoint stays at the Unbound mass (268,435,456 SM): with the anchor back the hole would
+   grow again. Working as designed (the setpoint is the player's), worth a line in the Unbound quest.
+
 
 ## Where the old question numbers went
 
