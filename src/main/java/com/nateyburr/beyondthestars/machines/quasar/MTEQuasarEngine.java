@@ -705,6 +705,16 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         return !mMachine || !chunksLoaded;
     }
 
+    /**
+     * Bench: re-reads whether every structure chunk is loaded now (the tick does it every 20 ticks, so a command run
+     * in the same tick as a build would see a stale "frozen"); returns {@link #isFrozen()}.
+     */
+    public boolean refreshFrozen() {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base != null && base.isServerSide()) chunksLoaded = structureChunksLoaded(base);
+        return isFrozen();
+    }
+
     /** The hole is open or re-forming: the disc steps and the coils draw power. */
     private boolean running() {
         return q.hole == QuasarState.Hole.OPEN || q.hole == QuasarState.Hole.REFORM;
@@ -858,6 +868,10 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         if (saturationStreak >= SATURATION_SECONDS) {
             saturated = true;
             latticeTier = latticeBuilt;
+            if (latticeBuilt > 0) latticeNote = "Lattice L" + latticeBuilt
+                + " ("
+                + QuasarParams.LATTICE_NAME[latticeBuilt]
+                + "): in force";
             lastEvent = "Milestone: Saturation (4,096 SM held Stable for 1 h): the Supermassive Lattice unlocks";
         }
     }

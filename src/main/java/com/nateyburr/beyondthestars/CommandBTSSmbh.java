@@ -23,10 +23,12 @@ import com.nateyburr.beyondthestars.machines.quasar.SmbhBench;
  * <ul>
  * <li>{@code bench [x y z [facing]]}: an L4-lattice quasar (MagMatter coils, Saturation set), a 4,096 SM hole, every
  * upkeep hatch filled and a Mk IV crown on each jet port; without coordinates, in front of the player.</li>
- * <li>{@code mass <M> [x y z]}: the hole's mass, clamped to what the structure holds (§10.3).</li>
+ * <li>{@code mass <M> [x y z]}: the hole's mass, clamped to what the structure holds (§10.3); the mass setpoint
+ * follows it.</li>
  * <li>{@code fill [x y z]}: the gas, MHDCSM, Universium and Primordial Matter hatches to capacity.</li>
  * <li>{@code drain anchor [x y z]}: the Primordial Matter hatches emptied (the anchor is cut).</li>
- * <li>{@code saturate on|off [x y z]}, {@code status [x y z]}.</li>
+ * <li>{@code saturate on|off [x y z]}, {@code unbind on|off [x y z]}, {@code damage [x y z]} (one lattice frame
+ * block removed, then a re-walk), {@code status [x y z]}.</li>
  * </ul>
  * Without x y z the verbs act on the last bench quasar.
  */
@@ -42,7 +44,8 @@ public class CommandBTSSmbh extends CommandBase {
     @Override
     public String getCommandUsage(ICommandSender sender) {
         return "/btssmbh bench [x y z [facing]] | mass <M> [x y z] | fill [x y z] | drain anchor [x y z]"
-            + " | saturate on|off [x y z] | status [x y z]   (op only; a test bench, not gameplay)";
+            + " | saturate on|off [x y z] | unbind on|off [x y z] | damage [x y z] | status [x y z]"
+            + "   (op only; a test bench, not gameplay)";
     }
 
     @Override
@@ -54,12 +57,21 @@ public class CommandBTSSmbh extends CommandBase {
     @Override
     public List addTabCompletionOptions(ICommandSender sender, String[] args) {
         if (args.length == 1) {
-            return getListOfStringsMatchingLastWord(args, "bench", "mass", "fill", "drain", "saturate", "status");
+            return getListOfStringsMatchingLastWord(
+                args,
+                "bench",
+                "mass",
+                "fill",
+                "drain",
+                "saturate",
+                "unbind",
+                "damage",
+                "status");
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("drain")) {
             return getListOfStringsMatchingLastWord(args, "anchor");
         }
-        if (args.length == 2 && args[0].equalsIgnoreCase("saturate")) {
+        if (args.length == 2 && (args[0].equalsIgnoreCase("saturate") || args[0].equalsIgnoreCase("unbind"))) {
             return getListOfStringsMatchingLastWord(args, "on", "off");
         }
         return null;
@@ -83,6 +95,7 @@ public class CommandBTSSmbh extends CommandBase {
         switch (verb) {
             case "mass":
             case "saturate":
+            case "unbind":
             case "drain":
                 from = 2;
                 break;
@@ -107,6 +120,9 @@ public class CommandBTSSmbh extends CommandBase {
                 }
                 final double want = parseDouble(sender, args[1]);
                 final double got = q.debugMass(want);
+                // a bench mass is held there: the setpoint follows it, so the hole does not shed straight back
+                if (got > com.nateyburr.beyondthestars.machines.quasar.engine.QuasarParams.M_REF)
+                    q.setMassSetpoint(got);
                 SLConsoleTest.tell(
                     sender,
                     q.getMass() <= 0 ? "SMBH bench: no hole (seed one first)"
@@ -119,6 +135,16 @@ public class CommandBTSSmbh extends CommandBase {
             }
             case "fill":
                 for (String line : SmbhBench.fill(world, q)) SLConsoleTest.tell(sender, line);
+                break;
+            case "unbind": {
+                final boolean on = args.length < 2 || !args[1].equalsIgnoreCase("off");
+                q.setUnbound(on);
+                SLConsoleTest
+                    .tell(sender, "Set up by script: Unbind " + (on ? "on" : "off") + " (it counts on an L4 lattice)");
+                break;
+            }
+            case "damage":
+                for (String line : SmbhBench.damage(world, q)) SLConsoleTest.tell(sender, line);
                 break;
             case "drain":
                 if (args.length < 2 || !args[1].equalsIgnoreCase("anchor")) {

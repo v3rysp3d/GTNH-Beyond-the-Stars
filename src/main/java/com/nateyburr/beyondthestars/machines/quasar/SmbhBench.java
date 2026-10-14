@@ -201,6 +201,42 @@ public final class SmbhBench {
             + " L of Primordial Matter drained (missing upkeep only sheds mass: nothing is damaged)";
     }
 
+    /**
+     * {@code /btssmbh damage}: one Lattice Frame Casing (the first in the shape) turned to air, then a re-walk. With a
+     * hole over 4,096 SM the quasar must unform (frozen) and say why; a creative rebuild puts it back.
+     */
+    public static List<String> damage(World world, MTEQuasarEngine q) {
+        final List<String> out = new ArrayList<>();
+        final String[][] shape = BTSShapes.load(MTEQuasarEngine.PIECE_LATTICE);
+        final int[] off = BTSShapes.offset(MTEQuasarEngine.PIECE_LATTICE);
+        int[] rel = null;
+        for (int c = 0; c < shape.length && rel == null; c++) {
+            for (int b = 0; b < shape[c].length && rel == null; b++) {
+                final int a = shape[c][b].indexOf('L');
+                if (a >= 0) rel = new int[] { a - off[0], b - off[1], c - off[2] };
+            }
+        }
+        if (rel == null) {
+            out.add("No Lattice Frame Casing in the shape");
+            return out;
+        }
+        final IGregTechTileEntity base = q.getBaseMetaTileEntity();
+        final int[] p = QuasarGeometry
+            .world(q.getExtendedFacing(), base.getXCoord(), base.getYCoord(), base.getZCoord(), rel);
+        out.add(
+            "Set up by script: removed " + world.getBlock(p[0], p[1], p[2])
+                .getLocalizedName() + " at " + p[0] + ", " + p[1] + ", " + p[2]);
+        world.setBlockToAir(p[0], p[1], p[2]);
+        q.checkStructure(true, base);
+        out.add(
+            "Re-walk: " + (q.isFormed() ? "FORMED" : "NOT FORMED")
+                + ", lattice built L"
+                + q.getLatticeBuilt()
+                + (q.getLatticeNote()
+                    .isEmpty() ? "" : "; " + q.getLatticeNote()));
+        return out;
+    }
+
     /** The bench quasar at (x, y, z), or (with null) the last one {@link #bench} raised. */
     public static MTEQuasarEngine quasar(World world, int[] at) {
         if (at != null) return QuasarKit.quasarAt(world, at[0], at[1], at[2]);

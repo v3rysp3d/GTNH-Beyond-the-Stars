@@ -280,7 +280,8 @@ public class CommandBTSQuasar extends CommandBase {
         final int z = (int) func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[3]);
         final String verb = args[0].toLowerCase(Locale.ROOT);
         if (verb.equals("keep")) {
-            // load the controller's chunk first, so its facing (and so the footprint) is known
+            // load the controller's chunk first, so its facing (and so the footprint) is known; the box includes the
+            // Supermassive Lattice's whether one stands or not (the walk may not have run yet in this tick)
             world.getChunkFromBlockCoords(x, z);
             final MTEQuasarEngine q = QuasarKit.quasarAt(world, x, y, z);
             final ForgeDirection f = q == null ? ForgeDirection.NORTH
@@ -288,7 +289,7 @@ public class CommandBTSQuasar extends CommandBase {
                     .getDirection();
             SLConsoleTest.tell(
                 sender,
-                "Quasar bench: forced " + KerrTestBench.keep(world, QuasarKit.bounds(f, x, y, z))
+                "Quasar bench: forced " + KerrTestBench.keep(world, QuasarKit.bounds(f, x, y, z, true))
                     + " chunk(s) around the quasar at "
                     + x
                     + ", "
@@ -360,7 +361,7 @@ public class CommandBTSQuasar extends CommandBase {
             case "run": {
                 final int seconds = arg.isEmpty() ? 60 : Integer.parseInt(arg);
                 final boolean fill = args.length > 5 && args[5].equalsIgnoreCase("fill");
-                if (q.isFrozen()) {
+                if (q.refreshFrozen()) {
                     SLConsoleTest.tell(sender, "Quasar bench: FROZEN (not formed or a chunk unloaded): nothing runs");
                     break;
                 }
