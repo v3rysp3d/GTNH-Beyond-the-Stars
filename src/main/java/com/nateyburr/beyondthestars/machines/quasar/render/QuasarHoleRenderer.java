@@ -56,6 +56,17 @@ import gregtech.common.render.BlackholeRenderer;
  * the inner wall and fills outward.</li>
  * <li>From outside, the walls hide the ring (R-09): the jets and a zone-coloured glow over each cap carry the
  * look.</li>
+ * <li><b>Supermassive</b> (SMBH v1, smbh-v1.md §7, R-19; a Supermassive Lattice in force): the hole keeps the log law
+ * up to 4,096 SM and then a compressed one ({@link #drawScale}: x1.2 at 16,384 SM, x2.1 at 67 M SM, never past x2.6),
+ * so every mass up to Unbound stays inside the inner wall (r 34) while its shadow and lensing grow; the ring runs
+ * hotter, thicker and more violent with stronger Doppler beaming, the photon ring brighter; the jets fatter with
+ * brighter knots. The 48 Containment Nodes glow in their tier's colour with a field arc from each into the ring
+ * ({@link SmbhFx}), blinking amber while the hold-up is short. <b>Overdrive</b> (by its level): the ring and the jets
+ * brighten toward white-violet, MHDCSM field lines spiral round the jets, the nodes flare and the arcs crackle.
+ * <b>Unbound</b> (by its doublings n): a darker, wider lensing halo per doubling with a violet rim, the horizon
+ * breathing +-3 % at 0.5 Hz, and violet anchor threads from node to node. <b>Intake</b>: while the Growth segment
+ * runs, gas streams in across the ring (as wide as the Growth share) and infall streamers feed the inner disc. A
+ * <b>shed</b> holds the eruption's flare up both jets.</li>
  * </ul>
  * Draw order and depth: the ring, the far jet and the far halves of the field lines and shell go first, then the hole
  * (it writes depth, and at L0 it bends the screen copy, ring and far jet included), then the near halves. Everything
@@ -107,6 +118,15 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
     /** Jet end and cap glow height, blocks from the centre. */
     private static final float CAP_GLOW_Y = 84f;
 
+    // ---- SMBH (R-19)
+    /** The hole's scale at 4,096 SM, and the scale per doubling of mass, of {@code MTEQuasarEngine.renderScaleFor}. */
+    static final float S_REF = (4f + 4f * 6f / 6f) / 1.3f, S_PER_DOUBLING = 4f / 6f / 1.3f;
+    /** The lattice's reach (the equatorial nodes at r 89 and the arcs and threads just outside), blocks. */
+    static final float LATTICE_R = 104f;
+    /** The Containment Nodes' colours per lattice tier L1..L4 (the node textures' glow colours). */
+    private static final float[][] TIER_RGB = { { 0.42f, 0.91f, 0.82f }, { 0.86f, 0.92f, 1.00f },
+        { 0.60f, 0.46f, 1.00f }, { 1.00f, 0.32f, 0.78f } };
+
     /** Dev only: the v2 draw repeated n times (GPU marginal cost). */
     private static final int REPEAT = Math.max(1, Integer.getInteger("bts.render.qRepeat", 1));
 
@@ -114,9 +134,14 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
     /** The programs the v2 quasar draws with (one array: a frame allocates nothing, R-16). */
     private static final BTSShaders.Program[] PROGRAMS = { QuasarFx.RING_PROGRAM, QuasarFx.JET_PROGRAM,
         QuasarFx.FX_PROGRAM, BlackHoleLens.PROGRAM, GlowSprite.PROGRAM };
+    /** The same with the Supermassive Lattice's program (a lattice quasar falls back whole when it is off). */
+    private static final BTSShaders.Program[] PROGRAMS_SMBH = { QuasarFx.RING_PROGRAM, QuasarFx.JET_PROGRAM,
+        QuasarFx.FX_PROGRAM, BlackHoleLens.PROGRAM, GlowSprite.PROGRAM, SmbhFx.PROGRAM };
     private final QuasarFx.RingLook ring = new QuasarFx.RingLook();
     private final QuasarFx.JetLook jet = new QuasarFx.JetLook();
     private final QuasarFx.FieldLook field = new QuasarFx.FieldLook();
+    private final SmbhFx.LatticeLook lattice = new SmbhFx.LatticeLook();
+    private final SmbhFx.StreamLook streams = new SmbhFx.StreamLook();
     /** The hole's own LOD tier per quasar (hysteresis memory; the quasar's tier is in RenderQuality). */
     private final Map<TileQuasarHole, Lod.Tier> holeTiers = new WeakHashMap<>();
     private static final FloatBuffer M16 = BufferUtils.createFloatBuffer(16);
@@ -133,13 +158,17 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
     public void renderTileEntityAt(TileEntity tile, double x, double y, double z, float partialTicks) {
         if (!Config.renderQuasar || !(tile instanceof TileQuasarHole) || RenderQuality.hidden()) return;
         final TileQuasarHole q = (TileQuasarHole) tile;
-        final float s = q.getHoleScale();
+        final float s = drawScale(q.getHoleScale());
         final double cx = x + 0.5;
         final double cy = y + 0.5;
         final double cz = z + 0.5;
-        // the whole quasar: the ring reaches r 62 (TileQuasarHole's render box)
-        final Lod.Tier tier = RenderQuality
-            .tier(tile, DISC_R0 + DISC_W, Math.sqrt(cx * cx + cy * cy + cz * cz), PROGRAMS);
+        // the whole quasar: the ring reaches r 62, a lattice's nodes r 89 (TileQuasarHole's render box)
+        final boolean smbh = q.getLattice() > 0;
+        final Lod.Tier tier = RenderQuality.tier(
+            tile,
+            smbh ? LATTICE_R : DISC_R0 + DISC_W,
+            Math.sqrt(cx * cx + cy * cy + cz * cz),
+            smbh ? PROGRAMS_SMBH : PROGRAMS);
         GpuTimer.begin("quasar");
         final boolean glCheck = RenderQuality.glCheckBegin(tile);
         try {
@@ -179,14 +208,27 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
         final boolean live = ev > 0 && ev < EVENT_SECONDS.length && flashAge >= 0 && evAge < EVENT_SECONDS[ev];
         final int event = live ? ev : 0;
         final float evSize = clamp01(q.getFlashSize());
+        // SMBH (R-19): the lattice in force, its Overdrive, Unbound, intake and shed; sm 0..1 how supermassive (0 at
+        // 4,096 SM, 1 at the L4 top)
+        final int lt = Math.max(0, Math.min(4, q.getLattice()));
+        final boolean smbh = lt > 0;
+        final float sm = smbh ? clamp01(doublings(q.getHoleScale()) / 14f) : 0f;
+        final float od = smbh ? clamp01(q.getOverdrive()) : 0f;
+        final float un = smbh ? Math.max(0f, Math.min(6f, q.getUnboundN())) : 0f;
+        final float gr = smbh && zi < 5 ? clamp01(q.getGrowth()) : 0f;
+        final boolean shed = smbh && q.getShed() && zi < 5;
+        final float leak = smbh && zi < 5 ? clamp01((1f - q.getHold()) * 4f) : 0f;
 
         // ---- the hole (GT's growth curve, size as GT's halo)
         final float age = (float) (now - q.getStartTime());
         final boolean opening = q.getScaling();
         final float growth = growth(opening, age);
-        final double rsFull = s * HALO_PER_SCALE / R_OUT;
+        // Unbound: the horizon breathes, +-3 % at 0.5 Hz
+        final float breathe = un > 0 ? (float) Math.sin(Math.PI * time) : 0f;
+        final double rsFull = s * HALO_PER_SCALE / R_OUT * (1 + 0.03 * breathe * Math.min(1f, un));
         final double rs = rsFull * Math.max(growth, 0.02f);
         holeLook(hole, zi, a, event, evAge, evSize, time);
+        if (smbh) smbhHole(hole, zi, sm, od, gr);
         hole.cx = cx;
         hole.cy = cy;
         hole.cz = cz;
@@ -223,6 +265,7 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
             evSize,
             time,
             tier);
+        if (smbh) smbhRing(ring, zi, sm, od);
         final double camR = Math.sqrt(cx * cx + cz * cz);
         ring.inside = Math.abs(cy) < ring.hp && camR > ring.r0p && camR < ring.r1p;
         if (ring.inside) {
@@ -249,6 +292,11 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
         }
         // the jet pointing away from the camera is drawn before the hole (the screen copy bends it)
         final int farDir = cy < 0 ? -1 : 1;
+        // SMBH: fatter with mass, white-violet in Overdrive, the held flare of a shed
+        jet.overdrive = od;
+        jet.width = 1f + 0.9f * sm;
+        jet.shed = shed ? 1f : 0f;
+        jet.supermassive = sm;
 
         // ---- field lines
         fieldLook(field, rs, phi, zi, event, evAge, time, dist);
@@ -286,8 +334,29 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
                     (float) sz);
                 if (tier.ordinal() <= Lod.Tier.L2.ordinal()) QuasarFx.drawField(cx, cy, cz, field, -1f);
                 drawShell(cx, cy, cz, rs, event, evAge, evSize, time, GL11.GL_FRONT);
+                // SMBH: the intake streaming in across the ring
+                if (gr > 0.002f && tier.ordinal() <= Lod.Tier.L1.ordinal()) drawStreams(cx, cy, cz, gr, ring.h0, time);
             } finally {
                 save.restore();
+            }
+            // 2b. SMBH, Unbound: the darker lensing halo under the hole (premultiplied: it darkens what lies behind)
+            if (un > 0.01f && growth > 0.003f && tier.ordinal() <= Lod.Tier.L2.ordinal()) {
+                save = premultiplied();
+                try {
+                    final float halo = (float) Math.min(33.0, rs * (4.2 + 2.6 * un));
+                    SmbhFx.drawHalo(
+                        cx,
+                        cy,
+                        cz,
+                        halo,
+                        (float) (2.6 * rs / halo),
+                        Math.min(0.92f, 0.38f + 0.2f * un),
+                        Math.min(1.2f, 0.35f + 0.3f * un),
+                        breathe,
+                        time);
+                } finally {
+                    save.restore();
+                }
             }
             // 3. the hole (writes depth where it has a body; at L0 bends the screen copy)
             if (growth > 0.003f && !BlackHoleLens.draw(hole, holeTier)) return false;
@@ -331,6 +400,10 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
                         up);
                 }
                 drawGlows(q, cx, cy, cz, zi, z0, topBu, bottomBu, rs, tier, event, evAge);
+                // SMBH: the Containment Nodes, their field arcs and (Unbound) the anchor threads
+                if (smbh && tier.ordinal() <= Lod.Tier.L2.ordinal()) {
+                    drawLattice(cx, cy, cz, lt, zi, od, un, leak, ring.r1, tier, time);
+                }
             } finally {
                 save.restore();
             }
@@ -360,6 +433,94 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
         p.tilt = 0f;
         p.tiltAzimuth = 0f;
         p.time = time;
+    }
+
+    // ============================================================================== SMBH (R-19)
+
+    /** Doublings of mass past 4,096 SM from the synced hole scale (0 at or under it). */
+    static float doublings(float s) {
+        return Math.max(0f, (s - S_REF) / S_PER_DOUBLING);
+    }
+
+    /**
+     * The scale the hole is drawn at: the synced log law up to 4,096 SM, then compressed so every supermassive mass
+     * stays inside the inner Eddington wall (r 34): x1.2 at 16,384 SM, x1.9 at 4.2 M, x2.1 at the L4 top (67 M SM),
+     * x2.6 at most (2^50 SM). Both paths draw it (the fixed path's GT hole too).
+     */
+    static float drawScale(float s) {
+        if (s <= S_REF) return s;
+        return (float) (S_REF * (1 + 1.6 * Math.tanh(doublings(s) / 16.0)));
+    }
+
+    /** A supermassive hole: hotter, a brighter photon ring and glow; infall streamers while the intake grows it. */
+    private static void smbhHole(BlackHoleLens.Params p, int zi, float sm, float od, float gr) {
+        if (zi == 5) return;
+        // a little hotter with mass (it stays coloured); Overdrive drives it to blue-white
+        p.temperature *= 1f + 0.12f * sm + 0.9f * od;
+        p.exposure *= 1f + 0.1f * sm + 0.45f * od;
+        p.turbulence = Math.min(1f, p.turbulence + 0.25f * sm);
+        p.ring = 2.5f + 1.8f * sm;
+        p.glow = 0.08f + 0.06f * sm + 0.05f * od;
+        p.beaming = 2.5f + 0.8f * sm;
+        p.streamers = Math.max(p.streamers, 0.65f * (float) Math.sqrt(gr));
+    }
+
+    /** A supermassive ring: hotter, thicker, more violent, stronger beaming; Overdrive drives it toward white. */
+    private static void smbhRing(QuasarFx.RingLook r, int zi, float sm, float od) {
+        if (zi == 5) return;
+        final float lift = 0.35f + 0.65f * sm;
+        r.tWall *= 1f + 0.3f * lift;
+        r.tBody *= 1f + 0.3f * lift;
+        r.turbulence = Math.min(1f, r.turbulence + 0.3f * lift + 0.2f * od);
+        // thicker, but no brighter for it (the column grows with the thickness): the light stays coloured
+        final float thick = 1f + 0.45f * lift;
+        r.h0 *= thick;
+        r.hp = 3.6f * r.h0 + 0.3f;
+        r.beta = 0.11f + 0.13f * lift;
+        r.exposure /= thick;
+        if (od > 0) {
+            r.tWall += (40000f - r.tWall) * 0.6f * od;
+            r.tBody += (22000f - r.tBody) * 0.45f * od;
+            r.exposure *= 1f + 0.45f * od;
+        }
+    }
+
+    /** The intake streams across the ring (outer wall to inner wall), as wide as the Growth share. */
+    private void drawStreams(double cx, double cy, double cz, float gr, float h0, float time) {
+        final SmbhFx.StreamLook st = streams;
+        st.rOut = 63.5f;
+        st.rIn = DISC_R0 - 1f;
+        st.width = 0.4f + 1.5f * (float) Math.sqrt(gr);
+        st.turn = 0.95f;
+        st.halfHeight = h0 * 2.4f;
+        st.intensity = 0.35f + 1.1f * (float) Math.sqrt(gr);
+        st.pixel = (float) (1.0 / Math.max(1e-3, Lod.pixelsPerBlockAtUnit()));
+        st.time = time;
+        SmbhFx.drawStreams(cx, cy, cz, st);
+    }
+
+    /** The Containment Nodes in their tier's colour, their field arcs into the ring, and Unbound's anchor threads. */
+    private void drawLattice(double cx, double cy, double cz, int lt, int zi, float od, float un, float leak,
+        float ringOuter, Lod.Tier tier, float time) {
+        final SmbhFx.LatticeLook l = lattice;
+        final float[] c = TIER_RGB[lt - 1];
+        final boolean dark = zi == 5;
+        l.r = c[0];
+        l.g = c[1];
+        l.b = c[2];
+        l.ringOuter = ringOuter;
+        l.nodeSize = 5f;
+        l.arcWidth = 0.32f;
+        l.threadWidth = un > 0.01f && tier.ordinal() <= Lod.Tier.L1.ordinal() ? 0.28f : 0f;
+        l.threads = Math.min(1f, 0.3f + 0.35f * un);
+        l.flare = od;
+        l.leak = leak;
+        l.intensity = dark ? 0.4f : 1.1f;
+        // the arcs only while the disc burns, and only close enough to read (L0 / L1)
+        l.arcIntensity = dark || tier.ordinal() > Lod.Tier.L1.ordinal() ? 0f : 0.55f;
+        l.pixel = (float) (1.0 / Math.max(1e-3, Lod.pixelsPerBlockAtUnit()));
+        l.time = time;
+        SmbhFx.drawLattice(cx, cy, cz, l, right, up);
     }
 
     /** Bardeen's prograde ISCO in r_g (6 at a = 0, 1.24 at a = 0.998). */

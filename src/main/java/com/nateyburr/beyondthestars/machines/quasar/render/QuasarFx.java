@@ -77,7 +77,7 @@ final class QuasarFx {
     // ------------------------------------------------------------------ the jets
 
     private static final ShaderRecipe JET = BTSShaders.recipe("bts_qjet")
-        .required("u_JLook", "u_JSpan", "u_JEvent", "u_JAxis", "u_Side")
+        .required("u_JLook", "u_JSpan", "u_JEvent", "u_JAxis", "u_Side", "u_JSmbh")
         .modelUniform("u_ModelMatrix")
         .attribute("a_Position", VertexAttribute.POSITION)
         .attribute("a_UV", VertexAttribute.UV);
@@ -86,6 +86,7 @@ final class QuasarFx {
     private static final Uniform J_EVENT = JET.uniform("u_JEvent");
     private static final Uniform J_AXIS = JET.uniform("u_JAxis");
     private static final Uniform J_SIDE = JET.uniform("u_Side");
+    private static final Uniform J_SMBH = JET.uniform("u_JSmbh");
     static final BTSShaders.Program JET_PROGRAM = BTSShaders.program("bts_qjet", JET);
     private static final BTSShaders.Mesh JET_MESH = JET_PROGRAM.mesh(h -> Meshes.ribbon(h, 96));
 
@@ -226,6 +227,8 @@ final class QuasarFx {
         float pixel;
         /** +1 up, -1 down. */
         int dir;
+        /** SMBH (R-19): Overdrive 0..1, width scale (1 below 4,096 SM), shedding 0/1, supermassive 0..1. */
+        float overdrive, width = 1f, shed, supermassive;
     }
 
     /** Draws one jet; {@code side} is the unit vector across the ribbon. False when the program is off. */
@@ -240,6 +243,7 @@ final class QuasarFx {
         GL20.glUniform4f(h.loc(J_EVENT), j.event, j.eventAge, j.eventSize, j.pixel);
         GL20.glUniform4f(h.loc(J_AXIS), 0f, j.dir, 0f, 0f);
         GL20.glUniform3f(h.loc(J_SIDE), sx, 0f, sz);
+        GL20.glUniform4f(h.loc(J_SMBH), j.overdrive, j.width, j.shed, j.supermassive);
         mesh.bind();
         mesh.draw();
         mesh.unbind();

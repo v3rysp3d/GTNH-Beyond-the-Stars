@@ -7,6 +7,8 @@ in vec2 a_UV;
 uniform mat4 u_MVP;
 uniform vec4 u_JSpan;
 uniform vec4 u_JAxis;
+// SMBH (R-19): x Overdrive 0..1, y width scale, z shedding 0/1, w supermassive 0..1
+uniform vec4 u_JSmbh;
 uniform vec3 u_Side;
 
 out float v_Z;
