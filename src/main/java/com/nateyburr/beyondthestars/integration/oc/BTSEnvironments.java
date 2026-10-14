@@ -158,8 +158,10 @@ public final class BTSEnvironments {
 
         @Callback(
             doc = "function():table -- the link milestone: kind (stability, heavy), streak, best, mean, frac, linked,"
-                + " source; ready; testFireWanted; quasarStream (Bu/t); testFireShare (J1's Eye share for the T7 test"
-                + " fire: 1 up to 32 Bu/t, else 16 / stream)")
+                + " source; ready; testFireWanted; quasarStream (Bu/t); testFireStream (what J1 at 15 sends: the"
+                + " stream or J1's out 1 limit); testFireShare (1 up to 32 Bu/t, else 16 / testFireStream); j1Limit"
+                + " (the standard rig's, Bu/t); supermassiveLink (P5's T9 -> T10 data: streak, best, held, mean, need,"
+                + " sourceMass, sourceLattice, sourceQualifies)")
         public Object[] getUnlock(Context c, Arguments a) {
             final MTEEyeOfHarmonyBTS e = eye();
             return e == null ? GONE : new Object[] { BTSComputerApi.eyeUnlock(e) };

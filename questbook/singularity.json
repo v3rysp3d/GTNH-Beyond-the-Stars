@@ -887,7 +887,7 @@
         "{5}{l}RUN{r} Each cycle: {9}7.5 L Molten Magnetar Matter{r} plus bursts on the rail, for {9}600 L Ergomatter {times} Y {times} r {times} min({u+03b2}, 1.5){r}. {u+03b2} is the bursts delivered {div} the 1.5 Bu/t (1.5e13 EU/t, 15 trillion) demand.",
         "",
         "{5}{l}THE GAUGES{r}",
-        "- {9}P{r}, pressure: bursts heat it at 3 {times} ({u+03b2} - 1) a second; Space trims cool it (-2 a unit, up to 10 a second). Bring {9}1.5 {times} the demand{r} into J1 and send the surplus to a crown.",
+        "- {9}P{r}, pressure: bursts heat it at 3 {times} ({u+03b2} - 1) a second; Space trims cool it (-2 a unit, up to 10 a second). Bring {9}1.5 {times} the demand{r} into J1 and send the surplus to a crown: J1's out 1 limit (7.5 Bu/t, 7.5e13 EU/t, per parallel) does it at any quasar size.",
         "- {9}W{r}, the warp of the tilted rail: it drifts 1.5 a second in the precession sense. Aim the bursts between the high and low banks: W moves by 6 {times} (low - high).",
         "- {9}Minor mergers{r} (every 15-30 min, a 15 s warning with the sign) push W {pm}12 a second for 5 s, then flip the precession.",
         "",
@@ -1198,7 +1198,7 @@
         "",
         "Slots [8] waits until the quasar's mean stream reaches {9}6 Bu/t{r} (6e13 EU/t) (about 130 SM at coils 3): below that the rail's quarter would starve Triangulum. Keep the quasar growing (f 1.0); the Galaxy panel says how far you are.",
         "",
-        "Above {9}32 Bu/t{r} (3.2e14 EU/t, about 260 SM) Slots [8] stops again: the rail's quarter would flood the field. The Galaxy panel then gives the J1 Eye share to test-fire with instead (16 Bu/t, 1.6e14 EU/t, to the Eye; testFireShare in OpenComputers getUnlock()). Set J1 to it with a Burst Control Hatch level or junction.setRatio, and J3 to 75 % halo.",
+        "With the standard rig's {9}J1 out 1 limit{r} (7.5 Bu/t, 7.5e13 EU/t, per parallel) the test fire puts 7.5 Bu/t on the Eye at any quasar size: 5.6 on the halo, 1.9 on the rail. Without a limit, Slots [8] stops again above {9}32 Bu/t{r} (3.2e14 EU/t, about 260 SM), as the rail's quarter would flood the field; the Galaxy panel then says to set the limit, or gives J1's Eye share to test-fire with (testFireShare in OpenComputers getUnlock()).",
         "",
         "{2}{l}DONE WHEN{r} the Eye's GUI says the Heavy Link is held (tick the box)."
       ]
@@ -1332,7 +1332,7 @@
         "- {9}J1{r}: Field [2] / [1] as 15 / 8 / 0 (two emitter covers), OR Galaxy Transition [4] {to} 15, OR Slots [8] {to} 15.",
         "- {9}J2{r}: Field [4] / [8]. {9}J3{r}: Events [1] / [2]; Slots [8] {to} its 75 % preset at T7.",
         "- Transition [4] {to} push the next core into a plinth bus; Transition [1] {to} push the next chart; Status [1] {to} stock the charge; Galaxy Transition [1] {to} the Eye's Burst Control Hatch in Begin mode.",
-        "- Keep Mk I throats on the Eye's branch: they cap what reaches J1 at 24 Bu/t (2.4e14 EU/t), so a growing quasar cannot flood the Eye.",
+        "- Set {9}J1's out 1 limit{r} to {9}7.5 Bu/t{r} (7.5e13 EU/t) per parallel, times the time dial (the Junction's GUI, or junction.setLimit): J1 then steers the same few Bu/t into the Eye however big the quasar grows, and the rest goes to the crown. Without it, a quasar past about 200 SM floods the Eye through Mk II or bigger throats, test fire or not.",
         "",
         "All binary like this (AE2-friendly), T8 runs about 90 % Resonant. Analog instead: the sensor's P (inverted, {pm}30), W and {u+039b} straight to J1, J2 and J3.",
         "",
