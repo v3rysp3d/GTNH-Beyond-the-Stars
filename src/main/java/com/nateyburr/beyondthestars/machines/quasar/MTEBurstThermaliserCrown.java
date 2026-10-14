@@ -385,8 +385,7 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         lastClipped = over;
         final double eut = BurstRouting.crownEUt(used);
         if (eut >= 1 && owner != null) {
-            final BigInteger eu = BigInteger.valueOf((long) Math.floor(eut))
-                .multiply(BigInteger.valueOf(20));
+            final BigInteger eu = BurstRouting.crownEUPerSecond(used); // no long on the way (SMBH §3.4)
             WirelessNetworkManager.addEUToGlobalEnergyMap(owner, eu);
             lifetimeEU = lifetimeEU.add(eu);
         }
