@@ -133,8 +133,9 @@ public final class SmbhBench {
 
     /**
      * {@code /btssmbh fill}: a plain MAX Input Hatch in every empty trim socket, then the trims hold (in socket order)
-     * Molten MHDCSM, Molten Universium, Primordial Matter and Spatially Enlarged Fluid, each to capacity; the gas
-     * hatches are refilled with the selected gas and the feed buffer topped up.
+     * Molten MHDCSM, Molten Universium and Primordial Matter, each to capacity; the gas hatches are refilled with the
+     * selected gas and the feed buffer topped up. No trim hatch keeps Spatially Enlarged Fluid: in a plain trim hatch
+     * it is a Space trim every second (10 units, E -20 a second), which blew a lit disc out within seconds (e2e test).
      */
     public static List<String> fill(World world, MTEQuasarEngine q) {
         final List<String> out = new ArrayList<>();
@@ -143,7 +144,8 @@ public final class SmbhBench {
         final int x = base.getXCoord(), y = base.getYCoord(), z = base.getZCoord();
         final int[] centre = QuasarGeometry.world(alignment, x, y, z, QuasarGeometry.centreRel());
         final Fluid[] fluids = { MTEQuasarEngine.mhdcsmFluid(), MTEQuasarEngine.universiumFluid(),
-            MTEQuasarEngine.primordialFluid(), MTEQuasarEngine.spaceFluid() };
+            MTEQuasarEngine.primordialFluid() };
+        final Fluid space = MTEQuasarEngine.spaceFluid();
         final int[][] trims = QuasarKit.socketRels('t');
         int placed = 0;
         final StringBuilder held = new StringBuilder();
@@ -154,8 +156,12 @@ public final class SmbhBench {
                 placed++;
             }
             final MTEHatchInput h = QuasarKit.mteAt(world, p, MTEHatchInput.class);
+            if (h == null) continue;
+            final FluidStack was = h.getFluid();
+            if (was != null && space != null && was.getFluid() == space)
+                h.drain(ForgeDirection.UNKNOWN, was.copy(), true);
             final Fluid f = i < fluids.length ? fluids[i] : null;
-            if (h == null || f == null) continue;
+            if (f == null) continue;
             final FluidStack now = h.getFluid();
             if (now != null && now.getFluid() != f) h.drain(ForgeDirection.UNKNOWN, now.copy(), true);
             final int got = h.fill(new FluidStack(f, Integer.MAX_VALUE), true);
