@@ -6,7 +6,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 1. **Open questions**: each open decision once, with the answer we recommend and where the detail is.
 2. **Settled**: everything you have answered, in your words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision from you.
-4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122 and B-130..B-138, the tidy pass's
+4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122 and B-130..B-139, the tidy pass's
    TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
@@ -49,6 +49,9 @@ Most important first. "Recommended" is what we would build if you say nothing. N
 | 24 | ~~The time warp `/btswarp` (op only, cheats): ship it in release jars?~~ | **Settled**: ship it, op and cheats only (as built) | B-117 |
 | 25 | The two-fluid wafer engravings (SL-X05 Empyrean, SL-X06 Omega) cannot run in a single-block Laser Engraver (one fluid slot) | Keep; a UMV player uses GT's Hyper-Intensity Laser Engraver (or any multi with two input hatches); say "multiblock engraver" in the Empyrean / Omega quests | B-136, seen 1 |
 | 26 | `stellarCircuits=false` leaves the Piko / Quantum / Planck raise on (two independent switches) | Keep them independent; add one sentence to the `stellarCircuits` config comment | B-136, seen 2 |
+| 27 | The quasar's ring cannot be seen from outside: the disc wall hides it (renders v2 gives the jets and a zone-coloured cap glow instead) | A Quantum Glass window band in the disc wall at the ring's height, as the Kerr and the Eye got, as its own structure change (voxel.js, re-export, hologram, NEI, BOM); until then the jets and the cap glow | R-09 |
+| 28 | The Kerr hole's L0 close-up (full detail with the screen copy) takes about 0.2 ms GPU a frame on the dev RTX 4090, over its 0.08 ms budget | Accept (one object, a few blocks away; `renderBackgroundLensing=false` or `medium` is the player's lever); revisit if the playtest FPS there is poor (guide V6) | R-11, R-16, R-17 |
+| 29 | Under Angelica, a Reality Diffraction / Refab render can stay invisible until the controller block has been on screen once | Accept for now; the real fix is a small render tile at each machine's render centre (R-05's alternative, a structure change) | R-16 |
 
 ## 2. Settled
 
@@ -262,7 +265,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-138
+## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -6658,6 +6661,73 @@ packages the playtest jar, as B-122 did for `master.302`.
 
 **Suggestion.** Install `master.304` instead of `master.302` and run A1-A2, then phase X; phases Q and T stay the
 post-UEV gameplay to try.
+
+### B-139 Ship: an interim playtest jar with renders v2, `0.24.1-master.308+ff2493fa3f` [master, package]
+
+**Context.** You are home and want to playtest now. Master `ff2493f` is the merge of the renders branch (R-01..R-18;
+conflicts in `Config.java` and this file resolved by keeping both sides). The supermassive black hole, the EU/t labels
+and the max-quasar fixes are still being built on branch `smbh` and ship in a later jar, so this one is an interim
+jar of master as it stands.
+
+**What was done.**
+- **Build.** `gradlew build --no-daemon` on master `ff2493f`: spotless, checkstyle and the build passed; nothing to
+  fix or format, so no code commit.
+- **Headless boot** (`runServer`, port 25565, fresh flat world `b139-rx`; the level name, `cmds.txt` and the server's
+  `beyondthestars.cfg` put back afterwards; script local work folder `b139/boot.sh`): `Recipe registration complete:
+  364 registered, 0 skipped`; "NAC patch active: 34 ... (248 stock, 282 total)"; the Circuits v2 lines; "Eye of
+  Harmony: 10 live stars, 43 planet recipes"; `/btsrecipes status`: `Total 499 | by status {new=433, changed-GT=64,
+  removed=2}`, by line Kerr 28, Eye 64, BEC 28, H/R 27, Quasar / Conduit 34, Circuits 74, Automation 1, Old plant
+  202, Upgrade path 41: the same as `master.304` (B-138). The only `[beyondthestars]` WARN lines are the 66 "pack edit
+  skipped" of a world with no pack book; the one GT "EUt > Practical Voltage" line under our mod id is the same as in
+  B-138 (not new); no `com.nateyburr` stack frame. The config file gained the `client_render` category on that boot.
+- **Dev client** (`runClient` through the recorder, `-Dbts.rec.size=1280x720`, sound off in `run/client/options.txt`),
+  two short runs:
+  1. with `-Dbts.render.selftest=true`: `[BTS render kit] self test compile check: 0 failure(s)`: all 17 kit programs
+     compile and link in both profiles (legacy 120 and core 330), every program registered by then bakes (15, the
+     Eye's TecTech star included), the hand-linked core variant draws; the test panel shows the baked and core
+     variants identical, glow and points by shader and by fixed function. No `[BTS render]` WARN.
+  2. a Kerr T1 at 64 SM: at `high` the lensed hole (shadow, photon ring, the far disc bent over and under, the cage
+     bending behind it close up); at `low` GT's old model. No `[BTS render]` WARN, no crash, the client closed itself.
+  Stills: local work folder `b139/selftest-panel.png`, `b139/kerr-01_close.png`, `kerr-02_window.png`,
+  `kerr-03_low.png`; videos in `b139/rec/`.
+- **Jar.** From a clean `git archive` export of `ff2493f` with `VERSION=0.24.1-master.308+ff2493fa3f gradlew build
+  --no-daemon` (spotless and checkstyle ran and passed; the version is what a clean checkout gives: first-parent
+  distance 308). `dist-rc2/beyondthestars-0.24.1-master.308+ff2493fa3f.jar`, 2,995,130 bytes, SHA-256
+  `5146670eae0d83947cca7d9f09514b3463ea81e5abe64c49e28ac3cbf070d944`; `mcmod.info` says `0.24.1-master.308+ff2493fa3f`;
+  it holds the mixin configs and refmap and 97 GLSL files. `master.304` moved to `dist-rc2/superseded/`.
+- **`dist-rc2/INSTALL.md`** (backup local work folder `playtest/INSTALL.master304.bak.md`): the new jar, size, hash
+  and commit everywhere; a clear "NOT in this jar yet" (the supermassive hole, the EU/t labels, the quasar mass-cap
+  fix); a new 0.1 "Since `master.304`" (each object's new look in a few words, the `client_render` keys, Angelica
+  supported and a shaderpack under it not yet tried, the lensing off by itself under a shaderpack, `/btsconduit
+  crowns`); the old 0.1 became 0.2, 0.2 became 0.3, 0.3 became 0.4. Section 3: the server lines are unchanged, the
+  `[BTS render]` lines worth reporting. Section 4: the eight `client_render` keys and `renderQuasar`. 6.1 / 6.2 / 6.4
+  / 6.7: one renders line each. Section 7: the three missing features first, the quasar window band. Section 9: the
+  renders' known issues (the Kerr's close-up budget, Angelica's first view of a Reality machine, the untried
+  shaderpack, only a fast GPU measured, the Reality machines' CPU, the quasar's hidden ring) and the seen lists.
+  Section 10: the `crowns` verb. Section 11: migration from `master.304` (nothing to convert; the config gains
+  `client_render`).
+- **Playtest guide** (local work folder `playtest/playtest-guide.html`, script `playtest/refresh308.py`, backup
+  `playtest-guide.master304.bak.html`): the header's jar, hash and commit and a "New since `master.304`" note; A1 /
+  A2 (the jar; no `[BTS render]` line expected); the steps whose look changed tagged "new look" with the new look in
+  their Expect: C2, D1, D2, D4, Q2, Q3, T1, T3; a new phase **V · Renders v2** between T and W: V1 each object at
+  high, V2 `renderQuality` low and back, V3 the eruption and the purge, V4 a star event by the bench (helium flash,
+  giant flare), V5 the Homogeny, Reality and the conduit behind glass, V6 FPS with F3 near a quasar and a Kerr, V7
+  optional Angelica on / off; a Renders card in the command card; open questions 27-29; the footer. Tick storage key
+  unchanged (`bts-playtest-master235`); "All new recipes" not rebuilt (499, unchanged). Headless Edge (Playwright,
+  `msedge`) in light, dark, 1280 px and 390 px: 52 steps (V 0 / 7), phase order A B C D E F G Q T V W X H R, no
+  duplicate step ids, "499 of 499 recipes shown", ticking V1 counts and saves under the old key, no console or page
+  errors, no broken images, no horizontal overflow.
+
+**Judgement calls.**
+1. **Built from `ff2493f` itself**, not after this entry's commit: this commit changes only this file, and the jar's
+   version names the commit whose code it holds (as B-138 did).
+2. **Open questions 27-29** are the renders' leftovers (R-09, R-11 / R-16, R-16) moved into §1 so the guide can
+   point at them.
+3. **No Prism run, nothing installed**: the instance was not touched. Under Angelica and with a shaderpack the renders
+   are as R-16 / R-17 left them (Angelica checked in the dev client, a shaderpack under Angelica never tried).
+
+**Suggestion.** Install `master.308` instead of `master.304`, run A1-A2, then phase V and the "new look" steps;
+send the V6 FPS numbers with your graphics card.
 
 ## Where the old question numbers went
 
