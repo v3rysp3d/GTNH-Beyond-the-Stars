@@ -7,7 +7,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 2. **Settled**: everything you have answered, in your words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision from you.
 4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-139 and the SMBH branch's
-   B-150..B-162, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
+   B-150..B-163, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
 on); the old Q-1..Q-38 and the merged branches' numbers are mapped under "Where the old question numbers went".
@@ -268,7 +268,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139, B-150..B-162
+## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139, B-150..B-163
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -7215,6 +7215,54 @@ Helium at the L4 top, more than 12 MAX input hatches hold, so the L4 runs fed th
 
 **Not run here.** The Directive / sensor / Burst Control hatches on real redstone and OpenComputers through a real
 computer (the controller unit's API checks stand); NEI's lattice preview; the video (a later step).
+
+### B-163 Merge: branch smbh into master (the Supermassive Lattice on top of renders v2) [master, merge + test]
+
+**Context.** Branch `smbh` (B-150..B-162, base `96c943b`) and renders v2 (merged into master as `ff2493f`, B-139)
+both changed the quasar, the crown, the conduit and this file. Merge commit `f532212`; B-153 settled in `bd6cd15`.
+
+**Conflicts and how they were resolved (both sides kept).**
+- `MTEQuasarEngine.noteEvents`: renders v2 turned the event lines into blocks that also queue a render flash
+  (`flash(TileQuasarHole.EV_*)`); smbh added the "Shedding to ... SM" event line. Kept the flash blocks and put the
+  shedding line between "Disc re-formed" and "First Light", the order the smbh branch had (the last event a second
+  wins the GUI line).
+- `MTEQuasarEngine`: renders v2's `flash(int)` and smbh's Saturation methods (`trackSaturation`, `benchRecheck`,
+  `isSaturated`, `getSaturationSeconds`, `debugSaturate`) landed at the same place: kept all of them.
+- This file: the header ranges (B-130..B-139 and B-150..B-162), and §1's open questions. Both sides added rows 27 and
+  28: renders v2's 27-29 keep their numbers (B-139 and the playtest guide cite them), smbh's 27 and 28 became **30**
+  (B-153) and **31** (B-154). Rows 25 / 26 take smbh's "Built as recommended (B-158)". Nothing cited smbh's 27 / 28
+  by number. B numbers did not collide (master ends at B-139, smbh starts at B-150).
+- Merged without a conflict and checked by hand: the crown (renders v2's render data and `renderTESR`; smbh's Mk IV,
+  `MK_MAX` and the EU/t labels). The crown's heat-glow render asks the crown for its intake, axis and stack offset by
+  Mk, which smbh extended to Mk IV, and its render box (30 blocks round the controller) holds the Mk IV's intake and
+  its 23-block stack. `Config`, the conduit element and Wormhole Mouth, `EyeStarRuntime`, the Homogeny and Reality
+  Diffraction merged line by line with no overlap. The quasar's render data (`pushLook`) is renders v2's as it was;
+  the hole's drawn size grows with log2 of the mass, so over 4,096 SM it simply keeps growing (the supermassive look
+  is a later unit).
+
+**Tested.**
+- **Build.** `gradlew build --no-daemon` on the merge: spotless, checkstyle and the build passed, nothing to format.
+  Goldens: `smbh-golden --check --java` 30 / 30 (the JSON unchanged, the Java bit for bit), `quasar-golden --check
+  --java` 38 / 38, `fieldsim-golden --check --java` 78 / 78; `gen-singularity --check` 185 files up to date;
+  `export-structures --check` matches voxel.js.
+- **Headless boot** (`runServer`, port 25565, fresh flat world; the level name and `cmds.txt` put back):
+  `Recipe registration complete: 372 registered, 0 skipped` (master's 364 + smbh's 8, as on the smbh branch); the NAC
+  patch line (34 components), "Eye of Harmony: 10 live stars, 43 planet recipes", the SL-Q36 line.
+  `/btsrecipes status`: `Total 507 | by status {new=441, changed-GT=64, removed=2}`, by line Kerr 28, Eye 64, BEC 28,
+  H/R 27, Quasar / Conduit 42, Circuits 74, Automation 1, Old plant 202, Upgrade path 41 (master's 499 + smbh's 8
+  Quasar / Conduit rows). The only `[beyondthestars]` WARN lines are the 66 "pack edit skipped" of a world with no
+  pack book; no `com.nateyburr` stack frame. The dev server's config file gained the renders and circuits keys and
+  `smbhAllowUnbound` at their defaults.
+- **Dev client** (silent: `soundCategory_master:0.0`, clouds off; the recorder at 1280x720 with
+  `-Dbts.render.selftest=true`): `[BTS render kit] self test compile check: 0 failure(s)` (17 programs in both
+  profiles, 15 baked). Then `/btsquasar t4 l1 saturate ... seed`: the L1 quasar formed (lattice in force, structure
+  holds 65,536 SM), fed Helium; at 4,096 SM and at 16,384 SM (output x2.00, an eruption fired by the bench) the
+  renders v2 ring, hole and jets draw inside the lattice at `high`, and GT's old look at `low`. No `[BTS render]`
+  WARN, no GL error, no exception from our code; the client closed itself. (One line of the test script was mistyped
+  and skipped; it only waited.)
+
+**Suggestion.** Nothing to decide. The supermassive render (smbh-v1.md §7) and the Overdrive / Unbound film are the
+next units of the final ship.
 
 ## Where the old question numbers went
 
