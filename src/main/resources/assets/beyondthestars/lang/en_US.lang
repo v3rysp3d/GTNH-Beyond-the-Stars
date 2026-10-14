@@ -427,7 +427,7 @@ tile.beyondthestars.slCasing2.9.tooltip=Holds a gamma-ray burst stream on axis: 
 tile.beyondthestars.slCasing2.10.name=Burst Thermaliser Casing
 tile.beyondthestars.slCasing2.10.tooltip=The Burst Thermaliser Crown's core: turns bursts into heat, then EU to your wireless network (1 Bu/t = 10^13 EU/t).\nMade in the Condensate Assembler (64 a craft).
 tile.beyondthestars.slCasing2.11.name=Radiator Petal
-tile.beyondthestars.slCasing2.11.tooltip=The Burst Thermaliser Crown's petals: 643 / 1,428 / 2,803 make a Mk I / II / III crown (32 / 512 / 8,192 Bu/t).\nMade in the Condensate Assembler (64 a craft).
+tile.beyondthestars.slCasing2.11.tooltip=The Burst Thermaliser Crown's petals: 643 / 1,428 / 2,803 / 4,599 make a Mk I / II / III / IV crown\n(32 / 512 / 8,192 / 524,288 Bu/t; 1 Bu/t = 10^13 EU/t). Made in the Condensate Assembler (64 a craft).
 # items (SLQuasarItems)
 item.beyondthestars.quasarSeed.name=Quasar Seed
 item.beyondthestars.quasarSeed.tooltip=Opens the Quasar Engine's own black hole at 64 SM, once (put it in the controller).\nA hole is never lost: a collapsed one goes dormant and reopens.\nMade on a Kerr T2 Compressor Module (Kerr Densification) with the KEE holding at least 256 SM; it costs the Kerr's hole nothing.
@@ -455,6 +455,23 @@ gt.beyondthestars.quasarHole.name=Quasar Black Hole
 beyondthestars.structure.quasar.gas=The quasar needs at least one Input Hatch in a Rim Gas Injector socket (the 24 rim sockets)
 beyondthestars.structure.quasar.coil=Every Disc Field Coil must be the same tier
 beyondthestars.structure.quasar.energy=The quasar needs at least one Energy or Laser Hatch in the control box (coil power: 2 A UXV x b squared)
+# ---- SMBH v1: the Supermassive Lattice, the Event Horizon Crown, Conduit Throat Mk IV (smbh-v1.md §1, §3.4, §8.1) ----
+beyondthestars.structure.quasar.lattice=The Supermassive Lattice is incomplete and the hole (over 4,096 SM) needs it: the quasar stays frozen until the lattice is whole (to take it down, lower the mass setpoint to 4,096 SM first)
+# slCasing4 metas 0-5 (BlockSLCasing4)
+tile.beyondthestars.slCasing4.0.name=Lattice Frame Casing
+tile.beyondthestars.slCasing4.0.tooltip=The Supermassive Lattice round a Quasar Engine: its equatorial band, two latitude rings, struts and ribs (8,436 a lattice).\nThe lattice unlocks at Saturation (4,096 SM on MagMatter coils, Stable, for 1 hour).\nAssembler (UXV), 4 a craft.
+tile.beyondthestars.slCasing4.1.name=Containment Node (L1, Superdense Ergomatter)
+tile.beyondthestars.slCasing4.1.tooltip=48 per Supermassive Lattice, all one tier. L1: the hole is held up to 16,384 SM by the lattice alone,\nand up to 65,536 SM (the Eye T9 -> T10 Supermassive Link) with hold-up gas (4x the Eddington feed at the top).\nPower past 4,096 SM: x2 at 16,384 SM, x4 at 65,536 (about 3.9 x 10^17 EU/t). Assembly line, 8,000 L Superdense Ergomatter.
+tile.beyondthestars.slCasing4.2.name=Containment Node (L2, White Hole Matter)
+tile.beyondthestars.slCasing4.2.tooltip=48 per Supermassive Lattice, all one tier. L2: safe limit 65,536 SM, top 262,144 SM (held by gas above the safe limit).\nMade from an L1 node in the Condensate Assembler with Entangled White Hole Matter (Eye T9).
+tile.beyondthestars.slCasing4.3.name=Containment Node (L3, Universium)
+tile.beyondthestars.slCasing4.3.tooltip=48 per Supermassive Lattice, all one tier. L3: safe limit 262,144 SM, top 4,194,304 SM, and Overdrive:\nup to x100 (about 9.8 x 10^18 EU/t) for a while, burning Molten MHDCSM and Molten Universium.\nMade from an L2 node in the Condensate Assembler with Entangled Universium.
+tile.beyondthestars.slCasing4.4.name=Containment Node (L4, Constrained Eternity)
+tile.beyondthestars.slCasing4.4.tooltip=48 per Supermassive Lattice, all one tier. L4: safe limit 4,194,304 SM, top 67,108,864 SM, and Unbind:\npast the top, every doubling halves the Overdrive upkeep for a Primordial Matter anchor. Nothing is ever destroyed.\nMade from an L3 node in the Condensate Assembler: Eternity and MHDCSM plates, Universium coat.
+tile.beyondthestars.slCasing4.5.name=Event Horizon Thermaliser Casing
+tile.beyondthestars.slCasing4.5.tooltip=The Mk IV (Event Horizon) Burst Thermaliser Crown's core: 852 a crown, cap 524,288 Bu/t (5.2 x 10^18 EU/t).\nAssembler (UXV), 4 a craft.
+item.beyondthestars.conduitThroatMk4.name=Conduit Throat Mk IV
+item.beyondthestars.conduitThroatMk4.tooltip=Sits in a conduit element's controller like a turbine rotor (the Supermassive Lattice's throat).\nCarries up to 524,288 Bu/t (5.2 x 10^18 EU/t). Upkeep per element: 2 L/s Superdense Ergomatter (preferred),\nor 16 L/s Ergomatter, or 256 L/s Molten SpaceTime. Assembly line, from a Mk III with Superdense Ergomatter.
 # ---- P4: the Einstein-Rosen Conduit (28121-28123), the Burst Thermaliser Crown (28124), the GRB Receptor Port (28125)
 beyondthestars.structure.conduit.fuel=A Conduit element needs at least one Input Hatch in a throat-fuel socket (Molten SpaceTime, or Ergomatter after Eye T7)
 
@@ -1315,7 +1332,7 @@ beyondthestars.gui.conduit.info.rays=§eRAYS §7A stream leaves a throat in a st
 beyondthestars.gui.conduit.info.auto=§eAUTOMATE §7OpenComputers: bts_mouth, bts_mirror, bts_junction (getLink, getThroat, getUpkeep, isOpen; the Junction's split). Keep every element chunk-loaded.
 beyondthestars.gui.crown.mk=Mk %s
 beyondthestars.gui.crown.cap=cap %s Bu/t
-beyondthestars.gui.crown.cap.tip=The cap of the crown you built around the controller: Mk I 32 / Mk II 512 / Mk III 8,192 Bu/t. Build the bigger crown around the same controller to upgrade.
+beyondthestars.gui.crown.cap.tip=The cap of the crown you built around the controller: Mk I 32 / Mk II 512 / Mk III 8,192 / Mk IV 524,288 Bu/t (1 Bu/t = 10^13 EU/t). Build the bigger crown around the same controller to upgrade.
 beyondthestars.gui.crown.notformed=Not formed: the hologram projector shows the Mk I crown
 beyondthestars.gui.crown.lifetime=Lifetime
 beyondthestars.gui.crown.stream=Stream

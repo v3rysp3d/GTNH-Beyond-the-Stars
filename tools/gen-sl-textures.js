@@ -88,6 +88,7 @@
  * P4 (design repo designs/docs/quasar-p4.md §6.2): the quasar / crown / conduit blocks in the BHC family, one P4 colour
  * each (disc orange, jet cyan, crown heat).
  *   blocks/sl_disccoil_t1..t4 sl_eddington sl_rimgas sl_collimator sl_thermaliser sl_petal (.png) = slCasing2:3..11
+ *   SMBH v1: blocks/sl_latframe sl_node_l1..l4 sl_ehthermaliser (.png) = slCasing4:0..5; items/conduitThroatMk4.png
  *     (Disc Field Coil T1-T4, Eddington Wall Casing, Rim Gas Injector, Jet Collimator Ring, Burst Thermaliser Casing,
  *     Radiator Petal)
  *   items/quasarSeed conduitThroatMk1..3 intergalacticUpgradeCore supermassiveSeedCore starChartTriangulum
@@ -1600,7 +1601,7 @@ function quasarSeed(cv) {
 function conduitThroat(tier) {
   return (cv) => {
     const d = disc(7.5, 7.5);
-    const ring = [hex(0xd8b04a), hex(0xc8d0dc), hex(0xb070ff)][tier - 1];
+    const ring = [hex(0xd8b04a), hex(0xc8d0dc), hex(0xb070ff), hex(0x3fd8c0)][tier - 1];
     cv.each((x, y) => {
       const r = d(x, y);
       if (r >= 7.3) return;
@@ -1612,10 +1613,76 @@ function conduitThroat(tier) {
       const a = t * 0.45, rr = 0.6 + t * 0.14;
       cv.set(7.5 + rr * Math.cos(a), 7.5 + rr * Math.sin(a), P4C.jet);
     }
-    const studs = [[7, 0], [0, 7], [15, 8]].slice(0, tier);
+    const studs = [[7, 0], [0, 7], [15, 8], [8, 15]].slice(0, tier);
     for (const [x, y] of studs) cv.set(x, y, hex(0xffffff));
     cv.outline(hex(0x0a0b10));
   };
+}
+// ---- SMBH v1 (smbh-v1.md §8.1): slCasing4 metas 0-5, Conduit Throat Mk IV. The quasar's BHC family again, each with
+// its lattice tier's colour: Superdense Ergomatter teal, White Hole Matter white, Universium starry violet-black,
+// Constrained Eternity magenta.
+const SMBH = {
+  tier: [
+    [hex(0x0c3a34), hex(0x1f8f80), hex(0x6ae8d0), hex(0xd8fff6)], // L1 Superdense Ergomatter
+    [hex(0x5a6070), hex(0xb8c4d4), hex(0xeef4ff), hex(0xffffff)], // L2 White Hole Matter
+    [hex(0x080620), hex(0x2a1a6a), hex(0x8a6ad8), hex(0xe0d4ff)], // L3 Universium
+    [hex(0x2a0820), hex(0x8a1a6a), hex(0xe04ab8), hex(0xffd8f4)], // L4 Constrained Eternity
+  ],
+};
+// Lattice Frame Casing: a BHC plate crossed by a lavender truss (the armillary's struts), a violet MagMatter seam
+// across the middle and a rivet where the struts meet.
+function sl_latframe(cv, rnd) {
+  bhcBase(cv, rnd);
+  bhcMaze(cv, 3, 3, 12, 12, BHC.k2, rnd, 0.25);
+  for (let i = 2; i <= 13; i++) {
+    cv.set(i, i, mix(BHC.lav2, BHC.lav4, (i - 2) / 11));
+    cv.set(15 - i, i, mix(BHC.lav4, BHC.lav2, (i - 2) / 11));
+  }
+  for (let i = 2; i <= 13; i++) {
+    cv.set(i, 7, BHC.pMid);
+    cv.set(i, 8, BHC.pDeep);
+  }
+  for (const [x, y] of [[7, 7], [8, 7], [7, 8], [8, 8]]) cv.set(x, y, BHC.lav5);
+  cv.set(7, 7, BHC.lav6);
+}
+// Containment Node L1-L4: a glowing containment orb (the tier's matter) in a BHC clamp ring, 1-4 tier pips.
+function containmentNode(tier) {
+  const [lo, mid, hi, core] = SMBH.tier[tier - 1];
+  return (cv, rnd) => {
+    bhcBase(cv, rnd);
+    const d = disc(7.5, 7.5);
+    cv.each((x, y) => {
+      const r = d(x, y);
+      if (r > 6.2) return;
+      if (r < 1.3) cv.set(x, y, core);
+      else if (r < 2.6) cv.set(x, y, mix(hi, mid, (r - 1.3) / 1.3));
+      else if (r < 4.2) cv.set(x, y, mix(mid, lo, (r - 2.6) / 1.6));
+      else if (r < 5.0) cv.set(x, y, BHC.k2);
+      else cv.set(x, y, add(BHC.lav2, (7.5 - x + 7.5 - y) * 4));
+    });
+    if (tier === 3) for (const [x, y] of [[6, 5], [9, 9], [5, 9]]) cv.set(x, y, hex(0xffffff)); // Universium stars
+    for (const [x, y] of [[7, 2], [8, 2], [7, 13], [8, 13], [2, 7], [2, 8], [13, 7], [13, 8]]) cv.set(x, y, BHC.lav5);
+    const pips = [[3, 3], [12, 3], [12, 12], [3, 12]];
+    for (let k = 0; k < tier; k++) cv.set(pips[k][0], pips[k][1], mid);
+  };
+}
+// Event Horizon Thermaliser Casing: the Burst Thermaliser's heat-sink grid, white-violet, round a black horizon with a
+// white-hot photon ring (the Mk IV crown swallows a supermassive hole's jet).
+function sl_ehthermaliser(cv, rnd) {
+  bhcBase(cv, rnd);
+  const d = disc(7.5, 7.5);
+  for (let y = 2; y <= 13; y++) {
+    for (let x = 2; x <= 13; x++) {
+      const cell = x % 4 === 1 || y % 4 === 1;
+      const hot = 1 - Math.hypot(x - 7.5, y - 7.5) / 8;
+      cv.set(x, y, cell ? BHC.k1 : mix(hex(0x3a1068), hex(0xd8a0ff), Math.max(0, Math.min(1, hot + (rnd() - 0.5) * 0.15))));
+    }
+  }
+  cv.each((x, y) => {
+    const r = d(x, y);
+    if (r < 1.8) cv.set(x, y, hex(0x05030a));
+    else if (r < 2.7) cv.set(x, y, mix(hex(0xffffff), P4C.heatHi, (r - 1.8) / 0.9));
+  });
 }
 // GRB display item: a cyan burst with spikes (NEI only).
 function gammaRayBurst(cv) {
@@ -2180,8 +2247,12 @@ tile('blocks/sl_rimgas.png', sl_rimgas);
 tile('blocks/sl_collimator.png', sl_collimator);
 tile('blocks/sl_thermaliser.png', sl_thermaliser);
 tile('blocks/sl_petal.png', sl_petal);
+// SMBH v1 (smbh-v1.md §8.1): slCasing4 metas 0-5 (the Throat Mk IV icon is the conduitThroat loop's fourth)
+tile('blocks/sl_latframe.png', sl_latframe);
+for (let t = 1; t <= 4; t++) tile('blocks/sl_node_l' + t + '.png', containmentNode(t));
+tile('blocks/sl_ehthermaliser.png', sl_ehthermaliser);
 tile('items/quasarSeed.png', quasarSeed);
-for (let t = 1; t <= 3; t++) tile('items/conduitThroatMk' + t + '.png', conduitThroat(t));
+for (let t = 1; t <= 4; t++) tile('items/conduitThroatMk' + t + '.png', conduitThroat(t));
 tile('items/intergalacticUpgradeCore.png', p4Core(hex(0xe0b458), 'collapse'));
 tile('items/supermassiveSeedCore.png', p4Core(hex(0x1f8f80), 'merger'));
 tile('items/starChartTriangulum.png', starChart(TRIANGULUM));
