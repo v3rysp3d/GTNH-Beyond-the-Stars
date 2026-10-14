@@ -84,6 +84,82 @@ public final class BTSFormat {
         return String.format(Locale.ROOT, "%d%%", Math.round(Math.max(0, Math.min(1, frac)) * 100));
     }
 
+    // ------------------------------------------------------------------ bursts in EU/t (smbh-v1.md §10.3)
+
+    /**
+     * 1 Bu/t of bursts = 10¹³ EU/t once a crown thermalises it (QuasarParams.EU_PER_BU; kept here so this class stays
+     * free of engine imports). A player read "6,000 Bu/t" as 6,000 billion EU (2026-10-14): every Bu/t a player sees
+     * goes through {@link #bu}, {@link #buEu} or {@link #buEuShort}, so the EU/t is always beside it.
+     */
+    public static final double EU_PER_BU = 1e13;
+
+    /** The number of a Bu/t figure: {@code 0.81}, {@code 12.3}, {@code 4,712} (no unit). */
+    public static String buNum(double bu) {
+        final double a = Math.abs(bu);
+        if (a >= 1000) return String.format(Locale.ROOT, "%,.0f", bu);
+        if (a >= 10) return String.format(Locale.ROOT, "%.1f", bu);
+        return String.format(Locale.ROOT, "%.2f", bu);
+    }
+
+    /**
+     * EU/t in scientific form, two significant figures: {@code 9.8e16}, {@code 5.2e18}; below a million the plain
+     * number ({@code 512,000}). No unit.
+     */
+    public static String euSci(double eu) {
+        if (!Double.isFinite(eu)) return "-";
+        if (Math.abs(eu) < 1e6) return String.format(Locale.ROOT, "%,d", Math.round(eu));
+        return String.format(Locale.ROOT, "%.1e", eu)
+            .replace("e+", "e")
+            .replace("e0", "e");
+    }
+
+    /** The short-scale names {@link #euWords} uses, every 10³ from a thousand. */
+    private static final String[] WORDS = { "thousand", "million", "billion", "trillion", "quadrillion", "quintillion",
+        "sextillion", "septillion", "octillion" };
+
+    /**
+     * EU/t in plain words, two or three significant figures: {@code 98 quadrillion}, {@code 5.2 quintillion},
+     * {@code 240 trillion} (quadrillion = 10¹⁵, quintillion = 10¹⁸). Below a thousand the plain number.
+     */
+    public static String euWords(double eu) {
+        if (!Double.isFinite(eu)) return "-";
+        final double a = Math.abs(eu);
+        if (a < 999.5) return String.format(Locale.ROOT, "%,d", Math.round(eu));
+        int k = (int) Math.floor(Math.log10(a) / 3);
+        double v = eu / Math.pow(10, 3 * k);
+        // 999.6 trillion rounds to "1,000 trillion": say "1.0 quadrillion"
+        if (Math.abs(v) >= 999.5 && k < WORDS.length) {
+            k++;
+            v /= 1000;
+        }
+        k = Math.max(1, Math.min(WORDS.length, k));
+        v = eu / Math.pow(10, 3 * k);
+        final double av = Math.abs(v);
+        final String num = av >= 99.5 ? String.format(Locale.ROOT, "%,.0f", v)
+            : av >= 9.95 ? String.format(Locale.ROOT, "%.0f", v) : String.format(Locale.ROOT, "%.1f", v);
+        return num + " " + WORDS[k - 1];
+    }
+
+    /** The EU/t of {@code bu} Bu/t, short: {@code 9.8e16 EU/t}. */
+    public static String euOfBu(double bu) {
+        return euSci(bu * EU_PER_BU) + " EU/t";
+    }
+
+    /**
+     * A Bu/t figure with its EU/t, the full form for tooltips, NEI and quest text:
+     * {@code 9,796 Bu/t (9.8e16 EU/t, 98 quadrillion)}.
+     */
+    public static String buEu(double bu) {
+        final double eu = bu * EU_PER_BU;
+        if (Math.abs(eu) < 999.5) return buNum(bu) + " Bu/t (0 EU/t)";
+        return buNum(bu) + " Bu/t (" + euSci(eu) + " EU/t, " + euWords(eu) + ")";
+    }
+
+    /** A Bu/t figure with its EU/t where space is tight (scanner lines, GUI rows): {@code 9,796 Bu/t (9.8e16 EU/t)}. */
+    public static String buEuShort(double bu) {
+        return buNum(bu) + " Bu/t (" + euOfBu(bu) + ")";
+    }
+
     /** Rounds litres to 3 significant figures (what {@link #litres} can show), so a sync value changes rarely. */
     public static double sig3(double v) {
         if (v == 0 || Double.isNaN(v) || Double.isInfinite(v)) return v;
