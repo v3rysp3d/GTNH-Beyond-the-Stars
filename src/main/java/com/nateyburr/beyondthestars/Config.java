@@ -99,7 +99,8 @@ public class Config {
      * CIRCUITS v2 (design repo designs/docs/circuits-v2.md §1.1, §7.1, revision 3): the Sidereal / Empyrean / Omega
      * circuit families. On: their recipes (SL-X), their entries in GT's circuit ore names (preInit, so a change needs a
      * restart) and the computer-rack components. Off: the items still register (stable world registry) but are hidden
-     * from NEI, have no ore name and no recipe.
+     * from NEI, have no ore name and no recipe. Independent of {@link #raiseStockSpecialCircuits} (question 26, B-136):
+     * with this off the stock Piko / Quantum / Planck raise stays on until that key is off too.
      */
     public static boolean stellarCircuits = true;
 
@@ -251,6 +252,7 @@ public class Config {
             "The Sidereal (UMV), Empyrean (UXV) and Omega (MAX) circuit families: their recipes, their place in GT's"
                 + " circuit ore names (so they fit every 'any circuit of the tier' slot) and their computer-rack"
                 + " entries. Set false to keep the items registered but hidden, with no ore name and no recipe."
+                + " This does not switch off the Piko / Quantum / Planck raise: that is raiseStockSpecialCircuits."
                 + " Restart needed.");
 
         nacCircuitComponents = configuration.getBoolean(
@@ -266,7 +268,8 @@ public class Config {
             Configuration.CATEGORY_GENERAL,
             true,
             "Make the NAC's Piko, Quantum and Planck circuits (and the Raw Manifold Bud) dearer: each step's time x the"
-                + " energy factor, its items and fluids x the material factor. Set false for stock costs.");
+                + " energy factor, its items and fluids x the material factor. Set false for stock costs. Independent of"
+                + " stellarCircuits: turning our circuits off does not turn this off.");
 
         stockSpecialCircuitEnergyFactor = configuration.getFloat(
             "stockSpecialCircuitEnergyFactor",
