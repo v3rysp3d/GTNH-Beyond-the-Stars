@@ -1,12 +1,12 @@
 {
-  "bundleVersion": "13aa3bd937319524daa57f830e190aef8e9bde8c",
+  "bundleVersion": "d461360a7ba2f5ea67c94615b927f3119c69d297",
   "format": 1,
   "idHigh": 190,
   "packVersion": 2171,
   "source": {
     "data": "questbook/singularity.json",
     "src": ".",
-    "srcHead": "bec8734 smbh",
+    "srcHead": "1a81068 smbh",
     "manifestSha": "fa6fec2a751c20eef04cc449df70c3e0c428e9e1"
   },
   "features": {
@@ -27,7 +27,8 @@
     "uxvSwap": false,
     "astralArrayOnEye": false,
     "bec": false,
-    "circuits": true
+    "circuits": true,
+    "smbh": true
   },
   "orderAfter": "l37V2WvbSHGZQ5oMgAfBuw==",
   "chapters": [
@@ -343,6 +344,38 @@
           "sizeY:3": 24,
           "x:3": 468,
           "y:3": 336
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48176,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 1056,
+          "y:3": 168
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48177,
+          "sizeX:3": 48,
+          "sizeY:3": 48,
+          "x:3": 1104,
+          "y:3": 156
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48178,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 1176,
+          "y:3": 168
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48179,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 1104,
+          "y:3": 252
         }
       ]
     },
@@ -490,6 +523,46 @@
           "sizeY:3": 24,
           "x:3": 336,
           "y:3": 96
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48195,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 432,
+          "y:3": 264
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48196,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 480,
+          "y:3": 264
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48197,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 528,
+          "y:3": 264
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48198,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 624,
+          "y:3": 264
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48199,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 252,
+          "y:3": 336
         }
       ]
     },
@@ -525,6 +598,70 @@
           "sizeY:3": 72,
           "x:3": 24,
           "y:3": 144
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48221,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 48,
+          "y:3": 348
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48222,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 96,
+          "y:3": 348
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48226,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 144,
+          "y:3": 408
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48223,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 48,
+          "y:3": 408
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48224,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 96,
+          "y:3": 408
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48225,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 144,
+          "y:3": 348
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48227,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 192,
+          "y:3": 348
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48228,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 240,
+          "y:3": 348
         }
       ]
     },
@@ -5920,7 +6057,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "§c§lUXV §lAT §lUMV §lPOWER§r The §9Empyrean§r circuits, UEV to UXV, printed on White Dwarf Matter from your neutron star. They fill any circuit slot of their tier and are §9far cheaper§r: an Empyrean Mainframe costs about 14× less EU than a Quantum circuit (over 30× less with the raised Quantum price), and no step runs above UMV power.\n\n§5§lTHE §lCHAIN§r\n- Engrave a §9Sidereal Wafer§r again: Gravitational Lens,§9 36 L molten White Dwarf Matter§r and 250 L Excited Stellar Plasma Mixture, 30 s at UMV → §9Empyrean Wafer§r → 8 Empyrean Chips.\n- Boards from Sidereal Circuit Boards (Assembler: SpaceTime and Radox Polymer).\n- Processors in the Circuit Assembler; Assembly, Supercomputer and Mainframe on the Assembly Line (Research Station research), with Stellar SMDs.\n- Every §9Empyrean Mainframe§r is built around one Sidereal Mainframe.\n\n§5§lTHEY §lCOUNT §lAS§r Processor = UEV, Assembly = UIV, Supercomputer = UMV, §9Mainframe = UXV§r.\n\n§5§lWHERE §lTHEY §lGO§r Anywhere a recipe asks for any UXV circuit: every field generator the Eye is built from and upgraded with, the Field Generator UMV (4 each) and the ladder's cores from Eye T5 on. A Quantum circuit still fits too. In a §9computer rack§r the Mainframe gives 340 computation, slightly better than a Quantum circuit.\n\n§2§lDONE §lWHEN§r you hold an Empyrean Processor and an Empyrean Mainframe.",
+            "desc:8": "§c§lUXV §lAT §lUMV §lPOWER§r The §9Empyrean§r circuits, UEV to UXV, printed on White Dwarf Matter from your neutron star. They fill any circuit slot of their tier and are §9far cheaper§r: an Empyrean Mainframe costs about 14× less EU than a Quantum circuit (over 30× less with the raised Quantum price), and no step runs above UMV power.\n\n§5§lTHE §lCHAIN§r\n- Engrave a §9Sidereal Wafer§r again: Gravitational Lens,§9 36 L molten White Dwarf Matter§r and 250 L Excited Stellar Plasma Mixture, 30 s at UMV → §9Empyrean Wafer§r → 8 Empyrean Chips.\n- Boards from Sidereal Circuit Boards (Assembler: SpaceTime and Radox Polymer).\n- Processors in the Circuit Assembler; Assembly, Supercomputer and Mainframe on the Assembly Line (Research Station research), with Stellar SMDs.\n- Every §9Empyrean Mainframe§r is built around one Sidereal Mainframe.\n- §9Two fluids§r on the engraving: a single-block Laser Engraver has one fluid slot, so engrave in a §9multiblock§r (GT's Hyper-Intensity Laser Engraver, or any engraver multi with two input hatches).\n\n§5§lTHEY §lCOUNT §lAS§r Processor = UEV, Assembly = UIV, Supercomputer = UMV, §9Mainframe = UXV§r.\n\n§5§lWHERE §lTHEY §lGO§r Anywhere a recipe asks for any UXV circuit: every field generator the Eye is built from and upgraded with, the Field Generator UMV (4 each) and the ladder's cores from Eye T5 on. A Quantum circuit still fits too. In a §9computer rack§r the Mainframe gives 340 computation, slightly better than a Quantum circuit.\n\n§2§lDONE §lWHEN§r you hold an Empyrean Processor and an Empyrean Mainframe.",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -9353,7 +9490,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "§4§lMAX §lAT §lEYE §lT5§r The §9Omega§r circuits, UIV to MAX, printed on Black Dwarf Matter from Sirius B. They fill any circuit slot of their tier and are §9far cheaper§r: an Omega Mainframe costs about 14× less EU than a Planck circuit (over 30× less with the raised Planck price), with no Universium, Eternity or MagMatter in it.\n\n§5§lTHE §lCHAIN§r\n- Engrave an §9Empyrean Wafer§r once more: Forcicium lens,§9 18 L molten Black Dwarf Matter§r and 100 L Hyperdense Stellar Mixture, 60 s at UMV → §9Omega Wafer§r → 8 Omega Chips.\n- Boards from Empyrean Circuit Boards (Assembler: Hexanite, Shirabon, Dimensionally Transcendent Residue).\n- Processors in the Circuit Assembler; the rest on the Assembly Line (Research Station research), with Stellar SMDs.\n- Every §9Omega Mainframe§r is built around one Empyrean Mainframe.\n\n§5§lTHEY §lCOUNT §lAS§r Processor = UIV, Assembly = UMV, Supercomputer = UXV, §9Mainframe = MAX§r. In a §9computer rack§r the Mainframe gives 380 computation, slightly better than a Planck circuit.\n\n[note]The pack's MAX machines and parts still need their own late materials (Universium, MHDCSM, Eternity, MagMatter); Omega only removes the circuit wall.[/note]\n\n§2§lDONE §lWHEN§r you hold an Omega Processor and an Omega Mainframe.",
+            "desc:8": "§4§lMAX §lAT §lEYE §lT5§r The §9Omega§r circuits, UIV to MAX, printed on Black Dwarf Matter from Sirius B. They fill any circuit slot of their tier and are §9far cheaper§r: an Omega Mainframe costs about 14× less EU than a Planck circuit (over 30× less with the raised Planck price), with no Universium, Eternity or MagMatter in it.\n\n§5§lTHE §lCHAIN§r\n- Engrave an §9Empyrean Wafer§r once more: Forcicium lens,§9 18 L molten Black Dwarf Matter§r and 100 L Hyperdense Stellar Mixture, 60 s at UMV → §9Omega Wafer§r → 8 Omega Chips.\n- Boards from Empyrean Circuit Boards (Assembler: Hexanite, Shirabon, Dimensionally Transcendent Residue).\n- Processors in the Circuit Assembler; the rest on the Assembly Line (Research Station research), with Stellar SMDs.\n- Every §9Omega Mainframe§r is built around one Empyrean Mainframe.\n- §9Two fluids§r again: engrave in a §9multiblock§r laser engraver (GT's Hyper-Intensity Laser Engraver, or any engraver multi with two input hatches), not the single block.\n\n§5§lTHEY §lCOUNT §lAS§r Processor = UIV, Assembly = UMV, Supercomputer = UXV, §9Mainframe = MAX§r. In a §9computer rack§r the Mainframe gives 380 computation, slightly better than a Planck circuit.\n\n[note]The pack's MAX machines and parts still need their own late materials (Universium, MHDCSM, Eternity, MagMatter); Omega only removes the circuit wall.[/note]\n\n§2§lDONE §lWHEN§r you hold an Omega Processor and an Omega Mainframe.",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -9417,6 +9554,364 @@
               }
             },
             "taskID:8": "bq_standard:retrieval"
+          }
+        }
+      }
+    },
+    {
+      "low": 48176,
+      "key": "saturation",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48148
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "The quasar's last upgrade starts here. §9Saturation§r: a Quasar Engine at§9 4,096 SM on MagMatter (T4) Disc Field Coils§r, its disc Stable or better (§9|E| at most 40§r) for§9 1 hour unbroken§r. It is saved with the hole.\n\n§5§lHOW§r Run the disc at f 1.0 with the standard rig's trims and purges. An unattended disc at f 0.85 sits near E -16 and each eruption kicks it about 30 further, so the streak breaks at every eruption: Saturation needs a managed disc.\n\n§5§lTHEN§r The §9Supermassive Lattice§r round the same quasar counts (the next quest). Until Saturation the GUI says \"Reach Saturation first\". A maxed 4,096 SM quasar makes§9 9,796 Bu/t§r at best (9.8e16 EU/t, 98 quadrillion): that is ×1 from here on.\n\n[note]MagMatter comes from the Godforge's magmatter mode, behind its EE upgrade. With the Eye replacement on, EE costs 8 Black Dwarf Matter frame boxes instead of 2 Universium ones, so MagMatter arrives with Eternity at Eye T7.[/note]\n\n§2§lDONE §lWHEN§r the quasar's GUI shows Saturation met (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 28120,
+              "OreDict:8": "",
+              "id:8": "gregtech:gt.blockmachines"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nSaturation",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48176,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48177,
+      "key": "cage_for_a_galaxy",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48176
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "The §9Supermassive Lattice§r: an armillary cage round the quasar you already have (179 × 101 × 179). It is the same controller and the same hole, so nothing is lost.\n\n§5§lTHE §lCAGE§r An equatorial ring and two latitude rings, tied to the quasar's cage by struts. The poles stay open, so jets, crowns and mouths dock as before. 8,436 Lattice Frame Casings and§9 48 Containment Nodes§r, all one tier, like coils. The hologram projector builds it on the 'lattice' channel, and NEI previews each tier.\n\n§5§lTHE §lTIERS§r safe limit / top:\n- §9L1§r Superdense Ergomatter (Eye T8): 16,384 / 65,536 SM\n- §9L2§r White Hole Matter (Eye T9): 65,536 / 262,144 SM\n- §9L3§r Universium (Eye T10): 262,144 / 4,194,304 SM, and Overdrive\n- §9L4§r Constrained Eternity: 4,194,304 / 67,108,864 SM, and Unbind\nEach node tier is made from the one below in the Condensate Assembler.\n\n§5§lTHE §lSETPOINT§r With a lattice, growth stops at the §9mass setpoint§r (default: the safe limit; 4,096 SM up to the top), in the Supermassive Lattice panel. Lowering it below the mass sheds 2 % a second: the excess leaves up both jets, and the crowns make nothing while it does.\n\nA missing lattice block under a hole over 4,096 SM freezes the quasar (nothing is lost) until the lattice is whole. To take a lattice down, set the setpoint to 4,096 SM first.\n\n§2§lDONE §lWHEN§r you hold 48 Containment Nodes L1 (HOLD → CLAIM → INSTALL).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 1,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:slCasing4"
+            },
+            "isMain:1": 1,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nA Cage for a Galaxy",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48177,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 0,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 48,
+                "Damage:2": 1,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing4"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
+          },
+          "1:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 1,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 8436,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing4"
+              },
+              "1:10": {
+                "Count:3": 48,
+                "Damage:2": 1,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing4"
+              }
+            },
+            "taskID:8": "bq_standard:optional_retrieval"
+          }
+        }
+      }
+    },
+    {
+      "low": 48178,
+      "key": "past_the_coils",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48177
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "Grow the hole to§9 16,384 SM§r, the L1 safe limit: four times what any coil holds.\n\n§5§lTHE §lINTAKE§r With a lattice, all the gas the rim hatches give in a second is the §9intake§r, up to§9 5× the Eddington feed§r: per SM, 25 L/t of Hydrogen, 50 of Helium or 100 of Raw Star Matter. The GUI's stacked bar spends it in order:\n- §9Disc§r (white): f × Eddington, the only part that moves E;\n- §9Hold-up§r (amber): 3 × x × Eddington, x your place in the band (0 at the safe limit, 1 at the top). It holds mass and grows nothing;\n- §9Growth§r (green): the rest. It grows the hole with the same mass per litre as the disc.\nSo put in more gas than f draws. At the cap, with f 1 at a safe limit, the hole grows§9 5×§r as fast as the disc alone.\n\n§5§lPOWER§r Past 4,096 SM the output grows as the square root of mass: §9×2 at 16,384 SM§r (2.0e17 EU/t), ×4 at 65,536 (3.9e17), ×7.9 at 262,144 (7.7e17), then flattening toward ×31 (3.0e18 EU/t) at the L4 top.\n\n§2§lDONE §lWHEN§r the GUI's mass bar reads 16,384 SM or more (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 3,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:slCasing2"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nPast the Coils",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48178,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48179,
+      "key": "event_horizon_crown",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48176
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "The crown's fourth structure tier, built round the same controller (81 × 35 × 81): cap§9 524,288 Bu/t§r (5.2e18 EU/t, 5.2 quintillion), with 852 Event Horizon Thermaliser Casings.\n\n§5§lHOW §lMANY§r A Mk III caps at 8,192 Bu/t (8.2e16 EU/t), so a hole past 4,096 SM floods it. Two Mk IV (one per jet port) carry even full Overdrive's mean (979,600 Bu/t, 9.8e18 EU/t); four (two stacked on each port) also catch the eruption peaks. No hole ever needs more than four.\n\n§5§lTHE §lCONDUIT§r The §9Conduit Throat Mk IV§r (assembly line, from a Mk III) carries 524,288 Bu/t (5.2e18 EU/t) through an element, on 2 L/s of Superdense Ergomatter (or 16 L/s Ergomatter, or 256 L/s Molten SpaceTime).\n\nThe EU still goes to your wireless network as one big number a second: no element can overflow.\n\n§2§lDONE §lWHEN§r a Mk IV crown is formed on a jet port (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 5,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:slCasing4"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nEvent Horizon Crown",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48179,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          },
+          "1:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 1,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 4599,
+                "Damage:2": 11,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing2"
+              },
+              "1:10": {
+                "Count:3": 852,
+                "Damage:2": 5,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing4"
+              },
+              "2:10": {
+                "Count:3": 492,
+                "Damage:2": 9,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing2"
+              },
+              "3:10": {
+                "Count:3": 472,
+                "Damage:2": 11,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.blockcasings10"
+              }
+            },
+            "taskID:8": "bq_standard:optional_retrieval"
           }
         }
       }
@@ -10051,6 +10546,10 @@
           "1:10": {
             "questIDHigh:4": 190,
             "questIDLow:4": 48187
+          },
+          "2:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48198
           }
         },
         "properties:10": {
@@ -10563,6 +11062,373 @@
       }
     },
     {
+      "low": 48195,
+      "key": "pumping_the_sky",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48178
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "Feed the hole from §9Space Elevator Pump modules§r at§9 1,000,000 L/t or more for 1 hour§r.\n\n§5§lTHE §lPUMPS§r (GTNH-Intergalactic) Pump I: 313,600 L/t of Hydrogen (280,000 of Helium). Pump II: 1.25 M (1.12 M). §9Pump III: 20.1 M L/t§r of Hydrogen (17.9 M of Helium). A Space Elevator full of Pump III makes 4.8e8 L/t.\n\n§5§lHOW §lMUCH§r Hydrogen to hold the mass / at the 5× cap:\n- 65,536 SM (the L1 top, the Eye gate): 1.31 M / 1.64 M L/t,§9 1 Pump III§r\n- 4,194,304 SM (the L3 top): 84 M / 105 M L/t, 5 Pump III\n- 67,108,864 SM (the L4 top): 1.34 billion / 1.68 billion L/t,§9 67 Pump III§r, about 3 full elevators\nHelium needs twice the litres of Hydrogen, Raw Star Matter four times. A fixed supply of Hydrogen holds the biggest hole; plenty of a heavier gas grows it faster.\n\n§5§lINTO §lTHE §lMACHINE§r The 24 Rim Gas Injector sockets take ME Input Hatches (stocking) or plain ones. The controller draws every tick, at most 2,147,483,647 L a drain, and keeps a§9 60 s Accretion Buffer§r of Disc + Hold-up. A YOTTank (GoodGenerator) or AE2FC cells hold the gas in bulk.\n\n§2§lDONE §lWHEN§r the intake has stayed at 1,000,000 L/t or more for an hour (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 8,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:slCasing2"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nPumping the Sky",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48195,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48196,
+      "key": "drinking_deep",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48195
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "Run the intake at its§9 5× cap for 1 hour§r: the hole drinks as fast as it can.\n\n§5§lHOW §lFAST§r At the cap with f 1, growth is 5× the disc's own at a safe limit and 2× at a band top, where the hold-up takes its share. From 4,096 SM on Helium at the cap:\n- the Eye gate (65,536 SM on L1):§9 16.6 h§r\n- 4,194,304 SM on L4 (its safe limit): 32.8 h\n- the L4 top (67,108,864 SM): 52.8 h\n- each Unbound doubling: 8.2 h\nHydrogen takes twice as long, Raw Star Matter half.\n\n§5§lUNDER-FED§r An intake of F × Eddington holds the hole only up to band position (F - 1) / 3. Below 4× you cannot reach a band top, and the hole settles where your gas holds it. The line under the bar reads, for example: Disc 840 M, Hold-up 2,520 M (100 %), Growth 40 M, +2.2 % per hour.\n\n§2§lDONE §lWHEN§r the intake bar has sat on its 5× tick for an hour (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 28120,
+              "OreDict:8": "",
+              "id:8": "gregtech:gt.blockmachines"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nDrinking Deep",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48196,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48197,
+      "key": "holding_it_up",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48196
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "Hold§9 65,536 SM on an L1 lattice for 1 hour§r, with no leak: the top of the L1 band, and the hole the Eye's T9 → T10 Supermassive Link asks for.\n\n§5§lOVER §lTHE §lLIMIT§r Mass over the safe limit has no time limit: the §9hold-up gas§r holds it. At a band top that is 3× Eddington on top of the disc, so at least§9 4× Eddington§r of intake: 1.31 M L/t of Hydrogen, or 2.62 M of Helium, at 65,536 SM.\n\n§5§lA §lLEAK§r When the hold-up is short (the amber segment shows red), the extra mass leaks back: the part over the safe limit halves each hour on a log scale, never below the safe limit, and nothing is damaged. A dark disc holds nothing, so an outage leaks too; the 60 s Accretion Buffer covers a short one.\n\n§5§lAUTOMATE§r The Directive Hatch's Horizon set: [1] hold-up short, [2] buffer under 30 s, [4] anchor short, [8] Overdrive upkeep short. A Burst Control Hatch in Hold mode sets the setpoint (safe limit 0 .. band top 15). Sensor channels and OpenComputers (getHoldUp, getBuffer) report it.\n\n§2§lDONE §lWHEN§r the hole has held 65,536 SM for an hour with the hold-up at 100 % (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 1,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:slCasing4"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nHolding It Up",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48197,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48198,
+      "key": "supermassive_link",
+      "placeholder": true,
+      "needs": [
+        "smbh",
+        "eyeT9T10"
+      ],
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48197
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 0,
+            "desc:8": "The Eye's §9T9 → T10 machine milestone§r: link a hole of at least§9 65,536 SM§r with a Supermassive Lattice (any tier) to the Eye through the conduit for§9 30 min unbroken§r, with a 60 s mean of at least§9 96 Bu/t§r (9.6e14 EU/t) on the Eye's ports. The streak resets when the link drops or the hole leaks under 65,536 SM.\n\nIt is met with an §9L1 lattice§r (Eye T8 products) and pack gases: nothing from Eye T9 or later.\n\nEvery stream already carries its source's lattice tier and mass. The Eye's GUI shows a §9Supermassive Link (P5)§r row (the streak, the mean, and whether the linked hole qualifies), OpenComputers getUnlock() has it, and the quasar's sensor has a Supermassive Link ready channel.\n\n[note]§lComing §llater.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 28115,
+              "OreDict:8": "",
+              "id:8": "gregtech:gt.blockmachines"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§7§l§nSupermassive Link§r §8(planned)",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48198,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48199,
+      "key": "white_hole_lattice",
+      "placeholder": true,
+      "needs": [
+        "smbh",
+        "eyeT9T10"
+      ],
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48183
+          },
+          "1:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48177
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 0,
+            "desc:8": "Remake the 48 nodes as §9L2§r: each L1 node plus 4,032 L of Entangled White Hole Matter (Eye T9) in the Condensate Assembler. L2's safe limit is§9 65,536 SM§r and its top 262,144 SM: the Eye gate's mass with no hold-up gas at all.\n\nL2 is optional: the Eye gate is met on L1. Its recipe stays hidden in NEI until White Hole Matter exists.\n\n§2§lDONE §lWHEN§r you hold 48 Containment Nodes L2 (HOLD → CLAIM → INSTALL).\n\n[note]§lComing §llater.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 2,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:slCasing4"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§7§l§nWhite Hole Lattice§r §8(planned)",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48199,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
       "low": 48220,
       "key": "the_endgame",
       "placeholder": false,
@@ -10624,6 +11490,602 @@
         },
         "questIDHigh:4": 190,
         "questIDLow:4": 48220,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48221,
+      "key": "universe_to_hold_it",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48220
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "§9L3§r: each node remade with 2,304 L of Entangled Universium (Condensate Assembler, MAX). Safe limit§9 262,144 SM§r, top§9 4,194,304 SM§r, and §9Overdrive§r.\n\nAt 262,144 SM a hole gives §9×7.9§r on gas alone (7.7e17 EU/t). A whole endgame base draws 1e16 to 1e17 EU/t: one L3 hole holds it several times over.\n\n[note]Universium comes from Eye T10 (a later update), or from TecTech's Eye of Harmony with replaceTecTechEyeOfHarmony=false (576 / 2,304 / 9,216 L a run at its tiers 7 / 8 / 9).[/note]\n\n§2§lDONE §lWHEN§r you hold 48 Containment Nodes L3 (HOLD → CLAIM → INSTALL).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 3,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:slCasing4"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nA Universe to Hold It",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48221,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 0,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 48,
+                "Damage:2": 3,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing4"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
+          }
+        }
+      }
+    },
+    {
+      "low": 48222,
+      "key": "a_few_million",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48221
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "Hold§9 2,097,152 SM or more for 1 hour§r: \"a few million stellar mass\". On L3 that is band position 0.75, held by 3.25× Eddington of intake: about 34 M L/t of Hydrogen (1.7 Pump III), 52 M at the cap.\n\n§5§lPOWER§r ×19.5 on gas alone:§9 1.9e18 EU/t§r. At the L3 top (4,194,304 SM), ×24.2: 2.4e18 EU/t.\n\n§2§lDONE §lWHEN§r the GUI's mass bar has read 2,097,152 SM or more for an hour (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 28120,
+              "OreDict:8": "",
+              "id:8": "gregtech:gt.blockmachines"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nA Few Million",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48222,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48223,
+      "key": "overdrive",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48221
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "On an L3 lattice or better, §9Overdrive§r lifts the output toward a hard §9×100§r (9.8e18 EU/t, about 10 quintillion) for§9 100,000 × o² L/s§r each of Molten MHDCSM and Molten Universium, through the trim sockets. o is 0 to 100 % in 5 % steps: the Supermassive Lattice panel, a Burst Control Hatch in Overdrive mode (o = s/15), or OpenComputers setOverdrive.\n\n§5§lRETURNS §lFALL§r Half Overdrive gives about 90 % of the gain. Upkeep each; output at 262,144 SM / 4,194,304 SM:\n- o 25 %: 6,250 L/s; ×21.4 / ×59.1\n- o 50 %: 25,000 L/s; ×34.1 / ×80.5\n- o 75 %: 56,250 L/s; ×45.8 / ×91.4\n- o 100 %: 100,000 L/s; ×56.0 / ×96.3\n\nRunning dry fades it over 1 s; nothing breaks. A dark disc makes nothing, Overdrive or not. MHDCSM: bartworks' Electric Implosion Compressor, 5,184 L/s a running recipe.\n\n§2§lDONE §lWHEN§r the GUI's output multiplier has read ×50 or more for 10 minutes (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 3,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:slCasing4"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nOverdrive",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48223,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48224,
+      "key": "only_for_a_bit",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48223
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "Run at §9×90 or more for 10 minutes§r. That takes a big hole and nearly full Overdrive: ×91.4 at 4,194,304 SM with o 75 %, ×96.3 at full.\n\nFull Overdrive for 10 minutes burns§9 60 M L§r each of MHDCSM and Universium; half for an hour, 90 M each. That is the \"only for a bit\": past ×100 is never worth it, and the curve will not go there.\n\n§2§lDONE §lWHEN§r the output multiplier has read ×90 or more for 10 minutes (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 3,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:slCasing4"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nOnly for a Bit",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48224,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48225,
+      "key": "constrained_eternity",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48222
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "§9L4§r: each L3 node with 4 Eternity and 4 MHDCSM plates under a Universium coat (1,440 L each of MHDCSM and Universium, 16 any-MAX circuits; Condensate Assembler, MAX). Safe limit§9 4,194,304 SM§r, top§9 67,108,864 SM§r, and §9Unbind§r.\n\nAt the L4 top the hole gives ×31 on gas alone:§9 3.0e18 EU/t§r, held by 1.34 billion L/t of Hydrogen (67 Pump III).\n\n§2§lDONE §lWHEN§r you hold 48 Containment Nodes L4 (HOLD → CLAIM → INSTALL).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 4,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:slCasing4"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nConstrained Eternity",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48225,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 0,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 48,
+                "Damage:2": 4,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing4"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
+          }
+        }
+      }
+    },
+    {
+      "low": 48226,
+      "key": "holding_the_whole_base",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48225
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "A§9 1 hour mean of at least 1e18 EU/t§r (one quintillion, 100,000 Bu/t) with Overdrive off: from about 450,000 SM on L3 with a well-run disc, on gas alone.\n\nTwo Mk IV crowns carry it to your wireless network.\n\n§2§lDONE §lWHEN§r the quasar's Bursts row has averaged 1e18 EU/t for an hour with Overdrive off (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 5,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:slCasing4"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nHolding the Whole Base",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48226,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48227,
+      "key": "unbound",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48225
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "On an L4 lattice, §9Unbind§r (click it twice in the Supermassive Lattice panel, or OpenComputers setUnbound) lets the setpoint pass 67,108,864 SM. n = log2(M / 67,108,864) is the number of doublings past the top. Hold §9n 1 or more for 1 hour§r with the anchor paid.\n\n§5§lTHE §lANCHOR§r Every second the hole costs§9 1,024 × 4^(n²) L§r of Primordial Matter (GT's Transcendent Plasma Mixer), through the trim sockets:\n- n 0.5 (94.9 M SM): 1,448 L/s\n- n 1 (134 M SM):§9 4,096 L/s§r\n- n 1.5 (190 M SM): 23,170 L/s\n- n 2 (268 M SM): 262,144 L/s\n- n 3 (537 M SM): 2.7e8 L/s, impossible\nShort of it, the hole §9sheds safely§r at 2 % a second to the doubling your supply pays for (with no Primordial Matter at all, back to the L4 top). Nothing is ever destroyed.\n\nGrowth: one doubling per 8.2 h on Helium at the cap; the hold-up stays 3×. Unbound adds no power (the curve is flat): it makes Overdrive cheaper.\n\n§2§lDONE §lWHEN§r the GUI has shown n of at least 1, with the anchor fully paid, for an hour (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 4,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:slCasing4"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nUnbound",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48227,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48228,
+      "key": "cheaper_by_the_doubling",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48227
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "Run §9full Overdrive at n 1 or more for 10 minutes§r. Every doubling halves the Overdrive upkeep: 100,000 × o² × 2^(-n) L/s each.\n\n§5§lFULL §lOVERDRIVE§r upkeep each / anchor / all fluids, L/s:\n- n 0: 100,000 / 0 / 200,000\n- n 0.5: 70,711 / 1,448 / 142,870\n- n 1:§9 50,000§r / 4,096 / 104,096\n- n 1.5: 35,355 / 23,170 /§9 93,880§r (the cheapest)\n- n 2: 25,000 / 262,144 / 312,144 (dearer than not Unbound)\nUniversium is the scarce fluid; Primordial Matter is made from commoner ones. The ×100 ceiling still holds: Unbound makes ×99 cheaper, never stronger.\n\n§2§lDONE §lWHEN§r the GUI shows Overdrive 100 % at n 1 or more, upkeep 50,000 L/s each or less, for 10 minutes (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 4,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:slCasing4"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nCheaper by the Doubling",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48228,
         "rewards:9": {},
         "tasks:9": {
           "0:10": {

@@ -1,0 +1,66 @@
+{
+  "preRequisites:9": {
+    "0:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48177
+    }
+  },
+  "properties:10": {
+    "betterquesting:10": {
+      "autoClaim:1": 0,
+      "completion_animation:8": "default",
+      "completion_particle:8": "default",
+      "confetti_icon:10": {
+        "Count:3": 0,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "minecraft:stick"
+      },
+      "countAsQuest:1": 1,
+      "desc:8": "Grow the hole to§9 16,384 SM§r, the L1 safe limit: four times what any coil holds.\n\n§5§lTHE §lINTAKE§r With a lattice, all the gas the rim hatches give in a second is the §9intake§r, up to§9 5× the Eddington feed§r: per SM, 25 L/t of Hydrogen, 50 of Helium or 100 of Raw Star Matter. The GUI's stacked bar spends it in order:\n- §9Disc§r (white): f × Eddington, the only part that moves E;\n- §9Hold-up§r (amber): 3 × x × Eddington, x your place in the band (0 at the safe limit, 1 at the top). It holds mass and grows nothing;\n- §9Growth§r (green): the rest. It grows the hole with the same mass per litre as the disc.\nSo put in more gas than f draws. At the cap, with f 1 at a safe limit, the hole grows§9 5×§r as fast as the disc alone.\n\n§5§lPOWER§r Past 4,096 SM the output grows as the square root of mass: §9×2 at 16,384 SM§r (2.0e17 EU/t), ×4 at 65,536 (3.9e17), ×7.9 at 262,144 (7.7e17), then flattening toward ×31 (3.0e18 EU/t) at the L4 top.\n\n§2§lDONE §lWHEN§r the GUI's mass bar reads 16,384 SM or more (tick the box).",
+      "globalShare:1": 0,
+      "icon:10": {
+        "Count:3": 1,
+        "Damage:2": 3,
+        "OreDict:8": "",
+        "id:8": "beyondthestars:slCasing2"
+      },
+      "isMain:1": 0,
+      "isSilent:1": 0,
+      "lockedProgress:1": 0,
+      "name:8": "§4§l§nPast the Coils",
+      "notification_duration:5": -1.0,
+      "notification_effect:3": -1,
+      "notification_fade_in:5": -1.0,
+      "notification_fade_out:5": -1.0,
+      "notification_icon_offset_y:3": -2147483648,
+      "notification_icon_scale:5": -1.0,
+      "notification_pos_x:3": -2147483648,
+      "notification_pos_y:3": -2147483648,
+      "notification_show_icon:8": "default",
+      "notification_style:8": "default",
+      "notification_subtitle:8": "",
+      "notification_subtitle_scale:5": -1.0,
+      "notification_title:8": "",
+      "notification_title_scale:5": -1.0,
+      "particle_count:3": -1,
+      "questLogic:8": "AND",
+      "repeatTime:3": -1,
+      "repeat_relative:1": 1,
+      "simultaneous:1": 0,
+      "snd_complete:8": "random.levelup",
+      "snd_update:8": "random.levelup",
+      "taskLogic:8": "AND",
+      "visibility:8": "NORMAL"
+    }
+  },
+  "questIDHigh:4": 190,
+  "questIDLow:4": 48178,
+  "rewards:9": {},
+  "tasks:9": {
+    "0:10": {
+      "index:3": 0,
+      "taskID:8": "bq_standard:checkbox"
+    }
+  }
+}

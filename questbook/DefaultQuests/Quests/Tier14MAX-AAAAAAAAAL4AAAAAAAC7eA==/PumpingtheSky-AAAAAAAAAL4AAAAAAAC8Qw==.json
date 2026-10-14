@@ -1,0 +1,66 @@
+{
+  "preRequisites:9": {
+    "0:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48178
+    }
+  },
+  "properties:10": {
+    "betterquesting:10": {
+      "autoClaim:1": 0,
+      "completion_animation:8": "default",
+      "completion_particle:8": "default",
+      "confetti_icon:10": {
+        "Count:3": 0,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "minecraft:stick"
+      },
+      "countAsQuest:1": 1,
+      "desc:8": "Feed the hole from §9Space Elevator Pump modules§r at§9 1,000,000 L/t or more for 1 hour§r.\n\n§5§lTHE §lPUMPS§r (GTNH-Intergalactic) Pump I: 313,600 L/t of Hydrogen (280,000 of Helium). Pump II: 1.25 M (1.12 M). §9Pump III: 20.1 M L/t§r of Hydrogen (17.9 M of Helium). A Space Elevator full of Pump III makes 4.8e8 L/t.\n\n§5§lHOW §lMUCH§r Hydrogen to hold the mass / at the 5× cap:\n- 65,536 SM (the L1 top, the Eye gate): 1.31 M / 1.64 M L/t,§9 1 Pump III§r\n- 4,194,304 SM (the L3 top): 84 M / 105 M L/t, 5 Pump III\n- 67,108,864 SM (the L4 top): 1.34 billion / 1.68 billion L/t,§9 67 Pump III§r, about 3 full elevators\nHelium needs twice the litres of Hydrogen, Raw Star Matter four times. A fixed supply of Hydrogen holds the biggest hole; plenty of a heavier gas grows it faster.\n\n§5§lINTO §lTHE §lMACHINE§r The 24 Rim Gas Injector sockets take ME Input Hatches (stocking) or plain ones. The controller draws every tick, at most 2,147,483,647 L a drain, and keeps a§9 60 s Accretion Buffer§r of Disc + Hold-up. A YOTTank (GoodGenerator) or AE2FC cells hold the gas in bulk.\n\n§2§lDONE §lWHEN§r the intake has stayed at 1,000,000 L/t or more for an hour (tick the box).",
+      "globalShare:1": 0,
+      "icon:10": {
+        "Count:3": 1,
+        "Damage:2": 8,
+        "OreDict:8": "",
+        "id:8": "beyondthestars:slCasing2"
+      },
+      "isMain:1": 0,
+      "isSilent:1": 0,
+      "lockedProgress:1": 0,
+      "name:8": "§4§l§nPumping the Sky",
+      "notification_duration:5": -1.0,
+      "notification_effect:3": -1,
+      "notification_fade_in:5": -1.0,
+      "notification_fade_out:5": -1.0,
+      "notification_icon_offset_y:3": -2147483648,
+      "notification_icon_scale:5": -1.0,
+      "notification_pos_x:3": -2147483648,
+      "notification_pos_y:3": -2147483648,
+      "notification_show_icon:8": "default",
+      "notification_style:8": "default",
+      "notification_subtitle:8": "",
+      "notification_subtitle_scale:5": -1.0,
+      "notification_title:8": "",
+      "notification_title_scale:5": -1.0,
+      "particle_count:3": -1,
+      "questLogic:8": "AND",
+      "repeatTime:3": -1,
+      "repeat_relative:1": 1,
+      "simultaneous:1": 0,
+      "snd_complete:8": "random.levelup",
+      "snd_update:8": "random.levelup",
+      "taskLogic:8": "AND",
+      "visibility:8": "NORMAL"
+    }
+  },
+  "questIDHigh:4": 190,
+  "questIDLow:4": 48195,
+  "rewards:9": {},
+  "tasks:9": {
+    "0:10": {
+      "index:3": 0,
+      "taskID:8": "bq_standard:checkbox"
+    }
+  }
+}
