@@ -8263,3 +8263,123 @@ mouth A does not form, see 5); the vortex at 10 steps (the shots are at 12).
 volumes at half resolution into an off-screen target when they fill more than a third of the screen. Shots: session
 local work folder `renders/homogeny|reality|conduit/after-*.png`, `after-low-*`, `before-*` (re-taken close / hero),
 `after-fps.tsv`; `renders/compare.html#machines`.
+
+### R-16 Performance and compatibility pass: every render on screen at once, the fallbacks, LOD, GL state, allocations, Angelica [renders v2, finding + fix]
+
+**What was checked, and how.** A performance scene was added to the render QA harness (`rendertest/RenderScene`,
+site `SCENE` at x 10,000, appended to the L4 world). It holds a Kerr T2 at 512 SM, the Homogeny at T3 (mixing), an
+Eye T8 in the Galactic Merger (both galaxies and the tidal tails, the heaviest galaxy look) and a quasar at 4,096 SM
+frozen 25 ticks into an eruption, close together so that one camera sees all four. Its views are `tilt` (all four on
+screen, found by a search that keeps every render centre in the frame and within 235 blocks), `over`, `qring` (inside
+the quasar's shell over its ring), `klevel` (the Kerr through its window band), `ebowl` (over the Eye's bowl) and
+`lodk:10` (the Kerr's hole at L0, 10 blocks out). Each case carries a quality token: `off` (every big render skips its
+draw: the baseline), `low`, `medium`, `high`, `high16` (16 objects allowed at L0), `pack`, `fail` / `recover`,
+`glerror`. New probes: `FrameProbe` (the frame interval, the render tick's CPU time, the GPU time between two
+`GL_TIMESTAMP` queries, KB allocated per frame), `AllocProbe` (bytes each renderer allocates per frame, inside its
+timer section), `GlStateCheck` (`-Dbts.render.leakcheck=true`: about 90 GL states read before and after every
+renderer's draw), `-Dbts.render.forceCore=true` (GT's core profile in a client without Angelica),
+`-Dbts.render.fakeShaderpack=true`, `BTSShaders.debugFailAll`. Notes: `docs/render-kit.md`.
+
+The harness FPS counter read 118-121 in every earlier entry: the dev client's `options.txt` put the frame cap (120) and
+vsync back a second after start-up. The harness now holds them off, so the numbers below are uncapped.
+
+**The BEFORE build.** `renderQuality=low` draws the fixed-function renders of before renders v2, unchanged (R-10
+compared LOW with the BEFORE shots pixel by pixel), so LOW is the BEFORE in the same session and on the same rig.
+Machines that drew nothing before (the Homogeny, Reality, conduit) draw nothing at LOW either.
+
+**Numbers (dev rig RTX 4090, 1280 x 720, render distance 16, FOV 70, legacy profile; medians of three interleaved
+rounds, because the GPU clocks drift over a run; other units' work shares the machine, so differences under about
+0.03 ms are noise).** Frame ms is the mean frame time; "cost" is frame ms minus the `off` baseline of the same view.
+
+| View | off: fps / frame ms | LOW (before v2): fps / cost | MEDIUM: fps / cost | HIGH (default): fps / cost | HIGH, 16 at L0: cost |
+|---|---|---|---|---|---|
+| tilt (all four, day) | 630 / 1.586 | 404 / +0.886 | 589 / +0.113 | 593 / +0.101 | +0.119 |
+| tilt (night) | 630 / 1.587 | 413 / +0.836 | 603 / +0.071 | 599 / +0.082 | +0.052 |
+| over (straight down) | 603 / 1.659 | 383 / +0.953 | 578 / +0.071 | 571 / +0.091 | +0.107 |
+| qring (quasar L0 close) | 968 / 1.033 | 519 / +0.895 | 884 / +0.098 | 900 / +0.078 | +0.085 |
+| klevel (Kerr window) | 826 / 1.211 | 489 / +0.835 | 745 / +0.131 | 744 / +0.132 | +0.184 |
+| ebowl (Eye bowl) | 995 / 1.005 | 551 / +0.811 | 910 / +0.094 | 900 / +0.106 | +0.104 |
+| lodk:10 (Kerr L0) | 866 / 1.155 | 499 / +0.848 | 794 / +0.105 | 778 / +0.130 | +0.132 |
+
+- **HIGH costs 0.08-0.13 ms a frame with all four renders on screen; the renders it replaced (LOW) cost 0.81-0.95 ms.**
+  The old quasar's Tessellator ring alone takes 0.58-0.60 ms of CPU a frame. The 99th-percentile frame is 6.49 ms at
+  HIGH against 6.31 ms off and 7.43 ms at LOW (tilt), so HIGH adds no stutter.
+- Our own sections at HIGH (tilt): GPU 0.113 ms, CPU 0.073 ms a frame for all four renders (quasar 0.059 / 0.044,
+  Kerr 0.038 / 0.004, Eye 0.013 / 0.015, Homogeny 0.005 / 0.010). The scene budget (§3.1: 0.33 ms dev) holds in every
+  view; the busiest is the Kerr's L0 close-up with its screen copy, 0.217 ms GPU (the known R-11 over-budget case for
+  the Kerr alone).
+- MEDIUM equals HIGH in most of these views, because only the closest object is ever at L0 (and only two may be:
+  `renderMaxHighObjects`); the difference shows in the L0 views (qring, lodk:10).
+- Machines on their own (`close` / `hero`, HIGH): Homogeny 0.083 ms GPU / 0.026 ms CPU, Diffraction 0.072-0.079 /
+  0.041, Refab 0.001-0.004 / 0.042, conduit stream 0.007 / 0.047 (plus its quasar). The Reality machines' CPU is
+  still over the §3.1 0.03 ms (R-15's batched-glow suggestion stands).
+- Whole frame: 13.2-13.6 KB allocated per frame at `off`, 13.8-14.0 at HIGH, 17.4-17.6 at LOW.
+
+**Fixes made in this pass.**
+
+1. *Per-frame allocations (no allocation in a hot path).* Before: 320-352 bytes a frame at HIGH in the scene (quasar
+   120, Homogeny 152, Kerr 24-56, Eye 24). Sources: varargs program arrays to `RenderQuality.tier`, `NoiseTex.bind`'s
+   save array, capturing lambdas queued in `DeferredDraws`, `Blackbody.rgb` arrays (and the Kerr's far glow
+   integrating the Planck curve every frame), the Homogeny's colour arrays, the conduit crown's geometry arrays, the
+   black hole's screen rectangle, `Lod.tierFor` calling `Tier.values()` (a fresh array each call), `MachineFx.drawBeam`'s
+   midpoint array, Refab's receiver table, and the HIGH ranking's per-frame list and set. After: **0 bytes a frame in
+   every renderer** (Kerr, quasar, Eye, Homogeny, Diffraction, Refab, conduit, under both profiles). LOW still
+   allocates (inside GT's `BlackholeRenderer` delegate and the Tessellator path of the old code), left unchanged by
+   design.
+2. *A GL state leak.* `Layers.emissive` set the lightmap coordinates to full brightness and nothing put them back
+   (`OpenGlHelper.lastBrightnessX / Y` after the Eye, quasar, Kerr glow, Homogeny, Reality and conduit draws).
+   `GlSave` now restores them. After the fix: 132 shots, every render family, both profiles: no leaks. The only
+   remaining difference is the texture bound on unit 0 after the LOW path's draws, which bind their textures the way
+   every vanilla TESR does (and every TESR binds its own before drawing).
+3. *Angelica: everything behind glass vanished.* With Angelica 2.2.26 in the dev client (a real GL 4.6 core context,
+   GT's `ANGELICA_CORE` profile, our shaderpack probe resolving through the Iris API), the Homogeny's vortex, the
+   Diffraction's drums, spine and fans and Refab's glyph rings drew but could not be seen: Angelica's world renderer
+   (Celeritas) writes the translucent glass into the depth buffer, and these draws run after the translucent pass
+   (R-15) behind TecTech's glass. `OpaqueDepth` now saves the depth buffer when the first machine queues its draw
+   (pass 0, opaque world done), puts it back for the deferred draws (blocks still hide them, glass does not) and
+   restores the full depth after: three depth blits, about 0.03 ms GPU and 0.03 ms CPU a frame, only under Angelica and
+   only with a machine render in view. With a shaderpack (the pack owns the framebuffers) or without GL 3.0 the
+   machines draw at once in pass 0, visible behind the glass. Vanilla is unchanged. Shots:
+   `renders/scene/after-angelica-*.png`.
+
+**Checked and passing.**
+
+- *Fallbacks.* Every program failing its bake (`fail`): every object draws FIXED and the frame matches LOW (mean
+  difference 0.01-2.7 / 255, the rest animation); after a resource reload (`recover`) every program bakes again and
+  the v2 looks come back. A GL error injected into each object's checked draw (`glerror`): each object logs once and
+  drops to FIXED for the session (`(GL failed)`), matching LOW.
+- *LOD by distance.* Walks out and back in from the Kerr (8-270 blocks), the Eye (22-240) and the quasar (40-300):
+  L0, L1, L2, L3 and off beyond the tile's range at the specified sizes, with the 10 % hysteresis visible in both
+  directions (the Eye at 330 px is L0 going out, L1 coming back; the Kerr at 18 px L2 out, L3 in; the Homogeny at
+  77 px L1 out, L2 in). The quasar never reaches L2 inside the render distance (its ring is 124 blocks wide); at
+  300 blocks it is not drawn.
+- *Other mods, GUIs, NEI, hand items.* The HUD, the hotbar, the hand item (an enchanted sword: its glint is a texture
+  matrix effect) and the creative inventory with NEI over the scene: identical at HIGH and with every render off
+  (NEI's panels 0.00 %, the inventory 0.2 % of pixels; the hand differs only where the glint has moved).
+- *Core profile drawn for real.* `-Dbts.render.forceCore=true` in the dev client: all 17 of our programs' `#version 330 core`
+  variants and GT's core meshes drew 132 shots with no bake failure and no leak; compared with the legacy shots the
+  only differences are animation phases.
+- *Angelica and a shaderpack, as before.* Under Angelica every object draws its shader tiers (45 shots, no fallback,
+  no leak). With a minimal OptiFine-format test pack active (`AngelicaShaders: Using shaderpack`), the probe reports
+  the pack, the screen-copy lensing switches off (the black hole bends its procedural starfield instead, R-08), every
+  render still draws, no GL state leaks (26 shots). With the probe forced on in vanilla (`pack`): the same frame cost
+  as HIGH.
+
+**Not fixed (logged).**
+
+- *Angelica, the first view of a machine.* Right after a player arrives, a machine render drawn from GT's controller
+  hook (Diffraction, Refab) can stay invisible until the controller block itself has been on screen once; from then
+  on it draws from every angle. Instrumented: at that first view Angelica had not classified the controller's tile
+  entity at all (no bounds class, no cached box); afterwards it holds the correct box (x +-110, y -20..+160). A section
+  rebuild requested when the machine's render data arrives did not change it, so it was removed again. A real fix is
+  the R-05 alternative: a small render tile at each machine's render centre (as the Kerr, quasar and Eye have), whose
+  own block is always inside the view that shows the render.
+- The Reality machines' CPU (0.041-0.043 ms, budget 0.03) and the Kerr's L0 close-up GPU (0.217 ms with the screen
+  copy, budget 0.08): as R-11 / R-15.
+- The target rig (GTX 1060 class) was not available; the dev-rig numbers convert with §3.1's factor of 6.
+
+**Suggestion.** Accept the measured costs (HIGH costs a sixth to a tenth of the frame time the renders it replaced cost) and the
+fixes. For the Angelica first-view case, either accept it (it lasts until the controller has been seen once per load)
+or add render tiles at the machines' render centres (a structure change, as R-05's alternative). Shots and numbers:
+local work folder `renders/scene/` (`before-*` LOW, `after-*` HIGH, `baseline-*` off, `after-angelica-*`,
+`perf-scene-aggregate.txt`, `perf-after.txt`, `perf-angelica.txt`); the runs in `perf/runs/`.
