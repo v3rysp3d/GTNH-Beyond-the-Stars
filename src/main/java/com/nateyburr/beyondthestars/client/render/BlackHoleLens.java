@@ -1,5 +1,6 @@
 package com.nateyburr.beyondthestars.client.render;
 
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
 import net.minecraft.client.Minecraft;
@@ -27,8 +28,13 @@ import gregtech.common.render.shader.VertexAttribute;
  * shadow, the photon ring, the near side of the disc, its lensed far side over and under the shadow, Doppler beaming,
  * gravitational redshift and the opening / Hawking flashes all come out of one draw.
  * <ul>
- * <li>Drawn with premultiplied alpha ({@code ONE, ONE_MINUS_SRC_ALPHA}), depth test and depth writes on: the shadow
- * and the disc hide what is behind them (a window's far glass included), empty fragments are discarded.</li>
+ * <li>Drawn with premultiplied alpha ({@code ONE, ONE_MINUS_SRC_ALPHA}) and the depth test on, without depth writes;
+ * empty fragments are discarded. A second draw of the same quad (colour writes off, no screen copy, L3's coarse
+ * march with one octave that stops at alpha 0.05; the shadow and the photon ring without a march) then writes its depth
+ * where the hole has a
+ * body (alpha 0.05 and up): the black and the disc hide what draws later behind them (a window's far glass, water,
+ * rain), while the faint glow and the photon-ring halo round them (light without alpha) no longer cut a circle out of
+ * it (review of R-16).</li>
  * <li>At L0 with {@code renderBackgroundLensing} and no shaderpack the screen under the quad is copied
  * ({@link FrameCopy}) and bent; otherwise a lensed starfield is drawn inside the lensing ring (night only).</li>
  * <li>Steps, step size and noise octaves come from the LOD tier ({@link #STEPS}).</li>
@@ -92,6 +98,16 @@ public final class BlackHoleLens {
      * serialises. The picture is wrong in such a run (the layers add up).
      */
     private static final int REPEAT = Math.max(1, Integer.getInteger("bts.render.bhRepeat", 1));
+    /**
+     * Dev only ({@code -Dbts.render.bhDepthDebug=true}): the depth pass draws in red with colour writes on, to check
+     * where it writes depth against the hole it covers.
+     */
+    private static final boolean DEPTH_DEBUG = Boolean.getBoolean("bts.render.bhDepthDebug");
+    /**
+     * Dev only, GPU measurement: {@code -Dbts.render.bhDepthRepeat=n} draws the depth pass n times (its marginal cost
+     * as {@link #REPEAT}'s), 0 skips it.
+     */
+    private static final int DEPTH_REPEAT = Math.max(0, Integer.getInteger("bts.render.bhDepthRepeat", 1));
 
     private static final Matrix4f MODEL = new Matrix4f();
     private static final Matrix4f PROJ = new Matrix4f();
@@ -99,6 +115,7 @@ public final class BlackHoleLens {
     private static final Vector4f CORNER = new Vector4f();
     private static final FloatBuffer M16 = BufferUtils.createFloatBuffer(16);
     private static final FloatBuffer M9 = BufferUtils.createFloatBuffer(9);
+    private static final ByteBuffer COLOR_MASK = BufferUtils.createByteBuffer(16);
 
     private BlackHoleLens() {}
 
@@ -133,6 +150,11 @@ public final class BlackHoleLens {
         public float time;
         /** Star brightness 0..1 for the lensed starfield (the world's night sky). */
         public float stars;
+    }
+
+    /** True when the program and its quad are both there, so {@link #draw} will draw (check before drawing layers). */
+    public static boolean usable() {
+        return PROGRAM.get() != null && QUAD.get() != null;
     }
 
     /**
@@ -179,6 +201,7 @@ public final class BlackHoleLens {
         int frameWas = -1;
         final int[] noiseWas = NoiseTex.bind();
         float fx0 = 0, fy0 = 0, fx1 = 0, fy1 = 0;
+        boolean maskSaved = false;
         try {
             if (lens) {
                 final Minecraft mc = Minecraft.getMinecraft();
@@ -197,7 +220,7 @@ public final class BlackHoleLens {
             GL11.glEnable(GL11.GL_BLEND);
             GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_ALPHA);
             GL11.glEnable(GL11.GL_DEPTH_TEST);
-            GL11.glDepthMask(true);
+            GL11.glDepthMask(false);
 
             h.use();
             h.uploadModel(MODEL);
@@ -211,7 +234,8 @@ public final class BlackHoleLens {
             GL20.glUniform4f(h.loc(U_LOOK2), p.streamers, p.beaming, p.ring, p.glow);
             GL20.glUniform4f(h.loc(U_RAY), steps[0], steps[1], steps[2], p.drag);
             final double pxBlocks = dist / Math.max(1e-3, Lod.pixelsPerBlockAtUnit());
-            GL20.glUniform4f(h.loc(U_LENS), lens ? 1f : 0f, p.stars, (float) (pxBlocks * inv), 0f);
+            final float pxRs = (float) (pxBlocks * inv);
+            GL20.glUniform4f(h.loc(U_LENS), lens ? 1f : 0f, p.stars, pxRs, 0f);
             GL20.glUniform4f(h.loc(U_FLASH), p.openRadius, p.openIntensity, p.hawkRadius, p.hawkIntensity);
             GL20.glUniform4f(h.loc(U_FRAME_RECT), fx0, fy0, fx1, fy1);
             GL20.glUniformMatrix3(h.loc(U_DISC_FRAME), false, discFrame(p.tilt, p.tiltAzimuth));
@@ -220,9 +244,30 @@ public final class BlackHoleLens {
             GL20.glUniformMatrix4(h.loc(U_VIEW_PROJ), false, M16);
             quad.bind();
             for (int i = 0; i < REPEAT; i++) quad.draw();
+            // the depth pass, colour writes off: depth only where the hole has a body, alpha 0.05 and up (the
+            // shadow and the photon ring without a march, else a coarse one: no screen copy, L3's 14 steps, one
+            // octave)
+            if (DEPTH_REPEAT > 0) {
+                final float[] ds = STEPS[3];
+                GL20.glUniform4f(h.loc(U_RAY), ds[0], ds[1], 1f, p.drag);
+                COLOR_MASK.clear();
+                GL11.glGetBoolean(GL11.GL_COLOR_WRITEMASK, COLOR_MASK);
+                maskSaved = true;
+                if (!DEPTH_DEBUG) GL11.glColorMask(false, false, false, false);
+                GL11.glDepthMask(true);
+                GL20.glUniform4f(h.loc(U_LENS), 0f, p.stars, pxRs, DEPTH_DEBUG ? 2f : 1f);
+                for (int i = 0; i < DEPTH_REPEAT; i++) quad.draw();
+            }
             quad.unbind();
             ShaderProgram.clear();
         } finally {
+            if (maskSaved) {
+                GL11.glColorMask(
+                    COLOR_MASK.get(0) != 0,
+                    COLOR_MASK.get(1) != 0,
+                    COLOR_MASK.get(2) != 0,
+                    COLOR_MASK.get(3) != 0);
+            }
             if (frameWas >= 0) FrameCopy.unbind(frameWas);
             NoiseTex.unbind(noiseWas);
             save.restore();

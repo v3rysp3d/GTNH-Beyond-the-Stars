@@ -253,6 +253,9 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
         // ---- field lines
         fieldLook(field, rs, phi, zi, event, evAge, time, dist);
 
+        // every layer's program and mesh first: a hole that cannot draw after the ring and jets are down would put
+        // the fixed path on top of them (review of R-16)
+        if (growth > 0.003f && !BlackHoleLens.usable()) return false;
         final int[] noiseWas = NoiseTex.bind();
         try {
             // 1. the ring (premultiplied over, no depth writes)
@@ -286,7 +289,7 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
             } finally {
                 save.restore();
             }
-            // 3. the hole (writes depth; at L0 bends the screen copy)
+            // 3. the hole (writes depth where it has a body; at L0 bends the screen copy)
             if (growth > 0.003f && !BlackHoleLens.draw(hole, holeTier)) return false;
             // 4. what lies in front of it
             save = Layers.emissive();

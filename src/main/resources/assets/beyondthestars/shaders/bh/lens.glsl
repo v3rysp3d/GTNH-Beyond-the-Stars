@@ -8,7 +8,11 @@
 // ring images all come from the same march. Front-to-back: col = emission so far, trans = what still shows through.
 //
 // Output: premultiplied colour + alpha for glBlendFunc(ONE, ONE_MINUS_SRC_ALPHA). The shadow is alpha 1 (black); a
-// fragment with nothing in it is discarded by the caller (so it writes no depth).
+// fragment with nothing in it is discarded by the caller. The colour pass writes no depth: a second, cheaper pass
+// (u_Lens.w = 1: no screen copy, a coarse march, one octave) writes the quad's depth only where the hole has a body
+// (alpha 0.05 and up: the shadow, the disc and its arcs; the glow and the photon-ring halo add light, never alpha), so
+// the faint glow round it never hides what draws later (glass, water, rain, particles) while the black and the disc
+// still hide what lies behind them.
 //
 // This include declares the program's uniforms (it is bts_blackhole's own body, not a shared library).
 
@@ -30,7 +34,7 @@ uniform vec4 u_Look;
 uniform vec4 u_Look2;
 // x: march steps, y: step / r, z: noise octaves, w: frame-drag strength
 uniform vec4 u_Ray;
-// x: framebuffer lensing 0/1, y: star brightness (lensed starfield without it), z: pixel size r_s, w: spare (0)
+// x: framebuffer lensing 0/1, y: star brightness (lensed starfield without it), z: pixel size r_s, w: depth pass 0/1
 uniform vec4 u_Lens;
 // x: opening ring radius, y: its intensity, z: Hawking ring radius, w: its intensity (r_s)
 uniform vec4 u_Flash;
@@ -184,6 +188,18 @@ float bhStars(vec3 d) {
     return step(0.92, h) * exp(-dot(f, f) * 60.0) * (0.4 + 0.6 * btsHash13(cell + 5.0));
 }
 
+// The depth pass's shortcut (no march): true for the shadow and the photon ring round it. A ray moving inward from
+// outside the photon sphere (r 1.5) with a straight-line impact parameter below b_crit = 2.6 r_s is captured; the
+// photon ring lies just outside (light without alpha, so the march would leave it out and glass behind it would show
+// over it). 3.1 r_s takes in the ring and the side the frame dragging pushes out (seen in the depth check), not the
+// softer halo beyond (to about 4 r_s).
+bool bhDepthMask(vec3 rd) {
+    vec3 ro = u_Cam;
+    float tca = -dot(ro, rd);
+    vec3 cp = ro + rd * tca;
+    return tca > 0.0 && dot(ro, ro) > 9.0 && dot(cp, cp) < 3.1 * 3.1;
+}
+
 // The whole look for one view ray rd (unit, world axes). Returns premultiplied rgb + alpha.
 vec4 bhShade(vec3 rd) {
     vec3 ro = u_Cam;
@@ -228,6 +244,7 @@ vec4 bhShade(vec3 rd) {
     float budget = 4.0;
     float rMinSeen = 1e4;
     vec2 gasMemo = vec2(0.5, 0.0);
+    float transStop = u_Lens.w > 0.5 ? 0.95 : 0.004;
     float steps = u_Ray.x;
     float k = u_Ray.y;
     // the slab's reach above the plane, a bound for any radius r: 2.6 H(r) (see bhDiscStep)
@@ -267,7 +284,8 @@ vec4 bhShade(vec3 rd) {
             break;
         }
         if (rn > Rb && dot(p, v) > 0.0) break;
-        if (trans < 0.004) break;
+        // (the depth pass only asks whether alpha reaches 0.05: it stops there)
+        if (trans < transStop) break;
         // leaving (past r 3 r_s and moving outward, its remaining bend small; not with the screen copy, which wants
         // the final direction): the ray meets nothing more if it moves away from the disc plane clear of the slab,
         // or will cross the plane well outside the disc
@@ -296,7 +314,9 @@ vec4 bhShade(vec3 rd) {
         // fades smoothly to 0 above and below the shadow instead of flipping sign there)
         float side = dot(vec3(pd.z, 0.0, -pd.x), -rdd) / max(length(pd), 1e-3);
         float ringW = 0.10 + 3.0 * clamp(u_Lens.z, 0.0, 0.3);
-        float ring = exp(-pow((rMinSeen - 1.53) / ringW, 2.0)) + 0.22 * (1.0 - smoothstep(1.6, 3.4, rMinSeen));
+        // squared by hand: pow() of a negative base is undefined in GLSL (NaN where pow is exp2(y * log2(x)))
+        float ringD = (rMinSeen - 1.53) / ringW;
+        float ring = exp(-ringD * ringD) + 0.22 * (1.0 - smoothstep(1.6, 3.4, rMinSeen));
         ring *= u_Look2.z * mix(0.45, 1.75, 0.5 + 0.5 * side);
         emit += (0.4 + 0.6 * trans) * ring * mix(vec3(1.0, 0.90, 0.70), tint, 0.35);
 
