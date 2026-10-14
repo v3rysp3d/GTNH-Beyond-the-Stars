@@ -863,6 +863,9 @@ public final class BTSRecipesQuasar {
      * Ergomatter cells" as 4,000 L of the fluid; L2's 4,000 L of White Hole Matter as 4,032 L of its condensate (the
      * Condensate Assembler's half-unit rule, 72 L); L4's "Constrained Eternity Plates" (no such item in RC-2) as 4
      * Eternity + 4 MHDCSM plates under the Universium coat, and its circuit as 16 any-MAX (no Endgame tier exists).
+     * GT's
+     * assembly line takes at least 4 item stacks, so L1 adds 2 dense Black Dwarf Matter plates and the Mk IV throat 16
+     * Casimir Plates and 4 any-UXV circuits.
      */
     private static void smbh() {
         // SL-Q29 Lattice Frame Casing x4 (8,436 a lattice: 2,109 crafts). Assembler, UXV.
@@ -890,7 +893,9 @@ public final class BTSRecipesQuasar {
                     items(
                         c4(BlockSLCasing4.LATTICE_FRAME, 1),
                         item(ItemList.Field_Generator_UMV, 4),
-                        circuit(Materials.UXV, 4)))
+                        circuit(Materials.UXV, 4),
+                        // GT's assembly line takes at least 4 item stacks: the node's clamp (B-152)
+                        BTSRecipesSingularity.dense(Materials.BlackDwarfMatter, 2)))
                 .fluidInputs(
                     BTSRecipeGuard.fluid(SLQuasarFluids.superdenseErgomatter, 8_000),
                     BTSRecipeGuard.fluid(SLFluids.magnetarMatter, 2_304))
@@ -969,7 +974,10 @@ public final class BTSRecipesQuasar {
                 .itemInputs(
                     items(
                         BTSRecipeGuard.stack(SLQuasarItems.conduitThroatMk3, 1),
-                        item(ItemList.Field_Generator_UMV, 2)))
+                        item(ItemList.Field_Generator_UMV, 2),
+                        // GT's assembly line takes at least 4 item stacks: the Mk III's own lining and circuits (B-152)
+                        SLBlocks.casing(BlockSLCasing.CASIMIR, 16),
+                        circuit(Materials.UXV, 4)))
                 .fluidInputs(BTSRecipeGuard.fluid(SLQuasarFluids.superdenseErgomatter, 4_000))
                 .itemOutputs(BTSRecipeGuard.stack(SLQuasarItems.conduitThroatMk4, 1))
                 .duration(900 * SECONDS)
