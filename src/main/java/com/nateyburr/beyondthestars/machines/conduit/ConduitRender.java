@@ -40,7 +40,9 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
  * somewhere else inside a bright blue rim, full while paired with a live partner, faint while open and unpaired, a dim
  * rim while closed; brighter while a stream goes in.</li>
  * <li><b>The crown</b>: its intake glows with the absorbed burst, white at the throat to deep orange at the rim, with a
- * heat column rising into the cup, brighter with the Bu/t it takes (log scale to its Mk's cap).</li>
+ * heat column rising into the cup, brighter with the Bu/t it takes (log scale to its Mk's cap). The Mk IV Event Horizon
+ * Crown (SMBH v1, R-19) runs hotter: a wider white-violet column, a white-hot photon-ring glare at the throat and a
+ * violet heat bloom over its larger cup.</li>
  * </ul>
  * The data arrive on GT's render-data channel once a second (out / in Bu/t, route length and kind; the crown's Mk and
  * stream). The fixed-function (LOW) path draws nothing, as before v2.
@@ -291,6 +293,8 @@ public final class ConduitRender {
         try {
             GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
             final float flick = 0.9f + 0.1f * (float) Math.sin(time * 9.0);
+            // SMBH (R-19): the Mk IV crown swallows a supermassive jet: white-violet instead of orange
+            final boolean eh = mk >= 4;
             // the heat column rising into the cup
             if (tier != Lod.Tier.L3) {
                 A[0] = ix;
@@ -301,8 +305,8 @@ public final class ConduitRender {
                 B[1] = iy + ax[1] * h;
                 B[2] = iz + ax[2] * h;
                 final MachineFx.Beam bm = BEAM;
-                bm.w0 = 1.3f;
-                bm.w1 = 3.2f;
+                bm.w0 = eh ? 2.2f : 1.3f;
+                bm.w1 = eh ? 5.4f : 3.2f;
                 bm.intensity = 0.25f + 0.75f * heat;
                 bm.speed = 3f;
                 bm.time = time;
@@ -313,11 +317,11 @@ public final class ConduitRender {
                 bm.seed = 3.3f;
                 bm.pitch = 6f;
                 bm.core[0] = 1f;
-                bm.core[1] = 0.78f;
-                bm.core[2] = 0.45f;
-                bm.sheath[0] = 1f;
-                bm.sheath[1] = 0.42f;
-                bm.sheath[2] = 0.1f;
+                bm.core[1] = eh ? 0.9f : 0.78f;
+                bm.core[2] = eh ? 1f : 0.45f;
+                bm.sheath[0] = eh ? 0.78f : 1f;
+                bm.sheath[1] = eh ? 0.36f : 0.42f;
+                bm.sheath[2] = eh ? 1f : 0.1f;
                 MachineFx.drawBeam(A, B, bm);
             }
             // the thermal shimmer over the cup
@@ -327,9 +331,9 @@ public final class ConduitRender {
                 iy + ax[1] * top,
                 iz + ax[2] * top,
                 11 + 2 * mk,
-                1f,
-                0.42f,
-                0.1f,
+                eh ? 0.8f : 1f,
+                eh ? 0.38f : 0.42f,
+                eh ? 1f : 0.1f,
                 (0.2f + 0.6f * heat) * flick,
                 0.3f,
                 0.6f);
@@ -338,24 +342,28 @@ public final class ConduitRender {
                 ix + ax[0] * 0.6,
                 iy + ax[1] * 0.6,
                 iz + ax[2] * 0.6,
-                3.0,
+                eh ? 4.5 : 3.0,
                 1f,
                 0.95f,
-                0.85f,
-                (0.35f + 0.9f * heat) * flick,
+                eh ? 1f : 0.85f,
+                (0.35f + 0.9f * heat) * flick * (eh ? 1.3f : 1f),
                 0.25f,
                 0.5f);
             GlowSprite.draw(
                 ix + ax[0] * 2.0,
                 iy + ax[1] * 2.0,
                 iz + ax[2] * 2.0,
-                12,
-                1f,
-                0.42f,
-                0.1f,
+                eh ? 18 : 12,
+                eh ? 0.85f : 1f,
+                eh ? 0.4f : 0.42f,
+                eh ? 1f : 0.1f,
                 (0.25f + 0.6f * heat) * flick,
                 0.25f,
                 0.55f);
+            if (eh) {
+                // the photon-ring glare at the throat: a thin white-hot core inside a wide halo
+                GlowSprite.draw(ix, iy, iz, 9, 1f, 0.97f, 1f, (0.3f + 0.7f * heat) * flick, 0.08f, 0.6f);
+            }
         } finally {
             save.restore();
             NoiseTex.unbind(noiseWas);
