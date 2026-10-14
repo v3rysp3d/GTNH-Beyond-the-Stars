@@ -51,6 +51,11 @@ import org.lwjgl.util.glu.GLU;
 import com.gtnewhorizon.structurelib.StructureLibAPI;
 import com.gtnewhorizon.structurelib.alignment.constructable.ConstructableUtility;
 import com.nateyburr.beyondthestars.BeyondTheStars;
+import com.nateyburr.beyondthestars.client.render.RenderQuality;
+import com.nateyburr.beyondthestars.machines.conduit.ConduitRender;
+import com.nateyburr.beyondthestars.machines.homogeny.HomogenyRender;
+import com.nateyburr.beyondthestars.machines.quasar.render.TileQuasarHole;
+import com.nateyburr.beyondthestars.machines.reality.RealityRender;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.EventPriority;
@@ -148,6 +153,17 @@ public final class RecClient {
     private java.util.regex.Pattern readoutKeep;
     private volatile List<String> readoutLines;
     private CompletableFuture<List<String>> readoutF;
+    /** Renders showcase: the BEFORE / AFTER badge (word, line under it, accent colour); null word: none. */
+    private String badgeWord, badgeLine;
+    private int badgeAccent;
+    /**
+     * Renders showcase: a ramped Eye look ({@code eyeramp}): the Eye's name, the look's kind, from / to, the length in
+     * real seconds and when it started (nanoTime; negative: none).
+     */
+    private String rampEye, rampKind;
+    private double rampFrom, rampTo, rampSeconds;
+    private long rampStart = -1;
+    private CompletableFuture<?> rampF;
     /** Lines from server tasks fired and forgotten (written on the client thread). */
     private final ConcurrentLinkedQueue<String> asyncLog = new ConcurrentLinkedQueue<>();
 
@@ -470,6 +486,7 @@ public final class RecClient {
                 break;
             case RUN:
                 pollReadout();
+                pollRamp();
                 if (act != null) act.tick();
                 advance(System.nanoTime());
                 applyPose();
@@ -530,8 +547,12 @@ public final class RecClient {
     private void drawOverlay(long now) {
         final String warp = warpTag();
         final List<String> panel = readoutAt == null ? null : readoutLines;
-        if (card == null && tag == null && warp == null && caption.isEmpty() && labels.isEmpty() && panel == null)
-            return;
+        if (card == null && tag == null
+            && warp == null
+            && caption.isEmpty()
+            && labels.isEmpty()
+            && panel == null
+            && badgeWord == null) return;
         RecOverlay.begin(mc);
         try {
             if (card != null) {
@@ -549,6 +570,7 @@ public final class RecClient {
                     RecOverlay.caption(mc, caption, Math.max(0.05f, a));
                 }
                 if (panel != null) RecOverlay.panel(mc, "Scanner", panel);
+                if (badgeWord != null && !guiOpen) RecOverlay.badge(mc, badgeWord, badgeLine, badgeAccent, 1f);
                 int row = 0;
                 if (warp != null) RecOverlay.tag(mc, warp, row++);
                 if (tag != null) RecOverlay.tag(mc, tag, row);
@@ -707,6 +729,7 @@ public final class RecClient {
         labels.clear();
         readoutAt = null;
         readoutLines = null;
+        badgeWord = null;
     }
 
     private void endScene() {
@@ -749,6 +772,8 @@ public final class RecClient {
         labels.clear();
         readoutAt = null;
         readoutLines = null;
+        badgeWord = null;
+        rampStart = -1;
         scene = null;
     }
 
@@ -1053,6 +1078,103 @@ public final class RecClient {
                             : com.nateyburr.beyondthestars.TimeWarp.off("the recorder")));
                 break;
             }
+            case "quality": {
+                // renders showcase: the render quality from here on (low: the fixed-function renders of before renders
+                // v2, unchanged; config: the client config's setting again)
+                final String q = c.arg(0)
+                    .toLowerCase(Locale.ROOT);
+                final RenderQuality.Quality v = q.equals("low") ? RenderQuality.Quality.LOW
+                    : q.equals("medium") ? RenderQuality.Quality.MEDIUM
+                        : q.equals("high") ? RenderQuality.Quality.HIGH : null;
+                if (v == null && !q.equals("config"))
+                    throw new IllegalArgumentException("quality low|medium|high|config, not " + q);
+                acts.add(new Instant("render quality " + q, () -> RenderQuality.debugQuality = v));
+                break;
+            }
+            case "badge": {
+                // renders showcase: "badge before | <line>", "badge after | <line>", "badge off"
+                final String raw = c.rest.trim();
+                final int bar = raw.indexOf('|');
+                final String word = (bar < 0 ? raw : raw.substring(0, bar)).trim()
+                    .toLowerCase(Locale.ROOT);
+                final String line = bar < 0 ? ""
+                    : raw.substring(bar + 1)
+                        .trim();
+                final boolean off = word.equals("off");
+                final boolean after = word.equals("after");
+                if (!off && !after && !word.equals("before"))
+                    throw new IllegalArgumentException("badge before|after|off [| line], not " + word);
+                acts.add(new Instant("badge " + raw, () -> {
+                    badgeWord = off ? null : after ? "AFTER" : "BEFORE";
+                    badgeLine = line;
+                    badgeAccent = after ? 0xFFD54A : 0x9AA4B2;
+                }));
+                break;
+            }
+            case "eyelook": {
+                // renders showcase: "eyelook <eye> <kind> [value]" or "eyelook <eye> off" (RecServer.look)
+                final String eye = c.arg(0);
+                final String kind = c.arg(1)
+                    .toLowerCase(Locale.ROOT);
+                final double v = Double.parseDouble(c.opt(2, "0"));
+                RecServer.look(kind, v); // an unknown kind fails when the script is read
+                acts.add(new Instant("eye ramp stopped", () -> rampStart = -1));
+                acts.add(
+                    new Server(
+                        "eye look " + eye + " " + kind + " " + v,
+                        () -> RecServer.eyeLook(eye, RecServer.look(kind, v))));
+                break;
+            }
+            case "eyeramp": {
+                // renders showcase: "eyeramp <eye> <kind> from <a> to <b> seconds <s>": the look moves from a to b
+                // over s real seconds, sent every tick, while the next commands run (a hold films it)
+                final String eye = c.arg(0);
+                final String kind = c.arg(1)
+                    .toLowerCase(Locale.ROOT);
+                final double a = c.need("from"), b = c.need("to"), secs = c.need("seconds");
+                RecServer.look(kind, a);
+                acts.add(
+                    new Instant("eye ramp " + eye + " " + kind + " " + a + " -> " + b + " in " + secs + " s", () -> {
+                        rampEye = eye;
+                        rampKind = kind;
+                        rampFrom = a;
+                        rampTo = b;
+                        rampSeconds = secs;
+                        rampStart = System.nanoTime();
+                    }));
+                break;
+            }
+            case "clientlook": {
+                // renders showcase: the render QA's client look of a machine render ("clientlook homogeny 1 0",
+                // "clientlook reality 1 63", "clientlook conduit 200 0", "clientlook quasar <12 values>"; "off": live)
+                final String what = c.arg(0)
+                    .toLowerCase(Locale.ROOT);
+                final boolean off = c.opt(1, "off")
+                    .equalsIgnoreCase("off");
+                final float[] v = new float[off ? 0 : c.pos.size() - 1];
+                for (int i = 0; i < v.length; i++) v[i] = Float.parseFloat(c.arg(i + 1));
+                final float[] look = off ? null
+                    : what.equals("quasar") ? v : new float[] { v[0], v.length > 1 ? v[1] : 0f, -1f, -2f };
+                acts.add(new Instant("client look " + what + " " + (off ? "off" : Arrays.toString(v)), () -> {
+                    switch (what) {
+                        case "homogeny":
+                            HomogenyRender.debugLook = look;
+                            break;
+                        case "reality":
+                            RealityRender.debugLook = look;
+                            break;
+                        case "conduit":
+                            ConduitRender.debugLook = look;
+                            break;
+                        case "quasar":
+                            TileQuasarHole.debugLook = look;
+                            break;
+                        default:
+                            say("clientlook: unknown render " + what);
+                    }
+                }));
+                break;
+            }
             case "command": {
                 // {place} in the command becomes that place's block coordinates "x y z" (resolved when it runs, so a
                 // rig built earlier in the script can be named)
@@ -1062,6 +1184,22 @@ public final class RecClient {
             }
             default:
                 throw new IllegalArgumentException("not a command here: " + c.verb);
+        }
+    }
+
+    /**
+     * Renders showcase: every client tick while an {@code eyeramp} runs, the Eye's look at this point of the ramp goes
+     * to the server (one task in flight at a time); the last value is sent once the ramp is over.
+     */
+    private void pollRamp() {
+        if (rampStart < 0 || rampF != null && !rampF.isDone()) return;
+        final double t = Math.min(1.0, (System.nanoTime() - rampStart) / 1e9 / Math.max(0.05, rampSeconds));
+        final double v = rampFrom + (rampTo - rampFrom) * t;
+        final String eye = rampEye, kind = rampKind;
+        rampF = RenderTest.onServer(() -> RecServer.eyeLook(eye, RecServer.look(kind, v)));
+        if (t >= 1.0) {
+            say("  eyeramp " + eye + " " + kind + " done at " + String.format(Locale.ROOT, "%.3f", v));
+            rampStart = -1;
         }
     }
 

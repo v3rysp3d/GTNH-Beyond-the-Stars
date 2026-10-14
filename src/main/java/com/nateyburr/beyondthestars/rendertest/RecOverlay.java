@@ -257,6 +257,27 @@ final class RecOverlay {
         return false;
     }
 
+    /**
+     * Renders showcase: a badge in the top-left corner, a coloured bar beside a large word and a smaller line under it
+     * ({@code BEFORE} / the old render, {@code AFTER} / renders v2). {@code accent} is 0xRRGGBB.
+     */
+    static void badge(Minecraft mc, String word, String line, int accent, float a) {
+        if (a <= 0.02f || word == null || word.isEmpty()) return;
+        final FontRenderer f = mc.fontRenderer;
+        final float big = Math.max(2f, mc.displayHeight / 270f), small = Math.max(1.25f, mc.displayHeight / 540f);
+        final int pad = Math.round(7 * small);
+        final int bar = Math.max(3, Math.round(2 * small));
+        final int ww = Math.round(f.getStringWidth(word) * big);
+        final int lw = line == null || line.isEmpty() ? 0 : Math.round(f.getStringWidth(line) * small);
+        final int w = Math.max(ww, lw) + pad * 2 + bar;
+        final int h = Math.round(9 * big) + (lw > 0 ? Math.round(11 * small) : 0) + pad * 2;
+        final int x0 = pad * 3, y0 = pad * 3;
+        rect(x0, y0, x0 + w, y0 + h, alpha(0xB4000000, a));
+        rect(x0, y0, x0 + bar, y0 + h, alpha(0xFF000000 | accent, a));
+        text(f, word, x0 + bar + pad, y0 + pad, big, accent, a);
+        if (lw > 0) text(f, line, x0 + bar + pad, y0 + pad + 9 * big + 2 * small, small, 0xE6E9EF, a);
+    }
+
     /** A tag in the top-right corner (e.g. "TIME-LAPSE x20"). */
     static void tag(Minecraft mc, String tag) {
         tag(mc, tag, 0);

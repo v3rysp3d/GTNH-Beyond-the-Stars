@@ -147,6 +147,11 @@ The rigs face north (-z), so their fronts are on the -z side. Anchors exist once
 | `creativepower <name>` | | Swaps every energy hatch of the multiblock at a named place for GT's Debug Energy Hatch (tier 13, 64 A, same face), re-checks it and turns it on: a machine whose bench kit charges its hatches once keeps running through a long warped scene. Set up by script (say so in the caption). |
 | `readout <place> [match <regex>]` \| `readout off` | | A side panel (top left) with the machine's scanner lines: what a GT Portable Scanner prints (`getInfoData`), read twice a second and kept if they match the regex (case-insensitive, colour codes stripped; anchor with `^(...)` to keep whole status lines). Stays up while a GUI is open, until `readout off` or the scene's end. The old Eye GUI shows only its first few lines, so the gauges, batch and transition lines go here. |
 | `melist <place>` | | Logs what the ME network behind the cable at the place holds (items and fluids) into `rec.log`. |
+| `quality low\|medium\|high\|config` | | Renders showcase: the render quality from here on (`RenderQuality.debugQuality`, as the render QA harness sets it per case). `low` draws the fixed-function renders of before renders v2, unchanged (R-10); `config` goes back to the client config's `renderQuality`. |
+| `badge before\|after\|off [\| <line>]` | | Renders showcase: a badge in the top-left corner, a large BEFORE (grey) or AFTER (gold) with a smaller line under it. Stays until `badge off` or the scene's end; hidden while a GUI is open. |
+| `eyelook <eye> <kind> [value]` \| `eyelook <eye> off` | | Renders showcase: the Eye at a named place (its `kit eye ... name`) shows a look instead of its star, through the render QA's forced look (render tile only: nothing of the machine changes; `off` gives the star back). Kinds: `protostar <f>` (T1 igniting), `lit <n>`, `unstable <n>`, `infusion <p>` (the Mass Infusion), `shell <p>` (the Shell Ignition), `swell <f>` / `bounce` / `nova` (the Core Collapse), `dwarf <f>` (a cooling batch), `firstcooling <p>`, `magmerger <p>`, `overfed <f>`, `collapse <p>` (the Magnetar Collapse), `merger <s>` (the Galactic Merger at s of its 2,100 seconds), `galaxy <7\|8>`. A change of kind plays the client's own transition (the ignition flash after `protostar`, the bounce's shock after `swell`, the collapse flash after `overfed`). Say so in the caption. |
+| `eyeramp <eye> <kind> from <a> to <b> seconds <s>` | | Renders showcase: as `eyelook`, the value moving from a to b over s real seconds, sent every tick while the next commands run (film it with a `hold`). For transitions that take minutes or hours in play: say in the caption that they are run fast. |
+| `clientlook homogeny\|reality\|conduit\|quasar <values>` \| `clientlook <render> off` | | Renders showcase: the render QA's client look of a machine render (`homogeny <activity> <tier, 0 live>`, `reality <activity> <held mask, -1 live>`, `conduit <Bu/t> 0`, `quasar <the 12 debugLook values>`); `off` is the live look. Client only. Say so in the caption. |
 
 ### Example
 
@@ -229,6 +234,12 @@ x 10000) and an unseeded quasar behind it (x 10000, y 100, z 4400). Chapters:
 
 Re-take scenes with `-Dbts.rec.only=<scene prefixes>` (the setup always runs). Chapter 3 is self-contained from the
 setup; chapter 7's merger needs the quasar seeded in chapter 6 (`q-seed`), so re-take them together.
+
+**Renders showcase.** `tools/recording/renders-showcase.shots` films renders v2 before and after (about 3 3/4 minutes,
+R-18): for each big render a short BEFORE at `quality low` (the c2b016d look, unchanged) and the AFTER at `quality high`
+in motion, with `badge`. Real events where a bench fires them (the quasar's eruption and purge, the helium flash, the
+giant flare); the star and galaxy transitions through `eyelook` / `eyeramp`; the Homogeny and Reality machines through
+`clientlook`. One run takes about 12 minutes of real time.
 
 The earlier `showcase.shots` (v1, 4 minutes, with the plant scenes) stays as it was. The dev tests that go with them:
 `aetest.shots` (every v1 command once), `aedebug.shots` (Rig C lit and burning for 6 minutes; read `eye-ae.tsv`),

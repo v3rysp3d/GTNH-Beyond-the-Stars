@@ -21,12 +21,19 @@ import com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1;
 import com.nateyburr.beyondthestars.machines.SLConsoleTest;
 import com.nateyburr.beyondthestars.machines.eye.EyeKit;
 import com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS;
+import com.nateyburr.beyondthestars.machines.eye.render.EyeStarLook;
+import com.nateyburr.beyondthestars.machines.eye.render.TileEyeStar;
+import com.nateyburr.beyondthestars.machines.homogeny.MTEHomogeny;
 import com.nateyburr.beyondthestars.machines.kerr.KerrKit;
 import com.nateyburr.beyondthestars.machines.kerr.KerrSlot;
 import com.nateyburr.beyondthestars.machines.kerr.MTEKerrEngine;
+import com.nateyburr.beyondthestars.machines.reality.HRKit;
+import com.nateyburr.beyondthestars.machines.reality.MTERealityDiffraction;
+import com.nateyburr.beyondthestars.machines.reality.MTERealityRefab;
 
 import gregtech.api.enums.ItemList;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
+import gregtech.api.metatileentity.implementations.MTEEnhancedMultiBlockBase;
 import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
 
 /**
@@ -402,7 +409,92 @@ final class RecServer {
             }
             return b.toString();
         }
-        return "no Eye or KEE at " + name;
+        // renders showcase: a Homogeny / Reality machine's render centre (the manifest's centre.rel) as <name>.c
+        final MTEEnhancedMultiBlockBase<?> hr = AutoRig.mteAt(world, p, MTEEnhancedMultiBlockBase.class);
+        final HRKit.Machine m = hr instanceof MTEHomogeny ? HRKit.Machine.HOMOGENY
+            : hr instanceof MTERealityDiffraction ? HRKit.Machine.DIFFRACTION
+                : hr instanceof MTERealityRefab ? HRKit.Machine.REFAB : null;
+        if (m != null) {
+            final int[] c = SLConsoleTest.worldPos(hr.getExtendedFacing(), p[0], p[1], p[2], HRKit.centreRel(m));
+            AutoRig.POINTS.put(n + ".c", new double[] { c[0] + 0.5, c[1] + 0.5, c[2] + 0.5 });
+            return n + ".c " + RenderTest.pos(c) + " (" + m.title() + " render centre)";
+        }
+        return "no Eye, KEE, Homogeny or Reality machine at " + name;
+    }
+
+    /**
+     * Renders showcase (dev only): the Eye at a named place shows {@code look} instead of its star (null: back to its
+     * own star), through the render QA's forced look. The look also goes straight to the centre's render tile (named
+     * {@code <name>.c} by {@code kit eye}) at once, not at the centre's next 10-tick send, so a ramp ({@code eyeramp})
+     * moves every tick. Render tile only: nothing of the machine changes.
+     */
+    static String eyeLook(String name, EyeStarLook look) {
+        final WorldServer world = RenderTest.world();
+        final int[] p = at(name);
+        final MTEEyeOfHarmonyBTS eye = AutoRig.mteAt(world, p, MTEEyeOfHarmonyBTS.class);
+        if (eye == null) return "no Eye at " + name;
+        eye.debugForceLook(look);
+        if (look == null) return "Eye " + name + ": its own star again";
+        final double[] c = AutoRig.POINTS.get(name.toLowerCase(Locale.ROOT) + ".c");
+        if (c != null) {
+            final TileEntity te = world
+                .getTileEntity((int) Math.floor(c[0]), (int) Math.floor(c[1]), (int) Math.floor(c[2]));
+            if (te instanceof TileEyeStar) {
+                ((TileEyeStar) te).setLook(look.at(world.getTotalWorldTime()));
+            }
+        }
+        return "Eye " + name + " shows " + look.label();
+    }
+
+    /**
+     * Renders showcase: an Eye look by name and value ({@code v}: a fraction, a tier or the merger's seconds), or
+     * null for {@code off}. Throws on an unknown kind.
+     */
+    static EyeStarLook look(String kind, double v) {
+        final float f = (float) v;
+        switch (kind) {
+            case "off":
+                return null;
+            case "protostar": // T1 igniting at f (0..1)
+                return EyeStarLook.protostar(1, f);
+            case "lit": // tier v's lit star
+                return EyeStarLook.lit((int) v, 0, 0);
+            case "unstable": // tier v's star at stability 20 on a warning
+                return EyeStarLook.lit((int) v, 0.8f, 1);
+            case "infusion": // the Mass Infusion at f (Sol toward Sirius A)
+                return EyeStarLook.growing(1, f);
+            case "shell": // the Shell Ignition at f (Sirius A toward Arcturus)
+                return EyeStarLook.growing(2, f);
+            case "swell": // Core Collapse phase 1 at f
+                return EyeStarLook.swell(f);
+            case "bounce": // Core Collapse phase 3: the proto-neutron star and its shock
+                return EyeStarLook.bounce(0f);
+            case "nova": // a failed Core Collapse's supernova
+                return EyeStarLook.NOVA_FLASH;
+            case "dwarf": // Sirius B's cooling batch at f
+                return EyeStarLook.dwarf(v);
+            case "firstcooling": // the First Cooling (T4 -> T5) at f: the first dwarf assembling
+                return EyeStarLook.dwarf(Math.max(0.01, v))
+                    .transition(4, f);
+            case "magmerger": // the Magnetar Merger (T5 -> T6) at f
+                return EyeStarLook.lit(6, 0, 0)
+                    .transition(5, f);
+            case "overfed": // the overfed magnetar at f of the way to the Magnetar Collapse
+                return EyeStarLook.overfedMagnetar(f, 0);
+            case "collapse": // the Magnetar Collapse (T6 -> T7) at f: Triangulum forming
+                return EyeStarLook.galaxy(7, 0.3f, 0)
+                    .transition(6, f);
+            case "merger": // the Galactic Merger (T7 -> T8) at v seconds of its 2,100
+                return EyeStarLook.galaxy(7, 0.3f, 0.5f)
+                    .transition(7, (float) Math.max(0, Math.min(1, v / 2100.0)));
+            case "galaxy": // tier v's galaxy (7 Triangulum, 8 the Milky Way)
+                return EyeStarLook.galaxy((int) v, 0, 0);
+            default:
+                throw new IllegalArgumentException(
+                    "eye look must be off, protostar, lit, unstable, infusion, shell, swell, bounce, nova, dwarf,"
+                        + " firstcooling, magmerger, overfed, collapse, merger or galaxy: "
+                        + kind);
+        }
     }
 
     /**
