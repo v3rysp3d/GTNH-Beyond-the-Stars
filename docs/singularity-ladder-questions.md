@@ -52,7 +52,7 @@ Most important first. "Recommended" is what we would build if you say nothing. N
 | 27 | The quasar's ring cannot be seen from outside: the disc wall hides it (renders v2 gives the jets and a zone-coloured cap glow instead) | A Quantum Glass window band in the disc wall at the ring's height, as the Kerr and the Eye got, as its own structure change (voxel.js, re-export, hologram, NEI, BOM); until then the jets and the cap glow | R-09 |
 | 28 | The Kerr hole's L0 close-up (full detail with the screen copy) takes about 0.2 ms GPU a frame on the dev RTX 4090, over its 0.08 ms budget | Accept (one object, a few blocks away; `renderBackgroundLensing=false` or `medium` is the player's lever); revisit if the playtest FPS there is poor (guide V6) | R-11, R-16, R-17 |
 | 29 | Under Angelica, a Reality Diffraction / Refab render can stay invisible until the controller block has been on screen once | Accept for now; the real fix is a small render tile at each machine's render centre (R-05's alternative, a structure change) | R-16 |
-| 30 | SMBH: with `replaceTecTechEyeOfHarmony` on, MagMatter waits for our Eye T10 (the Godforge EE upgrade takes 2 Universium frames), but Saturation needs MagMatter coils and the T9 -> T10 Supermassive Link needs a lattice: a loop. **Built as recommended (SL-Q36, B-157); say if you prefer an alternative** | Under the same flag, rewrite EE's 2 Universium frame boxes to 8 Black Dwarf Matter frames (P4-24's suggestion), so MagMatter arrives with Eternity at T7 | B-153 |
+| 30 | ~~SMBH: with `replaceTecTechEyeOfHarmony` on, MagMatter waits for our Eye T10 (the Godforge EE upgrade takes 2 Universium frames), but Saturation needs MagMatter coils and the T9 -> T10 Supermassive Link needs a lattice: a loop~~ | **Settled**: "Cheaper Godforge upgrade"; SL-Q36 as built (8 Black Dwarf Matter frames in place of 2 Universium ones, under the same flag) | B-153, B-157 |
 | 31 | SMBH: a broken lattice block under a hole over 4,096 SM unforms the quasar (frozen, nothing lost) instead of shedding the hole to the coil cap | Keep: a mis-click must not cost days of growth; taking a lattice down means lowering the setpoint to 4,096 SM first | B-154 |
 
 ## 2. Settled
@@ -61,6 +61,7 @@ Your answers, newest first. Quotes are your words.
 
 | Topic | Your answer | What was built |
 |---|---|---|
+| The MagMatter loop at the T9 -> T10 gate [open question 30; B-153] | "Cheaper Godforge upgrade" | SL-Q36 stays: under `replaceTecTechEyeOfHarmony` the Godforge EE upgrade (magmatter mode) takes 8 Black Dwarf Matter frame boxes instead of 2 Universium ones, so MagMatter, the T4 coils, Saturation and the lattice arrive at Eye T7 (B-157); with the flag off nothing changes |
 | Circuits v2 (brief items 31-33; `designs/docs/circuits-v2.md` revision 3) | "they can make umv and uxv but we make cheaper"; "Any of the tier such as the (any uxv) forming oress recipe"; "No offset, build until finished please"; rack "Yes, slightly better"; the raise on by default; NAC "Patch now, PR later" | Sidereal / Empyrean / Omega (B-130..B-134), in GT's any-of-tier ore names, no compensation, the Piko raise (2.5x / 2x), the NAC patch, the rack parts; tested B-136, filmed B-137, merged and packaged in `master.304` (B-138). The UMV stopgap for the UXV parts stays |
 | The time warp in release jars [open question 24; B-117] | Ship it, op + cheats | `/btswarp` stays in every jar, op only (B-138 marks it settled) |
 | Resonance Chambers III and IV [open questions 4 and 21; B-83, B-110] | Rewrite GT's recipes in place under the same flag, like chamber II (B-29) | SL-G02 / SL-G03 rewrite GT's recipes at load-complete; SL-P33 / SL-P40 retired to fallbacks; one recipe per chamber in NEI (B-135) |
@@ -6863,7 +6864,11 @@ with polar rings at ±60° (the jets' cone stays clear at r 44).
 
 **Gate audit** (`/btseye gates`): Lattice Frame Casing and Node L1 are CLEAN for the Eye T10 gate.
 
-### B-153 SMBH: the MagMatter loop at the T9 -> T10 gate [smbh branch, open]
+### B-153 SMBH: the MagMatter loop at the T9 -> T10 gate [smbh branch, settled]
+
+**Settled.** Answer: "Cheaper Godforge upgrade". SL-Q36 as built in B-157 stays: with `replaceTecTechEyeOfHarmony`
+on, the Godforge EE upgrade takes 8 Black Dwarf Matter frame boxes in place of 2 Universium ones. Open question 30 is
+struck out and the answer is in §2.
 
 **Context.** Saturation needs 4,096 SM, which only MagMatter (T4) Disc Field Coils hold, and §1.2 makes the lattice
 count only on them. The Supermassive Link (P5's T9 -> T10 milestone) needs a lattice. P4-24 found that MagMatter's only
