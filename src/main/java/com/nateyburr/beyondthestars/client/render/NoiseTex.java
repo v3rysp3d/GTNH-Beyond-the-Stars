@@ -42,6 +42,15 @@ public final class NoiseTex {
         lut = 0;
     }
 
+    /** The previous bindings each nested {@link #bind} saved (render thread only). */
+    private static final int[][] SAVED = new int[8][2];
+    private static int depth;
+
+    /** Each frame starts with an empty save stack (a draw that skipped its unbind cannot leak into the next). */
+    static void onFrameStart() {
+        depth = 0;
+    }
+
     /** The noise texture id (built on first use). */
     public static int noise() {
         if (noise == 0) noise = upload(noiseTexels(), NOISE_SIZE, NOISE_SIZE, GL11.GL_REPEAT);
@@ -60,7 +69,10 @@ public final class NoiseTex {
      */
     public static int[] bind() {
         final int n = noise(), l = blackbodyLut();
-        final int[] was = new int[2];
+        // R-16: the saves come from a small stack (binds nest: the quasar's, then its hole's), so a frame allocates
+        // nothing; unbind in reverse order (a finally does). Deeper than the stack: a fresh array, never a failure
+        final int[] was = depth < SAVED.length ? SAVED[depth] : new int[2];
+        depth++;
         GL13.glActiveTexture(GL13.GL_TEXTURE0 + NOISE_UNIT);
         was[0] = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, n);
@@ -73,6 +85,7 @@ public final class NoiseTex {
 
     /** Restores the bindings {@link #bind} returned. */
     public static void unbind(int[] was) {
+        if (depth > 0) depth--;
         GL13.glActiveTexture(GL13.GL_TEXTURE0 + NOISE_UNIT);
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, was[0]);
         GL13.glActiveTexture(GL13.GL_TEXTURE0 + LUT_UNIT);

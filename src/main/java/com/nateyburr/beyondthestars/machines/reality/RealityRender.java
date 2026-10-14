@@ -7,6 +7,7 @@ import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
 import com.nateyburr.beyondthestars.Config;
+import com.nateyburr.beyondthestars.client.render.BTSShaders;
 import com.nateyburr.beyondthestars.client.render.DeferredDraws;
 import com.nateyburr.beyondthestars.client.render.GlSave;
 import com.nateyburr.beyondthestars.client.render.GlowSprite;
@@ -89,13 +90,20 @@ public final class RealityRender {
 
     private RealityRender() {}
 
+    private static final DeferredDraws.Draw<MTERealityBase<?>> DRAW = RealityRender::renderNow;
+    /** The programs the Reality renders draw with (one array: a frame allocates nothing, R-16). */
+    private static final BTSShaders.Program[] PROGRAMS = { MachineFx.VOL_PROGRAM, MachineFx.BEAM_PROGRAM,
+        MachineFx.MFX_PROGRAM, GlowSprite.PROGRAM };
+    /** Refab's far glow colour. */
+    private static final float[] REFAB_GLOW = { 0.45f, 0.75f, 1f };
+
     /** GT's pass-0 hook: queues the draw for after the translucent pass ({@link DeferredDraws}). */
     public static void render(MTERealityBase<?> m, double x, double y, double z, float partialTicks) {
-        if (Config.renderReality && m.renderFormed()) DeferredDraws.add(() -> renderNow(m, x, y, z, partialTicks));
+        if (Config.renderReality && m.renderFormed()) DeferredDraws.add(DRAW, m, x, y, z, partialTicks);
     }
 
     private static void renderNow(MTERealityBase<?> m, double x, double y, double z, float partialTicks) {
-        if (!Config.renderReality) return;
+        if (!Config.renderReality || RenderQuality.hidden()) return;
         final IGregTechTileEntity base = m.getBaseMetaTileEntity();
         if (base == null || !m.renderFormed()) return;
         State s = STATES.get(m);
@@ -104,14 +112,7 @@ public final class RealityRender {
         final boolean diffraction = m instanceof MTERealityDiffraction;
         s.frame.at(x, y, z, 0, diffraction ? 0 : 12, 0, C);
         final double dist = Math.sqrt(C[0] * C[0] + C[1] * C[1] + C[2] * C[2]);
-        final Lod.Tier tier = RenderQuality.tier(
-            m,
-            diffraction ? 34 : 40,
-            dist,
-            MachineFx.VOL_PROGRAM,
-            MachineFx.BEAM_PROGRAM,
-            MachineFx.MFX_PROGRAM,
-            GlowSprite.PROGRAM);
+        final Lod.Tier tier = RenderQuality.tier(m, diffraction ? 34 : 40, dist, PROGRAMS);
         if (!tier.shaded()) return;
         final float[] dbg = debugLook;
         final long now = System.nanoTime();
@@ -130,7 +131,7 @@ public final class RealityRender {
         try {
             if (tier == Lod.Tier.L3) {
                 GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
-                final float[] c = diffraction ? MEDIUM : new float[] { 0.45f, 0.75f, 1f };
+                final float[] c = diffraction ? MEDIUM : REFAB_GLOW;
                 GlowSprite.draw(C[0], C[1], C[2], 30, c[0], c[1], c[2], 0.2f + 0.45f * act, 0.18f, 0.45f);
             } else if (diffraction) {
                 drawDiffraction(s, x, y, z, tier, act, mask, time);

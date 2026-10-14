@@ -8,6 +8,7 @@ import net.minecraft.world.World;
 import org.lwjgl.opengl.GL11;
 
 import com.nateyburr.beyondthestars.Config;
+import com.nateyburr.beyondthestars.client.render.BTSShaders;
 import com.nateyburr.beyondthestars.client.render.BlackHoleLens;
 import com.nateyburr.beyondthestars.client.render.Blackbody;
 import com.nateyburr.beyondthestars.client.render.GlSave;
@@ -56,6 +57,9 @@ public class KerrHoleRenderer extends TileEntitySpecialRenderer {
 
     private final BlackholeRenderer delegate = new BlackholeRenderer();
     private final BlackHoleLens.Params params = new BlackHoleLens.Params();
+    private final float[] glowRgb = new float[3];
+    /** The programs the v2 hole draws with (one array: a frame allocates nothing, R-16). */
+    private static final BTSShaders.Program[] PROGRAMS = { BlackHoleLens.PROGRAM, GlowSprite.PROGRAM };
 
     /** The delegate binds its textures through the dispatcher, so it gets the same one. */
     @Override
@@ -66,15 +70,14 @@ public class KerrHoleRenderer extends TileEntitySpecialRenderer {
 
     @Override
     public void renderTileEntityAt(TileEntity tile, double x, double y, double z, float partialTicks) {
-        if (!Config.renderKerrHole || !(tile instanceof TileKerrHole)) return;
+        if (!Config.renderKerrHole || !(tile instanceof TileKerrHole) || RenderQuality.hidden()) return;
         final TileKerrHole hole = (TileKerrHole) tile;
         final float s = hole.getKerrScale();
         final double cx = x + 0.5;
         final double cy = y + 0.5;
         final double cz = z + 0.5;
         final double bound = s * HALO_PER_SCALE * BlackHoleLens.BOUND_PER_OUTER;
-        final Lod.Tier tier = RenderQuality
-            .tier(tile, bound, Math.sqrt(cx * cx + cy * cy + cz * cz), BlackHoleLens.PROGRAM, GlowSprite.PROGRAM);
+        final Lod.Tier tier = RenderQuality.tier(tile, bound, Math.sqrt(cx * cx + cy * cy + cz * cz), PROGRAMS);
         GpuTimer.begin("kerr");
         final boolean glCheck = RenderQuality.glCheckBegin(tile);
         try {
@@ -133,7 +136,7 @@ public class KerrHoleRenderer extends TileEntitySpecialRenderer {
 
         if (tier == Lod.Tier.L3 && growth > 0.05f) {
             // far away: a warm glow so the hole still reads, then the hole over it (its shadow is the black dot)
-            final float[] c = Blackbody.rgb(p.temperature * 0.85f);
+            final float[] c = Blackbody.rgb(p.temperature * 0.85f, glowRgb);
             final GlSave save = Layers.emissive();
             try {
                 GlowSprite

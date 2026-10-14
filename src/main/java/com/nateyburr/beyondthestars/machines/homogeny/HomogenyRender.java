@@ -7,6 +7,7 @@ import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
 import com.nateyburr.beyondthestars.Config;
+import com.nateyburr.beyondthestars.client.render.BTSShaders;
 import com.nateyburr.beyondthestars.client.render.DeferredDraws;
 import com.nateyburr.beyondthestars.client.render.GlSave;
 import com.nateyburr.beyondthestars.client.render.GlowSprite;
@@ -73,13 +74,20 @@ public final class HomogenyRender {
 
     private HomogenyRender() {}
 
+    private static final DeferredDraws.Draw<MTEHomogeny> DRAW = HomogenyRender::renderNow;
+    /** The programs the vortex draws with (one array: a frame allocates nothing, R-16). */
+    private static final BTSShaders.Program[] PROGRAMS = { MachineFx.VOL_PROGRAM, MachineFx.BEAM_PROGRAM,
+        GlowSprite.PROGRAM };
+    /** Colour scratch (render thread). */
+    private static final float[] PRODUCT = new float[3], FEED = new float[3];
+
     /** GT's pass-0 hook: queues the draw for after the translucent pass ({@link DeferredDraws}). */
     public static void render(MTEHomogeny m, double x, double y, double z, float partialTicks) {
-        if (Config.renderHomogeny && m.renderTier() > 0) DeferredDraws.add(() -> renderNow(m, x, y, z, partialTicks));
+        if (Config.renderHomogeny && m.renderTier() > 0) DeferredDraws.add(DRAW, m, x, y, z, partialTicks);
     }
 
     private static void renderNow(MTEHomogeny m, double x, double y, double z, float partialTicks) {
-        if (!Config.renderHomogeny) return;
+        if (!Config.renderHomogeny || RenderQuality.hidden()) return;
         final IGregTechTileEntity base = m.getBaseMetaTileEntity();
         if (base == null || m.renderTier() <= 0) return;
         State s = STATES.get(m);
@@ -87,8 +95,7 @@ public final class HomogenyRender {
         if (!s.frame.update(m.getExtendedFacing())) return;
         s.frame.at(x, y, z, 0, 0, 0, C);
         final double dist = Math.sqrt(C[0] * C[0] + C[1] * C[1] + C[2] * C[2]);
-        final Lod.Tier tier = RenderQuality
-            .tier(m, COL_H, dist, MachineFx.VOL_PROGRAM, MachineFx.BEAM_PROGRAM, GlowSprite.PROGRAM);
+        final Lod.Tier tier = RenderQuality.tier(m, COL_H, dist, PROGRAMS);
         if (!tier.shaded()) return;
         // running eases in over about a second and out over two
         final long now = System.nanoTime();
@@ -113,7 +120,7 @@ public final class HomogenyRender {
     private static void draw(MTEHomogeny m, State s, double x, double y, double z, Lod.Tier tier, float time, float act,
         int shownTier) {
         final int t = Math.max(1, Math.min(3, shownTier));
-        final float[] product = rgb(m.renderColour(3));
+        final float[] product = rgb(m.renderColour(3), PRODUCT);
         final int[] noiseWas = NoiseTex.bind();
         GlSave save = Layers.emissive();
         try {
@@ -141,9 +148,7 @@ public final class HomogenyRender {
             v.va[2] = 0.3f;
             v.va[3] = 1f;
             for (int i = 0; i < 3; i++) {
-                final float[] c = rgb(m.renderColour(i));
-                final float[] dst = i == 0 ? v.vb : i == 1 ? v.vc : v.vd;
-                System.arraycopy(c, 0, dst, 0, 3);
+                rgb(m.renderColour(i), i == 0 ? v.vb : i == 1 ? v.vc : v.vd);
             }
             System.arraycopy(product, 0, v.ve, 0, 3);
             if (!MachineFx.drawVolume(MODEL, CAM, v)) return;
@@ -157,7 +162,7 @@ public final class HomogenyRender {
                     s.frame.at(x, y, z, VESSEL_R * ca, 9.0, VESSEL_R * sa, P0);
                     s.frame.at(x, y, z, 25 * ca, 22.0, 25 * sa, P1);
                     s.frame.at(x, y, z, 12.4 * ca, 15.0, 12.4 * sa, P2);
-                    final float[] c = rgb(m.renderColour(k % 3));
+                    final float[] c = rgb(m.renderColour(k % 3), FEED);
                     final MachineFx.Beam b = BEAM;
                     b.w0 = 0.45f;
                     b.w1 = 0.6f;
@@ -188,7 +193,11 @@ public final class HomogenyRender {
         }
     }
 
-    static float[] rgb(int c) {
-        return new float[] { ((c >> 16) & 255) / 255f, ((c >> 8) & 255) / 255f, (c & 255) / 255f };
+    /** {@code c} (0xRRGGBB) as 0..1 floats into the first three entries of {@code out}; returns {@code out}. */
+    static float[] rgb(int c, float[] out) {
+        out[0] = ((c >> 16) & 255) / 255f;
+        out[1] = ((c >> 8) & 255) / 255f;
+        out[2] = (c & 255) / 255f;
+        return out;
     }
 }

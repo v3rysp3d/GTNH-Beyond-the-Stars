@@ -15,6 +15,7 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
 import com.nateyburr.beyondthestars.Config;
+import com.nateyburr.beyondthestars.client.render.BTSShaders;
 import com.nateyburr.beyondthestars.client.render.BlackHoleLens;
 import com.nateyburr.beyondthestars.client.render.Blackbody;
 import com.nateyburr.beyondthestars.client.render.GlSave;
@@ -110,6 +111,9 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
     private static final int REPEAT = Math.max(1, Integer.getInteger("bts.render.qRepeat", 1));
 
     private final BlackHoleLens.Params hole = new BlackHoleLens.Params();
+    /** The programs the v2 quasar draws with (one array: a frame allocates nothing, R-16). */
+    private static final BTSShaders.Program[] PROGRAMS = { QuasarFx.RING_PROGRAM, QuasarFx.JET_PROGRAM,
+        QuasarFx.FX_PROGRAM, BlackHoleLens.PROGRAM, GlowSprite.PROGRAM };
     private final QuasarFx.RingLook ring = new QuasarFx.RingLook();
     private final QuasarFx.JetLook jet = new QuasarFx.JetLook();
     private final QuasarFx.FieldLook field = new QuasarFx.FieldLook();
@@ -127,22 +131,15 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
 
     @Override
     public void renderTileEntityAt(TileEntity tile, double x, double y, double z, float partialTicks) {
-        if (!Config.renderQuasar || !(tile instanceof TileQuasarHole)) return;
+        if (!Config.renderQuasar || !(tile instanceof TileQuasarHole) || RenderQuality.hidden()) return;
         final TileQuasarHole q = (TileQuasarHole) tile;
         final float s = q.getHoleScale();
         final double cx = x + 0.5;
         final double cy = y + 0.5;
         final double cz = z + 0.5;
         // the whole quasar: the ring reaches r 62 (TileQuasarHole's render box)
-        final Lod.Tier tier = RenderQuality.tier(
-            tile,
-            DISC_R0 + DISC_W,
-            Math.sqrt(cx * cx + cy * cy + cz * cz),
-            QuasarFx.RING_PROGRAM,
-            QuasarFx.JET_PROGRAM,
-            QuasarFx.FX_PROGRAM,
-            BlackHoleLens.PROGRAM,
-            GlowSprite.PROGRAM);
+        final Lod.Tier tier = RenderQuality
+            .tier(tile, DISC_R0 + DISC_W, Math.sqrt(cx * cx + cy * cy + cz * cz), PROGRAMS);
         GpuTimer.begin("quasar");
         final boolean glCheck = RenderQuality.glCheckBegin(tile);
         try {
@@ -496,8 +493,15 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
 
     /** A zone's glow colour (the ring's inner-wall temperature; re-forming violet). */
     private static float[] zoneGlow(int zi) {
-        if (zi == 5) return new float[] { 0.55f, 0.22f, 0.70f };
-        return Blackbody.rgb(T_WALL[zi] * 0.8f);
+        return ZONE_GLOW[zi];
+    }
+
+    /** Each zone's glow colour, worked out once (R-16: a frame allocates nothing). */
+    private static final float[][] ZONE_GLOW = new float[6][];
+
+    static {
+        for (int zi = 0; zi < 5; zi++) ZONE_GLOW[zi] = Blackbody.rgb(T_WALL[zi] * 0.8f);
+        ZONE_GLOW[5] = new float[] { 0.55f, 0.22f, 0.70f };
     }
 
     /** The premultiplied-over state for the ring (depth test, no depth writes, lightmap full, no fog). */

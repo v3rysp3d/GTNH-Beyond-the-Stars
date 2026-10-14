@@ -27,9 +27,32 @@ import cpw.mods.fml.relauncher.SideOnly;
 public final class DeferredDraws {
 
     private static final DeferredDraws INSTANCE = new DeferredDraws();
-    private static final List<Runnable> QUEUE = new ArrayList<>();
+    /** The queue: entries reused frame after frame (R-16: queueing a draw allocates nothing). */
+    private static final List<Entry<?>> QUEUE = new ArrayList<>();
+    private static int queued;
     private static boolean registered;
     private static long queuedFrame = -1;
+
+    /**
+     * A deferred draw: a machine and the camera-relative position its TESR was given. Keep the instance in a static
+     * field (a method reference to a static method), so queueing captures nothing.
+     */
+    public interface Draw<T> {
+
+        void draw(T machine, double x, double y, double z, float partialTicks);
+    }
+
+    private static final class Entry<T> {
+
+        Draw<T> draw;
+        T machine;
+        double x, y, z;
+        float partialTicks;
+
+        void run() {
+            draw.draw(machine, x, y, z, partialTicks);
+        }
+    }
 
     private DeferredDraws() {}
 
@@ -40,23 +63,40 @@ public final class DeferredDraws {
         MinecraftForge.EVENT_BUS.register(INSTANCE);
     }
 
-    /** Queues {@code draw} for after the translucent pass of this frame (render thread). */
-    public static void add(Runnable draw) {
+    /** Queues {@code draw} of {@code machine} for after the translucent pass of this frame (render thread). */
+    @SuppressWarnings("unchecked")
+    public static <T> void add(Draw<T> draw, T machine, double x, double y, double z, float partialTicks) {
         final long f = RenderFrame.frame();
         if (f != queuedFrame) {
-            QUEUE.clear();
+            clear();
             queuedFrame = f;
         }
-        QUEUE.add(draw);
+        if (queued == QUEUE.size()) QUEUE.add(new Entry<>());
+        final Entry<T> e = (Entry<T>) QUEUE.get(queued++);
+        e.draw = draw;
+        e.machine = machine;
+        e.x = x;
+        e.y = y;
+        e.z = z;
+        e.partialTicks = partialTicks;
+    }
+
+    /** Empties the queue (the entries stay for reuse; they let go of their machines). */
+    private static void clear() {
+        for (int i = 0; i < queued; i++) {
+            QUEUE.get(i).machine = null;
+            QUEUE.get(i).draw = null;
+        }
+        queued = 0;
     }
 
     @SubscribeEvent
     public void onRenderLast(RenderWorldLastEvent event) {
-        if (queuedFrame != RenderFrame.frame() || QUEUE.isEmpty()) {
-            QUEUE.clear();
+        if (queuedFrame != RenderFrame.frame() || queued == 0) {
+            clear();
             return;
         }
-        for (int i = 0; i < QUEUE.size(); i++) {
+        for (int i = 0; i < queued; i++) {
             try {
                 QUEUE.get(i)
                     .run();
@@ -64,6 +104,6 @@ public final class DeferredDraws {
                 BeyondTheStars.LOG.warn("[BTS render] a deferred machine draw failed: {}", bad.toString());
             }
         }
-        QUEUE.clear();
+        clear();
     }
 }

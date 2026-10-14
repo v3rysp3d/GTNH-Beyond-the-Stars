@@ -8,6 +8,7 @@ import org.lwjgl.opengl.GL11;
 
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.nateyburr.beyondthestars.Config;
+import com.nateyburr.beyondthestars.client.render.BTSShaders;
 import com.nateyburr.beyondthestars.client.render.DeferredDraws;
 import com.nateyburr.beyondthestars.client.render.GlSave;
 import com.nateyburr.beyondthestars.client.render.GlowSprite;
@@ -54,7 +55,18 @@ public final class ConduitRender {
 
         ExtendedFacing facing;
         ConduitThroats.WorldThroat[] throats;
+        /** A crown's geometry for {@link #facing} and {@link #mk} (R-16: worked out once, not per frame). */
+        int mk;
+        int[] intake;
+        double[] axis;
+        double stackH;
     }
+
+    private static final DeferredDraws.Draw<MTEConduitElement<?>> ELEMENT_DRAW = ConduitRender::renderElementNow;
+    private static final DeferredDraws.Draw<MTEBurstThermaliserCrown> CROWN_DRAW = ConduitRender::renderCrownNow;
+    /** The programs a conduit draw uses (one array: a frame allocates nothing, R-16). */
+    private static final BTSShaders.Program[] PROGRAMS = { MachineFx.BEAM_PROGRAM, MachineFx.MFX_PROGRAM,
+        GlowSprite.PROGRAM };
 
     /**
      * Render QA harness override (renders v2 WP-6, set by RenderTestClient): {Bu/t, ...}: every out-throat (and a
@@ -75,12 +87,12 @@ public final class ConduitRender {
     /** GT's pass-0 hook: queues the draw for after the translucent pass ({@link DeferredDraws}). */
     public static void renderElement(MTEConduitElement<?> m, double x, double y, double z, float partialTicks) {
         if (Config.renderConduit && m.renderThroats() > 0) {
-            DeferredDraws.add(() -> renderElementNow(m, x, y, z, partialTicks));
+            DeferredDraws.add(ELEMENT_DRAW, m, x, y, z, partialTicks);
         }
     }
 
     private static void renderElementNow(MTEConduitElement<?> m, double x, double y, double z, float partialTicks) {
-        if (!Config.renderConduit) return;
+        if (!Config.renderConduit || RenderQuality.hidden()) return;
         final IGregTechTileEntity base = m.getBaseMetaTileEntity();
         final int n = m.renderThroats();
         if (base == null || n == 0) return;
@@ -97,13 +109,7 @@ public final class ConduitRender {
         final double ox = x - base.getXCoord(), oy = y - base.getYCoord(), oz = z - base.getZCoord();
         final double[] c0 = s.throats[0].centre;
         final double dist = Math.sqrt(sq(c0[0] + ox) + sq(c0[1] + oy) + sq(c0[2] + oz));
-        final Lod.Tier tier = RenderQuality.tier(
-            m,
-            Math.max(16, s.throats[0].radius + 4),
-            dist,
-            MachineFx.BEAM_PROGRAM,
-            MachineFx.MFX_PROGRAM,
-            GlowSprite.PROGRAM);
+        final Lod.Tier tier = RenderQuality.tier(m, Math.max(16, s.throats[0].radius + 4), dist, PROGRAMS);
         if (!tier.shaded()) return;
         final float time = RenderClock.seconds(base.getWorld(), partialTicks);
         GpuTimer.begin("conduit");
@@ -232,11 +238,11 @@ public final class ConduitRender {
 
     /** GT's pass-0 hook: queues the draw for after the translucent pass ({@link DeferredDraws}). */
     public static void renderCrown(MTEBurstThermaliserCrown c, double x, double y, double z, float partialTicks) {
-        if (Config.renderConduit && c.renderMk() > 0) DeferredDraws.add(() -> renderCrownNow(c, x, y, z, partialTicks));
+        if (Config.renderConduit && c.renderMk() > 0) DeferredDraws.add(CROWN_DRAW, c, x, y, z, partialTicks);
     }
 
     private static void renderCrownNow(MTEBurstThermaliserCrown c, double x, double y, double z, float partialTicks) {
-        if (!Config.renderConduit) return;
+        if (!Config.renderConduit || RenderQuality.hidden()) return;
         final IGregTechTileEntity base = c.getBaseMetaTileEntity();
         final int mk = c.renderMk();
         if (base == null || mk <= 0) return;
@@ -244,13 +250,21 @@ public final class ConduitRender {
         if (f == null) return;
         final float stream = c.renderStream();
         if (stream <= 1e-3f) return;
-        final int[] in = QuasarGeometry.world(f, 0, 0, 0, MTEBurstThermaliserCrown.intakeRel(mk));
-        final int[] ia = MTEBurstThermaliserCrown.intakeAxis(mk);
-        final double[] ax = ConduitThroats.worldDir(f, new double[] { ia[0], ia[1], ia[2] });
+        State s = STATES.get(c);
+        if (s == null) STATES.put(c, s = new State());
+        if (s.facing != f || s.mk != mk || s.intake == null) {
+            s.facing = f;
+            s.mk = mk;
+            s.intake = QuasarGeometry.world(f, 0, 0, 0, MTEBurstThermaliserCrown.intakeRel(mk));
+            final int[] ia = MTEBurstThermaliserCrown.intakeAxis(mk);
+            s.axis = ConduitThroats.worldDir(f, new double[] { ia[0], ia[1], ia[2] });
+            s.stackH = Math.abs(MTEBurstThermaliserCrown.stackRel(mk)[1]);
+        }
+        final int[] in = s.intake;
+        final double[] ax = s.axis;
         final double ix = x + in[0] + 0.5, iy = y + in[1] + 0.5, iz = z + in[2] + 0.5;
         final double dist = Math.sqrt(ix * ix + iy * iy + iz * iz);
-        final Lod.Tier tier = RenderQuality
-            .tier(c, 10, dist, MachineFx.BEAM_PROGRAM, MachineFx.MFX_PROGRAM, GlowSprite.PROGRAM);
+        final Lod.Tier tier = RenderQuality.tier(c, 10, dist, PROGRAMS);
         if (!tier.shaded()) return;
         final double cap = Math.max(1, BurstRouting.crownCap(mk));
         final float heat = (float) Math.min(1.0, Math.log10(1 + stream) / Math.log10(1 + cap));
@@ -267,7 +281,7 @@ public final class ConduitRender {
                 A[0] = ix;
                 A[1] = iy;
                 A[2] = iz;
-                final double h = Math.abs(MTEBurstThermaliserCrown.stackRel(mk)[1]) + 1;
+                final double h = s.stackH + 1;
                 B[0] = ix + ax[0] * h;
                 B[1] = iy + ax[1] * h;
                 B[2] = iz + ax[2] * h;
@@ -292,7 +306,7 @@ public final class ConduitRender {
                 MachineFx.drawBeam(A, B, bm);
             }
             // the thermal shimmer over the cup
-            final double top = Math.abs(MTEBurstThermaliserCrown.stackRel(mk)[1]) + 1.5;
+            final double top = s.stackH + 1.5;
             GlowSprite.draw(
                 ix + ax[0] * top,
                 iy + ax[1] * top,

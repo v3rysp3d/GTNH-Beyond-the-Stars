@@ -39,6 +39,33 @@ public final class Blackbody {
         return new float[] { (float) encode(r / max), (float) encode(g / max), (float) encode(b / max) };
     }
 
+    /** Table steps of {@link #rgb(double, float[])} (log spaced over {@link #T_MIN}..{@link #T_MAX}). */
+    private static final int TABLE_SIZE = 512;
+    private static float[] table;
+
+    /**
+     * R-16: {@link #rgb(double)} for a draw: read from a table built once (log-spaced, linearly interpolated, within
+     * 0.002 of the exact colour) into {@code out}, so a frame neither allocates nor integrates the Planck curve.
+     * Returns {@code out}.
+     */
+    public static float[] rgb(double kelvin, float[] out) {
+        float[] t = table;
+        if (t == null) {
+            t = new float[TABLE_SIZE * 3];
+            for (int i = 0; i < TABLE_SIZE; i++) {
+                final float[] c = rgb(T_MIN * Math.pow(T_MAX / T_MIN, i / (double) (TABLE_SIZE - 1)));
+                System.arraycopy(c, 0, t, i * 3, 3);
+            }
+            table = t;
+        }
+        final double k = Math.max(T_MIN, Math.min(T_MAX, kelvin));
+        final double f = Math.log(k / T_MIN) / Math.log(T_MAX / T_MIN) * (TABLE_SIZE - 1);
+        final int i = Math.min(TABLE_SIZE - 2, (int) f);
+        final float w = (float) (f - i);
+        for (int c = 0; c < 3; c++) out[c] = t[i * 3 + c] + (t[i * 3 + 3 + c] - t[i * 3 + c]) * w;
+        return out;
+    }
+
     /** {@link #rgb} packed as 0xRRGGBB. */
     public static int packed(double kelvin) {
         final float[] c = rgb(kelvin);

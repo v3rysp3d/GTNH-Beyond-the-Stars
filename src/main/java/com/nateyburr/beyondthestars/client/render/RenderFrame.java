@@ -37,6 +37,7 @@ public final class RenderFrame {
     public void onRenderTick(TickEvent.RenderTickEvent event) {
         if (event.phase == TickEvent.Phase.START) {
             frame++;
+            NoiseTex.onFrameStart();
             RenderQuality.onFrameStart();
         } else {
             GpuTimer.onFrameEnd();

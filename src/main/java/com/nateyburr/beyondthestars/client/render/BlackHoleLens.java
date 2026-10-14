@@ -259,6 +259,17 @@ public final class BlackHoleLens {
         return M9;
     }
 
+    /** The rectangle {@link #screenRect} returns (shared: R-16, a frame allocates nothing). */
+    private static final int[] RECT = new int[4];
+
+    private static int[] rect(int x0, int y0, int x1, int y1) {
+        RECT[0] = x0;
+        RECT[1] = y0;
+        RECT[2] = x1;
+        RECT[3] = y1;
+        return RECT;
+    }
+
     /** The window-pixel rectangle {x0, y0, x1, y1} the quad covers (the whole window if a corner is behind). */
     private static int[] screenRect(double cx, double cy, double cz, double ux, double uy, double uz, double vx,
         double vy, double vz, int w, int h) {
@@ -271,14 +282,17 @@ public final class BlackHoleLens {
                 (float) (cz + su * uz + sv * vz),
                 1f);
             PROJ.transform(CORNER);
-            if (CORNER.w < 1e-3f) return new int[] { 0, 0, w, h };
+            if (CORNER.w < 1e-3f) return rect(0, 0, w, h);
             final double px = (CORNER.x / CORNER.w * 0.5 + 0.5) * w, py = (CORNER.y / CORNER.w * 0.5 + 0.5) * h;
             x0 = Math.min(x0, px);
             y0 = Math.min(y0, py);
             x1 = Math.max(x1, px);
             y1 = Math.max(y1, py);
         }
-        return new int[] { (int) Math.floor(x0) - 2, (int) Math.floor(y0) - 2, (int) Math.ceil(x1) + 2,
-            (int) Math.ceil(y1) + 2 };
+        return rect(
+            (int) Math.floor(x0) - 2,
+            (int) Math.floor(y0) - 2,
+            (int) Math.ceil(x1) + 2,
+            (int) Math.ceil(y1) + 2);
     }
 }

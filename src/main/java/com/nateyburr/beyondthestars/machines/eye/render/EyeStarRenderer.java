@@ -161,7 +161,7 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
 
     @Override
     public void renderTileEntityAt(TileEntity tile, double x, double y, double z, float partialTicks) {
-        if (!Config.eyeRenderCentre || !(tile instanceof TileEyeStar)) return;
+        if (!Config.eyeRenderCentre || !(tile instanceof TileEyeStar) || RenderQuality.hidden()) return;
         final TileEyeStar star = (TileEyeStar) tile;
         final World world = star.getWorldObj();
         if (world == null) return;
@@ -213,34 +213,10 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
         if (pass != 1 || !tiers.containsKey(star)) {
             final double reach = Math.max(radius * GLOW_RADII, EyeStarLook.galaxyReach(kind));
             final double bound = Math.min(CLEARANCE, Math.max(reach, GLOW_MIN));
-            tier = spiral
-                ? RenderQuality.tier(
-                    star,
-                    CLEARANCE,
-                    dist,
-                    GalaxyFx.POINTS_PROGRAM,
-                    GalaxyFx.DISC_PROGRAM,
-                    GalaxyFx.SKY_PROGRAM,
-                    GlowSprite.PROGRAM)
-                : planets
-                    ? RenderQuality.tier(
-                        star,
-                        CLEARANCE,
-                        dist,
-                        GalaxyFx.PLANETS_PROGRAM,
-                        GalaxyFx.SKY_PROGRAM,
-                        EyeStarFx.STAR_PROGRAM,
-                        EyeStarFx.HALO_PROGRAM,
-                        GlowSprite.PROGRAM)
-                    : galaxy ? RenderQuality.tier(star, bound, dist)
-                        : RenderQuality.tier(
-                            star,
-                            bound,
-                            dist,
-                            EyeStarFx.STAR_PROGRAM,
-                            EyeStarFx.HALO_PROGRAM,
-                            EyeStarFx.LINES_PROGRAM,
-                            GlowSprite.PROGRAM);
+            tier = spiral ? RenderQuality.tier(star, CLEARANCE, dist, GALAXY_PROGRAMS)
+                : planets ? RenderQuality.tier(star, CLEARANCE, dist, PLANET_PROGRAMS)
+                    : galaxy ? RenderQuality.tier(star, bound, dist, NO_PROGRAMS)
+                        : RenderQuality.tier(star, bound, dist, STAR_PROGRAMS);
             tiers.put(star, tier);
         } else {
             tier = tiers.get(star);
@@ -292,6 +268,14 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
     private static final int REPEAT = Math.max(1, Integer.getInteger("bts.render.eyeRepeat", 1));
     /** Dev switch {@code -Dbts.render.starDebug=n} (bits): 1 no halo, 2 no loops, 4 no photosphere, 8 cull front. */
     private static final int DEBUG = Integer.getInteger("bts.render.starDebug", 0);
+
+    /** The programs of each look (one array each: a frame allocates nothing, R-16). */
+    private static final BTSShaders.Program[] GALAXY_PROGRAMS = { GalaxyFx.POINTS_PROGRAM, GalaxyFx.DISC_PROGRAM,
+        GalaxyFx.SKY_PROGRAM, GlowSprite.PROGRAM },
+        PLANET_PROGRAMS = { GalaxyFx.PLANETS_PROGRAM, GalaxyFx.SKY_PROGRAM, EyeStarFx.STAR_PROGRAM,
+            EyeStarFx.HALO_PROGRAM, GlowSprite.PROGRAM },
+        STAR_PROGRAMS = { EyeStarFx.STAR_PROGRAM, EyeStarFx.HALO_PROGRAM, EyeStarFx.LINES_PROGRAM, GlowSprite.PROGRAM },
+        NO_PROGRAMS = {};
 
     /** Each star's tier from its pass-0 frame, for pass 1. */
     private final Map<TileEyeStar, Lod.Tier> tiers = new WeakHashMap<>();
