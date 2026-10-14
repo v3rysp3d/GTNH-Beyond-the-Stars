@@ -184,7 +184,7 @@ public final class ConduitKit {
         final List<String> out = new ArrayList<>();
         final IGregTechTileEntity base = q.getBaseMetaTileEntity();
         final ExtendedFacing qf = q.getExtendedFacing();
-        final int m = Math.max(1, Math.min(3, mk));
+        final int m = Math.max(1, Math.min(MTEBurstThermaliserCrown.MK_MAX, mk));
         for (JetPort port : JetPort.VALUES) {
             final ExtendedFacing f = MTEBurstThermaliserCrown.dockFacing(qf, port);
             final int[] c = QuasarGeometry.world(
@@ -505,7 +505,7 @@ public final class ConduitKit {
         final ItemStack stack;
         int tier = 1;
         if (k.startsWith("crown")) {
-            tier = k.length() > 5 ? Math.max(1, Math.min(3, k.charAt(5) - '0')) : 1;
+            tier = k.length() > 5 ? Math.max(1, Math.min(MTEBurstThermaliserCrown.MK_MAX, k.charAt(5) - '0')) : 1;
             stack = BTSMachines.burstThermaliserCrown;
             m = stack == null ? null
                 : placeController(world, stack, MTEBurstThermaliserCrown.class, new int[] { x, y, z }, f);
