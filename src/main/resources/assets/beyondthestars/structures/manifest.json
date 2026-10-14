@@ -490,13 +490,25 @@
     "fallback": "A",
     "min": 1,
     "hint": 7
+   },
+   "L": {
+    "role": "lattice_frame",
+    "kind": "latframe (the equatorial band, the two +-35 deg rings, 24 struts, 8 meridian ribs)",
+    "block": "NEW slCasing4:0 Lattice Frame Casing"
+   },
+   "N": {
+    "role": "containment_node",
+    "kind": "latnode (16 per ring, 48 in all)",
+    "block": "NEW slCasing4:1-4 Containment Node L1-L4 (Superdense Ergomatter / White Hole Matter / Universium / Constrained Eternity), ofBlocksTiered on channel 'lattice'; every node the same tier; counts only after Saturation, on MagMatter coils",
+    "tiered": true,
+    "channel": "lattice"
    }
   },
   "crown": {
    "~": {
     "role": "controller",
     "kind": "control (base rim, +x)",
-    "block": "Burst Thermaliser Crown controller (MTE 28124); Mk I/II/III = which of crown_mk1/2/3 checks (channel 'crown')"
+    "block": "Burst Thermaliser Crown controller (MTE 28124); Mk I/II/III/IV = which of crown_mk1/2/3/4 checks (channel 'crown')"
    },
    "A": {
     "role": "base_casing",
@@ -517,6 +529,11 @@
     "role": "radiator_petal",
     "kind": "petal",
     "block": "NEW Radiator Petal"
+   },
+   "X": {
+    "role": "horizon_thermaliser",
+    "kind": "thermal (crown_mk4 only: the absorber core and the petals' studs)",
+    "block": "NEW slCasing4:5 Event Horizon Thermaliser Casing (Crown Mk IV, smbh-v1.md §8.1)"
    },
    "r": {
     "role": "grb_receptor",
@@ -1236,7 +1253,8 @@
     ]
    },
    "pieces": {
-    "quasar": "the whole machine; the hole, disc, jets and throats are render cells (skipped)"
+    "quasar": "the whole machine; the hole, disc, jets and throats are render cells (skipped)",
+    "quasar_lattice": "SMBH v1 (smbh-v1.md §1.1): the Supermassive Lattice, optional; built with the 'lattice' channel; counts only after Saturation, on MagMatter coils"
    },
    "channels": {
     "coil": {
@@ -1248,6 +1266,17 @@
       "MagMatter"
      ],
      "note": "Disc Field Coil T1-T4: b <= tier; mass caps 256 / 1,024 / 2,048 / 4,096 SM; every coil one tier"
+    },
+    "lattice": {
+     "char": "N",
+     "piece": "quasar_lattice",
+     "tiers": [
+      "Superdense Ergomatter",
+      "White Hole Matter",
+      "Universium",
+      "Constrained Eternity"
+     ],
+     "note": "Containment Node L1-L4: safe limit / top 16,384 / 65,536, 65,536 / 262,144, 262,144 / 4,194,304, 4,194,304 / 67,108,864 SM; every node one tier; unset = no lattice"
     }
    },
    "slots": {
@@ -1325,14 +1354,16 @@
    "pieces": {
     "crown_mk1": "Mk I (32 Bu/t)",
     "crown_mk2": "Mk II (512 Bu/t)",
-    "crown_mk3": "Mk III (8,192 Bu/t)"
+    "crown_mk3": "Mk III (8,192 Bu/t)",
+    "crown_mk4": "Mk IV, the Event Horizon Crown (524,288 Bu/t; SMBH v1)"
    },
    "channels": {
     "crown": {
      "pieces": [
       "crown_mk1",
       "crown_mk2",
-      "crown_mk3"
+      "crown_mk3",
+      "crown_mk4"
      ],
      "note": "alternative whole shapes (not additive); the Mk is the biggest that checks; the hologram builds the channel's Mk"
     }
@@ -1373,6 +1404,18 @@
       -1,
       0
      ]
+    },
+    "crown_mk4": {
+     "rel": [
+      0,
+      0,
+      12
+     ],
+     "axisAbc": [
+      0,
+      -1,
+      0
+     ]
     }
    },
    "stack": {
@@ -1396,6 +1439,14 @@
      "rel": [
       0,
       -18,
+      0
+     ],
+     "sharedCells": 0
+    },
+    "crown_mk4": {
+     "rel": [
+      0,
+      -23,
       0
      ],
      "sharedCells": 0
@@ -1754,6 +1805,21 @@
    ],
    "size": "65x29x65",
    "blocks": 4422
+  },
+  "Event Horizon Crown (Mk IV)": {
+   "pieces": [
+    "crown_mk4"
+   ],
+   "size": "81x35x81",
+   "blocks": 6418
+  },
+  "Quasar Engine + Supermassive Lattice": {
+   "pieces": [
+    "quasar",
+    "quasar_lattice"
+   ],
+   "size": "179x161x179",
+   "blocks": 60468
   },
   "Wormhole Mouth": {
    "pieces": [
@@ -6716,7 +6782,7 @@
      "ch": "~",
      "count": 1,
      "role": "controller",
-     "block": "Burst Thermaliser Crown controller (MTE 28124); Mk I/II/III = which of crown_mk1/2/3 checks (channel 'crown')"
+     "block": "Burst Thermaliser Crown controller (MTE 28124); Mk I/II/III/IV = which of crown_mk1/2/3/4 checks (channel 'crown')"
     },
     {
      "ch": "r",
@@ -6837,7 +6903,7 @@
      "ch": "~",
      "count": 1,
      "role": "controller",
-     "block": "Burst Thermaliser Crown controller (MTE 28124); Mk I/II/III = which of crown_mk1/2/3 checks (channel 'crown')"
+     "block": "Burst Thermaliser Crown controller (MTE 28124); Mk I/II/III/IV = which of crown_mk1/2/3/4 checks (channel 'crown')"
     },
     {
      "ch": "r",
@@ -6958,7 +7024,7 @@
      "ch": "~",
      "count": 1,
      "role": "controller",
-     "block": "Burst Thermaliser Crown controller (MTE 28124); Mk I/II/III = which of crown_mk1/2/3 checks (channel 'crown')"
+     "block": "Burst Thermaliser Crown controller (MTE 28124); Mk I/II/III/IV = which of crown_mk1/2/3/4 checks (channel 'crown')"
     },
     {
      "ch": "r",
@@ -7017,6 +7083,127 @@
        32,
        28,
        20
+      ],
+      "rel": [
+       0,
+       0,
+       0
+      ],
+      "voxel": [
+       12,
+       -30,
+       0
+      ]
+     }
+    ]
+   }
+  },
+  "crown_mk4": {
+   "machine": "crown",
+   "file": "structures/crown_mk4.txt",
+   "w": 81,
+   "h": 35,
+   "d": 81,
+   "off": [
+    40,
+    34,
+    28
+   ],
+   "blocks": 6418,
+   "bom": [
+    {
+     "ch": "R",
+     "count": 4599,
+     "role": "radiator_petal",
+     "block": "NEW Radiator Petal"
+    },
+    {
+     "ch": "X",
+     "count": 852,
+     "role": "horizon_thermaliser",
+     "block": "NEW slCasing4:5 Event Horizon Thermaliser Casing (Crown Mk IV, smbh-v1.md §8.1)"
+    },
+    {
+     "ch": "C",
+     "count": 492,
+     "role": "collimator",
+     "block": "NEW Jet Collimator Ring"
+    },
+    {
+     "ch": "A",
+     "count": 472,
+     "role": "base_casing",
+     "block": "Casings.ExtremeDensitySpaceBendingCasing (sBlockCasings10:11, BHC)"
+    },
+    {
+     "ch": "m",
+     "count": 1,
+     "role": "maintenance_socket",
+     "block": "HatchElement.Maintenance, else fallback"
+    },
+    {
+     "ch": "~",
+     "count": 1,
+     "role": "controller",
+     "block": "Burst Thermaliser Crown controller (MTE 28124); Mk I/II/III/IV = which of crown_mk1/2/3/4 checks (channel 'crown')"
+    },
+    {
+     "ch": "r",
+     "count": 1,
+     "role": "grb_receptor",
+     "block": "GRB Receptor Port (MTE 28125): a conduit can feed a remote crown, else fallback"
+    }
+   ],
+   "socketCounts": {
+    "m": 1,
+    "r": 1,
+    "~": 1
+   },
+   "sockets": {
+    "m": [
+     {
+      "abc": [
+       40,
+       34,
+       52
+      ],
+      "rel": [
+       0,
+       0,
+       24
+      ],
+      "voxel": [
+       -12,
+       -30,
+       0
+      ]
+     }
+    ],
+    "r": [
+     {
+      "abc": [
+       28,
+       34,
+       40
+      ],
+      "rel": [
+       -12,
+       0,
+       12
+      ],
+      "voxel": [
+       0,
+       -30,
+       12
+      ]
+     }
+    ],
+    "~": [
+     {
+      "abc": [
+       40,
+       34,
+       28
       ],
       "rel": [
        0,
@@ -7711,6 +7898,35 @@
      }
     ]
    }
+  },
+  "quasar_lattice": {
+   "machine": "quasar",
+   "file": "structures/quasar_lattice.txt",
+   "w": 179,
+   "h": 101,
+   "d": 179,
+   "off": [
+    89,
+    65,
+    17
+   ],
+   "blocks": 8484,
+   "bom": [
+    {
+     "ch": "L",
+     "count": 8436,
+     "role": "lattice_frame",
+     "block": "NEW slCasing4:0 Lattice Frame Casing"
+    },
+    {
+     "ch": "N",
+     "count": 48,
+     "role": "containment_node",
+     "block": "NEW slCasing4:1-4 Containment Node L1-L4 (Superdense Ergomatter / White Hole Matter / Universium / Constrained Eternity), ofBlocksTiered on channel 'lattice'; every node the same tier; counts only after Saturation, on MagMatter coils"
+    }
+   ],
+   "socketCounts": {},
+   "sockets": {}
   }
  },
  "checks": [
@@ -7736,9 +7952,11 @@
   "ok   crown_mk1: one controller '~' at off 16,16,4",
   "ok   crown_mk2: one controller '~' at off 24,22,12",
   "ok   crown_mk3: one controller '~' at off 32,28,20",
+  "ok   crown_mk4: one controller '~' at off 40,34,28",
   "ok   conduit_mouth: one controller '~' at off 19,39,0",
   "ok   conduit_mirror: one controller '~' at off 8,11,11",
   "ok   conduit_junction: one controller '~' at off 45,0,41",
+  "ok   quasar_lattice: no '~' (anchored by off 89,65,17, outside its own box)",
   "ok   kerr_t1: off resolves to the machine's controller cell",
   "ok   kerr_t2: off resolves to the machine's controller cell",
   "ok   kerr_compressor: off resolves to the machine's controller cell",
@@ -7761,9 +7979,11 @@
   "ok   crown_mk1: off resolves to the machine's controller cell",
   "ok   crown_mk2: off resolves to the machine's controller cell",
   "ok   crown_mk3: off resolves to the machine's controller cell",
+  "ok   crown_mk4: off resolves to the machine's controller cell",
   "ok   conduit_mouth: off resolves to the machine's controller cell",
   "ok   conduit_mirror: off resolves to the machine's controller cell",
   "ok   conduit_junction: off resolves to the machine's controller cell",
+  "ok   quasar_lattice: off resolves to the machine's controller cell",
   "ok   kerr_compressor: the controller's front face is open air in the Kerr T1 build",
   "ok   kerr_extractor: the controller's front face is open air in the Kerr T1 build",
   "ok   kerr_compressor: the controller's front face is open air in the Kerr T2 build",
@@ -7828,6 +8048,8 @@
   "ok   Burst Thermaliser Crown Mk I assembled box 33x17x33 (W x H x D, spec 33x17x33)",
   "ok   Burst Thermaliser Crown Mk II assembled box 49x23x49 (W x H x D, spec 49x23x49)",
   "ok   Burst Thermaliser Crown Mk III assembled box 65x29x65 (W x H x D, spec 65x29x65)",
+  "ok   Event Horizon Crown (Mk IV) assembled box 81x35x81 (W x H x D, spec 81x35x81)",
+  "ok   Quasar Engine + Supermassive Lattice assembled box 179x161x179 (W x H x D, spec 179x161x179)",
   "ok   Wormhole Mouth assembled box 39x42x10 (W x H x D, spec 39x42x10)",
   "ok   Conduit Mirror assembled box 23x13x24 (W x H x D, spec 23x13x24)",
   "ok   Conduit Junction assembled box 89x30x83 (W x H x D, spec 89x30x83)",
@@ -7846,9 +8068,11 @@
   "ok   crown_mk1: every socket has an outside-reachable face",
   "ok   crown_mk2: every socket has an outside-reachable face",
   "ok   crown_mk3: every socket has an outside-reachable face",
+  "ok   crown_mk4: every socket has an outside-reachable face",
   "ok   conduit_mouth: every socket has an outside-reachable face",
   "ok   conduit_mirror: every socket has an outside-reachable face",
   "ok   conduit_junction: every socket has an outside-reachable face",
+  "ok   Quasar Engine + Supermassive Lattice: every socket has an outside-reachable face",
   "ok   eye_core: 4 Directive sockets 'd' and 1 slot bus 'p' (on plinth face cells)",
   "ok   eye_rail / eye_halo: 8 GRB Receptor Ports 'r' each (8 / 8)",
   "ok   eye_rail: 4 receptors on the high half (z > 0) and 4 on the low half (4 / 4)",
@@ -7861,6 +8085,7 @@
   "ok   crown_mk1: the controller's front face (voxel 1,0,0) is open air (turns 1)",
   "ok   crown_mk2: the controller's front face (voxel 1,0,0) is open air (turns 1)",
   "ok   crown_mk3: the controller's front face (voxel 1,0,0) is open air (turns 1)",
+  "ok   crown_mk4: the controller's front face (voxel 1,0,0) is open air (turns 1)",
   "ok   conduit_mouth: the controller's front face (voxel -1,0,0) is open air (turns 3)",
   "ok   conduit_mirror: the controller's front face (voxel -1,0,0) is open air (turns 3)",
   "ok   conduit_junction: the controller's front face (voxel 0,0,1) is open air (turns 0)",
@@ -7870,10 +8095,20 @@
   "ok   crown_mk2 docked on the bottom port: touches the quasar in 0 cells, seats 271 cells on the cap",
   "ok   crown_mk3 docked on the top port: touches the quasar in 0 cells, seats 271 cells on the cap",
   "ok   crown_mk3 docked on the bottom port: touches the quasar in 0 cells, seats 271 cells on the cap",
+  "ok   crown_mk4 docked on the top port: touches the quasar in 0 cells, seats 271 cells on the cap",
+  "ok   crown_mk4 docked on the bottom port: touches the quasar in 0 cells, seats 271 cells on the cap",
   "ok   quasar: the 4 cap-rim Burst Control sockets keep an open face with Mk III crowns docked on both ports (0 sealed)",
+  "ok   quasar: the 4 cap-rim Burst Control sockets keep an open face with Mk IV crowns docked on both ports (0 sealed)",
+  "ok   quasar_lattice: 48 Containment Nodes, 16 per ring (16 / 16 / 16)",
+  "ok   quasar_lattice: every drawn node cell is in the piece",
+  "ok   quasar and quasar_lattice share no cell",
+  "ok   quasar_lattice: crowns Mk I-IV docked (and stacked) on both ports touch the lattice in 0 cells",
+  "ok   quasar_lattice: the 24 cells in front of the quasar's controller are open (0 blocked)",
+  "ok   quasar_lattice: 8484 cells (the spec's \"about 8,000\")",
   "ok   crown_mk1: a second crown stacked at core top - 2 (dy 9) shares 0 cells with the first",
   "ok   crown_mk2: a second crown stacked at core top - 2 (dy 14) shares 0 cells with the first",
   "ok   crown_mk3: a second crown stacked at core top - 2 (dy 18) shares 0 cells with the first",
+  "ok   crown_mk4: a second crown stacked at core top - 2 (dy 23) shares 0 cells with the first",
   "ok   kerr_t1: 700 window pane cells, 3006 opened",
   "ok   kerr_t2: 700 window pane cells, 3323 opened",
   "ok   eye_core: 339 window pane cells, 371 opened",
@@ -7903,6 +8138,7 @@
   "eye_rim: 112 cells written over an earlier piece in the mockup ({\"rim\":104,\"clamp\":8}); the earlier piece keeps them",
   "eye_rail: 36 cells written over an earlier piece in the mockup ({\"clamp\":36}); the earlier piece keeps them",
   "homog_t2: 30 cells written over an earlier tier in the mockup; the earlier piece keeps them",
-  "homog_t3: 45 cells written over an earlier tier in the mockup; the earlier piece keeps them"
+  "homog_t3: 45 cells written over an earlier tier in the mockup; the earlier piece keeps them",
+  "quasar_lattice: 2 strut-root cells fall on the quasar's buttresses and stay quasar cells"
  ]
 }

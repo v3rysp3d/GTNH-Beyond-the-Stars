@@ -73,8 +73,37 @@ function loadVoxel() {
   // 5. The Eye's centre is render-only (D-34), but the T4 render draws one "planet" with the solid ring2 block. The
   //    exporter never draws the centre at all.
   body = splice(body, "centreRender(t, mulberry32(t*7+1));", "if (!globalThis.__noCentre) ", "before");
+  // 6. SMBH v1 (design repo designs/docs/smbh-v1.md §1.1, §3.4, §8.1). voxel.js has no Supermassive Lattice and no
+  //    fourth crown, and this run may not edit the design repo, so both are drawn here (B-151): two block kinds
+  //    appended last (every other id unchanged), the Mk IV crown as a fourth CROWN entry on the same crown() (the
+  //    Mk I-III progression continued: h +6, ro +8, petals 24 -> 32), and the lattice cage by smbhLattice() below.
+  body = splice(body, "BLOCKS.forEach((b, i) => { tile = i; b[3](); });",
+    `def("latframe", "Lattice Frame Casing", "s", ()=>{});\ndef("latnode", "Containment Node", "s", ()=>{});\n`, "before");
   body += `
+CROWN.push({ h:32, ro:40, n:32 });
+// The Supermassive Lattice (smbh-v1.md §1.1): an armillary cage round the quasar's centre. The equatorial band (r 87.5-89.5,
+// 3 tall) and two latitude rings at +-35 deg (r 71.5-73.5 at y +-49..50, 2 tall) are Lattice Frame Casing; 24 radial
+// struts at y 0 tie the band to the outer wall's 24 buttresses (15 deg apart); 8 meridian ribs join the band to both
+// rings. 48 Containment Nodes, 16 per ring at 11.25 + 22.5k deg (clear of every strut), on each ring's outer face. The
+// poles stay open (a +-55 deg cone round the jet axis is free above the rings), so jets, crowns and mouths dock as before.
+function smbhLattice(){
+  for (let x=-90;x<=90;x++) for (let z=-90;z<=90;z++){ const r=Math.hypot(x,z);
+    if (r>=87.5 && r<89.5) for (let y=-1;y<=1;y++) set(x,y,z,B.latframe);
+    if (r>=71.5 && r<73.5) for (const y of [49,50,-49,-50]) set(x,y,z,B.latframe); }
+  for (let k=0;k<24;k++){ const a=deg(15*k); for (let r=71.5;r<=87.6;r+=0.3) set(r*Math.cos(a),0,r*Math.sin(a),B.latframe); }
+  const phi1 = Math.atan2(49.5, 72.5), r1 = Math.hypot(49.5, 72.5);
+  for (let j=0;j<8;j++){ const th=deg(11.25+45*j); for (const s of [1,-1]) for (let t=0;t<=1.0001;t+=0.004){
+    const ph=t*phi1, R=88.5+(r1-88.5)*t; set(R*Math.cos(ph)*Math.cos(th), s*R*Math.sin(ph), R*Math.cos(ph)*Math.sin(th), B.latframe); } }
+  const nodes = [];
+  for (let k=0;k<16;k++){ const th=deg(11.25+22.5*k), c=Math.cos(th), s=Math.sin(th);
+    nodes.push([Math.round(88.9*c),0,Math.round(88.9*s)], [Math.round(72.9*c),50,Math.round(72.9*s)], [Math.round(72.9*c),-50,Math.round(72.9*s)]); }
+  for (const p of nodes) set(p[0],p[1],p[2],B.latnode);
+  return nodes;
+}
 globalThis.__vox = { SCENES, BLOCKS, B, RENDER_ONLY, TAGS, CROWN,
+  // SMBH: the lattice alone, centred on the voxel origin (the quasar's hole centre); nodes = the 48 node cells
+  lattice(){ tagArr = null; curTag = 0; collide = {}; newWorld(195,171,195); const nodes = smbhLattice();
+    return { W, H, D, CX, CY, CZ, world: world.slice(), tags: new Uint8Array(W*H*D), collide: {}, nodes }; },
   build(key, t, opts){ const s = SCENES.find(x => x.key === key); if (!s) throw new Error("no scene " + key);
     globalThis.__noClamps = !!(opts && opts.noClamps); globalThis.__noCentre = true;
     tagArr = new Uint8Array(270*195*260); curTag = 0; collide = {};
@@ -84,7 +113,7 @@ globalThis.__vox = { SCENES, BLOCKS, B, RENDER_ONLY, TAGS, CROWN,
   // P4: the quasar at any mass (only render cells may change with M), and one crown alone (base at y0 = -30)
   quasar(M){ tagArr = new Uint8Array(270*195*260); curTag = 0; collide = {}; newWorld(149,171,149); buildQuasar(M);
     return { W, H, D, CX, CY, CZ, world: world.slice(), tags: tagArr.slice(0, W*H*D), collide: { ...collide } }; },
-  crown(i){ tagArr = new Uint8Array(270*195*260); curTag = 0; collide = {}; newWorld(81,71,81); const top = crown(0, -30, i, 0);
+  crown(i){ tagArr = new Uint8Array(270*195*260); curTag = 0; collide = {}; if (i >= 3) newWorld(101,81,101); else newWorld(81,71,81); const top = crown(0, -30, i, 0);
     return { W, H, D, CX, CY, CZ, world: world.slice(), tags: tagArr.slice(0, W*H*D), collide: { ...collide }, y0: -30, top }; } };
 })();`;
   const ctx2d = new Proxy({}, {
@@ -204,13 +233,17 @@ const LEGEND = {
     d: { role: "directive_socket", kind: "directive (control box, the row below the controller)", block: "MTEHatchDirective (MTE 28127), set Disc, else fallback", fallback: "A", min: 0, hint: 5 },
     e: { role: "energy_socket", kind: "energy (3, control box): coil power 2 A UXV x b^2", block: "HatchElement.Energy / ExoticEnergy, else fallback", fallback: "A", min: 1, hint: 6 },
     m: { role: "maintenance_socket", kind: "maint (control box)", block: "HatchElement.Maintenance, else fallback", fallback: "A", min: 1, hint: 7 },
+    // SMBH v1 (smbh-v1.md §1.1, §8.1): the quasar_lattice piece, an optional second piece of the same controller
+    L: { role: "lattice_frame", kind: "latframe (the equatorial band, the two +-35 deg rings, 24 struts, 8 meridian ribs)", block: "NEW slCasing4:0 Lattice Frame Casing" },
+    N: { role: "containment_node", kind: "latnode (16 per ring, 48 in all)", block: "NEW slCasing4:1-4 Containment Node L1-L4 (Superdense Ergomatter / White Hole Matter / Universium / Constrained Eternity), ofBlocksTiered on channel 'lattice'; every node the same tier; counts only after Saturation, on MagMatter coils", tiered: true, channel: "lattice" },
   },
   crown: {
-    "~": { role: "controller", kind: "control (base rim, +x)", block: "Burst Thermaliser Crown controller (MTE 28124); Mk I/II/III = which of crown_mk1/2/3 checks (channel 'crown')" },
+    "~": { role: "controller", kind: "control (base rim, +x)", block: "Burst Thermaliser Crown controller (MTE 28124); Mk I/II/III/IV = which of crown_mk1/2/3/4 checks (channel 'crown')" },
     A: { role: "base_casing", kind: "casing (the two base discs)", block: "Casings.ExtremeDensitySpaceBendingCasing (sBlockCasings10:11, BHC)" },
     C: { role: "collimator", kind: "collimator (the base ring, two petal hoops)", block: "NEW Jet Collimator Ring" },
     F: { role: "thermaliser", kind: "thermal (the absorber core, the petals' old dynamo cells)", block: "NEW Burst Thermaliser Casing" },
     R: { role: "radiator_petal", kind: "petal", block: "NEW Radiator Petal" },
+    X: { role: "horizon_thermaliser", kind: "thermal (crown_mk4 only: the absorber core and the petals' studs)", block: "NEW slCasing4:5 Event Horizon Thermaliser Casing (Crown Mk IV, smbh-v1.md §8.1)" },
     r: { role: "grb_receptor", kind: "receptor (base rim, +z)", block: "GRB Receptor Port (MTE 28125): a conduit can feed a remote crown, else fallback", fallback: "A", min: 0, hint: 1 },
     m: { role: "maintenance_socket", kind: "maint (base rim, -x)", block: "HatchElement.Maintenance, else fallback", fallback: "A", min: 1, hint: 2 },
   },
@@ -864,14 +897,17 @@ const Q = classifyP4("quasar", V.quasar(4096));
   const sig = (m) => [...m.cells.values()].map((c) => keyOf(c.x, c.y, c.z) + c.ch).sort().join("|");
   if (sig(q64) !== sig(Q)) fail("quasar: the structure changes with the hole's mass (only render cells may)");
 }
-const CR = [0, 1, 2].map((i) => { const b = V.crown(i); return { ...classifyP4("crown", b), y0: b.y0, top: b.top }; });
+const CR = [0, 1, 2, 3].map((i) => { const b = V.crown(i); const r = { ...classifyP4("crown", b), y0: b.y0, top: b.top };
+  // SMBH: the Event Horizon Crown (Mk IV) has its own thermaliser casing (smbh-v1.md §8.1)
+  if (i === 3) for (const c of r.cells.values()) if (c.ch === "F") c.ch = "X";
+  return r; });
 const MOUTH = classifyP4("conduit_mouth", V.build("conduit", "pair"), (v) => v[0] < 0); // the left mouth (centre x -44, axis +x)
 const MIRROR = classifyP4("conduit_mirror", V.build("conduit", "bend"));
 const JUNCTION = classifyP4("conduit_junction", V.build("conduit", "split"));
 // each machine's controller front (its open outward face, voxel); checked to be open air below
 const P4 = {
   quasar: { built: Q, names: ["quasar"], mte: 28120, front: [0, 0, 1] },
-  crown: { built: CR[0], names: ["crown_mk1", "crown_mk2", "crown_mk3"], mte: 28124, front: [1, 0, 0] },
+  crown: { built: CR[0], names: ["crown_mk1", "crown_mk2", "crown_mk3", "crown_mk4"], mte: 28124, front: [1, 0, 0] },
   conduit_mouth: { built: MOUTH, names: ["conduit_mouth"], mte: 28121, front: [-1, 0, 0] },
   conduit_mirror: { built: MIRROR, names: ["conduit_mirror"], mte: 28122, front: [-1, 0, 0] },
   conduit_junction: { built: JUNCTION, names: ["conduit_junction"], mte: 28123, front: [0, 0, 1] },
@@ -934,6 +970,34 @@ function throatsAbc(n, machine) {
     centreRel: p4Rel(n, t.centre.map(Math.round)), normalAbc: p4Dir(n, t.normal) }));
 }
 
+// ------------------------------------------------------------------------------------------------ SMBH: the lattice
+// smbh-v1.md §1.1: the Supermassive Lattice is the quasar's optional second piece (channel 'lattice'), in the quasar's
+// own frame and anchored on its controller (its '~' is outside the lattice's box). Cells that would fall on a quasar
+// cell (strut roots on the buttresses) stay quasar cells, so the two pieces are disjoint by construction.
+const LAT = V.lattice();
+const LAT_KIND = { latframe: "L", latnode: "N" };
+const SMBH_CTRL = {};
+const LAT_NODES = LAT.nodes.map((p) => p.join(","));
+{
+  const qb = P4_INFO.quasar.b, cells = [];
+  let dropped = 0;
+  eachCell(LAT, (x, y, z, kind) => {
+    const v = [x - LAT.CX, y - LAT.CY, z - LAT.CZ], ch = LAT_KIND[kind];
+    if (!ch) fail(`quasar_lattice: no char for kind ${kind} at voxel ${v}`);
+    if (QSET.has(v.join(","))) {
+      if (ch === "N") fail(`quasar_lattice: a node at voxel ${v} falls inside the quasar`);
+      dropped++;
+      return;
+    }
+    cells.push({ x: v[0] + qb.CX, y: v[1] + qb.CY, z: v[2] + qb.CZ, ch, kind });
+  });
+  p4Pieces.quasar_lattice = moduleFrame(cells, P4_INFO.quasar.ctrl0, P4.quasar.turns, qb);
+  SMBH_CTRL.quasar_lattice = P4_CTRL.quasar;
+  PIECE_MACHINE.quasar_lattice = "quasar";
+  out.quasar_lattice = render("quasar_lattice", "quasar", p4Pieces.quasar_lattice, P4_CTRL.quasar, qb);
+  if (dropped) report.notes.push(`quasar_lattice: ${dropped} strut-root cells fall on the quasar's buttresses and stay quasar cells`);
+}
+
 // ------------------------------------------------------------------------------------------------ sanity checks
 const checks = [];
 function ok(cond, msg) { checks.push((cond ? "ok   " : "FAIL ") + msg); if (!cond) report.failed = true; }
@@ -950,7 +1014,7 @@ for (const [n, r] of Object.entries(out)) {
 }
 // the shared anchor: every piece of a machine resolves the controller to the same world cell
 for (const [n, r] of Object.entries(out)) {
-  const ctrl = MODULE_CTRL[n] || P4_CTRL[n] || (hrMachineOf(n) ? HR_CTRL[hrMachineOf(n)] : n.startsWith("kerr") ? KERR_CTRL : EYE_CTRL);
+  const ctrl = MODULE_CTRL[n] || P4_CTRL[n] || SMBH_CTRL[n] || (hrMachineOf(n) ? HR_CTRL[hrMachineOf(n)] : n.startsWith("kerr") ? KERR_CTRL : EYE_CTRL);
   const back = [FLIP_H ? r.bb.mx[0] - r.off[0] : r.bb.mn[0] + r.off[0], r.bb.mx[1] - r.off[1], FLIP_D ? r.bb.mn[2] + r.off[2] : r.bb.mx[2] - r.off[2]];
   ok(back[0] === ctrl.x && back[1] === ctrl.y && back[2] === ctrl.z, `${n}: off resolves to the machine's controller cell`);
 }
@@ -1000,6 +1064,9 @@ const SPEC = [
   ["Burst Thermaliser Crown Mk I", ["crown_mk1"], "33x17x33"],
   ["Burst Thermaliser Crown Mk II", ["crown_mk2"], "49x23x49"],
   ["Burst Thermaliser Crown Mk III", ["crown_mk3"], "65x29x65"],
+  // SMBH v1 (smbh-v1.md §1.1, §3.4; B-151)
+  ["Event Horizon Crown (Mk IV)", ["crown_mk4"], "81x35x81"],
+  ["Quasar Engine + Supermassive Lattice", ["quasar", "quasar_lattice"], "179x161x179"],
   ["Wormhole Mouth", ["conduit_mouth"], "39x42x10"],
   ["Conduit Mirror", ["conduit_mirror"], "23x13x24"],
   ["Conduit Junction", ["conduit_junction"], "89x30x83"],
@@ -1038,7 +1105,8 @@ reach(["reality_diffraction"], "Reality Diffraction");
 reach(["reality_refab"], "Reality Refab");
 reach(["eye_core", "eye_beam", "eye_jet", "eye_arms", "eye_arms2", "eye_rim", "eye_rail", "eye_halo"], "Eye T8");
 reach(["quasar"], "Quasar Engine");
-for (const n of ["crown_mk1", "crown_mk2", "crown_mk3", "conduit_mouth", "conduit_mirror", "conduit_junction"]) reach([n], n);
+for (const n of ["crown_mk1", "crown_mk2", "crown_mk3", "crown_mk4", "conduit_mouth", "conduit_mirror", "conduit_junction"]) reach([n], n);
+reach(["quasar", "quasar_lattice"], "Quasar Engine + Supermassive Lattice");
 
 // P4 extra checks: the Eye's new sockets, the quasar's fronts, docked and stacked crowns
 {
@@ -1057,7 +1125,7 @@ for (const n of ["crown_mk1", "crown_mk2", "crown_mk3", "conduit_mouth", "condui
     const c = P4_INFO[n].ctrl0, f = m.front, all = new Set([...P4_INFO[n].cells.keys()]);
     ok(!all.has(keyOf(c.x + f[0], c.y + f[1], c.z + f[2])), `${n}: the controller's front face (voxel ${f}) is open air (turns ${m.turns})`);
   }
-  for (let i = 0; i < 3; i++) for (const s of [1, -1]) {
+  for (let i = 0; i < CR.length; i++) for (const s of [1, -1]) {
     const cells = dockedCrown(i, s), hit = cells.filter((c) => QSET.has(c.v.join(","))).length;
     const seat = cells.filter((c) => c.v[1] === s * 81 && QSET.has([c.v[0], s * 80, c.v[2]].join(","))).length;
     ok(hit === 0 && seat > 0, `crown_mk${i + 1} docked on the ${s > 0 ? "top" : "bottom"} port: touches the quasar in ${hit} cells, seats ${seat} cells on the cap`);
@@ -1069,6 +1137,40 @@ for (const n of ["crown_mk1", "crown_mk2", "crown_mk3", "conduit_mouth", "condui
     const sealed = qs.filter((c) => c.ch === "c" && [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]
       .every(([dx, dy, dz]) => occ.has([c.v[0] + dx, c.v[1] + dy, c.v[2] + dz].join(",")))).length;
     ok(sealed === 0, `quasar: the 4 cap-rim Burst Control sockets keep an open face with Mk III crowns docked on both ports (${sealed} sealed)`);
+  }
+  // SMBH: the same with Mk IV crowns, and the lattice
+  {
+    const qs = [...Q.cells.values()].map((c) => ({ ...c, v: PV("quasar", c) })), occ = new Set([...qs.map((c) => c.v.join(",")),
+      ...dockedCrown(3, 1).map((c) => c.v.join(",")), ...dockedCrown(3, -1).map((c) => c.v.join(","))]);
+    const sealed = qs.filter((c) => c.ch === "c" && [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]
+      .every(([dx, dy, dz]) => occ.has([c.v[0] + dx, c.v[1] + dy, c.v[2] + dz].join(",")))).length;
+    ok(sealed === 0, `quasar: the 4 cap-rim Burst Control sockets keep an open face with Mk IV crowns docked on both ports (${sealed} sealed)`);
+  }
+  {
+    const lat = p4Pieces.quasar_lattice, latV = new Set(lat.map((c) => c.ov.join(",")));
+    const nodes = lat.filter((c) => c.ch === "N");
+    const byRing = { equator: 0, north: 0, south: 0 };
+    for (const c of nodes) byRing[c.ov[1] === 0 ? "equator" : c.ov[1] > 0 ? "north" : "south"]++;
+    ok(nodes.length === 48 && byRing.equator === 16 && byRing.north === 16 && byRing.south === 16,
+      `quasar_lattice: 48 Containment Nodes, 16 per ring (${byRing.equator} / ${byRing.north} / ${byRing.south})`);
+    ok(LAT_NODES.every((k) => latV.has(k)), "quasar_lattice: every drawn node cell is in the piece");
+    ok(disjoint("quasar", "quasar_lattice") === 0, "quasar and quasar_lattice share no cell");
+    // a crown of any Mk docked on each port, and a second one stacked on it, never touches the lattice
+    let hit = 0;
+    for (let i = 0; i < CR.length; i++) for (const s of [1, -1]) {
+      const st = CROWN_STACK[i];
+      for (const c of dockedCrown(i, s)) {
+        if (latV.has(c.v.join(","))) hit++;
+        if (latV.has([c.v[0], c.v[1] + s * st.dy, c.v[2]].join(","))) hit++;
+      }
+    }
+    ok(hit === 0, `quasar_lattice: crowns Mk I-IV docked (and stacked) on both ports touch the lattice in ${hit} cells`);
+    // the controller's front face and the cells in front of it stay open with the lattice built
+    const c = P4_INFO.quasar.ctrl0, f = P4.quasar.front, cv = PV("quasar", c);
+    let blocked = 0;
+    for (let k = 1; k <= 24; k++) if (latV.has([cv[0] + f[0] * k, cv[1] + f[1] * k, cv[2] + f[2] * k].join(","))) blocked++;
+    ok(blocked === 0, `quasar_lattice: the 24 cells in front of the quasar's controller are open (${blocked} blocked)`);
+    ok(lat.length >= 7000 && lat.length <= 9500, `quasar_lattice: ${lat.length} cells (the spec's "about 8,000")`);
   }
   CROWN_STACK.forEach((st, i) => ok(st.clash === 0, `crown_mk${i + 1}: a second crown stacked at core top - 2 (dy ${st.dy}) shares ${st.clash} cells with the first`));
 }
@@ -1165,17 +1267,19 @@ const manifest = {
   // P4 (quasar-p4.md §1-§3, §7): merged into machines right below
   p4: {
     quasar: { mte: 28120, controllerVoxel: PV("quasar", P4_INFO.quasar.ctrl0), turns: P4.quasar.turns, centre: { rel: p4Rel("quasar", [0, 0, 0]) },
-      pieces: { quasar: "the whole machine; the hole, disc, jets and throats are render cells (skipped)" },
-      channels: { coil: { char: "H", tiers: ["Infinity", "Transcendent Metal", "SpaceTime", "MagMatter"], note: "Disc Field Coil T1-T4: b <= tier; mass caps 256 / 1,024 / 2,048 / 4,096 SM; every coil one tier" } },
+      pieces: { quasar: "the whole machine; the hole, disc, jets and throats are render cells (skipped)",
+        quasar_lattice: "SMBH v1 (smbh-v1.md §1.1): the Supermassive Lattice, optional; built with the 'lattice' channel; counts only after Saturation, on MagMatter coils" },
+      channels: { coil: { char: "H", tiers: ["Infinity", "Transcendent Metal", "SpaceTime", "MagMatter"], note: "Disc Field Coil T1-T4: b <= tier; mass caps 256 / 1,024 / 2,048 / 4,096 SM; every coil one tier" },
+        lattice: { char: "N", piece: "quasar_lattice", tiers: ["Superdense Ergomatter", "White Hole Matter", "Universium", "Constrained Eternity"], note: "Containment Node L1-L4: safe limit / top 16,384 / 65,536, 65,536 / 262,144, 262,144 / 4,194,304, 4,194,304 / 67,108,864 SM; every node one tier; unset = no lattice" } },
       // the two jet ports (quasar-p4.md §2): a dock is linked when it stands on its slot. port = the jet axis cell just past
       // the cap (y +-81); a crown's base centre sits on it and its controller stands at crownController, facing
       // crownFacingAbc (bottom: the crown hangs upside down, flipped vertically); a Wormhole Mouth puts its throat centre on
       // the jet axis with its normal along axisAbc.
       slots: QUASAR_SLOTS },
-    crown: { mte: 28124, turns: P4.crown.turns, pieces: { crown_mk1: "Mk I (32 Bu/t)", crown_mk2: "Mk II (512 Bu/t)", crown_mk3: "Mk III (8,192 Bu/t)" },
-      channels: { crown: { pieces: ["crown_mk1", "crown_mk2", "crown_mk3"], note: "alternative whole shapes (not additive); the Mk is the biggest that checks; the hologram builds the channel's Mk" } },
+    crown: { mte: 28124, turns: P4.crown.turns, pieces: { crown_mk1: "Mk I (32 Bu/t)", crown_mk2: "Mk II (512 Bu/t)", crown_mk3: "Mk III (8,192 Bu/t)", crown_mk4: "Mk IV, the Event Horizon Crown (524,288 Bu/t; SMBH v1)" },
+      channels: { crown: { pieces: ["crown_mk1", "crown_mk2", "crown_mk3", "crown_mk4"], note: "alternative whole shapes (not additive); the Mk is the biggest that checks; the hologram builds the channel's Mk" } },
       // the intake: the jet enters the base centre along +y (voxel), i.e. from below the controller row
-      intake: Object.fromEntries(["crown_mk1", "crown_mk2", "crown_mk3"].map((n, i) => [n, { rel: p4Rel(n, [0, CR[i].y0, 0]), axisAbc: p4Dir(n, [0, 1, 0]) }])),
+      intake: Object.fromEntries(["crown_mk1", "crown_mk2", "crown_mk3", "crown_mk4"].map((n, i) => [n, { rel: p4Rel(n, [0, CR[i].y0, 0]), axisAbc: p4Dir(n, [0, 1, 0]) }])),
       // a second crown stacks on the first: its controller at stack[i].rel from the first's, same facing, same shape
       stack: Object.fromEntries(CROWN_STACK.map((st, i) => ["crown_mk" + (i + 1), { rel: st.rel, sharedCells: st.clash }])) },
     conduit_mouth: { mte: 28121, turns: P4.conduit_mouth.turns, pieces: { conduit_mouth: "one mouth; a pair is two mouths linked with a data stick" },
