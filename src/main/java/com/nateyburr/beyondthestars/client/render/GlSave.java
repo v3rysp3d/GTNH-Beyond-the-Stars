@@ -15,7 +15,9 @@ import gregtech.common.render.shader.RenderState;
  * answers the gets).
  * <p>
  * Saved: blend (on, function), depth test, depth mask, alpha test, cull (on, mode, front face), lighting, fog, shade
- * model, texturing on unit 0 and on the lightmap unit, the active texture unit. Instances are reused from a small
+ * model, texturing on unit 0 and on the lightmap unit, the active texture unit, the lightmap coordinates (R-16:
+ * {@link Layers#emissive()} sets them to full brightness, and the GL state check found that leaking into what drew
+ * next). Instances are reused from a small
  * stack (render thread only), so a save costs no allocation.
  */
 @SideOnly(Side.CLIENT)
@@ -27,6 +29,7 @@ public final class GlSave {
     private boolean blend, depthTest, depthMask, alphaTest, cull, lighting, fog, texture, lightmap;
     private long blendFunc;
     private int cullMode, frontFace, shade;
+    private float lightmapX, lightmapY;
 
     private GlSave() {}
 
@@ -51,6 +54,8 @@ public final class GlSave {
         OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
         s.lightmap = GL11.glGetBoolean(GL11.GL_TEXTURE_2D);
         OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
+        s.lightmapX = OpenGlHelper.lastBrightnessX;
+        s.lightmapY = OpenGlHelper.lastBrightnessY;
         return s;
     }
 
@@ -73,5 +78,8 @@ public final class GlSave {
         GL11.glDepthMask(depthMask);
         RenderState.restore(GL11.GL_BLEND, blend);
         RenderState.restoreBlendFunc(blendFunc);
+        if (OpenGlHelper.lastBrightnessX != lightmapX || OpenGlHelper.lastBrightnessY != lightmapY) {
+            OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, lightmapX, lightmapY);
+        }
     }
 }
