@@ -6,7 +6,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 1. **Open questions**: each open decision once, with the answer we recommend and where the detail is.
 2. **Settled**: everything you have answered, in your words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision from you.
-4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122 and B-130..B-138, the tidy pass's
+4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-138 and the SMBH branch's B-150.., the tidy pass's
    TQ-1..TQ-8, and P4's P4-01..P4-94 in Part E).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
@@ -262,7 +262,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-138
+## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-138, B-150..
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -6658,6 +6658,99 @@ packages the playtest jar, as B-122 did for `master.302`.
 
 **Suggestion.** Install `master.304` instead of `master.302` and run A1-A2, then phase X; phases Q and T stay the
 post-UEV gameplay to try.
+
+### B-150 SMBH v1, the pure engine (smbh-v1.md §10.1) and the max-quasar fixes (§10.3) [smbh branch, built + test]
+
+**Context.** The SMBH build (spec `designs/docs/smbh-v1.md`, revision 3) starts with the maths: the lattice tiers,
+the intake split, the power curve, Overdrive, Unbound, the Mk IV caps, and the max-quasar findings that live in the
+engine and the controller. The structures, the GUI, the recipes, the questbook and the film are later units.
+
+**What was built.**
+- **`QuasarParams`, the SMBH section.** Lattice L1-L4 with safe limits 16,384 / 65,536 / 262,144 / 4,194,304 SM and
+  band tops 65,536 / 262,144 / 4,194,304 / 67,108,864 SM. Also: the structure's top (the coil cap; the band top; 2^50
+  SM on an Unbound L4), the mass setpoint (default: the safe limit; range 4,096 .. top), band x, the 5x intake cap and
+  the 3x hold-up, the mass term Xm (square root past 4,096 SM, flat toward x32) and X (x100 soft ceiling), the
+  Overdrive upkeep 100,000·o²·2^-n L/s of each fluid, the anchor 1,024·4^(n²) L/s, and the 2 %/s shed. Every number is
+  the spec's knob.
+- **`QuasarDisc` gets two hooks only.** G0 = λc·a²·b²·4,096·X(M, o_eff), and growth stops at `growthCap` (the coil
+  cap without a lattice). With no lattice, M at or under 4,096 SM and o_eff 0, both are today's expressions:
+  - the 38 P4 golden cases still pass unchanged;
+  - the reference cross-check (below) also shows the disc second is the prototype's `quasarStep` every second.
+- **`HorizonLattice` (new) runs after the disc.**
+  - The intake split is Disc, then Hold-up, then Growth. The Growth segment grows the hole with the same mass per
+    litre as the disc's own growth.
+  - When under-fed, the over-limit mass leaks: it halves on a log scale per hour, never goes below the safe limit, and
+    has no time limit. A dark disc counts as hold-up 0.
+  - Overdrive's cover sets o_eff for the next second, so a dry supply fades the boost over 1 s.
+  - The anchor is part of the growth cap.
+  - Sheds are always safe: no power, no Overdrive burnt and no hold-up drawn while one lasts. A hole sheds when the
+    setpoint is lowered, the structure is downgraded, or the anchor is short.
+- **The golden test.**
+  - `tools/smbh-golden.js` runs the JS reference block `tools/fixtures/smbh-engine.js` on top of the ENGINE and P4
+    fixtures. `SmbhSim` must match it bit for bit.
+  - 28 cases: no lattice, coil and lattice downgrades, L1 growth / hold / leak / feed cut / blow-out, setpoint shed,
+    L2 RSM, Overdrive paid / half / running dry / Universium short, L4 top, Unbound n 1 / anchor cut / anchor
+    2,000 L/s / growth / Unbind off.
+  - The spec's tables, §2.3 (both growth-time tables and the per-SM intake), §3.2, §5.2 and §9, all match within
+    the printed rounding.
+  - Invariants: X < 100 and monotone in M and o, G0 unchanged up to 4,096 SM, no Mk cap past Long.MAX, and the
+    BigInteger wireless push.
+  - Results: 30 / 30, P4 golden 38 / 38, field golden 78 / 78.
+- **Delivery (§3.4).**
+  - Throat and Crown Mk IV caps are 524,288 Bu/t (5.24e18 EU/t, under Long.MAX per element).
+  - Throat Mk IV upkeep is 16 L/s Ergomatter or 2 L/s Superdense Ergomatter.
+  - `BurstRouting.crownEUPerSecond` builds the wireless BigInteger straight from the double; the crown uses it.
+  - Not yet built: the Mk IV structure tier and the item tier. The crown MTE still clamps its Mk at III.
+- **Controller (`MTEQuasarEngine`), the max-quasar fixes.**
+  - `/btsquasar mass` and `seed` clamp to the structure's top and say so.
+  - `readQuasarState` clamps a saved M to 1 .. the L4 top (2^50 when saved Unbound).
+  - A coil or lattice downgrade sheds an open hole to the new top.
+  - A dormant hole too big for its structure will not open.
+  - The lattice engine runs every second. Without a lattice nothing extra is read or drawn.
+  - New persisted settings: setpoint, Unbind, Overdrive in 5 % steps, o_eff, shed.
+  - `latticeTier` is a walk field, 0 until the lattice structure element exists.
+- **Verified headless** (dev server, port 25651, flat world `smbh-test`, 364 registered / 0 skipped):
+  - mass 5,000 and seed 99,999 both became 4,096 SM ("clamped: this structure holds 4,096 SM");
+  - a 4,096 SM hole rebuilt onto T2 coils was at 1,024 SM after running, and its jets came back;
+  - a dormant 4,096 SM hole on T1 coils refused Open ("too big for this structure (it holds 256 SM)");
+  - no error or exception after the test started.
+
+**Judgement calls (our suggestion is what was built).**
+1. **The reference lives in the addon, not yet in `designs/quasar-p4-prototype.html`.** This run was confined to
+   the worktree. §10.1 asks for the block in the prototype as well. Suggestion: paste the `SMBH-START … SMBH-END`
+   block after the P4 block there. It changes no P4 function.
+2. **Powers go through exp/log.** fdlibm's `pow` (Java StrictMath) differs from V8's in about 1 in 10 fractional
+   cases; `exp` and `log` agree on 20,000 out of 20,000. So 2^-n and 4^(n²) are exp(y·ln b) on both sides. n 1 still
+   gives 50,000 L/s to the litre.
+3. **A lattice counts only on MagMatter coils.** Saturation is held on them (§1.2). With lower coils the structure's
+   top is the coil cap, and a bigger hole sheds to it.
+4. **Overdrive and the anchor cost nothing while the disc is dark.** "With a dark disc, Overdrive makes nothing."
+   The anchor is still charged while the disc re-forms, because it holds the mass.
+5. **Half-paid Overdrive burns both fluids at the lower fluid's cover**, so the surplus fluid is not wasted.
+6. **The anchor caps growth.** The Primordial Matter on hand sets the most mass it holds, 67,108,864·2^n'. Growth
+   (the disc's too) stops there, and a bigger hole sheds to it.
+   - Without this the disc kept growing past the anchor's limit, and the hole flapped between growing and shedding
+     with no power (seen in the reference).
+   - "Anchor short" ignores a cover within 10^-9 of 1 (a float round trip).
+7. **The upkeep fluids come from the trim sockets, then the gas sockets.** Trim sockets refuse ME stocking hatches
+   (the D-49 trim rule), and 100,000 L/s of Overdrive needs one. The spec says "the 4 trim sockets"; the GUI unit may
+   want its own socket.
+8. **The buffer holds 10 s of the 5x intake once a lattice is in force** (1.5x without one). §10.2's 60 s Accretion
+   Buffer and per-tick draws replace this later.
+9. **Throat Mk IV on SpaceTime is 256 L/s**, continuing the x4 line. The spec names only Ergomatter and Superdense
+   Ergomatter.
+10. **Two spec misprints**, found by the table check:
+    - §5.2, n 2.5, full Overdrive total: 5.97 million L/s, printed 5.9 million;
+    - §9, Pump III at 16,777,216 SM: 10.45, printed 10.5.
+    Suggestion: correct the spec at the next revision.
+
+**Left for the later SMBH units:**
+- the lattice structure and channel (it sets `latticeTier`), and Saturation;
+- the 60 s buffer, per-tick draws and the link-source record (§10.2);
+- the GUI, OpenComputers, Directive and Burst Control modes, and EU/t labels (§6, §10.3);
+- the Mk IV crown structure and throat item, recipes, quests and the film;
+- the `smbhAllowUnbound` config key;
+- GT's GTPowerfailTracker NPE on an owner-less bench quasar's GUI (bench only, not touched).
 
 ## Where the old question numbers went
 
