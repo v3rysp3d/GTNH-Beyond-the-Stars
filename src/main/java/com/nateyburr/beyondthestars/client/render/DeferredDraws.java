@@ -72,9 +72,17 @@ public final class DeferredDraws {
         MinecraftForge.EVENT_BUS.register(INSTANCE);
     }
 
-    /** Queues {@code draw} of {@code machine} for after the translucent pass of this frame (render thread). */
+    /**
+     * Queues {@code draw} of {@code machine} for after the translucent pass of this frame (render thread), if it can
+     * draw a shader tier with {@code programs} ({@link RenderQuality#mayShade}). The caller queues only when the
+     * machine has something to show. Both are decided here, in pass 0, because the first queued draw pays for the
+     * opaque-depth capture under Angelica: at {@code renderQuality=low}, without shaders or with nothing to draw the
+     * frame costs what it did before v2 (review of R-16).
+     */
     @SuppressWarnings("unchecked")
-    public static <T> void add(Draw<T> draw, T machine, double x, double y, double z, float partialTicks) {
+    public static <T> void add(Draw<T> draw, BTSShaders.Program[] programs, T machine, double x, double y, double z,
+        float partialTicks) {
+        if (!RenderQuality.mayShade(machine, programs)) return;
         if (IMMEDIATE || OpaqueDepth.drawImmediately()) {
             // R-16: under Angelica without the depth blits (a shaderpack, no GL 3.0): now, behind the glass
             draw.draw(machine, x, y, z, partialTicks);

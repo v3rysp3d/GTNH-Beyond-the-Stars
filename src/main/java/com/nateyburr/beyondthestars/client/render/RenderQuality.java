@@ -138,6 +138,22 @@ public final class RenderQuality {
         return lod;
     }
 
+    /**
+     * Whether {@code key} can draw a shader tier at all this frame, without ranking it: not the harness baseline,
+     * quality above low, a capable context, no GL-error fallback for it and every program baked. The deferred machine
+     * draws ask this in pass 0 before they queue, so a draw that will not happen never pays for the opaque-depth blits
+     * ({@link DeferredDraws}, review of R-16).
+     */
+    public static boolean mayShade(Object key, BTSShaders.Program[] programs) {
+        if (hidden() || quality() == Quality.LOW || !glCapable()) return false;
+        final State s = STATES.get(key);
+        if (s != null && s.glFailed) return false;
+        for (BTSShaders.Program p : programs) {
+            if (p != null && !p.usable()) return false;
+        }
+        return true;
+    }
+
     /** {@code renderBackgroundLensing}, at HIGH, with no shaderpack in use (§4.3). */
     public static boolean backgroundLensing(Lod.Tier tier) {
         return tier == Lod.Tier.L0 && Config.renderBackgroundLensing && !ShaderpackProbe.active();
@@ -176,8 +192,9 @@ public final class RenderQuality {
         final long now = System.nanoTime();
         if (now - s.checkedAt < 1_000_000_000L) return false;
         s.checkedAt = now;
-        while (GL11.glGetError() != GL11.GL_NO_ERROR) {
-            // drain errors left by earlier draws
+        // drain errors left by earlier draws; capped, a lost context keeps reporting one (review of R-16)
+        for (int i = 0; i < 64 && GL11.glGetError() != GL11.GL_NO_ERROR; i++) {
+            // drain
         }
         if (debugInjectGlError) GL11.glEnable(0x7FFF); // GL_INVALID_ENUM, as a broken draw would leave
         return true;

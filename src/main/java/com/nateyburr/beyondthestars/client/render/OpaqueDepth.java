@@ -118,8 +118,9 @@ public final class OpaqueDepth {
         final int w = fb.framebufferWidth, h = fb.framebufferHeight;
         if (opaqueFbo != 0 && w == width && h == height) return true;
         release();
-        while (GL11.glGetError() != GL11.GL_NO_ERROR) {
-            // drain earlier errors so the check below sees ours
+        // drain earlier errors so the check below sees ours; capped, a lost context keeps reporting one
+        for (int i = 0; i < 64 && GL11.glGetError() != GL11.GL_NO_ERROR; i++) {
+            // drain
         }
         final int was = GL11.glGetInteger(GL30.GL_FRAMEBUFFER_BINDING);
         GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, fb.framebufferObject);

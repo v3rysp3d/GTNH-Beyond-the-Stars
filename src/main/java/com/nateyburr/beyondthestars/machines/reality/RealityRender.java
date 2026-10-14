@@ -101,7 +101,7 @@ public final class RealityRender {
 
     /** GT's pass-0 hook: queues the draw for after the translucent pass ({@link DeferredDraws}). */
     public static void render(MTERealityBase<?> m, double x, double y, double z, float partialTicks) {
-        if (Config.renderReality && m.renderFormed()) DeferredDraws.add(DRAW, m, x, y, z, partialTicks);
+        if (Config.renderReality && m.renderFormed()) DeferredDraws.add(DRAW, PROGRAMS, m, x, y, z, partialTicks);
     }
 
     private static void renderNow(MTERealityBase<?> m, double x, double y, double z, float partialTicks) {

@@ -83,7 +83,7 @@ public final class HomogenyRender {
 
     /** GT's pass-0 hook: queues the draw for after the translucent pass ({@link DeferredDraws}). */
     public static void render(MTEHomogeny m, double x, double y, double z, float partialTicks) {
-        if (Config.renderHomogeny && m.renderTier() > 0) DeferredDraws.add(DRAW, m, x, y, z, partialTicks);
+        if (Config.renderHomogeny && m.renderTier() > 0) DeferredDraws.add(DRAW, PROGRAMS, m, x, y, z, partialTicks);
     }
 
     private static void renderNow(MTEHomogeny m, double x, double y, double z, float partialTicks) {

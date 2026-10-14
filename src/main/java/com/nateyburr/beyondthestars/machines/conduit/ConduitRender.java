@@ -86,9 +86,22 @@ public final class ConduitRender {
 
     /** GT's pass-0 hook: queues the draw for after the translucent pass ({@link DeferredDraws}). */
     public static void renderElement(MTEConduitElement<?> m, double x, double y, double z, float partialTicks) {
-        if (Config.renderConduit && m.renderThroats() > 0) {
-            DeferredDraws.add(ELEMENT_DRAW, m, x, y, z, partialTicks);
+        if (Config.renderConduit && m.renderThroats() > 0 && hasStream(m)) {
+            DeferredDraws.add(ELEMENT_DRAW, PROGRAMS, m, x, y, z, partialTicks);
         }
+    }
+
+    /**
+     * Whether the element shows anything: a Wormhole Mouth's portal, a throat sending a stream, or the harness's
+     * forced streams. An element with nothing flowing queues no draw (review of R-16: no depth blits for it).
+     */
+    private static boolean hasStream(MTEConduitElement<?> m) {
+        if (m instanceof MTEWormholeMouth || debugLook != null) return true;
+        final int n = m.renderThroats();
+        for (int i = 0; i < n; i++) {
+            if (m.renderOut(i) > 1e-3f) return true;
+        }
+        return false;
     }
 
     private static void renderElementNow(MTEConduitElement<?> m, double x, double y, double z, float partialTicks) {
@@ -238,7 +251,9 @@ public final class ConduitRender {
 
     /** GT's pass-0 hook: queues the draw for after the translucent pass ({@link DeferredDraws}). */
     public static void renderCrown(MTEBurstThermaliserCrown c, double x, double y, double z, float partialTicks) {
-        if (Config.renderConduit && c.renderMk() > 0) DeferredDraws.add(CROWN_DRAW, c, x, y, z, partialTicks);
+        if (Config.renderConduit && c.renderMk() > 0 && c.renderStream() > 1e-3f) {
+            DeferredDraws.add(CROWN_DRAW, PROGRAMS, c, x, y, z, partialTicks);
+        }
     }
 
     private static void renderCrownNow(MTEBurstThermaliserCrown c, double x, double y, double z, float partialTicks) {
