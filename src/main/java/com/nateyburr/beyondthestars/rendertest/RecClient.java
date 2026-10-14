@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.lang.reflect.Field;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.charset.StandardCharsets;
@@ -30,6 +31,7 @@ import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.gui.GuiDownloadTerrain;
 import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.settings.GameSettings;
@@ -48,6 +50,13 @@ import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.glu.GLU;
 
+import com.cleanroommc.modularui.api.IMuiScreen;
+import com.cleanroommc.modularui.api.UpOrDown;
+import com.cleanroommc.modularui.api.widget.IWidget;
+import com.cleanroommc.modularui.api.widget.Interactable;
+import com.cleanroommc.modularui.screen.ModularScreen;
+import com.cleanroommc.modularui.screen.viewport.GuiContext;
+import com.cleanroommc.modularui.widget.sizer.Area;
 import com.gtnewhorizon.structurelib.StructureLibAPI;
 import com.gtnewhorizon.structurelib.alignment.constructable.ConstructableUtility;
 import com.nateyburr.beyondthestars.BeyondTheStars;
@@ -1025,6 +1034,28 @@ public final class RecClient {
             case "close":
                 acts.add(new Close());
                 break;
+            case "scroll":
+                acts.add(
+                    new GuiInput(
+                        Integer.parseInt(c.arg(0)),
+                        Integer.parseInt(c.arg(1)),
+                        Integer.parseInt(c.arg(2)),
+                        -1));
+                break;
+            case "click":
+                acts.add(
+                    new GuiInput(
+                        Integer.parseInt(c.arg(0)),
+                        Integer.parseInt(c.arg(1)),
+                        0,
+                        Integer.parseInt(c.opt(2, "0"))));
+                break;
+            case "feed": {
+                final int[] p = block(resolve(c.arg(0)));
+                final String mode = c.opt(1, "gas");
+                acts.add(new Server("feed " + mode, () -> RecServer.feed(p, mode)));
+                break;
+            }
             case "place": {
                 final String spec = c.arg(0);
                 final int[] p = block(resolve(c.arg(1)));
@@ -1044,6 +1075,7 @@ public final class RecClient {
                         new Survival(
                             p,
                             tier,
+                            (int) c.num("lattice", 0),
                             (int) c.num("budget", 25),
                             (int) c.num("every", 1),
                             c.num("speed", 1),
@@ -1778,17 +1810,19 @@ public final class RecClient {
     private final class Survival extends Hold {
 
         final int[] p;
-        final int tier, budget, every;
+        final int tier, lattice, budget, every;
         final double tail, max;
         CompletableFuture<Integer> f;
         int ticks, rounds, placed, idle;
         boolean finished;
 
-        Survival(int[] p, int tier, int budget, int every, double speed, double tail, double max, boolean clock) {
+        Survival(int[] p, int tier, int lattice, int budget, int every, double speed, double tail, double max,
+            boolean clock) {
             super(
                 "survival auto-place at " + RenderTest.pos(p)
                     + " (tier "
                     + tier
+                    + (lattice > 0 ? ", lattice channel " + lattice : "")
                     + ", "
                     + budget
                     + " elements every "
@@ -1801,6 +1835,7 @@ public final class RecClient {
                 clock);
             this.p = p;
             this.tier = tier;
+            this.lattice = lattice;
             this.budget = budget;
             this.every = Math.max(1, every);
             this.tail = tail;
@@ -1837,7 +1872,7 @@ public final class RecClient {
                 }
             }
             if (f == null && ticks % every == 0)
-                f = RenderTest.onServer(() -> RecServer.survivalRound(p, tier, budget));
+                f = RenderTest.onServer(() -> RecServer.survivalRound(p, tier, budget, lattice));
         }
 
         @Override
@@ -2059,6 +2094,102 @@ public final class RecClient {
             if (up >= 20 || waited >= 200) done = true;
         }
     }
+
+    /**
+     * {@code scroll <x> <y> <notches>} / {@code click <x> <y> [button]} in the open ModularUI screen, at (x, y) GUI
+     * units from its main panel's top left, as the GUI shot harness ({@link GuiShotsClient}) does: the mouse is held
+     * there for a few frames so MUI2 works out what it hovers, then the widget under it is pressed (or the widgets
+     * under it, top first, are offered the wheel until one takes it: a list's scroll area; positive notches scroll
+     * down), and the mouse goes back to its parking corner. Not recorded (a cut), so no cursor is ever filmed.
+     */
+    private final class GuiInput extends Act {
+
+        final int x, y, notches, button;
+        int ticks;
+
+        GuiInput(int x, int y, int notches, int button) {
+            super((button >= 0 ? "click " + button : "scroll " + notches) + " at " + x + "," + y + " in the screen");
+            this.x = x;
+            this.y = y;
+            this.notches = notches;
+            this.button = button;
+        }
+
+        private ModularScreen screen() {
+            return mc.currentScreen instanceof IMuiScreen ? ((IMuiScreen) mc.currentScreen).getScreen() : null;
+        }
+
+        @Override
+        void frame(long now) {
+            final ModularScreen ms = screen();
+            if (ms == null || done) return;
+            try {
+                if (mouseFieldX == null) {
+                    mouseFieldX = org.lwjgl.input.Mouse.class.getDeclaredField("x");
+                    mouseFieldY = org.lwjgl.input.Mouse.class.getDeclaredField("y");
+                    mouseFieldX.setAccessible(true);
+                    mouseFieldY.setAccessible(true);
+                }
+                final ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
+                final int f = sr.getScaleFactor();
+                final Area a = ms.getMainPanel()
+                    .getArea();
+                final int gx = a.x + x, gy = a.y + y;
+                mouseFieldX.setInt(null, gx * f + f / 2);
+                mouseFieldY.setInt(null, (sr.getScaledHeight() - 1 - gy) * f + f / 2);
+            } catch (ReflectiveOperationException | RuntimeException bad) {
+                say("    fake mouse failed: " + bad);
+                done = true;
+            }
+        }
+
+        @Override
+        void tick() {
+            if (++ticks < 4) return;
+            final ModularScreen ms = screen();
+            if (ms == null) {
+                say("    not a ModularUI screen");
+            } else if (button >= 0) {
+                final IWidget hovered = ms.getContext()
+                    .getHovered();
+                say(
+                    "    hovers " + (hovered == null ? "nothing"
+                        : hovered.getClass()
+                            .getSimpleName()));
+                if (hovered instanceof Interactable) {
+                    final Interactable w = (Interactable) hovered;
+                    final Object r = w.onMousePressed(button);
+                    w.onMouseRelease(button);
+                    say("    pressed: " + r);
+                }
+            } else {
+                final UpOrDown dir = notches > 0 ? UpOrDown.DOWN : UpOrDown.UP;
+                try {
+                    // a scroll area reads the wheel amount from the context (normally the input event's)
+                    final Field wheel = GuiContext.class.getDeclaredField("mouseWheel");
+                    wheel.setAccessible(true);
+                    wheel.setInt(ms.getContext(), dir.isDown() ? -120 : 120);
+                } catch (ReflectiveOperationException | RuntimeException bad) {
+                    say("    wheel amount not set: " + bad);
+                }
+                int taken = 0;
+                for (int n = 0; n < Math.abs(notches); n++) {
+                    for (IWidget w : ms.getContext()
+                        .getAllBelowMouse()) {
+                        if (w instanceof Interactable && ((Interactable) w).onMouseScroll(dir, 1)) {
+                            taken++;
+                            break;
+                        }
+                    }
+                }
+                say("    wheel taken " + taken + " of " + Math.abs(notches));
+            }
+            parkMouse();
+            done = true;
+        }
+    }
+
+    private static Field mouseFieldX, mouseFieldY;
 
     private final class Close extends Act {
 

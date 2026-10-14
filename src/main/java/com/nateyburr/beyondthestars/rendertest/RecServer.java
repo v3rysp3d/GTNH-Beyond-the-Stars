@@ -27,10 +27,16 @@ import com.nateyburr.beyondthestars.machines.homogeny.MTEHomogeny;
 import com.nateyburr.beyondthestars.machines.kerr.KerrKit;
 import com.nateyburr.beyondthestars.machines.kerr.KerrSlot;
 import com.nateyburr.beyondthestars.machines.kerr.MTEKerrEngine;
+import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
+import com.nateyburr.beyondthestars.machines.quasar.QuasarKit;
+import com.nateyburr.beyondthestars.machines.quasar.SmbhBench;
 import com.nateyburr.beyondthestars.machines.reality.HRKit;
 import com.nateyburr.beyondthestars.machines.reality.MTERealityDiffraction;
 import com.nateyburr.beyondthestars.machines.reality.MTERealityRefab;
 
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
 import gregtech.api.enums.ItemList;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.metatileentity.implementations.MTEEnhancedMultiBlockBase;
@@ -150,6 +156,14 @@ final class RecServer {
      * nothing survival-constructable is there.
      */
     static int survivalRound(int[] p, int tier, int budget) {
+        return survivalRound(p, tier, budget, 0);
+    }
+
+    /**
+     * As {@link #survivalRound(int[], int, int)}, with the projector's {@code lattice} channel set to {@code lattice}
+     * (1-4; 0 leaves it unset): a Quasar Engine's projector then places the Supermassive Lattice round it.
+     */
+    static int survivalRound(int[] p, int tier, int budget, int lattice) {
         final WorldServer world = RenderTest.world();
         final TileEntity te = world.getTileEntity(p[0], p[1], p[2]);
         Object c = null;
@@ -159,10 +173,10 @@ final class RecServer {
         if (!(c instanceof ISurvivalConstructable)) return -2;
         final ISurvivalBuildEnvironment env = ISurvivalBuildEnvironment
             .create(SLConsoleTest.endlessSource(), FakePlayerFactory.getMinecraft(world));
-        return ((ISurvivalConstructable) c).survivalConstruct(
-            new ItemStack(StructureLibAPI.getDefaultHologramItem(), Math.max(1, tier)),
-            Math.max(1, budget),
-            env);
+        final ItemStack projector = new ItemStack(StructureLibAPI.getDefaultHologramItem(), Math.max(1, tier));
+        if (lattice > 0) com.gtnewhorizon.structurelib.alignment.constructable.ChannelDataAccessor
+            .setChannelData(projector, MTEQuasarEngine.CHANNEL_LATTICE, lattice);
+        return ((ISurvivalConstructable) c).survivalConstruct(projector, Math.max(1, budget), env);
     }
 
     /** The overworld's game time when the current wait or time-lapse began ({@code game:<s>} counts from it). */
@@ -186,7 +200,9 @@ final class RecServer {
      * began: under the time warp that is less real time), {@code me:<place>:<fluid or item name>:<amount>} (the ME
      * network behind the cable at the place holds that much); the circuit chain bench ({@code /btsrecipes chain}):
      * {@code chainbusy} / {@code chainidle} (a {@code make} runs / none), {@code chainstep:<SL-Xnn>} (it is on that
-     * step).
+     * step); a Quasar Engine at a named place: {@code saturated:<name>} (the Saturation milestone is held),
+     * {@code lattice:<name>:<n>} (lattice tier n or more in force), {@code mass:<name>:<M>} (the hole is M SM or more),
+     * {@code massbelow:<name>:<M>} (it is M SM or less).
      */
     static boolean cond(String spec) {
         final String[] a = spec.split(":");
@@ -223,6 +239,17 @@ final class RecServer {
             case "chainstep":
                 return com.nateyburr.beyondthestars.CircuitChainBench.currentStep()
                     .equalsIgnoreCase(a[1]);
+            case "saturated":
+            case "lattice":
+            case "mass":
+            case "massbelow": {
+                final MTEQuasarEngine q = AutoRig.mteAt(RenderTest.world(), at(a[1]), MTEQuasarEngine.class);
+                if (q == null) return false;
+                if (name.equals("saturated")) return q.isSaturated();
+                if (name.equals("lattice")) return q.getLatticeInForce() >= Integer.parseInt(a[2]);
+                final double m = Double.parseDouble(a[2]);
+                return name.equals("mass") ? q.getMass() >= m : q.getMass() <= m;
+            }
             default:
                 break;
         }
@@ -248,6 +275,63 @@ final class RecServer {
                 return rt.transition() == null;
             default:
                 throw new IllegalArgumentException("unknown condition " + spec);
+        }
+    }
+
+    // ------------------------------------------------------------------------------- the quasar's supply
+
+    /** The Quasar Engine kept fed by {@code feed} (null: none), and its mode: gas, all or noanchor. */
+    private static volatile int[] feedAt;
+    private static volatile String feedMode = "gas";
+    private static Feeder feeder;
+
+    /**
+     * {@code feed <place> gas|all|noanchor|off}: a stand-in for a base's gas supply (set up by script; say so in the
+     * caption). Once a game second (every 20 ticks of world time, so it keeps up under the time warp) the Quasar
+     * Engine at the place gets its gas hatches refilled with its selected gas ({@code gas}); with {@code all} also what
+     * {@code /btssmbh fill} does (the Molten MHDCSM, Molten Universium and Primordial Matter trims to capacity and the
+     * feed buffer full); {@code noanchor} is {@code all} without the Primordial Matter (it is drained in the same
+     * tick, so the machine never sees it: the anchor is cut). Nothing else of the machine is touched: it draws what
+     * it needs through its own code.
+     */
+    static String feed(int[] p, String mode) {
+        if (mode.equalsIgnoreCase("off")) {
+            feedAt = null;
+            return "feed off";
+        }
+        final MTEQuasarEngine q = AutoRig.mteAt(RenderTest.world(), p, MTEQuasarEngine.class);
+        if (q == null) return "feed: no Quasar Engine at " + RenderTest.pos(p);
+        final String m = mode.toLowerCase(Locale.ROOT);
+        if (!m.equals("gas") && !m.equals("all") && !m.equals("noanchor"))
+            return "feed gas|all|noanchor|off, not " + mode;
+        feedMode = m;
+        feedAt = p.clone();
+        if (feeder == null) {
+            feeder = new Feeder();
+            FMLCommonHandler.instance()
+                .bus()
+                .register(feeder);
+        }
+        return "feed " + m + " for the quasar at " + RenderTest.pos(p);
+    }
+
+    /** The {@code feed} tick (server thread; also runs in the time warp's extra ticks). */
+    public static final class Feeder {
+
+        @SubscribeEvent
+        public void onServerTick(TickEvent.ServerTickEvent event) {
+            final int[] p = feedAt;
+            if (event.phase != TickEvent.Phase.END || p == null) return;
+            final WorldServer world = RenderTest.world();
+            if (world == null || world.getTotalWorldTime() % 20 != 0) return;
+            final MTEQuasarEngine q = AutoRig.mteAt(world, p, MTEQuasarEngine.class);
+            if (q == null) return;
+            if (feedMode.equals("gas")) {
+                QuasarKit.refillGas(q, world);
+                return;
+            }
+            SmbhBench.fill(world, q);
+            if (feedMode.equals("noanchor")) SmbhBench.drainAnchor(world, q);
         }
     }
 

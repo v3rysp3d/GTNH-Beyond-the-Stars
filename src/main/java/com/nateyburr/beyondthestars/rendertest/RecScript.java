@@ -66,7 +66,10 @@ final class RecScript {
             "badge",
             "eyelook",
             "eyeramp",
-            "clientlook"));
+            "clientlook",
+            "scroll",
+            "click",
+            "feed"));
 
     /** The verbs whose time is recorded. */
     static final Set<String> RECORDING = new HashSet<>(
@@ -97,7 +100,8 @@ final class RecScript {
             "name",
             "gen",
             "side",
-            "match"));
+            "match",
+            "lattice"));
 
     /** One command line. */
     static final class Cmd {
