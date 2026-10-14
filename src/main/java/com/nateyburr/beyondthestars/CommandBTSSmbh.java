@@ -1,0 +1,192 @@
+package com.nateyburr.beyondthestars;
+
+import java.util.List;
+import java.util.Locale;
+
+import net.minecraft.command.CommandBase;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.MathHelper;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.util.ForgeDirection;
+
+import com.nateyburr.beyondthestars.machines.BTSShapes;
+import com.nateyburr.beyondthestars.machines.SLConsoleTest;
+import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
+import com.nateyburr.beyondthestars.machines.quasar.SmbhBench;
+
+/**
+ * SMBH v1: {@code /btssmbh}, the Supermassive Lattice's op-only bench (smbh-v1.md §10.4; it ships like
+ * {@code /btswarp}, item 32d). Nothing here is gameplay; every reply says what the script set.
+ * <ul>
+ * <li>{@code bench [x y z [facing]]}: an L4-lattice quasar (MagMatter coils, Saturation set), a 4,096 SM hole, every
+ * upkeep hatch filled and a Mk IV crown on each jet port; without coordinates, in front of the player.</li>
+ * <li>{@code mass <M> [x y z]}: the hole's mass, clamped to what the structure holds (§10.3).</li>
+ * <li>{@code fill [x y z]}: the gas, MHDCSM, Universium and Primordial Matter hatches to capacity.</li>
+ * <li>{@code drain anchor [x y z]}: the Primordial Matter hatches emptied (the anchor is cut).</li>
+ * <li>{@code saturate on|off [x y z]}, {@code status [x y z]}.</li>
+ * </ul>
+ * Without x y z the verbs act on the last bench quasar.
+ */
+public class CommandBTSSmbh extends CommandBase {
+
+    private static final int STAND_OFF = 3;
+
+    @Override
+    public String getCommandName() {
+        return "btssmbh";
+    }
+
+    @Override
+    public String getCommandUsage(ICommandSender sender) {
+        return "/btssmbh bench [x y z [facing]] | mass <M> [x y z] | fill [x y z] | drain anchor [x y z]"
+            + " | saturate on|off [x y z] | status [x y z]   (op only; a test bench, not gameplay)";
+    }
+
+    @Override
+    public int getRequiredPermissionLevel() {
+        return 2;
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public List addTabCompletionOptions(ICommandSender sender, String[] args) {
+        if (args.length == 1) {
+            return getListOfStringsMatchingLastWord(args, "bench", "mass", "fill", "drain", "saturate", "status");
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("drain")) {
+            return getListOfStringsMatchingLastWord(args, "anchor");
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("saturate")) {
+            return getListOfStringsMatchingLastWord(args, "on", "off");
+        }
+        return null;
+    }
+
+    @Override
+    public void processCommand(ICommandSender sender, String[] args) {
+        final World world = sender.getEntityWorld();
+        if (world == null || world.isRemote) return;
+        if (world instanceof WorldServer) ((WorldServer) world).resetUpdateEntityTick();
+        if (args.length == 0) {
+            SLConsoleTest.tell(sender, getCommandUsage(sender));
+            return;
+        }
+        final String verb = args[0].toLowerCase(Locale.ROOT);
+        if (verb.equals("bench")) {
+            bench(sender, world, args);
+            return;
+        }
+        final int from;
+        switch (verb) {
+            case "mass":
+            case "saturate":
+            case "drain":
+                from = 2;
+                break;
+            default:
+                from = 1;
+                break;
+        }
+        final int[] at = coords(sender, args, from);
+        final MTEQuasarEngine q = SmbhBench.quasar(world, at);
+        if (q == null) {
+            SLConsoleTest.tell(
+                sender,
+                EnumChatFormatting.RED + (at == null ? "No bench quasar yet: give x y z, or run /btssmbh bench first"
+                    : "No Quasar Engine controller at " + at[0] + ", " + at[1] + ", " + at[2]));
+            return;
+        }
+        switch (verb) {
+            case "mass": {
+                if (args.length < 2) {
+                    SLConsoleTest.tell(sender, getCommandUsage(sender));
+                    return;
+                }
+                final double want = parseDouble(sender, args[1]);
+                final double got = q.debugMass(want);
+                SLConsoleTest.tell(
+                    sender,
+                    q.getMass() <= 0 ? "SMBH bench: no hole (seed one first)"
+                        : "Set up by script: mass " + MTEQuasarEngine.fmt(got)
+                            + " SM"
+                            + (got == want ? ""
+                                : " (clamped: this structure holds " + MTEQuasarEngine.fmt(q.getStructureTop())
+                                    + " SM)"));
+                break;
+            }
+            case "fill":
+                for (String line : SmbhBench.fill(world, q)) SLConsoleTest.tell(sender, line);
+                break;
+            case "drain":
+                if (args.length < 2 || !args[1].equalsIgnoreCase("anchor")) {
+                    SLConsoleTest.tell(sender, getCommandUsage(sender));
+                    return;
+                }
+                SLConsoleTest.tell(sender, SmbhBench.drainAnchor(world, q));
+                break;
+            case "saturate": {
+                final boolean on = args.length < 2 || !args[1].equalsIgnoreCase("off");
+                SLConsoleTest.tell(
+                    sender,
+                    "Set up by script: Saturation " + (on ? "set" : "cleared")
+                        + ", lattice in force L"
+                        + q.debugSaturate(on));
+                break;
+            }
+            case "status":
+                break;
+            default:
+                SLConsoleTest.tell(sender, getCommandUsage(sender));
+                return;
+        }
+        for (String line : q.statusLines()) SLConsoleTest.tell(sender, line);
+    }
+
+    private void bench(ICommandSender sender, World world, String[] args) {
+        final SLConsoleTest.Placement at = SLConsoleTest.parsePlacement(sender, args);
+        final SLConsoleTest.Placement p;
+        if (at != null) {
+            p = at;
+        } else {
+            final EntityPlayerMP player = getCommandSenderAsPlayer(sender);
+            final int[] off = BTSShapes.offset(MTEQuasarEngine.PIECE);
+            final int[] size = BTSShapes.size(MTEQuasarEngine.PIECE);
+            final ForgeDirection look = ForgeDirection.getOrientation(
+                net.minecraft.util.Direction.directionToFacing[MathHelper
+                    .floor_double(player.rotationYaw * 4.0F / 360.0F + 0.5D) & 3]);
+            p = new SLConsoleTest.Placement();
+            // the lattice reaches 18 blocks past the quasar's walls: stand the controller that much further off
+            p.x = MathHelper.floor_double(player.posX) + look.offsetX * (STAND_OFF + 18);
+            p.z = MathHelper.floor_double(player.posZ) + look.offsetZ * (STAND_OFF + 18);
+            p.y = MathHelper.floor_double(player.posY) + size[1] - 1 - off[1];
+            p.facing = look.getOpposite();
+        }
+        final long start = System.nanoTime();
+        for (String line : SmbhBench.bench(world, p.x, p.y, p.z, p.facing)) SLConsoleTest.tell(sender, line);
+        SLConsoleTest.tell(
+            sender,
+            "SMBH bench at " + p.x
+                + ", "
+                + p.y
+                + ", "
+                + p.z
+                + " facing "
+                + p.facing.name()
+                    .toLowerCase(Locale.ROOT)
+                + " in "
+                + (System.nanoTime() - start) / 1_000_000L
+                + " ms (set up by script: the L4 lattice placed by the bench kit)");
+    }
+
+    /** x y z at args[from..from+2] ("~" relative to the sender), or null when there are none. */
+    private static int[] coords(ICommandSender sender, String[] args, int from) {
+        if (args.length < from + 3) return null;
+        for (int i = from; i < from + 3; i++) if (!SLConsoleTest.isCoord(args[i])) return null;
+        return new int[] { (int) func_110666_a(sender, sender.getPlayerCoordinates().posX, args[from]),
+            (int) func_110666_a(sender, sender.getPlayerCoordinates().posY, args[from + 1]),
+            (int) func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[from + 2]) };
+    }
+}
