@@ -200,9 +200,13 @@ public final class MachineFx {
         return true;
     }
 
+    /** The straight beam's middle control point (render thread; R-16: a frame allocates nothing). */
+    private static final double[] MID = new double[3];
+
     /** A straight beam from a to b (camera-relative). */
     public static boolean drawBeam(double[] a, double[] b, Beam look) {
-        final double[] mid = { (a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2 };
+        final double[] mid = MID;
+        for (int i = 0; i < 3; i++) mid[i] = (a[i] + b[i]) / 2;
         final double dx = b[0] - a[0], dy = b[1] - a[1], dz = b[2] - a[2];
         return drawBeam(a, mid, b, Math.sqrt(dx * dx + dy * dy + dz * dz), look);
     }

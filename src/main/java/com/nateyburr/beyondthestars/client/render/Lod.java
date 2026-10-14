@@ -52,6 +52,8 @@ public final class Lod {
     /** Pixel thresholds between L0/L1, L1/L2 and L2/L3 at {@code renderLodScale} 1. */
     public static final double[] THRESHOLDS = { 300, 80, 20 };
     private static final double HYSTERESIS = 0.10;
+    /** {@code Tier.values()} once ({@code values()} clones its array on every call: R-16). */
+    private static final Tier[] TIERS = Tier.values();
 
     private static final FloatBuffer MATRIX = BufferUtils.createFloatBuffer(16);
     private static long projFrame = -1;
@@ -91,7 +93,7 @@ public final class Lod {
             // the boundary between tier i and i + 1 holds the previous side until it is crossed by 10 %
             double t = THRESHOLDS[i] * scale;
             if (prev >= 0) t *= prev <= i ? 1 - HYSTERESIS : 1 + HYSTERESIS;
-            if (px > t) return Tier.values()[i];
+            if (px > t) return TIERS[i];
         }
         return Tier.L3;
     }

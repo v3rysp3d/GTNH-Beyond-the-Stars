@@ -94,6 +94,8 @@ public final class RealityRender {
     /** The programs the Reality renders draw with (one array: a frame allocates nothing, R-16). */
     private static final BTSShaders.Program[] PROGRAMS = { MachineFx.VOL_PROGRAM, MachineFx.BEAM_PROGRAM,
         MachineFx.MFX_PROGRAM, GlowSprite.PROGRAM };
+    /** The six Region Receivers' elevations, degrees. */
+    private static final double[] RECEIVER_ELEV = { 0, 30, -30, 0, 30, -30 };
     /** Refab's far glow colour. */
     private static final float[] REFAB_GLOW = { 0.45f, 0.75f, 1f };
 
@@ -289,9 +291,8 @@ public final class RealityRender {
         GlowSprite.draw(P0[0], P0[1], P0[2], 16, 1f, 0.62f, 0.25f, 0.18f + 0.45f * act, 0.2f, 0.5f);
         s.frame.at(x, y, z, 0, -52, 0, P0);
         GlowSprite.draw(P0[0], P0[1], P0[2], 14, 1f, 0.55f, 0.2f, 0.12f + 0.35f * act, 0.2f, 0.5f);
-        final double[] elev = { 0, 30, -30, 0, 30, -30 };
         for (int k = 0; k < 6; k++) {
-            final double a = Math.toRadians(60 * k), el = Math.toRadians(elev[k]);
+            final double a = Math.toRadians(60 * k), el = Math.toRadians(RECEIVER_ELEV[k]);
             final double pr = polarE(36, 34, a);
             final double dx = Math.cos(el) * Math.cos(a), dy = Math.sin(el), dz = Math.cos(el) * Math.sin(a);
             s.frame.at(x, y, z, pr * Math.cos(a) + 9 * dx, 9 * dy, pr * Math.sin(a) + 9 * dz, P0);
