@@ -70,11 +70,11 @@ void slPlace(vec3 pos, vec2 uv, out vec3 local, out vec4 misc) {
         float H = R * u_Lines.z * (0.5 + 0.5 * slHash(i + cyc, 10.0)) * (0.35 + 0.65 * rise);
         float beta = (s - 0.5) * sigma;
         vec3 base = c * cos(beta) + dir * sin(beta);
-        float h = H * pow(sin(3.14159 * s), 0.8);
+        float h = H * pow(max(sin(3.14159 * s), 0.0), 0.8);
         P = base * (R * 0.995 + h);
         float beta2 = (s + 0.01 - 0.5) * sigma;
         vec3 base2 = c * cos(beta2) + dir * sin(beta2);
-        vec3 P2 = base2 * (R * 0.995 + H * pow(sin(3.14159 * min(s + 0.01, 1.0)), 0.8));
+        vec3 P2 = base2 * (R * 0.995 + H * pow(max(sin(3.14159 * min(s + 0.01, 1.0)), 0.0), 0.8));
         T = normalize(P2 - P + 1e-5);
         life = sin(3.14159 * life);
     }

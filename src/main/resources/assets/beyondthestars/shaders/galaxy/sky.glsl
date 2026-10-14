@@ -29,7 +29,7 @@ vec4 galSky(vec3 dir, vec3 pos) {
         vec3 off = vec3(btsHash13(cell + 1.3), btsHash13(cell + 2.7), btsHash13(cell + 5.1)) - 0.5;
         float dd = length(fract(q) - 0.5 - off * 0.5);
         float tw = 0.75 + 0.25 * sin(u_Sky.w * (1.5 + 3.0 * h) + h * 60.0);
-        star = smoothstep(0.16, 0.0, dd) * (0.3 + 0.7 * (h - 0.972) / 0.028) * tw;
+        star = (1.0 - smoothstep(0.0, 0.16, dd)) * (0.3 + 0.7 * (h - 0.972) / 0.028) * tw;
     }
     vec3 c = neb * u_Sky.z + vec3(0.85, 0.9, 1.0) * star * 0.9;
     // only round the cavity's height: above the core band (the open bowl) and far below it, no dark cap

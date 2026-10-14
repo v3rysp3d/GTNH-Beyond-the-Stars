@@ -149,7 +149,7 @@ vec4 galPlanets(vec3 rdCam) {
         float diff = dot(nrm, L);
         float lit = smoothstep(-0.12, 0.35, diff) * (0.35 + 0.65 * max(diff, 0.0));
         vec3 surf = galSurface(p.z, nrm, t, float(i));
-        float rim = pow(1.0 - max(dot(nrm, -d), 0.0), 3.0);
+        float rim = pow(1.0 - clamp(dot(nrm, -d), 0.0, 1.0), 3.0);
         vec3 atm = p.z > 0.5 && p.z < 2.5 || p.z > 5.5 ? vec3(0.45, 0.65, 1.0) : vec3(0.0);
         best = th;
         col = surf * (0.04 + 1.05 * lit) + atm * rim * (0.15 + 0.85 * smoothstep(-0.2, 0.4, diff)) * 0.6;

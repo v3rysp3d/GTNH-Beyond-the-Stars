@@ -48,7 +48,7 @@ vec2 stSpots(vec3 s, float t, float activity, float mu, int count) {
         float life = fract(t / period + h.y);
         // a spot is born, grows and decays; with low activity most cycles stay empty
         float on = step(h.z, 0.25 + 0.75 * activity);
-        float size = on * pow(sin(3.14159 * life), 0.6) * (0.6 + 0.6 * h.z);
+        float size = on * pow(max(sin(3.14159 * life), 0.0), 0.6) * (0.6 + 0.6 * h.z);
         if (size < 0.02) continue;
         float cyc = floor(t / period + h.y);
         vec3 h2 = stHash33(vec3(float(i) + cyc * 1.37, 2.2, 9.1));
@@ -195,7 +195,8 @@ vec4 starSurface(vec3 rd) {
         vec3 o = normalize(vec3(0.3, 0.8, -0.5));
         float ang = acos(clamp(dot(s, o), -1.0, 1.0));
         float front = u_Fx.y * 3.4;
-        float wave = exp(-pow((ang - front) / 0.22, 2.0)) * (1.0 - u_Fx.y);
+        float waveD = (ang - front) / 0.22;
+        float wave = exp(-waveD * waveD) * (1.0 - u_Fx.y);
         I *= 1.0 + 0.9 * wave;
         Tf *= 1.0 + 0.35 * wave;
     }

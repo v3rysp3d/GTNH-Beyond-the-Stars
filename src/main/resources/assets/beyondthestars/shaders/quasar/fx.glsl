@@ -56,7 +56,7 @@ vec3 qfShade(vec3 pos, vec4 misc) {
     vec3 n = misc.xyz;
     vec3 V = normalize(pos);
     float ndv = abs(dot(n, V));
-    float rim = pow(1.0 - ndv, u_FxC.w);
+    float rim = pow(max(1.0 - ndv, 0.0), u_FxC.w);
     float nz = btsNoise3(u_Noise, n * 5.0 + vec3(0.0, 0.0, t * 0.8)) * 0.65
         + btsNoise3(u_Noise, n * 13.0 + vec3(5.0, 3.0, t * 1.6)) * 0.35;
     // a thin, crisp front: bright only near its silhouette, broken by the noise, almost clear face-on (so it reads

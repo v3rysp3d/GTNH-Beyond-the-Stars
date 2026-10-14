@@ -30,7 +30,7 @@ float mxHex(vec2 p, out vec2 id) {
 vec4 mxShell(vec3 local, vec3 n) {
     vec3 v = normalize(u_Cam - local);
     float nv = abs(dot(normalize(n), v));
-    float fres = pow(1.0 - nv, 2.5);
+    float fres = pow(max(1.0 - nv, 0.0), 2.5);
     float t = u_MMode.y;
     vec2 uv = vec2(atan(n.z, n.x) * 7.0, asin(clamp(n.y, -1.0, 1.0)) * 7.0);
     vec2 id;
@@ -93,7 +93,7 @@ vec4 mxPortal(vec2 uv) {
     float a = uv.y * BTS_TAU;
     // the starfield bends round the throat: the angle is swirled more toward the centre
     float sw = a + 1.6 / (r + 0.12) - t * 0.15;
-    vec2 q = vec2(cos(sw), sin(sw)) * pow(r, 0.6) * 9.0;
+    vec2 q = vec2(cos(sw), sin(sw)) * pow(max(r, 0.0), 0.6) * 9.0;
     vec2 cid = floor(q * 3.0);
     vec2 cf = fract(q * 3.0) - 0.5;
     vec2 jp = btsHash22(cid) - 0.5;
