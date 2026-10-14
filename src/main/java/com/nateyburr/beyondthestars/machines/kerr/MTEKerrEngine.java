@@ -81,7 +81,7 @@ import gregtech.common.tileentities.machines.multi.compressor.MTEBlackHoleUtilit
  * SINGULARITY LADDER P2 / KERR REDESIGN: THE KERR ERGOSPHERE ENGINE (KEE) - MTE base+14 (28114), UIV
  * (docs/kerr-redesign.md; singularity-ladder-build.md §3.1 / §3.2, D-41, D-42, D-44).
  * <p>
- * The KEE controls ONLY the hole (user ruling, brief item 9): seed / open / close, the mass setpoint,
+ * The KEE controls ONLY the hole (my ruling, build notes item 9): seed / open / close, the mass setpoint,
  * the bolt governor and its bolt buses, Hawking bleed, stability, containment power, the BHC utility
  * hatches and the Density Upgrade (Kerr T2). It runs no recipes and has no machine modes; nothing a
  * player needs takes a screwdriver. Everything is in its MUI2 GUI ({@link MTEKerrEngineGui}).

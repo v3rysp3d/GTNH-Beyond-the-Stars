@@ -6,7 +6,7 @@ import gregtech.api.enums.FluidState;
 import gregtech.api.fluid.GTFluidFactory;
 
 /**
- * BEC EXPANSION condensates, SL-B10..SL-B15 (designs/docs/bec-expansion-proposal.md §4; brief ruling 11b). Called
+ * BEC EXPANSION condensates, SL-B10..SL-B15 (designs/docs/bec-expansion-proposal.md §4; ruling 11b). Called
  * from one appended line in {@link BTSFluids#register()}.
  * <p>
  * GT 2.9.0-RC-2's Bose-Einstein Condensate network is fluid-generic: the Condensate Generator turns any fluid that

@@ -3,7 +3,7 @@ package com.nateyburr.beyondthestars.machines.directive;
 import java.util.Locale;
 
 /**
- * AUTOMATION PASS (brief item 18): what a Directive Hatch ({@link MTEHatchDirective}, MTE 28127) reports, or which
+ * AUTOMATION PASS (plan item 18): what a Directive Hatch ({@link MTEHatchDirective}, MTE 28127) reports, or which
  * setpoint it drives. One hatch class serves every host: the Eye of Harmony, the Kerr Ergosphere Engine and (P4) the
  * Quasar Engine. P4's sets (Disc, Field, Events, Galaxy Transition, Slots; quasar-p4.md §8.1) compute their bits in
  * {@link QuasarDirective} and {@link GalaxyDirective}. A hatch placed in a host adopts that host's first set if its own

@@ -2,7 +2,7 @@ package com.nateyburr.beyondthestars.items;
 
 /**
  * D-26 MATERIAL LINE ITEMS - the registration point for the casing lines (S3). Owned by
- * <b>Agent B (Materials)</b>.
+ * <b>Track B (Materials)</b>.
  * <p>
  * <b>It registers nothing, and that is the design rather than an oversight.</b> Every output of
  * M-01 to M-06 is a block that already exists: Light Concrete, the Solid Steel / Clean Stainless /
@@ -16,7 +16,7 @@ package com.nateyburr.beyondthestars.items;
  * TAILS and belongs to the fuel line that produces it. That interlock is deliberate: the fuel line
  * feeds the casing line.
  * <p>
- * The hook exists so that if Agent B ever does need an item, there is exactly one file to add it
+ * The hook exists so that if Track B ever does need an item, there is exactly one file to add it
  * to and no shared registrar to reopen.
  */
 public final class BTSItemsMaterials {

@@ -244,7 +244,7 @@ public final class BTSRecipesSingularity {
                 .eut(TierEU.RECIPE_UIV)
                 .addTo(assemblerRecipes));
 
-        // SL-P12 Harmonic Lining x4: the Kerr's white inner face (user ruling, round 4: one new Kerr
+        // SL-P12 Harmonic Lining x4: the Kerr's white inner face (my ruling, round 4: one new Kerr
         // lining block). Hundreds to thousands per Kerr (521 at T1 with both modules, 4,552 at T2), so a batch
         // Assembler recipe of plain UIV-tier metals; it replaces the BHC's Radiation Absorbent Casing in
         // that role, which costs 64,000 L of UU-Matter per block.
@@ -340,7 +340,7 @@ public final class BTSRecipesSingularity {
     // TecTech's Eye replaced)
 
     /**
-     * SL-G01..G03: GT's own Resonance Chamber II, III and IV recipes are rewritten IN PLACE (user, 2026-10-13: B-29
+     * SL-G01..G03: GT's own Resonance Chamber II, III and IV recipes are rewritten IN PLACE (decided 2026-10-13: B-29
      * "Rewrite GT's in place" for chamber II; Q4/Q21 the same for III and IV), so NEI shows one recipe per chamber,
      * not GT's plus ours. Each swaps the one foil that waits on a later Eye tier for the tier below's product, at the
      * same input index:

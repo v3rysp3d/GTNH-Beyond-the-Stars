@@ -25,7 +25,7 @@ import gregtech.api.GregTechAPI;
  * §1.2 and Contract additions FC-1/FC-2).
  * <p>
  * One icon per meta on all six faces. A meta whose texture name is {@code null} is a HOLE: a spec
- * meta whose role an existing EOH or BHC block now plays (user ruling 2026-10-12). Holes are never
+ * meta whose role an existing EOH or BHC block now plays (my ruling 2026-10-12). Holes are never
  * listed, never crafted and never reused, so every other meta keeps the number the shape-char table
  * and the other units already reference. A hole placed by hand (a /setblock) renders as the first
  * real meta and drops nothing.

@@ -1,6 +1,6 @@
 # Kerr redesign: the hole controller and separate module machines
 
-Spec for the `kerr-redesign` branch, written 2026-10-12. It covers the ruling in the build brief (item 9):
+Spec for the `kerr-redesign` branch, written 2026-10-12. It covers my ruling in the build notes (item 9):
 "this multiblock is EXTREMELY hard to understand". No Java has been written for it yet. Where this file and
 `singularity-ladder-build.md` §3.1 / §3.2 / "Contract additions (Kerr)" disagree, this file wins for the redesign.
 The judgement calls are logged as questions B-46..B-50 in `singularity-ladder-questions.md`.
@@ -409,9 +409,9 @@ KEE holds their hatches.
 
 ## 8. Work plan for the next units
 
-Each step is one unit, in this order. They share the worktree, so only one runs gradle at a time.
+Each step is one unit of work, in this order. They share the worktree, so only one runs gradle at a time.
 
-| # | Agent | Files | Done when |
+| # | Unit | Files | Done when |
 |---|---|---|---|
 | R1 | **Exporter** | `tools/export-structures.js`, `structures/*` (re-export), the spec's Structure export section | Module pieces in their own frame with `~` (§6.1); the extractor's controller moved and its sockets added; `kerr_slots`; `slots` / `centre` in the manifest; `--check` clean; the open-air and front-face asserts pass. |
 | R2 | **KEE** | `MTEKerrEngine` (strip it to the hole; containment power; `KerrHole`; `slotStatus`; the render placement calls), `KerrSlot`, `KerrHatchElement` (2 entries), `KerrMigration`, `MTEKerrEngineGui`, lang | Compiles. `/btskerr` builds a T1 with no modules. Open / close / setpoint work from the GUI. The scanner lines are updated. |

@@ -1,7 +1,7 @@
-# PROGRESSION RECON — 0.22.0 spec (recon unit; no production code)
+# PROGRESSION RECON — 0.22.0 spec (recon pass; no production code)
 
-Scope: answer the six questions in the 0.22.0 brief with **real** references, then hand the
-implementing units a spec they can follow without guessing.
+Scope: answer the six questions in the 0.22.0 plan with **real** references, then hand the
+implementers a spec they can follow without guessing.
 
 Everything about the Forge of the Gods below was read out of the **actual sources at the pinned
 tag**, not from memory:
@@ -242,7 +242,7 @@ Currency is tracked as **`available` and `spent`**, and `available` is *recomput
 drifting.
 
 `resetAll()` / `unlockAll()` exist behind `ConfigHandler.debug.DEBUG_MODE`, wired to two buttons in
-`UpgradeTreePanel.getDebugWidgets` (`:271-320`) — precedent for the debug command the brief asks for.
+`UpgradeTreePanel.getDebugWidgets` (`:271-320`) — precedent for the debug command the plan asks for.
 
 ---
 
@@ -460,7 +460,7 @@ Other terms a multiplier could attach to: feedwater draw `baseFlow >> coolingTow
 `genICampaignMinutes*60*20/8` (`:3795`); `DERRICK_CYCLE_TICKS 200` and `ANNEX_CYCLE_TICKS 600`
 (`:5171`, `:5183`); the assembly-fallback `/2` penalty (`:3874`, `:3892`, `:3919`).
 
-### 4.2 Capabilities an unlock could gate — and what I ALREADY HAS
+### 4.2 Capabilities an unlock could gate — and what I ALREADY HAVE
 
 | Capability | Ceiling today | Already in my hands? |
 |---|---|---|
@@ -476,7 +476,7 @@ Other terms a multiplier could attach to: feedwater draw `baseFlow >> coolingTow
 | Cooling towers | 2 (`:612`) | at max |
 | RPM redline | `RPM_REDLINE = 12_000` (`:290`) | at max |
 
-**Ruling for the implementers — and the brief's "say plainly which you chose":**
+**Ruling for the implementers — and the plan's "say plainly which you chose":**
 
 > **ADDITIVE ONLY. No milestone tier and no tree node may gate anything in the table above.** Every
 > unlock opens a *new* rung strictly above today's ceiling: Build Tier **6/7**, propellant rung
@@ -807,7 +807,7 @@ Cheap automated guard worth adding: `/btsprogress verify` serialises to a scratc
 via `writeProgress`, zeroes the live fields, reads them back with `readProgress`, and reports any
 mismatch. ~20 lines, and it catches a forgotten key the moment it is introduced.
 
-### 6.6 The debug command (the brief's "no back-fill, but ship a setter")
+### 6.6 The debug command (the plan's "no back-fill, but ship a setter")
 
 `CommandBTSProgress`, registered in `CommonProxy.serverStarting` next to the existing five
 (`CommonProxy.java:35-40`), permission level 2, resolving the controller with
@@ -845,7 +845,7 @@ in `UpgradeTreePanel.getDebugWidgets` (`:271-320`).
 
 ---
 
-## 8. Build order for the implementing units
+## 8. Build order for the implementers
 
 1. **`BTSProgression` + the four counters + `writeProgress`/`readProgress` + `CommandBTSProgress`.**
    Ship and verify all four survival cases *before anything else exists*. This is the part that

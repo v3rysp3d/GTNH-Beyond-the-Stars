@@ -16,7 +16,7 @@ import com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 
 /**
- * D-49 my answer 3: the server half of the Eye's centre render, owned by one Eye controller. It places GT-style
+ * D-49 answer 3: the server half of the Eye's centre render, owned by one Eye controller. It places GT-style
  * render block ({@link BlockEyeStar}) in the empty cell at the Eye's centre, keeps its {@link EyeStarLook} up to date
  * and removes it again. Server side only; it never loads a chunk and never overwrites a block.
  * <ul>

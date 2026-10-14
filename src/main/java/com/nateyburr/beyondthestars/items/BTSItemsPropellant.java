@@ -3,7 +3,7 @@ package com.nateyburr.beyondthestars.items;
 import net.minecraft.item.Item;
 
 /**
- * D-26 PROPELLANT LINE ITEMS (S4.1). Owned by <b>Agent C (Propellant + Coolant)</b>.
+ * D-26 PROPELLANT LINE ITEMS (S4.1). Owned by <b>Track C (Propellant + Coolant)</b>.
  * <p>
  * <b>P-04 cartridges</b> are a STORAGE AND LOGISTICS form, not a new rung. Each holds 1,000 L of
  * its own ladder fluid and is re-liquefied in a Fluid Extractor, so a cartridge is worth exactly

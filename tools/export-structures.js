@@ -440,7 +440,7 @@ function eachCell(b, cb) {
 }
 
 // ------------------------------------------------------------------------------------------------ window bands
-// my answer 2026-10-13 (render QA K2 + E-9, "Glass window bands"): the Kerr's hole and the Eye's centre object
+// My answer 2026-10-13 (render QA K2 + E-9, "Glass window bands"): the Kerr's hole and the Eye's centre object
 // must read from the front at eye level (|y| <= WINDOW_HALF from the voxel origin, which is the hole / star centre).
 // Each window is ONE Quantum Glass pane with the cells behind it OPEN (' ', checked as nothing): Quantum Glass is a
 // glowing blue glass, and the first real-client pass (three glass walls deep on the Kerr's sightline, two to eight on

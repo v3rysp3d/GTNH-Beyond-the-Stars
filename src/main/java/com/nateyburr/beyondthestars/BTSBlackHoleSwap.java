@@ -22,7 +22,7 @@ import gregtech.api.util.GTRecipe;
 import tectech.recipe.TecTechRecipeMaps;
 
 /**
- * BHC to KERR RECIPE SWAP (GTNH 2.9.0-RC-2 port, user ruling "the Kerr replaces the BHC in recipes").
+ * BHC to KERR RECIPE SWAP (GTNH 2.9.0-RC-2 port, my ruling "the Kerr replaces the BHC in recipes").
  *
  * <h2>Why</h2>
  *

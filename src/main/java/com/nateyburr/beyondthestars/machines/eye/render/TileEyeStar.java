@@ -16,7 +16,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 
 /**
- * D-49 my answer 3: the Eye of Harmony's centre render tile. It carries the synced {@link EyeStarLook} (what
+ * D-49 answer 3: the Eye of Harmony's centre render tile. It carries the synced {@link EyeStarLook} (what
  * object, how big, what colour, how it moves) that {@link EyeStarRenderer} draws with TecTech's star textures and the
  * Forge of the Gods star shader.
  * <p>

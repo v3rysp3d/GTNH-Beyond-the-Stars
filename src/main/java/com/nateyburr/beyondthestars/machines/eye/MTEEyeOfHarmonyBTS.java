@@ -210,7 +210,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     public static final double COMPRESSION_TIME_DISCOUNT = 0.97;
     /**
      * Q-20 THE COMPRESSION GATE, the one table: the lowest generator META (TecTech tier - 1) that
-     * Eye tier N needs in every compression cell. 1:1 (user ruling): T1 Crude (meta 0) .. T6 meta 5
+     * Eye tier N needs in every compression cell. 1:1 (my ruling): T1 Crude (meta 0) .. T6 meta 5
      * (D-49 extends the gate to T6; P4 to T7 meta 6 and T8 meta 7). Index 0 is unused. Change the mapping here and
      * nowhere else.
      */
@@ -247,7 +247,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
      * goes through {@link EyeNbt} (persistent part in item and tile NBT, the star in the tile only).
      */
     private final EyeStarRuntime runtime = new EyeStarRuntime(new StarHost());
-    /** D-49 my answer 3: the centre render (its per-machine switch persisted; its block position tile-only). */
+    /** D-49 answer 3: the centre render (its per-machine switch persisted; its block position tile-only). */
     private final EyeCentreRender centre = new EyeCentreRender();
 
     // ------------------------------------------------------------- RUN state (server, tile NBT)

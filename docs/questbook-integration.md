@@ -3,7 +3,7 @@
 Status: **spec**, 2026-10-13, for the `questbook` branch (worktree `addon-qb`). No Java, no generator code and no quest
 JSON are written yet; section 6 splits the work between the next units.
 
-**Rulings this implements** (build brief, rules 14 and 15):
+**Rulings this implements** (build notes, rules 14 and 15):
 
 - *"make sure everything the player needs to find out the system is either in the questbook or in the tooltip"*:
   every quest below teaches its system. It says what the system is, how to build it, how to run and automate it, and
@@ -23,7 +23,7 @@ JSON are written yet; section 6 splits the work between the next units.
 - Every pack quest id, position, prerequisite and task below was read out of those files by a dump script
   (local work folder `qbspec/dump.js`, `rev.js`).
 - The design: `designs/questbook.js`, `designs/docs/questbook.md` (D-44, D-47, D-48), `star-lifecycle.md` (D-49) with
-  the addon's `docs/d49-build-plan.md` and its user answers, `addon-kerr-redesign/docs/kerr-redesign.md`,
+  the addon's `docs/d49-build-plan.md` and my answers to it, `addon-kerr-redesign/docs/kerr-redesign.md`,
   `bec-expansion-proposal.md` and `quasar-p4.md` (P4, proposed).
 - The built code on `questbook` (HEAD 6c41ce7, D-49 unit 6), and on `kerr-redesign` (859f5b7) for the KEE and the
   modules.
@@ -112,7 +112,7 @@ Endgame too and the installer hides the emptied chapter (§3.6). The plant chapt
 
 **Registry ids used in tasks.**
 
-- **Verified in this session:**
+- **Verified while writing this spec:**
   - KEE `gregtech:gt.blockmachines:28114`, Eye `:28115`, Stellar Field Sensor Hatch `:28116`, Kerr Compressor
     Module `:28117`, Kerr Extractor Module `:28118` (BTSMachines ledger).
   - Black Hole Seed `gregtech:gt.metaitem.01:32418` and Collapser `:32419` (`IDMetaItem01` 418/419 + 32000).
@@ -671,7 +671,7 @@ quests; and every gate got a DONE WHEN line.
 > UXV circuits are craftable: the Polychrome and Dimensional Quantum Circuits need no Universium.[/warn]
 >
 > *(Rewritten 2026-10-13 after the merges: the T5/T6 cores take the B-72 UMV stopgap; the UXV parts and circuits
-> design is a brainstorm, brief item 22a, so D-45's part override is not built. B-84: the Homogeny Tier II Core takes
+> design is a brainstorm, build notes item 22a, so D-45's part override is not built. B-84: the Homogeny Tier II Core takes
 > the same stopgap, so the warning no longer names it. B-111: P4 is in, so the paragraph names the quasar and the
 > galaxies, and the warning reaches to Eye T8: P4 takes no pack UXV part.)*
 >
@@ -1417,14 +1417,14 @@ writes the filter against it.
 They share the worktree, run one at a time, and only Q3 and Q5 run gradle. Each one commits granular `wip:` commits,
 staging only its own files.
 
-| # | Agent | Files | Done when |
+| # | Unit | Files | Done when |
 |---|---|---|---|
 | **Q1** | **Source data** | `questbook/singularity.json` (all of §1-§3: every quest, text, task, position and edit, transcribed exactly; descriptions in `{x}` tokens), `questbook/id-ledger.txt` (48000-48034 + 48100-48220 as allocated), first `questbook/registry.json` (the verified ids from §1, the rest flagged `verify`) | The JSON parses. Every §2 and §3 row is present. No text says anything §2 does not. |
 | **Q2** | **Generator** | `questbook/qb-common.ps1` (helpers moved out), `gen-singularity.ps1`, the one call added at the end of `gen-questbook.ps1`, `questbook/DefaultQuests/**` (regenerated), `assets/beyondthestars/questbook/overlay.json`, `BTSQuestIds.java` (generated), `questbook/README.md` (new sections: the bundle, the ladder chapters, `OrderLines.txt`, merge steps, drift check) | `gen-bom.ps1` runs clean against the RC-2 instance `DefaultQuests`. Every §4.2 assertion is implemented and seen to fire on a deliberately broken input (one overlap, one line crossing, one drifted name, one unknown item). The plant chapter's files are byte-identical to before. |
 | **Q3** | **Installer** | `BQBridge.java` (v2: bundle, state file, edit engine, progress filter, uninstall, verify, dumpids, auto-install hook), `CommandBTSQuests.java`, `Config.java` (two keys), `CommonProxy` (the hook), lang if any | javap on `BetterQuesting-3.8.89-GTNH.jar` confirms every reflected member: `QuestLine.removeID` (or its 3.8.89 name), `QuestLineDatabase` order list access, `writeProgressToNBT` / `readProgressFromNBT` and the progress NBT layout, `QuestInstance.writeToNBT`, `NetBulkSync.sendReset`, and BQ's load event. `gradlew spotlessApply compileJava` and then `build` pass. |
 | **Q4** | **Id verification** | `questbook/registry.json`, `singularity.json` fixes | On the dev server, `/btsquests verify` reports **0 misses** for the built features (`temporalfluid`, `boltNeutronium`, `dustTengamAttuned`, the UXV laser hatches resolved), and the generator is re-run. |
 | **Q5** | **Test** (dev server, headless; no client needed except Q6) | `CommandBTSBuild` / console harness lines if needed, `docs/singularity-ladder-questions.md` (QB-1..13 plus findings) | (a) Fresh world from the merged `DefaultQuests`: the auto-install applies 61 edits, and `status` is clean. (b) A copy of an RC-2 save with progress on the BHC, EOH, Universium and Stargate quests: install keeps every completion, and E01 / E10's task progress is dropped as specified. (c) A second install is a no-op (same DB dump). (d) `uninstall edits` restores every pack quest **byte-identical** to the snapshot (compare `writeToNBT` dumps), and `uninstall all` + `install` round-trips. (e) `questbookPackEdits=false` reverts the edits, and 48103 and 48109 appear. (f) Drift: rename one pack quest in a copy of `DefaultQuests`, make a new world, and see that edit skipped with a warning while the rest apply. (g) Flip one feature (`quasar`) in a scratch build: 48144 becomes real and its ticked box is cleared. |
-| **Q6** | **Look** (with I) | none | Screenshots of UIV, UMV, UXV, MAX and The Endgame in a client: tidy, nothing overlapping, and the lines reading as §2 draws them. Any layout change goes back into `singularity.json` (Q1), never hand-edited JSON. |
+| **Q6** | **Look** (by me, in a client) | none | Screenshots of UIV, UMV, UXV, MAX and The Endgame in a client: tidy, nothing overlapping, and the lines reading as §2 draws them. Any layout change goes back into `singularity.json` (Q1), never hand-edited JSON. |
 
 **Order:** Q1 → Q2 → Q3 → Q4 → Q5 → Q6. Q3 can start in parallel with Q2 once Q1's bundle shape is fixed, because
 the bundle format in §4.2 is the interface between them.

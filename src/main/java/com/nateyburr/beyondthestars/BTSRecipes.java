@@ -9,11 +9,11 @@ package com.nateyburr.beyondthestars;
  * each, and what is left is the call order.
  *
  * <pre>
- *   BTSRecipesFuel        Agent A   S1  ore -> bundle, and the PUREX head-end
- *   BTSRecipesMaterials   Agent B   S3  bulk casings on the Site Batching Plant
- *   BTSRecipesPropellant  Agent C   S4.1 oxidiser / slurry / blend, the six rungs
- *   BTSRecipesCoolant     Agent C   S4.2 bulk coolant and the chemical shim
- *   BTSRecipesMachines    Agent D   controllers, hatches, control blocks, rotor
+ *   BTSRecipesFuel        Track A   S1  ore -> bundle, and the PUREX head-end
+ *   BTSRecipesMaterials   Track B   S3  bulk casings on the Site Batching Plant
+ *   BTSRecipesPropellant  Track C   S4.1 oxidiser / slurry / blend, the six rungs
+ *   BTSRecipesCoolant     Track C   S4.2 bulk coolant and the chemical shim
+ *   BTSRecipesMachines    Track D   controllers, hatches, control blocks, rotor
  *   BTSRecipesStellar     D-49      the Antipolarization Agent chain (SL-S01..S02)
  *   BTSRecipesBEC         BEC       condensates + Condensate Assembler recipes (SL-B01..B81)
  *   (BTSRecipesGeneratorUpgrade, B-83, SL-G01..G03 and BTSStockCircuitRaise SL-G10..G13 run at load-complete:

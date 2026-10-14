@@ -62,7 +62,7 @@ import gtPlusPlus.xmod.gregtech.api.enums.GregtechItemList;
 
 /**
  * D-26 THE FUEL LINE - ore to bundle, and the PUREX head-end that closes the loop
- * (docs/production-lines.md S1). <b>Owned exclusively by Agent A (Fuel).</b>
+ * (docs/production-lines.md S1). <b>Owned exclusively by Track A (Fuel).</b>
  * <p>
  * <b>The eighteen retired recipes are gone.</b> S8.1's table listed the whole dust -> pellet ->
  * rod -> assembly chain across four grades plus the eight depleted-fuel centrifuge recipes; every
@@ -521,7 +521,7 @@ public final class BTSRecipesFuel {
 
         // F-11 GAS CENTRIFUGE CASCADE. One sixth of the feed leaves enriched; five sixths leave as
         // tails, and the tails are a PRODUCT - F-20 makes the MOX diluent out of them and F-11c
-        // makes the shielding metal Agent B's M-03b spends on casings.
+        // makes the shielding metal Track B's M-03b spends on casings.
         BTSRecipeGuard.recipe(
             "F-11",
             () -> GTValues.RA.stdBuilder()

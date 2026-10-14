@@ -11,7 +11,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import gregtech.common.blocks.BlockRenderer;
 
 /**
- * D-49 my answer 3: the block that carries the Eye of Harmony's centre render ({@link TileEyeStar}). GT's own
+ * D-49 answer 3: the block that carries the Eye of Harmony's centre render ({@link TileEyeStar}). GT's own
  * {@link BlockRenderer} (the Black Hole Compressor's render block: no collision, no selection box, unbreakable, no
  * drops, TESR only), registered by its constructor as {@code beyondthestars:gt.beyondthestars.eyeStar}. Only an Eye
  * places it; it is never in NEI or a creative tab.

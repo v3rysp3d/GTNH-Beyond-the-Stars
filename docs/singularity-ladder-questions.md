@@ -1,11 +1,11 @@
-# Singularity Ladder: questions for you
+# Singularity Ladder: open questions and decisions
 
 One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reality branches were merged into master
 (B-87). It has four parts:
 
 1. **Open questions**: each open decision once, with the answer we recommend and where the detail is.
-2. **Settled**: everything you have answered, in your words where we have them, and what was built.
-3. **Open work and checks**: things that need doing or seeing in a client, but no decision from you.
+2. **Settled**: everything I have answered, in my words where we have them, and what was built.
+3. **Open work and checks**: things that need doing or seeing in a client, but no decision.
 4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-139 and the SMBH branch's
    B-150..B-168, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
 
@@ -17,14 +17,14 @@ the build", explains how to get the machines in creative.
 
 ---
 
-## 1. Open questions for you
+## 1. Open questions
 
-Most important first. "Recommended" is what we would build if you say nothing. Nothing here blocks the playtest jar.
+Most important first. "Recommended" is what we would build if nothing else is decided. Nothing here blocks the playtest jar.
 
 | # | Question | Recommended answer | Detail |
 |---|---|---|---|
 | 1 | The window bands made the Kerr T1 about a third cheaper in Infinity. Win it back? | Yes: the mirror-backing and mirror recipes (SL-P02 / SL-P03) make 1 block per craft instead of 2, which puts the drum at about 113 % of its old price | B-86, open 1 |
-| 2 | The Kerr Density Upgrade still installs on a plain right-click. Your ruling was milestones + an install run (Q-10); D-49 replaced that for the Eye only | Build it the Homogeny's way (core in escrow, an Install button, a run that pauses on low power) with B-1's Kerr numbers: hold 64 SM for 30 minutes in total, then a 10-minute offline run costing the upgrade and 9,216 L molten SpaceTime | A-2, B-1 |
+| 2 | The Kerr Density Upgrade still installs on a plain right-click. My ruling was milestones + an install run (Q-10); D-49 replaced that for the Eye only | Build it the Homogeny's way (core in escrow, an Install button, a run that pauses on low power) with B-1's Kerr numbers: hold 64 SM for 30 minutes in total, then a 10-minute offline run costing the upgrade and 9,216 L molten SpaceTime | A-2, B-1 |
 | 3 | Kerr "Auto": a Collapser dropped in a bolt bus collapses the hole within a second, so the GUI's two-click Collapse means little while Auto is on | Auto acts on Seeds only (evaporation recovery keeps working); collapsing is the button, OpenComputers or the Directive Hatch | B-57 |
 | 4 | ~~Resonance Chamber III (the Eye T5 gate) still has two recipes in NEI~~ | **Settled** (rewrite in place): SL-G02 | B-135 |
 | 5 | Magnetar Merger: the imprint band is +60..+90, but above +70 the field is Critical, so only +60..+70 survives the 120 s hold | Keep as built (the Directive's Agent bit at Π > +66, a 1 unit/s Agent valve during the merger) and re-check after playing T6. The alternatives change the merger's maths: narrow the band to +60..+70, or no Integrity drain inside the band | B-71 fix 1; B-62 "Not changed" |
@@ -34,13 +34,13 @@ Most important first. "Recommended" is what we would build if you say nothing. N
 | 9 | The Homogeny T1's throat tip has 5 Region Crystals, which need Ergomatter (Eye T7) on a UMV machine; the controller also accepts Godforge lens glass there | Re-draw the T1 throat tip as lens glass in voxel.js (a new char) and keep the crystal for the T3 tail only. voxel.js is the P4 build's file right now, so this waits for the P4 merge | B-76, item 3 |
 | 10 | Reality Diffraction has no detection hatch of its own (ruling 18) | Build a "Region Anchor Sensor" (one redstone bit per missing anchor) on the base ring, modelled on the Stellar Field Sensor Hatch | B-77, item 10 |
 | 11 | The Homogeny turns 100 L Raw Star Matter into 1 L ESPM, so it cannot keep a T3 Eye fed (2.5 Sols' worth per Arcturus) | Keep 100 : 1 (D-46 / D-47 as ruled): the Homogeny banks a Sol surplus; Eye T2 stays required | B-80, item 4 |
-| 12 | Eye band and tier names: the code says Planetary / Galactic; mine.md proposed Stellar · Systems · Galactic · Universal | Decide them together with the per-tier Eye names you left for later (Q-13) | B-6 |
+| 12 | Eye band and tier names: the code says Planetary / Galactic; proposals.md proposed Stellar · Systems · Galactic · Universal | Decide them together with the per-tier Eye names I left for later (Q-13) | B-6 |
 | 13 | Numbers to tune after a playtest: the T6 shield per upkeep (K = 2), the T6 dwarf-matter reserve and top-up, the First Cooling's automatic retry, the KEE's containment draw (1 A UEV) | Keep; re-check each after playing T5 / T6 and a Kerr | B-48, B-60, B-63 |
 | 14 | The jar carries the op-only bench commands and the dev-only harnesses: render QA and the automation photo rigs (inert without `-Dbts.rendertest=true`), the questbook screenshots (`-Dbts.qbshots=true`) and the video recorder (`-Dbts.rec=true`) | Keep them in test jars; exclude `rendertest/**` and `devshots/**` from a numbered release | B-27, B-73 item 2, B-105, B-107 |
-| 15 | A numbered release name | Tag one (e.g. `0.25.0-rc2`) when you want the Mods list to show a clean version | B-33 |
+| 15 | A numbered release name | Tag one (e.g. `0.25.0-rc2`) when I want the Mods list to show a clean version | B-33 |
 | 16 | Hand-drawn textures | Hand-polish only what players stare at: the two controller faces and the mirror and bastion walls | B-13 |
 | 17 | The Eye T10 gate part (TecTech's generators stop at tier 9) | Design it with P5 | B-3, need 3 |
-| 18 | Everything else that ends "Suggestion: as built" and has no ruling | Accept as built unless you object: B-5, B-7, B-8, B-9, B-11, B-14..B-17, B-19, B-20, B-26, B-27, B-31, B-35..B-37, B-45..B-54, B-62, B-64, B-66..B-68 (judgement calls), B-70, B-74..B-78, B-87, B-108 | each entry |
+| 18 | Everything else that ends "Suggestion: as built" and has no ruling | Accept as built unless I object: B-5, B-7, B-8, B-9, B-11, B-14..B-17, B-19, B-20, B-26, B-27, B-31, B-35..B-37, B-45..B-54, B-62, B-64, B-66..B-68 (judgement calls), B-70, B-74..B-78, B-87, B-108 | each entry |
 | 19 | Reality Diffraction, Reality Refab and the Homogeny T3 are built machines but their quests are still "(planned)" checkboxes, because the `realityRefab` flag is off (since P4 only White Hole Matter, Eye T9, is missing; "Riding the Rift", 48194, waits with them) | Keep the checkboxes until P4/P5 make the inputs; until then, give their quests a variant of the placeholder note: "Built, but its inputs come from Eye T8/T9 (a later update)" | B-93, question 3 |
 | 20 | A plus-signed decimal ("+0.5", "+0.15") can still break after its point at a line end: Java's line breaker splits it, 6 places in the Eye T4-T6 trims | Accept (rare, width-dependent); or write the trims without the plus sign | B-93, question 2 |
 | 21 | ~~Resonance Chamber IV (the Eye T8 gate) has two recipes in NEI~~ | **Settled** (rewrite in place): SL-G03 | B-135 |
@@ -57,31 +57,31 @@ Most important first. "Recommended" is what we would build if you say nothing. N
 
 ## 2. Settled
 
-Your answers, newest first. Quotes are your words.
+My answers, newest first. Quotes are my words.
 
-| Topic | Your answer | What was built |
+| Topic | My answer | What was built |
 |---|---|---|
 | The MagMatter loop at the T9 -> T10 gate [open question 30; B-153] | "Cheaper Godforge upgrade" | SL-Q36 stays: under `replaceTecTechEyeOfHarmony` the Godforge EE upgrade (magmatter mode) takes 8 Black Dwarf Matter frame boxes instead of 2 Universium ones, so MagMatter, the T4 coils, Saturation and the lattice arrive at Eye T7 (B-157); with the flag off nothing changes |
-| Circuits v2 (brief items 31-33; `designs/docs/circuits-v2.md` revision 3) | "they can make umv and uxv but we make cheaper"; "Any of the tier such as the (any uxv) forming oress recipe"; "No offset, build until finished please"; rack "Yes, slightly better"; the raise on by default; NAC "Patch now, PR later" | Sidereal / Empyrean / Omega (B-130..B-134), in GT's any-of-tier ore names, no compensation, the Piko raise (2.5x / 2x), the NAC patch, the rack parts; tested B-136, filmed B-137, merged and packaged in `master.304` (B-138). The UMV stopgap for the UXV parts stays |
+| Circuits v2 (build notes items 31-33; `designs/docs/circuits-v2.md` revision 3) | "they can make umv and uxv but we make cheaper"; "Any of the tier such as the (any uxv) forming oress recipe"; "No offset, build until finished please"; rack "Yes, slightly better"; the raise on by default; NAC "Patch now, PR later" | Sidereal / Empyrean / Omega (B-130..B-134), in GT's any-of-tier ore names, no compensation, the Piko raise (2.5x / 2x), the NAC patch, the rack parts; tested B-136, filmed B-137, merged and packaged in `master.304` (B-138). The UMV stopgap for the UXV parts stays |
 | The time warp in release jars [open question 24; B-117] | Ship it, op + cheats | `/btswarp` stays in every jar, op only (B-138 marks it settled) |
 | Resonance Chambers III and IV [open questions 4 and 21; B-83, B-110] | Rewrite GT's recipes in place under the same flag, like chamber II (B-29) | SL-G02 / SL-G03 rewrite GT's recipes at load-complete; SL-P33 / SL-P40 retired to fallbacks; one recipe per chamber in NEI (B-135) |
 | A Magnetar Collapse begun with a quasar too weak to cancel the shock [B-118] | "Warn, allow" | The countdown line stays; a red row above Begin and in the Galaxy panel when the linked quasar's peak is under 13.5 Bu/t; Begin still works (B-135) |
-| UXV parts and circuits (D-45; B-72 item 1, B-84; brief item 22a superseded item 20) | First "Brainstorm page first" and, for the playtest jar, "Ship UMV stopgap". Then, on `designs/docs/uxv-circuits.md`: Q-U1 "Both", Q-U2 "Empyrean", the above-MAX tier "Omega" (not Apotheosis), Q-U9 "The Eye's live star"; the other Q-U items as recommended | In the jar: the UMV stopgap (B-72 for SL-B70 / B80, B-84 for SL-H10). Next: the Empyrean circuit tier before MAX (Phase U1, Grades I-II, which unblocks T5 / T6 and retires the stopgap), then U2 (Grade III, the Godforge re-key), on master after the playtest run and before P4 merges. **The U1 / U2 circuit plan was superseded by Circuits v2** (the first row); the stopgap stays |
+| UXV parts and circuits (D-45; B-72 item 1, B-84; build notes item 22a superseded item 20) | First "Brainstorm page first" and, for the playtest jar, "Ship UMV stopgap". Then, on `designs/docs/uxv-circuits.md`: Q-U1 "Both", Q-U2 "Empyrean", the above-MAX tier "Omega" (not Apotheosis), Q-U9 "The Eye's live star"; the other Q-U items as recommended | In the jar: the UMV stopgap (B-72 for SL-B70 / B80, B-84 for SL-H10). Next: the Empyrean circuit tier before MAX (Phase U1, Grades I-II, which unblocks T5 / T6 and retires the stopgap), then U2 (Grade III, the Godforge re-key), on master after the playtest run and before P4 merges. **The U1 / U2 circuit plan was superseded by Circuits v2** (the first row); the stopgap stays |
 | Generator upgrade path [B-30; B-29's alternative] | "Add an upgrade path" | SL-U00..U48 and the Retrofit Kits (B-83) |
 | Resonance Chamber II [B-29] | "Rewrite GT's in place" | SL-G01 rewrites GT's recipe at load-complete; SL-P39 retired (B-83) |
 | The hole and the star hidden from the front [render K2, E1 / E-9; B-66..B-68] | "Glass window bands" | One Quantum Glass pane per window, the cells behind it open (B-86) |
 | The Reality machines' Godforge lens glass [B-78 item 7] | Keep: "This will be a MAX tier / Endgame item, its allowed and meant to be expensive" | Unchanged |
-| Old-plant renames and questions [TQ-1..TQ-8] | "You have full free reign on this" | Yellowcake Mill, Spiral Cycle Sensor, Grade 1-6, ORE PROCESSING, Extra Leach Tank, tier-1 defaults, input separation (off), `getTrueParallel()` (B-85, Part D) |
+| Old-plant renames and questions [TQ-1..TQ-8] | "full free reign" | Yellowcake Mill, Spiral Cycle Sensor, Grade 1-6, ORE PROCESSING, Extra Leach Tank, tier-1 defaults, input separation (off), `getTrueParallel()` (B-85, Part D) |
 | Superdense Ergomatter [ruling 17; P4's Q-13] | "it should be ergomatter and superdense ergomatter which is just compacted and refined but the t8 gives you a better version and easier to get"; then one fluid, with Eye T8 the better route (P4's Q-13 as designed) | One fluid, `btssuperdenseergomatter`; the last "Supermassive Ergomatter" text on master is renamed (B-87). The Supermassive Seed Core keeps its name |
 | Trophy quests consume our Eye controllers [QB-7] | "Keep as trophies" | Unchanged (B-85); since B-92 they sit in The Endgame and the emptied Endgame Goals chapter is hidden |
 | Jar handover; the dedicated-server `SERVER_DIR` [B-61, B-73] | "SSH key will be tonight, run locally for now" | The playtest jar goes to the local Prism instance; the server's SSH key exists but is not yet authorised |
 | T6 Antipolarization Agent upkeep [B-34 item 1, B-37 item 1; ruling 12] | 3,000 L per 60 s cycle, and the Agent fed also charges the flare shield (one fluid runs the whole magnetar) | Prototype, fixture, golden file and Java (B-60); the merger imprint fix (B-71) |
 | Unlocks and the Quasar [ruling 17a] | "the 'to unlock the next' doesnt need to be materials it can also be machines so the quasar can provide stability to a different machine" | P4's design (quasar-p4.md §3.1); the Homogeny T2 / T3 and the Diffraction carry reserved Quasar port cells and hooks (B-80 item 7) |
 | P4 loop fixes [ruling 19] | Assumed per "rest asume": the Homogeny Tier II Core uses Black Dwarf Matter, not Magnetar Matter; no UXV part before Eye T7 uses Ergomatter | SL-H10 on Black Dwarf Matter (B-78 item 2); SL-B16 has no generator recipe |
-| The Homogeny and the Reality machines [ruling 16] | Unheld and built from your sketches; "make asumptions for everything" | B-74..B-80 |
+| The Homogeny and the Reality machines [ruling 16] | Unheld and built from my sketches; "make asumptions for everything" | B-74..B-80 |
 | D-49 star lifecycle [B-18, B-25] | The proposal approved: T2 required, cumulative bands, the Agent as the magnetar's constant feed, and the rest of B-18's recommendations | D-49 units 1-6 (B-34..B-38, B-45, B-62, B-63), the +150 bounce |
-| Kerr redesign [brief item 9] | "this multiblock is EXTREMELY hard to understand": the KEE controls only the hole; modules are separate machines; a neat GUI; a black-hole render | B-46..B-57. B-56's question (should the render go while the KEE is unformed) was built as yes from B-59 on |
-| BEC [brief item 11] | (a) RC-2's own BEC recipe makes the Spatial / Temporal casings ×32 and our batch Assembler recipes go ("a bit too cheap"); (b) "we need way more things in the bose einstein"; (c) one jar to test | SL-B01..B04 (B-59, B-60); the BEC expansion SL-B10..B81 (B-64); packages B-61, B-73 |
+| Kerr redesign [build notes item 9] | "this multiblock is EXTREMELY hard to understand": the KEE controls only the hole; modules are separate machines; a neat GUI; a black-hole render | B-46..B-57. B-56's question (should the render go while the KEE is unformed) was built as yes from B-59 on |
+| BEC [build notes item 11] | (a) RC-2's own BEC recipe makes the Spatial / Temporal casings ×32 and our batch Assembler recipes go ("a bit too cheap"); (b) "we need way more things in the bose einstein"; (c) one jar to test | SL-B01..B04 (B-59, B-60); the BEC expansion SL-B10..B81 (B-64); packages B-61, B-73 |
 | RC-2 port: the BHC deadlock and White Dwarf Matter [B-29, B-30] | The Kerr replaces the BHC in recipes; "We shouldnt be making white dwarf matter until t4?" (no WDM before Eye T4) | `BTSBlackHoleSwap`; SL-K01 at BHC parity; the gate audit rule (B-29, B-30, B-35) |
 | Eye T2 as the interim Excited Stellar Plasma source [Q-2] | Accepted | Built |
 | Remove TecTech's Eye recipes [Q-3] | On by default, and a config option | Built (`replaceTecTechEyeOfHarmony`) |
@@ -213,16 +213,16 @@ the ones answered since carry a "Settled" or "Done" line.
 
 ### A-1 The Kerr Extractor Module still runs its own "melting" recipes [Q-9, Q-22]: DONE
 
-**Your ruling.** The Extractor Module runs GT's normal extractor recipes only: no fluid extraction and no custom map.
+**My ruling.** The Extractor Module runs GT's normal extractor recipes only: no fluid extraction and no custom map.
 The Kerr is a module host, so adding a module later must stay cheap.
 
 **What the jar does.** The module runs a new NEI page, "Ergosphere Extraction". It melts Neutronium, Infinity,
 SpaceTime, WDM, BDM and similar ingots, plates and blocks back to fluid at 144 L per ingot. That page was built before
-your ruling.
+my ruling.
 
 **Next step.** A small code change: point EXTRACT mode at GT's extractor map and delete the melt recipes and their
 NEI page. The module system already works as "new arc + its own private hatches + a recipe map", so it stays
-extensible. No question for you; this is a to-do.
+extensible. No question here; this is a to-do.
 
 **Done (follow-up pass, 2026-10-12).** EXTRACT mode runs `RecipeMaps.extractorRecipes` and nothing else. The
 "Ergosphere Extraction" map, its NEI page, its lang key and the SL-K06 melt recipes are deleted; the Kerr now shows on
@@ -234,13 +234,13 @@ Kerr module" lists the steps for the next one.
 
 **D-49 status (unit 6).** Superseded for the Eye: the Galactic Upgrade Core (and the four new cores) go into an escrow by right-click and are consumed only by a successful transition, after the current star's milestones (B-37). The Kerr Density Upgrade belongs to the Kerr redesign branch.
 
-Your ruling is milestones plus an install run (see B-1 for the numbers). Today a plain right-click with the Kerr
+My ruling is milestones plus an install run (see B-1 for the numbers). Today a plain right-click with the Kerr
 Density Upgrade or the Galactic Upgrade Core installs it at once. Both machines route the install through one method
 each, so the mechanic can drop in without rework. It is blocked only on the numbers in B-1.
 
 ### A-3 Acceptance checks not done yet
 
-The build compiles, loads and registers every recipe. These checks from your acceptance list are still open:
+The build compiles, loads and registers every recipe. These checks from my acceptance list are still open:
 
 - **Cost table.** Per-block recipe × block count → total raw materials per machine tier. Not written yet. The block
   counts are in the spec (§5.1). The structures need thousands of each casing (for example 2,852 mirror casings
@@ -274,7 +274,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 **D-49 status (unit 6).** Superseded for the Eye by D-49's milestones, escrow and transitions (numbers in B-37, `EyeMilestones`). Still open for the Kerr only.
 
-**Context.** You ruled "milestones + install run" for the Kerr Density Upgrade (Kerr T1 → T2) and the Galactic
+**Context.** I ruled "milestones + install run" for the Kerr Density Upgrade (Kerr T1 → T2) and the Galactic
 Upgrade Core (Eye T3 → T4). The upgrade is consumed and permanent, and an install survives a wrench.
 
 **Proposal** (all numbers to tune):
@@ -290,7 +290,7 @@ Start the install with a plain right-click holding the upgrade. A sneak-right-cl
 reaches the block in 1.7.10, so it cannot be the gesture.
 
 **Also needed a ruling (now settled).** If someone tears down the Kerr's T2 reinforcement after the upgrade, the Kerr
-refuses to form at all. **You ruled: keep "won't form".** Built, unchanged, and now commented in the code and the
+refuses to form at all. **I ruled: keep "won't form".** Built, unchanged, and now commented in the code and the
 spec.
 
 **Alternatives.** Make the milestone count running time instead of mass held or runs finished. Or skip the
@@ -299,11 +299,11 @@ milestone and keep only the install run.
 ### B-2 Turning off TecTech's Eye leaves Universium with no source until P5 [Q-3, Q-14, Q-33]
 
 **Status (2026-10-13).** Closed without a ruling: D-49 retired the interim Black Dwarf star (Black Dwarf Matter is Eye
-T5's), the UXV parts follow the UXV parts and circuits design (Empyrean, brief item 23) instead of D-45's override, and
+T5's), the UXV parts follow the UXV parts and circuits design (Empyrean, build notes item 23) instead of D-45's override, and
 Eternity before T10 is D-48's swap, which ships with P4. Universium itself stays an Eye T10 product.
 
 **Context.** TecTech's Eye of Harmony was the pack's only source of White Dwarf Matter, Black Dwarf Matter, Universium
-and Raw Star Matter. You ruled that the removal ships ON and is a config option. That is now real:
+and Raw Star Matter. I ruled that the removal ships ON and is a config option. That is now real:
 `replaceTecTechEyeOfHarmony=true` in `config/beyondthestars.cfg`, and the boot log confirms 43 TecTech recipes and its
 controller recipe removed.
 
@@ -332,12 +332,12 @@ Universium, D-45; the Eternity loop on Ergomatter, D-48) no later than P4.
 
 **D-49 status (unit 6).** Answered by the approved D-49 proposal: Time Dilation sets the time dial's cap (1 + 0.25 x (tier - N)) and Stabilisation sets q (1 - 0.05 x (tier - 1)), which scales the field's noise and events. Compression stays the 1:1 gate. Planets keep only the compression time reward.
 
-**Context.** Following your rulings:
+**Context.** Following my rulings:
 
 - The Spacetime Compression Field Generators hard-gate the Eye's tier 1:1. Eye T4 needs compression tier 4 in every
   slot. The table is in one place in the code.
 - Time Dilation and Stabilisation become separate upgrades, but their effect is not designed yet.
-- You also want "a block that gates tiers"; that design session is still pending.
+- I also want "a block that gates tiers"; that design session is still pending.
 
 **What we built.**
 
@@ -347,7 +347,7 @@ Universium, D-45; the Eternity loop on Ergomatter, D-48) no later than P4.
 - **Mixed tiers** are allowed in one structure, and the lowest one counts. Upgrading 188 generators one by one never
   un-forms the Eye.
 
-**Need from you.**
+**Still to decide.**
 
 1. What dilation and stabilisation do. Our suggestion is TecTech's meaning, which players already know:
    - dilation = speed;
@@ -360,7 +360,7 @@ Universium, D-45; the Eternity loop on Ergomatter, D-48) no later than P4.
 ### B-4 Should planets still need TecTech's compression tier on top of the 1:1 gate? [Q-29]: RULED, DONE
 
 **Context.** TecTech's planets each need a minimum compression tier (R7-R8 planets need tier 7-8). We kept that rule
-on top of your 1:1 gate. So a T3 Eye with exactly tier-3 compression cannot run R7-R8 planets, even though they are
+on top of my 1:1 gate. So a T3 Eye with exactly tier-3 compression cannot run R7-R8 planets, even though they are
 "T3 planets". The player has to over-build compression to reach them.
 
 **Suggestion.** Drop TecTech's per-planet rule and let the 1:1 gate decide alone. It is simpler, and it is what the
@@ -391,7 +391,7 @@ The White Dwarf figure matches TecTech's best per-run amount, at about 5× its s
 **How a run works:**
 
 - **Power:** wireless EU only, paid as one lump when the run starts. It costs UMV-recipe power ×1 / ×4 / ×16 / ×64
-  for T1-T4; a Sol run is about 3 × 10¹² EU. No EU comes back (you ruled it a pure sink).
+  for T1-T4; a Sol run is about 3 × 10¹² EU. No EU comes back (I ruled it a pure sink).
 - **Parallel:** a higher-tier Eye runs lower recipes in parallel, ×2 per tier of difference. A T4 Eye runs Sol ×8.
 - **Success:** stars always succeed. Planets keep TecTech's 1 − 5 % per rocket tier, rolled per parallel. A failed
   parallel eats its inputs.
@@ -411,7 +411,7 @@ The White Dwarf figure matches TecTech's best per-run amount, at about 5× its s
 **D-49 status (unit 6).** Bands are cumulative now: T3 needs T2 (my answer 2), and every tier also needs its transition. The band names are unchanged.
 
 **Context.** The design says each band is "unlocked by an upgrade core", but cores exist only for T4, T7 and T10.
-Eye T2 is also optional by design (D-42). You accepted Eye T2 as the interim Excited Stellar Plasma source while the
+Eye T2 is also optional by design (D-42). I accepted Eye T2 as the interim Excited Stellar Plasma source while the
 Homogeny is on hold, so T2 is the de-facto path to T3 for now.
 
 **What we built.**
@@ -422,7 +422,7 @@ Homogeny is on hold, so T2 is the de-facto path to T3 for now.
 - Star picks: Sirius A (T2), Arcturus (T3) and Sirius B (T4, Sirius A's white-dwarf companion). The T3 product is
   named "Raw Hyperdense Stellar Plasma", the card's name.
 
-**Need from you.** The tier/band names. The code says Planetary/Galactic; mine.md proposed Stellar · Systems ·
+**Still to decide.** The tier/band names. The code says Planetary/Galactic; proposals.md proposed Stellar · Systems ·
 Galactic · Universal.
 
 **Alternative.** A "Stellar Upgrade Core" for T2 and T3 as well.
@@ -442,7 +442,7 @@ Galactic · Universal.
 
 ### B-8 Kerr balance: the hole's numbers [Q-8, Q-25, Q-26]
 
-**Context.** You ruled the Kerr keeps its mass mechanic.
+**Context.** I ruled the Kerr keeps its mass mechanic.
 
 **What we built** (every number is a proposal):
 
@@ -505,7 +505,7 @@ The centre of the ring is empty for now. The `eyeRenderCentre` config option exi
 
 ### B-12 The Kerr's inner lining reads darker than the mockup [Q-16]: RULED, DONE
 
-**Context.** You ruled to reuse the Black Hole Compressor's blocks. The mockup's lining is bright white, and the BHC
+**Context.** I ruled to reuse the Black Hole Compressor's blocks. The mockup's lining is bright white, and the BHC
 has no white casing, so we used its Background Radiation Absorbent Casing. The Eye's white-ish casing (Infinite
 SpaceTime Energy Boundary) is post-UMV, too late for the UIV Kerr.
 
@@ -530,7 +530,7 @@ are in B-15.
 
 **Alternative.** Hand-drawn textures; the file names stay the same.
 
-### B-14 Smaller as-built choices: say if you disagree
+### B-14 Smaller as-built choices: to revisit if needed
 
 - **Raw Stellar Plasma Mixture is the pack's existing Raw Star Matter [Q-1].** The pack already names it "Condensed Raw
   Stellar Plasma Mixture". One fluid, not two, so the Godforge keeps its fuel.
@@ -553,7 +553,7 @@ are in B-15.
 
 ### B-15 Harmonic Lining: which meta, its recipe, no light [follow-up pass]
 
-**Context.** You ruled one new white Kerr lining block, in a reserved casing meta, with a fair recipe.
+**Context.** I ruled one new white Kerr lining block, in a reserved casing meta, with a fair recipe.
 
 **What we built.**
 
@@ -615,7 +615,7 @@ an item extractor.
 **Context.** D-49 redesigns the Eye: live T1-T3 stars, a T4 neutron star reached by Core Collapse, T5 black-dwarf
 cooling, a T6 magnetar on Antipolarization Agent, and a stability field on every tier. Three designs were judged and
 merged into one proposal: design repo `designs/docs/star-lifecycle.md`, everything PROPOSED. Nothing is built. The
-Eye freeze holds until you accept it.
+Eye freeze holds until I accept it.
 
 **In short.**
 
@@ -645,7 +645,7 @@ Eye freeze holds until you accept it.
 
 ### B-19 NEI preview: a large render and no channel sliders [acceptance pass]
 
-**Context.** You asked that both controllers show in NEI's multiblock preview at every tier, and that any size cap be
+**Context.** I asked that both controllers show in NEI's multiblock preview at every tier, and that any size cap be
 logged.
 
 **What we found.** BlockRenderer6343 has no block-count or footprint cap. Its only hard limit is the scratch world's
@@ -997,7 +997,7 @@ the EOH casings) is costs doc §9.4; this is the only loop in P1-P3.
 - Bring back an upgrade path on RC-2's terms: a Condensate Assembler recipe tier t-1 generator → tier t, so an Eye
   tier step stops stranding 188 generators (each now carries a Kerr controller, B-30).
 
-**Settled 2026-10-13 (your answer: "Rewrite GT's in place").** SL-G01 rewrites GT's own Resonance Chamber II
+**Settled 2026-10-13 (my answer: "Rewrite GT's in place").** SL-G01 rewrites GT's own Resonance Chamber II
 recipe at load-complete to take the 2 SpaceTime foils, so NEI shows one recipe; SL-P39 is retired (id reserved, its
 body only a fallback if no GT chamber recipe is found). And the upgrade path is back: B-83.
 
@@ -1047,7 +1047,7 @@ its price, and the generators stay at RC-2's stock cost.
 - Keep this SL-K01 and cut the Eye's gate count (188 `W` cells, TecTech uses 138), which scales the whole bill.
 - Bring back a generator upgrade path (B-29), so each tier step does not re-buy 188 controllers.
 
-**Settled 2026-10-13 (your answer: "Add an upgrade path").** Built as B-83: a tier t-1 generator becomes tier t in
+**Settled 2026-10-13 (my answer: "Add an upgrade path").** Built as B-83: a tier t-1 generator becomes tier t in
 the Condensate Assembler and keeps its Kerr controller; SL-K01 stays at BHC parity.
 
 ### B-31 Reactor fluid sockets refuse crafting input buffers [2.9.0-RC-2 port]
@@ -1130,7 +1130,7 @@ goes quiet.
 **Suggestion.** When the silo probes all fail and a silo socket cell holds a GT machine that is not a plain Input
 Hatch, re-walk that tier with the real error list, as the legacy-face diagnostic does. That names the cell. Or add a
 status line, "Feedwater socket holds a Crafting Input Buffer: use a plain Input Hatch". It touches the silo probe
-loop (R1-B / B2 history), so it waits for your call.
+loop (R1-B / B2 history), so it waits for my call.
 
 **Alternatives.** Keep it as it is: the status already says the silo is missing, and B-31's tooltip text can say
 "plain Input Hatch only".
@@ -1142,7 +1142,7 @@ loop (R1-B / B2 history), so it waits for your call.
 
 **What was done (judgement calls).**
 
-- **Version name.** The jar is `beyondthestars-0.24.1-master.93+0a878c0080.jar`. Agents never tag, so it carries the
+- **Version name.** The jar is `beyondthestars-0.24.1-master.93+0a878c0080.jar`. Work branches are never tagged, so it carries the
   untagged build name rather than a release number like `0.25.0`.
 - **What is in it.** It is the main tree as it stands: the Kerr with modes and screwdriver controls (the
   `kerr-redesign` branch is not merged) and the Eye before D-49. `INSTALL.md` says both will change.
@@ -1152,7 +1152,7 @@ loop (R1-B / B2 history), so it waits for your call.
 - **RC-3.** `INSTALL.md` tells the player not to install on RC-3 and to ask for a re-pin first (port plan §7
   watch-list).
 
-**Suggestion.** When you want a numbered release, tag it (e.g. `0.25.0-rc2`) and rebuild, so the Mods list shows a
+**Suggestion.** When I want a numbered release, tag it (e.g. `0.25.0-rc2`) and rebuild, so the Mods list shows a
 clean version.
 
 **Alternatives.** Ship the untagged name as it is (it is a test build), or delete `superseded/`.
@@ -1170,13 +1170,13 @@ game uses the engine yet (units 4-5).
 
 **Judgement calls.**
 
-1. **Your answer "the Antipolarization Agent is the magnetar's constant feed" does not change the field maths.** In
+1. **My answer "the Antipolarization Agent is the magnetar's constant feed" does not change the field maths.** In
    the engine, T6's feed push (P −4+5r, Θ −0.5+3r, Ω r) depends only on the upkeep fraction r, whatever the upkeep
    fluid is. So if unit 4 makes the Agent the T6 upkeep, a short Agent supply sags the magnetar exactly as a short
    WDM + BDM supply did in the prototype. The engine and the golden file stay as the prototype has them. The Agent
    **trim** (the flare shield, A +4 per unit) also stays.
    - *Suggestion:* unit 4 sets the T6 upkeep per cycle to Agent only. WDM + BDM become the merger charge, and the
-     re-merge after a loss is your "tops it up". The Field-socket Agent trim stays as the flare response, so a
+     re-merge after a loss is my "tops it up". The Field-socket Agent trim stays as the flare response, so a
      player pipes Agent to two places: bulk upkeep and the trim valve.
    - *Alternative:* the constant feed also charges the shield. That is a maths change: update the prototype first,
      refresh the fixture, and regenerate the golden file.
@@ -1253,7 +1253,7 @@ goes to Purified in the EMS (`ElectromagneticSeparatorRecipes`). `Materials.Anti
 4. **Tooltips.** Plain items have no tooltip. `SLItems.defineWithTooltip` is `BTSItems.define` plus a tooltip read
    from the lang key `item.beyondthestars.<name>.tooltip`. The Galactic Upgrade Core and both Sirius B charts now
    use it too. The item class is not stored in a saved world, so this changes nothing in existing saves.
-5. **Agent chain cost, now that the Agent is the constant feed (your answer 1).** The chain is the proposal's. At
+5. **Agent chain cost, now that the Agent is the constant feed (my answer 1).** The chain is the proposal's. At
    the simulated ~100 L/s of Agent, it costs:
    - about 10 L/s of Antimatter;
    - 1.6 Attuned Tengam dust/s, of which about 0.4/s is fresh Tengam once the Eye returns 12 Purified dust per
@@ -1262,7 +1262,7 @@ goes to Purified in the EMS (`ElectromagneticSeparatorRecipes`). `Materials.Anti
    - two LCRs and one Vacuum Freezer running all the time at UXV.
 
    The T6 upkeep figure belongs to unit 4's star table. If it comes out well above 100 L/s, retune the 100 L of
-   Antimatter per 1,000 L of Agent before you retune the Eye.
+   Antimatter per 1,000 L of Agent before retuning the Eye.
 6. **Smaller choices.**
    - SL-P38 makes 4 charges per craft from Helium **plasma** (`Materials.Helium.getPlasma`).
    - SL-E03 takes 16 charges and researches from one charge. The research chain is: charge → Stellar Mass Core →
@@ -1354,7 +1354,7 @@ goes to Purified in the EMS (`ElectromagneticSeparatorRecipes`). `Materials.Anti
    and the shape files, which the server paths above exercised.
 9. **Migration.** A pre-D-49 Eye has Reinforced Spatial casing in all 16 new socket cells. The old `eye_core.txt`
    had `U` there, as the exporter diff shows, and both new sockets fall back to that casing, so old Eyes still form.
-   The `legacy` runs prove this. An Eye built with the jet crescent but no beam band now runs as **T1** (your answer
+   The `legacy` runs prove this. An Eye built with the jet crescent but no beam band now runs as **T1** (my answer
    2), and the scanner says why. A pre-D-49 jar was not loaded; the `legacy` token reproduces the old cells exactly.
 
 **Suggestion.** Accept 1-9 as built.
@@ -1400,7 +1400,7 @@ such a tile first.
 
 **Judgement calls.**
 
-1. **T6 upkeep: Antipolarization Agent 3,000 L per cycle (50 L/s, × p).** This follows your answer that the Agent is
+1. **T6 upkeep: Antipolarization Agent 3,000 L per cycle (50 L/s, × p).** This follows my answer that the Agent is
    the constant feed. WDM 18,432 + BDM 4,608 + Agent 100,000 become the merger charge (and the re-merge "top up").
    The flare-shield Agent trim in the Field sockets stays on top of the upkeep (B-34 item 1). So a magnetar uses about
    50 L/s of Agent as upkeep plus what the rig doses. Only the table is built here; the T6 runtime is unit 5.
@@ -1541,8 +1541,8 @@ item and tile) and `btsEyeRenderPos` and the star's `lastFail` (tile only).
    the T5 and T6 steps in EU and hours. That is stock GT data; we do not change it.
    - *Suggestion:* leave it (it is the pack's balance for TecTech's Eye too). *Alternative:* our own BEC recipes for
      tiers 1-3 at the tier-4 time.
-9. **The plan's PROPOSAL.md D-register updates (D-30, D-31, D-34, D-41, D-42, D-43)** are left to the main session
-   (the design repo is not this unit's to edit).
+9. **The plan's PROPOSAL.md D-register updates (D-30, D-31, D-34, D-41, D-42, D-43)** are left for a separate
+   design-repo pass (the design repo is not this unit's to edit).
 
 **Dev-server results** (`runServer`, a T6 Eye built by `/btseye t6 3000 100 0 north gen 9 fill`, centre (3000, 140,
 40) as computed from the manifest; `render` prints the cell, its block and the look):
@@ -1571,7 +1571,7 @@ freshly loaded controller; the first run's stale looks came from that, and the b
 
 ### B-46 Kerr redesign: every module recipe needs an open hole [Kerr redesign, spec only]
 
-**Context.** You ruled that the modules become separate machines "that just have a requirement of a hole being
+**Context.** I ruled that the modules become separate machines "that just have a requirement of a hole being
 open to run". Today's Kerr is kinder than that: with the hole closed, COMPRESS still runs plain compressor recipes at
 the base parallel (B-8).
 
@@ -1622,7 +1622,7 @@ closed. Without that power the governor fires no bolts, so the hole bleeds down,
 
 ### B-49 Kerr redesign: a whole-number setpoint, GUI open/close buttons, and the extractor controller moves [Kerr redesign, spec only]
 
-**Context.** You asked for "a neat GUI" and no screwdriver.
+**Context.** I asked for "a neat GUI" and no screwdriver.
 
 **What the spec says** (§4, §6).
 
@@ -1857,7 +1857,7 @@ fluids and a GT input hatch holds one.
   loaded KEE broke, and gone after a restart for a KEE broken while its centre chunk was unloaded (the tile's
   self-check). A closed hole has no block after a restart; each open hole adopts its one block. **While the KEE is
   unformed the render stays,** as built in B-55 (a frozen hole is still a hole). The R5 task list expected it to go
-  on unform. That is your call.
+  on unform. That is my call.
 - **Restart:** hole state, mass, setpoint, T2 and in-flight module recipes all persisted (a compressor batch went
   644 → 725 across the restart and finished).
 - **Cosmetic, not changed:** the scanner bonus line shows `p112 x1.00` while the hole is closed (the GUI says
@@ -1959,8 +1959,8 @@ is merged into master, which carries the RC-2 port and D-49 units 1-6.
 `designs/docs/bec-expansion-proposal.md` still says "start at B-41" for its questions; the next free number is now
 **B-59**.
 
-**Suggestion.** Nothing to decide unless you want the Kerr questions to keep their branch numbers (that would mean
-renumbering master's D-49 entries instead, which the brief and PROPOSAL already cite as B-34 / B-37).
+**Suggestion.** Nothing to decide unless I want the Kerr questions to keep their branch numbers (that would mean
+renumbering master's D-49 entries instead, which the build notes and PROPOSAL already cite as B-34 / B-37).
 
 ---
 
@@ -2020,7 +2020,7 @@ renumbering master's D-49 entries instead, which the brief and PROPOSAL already 
   one is gone), so a missing BEC recipe would make every Eye part uncraftable. SL-B03/B04 are built in B-60.
 - **Ruling 11b, the BEC expansion** (6 condensates, 20 Condensate Assembler recipes, 20 retired ids) is still only the
   proposal (`designs/docs/bec-expansion-proposal.md`, PROPOSED). Nothing of it is on master. *Suggestion:* build it as
-  its own pass once you have read the proposal; `BTSRecipesBEC` is where it would live.
+  its own pass once I have read the proposal; `BTSRecipesBEC` is where it would live.
 - **Docs that still describe SL-P27/P28 as live:** `singularity-ladder-costs.md` §6/§9.5 cost rows (the build spec is
   updated). *Suggestion:* refresh the cost table with the x32 numbers from the proposal §3 in the BEC pass. *Done in
   B-60* (costs §3.2, §4.1, §5, §6 #3, §9.5).
@@ -2050,7 +2050,7 @@ was lost or put out"), so it replaces an older, more useful failure line.
      trim pointless), or scale the shield with litres actually drained per second instead of r (the upkeep is
      taken once per cycle, so that would need a per-second upkeep drain).
 2. **The WDM 1,800 + BDM 450 L dwarf-matter top-up stays.** "One fluid runs the whole magnetar" could be read as
-   dropping it, but your 2026-10-12 answer says "the dwarf-matter merger spawns the star **and tops it up**", and
+   dropping it, but my 2026-10-12 answer says "the dwarf-matter merger spawns the star **and tops it up**", and
    the 2026-10-13 ruling only makes the Agent do the upkeep and the shield. So the per-cycle running cost is one
    fluid (Agent) and the dwarf matter is the merger charge plus a top-up every 50 cycles.
    - *Alternative:* delete the reserve (`dwarfReserve`, `TOPUP_*`, its NEI and bench lines); then a magnetar needs
@@ -2228,7 +2228,7 @@ Generator recipes (SL-B10..B15) and 20 Condensate Assembler recipes (SL-B20..B81
 its fallbacks) were already on master and are unchanged. Compile-checked (`spotlessApply compileJava`); not yet booted
 on a dev server or seen in NEI (see "Not verified" below).
 
-**Your 14 proposal questions, all taken as recommended:**
+**The 14 proposal questions, all taken as recommended:**
 
 | # | Question | Built |
 |---|---|---|
@@ -2437,9 +2437,9 @@ TecTech EOH reference 1237-1290.
   height (a structure change). The alternative is to accept "look from above / inside", as the Forge of the Gods does.
 - **Dwarf and magnetar colour.** To reach a true black dwarf and a non-pink violet magnetar, ship our own copy of the
   star fragment shader with a brightness multiplier (a tint that scales the luminance as well as the chroma). That
-  adds about 30 lines of GLSL in two profiles. Suggestion: do it in round 2 of the fixes if you want them exact.
+  adds about 30 lines of GLSL in two profiles. Suggestion: do it in round 2 of the fixes if I want them exact.
 
-**Settled 2026-10-13 (your answer to K2 / E1: "Glass window bands").** Built in B-86. The colours were reached
+**Settled 2026-10-13 (my answer to K2 / E1: "Glass window bands").** Built in B-86. The colours were reached
 without a shader of our own (B-67, B-68).
 
 ### B-67 Render fix round 2: the Eye's colours, glow seam and black dwarf, the KEE's chunk churn, and round 3 [render QA]
@@ -2524,8 +2524,8 @@ TecTech EOH reference 1281-1318.
    re-check on a timer. Only the KEE uses it now. The Eye was not flagged.
 
 **Still open:** E-9 (K2 / E1 in B-66): Quantum Glass windows in the Eye's crown band and the Kerr drum, or accept the
-"look from above" behaviour. Both are structure changes (shapes, BOM, recipes), so they wait for your ruling.
-**Settled 2026-10-13 (your answer: "Glass window bands"):** built in B-86.
+"look from above" behaviour. Both are structure changes (shapes, BOM, recipes), so they wait for my ruling.
+**Settled 2026-10-13 (my answer: "Glass window bands"):** built in B-86.
 
 ### B-68 Render fix round 3: the Eye's see-through layers in pass 1, shock-front shells, corona and limb, and round 4 [render QA]
 
@@ -2602,7 +2602,7 @@ Round 3's Eye cases ran at 957-1212.
    48 × 24 would hide them for about 2× the shell cost.
 
 **Still open:** E-9 (B-66 / B-67): from the front the bands hide the small objects (magnetar, neutron star), as in
-`eye_t6_magnetar_front_night`. **Settled 2026-10-13 (your answer: "Glass window bands"):** built in B-86 (from T4
+`eye_t6_magnetar_front_night`. **Settled 2026-10-13 (my answer: "Glass window bands"):** built in B-86 (from T4
 the arms and the rim leave an opening in front of the core's pane).
 
 ### B-69 Render gallery: one page with every round-4 shot and its verdict [render QA]
@@ -2787,7 +2787,7 @@ that: a static lang lint (every `ofFailure` / `ofSuccess` id, shutdown reason, `
    - The Magnetar Seed Core tooltip, the Directive Hatch tooltip and `docs/automation.md` say so (rule 14).
    - *Alternatives:* widen the survivable band (make the imprint band +60..+70, or make the imprint not drain
      Integrity while Π is in its band). Or keep the shield on and give the dynamo a stronger drift. Both change the
-     merger's maths, which is yours to set.
+     merger's maths, which is mine to set.
 2. **Directive "not formed" never reached the redstone.** Every walk clears the hatch lists, and most breaks stop
    the walk before it reaches the sockets. So an unformed Eye or KEE published to nobody, and its hatches fell
    silent after 3 s (Eye Status 8 "alarm" and Kerr Status 8 "not formed" never showed).
@@ -2850,10 +2850,10 @@ A review of B-70/B-71 found seven issues; all seven were real and are fixed (eac
    - *Suggestion:* build D-45 next (Field Generator, Sensor, Emitter, Pump, Motor, Piston, Conveyor, Robot Arm UXV:
      swap molten Universium and MHDCSM for molten White Dwarf Matter / Hyperdense Stellar Mixture, and swap the
      Universium/MHDCSM foils and wires for Infinity / Transcendent Metal, behind `replaceTecTechEyeOfHarmony`). Then
-     move B70/B80 back to UXV parts if you want the old price.
+     move B70/B80 back to UXV parts if I want the old price.
    - *Alternatives:* keep UMV parts for good (cheaper than the UXV parts would have been), or make the swap depend on
      the config (UXV parts when the TecTech Eye stays and makes Universium).
-   - **Settled 2026-10-13.** D-45's override is not built: your answers were "Brainstorm page first" and, for the
+   - **Settled 2026-10-13.** D-45's override is not built: my answers were "Brainstorm page first" and, for the
      playtest jar, "Ship UMV stopgap" (this fix, and SL-H10 in B-84). The brainstorm then decided the UXV parts and
      circuits (`designs/docs/uxv-circuits.md`: Q-U1 "Both", Q-U2 "Empyrean", "Omega" above MAX, Q-U9 "The Eye's live
      star"); its Phase U1 retires this stopgap.
@@ -2922,7 +2922,7 @@ the dedicated-server command with the new jar name. The judgement calls:
 3. **Render QA is reported as "fixed, awaiting review"** for the Eye cases (B-69: no verdict on round 4 yet), with
    the open structure question (E-9 / K2: windows in the crown band and the Kerr drum) listed as open.
 4. **`SERVER_DIR` stays a placeholder** in the dedicated-server command (still not recorded anywhere).
-   **Settled 2026-10-13 (your answer: "SSH key will be tonight, run locally for now"):** the playtest jar is for the
+   **Settled 2026-10-13 (my answer: "SSH key will be tonight, run locally for now"):** the playtest jar is for the
    local Prism instance; the dedicated server waits for the key to be authorised.
 
 **Suggestion.** Accept as is; package again once the tidy, questbook and Homogeny/Reality branches are merged.
@@ -3000,7 +3000,7 @@ facing sideways (worse: the hologram would be built from the side).
 
 ### B-76 H/R: the Homogeny controller [H/R unit 2, built]
 
-**Context.** Ruling 16, the design doc `designs/docs/homogeny-reality.md` §1 (PROPOSED), D-46/D-47/D-49 and brief
+**Context.** Ruling 16, the design doc `designs/docs/homogeny-reality.md` §1 (PROPOSED), D-46/D-47/D-49 and
 rulings 4-5 (one install path, milestones + install run). Built in `machines/homogeny/MTEHomogeny` (MTE 28130) with
 its MUI2 screen `HomogenyGui`.
 
@@ -3147,7 +3147,7 @@ for our requirements"), ruling 6 (every BOM block craftable at a fair cost), rul
    Units. **Suggestion:** swap both to Quantum Glass (they are windows for renders that are not built yet, B-77 item
    11). Alternative: keep the Godforge look. Also heavy but in line with MAX: 752 Condensate Guidance Coils (one
    Compact Fusion Coil T3 each) for the Refab collars, and 9.4k Electromagnetically-Isolated Casings across both bases.
-   **Settled 2026-10-13 (your answer: keep, "This will be a MAX tier / Endgame item, its allowed and meant to be
+   **Settled 2026-10-13 (my answer: keep, "This will be a MAX tier / Endgame item, its allowed and meant to be
    expensive").** Unchanged.
 8. **SL-R17 Region Anchor Casing ×4 is new** (12 per Diffraction; unit 1 added the block after the doc's table): Region
    Crystal 2, EM-Isolated Casing 2, Harmonic Lining 4, Sensor UXV 1; Degenerate 500 L, SpaceTime 8 ingots.
@@ -3349,8 +3349,8 @@ Refab). `spotlessApply compileJava` passed after each.
 - **Checks.** Lang has no duplicate keys, and every literal `ofFailure` / `ofSuccess` id has its RC-2
   `recipe_result` key. No in-game run was part of the merges.
 
-**Suggestion.** Nothing to decide unless you would rather the H/R questions kept their branch numbers (that would mean
-renumbering master's render QA, automation and package entries, which the brief and INSTALL.md already cite).
+**Suggestion.** Nothing to decide unless I would rather the H/R questions kept their branch numbers (that would mean
+renumbering master's render QA, automation and package entries, which the build notes and INSTALL.md already cite).
 
 ---
 
@@ -3371,10 +3371,10 @@ fixes)", B-80 item 8), the questbook build notes, and the Tier 13 (UXV) warning.
    molten Universium (Eye T10). B-72 noted the same loop and left SL-H10 alone. The quest carries a [warn] saying so,
    and the Tier 13 warning names the Tier II Core.
    - *Suggestion:* give SL-H10 the same UMV stopgap as the T5/T6 cores (B-72: twice as many UMV parts, here Field
-     Generator UMV x32 and Electric Pump UMV x64), until the UXV parts and circuits design (brief item 22a) is built.
+     Generator UMV x32 and Electric Pump UMV x64), until the UXV parts and circuits design (build notes item 22a) is built.
    - *Alternatives:* keep it as built (the quest waits on the UXV design); or gate 48142 on `uxvParts` so it shows as
      "(planned)" until then.
-   - *Done (B-84):* the suggestion, as you chose for the playtest jar ("Ship UMV stopgap").
+   - *Done (B-84):* the suggestion, as I chose for the playtest jar ("Ship UMV stopgap").
 3. **No structure checklist on 48118.** The Kerr and Eye quests have an optional "bring the blocks" retrieval built from
    the manifest; the generator needs a `bomItems.homogeny` table (one item id per legend role) for that, and there is
    none yet, so 48118 has only the controller and fluid tasks. *Suggestion:* add the table when the H/R blocks are
@@ -3392,15 +3392,15 @@ fixes)", B-80 item 8), the questbook build notes, and the Tier 13 (UXV) warning.
    - *Not done:* the rest of the tidy pass's questbook handoff (`tidy-old-multis.md`, "Questbook handoff"): the other
      glossary renames in quest text (Unit One main station, Steam Generator, Gas Centrifuge Cascade, Fuel Fabrication
      Line, Reprocessing Canyon) and the mechanics cut from tooltips that the book must carry. That belongs with the
-     TQ renames (your "full free reign" answer) so the names change once.
+     TQ renames (my "full free reign" answer) so the names change once.
    - The bundle records the commit it was generated from (`srcHead`), so `gen-singularity --check` reports the overlay
      "stale" after any later commit even when nothing else differs. Harmless; regenerate when packaging.
 
 **Checks.** `gen-singularity` `--check` and `--selftest` pass; `spotlessApply compileJava` passes. Not run in game.
 
-### B-83 The field-generator upgrade path, and Resonance Chamber II rewritten in place [user answers 2026-10-13, built]
+### B-83 The field-generator upgrade path, and Resonance Chamber II rewritten in place [my answers 2026-10-13, built]
 
-**Context.** Your answers to B-30 ("Add an upgrade path") and B-29 ("Rewrite GT's in place"). Every Eye tier step
+**Context.** My answers to B-30 ("Add an upgrade path") and B-29 ("Rewrite GT's in place"). Every Eye tier step
 re-crafted 188 compression generators (and the 48 stabilisers, which hold one each), each consuming a Kerr controller;
 and Resonance Chamber II had two recipes in NEI (GT's with a White Dwarf Matter foil, our SL-P39 with SpaceTime).
 
@@ -3411,7 +3411,7 @@ and Resonance Chamber II had two recipes in NEI (GT's with a White Dwarf Matter 
    at the same input index (so its nanite tiers and condensates are untouched), and the map's lookup is rebuilt. One
    recipe in NEI. **SL-P39 is retired**; its id stays reserved and its body registers only if no GT chamber recipe is
    found to rewrite. SL-P33 (the Black Dwarf-free Resonance Chamber III for the T5 gate) is unchanged, a separate
-   recipe as before: you ruled on chamber II only. *Suggestion:* give it the same in-place treatment.
+   recipe as before: I ruled on chamber II only. *Suggestion:* give it the same in-place treatment.
 2. **SL-U00..U48: tier t-1 -> t in the Condensate Assembler** (`BTSRecipesGeneratorUpgrade`; since B-89 whatever the flag says). The inputs
    are derived at load from GT's own tier t and t-1 recipes, so they follow the pack:
    - **Compression (SL-U01..U08) and Time Dilation (SL-U11..U18):** the tier t-1 generator, plus every item and
@@ -3458,9 +3458,9 @@ none). Not run: a real Condensate Assembler craft (the bench builds no BEC netwo
 **Suggestion.** As built. **Alternatives.** Kits for every family (one recipe shape everywhere, but two crafts per
 compression upgrade); a shorter upgrade time than a fresh craft (it would make the path faster as well as cheaper).
 
-### B-84 UXV parts before Eye T7: the Homogeny Tier II Core takes the UMV stopgap, and the audit [user answers 2026-10-13, built]
+### B-84 UXV parts before Eye T7: the Homogeny Tier II Core takes the UMV stopgap, and the audit [my answers 2026-10-13, built]
 
-**Context.** Brief item 22a: the UXV-part override (D-45, item 20) waits for a design brainstorm; until then the jar
+**Context.** Build notes item 22a: the UXV-part override (D-45, item 20) waits for a design brainstorm; until then the jar
 ships B-72's stopgap ("Ship UMV stopgap"). B-82 found SL-H10 still on UXV parts.
 
 **What we built.** SL-H10 (Homogeny Tier II Core, needed before Eye T6): Field Generator UXV x16 -> **Field Generator
@@ -3491,15 +3491,15 @@ the UXV CoAL) keep RC-2's Universium/MHDCSM recipes, so anything of the pack bui
 UXV design. Nothing of Beyond the Stars before Eye T7 needs one now.
 
 **Suggestion.** As built until the UXV parts and circuits brainstorm lands; then move B70/B80/H10 back to UXV parts
-if you want the old price.
+if I want the old price.
 
-**Settled 2026-10-13.** The brainstorm landed (`designs/docs/uxv-circuits.md`; your answers Q-U1 "Both", Q-U2
+**Settled 2026-10-13.** The brainstorm landed (`designs/docs/uxv-circuits.md`; my answers Q-U1 "Both", Q-U2
 "Empyrean", "Omega", Q-U9 "The Eye's live star"). Its Phase U1, on master after the playtest run, retires this
 stopgap.
 
 ### B-85 The tidy questions settled: renames, defaults, the halls' parallel [my answer 2026-10-13, built]
 
-**Context.** TQ-1..TQ-8 (Part D and `tidy-old-multis.md`). Your answer: "You have full free reign on this". Each
+**Context.** TQ-1..TQ-8 (Part D and `tidy-old-multis.md`). My answer: "full free reign". Each
 choice is recorded under its TQ entry in Part D.
 
 **What we built.** Display text only for the renames: registry names, MTE ids, enum names and NBT keys are unchanged,
@@ -3534,7 +3534,7 @@ so worlds, progress and bought upgrade nodes carry over.
 rule, the dynamo ceiling, the rod ladder and so on). The names are done once, as B-82 asked; the text additions are a
 writing pass of their own. *Suggestion:* do them with the next questbook pass.
 
-**QB-7 settled (your answer: "Keep as trophies").** The trophy quests E63 / E64 keep consuming 12 / 8 of our Eye
+**QB-7 settled (my answer: "Keep as trophies").** The trophy quests E63 / E64 keep consuming 12 / 8 of our Eye
 controllers; nothing changes.
 
 **Checks.** `spotlessApply compileJava`; `gen-bom.ps1` (BTSBom in step, DefaultQuests regenerated) and
@@ -3544,7 +3544,7 @@ skipped"); golden 78/78.
 ### B-86 The window bands: the Kerr's hole and the Eye's star read from the front [my answer 2026-10-13, built]
 
 **Context.** Render QA K2 / E1 (B-66) and E-9 (B-67, B-68): from the front at their own height the Kerr's drum and
-governor arc hid the hole, and the Eye's core band (and from T4 its arms and rim) hid the star. Your answer: "Glass
+governor arc hid the hole, and the Eye's core band (and from T4 its arms and rim) hid the star. My answer: "Glass
 window bands" (a Quantum Glass band in the Kerr drum and Quantum Glass in the Eye's front ring segments at eye level;
 structure, hologram, NEI and BOM updated).
 
@@ -3601,7 +3601,7 @@ governor arc's shell.
   through the arm / rim openings and the pane, at eye level, day and night.
 - FPS at the shots: Kerr 1,221-1,336, Eye 842-1,219 (the magnetar with its flare warning lowest, as in round 4).
 
-**Open (your call):**
+**Open (my call):**
 
 1. **Win the Kerr's Infinity back?** *Suggestion:* SL-P02 / SL-P03 (mirror backing, mirror) output ×2 → ×1: the
    cavity's remaining 3,628 blocks then cost 113 % of the old 6,403. Alternative: accept the cheaper cage (it is
@@ -3636,8 +3636,8 @@ and remove the worktrees of branches that are fully merged.
    (`questbook-integration.md`) and quest 48149's DefaultQuests file stem (`SupermassiveErgo` -> `SuperdenseErgo`) did
    not. The Supermassive Seed Core and Sgr A*'s "supermassive black hole" keep their names.
 5. **This file.** The open questions, the settled answers and the open work now sit at the top, each once; Part C's
-   table is folded into "Settled" with the 2026-10-13 answers (brief item 22) and the UXV design answers (item 23) in
-   your words. The B entries they settle carry a "Settled" line. Nothing was renumbered.
+   table is folded into "Settled" with the 2026-10-13 answers (build notes item 22) and the UXV design answers (item 23) in
+   my words. The B entries they settle carry a "Settled" line. Nothing was renumbered.
 6. **Worktrees.** `addon-kerr-redesign`, `addon-tidy` and `addon-hr` were clean and their branches are in
    `git branch --merged master`, so they were removed with `git worktree remove` (no `--force`). The branches stay.
    `addon-qb`, `addon-p4` and `addon-autoshots` are kept.
@@ -3780,7 +3780,7 @@ Also: `fieldsim-golden --check --java` 78 / 78, and `spotlessApply compileJava` 
 
 ### B-90 Package: the playtest jar `0.24.1-master.235+21c063e24d` [playtest package]
 
-**Context.** Brief items 11c and 22i: one jar with everything merged for you to test, "run locally for now".
+**Context.** Build notes items 11c and 22i: one jar with everything merged for me to test, "run locally for now".
 
 **What was built.** `gradlew build --no-daemon` on master `21c063e` (clean tree; spotless + checkstyle pass, nothing to
 fix). The jar is `dist-rc2/beyondthestars-0.24.1-master.235+21c063e24d.jar` (1,451,130 bytes), SHA-256
@@ -3992,7 +3992,7 @@ The tidy pass's questbook handoff was also still open.
 
 ### B-93 Questbook re-shoot (round 2): what the shots showed, wrap-safe text, the plant diagrams in the jar [follow-up, built]
 
-**Context.** You asked to see the questbook with our changes; round 1 (B-83 on the questbook branch) found cut bold
+**Context.** I asked to see the questbook with our changes; round 1 (B-83 on the questbook branch) found cut bold
 text, unreadable colours, odd glyphs, the pack Eye name and a near-empty Endgame Goals, and B-92 fixed them in the
 sources. This round shoots the book again from master and checks the fixes. Page: local work folder
 `qbshots/round2/questbook-shots.html` (one file, 6.7 MB, lossless WebP; round-1 sliders where the same shot exists).
@@ -4195,8 +4195,8 @@ units may add more. This entry takes B-105 so that the GUI merge needs no renumb
 branch.
 
 **Context.** The follow-up on master (B-91..B-95) added `/btsrecipes`, the questbook text pass and the review fixes,
-but the shipped jar was still `master.235` (B-90). This unit packages them for the playtest ("in the artifact give me
-all new recipes too please"; the questbook re-shoot).
+but the shipped jar was still `master.235` (B-90). This unit packages them for the playtest (the guide to list "all new recipes too"; the
+questbook re-shoot).
 
 **What was built.**
 - `gradlew build --no-daemon` on master `be66c17`, clean tree (spotless and checkstyle pass, nothing changed). The jar
@@ -4232,8 +4232,8 @@ all new recipes too please"; the questbook re-shoot).
    `be66c17`, the only Java changes are the questbook installer, the screenshot harness (dev only) and one display
    name in `BTSBom`; no recipe code changed. B-94 re-dumped on master and got the same 386. B-95 booted the questbook
    changes. The guide's recipe note says so.
-2. **The guide keeps its tick storage key** (`bts-playtest-master235`), so ticks you already made survive. The "New
-   since" note asks you to re-check A1, A2, B1 and B2.
+2. **The guide keeps its tick storage key** (`bts-playtest-master235`), so ticks I already made survive. The "New
+   since" note asks me to re-check A1, A2, B1 and B2.
 3. **The Prism instance was not touched.** Its `mods` folder still holds `master.93` (read only), so INSTALL.md keeps
    the `master.93` path first and says that a `master.235` jar is moved out the same way.
 4. **The dev-only questbook screenshot harness ships**, inert without `-Dbts.qbshots=true`, next to the render
@@ -4247,8 +4247,8 @@ all new recipes too please"; the questbook re-shoot).
 
 *Numbered B-72 on the `autoshots` branch (master's review fixes already had B-72); B-106 since the merge (see B-107).*
 
-**What was asked.** "Since you have an automation proven, can you make me an artifact with photos of it so I can see
-an example?" The earlier proof (B-70) was scripted. This one is real blocks in a real client
+**What was asked.** A page with photos of a proven automation, as an
+example. The earlier proof (B-70) was scripted. This one is real blocks in a real client
 (`-Dbts.rendertest=true -Dbts.rendertest.cases=automation`, dev-only harness `rendertest/AutoRig*`), and the only
 actor on the machines is the wiring: the harness builds, reads the state once a second into `eye.tsv` / `kerr.tsv`,
 and moves the camera. Page: local work folder `autoshots/automation-example.html` (not published).
@@ -4303,7 +4303,7 @@ column (runs 3 and 4).
   refill a cycle (50 M L) in about 17 s.
 - The ME cell went into the drive when the camera was ready (a harness action, logged); everything after it was the
   wiring.
-- Not built: the OpenComputers computer (optional in the brief).
+- Not built: the OpenComputers computer (optional in the plan).
 
 **Not covered.** Tiers above T1, events (T3 flash, T6 Agent), transitions, Kerr T2, real supply chains (endless tanks,
 creative ME power), OpenComputers in a world.
@@ -4477,7 +4477,7 @@ the dev server's level name was put back afterwards):
 The photo rigs (`AutoRig`, `AutoRigEyeAE`) have no server-side command: the recorder's `build` drives them from the
 client. Rig A (`build eye`) was exercised by the smoke test below.
 
-**Recorder smoke test** (master's dev client, `tools/recording/smoke.shots`, the local work folder ffmpeg, nvenc). The
+**Recorder smoke test** (master's dev client, `tools/recording/smoke.shots`, a local ffmpeg, nvenc). The
 `addon-show` client was running at the same time; no wait was needed.
 - Run 1 made the video (24.0 s, 1920x1080, 30 fps, h264), but filmed the Eye orbit at **render distance 4**: the Eye
   was a pale shape in fog with no ground, and the game rendered at 120 fps. The title card and the GUI shot were fine.
@@ -4569,7 +4569,7 @@ merge commit's message lists every conflict and how it was resolved. In short:
 link was run: P4's own test (P4-83..P4-94) covered that on the branch.
 
 **Questions.**
-1. **Resonance Chamber IV has two recipes in NEI.** For chamber II you chose to rewrite GT's recipe in place (B-29).
+1. **Resonance Chamber IV has two recipes in NEI.** For chamber II I chose to rewrite GT's recipe in place (B-29).
    SL-P40 is still a separate recipe beside GT's MHDCSM one. *Suggestion:* rewrite GT's chamber IV in place under the
    same flag, as SL-G01 does, and decide it together with chamber III (open question 4).
 2. **The T7 / T8 caps are large.** A T7 galaxy with a Sol companion buffers 32 G L of hydrogen and helium, and three
@@ -4965,7 +4965,7 @@ Eye T7 / T8.
 
 ---
 
-### B-96 Controller GUI cleanup, unit 1: the kit, the family frame and the Eye of Harmony [user approval 2026-10-13, built on branch gui-clean]
+### B-96 Controller GUI cleanup, unit 1: the kit, the family frame and the Eye of Harmony [approved 2026-10-13, built on branch gui-clean]
 
 **Context.** I watched the smoke clip of the Eye GUI: "Based on the video we need more clean details in the
 controller", then approved the design ("All are good to go"): `controller-gui-spec.md` + `controller-gui-mockups.html`
@@ -5047,7 +5047,7 @@ alert only on an issue, the render toggle in the column top, the Info page, the 
 
 **Suggestion.** Accept; the next units (Kerr, modules, Homogeny, Reality, Silo, halls, hatches) reuse the kit as is.
 
-### B-97 Controller GUI cleanup, unit 2: the Kerr Ergosphere Engine and the Kerr modules [user approval 2026-10-13, built on branch gui-clean]
+### B-97 Controller GUI cleanup, unit 2: the Kerr Ergosphere Engine and the Kerr modules [approved 2026-10-13, built on branch gui-clean]
 
 **Context.** Spec §5.2 (the KEE) and §5.3 (the Compressor and Extractor modules) of `controller-gui-spec.md`, on the
 kit from B-96. The spec's recommended answers stand (Q1 terminal 118, Q4 no G logo, Q5 Info page, Q6 lang keys, Q8
@@ -5117,7 +5117,7 @@ Collapse twice all still hold.
 
 **Suggestion.** Accept.
 
-### B-98 Controller GUI cleanup, unit 3: the Homogeny, Reality Diffraction / Refab, the Reactor Silo and the production halls [user approval 2026-10-13, built on branch gui-clean]
+### B-98 Controller GUI cleanup, unit 3: the Homogeny, Reality Diffraction / Refab, the Reactor Silo and the production halls [approved 2026-10-13, built on branch gui-clean]
 
 **Context.** Spec §5.6-§5.9 of `controller-gui-spec.md`, on the kit from B-96. The spec's recommended answers stand
 (Q1 terminal 118, Q4 no G logo, Q5 Info page, Q6 lang keys, Q7 keep the Silo's instrument panel). All four are recipe
@@ -5203,7 +5203,7 @@ below the new vitals), the Build Tier / Rods / RPM fields and the Upgrade Tree b
 
 **Suggestion.** Accept.
 
-### B-99 Controller GUI cleanup, unit 4: the hatch layout, the Directive Hatch and the Stellar Field Sensor Hatch; the lang completeness pass [user approval 2026-10-13, built on branch gui-clean]
+### B-99 Controller GUI cleanup, unit 4: the hatch layout, the Directive Hatch and the Stellar Field Sensor Hatch; the lang completeness pass [approved 2026-10-13, built on branch gui-clean]
 
 **Context.** Spec §5.10 and §6 of `controller-gui-spec.md`, on the kit from B-96. The P4 hatches (Burst Control,
 GRB Receptor) are not on this branch; `BTSHatchGui` is general enough for them (any box height, any panel height,
@@ -5282,7 +5282,7 @@ questbook owner on master.
 **Suggestion.** Accept. The P4 Burst Control Hatch (196 high, a 0-15 bar) and GRB Receptor (166, a lamp) fit this
 layout as they are specified.
 
-### B-100 Controller GUI cleanup, round 1: the GUIs in a real dev client against the mockups [user approval 2026-10-13, built on branch gui-clean]
+### B-100 Controller GUI cleanup, round 1: the GUIs in a real dev client against the mockups [approved 2026-10-13, built on branch gui-clean]
 
 **Context.** Units 1-4 (B-96..B-99) were checked only on a headless server. This round opened every master-side GUI
 in a dev client and put each state next to the approved mockup (`controller-gui-mockups.html`). The comparison page
@@ -5363,7 +5363,7 @@ owner on master.
 
 **Suggestion.** Accept.
 
-### B-101 Controller GUI cleanup, review fixes: the T5 Next batch reach row and a read-only charge count [user approval 2026-10-13, built on branch gui-clean]
+### B-101 Controller GUI cleanup, review fixes: the T5 Next batch reach row and a read-only charge count [approved 2026-10-13, built on branch gui-clean]
 
 **Context.** A code review of the gui-clean branch raised two findings on the Eye GUI. Both were checked against the
 code (and the RC-2 GT and AE2 sources) before they were fixed.
@@ -6012,15 +6012,15 @@ that for the local playtest.
 4. `dist-rc2/` is not in a git repo (the design repo leaves it untracked), as before.
 
 **Suggestion.** Install `master.302` instead of `master.250` and run the guide from A1; phases Q and T are the
-post-UEV gameplay you asked to see.
+post-UEV gameplay I asked to see.
 
 ---
 
 ### B-130 Circuits v2, phase C1: the items, their ore names, the config keys [circuits branch, built]
 
-**Context.** Brief items 31-33: the Sidereal (UMV), Empyrean (UXV) and Omega (MAX) circuit families. The design repo's
-`designs/docs/circuits-v2.md` is now revision 3 (design repo `89542a5`): your answers to its ten open questions,
-in your words ("No offset, build until finished please"; "Any of the tier such as the (any uxv) forming oress
+**Context.** Build notes items 31-33: the Sidereal (UMV), Empyrean (UXV) and Omega (MAX) circuit families. The design repo's
+`designs/docs/circuits-v2.md` is now revision 3 (design repo `89542a5`): my answers to its ten open questions,
+in my words ("No offset, build until finished please"; "Any of the tier such as the (any uxv) forming oress
 recipe"; "Yes, slightly better"; "just a normal amoutn yo uthink is fair"). So: no `bootstrapCompensation` and no
 SL-G14..G16, no special casing (every card keeps GT's any-of-tier ore-dict circuit slot and ours fill it), and our
 Mainframes go in the computer rack slightly better than stock.
@@ -6031,7 +6031,7 @@ Mainframes go in the computer rack slightly better than stock.
   In preInit the twelve circuits join GT's circuit ore names (`circuitInfinite`, `circuitBio`, `circuitOptical`,
   `circuitExotic`, `circuitCosmic`, `circuitTranscendent`, by tier as spec §1.3) and are unification-blacklisted,
   the coremod's Piko / Quantum / Planck pattern. No other item has an ore name.
-- `Config`: `stellarCircuits`, `nacCircuitComponents`, `raiseStockSpecialCircuits` (on by default, your ruling),
+- `Config`: `stellarCircuits`, `nacCircuitComponents`, `raiseStockSpecialCircuits` (on by default, my ruling),
   `stockSpecialCircuitEnergyFactor` 2.5, `stockSpecialCircuitMaterialFactor` 2.0. No compensation key.
 - `stellarCircuits=false`: the items still register (stable world registry), get no ore name, are hidden from NEI
   (`NEIBTSConfig`) and their tooltip reads "Disabled by config".
@@ -6051,7 +6051,7 @@ skipped" (unchanged: C1 adds no recipe), the config file holds the five keys and
 `/btsrecipes circuits` (the C1 check verb): every circuit has exactly its §1.3 ore name, `PASS ... 28 items
 registered, 12 circuits checked, 0 problem(s)`.
 
-**Judgement calls (no decision needed unless you disagree).**
+**Judgement calls (no decision needed unless I disagree).**
 1. **Rack numbers** (spec §3.4): Sidereal 280 computation / 11 heat / max heat 10,000; Empyrean 340 / 9 / 10,500;
    Omega 380 / 7 / 10,500 (cool -1, sub-zero, as stock), against Piko 260 / 12 / 9,500, Quantum 320 / 10 / 10,000,
    Planck 360 / 8 / 10,000. "Slightly better" read as +20 computation, one less heat and +500 heat headroom; each
@@ -6064,7 +6064,7 @@ registered, 12 circuits checked, 0 problem(s)`.
 ### B-131 Circuits v2, phase C2: the chain recipes, Research Station research, rack components [circuits branch, built]
 
 **Context.** Spec `designs/docs/circuits-v2.md` revision 3, §2 (recipes), §2.4 (research), §3.1 (gate audit) and §3.4
-(computer rack); brief items 31-33 ("Any of the tier such as the (any uxv) forming oress recipe"; research in TecTech's
+(computer rack); build notes items 31-33 ("Any of the tier such as the (any uxv) forming oress recipe"; research in TecTech's
 Research Station; rack "Yes, slightly better").
 
 **What was built (C2).**
@@ -6117,7 +6117,7 @@ circuits`: PASS in every section:
 tier's matter: boule T1, SMDs T2, wafers T1 / T4 / T5), 0 SL cards naming our items. `/btsrecipes status`: Circuits
 = 32, nothing registered without a live recipe.
 
-**Judgement calls (no decision needed unless you disagree).**
+**Judgement calls (no decision needed unless I disagree).**
 1. **The Mysterious Crystal lens** of X04 is the coremod's "Quite Certain Crystal Lens" (`dreamcraft:MysteriousCrystalLens`),
    the lens of GT's Optically Enriched Boule engraving; GT generates no Mysterious Crystal lens of its own. The
    Forcicium lens (X06) is GT's. Both stay in the bus.
@@ -6131,7 +6131,7 @@ tier's matter: boule T1, SMDs T2, wafers T1 / T4 / T5), 0 SL cards naming our it
 
 ### B-132 Circuits v2, phase C4: the Piko raise SL-G10..G13 [circuits branch, built]
 
-**Context.** Spec `designs/docs/circuits-v2.md` revision 3, §5 (the raise) and §7.2 row C4; brief item 33 Q6: "2.5x
+**Context.** Spec `designs/docs/circuits-v2.md` revision 3, §5 (the raise) and §7.2 row C4; build notes item 33 Q6: "2.5x
 EU / 2x materials" (about 2.45x per circuit), on by default (item 32(b)); Q2 "No offset, build until finished please":
 no compensation anywhere.
 
@@ -6167,7 +6167,7 @@ no compensation anywhere.
   steps at stock 4,000 / 8,000 / 4,000 / 12,000 t, 0 SL-G1x rows, changed-GT 58, PASS raise.
 - GT's field-generator recipes are untouched by construction: only the NAC Assembly Matrix map is read or written.
 
-**Judgement calls (no decision needed unless you disagree).**
+**Judgement calls (no decision needed unless I disagree).**
 1. **Zero matches** log a warning and change nothing. The spec also asked for a `BTSRecipeLedger.fallback` note, but
    that mark only shows on a recipe with the same id, and a step that found nothing has no recipe, so it would never
    show up. Left out.
@@ -6181,7 +6181,7 @@ no compensation anywhere.
 
 ### B-133 Circuits v2, phase C5: the NAC patch, SL-N01..N23 [circuits branch, built]
 
-**Context.** Spec `designs/docs/circuits-v2.md` revision 3, §4 and §7.2 row C5; brief items 31-33 (NAC: "Patch now,
+**Context.** Spec `designs/docs/circuits-v2.md` revision 3, §4 and §7.2 row C5; build notes items 31-33 (NAC: "Patch now,
 PR later", no new module; open questions 4 and 5 decided: calibration NONE, the same EU as the Assembly Line route).
 
 **What was built (C5).**
@@ -6256,7 +6256,7 @@ PR later", no new module; open questions 4 and 5 decided: calibration NONE, the 
   - **The stock NAC stayed formed and ran a Piko** (`nac run piko`: output conveyor 1 -> 2 x PicoCircuit).
   - The two edited files were restored byte for byte (`git status` clean), and `spotlessApply compileJava` was re-run.
 
-**Judgement calls (no decision needed unless you disagree).**
+**Judgement calls (no decision needed unless I disagree).**
 1. **The conversion check runs at load-complete, not postInit** (the spec said postInit). In RC-2 the coremod's
    `ScriptNanochipRecipes` runs in its own load-complete pass (after our postInit; `after:dreamcraft` orders our
    load-complete after it), so a postInit check would find nothing and add duplicates. The SL-N recipes themselves
@@ -6286,7 +6286,7 @@ PR later", no new module; open questions 4 and 5 decided: calibration NONE, the 
 
 ### B-134 Circuits v2, phase C6: the circuits quests, the pack-quest notes, tooltips, migration [circuits branch, built]
 
-**Context.** Spec `designs/docs/circuits-v2.md` revision 3, §6.1 / §6.2 and §7.2 row C6; brief item 33 (no special
+**Context.** Spec `designs/docs/circuits-v2.md` revision 3, §6.1 / §6.2 and §7.2 row C6; build notes item 33 (no special
 casing: the quests say our circuits fill any slot of their tier and are far cheaper; nothing says they are required).
 
 **What was built (C6).**
@@ -6340,7 +6340,7 @@ casing: the quests say our circuits fill any slot of their tier and are far chea
   VM code of the Zulu 8 runtime, before our questbook code ran; the third attempt, unchanged, was clean. The hs_err
   files are in the local work folder, not in the tree.)
 
-**Judgement calls (no decision needed unless you disagree).**
+**Judgement calls (no decision needed unless I disagree).**
 1. **Stellar Silicon's prerequisite is the pack's Raw Stellar Plasma quest (E11), not Eye T1 (E10)** as the spec
    listed: the boule is made from that fluid, and the line from E10 would have crossed Raw Stellar Plasma's icon.
 2. **Positions differ from the spec**: the circuits row is at y 408-516 (spec 432-528), Stellar SMDs at 948,456 (the
@@ -6352,7 +6352,7 @@ casing: the quests say our circuits fill any slot of their tier and are far chea
    the raise is off, while the move and the cheap-route note stay.
 4. **Our quests are not switched by `stellarCircuits`.** Quests follow build-time features, not runtime config; with
    the flag off the six quests remain and the items say "Disabled by config". Only the pack-quest notes follow the
-   flag. Hiding our quests per config would need a new installer feature; say if you want it.
+   flag. Hiding our quests per config would need a new installer feature; add it if I want it.
 5. **Quest names use the chapter's colour** ({c} in UMV, {4} in UXV) rather than the spec's `{9}` for side quests,
    matching every other quest of ours in those chapters.
 6. Not done here: the quests have not been looked at in a client (the playtest / film units do that); flag-off boots
@@ -6360,7 +6360,7 @@ casing: the quests say our circuits fill any slot of their tier and are far chea
 
 ### B-135 Answers: the weak-quasar row (B-118) and Resonance Chambers III / IV in place (Q4 / Q21) [circuits branch, built + test]
 
-**What you said.** B-118, a Magnetar Collapse begun with a quasar whose stream cannot cancel the shock: "Warn, allow".
+**What I said.** B-118, a Magnetar Collapse begun with a quasar whose stream cannot cancel the shock: "Warn, allow".
 Open questions 4 and 21: rewrite GT's Resonance Chamber III and IV recipes in place under the same flag as chamber II
 (B-29).
 
@@ -6418,7 +6418,7 @@ only with `replaceTecTechEyeOfHarmony=true`:
   - Back at 1.0, `begin` started the collapse ("Magnetar Collapse begun"). The scanner's countdown line still read
     "... 13.5 Bu/t on the collapse second cancels it all".
 
-**Judgement calls (no decision needed unless you disagree).**
+**Judgement calls (no decision needed unless I disagree).**
 1. **The peak is an upper bound**: a perfectly timed purge at full flux, all of it to the Eye, no throat cap. On the
    live rig a 136 SM quasar delivered 7.8 Bu/t against a peak near 11 (B-118). So the row fires only when even a
    perfect purge cannot cancel the shock, and it never warns wrongly. A quasar just above the line can still leave some
@@ -6435,8 +6435,8 @@ only with `replaceTecTechEyeOfHarmony=true`:
 `designs/docs/circuits-v2.md` revision 3, §7.2 row C7. Headless `runServer` on port 25631 (world `c7`, the RC-2 pack's
 `DefaultQuests` copied read-only into `run/server/config/betterquesting/`), then a silent dev client (master volume 0)
 driving the GUI shot harness in the world `bts-guishots`. Afterwards `server.properties` (level-name `circuits-c1`),
-`cmds.txt` and `beyondthestars.cfg` were put back byte for byte. Logs, dumps and the shots are in the session
-local work folder (`c7/`).
+`cmds.txt` and `beyondthestars.cfg` were put back byte for byte. Logs, dumps and the shots are in my local
+work folder (`c7/`).
 
 **Static checks.**
 - Full `build` (spotless + checkstyle): green, before and after the fixes; spotless changed nothing.
@@ -6510,7 +6510,7 @@ under `/btswarp 20`, headless and again in the client:
 **Seen, not changed.**
 1. **The two-fluid engravings need a multiblock.** SL-X05 (WDM + ESPM) and SL-X06 (BDM + HSM) cannot run in a
    single-block Laser Engraver (one fluid slot); GT's Hyper-Intensity Laser Engraver (or any multi with two input
-   hatches) runs them. At UMV that is normal play. Alternative if you want single blocks to work: fold the second fluid
+   hatches) runs them. At UMV that is normal play. Alternative if I want single blocks to work: fold the second fluid
    into the wafer (an extra step). My suggestion: leave it, and say "multiblock engraver" in the Empyrean / Omega quests.
 2. **The raise runs with `stellarCircuits=false`.** The two switches are independent (spec §7.1), so a server that turns
    our circuits off still pays 2.5x for Piko / Quantum / Planck unless it also turns the raise off. Suggestion: keep
@@ -6532,7 +6532,7 @@ client-side).
 
 **What was asked.** Film the circuits (wafers, Stellar SMDs, one Mainframe of each family out of its Assembly Line, ours
 in a stock any-of-tier slot next to the raised Piko, a NAC run, a closing cost table) and re-shoot showcase v2's Reality
-scenes with both machines RUNNING (brief item 32(f): "build a BEC test helper (/btshr bench becnet)").
+scenes with both machines RUNNING (build notes item 32(f): "build a BEC test helper (/btshr bench becnet)").
 
 **What was built.**
 1. **`/btshr becnet`** (`BECNetBench`, dev bench, no gameplay change). `field` / `assembler` raise TecTech's own BEC
@@ -6579,7 +6579,7 @@ Observable Universe) on the headless server and on camera.
   (Star Chart, Assembler 64 nanites, regions drawn in lockstep) to "Reassembled Star Chart"; the chart in its output
   bus; an orbit with the conduits lit.
 
-**Files.** Session local work folder `video/circuits/`: `circuits-1080p.mp4` (22 MB), `circuits-720p.mp4` (4.4 MB),
+**Files.** Local work folder `video/circuits/`: `circuits-1080p.mp4` (22 MB), `circuits-720p.mp4` (4.4 MB),
 `reality-1080p.mp4` (32 MB), `reality-720p.mp4` (4.4 MB), `stills/`.
 
 ### B-138 Ship: circuits merged into master, the playtest jar `0.24.1-master.304+956c5c0d0b` [master, merge + package]
@@ -6610,7 +6610,7 @@ packages the playtest jar, as B-122 did for `master.302`.
     with `stellarCircuits=false`.
   The dev classes carried the uncommitted bench verb, so the dump's `mod` field read `...-dirty`; it changes no
   recipe, and the guide's copy of the dump names the jar's version.
-- **Jar.** Built from a clean `git archive` export of `956c5c0` (so the other unit's uncommitted files are not in it)
+- **Jar.** Built from a clean `git archive` export of `956c5c0` (so the other branch's uncommitted files are not in it)
   with `VERSION=0.24.1-master.304+956c5c0d0b gradlew build --no-daemon` (the GTNH plugin's version override; the
   string is what a clean master checkout gives: first-parent distance 304, hash `956c5c0d0b`). Spotless and
   checkstyle ran and passed. `dist-rc2/beyondthestars-0.24.1-master.304+956c5c0d0b.jar`, 2,674,514 bytes, SHA-256
@@ -6655,7 +6655,7 @@ packages the playtest jar, as B-122 did for `master.302`.
    files sat there; a build of the tree would have been named `-dirty` and carried code no commit holds. The version
    string is set to what a clean checkout of `956c5c0` produces.
 2. **The tick storage key stays `bts-playtest-master235`**, as in B-105 and B-122, so ticks already made survive.
-3. **Open question 24 (`/btswarp` in release jars) is marked settled** from your answer (brief item 32(d): ship it,
+3. **Open question 24 (`/btswarp` in release jars) is marked settled** from my answer (build notes item 32(d): ship it,
    op + cheats); nothing in the code changes.
 4. **No dev-client or Prism run for this unit.** The code is the one B-136 tested in a client and B-137 filmed; the
    merge changed no file. The mixin has run in the dev environment only; the obfuscated jar's mixin in the real pack
@@ -6667,7 +6667,7 @@ post-UEV gameplay to try.
 
 ### B-139 Ship: an interim playtest jar with renders v2, `0.24.1-master.308+ff2493fa3f` [master, package]
 
-**Context.** You are home and want to playtest now. Master `ff2493f` is the merge of the renders branch (R-01..R-18;
+**Context.** I am home and want to playtest now. Master `ff2493f` is the merge of the renders branch (R-01..R-18;
 conflicts in `Config.java` and this file resolved by keeping both sides). The supermassive black hole, the EU/t labels
 and the max-quasar fixes are still being built on branch `smbh` and ship in a later jar, so this one is an interim
 jar of master as it stands.
@@ -6730,7 +6730,7 @@ jar of master as it stands.
    are as R-16 / R-17 left them (Angelica checked in the dev client, a shaderpack under Angelica never tried).
 
 **Suggestion.** Install `master.308` instead of `master.304`, run A1-A2, then phase V and the "new look" steps;
-send the V6 FPS numbers with your graphics card.
+note the V6 FPS numbers with the graphics card.
 
 ### B-150 SMBH v1, the pure engine (smbh-v1.md §10.1) and the max-quasar fixes (§10.3) [smbh branch, built + test]
 
@@ -7397,15 +7397,14 @@ already used for the review fixes after the dev-server test. It is now B-106 (B-
 ## Part D. Tidy pass on the older multiblocks (branch tidy-old-multis)
 
 Questions from the presentation tidy of the nuclear plant and the production halls
-([`tidy-old-multis.md`](tidy-old-multis.md)). They keep that plan's TQ numbers. All settled 2026-10-13 ("You have full
-free reign on this", B-85); TQ-5, TQ-6 and TQ-8 change gameplay a little.
+([`tidy-old-multis.md`](tidy-old-multis.md)). They keep that plan's TQ numbers. All settled 2026-10-13 ("full free reign", B-85); TQ-5, TQ-6 and TQ-8 change gameplay a little.
 
 ### TQ-1 Rename the REPROCESSING milestone line? [tidy unit B]
 
 **Context.** The line counts Extraction Derrick loads and Enrichment Annex batches, not the PUREX Canyon's
 reprocessing. The tidy pass fixed only its unit text ("Derrick loads + Annex batches").
 
-**Settled 2026-10-13 (your answer: "You have full free reign on this").** Built (B-85): it shows as **ORE PROCESSING** (milestone
+**Settled 2026-10-13 (my answer: "full free reign").** Built (B-85): it shows as **ORE PROCESSING** (milestone
 line, tree caption "ORE PROC.", questbook). The enum and its NBT key stay `REPROCESSING`, so progress carries over;
 `/btsmilestone` takes "ore" as well as "reproc".
 
@@ -7423,7 +7422,7 @@ that line). The questbook text must change with it.
 
 **Alternatives.** Keep the name and rely on the tooltip line (as built).
 
-**Settled 2026-10-13 (your answer: "You have full free reign on this").** Built (B-85): **Yellowcake Mill**.
+**Settled 2026-10-13 (my answer: "full free reign").** Built (B-85): **Yellowcake Mill**.
 
 ### TQ-3 Rename the "Spine Sensor"? [tidy unit A]
 
@@ -7436,7 +7435,7 @@ front centre".
 
 **Alternatives.** Keep the name (as built).
 
-**Settled 2026-10-13 (your answer: "You have full free reign on this").** Built (B-85): **Spiral Cycle Sensor**.
+**Settled 2026-10-13 (my answer: "full free reign").** Built (B-85): **Spiral Cycle Sensor**.
 
 ### TQ-4 Propellant "Lv 1-6" reads like GT's LV voltage tier [tidy unit A]
 
@@ -7450,7 +7449,7 @@ GT fluids, whose local names are written to GregTech.lang once, so those only ch
 
 **Alternatives.** "Grade 1-6", or keep "Lv".
 
-**Settled 2026-10-13 (your answer: "You have full free reign on this").** Built (B-85): **"Grade 1-6"**, the alternative, not "Mk I-VI": the rungs are made from GoodGenerator's Naquadah Fuel MkI / MkIII (Grade 2 from MkI, Grade 3 from MkIII), so "Mk" numbers would clash with the fuel that feeds them.
+**Settled 2026-10-13 (my answer: "full free reign").** Built (B-85): **"Grade 1-6"**, the alternative, not "Mk I-VI": the rungs are made from GoodGenerator's Naquadah Fuel MkI / MkIII (Grade 2 from MkI, Grade 3 from MkIII), so "Mk" numbers would clash with the fuel that feeds them.
 
 ### TQ-5 Default tier for /btsbuild and /btskit [tidy unit C]
 
@@ -7466,13 +7465,13 @@ to raise and walk.
 
 **Alternatives.** Default both to 3 (a mid-size plant shows every piece), or keep them different (as built).
 
-**Settled 2026-10-13 (your answer: "You have full free reign on this").** Built (B-85): **both tier 1**.
+**Settled 2026-10-13 (my answer: "full free reign").** Built (B-85): **both tier 1**.
 
 ### TQ-6 Enable input separation on the halls? [tidy unit C]
 
 **Context.** The four production halls did not offer GT's input-separation button.
 
-**Settled 2026-10-13 (your answer: "You have full free reign on this").** Built (B-85): they offer it, and it starts **off** on new
+**Settled 2026-10-13 (my answer: "full free reign").** Built (B-85): they offer it, and it starts **off** on new
 and existing halls (GT would default it on for a new machine), so buses keep pooling as before until a player turns it
 on.
 
@@ -7480,7 +7479,7 @@ on.
 
 **Context.** The node raises the Enrichment Annex's batch; there is no centrifuge stage.
 
-**Settled 2026-10-13 (your answer: "You have full free reign on this").** Built (B-85): **Extra Leach Tank** (tree label "Leach
+**Settled 2026-10-13 (my answer: "full free reign").** Built (B-85): **Extra Leach Tank** (tree label "Leach
 Tank"). The enum name stays, so bought nodes carry over.
 
 ### TQ-8 Should the production halls honour the Power Panel's parallel limit? [tidy review, L5]
@@ -7498,7 +7497,7 @@ same time make the terminal "Parallel:" line and the scanner print the effective
 
 **Alternatives.** Keep ignoring the limit and hide the Power Panel's parallel field on the halls.
 
-**Settled 2026-10-13 (your answer: "You have full free reign on this").** Built (B-85): **`getTrueParallel()`**, and the GUI's Parallel line and the scanner print that value.
+**Settled 2026-10-13 (my answer: "full free reign").** Built (B-85): **`getTrueParallel()`**, and the GUI's Parallel line and the scanner print that value.
 
 ---
 
@@ -7696,7 +7695,7 @@ seed (3 of 3 in the golden, 5 of 5 in the rig proof).
 
 ### P4-15 The golden relights with the engine's relight() [engine]
 
-**Context.** The local work folder harness that produced the doc's tables relit a lost Eye inline: no `light()`, so no new
+**Context.** The local harness that produced the doc's tables relit a lost Eye inline: no `light()`, so no new
 event draw and no new cycle charge. The T1-T6 golden tool calls the engine's `relight(S)`.
 
 **Built.** `tools/quasar-golden.js` calls `relight(S)`, as the T1-T6 tool does and as the page's button does. Runs
@@ -7838,7 +7837,7 @@ different metal (Superdense Ergomatter would make it a T8 part).
 ### P4-25 UXV parts on pre-T7 cards: the B-72 UMV stopgap [recipes]
 
 **Context.** RC-2's Field Generator / Sensor / Emitter UXV each need 576 L molten Universium + 576 L MHDCSM, and the UXV
-Machine Casing needs 4 MHDCSM + 4 MagMatter plates. You chose "Ship UMV stopgap" (ruling 22a) until the UXV-part
+Machine Casing needs 4 MHDCSM + 4 MagMatter plates. I chose "Ship UMV stopgap" (ruling 22a) until the UXV-part
 brainstorm.
 
 **Built.** Every P4 card needed before T7 takes **twice as many UMV parts** for the card's UXV parts (Quasar Engine FG /
@@ -8073,7 +8072,7 @@ scaled (4 + 4·log₂(M/64)/6)/1.3; its shader stability is the disc's Stability
 40 + 22·λc, additive, zone colours, three turning arms, puffing above E 0, a 3 s outward flash on an eruption or a
 purge) and the jet cones (±78 blocks, brightness log₁₀ of each port's Bu/t). Look packets go straight to the chunk's
 watchers. A render-harness site (QUASAR) with `quasar_64sm` and `quasar_1024sm_eruption` is added; not run in this
-unit (the desktop is in use).
+unit (the desktop was in use).
 
 **Open.** Colours, widths and brightness are first guesses for the render QA pass.
 
@@ -8336,7 +8335,7 @@ rig proof drives them from Slots [8].
 - **Planets mode:** a dim core with up to nine coloured planets on orbits at r 5-18.
 - **The overfed magnetar** shrinks by 30 %, spins up and throbs before the collapse.
 - **Render-harness cases:** `eye_t7_triangulum`, `eye_t7_merger_warn`, `eye_t8_milky_way` and `eye_t8_planets`, on
-  two new sites. The sites are appended, so the layout suffix stays. None was run: the desktop is in use.
+  two new sites. The sites are appended, so the layout suffix stays. None was run: the desktop was in use.
 
 **Suggestion.** Review in the render QA pass: sizes, colours, dot counts and frame rate.
 
@@ -9652,7 +9651,7 @@ compared LOW with the BEFORE shots pixel by pixel), so LOW is the BEFORE in the 
 Machines that drew nothing before (the Homogeny, Reality, conduit) draw nothing at LOW either.
 
 **Numbers (dev rig RTX 4090, 1280 x 720, render distance 16, FOV 70, legacy profile; medians of three interleaved
-rounds, because the GPU clocks drift over a run; other units' work shares the machine, so differences under about
+rounds, because the GPU clocks drift over a run; other work shares the machine, so differences under about
 0.03 ms are noise).** Frame ms is the mean frame time; "cost" is frame ms minus the `off` baseline of the same view.
 
 | View | off: fps / frame ms | LOW (before v2): fps / cost | MEDIUM: fps / cost | HIGH (default): fps / cost | HIGH, 16 at L0: cost |
@@ -9752,7 +9751,7 @@ local work folder `renders/scene/` (`before-*` LOW, `after-*` HIGH, `baseline-*`
 
 **What happened.** A review of the renders v2 branch raised six findings. Each one was checked against the code and,
 where it shows, in the dev client. All six hold; all six are fixed. Shots were re-taken for every render the fixes
-touch: `after-r17-*` in each object's folder under my local work folder's `renders/`, the runs in
+touch: `after-r17-*` in each object's folder under the local work folder's `renders/`, the runs in
 `renders/review/runs/`, side-by-side sheets in `renders/review/cmp*/`, and the cost tables `depth-l2-marginal.txt`
 and `depth-l3-marginal.txt`.
 

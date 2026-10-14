@@ -404,7 +404,7 @@ T4 increments to roughly 2.0e15 EU each, and the complete Eye T4 from 2.3e16 to 
 consuming 188 Spatial casings (47 Godforge Singularity Shielding Casings through SL-P27). The gate fluids are the
 same as §4 (3.0M L Raw Star Matter, 753k L ESPM, 376k L RHSP per step).
 
-**Still open:** B-21..B-26 in the questions file record each of these as a suggestion you can still overrule. Only the
+**Still open:** B-21..B-26 in the questions file record each of these as a suggestion I can still overrule. Only the
 crafting side changed; nobody has crafted the chains in game yet.
 
 ---
@@ -928,7 +928,7 @@ Source: the design repo's `designs/docs/circuits-v2.md` revision 3 (§2.6 and §
 the whole chain in real GT machines (questions B-136). Nominal EU = recipe EU/t × ticks over the whole sub-tree (wafer,
 chip, SMD and board shares included; GT's Optical SMDs and chips counted as about 0). Stock figures are RC-2's NAC
 recipes (Piko step 4,000 t, Quantum 8,000 t, Planck 12,000 t, Raw Manifold Bud 4,000 t, all at RECIPE_MAX). There is no
-compensation anywhere (your ruling: "No offset, build until finished please"): no `bootstrapCompensation` key, no
+compensation anywhere (my ruling: "No offset, build until finished please"): no `bootstrapCompensation` key, no
 SL-G14..G16, no halved cards.
 
 ### 15.1 Per member (sub-tree EU)
@@ -967,7 +967,7 @@ pays the raise once. Piko 4,000 → 10,000 t, Quantum 8,000 → 20,000 t, Raw Ma
 
 ### 15.3 The bill of the raise before Empyrean exists (stock and raised; no compensation)
 
-Every one of our cards keeps GT's any-of-tier circuit slot, so stock circuits and ours both fit (your ruling: "Any of
+Every one of our cards keeps GT's any-of-tier circuit slot, so stock circuits and ours both fit (my ruling: "Any of
 the tier such as the (any uxv) forming oress recipe"). Before Eye T4 the only UXV circuit is the Quantum, which the raise
 makes about 2.45x dearer. Two UXV consumers gate T1-T4: the Field Generator UMV (4 UXV each) inside our T1-T4 cards, and
 the Eye's own field generators (470 UXV at T1, 564 more for the T2-T4 compression upgrades). EU at nominal cost
@@ -1020,7 +1020,7 @@ a single-block Laser Engraver has one fluid slot.
 ### 15.6 Computer rack (no cost change; why it matters for the raise)
 
 The raise also prices late computation, because the computer rack takes Piko / Quantum / Planck by exact item. Our
-Mainframes are rack parts with slightly better numbers (your ruling "Yes, slightly better"): Sidereal 280 computation /
+Mainframes are rack parts with slightly better numbers (my ruling "Yes, slightly better"): Sidereal 280 computation /
 11 heat / 10,000 max heat (Piko 260 / 12 / 9,500), Empyrean 340 / 9 / 10,500 (Quantum 320 / 10 / 10,000), Omega 380 /
 7 / 10,500 (Planck 360 / 8 / 10,000), all cool -1 and sub-zero. So a rack filled from our route costs about a
 fourteenth of a stock one and computes a little more.

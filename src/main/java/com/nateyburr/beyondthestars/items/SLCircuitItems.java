@@ -33,7 +33,7 @@ import gregtech.api.util.GTOreDictUnificator;
  * {@code stellarCircuits=false} they get no ore-dict entry, no recipe, a "disabled" tooltip and are hidden from NEI
  * ({@code NEIBTSConfig}).
  * <p>
- * Revision 3 (user, 2026-10-13: "Any of the tier such as the (any uxv) forming oress recipe"): the ONLY way our
+ * Revision 3 (decided 2026-10-13: "Any of the tier such as the (any uxv) forming oress recipe"): the ONLY way our
  * circuits enter any recipe is GT's ore-dict any-of-tier name ({@link #registerOreDict()}); no card names them.
  */
 public final class SLCircuitItems {

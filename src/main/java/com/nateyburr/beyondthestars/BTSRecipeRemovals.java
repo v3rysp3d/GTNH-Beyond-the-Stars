@@ -82,7 +82,7 @@ public final class BTSRecipeRemovals {
     /**
      * GTNH 2.9.0-RC-2: the BHC controller is an INGREDIENT now (every Spacetime Compression Field
      * Generator tier in the Condensate Assembler, the coremod's 64-BHC Compressed Circuit Array).
-     * Removing its recipe alone would strand all of them, so (user ruling) every consumer is first
+     * Removing its recipe alone would strand all of them, so (my ruling) every consumer is first
      * rewritten to take the Kerr Ergosphere Engine controller, same count ({@link BTSBlackHoleSwap}),
      * and the BHC recipe goes only if the Kerr is itself craftable and no consumer is left.
      */

@@ -21,7 +21,7 @@ import gtnhlanth.common.register.WerkstoffMaterialPool;
 
 /**
  * D-26 THE COOLANT LINE - bulk manufacture only (docs/production-lines.md S4.2). <b>Owned
- * exclusively by Agent C (Propellant + Coolant).</b>
+ * exclusively by Track C (Propellant + Coolant).</b>
  *
  * <h2>Scope, said plainly</h2>
  *

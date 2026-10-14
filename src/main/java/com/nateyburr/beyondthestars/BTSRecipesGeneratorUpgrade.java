@@ -33,7 +33,7 @@ import tectech.recipe.TecTechRecipeMaps;
 import tectech.thing.CustomItemList;
 
 /**
- * THE FIELD-GENERATOR UPGRADE PATH (user, 2026-10-13, B-30: "Add an upgrade path"; question B-83). One owner.
+ * THE FIELD-GENERATOR UPGRADE PATH (decided 2026-10-13, B-30: "Add an upgrade path"; question B-83). One owner.
  * Called from {@code CommonProxy.loadComplete}, after SL-G01..G03 and before the BHC swap: GT's Condensate Assembler
  * recipes are not in the map yet when our postInit runs (RC-2 dev server), so the derivation waits for load-complete,
  * like SL-B01/B02. Its recipe ids are counted in the boot log's own summary line, not in the postInit one.

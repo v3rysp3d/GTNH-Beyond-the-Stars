@@ -177,7 +177,7 @@ public final class SmbhSim {
 
     // ================================================================== the spec's tables (smbhTables)
 
-    /** The spec's assumed efficiency for its growth times (local work folder smbh/v3.js): η 0.0821. */
+    /** The spec's assumed efficiency for its growth times (my local work folder, smbh/v3.js): η 0.0821. */
     public static final double TABLE_ETA = 0.0821;
     /** §9's practical ×1: the max-quasar bench's 9,796 Bu/t; one Space Elevator Pump III of Hydrogen, L/t. */
     public static final double X1_BU = 9796, PUMP3_H = 2.007e7;

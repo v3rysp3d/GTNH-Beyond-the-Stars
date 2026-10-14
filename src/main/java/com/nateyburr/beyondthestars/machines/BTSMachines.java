@@ -30,7 +30,7 @@ public final class BTSMachines {
     public static ItemStack eyeOfHarmony;
     // D-49 (d49-build-plan.md §9): the Stellar Field Sensor Hatch, base+16.
     public static ItemStack stellarFieldSensor;
-    // AUTOMATION PASS (brief item 18): the Directive Hatch, base+27 (P4's reserved id, one MTE for every host).
+    // AUTOMATION PASS (build notes item 18): the Directive Hatch, base+27 (P4's reserved id, one MTE for every host).
     public static ItemStack directiveHatch;
     // P4 (quasar-p4.md §6.1): the stacks the recipes make (BTSRecipesQuasar). Each MTE unit assigns its own in
     // register() below; until it does the field is null and its recipe waits (one "[BTS] P4 recipe ... waits" line).

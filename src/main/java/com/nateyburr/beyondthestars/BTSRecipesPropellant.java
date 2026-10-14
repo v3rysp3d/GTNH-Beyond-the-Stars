@@ -26,7 +26,7 @@ import gtPlusPlus.core.fluids.GTPPFluids;
 import gtPlusPlus.xmod.gregtech.api.enums.GregtechItemList;
 
 /**
- * D-26 THE PROPELLANT LINE (docs/production-lines.md S4.1). <b>Owned exclusively by Agent C
+ * D-26 THE PROPELLANT LINE (docs/production-lines.md S4.1). <b>Owned exclusively by Track C
  * (Propellant + Coolant).</b>
  *
  * <h2>The one ruling that shapes this whole file</h2>

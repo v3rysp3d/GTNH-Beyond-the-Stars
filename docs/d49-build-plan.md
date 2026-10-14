@@ -3,15 +3,15 @@
 Status: **build plan**, 2026-10-12. Written read-only against the addon working tree of 2026-10-12 (HEAD dbd09cc plus
 uncommitted edits from the running build) and the GT 5.09.52.594 / 5.09.54.133 jars. Nothing here is built yet.
 
-**What was approved.** I approved the D-49 proposal "as proposed (numbers stay tunable)" (`yours.md` §8d). So
+**What was approved.** I approved the D-49 proposal "as proposed (numbers stay tunable)" (`decisions.md` §8d). So
 every recommendation in `designs/docs/star-lifecycle.md` §7 is a decision, unless it contradicts my own words.
 Section 1 lists each one. Where the proposal is silent or ambiguous, this plan makes a **plan reading**. Each reading is
 marked, and each becomes a questions-file entry when it is built.
 
 **Sources, in order of authority:**
 
-1. `PROPOSAL.md` D-49 and `designs/docs/yours.md` §8d. These are my words and the truth.
-2. The build brief's rulings (`sl-build-brief.md`, top section).
+1. `PROPOSAL.md` D-49 and `designs/docs/decisions.md` §8d. These are my words and the truth.
+2. My build rulings (the rulings at the top of my build notes).
 3. `designs/docs/star-lifecycle.md` (the proposal).
 4. The playable prototype `lifecycle/star-lifecycle.html`, the block between `/*ENGINE-START*/` and `/*ENGINE-END*/`.
    It is the reference for the per-second maths. The Java must reproduce it step for step, RNG draws included.
@@ -21,7 +21,7 @@ marked, and each becomes a questions-file entry when it is built.
 everything here that depends on a version-specific API, with what javap showed in both jars.
 
 **Prototype location.** The prototype lives only in my local work folder
-(`work/lifecycle/star-lifecycle.html`). Copy it into the design repo
+(`.../lifecycle/star-lifecycle.html`, outside the repos). Copy it into the design repo
 (for example `designs/lifecycle/star-lifecycle.html`) before the local work folder is cleared. Unit 1 also copies its
 engine block into `addon/tools/fixtures/`.
 
@@ -710,7 +710,7 @@ output bus.
 
 ### 10.5 Fair-cost notes, for the cost table in unit 6
 
-**Band blocks, from the mockup counts measured in this session:**
+**Band blocks, from the mockup counts measured while planning:**
 
 | Band | Galactic Shell Plating | Boundary casings | Quantum Glass | SL-P17 crafts | HSM |
 |---|---|---|---|---|---|
@@ -731,7 +731,7 @@ The real gates are elsewhere:
 ### 11.1 Exporter (`tools/export-structures.js`)
 
 - **Eye tiers 1..6.** Pieces are `eye_core`, `eye_beam`, `eye_jet`, `eye_arms`, **`eye_arms2`** (T5 − T4) and
-  **`eye_rim`** (T6 − T5). The existing "earlier piece keeps a cell" join rule applies. Measured this session with the
+  **`eye_rim`** (T6 − T5). The existing "earlier piece keeps a cell" join rule applies. Measured while planning with the
   exporter's own headless loader:
 
   | Build | Assembled box (W × H × D) | Blocks | Piece box | Piece blocks | Joins kept by the earlier piece |
@@ -926,7 +926,7 @@ Coordinates use the console form `/btseye … <x> <y> <z> [facing]`.
 
 ## 16. Work breakdown
 
-The units are sequential, one unit each, with one gradle invocation at a time.
+The units are sequential, one at a time, with one gradle invocation at a time.
 
 - Every unit makes local `wip:` commits staging only its own files, and appends its plan readings to
   `docs/singularity-ladder-questions.md` (next free B-n; note that the file currently has **two** "B-25" headings).
@@ -1020,13 +1020,13 @@ The units are sequential, one unit each, with one gradle invocation at a time.
   - `docs/singularity-ladder-questions.md` (B-1/A-2 superseded, B-3 answered, B-5 per-cycle, B-6 T3 needs T2, B-9
     partly reversed, Q-31 replaced, plus the plan readings);
   - `docs/singularity-ladder-costs.md` (T5/T6 cost table from `manifest.json` × the recipes);
-  - the design repo's `PROPOSAL.md` D-register updates (D-30, D-31, D-34, D-41, D-42, D-43), or hand these to the
-    main session.
+  - the design repo's `PROPOSAL.md` D-register updates (D-30, D-31, D-34, D-41, D-42, D-43), or leave these for
+    the design-repo pass.
 - **Done when:** all of §15.2 and §15.3 pass; the cost table is committed.
 
 ---
 
-## 17. Contradictions and open items for review
+## 17. Contradictions and open items to decide
 
 1. **T2 optional (D-42, Q-2) against "each tier unlocks the next" (D-49).** Resolved as "required" (Q-1). D-49 says to
    change the others. A side effect: Eyes built jet-without-beam lose T3 until the beam band is built.
@@ -1059,7 +1059,7 @@ The units are sequential, one unit each, with one gradle invocation at a time.
 2. **Eye T2 is REQUIRED** (strict ladder per D-49). An Eye with the T3 jet crescent but no T2 beam band runs as T1
    until the beam band is built (plan §17 item 1, adopted). When the Homogeny returns it is an alternative Excited
    plasma source, not a way to skip T2.
-3. **Centre render (user, 2026-10-12: "where is the render btw?")**: the Eye renders its current object at the centre
+3. **Centre render (decided 2026-10-12: "where is the render btw?")**: the Eye renders its current object at the centre
    of the structure — the live star for T1-T3 (size/colour per star), the neutron star at T4, the cooling white→black
    dwarf at T5, the magnetar at T6, and the collapse/supernova-suppression event as a visible transition. Reuse the
    pack's own renderers where they fit (TecTech's Eye of Harmony render and the Forge of the Gods star render in the

@@ -11,7 +11,7 @@ import gregtech.api.enums.OrePrefixes;
 import gregtech.api.enums.TierEU;
 
 /**
- * AUTOMATION PASS (brief item 18): THE DIRECTIVE HATCH, SL-A01. <b>Owned by the automation pass.</b> Called from one
+ * AUTOMATION PASS (plan item 18): THE DIRECTIVE HATCH, SL-A01. <b>Owned by the automation pass.</b> Called from one
  * line in {@link BTSRecipes}.
  * <p>
  * The hatch serves the Kerr Ergosphere Engine (UIV, the first ladder machine) as well as the Eye, so it is made at

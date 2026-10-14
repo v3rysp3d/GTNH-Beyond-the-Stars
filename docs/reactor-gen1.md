@@ -54,7 +54,7 @@ GT5u's tiered multis register MULTIPLE `addShape` variants on one controller and
 extra shapes for the expanded core + coolant-plant wing, hologram channel selects the build
 stage, and efficiency scales per the plan's output formula.
 
-## v0.4 systems (ultracode session)
+## v0.4 systems
 
 - **Dual fuel:** MOX assemblies (preferred when stocked) double output (F=2). MOX chain:
   1 Pu dust + 8 U dust -> mixer -> 18 MOX pellets; reprocessing depleted assemblies in a

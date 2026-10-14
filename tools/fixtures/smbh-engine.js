@@ -156,7 +156,7 @@ function horizonStep(Q,I,P,R){
   return R;
 }
 
-/* §2.3 growth times (the spec's idealised sum: λc 1, f 1, η fixed, 60 s steps on ln M, as local work folder smbh/v3.js),
+/* §2.3 growth times (the spec's idealised sum: λc 1, f 1, η fixed, 60 s steps on ln M, as in smbh/v3.js in my local work folder),
    built from the engine's pieces. F = total intake, × Ṁ_Edd. band = the installed lattice tier (0 = none). */
 const TABLE_ETA=0.0821;
 function smbhGrowthHours(target,F,gas,band){

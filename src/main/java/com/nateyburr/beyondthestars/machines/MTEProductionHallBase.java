@@ -78,8 +78,8 @@ public abstract class MTEProductionHallBase<T extends MTEProductionHallBase<T>>
      * Radiant Naquadah Alloy) without being broken and replaced, and a logic built once with a
      * fixed number would go on paying the old parallel until the chunk unloaded.
      * <p>
-     * The supplier is GT's {@code getTrueParallel()} (TQ-8, settled 2026-10-13: "You have full free reign on
-     * this"), as on every GT multi: the structure's parallel, capped by the Power Panel's limit when its "max"
+     * The supplier is GT's {@code getTrueParallel()} (TQ-8, settled 2026-10-13: "full free reign"), as on every GT
+     * multi: the structure's parallel, capped by the Power Panel's limit when its "max"
      * box is unticked. The box is ticked by default, so only a player who set a limit sees a lower number.
      */
     @Override

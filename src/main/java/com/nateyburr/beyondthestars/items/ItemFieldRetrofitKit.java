@@ -13,7 +13,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 /**
- * FIELD GENERATOR RETROFIT KITS (user, 2026-10-13, B-30: "Add an upgrade path"; question B-83). One item, three
+ * FIELD GENERATOR RETROFIT KITS (decided 2026-10-13, B-30: "Add an upgrade path"; question B-83). One item, three
  * kinds by metadata:
  * <ul>
  * <li>{@code 0} Field Generator Retrofit Frame: the blank a kit is built on (Assembler, SL-U00).</li>

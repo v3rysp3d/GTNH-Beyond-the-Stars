@@ -34,7 +34,7 @@ import gregtech.api.util.MultiblockTooltipBuilder;
 /**
  * KERR REDESIGN: the Kerr Extractor Module, MTE base+18 (28118). A separate machine standing in the
  * KEE's east arc (docs/kerr-redesign.md). It runs GT's ITEM extractor recipes
- * ({@code extractorRecipes}) and nothing else (user ruling, Q-9/Q-22), so its sockets take item
+ * ({@code extractorRecipes}) and nothing else (my ruling, Q-9/Q-22), so its sockets take item
  * buses only (plus its own energy).
  * <p>
  * Its controller is the outermost arc cell on the 340 degree ray, on the outer face (the old core

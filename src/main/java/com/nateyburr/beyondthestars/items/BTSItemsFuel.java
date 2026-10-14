@@ -4,7 +4,7 @@ import net.minecraft.item.Item;
 
 /**
  * D-26 FUEL LINE ITEMS - every intermediate of the 23-step ore-to-bundle chain and of the PUREX
- * head-end (docs/production-lines.md S1). Owned by <b>Agent A (Fuel)</b>: nobody else adds a
+ * head-end (docs/production-lines.md S1). Owned by <b>Track A (Fuel)</b>: nobody else adds a
  * field here, and the fields are read - never written - by everyone else.
  * <p>
  * The four PRODUCTS of this chain are not here. {@code uraniumFuelPellet}, {@code fuelRodUranium},

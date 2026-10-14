@@ -34,7 +34,7 @@ import tectech.thing.metaTileEntity.pipe.MTEPipeBEC;
 /**
  * Dev bench (op tooling, no gameplay change): {@code /btshr becnet}, the smallest TecTech Bose-Einstein Condensate
  * network Reality Diffraction and Reality Refab need, raised by script so the two can be seen RUNNING (the showcase
- * re-shoot, brief item 32(f)). Everything is GT's / TecTech's own machines doing their own work afterwards:
+ * re-shoot, build notes item 32(f)). Everything is GT's / TecTech's own machines doing their own work afterwards:
  * <ul>
  * <li>{@code field <x> <y> <z> [strength <n>]}: a BEC Containment Field ({@link MTEBECStorage}, controller facing
  * north)

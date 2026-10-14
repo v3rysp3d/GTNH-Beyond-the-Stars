@@ -43,7 +43,7 @@ public final class StellarField {
     /** T6: shield charge per Agent unit (per parallel). */
     public static final double SHIELD_PER_UNIT = 4;
     /**
-     * T6: shield charge per second from the Agent upkeep, × r (user ruling 2026-10-13: the Agent fed also charges the
+     * T6: shield charge per second from the Agent upkeep, × r (my ruling 2026-10-13: the Agent fed also charges the
      * shield). 3,000 L per 60 s cycle = 0.5 unit/s at {@link #SHIELD_PER_UNIT}; with no trim A settles at 40.
      * PROPOSED (B-60).
      */

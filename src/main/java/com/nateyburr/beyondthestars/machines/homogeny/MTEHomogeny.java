@@ -95,7 +95,7 @@ import io.netty.buffer.ByteBuf;
  * </ul>
  * <b>The tier</b> is {@code min(installedTier, structureTier)}. The structure tier is cumulative (a ring counts only
  * while every ring below it stands). The installed tier is permanent and rises only through the one install path
- * ({@link #beginInstall()} then {@link #completeInstall()}, the milestone + install-run pattern of brief rulings 4-5):
+ * ({@link #beginInstall()} then {@link #completeInstall()}, the milestone + install-run pattern of rulings 4-5):
  * <ol>
  * <li>the next ring stands (structure);</li>
  * <li>the milestone: {@value #MILESTONE_LITRES} L of the current tier's product mixed over the machine's life (ESPM
@@ -543,7 +543,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
     }
 
     /**
-     * THE ONE INSTALL PATH, step 1 (brief rulings 4-5): starts the install run if {@link #installBlocker()} allows.
+     * THE ONE INSTALL PATH, step 1 (rulings 4-5): starts the install run if {@link #installBlocker()} allows.
      * Returns the chat/GUI line. Server side.
      */
     public String beginInstall() {

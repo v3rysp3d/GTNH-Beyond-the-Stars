@@ -49,7 +49,7 @@ import tectech.recipe.TecTechRecipeMaps;
 import tectech.thing.CustomItemList;
 
 /**
- * THE BOSE-EINSTEIN CONDENSATE LINE (brief ruling 11; designs/docs/bec-expansion-proposal.md, all 14 open questions
+ * THE BOSE-EINSTEIN CONDENSATE LINE (ruling 11; designs/docs/bec-expansion-proposal.md, all 14 open questions
  * taken as recommended). <b>One owner: the BEC unit.</b> Called from one line in {@link BTSRecipes} ("bec", after
  * "stellar") and, for the load-complete rewrites, from {@link CommonProxy#loadComplete}.
  *
@@ -72,7 +72,7 @@ import tectech.thing.CustomItemList;
  *
  * <h2>Rules every recipe follows (proposal §2)</h2>
  * <ul>
- * <li><b>Gate audit (brief 8, R2):</b> a part first needed to build or unlock Eye tier N uses only products of tiers
+ * <li><b>Gate audit (rule 8, R2):</b> a part first needed to build or unlock Eye tier N uses only products of tiers
  * below N (a transition core, made while running tier N, may use tier N's product). So Eye T1 parts carry no Raw Star
  * Matter or Boundless Cosmic Solder and nanites at most Transcendent; White Dwarf nanites/metamaterials appear first
  * in the T4 -> T5 core, Black Dwarf ones in the T5 -> T6 core. No compression generator recipe is touched. The audit
@@ -823,7 +823,7 @@ public final class BTSRecipesBEC {
     // =================================================================== load-complete rewrites (SL-B01..B04)
 
     /**
-     * BEC rewrites at load-complete (brief ruling 11a, bec-expansion-proposal §3): RC-2's own Condensate Assembler
+     * BEC rewrites at load-complete (ruling 11a, bec-expansion-proposal §3): RC-2's own Condensate Assembler
      * recipes for TecTech's Reinforced Spatial Structure Casing (SL-B01) and Reinforced Temporal Structure Casing
      * (SL-B02) output 32 instead of 4. They replace the retired batch Assembler recipes SL-P27/P28, which I
      * found "a bit too cheap". Applied whatever {@code replaceTecTechEyeOfHarmony} /

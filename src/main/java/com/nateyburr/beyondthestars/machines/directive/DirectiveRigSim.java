@@ -11,7 +11,7 @@ import com.nateyburr.beyondthestars.machines.eye.field.FieldState;
 import com.nateyburr.beyondthestars.machines.eye.field.TierParams;
 
 /**
- * AUTOMATION PASS (brief item 18, task 4): the offline proof that the Eye's stars and the Kerr's hole run unattended
+ * AUTOMATION PASS (plan item 18, task 4): the offline proof that the Eye's stars and the Kerr's hole run unattended
  * on plain redstone. A plain-JDK program like {@code FieldSim} (no Minecraft, GT or library classes are loaded: the
  * field package and the Directive maths are pure). Run it with
  * {@code java -cp build/classes/java/main com.nateyburr.beyondthestars.machines.directive.DirectiveRigSim [hours]

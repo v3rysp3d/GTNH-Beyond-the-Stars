@@ -51,7 +51,7 @@ import tectech.recipe.TTRecipeAdder;
  * pattern. Lenses are not consumed (stack size 0).</li>
  * <li>No step runs above RECIPE_UMV (§2.4): UMV is the highest voltage a player at Eye T4-T6 can feed through normal
  * hatches.</li>
- * <li>Revision 3 (user: "Any of the tier such as the (any uxv) forming oress recipe"): nothing outside this chain
+ * <li>Revision 3 (decided: "Any of the tier such as the (any uxv) forming oress recipe"): nothing outside this chain
  * names our circuits. They enter every other recipe only through GT's ore names ({@link SLCircuitItems}).</li>
  * <li>With {@code stellarCircuits=false} the whole line registers nothing (one log line).</li>
  * </ul>

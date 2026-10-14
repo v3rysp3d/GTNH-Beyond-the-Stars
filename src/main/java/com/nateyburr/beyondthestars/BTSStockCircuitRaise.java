@@ -24,7 +24,7 @@ import gregtech.common.tileentities.machines.multi.nanochip.util.CircuitComponen
  * CIRCUITS v2 §5 (design repo designs/docs/circuits-v2.md, revision 3): <b>the Piko raise, SL-G10..G13.</b> The NAC
  * Assembly Matrix steps that make GT's special circuits are rewritten IN PLACE at load-complete: each step's time x E
  * (EU/t unchanged, so its EU x E) and its items and fluids x M (rounded up), except the previous special circuit inside
- * it, which carries its own raise already. User: "I want the current pico's to be probably twice or 3x as expensive
+ * it, which carries its own raise already. Decided: "I want the current pico's to be probably twice or 3x as expensive
  * than
  * they are right now"; factors "2.5x EU / 2x materials" (about 2.45x per circuit), "On by default".
  * <table>

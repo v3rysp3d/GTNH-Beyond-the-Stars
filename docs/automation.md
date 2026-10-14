@@ -1,10 +1,10 @@
 # Automation: every action, four ways (the Eye, the Kerr, and P4's quasar, conduit and hosts)
 
-Status: **built** on master, 2026-10-13 (automation pass, build brief item 18). Question B-70 lists the judgement
+Status: **built** on master, 2026-10-13 (automation pass, build notes item 18). Question B-70 lists the judgement
 calls. P4 (branch `p4-quasar`) adds the Quasar, the Conduit, Eye T7-T8 and the other burst hosts on the same hatch:
 §7 below (design `designs/docs/quasar-p4.md` §8).
 
-Your ruling: "make sure this is fully automatable with and/or items in game incluiding ae2, redstone, logic gates,
+My ruling: "make sure this is fully automatable with and/or items in game incluiding ae2, redstone, logic gates,
 opencomputer or Steves Factory Manager ... hatches that provide detection may help e.g. the binary output from t7
 water".
 

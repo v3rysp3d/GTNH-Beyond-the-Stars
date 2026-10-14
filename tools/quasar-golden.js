@@ -94,7 +94,7 @@ function loadEngine() {
 }
 
 // ---------------------------------------------------------------- cases
-// A case: tier, secs, seed, cfg / qc / k / rig overrides on the harness defaults (the local work folder harness.js
+// A case: tier, secs, seed, cfg / qc / k / rig overrides on the harness defaults (the local harness.js
 // defaults), autoBegin (Transition bit 1 begins the next transition).
 function cases() {
   const out = [];

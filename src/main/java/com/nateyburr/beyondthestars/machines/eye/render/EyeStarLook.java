@@ -13,7 +13,7 @@ import com.nateyburr.beyondthestars.machines.eye.star.ShellIgnition;
 import com.nateyburr.beyondthestars.machines.eye.star.StarDef;
 
 /**
- * D-49 my answer 3: what the Eye's centre render shows (the object, its size, colour and motion), computed on the
+ * D-49 answer 3: what the Eye's centre render shows (the object, its size, colour and motion), computed on the
  * server from the star runtime once per field second and pushed to the {@link TileEyeStar} only when it moved. Pure
  * data: no world, no GL.
  * <p>

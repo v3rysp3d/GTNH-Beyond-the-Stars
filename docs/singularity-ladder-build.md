@@ -12,8 +12,8 @@ GTNewHorizonsCoreMod-2.8.279), re-checked for the **GTNH 2.9.0-RC-2 port** again
 Every resolved conflict is logged in
 [`singularity-ladder-questions.md`](singularity-ladder-questions.md). That file was consolidated after the build:
 items A-1..A-3 are rulings the jar does not match yet, and B-1..B-14 are open decisions. Code comments still cite the
-old Q-1..Q-38 numbers, and its last table maps them. This document is what gets built; the questions record what the
-user still has to rule on.
+old Q-1..Q-38 numbers, and its last table maps them. This document is what gets built; the questions record what I
+still have to rule on.
 
 Code references below use `<pkg>` = `com.nateyburr.beyondthestars`.
 
@@ -21,8 +21,8 @@ Code references below use `<pkg>` = `com.nateyburr.beyondthestars`.
 
 ## GTNH 2.9.0-RC-2 port (2026-10-12)
 
-User ruling: the addon targets **GTNH 2.9.0-RC-2** (DreamAssemblerXXL manifest 2026-10-04). This supersedes the D-06
-beta-1 pin. The port plan with the full API, behaviour and id diff is the session's `port-plan.md`; this section is
+My ruling: the addon targets **GTNH 2.9.0-RC-2** (DreamAssemblerXXL manifest 2026-10-04). This supersedes the D-06
+beta-1 pin. The port plan with the full API, behaviour and id diff is my local `port-plan.md`; this section is
 what was built.
 
 **Target versions** (`dependencies.gradle`):
@@ -59,7 +59,7 @@ MTE ids 28100-28139 are still free in RC-2 (enum and bytecode scan).
   and the Spiral's failed-walk rollback truncates `mDualInputHatches` too. Regression traps: the hint/autoplace
   path uses `FluidHatchElement.mteClasses` (unchanged, client-safe); no NBT involved; the plant-wide list now rolls
   back with the others; no chain fallback involved.
-- **BHC to Kerr in recipes** (user ruling). In RC-2 the BHC controller is an ingredient: all 9 Spacetime Compression
+- **BHC to Kerr in recipes** (my ruling). In RC-2 the BHC controller is an ingredient: all 9 Spacetime Compression
   Field Generator tiers (Condensate Assembler) take one, and the coremod's Compressed Circuit Array takes 64. Under
   `removeBlackHoleCompressorRecipe`, `BTSBlackHoleSwap` rewrites every consumer at load-complete to take the Kerr
   Ergosphere Engine controller (same count, in place, so nanite tiers and condensates survive) in every GT recipe
@@ -448,7 +448,7 @@ casing-texture page. Prefer deleting machinery over adding it.
 | Star Chart: Sirius B | `starChartSiriusB` | recipe target | Eye T4 | small white dwarf |
 | Star Chart: Sirius B, Cooled (interim) | `starChartSiriusBCooled` | recipe target | Eye T4 interim BDM (Q-3); delete with P4 | white dwarf, frost rim |
 
-Star picks follow mine.md (Sirius A for "a larger star", Arcturus for "a red giant"). Sirius B is our choice for the
+Star picks follow proposals.md (Sirius A for "a larger star", Arcturus for "a red giant"). Sirius B is our choice for the
 white dwarf: it is Sirius A's companion and the best-known white dwarf (Q-13). Planets and the Deep Dark keep
 TecTech's targets, the `gtneioreplugin` dimension display blocks (`EyeOfHarmonyRecipe.getRecipeTriggerItem()`).
 
@@ -647,7 +647,7 @@ the old body registers instead and the boot log says "SL-Bnn (Condensate Assembl
 is registered instead". The skip still shows in the recipe summary. No config switch (Q-B8). SL-B01..B04 (the x32
 rewrite of RC-2's Spatial / Temporal casing recipes and its fallbacks) are unchanged; see the RC-2 port section.
 
-**Gate audit (brief 8).** A part first needed to build or unlock Eye tier N uses only products of tiers below N; a
+**Gate audit (rule 8).** A part first needed to build or unlock Eye tier N uses only products of tiers below N; a
 transition core may use its own tier's product. The Eye T1 BOM (B20-B22) has no Raw Star Matter or Boundless Cosmic
 Solder and nanites at most Transcendent; White Dwarf nanites and metamaterials first appear in the T4 -> T5 core (B70)
 and B71, Black Dwarf ones in B80/B81. SL-B62 needs WDM but is only an alternative to SL-P17. No compression generator
@@ -713,7 +713,7 @@ hintsOnly)` picks T1 or T2 from the trigger stack size (1 = T1, ≥2 = T2), and 
 | Mode | Needs | Maps | Notes |
 |---|---|---|---|
 | COMPRESS | compressor piece | `compressorRecipes` always; `neutroniumCompressorRecipes` only while the hole is open | BHC parity. With the hole closed it runs at the base parallel 8 × tier, like the BHC's plain-compressor mode. |
-| EXTRACT | extractor piece | `extractorRecipes` only | GT's item extractor recipes; no fluid extraction, no Kerr-only map (user ruling, Q-9/Q-22) |
+| EXTRACT | extractor piece | `extractorRecipes` only | GT's item extractor recipes; no fluid extraction, no Kerr-only map (my ruling, Q-9/Q-22) |
 | DENSIFY | compressor piece **and** `kerr_t2` **and** M ≥ 128 SM | `beyondthestars.recipe.kerrdensity` (`RecipeMapBuilder.of(...).maxIO(2,1,2,1).minInputs(1,1)`) | HSM (SL-K05). "Density gates the hyperdense stuff" (D-44). |
 
 With neither module built: no modes, the machine idles, and the panel says why. **Power:** standard energy or
@@ -749,7 +749,7 @@ Grounded on six pylons over the oval plinth, so its alignment limits allow horiz
   persisted as longs, capped at 2⁶² each, and printed on the panel.
 - **Target:** the controller slot (`mInventory[1]`) holds a star chart or a `gtneioreplugin` dimension block; the
   recipe is looked up by that item (TecTech's `recipeLookUp` shape). The target is not consumed.
-- **Power:** **wireless EU** from the owner's network (mine.md Q2: plain wireless until T7). The whole run's EU is
+- **Power:** **wireless EU** from the owner's network (proposals.md Q2: plain wireless until T7). The whole run's EU is
   debited at start (`addEUToGlobalEnergyMap(uuid, -cost)`); if the debit fails, the run doesn't start. There is no EU
   return (Q-4). No energy hatches.
 - **Parallel:** 2^(installedTier − recipeTier), so a T4 Eye runs Sol ×8, Sirius A ×4, Arcturus ×2 and Sirius B ×1.
@@ -1003,7 +1003,7 @@ So the in-game look equals the approved mockup tiles.
 
 **Rules.**
 
-- One builder at a time; the orchestrator sequences Foundation → Kerr → Eye.
+- One builder at a time, in sequence: Foundation → Kerr → Eye.
 - Every unit commits granular local `wip:` commits staging **only** its own files. Never `git add -A`; never push,
   tag, reset, stash, checkout or rebase.
 - Shared files take **append-only** edits: add lines at the end of the relevant block, never reorder or reformat
@@ -1092,7 +1092,7 @@ So the in-game look equals the approved mockup tiles.
 - `BTSMachines.java`: `eyeOfHarmony` field + the base+15 line.
 - `BTSRecipes.java`: `line("eye", ...)`.
 - `CommonProxy.loadComplete()`: one line `EyeRecipeRegistry.onLoadComplete()`, placed **before** the Foundation's
-  `BTSRecipeRemovals.run()` line, or have the registry call the removal itself (coordinate through the orchestrator).
+  `BTSRecipeRemovals.run()` line, or have the registry call the removal itself (agree it between the two units).
 - `CommandBTSKit.java`
 - `en_US.lang`
 - `docs/migration.md` (the old-save note)
@@ -1119,7 +1119,7 @@ prerequisite). Those swaps matter for Q-3 and are listed there.
 
 ## Contract additions (foundation-code)
 
-Written by the Foundation code unit on 2026-10-12. These pin names the spec left open and apply the mid-run user
+Written by the Foundation code unit on 2026-10-12. These pin names the spec left open and apply the mid-run
 ruling ("use the eye of harmony blocks that currently exist"; prefer the Black Hole Compressor's blocks for the
 Kerr). Where this section and §1.2 disagree, this section wins.
 
@@ -1529,7 +1529,7 @@ pieces, and each is checked at its own `off`. Every plain element is wrapped in 
   - `bindModuleIO` puts only the active mode's module into GT's lists (Q-23).
   - COMPRESS searches `compressorRecipes`, plus `neutroniumCompressorRecipes` while the hole is open. A recipe with
     `COMPRESSION_TIER` ≥ 1 needs the hole open.
-  - EXTRACT searches GT's `extractorRecipes` only (user ruling, Q-9/Q-22).
+  - EXTRACT searches GT's `extractorRecipes` only (my ruling, Q-9/Q-22).
   - DENSIFY searches `KerrRecipeMaps.DENSITY` (SL-K05).
 - **T2 without the reinforcement:** once the Density Upgrade is installed, only `kerr_t2` forms. With the
   reinforcement torn down the Kerr stays unformed and does not fall back to T1 (ruled: keep).
@@ -1569,8 +1569,8 @@ Linking, pausing, the hole's bonus, the GUI, the KEE's module list and `/btskerr
   Space-Bending Casing (FC-1).
 - **Dense plates** use `BTSRecipesSingularity.dense()`.
 - **SL-K03's Huge Neutronium Fluid Pipe** falls back to the Large pipe, then to 6 plates per pipe.
-- **SL-K06 is retired.** It was a Kerr-only "Ergosphere Extraction" map melting exotic metals at 144 L per ingot. The
-  user ruled (Q-9/Q-22) that the extractor runs GT's item extractor recipes only; the map, its lang key and its NEI
+- **SL-K06 is retired.** It was a Kerr-only "Ergosphere Extraction" map melting exotic metals at 144 L per ingot. I
+  ruled (Q-9/Q-22) that the extractor runs GT's item extractor recipes only; the map, its lang key and its NEI
   page are gone, and the Kerr shows up on GT's own Extractor page instead.
 - **The BHC controller recipe** is removed by the Foundation's `BTSRecipeRemovals` under
   `removeBlackHoleCompressorRecipe`. Placed BHCs are untouched. RC-2 port: every recipe that consumes a BHC
@@ -2876,7 +2876,7 @@ all of them re-formed with their state:
 Bench: `/btsconduit survival … [facing|up|down] [creative]`, and `/btskerr module … stock` / `clear` for circuit inputs
 and fluids.
 
-**Not run** (no client, by the brief):
+**Not run** (no client, per the build notes):
 
 - the GUIs, the TESRs and the render-harness cases;
 - the NEI pages and the NEI multiblock preview;

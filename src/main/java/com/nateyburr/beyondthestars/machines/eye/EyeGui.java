@@ -838,7 +838,7 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
     }
 
     /**
-     * B-118 "Warn, allow" (user, 2026-10-13): a red row above Begin on a magnetar whose linked quasar cannot cancel the
+     * B-118 "Warn, allow" (2026-10-13): a red row above Begin on a magnetar whose linked quasar cannot cancel the
      * collapse shock even with a purge at full flux (its peak under the countdown line's number). Begin stays enabled.
      */
     private void weakQuasarRow(BTSRows.Builder rows) {

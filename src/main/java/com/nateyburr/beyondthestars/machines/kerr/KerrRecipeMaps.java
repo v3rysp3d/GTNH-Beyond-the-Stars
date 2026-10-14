@@ -10,7 +10,7 @@ import gregtech.api.recipe.RecipeMapBuilder;
  * <p>
  * The modules run GT's own maps wherever one fits: the compressor module runs
  * {@code compressorRecipes} and {@code neutroniumCompressorRecipes} (the Black Hole Compressor's
- * maps), the extractor module runs {@code extractorRecipes} (user ruling: GT's item extractor
+ * maps), the extractor module runs {@code extractorRecipes} (my ruling: GT's item extractor
  * recipes only, Q-9/Q-22; the earlier Kerr-only "Ergosphere Extraction" map is retired). Only
  * {@link #DENSITY} is new: the compressor module searches it with its other two maps (no mode since the
  * Kerr redesign); a DENSITY recipe needs the linked KEE at Kerr T2 with a hole of at least 128 SM. It

@@ -56,7 +56,7 @@ public class Config {
     private static final String RETIRED_INTERIM_BDM_KEY = "interimBlackDwarfAtEyeT4";
 
     /**
-     * D-49 (my answer 3, D-34): draw the Eye's current object at its centre (machines/eye/render: the live star,
+     * D-49 (answer 3, D-34): draw the Eye's current object at its centre (machines/eye/render: the live star,
      * neutron star, cooling dwarf, magnetar, Core Collapse). The client skips drawing when it is off; the server
      * places no render block when it is off. Each Eye also has a GUI switch.
      */
@@ -112,7 +112,7 @@ public class Config {
     public static boolean nacCircuitComponents = true;
 
     /**
-     * CIRCUITS v2 §5 (user: "On by default"): raise the NAC Piko, Quantum, Raw Manifold Bud and Planck steps
+     * CIRCUITS v2 §5 (decided: "On by default"): raise the NAC Piko, Quantum, Raw Manifold Bud and Planck steps
      * (SL-G10..G13,
      * in place at load-complete). Off: stock RC-2 costs. There is no compensation key (revision 3: "No offset").
      */

@@ -2942,7 +2942,7 @@ public final class EyeStarRuntime {
     }
 
     /**
-     * B-118 "Warn, allow" (user, 2026-10-13): the most the linked quasar can put on the Eye on the Magnetar Collapse's
+     * B-118 "Warn, allow" (2026-10-13): the most the linked quasar can put on the Eye on the Magnetar Collapse's
      * second, Bu/t: a purge at full flux, {@code QuasarParams.peakStream} at its current G0 and Y_q (3.5 × G0·Y_q;
      * the assist sends J1 all to the Eye on the cue), before any throat cap. 0 with no link. The bench's scripted
      * quasar reports its purging mean (0.8 × G0·Y_q), scaled back to the same peak.

@@ -41,7 +41,7 @@ import gregtech.common.render.shader.VertexAttribute;
 import tectech.rendering.EOH.EOHRenderingUtils;
 
 /**
- * D-49 my answer 3: draws the Eye's centre object ({@link TileEyeStar}) with the pack's own star renderer parts, so
+ * D-49 answer 3: draws the Eye's centre object ({@link TileEyeStar}) with the pack's own star renderer parts, so
  * it looks like TecTech's Eye of Harmony and the Forge of the Gods:
  * <ul>
  * <li>the Forge of the Gods star shader ({@code tectech:star}: the texture's luminance with our hue, raised to

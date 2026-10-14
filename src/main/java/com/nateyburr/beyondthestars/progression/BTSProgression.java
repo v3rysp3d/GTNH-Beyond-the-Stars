@@ -414,7 +414,7 @@ public final class BTSProgression {
         //
         // Keyed by BTSUpgrade.name(), never ordinal: the Godforge's ordinal keys
         // (UpgradeStorage:196) silently reassign every unlock the day a node is inserted
-        // mid-enum, and this record is my campaign. A name this build does not know is
+        // mid-enum, and this record is the player's campaign. A name this build does not know is
         // simply not read - it cannot land on the wrong node.
         //
         // Written only when there IS a node. Both writers hand in a FRESH compound, so an

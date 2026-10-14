@@ -5,8 +5,8 @@ import net.minecraftforge.fluids.Fluid;
 import gregtech.api.enums.FluidState;
 
 /**
- * D-26 PROPELLANT AND COOLANT LINE FLUIDS (S4). Owned by <b>Agent C (Propellant + Coolant)</b> -
- * both of that unit's lines register here, because both are one unit's and a second file would
+ * D-26 PROPELLANT AND COOLANT LINE FLUIDS (S4). Owned by <b>Track C (Propellant + Coolant)</b> -
+ * both of that track's lines register here, because both are one track's and a second file would
  * buy nothing but a second thing to keep in step.
  * <p>
  * <b>The six ladder rungs are NOT here and must not be moved.</b>

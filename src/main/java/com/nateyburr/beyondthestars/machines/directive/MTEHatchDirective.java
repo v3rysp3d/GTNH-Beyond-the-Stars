@@ -24,7 +24,7 @@ import gregtech.common.covers.CoverRedstoneTransmitterInternal;
 import gregtech.common.covers.redstone.CoverAdvancedRedstoneTransmitterInternal;
 
 /**
- * AUTOMATION PASS (brief item 18): the DIRECTIVE HATCH, MTE base+27 = 28127 (the id P4 reserved for it; one MTE for
+ * AUTOMATION PASS (plan item 18): the DIRECTIVE HATCH, MTE base+27 = 28127 (the id P4 reserved for it; one MTE for
  * every host, P4's Q-19 recommendation). It is GT's Grade-7 water Degasser Control Hatch pattern: once a second its
  * host tells it what it needs now as a 4-bit code ({@link DirectiveSet}), and the hatch puts that out as redstone, so
  * a machine can be run by plain redstone and logic gates, an AE2 export bus with a redstone card, GT covers, Steve's

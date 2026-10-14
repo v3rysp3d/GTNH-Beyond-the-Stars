@@ -1,6 +1,6 @@
 # PRODUCTION LINES — the fuel, material, propellant and coolant chains (0.24.0 design of record)
 
-**Status: BUILT.** Sections 0-9 are the design of record - the contract the implementing units
+**Status: BUILT.** Sections 0-9 are the design of record - the contract the implementers
 followed. **Section 10 is the as-built record**, read back out of the shipped Java afterwards, and
 where the two disagree section 10 is right. Section 11 is the flowchart the ruling asked for, and
 its verification. Every GT/GT++/GG/BW class, field and recipe map named below was read out of the
@@ -801,14 +801,14 @@ UHV-UIV  Quantum Force Transformer                         -> propellant Lv 4-6,
 
 ---
 
-## 7. THE FILE SPLIT — five units, zero shared files
+## 7. THE FILE SPLIT — five tracks, zero shared files
 
-`BTSRecipes.java` is one 486-line file and several units must add recipes at once. The split below
-gives every unit files **nobody else opens**.
+`BTSRecipes.java` is one 486-line file and several tracks must add recipes at once. The split below
+gives every track files **nobody else opens**.
 
-### 7.1 The coordinating commit (done FIRST, by one unit, before any other starts)
+### 7.1 The coordinating commit (done FIRST, by one track, before any other starts)
 
-This is the only commit that touches the shared registrars. After it lands, **no unit edits
+This is the only commit that touches the shared registrars. After it lands, **no track edits
 `BTSItems.java`, `BTSFluids.java`, `BTSMachines.java` or `BTSRecipes.java` again.**
 
 ```
@@ -833,7 +833,7 @@ the split is provably behaviour-neutral before anyone adds anything.
 
 ### 7.2 Ownership
 
-| Agent | Owns (exclusively) |
+| Track | Owns (exclusively) |
 |---|---|
 | **A — Fuel** | `BTSRecipesFuel.java`, `BTSItemsFuel.java`, `BTSFluidsProcess.java`, `MTECascadeHall.java`, `MTEFuelFabricationHall.java`, `MTEPurexCanyon.java` |
 | **B — Materials** | `BTSRecipesMaterials.java`, `BTSItemsMaterials.java`, `MTESiteBatchingPlant.java` |
@@ -841,7 +841,7 @@ the split is provably behaviour-neutral before anyone adds anything.
 | **D — Machines** | `BTSRecipesMachines.java` (the controller / hatch / control-block / rotor recipes, moved verbatim) |
 | **E — Reactor** | `MTEReactorCoreMk1.java` (the water OUTPUT term §2.2 + the Annex re-point §8.3), `MTEEnrichmentTrain.java` |
 
-Two files are *read* by more than one unit and **written by none of them after 7.1**:
+Two files are *read* by more than one track and **written by none of them after 7.1**:
 `BTSWaterGrade.java` and `BTSBom.java`.
 
 ### 7.3 `BTSWaterGrade.java` — the one place the ladder is typed
@@ -860,7 +860,7 @@ public final class BTSWaterGrade {
 }
 ```
 
-Agent A writes it in the coordinating commit; units A and E both consume it. The ladder is typed
+Track A writes it in the coordinating commit; tracks A and E both consume it. The ladder is typed
 **once**, so the recipe page and the reactor readout cannot drift — the same discipline
 `BTSDisplayRecipes` already applies to the propellant and coolant tables.
 
@@ -869,7 +869,7 @@ Agent A writes it in the coordinating commit; units A and E both consume it. The
 - `git add <explicit paths>` only. Never `git add -A`.
 - Commit prefix `wip:`, one commit per step group, never one at the end.
 - On `index.lock`: wait two seconds and retry. Never delete it.
-- No unit may add a `Materials` / `Werkstoff` / `GGMaterial` reference without grepping the pinned
+- No track may add a `Materials` / `Werkstoff` / `GGMaterial` reference without grepping the pinned
   jar for it first. Several plausible names in §0.8 **do not exist** where you expect them.
 - `BTSDisplayRecipes` gains a fourth page (`…plantwater`) listing the nine rungs. Its existing
   missing-dependency guard pattern applies: a rung that cannot be built must **skip, never throw** —
@@ -955,7 +955,7 @@ questbook — rebuilt via `powershell -NoProfile -ExecutionPolicy Bypass -File q
 the one command that re-renders `BTSBom.java` **and** `questbook/DefaultQuests` together. Never run
 one without the other.
 
-Owner: **Agent E.** Four-axis note: `annexPellets()` is read by a GUI panel, so its replacement must
+Owner: **Track E.** Four-axis note: `annexPellets()` is read by a GUI panel, so its replacement must
 stay on the existing sync path (axis 1), and the Annex's sockets join **no plant-wide hatch list**
 (axis 3) — that property must survive the edit.
 
@@ -1006,7 +1006,7 @@ bit-identical EU figure to the one it derived before this release (§2.2).
 ### 8.5 Release checklist
 
 1. Coordinating commit (§7.1) — split only, zero behaviour change, `spotlessApply compileJava` green.
-2. Agents A–E in parallel, `wip:` commits per step group.
+2. Tracks A–E in parallel, `wip:` commits per step group.
 3. `powershell -NoProfile -ExecutionPolicy Bypass -File questbook/gen-bom.ps1` — the ONE command
    that re-renders `BTSBom.java` and the questbook together.
 4. `./gradlew.bat spotlessApply compileJava --no-daemon` to BUILD SUCCESSFUL.

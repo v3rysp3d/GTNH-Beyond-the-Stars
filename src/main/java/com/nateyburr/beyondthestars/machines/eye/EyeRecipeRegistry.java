@@ -355,7 +355,7 @@ public final class EyeRecipeRegistry {
 
     /**
      * T6 upkeep: Antipolarization Agent per 60 s cycle (50 L/s), the magnetar's CONSTANT feed (my answer to
-     * plan §17 item 5). It also charges the flare shield (2·r A/s, user ruling 2026-10-13, B-60); the Agent trim in the
+     * plan §17 item 5). It also charges the flare shield (2·r A/s, my ruling 2026-10-13, B-60); the Agent trim in the
      * Field sockets comes on top. PROPOSED (B-37).
      */
     public static final long MAGNETAR_AGENT_PER_CYCLE = 3_000L;

@@ -19,7 +19,7 @@ import gtPlusPlus.core.material.MaterialsAlloy;
 
 /**
  * D-26 THE MATERIAL LINES - bulk casing manufacture on the Site Batching Plant
- * (docs/production-lines.md S3). <b>Owned exclusively by Agent B (Materials).</b>
+ * (docs/production-lines.md S3). <b>Owned exclusively by Track B (Materials).</b>
  * <p>
  * <b>These recipes sit BESIDE GT's own casing recipes and never replace them.</b> Every output is
  * a stock block; every stock recipe is left standing. What this file sells is throughput - 8 to 32

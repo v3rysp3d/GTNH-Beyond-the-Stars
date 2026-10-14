@@ -1,10 +1,10 @@
 # Tidy pass: the older multiblocks (presentation and UX only)
 
 Branch `tidy-old-multis`, worktree `GTNH-Projects/addon-tidy`. Planned 2026-10-12 from ~130 audit
-findings, deduplicated to the work list below. User request: "review old stuff for a tidy such as
+findings, deduplicated to the work list below. My request: "review old stuff for a tidy such as
 cleaning up the GUI, tooltip and other parts of our multis".
 
-Review page for review (before/after renders):
+Review page (before/after renders):
 `work/tidy/tidy-review.html` (local work folder).
 
 ## Ground rules for every implementer
@@ -34,14 +34,14 @@ Review page for review (before/after renders):
     not a way to make a tooltip shorter. Long explanations go to the questbook.
   - Item tooltips: lines after the name render GRAY by default.
   - Failure text: `SimpleCheckRecipeResult.ofFailure(id)` needs a lang line
-    `GT5U.gui.text.recipe_result.<id>=` (brief item 10). Shutdown reasons use
+    `GT5U.gui.text.recipe_result.<id>=` (build notes item 10). Shutdown reasons use
     `GT5U.gui.text.shutdown_reason.<id>=`, and GT's own values start with `§4` and end with a
     full stop.
-- **Regression traps** (brief): the hologram hint path runs client-side; tile NBT and item NBT
+- **Regression traps** (see the build notes): the hologram hint path runs client-side; tile NBT and item NBT
   are separate; plant-wide hatch lists have no notion of piece; a chain's first element is the
   one that hints. The hint-number change (A4) touches only `.hint(n)`.
 - **Display names in GregTech.lang are sticky.** `aNameRegional` and `GTFluidFactory` local names
-  are written to my GregTech.lang on first run and are not refreshed. Renaming an MTE or a
+  are written to the player's GregTech.lang on first run and are not refreshed. Renaming an MTE or a
   GT fluid in code only reaches new installs. Those renames are logged as questions here, not
   done.
 - **Git:** granular local `wip:` commits on `tidy-old-multis`, staging only touched files, with the
@@ -725,8 +725,8 @@ deprecated `MultiblockTooltipBuilder` calls outside kerr/eye. Handoff: Kerr/Eye 
   field shows on all four halls and does nothing. Tidy B8 switched the supplier, but that makes a limit stored in
   old controllers' NBT start to bite, so the review reverted it (gameplay is out of scope here). See TQ-8.
 
-Questions for review (implementers append these to `docs/singularity-ladder-questions.md` as
-"## Q-n" when they reach them). **All eight settled 2026-10-13** (user: "You have full free reign on this"; the choices and the
+Open questions (implementers append these to `docs/singularity-ladder-questions.md` as
+"## Q-n" when they reach them). **All eight settled 2026-10-13** (decided: "full free reign"; the choices and the
 build are question B-85 and Part D of the questions doc): TQ-1 renamed to ORE PROCESSING; TQ-2 Yellowcake Mill;
 TQ-3 Spiral Cycle Sensor; TQ-4 "Grade 1-6" (not "Mk I-VI": GoodGenerator's Naquadah Fuel MkI-MkVI feeds the same
 rungs); TQ-5 both default to tier 1; TQ-6 the halls offer input separation, off by default; TQ-7 Extra Leach Tank;

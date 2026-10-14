@@ -20,7 +20,7 @@ import gregtech.api.enums.TierEU;
 
 /**
  * D-26 PLANT HARDWARE - the controllers, hatches, control blocks, plant blocks and the turbine
- * rotor. <b>Owned exclusively by Agent D (Machines).</b>
+ * rotor. <b>Owned exclusively by Track D (Machines).</b>
  * <p>
  * Every block below was moved here verbatim by the split commit: not one ingredient changed.
  * These are the recipes for the plant own furniture, which S3 explicitly leaves alone - the

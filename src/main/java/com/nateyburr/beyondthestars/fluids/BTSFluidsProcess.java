@@ -6,7 +6,7 @@ import gregtech.api.enums.FluidState;
 
 /**
  * D-26 FUEL LINE FLUIDS - the twelve process streams of the ore-to-bundle chain and the PUREX
- * head-end (docs/production-lines.md S1). Owned by <b>Agent A (Fuel)</b>.
+ * head-end (docs/production-lines.md S1). Owned by <b>Track A (Fuel)</b>.
  * <p>
  * <b>The three UF6 streams are the point of the file.</b> F-11's cascade is the only step in the
  * pack whose defining property is that it makes TWO products - a small enriched cut and a large

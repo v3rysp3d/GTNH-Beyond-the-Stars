@@ -22,8 +22,8 @@ import com.nateyburr.beyondthestars.progression.BTSUpgrade;
  * {@code /btsmilestone} - reads and writes the D-23 progression record on the nearest Nuclear
  * Plant Foundation. Permission level 2, like every other bench command in this addon.
  * <p>
- * Progress starts at ZERO on every plant by ruling - there is no back-fill for the campaign the
- * user has already run - so this command is how a tier is reached in under an hour for testing
+ * Progress starts at ZERO on every plant by ruling - there is no back-fill for the campaign a
+ * player has already run - so this command is how a tier is reached in under an hour for testing
  * instead of in twenty days.
  *
  * <pre>
