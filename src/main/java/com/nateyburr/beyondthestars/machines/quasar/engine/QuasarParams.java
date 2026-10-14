@@ -159,6 +159,14 @@ public final class QuasarParams {
     public static final double ANCHOR_BASE = 1024, ANCHOR_GROWTH = 4;
     /** A shed takes 2 % of the mass a second (M × 0.98) down to its target (§2.5). */
     public static final double SHED_RATE = 0.02;
+    /**
+     * The controller's Accretion Buffer holds this many seconds of Disc + Hold-up (§4.2; not Growth), and the
+     * Directive's "feed short" bit comes on under {@link #FEED_SHORT_SECONDS}. Controller-side, not engine maths.
+     */
+    public static final int ACCRETION_SECONDS = 60, FEED_SHORT_SECONDS = 30;
+    /** The Supermassive Link (Eye T9 → T10, §1.3): a source with a lattice and at least this mass, SM. */
+    public static final double SUPERMASSIVE_LINK_MASS = 65536;
+
     /** ln 2, as a literal so the Java and the reference agree on it. */
     public static final double LN2 = 0.6931471805599453;
 

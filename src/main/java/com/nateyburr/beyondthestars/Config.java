@@ -92,6 +92,8 @@ public class Config {
      * client with it off draws nothing. Each quasar also has its own render switch in its GUI.
      */
     public static boolean renderQuasar = true;
+    /** SMBH v1 (smbh-v1.md §5.1): the Unbind button on an L4 Supermassive Lattice. */
+    public static boolean smbhAllowUnbound = true;
 
     /**
      * CIRCUITS v2 (design repo designs/docs/circuits-v2.md §1.1, §7.1, revision 3): the Sidereal / Empyrean / Omega
@@ -232,6 +234,15 @@ public class Config {
             "Draw the Quasar Engine's black hole, accretion disc (its width shows the gas in it, its colour the disc's"
                 + " zone) and two burst jets (as bright as their Bu/t). Cosmetic. On a server, false places no render"
                 + " block; on a client, false draws nothing. Each quasar also has its own render switch in its GUI.");
+        smbhAllowUnbound = configuration.getBoolean(
+            "smbhAllowUnbound",
+            Configuration.CATEGORY_GENERAL,
+            true,
+            "Supermassive Lattice: allow Unbind on an L4 (Constrained Eternity) lattice, so the mass setpoint can pass"
+                + " 67,108,864 SM. Each doubling past it halves the Overdrive upkeep and costs a Primordial Matter"
+                + " anchor of 1,024 x 4^(n^2) L/s; a short anchor only sheds mass (no terrain is ever damaged). False"
+                + " hides the button, refuses OpenComputers' setUnbound(true) and turns an Unbound hole back (it sheds"
+                + " to 67,108,864 SM).");
 
         stellarCircuits = configuration.getBoolean(
             "stellarCircuits",

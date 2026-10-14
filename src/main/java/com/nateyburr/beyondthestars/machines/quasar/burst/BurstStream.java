@@ -21,9 +21,14 @@ public final class BurstStream {
     public final long tick;
     /** Elements crossed so far, as {@code dim:x,y,z} keys; its length is the hop count. */
     private final String[] path;
+    /** SMBH: the source record (lattice tier in force and the hole's mass, SM) the packet carried; see JetPacket. */
+    public final int lattice;
+    public final double mass;
 
-    private BurstStream(BurstSource source, JetPort port, double buPerTick, boolean linkable, long tick,
-        String[] path) {
+    private BurstStream(BurstSource source, JetPort port, double buPerTick, boolean linkable, long tick, String[] path,
+        int lattice, double mass) {
+        this.lattice = lattice;
+        this.mass = mass;
         this.source = source;
         this.port = port;
         this.buPerTick = Math.max(0, buPerTick);
@@ -34,19 +39,28 @@ public final class BurstStream {
 
     /** The stream a jet port sends into the dock on its cell. */
     public static BurstStream of(JetPacket p) {
-        return new BurstStream(p.source, p.port, p.buPerTick, p.linkable, p.tick, new String[0]);
+        return new BurstStream(p.source, p.port, p.buPerTick, p.linkable, p.tick, new String[0], p.lattice, p.mass);
     }
 
     /** The same stream carrying {@code bu} instead (a Junction's share, a clipped throat). */
     public BurstStream withBu(double bu) {
-        return new BurstStream(source, port, bu, linkable, tick, path);
+        return new BurstStream(source, port, bu, linkable, tick, path, lattice, mass);
     }
 
     /** The stream after it crossed the element {@code key}. */
     public BurstStream through(String key) {
         final String[] p = Arrays.copyOf(path, path.length + 1);
         p[path.length] = key;
-        return new BurstStream(source, port, buPerTick, linkable, tick, p);
+        return new BurstStream(source, port, buPerTick, linkable, tick, p, lattice, mass);
+    }
+
+    /**
+     * SMBH (smbh-v1.md §1.3): the source can serve the Supermassive Link (Eye T9 -> T10): a lattice in force and a
+     * hole of at least {@link com.nateyburr.beyondthestars.machines.quasar.engine.QuasarParams#SUPERMASSIVE_LINK_MASS}.
+     */
+    public boolean supermassiveSource() {
+        return lattice > 0
+            && mass >= com.nateyburr.beyondthestars.machines.quasar.engine.QuasarParams.SUPERMASSIVE_LINK_MASS;
     }
 
     /** True when the stream already crossed {@code key} (a cycle). */

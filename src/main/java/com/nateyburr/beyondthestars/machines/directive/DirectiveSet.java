@@ -47,7 +47,10 @@ public enum DirectiveSet {
         "Purge now (collapse assist)", "Hold the regulator's purges"),
     /** The Eye's planet and companion slots (T7+), and the link test fire (T6 / T7). */
     EYE_SLOTS(Host.EYE, false, "Eye: Slots", "A slot is idle", "Companion upkeep short", "Planet run lost parallels",
-        "Link test fire wanted");
+        "Link test fire wanted"),
+    /** SMBH (smbh-v1.md §6): the Supermassive Lattice's intake and upkeeps (QuasarDirective#horizon). */
+    QUASAR_HORIZON(Host.QUASAR, false, "Quasar: Horizon", "Hold-up short: leaking", "Feed short: buffer under 30 s",
+        "Anchor short: shedding", "Overdrive upkeep short");
 
     /** The machines a Directive Hatch can sit in. */
     public enum Host {

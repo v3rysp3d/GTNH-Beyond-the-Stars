@@ -5,11 +5,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.machines.directive.DirectiveSet;
+import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
 import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
 import com.nateyburr.beyondthestars.machines.quasar.burst.JetPort;
 import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarGas;
 import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarParams;
+import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarResult;
 import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarState;
 
 /**
@@ -49,6 +52,8 @@ public final class QuasarComputerApi {
     public static Map<String, Object> burst(MTEQuasarEngine m) {
         final Map<String, Object> out = new LinkedHashMap<>();
         out.put("total", m.state().G);
+        out.put("totalEUt", QuasarParams.euPerTick(m.state().G));
+        out.put("totalText", BTSFormat.buEu(m.state().G));
         final Map<String, Object> docks = new LinkedHashMap<>();
         for (JetPort port : JetPort.VALUES) {
             out.put(port.key, m.jetBu(port));
@@ -115,6 +120,128 @@ public final class QuasarComputerApi {
         final Map<String, Object> out = new LinkedHashMap<>();
         out.put("code", code);
         for (int i = 0; i < 4; i++) out.put(DirectiveSet.QUASAR_DISC.bit(i), (code & (1 << i)) != 0);
+        return out;
+    }
+
+    // ------------------------------------------------------------------ SMBH (smbh-v1.md §6): the Supermassive Lattice
+
+    /** {@code getBand()}: the lattice and where the hole sits in its band. */
+    public static Map<String, Object> band(MTEQuasarEngine m) {
+        final QuasarResult r = m.lastResult();
+        final Map<String, Object> out = new LinkedHashMap<>();
+        out.put("lattice", m.getLatticeInForce());
+        out.put("latticeBuilt", m.getLatticeBuilt());
+        out.put("saturated", m.isSaturated());
+        out.put("saturationSeconds", m.getSaturationSeconds());
+        out.put("M", m.getMass());
+        out.put("safe", r.safe);
+        out.put("top", r.top);
+        out.put("structureTop", m.getStructureTop());
+        out.put("setpoint", m.getMassCap());
+        out.put("setpointFromHatch", m.holdFromHatch());
+        out.put("x", r.x);
+        out.put("unbound", m.isUnbound());
+        out.put("n", r.n);
+        out.put("shedding", m.state().shed);
+        out.put("shedTarget", r.shedTarget);
+        out.put("shedReason", r.shedReason);
+        out.put("massPerHourPct", 100 * m.getMassRatePerHour());
+        out.put("supermassiveLinkSource", m.supermassiveLinkSource());
+        return out;
+    }
+
+    /** {@code getIntake()}: last second's Disc / Hold-up / Growth (L/s), the 5x cap and the share of it used. */
+    public static Map<String, Object> intake(MTEQuasarEngine m) {
+        final QuasarResult r = m.lastResult();
+        final double total = m.getGasDrawn() + r.holdUpLitres + r.growthLitres;
+        final Map<String, Object> out = new LinkedHashMap<>();
+        out.put("gas", m.getGas().key);
+        out.put("disc", m.getGasDrawn());
+        out.put("holdUp", r.holdUpLitres);
+        out.put("growth", r.growthLitres);
+        out.put("total", total);
+        out.put("cap", r.intakeCap);
+        out.put("capPct", r.intakeCap > 0 ? 100 * total / r.intakeCap : 0);
+        out.put("massPerHourPct", 100 * m.getMassRatePerHour());
+        return out;
+    }
+
+    /** {@code getHoldUp()}: what the band needs, what was paid, the cover and the leak. */
+    public static Map<String, Object> holdUp(MTEQuasarEngine m) {
+        final QuasarResult r = m.lastResult();
+        final Map<String, Object> out = new LinkedHashMap<>();
+        out.put("need", r.holdUpNeed);
+        out.put("paid", r.holdUpLitres);
+        out.put("coverage", r.holdUpCoverage);
+        out.put("leaking", r.leaking);
+        out.put("leakPerHourPct", 100 * m.getLeakRatePerHour());
+        return out;
+    }
+
+    /** {@code getBuffer()}: the Accretion Buffer (litres, cap, seconds of Disc + Hold-up, the feed-short flag). */
+    public static Map<String, Object> buffer(MTEQuasarEngine m) {
+        final double s = m.getBufferSeconds();
+        final Map<String, Object> out = new LinkedHashMap<>();
+        out.put("litres", m.buffer(MTEQuasarEngine.gasFluid(m.getGas())));
+        out.put("cap", m.bufferCap());
+        out.put("seconds", Double.isInfinite(s) ? -1 : s);
+        out.put("feedShort", s < QuasarParams.FEED_SHORT_SECONDS);
+        return out;
+    }
+
+    /** {@code getOverdrive()}: the level, its upkeep and cover, and the output it gives (Bu/t and EU/t). */
+    public static Map<String, Object> overdrive(MTEQuasarEngine m) {
+        final QuasarResult r = m.lastResult();
+        final Map<String, Object> out = new LinkedHashMap<>();
+        out.put("level", m.getOverdrive());
+        out.put("inUse", m.getOverdriveInUse());
+        out.put("fromHatch", m.overdriveFromHatch());
+        out.put("available", m.getLatticeInForce() >= QuasarParams.LATTICE_OVERDRIVE);
+        out.put("upkeepEach", r.overdriveNeed);
+        out.put("coverage", r.overdriveCoverage);
+        out.put("mhdcsm", r.mhdcsmLitres);
+        out.put("universium", r.universiumLitres);
+        out.put("oEff", r.oEff);
+        out.put("outputX", r.outputX);
+        out.put("bursts", m.state().G);
+        out.put("burstsEUt", QuasarParams.euPerTick(m.state().G));
+        out.put("burstsText", BTSFormat.buEu(m.state().G));
+        return out;
+    }
+
+    /** {@code getAnchor()}: Unbound, n, the Primordial Matter anchor's need, cover and the doublings it pays for. */
+    public static Map<String, Object> anchor(MTEQuasarEngine m) {
+        final QuasarResult r = m.lastResult();
+        final Map<String, Object> out = new LinkedHashMap<>();
+        out.put("allowed", Config.smbhAllowUnbound);
+        out.put("unbound", m.isUnbound());
+        out.put("n", r.n);
+        out.put("need", r.anchorNeed);
+        out.put("paid", r.anchorLitres);
+        out.put("coverage", r.anchorCoverage);
+        out.put("short", r.anchorShort);
+        out.put("paysN", r.anchorPaysN);
+        return out;
+    }
+
+    /** {@code setMassSetpoint(M)}: SM (0 = the safe limit); returns the setpoint in force. */
+    public static double setMassSetpoint(MTEQuasarEngine m, double mass) {
+        m.setMassSetpoint(mass);
+        return m.getMassCap();
+    }
+
+    /** {@code setOverdrive(o)}: 0-1 in 5 % steps; returns the level set. */
+    public static double setOverdrive(MTEQuasarEngine m, double o) {
+        m.setOverdrive(o);
+        return m.getOverdrive();
+    }
+
+    /** {@code getHorizon()}: the Horizon set's code and bits. */
+    public static Map<String, Object> horizon(MTEQuasarEngine m) {
+        final int code = m.directiveCode(DirectiveSet.QUASAR_HORIZON, 0);
+        final Map<String, Object> out = new LinkedHashMap<>();
+        out.put("code", code);
+        for (int i = 0; i < 4; i++) out.put(DirectiveSet.QUASAR_HORIZON.bit(i), (code & (1 << i)) != 0);
         return out;
     }
 }
