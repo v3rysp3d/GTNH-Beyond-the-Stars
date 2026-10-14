@@ -32,6 +32,15 @@ public final class BTSShaders {
 
     /** Dev only: every program acts as if it failed to bake. */
     public static final boolean FORCE_FAIL = Boolean.getBoolean("bts.render.failShaders");
+    /**
+     * R-16, dev only: {@code -Dbts.render.forceCore=true} makes GT's shader profile the Angelica core one before our
+     * first bake, so a client without Angelica draws every program through its {@code #version 330 core} variant and
+     * GT's core meshes (vertex array objects, the {@code u_MVP} transport): the core path drawn for real, not only
+     * compiled. GT's own programs follow the same profile in such a run.
+     */
+    public static final boolean FORCE_CORE = Boolean.getBoolean("bts.render.forceCore");
+    private static volatile boolean debugFail;
+    private static boolean coreForced;
 
     private static final List<Program> PROGRAMS = new ArrayList<>();
 
@@ -58,6 +67,16 @@ public final class BTSShaders {
         }
         NoiseTex.markReload();
         FrameCopy.markReload();
+    }
+
+    /**
+     * R-16, dev only: the render QA harness makes every program fail its next bake ({@code true}) or bake normally
+     * again ({@code false}); either way every program is released, as a resource reload does, so the switch also
+     * proves that a dead program comes back after the next reload.
+     */
+    public static void debugFailAll(boolean fail) {
+        debugFail = fail;
+        markReload();
     }
 
     /** Every registered program (the self test walks them). */
@@ -120,11 +139,12 @@ public final class BTSShaders {
         private void bake() {
             dirty = false;
             release();
-            if (FORCE_FAIL) {
+            if (FORCE_FAIL || debugFail) {
                 dead = true;
-                warnOnce("switched off by -Dbts.render.failShaders=true");
+                warnOnce(FORCE_FAIL ? "switched off by -Dbts.render.failShaders=true" : "switched off by the harness");
                 return;
             }
+            if (FORCE_CORE) forceCoreProfile();
             // cheap when the pack is already in the resource manager; a pack program never asks it
             GlslSourcePack.ensureRegistered();
             try {
@@ -151,6 +171,23 @@ public final class BTSShaders {
             warned = true;
             BeyondTheStars.LOG
                 .warn("[BTS render] shader {} is off, its objects draw the fixed-function path: {}", label, why);
+        }
+    }
+
+    /** {@link #FORCE_CORE}: GT's preferred profile becomes ANGELICA_CORE (once; logged). */
+    private static void forceCoreProfile() {
+        if (coreForced) return;
+        coreForced = true;
+        try {
+            final java.lang.reflect.Field f = gregtech.common.render.shader.ShaderProfile.class
+                .getDeclaredField("preferred");
+            f.setAccessible(true);
+            final Object was = f.get(null);
+            f.set(null, gregtech.common.render.shader.ShaderProfile.ANGELICA_CORE);
+            BeyondTheStars.LOG
+                .warn("[BTS render] -Dbts.render.forceCore=true: GT's shader profile {} -> ANGELICA_CORE", was);
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError bad) {
+            BeyondTheStars.LOG.warn("[BTS render] could not force the core profile: {}", bad.toString());
         }
     }
 

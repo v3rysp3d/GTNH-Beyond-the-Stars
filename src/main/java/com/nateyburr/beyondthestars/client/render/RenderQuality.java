@@ -1,7 +1,6 @@
 package com.nateyburr.beyondthestars.client.render;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -63,6 +62,12 @@ public final class RenderQuality {
 
     /** The harness override, or null. */
     private static final Quality OVERRIDE = Quality.parse(System.getProperty("bts.rendertest.quality"), null);
+    /** R-16, dev only: the render QA harness's per-case quality (wins over everything), or null. */
+    public static volatile Quality debugQuality;
+    /** R-16, dev only: the harness's baseline: every big render skips its draw. */
+    public static volatile boolean debugHidden;
+    /** R-16, dev only: the next GL check of each object issues one invalid GL call (proves the GL-error fallback). */
+    public static volatile boolean debugInjectGlError;
     /** Dev environment or {@code -Dbts.render.glcheck=true}: check GL errors after each object's draw once a second. */
     private static final boolean GL_CHECK = Boolean.getBoolean("bts.render.glcheck") || isDevEnvironment();
 
@@ -70,8 +75,11 @@ public final class RenderQuality {
 
     /** Per object (a render tile): last tier, projected size, the frame it was seen, GL check state. */
     private static final Map<Object, State> STATES = new WeakHashMap<>();
-    /** The keys allowed L0 this frame (from last frame's sizes). */
-    private static final Set<Object> HIGH = Collections.newSetFromMap(new WeakHashMap<>());
+    /**
+     * The objects seen this frame and last frame (R-16: the HIGH ranking reads these instead of walking the weak map,
+     * so a frame allocates nothing); swapped at each frame start.
+     */
+    private static List<State> seenNow = new ArrayList<>(), seenLast = new ArrayList<>();
 
     private static final class State {
 
@@ -81,6 +89,8 @@ public final class RenderQuality {
         Lod.Tier drawn;
         double px;
         long frame = -1;
+        /** The frame this object was ranked into the HIGH budget (L0 allowed while it is the current frame). */
+        long highFrame = -1;
         long checkedAt;
         boolean glFailed;
     }
@@ -89,7 +99,14 @@ public final class RenderQuality {
 
     /** The effective setting (harness override, else the config). */
     public static Quality quality() {
+        final Quality dbg = debugQuality;
+        if (dbg != null) return dbg;
         return OVERRIDE != null ? OVERRIDE : Quality.parse(Config.renderQuality, Quality.HIGH);
+    }
+
+    /** R-16, dev only: true while the harness measures its baseline (every big render draws nothing). */
+    public static boolean hidden() {
+        return debugHidden;
     }
 
     /**
@@ -101,7 +118,9 @@ public final class RenderQuality {
         final State s = state(key);
         final double px = Lod.projectedRadius(radius, distance);
         s.px = px;
-        s.frame = RenderFrame.frame();
+        final long frame = RenderFrame.frame();
+        if (s.frame != frame) seenNow.add(s);
+        s.frame = frame;
         Lod.Tier t = Lod.tierFor(px, s.tier);
         s.tier = t;
         s.drawn = effective(key, s, t, programs);
@@ -113,7 +132,9 @@ public final class RenderQuality {
         for (BTSShaders.Program p : programs) {
             if (p != null && !p.usable()) return Lod.Tier.FIXED;
         }
-        if (lod == Lod.Tier.L0 && (quality() == Quality.MEDIUM || !HIGH.contains(key))) return Lod.Tier.L1;
+        if (lod == Lod.Tier.L0 && (quality() == Quality.MEDIUM || s.highFrame != RenderFrame.frame())) {
+            return Lod.Tier.L1;
+        }
         return lod;
     }
 
@@ -158,7 +179,13 @@ public final class RenderQuality {
         while (GL11.glGetError() != GL11.GL_NO_ERROR) {
             // drain errors left by earlier draws
         }
+        if (debugInjectGlError) GL11.glEnable(0x7FFF); // GL_INVALID_ENUM, as a broken draw would leave
         return true;
+    }
+
+    /** R-16, dev only: forget every GL-error fallback (the harness proves it, then carries on). */
+    public static void debugResetGlFailures() {
+        for (State s : STATES.values()) s.glFailed = false;
     }
 
     /** After the draw: a GL error drops {@code key} to the fixed-function path for the session and logs once. */
@@ -178,26 +205,37 @@ public final class RenderQuality {
 
     // ============================================================================== frames
 
-    /** The ranking for the HIGH budget, from the sizes reported last frame. */
+    /**
+     * The ranking for the HIGH budget, from the sizes reported last frame: the {@code renderMaxHighObjects} largest
+     * objects seen last frame may draw L0 this frame. Picks them in place (no sort, no allocation: R-16).
+     */
     static void onFrameStart() {
-        HIGH.clear();
+        final List<State> last = seenNow;
+        seenNow = seenLast;
+        seenNow.clear();
+        seenLast = last;
         final int max = Math.max(0, Config.renderMaxHighObjects);
-        if (max == 0 || STATES.isEmpty()) return;
-        final long last = RenderFrame.frame() - 1;
-        final List<Map.Entry<Object, State>> seen = new ArrayList<>();
-        for (Map.Entry<Object, State> e : STATES.entrySet()) {
-            if (e.getValue().frame >= last) seen.add(e);
+        final long frame = RenderFrame.frame();
+        final int n = last.size();
+        for (int k = 0; k < max && k < n; k++) {
+            State best = null;
+            for (int i = 0; i < n; i++) {
+                final State s = last.get(i);
+                if (s.highFrame != frame && (best == null || s.px > best.px)) best = s;
+            }
+            if (best == null) break;
+            best.highFrame = frame;
         }
-        seen.sort((a, b) -> Double.compare(b.getValue().px, a.getValue().px));
-        for (int i = 0; i < seen.size() && i < max; i++) HIGH.add(
-            seen.get(i)
-                .getKey());
         // an object seen for the first time this frame is not in the ranking yet: it starts one tier down
     }
 
     /** Debug line for the harness: each object's last tier and size. */
     public static String describe() {
-        final StringBuilder b = new StringBuilder("quality ").append(quality());
+        final StringBuilder b = new StringBuilder("quality ").append(quality())
+            .append(debugHidden ? " (hidden: baseline)" : "")
+            .append(", max high ")
+            .append(Config.renderMaxHighObjects)
+            .append(ShaderpackProbe.active() ? ", shaderpack in use" : "");
         final Set<String> parts = new HashSet<>();
         for (Map.Entry<Object, State> e : STATES.entrySet()) {
             final State s = e.getValue();
@@ -212,7 +250,7 @@ public final class RenderQuality {
                     Math.min(s.px, 99999),
                     s.tier,
                     s.drawn,
-                    HIGH.contains(e.getKey()) ? " (high)" : "",
+                    s.highFrame == RenderFrame.frame() ? " (high)" : "",
                     s.glFailed ? " (GL failed)" : ""));
         }
         for (String p : parts) b.append("; ")

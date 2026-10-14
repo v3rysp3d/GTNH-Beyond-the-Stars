@@ -72,3 +72,24 @@ Every uniform a recipe declares must be used in both variants (GT refuses the ba
 | `-Dbts.render.galSplit=true` | With the GPU timer: the galaxy's backdrop, disc and stars timed in their own sections (`gal.sky`, `gal.disc`, `gal.stars`). |
 | `-Dbts.render.qRepeat=n` | The quasar's whole v2 draw runs n times inside its timer section: the marginal cost per quasar, as `bhRepeat` for the Kerr. |
 | `-Dbts.render.glcheck=true` | The GL error check outside a dev environment. |
+| `-Dbts.render.leakcheck=true` | `GlStateCheck` (R-16): the GL state is read before and after every renderer's draw (the outermost `GpuTimer` section) and every difference is logged once and counted per renderer and state (program, active unit, textures on units 0-7, buffers, vertex arrays, framebuffers, blend, depth, alpha, cull, lighting, fog, colour mask, polygon offset, client and generic vertex arrays, matrix mode, stack depths and matrices, current colour, line width, point size, the lightmap coordinates). The harness writes the result per shot (`leaks` in `fps.tsv`). A check run, never a timing run. |
+| `-Dbts.render.forceCore=true` | GT's shader profile becomes `ANGELICA_CORE` before our first bake, so a client without Angelica draws every program through its `#version 330 core` variant and GT's core meshes (R-16). |
+| `-Dbts.render.fakeShaderpack=true` | `ShaderpackProbe` answers "a pack is in use" (no screen-copy lensing). The harness case token `pack` does the same per case. |
+
+With `-Dbts.rendertest.gputime=true` the GPU timer also counts the bytes the render thread allocates inside each
+renderer's section (`AllocProbe`, HotSpot's per-thread counter, its own cost subtracted): `gpu_detail` reads
+`key=gpu_ms/cpu_ms/bytesB` per frame.
+
+## The performance scene (R-16)
+
+`-Dbts.rendertest.only=scene` shoots `rendertest/RenderScene`: a Kerr T2 at 512 SM, the Homogeny (T3, mixing), an
+Eye T8 in the Galactic Merger and a 4,096 SM quasar frozen 25 ticks into an eruption, built close together on site
+`SCENE` (x 10,000) so the `tilt` view (found by a search: every render centre in the frame, within 235 blocks) shows
+all four. Each case carries a quality token: `off` (every big render skips its draw: the baseline), `low`, `medium`,
+`high`, `high16` (16 objects allowed at L0), `pack` (shaderpack probe yes), `fail` / `recover` (every program fails
+its bake, then bakes again: `BTSShaders.debugFailAll`), `glerror` (an invalid GL call inside each checked draw). Views:
+`tilt`, `over`, `qring`, `klevel`, `ebowl`, `hud` and `inv` (the HUD, the hand item and the creative inventory with
+NEI over the scene), and the LOD walks `lodk:<d>`, `lode:<d>`, `lodq:<d>`. `FrameProbe` adds whole-frame numbers to
+`fps.tsv`: frames, FPS from the frame interval (the harness holds the frame cap and vsync off), mean / p50 / p95 / p99 /
+max frame ms, the render tick's CPU ms, the GPU ms between two `GL_TIMESTAMP` queries round the render tick, KB
+allocated per frame.

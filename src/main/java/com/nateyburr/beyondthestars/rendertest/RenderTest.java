@@ -14,8 +14,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Supplier;
 
 import net.minecraft.block.Block;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.server.S09PacketHeldItemChange;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.ChunkCoordIntPair;
@@ -105,10 +109,10 @@ public final class RenderTest {
     /** First air row of the superflat preset {@code 2;7,2x3,2;1;} (bedrock, 2 dirt, grass at y 3). */
     private static final int GROUND = 4;
     private static final int SITE_X0 = 1000;
-    private static final int SITE_Z = 4000;
+    static final int SITE_Z = 4000;
     private static final int SITE_SPACING = 500;
     /** Every structure faces north: the front views look south at it. */
-    private static final ForgeDirection FACING = ForgeDirection.NORTH;
+    static final ForgeDirection FACING = ForgeDirection.NORTH;
     /** Furthest a far view may stand from what it looks at (render distance is 16 chunks). */
     private static final double MAX_VIEW_DISTANCE = 230;
 
@@ -142,7 +146,12 @@ public final class RenderTest {
         /**
          * Renders v2: the conduit rig (ConduitKit.rig): a quasar with a Mk I crown on its top port and mouths below.
          */
-        CONDUIT;
+        CONDUIT,
+        /**
+         * Renders v2 (R-16): the performance scene ({@link RenderScene}): a Kerr T2, the Homogeny, an Eye T8 and a
+         * 4,096 SM quasar close together, so one camera sees all four.
+         */
+        SCENE;
 
         /** The Eye tier this site builds (1..8), or 0 for a non-Eye site. */
         int eyeTier() {
@@ -177,6 +186,22 @@ public final class RenderTest {
          * {@code TileKerrHole.debugStability}; quasar the {@code TileQuasarHole.debugLook} array.
          */
         final float[] clientLook;
+        /**
+         * Renders v2 (R-16): the quality the client draws this case at ({@code off} the baseline with every big render
+         * skipped, {@code low}, {@code medium}, {@code high}, {@code high16} high with 16 objects allowed at L0,
+         * {@code pack} high with the shaderpack probe answering yes, {@code fail} every program failing its bake,
+         * {@code recover} baking again, {@code glerror} a GL error injected into each draw), or null: the run's.
+         */
+        String quality;
+        /** Renders v2 (R-16): this case's shots ({@code view} by day, {@code view@night}), or null: the run's views. */
+        String[] views;
+
+        /** R-16: sets {@link #quality} and {@link #views}. */
+        Case with(String quality, String... views) {
+            this.quality = quality;
+            this.views = views.length == 0 ? null : views;
+            return this;
+        }
 
         Case(String name, Site site, double mass, EyeStarLook look, String what) {
             this(name, site, mass, look, what, -1);
@@ -937,7 +962,63 @@ public final class RenderTest {
                 "The conduit rig's streams: mouth B emitting south to mirror 1, on east to the junction (WP-6;"
                     + " 200 Bu/t forced on the client: mouth A does not form at the harness height)",
                 -1,
-                new float[] { 200f, 0f, -1f, -2f })));
+                new float[] { 200f, 0f, -1f, -2f }),
+            // ---- renders v2 R-16: the performance and compatibility pass on the scene (every big render at once)
+            // three interleaved rounds of the four settings: the GPU clocks drift over a run, so each setting is
+            // measured early, in the middle and late
+            sceneCase("scene_off", "off", "baseline: the scene with every big render skipped"),
+            sceneCase("scene_low", "low", "quality low (the fixed-function renders of before renders v2)"),
+            sceneCase("scene_medium", "medium", "quality medium"),
+            sceneCase("scene_high", "high", "quality high (the default)"),
+            sceneCase("scene_high16", "high16", "quality high with 16 objects allowed at full detail (worst case)"),
+            sceneCase("scene_r2_high", "high", "quality high, round 2"),
+            sceneCase("scene_r2_medium", "medium", "quality medium, round 2"),
+            sceneCase("scene_r2_low", "low", "quality low, round 2"),
+            sceneCase("scene_r2_off", "off", "baseline, round 2"),
+            sceneCase("scene_r3_off", "off", "baseline, round 3"),
+            sceneCase("scene_r3_low", "low", "quality low, round 3"),
+            sceneCase("scene_r3_medium", "medium", "quality medium, round 3"),
+            sceneCase("scene_r3_high", "high", "quality high, round 3"),
+            new Case("scene_pack", Site.SCENE, 0, null, "quality high, the shaderpack probe answering yes")
+                .with("pack", "tilt", "qring", "klevel", "lodk:10"),
+            new Case("scene_fail", Site.SCENE, 0, null, "every program failing its bake (as after a bad driver update)")
+                .with("fail", "tilt", "qring", "klevel"),
+            new Case("scene_recover", Site.SCENE, 0, null, "the programs baking again after a resource reload")
+                .with("recover", "tilt", "qring", "klevel"),
+            new Case("scene_glerror", Site.SCENE, 0, null, "a GL error injected into each object's checked draw")
+                .with("glerror", "tilt", "qring"),
+            new Case("scene_gui_high", Site.SCENE, 0, null, "HUD, hand item and the inventory with NEI, quality high")
+                .with("high", "hud", "inv", "hud@night"),
+            new Case("scene_gui_off", Site.SCENE, 0, null, "HUD, hand item and the inventory with NEI, baseline")
+                .with("off", "hud", "inv", "hud@night"),
+            new Case("scene_lod", Site.SCENE, 0, null, "LOD walks out from and back to the Kerr, the Eye, the quasar")
+                .with(
+                    "high",
+                    lodWalk(
+                        lodWalk("lodk", 8, 12, 20, 30, 45, 70, 100, 140, 180, 230, 270),
+                        lodWalk("lode", 22, 28, 40, 60, 90, 130, 180, 240),
+                        lodWalk("lodq", 40, 70, 95, 120, 160, 230, 300)))));
+
+    /** R-16: a scene case at one quality with the standard views. */
+    private static Case sceneCase(String name, String quality, String what) {
+        return new Case(name, Site.SCENE, 0, null, "The performance scene, " + what)
+            .with(quality, "tilt", "tilt@night", "over", "qring", "klevel", "ebowl", "lodk:10");
+    }
+
+    /** R-16: a LOD walk: {@code kind:d} out through the distances, then back in. */
+    private static String[] lodWalk(String kind, int... d) {
+        final String[] out = new String[d.length * 2 - 1];
+        for (int i = 0; i < d.length; i++) out[i] = kind + ":" + d[i];
+        for (int i = d.length - 2; i >= 0; i--) out[d.length * 2 - 2 - i] = kind + ":" + d[i];
+        return out;
+    }
+
+    /** R-16: the views of several walks in a row. */
+    private static String[] lodWalk(String[]... walks) {
+        final List<String> out = new ArrayList<>();
+        for (String[] w : walks) out.addAll(Arrays.asList(w));
+        return out.toArray(new String[0]);
+    }
 
     /** Renders v2 WP-6..WP-8: a machine case with a client look {activity, tier or held mask}. */
     private static Case machineCase(String name, Site site, String what, float activity, float second) {
@@ -1184,6 +1265,9 @@ public final class RenderTest {
                 case CONDUIT:
                     buildConduit(world, b);
                     break;
+                case SCENE:
+                    RenderScene.build(world, b);
+                    break;
                 default:
                     buildEye(world, b, site.eyeTier());
                     break;
@@ -1204,8 +1288,11 @@ public final class RenderTest {
     }
 
     private static void buildKerr(WorldServer world, Built b, boolean tier2) {
-        final int x = b.site.originX();
-        final int z = SITE_Z;
+        buildKerr(world, b, tier2, b.site.originX(), SITE_Z);
+    }
+
+    /** Renders v2 (R-16): the Kerr with its controller at {@code (x, ground, z)} (the perf scene places several). */
+    static void buildKerr(WorldServer world, Built b, boolean tier2, int x, int z) {
         final int[] probe = KerrKit.assemblyBounds(FACING, x, 100, z, tier2);
         final int y = 100 + GROUND - probe[1];
         b.box = loadAndKeep(world, KerrKit.assemblyBounds(FACING, x, y, z, tier2));
@@ -1228,8 +1315,11 @@ public final class RenderTest {
 
     /** P4: a formed Quasar Engine (coils T3, creative hatches, Helium) standing on the ground, facing north. */
     private static void buildQuasar(WorldServer world, Built b) {
-        final int x = b.site.originX();
-        final int z = SITE_Z;
+        buildQuasar(world, b, b.site.originX(), SITE_Z);
+    }
+
+    /** Renders v2 (R-16): the quasar with its controller at {@code (x, ground, z)}. */
+    static void buildQuasar(WorldServer world, Built b, int x, int z) {
         final int[] probe = QuasarKit.bounds(FACING, x, 100, z);
         final int y = 100 + GROUND - probe[1];
         b.box = loadAndKeep(world, QuasarKit.bounds(FACING, x, y, z));
@@ -1256,8 +1346,11 @@ public final class RenderTest {
      * the ground facing north; the render centre is its bounding box's centre (none of them draws anything yet).
      */
     private static void buildHR(WorldServer world, Built b, HRKit.Machine m) {
-        final int x = b.site.originX();
-        final int z = SITE_Z;
+        buildHR(world, b, m, b.site.originX(), SITE_Z);
+    }
+
+    /** Renders v2 (R-16): a Homogeny / Reality machine with its controller at {@code (x, ground, z)}. */
+    static void buildHR(WorldServer world, Built b, HRKit.Machine m, int x, int z) {
         final int tiers = m.maxTier();
         final String[] pieces = Arrays.copyOf(m.pieces, tiers);
         final int[] probe = SLConsoleTest.bounds(ExtendedFacing.of(FACING), x, 100, z, pieces);
@@ -1336,8 +1429,11 @@ public final class RenderTest {
     }
 
     private static void buildEye(WorldServer world, Built b, int tiers) {
-        final int x = b.site.originX();
-        final int z = SITE_Z;
+        buildEye(world, b, tiers, b.site.originX(), SITE_Z);
+    }
+
+    /** Renders v2 (R-16): an Eye of {@code tiers} with its controller at {@code (x, ground, z)}. */
+    static void buildEye(WorldServer world, Built b, int tiers, int x, int z) {
         final String[] pieces = Arrays.copyOf(MTEEyeOfHarmonyBTS.PIECES, tiers);
         final int[] probe = SLConsoleTest.bounds(ExtendedFacing.of(FACING), x, 100, z, pieces);
         final int y = 100 + GROUND - probe[1];
@@ -1606,6 +1702,8 @@ public final class RenderTest {
             case CONDUIT:
             case QUASAR:
                 return applyQuasar(world, b, c);
+            case SCENE:
+                return RenderScene.apply(world);
             default: {
                 final MTEEyeOfHarmonyBTS eye = eyeAt(world, p[0], p[1], p[2]);
                 if (eye == null) return "no Eye";
@@ -1629,7 +1727,9 @@ public final class RenderTest {
     /** Once a second while a case is photographed: holds the Kerr's mass, the BHC's stability, TecTech's star. */
     private static void maintain(WorldServer world, Built b, Case c) {
         final int[] p = b.controller;
-        if (c.site == Site.KERR_T1 || c.site == Site.KERR_T2) {
+        if (c.site == Site.SCENE) {
+            RenderScene.maintain(world);
+        } else if (c.site == Site.KERR_T1 || c.site == Site.KERR_T2) {
             final MTEKerrEngine kee = KerrTestBench.keeAt(world, p[0], p[1], p[2]);
             if (kee != null && Math.abs(kee.mass() - c.mass) > 0.5) kee.debugOpenHole(c.mass);
         } else if (c.site == Site.GT_BHC) {
@@ -1773,6 +1873,7 @@ public final class RenderTest {
                     + ", "
                     + renderBlockAt(world, b.centre);
         }
+        if (c.site == Site.SCENE) return "the performance scene (R-16)";
         final MTEEyeOfHarmonyBTS eye = eyeAt(world, p[0], p[1], p[2]);
         return eye == null ? "no Eye"
             : (eye.mMachine ? "formed" : "NOT FORMED") + ", centre: "
@@ -1799,6 +1900,20 @@ public final class RenderTest {
     static final String[] VIEWS = System.getProperty("bts.rendertest.views", "front,34,close,level")
         .trim()
         .split("\\s*,\\s*");
+
+    /**
+     * R-16: the shots of case {@code c} in order: its own list ({@code view} by day, {@code view@night}), else every
+     * run view by day, then every run view by night.
+     */
+    static String[] shots(Case c) {
+        if (c.views != null) return c.views;
+        final String[] out = new String[VIEWS.length * 2];
+        for (int i = 0; i < VIEWS.length; i++) {
+            out[i] = VIEWS[i];
+            out[VIEWS.length + i] = VIEWS[i] + "@night";
+        }
+        return out;
+    }
 
     /**
      * Sets the time of day and moves the player to view {@code view} of the current site: {@code front} (level with
@@ -1833,7 +1948,13 @@ public final class RenderTest {
         final boolean hr = b.site == Site.HOMOGENY || b.site == Site.REALITY_DIFFRACTION
             || b.site == Site.REALITY_REFAB;
         final Case vc = currentCase;
-        if (b.site == Site.CONDUIT && b.focus != null && vc != null && vc.name.startsWith("conduit_stream")) {
+        final double[][] scene = b.site == Site.SCENE ? RenderScene.view(world, view) : null;
+        if (b.site == Site.SCENE) {
+            if (scene == null) return "no scene view " + view;
+            eye = scene[0];
+            target = scene[1];
+            if (view.equals("hud") || view.equals("inv")) giveHudItems(player);
+        } else if (b.site == Site.CONDUIT && b.focus != null && vc != null && vc.name.startsWith("conduit_stream")) {
             // renders v2 WP-6: mouth B -> mirror 1 -> the junction, seen from the east
             final double[] fo = b.focus;
             switch (view) {
@@ -2120,6 +2241,29 @@ public final class RenderTest {
     }
 
     /** True when the player's two cells and the eye cell at {@code eye} are air. */
+    /**
+     * R-16: the hotbar the scene's {@code hud} and {@code inv} views show: an enchanted sword in the hand (its glint
+     * is a texture-matrix effect, the first thing a leaked texture matrix or blend would break), glass, torches, GT's
+     * Black Hole Compressor (a GT item model), ender pearls.
+     */
+    private static void giveHudItems(EntityPlayerMP p) {
+        final ItemStack sword = new ItemStack(Items.diamond_sword);
+        sword.addEnchantment(Enchantment.sharpness, 3);
+        p.inventory.mainInventory[0] = sword;
+        p.inventory.mainInventory[1] = new ItemStack(Blocks.glass, 64);
+        p.inventory.mainInventory[2] = new ItemStack(Blocks.torch, 64);
+        p.inventory.mainInventory[3] = ItemList.Machine_Multi_BlackHoleCompressor.get(1L);
+        p.inventory.mainInventory[4] = new ItemStack(Items.ender_pearl, 16);
+        p.inventory.currentItem = 0;
+        p.inventoryContainer.detectAndSendChanges();
+        p.playerNetServerHandler.sendPacket(new S09PacketHeldItemChange(0));
+    }
+
+    /** R-16: {@link #clear} for the scene's view search. */
+    static boolean clearAt(World world, double[] eye) {
+        return clear(world, eye);
+    }
+
     private static boolean clear(World world, double[] eye) {
         final int x = (int) Math.floor(eye[0]);
         final int z = (int) Math.floor(eye[2]);
@@ -2172,7 +2316,7 @@ public final class RenderTest {
         return (p[0] - x) * (p[0] - x) + (p[1] - y) * (p[1] - y) + (p[2] - z) * (p[2] - z);
     }
 
-    private static MTEEyeOfHarmonyBTS eyeAt(World world, int x, int y, int z) {
+    static MTEEyeOfHarmonyBTS eyeAt(World world, int x, int y, int z) {
         return mteAt(world, x, y, z, MTEEyeOfHarmonyBTS.class);
     }
 

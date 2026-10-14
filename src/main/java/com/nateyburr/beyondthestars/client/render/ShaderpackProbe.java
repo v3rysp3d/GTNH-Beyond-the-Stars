@@ -17,6 +17,12 @@ import cpw.mods.fml.relauncher.SideOnly;
 public final class ShaderpackProbe {
 
     private static final long RECHECK_NS = 1_000_000_000L;
+    /**
+     * R-16, dev only: {@code -Dbts.render.fakeShaderpack=true} (or the harness) makes the probe answer "a pack is in
+     * use", so the shaderpack behaviour (no screen-copy lensing; the bent procedural starfield) can be shot without a
+     * pack.
+     */
+    public static volatile boolean debugFake = Boolean.getBoolean("bts.render.fakeShaderpack");
 
     private static boolean resolved;
     /** Iris API v0: {@code IrisApi.getInstance().isShaderPackInUse()}. */
@@ -32,6 +38,7 @@ public final class ShaderpackProbe {
 
     /** True while a shaderpack is in use (cached for a second). */
     public static boolean active() {
+        if (debugFake) return true;
         final long now = System.nanoTime();
         if (resolved && now - checkedAt < RECHECK_NS) return active;
         checkedAt = now;

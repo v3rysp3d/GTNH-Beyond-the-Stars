@@ -18,6 +18,7 @@ import java.util.regex.Pattern;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiDownloadTerrain;
 import net.minecraft.client.gui.GuiMainMenu;
+import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.util.ScreenShotHelper;
 import net.minecraft.world.EnumDifficulty;
@@ -28,8 +29,12 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 
 import com.nateyburr.beyondthestars.BeyondTheStars;
+import com.nateyburr.beyondthestars.Config;
+import com.nateyburr.beyondthestars.client.render.BTSShaders;
+import com.nateyburr.beyondthestars.client.render.GlStateCheck;
 import com.nateyburr.beyondthestars.client.render.GpuTimer;
 import com.nateyburr.beyondthestars.client.render.RenderQuality;
+import com.nateyburr.beyondthestars.client.render.ShaderpackProbe;
 import com.nateyburr.beyondthestars.machines.conduit.ConduitRender;
 import com.nateyburr.beyondthestars.machines.eye.render.TileEyeStar;
 import com.nateyburr.beyondthestars.machines.homogeny.HomogenyRender;
@@ -118,6 +123,12 @@ public final class RenderTestClient {
     private int settleMax;
     private String lastScreen = "";
     private final List<Integer> caseFps = new ArrayList<>();
+    /** R-16: this shot shows the HUD or a GUI (not closed, shot with the GUI). */
+    private boolean guiView;
+    /** R-16: the config's renderMaxHighObjects before a case changed it (-1: not saved yet). */
+    private int savedMaxHigh = -1;
+    /** R-16: the harness made every program fail. */
+    private boolean failed;
     private final List<String> summary = new ArrayList<>();
     private final List<String> files = new ArrayList<>();
 
@@ -135,6 +146,7 @@ public final class RenderTestClient {
         FMLCommonHandler.instance()
             .bus()
             .register(new RenderTestClient());
+        FrameProbe.register();
         RenderTest.registerServerHook();
         BeyondTheStars.LOG
             .warn("[BTS render test] -Dbts.rendertest=true: the render QA harness will drive this client");
@@ -153,7 +165,10 @@ public final class RenderTestClient {
             fps = new PrintWriter(
                 new OutputStreamWriter(new FileOutputStream(new File(dir, "fps.tsv")), StandardCharsets.UTF_8),
                 true);
-            fps.println("case\tview\tfps\tchunk_updates\tfile\tgpu_ms\tcpu_ms\tgpu_detail");
+            fps.println(
+                "case\tview\tfps\tchunk_updates\tfile\tgpu_ms\tcpu_ms\tgpu_detail\tquality\tframes\tframe_fps"
+                    + "\tframe_ms_mean\tframe_ms_p50\tframe_ms_p95\tframe_ms_p99\tframe_ms_max\tcpu_frame_ms\tgpu_frame_ms"
+                    + "\tgpu_frame_ms_p95\talloc_kb_frame\tours_alloc_b_frame\tleaks\ttiers");
             poses = new PrintWriter(
                 new OutputStreamWriter(new FileOutputStream(new File(dir, "poses.tsv")), StandardCharsets.UTF_8),
                 true);
@@ -186,6 +201,22 @@ public final class RenderTestClient {
             say("render distance was " + mc.gameSettings.renderDistanceChunks + ": holding 16");
             mc.gameSettings.renderDistanceChunks = 16;
         }
+        // R-16: the same file put the frame cap (120) and vsync back, so the FPS counter read 118-121 whatever was
+        // drawn; hold them off so the frame time is the frame's own
+        if (mc.gameSettings.limitFramerate != 260 || mc.gameSettings.enableVsync) {
+            say(
+                "frame cap was " + mc.gameSettings.limitFramerate
+                    + ", vsync "
+                    + mc.gameSettings.enableVsync
+                    + ": holding no cap, no vsync");
+            mc.gameSettings.limitFramerate = 260;
+            mc.gameSettings.enableVsync = false;
+            try {
+                Display.setVSyncEnabled(false);
+            } catch (RuntimeException ignored) {
+                // no display yet
+            }
+        }
         if (mc.theWorld != null && (dirt == null || dirt.world() != mc.theWorld)) {
             dirt = new RenderDirtTracker(mc.theWorld);
             mc.theWorld.addWorldAccess(dirt);
@@ -196,7 +227,7 @@ public final class RenderTestClient {
             then = null;
             go(Phase.FINISH);
         }
-        if (phase.ordinal() >= Phase.WAIT.ordinal() && phase != Phase.FINISH) keepScreenClear();
+        if (phase.ordinal() >= Phase.WAIT.ordinal() && phase != Phase.FINISH && !guiView) keepScreenClear();
         if (pending != null) {
             if (!pending.isDone()) return;
             Object result;
@@ -232,10 +263,17 @@ public final class RenderTestClient {
     /** The shot is taken after a full frame has been drawn into the framebuffer. */
     @SubscribeEvent
     public void onRenderTick(TickEvent.RenderTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || phase != Phase.SHOOT || mc.currentScreen != null) return;
+        if (event.phase != TickEvent.Phase.END || phase != Phase.SHOOT || (mc.currentScreen != null && !guiView)) {
+            return;
+        }
         final RenderTest.Case c = RenderTest.CASES.get(caseIndex);
-        final String view = viewName(shot);
-        final String file = c.name + "_" + view + ".png";
+        final String view = viewName(c, shot);
+        final String file = c.name + "_" + view.replace(':', '-') + ".png";
+        // R-16: the frame numbers first (saving the shot takes a while and lands in the next frame)
+        final FrameProbe.Report frame = FrameProbe.get()
+            .report();
+        final String leaks = GlStateCheck.report();
+        final String tiers = RenderQuality.describe();
         ScreenShotHelper
             .saveScreenshot(mc.mcDataDir, "rendertest/" + file, mc.displayWidth, mc.displayHeight, mc.getFramebuffer());
         final int[] counter = debugCounter();
@@ -257,14 +295,37 @@ public final class RenderTestClient {
                     + "\t"
                     + (gpu == null ? "" : String.format(Locale.ROOT, "%.4f", gpu.cpuMs))
                     + "\t"
-                    + (gpu == null ? "" : gpu.detail));
+                    + (gpu == null ? "" : gpu.detail)
+                    + "\t"
+                    + (c.quality == null ? RenderQuality.quality() : c.quality)
+                    + String.format(
+                        Locale.ROOT,
+                        "\t%d\t%.1f\t%.4f\t%.4f\t%.4f\t%.4f\t%.3f\t%.4f\t%.4f\t%.4f\t%.2f\t%s",
+                        frame.frames,
+                        frame.fps,
+                        frame.interval[0],
+                        frame.interval[1],
+                        frame.interval[2],
+                        frame.interval[3],
+                        frame.interval[4],
+                        frame.cpu[0],
+                        frame.gpu[0],
+                        frame.gpu[2],
+                        frame.allocKbPerFrame,
+                        gpu == null ? "" : String.format(Locale.ROOT, "%.0f", gpu.allocBytes))
+                    + "\t"
+                    + leaks
+                    + "\t"
+                    + tiers);
         }
         String pose;
         while ((pose = RenderTest.POSE_LOG.poll()) != null) {
             if (poses != null) poses.println(pose);
         }
         say("SHOT " + file + "  fps " + counter[0] + ", " + counter[1] + " chunk updates; " + clientView());
-        say("  render: " + RenderQuality.describe());
+        say("  render: " + tiers);
+        say("  frame: " + frame.line());
+        if (!leaks.isEmpty()) say("  GL state: " + leaks);
         if (gpu != null) {
             say(
                 String.format(
@@ -282,10 +343,16 @@ public final class RenderTestClient {
             if (!paths.isEmpty()) say("  client call path of the first machine block update: " + paths);
         }
         shot++;
+        if (guiView) {
+            // R-16: back to the plain shots
+            if (mc.currentScreen != null) mc.displayGuiScreen(null);
+            mc.gameSettings.hideGUI = true;
+            guiView = false;
+        }
         await(RenderTest::status, r -> {
             if (r != null && !r.toString()
                 .isEmpty()) say("  state: " + r);
-            if (shot < RenderTest.VIEWS.length * 2) {
+            if (shot < RenderTest.shots(c).length) {
                 move();
             } else {
                 endCase(c);
@@ -333,7 +400,7 @@ public final class RenderTestClient {
                 + RenderTest.CASES.size()
                 + " cases x "
                 + RenderTest.VIEWS.length * 2
-                + " shots; render quality "
+                + " shots (scene cases: their own); render quality "
                 + RenderQuality.quality()
                 + (GpuTimer.ENABLED ? ", GPU timer on" : ""));
     }
@@ -456,19 +523,65 @@ public final class RenderTestClient {
             && (c.site == RenderTest.Site.REALITY_DIFFRACTION || c.site == RenderTest.Site.REALITY_REFAB)
                 ? c.clientLook.clone()
                 : null;
+        if (c.site == RenderTest.Site.SCENE) {
+            // R-16: the scene's frozen looks (the quasar's eruption, the Homogeny mixing); the Eye and Kerr live
+            TileQuasarHole.debugLook = RenderScene.QUASAR_LOOK.clone();
+            HomogenyRender.debugLook = RenderScene.HOMOGENY_LOOK.clone();
+        }
+        applyQuality(c);
         await(() -> RenderTest.applyCase(c), r -> {
             say("  " + r);
             move();
         });
     }
 
+    /**
+     * R-16: the case's quality token ({@link RenderTest.Case#quality}) on the client: the per-case quality, the
+     * baseline, the HIGH budget, the shaderpack probe, failing and recovering programs, injected GL errors.
+     */
+    private void applyQuality(RenderTest.Case c) {
+        final String q = c.quality;
+        if (q == null) return;
+        if (savedMaxHigh < 0) savedMaxHigh = Config.renderMaxHighObjects;
+        RenderQuality.debugHidden = q.equals("off");
+        RenderQuality.debugQuality = q.equals("low") ? RenderQuality.Quality.LOW
+            : q.equals("medium") ? RenderQuality.Quality.MEDIUM : RenderQuality.Quality.HIGH;
+        Config.renderMaxHighObjects = q.equals("high16") ? 16 : savedMaxHigh;
+        ShaderpackProbe.debugFake = q.equals("pack");
+        if (q.equals("fail")) {
+            BTSShaders.debugFailAll(true);
+            failed = true;
+        } else if (failed) {
+            BTSShaders.debugFailAll(false);
+            failed = false;
+        }
+        RenderQuality.debugInjectGlError = q.equals("glerror");
+        if (!q.equals("glerror")) RenderQuality.debugResetGlFailures();
+        say(
+            "  quality token " + q
+                + ": "
+                + RenderQuality.quality()
+                + (RenderQuality.debugHidden ? " (baseline: big renders skipped)" : "")
+                + ", max high "
+                + Config.renderMaxHighObjects
+                + (ShaderpackProbe.debugFake ? ", fake shaderpack" : "")
+                + (failed ? ", every program failing" : "")
+                + (RenderQuality.debugInjectGlError ? ", GL errors injected" : ""));
+    }
+
     /** Moves to the current shot's viewpoint (the server moves the player), then settles. */
     private void move() {
-        final boolean night = shot >= RenderTest.VIEWS.length;
-        final String view = RenderTest.VIEWS[shot % RenderTest.VIEWS.length];
+        final RenderTest.Case c = RenderTest.CASES.get(caseIndex);
+        final String spec = RenderTest.shots(c)[shot];
+        final boolean night = spec.endsWith("@night");
+        final String view = night ? spec.substring(0, spec.length() - "@night".length()) : spec;
         final boolean first = shot == 0 && siteFresh;
         await(() -> RenderTest.view(view, night), r -> {
             say("  view " + r);
+            // R-16: the HUD / inventory views show the GUI over the scene
+            guiView = view.equals("hud") || view.equals("inv");
+            mc.gameSettings.hideGUI = !guiView;
+            if (view.equals("inv") && mc.thePlayer != null) mc.displayGuiScreen(new GuiInventory(mc.thePlayer));
             settleMin = first ? SITE_MIN : VIEW_MIN;
             settleMax = first ? SITE_MAX : VIEW_MAX;
             stillTicks = 0;
@@ -504,6 +617,9 @@ public final class RenderTestClient {
             if (dirt != null) dirt.reset();
             // the GPU numbers cover the still window only
             GpuTimer.reset();
+            FrameProbe.get()
+                .reset();
+            GlStateCheck.reset();
         }
         lastChunks = chunks;
         if (phaseTicks >= settleMax) {
@@ -558,6 +674,12 @@ public final class RenderTestClient {
         if (log != null) log.close();
         if (fps != null) fps.close();
         if (poses != null) poses.close();
+        RenderQuality.debugHidden = false;
+        RenderQuality.debugQuality = null;
+        RenderQuality.debugInjectGlError = false;
+        ShaderpackProbe.debugFake = false;
+        if (savedMaxHigh >= 0) Config.renderMaxHighObjects = savedMaxHigh;
+        if (failed) BTSShaders.debugFailAll(false);
         TileKerrHole.debugStability = -1f;
         TileQuasarHole.debugLook = null;
         HomogenyRender.debugLook = null;
@@ -607,8 +729,10 @@ public final class RenderTestClient {
                 .getName();
     }
 
-    private static String viewName(int shot) {
-        return RenderTest.VIEWS[shot % RenderTest.VIEWS.length] + (shot >= RenderTest.VIEWS.length ? "_night" : "_day");
+    private static String viewName(RenderTest.Case c, int shot) {
+        final String spec = RenderTest.shots(c)[shot];
+        return spec.endsWith("@night") ? spec.substring(0, spec.length() - "@night".length()) + "_night"
+            : spec + "_day";
     }
 
     /** Where the client camera really is and whether its world has the terrain there (diagnostics). */

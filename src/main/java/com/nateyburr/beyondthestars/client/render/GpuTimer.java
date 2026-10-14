@@ -42,6 +42,8 @@ public final class GpuTimer {
 
         long gpuNs;
         long cpuNs;
+        /** Bytes the render thread allocated inside the sections (R-16), the probe's own cost taken off. */
+        long allocBytes;
         int sections;
     }
 
@@ -56,40 +58,52 @@ public final class GpuTimer {
     private static String openKey;
     private static int openQuery;
     private static long openCpu;
+    private static long openAlloc;
     private static int depth;
+    /** What one allocation-counter pair costs by itself (measured at each report). */
+    private static long allocOverhead;
 
     private GpuTimer() {}
 
     /** Starts a timed section; pair with {@link #end()} in a finally. No-op unless {@link #ENABLED}. */
     public static void begin(String key) {
-        if (!ENABLED) return;
+        if (!ENABLED && !GlStateCheck.ENABLED) return;
         if (depth++ > 0) return; // nested: the outer section already times it
         openKey = key;
-        openCpu = System.nanoTime();
+        // R-16: the GL state leak check reads the state round the same sections (never in a timing run)
+        if (GlStateCheck.ENABLED) GlStateCheck.before(key);
+        if (!ENABLED) return;
         openQuery = 0;
         if (supported()) {
             final Integer q = FREE.poll();
             openQuery = q != null ? q : GL15.glGenQueries();
             GL15.glBeginQuery(GL33.GL_TIME_ELAPSED, openQuery);
         }
+        openAlloc = AllocProbe.now();
+        openCpu = System.nanoTime();
     }
 
     /** Ends the section {@link #begin} opened. */
     public static void end() {
-        if (!ENABLED || depth == 0) return;
+        if ((!ENABLED && !GlStateCheck.ENABLED) || depth == 0) return;
         if (--depth > 0) return;
-        final long cpu = System.nanoTime() - openCpu;
-        final Sum s = sum(openKey);
-        s.cpuNs += cpu;
-        s.sections++;
-        if (openQuery != 0) {
-            GL15.glEndQuery(GL33.GL_TIME_ELAPSED);
-            final Pending p = new Pending();
-            p.query = openQuery;
-            p.key = openKey;
-            p.window = window;
-            PENDING.add(p);
+        if (ENABLED) {
+            final long cpu = System.nanoTime() - openCpu;
+            final long alloc = openAlloc < 0 ? 0 : AllocProbe.now() - openAlloc;
+            final Sum s = sum(openKey);
+            s.cpuNs += cpu;
+            s.allocBytes += alloc;
+            s.sections++;
+            if (openQuery != 0) {
+                GL15.glEndQuery(GL33.GL_TIME_ELAPSED);
+                final Pending p = new Pending();
+                p.query = openQuery;
+                p.key = openKey;
+                p.window = window;
+                PENDING.add(p);
+            }
         }
+        if (GlStateCheck.ENABLED) GlStateCheck.after();
         openKey = null;
         openQuery = 0;
     }
@@ -106,14 +120,20 @@ public final class GpuTimer {
         pollResults();
         final Report r = new Report();
         r.frames = frames;
+        allocOverhead = AllocProbe.overhead();
         final StringBuilder detail = new StringBuilder();
         for (Map.Entry<String, Sum> e : SUMS.entrySet()) {
-            final double gpu = frames == 0 ? 0 : e.getValue().gpuNs / 1e6 / frames;
-            final double cpu = frames == 0 ? 0 : e.getValue().cpuNs / 1e6 / frames;
+            final Sum s = e.getValue();
+            final double gpu = frames == 0 ? 0 : s.gpuNs / 1e6 / frames;
+            final double cpu = frames == 0 ? 0 : s.cpuNs / 1e6 / frames;
+            // bytes per frame in the section, the counter's own cost per section taken off
+            final double alloc = frames == 0 ? 0
+                : Math.max(0, s.allocBytes - (double) allocOverhead * s.sections) / frames;
             r.gpuMs += gpu;
             r.cpuMs += cpu;
+            r.allocBytes += alloc;
             if (detail.length() > 0) detail.append(' ');
-            detail.append(String.format(Locale.ROOT, "%s=%.4f/%.4f", e.getKey(), gpu, cpu));
+            detail.append(String.format(Locale.ROOT, "%s=%.4f/%.4f/%.0fB", e.getKey(), gpu, cpu, alloc));
         }
         r.detail = detail.length() == 0 ? "-" : detail.toString();
         r.gpuSupported = supported();
@@ -126,7 +146,9 @@ public final class GpuTimer {
         public int frames;
         public double gpuMs;
         public double cpuMs;
-        /** {@code key=gpu/cpu} per key, ms per frame. */
+        /** Bytes allocated per frame inside the sections (R-16). */
+        public double allocBytes;
+        /** {@code key=gpu/cpu/allocB} per key: ms per frame, bytes per frame. */
         public String detail;
         public boolean gpuSupported;
     }
