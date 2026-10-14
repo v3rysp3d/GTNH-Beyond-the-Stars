@@ -9839,3 +9839,70 @@ planets mode are in the earlier clips (`kerr-v2`, `quasar-v2`, `stars-v2`, `gala
 
 **Suggestion.** None needed. If the video goes out with the release, use the 720p parts and say in the post that
 the run-fast transitions were set by a dev tool.
+
+### R-19 The supermassive hole on the renders v2 kit [SMBH v1 §7, renders v2]
+
+**What was built.** A quasar with a Supermassive Lattice in force now reads as supermassive at the shader qualities
+(`QuasarHoleRenderer`, a new program `bts_smbh` in `SmbhFx`, GLSL `shaders/smbh/`; the jet program gains one uniform).
+The low quality and a failed bake still draw the fixed look of before (only its hole size now follows the compressed
+law below, so an Unbound hole no longer swallows its own ring).
+
+- **The hole.** Up to 4,096 SM the synced log law is unchanged. Past it the drawn size follows a compressed law
+  (`drawScale`): x1.2 at 16,384 SM, x1.7 at 1 M, x2.1 at the L4 top (67 M SM), never past x2.6 (2^50 SM). Every mass
+  up to Unbound stays inside the inner Eddington wall (r 34) while the shadow and the lensed disc grow. The photon ring
+  and glow are stronger, the beaming steeper, the disc a little hotter.
+- **The ring.** Hotter (the wall and body temperatures up to x1.3), thicker (up to x1.45, with the exposure divided by
+  the same factor so it stays coloured), more turbulent and with stronger Doppler beaming (beta 0.11 to 0.24).
+- **The jets.** Up to 1.9 times as wide, brighter knots.
+- **The cage.** The 48 Containment Nodes glow in their tier's colour (L1 teal, L2 white-blue, L3 violet, L4 magenta,
+  the node textures' colours), with a field arc from every node over the outer wall into the ring's outer edge, beads
+  of light running down it. While the hold-up is short (leaking) the nodes blink amber. The node cells are placed by
+  the exported shape's rule in the vertex shader, so nothing per node is synced.
+- **Overdrive** (by the level in effect): the ring and the jets brighten toward white-violet, three tight MHDCSM field
+  helices wind round each jet against its strands, the nodes flare (bigger, whiter, flickering) and the arcs crackle.
+- **Unbound** (by the doublings n): a darker, wider lensing halo under the hole (radius 4.2 + 2.6 n Schwarzschild radii,
+  darkness 0.38 + 0.2 n) with a thin violet rim, the horizon breathing +-3 % at 0.5 Hz, and faint violet anchor
+  threads from node to node round each ring.
+- **The intake.** While the Growth segment runs, 12 spirals of cool red gas stream in across the ring from the outer
+  wall to the inner wall, heating to orange-white, as wide and bright as the Growth share; the hole's inner disc gets
+  infall streamers.
+- **A shed.** The eruption's flare held: a giant knot up each jet every 1.4 s and a flickering core.
+- **The Mk IV crown** (`ConduitRender`): the Event Horizon Crown's heat runs white-violet instead of orange, a wider
+  column, a white-hot photon-ring glare at the throat and a violet bloom over the larger cup.
+
+**Sync (render-only, as R-03).** The quasar's render tile look (`btsQuasarLook`) gains six fields: the lattice tier
+in force (`lt`), the Overdrive level in effect (`od`), the Unbound doublings (`un`), the Growth segment over the
+intake cap (`gr`), the hold-up coverage (`hc`) and shedding (`sh`). The controller fills them from the last disc
+second when it pushes the look; a change is sent when the tier, the shed or the leak state flips, Overdrive or n
+moves by 0.02, Growth or the coverage by 0.03. Nothing goes into the controller's saved state or an item.
+
+**Budget and LOD.** At most three more draws per quasar: the lattice mesh (nodes, arcs and threads in one draw), the
+intake streams (only while growing) and the halo (only when Unbound). Nodes draw from L2 in; arcs, threads and
+streams from L1 in; the halo from L2 in. A lattice quasar ranks by its cage's radius (104 blocks) and its render box
+grows to the cage (r 97) while a lattice is in force.
+
+**Shots.** Nine harness cases (`-Dbts.rendertest.only=smbh`, site `SMBH`: a lattice quasar on MagMatter coils with a
+Mk IV crown on each port, the nodes re-tiered per case): L1 at 16,384 SM, L2 at 131,072 SM leaking (hold-up 70 %),
+L3 at 262,144 SM, L3 growing at 1 M SM (Growth 60 %), L3 at its top in Overdrive 50 %, L4 at 67 M SM, L4 in Overdrive
+100 %, L4 shedding at 33.6 M SM and Unbound n = 1 (134 M SM). Each is shot AFTER at high and BEFORE at low (`_low`),
+at the same computed poses: outside the cage (`orbit`), over the ring (`ring`), inside the inner wall close to the
+hole (`hero`, the SMBH site's own) and down into the top crown's cup (`crown`), by day and by night: 144 shots, every
+one looked at; the ring's thickness, the node size, the hole's temperature and the intake streams were tuned between
+three runs. The shots, the contact sheets and `fps.tsv` are kept with the render QA shots (`renders/smbh/`, outside
+the repository).
+
+**GPU (dev rig, `GpuTimer`, the quasar's whole draw per frame).** Mean over the 72 high shots 0.063 ms. By view:
+`orbit` 0.050, `ring` 0.071, `hero` 0.104, `crown` 0.026 ms (with the crown's 0.0006 ms). Worst: the Unbound hole's
+hero view by night, 0.142 ms; the L4 hero views 0.134 to 0.139 ms. All under the quasar's dev-rig acceptance of
+0.20 ms (renders v2 §3.1). The low shots cost 0.007 ms.
+
+**Seen in the shots.** The crowns glow wherever the quasar makes bursts. They are dark in the shedding case and in
+the Unbound case: the first sheds by design, the second sheds because the bench hatches hold no Primordial Matter (an
+Unbound hole without its anchor sheds, smbh-v1.md §5.2). The harness sets each case's mass setpoint to its mass so the
+others do not shed.
+
+**Harness additions (dev only).** The `SMBH` site, the nine cases with their `_low` twins, the `orbit` and `crown`
+views, the SMBH `hero` pose, a 19-entry quasar debug look (the six fields and the mass) and the per-case node tier,
+Unbind and mass setpoint.
+
+**Suggestion.** None needed. The Unbound/Overdrive film (smbh-v1.md §10.4) uses this look.
