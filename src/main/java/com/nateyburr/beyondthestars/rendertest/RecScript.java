@@ -61,7 +61,12 @@ final class RecScript {
             "creativepower",
             "name",
             "readout",
-            "melist"));
+            "melist",
+            "quality",
+            "badge",
+            "eyelook",
+            "eyeramp",
+            "clientlook"));
 
     /** The verbs whose time is recorded. */
     static final Set<String> RECORDING = new HashSet<>(

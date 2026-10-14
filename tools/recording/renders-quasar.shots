@@ -1,0 +1,46 @@
+# Renders v2 WP-2: the quasar (docs/render-kit.md, QuasarFx). Dev only: -Dbts.rec=true
+# -Dbts.rec.script=tools/recording/renders-quasar.shots. About a minute of video.
+# The quasar's controller at 9000 70 4400 facing north: its hole (the render centre) is 15 up and 72 behind it.
+command /btsquasar t3 9000 70 4400 north seed
+command /btsquasar keep 9000 70 4400
+command /btsquasar feed 9000 70 4400 1.0
+command /btsquasar mass 9000 70 4400 1024
+command /btsquasar run 9000 70 4400 60 fill
+name q 9000.5,85.5,4472.5
+time night
+wait game:6
+
+scene title
+  card 3 Renders v2: the quasar | a turbulent accretion ring, a lensed hole, helical jets, eruptions and purges
+
+scene ring
+  caption Inside the shell, over the accretion ring: sheared Keplerian streaks, spiral density waves, the hot inner wall.
+  goto q+0,46,-52 look q+0,0,12
+  hold 6
+
+scene hole
+  caption The hole: its inner disc's edge sits at the spin's ISCO; two helical jets with knots; field lines round the poles.
+  orbit q radius 25 height 5.2 from 330 to 30 seconds 10 ease inout
+
+scene erupt
+  caption The flux reaches 100: an eruption. A shock shell races out across the ring, the field lines snap, the jets fire.
+  goto q+0,46,-52 look q+0,0,12
+  hold 1
+  command /btsquasar run 9000 70 4400 100 fill
+  hold 7
+
+scene purge
+  caption A purge (a controlled release): blue-white, no shell; the field lines unwind, a spiral flash runs up the jets.
+  command /btsquasar run 9000 70 4400 40 fill
+  goto q+11.5,5,-20 look q
+  hold 1
+  command /btsquasar purge 9000 70 4400
+  hold 6
+
+scene outside
+  caption From outside: the jets through the tower and a zone-coloured glow over the cap.
+  goto q+70,112,-30 look q+0,78,0
+  hold 5
+
+scene end
+  card 2 Beyond the Stars | renders v2

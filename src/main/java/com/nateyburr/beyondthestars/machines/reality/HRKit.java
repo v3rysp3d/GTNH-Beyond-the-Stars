@@ -226,7 +226,7 @@ public final class HRKit {
     }
 
     /** The machine axis (the render centre) as a/b/c from the controller, from the manifest; {0,0,0} if absent. */
-    private static int[] centreRel(Machine m) {
+    public static int[] centreRel(Machine m) {
         try {
             final JsonObject machines = BTSShapes.manifest()
                 .getAsJsonObject("machines");

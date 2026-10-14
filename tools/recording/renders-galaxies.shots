@@ -1,0 +1,57 @@
+# Renders v2 WP-5: the Eye's galaxies (docs/render-kit.md, GalaxyFx). Dev only: -Dbts.rec=true
+# -Dbts.rec.script=tools/recording/renders-galaxies.shots. About a minute and a half of video: Triangulum, a real
+# minor merger, the Milky Way, a real satellite crossing (its 120 s countdown and the ring wave, as a time-lapse),
+# and the Milky Way through the front window (the events driven by the Eye bench's `event` and `crossing`; the bench
+# quasar model, `galaxy 0`, keeps the galaxy fields fed).
+kit eye 8 3000,5,4000 gen 8 name g
+command /btseye star {g} unlock 8
+command /btseye star {g} fill
+command /btseye star {g} rig none
+time night
+wait game:3
+
+scene title
+  card 3 Renders v2: the Eye's galaxies | 20,000 stars, density-wave arms, dust lanes, mergers and crossings
+
+scene triangulum
+  caption T7, Triangulum: a flocculent spiral, patchy arms of young blue stars and pink star-forming knots.
+  command /btseye star {g} target triangulum
+  command /btseye star {g} lit triangulum
+  command /btseye star {g} galaxy 0 mass 136
+  wait game:4
+  orbit g.c radius 11 height 14 from 330 to 60 seconds 10 ease inout
+
+scene minor
+  caption A minor merger is warned: a dwarf galaxy falls in toward the disc...
+  goto g.c+6,12,-11 look g.c
+  command /btseye star {g} event
+  hold 6
+  wait game:6
+  caption ...hits it with a flash and is torn apart.
+  hold 7
+
+scene milkyway
+  caption T8, the Milky Way: a barred spiral, two major arms, dust lanes, a warm bulge and the Magellanic Clouds.
+  command /btseye star {g} target milkyway
+  command /btseye star {g} lit milkyway
+  command /btseye star {g} galaxy 0 mass 136
+  wait game:4
+  orbit g.c radius 12 height 13 from 200 to 300 seconds 10 ease inout
+
+scene crossing
+  caption A satellite crossing: a dwarf falls toward the disc over its 120 s countdown (time-lapse)...
+  goto g.c+5,13,-10 look g.c
+  command /btseye star {g} crossing
+  timelapse 10 speed 13
+  caption ...punches through it, and a ring wave of star formation runs out across the disc.
+  timelapse 22 speed 14
+
+scene window
+  caption From the front, through the window band: almost edge-on, the dust lane splits the bulge.
+  fov 22
+  goto g.c+0,0,-111 look g.c
+  hold 6
+  fov 70
+
+scene end
+  card 2 Beyond the Stars | renders v2

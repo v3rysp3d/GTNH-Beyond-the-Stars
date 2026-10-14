@@ -21,11 +21,13 @@ import javax.annotation.Nonnull;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.google.common.io.ByteArrayDataInput;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.gtnewhorizon.structurelib.alignment.IAlignmentLimits;
@@ -40,6 +42,7 @@ import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
 import com.nateyburr.beyondthestars.machines.QuietTileUpdate;
+import com.nateyburr.beyondthestars.machines.conduit.ConduitRender;
 import com.nateyburr.beyondthestars.machines.conduit.ConduitThroats;
 import com.nateyburr.beyondthestars.machines.conduit.FlowBook;
 import com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor;
@@ -64,6 +67,8 @@ import gregtech.api.structure.error.StructureError;
 import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
 import gregtech.common.misc.WirelessNetworkManager;
+import gregtech.common.render.IMTERenderer;
+import io.netty.buffer.ByteBuf;
 
 /**
  * P4: the BURST THERMALISER CROWN, MTE base+24 = 28124 (quasar-p4.md §2, §7; D-30, D-32, D-35, Q-7). One controller;
@@ -81,7 +86,7 @@ import gregtech.common.misc.WirelessNetworkManager;
  * </ul>
  */
 public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTEBurstThermaliserCrown>
-    implements ISurvivalConstructable, IBurstDock {
+    implements ISurvivalConstructable, IBurstDock, IMTERenderer {
 
     public static final String[] PIECES = { "crown_mk1", "crown_mk2", "crown_mk3" };
     public static final String CHANNEL_CROWN = "crown";
@@ -117,6 +122,9 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
     private double lastStream, lastUsed, lastOver, lastClipped, lastRemote, lastJets, lastOverIn;
     private String stackLine = "";
     private String dockNote = "";
+    /** Client: the Mk and the burst taken / thermalised last second, as last sent (renders v2 §10, never saved). */
+    private int renderMk;
+    private float renderStream, renderUsed;
     private long dockTick = Long.MIN_VALUE / 2;
 
     public MTEBurstThermaliserCrown(int aID, String aName, String aNameRegional) {
@@ -348,6 +356,7 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         if (!mMachine) {
             lastStream = lastUsed = lastOver = lastClipped = 0;
             aBaseMetaTileEntity.setActive(false);
+            if (aTick % 100 == 0) sendRenderDataToClient(this);
             return;
         }
         final int[] intake = intakeCell();
@@ -356,6 +365,56 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         aBaseMetaTileEntity.markDirty(); // the lifetime EU changes every second (P4-85)
         book.prune(now);
         aBaseMetaTileEntity.setActive(lastUsed > 1e-9);
+        sendRenderDataToClient(this);
+    }
+
+    // ============================================================================ renders v2
+
+    /** Renders v2 (§10): the intake's heat bloom (client; ConduitRender). */
+    @Override
+    public void renderTESR(double x, double y, double z, float partialTicks) {
+        ConduitRender.renderCrown(this, x, y, z, partialTicks);
+    }
+
+    @Override
+    public AxisAlignedBB getRenderBoundingBox(int x, int y, int z) {
+        return AxisAlignedBB.getBoundingBox(x - 30, y - 30, z - 30, x + 31, y + 31, z + 31);
+    }
+
+    @Override
+    public double getMaxRenderDistanceSquared() {
+        return 256.0 * 256.0;
+    }
+
+    /** Server, once a second: the Mk and the burst taken and thermalised last second (render-only, never saved). */
+    @Override
+    public void encodeRenderData(ByteBuf buf) {
+        buf.writeByte(mMachine ? mk : 0);
+        buf.writeFloat((float) lastStream);
+        buf.writeFloat((float) lastUsed);
+    }
+
+    /** Client. */
+    @Override
+    public void decodeRenderData(ByteArrayDataInput in) {
+        renderMk = in.readByte();
+        renderStream = in.readFloat();
+        renderUsed = in.readFloat();
+    }
+
+    /** Client: the Mk as last sent (0 not formed). */
+    public int renderMk() {
+        return renderMk;
+    }
+
+    /** Client: the stream taken last second, Bu/t. */
+    public float renderStream() {
+        return renderStream;
+    }
+
+    /** Client: the burst thermalised last second, Bu/t. */
+    public float renderUsed() {
+        return renderUsed;
     }
 
     /** One crown second: jets + the receptor + a lower crown's overflow; EU to wireless; overflow up the stack. */

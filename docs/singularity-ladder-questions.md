@@ -7,7 +7,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 2. **Settled**: everything you have answered, in your words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision from you.
 4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122 and B-130..B-138, the tidy pass's
-   TQ-1..TQ-8, and P4's P4-01..P4-94 in Part E).
+   TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
 on); the old Q-1..Q-38 and the merged branches' numbers are mapped under "Where the old question numbers went".
@@ -8232,3 +8232,1000 @@ acted a whole second late by construction): it fits the wire a player would, a G
 dev server, 13 sites with the quasar's second 3-19 ticks behind the Eye's: the purge landed on second 298 every time
 and the eruption was on the Eye on the collapse second. What it then cancels is the quasar's stream: the 34 failures
 at 64 SM were the weak stream of a fresh, spinless hole (1.3 Bu/t), not the timing.
+
+## Part R. Renders v2 (branch renders, R-01..)
+
+The renders v2 overhaul ("We also want to miake our black hole, quasar ring and all of the renders super detailed and
+cool looking"). Its spec is the design repo's `designs/docs/renders-v2.md`; these entries are the branch's judgement
+calls and findings. Numbers here never collide with B- or P4- entries.
+
+### R-01 The render QA harness covers every state; fixed camera poses [renders v2, harness]
+
+**What was built.** The render QA harness (`-Dbts.rendertest=true`) shoots every render the addon draws, in every state
+the spec covers, from fixed poses:
+
+- 44 cases (was 22): the Kerr at 16 / 64 / 256 / 512 SM plus a strained (coverage 0.3) and a failing (coverage 0) hole;
+  the Eye's protostar early and late, Sol, Sol unstable, Sirius A, Arcturus and its helium-flash warning, the neutron
+  star, the Core Collapse swell and bounce, the supernova flash, the dwarf at 10 / 50 / 90 %, the magnetar, its warning
+  and the overfed magnetar; the quasar live, Resonant, Critical, re-forming, an eruption and a purge; Triangulum, the
+  forming galaxy, its merger warning, the Milky Way, the merger, the crossing warning, planets with 6 and 3 slots; the
+  three pack references; and four sites with no render yet (the Homogeny, both Reality machines, the conduit rig with a
+  crown on the top jet port).
+- New sites are appended (world layout L4: `bts-rendertest-L4`), so every older site keeps its place.
+- States that will not hold still are frozen on the client only, as `TileEyeStar.debugEventAge` already did:
+  `TileKerrHole.debugStability` (GT's stability input) and `TileQuasarHole.debugLook` (zone, lambda_c, E, both jets,
+  the flash age and size). Null / negative in play.
+- `EyeStarLook.protostar(n, f)` and `overfedMagnetar(f, warn)` are the runtime's own looks, moved out of `of()`
+  unchanged, so the harness shows exactly what a player sees.
+- **Fixed poses.** Every run writes the computed day pose of each case and view (the eye relative to the case's render
+  centre, yaw, pitch) to `screenshots/rendertest/poses.tsv`. The BEFORE run's file is committed as
+  `tools/rendertest/poses.tsv`; `-Dbts.rendertest.poses=tools/rendertest/poses.tsv` makes a run stand exactly there, so
+  the AFTER shots match even when an object's size (and so the computed close view) changes.
+- `-Dbts.rendertest.views=a,b` picks the views; `hero` (opt-in) is the detail close-up: 3 object radii out, 30 degrees right of the front,
+  12 degrees above the disc plane.
+
+**Findings.**
+
+1. **Render distance 4.** The first BEFORE pass ran at render distance 4 although the harness sets 16: a dev client
+   reads its `options.txt` back a second after start-up (the dev run dirs carry `renderDistance:4`; the server log says
+   "Changing view distance to 16, from 10" then "to 4, from 16"), the trap the recorder already handles (B-109). Every
+   far view stood beyond the terrain: the quasar's `front` (201 blocks) and `34` (230) were empty sky, the Eye's `34`
+   views lost most of the structure. Fixed: the harness holds 16 every tick and logs it if something changed it. The
+   BEFORE set is two passes at the same poses: pass 1's `close` views, pass 2's `front`, `34`, `level` and `hero`.
+2. The harness's FPS counter reads 119-120 on every shot (the dev client's frame cap): it does not measure render cost.
+   The spec adds GPU timer queries (`-Dbts.rendertest.gputime=true`, WP-0) for the budget.
+3. The `34` view of the Eye sites stands 200-230 blocks out; the distance fog hides most of the structure by day (the
+   star still draws). It stays as it is so BEFORE and AFTER match; the `hero` and `close` views carry the detail.
+4. Provisional render centres lie inside blocks: the bounding box's centre for the Homogeny and the Refab (their
+   `close` / `hero` shots look at casing interiors) and the crown controller's cell for the conduit rig (its `hero`
+   stands against the crown's casing). Their `close` / `hero` poses are re-recorded when the conduit, vortex and
+   Reality renders fix the real centres (spec §14).
+5. Verdicts per object are in the spec, §1.2.
+
+**Suggestion.** None needed (tooling). Shots: local work folder `renders/<object>/before-*.png`, contact sheet
+`renders/before.html`.
+
+### R-02 The KEE controller stands in the middle of the window band, in front of the hole [render K2, observation]
+
+**What the shots show.** From the `level` view (24 blocks in front, at the hole's height) the KEE controller sits at
+the centre of the Quantum Glass window, right in front of the hole; through the blue glass the hole today reads as a
+faint dark disc behind the controller face, by day and by night.
+
+**What the spec does.** The v2 hole's edge-on disc and its lensed arcs reach past the controller (halo 4.3-8.6 blocks
+against a 1-block controller), and the disc is bright enough to read through the glass.
+
+**Suggestion.** Keep the controller where it is. Alternative: move it one cell down (a structure change and a
+re-export of the Kerr shapes, out of scope for renders v2).
+
+### R-03 The quasar's look gains four render-only fields [renders v2, sync]
+
+**Context.** The quasar render reads `holeScale`, GT stability, `lc`, `zone`, `E`, both jets and the flash. The v2 look
+needs four more things: which event flashed (an eruption and a purge must look different), the spin `a` (the inner
+disc's edge at r_isco), the flux Phi (the field lines tighten as it builds, crackle above 90) and the Harmonic Lock.
+
+**What the spec does.** Adds `ev`, `a`, `phi`, `lock` to `TileQuasarHole`'s look compound only (the render tile's
+description packet, sent to the players watching the chunk without a block update, as now). Nothing in the quasar's
+saved state or an item changes.
+
+**Suggestion.** Add them.
+
+### R-04 The Eye's look gains an event code and clock [renders v2, sync]
+
+**Context.** Today the merger's pericentre passes, the T8 crossing and the helium flash all show only as "warn" (aux
+0.5-1). The v2 galaxies show the companion's orbit, the tidal tails, the satellite falling over the 120 s countdown and
+the ring wave after the hit; Arcturus builds a ripple toward its flash.
+
+**What the spec does.** `TileEyeStar`'s look gains `ev` (a byte) and `evClock` (a float, sent when it moves by 2 %).
+`EyeStarLook.differs` counts them. No machine NBT changes.
+
+**Suggestion.** Add them.
+
+### R-05 New renders for machines without a render tile go through GT's IMTERenderer [renders v2, sync]
+
+**Context.** The conduit streams, the crown, the Wormhole Mouth, the Homogeny and the Reality machines draw nothing
+today. GT RC-2 has `gregtech.common.render.IMTERenderer` (a TESR for an MTE with its own render bounding box, max
+distance and a render-data channel `encodeRenderData` / `decodeRenderData` / `sendRenderDataToClient`; GT's own
+`WormholeRenderer` and `NanoForgeRenderer` use it).
+
+**What the spec does.** Those controllers implement `IMTERenderer`; their render data (stream end points, Bu/t,
+colours, progress) goes over GT's render channel, not into saved NBT. No new render blocks in their structures.
+
+**Suggestion.** Use it. Alternative: a server-placed render block per machine as the Eye / Kerr / quasar do (more
+moving parts: placement, self-policing, orphan cleanup).
+
+### R-06 Budget, quality defaults and the target rig [renders v2, judgement]
+
+**What the spec sets.** `renderQuality=high` by default; at most 2 objects at HIGH at once (`renderMaxHighObjects`);
+the target rig is a GTX 1060 / RX 580 class GPU at 1080p, where the addon may take about 2 ms of GPU in its busiest
+scene; the dev rig (RTX 4090) accepts at the target budget / 6. LOD by projected radius (300 / 80 / 20 px), LOW =
+today's fixed-function renders.
+
+**Suggestion.** Accept. Alternative: default `medium` for players on integrated graphics (the config says how).
+
+### R-07 The Kerr's visual spin and disc direction [renders v2, judgement]
+
+**Context.** The Kerr has no spin mechanic (mass, setpoint, coverage, bleed). A "Kerr" hole should still look like a
+spinning one: a D-shaped shadow and a Doppler-bright side.
+
+**What the spec does.** A constant visual spin a = 0.9, the disc turning anticlockwise seen from above, so the
+approaching (bright, blue-white) side is on the left seen from the controller.
+
+**Suggestion.** Accept. Alternative: tie the visual spin to how full the hole is against its cap (a fuller hole spins
+faster).
+
+### R-08 The background lensing copies the framebuffer only without a shaderpack [renders v2, Angelica]
+
+**Context.** Bending the real world behind a hole needs a copy of the screen under the lens quad. Under an Angelica /
+Iris shaderpack the pack owns the framebuffers.
+
+**What the spec does.** HIGH, L0, no shaderpack: copy the rectangle (at most 1024 x 1024, about 0.05 ms on the target
+rig) and bend it. With a shaderpack, at MEDIUM or with `renderBackgroundLensing=false`: bend a procedural starfield
+inside the lensing ring instead.
+
+**Suggestion.** Accept.
+
+### R-09 The quasar's ring cannot be seen from outside [render readability, structure]
+
+**What the shots show.** From the `level` view (24 blocks in front, at the disc's height) the Quasar Engine is a
+closed box: the disc wall is opaque all round and only the top jet's tip clears the roof. From above (`34`, at night)
+the ring shows only as a faint gold crescent through the roof lattice. The ring (r 40-62) is properly visible only from
+inside the structure. The Kerr and the Eye had the same problem and got window bands (render K2 / E-9,
+"Glass window bands").
+
+**What renders v2 does.** The jets carry the outside look (bright, helical, visible above the roof) and each cap leaks
+a zone-coloured glow, so the quasar's state reads from outside without a structure change.
+
+**Suggestion.** A Quantum Glass window band in the disc wall at the ring's height (as the Kerr and Eye got), as its own
+structure change (voxel.js, re-export, hologram, NEI, BOM), outside renders v2. Alternative: keep the box closed and
+rely on the jets and the cap glow.
+
+### R-10 The render kit (WP-0): shared shaders, quality setting, LOD, GPU probe [renders v2, tooling + finding]
+
+**What was built.** The shared render kit of spec §2-§4 in `client.render` (developer notes: `docs/render-kit.md`):
+a program registry over GT's `ShaderRecipe` with a once-logged compile-failure fallback (`BTSShaders`); our GLSL
+served with `#include`s expanded and a per-profile `BTS_TEX` / `BTS_CORE` define (`GlslSourcePack`, domain
+`beyondthestars_glsl`); shared includes for hashes, texture and ALU noise, fbm, cells, the blackbody LUT, the tonemap
+shoulder and glow falloffs; the 256 x 256 noise texture and the 256 x 1 blackbody LUT (Planck x CIE 1964 10-degree);
+VBO meshes (quad, sphere, annulus, ribbon); a glow sprite and a `GL_POINTS` point batch, each with its
+fixed-function twin; GL state save / restore and layer presets; the client quality setting (`client_render`:
+`renderQuality` high / medium / low, `renderLodScale`, `renderMaxHighObjects`, `renderBackgroundLensing`,
+`renderParticles`); LOD by projected radius with 10 % hysteresis and the two-largest-objects HIGH budget; a reflective
+shaderpack probe; a dev GPU-time probe (`GL_TIME_ELAPSED`, read back without stalls) whose numbers the harness writes
+to `fps.tsv`; the harness switch `-Dbts.rendertest.quality`. The Kerr, quasar and Eye renderers now run through it
+(state, timing, tier, the Eye's program and sphere and its fixed shapes) and draw exactly what they drew before at
+every tier: the v2 looks come in WP-1..WP-5.
+
+**One behaviour change, on failure only.** If TecTech's star shader does not bake, the Eye used to draw nothing; it
+now draws its object as a plain coloured sphere with today's limb darkening and veil (`-Dbts.render.failShaders=true`
+shows it).
+
+**How it was checked (dev rig, RTX 4090, legacy profile).**
+
+- Self test (`-Dbts.render.selftest=true`): both profiles of every kit program compile and link from the served
+  sources (0 failures); the self-test program draws as GT baked it and as a hand-linked `#version 330 core` variant
+  side by side, identically; glow and points draw by shader and by fixed function; with `-Dbts.render.failShaders=true`
+  every program reports off once and each object draws its fallback. The self test caught one real bug on its first
+  run: `packed` is a reserved word in GLSL 3.30 (the point shader's core variant did not compile); renamed.
+- Full harness pass at the fixed BEFORE poses, all 44 cases x 5 views x day / night (440 shots), compared pixel by
+  pixel with the BEFORE set: the `front`, `34`, `level` and `hero` views (shot at render distance 16 in both sets)
+  differ by 0.12 % of pixels on average for the Kerr (max 0.76 %), 0.41 % for the quasar, 0.56 % for the galaxies,
+  1.2 % / 1.9 % for the stars and compact objects; the larger ones are all `hero` close-ups of animated layers (texture
+  spin, beam sweep, magnetar flare phase, jet pulse) and the untouched reference TecTech Forge of the Gods differs most
+  (up to 42 %), so the gap is time, not code. The `close` views differ by 15-55 % because BEFORE pass 1 shot them at
+  render distance 4 (R-01): fog and missing terrain; looked at one by one, the objects match. A LOW-quality subset
+  (`-Dbts.rendertest.quality=low`) matches BEFORE too.
+- GPU per frame at HIGH (today's looks, mean / worst view): Kerr 0.002 / 0.006 ms, quasar 0.005 / 0.010 ms, Eye stars
+  T1-T5 under 0.034 ms, magnetar 0.055 ms, galaxies 0.009 ms. **Finding:** the CPU side is what costs today: the
+  quasar's Tessellator ring and jets take up to 0.62 ms of CPU a frame and the Eye's fixed-function spheres
+  0.10-0.24 ms, over the spec's 0.05-0.08 ms CPU budgets; the v2 VBO renders fix that (the fixed paths stay as LOW).
+
+**Not verified here.** The Angelica core profile itself: the dev client has no Angelica / lwjgl3ify, so the core
+variants are proven by compiling, linking and drawing them on a compatibility context, not under Angelica's GLSM.
+
+**Suggestion.** None needed (tooling). Shots and diffs: local work folder `rkit/runs/` and `renders/wp0/`.
+
+### R-11 The Kerr hole, renders v2 (WP-1): a lensed black hole instead of GT's model [renders v2, judgement + finding]
+
+**What was built.** The KEE's hole draws the shared black-hole program `bts_blackhole` (`client.render.BlackHoleLens`,
+GLSL `shaders/bh/lens.glsl`; notes in `docs/render-kit.md`) at every shader tier. One camera-facing quad; each pixel
+traces its view ray backwards through the hole's gravity (Schwarzschild bending plus a weak frame-dragging term) and
+through a thin turbulent accretion disc in the cage's plane. What a player sees:
+
+- a black shadow (slightly D-shaped: flatter on the approaching side) with a thin cream-gold photon ring, the ring
+  brightest on the approaching side (the cream ring of GT's model, now the photon ring);
+- the disc's near side crossing in front of the shadow, its far side bent into an arc over the shadow and a thinner
+  one under it (the "Interstellar" look);
+- Doppler beaming: the approaching side (left, seen from outside; the disc turns anticlockwise from above) brighter
+  and whiter, the receding side dim gold; the inner edge reddened and darkened by gravity;
+- turbulence: fine filaments sheared by Keplerian rotation (the inner gas laps the outer), hot clumps drifting in,
+  two slow spiral density waves, a ragged outer edge;
+- from very close (L0, no shaderpack) the cage behind the hole bends into an Einstein ring (screen copy); without
+  it, a faint lensed starfield at night.
+
+**Driven only by what the tile already syncs** (no new sync, no NBT): `kerrScale` gives the size (the disc ends where
+GT's halo ended, 1.8 x the scale: inside the cage at every mass, so growth with mass stays in the cage) and the
+temperature; GT's stability (= coverage) gives the coverage looks; GT's `scaling` / `startTime` the growth / collapse
+curve (GT's own 40-tick smootherstep) with a white opening ring and a blue-white Hawking flash. LOW quality, a shader
+that does not bake or a GL error: GT's `BlackholeRenderer` exactly as before (the LOW shots match BEFORE).
+
+**Judgement calls (spec §5 deviations).**
+
+1. *Display temperatures.* The spec's T_in = 18,000 K x (M / 16)^-0.25 maps every mass to blue-white through the
+   blackbody table, which does not give its own verbal look. Built: 9,000 K x (M / 16)^-0.3, clamped 3,800-13,000 K,
+   so 16 SM is white-hot (silver-white), 64 SM gold-white, 256-512 SM golden-orange; coverage slides it toward
+   2,000 K (the spec's 2,500 K still read yellow-orange after the tonemap shoulder).
+2. *Proportions.* Disc 1.45-7.5 r_s (spec: ISCO 1.16 r_s, outer edge open): with the disc's outer edge fixed at GT's
+   halo, 7.5 r_s makes the shadow about a third of the disc's radius, which reads as "a black hole" from the window
+   and the hero view (9 r_s made the shadow too small).
+3. *L2 keeps a short march* (24 steps) instead of the spec's "analytic look": the look stays the same across tiers
+   (no pop between L1 and L2) and a 20-80 px object costs about 0.001-0.002 ms of GPU throughput anyway. L3 adds a
+   warm glow sprite under a 14-step march.
+4. *Photon ring from the rays' closest approach* (r_min near 1.5 r_s) rather than "b within 2 % of b_crit": it follows
+   the D-shape the frame dragging gives, and it is widened to at least about a pixel so it reads from far away.
+5. *Bounding sphere 1.08 x the disc* (spec 1.15): the lensed image and its glow fit, an eighth fewer pixels.
+6. *Depth.* The hole draws in pass 0 like GT's model, with depth writes where it has content: the window's far-side
+   glass does not tint the hole a second time; the near glass tints it as the spec expects.
+7. *Frame drag 0.35* (a slight D, "slightly flattened" in the spec); the approaching side is always the left seen
+   from outside, whatever the KEE's facing (R-07).
+
+**GPU (dev rig, RTX 4090, 1280 x 720, the fixed poses; `GL_TIME_ELAPSED` round the draw).** Two numbers, because a
+timer query serialises the GPU round one small draw: the single-draw time includes that latency (about 0.05-0.07 ms
+for any shaded hole however small); the *marginal* cost, `(9 draws - 1 draw) / 8` (`-Dbts.render.bhRepeat=9`), is
+what the hole adds to a busy frame.
+
+| View (tier at 720p) | Single draw | Marginal | Budget (dev) |
+|---|---|---|---|
+| front, 34, level (L2, 20-75 px) | 0.052-0.080 ms | 0.001-0.002 ms | 0.08 |
+| close T1 (L2) | 0.060-0.073 ms | 0.002-0.006 ms | 0.08 |
+| close T2 (L1, 21 blocks) | 0.079-0.081 ms | 0.037-0.039 ms | 0.08 |
+| hero 16 / 64 SM calm (L1) | 0.082-0.084 ms | 0.031-0.047 ms | 0.08 |
+| hero 64 SM strained / failing (L1) | 0.119-0.123 ms | 0.059-0.063 ms | 0.08 |
+| hero T2 256 / 512 SM (L1, 290 px, near full frame) | 0.110-0.116 ms | 0.094-0.107 ms | 0.08 |
+| hero / close forced to L0 (`renderLodScale` 0.4) | 0.165-0.233 ms | about 0.02-0.11 ms (noisy) | 0.08 |
+
+CPU 0.024-0.047 ms per frame (budget 0.05); one draw call (two at L3). Within budget except the T2 hero close-up
+(near-full-frame, 1.2-1.3x) and L0 (screen copy + 72 steps), which the spec reserves for a hole larger than 300 px.
+On the way there the cost came down by half (first build: 0.27 ms single at the strained hero): at most 4 noise
+samples per ray, plane heights before the disc transform, early exit for rays leaving clear of the disc, a tighter
+bound, 32 steps at L1.
+
+**Checked.** Both profiles of `bts_blackhole` compile and link (`-Dbts.render.selftest=true`); 60 AFTER shots at the
+BEFORE poses (6 cases x 5 views x day / night), 60 LOW shots (match BEFORE), 16 L0 shots; a one-minute clip
+(`tools/recording/renders-kerr.shots`: night orbit, L0 close-up with the bent cage, the window, day, then the hole
+switched off and on: it shrinks to a point in a blue-white Hawking flash and grows back behind the white opening ring,
+both seen in game). Finding from the clip: a KEE whose hole is closed by `/btskerr render ... close` re-opens at once
+when it auto-seeds, so GT's collapse is cut short and the hole snaps to a point and regrows (GT's behaviour, not the
+render's). The window view
+(R-02): through the glass the shadow sits behind the controller, the photon ring and the arcs show round it and the
+edge-on disc as a thin gold line either side, by night clearly, by day faintly.
+
+**Not verified.** Angelica's core profile in Angelica itself (as R-10); a shaderpack (the screen copy switches off by
+`ShaderpackProbe`, untested with a real pack).
+
+**Suggestion.** Accept the look and the deviations above. For the T2 hero over budget: accept (the view only occurs
+standing inside the cage next to the hole), or drop L1 to 26 steps above 250 px (a small loss at the shadow's edge).
+Shots: local work folder `renders/kerr/after-*.png`, `after-low-*`, `after-l0-*`; `renders/compare.html`; clip
+`video/renders/kerr-v2.mp4`.
+
+### R-12 The quasar, renders v2 (WP-2): a turbulent ring volume, a lensed hole, helical jets and four distinct events [renders v2, judgement + finding]
+
+**What was built.** The Quasar Engine's render (`machines/quasar/render/QuasarHoleRenderer`, programs in `QuasarFx`,
+GLSL `shaders/quasar/`; notes in `docs/render-kit.md`) draws the v2 look at every shader tier. What a player sees:
+
+- **the hole**: the shared lensed black hole (as the Kerr, R-11) at GT's old size, with its own hot inner disc whose
+  inner edge sits at the spin's ISCO (Bardeen): a spun-up quasar (a 0.9) hugs its shadow with a white-blue edge, a slow
+  one (a 0.05) shows a dark gap round the shadow;
+- **the accretion ring** (r 40 to 40 + 2 + 22 lambda_c): a ray-marched volume, not a flat sheet: sheared Keplerian
+  streaks (the inner gas laps the outer), m = 2 and m = 3 trailing spiral density waves turning slower than the gas,
+  hot clumps, a bright inner wall fading to a dusty, ragged, redder outer edge with dark lanes, Doppler beaming (the
+  side turning toward the camera brighter). The zone reads at a glance: Resonant ice-white and laminar, Stable gold,
+  Strained orange, Critical orange-red and violent with a flickering inner wall, Breach and re-forming dark with
+  violet-red embers that fill in from the inner wall as the 300 s go by; the Harmonic Lock lays standing concentric
+  ripples over the ring; E above 0 puffs it up;
+- **the jets**: a white-blue core, two helical strands twisting round the axis (pitch from the spin, tighter as the
+  flux builds), knots running outward at 8 blocks/s, launched more often at higher Bu/t, a widening violet sheath, a
+  terminal bow where the jet ends, a glare at each pole; never thinner than about a pixel and a half, so they read
+  through the tower lattice from 200 blocks out;
+- **the field lines**: 12 dipole arcs round the hole's poles, faint at low flux, brighter and tighter as it builds,
+  crackling (flicker and sparks) above 90;
+- **the events**, each its own look: an **eruption** snaps the field lines outward, sends a rim-bright, noise-broken
+  shock shell across the ring (it bursts out of the machine's silhouette in the outside views), flares the ring from
+  its inner wall outward, fires a giant knot up both jets and throws debris off the ring; a **purge** is blue-white and
+  calmer: no shell, the field lines unwind with a twist, a spiral flash runs up both jets, the jets pulse once and the
+  ring dims for two seconds; a **blow-out** breaks the ring into orange chunks flying outward and fading, the jets go
+  out; a **re-formed** disc and **First Light** kindle the inner wall and fill the ring outward;
+- **outside**: the walls still hide the ring (R-09); the jets glow through the tower lattice and each cap carries a
+  zone-coloured glow (orange when Critical, blue-white when Resonant).
+
+LOW quality, a shader that does not bake or a GL error: today's look, unchanged (GT's model, the Tessellator disc and
+cones; the new render-only flashes do not flash it). The LOW shots match BEFORE.
+
+**Sync (R-03 as recommended, plus one).** The render tile's look compound gains `ev` (the flash's event kind), `a`
+(spin), `phi` (flux), `lock` (Harmonic Lock: 600 s Resonant) and **`rf`**, how far a re-forming disc has come (0..1),
+which the spec's re-forming look needs and §13 did not list. All are render-only: the description packet to the
+players watching the chunk (spin moved 0.01, flux 2, re-forming 2 %), never the machine's saved state. The server marks
+the blow-out, re-formed and First Light events for the render too (they had no flash before); the strongest of a
+second's events wins.
+
+**Judgement calls (spec §6 deviations).**
+
+1. *The ring is one ray-marched volume, not 9 stacked slices.* Slices show gaps and layering at grazing views (the
+   inside-the-shell view looks across the ring at 30-45 degrees). The proxy is the slab's own faces (top, bottom,
+   inner and outer walls; a quad at the camera when it stands inside the slab); each fragment marches its ray through
+   the slab in at most 16 / 12 / 8 / 6 sub-segments (L0-L3), samples the gas where each comes nearest the plane and
+   integrates the Gaussian height profile through it exactly (erf). On the way: a step count that followed the ray's
+   length drew contour lines; fine noise octaves sparkled at grazing angles, so they now fade by the sample's
+   footprint (a pixel stretched by the grazing angle).
+2. *Thickness.* Half-thickness 1.2 + 0.4 x clamp(E / 25, 0, 4) blocks (Gaussian, flared outward); the spec's "0.3 +
+   clamp(E / 25, 0, 4)" is today's face separation and reads as a flat sheet in a volume render.
+3. *Display temperatures* (inner wall / body): Resonant 30,000 / 15,000 K, Stable 6,200 / 3,900 K, Strained 3,600 /
+   2,500 K, Critical 1,900 / 1,150 K, Breach 1,500 / 1,000 K, re-forming embers with a violet cast. Hotter settings
+   washed Critical to gold through the tonemap shoulder; the zone has to read from 200 blocks.
+4. *Inner disc* to 8 r_s with r_s from GT's old halo (1.8 x the hole scale / 8), so the hero pose frames it as before;
+   its inner edge r_isco / 2 r_s clamped 1.12-3 r_s (the lens is Schwarzschild with a weak drag term 0.42 a, so a
+   prograde ISCO below the horizon is drawn just outside it).
+5. *Two new harness views*: `ring` (inside the shell, 46 blocks above the near side of the ring, looking in at the hole
+   and the far side) and `cap` (the top cap from outside). The fixed BEFORE poses see the ring only at the `close`
+   view's edges (through the lattice) and the `34` view through the roof.
+6. *The shock shell* races out to about 85 blocks over two seconds and fades by four; it is depth-tested against the
+   world but its rim bulges out past the walls in the outside views, which reads as the eruption from outside.
+   Alternative: clip it at the outer wall. (A first build reached the ring in half a second: in the clip it was gone
+   before it read.)
+
+**GPU (dev rig, RTX 4090, 1280 x 720, fixed poses, `GL_TIME_ELAPSED`; marginal = (5 draws - 1) / 4 with
+`-Dbts.render.qRepeat=5`).** Budget 0.20 ms (dev).
+
+| View | Single draw | Marginal |
+|---|---|---|
+| front, 34, level (outside, L1) | 0.002-0.13 ms | 0.002-0.13 ms |
+| hero (inside, next to the hole) | 0.084-0.13 ms | 0.09-0.13 ms |
+| close (inside, over the hole) | 0.10-0.13 ms | 0.10-0.14 ms |
+| ring (inside, over the ring) | 0.11-0.165 ms | 0.11-0.18 ms (eruption) |
+
+Every view is within budget; the worst is an eruption's ring view (0.179 ms marginal: the ring flare, shell and
+debris over a near-full-frame ring). The first build cost 0.22-0.42 ms (single draw); the analytic column (fewer,
+longer sub-segments, no noise lookups away from the plane) and one lookup for the clumps and lanes halved it. CPU
+0.04-0.088 ms a frame with the GPU timer on (budget 0.08; the busiest event shots are 5-10 % over, timer included); up
+to 14 draw calls (ring and the inside quad, two jets, field lines and shell in two halves each, debris, the hole, four
+glows).
+
+**Checked.** Both profiles of `bts_qring`, `bts_qjet`, `bts_qfx` compile and link (`-Dbts.render.selftest=true`);
+322 AFTER shots (23 cases x 7 views x day / night) including the eruption (3, 10, 15, 25, 45, 70 ticks), purge (4, 15,
+30, 40, 65 ticks) and blow-out (8, 40 ticks) sequences; 60 LOW shots at the BEFORE poses (they match BEFORE);
+checkstyle and spotless clean. A 47 s clip (`tools/recording/renders-quasar.shots`: the ring from inside the shell, an
+orbit of the hole at 1,024 SM, a real eruption and a real purge driven by the quasar bench, the cap from outside), in
+which the eruption's shell, the snapping field lines and the purge's unwinding read in motion.
+
+**Not verified.** Angelica's core profile in Angelica itself, and a shaderpack (as R-10 / R-11).
+
+**Suggestion.** Accept the look, the deviations above and the extra `rf` field. R-09 (a window band in the disc wall)
+would let the ring be seen from outside; the render is ready for it. Shots: local work folder
+`renders/quasar/after-*.png`, `after-low-*`, GPU `after-fps*.tsv`; `renders/compare.html`; clip
+`video/renders/quasar-v2.mp4`.
+
+### R-13 The Eye's stars T1-T6, renders v2 (WP-3 / WP-4): ray-traced photospheres, analytic coronae, beams, field lines and the events [renders v2, judgement + finding]
+
+**What was built.** The Eye's centre render (`machines/eye/render/EyeStarRenderer`, programs in `EyeStarFx`, GLSL
+`shaders/star/`; notes in `docs/render-kit.md`) draws the v2 look for every star and compact object at every shader
+tier. What a player sees:
+
+- **Sol (T1)**: a golden photosphere of boiling granules (3D cellular noise whose cells wander and flicker), fainter
+  mesogranulation, a few sunspots with dark umbrae and streaky penumbrae that grow and fade over one to two minutes,
+  faculae brightening toward the limb, quadratic limb darkening with a redder limb, pearly coronal streamers densest
+  round the equator and two to five prominences (glowing pink loops standing on the limb, rising and draining). An
+  unstable Sol boils faster, shows more spots, prominences and corona, and the corona flickers: it can be told from
+  the calm one in a still.
+- **Sirius A (T2)**: blue-white, finer and fainter granulation, no spots, a tight bright corona.
+- **Arcturus (T3)**: an orange giant of five to eight huge convection cells, strong limb darkening, a reddish haze to
+  1.3 radii and drifting mass-loss wisps. A **helium-flash warning** makes the cells boil up to seven times faster and
+  the star throb, faster as the hit nears; the **hit** sends a bright front across the surface and a puff off the limb.
+- **The protostar**: a dim red, blotchy ball deep inside a dark dusty cocoon (an absorbing layer lit from inside,
+  with holes the glow shows through), a thin dusty disc across its equator with a hot inner rim, and two faint pink
+  outflows; as ignition climbs the cocoon clears from the poles, the disc thins and the ball heats toward its star.
+  **Ignition**: a flash, a bright shell running out and the cocoon blown away as a dusty shell.
+- **Mass Infusion** (T1 to T2): Sol heats and whitens toward Sirius A as the 600 s go by, matter raining in along
+  tall loops, the corona growing. **Shell Ignition** (T2 to T3): Sirius A swells, cools and grows its cells toward
+  Arcturus; it ends in the helium flash. (Both also blend the fixed-function look's size and colour.)
+- **The neutron star (T4)**: a small blue-white ball with a violet limb and two white-hot polar caps; light bending
+  (Beloborodov's approximation, r_s / R 0.4) shows about three quarters of its surface, so the far cap peeks over the
+  limb; eight faint dipole field lines turning with it; two lighthouse beams sweeping round the spin axis, brightest
+  when one points at the camera. A **glitch** (T4's event) flashes the crust and makes the beams stutter.
+- **Core Collapse**: the **swell** (Arcturus to deep orange-red, violent cells, the 0.7 Hz throb, a thickening haze);
+  the **bounce** (the proto-neutron star and a shock front running out to the bands, its edge pushed into
+  Rayleigh-Taylor fingers, bright where it is thin); the **supernova** (a blinding flash, then an expanding remnant:
+  red-orange filaments over a blue-white synchrotron haze, fading over 3 s).
+- **The white dwarf (T5)**: a hard, small, white-blue ball with a thin glare; through the batch it cools from 25,000 K
+  to 2,800 K (white, yellow, orange, dull red) and grows a faint convective mottling, then becomes the **black dwarf**:
+  a near-black ball with a dull ember glow and a faint hexagonal crystal sheen at the limb. **First Cooling**: the
+  first dwarf assembles (a faint shell contracting onto it).
+- **The magnetar (T6)**: a violet ball whose crust is cut by faults that glow violet-white, white-hot polar caps,
+  twelve dipole field lines (camera-facing ribbons, never thinner than about a pixel and a half) and a violet
+  magnetosphere, two violet beams; a **starquake flare** every 4-8 s (crust flash and a torn flare shell). A
+  **giant-flare warning** twists the field lines and makes them crackle, the faults brighten and the magnetosphere
+  pulses faster as the hit nears; the **hit** flashes white and tears the loops open into a fan of rays. The
+  **overfed** magnetar: smaller, faster, the field wound tight, the faults always glowing. The **Magnetar Merger**:
+  a merger flash, then the dynamo winding the field up through the imprint and relaxing it at the release.
+- **Window (E-9)**: through the front window band Sol reads golden and Arcturus orange with their glow; the compact
+  objects are small bright points with their glow and beams (L2 / L3 at 90-150 blocks).
+
+LOW quality, a program that does not bake or a GL error: today's look, unchanged (the LOW shots match BEFORE). The
+galaxies (T7, T8, planets) keep today's look until WP-5.
+
+**Technique.** Three programs: the photosphere on a sphere mesh 1.2 % larger than the star, each fragment tracing its
+ray onto the true sphere (a perfect silhouette, the surface in 3D object space: no seams or pinched poles), opaque
+with depth writes in pass 0; a halo quad whose fragments integrate their rays analytically (glow, corona, haze, wind,
+cocoon, disc, outflows, beams, magnetosphere, two thin shells) with the star cut by a ray / sphere test, premultiplied
+in pass 1; ribbon loops placed in the vertex shader (field lines or prominences), additive. Detail by tier and by the
+photosphere's own size on screen; finer noise fades by the pixel's footprint. Up to three draw calls (the glow sprite
+replaces the halo at L3).
+
+**Sync (R-04, built as recommended, adjusted).** The render tile's look compound gains `n` (the star's tier), `ev` +
+`evAt` (the event channel's event while warned or hitting, and its hit as a **world tick**, so the client counts the
+warning down without a packet a second; the spec's `evClock` float would have needed one) and `tr` + `trP` (the
+running transition and its progress, sent at 1 % steps). Read from the runtime by a new read-only accessor
+(`EyeStarRuntime.renderEvent`); render tile only, no machine NBT. The galaxy events (merger passes, the crossing) are
+left for WP-5 to add on the same channel.
+
+**Judgement calls (spec §7 / §8 deviations).**
+
+1. *Display temperatures.* A true blackbody at 5,772 K is near white on screen; below 6,000 K the display temperature
+   is pulled down by up to 38 % (Sol reads golden, Arcturus orange, the cooling dwarf passes through orange and red)
+   and the colour is saturated a little. The spec's dwarf curve 25,000 x (1 - 0.88 f) stays blue-white past half way;
+   the dwarf cools on a log curve instead (white at 10 %, orange at 50-75 %, red at 90 %).
+2. *One halo quad, not a corona quad plus sphere shells.* Shells, beams and the cocoon are analytic on the same quad,
+   so they are perfectly round (the BEFORE shots' 32-segment shells showed facets) and cost one draw.
+3. *The giant flare and the helium flash need the event's hit time*, so the extras carry the hit as a world tick
+   (above).
+4. *The magnetar's warning shell (the old 7-block bubble) is gone*: it read as lilac fog at the close views and was
+   the largest term at the hero view; the warning is the twisting, crackling field and the pulsing magnetosphere.
+
+**Finding (applies to R-11 / R-12 too).** Minecraft's first-person camera sits 0.1 blocks behind the origin a TESR
+draws round (`EntityRenderer.orientCamera` translates by -0.1). Rays traced from a camera-relative vertex position are
+off by that much: negligible for geometry far away, but a quad placed 0.3 blocks in front of the camera (the halo's
+quad when the camera is inside the Eye's cavity) bent every ray by a third (the halo drew a third smaller than the
+star, a bright ring inside the limb). The star programs now take the true eye (`-R^T t` of the modelview) as `u_Eye`.
+The quasar's inside-the-slab quad (0.2 blocks out) should get the same correction: suggested for WP-10.
+
+**GPU (dev rig, RTX 4090, 1280 x 720, fixed poses, `GL_TIME_ELAPSED` round both passes; marginal = (5 draws - 1) / 4
+with `-Dbts.render.eyeRepeat=5`).** Budget 0.10 ms (dev).
+
+| View | Single draw | Marginal |
+|---|---|---|
+| front, 34, level (outside, L1-L3) | 0.004-0.022 ms | - |
+| close (inside the cavity) | 0.03-0.092 ms | up to 0.0995 (ignition, giant flare) |
+| hero (next to the star) | 0.03-0.092 ms | up to 0.11 (magnetar warning with a flare shell running past the camera) |
+
+Every view is within budget but one: the magnetar's warning at the hero view, 5 blocks from the star while a starquake
+flare's shell runs past the camera (the shell then covers the whole frame), 0.11-0.113 ms marginal, 11-13 % over
+(0.125 before judgement call 4; the single draw is 0.092). Options: accept it (it is a 2 s moment at the closest
+pose), or draw the flare shell with one noise lookup when the camera is inside the cavity. CPU 0.039 ms a frame on
+average (budget 0.05; 10 of 330 shots 0.050-0.068, the GPU timer included).
+
+**Checked.** All three programs compile and link in both profiles (`-Dbts.render.selftest=true`, no shader errors in
+the log); 330 AFTER shots (33 cases x 5 views x day / night, including 16 new cases for the events and transitions);
+126 LOW shots at the BEFORE poses (they match BEFORE); checkstyle and spotless clean. A clip
+(`tools/recording/renders-stars.shots`: Sol orbit, Arcturus with a real helium flash, the neutron star, the magnetar
+with a real giant flare, the events driven by the Eye bench's `event`).
+
+**Not verified.** Angelica's core profile in Angelica itself, and a shaderpack (as R-10 to R-12).
+
+**Suggestion.** Accept the looks, the deviations and the adjusted R-04 fields. Shots: local work folder
+`renders/stars/after-*.png`, `renders/compact/after-*.png`, `after-low-*`; `renders/compare.html` (the Eye section,
+with the GPU numbers); clip `video/renders/stars-v2.mp4`.
+
+### R-14 The Eye's galaxies, renders v2 (WP-5): 20,000 moving stars, density-wave arms, dust lanes and the galaxy events [renders v2, judgement + finding]
+
+**What was built.** The Eye's centre render draws T7 Triangulum, T8 the Milky Way and planets mode with their own
+programs (`machines/eye/render/GalaxyFx`, GLSL `shaders/galaxy/`; notes in `docs/render-kit.md`). What a player sees:
+
+- **Triangulum (T7)**: a flocculent spiral seen on its 8 degree tilt: a small bright nucleus, patchy short arm segments
+  of young blue-white stars that shear as the disc turns, pink H II knots, clusters that are born, sheared into arcs and
+  fade every three minutes, patchy dust, a sparse halo with globular clusters.
+- **The Milky Way (T8)**: a barred spiral: a peanut bulge and a bar turning with two major and two minor arms that start
+  at the bar's ends, young blue light and H II knots just downstream of each arm, dark dust lanes along their inner
+  edges, an older warm disc, the two Magellanic Clouds and their stream below the disc.
+- **Both**: about 20,000 point stars on a flat rotation curve (the inner disc turns faster, the arms never wind up:
+  they are a density wave the stars stream through), colours by population (blue-white young, golden old, red giants),
+  a power-law spread of sizes with faint diffraction spikes on the largest, the stars behind the dust dimmed by it.
+- **The dark backdrop** (spec §9.1, TecTech's trick): the far side of a sphere just inside the clearance shows deep
+  space (near black, a faint nebula, sparse stars), so the galaxy reads as light against the dark by day too; it fades
+  out above and below the core band, so it never shows as a dark cap over the open bowl.
+- **Through the front window (B-114)**: almost edge-on, a thin bright disc whose dust lane runs under the bulge; by
+  day as well (the backdrop darkens behind it).
+- **The Magnetar Collapse into T7**: at the collapse a violet-white core flash and a shell running out to the bands,
+  the stars bursting out into a round halo; through the halo capture (600 s) they settle into the disc, and the arms,
+  the young stars and the dust come in last; the forced minor merger at 450 s shows as below.
+- **A minor merger (T7 / T8)**: over its 15 s warning a dwarf galaxy falls in from above or below the disc (the
+  event's sign), stretched by the tide; the hit flashes and the dwarf is torn apart and swallowed, with an afterglow of
+  about 20 s after the event has ended.
+- **The Galactic Merger (T7 to T8)**: a companion spiral on an inclined orbit with three pericentre passes (600 /
+  1,200 / 1,800 s, apocentres 18 / 13 / 8.5 blocks); tidal tails grow after the first pass; at each pass a bridge of
+  stars between the two and a starburst (a pink-blue flash of both cores and the young stars, 2 s, then a glow for half
+  a minute); the main galaxy morphs from Triangulum toward the Milky Way through the merger; after the last pass the
+  companion dissolves into the disc and the tails fade in the settle.
+- **The satellite crossing (T8)**: over its 120 s countdown a dwarf falls from high above toward the disc, stretched
+  more as it nears; it punches through 4 blocks off-centre with a flash, falls away below, and a pink-blue ring wave of
+  star formation runs out to the edge over the 300 s (the Cartwheel look), lighting the young stars it passes.
+- **Planets mode**: a calm Sol (the star programs) and 3 / 6 / 9 shaded planets on Keplerian orbits (lit hemisphere,
+  soft terminator; a cratered rock, a veiled world, an ocean world with land and clouds, a desert, a banded giant with
+  a storm, a ringed giant whose shadow falls on its rings, two ice giants, a dwarf), atmosphere rims, faint orbit lines.
+
+LOW quality, a program that does not bake or a GL error: today's dots, unchanged (the LOW shots match BEFORE).
+
+**Technique.** `galaxy/lib.glsl` holds the model both the stars and the disc use, so stars crowd where the disc glows
+and dim where its dust lies. Stars: static `GL_POINTS` buffers (galaxy 20,000; companion 3,000; dwarf 1,500; tails
+2,000), every motion in the vertex shader (rotation quantised to whole turns per hour, so the hour-long shader clock
+wraps without a jump; the arms as a phase compression of the orbits; clusters reborn per generation from a hash), the
+buffers shuffled so a LOD draws a prefix. Disc: one quad, each ray followed through the star slab in sub-segments whose
+stellar and dust height profiles are integrated exactly (erf), the bulge and bar as ellipsoidal Gaussians split by the
+dust; four noise fields from one RGBA lookup per octave. Backdrop: a sphere, front faces culled. Planets: one quad,
+analytic spheres and rings. Up to six draw calls (backdrop, disc, the galaxy's stars or both galaxies' in the merger,
+companion, dwarf, tails). Detail: L0 12 sub-segments, 3 octaves, every star; L1 7, 2, half; L2 3, 1, 15 %; L3 a glow
+sprite.
+
+**Sync (R-04, extended; render tile only, no machine NBT).** The event channel gains codes 4 / 5 (a minor merger from
+above / below: the runtime's `renderEvent` now maps the T7 / T8 "Minor merger" with its sign) and 6-8 (the Galactic
+Merger's pericentre passes 1-3: the next pass, or the last one for a minute after it, from the merger's own clock; the
+merger holds the field's events back, so the channel is free). The look gains `xAt`, the satellite crossing's hit as a
+world tick (it runs 420 s and can overlap a minor merger, so it has its own clock), read by a new read-only
+`EyeStarRuntime.renderCrossing()`. The client remembers the event that just ended, for the minor merger's afterglow.
+Harness: 16 new cases (the collapse flash, the capture at 25 / 70 %, a minor merger before and after its hit at T7
+and T8, the merger at 400 / 601 / 900 / 1,215 / 1,830 / 2,000 s, the crossing 60 and 3 s before its hit and 60 / 200 s
+after) with their clocks frozen (`TileEyeStar.debugCrossingIn` added); their poses are appended to
+`tools/rendertest/poses.tsv`.
+
+**Judgement calls (spec §9 deviations).**
+
+1. *Arms as a density wave, not stars placed on spirals.* Stars on fixed spirals with differential rotation wind up
+   within a few turns; the arms here are a rigidly turning pattern that old stars crowd toward and young stars light
+   up in, so the look holds for ever and the inner disc still visibly turns faster.
+2. *Everything stays inside the clearance.* The companion, the tails and the dwarf are clamped to 19.6 blocks from the
+   centre (nothing may reach the Eye's blocks), so the merger's apocentres are 18 / 13 / 8.5 blocks and the tails curl
+   round inside the cavity rather than running far out.
+3. *The merger shows Triangulum morphing.* The runtime keeps the kind TRIANGULUM until the Milky Way lights; the
+   render blends its shape toward the Milky Way from 600 s (the tier becomes T8 at the first pass) to the end.
+4. *The satellite hits 4 blocks off-centre* (an off-centre hit is what makes a Cartwheel); the ring wave is drawn round
+   the centre.
+5. *The backdrop is cut above and below the band* (a full sphere showed as a dark dome over the open bowl and a dark
+   bubble under the band).
+6. *Planets mode* is built too (spec §9.1), with the star programs' Sol at its centre.
+
+**GPU (dev rig, RTX 4090, 1280 x 720, fixed poses, `GL_TIME_ELAPSED`, single draw).** Budget 0.13 ms (dev).
+
+| View | Single draw |
+|---|---|
+| front, 34 (L2) | 0.011-0.022 ms |
+| level (the window, L1-L2) | 0.011-0.031 ms |
+| close (L1) | 0.027-0.043 ms |
+| hero (L1) | 0.021-0.097 ms (worst: the Galactic Merger, with both galaxies, the companion and the tails) |
+| hero, forced L0 (`renderLodScale` 0.4) | 0.064-0.110 ms (close at L0: 0.035-0.053; planets mode 0.021-0.043) |
+
+Split (`-Dbts.render.galSplit=true`, hero, L1): backdrop 0.007, disc 0.043-0.069, stars 0.002-0.008 ms. The disc was
+0.058-0.093 ms before its noise was packed into one RGBA lookup per octave and sub-segments clear of the plane were
+skipped. CPU 0.042 ms a frame median, 0.059 max (the timer included; budget 0.05).
+
+**Checked.** Every program compiles and links in the legacy profile in the client (the self test's list now holds the
+star and galaxy programs); 240 AFTER shots (24 cases x 5 views x day / night) and 36 LOW shots at the fixed poses,
+each looked at; checkstyle and spotless clean. Clip `tools/recording/renders-galaxies.shots` (Triangulum, a real
+minor merger, the Milky Way, a real satellite crossing as a time-lapse, the window; 76 s).
+
+**Finding (recorder).** Under `/btswarp 10` the satellite crossing in the first clip showed minutes late (the dwarf
+appeared about 4 game-minutes after `crossing`), while at real speed (the final clip uses a time-lapse) the 120 s
+countdown and the 300 s ring wave land on time. The render only reads the runtime's clock, so the warp's field
+seconds seem to lag the world clock; not investigated further (bench and recorder only).
+
+**Not verified.** Angelica's core profile in Angelica itself, and a shaderpack (as R-10 to R-13). The Galactic Merger
+and the Magnetar Collapse were not driven for real in the clip (they need a linked quasar and their charges); their
+looks are checked by the frozen harness cases.
+
+**Suggestion.** Accept the looks, the deviations and the extended R-04 fields. Shots: local work folder
+`renders/galaxies/after-*.png`, `after-low-*`; clip `video/renders/galaxies-v2.mp4`.
+
+### R-15 The machines without a render tile, renders v2 (WP-6..WP-8): the Homogeny's vortex, both Reality machines, the conduit's streams, portals and crowns [renders v2, judgement + finding]
+
+**What was built.** The four machine families that drew nothing now render through GT's `IMTERenderer` hook in their
+controllers (R-05 as recommended), with their inputs on GT's render-data channel (spec §13: sent every 1-2 s to the
+players in range, never in the machine's saved NBT or an item). Code: `client/render/MachineFx`, `MachineFrame`,
+`DeferredDraws`, GLSL `shaders/fx/`; `machines/homogeny/HomogenyRender`, `machines/reality/RealityRender`,
+`machines/conduit/ConduitRender`; notes in `docs/render-kit.md`. What a player sees:
+
+- **The Homogeny** (spec §11, my "Mixer" sketch): a swirling column of plasma inside the glass mixing column:
+  one braid per tier (T1 one, T2 two, T3 three) spiralling up a funnel that is fat in the middle and narrow at the
+  caps, each braid in its feed's colour at the bottom (taken from the fluids in the input hatches, else a palette per
+  tier: orange, magenta, violet) turning into the product's colour toward the top, so the mix visibly homogenises as it
+  rises; a turbulent swirling sheath; at T3 a bright core thread up the axis; the green shear helix glows on the inside
+  of the glass with pulses running up it; an arcing feed stream from every vessel (three at T1, six from T2) over the
+  volute into the column, in that vessel's colour; a glow over the top cap. Running: bright and fast; idle: a dim,
+  slow swirl (eased over 1-2 s from GT's active flag).
+- **Reality Diffraction** (§12, the sketch): the beam rises up the spine through three faceted lenses that glow amber
+  and disperse a rainbow round their facets; in each upper drum the lens fans the light into two thin rainbow sheets
+  toward that drum's region blades, with interference fringes running outward; the two region clouds of each drum
+  billow in their regions' colours (Hyperspace blue, Subspace violet, Forward Time gold, Reverse Time green, Positive
+  Mass red-orange, Negative Mass pink), an unanchored region's cloud flickering dim; the Entanglement Medium swirls in
+  the bottom drum toward the spine; faint fringes ripple over every deck band; the phase rings' field is a rim-lit
+  sphere of shimmering hexagonal cells round the whole machine; each red anchor pulses while its region is held, and
+  the blades and the apex crystal glow.
+- **Reality Refab**: a twisted, knotted stream of matter up the hourglass spindle; over each red tray two holographic
+  glyph rings (angular glyphs on a 4 x 5 grid, re-writing now and then, with edge lines, flicker and scanlines) turn
+  against each other while small glowing voxels fly in from outside and lock into their cells; the Reality Focus and
+  the Ground Anchor crystal glow, the Focus sends a slow beam up, the six Region Receivers glow in their regions'
+  colours.
+- **The conduit** (§10): every out-throat that sent a stream last second draws it along its normal to where its route
+  ends (the jet look: white core, violet sheath, a helical strand, knots at the stream's rate, wider and brighter with
+  its Bu/t, glows where it leaves and enters; a stream that reaches nothing fades out over the ray's range). A
+  **Wormhole Mouth** shows a portal in its ring: a bent starfield and nebula of somewhere else inside a bright blue
+  rim, full while paired with a live partner, faint while open and unpaired, a dim rim while closed. A docked **crown**
+  glows with the burst it takes: white at the intake to deep orange, a heat column up its cup and a shimmer over it,
+  by its Bu/t against its Mk's cap.
+
+LOW quality, a shader that does not bake or a GL error: nothing, as before v2 (these machines had no render). The LOW
+shots match BEFORE.
+
+**Sync (render data, never saved).** Homogeny: tier (0 unformed), three feed colours and the product colour. Reality:
+formed, the anchored regions (or those of the running run), the run's progress. Conduit element: open, linked (a
+mouth: paired with a live partner), and per throat Bu/t out and in, the route's length and kind. Crown: Mk, stream and
+thermalised Bu/t. Each MTE's server tick sends it (`sendRenderDataToClient`, players within 256 blocks).
+
+**Judgement calls and findings.**
+
+1. *The draws run after the translucent pass.* GT calls `renderTESR` in render pass 0 only, before TecTech's Quantum
+   Glass, a pass-1 blended block: drawn first, the vortex and the drums' clouds were swallowed by the glass (the first
+   AFTER pass showed plain glass while the vortex cost 0.5 ms). Each hook now queues its draw (`DeferredDraws`) and
+   runs it from `RenderWorldLastEvent`, after the translucent pass, as the Eye's see-through layers draw in pass 1.
+   Under a shaderpack, `RenderWorldLastEvent` may land in a different pipeline stage: not checked (as R-10..R-14 for
+   Angelica).
+2. *Geometry from the mockup.* `MachineFrame` places `designs/voxel.js` coordinates from the controller (the
+   manifest's `turns` and `centre.rel`), so the volumes fill exactly the air the mockup left for the render (the
+   Homogeny's column r < 12 between y -26 and 26, the Diffraction's drums between the deck bands, its spine r < 3.9).
+3. *Volumes, not sprites.* The vortex and the drums are ray-marched inside an elliptic cylinder whose back faces alone
+   shade, so blocks in front (helix, rails, ribs, bands) hide them correctly. Thin features that a few steps would
+   miss are analytic: the shear helix's glow once per wall crossing, the rainbow fans and the floor fringes where the
+   ray crosses their planes; the march dithers its start with interleaved gradient noise (white-noise jitter read as
+   grain on the glass).
+4. *Spec deviations.* The vortex has one braid per tier as the spec says, but the swirling sheath and the colour mix
+   along the height carry most of the look; the machines' GUI render switches are not built (the client keys
+   `renderHomogeny`, `renderReality`, `renderConduit` are); Refab's glyphs are procedural in the shader instead of a
+   16 x 16 glyph atlas texture; the Diffraction's field sphere is the phase rings' superellipse rounded to a sphere of
+   radius 47.
+5. *Harness.* New cases `homogeny_top_run`, `homogeny_t1_run`, `reality_diffraction_run`, `reality_diffraction_unheld`,
+   `reality_refab_run` (client overrides: activity, tier or the held mask) and `conduit_stream` (mouth B -> mirror 1 ->
+   the junction -> mirror 2, seen from the east). The harness's conduit rig cannot form mouth A at its site height, so
+   no stream reaches the conduit there by itself: `conduit_stream` forces 200 Bu/t on the client and traces each
+   stream's length through the client world (`ConduitRender.debugLook`). The close / hero views of the Homogeny and
+   the Reality machines now look at their real render centres from outside the glass (`Built.focus`; the poses file
+   keeps the box centre as its anchor); the poses are appended to `tools/rendertest/poses.tsv` and the BEFORE close /
+   hero shots re-taken there (the LOW run; still no render).
+
+**GPU (dev rig, RTX 4090, 1280 x 720, fixed poses, `GL_TIME_ELAPSED`, single draw; CPU with the timer on, budget in
+brackets).**
+
+| Object | Budget (dev) | Far views (front, 34) | Close views (close, hero; level for Diffraction) | CPU |
+|---|---|---|---|---|
+| Homogeny vortex | 0.07 ms | 0.03-0.04 ms | 0.14-0.18 ms (12 steps; L0 is 10 since) | 0.04-0.056 ms (0.03) |
+| Reality Diffraction | 0.07 ms | 0.026-0.036 ms | 0.087-0.124 ms | 0.056-0.069 ms (0.03) |
+| Reality Refab | 0.07 ms | 0.003 ms | 0.001-0.005 ms | 0.06-0.07 ms (0.03) |
+| Conduit (all elements in view) | 0.05 ms | 0.001-0.007 ms | 0.002-0.0095 ms | 0.026-0.07 ms (0.05) |
+
+Over budget: the Homogeny's and the Diffraction's close views (a column or the drums filling most of the frame) at
+2-2.5x and 1.7x, and the CPU and draw calls of the Reality machines (up to 19-20 draws against 8, mostly glow sprites,
+each its own program bind). The first builds cost 0.5 ms (vortex) and 0.2-0.44 ms (drums); the analytic wall and
+sheet terms, the march limited to the funnel and fewer steps brought them here.
+
+**Checked.** Both profiles of `bts_mvol`, `bts_beam` and `bts_mfx` compile and link (`-Dbts.render.selftest=true`,
+0 failures); AFTER shots at the fixed poses for 12 cases x 5 views x day / night (Homogeny and Reality from the second
+tuning pass, the conduit from the first), 90 LOW shots; spotless and compile clean.
+
+**Not verified.** Angelica and a shaderpack (as R-10..R-14); a clip (WP-9: the Reality machines need the `becnet`
+bench to run for real, the Homogeny `/btshr ... fill`); the conduit with a real stream from a quasar (the harness rig's
+mouth A does not form, see 5); the vortex at 10 steps (the shots are at 12).
+
+**Suggestion.** Accept the looks and the deviations. For the budget, either accept the close views (they are the
+"standing at the glass" views; every far view is well inside) or, recommended for WP-10: a batched glow-sprite program
+(one draw for all of a machine's glows: Reality to about 8 draws and inside the CPU budget) and drawing the two
+volumes at half resolution into an off-screen target when they fill more than a third of the screen. Shots: session
+local work folder `renders/homogeny|reality|conduit/after-*.png`, `after-low-*`, `before-*` (re-taken close / hero),
+`after-fps.tsv`; `renders/compare.html#machines`.
+
+### R-16 Performance and compatibility pass: every render on screen at once, the fallbacks, LOD, GL state, allocations, Angelica [renders v2, finding + fix]
+
+**What was checked, and how.** A performance scene was added to the render QA harness (`rendertest/RenderScene`,
+site `SCENE` at x 10,000, appended to the L4 world). It holds a Kerr T2 at 512 SM, the Homogeny at T3 (mixing), an
+Eye T8 in the Galactic Merger (both galaxies and the tidal tails, the heaviest galaxy look) and a quasar at 4,096 SM
+frozen 25 ticks into an eruption, close together so that one camera sees all four. Its views are `tilt` (all four on
+screen, found by a search that keeps every render centre in the frame and within 235 blocks), `over`, `qring` (inside
+the quasar's shell over its ring), `klevel` (the Kerr through its window band), `ebowl` (over the Eye's bowl) and
+`lodk:10` (the Kerr's hole at L0, 10 blocks out). Each case carries a quality token: `off` (every big render skips its
+draw: the baseline), `low`, `medium`, `high`, `high16` (16 objects allowed at L0), `pack`, `fail` / `recover`,
+`glerror`. New probes: `FrameProbe` (the frame interval, the render tick's CPU time, the GPU time between two
+`GL_TIMESTAMP` queries, KB allocated per frame), `AllocProbe` (bytes each renderer allocates per frame, inside its
+timer section), `GlStateCheck` (`-Dbts.render.leakcheck=true`: about 90 GL states read before and after every
+renderer's draw), `-Dbts.render.forceCore=true` (GT's core profile in a client without Angelica),
+`-Dbts.render.fakeShaderpack=true`, `BTSShaders.debugFailAll`. Notes: `docs/render-kit.md`.
+
+The harness FPS counter read 118-121 in every earlier entry: the dev client's `options.txt` put the frame cap (120) and
+vsync back a second after start-up. The harness now holds them off, so the numbers below are uncapped.
+
+**The BEFORE build.** `renderQuality=low` draws the fixed-function renders of before renders v2, unchanged (R-10
+compared LOW with the BEFORE shots pixel by pixel), so LOW is the BEFORE in the same session and on the same rig.
+Machines that drew nothing before (the Homogeny, Reality, conduit) draw nothing at LOW either.
+
+**Numbers (dev rig RTX 4090, 1280 x 720, render distance 16, FOV 70, legacy profile; medians of three interleaved
+rounds, because the GPU clocks drift over a run; other units' work shares the machine, so differences under about
+0.03 ms are noise).** Frame ms is the mean frame time; "cost" is frame ms minus the `off` baseline of the same view.
+
+| View | off: fps / frame ms | LOW (before v2): fps / cost | MEDIUM: fps / cost | HIGH (default): fps / cost | HIGH, 16 at L0: cost |
+|---|---|---|---|---|---|
+| tilt (all four, day) | 630 / 1.586 | 404 / +0.886 | 589 / +0.113 | 593 / +0.101 | +0.119 |
+| tilt (night) | 630 / 1.587 | 413 / +0.836 | 603 / +0.071 | 599 / +0.082 | +0.052 |
+| over (straight down) | 603 / 1.659 | 383 / +0.953 | 578 / +0.071 | 571 / +0.091 | +0.107 |
+| qring (quasar L0 close) | 968 / 1.033 | 519 / +0.895 | 884 / +0.098 | 900 / +0.078 | +0.085 |
+| klevel (Kerr window) | 826 / 1.211 | 489 / +0.835 | 745 / +0.131 | 744 / +0.132 | +0.184 |
+| ebowl (Eye bowl) | 995 / 1.005 | 551 / +0.811 | 910 / +0.094 | 900 / +0.106 | +0.104 |
+| lodk:10 (Kerr L0) | 866 / 1.155 | 499 / +0.848 | 794 / +0.105 | 778 / +0.130 | +0.132 |
+
+- **HIGH costs 0.08-0.13 ms a frame with all four renders on screen; the renders it replaced (LOW) cost 0.81-0.95 ms.**
+  The old quasar's Tessellator ring alone takes 0.58-0.60 ms of CPU a frame. The 99th-percentile frame is 6.49 ms at
+  HIGH against 6.31 ms off and 7.43 ms at LOW (tilt), so HIGH adds no stutter.
+- Our own sections at HIGH (tilt): GPU 0.113 ms, CPU 0.073 ms a frame for all four renders (quasar 0.059 / 0.044,
+  Kerr 0.038 / 0.004, Eye 0.013 / 0.015, Homogeny 0.005 / 0.010). The scene budget (§3.1: 0.33 ms dev) holds in every
+  view; the busiest is the Kerr's L0 close-up with its screen copy, 0.217 ms GPU (the known R-11 over-budget case for
+  the Kerr alone).
+- MEDIUM equals HIGH in most of these views, because only the closest object is ever at L0 (and only two may be:
+  `renderMaxHighObjects`); the difference shows in the L0 views (qring, lodk:10).
+- Machines on their own (`close` / `hero`, HIGH): Homogeny 0.083 ms GPU / 0.026 ms CPU, Diffraction 0.072-0.079 /
+  0.041, Refab 0.001-0.004 / 0.042, conduit stream 0.007 / 0.047 (plus its quasar). The Reality machines' CPU is
+  still over the §3.1 0.03 ms (R-15's batched-glow suggestion stands).
+- Whole frame: 13.2-13.6 KB allocated per frame at `off`, 13.8-14.0 at HIGH, 17.4-17.6 at LOW.
+
+**Fixes made in this pass.**
+
+1. *Per-frame allocations (no allocation in a hot path).* Before: 320-352 bytes a frame at HIGH in the scene (quasar
+   120, Homogeny 152, Kerr 24-56, Eye 24). Sources: varargs program arrays to `RenderQuality.tier`, `NoiseTex.bind`'s
+   save array, capturing lambdas queued in `DeferredDraws`, `Blackbody.rgb` arrays (and the Kerr's far glow
+   integrating the Planck curve every frame), the Homogeny's colour arrays, the conduit crown's geometry arrays, the
+   black hole's screen rectangle, `Lod.tierFor` calling `Tier.values()` (a fresh array each call), `MachineFx.drawBeam`'s
+   midpoint array, Refab's receiver table, and the HIGH ranking's per-frame list and set. After: **0 bytes a frame in
+   every renderer** (Kerr, quasar, Eye, Homogeny, Diffraction, Refab, conduit, under both profiles). LOW still
+   allocates (inside GT's `BlackholeRenderer` delegate and the Tessellator path of the old code), left unchanged by
+   design.
+2. *A GL state leak.* `Layers.emissive` set the lightmap coordinates to full brightness and nothing put them back
+   (`OpenGlHelper.lastBrightnessX / Y` after the Eye, quasar, Kerr glow, Homogeny, Reality and conduit draws).
+   `GlSave` now restores them. After the fix: 132 shots, every render family, both profiles: no leaks. The only
+   remaining difference is the texture bound on unit 0 after the LOW path's draws, which bind their textures the way
+   every vanilla TESR does (and every TESR binds its own before drawing).
+3. *Angelica: everything behind glass vanished.* With Angelica 2.2.26 in the dev client (a real GL 4.6 core context,
+   GT's `ANGELICA_CORE` profile, our shaderpack probe resolving through the Iris API), the Homogeny's vortex, the
+   Diffraction's drums, spine and fans and Refab's glyph rings drew but could not be seen: Angelica's world renderer
+   (Celeritas) writes the translucent glass into the depth buffer, and these draws run after the translucent pass
+   (R-15) behind TecTech's glass. `OpaqueDepth` now saves the depth buffer when the first machine queues its draw
+   (pass 0, opaque world done), puts it back for the deferred draws (blocks still hide them, glass does not) and
+   restores the full depth after: three depth blits, about 0.03 ms GPU and 0.03 ms CPU a frame, only under Angelica and
+   only with a machine render in view. With a shaderpack (the pack owns the framebuffers) or without GL 3.0 the
+   machines draw at once in pass 0, visible behind the glass. Vanilla is unchanged. Shots:
+   `renders/scene/after-angelica-*.png`.
+
+**Checked and passing.**
+
+- *Fallbacks.* Every program failing its bake (`fail`): every object draws FIXED and the frame matches LOW (mean
+  difference 0.01-2.7 / 255, the rest animation); after a resource reload (`recover`) every program bakes again and
+  the v2 looks come back. A GL error injected into each object's checked draw (`glerror`): each object logs once and
+  drops to FIXED for the session (`(GL failed)`), matching LOW.
+- *LOD by distance.* Walks out and back in from the Kerr (8-270 blocks), the Eye (22-240) and the quasar (40-300):
+  L0, L1, L2, L3 and off beyond the tile's range at the specified sizes, with the 10 % hysteresis visible in both
+  directions (the Eye at 330 px is L0 going out, L1 coming back; the Kerr at 18 px L2 out, L3 in; the Homogeny at
+  77 px L1 out, L2 in). The quasar never reaches L2 inside the render distance (its ring is 124 blocks wide); at
+  300 blocks it is not drawn.
+- *Other mods, GUIs, NEI, hand items.* The HUD, the hotbar, the hand item (an enchanted sword: its glint is a texture
+  matrix effect) and the creative inventory with NEI over the scene: identical at HIGH and with every render off
+  (NEI's panels 0.00 %, the inventory 0.2 % of pixels; the hand differs only where the glint has moved).
+- *Core profile drawn for real.* `-Dbts.render.forceCore=true` in the dev client: all 17 of our programs' `#version 330 core`
+  variants and GT's core meshes drew 132 shots with no bake failure and no leak; compared with the legacy shots the
+  only differences are animation phases.
+- *Angelica and a shaderpack, as before.* Under Angelica every object draws its shader tiers (45 shots, no fallback,
+  no leak). With a minimal OptiFine-format test pack active (`AngelicaShaders: Using shaderpack`), the probe reports
+  the pack, the screen-copy lensing switches off (the black hole bends its procedural starfield instead, R-08), every
+  render still draws, no GL state leaks (26 shots). With the probe forced on in vanilla (`pack`): the same frame cost
+  as HIGH.
+
+**Not fixed (logged).**
+
+- *Angelica, the first view of a machine.* Right after a player arrives, a machine render drawn from GT's controller
+  hook (Diffraction, Refab) can stay invisible until the controller block itself has been on screen once; from then
+  on it draws from every angle. Instrumented: at that first view Angelica had not classified the controller's tile
+  entity at all (no bounds class, no cached box); afterwards it holds the correct box (x +-110, y -20..+160). A section
+  rebuild requested when the machine's render data arrives did not change it, so it was removed again. A real fix is
+  the R-05 alternative: a small render tile at each machine's render centre (as the Kerr, quasar and Eye have), whose
+  own block is always inside the view that shows the render.
+- The Reality machines' CPU (0.041-0.043 ms, budget 0.03) and the Kerr's L0 close-up GPU (0.217 ms with the screen
+  copy, budget 0.08): as R-11 / R-15.
+- The target rig (GTX 1060 class) was not available; the dev-rig numbers convert with §3.1's factor of 6.
+
+**Suggestion.** Accept the measured costs (HIGH costs a sixth to a tenth of the frame time the renders it replaced cost) and the
+fixes. For the Angelica first-view case, either accept it (it lasts until the controller has been seen once per load)
+or add render tiles at the machines' render centres (a structure change, as R-05's alternative). Shots and numbers:
+local work folder `renders/scene/` (`before-*` LOW, `after-*` HIGH, `baseline-*` off, `after-angelica-*`,
+`perf-scene-aggregate.txt`, `perf-after.txt`, `perf-angelica.txt`); the runs in `perf/runs/`.
+
+### R-17 Code review of renders v2: six findings checked, all six fixed [renders v2, finding + fix]
+
+**What happened.** A review of the renders v2 branch raised six findings. Each one was checked against the code and,
+where it shows, in the dev client. All six hold; all six are fixed. Shots were re-taken for every render the fixes
+touch: `after-r17-*` in each object's folder under my local work folder's `renders/`, the runs in
+`renders/review/runs/`, side-by-side sheets in `renders/review/cmp*/`, and the cost tables `depth-l2-marginal.txt`
+and `depth-l3-marginal.txt`.
+
+1. **`pow()` with a negative base (bug, holds).** GLSL leaves `pow(x, y)` undefined for `x < 0`; drivers that compute
+   it as `exp2(y * log2(x))` return NaN. Places found:
+   - the black hole's photon ring, `exp(-pow((rMinSeen - 1.53) / ringW, 2.0))`: negative for every escaped ray that
+     came closer than 1.53 r_s (the quasar's inner disc at spin 0.9, and the short L2 / L3 marches);
+   - the helium-flash front, `exp(-pow((ang - front) / 0.22, 2.0))`: negative over half of the star;
+   - bases that rounding can push a hair below 0: the hex shell's Fresnel term `1 - |n.v|` (`fx/mfx.glsl`), the
+     planets' rim `1 - max(n.d, 0)` (`galaxy/planets.glsl`), the quasar shock shell's rim (`quasar/fx.glsl`), the
+     starspot and coronal-loop `sin()` profiles (`star/surface.glsl`, `star/lines_vert.glsl`) and the portal radius.
+
+   Fix: both squares are written out (`d * d`); the other bases are clamped at 0. On the dev rig (NVIDIA, which already
+   turns `pow(x, 2.0)` into `x * x`) the pictures are unchanged: the helium flash, Sol, the planets, the Diffraction's
+   shell, the conduit portal and the quasar shell were re-shot and match the earlier AFTER shots apart from
+   animation phase.
+2. **Under Angelica, three depth blits a frame even when nothing draws (perf, holds).** `DeferredDraws.add` started
+   the opaque-depth capture for any queued machine. Every formed conduit element, crown, Homogeny and Reality machine
+   in view queued, including at `renderQuality=low` and for a conduit with no stream, and only `renderNow` found out
+   afterwards that it had nothing to draw. Fix:
+   - `RenderQuality.mayShade(machine, programs)` is asked before queueing: not the harness baseline, quality above low,
+     a capable GL context, no GL-error fallback for the machine, every program baked;
+   - the callers queue only when there is something to show: a conduit element only with a stream out of a throat (or
+     a Wormhole Mouth's portal, or the harness's forced streams), a crown only with a stream.
+
+   At LOW, and for conduit elements and crowns with nothing flowing, the frame costs what it did before v2 (an idle
+   Homogeny or Reality machine still draws its dim look, so it still queues). In vanilla the machines still draw as
+   before (Homogeny, Diffraction, conduit stream and portal, crown re-shot).
+3. **The black hole's faint glow wrote depth (visual, holds; seen in game).** The hole quad was drawn in pass 0 with
+   depth writes, and the shader discarded only empty fragments. So the faint glow round the disc (alpha 0) and the
+   photon-ring halo wrote the quad's depth over most of the bounding disc. Everything drawn later behind that plane
+   failed the depth test: the KEE's far window glass vanished in a soft-edged circle round the hole. Seen in the
+   earlier AFTER shots: `kerr_t2_512sm_level_day` (the glass band breaks round the hole), `kerr_t2_512sm_close_day`
+   (the far glass cut away in a circle), and the quasar's window band broken round its hole
+   (`quasar_256sm_resonant_hero`). Water, rain, particles and later TESRs behind the hole were hit the same way.
+
+   *First attempt, rejected.* Depth only inside the shadow (as the review suggested for the opaque part): the far
+   glass then drew over the bright disc, as blue rectangles across the upper arc, because the depth writes were there
+   on purpose (R-11 point 6: the window's far glass must not tint the hole a second time).
+
+   *Fix.* The colour pass draws without depth writes. A second draw of the same quad, with colour writes off, writes
+   depth where the hole has a body:
+   - the shadow and the photon ring without a march (straight-line impact parameter below 3.1 r_s, seen from outside
+     the photon sphere: the ring and the side the frame dragging pushes out);
+   - elsewhere a coarse march (no screen copy, L3's 14 steps, one noise octave), which stops as soon as alpha reaches
+     0.05 and writes depth there;
+   - the glow and the photon-ring halo add light but never alpha, so they write no depth.
+
+   Checked:
+   - `-Dbts.render.bhDepthDebug=true` draws that pass in red. It covers the shadow, the disc and its lensed arcs (the
+     failing hole's tilted disc too) and stops at the disc's edge; the glow beyond it is not covered.
+   - In the shots the far glass now shows right up to the disc's edge, and nothing shows through the disc.
+   - The quasar's inner-arc gaps of the in-between versions are gone. Glass behind the disc's gaps showed through as
+     stripes at alpha 0.5, and as a sliver on the prograde side of the ring at 2.9 r_s.
+   - GL state leak check (`-Dbts.render.leakcheck=true`, which reads the colour mask too): no leaks in the 70 shots of
+     the Kerr and quasar cases (run before the switch from L2 to L3, which changes only a uniform).
+
+   *Cost* (marginal, `-Dbts.render.bhDepthRepeat=9` against 1, three pairings of interleaved runs, median; the
+   single-draw timer was too noisy for this, with other clients sharing the GPU):
+
+   | View | depth pass, L2 march | depth pass, L3 march (shipped) |
+   |---|---|---|
+   | Kerr T1 64 SM (and strained / failing), close | +0.0005 to +0.0015 ms | -0.002 to +0.002 ms (noise) |
+   | Kerr T1 64 SM (and strained / failing), hero | +0.005 to +0.008 ms | +0.001 to +0.006 ms |
+   | Kerr T2 512 SM, close | +0.006 ms | +0.002 to +0.003 ms |
+   | Kerr T2 512 SM, hero (near full frame) | +0.010 ms | +0.006 to +0.008 ms |
+   | Quasar 256 SM, close / hero | -0.001 to +0.002 ms | +0.002 to +0.006 ms |
+
+   The quasar's numbers sit inside the run-to-run noise (about 0.003 ms), so it cannot tell L2 from L3; on the Kerr L3
+   is clearly cheaper, and the red check shows the same coverage, so L3 is used. Rays that hit the disc stop at alpha
+   0.05; only the ones that miss it march on.
+
+   The Kerr's close-up was already over budget (R-11). The depth pass adds about 0.006-0.008 ms on top at the
+   T2 hero close-up (4090, 1280 x 720), 0.002-0.003 ms at the close view and next to nothing far away.
+   Unchanged: at L0 the screen copy is still taken in pass 0, before the translucent pass. Glass behind the hole now
+   draws over the bent image (unbent) instead of being cut away.
+4. **The quasar could draw both looks in one frame (minor, holds).** `drawV2` drew the ring, the far jet, the field
+   lines and the shell, and then returned false if `BlackHoleLens.draw` could not draw (its quad mesh failed to
+   build, which sticks until a resource reload). The caller then drew GT's fixed path on top, every frame. Fix:
+   `BlackHoleLens.usable()` (program and quad both there) is checked before anything is drawn.
+5. **`smoothstep(0.16, 0.0, d)` (minor, holds).** `edge0 > edge1` is undefined in GLSL. The backdrop's sparse stars
+   (`galaxy/sky.glsl`) now use `1 - smoothstep(0.0, 0.16, d)`; it was the only reversed `smoothstep` with literal
+   edges in our shaders. The picture is unchanged.
+6. **Unbounded `glGetError` drains (minor, holds).** The loops in `OpaqueDepth.ensure` (Angelica, production) and
+   `RenderQuality.glCheckBegin` (dev) never end on a lost context that keeps reporting an error. Both now stop after
+   64 errors.
+
+**Harness finding (not fixed, logged).** One harness run (`fix5-nd2`) ended by writing a `level.dat` whose FML item
+map held -1 for 10 items and was missing about a third of the entries (1,007 `miscutils:` names against 2,739). The
+next run refused the world ("The world state is utterly corrupted"). That run's `level.dat_old` was intact, and
+copying it over `level.dat` recovered the world (the bad file is kept in `renders/review/world-backup/`). The
+harness quits with `mc.shutdown()` while the world is still loaded, and the integrated server's last save appears to
+race FML's registry revert. A safer quit would leave the world first, as "Save and Quit to Title" does, and close the
+client a few ticks later. Left as is because it is shared tooling and happened once in about 30 runs. If it
+happens again, copy `level.dat_old` over `level.dat` in `run/client/saves/bts-rendertest-L4`.
+
+**Not verified.** Angelica's core profile with a shaderpack (as R-10 to R-16). Under Angelica 2.2.26 without a pack
+(added to the dev run for this check only and taken out again) the hole draws as in vanilla and the frame after it
+draws normally, so the colour mask is restored. At HIGH the machines still pay the depth copy (about 0.028 ms GPU and
+0.026 ms CPU) when they draw. At `renderQuality=low` no depth copy runs at all, where every formed machine paid for it
+before. An idle conduit element (no stream, not a mouth) has no harness case of its own; that path is checked by
+reading the code only. The Diffraction stayed invisible in that Angelica run: the known first-view case of R-16, not
+a new one. Shots: `after-r17-*` and `after-r17-angelica-*` in each object's folder, the depth check in
+`review/runs/*dbg*`.
+
+**Suggestion.** Accept the fixes. The open choices stay as before: R-11 / R-16 for the Kerr's close-up budget, R-16
+for the Angelica first view. Optionally, make the harness leave the world before it quits (see above).
+
+### R-18 The renders v2 before / after showcase video and compare page [renders v2, video]
+
+**What was made.** A 3:56 video, recorded in game by the dev recorder from `tools/recording/renders-showcase.shots`
+(1920 x 1080, 30 fps, silent), and a compare page. For each big render a short BEFORE, then the AFTER in motion,
+with a BEFORE / AFTER badge in the top-left corner and a caption:
+
+- **The Kerr black hole** at 64 SM: an orbit and a close-up.
+- **The quasar** at 1,024 SM: the ring, an orbit of the hole and its jets, a real eruption (flux 100) and a real purge
+  (both fired by `/btsquasar`).
+- **The Eye's stars**, one per tier with its signature event:
+  - Sol's ignition out of the protostar's cocoon;
+  - the Mass Infusion into Sirius A;
+  - Arcturus' helium flash (a real event, fired by the Eye bench);
+  - the Core Collapse's swell and bounce, then the neutron star;
+  - the First Cooling and a cooling batch down to the black dwarf;
+  - the magnetar's giant flare (a real event).
+- **The galaxies:** the Magnetar Collapse into Triangulum, and the Galactic Merger into the Milky Way.
+- **The machines:** the Homogeny, Reality Diffraction, Reality Refab and the conduit's streams and portal.
+
+**How BEFORE is shown.** By this build at `renderQuality=low`, switched in the same take (the recorder's new
+`quality` command). The low path draws the renders of master c2b016d unchanged: R-10 matched the LOW shots to the
+c2b016d BEFORE shots pixel for pixel. The machines drew nothing before renders v2 and draw nothing at low, so their
+BEFORE is the empty glass. The title card says so. No separate build of master was made.
+
+**Honesty, as the captions say.**
+- *Real events:* the quasar's eruption and purge, the helium flash and the giant flare.
+- *Set by the recorder:* the star transitions and the galaxy events (ignition, Mass Infusion, Core Collapse, First
+  Cooling, cooling batch, Magnetar Collapse, Galactic Merger) take minutes to hours in play. The recorder sets the
+  Eye's look for these through the render QA's forced look (`eyelook`, `eyeramp`). Only the render tile changes, not
+  the machine. The cooling batch (7,200 s), the Mass Infusion (600 s) and the Galactic Merger (35 minutes) are run
+  fast. The Magnetar Collapse's settling has a time cut.
+- *Client look:* the Homogeny and both Reality machines are shown running by the render QA's client look
+  (`clientlook`). The Reality machines cannot run in this world: they need a BEC network.
+- *Real stream:* the conduit's stream comes from the conduit rig's own quasar.
+
+**Recorder additions (dev only, `rendertest/`, docs/recording.md):**
+- `quality` sets the render quality.
+- `badge` shows the BEFORE / AFTER badge.
+- `eyelook` / `eyeramp` set the Eye's look; a ramp is pushed to the render tile every tick, so a run-fast transition
+  moves smoothly.
+- `clientlook` sets a machine render's client look.
+- `points` now names a Homogeny or Reality machine's render centre as `<name>.c`.
+
+**Files** (local work folder):
+- `video/renders/renders-showcase-1080p.mp4` (151 MB, x264 CRF 20).
+- 720p copies split at the chapter cards, each under 25 MB:
+  - `renders-showcase-720p-part1.mp4`: title, Kerr, quasar; 0:55, 7.1 MB;
+  - `part2`: the stars; 1:28, 19.6 MB;
+  - `part3`: the galaxies and machines; 1:33, 20.7 MB.
+- A poster frame and a playlist.
+- `renders/compare.html` pairs all 458 BEFORE shots with their AFTER. The AFTER is the R-17 re-shot where one exists,
+  else the renders v2 shot. LOW is on a toggle, with a day / night filter and a light / dark / auto theme. The video
+  is at the top. The old page with the GPU columns is kept as `renders/compare-gpu-table.html`.
+- Still sheets of every scene: `renders/show/st3/`.
+
+**Checked.** Three takes. Every scene's stills were looked at, and poses and timings were changed between takes:
+- the quasar ring seen from a lower side angle, so the turbulence reads;
+- the protostar starting deeper in its cocoon;
+- the Core Collapse seen from over the open bowl, so the swell and the shock front are not cut by the bands;
+- the cooling batch held on the black dwarf;
+- the Magnetar Collapse's burst given time before a cut to its settling;
+- the Homogeny and Refab seen from outside the glass and inside the drum.
+
+No audio track in any file.
+
+**Not shown.** Angelica and shaderpacks (as R-10 to R-17). The blow-out, the satellite crossing, minor mergers and
+planets mode are in the earlier clips (`kerr-v2`, `quasar-v2`, `stars-v2`, `galaxies-v2`), not in this one.
+
+**Suggestion.** None needed. If the video goes out with the release, use the 720p parts and say in the post that
+the run-fast transitions were set by a dev tool.

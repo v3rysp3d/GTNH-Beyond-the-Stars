@@ -22,6 +22,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.Fluid;
@@ -29,6 +30,7 @@ import net.minecraftforge.fluids.FluidStack;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.google.common.io.ByteArrayDataInput;
 import com.gtnewhorizon.structurelib.alignment.IAlignmentLimits;
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
 import com.gtnewhorizon.structurelib.alignment.enumerable.Flip;
@@ -74,6 +76,8 @@ import gregtech.api.util.GTUtility;
 import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.api.util.OverclockCalculator;
 import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
+import gregtech.common.render.IMTERenderer;
+import io.netty.buffer.ByteBuf;
 
 /**
  * HOMOGENY + REALITY MACHINES (H/R unit 2): THE HOMOGENY, MTE base+30 (28130), my "Mixer" sketch (design repo
@@ -110,7 +114,8 @@ import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
  * survive a wrench. (3) A ring whose walk fails drops the feed hatches it registered (mark-and-truncate on GT's input
  * list). (4) Sockets are {@code buildHatchAdder(...).buildAndChain(casing)}, the hatch first.
  */
-public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> implements ISurvivalConstructable {
+public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
+    implements ISurvivalConstructable, IMTERenderer {
 
     public static final String PIECE_T1 = "homog_t1";
     public static final String PIECE_T2 = "homog_t2";
@@ -174,6 +179,17 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
     private final ArrayList<MTEHatchGRBReceptor> receptors = new ArrayList<>();
     private final boolean[] pieceBuilt = new boolean[PIECES.length];
     private final String[] pieceFault = { "", "", "" };
+
+    // ------------------------------------- renders v2 (§11, §13): GT's render-data channel only, never saved
+    /** Feed colours 0..2 and the product colour 3 (RGB) by tier: Raw Star Matter, ESPM, cyan; the product's. */
+    private static final int[][] RENDER_PALETTE = { { 0xFF8A2A, 0xE040C0, 0x40C8FF, 0xE04ACF },
+        { 0xFF8A2A, 0xE040C0, 0x40C8FF, 0xE04ACF }, { 0xE04ACF, 0xFFB040, 0x6A4AFF, 0x8FA8FF },
+        { 0xFF7A2A, 0xE040C0, 0x6A4AFF, 0x40E0FF } };
+    /** Client: the tier the vortex shows (0: not formed, draw nothing) and its four colours, as last sent. */
+    private int renderTier;
+    private final int[] renderColours = RENDER_PALETTE[1].clone();
+    /** Server: the last product colour (kept while idle). */
+    private int lastProductColour = -1;
 
     public MTEHomogeny(int aID, String aName, String aNameRegional) {
         super(aID, aName, aNameRegional);
@@ -698,6 +714,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
         super.onPostTick(aBaseMetaTileEntity, aTick);
         if (aBaseMetaTileEntity.isServerSide() && aTick % 20 == 0) {
             if (mMachine) burstSecond(aBaseMetaTileEntity);
+            if (aTick % 40 == 0) sendRenderDataToClient(this);
             // Install progress, milestones, the pending mix totals and the burst counters change without an
             // inventory change, and GT marks a chunk for saving only on those: once a second, as the KEE and the
             // P4 machines do (B-112, P4-85).
@@ -709,6 +726,75 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny> imp
         if (mStartUpCheck >= 0) return; // not walked yet after a load
         final boolean advanced = installTick();
         if (mMaxProgresstime == 0) aBaseMetaTileEntity.setActive(advanced); // a finishing mix keeps its own lamp
+    }
+
+    // ============================================================================ renders v2
+
+    /** Renders v2 (§11): the vortex, the helix glow and the feed streams (client; HomogenyRender). */
+    @Override
+    public void renderTESR(double x, double y, double z, float partialTicks) {
+        HomogenyRender.render(this, x, y, z, partialTicks);
+    }
+
+    /** The whole machine (its centre stands 34 blocks from the controller, the T3 ring 70 from the centre). */
+    @Override
+    public AxisAlignedBB getRenderBoundingBox(int x, int y, int z) {
+        return AxisAlignedBB.getBoundingBox(x - 110, y - 40, z - 110, x + 111, y + 41, z + 111);
+    }
+
+    @Override
+    public double getMaxRenderDistanceSquared() {
+        return 256.0 * 256.0;
+    }
+
+    /** Server: the tier (0 unformed) and the feed and product colours, every 2 s (render-only, never saved). */
+    @Override
+    public void encodeRenderData(ByteBuf buf) {
+        final int t = mMachine ? Math.max(1, tier()) : 0;
+        buf.writeByte(t);
+        final int[] pal = RENDER_PALETTE[Math.max(1, Math.min(MAX_TIER, t))];
+        final int[] c = pal.clone();
+        int n = 0;
+        final ArrayList<FluidStack> stored = mMachine ? getStoredFluids() : null;
+        if (stored != null) {
+            for (FluidStack fs : stored) {
+                if (n >= 3 || fs == null || fs.getFluid() == null || fs.amount <= 0) continue;
+                final int rgb = fs.getFluid()
+                    .getColor(fs) & 0xFFFFFF;
+                if (rgb == 0xFFFFFF || rgb == 0) continue;
+                boolean dup = false;
+                for (int i = 0; i < n; i++) dup |= c[i] == rgb;
+                if (!dup) c[n++] = rgb;
+            }
+        }
+        if (mOutputFluids != null && mMaxProgresstime > 0) {
+            for (FluidStack out : mOutputFluids) {
+                if (out == null || out.getFluid() == null) continue;
+                final int rgb = out.getFluid()
+                    .getColor(out) & 0xFFFFFF;
+                if (rgb != 0xFFFFFF && rgb != 0) lastProductColour = rgb;
+                break;
+            }
+        }
+        if (lastProductColour >= 0) c[3] = lastProductColour;
+        for (int v : c) buf.writeInt(v);
+    }
+
+    /** Client. */
+    @Override
+    public void decodeRenderData(ByteArrayDataInput in) {
+        renderTier = in.readByte();
+        for (int i = 0; i < 4; i++) renderColours[i] = in.readInt();
+    }
+
+    /** Client: the tier the vortex shows (0: draw nothing). */
+    public int renderTier() {
+        return renderTier;
+    }
+
+    /** Client: feed colour 0..2 or the product colour 3, RGB. */
+    public int renderColour(int i) {
+        return renderColours[i];
     }
 
     // ============================================================================ processing

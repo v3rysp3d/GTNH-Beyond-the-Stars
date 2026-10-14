@@ -292,6 +292,13 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
         return null;
     }
 
+    /** Renders v2: the regions anchored now (bits 0-5), or those of the running run. */
+    @Override
+    protected int renderMaskNow() {
+        if (mMaxProgresstime > 0 && runMask != 0) return runMask;
+        return anchorMask() & 0x3F;
+    }
+
     /** True if region {@code k}'s socket holds its anchor for one run. Server state. */
     public boolean anchored(int k) {
         final GTRecipe r = recipe();

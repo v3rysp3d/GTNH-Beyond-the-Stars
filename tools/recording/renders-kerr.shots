@@ -1,0 +1,44 @@
+# Renders v2 WP-1: the Kerr black hole (docs/render-kit.md, BlackHoleLens). Dev only: -Dbts.rec=true
+# -Dbts.rec.script=tools/recording/renders-kerr.shots. About a minute of video.
+kit kerr t1 1000,36,4000 name k1
+command /btskerr render {k1} open 64
+time night
+wait seconds 6
+
+scene title
+  card 3 Renders v2: the Kerr black hole | a lensed accretion disc, photon ring, Doppler beaming, sheared turbulence
+
+scene orbit-night
+  caption The Kerr Ergosphere Engine's hole at 64 solar masses. The disc's far side is bent over and under the black shadow.
+  orbit k1.c radius 15.2 height 3.2 from 15 to 50 seconds 12 ease inout
+
+scene closeup
+  caption Close up: the inner gas laps the outer, Keplerian shear; hot clumps come and go, the approaching side is brighter and whiter.
+  goto k1.c+4,1.4,-9 look k1.c
+  hold 7
+
+scene window
+  caption From outside, through the Quantum Glass window band.
+  goto k1.c+0,0,-62.5 look k1.c
+  hold 4
+
+scene day
+  time day
+  caption By day.
+  orbit k1.c radius 15.2 height 3.2 from 50 to 15 seconds 10 ease inout
+
+scene collapse
+  time night
+  caption Closing the hole, here by its render switch: it shrinks to a point and goes out in a blue-white Hawking flash.
+  goto k1.c+7.6,3.2,-13.1 look k1.c
+  hold 1
+  command /btskerr render {k1} off
+  hold 3
+
+scene reopen
+  caption Opening it again: the hole grows from a point behind a white ring.
+  command /btskerr render {k1} on
+  hold 4
+
+scene end
+  card 2 Beyond the Stars | renders v2

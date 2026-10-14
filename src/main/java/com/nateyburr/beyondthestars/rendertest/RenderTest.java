@@ -14,8 +14,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Supplier;
 
 import net.minecraft.block.Block;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.server.S09PacketHeldItemChange;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.ChunkCoordIntPair;
@@ -30,6 +34,7 @@ import com.gtnewhorizon.structurelib.alignment.enumerable.Rotation;
 import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1;
 import com.nateyburr.beyondthestars.machines.SLConsoleTest;
+import com.nateyburr.beyondthestars.machines.conduit.ConduitKit;
 import com.nateyburr.beyondthestars.machines.eye.EyeKit;
 import com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS;
 import com.nateyburr.beyondthestars.machines.eye.render.BlockEyeStar;
@@ -46,6 +51,7 @@ import com.nateyburr.beyondthestars.machines.quasar.QuasarKit;
 import com.nateyburr.beyondthestars.machines.quasar.burst.JetPort;
 import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarParams;
 import com.nateyburr.beyondthestars.machines.quasar.render.BlockQuasarHole;
+import com.nateyburr.beyondthestars.machines.reality.HRKit;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
@@ -95,17 +101,18 @@ public final class RenderTest {
      */
     // L3 (window bands, B-86): same site layout as L2, but the builds never clear a site and the windows left cells
     // open that L2 had filled, so a fresh world
-    static final String WORLD_FOLDER = "bts-rendertest-L3";
+    // L4 (renders v2, R-01): L3's sites plus the Homogeny, the two Reality machines and the conduit rig appended
+    static final String WORLD_FOLDER = "bts-rendertest-L4";
     /** Owner of the test Eyes (their wireless network). */
     private static final UUID OWNER = UUID
         .nameUUIDFromBytes("beyondthestars:render-test".getBytes(StandardCharsets.UTF_8));
     /** First air row of the superflat preset {@code 2;7,2x3,2;1;} (bedrock, 2 dirt, grass at y 3). */
     private static final int GROUND = 4;
     private static final int SITE_X0 = 1000;
-    private static final int SITE_Z = 4000;
+    static final int SITE_Z = 4000;
     private static final int SITE_SPACING = 500;
     /** Every structure faces north: the front views look south at it. */
-    private static final ForgeDirection FACING = ForgeDirection.NORTH;
+    static final ForgeDirection FACING = ForgeDirection.NORTH;
     /** Furthest a far view may stand from what it looks at (render distance is 16 chunks). */
     private static final double MAX_VIEW_DISTANCE = 230;
 
@@ -129,7 +136,22 @@ public final class RenderTest {
         QUASAR,
         /** P4: the Eye at T7 (the stability rail) and T8 (the shard halo), appended. */
         EYE_T7,
-        EYE_T8;
+        EYE_T8,
+        /** Renders v2 (R-01): the Homogeny at its top tier, the vortex's future home (no visual yet). */
+        HOMOGENY,
+        /** Renders v2: the Reality Diffraction (no visual yet). */
+        REALITY_DIFFRACTION,
+        /** Renders v2: the Reality Refab (no visual yet). */
+        REALITY_REFAB,
+        /**
+         * Renders v2: the conduit rig (ConduitKit.rig): a quasar with a Mk I crown on its top port and mouths below.
+         */
+        CONDUIT,
+        /**
+         * Renders v2 (R-16): the performance scene ({@link RenderScene}): a Kerr T2, the Homogeny, an Eye T8 and a
+         * 4,096 SM quasar close together, so one camera sees all four.
+         */
+        SCENE;
 
         /** The Eye tier this site builds (1..8), or 0 for a non-Eye site. */
         int eyeTier() {
@@ -159,19 +181,133 @@ public final class RenderTest {
          * ({@link com.nateyburr.beyondthestars.machines.eye.render.TileEyeStar#debugEventAge}), or -1 (live).
          */
         final double eventAge;
+        /**
+         * Renders v2: a client-side look override for the shots, or null (live): Kerr {stability} into
+         * {@code TileKerrHole.debugStability}; quasar the {@code TileQuasarHole.debugLook} array.
+         */
+        final float[] clientLook;
+        /**
+         * Renders v2 (R-16): the quality the client draws this case at ({@code off} the baseline with every big render
+         * skipped, {@code low}, {@code medium}, {@code high}, {@code high16} high with 16 objects allowed at L0,
+         * {@code pack} high with the shaderpack probe answering yes, {@code fail} every program failing its bake,
+         * {@code recover} baking again, {@code glerror} a GL error injected into each draw), or null: the run's.
+         */
+        String quality;
+        /** Renders v2 (R-16): this case's shots ({@code view} by day, {@code view@night}), or null: the run's views. */
+        String[] views;
+
+        /** R-16: sets {@link #quality} and {@link #views}. */
+        Case with(String quality, String... views) {
+            this.quality = quality;
+            this.views = views.length == 0 ? null : views;
+            return this;
+        }
 
         Case(String name, Site site, double mass, EyeStarLook look, String what) {
             this(name, site, mass, look, what, -1);
         }
 
         Case(String name, Site site, double mass, EyeStarLook look, String what, double eventAge) {
+            this(name, site, mass, look, what, eventAge, null);
+        }
+
+        Case(String name, Site site, double mass, EyeStarLook look, String what, double eventAge, float[] clientLook) {
             this.name = name;
             this.site = site;
             this.mass = mass;
             this.look = look;
             this.what = what;
             this.eventAge = eventAge;
+            this.clientLook = clientLook;
         }
+    }
+
+    /**
+     * Renders v2: an Eye case with its frozen clocks: {@code eventAge} the kind / flare / transition age (ticks, -1
+     * live), {@code eventIn} seconds to the event's hit (negative after it, NaN live), {@code prevKind} the kind shown
+     * before (-1 live).
+     */
+    private static Case eyeCase(String name, Site site, EyeStarLook look, String what, double eventAge, double eventIn,
+        int prevKind) {
+        return new Case(name, site, 0, look, what, eventAge, new float[] { (float) eventIn, prevKind });
+    }
+
+    /**
+     * Renders v2 WP-5: a galaxy case with its frozen clocks, as {@link #eyeCase}, plus {@code crossingIn} seconds to
+     * the satellite crossing's hit (negative after it, NaN live).
+     */
+    private static Case galaxyCase(String name, Site site, EyeStarLook look, String what, double eventAge,
+        double eventIn, int prevKind, double crossingIn) {
+        return new Case(
+            name,
+            site,
+            0,
+            look,
+            what,
+            eventAge,
+            new float[] { (float) eventIn, prevKind, (float) crossingIn });
+    }
+
+    /** Renders v2 WP-5: the Galactic Merger at {@code st} seconds, as the runtime shows it (Triangulum + the pass). */
+    private static EyeStarLook mergerAt(int st) {
+        return EyeStarLook.pericentre(
+            EyeStarLook.galaxy(7, 0.3f, 0.5f)
+                .transition(7, st / 2100f),
+            st);
+    }
+
+    /** The event clock {@link #mergerAt} puts on the channel (NaN after the last pass's minute). */
+    private static double mergerIn(int st) {
+        final EyeStarLook l = mergerAt(st);
+        return l.ev == 0 ? Double.NaN : l.evIn;
+    }
+
+    /** A Kerr case's client look: GT's stability input (0.5 and up calm, 0 spinning). */
+    private static float[] kerrLook(float stability) {
+        return new float[] { stability };
+    }
+
+    /**
+     * A quasar case's client look ({@code TileQuasarHole.debugLook}); flash age negative: no flash. Renders v2: a flash
+     * is an eruption, the spin 0.5 (the T3 coils' equilibrium), the flux 30, no lock.
+     */
+    private static float[] quasarLook(int zone, float lc, float e, float jetTop, float jetBottom, float flashAge,
+        float flashSize) {
+        return quasarLook(
+            zone,
+            lc,
+            e,
+            jetTop,
+            jetBottom,
+            flashAge,
+            flashSize,
+            flashAge >= 0 ? 1 : 0,
+            0.5f,
+            30f,
+            false,
+            0f);
+    }
+
+    /**
+     * Renders v2 (R-03): the full quasar look: event kind (1 eruption, 2 purge, 3 blow-out, 4 re-formed, 5 First
+     * Light), spin, flux, Harmonic Lock, re-forming fraction.
+     */
+    private static float[] quasarLook(int zone, float lc, float e, float jetTop, float jetBottom, float flashAge,
+        float flashSize, int event, float spin, float phi, boolean lock, float reform) {
+        return new float[] { zone, lc, e, jetTop, jetBottom, flashAge, flashSize, event, spin, phi, lock ? 1 : 0,
+            reform };
+    }
+
+    /** Renders v2: one frame of an event sequence on the 1,024 SM quasar (Stable, jets 600 Bu/t). */
+    private static Case quasarEvent(String name, int event, float ageTicks, float size, float phi, String what) {
+        return new Case(
+            name,
+            Site.QUASAR,
+            1024,
+            null,
+            what,
+            -1,
+            quasarLook(1, 0.85f, 10f, 600f, 600f, ageTicks, size, event, 0.6f, phi, false, 0f));
     }
 
     /**
@@ -180,13 +316,108 @@ public final class RenderTest {
      */
     static final List<Case> CASES = only(
         Arrays.asList(
+            // ---- the Kerr (GT's BlackholeRenderer, scaled by mass)
             new Case("kerr_t1_16sm", Site.KERR_T1, 16, null, "Kerr T1, hole open at 16 SM"),
             new Case("kerr_t1_64sm", Site.KERR_T1, 64, null, "Kerr T1, hole open at 64 SM (the T1 cap)"),
+            new Case(
+                "kerr_t1_64sm_strained",
+                Site.KERR_T1,
+                64,
+                null,
+                "Kerr T1 at 64 SM, governor coverage 0.3 (GT stability input 0.15: the disc shrinks and reddens)",
+                -1,
+                kerrLook(0.15f)),
+            new Case(
+                "kerr_t1_64sm_failing",
+                Site.KERR_T1,
+                64,
+                null,
+                "Kerr T1 at 64 SM, no coverage (GT stability 0: the disc spins, deep red)",
+                -1,
+                kerrLook(0f)),
             new Case("kerr_t2_256sm", Site.KERR_T2, 256, null, "Kerr T2 (Density Upgrade), hole open at 256 SM"),
+            new Case("kerr_t2_512sm", Site.KERR_T2, 512, null, "Kerr T2 at 512 SM (the T2 cap)"),
+            // ---- the Eye T1-T6 stars
+            new Case(
+                "eye_t1_protostar_early",
+                Site.EYE_T1,
+                0,
+                EyeStarLook.protostar(1, 0.1f),
+                "Eye T1 igniting, 10 % of the way (P -74): a small dim red protostar"),
+            new Case(
+                "eye_t1_protostar_late",
+                Site.EYE_T1,
+                0,
+                EyeStarLook.protostar(1, 0.8f),
+                "Eye T1 igniting, 80 % of the way (P -32): swollen, heating toward Sol"),
             new Case("eye_t1_sol", Site.EYE_T1, 0, EyeStarLook.lit(1, 0, 0), "Eye T1, Sol (live star)"),
+            new Case(
+                "eye_t1_sol_unstable",
+                Site.EYE_T1,
+                0,
+                EyeStarLook.lit(1, 0.8f, 1),
+                "Eye T1, Sol at stability 20 on an event warning (the wobble)"),
+            // renders v2: the ignition flash (the protostar lit, frozen at 15 of its 60 ticks) and the Mass Infusion
+            eyeCase(
+                "eye_t1_ignition",
+                Site.EYE_T1,
+                EyeStarLook.lit(1, 0, 0),
+                "Eye T1, the protostar just lit: the ignition flash, its cocoon blown away (15 of 60 ticks)",
+                15,
+                Double.NaN,
+                EyeStarLook.PROTOSTAR),
+            eyeCase(
+                "eye_t1_mass_infusion",
+                Site.EYE_T1,
+                EyeStarLook.growing(1, 0.5f),
+                "Eye T1 -> T2, the Mass Infusion half way: Sol heating toward Sirius A, matter raining in",
+                -1,
+                Double.NaN,
+                -1),
             new Case("eye_t2_sirius_a", Site.EYE_T2, 0, EyeStarLook.lit(2, 0, 0), "Eye T2, Sirius A (live star)"),
+            eyeCase(
+                "eye_t2_shell_ignition",
+                Site.EYE_T2,
+                EyeStarLook.growing(2, 0.5f),
+                "Eye T2 -> T3, the Shell Ignition half way: Sirius A swelling and cooling toward Arcturus",
+                -1,
+                Double.NaN,
+                -1),
             new Case("eye_t3_arcturus", Site.EYE_T3, 0, EyeStarLook.lit(3, 0, 0), "Eye T3, Arcturus (red giant)"),
+            new Case(
+                "eye_t3_helium_flash_warn",
+                Site.EYE_T3,
+                0,
+                EyeStarLook.lit(3, 0.3f, 1),
+                "Eye T3, Arcturus on a helium-flash warning (stability 70)"),
+            eyeCase(
+                "eye_t3_helium_flash_t05",
+                Site.EYE_T3,
+                EyeStarLook.lit(3, 0.3f, 1)
+                    .event(EyeStarLook.EV_HELIUM_FLASH, 5f),
+                "Eye T3, a helium flash 5 s away: the cells boil, the star throbs",
+                -1,
+                5,
+                -1),
+            eyeCase(
+                "eye_t3_helium_flash_hit",
+                Site.EYE_T3,
+                EyeStarLook.lit(3, 0.3f, 1)
+                    .event(EyeStarLook.EV_HELIUM_FLASH, -1f),
+                "Eye T3, a helium flash 1 s after its hit: the bright front across the surface, the puff",
+                -1,
+                -1,
+                -1),
             new Case("eye_t4_neutron", Site.EYE_T4, 0, EyeStarLook.lit(4, 0, 0), "Eye T4, neutron star"),
+            eyeCase(
+                "eye_t4_glitch",
+                Site.EYE_T4,
+                EyeStarLook.lit(4, 0, 0)
+                    .event(EyeStarLook.EV_GLITCH, -0.4f),
+                "Eye T4, a starquake glitch 0.4 s after it hit: the crust flash, the beams stutter",
+                -1,
+                -0.4,
+                -1),
             new Case(
                 "eye_t4_collapse_swell",
                 Site.EYE_T4,
@@ -202,18 +433,110 @@ public final class RenderTest {
                     + " 30 ticks (about 7.4 blocks, rim alpha 0.04 -> 0.64 x 0.7)",
                 30),
             new Case(
+                "eye_t4_collapse_bounce_t08",
+                Site.EYE_T4,
+                0,
+                EyeStarLook.bounce(0f),
+                "Eye T4 structure, the bounce 8 ticks in: the shock leaving the proto-neutron star, the flash",
+                8),
+            new Case(
+                "eye_t4_collapse_bounce_t70",
+                Site.EYE_T4,
+                0,
+                EyeStarLook.bounce(0f),
+                "Eye T4 structure, the bounce 70 ticks in: the shock near the bands, fading",
+                70),
+            new Case(
+                "eye_t4_supernova_t05",
+                Site.EYE_T4,
+                0,
+                EyeStarLook.NOVA_FLASH,
+                "Eye T4 structure, a failed Core Collapse: the supernova 5 ticks in (the blinding flash)",
+                5),
+            new Case(
+                "eye_t4_supernova_t45",
+                Site.EYE_T4,
+                0,
+                EyeStarLook.NOVA_FLASH,
+                "Eye T4 structure, the supernova 45 ticks in: the remnant's filaments fading",
+                45),
+            new Case(
+                "eye_t4_supernova",
+                Site.EYE_T4,
+                0,
+                EyeStarLook.NOVA_FLASH,
+                "Eye T4 structure, a failed Core Collapse: the supernova flash frozen at 20 of its 60 ticks",
+                20),
+            new Case(
                 "eye_t5_dwarf_early",
                 Site.EYE_T5,
                 0,
                 EyeStarLook.dwarf(0.1),
                 "Eye T5, Sirius B cooling batch at 10 % (white)"),
             new Case(
+                "eye_t5_dwarf_mid",
+                Site.EYE_T5,
+                0,
+                EyeStarLook.dwarf(0.5),
+                "Eye T5, Sirius B cooling batch at 50 % (orange)"),
+            new Case(
                 "eye_t5_dwarf_late",
                 Site.EYE_T5,
                 0,
                 EyeStarLook.dwarf(0.9),
                 "Eye T5, Sirius B cooling batch at 90 % (near black)"),
+            eyeCase(
+                "eye_t5_first_cooling",
+                Site.EYE_T5,
+                EyeStarLook.dwarf(0.01)
+                    .transition(4, 0.01f),
+                "Eye T4 -> T5, the First Cooling's start: the white dwarf assembling (40 of 80 ticks)",
+                40,
+                Double.NaN,
+                -1),
+            new Case(
+                "eye_t5_black_dwarf",
+                Site.EYE_T5,
+                0,
+                EyeStarLook.dwarf(1.0),
+                "Eye T5, Sirius B at the end of a batch: the black dwarf (its crystal sheen)"),
             new Case("eye_t6_magnetar", Site.EYE_T6, 0, EyeStarLook.lit(6, 0, 0), "Eye T6, SGR 1806-20 magnetar"),
+            eyeCase(
+                "eye_t6_giant_flare_t06",
+                Site.EYE_T6,
+                EyeStarLook.lit(6, 0, 1)
+                    .event(EyeStarLook.EV_GIANT_FLARE, 6f),
+                "Eye T6, a giant flare 6 s away: the field winding up and crackling, the crust faults glowing",
+                200,
+                6,
+                -1),
+            eyeCase(
+                "eye_t6_giant_flare_hit",
+                Site.EYE_T6,
+                EyeStarLook.lit(6, 0, 1)
+                    .event(EyeStarLook.EV_GIANT_FLARE, -0.8f),
+                "Eye T6, a giant flare 0.8 s after its hit: the flash, the field torn open into a fan",
+                200,
+                -0.8,
+                -1),
+            eyeCase(
+                "eye_t6_merger_start",
+                Site.EYE_T6,
+                EyeStarLook.lit(6, 0, 0)
+                    .transition(5, 0.02f),
+                "Eye T5 -> T6, the Magnetar Merger's start: the merger flash (20 of 60 ticks)",
+                20,
+                Double.NaN,
+                -1),
+            eyeCase(
+                "eye_t6_merger_imprint",
+                Site.EYE_T6,
+                EyeStarLook.lit(6, 0, 0)
+                    .transition(5, 0.6f),
+                "Eye T5 -> T6, the Magnetar Merger's imprint (60 %): the dynamo winding the field up",
+                200,
+                Double.NaN,
+                -1),
             new Case(
                 "eye_t6_magnetar_warn",
                 Site.EYE_T6,
@@ -221,6 +544,15 @@ public final class RenderTest {
                 EyeStarLook.lit(6, 0, 1),
                 "Eye T6, magnetar on an event warning (flare shell bright), a flare frozen at 15 ticks",
                 15),
+            new Case(
+                "eye_t6_overfed",
+                Site.EYE_T6,
+                0,
+                EyeStarLook.overfedMagnetar(0.8f, 0),
+                "Eye T6 -> T7 Magnetar Collapse, the overfed magnetar at 80 % (shrunk, spun up, throbbing), a flare"
+                    + " frozen at 15 ticks",
+                15),
+            // ---- the reference renders of the pack
             new Case("ref_gt_bhc", Site.GT_BHC, 0, null, "REFERENCE: GT Black Hole Compressor, hole open (stable)"),
             new Case("ref_tt_eoh", Site.TT_EOH, 0, null, "REFERENCE: TecTech Eye of Harmony, star render"),
             new Case(
@@ -229,21 +561,142 @@ public final class RenderTest {
                 0,
                 null,
                 "REFERENCE: TecTech Forge of the Gods star render (default: radius 20, one ring, default colour)"),
+            // ---- the quasar (GT's hole + our disc and jets)
             new Case(
                 "quasar_64sm",
                 Site.QUASAR,
                 64,
                 null,
                 "Quasar Engine (coils T3), a fresh 64 SM hole at f 0.85: hole scale 3.1, the disc band r 40 to about"
-                    + " 59, Stable, both jets venting (no dock)"),
+                    + " 59, Stable, both jets venting (no dock); live look"),
+            new Case(
+                "quasar_256sm_resonant",
+                Site.QUASAR,
+                256,
+                null,
+                "Quasar 256 SM, disc Resonant (ice-white), lambda_c 0.9, E -10, jets 40 Bu/t each",
+                -1,
+                quasarLook(0, 0.9f, -10f, 40f, 40f, -1f, 0f)),
+            new Case(
+                "quasar_256sm_critical",
+                Site.QUASAR,
+                256,
+                null,
+                "Quasar 256 SM, disc Critical (red), lambda_c 1, E +80 (puffed up), jets 120 Bu/t each",
+                -1,
+                quasarLook(3, 1f, 80f, 120f, 120f, -1f, 0f)),
+            new Case(
+                "quasar_256sm_reforming",
+                Site.QUASAR,
+                256,
+                null,
+                "Quasar 256 SM after a blow-out: the disc re-forming (dark), no jets",
+                -1,
+                quasarLook(-1, 0f, 0f, 0f, 0f, -1f, 0f)),
             new Case(
                 "quasar_1024sm_eruption",
                 Site.QUASAR,
                 1024,
                 null,
-                "Quasar Engine, a 1,024 SM hole (D-32's good build): hole scale 5.1, jets bright; an eruption"
-                    + " flash at the first shot"),
-            // P4 Eye T7 / T8 (the centre render's galaxies; first guesses for the render QA pass, P4-64)
+                "Quasar Engine, a 1,024 SM hole (D-32's good build): hole scale 5.1, Stable, jets 600 Bu/t; an"
+                    + " eruption flash (size 1) frozen at 15 of its 60 ticks",
+                -1,
+                quasarLook(1, 0.85f, 10f, 600f, 600f, 15f, 1f)),
+            new Case(
+                "quasar_1024sm_purge",
+                Site.QUASAR,
+                1024,
+                null,
+                "Quasar 1,024 SM, a purge flash (size 0.3) frozen at 30 of its 60 ticks, jets 300 Bu/t",
+                -1,
+                quasarLook(1, 0.85f, 0f, 300f, 300f, 30f, 0.3f, 2, 0.5f, 20f, false, 0f)),
+            // ---- renders v2 (WP-2): the quasar's other looks and the event sequences
+            new Case(
+                "quasar_256sm_lock",
+                Site.QUASAR,
+                256,
+                null,
+                "Quasar 256 SM, Resonant under the Harmonic Lock (600 s Resonant): the standing ripples, spin 0.9",
+                -1,
+                quasarLook(0, 0.9f, -5f, 60f, 60f, -1f, 0f, 0, 0.9f, 40f, true, 0f)),
+            new Case(
+                "quasar_256sm_flux95",
+                Site.QUASAR,
+                256,
+                null,
+                "Quasar 256 SM, Stable, flux 95 (past the eruption warning: the field lines crackle), spin 0.9",
+                -1,
+                quasarLook(1, 0.85f, 5f, 120f, 120f, -1f, 0f, 0, 0.9f, 95f, false, 0f)),
+            new Case(
+                "quasar_256sm_slowspin",
+                Site.QUASAR,
+                256,
+                null,
+                "Quasar 256 SM, Stable, spin 0.05 (the inner disc's edge at 6 r_g: a dark gap round the shadow)",
+                -1,
+                quasarLook(1, 0.85f, 0f, 60f, 60f, -1f, 0f, 0, 0.05f, 10f, false, 0f)),
+            new Case(
+                "quasar_256sm_strained",
+                Site.QUASAR,
+                256,
+                null,
+                "Quasar 256 SM, Strained (orange, thicker turbulence), E +40 (puffed), jets 200 Bu/t",
+                -1,
+                quasarLook(2, 0.95f, 40f, 200f, 200f, -1f, 0f, 0, 0.6f, 50f, false, 0f)),
+            new Case(
+                "quasar_256sm_reforming_half",
+                Site.QUASAR,
+                256,
+                null,
+                "Quasar 256 SM re-forming, half way (150 of 300 s): violet-red embers filling in from the inner wall",
+                -1,
+                quasarLook(-1, 0f, 0f, 0f, 0f, -1f, 0f, 0, 0.6f, 0f, false, 0.5f)),
+            quasarEvent("quasar_1024sm_erupt_t03", 1, 3f, 1f, 2f, "Eruption, 3 ticks in: the field lines snap"),
+            quasarEvent("quasar_1024sm_erupt_t10", 1, 10f, 1f, 2f, "Eruption, 10 ticks: the shell crosses the ring"),
+            quasarEvent(
+                "quasar_1024sm_erupt_t25",
+                1,
+                25f,
+                1f,
+                2f,
+                "Eruption, 25 ticks: the ring flares, the giant knots"),
+            quasarEvent("quasar_1024sm_erupt_t45", 1, 45f, 1f, 2f, "Eruption, 45 ticks: debris, the shell fading"),
+            quasarEvent("quasar_1024sm_erupt_t70", 1, 70f, 1f, 2f, "Eruption, 70 ticks: settling"),
+            quasarEvent(
+                "quasar_1024sm_purge_t04",
+                2,
+                4f,
+                0.3f,
+                15f,
+                "Purge, 4 ticks: the field lines unwind, jets pulse"),
+            quasarEvent("quasar_1024sm_purge_t15", 2, 15f, 0.3f, 15f, "Purge, 15 ticks: the spiral flash up the jets"),
+            quasarEvent("quasar_1024sm_purge_t40", 2, 40f, 0.3f, 15f, "Purge, 40 ticks: the ring dimmed"),
+            quasarEvent("quasar_1024sm_purge_t65", 2, 65f, 0.3f, 15f, "Purge, 65 ticks: recovering"),
+            new Case(
+                "quasar_256sm_blowout_t08",
+                Site.QUASAR,
+                256,
+                null,
+                "Blow-out, 8 ticks: the ring breaks up (zone already dark, jets off)",
+                -1,
+                quasarLook(-1, 0f, 0f, 0f, 0f, 8f, 0.5f, 3, 0.6f, 0f, false, 0f)),
+            new Case(
+                "quasar_256sm_blowout_t40",
+                Site.QUASAR,
+                256,
+                null,
+                "Blow-out, 40 ticks: chunks flying outward, fading",
+                -1,
+                quasarLook(-1, 0f, 0f, 0f, 0f, 40f, 0.5f, 3, 0.6f, 0f, false, 0f)),
+            new Case(
+                "quasar_256sm_reformed_t20",
+                Site.QUASAR,
+                256,
+                null,
+                "Re-formed, 20 ticks: the inner wall kindles, the gas fills outward (Stable)",
+                -1,
+                quasarLook(1, 0.85f, 0f, 30f, 30f, 20f, 0.5f, 4, 0.6f, 0f, false, 0f)),
+            // ---- P4 Eye T7 / T8 (the centre render's galaxies)
             new Case(
                 "eye_t7_triangulum",
                 Site.EYE_T7,
@@ -251,6 +704,12 @@ public final class RenderTest {
                 EyeStarLook.galaxy(7, 0, 0),
                 "Eye T7, Triangulum: three loose blue-white arms of dots to r 16 round a small bright core, tilted 8"
                     + " deg, turning once in about 2.6 min"),
+            new Case(
+                "eye_t7_forming",
+                Site.EYE_T7,
+                0,
+                EyeStarLook.galaxy(7, 0.3f, 0),
+                "Eye T7, the Magnetar Collapse's galaxy look (unrest 0.3): what shows while T6 becomes T7"),
             new Case(
                 "eye_t7_merger_warn",
                 Site.EYE_T7,
@@ -264,11 +723,307 @@ public final class RenderTest {
                 EyeStarLook.galaxy(8, 0, 0),
                 "Eye T8, the Milky Way: a warm bar and four arms to r 19 round a 3-block bulge, under the shard halo"),
             new Case(
+                "eye_t8_merger",
+                Site.EYE_T8,
+                0,
+                EyeStarLook.galaxy(8, 0.3f, 0.5f),
+                "Eye T8, the Galactic Merger in progress (pericentre passes; the runtime shows warn 0.5)"),
+            new Case(
+                "eye_t8_crossing_warn",
+                Site.EYE_T8,
+                0,
+                EyeStarLook.galaxy(8, 0, 1),
+                "Eye T8, the Milky Way on a satellite crossing's warning (warn 1)"),
+            new Case(
                 "eye_t8_planets",
                 Site.EYE_T8,
                 0,
                 EyeStarLook.planets(6),
-                "Eye T8 in planets mode: a calm glow with six planets on their orbits (r 5 to 13)")));
+                "Eye T8 in planets mode: a calm glow with six planets on their orbits (r 5 to 13)"),
+            new Case(
+                "eye_t8_planets3",
+                Site.EYE_T8,
+                0,
+                EyeStarLook.planets(3),
+                "Eye T8 in planets mode with three slots"),
+            // ---- renders v2 WP-5: the galaxies' transitions and events
+            galaxyCase(
+                "eye_t7_collapse_flash",
+                Site.EYE_T7,
+                EyeStarLook.galaxy(7, 0.3f, 0)
+                    .transition(6, 0.334f),
+                "Eye T6 -> T7 Magnetar Collapse, 1.5 s after the collapse: the core flash, the stars bursting out, the"
+                    + " shell running to the bands",
+                30,
+                Double.NaN,
+                EyeStarLook.MAGNETAR,
+                Double.NaN),
+            galaxyCase(
+                "eye_t7_capture_25",
+                Site.EYE_T7,
+                EyeStarLook.galaxy(7, 0.3f, 0)
+                    .transition(6, 1 / 3f + 2 / 3f * 0.25f),
+                "Eye T6 -> T7, the halo capture at 25 %: a round halo of stars beginning to settle into a disc",
+                -1,
+                Double.NaN,
+                -1,
+                Double.NaN),
+            galaxyCase(
+                "eye_t7_capture_70",
+                Site.EYE_T7,
+                EyeStarLook.galaxy(7, 0.3f, 0)
+                    .transition(6, 1 / 3f + 2 / 3f * 0.7f),
+                "Eye T6 -> T7, the halo capture at 70 %: the disc formed, arms and dust coming in",
+                -1,
+                Double.NaN,
+                -1,
+                Double.NaN),
+            galaxyCase(
+                "eye_t7_minor_warn",
+                Site.EYE_T7,
+                EyeStarLook.galaxy(7, 0, 1)
+                    .event(EyeStarLook.EV_MINOR_MERGER_UP, 5f),
+                "Eye T7, a minor merger 5 s away (sign +): the dwarf falling in from above the disc",
+                -1,
+                5,
+                -1,
+                Double.NaN),
+            galaxyCase(
+                "eye_t7_minor_hit",
+                Site.EYE_T7,
+                EyeStarLook.galaxy(7, 0, 1)
+                    .event(EyeStarLook.EV_MINOR_MERGER_DOWN, -1f),
+                "Eye T7, a minor merger 1 s after its hit (sign -): the impact flash, the dwarf torn apart",
+                -1,
+                -1,
+                -1,
+                Double.NaN),
+            galaxyCase(
+                "eye_t8_gm_approach",
+                Site.EYE_T8,
+                mergerAt(400),
+                "Eye T7 -> T8 Galactic Merger at 400 s: the companion falling toward the first pericentre",
+                -1,
+                mergerIn(400),
+                -1,
+                Double.NaN),
+            galaxyCase(
+                "eye_t8_gm_pass1",
+                Site.EYE_T8,
+                mergerAt(601),
+                "Eye T7 -> T8, 1 s after the first pericentre pass: the starburst, the bridge",
+                -1,
+                mergerIn(601),
+                -1,
+                Double.NaN),
+            galaxyCase(
+                "eye_t8_gm_apo",
+                Site.EYE_T8,
+                mergerAt(900),
+                "Eye T7 -> T8 at 900 s: the companion at its apocentre, the tidal tails growing",
+                -1,
+                mergerIn(900),
+                -1,
+                Double.NaN),
+            galaxyCase(
+                "eye_t8_gm_pass2",
+                Site.EYE_T8,
+                mergerAt(1215),
+                "Eye T7 -> T8, 15 s after the second pass: long tails, the bridge, the core glowing",
+                -1,
+                mergerIn(1215),
+                -1,
+                Double.NaN),
+            galaxyCase(
+                "eye_t8_gm_pass3",
+                Site.EYE_T8,
+                mergerAt(1830),
+                "Eye T7 -> T8, 30 s after the last pass: the companion swallowed, the Milky Way taking shape",
+                -1,
+                mergerIn(1830),
+                -1,
+                Double.NaN),
+            galaxyCase(
+                "eye_t8_gm_settle",
+                Site.EYE_T8,
+                mergerAt(2000),
+                "Eye T7 -> T8, the settle at 2,000 s: the tails fading, a barred spiral",
+                -1,
+                mergerIn(2000),
+                -1,
+                Double.NaN),
+            galaxyCase(
+                "eye_t8_crossing_t60",
+                Site.EYE_T8,
+                EyeStarLook.galaxy(8, 0, 1)
+                    .crossing(60f),
+                "Eye T8, a satellite crossing 60 s away: the dwarf falling toward the disc",
+                -1,
+                Double.NaN,
+                -1,
+                60),
+            galaxyCase(
+                "eye_t8_crossing_t03",
+                Site.EYE_T8,
+                EyeStarLook.galaxy(8, 0, 1)
+                    .crossing(3f),
+                "Eye T8, a satellite crossing 3 s away: the dwarf at the disc, stretched by the tide",
+                -1,
+                Double.NaN,
+                -1,
+                3),
+            galaxyCase(
+                "eye_t8_crossing_wave60",
+                Site.EYE_T8,
+                EyeStarLook.galaxy(8, 0, 0)
+                    .crossing(-60f),
+                "Eye T8, 60 s after a satellite crossing: the ring wave of star formation running out",
+                -1,
+                Double.NaN,
+                -1,
+                -60),
+            galaxyCase(
+                "eye_t8_crossing_wave200",
+                Site.EYE_T8,
+                EyeStarLook.galaxy(8, 0, 0)
+                    .crossing(-200f),
+                "Eye T8, 200 s after a satellite crossing: the ring wave near the edge",
+                -1,
+                Double.NaN,
+                -1,
+                -200),
+            galaxyCase(
+                "eye_t8_minor_warn",
+                Site.EYE_T8,
+                EyeStarLook.galaxy(8, 0, 1)
+                    .event(EyeStarLook.EV_MINOR_MERGER_DOWN, 4f),
+                "Eye T8, a minor merger 4 s away (sign -): the dwarf rising toward the disc from below",
+                -1,
+                4,
+                -1,
+                Double.NaN),
+            // ---- renders v2: machines with no visual yet (the poses for their future renders)
+            // renders v2 WP-7 / WP-8: clientLook {activity (-1 live), tier / held mask (-1 or 0 live), ...}
+            new Case(
+                "homogeny_top",
+                Site.HOMOGENY,
+                0,
+                null,
+                "The Homogeny at its top tier, formed, idle: the vortex's dim slow swirl"),
+            machineCase(
+                "homogeny_top_run",
+                Site.HOMOGENY,
+                "The Homogeny T3 mixing: three braids and the core thread",
+                1,
+                0),
+            machineCase(
+                "homogeny_t1_run",
+                Site.HOMOGENY,
+                "The Homogeny shown at T1, mixing: one braid, three feed streams",
+                1,
+                1),
+            new Case(
+                "reality_diffraction",
+                Site.REALITY_DIFFRACTION,
+                0,
+                null,
+                "Reality Diffraction, formed, idle: calm clouds, no beam"),
+            machineCase(
+                "reality_diffraction_run",
+                Site.REALITY_DIFFRACTION,
+                "Reality Diffraction running, all six regions anchored",
+                1,
+                63),
+            machineCase(
+                "reality_diffraction_unheld",
+                Site.REALITY_DIFFRACTION,
+                "Reality Diffraction running with regions 2 and 5 unanchored (their clouds flicker dim)",
+                1,
+                0b101101),
+            new Case(
+                "reality_refab",
+                Site.REALITY_REFAB,
+                0,
+                null,
+                "Reality Refab, formed, idle: dim glyphs, slow stream"),
+            machineCase("reality_refab_run", Site.REALITY_REFAB, "Reality Refab reassembling", 1, -1),
+            new Case(
+                "conduit_crown",
+                Site.CONDUIT,
+                64,
+                null,
+                "The conduit rig: a 64 SM quasar with a Mk I Burst Thermaliser Crown docked on its top jet port"
+                    + " (renders v2 WP-6: the crown's heat)"),
+            new Case(
+                "conduit_stream",
+                Site.CONDUIT,
+                64,
+                null,
+                "The conduit rig's streams: mouth B emitting south to mirror 1, on east to the junction (WP-6;"
+                    + " 200 Bu/t forced on the client: mouth A does not form at the harness height)",
+                -1,
+                new float[] { 200f, 0f, -1f, -2f }),
+            // ---- renders v2 R-16: the performance and compatibility pass on the scene (every big render at once)
+            // three interleaved rounds of the four settings: the GPU clocks drift over a run, so each setting is
+            // measured early, in the middle and late
+            sceneCase("scene_off", "off", "baseline: the scene with every big render skipped"),
+            sceneCase("scene_low", "low", "quality low (the fixed-function renders of before renders v2)"),
+            sceneCase("scene_medium", "medium", "quality medium"),
+            sceneCase("scene_high", "high", "quality high (the default)"),
+            sceneCase("scene_high16", "high16", "quality high with 16 objects allowed at full detail (worst case)"),
+            sceneCase("scene_r2_high", "high", "quality high, round 2"),
+            sceneCase("scene_r2_medium", "medium", "quality medium, round 2"),
+            sceneCase("scene_r2_low", "low", "quality low, round 2"),
+            sceneCase("scene_r2_off", "off", "baseline, round 2"),
+            sceneCase("scene_r3_off", "off", "baseline, round 3"),
+            sceneCase("scene_r3_low", "low", "quality low, round 3"),
+            sceneCase("scene_r3_medium", "medium", "quality medium, round 3"),
+            sceneCase("scene_r3_high", "high", "quality high, round 3"),
+            new Case("scene_pack", Site.SCENE, 0, null, "quality high, the shaderpack probe answering yes")
+                .with("pack", "tilt", "qring", "klevel", "lodk:10"),
+            new Case("scene_fail", Site.SCENE, 0, null, "every program failing its bake (as after a bad driver update)")
+                .with("fail", "tilt", "qring", "klevel"),
+            new Case("scene_recover", Site.SCENE, 0, null, "the programs baking again after a resource reload")
+                .with("recover", "tilt", "qring", "klevel"),
+            new Case("scene_glerror", Site.SCENE, 0, null, "a GL error injected into each object's checked draw")
+                .with("glerror", "tilt", "qring"),
+            new Case("scene_gui_high", Site.SCENE, 0, null, "HUD, hand item and the inventory with NEI, quality high")
+                .with("high", "hud", "inv", "hud@night"),
+            new Case("scene_gui_off", Site.SCENE, 0, null, "HUD, hand item and the inventory with NEI, baseline")
+                .with("off", "hud", "inv", "hud@night"),
+            new Case("scene_lod", Site.SCENE, 0, null, "LOD walks out from and back to the Kerr, the Eye, the quasar")
+                .with(
+                    "high",
+                    lodWalk(
+                        lodWalk("lodk", 8, 12, 20, 30, 45, 70, 100, 140, 180, 230, 270),
+                        lodWalk("lode", 22, 28, 40, 60, 90, 130, 180, 240),
+                        lodWalk("lodq", 40, 70, 95, 120, 160, 230, 300)))));
+
+    /** R-16: a scene case at one quality with the standard views. */
+    private static Case sceneCase(String name, String quality, String what) {
+        return new Case(name, Site.SCENE, 0, null, "The performance scene, " + what)
+            .with(quality, "tilt", "tilt@night", "over", "qring", "klevel", "ebowl", "lodk:10");
+    }
+
+    /** R-16: a LOD walk: {@code kind:d} out through the distances, then back in. */
+    private static String[] lodWalk(String kind, int... d) {
+        final String[] out = new String[d.length * 2 - 1];
+        for (int i = 0; i < d.length; i++) out[i] = kind + ":" + d[i];
+        for (int i = d.length - 2; i >= 0; i--) out[d.length * 2 - 2 - i] = kind + ":" + d[i];
+        return out;
+    }
+
+    /** R-16: the views of several walks in a row. */
+    private static String[] lodWalk(String[]... walks) {
+        final List<String> out = new ArrayList<>();
+        for (String[] w : walks) out.addAll(Arrays.asList(w));
+        return out.toArray(new String[0]);
+    }
+
+    /** Renders v2 WP-6..WP-8: a machine case with a client look {activity, tier or held mask}. */
+    private static Case machineCase(String name, Site site, String what, float activity, float second) {
+        return new Case(name, site, 0, null, what, -1, new float[] { activity, second, -1f, -2f });
+    }
 
     private static List<Case> only(List<Case> all) {
         final String filter = System.getProperty("bts.rendertest.only", "")
@@ -296,8 +1051,14 @@ public final class RenderTest {
         ForgeDirection facing = FACING;
         /** {minX, minY, minZ, maxX, maxY, maxZ}. */
         int[] box;
-        /** The render object's centre (block centre). */
+        /** The render object's centre (block centre); the poses file's anchor. */
         double[] centre;
+        /**
+         * Renders v2 WP-6..WP-8: where the close and hero views look (the machine's render centre: the Homogeny's
+         * column
+         * axis, a Reality machine's axis at its belt / middle deck band), when it is not {@link #centre}; null: centre.
+         */
+        double[] focus;
         final List<String> lines = new ArrayList<>();
     }
 
@@ -492,6 +1253,21 @@ public final class RenderTest {
                 case QUASAR:
                     buildQuasar(world, b);
                     break;
+                case HOMOGENY:
+                    buildHR(world, b, HRKit.Machine.HOMOGENY);
+                    break;
+                case REALITY_DIFFRACTION:
+                    buildHR(world, b, HRKit.Machine.DIFFRACTION);
+                    break;
+                case REALITY_REFAB:
+                    buildHR(world, b, HRKit.Machine.REFAB);
+                    break;
+                case CONDUIT:
+                    buildConduit(world, b);
+                    break;
+                case SCENE:
+                    RenderScene.build(world, b);
+                    break;
                 default:
                     buildEye(world, b, site.eyeTier());
                     break;
@@ -512,8 +1288,11 @@ public final class RenderTest {
     }
 
     private static void buildKerr(WorldServer world, Built b, boolean tier2) {
-        final int x = b.site.originX();
-        final int z = SITE_Z;
+        buildKerr(world, b, tier2, b.site.originX(), SITE_Z);
+    }
+
+    /** Renders v2 (R-16): the Kerr with its controller at {@code (x, ground, z)} (the perf scene places several). */
+    static void buildKerr(WorldServer world, Built b, boolean tier2, int x, int z) {
         final int[] probe = KerrKit.assemblyBounds(FACING, x, 100, z, tier2);
         final int y = 100 + GROUND - probe[1];
         b.box = loadAndKeep(world, KerrKit.assemblyBounds(FACING, x, y, z, tier2));
@@ -536,8 +1315,11 @@ public final class RenderTest {
 
     /** P4: a formed Quasar Engine (coils T3, creative hatches, Helium) standing on the ground, facing north. */
     private static void buildQuasar(WorldServer world, Built b) {
-        final int x = b.site.originX();
-        final int z = SITE_Z;
+        buildQuasar(world, b, b.site.originX(), SITE_Z);
+    }
+
+    /** Renders v2 (R-16): the quasar with its controller at {@code (x, ground, z)}. */
+    static void buildQuasar(WorldServer world, Built b, int x, int z) {
         final int[] probe = QuasarKit.bounds(FACING, x, 100, z);
         final int y = 100 + GROUND - probe[1];
         b.box = loadAndKeep(world, QuasarKit.bounds(FACING, x, y, z));
@@ -556,6 +1338,68 @@ public final class RenderTest {
         if (!q.mMachine) b.lines.add("WARNING: Quasar NOT FORMED");
         final int[] c = QuasarGeometry.world(q.getExtendedFacing(), x, y, z, QuasarGeometry.centreRel());
         b.centre = new double[] { c[0] + 0.5, c[1] + 0.5, c[2] + 0.5 };
+    }
+
+    /**
+     * Renders v2 (R-01): a Homogeny (top tier) or a Reality machine raised by {@link HRKit#build} (no fill), standing
+     * on
+     * the ground facing north; the render centre is its bounding box's centre (none of them draws anything yet).
+     */
+    private static void buildHR(WorldServer world, Built b, HRKit.Machine m) {
+        buildHR(world, b, m, b.site.originX(), SITE_Z);
+    }
+
+    /** Renders v2 (R-16): a Homogeny / Reality machine with its controller at {@code (x, ground, z)}. */
+    static void buildHR(WorldServer world, Built b, HRKit.Machine m, int x, int z) {
+        final int tiers = m.maxTier();
+        final String[] pieces = Arrays.copyOf(m.pieces, tiers);
+        final int[] probe = SLConsoleTest.bounds(ExtendedFacing.of(FACING), x, 100, z, pieces);
+        final int y = 100 + GROUND - probe[1];
+        b.box = loadAndKeep(world, SLConsoleTest.bounds(ExtendedFacing.of(FACING), x, y, z, pieces));
+        b.controller = new int[] { x, y, z };
+        if (b.box[4] > 255) {
+            b.error = m.title() + " does not fit under y 255 (top " + b.box[4] + ")";
+            return;
+        }
+        final HRKit.Result r = HRKit.build(world, x, y, z, FACING, m, tiers, false, OWNER, "BTS render test", false);
+        if (r.failure != null) {
+            b.error = m.title() + " build failed: " + r.failure;
+            return;
+        }
+        for (String line : r.lines) b.lines.add(strip(line));
+        if (!r.formed) b.lines.add("WARNING: " + m.title() + " NOT FORMED");
+        b.centre = new double[] { (b.box[0] + b.box[3] + 1) / 2.0, (b.box[1] + b.box[4] + 1) / 2.0,
+            (b.box[2] + b.box[5] + 1) / 2.0 };
+        // renders v2 WP-7 / WP-8: the render centre (the manifest's centre.rel); the poses keep the box centre as
+        // anchor
+        final int[] f = SLConsoleTest.worldPos(ExtendedFacing.of(FACING), x, y, z, HRKit.centreRel(m));
+        b.focus = new double[] { f[0] + 0.5, f[1] + 0.5, f[2] + 0.5 };
+    }
+
+    /**
+     * Renders v2 (R-01): the conduit rig ({@link ConduitKit#rig}, the conduit bench): a quasar seeded at 64 SM with a
+     * Mk I crown on its top port, mouths, mirrors and a junction. The render centre is the top crown's controller; the
+     * front views frame the quasar.
+     */
+    private static void buildConduit(WorldServer world, Built b) {
+        final int x = b.site.originX();
+        final int z = SITE_Z;
+        final int[] probe = QuasarKit.bounds(FACING, x, 100, z);
+        final int y = 100 + GROUND - probe[1];
+        b.box = loadAndKeep(world, QuasarKit.bounds(FACING, x, y, z));
+        b.controller = new int[] { x, y, z };
+        for (String line : ConduitKit.rig(world, x, y, z)) b.lines.add(strip(line));
+        final ConduitKit.Rig rig = ConduitKit.lastRig();
+        if (rig == null || rig.quasar == null) {
+            b.error = "the conduit rig did not build its quasar";
+            return;
+        }
+        final int[] c = rig.crownTop != null ? rig.crownTop
+            : QuasarGeometry.world(ExtendedFacing.of(FACING), x, y, z, QuasarGeometry.centreRel());
+        b.centre = new double[] { c[0] + 0.5, c[1] + 0.5, c[2] + 0.5 };
+        // renders v2 WP-6: the stream from mouth B (100 east, 40 down, 72 south of the quasar, emitting south) to
+        // mirror 1 (40 blocks south of it): its mid-point is where the conduit_stream views look
+        b.focus = new double[] { x + 100.5, y - 39.5, z + 92.5 };
     }
 
     /**
@@ -585,8 +1429,11 @@ public final class RenderTest {
     }
 
     private static void buildEye(WorldServer world, Built b, int tiers) {
-        final int x = b.site.originX();
-        final int z = SITE_Z;
+        buildEye(world, b, tiers, b.site.originX(), SITE_Z);
+    }
+
+    /** Renders v2 (R-16): an Eye of {@code tiers} with its controller at {@code (x, ground, z)}. */
+    static void buildEye(WorldServer world, Built b, int tiers, int x, int z) {
         final String[] pieces = Arrays.copyOf(MTEEyeOfHarmonyBTS.PIECES, tiers);
         final int[] probe = SLConsoleTest.bounds(ExtendedFacing.of(FACING), x, 100, z, pieces);
         final int y = 100 + GROUND - probe[1];
@@ -848,8 +1695,15 @@ public final class RenderTest {
             case TT_EOH:
             case GT_GODFORGE:
                 return "reference machine";
+            case HOMOGENY:
+            case REALITY_DIFFRACTION:
+            case REALITY_REFAB:
+                return "renders v2 machine render (WP-7 / WP-8)";
+            case CONDUIT:
             case QUASAR:
                 return applyQuasar(world, b, c);
+            case SCENE:
+                return RenderScene.apply(world);
             default: {
                 final MTEEyeOfHarmonyBTS eye = eyeAt(world, p[0], p[1], p[2]);
                 if (eye == null) return "no Eye";
@@ -873,7 +1727,9 @@ public final class RenderTest {
     /** Once a second while a case is photographed: holds the Kerr's mass, the BHC's stability, TecTech's star. */
     private static void maintain(WorldServer world, Built b, Case c) {
         final int[] p = b.controller;
-        if (c.site == Site.KERR_T1 || c.site == Site.KERR_T2) {
+        if (c.site == Site.SCENE) {
+            RenderScene.maintain(world);
+        } else if (c.site == Site.KERR_T1 || c.site == Site.KERR_T2) {
             final MTEKerrEngine kee = KerrTestBench.keeAt(world, p[0], p[1], p[2]);
             if (kee != null && Math.abs(kee.mass() - c.mass) > 0.5) kee.debugOpenHole(c.mass);
         } else if (c.site == Site.GT_BHC) {
@@ -885,7 +1741,7 @@ public final class RenderTest {
                     // reported at the build
                 }
             }
-        } else if (c.site == Site.QUASAR) {
+        } else if (c.site == Site.QUASAR || c.site == Site.CONDUIT) {
             // the disc keeps running on its own: keep its gas stocked and its mass where the case wants it
             final MTEQuasarEngine q = QuasarKit.quasarAt(world, p[0], p[1], p[2]);
             if (q != null) {
@@ -998,7 +1854,11 @@ public final class RenderTest {
         if (c.site == Site.GT_BHC || c.site == Site.TT_EOH || c.site == Site.GT_GODFORGE) {
             return renderBlockAt(world, b.centre);
         }
-        if (c.site == Site.QUASAR) {
+        if (c.site == Site.HOMOGENY || c.site == Site.REALITY_DIFFRACTION || c.site == Site.REALITY_REFAB) {
+            return "machine render, focus " + (b.focus == null ? "-"
+                : String.format(Locale.ROOT, "(%.1f, %.1f, %.1f)", b.focus[0], b.focus[1], b.focus[2]));
+        }
+        if (c.site == Site.QUASAR || c.site == Site.CONDUIT) {
             final MTEQuasarEngine q = QuasarKit.quasarAt(world, p[0], p[1], p[2]);
             return q == null ? "no Quasar Engine"
                 : String.join(
@@ -1013,6 +1873,7 @@ public final class RenderTest {
                     + ", "
                     + renderBlockAt(world, b.centre);
         }
+        if (c.site == Site.SCENE) return "the performance scene (R-16)";
         final MTEEyeOfHarmonyBTS eye = eyeAt(world, p[0], p[1], p[2]);
         return eye == null ? "no Eye"
             : (eye.mMachine ? "formed" : "NOT FORMED") + ", centre: "
@@ -1032,8 +1893,27 @@ public final class RenderTest {
 
     // =============================================================================== views
 
-    /** The four viewpoints of every case, each shot by day and by night. */
-    static final String[] VIEWS = { "front", "34", "close", "level" };
+    /**
+     * The viewpoints of every case, each shot by day and by night: by default {@code front, 34, close, level};
+     * {@code -Dbts.rendertest.views=a,b} picks others, e.g. {@code hero} (renders v2, R-01: the detail close-up).
+     */
+    static final String[] VIEWS = System.getProperty("bts.rendertest.views", "front,34,close,level")
+        .trim()
+        .split("\\s*,\\s*");
+
+    /**
+     * R-16: the shots of case {@code c} in order: its own list ({@code view} by day, {@code view@night}), else every
+     * run view by day, then every run view by night.
+     */
+    static String[] shots(Case c) {
+        if (c.views != null) return c.views;
+        final String[] out = new String[VIEWS.length * 2];
+        for (int i = 0; i < VIEWS.length; i++) {
+            out[i] = VIEWS[i];
+            out[VIEWS.length + i] = VIEWS[i] + "@night";
+        }
+        return out;
+    }
 
     /**
      * Sets the time of day and moves the player to view {@code view} of the current site: {@code front} (level with
@@ -1065,54 +1945,141 @@ public final class RenderTest {
             depth + 1.1 * Math.max(hy / Math.tan(Math.toRadians(35)), lateral / Math.tan(Math.toRadians(50))) + 3);
         double[] target;
         double[] eye;
-        switch (view) {
-            case "front":
-                target = mid;
-                eye = add(mid, F, far);
-                break;
-            case "level": {
-                target = b.centre;
-                final double ext = F[0] != 0
-                    ? Math.max((box[0] - b.centre[0]) * F[0], (box[3] + 1 - b.centre[0]) * F[0])
-                    : Math.max((box[2] - b.centre[2]) * F[2], (box[5] + 1 - b.centre[2]) * F[2]);
-                eye = add(b.centre, F, Math.min(MAX_VIEW_DISTANCE, ext + 24));
-                break;
+        final boolean hr = b.site == Site.HOMOGENY || b.site == Site.REALITY_DIFFRACTION
+            || b.site == Site.REALITY_REFAB;
+        final Case vc = currentCase;
+        final double[][] scene = b.site == Site.SCENE ? RenderScene.view(world, view) : null;
+        if (b.site == Site.SCENE) {
+            if (scene == null) return "no scene view " + view;
+            eye = scene[0];
+            target = scene[1];
+            if (view.equals("hud") || view.equals("inv")) giveHudItems(player);
+        } else if (b.site == Site.CONDUIT && b.focus != null && vc != null && vc.name.startsWith("conduit_stream")) {
+            // renders v2 WP-6: mouth B -> mirror 1 -> the junction, seen from the east
+            final double[] fo = b.focus;
+            switch (view) {
+                case "front":
+                    target = new double[] { fo[0] + 18, fo[1], fo[2] + 14 };
+                    eye = new double[] { target[0] + 95, target[1] + 30, target[2] - 55 };
+                    break;
+                case "34":
+                    target = new double[] { fo[0] + 18, fo[1], fo[2] + 14 };
+                    eye = new double[] { target[0] + 60, target[1] + 75, target[2] + 60 };
+                    break;
+                case "close":
+                    target = fo;
+                    eye = new double[] { fo[0] + 26, fo[1] + 9, fo[2] - 8 };
+                    break;
+                case "hero":
+                    target = new double[] { fo[0], fo[1], fo[2] - 10 };
+                    eye = new double[] { target[0] + 11, target[1] + 4, target[2] - 9 };
+                    break;
+                default:
+                    target = fo;
+                    eye = new double[] { fo[0] + 42, fo[1], fo[2] };
+                    break;
             }
-            case "34": {
-                target = mid;
-                final double[] dir = norm(new double[] { F[0] + L[0], 0.9, F[2] + L[2] });
-                eye = add(mid, dir, Math.min(MAX_VIEW_DISTANCE, far * 1.15));
-                break;
+        } else if (hr && b.focus != null && (view.equals("close") || view.equals("hero"))) {
+            // renders v2 WP-7 / WP-8: outside the glass, looking in at the render (the column, the drums, the trays)
+            final double[] up = { 0, 1, 0 };
+            final double ty = b.site == Site.HOMOGENY ? 1 : b.site == Site.REALITY_DIFFRACTION ? 7 : 12;
+            target = add(b.focus, up, ty);
+            if (view.equals("close")) {
+                final double out = b.site == Site.HOMOGENY ? 30 : b.site == Site.REALITY_DIFFRACTION ? 47 : 68;
+                final double rise = b.site == Site.HOMOGENY ? 16 : b.site == Site.REALITY_DIFFRACTION ? 10 : 18;
+                eye = add(add(b.focus, F, out), up, rise);
+            } else {
+                final double dist = b.site == Site.HOMOGENY ? 22 : b.site == Site.REALITY_DIFFRACTION ? 44 : 42;
+                final double[] dir = norm(
+                    new double[] { F[0] * Math.cos(Math.toRadians(30)) + L[0] * Math.sin(Math.toRadians(30)),
+                        Math.tan(Math.toRadians(12)),
+                        F[2] * Math.cos(Math.toRadians(30)) + L[2] * Math.sin(Math.toRadians(30)) });
+                eye = add(target, dir, dist);
             }
-            default: {
-                target = b.centre;
-                final double radius = objectRadius(b);
-                double[] dir = norm(new double[] { F[0], 0.35, F[2] });
-                double free = freeDistance(world, b.centre, dir, 80);
-                double want = Math.max(free * 0.55, radius * 1.9 + 1.5);
-                if (radius >= 9) {
-                    // render QA E5: a big object needs the camera at 2.2 radii + 4 or the frame is one blurred
-                    // texture; that is outside the Eye's inner space from the front, so climb until a clear line
-                    // (over the crown) is found, else take the clearest. Round 3 (H-1): from radius 9, not over 12,
-                    // so Sol (23.8 blocks) and Sirius A (28.2) no longer fill the frame
-                    want = 2.2 * radius + 4;
-                    double[] best = dir;
-                    double bestFree = free;
-                    for (double up : new double[] { 0.35, 0.6, 0.9, 1.3, 2, 3.5, 8 }) {
-                        final double[] d = norm(new double[] { F[0], up, F[2] });
-                        final double fr = freeDistance(world, b.centre, d, 80);
-                        if (fr > bestFree) {
-                            best = d;
-                            bestFree = fr;
-                        }
-                        if (fr >= want + 2) break;
-                    }
-                    dir = best;
-                    free = bestFree;
+        } else {
+            switch (view) {
+                case "front":
+                    target = mid;
+                    eye = add(mid, F, far);
+                    break;
+                case "level": {
+                    target = b.centre;
+                    final double ext = F[0] != 0
+                        ? Math.max((box[0] - b.centre[0]) * F[0], (box[3] + 1 - b.centre[0]) * F[0])
+                        : Math.max((box[2] - b.centre[2]) * F[2], (box[5] + 1 - b.centre[2]) * F[2]);
+                    eye = add(b.centre, F, Math.min(MAX_VIEW_DISTANCE, ext + 24));
+                    break;
                 }
-                final double d = Math.max(2.5, Math.min(free - 2, want));
-                eye = add(b.centre, dir, d);
-                break;
+                case "34": {
+                    target = mid;
+                    final double[] dir = norm(new double[] { F[0] + L[0], 0.9, F[2] + L[2] });
+                    eye = add(mid, dir, Math.min(MAX_VIEW_DISTANCE, far * 1.15));
+                    break;
+                }
+                case "ring":
+                case "cap": {
+                    // renders v2 (WP-2): the quasar's ring from inside the shell, high over its near side looking in at
+                    // the hole and the far side ("ring"), and its top cap from outside ("cap"); other sites use the
+                    // close view
+                    if (b.site == Site.QUASAR || b.site == Site.CONDUIT) {
+                        final double[] up = { 0, 1, 0 };
+                        if (view.equals("ring")) {
+                            eye = add(add(b.centre, F, 52), up, 46);
+                            target = add(b.centre, F, -12);
+                        } else {
+                            eye = add(add(add(b.centre, F, 70), L, 30), up, 112);
+                            target = add(b.centre, up, 78);
+                        }
+                        break;
+                    }
+                    target = b.centre;
+                    eye = add(b.centre, norm(new double[] { F[0], 0.35, F[2] }), objectRadius(b) * 1.9 + 1.5);
+                    break;
+                }
+                case "hero": {
+                    // renders v2 (R-01): the detail close-up, 3 object radii out, 30 degrees to the right of the front
+                    // and
+                    // 12 degrees above the disc plane (so a disc shows its lensed far side), never past a block
+                    target = b.centre;
+                    final double radius = heroRadius(b);
+                    final double[] dir = norm(
+                        new double[] { F[0] * Math.cos(Math.toRadians(30)) + L[0] * Math.sin(Math.toRadians(30)),
+                            Math.tan(Math.toRadians(12)),
+                            F[2] * Math.cos(Math.toRadians(30)) + L[2] * Math.sin(Math.toRadians(30)) });
+                    final double free = freeDistance(world, b.centre, dir, 120);
+                    eye = add(b.centre, dir, Math.max(2.5, Math.min(free - 2, 3 * radius)));
+                    break;
+                }
+                default: {
+                    target = b.centre;
+                    final double radius = objectRadius(b);
+                    double[] dir = norm(new double[] { F[0], 0.35, F[2] });
+                    double free = freeDistance(world, b.centre, dir, 80);
+                    double want = Math.max(free * 0.55, radius * 1.9 + 1.5);
+                    if (radius >= 9) {
+                        // render QA E5: a big object needs the camera at 2.2 radii + 4 or the frame is one blurred
+                        // texture; that is outside the Eye's inner space from the front, so climb until a clear line
+                        // (over the crown) is found, else take the clearest. Round 3 (H-1): from radius 9, not over 12,
+                        // so Sol (23.8 blocks) and Sirius A (28.2) no longer fill the frame
+                        want = 2.2 * radius + 4;
+                        double[] best = dir;
+                        double bestFree = free;
+                        for (double up : new double[] { 0.35, 0.6, 0.9, 1.3, 2, 3.5, 8 }) {
+                            final double[] d = norm(new double[] { F[0], up, F[2] });
+                            final double fr = freeDistance(world, b.centre, d, 80);
+                            if (fr > bestFree) {
+                                best = d;
+                                bestFree = fr;
+                            }
+                            if (fr >= want + 2) break;
+                        }
+                        dir = best;
+                        free = bestFree;
+                    }
+                    final double d = Math.max(2.5, Math.min(free - 2, want));
+                    eye = add(b.centre, dir, d);
+                    break;
+                }
             }
         }
         // never inside a block: walk back along the view ray until the player's cells are air
@@ -1125,8 +2092,32 @@ public final class RenderTest {
         final double dx = target[0] - eye[0];
         final double dy = target[1] - eye[1];
         final double dz = target[2] - eye[2];
-        final float yaw = (float) (Math.toDegrees(Math.atan2(dz, dx)) - 90);
-        final float pitch = (float) -Math.toDegrees(Math.atan2(dy, Math.sqrt(dx * dx + dz * dz)));
+        float yaw = (float) (Math.toDegrees(Math.atan2(dz, dx)) - 90);
+        float pitch = (float) -Math.toDegrees(Math.atan2(dy, Math.sqrt(dx * dx + dz * dz)));
+        // renders v2 (R-01): a pose from the committed poses file wins, so the AFTER shots stand exactly where the
+        // BEFORE shots stood even when an object's size (and so the computed close view) changed
+        final Case cc = currentCase;
+        final String key = (cc == null ? "?" : cc.name) + "/" + view;
+        final double[] fixed = POSES.get(key);
+        String from = "computed";
+        if (fixed != null) {
+            eye = new double[] { b.centre[0] + fixed[0], b.centre[1] + fixed[1], b.centre[2] + fixed[2] };
+            yaw = (float) fixed[3];
+            pitch = (float) fixed[4];
+            from = "pose file";
+        } else if (!night) {
+            POSE_LOG.add(
+                String.format(
+                    Locale.ROOT,
+                    "%s\t%s\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f",
+                    cc == null ? "?" : cc.name,
+                    view,
+                    eye[0] - b.centre[0],
+                    eye[1] - b.centre[1],
+                    eye[2] - b.centre[2],
+                    yaw,
+                    pitch));
+        }
         fly(player);
         // The server ticks a player (and so sends it chunks, EntityPlayerMP.onUpdate) only while the chunks within 32
         // blocks of it are loaded; a camera far outside the site box would stand in unloaded chunks and the client
@@ -1144,17 +2135,78 @@ public final class RenderTest {
             .updatePlayerPertinentChunks(player);
         return String.format(
             Locale.ROOT,
-            "%s %s: eye (%.1f, %.1f, %.1f) -> (%.1f, %.1f, %.1f), %.1f blocks%s",
+            "%s %s: eye (%.1f, %.1f, %.1f) yaw %.1f pitch %.1f (%s) -> (%.1f, %.1f, %.1f), %.1f blocks%s",
             view,
             night ? "night" : "day",
             eye[0],
             eye[1],
             eye[2],
+            yaw,
+            pitch,
+            from,
             target[0],
             target[1],
             target[2],
             Math.sqrt(dx * dx + dy * dy + dz * dz),
             pushed > 0 ? ", pushed " + pushed + " out of blocks" : "");
+    }
+
+    // ============================================================================ poses (renders v2)
+
+    /**
+     * Renders v2 (R-01): fixed camera poses, {@code case/view -> {dx, dy, dz, yaw, pitch}} with the eye relative to the
+     * case's render centre, read from {@code -Dbts.rendertest.poses=<file>} (default: none, every pose computed). The
+     * file is tab-separated {@code case view dx dy dz yaw pitch}, {@code #} comments; a relative path is looked up from
+     * the client's working directory and from the worktree root ({@code ../..}). Committed as
+     * {@code tools/rendertest/poses.tsv}.
+     */
+    static final java.util.Map<String, double[]> POSES = loadPoses(System.getProperty("bts.rendertest.poses", ""));
+
+    /** Every computed day pose of this run, in the poses-file format; the client writes them to {@code poses.tsv}. */
+    static final ConcurrentLinkedQueue<String> POSE_LOG = new ConcurrentLinkedQueue<>();
+
+    private static java.util.Map<String, double[]> loadPoses(String path) {
+        final java.util.Map<String, double[]> poses = new java.util.HashMap<>();
+        if (path == null || path.trim()
+            .isEmpty()) return poses;
+        java.io.File file = new java.io.File(path.trim());
+        if (!file.isFile() && !file.isAbsolute()) file = new java.io.File("../..", path.trim());
+        if (!file.isFile()) {
+            BeyondTheStars.LOG.warn("[BTS render test] poses file not found: " + path);
+            return poses;
+        }
+        try {
+            for (String line : java.nio.file.Files.readAllLines(file.toPath(), StandardCharsets.UTF_8)) {
+                final String t = line.trim();
+                if (t.isEmpty() || t.startsWith("#")) continue;
+                final String[] f = t.split("\t");
+                if (f.length < 7) continue;
+                poses.put(
+                    f[0] + "/" + f[1],
+                    new double[] { Double.parseDouble(f[2]), Double.parseDouble(f[3]), Double.parseDouble(f[4]),
+                        Double.parseDouble(f[5]), Double.parseDouble(f[6]) });
+            }
+            BeyondTheStars.LOG.info("[BTS render test] " + poses.size() + " fixed poses from " + file);
+        } catch (java.io.IOException | RuntimeException bad) {
+            BeyondTheStars.LOG.error("[BTS render test] cannot read the poses file " + file, bad);
+        }
+        return poses;
+    }
+
+    /**
+     * The radius the {@code hero} close-up frames: the object itself rather than its whole reach (the quasar's hole and
+     * inner disc, not its r 40-62 ring; a star's photosphere; a galaxy's inner arms).
+     */
+    private static double heroRadius(Built b) {
+        final Case c = currentCase;
+        if (c != null && (c.site == Site.QUASAR || c.site == Site.CONDUIT) && c.mass > 0) {
+            return 1.8 * MTEQuasarEngine.renderScaleFor(c.mass);
+        }
+        if (c != null && c.look != null
+            && (c.look.kind == EyeStarLook.TRIANGULUM || c.look.kind == EyeStarLook.MILKY_WAY)) {
+            return 0.6 * EyeStarLook.galaxyReach(c.look.kind);
+        }
+        return objectRadius(b);
     }
 
     /** About how far the render object reaches from its centre, in blocks. */
@@ -1169,6 +2221,8 @@ public final class RenderTest {
         if (c.site == Site.GT_GODFORGE) return GODFORGE_STAR_RADIUS;
         // the disc band reaches r 40 + 22 lambda_c
         if (c.site == Site.QUASAR) return 62;
+        if (c.site == Site.CONDUIT) return 12;
+        if (c.site == Site.HOMOGENY || c.site == Site.REALITY_DIFFRACTION || c.site == Site.REALITY_REFAB) return 6;
         if (c.mass > 0) return MTEKerrEngine.haloRadiusFor(c.mass);
         return 3;
     }
@@ -1187,6 +2241,29 @@ public final class RenderTest {
     }
 
     /** True when the player's two cells and the eye cell at {@code eye} are air. */
+    /**
+     * R-16: the hotbar the scene's {@code hud} and {@code inv} views show: an enchanted sword in the hand (its glint
+     * is a texture-matrix effect, the first thing a leaked texture matrix or blend would break), glass, torches, GT's
+     * Black Hole Compressor (a GT item model), ender pearls.
+     */
+    private static void giveHudItems(EntityPlayerMP p) {
+        final ItemStack sword = new ItemStack(Items.diamond_sword);
+        sword.addEnchantment(Enchantment.sharpness, 3);
+        p.inventory.mainInventory[0] = sword;
+        p.inventory.mainInventory[1] = new ItemStack(Blocks.glass, 64);
+        p.inventory.mainInventory[2] = new ItemStack(Blocks.torch, 64);
+        p.inventory.mainInventory[3] = ItemList.Machine_Multi_BlackHoleCompressor.get(1L);
+        p.inventory.mainInventory[4] = new ItemStack(Items.ender_pearl, 16);
+        p.inventory.currentItem = 0;
+        p.inventoryContainer.detectAndSendChanges();
+        p.playerNetServerHandler.sendPacket(new S09PacketHeldItemChange(0));
+    }
+
+    /** R-16: {@link #clear} for the scene's view search. */
+    static boolean clearAt(World world, double[] eye) {
+        return clear(world, eye);
+    }
+
     private static boolean clear(World world, double[] eye) {
         final int x = (int) Math.floor(eye[0]);
         final int z = (int) Math.floor(eye[2]);
@@ -1239,7 +2316,7 @@ public final class RenderTest {
         return (p[0] - x) * (p[0] - x) + (p[1] - y) * (p[1] - y) + (p[2] - z) * (p[2] - z);
     }
 
-    private static MTEEyeOfHarmonyBTS eyeAt(World world, int x, int y, int z) {
+    static MTEEyeOfHarmonyBTS eyeAt(World world, int x, int y, int z) {
         return mteAt(world, x, y, z, MTEEyeOfHarmonyBTS.class);
     }
 
