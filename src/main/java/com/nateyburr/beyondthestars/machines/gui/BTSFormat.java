@@ -102,6 +102,17 @@ public final class BTSFormat {
     }
 
     /**
+     * A Bu/t number for a GUI row, where width is short: {@link #buNum} below a million, then {@code 2.29M},
+     * {@code 1.07G} (the exact figure goes in the row's tooltip).
+     */
+    public static String buCompact(double bu) {
+        final double a = Math.abs(bu);
+        if (a < 999_999.5) return buNum(bu);
+        if (a < 999.995e6) return String.format(Locale.ROOT, "%.2fM", bu / 1e6);
+        return String.format(Locale.ROOT, "%.2fG", bu / 1e9);
+    }
+
+    /**
      * EU/t in scientific form, two significant figures: {@code 9.8e16}, {@code 5.2e18}; below a million the plain
      * number ({@code 512,000}). No unit.
      */

@@ -21,6 +21,7 @@ import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.screen.RichTooltip;
 import com.cleanroommc.modularui.utils.Alignment;
 import com.cleanroommc.modularui.value.DoubleValue;
+import com.cleanroommc.modularui.value.LongValue;
 import com.cleanroommc.modularui.value.sync.BooleanSyncValue;
 import com.cleanroommc.modularui.value.sync.DoubleSyncValue;
 import com.cleanroommc.modularui.value.sync.IntSyncValue;
@@ -304,7 +305,9 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
     @Override
     protected String subject() {
         if (hole() == QuasarState.Hole.NONE) return "";
-        return BTSText.lang(K + "hole", BTSFormat.fmt1(multiblock.getMass()));
+        // a Supermassive Lattice hole runs to 9+ digits: compact there, so the header keeps the coil / lattice chip
+        final double m = multiblock.getMass();
+        return BTSText.lang(K + "hole", m >= 999_999.5 ? BTSFormat.litres(m) : BTSFormat.fmt1(m));
     }
 
     @Override
@@ -437,7 +440,7 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
     private void burstsRow(BTSRows.Builder rows, double g) {
         rows.stat(
             BTSText.lang(K + "bursts"),
-            BTSText.lit(MTEQuasarEngine.bu(g) + " Bu/t §7= §f" + BTSFormat.euOfBu(g)),
+            BTSText.lit(BTSFormat.buCompact(g) + " Bu/t §7= §f" + BTSFormat.euOfBu(g)),
             BTSText.lang(K + "bursts.tip", BTSFormat.buEu(g)),
             BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "bursts.tip2")));
     }
@@ -652,30 +655,21 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
             final double bu = multiblock.jetBu(port);
             final String value;
             if (dock == null || multiblock.jetRefused(port)) {
-                value = bu > 0
-                    ? "§6" + tr(K + "venting") + " §f" + MTEQuasarEngine.bu(bu) + " §7= §f" + BTSFormat.euOfBu(bu)
-                    : "§8" + tr(K + "nodock");
+                // the EU/t (the row is short); the Bu/t and why it vents are in the tooltip
+                value = bu > 0 ? "§6" + tr(K + "venting") + " §f" + BTSFormat.euOfBu(bu) : "§8" + tr(K + "nodock");
             } else {
                 final boolean clipped = bu - multiblock.jetTaken(port) > 0.005;
-                // the Bu/t figure and its EU/t (§10.3); the dock's full name and the exact Bu/t are in the tooltip
-                value = "§b" + tinyDock(
-                    dock) + " " + (clipped ? "§6" : "§f") + MTEQuasarEngine.bu(bu) + " §7= §f" + BTSFormat.euOfBu(bu);
+                // the Bu/t (aqua: the dock takes it all, gold: clipped) and its EU/t (§10.3); the dock's name and the
+                // exact Bu/t are in the tooltip and the Jets & links panel
+                value = (clipped ? "§6" : "§b") + BTSFormat.buCompact(bu) + " Bu/t §7= §f" + BTSFormat.euOfBu(bu);
             }
             rows.stat(
                 BTSText.lang(K + "jet." + port.key),
                 BTSText.lit(value),
                 BTSText.lit(jetLine(multiblock, port)),
-                BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "jet.tip")));
+                BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "jet.tip")),
+                BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "jet.tip.colour")));
         }
-    }
-
-    /** The jet row's one-word dock: "Crown", "Mouth", else the first word. */
-    static String tinyDock(String dock) {
-        final String d = shortDock(dock);
-        if (d.contains("Crown")) return "Crown";
-        if (d.contains("Mouth")) return "Mouth";
-        final int sp = d.indexOf(' ');
-        return sp > 0 ? d.substring(0, sp) : d;
     }
 
     /** A dock's name without where it leads ("Wormhole Mouth to 1, 2, 3 (dim 0)" reads "Wormhole Mouth"). */
@@ -811,6 +805,8 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
             BTSText.lang(K + "chk.feed.tip"));
         massRow(rows);
         rows.stat(BTSText.lang(K + "jets"), BTSText.cat(BTSText.lit("§8"), BTSText.lang(K + "stopped")));
+        // SMBH: a dark disc holds nothing up, so the lattice section (the leak, the buffer, the anchor) stays shown
+        latticeRows(rows);
         final String ev = m.getLastEvent();
         if (ev != null && !ev.isEmpty()) rows.note(BTSRows.ICON_BAD, BTSGuiKit.BAD, BTSText.lit(ev));
     }
@@ -1279,9 +1275,10 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
                             .asWidget()
                             .heightRel(1f))
                     .child(
-                        new TextFieldWidget().numbersDouble(v -> Math.max(0, Math.min(QuasarParams.UNBOUND_MAX, v)))
-                            .value(new DoubleValue.Dynamic(setpoint::getDoubleValue, v -> {
-                                if (hasLattice.getAsBoolean() && v != setpoint.getDoubleValue()) {
+                        new TextFieldWidget().numbersLong(0, (long) QuasarParams.UNBOUND_MAX)
+                            // whole SM, never "1.34E8" (a long value): the server clamps it to 4,096 .. the top
+                            .value(new LongValue.Dynamic(() -> Math.round(setpoint.getDoubleValue()), v -> {
+                                if (hasLattice.getAsBoolean() && v != Math.round(setpoint.getDoubleValue())) {
                                     setpoint.setDoubleValue(v);
                                 }
                             }))
@@ -1311,7 +1308,7 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
                             .addLine(EnumChatFormatting.GRAY + tr(K + "panel.od.tip2"))
                             .addLine(EnumChatFormatting.GRAY + tr(K + "panel.od.tip3")))
                     .tooltipShowUpTimer(TOOLTIP_DELAY))
-            .child(panelPara(odLine::getStringValue, w, 2))
+            .child(panelPara(odLine::getStringValue, w, 3))
             // Shed to the safe limit; Unbind / Bind (two clicks to Unbind)
             .child(
                 Flow.row()

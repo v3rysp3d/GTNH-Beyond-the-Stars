@@ -1174,6 +1174,7 @@ beyondthestars.gui.quasar.jet.nothing=nothing docked
 beyondthestars.gui.quasar.jet.misaligned=venting: %s misaligned
 beyondthestars.gui.quasar.jet.clipped=(clipped %s)
 beyondthestars.gui.quasar.jet.tip=Dock a Burst Thermaliser Crown or a Wormhole Mouth on the cap's port cell; an empty port vents
+beyondthestars.gui.quasar.jet.tip.colour=Aqua: the dock takes it all; gold: the dock's cap clips some (stack a second crown)
 beyondthestars.gui.quasar.venting=venting
 beyondthestars.gui.quasar.nodock=none docked
 beyondthestars.gui.quasar.feed.tip=Drawn %s of the Eddington feed %s L/s (f x Medd)
@@ -1273,13 +1274,13 @@ beyondthestars.gui.quasar.info.coils=§eCOILS §7Disc Field Coils T1-T4 cap the 
 beyondthestars.gui.quasar.info.jets=§eJETS §7G0 = λ a² b² (M/64)² Bu/t, half on each port. A crown docked on a port turns 1 Bu/t into 10^13 EU/t; a Wormhole Mouth carries it into the Conduit. A port with nothing docked vents.
 beyondthestars.gui.quasar.info.burst=§eBURST CONTROL §7A Burst Control Hatch on a cap rim reads redstone: Purge mode purges on a rising edge, Field b mode sets b = 0.5 + (tier - 0.5) x s/15. The standard rig: Directive Hatch (Disc set) bit 3 AND NOT the Eye's Transition bit 4 into it.
 beyondthestars.gui.quasar.info.auto=§eAUTOMATE §7A Stellar Field Sensor Hatch reads E, flux, λ, a, M, Bu/t and more; a Directive Hatch's Disc set gives the trims and the purge as bits. OpenComputers: bts_quasar. Keep the quasar chunk-loaded: an unloaded chunk freezes it and pauses every machine it feeds.
-beyondthestars.gui.quasar.right.lattice=T%s coils, L%s
+beyondthestars.gui.quasar.right.lattice=T%s, L%s
 beyondthestars.gui.quasar.right.tip3=Supermassive Lattice L%s (%s): safe limit %s, band top %s SM
 beyondthestars.gui.quasar.output=Output
 beyondthestars.gui.quasar.output.tip=Output multiplier x%s: x1 is a maxed 4,096 SM quasar (9.8e16 EU/t). Square root past 4,096 SM, toward x31; Overdrive toward x100
 beyondthestars.gui.quasar.bursts.tip=The stream, both jets: %s
 beyondthestars.gui.quasar.bursts.tip2=1 Bu/t = 10^13 EU/t once a crown turns it into power (quadrillion = 10^15, quintillion = 10^18).
-beyondthestars.gui.quasar.sec.lattice=Supermassive Lattice
+beyondthestars.gui.quasar.sec.lattice=Lattice
 beyondthestars.gui.quasar.sec.lattice.v=L%s %s
 beyondthestars.gui.quasar.chk.saturation=Saturation
 beyondthestars.gui.quasar.chk.saturation.first=Reach Saturation first
