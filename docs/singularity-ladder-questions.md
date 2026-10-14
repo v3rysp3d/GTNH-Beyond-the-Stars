@@ -6,7 +6,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 1. **Open questions**: each open decision once, with the answer we recommend and where the detail is.
 2. **Settled**: everything you have answered, in your words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision from you.
-4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-138 and the SMBH branch's B-150..B-155, the tidy pass's
+4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-138 and the SMBH branch's B-150..B-156, the tidy pass's
    TQ-1..TQ-8, and P4's P4-01..P4-94 in Part E).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
@@ -6838,6 +6838,57 @@ unloaded while the controller's chunk ticks also reads as incomplete, so the hol
 7. **The SMBH textures** come from `tools/gen-sl-textures.js` in the quasar's BHC family: a lavender truss with a violet
    seam (frame), a glowing orb per tier (teal / white / starry violet / magenta), a black horizon in a white-violet
    heat grid (Event Horizon Thermaliser), a teal-ringed throat with four studs.
+
+### B-156 SMBH controller (smbh-v1.md §10.2, §6) and "Shown in EU/t" (§10.3) [smbh branch, built + test]
+
+**Context.** The engine and structure units left the controller half of §10.2 (the 60 s Accretion Buffer, per-tick
+draws, the link-source record, the GUI, automation) and §10.3's labels: I read the quasar's "6,000 Bu/t" as 6,000
+billion EU, when 1 Bu/t = 10^13 EU/t (it is 6.0e16 EU/t, 60 quadrillion).
+
+**Built.** See the build spec, "Controller (§10.2) and Shown in EU/t (§10.3)". In short: the Accretion Buffer and
+per-tick refills, Unbind with a new `smbhAllowUnbound` key, Shed, the link-source record on every packet and stream,
+the GUI's Lattice section with the stacked intake bar and the Supermassive Lattice panel, the Horizon Directive set, 18
+sensor channels, Hold / Overdrive / Shed Burst Control modes, 11 OpenComputers methods, and one shared formatter putting
+the EU/t beside every Bu/t across the GUIs, scanners, tooltips, NEI, quests and docs. A Mk IV crown NEI page joins
+(372 registered).
+
+**Tested.** Dev server (three boots, 0 exceptions after boot) and the dev client's GUI shot harness (five passes, each
+finding fixed): 4,096 SM without a lattice; L1 at 30,000 SM at the intake cap (+16 % per hour); L3 with Overdrive 50 %
+(25,000 L/s each, x34.1); Unbound n 1 with full Overdrive (upkeep 50,000 L/s each, anchor 4,096 L/s, x98.9: the §5.2
+row); the anchor cut (Horizon bit 4, a safe shed); a shed on L1. The spec's §5.2 and §3.2 numbers come out as printed.
+
+**Judgement calls (our suggestion is what was built).**
+1. **EU/t is written "9.8e16 EU/t" with words ("98 quadrillion"), not "9.8 x 10^16".** Minecraft's font has no
+   superscripts past 3 (they fall back to the unicode page), and the e-form matches the GUIs' existing EU numbers. Full
+   form "9,796 Bu/t (9.8e16 EU/t, 98 quadrillion)" in tooltips, NEI, quests; short form "(9.8e16 EU/t)" in scanner
+   lines; GUI rows "2.14M Bu/t = 2.1e19 EU/t". Quest text keeps its existing "10^13" glyph for the unit rule only.
+2. **The intake is shown in L/s** (the machine's second, and the Overdrive and anchor upkeeps are L/s in the spec);
+   the per-tick figures (the spec's GUI example) are in the intake bar's tooltip. The bar's full width is 1.1x the 5x
+   cap, so the cap's red tick stands inside it.
+3. **The Accretion Buffer** holds 60 s of Disc + Hold-up plus one second of Growth room; Growth takes only what is over
+   a 59 s reserve. The Disc is counted at least at f 0.3 (the re-form feed), so a feed of 0 still keeps a buffer. A quasar
+   without a lattice now buffers 60 s of its disc (it was 10 s of 1.5x the feed): §4.4 says "the buffer covers 60 s".
+4. **Per-tick draws only while they help:** after each second the controller refills every tick until the hatches
+   give nothing or the buffer is full, so a well-fed quasar costs one hatch pass a second.
+5. **Burst Control "Hold" on an Unbound L4** spans 4,194,304 SM (s 0) to 268,435,456 SM (s 15, two doublings); the GUI
+   slider spans four doublings and the number field takes any mass.
+6. **"Supermassive Link ready" is the source half** (a lattice, M at least 65,536 SM, the quasar linkable); the 60 s
+   mean, the 30 min streak and the Eye side are P5's (the Eye unit). Every jet packet and stream carries the lattice and
+   M, so P5 reads them per stream.
+7. **Where a row is too narrow for both**, the EU/t wins and the Bu/t goes to the tooltip: the weak-quasar check row
+   ("1.2e14 / 2.0e14 EU/t"), a venting jet row; a docked jet row shows "1.07M Bu/t = 1.1e19 EU/t" with the dock in the
+   tooltip (aqua: taken, gold: clipped). The crown's header chip keeps "cap 8,192 Bu/t" (its tooltip has the EU/t);
+   part-breakdowns (the Eye's rail / halo split, a Junction's three inputs, a crown's jets / receptor / below) keep Bu/t
+   with the total's EU/t beside them. Bench-only lines (`/btsquasar autorig`, the Eye galaxy bench, the render test) are
+   unchanged.
+8. **An owner-less bench quasar adopts the first player who opens its GUI** (GT's power-fail tracker threw on a machine
+   with no owner; §10.3's "guard the NPE").
+9. **The sensor's window now reaches 2,000,000,000 and its threshold 10^15** (SMBH masses and million-Bu/t streams).
+
+**Seen, not changed.** `/btsquasar run N` steps N seconds inside one game tick, so a crown's flow book takes only the
+first of them (the jet rows read "took 0.00" after a bench run); real ticks are unaffected. The bench's four gas hatches
+cannot feed an Unbound hole (27 G L/s of Helium) between commands: a hole set to 134 M SM by script blows out within a
+minute unless `run ... fill` follows at once, exactly as §4.4 describes for a dry feed.
 
 ## Where the old question numbers went
 

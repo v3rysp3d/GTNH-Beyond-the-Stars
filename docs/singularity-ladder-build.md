@@ -2982,7 +2982,8 @@ quasar's BHC family with each tier's colour. No new MTE id, fluid or recipe-resu
   set by command.
 - `/btssmbh` (op only): `bench [x y z [facing]]` (L4 lattice, Saturation, a 4,096 SM hole, every upkeep hatch filled,
   Mk IV crowns on both ports, chunks kept), `mass <M>` (clamped; the setpoint follows), `fill`, `drain anchor`,
-  `saturate on|off`, `unbind on|off`, `damage`, `status`.
+  `saturate on|off`, `unbind on|off [force]`, `damage`, `status`, and (controller unit) `overdrive <o>`,
+  `setpoint <M>`, `shed`, `gui [info]`, `oc`.
 
 ### Dev-server test (port 25651, world `smbh-test`, five boots)
 
@@ -3001,4 +3002,41 @@ quasar's BHC family with each tier's colour. No new MTE id, fluid or recipe-resu
 - Unbound L4 at 134,217,728 SM (n 1): anchor paid; `drain anchor` (131,002,368 L): "SHEDDING (anchor short)" down to
   67,108,864 SM, then hold-up 100 % again. A Mk IV crown taking 74,599 Bu/t pushed 7.46 × 10¹⁷ EU/t to wireless.
 - `/btseye gates`: Lattice Frame Casing and Containment Node L1 CLEAN for the Eye T10 gate.
+
+### Controller (§10.2) and "Shown in EU/t" (§10.3) (question B-156)
+
+- **Accretion Buffer** (`MTEQuasarEngine.accretion()` / `bufferCap()`): 60 s of Disc (f·Ṁ_Edd, at least the re-form's
+  0.3) + Hold-up (3·x·Ṁ_Edd), plus one second of Growth room, in a long. The Growth segment takes only what is over a
+  59 s reserve, so it drops out first when the feed runs short. After each second the buffer refills **every tick**
+  while the rim hatches give (`refillMore`), each drain one FluidStack (at most 2³¹ − 1 L). Without a lattice the buffer
+  is 60 s of the disc (it was 10 s of 1.5 x the feed).
+- **Setpoint, Overdrive, Unbind, Shed:** `setMassSetpoint`, `setOverdrive` (5 % steps), `unbind(on)` (L4 in force and
+  `smbhAllowUnbound`, new config key, default true; off is always allowed and sheds to the L4 top), `shedToSafe()`
+  (setpoint to the safe limit). A Burst Control Hatch in Hold / Overdrive mode overrides the GUI's value while it is in
+  that mode (`massSetpointInUse`, `overdriveInUse`).
+- **Link-source record:** every `JetPacket` and `BurstStream` carries `lattice` (in force) and `mass`;
+  `BurstStream.supermassiveSource()` and `MTEQuasarEngine.supermassiveLinkSource()` say whether the source can serve
+  P5's Supermassive Link (a lattice, M ≥ 65,536 SM, linkable). The streak and the Eye side are P5's.
+- **GUI** (`MTEQuasarEngineGui`): the Lattice section (Saturation or "Reach Saturation first", band x with the setpoint
+  tick, the intake as a stacked bar, `BTSRows.Kind.STACK`, with the 5x cap tick, the split line, the leak, the buffer,
+  Overdrive and its upkeep, Unbound and the anchor, a shed); the mass bar goes log with a lattice; the Supermassive
+  Lattice side panel (gap-row button left of Disc control): log setpoint slider + whole-SM field, Overdrive slider, Shed,
+  two-click Unbind / Bind. Info page paragraphs EU/t, Lattice, Intake, Overdrive, Unbound, Automate the lattice.
+- **Automation:** Directive set `QUASAR_HORIZON` (`QuasarDirective.horizon`), 18 appended sensor channels, Burst Control
+  modes HOLD / OVERDRIVE / SHED, OpenComputers `getBand / getIntake / getHoldUp / getBuffer / getOverdrive / getAnchor /
+  getHorizon / setMassSetpoint / setOverdrive / setUnbound / shed` (docs/automation.md §8).
+- **EU/t beside every Bu/t:** one formatter, `BTSFormat` (`buEu` "9,796 Bu/t (9.8e16 EU/t, 98 quadrillion)",
+  `buEuShort`, `euOfBu`, `euValue`, `euWords`, `buCompact` for GUI rows). Used by the quasar, crowns, conduit elements,
+  the receptor, every host's link line, the Eye (bursts, link, weak-quasar row, galaxy panel, scanner, NEI), the
+  Kerr / Homogeny / Reality lines and tooltips, item tooltips, NEI (+ a Mk IV crown page: 372 registered), quest text
+  (`questbook/singularity.json`, regenerated) and the OC docs.
+- **Bench verbs** (`/btssmbh`): `overdrive <o>`, `setpoint <M>`, `shed`, `gui [info]` (the GUI rows as text, built as the
+  GUI syncs them), `oc` (the OpenComputers getters); `unbind on|off` goes through the GUI's checks (`force` sets it raw);
+  `fill` re-walks after placing trim hatches.
+- **Tested** (dev server, three boots, 372 registered / 0 skipped, 0 exceptions after boot; dev client, GUI shot
+  harness, five passes): a plain T4 quasar at 4,096 SM (Saturation row, buffer 59 s, EU/t everywhere); L1 at 30,000 SM
+  (intake at the cap: Disc 6.0M, Hold-up 7.9M 100 %, Growth 16.2M L/s, +16 % per hour; Unbind refused on L1; Overdrive
+  idle with a note); L3 at 262,144 SM, Overdrive 50 % (25,000 L/s each paid, x34.1); Unbound n 1 with full Overdrive
+  (anchor 4,096 L/s, upkeep 50,000 L/s each, x98.9, intake 80 % of the cap); the anchor cut (Horizon bit 4, a safe shed);
+  a shed on L1. Shots and text dumps: local work folder `smbh-ctl/` (`shots/`, `ctl-s345.txt`, `ctl-s7.txt`).
 
