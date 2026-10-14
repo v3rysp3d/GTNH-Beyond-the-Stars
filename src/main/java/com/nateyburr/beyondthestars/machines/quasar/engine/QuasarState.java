@@ -63,6 +63,15 @@ public final class QuasarState {
     /** Bit i set once {@link QuasarParams#MASS_MILESTONES}[i] was reached. */
     public int massMilestones;
 
+    // ---- SMBH (smbh-v1.md; HorizonLattice)
+    /**
+     * The Overdrive level in force, o·c_o (0-1): set by {@link HorizonLattice#step} from this second's upkeep cover,
+     * read by the NEXT second's G0 (so running dry fades the boost over 1 s). 0 keeps today's G0 exactly.
+     */
+    public double oEff;
+    /** The hole is shedding (§2.5): the crowns make nothing while it lasts. */
+    public boolean shed;
+
     /** The disc noise; save {@link FieldRng#state()}. */
     public FieldRng rng;
 
@@ -104,6 +113,8 @@ public final class QuasarState {
         erupt = 0;
         zone = -1;
         Yq = 0;
+        oEff = 0;
+        shed = false;
     }
 
     /** Re-opens a dormant hole (a Black Hole Seed consumed by the MTE): the disc starts empty. */
@@ -127,6 +138,8 @@ public final class QuasarState {
         lagPhi = 0;
         G0 = 0;
         G = 0;
+        oEff = 0;
+        shed = false;
     }
 
     /** Stability readout, clamp(100 − |E|, 0, 100). */

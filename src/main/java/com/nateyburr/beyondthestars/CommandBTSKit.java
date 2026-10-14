@@ -45,7 +45,8 @@ public class CommandBTSKit extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btskit [1-" + BTSBom.MAX_TIER + "|kerr|eye|quasar [coil 1-4]|conduit|homogeny|diffraction|refab]";
+        return "/btskit [1-" + BTSBom.MAX_TIER
+            + "|kerr|eye|quasar [coil 1-4]|lattice [node 1-4]|conduit|homogeny|diffraction|refab]";
     }
 
     @Override
@@ -117,6 +118,13 @@ public class CommandBTSKit extends CommandBase {
         if (args.length > 0 && args[0].equalsIgnoreCase("quasar")) {
             com.nateyburr.beyondthestars.machines.quasar.QuasarKit
                 .giveKit(player, args.length > 1 ? parseIntBounded(sender, args[1], 1, 4) : 3);
+            return;
+        }
+        // SMBH v1: /btskit lattice [node tier 1-4] - the Supermassive Lattice, the Mk IV crown and throat, from
+        // manifest.json.
+        if (args.length > 0 && args[0].equalsIgnoreCase("lattice")) {
+            com.nateyburr.beyondthestars.machines.quasar.SmbhBench
+                .giveKit(player, args.length > 1 ? parseIntBounded(sender, args[1], 1, 4) : 1);
             return;
         }
         // P4 conduit unit: /btskit conduit - the Wormhole Mouths, Mirror, Junction, crowns and ports, from

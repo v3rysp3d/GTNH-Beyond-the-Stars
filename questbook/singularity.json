@@ -21,7 +21,8 @@
     "uxvSwap": false,
     "astralArrayOnEye": false,
     "bec": false,
-    "circuits": true
+    "circuits": true,
+    "smbh": true
   },
   "packChapters": {
     "uiv": { "id": "ytf2QCzUSk6ihcYeRbwblw==", "name": "Tier 11 - UIV", "range": [48100, 48139] },
@@ -100,6 +101,8 @@
     },
     "quasar": {
       "eddington_wall": { "item": "beyondthestars:slCasing2:7", "expect": "Eddington Wall" },
+      "lattice_frame": { "item": "beyondthestars:slCasing4:0", "expect": "Lattice Frame Casing" },
+      "containment_node": { "item": "beyondthestars:slCasing4:1", "expect": "Containment Node" },
       "disc_field_coil": { "item": "beyondthestars:slCasing2:3", "expect": "Disc Field Coil" },
       "collimator": { "item": "beyondthestars:slCasing2:9", "expect": "Jet Collimator Ring" },
       "rim_injector": { "item": "beyondthestars:slCasing2:8", "expect": "Rim Gas Injector" },
@@ -113,6 +116,7 @@
     },
     "crown": {
       "radiator_petal": { "item": "beyondthestars:slCasing2:11", "expect": "Radiator Petal" },
+      "horizon_thermaliser": { "item": "beyondthestars:slCasing4:5", "expect": "Event Horizon Thermaliser" },
       "thermaliser": { "item": "beyondthestars:slCasing2:10", "expect": "Burst Thermaliser Casing" },
       "collimator": { "item": "beyondthestars:slCasing2:9", "expect": "Jet Collimator Ring" },
       "base_casing": { "item": "gregtech:gt.blockcasings10:11", "expect": "ExtremeDensitySpaceBendingCasing" },
@@ -640,6 +644,7 @@
         "- Boards from Sidereal Circuit Boards (Assembler: SpaceTime and Radox Polymer).",
         "- Processors in the Circuit Assembler; Assembly, Supercomputer and Mainframe on the Assembly Line (Research Station research), with Stellar SMDs.",
         "- Every {9}Empyrean Mainframe{r} is built around one Sidereal Mainframe.",
+        "- {9}Two fluids{r} on the engraving: a single-block Laser Engraver has one fluid slot, so engrave in a {9}multiblock{r} (GT's Hyper-Intensity Laser Engraver, or any engraver multi with two input hatches).",
         "",
         "{5}{l}THEY COUNT AS{r} Processor = UEV, Assembly = UIV, Supercomputer = UMV, {9}Mainframe = UXV{r}.",
         "",
@@ -680,6 +685,7 @@
         "- Boards from Empyrean Circuit Boards (Assembler: Hexanite, Shirabon, Dimensionally Transcendent Residue).",
         "- Processors in the Circuit Assembler; the rest on the Assembly Line (Research Station research), with Stellar SMDs.",
         "- Every {9}Omega Mainframe{r} is built around one Empyrean Mainframe.",
+        "- {9}Two fluids{r} again: engrave in a {9}multiblock{r} laser engraver (GT's Hyper-Intensity Laser Engraver, or any engraver multi with two input hatches), not the single block.",
         "",
         "{5}{l}THEY COUNT AS{r} Processor = UIV, Assembly = UMV, Supercomputer = UXV, {9}Mainframe = MAX{r}. In a {9}computer rack{r} the Mainframe gives 380 computation, slightly better than a Planck circuit.",
         "",
@@ -828,7 +834,7 @@
         { "type": "optional_retrieval", "bom": "quasar" }
       ],
       "desc": [
-        "The Quasar Engine is its own black hole with an {9}accretion disc{r}. It runs no recipes: it makes {9}bursts{r} (Bu/t) on two jets, for power (the crowns) and for stability (the Eye, the Kerr, the Homogeny, Reality Diffraction).",
+        "The Quasar Engine is its own black hole with an {9}accretion disc{r}. It runs no recipes: it makes {9}bursts{r} (Bu/t; a crown turns 1 Bu/t into 10{sup13} EU/t, so a maxed 4,096 SM quasar's 9,796 Bu/t is 9.8e16 EU/t, 98 quadrillion) on two jets, for power (the crowns) and for stability (the Eye, the Kerr, the Homogeny, Reality Diffraction).",
         "",
         "{5}{l}BUILD{r} Hologram stack 1, {bomdims:quasar}. Chunk-load all of it: an unloaded chunk freezes the disc and pauses every machine it feeds.",
         "- {bom:quasar:E} Eddington Wall Casings, {bom:quasar:H} Disc Field Coils (one tier everywhere), {bom:quasar:C} Jet Collimator Rings and {bom:quasar:I} Rim Gas Injectors, each a batch recipe in the Condensate Assembler (64, 32, 32 and 8 a craft), plus the Black Hole Compressor's own casings for the cage. The optional task is the full bill.",
@@ -842,7 +848,7 @@
         "- The jets' yield Y_q follows the zone: 1.25 Resonant (1.5 after 10 min), 1 Stable, 0.5 Strained, 0 Critical.",
         "- Trims into the 4 {9}plain{r} trim hatches: the feed gas (1,000 {times} M/64 L a unit) raises E by 2, Spatially Enlarged Fluid (100 {times} M/64 L) lowers it by 2, at most 10 units a second each.",
         "- The {9}flux{r} (0-100) charges with the field b and erupts at 100: 3 s at 3 {times} the stream. A Burst Control Hatch purges it early (from 20).",
-        "- The stream is G0 = {u+03bb} {times} a{sq} {times} b{sq} {times} (M/64){sq} Bu/t; each jet carries half. Coil power is 2 A UXV {times} b{sq} while the hole is open; without it b is 0, the jets stop and the flux freezes.",
+        "- The stream is G0 = {u+03bb} {times} a{sq} {times} b{sq} {times} (M/64){sq} Bu/t ({times} 10{sup13} = EU/t); each jet carries half. Coil power is 2 A UXV {times} b{sq} while the hole is open; without it b is 0, the jets stop and the flux freezes.",
         "- Unattended at {9}f 0.85{r} the disc sits Stable. {9}f 1.0{r} with the two trim valves (riding Eddington) gives about 1.5-1.8 {times} the output, and the links need it.",
         "",
         "[note]The NEI page Quasar Engine (accretion disc) shows the Eddington feed per gas. The controller tooltip and the GUI carry every number.[/note]",
@@ -878,10 +884,10 @@
       "desc": [
         "Triangulum: the first galaxy, and the first tier the quasar holds together. The new verb is {9}aim{r}.",
         "",
-        "{5}{l}RUN{r} Each cycle: {9}7.5 L Molten Magnetar Matter{r} plus bursts on the rail, for {9}600 L Ergomatter {times} Y {times} r {times} min({u+03b2}, 1.5){r}. {u+03b2} is the bursts delivered {div} the 1.5 Bu/t demand.",
+        "{5}{l}RUN{r} Each cycle: {9}7.5 L Molten Magnetar Matter{r} plus bursts on the rail, for {9}600 L Ergomatter {times} Y {times} r {times} min({u+03b2}, 1.5){r}. {u+03b2} is the bursts delivered {div} the 1.5 Bu/t (1.5e13 EU/t, 15 trillion) demand.",
         "",
         "{5}{l}THE GAUGES{r}",
-        "- {9}P{r}, pressure: bursts heat it at 3 {times} ({u+03b2} - 1) a second; Space trims cool it (-2 a unit, up to 10 a second). Bring {9}1.5 {times} the demand{r} into J1 and send the surplus to a crown.",
+        "- {9}P{r}, pressure: bursts heat it at 3 {times} ({u+03b2} - 1) a second; Space trims cool it (-2 a unit, up to 10 a second). Bring {9}1.5 {times} the demand{r} into J1 and send the surplus to a crown: J1's out 1 limit (7.5 Bu/t, 7.5e13 EU/t, per parallel) does it at any quasar size.",
         "- {9}W{r}, the warp of the tilted rail: it drifts 1.5 a second in the precession sense. Aim the bursts between the high and low banks: W moves by 6 {times} (low - high).",
         "- {9}Minor mergers{r} (every 15-30 min, a 15 s warning with the sign) push W {pm}12 a second for 5 s, then flip the precession.",
         "",
@@ -957,7 +963,7 @@
         "",
         "{5}{l}DOCK IT{r} A crown takes a jet when its base centre sits on the quasar's {9}port cell{r}: the cell just past each cap, on the jet axis. Stand it on the top cap; hang it upside down under the bottom cap (wrench the controller's front to turn it). /btsconduit dock <quasar x y z> prints both cells and where the controller goes.",
         "",
-        "{5}{l}MK I, II, III{r} The crown you build around the same controller ({bomdims:crown_mk1} for Mk I): caps of {9}32 / 512 / 8,192 Bu/t{r}. Build the bigger one around it to upgrade. A second crown stacked on the first takes the overflow. A port with nothing docked vents (Disc [8] lights).",
+        "{5}{l}MK I, II, III{r} The crown you build around the same controller ({bomdims:crown_mk1} for Mk I): caps of {9}32 / 512 / 8,192 Bu/t{r} (3.2e14 / 5.1e15 / 8.2e16 EU/t: 320 trillion, 5.1 and 82 quadrillion). Build the bigger one around it to upgrade. A second crown stacked on the first takes the overflow. A port with nothing docked vents (Disc [8] lights).",
         "",
         "A GRB Receptor Port in its base lets a conduit feed a crown anywhere.",
         "",
@@ -1077,7 +1083,7 @@
         { "type": "optional_retrieval", "items": ["1x beyondthestars:conduitThroatMk2"] }
       ],
       "desc": [
-        "A {9}throat{r} sits in a Wormhole Mouth, Conduit Mirror or Conduit Junction controller like a turbine rotor. Mk I carries {9}24 Bu/t{r}, Mk II 384 and Mk III 6,144 (Mk III takes Ergomatter: a T7 part). Anything above is clipped, never damage.",
+        "A {9}throat{r} sits in a Wormhole Mouth, Conduit Mirror or Conduit Junction controller like a turbine rotor. Mk I carries {9}24 Bu/t{r} (2.4e14 EU/t), Mk II 384 (3.8e15) and Mk III 6,144 (6.1e16 EU/t) (Mk III takes Ergomatter: a T7 part). Anything above is clipped, never damage.",
         "",
         "Each element (each mouth of a pair, each mirror, each junction) pays one upkeep unit a second while a throat is fitted, whatever it carries: {9}Molten SpaceTime 4 / 16 / 64 L/s{r} by throat Mk before T7, {9}Ergomatter 0.25 / 1 / 4 L/s{r} after. The GUI's fuel button picks Auto, SpaceTime or Ergomatter. Short upkeep closes the element; it reopens after 10 s paid.",
         "",
@@ -1121,7 +1127,7 @@
       "prereqs": [48160],
       "tasks": [ { "type": "checkbox" } ],
       "desc": [
-        "The T6 {to} T7 machine milestone: a linked quasar delivers a 60 s mean of at least {9}1.5 Bu/t{r} to the rail, the high bank taking 25-75 %, for {9}30 min unbroken{r}. The streak resets the second it fails.",
+        "The T6 {to} T7 machine milestone: a linked quasar delivers a 60 s mean of at least {9}1.5 Bu/t{r} (1.5e13 EU/t) to the rail, the high bank taking 25-75 %, for {9}30 min unbroken{r}. The streak resets the second it fails.",
         "",
         "{5}{l}THE ORDER{r}",
         "1. The item milestones: 2,700 L Magnetar Matter from all-Stable cycles, 2 h Resonant, 50 giant flares ridden.",
@@ -1148,11 +1154,11 @@
         "",
         "{5}{l}PHASES{r}",
         "1. {9}Overfeed{r}, 5 min: White Dwarf Matter 61.44 and Black Dwarf Matter 15.36 L/s on top of the upkeep; {omega} and {Pi} wind up.",
-        "2. {9}Collapse{r}: a shock of P +120, minus 10 for every Bu/t above 1.5 that lands that second.",
+        "2. {9}Collapse{r}: a shock of P +120, minus 10 for every Bu/t (1e13 EU/t) above 1.5 that lands that second.",
         "3. {9}Halo capture{r}, 10 min: Stable for 60 s in a row between 7:00 and 10:00. A minor merger comes at 7:30.",
         "",
         "{5}{l}THE SKILL MOVE{r} Land an eruption on the collapse second. Galaxy Transition [8] holds your regulator's purges from T-80 s, and [4] says purge now (at T-80 s if the flux would erupt early, then from T-2 s: an eruption lasts 3 s, so wiring that answers within a second still lands it): wire (Disc [4] AND NOT [8]) OR [4] to the quasar's Burst Control Hatch and the eruption lands on the collapse.",
-        "- What it cancels is the quasar's stream: the whole shock needs {9}13.5 Bu/t{r} on the Eye that second. A quasar whose best (a purge at full flux, 3.5 {times} G0 {times} Y_q) falls short gets a {c}red row{r} above Begin and in the Galaxy panel, with the shock it would leave. Begin still works; grow the quasar first.",
+        "- What it cancels is the quasar's stream: the whole shock needs {9}13.5 Bu/t{r} (1.35e14 EU/t) on the Eye that second. A quasar whose best (a purge at full flux, 3.5 {times} G0 {times} Y_q) falls short gets a {c}red row{r} above Begin and in the Galaxy panel, with the shock it would leave. Begin still works; grow the quasar first.",
         "",
         "A failure loses the magnetar and keeps the core in escrow. Leave the chart in: the Eye re-spawns the magnetar (the Magnetar Merger's charge) and the collapse can run again, with no core and no link.",
         "",
@@ -1183,16 +1189,16 @@
       "prereqs": [48163],
       "tasks": [ { "type": "checkbox" } ],
       "desc": [
-        "The T7 {to} T8 machine milestone: a 60 s mean of at least {9}6 Bu/t{r} on the Eye's ports, at least half of it on the halo, for {9}30 min unbroken{r}.",
+        "The T7 {to} T8 machine milestone: a 60 s mean of at least {9}6 Bu/t{r} (6e13 EU/t) on the Eye's ports, at least half of it on the halo, for {9}30 min unbroken{r}.",
         "",
         "{5}{l}THE ORDER{r}",
         "1. The item milestones: 216,000 L Ergomatter from all-Stable cycles, 2 h Resonant, 4 minor mergers ridden.",
         "2. {9}Transition [4]{r}: the {9}Supermassive Seed Core{r} into escrow.",
         "3. {9}Slots [8]{r}: the test fire. J1 all to the Eye, and J3 to its 75 % halo preset.",
         "",
-        "Slots [8] waits until the quasar's mean stream reaches {9}6 Bu/t{r} (about 130 SM at coils 3): below that the rail's quarter would starve Triangulum. Keep the quasar growing (f 1.0); the Galaxy panel says how far you are.",
+        "Slots [8] waits until the quasar's mean stream reaches {9}6 Bu/t{r} (6e13 EU/t) (about 130 SM at coils 3): below that the rail's quarter would starve Triangulum. Keep the quasar growing (f 1.0); the Galaxy panel says how far you are.",
         "",
-        "Above {9}32 Bu/t{r} (about 260 SM) Slots [8] stops again: the rail's quarter would flood the field. The Galaxy panel then gives the J1 Eye share to test-fire with instead (16 Bu/t to the Eye; testFireShare in OpenComputers getUnlock()). Set J1 to it with a Burst Control Hatch level or junction.setRatio, and J3 to 75 % halo.",
+        "With the standard rig's {9}J1 out 1 limit{r} (7.5 Bu/t, 7.5e13 EU/t, per parallel) the test fire puts 7.5 Bu/t on the Eye at any quasar size: 5.6 on the halo, 1.9 on the rail. Without a limit, Slots [8] stops again above {9}32 Bu/t{r} (3.2e14 EU/t, about 260 SM), as the rail's quarter would flood the field; the Galaxy panel then says to set the limit, or gives J1's Eye share to test-fire with (testFireShare in OpenComputers getUnlock()).",
         "",
         "{2}{l}DONE WHEN{r} the Eye's GUI says the Heavy Link is held (tick the box)."
       ]
@@ -1206,7 +1212,7 @@
         "The T7 {to} T8 transition. Put the {9}Supermassive Seed Core{r} in escrow and {9}Star Chart: Milky Way{r} in the slot while Triangulum burns, in galaxy mode with no companion charts in the slot bus. Buffer {9}9,000 L Ergomatter{r} ({times} p) plus the Milky Way's first feed cycle, then {9}Begin{r}.",
         "",
         "{5}{l}THE MERGER{r} 30 min:",
-        "- the demand ramps from 1.5 to 6 Bu/t, and the Ergomatter charge feeds at 5 L/s;",
+        "- the demand ramps from 1.5 to 6 Bu/t (1.5e13 to 6e13 EU/t), and the Ergomatter charge feeds at 5 L/s;",
         "- three warned pericentre passes at 10, 20 and 30 min give W {pm}12 and P +5 a second for 5 s;",
         "- then Stable for 2 min in a row within 5 min.",
         "",
@@ -1238,12 +1244,12 @@
       "prereqs": [48113, 48159],
       "tasks": [ { "type": "checkbox" } ],
       "desc": [
-        "A {9}GRB Receptor Port{r} fits any KEE utility socket. Demand: 0.1 Bu/t at T1, 0.25 at T2; {u+03c3} on the 60 s mean.",
+        "A {9}GRB Receptor Port{r} fits any KEE utility socket. Demand: 0.1 Bu/t (1e12 EU/t) at T1, 0.25 (2.5e12) at T2; {u+03c3} on the 60 s mean.",
         "- The Hawking bleed is {times} (1 - 0.75 {times} min({u+03c3}, 1)): at {u+03c3} {ge} 1 the hole needs 75 % fewer bolts.",
         "- On T2 at {u+03c3} {ge} 1 the setpoint cap rises from 512 to {9}768 SM{r}, so the modules get 27 parallels instead of 22.",
         "- A lost link drops the cap back to 512. The hole bleeds down to it slowly and your setpoint is kept; the modules count the mass only up to the cap in force, so the extra parallels go with the link at once.",
         "- A quasar that is unformed or not loaded pauses the link: the bleed relief, the 768 SM cap and the Superdense refining stop until it runs again.",
-        "- One Junction's out 3 at 10 % feeds a KEE T2 from any quasar of 2.5 Bu/t or more.",
+        "- One Junction's out 3 at 10 % feeds a KEE T2 from any quasar of 2.5 Bu/t (2.5e13 EU/t) or more.",
         "",
         "The KEE's GUI and scanner show the link line; OpenComputers bts_kerr.getState().link.",
         "",
@@ -1256,7 +1262,7 @@
       "prereqs": [48142, "48159:1"],
       "tasks": [ { "type": "checkbox" } ],
       "desc": [
-        "3 {9}GRB Receptor Ports{r} fit the Homogeny's stirring ring (its reserved cells). Demand: 1.5 Bu/t at T2, 6 at T3.",
+        "3 {9}GRB Receptor Ports{r} fit the Homogeny's stirring ring (its reserved cells). Demand: 1.5 Bu/t (1.5e13 EU/t) at T2, 6 (6e13) at T3.",
         "- Speed {times} (1 + 0.5 {times} min({u+03c3}, 1)): up to 6 {times} (T2) and 24 {times} (T3) the T1 rate.",
         "- {9}Entanglement Medium{r} (T3) needs {u+03c3} {ge} 1 to start and pauses below it.",
         "- {9}Degenerate Stellar Mixture{r} never needs bursts: Eye T6 needs it before any quasar exists.",
@@ -1326,7 +1332,7 @@
         "- {9}J1{r}: Field [2] / [1] as 15 / 8 / 0 (two emitter covers), OR Galaxy Transition [4] {to} 15, OR Slots [8] {to} 15.",
         "- {9}J2{r}: Field [4] / [8]. {9}J3{r}: Events [1] / [2]; Slots [8] {to} its 75 % preset at T7.",
         "- Transition [4] {to} push the next core into a plinth bus; Transition [1] {to} push the next chart; Status [1] {to} stock the charge; Galaxy Transition [1] {to} the Eye's Burst Control Hatch in Begin mode.",
-        "- Keep Mk I throats on the Eye's branch: they cap what reaches J1 at 24 Bu/t, so a growing quasar cannot flood the Eye.",
+        "- Set {9}J1's out 1 limit{r} to {9}7.5 Bu/t{r} (7.5e13 EU/t) per parallel, times the time dial (the Junction's GUI, or junction.setLimit): J1 then steers the same few Bu/t into the Eye however big the quasar grows, and the rest goes to the crown. Without it, a quasar past about 200 SM floods the Eye through Mk II or bigger throats, test fire or not.",
         "",
         "All binary like this (AE2-friendly), T8 runs about 90 % Resonant. Analog instead: the sensor's P (inverted, {pm}30), W and {u+039b} straight to J1, J2 and J3.",
         "",
@@ -1357,7 +1363,7 @@
       "prereqs": [48150],
       "tasks": [ { "type": "checkbox" } ],
       "desc": [
-        "{9}1 Bu/t = 10{sup13} EU/t{r}. A 64 SM quasar at coils 3 makes about 2 Bu/t; the stream grows as M{sq}, and the hole grows with its disc up to the coil cap.",
+        "{9}1 Bu/t = 10{sup13} EU/t{r}. A 64 SM quasar at coils 3 makes about 2 Bu/t (2e13 EU/t, 20 trillion); the stream grows as M{sq}, and the hole grows with its disc up to the coil cap.",
         "",
         "Sizing: G0 = {u+03bb} {times} a{sq} {times} b{sq} {times} (M/64){sq}. Never purging averages 1.11 {times} G0 {times} Y_q, purging at flux 40 about 0.8. A good 1,024 SM quasar is worth about 5 to 10 {times} 10{u+00b9}{u+2075} EU/t, depending on how well its disc is held.",
         "",
@@ -1453,7 +1459,7 @@
     {
       "low": 48188, "key": "eye_t10", "chapter": "max", "x": 600, "y": 144, "size": 72, "main": true,
       "name": "{4}{l}{n}Eye T10: The Universe", "icon": "mte:28115", "needs": ["eyeT9T10"],
-      "prereqs": [48186, 48187],
+      "prereqs": [48186, 48187, 48198],
       "tasks": [
         { "type": "tbd", "what": "the T10 core and chart" },
         { "type": "fluid", "fluids": ["144x fluid:molten.universium"] }
@@ -1513,7 +1519,7 @@
       "prereqs": [48185, 48159],
       "tasks": [ { "type": "checkbox" } ],
       "desc": [
-        "Reality Diffraction's portal has 6 reserved cells for {9}GRB Receptor Ports{r}. Demand: 24 Bu/t.",
+        "Reality Diffraction's portal has 6 reserved cells for {9}GRB Receptor Ports{r}. Demand: 24 Bu/t (2.4e14 EU/t).",
         "- {9}No port fitted{r}: the regions run at {times} 1 on their anchor fluids. No link is needed.",
         "- {9}Ports fitted{r}: the regions ride the stream at {times} min({u+03c3}, 1.5); below {u+03c3} 0.5 no run starts and a running one pauses (nothing is voided). Fit ports only when you can feed them: a second quasar with its own mouths is the clean way.",
         "",
@@ -1533,6 +1539,293 @@
         "[note]Eye T10, the only Universium source, comes in a later update. Until then this chapter opens through the MAX checkboxes.[/note]",
         "",
         "{2}{l}DONE WHEN{r} you tick the box: this one is the chapter's introduction."
+      ]
+    },
+    {
+      "low": 48176, "key": "saturation", "chapter": "uxv", "x": 1056, "y": 168, "size": 24,
+      "name": "{4}{l}{n}Saturation", "icon": "mte:28120", "needs": ["smbh"],
+      "prereqs": [48148],
+      "tasks": [ { "type": "checkbox" } ],
+      "desc": [
+        "The quasar's last upgrade starts here. {9}Saturation{r}: a Quasar Engine at {9}4,096 SM on MagMatter (T4) Disc Field Coils{r}, its disc Stable or better ({9}|E| at most 40{r}) for {9}1 hour unbroken{r}. It is saved with the hole.",
+        "",
+        "{5}{l}HOW{r} Run the disc at f 1.0 with the standard rig's trims and purges. An unattended disc at f 0.85 sits near E -16 and each eruption kicks it about 30 further, so the streak breaks at every eruption: Saturation needs a managed disc.",
+        "",
+        "{5}{l}THEN{r} The {9}Supermassive Lattice{r} round the same quasar counts (the next quest). Until Saturation the GUI says \"Reach Saturation first\". A maxed 4,096 SM quasar makes {9}9,796 Bu/t{r} at best (9.8e16 EU/t, 98 quadrillion): that is {times}1 from here on.",
+        "",
+        "[note]MagMatter comes from the Godforge's magmatter mode, behind its EE upgrade. With the Eye replacement on, EE costs 8 Black Dwarf Matter frame boxes instead of 2 Universium ones, so MagMatter arrives with Eternity at Eye T7.[/note]",
+        "",
+        "{2}{l}DONE WHEN{r} the quasar's GUI shows Saturation met (tick the box)."
+      ]
+    },
+    {
+      "low": 48177, "key": "cage_for_a_galaxy", "chapter": "uxv", "x": 1104, "y": 156, "size": 48, "main": true,
+      "name": "{4}{l}{n}A Cage for a Galaxy", "icon": "beyondthestars:slCasing4:1", "needs": ["smbh"],
+      "prereqs": [48176],
+      "tasks": [ { "type": "retrieval", "items": ["48x beyondthestars:slCasing4:1"]}, { "type": "optional_retrieval", "bom": "quasar_lattice" } ],
+      "desc": [
+        "The {9}Supermassive Lattice{r}: an armillary cage round the quasar you already have ({bomdims:quasar_lattice}). It is the same controller and the same hole, so nothing is lost.",
+        "",
+        "{5}{l}THE CAGE{r} An equatorial ring and two latitude rings, tied to the quasar's cage by struts. The poles stay open, so jets, crowns and mouths dock as before. {bom:quasar_lattice:L} Lattice Frame Casings and {9}48 Containment Nodes{r}, all one tier, like coils. The hologram projector builds it on the 'lattice' channel, and NEI previews each tier.",
+        "",
+        "{5}{l}THE TIERS{r} safe limit / top:",
+        "- {9}L1{r} Superdense Ergomatter (Eye T8): 16,384 / 65,536 SM",
+        "- {9}L2{r} White Hole Matter (Eye T9): 65,536 / 262,144 SM",
+        "- {9}L3{r} Universium (Eye T10): 262,144 / 4,194,304 SM, and Overdrive",
+        "- {9}L4{r} Constrained Eternity: 4,194,304 / 67,108,864 SM, and Unbind",
+        "Each node tier is made from the one below in the Condensate Assembler.",
+        "",
+        "{5}{l}THE SETPOINT{r} With a lattice, growth stops at the {9}mass setpoint{r} (default: the safe limit; 4,096 SM up to the top), in the Supermassive Lattice panel. Lowering it below the mass sheds 2 % a second: the excess leaves up both jets, and the crowns make nothing while it does.",
+        "",
+        "A missing lattice block under a hole over 4,096 SM freezes the quasar (nothing is lost) until the lattice is whole. To take a lattice down, set the setpoint to 4,096 SM first.",
+        "",
+        "{2}{l}DONE WHEN{r} you hold 48 Containment Nodes L1 (HOLD {to} CLAIM {to} INSTALL)."
+      ]
+    },
+    {
+      "low": 48178, "key": "past_the_coils", "chapter": "uxv", "x": 1176, "y": 168, "size": 24,
+      "name": "{4}{l}{n}Past the Coils", "icon": "beyondthestars:slCasing2:3", "needs": ["smbh"],
+      "prereqs": [48177],
+      "tasks": [ { "type": "checkbox" } ],
+      "desc": [
+        "Grow the hole to {9}16,384 SM{r}, the L1 safe limit: four times what any coil holds.",
+        "",
+        "{5}{l}THE INTAKE{r} With a lattice, all the gas the rim hatches give in a second is the {9}intake{r}, up to {9}5{times} the Eddington feed{r}: per SM, 25 L/t of Hydrogen, 50 of Helium or 100 of Raw Star Matter. The GUI's stacked bar spends it in order:",
+        "- {9}Disc{r} (white): f {times} Eddington, the only part that moves E;",
+        "- {9}Hold-up{r} (amber): 3 {times} x {times} Eddington, x your place in the band (0 at the safe limit, 1 at the top). It holds mass and grows nothing;",
+        "- {9}Growth{r} (green): the rest. It grows the hole with the same mass per litre as the disc.",
+        "So put in more gas than f draws. At the cap, with f 1 at a safe limit, the hole grows {9}5{times}{r} as fast as the disc alone.",
+        "",
+        "{5}{l}POWER{r} Past 4,096 SM the output grows as the square root of mass: {9}{times}2 at 16,384 SM{r} (2.0e17 EU/t), {times}4 at 65,536 (3.9e17), {times}7.9 at 262,144 (7.7e17), then flattening toward {times}31 (3.0e18 EU/t) at the L4 top.",
+        "",
+        "{2}{l}DONE WHEN{r} the GUI's mass bar reads 16,384 SM or more (tick the box)."
+      ]
+    },
+    {
+      "low": 48179, "key": "event_horizon_crown", "chapter": "uxv", "x": 1104, "y": 252, "size": 24,
+      "name": "{4}{l}{n}Event Horizon Crown", "icon": "beyondthestars:slCasing4:5", "needs": ["smbh"],
+      "prereqs": [48176],
+      "tasks": [ { "type": "checkbox" }, { "type": "optional_retrieval", "bom": "crown_mk4" } ],
+      "desc": [
+        "The crown's fourth structure tier, built round the same controller ({bomdims:crown_mk4}): cap {9}524,288 Bu/t{r} (5.2e18 EU/t, 5.2 quintillion), with {bom:crown_mk4:X} Event Horizon Thermaliser Casings.",
+        "",
+        "{5}{l}HOW MANY{r} A Mk III caps at 8,192 Bu/t (8.2e16 EU/t), so a hole past 4,096 SM floods it. Two Mk IV (one per jet port) carry even full Overdrive's mean (979,600 Bu/t, 9.8e18 EU/t); four (two stacked on each port) also catch the eruption peaks. No hole ever needs more than four.",
+        "",
+        "{5}{l}THE CONDUIT{r} The {9}Conduit Throat Mk IV{r} (assembly line, from a Mk III) carries 524,288 Bu/t (5.2e18 EU/t) through an element, on 2 L/s of Superdense Ergomatter (or 16 L/s Ergomatter, or 256 L/s Molten SpaceTime).",
+        "",
+        "The EU still goes to your wireless network as one big number a second: no element can overflow.",
+        "",
+        "{2}{l}DONE WHEN{r} a Mk IV crown is formed on a jet port (tick the box)."
+      ]
+    },
+    {
+      "low": 48195, "key": "pumping_the_sky", "chapter": "max", "x": 432, "y": 264, "size": 24,
+      "name": "{4}{l}{n}Pumping the Sky", "icon": "beyondthestars:slCasing2:8", "needs": ["smbh"],
+      "prereqs": [48178],
+      "tasks": [ { "type": "checkbox" } ],
+      "desc": [
+        "Feed the hole from {9}Space Elevator Pump modules{r} at {9}1,000,000 L/t or more for 1 hour{r}.",
+        "",
+        "{5}{l}THE PUMPS{r} (GTNH-Intergalactic) Pump I: 313,600 L/t of Hydrogen (280,000 of Helium). Pump II: 1.25 M (1.12 M). {9}Pump III: 20.1 M L/t{r} of Hydrogen (17.9 M of Helium). A Space Elevator full of Pump III makes 4.8e8 L/t.",
+        "",
+        "{5}{l}HOW MUCH{r} Hydrogen to hold the mass / at the 5{times} cap:",
+        "- 65,536 SM (the L1 top, the Eye gate): 1.31 M / 1.64 M L/t, {9}1 Pump III{r}",
+        "- 4,194,304 SM (the L3 top): 84 M / 105 M L/t, 5 Pump III",
+        "- 67,108,864 SM (the L4 top): 1.34 billion / 1.68 billion L/t, {9}67 Pump III{r}, about 3 full elevators",
+        "Helium needs twice the litres of Hydrogen, Raw Star Matter four times. A fixed supply of Hydrogen holds the biggest hole; plenty of a heavier gas grows it faster.",
+        "",
+        "{5}{l}INTO THE MACHINE{r} The 24 Rim Gas Injector sockets take ME Input Hatches (stocking) or plain ones. The controller draws every tick, at most 2,147,483,647 L a drain, and keeps a {9}60 s Accretion Buffer{r} of Disc + Hold-up. A YOTTank (GoodGenerator) or AE2FC cells hold the gas in bulk.",
+        "",
+        "{2}{l}DONE WHEN{r} the intake has stayed at 1,000,000 L/t or more for an hour (tick the box)."
+      ]
+    },
+    {
+      "low": 48196, "key": "drinking_deep", "chapter": "max", "x": 480, "y": 264, "size": 24,
+      "name": "{4}{l}{n}Drinking Deep", "icon": "mte:28120", "needs": ["smbh"],
+      "prereqs": [48195],
+      "tasks": [ { "type": "checkbox" } ],
+      "desc": [
+        "Run the intake at its {9}5{times} cap for 1 hour{r}: the hole drinks as fast as it can.",
+        "",
+        "{5}{l}HOW FAST{r} At the cap with f 1, growth is 5{times} the disc's own at a safe limit and 2{times} at a band top, where the hold-up takes its share. From 4,096 SM on Helium at the cap:",
+        "- the Eye gate (65,536 SM on L1): {9}16.6 h{r}",
+        "- 4,194,304 SM on L4 (its safe limit): 32.8 h",
+        "- the L4 top (67,108,864 SM): 52.8 h",
+        "- each Unbound doubling: 8.2 h",
+        "Hydrogen takes twice as long, Raw Star Matter half.",
+        "",
+        "{5}{l}UNDER-FED{r} An intake of F {times} Eddington holds the hole only up to band position (F - 1) / 3. Below 4{times} you cannot reach a band top, and the hole settles where your gas holds it. The line under the bar reads, for example: Disc 840 M, Hold-up 2,520 M (100 %), Growth 40 M, +2.2 % per hour.",
+        "",
+        "{2}{l}DONE WHEN{r} the intake bar has sat on its 5{times} tick for an hour (tick the box)."
+      ]
+    },
+    {
+      "low": 48197, "key": "holding_it_up", "chapter": "max", "x": 528, "y": 264, "size": 24,
+      "name": "{4}{l}{n}Holding It Up", "icon": "beyondthestars:slCasing4:1", "needs": ["smbh"],
+      "prereqs": [48196],
+      "tasks": [ { "type": "checkbox" } ],
+      "desc": [
+        "Hold {9}65,536 SM on an L1 lattice for 1 hour{r}, with no leak: the top of the L1 band, and the hole the Eye's T9 {to} T10 Supermassive Link asks for.",
+        "",
+        "{5}{l}OVER THE LIMIT{r} Mass over the safe limit has no time limit: the {9}hold-up gas{r} holds it. At a band top that is 3{times} Eddington on top of the disc, so at least {9}4{times} Eddington{r} of intake: 1.31 M L/t of Hydrogen, or 2.62 M of Helium, at 65,536 SM.",
+        "",
+        "{5}{l}A LEAK{r} When the hold-up is short (the amber segment shows red), the extra mass leaks back: the part over the safe limit halves each hour on a log scale, never below the safe limit, and nothing is damaged. A dark disc holds nothing, so an outage leaks too; the 60 s Accretion Buffer covers a short one.",
+        "",
+        "{5}{l}AUTOMATE{r} The Directive Hatch's Horizon set: [1] hold-up short, [2] buffer under 30 s, [4] anchor short, [8] Overdrive upkeep short. A Burst Control Hatch in Hold mode sets the setpoint (safe limit 0 .. band top 15). Sensor channels and OpenComputers (getHoldUp, getBuffer) report it.",
+        "",
+        "{2}{l}DONE WHEN{r} the hole has held 65,536 SM for an hour with the hold-up at 100 % (tick the box)."
+      ]
+    },
+    {
+      "low": 48198, "key": "supermassive_link", "chapter": "max", "x": 624, "y": 264, "size": 24,
+      "name": "{4}{l}{n}Supermassive Link", "icon": "mte:28115", "needs": ["smbh", "eyeT9T10"],
+      "prereqs": [48197],
+      "tasks": [ { "type": "tbd", "what": "the Eye T9 -> T10 transition (P5)" } ],
+      "desc": [
+        "The Eye's {9}T9 {to} T10 machine milestone{r}: link a hole of at least {9}65,536 SM{r} with a Supermassive Lattice (any tier) to the Eye through the conduit for {9}30 min unbroken{r}, with a 60 s mean of at least {9}96 Bu/t{r} (9.6e14 EU/t) on the Eye's ports. The streak resets when the link drops or the hole leaks under 65,536 SM.",
+        "",
+        "It is met with an {9}L1 lattice{r} (Eye T8 products) and pack gases: nothing from Eye T9 or later.",
+        "",
+        "Every stream already carries its source's lattice tier and mass. The Eye's GUI shows a {9}Supermassive Link (P5){r} row (the streak, the mean, and whether the linked hole qualifies), OpenComputers getUnlock() has it, and the quasar's sensor has a Supermassive Link ready channel."
+      ]
+    },
+    {
+      "low": 48199, "key": "white_hole_lattice", "chapter": "max", "x": 252, "y": 336, "size": 24,
+      "name": "{4}{l}{n}White Hole Lattice", "icon": "beyondthestars:slCasing4:2", "needs": ["smbh", "eyeT9T10"],
+      "prereqs": [48183, 48177],
+      "tasks": [ { "type": "retrieval", "items": ["48x beyondthestars:slCasing4:2"]} ],
+      "desc": [
+        "Remake the 48 nodes as {9}L2{r}: each L1 node plus 4,032 L of Entangled White Hole Matter (Eye T9) in the Condensate Assembler. L2's safe limit is {9}65,536 SM{r} and its top 262,144 SM: the Eye gate's mass with no hold-up gas at all.",
+        "",
+        "L2 is optional: the Eye gate is met on L1. Its recipe stays hidden in NEI until White Hole Matter exists.",
+        "",
+        "{2}{l}DONE WHEN{r} you hold 48 Containment Nodes L2 (HOLD {to} CLAIM {to} INSTALL)."
+      ]
+    },
+    {
+      "low": 48221, "key": "universe_to_hold_it", "chapter": "end", "x": 48, "y": 348, "size": 24,
+      "name": "{4}{l}{n}A Universe to Hold It", "icon": "beyondthestars:slCasing4:3", "needs": ["smbh"],
+      "prereqs": [48220],
+      "tasks": [ { "type": "retrieval", "items": ["48x beyondthestars:slCasing4:3"]} ],
+      "desc": [
+        "{9}L3{r}: each node remade with 2,304 L of Entangled Universium (Condensate Assembler, MAX). Safe limit {9}262,144 SM{r}, top {9}4,194,304 SM{r}, and {9}Overdrive{r}.",
+        "",
+        "At 262,144 SM a hole gives {9}{times}7.9{r} on gas alone (7.7e17 EU/t). A whole endgame base draws 1e16 to 1e17 EU/t: one L3 hole holds it several times over.",
+        "",
+        "[note]Universium comes from Eye T10 (a later update), or from TecTech's Eye of Harmony with replaceTecTechEyeOfHarmony=false (576 / 2,304 / 9,216 L a run at its tiers 7 / 8 / 9).[/note]",
+        "",
+        "{2}{l}DONE WHEN{r} you hold 48 Containment Nodes L3 (HOLD {to} CLAIM {to} INSTALL)."
+      ]
+    },
+    {
+      "low": 48222, "key": "a_few_million", "chapter": "end", "x": 96, "y": 348, "size": 24,
+      "name": "{4}{l}{n}A Few Million", "icon": "mte:28120", "needs": ["smbh"],
+      "prereqs": [48221],
+      "tasks": [ { "type": "checkbox" } ],
+      "desc": [
+        "Hold {9}2,097,152 SM or more for 1 hour{r}: \"a few million stellar mass\". On L3 that is band position 0.75, held by 3.25{times} Eddington of intake: about 34 M L/t of Hydrogen (1.7 Pump III), 52 M at the cap.",
+        "",
+        "{5}{l}POWER{r} {times}19.5 on gas alone: {9}1.9e18 EU/t{r}. At the L3 top (4,194,304 SM), {times}24.2: 2.4e18 EU/t.",
+        "",
+        "{2}{l}DONE WHEN{r} the GUI's mass bar has read 2,097,152 SM or more for an hour (tick the box)."
+      ]
+    },
+    {
+      "low": 48226, "key": "holding_the_whole_base", "chapter": "end", "x": 144, "y": 408, "size": 24,
+      "name": "{4}{l}{n}Holding the Whole Base", "icon": "beyondthestars:slCasing4:5", "needs": ["smbh"],
+      "prereqs": [48225],
+      "tasks": [ { "type": "checkbox" } ],
+      "desc": [
+        "A {9}1 hour mean of at least 1e18 EU/t{r} (one quintillion, 100,000 Bu/t) with Overdrive off: from about 450,000 SM on L3 with a well-run disc, on gas alone.",
+        "",
+        "Two Mk IV crowns carry it to your wireless network.",
+        "",
+        "{2}{l}DONE WHEN{r} the quasar's Bursts row has averaged 1e18 EU/t for an hour with Overdrive off (tick the box)."
+      ]
+    },
+    {
+      "low": 48223, "key": "overdrive", "chapter": "end", "x": 48, "y": 408, "size": 24,
+      "name": "{4}{l}{n}Overdrive", "icon": "beyondthestars:slCasing4:3", "needs": ["smbh"],
+      "prereqs": [48221],
+      "tasks": [ { "type": "checkbox" } ],
+      "desc": [
+        "On an L3 lattice or better, {9}Overdrive{r} lifts the output toward a hard {9}{times}100{r} (9.8e18 EU/t, about 10 quintillion) for {9}100,000 {times} o{sq} L/s{r} each of Molten MHDCSM and Molten Universium, through the trim sockets. o is 0 to 100 % in 5 % steps: the Supermassive Lattice panel, a Burst Control Hatch in Overdrive mode (o = s/15), or OpenComputers setOverdrive.",
+        "",
+        "{5}{l}RETURNS FALL{r} Half Overdrive gives about 90 % of the gain. Upkeep each; output at 262,144 SM / 4,194,304 SM:",
+        "- o 25 %: 6,250 L/s; {times}21.4 / {times}59.1",
+        "- o 50 %: 25,000 L/s; {times}34.1 / {times}80.5",
+        "- o 75 %: 56,250 L/s; {times}45.8 / {times}91.4",
+        "- o 100 %: 100,000 L/s; {times}56.0 / {times}96.3",
+        "",
+        "Running dry fades it over 1 s; nothing breaks. A dark disc makes nothing, Overdrive or not. MHDCSM: bartworks' Electric Implosion Compressor, 5,184 L/s a running recipe.",
+        "",
+        "{2}{l}DONE WHEN{r} the GUI's output multiplier has read {times}50 or more for 10 minutes (tick the box)."
+      ]
+    },
+    {
+      "low": 48224, "key": "only_for_a_bit", "chapter": "end", "x": 96, "y": 408, "size": 24,
+      "name": "{4}{l}{n}Only for a Bit", "icon": "beyondthestars:slCasing4:3", "needs": ["smbh"],
+      "prereqs": [48223],
+      "tasks": [ { "type": "checkbox" } ],
+      "desc": [
+        "Run at {9}{times}90 or more for 10 minutes{r}. That takes a big hole and nearly full Overdrive: {times}91.4 at 4,194,304 SM with o 75 %, {times}96.3 at full.",
+        "",
+        "Full Overdrive for 10 minutes burns {9}60 M L{r} each of MHDCSM and Universium; half for an hour, 90 M each. That is the \"only for a bit\": past {times}100 is never worth it, and the curve will not go there.",
+        "",
+        "{2}{l}DONE WHEN{r} the output multiplier has read {times}90 or more for 10 minutes (tick the box)."
+      ]
+    },
+    {
+      "low": 48225, "key": "constrained_eternity", "chapter": "end", "x": 144, "y": 348, "size": 24,
+      "name": "{4}{l}{n}Constrained Eternity", "icon": "beyondthestars:slCasing4:4", "needs": ["smbh"],
+      "prereqs": [48222],
+      "tasks": [ { "type": "retrieval", "items": ["48x beyondthestars:slCasing4:4"]} ],
+      "desc": [
+        "{9}L4{r}: each L3 node with 4 Eternity and 4 MHDCSM plates under a Universium coat (1,440 L each of MHDCSM and Universium, 16 any-MAX circuits; Condensate Assembler, MAX). Safe limit {9}4,194,304 SM{r}, top {9}67,108,864 SM{r}, and {9}Unbind{r}.",
+        "",
+        "At the L4 top the hole gives {times}31 on gas alone: {9}3.0e18 EU/t{r}, held by 1.34 billion L/t of Hydrogen (67 Pump III).",
+        "",
+        "{2}{l}DONE WHEN{r} you hold 48 Containment Nodes L4 (HOLD {to} CLAIM {to} INSTALL)."
+      ]
+    },
+    {
+      "low": 48227, "key": "unbound", "chapter": "end", "x": 192, "y": 348, "size": 24,
+      "name": "{4}{l}{n}Unbound", "icon": "beyondthestars:slCasing4:4", "needs": ["smbh"],
+      "prereqs": [48225],
+      "tasks": [ { "type": "checkbox" } ],
+      "desc": [
+        "On an L4 lattice, {9}Unbind{r} (click it twice in the Supermassive Lattice panel, or OpenComputers setUnbound) lets the setpoint pass 67,108,864 SM. n = log2(M / 67,108,864) is the number of doublings past the top. Hold {9}n 1 or more for 1 hour{r} with the anchor paid.",
+        "",
+        "{5}{l}THE ANCHOR{r} Every second the hole costs {9}1,024 {times} 4^(n{sq}) L{r} of Primordial Matter (GT's Transcendent Plasma Mixer), through the trim sockets:",
+        "- n 0.5 (94.9 M SM): 1,448 L/s",
+        "- n 1 (134 M SM): {9}4,096 L/s{r}",
+        "- n 1.5 (190 M SM): 23,170 L/s",
+        "- n 2 (268 M SM): 262,144 L/s",
+        "- n 3 (537 M SM): 2.7e8 L/s, impossible",
+        "Short of it, the hole {9}sheds safely{r} at 2 % a second to the doubling your supply pays for (with no Primordial Matter at all, back to the L4 top). Nothing is ever destroyed.",
+        "",
+        "Growth: one doubling per 8.2 h on Helium at the cap; the hold-up stays 3{times}. Unbound adds no power (the curve is flat): it makes Overdrive cheaper.",
+        "",
+        "{2}{l}DONE WHEN{r} the GUI has shown n of at least 1, with the anchor fully paid, for an hour (tick the box)."
+      ]
+    },
+    {
+      "low": 48228, "key": "cheaper_by_the_doubling", "chapter": "end", "x": 240, "y": 348, "size": 24,
+      "name": "{4}{l}{n}Cheaper by the Doubling", "icon": "beyondthestars:slCasing4:4", "needs": ["smbh"],
+      "prereqs": [48227],
+      "tasks": [ { "type": "checkbox" } ],
+      "desc": [
+        "Run {9}full Overdrive at n 1 or more for 10 minutes{r}. Every doubling halves the Overdrive upkeep: 100,000 {times} o{sq} {times} 2^(-n) L/s each.",
+        "",
+        "{5}{l}FULL OVERDRIVE{r} upkeep each / anchor / all fluids, L/s:",
+        "- n 0: 100,000 / 0 / 200,000",
+        "- n 0.5: 70,711 / 1,448 / 142,870",
+        "- n 1: {9}50,000{r} / 4,096 / 104,096",
+        "- n 1.5: 35,355 / 23,170 / {9}93,880{r} (the cheapest)",
+        "- n 2: 25,000 / 262,144 / 312,144 (dearer than not Unbound)",
+        "Universium is the scarce fluid; Primordial Matter is made from commoner ones. The {times}100 ceiling still holds: Unbound makes {times}99 cheaper, never stronger.",
+        "",
+        "{2}{l}DONE WHEN{r} the GUI shows Overdrive 100 % at n 1 or more, upkeep 50,000 L/s each or less, for 10 minutes (tick the box)."
       ]
     }
   ],

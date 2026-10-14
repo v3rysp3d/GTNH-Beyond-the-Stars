@@ -37,4 +37,35 @@ public final class QuasarResult {
     public boolean firstLight, eddington, firstErupt;
     /** Index into {@link QuasarParams#MASS_MILESTONES} reached this second, or −1. */
     public int massMilestone = -1;
+
+    // ---- SMBH (HorizonLattice.step; all 0 / false without a lattice)
+    /** The lattice in force (0-4), its safe limit, band top, the structure's top and the mass setpoint, SM. */
+    public int lattice;
+    public double safe, top, structureTop, setpoint;
+    /** Band position x (0..1) and Unbound doublings n. */
+    public double x, n;
+    /** The intake cap 5·Ṁ_Edd and the hold-up need 3·x·Ṁ_Edd, L/s. */
+    public double intakeCap, holdUpNeed;
+    /** Litres used this second (drain these): hold-up, growth. */
+    public double holdUpLitres, growthLitres;
+    /** Hold-up coverage c_h (1 when nothing is needed; 0 while the disc is dark). */
+    public double holdUpCoverage = 1;
+    /** The over-limit mass leaked this second (hold-up short), and how much, SM. */
+    public boolean leaking;
+    public double leakedMass;
+    /** Mass grown by the Growth segment this second, SM (the disc's own growth is not in it). */
+    public double grownMass;
+    /** The hole shed this second (setpoint lowered, structure downgraded, or anchor short), toward this mass. */
+    public boolean shedding;
+    public double shedTarget;
+    /** Why it shed: "setpoint", "structure" or "anchor". */
+    public String shedReason = "";
+    /** Overdrive: upkeep each (L/s), coverage c_o, litres used of each fluid, and o_eff for next second. */
+    public double overdriveNeed, overdriveCoverage = 1, mhdcsmLitres, universiumLitres, oEff;
+    /** Anchor: need U(n) (L/s), coverage c_a, litres used, and the doublings the supply pays for (≤ n). */
+    public double anchorNeed, anchorCoverage = 1, anchorLitres, anchorPaysN;
+    /** The anchor is short (c_a under 1, past a 10⁻⁹ float slack): the Directive's "anchor short" bit. */
+    public boolean anchorShort;
+    /** The output multiplier X this second's G0 used (×1 = a maxed 4,096 SM quasar). */
+    public double outputX;
 }

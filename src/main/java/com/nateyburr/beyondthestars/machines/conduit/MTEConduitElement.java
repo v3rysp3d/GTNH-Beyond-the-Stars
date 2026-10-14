@@ -626,6 +626,11 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
         return SLQuasarFluids.ergomatter;
     }
 
+    /** SMBH: a Throat Mk IV also runs on Superdense Ergomatter, 2 L/s (smbh-v1.md §3.4). */
+    public static Fluid superdenseFluid() {
+        return SLQuasarFluids.superdenseErgomatter;
+    }
+
     /** One second of upkeep: pay {@link BurstRouting#throatUpkeep} from the fuel hatches, open or close. */
     private void upkeep() {
         final int mk = throatMk();
@@ -653,8 +658,13 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
                 useErgo = ergo != null && available(fuelHatches, ergo) >= Math.ceil(owedFor(ergo) + rateE);
                 break;
         }
-        final Fluid fluid = useErgo ? ergo : st;
-        final double rate = useErgo ? rateE : rateS;
+        // SMBH: a Mk IV throat prefers Superdense Ergomatter (2 L/s) whenever it may burn the Ergomatter family and
+        // the hatches hold enough; its litres count with the Ergomatter's
+        final double rateSD = BurstRouting.throatUpkeepSuperdense(mk);
+        final Fluid sde = rateSD > 0 && fuelMode != FuelMode.SPACETIME ? superdenseFluid() : null;
+        final boolean useSuperdense = sde != null && available(fuelHatches, sde) >= Math.ceil(owedFor(sde) + rateSD);
+        final Fluid fluid = useSuperdense ? sde : useErgo ? ergo : st;
+        final double rate = useSuperdense ? rateSD : useErgo ? rateE : rateS;
         final String name = fluid == null ? "" : fluid.getName();
         if (!name.equals(owedFuel)) {
             owed = 0;
@@ -666,7 +676,7 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
             final long whole = (long) Math.floor(need + 1e-9);
             final long got = take(fuelHatches, fluid, whole);
             owed = need - got;
-            if (useErgo) litresErgomatter += got;
+            if (useErgo || useSuperdense) litresErgomatter += got;
             else litresSpaceTime += got;
         } else {
             owed = 0;
@@ -674,7 +684,7 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
         fuelLine = String.format(
             Locale.ROOT,
             "%s %s L/s%s",
-            useErgo ? "Ergomatter" : "Molten SpaceTime",
+            useSuperdense ? "Superdense Ergomatter" : useErgo ? "Ergomatter" : "Molten SpaceTime",
             rate < 1 ? String.format(Locale.ROOT, "%.2f", rate) : String.format(Locale.ROOT, "%.0f", rate),
             ok ? "" : " - SHORT");
         if (!ok) {
@@ -815,7 +825,7 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
             conduitLabel() + (mMachine ? "" : ", NOT FORMED")
                 + ": "
                 + (mk == 0 ? "no Conduit Throat (closed)"
-                    : "throat Mk " + roman(mk) + " (" + bu(BurstRouting.throatCap(mk)) + " Bu/t)")
+                    : "throat Mk " + roman(mk) + " (" + MTEQuasarEngine.buEu(BurstRouting.throatCap(mk)) + ")")
                 + (open ? ", OPEN"
                     : mk == 0 ? ""
                         : ", CLOSED (" + reopen + " / " + BurstRouting.REOPEN_SECONDS + " s of upkeep to open)"));
@@ -831,8 +841,7 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
                     litresSpaceTime,
                     litresErgomatter));
         out.add(
-            "Through: " + bu(throughBu())
-                + " Bu/t"
+            "Through: " + MTEQuasarEngine.buEu(throughBu())
                 + (clippedBu() > 0.005 ? ", clipped " + bu(clippedBu()) : "")
                 + (lostBu() > 0.005 ? ", lost " + bu(lostBu()) : ""));
         extraStatus(out, now);
@@ -850,8 +859,8 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
             final ConduitNet.Route r = lastRoute(outs[k]);
             out.add(
                 names[k] + ": "
-                    + bu(outBu(outs[k]))
-                    + " Bu/t -> "
+                    + MTEQuasarEngine.buEu(outBu(outs[k]))
+                    + " -> "
                     + (r == null ? "(not traced yet: no stream)" : r.describe()));
         }
     }
@@ -920,10 +929,12 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
 
     /** The lines every element's tooltip shares (throat, upkeep, rays). */
     protected static MultiblockTooltipBuilder commonInfo(MultiblockTooltipBuilder tt) {
-        return tt.addInfo("Throat: a Conduit Throat in the controller slot (swap to upgrade): Mk I 24, Mk II 384,")
-            .addInfo("  Mk III 6,144 Bu/t. Above the cap the stream is clipped (shown), never damaged. Lossless.")
-            .addInfo("Upkeep, one unit per element: Molten SpaceTime 4 / 16 / 64 L/s by throat Mk, or Ergomatter")
-            .addInfo("  0.25 / 1 / 4 L/s (after Eye T7). GUI: Auto / SpaceTime / Ergomatter. Short upkeep closes")
+        return tt.addInfo("Throat: a Conduit Throat in the controller slot (swap to upgrade): Mk I 24 Bu/t (2.4e14")
+            .addInfo("  EU/t), Mk II 384 (3.8e15), Mk III 6,144 (6.1e16), Mk IV 524,288 Bu/t (5.2e18 EU/t). Above")
+            .addInfo("  the cap the stream is clipped (shown), never damaged. 1 Bu/t = 10^13 EU/t in a crown.")
+            .addInfo("Upkeep, one unit per element: Molten SpaceTime 4 / 16 / 64 / 256 L/s by throat Mk, or")
+            .addInfo("  Ergomatter 0.25 / 1 / 4 / 16 L/s (after Eye T7); Mk IV prefers Superdense Ergomatter, 2 L/s.")
+            .addInfo("  GUI: Auto / SpaceTime / Ergomatter. Short upkeep closes")
             .addInfo("  the element (its streams stop); it opens after 10 s of full upkeep (a new element too).")
             .addInfo("Between elements: a straight ray of up to 64 blocks of air out of a throat into the next")
             .addInfo("  element's throat (or onto a GRB Receptor Port). Any block in the way stops it (the scanner")

@@ -32,7 +32,26 @@ public enum QuasarSensorChannel {
     ERUPT_WARN("Eruption warning (Φ >= 90)", Kind.SCALED, 1),
     ERUPT_SECONDS("Seconds to the next eruption", Kind.OPEN, 0),
     LINK_SIGMA("σ of the best-fed host", Kind.OPEN, 0),
-    LINK_STREAK("Link streak (% of 30 min)", Kind.SCALED, 100);
+    LINK_STREAK("Link streak (% of 30 min)", Kind.SCALED, 100),
+    // ---- SMBH (smbh-v1.md §6): the Supermassive Lattice. Appended (NBT keeps the ordinal); 0 without a lattice.
+    MASS_SAFE("M / safe limit (%)", Kind.OPEN, 0),
+    MASS_TOP("M / band top (%)", Kind.SCALED, 100),
+    BAND_X("Band position x (0-1)", Kind.SCALED, 1),
+    INTAKE_DISC("Intake: Disc (L/s)", Kind.OPEN, 0),
+    INTAKE_HOLD("Intake: Hold-up (L/s)", Kind.OPEN, 0),
+    INTAKE_GROWTH("Intake: Growth (L/s)", Kind.OPEN, 0),
+    INTAKE_CAP("Intake (% of the 5x cap)", Kind.SCALED, 100),
+    HOLD_COVER("Hold-up coverage (%)", Kind.SCALED, 100),
+    MASS_RATE("Mass change (% per hour)", Kind.SIGNED, 0),
+    BUFFER_SECONDS("Accretion Buffer (seconds)", Kind.OPEN, 0),
+    OVERDRIVE("Overdrive level (%)", Kind.SCALED, 100),
+    OVERDRIVE_COVER("Overdrive upkeep paid (%)", Kind.SCALED, 100),
+    OVERDRIVE_UPKEEP("Overdrive upkeep, each fluid (L/s)", Kind.OPEN, 0),
+    OUTPUT_X("Output multiplier X (x1 = 9.8e16 EU/t)", Kind.SCALED, 100),
+    UNBOUND_N("Unbound doublings n", Kind.SCALED, 4),
+    ANCHOR_COVER("Anchor coverage (%)", Kind.SCALED, 100),
+    SHEDDING("Shedding (15 / 0)", Kind.SCALED, 1),
+    SM_LINK_READY("Supermassive Link source ready (15 / 0)", Kind.SCALED, 1);
 
     /** How a channel's value maps onto 0-15. */
     public enum Kind {

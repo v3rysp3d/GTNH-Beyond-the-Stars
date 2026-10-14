@@ -610,7 +610,8 @@ public final class EyeRecipeRegistry {
                 break;
             case MAGNETAR_COLLAPSE:
                 desc.add(" Stability Link 30 min (1.5");
-                desc.add(" Bu/t on the rail, high 25-75%)");
+                desc.add(" Bu/t = 1.5e13 EU/t on the rail,");
+                desc.add(" high bank 25-75%)");
                 desc.add(
                     " " + compact((long) EyeMilestones.PROD_NEED[6])
                         + " L Stable, "
@@ -623,14 +624,16 @@ public final class EyeRecipeRegistry {
                 desc.add("1: overfeed 300 s (charge)");
                 desc.add("2: shock P +" + Math.round(MagnetarCollapseOverlay.DEFAULT_SHOCK) + ", -10 per");
                 desc.add(" Bu/t above 1.5 that second");
+                desc.add(" (1 Bu/t = 1e13 EU/t)");
                 desc.add(" (time a purge onto it)");
                 desc.add("3: capture: Stable 60 s");
                 desc.add(" within 420-600 s");
                 desc.add("Re-runs: no core, no link");
                 break;
             case GALACTIC_MERGER:
-                desc.add(" Heavy Link 30 min (6 Bu/t,");
-                desc.add(" >= 50% on the halo ports)");
+                desc.add(" Heavy Link 30 min (6 Bu/t");
+                desc.add(" = 6.0e13 EU/t, >= 50% on");
+                desc.add(" the halo ports)");
                 desc.add(
                     " " + compact((long) EyeMilestones.PROD_NEED[7])
                         + " L Stable, "
@@ -642,6 +645,7 @@ public final class EyeRecipeRegistry {
                 desc.add(" mode, no companions");
                 desc.add("Begin: GUI, Begin hatch, OC");
                 desc.add(GalacticMergerOverlay.DURATION + " s: demand 1.5 -> 6 Bu/t");
+                desc.add(" (1.5e13 -> 6.0e13 EU/t)");
                 desc.add("3 passes (600/1200/1800 s):");
                 desc.add(" W +-12, P +5 for 5 s");
                 desc.add("Then Stable 120 s in 300 s");
@@ -841,6 +845,9 @@ public final class EyeRecipeRegistry {
             desc.add(" Strained 0.5, Critical 0)");
             desc.add("Field: P only, d = (β-1)");
             desc.add("Bursts: D " + String.format(Locale.ROOT, "%.3f", GalaxyField.demand(t.n, true, 0)) + " Bu/t x p");
+            desc.add(
+                " (" + com.nateyburr.beyondthestars.machines.gui.BTSFormat.euOfBu(GalaxyField.demand(t.n, true, 0))
+                    + " x p)");
             desc.add("Breach: runs fail, field");
             desc.add(" re-forms (nothing else)");
             desc.add(sci(def.euPerCycle) + " EU/cycle, wireless");
@@ -867,6 +874,8 @@ public final class EyeRecipeRegistry {
             }
             desc.add(
                 "Bursts: D " + String.format(Locale.ROOT, "%.1f", GalaxyField.demandT(t.n)) + " Bu/t x p (GRB ports)");
+            desc.add(
+                " (" + com.nateyburr.beyondthestars.machines.gui.BTSFormat.euOfBu(GalaxyField.demandT(t.n)) + " x p)");
             desc.add("Bring 1.5x D; surplus: crown");
             desc.add("Field: " + gaugeList(t) + ", minor mergers");
             desc.add("Space trims P-; aim the rail");

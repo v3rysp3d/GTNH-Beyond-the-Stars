@@ -19,6 +19,11 @@ import com.nateyburr.beyondthestars.machines.eye.field.StellarField;
  *     a −0.002·Φ/100, Φ → 0
  * G = G0·Y_q·(0.5 + Φ/100) (+ the eruption);  M ← min(cap, M + 6.4×10⁻⁸·(1 − η(a))·λc·Ṁ_Edd)
  * </pre>
+ *
+ * SMBH (smbh-v1.md §10.1): G0 takes {@link QuasarParams#g0(double, double, double, double, double)} with the state's
+ * o_eff, and the growth cap is {@link QuasarParams#growthCap} (the coil cap without a lattice). With no lattice, M
+ * at or under 4,096 SM and o_eff 0 both are today's expressions, so this step is unchanged bit for bit there.
+ * {@link HorizonLattice#step} runs after it.
  */
 public final class QuasarDisc {
 
@@ -128,7 +133,8 @@ public final class QuasarDisc {
         out.yieldCounted = true;
 
         // ---- the stream, Φ, eruptions and purges
-        final double G0 = QuasarParams.g0(lc, q.a, b, q.M);
+        // SMBH: X(M, o_eff) past 4,096 SM or under Overdrive; today's expression otherwise (bit for bit)
+        final double G0 = QuasarParams.g0(lc, q.a, b, q.M, q.oEff);
         q.G0 = G0;
         out.G0 = G0;
         q.Phi = Math.min(100, q.Phi + b * lc / 2.4);
@@ -162,8 +168,9 @@ public final class QuasarDisc {
         out.G = G;
         out.jet = G / 2;
 
-        // ---- hole growth, to the coil cap
-        final double cap = QuasarParams.massCap(in.coilTier);
+        // ---- hole growth, to the coil cap (SMBH: with a lattice, to the mass setpoint; HorizonLattice adds the
+        // intake's Growth segment)
+        final double cap = QuasarParams.growthCap(in);
         if (q.M < cap) q.M = Math
             .min(cap, q.M + 6.4e-8 * (1 - QuasarParams.iscoEta(clamp(q.a, 0, QuasarParams.A_MAX))) * lc * Medd);
         out.massCapped = q.M >= cap;

@@ -54,6 +54,8 @@ public class CrownGui extends BTSControllerGui<MTEBurstThermaliserCrown> {
     @Override
     protected List<String> rightChipTooltip() {
         final List<String> out = new ArrayList<>();
+        final int mk = multiblock.getMk();
+        if (mk > 0) out.add(BTSText.lang(K + "cap.this", BTSFormat.buEu(BurstRouting.crownCap(mk))));
         out.add(BTSText.lang(K + "cap.tip"));
         return out;
     }
@@ -73,12 +75,23 @@ public class CrownGui extends BTSControllerGui<MTEBurstThermaliserCrown> {
             BTSText.lit(bu(c.getUsed()) + " Bu/t"),
             Grad.MAGENTA,
             null,
-            BTSText.lang(K + "stream.tip", bu(c.getStream()), bu(c.getJets()), bu(c.getRemote()), bu(c.getOverIn())),
-            BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "stream.tip2", bu(c.getUsed()), bu(cap))));
+            BTSText.lang(
+                K + "stream.tip",
+                BTSFormat.buEuShort(c.getStream()),
+                bu(c.getJets()),
+                bu(c.getRemote()),
+                bu(c.getOverIn())),
+            BTSText.cat(
+                BTSText.lit("§7"),
+                BTSText.lang(K + "stream.tip2", BTSFormat.buEuShort(c.getUsed()), BTSFormat.buEuShort(cap))));
         final boolean owner = c.getOwner() != null;
         rows.stat(
             BTSText.lang(K + "power"),
-            BTSText.lit((c.getEUt() > 0 ? "§a" : "") + BTSFormat.eu(c.getEUt()) + " EU/t"),
+            BTSText.lit(
+                (c.getEUt() > 0 ? "§a" : "") + BTSFormat.euSci(c.getEUt())
+                    + " EU/t §7("
+                    + BTSFormat.euWords(c.getEUt())
+                    + ")"),
             BTSText.lang(K + "power.tip"));
         if (!owner) {
             rows.check(
@@ -89,13 +102,16 @@ public class CrownGui extends BTSControllerGui<MTEBurstThermaliserCrown> {
                 BTSText.lang(K + "owner.tip"));
         }
         if (c.getOver() > 1e-9) {
-            rows.note(BTSRows.ICON_WARN, BTSGuiKit.WARN, BTSText.lang(K + "overflow", bu(c.getOver())));
+            rows.note(
+                BTSRows.ICON_WARN,
+                BTSGuiKit.WARN,
+                BTSText.lang(K + "overflow", BTSFormat.buEuShort(c.getOver())));
         }
         if (c.getClipped() > 0.005) {
             rows.note(
                 BTSRows.ICON_WARN,
                 BTSGuiKit.WARN,
-                BTSText.lang(K + "clipped", bu(c.getClipped())),
+                BTSText.lang(K + "clipped", BTSFormat.buEuShort(c.getClipped())),
                 BTSText.lang(K + "clipped.tip"));
         }
         if (!c.getStackLine()

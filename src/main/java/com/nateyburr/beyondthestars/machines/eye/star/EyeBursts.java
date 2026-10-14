@@ -29,6 +29,23 @@ public final class EyeBursts {
     public int hiPorts, loPorts, haloPorts;
     /** The host's 60 s mean of everything received, Bu/t, and σ on it (BurstHost). */
     public double mean60, sigmaMean;
+    /**
+     * P4-88: the tightest Junction out-1 limit on the link source's streams, Bu/t (+infinity: none): what J1 at 15 can
+     * put on the Eye (the T7 test fire's size).
+     */
+    public double limit = Double.POSITIVE_INFINITY;
+    /**
+     * SMBH (smbh-v1.md §1.3): the link source's record this second, the lattice tier in force and the hole's mass in
+     * SM (0, 0: none), for the Supermassive Link (P5's Eye T9 -> T10 milestone).
+     */
+    public int smLattice;
+    public double smMass;
+
+    /** SMBH: the link source can serve the Supermassive Link (a lattice in force and at least 65,536 SM). */
+    public boolean supermassiveSource() {
+        return smLattice > 0
+            && smMass >= com.nateyburr.beyondthestars.machines.quasar.engine.QuasarParams.SUPERMASSIVE_LINK_MASS;
+    }
 
     public double rail() {
         return hi + lo;
@@ -48,8 +65,8 @@ public final class EyeBursts {
         if (ports() == 0) return "no GRB Receptor Ports (the T7 rail and the T8 halo carry them)";
         return String.format(
             Locale.ROOT,
-            "Bursts %.2f Bu/t: rail high %.2f (%d ports), low %.2f (%d), halo %.2f (%d)%s",
-            total(),
+            "Bursts %s: rail high %.2f (%d ports), low %.2f (%d), halo %.2f (%d)%s",
+            com.nateyburr.beyondthestars.machines.gui.BTSFormat.buEuShort(total()),
             hi,
             hiPorts,
             lo,

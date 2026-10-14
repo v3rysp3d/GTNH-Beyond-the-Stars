@@ -17,6 +17,7 @@ import com.nateyburr.beyondthestars.BTSBlackHoleSwap;
 import com.nateyburr.beyondthestars.BTSCircuitChecks;
 import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
+import com.nateyburr.beyondthestars.blocks.BlockSLCasing4;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.fluids.SLQuasarFluids;
 import com.nateyburr.beyondthestars.items.SLCircuitItems;
@@ -265,6 +266,28 @@ public final class SLGateDump {
                 return;
             }
         }
+        // B-153: MagMatter is first made when the Godforge's EE upgrade (magmatter mode) can be paid
+        if (norm.contains("magmatter")) {
+            final int tier = magMatterTier();
+            if (tier >= gate) bad.add(label + " (MagMatter: the Godforge EE upgrade needs Eye T" + tier + ")");
+        }
+    }
+
+    /**
+     * B-153 / SL-Q36: the Eye tier at which MagMatter is first made: the newest Eye product in the Godforge EE
+     * upgrade's cost (its magmatter mode needs EE), read from TecTech's live list, so SL-Q36's rewrite (Universium
+     * frames to Black Dwarf Matter ones) shows up here as T7 (EE's Eternity frames) instead of T10.
+     */
+    static int magMatterTier() {
+        int max = 0;
+        for (ItemStack cost : tectech.thing.metaTileEntity.multi.godforge.upgrade.ForgeOfGodsUpgrade.EE
+            .getExtraCostNoNulls()) {
+            final String norm = normalise(keys(cost));
+            for (Object[] entry : FIRST_MADE) {
+                if (norm.contains((String) entry[0])) max = Math.max(max, (Integer) entry[1]);
+            }
+        }
+        return max;
     }
 
     private static String keys(ItemStack stack) {
@@ -360,12 +383,14 @@ public final class SLGateDump {
         gates.add(new Gate("GRB Receptor Port (28125)", BTSMachines.grbReceptorPort, null, 7));
         gates.add(new Gate("Burst Control Hatch (28126)", BTSMachines.burstControlHatch, null, 7));
         for (int t = 1; t <= 4; t++) {
+            // SMBH (B-153): T4 (MagMatter) coils are no longer optional on the way to T10: Saturation needs them and
+            // the Supermassive Link (the T9 -> T10 milestone) needs a lattice, which needs Saturation
             gates.add(
                 new Gate(
-                    "Disc Field Coil T" + t,
+                    "Disc Field Coil T" + t + (t == 4 ? " (Saturation, for the T10 gate)" : ""),
                     SLBlocks.casing2(BlockSLCasing2.discCoil(t), 1),
                     null,
-                    t == 4 ? 0 : 7));
+                    t == 4 ? 10 : 7));
         }
         gates.add(new Gate("Eddington Wall Casing", SLBlocks.casing2(BlockSLCasing2.EDDINGTON_WALL, 1), null, 7));
         gates.add(new Gate("Rim Gas Injector", SLBlocks.casing2(BlockSLCasing2.RIM_GAS_INJECTOR, 1), null, 7));
@@ -395,7 +420,28 @@ public final class SLGateDump {
                 SLQuasarFluids.superdenseErgomatter == null ? null
                     : new FluidStack(SLQuasarFluids.superdenseErgomatter, 1),
                 9));
+        // SMBH v1 (smbh-v1.md §1.3): the L1 lattice is the Eye T9 -> T10 gate (the Supermassive Link), so its frame and
+        // node must not need anything first made at T10; L2-L4, the Mk IV crown casing and throat are reported only
+        gates.add(new Gate("Lattice Frame Casing", SLBlocks.casing4(BlockSLCasing4.LATTICE_FRAME, 1), null, 10));
+        gates.add(new Gate("Containment Node L1", SLBlocks.casing4(BlockSLCasing4.NODE_L1, 1), null, 10));
+        for (int t = 2; t <= 4; t++) {
+            gates.add(new Gate("Containment Node L" + t, SLBlocks.casing4(BlockSLCasing4.node(t), 1), null, 0));
+        }
+        gates.add(
+            new Gate(
+                "Event Horizon Thermaliser Casing",
+                SLBlocks.casing4(BlockSLCasing4.HORIZON_THERMALISER, 1),
+                null,
+                0));
+        gates.add(item("Conduit Throat Mk IV", SLQuasarItems.conduitThroatMk4, 0));
         SLConsoleTest.tell(sender, "== P4 gate audit: " + gates.size() + " parts ==");
+        SLConsoleTest.tell(
+            sender,
+            "MagMatter (B-153): first made at Eye T" + magMatterTier()
+                + " (the Godforge EE upgrade's newest cost; SL-Q36 "
+                + (com.nateyburr.beyondthestars.BTSGodforgeMagMatter.applied() ? "rewrote its Universium frames"
+                    : "did not run")
+                + ")");
         int loops = 0;
         for (Gate gate : gates) {
             if (gate.item == null && gate.fluid == null) {
@@ -724,6 +770,7 @@ public final class SLGateDump {
             for (Object[] entry : FIRST_MADE) {
                 if (norm.contains((String) entry[0])) max = Math.max(max, (Integer) entry[1]);
             }
+            if (norm.contains("magmatter")) max = Math.max(max, magMatterTier()); // B-153
         }
         return max;
     }

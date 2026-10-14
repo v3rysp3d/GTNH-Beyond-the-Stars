@@ -49,7 +49,12 @@ public final class BTSRows {
         /** text, colour (wrapped, pitch 10). */
         PARA,
         /** a spacer of n pixels. */
-        GAP
+        GAP,
+        /**
+         * label, segments ("frac:colour;…", laid end to end from the left; a colour of 0 leaves a gap), value, ticks,
+         * tooltip (SMBH: the quasar's intake, Disc / Hold-up / Growth against the 5x cap).
+         */
+        STACK
     }
 
     /** Note icons. */
@@ -163,6 +168,18 @@ public final class BTSRows {
                     .append("] ")
                     .append(BTSText.resolve(r.s(2)));
                 break;
+            case STACK:
+                sb.append(' ')
+                    .append(BTSText.resolve(r.s(0)))
+                    .append(" [")
+                    .append(r.s(1))
+                    .append("] ")
+                    .append(BTSText.resolve(r.s(2)));
+                if (!r.s(3)
+                    .isEmpty())
+                    sb.append(" ticks ")
+                        .append(r.s(3));
+                break;
             case CHECK:
                 sb.append(r.i(0) == 0 ? " [OK] " : r.i(0) == 1 ? " [X] " : " [!] ")
                     .append(BTSText.resolve(r.s(1)))
@@ -229,8 +246,9 @@ public final class BTSRows {
         final int tip = r.kind == Kind.GAUGE ? 4
             : r.kind == Kind.GAUGE2 ? 6
                 : r.kind == Kind.BAR ? 5
-                    : r.kind == Kind.CHECK ? 4
-                        : r.kind == Kind.STAT ? 2 : r.kind == Kind.STAT2 ? 4 : r.kind == Kind.NOTE ? 3 : -1;
+                    : r.kind == Kind.STACK ? 4
+                        : r.kind == Kind.CHECK ? 4
+                            : r.kind == Kind.STAT ? 2 : r.kind == Kind.STAT2 ? 4 : r.kind == Kind.NOTE ? 3 : -1;
         if (tip >= 0) for (String l : r.lines(tip)) sb.append("  {")
             .append(BTSText.resolve(l))
             .append('}');
@@ -301,6 +319,20 @@ public final class BTSRows {
                 grad.ordinal(),
                 ticks == null ? "" : ticks,
                 tip(tooltip));
+        }
+
+        /**
+         * A stacked bar: {@code segments} of {frac, colour (ARGB; 0 = a gap)} drawn end to end from the left, each frac
+         * a share of the whole bar; ticks are {@link BTSGuiKit#tick} strings.
+         */
+        public Builder stack(String label, double[][] segments, String value, String ticks, String... tooltip) {
+            final StringBuilder seg = new StringBuilder();
+            for (double[] s : segments) {
+                if (s == null || s.length < 2) continue;
+                if (seg.length() > 0) seg.append(';');
+                seg.append(String.format(Locale.ROOT, "%.4f:%d", Math.max(0, Math.min(1, s[0])), (long) s[1]));
+            }
+            return row(Kind.STACK, label, seg.toString(), value, ticks == null ? "" : ticks, tip(tooltip));
         }
 
         public Builder check(BTSChecklist.State state, String label, String value, double frac, String... tooltip) {

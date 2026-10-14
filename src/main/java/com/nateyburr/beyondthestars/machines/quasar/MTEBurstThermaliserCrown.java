@@ -38,6 +38,7 @@ import com.gtnewhorizon.structurelib.structure.IStructureElement;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
+import com.nateyburr.beyondthestars.blocks.BlockSLCasing4;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
@@ -46,6 +47,7 @@ import com.nateyburr.beyondthestars.machines.conduit.ConduitRender;
 import com.nateyburr.beyondthestars.machines.conduit.ConduitThroats;
 import com.nateyburr.beyondthestars.machines.conduit.FlowBook;
 import com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor;
+import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstDocks;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstHost;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstReading;
@@ -88,7 +90,10 @@ import io.netty.buffer.ByteBuf;
 public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTEBurstThermaliserCrown>
     implements ISurvivalConstructable, IBurstDock, IMTERenderer {
 
-    public static final String[] PIECES = { "crown_mk1", "crown_mk2", "crown_mk3" };
+    /** Mk I-III (P4) and Mk IV, the Event Horizon Crown (SMBH v1, smbh-v1.md §3.4): the biggest that stands wins. */
+    public static final String[] PIECES = { "crown_mk1", "crown_mk2", "crown_mk3", "crown_mk4" };
+    /** The highest Mk. */
+    public static final int MK_MAX = PIECES.length;
     public static final String CHANNEL_CROWN = "crown";
     private static final int RECHECK = 200;
 
@@ -157,6 +162,13 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
                         .addElement('C', block(BlockSLCasing2.JET_COLLIMATOR))
                         .addElement('F', block(BlockSLCasing2.BURST_THERMALISER))
                         .addElement('R', block(BlockSLCasing2.RADIATOR_PETAL))
+                        // SMBH: the Mk IV crown's core (Event Horizon Thermaliser Casing, slCasing4:5)
+                        .addElement(
+                            'X',
+                            noOverwrite(
+                                onElementPass(
+                                    x -> ++x.mCasing,
+                                    ofBlock(SLBlocks.slCasing4, BlockSLCasing4.HORIZON_THERMALISER))))
                         .addElement(
                             'r',
                             buildHatchAdder(MTEBurstThermaliserCrown.class).atLeast(CrownHatchElement.Receptor)
@@ -200,8 +212,8 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
             final JsonObject m = BTSShapes.manifest()
                 .getAsJsonObject("machines")
                 .getAsJsonObject("crown");
-            final int[][] in = new int[3][], ax = new int[3][], st = new int[3][];
-            for (int i = 0; i < 3; i++) {
+            final int[][] in = new int[MK_MAX][], ax = new int[MK_MAX][], st = new int[MK_MAX][];
+            for (int i = 0; i < MK_MAX; i++) {
                 in[i] = vec(
                     m.getAsJsonObject("intake")
                         .getAsJsonObject(PIECES[i]),
@@ -235,19 +247,19 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
     /** The intake (base centre) offset for Mk {@code mk}, from the controller. */
     public static int[] intakeRel(int mk) {
         loadGeometry();
-        return INTAKE[Math.max(1, Math.min(3, mk)) - 1].clone();
+        return INTAKE[Math.max(1, Math.min(MK_MAX, mk)) - 1].clone();
     }
 
     /** Where a crown stacked on a Mk {@code mk} crown has its controller, from this one's. */
     public static int[] stackRel(int mk) {
         loadGeometry();
-        return STACK[Math.max(1, Math.min(3, mk)) - 1].clone();
+        return STACK[Math.max(1, Math.min(MK_MAX, mk)) - 1].clone();
     }
 
     /** The jet's direction into the base, (a, b, c). */
     public static int[] intakeAxis(int mk) {
         loadGeometry();
-        return INTAKE_AXIS[Math.max(1, Math.min(3, mk)) - 1].clone();
+        return INTAKE_AXIS[Math.max(1, Math.min(MK_MAX, mk)) - 1].clone();
     }
 
     // ==================================================================================== walk
@@ -262,7 +274,7 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         // the biggest crown that stands wins; a failed try reports only for the Mk last formed (its errors are the
         // ones the player is fixing)
         mk = 0;
-        for (int t = 3; t >= 1; t--) {
+        for (int t = MK_MAX; t >= 1; t--) {
             clearHatches();
             resetWalk();
             final int[] o = BTSShapes.offset(PIECES[t - 1]);
@@ -305,11 +317,11 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
 
     // ==================================================================== construct / survival
 
-    /** The Mk the trigger asks for: the {@code crown} channel, else the stack size (1-3). Trap 1. */
+    /** The Mk the trigger asks for: the {@code crown} channel, else the stack size (1-4). Trap 1. */
     public static int triggerMk(ItemStack trigger) {
         final int ch = BTSStructures.channelIndex(trigger, CHANNEL_CROWN, -1) + 1;
-        if (ch >= 1) return Math.min(3, ch);
-        return trigger == null ? 1 : Math.max(1, Math.min(3, trigger.stackSize));
+        if (ch >= 1) return Math.min(MK_MAX, ch);
+        return trigger == null ? 1 : Math.max(1, Math.min(MK_MAX, trigger.stackSize));
     }
 
     @Override
@@ -444,8 +456,7 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         lastClipped = over;
         final double eut = BurstRouting.crownEUt(used);
         if (eut >= 1 && owner != null) {
-            final BigInteger eu = BigInteger.valueOf((long) Math.floor(eut))
-                .multiply(BigInteger.valueOf(20));
+            final BigInteger eu = BurstRouting.crownEUPerSecond(used); // no long on the way (SMBH §3.4)
             WirelessNetworkManager.addEUToGlobalEnergyMap(owner, eu);
             lifetimeEU = lifetimeEU.add(eu);
         }
@@ -605,7 +616,7 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
     }
 
     static String roman(int mk) {
-        return mk == 1 ? "I" : mk == 2 ? "II" : mk == 3 ? "III" : "-";
+        return mk == 1 ? "I" : mk == 2 ? "II" : mk == 3 ? "III" : mk == 4 ? "IV" : "-";
     }
 
     public List<String> statusLines() {
@@ -615,22 +626,25 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
                 .getTotalWorldTime();
         out.add(
             "Burst Thermaliser Crown"
-                + (mMachine ? " Mk " + roman(mk) + " (cap " + MTEQuasarEngine.bu(BurstRouting.crownCap(mk)) + " Bu/t)"
+                + (mMachine ? " Mk " + roman(mk) + " (cap " + MTEQuasarEngine.buEu(BurstRouting.crownCap(mk)) + ")"
                     : ", NOT FORMED"));
         out.add(
             String.format(
                 Locale.ROOT,
-                "Stream %s Bu/t (jets %s, receptor %s, from below %s) -> %s Bu/t used",
+                "Stream %s Bu/t (jets %s, receptor %s, from below %s) -> %s used",
                 MTEQuasarEngine.bu(lastStream),
                 MTEQuasarEngine.bu(lastJets),
                 MTEQuasarEngine.bu(lastRemote),
                 MTEQuasarEngine.bu(lastOverIn),
-                MTEQuasarEngine.bu(lastUsed)));
+                MTEQuasarEngine.buEu(lastUsed)));
         out.add(
-            String.format(Locale.ROOT, "Power: %.3e EU/t to the wireless network", getEUt())
-                + (owner == null ? " - NO OWNER (place it yourself)" : ""));
-        if (lastOver > 1e-9) out.add("Overflow " + MTEQuasarEngine.bu(lastOver) + " Bu/t to the crown above");
-        if (lastClipped > 0.005) out.add("Clipped " + MTEQuasarEngine.bu(lastClipped) + " Bu/t (over the cap)");
+            String.format(
+                Locale.ROOT,
+                "Power: %.3e EU/t (%s) to the wireless network",
+                getEUt(),
+                BTSFormat.euWords(getEUt())) + (owner == null ? " - NO OWNER (place it yourself)" : ""));
+        if (lastOver > 1e-9) out.add("Overflow " + MTEQuasarEngine.buEu(lastOver) + " to the crown above");
+        if (lastClipped > 0.005) out.add("Clipped " + MTEQuasarEngine.buEu(lastClipped) + " (over the cap)");
         if (!stackLine.isEmpty()) out.add(stackLine);
         if (now - dockTick < 60 && !dockNote.isEmpty()) out.add(dockNote);
         else out.add("Jet port: none docked (the base centre must sit on a quasar's port cell)");
@@ -664,7 +678,7 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
     @Override
     public void loadNBTData(NBTTagCompound aNBT) {
         super.loadNBTData(aNBT);
-        lastMk = Math.max(1, Math.min(3, aNBT.hasKey("btsCrownLastMk") ? aNBT.getInteger("btsCrownLastMk") : 1));
+        lastMk = Math.max(1, Math.min(MK_MAX, aNBT.hasKey("btsCrownLastMk") ? aNBT.getInteger("btsCrownLastMk") : 1));
         try {
             lifetimeEU = aNBT.hasKey("btsCrownLifetime") ? new BigInteger(aNBT.getString("btsCrownLifetime"))
                 : BigInteger.ZERO;
@@ -683,19 +697,25 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         }
     }
 
-    /** "Radiator Petal (Mk I; Mk II 1,428, Mk III 2,803)": the count shown is Mk I's. */
+    /** "Radiator Petal (Mk I; Mk II 1,428, Mk III 2,803, Mk IV 4,599)": the count shown is Mk I's. */
     private static String casingName(String name, char c) {
-        return String.format(Locale.ROOT, "%s (Mk I; Mk II %,d, Mk III %,d)", name, bom(2, c), bom(3, c));
+        return String
+            .format(Locale.ROOT, "%s (Mk I; Mk II %,d, Mk III %,d, Mk IV %,d)", name, bom(2, c), bom(3, c), bom(4, c));
     }
 
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
-        final int[] size = BTSShapes.size(PIECES[2]);
+        final int[] size = BTSShapes.size(PIECES[MK_MAX - 1]);
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
         tt.addMachineType("Gamma-Ray Burst Power Plant")
             .addInfo("Turns gamma-ray bursts into EU: 1 Bu/t = 10^13 EU/t, pushed to your wireless network.")
             .addInfo("  No dynamo hatch. Its Mk is the crown built around the controller:")
-            .addInfo("  Mk I 32, Mk II 512, Mk III 8,192 Bu/t. Upgrade by building the bigger crown around it.")
+            .addInfo("  Mk I 32 Bu/t (3.2e14 EU/t), Mk II 512 (5.1e15), Mk III 8,192 (8.2e16 EU/t, 82 quadrillion).")
+            .addInfo("  Upgrade by building the bigger crown around it.")
+            .addInfo(
+                "  Mk IV, the Event Horizon Crown: 524,288 Bu/t (5.2e18 EU/t, 5.2 quintillion), for a Supermassive")
+            .addInfo(
+                "  Lattice quasar. Its core is Event Horizon Thermaliser Casing (4 Mk IV are the most any hole needs).")
             .addInfo("On a Quasar Engine jet port: the base centre on the port cell (the cell just past the cap,")
             .addInfo("  on the jet axis), standing on the top cap, upside down under the bottom cap (wrench the")
             .addInfo("  front to rotate). It takes that jet. /btskit conduit prints the exact cell.")
@@ -706,10 +726,11 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
             .addController("Base, beside the intake")
             .addCasingInfoExactly(casingName("Radiator Petal", 'R'), bom(1, 'R'), false)
             .addCasingInfoExactly(casingName("Burst Thermaliser Casing", 'F'), bom(1, 'F'), false)
+            .addCasingInfoExactly("Event Horizon Thermaliser Casing (Mk IV only)", bom(4, 'X'), false)
             .addCasingInfoExactly(casingName("Extreme Density Space-Bending Casing", 'A'), bom(1, 'A'), false)
             .addCasingInfoExactly(casingName("Jet Collimator Ring", 'C'), bom(1, 'C'), false)
             .addOtherStructurePart("GRB Receptor Port (remote feed)", "1 base socket, optional", 1)
-            .addStructureInfo("Hologram: the crown channel (or trigger stack 1-3) picks the Mk.")
+            .addStructureInfo("Hologram: the crown channel (or trigger stack 1-4) picks the Mk.")
             .addStructureInfo("No energy or maintenance hatch needed. Builds never overwrite a hatch.")
             .toolTipFinisher();
         return tt;

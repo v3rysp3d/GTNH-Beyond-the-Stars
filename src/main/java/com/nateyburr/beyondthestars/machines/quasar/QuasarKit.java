@@ -17,6 +17,7 @@ import net.minecraftforge.fluids.FluidStack;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.gtnewhorizon.structurelib.alignment.constructable.ChannelDataAccessor;
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
@@ -149,6 +150,24 @@ public final class QuasarKit {
         return SLConsoleTest.bounds(ExtendedFacing.of(facing), x, y, z, MTEQuasarEngine.PIECE);
     }
 
+    /** The same with the Supermassive Lattice round it (SMBH v1) when {@code lattice}. */
+    public static int[] bounds(ForgeDirection facing, int x, int y, int z, boolean lattice) {
+        return lattice
+            ? SLConsoleTest
+                .bounds(ExtendedFacing.of(facing), x, y, z, MTEQuasarEngine.PIECE, MTEQuasarEngine.PIECE_LATTICE)
+            : bounds(facing, x, y, z);
+    }
+
+    /**
+     * The hologram trigger for coil tier {@code coilTier} and (SMBH) lattice tier {@code lattice} (0 = none): the
+     * stack size picks the coils, the {@code lattice} channel the nodes (MagMatter coils with a lattice, §1.2).
+     */
+    public static ItemStack trigger(ItemStack controller, int coilTier, int lattice) {
+        final ItemStack trigger = new ItemStack(controller.getItem(), coilTier, controller.getItemDamage());
+        if (lattice > 0) ChannelDataAccessor.setChannelData(trigger, MTEQuasarEngine.CHANNEL_LATTICE, lattice);
+        return trigger;
+    }
+
     /**
      * Raises a complete quasar with its controller at (x, y, z) facing {@code facing}: the structure at coil tier
      * {@code coilTier} (creative {@code construct}, or the projector's survival path), then a hatch in the sockets the
@@ -159,6 +178,16 @@ public final class QuasarKit {
      */
     public static Result build(World world, int x, int y, int z, ForgeDirection facing, int coilTier, boolean survival,
         boolean seed) {
+        return build(world, x, y, z, facing, coilTier, 0, survival, seed);
+    }
+
+    /**
+     * {@link #build} with (SMBH v1) the Supermassive Lattice at node tier {@code lattice} (1-4; 0 = none) round it, on
+     * MagMatter coils whatever {@code coilTier} says. The lattice counts only after Saturation: the caller sets that
+     * ({@code /btsquasar ... saturate}, {@code /btssmbh bench}).
+     */
+    public static Result build(World world, int x, int y, int z, ForgeDirection facing, int coilTier, int lattice,
+        boolean survival, boolean seed) {
         final Result result = new Result();
         final ItemStack controller = BTSMachines.quasarEngine;
         if (controller == null) {
@@ -175,8 +204,9 @@ public final class QuasarKit {
             return result;
         }
         final IGregTechTileEntity base = quasar.getBaseMetaTileEntity();
-        final int tier = Math.max(1, Math.min(4, coilTier));
-        final ItemStack trigger = new ItemStack(controller.getItem(), tier, controller.getItemDamage());
+        final int latticeTier = Math.max(0, Math.min(4, lattice));
+        final int tier = latticeTier > 0 ? 4 : Math.max(1, Math.min(4, coilTier));
+        final ItemStack trigger = trigger(controller, tier, latticeTier);
         final long start = System.nanoTime();
         if (survival) {
             final SLConsoleTest.SurvivalRun run = SLConsoleTest
@@ -200,15 +230,21 @@ public final class QuasarKit {
             result.lines.add(seedFromSlot(quasar));
         }
         result.formed = quasar.mMachine;
-        result.lines.add(
-            (quasar.mMachine ? EnumChatFormatting.GREEN + "Quasar FORMED"
-                : EnumChatFormatting.RED + "Quasar NOT FORMED") + EnumChatFormatting.RESET
-                + " at "
-                + pos(x, y, z)
-                + ", facing "
-                + facing.name()
-                + ", coils T"
-                + quasar.getCoilTier());
+        result.lines
+            .add(
+                (quasar.mMachine ? EnumChatFormatting.GREEN + "Quasar FORMED"
+                    : EnumChatFormatting.RED + "Quasar NOT FORMED") + EnumChatFormatting.RESET
+                    + " at "
+                    + pos(x, y, z)
+                    + ", facing "
+                    + facing.name()
+                    + ", coils T"
+                    + quasar.getCoilTier()
+                    + (latticeTier > 0
+                        ? ", lattice L" + quasar.getLatticeBuilt()
+                            + (quasar.isSaturated() ? " (in force: L" + quasar.getLatticeTier() + ")"
+                                : " (not in force before Saturation)")
+                        : ""));
         return result;
     }
 
@@ -377,7 +413,7 @@ public final class QuasarKit {
         }
         if (full && quasar.mMachine) {
             final ItemStack c = BTSMachines.quasarEngine;
-            final ItemStack trigger = new ItemStack(c.getItem(), Math.max(1, quasar.getCoilTier()), c.getItemDamage());
+            final ItemStack trigger = trigger(c, Math.max(1, quasar.getCoilTier()), quasar.getLatticeBuilt());
             quasar.construct(trigger, false);
             quasar.checkStructure(true, base);
             out.add(
@@ -415,13 +451,13 @@ public final class QuasarKit {
         return type.isInstance(mte) ? type.cast(mte) : null;
     }
 
-    private static boolean place(World world, int[] p, ItemStack stack, ForgeDirection facing) {
+    static boolean place(World world, int[] p, ItemStack stack, ForgeDirection facing) {
         if (stack == null) return false;
         return MTEReactorCoreMk1.placeGtMachine(world, p[0], p[1], p[2], (short) stack.getItemDamage(), facing);
     }
 
     /** The air-facing side of a socket that points most directly away from the hole. */
-    private static ForgeDirection outward(World world, ExtendedFacing alignment, int[] p, int[] c) {
+    static ForgeDirection outward(World world, ExtendedFacing alignment, int[] p, int[] c) {
         ForgeDirection best = alignment.getDirection();
         double bestDot = Double.NEGATIVE_INFINITY;
         for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
@@ -447,7 +483,7 @@ public final class QuasarKit {
         if (!player.inventory.addItemStackToInventory(stack)) player.entityDropItem(stack, 0.5F);
     }
 
-    private static void giveMany(EntityPlayerMP player, ItemStack one, int count) {
+    static void giveMany(EntityPlayerMP player, ItemStack one, int count) {
         if (one == null || count <= 0) return;
         final int max = Math.max(1, one.getMaxStackSize());
         int left = count;

@@ -1,0 +1,102 @@
+{
+  "preRequisites:9": {
+    "0:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48176
+    }
+  },
+  "properties:10": {
+    "betterquesting:10": {
+      "autoClaim:1": 0,
+      "completion_animation:8": "default",
+      "completion_particle:8": "default",
+      "confetti_icon:10": {
+        "Count:3": 0,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "minecraft:stick"
+      },
+      "countAsQuest:1": 1,
+      "desc:8": "The crown's fourth structure tier, built round the same controller (81 × 35 × 81): cap§9 524,288 Bu/t§r (5.2e18 EU/t, 5.2 quintillion), with 852 Event Horizon Thermaliser Casings.\n\n§5§lHOW §lMANY§r A Mk III caps at 8,192 Bu/t (8.2e16 EU/t), so a hole past 4,096 SM floods it. Two Mk IV (one per jet port) carry even full Overdrive's mean (979,600 Bu/t, 9.8e18 EU/t); four (two stacked on each port) also catch the eruption peaks. No hole ever needs more than four.\n\n§5§lTHE §lCONDUIT§r The §9Conduit Throat Mk IV§r (assembly line, from a Mk III) carries 524,288 Bu/t (5.2e18 EU/t) through an element, on 2 L/s of Superdense Ergomatter (or 16 L/s Ergomatter, or 256 L/s Molten SpaceTime).\n\nThe EU still goes to your wireless network as one big number a second: no element can overflow.\n\n§2§lDONE §lWHEN§r a Mk IV crown is formed on a jet port (tick the box).",
+      "globalShare:1": 0,
+      "icon:10": {
+        "Count:3": 1,
+        "Damage:2": 5,
+        "OreDict:8": "",
+        "id:8": "beyondthestars:slCasing4"
+      },
+      "isMain:1": 0,
+      "isSilent:1": 0,
+      "lockedProgress:1": 0,
+      "name:8": "§4§l§nEvent Horizon Crown",
+      "notification_duration:5": -1.0,
+      "notification_effect:3": -1,
+      "notification_fade_in:5": -1.0,
+      "notification_fade_out:5": -1.0,
+      "notification_icon_offset_y:3": -2147483648,
+      "notification_icon_scale:5": -1.0,
+      "notification_pos_x:3": -2147483648,
+      "notification_pos_y:3": -2147483648,
+      "notification_show_icon:8": "default",
+      "notification_style:8": "default",
+      "notification_subtitle:8": "",
+      "notification_subtitle_scale:5": -1.0,
+      "notification_title:8": "",
+      "notification_title_scale:5": -1.0,
+      "particle_count:3": -1,
+      "questLogic:8": "AND",
+      "repeatTime:3": -1,
+      "repeat_relative:1": 1,
+      "simultaneous:1": 0,
+      "snd_complete:8": "random.levelup",
+      "snd_update:8": "random.levelup",
+      "taskLogic:8": "AND",
+      "visibility:8": "NORMAL"
+    }
+  },
+  "questIDHigh:4": 190,
+  "questIDLow:4": 48179,
+  "rewards:9": {},
+  "tasks:9": {
+    "0:10": {
+      "index:3": 0,
+      "taskID:8": "bq_standard:checkbox"
+    },
+    "1:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
+      "index:3": 1,
+      "partialMatch:1": 1,
+      "requireOnlyOneItem:1": 0,
+      "requiredItems:9": {
+        "0:10": {
+          "Count:3": 4599,
+          "Damage:2": 11,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:slCasing2"
+        },
+        "1:10": {
+          "Count:3": 852,
+          "Damage:2": 5,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:slCasing4"
+        },
+        "2:10": {
+          "Count:3": 492,
+          "Damage:2": 9,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:slCasing2"
+        },
+        "3:10": {
+          "Count:3": 472,
+          "Damage:2": 11,
+          "OreDict:8": "",
+          "id:8": "gregtech:gt.blockcasings10"
+        }
+      },
+      "taskID:8": "bq_standard:optional_retrieval"
+    }
+  }
+}

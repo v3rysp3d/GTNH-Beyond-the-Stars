@@ -330,8 +330,7 @@ public class MTEWormholeMouth extends MTEConduitElement<MTEWormholeMouth> implem
         final String problem = partnerProblem();
         out.add(problem.isEmpty() ? "Paired with the mouth at " + label(partner) : "Partner: " + problem);
         out.add(
-            "In (the ring): " + bu(inBu(0))
-                + " Bu/t"
+            "In (the ring): " + MTEQuasarEngine.buEu(inBu(0))
                 + (now - dockTick < 60 && !dockNote.isEmpty() ? "; " + dockNote : ""));
         routeLines(out, new int[] { 0 }, new String[] { "Out of the back (from the partner)" });
     }

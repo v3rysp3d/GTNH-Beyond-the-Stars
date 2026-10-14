@@ -52,6 +52,14 @@ public final class EyeMilestones {
     public final int[] linkBest = new int[9];
     /** P4: the live link streak, seconds (set by the star every second; display only, not saved here). */
     public final int[] linkStreak = new int[9];
+    /**
+     * SMBH (smbh-v1.md §1.3): the Supermassive Link, the T9 → T10 machine milestone. Read-only data until P5 builds
+     * Eye T9: held once, the best streak (seconds), the live streak (not saved). Nothing gates on it yet.
+     */
+    public boolean smLinkDone;
+    public int smLinkBest, smLinkStreak;
+    /** SMBH: the Supermassive Link's name (P5's T9 → T10 milestone). */
+    public static final String SM_LINK_NAME = "Supermassive Link";
 
     /** Thresholds, index = the tier being left (plan §8). */
     public static final double[] PROD_NEED = { 0, 20_000_000, 1_000_000, 400_000, 147_456, 0, 2_700, 216_000, 0 };
@@ -282,6 +290,13 @@ public final class EyeMilestones {
             t.setInteger("linkBest", linkBest[n]);
             out.setTag("t" + n, t);
         }
+        // SMBH: T9 -> T10's Supermassive Link (P5's milestone; the data only)
+        if (smLinkDone || smLinkBest > 0) {
+            final NBTTagCompound t = new NBTTagCompound();
+            t.setBoolean("link", smLinkDone);
+            t.setInteger("linkBest", smLinkBest);
+            out.setTag("t9", t);
+        }
         return out;
     }
 
@@ -292,7 +307,14 @@ public final class EyeMilestones {
         Arrays.fill(linkDone, false);
         Arrays.fill(linkBest, 0);
         Arrays.fill(linkStreak, 0);
+        smLinkDone = false;
+        smLinkBest = smLinkStreak = 0;
         if (in == null) return;
+        if (in.hasKey("t9")) {
+            final NBTTagCompound t = in.getCompoundTag("t9");
+            smLinkDone = t.getBoolean("link");
+            smLinkBest = t.getInteger("linkBest");
+        }
         for (int n = 1; n <= 5; n++) {
             if (!in.hasKey("t" + n)) continue;
             final NBTTagCompound t = in.getCompoundTag("t" + n);

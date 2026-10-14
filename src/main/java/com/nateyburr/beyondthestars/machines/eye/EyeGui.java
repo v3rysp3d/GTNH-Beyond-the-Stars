@@ -266,7 +266,7 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
 
     @Override
     protected int statusPoolSize() {
-        return 26;
+        return 28;
     }
 
     @Override
@@ -610,14 +610,22 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                     BTSFormat.f2(b.hi),
                     BTSFormat.f2(b.lo),
                     BTSFormat.f2(b.halo)),
-                driven ? BTSText.lang("beyondthestars.gui.eye.bursts.demand", BTSFormat.f2(demand)) : "",
+                BTSText.lang("beyondthestars.gui.eye.bursts.total", BTSFormat.buEu(b.total())),
+                driven ? BTSText.lang("beyondthestars.gui.eye.bursts.demand", BTSFormat.buEuShort(demand)) : "",
                 linkToCome ? BTSText.cat(
                     BTSText.lit("§e"),
-                    BTSText
-                        .lang("beyondthestars.gui.eye.bursts.floor", EyeMilestones.LINK_NAME[n], BTSFormat.f2(tickAt)))
+                    BTSText.lang(
+                        "beyondthestars.gui.eye.bursts.floor",
+                        EyeMilestones.LINK_NAME[n],
+                        BTSFormat.buEuShort(tickAt)))
                     : "",
                 b.source.isEmpty() ? BTSText.lang("beyondthestars.gui.eye.bursts.notlinked")
                     : BTSText.lang("beyondthestars.gui.eye.bursts.linked", b.source));
+            // §10.3: the bursts' EU/t right under the bar
+            rows.stat(
+                BTSText.lang("beyondthestars.gui.kit.eut"),
+                BTSText.lit(BTSFormat.euValue(b.total())),
+                BTSText.lang("beyondthestars.gui.kit.eut.tip"));
         }
         if ((n == 6 || n == 7) && !star.tier.planets()) {
             final String name = EyeMilestones.LINK_NAME[n];
@@ -648,7 +656,7 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                             "beyondthestars.gui.eye.link.bar.tip",
                             name,
                             EyeMilestones.clock(Math.max(l.best, rt.milestones().linkBest[n])),
-                            BTSFormat.f2(l.mean),
+                            BTSFormat.buEuShort(l.mean),
                             BTSText
                                 .key(n == 6 ? "beyondthestars.gui.eye.link.high" : "beyondthestars.gui.eye.link.halo"),
                             BTSFormat.pct(l.frac)),
@@ -656,10 +664,42 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                 }
             }
         }
+        supermassiveRow(rows, star);
         for (String ev : eventLines()) {
             rows.note(BTSRows.ICON_WARN, BTSGuiKit.WARN, ev, BTSText.lang("beyondthestars.gui.eye.warn.tip"));
         }
         slotRows(rows, star);
+    }
+
+    /**
+     * SMBH (smbh-v1.md §1.3): the Supermassive Link, P5's Eye T9 -> T10 machine milestone, as a read-only checklist
+     * row marked P5 (yellow until held): the streak against 30 min, with the 60 s mean against 96 Bu/t and the link
+     * source's stream record in the tooltip. Shown from T8, or while a qualifying hole is linked, or once a streak
+     * was seen.
+     */
+    private void supermassiveRow(BTSRows.Builder rows, StarDef star) {
+        final EyeStarRuntime rt = rt();
+        final EyeBursts b = rt.galaxy()
+            .bursts();
+        final EyeMilestones ms = rt.milestones();
+        if (star.n() < 8 && !(b.linkedAll && b.supermassiveSource()) && ms.smLinkBest <= 0) return;
+        final BurstLink l = rt.galaxy()
+            .supermassiveLink();
+        final boolean held = ms.smLinkDone;
+        rows.check(
+            held ? BTSChecklist.State.OK : BTSChecklist.State.WARN,
+            BTSText.lang("beyondthestars.gui.eye.chk.smlink"),
+            held ? BTSText.lang("beyondthestars.gui.badge.held")
+                : BTSText.lit(EyeMilestones.clock(l.streak) + " / " + EyeMilestones.clock(EyeMilestones.LINK_NEED)),
+            held ? 1 : BTSChecklist.frac(l.streak, EyeMilestones.LINK_NEED),
+            BTSText.lang("beyondthestars.gui.eye.chk.smlink.tip0"),
+            BTSText.lang(
+                "beyondthestars.gui.eye.chk.smlink.tip1",
+                BTSFormat.buEuShort(l.mean),
+                BTSFormat.buEuShort(BurstLink.supermassiveMean())),
+            BTSText.lang("beyondthestars.gui.eye.chk.smlink.tip2", EyeStarRuntime.supermassiveSourceText(b)),
+            BTSText.lang("beyondthestars.gui.eye.chk.smlink.tip3", EyeMilestones.clock(ms.smLinkBest)),
+            BTSText.lang("beyondthestars.gui.eye.chk.smlink.tip4"));
     }
 
     /**
@@ -808,9 +848,13 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
         rows.check(
             BTSChecklist.State.BAD,
             BTSText.lang("beyondthestars.gui.eye.chk.weakquasar"),
-            BTSText.lit(BTSFormat.fmt1(peak) + " / " + BTSFormat.fmt1(need) + " Bu/t"),
+            BTSText.lit(
+                BTSFormat.euSci(peak * BTSFormat.EU_PER_BU) + " / "
+                    + BTSFormat.euSci(need * BTSFormat.EU_PER_BU)
+                    + " EU/t"),
             BTSChecklist.frac(peak, need),
-            BTSText.lang("beyondthestars.gui.eye.chk.weakquasar.tip1", BTSFormat.fmt1(need)),
+            BTSText.lang("beyondthestars.gui.eye.chk.weakquasar.tip0", BTSFormat.buEu(peak), BTSFormat.buEu(need)),
+            BTSText.lang("beyondthestars.gui.eye.chk.weakquasar.tip1", BTSFormat.buEuShort(need)),
             BTSText.lang(
                 "beyondthestars.gui.eye.chk.weakquasar.tip2",
                 Math.round(rt.collapseShockAtPeak()),
@@ -1238,7 +1282,7 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                         BTSText.lang(
                             "beyondthestars.gui.eye.galaxy.weakquasar",
                             BTSFormat.fmt1(rt.linkedQuasarPeak()),
-                            BTSFormat.fmt1(rt.collapseFullCancelBu()))))
+                            BTSFormat.buEuShort(rt.collapseFullCancelBu()))))
                     .append('\n');
             }
         }

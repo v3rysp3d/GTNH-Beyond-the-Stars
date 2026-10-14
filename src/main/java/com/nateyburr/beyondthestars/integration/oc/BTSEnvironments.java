@@ -158,8 +158,10 @@ public final class BTSEnvironments {
 
         @Callback(
             doc = "function():table -- the link milestone: kind (stability, heavy), streak, best, mean, frac, linked,"
-                + " source; ready; testFireWanted; quasarStream (Bu/t); testFireShare (J1's Eye share for the T7 test"
-                + " fire: 1 up to 32 Bu/t, else 16 / stream)")
+                + " source; ready; testFireWanted; quasarStream (Bu/t); testFireStream (what J1 at 15 sends: the"
+                + " stream or J1's out 1 limit); testFireShare (1 up to 32 Bu/t, else 16 / testFireStream); j1Limit"
+                + " (the standard rig's, Bu/t); supermassiveLink (P5's T9 -> T10 data: streak, best, held, mean, need,"
+                + " sourceMass, sourceLattice, sourceQualifies)")
         public Object[] getUnlock(Context c, Arguments a) {
             final MTEEyeOfHarmonyBTS e = eye();
             return e == null ? GONE : new Object[] { BTSComputerApi.eyeUnlock(e) };
@@ -341,7 +343,9 @@ public final class BTSEnvironments {
             return q == null ? GONE : new Object[] { QuasarComputerApi.disc(q) };
         }
 
-        @Callback(doc = "function():table -- Bu/t total, top, bottom, the dock on each port, vented")
+        @Callback(
+            doc = "function():table -- Bu/t total (totalEUt: x 10^13 EU/t; totalText), top, bottom, the dock on each"
+                + " port, vented")
         public Object[] getBurst(Context c, Arguments a) {
             final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
             return q == null ? GONE : new Object[] { QuasarComputerApi.burst(q) };
@@ -407,6 +411,90 @@ public final class BTSEnvironments {
             final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
             return q == null ? GONE : new Object[] { QuasarComputerApi.directive(q, a.optInteger(0, 5)) };
         }
+
+        // ---- SMBH (smbh-v1.md §6): the Supermassive Lattice
+
+        @Callback(
+            doc = "function():table -- lattice (in force), latticeBuilt, saturated, M, safe, top, setpoint, x, unbound,"
+                + " n, shedding, massPerHourPct, supermassiveLinkSource")
+        public Object[] getBand(Context c, Arguments a) {
+            final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
+            return q == null ? GONE : new Object[] { QuasarComputerApi.band(q) };
+        }
+
+        @Callback(doc = "function():table -- last second's intake L/s: disc, holdUp, growth, total, cap (5x), capPct")
+        public Object[] getIntake(Context c, Arguments a) {
+            final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
+            return q == null ? GONE : new Object[] { QuasarComputerApi.intake(q) };
+        }
+
+        @Callback(doc = "function():table -- the hold-up: need, paid (L/s), coverage, leaking, leakPerHourPct")
+        public Object[] getHoldUp(Context c, Arguments a) {
+            final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
+            return q == null ? GONE : new Object[] { QuasarComputerApi.holdUp(q) };
+        }
+
+        @Callback(
+            doc = "function():table -- the Accretion Buffer: litres, cap, seconds (-1: nothing needed), feedShort")
+        public Object[] getBuffer(Context c, Arguments a) {
+            final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
+            return q == null ? GONE : new Object[] { QuasarComputerApi.buffer(q) };
+        }
+
+        @Callback(
+            doc = "function():table -- Overdrive level, inUse, available (L3), upkeepEach (L/s), coverage, outputX,"
+                + " bursts (Bu/t), burstsEUt, burstsText")
+        public Object[] getOverdrive(Context c, Arguments a) {
+            final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
+            return q == null ? GONE : new Object[] { QuasarComputerApi.overdrive(q) };
+        }
+
+        @Callback(doc = "function():table -- allowed, unbound, n, need (L/s Primordial Matter), paid, coverage, short")
+        public Object[] getAnchor(Context c, Arguments a) {
+            final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
+            return q == null ? GONE : new Object[] { QuasarComputerApi.anchor(q) };
+        }
+
+        @Callback(doc = "function():table -- the Horizon set's code and bits")
+        public Object[] getHorizon(Context c, Arguments a) {
+            final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
+            return q == null ? GONE : new Object[] { QuasarComputerApi.horizon(q) };
+        }
+
+        @Callback(
+            doc = "function(M:number):number -- the mass setpoint, SM (0 = the safe limit; 4,096 .. the top); returns"
+                + " the setpoint in force")
+        public Object[] setMassSetpoint(Context c, Arguments a) {
+            if (limited("setMassSetpoint")) return RATE_LIMITED;
+            final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
+            return q == null ? GONE : new Object[] { QuasarComputerApi.setMassSetpoint(q, a.checkDouble(0)) };
+        }
+
+        @Callback(doc = "function(o:number):number -- the Overdrive level 0-1 (5 % steps; needs L3); returns it")
+        public Object[] setOverdrive(Context c, Arguments a) {
+            if (limited("setOverdrive")) return RATE_LIMITED;
+            final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
+            return q == null ? GONE : new Object[] { QuasarComputerApi.setOverdrive(q, a.checkDouble(0)) };
+        }
+
+        @Callback(
+            doc = "function(on:boolean):boolean,string -- Unbind (needs an L4 lattice and smbhAllowUnbound); off sheds"
+                + " to 67,108,864 SM; returns Unbound and why not")
+        public Object[] setUnbound(Context c, Arguments a) {
+            if (limited("setUnbound")) return RATE_LIMITED;
+            final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
+            if (q == null) return GONE;
+            final String why = q.unbind(a.checkBoolean(0));
+            return new Object[] { q.isUnbound(), why };
+        }
+
+        @Callback(
+            doc = "function():string -- lower the mass setpoint to the safe limit (a safe shed); says what it did")
+        public Object[] shed(Context c, Arguments a) {
+            if (limited("shed")) return RATE_LIMITED;
+            final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = q();
+            return q == null ? GONE : new Object[] { q.shedToSafe() };
+        }
     }
 
     /**
@@ -467,7 +555,7 @@ public final class BTSEnvironments {
             return m instanceof MTEConduitJunction ? (MTEConduitJunction) m : null;
         }
 
-        @Callback(doc = "function():table -- mode, in, out1, out2, out3 (or out), clipped, c, k, p3, s, share")
+        @Callback(doc = "function():table -- mode, in, out1, out2, out3 (or out), clipped, c, k, p3, limit, s, share")
         public Object[] getFlow(Context c, Arguments a) {
             final MTEConduitJunction j = junction();
             return j == null ? GONE : new Object[] { ConduitComputerApi.flow(j) };
@@ -496,6 +584,16 @@ public final class BTSEnvironments {
             if (j == null) return GONE;
             j.setOut3Share(a.checkDouble(0));
             return new Object[] { j.getOut3Share() };
+        }
+
+        @Callback(
+            doc = "function(bu:number):number -- out 1's limit in Bu/t (0 = none; the Eye's J1: 7.5 per parallel); returns it")
+        public Object[] setLimit(Context c, Arguments a) {
+            if (limited("setLimit")) return RATE_LIMITED;
+            final MTEConduitJunction j = junction();
+            if (j == null) return GONE;
+            j.setLimit(a.checkDouble(0));
+            return new Object[] { j.getLimit() };
         }
 
         @Callback(doc = "function(mode:string):string -- split or combine; returns it")

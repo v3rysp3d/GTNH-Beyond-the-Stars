@@ -122,14 +122,15 @@ public final class BurstHost {
         if (last.paused) return last.line();
         final BurstSource s = last.linkSource();
         if (s == null) {
-            return last.total > 1e-9 ? String.format(Locale.ROOT, "Bursts %.2f Bu/t, not linked", last.total)
+            return last.total > 1e-9
+                ? "Bursts " + com.nateyburr.beyondthestars.machines.gui.BTSFormat.buEuShort(last.total) + ", not linked"
                 : "No quasar link";
         }
         return String.format(
             Locale.ROOT,
-            "Quasar link: %s · %.2f Bu/t · σ %.2f (60 s mean %.2f)",
+            "Quasar link: %s · %s · σ %.2f (60 s mean %.2f)",
             s.label(),
-            last.total,
+            com.nateyburr.beyondthestars.machines.gui.BTSFormat.buEuShort(last.total),
             sigma,
             sigmaMean());
     }

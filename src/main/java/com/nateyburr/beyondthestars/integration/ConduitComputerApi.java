@@ -83,7 +83,7 @@ public final class ConduitComputerApi {
             .toLowerCase(java.util.Locale.ROOT);
     }
 
-    /** {@code bts_junction.getFlow()}: in, out1, out2, out3, clipped, mode, c, k, p3, s, share. */
+    /** {@code bts_junction.getFlow()}: in, out1, out2, out3, clipped, mode, c, k, p3, limit (P4-88), s, share. */
     public static Map<String, Object> flow(MTEConduitJunction j) {
         final Map<String, Object> out = new LinkedHashMap<>();
         final boolean split = j.getMode() == MTEConduitJunction.Mode.SPLIT;
@@ -98,6 +98,7 @@ public final class ConduitComputerApi {
         out.put("c", j.getRatio());
         out.put("k", j.getGain());
         out.put("p3", j.getOut3Share());
+        out.put("limit", j.getLimit());
         out.put("s", j.getLastLevel());
         out.put("share", j.getLastShare());
         out.put("open", j.isOpen());

@@ -2306,6 +2306,12 @@ pre-P4 builds stay formed.
 | SL-Q24 / Q25 | Star Chart: Triangulum / Milky Way | Condensate Assembler | |
 | SL-Q26 | Eternity on Ergomatter | load-complete rewrite | catalyst 9,216 L, Timepiece 4,608 L Ergomatter |
 | SL-Q27 / Q28 | NEI pages | `QuasarRecipeMaps.QUASAR` / `THERMALISER` | fake recipes |
+| SL-Q29 | Lattice Frame Casing ×4 (SMBH) | Assembler, UXV | MagMatter frame, 4 BDM plates, 2 SpaceTime foils (the 72 L), 36 L Superdense Ergomatter |
+| SL-Q30 | Containment Node L1 (SMBH) | assembly line, UXV (research: Lattice Frame) | 8,000 L Superdense Ergomatter + 2,304 L Magnetar Matter; 4 UMV FG (B-72), 4 any-UXV, 2 dense BDM |
+| SL-Q31 | Containment Node L2 (SMBH) | Condensate Assembler, MAX | L1 node + 4,032 L Entangled White Hole Matter; hidden in NEI, placeholder until P5 |
+| SL-Q32 / Q33 | Containment Node L3 / L4 (SMBH) | Condensate Assembler, MAX / MAX ×4 | L3: 2,304 L Entangled Universium; L4: 4 Eternity + 4 MHDCSM plates, MHDCSM + Universium 1,440 L each, 16 any-MAX |
+| SL-Q34 | Event Horizon Thermaliser Casing ×4 (Crown Mk IV) | Assembler, UXV | 4 MagMatter plates, Neutronium frame, 144 L Superdense Ergomatter |
+| SL-Q35 | Conduit Throat Mk IV | assembly line, UXV (research: Throat Mk III) | Mk III, 2 UMV FG (B-72), 16 Casimir, 4 any-UXV, 4,000 L Superdense Ergomatter |
 | SL-P40 | *retired 2026-10-14 (B-135): now only the fallback of SL-G03, GT's own recipe rewritten in place* Resonance Chamber IV | Condensate Assembler | SpaceTime foils + 1,500 L Entangled Ergomatter |
 
 SL-G03 (which retired SL-P40) and SL-Q26 run only with `replaceTecTechEyeOfHarmony`. `BTSRecipesReality.ETERNITY_BEFORE_T10` =
@@ -2916,3 +2922,185 @@ Seven review findings, all confirmed against the code and all fixed. Each fix is
 - An Eye link streak across a real restart.
 - The ConduitNet rig after the weak-reference change. Only a BurstDocks lookup was exercised.
 - The T7 test fire in game. The ceiling rests on the harness.
+
+---
+
+## SMBH v1: the Supermassive Lattice (structure, content, recipes, helpers)
+
+**Design of record:** design repo `designs/docs/smbh-v1.md` (revision 3). Branch `smbh`, worktree `addon-smbh`; the
+engine (§10.1) and the max-quasar fixes are B-150; this unit's judgement calls are B-151..B-155 in
+`singularity-ladder-questions.md`.
+
+### Shapes
+
+- `quasar_lattice` (piece of the Quasar Engine, MTE 28120; 179 × 101 × 179, the quasar and lattice together
+  179 × 161 × 179): 8,436 Lattice Frame Casings `L` and 48 Containment Nodes `N`. An equatorial band at r 87.5-89.5
+  (3 tall), two latitude rings at ±35° (r 71.5-73.5 at y ±49..50), 24 radial struts at y 0 onto the outer wall's 24
+  buttresses, 8 meridian ribs; 16 nodes per ring at 11.25 + 22.5k°, on each ring's outer face. Disjoint from `quasar`;
+  crowns Mk I-IV docked (and stacked) on both ports never touch it; the controller's front stays open.
+- `crown_mk4` (81 × 35 × 81): the Mk I-III crown continued (h 32, ro 40, 32 petals); its thermaliser cells are the new
+  Event Horizon Thermaliser Casing `X`. 6,418 blocks.
+- voxel.js has neither, so `tools/export-structures.js` draws both in memory (two block kinds appended last, a fourth
+  `CROWN` entry, `smbhLattice()`); every other shape is byte-identical and `--check` passes.
+
+### Blocks and items (§8.1)
+
+| Id | Block / item | Role |
+|---|---|---|
+| `slCasing4:0` | Lattice Frame Casing | lattice char `L` |
+| `slCasing4:1..4` | Containment Node L1-L4 | lattice char `N`, `ofBlocksTiered` on channel `lattice`; light 7 |
+| `slCasing4:5` | Event Horizon Thermaliser Casing | crown_mk4 char `X` |
+| `conduitThroatMk4` | Conduit Throat Mk IV | throat tier 4: 524,288 Bu/t; upkeep 2 L/s Superdense Ergomatter (preferred), else 16 L/s Ergomatter or 256 L/s SpaceTime |
+
+Textures: `tools/gen-sl-textures.js` (`sl_latframe`, `sl_node_l1..l4`, `sl_ehthermaliser`, `conduitThroatMk4`), the
+quasar's BHC family with each tier's colour. No new MTE id, fluid or recipe-result id.
+
+### The walk (`MTEQuasarEngine`)
+
+- `checkMachine` walks `quasar`, then `quasar_lattice`. A whole lattice of one node tier sets `latticeBuilt`; it is in
+  force (`latticeTier`, what the engine reads) only after **Saturation** and only on MagMatter coils.
+- **Saturation (§1.2):** 4,096 SM on T4 coils, the hole open, |E| ≤ 40, 3,600 disc seconds unbroken. Saved with the
+  hole (`saturated`, `satStreak` in `btsQuasar`, so it survives a wrench). The scanner shows the streak.
+- A lattice swapped to a lower tier is a whole lattice: the engine sheds to that tier's top (§2.5). An **incomplete**
+  lattice under a hole over 4,096 SM unforms the quasar (error `beyondthestars.structure.quasar.lattice` plus the first
+  wrong cell): the hole is frozen, nothing is lost. To take a lattice down, lower the setpoint to 4,096 SM first.
+- The chunk box includes the lattice once one stands (or the hole needs one).
+- Hologram / survival / NEI: the `lattice` channel (1-4) adds the lattice at that node tier; with no `coil` channel the
+  coils are built at T4. NEI's preview finds the channel through `withChannel(ofBlocksTiered)` (BlockRenderer6343's
+  `StructureHacks` / `ConstructableData.channelMaxTierMap`), as the coil channel.
+
+### Crown Mk IV and Throat Mk IV
+
+- `MTEBurstThermaliserCrown.PIECES` gains `crown_mk4`; `MK_MAX` = 4; the biggest crown that stands wins.
+- `MTEConduitElement.upkeep`: a Mk IV throat burns Superdense Ergomatter at 2 L/s whenever the fuel mode allows the
+  Ergomatter family and the hatches hold enough (counted with the Ergomatter litres).
+
+### Helpers
+
+- `/btskit lattice [1-4]`: 8,436 frames, 48 nodes of the tier, a crown controller with the Mk IV parts, a Throat Mk IV.
+- `/btsquasar [t1..t4] [l1..l4] [saturate] ...`: the quasar with the lattice (creative or `survival`), and Saturation
+  set by command.
+- `/btssmbh` (op only): `bench [x y z [facing]]` (L4 lattice, Saturation, a 4,096 SM hole, every upkeep hatch filled,
+  Mk IV crowns on both ports, chunks kept), `mass <M>` (clamped; the setpoint follows), `fill` (the trims get Molten
+  MHDCSM, Molten Universium and Primordial Matter, never Spatially Enlarged Fluid, which would be a Space trim every
+  second: B-160), `drain anchor`, `saturate on|off`, `unbind on|off [force]`, `damage`, `status` (ends with the
+  bench owner's wireless total, a BigInteger: B-162), and (controller unit) `overdrive <o>`, `setpoint <M>`, `shed`,
+  `gui [info]`, `oc`.
+
+### Dev-server test (port 25651, world `smbh-test`, five boots)
+
+- Boot: `Recipe registration complete: 371 registered, 0 skipped` (364 before: +7, SL-Q29..Q35).
+  `/btsrecipes dump`: all seven rows in "Quasar / Conduit", SL-Q31..Q33 marked placeholder.
+- Forms by command at every tier: L1, L2, L3, L4 (creative, swapped in place over one quasar), each "FORMED, lattice Ln
+  (in force)" after `saturate`; the re-projection keeps it formed; the damage-and-repair check passes.
+- Survival auto-place: quasar + L1 lattice, 60,467 blocks in 304 rounds, FORMED; `crown4` survival 6,417 blocks, FORMED
+  Mk 4.
+- Clamps: L1 65,536, L2 262,144, L3 4,194,304, L4 67,108,864 SM.
+- Natural Saturation on a real disc (f 1.0, 3,700 s bench run): the milestone landed and L1 came into force; at f 0.85
+  unattended the eruption kick (E −30 from about −16) breaks the streak, so Saturation wants a trimmed or purged disc.
+- L1 at 60,000 SM: hold-up 100 %, x 0.94, output ×3.82, both Mk IV crowns took 65,958 Bu/t.
+- One frame block removed under the 60,000 SM hole: NOT FORMED, "Lattice INCOMPLETE", M kept; rebuilt: FORMED.
+- L4 → L2 swap at 67 M SM: cap 262,144, shedding (and frozen, not shed, while a lattice chunk was unloaded).
+- Unbound L4 at 134,217,728 SM (n 1): anchor paid; `drain anchor` (131,002,368 L): "SHEDDING (anchor short)" down to
+  67,108,864 SM, then hold-up 100 % again. A Mk IV crown taking 74,599 Bu/t pushed 7.46 × 10¹⁷ EU/t to wireless.
+- `/btseye gates`: Lattice Frame Casing and Containment Node L1 CLEAN for the Eye T10 gate.
+
+### Controller (§10.2) and "Shown in EU/t" (§10.3) (question B-156)
+
+- **Accretion Buffer** (`MTEQuasarEngine.accretion()` / `bufferCap()`): 60 s of Disc (f·Ṁ_Edd, at least the re-form's
+  0.3) + Hold-up (3·x·Ṁ_Edd), plus one second of Growth room, in a long. The Growth segment takes only what is over a
+  59 s reserve, so it drops out first when the feed runs short. After each second the buffer refills **every tick**
+  while the rim hatches give (`refillMore`), each drain one FluidStack (at most 2³¹ − 1 L). Without a lattice the buffer
+  is 60 s of the disc (it was 10 s of 1.5 x the feed).
+- **Setpoint, Overdrive, Unbind, Shed:** `setMassSetpoint`, `setOverdrive` (5 % steps), `unbind(on)` (L4 in force and
+  `smbhAllowUnbound`, new config key, default true; off is always allowed and sheds to the L4 top), `shedToSafe()`
+  (setpoint to the safe limit). A Burst Control Hatch in Hold / Overdrive mode overrides the GUI's value while it is in
+  that mode (`massSetpointInUse`, `overdriveInUse`).
+- **Link-source record:** every `JetPacket` and `BurstStream` carries `lattice` (in force) and `mass`;
+  `BurstStream.supermassiveSource()` and `MTEQuasarEngine.supermassiveLinkSource()` say whether the source can serve
+  P5's Supermassive Link (a lattice, M ≥ 65,536 SM, linkable). The streak and the Eye side are P5's.
+- **GUI** (`MTEQuasarEngineGui`): the Lattice section (Saturation or "Reach Saturation first", band x with the setpoint
+  tick, the intake as a stacked bar, `BTSRows.Kind.STACK`, with the 5x cap tick, the split line, the leak, the buffer,
+  Overdrive and its upkeep, Unbound and the anchor, a shed); the mass bar goes log with a lattice; the Supermassive
+  Lattice side panel (gap-row button left of Disc control): log setpoint slider + whole-SM field, Overdrive slider, Shed,
+  two-click Unbind / Bind. Info page paragraphs EU/t, Lattice, Intake, Overdrive, Unbound, Automate the lattice.
+- **Automation:** Directive set `QUASAR_HORIZON` (`QuasarDirective.horizon`), 18 appended sensor channels, Burst Control
+  modes HOLD / OVERDRIVE / SHED, OpenComputers `getBand / getIntake / getHoldUp / getBuffer / getOverdrive / getAnchor /
+  getHorizon / setMassSetpoint / setOverdrive / setUnbound / shed` (docs/automation.md §8).
+- **EU/t beside every Bu/t:** one formatter, `BTSFormat` (`buEu` "9,796 Bu/t (9.8e16 EU/t, 98 quadrillion)",
+  `buEuShort`, `euOfBu`, `euValue`, `euWords`, `buCompact` for GUI rows). Used by the quasar, crowns, conduit elements,
+  the receptor, every host's link line, the Eye (bursts, link, weak-quasar row, galaxy panel, scanner, NEI), the
+  Kerr / Homogeny / Reality lines and tooltips, item tooltips, NEI (+ a Mk IV crown page: 372 registered), quest text
+  (`questbook/singularity.json`, regenerated) and the OC docs.
+- **Bench verbs** (`/btssmbh`): `overdrive <o>`, `setpoint <M>`, `shed`, `gui [info]` (the GUI rows as text, built as the
+  GUI syncs them), `oc` (the OpenComputers getters); `unbind on|off` goes through the GUI's checks (`force` sets it raw);
+  `fill` re-walks after placing trim hatches.
+- **Tested** (dev server, three boots, 372 registered / 0 skipped, 0 exceptions after boot; dev client, GUI shot
+  harness, five passes): a plain T4 quasar at 4,096 SM (Saturation row, buffer 59 s, EU/t everywhere); L1 at 30,000 SM
+  (intake at the cap: Disc 6.0M, Hold-up 7.9M 100 %, Growth 16.2M L/s, +16 % per hour; Unbind refused on L1; Overdrive
+  idle with a note); L3 at 262,144 SM, Overdrive 50 % (25,000 L/s each paid, x34.1); Unbound n 1 with full Overdrive
+  (anchor 4,096 L/s, upkeep 50,000 L/s each, x98.9, intake 80 % of the cap); the anchor cut (Horizon bit 4, a safe shed);
+  a shed on L1. Shots and text dumps: local work folder `smbh-ctl/` (`shots/`, `ctl-s345.txt`, `ctl-s7.txt`).
+
+## SMBH v1: the Eye side, quests and P4-88 (questions B-157..B-159)
+
+### The Supermassive Link's data (§1.3; B-157)
+
+- **Record:** the GRB Receptor Port keeps, per source and second, the tightest Junction out-1 limit and the source record
+  (lattice in force, mass) of the streams it took (`BurstReading.limitBySource` / `recordBySource`); the Eye copies
+  the link source's into `EyeBursts.limit / smLattice / smMass` (`supermassiveSource()`). The bench injectors (`/btseye
+  star ... inject`, `/btsconduit inject`) now copy their quasar's record too.
+- **Streak:** `EyeGalaxy.link9` (tile NBT `link9`), rolled every field second (`EyeStarRuntime.supermassiveSecond`):
+  `BurstLink.supermassiveOk(linked, source)` = linked, the source qualifies, the window full, mean >= D10 (96 Bu/t).
+  Held after 1,800 s; `EyeMilestones.smLinkDone / smLinkBest` (item NBT `t9`) for P5. Nothing gates on it.
+- **Shown:** the Galaxy panel's "Supermassive Link (P5)" check row (`EyeGui.supermassiveRow`), a scanner line
+  (`supermassiveLinkLine`), OpenComputers `getUnlock().supermassiveLink`.
+- **SL-Q36** (`BTSGodforgeMagMatter`, load-complete, `replaceTecTechEyeOfHarmony` only): the Godforge EE upgrade's 2
+  Universium frame boxes -> 8 Black Dwarf Matter frame boxes, in place. The gate audit reads MagMatter's tier from EE's
+  live cost (`SLGateDump.magMatterTier`: T7 after SL-Q36) and gates the T4 Disc Field Coil at T10.
+
+| ID | Thing | Where | Note |
+|---|---|---|---|
+| SL-Q36 | Godforge EE upgrade cost (MagMatter mode) | load-complete rewrite | 2 Universium frame boxes -> 8 Black Dwarf Matter (B-153, B-157) |
+
+### Quests (§8.3; B-158)
+
+17 quests under feature `smbh`: UXV 48176-48179, MAX 48195-48199 (Supermassive Link and White Hole Lattice are
+`eyeT9T10` placeholders; Eye T10 now needs the Supermassive Link), The Endgame 48221-48228. Bills: `quasar_lattice`
+(roles `lattice_frame`, `containment_node`) and `crown_mk4` (`horizon_thermaliser`) in `bomItems`. The Empyrean / Omega
+quests name the multiblock engraver (question 25); the circuit config comments (question 26). Regenerated with
+`gen-bom.ps1`; `--check` and `--selftest` green.
+
+### P4-88: the Junction's out-1 limit (B-159)
+
+- `BurstRouting.split(in, share1, p3, limit)`: share 1 of at most `limit` Bu/t, the rest to out 2 (no limit, or the rest
+  under it: the old split). `STANDARD_J1_LIMIT` = 7.5 Bu/t (5 x D7) per parallel, x the time dial
+  (`EyeStarRuntime.standardJ1Limit()`).
+- `MTEConduitJunction`: `limit` (NBT `limit`), `getLimit / setLimit` (0..Mk IV's cap, non-finite ignored), the scanner
+  line, the GUI row's tooltip, the split panel's "Out 1 limit, Bu/t" field (`jLimit`), OC `setLimit`, `getFlow().limit`,
+  `/btsconduit junction x y z c k p3 [split|combine] [limit bu]`. Out 1's streams carry the limit
+  (`BurstStream.withLimit`).
+- The T7 test fire's size is `testFireStream()` = min(the linked quasar's mean stream, J1's limit); the 6-32 Bu/t
+  window and the Galaxy panel's notes use it.
+- Benches: `/btsquasar autorig ... [mk 1-4] [limit bu|off|std]`, `/btseye star ... galaxy ... [mk n] [limit ...]`
+  (`EyeGalaxyBench.conduit` models the throat Mk and the limit; default Mk I and the standard limit).
+- **Tested** (dev server, port 25651, two boots, 372 registered / 0 skipped, no exception from our code): Mk II, a
+  real coils-T3 quasar at 310 SM and a real T8 Eye lit as Triangulum: no limit, Triangulum lost in its first second;
+  the standard limit, 1,800 s + 20,000 s with 0 failures, the Heavy Link held and the Galactic Merger complete (T8), and
+  2,458 game-s live on real redstone under `/btswarp 20` with no failure. Real elements: a Junction at limit 0.05 split
+  0.80 Bu/t into out 3 0.08 / out 1 0.03 / out 2 0.70. `/btseye gates`: everything clean, MagMatter at T7. The
+  Supermassive Link row read an injected L1 hole at 65,536 SM as qualifying. Dev client: the Junction panel's field.
+
+## SMBH v1: end-to-end test (questions B-160..B-162)
+
+- **Build and checks:** `gradlew build` green; goldens 30 / 38 / 78; questbook `--check` / `--selftest` green.
+- **Headless** (port 25651, the RC-2 pack's DefaultQuests copied read-only for the run): 372 registered / 0 skipped with
+  defaults and with `smbhAllowUnbound` + `replaceTecTechEyeOfHarmony` off; `/btsrecipes status` 507 rows;
+  `/btsquests verify` 159 / 161 (the known `eternalsingularity` misses); `/btseye gates` clean (with the EOH flag off
+  the audit's own premise does not hold: B-162). Unbind refused with `smbhAllowUnbound=false`, a forced one sheds back.
+- **Dev client** (silent, GUI shot harness): a 4,096 SM quasar, Saturation by the engine, L1 in place, growth to 16,384 SM
+  on real ticks under `/btswarp 100` matching the growth law, the band and the intake bar, the under-fed sequence
+  (Growth first, the buffer, then the leak and Horizon bits 1 / 0), L3 Overdrive (x34.15 / x56.04 at 25,000 / 100,000 L/s
+  each), L4 Unbound n 1 (upkeep halved to 50,000, anchor 4,096 L/s), both Mk IV crowns at their cap with the wireless
+  total equal to their lifetime counters, the state through three restarts, the anchor cut.
+- **Fixed:** B-160 (`/btssmbh fill` and Space fluid), B-161 (GUI rows cut at supermassive sizes).

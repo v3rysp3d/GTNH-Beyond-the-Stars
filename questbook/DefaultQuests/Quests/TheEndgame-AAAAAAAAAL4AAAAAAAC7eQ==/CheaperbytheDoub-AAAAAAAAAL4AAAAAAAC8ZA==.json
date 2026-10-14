@@ -1,0 +1,66 @@
+{
+  "preRequisites:9": {
+    "0:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48227
+    }
+  },
+  "properties:10": {
+    "betterquesting:10": {
+      "autoClaim:1": 0,
+      "completion_animation:8": "default",
+      "completion_particle:8": "default",
+      "confetti_icon:10": {
+        "Count:3": 0,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "minecraft:stick"
+      },
+      "countAsQuest:1": 1,
+      "desc:8": "Run §9full Overdrive at n 1 or more for 10 minutes§r. Every doubling halves the Overdrive upkeep: 100,000 × o² × 2^(-n) L/s each.\n\n§5§lFULL §lOVERDRIVE§r upkeep each / anchor / all fluids, L/s:\n- n 0: 100,000 / 0 / 200,000\n- n 0.5: 70,711 / 1,448 / 142,870\n- n 1:§9 50,000§r / 4,096 / 104,096\n- n 1.5: 35,355 / 23,170 /§9 93,880§r (the cheapest)\n- n 2: 25,000 / 262,144 / 312,144 (dearer than not Unbound)\nUniversium is the scarce fluid; Primordial Matter is made from commoner ones. The ×100 ceiling still holds: Unbound makes ×99 cheaper, never stronger.\n\n§2§lDONE §lWHEN§r the GUI shows Overdrive 100 % at n 1 or more, upkeep 50,000 L/s each or less, for 10 minutes (tick the box).",
+      "globalShare:1": 0,
+      "icon:10": {
+        "Count:3": 1,
+        "Damage:2": 4,
+        "OreDict:8": "",
+        "id:8": "beyondthestars:slCasing4"
+      },
+      "isMain:1": 0,
+      "isSilent:1": 0,
+      "lockedProgress:1": 0,
+      "name:8": "§4§l§nCheaper by the Doubling",
+      "notification_duration:5": -1.0,
+      "notification_effect:3": -1,
+      "notification_fade_in:5": -1.0,
+      "notification_fade_out:5": -1.0,
+      "notification_icon_offset_y:3": -2147483648,
+      "notification_icon_scale:5": -1.0,
+      "notification_pos_x:3": -2147483648,
+      "notification_pos_y:3": -2147483648,
+      "notification_show_icon:8": "default",
+      "notification_style:8": "default",
+      "notification_subtitle:8": "",
+      "notification_subtitle_scale:5": -1.0,
+      "notification_title:8": "",
+      "notification_title_scale:5": -1.0,
+      "particle_count:3": -1,
+      "questLogic:8": "AND",
+      "repeatTime:3": -1,
+      "repeat_relative:1": 1,
+      "simultaneous:1": 0,
+      "snd_complete:8": "random.levelup",
+      "snd_update:8": "random.levelup",
+      "taskLogic:8": "AND",
+      "visibility:8": "NORMAL"
+    }
+  },
+  "questIDHigh:4": 190,
+  "questIDLow:4": 48228,
+  "rewards:9": {},
+  "tasks:9": {
+    "0:10": {
+      "index:3": 0,
+      "taskID:8": "bq_standard:checkbox"
+    }
+  }
+}

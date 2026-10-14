@@ -108,7 +108,7 @@ public final class MagnetarCollapse extends EyeTransition {
         return String.format(
             Locale.ROOT,
             "Magnetar Collapse, halo capture: %d / %d s, Stable streak %d / %d s (counts from %d s); the shock was"
-                + " P %s -> %s (%.1f Bu/t cancelled %.0f)",
+                + " P %s -> %s (%s cancelled %.0f)",
             mc.st,
             MagnetarCollapseOverlay.CAPTURE_SECONDS,
             mc.streak,
@@ -116,7 +116,7 @@ public final class MagnetarCollapse extends EyeTransition {
             MagnetarCollapseOverlay.CAPTURE_FROM,
             StellarField.fmtSigned(mc.shockP0),
             StellarField.fmtSigned(mc.shockP),
-            mc.shockG,
+            com.nateyburr.beyondthestars.machines.gui.BTSFormat.buEuShort(mc.shockG),
             mc.shockCancel);
     }
 

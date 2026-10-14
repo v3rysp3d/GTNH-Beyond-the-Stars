@@ -33,10 +33,12 @@ import gregtech.api.metatileentity.implementations.MTEHatchInput;
  * <li>{@code status x y z}: the scanner lines of a Mouth, Mirror, Junction, crown, GRB Receptor Port or quasar.</li>
  * <li>{@code dock x y z}: a quasar's two port cells and how a crown or a mouth docks on each.</li>
  * <li>{@code rig x y z}: raises the standard test rig around a quasar at x y z; {@code rig status} reads it all.</li>
- * <li>{@code crowns x y z mk [stack]}: a Mk {@code mk} crown docked on each jet port of the quasar at x y z, and with
+ * <li>{@code crowns x y z mk(1-4) [stack]}: a Mk {@code mk} crown docked on each jet port of the quasar at x y z, and
+ * with
  * {@code stack} a second one stacked on each (the max-rate rig: Mk III + Mk III per port).</li>
  * <li>Bench: {@code pair x1 y1 z1 x2 y2 z2}, {@code throat x y z mk}, {@code fuel x y z on|off} (fills or empties an
- * element's fuel hatches), {@code junction x y z c k p3 [split|combine]}, {@code rebuild x y z} (re-projects any
+ * element's fuel hatches), {@code junction x y z c k p3 [split|combine] [limit bu]}, {@code rebuild x y z} (re-projects
+ * any
  * of our multis at x y z).</li>
  * <li>Persistence bench (B-112): {@code nbt x y z [key ...]} prints what any GT machine at x y z would save now (by
  * default our {@code bts*} keys and GT's run progress; read straight after a restart it is what the chunk held on
@@ -53,10 +55,10 @@ public class CommandBTSConduit extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btsconduit status x y z | dock x y z | rig x y z | rig status | crowns x y z mk [stack]"
+        return "/btsconduit status x y z | dock x y z | rig x y z | rig status | crowns x y z mk(1-4) [stack]"
             + " | pair x1 y1 z1 x2 y2 z2 | throat x y z mk"
-            + " | fuel x y z on|off | junction x y z c k p3 [split|combine] | rebuild x y z [tier] | keep x1 y z1 x2 z2"
-            + " | survival x y z mouth|mirror|junction|crown1|crown2|crown3 [facing|up|down] [creative]"
+            + " | fuel x y z on|off | junction x y z c k p3 [split|combine] [limit bu] | rebuild x y z [tier] | keep x1 y z1 x2 z2"
+            + " | survival x y z mouth|mirror|junction|crown1|crown2|crown3|crown4 [facing|up|down] [creative]"
             + " | inject rx ry rz qx qy qz bu | inject rx ry rz off | nbt x y z [key ...] | burstmode x y z [place|mode]";
     }
 
@@ -141,7 +143,7 @@ public class CommandBTSConduit extends CommandBase {
                 return;
             }
             case "crowns": {
-                // crowns x y z <mk 1-3> [stack]: a crown of that Mk docked on each of the quasar's jet ports, and
+                // crowns x y z <mk 1-4> [stack]: a crown of that Mk docked on each of the quasar's jet ports, and
                 // with stack a second one stacked on each (the overflow); bench owner, formed
                 final MTEQuasarEngine q = mte(world, x, y, z, MTEQuasarEngine.class);
                 if (q == null) {
@@ -187,10 +189,15 @@ public class CommandBTSConduit extends CommandBase {
                 j.setRatio(Double.parseDouble(args[4]));
                 j.setGain(Double.parseDouble(args[5]));
                 j.setOut3Share(Double.parseDouble(args[6]));
-                if (args.length > 7) {
-                    j.setMode(
-                        args[7].equalsIgnoreCase("combine") ? MTEConduitJunction.Mode.COMBINE
-                            : MTEConduitJunction.Mode.SPLIT);
+                for (int i = 7; i < args.length; i++) {
+                    if (args[i].equalsIgnoreCase("limit") && i + 1 < args.length) {
+                        // P4-88: out 1's limit, Bu/t (0 = none)
+                        j.setLimit(Double.parseDouble(args[++i]));
+                    } else {
+                        j.setMode(
+                            args[i].equalsIgnoreCase("combine") ? MTEConduitJunction.Mode.COMBINE
+                                : MTEConduitJunction.Mode.SPLIT);
+                    }
                 }
                 for (String line : j.statusLines()) SLConsoleTest.tell(sender, line);
                 return;
@@ -224,8 +231,9 @@ public class CommandBTSConduit extends CommandBase {
                 port.debugInject(q.source(), Double.parseDouble(args[7]));
                 SLConsoleTest.tell(
                     sender,
-                    "Injecting " + args[7]
-                        + " Bu/t from the quasar at "
+                    "Injecting "
+                        + com.nateyburr.beyondthestars.machines.gui.BTSFormat.buEuShort(Double.parseDouble(args[7]))
+                        + " from the quasar at "
                         + qx
                         + ", "
                         + qy
@@ -238,7 +246,7 @@ public class CommandBTSConduit extends CommandBase {
                 return;
             }
             case "survival": {
-                // survival x y z <mouth|mirror|junction|crown1|crown2|crown3> [facing|up|down] [creative]: the
+                // survival x y z <mouth|mirror|junction|crown1|crown2|crown3|crown4> [facing|up|down] [creative]: the
                 // projector's survival path (or its creative construct) on a bare controller with that facing
                 if (args.length < 5) break;
                 ForgeDirection dir = ForgeDirection.NORTH;

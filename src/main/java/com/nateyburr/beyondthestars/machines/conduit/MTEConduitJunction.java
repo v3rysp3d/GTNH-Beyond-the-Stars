@@ -12,6 +12,7 @@ import com.nateyburr.beyondthestars.blocks.BlockSLCasing;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
+import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstStream;
 import com.nateyburr.beyondthestars.machines.quasar.engine.BurstRouting;
 
@@ -29,7 +30,9 @@ import gregtech.api.util.MultiblockTooltipBuilder;
  * <li><b>Split</b>: in through the big throat (throat 0); out 3 (throat 3, −60°) takes the fixed GUI share p3 off the
  * top, then out 1 (throat 1, straight on) and out 2 (throat 2, +60°) share the rest: share₁ = clamp(c + k·(s/15 −
  * 0.5), 0, 1) with the GUI ratio c, the gain k ∈ {0, 1, 2, 4} and s the redstone level on its Burst Control Hatch
- * ({@link BurstRouting#share}, {@link BurstRouting#split}). k = 0, or no hatch, ignores redstone.</li>
+ * ({@link BurstRouting#share}, {@link BurstRouting#split}). k = 0, or no hatch, ignores redstone. P4-88: an optional
+ * out-1 limit (GUI, Bu/t): share₁ is taken of at most that much and the rest goes to out 2, so a loop on out 1 steers
+ * the same few Bu/t however big the quasar grows (the standard rig's J1: {@link BurstRouting#STANDARD_J1_LIMIT}).</li>
  * <li><b>Combine</b>: up to 3 in through the small throats, the sum out of the big throat.</li>
  * </ul>
  * The whole stream through it is capped by its throat (one throat item for the element; F-5: one upkeep unit). The
@@ -53,6 +56,8 @@ public class MTEConduitJunction extends MTEConduitElement<MTEConduitJunction> {
     private double ratio = 0.5;
     private int gainIndex;
     private double out3Share;
+    /** P4-88: out 1's limit, Bu/t (0 = none). */
+    private double limit;
 
     // ---- run
     private int lastLevel = -1;
@@ -124,8 +129,12 @@ public class MTEConduitJunction extends MTEConduitElement<MTEConduitJunction> {
             emit(0, s, now);
             return;
         }
-        final double[] out = BurstRouting.split(s.buPerTick, share(), out3Share);
-        emit(1, s.withBu(out[0]), now);
+        final double[] out = BurstRouting.split(s.buPerTick, share(), out3Share, limit);
+        emit(
+            1,
+            s.withBu(out[0])
+                .withLimit(limit),
+            now);
         emit(2, s.withBu(out[1]), now);
         if (out3Share > 0) emit(3, s.withBu(out[2]), now);
     }
@@ -225,6 +234,19 @@ public class MTEConduitJunction extends MTEConduitElement<MTEConduitJunction> {
         out3Share = Math.max(0, Math.min(1, p));
     }
 
+    /** P4-88: out 1's limit, Bu/t (0 = none). */
+    public double getLimit() {
+        return limit;
+    }
+
+    /**
+     * P4-88: out 1's limit in Bu/t, 0 (or less) for none, at most Mk IV's throat cap; a non-finite value is ignored.
+     */
+    public void setLimit(double l) {
+        if (!Double.isFinite(l)) return;
+        limit = Math.max(0, Math.min(BurstRouting.throatCap(BurstRouting.MK_MAX), l));
+    }
+
     public int getLastLevel() {
         return lastLevel;
     }
@@ -241,18 +263,20 @@ public class MTEConduitJunction extends MTEConduitElement<MTEConduitJunction> {
             out.add(
                 String.format(
                     Locale.ROOT,
-                    "SPLIT: in %s Bu/t; c %.2f, k %s, s %s -> share 1 = %.2f; out 3 takes %.0f%% first",
-                    bu(inBu(0)),
+                    "SPLIT: in %s; c %.2f, k %s, s %s -> share 1 = %.2f; out 3 takes %.0f%% first; out 1 limit %s",
+                    MTEQuasarEngine.buEu(inBu(0)),
                     ratio,
                     fmtGain(getGain()),
                     lastLevel < 0 ? "- (no Burst Control Hatch)" : String.valueOf(lastLevel),
                     share(),
-                    100 * out3Share));
+                    100 * out3Share,
+                    limit > 0 ? MTEQuasarEngine.buEu(limit) + " (share 1 is of at most this; the rest to out 2)"
+                        : "none"));
             routeLines(out, new int[] { 1, 2, 3 }, new String[] { "Out 1 (straight)", "Out 2 (+60)", "Out 3 (-60)" });
         } else {
             out.add(
                 "COMBINE: in " + bu(
-                    inBu(1)) + " + " + bu(inBu(2)) + " + " + bu(inBu(3)) + " Bu/t, capped by the throat");
+                    inBu(1)) + " + " + bu(inBu(2)) + " + " + MTEQuasarEngine.buEu(inBu(3)) + ", capped by the throat");
             routeLines(out, new int[] { 0 }, new String[] { "Out (big throat)" });
         }
     }
@@ -267,6 +291,7 @@ public class MTEConduitJunction extends MTEConduitElement<MTEConduitJunction> {
         t.setDouble("ratio", ratio);
         t.setInteger("gain", gainIndex);
         t.setDouble("out3", out3Share);
+        t.setDouble("limit", limit);
     }
 
     @Override
@@ -281,6 +306,8 @@ public class MTEConduitJunction extends MTEConduitElement<MTEConduitJunction> {
         setGainIndex(t.getInteger("gain"));
         out3Share = 0;
         setOut3Share(t.getDouble("out3"));
+        limit = 0;
+        setLimit(t.getDouble("limit"));
     }
 
     @Override
@@ -292,12 +319,16 @@ public class MTEConduitJunction extends MTEConduitElement<MTEConduitJunction> {
             .addInfo("  top; out 1 (straight on) and out 2 (+60 deg) share the rest:")
             .addInfo("  share 1 = c + k x (s/15 - 0.5), clamped 0..1. c and k (0, 1, 2, 4) in the GUI; s is the")
             .addInfo("  redstone level on its Burst Control Hatch (k 0 or no hatch: c alone).")
+            .addInfo("Out 1 limit (GUI, Bu/t; 0 = none): share 1 is taken of at most this much and the rest goes")
+            .addInfo("  to out 2, so a loop on out 1 steers the same few Bu/t however big the quasar grows.")
+            .addInfo("  The Eye's J1: 7.5 Bu/t (7.5e13 EU/t) per parallel, x its time dial (the standard rig).")
             .addInfo("Combine (GUI): up to 3 streams in through the small throats, the sum out of the big one.")
-            .addInfo("Rigs: J1 Eye : crown (P sensor, inverted, window 30, c 0.5, k 2), J2 rail high : low (W),")
+            .addInfo(
+                "Rigs: J1 Eye : crown (P sensor, inverted, window 30, c 0.5, k 2, limit 7.5), J2 rail high : low (W),")
             .addInfo("  J3 halo : rail (Lambda). Or two Directive bits as 15 / 8 / 0 (AE2: no analog needed).")
             .addSeparator();
         commonInfo(tt).addInfo("Automation: Burst Control Hatch (Junction split mode); OpenComputers bts_junction")
-            .addInfo("  (getFlow, setRatio, setGain, setOut3, setMode).")
+            .addInfo("  (getFlow, setRatio, setGain, setOut3, setLimit, setMode).")
             .beginStructureBlock(size[0], size[1], size[2], false)
             .addController("Top centre")
             .addCasingInfoExactly("Quantum Glass", bom(PIECE, 'G'), false)

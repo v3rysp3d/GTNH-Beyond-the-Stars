@@ -364,6 +364,34 @@ public final class BTSGuiKit {
         KitDraw.textRight(value, width, 1, VALUE);
     }
 
+    /**
+     * Stacked bar (SMBH intake): the bar's layout, its segments ({@code "frac:colour;…"}) drawn end to end from the
+     * left, each a share of the whole bar; a colour of 0 is a gap (the track shows through). Then the ticks and the
+     * value.
+     */
+    public static void paintStack(int width, String label, String segments, String value, String ticks) {
+        final int lw = Math.min(KitDraw.width(label), 74);
+        KitDraw.textCut(label, 0, 1, Math.max(50, lw), LABEL);
+        final int bx = Math.max(52, lw + 3), by = 1, bh = 7;
+        final int bw = Math.max(24, Math.min(132, width - KitDraw.width(value) - 3) - bx);
+        KitDraw.box(bx, by, bw, bh, EDGE, TRACK);
+        double at = 0;
+        for (double[] seg : parseTicks(segments)) {
+            if (seg[0] <= 0) continue;
+            final double from = Math.min(1, at), to = Math.min(1, at + seg[0]);
+            at = to;
+            final int colour = (int) (long) seg[1];
+            if (colour == 0 || to <= from) continue;
+            final float x0 = (float) (bx + 1 + (bw - 2) * from), x1 = (float) (bx + 1 + (bw - 2) * to);
+            KitDraw.rect(x0, by + 1, Math.max(1f, x1 - x0), bh - 2, colour);
+        }
+        for (double[] t : parseTicks(ticks)) {
+            if (t[0] < 0) continue;
+            KitDraw.rect(Math.round(bx + 1 + (bw - 2) * t[0]), by - 1, 1, bh + 2, (int) (long) t[1]);
+        }
+        KitDraw.textRight(value, width, 1, VALUE);
+    }
+
     /** Check (§4.3): icon at (0, 1), label x 10, value right-aligned, the optional fill line at y 9. */
     public static void paintCheck(int width, BTSChecklist.State state, String label, String value, double frac) {
         final int icon = state == BTSChecklist.State.OK ? BTSRows.ICON_OK
@@ -734,7 +762,7 @@ public final class BTSGuiKit {
 
     private static final BTSRows.Kind[] PAINTED = { BTSRows.Kind.GAUGE, BTSRows.Kind.GAUGE2, BTSRows.Kind.BAR,
         BTSRows.Kind.CHECK, BTSRows.Kind.STAT, BTSRows.Kind.STAT2, BTSRows.Kind.SECTION, BTSRows.Kind.CHIPS,
-        BTSRows.Kind.LAMPS };
+        BTSRows.Kind.LAMPS, BTSRows.Kind.STACK };
 
     /**
      * Adds {@code n} pooled rows to {@code list}: row i draws the i-th row of the decoded string with the component of
@@ -797,6 +825,8 @@ public final class BTSGuiKit {
                 return 6;
             case BAR:
                 return 5;
+            case STACK:
+                return 4;
             case CHECK:
                 return 4;
             case STAT:
@@ -820,6 +850,9 @@ public final class BTSGuiKit {
                 break;
             case BAR:
                 paintBar(width, BTSText.resolve(r.s(0)), r.d(1), BTSText.resolve(r.s(2)), Grad.of(r.i(3)), r.s(4));
+                break;
+            case STACK:
+                paintStack(width, BTSText.resolve(r.s(0)), r.s(1), BTSText.resolve(r.s(2)), r.s(3));
                 break;
             case CHECK:
                 paintCheck(

@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "A §9throat§r sits in a Wormhole Mouth, Conduit Mirror or Conduit Junction controller like a turbine rotor. Mk I carries§9 24 Bu/t§r, Mk II 384 and Mk III 6,144 (Mk III takes Ergomatter: a T7 part). Anything above is clipped, never damage.\n\nEach element (each mouth of a pair, each mirror, each junction) pays one upkeep unit a second while a throat is fitted, whatever it carries: §9Molten SpaceTime 4 / 16 / 64 L/s§r by throat Mk before T7, §9Ergomatter 0.25 / 1 / 4 L/s§r after. The GUI's fuel button picks Auto, SpaceTime or Ergomatter. Short upkeep closes the element; it reopens after 10 s paid.\n\n§2§lDONE §lWHEN§r you hold a Mk I throat (HOLD → CLAIM → INSTALL).",
+      "desc:8": "A §9throat§r sits in a Wormhole Mouth, Conduit Mirror or Conduit Junction controller like a turbine rotor. Mk I carries§9 24 Bu/t§r (2.4e14 EU/t), Mk II 384 (3.8e15) and Mk III 6,144 (6.1e16 EU/t) (Mk III takes Ergomatter: a T7 part). Anything above is clipped, never damage.\n\nEach element (each mouth of a pair, each mirror, each junction) pays one upkeep unit a second while a throat is fitted, whatever it carries: §9Molten SpaceTime 4 / 16 / 64 L/s§r by throat Mk before T7, §9Ergomatter 0.25 / 1 / 4 L/s§r after. The GUI's fuel button picks Auto, SpaceTime or Ergomatter. Short upkeep closes the element; it reopens after 10 s paid.\n\n§2§lDONE §lWHEN§r you hold a Mk I throat (HOLD → CLAIM → INSTALL).",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,

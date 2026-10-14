@@ -89,6 +89,9 @@ public class CommonProxy {
         BTSRecipeRemovals.guard("NAC conversions of our parts and circuits", BTSRecipesNac::onLoadComplete);
         BTSRecipeRemovals.guard("Field-generator upgrade path (SL-U00..U48)", BTSRecipesGeneratorUpgrade::register);
         BTSRecipeRemovals.guard("Eternity on Ergomatter (SL-Q26, D-48)", BTSRecipesQuasar::onLoadComplete);
+        // B-153: the Godforge EE upgrade's Universium frames become Black Dwarf Matter ones, so MagMatter (Saturation,
+        // the Supermassive Lattice) comes before the Eye T10 gate that needs it
+        BTSRecipeRemovals.guard("MagMatter before Eye T10 (SL-Q36, B-153)", BTSGodforgeMagMatter::onLoadComplete);
         BTSRecipeRemovals.run();
         BTSRecipeGuard.checkResearchCollisions();
     }
@@ -114,6 +117,8 @@ public class CommonProxy {
         event.registerServerCommand(new CommandBTSRecipes());
         event.registerServerCommand(new CommandBTSQuasar());
         event.registerServerCommand(new CommandBTSConduit());
+        // SMBH v1 (smbh-v1.md §10.4): the Supermassive Lattice's op-only bench
+        event.registerServerCommand(new CommandBTSSmbh());
         // the time warp cheat (op only; docs/automation.md 4.2): off at every server start and stop
         TimeWarp.serverStarting();
         event.registerServerCommand(new CommandBTSWarp());

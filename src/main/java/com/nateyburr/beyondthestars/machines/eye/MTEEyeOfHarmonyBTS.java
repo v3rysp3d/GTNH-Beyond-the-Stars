@@ -2345,6 +2345,10 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             b.haloPorts = receptorCount(GROUP_HALO);
             b.mean60 = burstHost.mean();
             b.sigmaMean = burstHost.sigmaMean();
+            b.limit = r.limitOf(b.sourceId);
+            final double[] rec = r.recordOf(b.sourceId);
+            b.smLattice = (int) rec[0];
+            b.smMass = rec[1];
             return b;
         }
 
@@ -2423,6 +2427,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             return;
         final long now = base.getWorld()
             .getTotalWorldTime();
+        // SMBH: the source record its real streams would carry (the lattice in force, the mass), for the Supermassive
+        // Link's data
+        final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = injectFrom.resolve();
+        final int lattice = q == null ? 0 : q.getLatticeInForce();
+        final double mass = q == null ? 0 : q.getMass();
         for (int g = 0; g < 3; g++) {
             final int n = receptorCount(g);
             if (n == 0 || injectBu[g] <= 0) continue;
@@ -2433,7 +2442,9 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                         com.nateyburr.beyondthestars.machines.quasar.burst.JetPort.TOP,
                         injectBu[g] / n,
                         true,
-                        now));
+                        now,
+                        lattice,
+                        mass));
             for (MTEHatchGRBReceptor port : receptors[g]) if (live(port)) port.receive(s);
         }
     }
@@ -2708,7 +2719,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addInfo("  dose extra Agent into a Field socket on a flare warning.")
             .addInfo("T7 + stability rail: Triangulum (Ergomatter); T8 + shard halo: the Milky Way (Superdense")
             .addInfo("  Ergomatter from an Ergomatter feed). Galaxies live on a Quasar Engine's gamma-ray bursts on")
-            .addInfo("  the GRB Receptor Ports: bring 1.5x the demand (1.5 / 6 Bu/t), Space trims cool P, aim the")
+            .addInfo("  the GRB Receptor Ports: bring 1.5x the demand (1.5 / 6 Bu/t = 1.5e13 / 6.0e13 EU/t; 1 Bu/t")
+            .addInfo("  = 10^13 EU/t), Space trims cool P, aim the")
             .addInfo("  rail's high / low banks for W, the halo holds Λ. Unlocks: the Stability Link (T6) and the")
             .addInfo("  Heavy Link (T7), 30 min of linked bursts; then the Magnetar Collapse and the Galactic Merger")
             .addInfo("  begin on a signal. Planets mode: 3 / 6 planets from the slot bus; companions: 1 / 2 charts.")

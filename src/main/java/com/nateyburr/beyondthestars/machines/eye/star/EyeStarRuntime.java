@@ -46,6 +46,7 @@ import com.nateyburr.beyondthestars.machines.gui.BTSText;
 import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstSource;
 import com.nateyburr.beyondthestars.machines.quasar.engine.BurstLink;
+import com.nateyburr.beyondthestars.machines.quasar.engine.BurstRouting;
 
 import gregtech.api.enums.Materials;
 import gregtech.api.enums.OrePrefixes;
@@ -1208,11 +1209,11 @@ public final class EyeStarRuntime {
             final MagnetarCollapseOverlay mc = ((MagnetarCollapse) trans).mc;
             lastEvent = String.format(
                 Locale.ROOT,
-                "the magnetar COLLAPSED into a black hole: shock P %s -> %s (%.2f Bu/t on the ports cancelled %.0f of"
+                "the magnetar COLLAPSED into a black hole: shock P %s -> %s (%s on the ports cancelled %.0f of"
                     + " %.0f); the halo capture begins (Stable for 60 s in a row within 420-600 s)",
                 StellarField.fmtSigned(mc.shockP0),
                 StellarField.fmtSigned(mc.shockP),
-                mc.shockG,
+                BTSFormat.buEuShort(mc.shockG),
                 mc.shockCancel,
                 mc.shock);
             logEvent(lastEvent);
@@ -1264,6 +1265,7 @@ public final class EyeStarRuntime {
         // ---- the machine milestones: a linked quasar holding the Eye (quasar-p4.md R.1)
         final EyeBursts b = galaxy.bursts;
         if (b.paused) return;
+        supermassiveSecond(b);
         if (T.n == 6 && trans == null && !T.planets()) {
             final BurstLink l = galaxy.link6;
             l.roll(b.rail(), b.hi);
@@ -1283,6 +1285,63 @@ public final class EyeStarRuntime {
             milestones.linkStreak[7] = l.streak;
             milestones.linkBest[7] = Math.max(milestones.linkBest[7], l.best);
         }
+    }
+
+    /**
+     * SMBH (smbh-v1.md §1.3): one second of the Supermassive Link, P5's T9 → T10 machine milestone, as data only: a
+     * 60 s mean of everything on the Eye's ports, and a streak while the link source (its stream record: a lattice in
+     * force and at least 65,536 SM) qualifies and the mean is at least D₁₀ = 96 Bu/t. It resets when the link drops or
+     * the hole leaks under 65,536 SM. Held after 1,800 s, recorded in the milestones (item NBT) for P5; nothing gates
+     * on it until Eye T9 exists.
+     */
+    private void supermassiveSecond(EyeBursts b) {
+        final BurstLink l = galaxy.link9;
+        final boolean source = b.linkedAll && b.supermassiveSource();
+        l.roll(b.total(), source ? b.total() : 0);
+        if (l.update(l.supermassiveOk(b.linkedAll, b.supermassiveSource())) && !milestones.smLinkDone) {
+            milestones.smLinkDone = true;
+            lastEvent = "the " + EyeMilestones.SM_LINK_NAME
+                + " is HELD: 30 min unbroken from the hole at "
+                + b.source
+                + " (data for P5's T9 -> T10 milestone)";
+            logEvent(lastEvent);
+        }
+        if (l.done && !milestones.smLinkDone) milestones.smLinkDone = true;
+        milestones.smLinkStreak = l.streak;
+        milestones.smLinkBest = Math.max(milestones.smLinkBest, l.best);
+    }
+
+    /**
+     * SMBH: the Supermassive Link's line for the scanner, GUI and OpenComputers: the streak, the mean against 96 Bu/t
+     * and the link source's record.
+     */
+    public String supermassiveLinkLine() {
+        final BurstLink l = galaxy.link9;
+        final EyeBursts b = galaxy.bursts;
+        return String.format(
+            Locale.ROOT,
+            "%s (P5, T9 -> T10, data only): %s, 60 s mean %s / %s; source %s",
+            EyeMilestones.SM_LINK_NAME,
+            milestones.smLinkDone ? "HELD"
+                : "streak " + EyeMilestones.clock(l.streak)
+                    + " / 30:00 (best "
+                    + EyeMilestones.clock(milestones.smLinkBest)
+                    + ")",
+            BTSFormat.buEuShort(l.mean),
+            BTSFormat.buEuShort(BurstLink.supermassiveMean()),
+            supermassiveSourceText(b));
+    }
+
+    /** SMBH: "a 70,000 SM hole, lattice L1 (qualifies)", "not linked", ... from the link source's stream record. */
+    public static String supermassiveSourceText(EyeBursts b) {
+        if (!b.linkedAll) return "not linked";
+        if (b.smMass <= 0) return "no lattice record (a scripted feed)";
+        return String.format(
+            Locale.ROOT,
+            "a %,.0f SM hole, %s (%s)",
+            b.smMass,
+            b.smLattice > 0 ? "lattice L" + b.smLattice : "no lattice",
+            b.supermassiveSource() ? "qualifies" : "needs a lattice and 65,536 SM");
     }
 
     private void linkHeld(int n) {
@@ -2788,7 +2847,16 @@ public final class EyeStarRuntime {
         }
         return GalaxyDirective
             .testFireWanted(n, fs.tier.planets(), burning(), false, milestones.linkDone[n], coreIn, buffered)
-            && (n != 7 || heavyTestFireFits(linkedQuasarStream()));
+            && (n != 7 || heavyTestFireFits(testFireStream()));
+    }
+
+    /**
+     * P4-88: what J1 at 15 puts on the Eye, Bu/t: the linked quasar's mean stream, or the out-1 limit of the Junction
+     * its streams passed if that is lower (the standard rig's J1 limit, 7.5 Bu/t per parallel). The T7 test fire's
+     * size: with the limit, the test fire is the same few Bu/t at any quasar size.
+     */
+    public double testFireStream() {
+        return Math.min(linkedQuasarStream(), galaxy.bursts.limit);
     }
 
     /**
@@ -2800,6 +2868,14 @@ public final class EyeStarRuntime {
     /** P4-88: the Eye leg a hand-set test fire aims for on a quasar above the ceiling (rail 4, halo 12 Bu/t). */
     public static final double HEAVY_TEST_FIRE_EYE_LEG = 16.0;
 
+    /**
+     * P4-88: the standard rig's J1 out-1 limit for this Eye, Bu/t: {@link BurstRouting#STANDARD_J1_LIMIT} × parallels
+     * × the time dial (the demand scales with both).
+     */
+    public double standardJ1Limit() {
+        return BurstRouting.STANDARD_J1_LIMIT * Math.max(1, lastP) * Math.max(1, lastM);
+    }
+
     /** P4-79 / P4-88: the T7 test fire at J1 15 suits a mean stream from 6 to 32 Bu/t. */
     public static boolean heavyTestFireFits(double stream) {
         return stream >= GalaxyField.demandT(8) && stream <= HEAVY_TEST_FIRE_MAX_STREAM;
@@ -2810,7 +2886,7 @@ public final class EyeStarRuntime {
      * {@link #HEAVY_TEST_FIRE_EYE_LEG} ÷ the mean stream (0 with no link).
      */
     public double heavyTestFireShare() {
-        final double s = linkedQuasarStream();
+        final double s = testFireStream();
         if (s <= 0) return 0;
         return s <= HEAVY_TEST_FIRE_MAX_STREAM ? 1.0 : HEAVY_TEST_FIRE_EYE_LEG / s;
     }
@@ -2823,20 +2899,28 @@ public final class EyeStarRuntime {
         if (fs == null || star == null || trans != null || star.n() != 7 || escrow == null || milestones.linkDone[7]) {
             return "";
         }
-        final double s = linkedQuasarStream();
+        final double q = linkedQuasarStream(), s = testFireStream();
         if (s < GalaxyField.demandT(8)) {
+            if (q >= GalaxyField.demandT(8)) {
+                return String.format(
+                    Locale.ROOT,
+                    "Heavy Link test fire waits: J1's out 1 limit %s is under 6 Bu/t (raise it: 7.5 per parallel)",
+                    BTSFormat.buEuShort(s));
+            }
             return String.format(
                 Locale.ROOT,
-                "Heavy Link test fire waits: the quasar's mean stream %.1f Bu/t is under 6 (grow it)",
-                s);
+                "Heavy Link test fire waits: the quasar's mean stream %s is under 6 Bu/t (grow it)",
+                BTSFormat.buEuShort(s));
         }
         if (s > HEAVY_TEST_FIRE_MAX_STREAM) {
             return String.format(
                 Locale.ROOT,
-                "Heavy Link test fire held: the quasar's mean stream %.1f Bu/t is over %.0f, and J1 at 15 would flood"
-                    + " the rail. Test-fire with J1's Eye share at %.2f (J3 75 %% halo)",
-                s,
+                "Heavy Link test fire held: the quasar's mean stream %s is over %.0f Bu/t, and J1 at 15 would flood"
+                    + " the rail. Set J1's out 1 limit to %s (the standard rig), or test-fire with J1's Eye share at"
+                    + " %.2f (J3 75 %% halo)",
+                BTSFormat.buEuShort(s),
                 HEAVY_TEST_FIRE_MAX_STREAM,
+                BTSFormat.buEuShort(standardJ1Limit()),
                 heavyTestFireShare());
         }
         return "";
@@ -3742,14 +3826,18 @@ public final class EyeStarRuntime {
             out.add(
                 String.format(
                     Locale.ROOT,
-                    "%s: streak %s / 30:00 (best %s), 60 s mean %.2f Bu/t, %s %.0f%%%s",
+                    "%s: streak %s / 30:00 (best %s), 60 s mean %s, %s %.0f%%%s",
                     EyeMilestones.LINK_NAME[n],
                     EyeMilestones.clock(l.streak),
                     EyeMilestones.clock(Math.max(l.best, milestones.linkBest[n])),
-                    l.mean,
+                    BTSFormat.buEuShort(l.mean),
                     n == 6 ? "high bank" : "halo",
                     100 * l.frac,
-                    n == 6 ? " (needs >= 1.5 Bu/t, high bank 25-75 %)" : " (needs >= 6 Bu/t, halo >= 50 %)"));
+                    n == 6 ? " (needs >= 1.5 Bu/t = 1.5e13 EU/t, high bank 25-75 %)"
+                        : " (needs >= 6 Bu/t = 6.0e13 EU/t, halo >= 50 %)"));
+        }
+        if (T.n >= 8 || galaxy.bursts.supermassiveSource() || milestones.smLinkBest > 0) {
+            out.add(supermassiveLinkLine());
         }
         if (T.ergoFeed) {
             final int[] c = crossings();
@@ -3778,11 +3866,10 @@ public final class EyeStarRuntime {
             out.add(
                 String.format(
                     Locale.ROOT,
-                    "  The shock would land at P +%.0f with %.2f Bu/t now; %.1f Bu/t on the collapse second cancels"
-                        + " it all",
+                    "  The shock would land at P +%.0f with %s now; %s on the collapse second cancels" + " it all",
                     mc.predictedShock(galaxy.gEye),
-                    galaxy.gEye,
-                    mc.fullCancelBu()));
+                    BTSFormat.buEuShort(galaxy.gEye),
+                    BTSFormat.buEuShort(mc.fullCancelBu())));
         }
     }
 

@@ -1,0 +1,66 @@
+{
+  "preRequisites:9": {
+    "0:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48225
+    }
+  },
+  "properties:10": {
+    "betterquesting:10": {
+      "autoClaim:1": 0,
+      "completion_animation:8": "default",
+      "completion_particle:8": "default",
+      "confetti_icon:10": {
+        "Count:3": 0,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "minecraft:stick"
+      },
+      "countAsQuest:1": 1,
+      "desc:8": "On an L4 lattice, §9Unbind§r (click it twice in the Supermassive Lattice panel, or OpenComputers setUnbound) lets the setpoint pass 67,108,864 SM. n = log2(M / 67,108,864) is the number of doublings past the top. Hold §9n 1 or more for 1 hour§r with the anchor paid.\n\n§5§lTHE §lANCHOR§r Every second the hole costs§9 1,024 × 4^(n²) L§r of Primordial Matter (GT's Transcendent Plasma Mixer), through the trim sockets:\n- n 0.5 (94.9 M SM): 1,448 L/s\n- n 1 (134 M SM):§9 4,096 L/s§r\n- n 1.5 (190 M SM): 23,170 L/s\n- n 2 (268 M SM): 262,144 L/s\n- n 3 (537 M SM): 2.7e8 L/s, impossible\nShort of it, the hole §9sheds safely§r at 2 % a second to the doubling your supply pays for (with no Primordial Matter at all, back to the L4 top). Nothing is ever destroyed.\n\nGrowth: one doubling per 8.2 h on Helium at the cap; the hold-up stays 3×. Unbound adds no power (the curve is flat): it makes Overdrive cheaper.\n\n§2§lDONE §lWHEN§r the GUI has shown n of at least 1, with the anchor fully paid, for an hour (tick the box).",
+      "globalShare:1": 0,
+      "icon:10": {
+        "Count:3": 1,
+        "Damage:2": 4,
+        "OreDict:8": "",
+        "id:8": "beyondthestars:slCasing4"
+      },
+      "isMain:1": 0,
+      "isSilent:1": 0,
+      "lockedProgress:1": 0,
+      "name:8": "§4§l§nUnbound",
+      "notification_duration:5": -1.0,
+      "notification_effect:3": -1,
+      "notification_fade_in:5": -1.0,
+      "notification_fade_out:5": -1.0,
+      "notification_icon_offset_y:3": -2147483648,
+      "notification_icon_scale:5": -1.0,
+      "notification_pos_x:3": -2147483648,
+      "notification_pos_y:3": -2147483648,
+      "notification_show_icon:8": "default",
+      "notification_style:8": "default",
+      "notification_subtitle:8": "",
+      "notification_subtitle_scale:5": -1.0,
+      "notification_title:8": "",
+      "notification_title_scale:5": -1.0,
+      "particle_count:3": -1,
+      "questLogic:8": "AND",
+      "repeatTime:3": -1,
+      "repeat_relative:1": 1,
+      "simultaneous:1": 0,
+      "snd_complete:8": "random.levelup",
+      "snd_update:8": "random.levelup",
+      "taskLogic:8": "AND",
+      "visibility:8": "NORMAL"
+    }
+  },
+  "questIDHigh:4": 190,
+  "questIDLow:4": 48227,
+  "rewards:9": {},
+  "tasks:9": {
+    "0:10": {
+      "index:3": 0,
+      "taskID:8": "bq_standard:checkbox"
+    }
+  }
+}

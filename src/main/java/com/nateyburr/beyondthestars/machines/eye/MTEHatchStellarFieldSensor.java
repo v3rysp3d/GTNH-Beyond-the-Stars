@@ -74,9 +74,9 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
     private boolean invert = false;
 
     /** The window's range and default (120: D-49's as-built gauge mapping, so old hatches read the same). */
-    public static final int WINDOW_MIN = 1, WINDOW_MAX = 100_000, WINDOW_DEFAULT = 120;
-    /** The threshold's range (the quasar's mass reaches 4,096 SM). */
-    public static final double THRESHOLD_LIMIT = 100_000;
+    public static final int WINDOW_MIN = 1, WINDOW_MAX = 2_000_000_000, WINDOW_DEFAULT = 120;
+    /** The threshold's range (an Unbound Supermassive Lattice's mass reaches 2^50 SM). */
+    public static final double THRESHOLD_LIMIT = 1e15;
 
     /** Which machine last published to this hatch (live, not saved). */
     public enum Host {
@@ -120,8 +120,11 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
             "Outputs redstone from one channel. Eye: P, Θ, Ω, Π, shield, Integrity, Stability, zone,",
             "  event warning (+ / - / any), upkeep OK or the T5 setpoint error; T7+: W, Λ, β, the link",
             "  streak %, its 60 s mean (Bu/t), planet slot progress %, the event countdown (s).",
-            "Quasar: E, Φ, λ, a, M, M/cap, Bu/t (total, top, bottom), zone, Integrity, Stability,",
-            "  eruption warning (Φ >= 90), seconds to the next eruption, best host σ, link streak %.",
+            "Quasar: E, Φ, λ, a, M, M/cap, Bu/t (total, top, bottom; 1 Bu/t = 1e13 EU/t), zone, Integrity,",
+            "  Stability, eruption warning (Φ >= 90), seconds to the next eruption, best host σ, link streak %.",
+            "  Supermassive Lattice: M/safe, M/top, band x, the intake (Disc, Hold-up, Growth L/s, % of cap),",
+            "  hold-up cover, mass change %/h, buffer s, Overdrive (level, paid, upkeep), output X (x1 = 9.8e16",
+            "  EU/t), Unbound n, anchor cover, shedding, Supermassive Link source ready.",
             "Threshold (digital): 15 when the value is above (or below) the threshold, else 0.",
             "Analog: 0-15 across the range. Window w (default 120): signed values map -w..+w; masses, Bu/t,",
             "  seconds and σ map 0..w; 0-100 values, λ 0..2, a 0..1 and the zone 0..4 have fixed scales.",

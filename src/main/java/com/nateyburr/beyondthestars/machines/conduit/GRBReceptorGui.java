@@ -8,6 +8,7 @@ import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 import com.cleanroommc.modularui.value.sync.StringSyncValue;
 import com.cleanroommc.modularui.widget.ParentWidget;
 import com.cleanroommc.modularui.widgets.layout.Flow;
+import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
 import com.nateyburr.beyondthestars.machines.gui.BTSGuiKit;
 import com.nateyburr.beyondthestars.machines.gui.BTSHatchGui;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstReading;
@@ -71,7 +72,7 @@ public class GRBReceptorGui extends BTSHatchGui<MTEHatchGRBReceptor> {
                     : linked.getBoolValue() ? BTSGuiKit.LAMP_ON : BTSGuiKit.LAMP_OFF,
                 () -> paused.getBoolValue() ? "§6" + tr(K + "paused")
                     : linked.getBoolValue() ? tr(K + "linked") : "§7" + tr(K + "notlinked"),
-                () -> tr(K + "last", String.format(Locale.ROOT, "%.2f", total.getDoubleValue()))).tooltipDynamic(
+                () -> tr(K + "last", BTSFormat.buEuShort(total.getDoubleValue()))).tooltipDynamic(
                     t -> t.addLine(tr(K + "linked.tip"))
                         .addLine(
                             "§7" + tr(K + "lifetime", String.format(Locale.ROOT, "%,.0f", lifetime.getDoubleValue()))))

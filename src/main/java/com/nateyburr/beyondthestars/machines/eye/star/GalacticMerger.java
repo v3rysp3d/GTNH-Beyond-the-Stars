@@ -103,10 +103,10 @@ public final class GalacticMerger extends EyeTransition {
             final int sign = nextPassSign();
             return String.format(
                 Locale.ROOT,
-                "Galactic Merger, %d / %d s: demand %.2f Bu/t (1.5 -> 6), Ergomatter 5 L/s x p; %s",
+                "Galactic Merger, %d / %d s: demand %s (1.5 -> 6 Bu/t), Ergomatter 5 L/s x p; %s",
                 gm.st,
                 GalacticMergerOverlay.DURATION,
-                gm.demand(),
+                com.nateyburr.beyondthestars.machines.gui.BTSFormat.buEuShort(gm.demand()),
                 next < 0 ? "the passes are done"
                     : "pericentre pass in " + next
                         + " s ("

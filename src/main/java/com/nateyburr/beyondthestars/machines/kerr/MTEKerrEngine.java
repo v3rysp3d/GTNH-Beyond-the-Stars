@@ -1622,11 +1622,11 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             out.add(
                 burst + String.format(
                     Locale.ROOT,
-                    "; bleed x%.2f, cap %d SM (receptor ports %d, demand %.2f Bu/t)",
+                    "; bleed x%.2f, cap %d SM (receptor ports %d, demand %s)",
                     bleedFactor(),
                     maxSetpoint(),
                     receptorCount(),
-                    burstDemand()));
+                    com.nateyburr.beyondthestars.machines.gui.BTSFormat.buEuShort(burstDemand())));
         }
         out.add(
             "Rails Mk " + railTierMin
@@ -1686,7 +1686,8 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             .addInfo("Modules get parallel 8 x tier x floor(sqrt(M)) and speed x(3200/M)/50 (1 to 4).")
             .addInfo("Optional BHC Utility Hatches on the cage emit redstone while the hole is open.")
             .addInfo("Quasar link (optional): a GRB Receptor Port in a utility socket. σ = bursts ÷ 0.1 Bu/t")
-            .addInfo("  (T1) or 0.25 (T2), on a 60 s mean. Bleed x(1 - 0.75 min(σ, 1)); on T2 at σ ≥ 1 the setpoint")
+            .addInfo(
+                "  (T1, 1.0e12 EU/t) or 0.25 (T2, 2.5e12 EU/t), on a 60 s mean. Bleed x(1 - 0.75 min(σ, 1)); on T2 at σ ≥ 1 the setpoint")
             .addInfo("  cap rises 512 -> 768 SM (modules count M up to the cap in force), and the Superdense")
             .addInfo("  refinery (compressor module) needs σ ≥ 1. A frozen or unloaded quasar pauses all of it.")
             .addInfo("Automation: bolts, Seeds and Collapsers into the bolt buses (AE2, Factory Manager).")

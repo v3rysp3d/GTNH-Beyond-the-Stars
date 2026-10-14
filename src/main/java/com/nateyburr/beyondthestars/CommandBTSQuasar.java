@@ -28,6 +28,8 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 /**
  * P4: {@code /btsquasar}, the Quasar Engine's creative build and test bench (quasar-p4.md §1).
  * <ul>
+ * <li>SMBH v1: {@code l1..l4} adds the Supermassive Lattice at that node tier (on MagMatter coils), and
+ * {@code saturate} sets the Saturation milestone so it counts at once (op test only; smbh-v1.md §1.1-§1.2).</li>
  * <li>{@code /btsquasar [t1..t4] [seed] [force]}: a formed quasar in front of the player (coils of that tier), its
  * controller facing the player, every standard hatch fitted (creative energy, Helium in four gas hatches); {@code seed}
  * opens the hole with a Quasar Seed.</li>
@@ -53,9 +55,9 @@ public class CommandBTSQuasar extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btsquasar [t1..t4] [seed] [force]  |  console: /btsquasar [t1..t4] <x> <y> <z> [facing] [force] [survival] [seed] | [check]"
+        return "/btsquasar [t1..t4] [l1..l4] [saturate] [seed] [force]  |  console: /btsquasar [t1..t4] [l1..l4] [saturate] <x> <y> <z> [facing] [force] [survival] [seed] | [check]"
             + "  |  /btsquasar <status|seed [M] [a]|open|collapse|purge|mass M|feed f|gas H|He|RSM|b v|run s [fill]|trim g s|refill|redstone on|off|keep|gui [info]> x y z  |  /btsquasar release"
-            + "  |  /btsquasar autorig x y z <s> [eye ex ey ez] [analog] [cut k] [mass M] | autorig off|status  |  /btsquasar ocloop x y z";
+            + "  |  /btsquasar autorig x y z <s> [eye ex ey ez] [analog] [cut k] [mass M] [mk 1-4] [limit bu|off|std] | autorig off|status  |  /btsquasar ocloop x y z";
     }
 
     @Override
@@ -73,6 +75,11 @@ public class CommandBTSQuasar extends CommandBase {
                 "t2",
                 "t3",
                 "t4",
+                "l1",
+                "l2",
+                "l3",
+                "l4",
+                "saturate",
                 "status",
                 "seed",
                 "open",
@@ -137,20 +144,23 @@ public class CommandBTSQuasar extends CommandBase {
             return;
         }
         final SLConsoleTest.Placement at = SLConsoleTest.parsePlacement(sender, args);
-        int tier = 3;
-        boolean force = false, survival = false, seed = false, check = false;
+        int tier = 3, lattice = 0;
+        boolean force = false, survival = false, seed = false, check = false, saturate = false;
         for (int i = 0; i < args.length; i++) {
             if (at != null && at.used[i]) continue;
             final String a = args[i].toLowerCase(Locale.ROOT);
             if (a.length() == 2 && a.charAt(0) == 't' && a.charAt(1) >= '1' && a.charAt(1) <= '4')
                 tier = a.charAt(1) - '0';
+            if (a.length() == 2 && a.charAt(0) == 'l' && a.charAt(1) >= '1' && a.charAt(1) <= '4')
+                lattice = a.charAt(1) - '0';
+            if (a.equals("saturate")) saturate = true;
             if (a.equals("force") || a.equals("-f")) force = true;
             if (a.equals("survival")) survival = true;
             if (a.equals("seed")) seed = true;
             if (a.equals("check")) check = true;
         }
         if (at != null) {
-            buildAt(sender, at, tier, force, survival, seed, check);
+            buildAt(sender, at, tier, lattice, saturate, force, survival, seed, check);
             return;
         }
         final EntityPlayerMP player = getCommandSenderAsPlayer(sender);
@@ -168,15 +178,16 @@ public class CommandBTSQuasar extends CommandBase {
         p.facing = look.getOpposite();
         p.used = new boolean[0];
         if (world.isRemote) return;
-        buildAt(sender, p, tier, force, survival, seed, check);
+        buildAt(sender, p, tier, lattice, saturate, force, survival, seed, check);
     }
 
-    private void buildAt(ICommandSender sender, SLConsoleTest.Placement at, int tier, boolean force, boolean survival,
-        boolean seed, boolean check) {
+    private void buildAt(ICommandSender sender, SLConsoleTest.Placement at, int tier, int lattice, boolean saturate,
+        boolean force, boolean survival, boolean seed, boolean check) {
         final World world = sender.getEntityWorld();
         if (world == null || world.isRemote) return;
-        final int[] box = QuasarKit.bounds(at.facing, at.x, at.y, at.z);
-        final String label = "Quasar Engine (coils T" + tier
+        final int[] box = QuasarKit.bounds(at.facing, at.x, at.y, at.z, lattice > 0);
+        final String label = "Quasar Engine (coils T" + (lattice > 0 ? 4 : tier)
+            + (lattice > 0 ? ", Supermassive Lattice L" + lattice : "")
             + ") facing "
             + at.facing.name()
                 .toLowerCase(Locale.ROOT);
@@ -201,10 +212,22 @@ public class CommandBTSQuasar extends CommandBase {
             }
         }
         final long start = System.nanoTime();
-        final QuasarKit.Result r = QuasarKit.build(world, at.x, at.y, at.z, at.facing, tier, survival, seed);
+        final QuasarKit.Result r = QuasarKit.build(world, at.x, at.y, at.z, at.facing, tier, lattice, survival, seed);
         if (r.failure != null) {
             SLConsoleTest.tell(sender, label + ": BUILD FAILED - " + r.failure);
             return;
+        }
+        if (saturate) {
+            final MTEQuasarEngine q = QuasarKit.quasarAt(world, at.x, at.y, at.z);
+            if (q != null) {
+                final int inForce = q.debugSaturate(true);
+                r.formed = q.isFormed();
+                r.lines.add(
+                    "Saturation set by command (op test): lattice in force L" + inForce
+                        + ", the structure holds "
+                        + MTEQuasarEngine.fmt(q.getStructureTop())
+                        + " SM");
+            }
         }
         SLConsoleTest.tell(
             sender,
@@ -257,7 +280,8 @@ public class CommandBTSQuasar extends CommandBase {
         final int z = (int) func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[3]);
         final String verb = args[0].toLowerCase(Locale.ROOT);
         if (verb.equals("keep")) {
-            // load the controller's chunk first, so its facing (and so the footprint) is known
+            // load the controller's chunk first, so its facing (and so the footprint) is known; the box includes the
+            // Supermassive Lattice's whether one stands or not (the walk may not have run yet in this tick)
             world.getChunkFromBlockCoords(x, z);
             final MTEQuasarEngine q = QuasarKit.quasarAt(world, x, y, z);
             final ForgeDirection f = q == null ? ForgeDirection.NORTH
@@ -265,7 +289,7 @@ public class CommandBTSQuasar extends CommandBase {
                     .getDirection();
             SLConsoleTest.tell(
                 sender,
-                "Quasar bench: forced " + KerrTestBench.keep(world, QuasarKit.bounds(f, x, y, z))
+                "Quasar bench: forced " + KerrTestBench.keep(world, QuasarKit.bounds(f, x, y, z, true))
                     + " chunk(s) around the quasar at "
                     + x
                     + ", "
@@ -292,8 +316,9 @@ public class CommandBTSQuasar extends CommandBase {
                 if (arg.isEmpty()) {
                     SLConsoleTest.tell(sender, "Quasar bench: " + QuasarKit.seedFromSlot(q));
                 } else {
-                    q.debugSeed(Double.parseDouble(arg), args.length > 5 ? Double.parseDouble(args[5]) : 0);
-                    SLConsoleTest.tell(sender, "Quasar bench: seeded (debug, no item)");
+                    final double want = Double.parseDouble(arg);
+                    final double got = q.debugSeed(want, args.length > 5 ? Double.parseDouble(args[5]) : 0);
+                    SLConsoleTest.tell(sender, "Quasar bench: seeded (debug, no item) at " + massNote(q, want, got));
                 }
                 break;
             case "open": {
@@ -310,10 +335,15 @@ public class CommandBTSQuasar extends CommandBase {
                     "Quasar bench: purge -> "
                         + (q.requestPurge() ? "requested (next second)" : "refused (flux under 20)"));
                 break;
-            case "mass":
-                q.debugMass(Double.parseDouble(arg));
-                SLConsoleTest.tell(sender, "Quasar bench: mass set");
+            case "mass": {
+                final double want = Double.parseDouble(arg);
+                final double got = q.debugMass(want);
+                SLConsoleTest.tell(
+                    sender,
+                    q.getMass() <= 0 ? "Quasar bench: no hole (seed one first)"
+                        : "Quasar bench: mass set to " + massNote(q, want, got));
                 break;
+            }
             case "feed":
                 q.setFeed(Double.parseDouble(arg));
                 SLConsoleTest.tell(sender, "Quasar bench: feed f " + q.getFeed());
@@ -331,7 +361,7 @@ public class CommandBTSQuasar extends CommandBase {
             case "run": {
                 final int seconds = arg.isEmpty() ? 60 : Integer.parseInt(arg);
                 final boolean fill = args.length > 5 && args[5].equalsIgnoreCase("fill");
-                if (q.isFrozen()) {
+                if (q.refreshFrozen()) {
                     SLConsoleTest.tell(sender, "Quasar bench: FROZEN (not formed or a chunk unloaded): nothing runs");
                     break;
                 }
@@ -341,10 +371,10 @@ public class CommandBTSQuasar extends CommandBase {
                     sender,
                     String.format(
                         Locale.ROOT,
-                        "Quasar bench: ran %d s in %d ms; last second G %.3f Bu/t (jet %.3f), zone %s%s%s",
+                        "Quasar bench: ran %d s in %d ms; last second G %s (jet %.3f), zone %s%s%s",
                         seconds,
                         (System.nanoTime() - start) / 1_000_000L,
-                        r.G,
+                        com.nateyburr.beyondthestars.machines.gui.BTSFormat.buEuShort(r.G),
                         r.jet,
                         MTEQuasarEngine.zoneName(r.zone),
                         r.blowOut ? ", BLOW-OUT: " + r.blowOutReason : "",
@@ -393,8 +423,16 @@ public class CommandBTSQuasar extends CommandBase {
         boolean analog = false;
         long cut = 0;
         double mass = 0;
+        final int[] mk = { 1 };
+        final double[] limit = { com.nateyburr.beyondthestars.machines.eye.star.EyeGalaxyBench.STANDARD };
         for (int i = 5; i < args.length; i++) {
             final String a = args[i].toLowerCase(Locale.ROOT);
+            final int used = com.nateyburr.beyondthestars.machines.eye.star.EyeGalaxyBench
+                .parseRigOption(args, i, mk, limit);
+            if (used >= i) {
+                i = used;
+                continue;
+            }
             if (a.equals("analog")) analog = true;
             else if (a.equals("cut") && i + 1 < args.length) cut = Long.parseLong(args[++i]);
             else if (a.equals("mass") && i + 1 < args.length) mass = Double.parseDouble(args[++i]);
@@ -418,7 +456,7 @@ public class CommandBTSQuasar extends CommandBase {
             SLConsoleTest.tell(sender, "Quasar bench: FROZEN (not formed or a chunk unloaded): nothing runs");
             return;
         }
-        for (String line : QuasarRigBench.autorig(world, q, secs, eye, analog, cut, mass)) {
+        for (String line : QuasarRigBench.autorig(world, q, secs, eye, analog, cut, mass, mk[0], limit[0])) {
             SLConsoleTest.tell(sender, line);
         }
     }
@@ -497,5 +535,12 @@ public class CommandBTSQuasar extends CommandBase {
             }
         }
         return "no Burst Control Hatch with a free face";
+    }
+
+    /** "5,000 SM", or "4,096 SM (clamped: this structure holds 4,096 SM)" (smbh-v1.md §10.3). */
+    private static String massNote(MTEQuasarEngine q, double want, double got) {
+        final String m = MTEQuasarEngine.fmt(got) + " SM";
+        return got == want ? m
+            : m + " (clamped: this structure holds " + MTEQuasarEngine.fmt(q.getStructureTop()) + " SM)";
     }
 }

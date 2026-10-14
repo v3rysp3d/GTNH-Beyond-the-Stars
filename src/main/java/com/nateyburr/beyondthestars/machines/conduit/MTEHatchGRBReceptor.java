@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -90,6 +89,11 @@ public class MTEHatchGRBReceptor extends MTEHatch {
         double bu;
         boolean linkable;
         long tick;
+        /** P4-88: the tightest Junction out-1 limit on this second's streams (+infinity: none). */
+        double limit = Double.POSITIVE_INFINITY;
+        /** SMBH (smbh-v1.md §1.3): the source record this second, the lattice in force and the hole's mass, SM. */
+        int lattice;
+        double mass;
 
         Rec(BurstSource source) {
             this.source = source;
@@ -129,6 +133,7 @@ public class MTEHatchGRBReceptor extends MTEHatch {
     @Override
     public String[] getDescription() {
         return new String[] { "Takes a gamma-ray burst stream (Bu/t) into a machine. Any side: aim a conduit at it.",
+            "1 Bu/t is worth 10^13 EU/t in a crown (a maxed quasar's 9,796 Bu/t: 9.8e16 EU/t, 98 quadrillion).",
             "Records each second how much arrived from which Quasar Engine: that is the machine's §bquasar link§7.",
             "Linked: bursts arrived last second from a formed quasar with its hole open and coils powered,",
             "  through an open path (every element fuelled, every ray clear). Nothing is saved or paired by hand.",
@@ -156,9 +161,15 @@ public class MTEHatchGRBReceptor extends MTEHatch {
             r.tick = now;
             r.bu = 0;
             r.linkable = false;
+            r.limit = Double.POSITIVE_INFINITY;
+            r.lattice = 0;
+            r.mass = 0;
         }
         r.bu += s.buPerTick;
         r.linkable |= s.linkable;
+        r.limit = Math.min(r.limit, s.limit);
+        r.lattice = Math.max(r.lattice, s.lattice);
+        r.mass = Math.max(r.mass, s.mass);
         lifetimeBuS += s.buPerTick;
         known.remove(s.source);
         known.put(s.source, now);
@@ -192,6 +203,7 @@ public class MTEHatchGRBReceptor extends MTEHatch {
                 continue;
             }
             out.add(r.source, r.bu, r.linkable);
+            out.record(r.source, r.limit, r.lattice, r.mass);
         }
         for (Iterator<Map.Entry<BurstSource, Long>> it = known.entrySet()
             .iterator(); it.hasNext();) {
@@ -235,7 +247,9 @@ public class MTEHatchGRBReceptor extends MTEHatch {
         final String h = getHost();
         out.add("GRB Receptor Port" + (h.isEmpty() ? " (in no machine: it only records)" : " in " + h));
         final BurstReading r = reading();
-        out.add(String.format(Locale.ROOT, "Last second: %.2f Bu/t%s", r.total, r.linked() ? ", LINKED" : ""));
+        out.add(
+            "Last second: " + com.nateyburr.beyondthestars.machines.gui.BTSFormat.buEuShort(r.total)
+                + (r.linked() ? ", LINKED" : ""));
         out.add(r.line());
         return out;
     }
@@ -272,7 +286,18 @@ public class MTEHatchGRBReceptor extends MTEHatch {
         if (benchFrom == null || benchFrom.status() != BurstSource.Status.RUNNING) return;
         final MTEQuasarEngine q = benchFrom.resolve();
         if (q == null) return;
-        receive(BurstStream.of(new JetPacket(benchFrom, JetPort.TOP, benchBu, q.linkable(), now())));
+        // the source record too (SMBH: the lattice in force and the mass), so the bench feeds a host what a real stream
+        // from that quasar would carry (the Eye's Supermassive Link reads it)
+        receive(
+            BurstStream.of(
+                new JetPacket(
+                    benchFrom,
+                    JetPort.TOP,
+                    benchBu,
+                    q.linkable(),
+                    now(),
+                    q.getLatticeInForce(),
+                    q.getMass())));
     }
 
     @Override
