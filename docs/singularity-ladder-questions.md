@@ -6,7 +6,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 1. **Open questions**: each open decision once, with the answer we recommend and where the detail is.
 2. **Settled**: everything you have answered, in your words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision from you.
-4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-138 and the SMBH branch's B-150.., the tidy pass's
+4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-138 and the SMBH branch's B-150..B-155, the tidy pass's
    TQ-1..TQ-8, and P4's P4-01..P4-94 in Part E).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
@@ -49,6 +49,8 @@ Most important first. "Recommended" is what we would build if you say nothing. N
 | 24 | ~~The time warp `/btswarp` (op only, cheats): ship it in release jars?~~ | **Settled**: ship it, op and cheats only (as built) | B-117 |
 | 25 | The two-fluid wafer engravings (SL-X05 Empyrean, SL-X06 Omega) cannot run in a single-block Laser Engraver (one fluid slot) | Keep; a UMV player uses GT's Hyper-Intensity Laser Engraver (or any multi with two input hatches); say "multiblock engraver" in the Empyrean / Omega quests | B-136, seen 1 |
 | 26 | `stellarCircuits=false` leaves the Piko / Quantum / Planck raise on (two independent switches) | Keep them independent; add one sentence to the `stellarCircuits` config comment | B-136, seen 2 |
+| 27 | SMBH: with `replaceTecTechEyeOfHarmony` on, MagMatter waits for our Eye T10 (the Godforge EE upgrade takes 2 Universium frames), but Saturation needs MagMatter coils and the T9 -> T10 Supermassive Link needs a lattice: a loop | Under the same flag, rewrite EE's 2 Universium frame boxes to 8 Black Dwarf Matter frames (P4-24's suggestion), so MagMatter arrives with Eternity at T7 | B-153 |
+| 28 | SMBH: a broken lattice block under a hole over 4,096 SM unforms the quasar (frozen, nothing lost) instead of shedding the hole to the coil cap | Keep: a mis-click must not cost days of growth; taking a lattice down means lowering the setpoint to 4,096 SM first | B-154 |
 
 ## 2. Settled
 
@@ -6751,6 +6753,91 @@ engine and the controller. The structures, the GUI, the recipes, the questbook a
 - the Mk IV crown structure and throat item, recipes, quests and the film;
 - the `smbhAllowUnbound` config key;
 - GT's GTPowerfailTracker NPE on an owner-less bench quasar's GUI (bench only, not touched).
+
+### B-151 SMBH structures: the lattice and the Mk IV crown are drawn by the exporter, not voxel.js [smbh branch, built + test]
+
+**Context.** §1.1 sizes the lattice "about 185 × 185 × 185, about 8,000 Lattice Frame Casings" and §3.4 adds a Crown
+Mk IV, but `designs/voxel.js` has neither, and this run is confined to the addon worktree.
+
+**Built.**
+- `tools/export-structures.js` draws both in memory (as it already patches voxel.js for the bolt bus and the Kerr
+  tags): two block kinds appended last, a fourth `CROWN` entry `{ h 32, ro 40, n 32 }` (Mk I-III continued) and
+  `smbhLattice()`. Every other shape is byte-identical; `--check` passes.
+- The lattice: an equatorial band (r 87.5-89.5, 3 tall), two ±35° rings (r 71.5-73.5, 2 tall), 24 struts onto the
+  quasar's 24 buttresses (the spec says "the 16-column cage": those columns sit inside the outer wall, so the struts tie
+  to the buttresses outside it), 8 meridian ribs. 8,436 frames + 48 nodes; 179 × 101 × 179, 179 × 161 × 179 with the
+  quasar (not 185³: the lattice stays inside the quasar's height, the poles stay open for the jets).
+- New checks: 48 nodes, 16 per ring; lattice and quasar disjoint; crowns Mk I-IV docked and stacked never touch it; the
+  controller's front open; every socket reachable with the lattice built.
+
+**Suggestion.** Copy `smbhLattice()` and the fourth CROWN entry into voxel.js (and a scene for the review page) at the
+next design-repo pass, then drop the exporter's patch. **Alternative:** a taller cage reaching the 185 the spec named,
+with polar rings at ±60° (the jets' cone stays clear at r 44).
+
+### B-152 SMBH recipes: where the cards changed [smbh branch, built]
+
+**Built** (SL-Q29..Q35, spec §8.2; every number kept except):
+1. **B-72 UMV stopgap.** Node L1 takes 4 UMV Field Generators for the card's 2 UXV, Throat Mk IV 2 UMV for 1 UXV: RC-2's
+   UXV parts need Universium (T10), and L1 must exist before T10 (the Supermassive Link gates T9 -> T10).
+2. **Lattice Frame Casing:** GT's Assembler takes one fluid, so the card's 72 L of Molten SpaceTime is 2 SpaceTime
+   foils; the 36 L of Superdense Ergomatter stays the fluid.
+3. **Throat Mk IV:** "4 Superdense Ergomatter-filled cells" is 4,000 L of the fluid.
+4. **GT's assembly line takes at least 4 item stacks** (the first boot registered SL-Q30 / Q35 with nothing live): L1
+   adds 2 dense Black Dwarf Matter plates, Throat Mk IV 16 Casimir Plates and 4 any-UXV circuits.
+5. **L2:** 4,000 L of White Hole Matter is 4,032 L of Entangled White Hole Matter (the Condensate Assembler's half-unit
+   rule: 72 L). Hidden in NEI and marked placeholder until P5 makes White Hole Matter.
+6. **L4 "Constrained Eternity Plates":** no such item in RC-2, so 4 Eternity + 4 MHDCSM plates under the Universium
+   coat; "1 any Omega/Endgame circuit" is 16 any-MAX (no tier above MAX exists; rule 32a: any of the tier).
+7. Durations and voltages (the card has none): Frame 20 s UXV, L1 300 s UXV, L2 600 s MAX, L3 900 s MAX, L4 1,200 s
+   MAX ×4, Thermaliser 30 s UXV, Throat 900 s UXV.
+
+**Gate audit** (`/btseye gates`): Lattice Frame Casing and Node L1 are CLEAN for the Eye T10 gate.
+
+### B-153 SMBH: the MagMatter loop at the T9 -> T10 gate [smbh branch, open]
+
+**Context.** Saturation needs 4,096 SM, which only MagMatter (T4) Disc Field Coils hold, and §1.2 makes the lattice
+count only on them. The Supermassive Link (P5's T9 -> T10 milestone) needs a lattice. P4-24 found that MagMatter's only
+source, the Godforge's magmatter mode, needs the EE upgrade, which costs 2 Universium frame boxes: Eye T10 when
+`replaceTecTechEyeOfHarmony` is on. So with the flag on, T10 needs MagMatter, and MagMatter needs T10.
+
+**Built.** Nothing changed: the lattice, the frame casing (MagMatter frame box) and Saturation follow the spec. With the
+flag off (TecTech's EOH makes Universium) there is no loop.
+
+**Suggestion.** P4-24's fix, behind the same flag: rewrite EE's 2 Universium frame boxes to 8 Black Dwarf Matter
+frames, so MagMatter (and T4 coils, Saturation, the lattice) arrive at T7 with Eternity. **Alternatives:** let Saturation
+count on SpaceTime (T3) coils at 2,048 SM; or give the T4 coil a Superdense Ergomatter body (a T8 part).
+
+### B-154 SMBH: an incomplete lattice freezes the hole instead of shedding it [smbh branch, built + test]
+
+**Context.** §2.5 sheds a hole when the structure holds less (a lattice swapped down, coils swapped down). A lattice
+missing one frame block also "holds less", and a shed of a 4 M SM hole at 2 % a second throws away days of growth.
+
+**Built.** A whole lattice of a lower tier sheds as §2.5 says. An incomplete lattice under a hole over 4,096 SM unforms
+the quasar with the error "The Supermassive Lattice is incomplete and the hole needs it" and the first wrong cell: the
+disc is frozen (nothing moves, nothing is lost) until the lattice is whole. Coil downgrades without a lattice shed as
+before (B-150). Tested: one frame removed under 60,000 SM: NOT FORMED, M kept; rebuilt: FORMED. A lattice chunk that is
+unloaded while the controller's chunk ticks also reads as incomplete, so the hole freezes then too.
+
+**Suggestion.** Keep. To take a lattice down: set the mass setpoint to 4,096 SM, let it shed, then break it.
+
+### B-155 SMBH structure unit: smaller calls [smbh branch, built]
+
+1. **Saturation needs |E| ≤ 40 for every one of 3,600 seconds.** An unattended disc at f 0.85 sits near E −16 and each
+   eruption kicks it by −30, so the streak breaks every eruption; at f 1.0 (E near 0) it landed in the 3,700 s bench run.
+   The standard rig (trims, purges) holds it. Quest text should say so.
+2. **The hologram cannot say "Reach Saturation first"** (§1.2): `construct` runs on the client and reads only the
+   trigger (trap 1). The scanner and the tooltip say it; the GUI row belongs to the controller unit (the GUI is not
+   changed here).
+3. **Construct with the lattice channel and no coil channel builds MagMatter coils**, since a lattice counts only on
+   them.
+4. **The nodes glow** (light 7) in their tier colour, as §7 asks for the lattice.
+5. **`/btssmbh mass` moves the setpoint with it**, so a scripted mass holds instead of shedding straight back to the
+   default (the safe limit). `/btssmbh unbind` and `damage` are extra bench verbs for the film and the test.
+6. **Crown Mk IV docks on the same port cell** as Mk I-III (their bases are the same); a Mk IV stacks at core top − 2
+   (dy 23) with no shared cell.
+7. **The SMBH textures** come from `tools/gen-sl-textures.js` in the quasar's BHC family: a lavender truss with a violet
+   seam (frame), a glowing orb per tier (teal / white / starry violet / magenta), a black horizon in a white-violet
+   heat grid (Event Horizon Thermaliser), a teal-ringed throat with four studs.
 
 ## Where the old question numbers went
 

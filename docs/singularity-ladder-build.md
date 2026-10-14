@@ -2306,6 +2306,12 @@ pre-P4 builds stay formed.
 | SL-Q24 / Q25 | Star Chart: Triangulum / Milky Way | Condensate Assembler | |
 | SL-Q26 | Eternity on Ergomatter | load-complete rewrite | catalyst 9,216 L, Timepiece 4,608 L Ergomatter |
 | SL-Q27 / Q28 | NEI pages | `QuasarRecipeMaps.QUASAR` / `THERMALISER` | fake recipes |
+| SL-Q29 | Lattice Frame Casing ×4 (SMBH) | Assembler, UXV | MagMatter frame, 4 BDM plates, 2 SpaceTime foils (the 72 L), 36 L Superdense Ergomatter |
+| SL-Q30 | Containment Node L1 (SMBH) | assembly line, UXV (research: Lattice Frame) | 8,000 L Superdense Ergomatter + 2,304 L Magnetar Matter; 4 UMV FG (B-72), 4 any-UXV, 2 dense BDM |
+| SL-Q31 | Containment Node L2 (SMBH) | Condensate Assembler, MAX | L1 node + 4,032 L Entangled White Hole Matter; hidden in NEI, placeholder until P5 |
+| SL-Q32 / Q33 | Containment Node L3 / L4 (SMBH) | Condensate Assembler, MAX / MAX ×4 | L3: 2,304 L Entangled Universium; L4: 4 Eternity + 4 MHDCSM plates, MHDCSM + Universium 1,440 L each, 16 any-MAX |
+| SL-Q34 | Event Horizon Thermaliser Casing ×4 (Crown Mk IV) | Assembler, UXV | 4 MagMatter plates, Neutronium frame, 144 L Superdense Ergomatter |
+| SL-Q35 | Conduit Throat Mk IV | assembly line, UXV (research: Throat Mk III) | Mk III, 2 UMV FG (B-72), 16 Casimir, 4 any-UXV, 4,000 L Superdense Ergomatter |
 | SL-P40 | *retired 2026-10-14 (B-135): now only the fallback of SL-G03, GT's own recipe rewritten in place* Resonance Chamber IV | Condensate Assembler | SpaceTime foils + 1,500 L Entangled Ergomatter |
 
 SL-G03 (which retired SL-P40) and SL-Q26 run only with `replaceTecTechEyeOfHarmony`. `BTSRecipesReality.ETERNITY_BEFORE_T10` =
@@ -2916,3 +2922,83 @@ Seven review findings, all confirmed against the code and all fixed. Each fix is
 - An Eye link streak across a real restart.
 - The ConduitNet rig after the weak-reference change. Only a BurstDocks lookup was exercised.
 - The T7 test fire in game. The ceiling rests on the harness.
+
+---
+
+## SMBH v1: the Supermassive Lattice (structure, content, recipes, helpers)
+
+**Design of record:** design repo `designs/docs/smbh-v1.md` (revision 3). Branch `smbh`, worktree `addon-smbh`; the
+engine (§10.1) and the max-quasar fixes are B-150; this unit's judgement calls are B-151..B-155 in
+`singularity-ladder-questions.md`.
+
+### Shapes
+
+- `quasar_lattice` (piece of the Quasar Engine, MTE 28120; 179 × 101 × 179, the quasar and lattice together
+  179 × 161 × 179): 8,436 Lattice Frame Casings `L` and 48 Containment Nodes `N`. An equatorial band at r 87.5-89.5
+  (3 tall), two latitude rings at ±35° (r 71.5-73.5 at y ±49..50), 24 radial struts at y 0 onto the outer wall's 24
+  buttresses, 8 meridian ribs; 16 nodes per ring at 11.25 + 22.5k°, on each ring's outer face. Disjoint from `quasar`;
+  crowns Mk I-IV docked (and stacked) on both ports never touch it; the controller's front stays open.
+- `crown_mk4` (81 × 35 × 81): the Mk I-III crown continued (h 32, ro 40, 32 petals); its thermaliser cells are the new
+  Event Horizon Thermaliser Casing `X`. 6,418 blocks.
+- voxel.js has neither, so `tools/export-structures.js` draws both in memory (two block kinds appended last, a fourth
+  `CROWN` entry, `smbhLattice()`); every other shape is byte-identical and `--check` passes.
+
+### Blocks and items (§8.1)
+
+| Id | Block / item | Role |
+|---|---|---|
+| `slCasing4:0` | Lattice Frame Casing | lattice char `L` |
+| `slCasing4:1..4` | Containment Node L1-L4 | lattice char `N`, `ofBlocksTiered` on channel `lattice`; light 7 |
+| `slCasing4:5` | Event Horizon Thermaliser Casing | crown_mk4 char `X` |
+| `conduitThroatMk4` | Conduit Throat Mk IV | throat tier 4: 524,288 Bu/t; upkeep 2 L/s Superdense Ergomatter (preferred), else 16 L/s Ergomatter or 256 L/s SpaceTime |
+
+Textures: `tools/gen-sl-textures.js` (`sl_latframe`, `sl_node_l1..l4`, `sl_ehthermaliser`, `conduitThroatMk4`), the
+quasar's BHC family with each tier's colour. No new MTE id, fluid or recipe-result id.
+
+### The walk (`MTEQuasarEngine`)
+
+- `checkMachine` walks `quasar`, then `quasar_lattice`. A whole lattice of one node tier sets `latticeBuilt`; it is in
+  force (`latticeTier`, what the engine reads) only after **Saturation** and only on MagMatter coils.
+- **Saturation (§1.2):** 4,096 SM on T4 coils, the hole open, |E| ≤ 40, 3,600 disc seconds unbroken. Saved with the
+  hole (`saturated`, `satStreak` in `btsQuasar`, so it survives a wrench). The scanner shows the streak.
+- A lattice swapped to a lower tier is a whole lattice: the engine sheds to that tier's top (§2.5). An **incomplete**
+  lattice under a hole over 4,096 SM unforms the quasar (error `beyondthestars.structure.quasar.lattice` plus the first
+  wrong cell): the hole is frozen, nothing is lost. To take a lattice down, lower the setpoint to 4,096 SM first.
+- The chunk box includes the lattice once one stands (or the hole needs one).
+- Hologram / survival / NEI: the `lattice` channel (1-4) adds the lattice at that node tier; with no `coil` channel the
+  coils are built at T4. NEI's preview finds the channel through `withChannel(ofBlocksTiered)` (BlockRenderer6343's
+  `StructureHacks` / `ConstructableData.channelMaxTierMap`), as the coil channel.
+
+### Crown Mk IV and Throat Mk IV
+
+- `MTEBurstThermaliserCrown.PIECES` gains `crown_mk4`; `MK_MAX` = 4; the biggest crown that stands wins.
+- `MTEConduitElement.upkeep`: a Mk IV throat burns Superdense Ergomatter at 2 L/s whenever the fuel mode allows the
+  Ergomatter family and the hatches hold enough (counted with the Ergomatter litres).
+
+### Helpers
+
+- `/btskit lattice [1-4]`: 8,436 frames, 48 nodes of the tier, a crown controller with the Mk IV parts, a Throat Mk IV.
+- `/btsquasar [t1..t4] [l1..l4] [saturate] ...`: the quasar with the lattice (creative or `survival`), and Saturation
+  set by command.
+- `/btssmbh` (op only): `bench [x y z [facing]]` (L4 lattice, Saturation, a 4,096 SM hole, every upkeep hatch filled,
+  Mk IV crowns on both ports, chunks kept), `mass <M>` (clamped; the setpoint follows), `fill`, `drain anchor`,
+  `saturate on|off`, `unbind on|off`, `damage`, `status`.
+
+### Dev-server test (port 25651, world `smbh-test`, five boots)
+
+- Boot: `Recipe registration complete: 371 registered, 0 skipped` (364 before: +7, SL-Q29..Q35).
+  `/btsrecipes dump`: all seven rows in "Quasar / Conduit", SL-Q31..Q33 marked placeholder.
+- Forms by command at every tier: L1, L2, L3, L4 (creative, swapped in place over one quasar), each "FORMED, lattice Ln
+  (in force)" after `saturate`; the re-projection keeps it formed; the damage-and-repair check passes.
+- Survival auto-place: quasar + L1 lattice, 60,467 blocks in 304 rounds, FORMED; `crown4` survival 6,417 blocks, FORMED
+  Mk 4.
+- Clamps: L1 65,536, L2 262,144, L3 4,194,304, L4 67,108,864 SM.
+- Natural Saturation on a real disc (f 1.0, 3,700 s bench run): the milestone landed and L1 came into force; at f 0.85
+  unattended the eruption kick (E −30 from about −16) breaks the streak, so Saturation wants a trimmed or purged disc.
+- L1 at 60,000 SM: hold-up 100 %, x 0.94, output ×3.82, both Mk IV crowns took 65,958 Bu/t.
+- One frame block removed under the 60,000 SM hole: NOT FORMED, "Lattice INCOMPLETE", M kept; rebuilt: FORMED.
+- L4 → L2 swap at 67 M SM: cap 262,144, shedding (and frozen, not shed, while a lattice chunk was unloaded).
+- Unbound L4 at 134,217,728 SM (n 1): anchor paid; `drain anchor` (131,002,368 L): "SHEDDING (anchor short)" down to
+  67,108,864 SM, then hold-up 100 % again. A Mk IV crown taking 74,599 Bu/t pushed 7.46 × 10¹⁷ EU/t to wireless.
+- `/btseye gates`: Lattice Frame Casing and Containment Node L1 CLEAN for the Eye T10 gate.
+
