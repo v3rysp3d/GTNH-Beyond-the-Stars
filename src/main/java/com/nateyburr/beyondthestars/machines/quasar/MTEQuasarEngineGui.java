@@ -514,19 +514,26 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
             BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "intake.tip2")),
             BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "intake.tip3")));
         final boolean shed = m.state().shed;
-        final String split = BTSText.lang(
-            shed ? K + "intake.line.shed" : K + "intake.line",
-            BTSFormat.litres(disc),
-            BTSFormat.litres(hold),
-            r.holdUpNeed > 0 ? BTSFormat.pct(r.holdUpCoverage) : "-",
-            BTSFormat.litres(grow),
-            perHour(m.getMassRatePerHour()));
+        // two rows: one line cut the Growth and the mass change per hour off the panel (seen in the dev client)
+        // the hold-up's share only when it is short (the bar's red gap and the leak row say so too): at an Unbound
+        // hole's G-litre figures "(100%)" no longer fit the row
+        final boolean holdShort = r.holdUpNeed > 0 && r.holdUpCoverage < 1 - 1e-9;
+        final String split = holdShort
+            ? BTSText.lang(
+                K + "intake.line.short",
+                BTSFormat.litres(disc),
+                BTSFormat.litres(hold),
+                BTSFormat.pct(r.holdUpCoverage))
+            : BTSText.lang(K + "intake.line", BTSFormat.litres(disc), BTSFormat.litres(hold));
         rows.note(BTSRows.ICON_NONE, BTSGuiKit.VALUE, split, BTSText.lang(K + "intake.line.tip"));
+        final String growth = shed ? BTSText.lang(K + "intake.line2.shed", BTSFormat.litres(grow))
+            : BTSText.lang(K + "intake.line2", BTSFormat.litres(grow), perHour(m.getMassRatePerHour()));
+        rows.note(BTSRows.ICON_NONE, BTSGuiKit.VALUE, growth, BTSText.lang(K + "intake.line.tip"));
         if (r.leaking) {
             rows.note(
                 BTSRows.ICON_BAD,
                 BTSGuiKit.BAD,
-                BTSText.lang(K + "leaking", perHour(m.getLeakRatePerHour()), BTSFormat.pct(r.holdUpCoverage)),
+                BTSText.lang(K + "leaking", perHour(m.getLeakRatePerHour())),
                 BTSText.lang(K + "leaking.tip"));
         }
         // the Accretion Buffer
@@ -564,14 +571,18 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
                 m.overdriveFromHatch() ? BTSText.cat(BTSText.lit("§b"), BTSText.lang(K + "od.hatch")) : "");
             if (o > 0 && shed) {
                 rows.stat(BTSText.lang(K + "upkeep"), BTSText.lang(K + "upkeep.shed"), BTSText.lang(K + "upkeep.tip"));
+            } else if (o > 0 && m.state().hole != QuasarState.Hole.OPEN) {
+                // a dark disc burns nothing and makes nothing (§3.2): idle, not "0 % paid"
+                rows.stat(BTSText.lang(K + "upkeep"), BTSText.lang(K + "upkeep.dark"), BTSText.lang(K + "upkeep.tip"));
             } else if (o > 0) {
                 rows.stat(
                     BTSText.lang(K + "upkeep"),
                     BTSText.lit(
+                        // "100,000 L/s each, 100% paid" was cut to "pai." in the dev client; "paid" is in the tooltip
                         (shortOd ? "§c" : "") + BTSFormat.litres(need)
-                            + " L/s §7each, §f"
+                            + " L/s §7each (§f"
                             + BTSFormat.pct(r.overdriveNeed > 0 ? r.overdriveCoverage : 0)
-                            + " paid"),
+                            + "§7)"),
                     BTSText.lang(K + "upkeep.tip"));
             }
         } else if (o > 0) {
@@ -603,7 +614,7 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
                 BTSGuiKit.WARN,
                 BTSText.lang(
                     K + "shedding",
-                    MTEQuasarEngine.fmt(r.shedTarget),
+                    r.shedTarget >= 999_999.5 ? BTSFormat.litres(r.shedTarget) : MTEQuasarEngine.fmt(r.shedTarget),
                     BTSFormat.duration(Math.round(QuasarParams.shedSeconds(m.getMass(), r.shedTarget)))),
                 BTSText.lang(K + "shedding.tip", MTEQuasarEngine.shedWhy(r.shedReason)));
         }
@@ -808,7 +819,8 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
         // SMBH: a dark disc holds nothing up, so the lattice section (the leak, the buffer, the anchor) stays shown
         latticeRows(rows);
         final String ev = m.getLastEvent();
-        if (ev != null && !ev.isEmpty()) rows.note(BTSRows.ICON_BAD, BTSGuiKit.BAD, BTSText.lit(ev));
+        // the whole event in the tooltip: the row is cut to the panel's width
+        if (ev != null && !ev.isEmpty()) rows.note(BTSRows.ICON_BAD, BTSGuiKit.BAD, BTSText.lit(ev), BTSText.lit(ev));
     }
 
     private void notesRows(BTSRows.Builder rows) {
@@ -823,7 +835,11 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
         }
         final String ev = m.getLastEvent();
         if (hole() != QuasarState.Hole.REFORM && ev != null && !ev.isEmpty()) {
-            rows.note(BTSRows.ICON_NONE, BTSGuiKit.DIM, BTSText.lang("beyondthestars.gui.kit.last", ev));
+            rows.note(
+                BTSRows.ICON_NONE,
+                BTSGuiKit.DIM,
+                BTSText.lang("beyondthestars.gui.kit.last", ev),
+                BTSText.lit(ev));
         }
         final String render = m.getRenderNote();
         if (render != null && !render.isEmpty()) rows.note(BTSRows.ICON_WARN, BTSGuiKit.WARN, BTSText.lit(render));

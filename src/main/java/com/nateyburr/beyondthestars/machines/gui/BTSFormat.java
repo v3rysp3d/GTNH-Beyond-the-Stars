@@ -20,8 +20,13 @@ public final class BTSFormat {
         if (a < 999_999.5) return String.format(Locale.ROOT, "%,d", Math.round(l));
         if (a < 99.95e6) return String.format(Locale.ROOT, "%.1fM", l / 1e6);
         if (a < 999.5e6) return String.format(Locale.ROOT, "%.0fM", l / 1e6);
-        if (a < 999.995e9) return String.format(Locale.ROOT, "%.2fG", l / 1e9);
-        return String.format(Locale.ROOT, "%.2fT", l / 1e12);
+        // three significant figures, as the M range: "26.8G", "134G" (an Unbound hole's intake line fits its row)
+        if (a < 9.995e9) return String.format(Locale.ROOT, "%.2fG", l / 1e9);
+        if (a < 99.95e9) return String.format(Locale.ROOT, "%.1fG", l / 1e9);
+        if (a < 999.5e9) return String.format(Locale.ROOT, "%.0fG", l / 1e9);
+        if (a < 9.995e12) return String.format(Locale.ROOT, "%.2fT", l / 1e12);
+        if (a < 99.95e12) return String.format(Locale.ROOT, "%.1fT", l / 1e12);
+        return String.format(Locale.ROOT, "%.0fT", l / 1e12);
     }
 
     /** "{have} / {need}" in compact litres (no unit). */
@@ -102,12 +107,15 @@ public final class BTSFormat {
     }
 
     /**
-     * A Bu/t number for a GUI row, where width is short: {@link #buNum} below a million, then {@code 2.29M},
-     * {@code 1.07G} (the exact figure goes in the row's tooltip).
+     * A Bu/t number for a GUI row, where width is short: {@link #buNum} below 10,000 ({@code 9,788}), then
+     * {@code 13.7k}, {@code 484k}, {@code 2.29M}, {@code 1.07G}: never wider than {@code 9,788}, so a "Bottom jet" row
+     * keeps its "= 4.8e18 EU/t" whole (the exact figure goes in the row's tooltip).
      */
     public static String buCompact(double bu) {
         final double a = Math.abs(bu);
-        if (a < 999_999.5) return buNum(bu);
+        if (a < 9_999.5) return buNum(bu);
+        if (a < 99_950) return String.format(Locale.ROOT, "%.1fk", bu / 1e3);
+        if (a < 999_500) return String.format(Locale.ROOT, "%.0fk", bu / 1e3);
         if (a < 999.995e6) return String.format(Locale.ROOT, "%.2fM", bu / 1e6);
         return String.format(Locale.ROOT, "%.2fG", bu / 1e9);
     }
