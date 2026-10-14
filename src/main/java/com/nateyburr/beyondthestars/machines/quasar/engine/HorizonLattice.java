@@ -84,7 +84,8 @@ public final class HorizonLattice {
         p.medd = QuasarParams.eddingtonFeed(q.M, in.gas);
         p.intakeCap = QuasarParams.INTAKE_CAP * p.medd;
         p.growthCap = QuasarParams.growthCap(in);
-        if (in.unbound && p.lattice == QuasarParams.LATTICE_MAX) p.anchorCap = QuasarParams.anchorCap(in.anchorAvailable);
+        if (in.unbound && p.lattice == QuasarParams.LATTICE_MAX)
+            p.anchorCap = QuasarParams.anchorCap(in.anchorAvailable);
         p.target = Math.min(p.growthCap, p.structureTop);
         p.shedPlanned = p.active && q.M > p.target;
         if (p.open && p.lattice > 0 && !p.shedPlanned) {

@@ -292,8 +292,9 @@ public class CommandBTSQuasar extends CommandBase {
                 if (arg.isEmpty()) {
                     SLConsoleTest.tell(sender, "Quasar bench: " + QuasarKit.seedFromSlot(q));
                 } else {
-                    q.debugSeed(Double.parseDouble(arg), args.length > 5 ? Double.parseDouble(args[5]) : 0);
-                    SLConsoleTest.tell(sender, "Quasar bench: seeded (debug, no item)");
+                    final double want = Double.parseDouble(arg);
+                    final double got = q.debugSeed(want, args.length > 5 ? Double.parseDouble(args[5]) : 0);
+                    SLConsoleTest.tell(sender, "Quasar bench: seeded (debug, no item) at " + massNote(q, want, got));
                 }
                 break;
             case "open": {
@@ -310,10 +311,15 @@ public class CommandBTSQuasar extends CommandBase {
                     "Quasar bench: purge -> "
                         + (q.requestPurge() ? "requested (next second)" : "refused (flux under 20)"));
                 break;
-            case "mass":
-                q.debugMass(Double.parseDouble(arg));
-                SLConsoleTest.tell(sender, "Quasar bench: mass set");
+            case "mass": {
+                final double want = Double.parseDouble(arg);
+                final double got = q.debugMass(want);
+                SLConsoleTest.tell(
+                    sender,
+                    q.getMass() <= 0 ? "Quasar bench: no hole (seed one first)"
+                        : "Quasar bench: mass set to " + massNote(q, want, got));
                 break;
+            }
             case "feed":
                 q.setFeed(Double.parseDouble(arg));
                 SLConsoleTest.tell(sender, "Quasar bench: feed f " + q.getFeed());
@@ -497,5 +503,12 @@ public class CommandBTSQuasar extends CommandBase {
             }
         }
         return "no Burst Control Hatch with a free face";
+    }
+
+    /** "5,000 SM", or "4,096 SM (clamped: this structure holds 4,096 SM)" (smbh-v1.md §10.3). */
+    private static String massNote(MTEQuasarEngine q, double want, double got) {
+        final String m = MTEQuasarEngine.fmt(got) + " SM";
+        return got == want ? m
+            : m + " (clamped: this structure holds " + MTEQuasarEngine.fmt(q.getStructureTop()) + " SM)";
     }
 }

@@ -67,6 +67,7 @@ import com.nateyburr.beyondthestars.machines.quasar.burst.BurstSource;
 import com.nateyburr.beyondthestars.machines.quasar.burst.IBurstDock;
 import com.nateyburr.beyondthestars.machines.quasar.burst.JetPacket;
 import com.nateyburr.beyondthestars.machines.quasar.burst.JetPort;
+import com.nateyburr.beyondthestars.machines.quasar.engine.HorizonLattice;
 import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarDisc;
 import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarGas;
 import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarInputs;
@@ -169,6 +170,13 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     /** The Directive Disc set's purge setpoint (bit 3); 0 = never. */
     private double purgeAt = QuasarParams.PURGE_AT_DEFAULT;
     private boolean renderOn = true;
+    /**
+     * SMBH (smbh-v1.md §2.2, §3.2, §5.1): the mass setpoint (0 = the lattice's safe limit), Unbind and the Overdrive
+     * level. All three do nothing without a lattice; the engine ({@link HorizonLattice}) reads them every second.
+     */
+    private double massSetpoint;
+    private boolean unbound;
+    private double overdrive;
     /** Lifetime counters (GUI, scanner). */
     private long eruptions, purges, blowOuts;
     private String lastEvent = "";
@@ -181,6 +189,11 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     // ------------------------------------------------- WALK state (resetWalk)
     private int mCasing;
     private int coilTier = -1;
+    /**
+     * SMBH: the Supermassive Lattice tier the walk found (0-4; smbh-v1.md §1.1, the {@code lattice} channel). The
+     * lattice structure is not built yet, so the walk leaves it 0; the lattice element sets it like the coils' tier.
+     */
+    private int latticeTier;
     private final ArrayList<MTEHatchInput> gasHatches = new ArrayList<>();
     private final ArrayList<MTEHatchInput> trimHatches = new ArrayList<>();
     private final ArrayList<MTEHatchBurstControl> burstHatches = new ArrayList<>();
@@ -361,6 +374,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     private void resetWalk() {
         mCasing = 0;
         coilTier = -1;
+        latticeTier = 0;
         gasHatches.clear();
         trimHatches.clear();
         burstHatches.clear();
@@ -589,6 +603,10 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             in.coilTier = Math.max(1, coilTier);
             in.bSetpoint = bSetting();
             in.powerOk = secondPowerOk;
+            in.lattice = latticeTier;
+            in.massSetpoint = massSetpoint;
+            in.unbound = unbound;
+            in.overdrive = overdrive;
             final double medd = QuasarParams.eddingtonFeed(q.M, gas);
             refillBuffer(medd);
             final double want = Math.max(0, feed) * medd;
@@ -597,6 +615,18 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             takeBuffer(gasFluid(gas), (long) Math.ceil(drawn));
             in.gasDrawn = drawn;
             gasDrawn = drawn;
+            // SMBH (smbh-v1.md §10.1-§10.2): the anchor on hand caps Unbound growth, so it is read before the plan;
+            // the hold-up and growth segments come out of what is left in the feed buffer, the Overdrive fluids and
+            // the anchor from the trim sockets, then the gas sockets (ME stocking hatches are fine there: these are
+            // upkeeps, not trims). Without a lattice every one of them is 0 and nothing is drawn.
+            final boolean lattice = QuasarParams.latticeInForce(in.coilTier, latticeTier) > 0;
+            if (lattice && unbound) in.anchorAvailable = upkeepAvailable(primordialFluid());
+            final HorizonLattice.Plan plan = HorizonLattice.plan(q, in);
+            if (plan.holdUpNeed + plan.growthRoom > 0) in.intakeAvailable = buffer(gasFluid(gas));
+            if (plan.overdriveNeed > 0) {
+                in.mhdcsmAvailable = upkeepAvailable(mhdcsmFluid());
+                in.universiumAvailable = upkeepAvailable(universiumFluid());
+            }
             // trims: what the plain trim hatches hold, in whole units, at most 10 each
             final double gasUnitL = QuasarParams.gasTrimUnitLitres(q.M);
             final double spaceUnitL = QuasarParams.spaceTrimUnitLitres(q.M);
@@ -611,6 +641,12 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             in.spaceTrimUnits = Math
                 .min(QuasarParams.TRIM_CAP, Math.floor(available(trimHatches, spaceFluid()) / spaceUnitL) + ocS);
             final QuasarResult r = QuasarDisc.step(q, in);
+            HorizonLattice.step(q, in, plan, r);
+            final double intake = r.holdUpLitres + r.growthLitres;
+            if (intake > 0) takeBuffer(gasFluid(gas), (long) Math.ceil(intake));
+            if (r.mhdcsmLitres > 0) takeUpkeep(mhdcsmFluid(), r.mhdcsmLitres);
+            if (r.universiumLitres > 0) takeUpkeep(universiumFluid(), r.universiumLitres);
+            if (r.anchorLitres > 0) takeUpkeep(primordialFluid(), r.anchorLitres);
             if (r.gasTrimLitres > 0) {
                 final long need = (long) Math.ceil(r.gasTrimLitres);
                 final long got = take(trimHatches, gasFluid(gas), need);
@@ -679,6 +715,9 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             lastEvent = "Disc blow-out: " + r.blowOutReason;
         }
         if (r.reformed) lastEvent = "Disc re-formed";
+        if (r.shedding) {
+            lastEvent = "Shedding to " + fmt(r.shedTarget) + " SM (" + shedWhy(r.shedReason) + "): no power meanwhile";
+        }
         if (r.firstLight) lastEvent = "First Light";
         if (r.eddington) lastEvent = "Milestone: 1 h at the Eddington limit";
         if (r.massMilestone >= 0) {
@@ -747,6 +786,40 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         return s == null ? null : s.getFluid();
     }
 
+    /** SMBH Overdrive (§3.2): Molten MHDCSM and Molten Universium; the Unbound anchor (§5.2): Primordial Matter. */
+    public static Fluid mhdcsmFluid() {
+        final FluidStack s = Materials.MHDCSM.getMolten(1L);
+        return s == null ? null : s.getFluid();
+    }
+
+    public static Fluid universiumFluid() {
+        final FluidStack s = Materials.Universium.getMolten(1L);
+        return s == null ? null : s.getFluid();
+    }
+
+    public static Fluid primordialFluid() {
+        final FluidStack s = Materials.PrimordialMatter.getFluid(1L);
+        return s == null ? null : s.getFluid();
+    }
+
+    /** An SMBH upkeep fluid on hand: the trim sockets and the gas sockets together, litres. */
+    private double upkeepAvailable(Fluid fluid) {
+        return (double) available(trimHatches, fluid) + available(gasHatches, fluid);
+    }
+
+    /** Drains an SMBH upkeep: the trim sockets first, then the gas sockets. */
+    private void takeUpkeep(Fluid fluid, double litres) {
+        final long need = (long) Math.ceil(litres);
+        final long got = take(trimHatches, fluid, need);
+        if (got < need) take(gasHatches, fluid, need - got);
+    }
+
+    static String shedWhy(String reason) {
+        if ("structure".equals(reason)) return "the structure holds less";
+        if ("anchor".equals(reason)) return "anchor short";
+        return "setpoint lowered";
+    }
+
     /** Spatially Enlarged Fluid, molten {@code Materials.Space}. */
     public static Fluid spaceFluid() {
         final FluidStack s = Materials.Space.getMolten(1L);
@@ -766,9 +839,15 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         else buffer.remove(fluid.getName());
     }
 
-    /** The buffer's cap: {@link #BUFFER_SECONDS} of the maximum feed at this mass. */
+    /**
+     * The buffer's cap: {@link #BUFFER_SECONDS} of the maximum feed at this mass (with a lattice, of the 5x intake
+     * cap: the hold-up and growth segments come out of it too).
+     */
     public long bufferCap() {
-        return (long) Math.ceil(BUFFER_SECONDS * QuasarParams.F_MAX * QuasarParams.eddingtonFeed(q.M, gas));
+        final double perSecond = QuasarParams.latticeInForce(Math.max(1, coilTier), latticeTier) > 0
+            ? QuasarParams.INTAKE_CAP
+            : QuasarParams.F_MAX;
+        return (long) Math.ceil(BUFFER_SECONDS * perSecond * QuasarParams.eddingtonFeed(q.M, gas));
     }
 
     /** Tops the selected gas's buffer up from the Rim Gas Injector hatches (ME stocking hatches pull from AE). */
@@ -830,6 +909,12 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     public String openHole() {
         if (!mMachine) return "the quasar is not formed";
         if (running()) return "the hole is already open";
+        if (q.hole != QuasarState.Hole.NONE && q.M > getStructureTop()) {
+            return "the hole (" + fmt(q.M)
+                + " SM) is too big for this structure (it holds "
+                + fmt(getStructureTop())
+                + " SM): fit higher coils or a lattice first";
+        }
         final ItemStack slot = mInventory[getControllerSlotIndex()];
         if (q.hole == QuasarState.Hole.NONE) {
             if (slot == null || SLQuasarItems.quasarSeed == null || slot.getItem() != SLQuasarItems.quasarSeed) {
@@ -911,17 +996,28 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         return true;
     }
 
-    /** Debug / creative: a hole of {@code mass} SM, open at once, spin {@code spin} (no item). */
-    public void debugSeed(double mass, double spin) {
+    /**
+     * Debug / creative: a hole of {@code mass} SM, open at once, spin {@code spin} (no item). The mass is clamped to
+     * 1 .. the structure's top (smbh-v1.md §10.3); returns the mass set.
+     */
+    public double debugSeed(double mass, double spin) {
         reseedNoise();
-        q.seed(Math.max(1, mass), Math.max(0, Math.min(QuasarParams.A_MAX, spin)));
+        q.seed(clampMass(mass), Math.max(0, Math.min(QuasarParams.A_MAX, Double.isFinite(spin) ? spin : 0)));
         lastEvent = "Seeded (debug)";
+        return q.M;
     }
 
-    /** Debug: set the mass (the hole must exist). */
-    public void debugMass(double mass) {
-        if (q.hole == QuasarState.Hole.NONE) return;
-        q.M = Math.max(1, mass);
+    /** Debug: set the mass (the hole must exist), clamped to 1 .. the structure's top; returns the mass now. */
+    public double debugMass(double mass) {
+        if (q.hole == QuasarState.Hole.NONE) return 0;
+        q.M = clampMass(mass);
+        return q.M;
+    }
+
+    /** 1 .. the structure's top (§10.3); a non-finite mass is the seed's 64 SM. */
+    private double clampMass(double mass) {
+        if (!Double.isFinite(mass)) return QuasarParams.SEED_MASS;
+        return Math.max(1, Math.min(getStructureTop(), mass));
     }
 
     /** Debug / bench: fill the selected gas's buffer. */
@@ -1081,7 +1177,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     public double[] sensorValues() {
         final QuasarSensorChannel[] ch = QuasarSensorChannel.VALUES;
         final double[] v = new double[ch.length];
-        final double cap = QuasarParams.massCap(Math.max(1, coilTier));
+        final double cap = getMassCap();
         final double rate = q.b * q.lc / QuasarParams.PHI_PER_B;
         double bestSigma = 0, bestStreak = 0;
         for (HostReport h : hosts.values()) {
@@ -1225,8 +1321,59 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         return q.hole == QuasarState.Hole.NONE ? 0 : q.M;
     }
 
+    /** Where growth stops: the coil cap without a lattice, the mass setpoint in force with one. */
     public double getMassCap() {
-        return QuasarParams.massCap(Math.max(1, coilTier));
+        return QuasarParams.massSetpoint(Math.max(1, coilTier), latticeTier, unbound, massSetpoint);
+    }
+
+    /**
+     * The most mass this structure holds (smbh-v1.md §10.3): the coil cap, the lattice's band top, or 2^50 SM on an
+     * Unbound L4. While the coils are unknown (unformed, or loaded and not yet walked) it is the MagMatter coil cap
+     * with no lattice: debug masses clamp there, and a formed structure that holds less sheds the rest.
+     */
+    public double getStructureTop() {
+        if (coilTier < 1) return QuasarParams.structureTop(QuasarParams.LATTICE_COIL, latticeTier, unbound);
+        return QuasarParams.structureTop(coilTier, latticeTier, unbound);
+    }
+
+    /** The lattice tier the walk found (0-4). */
+    public int getLatticeTier() {
+        return latticeTier;
+    }
+
+    /** The lattice tier in force: 0 on coils under MagMatter. */
+    public int getLatticeInForce() {
+        return QuasarParams.latticeInForce(Math.max(1, coilTier), latticeTier);
+    }
+
+    /** The mass setpoint as set (0 = the lattice's safe limit); {@link #getMassCap} is the one in force. */
+    public double getMassSetpoint() {
+        return massSetpoint;
+    }
+
+    /** GUI / OpenComputers / Burst Control "hold": the mass setpoint, SM (0 or less = the safe limit). */
+    public void setMassSetpoint(double m) {
+        if (!Double.isFinite(m)) return;
+        massSetpoint = m <= 0 ? 0 : Math.min(QuasarParams.UNBOUND_MAX, Math.max(QuasarParams.M_REF, m));
+    }
+
+    public boolean isUnbound() {
+        return unbound;
+    }
+
+    /** Unbind (§5.1): on L4 the setpoint may pass the L4 top. Turning it off sheds an Unbound hole to that top. */
+    public void setUnbound(boolean b) {
+        unbound = b;
+    }
+
+    public double getOverdrive() {
+        return overdrive;
+    }
+
+    /** The Overdrive level o, 0-1 in 5 % steps (§3.2); it needs L3 and its upkeep to do anything. */
+    public void setOverdrive(double o) {
+        if (!Double.isFinite(o)) return;
+        overdrive = Math.round(Math.max(0, Math.min(1, o)) / QuasarParams.OVERDRIVE_STEP) * QuasarParams.OVERDRIVE_STEP;
     }
 
     /** "spinning up" (P4-16): a below 90 % of its equilibrium at λc 1 and the field in use. */
@@ -1347,6 +1494,34 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
                     bFromHatch() ? " (Burst Control Hatch)" : "",
                     fmt(getCoilEUt()),
                     lastPowerOk ? "" : ", POWER SHORT: b = 0"));
+            // SMBH (smbh-v1.md): shown once there is a lattice, a shed or a hole past the coils
+            final QuasarResult r = last;
+            if (getLatticeInForce() > 0 || q.shed || q.M > QuasarParams.M_REF) {
+                out.add(
+                    String.format(
+                        Locale.ROOT,
+                        "Lattice L%d: safe %s, top %s, setpoint %s SM%s; x %.2f, output x%.2f%s",
+                        getLatticeInForce(),
+                        fmt(r.safe),
+                        fmt(r.top),
+                        fmt(getMassCap()),
+                        unbound ? " (Unbound, n " + String.format(Locale.ROOT, "%.2f", r.n) + ")" : "",
+                        r.x,
+                        r.outputX,
+                        q.shed ? ", SHEDDING to " + fmt(r.shedTarget) + " SM (" + shedWhy(r.shedReason) + ")" : ""));
+                out.add(
+                    String.format(
+                        Locale.ROOT,
+                        "Intake: hold-up %s of %s L/s (%.0f %%%s), growth %s L/s; Overdrive %.2f (%.0f %% paid), anchor %.0f %%",
+                        fmt(r.holdUpLitres),
+                        fmt(r.holdUpNeed),
+                        100 * r.holdUpCoverage,
+                        r.leaking ? ", LEAKING" : "",
+                        fmt(r.growthLitres),
+                        r.oEff,
+                        100 * r.overdriveCoverage,
+                        100 * r.anchorCoverage));
+            }
         }
         for (JetPort port : JetPort.VALUES) {
             final int i = port.ordinal();
@@ -1578,6 +1753,12 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         t.setLong("eruptions", eruptions);
         t.setLong("purges", purges);
         t.setLong("blowOuts", blowOuts);
+        // SMBH
+        t.setDouble("oEff", q.oEff);
+        t.setBoolean("shed", q.shed);
+        t.setDouble("massSetpoint", massSetpoint);
+        t.setBoolean("unbound", unbound);
+        t.setDouble("overdrive", overdrive);
         nbt.setTag("btsQuasar", t);
     }
 
@@ -1595,7 +1776,15 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         } catch (IllegalArgumentException bad) {
             s.hole = QuasarState.Hole.NONE;
         }
-        s.M = t.hasKey("M") ? finite(t.getDouble("M"), QuasarParams.SEED_MASS) : QuasarParams.SEED_MASS;
+        // §10.3: a saved mass is clamped to 1 .. the most any structure could hold (the coils are not walked yet);
+        // once formed, a structure that holds less sheds the rest, and a dormant hole too big for it will not open
+        final double savedM = t.hasKey("M") ? finite(t.getDouble("M"), QuasarParams.SEED_MASS) : QuasarParams.SEED_MASS;
+        final boolean savedUnbound = t.getBoolean("unbound");
+        s.M = Math.max(
+            1,
+            Math.min(
+                savedUnbound ? QuasarParams.UNBOUND_MAX : QuasarParams.LATTICE_TOP[QuasarParams.LATTICE_MAX],
+                savedM));
         s.a = finite(t.getDouble("a"), 0);
         s.E = finite(t.getDouble("E"), 0);
         s.Phi = finite(t.getDouble("Phi"), 0);
@@ -1623,7 +1812,12 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         s.firstErupt = t.getBoolean("firstErupt");
         s.edd = t.getInteger("edd");
         s.massMilestones = t.getInteger("massMilestones");
+        s.oEff = Math.max(0, Math.min(1, finite(t.getDouble("oEff"), 0)));
+        s.shed = t.getBoolean("shed");
         q = s;
+        unbound = savedUnbound;
+        setMassSetpoint(finite(t.getDouble("massSetpoint"), 0));
+        setOverdrive(finite(t.getDouble("overdrive"), 0));
         setFeed(t.hasKey("feed") ? t.getDouble("feed") : QuasarParams.F_DEFAULT);
         final QuasarGas g = QuasarGas.parse(t.getString("gas"));
         gas = g == null ? QuasarGas.HE : g;

@@ -209,9 +209,11 @@ public final class SmbhSim {
 
     /** One Unbound doubling at the 5× cap (disc 1 + growth 1 = 2× the Eddington rate), hours. */
     public static double doublingHours(QuasarGas gas) {
-        return QuasarParams.LN2 / (QuasarParams.GROWTH * (1 - TABLE_ETA)
-            * QuasarParams.eddingtonFeed(1, gas)
-            * (QuasarParams.INTAKE_CAP - QuasarParams.HOLDUP_K)) / 3600;
+        return QuasarParams.LN2
+            / (QuasarParams.GROWTH * (1 - TABLE_ETA)
+                * QuasarParams.eddingtonFeed(1, gas)
+                * (QuasarParams.INTAKE_CAP - QuasarParams.HOLDUP_K))
+            / 3600;
     }
 
     private static List<Object> row(double... v) {
@@ -223,8 +225,7 @@ public final class SmbhSim {
     /** The spec's tables (§2.3, §3.2, §5.2, §9) as this engine computes them; the reference's {@code smbhTables}. */
     public static Map<String, Object> tables() {
         final LinkedHashMap<String, Object> t = new LinkedHashMap<>();
-        final double[][] bands = { { 65536, 1 }, { 65536, 2 }, { 2097152, 3 }, { 4194304 * 0.999, 3 },
-            { 4194304, 4 } };
+        final double[][] bands = { { 65536, 1 }, { 65536, 2 }, { 2097152, 3 }, { 4194304 * 0.999, 3 }, { 4194304, 4 } };
         final List<Object> he = new ArrayList<>();
         for (int F = 1; F <= 5; F++) {
             final double[] r = new double[bands.length];
@@ -391,7 +392,8 @@ public final class SmbhSim {
         final List<String> inv = invariants();
         if (inv.isEmpty()) {
             pass++;
-            System.out.println("PASS invariants (X under 100 and monotone, G0 unchanged to 4,096 SM, no long overflow)");
+            System.out
+                .println("PASS invariants (X under 100 and monotone, G0 unchanged to 4,096 SM, no long overflow)");
         } else {
             fail++;
             System.out.println("FAIL invariants");
