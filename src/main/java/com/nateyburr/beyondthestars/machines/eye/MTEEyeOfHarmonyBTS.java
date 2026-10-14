@@ -2427,6 +2427,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             return;
         final long now = base.getWorld()
             .getTotalWorldTime();
+        // SMBH: the source record its real streams would carry (the lattice in force, the mass), for the Supermassive
+        // Link's data
+        final com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine q = injectFrom.resolve();
+        final int lattice = q == null ? 0 : q.getLatticeInForce();
+        final double mass = q == null ? 0 : q.getMass();
         for (int g = 0; g < 3; g++) {
             final int n = receptorCount(g);
             if (n == 0 || injectBu[g] <= 0) continue;
@@ -2437,7 +2442,9 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                         com.nateyburr.beyondthestars.machines.quasar.burst.JetPort.TOP,
                         injectBu[g] / n,
                         true,
-                        now));
+                        now,
+                        lattice,
+                        mass));
             for (MTEHatchGRBReceptor port : receptors[g]) if (live(port)) port.receive(s);
         }
     }

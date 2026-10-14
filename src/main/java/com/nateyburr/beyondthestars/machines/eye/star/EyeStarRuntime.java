@@ -1289,6 +1289,7 @@ public final class EyeStarRuntime {
     /** SMBH: "a 70,000 SM hole, lattice L1 (qualifies)", "not linked", ... from the link source's stream record. */
     public static String supermassiveSourceText(EyeBursts b) {
         if (!b.linkedAll) return "not linked";
+        if (b.smMass <= 0) return "no lattice record (a scripted feed)";
         return String.format(
             Locale.ROOT,
             "a %,.0f SM hole, %s (%s)",

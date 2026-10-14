@@ -25,7 +25,7 @@ public final class JetPacket {
 
     /**
      * SMBH (smbh-v1.md §1.3, §10.2): the source record P5's Supermassive Link reads, the lattice tier in force at the
-     * source (0-4) and its hole's mass (SM) when the packet was sent. 0 from a bench injector.
+     * source (0-4) and its hole's mass (SM) when the packet was sent (the bench injector copies its quasar's).
      */
     public final int lattice;
     public final double mass;

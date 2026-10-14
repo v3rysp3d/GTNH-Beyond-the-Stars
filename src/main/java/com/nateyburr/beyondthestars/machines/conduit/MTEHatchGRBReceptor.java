@@ -286,7 +286,18 @@ public class MTEHatchGRBReceptor extends MTEHatch {
         if (benchFrom == null || benchFrom.status() != BurstSource.Status.RUNNING) return;
         final MTEQuasarEngine q = benchFrom.resolve();
         if (q == null) return;
-        receive(BurstStream.of(new JetPacket(benchFrom, JetPort.TOP, benchBu, q.linkable(), now())));
+        // the source record too (SMBH: the lattice in force and the mass), so the bench feeds a host what a real stream
+        // from that quasar would carry (the Eye's Supermassive Link reads it)
+        receive(
+            BurstStream.of(
+                new JetPacket(
+                    benchFrom,
+                    JetPort.TOP,
+                    benchBu,
+                    q.linkable(),
+                    now(),
+                    q.getLatticeInForce(),
+                    q.getMass())));
     }
 
     @Override
