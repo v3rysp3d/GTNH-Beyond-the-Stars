@@ -111,9 +111,10 @@ public final class EyeGalaxyBench {
      * flux and coil field for the collapse assist (P4-73).
      */
     public static void scripted(MTEEyeOfHarmonyBTS eye, double hi, double lo, double halo, boolean linked,
-        String source, boolean paused, double phi, double b, double stream) {
+        String source, boolean paused, double phi, double b, double stream, double limit) {
         final EyeStarRuntime rt = eye.starRuntime();
         final EyeBursts e = feed(eye, hi, lo, halo, linked);
+        e.limit = limit > 0 ? limit : Double.POSITIVE_INFINITY; // P4-88: J1's out-1 limit, as a receptor reads it
         e.source = linked ? source : "";
         e.paused = paused;
         e.pausedBy = paused ? source : "";
@@ -134,6 +135,9 @@ public final class EyeGalaxyBench {
         final QuasarState q;
         final QuasarInputs qin = new QuasarInputs();
         final boolean analog;
+        /** P4-88: the mouths' and elements' throat Mk, and J1's out-1 limit ({@link #STANDARD}, 0 none, or Bu/t). */
+        int mk = 1;
+        double limit = STANDARD;
         boolean purgeWire, beginWire, testFire;
         long eruptions, purges, blowOuts, begins;
 
@@ -142,6 +146,41 @@ public final class EyeGalaxyBench {
             q = new QuasarState(QuasarState.rngFor(seed));
             q.seed(m0, QuasarParams.aEq(1, 3));
         }
+    }
+
+    /** P4-88: a rig's J1 limit that follows the Eye ({@link EyeStarRuntime#standardJ1Limit}). */
+    public static final double STANDARD = -1;
+
+    /** P4-88: J1's limit this second for the rig setting {@code limit} (standard, none or Bu/t). */
+    public static double j1Limit(MTEEyeOfHarmonyBTS eye, double limit) {
+        return limit < 0 ? eye.starRuntime()
+            .standardJ1Limit() : limit;
+    }
+
+    /** P4-88: "standard 7.50 Bu/t", "none" or "12.00 Bu/t", for the bench's lines. */
+    public static String limitText(MTEEyeOfHarmonyBTS eye, double limit) {
+        if (limit == 0) return "none";
+        return String.format(Locale.ROOT, "%s%.2f Bu/t", limit < 0 ? "standard " : "", j1Limit(eye, limit));
+    }
+
+    /**
+     * P4-88: the bench options {@code mk <1-4>} and {@code limit <Bu/t>|off|std} at {@code args[i]}; returns the
+     * index of the last argument used (or {@code i - 1} if neither).
+     */
+    public static int parseRigOption(String[] args, int i, int[] mk, double[] limit) {
+        if (i + 1 >= args.length) return i - 1;
+        if ("mk".equalsIgnoreCase(args[i])) {
+            mk[0] = Math.max(1, Math.min(BurstRouting.MK_MAX, Integer.parseInt(args[i + 1])));
+            return i + 1;
+        }
+        if ("limit".equalsIgnoreCase(args[i])) {
+            final String v = args[i + 1];
+            limit[0] = "off".equalsIgnoreCase(v) || "none".equalsIgnoreCase(v) ? 0
+                : "std".equalsIgnoreCase(v) || "standard".equalsIgnoreCase(v) ? STANDARD
+                    : Math.max(0, Double.parseDouble(v));
+            return i + 1;
+        }
+        return i - 1;
     }
 
     private static Rig rig;
@@ -175,16 +214,25 @@ public final class EyeGalaxyBench {
         boolean analog = false;
         double mass = 64;
         boolean fresh = false;
+        final int[] mk = { -1 };
+        final double[] limit = { Double.NaN };
         for (int i = at + 1; i < args.length; i++) {
             if ("analog".equalsIgnoreCase(args[i])) analog = true;
             if ("fresh".equalsIgnoreCase(args[i])) fresh = true;
-            if ("mass".equalsIgnoreCase(args[i]) && i + 1 < args.length) mass = Double.parseDouble(args[++i]);
+            if ("mass".equalsIgnoreCase(args[i]) && i + 1 < args.length) {
+                mass = Double.parseDouble(args[++i]);
+                continue;
+            }
+            final int used = parseRigOption(args, i, mk, limit);
+            if (used >= i) i = used;
         }
         final int id = key(eye);
         if (rig == null || rigFor != id || fresh) {
             rig = new Rig(mass, 1, analog);
             rigFor = id;
         }
+        if (mk[0] > 0) rig.mk = mk[0];
+        if (!Double.isNaN(limit[0])) rig.limit = limit[0];
         if (rt.rig == null) rt.setRig(FieldRig.Mode.FINE); // the Eye's own trims (T6 stellar trims, T7+ the Space
                                                            // valve)
         final int unlockedBefore = rt.unlockedTier();
@@ -202,11 +250,14 @@ public final class EyeGalaxyBench {
         out.add(
             String.format(
                 Locale.ROOT,
-                "galaxy rig: %d s in %d ms (%s junctions); quasar M %.1f SM, a %.3f, E %s, Φ %.0f, G %.2f Bu/t;"
-                    + " eruptions %d, purges %d, blow-outs %d; begins %d; Eye failures %d; unlocked T%d -> T%d",
+                "galaxy rig: %d s in %d ms (%s junctions, throats Mk %d, J1 limit %s); quasar M %.1f SM, a %.3f,"
+                    + " E %s, Φ %.0f, G %.2f Bu/t; eruptions %d, purges %d, blow-outs %d; begins %d; Eye failures %d;"
+                    + " unlocked T%d -> T%d",
                 secs,
                 ms,
                 rig.analog ? "analog" : "binary",
+                rig.mk,
+                limitText(eye, rig.limit),
                 rig.q.M,
                 rig.q.a,
                 StellarField.fmtSigned(rig.q.E),
@@ -278,22 +329,25 @@ public final class EyeGalaxyBench {
             false,
             r.q.Phi,
             r.q.b,
-            com.nateyburr.beyondthestars.machines.quasar.engine.QuasarParams.meanStream(r.q.G0, r.q.Yq, true));
+            com.nateyburr.beyondthestars.machines.quasar.engine.QuasarParams.meanStream(r.q.G0, r.q.Yq, true),
+            r.mk,
+            j1Limit(eye, r.limit));
     }
 
     /**
      * The standard conduit rig, one second (shared by this bench's virtual quasar and the P4 hosts unit's real-quasar
-     * rig, {@code machines.quasar.QuasarRigBench}): both jets ({@code jetPerPort} Bu/t each) into Mk I mouths (cap 24
-     * Bu/t each), combined; J1 Eye : crown on Field [2] / [1] (or the P sensor) OR Transition [4] (OR Slots [8] at
-     * T6); J3 halo : rail on Events [1] / [2] (or the Λ sensor) at T8, 75 % halo on the T7 test fire; J2 high : low on
-     * Field [4] / [8] (or the W sensor). The result is this second's scripted bursts on the Eye, from {@code source}
-     * (linked when {@code linkable} and something flows; paused for Q-8 when {@code paused}).
+     * rig, {@code machines.quasar.QuasarRigBench}): both jets ({@code jetPerPort} Bu/t each) into Mk {@code mk} mouths
+     * (cap 24 Bu/t each at Mk I), combined; J1 Eye : crown on Field [2] / [1] (or the P sensor) OR Transition [4] (OR
+     * Slots [8] at T6), its share taken of at most {@code limit} Bu/t (P4-88; 0 none); J3 halo : rail on Events [1] /
+     * [2] (or the Λ sensor) at T8, 75 % halo on the T7 test fire; J2 high : low on Field [4] / [8] (or the W sensor).
+     * The result is this second's scripted bursts on the Eye, from {@code source} (linked when {@code linkable} and
+     * something flows; paused for Q-8 when {@code paused}).
      */
     public static void conduit(MTEEyeOfHarmonyBTS eye, double jetPerPort, boolean linkable, int trans, int field,
         int events, boolean testFire, boolean analog, String source, boolean paused, double phi, double b,
-        double stream) {
+        double stream, int mk, double limit) {
         final EyeStarRuntime rt = eye.starRuntime();
-        final double cap = BurstRouting.throatCap(1);
+        final double cap = BurstRouting.throatCap(mk);
         double sIn = 2 * Math.min(Math.max(0, jetPerPort), cap);
         sIn = Math.min(sIn, cap);
         final boolean linked = linkable && sIn > 1e-9;
@@ -309,7 +363,8 @@ public final class EyeGalaxyBench {
             : BurstRouting.twoLevel(bit(field, 2), bit(field, 1));
         if (bit(trans, 3) || (testFire && n == 6)) s1 = 15;
         final double sh1 = test8 ? 1 : BurstRouting.share(0.5, 2, s1);
-        final double eyeS = sh1 * sIn;
+        // P4-88: J1's out 1 is a share of at most its limit (BurstRouting.split); the rest goes to the crown
+        final double eyeS = BurstRouting.split(sIn, sh1, 0, limit)[0];
         double halo = 0, rail = eyeS;
         if (t8) {
             final int s3 = analog ? BurstRouting.level(lit ? e[StellarField.L] : 0, 30)
@@ -323,7 +378,7 @@ public final class EyeGalaxyBench {
         final int s2 = analog ? BurstRouting.level(lit ? e[StellarField.W] : 0, 30)
             : BurstRouting.twoLevel(bit(field, 3), bit(field, 4));
         final double hi = rail * BurstRouting.share(0.5, 2, s2);
-        scripted(eye, hi, rail - hi, halo, linked, source, paused, phi, b, stream);
+        scripted(eye, hi, rail - hi, halo, linked, source, paused, phi, b, stream, limit);
     }
 
     /** The Eye's position as the rig's key (a chunk reload makes a new controller object, not a new Eye). */

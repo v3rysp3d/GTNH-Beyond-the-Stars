@@ -26,6 +26,7 @@ import com.cleanroommc.modularui.widgets.ScrollingTextWidget;
 import com.cleanroommc.modularui.widgets.SliderWidget;
 import com.cleanroommc.modularui.widgets.TextWidget;
 import com.cleanroommc.modularui.widgets.layout.Flow;
+import com.cleanroommc.modularui.widgets.textfield.TextFieldWidget;
 import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
 import com.nateyburr.beyondthestars.machines.gui.BTSControllerGui;
 import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
@@ -51,7 +52,9 @@ public class ConduitElementGui<T extends MTEConduitElement<?>> extends BTSContro
 
     private static final String K = "beyondthestars.gui.conduit.";
     private static final int PANEL_W = 170;
-    private static final int PANEL_H = 178;
+    private static final int PANEL_H = 186;
+    /** The limit field's top: Mk IV's throat cap (anything above changes nothing). */
+    private static final double MAX_LIMIT = BurstRouting.throatCap(BurstRouting.MK_MAX);
 
     public ConduitElementGui(T multiblock) {
         super(multiblock, false, null);
@@ -68,6 +71,7 @@ public class ConduitElementGui<T extends MTEConduitElement<?>> extends BTSContro
             syncManager.syncValue("jRatio", new DoubleSyncValue(j::getRatio, j::setRatio).allowC2S());
             syncManager.syncValue("jGain", new IntSyncValue(j::getGainIndex, j::setGainIndex).allowC2S());
             syncManager.syncValue("jOut3", new DoubleSyncValue(j::getOut3Share, j::setOut3Share).allowC2S());
+            syncManager.syncValue("jLimit", new DoubleSyncValue(j::getLimit, j::setLimit).allowC2S());
         }
     }
 
@@ -224,7 +228,9 @@ public class ConduitElementGui<T extends MTEConduitElement<?>> extends BTSContro
                     MTEConduitJunction.fmtGain(j.getGain()),
                     s < 0 ? tr(K + "mode.nohatch") : String.valueOf(s),
                     String.format(Locale.ROOT, "%.2f", j.share()),
-                    String.format(Locale.ROOT, "%.0f", 100 * j.getOut3Share())));
+                    String.format(Locale.ROOT, "%.0f", 100 * j.getOut3Share())),
+                j.getLimit() > 0 ? BTSText.lang(K + "limit.tip", BTSFormat.buEu(j.getLimit()))
+                    : BTSText.lang(K + "limit.none"));
             rows.stat(
                 BTSText.lang(K + "in.big"),
                 BTSText.lit(bu(j.inBu(0)) + " Bu/t §7= §f" + BTSFormat.euOfBu(j.inBu(0))),
@@ -444,6 +450,7 @@ public class ConduitElementGui<T extends MTEConduitElement<?>> extends BTSContro
         final DoubleSyncValue ratio = main.findSyncHandler("jRatio", DoubleSyncValue.class);
         final IntSyncValue gain = main.findSyncHandler("jGain", IntSyncValue.class);
         final DoubleSyncValue out3 = main.findSyncHandler("jOut3", DoubleSyncValue.class);
+        final DoubleSyncValue limit = main.findSyncHandler("jLimit", DoubleSyncValue.class);
         final int w = PANEL_W - 8;
         final Flow column = Flow.column()
             .full()
@@ -531,7 +538,28 @@ public class ConduitElementGui<T extends MTEConduitElement<?>> extends BTSContro
                     }))
                     .background(SLIDER_TRACK)
                     .size(w, 10))
-            .child(panelPara(() -> EnumChatFormatting.DARK_GRAY + tr(K + "panel.hint"), w, 5));
+            .child(
+                // P4-88: out 1's limit, Bu/t (0 = none); the Eye's J1 takes 7.5 per parallel
+                Flow.row()
+                    .width(w)
+                    .height(12)
+                    .childPadding(3)
+                    .crossAxisAlignment(Alignment.CrossAxis.CENTER)
+                    .child(panelLine(() -> tr(K + "panel.limit"), w - 63))
+                    .child(
+                        new TextFieldWidget().numbersDouble(v -> Math.max(0, Math.min(MAX_LIMIT, v)))
+                            .value(new DoubleValue.Dynamic(limit::getDoubleValue, v -> {
+                                final double l = Math.max(0, Math.min(MAX_LIMIT, v));
+                                if (l != limit.getDoubleValue()) limit.setDoubleValue(l);
+                            }))
+                            .setTextAlignment(Alignment.Center)
+                            .size(60, 12)
+                            .tooltip(
+                                t -> t.addLine(tr(K + "panel.limit.tip1"))
+                                    .addLine(EnumChatFormatting.GRAY + tr(K + "panel.limit.tip2"))
+                                    .addLine(EnumChatFormatting.GRAY + tr(K + "panel.limit.tip3")))
+                            .tooltipShowUpTimer(TOOLTIP_DELAY)))
+            .child(panelPara(() -> EnumChatFormatting.DARK_GRAY + tr(K + "panel.hint"), w, 4));
         return new ModularPanel("jSplitPanel").relative(parent)
             .leftRel(1)
             .topRel(0)

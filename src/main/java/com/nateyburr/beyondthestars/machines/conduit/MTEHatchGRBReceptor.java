@@ -89,6 +89,11 @@ public class MTEHatchGRBReceptor extends MTEHatch {
         double bu;
         boolean linkable;
         long tick;
+        /** P4-88: the tightest Junction out-1 limit on this second's streams (+infinity: none). */
+        double limit = Double.POSITIVE_INFINITY;
+        /** SMBH (smbh-v1.md §1.3): the source record this second, the lattice in force and the hole's mass, SM. */
+        int lattice;
+        double mass;
 
         Rec(BurstSource source) {
             this.source = source;
@@ -156,9 +161,15 @@ public class MTEHatchGRBReceptor extends MTEHatch {
             r.tick = now;
             r.bu = 0;
             r.linkable = false;
+            r.limit = Double.POSITIVE_INFINITY;
+            r.lattice = 0;
+            r.mass = 0;
         }
         r.bu += s.buPerTick;
         r.linkable |= s.linkable;
+        r.limit = Math.min(r.limit, s.limit);
+        r.lattice = Math.max(r.lattice, s.lattice);
+        r.mass = Math.max(r.mass, s.mass);
         lifetimeBuS += s.buPerTick;
         known.remove(s.source);
         known.put(s.source, now);
@@ -192,6 +203,7 @@ public class MTEHatchGRBReceptor extends MTEHatch {
                 continue;
             }
             out.add(r.source, r.bu, r.linkable);
+            out.record(r.source, r.limit, r.lattice, r.mass);
         }
         for (Iterator<Map.Entry<BurstSource, Long>> it = known.entrySet()
             .iterator(); it.hasNext();) {

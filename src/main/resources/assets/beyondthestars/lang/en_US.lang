@@ -1424,7 +1424,7 @@ beyondthestars.gui.conduit.chk.upkeep.tip=Fuel choice %s; a short second closes 
 beyondthestars.gui.conduit.switch=The power switch does nothing here: an element is open while its upkeep is paid
 beyondthestars.gui.conduit.fuel.tip=Throat fuel: %s (click: next, right-click: previous)
 beyondthestars.gui.conduit.fuel.tip2=The Upkeep row shows the choice and the litres a second.
-beyondthestars.gui.conduit.button.junction=Split / combine: mode, ratio c, gain k, out 3 share
+beyondthestars.gui.conduit.button.junction=Split / combine: mode, ratio c, gain k, out 3 share, out 1 limit
 beyondthestars.gui.conduit.panel.title=Junction
 beyondthestars.gui.conduit.panel.mode=Mode: %s
 beyondthestars.gui.conduit.panel.split=Split
@@ -1437,6 +1437,12 @@ beyondthestars.gui.conduit.panel.gain.tip1=Gain k: share 1 = c + k x (s/15 - 0.5
 beyondthestars.gui.conduit.panel.gain.tip2=s: the Burst Control Hatch's redstone.
 beyondthestars.gui.conduit.panel.gain.tip3=k 0 ignores redstone.
 beyondthestars.gui.conduit.panel.out3=Out 3 takes first
+beyondthestars.gui.conduit.panel.limit=Out 1 limit, Bu/t
+beyondthestars.gui.conduit.panel.limit.tip1=Out 1 limit (0 = none): share 1 is taken of at most this many Bu/t; the rest goes to out 2.
+beyondthestars.gui.conduit.panel.limit.tip2=A loop on out 1 then steers the same few Bu/t however big the quasar grows.
+beyondthestars.gui.conduit.panel.limit.tip3=The Eye's J1 (the standard rig): 7.5 Bu/t (7.5e13 EU/t) per parallel, x its time dial.
+beyondthestars.gui.conduit.limit.tip=Out 1 limit %s: share 1 is of at most this; the rest goes to out 2
+beyondthestars.gui.conduit.limit.none=Out 1 limit: none (share 1 of the whole stream)
 beyondthestars.gui.conduit.panel.hint=Out 3 is the fixed tap (e.g. 10 % to a Kerr). Two Directive bits as 15 / 8 / 0 on the hatch: an all-binary rig.
 beyondthestars.gui.conduit.info.mouth=§eWORMHOLE §7Two mouths are one wormhole: a stream entering one ring through its front face leaves the partner out of its back, at any distance, even in another dimension. Pair them with a Data Stick. On a quasar's jet port: the ring's front-face centre on the port cell, facing the quasar.
 beyondthestars.gui.conduit.info.mirror=§eMIRROR §7Turns a stream through 90 degrees: in through the front throat, out of the side one (or the other way round). Its facing picks the plane.

@@ -553,7 +553,7 @@ public final class BTSEnvironments {
             return m instanceof MTEConduitJunction ? (MTEConduitJunction) m : null;
         }
 
-        @Callback(doc = "function():table -- mode, in, out1, out2, out3 (or out), clipped, c, k, p3, s, share")
+        @Callback(doc = "function():table -- mode, in, out1, out2, out3 (or out), clipped, c, k, p3, limit, s, share")
         public Object[] getFlow(Context c, Arguments a) {
             final MTEConduitJunction j = junction();
             return j == null ? GONE : new Object[] { ConduitComputerApi.flow(j) };
@@ -582,6 +582,16 @@ public final class BTSEnvironments {
             if (j == null) return GONE;
             j.setOut3Share(a.checkDouble(0));
             return new Object[] { j.getOut3Share() };
+        }
+
+        @Callback(
+            doc = "function(bu:number):number -- out 1's limit in Bu/t (0 = none; the Eye's J1: 7.5 per parallel); returns it")
+        public Object[] setLimit(Context c, Arguments a) {
+            if (limited("setLimit")) return RATE_LIMITED;
+            final MTEConduitJunction j = junction();
+            if (j == null) return GONE;
+            j.setLimit(a.checkDouble(0));
+            return new Object[] { j.getLimit() };
         }
 
         @Callback(doc = "function(mode:string):string -- split or combine; returns it")

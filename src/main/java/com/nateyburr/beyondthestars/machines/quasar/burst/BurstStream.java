@@ -24,11 +24,17 @@ public final class BurstStream {
     /** SMBH: the source record (lattice tier in force and the hole's mass, SM) the packet carried; see JetPacket. */
     public final int lattice;
     public final double mass;
+    /**
+     * P4-88: the tightest Junction out-1 limit this stream passed, Bu/t (+infinity: none). A host reads it to know
+     * what a Junction at 15 can put on it (the Eye's T7 test fire).
+     */
+    public final double limit;
 
     private BurstStream(BurstSource source, JetPort port, double buPerTick, boolean linkable, long tick, String[] path,
-        int lattice, double mass) {
+        int lattice, double mass, double limit) {
         this.lattice = lattice;
         this.mass = mass;
+        this.limit = limit;
         this.source = source;
         this.port = port;
         this.buPerTick = Math.max(0, buPerTick);
@@ -39,19 +45,34 @@ public final class BurstStream {
 
     /** The stream a jet port sends into the dock on its cell. */
     public static BurstStream of(JetPacket p) {
-        return new BurstStream(p.source, p.port, p.buPerTick, p.linkable, p.tick, new String[0], p.lattice, p.mass);
+        return new BurstStream(
+            p.source,
+            p.port,
+            p.buPerTick,
+            p.linkable,
+            p.tick,
+            new String[0],
+            p.lattice,
+            p.mass,
+            Double.POSITIVE_INFINITY);
     }
 
     /** The same stream carrying {@code bu} instead (a Junction's share, a clipped throat). */
     public BurstStream withBu(double bu) {
-        return new BurstStream(source, port, bu, linkable, tick, path, lattice, mass);
+        return new BurstStream(source, port, bu, linkable, tick, path, lattice, mass, limit);
+    }
+
+    /** P4-88: the same stream after a Junction's out 1 limited to {@code l} Bu/t (the tighter limit is kept). */
+    public BurstStream withLimit(double l) {
+        if (!(l > 0) || l >= limit) return this;
+        return new BurstStream(source, port, buPerTick, linkable, tick, path, lattice, mass, l);
     }
 
     /** The stream after it crossed the element {@code key}. */
     public BurstStream through(String key) {
         final String[] p = Arrays.copyOf(path, path.length + 1);
         p[path.length] = key;
-        return new BurstStream(source, port, buPerTick, linkable, tick, p, lattice, mass);
+        return new BurstStream(source, port, buPerTick, linkable, tick, p, lattice, mass, limit);
     }
 
     /**

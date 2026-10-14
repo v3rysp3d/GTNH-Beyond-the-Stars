@@ -77,6 +77,12 @@ public final class QuasarRigBench {
         final int qx, qy, qz;
         final int ex, ey, ez;
         final boolean withEye, analog;
+        /**
+         * P4-88: the throat Mk of the rig's mouths and elements, and J1's out-1 limit (EyeGalaxyBench.STANDARD: the
+         * Eye's standard limit, 0: none, else Bu/t).
+         */
+        int mk = 1;
+        double limit = EyeGalaxyBench.STANDARD;
         boolean purgeWire, beginWire;
         DirectiveBench.EyeRig eyeRig;
         long purgeEdges, beginEdges, gasValveS, spaceValveS, eyeSpaceS, testFireS;
@@ -160,7 +166,7 @@ public final class QuasarRigBench {
      * {@code mass} (≤ 0: unchanged) sets the hole first; {@code cut} holds every valve shut for the first k seconds.
      */
     public static List<String> autorig(World world, MTEQuasarEngine q, long secs, MTEEyeOfHarmonyBTS eye,
-        boolean analog, long cut, double mass) {
+        boolean analog, long cut, double mass, int mk, double limit) {
         final List<String> out = new ArrayList<>();
         final MTEHatchDirective disc = DirectiveBench.hatch(q.directiveHatches(), DirectiveSet.QUASAR_DISC);
         final MTEHatchBurstControl purgeH = hatch(q.burstControlHatches(), MTEHatchBurstControl.Mode.PURGE);
@@ -170,6 +176,8 @@ public final class QuasarRigBench {
         }
         disc.setWindow(W);
         final Rig r = new Rig(q, eye, analog);
+        r.mk = Math.max(1, mk);
+        r.limit = limit;
         MTEHatchDirective transH = null, fieldH = null, eventsH = null, slotsH = null;
         MTEHatchBurstControl beginH = null;
         if (eye != null) {
@@ -234,12 +242,14 @@ public final class QuasarRigBench {
         out.add(
             String.format(
                 Locale.ROOT,
-                "quasar autorig %d s in %d ms (%s junctions): M %.1f SM, a %.3f, E %+.1f, Φ %.0f, b %.2f, G %.2f Bu/t;"
-                    + " disc zones R/S/St/C/B %d/%d/%d/%d/%d; eruptions %d, purges %d (edges %d), blow-outs %d;"
-                    + " valves: gas %d s, Space %d s",
+                "quasar autorig %d s in %d ms (%s junctions, throats Mk %d, J1 limit %s): M %.1f SM, a %.3f, E %+.1f,"
+                    + " Φ %.0f, b %.2f, G %.2f Bu/t; disc zones R/S/St/C/B %d/%d/%d/%d/%d; eruptions %d, purges %d"
+                    + " (edges %d), blow-outs %d; valves: gas %d s, Space %d s",
                 secs,
                 ms,
                 analog ? "analog" : "binary",
+                r.mk,
+                eye == null ? (r.limit == 0 ? "none" : "standard") : EyeGalaxyBench.limitText(eye, r.limit),
                 s.M,
                 s.a,
                 s.E,
@@ -369,7 +379,9 @@ public final class QuasarRigBench {
             q.isFrozen(),
             s.Phi,
             s.b,
-            com.nateyburr.beyondthestars.machines.quasar.engine.QuasarParams.meanStream(s.G0, s.Yq, true));
+            com.nateyburr.beyondthestars.machines.quasar.engine.QuasarParams.meanStream(s.G0, s.Yq, true),
+            r.mk,
+            EyeGalaxyBench.j1Limit(eye, r.limit));
     }
 
     /**

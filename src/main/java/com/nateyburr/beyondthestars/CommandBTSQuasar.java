@@ -57,7 +57,7 @@ public class CommandBTSQuasar extends CommandBase {
     public String getCommandUsage(ICommandSender sender) {
         return "/btsquasar [t1..t4] [l1..l4] [saturate] [seed] [force]  |  console: /btsquasar [t1..t4] [l1..l4] [saturate] <x> <y> <z> [facing] [force] [survival] [seed] | [check]"
             + "  |  /btsquasar <status|seed [M] [a]|open|collapse|purge|mass M|feed f|gas H|He|RSM|b v|run s [fill]|trim g s|refill|redstone on|off|keep|gui [info]> x y z  |  /btsquasar release"
-            + "  |  /btsquasar autorig x y z <s> [eye ex ey ez] [analog] [cut k] [mass M] | autorig off|status  |  /btsquasar ocloop x y z";
+            + "  |  /btsquasar autorig x y z <s> [eye ex ey ez] [analog] [cut k] [mass M] [mk 1-4] [limit bu|off|std] | autorig off|status  |  /btsquasar ocloop x y z";
     }
 
     @Override
@@ -423,8 +423,16 @@ public class CommandBTSQuasar extends CommandBase {
         boolean analog = false;
         long cut = 0;
         double mass = 0;
+        final int[] mk = { 1 };
+        final double[] limit = { com.nateyburr.beyondthestars.machines.eye.star.EyeGalaxyBench.STANDARD };
         for (int i = 5; i < args.length; i++) {
             final String a = args[i].toLowerCase(Locale.ROOT);
+            final int used = com.nateyburr.beyondthestars.machines.eye.star.EyeGalaxyBench
+                .parseRigOption(args, i, mk, limit);
+            if (used >= i) {
+                i = used;
+                continue;
+            }
             if (a.equals("analog")) analog = true;
             else if (a.equals("cut") && i + 1 < args.length) cut = Long.parseLong(args[++i]);
             else if (a.equals("mass") && i + 1 < args.length) mass = Double.parseDouble(args[++i]);
@@ -448,7 +456,7 @@ public class CommandBTSQuasar extends CommandBase {
             SLConsoleTest.tell(sender, "Quasar bench: FROZEN (not formed or a chunk unloaded): nothing runs");
             return;
         }
-        for (String line : QuasarRigBench.autorig(world, q, secs, eye, analog, cut, mass)) {
+        for (String line : QuasarRigBench.autorig(world, q, secs, eye, analog, cut, mass, mk[0], limit[0])) {
             SLConsoleTest.tell(sender, line);
         }
     }

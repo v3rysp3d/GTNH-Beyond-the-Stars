@@ -34,6 +34,12 @@ public final class BurstReading {
     public BurstSource pausedBy;
     /** Ports read. */
     public int ports;
+    /**
+     * P4-88: per source, the tightest Junction out-1 limit its streams passed on the way here, Bu/t (absent: none).
+     */
+    public final Map<BurstSource, Double> limitBySource = new LinkedHashMap<>();
+    /** SMBH (smbh-v1.md §1.3): per source, the record its streams carried: {lattice tier in force, mass SM}. */
+    public final Map<BurstSource, double[]> recordBySource = new LinkedHashMap<>();
 
     /** Adds one delivery (a port's record). */
     public void add(BurstSource source, double bu, boolean linkable) {
@@ -43,12 +49,40 @@ public final class BurstReading {
         if (linkable && bu > 1e-9) linkedSources.add(source);
     }
 
+    /** P4-88 / SMBH: a port's record of one source this second: the out-1 limit and the source record. */
+    public void record(BurstSource source, double limit, int lattice, double mass) {
+        if (source == null) return;
+        if (limit < Double.POSITIVE_INFINITY) limitBySource.merge(source, limit, Math::min);
+        recordBySource.merge(
+            source,
+            new double[] { lattice, mass },
+            (a, b) -> new double[] { Math.max(a[0], b[0]), Math.max(a[1], b[1]) });
+    }
+
+    /** P4-88: the tightest out-1 limit on {@code source}'s streams here, Bu/t (+infinity: none, or no source). */
+    public double limitOf(BurstSource source) {
+        final Double l = source == null ? null : limitBySource.get(source);
+        return l == null ? Double.POSITIVE_INFINITY : l;
+    }
+
+    /** SMBH: {lattice tier, mass SM} as {@code source}'s streams carried it this second ({0, 0} if none). */
+    public double[] recordOf(BurstSource source) {
+        final double[] r = source == null ? null : recordBySource.get(source);
+        return r == null ? new double[] { 0, 0 } : r.clone();
+    }
+
     /** Folds another port's reading into this one. */
     public void merge(BurstReading o) {
         if (o == null) return;
         total += o.total;
         for (Map.Entry<BurstSource, Double> e : o.bySource.entrySet())
             bySource.merge(e.getKey(), e.getValue(), Double::sum);
+        for (Map.Entry<BurstSource, Double> e : o.limitBySource.entrySet())
+            limitBySource.merge(e.getKey(), e.getValue(), Math::min);
+        for (Map.Entry<BurstSource, double[]> e : o.recordBySource.entrySet()) {
+            final double[] v = e.getValue();
+            record(e.getKey(), Double.POSITIVE_INFINITY, (int) v[0], v[1]);
+        }
         linkedSources.addAll(o.linkedSources);
         if (o.paused && !paused) {
             paused = true;

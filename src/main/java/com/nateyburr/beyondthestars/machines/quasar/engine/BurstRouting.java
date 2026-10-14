@@ -81,7 +81,7 @@ public final class BurstRouting {
             .multiply(BigInteger.valueOf(20));
     }
 
-    // ------------------------------------------------------------------ Junction split (the only new control)
+    // ------------------------------------------------------------------ Junction split (and its out-1 limit, P4-88)
 
     /** The GUI gains k a Junction offers (k = 0 ignores redstone). */
     public static final double[] GAINS = { 0, 1, 2, 4 };
@@ -121,4 +121,28 @@ public final class BurstRouting {
         final double out2 = (1 - share1) * (1 - p3) * in;
         return new double[] { out1, out2, out3 };
     }
+
+    /**
+     * P4-88: the split with an out-1 limit {@code limit} Bu/t (0 or less: none). Out 3 first, then share₁ of what is
+     * left, but share₁ is taken of at most {@code limit}: everything above the limit goes straight to out 2. A limited
+     * Junction therefore steers the same few Bu/t at any quasar size, so a P / W loop on it keeps the gain the
+     * standard rig was tuned for. With no limit, or with the rest under it, this is exactly {@link #split(double,
+     * double, double)}.
+     */
+    public static double[] split(double in, double share1, double p3, double limit) {
+        final double rest = (1 - p3) * in;
+        if (!(limit > 0) || rest <= limit) return split(in, share1, p3);
+        final double out3 = p3 * in;
+        final double out1 = share1 * limit;
+        return new double[] { out1, rest - out1, out3 };
+    }
+
+    /**
+     * P4-88: the standard rig's out-1 limit on J1 (Eye : crown), Bu/t per parallel and per unit of the Eye's time
+     * dial: 5 × D₇. J1's two-level P loop then swings the Eye between 0, 4.3 and 7.5 Bu/t (β 0 / 2.8 / 5 at T7) at
+     * any quasar size, instead of between 0 and the whole stream; the T7 test fire puts 7.5 on the Eye (rail 1.9, halo
+     * 5.6), over the Heavy Link's 6. Prototype harness, Mk II / III throats, binary rig: 0 failures at 300 and 1,000 SM
+     * on T7 and T8 (it was 83+ at 300 SM with no limit).
+     */
+    public static final double STANDARD_J1_LIMIT = 7.5;
 }

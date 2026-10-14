@@ -2345,6 +2345,10 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             b.haloPorts = receptorCount(GROUP_HALO);
             b.mean60 = burstHost.mean();
             b.sigmaMean = burstHost.sigmaMean();
+            b.limit = r.limitOf(b.sourceId);
+            final double[] rec = r.recordOf(b.sourceId);
+            b.smLattice = (int) rec[0];
+            b.smMass = rec[1];
             return b;
         }
 

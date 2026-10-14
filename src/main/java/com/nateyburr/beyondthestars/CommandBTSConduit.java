@@ -37,7 +37,8 @@ import gregtech.api.metatileentity.implementations.MTEHatchInput;
  * with
  * {@code stack} a second one stacked on each (the max-rate rig: Mk III + Mk III per port).</li>
  * <li>Bench: {@code pair x1 y1 z1 x2 y2 z2}, {@code throat x y z mk}, {@code fuel x y z on|off} (fills or empties an
- * element's fuel hatches), {@code junction x y z c k p3 [split|combine]}, {@code rebuild x y z} (re-projects any
+ * element's fuel hatches), {@code junction x y z c k p3 [split|combine] [limit bu]}, {@code rebuild x y z} (re-projects
+ * any
  * of our multis at x y z).</li>
  * <li>Persistence bench (B-112): {@code nbt x y z [key ...]} prints what any GT machine at x y z would save now (by
  * default our {@code bts*} keys and GT's run progress; read straight after a restart it is what the chunk held on
@@ -56,7 +57,7 @@ public class CommandBTSConduit extends CommandBase {
     public String getCommandUsage(ICommandSender sender) {
         return "/btsconduit status x y z | dock x y z | rig x y z | rig status | crowns x y z mk(1-4) [stack]"
             + " | pair x1 y1 z1 x2 y2 z2 | throat x y z mk"
-            + " | fuel x y z on|off | junction x y z c k p3 [split|combine] | rebuild x y z [tier] | keep x1 y z1 x2 z2"
+            + " | fuel x y z on|off | junction x y z c k p3 [split|combine] [limit bu] | rebuild x y z [tier] | keep x1 y z1 x2 z2"
             + " | survival x y z mouth|mirror|junction|crown1|crown2|crown3|crown4 [facing|up|down] [creative]"
             + " | inject rx ry rz qx qy qz bu | inject rx ry rz off | nbt x y z [key ...] | burstmode x y z [place|mode]";
     }
@@ -188,10 +189,15 @@ public class CommandBTSConduit extends CommandBase {
                 j.setRatio(Double.parseDouble(args[4]));
                 j.setGain(Double.parseDouble(args[5]));
                 j.setOut3Share(Double.parseDouble(args[6]));
-                if (args.length > 7) {
-                    j.setMode(
-                        args[7].equalsIgnoreCase("combine") ? MTEConduitJunction.Mode.COMBINE
-                            : MTEConduitJunction.Mode.SPLIT);
+                for (int i = 7; i < args.length; i++) {
+                    if (args[i].equalsIgnoreCase("limit") && i + 1 < args.length) {
+                        // P4-88: out 1's limit, Bu/t (0 = none)
+                        j.setLimit(Double.parseDouble(args[++i]));
+                    } else {
+                        j.setMode(
+                            args[i].equalsIgnoreCase("combine") ? MTEConduitJunction.Mode.COMBINE
+                                : MTEConduitJunction.Mode.SPLIT);
+                    }
                 }
                 for (String line : j.statusLines()) SLConsoleTest.tell(sender, line);
                 return;

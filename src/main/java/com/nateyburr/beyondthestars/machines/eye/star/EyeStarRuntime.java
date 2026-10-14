@@ -44,6 +44,7 @@ import com.nateyburr.beyondthestars.machines.gui.BTSText;
 import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstSource;
 import com.nateyburr.beyondthestars.machines.quasar.engine.BurstLink;
+import com.nateyburr.beyondthestars.machines.quasar.engine.BurstRouting;
 
 import gregtech.api.enums.Materials;
 import gregtech.api.enums.OrePrefixes;
@@ -2742,7 +2743,16 @@ public final class EyeStarRuntime {
         }
         return GalaxyDirective
             .testFireWanted(n, fs.tier.planets(), burning(), false, milestones.linkDone[n], coreIn, buffered)
-            && (n != 7 || heavyTestFireFits(linkedQuasarStream()));
+            && (n != 7 || heavyTestFireFits(testFireStream()));
+    }
+
+    /**
+     * P4-88: what J1 at 15 puts on the Eye, Bu/t: the linked quasar's mean stream, or the out-1 limit of the Junction
+     * its streams passed if that is lower (the standard rig's J1 limit, 7.5 Bu/t per parallel). The T7 test fire's
+     * size: with the limit, the test fire is the same few Bu/t at any quasar size.
+     */
+    public double testFireStream() {
+        return Math.min(linkedQuasarStream(), galaxy.bursts.limit);
     }
 
     /**
@@ -2754,6 +2764,14 @@ public final class EyeStarRuntime {
     /** P4-88: the Eye leg a hand-set test fire aims for on a quasar above the ceiling (rail 4, halo 12 Bu/t). */
     public static final double HEAVY_TEST_FIRE_EYE_LEG = 16.0;
 
+    /**
+     * P4-88: the standard rig's J1 out-1 limit for this Eye, Bu/t: {@link BurstRouting#STANDARD_J1_LIMIT} × parallels
+     * × the time dial (the demand scales with both).
+     */
+    public double standardJ1Limit() {
+        return BurstRouting.STANDARD_J1_LIMIT * Math.max(1, lastP) * Math.max(1, lastM);
+    }
+
     /** P4-79 / P4-88: the T7 test fire at J1 15 suits a mean stream from 6 to 32 Bu/t. */
     public static boolean heavyTestFireFits(double stream) {
         return stream >= GalaxyField.demandT(8) && stream <= HEAVY_TEST_FIRE_MAX_STREAM;
@@ -2764,7 +2782,7 @@ public final class EyeStarRuntime {
      * {@link #HEAVY_TEST_FIRE_EYE_LEG} ÷ the mean stream (0 with no link).
      */
     public double heavyTestFireShare() {
-        final double s = linkedQuasarStream();
+        final double s = testFireStream();
         if (s <= 0) return 0;
         return s <= HEAVY_TEST_FIRE_MAX_STREAM ? 1.0 : HEAVY_TEST_FIRE_EYE_LEG / s;
     }
@@ -2777,8 +2795,14 @@ public final class EyeStarRuntime {
         if (fs == null || star == null || trans != null || star.n() != 7 || escrow == null || milestones.linkDone[7]) {
             return "";
         }
-        final double s = linkedQuasarStream();
+        final double q = linkedQuasarStream(), s = testFireStream();
         if (s < GalaxyField.demandT(8)) {
+            if (q >= GalaxyField.demandT(8)) {
+                return String.format(
+                    Locale.ROOT,
+                    "Heavy Link test fire waits: J1's out 1 limit %s is under 6 Bu/t (raise it: 7.5 per parallel)",
+                    BTSFormat.buEuShort(s));
+            }
             return String.format(
                 Locale.ROOT,
                 "Heavy Link test fire waits: the quasar's mean stream %s is under 6 Bu/t (grow it)",
@@ -2788,9 +2812,11 @@ public final class EyeStarRuntime {
             return String.format(
                 Locale.ROOT,
                 "Heavy Link test fire held: the quasar's mean stream %s is over %.0f Bu/t, and J1 at 15 would flood"
-                    + " the rail. Test-fire with J1's Eye share at %.2f (J3 75 %% halo)",
+                    + " the rail. Set J1's out 1 limit to %s (the standard rig), or test-fire with J1's Eye share at"
+                    + " %.2f (J3 75 %% halo)",
                 BTSFormat.buEuShort(s),
                 HEAVY_TEST_FIRE_MAX_STREAM,
+                BTSFormat.buEuShort(standardJ1Limit()),
                 heavyTestFireShare());
         }
         return "";
