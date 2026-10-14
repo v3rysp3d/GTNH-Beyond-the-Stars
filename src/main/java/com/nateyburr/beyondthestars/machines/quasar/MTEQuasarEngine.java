@@ -2162,6 +2162,15 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         final boolean lit = q.hole == QuasarState.Hole.OPEN;
         final int event = flashPending ? flashEvent : 0;
         flashPending = false;
+        // SMBH (smbh-v1.md §7, R-19): the lattice's render-only look, from the last disc second
+        final QuasarResult r = last;
+        tile.setSmbh(
+            getLatticeInForce(),
+            lit ? (float) r.oEff : 0f,
+            (float) Math.max(0, r.n),
+            lit && r.intakeCap > 0 ? (float) Math.min(1, r.growthLitres / r.intakeCap) : 0f,
+            (float) Math.max(0, Math.min(1, r.holdUpCoverage)),
+            q.shed);
         tile.setLook(
             renderScaleFor(q.M),
             (float) (q.stability() / 100.0),

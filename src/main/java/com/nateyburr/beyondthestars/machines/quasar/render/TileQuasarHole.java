@@ -30,6 +30,10 @@ import gregtech.common.tileentities.render.RenderingTileEntityBlackhole;
  * <li>renders v2 (§6.3, §13, R-03), render-only: the last event's kind (eruption, purge, blow-out, re-formed, First
  * Light), the spin a (the inner disc's edge, the jets' helix), the flux Φ (the field lines), the Harmonic Lock and how
  * far a re-forming disc has come. They live in this render tile's look only, never in the machine's saved state.</li>
+ * <li>SMBH v1 (smbh-v1.md §7, R-19), render-only as R-03: the Supermassive Lattice tier in force, the Overdrive level
+ * in effect, the Unbound doublings n, the Growth share of the intake, the hold-up coverage and whether the hole is
+ * shedding. The lattice's node cells are fixed by the exported shape (16 per ring, 11.25 + 22.5k degrees), so the
+ * renderer places them itself.</li>
  * </ul>
  * <b>Sync without chunk re-renders</b> (the Eye's render QA E10 fix): a new look goes as a description packet straight
  * to the players watching this chunk ({@link #sendLook}), never through {@code markBlockForUpdate}; only GT's
@@ -63,11 +67,20 @@ public class TileQuasarHole extends RenderingTileEntityBlackhole {
     private int event;
     private float spin, phi, reform;
     private boolean lock;
+    /**
+     * SMBH (R-19), render-only: the lattice tier in force (0 none), the Overdrive level in effect (0..1), the Unbound
+     * doublings n, the Growth segment over the intake cap (0..1), the hold-up coverage (0..1) and a running shed.
+     */
+    private int lattice;
+    private float overdrive, unboundN, growth, hold = 1f;
+    private boolean shed;
+    /** A SMBH field moved enough to send (the next {@link #setLook} sends it). */
+    private boolean smbhMoved;
 
     private int[] owner;
     private int ticks;
     @SideOnly(Side.CLIENT)
-    private AxisAlignedBB box;
+    private AxisAlignedBB box, latticeBox;
 
     public TileQuasarHole() {}
 
@@ -86,11 +99,21 @@ public class TileQuasarHole extends RenderingTileEntityBlackhole {
 
     /** Indices into {@link #debugLook}. */
     public static final int DBG_ZONE = 0, DBG_LC = 1, DBG_E = 2, DBG_JET_TOP = 3, DBG_JET_BOTTOM = 4, DBG_FLASH_AGE = 5,
-        DBG_FLASH_SIZE = 6, DBG_EVENT = 7, DBG_SPIN = 8, DBG_PHI = 9, DBG_LOCK = 10, DBG_REFORM = 11, DBG_LENGTH = 12;
+        DBG_FLASH_SIZE = 6, DBG_EVENT = 7, DBG_SPIN = 8, DBG_PHI = 9, DBG_LOCK = 10, DBG_REFORM = 11,
+        DBG_LENGTH_V2 = 12;
+    /**
+     * SMBH (R-19): a 19-entry {@link #debugLook} adds the lattice tier, the Overdrive level, the Unbound doublings, the
+     * Growth share, the hold-up coverage, shedding 0/1 and the mass (SM, &gt; 0: the hole is drawn at that mass instead
+     * of the synced scale).
+     */
+    public static final int DBG_LATTICE = 12, DBG_OVERDRIVE = 13, DBG_UNBOUND = 14, DBG_GROWTH = 15, DBG_HOLD = 16,
+        DBG_SHED = 17, DBG_MASS = 18, DBG_LENGTH = 19;
 
     // ------------------------------------------------------------------ readers (client renderer)
 
     public float getHoleScale() {
+        final float[] d = debugLook;
+        if (d != null && d.length > DBG_MASS && d[DBG_MASS] > 0) return MTEQuasarEngine.renderScaleFor(d[DBG_MASS]);
         return holeScale;
     }
 
@@ -175,7 +198,65 @@ public class TileQuasarHole extends RenderingTileEntityBlackhole {
         return d != null && d.length > DBG_REFORM ? d[DBG_REFORM] : reform;
     }
 
+    /** SMBH: the Supermassive Lattice tier in force, 0 (none) .. 4. */
+    public int getLattice() {
+        final float[] d = debugLook;
+        return d != null && d.length > DBG_LATTICE ? Math.round(d[DBG_LATTICE]) : lattice;
+    }
+
+    /** SMBH: the Overdrive level in effect, 0..1. */
+    public float getOverdrive() {
+        final float[] d = debugLook;
+        return d != null && d.length > DBG_OVERDRIVE ? d[DBG_OVERDRIVE] : overdrive;
+    }
+
+    /** SMBH: the Unbound doublings n past the L4 top (0 when not Unbound). */
+    public float getUnboundN() {
+        final float[] d = debugLook;
+        return d != null && d.length > DBG_UNBOUND ? d[DBG_UNBOUND] : unboundN;
+    }
+
+    /** SMBH: the Growth segment of the intake over the intake cap, 0..1. */
+    public float getGrowth() {
+        final float[] d = debugLook;
+        return d != null && d.length > DBG_GROWTH ? d[DBG_GROWTH] : growth;
+    }
+
+    /** SMBH: the hold-up coverage, 0..1 (1: held, below: leaking). */
+    public float getHold() {
+        final float[] d = debugLook;
+        return d != null && d.length > DBG_HOLD ? d[DBG_HOLD] : hold;
+    }
+
+    /** SMBH: the hole is shedding mass (the flare up both jets). */
+    public boolean getShed() {
+        final float[] d = debugLook;
+        return d != null && d.length > DBG_SHED ? d[DBG_SHED] > 0.5f : shed;
+    }
+
     // ------------------------------------------------------------------ server
+
+    /**
+     * Server, SMBH (R-19): the lattice's render-only look, carried by the next {@link #setLook} (sent when the tier,
+     * the
+     * shed or the leak state changes, Overdrive or n by 0.02, Growth or the coverage by 0.03).
+     */
+    public void setSmbh(int latticeNow, float overdriveNow, float nNow, float growthNow, float holdNow,
+        boolean shedNow) {
+        if (worldObj == null || worldObj.isRemote) return;
+        smbhMoved |= latticeNow != lattice || shedNow != shed
+            || Math.abs(overdriveNow - overdrive) > 0.02f
+            || Math.abs(nNow - unboundN) > 0.02f
+            || Math.abs(growthNow - growth) > 0.03f
+            || Math.abs(holdNow - hold) > 0.03f
+            || (holdNow < 0.999f) != (hold < 0.999f);
+        lattice = latticeNow;
+        overdrive = overdriveNow;
+        unboundN = nNow;
+        growth = growthNow;
+        hold = holdNow;
+        shed = shedNow;
+    }
 
     /** Server: the owning controller (no packet; the next look carries it). */
     public void setOwner(int x, int y, int z) {
@@ -225,7 +306,9 @@ public class TileQuasarHole extends RenderingTileEntityBlackhole {
             || Math.abs(spinNow - spin) > 0.01f
             || Math.abs(phiNow - phi) > 2f
             || lockNow != lock
-            || Math.abs(reformNow - reform) > 0.02f;
+            || Math.abs(reformNow - reform) > 0.02f
+            || smbhMoved;
+        smbhMoved = false;
         holeScale = scale;
         spin = spinNow;
         phi = phiNow;
@@ -288,10 +371,20 @@ public class TileQuasarHole extends RenderingTileEntityBlackhole {
 
     // ------------------------------------------------------------------ render bounds
 
-    /** The disc reaches r 62 and the jets y ±80 from the centre. */
+    /**
+     * The disc reaches r 62 and the jets y ±80 from the centre; with a lattice in force its nodes reach r 89 (SMBH, the
+     * equatorial ring) and the arcs and intake streams r 95.
+     */
     @Override
     @SideOnly(Side.CLIENT)
     public AxisAlignedBB getRenderBoundingBox() {
+        if (getLattice() > 0) {
+            if (latticeBox == null) {
+                latticeBox = AxisAlignedBB
+                    .getBoundingBox(xCoord - 97, yCoord - 82, zCoord - 97, xCoord + 98, yCoord + 83, zCoord + 98);
+            }
+            return latticeBox;
+        }
         if (box == null) {
             box = AxisAlignedBB
                 .getBoundingBox(xCoord - 64, yCoord - 82, zCoord - 64, xCoord + 65, yCoord + 83, zCoord + 65);
@@ -325,6 +418,13 @@ public class TileQuasarHole extends RenderingTileEntityBlackhole {
         t.setFloat("phi", phi);
         t.setBoolean("lock", lock);
         t.setFloat("rf", reform);
+        // SMBH (R-19): render-only
+        t.setByte("lt", (byte) lattice);
+        t.setFloat("od", overdrive);
+        t.setFloat("un", unboundN);
+        t.setFloat("gr", growth);
+        t.setFloat("hc", hold);
+        t.setBoolean("sh", shed);
         return t;
     }
 
@@ -345,6 +445,13 @@ public class TileQuasarHole extends RenderingTileEntityBlackhole {
         phi = t.getFloat("phi");
         lock = t.getBoolean("lock");
         reform = t.getFloat("rf");
+        // SMBH: absent in an older look (no lattice)
+        lattice = t.getByte("lt");
+        overdrive = t.getFloat("od");
+        unboundN = t.getFloat("un");
+        growth = t.getFloat("gr");
+        hold = t.hasKey("hc") ? t.getFloat("hc") : 1f;
+        shed = t.getBoolean("sh");
     }
 
     @Override
