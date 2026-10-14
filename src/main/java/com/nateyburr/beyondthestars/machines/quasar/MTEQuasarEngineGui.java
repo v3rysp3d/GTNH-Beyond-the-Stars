@@ -510,8 +510,9 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
                 BTSFormat.litres(grow / 20)),
             BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "intake.tip2")),
             BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "intake.tip3")));
+        final boolean shed = m.state().shed;
         final String split = BTSText.lang(
-            K + "intake.line",
+            shed ? K + "intake.line.shed" : K + "intake.line",
             BTSFormat.litres(disc),
             BTSFormat.litres(hold),
             r.holdUpNeed > 0 ? BTSFormat.pct(r.holdUpCoverage) : "-",
@@ -539,7 +540,7 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
         // Overdrive (L3+)
         final double o = m.getOverdriveInUse();
         if (L >= QuasarParams.LATTICE_OVERDRIVE) {
-            final boolean shortOd = r.overdriveNeed > 0 && r.overdriveCoverage < 1 - 1e-9;
+            final boolean shortOd = !shed && r.overdriveNeed > 0 && r.overdriveCoverage < 1 - 1e-9;
             final double need = QuasarParams.overdriveUpkeep(o, r.n);
             rows.bar(
                 BTSText.lang(K + "overdrive"),
@@ -558,7 +559,9 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
                     String.format(Locale.ROOT, "%.1f", QuasarParams.outputX(m.getMass(), o))),
                 BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "overdrive.tip2")),
                 m.overdriveFromHatch() ? BTSText.cat(BTSText.lit("§b"), BTSText.lang(K + "od.hatch")) : "");
-            if (o > 0) {
+            if (o > 0 && shed) {
+                rows.stat(BTSText.lang(K + "upkeep"), BTSText.lang(K + "upkeep.shed"), BTSText.lang(K + "upkeep.tip"));
+            } else if (o > 0) {
                 rows.stat(
                     BTSText.lang(K + "upkeep"),
                     BTSText.lit(
@@ -649,7 +652,9 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
             final double bu = multiblock.jetBu(port);
             final String value;
             if (dock == null || multiblock.jetRefused(port)) {
-                value = bu > 0 ? "§6" + tr(K + "venting") + " §f" + BTSFormat.euOfBu(bu) : "§8" + tr(K + "nodock");
+                value = bu > 0
+                    ? "§6" + tr(K + "venting") + " §f" + MTEQuasarEngine.bu(bu) + " §7= §f" + BTSFormat.euOfBu(bu)
+                    : "§8" + tr(K + "nodock");
             } else {
                 final boolean clipped = bu - multiblock.jetTaken(port) > 0.005;
                 // the Bu/t figure and its EU/t (§10.3); the dock's full name and the exact Bu/t are in the tooltip

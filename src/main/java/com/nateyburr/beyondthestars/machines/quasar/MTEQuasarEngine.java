@@ -905,6 +905,12 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         }
     }
 
+    /** Bench: re-walks the structure now (hatches placed by a script join their lists at once). */
+    public void benchRecheck() {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base != null) checkStructure(true, base);
+    }
+
     /** True once the Saturation milestone is held (smbh-v1.md §1.2): the lattice counts. */
     public boolean isSaturated() {
         return saturated;
@@ -1660,7 +1666,9 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
 
     /** Where growth stops: the coil cap without a lattice, the mass setpoint in force with one. */
     public double getMassCap() {
-        return QuasarParams.massSetpoint(Math.max(1, coilTier), latticeTier, unbound, massSetpoint);
+        // coils unknown (unformed, or loaded and not walked yet): read as MagMatter, as getStructureTop does
+        final int coils = coilTier < 1 ? QuasarParams.LATTICE_COIL : coilTier;
+        return QuasarParams.massSetpoint(coils, latticeTier, unbound, massSetpoint);
     }
 
     /**
@@ -1933,7 +1941,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             if (!latticeNote.isEmpty()) out.add(latticeNote);
             // SMBH (smbh-v1.md): shown once there is a lattice, a shed or a hole past the coils
             final QuasarResult r = last;
-            if (getLatticeInForce() > 0 || q.shed || q.M > QuasarParams.M_REF) {
+            if (getLatticeInForce() > 0 || q.shed) {
                 out.add(
                     String.format(
                         Locale.ROOT,
@@ -1959,13 +1967,19 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
                         r.leaking ? ", LEAKING" : "",
                         fmt(r.growthLitres),
                         100 * massRatePerHour));
-                if (overdriveInUse() > 0 || r.overdriveNeed > 0) {
+                if (overdriveInUse() > 0 && getLatticeInForce() < QuasarParams.LATTICE_OVERDRIVE) {
+                    out.add(
+                        String.format(
+                            Locale.ROOT,
+                            "Overdrive %.0f %% set: idle, it needs an L3 lattice",
+                            100 * overdriveInUse()));
+                } else if (overdriveInUse() > 0 || r.overdriveNeed > 0) {
                     out.add(
                         String.format(
                             Locale.ROOT,
                             "Overdrive %.0f %%%s: %s L/s each of Molten MHDCSM and Molten Universium, %.0f %% paid",
                             100 * overdriveInUse(),
-                            getLatticeInForce() < QuasarParams.LATTICE_OVERDRIVE ? " (needs L3: idle)" : "",
+                            q.shed ? " (idle while shedding)" : "",
                             fmt(r.overdriveNeed),
                             100 * r.overdriveCoverage));
                 }

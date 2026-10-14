@@ -167,6 +167,8 @@ public final class SmbhBench {
                 .append(" L")
                 .append(got > 0 ? "" : " (full)");
         }
+        // hatches placed now join the trim list only on a re-walk (the quasar re-checks every 200 ticks)
+        if (placed > 0) q.benchRecheck();
         final int gas = QuasarKit.refillGas(q, world);
         q.debugFillBuffer();
         out.add(

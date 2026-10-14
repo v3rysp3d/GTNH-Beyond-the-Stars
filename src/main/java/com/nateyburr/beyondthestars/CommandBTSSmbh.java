@@ -12,9 +12,11 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import com.nateyburr.beyondthestars.integration.QuasarComputerApi;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.SLConsoleTest;
 import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
+import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngineGui;
 import com.nateyburr.beyondthestars.machines.quasar.SmbhBench;
 
 /**
@@ -29,6 +31,11 @@ import com.nateyburr.beyondthestars.machines.quasar.SmbhBench;
  * <li>{@code drain anchor [x y z]}: the Primordial Matter hatches emptied (the anchor is cut).</li>
  * <li>{@code saturate on|off [x y z]}, {@code unbind on|off [x y z]}, {@code damage [x y z]} (one lattice frame
  * block removed, then a re-walk), {@code status [x y z]}.</li>
+ * <li>{@code overdrive <o> [x y z]} and {@code setpoint <M> [x y z]}: the GUI's setters (the same clamps);
+ * {@code unbind} goes through the GUI's checks too ({@code force} sets it raw); {@code shed [x y z]}: the GUI's
+ * Shed.</li>
+ * <li>{@code gui [info] [x y z]}: the controller GUI's header and rows (or its Info page) as text, built as the GUI
+ * syncs them; {@code oc [x y z]}: what the OpenComputers SMBH getters return.</li>
  * </ul>
  * Without x y z the verbs act on the last bench quasar.
  */
@@ -44,7 +51,8 @@ public class CommandBTSSmbh extends CommandBase {
     @Override
     public String getCommandUsage(ICommandSender sender) {
         return "/btssmbh bench [x y z [facing]] | mass <M> [x y z] | fill [x y z] | drain anchor [x y z]"
-            + " | saturate on|off [x y z] | unbind on|off [x y z] | damage [x y z] | status [x y z]"
+            + " | saturate on|off [x y z] | unbind on|off [force] [x y z] | damage [x y z] | status [x y z]"
+            + " | overdrive <o> [x y z] | setpoint <M> [x y z] | shed [x y z] | gui [info] [x y z] | oc [x y z]"
             + "   (op only; a test bench, not gameplay)";
     }
 
@@ -66,7 +74,12 @@ public class CommandBTSSmbh extends CommandBase {
                 "saturate",
                 "unbind",
                 "damage",
-                "status");
+                "status",
+                "overdrive",
+                "setpoint",
+                "shed",
+                "gui",
+                "oc");
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("drain")) {
             return getListOfStringsMatchingLastWord(args, "anchor");
@@ -91,18 +104,24 @@ public class CommandBTSSmbh extends CommandBase {
             bench(sender, world, args);
             return;
         }
-        final int from;
+        int from;
         switch (verb) {
             case "mass":
             case "saturate":
             case "unbind":
             case "drain":
+            case "overdrive":
+            case "setpoint":
                 from = 2;
+                break;
+            case "gui":
+                from = args.length > 1 && args[1].equalsIgnoreCase("info") ? 2 : 1;
                 break;
             default:
                 from = 1;
                 break;
         }
+        if (verb.equals("unbind") && args.length > 2 && args[2].equalsIgnoreCase("force")) from = 3;
         final int[] at = coords(sender, args, from);
         final MTEQuasarEngine q = SmbhBench.quasar(world, at);
         if (q == null) {
@@ -138,10 +157,61 @@ public class CommandBTSSmbh extends CommandBase {
                 break;
             case "unbind": {
                 final boolean on = args.length < 2 || !args[1].equalsIgnoreCase("off");
-                q.setUnbound(on);
-                SLConsoleTest
-                    .tell(sender, "Set up by script: Unbind " + (on ? "on" : "off") + " (it counts on an L4 lattice)");
+                if (from == 3) {
+                    q.setUnbound(on);
+                    SLConsoleTest.tell(
+                        sender,
+                        "Set up by script: Unbind " + (on ? "on" : "off") + " (forced; it counts on an L4 lattice)");
+                } else {
+                    final String why = q.unbind(on);
+                    SLConsoleTest.tell(
+                        sender,
+                        "Unbind " + (on ? "on" : "off")
+                            + " (the GUI's checks): "
+                            + (why.isEmpty() ? "done" : EnumChatFormatting.RED + why));
+                }
                 break;
+            }
+            case "overdrive": {
+                if (args.length < 2) {
+                    SLConsoleTest.tell(sender, getCommandUsage(sender));
+                    return;
+                }
+                q.setOverdrive(parseDouble(sender, args[1]));
+                SLConsoleTest.tell(
+                    sender,
+                    String.format(
+                        Locale.ROOT,
+                        "Overdrive set to %.0f %% (the GUI's setter; it needs L3 and its upkeep)",
+                        100 * q.getOverdrive()));
+                break;
+            }
+            case "setpoint": {
+                if (args.length < 2) {
+                    SLConsoleTest.tell(sender, getCommandUsage(sender));
+                    return;
+                }
+                q.setMassSetpoint(parseDouble(sender, args[1]));
+                SLConsoleTest.tell(
+                    sender,
+                    "Mass setpoint (the GUI's setter): in force " + MTEQuasarEngine.fmt(q.getMassCap()) + " SM");
+                break;
+            }
+            case "shed":
+                SLConsoleTest.tell(sender, "Shed (the GUI's button): " + q.shedToSafe());
+                break;
+            case "gui":
+                // the header and rows (or the Info page) the kit console shows, built as the GUI syncs them
+                for (String line : new MTEQuasarEngineGui(q).benchDump(from == 2)) SLConsoleTest.tell(sender, line);
+                return;
+            case "oc": {
+                final String[] names = { "getBand", "getIntake", "getHoldUp", "getBuffer", "getOverdrive", "getAnchor",
+                    "getHorizon", "getBurst" };
+                final Object[] maps = { QuasarComputerApi.band(q), QuasarComputerApi.intake(q),
+                    QuasarComputerApi.holdUp(q), QuasarComputerApi.buffer(q), QuasarComputerApi.overdrive(q),
+                    QuasarComputerApi.anchor(q), QuasarComputerApi.horizon(q), QuasarComputerApi.burst(q) };
+                for (int i = 0; i < names.length; i++) SLConsoleTest.tell(sender, "oc " + names[i] + "() = " + maps[i]);
+                return;
             }
             case "damage":
                 for (String line : SmbhBench.damage(world, q)) SLConsoleTest.tell(sender, line);
