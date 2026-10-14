@@ -7,7 +7,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 2. **Settled**: everything you have answered, in your words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision from you.
 4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-139 and the SMBH branch's
-   B-150..B-164, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
+   B-150..B-168, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
 on); the old Q-1..Q-38 and the merged branches' numbers are mapped under "Where the old question numbers went".
@@ -268,7 +268,7 @@ The build compiles, loads and registers every recipe. These checks from your acc
 
 ---
 
-## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139, B-150..B-163
+## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139, B-150..B-168
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -7295,6 +7295,65 @@ B-162 saw).
    stream's EU/t. Suggestion: the cap's EU/t in the header tooltip or as "cap 5.2e18 EU/t".
 3. After the anchor shed the setpoint stays at the Unbound mass (268,435,456 SM): with the anchor back the hole would
    grow again. Working as designed (the setpoint is the player's), worth a line in the Unbound quest.
+
+### B-165 The Supermassive Lattice setpoint slider could not reach 4,096 SM or the band top [master, review fix]
+
+**Context.** The slider in the quasar's Supermassive Lattice panel rounded every mass to 3 significant figures. At its
+right end on L1 it sent 65,500 SM instead of 65,536 SM, which is under the Supermassive Link's mass, so an L1 hole
+held there never counted as a Supermassive Link source. At its left end it sent 4,100 SM instead of 4,096 SM, so a
+hole shed for taking the lattice down (B-154's advice) stopped 4 SM short. Breaking the lattice then froze the quasar
+until it was rebuilt. Only the number field, OpenComputers or a Burst Control hold of 15 gave exact values.
+
+**Fixed** (`77f8a0b`). `posToMass` returns exactly 4,096 SM at the left end and exactly the band top at the right end.
+In between it still rounds to 3 figures, but a value that rounds to the same figure as an end snaps to that end
+(e.g. 65,4xx-65,5xx SM on L1 is 65,536 SM). Checked: L1 ends 4,096 / 65,536 SM, L3 ends 4,096 / 4,194,304 SM, the
+middle unchanged. `gradlew build` green.
+
+**Suggestion.** Nothing to decide.
+
+### B-166 The shed look never drew: a shedding hole's jets are 0 Bu/t [master, review fix]
+
+**Context.** smbh-v1.md §2.5 and the render (R-19) show a shed as the eruption's flare held up both jets. But while a
+hole sheds, the engine sets the jet stream to 0 (a shed never makes power), the controller syncs 0 Bu/t to the render,
+and the renderer skipped a jet with no stream before its program ran. The render QA case "L4 shedding" set non-zero
+jets through the debug look, which hid it.
+
+**Fixed** (`7a1d0f4`, render only). While the shed flag is set, a jet with no stream is drawn at a nominal 1,000 Bu/t
+stream with the shed look (the giant knot every 1.4 s and the flickering core). Without a shed nothing changes. The
+power side is untouched: the crowns still read "Shedding" and make nothing. `gradlew build` green. Not re-filmed.
+
+**Suggestion.** Nothing to decide.
+
+### B-167 Review point: coil downgrades without a lattice shed the hole [master, review, not changed]
+
+**Context.** The review read smbh-v1.md §10.3 ("on a coil or lattice downgrade, the hole sheds to the new top on
+re-form") as "only when the disc re-forms". A quasar with no lattice whose coils are swapped down then sheds at 2 % a
+second to the new coil cap with no power while it lasts, where before the smbh branch it kept the bigger hole.
+
+**Not changed.** Swapping coils breaks the structure. The coil tier is only read when the structure forms again, and
+an unformed quasar is frozen (§2.5), so the shed already happens "on re-form" of the structure. §2.5 asks for exactly
+this ("This also fixes the max-quasar finding that swapping to lower-tier coils kept a bigger hole"), and the
+max-quasar check asked for it too (trim the hole to the new cap when coils are swapped down). A gradual shed is safer
+than trimming the mass at once. B-150 and B-154 record it as built.
+
+**Suggestion.** Keep. Only a hole that is above the new coil cap sheds, and only down to that cap. It makes no power
+while it sheds, so a downgrade cannot be used to get power.
+
+### B-168 The Quasar Engine quest still described the old 10 s gas buffer [master, review fix]
+
+**Context.** Since the Supermassive Lattice, the Accretion Buffer holds 60 s of Disc (counted at f 0.3 at least) plus,
+with a lattice, Hold-up and one second of Growth room. It refills every tick while the hatches give. Without a lattice
+it was 10 s of 1.5x the Eddington feed. §4.4 ("the buffer covers 60 s") asks for this, and B-156's judgement call 3
+logged it. The GUI and the info tab already say 60 s, but the Quasar Engine quest still said "the quasar keeps 10 s of
+feed in its own buffer". A quasar without a lattice now takes more gas on its first fill (60 s of its feed, about 3.4x
+the old fill at f 0.85), and its disc runs about a minute after the supply is cut.
+
+**Fixed** (`c4fd3d4`). The quest now says "the quasar keeps 60 s of feed in its own buffer (counted at f 0.3 at
+least), so the disc runs on for about a minute after the supply stops". Regenerated with `gen-bom.ps1`;
+`gen-singularity --check` (185 files) and `--selftest` green. The buffer itself is unchanged.
+
+**Suggestion.** Keep the 60 s buffer for every quasar: one rule for every quasar, and a ME supply that hiccups does not
+blow the disc out. Alternative: 10 s x 1.5 without a lattice, 60 s with one.
 
 
 ## Where the old question numbers went
