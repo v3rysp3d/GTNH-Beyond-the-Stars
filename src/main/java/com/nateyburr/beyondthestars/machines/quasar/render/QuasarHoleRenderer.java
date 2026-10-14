@@ -87,6 +87,11 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
     static final float DISC_R0 = 40f, DISC_W = 22f;
     /** Jet reach, blocks along the axis. */
     static final float JET_LEN = 78f;
+    /**
+     * A shedding hole makes no power (its jets sync 0 Bu/t), but the shed look holds the eruption's flare up both jets:
+     * they are drawn at this nominal stream while {@code JetLook.shed} is set (B-166).
+     */
+    private static final float SHED_JET_BU = 1000f;
 
     private static final int SEGMENTS = 96;
     private static final int RINGS = 6;
@@ -587,8 +592,11 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
 
     private void drawJet(double cx, double cy, double cz, float bu, int dir, float z0, float pitch, float a, int event,
         float evAge, float evSize, float time, float sx, float sz) {
-        if (bu <= 0) return;
         final QuasarFx.JetLook j = jet;
+        if (bu <= 0) {
+            if (j.shed <= 0) return;
+            bu = SHED_JET_BU;
+        }
         j.bright = Math.max(0.08f, Math.min(1f, (float) (0.35 + 0.2 * Math.log10(bu))));
         j.knotRate = (float) (0.15 + 0.3 * Math.log10(1 + bu));
         j.pitch = pitch;
