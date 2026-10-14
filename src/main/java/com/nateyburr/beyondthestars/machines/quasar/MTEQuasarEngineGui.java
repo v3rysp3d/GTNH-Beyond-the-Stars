@@ -1222,11 +1222,20 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
         return Math.min(1, Math.log(mass / lo) / Math.log(top / lo));
     }
 
-    /** The mass at a slider position, snapped to 3 significant figures. */
-    private static double posToMass(double pos, double top) {
+    /**
+     * The mass at a slider position, snapped to 3 significant figures in between, but exactly 4,096 SM and exactly
+     * {@code top} at the ends (and wherever the rounding would land on an end's rounded value): 4,096 SM is the
+     * setpoint a lattice comes down at, and an L1 top of 65,536 SM is the Supermassive Link's mass (B-165).
+     */
+    static double posToMass(double pos, double top) {
         final double lo = QuasarParams.M_REF;
-        final double v = lo * Math.pow(Math.max(lo, top) / lo, Math.max(0, Math.min(1, pos)));
-        return BTSFormat.sig3(v);
+        final double hi = Math.max(lo, top);
+        if (pos <= 0) return lo;
+        if (pos >= 1) return hi;
+        final double v = BTSFormat.sig3(lo * Math.pow(hi / lo, pos));
+        if (v <= BTSFormat.sig3(lo)) return lo;
+        if (v >= BTSFormat.sig3(hi)) return hi;
+        return v;
     }
 
     private ModularPanel buildHorizonPanel(PanelSyncManager main, ModularPanel parent) {
