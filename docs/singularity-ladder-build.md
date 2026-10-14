@@ -3040,3 +3040,51 @@ quasar's BHC family with each tier's colour. No new MTE id, fluid or recipe-resu
   (anchor 4,096 L/s, upkeep 50,000 L/s each, x98.9, intake 80 % of the cap); the anchor cut (Horizon bit 4, a safe shed);
   a shed on L1. Shots and text dumps: local work folder `smbh-ctl/` (`shots/`, `ctl-s345.txt`, `ctl-s7.txt`).
 
+## SMBH v1: the Eye side, quests and P4-88 (questions B-157..B-159)
+
+### The Supermassive Link's data (§1.3; B-157)
+
+- **Record:** the GRB Receptor Port keeps, per source and second, the tightest Junction out-1 limit and the source record
+  (lattice in force, mass) of the streams it took (`BurstReading.limitBySource` / `recordBySource`); the Eye copies
+  the link source's into `EyeBursts.limit / smLattice / smMass` (`supermassiveSource()`). The bench injectors (`/btseye
+  star ... inject`, `/btsconduit inject`) now copy their quasar's record too.
+- **Streak:** `EyeGalaxy.link9` (tile NBT `link9`), rolled every field second (`EyeStarRuntime.supermassiveSecond`):
+  `BurstLink.supermassiveOk(linked, source)` = linked, the source qualifies, the window full, mean >= D10 (96 Bu/t).
+  Held after 1,800 s; `EyeMilestones.smLinkDone / smLinkBest` (item NBT `t9`) for P5. Nothing gates on it.
+- **Shown:** the Galaxy panel's "Supermassive Link (P5)" check row (`EyeGui.supermassiveRow`), a scanner line
+  (`supermassiveLinkLine`), OpenComputers `getUnlock().supermassiveLink`.
+- **SL-Q36** (`BTSGodforgeMagMatter`, load-complete, `replaceTecTechEyeOfHarmony` only): the Godforge EE upgrade's 2
+  Universium frame boxes -> 8 Black Dwarf Matter frame boxes, in place. The gate audit reads MagMatter's tier from EE's
+  live cost (`SLGateDump.magMatterTier`: T7 after SL-Q36) and gates the T4 Disc Field Coil at T10.
+
+| ID | Thing | Where | Note |
+|---|---|---|---|
+| SL-Q36 | Godforge EE upgrade cost (MagMatter mode) | load-complete rewrite | 2 Universium frame boxes -> 8 Black Dwarf Matter (B-153, B-157) |
+
+### Quests (§8.3; B-158)
+
+17 quests under feature `smbh`: UXV 48176-48179, MAX 48195-48199 (Supermassive Link and White Hole Lattice are
+`eyeT9T10` placeholders; Eye T10 now needs the Supermassive Link), The Endgame 48221-48228. Bills: `quasar_lattice`
+(roles `lattice_frame`, `containment_node`) and `crown_mk4` (`horizon_thermaliser`) in `bomItems`. The Empyrean / Omega
+quests name the multiblock engraver (question 25); the circuit config comments (question 26). Regenerated with
+`gen-bom.ps1`; `--check` and `--selftest` green.
+
+### P4-88: the Junction's out-1 limit (B-159)
+
+- `BurstRouting.split(in, share1, p3, limit)`: share 1 of at most `limit` Bu/t, the rest to out 2 (no limit, or the rest
+  under it: the old split). `STANDARD_J1_LIMIT` = 7.5 Bu/t (5 x D7) per parallel, x the time dial
+  (`EyeStarRuntime.standardJ1Limit()`).
+- `MTEConduitJunction`: `limit` (NBT `limit`), `getLimit / setLimit` (0..Mk IV's cap, non-finite ignored), the scanner
+  line, the GUI row's tooltip, the split panel's "Out 1 limit, Bu/t" field (`jLimit`), OC `setLimit`, `getFlow().limit`,
+  `/btsconduit junction x y z c k p3 [split|combine] [limit bu]`. Out 1's streams carry the limit
+  (`BurstStream.withLimit`).
+- The T7 test fire's size is `testFireStream()` = min(the linked quasar's mean stream, J1's limit); the 6-32 Bu/t
+  window and the Galaxy panel's notes use it.
+- Benches: `/btsquasar autorig ... [mk 1-4] [limit bu|off|std]`, `/btseye star ... galaxy ... [mk n] [limit ...]`
+  (`EyeGalaxyBench.conduit` models the throat Mk and the limit; default Mk I and the standard limit).
+- **Tested** (dev server, port 25651, two boots, 372 registered / 0 skipped, no exception from our code): Mk II, a
+  real coils-T3 quasar at 310 SM and a real T8 Eye lit as Triangulum: no limit, Triangulum lost in its first second;
+  the standard limit, 1,800 s + 20,000 s with 0 failures, the Heavy Link held and the Galactic Merger complete (T8), and
+  2,458 game-s live on real redstone under `/btswarp 20` with no failure. Real elements: a Junction at limit 0.05 split
+  0.80 Bu/t into out 3 0.08 / out 1 0.03 / out 2 0.70. `/btseye gates`: everything clean, MagMatter at T7. The
+  Supermassive Link row read an injected L1 hole at 65,536 SM as qualifying. Dev client: the Junction panel's field.

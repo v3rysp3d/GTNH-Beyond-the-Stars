@@ -429,9 +429,9 @@ call returns nil and "rate limited: one call per 20 ticks (1 s, the field's step
 | Component | Methods |
 |---|---|
 | `bts_quasar` | `getDisc()` (state, E, phi, lambda, a, M, cap, integrity, zone, Yq, stability, b, power), `getBurst()` (total Bu/t and totalEUt, top, bottom, docks, vented), `getFeed()`, `setFeed(f)`, `setGas(name)`, `setField(b)`, `trim(kind, units)`, `purge()`, `getLinks()` (host, Bu/t, σ, streak), `getMilestones()`, `getDirective(w)` |
-| `bts_eye` (T7+ additions) | `getField()` adds W, L, beta, the gammas and D; `getEvent()`, `getUnlock()` (kind, streak, best, mean, frac, linked, source, ready, testFireWanted), `beginTransition()`, `setFeed8(f)`, `setMode(mode)`, `trim(kind, units)`, `getSlots()` |
+| `bts_eye` (T7+ additions) | `getField()` adds W, L, beta, the gammas and D; `getEvent()`, `getUnlock()` (kind, streak, best, mean, frac, linked, source, ready, testFireWanted, quasarStream, testFireStream, testFireShare, j1Limit, supermassiveLink {streak, best, held, mean, need, sourceMass, sourceLattice, sourceQualifies}: P5's T9 -> T10 data), `beginTransition()`, `setFeed8(f)`, `setMode(mode)`, `trim(kind, units)`, `getSlots()` |
 | `bts_mouth`, `bts_mirror` | `getLink()`, `getThroat()`, `getUpkeep()`, `setFuel(mode)`, `isOpen()` |
-| `bts_junction` | as a mouth, plus `getFlow()`, `setRatio(c)`, `setGain(k)`, `setOut3(p)`, `setMode(mode)` |
+| `bts_junction` | as a mouth, plus `getFlow()` (with `limit`), `setRatio(c)`, `setGain(k)`, `setOut3(p)`, `setLimit(bu)` (out 1's limit, 0 = none; the Eye's J1: 7.5 Bu/t per parallel, P4-88), `setMode(mode)` |
 | `bts_crown` | `getPower()`, `getStream()`, `getMk()` |
 | `bts_receptor` | `getDelivery()` (total, bySource) |
 | `bts_kerr` | `getState()` adds setpointHeld, bleedFactor and link {ports, sigma, sigmaLast, delivered, mean, linked, source, paused, line} |

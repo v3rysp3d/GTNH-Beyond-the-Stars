@@ -6,7 +6,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 1. **Open questions**: each open decision once, with the answer we recommend and where the detail is.
 2. **Settled**: everything you have answered, in your words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision from you.
-4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-138 and the SMBH branch's B-150..B-156, the tidy pass's
+4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-138 and the SMBH branch's B-150..B-159, the tidy pass's
    TQ-1..TQ-8, and P4's P4-01..P4-94 in Part E).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
@@ -47,9 +47,9 @@ Most important first. "Recommended" is what we would build if you say nothing. N
 | 22 | The intake cap at T7 / T8 buffers tens to hundreds of G L of hydrogen and helium (companions, planets mode) | Keep B-108's 20 cycles / 2 runs rule; shorten the companions' window if a shared network still starves | B-110 |
 | 23 | Eye T7 / T8 from the front at eye level: the window shows the galaxy's core and inner arms (\|x\| ≤ 10), but its outer arms (to r 16 / 19) stand behind the T6 rim and the arm blades | Keep the opening at \|x\| ≤ 10: wider would cut the arms and the rim out of the T4-T6 Eye too, and the near-flat disc (8° tilt) reads best from above anyway | B-114 |
 | 24 | ~~The time warp `/btswarp` (op only, cheats): ship it in release jars?~~ | **Settled**: ship it, op and cheats only (as built) | B-117 |
-| 25 | The two-fluid wafer engravings (SL-X05 Empyrean, SL-X06 Omega) cannot run in a single-block Laser Engraver (one fluid slot) | Keep; a UMV player uses GT's Hyper-Intensity Laser Engraver (or any multi with two input hatches); say "multiblock engraver" in the Empyrean / Omega quests | B-136, seen 1 |
-| 26 | `stellarCircuits=false` leaves the Piko / Quantum / Planck raise on (two independent switches) | Keep them independent; add one sentence to the `stellarCircuits` config comment | B-136, seen 2 |
-| 27 | SMBH: with `replaceTecTechEyeOfHarmony` on, MagMatter waits for our Eye T10 (the Godforge EE upgrade takes 2 Universium frames), but Saturation needs MagMatter coils and the T9 -> T10 Supermassive Link needs a lattice: a loop | Under the same flag, rewrite EE's 2 Universium frame boxes to 8 Black Dwarf Matter frames (P4-24's suggestion), so MagMatter arrives with Eternity at T7 | B-153 |
+| 25 | ~~The two-fluid wafer engravings (SL-X05 Empyrean, SL-X06 Omega) cannot run in a single-block Laser Engraver (one fluid slot)~~ **Built as recommended (B-158)** | Keep; a UMV player uses GT's Hyper-Intensity Laser Engraver (or any multi with two input hatches); say "multiblock engraver" in the Empyrean / Omega quests | B-136, seen 1 |
+| 26 | ~~`stellarCircuits=false` leaves the Piko / Quantum / Planck raise on (two independent switches)~~ **Built as recommended (B-158)** | Keep them independent; add one sentence to the `stellarCircuits` config comment | B-136, seen 2 |
+| 27 | SMBH: with `replaceTecTechEyeOfHarmony` on, MagMatter waits for our Eye T10 (the Godforge EE upgrade takes 2 Universium frames), but Saturation needs MagMatter coils and the T9 -> T10 Supermassive Link needs a lattice: a loop. **Built as recommended (SL-Q36, B-157); say if you prefer an alternative** | Under the same flag, rewrite EE's 2 Universium frame boxes to 8 Black Dwarf Matter frames (P4-24's suggestion), so MagMatter arrives with Eternity at T7 | B-153 |
 | 28 | SMBH: a broken lattice block under a hole over 4,096 SM unforms the quasar (frozen, nothing lost) instead of shedding the hole to the coil cap | Keep: a mis-click must not cost days of growth; taking a lattice down means lowering the setpoint to 4,096 SM first | B-154 |
 
 ## 2. Settled
@@ -6890,6 +6890,144 @@ first of them (the jet rows read "took 0.00" after a bench run); real ticks are 
 cannot feed an Unbound hole (27 G L/s of Helium) between commands: a hole set to 134 M SM by script blows out within a
 minute unless `run ... fill` follows at once, exactly as §4.4 describes for a dry feed.
 
+### B-157 SMBH: the Supermassive Link's Eye side, and MagMatter before the T10 gate (B-153) [smbh branch, built + test]
+
+**Context.** smbh-v1.md §1.3: the Eye's T9 -> T10 milestone is the **Supermassive Link**, a hole of at least 65,536 SM
+with a lattice, linked 30 min unbroken, a 60 s mean of at least D10 = 96 Bu/t (9.6e14 EU/t) on the Eye's ports. The
+milestone belongs to P5's T9 -> T10 transition; the SMBH build ships the data, a checklist row marked P5 and a
+placeholder quest. The audit rule (a gate at Eye tier N never needs a product first made at tier N or later) has to
+hold for it.
+
+**Built.**
+- **The data, read-only.** Every field second the Eye rolls a 60 s mean of everything on its ports and a streak while
+  the link source's **stream record** qualifies (every stream already carried the source's lattice tier in force and
+  its mass, B-156; the GRB Receptor Port now keeps that record per source, and the Eye reads it). The streak resets
+  when the link drops or the hole leaks under 65,536 SM; held after 1,800 s (the window fills in the first 60 s, so the
+  first hold comes at second 1,859). Held and best streak are saved with the milestones (item NBT, key `t9`) for P5;
+  nothing gates on them.
+- **Shown:** a yellow **Supermassive Link (P5)** check row in the Eye's Galaxy panel (from T8, or while a qualifying
+  hole is linked, or once a streak was seen): the streak against 30:00; in the tooltip the mean against 96 Bu/t, the
+  link source ("a 70,000 SM hole, lattice L1 (qualifies)"), the best streak and "Data only until Eye T9 ships (P5)". A
+  scanner line; OpenComputers `getUnlock().supermassiveLink` {streak, best, held, mean, need, sourceMass,
+  sourceLattice, sourceQualifies}. The quasar side's "Supermassive Link ready" sensor channel was B-156's.
+- **The placeholder quest** "Supermassive Link" (48198, MAX), a prerequisite of Eye T10 (B-158).
+- **B-153 resolved as recommended (SL-Q36).** The loop: Saturation needs MagMatter (T4) Disc Field Coils and the
+  lattice's frames are MagMatter; MagMatter's only source, the Godforge's magmatter mode, needs the EE upgrade; EE cost
+  2 Universium frame boxes (Eye T10 with `replaceTecTechEyeOfHarmony` on). Under that flag the 2 Universium frame boxes
+  become **8 Black Dwarf Matter frame boxes** (Eye T5), changed in place at load-complete (`BTSGodforgeMagMatter`;
+  TecTech's upgrade list and its NEI page share the stacks). EE's newest cost is then its 16 Eternity frames (Eye T7 via
+  SL-Q26), so MagMatter, T4 coils, Saturation and the lattice all arrive at T7, before the T10 gate. With the flag off
+  nothing changes.
+- **The gate audit now sees it.** `SLGateDump` knows MagMatter: its first-made tier is the newest Eye product in EE's
+  live cost (T7 after SL-Q36, T10 without), and the Disc Field Coil T4 is checked against the Eye T10 gate (it was
+  "optional, reported only").
+
+**Tested** (dev server, port 25651, two boots, 372 registered / 0 skipped, no exception from our code):
+- `/btseye gates`: "MagMatter (B-153): first made at Eye T7 ... SL-Q36 rewrote its Universium frames"; compression
+  generator gates T1-T9 CLEAN; P4 audit 0 parts break the rule, including Disc Field Coil T4 (gate T10), Lattice Frame
+  Casing and Containment Node L1 (gate T10); circuits 0 problems. Boot line: "SL-Q36: the Godforge EE upgrade
+  (magmatter mode) costs 8 Black Dwarf Matter frame boxes in place of 2 Universium ones".
+- An L1 quasar at 65,536 SM (hold-up 100 %, 90,795 Bu/t = 9.1e17 EU/t) injected into a T8 Eye's ports through the
+  real receptor path (`/btseye star ... inject`, which now carries the source's record like a real stream): the row
+  read "Link source: a 65,536 SM hole, lattice L1 (qualifies)", the mean against 96.0 Bu/t; when the unattended hole
+  leaked to 65,435 SM it read "(needs a lattice and 65,536 SM)".
+- The streak logic (pure `BurstLink`, the same class as the T6 / T7 links): held at second 1,859 on 100 Bu/t; reset to 0
+  by one second under 65,536 SM; never starts at a 90 Bu/t mean.
+
+**Not run.** A 30-minute real streak at 96 Bu/t: no Eye tier built today survives 96 Bu/t on its ports (T8's demand is 6
+Bu/t), which is exactly why the milestone waits for P5's T9.
+
+**Suggestion.** Keep. For P5: read `EyeMilestones.smLinkDone` / `galaxy().supermassiveLink()` as the T9 -> T10 link,
+and drop "(P5)" from the row. **Alternatives to SL-Q36** (as in B-153): let Saturation count on SpaceTime (T3) coils at
+2,048 SM; or give the T4 coil a Superdense Ergomatter body (a T8 part).
+
+### B-158 SMBH quests (smbh-v1.md §8.3) and the circuit questions 25 / 26 [smbh branch, built]
+
+**Built.**
+- **17 quests**, feature `smbh` (true), ids from the chapters' free ranges, appended to the ledger:
+  - UXV 48176-48179: Saturation (after Eye T8), A Cage for a Galaxy (48 Containment Nodes L1, HOLD -> CLAIM -> INSTALL,
+    the lattice's bill), Past the Coils (16,384 SM), Event Horizon Crown (the Mk IV crown's bill, and Throat Mk IV).
+  - MAX 48195-48199: Pumping the Sky (1 M L/t for 1 h), Drinking Deep (the 5x cap for 1 h), Holding It Up (65,536 SM on
+    L1 for 1 h, no leak), and two placeholders under `eyeT9T10`: **Supermassive Link** (a prerequisite of Eye T10 now)
+    and White Hole Lattice (48 L2 nodes).
+  - The Endgame 48221-48228: A Universe to Hold It (48 L3 nodes), A Few Million (2,097,152 SM for 1 h), Overdrive (x50
+    for 10 min), Only for a Bit (x90 for 10 min), Constrained Eternity (48 L4 nodes), Holding the Whole Base (a 1 h mean
+    of 1e18 EU/t without Overdrive), **Unbound (n >= 1 for 1 h with the anchor paid)**, **Cheaper by the Doubling**
+    (full Overdrive at n >= 1 for 10 min, upkeep 50,000 L/s each or less).
+  - The text carries the tier table, the intake bar's three segments, the growth-time table, the pump table and the
+    Overdrive and Unbound tables, with EU/t beside every Bu/t. Machine conditions are checkboxes ("tick the box"), as
+    for the P4 links.
+- **Layout.** The UXV four sit right of Eye T8; the MAX three lead to the Supermassive Link under Eye T10; the Endgame
+  eight sit in two rows under the pack's Universium / Stargate chain (the first layout crossed six pack lines; moved).
+- **Question 25 (B-136, the recommendation taken):** the Empyrean and Omega quests now say the two-fluid engravings
+  need a multiblock laser engraver (GT's Hyper-Intensity Laser Engraver, or any engraver multi with two input hatches).
+- **Question 26 (B-136, the recommendation taken):** the `stellarCircuits` and `raiseStockSpecialCircuits` config
+  comments say the two keys are independent: turning our circuits off does not turn the Piko / Quantum / Planck raise
+  off.
+- Regenerated with `gen-bom.ps1` (the one command): `gen-singularity --check` (185 files up to date) and `--selftest`
+  green; 89 quests of ours, 18 checkbox placeholders. The PowerShell writer's CRLF on the plant chapter's files was put
+  back to LF (no content change).
+
+**Judgement calls.** Quests 5-7 (pumping, the cap, the hold) sit in MAX, next to the Supermassive Link they lead to
+(UXV had 4 free ids). Holding the Whole Base hangs off Constrained Eternity (a line from A Few Million would cross it);
+its text says it is reachable from about 450,000 SM on L3. Endgame quests are real (not placeholders) because L3 / L4
+are built; their Universium note says it comes from Eye T10 or TecTech's EOH with the replacement flag off.
+
+### B-159 P4-88 fixed: the standard T7 rig at 300 SM and up with Mk II throats (the Junction's out-1 limit) [smbh branch, built + test]
+
+**Cause.** A Junction's split is a **fraction of its input**: share 1 = c + k(s/15 - 0.5). The standard rig drives J1
+(Eye : crown) and J2 (rail high : low) with two Directive bits (15 / 8 / 0), so the Eye gets 0, 57 % or 100 % of the
+stream, and the rail banks the same fractions. The field's burst terms are per demand: P moves 3(beta - 1) a second and
+W 6(gamma_lo - gamma_hi), with beta = bursts / 1.5 Bu/t at T7. The rig was tuned (and simulated) for streams of a few
+Bu/t, which Mk I throats clip at 24. With Mk II (384) a 300 SM quasar sends 40-100 Bu/t: at the middle level beta is
+about 13-38, so one second moves P by +40..+110 and W by up to +/-80: the bang-bang loops overshoot the +/-5 thresholds
+by tens of points and the galaxy breaches. In the prototype harness (binary rig, Mk II, 30 min): 200 SM 17 failures,
+300 SM 216, 415 SM 374; Mk I's clip only softens it (300 SM: 8-9 failures an hour, P swinging +/-28, W +/-70). It is
+not the test fire: the standard rig fails at that size without it.
+
+**Fix.** The Junction gets an **out-1 limit** (Bu/t, 0 = none): share 1 is taken of at most the limit and the rest goes
+to out 2 (`BurstRouting.split(in, share1, p3, limit)`; with no limit, or the stream under it, the old split exactly).
+Set by a GUI field in the Junction's panel, OpenComputers `bts_junction.setLimit`, `/btsconduit junction ... limit L`;
+saved; shown in the scanner, the GUI row's tooltip, `getFlow`. The standard rig's J1 limit is **7.5 Bu/t (7.5e13 EU/t)
+per parallel, x the Eye's time dial** (`BurstRouting.STANDARD_J1_LIMIT` = 5 x D7; `EyeStarRuntime.standardJ1Limit()`,
+OC `getUnlock().j1Limit`). J1 then steers 0 / 4.3 / 7.5 Bu/t into the Eye at any quasar size: the loops keep the gain
+the rig was tuned for, and the surplus goes to the crown (the design's own rule, "bring 1.5x the demand into J1 and send
+the surplus to a crown", now built into the junction).
+- Streams carry the tightest limit they passed (`BurstStream.limit`), the receptor records it per source, and the Eye's
+  T7 test fire is sized by **min(the quasar's mean stream, J1's limit)**: with the standard limit the Heavy Link's test
+  fire is 7.5 Bu/t (halo 5.6, rail 1.9) at any size. P4-88's 6-32 Bu/t window still applies to that number, so an
+  unlimited J1 on a big quasar is still held back, and the Galaxy panel now says to set the limit (or a J1 limit under 6
+  says to raise it).
+- The benches model it: `/btsquasar autorig ... [mk 1-4] [limit bu|off|std]` and `/btseye star ... galaxy ... [mk n]
+  [limit ...]` (default: Mk I, the standard limit).
+
+**Prototype harness** (the design repo's `quasar-p4-prototype.html` engine with `K.lim1` added in a scratch copy, binary
+rig, 1 h): Mk II at 300 SM and Mk III at 1,000 SM, T7, limit 4 / 6 / 8 Bu/t: 0 failures each (77 / 64 / 46 % Resonant);
+T7 test fire at 300 SM with 7.5: Heavy Link held, 0 failures (2 seeds); T8 at 120 / 1,000 SM with 7.5: 0 failures, 73 /
+99 % Resonant; the unattended T6 -> T7 chain at 300 SM with 7.5: 0 failures on 3 seeds (without it 1,134); at 64 SM the
+limit changes nothing (94 / 6 / 0, as before).
+
+**Dev server** (port 25651, a real coils-T3 Quasar Engine reseeded at 310 SM, spin 0.9, Helium f 1.0, and a real T8
+Eye lit as Triangulum; `/btsquasar autorig` with Mk II throats):
+- **limit off, 1,800 s:** Triangulum LOST in its first second (Breach, P +120), and the re-run collapse failed too.
+- **limit std (7.5 Bu/t), 1,800 s:** 0 failures, zones 980 / 820 / 0 / 0 / 0, 30,668 L Ergomatter, quasar mean G 63 Bu/t.
+- **then 20,000 s more:** 0 failures; the Heavy Link HELD (test fire 1,834 s), the Galactic Merger COMPLETE in 1,926 s
+  (T8), a satellite crossing caught; the quasar grew 316 -> 397 SM.
+- **live under `/btswarp 20`** (the rig on real redstone, 2,458 game-s in 123 s real, x20.0): no failure.
+- **Real conduit elements** (`/btsconduit rig`, a Junction set c 0.5, p3 0.1, limit 0.05): in 0.80 Bu/t -> out 3 0.08,
+  out 1 0.03, out 2 0.70 Bu/t, as the formula says.
+
+**Dev client** (GUI shot harness, silent): the Junction's split panel shows the new "Out 1 limit, Bu/t" field reading
+7.5 under the out 3 slider, with its tooltip; the panel still fits (186 high). Opening the GUI of a bench-placed element
+hit GT's power-fail tracker NPE for a machine with no owner (B-156 guarded it for the quasar only); bench only, the GUI
+still opened. Shots: local work folder `p488/smbh-junction-*.png`.
+
+**Not run.** The prototype page in the design repo is not changed (this run was confined to the worktree): its `conduitStep` needs the same one-line limit
+(`j1Ctl = K.lim1 > 0 ? min(j1In, K.lim1) : j1In`, local work folder `p488/proto-lim.html`) and a "J1 limit" control.
+
+**Suggestion.** Keep. A P5 design pass may want the limit to follow the Eye's demand on its own (a Junction reading
+the downstream Eye's demand), which would make it zero-setup.
+
 ## Where the old question numbers went
 
 | Old | Now | Old | Now | Old | Now |
@@ -8297,6 +8435,11 @@ either. The design's simulations stop at Mk I's 24 Bu/t clip.
 
 - a Directive "test fire preset": an analog level for J1, so a redstone rig follows the quasar's growth;
 - a look at the T7 rig above 300 SM, for example a J1 out-3 tap to crowns.
+
+**Fixed 2026-10-14 (B-159).** The cause is that a Junction splits fractions of its input, so the standard rig's P and W
+loops gain with the stream. The Junction now has an out-1 limit; the standard rig sets J1's to 7.5 Bu/t per parallel.
+The rig at 310-397 SM with Mk II throats ran 21,800 s with 0 failures on the dev server, held the Heavy Link and merged
+to T8. The ceiling stays for a J1 with no limit; the test fire's size is now min(stream, J1's limit).
 
 ### P4-89 Q-8 now pauses a non-Eye host's link work instead of holding σ [hosts, review fix]
 
