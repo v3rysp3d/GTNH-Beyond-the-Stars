@@ -2,13 +2,9 @@
   "preRequisites:9": {
     "0:10": {
       "questIDHigh:4": 190,
-      "questIDLow:4": 48186
+      "questIDLow:4": 48208
     },
     "1:10": {
-      "questIDHigh:4": 190,
-      "questIDLow:4": 48187
-    },
-    "2:10": {
       "questIDHigh:4": 190,
       "questIDLow:4": 48198
     }
@@ -24,19 +20,19 @@
         "OreDict:8": "",
         "id:8": "minecraft:stick"
       },
-      "countAsQuest:1": 0,
-      "desc:8": "The Universe. A jump as big as the Nano Forge's T4. Output: §9Universium§r, and only here. It opens §1The Endgame§r.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+      "countAsQuest:1": 1,
+      "desc:8": "§9The Universe§r, one at a time inside the crown. Each universe lives one§9 7,200 s batch§r, from first light to last. The job is cosmology's oldest problem: §9keep it flat§r. Too much matter and it recollapses (a Big Crunch); too little and dark energy tears it apart (a Big Rip).\n\n§5§lTHE §lFIELD§r Gauges P and §9H§r, the expansion error against the Friedmann curve the crown follows. H drifts up as dark energy takes over late in each universe (runaway gain +0.01). Trims: §9Attractor Dark Matter§r 4 L = H −2 (more mass, gravity slows it); §9Molten SpaceTime§r 100 L = H +2; Spatially Enlarged Fluid 100 L = P −2. Caps 10 a second. W, Λ, V and the beam retire. Demand§9 96 Bu/t§r (9.6e14 EU/t) on the crown's 12 ports.\n\n§5§lEVENTS§r §9Recombination§r at 1,800 s (warned 60 s): the universe turns transparent, H climbs for 300 s. §9Cosmic Dawn§r once a universe at 3,240 to 4,680 s (warned 120 s): the first stars ignite across the crown. Held Stable throughout: +12.5 % Universium.\n\n§5§lOUTPUT§r §9Universium 9,216 L a universe§r × mean Y × r, + 1,152 L for a caught Cosmic Dawn: about 6,200 L an hour. The charge is 9,216 L Attractor Dark Matter a universe. This is the §9only§r Universium source. A Big Rip or Crunch ends that universe early and salvages 25 % × the fraction run; the Eye never loses T10.\n\n§5§lSTANDARD §lRIG§r Universe bits 1 and 2 to two 2-unit valves (Dark Matter and SpaceTime), J1 on P, the Space valve, and a 600 SM quasar.\n\n§2§lDONE §lWHEN§r you have 144 L of Universium.",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
-        "Damage:2": 28115,
+        "Damage:2": 0,
         "OreDict:8": "",
-        "id:8": "gregtech:gt.blockmachines"
+        "id:8": "beyondthestars:starChartUniverse"
       },
       "isMain:1": 1,
       "isSilent:1": 0,
       "lockedProgress:1": 0,
-      "name:8": "§8Coming later: §7§l§nEye T10: The Universe§r",
+      "name:8": "§4§l§nEye T10: The Universe",
       "notification_duration:5": -1.0,
       "notification_effect:3": -1,
       "notification_fade_in:5": -1.0,
@@ -67,8 +63,18 @@
   "rewards:9": {},
   "tasks:9": {
     "0:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
       "index:3": 0,
-      "taskID:8": "bq_standard:checkbox"
+      "requiredFluids:9": {
+        "0:10": {
+          "Amount:3": 144,
+          "FluidName:8": "molten.universium"
+        }
+      },
+      "taskID:8": "bq_standard:fluid"
     }
   }
 }

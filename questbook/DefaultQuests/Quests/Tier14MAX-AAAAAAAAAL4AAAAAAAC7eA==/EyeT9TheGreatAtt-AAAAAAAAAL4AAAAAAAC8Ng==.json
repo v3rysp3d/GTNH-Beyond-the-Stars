@@ -1,0 +1,74 @@
+{
+  "preRequisites:9": {
+    "0:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48180
+    },
+    "1:10": {
+      "questIDHigh:4": -8966491619356291672,
+      "questIDLow:4": -7941726137436471809
+    },
+    "2:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48203
+    }
+  },
+  "properties:10": {
+    "betterquesting:10": {
+      "autoClaim:1": 0,
+      "completion_animation:8": "default",
+      "completion_particle:8": "default",
+      "confetti_icon:10": {
+        "Count:3": 0,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "minecraft:stick"
+      },
+      "countAsQuest:1": 1,
+      "desc:8": "The §9Great Attractor§r: the hidden mass at the heart of Laniakea, 100,000 galaxies. The Milky Way falls toward it at 600 km/s. It hides behind our own galaxy's plane, so it was found from how galaxies move, not seen. Most of it is dark matter.\n\n§5§lTHE §lFIELD§r T9 keeps the T8 field (P, W, Λ) and adds §9V, the infall§r: drift 2 × the flow, a runaway gain, and one actuator, the §9pellet beam§r (−2 × ρ, where ρ is the beam power over 1e10 GeV/s). Positive V: galaxies fall faster than you can catch them. Negative: the beam pushes the flow back up the filaments. The beam spools over 20 s, so steer it, do not slam it. Demand§9 24 Bu/t§r (2.4e14 EU/t).\n\n§5§lTHE §lBEAM§r The §9Pellet Injector Hatch§r fires n = cap × clamp(c + k (s/15 - 0.5), 0, 1) pellets a second; cap is the barrel's (4 / 8 / 16). Hold rating = floor(4 × (cap × GeV / 1e10 - 2)), 0 to 12: the largest flow the beam can hold. Superdense on a Mk I: rating 12.\n\n§5§lGALACTIC §lFLOW§r Every 20 to 40 min a group of 3 to 12 galaxies comes down a filament, warned an exact 180 s ahead with its side and size. A group no bigger than the accept limit (default: the hold rating) is accepted: for 240 s it pushes V, Λ, W and P at once. Held Stable throughout: every galaxy is captured, §9+144 L Attractor Dark Matter each§r. A bigger group streams past; nothing is lost.\n\n§5§lOUTPUT§r Attractor Dark Matter§9 144 L a cycle§r × Y × r, plus the flows: about 12,300 L an hour on the standard rig, which needs a§9 300 SM quasar§r. Planets mode runs 9 planets; T9 runs 3 companions, and a companion may be a galaxy (Triangulum, the Milky Way).\n\n§5§lSTANDARD §lRIG§r The T8 rig unchanged (J1 on P, J2 on the aim, J3 on the halo, the Space valve) plus the Flow Directive set's bits 1 and 2 to the injector's Burst Control Hatch (15 / 8 / 0). A breach drops the Attractor; galaxies held, tiers and cores are never lost. Rerun The Infall from a lit Milky Way.\n\n§2§lDONE §lWHEN§r your Eye runs T9 (tick the box).",
+      "globalShare:1": 0,
+      "icon:10": {
+        "Count:3": 1,
+        "Damage:2": 0,
+        "OreDict:8": "",
+        "id:8": "beyondthestars:starChartGreatAttractor"
+      },
+      "isMain:1": 1,
+      "isSilent:1": 0,
+      "lockedProgress:1": 0,
+      "name:8": "§4§l§nEye T9: The Great Attractor",
+      "notification_duration:5": -1.0,
+      "notification_effect:3": -1,
+      "notification_fade_in:5": -1.0,
+      "notification_fade_out:5": -1.0,
+      "notification_icon_offset_y:3": -2147483648,
+      "notification_icon_scale:5": -1.0,
+      "notification_pos_x:3": -2147483648,
+      "notification_pos_y:3": -2147483648,
+      "notification_show_icon:8": "default",
+      "notification_style:8": "default",
+      "notification_subtitle:8": "",
+      "notification_subtitle_scale:5": -1.0,
+      "notification_title:8": "",
+      "notification_title_scale:5": -1.0,
+      "particle_count:3": -1,
+      "questLogic:8": "AND",
+      "repeatTime:3": -1,
+      "repeat_relative:1": 1,
+      "simultaneous:1": 0,
+      "snd_complete:8": "random.levelup",
+      "snd_update:8": "random.levelup",
+      "taskLogic:8": "AND",
+      "visibility:8": "NORMAL"
+    }
+  },
+  "questIDHigh:4": 190,
+  "questIDLow:4": 48182,
+  "rewards:9": {},
+  "tasks:9": {
+    "0:10": {
+      "index:3": 0,
+      "taskID:8": "bq_standard:checkbox"
+    }
+  }
+}

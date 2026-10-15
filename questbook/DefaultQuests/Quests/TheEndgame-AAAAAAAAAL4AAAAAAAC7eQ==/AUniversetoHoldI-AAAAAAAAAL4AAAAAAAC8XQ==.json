@@ -3,6 +3,10 @@
     "0:10": {
       "questIDHigh:4": 190,
       "questIDLow:4": 48199
+    },
+    "1:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48188
     }
   },
   "properties:10": {
@@ -17,7 +21,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "§9L3§r: each L2 node remade with 48,000 L Entangled Superdense Ergomatter, 9,216 L Entangled Magnetar Matter, 9,216 L Entangled Black Dwarf Matter and 4 any-MAX circuits (Condensate Assembler, MAX). Safe limit§9 262,144 SM§r, top§9 4,194,304 SM§r, and §9Overdrive§r.\n\nAt 262,144 SM a hole gives §9×7.9§r on gas alone (7.7e17 EU/t). A whole endgame base draws 1e16 to 1e17 EU/t: one L3 hole holds it several times over.\n\n[note]Take the 48 L2 nodes out before you place the L3 ones: the projector does not replace nodes in place. Over 4,096 SM the quasar freezes meanwhile, and nothing is lost; then let the projector place the new tier with the lattice channel set.[/note]\n\n§2§lDONE §lWHEN§r you hold 48 Containment Nodes L3 (HOLD → CLAIM → INSTALL).",
+      "desc:8": "§9L3§r: each L2 node remade with 2,304 L (16 ingots) of Entangled §9Universium§r and 4 any-MAX circuits (Condensate Assembler, MAX). 48 nodes: about 18 hours of one Eye T10. Safe limit§9 262,144 SM§r, top§9 4,194,304 SM§r, and §9Overdrive§r.\n\nAt 262,144 SM a hole gives §9×7.9§r on gas alone (7.7e17 EU/t). A whole endgame base draws 1e16 to 1e17 EU/t: one L3 hole holds it several times over.\n\n[note]Take the 48 L2 nodes out before you place the L3 ones: the projector does not replace nodes in place. Over 4,096 SM the quasar freezes meanwhile, and nothing is lost. A server with latticeNodesUseP5Matter=false keeps the older L3 recipe (Superdense Ergomatter, Magnetar and Black Dwarf Matter), which needs no Eye T10.[/note]\n\n§2§lDONE §lWHEN§r you hold 48 Containment Nodes L3 (HOLD → CLAIM → INSTALL).",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,

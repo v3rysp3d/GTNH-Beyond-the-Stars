@@ -2,15 +2,7 @@
   "preRequisites:9": {
     "0:10": {
       "questIDHigh:4": 190,
-      "questIDLow:4": 48180
-    },
-    "1:10": {
-      "questIDHigh:4": 190,
-      "questIDLow:4": 48181
-    },
-    "2:10": {
-      "questIDHigh:4": -8966491619356291672,
-      "questIDLow:4": -7941726137436471809
+      "questIDLow:4": 48202
     }
   },
   "properties:10": {
@@ -24,19 +16,19 @@
         "OreDict:8": "",
         "id:8": "minecraft:stick"
       },
-      "countAsQuest:1": 0,
-      "desc:8": "Sgr A*, the supermassive black hole at a galaxy's heart, with tidal disruption events to catch. Output: §9White Hole Matter§r. A planets mode will run 9 planets at once.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+      "countAsQuest:1": 1,
+      "desc:8": "§9The Infall§r, the T8 → T9 transition (1,800 s).\n\n§5§lBEFORE§r The collimator stack built with its injector stocked; compression tier 9 everywhere (Gallifreyan); the Milky Way lit and Stable in galaxy mode, no companions; the beam's hold rating ≥ 6; the charge buffered: 18,000 L Superdense Ergomatter; Star Chart: Great Attractor in the slot.\n\n§5§lTHE §lEVENT§r\n1. t 0: the object becomes the Attractor. V appears at 0 and its drift ramps in over 600 s. The charge drains at 10 L/s; demand climbs from 6 to 24 Bu/t.\n2. t 1,020 to 1,440: a forced Galactic Flow of 6, warned at 1,020, arriving at 1,200. Hold it.\n3. Hold Stable or better for 120 s in a row after the flow, by t 2,100.\n\nSuccess: the core is consumed and T9 is unlocked for good. Failure: the Milky Way is thrown back §9still lit at T8§r with Integrity 50; the charge is spent, the core stays in escrow.\n\n§5§lAUTOMATE§r Transition bit 1 to the Eye's Burst Control Hatch in begin mode; the standard rig does every step.\n\n§2§lDONE §lWHEN§r The Infall succeeds (tick the box).",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
-        "Damage:2": 28115,
+        "Damage:2": 0,
         "OreDict:8": "",
-        "id:8": "gregtech:gt.blockmachines"
+        "id:8": "beyondthestars:starChartGreatAttractor"
       },
-      "isMain:1": 1,
+      "isMain:1": 0,
       "isSilent:1": 0,
       "lockedProgress:1": 0,
-      "name:8": "§8Coming later: §7§l§nEye T9: White Hole§r",
+      "name:8": "§4§l§nOut of the Zone of Avoidance",
       "notification_duration:5": -1.0,
       "notification_effect:3": -1,
       "notification_fade_in:5": -1.0,
@@ -63,7 +55,7 @@
     }
   },
   "questIDHigh:4": 190,
-  "questIDLow:4": 48182,
+  "questIDLow:4": 48203,
   "rewards:9": {},
   "tasks:9": {
     "0:10": {

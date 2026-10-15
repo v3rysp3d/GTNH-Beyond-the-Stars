@@ -2,7 +2,15 @@
   "preRequisites:9": {
     "0:10": {
       "questIDHigh:4": 190,
-      "questIDLow:4": 48197
+      "questIDLow:4": 48180
+    },
+    "1:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48149
+    },
+    "2:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48142
     }
   },
   "properties:10": {
@@ -17,18 +25,18 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "Remake the 48 nodes as §9L2§r: each L1 node plus 16,000 L Entangled Superdense Ergomatter, 4,608 L Entangled Magnetar Matter and 4 any-MAX circuits, in the Condensate Assembler at MAX. L2's safe limit is§9 65,536 SM§r and its top 262,144 SM: the Eye gate's mass with no hold-up gas at all.\n\nTake the 48 L1 nodes out before you place the L2 ones: the projector does not replace nodes in place. Over 4,096 SM the quasar freezes meanwhile, and nothing is lost; then let the projector place the new tier with the lattice channel set. L2 is not needed for the Eye gate, which is met on L1, but L3 and L4 are made from L2 nodes.\n\n§2§lDONE §lWHEN§r you hold 48 Containment Nodes L2 (HOLD → CLAIM → INSTALL).",
+      "desc:8": "T9 is powered and held by a §9beam of pellets§r fired down the collimator stack. Three grades, each pressed on the §9Kerr Compressor Module§r (Kerr T2, 30 s at UXV, 16 a craft) from the grade below:\n- §9Magnetar§r, 1.25 EeV: 72 L Magnetar Matter, 1,000 L Degenerate Stellar Mixture, 2 Casimir Plates. A primer, too weak to hold a flow alone.\n- §9Ergomatter§r, 5 EeV: 4 Magnetar pellets + 1,000 L Ergomatter.\n- §9Superdense§r, 20 EeV: 4 Ergomatter pellets + 144 L Superdense Ergomatter. The working fuel.\n\n1 EeV is 10 to the 9 GeV. The top grade carries T6, T7 and T8 matter at once: one pellet holds 9 L Superdense, 15.6 L Ergomatter and 0.28 L Magnetar Matter. A standard T9 fires about§9 2,000 an hour§r: 0.9 of a T8, 0.73 of a T7 and 0.5 of a T6 in upkeep.\n\nEvery grade stays under the §9GZK limit§r (50 EeV), where real cosmic rays start losing energy to the microwave background. The top grade sits at 40 % of it.\n\n§5§lAUTOMATE§r Patterns on the Kerr Compressor: Magnetar → Ergomatter → Superdense, and a level emitter on the Superdense pellets.\n\n§2§lDONE §lWHEN§r you hold 64 Superdense pellets.",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
-        "Damage:2": 2,
+        "Damage:2": 0,
         "OreDict:8": "",
-        "id:8": "beyondthestars:slCasing4"
+        "id:8": "beyondthestars:gatedPelletSuperdense"
       },
       "isMain:1": 0,
       "isSilent:1": 0,
       "lockedProgress:1": 0,
-      "name:8": "§4§l§nThe L2 Lattice",
+      "name:8": "§4§l§nGated Pellets",
       "notification_duration:5": -1.0,
       "notification_effect:3": -1,
       "notification_fade_in:5": -1.0,
@@ -55,7 +63,7 @@
     }
   },
   "questIDHigh:4": 190,
-  "questIDLow:4": 48199,
+  "questIDLow:4": 48181,
   "rewards:9": {},
   "tasks:9": {
     "0:10": {
@@ -68,10 +76,10 @@
       "requireOnlyOneItem:1": 0,
       "requiredItems:9": {
         "0:10": {
-          "Count:3": 48,
-          "Damage:2": 2,
+          "Count:3": 64,
+          "Damage:2": 0,
           "OreDict:8": "",
-          "id:8": "beyondthestars:slCasing4"
+          "id:8": "beyondthestars:gatedPelletSuperdense"
         }
       },
       "taskID:8": "bq_standard:retrieval"

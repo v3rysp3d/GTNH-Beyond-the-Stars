@@ -2,15 +2,7 @@
   "preRequisites:9": {
     "0:10": {
       "questIDHigh:4": 190,
-      "questIDLow:4": 48180
-    },
-    "1:10": {
-      "questIDHigh:4": 190,
-      "questIDLow:4": 48149
-    },
-    "2:10": {
-      "questIDHigh:4": 190,
-      "questIDLow:4": 48142
+      "questIDLow:4": 48188
     }
   },
   "properties:10": {
@@ -24,19 +16,19 @@
         "OreDict:8": "",
         "id:8": "minecraft:stick"
       },
-      "countAsQuest:1": 0,
-      "desc:8": "Pellets made from T6, T7 and T8 matter (Magnetar Matter, Ergomatter and Superdense Ergomatter, with the Homogeny's Degenerate Stellar Mixture), fired as a higher-GeV beam that powers and stabilises Eye T9.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+      "countAsQuest:1": 1,
+      "desc:8": "Catch one §9Cosmic Dawn§r: the first stars ignite across the crown's twelve spikes. Warned 120 s ahead; P jumps and H climbs for 300 s. Held Stable or better throughout, that universe makes §9+12.5 % Universium§r (1,152 L).\n\n§2§lDONE §lWHEN§r a Cosmic Dawn is caught (tick the box).",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
-        "Damage:2": 32419,
+        "Damage:2": 6,
         "OreDict:8": "",
-        "id:8": "gregtech:gt.metaitem.01"
+        "id:8": "beyondthestars:slCasing4"
       },
       "isMain:1": 0,
       "isSilent:1": 0,
       "lockedProgress:1": 0,
-      "name:8": "§8Coming later: §7§l§nT9 Pellets§r",
+      "name:8": "§4§l§nCosmic Dawn",
       "notification_duration:5": -1.0,
       "notification_effect:3": -1,
       "notification_fade_in:5": -1.0,
@@ -63,7 +55,7 @@
     }
   },
   "questIDHigh:4": 190,
-  "questIDLow:4": 48181,
+  "questIDLow:4": 48210,
   "rewards:9": {},
   "tasks:9": {
     "0:10": {

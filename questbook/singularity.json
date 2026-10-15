@@ -13,10 +13,10 @@
     "conduit": true,
     "crown": true,
     "eyeT7T8": true,
-    "uxvParts": false,
-    "eyeT9T10": false,
-    "realityRefab": false,
-    "maxParts": false,
+    "uxvParts": true,
+    "eyeT9T10": true,
+    "realityRefab": true,
+    "maxParts": true,
     "eternityOnErgomatter": true,
     "uxvSwap": false,
     "astralArrayOnEye": false,
@@ -45,14 +45,14 @@
       "key": "max", "low": 47992, "name": "Tier 14 - MAX", "dirStem": "Tier14MAX", "range": [48180, 48219],
       "icon": "mte:11234", "orderAfter": "l37V2WvbSHGZQ5oMgAfBuw==",
       "desc": [
-        "The last voltage tier. Here: the Supermassive Lattice's L2 tier, the Supermassive Link and the pack's own MAX quests. Coming later: Eye T9 and its {9}White Hole Matter{r}, the MAX parts built from it, and Eye T10, which makes {9}Universium{r} and opens the pack's Universium line in {1}The Endgame{r}."
+        "The last voltage tier. Eye T9 holds the {9}Great Attractor{r} on a beam of pellets and makes {9}Attractor Dark Matter{r}; every MAX part is built from it. The Homogeny T3 and the two Reality machines make the {9}Universal Upgrade Core{r}, and Eye T10 runs {9}the Universe{r}: the only Universium, which opens {1}The Endgame{r}."
       ]
     },
     {
       "key": "end", "low": 47993, "name": "The Endgame", "dirStem": "TheEndgame", "range": [48220, 48249],
       "icon": "gregtech:gt.metaitem.01:11139", "orderAfter": "l37V2WvbSHGZQ5oMgAfBuw==",
       "desc": [
-        "The Supermassive Lattice's last tiers: L3, L4, Overdrive and Unbound. Then, coming later with Eye T10: Universium, the pack's MHDCSM line and the crafted Stargate."
+        "Eye T10's Universium opens this tab: the pack's MHDCSM line, Constrained Eternity and Resplendent parts, the crafted Stargate and the Astral Array. The Supermassive Lattice's last tiers sit here too: L3 (on Universium), L4, Overdrive and Unbound."
       ]
     }
   ],
@@ -980,33 +980,42 @@
     },
     {
       "low": 48151, "key": "magnetar_glass", "chapter": "uxv", "x": 396, "y": 264, "size": 24,
-      "name": "{4}{l}{n}Magnetar-Reinforced Borosilicate Glass", "icon": "tectech:tile.quantumGlass:0", "needs": ["uxvParts"],
+      "name": "{4}{l}{n}Magnetar-Reinforced Borosilicate Glass", "icon": "beyondthestars:slGlass:0", "needs": ["uxvParts"],
       "prereqs": [48141],
-      "tasks": [ { "type": "tbd", "what": "the glass block" } ],
+      "tasks": [ { "type": "retrieval", "items": ["4x beyondthestars:slGlass:0"] } ],
       "desc": [
-        "The UXV glass tier for multiblocks that check their glass, made with Magnetar Matter. It belongs to the new UXV parts, which will take Universium out of UXV recipes."
+        "The {9}UXV glass tier{r} for multiblocks that check their glass. Alloy Blast Smelter at UXV: 4 Transcendentally Reinforced Borosilicate Glass + 144 L Magnetar Matter {to} 4 blocks, 36 L each (a 48-glass multi is about 1.5 h of one T6).",
+        "",
+        "{2}{l}DONE WHEN{r} you hold 4 blocks."
       ]
     },
     {
       "low": 48152, "key": "uxv_superconductor", "chapter": "uxv", "x": 396, "y": 324, "size": 24,
-      "name": "{4}{l}{n}UXV Superconductor", "icon": "mte:2089", "needs": ["uxvParts"],
+      "name": "{4}{l}{n}UXV Superconductor", "icon": "beyondthestars:superconductorWireUXV", "needs": ["uxvParts"],
       "prereqs": [48141],
-      "tasks": [ { "type": "tbd", "what": "the wire" } ],
+      "tasks": [ { "type": "retrieval", "items": ["16x beyondthestars:superconductorWireUXV"] } ],
       "desc": [
-        "The pack's superconductors stop at UMV. This UXV one will be drawn from Magnetar Matter, with Antipolarization Agent wherever it is needed before Eye T7. It belongs to the new UXV parts, which will take Universium out of UXV recipes."
+        "The pack's superconductors stop at UMV. The {9}UXV Superconductor Wire{r} is drawn from Magnetar Matter: Alloy Blast Smelter at UXV, 16 UMV Superconductor Wire + 576 L Magnetar Matter + 2,000 L Antipolarization Agent + 64,000 L Super Coolant {to} 16 (about 31 min of one T6).",
+        "",
+        "It is a crafting part, not a cable: it builds the UXV laser hatches and the MAX Superconductor Wire.",
+        "",
+        "{2}{l}DONE WHEN{r} you hold 16 wire."
       ]
     },
     {
       "low": 48153, "key": "uxv_laser_hatches", "chapter": "uxv", "x": 300, "y": 504, "size": 24,
-      "name": "{4}{l}{n}UXV Laser Hatches", "icon": "mte:15238", "needs": ["uxvLaserIds", "uxvParts"],
+      "name": "{4}{l}{n}UXV Laser Hatches", "icon": "mte:15158", "needs": ["uxvLaserIds", "uxvParts"],
       "prereqs": ["E29"],
-      "tasks": [ { "type": "retrieval", "items": ["1x mte:15238", "1x mte:15138"] } ],
+      "tasks": [ { "type": "retrieval", "items": ["1x mte:15158", "1x mte:15258"] } ],
       "desc": [
-        "The pack's UXV laser source and target hatches carry more power than any energy hatch. They are built from the pack's UXV parts, which need Universium, so they come with Eye T10 (coming later).",
+        "The pack's {9}4096A UXV laser hatches{r} carry more power than any energy hatch. The pack's own recipe needs UXV parts (Universium, Eye T10), so this one does not (Assembly Line, UXV):",
+        "- Target: 2 UMV Energy Hatches, 32 UMV Sensors, 8 UXV circuits, 16 UXV Superconductor Wire;",
+        "- Source: 2 UMV Dynamo Hatches, 32 UMV Emitters, the same circuits and wire;",
+        "- each with 2,304 L Magnetar Matter and 32,000 L Antipolarization Agent (about 2 h of one T6).",
         "",
-        "[note]On a Kerr module the tier of the total input (voltage {times} amps) sets the parallels: a 256A UXV laser counts as tier 17, so 8 {times} 17 {times} floor(sqrt M).[/note]",
+        "[note]On a Kerr module the tier of the total input (voltage {times} amps) sets the parallels: a 4096A UXV laser counts as tier 19.[/note]",
         "",
-        "{2}{l}DONE WHEN{r} you hold a 256A UXV Laser Source Hatch and its Target Hatch."
+        "{2}{l}DONE WHEN{r} you hold a 4096A UXV Laser Target Hatch and its Source Hatch."
       ]
     },
     {
@@ -1389,52 +1398,91 @@
       "prereqs": [48148],
       "tasks": [ { "type": "checkbox" } ],
       "desc": [
-        "The last voltage tier. The Supermassive Lattice's L2 tier and the pack's own MAX quests work now. Eye T9, White Hole Matter, the MAX parts, the Reality machines and Eye T10 are {9}coming in a later update{r}: their quests are checkboxes until then.",
+        "The last voltage tier. Here: {9}Eye T9, the Great Attractor{r}, its {9}Attractor Dark Matter{r}, the MAX parts built from it, the Homogeny T3, the two Reality machines and, last, {9}Eye T10: the Universe{r}. The Supermassive Lattice's L2 tier and the pack's own MAX quests sit here too.",
         "",
         "{5}{l}THE PLAN{r}",
-        "- Eye T9 makes {9}White Hole Matter{r}, and every MAX part is built from it, so MAX parts arrive before T10.",
-        "- The Homogeny T3 and the two Reality machines make the {9}Universal Upgrade Core{r}.",
-        "- {9}Eye T10{r} makes Universium, and Universium opens the pack's Universium line in {1}The Endgame{r}.",
+        "- {9}Gated Pellets{r} from T6, T7 and T8 matter feed the T9 beam.",
+        "- Eye T9 makes {9}Attractor Dark Matter{r}, and every MAX part is built from it, so MAX parts arrive before T10.",
+        "- The Homogeny T3 and the two Reality machines make the {9}Universal Upgrade Core{r} and the tenth compression tier.",
+        "- {9}Eye T10{r} makes Universium, the only source of it, and Universium opens {1}The Endgame{r}.",
         "",
         "{2}{l}DONE WHEN{r} you tick the box: this one is the chapter's introduction."
       ]
     },
     {
-      "low": 48181, "key": "t9_pellets", "chapter": "max", "x": 108, "y": 264, "size": 24,
-      "name": "{4}{l}{n}T9 Pellets", "icon": "gregtech:gt.metaitem.01:32419", "needs": ["eyeT9T10"],
+      "low": 48181, "key": "t9_pellets", "chapter": "max", "x": 60, "y": 264, "size": 24,
+      "name": "{4}{l}{n}Gated Pellets", "icon": "beyondthestars:gatedPelletSuperdense", "needs": ["eyeT9T10"],
       "prereqs": [48180, 48149, 48142],
-      "tasks": [ { "type": "tbd", "what": "the pellets" } ],
+      "tasks": [ { "type": "retrieval", "items": ["64x beyondthestars:gatedPelletSuperdense"] } ],
       "desc": [
-        "Pellets made from T6, T7 and T8 matter (Magnetar Matter, Ergomatter and Superdense Ergomatter, with the Homogeny's Degenerate Stellar Mixture), fired as a higher-GeV beam that powers and stabilises Eye T9."
+        "T9 is powered and held by a {9}beam of pellets{r} fired down the collimator stack. Three grades, each pressed on the {9}Kerr Compressor Module{r} (Kerr T2, 30 s at UXV, 16 a craft) from the grade below:",
+        "- {9}Magnetar{r}, 1.25 EeV: 72 L Magnetar Matter, 1,000 L Degenerate Stellar Mixture, 2 Casimir Plates. A primer, too weak to hold a flow alone.",
+        "- {9}Ergomatter{r}, 5 EeV: 4 Magnetar pellets + 1,000 L Ergomatter.",
+        "- {9}Superdense{r}, 20 EeV: 4 Ergomatter pellets + 144 L Superdense Ergomatter. The working fuel.",
+        "",
+        "1 EeV is 10 to the 9 GeV. The top grade carries T6, T7 and T8 matter at once: one pellet holds 9 L Superdense, 15.6 L Ergomatter and 0.28 L Magnetar Matter. A standard T9 fires about {9}2,000 an hour{r}: 0.9 of a T8, 0.73 of a T7 and 0.5 of a T6 in upkeep.",
+        "",
+        "Every grade stays under the {9}GZK limit{r} (50 EeV), where real cosmic rays start losing energy to the microwave background. The top grade sits at 40 % of it.",
+        "",
+        "{5}{l}AUTOMATE{r} Patterns on the Kerr Compressor: Magnetar {to} Ergomatter {to} Superdense, and a level emitter on the Superdense pellets.",
+        "",
+        "{2}{l}DONE WHEN{r} you hold 64 Superdense pellets."
       ]
     },
     {
       "low": 48182, "key": "eye_t9", "chapter": "max", "x": 168, "y": 156, "size": 48, "main": true,
-      "name": "{4}{l}{n}Eye T9: White Hole", "icon": "mte:28115", "needs": ["eyeT9T10"],
-      "prereqs": [48180, 48181, "E37"],
-      "tasks": [ { "type": "tbd", "what": "the T9 core and chart" } ],
+      "name": "{4}{l}{n}Eye T9: The Great Attractor", "icon": "beyondthestars:starChartGreatAttractor", "needs": ["eyeT9T10"],
+      "prereqs": [48180, "E37", 48203],
+      "tasks": [ { "type": "checkbox" } ],
       "desc": [
-        "Sgr A{ast}, the supermassive black hole at a galaxy's heart, with tidal disruption events to catch. Output: {9}White Hole Matter{r}. A planets mode will run 9 planets at once."
+        "The {9}Great Attractor{r}: the hidden mass at the heart of Laniakea, 100,000 galaxies. The Milky Way falls toward it at 600 km/s. It hides behind our own galaxy's plane, so it was found from how galaxies move, not seen. Most of it is dark matter.",
+        "",
+        "{5}{l}THE FIELD{r} T9 keeps the T8 field (P, W, {u+039b}) and adds {9}V, the infall{r}: drift 2 {times} the flow, a runaway gain, and one actuator, the {9}pellet beam{r} ({minus}2 {times} {u+03c1}, where {u+03c1} is the beam power over 1e10 GeV/s). Positive V: galaxies fall faster than you can catch them. Negative: the beam pushes the flow back up the filaments. The beam spools over 20 s, so steer it, do not slam it. Demand {9}24 Bu/t{r} (2.4e14 EU/t).",
+        "",
+        "{5}{l}THE BEAM{r} The {9}Pellet Injector Hatch{r} fires n = cap {times} clamp(c + k (s/15 - 0.5), 0, 1) pellets a second; cap is the barrel's (4 / 8 / 16). Hold rating = floor(4 {times} (cap {times} GeV / 1e10 - 2)), 0 to 12: the largest flow the beam can hold. Superdense on a Mk I: rating 12.",
+        "",
+        "{5}{l}GALACTIC FLOW{r} Every 20 to 40 min a group of 3 to 12 galaxies comes down a filament, warned an exact 180 s ahead with its side and size. A group no bigger than the accept limit (default: the hold rating) is accepted: for 240 s it pushes V, {u+039b}, W and P at once. Held Stable throughout: every galaxy is captured, {9}+144 L Attractor Dark Matter each{r}. A bigger group streams past; nothing is lost.",
+        "",
+        "{5}{l}OUTPUT{r} Attractor Dark Matter {9}144 L a cycle{r} {times} Y {times} r, plus the flows: about 12,300 L an hour on the standard rig, which needs a {9}300 SM quasar{r}. Planets mode runs 9 planets; T9 runs 3 companions, and a companion may be a galaxy (Triangulum, the Milky Way).",
+        "",
+        "{5}{l}STANDARD RIG{r} The T8 rig unchanged (J1 on P, J2 on the aim, J3 on the halo, the Space valve) plus the Flow Directive set's bits 1 and 2 to the injector's Burst Control Hatch (15 / 8 / 0). A breach drops the Attractor; galaxies held, tiers and cores are never lost. Rerun The Infall from a lit Milky Way.",
+        "",
+        "{2}{l}DONE WHEN{r} your Eye runs T9 (tick the box)."
       ]
     },
     {
       "low": 48183, "key": "white_hole_matter", "chapter": "max", "x": 180, "y": 264, "size": 24,
-      "name": "{4}{l}{n}White Hole Matter", "icon": "gregtech:gt.metaitem.01:11585", "needs": ["eyeT9T10"],
+      "name": "{4}{l}{n}Attractor Dark Matter", "icon": "beyondthestars:attractorDarkMatterPlate", "needs": ["eyeT9T10"],
       "prereqs": [48182],
-      "tasks": [ { "type": "tbd", "what": "a White Hole Matter fluid task" } ],
+      "tasks": [ { "type": "fluid", "fluids": ["1000x fluid:btsdarkmatter"] } ],
       "desc": [
-        "Eye T9's harvest, and what every MAX part will be built from."
+        "Eye T9's harvest, stripped from the halos of the galaxies the Great Attractor captures. It builds every MAX part (see {c}MAX Parts{r}), Entanglement Medium, Reality Diffraction's sixth anchor and the L2 lattice.",
+        "",
+        "Solid forms: the {9}plate{r} (Fluid Solidifier, 144 L), the {9}dense plate{r} (Bender, 9 plates) and the {9}frame box{r} (Assembler, 2 plates). In the Condensate Assembler it is the {9}Entangled{r} condensate (Condensate Generator, 144 L to 144 L at MAX).",
+        "",
+        "The name says where it comes from: another mod in the pack already has a block called plain Dark Matter.",
+        "",
+        "{2}{l}DONE WHEN{r} you have 1,000 L of Attractor Dark Matter."
       ]
     },
     {
       "low": 48184, "key": "homogeny_t3", "chapter": "max", "x": 324, "y": 252, "size": 48,
-      "name": "{4}{l}{n}The Homogeny T3", "icon": "gregtech:gt.metaitem.01:30127", "needs": ["homogeny", "eyeT9T10"],
+      "name": "{4}{l}{n}The Homogeny T3", "icon": "beyondthestars:homogenyTier3Core", "needs": ["homogeny", "eyeT9T10"],
       "prereqs": [48183, 48142],
-      "tasks": [ { "type": "tbd", "what": "the Homogeny T3 upgrade item" } ],
+      "tasks": [
+        { "type": "checkbox" },
+        { "type": "retrieval", "items": ["1x beyondthestars:homogenyTier3Core"] }
+      ],
       "desc": [
-        "The Homogeny's third tier: a tilted outer ring and its tail. It will mix at {9}16 parallels{r} (about one MAX amp) and add the last mix, {9}Entanglement Medium{r}: White Hole Matter + Superdense Ergomatter + Degenerate Stellar Mixture. Reality Diffraction splits it.",
+        "The Homogeny's third tier: a tilted outer ring and its tail. It mixes at {9}16 parallels{r} (about one MAX amp) and adds the last mix, {9}Entanglement Medium{r}: 144 L Attractor Dark Matter + 500 L Superdense Ergomatter + 1,000 L Degenerate Stellar Mixture {to} 1,000 L, 120 s. Reality Diffraction splits it.",
         "",
-        "Entanglement Medium needs a quasar link at {u+03c3} {ge} 1; without it the run waits (see {c}A Quasar-Held Vortex{r})."
+        "{5}{l}THE CORE{r} The {9}Homogeny Tier III Core{r} (Condensate Assembler, MAX): 9,216 L Entangled Attractor Dark Matter (about 0.75 h of one T9), Superdense Ergomatter, Degenerate Stellar Mixture and Eternity condensates. To install it, mix 100,000 L of Degenerate Stellar Mixture at T2 first.",
+        "",
+        "{5}{l}THE MILESTONE{r} Run the T2 Homogeny on a quasar link at {u+03c3} {ge} 1 for an hour before you install the core. The machine does not check it; it is the practice run for the link Entanglement Medium needs (see {c}A Quasar-Held Vortex{r}).",
+        "",
+        "Entanglement Medium needs a quasar link at {u+03c3} {ge} 1; without it the run waits.",
+        "",
+        "{2}{l}DONE WHEN{r} you tick the box after an hour at {u+03c3} {ge} 1, and hold the Tier III Core (HOLD {to} CLAIM {to} INSTALL)."
       ]
     },
     {
@@ -1443,11 +1491,14 @@
       "prereqs": [48182, 48184],
       "tasks": [ { "type": "retrieval", "items": ["1x mte:28131"] } ],
       "desc": [
-        "A stack of glass drums with six Region Blades. Each run will split Entanglement Medium into six {9}Entangled Region{r} condensates (Hyperspace, Subspace, Forward Time, Reverse Time, Positive Mass, Negative Mass) and push them into a Bose-Einstein Condensate network: outside reality.",
-        "- Each region needs its own anchor fluid in its own socket, or its sixth is lost.",
-        "- Give the Reality machines their own BEC network: six extra condensates would clog every other Condensate Assembler.",
+        "A stack of glass drums with six Region Blades. Each run splits 4,000 L of Entanglement Medium into six {9}Entangled Region{r} condensates, 1,000 L each (Hyperspace, Subspace, Forward Time, Reverse Time, Visible Mass, Dark Mass), and pushes them into a Bose-Einstein Condensate network: outside reality. 120 s at MAX.",
+        "- Each region needs its own anchor in its own socket: I Space 1,440 L, II SpaceTime 1,440 L, III Time 1,440 L, IV Eternity 144 L, V Superdense Ergomatter 500 L, VI {9}Attractor Dark Matter 288 L{r}. A region without its anchor is lost.",
+        "- The mass axis splits the way the real universe does: visible matter against dark matter.",
+        "- Give the Reality machines their own BEC network: six extra condensates would clog every other Condensate Assembler. The machine waits, never voids, when the network is full.",
         "- Its portal takes 6 GRB Receptor Ports: faster with a strong quasar link, paused with a weak one, {times} 1 with none (see {c}Riding the Rift{r}).",
-        "- A missing block, or a footprint chunk that is not loaded, pauses the machine: the run is kept and resumes by itself when the structure is whole. Chunk-load the whole footprint."
+        "- The controller: Condensate Assembler, MAX, with 36,864 L Entangled Attractor Dark Matter.",
+        "",
+        "{2}{l}DONE WHEN{r} you hold the controller (HOLD {to} CLAIM {to} INSTALL)."
       ]
     },
     {
@@ -1456,28 +1507,46 @@
       "prereqs": [48185],
       "tasks": [ { "type": "retrieval", "items": ["1x mte:28132"] } ],
       "desc": [
-        "A tall vase of a machine. It will draw the six regions back out of the BEC network in lockstep and reassemble them, borrowing a linked Condensate Assembler's nanites. Its first job is the {9}Universal Upgrade Core{r}, which takes the Eye from T9 to T10."
+        "A tall vase of a machine. It draws the six regions back out of the BEC network in lockstep and reassembles them, borrowing a linked Condensate Assembler's nanites.",
+        "- The {9}Universal Upgrade Core{r} (Eye T9 {to} T10): 32,000 L of each region (32 Diffraction runs, about 64 min at {u+03c3} 1), Eternity Shell, Region Crystal, UMV Field Generators and Emitters, 7,200 s of nanite-time.",
+        "- The {9}Universal Compression Field Generator{r}, the tenth compression tier: a Gallifreyan generator (consumed) and 4,000 L of each region, 1,800 s.",
+        "- {9}Star Chart: The Observable Universe{r}, T10's target: 1,000 L of each region.",
+        "",
+        "{5}{l}AUTOMATE{r} Start the craft from an ME interface in the input bus. A level emitter on any region below 32,000 L can hold the core back; the reassembly lock pauses the run if a region runs short.",
+        "",
+        "{2}{l}DONE WHEN{r} you hold the controller (HOLD {to} CLAIM {to} INSTALL)."
       ]
     },
     {
       "low": 48187, "key": "tenth_compression_tier", "chapter": "max", "x": 624, "y": 72, "size": 24,
-      "name": "{4}{l}{n}The Tenth Compression Tier", "icon": "tectech:gt.spacetime_compression_field_generator:8", "needs": ["eyeT9T10"],
+      "name": "{4}{l}{n}Universal Compression", "icon": "beyondthestars:slCasing4:6", "needs": ["eyeT9T10"],
       "prereqs": ["E37"],
-      "tasks": [ { "type": "tbd", "what": "the tenth-tier compression generator" } ],
+      "tasks": [ { "type": "retrieval", "items": ["1x beyondthestars:slCasing4:6"] } ],
       "desc": [
-        "Gallifreyan is TecTech's last Spacetime Compression Field Generator. The gate is 1 : 1, so Eye T10 needs a new, tenth tier."
+        "Gallifreyan is TecTech's last Spacetime Compression Field Generator. The gate is 1 : 1, so Eye T10 needs a tenth tier: the {9}Universal Compression Field Generator{r}, reassembled in Reality Refab from a Gallifreyan generator (consumed) and 4,000 L of each Entangled Region.",
+        "",
+        "Every compression slot of the Eye takes one for T10. Time Dilation and Stabilisation stay at tier 9: there is no time dial at T9 or T10.",
+        "",
+        "{2}{l}DONE WHEN{r} you hold one Universal Compression Field Generator."
       ]
     },
     {
       "low": 48188, "key": "eye_t10", "chapter": "max", "x": 600, "y": 144, "size": 72, "main": true,
-      "name": "{4}{l}{n}Eye T10: The Universe", "icon": "mte:28115", "needs": ["eyeT9T10"],
-      "prereqs": [48186, 48187, 48198],
-      "tasks": [
-        { "type": "tbd", "what": "the T10 core and chart" },
-        { "type": "fluid", "fluids": ["144x fluid:molten.universium"] }
-      ],
+      "name": "{4}{l}{n}Eye T10: The Universe", "icon": "beyondthestars:starChartUniverse", "needs": ["eyeT9T10"],
+      "prereqs": [48208, 48198],
+      "tasks": [ { "type": "fluid", "fluids": ["144x fluid:molten.universium"] } ],
       "desc": [
-        "The Universe. A jump as big as the Nano Forge's T4. Output: {9}Universium{r}, and only here. It opens {1}The Endgame{r}."
+        "{9}The Universe{r}, one at a time inside the crown. Each universe lives one {9}7,200 s batch{r}, from first light to last. The job is cosmology's oldest problem: {9}keep it flat{r}. Too much matter and it recollapses (a Big Crunch); too little and dark energy tears it apart (a Big Rip).",
+        "",
+        "{5}{l}THE FIELD{r} Gauges P and {9}H{r}, the expansion error against the Friedmann curve the crown follows. H drifts up as dark energy takes over late in each universe (runaway gain +0.01). Trims: {9}Attractor Dark Matter{r} 4 L = H {minus}2 (more mass, gravity slows it); {9}Molten SpaceTime{r} 100 L = H +2; Spatially Enlarged Fluid 100 L = P {minus}2. Caps 10 a second. W, {u+039b}, V and the beam retire. Demand {9}96 Bu/t{r} (9.6e14 EU/t) on the crown's 12 ports.",
+        "",
+        "{5}{l}EVENTS{r} {9}Recombination{r} at 1,800 s (warned 60 s): the universe turns transparent, H climbs for 300 s. {9}Cosmic Dawn{r} once a universe at 3,240 to 4,680 s (warned 120 s): the first stars ignite across the crown. Held Stable throughout: +12.5 % Universium.",
+        "",
+        "{5}{l}OUTPUT{r} {9}Universium 9,216 L a universe{r} {times} mean Y {times} r, + 1,152 L for a caught Cosmic Dawn: about 6,200 L an hour. The charge is 9,216 L Attractor Dark Matter a universe. This is the {9}only{r} Universium source. A Big Rip or Crunch ends that universe early and salvages 25 % {times} the fraction run; the Eye never loses T10.",
+        "",
+        "{5}{l}STANDARD RIG{r} Universe bits 1 and 2 to two 2-unit valves (Dark Matter and SpaceTime), J1 on P, the Space valve, and a 600 SM quasar.",
+        "",
+        "{2}{l}DONE WHEN{r} you have 144 L of Universium."
       ]
     },
     {
@@ -1486,43 +1555,70 @@
       "prereqs": [48183],
       "tasks": [ { "type": "checkbox" } ],
       "desc": [
-        "Every MAX part will be built from {9}White Hole Matter{r}, so MAX parts arrive before Eye T10. The four quests below group them: components and casings, power, materials, and the battery."
+        "Every MAX part is built from {9}Attractor Dark Matter{r}, so MAX parts arrive before Eye T10, and none of them needs Universium. A full MAX power room with its parts costs about 32 hours of one T9 (two Eyes: 16).",
+        "",
+        "Where a MAX card names a UXV component, it takes {9}two UMV ones{r} instead: the pack's UXV components need Universium.",
+        "",
+        "The four quests below group them: components and casings, power, materials, and the battery.",
+        "",
+        "{2}{l}DONE WHEN{r} you tick the box."
       ]
     },
     {
       "low": 48190, "key": "max_components", "chapter": "max", "x": 120, "y": 444, "size": 24,
-      "name": "{4}{l}{n}MAX Components and Casings", "icon": "mte:12102", "needs": ["maxParts"],
+      "name": "{4}{l}{n}MAX Components and Casings", "icon": "gregtech:gt.metaitem.01:32020", "needs": ["maxParts"],
       "prereqs": [48189],
-      "tasks": [ { "type": "tbd", "what": "the nine MAX components, the MAX CoAL casing and the MAX machine casing" } ],
+      "tasks": [ { "type": "retrieval", "items": ["1x gregtech:gt.metaitem.01:32020", "1x gregtech:gt.metaitem.01:32028", "1x gregtech:gt.metaitem.01:32032", "1x gregtech:gt.metaitem.01:32024", "1x gregtech:gt.metaitem.01:32036", "1x gregtech:gt.metaitem.01:32040", "1x gregtech:gt.metaitem.01:32044", "1x gregtech:gt.metaitem.01:32048"] } ],
       "desc": [
-        "The MAX tier of GT's component set (motor, pump, conveyor, piston, robot arm, emitter, sensor, field generator and the rest), the MAX CoAL casing and the MAX machine casing, all from White Hole Matter."
+        "The {9}eight MAX components{r} (motor, pump, conveyor, piston, robot arm, emitter, sensor, field generator) on the {9}Component Assembly Line{r} at its MAX casing tier, 16 a batch. Each takes 8 of its UMV part, 2 MAX Superconductor Wire and a MAX circuit.",
+        "",
+        "Attractor Dark Matter each, all in: motor, pump, conveyor, piston, robot arm {9}2,304 L{r} (11 min of one T9); emitter, sensor {9}3,456 L{r}; field generator {9}4,608 L{r}.",
+        "",
+        "- {9}MAX Component Assembly Line Casing{r} (Assembly Line): 2 UMV casings, 4,608 L. You need it before the MAX components.",
+        "- {9}MAX Machine Casing{r} and {9}Hull{r} (Assembler): 2,304 L each.",
+        "",
+        "{2}{l}DONE WHEN{r} you hold one of each MAX component."
       ]
     },
     {
       "low": 48191, "key": "max_power", "chapter": "max", "x": 168, "y": 444, "size": 24,
-      "name": "{4}{l}{n}MAX Power", "icon": "mte:286", "needs": ["maxParts"],
+      "name": "{4}{l}{n}MAX Power", "icon": "mte:28133", "needs": ["maxParts"],
       "prereqs": [48189],
-      "tasks": [ { "type": "tbd", "what": "the MAX energy and dynamo hatches, laser source and target, wireless hatch" } ],
+      "tasks": [ { "type": "retrieval", "items": ["1x mte:28133", "1x mte:28134"] } ],
       "desc": [
-        "The MAX energy and dynamo hatches, the MAX laser source and target hatches, and the MAX wireless hatch, all from White Hole Matter."
+        "The MAX hatches, all on the Assembly Line around a MAX hull:",
+        "- {9}MAX Energy Hatch{r} and {9}MAX Dynamo Hatch{r}: 9,216 L each (45 min of one T9).",
+        "- {9}MAX Wireless Energy Hatch{r}: 9,216 L.",
+        "- {9}MAX 4096A Laser Target{r} and {9}Source Hatch{r}: 18,432 L each (90 min of one T9).",
+        "",
+        "One MAX amp is 2,147,483,640 EU/t.",
+        "",
+        "{2}{l}DONE WHEN{r} you hold a MAX Energy Hatch and a MAX Dynamo Hatch."
       ]
     },
     {
       "low": 48192, "key": "max_materials", "chapter": "max", "x": 216, "y": 444, "size": 24,
-      "name": "{4}{l}{n}MAX Materials", "icon": "mte:2089", "needs": ["maxParts"],
+      "name": "{4}{l}{n}MAX Materials", "icon": "beyondthestars:superconductorWireMAX", "needs": ["maxParts"],
       "prereqs": [48189],
-      "tasks": [ { "type": "tbd", "what": "the MAX superconductor, White Hole heating coil, glass and frame" } ],
+      "tasks": [ { "type": "retrieval", "items": ["16x beyondthestars:superconductorWireMAX", "2x beyondthestars:slCasing4:7", "4x beyondthestars:slGlass:1", "1x beyondthestars:slCasing4:9"] } ],
       "desc": [
-        "The MAX superconductor, the White Hole heating coil, White Hole glass and the White Hole frame box, all from White Hole Matter."
+        "- {9}MAX Superconductor Wire{r} {times} 16 (Mega / Alloy Blast Smelter): 864 L of Attractor Dark Matter, 16 UXV Superconductor Wire, Super Coolant. A crafting part in every MAX hatch, component, coil and battery.",
+        "- {9}Dark Matter Heating Coil{r} {times} 2 (Assembly Line): 1,152 L. A heating coil at the MAX level, the same 13,501 K as the Eternal coil (GregTech's coil levels end at MAX). The hologram places GregTech's own coils, so place these by hand.",
+        "- {9}Dark Matter Borosilicate Glass{r} {times} 4 (Alloy Blast Smelter): 4 Magnetar-Reinforced glass + one plate. Glass tier MAX.",
+        "- {9}Attractor Dark Matter Frame Box{r} (Assembler): 2 plates.",
+        "",
+        "{2}{l}DONE WHEN{r} you hold 16 wire, 2 coils, 4 glass and a frame box."
       ]
     },
     {
       "low": 48193, "key": "max_battery", "chapter": "max", "x": 264, "y": 444, "size": 24,
-      "name": "{4}{l}{n}MAX Battery", "icon": "mte:11245", "needs": ["maxParts"],
+      "name": "{4}{l}{n}MAX Battery", "icon": "beyondthestars:maxBattery", "needs": ["maxParts"],
       "prereqs": [48189],
-      "tasks": [ { "type": "tbd", "what": "the MAX battery" } ],
+      "tasks": [ { "type": "retrieval", "items": ["1x beyondthestars:maxBattery"] } ],
       "desc": [
-        "The MAX battery, built from White Hole Matter."
+        "The {9}MAX Battery{r} holds 2^63 {minus} 1 EU (about 9.2 quintillion) at the MAX tier and charges in any MAX battery buffer or charger. Assembly Line: 16 dense plates, 32 MAX wire, a MAX Field Generator and Attractor Dark Matter, 36,864 L all in, about 3 hours of one T9.",
+        "",
+        "{2}{l}DONE WHEN{r} you hold a MAX Battery."
       ]
     },
     {
@@ -1546,9 +1642,9 @@
       "desc": [
         "{9}Universium is not the end of the game.{r} It is where the pack's MHDCSM line begins: MHDCSM coats Eternity parts, builds Resplendent Components, and stands between you and the Stargate.",
         "",
-        "In Beyond the Stars the crafted Stargate waits here, past MAX. The pack's own Stargate quests follow in their own order, and {1}What, How?{r} is the end of the book.",
+        "Eye T10 is the only Universium source, so this tab opens with it: Universium, MHDCSM, Constrained Eternity and Resplendent parts, the Stargate chain and the Astral Array all run on T10's Universium. The Supermassive Lattice's L3 node needs it too.",
         "",
-        "[note]Universium comes with Eye T10 (coming later), so the pack's Universium line in this tab waits for it. The Supermassive Lattice quests here (L3, L4, Overdrive, Unbound) do not: they follow on from {c}The L2 Lattice{r} in Tier 14 - MAX.[/note]",
+        "In Beyond the Stars the crafted Stargate waits here, past MAX. The pack's own Stargate quests follow in their own order, and {1}What, How?{r} is the end of the book.",
         "",
         "{2}{l}DONE WHEN{r} you tick the box: this one is the chapter's introduction."
       ]
@@ -1694,39 +1790,221 @@
       "low": 48198, "key": "supermassive_link", "chapter": "max", "x": 624, "y": 264, "size": 24,
       "name": "{4}{l}{n}Supermassive Link", "icon": "mte:28115", "needs": ["smbh", "eyeT9T10"],
       "prereqs": [48197],
-      "tasks": [ { "type": "tbd", "what": "the Eye T9 -> T10 transition" } ],
+      "tasks": [ { "type": "checkbox" } ],
       "desc": [
         "The Eye's {9}T9 {to} T10 machine milestone{r}: link a hole of at least {9}65,536 SM{r} with a Supermassive Lattice (any tier) to the Eye through the conduit for {9}30 min unbroken{r}, with a 60 s mean of at least {9}96 Bu/t{r} (burst units per tick; 9.6e14 EU/t) on the Eye's ports. The streak resets when the link drops or the hole leaks under 65,536 SM.",
         "",
-        "It is met with an {9}L1 lattice{r} (Eye T8 products) and pack gases: nothing from Eye T9 or later.",
+        "It is met with an {9}L1 lattice{r} (Eye T8 products) and pack gases: nothing from Eye T9 or later. It gates Eye T10 (see {c}Inflation{r}).",
         "",
-        "Every stream already carries its source's lattice tier and mass. The Eye's GUI shows a {9}Supermassive Link{r} row (the streak, the mean, and whether the linked hole qualifies), OpenComputers getUnlock() has it, and the quasar's sensor has a Supermassive Link ready channel."
+        "Every stream already carries its source's lattice tier and mass. The Eye's GUI shows a {9}Supermassive Link{r} row (the streak, the mean, and whether the linked hole qualifies), OpenComputers getUnlock() has it, and the quasar's sensor has a Supermassive Link ready channel.",
+        "",
+        "{2}{l}DONE WHEN{r} the Eye's panel shows the Supermassive Link held (tick the box)."
       ]
     },
     {
       "low": 48199, "key": "white_hole_lattice", "chapter": "max", "x": 528, "y": 336, "size": 24,
-      "name": "{4}{l}{n}The L2 Lattice", "icon": "beyondthestars:slCasing4:2", "needs": ["smbh"],
+      "name": "{4}{l}{n}Dark Matter Lattice", "icon": "beyondthestars:slCasing4:2", "needs": ["smbh"],
       "prereqs": [48197],
-      "tasks": [ { "type": "retrieval", "items": ["48x beyondthestars:slCasing4:2"]} ],
+      "tasks": [ { "type": "retrieval", "items": ["48x beyondthestars:slCasing4:2"] } ],
       "desc": [
-        "Remake the 48 nodes as {9}L2{r}: each L1 node plus 16,000 L Entangled Superdense Ergomatter, 4,608 L Entangled Magnetar Matter and 4 any-MAX circuits, in the Condensate Assembler at MAX. L2's safe limit is {9}65,536 SM{r} and its top 262,144 SM: the Eye gate's mass with no hold-up gas at all.",
+        "Remake the 48 nodes as {9}L2{r}: each L1 node plus 4,032 L Entangled {9}Attractor Dark Matter{r} (4,000 L of the fluid, 72 L condensate steps) and 4 any-MAX circuits, in the Condensate Assembler at MAX. 48 nodes: about 15.6 hours of one T9. L2's safe limit is {9}65,536 SM{r} and its top 262,144 SM: the Eye gate's mass with no hold-up gas at all.",
         "",
         "Take the 48 L1 nodes out before you place the L2 ones: the projector does not replace nodes in place. Over 4,096 SM the quasar freezes meanwhile, and nothing is lost; then let the projector place the new tier with the lattice channel set. L2 is not needed for the Eye gate, which is met on L1, but L3 and L4 are made from L2 nodes.",
         "",
+        "[note]A server with latticeNodesUseP5Matter=false keeps the older L2 recipe: Entangled Superdense Ergomatter and Magnetar Matter. NEI shows the one in use. Nodes already built stay.[/note]",
+        "",
         "{2}{l}DONE WHEN{r} you hold 48 Containment Nodes L2 (HOLD {to} CLAIM {to} INSTALL)."
+      ]
+    },
+{
+      "low": 48200, "key": "pellet_injector", "chapter": "max", "x": 60, "y": 312, "size": 24,
+      "name": "{4}{l}{n}The Pellet Injector", "icon": "beyondthestars:injectorBarrelMk1", "needs": ["eyeT9T10"],
+      "prereqs": [48181],
+      "tasks": [ { "type": "retrieval", "items": ["1x beyondthestars:injectorBarrelMk1"] } ],
+      "desc": [
+        "The {9}Pellet Injector Hatch{r} sits in the socket on the top collar of the T9 collimator stack and fires pellets down the axis into the core. It fires the highest grade it holds, or the one locked in its GUI.",
+        "",
+        "Its rate cap comes from the {9}Injector Barrel{r} in its slot: {9}Mk I 4, Mk II 8, Mk III 16{r} pellets a second. Superdense pellets on a Mk I already hold every flow.",
+        "- Mk I: Condensate Assembler, UXV (Casimir Plates, UMV Field Generators, Jet Collimator Rings, SpaceTime).",
+        "- Mk II: 4 Mk I + Entangled Antipolarization Agent. Mk III: 4 Mk II + 16,000 L Superdense Ergomatter (Assembly Line).",
+        "",
+        "Below T9 the injector does nothing except the Deep Link's test fire. ME stocking buses are fine on it: pellets are upkeep, not a trim.",
+        "",
+        "{2}{l}DONE WHEN{r} you hold an Injector Barrel Mk I, then fit it with the hatch."
+      ]
+    },
+{
+      "low": 48201, "key": "deep_link", "chapter": "max", "x": 108, "y": 312, "size": 24,
+      "name": "{4}{l}{n}The Deep Link", "icon": "mte:28125", "needs": ["eyeT9T10"],
+      "prereqs": [48200, 48148],
+      "tasks": [ { "type": "checkbox" } ],
+      "desc": [
+        "The T8 {to} T9 {9}machine milestone{r}, on a lit Milky Way:",
+        "- linked, with a 60 s mean of at least {9}24 Bu/t{r} (2.4e14 EU/t) landing on the Eye's ports, at least half of it into the five {9}collar{r} ports (no field effect at T8);",
+        "- the beam {9}test-firing{r} at a 60 s mean {u+03c1} {ge} 1;",
+        "- for {9}30 min unbroken{r}.",
+        "The test fire setting forces J1 to the Eye. It needs a {9}250 SM quasar{r}: below that the forced burst heats P faster than Space can trim. It burns about 1,200 Superdense pellets.",
+        "",
+        "Also on the T8 star: 108,000 L of Superdense Ergomatter made at Stable or better, 2 h Resonant, 4 satellite crossings caught.",
+        "",
+        "{5}{l}AUTOMATE{r} The Slots set's bit 4 (Deep Link test fire wanted) to both Burst Control Hatches.",
+        "",
+        "{2}{l}DONE WHEN{r} the Eye's panel shows the Deep Link held (tick the box)."
+      ]
+    },
+{
+      "low": 48202, "key": "attractor_seed_core", "chapter": "max", "x": 108, "y": 264, "size": 24,
+      "name": "{4}{l}{n}The Attractor Seed Core", "icon": "beyondthestars:attractorSeedCore", "needs": ["eyeT9T10"],
+      "prereqs": [48201],
+      "tasks": [ { "type": "retrieval", "items": ["1x beyondthestars:attractorSeedCore"] } ],
+      "desc": [
+        "The T8 {to} T9 core (Condensate Assembler, UXV, 3,600 s): 64,000 L Entangled Superdense Ergomatter (about 3.2 h of a T8), 32,000 L Entangled Ergomatter, 2,304 L Entangled Magnetar Matter, 64 Superdense pellets, 64 Bastion Plates, 32 Resonance Chambers III, 32 Field Manipulators II.",
+        "",
+        "Right-click the controller to put it in escrow. It is consumed only if The Infall succeeds.",
+        "",
+        "{2}{l}DONE WHEN{r} you hold the core (HOLD {to} CLAIM {to} INSTALL)."
+      ]
+    },
+{
+      "low": 48203, "key": "zone_of_avoidance", "chapter": "max", "x": 120, "y": 216, "size": 24,
+      "name": "{4}{l}{n}Out of the Zone of Avoidance", "icon": "beyondthestars:starChartGreatAttractor", "needs": ["eyeT9T10"],
+      "prereqs": [48202],
+      "tasks": [ { "type": "checkbox" } ],
+      "desc": [
+        "{9}The Infall{r}, the T8 {to} T9 transition (1,800 s).",
+        "",
+        "{5}{l}BEFORE{r} The collimator stack built with its injector stocked; compression tier 9 everywhere (Gallifreyan); the Milky Way lit and Stable in galaxy mode, no companions; the beam's hold rating {ge} 6; the charge buffered: 18,000 L Superdense Ergomatter; Star Chart: Great Attractor in the slot.",
+        "",
+        "{5}{l}THE EVENT{r}",
+        "1. t 0: the object becomes the Attractor. V appears at 0 and its drift ramps in over 600 s. The charge drains at 10 L/s; demand climbs from 6 to 24 Bu/t.",
+        "2. t 1,020 to 1,440: a forced Galactic Flow of 6, warned at 1,020, arriving at 1,200. Hold it.",
+        "3. Hold Stable or better for 120 s in a row after the flow, by t 2,100.",
+        "",
+        "Success: the core is consumed and T9 is unlocked for good. Failure: the Milky Way is thrown back {9}still lit at T8{r} with Integrity 50; the charge is spent, the core stays in escrow.",
+        "",
+        "{5}{l}AUTOMATE{r} Transition bit 1 to the Eye's Burst Control Hatch in begin mode; the standard rig does every step.",
+        "",
+        "{2}{l}DONE WHEN{r} The Infall succeeds (tick the box)."
+      ]
+    },
+{
+      "low": 48204, "key": "holding_the_flow", "chapter": "max", "x": 240, "y": 96, "size": 24,
+      "name": "{4}{l}{n}Holding the Flow", "icon": "beyondthestars:gatedPelletSuperdense", "needs": ["eyeT9T10"],
+      "prereqs": [48182],
+      "tasks": [ { "type": "checkbox" } ],
+      "desc": [
+        "Hold one {9}Galactic Flow{r} in full: Stable or better for all 240 s of an accepted group, so every galaxy in it is captured (+144 L Attractor Dark Matter each).",
+        "",
+        "Raise the beam ahead of the peak (the V loop does it by itself), keep the halo fed (J3), aim toward the flow's side (J2), keep the Space valve ready. The Flow set's bit 3 says a flow is coming and accepted.",
+        "",
+        "{2}{l}DONE WHEN{r} a flow is held in full (tick the box)."
+      ]
+    },
+{
+      "low": 48205, "key": "twenty_eev", "chapter": "max", "x": 288, "y": 144, "size": 24,
+      "name": "{4}{l}{n}Twenty EeV", "icon": "beyondthestars:injectorBarrelMk1", "needs": ["eyeT9T10"],
+      "prereqs": [48182],
+      "tasks": [ { "type": "checkbox" } ],
+      "desc": [
+        "Run T9 on {9}Superdense pellets for 1 hour{r}. Higher-GeV pellets do more with fewer pellets: on the same Mk I barrel, Magnetar pellets will not light T9, Ergomatter pellets hold no flow, and Superdense pellets hold every flow at a fourteenth of the count.",
+        "",
+        "Watch the Flow set's bit 4: pellets low, under 120 s of fire at the current rate. An empty injector takes V to a breach in about 50 s.",
+        "",
+        "{2}{l}DONE WHEN{r} T9 has run an hour on Superdense pellets (tick the box)."
+      ]
+    },
+{
+      "low": 48206, "key": "laniakea", "chapter": "max", "x": 288, "y": 96, "size": 24,
+      "name": "{4}{l}{n}Laniakea", "icon": "beyondthestars:starChartGreatAttractor", "needs": ["eyeT9T10"],
+      "prereqs": [48204],
+      "tasks": [ { "type": "checkbox" } ],
+      "desc": [
+        "Hold {9}1,000 galaxies{r}, about 14 hours of a T9: +1 a cycle at mean Y {ge} 1, +n for each group captured. The counter is never lost on a failure.",
+        "",
+        "Laniakea, \"immeasurable heaven\", holds about 100,000.",
+        "",
+        "{2}{l}DONE WHEN{r} the Eye's panel shows 1,000 galaxies held (tick the box)."
+      ]
+    },
+{
+      "low": 48207, "key": "a_wider_pull", "chapter": "max", "x": 240, "y": 204, "size": 24,
+      "name": "{4}{l}{n}A Wider Pull", "icon": "beyondthestars:starChartMilkyWay", "needs": ["eyeT9T10"],
+      "prereqs": [48182],
+      "tasks": [ { "type": "checkbox" } ],
+      "desc": [
+        "Run T9 with {9}three companions{r}. At T9 a companion may be a galaxy: Triangulum ({times}2) or the Milky Way ({times}1, fed Ergomatter). Each galaxy adds half of T9's demand.",
+        "",
+        "SGR 1806-20 + Triangulum + the Milky Way on a {9}500 SM quasar{r} supply their own pellets: Magnetar, Ergomatter and Superdense Ergomatter beside 12,500 L/h of Attractor Dark Matter. The demand is 54 Bu/t: below about 400 SM the burst falls short.",
+        "",
+        "{2}{l}DONE WHEN{r} T9 runs with three companions (tick the box)."
+      ]
+    },
+{
+      "low": 48208, "key": "inflation", "chapter": "max", "x": 528, "y": 108, "size": 24,
+      "name": "{4}{l}{n}Inflation", "icon": "beyondthestars:universalUpgradeCore", "needs": ["eyeT9T10"],
+      "prereqs": [48186, 48187],
+      "tasks": [ { "type": "checkbox" } ],
+      "desc": [
+        "{9}Inflation{r}, the T9 {to} T10 transition (900 s).",
+        "",
+        "{5}{l}BEFORE{r} the {c}Supermassive Link{r} held; 60,000 L of Attractor Dark Matter made at Stable or better; 2 h Resonant; 8 Galactic Flows held in full; the {9}Universal Upgrade Core{r} in escrow; Star Chart: The Observable Universe; the universal crown built with its 12 receptors; a {9}Universal Compression Field Generator{r} in every compression slot; the Attractor lit and Stable in galaxy mode, no companions; the charge buffered: 18,432 L Attractor Dark Matter.",
+        "",
+        "{5}{l}THE EVENT{r}",
+        "1. t 0 to 300: the six regions unfold inside the crown under T9 rules; demand climbs from 24 to 96 Bu/t.",
+        "2. t 300: W, {u+039b} and V retire and {9}H appears at +85{r} (Integrity {minus}20). Dark Matter trims pull it down onto the curve.",
+        "3. t 600: recombination. Hold Stable or better for 120 s in a row inside 600 to 900 s.",
+        "",
+        "Success: the core is consumed, T10 is unlocked and the first universe is charged. Failure: the Attractor is relit at T9 with Integrity 50; the charge is spent, the core stays in escrow.",
+        "",
+        "{2}{l}DONE WHEN{r} Inflation succeeds (tick the box)."
+      ]
+    },
+{
+      "low": 48209, "key": "keep_it_flat", "chapter": "max", "x": 672, "y": 264, "size": 24,
+      "name": "{4}{l}{n}Keep It Flat", "icon": "beyondthestars:starChartUniverse", "needs": ["eyeT9T10"],
+      "prereqs": [48188],
+      "tasks": [ { "type": "checkbox" } ],
+      "desc": [
+        "Run one universe at a {9}mean Y of 1.0 or more{r}. The real universe is flat to about 0.4 %, and nobody knows why. Here you are the reason.",
+        "",
+        "Two 2-unit valves on Universe bits 1 and 2 (Dark Matter, SpaceTime) keep H on the curve; 10-unit valves chatter and waste SpaceTime. Bit 3 is a countdown, bit 4 a short charge for the next universe.",
+        "",
+        "{2}{l}DONE WHEN{r} a universe ends at mean Y 1.0 or more (tick the box)."
+      ]
+    },
+{
+      "low": 48210, "key": "cosmic_dawn", "chapter": "max", "x": 672, "y": 96, "size": 24,
+      "name": "{4}{l}{n}Cosmic Dawn", "icon": "beyondthestars:slCasing4:6", "needs": ["eyeT9T10"],
+      "prereqs": [48188],
+      "tasks": [ { "type": "checkbox" } ],
+      "desc": [
+        "Catch one {9}Cosmic Dawn{r}: the first stars ignite across the crown's twelve spikes. Warned 120 s ahead; P jumps and H climbs for 300 s. Held Stable or better throughout, that universe makes {9}+12.5 % Universium{r} (1,152 L).",
+        "",
+        "{2}{l}DONE WHEN{r} a Cosmic Dawn is caught (tick the box)."
+      ]
+    },
+{
+      "low": 48211, "key": "last_light", "chapter": "max", "x": 672, "y": 336, "size": 24,
+      "name": "{4}{l}{n}Last Light", "icon": "beyondthestars:starChartUniverse", "needs": ["eyeT9T10"],
+      "prereqs": [48209],
+      "tasks": [ { "type": "checkbox" } ],
+      "desc": [
+        "Run {9}10 universes{r} to their last light: 20 hours of T10, about 124,000 L of Universium. A Big Rip or Crunch ends a universe early and does not count.",
+        "",
+        "{2}{l}DONE WHEN{r} ten universes have run their full 7,200 s (tick the box)."
       ]
     },
     {
       "low": 48221, "key": "universe_to_hold_it", "chapter": "end", "x": 48, "y": 348, "size": 24,
       "name": "{4}{l}{n}A Universe to Hold It", "icon": "beyondthestars:slCasing4:3", "needs": ["smbh"],
-      "prereqs": [48199],
-      "tasks": [ { "type": "retrieval", "items": ["48x beyondthestars:slCasing4:3"]} ],
+      "prereqs": [48199, 48188],
+      "tasks": [ { "type": "retrieval", "items": ["48x beyondthestars:slCasing4:3"] } ],
       "desc": [
-        "{9}L3{r}: each L2 node remade with 48,000 L Entangled Superdense Ergomatter, 9,216 L Entangled Magnetar Matter, 9,216 L Entangled Black Dwarf Matter and 4 any-MAX circuits (Condensate Assembler, MAX). Safe limit {9}262,144 SM{r}, top {9}4,194,304 SM{r}, and {9}Overdrive{r}.",
+        "{9}L3{r}: each L2 node remade with 2,304 L (16 ingots) of Entangled {9}Universium{r} and 4 any-MAX circuits (Condensate Assembler, MAX). 48 nodes: about 18 hours of one Eye T10. Safe limit {9}262,144 SM{r}, top {9}4,194,304 SM{r}, and {9}Overdrive{r}.",
         "",
         "At 262,144 SM a hole gives {9}{times}7.9{r} on gas alone (7.7e17 EU/t). A whole endgame base draws 1e16 to 1e17 EU/t: one L3 hole holds it several times over.",
         "",
-        "[note]Take the 48 L2 nodes out before you place the L3 ones: the projector does not replace nodes in place. Over 4,096 SM the quasar freezes meanwhile, and nothing is lost; then let the projector place the new tier with the lattice channel set.[/note]",
+        "[note]Take the 48 L2 nodes out before you place the L3 ones: the projector does not replace nodes in place. Over 4,096 SM the quasar freezes meanwhile, and nothing is lost. A server with latticeNodesUseP5Matter=false keeps the older L3 recipe (Superdense Ergomatter, Magnetar and Black Dwarf Matter), which needs no Eye T10.[/note]",
         "",
         "{2}{l}DONE WHEN{r} you hold 48 Containment Nodes L3 (HOLD {to} CLAIM {to} INSTALL)."
       ]

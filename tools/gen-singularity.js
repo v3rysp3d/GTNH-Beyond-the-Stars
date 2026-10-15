@@ -263,8 +263,11 @@ function scanSource(src) {
         if (m) base = +m[1];
         for (const b of ct.matchAll(/public static boolean (\w+)/g)) configFlags.add(b[1]);
     }
-    if (bm) {
-        const t = fs.readFileSync(bm, 'utf8');
+    // P5: BTSMaxHatches registers the MAX hatches the same way (base + n, then the name)
+    const mh = java.find(f => f.endsWith(path.join('machines', 'BTSMaxHatches.java')));
+    for (const file of [bm, mh]) {
+        if (!file) continue;
+        const t = fs.readFileSync(file, 'utf8');
         for (const m of t.matchAll(/\(\s*(?:Config\.mteBaseId|base)\s*\+\s*(\d+)\s*,\s*"([\w.]+)"/g)) mtes.set(base + +m[1], m[2]);
     }
     // casing metas: BlockSLCasing / BlockSLCasing2 constants
@@ -1091,6 +1094,7 @@ function build(data, opts) {
     const lows = key => [...ours.values()].filter(r => r.chapter === key && !r.q.onlyWithout).map(r => r.q.low).sort((a, b) => a - b);
     // spotless's (Eclipse) array wrap: fill each line to column 120, continue with 8 spaces
     const wrapArray = (head, items) => {
+        if (!items.length) return `${head}{};`; // P5: no placeholder is left
         const lines = [];
         let cur = `${head}{ `;
         items.forEach((it, i) => {
@@ -1346,7 +1350,8 @@ function selftest(inp) {
         ['an op gated on a flag Config does not have', d => {
             d.packEdits.find(e => e.id === 'E38').ops[0].config = ['noSuchConfigFlag']; return d;
         }, /not a boolean in Config/],
-        ['a placeholder shipping with a tbd task', d => { d.features.maxParts = true; return d; }, /still 'tbd'/],
+        // every planned feature ships since P5, so the case puts a 'tbd' task back on a shipped quest
+        ['a placeholder shipping with a tbd task', d => { q(d, 48190).tasks = [{ type: 'tbd', what: 'a part' }]; return d; }, /still 'tbd'/],
         ['a bill role reassigned in the manifest', d => { d.bomItems.eye.band_shell.expect = 'NotThisBlock'; return d; }, /bomItems expects/],
         ['a long bold run', d => { q(d, 48100).desc = ['{5}{l}This whole sentence is bold and will be cut off.{r}']; return d; }, /bold run of/],
         ['a low-contrast colour', d => { q(d, 48100).desc = ['A {b}light aqua{r} word.']; return d; }, /unreadable on the book/],

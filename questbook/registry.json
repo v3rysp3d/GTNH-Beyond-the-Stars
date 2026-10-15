@@ -14,6 +14,16 @@
     "tectech:tile.quantumGlass:0": { "name": "Quantum Glass", "source": "RC-2 tectech BlockQuantumGlass: GameRegistry.registerBlock(INSTANCE, ..., getUnlocalizedName() = tile.quantumGlass)", "status": "verified" },
     "gregtech:gt.metaitem.01:26129": { "name": "Neutronium Bolt", "source": "MetaGeneratedItem01 prefix index 26 (bolt) x 1000 + Materials.Neutronium id 129 (MaterialsIDMap)", "status": "verify" },
     "gregtech:gt.metaitem.01:2112": { "name": "Attuned Tengam Dust", "source": "MetaGeneratedItem01 prefix index 2 (dust) x 1000 + Materials.TengamAttuned id 112 (MaterialsIDMap)", "status": "verify" },
+    "gregtech:gt.blockmachines:15158": { "name": "UXV 4096A/t Laser Target Hatch", "source": "RC-2 MetaTileEntityIDs.UXV4096AtLaserTargetHatch (tectech eM_energyTunnel3_UXV); /btseye gates P5 audit", "status": "verified" },
+    "gregtech:gt.blockmachines:15258": { "name": "UXV 4096A/t Laser Source Hatch", "source": "RC-2 MetaTileEntityIDs.UXV4096AtLaserSourceHatch (tectech eM_dynamoTunnel3_UXV); /btseye gates P5 audit", "status": "verified" },
+    "gregtech:gt.metaitem.01:32020": { "name": "Electric Motor (MAX)", "source": "RC-2 ItemList.Electric_Motor_MAX; /btseye gates P5 audit", "status": "verified" },
+    "gregtech:gt.metaitem.01:32028": { "name": "Electric Pump (MAX)", "source": "RC-2 ItemList.Electric_Pump_MAX; /btseye gates P5 audit", "status": "verified" },
+    "gregtech:gt.metaitem.01:32032": { "name": "Conveyor Module (MAX)", "source": "RC-2 ItemList.Conveyor_Module_MAX; /btseye gates P5 audit", "status": "verified" },
+    "gregtech:gt.metaitem.01:32024": { "name": "Electric Piston (MAX)", "source": "RC-2 ItemList.Electric_Piston_MAX; /btseye gates P5 audit", "status": "verified" },
+    "gregtech:gt.metaitem.01:32036": { "name": "Robot Arm (MAX)", "source": "RC-2 ItemList.Robot_Arm_MAX; /btseye gates P5 audit", "status": "verified" },
+    "gregtech:gt.metaitem.01:32040": { "name": "Emitter (MAX)", "source": "RC-2 ItemList.Emitter_MAX; /btseye gates P5 audit", "status": "verified" },
+    "gregtech:gt.metaitem.01:32044": { "name": "Sensor (MAX)", "source": "RC-2 ItemList.Sensor_MAX; /btseye gates P5 audit", "status": "verified" },
+    "gregtech:gt.metaitem.01:32048": { "name": "Field Generator (MAX)", "source": "RC-2 ItemList.Field_Generator_MAX; /btseye gates P5 audit", "status": "verified" },
     "gregtech:gt.metaitem.01:11588": { "name": "SpaceTime Ingot", "source": "pack quest 'Your First SpaceTime' icon", "status": "verified" }
   },
   "fluids": {

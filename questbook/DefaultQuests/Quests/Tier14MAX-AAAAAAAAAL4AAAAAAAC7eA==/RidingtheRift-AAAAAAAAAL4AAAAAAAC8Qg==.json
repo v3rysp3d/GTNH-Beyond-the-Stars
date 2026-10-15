@@ -20,8 +20,8 @@
         "OreDict:8": "",
         "id:8": "minecraft:stick"
       },
-      "countAsQuest:1": 0,
-      "desc:8": "Reality Diffraction's portal has 6 reserved cells for §9GRB Receptor Ports§r. Demand: 24 Bu/t (burst units per tick; 2.4e14 EU/t).\n- §9No port fitted§r: the regions run at × 1 on their anchor fluids. No link is needed.\n- §9Ports fitted§r: the regions ride the stream at × min(σ, 1.5); below σ 0.5 no run starts and a running one pauses (nothing is voided). Fit ports only when you can feed them: a second quasar with its own mouths is the clean way.\n\n§2§lDONE §lWHEN§r your Reality Diffraction runs on a quasar link (tick the box).\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+      "countAsQuest:1": 1,
+      "desc:8": "Reality Diffraction's portal has 6 reserved cells for §9GRB Receptor Ports§r. Demand: 24 Bu/t (burst units per tick; 2.4e14 EU/t).\n- §9No port fitted§r: the regions run at × 1 on their anchor fluids. No link is needed.\n- §9Ports fitted§r: the regions ride the stream at × min(σ, 1.5); below σ 0.5 no run starts and a running one pauses (nothing is voided). Fit ports only when you can feed them: a second quasar with its own mouths is the clean way.\n\n§2§lDONE §lWHEN§r your Reality Diffraction runs on a quasar link (tick the box).",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
@@ -32,7 +32,7 @@
       "isMain:1": 0,
       "isSilent:1": 0,
       "lockedProgress:1": 0,
-      "name:8": "§8Coming later: §7§l§nRiding the Rift§r",
+      "name:8": "§4§l§nRiding the Rift",
       "notification_duration:5": -1.0,
       "notification_effect:3": -1,
       "notification_fade_in:5": -1.0,

@@ -41,7 +41,8 @@ public final class BTSQuestIds {
 
     /** Chapter Tier 14 - MAX (line 47992). */
     public static final long[] MAX_QUESTS = { 48180L, 48181L, 48182L, 48183L, 48184L, 48185L, 48186L, 48187L, 48188L,
-        48189L, 48190L, 48191L, 48192L, 48193L, 48194L, 48195L, 48196L, 48197L, 48198L, 48199L };
+        48189L, 48190L, 48191L, 48192L, 48193L, 48194L, 48195L, 48196L, 48197L, 48198L, 48199L, 48200L, 48201L, 48202L,
+        48203L, 48204L, 48205L, 48206L, 48207L, 48208L, 48209L, 48210L, 48211L };
 
     /** Chapter The Endgame (line 47993). */
     public static final long[] END_QUESTS = { 48220L, 48221L, 48222L, 48223L, 48224L, 48225L, 48226L, 48227L, 48228L };
@@ -50,8 +51,7 @@ public final class BTSQuestIds {
     public static final long[] FALLBACK_QUESTS = { 48103L, 48109L };
 
     /** Checkbox placeholders in this build: their content is not in the mod yet. */
-    public static final long[] PLACEHOLDER_QUESTS = { 48151L, 48152L, 48153L, 48181L, 48182L, 48183L, 48184L, 48185L,
-        48186L, 48187L, 48188L, 48189L, 48190L, 48191L, 48192L, 48193L, 48194L, 48198L };
+    public static final long[] PLACEHOLDER_QUESTS = {};
 
     /** Every pack edit in the bundle, in application order. */
     public static final String[] PACK_EDITS = { "E01", "E02", "E03", "E04", "E05", "E06", "E07", "E10", "E11", "E12",
