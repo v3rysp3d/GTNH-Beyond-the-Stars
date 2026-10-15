@@ -174,7 +174,7 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
         final double now = world.getTotalWorldTime() + partialTicks;
         final byte kind = star.getKind();
         // P5: the Great Attractor (T9) and the Universe (T10) draw through CosmosFx, at every quality
-        if (kind == EyeStarLook.ATTRACTOR || kind == EyeStarLook.UNIVERSE) {
+        if (kind == CosmosInput.ATTRACTOR || kind == CosmosInput.UNIVERSE) {
             drawCosmos(star, kind, pass, now, partialTicks, x + 0.5, y + 0.5, z + 0.5);
             return;
         }
@@ -357,6 +357,7 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
     }
 
     private final CosmosFx.Look cosmosLook = new CosmosFx.Look();
+    private final CosmosInput cosmosInput = new CosmosInput();
 
     /**
      * P5 (design p5-t9-t10.md §9.5): the Great Attractor or the Universe. Pass 0 the dark core (opaque, writing depth);
@@ -367,9 +368,10 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
      */
     private void drawCosmos(TileEyeStar star, byte kind, int pass, double now, float partialTicks, double cx, double cy,
         double cz) {
-        final boolean universe = kind == EyeStarLook.UNIVERSE;
+        final boolean universe = kind == CosmosInput.UNIVERSE;
         final World world = star.getWorldObj();
-        final double ry = universe ? cy + CosmosFx.CROWN_Y : cy;
+        CosmosFx.geometry();
+        final double ry = universe ? cy + CosmosFx.crownY : cy;
         final double dist = Math.sqrt(cx * cx + ry * ry + cz * cz);
         final Lod.Tier tier;
         if (pass != 1 || !tiers.containsKey(star)) {
@@ -382,37 +384,16 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
         } else {
             tier = tiers.get(star);
         }
-        final EyeCosmosLook c = star.getCosmos();
+        final CosmosInput c = cosmosInput.fill(star, now);
         final CosmosFx.Look l = cosmosLook;
         eye(l.eye);
         final float time = RenderClock.seconds(world, partialTicks);
         final int detail = tier == Lod.Tier.L0 ? 3 : tier == Lod.Tier.L1 ? 2 : 1;
         if (universe) {
-            CosmosFx.computeUniverse(
-                l,
-                c,
-                now,
-                time,
-                detail,
-                star.getTransition(),
-                star.getTransitionProgress(),
-                cx,
-                cy,
-                cz);
+            CosmosFx.computeUniverse(l, c, time, detail, cx, cy, cz);
         } else {
             final float day = Math.max(0f, Math.min(1f, (world.getSunBrightness(partialTicks) - 0.25f) / 0.7f));
-            CosmosFx.computeAttractor(
-                l,
-                c,
-                now,
-                time,
-                detail,
-                day,
-                star.getTransition(),
-                star.getTransitionProgress(),
-                cx,
-                cy,
-                cz);
+            CosmosFx.computeAttractor(l, c, time, detail, day, cx, cy, cz);
         }
         GpuTimer.begin("eye");
         final boolean glCheck = RenderQuality.glCheckBegin(star);
@@ -421,7 +402,7 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
             if (!tier.shaded()) {
                 final GlSave flat = Layers.untextured();
                 try {
-                    CosmosFx.drawFixed(l, c, universe, pass, now);
+                    CosmosFx.drawFixed(l, c, universe, pass);
                 } finally {
                     flat.restore();
                 }

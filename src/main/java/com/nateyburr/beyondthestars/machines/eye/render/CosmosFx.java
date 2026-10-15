@@ -18,6 +18,8 @@ import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.gtnewhorizon.gtnhlib.client.renderer.shader.ShaderProgram;
 import com.gtnewhorizon.gtnhlib.client.renderer.vao.IVertexArrayObject;
 import com.gtnewhorizon.gtnhlib.client.renderer.vao.VertexBufferType;
@@ -31,6 +33,7 @@ import com.nateyburr.beyondthestars.client.render.Lod;
 import com.nateyburr.beyondthestars.client.render.MachineFx;
 import com.nateyburr.beyondthestars.client.render.Meshes;
 import com.nateyburr.beyondthestars.client.render.NoiseTex;
+import com.nateyburr.beyondthestars.machines.BTSShapes;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -59,7 +62,7 @@ import gregtech.common.render.shader.VertexAttribute;
  * glowing rings (the collars' glass channels and the crown).</li>
  * </ul>
  * Everything is placed in the Eye's voxel frame (designs/voxel.js), taken into the world from the controller's facing
- * ({@link EyeCosmosLook#frame}); the crown's own frame adds its lift (y 62) and tilt (-10 degrees). Draws per object:
+ * ({@link CosmosInput#facing}); the crown's own frame adds its lift (y 62) and tilt (-10 degrees). Draws per object:
  * the Attractor 5 (core in pass 0; backdrop, points, collar rings, beam), the Universe 6 (core in pass 0; jet,
  * membrane, web, crown glow, rays). Detail: L0 every point, 2 nebula / 4 CMB octaves; L1 half the points; L2 15 %, no
  * flow highlight; L3 a glow sprite (and the core). FIXED: {@link #drawFixed}, a few hundred fixed-function quads.
@@ -69,20 +72,71 @@ import gregtech.common.render.shader.VertexAttribute;
 final class CosmosFx {
 
     /** The dark core's radius and the Einstein radius (2.4 x), blocks. */
-    static final float CORE = EyeStarLook.ATTRACTOR_CORE, EINSTEIN = CORE * 2.4f;
+    static final float CORE = 6f, EINSTEIN = CORE * 2.4f;
     /** The lensed backdrop's radius, blocks. */
     static final float SKY_RADIUS = 34f;
-    /** The pellet beam: from the top collar's jet cells down to the core, voxel y. */
-    static final float BEAM_TOP = 92f;
-    /** The crown (designs/voxel.js EYE.uni): lift, half-axes, tilt. */
-    static final float CROWN_Y = 62f, CROWN_A = 74f, CROWN_B = 70f;
-    static final double CROWN_TILT = Math.toRadians(-10);
     /** The last-scattering surface's half-axes at full size, inside the crown's sawtooth. */
     static final float MEMBRANE_A = 68f, MEMBRANE_B = 64f;
     /** How the Attractor and the Universe rank for LOD: bounding radius, blocks. */
     static final float ATTRACTOR_BOUND = 60f, UNIVERSE_BOUND = 85f;
-    /** The Infall and Inflation on the transition channel (EyeStarLook.trans: the tier they start from). */
-    static final int TRANS_INFALL = 8, TRANS_INFLATION = 9;
+
+    /**
+     * The bands' geometry in the voxel frame: the structure manifest's {@code machines.eye.jet9} and {@code crown}
+     * when the exporter wrote them, else designs/voxel.js's numbers (the same ones). Read once, on the first frame.
+     */
+    static float crownY = 62f, crownA = 74f, crownB = 70f;
+    static double crownTilt = Math.toRadians(-10);
+    /** The first collar's height, the step between collars, its radius and the change per collar; the beam's top. */
+    static float collarY0 = 30f, collarDy = 14f, collarR0 = 14f, collarDr = -1.68f, beamTop = 92f;
+    private static boolean geometryRead;
+
+    static void geometry() {
+        if (geometryRead) return;
+        geometryRead = true;
+        try {
+            final JsonObject eye = BTSShapes.manifest()
+                .getAsJsonObject("machines")
+                .getAsJsonObject("eye");
+            if (eye.has("crown")) {
+                final JsonObject c = eye.getAsJsonObject("crown");
+                crownY = c.getAsJsonArray("centreVoxel")
+                    .get(1)
+                    .getAsFloat();
+                crownA = c.getAsJsonArray("radiiAB")
+                    .get(0)
+                    .getAsFloat();
+                crownB = c.getAsJsonArray("radiiAB")
+                    .get(1)
+                    .getAsFloat();
+                crownTilt = Math.toRadians(
+                    c.get("tiltDeg")
+                        .getAsDouble());
+            }
+            if (eye.has("jet9")) {
+                final JsonObject j = eye.getAsJsonObject("jet9");
+                final JsonArray collars = j.getAsJsonArray("collars");
+                if (collars.size() >= 2) {
+                    final JsonObject a = collars.get(0)
+                        .getAsJsonObject(),
+                        b = collars.get(1)
+                            .getAsJsonObject();
+                    collarY0 = a.get("yVoxel")
+                        .getAsFloat();
+                    collarDy = b.get("yVoxel")
+                        .getAsFloat() - collarY0;
+                    collarR0 = a.get("radius")
+                        .getAsFloat();
+                    collarDr = b.get("radius")
+                        .getAsFloat() - collarR0;
+                }
+                beamTop = j.getAsJsonArray("beamVoxelY")
+                    .get(1)
+                    .getAsFloat();
+            }
+        } catch (RuntimeException missing) {
+            // an older manifest: the voxel.js numbers above stand
+        }
+    }
 
     // ------------------------------------------------------------------ programs
 
@@ -144,8 +198,6 @@ final class CosmosFx {
     private static final int PROGRAM_POINT_SIZE = 0x8642, POINT_SPRITE = 0x8861;
     /** The flow's group comes first in the Attractor's buffer (never thinned by LOD). */
     private static final int FLOW_MEMBERS = 12;
-    /** The frame of an Eye facing north (a look without a frame). */
-    private static final byte NORTH_FRAME = EyeCosmosLook.frameOf(ExtendedFacing.of(ForgeDirection.NORTH));
 
     private CosmosFx() {}
 
@@ -173,6 +225,8 @@ final class CosmosFx {
         final MachineFx.Beam beam = new MachineFx.Beam();
         final double[] beamTop = new double[3], beamBottom = new double[3];
         boolean beamOn, membraneOn, ringsOn;
+        /** The crown's glow (0: not drawn). */
+        float crownGlow;
         /** The share of each point buffer drawn (LOD). */
         float density;
         /** The L3 sprite's colour. */
@@ -195,11 +249,36 @@ final class CosmosFx {
         return t * t * (3 - 2 * t);
     }
 
-    /** The voxel frame from the look's frame byte, the centre camera-relative and the eye. */
-    private static void frame(Look L, EyeCosmosLook c, double cx, double cy, double cz) {
-        final byte f = c != null && c.frame >= 0 ? c.frame : NORTH_FRAME;
-        EyeCosmosLook.axis(f / 6, L.ex);
-        EyeCosmosLook.axis(f % 6, L.ez);
+    /**
+     * The voxel frame of each horizontal facing (ForgeDirection 2..5): the world directions of voxel +x and +z. The
+     * Eye's voxel offset (x, y, z) is (a, b, c) = (x, -y, -z) (EyeCentreRender.centreRel), so +x is a and +z is -c.
+     */
+    private static final double[][] FRAMES = new double[6][];
+
+    private static double[] frameOf(int facing) {
+        final int d = facing >= 2 && facing <= 5 ? facing : 2;
+        double[] f = FRAMES[d];
+        if (f == null) {
+            final ExtendedFacing ef = ExtendedFacing.of(ForgeDirection.getOrientation(d));
+            final int[] x = new int[3], z = new int[3];
+            ef.getWorldOffset(new int[] { 1, 0, 0 }, x);
+            ef.getWorldOffset(new int[] { 0, 0, -1 }, z);
+            f = new double[] { x[0], x[1], x[2], z[0], z[1], z[2] };
+            FRAMES[d] = f;
+        }
+        return f;
+    }
+
+    /** The voxel frame from the controller's facing, the centre camera-relative and the eye. */
+    private static void frame(Look L, CosmosInput in, double cx, double cy, double cz) {
+        geometry();
+        final double[] f = frameOf(in.facing);
+        L.ex[0] = f[0];
+        L.ex[1] = f[1];
+        L.ex[2] = f[2];
+        L.ez[0] = f[3];
+        L.ez[1] = f[4];
+        L.ez[2] = f[5];
         L.ey[0] = 0;
         L.ey[1] = 1;
         L.ey[2] = 0;
@@ -223,10 +302,10 @@ final class CosmosFx {
             (float) cy,
             (float) cz,
             1f);
-        // the crown's frame: lifted CROWN_Y, its x along the voxel x, its z along the tilted ellipse axis
-        final float ct = (float) Math.cos(CROWN_TILT), st = (float) Math.sin(CROWN_TILT);
+        // the crown's frame: lifted crownY, its x along the voxel x, its z along the tilted ellipse axis
+        final float ct = (float) Math.cos(crownTilt), st = (float) Math.sin(crownTilt);
         L.crown.set(L.voxel)
-            .translate(0f, CROWN_Y, 0f)
+            .translate(0f, crownY, 0f)
             .mul(1f, 0f, 0f, 0f, 0f, ct, -st, 0f, 0f, st, ct, 0f, 0f, 0f, 0f, 1f);
         final double rx = L.eye[0] - cx, ry = L.eye[1] - cy, rz = L.eye[2] - cz;
         final double vx = rx * L.ex[0] + ry * L.ex[1] + rz * L.ex[2];
@@ -235,7 +314,7 @@ final class CosmosFx {
         L.camV[0] = (float) vx;
         L.camV[1] = (float) vy;
         L.camV[2] = (float) vz;
-        final double py = vy - CROWN_Y;
+        final double py = vy - crownY;
         L.camC[0] = (float) vx;
         L.camC[1] = (float) (py * ct - vz * st);
         L.camC[2] = (float) (py * st + vz * ct);
@@ -253,31 +332,30 @@ final class CosmosFx {
         { 1f, 1f, 1f } },
         GRADE_SHEATH = { { 0.6f, 0.6f, 0.8f }, { 0.66f, 0.51f, 1f }, { 0.33f, 0.83f, 0.94f }, { 0.82f, 0.86f, 1f } };
 
-    /** The filament a flow comes down: its side's three, picked by the flow's hit tick. */
-    static int flowFilament(EyeCosmosLook c) {
-        final long h = c.flowAt * 0x9E3779B97F4A7C15L;
-        return (c.flowSide < 0 ? 3 : 0) + (int) Math.floorMod(h >>> 33, 3L);
+    /** The filament a flow comes down: one of its side's three, picked by the flow's arrival tick. */
+    static int flowFilament(CosmosInput in) {
+        final long h = in.flowSeed * 0x9E3779B97F4A7C15L;
+        return (in.flowSide < 0 ? 3 : 0) + (int) Math.floorMod(h >>> 33, 3L);
     }
 
     /**
-     * The Great Attractor this frame: {@code now} world ticks with the partial tick, {@code time} the shader clock,
-     * {@code detail} 3..1 (L0..L2), {@code day} 0..1, {@code trans} / {@code transP} the transition channel.
+     * The Great Attractor this frame: {@code time} the shader clock, {@code detail} 3..1 (L0..L2), {@code day} 0..1,
+     * {@code (cx, cy, cz)} the camera-relative centre.
      */
-    static void computeAttractor(Look L, EyeCosmosLook c, double now, float time, int detail, float day, int trans,
-        float transP, double cx, double cy, double cz) {
-        frame(L, c, cx, cy, cz);
+    static void computeAttractor(Look L, CosmosInput in, float time, int detail, float day, double cx, double cy,
+        double cz) {
+        frame(L, in, cx, cy, cz);
         final boolean lensing = Config.renderBackgroundLensing;
-        // The Infall: out of the Zone of Avoidance, the filaments and the lens come up over its first 600 s
-        final float emerge = trans == TRANS_INFALL ? smooth(0, 600, transP * 1800.0) : 1f;
-        final float phi = c == null ? 1f : c.phi;
-        set(L.time, time, Math.max(0.25, Math.min(1, phi / 4.0)), emerge, 1);
+        // The Infall: out of the Zone of Avoidance, the filaments and the lens come up with V's ramp (600 s)
+        final float emerge = in.trans == CosmosInput.TRANS_INFALL ? Math.max(0.05f, clamp01(in.vRamp)) : 1f;
+        set(L.time, time, Math.max(0.25, Math.min(1, in.phi / 4.0)), emerge, 1);
         // the halo: as many dots as the galaxies held, on a log scale (Laniakea's 100,000 fill it)
-        final int held = c == null ? 0 : c.held;
-        final double v = c == null ? 0 : c.v;
+        final int held = Math.max(0, in.galaxies);
+        final double v = Float.isNaN(in.v) ? 0 : in.v;
         set(L.halo, clamp01(Math.log10(1 + held) / 5.0), Math.max(-1, Math.min(1, v / 40.0)), 1, CORE);
         set(L.web, 0, 0, 0, 1);
         set(L.fate, 0, 0, 0, 0);
-        flow(L, c, now, detail);
+        flow(L, in, detail);
         set(L.sky, SKY_RADIUS, 0.5 + 0.32 * day, 1, time);
         set(
             L.lens,
@@ -289,8 +367,8 @@ final class CosmosFx {
         set(L.coreA, CORE, 0.55 + 0.05 * Math.log10(1 + held), 0, 0);
         set(L.coreB, 0.55, 0.62, 1, 0);
         // the beam: down the collimator stack, its colour the grade, its brightness and width rho
-        final int grade = c == null ? 0 : Math.max(0, Math.min(3, c.grade));
-        final double rho = c == null ? 0 : Math.min(3, c.rho);
+        final int grade = Math.max(0, Math.min(3, in.grade));
+        final double rho = Math.max(0, Math.min(3, in.rho));
         L.beamOn = grade > 0 && rho > 0.01;
         final MachineFx.Beam b = L.beam;
         b.w0 = b.w1 = (float) (0.3 + 0.25 * rho);
@@ -305,14 +383,16 @@ final class CosmosFx {
         b.time = time;
         System.arraycopy(GRADE_CORE[grade], 0, b.core, 0, 3);
         System.arraycopy(GRADE_SHEATH[grade], 0, b.sheath, 0, 3);
-        world(L, 0, BEAM_TOP, 0, L.beamTop);
+        world(L, 0, beamTop, 0, L.beamTop);
         world(L, 0, CORE * 1.02, 0, L.beamBottom);
-        // the collars' glass channels pulse as the beam spools
-        final float spool = c == null ? 0f : c.spool;
-        L.ringsOn = L.beamOn && spool > 0.01f;
+        // the collars' glass channels pulse down the stack, as bright as the beam is against its barrel's best
+        final float spool = L.beamOn ? clamp01(0.25 + 0.75 * rho / Math.max(1, Math.min(3, in.rhoMax))) : 0f;
+        L.ringsOn = spool > 0.01f;
         set(L.ringA, 0.45, 1, time, spool);
         set(L.ringB, b.sheath[0], b.sheath[1], b.sheath[2], 0);
-        set(L.ringC, CROWN_Y, CROWN_A, CROWN_B, CROWN_TILT);
+        set(L.ringC, collarY0 + 2, collarDy, collarR0, collarDr);
+        // Inflation's unfolding (its first 300 s, still the Attractor): the crown above begins to glow
+        L.crownGlow = in.trans == CosmosInput.TRANS_INFLATION ? 0.6f * clamp01(in.transP * 3) : 0f;
         L.membraneOn = false;
         L.density = detail >= 3 ? 1f : detail == 2 ? 0.5f : 0.15f;
         L.glow[0] = 0.55f;
@@ -320,103 +400,112 @@ final class CosmosFx {
         L.glow[2] = 1f;
     }
 
-    /** The Galactic Flow's group on its filament and the filament's highlight. */
-    private static void flow(Look L, EyeCosmosLook c, double now, int detail) {
+    /**
+     * The Galactic Flow's group on its filament and the filament's highlight: seen far out through the 180 s warning,
+     * falling in through the 240 s surge (an accepted group) or swinging past the core and out (a declined one), then
+     * the captured galaxies spiralling into the halo for 25 s after the capture.
+     */
+    private static void flow(Look L, CosmosInput in, int detail) {
         set(L.flow, -1, 1, 0, 0);
         set(L.flow2, 0, 0, 0, 0);
-        if (c == null || c.flow == EyeCosmosLook.FLOW_NONE) return;
-        final double in = c.flowIn(now);
-        if (Double.isNaN(in)) return;
-        final int fil = flowFilament(c);
-        final boolean declined = c.flow == EyeCosmosLook.FLOW_DECLINED || c.flow == EyeCosmosLook.FLOW_PASSING;
+        final boolean flowing = in.flowState != CosmosInput.FLOW_NONE && !Double.isNaN(in.flowIn);
+        if (!flowing) {
+            // after the surge: the captured galaxies spiral into the halo and fade
+            if (!Double.isNaN(in.captureAge) && in.captureAge >= 0 && in.captureAge < 25 && in.captureN > 0) {
+                final int fil = flowFilament(in);
+                final double q = in.captureAge / 25.0;
+                set(L.flow, fil, 0.07 - 0.05 * q, 0, Math.min(12, in.captureN));
+                set(L.flow2, 0, Math.min(12, in.captureN), 0, 1);
+                L.fate[2] = 0;
+            }
+            return;
+        }
+        final double t = in.flowIn;
+        final int fil = flowFilament(in);
+        final boolean declined = in.flowState == CosmosInput.FLOW_DECLINED || in.flowState == CosmosInput.FLOW_PASSING;
         final double uc;
         float light = 1f, highlight;
-        if (in >= 0) {
+        if (t >= 0) {
             // the warning: seen far out, falling in to about 90 blocks
-            uc = 1 - 0.55 * (1 - Math.min(1, in / EyeCosmosLook.FLOW_WARNING));
-            light = smooth(0, 8, EyeCosmosLook.FLOW_WARNING - in);
-            highlight = smooth(0, 10, EyeCosmosLook.FLOW_WARNING - in);
+            uc = 1 - 0.55 * (1 - Math.min(1, t / CosmosInput.FLOW_WARNING));
+            light = smooth(0, 8, CosmosInput.FLOW_WARNING - t);
+            highlight = smooth(0, 10, CosmosInput.FLOW_WARNING - t);
         } else {
-            final double tau = -in;
-            if (declined) {
-                uc = 0.45 - 0.95 * Math.min(1, tau / EyeCosmosLook.FLOW_SURGE_SECONDS);
-            } else if (tau <= 200) {
-                uc = 0.45 - (0.45 - 0.07) * smooth(0, 200, tau);
-            } else {
-                uc = 0.07 - 0.05 * Math.min(1, (tau - 200) / 40);
-            }
+            final double tau = -t;
+            uc = declined ? 0.45 - 0.95 * Math.min(1, tau / CosmosInput.FLOW_SURGE_SECONDS)
+                : 0.45 - (0.45 - 0.075) * smooth(0, CosmosInput.FLOW_SURGE_SECONDS, tau);
             highlight = 1 - smooth(220, 240, tau);
         }
         if (declined) highlight *= 0.5f;
         if (detail <= 1) highlight = 0;
-        final int captured = declined ? 0 : (int) Math.floor(c.flowN * c.flowHeld + 1e-4);
-        set(L.flow, fil, uc, declined ? 1 : 0, c.flowN);
-        set(L.flow2, highlight, captured, 0, light);
+        // during the surge the group stays on the filament; the capture (captureAt) takes it into the halo
+        set(L.flow, fil, uc, declined ? 1 : 0, in.flowSize);
+        set(L.flow2, highlight, declined ? 0 : in.flowSize, 0, light);
         L.fate[2] = declined ? 1 : 0;
     }
 
     /** The Universe this frame (see {@link #computeAttractor}). */
-    static void computeUniverse(Look L, EyeCosmosLook c, double now, float time, int detail, int trans, float transP,
-        double cx, double cy, double cz) {
-        frame(L, c, cx, cy, cz);
-        double age = c == null ? Double.NaN : c.universeAge(now);
+    static void computeUniverse(Look L, CosmosInput in, float time, int detail, double cx, double cy, double cz) {
+        frame(L, in, cx, cy, cz);
+        double age = in.uniAge;
         float scale, reveal, flash = 0f, plasma = 0.5f;
         boolean show = true;
-        if (trans == TRANS_INFLATION) {
+        final double recAt = !Double.isNaN(in.recIn) && !Double.isNaN(age) ? age + in.recIn : CosmosInput.RECOMBINATION;
+        if (in.trans == CosmosInput.TRANS_INFLATION) {
             // Inflation (900 s): unfolding to 300 s, then the universe inflates from almost nothing; it turns
             // transparent at 600 s
-            final double s = transP * 900.0;
+            final double s = in.transP * 900.0;
             show = s >= 300;
             scale = (float) (0.04 + 0.96 * (1 - Math.exp(-Math.max(0, s - 300) / 25.0)));
             reveal = smooth(600, 630, s);
             flash = s >= 600 ? (float) (1.2 * Math.exp(-(s - 600) / 25.0)) : 0f;
             plasma = 0.5f + 1.2f * (float) Math.exp(-Math.max(0, s - 300) / 20.0);
-            age = s >= 600 ? EyeCosmosLook.RECOMBINATION_AT + (s - 600) : Math.max(0, s - 300);
+            age = s >= 600 ? CosmosInput.RECOMBINATION + (s - 600) : Math.max(0, s - 300);
         } else if (Double.isNaN(age)) {
-            age = EyeCosmosLook.UNIVERSE_SECONDS * 0.5;
+            // between universes (charging) or no snapshot: a mid-life universe, held still
+            age = CosmosInput.UNIVERSE_SECONDS * 0.5;
             scale = 0.9f;
             reveal = 1f;
         } else {
-            final double f = Math.max(0, Math.min(1, age / EyeCosmosLook.UNIVERSE_SECONDS));
+            final double f = Math.max(0, Math.min(1, age / CosmosInput.UNIVERSE_SECONDS));
             scale = (float) (0.62 + 0.32 * Math.pow(f, 2.0 / 3.0) + 0.06 * smooth(0.6, 1.0, f));
-            reveal = smooth(EyeCosmosLook.RECOMBINATION_AT - 5, EyeCosmosLook.RECOMBINATION_AT + 25, age);
-            final double since = age - EyeCosmosLook.RECOMBINATION_AT;
+            reveal = smooth(recAt - 5, recAt + 25, age);
+            final double since = age - recAt;
             if (since >= 0) flash = (float) (1.2 * Math.exp(-since / 25.0));
         }
-        final float h = c == null ? 0f : c.h;
-        scale *= 1f + 0.04f * Math.max(-1f, Math.min(1f, h / 40f));
-        // the end: a Big Rip tears it outward, a Big Crunch pulls it in, 3 s
-        final double fa = c == null ? Double.NaN : c.fateAge(now);
-        final int fate = c == null || Double.isNaN(fa) ? 0 : c.fate;
-        final float fk = fate == 0 ? 0f : clamp01(fa / 3.0);
-        if (fate == EyeCosmosLook.FATE_RIP) scale *= 1f + 2.5f * fk * fk;
-        if (fate == EyeCosmosLook.FATE_CRUNCH) scale *= (float) Math.pow(1 - fk, 1.5);
+        scale *= 1f + 0.04f * Math.max(-1f, Math.min(1f, in.h / 40f));
+        // the end: a Big Rip tears it outward, a Big Crunch pulls it in, last light fades it (3 s each)
+        final int fate = !Double.isNaN(in.endAge) && in.endAge >= 0 && in.endAge < 3.5
+            ? in.phase == CosmosInput.PHASE_RIP ? 1
+                : in.phase == CosmosInput.PHASE_CRUNCH ? 2 : in.phase == CosmosInput.PHASE_LAST_LIGHT ? 3 : 0
+            : 0;
+        final float fk = fate == 0 ? 0f : clamp01(in.endAge / 3.0);
+        if (fate == 1) scale *= 1f + 2.5f * fk * fk;
+        if (fate == 2) scale *= (float) Math.pow(1 - fk, 1.5);
         L.membraneOn = show && scale > 0.01f;
+        final float fadeOut = fate == 3 ? 1f - fk : 1f;
         set(L.memA, MEMBRANE_A, MEMBRANE_B, scale, time);
-        set(L.memB, detail >= 2 ? 0.62 : 0.55, reveal, flash, detail >= 3 ? 4 : detail == 2 ? 3 : 2);
-        set(L.memC, fate, fk, 12.0 / (MEMBRANE_A * Math.max(0.05, scale)), plasma);
+        set(L.memB, (detail >= 2 ? 0.62 : 0.55) * fadeOut, reveal, flash, detail >= 3 ? 4 : detail == 2 ? 3 : 2);
+        set(L.memC, fate == 3 ? 0 : fate, fk, 12.0 / (MEMBRANE_A * Math.max(0.05, scale)), plasma);
         // the web: scattered matter gathers onto filaments as the universe ages; the first stars light it at Dawn
-        final double dawnIn = c == null ? Double.NaN : c.dawnIn(now);
-        final double tau = Double.isNaN(dawnIn) ? -1e4 : -dawnIn;
+        final double tau = Double.isNaN(in.dawnIn) ? -1e4 : -in.dawnIn;
         final float stars = tau >= 0 ? smooth(0, 20, tau) : 0f;
-        final float growth = smooth(0.03, 0.85, age / EyeCosmosLook.UNIVERSE_SECONDS);
-        set(L.web, show ? growth : 0, show ? 0.25 + 0.75 * reveal : 0, stars, scale);
-        set(L.fate, fate, fk, 0, 0);
+        final float growth = smooth(0.03, 0.85, age / CosmosInput.UNIVERSE_SECONDS);
+        set(L.web, show ? growth : 0, show ? (0.25 + 0.75 * reveal) * fadeOut : 0, stars, scale);
+        set(L.fate, fate == 3 ? 0 : fate, fk, 0, 0);
         set(L.time, time, 0, 1, 1);
         set(L.flow, -1, 1, 0, 0);
         set(L.flow2, 0, 0, 0, 0);
         set(L.halo, 0, 0, 0, CORE);
         // the Cosmic Dawn's rays: one after another round the crown, the 120 s warning a glint running round them
-        final float warn = !Double.isNaN(dawnIn) && dawnIn > 0 && dawnIn <= 120 ? 1f : 0f;
-        set(L.rayA, CROWN_Y, CROWN_A, CROWN_B, CROWN_TILT);
+        final float warn = !Double.isNaN(in.dawnIn) && in.dawnIn > 0 && in.dawnIn <= 120 ? 1f : 0f;
+        set(L.rayA, crownY, crownA, crownB, crownTilt);
         set(L.rayB, 3.5, 42, 1.4, time);
-        set(L.rayC, tau, warn, 0.15, fate == EyeCosmosLook.FATE_NONE ? 1 : 1 - fk);
+        set(L.rayC, tau, warn, 0.15, fate == 0 ? 1 : 1 - fk);
         // the crown's glow: brighter at Recombination and through the starburst
         final double burst = tau >= 0 && tau < 300 ? Math.pow(1 + tau / 10.0, -5.0 / 3.0) : 0;
-        set(L.ringA, 0.6, 1, time, 0);
-        set(L.ringB, 0.80, 0.75, 1.0, 0.22 + 0.6 * burst + 0.3 * flash + 0.15 * warn);
-        set(L.ringC, CROWN_Y, CROWN_A, CROWN_B, CROWN_TILT);
-        L.ringsOn = true;
+        L.crownGlow = (float) (0.22 + 0.6 * burst + 0.3 * flash + 0.15 * warn);
+        L.ringsOn = false;
         // the faint Attractor below
         set(L.coreA, CORE, 0.4, 0, 0);
         set(L.coreB, 0.55, 0.62, 1, 0);
@@ -436,7 +525,7 @@ final class CosmosFx {
         System.arraycopy(GRADE_CORE[3], 0, b.core, 0, 3);
         System.arraycopy(GRADE_SHEATH[3], 0, b.sheath, 0, 3);
         world(L, 0, CORE * 1.02, 0, L.beamBottom);
-        world(L, 0, BEAM_TOP, 0, L.beamTop);
+        world(L, 0, beamTop, 0, L.beamTop);
         L.density = detail >= 3 ? 1f : detail == 2 ? 0.5f : 0.15f;
         L.glow[0] = 1f;
         L.glow[1] = 0.72f;
@@ -472,6 +561,7 @@ final class CosmosFx {
         drawSky(L);
         drawPoints(L, ATTRACTOR_POINTS, true);
         if (L.ringsOn) drawRings(L, 0, 5);
+        if (L.crownGlow > 0.003f) drawCrown(L);
         if (L.beamOn) {
             GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
             MachineFx.drawBeam(L.beamTop, L.beamBottom, L.beam);
@@ -484,7 +574,7 @@ final class CosmosFx {
         MachineFx.drawBeam(L.beamBottom, L.beamTop, L.beam);
         if (L.membraneOn) drawMembrane(L);
         if (L.membraneOn) drawPoints(L, WEB_POINTS, false);
-        drawRings(L, 5, 1);
+        drawCrown(L);
         drawRays(L);
     }
 
@@ -554,6 +644,14 @@ final class CosmosFx {
         ShaderProgram.clear();
     }
 
+    /** The crown's glow ring (ring 5 of the rings mesh). */
+    private static void drawCrown(Look L) {
+        set(L.ringA, 0.6, 1, L.time[0], 0);
+        set(L.ringB, 0.80, 0.75, 1.0, L.crownGlow);
+        set(L.ringC, crownY, crownA, crownB, crownTilt);
+        drawRings(L, 5, 1);
+    }
+
     private static void drawRays(Look L) {
         final ShaderHandle h = FX_PROGRAM.get();
         final IVertexArrayObject mesh = RAYS.get();
@@ -600,8 +698,8 @@ final class CosmosFx {
     static void drawSprite(Look L, boolean universe) {
         final double[] p = L.beamTop;
         if (universe) {
-            world(L, 0, CROWN_Y, 0, p);
-            GlowSprite.draw(p[0], p[1], p[2], CROWN_A * 0.9, L.glow[0], L.glow[1], L.glow[2], 0.7f, 0.18f, 0.5f);
+            world(L, 0, crownY, 0, p);
+            GlowSprite.draw(p[0], p[1], p[2], crownA * 0.9, L.glow[0], L.glow[1], L.glow[2], 0.7f, 0.18f, 0.5f);
         } else {
             GlowSprite.draw(L.cx, L.cy, L.cz, EINSTEIN * 2.2, L.glow[0], L.glow[1], L.glow[2], 0.6f, 0.1f, 0.5f);
         }
@@ -616,7 +714,7 @@ final class CosmosFx {
      * pass 1 (additive) the ring's glow, 40 dots per filament and the beam as a quad (the Attractor), or the
      * membrane as a two-tone disc in the crown's plane and the twelve rays (the Universe). A few hundred quads.
      */
-    static void drawFixed(Look L, EyeCosmosLook c, boolean universe, int pass, double now) {
+    static void drawFixed(Look L, CosmosInput in, boolean universe, int pass) {
         final Tessellator t = Tessellator.instance;
         if (pass != 1) {
             GL11.glDisable(GL11.GL_BLEND);
@@ -649,7 +747,7 @@ final class CosmosFx {
             t.draw();
             if (L.beamOn) {
                 final float[] col = L.beam.sheath;
-                fixedBeam(t, L, CORE, BEAM_TOP, 0.6, col[0], col[1], col[2], 0.25f + 0.3f * L.beam.intensity);
+                fixedBeam(t, L, CORE, beamTop, 0.6, col[0], col[1], col[2], 0.25f + 0.3f * L.beam.intensity);
             }
             return;
         }
@@ -664,8 +762,7 @@ final class CosmosFx {
         }
         t.draw();
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
-        final double dawnIn = c == null ? Double.NaN : c.dawnIn(now);
-        final double tau = Double.isNaN(dawnIn) ? -1 : -dawnIn;
+        final double tau = Double.isNaN(in.dawnIn) ? -1 : -in.dawnIn;
         t.startDrawingQuads();
         for (int k = 0; k < 12; k++) {
             final double lk = tau - 0.45 * k;
@@ -673,7 +770,7 @@ final class CosmosFx {
             rayQuad(t, L, k, 0.12f + 0.7f * fl);
         }
         t.draw();
-        fixedBeam(t, L, CORE, BEAM_TOP, 0.35, 1f, 1f, 1f, 0.2f);
+        fixedBeam(t, L, CORE, beamTop, 0.35, 1f, 1f, 1f, 0.2f);
     }
 
     /** One quad of the fixed membrane: radii r0..r1 (of the half-axes) between angles a0..a1, colours inner / outer. */
@@ -695,7 +792,7 @@ final class CosmosFx {
     /** {@code out} = the camera-relative world point of the membrane at angle {@code a}, {@code r} of its half-axes. */
     private static void crownPoint(Look L, double a, double r, double[] out) {
         final double x = MEMBRANE_A * r * Math.cos(a), z = MEMBRANE_B * r * Math.sin(a);
-        world(L, x, CROWN_Y + z * Math.sin(CROWN_TILT), z * Math.cos(CROWN_TILT), out);
+        world(L, x, crownY + z * Math.sin(crownTilt), z * Math.cos(crownTilt), out);
     }
 
     private static final double[] RA = new double[3], RB = new double[3];
@@ -703,8 +800,8 @@ final class CosmosFx {
     /** Ray {@code k} of the fixed Cosmic Dawn: from its spike's base outward (cosmos/fx_vert.glsl mode 1). */
     private static void rayQuad(Tessellator t, Look L, int k, float alpha) {
         final double th = Math.toRadians(30 * k + 15);
-        final double bx = CROWN_A * Math.cos(th), by = CROWN_Y + CROWN_B * Math.sin(th) * Math.sin(CROWN_TILT),
-            bz = CROWN_B * Math.sin(th) * Math.cos(CROWN_TILT);
+        final double bx = crownA * Math.cos(th), by = crownY + crownB * Math.sin(th) * Math.sin(crownTilt),
+            bz = crownB * Math.sin(th) * Math.cos(crownTilt);
         final double ph = Math.atan2(bz, bx), el = Math.toRadians(k % 3 == 0 ? 14 : k % 3 == 1 ? -4 : 6);
         final double dx = Math.cos(el) * Math.cos(ph), dy = Math.sin(el), dz = Math.cos(el) * Math.sin(ph);
         world(L, bx + dx * 3.5, by + dy * 3.5, bz + dz * 3.5, RA);

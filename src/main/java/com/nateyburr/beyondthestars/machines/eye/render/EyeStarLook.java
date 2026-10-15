@@ -1,6 +1,5 @@
 package com.nateyburr.beyondthestars.machines.eye.render;
 
-import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.nateyburr.beyondthestars.machines.eye.field.CollapseOverlay;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldReadout;
 import com.nateyburr.beyondthestars.machines.eye.field.GalacticMergerOverlay;
@@ -58,16 +57,6 @@ public final class EyeStarLook {
     public static final byte MILKY_WAY = 10;
     /** P4 planets mode: a calm glow with the slots' planets on their orbits; {@link #aux} = planets / 9. */
     public static final byte PLANETS = 11;
-    /**
-     * P5 T9 the Great Attractor: a dark core lensing the sky into an Einstein ring, six cosmic-web filaments with
-     * galaxies streaming down them, the pellet beam down the collimator stack; {@link #cosmos} carries the rest.
-     */
-    public static final byte ATTRACTOR = 12;
-    /**
-     * P5 T10 the Universe: inside the lifted crown, the last-scattering surface (a CMB map) with the cosmic web in it,
-     * the Cosmic Dawn's starburst along the twelve spikes, a faint Attractor below; {@link #cosmos} carries the rest.
-     */
-    public static final byte UNIVERSE = 13;
 
     public final byte kind;
     public final float radius;
@@ -130,22 +119,17 @@ public final class EyeStarLook {
     public final float xIn;
     /** World tick of the satellite crossing's hit (0: none): the client counts it down and runs the ring wave. */
     public final long xAt;
-    /**
-     * P5: the render-only look of {@link #ATTRACTOR} and {@link #UNIVERSE} (beam, flow, universe clocks, frame); null
-     * for every other kind.
-     */
-    public final EyeCosmosLook cosmos;
 
     public EyeStarLook(byte kind, float radius, int rgb, float gamma, float spin, float pulse) {
         this(kind, radius, rgb, gamma, spin, pulse, 0f);
     }
 
     public EyeStarLook(byte kind, float radius, int rgb, float gamma, float spin, float pulse, float aux) {
-        this(kind, radius, rgb, gamma, spin, pulse, aux, (byte) 0, EV_NONE, 0f, 0L, (byte) 0, 0f, Float.NaN, 0L, null);
+        this(kind, radius, rgb, gamma, spin, pulse, aux, (byte) 0, EV_NONE, 0f, 0L, (byte) 0, 0f, Float.NaN, 0L);
     }
 
     private EyeStarLook(byte kind, float radius, int rgb, float gamma, float spin, float pulse, float aux, byte n,
-        byte ev, float evIn, long evAt, byte trans, float transP, float xIn, long xAt, EyeCosmosLook cosmos) {
+        byte ev, float evIn, long evAt, byte trans, float transP, float xIn, long xAt) {
         this.kind = kind;
         this.radius = radius;
         this.rgb = rgb;
@@ -161,7 +145,6 @@ public final class EyeStarLook {
         this.transP = transP;
         this.xIn = xIn;
         this.xAt = xAt;
-        this.cosmos = cosmos;
     }
 
     /** This look as tier {@code n}'s star. */
@@ -181,8 +164,7 @@ public final class EyeStarLook {
             trans,
             transP,
             xIn,
-            xAt,
-            cosmos);
+            xAt);
     }
 
     /** This look with an event {@code ev} hitting {@code in} seconds from now (negative: it hit that long ago). */
@@ -202,8 +184,7 @@ public final class EyeStarLook {
             trans,
             transP,
             xIn,
-            xAt,
-            cosmos);
+            xAt);
     }
 
     /** This look during transition {@code trans} (1..7) at {@code p} (0..1). */
@@ -223,8 +204,7 @@ public final class EyeStarLook {
             (byte) trans,
             p,
             xIn,
-            xAt,
-            cosmos);
+            xAt);
     }
 
     /**
@@ -232,46 +212,14 @@ public final class EyeStarLook {
      * long ago).
      */
     public EyeStarLook crossing(float in) {
-        return new EyeStarLook(
-            kind,
-            radius,
-            rgb,
-            gamma,
-            spin,
-            pulse,
-            aux,
-            n,
-            ev,
-            evIn,
-            evAt,
-            trans,
-            transP,
-            in,
-            xAt,
-            cosmos);
+        return new EyeStarLook(kind, radius, rgb, gamma, spin, pulse, aux, n, ev, evIn, evAt, trans, transP, in, xAt);
     }
 
     /** Server: the look to send at world tick {@code now} (the event's and the crossing's hits as world ticks). */
     public EyeStarLook at(long now) {
         final long at = ev == EV_NONE ? 0L : now + Math.round(evIn * 20.0);
         final long xat = Float.isNaN(xIn) ? 0L : now + Math.round(xIn * 20.0);
-        return new EyeStarLook(
-            kind,
-            radius,
-            rgb,
-            gamma,
-            spin,
-            pulse,
-            aux,
-            n,
-            ev,
-            evIn,
-            at,
-            trans,
-            transP,
-            xIn,
-            xat,
-            cosmos == null ? null : cosmos.at(now));
+        return new EyeStarLook(kind, radius, rgb, gamma, spin, pulse, aux, n, ev, evIn, at, trans, transP, xIn, xat);
     }
 
     /**
@@ -287,74 +235,9 @@ public final class EyeStarLook {
             .transition(from, c);
     }
 
-    /** P5: this look carrying {@code c} (the Attractor's or the Universe's render look; null clears it). */
-    public EyeStarLook withCosmos(EyeCosmosLook c) {
-        return new EyeStarLook(
-            kind,
-            radius,
-            rgb,
-            gamma,
-            spin,
-            pulse,
-            aux,
-            n,
-            ev,
-            evIn,
-            evAt,
-            trans,
-            transP,
-            xIn,
-            xAt,
-            c);
-    }
-
-    /** P5, server: this look in the voxel frame of a controller facing {@code facing} (only a cosmos look has one). */
-    public EyeStarLook framed(ExtendedFacing facing) {
-        if (cosmos == null) return this;
-        final EyeCosmosLook f = cosmos.framed(facing);
-        return f == cosmos ? this : withCosmos(f);
-    }
-
-    /** P5 T9: the Great Attractor with its render look (radius: the dark core, blocks). */
-    public static EyeStarLook attractor(EyeCosmosLook c) {
-        return new EyeStarLook(ATTRACTOR, ATTRACTOR_CORE, 0x8CA0FF, 1f, 0.2f, 0f).tier(9)
-            .withCosmos(
-                c != null ? c
-                    : EyeCosmosLook.builder()
-                        .build());
-    }
-
-    /** P5 T10: the Universe with its render look. */
-    public static EyeStarLook universe(EyeCosmosLook c) {
-        return new EyeStarLook(UNIVERSE, ATTRACTOR_CORE, 0xFFB070, 1f, 0.1f, 0f).tier(10)
-            .withCosmos(
-                c != null ? c
-                    : EyeCosmosLook.builder()
-                        .build());
-    }
-
-    /** P5: the Great Attractor's dark core, blocks (the Einstein ring is 2.4 times wider). */
-    public static final float ATTRACTOR_CORE = 6f;
-
     /** A copy with another radius, colour and gamma (a transition's blend). */
     private EyeStarLook reshaped(float radius, int rgb, float gamma) {
-        return new EyeStarLook(
-            kind,
-            radius,
-            rgb,
-            gamma,
-            spin,
-            pulse,
-            aux,
-            n,
-            ev,
-            evIn,
-            evAt,
-            trans,
-            transP,
-            xIn,
-            xAt,
-            cosmos);
+        return new EyeStarLook(kind, radius, rgb, gamma, spin, pulse, aux, n, ev, evIn, evAt, trans, transP, xIn, xAt);
     }
 
     /**
@@ -700,8 +583,6 @@ public final class EyeStarLook {
         if (o.n != n || o.ev != ev || o.trans != trans || Math.abs(o.evAt - evAt) > 40) return true;
         if ((o.xAt == 0) != (xAt == 0) || Math.abs(o.xAt - xAt) > 40) return true;
         if (Math.abs(o.transP - transP) > 0.01f) return true;
-        // P5: the cosmos look's own tolerances
-        if ((o.cosmos == null) != (cosmos == null) || cosmos != null && cosmos.differs(o.cosmos)) return true;
         return Math.abs(o.radius - radius) > 0.02f * Math.max(1f, radius) || Math.abs(o.gamma - gamma) > 0.05f
             || Math.abs(o.spin - spin) > 0.05f
             || Math.abs(o.pulse - pulse) > 0.02f
@@ -733,10 +614,6 @@ public final class EyeStarLook {
                 return "the Milky Way (galaxy)";
             case PLANETS:
                 return "planets mode";
-            case ATTRACTOR:
-                return "the Great Attractor";
-            case UNIVERSE:
-                return "the Universe";
             default:
                 return "nothing";
         }

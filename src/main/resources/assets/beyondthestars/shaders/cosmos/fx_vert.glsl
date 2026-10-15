@@ -55,14 +55,15 @@ vec3 coFxPlace(vec3 P, vec2 uv, out vec4 info) {
         info = vec4(e, uv.x, 0.0);
         return vec3(e.x * u_FxA.x, 0.0, e.y * u_FxA.y) * u_FxA.z;
     }
-    // the rings: 0..4 the collars' glass channels (y 32 + 14 j, the collar radius), 5 the crown
+    // the rings: 0..4 the collars' glass channels (u_FxC: the first channel's height, the step, the first collar's
+    // radius and its change per collar), 5 the crown (u_FxC: the crown)
     float ring = P.z;
     float th = BTS_TAU * P.y;
     vec3 c;
     vec3 tg;
     if (ring < 4.5) {
-        float y = 32.0 + 14.0 * ring;
-        float R = 14.0 - (y - 2.0 - 30.0) * 0.12;
+        float y = u_FxC.x + u_FxC.y * ring;
+        float R = u_FxC.z + u_FxC.w * ring;
         c = vec3(R * cos(th), y, R * sin(th));
         tg = vec3(-sin(th), 0.0, cos(th));
     } else {
