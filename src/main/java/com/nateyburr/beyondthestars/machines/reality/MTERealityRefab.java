@@ -269,6 +269,12 @@ public class MTERealityRefab extends MTERealityBase<MTERealityRefab> {
         return a != null && a.mMachine && a.mMaxProgresstime > 0 ? a : null;
     }
 
+    /** QA-B44: a stopped Refab (power, the soft mallet) no longer shows the old "Waiting:" reason. */
+    @Override
+    protected void onStopped() {
+        wait = "";
+    }
+
     @Override
     protected void onSecond() {
         if (assembler() == null) {
@@ -642,6 +648,7 @@ public class MTERealityRefab extends MTERealityBase<MTERealityRefab> {
     public List<String> statusLines() {
         final List<String> out = new ArrayList<>();
         out.add("Reality Refab" + (mMachine ? "" : ", NOT FORMED"));
+        if (!structurePauseNote().isEmpty()) out.add(structurePauseNote());
         out.add(networkLine());
         out.add(linkLine());
         out.add(

@@ -75,6 +75,8 @@ import gregtech.api.util.GTRecipe;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.api.util.OverclockCalculator;
+import gregtech.api.util.shutdown.ShutDownReason;
+import gregtech.api.util.shutdown.ShutDownReasonRegistry;
 import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
 import gregtech.common.render.IMTERenderer;
 import io.netty.buffer.ByteBuf;
@@ -902,6 +904,26 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
             burstHost.linkLine());
     }
 
+    /**
+     * QA-B08: a missing block (or a footprint chunk that is not loaded yet after a restart) pauses the machine instead
+     * of voiding its work. GT calls this every tick while the structure is incomplete; the running recipe, its
+     * progress, its outputs and everything drawn for it are kept, and the controller stays enabled, so the run
+     * resumes by itself the tick the structure is whole again. Every other reason stops as GT does.
+     */
+    @Override
+    public void stopMachine(@Nonnull ShutDownReason reason) {
+        if (ShutDownReasonRegistry.STRUCTURE_INCOMPLETE.getID()
+            .equals(reason.getID())) return;
+        super.stopMachine(reason);
+    }
+
+    /** "the run is kept and resumes when the structure is whole again" while a run waits on a broken structure. */
+    public String structurePauseNote() {
+        return !mMachine && mMaxProgresstime > 0
+            ? "PAUSED: the structure is incomplete; the run is kept and resumes when it is whole again"
+            : "";
+    }
+
     /** Pauses a running Entanglement Medium mix while σ is below 1 (never voided, quasar-p4.md §3.1). */
     @Override
     protected void runMachine(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
@@ -1059,7 +1081,9 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
 
     /** "T2 (installed T2, structure T3), 4 parallels". Server state. */
     public String headLine() {
-        if (!mMachine) return "Not formed (installed T" + installedTier + ")";
+        if (!mMachine) return "Not formed (installed T" + installedTier
+            + ")"
+            + (structurePauseNote().isEmpty() ? "" : ": " + structurePauseNote());
         return "Homogeny T" + tier()
             + " (installed T"
             + installedTier

@@ -568,6 +568,7 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
     public List<String> statusLines() {
         final List<String> out = new ArrayList<>();
         out.add("Reality Diffraction" + (mMachine ? "" : ", NOT FORMED"));
+        if (!structurePauseNote().isEmpty()) out.add(structurePauseNote());
         out.add(networkLine());
         out.add(
             "Sockets: BEC " + becHatchCount()

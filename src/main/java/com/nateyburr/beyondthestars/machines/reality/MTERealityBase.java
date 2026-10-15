@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -40,6 +42,8 @@ import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBas
 import gregtech.api.metatileentity.implementations.MTEHatchInput;
 import gregtech.api.render.TextureFactory;
 import gregtech.api.util.GTUtility;
+import gregtech.api.util.shutdown.ShutDownReason;
+import gregtech.api.util.shutdown.ShutDownReasonRegistry;
 import gregtech.common.render.IMTERenderer;
 import gregtech.common.tileentities.machines.RecipeCheckReason;
 import io.netty.buffer.ByteBuf;
@@ -384,6 +388,30 @@ public abstract class MTERealityBase<T extends MTERealityBase<T>> extends MTEExt
     protected long take(List<MTEHatchInput> list, Fluid fluid, long amount) {
         return PrivateHatchFluids.take(list, fluid, amount);
     }
+
+    /**
+     * QA-B08: a missing block (or a footprint chunk that is not loaded yet after a restart) pauses the machine instead
+     * of voiding its work. GT calls this every tick while the structure is incomplete; the running recipe, its
+     * progress, its outputs and everything drawn for it are kept, and the controller stays enabled, so the run
+     * resumes by itself the tick the structure is whole again. Every other reason stops as GT does.
+     */
+    @Override
+    public void stopMachine(@Nonnull ShutDownReason reason) {
+        if (ShutDownReasonRegistry.STRUCTURE_INCOMPLETE.getID()
+            .equals(reason.getID())) return;
+        onStopped();
+        super.stopMachine(reason);
+    }
+
+    /** "the run is kept and resumes when the structure is whole again" while a run waits on a broken structure. */
+    public String structurePauseNote() {
+        return !mMachine && mMaxProgresstime > 0
+            ? "PAUSED: the structure is incomplete; the run is kept and resumes when it is whole again"
+            : "";
+    }
+
+    /** A run was stopped for any reason other than a broken structure (power, the soft mallet, a failed extraction). */
+    protected void onStopped() {}
 
     // ============================================================================ common bits
 
