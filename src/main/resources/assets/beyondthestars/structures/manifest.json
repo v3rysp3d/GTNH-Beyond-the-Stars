@@ -375,9 +375,17 @@
    },
    "r": {
     "role": "grb_receptor",
-    "kind": "receptor: 8 on the T7 rail's outer face (group rail-high / rail-low, by the rail's 8 deg tilt), 8 at the T8 shard roots (group halo), 5 on the T9 collars' outer rings (group collar, fallback B), 12 on the T10 crown above its band (group crown, fallback E)",
+    "kind": "receptor: 8 on the T7 rail's outer face (group rail-high / rail-low, by the rail's 8 deg tilt), 8 at the T8 shard roots (group halo), 5 on the T9 collars' outer rings (group collar)",
     "block": "GRB Receptor Port (MTEHatchGRBReceptor, MTE 28125); its group is the manifest's sockets.r[i].group (match the hatch's offset from the controller), else fallback",
-    "fallback": "B (T7-T9), E (T10 crown)",
+    "fallback": "B",
+    "min": 0,
+    "hint": 9
+   },
+   "k": {
+    "role": "grb_receptor_crown",
+    "kind": "receptor: 12 on the T10 crown above its band (group crown)",
+    "block": "GRB Receptor Port (MTEHatchGRBReceptor, MTE 28125), group crown, else fallback",
+    "fallback": "E",
     "min": 0,
     "hint": 9
    },
@@ -5310,17 +5318,17 @@
      "block": "slCasing:14 Casimir Plate (existing)"
     },
     {
-     "ch": "r",
+     "ch": "k",
      "count": 12,
-     "role": "grb_receptor",
-     "block": "GRB Receptor Port (MTEHatchGRBReceptor, MTE 28125); its group is the manifest's sockets.r[i].group (match the hatch's offset from the controller), else fallback"
+     "role": "grb_receptor_crown",
+     "block": "GRB Receptor Port (MTEHatchGRBReceptor, MTE 28125), group crown, else fallback"
     }
    ],
    "socketCounts": {
-    "r": 12
+    "k": 12
    },
    "sockets": {
-    "r": [
+    "k": [
      {
       "abc": [
        75,
@@ -8963,7 +8971,7 @@
   "ok   crown_mk3: a second crown stacked at core top - 2 (dy 18) shares 0 cells with the first",
   "ok   crown_mk4: a second crown stacked at core top - 2 (dy 23) shares 0 cells with the first",
   "ok   eye_jet9: 5 GRB Receptor Ports 'r' and 2 Pellet Injector sockets 'i', no other socket (5 / 2, ir)",
-  "ok   eye_crown: 12 GRB Receptor Ports 'r', no other socket (12, r)",
+  "ok   eye_crown: 12 GRB Receptor Ports 'k', no other socket (12, k)",
   "ok   eye_jet9: one receptor on each collar's Bastion rows (voxel y 31,44,58,72,86)",
   "ok   eye_jet9: both Pellet Injector sockets on the top collar (voxel y 86,86, collar 86-87)",
   "ok   eye_jet9: 'r' at voxel 0,31,15 has 2 open face(s) in the full T10 build",
@@ -8973,18 +8981,18 @@
   "ok   eye_jet9: 'i' at voxel -3,86,7 has 3 open face(s) in the full T10 build",
   "ok   eye_jet9: 'i' at voxel 3,86,7 has 2 open face(s) in the full T10 build",
   "ok   eye_jet9: 'r' at voxel 0,86,8 has 2 open face(s) in the full T10 build",
-  "ok   eye_crown: 'r' at voxel -19,55,67 has 5 open face(s) in the full T10 build",
-  "ok   eye_crown: 'r' at voxel 19,55,67 has 5 open face(s) in the full T10 build",
-  "ok   eye_crown: 'r' at voxel -52,58,49 has 4 open face(s) in the full T10 build",
-  "ok   eye_crown: 'r' at voxel 52,58,49 has 4 open face(s) in the full T10 build",
-  "ok   eye_crown: 'r' at voxel -71,63,18 has 2 open face(s) in the full T10 build",
-  "ok   eye_crown: 'r' at voxel 71,63,18 has 2 open face(s) in the full T10 build",
-  "ok   eye_crown: 'r' at voxel -71,70,-18 has 5 open face(s) in the full T10 build",
-  "ok   eye_crown: 'r' at voxel 71,70,-18 has 5 open face(s) in the full T10 build",
-  "ok   eye_crown: 'r' at voxel -52,75,-49 has 2 open face(s) in the full T10 build",
-  "ok   eye_crown: 'r' at voxel 52,75,-49 has 2 open face(s) in the full T10 build",
-  "ok   eye_crown: 'r' at voxel -19,78,-67 has 2 open face(s) in the full T10 build",
-  "ok   eye_crown: 'r' at voxel 19,78,-67 has 2 open face(s) in the full T10 build",
+  "ok   eye_crown: 'k' at voxel -19,55,67 has 5 open face(s) in the full T10 build",
+  "ok   eye_crown: 'k' at voxel 19,55,67 has 5 open face(s) in the full T10 build",
+  "ok   eye_crown: 'k' at voxel -52,58,49 has 4 open face(s) in the full T10 build",
+  "ok   eye_crown: 'k' at voxel 52,58,49 has 4 open face(s) in the full T10 build",
+  "ok   eye_crown: 'k' at voxel -71,63,18 has 2 open face(s) in the full T10 build",
+  "ok   eye_crown: 'k' at voxel 71,63,18 has 2 open face(s) in the full T10 build",
+  "ok   eye_crown: 'k' at voxel -71,70,-18 has 5 open face(s) in the full T10 build",
+  "ok   eye_crown: 'k' at voxel 71,70,-18 has 5 open face(s) in the full T10 build",
+  "ok   eye_crown: 'k' at voxel -52,75,-49 has 2 open face(s) in the full T10 build",
+  "ok   eye_crown: 'k' at voxel 52,75,-49 has 2 open face(s) in the full T10 build",
+  "ok   eye_crown: 'k' at voxel -19,78,-67 has 2 open face(s) in the full T10 build",
+  "ok   eye_crown: 'k' at voxel 19,78,-67 has 2 open face(s) in the full T10 build",
   "ok   eye_crown: spike 0 (163 cells) spans 4.8..23.7 along its axis (drawn 3.5..25.5), farthest cell 1.99 from the tip",
   "ok   eye_crown: spike 1 (161 cells) spans 6.3..23.4 along its axis (drawn 3.5..25.5), farthest cell 2.31 from the tip",
   "ok   eye_crown: spike 2 (175 cells) spans 4.5..23.6 along its axis (drawn 3.5..25.5), farthest cell 1.97 from the tip",

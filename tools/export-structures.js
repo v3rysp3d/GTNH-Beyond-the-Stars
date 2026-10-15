@@ -217,7 +217,8 @@ const LEGEND = {
     p: { role: "slot_bus", kind: "slotbus (plinth face, below the controller)", block: "private Slot Bus element (an Input Bus, ME input bus included): planet items and companion star charts for planets mode / companions (T7+), else fallback", fallback: "Q", min: 0, hint: 8 },
     B: { role: "rail_halo_shell", kind: "bastion (T7 rail, rim->rail clamps, T8 shards, T9 collars, thorns, tie rails and tripod)", block: "slCasing:13 Bastion Plate (existing)" },
     P: { role: "rail_trim", kind: "casimir (T7 rail outer-face trim, T10 crown trim)", block: "slCasing:14 Casimir Plate (existing)" },
-    r: { role: "grb_receptor", kind: "receptor: 8 on the T7 rail's outer face (group rail-high / rail-low, by the rail's 8 deg tilt), 8 at the T8 shard roots (group halo), 5 on the T9 collars' outer rings (group collar, fallback B), 12 on the T10 crown above its band (group crown, fallback E)", block: "GRB Receptor Port (MTEHatchGRBReceptor, MTE 28125); its group is the manifest's sockets.r[i].group (match the hatch's offset from the controller), else fallback", fallback: "B (T7-T9), E (T10 crown)", min: 0, hint: 9 },
+    r: { role: "grb_receptor", kind: "receptor: 8 on the T7 rail's outer face (group rail-high / rail-low, by the rail's 8 deg tilt), 8 at the T8 shard roots (group halo), 5 on the T9 collars' outer rings (group collar)", block: "GRB Receptor Port (MTEHatchGRBReceptor, MTE 28125); its group is the manifest's sockets.r[i].group (match the hatch's offset from the controller), else fallback", fallback: "B", min: 0, hint: 9 },
+    k: { role: "grb_receptor_crown", kind: "receptor: 12 on the T10 crown above its band (group crown)", block: "GRB Receptor Port (MTEHatchGRBReceptor, MTE 28125), group crown, else fallback", fallback: "E", min: 0, hint: 9 },
     // P5 (designs/docs/p5-t9-t10.md §2.1, §6.2, §9.5)
     E: { role: "crown_shell", kind: "eternity (T10 crown band, its 48 sawtooth crystals, 12 spokes and 12 spikes)", block: "slCasing3:10 Eternity Shell Casing (BlockSLCasing3.ETERNITY_SHELL, existing)" },
     i: { role: "pellet_injector_socket", kind: "bastion (T9 top collar's outer ring, either side of its receptor: 2 cells)", block: "Pellet Injector Hatch (MTE 28128) or a Burst Control Hatch (MTE 28126) for the injector's rate, else fallback", fallback: "B", min: 0, hint: 10 },
@@ -423,7 +424,7 @@ const EYE_SOCKETS = [
   // centre-line at parameter 30k + 15 deg, become the crown receptors (group crown, p5-t9-t10.md §6.2). The T9 collar
   // sockets are picked below (voxel.js draws none) and pushed onto this table.
   ...(srcHas("const c=u(deg(30*k+15)); set(c[0],c[1]+4.6,c[2],B.grb);"), [...Array(12).keys()]).map((k) => {
-    const c = V.ell("uni")(d2r(30 * k + 15)); return { at: [c[0], c[1] + 4.6, c[2]], kind: "grb", ch: "r", tier: 10 }; }),
+    const c = V.ell("uni")(d2r(30 * k + 15)); return { at: [c[0], c[1] + 4.6, c[2]], kind: "grb", ch: "k", tier: 10 }; }),
 ];
 
 // ------------------------------------------------------------------------------------------------ helpers
@@ -1271,7 +1272,7 @@ const CROWN_SPIKES = [...Array(12).keys()].map((k) => {
   const cnt = (n, ch) => out[n].counts[ch] || 0, sock = (n) => Object.keys(out[n].counts).filter((c) => /[a-z~]/.test(c)).sort().join("");
   ok(cnt("eye_jet9", "r") === 5 && cnt("eye_jet9", "i") === 2 && sock("eye_jet9") === "ir",
     `eye_jet9: 5 GRB Receptor Ports 'r' and 2 Pellet Injector sockets 'i', no other socket (${cnt("eye_jet9", "r")} / ${cnt("eye_jet9", "i")}, ${sock("eye_jet9")})`);
-  ok(cnt("eye_crown", "r") === 12 && sock("eye_crown") === "r", `eye_crown: 12 GRB Receptor Ports 'r', no other socket (${cnt("eye_crown", "r")}, ${sock("eye_crown")})`);
+  ok(cnt("eye_crown", "k") === 12 && sock("eye_crown") === "k", `eye_crown: 12 GRB Receptor Ports 'k', no other socket (${cnt("eye_crown", "k")}, ${sock("eye_crown")})`);
   const vy = (n, ch) => pieceCells(n).filter((c) => c.ch === ch).map((c) => c.y - E[0].b.CY);
   const ry = vy("eye_jet9", "r"), iy = vy("eye_jet9", "i"), top = JET9.Y[JET9.Y.length - 1];
   ok(JET9.Y.every((y) => ry.filter((v) => v === y || v === y + 1).length === 1), `eye_jet9: one receptor on each collar's Bastion rows (voxel y ${ry.sort((a, b) => a - b)})`);
@@ -1447,7 +1448,7 @@ for (const [n, r] of Object.entries(out)) {
   for (const s of r.sockets) (sk[s.ch] = sk[s.ch] || []).push({ abc: s.abc, rel: s.rel, voxel: s.voxel,
     // the Eye's receptor groups (P4): rail-high / rail-low by the rail's tilt (+z half is high), halo on the shards;
     // P5: collar on the T9 collars, crown on the T10 crown
-    ...(s.ch === "r" && EYE_GROUP[n] ? { group: EYE_GROUP[n](s) } : {}) });
+    ...((s.ch === "r" || s.ch === "k") && EYE_GROUP[n] ? { group: EYE_GROUP[n](s) } : {}) });
   const socketCounts = Object.fromEntries(Object.entries(sk).map(([ch, l]) => [ch, l.length]));
   manifest.pieces[n] = { machine, file: `structures/${n}.txt`, w: r.w, h: r.h, d: r.d, off: r.off,
     blocks: Object.values(r.counts).reduce((a, b) => a + b, 0), bom, socketCounts, sockets: sk,
