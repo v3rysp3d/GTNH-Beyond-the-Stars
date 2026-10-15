@@ -364,6 +364,18 @@ public class MTEHatchDirective extends MTEHatch {
     @Override
     public void saveNBTData(NBTTagCompound aNBT) {
         super.saveNBTData(aNBT);
+        writeSettings(aNBT);
+    }
+
+    /** QM-05: the settings travel with a wrenched hatch too (GT's own setItemNBT writes nothing). */
+    @Override
+    public void setItemNBT(NBTTagCompound aNBT) {
+        super.setItemNBT(aNBT);
+        writeSettings(aNBT);
+    }
+
+    /** The one writer of the settings, for the tile and the item (loadNBTData reads both). */
+    private void writeSettings(NBTTagCompound aNBT) {
         aNBT.setString("btsDirSet", set.name());
         aNBT.setInteger("btsDirOutput", output.ordinal());
         aNBT.setBoolean("btsDirInvert", invert);
