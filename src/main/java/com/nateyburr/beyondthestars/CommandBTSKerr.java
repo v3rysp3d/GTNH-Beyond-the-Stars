@@ -112,6 +112,7 @@ public class CommandBTSKerr extends CommandBase {
         if (args.length >= 4 && (args[0].equalsIgnoreCase("damage") || args[0].equalsIgnoreCase("repair")
             || args[0].equalsIgnoreCase("keep")
             || args[0].equalsIgnoreCase("items")
+            || args[0].equalsIgnoreCase("setpoint")
             || args[0].equalsIgnoreCase("power")
             || args[0].equalsIgnoreCase("gui"))) {
             testBench(sender, args);
@@ -600,6 +601,12 @@ public class CommandBTSKerr extends CommandBase {
                     args.length > 4 ? Integer.parseInt(args[4]) : 0,
                     args.length > 5 ? Integer.parseInt(args[5]) : 0,
                     args.length > 6 ? Integer.parseInt(args[6]) : 0));
+            return;
+        }
+        if (verb.equals("setpoint")) {
+            // setpoint <SM>: the GUI's setter (QA-A03: 2 SM asks Auto to use a Collapser)
+            if (args.length > 4) kee.setSetpoint(Integer.parseInt(args[4]));
+            SLConsoleTest.tell(sender, "Kerr test bench: setpoint " + kee.getSetpoint() + " SM");
             return;
         }
         if (verb.equals("power")) {
