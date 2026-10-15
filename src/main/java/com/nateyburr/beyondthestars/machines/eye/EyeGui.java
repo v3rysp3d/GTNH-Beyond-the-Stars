@@ -755,7 +755,7 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                         : BTSText.lang("beyondthestars.gui.eye.p5.flow.next", String.valueOf(Math.round(f.next - fs.t)));
             rows.stat(
                 BTSText.lang("beyondthestars.gui.eye.p5.flow"),
-                BTSText.lit(flow),
+                flow,
                 BTSText.lang("beyondthestars.gui.eye.p5.flow.tip0"),
                 a.lastFlow()
                     .isEmpty() ? "" : BTSText.lang("beyondthestars.gui.eye.p5.flow.last", a.lastFlow()));

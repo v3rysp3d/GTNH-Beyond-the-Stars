@@ -7476,6 +7476,16 @@ generator in every compression cell), re-projection and damage-repair checks cle
 - Two findings on the way, both behaving as specified: 10^18 EU ran out after about 100 minutes at T9 (9.9 x 10^15 EU
   a cycle; r 0, P sagged, the Attractor lost: S-04's rule), and an injector left dry lost the Attractor to V +101 in
   about 50 s (§2.2's beam outage). The bench refill (`p5 refill`) is not saved; re-arm it after a restart.
+- **Restart mid-flow** (a group of 7 surging at τ 120, 120 s Stable): after the boot τ 121, and the group was captured
+  in full (2,016 L at parallel 2).
+- **Soft fail in play**: the beam cut (`p5 beam 0 0`) during The Infall: "The Infall FAILED: Breach, V +100.1", the
+  Milky Way still lit at T8 with Integrity 50, the charge spent, the Attractor Seed Core still in escrow; the rig's
+  Begin edge began it again (its preconditions held) and, with the beam back, it completed in 1,619 s.
+- **Wrench**: the controller picked up and placed back keeps unlocked T10 and the counters (galaxies, flows held,
+  universes, dawns); the star goes out (tile NBT), as every tier. GT keeps no maintenance in item NBT (`fix`).
+- **GUI as text** (`/btseye star … gui`): the T9 rows (V beside P / W / Λ, the bursts bar against D9, EU/t under it,
+  the Supermassive Link check, the pellet beam, pellets with seconds of fire, galaxies held, the flow line).
+  `/btstooltips`: the Eye's T9 / T10 lines and parts, the Pellet Injector's and the Burst Control Hatch's new lines.
 
 ## Where the old question numbers went
 
