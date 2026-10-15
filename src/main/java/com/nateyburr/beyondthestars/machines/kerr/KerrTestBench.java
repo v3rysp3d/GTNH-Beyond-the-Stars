@@ -134,7 +134,8 @@ public final class KerrTestBench {
     private static List<String> stock(MTEKerrModuleBase<?> m, String[] args, int from) {
         final List<String> out = new ArrayList<>();
         final List<RecipeMap<?>> maps = new ArrayList<>(m.getAvailableRecipeMaps());
-        int mapIndex = 0;
+        // QA-A12: default to the module's GT map (index 1 on the compressor; DENSITY, index 0, needs Kerr T2)
+        int mapIndex = maps.size() > 1 ? 1 : 0;
         String pick = "longest";
         int copies = 2;
         if (from < args.length) mapIndex = Integer.parseInt(args[from]);

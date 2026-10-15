@@ -155,6 +155,7 @@ public class MTEKerrCompressorModule extends MTEKerrModuleBase<MTEKerrCompressor
             runNeedsLink = false;
             return null;
         }
+        densityAsked = true;
         if (!recipeGateOpen()) return SimpleCheckRecipeResult.ofFailure("beyondthestars.kerr.module.density");
         final MTEKerrEngine kee = kee();
         final double minMass = BTSRecipesQuasar.densityMinMass(recipe);
@@ -169,6 +170,13 @@ public class MTEKerrCompressorModule extends MTEKerrModuleBase<MTEKerrCompressor
         return null;
     }
 
+    /**
+     * QA-A12: the last recipe check met a DENSITY recipe (its inputs are in the module), so the Densification line
+     * concerns the player. Without it a T1 compressor showed an amber "needs Kerr T2" all the time, which read as
+     * "this module needs T2" although GT's compressor recipes run at T1. Server state.
+     */
+    private boolean densityAsked;
+
     private static boolean linkHolds(@Nullable MTEKerrEngine kee) {
         return kee != null && kee.burstSigma() >= BTSRecipesQuasar.SUPERDENSE_MIN_SIGMA;
     }
@@ -177,6 +185,7 @@ public class MTEKerrCompressorModule extends MTEKerrModuleBase<MTEKerrCompressor
     @Nonnull
     public CheckRecipeResult checkProcessing() {
         runNeedsLink = false;
+        densityAsked = false;
         final CheckRecipeResult r = super.checkProcessing();
         if (!r.wasSuccessful()) runNeedsLink = false;
         return r;
@@ -222,6 +231,8 @@ public class MTEKerrCompressorModule extends MTEKerrModuleBase<MTEKerrCompressor
     /** The DENSITY gate, live: what is missing, or that it is open. */
     @Override
     public String gateLine() {
+        // QA-A12: only once Densification inputs are in, or while its gate is open
+        if (!densityAsked && !recipeGateOpen()) return "";
         final MTEKerrEngine kee = kee();
         if (kee == null || !kee.isHoleOpen()) {
             return "§8Densification: needs a linked Kerr T2 hole of 128 SM";
