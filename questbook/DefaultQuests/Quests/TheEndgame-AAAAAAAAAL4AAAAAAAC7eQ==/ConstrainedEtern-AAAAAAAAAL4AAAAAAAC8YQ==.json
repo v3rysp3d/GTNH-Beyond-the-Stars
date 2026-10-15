@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "§9L4§r, Constrained Eternity: each L3 node with 8 Eternity Plates, 8 Magmatter Plates, 16 any-MAX circuits, 144,000 L Entangled Superdense Ergomatter, 18,432 L Entangled Magnetar Matter and 2,880 L Entangled Eternity condensate (Condensate Assembler, MAX). Safe limit§9 4,194,304 SM§r, top§9 67,108,864 SM§r, and §9Unbind§r.\n\nAt the L4 top the hole gives ×31 on gas alone:§9 3.0e18 EU/t§r, held by 1.34 billion L/t of Hydrogen (67 Pump III). Take the 48 L3 nodes out before you place the L4 ones: the projector does not replace nodes in place.\n\n§2§lDONE §lWHEN§r you hold 48 Containment Nodes L4 (HOLD → CLAIM → INSTALL).",
+      "desc:8": "§9L4§r, Constrained Eternity: each L3 node with 8 Eternity Plates, 8 Magmatter Plates, 16 any-MAX circuits, 144,000 L Entangled Superdense Ergomatter, 18,432 L Entangled Magnetar Matter and 2,880 L Entangled Eternity condensate (Condensate Assembler, MAX). Safe limit§9 4,194,304 SM§r, top§9 67,108,864 SM§r, and §9Unbind§r.\n\nAt the L4 top the hole gives ×31 on gas alone:§9 3.0e18 EU/t§r, held by 1.34 billion L/t of Hydrogen (67 Pump III). Take the 48 L3 nodes out before you place the L4 ones: the projector does not replace nodes in place. Over 4,096 SM the quasar freezes meanwhile, and nothing is lost; then let the projector place the new tier with the lattice channel set.\n\n§2§lDONE §lWHEN§r you hold 48 Containment Nodes L4 (HOLD → CLAIM → INSTALL).",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,

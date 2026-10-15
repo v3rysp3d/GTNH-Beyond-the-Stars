@@ -210,7 +210,8 @@ x 408) and the KEE (starts at x 456).
 >    - at most 4 / 8 / 16 bolts a tick, set by the **lowest** rail (Mk I / II / III).
 > 4. While open, the hole draws **8,388,608 EU/t (1 A UEV)** of containment. Without power or bolts it bleeds, and
 >    below 2 SM it evaporates.
-> 5. A **Black Hole Collapser** closes it safely (the Collapse button, or in a bolt bus with Auto on).
+> 5. A **Black Hole Collapser** closes it safely (the Collapse button, or in a bolt bus with Auto on while the
+>    setpoint is 2 SM).
 >
 > [note]A bigger hole gives the modules more parallels; a smaller one makes them faster. The GUI shows mass,
 > setpoint, bolt stock, stability and every linked module.[/note]
@@ -262,8 +263,8 @@ x 408) and the KEE (starts at x 456).
 >
 > {5}{l}AUTOMATE{r} Stock the bolt buses from ME: an ME Interface or export bus per bus, or a Crafting Input Proxy.
 > The governor picks the bolt it needs to hold the setpoint. Better bolts carry more mass per bolt, so the rail cap
-> stops mattering. Put a Collapser in a bolt bus and switch **Auto** on: the hole is then closed and reseeded without
-> you.
+> stops mattering. With **Auto** on (the default), a Seed in a bolt bus opens a closed hole once at least 1 SM of bolts
+> and containment power are there, and a Collapser closes an open hole only while the setpoint is at its minimum, 2 SM.
 >
 > {a}{l}DONE WHEN{r} you are holding 64 Neutronium bolts (HOLD → CLAIM → INSTALL).
 

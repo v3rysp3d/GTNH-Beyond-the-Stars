@@ -50,7 +50,7 @@ rig rule with the threshold set to w; on T1, T2 and T4 it asks for exactly the s
 | Star | Bit 1 (1) | Bit 2 (2) | Bit 3 (4) | Bit 4 (8) |
 |---|---|---|---|---|
 | T1 Sol, T2 Sirius A | Helium (P > +w) | Hydrogen (P < −w) | — | — |
-| T3 Arcturus (and the Shell Ignition) | Helium (P > +w or Θ < −w) | Hydrogen (P < −w) | Super Coolant (P > +w, Θ > +w, or a flash warned while Θ > −30) | — |
+| T3 Arcturus (and the Shell Ignition) | Helium (P > +w or Θ < −w) | Hydrogen (P < −w) | Super Coolant (P > +w or Θ > +w). While a helium flash is warned (its 15 s warning and its hits): Super Coolant while Θ > −5, Helium (bit 1) only below Θ −35, Hydrogen as usual | — |
 | T4 neutron star, T6 magnetar | Space (P > +w) | SpaceTime (P < −w) | Super Coolant (Θ > +w) | Purified Tengam (Ω > +w) |
 | T5 Sirius B | DSSF (P or Θ > +w) | Raw Star Matter (Θ < −w) | Helium (P < −w) | — |
 
@@ -60,8 +60,8 @@ rig rule with the threshold set to w; on T1, T2 and T4 it asks for exactly the s
 |---|---|---|
 | 1 (1) | **Buffers short**: the next cycle's upkeep (or this cycle ran short), a dark Eye's ignition (10 cycles and the seed cloud), a waiting Sirius B batch, the magnetar's dwarf-matter top-up, or, with the next core in escrow, the next transition's fluids | stock the gas / stellar sockets |
 | 2 (2) | **Ignition charge wanted**: a dark Eye would light its chart's star now (T4: relight Arcturus) but no Stellar Ignition Charge is in a plinth bus | push one charge |
-| 3 (4) | **Event warned / fifth trim**: T3 a helium flash is warned (open the bigger Super Coolant valve); T6 the Antipolarization Agent is wanted (Π past ±w or a flare warned). During the Magnetar Merger: the imprint asks above Π +66, the release above +30 | the event valve; on T6 **while Transition bit 2 is on, a 1 unit/s (100 L/s) Agent valve** instead of the 5-unit one (the imprint must keep Π inside +60..+70: above +70 the field is Critical and drains Integrity 2/s, and 5 units take 20 off Π at once) |
-| 4 (8) | **Alarm**: the Eye is not formed, or the star is Critical or Breach, or Integrity is below 50 | lamp, alarm, backup |
+| 3 (4) | **Event / fifth trim**: T3 the flash's heat (a flash warned or hitting and Θ above +20: open the bigger Super Coolant valve); T6 the Antipolarization Agent is wanted (Π past ±w or a flare warned). During the Magnetar Merger: the imprint asks above Π +66, the release above +30 | the event valve; on T6 **while Transition bit 2 is on, a 1 unit/s (100 L/s) Agent valve** instead of the 5-unit one (the imprint must keep Π inside +60..+70: above +70 the field is Critical and drains Integrity 2/s, and 5 units take 20 off Π at once) |
+| 4 (8) | **Alarm**: the Eye is not formed or is switched off, or the star is Critical or Breach, or Integrity is below 50 | lamp, alarm, backup |
 
 **Eye: Transition**
 
@@ -122,8 +122,8 @@ fluid buses (AE2FC), Steve's Factory Manager item and fluid nodes, conveyor and 
 | Action | AE2 | Redstone + logic gates | OpenComputers | Steve's Factory Manager |
 |---|---|---|---|---|
 | **Bolts** | Export bus (or interface) into a plain bolt bus on Hole bit 3 (ME stocking buses are refused: the governor cannot take from shadow stacks) | Hole bit 3 → export bus / conveyor | `kerr.getState().boltStockSeconds`, transposer | Item node into the bolt bus on bit 3 |
-| **Open the hole** | Push a Black Hole Seed into a bolt bus on Hole bit 1; Auto (on by default) opens it | Hole bit 1 → export bus | `kerr.open()` (needs a Seed in a bolt bus) | Item node on bit 1 |
-| **Collapse** | Push a Collapser into a bolt bus (Auto) | Any signal you choose → export bus | `kerr.collapse()` (needs a Collapser) | Item node |
+| **Open the hole** | Push a Black Hole Seed into a bolt bus on Hole bit 1; Auto (on by default) opens it | Hole bit 1 → export bus | `kerr.open()` (needs a Seed, 1 SM of bolts and containment power in place) | Item node on bit 1 |
+| **Collapse** | Push a Collapser into a bolt bus and set the setpoint to 2 SM (Auto uses it then) | Control-set hatch at strength 1 (2 SM) with a Collapser in a bolt bus | `kerr.collapse()` (needs a Collapser) | Item node |
 | **Mass setpoint** | Level emitter → control-set hatch | Control-set hatch: 1-15 → 2 .. 64 / 512 SM | `kerr.setSetpoint(n)` | Analog redstone emitter → control hatch |
 | **Containment power** | — (energy / laser hatches) | Status bit 1 → backup generator | `getState().powerOk` | Redstone condition on Status bit 1 |
 | **Kerr modules** | Standard GT hatches: ME stocking buses and hatches, ME output | GT covers as on any multi | `bts_kerr_module.getState()` (link, parallel, speed, progress) | Item / fluid nodes |
@@ -135,13 +135,16 @@ fluid buses (AE2FC), Steve's Factory Manager item and fluid nodes, conveyor and 
   `getIntakeCaps()`): for a star, max(ignition need, 20 cycles of upkeep) plus any transition the Eye could begin; for
   a planet, 2 runs at full parallel. A fluid with no cap is not pulled. Before B-108 one stocking hatch emptied the
   whole network into the buffers within a second.
-- One stocking hatch per gas is enough, and it still takes up to the cap (1 G L of each gas for a T1 Sol) in its
-  first second. Keep the network's stock above the cap, or put the trim buses on their own network or behind a small
+- One stocking hatch per gas is enough. An ME stocking hatch fills the buffers at most a twentieth of the intake cap a
+  second (a full fill takes 20 s) and never draws the network's power store below half: AE2 charges 1 AE per 1,000 L,
+  so a first fill of 1 G L of each gas costs about 2 M AE in all. Only litres that really left the network are
+  credited. Keep the network's stock above the cap, or put the trim buses on their own network or behind a small
   Field hatch: a trim bus faster than the Eye's trim draw stockpiles trim in a big Field hatch, which the Eye keeps
   draining after the bit goes off (an LV hatch, 16,000 L, holds about a second of it).
 - The Field sockets take plain input hatches only in practice: an ME stocking hatch there is walked but never drained
   (R-15), so trims go in through an export bus, a pump, a regulator cover or an SFM fluid node.
-- Plinth buses: ME input buses work for charges and cores; star charts are picked up from **plain** buses only (an ME
+- Plinth buses: ME input buses work for charges and cores (stocked slots or the manual slot; a stocked core or charge
+  counts only once the network has given it up); star charts are picked up from **plain** buses only (an ME
   stocking bus would show its configured chart every second). Put the redstone card of the chart and core export
   buses on **Signal pulse**: a bit stays on until the Eye's next pickup a second later, so "active with signal" pushes
   2-4 items. Extra copies of the loaded chart go back out through the ME output bus (B-72); a spare core stays in the
@@ -200,9 +203,12 @@ end
 
 - **Eye T1 / T2:** two Trims hatches (Bit 1, Bit 2) → two valves (Helium, Hydrogen), each a tank with a Machine
   Controller cover and a Conditional Fluid Regulator cover (§4.1). ME stocking hatches in
-  the gas sockets, an ME input bus with charges. That is all: the star relights itself after a loss.
+  the gas sockets, an ME input bus with charges. That is all: the star relights itself after a loss, and after a
+  failed Mass Infusion, Shell Ignition or Core Collapse too: with the next tier's chart still in, the Eye relights the
+  star below from a charge and the transition begins again (Status bit 2 asks for the charge).
 - **Eye T3:** add a third Trims hatch (Bit 3, Super Coolant) and a Status hatch (Bit 3) on a second Super Coolant
-  regulator for the flash.
+  regulator for the flash. The Trims bits pre-cool once on the warning (Θ to about −35) and hold there, so the rig
+  rides every flash in Stable (the T3 -> T4 milestone): 38/38 offline, 5/3 live under /btswarp.
 - **Eye T4:** four Trims hatches (Space, SpaceTime, Super Coolant, Tengam). The HSM feed is a setpoint.
 - **Climbing tiers unattended:** a Transition hatch in Code mode, decoded with comparators (or SFM's analog
   conditions): bit 3 pushes the core, bit 1 pushes the next chart, bit 4 holds the Tachyon valve (the Core Collapse,
@@ -383,7 +389,7 @@ Rules that matter for an unattended rig:
 
 | Mode | Where | What the signal does |
 |---|---|---|
-| Purge | quasar `c` (cap rims) | A rising edge purges the flux (refused below Φ 20) |
+| Purge | quasar `c` (cap rims) | A rising edge purges the flux (refused below Φ 20). A signal that is already on when the server starts is not an edge |
 | Field b | quasar `c` | b = 0.5 + (coil tier − 0.5) × s/15 |
 | Junction split | a Junction | s in out 1's share: c + k(s/15 − 0.5) |
 | Begin | Eye `d` | A rising edge begins the galaxy transition while Galaxy Transition [1] is on; ignored otherwise |
@@ -550,7 +556,7 @@ crown; the GUIs, scanners, tooltips, NEI pages and quests show the EU/t beside e
 |---|---|
 | Hold | The mass setpoint from the safe limit (s 1) to the band top (s 15), log-linear. On an Unbound L4: 4,194,304 SM to 268,435,456 SM (two doublings past the L4 top). Strength 0 leaves the GUI's setpoint (as a Directive control set), so a level emitter that reads 0 while the network boots never sheds the hole. |
 | Overdrive | o = s / 15, snapped to 5 % (needs L3) |
-| Shed | A rising edge sets the mass setpoint to the safe limit (a 2 %/s shed, no power while it lasts) |
+| Shed | A rising edge sets the mass setpoint to the safe limit (a 2 %/s shed, no power while it lasts). A signal that is already on when the server starts is not an edge |
 
 **Stellar Field Sensor Hatch** channels (appended; 0 without a lattice in force): M / safe %, M / band top %, band x,
 the intake Disc / Hold-up / Growth (L/s) and % of the 5x cap, hold-up coverage %, mass change % per hour (signed), the
@@ -566,7 +572,7 @@ least 65,536 SM, linkable). The window now reaches 2,000,000,000 and the thresho
 | `getIntake()` | gas, disc, holdUp, growth, total, cap, capPct (L/s, last second), massPerHourPct |
 | `getHoldUp()` | need, paid, coverage, leaking, leakPerHourPct |
 | `getBuffer()` | litres, cap, seconds (-1: nothing needed), feedShort |
-| `getOverdrive()` | level, inUse, fromHatch, available, upkeepEach, coverage, mhdcsm, universium, oEff, outputX, bursts (Bu/t), burstsEUt, burstsText |
+| `getOverdrive()` | level, inUse, fromHatch, available, upkeepEach, coverage, espm, hsm (L/s of each mixture), oEff, outputX, bursts (Bu/t), burstsEUt, burstsText |
 | `getAnchor()` | allowed, unbound, n, need, paid, coverage, short, paysN |
 | `getHorizon()` | the Horizon set's code and named bits |
 | `setMassSetpoint(M)` | SM (0 = the safe limit); returns the setpoint in force |

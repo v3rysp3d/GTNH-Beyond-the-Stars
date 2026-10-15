@@ -158,7 +158,8 @@
       "- Neutronium 1/64 SM, Cosmic Neutronium 1/32, Infinity 1/16, Transcendent Metal 1/8, SpaceTime 1/4 SM a bolt;",
       "- at most 4 / 8 / 16 bolts a tick with Mk I / II / III rails. The {l}lowest{r} rail sets the rate, so upgrade them all together.",
       "4. While open, the hole draws {9}8,388,608 EU/t (1 A UEV){r} of containment. Without power the governor stops; below 2 SM the hole evaporates. The power switch does {l}not{r} stop the hole.",
-      "5. A {9}Black Hole Collapser{r} in a bolt bus closes it safely: press Collapse twice.",
+      "5. A {9}Black Hole Collapser{r} in a bolt bus closes it safely: press Collapse twice (with Auto on, a Collapser is used by itself only while the setpoint is 2 SM).",
+      "Open and Auto wait for at least {9}1 SM of bolts{r} (64 Neutronium bolts) in the bolt buses and {9}1 A UEV{r} of containment power: without them the 8 SM hole would evaporate in about 3 s and the Seed would be lost.",
       "",
       "[note]Mass sets the modules' bonus: a bigger hole gives more parallels, a smaller one more speed. The controller tooltip has the full block list, and NEI's Multiblock tab previews both tiers.[/note]",
       "",
@@ -173,7 +174,7 @@
       "Beyond the Stars replaces TecTech's Eye of Harmony with {9}one Eye that grows from T1 to T10{r}, a band at a time, with a {9}live star{r} at its centre. A star is not a batch recipe: it burns every minute, it must be fed, and it must be held steady.",
       "",
       "{5}{l}BUILD{r}",
-      "- Hologram stack 1 is the T1 core, {bomdims:eye_core}. Chunk-load the whole footprint.",
+      "- Hologram stack 1 is the T1 core, {bomdims:eye_core}. Chunk-load the whole footprint: while any chunk of it is unloaded the Eye is {9}frozen{r} (nothing runs, nothing is lost). T1 is 102 {times} 80 blocks, T6 158 {times} 149, T8 196 {times} 218, and the controller stands at one end, so a loader on its chunk alone is not enough.",
       "- It is mostly TecTech's own Eye blocks: {bom:eye_core:U} Reinforced Spatial and {bom:eye_core:Q} Reinforced Temporal Structure Casings (the Condensate Assembler makes these 32 at a time here), Infinite SpaceTime Energy Boundary Casing, Quantum Glass and the three field generator families. At the star's height the core band's front segments are a {9}window{r}: one Quantum Glass pane with the cells behind it left open, and later tiers leave an opening in their arms and rim in front of it, so the star shows from the front.",
       "- On the plinth: gas input hatches for Hydrogen and Helium, an input bus for Stellar Ignition Charges, an ME Output Bus, an ME Output Hatch and a maintenance hatch.",
       "- Power is {9}wireless EU only{r}, and none of it comes back: the Eye makes matter, not power.",
@@ -187,6 +188,8 @@
       "{5}{l}RUN{r} Every {9}60 s cycle{r} Sol burns {9}50,000,000 L Hydrogen + 50,000,000 L Helium{r} and {9}1.51 {times} 10{sup11} EU{r} (about 1 A UMV), and makes {9}50,000 L Raw Stellar Plasma{r} (NEI: Condensed Raw Stellar Plasma Mixture; the Eye's GUI says Raw Star Matter) into the ME output hatch. Upkeep is paid in full in every zone; a bad zone only cuts the yield.",
       "",
       "{5}{l}AUTOMATE{r} Inputs drain into internal buffers every second, so ME stocking input hatches on the gas sockets work. Keep a few charges in the plinth bus from an ME Interface. A dimension display block in the slot runs planets instead (see {c}Planets on the Eye{r}).",
+      "",
+      "If a block breaks or every maintenance issue opens, GT switches the Eye off; it switches itself back on once the structure is whole (or the maintenance fixed) and the star relights from a charge. A soft mallet's off stays off.",
       "",
       "[warn]{l}The tier gate:{r} Spacetime Compression decides the tier. An Eye of tier N needs every compression generator at tier N or higher. Crude runs T1.[/warn]",
       "",
@@ -276,7 +279,7 @@
         "",
         "{5}{l}AUTOMATE{r}",
         "- Stock the bolt buses from ME: an ME Interface, or an export bus on each bus. The GUI shows how long the stock lasts.",
-        "- Tick {9}Auto{r} in the GUI's Hole control panel: a Seed in a bolt bus then opens a closed hole, and a Collapser closes an open one, with no button.",
+        "- {9}Auto{r} (on by default, in the GUI's Hole control panel): a Seed in a bolt bus opens a closed hole once at least 1 SM of bolts and containment power are there, and a Collapser closes an open hole only while the setpoint is at its minimum, 2 SM (redstone 1 on a setpoint Directive Hatch, or setSetpoint(2)).",
         "- BHC Utility Hatches on the cage give redstone while the hole is open. Invert it into an export bus holding Seeds, and a hole that evaporates reseeds itself.",
         "",
         "{2}{l}DONE WHEN{r} you hold 64 Neutronium bolts (HOLD {to} CLAIM {to} INSTALL)."
@@ -358,6 +361,8 @@
         "",
         "[warn]One target per Eye: selecting a planet puts your star out. A second Eye for planets keeps the star burning.[/warn]",
         "",
+        "A star does not light while a planet run is in progress; it lights when the run ends.",
+        "",
         "[note]One Deep Dark run on the same Eye is a T4 {to} T5 milestone.[/note]",
         "",
         "{2}{l}DONE WHEN{r} you tick the box: this one is information only."
@@ -430,6 +435,8 @@
         "",
         "[note]A higher Eye still hosts lower stars, at {times}2 parallel per tier above. There is one live star per Eye.[/note]",
         "",
+        "If the Mass Infusion fails, leave the chart in: the Eye relights Sol from a Stellar Ignition Charge and tries again (the core stays in escrow).",
+        "",
         "{2}{l}DONE WHEN{r} you have held the core and the chart before the core goes into escrow (that task latches), and then 1,000 L of Excited Stellar Plasma Mixture, Sirius A's first product."
       ]
     },
@@ -463,6 +470,8 @@
         "To pull P down without heating the core, dose Helium {l}and{r} coolant together. Add a sensor pair on {theta} driving the coolant.",
         "",
         "{5}{l}HELIUM FLASHES{r} Every 20-40 minutes a flash adds {9}{theta} +30 a second for 3 s{r}. The sensor's event channel warns {9}15 s ahead{r}: pre-cool on the warning and you stay Stable.",
+        "",
+        "If the Shell Ignition fails, leave the chart in: the Eye relights Sirius A from a Stellar Ignition Charge and tries again (the core stays in escrow).",
         "",
         "[note]The T3 {to} T4 milestones: {l}400,000 L{r} Raw Hyperdense Stellar Plasma, {l}4 h Resonant{r}, and {l}3 flashes ridden{r} (never worse than Stable from the warning until 30 s after).[/note]",
         "",
@@ -544,6 +553,7 @@
         "{5}{l}BUILD{r}",
         "- Project it from the controller at the tip of the volute's discharge throat (hologram stack 1 = T1, {bomdims:homog_t1}).",
         "- A fluid Input Hatch on top of each Feed Vessel (3 at T1), an Output Hatch on the throat, and an Energy or Laser Hatch on the bottom cap rim. No maintenance hatch.",
+        "- A missing block, or a footprint chunk that is not loaded, pauses the machine: the run is kept and resumes by itself when the structure is whole. Chunk-load the whole footprint.",
         "",
         "{5}{l}RUN{r} {9}100,000 L Raw Stellar Plasma {to} 1,000 L Excited Stellar Plasma Mixture{r} in 240 s at UMV: 1 parallel, no overclock.",
         "",
@@ -959,9 +969,9 @@
       "desc": [
         "The quasar's power plant: {9}1 Bu/t {to} 10{sup13} EU/t{r} into your wireless network, no dynamo.",
         "",
-        "{5}{l}DOCK IT{r} A crown takes a jet when its base centre sits on the quasar's {9}port cell{r}: the cell just past each cap, on the jet axis. Stand it on the top cap; hang it upside down under the bottom cap (wrench the controller's front to turn it). NEI's multiblock preview of the crown shows where its base centre is.",
+        "{5}{l}DOCK IT{r} A crown takes a jet when its base centre sits on the quasar's {9}port cell{r}: the cell just past each cap, on the jet axis. Stand it on the top cap; hang it upside down under the bottom cap (wrench the controller's front to turn it). NEI's multiblock preview of the crown shows where its base centre is. A portable scanner on the Quasar Engine prints both port cells, where each crown's controller goes and which way it faces.",
         "",
-        "{5}{l}MK I, II, III{r} The crown you build around the same controller ({bomdims:crown_mk1} for Mk I): caps of {9}32 / 512 / 8,192 Bu/t{r} (3.2e14 / 5.1e15 / 8.2e16 EU/t: 320 trillion, 5.1 and 82 quadrillion). Build the bigger one around it to upgrade. A second crown stacked on the first takes the overflow. A port with nothing docked vents (Disc [8] lights).",
+        "{5}{l}MK I, II, III{r} The crown you build around the same controller ({bomdims:crown_mk1} for Mk I): caps of {9}32 / 512 / 8,192 Bu/t{r} (3.2e14 / 5.1e15 / 8.2e16 EU/t: 320 trillion, 5.1 and 82 quadrillion). Build the bigger one around it to upgrade. The bigger Mk does not keep the smaller one's petals and collimators: clear them first (the projector never breaks a block). A crown stacked on top sits higher over a bigger lower crown: re-place it after upgrading the lower one. A second crown stacked on the first takes the overflow. A port with nothing docked vents (Disc [8] lights).",
         "",
         "A GRB Receptor Port in its base lets a conduit feed a crown anywhere.",
         "",
@@ -1026,7 +1036,7 @@
         "- The hole grows to the tier's cap, {9}256 / 1,024 / 2,048 / 4,096 SM{r}, then the GUI says coil cap.",
         "- Coil power is 2 A UXV {times} b{sq}. Without it b is 0: the jets stop and the flux freezes.",
         "",
-        "Rebuild with a higher tier at any time; the hole is kept. Tier IV's Magmatter comes from the Godforge's magmatter mode: with Beyond the Stars' Eye its EE upgrade costs Black Dwarf Matter frame boxes instead of Universium, so Tier IV arrives at Eye T7. Saturation and the Supermassive Lattice need Tier IV.",
+        "Rebuild with a higher tier at any time; the hole is kept. With a lattice standing under a hole over 4,096 SM, coils under Magmatter {9}freeze{r} the quasar (nothing is lost) until Tier IV coils are back: to fit lower coils, lower the mass setpoint to 4,096 SM first. Tier IV's Magmatter comes from the Godforge's magmatter mode: with Beyond the Stars' Eye its EE upgrade costs Black Dwarf Matter frame boxes instead of Universium, so Tier IV arrives at Eye T7. Saturation and the Supermassive Lattice need Tier IV.",
         "",
         "{2}{l}DONE WHEN{r} you hold 32 Tier I coils (HOLD {to} CLAIM {to} INSTALL)."
       ]
@@ -1065,7 +1075,10 @@
         "- {9}Purge{r} (a quasar cap rim): a rising edge dumps the flux early, from 20 (under 20 it is refused). Never purging averages 1.11 {times} G0 {times} the jet yield; purging at flux 40 about 0.8, but a timed purge makes a spike (see {c}Magnetar Collapse{r}).",
         "- {9}Field b{r} (quasar): b = 0.5 + (coil tier - 0.5) {times} s/15.",
         "- {9}Junction split{r} (a Conduit Junction): out 1's share = c + k {times} (s/15 - 0.5), k 0, 1, 2 or 4.",
-        "- {9}Begin{r} (an Eye plinth d socket): a rising edge begins the Magnetar Collapse or the Galactic Merger once Galaxy Transition [1] is on.\",\n        \"- {9}Hold{r} (a quasar with a Supermassive Lattice): sets the mass setpoint (redstone 1 the safe limit .. 15 the band top; 0 leaves the GUI's setpoint, so an unwired hatch changes nothing).\",\n        \"- {9}Overdrive{r} (a quasar on an L3 lattice or better): o = s/15, rounded to 5 % steps.\",\n        \"- {9}Shed{r} (a quasar with a lattice): a rising edge lowers the mass setpoint to the safe limit. A signal that is already on when the server starts is not an edge.",
+        "- {9}Begin{r} (an Eye plinth d socket): a rising edge begins the Magnetar Collapse or the Galactic Merger once Galaxy Transition [1] is on.",
+        "- {9}Hold{r} (a quasar with a Supermassive Lattice): sets the mass setpoint (redstone 1 the safe limit .. 15 the band top; 0 leaves the GUI's setpoint, so an unwired hatch changes nothing).",
+        "- {9}Overdrive{r} (a quasar on an L3 lattice or better): o = s/15, rounded to 5 % steps.",
+        "- {9}Shed{r} (a quasar with a lattice): a rising edge lowers the mass setpoint to the safe limit. A signal that is already on when the server starts is not an edge.",
         "",
         "The standard rig: the quasar's Directive Hatch (Disc set) bit [4] AND NOT the Eye's Galaxy Transition bit [8], OR Galaxy Transition [4], into this hatch.",
         "",
@@ -1098,7 +1111,7 @@
         "",
         "A machine is {9}linked{r} while bursts arrived last second from a formed quasar with its hole open and its coils powered, through an open path. Break an element or starve its fuel and the link drops the next second. {u+03c3} = delivered {div} the machine's demand, on a 60 s mean; conditions and bonuses use the mean.",
         "",
-        "If the quasar's chunk unloads, linked machines {9}pause{r} instead of failing. The quasar's GUI lists every machine it feeds, with its {u+03c3}. No machine needs a link to work, except a Reality Diffraction with ports fitted.",
+        "If the quasar's chunk unloads, linked machines {9}pause{r} instead of failing. Keep every Conduit element and Wormhole Mouth on the path chunk-loaded too: an unloaded one stops the stream. The quasar's GUI lists every machine it feeds, with its {u+03c3}. No machine needs a link to work, except a Reality Diffraction with ports fitted.",
         "",
         "{2}{l}DONE WHEN{r} you hold a GRB Receptor Port (HOLD {to} CLAIM {to} INSTALL)."
       ]
@@ -1277,7 +1290,7 @@
       "tasks": [ { "type": "checkbox" } ],
       "desc": [
         "Planets mode is the Eye's {9}mode switch{r}: the Galaxy panel, or OpenComputers setMode(\"planets\"). The galaxy chart in the slot picks the tier: Triangulum gives {9}3 slots{r}, the Milky Way 6. The planets field lights at once, with no collapse.",
-        "- Planet items (the dimension display blocks) go in the {9}slot bus{r}, the plinth's p input bus. They are read, never consumed.",
+        "- Planet items (the dimension display blocks) go in the {9}slot bus{r}, the plinth's p input bus. They are read, never consumed. Taking a planet out of the slot bus abandons only that planet's run.",
         "- One gauge (P, drift 1 {times} ({u+03b2} - 1), calm), no events, a quarter of the demand.",
         "- Each planet runs at parallel 2^(N - k). Its success per parallel is (1 - 0.05 {times} rocket tier) {times} the field factor (Resonant and Stable 1, Strained 0.5, Critical 0).",
         "- Each slot pays its run at the start (Hydrogen and Helium {times} parallel from the buffers, and its EU) and waits while it cannot (Slots [1]). A Breach fails the runs in flight and re-forms the field.",
@@ -1433,7 +1446,8 @@
         "A stack of glass drums with six Region Blades. Each run will split Entanglement Medium into six {9}Entangled Region{r} condensates (Hyperspace, Subspace, Forward Time, Reverse Time, Positive Mass, Negative Mass) and push them into a Bose-Einstein Condensate network: outside reality.",
         "- Each region needs its own anchor fluid in its own socket, or its sixth is lost.",
         "- Give the Reality machines their own BEC network: six extra condensates would clog every other Condensate Assembler.",
-        "- Its portal takes 6 GRB Receptor Ports: faster with a strong quasar link, paused with a weak one, {times} 1 with none (see {c}Riding the Rift{r})."
+        "- Its portal takes 6 GRB Receptor Ports: faster with a strong quasar link, paused with a weak one, {times} 1 with none (see {c}Riding the Rift{r}).",
+        "- A missing block, or a footprint chunk that is not loaded, pauses the machine: the run is kept and resumes by itself when the structure is whole. Chunk-load the whole footprint."
       ]
     },
     {
@@ -1671,6 +1685,8 @@
         "",
         "{5}{l}AUTOMATE{r} The Directive Hatch's Horizon set: [1] hold-up short, [2] buffer under 30 s, [4] anchor short, [8] Overdrive upkeep short. A Burst Control Hatch in Hold mode sets the setpoint (redstone 1 the safe limit .. 15 the band top; 0 leaves the GUI's setpoint, so an unwired hatch changes nothing). Sensor channels and OpenComputers (getHoldUp, getBuffer) report it.",
         "",
+        "Holding exactly 65,536 SM leaves no margin: keep the {9}Accretion Buffer{r} full (60 s), so a short supply gap never leaks the hole under the Supermassive Link's 65,536 SM.",
+        "",
         "{2}{l}DONE WHEN{r} the hole has held 65,536 SM for an hour with the hold-up fully paid, no leak (tick the box)."
       ]
     },
@@ -1695,7 +1711,7 @@
       "desc": [
         "Remake the 48 nodes as {9}L2{r}: each L1 node plus 16,000 L Entangled Superdense Ergomatter, 4,608 L Entangled Magnetar Matter and 4 any-MAX circuits, in the Condensate Assembler at MAX. L2's safe limit is {9}65,536 SM{r} and its top 262,144 SM: the Eye gate's mass with no hold-up gas at all.",
         "",
-        "Take the 48 L1 nodes out before you place the L2 ones: the projector does not replace nodes in place. L2 is not needed for the Eye gate, which is met on L1, but L3 and L4 are made from L2 nodes.",
+        "Take the 48 L1 nodes out before you place the L2 ones: the projector does not replace nodes in place. Over 4,096 SM the quasar freezes meanwhile, and nothing is lost; then let the projector place the new tier with the lattice channel set. L2 is not needed for the Eye gate, which is met on L1, but L3 and L4 are made from L2 nodes.",
         "",
         "{2}{l}DONE WHEN{r} you hold 48 Containment Nodes L2 (HOLD {to} CLAIM {to} INSTALL)."
       ]
@@ -1710,7 +1726,7 @@
         "",
         "At 262,144 SM a hole gives {9}{times}7.9{r} on gas alone (7.7e17 EU/t). A whole endgame base draws 1e16 to 1e17 EU/t: one L3 hole holds it several times over.",
         "",
-        "[note]Take the 48 L2 nodes out before you place the L3 ones: the projector does not replace nodes in place.[/note]",
+        "[note]Take the 48 L2 nodes out before you place the L3 ones: the projector does not replace nodes in place. Over 4,096 SM the quasar freezes meanwhile, and nothing is lost; then let the projector place the new tier with the lattice channel set.[/note]",
         "",
         "{2}{l}DONE WHEN{r} you hold 48 Containment Nodes L3 (HOLD {to} CLAIM {to} INSTALL)."
       ]
@@ -1781,7 +1797,7 @@
       "desc": [
         "{9}L4{r}, Constrained Eternity: each L3 node with 8 Eternity Plates, 8 Magmatter Plates, 16 any-MAX circuits, 144,000 L Entangled Superdense Ergomatter, 18,432 L Entangled Magnetar Matter and 2,880 L Entangled Eternity condensate (Condensate Assembler, MAX). Safe limit {9}4,194,304 SM{r}, top {9}67,108,864 SM{r}, and {9}Unbind{r}.",
         "",
-        "At the L4 top the hole gives {times}31 on gas alone: {9}3.0e18 EU/t{r}, held by 1.34 billion L/t of Hydrogen (67 Pump III). Take the 48 L3 nodes out before you place the L4 ones: the projector does not replace nodes in place.",
+        "At the L4 top the hole gives {times}31 on gas alone: {9}3.0e18 EU/t{r}, held by 1.34 billion L/t of Hydrogen (67 Pump III). Take the 48 L3 nodes out before you place the L4 ones: the projector does not replace nodes in place. Over 4,096 SM the quasar freezes meanwhile, and nothing is lost; then let the projector place the new tier with the lattice channel set.",
         "",
         "{2}{l}DONE WHEN{r} you hold 48 Containment Nodes L4 (HOLD {to} CLAIM {to} INSTALL)."
       ]
@@ -1792,7 +1808,7 @@
       "prereqs": [48225],
       "tasks": [ { "type": "checkbox" } ],
       "desc": [
-        "On an L4 lattice, {9}Unbind{r} (click it twice in the Supermassive Lattice panel, or OpenComputers setUnbound) lets the setpoint pass 67,108,864 SM. n = log2(M / 67,108,864) is the number of doublings past the top. Hold {9}n 1 or more for 1 hour{r} with the anchor paid.",
+        "On an L4 lattice, {9}Unbind{r} (click it twice in the Supermassive Lattice panel, as Bind and Shed also take two clicks, or OpenComputers setUnbound) lets the setpoint pass 67,108,864 SM. n = log2(M / 67,108,864) is the number of doublings past the top. Hold {9}n 1 or more for 1 hour{r} with the anchor paid.",
         "",
         "{5}{l}THE ANCHOR{r} Every second the hole costs {9}1,024 {times} 4^(n{sq}) L{r} of Primordial Matter (GT's Transcendent Plasma Mixer), from the trim sockets or the rim gas sockets (ME stocking hatches work only in the gas sockets):",
         "- n 0.5 (94.9 M SM): 1,448 L/s",
@@ -1800,7 +1816,9 @@
         "- n 1.5 (190 M SM): 23,170 L/s",
         "- n 2 (268 M SM): 262,144 L/s",
         "- n 3 (537 M SM): 2.7e8 L/s, impossible",
-        "Short of it, the hole {9}sheds safely{r} at 2 % a second to the doubling your supply pays for (with no Primordial Matter at all, back to the L4 top). Nothing is ever destroyed. The setpoint is kept: when the anchor is paid again, the hole grows back to it.",
+        "Short of it, the hole {9}sheds safely{r} at 2 % a second to the doubling your supply pays for (with no Primordial Matter at all, back to the L4 top). Nothing is ever destroyed. The setpoint is kept: when the anchor is paid again, the hole grows back to it; lower the setpoint to stay where it is.",
+        "",
+        "The Primordial Matter on hand caps the Unbound mass: with an ME stocking hatch that is the whole network's stock, so the hole grows until the anchor burns it faster than you refill it. Set the setpoint to the doubling your supply keeps up with.",
         "",
         "Growth: one doubling per 8.2 h on Helium at the cap; the hold-up stays 3{times}. Unbound adds no power (the curve is flat): it makes Overdrive cheaper.",
         "",

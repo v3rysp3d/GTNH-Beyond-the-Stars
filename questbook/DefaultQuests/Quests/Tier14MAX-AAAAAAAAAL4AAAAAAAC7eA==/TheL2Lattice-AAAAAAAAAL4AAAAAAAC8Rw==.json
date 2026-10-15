@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "Remake the 48 nodes as §9L2§r: each L1 node plus 16,000 L Entangled Superdense Ergomatter, 4,608 L Entangled Magnetar Matter and 4 any-MAX circuits, in the Condensate Assembler at MAX. L2's safe limit is§9 65,536 SM§r and its top 262,144 SM: the Eye gate's mass with no hold-up gas at all.\n\nTake the 48 L1 nodes out before you place the L2 ones: the projector does not replace nodes in place. L2 is not needed for the Eye gate, which is met on L1, but L3 and L4 are made from L2 nodes.\n\n§2§lDONE §lWHEN§r you hold 48 Containment Nodes L2 (HOLD → CLAIM → INSTALL).",
+      "desc:8": "Remake the 48 nodes as §9L2§r: each L1 node plus 16,000 L Entangled Superdense Ergomatter, 4,608 L Entangled Magnetar Matter and 4 any-MAX circuits, in the Condensate Assembler at MAX. L2's safe limit is§9 65,536 SM§r and its top 262,144 SM: the Eye gate's mass with no hold-up gas at all.\n\nTake the 48 L1 nodes out before you place the L2 ones: the projector does not replace nodes in place. Over 4,096 SM the quasar freezes meanwhile, and nothing is lost; then let the projector place the new tier with the lattice channel set. L2 is not needed for the Eye gate, which is met on L1, but L3 and L4 are made from L2 nodes.\n\n§2§lDONE §lWHEN§r you hold 48 Containment Nodes L2 (HOLD → CLAIM → INSTALL).",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,

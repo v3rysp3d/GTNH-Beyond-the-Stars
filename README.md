@@ -907,7 +907,9 @@ The full argument lists are in each command's usage line (type the command with 
 **Gameplay and GUI:**
 
 - The Kerr Density Upgrade installs on a plain right-click, and it is permanent.
-- With Auto on, the Kerr collapses the hole the moment a Black Hole Collapser lands in a bolt bus.
+- Chunk-load the whole footprint of every big machine. While any chunk of the Eye's footprint is unloaded the Eye is
+  frozen (nothing runs, nothing is lost), as the Kerr and the Quasar are. T1 is 102 x 80 blocks, T6 158 x 149, T8
+  196 x 218, and the controller stands at one end, so a loader on its chunk alone is not enough.
 - A Magnetar Collapse can be begun with a quasar too small to hold it. The GUI warns you in red; it does not stop you.
 - The intake caps at Eye T7 / T8 are large with companions or planets (tens to hundreds of billions of litres of
   H / He).
@@ -920,7 +922,6 @@ The full argument lists are in each command's usage line (type the command with 
   build has no owner). The GUI opens normally.
 - Some long GUI lines are cut at the row edge; they scroll on hover or have the full text in the tooltip.
 - The Sensor Hatch's countdown channel and OpenComputers' `getEvent()` report one event when the GUI shows several.
-- The NEI planet page's "-3 % per field tier" line is a cut in run time, not in success chance.
 - The Homogeny T1 hologram shows Region Crystals at the throat tip.
 - Nuclear plant: a silo socket with the wrong hatch drops the silo without naming the cell; the Extraction Platform and
   Yellowcake Mill have no void protection.

@@ -146,8 +146,9 @@ module's GUI still opens, because MUI2 sync does not depend on the post-tick.
 
 **Gives (numbers unchanged from B-8, now read by the module from `KerrHole`):**
 
-- **Parallel** = 8 × `getTierExtended(module max input EU)` × ⌊√M⌋. The voltage tier is the **module's own** energy
-  hatch tier. At UIV (tier 11): 16 SM → 352, 64 SM → 704, 512 SM → 1,936.
+- **Parallel** = 8 × `getTierExtended(module max input EU)` × ⌊√M⌋. The tier is that of the **module's own** total
+  input, voltage × amps (GT's own Black Hole Compressor counts it so): a 2 A UIV hatch counts as UMV (tier 12), so
+  16 SM → 384, 64 SM → 768, 512 SM → 2,112.
 - **Speed** = clamp((3200 / M) / 50, 1, 4). That is ×4 at 16 SM or less, and ×1 at 64 SM or more.
 - **DENSITY recipes** need KEE T2 and M ≥ 128 SM (Compressor module).
 
@@ -230,12 +231,13 @@ widget, and right-clicking with the Density Upgrade still installs it.
 - **Open hole**: enabled only when the hole is closed and a Seed is in a bolt bus (it consumes 1);
 - **Collapse**: enabled only when the hole is open and a Collapser is in a bolt bus. It needs two clicks; the first
   turns it red with "N modules will pause";
-- **Auto**: a toggle, default on, keeps today's behaviour (a Seed or Collapser placed in a bolt bus acts on its own,
-  so automation keeps working).
+- **Auto**: a toggle, default on. A Seed in a bolt bus opens a closed hole once at least 1 SM of bolts and
+  containment power are there; a Collapser in a bolt bus closes an open hole only while the setpoint is at its
+  minimum, 2 SM (redstone 1 on a setpoint Directive Hatch, or `setSetpoint(2)`).
 
 **Panel B, "Modules"**: one row per `KerrSlot`. Each row has the module icon, its name, its state and its
 coordinates. States: `RUNNING` / `IDLE` / `PAUSED: hole closed` / `NOT FORMED` / `NOT BUILT` / `NOT LOADED`. A
-linked module also shows "parallel 352 · speed ×4.00". Read-only: modules are run from their own GUIs.
+linked module also shows "parallel 384 · speed ×4.00". Read-only: modules are run from their own GUIs.
 
 ### 4.2 Module: `MTEKerrModuleGui extends MTEMultiBlockBaseGui<MTEKerrModuleBase>`
 
