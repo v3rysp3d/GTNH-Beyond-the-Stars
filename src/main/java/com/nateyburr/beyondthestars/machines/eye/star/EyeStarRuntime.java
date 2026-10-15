@@ -2995,7 +2995,7 @@ public final class EyeStarRuntime {
                 return t.trims()
                     .get(4).kind.displayName + " wanted / event warned";
             }
-            if (t.n == 3) return "Helium flash warned (more Super Coolant)";
+            if (t.n == 3) return "Helium flash heat, Θ > +20 (more Super Coolant)";
         }
         return set.bit(i);
     }
